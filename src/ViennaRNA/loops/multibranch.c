@@ -1352,6 +1352,9 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
           decomp = MIN2(decomp, en);
         }
       }
+
+      k   += cnt;
+      k1j += cnt;
 #else
       for (; k <= stop; k++, k1j++) {
         if ((fmi_tmp[k] != INF) && (fm[k1j] != INF)) {

@@ -51,6 +51,16 @@
        (b)++)
 
 
+struct gquad_ali_helper {
+  short             **S;
+  unsigned int      **a2s;
+  int               n_seq;
+  vrna_param_t      *P;
+  vrna_exp_param_t  *pf;
+  int               L;
+  int               *l;
+};
+
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
@@ -137,7 +147,7 @@ PRIVATE void gquad_mfe_ali_pos(int  i,
                                int  L,
                                int  *l,
                                void *data,
-                               void *P,
+                               void *helper,
                                void *Lmfe,
                                void *lmfe);
 
@@ -167,6 +177,16 @@ gquad_pf(int  i,
          void *NA2);
 
 
+PRIVATE void
+gquad_pf_ali(int  i,
+             int  L,
+             int  *l,
+             void *data,
+             void *helper,
+             void *NA,
+             void *NA2);
+
+
 /**
  * Partition function callback for process_gquad_enumeration()
  * in contrast to gquad_pf() it stores the stack size L and
@@ -185,6 +205,16 @@ gquad_pf_pos(int  i,
              void *lmax);
 
 
+PRIVATE void
+gquad_pf_pos_ali(int  i,
+                 int  L,
+                 int  *l,
+                 void *data,
+                 void *helper,
+                 void *NA1,
+                 void *NA2);
+
+
 /**
  * MFE (alifold) callback for process_gquad_enumeration()
  */
@@ -194,9 +224,9 @@ gquad_mfe_ali(int   i,
               int   L,
               int   *l,
               void  *data,
-              void  *P,
-              void  *S,
-              void  *n_seq);
+              void  *helper,
+              void  *NA,
+              void  *NA2);
 
 
 /**
@@ -209,9 +239,9 @@ gquad_mfe_ali_en(int  i,
                  int  L,
                  int  *l,
                  void *data,
-                 void *P,
-                 void *S,
-                 void *n_seq);
+                 void *helper,
+                 void *NA,
+                 void *NA2);
 
 
 PRIVATE
@@ -223,6 +253,17 @@ gquad_interact(int  i,
                void *pf,
                void *index,
                void *NA2);
+
+
+PRIVATE
+void
+gquad_interact_ali(int  i,
+                   int  L,
+                   int  *l,
+                   void *data,
+                   void *index,
+                   void *helper,
+                   void *NA);
 
 
 PRIVATE
@@ -251,11 +292,31 @@ gquad_count_layers(int  i,
 
 PRIVATE
 int
-gquad_ali_penalty(int           i,
-                  int           L,
-                  int           l[3],
-                  const short   **S,
-                  vrna_param_t  *P);
+E_gquad_ali_penalty(int           i,
+                    int           L,
+                    int           l[3],
+                    const short   **S,
+                    unsigned int  n_seq,
+                    vrna_param_t  *P);
+
+
+PRIVATE
+FLT_OR_DBL
+exp_E_gquad_ali_penalty(int               i,
+                        int               L,
+                        int               l[3],
+                        const short       **S,
+                        unsigned int      n_seq,
+                        vrna_exp_param_t  *P);
+
+
+PRIVATE void
+count_gquad_layer_mismatches(int          i,
+                             int          L,
+                             int          l[3],
+                             const short  **S,
+                             unsigned int n_seq,
+                             unsigned int mm[2]);
 
 
 PRIVATE int **
@@ -274,6 +335,7 @@ create_aliL_matrix(int          start,
                    int          **g,
                    short        *S_cons,
                    short        **S,
+                   unsigned int **a2s,
                    int          n_seq,
                    vrna_param_t *P);
 
@@ -357,18 +419,44 @@ exp_E_gquad(int               L,
 }
 
 
-PUBLIC int
-E_gquad_ali(int           i,
-            int           L,
-            int           l[3],
-            const short   **S,
-            int           n_seq,
-            vrna_param_t  *P)
+PUBLIC FLT_OR_DBL
+exp_E_gquad_ali(int               i,
+                int               L,
+                int               l[3],
+                short             **S,
+                unsigned int      **a2s,
+                int               n_seq,
+                vrna_exp_param_t  *pf)
 {
-  int en[2];
+  int         s;
+  FLT_OR_DBL  q = 0.;
 
-  E_gquad_ali_en(i, L, l, S, n_seq, en, P);
-  return en[0] + en[1];
+  for (s = 0; s < 3; s++) {
+    if (l[s] > VRNA_GQUAD_MAX_LINKER_LENGTH)
+      return q;
+
+    if (l[s] < VRNA_GQUAD_MIN_LINKER_LENGTH)
+      return q;
+  }
+  if (L > VRNA_GQUAD_MAX_STACK_SIZE)
+    return q;
+
+  if (L < VRNA_GQUAD_MIN_STACK_SIZE)
+    return q;
+
+  struct gquad_ali_helper gq_help;
+
+  gq_help.S     = S;
+  gq_help.a2s   = a2s;
+  gq_help.n_seq = n_seq;
+  gq_help.pf    = pf;
+
+  gquad_pf_ali(i, L, l,
+               (void *)(&q),
+               (void *)&gq_help,
+               NULL,
+               NULL);
+  return q;
 }
 
 
@@ -377,19 +465,22 @@ E_gquad_ali_en(int          i,
                int          L,
                int          l[3],
                const short  **S,
-               int          n_seq,
-               int          en[2],
-               vrna_param_t *P)
+               unsigned int **a2s,
+               unsigned int n_seq,
+               vrna_param_t *P,
+               int          en[2])
 {
-  int j;
+  unsigned int  s;
+  int           ee, ee2, u1, u2, u3;
 
   en[0] = en[1] = INF;
 
-  for (j = 0; j < 3; j++) {
-    if (l[j] > VRNA_GQUAD_MAX_LINKER_LENGTH)
+  /* check if the quadruplex obeys the canonical form */
+  for (s = 0; s < 3; s++) {
+    if (l[s] > VRNA_GQUAD_MAX_LINKER_LENGTH)
       return;
 
-    if (l[j] < VRNA_GQUAD_MIN_LINKER_LENGTH)
+    if (l[s] < VRNA_GQUAD_MIN_LINKER_LENGTH)
       return;
   }
   if (L > VRNA_GQUAD_MAX_STACK_SIZE)
@@ -398,11 +489,24 @@ E_gquad_ali_en(int          i,
   if (L < VRNA_GQUAD_MIN_STACK_SIZE)
     return;
 
-  gquad_mfe_ali_en(i, L, l,
-                   (void *)(&(en[0])),
-                   (void *)P,
-                   (void *)S,
-                   (void *)(&n_seq));
+  /* compute actual quadruplex contribution for subalignment */
+  ee = 0;
+
+  for (s = 0; s < n_seq; s++) {
+    u1  = a2s[s][i + L + l[0] - 1] - a2s[s][i + L - 1];
+    u2  = a2s[s][i + 2 * L + l[0] + l[1] - 1] - a2s[s][i + 2 * L + l[0] - 1];
+    u3  = a2s[s][i + 3 * L + l[0] + l[1] + l[2] - 1] - a2s[s][i + 3 * L + l[0] + l[1] - 1];
+    ee  += P->gquad[L][u1 + u2 + u3];
+  }
+
+  /* get penalty from incompatible sequences in alignment */
+  ee2 = E_gquad_ali_penalty(i, L, l, S, n_seq, P);
+
+  /* assign return values */
+  if (ee2 != INF) {
+    en[0] = ee;
+    en[1] = ee2;
+  }
 }
 
 
@@ -473,21 +577,66 @@ get_gquad_pf_matrix(short             *S,
 }
 
 
+PUBLIC FLT_OR_DBL *
+get_gquad_pf_matrix_comparative(short             *S_cons,
+                                short             **S,
+                                unsigned int      **a2s,
+                                FLT_OR_DBL        *scale,
+                                unsigned int      n_seq,
+                                vrna_exp_param_t  *pf)
+{
+  int                     n, size, *gg, i, j, *my_index;
+  FLT_OR_DBL              *data;
+  struct gquad_ali_helper gq_help;
+
+
+  n             = S[0][0];
+  size          = (n * (n + 1)) / 2 + 2;
+  data          = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+  gg            = get_g_islands(S_cons);
+  my_index      = vrna_idx_row_wise(n);
+  gq_help.S     = S;
+  gq_help.a2s   = a2s;
+  gq_help.n_seq = n_seq;
+  gq_help.pf    = pf;
+
+  FOR_EACH_GQUAD(i, j, 1, n){
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_pf_ali,
+                              (void *)(&(data[my_index[i] - j])),
+                              (void *)&gq_help,
+                              NULL,
+                              NULL);
+    data[my_index[i] - j] *= scale[j - i + 1];
+  }
+
+  free(my_index);
+  free(gg);
+  return data;
+}
+
+
 PUBLIC int *
 get_gquad_ali_matrix(short        *S_cons,
                      short        **S,
+                     unsigned int **a2s,
                      int          n_seq,
                      vrna_param_t *P)
 {
-  int n, size, *data, *gg;
-  int i, j, *my_index;
-
+  int                     n, size, *data, *gg;
+  int                     i, j, *my_index;
+  struct gquad_ali_helper gq_help;
 
   n         = S[0][0];
   size      = (n * (n + 1)) / 2 + 2;
   data      = (int *)vrna_alloc(sizeof(int) * size);
   gg        = get_g_islands(S_cons);
   my_index  = vrna_idx_col_wise(n);
+
+  gq_help.S     = S;
+  gq_help.a2s   = a2s;
+  gq_help.n_seq = n_seq;
+  gq_help.P     = P;
 
   /* prefill the upper triangular matrix with INF */
   for (i = 0; i < size; i++)
@@ -497,9 +646,9 @@ get_gquad_ali_matrix(short        *S_cons,
     process_gquad_enumeration(gg, i, j,
                               &gquad_mfe_ali,
                               (void *)(&(data[my_index[j] + i])),
-                              (void *)P,
-                              (void *)S,
-                              (void *)(&n_seq));
+                              (void *)&gq_help,
+                              NULL,
+                              NULL);
   }
 
   free(my_index);
@@ -532,6 +681,7 @@ vrna_gquad_mx_local_update(vrna_fold_compound_t *vc,
       vc->matrices->ggg_local,
       vc->S_cons,
       vc->S,
+      vc->a2s,
       vc->n_seq,
       vc->params);
   } else {
@@ -620,6 +770,7 @@ create_aliL_matrix(int          start,
                    int          **g,
                    short        *S_cons,
                    short        **S,
+                   unsigned int **a2s,
                    int          n_seq,
                    vrna_param_t *P)
 {
@@ -629,6 +780,13 @@ create_aliL_matrix(int          start,
   p   = MAX2(1, start);
   q   = MIN2(n, start + maxdist + 4);
   gg  = get_g_islands_sub(S_cons, p, q);
+
+  struct gquad_ali_helper gq_help;
+
+  gq_help.S     = S;
+  gq_help.a2s   = a2s;
+  gq_help.n_seq = n_seq;
+  gq_help.P     = P;
 
   if (g) {
     /* we just update the gquadruplex contribution for the current
@@ -649,9 +807,9 @@ create_aliL_matrix(int          start,
       process_gquad_enumeration(gg, start, j,
                                 &gquad_mfe_ali,
                                 (void *)(&(data[start][j - start])),
-                                (void *)P,
-                                (void *)S,
-                                (void *)(&n_seq));
+                                (void *)&gq_help,
+                                NULL,
+                                NULL);
     }
   } else {
     /* create a new matrix from scratch since this is the first
@@ -670,9 +828,9 @@ create_aliL_matrix(int          start,
       process_gquad_enumeration(gg, i, j,
                                 &gquad_mfe_ali,
                                 (void *)(&(data[i][j - i])),
-                                (void *)P,
-                                (void *)S,
-                                (void *)(&n_seq));
+                                (void *)&gq_help,
+                                NULL,
+                                NULL);
     }
   }
 
@@ -757,14 +915,9 @@ get_gquad_pattern_mfe(short         *S,
 }
 
 
-typedef struct {
-  short **S;
-  int   n_seq;
-  int   mfe;
-} ali_mfe_struct;
-
 PUBLIC void
 get_gquad_pattern_mfe_ali(short         **S,
+                          unsigned int  **a2s,
                           short         *S_cons,
                           int           n_seq,
                           int           i,
@@ -773,18 +926,21 @@ get_gquad_pattern_mfe_ali(short         **S,
                           int           *L,
                           int           l[3])
 {
-  int             *gg = get_g_islands_sub(S_cons, i, j);
+  int                     mfe, *gg;
+  struct gquad_ali_helper gq_help;
 
-  ali_mfe_struct  c;
+  gg  = get_g_islands_sub(S_cons, i, j);
+  mfe = INF;
 
-  c.S     = S;
-  c.n_seq = n_seq;
-  c.mfe   = INF;
+  gq_help.S     = S;
+  gq_help.a2s   = a2s;
+  gq_help.n_seq = n_seq;
+  gq_help.P     = P;
 
   process_gquad_enumeration(gg, i, j,
                             &gquad_mfe_ali_pos,
-                            (void *)(&c),
-                            (void *)P,
+                            (void *)(&mfe),
+                            (void *)&gq_help,
                             (void *)L,
                             (void *)l);
 
@@ -839,6 +995,47 @@ get_gquad_pattern_pf(short            *S,
 }
 
 
+PUBLIC void
+vrna_get_gquad_pattern_pf(vrna_fold_compound_t  *fc,
+                          int                   i,
+                          int                   j,
+                          int                   *L,
+                          int                   l[3])
+{
+  short             *S  = fc->type == VRNA_FC_TYPE_SINGLE ? fc->sequence_encoding2 : fc->S_cons;
+  int               *gg = get_g_islands_sub(S, i, j);
+  FLT_OR_DBL        q   = 0.;
+  vrna_exp_param_t  *pf = fc->exp_params;
+
+  if (fc->type == VRNA_FC_TYPE_SINGLE) {
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_pf_pos,
+                              (void *)(&q),
+                              (void *)pf,
+                              (void *)L,
+                              (void *)l);
+  } else {
+    struct gquad_ali_helper gq_help;
+    gq_help.S     = fc->S;
+    gq_help.a2s   = fc->a2s;
+    gq_help.n_seq = fc->n_seq;
+    gq_help.pf    = pf;
+    gq_help.L     = (int)(*L);
+    gq_help.l     = (int *)l;
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_pf_pos_ali,
+                              (void *)(&q),
+                              (void *)&gq_help,
+                              NULL,
+                              NULL);
+    *L = gq_help.L;
+  }
+
+  gg += i - 1;
+  free(gg);
+}
+
+
 PUBLIC plist *
 get_plist_gquad_from_pr(short             *S,
                         int               gi,
@@ -851,6 +1048,17 @@ get_plist_gquad_from_pr(short             *S,
   int L, l[3];
 
   return get_plist_gquad_from_pr_max(S, gi, gj, G, probs, scale, &L, l, pf);
+}
+
+
+PUBLIC plist *
+vrna_get_plist_gquad_from_pr(vrna_fold_compound_t *fc,
+                             int                  gi,
+                             int                  gj)
+{
+  int L, l[3];
+
+  return vrna_get_plist_gquad_from_pr_max(fc, gi, gj, &L, l);
 }
 
 
@@ -891,6 +1099,96 @@ get_plist_gquad_from_pr_max(short             *S,
                             (void *)pf,
                             (void *)Lmax,
                             (void *)lmax);
+
+  pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] / G[my_index[gi] - gj];
+  for (i = gi; i < gj; i++) {
+    for (j = i; j <= gj; j++) {
+      if (tempprobs[my_index[i] - j] > 0.) {
+        pl[counter].i   = i;
+        pl[counter].j   = j;
+        pl[counter++].p = pp * tempprobs[my_index[i] - j];
+      }
+    }
+  }
+  pl[counter].i   = pl[counter].j = 0;
+  pl[counter++].p = 0.;
+  /* shrink memory to actual size needed */
+  pl = (plist *)vrna_realloc(pl, counter * sizeof(plist));
+
+  gg += gi - 1;
+  free(gg);
+  free(my_index);
+  free(tempprobs);
+  return pl;
+}
+
+
+PUBLIC plist *
+vrna_get_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
+                                 int                  gi,
+                                 int                  gj,
+                                 int                  *Lmax,
+                                 int                  lmax[3])
+{
+  short             *S;
+  int               n, size, *gg, counter, i, j, *my_index;
+  FLT_OR_DBL        pp, *tempprobs, *G, *probs, *scale;
+  plist             *pl;
+  vrna_exp_param_t  *pf;
+
+  n         = (int)fc->length;
+  pf        = fc->exp_params;
+  G         = fc->exp_matrices->G;
+  probs     = fc->exp_matrices->probs;
+  scale     = fc->exp_matrices->scale;
+  S         = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : fc->S_cons;
+  size      = (n * (n + 1)) / 2 + 2;
+  tempprobs = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+  pl        = (plist *)vrna_alloc((n * n) * sizeof(plist));
+  gg        = get_g_islands_sub(S, gi, gj);
+  counter   = 0;
+  my_index  = vrna_idx_row_wise(n);
+
+  pp = 0.;
+
+  if (fc->type == VRNA_FC_TYPE_SINGLE) {
+    process_gquad_enumeration(gg, gi, gj,
+                              &gquad_interact,
+                              (void *)tempprobs,
+                              (void *)pf,
+                              (void *)my_index,
+                              NULL);
+
+    process_gquad_enumeration(gg, gi, gj,
+                              &gquad_pf_pos,
+                              (void *)(&pp),
+                              (void *)pf,
+                              (void *)Lmax,
+                              (void *)lmax);
+  } else {
+    struct gquad_ali_helper gq_help;
+    gq_help.S     = fc->S;
+    gq_help.a2s   = fc->a2s;
+    gq_help.n_seq = fc->n_seq;
+    gq_help.pf    = pf;
+    gq_help.L     = *Lmax;
+    gq_help.l     = &(lmax[0]);
+
+    process_gquad_enumeration(gg, gi, gj,
+                              &gquad_interact_ali,
+                              (void *)tempprobs,
+                              (void *)my_index,
+                              (void *)&(gq_help),
+                              NULL);
+
+    process_gquad_enumeration(gg, gi, gj,
+                              &gquad_pf_pos_ali,
+                              (void *)(&pp),
+                              (void *)&gq_help,
+                              NULL,
+                              NULL);
+    *Lmax = gq_help.L;
+  }
 
   pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] / G[my_index[gi] - gj];
   for (i = gi; i < gj; i++) {
@@ -1006,20 +1304,60 @@ parse_gquad(const char  *struc,
  #########################################
  */
 PRIVATE int
-gquad_ali_penalty(int           i,
-                  int           L,
-                  int           l[3],
-                  const short   **S,
-                  vrna_param_t  *P)
+E_gquad_ali_penalty(int           i,
+                    int           L,
+                    int           l[3],
+                    const short   **S,
+                    unsigned int  n_seq,
+                    vrna_param_t  *P)
 {
-  int s, cnt;
-  int penalty     = 0;
-  int gg_mismatch = 0;
+  unsigned int mm[2];
+
+  count_gquad_layer_mismatches(i, L, l, S, n_seq, mm);
+
+  if (mm[1] > P->gquadLayerMismatchMax)
+    return INF;
+  else
+    return P->gquadLayerMismatch * mm[0];
+}
+
+
+PRIVATE FLT_OR_DBL
+exp_E_gquad_ali_penalty(int               i,
+                        int               L,
+                        int               l[3],
+                        const short       **S,
+                        unsigned int      n_seq,
+                        vrna_exp_param_t  *pf)
+{
+  unsigned int mm[2];
+
+  count_gquad_layer_mismatches(i, L, l, S, n_seq, mm);
+
+  if (mm[1] > pf->gquadLayerMismatchMax)
+    return (FLT_OR_DBL)0.;
+  else
+    return (FLT_OR_DBL)pow(pf->expgquadLayerMismatch, (double)mm[0]);
+}
+
+
+PRIVATE void
+count_gquad_layer_mismatches(int          i,
+                             int          L,
+                             int          l[3],
+                             const short  **S,
+                             unsigned int n_seq,
+                             unsigned int mm[2])
+{
+  unsigned int  s;
+  int           cnt;
+
+  mm[0] = mm[1] = 0;
 
   /* check for compatibility in the alignment */
-  for (s = 0; S[s]; s++) {
-    unsigned int  ld  = 0; /* !=0 if layer destruction was detected */
-    int           pen = 0;
+  for (s = 0; s < n_seq; s++) {
+    unsigned int  ld        = 0; /* !=0 if layer destruction was detected */
+    unsigned int  mismatch  = 0;
 
     /* check bottom layer */
     if (S[s][i] != 3)
@@ -1036,7 +1374,7 @@ gquad_ali_penalty(int           i,
 
     /* add 1x penalty for missing bottom layer */
     if (ld)
-      pen += VRNA_GQUAD_MISMATCH_PENALTY;
+      mismatch++;
 
     /* check top layer */
     ld = 0;
@@ -1054,9 +1392,10 @@ gquad_ali_penalty(int           i,
 
     /* add 1x penalty for missing top layer */
     if (ld)
-      pen += VRNA_GQUAD_MISMATCH_PENALTY;
+      mismatch++;
 
     /* check inner layers */
+    ld = 0;
     for (cnt = 1; cnt < L - 1; cnt++) {
       if (S[s][i + cnt] != 3)
         ld |= 1U;
@@ -1072,21 +1411,14 @@ gquad_ali_penalty(int           i,
 
       /* add 2x penalty for missing inner layer */
       if (ld)
-        pen += 2 * VRNA_GQUAD_MISMATCH_PENALTY;
+        mismatch += 2;
     }
 
-    /* if all layers are missing, we have a complete gg mismatch */
-    if (pen >= (2 * VRNA_GQUAD_MISMATCH_PENALTY * (L - 1)))
-      gg_mismatch++;
+    mm[0] += mismatch;
 
-    /* add the penalty to the score */
-    penalty += pen;
+    if (mismatch >= 2 * (L - 1))
+      mm[1]++;
   }
-  /* if gg_mismatch exceeds maximum allowed, this g-quadruplex is forbidden */
-  if (gg_mismatch > VRNA_GQUAD_MISMATCH_NUM_ALI)
-    return INF;
-  else
-    return penalty;
 }
 
 
@@ -1132,21 +1464,20 @@ gquad_mfe_ali_pos(int   i,
                   int   L,
                   int   *l,
                   void  *data,
-                  void  *P,
+                  void  *helper,
                   void  *Lmfe,
                   void  *lmfe)
 {
   int cc = INF;
 
-  gquad_mfe_ali(i, L, l, (void *)&cc, P, (void *)((ali_mfe_struct *)data)->S,
-                (void *)&((ali_mfe_struct *)data)->n_seq);
+  gquad_mfe_ali(i, L, l, (void *)&cc, helper, NULL, NULL);
 
-  if (cc < ((ali_mfe_struct *)data)->mfe) {
-    ((ali_mfe_struct *)data)->mfe = cc;
-    *((int *)Lmfe)                = L;
-    *((int *)lmfe)                = l[0];
-    *(((int *)lmfe) + 1)          = l[1];
-    *(((int *)lmfe) + 2)          = l[2];
+  if (cc < *((int *)data)) {
+    *((int *)data)        = cc;
+    *((int *)Lmfe)        = L;
+    *((int *)lmfe)        = l[0];
+    *(((int *)lmfe) + 1)  = l[1];
+    *(((int *)lmfe) + 2)  = l[2];
   }
 }
 
@@ -1224,6 +1555,42 @@ gquad_pf(int  i,
 
 
 PRIVATE void
+gquad_pf_ali(int  i,
+             int  L,
+             int  *l,
+             void *data,
+             void *helper,
+             void *NA,
+             void *NA2)
+{
+  short                   **S;
+  unsigned int            **a2s;
+  int                     u1, u2, u3, s, n_seq;
+  FLT_OR_DBL              penalty;
+  vrna_exp_param_t        *pf;
+  struct gquad_ali_helper *gq_help;
+
+  gq_help = (struct gquad_ali_helper *)helper;
+  S       = gq_help->S;
+  a2s     = gq_help->a2s;
+  n_seq   = gq_help->n_seq;
+  pf      = gq_help->pf;
+  penalty = exp_E_gquad_ali_penalty(i, L, l, (const short **)S, (unsigned int)n_seq, pf);
+
+  if (penalty != 0.) {
+    double q = 1.;
+    for (s = 0; s < n_seq; s++) {
+      u1  = a2s[s][i + L + l[0] - 1] - a2s[s][i + L - 1];
+      u2  = a2s[s][i + 2 * L + l[0] + l[1] - 1] - a2s[s][i + 2 * L + l[0] - 1];
+      u3  = a2s[s][i + 3 * L + l[0] + l[1] + l[2] - 1] - a2s[s][i + 3 * L + l[0] + l[1] - 1];
+      q   *= pf->expgquad[L][u1 + u2 + u3];
+    }
+    *((FLT_OR_DBL *)data) += q * penalty;
+  }
+}
+
+
+PRIVATE void
 gquad_pf_pos(int  i,
              int  L,
              int  *l,
@@ -1232,7 +1599,9 @@ gquad_pf_pos(int  i,
              void *Lmax,
              void *lmax)
 {
-  FLT_OR_DBL gq = ((vrna_exp_param_t *)pf)->expgquad[L][l[0] + l[1] + l[2]];
+  FLT_OR_DBL gq = 0.;
+
+  gquad_pf(i, L, l, (void *)&gq, pf, NULL, NULL);
 
   if (gq > *((FLT_OR_DBL *)data)) {
     *((FLT_OR_DBL *)data) = gq;
@@ -1245,13 +1614,37 @@ gquad_pf_pos(int  i,
 
 
 PRIVATE void
+gquad_pf_pos_ali(int  i,
+                 int  L,
+                 int  *l,
+                 void *data,
+                 void *helper,
+                 void *NA,
+                 void *NA2)
+{
+  FLT_OR_DBL              gq        = 0.;
+  struct gquad_ali_helper *gq_help  = (struct gquad_ali_helper *)helper;
+
+  gquad_pf_ali(i, L, l, (void *)&gq, helper, NULL, NULL);
+
+  if (gq > *((FLT_OR_DBL *)data)) {
+    *((FLT_OR_DBL *)data) = gq;
+    gq_help->L            = L;
+    gq_help->l[0]         = l[0];
+    gq_help->l[1]         = l[1];
+    gq_help->l[2]         = l[2];
+  }
+}
+
+
+PRIVATE void
 gquad_mfe_ali(int   i,
               int   L,
               int   *l,
               void  *data,
-              void  *P,
-              void  *S,
-              void  *n_seq)
+              void  *helper,
+              void  *NA,
+              void  *NA2)
 {
   int j, en[2], cc;
 
@@ -1270,7 +1663,7 @@ gquad_mfe_ali(int   i,
   if (L < VRNA_GQUAD_MIN_STACK_SIZE)
     return;
 
-  gquad_mfe_ali_en(i, L, l, (void *)(&(en[0])), P, S, n_seq);
+  gquad_mfe_ali_en(i, L, l, (void *)(&(en[0])), helper, NULL, NULL);
   if (en[1] != INF) {
     cc = en[0] + en[1];
     if (cc < *((int *)data))
@@ -1284,14 +1677,30 @@ gquad_mfe_ali_en(int  i,
                  int  L,
                  int  *l,
                  void *data,
-                 void *P,
-                 void *S,
-                 void *n_seq)
+                 void *helper,
+                 void *NA,
+                 void *NA2)
 {
-  int en[2], cc, dd;
+  short                   **S;
+  unsigned int            **a2s;
+  int                     en[2], cc, dd, s, n_seq, u1, u2, u3;
+  vrna_param_t            *P;
+  struct gquad_ali_helper *gq_help;
 
-  en[0] = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]] * (*(int *)n_seq);
-  en[1] = gquad_ali_penalty(i, L, l, (const short **)S, (vrna_param_t *)P);
+  gq_help = (struct gquad_ali_helper *)helper;
+  S       = gq_help->S;
+  a2s     = gq_help->a2s;
+  n_seq   = gq_help->n_seq;
+  P       = gq_help->P;
+
+  for (en[0] = s = 0; s < n_seq; s++) {
+    u1    = a2s[s][i + L + l[0] - 1] - a2s[s][i + L - 1];
+    u2    = a2s[s][i + 2 * L + l[0] + l[1] - 1] - a2s[s][i + 2 * L + l[0] - 1];
+    u3    = a2s[s][i + 3 * L + l[0] + l[1] + l[2] - 1] - a2s[s][i + 3 * L + l[0] + l[1] - 1];
+    en[0] += P->gquad[L][u1 + u2 + u3];
+  }
+  en[1] = E_gquad_ali_penalty(i, L, l, (const short **)S, (unsigned int)n_seq, P);
+
   if (en[1] != INF) {
     cc  = en[0] + en[1];
     dd  = ((int *)data)[0] + ((int *)data)[1];
@@ -1318,6 +1727,58 @@ gquad_interact(int  i,
   idx = (int *)index;
   pp  = (FLT_OR_DBL *)data;
   gq  = exp_E_gquad(L, l, (vrna_exp_param_t *)pf);
+
+  for (x = 0; x < L; x++) {
+    pp[idx[i + x] - (i + x + 3 * L + l[0] + l[1] + l[2])]                       += gq;
+    pp[idx[i + x] - (i + x + L + l[0])]                                         += gq;
+    pp[idx[i + x + L + l[0]] - (i + x + 2 * L + l[0] + l[1])]                   += gq;
+    pp[idx[i + x + 2 * L + l[0] + l[1]] - (i + x + 3 * L + l[0] + l[1] + l[2])] += gq;
+  }
+}
+
+
+PRIVATE void
+gquad_interact_ali(int  i,
+                   int  L,
+                   int  *l,
+                   void *data,
+                   void *index,
+                   void *helper,
+                   void *NA)
+{
+  int         x, *idx, bad;
+  FLT_OR_DBL  gq, *pp;
+
+  idx = (int *)index;
+  pp  = (FLT_OR_DBL *)data;
+  bad = 0;
+
+  for (x = 0; x < 3; x++) {
+    if (l[x] > VRNA_GQUAD_MAX_LINKER_LENGTH) {
+      bad = 1;
+      break;
+    }
+
+    if (l[x] < VRNA_GQUAD_MIN_LINKER_LENGTH) {
+      bad = 1;
+      break;
+    }
+  }
+  if (L > VRNA_GQUAD_MAX_STACK_SIZE)
+    bad = 1;
+
+  if (L < VRNA_GQUAD_MIN_STACK_SIZE)
+    bad = 1;
+
+  gq = 0.;
+
+  if (!bad) {
+    gquad_pf_ali(i, L, l,
+                 (void *)(&gq),
+                 helper,
+                 NULL,
+                 NULL);
+  }
 
   for (x = 0; x < L; x++) {
     pp[idx[i + x] - (i + x + 3 * L + l[0] + l[1] + l[2])]                       += gq;

@@ -82,6 +82,8 @@ extern "C" {
 
 #include  <ViennaRNA/neighbor.h>
 #include  <ViennaRNA/walk.h>
+
+#include  <ViennaRNA/mm.h>
 }
 
 %}
@@ -193,6 +195,7 @@ namespace std {
 %include constraints_SHAPE.i
 %include constraints_ligand.i
 %include eval.i
+%include basic_algorithms.i
 %include mfe.i
 %include mfe_window.i
 %include part_func.i

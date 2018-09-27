@@ -449,11 +449,14 @@ main(int  argc,
       fname1  = vrna_strdup_printf("%s%slunp", SEQ_ID, filename_delim);
       fname2  = vrna_strdup_printf("%s%sbasepairs", SEQ_ID, filename_delim);
       fname3  = vrna_strdup_printf("%s%suplex", SEQ_ID, filename_delim);
-      fname4  =
-        (binaries) ? vrna_strdup_printf("%s%sopenen%sbin", SEQ_ID, filename_delim,
-                                        filename_delim) : vrna_strdup_printf("%s%sopenen",
-                                                                             SEQ_ID,
-                                                                             filename_delim);
+      fname4  = (binaries) ?
+                vrna_strdup_printf("%s%sopenen%sbin",
+                                   SEQ_ID,
+                                   filename_delim,
+                                   filename_delim) :
+                vrna_strdup_printf("%s%sopenen",
+                                   SEQ_ID,
+                                   filename_delim);
       ffname = vrna_strdup_printf("%s%sdp.ps", SEQ_ID, filename_delim);
 
       /* sanitize filenames */
@@ -557,11 +560,10 @@ main(int  argc,
 
           /* print unpaired probabilities to file */
 
+          data.pUfp = fopen(openenergies ? fname4 : fname1, "w");
           if (binaries) {
-            data.pUfp = fopen(fname1, "w");
             print_pu_bin(fc, &data, unpaired);
           } else {
-            data.pUfp = fopen(openenergies ? fname4 : fname1, "w");
             prepare_up_file(&data);
             if (openenergies) {
               for (i = 1; i <= length; i++)

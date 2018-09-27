@@ -272,7 +272,8 @@ libRNA_conv_la_SOURCES = \
     ${JSON_SRC} \
     alphabet.c \
     sequence.c \
-    unstructured_domains.c
+    unstructured_domains.c \
+    grammar.c
 
 libRNA_eval_la_SOURCES = \
     eval.c \

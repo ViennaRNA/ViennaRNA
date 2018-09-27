@@ -9,8 +9,7 @@ SUBDIRS = src man misc doc RNA-Tutorial interfaces @subdirs@ tests packaging/mac
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = RNAlib2.pc
 
-EXTRA_DIST =  INSTALL.configure \
-              examples \
+EXTRA_DIST =  examples \
               packaging/debian \
               packaging/make_windows_installer.sh \
               license.txt \

@@ -5,6 +5,7 @@ SUBDIRS = @PERL_INTERFACE@ @PYTHON2_INTERFACE@ @PYTHON3_INTERFACE@
 SOURCES = \
     RNA.i \
     aln_utils.i \
+    basic_algorithms.i \
     combinatorics.i \
     commands.i \
     compare.i \
@@ -35,6 +36,7 @@ SOURCES = \
 
 DOXYGEN_DOCUMENTATION = \
     aln_utils.dox \
+    basic_algorithms.dox \
     commands.dox \
     combinatorics.dox \
     constraints_hard.dox \
@@ -56,6 +58,7 @@ DOXYGEN_DOCUMENTATION = \
 EXTRA_DIST = \
     RNA.i \
     aln_utils.i \
+    basic_algorithms.i \
     combinatorics.i \
     commands.i \
     compare.i \

@@ -10,7 +10,6 @@ typedef unsigned char (eval_hc)(int   i,
                                 void  *data);
 
 struct default_data {
-  int                       *idx;
   unsigned char             *mx;
   unsigned char             **mx_local;
   int                       *up;
@@ -95,8 +94,7 @@ PRIVATE INLINE eval_hc *
 prepare_hc_default(vrna_fold_compound_t *fc,
                    struct default_data  *dat)
 {
-  dat->idx      = fc->jindx;
-  dat->mx       = (fc->hc->type == VRNA_HC_WINDOW) ? NULL : fc->hc->matrix;
+  dat->mx       = (fc->hc->type == VRNA_HC_WINDOW) ? NULL : fc->hc->mx;
   dat->mx_local = (fc->hc->type == VRNA_HC_WINDOW) ? fc->hc->matrix_local : NULL;
   dat->up       = fc->hc->up_int;
   dat->hc_f     = NULL;

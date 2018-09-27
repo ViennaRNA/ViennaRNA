@@ -1,21 +1,3 @@
-AC_DEFUN([RNA_GET_MACOSX_CONFIG],[
-  ## collect the scripting language interfaces we gonna build
-  _osx_config=0
-  AS_IF([test "x$enable_universal_binary" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [
-    MacOSX Universal binary{$osx_arch}])
-    _osx_config=1
-  ])
-  AS_IF([test "x$enable_macosx_installer" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [MacOSX Installer])
-    _osx_config=1
-  ])
-  AS_IF([test "x$enable_macosx_sdk" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [MacOSX SDK])
-    _osx_config=1
-  ])
-])
-
 AC_DEFUN([RNA_ENABLE_OSX],[
 
   AX_REQUIRE_DEFINED([RNA_ADD_FEATURE])

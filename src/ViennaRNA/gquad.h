@@ -36,21 +36,14 @@ FLT_OR_DBL  exp_E_gquad(int               L,
                         vrna_exp_param_t  *pf);
 
 
-int         E_gquad_ali(int           i,
-                        int           L,
-                        int           l[3],
-                        const short   **S,
-                        int           n_seq,
-                        vrna_param_t  *P);
-
-
 void E_gquad_ali_en(int           i,
                     int           L,
                     int           l[3],
                     const short   **S,
-                    int           n_seq,
-                    int           en[2],
-                    vrna_param_t  *P);
+                    unsigned int  **a2s,
+                    unsigned int  n_seq,
+                    vrna_param_t  *P,
+                    int           en[2]);
 
 
 /**
@@ -75,6 +68,7 @@ int *get_gquad_matrix(short         *S,
 
 int *get_gquad_ali_matrix(short         *S_cons,
                           short         **S,
+                          unsigned int  **a2s,
                           int           n_seq,
                           vrna_param_t  *P);
 
@@ -82,6 +76,14 @@ int *get_gquad_ali_matrix(short         *S_cons,
 FLT_OR_DBL *get_gquad_pf_matrix(short             *S,
                                 FLT_OR_DBL        *scale,
                                 vrna_exp_param_t  *pf);
+
+
+FLT_OR_DBL *get_gquad_pf_matrix_comparative(short             *S_cons,
+                                            short             **S,
+                                            unsigned int      **a2s,
+                                            FLT_OR_DBL        *scale,
+                                            unsigned int      n_seq,
+                                            vrna_exp_param_t  *pf);
 
 
 int **get_gquad_L_matrix(short        *S,
@@ -146,6 +148,20 @@ plist *get_plist_gquad_from_db(const char *structure,
                                float      pr);
 
 
+plist *
+vrna_get_plist_gquad_from_pr(vrna_fold_compound_t *fc,
+                             int                  gi,
+                             int                  gj);
+
+
+plist *
+vrna_get_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
+                                 int                  gi,
+                                 int                  gj,
+                                 int                  *Lmax,
+                                 int                  lmax[3]);
+
+
 int         get_gquad_count(short *S,
                             int   i,
                             int   j);
@@ -157,6 +173,7 @@ int         get_gquad_layer_count(short *S,
 
 
 void get_gquad_pattern_mfe_ali(short        **S,
+                               unsigned int **a2s,
                                short        *S_cons,
                                int          n_seq,
                                int          i,
@@ -200,6 +217,7 @@ INLINE PRIVATE int backtrack_GQuad_IntLoop_comparative(int          c,
                                                        short        *S_cons,
                                                        short        **S5,
                                                        short        **S3,
+                                                       unsigned int **a2s,
                                                        int          *ggg,
                                                        int          *index,
                                                        int          *p,
@@ -257,7 +275,7 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *vc,
       case VRNA_FC_TYPE_COMPARATIVE:
         n_seq = vc->n_seq;
         L     = -1;
-        get_gquad_pattern_mfe_ali(vc->S, vc->S_cons, n_seq, i, j, P, &L, l);
+        get_gquad_pattern_mfe_ali(vc->S, vc->a2s, vc->S_cons, n_seq, i, j, P, &L, l);
         break;
     }
 
@@ -507,6 +525,7 @@ backtrack_GQuad_IntLoop_comparative(int           c,
                                     short         *S_cons,
                                     short         **S5,
                                     short         **S3,
+                                    unsigned int  **a2s,
                                     int           *ggg,
                                     int           *index,
                                     int           *p,
@@ -514,7 +533,7 @@ backtrack_GQuad_IntLoop_comparative(int           c,
                                     int           n_seq,
                                     vrna_param_t  *P)
 {
-  int energy, dangles, k, l, maxl, minl, c0, l1, ss, tt;
+  int energy, dangles, k, l, maxl, minl, c0, l1, ss, tt, u1, u2, eee;
 
   dangles = P->model_details.dangles;
   energy  = 0;
@@ -544,7 +563,14 @@ backtrack_GQuad_IntLoop_comparative(int           c,
         if (S_cons[l] != 3)
           continue;
 
-        if (c == energy + ggg[index[l] + k] + n_seq * P->internal_loop[j - l - 1]) {
+        eee = 0;
+
+        for (ss = 0; ss < n_seq; ss++) {
+          u1  = a2s[ss][j - 1] - a2s[ss][l];
+          eee += P->internal_loop[u1];
+        }
+
+        if (c == energy + ggg[index[l] + k] + eee) {
           *p  = k;
           *q  = l;
           return 1;
@@ -573,7 +599,15 @@ backtrack_GQuad_IntLoop_comparative(int           c,
       if (S_cons[l] != 3)
         continue;
 
-      if (c == energy + ggg[index[l] + k] + n_seq * P->internal_loop[l1 + j - l - 1]) {
+      eee = 0;
+
+      for (ss = 0; ss < n_seq; ss++) {
+        u1  = a2s[ss][k - 1] - a2s[ss][i];
+        u2  = a2s[ss][j - 1] - a2s[ss][l];
+        eee += P->internal_loop[u1 + u2];
+      }
+
+      if (c == energy + ggg[index[l] + k] + eee) {
         *p  = k;
         *q  = l;
         return 1;
@@ -593,7 +627,14 @@ backtrack_GQuad_IntLoop_comparative(int           c,
       if (S_cons[k] != 3)
         continue;
 
-      if (c == energy + ggg[index[l] + k] + n_seq * P->internal_loop[l1]) {
+      eee = 0;
+
+      for (ss = 0; ss < n_seq; ss++) {
+        u1  = a2s[ss][k - 1] - a2s[ss][i];
+        eee += P->internal_loop[u1];
+      }
+
+      if (c == energy + ggg[index[l] + k] + eee) {
         *p  = k;
         *q  = l;
         return 1;
@@ -727,6 +768,7 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
                                       short         *S_cons,
                                       short         **S5,
                                       short         **S3,
+                                      unsigned int  **a2s,
                                       int           **ggg,
                                       int           *p,
                                       int           *q,
@@ -739,7 +781,7 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
    * kind and the enclosed pair is not a canonical one but a g-quadruplex
    * that should then be decomposed further...
    */
-  int mm, dangle_model, k, l, maxl, minl, c0, l1, ss, tt;
+  int mm, dangle_model, k, l, maxl, minl, c0, l1, ss, tt, eee, u1, u2;
 
   dangle_model = P->model_details.dangles;
 
@@ -774,7 +816,18 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
       if (S_cons[l] != 3)
         continue;
 
-      c0 = mm + ggg[k][l - k] + n_seq * P->internal_loop[l1 + j - l - 1];
+      eee = 0;
+
+      for (ss = 0; ss < n_seq; ss++) {
+        u1  = a2s[ss][k - 1] - a2s[ss][i];
+        u2  = a2s[ss][j - 1] - a2s[ss][l];
+        eee += P->internal_loop[u1 + u2];
+      }
+
+      c0 = mm +
+           ggg[k][l - k] +
+           eee;
+
       if (c == c0) {
         *p  = k;
         *q  = l;
@@ -795,7 +848,14 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
         if (S_cons[l] != 3)
           continue;
 
-        if (c == mm + ggg[k][l - k] + n_seq * P->internal_loop[j - l - 1]) {
+        eee = 0;
+
+        for (ss = 0; ss < n_seq; ss++) {
+          u1  = a2s[ss][j - 1] - a2s[ss][l];
+          eee += P->internal_loop[u1];
+        }
+
+        if (c == mm + ggg[k][l - k] + eee) {
           *p  = k;
           *q  = l;
           return 1;
@@ -814,7 +874,14 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
       if (S_cons[k] != 3)
         continue;
 
-      if (c == mm + ggg[k][l - k] + n_seq * P->internal_loop[l1]) {
+      eee = 0;
+
+      for (ss = 0; ss < n_seq; ss++) {
+        u1  = a2s[ss][k - 1] - a2s[ss][i];
+        eee += P->internal_loop[u1];
+      }
+
+      if (c == mm + ggg[k][l - k] + eee) {
         *p  = k;
         *q  = l;
         return 1;
@@ -980,6 +1047,253 @@ E_GQuad_IntLoop(int           i,
   }
 
 #endif
+  return ge;
+}
+
+
+PRIVATE INLINE
+int
+E_GQuad_IntLoop_comparative(int           i,
+                            int           j,
+                            unsigned int  *tt,
+                            short         *S_cons,
+                            short         **S5,
+                            short         **S3,
+                            unsigned int  **a2s,
+                            int           *ggg,
+                            int           *index,
+                            int           n_seq,
+                            vrna_param_t  *P)
+{
+  unsigned int  type;
+  int           eee, energy, ge, p, q, l1, u1, u2, minq, maxq, c0, s;
+  vrna_md_t     *md;
+
+  md      = &(P->model_details);
+  energy  = 0;
+
+  for (s = 0; s < n_seq; s++) {
+    type = tt[s];
+    if (md->dangles == 2)
+      energy += P->mismatchI[type][S3[s][i]][S5[s][j]];
+
+    if (type > 2)
+      energy += P->TerminalAU;
+  }
+
+  ge = INF;
+
+  p = i + 1;
+  if (S_cons[p] == 3) {
+    if (p < j - VRNA_GQUAD_MIN_BOX_SIZE) {
+      minq  = j - i + p - MAXLOOP - 2;
+      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minq  = MAX2(c0, minq);
+      c0    = j - 3;
+      maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxq  = MIN2(c0, maxq);
+      for (q = minq; q < maxq; q++) {
+        if (S_cons[q] != 3)
+          continue;
+
+        eee = 0;
+
+        for (s = 0; s < n_seq; s++) {
+          u1  = a2s[s][j - 1] - a2s[s][q];
+          eee += P->internal_loop[u1];
+        }
+
+        c0 = energy +
+             ggg[index[q] + p] +
+             eee;
+        ge = MIN2(ge, c0);
+      }
+    }
+  }
+
+  for (p = i + 2;
+       p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+       p++) {
+    l1 = p - i - 1;
+    if (l1 > MAXLOOP)
+      break;
+
+    if (S_cons[p] != 3)
+      continue;
+
+    minq  = j - i + p - MAXLOOP - 2;
+    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minq  = MAX2(c0, minq);
+    c0    = j - 1;
+    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    maxq  = MIN2(c0, maxq);
+    for (q = minq; q < maxq; q++) {
+      if (S_cons[q] != 3)
+        continue;
+
+      eee = 0;
+
+      for (s = 0; s < n_seq; s++) {
+        u1  = a2s[s][p - 1] - a2s[s][i];
+        u2  = a2s[s][j - 1] - a2s[s][q];
+        eee += P->internal_loop[u1 + u2];
+      }
+
+      c0 = energy +
+           ggg[index[q] + p] +
+           eee;
+      ge = MIN2(ge, c0);
+    }
+  }
+
+  q = j - 1;
+  if (S_cons[q] == 3)
+    for (p = i + 4;
+         p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+         p++) {
+      l1 = p - i - 1;
+      if (l1 > MAXLOOP)
+        break;
+
+      if (S_cons[p] != 3)
+        continue;
+
+      eee = 0;
+
+      for (s = 0; s < n_seq; s++) {
+        u1  = a2s[s][p - 1] - a2s[s][i];
+        eee += P->internal_loop[u1];
+      }
+
+      c0 = energy +
+           ggg[index[q] + p] +
+           eee;
+      ge = MIN2(ge, c0);
+    }
+
+  return ge;
+}
+
+
+PRIVATE INLINE
+int
+E_GQuad_IntLoop_L_comparative(int           i,
+                              int           j,
+                              unsigned int  *tt,
+                              short         *S_cons,
+                              short         **S5,
+                              short         **S3,
+                              unsigned int  **a2s,
+                              int           **ggg,
+                              int           n_seq,
+                              vrna_param_t  *P)
+{
+  unsigned int  type;
+  int           eee, energy, ge, p, q, l1, u1, u2, minq, maxq, c0, s;
+  vrna_md_t     *md;
+
+  md      = &(P->model_details);
+  energy  = 0;
+
+  for (s = 0; s < n_seq; s++) {
+    type = tt[s];
+    if (md->dangles == 2)
+      energy += P->mismatchI[type][S3[s][i]][S5[s][j]];
+
+    if (type > 2)
+      energy += P->TerminalAU;
+  }
+
+  ge = INF;
+
+  p = i + 1;
+  if (S_cons[p] == 3) {
+    if (p < j - VRNA_GQUAD_MIN_BOX_SIZE) {
+      minq  = j - i + p - MAXLOOP - 2;
+      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minq  = MAX2(c0, minq);
+      c0    = j - 3;
+      maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxq  = MIN2(c0, maxq);
+      for (q = minq; q < maxq; q++) {
+        if (S_cons[q] != 3)
+          continue;
+
+        eee = 0;
+
+        for (s = 0; s < n_seq; s++) {
+          u1  = a2s[s][j - 1] - a2s[s][q];
+          eee += P->internal_loop[u1];
+        }
+
+        c0 = energy +
+             ggg[p][q - p] +
+             eee;
+        ge = MIN2(ge, c0);
+      }
+    }
+  }
+
+  for (p = i + 2;
+       p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+       p++) {
+    l1 = p - i - 1;
+    if (l1 > MAXLOOP)
+      break;
+
+    if (S_cons[p] != 3)
+      continue;
+
+    minq  = j - i + p - MAXLOOP - 2;
+    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minq  = MAX2(c0, minq);
+    c0    = j - 1;
+    maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    maxq  = MIN2(c0, maxq);
+    for (q = minq; q < maxq; q++) {
+      if (S_cons[q] != 3)
+        continue;
+
+      eee = 0;
+
+      for (s = 0; s < n_seq; s++) {
+        u1  = a2s[s][p - 1] - a2s[s][i];
+        u2  = a2s[s][j - 1] - a2s[s][q];
+        eee += P->internal_loop[u1 + u2];
+      }
+
+      c0 = energy +
+           ggg[p][q - p] +
+           eee;
+      ge = MIN2(ge, c0);
+    }
+  }
+
+  q = j - 1;
+  if (S_cons[q] == 3)
+    for (p = i + 4;
+         p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+         p++) {
+      l1 = p - i - 1;
+      if (l1 > MAXLOOP)
+        break;
+
+      if (S_cons[p] != 3)
+        continue;
+
+      eee = 0;
+
+      for (s = 0; s < n_seq; s++) {
+        u1  = a2s[s][p - 1] - a2s[s][i];
+        eee += P->internal_loop[u1];
+      }
+
+      c0 = energy +
+           ggg[p][q - p] +
+           eee;
+      ge = MIN2(ge, c0);
+    }
+
   return ge;
 }
 
@@ -1281,6 +1595,140 @@ exp_E_GQuad_IntLoop(int               i,
            * G[index[k] - l]
            * (FLT_OR_DBL)expintern[u]
            * scale[u + 2];
+    }
+
+  return q;
+}
+
+
+PRIVATE INLINE
+FLT_OR_DBL
+exp_E_GQuad_IntLoop_comparative(int               i,
+                                int               j,
+                                unsigned int      *tt,
+                                short             *S_cons,
+                                short             **S5,
+                                short             **S3,
+                                unsigned int      **a2s,
+                                FLT_OR_DBL        *G,
+                                FLT_OR_DBL        *scale,
+                                int               *index,
+                                int               n_seq,
+                                vrna_exp_param_t  *pf)
+{
+  unsigned int  type;
+  int           k, l, minl, maxl, u, u1, u2, r, s;
+  FLT_OR_DBL    q, qe, qqq;
+  double        *expintern;
+  vrna_md_t     *md;
+
+  q         = 0;
+  qe        = 1.;
+  md        = &(pf->model_details);
+  expintern = &(pf->expinternal[0]);
+
+  for (s = 0; s < n_seq; s++) {
+    type = tt[s];
+    if (md->dangles == 2)
+      qe *= (FLT_OR_DBL)pf->expmismatchI[type][S3[s][i]][S5[s][j]];
+
+    if (type > 2)
+      qe *= (FLT_OR_DBL)pf->expTermAU;
+  }
+
+  k = i + 1;
+  if (S_cons[k] == 3) {
+    if (k < j - VRNA_GQUAD_MIN_BOX_SIZE) {
+      minl  = j - MAXLOOP - 1;
+      u     = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      minl  = MAX2(u, minl);
+      u     = j - 3;
+      maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      maxl  = MIN2(u, maxl);
+      for (l = minl; l < maxl; l++) {
+        if (S_cons[l] != 3)
+          continue;
+
+        if (G[index[k] - l] == 0.)
+          continue;
+
+        qqq = 1.;
+
+        for (s = 0; s < n_seq; s++) {
+          u1  = a2s[s][j - 1] - a2s[s][l];
+          qqq *= expintern[u1];
+        }
+
+        q += qe *
+             G[index[k] - l] *
+             qqq *
+             scale[j - l + 1];
+      }
+    }
+  }
+
+  for (k = i + 2;
+       k <= j - VRNA_GQUAD_MIN_BOX_SIZE;
+       k++) {
+    u = k - i - 1;
+    if (u > MAXLOOP)
+      break;
+
+    if (S_cons[k] != 3)
+      continue;
+
+    minl  = j - i + k - MAXLOOP - 2;
+    r     = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    minl  = MAX2(r, minl);
+    maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    r     = j - 1;
+    maxl  = MIN2(r, maxl);
+    for (l = minl; l < maxl; l++) {
+      if (S_cons[l] != 3)
+        continue;
+
+      if (G[index[k] - l] == 0.)
+        continue;
+
+      qqq = 1.;
+
+      for (s = 0; s < n_seq; s++) {
+        u1  = a2s[s][k - 1] - a2s[s][i];
+        u2  = a2s[s][j - 1] - a2s[s][l];
+        qqq *= expintern[u1 + u2];
+      }
+
+      q += qe *
+           G[index[k] - l] *
+           qqq *
+           scale[u + j - l + 1];
+    }
+  }
+
+  l = j - 1;
+  if (S_cons[l] == 3)
+    for (k = i + 4; k <= j - VRNA_GQUAD_MIN_BOX_SIZE; k++) {
+      u = k - i - 1;
+      if (u > MAXLOOP)
+        break;
+
+      if (S_cons[k] != 3)
+        continue;
+
+      if (G[index[k] - l] == 0.)
+        continue;
+
+      qqq = 1.;
+
+      for (s = 0; s < n_seq; s++) {
+        u1  = a2s[s][k - 1] - a2s[s][i];
+        qqq *= expintern[u1];
+      }
+
+      q += qe *
+           G[index[k] - l] *
+           qqq *
+           scale[u + 2];
     }
 
   return q;

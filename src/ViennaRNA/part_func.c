@@ -55,6 +55,13 @@ PRIVATE void
 postprocess_circular(vrna_fold_compound_t *fc);
 
 
+PRIVATE FLT_OR_DBL
+decompose_pair(vrna_fold_compound_t *fc,
+               int                  i,
+               int                  j,
+               vrna_mx_pf_aux_ml_t  aux_mx_ml);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -225,9 +232,9 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
     X.FcAB  = 0;
 
 #ifdef SUN4
-  standard_arithmetic();
+    standard_arithmetic();
 #elif defined(HP9)
-  fpsetfastmode(0);
+    fpsetfastmode(0);
 #endif
 
     return X;
@@ -328,38 +335,32 @@ vrna_pf_float_precision(void)
 PRIVATE int
 fill_arrays(vrna_fold_compound_t *fc)
 {
-  unsigned char       *hard_constraints;
   int                 n, i, j, k, ij, d, *my_iindx, *jindx, with_gquad, turn,
-                      with_ud, hc_decompose, *pscore;
-  FLT_OR_DBL          temp, Qmax, qbt1, *q, *qb, *qm, *qm1, *q1k, *qln;
-  double              kTn, max_real;
+                      with_ud;
+  FLT_OR_DBL          temp, Qmax, *q, *qb, *qm, *qm1, *q1k, *qln;
+  double              max_real;
   vrna_ud_t           *domains_up;
   vrna_md_t           *md;
-  vrna_hc_t           *hc;
   vrna_mx_pf_t        *matrices;
   vrna_mx_pf_aux_el_t aux_mx_el;
   vrna_mx_pf_aux_ml_t aux_mx_ml;
   vrna_exp_param_t    *pf_params;
 
-  n                 = fc->length;
-  my_iindx          = fc->iindx;
-  jindx             = fc->jindx;
-  pscore            = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->pscore : NULL;
-  matrices          = fc->exp_matrices;
-  pf_params         = fc->exp_params;
-  kTn               = pf_params->kT / 10.;  /* kT in cal/mol */
-  hc                = fc->hc;
-  domains_up        = fc->domains_up;
-  q                 = matrices->q;
-  qb                = matrices->qb;
-  qm                = matrices->qm;
-  qm1               = matrices->qm1;
-  q1k               = matrices->q1k;
-  qln               = matrices->qln;
-  md                = &(pf_params->model_details);
-  with_gquad        = md->gquad;
-  turn              = md->min_loop_size;
-  hard_constraints  = hc->matrix;
+  n           = fc->length;
+  my_iindx    = fc->iindx;
+  jindx       = fc->jindx;
+  matrices    = fc->exp_matrices;
+  pf_params   = fc->exp_params;
+  domains_up  = fc->domains_up;
+  q           = matrices->q;
+  qb          = matrices->qb;
+  qm          = matrices->qm;
+  qm1         = matrices->qm1;
+  q1k         = matrices->q1k;
+  qln         = matrices->qln;
+  md          = &(pf_params->model_details);
+  with_gquad  = md->gquad;
+  turn        = md->min_loop_size;
 
   with_ud = (domains_up && domains_up->exp_energy_cb && (!(fc->type == VRNA_FC_TYPE_COMPARATIVE)));
   Qmax    = 0;
@@ -370,11 +371,26 @@ fill_arrays(vrna_fold_compound_t *fc)
     domains_up->exp_prod_cb(fc, domains_up->data);
 
   /* no G-Quadruplexes for comparative partition function (yet) */
-  if (with_gquad && (!(fc->type == VRNA_FC_TYPE_COMPARATIVE))) {
+  if (with_gquad) {
     free(fc->exp_matrices->G);
-    fc->exp_matrices->G = get_gquad_pf_matrix(fc->sequence_encoding2,
-                                              fc->exp_matrices->scale,
-                                              fc->exp_params);
+    fc->exp_matrices->G = NULL;
+
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        fc->exp_matrices->G = get_gquad_pf_matrix(fc->sequence_encoding2,
+                                                  fc->exp_matrices->scale,
+                                                  fc->exp_params);
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        fc->exp_matrices->G = get_gquad_pf_matrix_comparative(fc->S_cons,
+                                                              fc->S,
+                                                              fc->a2s,
+                                                              fc->exp_matrices->scale,
+                                                              fc->n_seq,
+                                                              fc->exp_params);
+        break;
+    }
   }
 
   /* init auxiliary arrays for fast exterior/multibranch loops */
@@ -392,26 +408,9 @@ fill_arrays(vrna_fold_compound_t *fc)
 
   for (j = turn + 2; j <= n; j++) {
     for (i = j - turn - 1; i >= 1; i--) {
-      ij            = my_iindx[i] - j;
-      hc_decompose  = hard_constraints[jindx[j] + i];
-      qbt1          = 0;
+      ij = my_iindx[i] - j;
 
-      if (hc_decompose) {
-        /* process hairpin loop(s) */
-        qbt1 += vrna_exp_E_hp_loop(fc, i, j);
-        /* process interior loop(s) */
-        qbt1 += vrna_exp_E_int_loop(fc, i, j);
-        /* process multibranch loop(s) */
-        qbt1 += vrna_exp_E_mb_loop_fast(fc, i, j, aux_mx_ml);
-
-        if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_c))
-          qbt1 += fc->aux_grammar->cb_aux_exp_c(fc, i, j, fc->aux_grammar->data);
-
-        if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
-          qbt1 *= exp(pscore[jindx[j] + i] / kTn);
-      }
-
-      qb[ij] = qbt1;
+      qb[ij] = decompose_pair(fc, i, j, aux_mx_ml);
 
       /* Multibranch loop */
       temp = vrna_exp_E_ml_fast(fc, i, j, aux_mx_ml);
@@ -478,6 +477,44 @@ fill_arrays(vrna_fold_compound_t *fc)
   vrna_exp_E_ext_fast_free(aux_mx_el);
 
   return 1;
+}
+
+
+PRIVATE FLT_OR_DBL
+decompose_pair(vrna_fold_compound_t *fc,
+               int                  i,
+               int                  j,
+               vrna_mx_pf_aux_ml_t  aux_mx_ml)
+{
+  unsigned int  n;
+  int           *jindx, *pscore;
+  FLT_OR_DBL    contribution;
+  double        kTn;
+  vrna_hc_t     *hc;
+
+  contribution  = 0.;
+  n             = fc->length;
+  pscore        = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->pscore : NULL;
+  jindx         = fc->jindx;
+  kTn           = fc->exp_params->kT / 10.;  /* kT in cal/mol */
+  hc            = fc->hc;
+
+  if (hc->mx[j * n + i]) {
+    /* process hairpin loop(s) */
+    contribution += vrna_exp_E_hp_loop(fc, i, j);
+    /* process interior loop(s) */
+    contribution += vrna_exp_E_int_loop(fc, i, j);
+    /* process multibranch loop(s) */
+    contribution += vrna_exp_E_mb_loop_fast(fc, i, j, aux_mx_ml);
+
+    if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_c))
+      contribution += fc->aux_grammar->cb_aux_exp_c(fc, i, j, fc->aux_grammar->data);
+
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+      contribution *= exp(pscore[jindx[j] + i] / kTn);
+  }
+
+  return contribution;
 }
 
 

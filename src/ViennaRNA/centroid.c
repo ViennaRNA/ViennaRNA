@@ -155,7 +155,7 @@ vrna_centroid(vrna_fold_compound_t  *vc,
 
   length    = vc->length;
   pf_params = vc->exp_params;
-  S         = vc->sequence_encoding2;
+  S         = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : vc->S_cons;
   my_iindx  = vc->iindx;
 
   matrices  = vc->exp_matrices;
