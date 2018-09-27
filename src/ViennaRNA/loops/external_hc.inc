@@ -4,7 +4,7 @@
  */
 
 struct default_data {
-  int                       *idx;
+  unsigned int              n;
   unsigned char             *mx;
   unsigned char             **mx_window;
   unsigned int              *sn;
@@ -90,17 +90,19 @@ hc_default(int            i,
            unsigned char  d,
            void           *data)
 {
-  int                 kl, di, dj;
+  int                 di, dj;
   unsigned char       eval;
+  unsigned int        n;
   struct default_data *dat = (struct default_data *)data;
 
   eval  = (unsigned char)0;
   di    = k - i;
   dj    = j - l;
+  n     = dat->n;
+
   switch (d) {
     case VRNA_DECOMP_EXT_EXT_STEM:
-      kl = dat->idx[j] + l;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      if (dat->mx[n * j + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
         if (i != l) {
           /* otherwise, stem spans from i to j */
@@ -113,8 +115,7 @@ hc_default(int            i,
       break;
 
     case VRNA_DECOMP_EXT_EXT_STEM1:
-      kl = dat->idx[j - 1] + l;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      if (dat->mx[n * (j - 1) + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
         if (dat->hc_up[j] == 0)
           eval = (unsigned char)0;
@@ -138,8 +139,7 @@ hc_default(int            i,
       break;
 
     case VRNA_DECOMP_EXT_STEM:
-      kl = dat->idx[l] + k;
-      if (dat->mx[kl] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+      if (dat->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
         if ((di != 0) && (dat->hc_up[i] < di))
           eval = (unsigned char)0;
@@ -163,6 +163,12 @@ hc_default(int            i,
     case VRNA_DECOMP_EXT_UP:
       di    = j - i + 1;
       eval  = (dat->hc_up[i] >= di) ? (unsigned char)1 : (unsigned char)0;
+      break;
+
+    case VRNA_DECOMP_EXT_STEM_OUTSIDE:
+      if (dat->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
+        eval = (unsigned char)1;
+
       break;
 
     default:
@@ -427,8 +433,8 @@ PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_default(vrna_fold_compound_t *fc,
                    struct default_data  *dat)
 {
-  dat->idx    = fc->jindx;
-  dat->mx     = fc->hc->matrix;
+  dat->mx     = fc->hc->mx;
+  dat->n      = fc->length;
   dat->hc_up  = fc->hc->up_ext;
   dat->sn         = fc->strand_number;
 
@@ -446,7 +452,6 @@ PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_default_window(vrna_fold_compound_t  *fc,
                           struct default_data   *dat)
 {
-  dat->idx        = fc->jindx;
   dat->mx_window  = fc->hc->matrix_local;
   dat->hc_up      = fc->hc->up_ext;
   dat->sn         = fc->strand_number;

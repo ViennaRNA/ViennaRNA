@@ -94,6 +94,9 @@ extern int GQuadAlpha37;
 extern int GQuadAlphadH;
 extern int GQuadBeta37;
 extern int GQuadBetadH;
+extern int GQuadLayerMismatch37;  /* penalty per incompatible gquad layer in a sub-alignment (applied twice for inner layers) */
+extern int GQuadLayerMismatchH;
+extern int GQuadLayerMismatchMax; /* maximum number of mismatching sequences in the alignment when gquad should be formed */
 
 extern double Tmeasure;       /* temperature of param measurements */
 

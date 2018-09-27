@@ -1,0 +1,17 @@
+/**
+
+@fn int vrna_maximum_matching_simple(const char *sequence)
+@scripting
+@parblock
+This function is available as global function @b maximum_matching().
+@endparblock
+
+
+@fn int vrna_maximum_matching(vrna_fold_compound_t *fc)
+@scripting
+@parblock
+This function is attached as method @b maximum_matching() to objects of type @p fold_compound
+(i.e. #vrna_fold_compound_t).
+@endparblock
+
+*/

@@ -1,67 +1,10 @@
-
-AC_DEFUN([RNA_GET_FEATURE],[
-  _features_active=0
-  ## collect the subpackages/programs we gonna build
-  AS_IF([test "x$with_svm" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [SVM])
-    _features_active=1
-  ])
-  AS_IF([test "x$with_json" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [JSON])
-    _features_active=1
-  ])
-  AS_IF([test "x$with_gsl" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [GSL])
-    _features_active=1
-  ])
-  AS_IF([test "x$enable_boustrophedon" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [Boustrophedon])
-    _features_active=1
-  ])
-  AS_IF([test "x$enable_openmp" != "xno"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [OpenMP])
-    _features_active=1
-  ])
-  AS_IF([test "x$enable_pthreads" != "xno"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [Pthread])
-    _features_active=1
-  ])
-  AS_IF([test "x$enable_lto" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [LTO])
-    _features_active=1
-  ])
-  AS_IF([test "x$enable_floatpf" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [Float Precision(PF)])
-    _features_active=1
-  ])
-  AS_IF([test "x$with_warn_deprecated" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [Deprecation Warnings])
-    _features_active=1
-  ])
-  AS_IF([test "x$enable_c11" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [C11])
-    _features_active=1
-  ])
-  AS_IF([test "x$enable_tty_colors" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [Color])
-    _features_active=1
-  ])
-  AS_IF([test "x$enable_sse" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [SSE4.1])
-    _features_active=1
-  ])
-  AS_IF([test "$_features_active" -eq "0"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [None])
-  ])
-])
-
 #
 # SVM support for Lfold -z
 #
 
 AC_DEFUN([RNA_ENABLE_SVM],[
 
-  SVM_VERSION=3.22
+  SVM_VERSION=3.23
 
   RNA_ADD_PACKAGE([svm],
                   [svm classifiers],
@@ -474,3 +417,26 @@ AC_DEFUN([RNA_ENABLE_SSE],[
   AC_SUBST(SIMD_CFLAGS)
   AC_SUBST(CONFIG_SSE_IMPLEMENTATION)
 ])
+
+
+#
+# Boustrophedon scheme for stochastic backtracking
+#
+
+AC_DEFUN([RNA_ENABLE_VECTORIZE],[
+
+  RNA_ADD_FEATURE([vectorize],
+                  [Apply SIMD vectorization to optimize execution speed],
+                  [yes])
+
+  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
+  RNA_FEATURE_IF_ENABLED([vectorize],[
+    AC_LANG_PUSH([C])
+    AX_CHECK_COMPILE_FLAG([-ftree-vectorize], [
+      AX_APPEND_FLAG(["-ftree-vectorize"], [RNA_CFLAGS])
+    ],[],[],[])
+    AC_LANG_POP([C])
+  ])
+])
+
+

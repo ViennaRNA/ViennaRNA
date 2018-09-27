@@ -57,6 +57,7 @@ RNA_ENABLE_DEPRECATION_WARNINGS
 RNA_ENABLE_COLORED_TTY
 RNA_ENABLE_STATIC_BIN
 RNA_ENABLE_SSE
+RNA_ENABLE_VECTORIZE
 
 ## Set post conditions for feature
 ## settings
@@ -190,30 +191,6 @@ AS_IF([test "x$with_tutorial" != "xno"],[
   _pdfdir=""
 ])
 
-## collect enabled swig interfaces
-RNA_GET_SWIG_INTERFACES(_swig_languages_enabled)
-
-## collect enabled unit tests
-RNA_GET_UNIT_TESTS(_unit_tests_enabled)
-
-## collect enabled subpackages
-RNA_GET_SUBPACKAGES(_packages_enabled)
-
-## collect additional options
-RNA_GET_FEATURE(_features_enabled)
-
-## collect doxygen reference manual settings
-RNA_GET_DOXYGEN_REFMAN(_refman_enabled)
-
-## collect doxygen reference manual settings
-RNA_GET_TUTORIAL(_tutorial_enabled)
-
-## collect MacOSX config (if any)
-RNA_GET_MACOSX_CONFIG(_macosx_enabled)
-AS_IF([test "x$_macosx_enabled" != "x"], [
-  AC_RNA_APPEND_VAR_COMMA(_features_enabled, [$_macosx_enabled])
-])
-
 # Notify the user
 
 AC_MSG_NOTICE([
@@ -246,6 +223,7 @@ Features
 
 Optimizations
 -------------
+  * Auto Vectorization        : ${enable_vectorize:-no}
   * Streaming SIMD Extension  : ${enable_sse:-no}
   * Link Time Optimization    : ${enable_lto:-no}
   * POSIX Threads             : ${enable_pthreads:-no}

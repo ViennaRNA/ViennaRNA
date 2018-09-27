@@ -85,12 +85,14 @@ namespace std {
   std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NULL){
     std::vector<subopt_solution> ret;
     SOLUTION *sol = subopt(seq, NULL, delta, nullfile);
-    for(int i = 0; sol[i].structure != NULL; i++){
-      subopt_solution a;
-      a.energy = sol[i].energy;
-      a.structure = sol[i].structure;
-      ret.push_back(a);
-    }
+    if (sol)
+      for(int i = 0; sol[i].structure != NULL; i++){
+        subopt_solution a;
+        a.energy = sol[i].energy;
+        a.structure = sol[i].structure;
+        ret.push_back(a);
+      }
+
     free(sol);
     /* The memory occupied by the individual structures will be free'd automatically
        by swig, when the vector is destroyed
@@ -115,12 +117,14 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NU
   std::vector<subopt_solution> subopt(int delta, int sorted = 1, FILE *nullfile = NULL){
     std::vector<subopt_solution> ret;
     SOLUTION *sol = vrna_subopt($self, delta, sorted, nullfile);
-    for(int i = 0; sol[i].structure != NULL; i++){
-      subopt_solution a;
-      a.energy = sol[i].energy;
-      a.structure = sol[i].structure;
-      ret.push_back(a);
-    }
+    if (sol)
+      for(int i = 0; sol[i].structure != NULL; i++){
+        subopt_solution a;
+        a.energy = sol[i].energy;
+        a.structure = sol[i].structure;
+        ret.push_back(a);
+      }
+
     free(sol);
     /* The memory occupied by the individual structures will be free'd automatically
        by swig, when the vector is destroyed
@@ -131,12 +135,14 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NU
   std::vector<subopt_solution> subopt_zuker(void){
     std::vector<subopt_solution> ret;
     SOLUTION *sol = vrna_subopt_zuker($self);
-    for(int i = 0; sol[i].structure != NULL; i++){
-      subopt_solution a;
-      a.energy = sol[i].energy;
-      a.structure = sol[i].structure;
-      ret.push_back(a);
-    }
+    if (sol)
+      for(int i = 0; sol[i].structure != NULL; i++){
+        subopt_solution a;
+        a.energy = sol[i].energy;
+        a.structure = sol[i].structure;
+        ret.push_back(a);
+      }
+
     free(sol);
     /* The memory occupied by the individual structures will be free'd automatically
        by swig, when the vector is destroyed

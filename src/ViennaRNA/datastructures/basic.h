@@ -112,6 +112,7 @@ struct vrna_basepair_s {
 struct vrna_cpair_s {
   int   i, j, mfe;
   float p, hue, sat;
+  int   type;
 };
 
 struct vrna_color_s {

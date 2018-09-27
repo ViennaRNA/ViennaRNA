@@ -2004,7 +2004,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
       break;
 
     /* we've found the first g-quadruplex at position [p,q] */
-    E_gquad_ali_en(p, L, l, (const short **)S, n_seq, gq_en, P);
+    E_gquad_ali_en(p, L, l, (const short **)S, vc->a2s, n_seq, P, gq_en);
     tmp_e   = gq_en[0];
     energy  += tmp_e;
 
@@ -2070,7 +2070,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
           /* found another gquad */
           pos = parse_gquad(structure + u - 1, &L, l);
           if (pos > 0) {
-            E_gquad_ali_en(u, L, l, (const short **)S, n_seq, gq_en, P);
+            E_gquad_ali_en(u, L, l, (const short **)S, vc->a2s, n_seq, P, gq_en);
 
             if (verbosity_level > 0) {
               vrna_cstr_print_eval_gquad(output_stream,
@@ -2286,7 +2286,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
       break;
 
     /* we've found the first g-quadruplex at position [p,q] */
-    E_gquad_ali_en(p, L, l, (const short **)S, n_seq, gq_en, P);
+    E_gquad_ali_en(p, L, l, (const short **)S, vc->a2s, n_seq, P, gq_en);
     en_covar += gq_en[1];
     /* check if it's enclosed in a base pair */
     if (loop_idx[p] == 0) {
@@ -2340,7 +2340,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
           /* found another gquad */
           pos = parse_gquad(structure + u - 1, &L, l);
           if (pos > 0) {
-            E_gquad_ali_en(u, L, l, (const short **)S, n_seq, gq_en, P);
+            E_gquad_ali_en(u, L, l, (const short **)S, vc->a2s, n_seq, P, gq_en);
             en_covar  += gq_en[1];
             up_mis    += pos;
             u         += pos;

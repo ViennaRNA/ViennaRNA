@@ -1,7 +1,7 @@
 %!PS-Adobe-3.0 EPSF-3.0
 %%Title: RNA Dot Plot
-%%Creator: ViennaRNA-2.4.6
-%%CreationDate: Wed May 16 23:33:28 2018
+%%Creator: ViennaRNA-2.4.9
+%%CreationDate: Thu Aug 30 17:59:19 2018
 %%BoundingBox: 66 211 518 662
 %%DocumentFonts: Helvetica
 %%Pages: 1
@@ -103,6 +103,18 @@ DPdict begin
   exch dup 5 -1 roll add 4 -1 roll dup 5 1 roll 4 -1 roll add max
   len add 3 add 700 exch div dup scale
   exch 1 add exch 1 add translate
+} bind def
+/utri{ % i j prob utri
+  gsave
+  0.5 dup translate
+  1 min 2 div
+  0.85 mul 0.15 add 0.95  0.33
+  3 1 roll % prepare hsb color
+  sethsbcolor
+  % now produce the coordinates for lines
+  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub
+  moveto lineto lineto closepath fill
+  grestore
 } bind def
 end
 %EndProlog

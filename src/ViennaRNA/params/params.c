@@ -370,6 +370,9 @@ get_scaled_params(vrna_md_t *md)
       params->gquad[i][j] = (int)GQuadAlpha_T * (i - 1) + (int)(((double)GQuadBeta_T) * log(j - 2));
     }
 
+  params->gquadLayerMismatch    = (int)((double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * tempf);
+  params->gquadLayerMismatchMax = GQuadLayerMismatchMax;
+
   for (i = 0; i < 31; i++)
     params->hairpin[i] = hairpindH[i] - (hairpindH[i] - hairpin37[i]) * tempf;
   for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
@@ -519,6 +522,10 @@ get_scaled_exp_params(vrna_md_t *md,
            log(((double)j) - 2.);
       pf->expgquad[i][j] = exp(-GT * 10. / kT);
     }
+
+  GT = (double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
+  pf->expgquadLayerMismatch = exp(-GT * 10. / kT);
+  pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i = 0; i < 31; i++) {
@@ -694,6 +701,18 @@ get_exp_params_ali(vrna_md_t    *md,
   pf->kT            = kTn = ((double)n_seq) * md->betaScale * (md->temperature + K0) * GASCONST; /* kT in cal/mol  */
   TT                = (md->temperature + K0) / (Tmeasure);
 
+  for (i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
+    for (j = 3 * VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH; j++) {
+      double  GQuadAlpha_T  = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * TT;
+      double  GQuadBeta_T   = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * TT;
+      GT = ((double)GQuadAlpha_T) * ((double)(i - 1)) + ((double)GQuadBeta_T) *
+           log(((double)j) - 2.);
+      pf->expgquad[i][j] = exp(-GT * 10. / kTn);
+    }
+
+  GT = (double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
+  pf->expgquadLayerMismatch = exp(-GT * 10. / kTn);
+  pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i = 0; i < 31; i++) {

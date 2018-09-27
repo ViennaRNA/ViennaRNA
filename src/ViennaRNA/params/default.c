@@ -86,6 +86,9 @@ PUBLIC int GQuadAlpha37 = -1800;
 PUBLIC int GQuadAlphadH = -11934;
 PUBLIC int GQuadBeta37 = 1200;
 PUBLIC int GQuadBetadH = 0;
+PUBLIC int GQuadLayerMismatch37   = 300;
+PUBLIC int GQuadLayerMismatchH    = 0;
+PUBLIC int GQuadLayerMismatchMax  = 1;
 
 PUBLIC int stack37[NBPAIRS+1][NBPAIRS+1] =
 {{   INF,   INF,   INF,   INF,   INF,   INF,   INF,   INF}

@@ -359,7 +359,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
   scs               = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->scs;
   dangle_model      = md->dangles;
   turn              = md->min_loop_size;
-  hard_constraints  = hc->matrix;
+  hard_constraints  = hc->mx;
   my_c              = fc->matrices->c;
   my_fML            = fc->matrices->fML;
   fM2               = fc->matrices->fM2;
@@ -410,7 +410,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
       ij = indx[j] + i;
 
-      if (!hard_constraints[ij])
+      if (!hard_constraints[length * i + j])
         continue;
 
       /* exterior hairpin case */
@@ -673,7 +673,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
       for (i = 2 * turn + 1; i < length - turn; i++) {
         if (c_tmp[i + 1] != INF) {
           /* obey internal hard constraints */
-          if (hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+          if (hard_constraints[length * length + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
             tmp = 0;
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
@@ -773,7 +773,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
       for (i = 2 * turn + 1; i < length - turn; i++) {
         if (c_tmp[i + 1] != INF) {
           /* obey internal hard constraints */
-          if ((hard_constraints[indx[length] + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
+          if ((hard_constraints[length * length + i + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
               (hc->up_ml[i])) {
             tmp = 0;
             switch (fc->type) {
@@ -863,7 +863,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
       /* add contributions for enclosing pair */
       for (i = turn + 1; i < length - turn; i++) {
         if (fmd5_tmp[i + 1] != INF) {
-          if (hard_constraints[indx[i] + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+          if (hard_constraints[length + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
             tmp = 0;
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
@@ -961,7 +961,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
       for (i = turn + 1; i < length - turn; i++) {
         if (fmd5_tmp[i + 2] != INF) {
           /* obey internal hard constraints */
-          if ((hard_constraints[indx[i] + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
+          if ((hard_constraints[length + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
               (hc->up_ml[i + 1])) {
             tmp = 0;
             switch (fc->type) {
@@ -1696,13 +1696,15 @@ decompose_pair(vrna_fold_compound_t *fc,
                struct aux_arrays    *aux)
 {
   unsigned char hc_decompose;
+  unsigned int  n;
   int           e, new_c, energy, stackEnergy, ij, dangle_model, noLP,
                 *DMLi1, *DMLi2, *cc, *cc1;
 
+  n             = fc->length;
   ij            = fc->jindx[j] + i;
   dangle_model  = fc->params->model_details.dangles;
   noLP          = fc->params->model_details.noLP;
-  hc_decompose  = fc->hc->matrix[ij];
+  hc_decompose  = fc->hc->mx[n * i + j];
   DMLi1         = aux->DMLi1;
   DMLi2         = aux->DMLi2;
   cc            = aux->cc;

@@ -4,7 +4,32 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.9...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.10...HEAD)
+
+
+### [v2.4.10](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.9...v2.4.10) (2018-09-26)
+
+#### Programs
+  * Fix wrong output filename for binary opening energies in `RNAplfold`
+  * Enable G-Quadruplex support for partition function computation in `RNAalifold`
+
+#### Library
+  * Fix broken SSE4.1 support for multibranch loop MFE computation that resulted in increased run times
+  * Fix redundant output issue in subopt backtracking with unusually high delta energies (>=INF)
+  * Restore default behavior of '|' symbol in dot-bracket hard constraint strings that got lost with version 2.2.0
+  * Add faster (cache-optimized) version of Nussinov Maximum Matching algorithm
+  * Change default linker- and loop length computations for G-Quadruplex predictions in comparative prediction modes
+  * Add hard constraints warning for base pairs that violate the `min_loop_size` of the model
+  * Update `libsvm` to version 3.23
+  * API: Add functions to set auxiliary grammar extension rules
+  * API: Replace upper-triangular hard constraints matrix with full matrix for cache-optimized access
+  * API: Add G-Quadruplex prediction support for comparative partition function
+  * API: Remove `VRNA_GQUAD_MISMATCH_PENALTY` and `VRNA_GQUAD_MISMATCH_NUM_ALI` macros
+  * SWIG: Fix invalid memory access in `subopt()` method of fold_compound object when writing to file
+  * SWIG: Add wrapper for Nussinov Maximum Matching algorithm
+
+#### Package
+  * Add `-ftree-vectorize` compile flag by default if supported
 
 
 ### [v2.4.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.8...v2.4.9) (2018-07-11)

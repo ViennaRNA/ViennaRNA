@@ -182,9 +182,10 @@ vrna_annotate_covar_pairs(const char  **alignment,
   for (i = 0; i < n; i++) {
     int ncomp = 0;
     if (pl[i].p > threshold) {
-      cp[c].i = pl[i].i;
-      cp[c].j = pl[i].j;
-      cp[c].p = pl[i].p;
+      cp[c].i     = pl[i].i;
+      cp[c].j     = pl[i].j;
+      cp[c].p     = pl[i].p;
+      cp[c].type  = pl[i].type;
       for (z = 0; z < 7; z++)
         pfreq[z] = 0;
       for (s = 0; s < n_seq; s++) {
@@ -193,13 +194,16 @@ vrna_annotate_covar_pairs(const char  **alignment,
         if ((alignment[s][cp[c].j - 1] == '~') || (alignment[s][cp[c].i - 1] == '~'))
           continue;
 
+        if ((md.gquad) && (a == 3) && (b == 3))
+          continue;
+
         pfreq[md.pair[a][b]]++;
       }
       for (z = 1; z < 7; z++)
         if (pfreq[z] > 0)
           ncomp++;
 
-      cp[c].hue = (ncomp - 1.0) / 6.2;   /* hue<6/6.9 (hue=1 ==  hue=0) */
+      cp[c].hue = MAX2(0.0, (ncomp - 1.0) / 6.2);   /* hue<6/6.9 (hue=1 ==  hue=0) */
       cp[c].sat = 1 - MIN2(1.0, (float)(pfreq[0] * 2. /*pi[i].bp[0]*/ / (n_seq)));
       c++;
     }
@@ -224,13 +228,14 @@ vrna_annotate_covar_pairs(const char  **alignment,
                              ptr->i,
                              ptr->j);
 
-        cp        = (vrna_cpair_t *)vrna_realloc(cp, sizeof(vrna_cpair_t) * (c + 2));
-        cp[c].i   = ptr->i;
-        cp[c].j   = ptr->j;
-        cp[c].p   = 0.;
-        cp[c].hue = 0;
-        cp[c].sat = 0;
-        cp[c].mfe = 1;
+        cp          = (vrna_cpair_t *)vrna_realloc(cp, sizeof(vrna_cpair_t) * (c + 2));
+        cp[c].i     = ptr->i;
+        cp[c].j     = ptr->j;
+        cp[c].p     = 0.;
+        cp[c].type  = VRNA_PLIST_TYPE_BASEPAIR;
+        cp[c].hue   = 0;
+        cp[c].sat   = 0;
+        cp[c].mfe   = 1;
         c++;
         cp[c].i = cp[c].j = 0;
       }

@@ -17,8 +17,8 @@ as well as for Windows users are available from Download section of the <a href=
 Usually you'll just unpack, configure and make. To do this type:
 
 @verbatim
-tar -zxvf ViennaRNA-2.4.9.tar.gz
-cd ViennaRNA-2.4.9
+tar -zxvf ViennaRNA-2.4.10.tar.gz
+cd ViennaRNA-2.4.10
 ./configure
 make
 sudo make install
@@ -262,7 +262,7 @@ For a complete list of all ./configure options and important environment variabl
 ./configure --help
 @endverbatim
 
-For more general information on the build process see the INSTALL.configure file.
+For more general information on the build process see the INSTALL file.
 
 
 @section  linking   Linking against RNAlib

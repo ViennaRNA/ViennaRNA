@@ -128,7 +128,6 @@ PRIVATE SOLUTION *wrap_zukersubopt(const char   *string,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-
 PUBLIC float
 vrna_mfe_dimer(vrna_fold_compound_t *vc,
                char                 *structure)
@@ -214,7 +213,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
   ss                = vc->strand_start;
   se                = vc->strand_end;
   hc                = vc->hc;
-  hard_constraints  = hc->matrix;
+  hard_constraints  = hc->mx;
   matrices          = vc->matrices;
   my_f5             = matrices->f5;
   my_c              = matrices->c;
@@ -255,7 +254,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
       int ij;
       ij            = indx[j] + i;
       type          = vrna_get_ptype(ij, ptype);
-      hc_decompose  = hard_constraints[ij];
+      hc_decompose  = hard_constraints[length * i + j];
       energy        = INF;
 
       no_close = (((type == 3) || (type == 4)) && noGUclosure);
@@ -581,7 +580,7 @@ free_end(int                  *array,
   ggg               = matrices->ggg;
   hc                = vc->hc;
   sc                = vc->sc;
-  hard_constraints  = hc->matrix;
+  hard_constraints  = hc->mx;
 
   if (hc->up_ext[i]) {
     if (i == start)
@@ -623,7 +622,7 @@ free_end(int                  *array,
       jj  = j;
     }                           /* inc<0 */
 
-    if (hard_constraints[indx[jj] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+    if (hard_constraints[length * ii + jj] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
       type    = vrna_get_ptype(indx[jj] + ii, ptype);
       si      = ((ii > 1) && (sn[ii - 1] == sn[ii])) ? S1[ii - 1] : -1;
       sj      = ((jj < length) && (sn[jj] == sn[jj + 1])) ? S1[jj + 1] : -1;
@@ -702,7 +701,7 @@ free_end(int                  *array,
         jj  = j;
       }                             /* inc<0 */
 
-      if (!(hard_constraints[indx[jj] + ii] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP))
+      if (!(hard_constraints[length * ii + jj] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP))
         continue;
 
       type    = vrna_get_ptype(indx[jj] + ii, ptype);

@@ -1,32 +1,3 @@
-
-AC_DEFUN([RNA_GET_SUBPACKAGES],[
-  _sub_packages=0
-  ## collect the subpackages/programs we gonna build
-  AS_IF([test "x$with_cluster" = "xyes"], [
-    AC_RNA_APPEND_VAR_COMMA($1, [Analyse{Dists,Seqs}])
-    _sub_packages=1
-  ])
-  AS_IF([test "x$with_kinfold" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [Kinfold])
-    _sub_packages=1
-  ])
-  AS_IF([test "x$with_forester" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [RNAforester])
-    _sub_packages=1
-  ])
-  AS_IF([test "x$with_kinwalker" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [Kinwalker])
-    _sub_packages=1
-  ])
-  AS_IF([test "x$with_rnalocmin" = "xyes"],[
-    AC_RNA_APPEND_VAR_COMMA($1, [RNAlocmin])
-    _sub_packages=1
-  ])
-  AS_IF([test "$_sub_packages" -eq 0],[
-    AC_RNA_APPEND_VAR_COMMA($1, [None])
-  ])
-])
-
 #
 # Kinfold subpackage
 #

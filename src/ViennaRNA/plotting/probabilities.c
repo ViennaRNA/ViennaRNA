@@ -78,6 +78,8 @@
 PRIVATE FILE  *PS_dot_common(const char *seq, int cp, const char *wastlfile, char *comment, int winsize, unsigned int options);
 PRIVATE int   sort_plist_by_type_desc(const void *p1, const void *p2);
 PRIVATE int   sort_plist_by_prob_asc(const void *p1, const void *p2);
+PRIVATE int   sort_cpair_by_type_desc(const void *p1, const void *p2);
+PRIVATE int   sort_cpair_by_prob_asc(const void *p1, const void *p2);
 PRIVATE void  EPS_footer(FILE *eps);
 PRIVATE void  EPS_print_title(FILE *eps, const char *title);
 PRIVATE void  EPS_print_seq(FILE *eps, const char *sequence);
@@ -108,9 +110,11 @@ PS_color_dot_plot(char *seq,
   /* produce color PostScript dot plot from cpair */
 
   FILE *wastl;
-  int i;
+  int i, gq_num, pi_size;
+  cpair *ptr;
 
-  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, 0, DP_MACRO_NONE);
+
+  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, 0, DP_MACRO_SD);
   if (wastl==NULL)  return 0; /* return 0 for failure */
 
   fprintf(wastl, "/hsb {\n"
@@ -120,22 +124,36 @@ PS_color_dot_plot(char *seq,
   fprintf(wastl,  "\n%%draw the grid\ndrawgrid\n\n");
   fprintf(wastl,"%%start of base pair probability data\n");
 
+  for(gq_num = pi_size = 0, ptr = pi; ptr->i > 0; ptr++, pi_size++)
+    if (ptr->type == VRNA_PLIST_TYPE_GQUAD) gq_num++;
+  qsort(pi, pi_size, sizeof(cpair), sort_cpair_by_type_desc);
+  /* sort all gquad triangles by probability to bring lower probs to the front */
+  qsort(pi, gq_num, sizeof(cpair), sort_cpair_by_prob_asc);
+
   /* print boxes */
-   i=0;
-   while (pi[i].j>0) {
-     fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.6f ubox\n",
+  i=0;
+  while (pi[i].j>0) {
+    if(pi[i].type == VRNA_PLIST_TYPE_GQUAD){
+      fprintf(wastl,
+              "%d %d %1.6f utri\n",
+              pi[i].i,
+              pi[i].j,
+              sqrt(pi[i].p));
+    } else if (pi[i].type == VRNA_PLIST_TYPE_BASEPAIR) {
+      fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.6f ubox\n",
              pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, sqrt(pi[i].p));
 
-     if (pi[i].mfe)
-       fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.4f lbox\n",
+      if (pi[i].mfe)
+        fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.4f lbox\n",
                pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, pi[i].p);
-     i++;
-   }
+    }
+    i++;
+  }
 
-   EPS_footer(wastl);
+  EPS_footer(wastl);
 
-   fclose(wastl);
-   return 1; /* success */
+  fclose(wastl);
+  return 1; /* success */
 }
 
 
@@ -737,6 +755,32 @@ static int sort_plist_by_prob_asc(const void *p1, const void *p2){
   if (((plist*)p1)->i < ((plist*)p2)->i) return -1;
   if (((plist*)p1)->j > ((plist*)p2)->j) return 1;
   if (((plist*)p1)->j < ((plist*)p2)->j) return -1;
+  return 0;
+}
+
+
+static int sort_cpair_by_type_desc(const void *p1, const void *p2){
+  if(((cpair*)p1)->type > ((cpair*)p2)->type) return -1;
+  if(((cpair*)p1)->type < ((cpair*)p2)->type) return 1;
+
+  /* same type?, order by position (ascending) */
+  if (((cpair*)p1)->i > ((cpair*)p2)->i) return 1;
+  if (((cpair*)p1)->i < ((cpair*)p2)->i) return -1;
+  if (((cpair*)p1)->j > ((cpair*)p2)->j) return 1;
+  if (((cpair*)p1)->j < ((cpair*)p2)->j) return -1;
+
+  return 0;
+}
+
+static int sort_cpair_by_prob_asc(const void *p1, const void *p2){
+  if(((cpair*)p1)->p > ((cpair*)p2)->p) return 1;
+  if(((cpair*)p1)->p < ((cpair*)p2)->p) return -1;
+
+  /* same probability?, order by position (ascending) */
+  if (((cpair*)p1)->i > ((cpair*)p2)->i) return 1;
+  if (((cpair*)p1)->i < ((cpair*)p2)->i) return -1;
+  if (((cpair*)p1)->j > ((cpair*)p2)->j) return 1;
+  if (((cpair*)p1)->j < ((cpair*)p2)->j) return -1;
   return 0;
 }
 
