@@ -21,7 +21,19 @@ typedef int (vrna_callback_gr_rule)(vrna_fold_compound_t  *vc,
                                     void                  *data);
 
 
+typedef void (vrna_callback_gr_rule_aux)(vrna_fold_compound_t  *vc,
+                                    int                   i,
+                                    int                   j,
+                                    void                  *data);
+
+
 typedef FLT_OR_DBL (vrna_callback_gr_rule_exp)(vrna_fold_compound_t *vc,
+                                               int                  i,
+                                               int                  j,
+                                               void                 *data);
+
+
+typedef void (vrna_callback_gr_rule_aux_exp)(vrna_fold_compound_t *vc,
                                                int                  i,
                                                int                  j,
                                                void                 *data);
@@ -45,13 +57,13 @@ struct vrna_gr_aux_s {
   vrna_callback_gr_rule       *cb_aux_c;
   vrna_callback_gr_rule       *cb_aux_m;
   vrna_callback_gr_rule       *cb_aux_m1;
-  vrna_callback_gr_rule       *cb_aux;
+  vrna_callback_gr_rule_aux       *cb_aux;
 
   vrna_callback_gr_rule_exp   *cb_aux_exp_f;
   vrna_callback_gr_rule_exp   *cb_aux_exp_c;
-  vrna_callback_gr_rule_exp   *cb_aux_exp_m;
-  vrna_callback_gr_rule_exp   *cb_aux_exp_m1;
-  vrna_callback_gr_rule_exp   *cb_aux_exp;
+  vrna_callback_gr_rule_exp     *cb_aux_exp_m;
+  vrna_callback_gr_rule_exp     *cb_aux_exp_m1;
+  vrna_callback_gr_rule_aux_exp   *cb_aux_exp;
 
   void                        *data;
   vrna_callback_gr_free_data  *free_data;
@@ -100,12 +112,12 @@ vrna_gr_set_aux_exp_m1(vrna_fold_compound_t       *fc,
 
 int
 vrna_gr_set_aux(vrna_fold_compound_t  *fc,
-                vrna_callback_gr_rule *cb);
+                vrna_callback_gr_rule_aux *cb);
 
 
 int
 vrna_gr_set_aux_exp(vrna_fold_compound_t      *fc,
-                    vrna_callback_gr_rule_exp *cb);
+                    vrna_callback_gr_rule_aux_exp *cb);
 
 
 int

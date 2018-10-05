@@ -167,7 +167,7 @@ vrna_gr_set_aux_exp_m1(vrna_fold_compound_t       *fc,
 
 PUBLIC int
 vrna_gr_set_aux(vrna_fold_compound_t  *fc,
-                vrna_callback_gr_rule *cb)
+                vrna_callback_gr_rule_aux *cb)
 {
   int ret = 0;
 
@@ -186,7 +186,7 @@ vrna_gr_set_aux(vrna_fold_compound_t  *fc,
 
 PUBLIC int
 vrna_gr_set_aux_exp(vrna_fold_compound_t      *fc,
-                    vrna_callback_gr_rule_exp *cb)
+                    vrna_callback_gr_rule_aux_exp *cb)
 {
   int ret = 0;
 
