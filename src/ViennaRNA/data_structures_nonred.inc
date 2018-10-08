@@ -40,11 +40,13 @@ struct tr_node {
   int       loop_spec_2;
   int       seqlen;
   tr_node   *parent;
-  tr_node   *child;         /* used when this node has at most one child */
-  hash_node *hash_tab;      /* used when there is at least two children */
-  tr_node   *next_in_hash;  /* used for node that is next in hash table */
-  int       hash_value;     /* hash value computed for this node */
+  tr_node   *child;         	/* used when this node has at most one child */
+  hash_node *hash_tab;      	/* used when there is at least two children */
+  tr_node   *next_in_hash;  	/* used for node that is next in hash table */
+  int       hash_value;     	/* hash value computed for this node */
   double    weight;
+  double	max_weight;			/* maximum allowed weight (maximum of partition function) */
+  int		created_recently;	/* 1 if was created during last iteration, otherwise 0 */
 };
 
 struct hash_node {
@@ -55,7 +57,8 @@ struct hash_node {
 
 /* tree + hash functions */
 /** @brief creates a root of datastructure tree (hash table version) **/
-PRIVATE tr_node *create_root(int seqlen);
+PRIVATE tr_node *create_root(int 	seqlen, 
+							 double max_weight);
 
 
 /** @brief returns a weigh of node (type, loop_spec_1, loop_spec_2) if child of last_node, otherwise returns 0.0 **/
@@ -79,13 +82,16 @@ PRIVATE double total_weight_par_type(int      type,
 PRIVATE tr_node *add_if_nexists(int     type,
                                 int     loop_spec_1,
                                 int     loop_spec_2,
-                                tr_node *par_node);
+                                tr_node *par_node,
+                                double	max_weight);
 
 
 /** @brief traces back from leaf to root while updating weights of leaf to all nodes in path,
  *  returns pointer to root **/
 PRIVATE tr_node *traceback_to_root(tr_node  *leaf,
-                                   double   struct_weight);
+                                   double   struct_weight,
+                                   int		*is_dup,
+                                   int		*pf_overflow);
 
 
 /** @brief destructor **/
@@ -102,10 +108,12 @@ struct tllr_node {
   int       type;
   int       loop_spec_1;
   int       loop_spec_2;
-  tllr_node *parent;      /* vertical chaining - ancestor */
-  tllr_node *head;        /* vertical chaining - successor */
-  tllr_node *next_node;   /*horizontal chaining - linked list */
+  tllr_node *parent;      		/* vertical chaining - ancestor */
+  tllr_node *head;        		/* vertical chaining - successor */
+  tllr_node *next_node;   		/*horizontal chaining - linked list */
   double    weight;
+  double	max_weight;			/* maximum allowed weight (maximum of partition function) */
+  int		created_recently;	/* 1 if was created during last iteration, otherwise 0 */
 };
 
 
@@ -117,7 +125,8 @@ struct nr_memory {
 
 /* tree + linked list functions */
 /** @brief creates a root of datastructure tree (linked list version) **/
-PRIVATE tllr_node *create_ll_root(struct nr_memory *memory_dat);
+PRIVATE tllr_node *create_ll_root(struct nr_memory 	*memory_dat,
+								  double			max_weight);
 
 
 /** resets cursor to current_node and start of linked list **/
@@ -158,13 +167,16 @@ PRIVATE tllr_node *add_if_nexists_ll(struct nr_memory *memory_dat,
                                      int        loop_spec_2,
                                      tllr_node  *memorized_node_prev,
                                      tllr_node  *memorized_node_cur,
-                                     tllr_node  *parent_node);
+                                     tllr_node  *parent_node,
+									 double		max_weight);
 
 
 /** @brief traces back from leaf to root while updating weights of leaf to all nodes in path,
  *  returns pointer to root **/
 PRIVATE tllr_node *traceback_to_ll_root(tllr_node *leaf,
-                                        double    weight);
+                                        double    weight,
+										int		  *is_dup,
+										int		  *pf_overflow);
 
 
 /** @brief destructor **/
@@ -198,7 +210,8 @@ create_tr_node(int      type,
                int      loop_spec_1,
                int      loop_spec_2,
                int      seqlen,
-               tr_node  *parent)
+               tr_node  *parent,
+               double 	max_weight)
 {
   tr_node *new_tr_node = (tr_node *)vrna_alloc(sizeof(tr_node));
 
@@ -213,16 +226,44 @@ create_tr_node(int      type,
    * type 6 : special type qm1: (i, j) (used in multiloops)
    * type 7 : branch in multiloop in qm1: (i,j)
    */
-  new_tr_node->loop_spec_1  = loop_spec_1;
-  new_tr_node->loop_spec_2  = loop_spec_2;
-  new_tr_node->seqlen       = seqlen;
-  new_tr_node->parent       = parent;
-  new_tr_node->child        = NULL;
-  new_tr_node->hash_tab     = NULL;
-  new_tr_node->next_in_hash = NULL;
-  new_tr_node->hash_value   = 0;
-  new_tr_node->weight       = 0;
+  new_tr_node->loop_spec_1  	= loop_spec_1;
+  new_tr_node->loop_spec_2  	= loop_spec_2;
+  new_tr_node->seqlen      		= seqlen;
+  new_tr_node->parent       	= parent;
+  new_tr_node->child        	= NULL;
+  new_tr_node->hash_tab     	= NULL;
+  new_tr_node->next_in_hash 	= NULL;
+  new_tr_node->hash_value   	= 0;
+  new_tr_node->weight       	= 0;
+  new_tr_node->max_weight       = max_weight;
+  new_tr_node->created_recently = 1;
   return new_tr_node;
+}
+
+
+/* compares hash children values with actual value in parent */
+PRIVATE void
+compare_parent_children_weight(tr_node *parent){
+	tr_node 	*node_t;
+	int 		i;
+	double		total;
+	
+	total = 0.;
+	
+	if(!parent->hash_tab){
+		if(parent->child){
+			total += parent->child->weight;
+		}
+	}
+	else{
+		for(i = 0; i<parent->hash_tab->hash_size; i++){
+			node_t = parent->hash_tab->array[i];
+			while(node_t){
+				total += node_t->weight;
+				node_t = node_t->next_in_hash;
+			}
+		}
+	}
 }
 
 
@@ -244,9 +285,10 @@ init_hash()
 
 /* creates root (start of a tree) */
 PRIVATE tr_node *
-create_root(int seqlen)
+create_root(int 	seqlen,
+			double	max_weight)
 {
-  tr_node *root = create_tr_node(NRT_NONE_TYPE, 0, 0, seqlen, NULL);
+  tr_node *root = create_tr_node(NRT_NONE_TYPE, 0, 0, seqlen, NULL, max_weight);
 
   return root;
 }
@@ -350,7 +392,6 @@ insert_val(hash_node  *hash_t,
   ptr = hash_t->array[hash_val_mod];
   while (ptr->next_in_hash) /* inside list */
     ptr = ptr->next_in_hash;
-  //printf("Detected %d clashes out of %d cases for total %f ratio of cases.\n", clashes, total, clashes*1./total);
   ptr->next_in_hash = inserted_node;
 }
 
@@ -360,11 +401,12 @@ PRIVATE tr_node *
 insert_tr_node(int      type,
                int      loop_spec_1,
                int      loop_spec_2,
-               tr_node  *last_node)
+               tr_node  *last_node,
+               double	 max_weight)
 {
   /* forge new tr_node */
   tr_node *new_tr_node =
-    create_tr_node(type, loop_spec_1, loop_spec_2, last_node->seqlen, last_node);
+    create_tr_node(type, loop_spec_1, loop_spec_2, last_node->seqlen, last_node, max_weight);
 
   if (!last_node->child) {
     /* empty so no child yet - insert it directly */
@@ -434,12 +476,13 @@ PRIVATE tr_node *
 add_if_nexists(int      type,
                int      loop_spec_1,
                int      loop_spec_2,
-               tr_node  *last_node)
+               tr_node  *last_node,
+               double	max_weight)
 {
   tr_node *new_tr_node = access_val(last_node, type, loop_spec_1, loop_spec_2);
 
   if (!new_tr_node)
-    new_tr_node = insert_tr_node(type, loop_spec_1, loop_spec_2, last_node);
+    new_tr_node = insert_tr_node(type, loop_spec_1, loop_spec_2, last_node, max_weight);
 
   return new_tr_node;
 }
@@ -502,25 +545,40 @@ total_weight_par_type(int     type,
 
 
 /* updates weight of a given node */
-PRIVATE void
+PRIVATE int
 update_weight(tr_node *node,
               double  weight)
 {
-  node->weight += weight;
+  if(node->max_weight - (node->weight + weight) < -(1E-14)){
+    return 1; 
+  }else{
+	node->weight += weight;
+  }
+  return 0;
 }
 
-
-/* tracebacks to root while updating values for each node passed through */
+/* tracebacks to root while updating values for each node passed through 
+ * - aslo verifies unicity (at least one node differs) */
 PRIVATE tr_node *
 traceback_to_root(tr_node *leaf,
-                  double  struct_weight)
+                  double  struct_weight,
+                  int 	  *is_dup,
+                  int	  *pf_overflow)
 {
-  update_weight(leaf, struct_weight);
+  *pf_overflow = update_weight(leaf, struct_weight);
+  if(leaf->created_recently){  
+	 leaf->created_recently = 0;
+	 *is_dup = 0;
+  }
   while (leaf->parent) {
-    update_weight(leaf->parent, struct_weight);
+    *pf_overflow = update_weight(leaf->parent, struct_weight);
+    if(leaf->parent->created_recently){
+		leaf->parent->created_recently = 0;
+		*is_dup = 0;
+    }
     leaf = leaf->parent;
   }
-  return leaf;
+  return leaf;	
 }
 
 
@@ -562,7 +620,8 @@ create_tllr_node(struct nr_memory *memory_dat,
                  int        type,
                  int        loop_spec_1,
                  int        loop_spec_2,
-                 tllr_node  *parent)
+                 tllr_node  *parent,
+                 double 	max_weight)
 {
   tllr_node   *new_tllr_node  = &(memory_dat->nr_memory_allocated[memory_dat->memory_index]);
 
@@ -577,23 +636,44 @@ create_tllr_node(struct nr_memory *memory_dat,
    * type 6 : special type qm1: (i, j) (used in multiloops)
    * type 7 : branch in multiloop in qm1: (i,j)
    */
-  new_tllr_node->loop_spec_1  = loop_spec_1;
-  new_tllr_node->loop_spec_2  = loop_spec_2;
-  new_tllr_node->parent       = parent;
-  new_tllr_node->next_node    = NULL;
-  new_tllr_node->head         = NULL;
-  new_tllr_node->weight       = 0;
+  new_tllr_node->loop_spec_1  	  = loop_spec_1;
+  new_tllr_node->loop_spec_2  	  = loop_spec_2;
+  new_tllr_node->parent       	  = parent;
+  new_tllr_node->next_node    	  = NULL;
+  new_tllr_node->head         	  = NULL;
+  new_tllr_node->weight       	  = 0;
+  new_tllr_node->max_weight   	  = max_weight;
+  new_tllr_node->created_recently = 1;
 
   memory_dat->memory_index++;
   return new_tllr_node;
 }
 
 
+/* compares hash children values with actual value in parent */
+PRIVATE void
+compare_parent_children_weight_tr(tllr_node *parent){
+	tllr_node 		*node_t;
+	double			total;
+	int 			i;
+	
+	total = 0.;
+
+	
+	node_t = parent->head;
+	while(node_t){
+		total += node_t->weight;
+		node_t = node_t->next_node;
+	}
+}
+
+
 /* creates root (start of a tree) */
 PRIVATE tllr_node *
-create_ll_root(struct nr_memory *memory_dat)
+create_ll_root(struct nr_memory *memory_dat,
+			   double max_weight)
 {
-  tllr_node *root = create_tllr_node(memory_dat, NRT_NONE_TYPE, 0, 0, NULL);
+  tllr_node *root = create_tllr_node(memory_dat, NRT_NONE_TYPE, 0, 0, NULL, max_weight);
 
   return root;
 }
@@ -608,9 +688,10 @@ insert_tllr_node(struct nr_memory *memory_dat,
                  int        type,
                  int        loop_spec_1,
                  int        loop_spec_2,
-                 tllr_node  *parent_node)
+                 tllr_node  *parent_node,
+                 double		max_weight)
 {
-  tllr_node *new_node = create_tllr_node(memory_dat, type, loop_spec_1, loop_spec_2, parent_node);
+  tllr_node *new_node = create_tllr_node(memory_dat, type, loop_spec_1, loop_spec_2, parent_node, max_weight);
 
   if (!memorized_node_prev) /* first node to be inserted */
     parent_node->head = new_node;
@@ -709,7 +790,8 @@ add_if_nexists_ll(struct nr_memory *memory_dat,
                   int       loop_spec_2,
                   tllr_node *memorized_node_prev,
                   tllr_node *memorized_node_cur,
-                  tllr_node *parent_node)
+                  tllr_node *parent_node,
+                  double	max_weight)
 {
   tllr_node *returned_node;
 
@@ -725,7 +807,8 @@ add_if_nexists_ll(struct nr_memory *memory_dat,
                                        type,
                                        loop_spec_1,
                                        loop_spec_2,
-                                       parent_node);
+                                       parent_node,
+                                       max_weight);
   } else {
     returned_node = insert_tllr_node(memory_dat,
                                      memorized_node_prev,
@@ -733,7 +816,8 @@ add_if_nexists_ll(struct nr_memory *memory_dat,
                                      type,
                                      loop_spec_1,
                                      loop_spec_2,
-                                     parent_node);
+                                     parent_node,
+                                     max_weight);
   }
 
   return returned_node;
@@ -741,22 +825,38 @@ add_if_nexists_ll(struct nr_memory *memory_dat,
 
 
 /* updates weight of a given node */
-PRIVATE void
+PRIVATE int
 update_weight_ll(tllr_node  *node,
                  double     weight)
 {
-  node->weight += weight;
+  if(node->max_weight - (node->weight + weight) < -(1E-14)){
+    return 1; 
+  }else{
+	node->weight += weight;
+  }
+  return 0;
 }
 
 
-/* tracebacks to root while updating values for each node passed through */
+/* tracebacks to root while updating values for each node passed through 
+ * - also verifies unicity (at least one node differs) */
 PRIVATE tllr_node *
 traceback_to_ll_root(tllr_node  *leaf,
-                     double     weight)
+                     double     weight,
+                     int 		*is_dup,
+                     int 		*pf_overflow)
 {
-  update_weight_ll(leaf, weight);
-  while (leaf->parent) {
-    update_weight_ll(leaf->parent, weight);
+  *pf_overflow = update_weight_ll(leaf, weight);
+  if(leaf->created_recently){   /* check whether the last sequence is not a duplicate */
+	leaf->created_recently = 0;
+	*is_dup = 0;
+  }
+  while (leaf->parent){
+    *pf_overflow = update_weight_ll(leaf->parent, weight);
+    if(leaf->parent->created_recently){
+		leaf->parent->created_recently = 0;
+		*is_dup = 0;
+    }	
     leaf = leaf->parent;
   }
   return leaf;
