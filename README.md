@@ -102,7 +102,7 @@ script:
    program `RNALfold`:
 ```
 cd src
-tar -xzf libsvm-3.22.tar.gz
+tar -xzf libsvm-3.23.tar.gz
 cd ..
 ```
 
