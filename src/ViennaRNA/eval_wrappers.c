@@ -407,24 +407,18 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *fc,
     int         d1                = -structure[unchangedPosition];
     int         d2                = -unchangedPosition;
     vrna_move_t deletion;
-    if (d1 < d2) {
-      deletion.pos_5  = d2;
-      deletion.pos_3  = d1;
-    } else {
-      deletion.pos_5  = d1;
-      deletion.pos_3  = d2;
-    }
+    if (d1 < d2)
+      deletion = vrna_move_init(d2, d1);
+    else
+      deletion = vrna_move_init(d1, d2);
 
     int         i1  = unchangedPosition;
     int         i2  = insertedPosition;
     vrna_move_t insertion;
-    if (i1 > i2) {
-      insertion.pos_5 = i2;
-      insertion.pos_3 = i1;
-    } else {
-      insertion.pos_5 = i1;
-      insertion.pos_3 = i2;
-    }
+    if (i1 > i2)
+      insertion = vrna_move_init(i2, i1);
+    else
+      insertion = vrna_move_init(i1, i2);
 
     int   energy  = vrna_eval_move_pt(fc, structure, deletion.pos_5, deletion.pos_3);
     short *tmpS   = vrna_ptable_copy(structure);
