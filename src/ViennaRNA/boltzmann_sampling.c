@@ -253,6 +253,10 @@ vrna_pbacktrack_nr(vrna_fold_compound_t *vc,
   data.list[0]  = NULL;
   vrna_pbacktrack_nr_cb(vc, num_samples, &save_nr_samples, (void *)&data);
 
+  /* re-allocate memory */
+  data.list           = (char **)vrna_realloc(data.list, sizeof(char *) * (data.num + 1));
+  data.list[data.num] = NULL;
+
   return data.list;
 }
 
