@@ -352,15 +352,13 @@ pbacktrack5_gen(vrna_fold_compound_t  *vc,
                 NR_NODE               **current_node,
                 struct nr_memory      *memory_dat)
 {
-  int   ret, i, j, n, start;
+  int   ret, i;
   char  *pstruc;
 
-  n       = vc->length;
-  pstruc  = vrna_alloc((length + 1) * sizeof(char));
+  pstruc = vrna_alloc((length + 1) * sizeof(char));
 
   for (i = 0; i < length; i++)
     pstruc[i] = '.';
-
 
 #ifdef VRNA_WITH_BOUSTROPHEDON
   ret = backtrack_ext_loop(length, pstruc, vc, length, den, current_node, memory_dat);
@@ -386,9 +384,9 @@ backtrack_ext_loop(int                  init_val,
                    NR_NODE              **current_node,
                    struct nr_memory     *memory_dat)
 {
-  FLT_OR_DBL        r, fbd, fbds, concf, qt, q_temp, qkl;
+  FLT_OR_DBL        r, fbd, fbds, qt, q_temp, qkl;
   int               ret, i, j, ij, n, k, u, start, type;
-  int               *my_iindx, *jindx, hc_decompose, *hc_up_ext;
+  int               *my_iindx, hc_decompose, *hc_up_ext;
   FLT_OR_DBL        *q, *qb, *q1k, *qln, *scale;
   unsigned char     *hard_constraints;
   short             *S1, *S2;
@@ -397,9 +395,12 @@ backtrack_ext_loop(int                  init_val,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   vrna_exp_param_t  *pf_params;
+
+#ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
   NR_NODE           *memorized_node_prev; /* remembers previous-to-current node in linked list */
   NR_NODE           *memorized_node_cur;  /* remembers actual node in linked list */
+#endif
 
   fbd   = 0.;                             /* stores weight of forbidden terms for given q[ij]*/
   fbds  = 0.;                             /* stores weight of forbidden term for given motif */
@@ -686,7 +687,7 @@ backtrack_ext_loop(int                  init_val,
     r = vrna_urn() * (qln[i] - q_temp - fbd);
     for (qt = 0, j = i + 1; j <= length; j++) {
       ij            = my_iindx[i] - j;
-      type          = vrna_get_ptype(jindx[j] + i, ptype);
+      type          = vrna_get_ptype_md(S2[i], S2[j], md);
       hc_decompose  = hard_constraints[n * i + j];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         qkl = qb[ij] * exp_E_ExtLoop(type,
@@ -900,16 +901,19 @@ backtrack_qm_nr(int                   i,
                 struct nr_memory      *memory_dat)
 {
   /* divide multiloop into qm and qm1  */
-  FLT_OR_DBL  qmt, fbd, fbds, r, q_temp, q_up, q_pair;
-  int         k, n, u, cnt, span, turn;
+  FLT_OR_DBL  qmt, fbd, fbds, r, q_temp;
+  int         k, u, cnt, span, turn;
   int         is_unpaired; /* 1 if [i ... k-1] is unpaired */
   FLT_OR_DBL  *qm, *qm1, *expMLbase;
   int         *my_iindx, *jindx, *hc_up_ml, ret;
   vrna_sc_t   *sc;
   vrna_hc_t   *hc;
+
+#ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
   NR_NODE     *memorized_node_prev; /* remembers previous-to-current node in linked list */
   NR_NODE     *memorized_node_cur;  /* remembers actual node in linked list */
+#endif
 
   ret   = 1;
   fbd   = 0.;                       /* stores weight of forbidden terms for given q[ij]*/
@@ -917,7 +921,6 @@ backtrack_qm_nr(int                   i,
 
   is_unpaired = 0;
 
-  n = j;
   vrna_mx_pf_t *matrices = vc->exp_matrices;
 
   my_iindx  = vc->iindx;
@@ -1109,7 +1112,7 @@ backtrack_qm1(int                   i,
 {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   unsigned int      n;
-  int               ii, l, il, type, turn, ret;
+  int               ii, l, il, type, turn;
   FLT_OR_DBL        qt, fbd, fbds, r, q_temp;
   FLT_OR_DBL        *qm1, *qb, *expMLbase;
   vrna_mx_pf_t      *matrices;
@@ -1121,11 +1124,12 @@ backtrack_qm1(int                   i,
   vrna_hc_t         *hc;
   vrna_exp_param_t  *pf_params;
 
+#ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
   NR_NODE           *memorized_node_prev; /* remembers previous-to-current node in linked list */
   NR_NODE           *memorized_node_cur;  /* remembers actual node in linked list */
+#endif
 
-  ret       = 1;
   n         = vc->length;
   fbd       = 0.;
   fbds      = 0.;
@@ -1155,7 +1159,6 @@ backtrack_qm1(int                   i,
 
 #endif
 
-  n = j;
   if (current_node) {
     fbd = NR_TOTAL_WEIGHT(*current_node) *
           qm1[jindx[j] + i] /
@@ -1292,7 +1295,7 @@ backtrack(int                   i,
   char              *ptype;
   unsigned char     *hard_constraints, hc_decompose;
   vrna_exp_param_t  *pf_params;
-  FLT_OR_DBL        *qb, *qm, *qm1, *scale, tmp;
+  FLT_OR_DBL        *qb, *qm, *qm1, *scale;
   FLT_OR_DBL        r, fbd, fbds, qbt1, qbr, qt, q_temp; /* qbr stores qb used for generating r */
   vrna_mx_pf_t      *matrices;
   unsigned int      n;
@@ -1300,9 +1303,12 @@ backtrack(int                   i,
   vrna_sc_t         *sc;
   vrna_hc_t         *hc;
   short             *S1;
+
+#ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
   NR_NODE           *memorized_node_prev; /* remembers previous-to-current node in linked list */
   NR_NODE           *memorized_node_cur;  /* remembers actual node in linked list */
+#endif
 
   ret     = 1;                            /* default is success */
   fbd     = 0.;                           /* stores weight of forbidden terms for given q[ij] */
@@ -1328,9 +1334,8 @@ backtrack(int                   i,
   qm1       = matrices->qm1;
   scale     = matrices->scale;
 
-  int turn        = pf_params->model_details.min_loop_size;
-  int *rtype      = &(pf_params->model_details.rtype[0]);
-  n = j;
+  int turn    = pf_params->model_details.min_loop_size;
+  int *rtype  = &(pf_params->model_details.rtype[0]);
 
 #ifndef VRNA_NR_SAMPLING_HASH
   if (current_node) {
@@ -1340,7 +1345,7 @@ backtrack(int                   i,
 
 #endif
 
-  hc_decompose = hard_constraints[jindx[j] + i];
+  hc_decompose = hard_constraints[n * j + i];
 
   do {
     int           k, l, kl, u1, u2, max_k, min_l;
@@ -1357,13 +1362,11 @@ backtrack(int                   i,
     pstruc[j - 1] = ')';
 
     r     = vrna_urn() * (qb[my_iindx[i] - j] - fbd);
-    tmp   = qb[my_iindx[i] - j];
     type  = vrna_get_ptype(jindx[j] + i, ptype);
     qbt1  = 0.;
 
     r             = vrna_urn() * (qb[my_iindx[i] - j] - fbd);
     qbr           = qb[my_iindx[i] - j];
-    tmp           = qb[my_iindx[i] - j];
     type          = vrna_get_ptype(jindx[j] + i, ptype);
     hc_decompose  = hard_constraints[n * i + j];
 
@@ -1507,7 +1510,7 @@ backtrack(int                   i,
   } while (1);
 
   /* backtrack in multi-loop */
-  if (hard_constraints[jindx[j] + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+  if (hard_constraints[n * j + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
     int         k, ii, jj, tt;
     FLT_OR_DBL  closingPair;
     tt          = rtype[vrna_get_ptype(jindx[j] + i, ptype)];
