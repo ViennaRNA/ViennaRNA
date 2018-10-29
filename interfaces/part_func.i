@@ -126,6 +126,25 @@ extern char *pbacktrack(char *sequence);
   {
     return vrna_pbacktrack5($self, length);
   }
+
+  std::vector<std::string>
+  pbacktrack_nr(int num_samples)
+  {
+    std::vector<std::string> str_vec;
+
+    char **ptr, **output = vrna_pbacktrack_nr($self, num_samples);
+
+    if (output) {
+      for (ptr = output; *ptr != NULL; ptr++) {
+        str_vec.push_back(std::string(*ptr));
+        free(*ptr);
+      }
+
+      free(output);
+    }
+
+    return str_vec;
+  }
 }
 
 %include  <ViennaRNA/boltzmann_sampling.h>

@@ -31,4 +31,10 @@ This function is attached as overloaded method @b pbacktrack() to objects of typ
 that accepts an optional @p length argument. Hence, it serves as a replacement for vrna_pbacktrack().
 @endparblock
 
+@fn char *vrna_pbacktrack_nr(vrna_fold_compound_t *vc, int num_samples)
+@scripting
+@parblock
+This function is attached as method @b pbacktrack_nr() to objects of type @em fold_compound.
+@endparblock
+
 */
