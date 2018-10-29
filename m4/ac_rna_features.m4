@@ -130,8 +130,8 @@ AC_DEFUN([RNA_ENABLE_MPFR], [
     AC_CHECK_HEADER([mpfr.h], [
       ## now, check if we can compile a program
       AC_MSG_CHECKING([whether we can compile programs with mpfr support])
-      ac_save_LDFLAGS="$LDFLAGS"
-      LDFLAGS="$ac_save_LDFLAGS -lmpfr -lgmp"
+      ac_save_LIBS="$LIBS"
+      LIBS="$ac_save_LIBS -lmpfr -lgmp"
       AC_LANG_PUSH([C])
       AC_RUN_IFELSE([
         AC_LANG_SOURCE(
@@ -153,7 +153,7 @@ AC_DEFUN([RNA_ENABLE_MPFR], [
         enable_mpfr=no
       ])
       AC_LANG_POP([C])
-      LDFLAGS="$ac_save_LDFLAGS"
+      LIBS="$ac_save_LIBS"
       AC_MSG_RESULT([$enable_mpfr])
     ], [
       AC_MSG_WARN([
