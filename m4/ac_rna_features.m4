@@ -119,6 +119,57 @@ AC_DEFUN([RNA_ENABLE_NR_SAMPLE_HASH],[
 ])
 
 
+AC_DEFUN([RNA_ENABLE_MPFR], [
+
+  RNA_ADD_FEATURE([mpfr],
+                  [Use MPFR library for aribtrary precision computations in non-redundant sampling],
+                  [yes])
+
+  RNA_FEATURE_IF_ENABLED([mpfr],[
+    ## Check for mpfr.h header first
+    AC_CHECK_HEADER([mpfr.h], [
+      ## now, check if we can compile a program
+      AC_MSG_CHECKING([whether we can compile programs with mpfr support])
+      ac_save_LDFLAGS="$LDFLAGS"
+      LDFLAGS="$ac_save_LDFLAGS -lmpfr -lgmp"
+      AC_LANG_PUSH([C])
+      AC_RUN_IFELSE([
+        AC_LANG_SOURCE(
+          [[#include <stdio.h>
+            #include <mpfr.h>
+            int main (void)
+            {
+              printf ("MPFR library: %-12s\nMPFR header:  %s (based on %d.%d.%d)\n",
+              mpfr_get_version (), MPFR_VERSION_STRING, MPFR_VERSION_MAJOR,
+              MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL);
+              return 0;
+            }]]
+        )
+      ],[
+        MPFR_LIBS="-lmpfr -lgmp"
+      ],[
+        enable_mpfr=no
+      ],[
+        enable_mpfr=no
+      ])
+      AC_LANG_POP([C])
+      LDFLAGS="$ac_save_LDFLAGS"
+      AC_MSG_RESULT([$enable_mpfr])
+    ], [
+      AC_MSG_WARN([
+==========================
+Failed to find mpfr.h!
+
+You probably need to install the mpfr-devel package or similar
+==========================
+    ])
+    enable_mpfr=no])
+  ])
+
+  AC_SUBST(MPFR_LIBS)
+  AM_CONDITIONAL(VRNA_AM_SWITCH_MPFR, test "x$enable_mpfr" = "xyes")
+])
+
 #
 # OpenMP support
 #

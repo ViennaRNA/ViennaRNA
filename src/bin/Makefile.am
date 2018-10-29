@@ -52,9 +52,19 @@ SUFFIXES = _cmdl.c _cmdl.h .ggo
 # Link against stdc++ if we use SVM in RNALfold
 RNALfold_LDADD = $(LDADD)
 RNALalifold_LDADD = $(LDADD)
+RNAsubopt_LDADD = $(LDADD)
+RNAfold_LDADD = $(LDADD)
+RNApvmin_LDADD = $(LDADD)
+
 if VRNA_AM_SWITCH_SVM
 RNALfold_LDADD += -lstdc++
 RNALalifold_LDADD += -lstdc++
+endif
+
+if VRNA_AM_SWITCH_MPFR
+RNAsubopt_LDADD += $(MPFR_LIBS)
+RNAfold_LDADD += $(MPFR_LIBS)
+RNApvmin_LDADD += $(MPFR_LIBS)
 endif
 
 GENGETOPT_CMDL = \

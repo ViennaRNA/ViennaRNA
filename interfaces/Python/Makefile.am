@@ -44,6 +44,10 @@ _RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 RNA_CPPFLAGS += -DVRNA_WITH_SVM
 endif
 
+if VRNA_AM_SWITCH_MPFR
+_RNA_la_LIBADD += $(MPFR_LIBS)
+endif
+
 _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
                   $(PTHREAD_LIBS) \
                   -avoid-version \
