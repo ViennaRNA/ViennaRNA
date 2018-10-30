@@ -193,7 +193,7 @@ PRIVATE tllr_node *traceback_to_ll_root(tllr_node *leaf,
 
 
 /** @brief destructor **/
-PRIVATE void free_all_ll(tllr_node *root);
+PRIVATE void free_mpfr_t(struct nr_memory *memory_dat);
 
 
 /**************************************************/
@@ -201,7 +201,7 @@ PRIVATE void free_all_ll(tllr_node *root);
 /**************************************************/
 
 int precision(){ // returns precision
-		return 200;
+		return 128;
 }
 
 
@@ -310,6 +310,7 @@ compare_parent_children_weight(tr_node *parent){
 			}
 		}
 	}
+	mpfr_clear(total);
 }
 
 
@@ -568,6 +569,7 @@ total_weight_par_type(int     type,
 {
   tr_node *ptr        = NULL;
   mpfr_t  weight_sum;
+  double  weight_sum_d;
   int     i;
   
   mpfr_init2(weight_sum, precision());
@@ -592,7 +594,10 @@ total_weight_par_type(int     type,
       }
     }
   }
-  return mpfr_get_d(weight_sum, default_rnd());
+
+  weight_sum_d = mpfr_get_d(weight_sum, default_rnd());
+  mpfr_clear(weight_sum);
+  return weight_sum_d;
 }
 
 
@@ -608,8 +613,10 @@ update_weight(tr_node *node,
   
   //if(node->max_weight - (node->weight + weight) < -(1E-14)){
   if(mpfr_cmp_d(intermediate, -1E-14)<0){
+    mpfr_clear(intermediate);
     return 1; 
   }else{
+    mpfr_clear(intermediate);
 	mpfr_add_d(node->weight, node->weight, weight,  default_rnd());
   }
   return 0;
@@ -646,8 +653,6 @@ free_all_nr(tr_node *root)
 {
   if (!root->hash_tab) {
     if (root->child){
-      mpfr_clear(root->child->weight);
-      mpfr_clear(root->child->max_weight);
       free_all_nr(root->child);
     }
   } else {
@@ -656,16 +661,15 @@ free_all_nr(tr_node *root)
       tr_node *tmp;
       while (ptr) {
         tmp = ptr->next_in_hash;
-        mpfr_clear(ptr->weight);
-        mpfr_clear(ptr->max_weight);
         free_all_nr(ptr);
         ptr = tmp;
       }
     }
     free(root->hash_tab->array);
     free(root->hash_tab);
-  }
-
+  }	
+  mpfr_clear(root->weight);
+  mpfr_clear(root->max_weight);
   free(root);
 }
 
@@ -732,6 +736,7 @@ compare_parent_children_weight_tr(tllr_node *parent){
 		mpfr_add(total, total, node_t->weight, default_rnd());
 		node_t = node_t->next_node;
 	}
+	mpfr_clear(total);
 }
 
 
@@ -840,6 +845,7 @@ get_weight_type_spec(int        type,
 {
   //double    weight_total  = 0;
   mpfr_t	weight_total;
+  double	weight_total_d;
   mpfr_init2(weight_total, precision());
   mpfr_set_d(weight_total, 0., default_rnd());
   	 
@@ -852,7 +858,9 @@ get_weight_type_spec(int        type,
 		
     ptr = ptr->next_node;
   }
-  return mpfr_get_d(weight_total, default_rnd());
+  weight_total_d = mpfr_get_d(weight_total, default_rnd());
+  mpfr_clear(weight_total);
+  return weight_total_d;
 }
 
 
@@ -918,8 +926,10 @@ update_weight_ll(tllr_node  *node,
   
   //if(node->max_weight - (node->weight + weight) < -(1E-14)){
   if(mpfr_cmp_d(intermediate, -1E-14)<0){
+	mpfr_clear(intermediate);
     return 1; 
   }else{
+	mpfr_clear(intermediate);
 	mpfr_add_d(node->weight, node->weight, weight,  default_rnd());
   }
   return 0;
@@ -953,21 +963,12 @@ traceback_to_ll_root(tllr_node  *leaf,
 
 /* destructor */
 PRIVATE void
-free_all_ll(tllr_node *root)
+free_mpfr_t(struct nr_memory *memory_dat)
 {
-  tllr_node *ptr;
-
-  if (root->head) {
-    mpfr_clear(root->head->weight);
-    mpfr_clear(root->head->max_weight);
-    free_all_ll(root->head);
-    if (root->next_node){
-      mpfr_clear(root->next_node->weight);
-      mpfr_clear(root->next_node->max_weight);
-      free_all_ll(root->next_node);
-	}
-    free(root);
-  }
+  for(int i = 0; i < memory_dat->memory_index; i++){
+	mpfr_clear(memory_dat->nr_memory_allocated[i].weight);
+	mpfr_clear(memory_dat->nr_memory_allocated[i].max_weight);
+  }  
 }
 
 

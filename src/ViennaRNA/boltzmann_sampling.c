@@ -341,6 +341,7 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
 #ifdef VRNA_NR_SAMPLING_HASH
       free_all_nr(current_node);
 #else
+	  free_mpfr_t(&memory_dat);
       free(memory_dat.nr_memory_allocated);
 #endif
     }
