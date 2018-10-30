@@ -335,7 +335,7 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
         vrna_message_warning("vrna_pbacktrack_nr*(): Stopped backtracking after %d samples due to numeric instabilities!\n"
                              "Coverage of partition function so far: %f%%",
                              i,
-                             100. * root_node->weight / part_fci);
+                             100. * return_node_weight(root_node) / part_fci);
       }
 
 #ifdef VRNA_NR_SAMPLING_HASH

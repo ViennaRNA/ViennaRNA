@@ -6,6 +6,19 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <mpfr.h>
+
+
+/* General mpfr funtions */
+
+int precision(); // returns precision
+
+
+mpfr_rnd_t default_rnd();  // returns default rounding mode (to nearest)
+
+/******************************************/
+/*        version with hash table         */
+/******************************************/
 
 /* explanation: each node (tr_node) holds a pointer to a start of a linked
  * list to the next node, link to previous node, Boltzmann's factor
@@ -44,8 +57,8 @@ struct tr_node {
   hash_node *hash_tab;      	/* used when there is at least two children */
   tr_node   *next_in_hash;  	/* used for node that is next in hash table */
   int       hash_value;     	/* hash value computed for this node */
-  double    weight;
-  double	max_weight;			/* maximum allowed weight (maximum of partition function) */
+  mpfr_t    weight;
+  mpfr_t	max_weight;			/* maximum allowed weight (maximum of partition function) */
   int		created_recently;	/* 1 if was created during last iteration, otherwise 0 */
 };
 
@@ -111,8 +124,8 @@ struct tllr_node {
   tllr_node *parent;      		/* vertical chaining - ancestor */
   tllr_node *head;        		/* vertical chaining - successor */
   tllr_node *next_node;   		/*horizontal chaining - linked list */
-  double    weight;
-  double	max_weight;			/* maximum allowed weight (maximum of partition function) */
+  mpfr_t    weight;
+  mpfr_t	max_weight;			/* maximum allowed weight (maximum of partition function) */
   int		created_recently;	/* 1 if was created during last iteration, otherwise 0 */
 };
 
@@ -184,6 +197,33 @@ PRIVATE void free_all_ll(tllr_node *root);
 
 
 /**************************************************/
+/*            mpfr related functions              */
+/**************************************************/
+
+int precision(){ // returns precision
+		return 200;
+}
+
+
+mpfr_rnd_t default_rnd(){  // returns default rounding mode (to nearest)
+	return mpfr_get_default_rounding_mode(); 
+}
+
+/**************************************************/
+/*                node weight getter              */
+/**************************************************/
+
+#ifdef VRNA_NR_SAMPLING_HASH
+double return_node_weight(tr_node * node){
+	return mpfr_get_d(node->weight, default_rnd());
+}
+#else
+double return_node_weight(tllr_node * node){
+	return mpfr_get_d(node->weight, default_rnd());
+}
+#endif
+
+/**************************************************/
 /*       data structure (tree + hash table)       */
 /**************************************************/
 /* Contains
@@ -234,8 +274,10 @@ create_tr_node(int      type,
   new_tr_node->hash_tab     	= NULL;
   new_tr_node->next_in_hash 	= NULL;
   new_tr_node->hash_value   	= 0;
-  new_tr_node->weight       	= 0;
-  new_tr_node->max_weight       = max_weight;
+  mpfr_init2(new_tr_node->weight, precision());
+  mpfr_set_d(new_tr_node->weight, 0., default_rnd());
+  mpfr_init2(new_tr_node->max_weight, precision());
+  mpfr_set_d(new_tr_node->max_weight, max_weight, default_rnd());
   new_tr_node->created_recently = 1;
   return new_tr_node;
 }
@@ -246,20 +288,24 @@ PRIVATE void
 compare_parent_children_weight(tr_node *parent){
 	tr_node 	*node_t;
 	int 		i;
-	double		total;
+	mpfr_t		total;
 	
-	total = 0.;
+	mpfr_init2(total, precision());
+	mpfr_set_d(total, 0., default_rnd());
 	
 	if(!parent->hash_tab){
 		if(parent->child){
-			total += parent->child->weight;
+			
+			mpfr_add(total, total, parent->child->weight,  default_rnd());
+			//total += parent->child->weight;
 		}
 	}
 	else{
 		for(i = 0; i<parent->hash_tab->hash_size; i++){
 			node_t = parent->hash_tab->array[i];
 			while(node_t){
-				total += node_t->weight;
+				mpfr_add(total, total, node_t->weight, default_rnd());
+				//total += node_t->weight;
 				node_t = node_t->next_in_hash;
 			}
 		}
@@ -498,7 +544,7 @@ tr_node_weight(tr_node  *last_node,
   tr_node *next_node = access_val(last_node, type, loop_spec_1, loop_spec_2);
 
   if (next_node)
-    return next_node->weight;
+    return mpfr_get_d(next_node->weight, default_rnd());
 
   return 0.;
 }
@@ -511,7 +557,7 @@ total_weight_par(tr_node *last_node)
   if ((!last_node->hash_tab) && (!last_node->child))
     return 0.;
 
-  return last_node->weight;
+  return mpfr_get_d(last_node->weight, default_rnd());
 }
 
 
@@ -521,26 +567,32 @@ total_weight_par_type(int     type,
                       tr_node *last_node)
 {
   tr_node *ptr        = NULL;
-  double  weight_sum  = 0.;
+  mpfr_t  weight_sum;
   int     i;
+  
+  mpfr_init2(weight_sum, precision());
+  mpfr_set_d(weight_sum, 0., default_rnd()); 
+  
 
   if (!last_node->hash_tab) {
     if (last_node->child)
       if (last_node->child->type == type){ 
-        return last_node->child->weight;
+        //return last_node->child->weight;
+        return mpfr_get_d(last_node->child->weight, default_rnd());
       }
   } else {
     for (i = 0; i < last_node->hash_tab->hash_size; i++) {
       ptr = last_node->hash_tab->array[i];
       while (ptr) {
         if (ptr->type == type)
-          weight_sum += ptr->weight;
+          //weight_sum += ptr->weight;
+          mpfr_add(weight_sum, weight_sum, ptr->weight, default_rnd());
 
         ptr = ptr->next_in_hash;
       }
     }
   }
-  return weight_sum;
+  return mpfr_get_d(weight_sum, default_rnd());
 }
 
 
@@ -549,10 +601,16 @@ PRIVATE int
 update_weight(tr_node *node,
               double  weight)
 {
-  if(node->max_weight - (node->weight + weight) < -(1E-14)){
+  mpfr_t intermediate;
+  mpfr_init2(intermediate, precision());
+  mpfr_add_d(intermediate, node->weight, weight, default_rnd());
+  mpfr_sub(intermediate, node->max_weight, intermediate,  default_rnd());
+  
+  //if(node->max_weight - (node->weight + weight) < -(1E-14)){
+  if(mpfr_cmp_d(intermediate, -1E-14)<0){
     return 1; 
   }else{
-	node->weight += weight;
+	mpfr_add_d(node->weight, node->weight, weight,  default_rnd());
   }
   return 0;
 }
@@ -587,14 +645,19 @@ PRIVATE void
 free_all_nr(tr_node *root)
 {
   if (!root->hash_tab) {
-    if (root->child)
+    if (root->child){
+      mpfr_clear(root->child->weight);
+      mpfr_clear(root->child->max_weight);
       free_all_nr(root->child);
+    }
   } else {
     for (int i = 0; i < root->hash_tab->hash_size; i++) {
       tr_node *ptr = root->hash_tab->array[i];
       tr_node *tmp;
       while (ptr) {
         tmp = ptr->next_in_hash;
+        mpfr_clear(ptr->weight);
+        mpfr_clear(ptr->max_weight);
         free_all_nr(ptr);
         ptr = tmp;
       }
@@ -641,8 +704,10 @@ create_tllr_node(struct nr_memory *memory_dat,
   new_tllr_node->parent       	  = parent;
   new_tllr_node->next_node    	  = NULL;
   new_tllr_node->head         	  = NULL;
-  new_tllr_node->weight       	  = 0;
-  new_tllr_node->max_weight   	  = max_weight;
+  mpfr_init2(new_tllr_node->weight, precision());
+  mpfr_set_d(new_tllr_node->weight, 0., default_rnd());
+  mpfr_init2(new_tllr_node->max_weight, precision());
+  mpfr_set_d(new_tllr_node->max_weight, max_weight, default_rnd());
   new_tllr_node->created_recently = 1;
 
   memory_dat->memory_index++;
@@ -654,15 +719,17 @@ create_tllr_node(struct nr_memory *memory_dat,
 PRIVATE void
 compare_parent_children_weight_tr(tllr_node *parent){
 	tllr_node 		*node_t;
-	double			total;
+	mpfr_t			total;
 	int 			i;
 	
-	total = 0.;
-
+	//total = 0.;
+	mpfr_init2(total, precision());
+	mpfr_set_d(total, 0., default_rnd());
 	
 	node_t = parent->head;
 	while(node_t){
-		total += node_t->weight;
+		//total += node_t->weight;
+		mpfr_add(total, total, node_t->weight, default_rnd());
 		node_t = node_t->next_node;
 	}
 }
@@ -746,7 +813,8 @@ get_weight(tllr_node  *memorized_node_cur,
     if (memorized_node_cur->type == type
         && memorized_node_cur->loop_spec_1 == loop_spec_1
         && memorized_node_cur->loop_spec_2 == loop_spec_2)
-      weight = memorized_node_cur->weight;
+      //weight = memorized_node_cur->weight;
+      weight = mpfr_get_d(memorized_node_cur->weight, default_rnd()); 
   }
 
   return weight;
@@ -760,7 +828,8 @@ get_weight_all(tllr_node *last_node)
   if (!last_node->head)
     return 0;
 
-  return last_node->weight;
+  //return last_node->weight;
+  return mpfr_get_d(last_node->weight, default_rnd());
 }
 
 
@@ -769,16 +838,21 @@ PRIVATE double
 get_weight_type_spec(int        type,
                      tllr_node  *last_node)
 {
-  double    weight_total  = 0;
+  //double    weight_total  = 0;
+  mpfr_t	weight_total;
+  mpfr_init2(weight_total, precision());
+  mpfr_set_d(weight_total, 0., default_rnd());
+  	 
   tllr_node *ptr          = last_node->head;
 
   while (ptr) {
     if (ptr->type == type)
-      weight_total += ptr->weight;
-
+      //weight_total += ptr->weight;
+	  mpfr_add(weight_total, weight_total, ptr->weight, default_rnd());	
+		
     ptr = ptr->next_node;
   }
-  return weight_total;
+  return mpfr_get_d(weight_total, default_rnd());
 }
 
 
@@ -829,10 +903,24 @@ PRIVATE int
 update_weight_ll(tllr_node  *node,
                  double     weight)
 {
+   /*
   if(node->max_weight - (node->weight + weight) < -(1E-14)){
     return 1; 
   }else{
 	node->weight += weight;
+  }
+  return 0;*/
+  
+  mpfr_t intermediate;
+  mpfr_init2(intermediate, precision());
+  mpfr_add_d(intermediate, node->weight, weight, default_rnd());
+  mpfr_sub(intermediate, node->max_weight, intermediate,  default_rnd());
+  
+  //if(node->max_weight - (node->weight + weight) < -(1E-14)){
+  if(mpfr_cmp_d(intermediate, -1E-14)<0){
+    return 1; 
+  }else{
+	mpfr_add_d(node->weight, node->weight, weight,  default_rnd());
   }
   return 0;
 }
@@ -870,10 +958,14 @@ free_all_ll(tllr_node *root)
   tllr_node *ptr;
 
   if (root->head) {
+    mpfr_clear(root->head->weight);
+    mpfr_clear(root->head->max_weight);
     free_all_ll(root->head);
-    if (root->next_node)
+    if (root->next_node){
+      mpfr_clear(root->next_node->weight);
+      mpfr_clear(root->next_node->max_weight);
       free_all_ll(root->next_node);
-
+	}
     free(root);
   }
 }
