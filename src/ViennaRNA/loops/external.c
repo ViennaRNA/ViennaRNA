@@ -2110,7 +2110,7 @@ add_f3_gquad(vrna_fold_compound_t       *fc,
 }
 
 
-#ifdef VRNA_WITH_SSE_IMPLEMENTATION
+#ifdef VRNA_WITH_SIMD_SSE41
 /* SSE modular decomposition -------------------------------*/
 #include <emmintrin.h>
 #include <smmintrin.h>
@@ -2142,7 +2142,7 @@ decompose_f5_ext_stem(vrna_fold_compound_t  *fc,
   e     = INF;
 
   /* modular decomposition */
-#if VRNA_WITH_SSE_IMPLEMENTATION
+#if VRNA_WITH_SIMD_SSE41
   __m128i   inf = _mm_set1_epi32(INF);
 
   const int end = j - turn;
@@ -2194,7 +2194,7 @@ decompose_f3_ext_stem(vrna_fold_compound_t  *fc,
   e     = INF;
 
   /* modular decomposition */
-#if VRNA_WITH_SSE_IMPLEMENTATION
+#if VRNA_WITH_SIMD_SSE41
   __m128i inf = _mm_set1_epi32(INF);
 
   for (j = i + turn + 1; j < max_j - 3; j += 4) {

@@ -361,61 +361,85 @@ into the executables are present!
 AC_DEFUN([RNA_ENABLE_SSE],[
 
   RNA_ADD_FEATURE([sse],
-                  [Speed-up MFE computations using SSE 4.1 implementations],
-                  [no])
+                  [Speed-up MFE computations using SIMD instructions. Use one of 'sse41' and 'avx512' to choose an instruction set.],
+                  [no],[],[],[sse41])
 
-  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
-  RNA_FEATURE_IF_ENABLED([sse],[
-    if test "x$SIND_CFLAGS" = x; then
-      case $ax_cv_c_compiler_vendor in
-        gnu)
-          AC_LANG_PUSH([C])
-          AX_CHECK_COMPILE_FLAG([-msse4.1], [ac_sse41_supported=yes],[ac_sse41_supported=no],[],[])
-          AC_LANG_POP([C])
-          ;;
-        intel)
-          ;;
+  AS_IF([test "x$enable_sse" != "xno"],[
+    ## Check for all supported SIMD features first
+    case $enable_sse in
+        avx512)
+            AC_MSG_CHECKING([compiler support for AVX 512 instructions])
+
+            ac_save_CFLAGS="$CFLAGS"
+            CFLAGS="$ac_save_CFLAGS -mavx512f"
+            AC_LANG_PUSH([C])
+
+            AC_COMPILE_IFELSE(
+            [
+              AC_LANG_PROGRAM([[
+                          #include <immintrin.h>
+                          #include <limits.h>
+                        ]],
+                          [[__m512i a = _mm512_set1_epi32(INT_MAX);
+                            __m512i b = _mm512_set1_epi32(INT_MIN);
+                            b = _mm512_min_epi32(a, b);
+                        ]])
+            ],
+            [
+              AC_MSG_RESULT([yes])
+              AC_DEFINE([VRNA_WITH_SIMD_AVX512], [1], [use AVX 512 implementations])
+              SIMD_FLAGS="-mavx512f"
+            ],
+            [
+              AC_MSG_RESULT([no; using default implementation])
+              enable_sse=no
+              simd_failed="unable to compile for AVX512 instruction set"
+            ])
+
+            AC_LANG_POP([C])
+            CFLAGS="$ac_save_CFLAGS"
+
+            ;;
         *)
-          ;;
-      esac
-    fi
+            AC_MSG_CHECKING([compiler support for SSE 4.1 instructions])
 
-    if test $ac_sse41_supported = no; then
-      enable_sse=no;
-    fi
+            ac_save_CFLAGS="$CFLAGS"
+            CFLAGS="$ac_save_CFLAGS -msse4.1"
+            AC_LANG_PUSH([C])
+
+            AC_COMPILE_IFELSE(
+            [
+              AC_LANG_PROGRAM([[
+                                #include <smmintrin.h>
+                                #include <limits.h>
+                              ]],
+                                [[__m128i a = _mm_set1_epi32(INT_MAX);
+                                  __m128i b = _mm_set1_epi32(INT_MIN);
+                                  b = _mm_min_epi32(a, b);
+                              ]])
+            ],
+            [
+              AC_MSG_RESULT([yes])
+              AC_DEFINE([VRNA_WITH_SIMD_SSE41], [1], [use SSE 4.1 implementations])
+              SIMD_FLAGS="-msse4.1"
+            ],
+            [
+              AC_MSG_RESULT([no; using default implementation])
+              enable_sse=no
+              simd_failed="unable to compile for SSE4.1 instruction set"
+            ])
+
+            AC_LANG_POP([C])
+            CFLAGS="$ac_save_CFLAGS"
+            ;;
+    esac
   ])
 
-  RNA_FEATURE_IF_ENABLED([sse],[
-    AC_MSG_CHECKING([compiler support for SSE4.1 min function])
-    ac_save_CFLAGS="$CFLAGS"
-    CFLAGS="$ac_save_CFLAGS -msse4.1"
-    AC_LANG(C)
-    AC_COMPILE_IFELSE(
-    [
-      AC_LANG_PROGRAM([[
-                        #include <smmintrin.h>
-                        #include <limits.h>
-                      ]],
-                        [[__m128i a = _mm_set1_epi32(INT_MAX);
-                          __m128i b = _mm_set1_epi32(INT_MIN);
-                          b = _mm_min_epi32(a, b);
-                      ]])
-    ],
-    [
-      AC_MSG_RESULT([yes])
-      SIMD_CFLAGS="${SIMD_CFLAGS} -msse4.1"
-      AC_DEFINE([VRNA_WITH_SSE_IMPLEMENTATION], [1], [use SSE implementations])
-      CONFIG_SSE_IMPLEMENTATION="#define VRNA_WITH_SSE_IMPLEMENTATION"
-    ],
-    [
-      enable_sse=no
-      AC_MSG_RESULT([no; using default implementation])
-    ])
-    CFLAGS="$ac_save_CFLAGS"
+  AS_IF([test "x$enable_sse" != "xno"],[
+    AC_DEFINE([VRNA_WITH_SIMD_EXTENSIONS], [1], [use SIMD extensions])
   ])
 
-  AC_SUBST(SIMD_CFLAGS)
-  AC_SUBST(CONFIG_SSE_IMPLEMENTATION)
+  AC_SUBST(SIMD_FLAGS)
 ])
 
 
@@ -426,7 +450,7 @@ AC_DEFUN([RNA_ENABLE_SSE],[
 AC_DEFUN([RNA_ENABLE_VECTORIZE],[
 
   RNA_ADD_FEATURE([vectorize],
-                  [Apply SIMD vectorization to optimize execution speed],
+                  [Apply automatic SIMD vectorization to optimize execution speed],
                   [yes])
 
   ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c

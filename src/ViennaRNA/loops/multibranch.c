@@ -1,4 +1,3 @@
-
 /*WBL 24 Aug 2018 Add AVX512 based on sources_034_578/modular_decomposition_id3.c */
 /*WBL 22 Aug 2018 by hand d3c17fd3e04e2419c147a1e097d3c4d2c5a6f11d lines 1355-1357*/
 
@@ -1030,10 +1029,9 @@ extend_fm_3p(int                        i,
 }
 
 
-#ifdef VRNA_WITH_SSE_IMPLEMENTATION
-#ifdef AVX512
+#if VRNA_WITH_SIMD_AVX512
 #include <immintrin.h>
-#else
+#elif VRNA_WITH_SIMD_SSE41
 #include <emmintrin.h>
 #include <smmintrin.h>
 
@@ -1051,7 +1049,7 @@ horizontal_min_Vec4i(__m128i x)
 
   return _mm_cvtsi128_si32(min4);
 }
-#endif /*AVX512*/
+
 
 #endif
 
@@ -1338,26 +1336,31 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
         last_nt = i; /* do not start before i */
 
       const int stop = last_nt;
-#ifdef VRNA_WITH_SSE_IMPLEMENTATION
+#ifdef VRNA_WITH_SIMD_EXTENSIONS
       const int end = 1 + stop - k;
       int       cnt;
-      __m128i   inf = _mm_set1_epi32(INF);
+#ifdef VRNA_WITH_SIMD_AVX512
+      //__m512i   inf = _mm512_set1_epi32(INF);
 
-#ifdef AVX512
-  /*WBL 21 Aug 2018 Add SSE512 code from sources_034_578/modular_decomposition_id3.c by hand*/
-      for(cnt = 0; cnt < end - (16- 1); cnt += 16)  {
-        __m512i   a     = _mm512_loadu_si512((__m512i*)&fmi[k + cnt]);
-        __m512i   b     = _mm512_loadu_si512((__m512i*)&fm[k1j + cnt]);
-        __m512i   c     = _mm512_add_epi32(a, b);
-        __m512i   min1  = _mm512_shuffle_epi32(c, _MM_SHUFFLE(0,0,3,2));
-        __m512i   min2  = c;
-        __m512i   min3  = _mm512_shuffle_epi32(min2, _MM_SHUFFLE(0,0,0,1));
-        __m512i   min4  = _mm512_min_epi32(min2,min3);
-        en =  _mm512_reduce_min_epi32(min4);
-        decomp = MIN2(decomp, en);
+      /*WBL 21 Aug 2018 Add SSE512 code from sources_034_578/modular_decomposition_id3.c by hand*/
+      for (cnt = 0; cnt < end - (16 - 1); cnt += 16) {
+        __m512i a = _mm512_loadu_si512((__m512i *)&fmi[k + cnt]);
+        __m512i b = _mm512_loadu_si512((__m512i *)&fm[k1j + cnt]);
+        __m512i c = _mm512_add_epi32(a, b);
+        //__mmask16 mask1 = _mm512_cmplt_epi32_mask(a, inf);
+        //__mmask16 mask2 = _mm512_cmplt_epi32_mask(b, inf);
+
+        __m512i min1  = _mm512_shuffle_epi32(c, _MM_SHUFFLE(0, 0, 3, 2));
+        __m512i min2  = c;
+        __m512i min3  = _mm512_shuffle_epi32(min2, _MM_SHUFFLE(0, 0, 0, 1));
+        __m512i min4  = _mm512_min_epi32(min2, min3);
+        en      = _mm512_reduce_min_epi32(min4);
+        decomp  = MIN2(decomp, en);
       }
-//end sources_034_578/modular_decomposition_id3.c
-#else /*AVX512*/
+      //end sources_034_578/modular_decomposition_id3.c
+#elif VRNA_WITH_SIMD_SSE41
+      __m128i inf = _mm_set1_epi32(INF);
+
       for (cnt = 0; cnt < end - 3; cnt += 4) {
         __m128i   a     = _mm_loadu_si128((__m128i *)&fmi_tmp[k + cnt]);
         __m128i   b     = _mm_loadu_si128((__m128i *)&fm[k1j + cnt]);
@@ -1372,8 +1375,11 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
         const int en = horizontal_min_Vec4i(res);
         decomp = MIN2(decomp, en);
       }
-#endif /*AVX512*/
-      //second for loop used by both 128 bit SSE and 512 bit AVX code
+#else
+#error SSE support is requested but neither SSE4.1 nor AVX512 support has been detected
+#endif
+
+      /* second for loop used by both 128 bit SSE and 512 bit AVX code */
       for (; cnt < end; cnt++) {
         if ((fmi[k + cnt] != INF) && (fm[k1j + cnt] != INF)) {
           const int en = fmi[k + cnt] + fm[k1j + cnt];
@@ -1512,8 +1518,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   }
 
   if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_m)) {
-    en = fc->aux_grammar->cb_aux_m(fc, i, j, fc->aux_grammar->data);
-    e = MIN2(e, en);
+    en  = fc->aux_grammar->cb_aux_m(fc, i, j, fc->aux_grammar->data);
+    e   = MIN2(e, en);
   }
 
   fmi[j] = e;

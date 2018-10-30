@@ -224,7 +224,7 @@ Features
 Optimizations
 -------------
   * Auto Vectorization        : ${enable_vectorize:-no}
-  * Streaming SIMD Extension  : ${enable_sse:-no}
+  * SIMD Extension            : ${enable_sse:-no}
   * Link Time Optimization    : ${enable_lto:-no}
   * POSIX Threads             : ${enable_pthreads:-no}
   * OpenMP                    : ${enable_openmp:-no}
