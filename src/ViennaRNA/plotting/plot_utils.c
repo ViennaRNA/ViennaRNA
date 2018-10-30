@@ -92,8 +92,8 @@ vrna_annotate_covar_struct(const char **alignment,
       continue;
 
     for (s = 0; alignment[s] != NULL; s++) {
-      a     = vrna_nucleotide_encode(toupper(alignment[s][i - 1]), &md);
-      b     = vrna_nucleotide_encode(toupper(alignment[s][j - 1]), &md);
+      a     = vrna_nucleotide_encode(alignment[s][i - 1], &md);
+      b     = vrna_nucleotide_encode(alignment[s][j - 1], &md);
       type  = md.pair[a][b];
       pfreq[type]++;
       if (type) {
@@ -189,8 +189,8 @@ vrna_annotate_covar_pairs(const char  **alignment,
       for (z = 0; z < 7; z++)
         pfreq[z] = 0;
       for (s = 0; s < n_seq; s++) {
-        a = vrna_nucleotide_encode(toupper(alignment[s][cp[c].i - 1]), &md);
-        b = vrna_nucleotide_encode(toupper(alignment[s][cp[c].j - 1]), &md);
+        a = vrna_nucleotide_encode(alignment[s][cp[c].i - 1], &md);
+        b = vrna_nucleotide_encode(alignment[s][cp[c].j - 1], &md);
         if ((alignment[s][cp[c].j - 1] == '~') || (alignment[s][cp[c].i - 1] == '~'))
           continue;
 
