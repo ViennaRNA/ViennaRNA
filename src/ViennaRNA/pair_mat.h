@@ -50,6 +50,8 @@ encode_char(char c)
   /* return numerical representation of base used e.g. in pair[][] */
   int code;
 
+  c = toupper(c);
+
   if (energy_set > 0) {
     code = (int)(c - 'A') + 1;
   } else {
@@ -164,14 +166,14 @@ encode_sequence(const char  *sequence,
     /* standard encoding as always used for S */
     case 0:
       for (i = 1; i <= l; i++)    /* make numerical encoding of sequence */
-        S[i] = (short)encode_char(toupper(sequence[i - 1]));
+        S[i] = (short)encode_char(sequence[i - 1]);
       S[l + 1]  = S[1];
       S[0]      = (short)l;
       break;
     /* encoding for mismatches of nostandard bases (normally used for S1) */
     case 1:
       for (i = 1; i <= l; i++)
-        S[i] = alias[(short)encode_char(toupper(sequence[i - 1]))];
+        S[i] = alias[(short)encode_char(sequence[i - 1])];
       S[l + 1]  = S[1];
       S[0]      = S[l];
       break;
