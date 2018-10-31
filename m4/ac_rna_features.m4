@@ -107,7 +107,7 @@ AC_DEFUN([RNA_ENABLE_NR_SAMPLE_HASH],[
 
   RNA_ADD_FEATURE([NRhash],
                   [Hash for non-redundant sampling datas structure],
-                  [yes])
+                  [no])
 
   ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_ENABLED([NRhash],[

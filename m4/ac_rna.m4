@@ -223,12 +223,13 @@ Extra Libraries
 ---------------
   * Support Vector Machine    : ${with_svm:-no}
   * GNU Scientific Library    : ${with_gsl:-no}
-  * MPFR                      : ${enable_mpfr:-no}
+  * GNU MPFR                  : ${enable_mpfr:-no}
   * JSON                      : ${with_json:-no}
 
 Features
 --------
   * Boustrophedon             : ${enable_boustrophedon:-no}
+  * Use hash for NR Sampling  : ${enable_NRhash:-no}
   * C11 features              : ${enable_c11:-no}
   * TTY colors                : ${enable_tty_colors:-no}
   * Float Precision(PF}       : ${enable_floatpf:-no}
