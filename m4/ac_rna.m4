@@ -223,6 +223,7 @@ Extra Libraries
 ---------------
   * Support Vector Machine    : ${with_svm:-no}
   * GNU Scientific Library    : ${with_gsl:-no}
+  * MPFR                      : ${enable_mpfr:-no}
   * JSON                      : ${with_json:-no}
 
 Features

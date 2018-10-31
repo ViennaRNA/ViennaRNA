@@ -1,21 +1,13 @@
 #ifndef DATA_STRUCTURES_NONRED_H_
 #define DATA_STRUCTURES_NONRED_H_
 
-#define WITH_MPFR_LIB 1
-
-#include <ctype.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 #include <mpfr.h>
 #endif
 
 /* General mpfr funtions */
 
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 PRIVATE int precision(); 			// returns precision
 PRIVATE mpfr_rnd_t default_rnd();  	// returns default rounding mode (to nearest)
 #endif
@@ -61,7 +53,7 @@ struct tr_node {
   hash_node *hash_tab;      	/* used when there is at least two children */
   tr_node   *next_in_hash;  	/* used for node that is next in hash table */
   int       hash_value;     	/* hash value computed for this node */
-#ifdef WITH_MPFR_LIB 
+#ifdef VRNA_NR_SAMPLING_MPFR 
   mpfr_t    weight;
   mpfr_t	max_weight;			/* maximum allowed weight (maximum of partition function) */
 #else
@@ -133,7 +125,7 @@ struct tllr_node {
   tllr_node *parent;      		/* vertical chaining - ancestor */
   tllr_node *head;        		/* vertical chaining - successor */
   tllr_node *next_node;   		/*horizontal chaining - linked list */
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   mpfr_t    weight;
   mpfr_t	max_weight;			/* maximum allowed weight (maximum of partition function) */
 #else
@@ -223,7 +215,7 @@ PRIVATE void free_all_nrll(nr_memory **memory_dat);
 /*            mpfr related functions              */
 /**************************************************/
 
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 PRIVATE int precision(){ // returns precision
 		return 128;
 }
@@ -241,7 +233,7 @@ PRIVATE mpfr_rnd_t default_rnd(){  // returns default rounding mode (to nearest)
 #ifdef VRNA_NR_SAMPLING_HASH
 PRIVATE double 
 return_node_weight(tr_node * node){
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 	return mpfr_get_d(node->weight, default_rnd());
 #else
 	return node->weight;
@@ -250,7 +242,7 @@ return_node_weight(tr_node * node){
 #else
 PRIVATE double 
 return_node_weight(tllr_node * node){
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 	return mpfr_get_d(node->weight, default_rnd());
 #else
 	return node->weight;
@@ -308,7 +300,7 @@ create_tr_node(int      type,
   new_tr_node->hash_tab     	= NULL;
   new_tr_node->next_in_hash 	= NULL;
   new_tr_node->hash_value   	= 0;
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   mpfr_init2(new_tr_node->weight, precision());
   mpfr_set_d(new_tr_node->weight, 0., default_rnd());
   mpfr_init2(new_tr_node->max_weight, precision());
@@ -328,7 +320,7 @@ compare_parent_children_weight(tr_node *parent){
 	tr_node 	*node_t;
 	int 		i;
 
-#ifdef	WITH_MPFR_LIB
+#ifdef	VRNA_NR_SAMPLING_MPFR
 	mpfr_t		total;
 	mpfr_init2(total, precision());
 	mpfr_set_d(total, 0., default_rnd());
@@ -339,7 +331,7 @@ compare_parent_children_weight(tr_node *parent){
 	if(!parent->hash_tab){
 		if(parent->child){
 
-#ifdef WITH_MPFR_LIB			
+#ifdef VRNA_NR_SAMPLING_MPFR			
 			mpfr_add(total, total, parent->child->weight,  default_rnd());
 #else
 			total += parent->child->weight;
@@ -350,7 +342,7 @@ compare_parent_children_weight(tr_node *parent){
 		for(i = 0; i<parent->hash_tab->hash_size; i++){
 			node_t = parent->hash_tab->array[i];
 			while(node_t){
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 				mpfr_add(total, total, node_t->weight, default_rnd());
 #else
 				total += node_t->weight;
@@ -359,7 +351,7 @@ compare_parent_children_weight(tr_node *parent){
 			}
 		}
 	}
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 	mpfr_clear(total);
 #endif
 }
@@ -589,7 +581,7 @@ tr_node_weight(tr_node  *last_node,
   tr_node *next_node = access_val(last_node, type, loop_spec_1, loop_spec_2);
 
   if (next_node){
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
     return mpfr_get_d(next_node->weight, default_rnd());
 #else
 	return next_node->weight;
@@ -605,7 +597,7 @@ total_weight_par(tr_node *last_node)
 {
   if ((!last_node->hash_tab) && (!last_node->child))
     return 0.;
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   return mpfr_get_d(last_node->weight, default_rnd());
 #else
   return last_node->weight;	
@@ -621,7 +613,7 @@ total_weight_par_type(int     type,
   tr_node *ptr        = NULL;
   int     i;
  
-#ifdef WITH_MPFR_LIB 
+#ifdef VRNA_NR_SAMPLING_MPFR 
   double  weight_sum_d;
   mpfr_t  weight_sum;
   mpfr_init2(weight_sum, precision());
@@ -634,7 +626,7 @@ total_weight_par_type(int     type,
   if (!last_node->hash_tab) {
     if (last_node->child)
       if (last_node->child->type == type){ 
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 		mpfr_clear(weight_sum);
         return mpfr_get_d(last_node->child->weight, default_rnd());
 #else
@@ -646,7 +638,7 @@ total_weight_par_type(int     type,
       ptr = last_node->hash_tab->array[i];
       while (ptr) {
         if (ptr->type == type){
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
           mpfr_add(weight_sum, weight_sum, ptr->weight, default_rnd());
 #else
 		  weight_sum += ptr->weight;
@@ -657,7 +649,7 @@ total_weight_par_type(int     type,
     }
   }
 
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   weight_sum_d = mpfr_get_d(weight_sum, default_rnd());
   mpfr_clear(weight_sum);
   return weight_sum_d;
@@ -672,7 +664,7 @@ PRIVATE int
 update_weight(tr_node *node,
               double  weight)
 {
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   mpfr_t intermediate;
   mpfr_init2(intermediate, precision());
   mpfr_add_d(intermediate, node->weight, weight, default_rnd());
@@ -741,7 +733,7 @@ free_all_nr(tr_node *root)
     free(root->hash_tab->array);
     free(root->hash_tab);
   }	
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   mpfr_clear(root->weight);
   mpfr_clear(root->max_weight);
 #endif
@@ -804,7 +796,7 @@ create_tllr_node(struct nr_memory **memory_dat,
   new_tllr_node->parent       	  = parent;
   new_tllr_node->next_node    	  = NULL;
   new_tllr_node->head         	  = NULL;
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   mpfr_init2(new_tllr_node->weight, precision());
   mpfr_set_d(new_tllr_node->weight, 0., default_rnd());
   mpfr_init2(new_tllr_node->max_weight, precision());
@@ -826,7 +818,7 @@ compare_parent_children_weight_tr(tllr_node *parent){
 	tllr_node 		*node_t;
 	int 			i; 
 	
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 	mpfr_t			total;
 	mpfr_init2(total, precision());
 	mpfr_set_d(total, 0., default_rnd());
@@ -836,14 +828,14 @@ compare_parent_children_weight_tr(tllr_node *parent){
 	
 	node_t = parent->head;
 	while(node_t){
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 		mpfr_add(total, total, node_t->weight, default_rnd());
 #else
 		total += node_t->weight;
 #endif
 		node_t = node_t->next_node;
 	}
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 	mpfr_clear(total);
 #endif
 }
@@ -927,7 +919,7 @@ get_weight(tllr_node  *memorized_node_cur,
     if (memorized_node_cur->type == type
         && memorized_node_cur->loop_spec_1 == loop_spec_1
         && memorized_node_cur->loop_spec_2 == loop_spec_2)
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
       weight = mpfr_get_d(memorized_node_cur->weight, default_rnd());
 #else
 	  weight = memorized_node_cur->weight;	
@@ -945,7 +937,7 @@ get_weight_all(tllr_node *last_node)
   if (!last_node->head)
     return 0;
 
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   return mpfr_get_d(last_node->weight, default_rnd());
 #else
   return last_node->weight;
@@ -960,7 +952,7 @@ get_weight_type_spec(int        type,
 {
   //double    weight_total  = 0;
  
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   mpfr_t	weight_total;
   double	weight_total_d;
   mpfr_init2(weight_total, precision());
@@ -973,7 +965,7 @@ get_weight_type_spec(int        type,
 
   while (ptr) {
     if (ptr->type == type){
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 	  mpfr_add(weight_total, weight_total, ptr->weight, default_rnd());	
 #else
 	  weight_total += ptr->weight;	
@@ -983,7 +975,7 @@ get_weight_type_spec(int        type,
     ptr = ptr->next_node;
   }
 
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
   weight_total_d = mpfr_get_d(weight_total, default_rnd());
   mpfr_clear(weight_total);
   return weight_total_d;
@@ -1041,7 +1033,7 @@ update_weight_ll(tllr_node  *node,
                  double     weight)
 {
 
-#ifdef WITH_MPFR_LIB 
+#ifdef VRNA_NR_SAMPLING_MPFR 
   mpfr_t intermediate;
   mpfr_init2(intermediate, precision());
   mpfr_add_d(intermediate, node->weight, weight, default_rnd());
@@ -1100,7 +1092,7 @@ free_all_nrll(struct nr_memory **memory_dat)
   nr_memory 	*memory_block_next;
   while(memory_block){
 	memory_block_next = memory_block->prev_block;
-#ifdef WITH_MPFR_LIB
+#ifdef VRNA_NR_SAMPLING_MPFR
 	for(i = 0; i < memory_block->memory_index; i++){
 		mpfr_clear(memory_block->nr_memory_allocated[i].weight);
 		mpfr_clear(memory_block->nr_memory_allocated[i].max_weight);

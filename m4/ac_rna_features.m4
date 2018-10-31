@@ -111,7 +111,7 @@ AC_DEFUN([RNA_ENABLE_NR_SAMPLE_HASH],[
 
   ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_ENABLED([NRhash],[
-    AC_DEFINE([VRNA_NR_SAMPLING_HASH], [1], [Use Hash for non-redundant sampling datas structure])
+    AC_DEFINE([VRNA_NR_SAMPLING_HASH], [1], [Use Hash for non-redundant sampling data structure])
     CONFIG_NR_SAMPLING="#define VRNA_NR_SAMPLING_HASH"
   ])
 
@@ -147,6 +147,7 @@ AC_DEFUN([RNA_ENABLE_MPFR], [
         )
       ],[
         MPFR_LIBS="-lmpfr -lgmp"
+        AC_DEFINE([VRNA_NR_SAMPLING_MPFR], [1], [Use MPFR for non-redundant sampling data structure operations])
       ],[
         enable_mpfr=no
       ],[
