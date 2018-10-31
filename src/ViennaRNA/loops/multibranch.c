@@ -1340,39 +1340,45 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       const int end = 1 + stop - k;
       int       cnt;
 #ifdef VRNA_WITH_SIMD_AVX512
-      //__m512i   inf = _mm512_set1_epi32(INF);
+      __m512i   inf = _mm512_set1_epi32(INF);
 
       /*WBL 21 Aug 2018 Add SSE512 code from sources_034_578/modular_decomposition_id3.c by hand*/
       for (cnt = 0; cnt < end - (16 - 1); cnt += 16) {
-        __m512i a = _mm512_loadu_si512((__m512i *)&fmi[k + cnt]);
-        __m512i b = _mm512_loadu_si512((__m512i *)&fm[k1j + cnt]);
-        __m512i c = _mm512_add_epi32(a, b);
-        //__mmask16 mask1 = _mm512_cmplt_epi32_mask(a, inf);
-        //__mmask16 mask2 = _mm512_cmplt_epi32_mask(b, inf);
+        __m512i   a = _mm512_loadu_si512((__m512i *)&fmi[k + cnt]);
+        __m512i   b = _mm512_loadu_si512((__m512i *)&fm[k1j + cnt]);
 
-        __m512i min1  = _mm512_shuffle_epi32(c, _MM_SHUFFLE(0, 0, 3, 2));
-        __m512i min2  = c;
-        __m512i min3  = _mm512_shuffle_epi32(min2, _MM_SHUFFLE(0, 0, 0, 1));
-        __m512i min4  = _mm512_min_epi32(min2, min3);
-        en      = _mm512_reduce_min_epi32(min4);
-        decomp  = MIN2(decomp, en);
+        /* compute mask for entries where both, a and b, are less than INF */
+        __mmask16 mask = _kand_mask16(_mm512_cmplt_epi32_mask(a, inf),
+                                      _mm512_cmplt_epi32_mask(b, inf));
+
+        /* add values */
+        __m512i   c = _mm512_add_epi32(a, b);
+
+        /* reduce to minimum (only those where one of the source values was not INF before) */
+        const int en = _mm512_mask_reduce_min_epi32(mask, c);
+
+        decomp = MIN2(decomp, en);
       }
       //end sources_034_578/modular_decomposition_id3.c
 #elif VRNA_WITH_SIMD_SSE41
       __m128i inf = _mm_set1_epi32(INF);
 
       for (cnt = 0; cnt < end - 3; cnt += 4) {
-        __m128i   a     = _mm_loadu_si128((__m128i *)&fmi_tmp[k + cnt]);
-        __m128i   b     = _mm_loadu_si128((__m128i *)&fm[k1j + cnt]);
-        __m128i   c     = _mm_add_epi32(a, b);
-        __m128i   mask1 = _mm_cmplt_epi32(a, inf);
-        __m128i   mask2 = _mm_cmplt_epi32(b, inf);
-        __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
-                                       _mm_andnot_si128(mask1, a));
+        __m128i a = _mm_loadu_si128((__m128i *)&fmi_tmp[k + cnt]);
+        __m128i b = _mm_loadu_si128((__m128i *)&fm[k1j + cnt]);
+        __m128i c = _mm_add_epi32(a, b);
 
-        res = _mm_or_si128(_mm_and_si128(mask2, res),
-                           _mm_andnot_si128(mask2, b));
-        const int en = horizontal_min_Vec4i(res);
+        /* create mask for non-INF values */
+        __m128i mask = _mm_and_si128(_mm_cmplt_epi32(a, inf),
+                                     _mm_cmplt_epi32(b, inf));
+
+        /* delete results where a or b has been INF before */
+        c = _mm_and_si128(mask, c);
+
+        /* fill all values with INF if they've been INF in a or b before */
+        __m128i   res = _mm_or_si128(c, _mm_andnot_si128(mask, inf));
+        const int en  = horizontal_min_Vec4i(res);
+
         decomp = MIN2(decomp, en);
       }
 #else

@@ -361,7 +361,7 @@ into the executables are present!
 AC_DEFUN([RNA_ENABLE_SSE],[
 
   RNA_ADD_FEATURE([sse],
-                  [Speed-up MFE computations using SIMD instructions. Use one of 'sse41' and 'avx512' to choose an instruction set.],
+                  [Speed-up MFE computations using explicit SIMD instructions. Use one of 'sse41' and 'avx512' to choose an instruction set.],
                   [no],[],[],[sse41])
 
   AS_IF([test "x$enable_sse" != "xno"],[

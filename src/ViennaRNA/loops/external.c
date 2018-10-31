@@ -2110,8 +2110,9 @@ add_f3_gquad(vrna_fold_compound_t       *fc,
 }
 
 
-#ifdef VRNA_WITH_SIMD_SSE41
-/* SSE modular decomposition -------------------------------*/
+#if VRNA_WITH_SIMD_AVX512
+#include <immintrin.h>
+#elif VRNA_WITH_SIMD_SSE41
 #include <emmintrin.h>
 #include <smmintrin.h>
 
@@ -2141,24 +2142,51 @@ decompose_f5_ext_stem(vrna_fold_compound_t  *fc,
   turn  = fc->params->model_details.min_loop_size;
   e     = INF;
 
-  /* modular decomposition */
-#if VRNA_WITH_SIMD_SSE41
-  __m128i   inf = _mm_set1_epi32(INF);
-
   const int end = j - turn;
 
-  for (i = 2; i < end - 3; i += 4) {
-    __m128i   a     = _mm_loadu_si128((__m128i *)&f5[i - 1]);
-    __m128i   b     = _mm_loadu_si128((__m128i *)&stems[i]);
-    __m128i   c     = _mm_add_epi32(a, b);
-    __m128i   mask1 = _mm_cmplt_epi32(a, inf);
-    __m128i   mask2 = _mm_cmplt_epi32(b, inf);
-    __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
-                                   _mm_andnot_si128(mask1, a));
+  /* modular decomposition */
+#if VRNA_WITH_SIMD_AVX512
+  __m512i   inf = _mm512_set1_epi32(INF);
 
-    res = _mm_or_si128(_mm_and_si128(mask2, res),
-                       _mm_andnot_si128(mask2, b));
-    const int en = horizontal_min_Vec4i(res);
+  for (i = 2; i < end - 15; i += 16) {
+    __m512i   a = _mm512_loadu_si512((__m512i *)&f5[i - 1]);
+    __m512i   b = _mm512_loadu_si512((__m512i *)&stems[i]);
+
+    /* compute mask for entries where both, a and b, are less than INF */
+    __mmask16 mask = _kand_mask16(_mm512_cmplt_epi32_mask(a, inf),
+                                  _mm512_cmplt_epi32_mask(b, inf));
+
+    __m512i   c   = _mm512_add_epi32(a, b);
+    const int en  = _mm512_mask_reduce_min_epi32(mask, c);
+
+    e = MIN2(e, en);
+  }
+
+  for (; i < end; i++) {
+    if ((f5[i - 1] != INF) && (stems[i] != INF)) {
+      const int en = f5[i - 1] + stems[i];
+      e = MIN2(e, en);
+    }
+  }
+#elif VRNA_WITH_SIMD_SSE41
+  __m128i inf = _mm_set1_epi32(INF);
+
+  for (i = 2; i < end - 3; i += 4) {
+    __m128i a = _mm_loadu_si128((__m128i *)&f5[i - 1]);
+    __m128i b = _mm_loadu_si128((__m128i *)&stems[i]);
+    __m128i c = _mm_add_epi32(a, b);
+
+    /* create mask for non-INF values */
+    __m128i mask = _mm_and_si128(_mm_cmplt_epi32(a, inf),
+                                 _mm_cmplt_epi32(b, inf));
+
+    /* delete results where a or b has been INF before */
+    c = _mm_and_si128(mask, c);
+
+    /* fill all values with INF if they've been INF in a or b before */
+    __m128i   res = _mm_or_si128(c, _mm_andnot_si128(mask, inf));
+    const int en  = horizontal_min_Vec4i(res);
+
     e = MIN2(e, en);
   }
 
@@ -2169,7 +2197,7 @@ decompose_f5_ext_stem(vrna_fold_compound_t  *fc,
     }
   }
 #else
-  for (i = 2; i < j - turn; i++)
+  for (i = 2; i < end; i++)
     if ((f5[i - 1] != INF) && (stems[i] != INF)) {
       const int en = f5[i - 1] + stems[i];
       e = MIN2(e, en);
