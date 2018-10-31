@@ -89,7 +89,7 @@ pbacktrack5_gen(vrna_fold_compound_t  *vc,
                 int                   length,
                 double                *q_remain,
                 NR_NODE               **current_node,
-                struct nr_memory      *memory_dat);
+                struct nr_memory      **memory_dat);
 
 
 PRIVATE int
@@ -99,7 +99,7 @@ backtrack(int                   i,
           vrna_fold_compound_t  *vc,
           double                *q_remain,
           NR_NODE               **current_node,
-          struct nr_memory      *memory_dat);
+          struct nr_memory      **memory_dat);
 
 
 PRIVATE int
@@ -109,7 +109,7 @@ backtrack_ext_loop(int                  init_val,
                    int                  length,
                    double               *q_remain,
                    NR_NODE              **current_node,
-                   struct nr_memory     *memory_dat);
+                   struct nr_memory     **memory_dat);
 
 
 PRIVATE int
@@ -126,7 +126,7 @@ backtrack_qm_nr(int                   i,
                 vrna_fold_compound_t  *vc,
                 double                *q_remain,
                 NR_NODE               **current_node,
-                struct nr_memory      *memory_dat);
+                struct nr_memory      **memory_dat);
 
 
 PRIVATE int
@@ -136,7 +136,7 @@ backtrack_qm1(int                   i,
               vrna_fold_compound_t  *vc,
               double                *q_remain,
               NR_NODE               **current_node,
-              struct nr_memory      *memory_dat);
+              struct nr_memory      **memory_dat);
 
 
 PRIVATE void
@@ -282,9 +282,12 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
     } else {
       int               i, is_dup, pf_overflow;
       double            q_remain, part_fci;
-      struct nr_memory  memory_dat = {
-        NULL, 0
-      };
+      size_t			block_size;
+      
+      block_size =	5000 * sizeof(NR_NODE);
+      
+      struct nr_memory * memory_dat = NULL;
+      
       NR_NODE           *current_node;
       NR_NODE           *root_node;
 
@@ -295,8 +298,8 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
 #ifdef VRNA_NR_SAMPLING_HASH
       root_node = create_root(vc->length, part_fci);
 #else
-      memory_dat.nr_memory_allocated  = vrna_alloc(vc->length * num_samples * sizeof(NR_NODE)); // memory pre-allocation
-      root_node                       = create_ll_root(&memory_dat, part_fci);
+      memory_dat 	= create_nr_memory(sizeof(NR_NODE), block_size, NULL); // memory pre-allocation
+      root_node  	= create_ll_root(&memory_dat, part_fci);
 
 #endif
       current_node = root_node;
@@ -315,12 +318,14 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
         if (pf_overflow) {
           vrna_message_warning(
             "vrna_pbacktrack_nr*(): partition function overflow detected for forbidden structures, presumably due to numerical instabilities.\n");
+          free(ss);
           break;
         }
 
         if (is_dup) {
           vrna_message_warning(
             "vrna_pbacktrack_nr*(): duplicate detected, presumably due to numerical instabilities\n");
+          free(ss);
           break;
         }
 
@@ -341,8 +346,7 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
 #ifdef VRNA_NR_SAMPLING_HASH
       free_all_nr(current_node);
 #else
-	  free_mpfr_t(&memory_dat);
-      free(memory_dat.nr_memory_allocated);
+	  free_all_nrll(&memory_dat);
 #endif
     }
   }
@@ -355,7 +359,7 @@ pbacktrack5_gen(vrna_fold_compound_t  *vc,
                 int                   length,
                 double                *q_remain,
                 NR_NODE               **current_node,
-                struct nr_memory      *memory_dat)
+                struct nr_memory      **memory_dat)
 {
   int   ret, i;
   char  *pstruc;
@@ -387,7 +391,7 @@ backtrack_ext_loop(int                  init_val,
                    int                  length,
                    double               *q_remain,
                    NR_NODE              **current_node,
-                   struct nr_memory     *memory_dat)
+                   struct nr_memory     **memory_dat)
 {
   FLT_OR_DBL        r, fbd, fbds, qt, q_temp, qkl;
   int               ret, i, j, ij, n, k, u, start, type;
@@ -903,7 +907,7 @@ backtrack_qm_nr(int                   i,
                 vrna_fold_compound_t  *vc,
                 double                *q_remain,
                 NR_NODE               **current_node,
-                struct nr_memory      *memory_dat)
+                struct nr_memory      **memory_dat)
 {
   /* divide multiloop into qm and qm1  */
   FLT_OR_DBL  qmt, fbd, fbds, r, q_temp;
@@ -1113,7 +1117,7 @@ backtrack_qm1(int                   i,
               vrna_fold_compound_t  *vc,
               double                *q_remain,
               NR_NODE               **current_node,
-              struct nr_memory      *memory_dat)
+              struct nr_memory      **memory_dat)
 {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   unsigned int      n;
@@ -1295,7 +1299,7 @@ backtrack(int                   i,
           vrna_fold_compound_t  *vc,
           double                *q_remain,
           NR_NODE               **current_node,
-          struct nr_memory      *memory_dat)
+          struct nr_memory      **memory_dat)
 {
   char              *ptype;
   unsigned char     *hard_constraints, hc_decompose;
