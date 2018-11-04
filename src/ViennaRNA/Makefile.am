@@ -181,6 +181,7 @@ vrna_utils_HEADERS = \
     utils/strings.h \
     utils/structures.h \
     utils/alignments.h \
+    utils/higher_order_functions.h \
     ${SVM_UTILS_H}
 
 
@@ -292,6 +293,7 @@ libRNA_utils_la_SOURCES = \
     utils/structure_utils.c \
     utils/structure_tree.c \
     utils/msa_utils.c \
+    utils/higher_order_functions.c \
     io/io_utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \

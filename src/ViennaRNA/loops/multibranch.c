@@ -22,6 +22,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/multibranch.h"
+#include "ViennaRNA/utils/higher_order_functions.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -1029,31 +1030,6 @@ extend_fm_3p(int                        i,
 }
 
 
-#if VRNA_WITH_SIMD_AVX512
-#include <immintrin.h>
-#elif VRNA_WITH_SIMD_SSE41
-#include <emmintrin.h>
-#include <smmintrin.h>
-
-/*
- *  SSE minimum
- *  see also: http://stackoverflow.com/questions/9877700/getting-max-value-in-a-m128i-vector-with-sse
- */
-int
-horizontal_min_Vec4i(__m128i x)
-{
-  __m128i min1  = _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 0, 3, 2));
-  __m128i min2  = _mm_min_epi32(x, min1);
-  __m128i min3  = _mm_shuffle_epi32(min2, _MM_SHUFFLE(0, 0, 0, 1));
-  __m128i min4  = _mm_min_epi32(min2, min3);
-
-  return _mm_cvtsi128_si32(min4);
-}
-
-
-#endif
-
-
 PRIVATE int
 E_ml_stems_fast(vrna_fold_compound_t  *fc,
                 int                   i,
@@ -1335,77 +1311,14 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       if (last_nt < i)
         last_nt = i; /* do not start before i */
 
-      const int stop = last_nt;
-#ifdef VRNA_WITH_SIMD_EXTENSIONS
-      const int end = 1 + stop - k;
-      int       cnt;
-#ifdef VRNA_WITH_SIMD_AVX512
-      __m512i   inf = _mm512_set1_epi32(INF);
+      const int count = last_nt - k + 1;
 
-      /*WBL 21 Aug 2018 Add SSE512 code from sources_034_578/modular_decomposition_id3.c by hand*/
-      for (cnt = 0; cnt < end - (16 - 1); cnt += 16) {
-        __m512i   a = _mm512_loadu_si512((__m512i *)&fmi[k + cnt]);
-        __m512i   b = _mm512_loadu_si512((__m512i *)&fm[k1j + cnt]);
+      en      = vrna_fun_zip_add_min(fmi_tmp + k, fm + k1j, count);
+      decomp  = MIN2(decomp, en);
 
-        /* compute mask for entries where both, a and b, are less than INF */
-        __mmask16 mask = _kand_mask16(_mm512_cmplt_epi32_mask(a, inf),
-                                      _mm512_cmplt_epi32_mask(b, inf));
-
-        /* add values */
-        __m512i   c = _mm512_add_epi32(a, b);
-
-        /* reduce to minimum (only those where one of the source values was not INF before) */
-        const int en = _mm512_mask_reduce_min_epi32(mask, c);
-
-        decomp = MIN2(decomp, en);
-      }
-      //end sources_034_578/modular_decomposition_id3.c
-#elif VRNA_WITH_SIMD_SSE41
-      __m128i inf = _mm_set1_epi32(INF);
-
-      for (cnt = 0; cnt < end - 3; cnt += 4) {
-        __m128i a = _mm_loadu_si128((__m128i *)&fmi_tmp[k + cnt]);
-        __m128i b = _mm_loadu_si128((__m128i *)&fm[k1j + cnt]);
-        __m128i c = _mm_add_epi32(a, b);
-
-        /* create mask for non-INF values */
-        __m128i mask = _mm_and_si128(_mm_cmplt_epi32(a, inf),
-                                     _mm_cmplt_epi32(b, inf));
-
-        /* delete results where a or b has been INF before */
-        c = _mm_and_si128(mask, c);
-
-        /* fill all values with INF if they've been INF in a or b before */
-        __m128i   res = _mm_or_si128(c, _mm_andnot_si128(mask, inf));
-        const int en  = horizontal_min_Vec4i(res);
-
-        decomp = MIN2(decomp, en);
-      }
-#else
-#error SSE support is requested but neither SSE4.1 nor AVX512 support has been detected
-#endif
-
-      /* second for loop used by both 128 bit SSE and 512 bit AVX code */
-      for (; cnt < end; cnt++) {
-        if ((fmi[k + cnt] != INF) && (fm[k1j + cnt] != INF)) {
-          const int en = fmi[k + cnt] + fm[k1j + cnt];
-          decomp = MIN2(decomp, en);
-        }
-      }
-
-      k   += cnt;
-      k1j += cnt;
-#else
-      for (; k <= stop; k++, k1j++) {
-        if ((fmi_tmp[k] != INF) && (fm[k1j] != INF)) {
-          en      = fmi_tmp[k] + fm[k1j];
-          decomp  = MIN2(decomp, en);
-        }
-      }
-#endif
-
-      k++;
-      k1j++;
+      /* advance counters by processed subsegment and add 1 for the split point between strands */
+      k   += count + 1;
+      k1j += count + 1;
 
       if (k > j - turn - 2)
         break;
