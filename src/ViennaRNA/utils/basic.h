@@ -30,7 +30,7 @@
 #include <ViennaRNA/datastructures/basic.h>
 
 /* two helper macros to indicate whether a function should be exported in
-the library or stays hidden */
+ * the library or stays hidden */
 #define PUBLIC
 #define PRIVATE static
 
@@ -51,7 +51,7 @@ the library or stays hidden */
  *  @brief  Input/Output flag of get_input_line():\n
  *  if used as input option this tells get_input_line() that the data to be read should comply
  *  with the FASTA format
- * 
+ *
  *  the function will return this flag if a fasta header was read
  */
 #define VRNA_INPUT_FASTA_HEADER           8U
@@ -59,13 +59,13 @@ the library or stays hidden */
 /*
  *  @brief  Input flag for get_input_line():\n
  *  Tell get_input_line() that we assume to read a nucleotide sequence
- * 
+ *
  */
 #define VRNA_INPUT_SEQUENCE               16U
 
 /** @brief  Input flag for get_input_line():\n
  *  Tell get_input_line() that we assume to read a structure constraint
- * 
+ *
  */
 #define VRNA_INPUT_CONSTRAINT             32U
 
@@ -118,18 +118,18 @@ the library or stays hidden */
 /**
  *  @brief Get the minimum of three comparable values
  */
-#define MIN3(A, B, C)   (MIN2(  (MIN2((A),(B))) ,(C)))
+#define MIN3(A, B, C)   (MIN2((MIN2((A), (B))), (C)))
 
 /**
  *  @brief Get the maximum of three comparable values
  */
-#define MAX3(A, B, C)   (MAX2(  (MAX2((A),(B))) ,(C)))
+#define MAX3(A, B, C)   (MAX2((MAX2((A), (B))), (C)))
 
 
 #ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
 #include "dmalloc.h"
-#define vrna_alloc(S)       calloc(1,(S))
+#define vrna_alloc(S)       calloc(1, (S))
 #define vrna_realloc(p, S)  xrealloc(p, S)
 #else
 
@@ -139,7 +139,8 @@ the library or stays hidden */
  *  @param size The size of the memory to be allocated in bytes
  *  @return     A pointer to the allocated memory
  */
-void  *vrna_alloc(unsigned size);
+void *vrna_alloc(unsigned size);
+
 
 /**
  *  @brief Reallocate space safely
@@ -148,7 +149,9 @@ void  *vrna_alloc(unsigned size);
  *  @param size The size of the memory to be allocated in bytes
  *  @return     A pointer to the newly allocated memory
  */
-void  *vrna_realloc(void *p, unsigned size);
+void *vrna_realloc(void     *p,
+                   unsigned size);
+
 
 #endif
 
@@ -156,6 +159,7 @@ void  *vrna_realloc(void *p, unsigned size);
  *  @brief  Initialize seed for random number generator
  */
 void vrna_init_rand(void);
+
 
 /**
  * @brief Current 48 bit random number
@@ -176,6 +180,7 @@ extern unsigned short xsubi[3];
  */
 double vrna_urn(void);
 
+
 /**
  *  @brief Generates a pseudo random integer in a specified range
  *
@@ -184,7 +189,9 @@ double vrna_urn(void);
  *  @param to     The last number in range
  *  @return       A pseudo random number in range [from, to]
  */
-int vrna_int_urn(int from, int to);
+int vrna_int_urn(int  from,
+                 int  to);
+
 
 /**
  *  @brief Get a timestamp
@@ -194,7 +201,8 @@ int vrna_int_urn(int from, int to);
  *
  *  @return A string containing the timestamp
  */
-char  *vrna_time_stamp(void);
+char *vrna_time_stamp(void);
+
 
 /**
  *  Retrieve a line from 'stdin' savely while skipping comment characters and
@@ -203,21 +211,21 @@ char  *vrna_time_stamp(void);
  *  An option argument allows one to switch between different reading modes.\n
  *  Currently available options are:\n
  *  #VRNA_INPUT_NOPRINT_COMMENTS, #VRNA_INPUT_NOSKIP_COMMENTS, #VRNA_INPUT_NOELIM_WS_SUFFIX
- * 
+ *
  *  pass a collection of options as one value like this:
  *  @verbatim get_input_line(string, option_1 | option_2 | option_n) @endverbatim
- * 
+ *
  *  If the function recognizes the type of input, it will report it in the return
  *  value. It also reports if a user defined 'quit' command (@-sign on 'stdin')
  *  was given. Possible return values are:\n
  *  #VRNA_INPUT_FASTA_HEADER, #VRNA_INPUT_ERROR, #VRNA_INPUT_MISC, #VRNA_INPUT_QUIT
- * 
+ *
  *  @param string   A pointer to the character array that contains the line read
  *  @param options  A collection of options for switching the functions behavior
  *  @return         A flag with information about what has been read
  */
-unsigned int get_input_line(char **string,
-                            unsigned int options);
+unsigned int get_input_line(char          **string,
+                            unsigned int  options);
 
 
 /**
@@ -226,14 +234,15 @@ unsigned int get_input_line(char **string,
  *  Access of a position "(i,j)" is then accomplished by using @verbatim (i,j) ~ iindx[i]-j @endverbatim
  *  This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
  *  the ViennaRNA Package
- * 
+ *
  *  Consult the implemented code to find out about the mapping formula ;)
- * 
+ *
  *  @see vrna_idx_col_wise()
  *  @param length The length of the RNA sequence
  *  @return       The mapper array
  */
 int *vrna_idx_row_wise(unsigned int length);
+
 
 /**
  *  @brief Get an index mapper array (indx) for accessing the energy matrices, e.g. in MFE related functions.
@@ -241,15 +250,16 @@ int *vrna_idx_row_wise(unsigned int length);
  *  Access of a position "(i,j)" is then accomplished by using @verbatim (i,j) ~ indx[j]+i @endverbatim
  *  This function is necessary as most of the two-dimensional energy matrices are actually one-dimensional arrays throughout
  *  the ViennaRNAPackage
- * 
+ *
  *  Consult the implemented code to find out about the mapping formula ;)
- * 
+ *
  *  @see vrna_idx_row_wise()
  *  @param length The length of the RNA sequence
  *  @return       The mapper array
- * 
+ *
  */
 int *vrna_idx_col_wise(unsigned int length);
+
 
 /**
  *  @}
@@ -273,7 +283,8 @@ int *vrna_idx_col_wise(unsigned int length);
  *  @param format The error message to be printed
  *  @param ...    Optional arguments for the formatted message string
  */
-void vrna_message_error(const char *format, ...);
+void vrna_message_error(const char *format,
+                        ...);
 
 
 /**
@@ -288,7 +299,8 @@ void vrna_message_error(const char *format, ...);
  *  @param format The error message to be printed
  *  @param args   The argument list for the formatted message string
  */
-void vrna_message_verror(const char *format, va_list args);
+void vrna_message_verror(const char *format,
+                         va_list    args);
 
 
 /**
@@ -302,7 +314,8 @@ void vrna_message_verror(const char *format, va_list args);
  *  @param format The warning message to be printed
  *  @param ...    Optional arguments for the formatted message string
  */
-void vrna_message_warning(const char *format, ...);
+void vrna_message_warning(const char *format,
+                          ...);
 
 
 /**
@@ -316,7 +329,8 @@ void vrna_message_warning(const char *format, ...);
  *  @param format The warning message to be printed
  *  @param args   The argument list for the formatted message string
  */
-void vrna_message_vwarning(const char *format, va_list args);
+void vrna_message_vwarning(const char *format,
+                           va_list    args);
 
 
 /**
@@ -330,7 +344,9 @@ void vrna_message_vwarning(const char *format, va_list args);
  *  @param format The warning message to be printed
  *  @param ...    Optional arguments for the formatted message string
  */
-void vrna_message_info(FILE *fp, const char *format, ...);
+void vrna_message_info(FILE       *fp,
+                       const char *format,
+                       ...);
 
 
 /**
@@ -344,7 +360,9 @@ void vrna_message_info(FILE *fp, const char *format, ...);
  *  @param format The info message to be printed
  *  @param args   The argument list for the formatted message string
  */
-void vrna_message_vinfo(FILE *fp, const char *format, va_list args);
+void vrna_message_vinfo(FILE        *fp,
+                        const char  *format,
+                        va_list     args);
 
 
 /**
@@ -360,12 +378,14 @@ void vrna_message_input_seq_simple(void);
  *
  *  (usually this is used to ask for user input)
  *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
- * 
+ *
  *  @param s A user defined string that will be printed to stdout
  */
 void vrna_message_input_seq(const char *s);
 
+
 void vrna_message_input_msa(const char *s);
+
 
 /**
  *  @}
@@ -373,9 +393,9 @@ void vrna_message_input_msa(const char *s);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-DEPRECATED(int   *get_indx(unsigned int length), "Use vrna_idx_col_wise() instead");
+DEPRECATED(int *get_indx(unsigned int length), "Use vrna_idx_col_wise() instead");
 
-DEPRECATED(int   *get_iindx(unsigned int length), "Use vrna_idx_row_wise() instead");
+DEPRECATED(int *get_iindx(unsigned int length), "Use vrna_idx_row_wise() instead");
 
 /**
  *  @brief Read a line of arbitrary length from a stream
@@ -389,7 +409,7 @@ DEPRECATED(int   *get_iindx(unsigned int length), "Use vrna_idx_row_wise() inste
  *  @param  fp  A file pointer to the stream where the function should read from
  *  @return     A pointer to the resulting string
  */
-DEPRECATED(char  *get_line(FILE *fp), "Use vrna_read_line() instead");
+DEPRECATED(char *get_line(FILE *fp), "Use vrna_read_line() instead");
 
 /**
  *  @brief Print a line to @e stdout that asks for an input sequence
@@ -404,7 +424,7 @@ DEPRECATED(void print_tty_input_seq(void), "Use vrna_message_input_seq_simple() 
  *
  *  (usually this is used to ask for user input)
  *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
- * 
+ *
  *  @deprecated Use vrna_message_input_seq() instead!
  */
 DEPRECATED(void print_tty_input_seq_str(const char *s), "Use vrna_message_input_seq() instead");
@@ -437,7 +457,8 @@ DEPRECATED(void *space(unsigned size), "Use vrna_alloc() instead");
  *
  *  @deprecated Use vrna_realloc() instead!
  */
-DEPRECATED(void *xrealloc(void *p, unsigned size), "Use vrna_realloc() instead");
+DEPRECATED(void *xrealloc(void      *p,
+                          unsigned  size), "Use vrna_realloc() instead");
 
 /**
  *  @brief  Make random number seeds
@@ -457,14 +478,16 @@ DEPRECATED(double urn(void), "Use vrna_urn() instead");
  *
  *  @deprecated Use vrna_int_urn() instead!
  */
-DEPRECATED(int int_urn(int from, int to), "Use vrna_int_urn() instead()");
+DEPRECATED(int int_urn(int  from,
+                       int  to), "Use vrna_int_urn() instead()");
 
 /**
  *  @brief  Inefficient `cp`
  *
  *  @deprecated Use vrna_file_copy() instead!
  */
-DEPRECATED(void filecopy(FILE *from, FILE *to), "Use vrna_file_copy() instead");
+DEPRECATED(void filecopy(FILE *from,
+                         FILE *to), "Use vrna_file_copy() instead");
 
 /**
  *  @brief Get a timestamp
