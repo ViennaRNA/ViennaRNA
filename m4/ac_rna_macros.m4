@@ -5,6 +5,15 @@
 ## Several macros for AC_RNA_INIT ##
 ##--------------------------------##
 
+AC_DEFUN([AC_RNA_ADD_WARNING],[
+  if test "x$ac_rna_warning" != "x"; then
+    ac_rna_warning="${ac_rna_warning}
+$1"
+  else
+    ac_rna_warning="$1"
+  fi
+])
+
 AC_DEFUN([AC_RNA_APPEND_VAR_COMMA],[
   if test "x$$1" != "x" ; then
     $1="${$1}, "

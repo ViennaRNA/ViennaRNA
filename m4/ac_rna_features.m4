@@ -355,18 +355,35 @@ into the executables are present!
 
 
 #
-# SSE implementations
+# SIMD optimizations
 #
 
-AC_DEFUN([RNA_ENABLE_SSE],[
+AC_DEFUN([RNA_ENABLE_SIMD],[
 
-  RNA_ADD_FEATURE([sse],
+  RNA_ADD_FEATURE([simd],
                   [Speed-up MFE computations using explicit SIMD instructions. Use one of 'sse41' and 'avx512' to choose an instruction set.],
                   [no],[],[],[sse41])
 
+  RNA_ADD_FEATURE([sse],
+                  [Deprecated switch for SIMD optimizations. Use --enable-simd/--disable-simd instead],
+                  [no],[],[],[sse41])
+
   AS_IF([test "x$enable_sse" != "xno"],[
+    AC_MSG_WARN([[
+
+############################################
+Option --enable-sse is deprecated!
+
+Please consider using the successor option --enable-simd instead.
+############################################
+    ]])
+    enable_simd="sse41"
+    AC_RNA_ADD_WARNING([Deprecated option --enable-simd detected => Please use --enable-simd instead!])
+  ])
+
+  AS_IF([test "x$enable_simd" != "xno"],[
     ## Check for all supported SIMD features first
-    case $enable_sse in
+    case $enable_simd in
         avx512)
             AC_MSG_CHECKING([compiler support for AVX 512 instructions])
 
@@ -392,8 +409,9 @@ AC_DEFUN([RNA_ENABLE_SSE],[
             ],
             [
               AC_MSG_RESULT([no; using default implementation])
-              enable_sse=no
+              enable_simd=no
               simd_failed="unable to compile for AVX512 instruction set"
+              AC_RNA_ADD_WARNING([Failed to compile with AVX512 instruction set => SIMD instructions deactivated!])
             ])
 
             AC_LANG_POP([C])
@@ -422,11 +440,13 @@ AC_DEFUN([RNA_ENABLE_SSE],[
               AC_MSG_RESULT([yes])
               AC_DEFINE([VRNA_WITH_SIMD_SSE41], [1], [use SSE 4.1 implementations])
               SIMD_FLAGS="-msse4.1"
+              enable_simd=sse41
             ],
             [
               AC_MSG_RESULT([no; using default implementation])
-              enable_sse=no
+              enable_simd=no
               simd_failed="unable to compile for SSE4.1 instruction set"
+              AC_RNA_ADD_WARNING([Failed to compile with SSE4.1 instruction set => SIMD instructions deactivated!])
             ])
 
             AC_LANG_POP([C])
@@ -435,7 +455,7 @@ AC_DEFUN([RNA_ENABLE_SSE],[
     esac
   ])
 
-  AS_IF([test "x$enable_sse" != "xno"],[
+  AS_IF([test "x$enable_simd" != "xno"],[
     AC_DEFINE([VRNA_WITH_SIMD_EXTENSIONS], [1], [use SIMD extensions])
   ])
 
