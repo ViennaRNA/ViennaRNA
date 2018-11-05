@@ -1,3 +1,6 @@
+/*WBL 24 Aug 2018 Add AVX512 based on sources_034_578/modular_decomposition_id3.c */
+/*WBL 22 Aug 2018 by hand d3c17fd3e04e2419c147a1e097d3c4d2c5a6f11d lines 1355-1357*/
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -19,6 +22,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/multibranch.h"
+#include "ViennaRNA/utils/higher_order_functions.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -1026,29 +1030,6 @@ extend_fm_3p(int                        i,
 }
 
 
-#ifdef VRNA_WITH_SSE_IMPLEMENTATION
-#include <emmintrin.h>
-#include <smmintrin.h>
-
-/*
- *  SSE minimum
- *  see also: http://stackoverflow.com/questions/9877700/getting-max-value-in-a-m128i-vector-with-sse
- */
-int
-horizontal_min_Vec4i(__m128i x)
-{
-  __m128i min1  = _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 0, 3, 2));
-  __m128i min2  = _mm_min_epi32(x, min1);
-  __m128i min3  = _mm_shuffle_epi32(min2, _MM_SHUFFLE(0, 0, 0, 1));
-  __m128i min4  = _mm_min_epi32(min2, min3);
-
-  return _mm_cvtsi128_si32(min4);
-}
-
-
-#endif
-
-
 PRIVATE int
 E_ml_stems_fast(vrna_fold_compound_t  *fc,
                 int                   i,
@@ -1330,47 +1311,14 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       if (last_nt < i)
         last_nt = i; /* do not start before i */
 
-      const int stop = last_nt;
-#ifdef VRNA_WITH_SSE_IMPLEMENTATION
-      const int end = 1 + stop - k;
-      int       cnt;
-      __m128i   inf = _mm_set1_epi32(INF);
+      const int count = last_nt - k + 1;
 
-      for (cnt = 0; cnt < end - 3; cnt += 4) {
-        __m128i   a     = _mm_loadu_si128((__m128i *)&fmi_tmp[k + cnt]);
-        __m128i   b     = _mm_loadu_si128((__m128i *)&fm[k1j + cnt]);
-        __m128i   c     = _mm_add_epi32(a, b);
-        __m128i   mask1 = _mm_cmplt_epi32(a, inf);
-        __m128i   mask2 = _mm_cmplt_epi32(b, inf);
-        __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
-                                       _mm_andnot_si128(mask1, a));
+      en      = vrna_fun_zip_add_min(fmi_tmp + k, fm + k1j, count);
+      decomp  = MIN2(decomp, en);
 
-        res = _mm_or_si128(_mm_and_si128(mask2, res),
-                           _mm_andnot_si128(mask2, b));
-        const int en = horizontal_min_Vec4i(res);
-        decomp = MIN2(decomp, en);
-      }
-
-      for (; cnt < end; cnt++) {
-        if ((fmi[k + cnt] != INF) && (fm[k1j + cnt] != INF)) {
-          const int en = fmi[k + cnt] + fm[k1j + cnt];
-          decomp = MIN2(decomp, en);
-        }
-      }
-
-      k   += cnt;
-      k1j += cnt;
-#else
-      for (; k <= stop; k++, k1j++) {
-        if ((fmi_tmp[k] != INF) && (fm[k1j] != INF)) {
-          en      = fmi_tmp[k] + fm[k1j];
-          decomp  = MIN2(decomp, en);
-        }
-      }
-#endif
-
-      k++;
-      k1j++;
+      /* advance counters by processed subsegment and add 1 for the split point between strands */
+      k   += count + 1;
+      k1j += count + 1;
 
       if (k > j - turn - 2)
         break;
@@ -1489,8 +1437,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   }
 
   if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_m)) {
-    en = fc->aux_grammar->cb_aux_m(fc, i, j, fc->aux_grammar->data);
-    e = MIN2(e, en);
+    en  = fc->aux_grammar->cb_aux_m(fc, i, j, fc->aux_grammar->data);
+    e   = MIN2(e, en);
   }
 
   fmi[j] = e;

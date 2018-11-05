@@ -56,7 +56,7 @@ RNA_ENABLE_FLOATPF
 RNA_ENABLE_DEPRECATION_WARNINGS
 RNA_ENABLE_COLORED_TTY
 RNA_ENABLE_STATIC_BIN
-RNA_ENABLE_SSE
+RNA_ENABLE_SIMD
 RNA_ENABLE_VECTORIZE
 
 ## Set post conditions for feature
@@ -191,6 +191,16 @@ AS_IF([test "x$with_tutorial" != "xno"],[
   _pdfdir=""
 ])
 
+
+AS_IF([test "x$ac_rna_warning" != "x"],[
+  ac_rna_warning="
+==================================================
+Warning:
+$ac_rna_warning
+==================================================
+"
+])
+
 # Notify the user
 
 AC_MSG_NOTICE([
@@ -224,7 +234,7 @@ Features
 Optimizations
 -------------
   * Auto Vectorization        : ${enable_vectorize:-no}
-  * Streaming SIMD Extension  : ${enable_sse:-no}
+  * Explicit SIMD Extension   : ${enable_simd:-no} ${simd_failed}
   * Link Time Optimization    : ${enable_lto:-no}
   * POSIX Threads             : ${enable_pthreads:-no}
   * OpenMP                    : ${enable_openmp:-no}
@@ -275,9 +285,8 @@ Install Directories
   * Python3 Interface         : $_python3_install
       (binaries)              : $_python3_arch_dir
       (scripts)               : $_python3_lib_dir
-
-You can run 'make', 'make check' and 'make install' now!
-])
+$ac_rna_warning
+You can run 'make', 'make check' and 'make install' now!])
 ])
 
 

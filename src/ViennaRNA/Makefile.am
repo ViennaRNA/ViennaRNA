@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-AM_CFLAGS = $(RNA_CFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
-AM_CXXFLAGS = $(RNA_CXXFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
+AM_CFLAGS = $(RNA_CFLAGS) $(SIMD_FLAGS) $(PTHREAD_CFLAGS)
+AM_CXXFLAGS = $(RNA_CXXFLAGS) $(SIMD_FLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) ${SVM_INC} -I$(top_srcdir)/src ${JSON_INC}
 AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
@@ -181,6 +181,7 @@ vrna_utils_HEADERS = \
     utils/strings.h \
     utils/structures.h \
     utils/alignments.h \
+    utils/higher_order_functions.h \
     ${SVM_UTILS_H}
 
 
@@ -292,6 +293,7 @@ libRNA_utils_la_SOURCES = \
     utils/structure_utils.c \
     utils/structure_tree.c \
     utils/msa_utils.c \
+    utils/higher_order_functions.c \
     io/io_utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \

@@ -19,6 +19,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/external.h"
+#include "ViennaRNA/utils/higher_order_functions.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -2110,26 +2111,6 @@ add_f3_gquad(vrna_fold_compound_t       *fc,
 }
 
 
-#ifdef VRNA_WITH_SSE_IMPLEMENTATION
-/* SSE modular decomposition -------------------------------*/
-#include <emmintrin.h>
-#include <smmintrin.h>
-
-PRIVATE INLINE int
-horizontal_min_Vec4i(__m128i x)
-{
-  __m128i min1  = _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 0, 3, 2));
-  __m128i min2  = _mm_min_epi32(x, min1);
-  __m128i min3  = _mm_shuffle_epi32(min2, _MM_SHUFFLE(0, 0, 0, 1));
-  __m128i min4  = _mm_min_epi32(min2, min3);
-
-  return _mm_cvtsi128_si32(min4);
-}
-
-
-#endif
-
-
 PRIVATE INLINE int
 decompose_f5_ext_stem(vrna_fold_compound_t  *fc,
                       int                   j,
@@ -2141,41 +2122,9 @@ decompose_f5_ext_stem(vrna_fold_compound_t  *fc,
   turn  = fc->params->model_details.min_loop_size;
   e     = INF;
 
-  /* modular decomposition */
-#if VRNA_WITH_SSE_IMPLEMENTATION
-  __m128i   inf = _mm_set1_epi32(INF);
+  const int count = j - turn;
 
-  const int end = j - turn;
-
-  for (i = 2; i < end - 3; i += 4) {
-    __m128i   a     = _mm_loadu_si128((__m128i *)&f5[i - 1]);
-    __m128i   b     = _mm_loadu_si128((__m128i *)&stems[i]);
-    __m128i   c     = _mm_add_epi32(a, b);
-    __m128i   mask1 = _mm_cmplt_epi32(a, inf);
-    __m128i   mask2 = _mm_cmplt_epi32(b, inf);
-    __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
-                                   _mm_andnot_si128(mask1, a));
-
-    res = _mm_or_si128(_mm_and_si128(mask2, res),
-                       _mm_andnot_si128(mask2, b));
-    const int en = horizontal_min_Vec4i(res);
-    e = MIN2(e, en);
-  }
-
-  for (; i < end; i++) {
-    if ((f5[i - 1] != INF) && (stems[i] != INF)) {
-      const int en = f5[i - 1] + stems[i];
-      e = MIN2(e, en);
-    }
-  }
-#else
-  for (i = 2; i < j - turn; i++)
-    if ((f5[i - 1] != INF) && (stems[i] != INF)) {
-      const int en = f5[i - 1] + stems[i];
-      e = MIN2(e, en);
-    }
-
-#endif
+  e = vrna_fun_zip_add_min(f5 + 1, stems + 2, count - 2);
 
   return e;
 }
@@ -2187,45 +2136,15 @@ decompose_f3_ext_stem(vrna_fold_compound_t  *fc,
                       int                   max_j,
                       int                   *stems)
 {
-  int e, j, *f3, turn;
+  int e, j, *f3, turn, count;
 
   f3    = fc->matrices->f3_local;
   turn  = fc->params->model_details.min_loop_size;
+  count = max_j - i - turn;
   e     = INF;
 
   /* modular decomposition */
-#if VRNA_WITH_SSE_IMPLEMENTATION
-  __m128i inf = _mm_set1_epi32(INF);
-
-  for (j = i + turn + 1; j < max_j - 3; j += 4) {
-    __m128i   a     = _mm_loadu_si128((__m128i *)&f3[j + 1]);
-    __m128i   b     = _mm_loadu_si128((__m128i *)&stems[j]);
-    __m128i   c     = _mm_add_epi32(a, b);
-    __m128i   mask1 = _mm_cmplt_epi32(a, inf);
-    __m128i   mask2 = _mm_cmplt_epi32(b, inf);
-    __m128i   res   = _mm_or_si128(_mm_and_si128(mask1, c),
-                                   _mm_andnot_si128(mask1, a));
-
-    res = _mm_or_si128(_mm_and_si128(mask2, res),
-                       _mm_andnot_si128(mask2, b));
-    const int en = horizontal_min_Vec4i(res);
-    e = MIN2(e, en);
-  }
-
-  for (; j <= max_j; j++) {
-    if ((f3[j + 1] != INF) && (stems[j] != INF)) {
-      const int en = f3[j + 1] + stems[j];
-      e = MIN2(e, en);
-    }
-  }
-#else
-  for (j = i + turn + 1; j <= max_j; j++)
-    if ((f3[j + 1] != INF) && (stems[j] != INF)) {
-      const int en = stems[j] + f3[j + 1];
-      e = MIN2(e, en);
-    }
-
-#endif
+  e = vrna_fun_zip_add_min(stems + i + turn + 1, f3 + i + turn + 2, count);
 
   return e;
 }
