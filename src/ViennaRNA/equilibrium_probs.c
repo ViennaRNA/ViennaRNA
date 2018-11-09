@@ -334,6 +334,54 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc)
 }
 
 
+PUBLIC double
+vrna_ensemble_defect(vrna_fold_compound_t *fc,
+                     const char           *structure)
+{
+  unsigned int  i, j, n;
+  int           ii;
+  double        ed = -1.;
+
+  if ((fc) &&
+      (structure) &&
+      (strlen(structure) == fc->length) &&
+      (fc->exp_matrices) &&
+      (fc->exp_matrices->probs)) {
+    n = fc->length;
+
+    short       *pt     = vrna_ptable(structure);
+    FLT_OR_DBL  *probs  = fc->exp_matrices->probs;
+    int         *idx    = fc->iindx;
+    ed = 0.;
+
+    for (i = 1; i < n; i++) {
+      ii = idx[i];
+      double pi;
+
+      /* compute probability to be paired */
+      for (pi = 0., j = 1; j < i; j++)
+        pi += probs[idx[j] - i];
+
+      for (j = i + 1; j <= n; j++)
+        pi += probs[ii - j];
+
+      if (pt[i] == 0)
+        ed += pi;
+      else if (pt[i] > i)
+        ed += 1 - probs[ii - pt[i]];
+      else
+        ed += 1 - probs[idx[pt[i]] - i];
+    }
+
+    ed /= (double)n;
+
+    free(pt);
+  }
+
+  return ed;
+}
+
+
 PUBLIC vrna_ep_t *
 vrna_stack_prob(vrna_fold_compound_t  *vc,
                 double                cutoff)
