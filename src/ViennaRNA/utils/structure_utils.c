@@ -442,6 +442,74 @@ vrna_bp_distance(const char *str1,
 }
 
 
+PUBLIC double
+vrna_dist_mountain(const char   *str1,
+                   const char   *str2,
+                   unsigned int p)
+{
+  short         *pt1, *pt2;
+  unsigned int  i, n;
+  double        distance, w, *f1, *f2;
+
+  distance  = -1.;
+  f1        = NULL;
+  f2        = NULL;
+
+  if ((str1) && (str2)) {
+    n = strlen(str1);
+
+    if (n != strlen(str2)) {
+      vrna_message_warning("vrna_dist_mountain: input structures have unequal lengths!");
+      return distance;
+    }
+
+    pt1 = vrna_ptable(str1);
+    pt2 = vrna_ptable(str2);
+    f1  = (double *)vrna_alloc(sizeof(double) * (n + 1));
+    f2  = (double *)vrna_alloc(sizeof(double) * (n + 1));
+
+    /* count (mountain)heights for positions 1 <= i <= n */
+    for (w = 0., i = 1; i <= n; i++) {
+      if (pt1[i] == 0)
+        continue;
+
+      if (pt1[i] > i)
+        w += 1. / (double)(pt1[i] - i);
+      else
+        w -= 1. / (double)(i - pt1[i]);
+
+      f1[i] = w;
+    }
+
+    for (w = 0., i = 1; i <= n; i++) {
+      if (pt2[i] == 0)
+        continue;
+
+      if (pt2[i] > i)
+        w += 1. / (double)(pt2[i] - i);
+      else
+        w -= 1. / (double)(i - pt2[i]);
+
+      f2[i] = w;
+    }
+
+
+    /* finally, compute L_p-norm */
+    for (distance = 0., i = 1; i <= n; i++)
+      distance += pow(fabs(f1[i] - f2[i]), (double)p);
+
+    distance = pow(distance, 1. / (double)p);
+
+    free(pt1);
+    free(pt2);
+    free(f1);
+    free(f2);
+  }
+
+  return distance;
+}
+
+
 /* get a matrix containing the number of basepairs of a reference structure for each interval [i,j] with i<j
  *  access it via iindx!!!
  */

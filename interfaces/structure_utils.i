@@ -243,6 +243,24 @@ std::vector<int> my_loopidx_from_ptable(std::vector<int> pt);
 
 int my_bp_distance(const char *str1, const char *str2);
 
+%rename (dist_mountain) my_dist_mountain;
+
+%{
+  double
+  my_dist_mountain( std::string str1,
+                    std::string str2,
+                    unsigned int p = 1)
+  {
+    return vrna_dist_mountain(str1.c_str(), str2.c_str(), p);
+  }
+
+%}
+
+double
+my_dist_mountain(std::string str1,
+                 std::string str2,
+                 unsigned int p = 1);
+
 
 /*
  *  Rename 'struct vrna_ep_t' to target language class 'ep'
