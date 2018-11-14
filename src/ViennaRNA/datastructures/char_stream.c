@@ -69,6 +69,7 @@ void
 vrna_cstr_free(struct vrna_cstr_s *buf)
 {
   if (buf) {
+    vrna_cstr_fflush(buf);
     free(buf->string);
     free(buf);
   }
@@ -79,9 +80,11 @@ void
 vrna_cstr_close(struct vrna_cstr_s *buf)
 {
   if (buf) {
+    vrna_cstr_fflush(buf);
+
     free(buf->string);
 
-    if (buf->output != stdout)
+    if ((buf->output != stdout) && (buf->output != stderr))
       fclose(buf->output);
 
     free(buf);
