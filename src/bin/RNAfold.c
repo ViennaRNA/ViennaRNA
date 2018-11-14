@@ -201,9 +201,7 @@ flush_cstr_callback(void          *auxdata,
   struct output_stream *s = (struct output_stream *)data;
 
   if (s) {
-    /* flush data[k] */
-    vrna_cstr_fflush(s->data);
-    /* free/close data[k] */
+    /* flush/free/close data[k] */
     if (s->individual)
       vrna_cstr_close(s->data);
     else

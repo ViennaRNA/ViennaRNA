@@ -183,13 +183,10 @@ flush_cstr_callback(void          *auxdata,
 {
   struct output_stream *s = (struct output_stream *)data;
 
-  /* flush errors first */
-  vrna_cstr_fflush(s->err);
+  /* flush/free errors first */
   vrna_cstr_free(s->err);
 
-  /* flush data[k] */
-  vrna_cstr_fflush(s->data);
-  /* free data[k] */
+  /* flush/free data[k] */
   vrna_cstr_free(s->data);
 
   free(s);
