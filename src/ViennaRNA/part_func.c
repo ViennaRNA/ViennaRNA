@@ -24,6 +24,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe.h"
+#include "ViennaRNA/pf_multifold.h"
 #include "ViennaRNA/part_func.h"
 
 #ifdef _OPENMP
@@ -292,6 +293,139 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
                log(params->pf_scale));
     X.FB = -kT *
            (log(matrices->q[fc->iindx[ss[so[1]]] - n]) + (n - ss[so[1]] + 1) *
+            log(params->pf_scale));
+
+    /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]); */
+  } else {
+    X.FA    = X.FB = X.FAB = X.F0AB = free_energy;
+    X.FcAB  = 0;
+  }
+
+  /* backtracking to construct binding probabilities of pairs */
+  if (md->compute_bpp) {
+    vrna_pairing_probs(fc, structure);
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+    /*
+     *  Backward compatibility:
+     *  This block may be removed if deprecated functions
+     *  relying on the global variable "pr" vanish from within the package!
+     */
+    pr = fc->exp_matrices->probs;
+
+#endif
+  }
+
+#ifdef SUN4
+  standard_arithmetic();
+#elif defined(HP9)
+  fpsetfastmode(0);
+#endif
+
+  return X;
+}
+
+
+PUBLIC vrna_dimer_pf_t
+vrna_pf_dimer2(vrna_fold_compound_t  *fc,
+              char                  *structure)
+{
+  int               n;
+  FLT_OR_DBL        Q;
+  vrna_dimer_pf_t   X;
+  double            free_energy;
+  char              *sequence;
+  vrna_md_t         *md;
+  vrna_exp_param_t  *params;
+  vrna_mx_pf_t      *matrices;
+
+  if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID)) {
+    vrna_message_warning("vrna_pf_dimer@part_func_co.c: Failed to prepare vrna_fold_compound");
+    X.FA = X.FB = X.FAB = X.F0AB = X.FcAB = 0;
+    return X;
+  }
+
+  params    = fc->exp_params;
+  n         = fc->length;
+  md        = &(params->model_details);
+  matrices  = fc->exp_matrices;
+  sequence  = fc->sequence;
+
+#ifdef _OPENMP
+  /* Explicitly turn off dynamic threads */
+  omp_set_dynamic(0);
+#endif
+
+#ifdef SUN4
+  nonstandard_arithmetic();
+#elif defined(HP9)
+  fpsetfastmode(1);
+#endif
+
+  /* call user-defined recursion status callback function */
+  if (fc->stat_cb)
+    fc->stat_cb(VRNA_STATUS_PF_PRE, fc->auxdata);
+
+  vrna_pf_multifold_prepare(fc);
+
+  if (!fill_arrays(fc)) {
+    X.FA    = X.FB = X.FAB = X.F0AB = (float)(INF / 100.);
+    X.FcAB  = 0;
+
+#ifdef SUN4
+    standard_arithmetic();
+#elif defined(HP9)
+    fpsetfastmode(0);
+#endif
+
+    return X;
+  }
+
+  vrna_gr_reset(fc);
+
+  /* call user-defined recursion status callback function */
+  if (fc->stat_cb)
+    fc->stat_cb(VRNA_STATUS_PF_POST, fc->auxdata);
+
+  if (md->backtrack_type == 'C')
+    Q = matrices->qb[fc->iindx[1] - n];
+  else if (md->backtrack_type == 'M')
+    Q = matrices->qm[fc->iindx[1] - n];
+  else
+    Q = matrices->q[fc->iindx[1] - n];
+
+  /* ensemble free energy in Kcal/mol */
+  if (Q <= FLT_MIN)
+    vrna_message_warning("pf_scale too large");
+
+  free_energy = (-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0;
+  /* in case we abort because of floating point errors */
+  vrna_message_info(stderr, "free energy2 = %8.2f", free_energy);
+
+  /* probability of molecules being bound together */
+
+  /* Computation of "real" Partition function */
+  /* Need that for concentrations */
+  if (fc->cutpoint > 0) {
+    double kT, QAB, QToT, Qzero;
+    kT    = params->kT / 1000.0;
+    QAB   = matrices->q[fc->iindx[1] - n];
+
+    /*correction for symmetry*/
+    if ((n - (fc->cutpoint - 1) * 2) == 0)
+      if ((strncmp(sequence, sequence + fc->cutpoint - 1, fc->cutpoint - 1)) == 0)
+        QAB /= 2;
+
+    QToT = matrices->q[fc->iindx[1] - (fc->cutpoint - 1)] *
+           matrices->q[fc->iindx[fc->cutpoint] - n] + QAB;
+    X.FAB   = -kT * (log(QToT) + n * log(params->pf_scale));
+    X.FcAB  = -kT * (log(QAB) + n * log(params->pf_scale));
+    X.FA    = -kT *
+              (log(matrices->q[fc->iindx[1] - (fc->cutpoint - 1)]) + (fc->cutpoint - 1) *
+               log(params->pf_scale));
+    X.FB = -kT *
+           (log(matrices->q[fc->iindx[fc->cutpoint] - n]) + (n - fc->cutpoint + 1) *
             log(params->pf_scale));
 
     /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]); */

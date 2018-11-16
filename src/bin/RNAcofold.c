@@ -831,7 +831,7 @@ process_record(struct record_data *record)
   if (opt->pf) {
     char              *Astring, *Bstring, *orig_Astring, *orig_Bstring, *pairing_propensity;
     int               Blength, Alength;
-    vrna_dimer_pf_t   AB, AA, BB;
+    vrna_dimer_pf_t   AB, AA, BB, NAB;
     vrna_dimer_conc_t *conc_result;
 
     conc_result = NULL;
@@ -862,6 +862,8 @@ process_record(struct record_data *record)
 
     /* compute partition function */
     AB = AA = BB = vrna_pf_dimer(vc, pairing_propensity);
+
+    NAB = vrna_pf_dimer2(vc, pairing_propensity);
 
     if (opt->md.compute_bpp) {
       char *costruc;
@@ -894,9 +896,22 @@ process_record(struct record_data *record)
     } else {
       vrna_cstr_printf_structure(o_stream->data,
                                  NULL,
-                                 " free energy of ensemble = %6.2f kcal/mol",
+                                 " free energy of ensemble = %g kcal/mol",
                                  AB.FAB);
     }
+
+      vrna_cstr_printf_structure(o_stream->data,
+                                 NULL,
+                                 " free energy of full ensemble = %g kcal/mol\n"
+                                 " free energy of connected ensemble = %g kcal/mol\n"
+                                 " free energy of single A ensemble = %g kcal/mol\n"
+                                 " free energy of single B ensemble = %g kcal/mol\n",
+                                 NAB.FAB,
+                                 NAB.FcAB,
+                                 NAB.FA,
+                                 NAB.FB);
+
+    goto cleanup_record;
 
     /* compute MEA structure */
     if (opt->centroid)
