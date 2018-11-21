@@ -781,7 +781,10 @@ process_record(struct record_data *record)
    */
 
   /* compute mfe of AB dimer */
-  min_en  = vrna_mfe_dimer(vc, mfe_structure);
+  for (i = 0; i < n; i++)
+    mfe_structure[i] = '.';
+
+  min_en  = -3; //vrna_mfe_dimer(vc, mfe_structure);
   mfAB    = vrna_plist(mfe_structure, 0.95);
 
   /* check whether the constraint allows for any solution */
@@ -902,10 +905,10 @@ process_record(struct record_data *record)
 
       vrna_cstr_printf_structure(o_stream->data,
                                  NULL,
-                                 " free energy of full ensemble = %g kcal/mol\n"
-                                 " free energy of connected ensemble = %g kcal/mol\n"
-                                 " free energy of single A ensemble = %g kcal/mol\n"
-                                 " free energy of single B ensemble = %g kcal/mol\n",
+                                 " free energy of full ensemble = %.6f kcal/mol\n"
+                                 " free energy of connected ensemble = %.6f kcal/mol\n"
+                                 " free energy of single A ensemble = %.6f kcal/mol\n"
+                                 " free energy of single B ensemble = %.6f kcal/mol\n",
                                  NAB.FAB,
                                  NAB.FcAB,
                                  NAB.FA,

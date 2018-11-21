@@ -79,6 +79,10 @@ hc_hp_cb_def(int            i,
 
   eval = (char)0;
 
+  /* no strand nicks are allowed in hairpin loops */
+  if (dat->sn[i] != dat->sn[j])
+    return eval;
+
   if (j > i) {
     /* linear case */
     p = i;

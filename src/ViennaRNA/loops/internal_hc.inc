@@ -12,6 +12,7 @@ typedef unsigned char (eval_hc)(int   i,
 struct hc_int_def_dat {
   unsigned char             *mx;
   unsigned char             **mx_local;
+  unsigned int              *sn;
   int                       *up;
 
   void                      *hc_dat;
@@ -69,9 +70,11 @@ hc_int_cb_def(int   i,
               int   l,
               void  *data)
 {
-#if 0
   struct hc_int_def_dat *dat = (struct hc_int_def_dat *)data;
-#endif
+
+  if ((dat->sn[i] != dat->sn[k]) ||
+      (dat->sn[l] != dat->sn[j]))
+    return (unsigned char)0;
 
   return (unsigned char)1;
 }
@@ -97,6 +100,7 @@ prepare_hc_int_def(vrna_fold_compound_t   *fc,
   dat->mx       = (fc->hc->type == VRNA_HC_WINDOW) ? NULL : fc->hc->mx;
   dat->mx_local = (fc->hc->type == VRNA_HC_WINDOW) ? fc->hc->matrix_local : NULL;
   dat->up       = fc->hc->up_int;
+  dat->sn       = fc->strand_number;
   dat->hc_f     = NULL;
   dat->hc_dat   = NULL;
 

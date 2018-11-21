@@ -26,7 +26,7 @@
 # define INLINE
 #endif
 
-#define SPEEDUP_HC  1
+#define SPEEDUP_HC  0
 
 #include "external_hc.inc"
 #include "external_sc_pf.inc"

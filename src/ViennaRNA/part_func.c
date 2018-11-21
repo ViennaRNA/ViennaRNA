@@ -410,7 +410,8 @@ vrna_pf_dimer2(vrna_fold_compound_t  *fc,
   if (fc->cutpoint > 0) {
     double kT, QAB, QToT, Qzero;
     kT    = params->kT / 1000.0;
-    QAB   = matrices->q[fc->iindx[1] - n];
+    QAB   = matrices->q[fc->iindx[1] - n] *
+            params->expDuplexInit;
 
     /*correction for symmetry*/
     if ((n - (fc->cutpoint - 1) * 2) == 0)

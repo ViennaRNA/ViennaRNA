@@ -211,7 +211,7 @@ hc_ext_cb_sn(int            i,
   eval  = (unsigned char)0;
 
   /* for now with the 'old' cofold implementation, we allow for any decomposition */
-  return (unsigned char)1;
+  //return (unsigned char)1;
 
   switch (d) {
     case VRNA_DECOMP_EXT_EXT_STEM1:
@@ -239,6 +239,13 @@ hc_ext_cb_sn(int            i,
 
     case VRNA_DECOMP_EXT_UP:
       if (sn[i] == sn[j])
+        eval = (unsigned char)1;
+
+      break;
+
+    case VRNA_DECOMP_EXT_STEM_OUTSIDE:
+      if (((k <= i) || sn[k - 1] == sn[k]) &&
+          ((l >= j) || sn[l + 1] == sn[l]))
         eval = (unsigned char)1;
 
       break;
