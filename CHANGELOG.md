@@ -6,6 +6,18 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.10...HEAD)
 
+#### Library
+  * SWIG: Add interface for `vrna_loopidx_from_ptable()`
+  * API: Fix behavior of `vrna_nucleotide_encode()` with lowercase characters in sequence
+  * API: Fix behavior of `encode_char()` with lowercase characters in sequence
+  * Add AVX 512 optimized version of MFE multibranch loop decomposition
+  * API: Add function `vrna_dist_mountain()` to compute mountain distance between two structures
+  * API: Add function `vrna_ensemble_defect()` to compute ensemble defect given a target structure
+  * API: Change behavior of `vrna_cstr_free()` and `vrna_cstr_close()` to always flush output before unregistering the stream
+
+#### Package
+  * Rename `--enable-sse` configure option to `--enable-simd` which allows to specify target platform
+
 
 ### [v2.4.10](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.9...v2.4.10) (2018-09-26)
 
