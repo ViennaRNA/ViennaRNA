@@ -784,8 +784,10 @@ process_record(struct record_data *record)
   for (i = 0; i < n; i++)
     mfe_structure[i] = '.';
 
-  min_en  = -3; //vrna_mfe_dimer(vc, mfe_structure);
+  vc->params->model_details.backtrack = 0;
+  min_en  = vrna_mfe_dimer(vc, mfe_structure);
   mfAB    = vrna_plist(mfe_structure, 0.95);
+  vc->params->model_details.backtrack = 1;
 
   /* check whether the constraint allows for any solution */
   if ((fold_constrained) || (opt->commands)) {
@@ -871,6 +873,13 @@ process_record(struct record_data *record)
     if (opt->md.compute_bpp) {
       char *costruc;
       prAB = vrna_plist_from_probs(vc, opt->bppmThreshold);
+
+            (void)vrna_plot_dp_PS_list(record->sequence,
+                                       vc->cutpoint,
+                                       "newdot.ps",
+                                       prAB,
+                                       mfAB,
+                                       "doof");
 
       costruc = vrna_cut_point_insert(pairing_propensity, vc->cutpoint);
       if (opt->csv_output) {
