@@ -770,10 +770,13 @@ make_pscores(vrna_fold_compound_t *fc)
         if (S[s][i] == 0 && S[s][j] == 0) {
           type = 7;                             /* gap-gap  */
         } else {
-          if ((AS[s][i] == '~') || (AS[s][j] == '~'))
+          if ((AS[s][i] == '~') || (AS[s][j] == '~')) {
             type = 7;
-          else
+          } else {
             type = md->pair[S[s][i]][S[s][j]];
+            if ((md->noGU) && ((type == 3) || (type == 4)))
+              type = 0;
+          }
         }
 
         pfreq[type]++;
