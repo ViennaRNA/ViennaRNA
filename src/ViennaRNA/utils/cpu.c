@@ -16,14 +16,24 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/cpu.h"
 
-#define bit_SSE41     (1 << 19) /* stored in ECX after cpuid with EAX=1 */
-#define bit_AVX512F   (1 << 16) /* stored in EBX after cpuid with EAX=7, ECX=0 */
-
 #ifdef __GNUC__
 # define INLINE inline
 #else
 # define INLINE
 #endif
+
+/*
+ *  cpuid register flags for (64bit) x86 CPUs
+ *  See also https://en.wikipedia.org/wiki/CPUID
+ */
+
+#define bit_SSE2      (1 << 26) /* stored in EDX after cpuid with EAX=1 */
+#define bit_SSE3      (1 << 0)  /* stored in ECX after cpuid with EAX=1 */
+#define bit_SSE41     (1 << 19) /* stored in ECX after cpuid with EAX=1 */
+#define bit_SSE42     (1 << 20) /* stored in ECX after cpuid with EAX=1 */
+#define bit_AVX       (1 << 28) /* stored in ECX after cpuid with EAX=1 */
+#define bit_AVX2      (1 << 5)  /* stored in EBX after cpuid with EAX=7, ECX=0 */
+#define bit_AVX512F   (1 << 16) /* stored in EBX after cpuid with EAX=7, ECX=0 */
 
 /*
  #################################
@@ -32,6 +42,14 @@
  */
 PRIVATE INLINE int
 execute_cpuid(uint32_t *regs);
+
+
+PRIVATE unsigned int
+cpu_feature_bits(void);
+
+
+PRIVATE unsigned int
+cpu_extended_feature_bits(void);
 
 
 /*
@@ -60,33 +78,15 @@ vrna_cpu_vendor_string(void)
 }
 
 
-PUBLIC int
-vrna_cpu_sse41(void)
+PUBLIC unsigned int
+vrna_cpu_simd_capabilities(void)
 {
-  uint32_t regs[4] = {
-    1, 0, 0, 0
-  };
+  unsigned int capabilities = VRNA_CPU_SIMD_NONE;
 
-  if ((execute_cpuid(&regs[0])) &&
-      (regs[2] & bit_SSE41))
-    return 1;
+  capabilities  |= cpu_feature_bits();
+  capabilities  |= cpu_extended_feature_bits();
 
-  return 0;
-}
-
-
-PUBLIC int
-vrna_cpu_avx512f(void)
-{
-  uint32_t regs[4] = {
-    7, 0, 0, 0
-  };
-
-  if ((execute_cpuid(&regs[0])) &&
-      (regs[1] & bit_AVX512F))
-    return 1;
-
-  return 0;
+  return capabilities;
 }
 
 
@@ -117,4 +117,55 @@ execute_cpuid(uint32_t *regs)
 #else
   return 0;
 #endif
+}
+
+
+PRIVATE unsigned int
+cpu_feature_bits(void)
+{
+  unsigned int  features = VRNA_CPU_SIMD_NONE;
+
+  uint32_t      regs[4] = {
+    1, 0, 0, 0
+  };
+
+  if (execute_cpuid(&regs[0])) {
+    if (regs[3] & bit_SSE2)
+      features |= VRNA_CPU_SIMD_SSE2;
+
+    if (regs[2] & bit_SSE3)
+      features |= VRNA_CPU_SIMD_SSE3;
+
+    if (regs[2] & bit_SSE41)
+      features |= VRNA_CPU_SIMD_SSE41;
+
+    if (regs[2] & bit_SSE42)
+      features |= VRNA_CPU_SIMD_SSE42;
+
+    if (regs[2] & bit_AVX)
+      features |= VRNA_CPU_SIMD_AVX;
+  }
+
+  return features;
+}
+
+
+PRIVATE unsigned int
+cpu_extended_feature_bits(void)
+{
+  unsigned int  features = VRNA_CPU_SIMD_NONE;
+
+  uint32_t      regs[4] = {
+    7, 0, 0, 0
+  };
+
+  if (execute_cpuid(&regs[0])) {
+    if (regs[1] & bit_AVX2)
+      features |= VRNA_CPU_SIMD_AVX2;
+
+    if (regs[1] & bit_AVX512F)
+      features |= VRNA_CPU_SIMD_AVX512F;
+  }
+
+  return features;
 }

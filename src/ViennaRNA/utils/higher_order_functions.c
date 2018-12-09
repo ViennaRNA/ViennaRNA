@@ -93,8 +93,10 @@ zip_add_min_dispatcher(const int  *a,
                        const int  *b,
                        int        size)
 {
+  unsigned int features = vrna_cpu_simd_capabilities();
+
 #if VRNA_WITH_SIMD_AVX512
-  if (vrna_cpu_avx512f()) {
+  if (features & VRNA_CPU_SIMD_AVX512F) {
     fun_zip_add_min = &vrna_fun_zip_add_min_avx512;
     goto exec_fun_zip_add_min;
   }
@@ -102,7 +104,7 @@ zip_add_min_dispatcher(const int  *a,
 #endif
 
 #if VRNA_WITH_SIMD_SSE41
-  if (vrna_cpu_sse41()) {
+  if (features & VRNA_CPU_SIMD_SSE41) {
     fun_zip_add_min = &vrna_fun_zip_add_min_sse41;
     goto exec_fun_zip_add_min;
   }
