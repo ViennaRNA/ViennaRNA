@@ -30,6 +30,7 @@
 #include "ViennaRNA/constraints/SHAPE.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/commands.h"
 #include "RNAsubopt_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -57,6 +58,7 @@ main(int  argc,
   double                              deltap;
   vrna_md_t                           md;
   dataset_id                          id_control;
+  vrna_cmd_t                          commands;
 
   do_backtrack    = 1;
   delta           = 100;
@@ -73,6 +75,7 @@ main(int  argc,
   tofile          = 0;
   filename_full   = 0;
   canonicalBPonly = 0;
+  commands        = NULL;
 
   set_model_details(&md);
 
@@ -209,6 +212,10 @@ main(int  argc,
   /* full filename from FASTA header support */
   if (args_info.filename_full_given)
     filename_full = 1;
+
+  if (args_info.commands_given)
+    commands = vrna_file_commands_read(args_info.commands_arg,
+                                       VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   /* free allocated memory of command line data structure */
   RNAsubopt_cmdline_parser_free(&args_info);
@@ -369,6 +376,11 @@ main(int  argc,
                                  VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
     }
 
+    if (commands)
+      vrna_commands_apply(vc,
+                          commands,
+                          VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+
     if (istty) {
       if (cut_point == -1) {
         vrna_message_info(stdout, "length = %d", length);
@@ -523,6 +535,7 @@ main(int  argc,
   free(shape_method);
   free(shape_conversion);
   free(filename_delim);
+  vrna_commands_free(commands);
 
   free_id_data(id_control);
 
