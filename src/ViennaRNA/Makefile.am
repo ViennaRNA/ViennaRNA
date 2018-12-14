@@ -409,6 +409,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               loops/multibranch_sc_pf.inc \
               params/svm_model_avg.inc \
               params/svm_model_sd.inc \
+              data_structures_nonred.inc \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \

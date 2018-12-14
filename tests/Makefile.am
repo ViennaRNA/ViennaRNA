@@ -11,6 +11,10 @@ AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la @CHECK_LIBS@
 
+if VRNA_AM_SWITCH_MPFR
+LDADD += $(MPFR_LIBS)
+endif
+
 SUFFIXES = .c .ts
 TEST_EXTENSIONS = .pl .t .py .py3
 
