@@ -282,15 +282,13 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
     } else {
       int               i, is_dup, pf_overflow;
       double            q_remain, part_fci;
-      size_t			block_size;
-      
-      block_size =	5000 * sizeof(NR_NODE);
-      
-      struct nr_memory * memory_dat = NULL;
-      
+      size_t            block_size;
       NR_NODE           *current_node;
       NR_NODE           *root_node;
+      struct nr_memory  *memory_dat;
 
+      memory_dat  = NULL;
+      block_size  = 5000 * sizeof(NR_NODE);
       q_remain    = 0;
       pf_overflow = 0;
       part_fci    = vc->exp_matrices->q[vc->iindx[1] - vc->length];
@@ -298,8 +296,8 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
 #ifdef VRNA_NR_SAMPLING_HASH
       root_node = create_root(vc->length, part_fci);
 #else
-      memory_dat 	= create_nr_memory(sizeof(NR_NODE), block_size, NULL); // memory pre-allocation
-      root_node  	= create_ll_root(&memory_dat, part_fci);
+      memory_dat  = create_nr_memory(sizeof(NR_NODE), block_size, NULL); // memory pre-allocation
+      root_node   = create_ll_root(&memory_dat, part_fci);
 
 #endif
       current_node = root_node;
@@ -316,15 +314,15 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
 #endif
 
         if (pf_overflow) {
-          vrna_message_warning(
-            "vrna_pbacktrack_nr*(): partition function overflow detected for forbidden structures, presumably due to numerical instabilities.\n");
+          vrna_message_warning("vrna_pbacktrack_nr*(): "
+                               "Partition function overflow detected for forbidden structures, presumably due to numerical instabilities.");
           free(ss);
           break;
         }
 
         if (is_dup) {
-          vrna_message_warning(
-            "vrna_pbacktrack_nr*(): duplicate detected, presumably due to numerical instabilities\n");
+          vrna_message_warning("vrna_pbacktrack_nr*(): "
+                               "Duplicate structures detected, presumably due to numerical instabilities");
           free(ss);
           break;
         }
@@ -337,8 +335,9 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
       }
       /* print warning if we've aborted backtracking too early */
       if ((i > 0) && (i < num_samples)) {
-        vrna_message_warning("vrna_pbacktrack_nr*(): Stopped backtracking after %d samples due to numeric instabilities!\n"
-                             "Coverage of partition function so far: %f%%",
+        vrna_message_warning("vrna_pbacktrack_nr*(): "
+                             "Stopped backtracking after %d samples due to numeric instabilities!\n"
+                             "Coverage of partition function so far: %.6f%%",
                              i,
                              100. * return_node_weight(root_node) / part_fci);
       }
@@ -346,7 +345,7 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
 #ifdef VRNA_NR_SAMPLING_HASH
       free_all_nr(current_node);
 #else
-	  free_all_nrll(&memory_dat);
+      free_all_nrll(&memory_dat);
 #endif
     }
   }
