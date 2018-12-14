@@ -8,19 +8,22 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 #### Programs
   * Add `--commands` option to `RNAsubopt`
+  * Add non-redundant Boltzmann sampling mode for `RNAsubopt`
 
 #### Library
-  * SWIG: Add interface for `vrna_loopidx_from_ptable()`
   * API: Fix wrong access to base pair soft constraints in equilibrium probability computations
   * API: Fix behavior of `vrna_nucleotide_encode()` with lowercase characters in sequence
   * API: Fix behavior of `encode_char()` with lowercase characters in sequence
   * API: Fix forbidden `GU` pairs behavior in pscore computation for comparative folding
+  * API: Fix potential errors due to uninitialized `next` pointers in `vrna_move_t` of `vrna_eval_move_shift_pt`
   * API: Add `AVX 512` optimized version of MFE multibranch loop decomposition
   * API: Add functions for CPU SIMD feature detection
   * API: Add dispatcher to automatically delegate exterior-/multibranch loop MFE decomposition to supported SIMD optimized implementation
   * API: Add function `vrna_dist_mountain()` to compute mountain distance between two structures
   * API: Add function `vrna_ensemble_defect()` to compute ensemble defect given a target structure
+  * API: Add non-redundant Boltzmann sampling
   * API: Change behavior of `vrna_cstr_free()` and `vrna_cstr_close()` to always flush output before unregistering the stream
+  * SWIG: Add interface for `vrna_loopidx_from_ptable()`
 
 #### Package
   * Activate compilation for compile-time supported SIMD optimized implementations by default
