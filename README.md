@@ -70,8 +70,8 @@ and installation process.*
 
 Usually you'll simply unpack the distribution tarball, configure and make:
 ```
-tar -zxvf ViennaRNA-2.4.10.tar.gz
-cd ViennaRNA-2.4.10
+tar -zxvf ViennaRNA-2.4.11.tar.gz
+cd ViennaRNA-2.4.11
 ./configure
 make
 sudo make install
@@ -184,7 +184,7 @@ will turn-off the `Perl 5` and `Python 2` interfaces.
 Disabling the entire scripting language support alltogether can be accomplished
 with the `--without-swig` switch.
 
-#### Streaming SIMD Extension (SSE) support
+#### Streaming SIMD Extension support
 Our latest version contains code that implements a faster multibranch loop
 decomposition in global MFE predictions, as used e.g. in `RNAfold`. This
 implementation makes use of modern processors capability to execute particular
@@ -192,11 +192,13 @@ instructions on multiple data simultaneously (SIMD - single instruction multiple
 data, thanks to W. B. Langdon for providing the modified code). Consequently,
 the time required to assess the minimum of all multibranch loop decompositions
 is reduced up to about one half compared to the runtime of the original
-implementation. To make use of this piece of code you need a CPU capable to
-handle SSE4.1 instructions and enable the feature at compile-time using the
-following configure flag:
+implementation. This feature is enabled by default since version 2.4.11 and a
+dispatcher ensures that the correct implementation will be selected at runtime.
+If for any reason you want to disable this feature at compile-time use the
+following configure flag
+
 ```
-./configure --enable-sse
+./configure --disable-simd
 ```
 
 #### Link Time Optimization (LTO)

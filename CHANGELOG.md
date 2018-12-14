@@ -4,7 +4,9 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.10...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.11...HEAD)
+
+### [v2.4.11](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.10...v2.4.11) (2018-12-17)
 
 #### Programs
   * Add `--commands` option to `RNAsubopt`
