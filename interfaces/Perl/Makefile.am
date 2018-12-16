@@ -70,8 +70,6 @@ RNA_la_LDFLAGS += -Xcompiler $(PTHREAD_CFLAGS) \
 
 SOURCES = $(srcdir)/RNA.pod
 
-BUILT_SOURCES = auto/RNA/RNA$(PERL_SO)
-
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   RNA.pod \
@@ -106,6 +104,8 @@ auto/RNA/RNA$(PERL_SO): RNA.la
     ( . ./libtoolconfig.tmp; cp "$$objdir/RNA$(PERL_SO)" auto/RNA ) && \
     rm -f libtoolconfig.tmp \
   )
+
+all-local:  auto/RNA/RNA$(PERL_SO)
 
 clean-local:
 	-rm -rf auto
