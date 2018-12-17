@@ -628,6 +628,8 @@ process_record(struct record_data *record)
                           &(opt->md),
                           VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
+  n = (int)vc->length;
+
   if (opt->shape) {
     vrna_constraints_add_SHAPE(vc,
                                opt->shape_file,
@@ -722,8 +724,8 @@ static void
 process_alignment_record(struct record_data_msa *record)
 {
   char                  **alignment, *consensus_sequence, *structure;
-  unsigned int          n, n_seq;
-  double                energy, real_en, cov_en;
+  unsigned int          n;
+  double                real_en, cov_en;
   struct options        *opt;
   vrna_fold_compound_t  *vc;
   struct output_stream  *o_stream;
@@ -734,7 +736,6 @@ process_alignment_record(struct record_data_msa *record)
     vrna_message_error("structure missing for record %d\n", record->number);
 
   opt       = record->options;
-  n_seq     = record->n_seq;
   structure = vrna_db_from_WUSS(record->structure);
 
   /*
