@@ -5,25 +5,14 @@
 #include <mpfr.h>
 #endif
 
+#define DEBUG   0
+
 /* General mpfr funtions */
 
 #ifdef VRNA_NR_SAMPLING_MPFR
 PRIVATE int precision(); 			// returns precision
 PRIVATE mpfr_rnd_t default_rnd();  	// returns default rounding mode (to nearest)
 #endif
-
-/******************************************/
-/*        version with hash table         */
-/******************************************/
-
-/* explanation: each node (tr_node) holds a pointer to a start of a linked
- * list to the next node, link to previous node, Boltzmann's factor
- * for given flat structure and itentifier, which corresponds to an id of
- * chosen flat structure
- */
-
-/* define node of a tree */
-typedef struct tr_node tr_node;
 
 /* defines types for different sequence stetches/loops */
 typedef enum _type Type;
@@ -38,6 +27,20 @@ enum stetch_type {
   NRT_QM_PAIR     = 7,      /* QM split on K with pairing within [i..k-1] : (k, 0)  */
   NRT_QM_UNPAIR   = 8,      /* QM split on K with no pairing within [i..k-1] : (k, 0) */
 };
+
+#ifdef VRNA_NR_SAMPLING_HASH
+/******************************************/
+/*        version with hash table         */
+/******************************************/
+
+/* explanation: each node (tr_node) holds a pointer to a start of a linked
+ * list to the next node, link to previous node, Boltzmann's factor
+ * for given flat structure and itentifier, which corresponds to an id of
+ * chosen flat structure
+ */
+
+/* define node of a tree */
+typedef struct tr_node tr_node;
 
 
 /* define elements of hashtable */
@@ -100,6 +103,7 @@ PRIVATE tr_node *add_if_nexists(int     type,
                                 double	max_weight);
 
 
+
 /** @brief traces back from leaf to root while updating weights of leaf to all nodes in path,
  *  returns pointer to root **/
 PRIVATE tr_node *traceback_to_root(tr_node  *leaf,
@@ -112,6 +116,7 @@ PRIVATE tr_node *traceback_to_root(tr_node  *leaf,
 PRIVATE void free_all_nr(tr_node *root);
 
 
+#else
 /******************************************/
 /*       version with linked lists        */
 /******************************************/
@@ -210,6 +215,8 @@ PRIVATE tllr_node *traceback_to_ll_root(tllr_node *leaf,
 /** @brief destructor **/
 PRIVATE void free_all_nrll(nr_memory **memory_dat);
 
+#endif
+
 
 /**************************************************/
 /*            mpfr related functions              */
@@ -257,10 +264,13 @@ return_node_weight(tllr_node * node){
  *
  *
  *
- * /* Creates a structure memorizing the weights of already used solutions for the
+ * Creates a structure memorizing the weights of already used solutions for the
  * non-redundant sampling. It uses tree structure where each node contains a hash
  * table.
  */
+
+
+#ifdef VRNA_NR_SAMPLING_HASH
 
 
 PRIVATE int
@@ -406,7 +416,6 @@ extend_hash(hash_node *hash_to_res)
 {
   /* extends table */
   tr_node *next;
-  tr_node *link;
   tr_node *tmp;
   int     hash_val, hash_val_mod;
   int     hash_size_tmp = hash_to_res->hash_size;
@@ -458,7 +467,7 @@ insert_val(hash_node  *hash_t,
            int        loop_spec_2,
            tr_node    *inserted_node)
 {
-  int     hash_val, hash_val_mod;
+  int     hash_val_mod;
 
   tr_node *ptr;
 
@@ -739,12 +748,14 @@ free_all_nr(tr_node *root)
 #endif
   free(root);
 }
+#endif
 
 
 /*********************************************************/
 /*       data structure (linked_list + hash table)       */
 /*********************************************************/
 
+#ifndef VRNA_NR_SAMPLING_HASH
 /* allocates a  nr_memory object -  pre-allocator for tllr_nodes */
 PRIVATE nr_memory * 
 create_nr_memory(size_t tllr_node_size, size_t block_size, nr_memory * prev_block)
@@ -813,11 +824,11 @@ create_tllr_node(struct nr_memory **memory_dat,
 
 
 /* compares hash children values with actual value in parent */
+#if DEBUG
 PRIVATE void
 compare_parent_children_weight_tr(tllr_node *parent){
 	tllr_node 		*node_t;
-	int 			i; 
-	
+
 #ifdef VRNA_NR_SAMPLING_MPFR
 	mpfr_t			total;
 	mpfr_init2(total, precision());
@@ -839,7 +850,7 @@ compare_parent_children_weight_tr(tllr_node *parent){
 	mpfr_clear(total);
 #endif
 }
-
+#endif
 
 /* creates root (start of a tree) */
 PRIVATE tllr_node *
@@ -1103,6 +1114,7 @@ free_all_nrll(struct nr_memory **memory_dat)
 	memory_block = memory_block_next;	
   }  
 }
+#endif
 
 
 #endif

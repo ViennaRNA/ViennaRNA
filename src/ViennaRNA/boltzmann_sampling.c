@@ -393,7 +393,7 @@ backtrack_ext_loop(int                  init_val,
                    struct nr_memory     **memory_dat)
 {
   FLT_OR_DBL        r, fbd, fbds, qt, q_temp, qkl;
-  int               ret, i, j, ij, n, k, u, start, type;
+  int               ret, i, j, ij, n, k, u, type;
   int               *my_iindx, hc_decompose, *hc_up_ext;
   FLT_OR_DBL        *q, *qb, *q1k, *qln, *scale;
   unsigned char     *hard_constraints;
@@ -406,8 +406,8 @@ backtrack_ext_loop(int                  init_val,
 
 #ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
-  NR_NODE           *memorized_node_prev; /* remembers previous-to-current node in linked list */
-  NR_NODE           *memorized_node_cur;  /* remembers actual node in linked list */
+  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
+  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
 #endif
 
   fbd   = 0.;                             /* stores weight of forbidden terms for given q[ij]*/
@@ -550,6 +550,7 @@ backtrack_ext_loop(int                  init_val,
 
     r = vrna_urn() * (q1k[j] - q_temp - fbd);
     u = j - 1;
+    i = 2;
 
     for (qt = 0, k = 1; k < j; k++) {
       /* apply alternating boustrophedon scheme to variable i */
@@ -628,7 +629,7 @@ backtrack_ext_loop(int                  init_val,
   }
 
 #else
-  start = init_val;
+  int start = init_val;
   if (start < length) {
     /* find i position of first pair */
     for (i = start; i < length; i++) {
@@ -919,8 +920,8 @@ backtrack_qm_nr(int                   i,
 
 #ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
-  NR_NODE     *memorized_node_prev; /* remembers previous-to-current node in linked list */
-  NR_NODE     *memorized_node_cur;  /* remembers actual node in linked list */
+  NR_NODE     *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
+  NR_NODE     *memorized_node_cur   = NULL; /* remembers actual node in linked list */
 #endif
 
   ret   = 1;
@@ -1134,8 +1135,8 @@ backtrack_qm1(int                   i,
 
 #ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
-  NR_NODE           *memorized_node_prev; /* remembers previous-to-current node in linked list */
-  NR_NODE           *memorized_node_cur;  /* remembers actual node in linked list */
+  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
+  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
 #endif
 
   n         = vc->length;
@@ -1314,8 +1315,8 @@ backtrack(int                   i,
 
 #ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
-  NR_NODE           *memorized_node_prev; /* remembers previous-to-current node in linked list */
-  NR_NODE           *memorized_node_cur;  /* remembers actual node in linked list */
+  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
+  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
 #endif
 
   ret     = 1;                            /* default is success */
@@ -1544,7 +1545,13 @@ backtrack(int                   i,
         q_temp = qm[ii - (k - 1)] *
                  qm1[jj + k] *
                  closingPair *
-                 sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+                 sc->exp_f(i,
+                           j,
+                           k - 1,
+                           k,
+                           VRNA_DECOMP_ML_ML_ML,
+                           sc->data);
+
 
         if (current_node) {
           fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_MT_LOOP, k, 0) *
@@ -1810,7 +1817,13 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
         qt += qm[my_iindx[1] - k] *
               qm2[k + 1] *
               expMLclosing *
-              sc->exp_f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+              sc->exp_f(1,
+                        n,
+                        k,
+                        k + 1,
+                        VRNA_DECOMP_ML_ML_ML,
+                        sc->data);
+
 
         /* backtrack in qm and qm2 if we've found a valid barrier k  */
         if (qt > r) {
