@@ -2116,7 +2116,7 @@ decompose_f5_ext_stem(vrna_fold_compound_t  *fc,
                       int                   j,
                       int                   *stems)
 {
-  int e, i, *f5, turn;
+  int e, *f5, turn;
 
   f5    = fc->matrices->f5;
   turn  = fc->params->model_details.min_loop_size;
@@ -2136,7 +2136,7 @@ decompose_f3_ext_stem(vrna_fold_compound_t  *fc,
                       int                   max_j,
                       int                   *stems)
 {
-  int e, j, *f3, turn, count;
+  int e, *f3, turn, count;
 
   f3    = fc->matrices->f3_local;
   turn  = fc->params->model_details.min_loop_size;
