@@ -457,7 +457,7 @@ Please consider using the successor option --enable-simd instead.
     AC_MSG_CHECKING([compiler support for AVX 512 instructions])
 
     ac_save_CFLAGS="$CFLAGS"
-    CFLAGS="$ac_save_CFLAGS -mavx512f"
+    CFLAGS="$ac_save_CFLAGS -Werror -mavx512f"
     AC_LANG_PUSH([C])
 
     AC_COMPILE_IFELSE(
@@ -468,7 +468,12 @@ Please consider using the successor option --enable-simd instead.
                 ]],
                   [[__m512i a = _mm512_set1_epi32(INT_MAX);
                     __m512i b = _mm512_set1_epi32(INT_MIN);
+                    __m512i c = _mm512_set1_epi32(INT_MIN);
+                    __mmask16 mask = _kand_mask16(_mm512_cmplt_epi32_mask(a, c),
+                                                  _mm512_cmplt_epi32_mask(b, c));
+
                     b = _mm512_min_epi32(a, b);
+                    int e = _mm512_mask_reduce_min_epi32(mask, b);
                 ]])
     ],
     [
@@ -487,7 +492,7 @@ Please consider using the successor option --enable-simd instead.
     AC_MSG_CHECKING([compiler support for SSE 4.1 instructions])
 
     ac_save_CFLAGS="$CFLAGS"
-    CFLAGS="$ac_save_CFLAGS -msse4.1"
+    CFLAGS="$ac_save_CFLAGS -Werror -msse4.1"
     AC_LANG_PUSH([C])
 
     AC_COMPILE_IFELSE(
