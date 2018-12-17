@@ -2,12 +2,13 @@ Over the past decades since the <tt>ViennaRNA Package</tt> first sprang to life 
 of Ivo Hofackers PhD project, several different authors contributed more and more
 algorithm implementations. In 2008, Ronny Lorenz took over the extensive task to
 harmonize and simplify the already existing implementations for the sake of easier
-feature addition. This eventually lead to version 2.0 of the <tt>ViennaRNA PAckage</tt>.
+feature addition. This eventually lead to version 2.0 of the <tt>ViennaRNA Package</tt>.
 Since then, he (re-)implemented a large portion of the currently existing library features,
 such as the new, generalized constraints framework, RNA folding grammar domain extensions,
 and the major part of the scripting language interface. Below is a list of most people
-who contributed more or less large portions of the implementations:
+who contributed larger parts of the implementations:
 
+- Juraj Michalik    (non-redundant Boltzmann sampling)
 - Gregor Entzian    (neighbor, walk)
 - Mario Koestl      (worked on SWIG interface and related unit testing)
 - Dominik Luntzer   (pertubation fold)
