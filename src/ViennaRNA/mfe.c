@@ -228,7 +228,7 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t  *fc,
 PRIVATE int
 fill_arrays(vrna_fold_compound_t *fc)
 {
-  int               i, j, ij, length, turn, uniq_ML, e, *indx, *f5, *c, *fML, *fM1;
+  int               i, j, ij, length, turn, uniq_ML, *indx, *f5, *c, *fML, *fM1;
   vrna_param_t      *P;
   vrna_mx_mfe_t     *matrices;
   vrna_ud_t         *domains_up;
@@ -284,7 +284,7 @@ fill_arrays(vrna_fold_compound_t *fc)
       fML[ij] = vrna_E_ml_stems_fast(fc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
 
       /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
-      if (uniq_ML) 
+      if (uniq_ML)
         fM1[ij] = E_ml_rightmost_stem(i, j, fc);
 
       if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux))
