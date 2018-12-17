@@ -73,7 +73,6 @@ main(int  argc,
   int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker,
                                       with_shapes, verbose, enforceConstraints, st_back_en, batch,
                                       tofile, filename_full, canonicalBPonly, nonRedundant;
-  long int                            seq_number;
   double                              deltap;
   vrna_md_t                           md;
   dataset_id                          id_control;
