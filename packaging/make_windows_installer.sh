@@ -12,16 +12,18 @@ CONFIGURE_OPTIONS=" --without-swig \
                     --with-cluster \
                     --with-kinwalker \
                     --disable-pthreads \
-                    --disable-tty-colors"
+                    --disable-tty-colors \
+                    --disable-lto"
 
 case "$1" in
 
 arch64) echo "Making Windows Installer using Arch Linux mingw-w64 installation"
               echo -ne "...making 32bit version..."
               cd ..
+              >packaging/${WIN_INSTALLER_LOG}
               ./configure --host=i686-w64-mingw32 ${CONFIGURE_OPTIONS} >> packaging/${WIN_INSTALLER_LOG} 2>&1
               make clean >> packaging/${WIN_INSTALLER_LOG} 2>&1
-              make >>${WIN_INSTALLER_LOG} 2>&1
+              make >> packaging/${WIN_INSTALLER_LOG} 2>&1
               cd packaging
               makensis win_installer_archlinux_i686.nsi >>${WIN_INSTALLER_LOG} 2>&1
               echo -ne " done\n"
@@ -29,7 +31,7 @@ arch64) echo "Making Windows Installer using Arch Linux mingw-w64 installation"
               cd ..
               ./configure --host=x86_64-w64-mingw32 ${CONFIGURE_OPTIONS} >> packaging/${WIN_INSTALLER_LOG} 2>&1
               make clean >> packaging/${WIN_INSTALLER_LOG} 2>&1
-              make >>${WIN_INSTALLER_LOG} 2>&1
+              make >> packaging/${WIN_INSTALLER_LOG} 2>&1
               cd packaging
               makensis win_installer_archlinux_x86_64.nsi >>${WIN_INSTALLER_LOG} 2>&1
               echo -ne " done\n"

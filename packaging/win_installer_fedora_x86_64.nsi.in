@@ -68,7 +68,7 @@ outfile "Install-ViennaRNA-${VERSION}_64bit.exe"
 !insertmacro MUI_UNPAGE_FINISH
 
 !insertmacro MUI_LANGUAGE "English"
- 
+
 # default section
 section "Core" sec_core
   SectionIn RO
@@ -120,6 +120,9 @@ section "Core" sec_core
   File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgcc_s_seh-1.dll"
   File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgsl-0.dll"
   File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgslcblas-0.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libmpfr-4.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgmp-10.dll"
+  File "/usr/x86_64-w64-mingw32/sys-root/mingw/bin/libgmpxx-4.dll"
   
   File ".local"
 
@@ -236,6 +239,9 @@ section "Uninstall"
   delete $INSTDIR\libgcc_s_seh-1.dll
   delete $INSTDIR\libgsl-0.dll
   delete $INSTDIR\libgslcblas-0.dll
+  delete $INSTDIR\libmpfr-4.dll
+  delete $INSTDIR\libgmp-10.dll
+  delete $INSTDIR\libgmpxx-4.dll
   delete $INSTDIR\.local
 
   delete "$INSTDIR\Uninstall-${PACKAGE}.exe"
