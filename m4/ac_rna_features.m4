@@ -132,24 +132,22 @@ AC_DEFUN([RNA_ENABLE_MPFR], [
       AC_MSG_CHECKING([whether we can compile programs with mpfr support])
       ac_save_LIBS="$LIBS"
       LIBS="$ac_save_LIBS -lmpfr -lgmp"
+
       AC_LANG_PUSH([C])
-      AC_RUN_IFELSE([
-        AC_LANG_SOURCE(
+
+      AC_COMPILE_IFELSE([
+        AC_LANG_PROGRAM(
           [[#include <stdio.h>
             #include <mpfr.h>
-            int main (void)
-            {
-              printf ("MPFR library: %-12s\nMPFR header:  %s (based on %d.%d.%d)\n",
+          ]],
+          [[  printf ("MPFR library: %-12s\nMPFR header:  %s (based on %d.%d.%d)\n",
               mpfr_get_version (), MPFR_VERSION_STRING, MPFR_VERSION_MAJOR,
               MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL);
               return 0;
-            }]]
-        )
+          ]])
       ],[
         MPFR_LIBS="-lmpfr -lgmp"
         AC_DEFINE([VRNA_NR_SAMPLING_MPFR], [1], [Use MPFR for non-redundant sampling data structure operations])
-      ],[
-        enable_mpfr=no
       ],[
         enable_mpfr=no
       ])
