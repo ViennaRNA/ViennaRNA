@@ -1528,7 +1528,7 @@ backtrack(int                   i,
                   * scale[2];
     if (sc) {
       if (sc->exp_energy_bp)
-        q_temp *= sc->exp_energy_bp[jindx[j] + i];
+        closingPair *= sc->exp_energy_bp[jindx[j] + i];
 
       if (sc->exp_f)
         closingPair *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_ML, sc->data);
