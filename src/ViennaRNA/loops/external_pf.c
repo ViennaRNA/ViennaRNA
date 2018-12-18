@@ -638,6 +638,10 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
 
   qbt1 += split_ext_fast(fc, i, j, aux_mx, evaluate, &hc_dat_local, &sc_wrapper);
 
+  /* apply auxiliary grammar rule for exterior loop case */
+  if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_f))
+    qbt1 += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->data);
+
   free_sc_wrapper_pf(&sc_wrapper);
 
   return qbt1;

@@ -18,19 +18,61 @@
 /* below is our own implementation of a dynamic char * stream */
 typedef struct vrna_cstr_s *vrna_cstr_t;
 
+/**
+ *  @brief  Create a dynamic char * stream data structure
+ *
+ *  @see  vrna_cstr_free(), vrna_cstr_close(), vrna_cstr_fflush(), vrna_cstr_printf()
+ *
+ *  @param  size    The initial size of the buffer in characters
+ *  @param  output  An optional output file stream handle that is used to write the collected data to (defaults to @em stdout if @em NULL)
+ */
 vrna_cstr_t
 vrna_cstr(size_t  size,
           FILE    *output);
 
 
+/**
+ *  @brief  Free the memory occupied by a dynamic char * stream data structure
+ *
+ *  This function first flushes any remaining character data within the stream
+ *  and then free's the memory occupied by the data structure.
+ *
+ *  @see vrna_cstr_close(), vrna_cstr_fflush(), vrna_cstr()
+ *
+ *  @param  buf   The dynamic char * stream data structure to free
+ */
 void
 vrna_cstr_free(vrna_cstr_t buf);
 
 
+/**
+ *  @brief  Free the memory occupied by a dynamic char * stream and close the output stream
+ *
+ *  This function first flushes any remaining character data within the stream
+ *  then closes the attached output file stream (if any), and finally free's the
+ *  memory occupied by the data structure.
+ *
+ *  @see vrna_cstr_free(), vrna_cstr_fflush(), vrna_cstr()
+ *
+ *  @param  buf   The dynamic char * stream data structure to free
+ */
 void
 vrna_cstr_close(vrna_cstr_t buf);
 
 
+/**
+ *  @brief  Flush the dynamic char * output stream
+ *
+ *  This function flushes the collected char * stream, either by writing
+ *  to the attached file handle, or simply by writing to @em stdout if
+ *  no file handle has been attached upon construction using vrna_cstr().
+ *
+ *  @post The stream buffer is empty after execution of this function
+ *
+ *  @see  vrna_cstr(), vrna_cstr_close(), vrna_cstr_free()
+ *
+ *  @param  buf   The dynamic char * stream data structure to flush
+ */
 void
 vrna_cstr_fflush(struct vrna_cstr_s *buf);
 

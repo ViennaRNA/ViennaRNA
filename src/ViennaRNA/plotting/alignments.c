@@ -294,13 +294,13 @@ vrna_file_PS_aln_sub(const char *filename,
     for (i = currPos; (i < currPos + columnWidth && i < length); i++) {
       match = 0;
       for (j = 0; j < N; j++) {
-        if (cons[i] == seqs[j][i])
+        if (cons[i] == toupper(seqs[j][i]))
           match++;
 
-        if (cons[i] == 'U' && seqs[j][i] == 'T')
+        if (cons[i] == 'U' && toupper(seqs[j][i]) == 'T')
           match++;
 
-        if (cons[i] == 'T' && seqs[j][i] == 'U')
+        if (cons[i] == 'T' && toupper(seqs[j][i]) == 'U')
           match++;
       }
       score = (float)(match - 1) / (N - 1);

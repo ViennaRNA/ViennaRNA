@@ -252,6 +252,10 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
  *  @see    E_ExtLoop()
  *  @note   This function is threadsafe
  *
+ *  @deprecated     Please use one of the functions vrna_E_ext_stem() and
+ *                  E_MLstem() instead! Use the former for cases where @p extLoop != 0
+ *                  and the latter otherwise.
+ *
  *  @param  type    The pair type of the first base pair un the stem
  *  @param  si1     The 5'-mismatching nucleotide
  *  @param  sj1     The 3'-mismatching nucleotide
@@ -265,7 +269,7 @@ DEPRECATED(int E_Stem(int           type,
                       int           sj1,
                       int           extLoop,
                       vrna_param_t  *P),
-           "This function is obsolete");
+           "This function is obsolete. Use vrna_E_ext_stem() or E_MLstem() instead");
 
 
 DEPRECATED(int E_ExtLoop(int          type,

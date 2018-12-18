@@ -120,7 +120,10 @@ section "Core" sec_core
   File "/usr/x86_64-w64-mingw32/bin/libgcc_s_seh-1.dll"
   File "/usr/x86_64-w64-mingw32/bin/libgsl-23.dll"
   File "/usr/x86_64-w64-mingw32/bin/libgslcblas-0.dll"
-  
+  File "/usr/x86_64-w64-mingw32/bin/libmpfr-6.dll"
+  File "/usr/x86_64-w64-mingw32/bin/libgmp-10.dll"
+  File "/usr/x86_64-w64-mingw32/bin/libgmpxx-4.dll"
+
   File ".local"
 
   # we also want an uninstall to be installed
@@ -236,6 +239,9 @@ section "Uninstall"
   delete $INSTDIR\libgcc_s_seh-1.dll
   delete $INSTDIR\libgsl-23.dll
   delete $INSTDIR\libgslcblas-0.dll
+  delete $INSTDIR\libmpfr-6.dll
+  delete $INSTDIR\libgmp-10.dll
+  delete $INSTDIR\libgmpxx-4.dll
   delete $INSTDIR\.local
 
   delete "$INSTDIR\Uninstall-${PACKAGE}.exe"

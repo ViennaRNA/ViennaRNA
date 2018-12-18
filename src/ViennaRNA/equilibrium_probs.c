@@ -334,6 +334,54 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc)
 }
 
 
+PUBLIC double
+vrna_ensemble_defect(vrna_fold_compound_t *fc,
+                     const char           *structure)
+{
+  unsigned int  i, j, n;
+  int           ii;
+  double        ed = -1.;
+
+  if ((fc) &&
+      (structure) &&
+      (strlen(structure) == fc->length) &&
+      (fc->exp_matrices) &&
+      (fc->exp_matrices->probs)) {
+    n = fc->length;
+
+    short       *pt     = vrna_ptable(structure);
+    FLT_OR_DBL  *probs  = fc->exp_matrices->probs;
+    int         *idx    = fc->iindx;
+    ed = 0.;
+
+    for (i = 1; i < n; i++) {
+      ii = idx[i];
+      double pi;
+
+      /* compute probability to be paired */
+      for (pi = 0., j = 1; j < i; j++)
+        pi += probs[idx[j] - i];
+
+      for (j = i + 1; j <= n; j++)
+        pi += probs[ii - j];
+
+      if (pt[i] == 0)
+        ed += pi;
+      else if (pt[i] > i)
+        ed += 1 - probs[ii - pt[i]];
+      else
+        ed += 1 - probs[idx[pt[i]] - i];
+    }
+
+    ed /= (double)n;
+
+    free(pt);
+  }
+
+  return ed;
+}
+
+
 PUBLIC vrna_ep_t *
 vrna_stack_prob(vrna_fold_compound_t  *vc,
                 double                cutoff)
@@ -997,7 +1045,8 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
             break;
 
           if (hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-            type = vrna_get_ptype(jindx[j] + i, ptype);
+            int jij = jindx[j] + i;
+            type = vrna_get_ptype(jij, ptype);
 
             if ((sn[k] == sn[i]) &&
                 (sn[j] == sn[l])) {
@@ -1019,7 +1068,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
                           * sc->exp_energy_up[l + 1][u2];
 
                 if (sc->exp_energy_bp)
-                  tmp2 *= sc->exp_energy_bp[ij];
+                  tmp2 *= sc->exp_energy_bp[jij];
 
                 if (sc->exp_energy_stack) {
                   if ((i + 1 == k) && (j - 1 == l)) {
@@ -1328,7 +1377,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
 
             if (sc) {
               if (sc->exp_energy_bp)
-                ppp *= sc->exp_energy_bp[ij];
+                ppp *= sc->exp_energy_bp[jindx[j] + i];
 
               /*
                *        if(sc->exp_f)
@@ -1355,7 +1404,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           if (sc) {
             /* which decompositions are covered here? => (i, l+1) -> enclosing pair */
             if (sc->exp_energy_bp)
-              prmt1 *= sc->exp_energy_bp[ii - (l + 1)];
+              prmt1 *= sc->exp_energy_bp[jindx[l + 1] + i];
 
             /*
              *      if(sc->exp_f)
@@ -2846,7 +2895,7 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
 
                     if (sc)
                       if (sc->exp_energy_bp)
-                        qqq *= sc->exp_energy_bp[kl];
+                        qqq *= sc->exp_energy_bp[jkl];
 
                     temp += qqq;
                   }
@@ -2873,7 +2922,8 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
                 kl  = my_iindx[k] - l;
                 if ((hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) && (probs[kl] > 0.) &&
                     (hc_up[k + 1] >= up)) {
-                  tt    = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
+                  int jkl = jindx[l] + k;
+                  tt    = rtype[vrna_get_ptype(jkl, ptype)];
                   temp  = probs[kl]
                           * expMLbase[up]
                           * exp_E_MLstem(tt, S[l - 1], S[k + 1], pf_params)
@@ -2881,7 +2931,7 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
                           * scale[2];
                   if (sc) {
                     if (sc->exp_energy_bp)
-                      temp *= sc->exp_energy_bp[kl];
+                      temp *= sc->exp_energy_bp[jkl];
 
                     if (sc->exp_energy_up)
                       temp *= sc->exp_energy_up[k + 1][up];
@@ -2998,8 +3048,9 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
               for (l = j + 1; l <= n; l++) {
                 kl = my_iindx[k] - l;
                 if (hc[jindx[l] + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-                  int up;
-                  tt  = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
+                  int up, jkl;
+                  jkl = jindx[l] + k;
+                  tt  = rtype[vrna_get_ptype(jkl, ptype)];
                   up  = l - j - 1;
                   if (hc_up[j + 1] >= up) {
                     temp = probs[kl]
@@ -3010,7 +3061,7 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
 
                     if (sc) {
                       if (sc->exp_energy_bp)
-                        temp *= sc->exp_energy_bp[kl];
+                        temp *= sc->exp_energy_bp[jkl];
 
                       if (sc->exp_energy_up)
                         temp *= sc->exp_energy_up[j + 1][up];
@@ -3156,7 +3207,7 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
 
                     if (sc)
                       if (sc->exp_energy_bp)
-                        qqq *= sc->exp_energy_bp[kl];
+                        qqq *= sc->exp_energy_bp[jkl];
 
                     temp += qqq;
                   }
@@ -3183,7 +3234,8 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
                 kl  = my_iindx[k] - l;
                 if ((hc[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) && (probs[kl] > 0.) &&
                     (hc_up[k + 1] >= up)) {
-                  tt    = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
+                  int jkl = jindx[l] + k;
+                  tt    = rtype[vrna_get_ptype(jkl, ptype)];
                   temp  = probs[kl]
                           * expMLbase[up]
                           * exp_E_MLstem(tt, S[l - 1], S[k + 1], pf_params)
@@ -3191,7 +3243,7 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
                           * scale[2];
                   if (sc) {
                     if (sc->exp_energy_bp)
-                      temp *= sc->exp_energy_bp[kl];
+                      temp *= sc->exp_energy_bp[jkl];
 
                     if (sc->exp_energy_up)
                       temp *= sc->exp_energy_up[k + 1][up];
@@ -3304,8 +3356,9 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
               for (l = j + 1; l <= n; l++) {
                 kl = my_iindx[k] - l;
                 if (hc[k * n + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-                  int up;
-                  tt  = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
+                  int up, jkl;
+                  jkl = jindx[l] + k;
+                  tt  = rtype[vrna_get_ptype(jkl, ptype)];
                   up  = l - j - 1;
                   if (hc_up[j + 1] >= up) {
                     temp = probs[kl]
@@ -3316,7 +3369,7 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
 
                     if (sc) {
                       if (sc->exp_energy_bp)
-                        temp *= sc->exp_energy_bp[kl];
+                        temp *= sc->exp_energy_bp[jkl];
 
                       if (sc->exp_energy_up)
                         temp *= sc->exp_energy_up[j + 1][up];

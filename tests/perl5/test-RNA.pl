@@ -3,12 +3,13 @@
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
 use strict;
-use Test::More tests => 55;
+use Test::More tests => 56;
 use Data::Dumper;
 use FileHandle;
 
 use RNA;
 use warnings;
+use RNAHelpers qw(:VERSION);
 
 ######################### End of black magic.
 
@@ -21,6 +22,9 @@ my $struc1="(((.(((...))))))";
 my $seq2  ="GCGCCCAUAGGGACGC";
 my $struc2="((((((...))).)))";
 
+
+# Version number
+is($RNA::VERSION, $RNAHelpers::VERSION);
 
 # calculate a hamming distance (from util.c)
 is(RNA::hamming($seq1, $seq2), 16);

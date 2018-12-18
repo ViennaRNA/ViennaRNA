@@ -100,6 +100,11 @@ extern char *pbacktrack(char *sequence);
   double mean_bp_distance(){
     return vrna_mean_bp_distance($self);
   }
+
+  double
+  ensemble_defect(std::string structure) {
+    return vrna_ensemble_defect($self, structure.c_str());
+  }
 }
 
 %include  <ViennaRNA/part_func.h>
@@ -120,6 +125,25 @@ extern char *pbacktrack(char *sequence);
   pbacktrack(int length)
   {
     return vrna_pbacktrack5($self, length);
+  }
+
+  std::vector<std::string>
+  pbacktrack_nr(int num_samples)
+  {
+    std::vector<std::string> str_vec;
+
+    char **ptr, **output = vrna_pbacktrack_nr($self, num_samples);
+
+    if (output) {
+      for (ptr = output; *ptr != NULL; ptr++) {
+        str_vec.push_back(std::string(*ptr));
+        free(*ptr);
+      }
+
+      free(output);
+    }
+
+    return str_vec;
   }
 }
 

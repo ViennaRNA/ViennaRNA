@@ -47,6 +47,10 @@ RNA_CPPFLAGS += -DVRNA_WITH_SVM
 RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 endif
 
+if VRNA_AM_SWITCH_MPFR
+RNA_la_LIBADD += $(MPFR_LIBS)
+endif
+
 RNA_la_LDFLAGS =
 
 if VRNA_AM_SWITCH_LTO
@@ -65,8 +69,6 @@ RNA_la_LDFLAGS += -Xcompiler $(PTHREAD_CFLAGS) \
                   $(PERL_SO)
 
 SOURCES = $(srcdir)/RNA.pod
-
-BUILT_SOURCES = auto/RNA/RNA$(PERL_SO)
 
 EXTRA_DIST = \
   $(SWIG_wrapper) \
@@ -102,6 +104,8 @@ auto/RNA/RNA$(PERL_SO): RNA.la
     ( . ./libtoolconfig.tmp; cp "$$objdir/RNA$(PERL_SO)" auto/RNA ) && \
     rm -f libtoolconfig.tmp \
   )
+
+all-local:  auto/RNA/RNA$(PERL_SO)
 
 clean-local:
 	-rm -rf auto

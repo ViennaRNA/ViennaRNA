@@ -48,11 +48,12 @@ BuildRequires:  rpm-devel
 
 BuildRequires:  libstdc++-devel
 BuildRequires:  gcc gcc-c++ glibc-devel info
-BuildRequires:  gsl-devel 
+BuildRequires:  gsl-devel
+BuildRequires:  mpfr-devel
 BuildRequires:  perl(ExtUtils::Embed)
 BuildRequires:  perl-Test-Simple
 
-Requires:       perl glibc info gsl
+Requires:       perl glibc info gsl mpfr
 Provides:       Kinfold
 
 %if 0%{?suse_version}

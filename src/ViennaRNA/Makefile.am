@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-AM_CFLAGS = $(RNA_CFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
-AM_CXXFLAGS = $(RNA_CXXFLAGS) $(SIMD_CFLAGS) $(PTHREAD_CFLAGS)
+AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
+AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) ${SVM_INC} -I$(top_srcdir)/src ${JSON_INC}
 AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
@@ -46,6 +46,19 @@ libRNA_conv_la_LIBADD = \
     libRNA_params.la \
     libRNA_eval.la \
     libRNA_loops.la
+
+
+if VRNA_AM_SWITCH_SIMD_SSE41
+noinst_LTLIBRARIES += libRNA_utils_sse41.la
+libRNA_conv_la_LIBADD += libRNA_utils_sse41.la
+libRNA_utils_sse41_la_CFLAGS = $(SIMD_SSE41_FLAGS)
+endif
+
+if VRNA_AM_SWITCH_SIMD_AVX512
+noinst_LTLIBRARIES += libRNA_utils_avx512.la
+libRNA_conv_la_LIBADD += libRNA_utils_avx512.la
+libRNA_utils_avx512_la_CFLAGS = $(SIMD_AVX512_FLAGS)
+endif
 
 # Dummy C++ source to cause C++ linking.
 if VRNA_AM_SWITCH_SVM
@@ -181,6 +194,8 @@ vrna_utils_HEADERS = \
     utils/strings.h \
     utils/structures.h \
     utils/alignments.h \
+    utils/higher_order_functions.h \
+    utils/cpu.h \
     ${SVM_UTILS_H}
 
 
@@ -292,6 +307,8 @@ libRNA_utils_la_SOURCES = \
     utils/structure_utils.c \
     utils/structure_tree.c \
     utils/msa_utils.c \
+    utils/higher_order_functions.c \
+    utils/cpu.c \
     io/io_utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \
@@ -300,6 +317,16 @@ libRNA_utils_la_SOURCES = \
     units.c \
     combinatorics.c \
     ${SVM_UTILS}
+
+if VRNA_AM_SWITCH_SIMD_SSE41
+libRNA_utils_sse41_la_SOURCES = \
+    utils/higher_order_functions_sse41.c
+endif
+
+if VRNA_AM_SWITCH_SIMD_AVX512
+libRNA_utils_avx512_la_SOURCES = \
+    utils/higher_order_functions_avx512.c
+endif
 
 libRNA_plotting_la_SOURCES = \
     plotting/alignments.c \
@@ -382,6 +409,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               loops/multibranch_sc_pf.inc \
               params/svm_model_avg.inc \
               params/svm_model_sd.inc \
+              data_structures_nonred.inc \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \

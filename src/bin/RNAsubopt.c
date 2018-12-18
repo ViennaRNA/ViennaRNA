@@ -30,6 +30,7 @@
 #include "ViennaRNA/constraints/SHAPE.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/commands.h"
 #include "RNAsubopt_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -38,6 +39,24 @@
 
 PRIVATE void putoutzuker(FILE                   *output,
                          vrna_subopt_solution_t *zukersolution);
+
+
+struct nr_en_data {
+  FILE                  *output;
+  vrna_fold_compound_t  *fc;
+  double                kT;
+  double                ens_en;
+};
+
+
+PRIVATE void
+print_nr_samples(const char *structure,
+                 void       *data);
+
+
+PRIVATE void
+print_nr_samples_en(const char  *structure,
+                    void        *data);
 
 
 int
@@ -53,10 +72,11 @@ main(int  argc,
   unsigned int                        rec_type, read_opt;
   int                                 i, length, cl, istty, delta, n_back, noconv, dos, zuker,
                                       with_shapes, verbose, enforceConstraints, st_back_en, batch,
-                                      tofile, filename_full, canonicalBPonly;
+                                      tofile, filename_full, canonicalBPonly, nonRedundant;
   double                              deltap;
   vrna_md_t                           md;
   dataset_id                          id_control;
+  vrna_cmd_t                          commands;
 
   do_backtrack    = 1;
   delta           = 100;
@@ -73,6 +93,8 @@ main(int  argc,
   tofile          = 0;
   filename_full   = 0;
   canonicalBPonly = 0;
+  commands        = NULL;
+  nonRedundant    = 0;
 
   set_model_details(&md);
 
@@ -210,6 +232,14 @@ main(int  argc,
   if (args_info.filename_full_given)
     filename_full = 1;
 
+  /* non-redundant backtracing */
+  if (args_info.nonRedundant_given)
+    nonRedundant = 1;
+
+  if (args_info.commands_given)
+    commands = vrna_file_commands_read(args_info.commands_arg,
+                                       VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+
   /* free allocated memory of command line data structure */
   RNAsubopt_cmdline_parser_free(&args_info);
 
@@ -322,8 +352,7 @@ main(int  argc,
     /* parse the rest of the current dataset to obtain a structure constraint */
     if (fold_constrained) {
       if (constraints_file) {
-        vrna_constraints_add(vc, constraints_file,
-                             VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
+        vrna_constraints_add(vc, constraints_file, VRNA_OPTION_DEFAULT);
       } else {
         cstruc = NULL;
         int           cp        = -1;
@@ -369,6 +398,11 @@ main(int  argc,
                                  VRNA_OPTION_MFE | ((n_back > 0) ? VRNA_OPTION_PF : 0));
     }
 
+    if (commands)
+      vrna_commands_apply(vc,
+                          commands,
+                          VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+
     if (istty) {
       if (cut_point == -1) {
         vrna_message_info(stdout, "length = %d", length);
@@ -411,19 +445,33 @@ main(int  argc,
       ens_en  = vrna_pf(vc, structure);
       kT      = vc->exp_params->kT / 1000.;
 
-      for (i = 0; i < n_back; i++) {
-        char *s, *e_string = NULL;
-        s = vrna_pbacktrack(vc);
+      if (nonRedundant) {
         if (st_back_en) {
-          double e, prob;
-          e         = vrna_eval_structure(vc, s);
-          prob      = exp((ens_en - e) / kT);
-          e_string  = vrna_strdup_printf(" %6.2f %6g", e, prob);
-        }
+          struct nr_en_data dat;
+          dat.output  = output;
+          dat.fc      = vc;
+          dat.kT      = kT;
+          dat.ens_en  = ens_en;
 
-        print_structure(output, s, e_string);
-        free(s);
-        free(e_string);
+          vrna_pbacktrack_nr_cb(vc, n_back, &print_nr_samples_en, (void *)&dat);
+        } else {
+          vrna_pbacktrack_nr_cb(vc, n_back, &print_nr_samples, (void *)output);
+        }
+      } else {
+        for (i = 0; i < n_back; i++) {
+          char *s, *e_string = NULL;
+          s = vrna_pbacktrack(vc);
+          if (st_back_en) {
+            double e, prob;
+            e         = vrna_eval_structure(vc, s);
+            prob      = exp((ens_en - e) / kT);
+            e_string  = vrna_strdup_printf(" %6.2f %6g", e, prob);
+          }
+
+          print_structure(output, s, e_string);
+          free(s);
+          free(e_string);
+        }
       }
     }
     /* normal subopt */
@@ -523,10 +571,42 @@ main(int  argc,
   free(shape_method);
   free(shape_conversion);
   free(filename_delim);
+  vrna_commands_free(commands);
 
   free_id_data(id_control);
 
   return EXIT_SUCCESS;
+}
+
+
+PRIVATE void
+print_nr_samples(const char *structure,
+                 void       *data)
+{
+  if (structure)
+    print_structure((FILE *)data, structure, NULL);
+}
+
+
+PRIVATE void
+print_nr_samples_en(const char  *structure,
+                    void        *data)
+{
+  if (structure) {
+    struct nr_en_data     *d      = (struct nr_en_data *)data;
+    FILE                  *output = d->output;
+    vrna_fold_compound_t  *fc     = d->fc;
+    double                kT      = d->kT;
+    double                ens_en  = d->ens_en;
+
+    double                e         = vrna_eval_structure(fc, structure);
+    double                prob      = exp((ens_en - e) / kT);
+    char                  *e_string = vrna_strdup_printf(" %6.2f %6g", e, prob);
+
+    print_structure(output, structure, e_string);
+
+    free(e_string);
+  }
 }
 
 

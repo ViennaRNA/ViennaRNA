@@ -463,6 +463,12 @@ int vrna_bp_distance(const char *str1,
                      const char *str2);
 
 
+double
+vrna_dist_mountain(const char   *str1,
+                   const char   *str2,
+                   unsigned int p);
+
+
 /**
  *  @brief Make a reference base pair count matrix
  *

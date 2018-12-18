@@ -98,7 +98,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *fc,
 {
   short             *S, *S2, s5, s3;
   unsigned int      *sn, *ss, *se;
-  int               u, type, *iidx;
+  int               u, type, *iidx, *jidx;
   FLT_OR_DBL        qq, temp, *q, *scale;
   vrna_exp_param_t  *pf_params;
   vrna_sc_t         *sc;
@@ -106,6 +106,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *fc,
   vrna_ud_t         *domains_up;
 
   iidx        = fc->iindx;
+  jidx        = fc->jindx;
   pf_params   = fc->exp_params;
   md          = &(pf_params->model_details);
   q           = fc->exp_matrices->q;
@@ -151,7 +152,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *fc,
           qq *= sc->exp_energy_up[i + 1][u];
 
         if (sc->exp_energy_bp)
-          qq *= sc->exp_energy_bp[iidx[i] - j];
+          qq *= sc->exp_energy_bp[jidx[j] + i];
 
         if (sc->exp_f)
           qq *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);

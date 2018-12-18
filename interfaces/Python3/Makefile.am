@@ -27,8 +27,6 @@ pkgpycache_DATA = RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
 _RNA_la_SOURCES = $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
 
-BUILT_SOURCES = _RNA$(PYTHON3_SO)
-
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(SWIG_module_name).py \
@@ -46,6 +44,10 @@ if VRNA_AM_SWITCH_SVM
 _RNA_la_LIBADD += -lstdc++
 _RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 RNA_CPPFLAGS += -DVRNA_WITH_SVM
+endif
+
+if VRNA_AM_SWITCH_MPFR
+_RNA_la_LIBADD += $(MPFR_LIBS)
 endif
 
 _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
@@ -108,9 +110,10 @@ CLEANFILES = \
     RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@\
     $(srcdir)/*.pyc
 
+all-local:  _RNA$(PYTHON3_SO)
+
 clean-local:
 	-rm -rf RNA _RNA$(PYTHON3_SO)
-
 
 # Remove the .la file - RNA.la is never linked against (it's a module)
 # and Python doesn't use libltdl.  Note that the library gets installed by

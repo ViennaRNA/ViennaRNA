@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
@@ -23,6 +24,33 @@
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/boltzmann_sampling.h"
+
+
+#include "ViennaRNA/data_structures_nonred.inc"
+
+/*
+ #################################
+ # PREPROCESSOR DEFININTIONS     #
+ #################################
+ */
+
+#ifdef VRNA_NR_SAMPLING_HASH
+# define NR_NODE tr_node
+# define NR_TOTAL_WEIGHT(a) total_weight_par(a)
+# define NR_TOTAL_WEIGHT_TYPE(a, b) total_weight_par_type(a, b)
+# define NR_GET_WEIGHT(a, b, c, d, e)  tr_node_weight(a, c, d, e)
+#else
+# define NR_NODE tllr_node
+# define NR_TOTAL_WEIGHT(a) get_weight_all(a)
+# define NR_TOTAL_WEIGHT_TYPE(a, b) get_weight_type_spec(a, b)
+# define NR_GET_WEIGHT(a, b, c, d, e)  get_weight(b, c, d, e)
+#endif
+
+
+struct nr_structure_list {
+  unsigned int  num;
+  char          **list;
+};
 
 /*
  #################################
@@ -46,45 +74,96 @@ PRIVATE char *info_set_uniq_ml =
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE void  backtrack(int                   i,
-                        int                   j,
-                        char                  *pstruc,
-                        vrna_fold_compound_t  *vc);
 
 
-PRIVATE void  backtrack_qm(int                  i,
-                           int                  j,
-                           char                 *pstruc,
-                           vrna_fold_compound_t *vc);
+PRIVATE void
+save_nr_samples(const char  *structure,
+                void        *data);
 
 
-PRIVATE void  backtrack_qm1(int                   i,
-                            int                   j,
-                            char                  *pstruc,
-                            vrna_fold_compound_t  *vc);
+/* In the following:
+ * - q_remain is a pointer to value of sum of Boltzmann factors of still accessible solutions at that point
+ * - current_node is a double pointer to current node in datastructure memorizing the solutions and paths taken */
+PRIVATE char *
+pbacktrack5_gen(vrna_fold_compound_t  *vc,
+                int                   length,
+                double                *q_remain,
+                NR_NODE               **current_node,
+                struct nr_memory      **memory_dat);
 
 
-PRIVATE void  backtrack_qm2(int                   u,
-                            int                   n,
-                            char                  *pstruc,
-                            vrna_fold_compound_t  *vc);
+PRIVATE int
+backtrack(int                   i,
+          int                   j,
+          char                  *pstruc,
+          vrna_fold_compound_t  *vc,
+          double                *q_remain,
+          NR_NODE               **current_node,
+          struct nr_memory      **memory_dat);
 
 
-PRIVATE char *wrap_pbacktrack_circ(vrna_fold_compound_t *vc);
+PRIVATE int
+backtrack_ext_loop(int                  init_val,
+                   char                 *pstruc,
+                   vrna_fold_compound_t *vc,
+                   int                  length,
+                   double               *q_remain,
+                   NR_NODE              **current_node,
+                   struct nr_memory     **memory_dat);
 
 
-PRIVATE void  backtrack_comparative(vrna_fold_compound_t  *vc,
-                                    char                  *pstruc,
-                                    int                   i,
-                                    int                   j,
-                                    double                *prob);
+PRIVATE int
+backtrack_qm(int                  i,
+             int                  j,
+             char                 *pstruc,
+             vrna_fold_compound_t *vc);
 
 
-PRIVATE void  backtrack_qm1_comparative(vrna_fold_compound_t  *vc,
-                                        char                  *pstruc,
-                                        int                   i,
-                                        int                   j,
-                                        double                *prob);
+PRIVATE int
+backtrack_qm_nr(int                   i,
+                int                   j,
+                char                  *pstruc,
+                vrna_fold_compound_t  *vc,
+                double                *q_remain,
+                NR_NODE               **current_node,
+                struct nr_memory      **memory_dat);
+
+
+PRIVATE int
+backtrack_qm1(int                   i,
+              int                   j,
+              char                  *pstruc,
+              vrna_fold_compound_t  *vc,
+              double                *q_remain,
+              NR_NODE               **current_node,
+              struct nr_memory      **memory_dat);
+
+
+PRIVATE void
+backtrack_qm2(int                   u,
+              int                   n,
+              char                  *pstruc,
+              vrna_fold_compound_t  *vc);
+
+
+PRIVATE char *
+wrap_pbacktrack_circ(vrna_fold_compound_t *vc);
+
+
+PRIVATE void
+backtrack_comparative(vrna_fold_compound_t  *vc,
+                      char                  *pstruc,
+                      int                   i,
+                      int                   j,
+                      double                *prob);
+
+
+PRIVATE void
+backtrack_qm1_comparative(vrna_fold_compound_t  *vc,
+                          char                  *pstruc,
+                          int                   i,
+                          int                   j,
+                          double                *prob);
 
 
 /*
@@ -98,8 +177,9 @@ PRIVATE void  backtrack_qm1_comparative(vrna_fold_compound_t  *vc,
  *  @param  prob  to be described (berni)
  *  @return       A sampled consensus secondary structure in dot-bracket notation
  */
-PRIVATE char *pbacktrack_comparative(vrna_fold_compound_t *vc,
-                                     double               *prob);
+PRIVATE char *
+pbacktrack_comparative(vrna_fold_compound_t *vc,
+                       double               *prob);
 
 
 /*
@@ -153,13 +233,167 @@ vrna_pbacktrack(vrna_fold_compound_t *vc)
 }
 
 
+/* adapter function for more general expression using non-redundant sampling */
 PUBLIC char *
 vrna_pbacktrack5(vrna_fold_compound_t *vc,
                  int                  length)
 {
-  FLT_OR_DBL        r, qt, q_temp, qkl;
-  int               i, j, ij, n, k, u, type;
-  char              *pstruc;
+  return pbacktrack5_gen(vc, length, NULL, NULL, NULL);
+}
+
+
+PUBLIC char **
+vrna_pbacktrack_nr(vrna_fold_compound_t *vc,
+                   int                  num_samples)
+{
+  struct nr_structure_list data;
+
+  data.num      = 0;
+  data.list     = (char **)vrna_alloc(sizeof(char *) * num_samples);
+  data.list[0]  = NULL;
+  vrna_pbacktrack_nr_cb(vc, num_samples, &save_nr_samples, (void *)&data);
+
+  /* re-allocate memory */
+  data.list           = (char **)vrna_realloc(data.list, sizeof(char *) * (data.num + 1));
+  data.list[data.num] = NULL;
+
+  return data.list;
+}
+
+
+PUBLIC void
+vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
+                      int                               num_samples,
+                      vrna_boltzmann_sampling_callback  *bs_cb,
+                      void                              *data)
+{
+  if (vc) {
+    if (!vc->exp_params) {
+      vrna_message_warning("vrna_pbacktrack_nr_cb: DP matrices are missing! Call vrna_pf() first!");
+    } else if (!vc->exp_params->model_details.uniq_ML) {
+      vrna_message_warning("vrna_pbacktrack_nr_cb: Unique multiloop decomposition is unset!");
+      vrna_message_info(stderr, info_set_uniq_ml);
+    } else if (vc->type != VRNA_FC_TYPE_SINGLE) {
+      vrna_message_warning(
+        "vrna_pbacktrack_nr_cb: No implementation for comparative structure prediction available yet!");
+    } else if (vc->exp_params->model_details.circ) {
+      vrna_message_warning(
+        "vrna_pbacktrack_nr_cb: No implementation for circular RNAs available yet!");
+    } else {
+      int               i, is_dup, pf_overflow;
+      double            q_remain, part_fci;
+      size_t            block_size;
+      NR_NODE           *current_node;
+      NR_NODE           *root_node;
+      struct nr_memory  *memory_dat;
+
+      memory_dat  = NULL;
+      block_size  = 5000 * sizeof(NR_NODE);
+      q_remain    = 0;
+      pf_overflow = 0;
+      part_fci    = vc->exp_matrices->q[vc->iindx[1] - vc->length];
+
+#ifdef VRNA_NR_SAMPLING_HASH
+      root_node = create_root(vc->length, part_fci);
+#else
+      memory_dat  = create_nr_memory(sizeof(NR_NODE), block_size, NULL); // memory pre-allocation
+      root_node   = create_ll_root(&memory_dat, part_fci);
+
+#endif
+      current_node = root_node;
+
+      for (i = 0; i < num_samples; i++) {
+        is_dup    = 1;
+        q_remain  = vc->exp_matrices->q[vc->iindx[1] - vc->length];
+        char *ss = pbacktrack5_gen(vc, vc->length, &q_remain, &current_node, &memory_dat);
+
+#ifdef VRNA_NR_SAMPLING_HASH
+        current_node = traceback_to_root(current_node, q_remain, &is_dup, &pf_overflow);
+#else
+        current_node = traceback_to_ll_root(current_node, q_remain, &is_dup, &pf_overflow);
+#endif
+
+        if (pf_overflow) {
+          vrna_message_warning("vrna_pbacktrack_nr*(): "
+                               "Partition function overflow detected for forbidden structures, presumably due to numerical instabilities.");
+          free(ss);
+          break;
+        }
+
+        if (is_dup) {
+          vrna_message_warning("vrna_pbacktrack_nr*(): "
+                               "Duplicate structures detected, presumably due to numerical instabilities");
+          free(ss);
+          break;
+        }
+
+        bs_cb(ss, data);
+        free(ss);
+        /* finish if no more structures available */
+        if (!ss)
+          break;
+      }
+      /* print warning if we've aborted backtracking too early */
+      if ((i > 0) && (i < num_samples)) {
+        vrna_message_warning("vrna_pbacktrack_nr*(): "
+                             "Stopped backtracking after %d samples due to numeric instabilities!\n"
+                             "Coverage of partition function so far: %.6f%%",
+                             i,
+                             100. * return_node_weight(root_node) / part_fci);
+      }
+
+#ifdef VRNA_NR_SAMPLING_HASH
+      free_all_nr(current_node);
+#else
+      free_all_nrll(&memory_dat);
+#endif
+    }
+  }
+}
+
+
+/* general expr of vrna5_pbacktrack with possibility of non-redundant sampling */
+PRIVATE char *
+pbacktrack5_gen(vrna_fold_compound_t  *vc,
+                int                   length,
+                double                *q_remain,
+                NR_NODE               **current_node,
+                struct nr_memory      **memory_dat)
+{
+  int   ret, i;
+  char  *pstruc;
+
+  pstruc = vrna_alloc((length + 1) * sizeof(char));
+
+  for (i = 0; i < length; i++)
+    pstruc[i] = '.';
+
+#ifdef VRNA_WITH_BOUSTROPHEDON
+  ret = backtrack_ext_loop(length, pstruc, vc, length, q_remain, current_node, memory_dat);
+#else
+  ret = backtrack_ext_loop(1, pstruc, vc, length, q_remain, current_node, memory_dat);
+#endif
+
+  if (ret > 0)
+    return pstruc;
+
+  free(pstruc);
+  return NULL;
+}
+
+
+/* backtrack one external */
+PRIVATE int
+backtrack_ext_loop(int                  init_val,
+                   char                 *pstruc,
+                   vrna_fold_compound_t *vc,
+                   int                  length,
+                   double               *q_remain,
+                   NR_NODE              **current_node,
+                   struct nr_memory     **memory_dat)
+{
+  FLT_OR_DBL        r, fbd, fbds, qt, q_temp, qkl;
+  int               ret, i, j, ij, n, k, u, type;
   int               *my_iindx, hc_decompose, *hc_up_ext;
   FLT_OR_DBL        *q, *qb, *q1k, *qln, *scale;
   unsigned char     *hard_constraints;
@@ -169,6 +403,15 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   vrna_exp_param_t  *pf_params;
+
+#ifndef VRNA_NR_SAMPLING_HASH
+  /* non-redundant data-structure memorization nodes */
+  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
+  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
+#endif
+
+  fbd   = 0.;                             /* stores weight of forbidden terms for given q[ij]*/
+  fbds  = 0.;                             /* stores weight of forbidden term for given motif */
 
   n = vc->length;
 
@@ -187,29 +430,27 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
 
   if (length > n) {
     vrna_message_warning("vrna_pbacktrack5: 3'-end exceeds sequence length");
-    return NULL;
+    return -1;
   } else if (length < 1) {
     vrna_message_warning("vrna_pbacktrack5: 3'-end too small");
-    return NULL;
+    return -1;
   } else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!pf_params)) {
     vrna_message_warning("vrna_pbacktrack5: DP matrices are missing! Call vrna_pf() first!");
-    return NULL;
+    return -1;
   } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
     vrna_message_warning("vrna_pbacktrack5: Unique multiloop decomposition is unset!");
     vrna_message_info(stderr, info_set_uniq_ml);
-    return NULL;
+    return -1;
   }
+
+  /* assume successful backtracing by default */
+  ret = 1;
 
   q     = matrices->q;
   qb    = matrices->qb;
   q1k   = matrices->q1k;
   qln   = matrices->qln;
   scale = matrices->scale;
-
-  pstruc = vrna_alloc((length + 1) * sizeof(char));
-
-  for (i = 0; i < length; i++)
-    pstruc[i] = '.';
 
   if (!(q1k && qln)) {
     matrices->q1k = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
@@ -224,14 +465,38 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
     qln[n + 1]  = 1.0;
   }
 
+#ifndef VRNA_NR_SAMPLING_HASH
+  if (current_node) {
+    memorized_node_prev = NULL;
+    memorized_node_cur  = (*current_node)->head;
+  }
+
+#endif
+
+  q_temp = 0.;
+
 #ifdef VRNA_WITH_BOUSTROPHEDON
-  j = length;
-  while (j > 1) {
+  j = init_val;
+  if (j > 1) {
     /* find j position of first pair */
     for (; j > 1; j--) {
       if (hc_up_ext[j]) {
-        r       = vrna_urn() * q1k[j];
-        q_temp  = q[my_iindx[1] - j + 1] * scale[1];
+        if (current_node) {
+          fbd = NR_TOTAL_WEIGHT(*current_node) *
+                q1k[j] /
+                (*q_remain);
+
+#ifdef  USE_FLOAT_PF
+          if (fabsf(NR_TOTAL_WEIGHT(*current_node) - (*q_remain)) / (*q_remain) <= FLT_EPSILON)
+#else
+          if (fabs(NR_TOTAL_WEIGHT(*current_node) - (*q_remain)) / (*q_remain) <= DBL_EPSILON)
+#endif
+            /* exhausted ensemble */
+            return 0;
+        }
+
+        r       = vrna_urn() * (q1k[j] - fbd);
+        q_temp  = q1k[j - 1] * scale[1];
 
         if (sc) {
           if (sc->exp_energy_up)
@@ -241,16 +506,51 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
             q_temp *= sc->exp_f(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, sc->data);
         }
 
-        if (r > q_temp)
+        if (current_node) {
+          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_UNPAIRED_SG, j - 1, j) *
+                 q1k[j] /
+                 (*q_remain);
+        }
+
+        if (r > (q_temp - fbds)) {
           break;                /* j is paired */
+        } else if (current_node) {
+          /* j is unpaired */
+          *q_remain *= q_temp / q1k[j];
+#ifdef VRNA_NR_SAMPLING_HASH
+          *current_node = add_if_nexists(NRT_UNPAIRED_SG, j - 1, j, *current_node, *q_remain);
+#else
+          *current_node = add_if_nexists_ll(memory_dat,
+                                            NRT_UNPAIRED_SG,
+                                            j - 1,
+                                            j,
+                                            memorized_node_prev,
+                                            memorized_node_cur,
+                                            *current_node,
+                                            *q_remain);
+          reset_cursor(&memorized_node_prev, &memorized_node_cur, *current_node); /* resets cursor */
+#endif
+        }
       }
     }
     if (j <= md->min_loop_size + 1)
-      break;         /* no more pairs */
+      return ret;         /* no more pairs, but still successful */
 
+#ifndef  VRNA_NR_SAMPLING_HASH
+    if (current_node)
+      advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_UNPAIRED_SG, j - 1, j);
+
+#endif
     /* now find the pairing partner i */
-    r = vrna_urn() * (q1k[j] - q_temp);
+    if (current_node) {
+      fbd = NR_TOTAL_WEIGHT_TYPE(NRT_EXT_LOOP, *current_node) *
+            q1k[j] /
+            (*q_remain);
+    }
+
+    r = vrna_urn() * (q1k[j] - q_temp - fbd);
     u = j - 1;
+    i = 2;
 
     for (qt = 0, k = 1; k < j; k++) {
       /* apply alternating boustrophedon scheme to variable i */
@@ -276,24 +576,71 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
               qkl *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
         }
 
-        qt += qkl;
-        if (qt > r)
+        if (current_node) {
+          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_EXT_LOOP, i, j) *
+                 q1k[j] /
+                 (*q_remain);
+          qt += qkl - fbds;
+        } else {
+          qt += qkl;
+        }
+
+        if (qt > r) {
+          if (current_node) {
+            *q_remain *= qkl / q1k[j];
+#ifdef VRNA_NR_SAMPLING_HASH
+            *current_node = add_if_nexists(NRT_EXT_LOOP, i, j, *current_node, *q_remain);
+#else
+            *current_node = add_if_nexists_ll(memory_dat,
+                                              NRT_EXT_LOOP,
+                                              i,
+                                              j,
+                                              memorized_node_prev,
+                                              memorized_node_cur,
+                                              *current_node,
+                                              *q_remain);
+#endif
+          }
+
           break;           /* j is paired */
+        }
+
+#ifndef VRNA_NR_SAMPLING_HASH
+        if (current_node)
+          advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_EXT_LOOP, i, j);
+
+#endif
       }
     }
-    if (k == j)
-      vrna_message_error("backtracking failed in ext loop");
+    if (k == j) {
+      if (current_node) {
+        /* exhausted ensemble */
+        return 0;
+      } else {
+        vrna_message_warning("backtracking failed in ext loop");
+        /* error */
+        return -1;
+      }
+    }
 
-    backtrack(i, j, pstruc, vc);
-    j = i - 1;
+    backtrack(i, j, pstruc, vc, q_remain, current_node, memory_dat);
+    j   = i - 1;
+    ret = backtrack_ext_loop(j, pstruc, vc, length, q_remain, current_node, memory_dat);
   }
+
 #else
-  start = 1;
-  while (start < length) {
+  int start = init_val;
+  if (start < length) {
     /* find i position of first pair */
     for (i = start; i < length; i++) {
       if (hc_up_ext[i]) {
-        r       = vrna_urn() * qln[i];
+        if (current_node) {
+          fbd = NR_TOTAL_WEIGHT(*current_node) *
+                qln[i] /
+                (*q_remain);
+        }
+
+        r       = vrna_urn() * (qln[i] - fbd);
         q_temp  = qln[i + 1] * scale[1];
 
         if (sc) {
@@ -304,18 +651,52 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
             q_temp *= sc->exp_f(i, length, i + 1, length, VRNA_DECOMP_EXT_EXT, sc->data);
         }
 
-        if (r > q_temp)
+        if (current_node) {
+          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_UNPAIRED_SG, i, i + 1) *
+                 qln[i] /
+                 (*q_remain);
+        }
+
+        if (r > (q_temp - fbds)) {
           break;                /* i is paired */
+        } else if (current_node) {
+          *q_remain *= q_temp / qln[i];
+#ifdef VRNA_NR_SAMPLING_HASH
+          *current_node = add_if_nexists(NRT_UNPAIRED_SG, i, i + 1, *current_node, *q_remain);
+#else
+          *current_node = add_if_nexists_ll(memory_dat,
+                                            NRT_UNPAIRED_SG,
+                                            i,
+                                            i + 1,
+                                            memorized_node_prev,
+                                            memorized_node_cur,
+                                            *current_node,
+                                            *q_remain);
+          reset_cursor(&memorized_node_prev, &memorized_node_cur, *current_node); /* resets cursor */
+#endif
+        }
       }
     }
     if (i >= length)
-      break;              /* no more pairs */
+      return ret;         /* no more pairs, but still successful */
+
+#ifndef VRNA_NR_SAMPLING_HASH
+    if (current_node)
+      advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_UNPAIRED_SG, i, i + 1);
+
+#endif
 
     /* now find the pairing partner j */
-    r = vrna_urn() * (qln[i] - q_temp);
+    if (current_node) {
+      fbd = NR_TOTAL_WEIGHT_TYPE(NRT_EXT_LOOP, *current_node) *
+            qln[i] /
+            (*q_remain);
+    }
+
+    r = vrna_urn() * (qln[i] - q_temp - fbd);
     for (qt = 0, j = i + 1; j <= length; j++) {
       ij            = my_iindx[i] - j;
-      type          = vrna_get_ptype(jindx[j] + i, ptype);
+      type          = vrna_get_ptype_md(S2[i], S2[j], md);
       hc_decompose  = hard_constraints[n * i + j];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         qkl = qb[ij] * exp_E_ExtLoop(type,
@@ -334,23 +715,79 @@ vrna_pbacktrack5(vrna_fold_compound_t *vc,
               qkl *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
         }
 
-        qt += qkl;
-        if (qt > r)
-          break;           /* j is paired */
+        if (current_node) {
+          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_EXT_LOOP, i, j) *
+                 qln[i] /
+                 (*q_remain);
+          qt += qkl - fbds;
+        } else {
+          qt += qkl;
+        }
+
+        if (qt > r) {
+          if (current_node) {
+            *q_remain *= qkl / qln[i];
+#ifdef VRNA_NR_SAMPLING_HASH
+            *current_node = add_if_nexists(NRT_EXT_LOOP, i, j, *current_node, *q_remain);
+#else
+            *current_node = add_if_nexists_ll(memory_dat,
+                                              NRT_EXT_LOOP,
+                                              i,
+                                              j,
+                                              memorized_node_prev,
+                                              memorized_node_cur,
+                                              *current_node,
+                                              *q_remain);
+#endif
+          }
+
+          break;       /* j is paired */
+        }
+
+#ifndef VRNA_NR_SAMPLING_HASH
+        if (current_node)
+          advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_EXT_LOOP, i, j);
+
+#endif
       }
     }
-    if (j == length + 1)
-      vrna_message_error("backtracking failed in ext loop");
+    if (j == length + 1) {
+      if (current_node) {
+        /* exhausted ensemble */
+        return 0;
+      } else {
+        vrna_message_warning("backtracking failed in ext loop");
+        /* error */
+        return -1;
+      }
+    }
 
     start = j + 1;
-    backtrack(i, j, pstruc, vc);
+    backtrack(i, j, pstruc, vc, q_remain, current_node, memory_dat);
+
+    ret = backtrack_ext_loop(start, pstruc, vc, length, q_remain, current_node, memory_dat);
   }
+
 #endif
-  return pstruc;
+
+  return ret;
 }
 
 
 PRIVATE void
+save_nr_samples(const char  *structure,
+                void        *data)
+{
+  struct nr_structure_list *d = (struct nr_structure_list *)data;
+
+  if (structure)
+    d->list[d->num++] = strdup(structure);
+  else
+    d->list[d->num++] = NULL;
+}
+
+
+PRIVATE int
 backtrack_qm(int                  i,
              int                  j,
              char                 *pstruc,
@@ -360,12 +797,13 @@ backtrack_qm(int                  i,
   FLT_OR_DBL    qmt, r, q_temp;
   int           k, u, cnt, span, turn;
   FLT_OR_DBL    *qm, *qm1, *expMLbase;
-  int           *my_iindx, *jindx, *hc_up_ml;
+  int           *my_iindx, *jindx, *hc_up_ml, ret;
   vrna_sc_t     *sc;
   vrna_hc_t     *hc;
 
   vrna_mx_pf_t  *matrices = vc->exp_matrices;
 
+  ret       = 1;
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
 
@@ -423,10 +861,15 @@ backtrack_qm(int                  i,
       }
     }
 
-    if (cnt > j)
+    if (cnt > j) {
       vrna_message_error("backtrack failed in qm");
+      return 0;
+    }
 
-    backtrack_qm1(k, j, pstruc, vc);
+    ret = backtrack_qm1(k, j, pstruc, vc, NULL, NULL, NULL);
+
+    if (ret == 0)
+      return ret;
 
     if (k < i + turn)
       break;            /* no more pairs */
@@ -451,19 +894,235 @@ backtrack_qm(int                  i,
 
     j = k - 1;
   }
+
+  return ret;
 }
 
 
-PRIVATE void
+/* non redundant version of function bactrack_qm */
+PRIVATE int
+backtrack_qm_nr(int                   i,
+                int                   j,
+                char                  *pstruc,
+                vrna_fold_compound_t  *vc,
+                double                *q_remain,
+                NR_NODE               **current_node,
+                struct nr_memory      **memory_dat)
+{
+  /* divide multiloop into qm and qm1  */
+  FLT_OR_DBL  qmt, fbd, fbds, r, q_temp;
+  int         k, u, cnt, span, turn;
+  int         is_unpaired; /* 1 if [i ... k-1] is unpaired */
+  FLT_OR_DBL  *qm, *qm1, *expMLbase;
+  int         *my_iindx, *jindx, *hc_up_ml, ret;
+  vrna_sc_t   *sc;
+  vrna_hc_t   *hc;
+
+#ifndef VRNA_NR_SAMPLING_HASH
+  /* non-redundant data-structure memorization nodes */
+  NR_NODE     *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
+  NR_NODE     *memorized_node_cur   = NULL; /* remembers actual node in linked list */
+#endif
+
+  ret   = 1;
+  fbd   = 0.;                       /* stores weight of forbidden terms for given q[ij]*/
+  fbds  = 0.;                       /* stores weight of forbidden term for given motif */
+
+  is_unpaired = 0;
+
+  vrna_mx_pf_t *matrices = vc->exp_matrices;
+
+  my_iindx  = vc->iindx;
+  jindx     = vc->jindx;
+
+  hc        = vc->hc;
+  sc        = vc->sc;
+  hc_up_ml  = hc->up_ml;
+
+  qm        = matrices->qm;
+  qm1       = matrices->qm1;
+  expMLbase = matrices->expMLbase;
+
+  turn = vc->exp_params->model_details.min_loop_size;
+
+#ifndef VRNA_NR_SAMPLING_HASH
+  if (current_node) {
+    memorized_node_prev = NULL;
+    memorized_node_cur  = (*current_node)->head;
+  }
+
+#endif
+
+  if (j > i) {
+    /* now backtrack  [i ... j] in qm[] */
+
+    if (current_node) {
+      fbd = NR_TOTAL_WEIGHT(*current_node) *
+            qm[my_iindx[i] - j] /
+            (*q_remain);
+    }
+
+    r = vrna_urn() * (qm[my_iindx[i] - j] - fbd);
+    if (current_node) {
+      fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_QM_UNPAIR, i, 0) *
+             qm[my_iindx[i] - j] /
+             (*q_remain);
+      qmt = qm1[jindx[j] + i] - fbds;
+    } else {
+      qmt = qm1[jindx[j] + i];
+    }
+
+    k       = cnt = i;
+    q_temp  = qm1[jindx[j] + i];
+
+    if (qmt < r) {
+#ifndef VRNA_NR_SAMPLING_HASH
+      if (current_node)
+        advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_QM_UNPAIR, i, 0);
+
+#endif
+
+      for (span = j - i, cnt = i + 1; cnt <= j; cnt++) {
+#ifdef VRNA_WITH_BOUSTROPHEDON
+        k = (int)(i + 1 + span * ((cnt - i - 1) % 2)) +
+            (int)((1 - (2 * ((cnt - i - 1) % 2))) * ((cnt - i) / 2));
+#else
+        k = cnt;
+#endif
+        q_temp  = 0.;
+        u       = k - i;
+        /* [i...k] is unpaired */
+        if (hc_up_ml[i] >= u) {
+          q_temp += expMLbase[u] * qm1[jindx[j] + k];
+
+          if (sc) {
+            if (sc->exp_energy_up)
+              q_temp *= sc->exp_energy_up[i][u];
+
+            if (sc->exp_f)
+              q_temp *= sc->exp_f(i, j, k, j, VRNA_DECOMP_ML_ML, sc->data);
+          }
+
+          if (current_node) {
+            fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_QM_UNPAIR, k, 0) *
+                   qm[my_iindx[i] - j] /
+                   (*q_remain);
+            qmt += q_temp - fbds;
+          } else {
+            qmt += q_temp;
+          }
+        }
+
+        if (qmt >= r) {
+          /* we have chosen unpaired version */
+          is_unpaired = 1;
+          break;
+        }
+
+#ifndef VRNA_NR_SAMPLING_HASH
+        if (current_node)
+          advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_QM_UNPAIR, k, 0);
+
+#endif
+
+        /* split between k-1, k */
+        q_temp = qm[my_iindx[i] - (k - 1)] *
+                 qm1[jindx[j] + k];
+
+        if (sc)
+          if (sc->exp_f)
+            q_temp *= sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+
+        if (current_node) {
+          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_QM_PAIR, k, 0) *
+                 qm[my_iindx[i] - j] /
+                 (*q_remain);
+          qmt += q_temp - fbds;
+        } else {
+          qmt += q_temp;
+        }
+
+        if (qmt >= r)
+          break;
+
+#ifndef VRNA_NR_SAMPLING_HASH
+        if (current_node)
+          advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_QM_PAIR, k, 0);
+
+#endif
+      }
+    } else {
+      is_unpaired = 1;
+    }
+
+    if (current_node) {
+      *q_remain *= q_temp / qm[my_iindx[i] - j];
+#ifdef VRNA_NR_SAMPLING_HASH
+      if (is_unpaired)
+        *current_node = add_if_nexists(NRT_QM_UNPAIR, k, 0, *current_node, *q_remain);
+      else
+        *current_node = add_if_nexists(NRT_QM_PAIR, k, 0, *current_node, *q_remain);
+
+#else
+      if (is_unpaired)
+        *current_node = add_if_nexists_ll(memory_dat,
+                                          NRT_QM_UNPAIR,
+                                          k,
+                                          0,
+                                          memorized_node_prev,
+                                          memorized_node_cur,
+                                          *current_node,
+                                          *q_remain);
+      else
+        *current_node = add_if_nexists_ll(memory_dat,
+                                          NRT_QM_PAIR,
+                                          k,
+                                          0,
+                                          memorized_node_prev,
+                                          memorized_node_cur,
+                                          *current_node,
+                                          *q_remain);
+
+#endif
+    }
+
+    if (cnt > j)
+      return 0;
+
+    ret = backtrack_qm1(k, j, pstruc, vc, q_remain, current_node, memory_dat);
+
+    if (ret == 0)
+      return ret;
+
+    if (k < i + turn)
+      return ret;         /* no more pairs */
+
+    if (!is_unpaired) {
+      /* if we've chosen creating a branch in [i..k-1] */
+      ret = backtrack_qm_nr(i, k - 1, pstruc, vc, q_remain, current_node, memory_dat);
+
+      if (ret == 0)
+        return ret;
+    }
+  }
+
+  return ret;
+}
+
+
+PRIVATE int
 backtrack_qm1(int                   i,
               int                   j,
               char                  *pstruc,
-              vrna_fold_compound_t  *vc)
+              vrna_fold_compound_t  *vc,
+              double                *q_remain,
+              NR_NODE               **current_node,
+              struct nr_memory      **memory_dat)
 {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   unsigned int      n;
   int               ii, l, il, type, turn;
-  FLT_OR_DBL        qt, r, q_temp;
+  FLT_OR_DBL        qt, fbd, fbds, r, q_temp;
   FLT_OR_DBL        *qm1, *qb, *expMLbase;
   vrna_mx_pf_t      *matrices;
   int               u, *my_iindx, *jindx, *hc_up_ml;
@@ -474,12 +1133,19 @@ backtrack_qm1(int                   i,
   vrna_hc_t         *hc;
   vrna_exp_param_t  *pf_params;
 
+#ifndef VRNA_NR_SAMPLING_HASH
+  /* non-redundant data-structure memorization nodes */
+  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
+  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
+#endif
+
   n         = vc->length;
+  fbd       = 0.;
+  fbds      = 0.;
   pf_params = vc->exp_params;
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
-
-  ptype = vc->ptype;
+  ptype     = vc->ptype;
 
   sc                = vc->sc;
   hc                = vc->hc;
@@ -494,7 +1160,21 @@ backtrack_qm1(int                   i,
 
   turn = pf_params->model_details.min_loop_size;
 
-  r   = vrna_urn() * qm1[jindx[j] + i];
+#ifndef VRNA_NR_SAMPLING_HASH
+  if (current_node) {
+    memorized_node_prev = NULL;
+    memorized_node_cur  = (*current_node)->head;
+  }
+
+#endif
+
+  if (current_node) {
+    fbd = NR_TOTAL_WEIGHT(*current_node) *
+          qm1[jindx[j] + i] /
+          (*q_remain);
+  }
+
+  r   = vrna_urn() * (qm1[jindx[j] + i] - fbd);
   ii  = my_iindx[i];
   for (qt = 0., l = j; l > i + turn; l--) {
     il = jindx[l] + i;
@@ -514,19 +1194,56 @@ backtrack_qm1(int                   i,
             q_temp *= sc->exp_f(i, j, i, l, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-        qt += q_temp;
-        if (qt >= r)
+        if (current_node) {
+          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_QM1_BRANCH, i, l) *
+                 qm1[jindx[j] + i] /
+                 (*q_remain);
+          qt += q_temp - fbds;
+        } else {
+          qt += q_temp;
+        }
+
+        if (qt >= r) {
+          if (current_node) {
+            *q_remain *= q_temp / qm1[jindx[j] + i];
+#ifdef VRNA_NR_SAMPLING_HASH
+            *current_node = add_if_nexists(NRT_QM1_BRANCH, i, l, *current_node, *q_remain);
+#else
+            *current_node = add_if_nexists_ll(memory_dat,
+                                              NRT_QM1_BRANCH,
+                                              i,
+                                              l,
+                                              memorized_node_prev,
+                                              memorized_node_cur,
+                                              *current_node,
+                                              *q_remain);
+#endif
+          }
+
           break;
+        }
+
+#ifndef VRNA_NR_SAMPLING_HASH
+        if (current_node)
+          advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_QM1_BRANCH, i, l);
+
+#endif
       } else {
         l = i + turn;
         break;
       }
     }
   }
-  if (l < i + turn + 1)
-    vrna_message_error("backtrack failed in qm1");
+  if (l < i + turn + 1) {
+    if (current_node) {
+      return 0;
+    } else {
+      vrna_message_error("backtrack failed in qm1");
+      return 0;
+    }
+  }
 
-  backtrack(i, l, pstruc, vc);
+  return backtrack(i, l, pstruc, vc, q_remain, current_node, memory_dat);
 }
 
 
@@ -552,9 +1269,9 @@ backtrack_qm2(int                   k,
   /* we have to search for our barrier u between qm1 and qm1  */
   if ((sc) && (sc->exp_f)) {
     for (qom2t = 0., u = k + turn + 1; u < n - turn - 1; u++) {
-      qom2t +=  qm1[jindx[u] + k] *
-                qm1[jindx[n] + (u + 1)] *
-                sc->exp_f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+      qom2t += qm1[jindx[u] + k] *
+               qm1[jindx[n] + (u + 1)] *
+               sc->exp_f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
 
       if (qom2t > r)
         break;
@@ -570,28 +1287,43 @@ backtrack_qm2(int                   k,
   if (u == n - turn)
     vrna_message_error("backtrack failed in qm2");
 
-  backtrack_qm1(k, u, pstruc, vc);
-  backtrack_qm1(u + 1, n, pstruc, vc);
+  backtrack_qm1(k, u, pstruc, vc, NULL, NULL, NULL);
+  backtrack_qm1(u + 1, n, pstruc, vc, NULL, NULL, NULL);
 }
 
 
-PRIVATE void
+PRIVATE int
 backtrack(int                   i,
           int                   j,
           char                  *pstruc,
-          vrna_fold_compound_t  *vc)
+          vrna_fold_compound_t  *vc,
+          double                *q_remain,
+          NR_NODE               **current_node,
+          struct nr_memory      **memory_dat)
 {
   char              *ptype;
   unsigned char     *hard_constraints, hc_decompose;
   vrna_exp_param_t  *pf_params;
   FLT_OR_DBL        *qb, *qm, *qm1, *scale;
-  FLT_OR_DBL        r, qbt1, qt, q_temp;
+  FLT_OR_DBL        r, fbd, fbds, qbt1, qbr, qt, q_temp; /* qbr stores qb used for generating r */
   vrna_mx_pf_t      *matrices;
   unsigned int      n;
-  int               *my_iindx, *jindx, *hc_up_int;
+  int               *my_iindx, *jindx, *hc_up_int, ret;
   vrna_sc_t         *sc;
   vrna_hc_t         *hc;
   short             *S1;
+
+#ifndef VRNA_NR_SAMPLING_HASH
+  /* non-redundant data-structure memorization nodes */
+  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
+  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
+#endif
+
+  ret     = 1;                            /* default is success */
+  fbd     = 0.;                           /* stores weight of forbidden terms for given q[ij] */
+  fbds    = 0.;                           /* stores weight of forbidden term for given motif */
+  qbt1    = 0.;
+  q_temp  = 0.;
 
   n         = vc->length;
   pf_params = vc->exp_params;
@@ -611,10 +1343,18 @@ backtrack(int                   i,
   qm1       = matrices->qm1;
   scale     = matrices->scale;
 
-  int turn        = pf_params->model_details.min_loop_size;
-  int *rtype      = &(pf_params->model_details.rtype[0]);
+  int turn    = pf_params->model_details.min_loop_size;
+  int *rtype  = &(pf_params->model_details.rtype[0]);
 
-  qbt1 = 0.;
+#ifndef VRNA_NR_SAMPLING_HASH
+  if (current_node) {
+    memorized_node_prev = NULL;
+    memorized_node_cur  = (*current_node)->head;
+  }
+
+#endif
+
+  hc_decompose = hard_constraints[n * j + i];
 
   do {
     int           k, l, kl, u1, u2, max_k, min_l;
@@ -622,18 +1362,61 @@ backtrack(int                   i,
     k = i;
     l = j;
 
+    qbr = qb[my_iindx[i] - j];
+
+    if (current_node)
+      fbd = NR_TOTAL_WEIGHT(*current_node) * qbr / (*q_remain);
+
     pstruc[i - 1] = '(';
     pstruc[j - 1] = ')';
 
-    r             = vrna_urn() * qb[my_iindx[i] - j];
+    r     = vrna_urn() * (qb[my_iindx[i] - j] - fbd);
+    type  = vrna_get_ptype(jindx[j] + i, ptype);
+    qbt1  = 0.;
+
+    r             = vrna_urn() * (qb[my_iindx[i] - j] - fbd);
+    qbr           = qb[my_iindx[i] - j];
     type          = vrna_get_ptype(jindx[j] + i, ptype);
     hc_decompose  = hard_constraints[n * i + j];
 
     /* hairpin contribution */
-    qbt1 = vrna_exp_E_hp_loop(vc, i, j);
+    q_temp = vrna_exp_E_hp_loop(vc, i, j);
 
-    if (qbt1 >= r)
-      return;            /* found the hairpin we're done */
+    if (current_node) {
+      fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_HAIRPIN, 0, 0) *
+             qbr /
+             (*q_remain);
+      qbt1 += (q_temp - fbds);
+    } else {
+      qbt1 += q_temp;
+    }
+
+    if (qbt1 >= r) {
+      /* found the hairpin we're done */
+      if (current_node) {
+        *q_remain *= q_temp / qbr;
+#ifdef VRNA_NR_SAMPLING_HASH
+        *current_node = add_if_nexists(NRT_HAIRPIN, 0, 0, *current_node, *q_remain);
+#else
+        *current_node = add_if_nexists_ll(memory_dat,
+                                          NRT_HAIRPIN,
+                                          0,
+                                          0,
+                                          memorized_node_prev,
+                                          memorized_node_cur,
+                                          *current_node,
+                                          *q_remain);
+#endif
+      }
+
+      return ret;
+    }
+
+#ifndef VRNA_NR_SAMPLING_HASH
+    if (current_node)
+      advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_HAIRPIN, 0, 0);
+
+#endif
 
     if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
       /* interior loop contributions */
@@ -685,17 +1468,46 @@ backtrack(int                   i,
                 q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
             }
 
-            qbt1 += q_temp;
+            if (current_node) {
+              fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_IT_LOOP, k, l) *
+                     qbr /
+                     (*q_remain);
+              qbt1 += q_temp - fbds;
+            } else {
+              qbt1 += q_temp;
+            }
+
             if (qbt1 >= r)
               break;
+
+#ifndef VRNA_NR_SAMPLING_HASH
+            if (current_node)
+              advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_IT_LOOP, k, l);
+
+#endif
           }
         }
         if (qbt1 >= r)
           break;
       }
       if (k <= max_k) {
-        i = k;
-        j = l;
+        if (current_node) {
+          *q_remain *= q_temp / qbr;
+#ifdef VRNA_NR_SAMPLING_HASH
+          *current_node = add_if_nexists(NRT_IT_LOOP, k, l, *current_node, *q_remain);
+#else
+          *current_node = add_if_nexists_ll(memory_dat,
+                                            NRT_IT_LOOP,
+                                            k,
+                                            l,
+                                            memorized_node_prev,
+                                            memorized_node_cur,
+                                            *current_node,
+                                            *q_remain);
+#endif
+        }
+
+        return backtrack(k, l, pstruc, vc, q_remain, current_node, memory_dat); /* found the interior loop, repeat for inside */
       } else {
         /* interior loop contributions did not exceed threshold, so we break */
         break;
@@ -707,7 +1519,7 @@ backtrack(int                   i,
   } while (1);
 
   /* backtrack in multi-loop */
-  {
+  if (hard_constraints[n * j + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
     int         k, ii, jj, tt;
     FLT_OR_DBL  closingPair;
     tt          = rtype[vrna_get_ptype(jindx[j] + i, ptype)];
@@ -716,7 +1528,7 @@ backtrack(int                   i,
                   * scale[2];
     if (sc) {
       if (sc->exp_energy_bp)
-        q_temp *= sc->exp_energy_bp[jindx[j] + i];
+        closingPair *= sc->exp_energy_bp[jindx[j] + i];
 
       if (sc->exp_f)
         closingPair *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_ML, sc->data);
@@ -730,38 +1542,101 @@ backtrack(int                   i,
 
     if ((sc) && (sc->exp_f)) {
       for (qt = qbt1, k = i + 1; k < j; k++) {
-        q_temp =  qm[ii - (k - 1)] *
-                  qm1[jj + k] *
-                  closingPair *
-                  sc->exp_f(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+        q_temp = qm[ii - (k - 1)] *
+                 qm1[jj + k] *
+                 closingPair *
+                 sc->exp_f(i,
+                           j,
+                           k - 1,
+                           k,
+                           VRNA_DECOMP_ML_ML_ML,
+                           sc->data);
 
-        qt    += q_temp;
-        qbt1  += q_temp;
+
+        if (current_node) {
+          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_MT_LOOP, k, 0) *
+                 qbr /
+                 (*q_remain);
+          qt    += q_temp - fbds;
+          qbt1  += q_temp - fbds;
+        } else {
+          qt    += q_temp;
+          qbt1  += q_temp;
+        }
 
         if (qt >= r)
           break;
+
+#ifndef VRNA_NR_SAMPLING_HASH
+        if (current_node)
+          advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_MT_LOOP, k, 0);
+
+#endif
       }
     } else {
       for (qt = qbt1, k = i + 1; k < j; k++) {
-        q_temp =  qm[ii - (k - 1)] *
-                  qm1[jj + k] *
-                  closingPair;
+        q_temp = qm[ii - (k - 1)] *
+                 qm1[jj + k] *
+                 closingPair;
 
-        qt    += q_temp;
-        qbt1  += q_temp;
+        if (current_node) {
+          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_MT_LOOP, k, 0) *
+                 qbr /
+                 (*q_remain);
+          qt    += q_temp - fbds;
+          qbt1  += q_temp - fbds;
+        } else {
+          qt    += q_temp;
+          qbt1  += q_temp;
+        }
 
         if (qt >= r)
           break;
+
+#ifndef VRNA_NR_SAMPLING_HASH
+        if (current_node)
+          advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_MT_LOOP, k, 0);
+
+#endif
       }
     }
-    if (k >= j)
-      vrna_message_error("backtrack failed, can't find split index ");
 
-    backtrack_qm1(k, j, pstruc, vc);
+    if (k >= j) {
+      if (current_node)
+        return 0; /* backtrack failed for non-redundant mode most likely due to numerical instabilities */
+      else
+        vrna_message_error("backtrack failed, can't find split index ");
+    }
+
+    if (current_node) {
+      *q_remain *= q_temp / qbr;
+#ifdef VRNA_NR_SAMPLING_HASH
+      *current_node = add_if_nexists(NRT_MT_LOOP, k, 0, *current_node, *q_remain);
+#else
+      *current_node = add_if_nexists_ll(memory_dat,
+                                        NRT_MT_LOOP,
+                                        k,
+                                        0,
+                                        memorized_node_prev,
+                                        memorized_node_cur,
+                                        *current_node,
+                                        *q_remain);
+#endif
+    }
+
+    ret = backtrack_qm1(k, j, pstruc, vc, q_remain, current_node, memory_dat);
+
+    if (ret == 0)
+      return ret;
 
     j = k - 1;
-    backtrack_qm(i, j, pstruc, vc);
+
+    ret = (current_node) ?
+          backtrack_qm_nr(i, j, pstruc, vc, q_remain, current_node, memory_dat) :
+          backtrack_qm(i, j, pstruc, vc);
   }
+
+  return ret;
 }
 
 
@@ -822,7 +1697,7 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   for (i = 0; i < n; i++)
     pstruc[i] = '.';
 
-  qt  = 1.0 * scale[n];
+  qt = 1.0 * scale[n];
   /* add soft constraints for open chain configuration */
   if (sc) {
     if (sc->exp_energy_up)
@@ -832,7 +1707,7 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
       qt *= sc->exp_f(1, n, 1, n, VRNA_DECOMP_EXT_UP, sc->data);
   }
 
-  r   = vrna_urn() * qo;
+  r = vrna_urn() * qo;
 
   /* open chain? */
   if (qt > r)
@@ -863,7 +1738,7 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
 
       /* found a hairpin? so backtrack in the enclosed part and we're done  */
       if (qt > r) {
-        backtrack(i, j, pstruc, vc);
+        backtrack(i, j, pstruc, vc, NULL, NULL, NULL);
         return pstruc;
       }
 
@@ -921,12 +1796,12 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
               q_temp *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
           }
 
-          qt  += q_temp;
+          qt += q_temp;
           /* found an exterior interior loop? also this time, we can go straight  */
           /* forward and backtracking the both enclosed parts and we're done      */
           if (qt > r) {
-            backtrack(i, j, pstruc, vc);
-            backtrack(k, l, pstruc, vc);
+            backtrack(i, j, pstruc, vc, NULL, NULL, NULL);
+            backtrack(k, l, pstruc, vc, NULL, NULL, NULL);
             return pstruc;
           }
         }
@@ -942,7 +1817,13 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
         qt += qm[my_iindx[1] - k] *
               qm2[k + 1] *
               expMLclosing *
-              sc->exp_f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+              sc->exp_f(1,
+                        n,
+                        k,
+                        k + 1,
+                        VRNA_DECOMP_ML_ML_ML,
+                        sc->data);
+
 
         /* backtrack in qm and qm2 if we've found a valid barrier k  */
         if (qt > r) {

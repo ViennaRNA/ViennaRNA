@@ -647,6 +647,10 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
     free(qqm_tmp);
   }
 
+  /* apply auxiliary grammar rule for multibranch loop case */
+  if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_m))
+    temp += fc->aux_grammar->cb_aux_exp_m(fc, i, j, fc->aux_grammar->data);
+
   free_sc_wrapper(&sc_wrapper);
 
   return temp + qqm[i];

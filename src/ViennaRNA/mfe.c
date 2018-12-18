@@ -228,7 +228,7 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t  *fc,
 PRIVATE int
 fill_arrays(vrna_fold_compound_t *fc)
 {
-  int               i, j, ij, length, turn, uniq_ML, e, *indx, *f5, *c, *fML, *fM1;
+  int               i, j, ij, length, turn, uniq_ML, *indx, *f5, *c, *fML, *fM1;
   vrna_param_t      *P;
   vrna_mx_mfe_t     *matrices;
   vrna_ud_t         *domains_up;
@@ -281,26 +281,14 @@ fill_arrays(vrna_fold_compound_t *fc)
       c[ij] = decompose_pair(fc, i, j, helper_arrays);
 
       /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
-      e = vrna_E_ml_stems_fast(fc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
+      fML[ij] = vrna_E_ml_stems_fast(fc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
 
-      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_m)) {
-        int ee = fc->aux_grammar->cb_aux_m(fc, i, j, fc->aux_grammar->data);
-        e = MIN2(e, ee);
-      }
+      /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
+      if (uniq_ML)
+        fM1[ij] = E_ml_rightmost_stem(i, j, fc);
 
-      fML[ij] = e;
-
-      if (uniq_ML) {
-        /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
-        e = E_ml_rightmost_stem(i, j, fc);
-
-        if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_m1)) {
-          int ee = fc->aux_grammar->cb_aux_m1(fc, i, j, fc->aux_grammar->data);
-          e = MIN2(e, ee);
-        }
-
-        fM1[ij] = e;
-      }
+      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux))
+        fc->aux_grammar->cb_aux(fc, i, j, fc->aux_grammar->data);
     } /* end of j-loop */
 
     rotate_aux_arrays(helper_arrays, length);

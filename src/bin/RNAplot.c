@@ -641,14 +641,12 @@ process_alignment_record(struct record_data_msa *record)
 {
   char            *consensus_sequence, *structure, *ffname, *tmp_string, **A,
                   *pre, *post;
-  unsigned int    n_seq;
   struct options  *opt;
 
   if (!record->structure)
     vrna_message_error("structure missing for record %d\n", record->number);
 
   opt       = record->options;
-  n_seq     = record->n_seq;
   structure = vrna_db_from_WUSS(record->structure);
   pre       = opt->pre;
   post      = opt->post;

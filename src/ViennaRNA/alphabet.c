@@ -297,7 +297,7 @@ vrna_seq_encode_simple(const char *sequence,
     S = (short *)vrna_alloc(sizeof(short) * (l + 2));
 
     for (i = 1; i <= l; i++) /* make numerical encoding of sequence */
-      S[i] = (short)vrna_nucleotide_encode(toupper(sequence[i - 1]), md);
+      S[i] = (short)vrna_nucleotide_encode(sequence[i - 1], md);
 
     S[l + 1]  = S[1];
     S[0]      = (short)l;
@@ -313,6 +313,8 @@ vrna_nucleotide_encode(char       c,
 {
   /* return numerical representation of nucleotide used e.g. in vrna_md_t.pair[][] */
   int code = -1;
+
+  c = toupper(c);
 
   if (md) {
     if (md->energy_set > 0) {

@@ -17,8 +17,8 @@ as well as for Windows users are available from Download section of the <a href=
 Usually you'll just unpack, configure and make. To do this type:
 
 @verbatim
-tar -zxvf ViennaRNA-2.4.10.tar.gz
-cd ViennaRNA-2.4.10
+tar -zxvf ViennaRNA-2.4.11.tar.gz
+cd ViennaRNA-2.4.11
 ./configure
 make
 sudo make install
@@ -66,18 +66,18 @@ include several features in our C-library that may be activated by default, or h
 Below we list a selection of the available configure options that affect the features included in all executable programs,
 the RNAlib C-library, and the corresponding scripting language interface(s).
 
-@subsection config_sse Streaming SIMD Extension (SSE) support
+@subsection config_simd Streaming SIMD Extension (SSE) support
 
 Since version 2.3.5 our sources contain code that implements a faster multibranch loop decomposition in global MFE
 predictions, as used e.g. in RNAfold. This implementation makes use of modern processors capability to execute particular
 instructions on multiple data simultaneously (SIMD - single instruction multiple data, thanks to W. B. Langdon for
 providing the modified code). Consequently, the time required to assess the minimum of all multibranch loop decompositions
-is reduced up to about one half compared to the runtime of the original implementation. To make use of this piece of code
-you need a CPU capable to handle SSE4.1 instructions and enable the feature at compile-time using the following configure
-flag:
+is reduced up to about one half compared to the runtime of the original implementation. This feature is enabled by
+default since version 2.4.11 and a dispatcher ensures that the correct implementation will be selected at runtime.
+If for any reason you want to disable this feature at compile-time use the following configure flag:
 
 @verbatim
-./configure --enable-sse
+./configure --disable-simd
 @endverbatim
 
 @subsection config_swig   Scripting Interfaces

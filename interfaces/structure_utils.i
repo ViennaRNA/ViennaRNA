@@ -198,6 +198,37 @@ std::vector<int> my_ptable_pk(std::string str);
 char *my_db_from_ptable(std::vector<int> pt);
 
 
+%rename (loopidx_from_ptable) my_loopidx_from_ptable;
+
+%{
+
+  std::vector<int>
+  my_loopidx_from_ptable(std::vector<int> pt)
+  {
+    int                 i, *idx;
+    std::vector<short>  vc;
+    std::vector<int>    v_idx;
+
+    transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
+
+    idx = vrna_loopidx_from_ptable((short *)&vc[0]);
+
+    v_idx.assign(idx, idx + pt.size());
+
+    free(idx);
+
+    return v_idx;
+  }
+%}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_loopidx_from_ptable;
+%feature("kwargs") my_loopidx_from_ptable;
+#endif
+
+std::vector<int> my_loopidx_from_ptable(std::vector<int> pt);
+
+
 %rename (bp_distance) my_bp_distance;
 %{
   int my_bp_distance(const char *str1, const char *str2){
@@ -211,6 +242,24 @@ char *my_db_from_ptable(std::vector<int> pt);
 #endif
 
 int my_bp_distance(const char *str1, const char *str2);
+
+%rename (dist_mountain) my_dist_mountain;
+
+%{
+  double
+  my_dist_mountain( std::string str1,
+                    std::string str2,
+                    unsigned int p = 1)
+  {
+    return vrna_dist_mountain(str1.c_str(), str2.c_str(), p);
+  }
+
+%}
+
+double
+my_dist_mountain(std::string str1,
+                 std::string str2,
+                 unsigned int p = 1);
 
 
 /*

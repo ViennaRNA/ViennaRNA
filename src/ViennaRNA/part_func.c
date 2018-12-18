@@ -413,13 +413,7 @@ fill_arrays(vrna_fold_compound_t *fc)
       qb[ij] = decompose_pair(fc, i, j, aux_mx_ml);
 
       /* Multibranch loop */
-      temp = vrna_exp_E_ml_fast(fc, i, j, aux_mx_ml);
-
-      /* apply auxiliary grammar rule for multibranch loop case */
-      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_m))
-        temp += fc->aux_grammar->cb_aux_exp_m(fc, i, j, fc->aux_grammar->data);
-
-      qm[ij] = temp;
+      qm[ij] = vrna_exp_E_ml_fast(fc, i, j, aux_mx_ml);
 
       if (qm1) {
         temp = vrna_exp_E_ml_fast_qqm(aux_mx_ml)[i]; /* for stochastic backtracking and circfold */
@@ -432,21 +426,19 @@ fill_arrays(vrna_fold_compound_t *fc)
       }
 
       /* Exterior loop */
-      temp = vrna_exp_E_ext_fast(fc, i, j, aux_mx_el);
+      q[ij] = vrna_exp_E_ext_fast(fc, i, j, aux_mx_el);
 
-      /* apply auxiliary grammar rule for exterior loop case */
-      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_f))
-        temp += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->data);
+      /* apply auxiliary grammar rule (storage takes place in user-defined data structure */
+      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp))
+        fc->aux_grammar->cb_aux_exp(fc, i, j, fc->aux_grammar->data);
 
-      q[ij] = temp;
-
-      if (temp > Qmax) {
-        Qmax = temp;
+      if (q[ij] > Qmax) {
+        Qmax = q[ij];
         if (Qmax > max_real / 10.)
-          vrna_message_warning("Q close to overflow: %d %d %g", i, j, temp);
+          vrna_message_warning("Q close to overflow: %d %d %g", i, j, q[ij]);
       }
 
-      if (temp >= max_real) {
+      if (q[ij] >= max_real) {
         vrna_message_warning("overflow while computing partition function for segment q[%d,%d]\n"
                              "use larger pf_scale", i, j);
 

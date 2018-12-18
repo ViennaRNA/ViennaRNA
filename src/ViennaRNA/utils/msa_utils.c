@@ -450,8 +450,8 @@ vrna_aln_conservation_struct(const char       **alignment,
         if (i < pt[i]) {
           j = pt[i];
           for (s = 0; s < n_seq; s++) {
-            a = vrna_nucleotide_encode(toupper(alignment[s][i - 1]), &md);
-            b = vrna_nucleotide_encode(toupper(alignment[s][j - 1]), &md);
+            a = vrna_nucleotide_encode(alignment[s][i - 1], &md);
+            b = vrna_nucleotide_encode(alignment[s][j - 1], &md);
             if (md.pair[a][b]) {
               conservation[i] += 1.;
               conservation[j] += 1.;
@@ -517,7 +517,7 @@ vrna_aln_conservation_col(const char      **alignment,
 
         /* count frequencies of individual nucleotides */
         for (s = 0; s < n_seq; s++)
-          nfreq[vrna_nucleotide_encode(toupper(alignment[s][i - 1]), &md)]++;
+          nfreq[vrna_nucleotide_encode(alignment[s][i - 1], &md)]++;
 
         if (options & VRNA_MEASURE_SHANNON_ENTROPY) {
           double sum = 0;
@@ -572,7 +572,7 @@ vrna_aln_consensus_sequence(const char      **alignment,
       else
         vrna_md_set_default(&md);
 
-      consensus  = (char *)vrna_alloc((n + 1) * sizeof(char));
+      consensus = (char *)vrna_alloc((n + 1) * sizeof(char));
 
       for (i = 0; i < n; i++) {
         int c, fm;
@@ -585,8 +585,8 @@ vrna_aln_consensus_sequence(const char      **alignment,
 
         for (s = c = fm = 0; s < 8; s++) /* find the most frequent char */
           if (freq[s] > fm) {
-            c  = s;
-            fm = freq[c];
+            c   = s;
+            fm  = freq[c];
           }
 
         if (s > 4)

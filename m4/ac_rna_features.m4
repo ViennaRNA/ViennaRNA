@@ -99,6 +99,75 @@ AC_DEFUN([RNA_ENABLE_BOUSTROPHEDON],[
   AC_SUBST(CONFIG_BOUSTROPHEDON)
 ])
 
+#
+# Use hash for non-redundant sampling
+#
+
+AC_DEFUN([RNA_ENABLE_NR_SAMPLE_HASH],[
+
+  RNA_ADD_FEATURE([NRhash],
+                  [Hash for non-redundant sampling datas structure],
+                  [no])
+
+  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
+  RNA_FEATURE_IF_ENABLED([NRhash],[
+    AC_DEFINE([VRNA_NR_SAMPLING_HASH], [1], [Use Hash for non-redundant sampling data structure])
+    CONFIG_NR_SAMPLING="#define VRNA_NR_SAMPLING_HASH"
+  ])
+
+  AC_SUBST(CONFIG_NR_SAMPLING)
+])
+
+
+AC_DEFUN([RNA_ENABLE_MPFR], [
+
+  RNA_ADD_FEATURE([mpfr],
+                  [Use MPFR library for aribtrary precision computations in non-redundant sampling],
+                  [yes])
+
+  RNA_FEATURE_IF_ENABLED([mpfr],[
+    ## Check for mpfr.h header first
+    AC_CHECK_HEADER([mpfr.h], [
+      ## now, check if we can compile a program
+      AC_MSG_CHECKING([whether we can compile programs with mpfr support])
+      ac_save_LIBS="$LIBS"
+      LIBS="$ac_save_LIBS -lmpfr -lgmp"
+
+      AC_LANG_PUSH([C])
+
+      AC_COMPILE_IFELSE([
+        AC_LANG_PROGRAM(
+          [[#include <stdio.h>
+            #include <mpfr.h>
+          ]],
+          [[  printf ("MPFR library: %-12s\nMPFR header:  %s (based on %d.%d.%d)\n",
+              mpfr_get_version (), MPFR_VERSION_STRING, MPFR_VERSION_MAJOR,
+              MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL);
+              return 0;
+          ]])
+      ],[
+        MPFR_LIBS="-lmpfr -lgmp"
+        AC_DEFINE([VRNA_NR_SAMPLING_MPFR], [1], [Use MPFR for non-redundant sampling data structure operations])
+      ],[
+        enable_mpfr=no
+      ])
+      AC_LANG_POP([C])
+      LIBS="$ac_save_LIBS"
+      AC_MSG_RESULT([$enable_mpfr])
+    ], [
+      AC_MSG_WARN([
+==========================
+Failed to find mpfr.h!
+
+You probably need to install the mpfr-devel package or similar
+==========================
+    ])
+    enable_mpfr=no])
+  ])
+
+  AC_SUBST(MPFR_LIBS)
+  AM_CONDITIONAL(VRNA_AM_SWITCH_MPFR, test "x$enable_mpfr" = "xyes")
+])
 
 #
 # OpenMP support
@@ -355,41 +424,75 @@ into the executables are present!
 
 
 #
-# SSE implementations
+# SIMD optimizations
 #
 
-AC_DEFUN([RNA_ENABLE_SSE],[
+AC_DEFUN([RNA_ENABLE_SIMD],[
+
+  RNA_ADD_FEATURE([simd],
+                  [Speed-up MFE computations using explicit SIMD instructions.],
+                  [yes])
 
   RNA_ADD_FEATURE([sse],
-                  [Speed-up MFE computations using SSE 4.1 implementations],
+                  [Deprecated switch for SIMD optimizations. Use --enable-simd/--disable-simd instead],
                   [no])
 
-  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
-  RNA_FEATURE_IF_ENABLED([sse],[
-    if test "x$SIND_CFLAGS" = x; then
-      case $ax_cv_c_compiler_vendor in
-        gnu)
-          AC_LANG_PUSH([C])
-          AX_CHECK_COMPILE_FLAG([-msse4.1], [ac_sse41_supported=yes],[ac_sse41_supported=no],[],[])
-          AC_LANG_POP([C])
-          ;;
-        intel)
-          ;;
-        *)
-          ;;
-      esac
-    fi
+  AS_IF([test "x$enable_sse" != "xno"],[
+    AC_MSG_WARN([[
 
-    if test $ac_sse41_supported = no; then
-      enable_sse=no;
-    fi
+############################################
+Option --enable-sse is deprecated!
+
+Please consider using the successor option --enable-simd instead.
+############################################
+    ]])
+    enable_simd="yes"
+    AC_RNA_ADD_WARNING([Deprecated option --enable-simd detected => Please use --enable-simd instead!])
   ])
 
-  RNA_FEATURE_IF_ENABLED([sse],[
-    AC_MSG_CHECKING([compiler support for SSE4.1 min function])
+  AS_IF([test "x$enable_simd" != "xno"],[
+    ## Check for all supported SIMD features first
+    AC_MSG_CHECKING([compiler support for AVX 512 instructions])
+
     ac_save_CFLAGS="$CFLAGS"
-    CFLAGS="$ac_save_CFLAGS -msse4.1"
-    AC_LANG(C)
+    CFLAGS="$ac_save_CFLAGS -Werror -mavx512f"
+    AC_LANG_PUSH([C])
+
+    AC_COMPILE_IFELSE(
+    [
+      AC_LANG_PROGRAM([[
+                  #include <immintrin.h>
+                  #include <limits.h>
+                ]],
+                  [[__m512i a = _mm512_set1_epi32(INT_MAX);
+                    __m512i b = _mm512_set1_epi32(INT_MIN);
+                    __m512i c = _mm512_set1_epi32(INT_MIN);
+                    __mmask16 mask = _kand_mask16(_mm512_cmplt_epi32_mask(a, c),
+                                                  _mm512_cmplt_epi32_mask(b, c));
+
+                    b = _mm512_min_epi32(a, b);
+                    int e = _mm512_mask_reduce_min_epi32(mask, b);
+                ]])
+    ],
+    [
+      AC_MSG_RESULT([yes])
+      AC_DEFINE([VRNA_WITH_SIMD_AVX512], [1], [use AVX 512 implementations])
+      ac_simd_capability_avx512f=yes
+      SIMD_AVX512_FLAGS="-mavx512f"
+    ],
+    [
+      AC_MSG_RESULT([no])
+    ])
+
+    AC_LANG_POP([C])
+    CFLAGS="$ac_save_CFLAGS"
+
+    AC_MSG_CHECKING([compiler support for SSE 4.1 instructions])
+
+    ac_save_CFLAGS="$CFLAGS"
+    CFLAGS="$ac_save_CFLAGS -Werror -msse4.1"
+    AC_LANG_PUSH([C])
+
     AC_COMPILE_IFELSE(
     [
       AC_LANG_PROGRAM([[
@@ -403,19 +506,22 @@ AC_DEFUN([RNA_ENABLE_SSE],[
     ],
     [
       AC_MSG_RESULT([yes])
-      SIMD_CFLAGS="${SIMD_CFLAGS} -msse4.1"
-      AC_DEFINE([VRNA_WITH_SSE_IMPLEMENTATION], [1], [use SSE implementations])
-      CONFIG_SSE_IMPLEMENTATION="#define VRNA_WITH_SSE_IMPLEMENTATION"
+      AC_DEFINE([VRNA_WITH_SIMD_SSE41], [1], [use SSE 4.1 implementations])
+      ac_simd_capability_sse41=yes
+      SIMD_SSE41_FLAGS="-msse4.1"
     ],
     [
-      enable_sse=no
-      AC_MSG_RESULT([no; using default implementation])
+      AC_MSG_RESULT([no])
     ])
+
+    AC_LANG_POP([C])
     CFLAGS="$ac_save_CFLAGS"
   ])
 
-  AC_SUBST(SIMD_CFLAGS)
-  AC_SUBST(CONFIG_SSE_IMPLEMENTATION)
+  AC_SUBST(SIMD_AVX512_FLAGS)
+  AC_SUBST(SIMD_SSE41_FLAGS)
+  AM_CONDITIONAL(VRNA_AM_SWITCH_SIMD_AVX512, test "x$ac_simd_capability_avx512f" = "xyes")
+  AM_CONDITIONAL(VRNA_AM_SWITCH_SIMD_SSE41, test "x$ac_simd_capability_sse41" = "xyes")
 ])
 
 
@@ -426,7 +532,7 @@ AC_DEFUN([RNA_ENABLE_SSE],[
 AC_DEFUN([RNA_ENABLE_VECTORIZE],[
 
   RNA_ADD_FEATURE([vectorize],
-                  [Apply SIMD vectorization to optimize execution speed],
+                  [Apply automatic SIMD vectorization to optimize execution speed],
                   [yes])
 
   ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c

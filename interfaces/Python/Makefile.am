@@ -23,8 +23,6 @@ pkgpy2exec_DATA = RNA/__init__.py
 _RNA_la_SOURCES = $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
 
-BUILT_SOURCES = _RNA$(PYTHON2_SO)
-
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(SWIG_module_name).py \
@@ -42,6 +40,10 @@ if VRNA_AM_SWITCH_SVM
 _RNA_la_LIBADD += -lstdc++
 _RNA_la_CPPFLAGS += -DVRNA_WITH_SVM
 RNA_CPPFLAGS += -DVRNA_WITH_SVM
+endif
+
+if VRNA_AM_SWITCH_MPFR
+_RNA_la_LIBADD += $(MPFR_LIBS)
 endif
 
 _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
@@ -88,6 +90,8 @@ _RNA$(PYTHON2_SO): _RNA.la
 	$(AM_V_GEN)( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
   ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) . ) && \
   rm -f libtoolconfig.tmp
+
+all-local:  _RNA$(PYTHON2_SO)
 
 clean-local:
 	-rm -rf RNA _RNA$(PYTHON2_SO)

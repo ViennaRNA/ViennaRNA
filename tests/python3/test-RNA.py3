@@ -23,6 +23,10 @@ align     = [seq1,seq2,seq3]
 
 
 class GeneralTests(unittest.TestCase):
+    def test_version(self):
+        print("test version number")
+        self.assertEqual(RNA.__version__, RNApath.VERSION_NUMBER)
+
     def test_hammingDistance(self):
         print("test_hammingDistance \t calculate a hamming distance")
         self.assertEqual(RNA.hamming(seq1,seq2),16)

@@ -6,11 +6,12 @@ use warnings;
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
-$VERSION     = 1.00;
+$VERSION     = "@VERSION@";
 @ISA         = qw(Exporter);
 @EXPORT      = ();
 @EXPORT_OK   = qw(MsgChecking getDataDirPath);
-%EXPORT_TAGS = ( Messages => [qw(&MsgChecking)],
+%EXPORT_TAGS = ( VERSION => $VERSION,
+                 Messages => [qw(&MsgChecking)],
                  Paths => [qw(&getDataDirPath)] );
 
 sub MsgChecking
