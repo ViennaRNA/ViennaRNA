@@ -13,7 +13,7 @@
  */
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/plotting/naview.h>
-
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #ifndef PI
 #define  PI       3.141592654
 #endif
@@ -49,6 +49,17 @@
  *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
 #define VRNA_PLOT_TYPE_CIRCULAR   2
+
+/**
+ * For testing purposes
+ */
+#define VRNA_PLOT_TYPE_TURTLE  3
+
+/**
+ * For testing purposes
+ */
+#define VRNA_PLOT_TYPE_PUZZLER  4
+
 
 /**
  *  @brief this is a workarround for the SWIG Perl Wrapper RNA plot function
@@ -111,6 +122,19 @@ int simple_xy_coordinates(short *pair_table,
 int simple_circplot_coordinates(short *pair_table,
                                 float *x,
                                 float *y);
+
+
+
+/*
+ * For testing purposes
+ */
+int layout_turtle(short *pair_table, char *sequence, float *x, float *y, double *arc_coords);
+
+/*
+ * For testing purposes
+ */
+int layout_puzzler(short *pair_table, char *sequence, float *x, float *y, double *arc_coords, puzzlerOptions* puzzler);
+
 
 /**
  * @}

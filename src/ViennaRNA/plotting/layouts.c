@@ -15,6 +15,12 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/plotting/layouts.h"
 
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
+
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -159,3 +165,40 @@ PUBLIC int simple_circplot_coordinates(short *pair_table, float *x, float *y){
   }
   return length;
 }
+
+/**
+ * RNApuzzler turtle layout
+ *
+ */
+PUBLIC int layout_turtle(
+        short *pair_table,
+        char *sequence,
+        float *x,
+        float *y,
+        double *arc_coords
+) {
+    layout_RNAturtle(pair_table, x, y, arc_coords);
+
+    return pair_table[0];
+}
+
+/**
+ * RNApuzzler puzzler layout
+ *
+ */
+PUBLIC int layout_puzzler(
+        short *pair_table,
+        char *sequence,
+        float *x,
+        float *y,
+        double *arc_coords,
+        puzzlerOptions* puzzler
+) {
+    layout_RNApuzzler(pair_table, x, y, arc_coords, puzzler);
+
+    return pair_table[0];
+}
+
+
+
+
