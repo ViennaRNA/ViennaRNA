@@ -665,7 +665,7 @@ print_hit_cb(int        start,
       free(fname);
       fname = tmp_string;
 
-      (void)vrna_file_PS_rnaplot_a(cons, ss, fname, A[0], A[1], md);
+      (void)vrna_file_PS_rnaplot_a(cons, ss, fname, A[0], A[1], md, NULL);
       free(fname);
     }
 

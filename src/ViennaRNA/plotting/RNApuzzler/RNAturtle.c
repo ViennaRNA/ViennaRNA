@@ -1,7 +1,7 @@
-#include "ViennaRNA/RNApuzzler/RNAturtle.h"
-#include "ViennaRNA/RNApuzzler/postscript/postscriptArcs.h"
-#include "ViennaRNA/RNApuzzler/vector_math.h"
-#include "ViennaRNA/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
+#include "ViennaRNA/plotting/RNApuzzler/postscript/postscriptArcs.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
 #include "ViennaRNA/utils.h"
 
 #include <stdlib.h>

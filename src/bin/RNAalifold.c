@@ -1250,7 +1250,8 @@ postscript_layout(const char      *filename,
                                    filename,
                                    A[0],
                                    A[1],
-                                   &(opt->md)));
+                                   &(opt->md),
+				   NULL));
   } else {
     THREADSAFE_FILE_OUTPUT(
       (void)vrna_file_PS_rnaplot_a(consensus_sequence,
@@ -1258,7 +1259,8 @@ postscript_layout(const char      *filename,
                                    filename,
                                    NULL,
                                    A[1],
-                                   &(opt->md)));
+                                   &(opt->md),
+                                   NULL));
   }
 
   free(A[0]);

@@ -18,6 +18,7 @@
 #include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/plotting/alignments.h"
 #include "ViennaRNA/plotting/utils.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/file_formats_msa.h"
@@ -50,6 +51,12 @@ struct options {
 
   int           jobs;
   unsigned int  next_record_number;
+  int           drawArcs;
+  int           checkAncestorIntersections;
+  int           checkSiblingIntersections;
+  int           checkExteriorIntersections;
+  int           allowFlipping;
+  int           optimize;
 };
 
 
@@ -119,6 +126,12 @@ init_default_options(struct options *opt)
 
   opt->jobs               = 1;
   opt->next_record_number = 0;
+  opt->drawArcs = 1;
+  opt->checkAncestorIntersections = 1;
+  opt->checkSiblingIntersections = 1;
+  opt->checkExteriorIntersections =1;
+  opt->allowFlipping = 0;
+  opt->optimize = 1;
 }
 
 
@@ -565,15 +578,35 @@ process_record(struct record_data *record)
       free(ffname);
       ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
       free(tmp_string);
+	
+        if (rna_plot_type == 4) {
+            /* RNA puzzler behavior specification */
+            puzzlerOptions* puzzler = createPuzzlerOptions();
+            puzzler->filename = ffname;
+            puzzler->drawArcs = 1;
 
-      THREADSAFE_FILE_OUTPUT(
+            puzzler->checkAncestorIntersections = opt->checkAncestorIntersections;
+            puzzler->checkSiblingIntersections =  opt->checkSiblingIntersections;
+            puzzler->checkExteriorIntersections = opt->checkExteriorIntersections;
+            puzzler->allowFlipping = opt->allowFlipping;
+            puzzler->optimize = opt->optimize;
+
+             vrna_file_PS_rnaplot_a(rec_sequence, structure, ffname,  opt->pre, opt->post,  &(opt->md), puzzler);
+
+            puzzler->filename = NULL;
+            destroyPuzzlerOptions(puzzler);
+	}
+	else {
+      	THREADSAFE_FILE_OUTPUT(
         vrna_file_PS_rnaplot_a(rec_sequence,
                                structure,
                                ffname,
                                opt->pre,
                                opt->post,
-                               &(opt->md))
+                               &(opt->md),
+			       NULL)
         );
+	}
 
       break;
 
@@ -697,7 +730,8 @@ process_alignment_record(struct record_data_msa *record)
                                ffname,
                                pre,
                                post,
-                               &(opt->md))
+                               &(opt->md),
+			       NULL)
         );
 
       break;

@@ -92,8 +92,38 @@ optional
 dependon="msa"
 hidden
 
+option  "noOptimization"  -
+""
+flag
+off
+
+option  "ignoreExteriorIntersections"  -
+""
+flag
+off
+
+option  "ignoreAncestorIntersections"  -
+""
+flag
+off
+
+option  "ignoreSiblingIntersections"  -
+""
+flag
+off
+
+option  "allowFlipping"  -
+""
+flag
+off
+
 option  "layout-type"  t
-"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
+"Choose the layout algorithm.\n\
+ 0: simple radial layout\n\
+ 1: naview layout\n\
+ 2: circular layout\n\
+ 3: RNAturtle\\n
+ 4: RNApuzzler\\n\n"
 int
 default="1"
 optional

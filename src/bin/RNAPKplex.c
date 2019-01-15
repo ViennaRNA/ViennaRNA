@@ -397,7 +397,7 @@ main(int  argc,
                                             PlexHits[i].qe,
                                             PlexHits[i].tb,
                                             PlexHits[i].qe);
-            vrna_file_PS_rnaplot_a(s1, PlexHits[i].structure, fname, annotation, "", &md);
+            vrna_file_PS_rnaplot_a(s1, PlexHits[i].structure, fname, annotation, "", &md, NULL);
             free(annotation);
             annotation = NULL;
           } else {

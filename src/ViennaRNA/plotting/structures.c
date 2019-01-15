@@ -70,7 +70,7 @@ vrna_file_PS_rnaplot( const char *string,
                       const char *ssfile,
                       vrna_md_t  *md_p){
 
-  return vrna_file_PS_rnaplot_a(string, structure, ssfile, NULL, NULL, md_p);
+  return vrna_file_PS_rnaplot_a(string, structure, ssfile, NULL, NULL, md_p,NULL);
 }
 
 PUBLIC int
@@ -79,7 +79,8 @@ vrna_file_PS_rnaplot_a( const char *seq,
                         const char *ssfile,
                         const char *pre,
                         const char *post,
-                        vrna_md_t  *md_p){
+                        vrna_md_t  *md_p,
+			puzzlerOptions* puzzler){
 
   float  xmin, xmax, ymin, ymax;
   int    i, length;
@@ -120,6 +121,18 @@ vrna_file_PS_rnaplot_a( const char *seq,
       
   X = (float *) vrna_alloc((length+1)*sizeof(float));
   Y = (float *) vrna_alloc((length+1)*sizeof(float));
+
+  double *arc_coords;
+  arc_coords = (double *) vrna_alloc(6*length*sizeof(double));
+  for (i = 0; i < length; i++) {
+    arc_coords[6*i+0] = -1.;
+    arc_coords[6*i+1] = -1.;
+    arc_coords[6*i+2] = -1.;
+    arc_coords[6*i+3] = -1.;
+    arc_coords[6*i+4] = -1.;
+    arc_coords[6*i+5] = -1.;
+  }
+  
   switch(rna_plot_type){
     case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table_g, X, Y);
                                   break;
@@ -133,6 +146,12 @@ vrna_file_PS_rnaplot_a( const char *seq,
                                       Y[i] += radius;
                                     }
                                   }
+                                  break;
+
+    case VRNA_PLOT_TYPE_TURTLE:   i = layout_turtle(pair_table, string, X, Y, arc_coords);
+                                  break;
+
+    case VRNA_PLOT_TYPE_PUZZLER:  i = layout_puzzler(pair_table, string, X, Y, arc_coords, puzzler);
                                   break;
     default:                      i = naview_xy_coordinates(pair_table_g, X, Y);
                                   break;
@@ -915,7 +934,8 @@ PS_rna_plot_a(char *string,
                                 (const char*)ssfile,
                                 (const char*)pre,
                                 (const char*)post,
-                                NULL);
+                                NULL,
+				NULL);
 }
 
 PUBLIC int
@@ -930,7 +950,8 @@ PS_rna_plot_a_gquad(char *string,
                                 (const char*)ssfile,
                                 (const char*)pre,
                                 (const char*)post,
-                                NULL);
+                                NULL,
+				NULL);
 }
 
 #endif
