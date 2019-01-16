@@ -1,9 +1,9 @@
 #ifndef GEOGEBRA_OUTPUT_H
 #define GEOGEBRA_OUTPUT_H
 
-#include "ViennaRNA/RNApuzzler/dataTypes/boundingBoxes_struct.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/resolveIntersections/intersectionType.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
 void GEOGEBRA_printStem(stemBox* rect);
 void GEOGEBRA_printLoop(loopBox* circ);

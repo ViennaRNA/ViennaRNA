@@ -1,5 +1,5 @@
-#include "ViennaRNA/RNApuzzler/vector_math.h"
-#include "ViennaRNA/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 
 #include <math.h>
 #include <stdio.h>

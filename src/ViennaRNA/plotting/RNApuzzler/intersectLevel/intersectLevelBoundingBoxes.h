@@ -1,8 +1,8 @@
 #ifndef INTERSECTLEVELBOUNDINGBOXES_H
 #define INTERSECTLEVELBOUNDINGBOXES_H
 
-#include "ViennaRNA/RNApuzzler/definitions.h"
-#include "ViennaRNA/RNApuzzler/data/boundingBoxes.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
 
 /**
  * @brief intersectStemStem

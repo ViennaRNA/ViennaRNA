@@ -1,8 +1,8 @@
 #ifndef OPTIMIZE_H
 #define OPTIMIZE_H
 
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 
 typedef enum {
   INCREASE_ALL_OTHER,

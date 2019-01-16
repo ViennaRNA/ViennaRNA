@@ -1,4 +1,4 @@
-#include "ViennaRNA/RNApuzzler/resolveIntersections/intersectionType.h"
+#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
 char *intersectionTypeToString(
     const intersectionType it

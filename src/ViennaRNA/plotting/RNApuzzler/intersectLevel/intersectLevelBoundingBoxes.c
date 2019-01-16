@@ -1,9 +1,9 @@
-#include "ViennaRNA/RNApuzzler/intersectLevel/intersectLevelBoundingBoxes.h"
-#include "ViennaRNA/RNApuzzler/intersectLevel/intersectLevelLines.h"
-#include "ViennaRNA/RNApuzzler/data/boundingBoxes.h"
-#include "ViennaRNA/RNApuzzler/data/configtree.h"
-#include "ViennaRNA/RNApuzzler/vector_math.h"
-#include "ViennaRNA/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelBoundingBoxes.h"
+#include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelLines.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 
 #include <stdlib.h>
 #include <math.h>

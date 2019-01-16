@@ -1,7 +1,7 @@
 #ifndef BOUNDING_WEDGE_H
 #define BOUNDING_WEDGE_H
 
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 
 /**
  * @brief getBoundingWedge

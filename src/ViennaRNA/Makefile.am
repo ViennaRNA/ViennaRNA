@@ -335,7 +335,31 @@ libRNA_plotting_la_SOURCES = \
     plotting/probabilities.c \
     plotting/structures.c \
     plotting/plot_utils.c \
-    plotting/naview.c
+    plotting/naview.c \
+    plotting/RNApuzzler/RNApuzzler.c \
+    plotting/RNApuzzler/RNAturtle.c \
+    plotting/RNApuzzler/definitions.c \
+    plotting/RNApuzzler/vector_math.c \
+    plotting/RNApuzzler/output/output.c \
+    plotting/RNApuzzler/output/GeoGebra_output.c \
+    plotting/RNApuzzler/output/configtree_debug.c \
+    plotting/RNApuzzler/data/cfg_reader.c \
+    plotting/RNApuzzler/data/configtree.c \
+    plotting/RNApuzzler/data/boundingBoxes.c \
+    plotting/RNApuzzler/intersectLevel/intersectLevelLines.c \
+    plotting/RNApuzzler/intersectLevel/intersectLevelBoundingBoxes.c \
+    plotting/RNApuzzler/intersectLevel/intersectLevelTreeNodes.c \
+    plotting/RNApuzzler/resolveIntersections/boundingWedge.c \
+    plotting/RNApuzzler/resolveIntersections/calcDeltas.c \
+    plotting/RNApuzzler/resolveIntersections/intersectionType.c \
+    plotting/RNApuzzler/resolveIntersections/handleConfigChanges.c \
+    plotting/RNApuzzler/resolveIntersections/handleSiblingIntersections.c \
+    plotting/RNApuzzler/resolveIntersections/handleAncestorIntersections.c \
+    plotting/RNApuzzler/resolveIntersections/optimize.c \
+    plotting/RNApuzzler/resolveIntersections/resolveExteriorChildIntersections.c \
+    plotting/RNApuzzler/resolveIntersections/resolveIntersections.c \
+    plotting/RNApuzzler/resolveIntersections/rotationAngle.c \
+    plotting/RNApuzzler/postscript/postscriptArcs.c
 
 libRNA_loops_la_SOURCES = \
     loops/external.c \

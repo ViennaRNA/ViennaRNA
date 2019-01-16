@@ -1,9 +1,9 @@
 #ifndef INTERSECTLEVELTREENODES_H
 #define INTERSECTLEVELTREENODES_H
 
-#include "ViennaRNA/RNApuzzler/definitions.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/resolveIntersections/intersectionType.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
 /**
  * @brief intersectNodeExterior

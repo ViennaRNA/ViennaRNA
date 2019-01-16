@@ -1,6 +1,6 @@
-#include "ViennaRNA/RNApuzzler/definitions.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/tBaseInformation_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h"
 
 
 void resolveExteriorChildrenIntersectionXY(

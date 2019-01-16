@@ -1,9 +1,9 @@
-#include "ViennaRNA/RNApuzzler/resolveIntersections/resolveExteriorChildIntersections.h"
-#include "ViennaRNA/RNApuzzler/definitions.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/data/configtree.h"
-#include "ViennaRNA/RNApuzzler/data/boundingBoxes.h"
-#include "ViennaRNA/RNApuzzler/intersectLevel/intersectLevelTreeNodes.h"
+#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveExteriorChildIntersections.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
+#include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelTreeNodes.h"
 #include "ViennaRNA/utils.h"
 
 #include <stdlib.h>

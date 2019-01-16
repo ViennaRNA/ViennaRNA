@@ -1,12 +1,12 @@
-#include "ViennaRNA/RNApuzzler/resolveIntersections/rotationAngle.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/data/boundingBoxes.h"
-#include "ViennaRNA/RNApuzzler/data/configtree.h"
-#include "ViennaRNA/RNApuzzler/vector_math.h"
-#include "ViennaRNA/RNApuzzler/intersectLevel/intersectLevelBoundingBoxes.h"
-#include "ViennaRNA/RNApuzzler/output/output.h"
-#include "ViennaRNA/RNApuzzler/output/GeoGebra_output.h"
-#include "ViennaRNA/RNApuzzler/resolveIntersections/intersectionType.h"
+#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/rotationAngle.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelBoundingBoxes.h"
+#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
+#include "ViennaRNA/plotting/RNApuzzler/output/GeoGebra_output.h"
+#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
 #include <stdio.h>
 #include <string.h>

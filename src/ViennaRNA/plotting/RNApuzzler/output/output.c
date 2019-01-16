@@ -1,7 +1,7 @@
-#include "ViennaRNA/RNApuzzler/output/output.h"
-#include "ViennaRNA/RNApuzzler/vector_math.h"
-#include "ViennaRNA/RNApuzzler/data/cfg_reader.h"
-#include "ViennaRNA/RNApuzzler/data/configtree.h"
+#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 
 #include <stdlib.h>
 #include <stdio.h>

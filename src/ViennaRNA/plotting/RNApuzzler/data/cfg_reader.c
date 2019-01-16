@@ -1,6 +1,6 @@
-#include "ViennaRNA/RNApuzzler/data/cfg_reader.h"
-#include "ViennaRNA/RNApuzzler/definitions.h"
-#include "ViennaRNA/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 
 #include "ViennaRNA/utils.h"
 

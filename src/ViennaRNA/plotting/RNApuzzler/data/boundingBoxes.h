@@ -1,8 +1,8 @@
 #ifndef BOUNDING_BOXES_H
 #define BOUNDING_BOXES_H
 
-#include <ViennaRNA/RNApuzzler/dataTypes/boundingBoxes_struct.h>
-#include <ViennaRNA/RNApuzzler/dataTypes/tBaseInformation_struct.h>
+#include <ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h>
+#include <ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h>
 
 void translateLoopBox(loopBox* box, const double* vector);
 void translateStemBox(stemBox* box, const double* vector);

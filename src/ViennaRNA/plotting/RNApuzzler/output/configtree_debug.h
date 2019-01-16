@@ -1,8 +1,8 @@
 #ifndef CONFIGTREE_DEBUG_H
 #define CONFIGTREE_DEBUG_H
 
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 
 typedef enum {
     RGB_BLACK = 0,

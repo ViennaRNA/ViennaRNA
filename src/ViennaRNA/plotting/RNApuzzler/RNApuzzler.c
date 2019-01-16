@@ -9,7 +9,7 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveIntersections.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveExteriorChildIntersections.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h"
-#include "ViennaRNAplotting//RNApuzzler/data/boundingBoxes.h"
+#include "ViennaRNA/plotting//RNApuzzler/data/boundingBoxes.h"
 
 #include "ViennaRNA/plotting/RNApuzzler/output/output.h"
 

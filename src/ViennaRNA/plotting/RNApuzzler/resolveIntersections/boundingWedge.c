@@ -1,8 +1,8 @@
-#include "ViennaRNA/RNApuzzler/resolveIntersections/boundingWedge.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/data/configtree.h"
-#include "ViennaRNA/RNApuzzler/data/boundingBoxes.h"
-#include "ViennaRNA/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/boundingWedge.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 
 #include "ViennaRNA/utils.h"
 

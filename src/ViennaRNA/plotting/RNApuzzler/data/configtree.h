@@ -1,12 +1,12 @@
 #ifndef CONFIGTREE_H
 #define CONFIGTREE_H
 
-#include "ViennaRNA/RNApuzzler/dataTypes/tBaseInformation_struct.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/config_struct.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/AABB_struct.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/boundingBoxes_struct.h"
-#include "ViennaRNA/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/config_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/AABB_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 
 /*--------------------------------------------------------------------------*/
 

@@ -1,6 +1,6 @@
-#include "ViennaRNA/RNApuzzler/intersectLevel/intersectLevelLines.h"
-#include "ViennaRNA/RNApuzzler/definitions.h"
-#include "ViennaRNA/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelLines.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 
 #include <math.h>
 #include <stdlib.h>

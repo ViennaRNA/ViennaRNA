@@ -1,5 +1,5 @@
-#include "ViennaRNA/RNApuzzler/postscript/postscriptArcs.h"
-#include "ViennaRNA/RNApuzzler/vector_math.h"
+#include "ViennaRNA/plotting/RNApuzzler/postscript/postscriptArcs.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 #include "ViennaRNA/utils.h"
 
 #include <stdlib.h>

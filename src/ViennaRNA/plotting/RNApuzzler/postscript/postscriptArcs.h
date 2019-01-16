@@ -1,4 +1,4 @@
-#include "ViennaRNA/RNApuzzler/dataTypes/tBaseInformation_struct.h"
+#include "ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h"
 
 /**
  * Compute arcs instead of lines for postscript loops.
