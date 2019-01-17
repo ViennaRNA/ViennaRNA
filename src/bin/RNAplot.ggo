@@ -92,41 +92,41 @@ optional
 dependon="msa"
 hidden
 
-option  "noOptimization"  -
-""
-flag
-off
-
-option  "ignoreExteriorIntersections"  -
-""
-flag
-off
-
-option  "ignoreAncestorIntersections"  -
-""
-flag
-off
-
-option  "ignoreSiblingIntersections"  -
-""
-flag
-off
-
-option  "allowFlipping"  -
-""
-flag
-off
-
 option  "layout-type"  t
 "Choose the layout algorithm.\n\
  0: simple radial layout\n\
  1: naview layout\n\
  2: circular layout\n\
- 3: RNAturtle\\n
- 4: RNApuzzler\\n\n"
+ 3: RNAturtle\n
+ 4: RNApuzzler\n"
 int
 default="1"
 optional
+
+option  "noOptimization"  -
+"Disable the drawing space optimization of RNApuzzler"
+flag
+off
+
+option  "ignoreExteriorIntersections"  -
+"Ignore intersections with the exterior loop within the RNA-tree."
+flag
+off
+
+option  "ignoreAncestorIntersections"  -
+"Ignore ancestor intersections within the RNA-tree."
+flag
+off
+
+option  "ignoreSiblingIntersections"  -
+"Ignore sibling intersections within the RNA-tree"
+flag
+off
+
+option  "allowFlipping"  -
+"Allow flipping of exterior loop branches to resolve exterior branch intersections."
+flag
+off
 
 option  "output-format"   o
 "Specify output format. Available formats are: PostScript (ps), Graph Meta Language (gml),\
