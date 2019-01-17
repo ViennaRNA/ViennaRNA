@@ -172,7 +172,7 @@ std::vector<COORDINATE> my_naview_xy_coordinates(std::string);
                         std::string post,
                         vrna_md_t  *md_p = NULL)
   {
-    return vrna_file_PS_rnaplot_a(sequence.c_str(), structure.c_str(), filename.c_str(), pre.c_str(), post.c_str(), md_p);
+    return vrna_file_PS_rnaplot_a(sequence.c_str(), structure.c_str(), filename.c_str(), pre.c_str(), post.c_str(), md_p, NULL);
   }
 
 %}
