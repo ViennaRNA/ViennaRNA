@@ -38,7 +38,7 @@ typedef struct
     char* config; // file path
 
     // other stuff
-    char* filename;
+    const char* filename;
 
     /// variables changed during operation
     int numberOfChangesAppliedToConfig;

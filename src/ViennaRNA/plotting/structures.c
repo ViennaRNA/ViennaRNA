@@ -91,6 +91,20 @@ vrna_file_PS_rnaplot_a( const char *seq,
   char  *c, *string;
   vrna_md_t   md;
 
+  /* create default puzzleroptions, if functions was not called directly by RNAplot. */
+  if(!puzzler)
+  {
+    puzzlerOptions* puzzler = createPuzzlerOptions();
+    puzzler->filename = ssfile;
+    puzzler->drawArcs = 1;
+
+    puzzler->checkAncestorIntersections = 1;
+    puzzler->checkSiblingIntersections =  1;
+    puzzler->checkExteriorIntersections = 1;
+    puzzler->allowFlipping = 0;
+    puzzler->optimize = 1;
+  } 
+
   if(!md_p){
     set_model_details(&md);
     md_p  = &md;
