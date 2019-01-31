@@ -356,6 +356,7 @@ vrna_params_prepare(vrna_fold_compound_t  *fc,
 PRIVATE vrna_param_t *
 get_scaled_params(vrna_md_t *md)
 {
+  int felix_debug = 1;
   unsigned int  i, j, k, l;
   double        tempf;
   vrna_param_t  *params;
@@ -375,54 +376,81 @@ get_scaled_params(vrna_md_t *md)
       double  GQuadAlpha_T  = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * tempf;
       double  GQuadBeta_T   = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * tempf;
       params->gquad[i][j] = (int)GQuadAlpha_T * (i - 1) + (int)(((double)GQuadBeta_T) * log(j - 2));
+      if (felix_debug) printf("expgquad[%d][%d]=%.1f\n", i, j, (double)params->gquad[i][j]);
     }
 
   params->gquadLayerMismatch    = (int)((double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * tempf);
+  if (felix_debug) printf("expgquadLayerMismatch=%.1f\n", (double)params->gquadLayerMismatch);
   params->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
-  for (i = 0; i < 31; i++)
+
+  for (i = 0; i < 31; i++) {
     params->hairpin[i] = hairpindH[i] - (hairpindH[i] - hairpin37[i]) * tempf;
+    if (felix_debug) printf("exphairpin[%d]=%.1f\n", i, (double)params->hairpin[i]);
+  }
   for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
     params->bulge[i]          = bulgedH[i] - (bulgedH[i] - bulge37[i]) * tempf;
+    if (felix_debug) printf("expbulge[%d]=%.1f\n", i, (double)params->bulge[i]);
     params->internal_loop[i]  = internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) *
                                 tempf;
+    if (felix_debug) printf("expinternal[%d]=%.1f\n", i, (double)params->internal_loop[i]);
   }
   params->lxc = lxc37 * tempf;
   for (; i <= MAXLOOP; i++) {
     params->bulge[i]          = params->bulge[30] + (int)(params->lxc * log((double)(i) / 30.));
+    if (felix_debug) printf("expbulge[%d]=%.1f\n", i, (double)params->bulge[i]);
     params->internal_loop[i]  = params->internal_loop[30] +
                                 (int)(params->lxc * log((double)(i) / 30.));
+    if (felix_debug) printf("expinternal[%d]=%.1f\n", i, (double)params->internal_loop[i]);
   }
 
   params->ninio[2] = niniodH - (niniodH - ninio37) * tempf;
+  if (felix_debug) printf("expninio_before_loop=%.1f\n", (double)params->ninio[2]);
 
   params->TripleC     = TripleCdH - (TripleCdH - TripleC37) * tempf;
+  if (felix_debug) printf("TripleC=%.1f\n", (double)params->TripleC);
   params->MultipleCA  = MultipleCAdH - (MultipleCAdH - MultipleCA37) * tempf;
+  if (felix_debug) printf("MultipleCA=%.1f\n", (double)params->MultipleCA);
   params->MultipleCB  = MultipleCBdH - (MultipleCBdH - MultipleCB37) * tempf;
+  if (felix_debug) printf("MultipleCB=%.1f\n", (double)params->MultipleCB);
 
-  for (i = 0; (i * 7) < strlen(Tetraloops); i++)
+  for (i = 0; (i * 7) < strlen(Tetraloops); i++) {
     params->Tetraloop_E[i] = TetraloopdH[i] - (TetraloopdH[i] - Tetraloop37[i]) * tempf;
-  for (i = 0; (i * 5) < strlen(Triloops); i++)
+    if (felix_debug) printf("exptetra[%d]=%.1f\n",i, (double)params->Tetraloop_E[i]);
+  }
+  for (i = 0; (i * 5) < strlen(Triloops); i++) {
     params->Triloop_E[i] = TriloopdH[i] - (TriloopdH[i] - Triloop37[i]) * tempf;
-  for (i = 0; (i * 9) < strlen(Hexaloops); i++)
+    if (felix_debug) printf("exptri[%d]=%.1f\n",i, (double)params->Triloop_E[i]);
+  }
+  for (i = 0; (i * 9) < strlen(Hexaloops); i++) {
     params->Hexaloop_E[i] = HexaloopdH[i] - (HexaloopdH[i] - Hexaloop37[i]) * tempf;
+    if (felix_debug) printf("exphex[%d]=%.1f\n",i, (double)params->Hexaloop_E[i]);
+  }
 
   params->TerminalAU = TerminalAUdH - (TerminalAUdH - TerminalAU37) * tempf;
+  if (felix_debug) printf("expTermAU=%.1f\n", (double)params->TerminalAU);
 
   params->DuplexInit = DuplexInitdH - (DuplexInitdH - DuplexInit37) * tempf;
+  if (felix_debug) printf("expDuplexInit=%.1f\n", (double)params->DuplexInit);
 
   params->MLbase = ML_BASEdH - (ML_BASEdH - ML_BASE37) * tempf;
+  if (felix_debug) printf("expMLbase=%.1f\n", (double)params->MLbase);
 
-  for (i = 0; i <= NBPAIRS; i++)
+  for (i = 0; i <= NBPAIRS; i++) {
     params->MLintern[i] = ML_interndH - (ML_interndH - ML_intern37) * tempf;
+    if (felix_debug) printf("expMLintern[%d]=%.1f\n", i, (double)params->MLintern[i]);
+  }
 
   params->MLclosing = ML_closingdH - (ML_closingdH - ML_closing37) * tempf;
+  if (felix_debug) printf("expMLclosing=%.1f\n", (double)params->MLclosing);
 
 
   /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
   for (i = 0; i <= NBPAIRS; i++)
-    for (j = 0; j <= NBPAIRS; j++)
+    for (j = 0; j <= NBPAIRS; j++) {
       params->stack[i][j] = stackdH[i][j] - (stackdH[i][j] - stack37[i][j]) * tempf;
+      if (felix_debug) printf("expstack[%d][%d]=%.1f\n", i, j, (double)params->stack[i][j]);
+    }
 
   /* mismatches */
   for (i = 0; i <= NBPAIRS; i++)
@@ -431,18 +459,24 @@ get_scaled_params(vrna_md_t *md)
         int mm;
         params->mismatchI[i][j][k] = mismatchIdH[i][j][k] -
                                      (mismatchIdH[i][j][k] - mismatchI37[i][j][k]) * tempf;
+        if (felix_debug) printf("expmismatchI[%d][%d][%d]=%.1f\n", i, j, k, (double)params->mismatchI[i][j][k]);
         params->mismatchH[i][j][k] = mismatchHdH[i][j][k] -
                                      (mismatchHdH[i][j][k] - mismatchH37[i][j][k]) * tempf;
+        if (felix_debug) printf("expmismatchH[%d][%d][%d]=%.1f\n", i, j, k, (double)params->mismatchH[i][j][k]);
         params->mismatch1nI[i][j][k] = mismatch1nIdH[i][j][k] -
                                        (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k]) * tempf;                     /* interior nx1 loops */
+        if (felix_debug) printf("expmismatch1nI[%d][%d][%d]=%.1f\n", i, j, k, (double)params->mismatch1nI[i][j][k]);
         params->mismatch23I[i][j][k] = mismatch23IdH[i][j][k] -
                                        (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k]) * tempf;                     /* interior 2x3 loops */
+        if (felix_debug) printf("expmismatch23I[%d][%d][%d]=%.1f\n", i, j, k, (double)params->mismatch23I[i][j][k]);
         if (md->dangles) {
           mm = mismatchMdH[i][j][k] -
                (mismatchMdH[i][j][k] - mismatchM37[i][j][k]) * tempf;
+          if (felix_debug) printf("expmismatchM[%d][%d][%d]=%.1f\n", i, j, k, (double)mm);
           params->mismatchM[i][j][k]  = (mm > 0) ? 0 : mm;
           mm                          = mismatchExtdH[i][j][k] -
                                         (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k]) * tempf;
+          if (felix_debug) printf("expmismatchExt[%d][%d][%d]=%.1f\n", i, j, k, (double)mm);
           params->mismatchExt[i][j][k] = (mm > 0) ? 0 : mm;
         } else {
           params->mismatchM[i][j][k] = params->mismatchExt[i][j][k] = 0;
@@ -454,17 +488,21 @@ get_scaled_params(vrna_md_t *md)
     for (j = 0; j < 5; j++) {
       int dd;
       dd                    = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j]) * tempf;
+      if (felix_debug) printf("expdangle5[%d][%d]=%.1f\n", i, j, (double)dd);
       params->dangle5[i][j] = (dd > 0) ? 0 : dd;  /* must be <= 0 */
       dd                    = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j]) * tempf;
+      if (felix_debug) printf("expdangle3[%d][%d]=%.1f\n", i, j, (double)dd);
       params->dangle3[i][j] = (dd > 0) ? 0 : dd;  /* must be <= 0 */
     }
   /* interior 1x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
-        for (l = 0; l < 5; l++)
+        for (l = 0; l < 5; l++) {
           params->int11[i][j][k][l] = int11_dH[i][j][k][l] -
                                       (int11_dH[i][j][k][l] - int11_37[i][j][k][l]) * tempf;
+          if (felix_debug) printf("expint11[%d][%d][%d][%d]=%.1f\n", i, j, k, l, (double)params->int11[i][j][k][l]);
+        }
 
   /* interior 2x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
@@ -472,10 +510,12 @@ get_scaled_params(vrna_md_t *md)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++) {
           int m;
-          for (m = 0; m < 5; m++)
+          for (m = 0; m < 5; m++) {
             params->int21[i][j][k][l][m] = int21_dH[i][j][k][l][m] -
                                            (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m]) *
                                            tempf;
+            if (felix_debug) printf("expint21[%d][%d][%d][%d][%d]=%.1f\n", i, j, k, l, m, (double)params->int21[i][j][k][l][m]);
+          }
         }
   /* interior 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
@@ -484,10 +524,12 @@ get_scaled_params(vrna_md_t *md)
         for (l = 0; l < 5; l++) {
           int m, n;
           for (m = 0; m < 5; m++)
-            for (n = 0; n < 5; n++)
+            for (n = 0; n < 5; n++) {
               params->int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] -
                                                 (int22_dH[i][j][k][l][m][n] -
                                                  int22_37[i][j][k][l][m][n]) * tempf;
+              if (felix_debug) printf("expint22[%d][%d][%d][%d][%d][%d]=%.1f\n", i, j, k, l, m, n, (double)params->int22[i][j][k][l][m][n]);
+            }
         }
 
   strncpy(params->Tetraloops, Tetraloops, 281);
@@ -503,6 +545,7 @@ PRIVATE vrna_exp_param_t *
 get_scaled_exp_params(vrna_md_t *md,
                       double    pfs)
 {
+  int felix_debug = 1;
   unsigned int      i, j, k, l;
   double            kT, TT;
   double            GT;
@@ -529,23 +572,28 @@ get_scaled_exp_params(vrna_md_t *md,
              ((DOUBLE_OR_INT)GQuadAlpha_T) * ((DOUBLE_OR_INT)(i - 1)) + (DOUBLE_OR_INT)(((double)GQuadBeta_T) *
                log(((DOUBLE_OR_INT)j) - (DOUBLE_OR_INT)2.))
            );
+      if (felix_debug) printf("expgquad[%d][%d]=%.1f\n", i, j, GT);
       pf->expgquad[i][j] = exp(-GT * 10. / kT);
     }
 
   GT = (DOUBLE_OR_INT)((double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT);
+  if (felix_debug) printf("expgquadLayerMismatch=%.1f\n", GT);
   pf->expgquadLayerMismatch = exp(-GT * 10. / kT);
   pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i = 0; i < 31; i++) {
     GT                = (DOUBLE_OR_INT)(hairpindH[i] - (hairpindH[i] - hairpin37[i]) * TT);
+    if (felix_debug) printf("exphairpin[%d]=%.1f\n", i, GT);
     pf->exphairpin[i] = exp(-GT * 10. / kT);
   }
 
   for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
     GT                  = (DOUBLE_OR_INT)(bulgedH[i] - (bulgedH[i] - bulge37[i]) * TT);
+    if (felix_debug) printf("expbulge[%d]=%.1f\n", i, GT);
     pf->expbulge[i]     = exp(-GT * 10. / kT);
     GT                  = (DOUBLE_OR_INT)(internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) * TT);
+    if (felix_debug) printf("expinternal[%d]=%.1f\n", i, GT);
     pf->expinternal[i]  = exp(-GT * 10. / kT);
   }
   /* special case of size 2 interior loops (single mismatch) */
@@ -555,6 +603,7 @@ get_scaled_exp_params(vrna_md_t *md,
   pf->lxc = lxc37 * TT;
 
   GT                = (DOUBLE_OR_INT)(DuplexInitdH - (DuplexInitdH - DuplexInit37) * TT);
+  if (felix_debug) printf("expDuplexInit=%.1f\n", GT);
   pf->expDuplexInit = exp(-GT * 10. / kT);
 
   for (i = 31; i <= MAXLOOP; i++) {
@@ -566,6 +615,7 @@ get_scaled_exp_params(vrna_md_t *md,
     GT                  = (DOUBLE_OR_INT)(
                             bulge37[30] * TT + (DOUBLE_OR_INT)(pf->lxc * log((double)i / 30.))
                           );
+    if (felix_debug) printf("expbulge[%d]=%.1f\n", i, GT);
     pf->expbulge[i]     = exp(-GT * 10. / kT);
                         /* FK: again, in mfe variant we have:
                          *  ->internal_loop[i] = params->internal_loop[30] + lxc_blah
@@ -578,38 +628,46 @@ get_scaled_exp_params(vrna_md_t *md,
     GT                  = (DOUBLE_OR_INT)(
                             internal_loop37[30] * TT + (DOUBLE_OR_INT)(pf->lxc * log((double)i / 30.))
                           );
+    if (felix_debug) printf("expinternal[%d]=%.1f\n", i, GT);
     pf->expinternal[i]  = exp(-GT * 10. / kT);
   }
 
   GT = (DOUBLE_OR_INT)(niniodH - (niniodH - ninio37) * TT);
+  if (felix_debug) printf("expninio_before_loop=%.1f\n", GT);
   for (j = 0; j <= MAXLOOP; j++)
     pf->expninio[2][j] = exp(-MIN2(MAX_NINIO, (int)j * GT)  * 10. / kT);
 
   for (i = 0; (i * 7) < strlen(Tetraloops); i++) {
     GT              = (DOUBLE_OR_INT)(TetraloopdH[i] - (TetraloopdH[i] - Tetraloop37[i]) * TT);
+    if (felix_debug) printf("exptetra[%d]=%.1f\n",i, GT);
     pf->exptetra[i] = exp(-GT * 10. / kT);
   }
   for (i = 0; (i * 5) < strlen(Triloops); i++) {
     GT            = (DOUBLE_OR_INT)(TriloopdH[i] - (TriloopdH[i] - Triloop37[i]) * TT);
+    if (felix_debug) printf("exptri[%d]=%.1f\n",i, GT);
     pf->exptri[i] = exp(-GT * 10. / kT);
   }
   for (i = 0; (i * 9) < strlen(Hexaloops); i++) {
     GT            = (DOUBLE_OR_INT)(HexaloopdH[i] - (HexaloopdH[i] - Hexaloop37[i]) * TT);
+    if (felix_debug) printf("exphex[%d]=%.1f\n",i, GT);
     pf->exphex[i] = exp(-GT * 10. / kT);
   }
   GT                = (DOUBLE_OR_INT)(ML_closingdH - (ML_closingdH - ML_closing37) * TT);
+  if (felix_debug) printf("expMLclosing=%.1f\n", GT);
   pf->expMLclosing  = exp(-GT * 10. / kT);
 
   for (i = 0; i <= NBPAIRS; i++) {
     GT = (DOUBLE_OR_INT)(ML_interndH - (ML_interndH - ML_intern37) * TT);
     /* if (i>2) GT += TerminalAU; */
+    if (felix_debug) printf("expMLintern[%d]=%.1f\n", i, GT);
     pf->expMLintern[i] = exp(-GT * 10. / kT);
   }
   GT            = (DOUBLE_OR_INT)(TerminalAUdH - (TerminalAUdH - TerminalAU37) * TT);
+  if (felix_debug) printf("expTermAU=%.1f\n", GT);
   pf->expTermAU = exp(-GT * 10. / kT);
 
   GT = (DOUBLE_OR_INT)(ML_BASEdH - (ML_BASEdH - ML_BASE37) * TT);
-
+  if (felix_debug) printf("expMLbase=%.1f\n", GT);
   pf->expMLbase = exp(-10. * GT / kT);
 
 
@@ -620,8 +678,10 @@ get_scaled_exp_params(vrna_md_t *md,
     for (j = 0; j <= 4; j++) {
       if (md->dangles) {
         GT                    = (DOUBLE_OR_INT)(dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j]) * TT);
+        if (felix_debug) printf("expdangle5[%d][%d]=%.1f\n", i, j, GT);
         pf->expdangle5[i][j]  = exp(SMOOTH(-GT * 10.) / kT);
         GT                    = (DOUBLE_OR_INT)(dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j]) * TT);
+        if (felix_debug) printf("expdangle3[%d][%d]=%.1f\n", i, j, GT);
         pf->expdangle3[i][j]  = exp(SMOOTH(-GT * 10.) / kT);
       } else {
         pf->expdangle3[i][j] = pf->expdangle5[i][j] = 1;
@@ -632,6 +692,7 @@ get_scaled_exp_params(vrna_md_t *md,
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++) {
       GT                  = (DOUBLE_OR_INT)(stackdH[i][j] - (stackdH[i][j] - stack37[i][j]) * TT);
+      if (felix_debug) printf("expstack[%d][%d]=%.1f\n", i, j, GT);
       pf->expstack[i][j]  = exp(-GT * 10. / kT);
     }
 
@@ -643,27 +704,32 @@ get_scaled_exp_params(vrna_md_t *md,
                mismatchIdH[i][j][k] -
                (mismatchIdH[i][j][k] - mismatchI37[i][j][k]) * TT
              );
+        if (felix_debug) printf("expmismatchI[%d][%d][%d]=%.1f\n", i, j, k, GT);
         pf->expmismatchI[i][j][k] = exp(-GT * 10. / kT);
         GT                        = (DOUBLE_OR_INT)(
                                       mismatch1nIdH[i][j][k] -
                                       (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k]) * TT
                                     );
+        if (felix_debug) printf("expmismatch1nI[%d][%d][%d]=%.1f\n", i, j, k, GT);
         pf->expmismatch1nI[i][j][k] = exp(-GT * 10. / kT);
         GT                          = (DOUBLE_OR_INT)(
                                         mismatchHdH[i][j][k] -
                                         (mismatchHdH[i][j][k] - mismatchH37[i][j][k]) * TT
                                       );
+        if (felix_debug) printf("expmismatchH[%d][%d][%d]=%.1f\n", i, j, k, GT);
         pf->expmismatchH[i][j][k] = exp(-GT * 10. / kT);
         if (md->dangles) {
           GT = (DOUBLE_OR_INT)(
                  mismatchMdH[i][j][k] -
                  (mismatchMdH[i][j][k] - mismatchM37[i][j][k]) * TT
                );
+          if (felix_debug) printf("expmismatchM[%d][%d][%d]=%.1f\n", i, j, k, GT);
           pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT * 10.)  / kT);
           GT                        = (DOUBLE_OR_INT)(
                                         mismatchExtdH[i][j][k] -
                                         (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k]) * TT
                                       );
+          if (felix_debug) printf("expmismatchExt[%d][%d][%d]=%.1f\n", i, j, k, GT);
           pf->expmismatchExt[i][j][k] = exp(SMOOTH(-GT * 10.) / kT);
         } else {
           pf->expmismatchM[i][j][k] = pf->expmismatchExt[i][j][k] = 1.;
@@ -673,6 +739,7 @@ get_scaled_exp_params(vrna_md_t *md,
                mismatch23IdH[i][j][k] -
                (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k]) * TT
              );
+        if (felix_debug) printf("expmismatch23I[%d][%d][%d]=%.1f\n", i, j, k, GT);
         pf->expmismatch23I[i][j][k] = exp(-GT * 10. / kT);
       }
 
@@ -685,6 +752,7 @@ get_scaled_exp_params(vrna_md_t *md,
                  int11_dH[i][j][k][l] -
                  (int11_dH[i][j][k][l] - int11_37[i][j][k][l]) * TT
                );
+          if (felix_debug) printf("expint11[%d][%d][%d][%d]=%.1f\n", i, j, k, l, GT);
           pf->expint11[i][j][k][l] = exp(-GT * 10. / kT);
         }
   /* interior 2x1 loops */
@@ -698,6 +766,7 @@ get_scaled_exp_params(vrna_md_t *md,
                    int21_dH[i][j][k][l][m] -
                    (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m]) * TT
                  );
+            if (felix_debug) printf("expint21[%d][%d][%d][%d][%d]=%.1f\n", i, j, k, l, m, GT);
             pf->expint21[i][j][k][l][m] = exp(-GT * 10. / kT);
           }
         }
@@ -714,6 +783,7 @@ get_scaled_exp_params(vrna_md_t *md,
                      int22_dH[i][j][k][l][m][n] -
                      (int22_dH[i][j][k][l][m][n] - int22_37[i][j][k][l][m][n]) * TT
                    );
+              if (felix_debug) printf("expint22[%d][%d][%d][%d][%d][%d]=%.1f\n", i, j, k, l, m, n, GT);
               pf->expint22[i][j][k][l][m][n] = exp(-GT * 10. / kT);
             }
         }
