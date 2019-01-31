@@ -35,12 +35,19 @@
  *** we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,
  *** in the interval b<x<sqrt(3)/2
  */
-#define SMOOTH(X) ((X) / SCALE < -1.2283697) ? 0 : (((X) / SCALE > 0.8660254) ? (X) : \
-                                                    SCALE *0.38490018 *(sin((X) / SCALE - \
-                                                                            0.34242663) + 1) * \
-                                                    (sin((X) / SCALE - 0.34242663) + 1))
+/*#define SMOOTH(X) ((X) / SCALE < -1.2283697) ? 0 : (((X) / SCALE > 0.8660254) ? (X) : \
+ *                                                    SCALE *0.38490018 *(sin((X) / SCALE - \
+ *                                                                            0.34242663) + 1) * \
+ *                                                    (sin((X) / SCALE - 0.34242663) + 1))
+ */
 
-/* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */
+/* FK: smoothing disabled */
+#define SMOOTH(X) ((X)<0 ? 0 : (X))
+
+/* FK: cast to int  */
+/* #define TRUNCATE(X) ((X)<0 ? 0 : (double)((int)(X))) */
+#define DOUBLE_OR_INT int
+
 
 /*
  #################################
@@ -518,25 +525,27 @@ get_scaled_exp_params(vrna_md_t *md,
     for (j = 3 * VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH; j++) {
       double  GQuadAlpha_T  = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * TT;
       double  GQuadBeta_T   = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * TT;
-      GT = ((double)GQuadAlpha_T) * ((double)(i - 1)) + ((double)GQuadBeta_T) *
-           log(((double)j) - 2.);
+      GT = (DOUBLE_OR_INT)(
+             ((DOUBLE_OR_INT)GQuadAlpha_T) * ((DOUBLE_OR_INT)(i - 1)) + (DOUBLE_OR_INT)(((double)GQuadBeta_T) *
+               log(((DOUBLE_OR_INT)j) - (DOUBLE_OR_INT)2.))
+           );
       pf->expgquad[i][j] = exp(-GT * 10. / kT);
     }
 
-  GT = (double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
+  GT = (DOUBLE_OR_INT)((double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT);
   pf->expgquadLayerMismatch = exp(-GT * 10. / kT);
   pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
   for (i = 0; i < 31; i++) {
-    GT                = hairpindH[i] - (hairpindH[i] - hairpin37[i]) * TT;
+    GT                = (DOUBLE_OR_INT)(hairpindH[i] - (hairpindH[i] - hairpin37[i]) * TT);
     pf->exphairpin[i] = exp(-GT * 10. / kT);
   }
 
   for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
-    GT                  = bulgedH[i] - (bulgedH[i] - bulge37[i]) * TT;
+    GT                  = (DOUBLE_OR_INT)(bulgedH[i] - (bulgedH[i] - bulge37[i]) * TT);
     pf->expbulge[i]     = exp(-GT * 10. / kT);
-    GT                  = internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) * TT;
+    GT                  = (DOUBLE_OR_INT)(internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) * TT);
     pf->expinternal[i]  = exp(-GT * 10. / kT);
   }
   /* special case of size 2 interior loops (single mismatch) */
@@ -545,44 +554,61 @@ get_scaled_exp_params(vrna_md_t *md,
 
   pf->lxc = lxc37 * TT;
 
-  GT                = DuplexInitdH - (DuplexInitdH - DuplexInit37) * TT;
+  GT                = (DOUBLE_OR_INT)(DuplexInitdH - (DuplexInitdH - DuplexInit37) * TT);
   pf->expDuplexInit = exp(-GT * 10. / kT);
 
   for (i = 31; i <= MAXLOOP; i++) {
-    GT                  = bulge37[30] * TT + (pf->lxc * log(i / 30.));
+                        /* FK: differs from mfe variant, where we have:
+                         * ->bulge[i] = params->bulge[30] + lxc_blah
+                         *            = bulgedH[30] - (bulgedH[30] - bulge37[30]) * tempf + lxc_blah;
+                         * i.e. we additionally have summand bulgedH[30] - bulgedH[30] * TT there
+                         * there it is bulge[30]cf line 390 */
+    GT                  = (DOUBLE_OR_INT)(
+                            bulge37[30] * TT + (DOUBLE_OR_INT)(pf->lxc * log((double)i / 30.))
+                          );
     pf->expbulge[i]     = exp(-GT * 10. / kT);
-    GT                  = internal_loop37[30] * TT + (pf->lxc * log(i / 30.));
+                        /* FK: again, in mfe variant we have:
+                         *  ->internal_loop[i] = params->internal_loop[30] + lxc_blah
+                         *                     = internal_loopdH[30]
+                         *                       - (internal_loopdH[30] - internal_loop37[30]) * tempf
+                         *                       + lxc_blah;
+                         * i.e. there is an additional summand internal_loopdH[30] - internal_loopdH[30] * TT
+                         *
+                         */
+    GT                  = (DOUBLE_OR_INT)(
+                            internal_loop37[30] * TT + (DOUBLE_OR_INT)(pf->lxc * log((double)i / 30.))
+                          );
     pf->expinternal[i]  = exp(-GT * 10. / kT);
   }
 
-  GT = niniodH - (niniodH - ninio37) * TT;
+  GT = (DOUBLE_OR_INT)(niniodH - (niniodH - ninio37) * TT);
   for (j = 0; j <= MAXLOOP; j++)
-    pf->expninio[2][j] = exp(-MIN2(MAX_NINIO, j * GT) * 10. / kT);
+    pf->expninio[2][j] = exp(-MIN2(MAX_NINIO, (int)j * GT)  * 10. / kT);
 
   for (i = 0; (i * 7) < strlen(Tetraloops); i++) {
-    GT              = TetraloopdH[i] - (TetraloopdH[i] - Tetraloop37[i]) * TT;
+    GT              = (DOUBLE_OR_INT)(TetraloopdH[i] - (TetraloopdH[i] - Tetraloop37[i]) * TT);
     pf->exptetra[i] = exp(-GT * 10. / kT);
   }
   for (i = 0; (i * 5) < strlen(Triloops); i++) {
-    GT            = TriloopdH[i] - (TriloopdH[i] - Triloop37[i]) * TT;
+    GT            = (DOUBLE_OR_INT)(TriloopdH[i] - (TriloopdH[i] - Triloop37[i]) * TT);
     pf->exptri[i] = exp(-GT * 10. / kT);
   }
   for (i = 0; (i * 9) < strlen(Hexaloops); i++) {
-    GT            = HexaloopdH[i] - (HexaloopdH[i] - Hexaloop37[i]) * TT;
+    GT            = (DOUBLE_OR_INT)(HexaloopdH[i] - (HexaloopdH[i] - Hexaloop37[i]) * TT);
     pf->exphex[i] = exp(-GT * 10. / kT);
   }
-  GT                = ML_closingdH - (ML_closingdH - ML_closing37) * TT;
+  GT                = (DOUBLE_OR_INT)(ML_closingdH - (ML_closingdH - ML_closing37) * TT);
   pf->expMLclosing  = exp(-GT * 10. / kT);
 
   for (i = 0; i <= NBPAIRS; i++) {
-    GT = ML_interndH - (ML_interndH - ML_intern37) * TT;
+    GT = (DOUBLE_OR_INT)(ML_interndH - (ML_interndH - ML_intern37) * TT);
     /* if (i>2) GT += TerminalAU; */
     pf->expMLintern[i] = exp(-GT * 10. / kT);
   }
-  GT            = TerminalAUdH - (TerminalAUdH - TerminalAU37) * TT;
+  GT            = (DOUBLE_OR_INT)(TerminalAUdH - (TerminalAUdH - TerminalAU37) * TT);
   pf->expTermAU = exp(-GT * 10. / kT);
 
-  GT = ML_BASEdH - (ML_BASEdH - ML_BASE37) * TT;
+  GT = (DOUBLE_OR_INT)(ML_BASEdH - (ML_BASEdH - ML_BASE37) * TT);
 
   pf->expMLbase = exp(-10. * GT / kT);
 
@@ -593,10 +619,10 @@ get_scaled_exp_params(vrna_md_t *md,
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= 4; j++) {
       if (md->dangles) {
-        GT                    = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j]) * TT;
-        pf->expdangle5[i][j]  = exp(SMOOTH(-GT) * 10. / kT);
-        GT                    = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j]) * TT;
-        pf->expdangle3[i][j]  = exp(SMOOTH(-GT) * 10. / kT);
+        GT                    = (DOUBLE_OR_INT)(dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j]) * TT);
+        pf->expdangle5[i][j]  = exp(SMOOTH(-GT * 10.) / kT);
+        GT                    = (DOUBLE_OR_INT)(dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j]) * TT);
+        pf->expdangle3[i][j]  = exp(SMOOTH(-GT * 10.) / kT);
       } else {
         pf->expdangle3[i][j] = pf->expdangle5[i][j] = 1;
       }
@@ -605,7 +631,7 @@ get_scaled_exp_params(vrna_md_t *md,
   /* stacking energies */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++) {
-      GT                  = stackdH[i][j] - (stackdH[i][j] - stack37[i][j]) * TT;
+      GT                  = (DOUBLE_OR_INT)(stackdH[i][j] - (stackdH[i][j] - stack37[i][j]) * TT);
       pf->expstack[i][j]  = exp(-GT * 10. / kT);
     }
 
@@ -613,29 +639,41 @@ get_scaled_exp_params(vrna_md_t *md,
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j < 5; j++)
       for (k = 0; k < 5; k++) {
-        GT = mismatchIdH[i][j][k] -
-             (mismatchIdH[i][j][k] - mismatchI37[i][j][k]) * TT;
-        pf->expmismatchI[i][j][k] = exp(-GT * 10.0 / kT);
-        GT                        = mismatch1nIdH[i][j][k] -
-                                    (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k]) * TT;
-        pf->expmismatch1nI[i][j][k] = exp(-GT * 10.0 / kT);
-        GT                          = mismatchHdH[i][j][k] -
-                                      (mismatchHdH[i][j][k] - mismatchH37[i][j][k]) * TT;
-        pf->expmismatchH[i][j][k] = exp(-GT * 10.0 / kT);
+        GT = (DOUBLE_OR_INT)(
+               mismatchIdH[i][j][k] -
+               (mismatchIdH[i][j][k] - mismatchI37[i][j][k]) * TT
+             );
+        pf->expmismatchI[i][j][k] = exp(-GT * 10. / kT);
+        GT                        = (DOUBLE_OR_INT)(
+                                      mismatch1nIdH[i][j][k] -
+                                      (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k]) * TT
+                                    );
+        pf->expmismatch1nI[i][j][k] = exp(-GT * 10. / kT);
+        GT                          = (DOUBLE_OR_INT)(
+                                        mismatchHdH[i][j][k] -
+                                        (mismatchHdH[i][j][k] - mismatchH37[i][j][k]) * TT
+                                      );
+        pf->expmismatchH[i][j][k] = exp(-GT * 10. / kT);
         if (md->dangles) {
-          GT = mismatchMdH[i][j][k] -
-               (mismatchMdH[i][j][k] - mismatchM37[i][j][k]) * TT;
-          pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT) * 10.0 / kT);
-          GT                        = mismatchExtdH[i][j][k] -
-                                      (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k]) * TT;
-          pf->expmismatchExt[i][j][k] = exp(SMOOTH(-GT) * 10.0 / kT);
+          GT = (DOUBLE_OR_INT)(
+                 mismatchMdH[i][j][k] -
+                 (mismatchMdH[i][j][k] - mismatchM37[i][j][k]) * TT
+               );
+          pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT * 10.)  / kT);
+          GT                        = (DOUBLE_OR_INT)(
+                                        mismatchExtdH[i][j][k] -
+                                        (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k]) * TT
+                                      );
+          pf->expmismatchExt[i][j][k] = exp(SMOOTH(-GT * 10.) / kT);
         } else {
           pf->expmismatchM[i][j][k] = pf->expmismatchExt[i][j][k] = 1.;
         }
 
-        GT = mismatch23IdH[i][j][k] -
-             (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k]) * TT;
-        pf->expmismatch23I[i][j][k] = exp(-GT * 10.0 / kT);
+        GT = (DOUBLE_OR_INT)(
+               mismatch23IdH[i][j][k] -
+               (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k]) * TT
+             );
+        pf->expmismatch23I[i][j][k] = exp(-GT * 10. / kT);
       }
 
   /* interior lops of length 2 */
@@ -643,8 +681,10 @@ get_scaled_exp_params(vrna_md_t *md,
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++) {
-          GT = int11_dH[i][j][k][l] -
-               (int11_dH[i][j][k][l] - int11_37[i][j][k][l]) * TT;
+          GT = (DOUBLE_OR_INT)(
+                 int11_dH[i][j][k][l] -
+                 (int11_dH[i][j][k][l] - int11_37[i][j][k][l]) * TT
+               );
           pf->expint11[i][j][k][l] = exp(-GT * 10. / kT);
         }
   /* interior 2x1 loops */
@@ -654,8 +694,10 @@ get_scaled_exp_params(vrna_md_t *md,
         for (l = 0; l < 5; l++) {
           int m;
           for (m = 0; m < 5; m++) {
-            GT = int21_dH[i][j][k][l][m] -
-                 (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m]) * TT;
+            GT = (DOUBLE_OR_INT)(
+                   int21_dH[i][j][k][l][m] -
+                   (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m]) * TT
+                 );
             pf->expint21[i][j][k][l][m] = exp(-GT * 10. / kT);
           }
         }
@@ -668,8 +710,10 @@ get_scaled_exp_params(vrna_md_t *md,
           int m, n;
           for (m = 0; m < 5; m++)
             for (n = 0; n < 5; n++) {
-              GT = int22_dH[i][j][k][l][m][n] -
-                   (int22_dH[i][j][k][l][m][n] - int22_37[i][j][k][l][m][n]) * TT;
+              GT = (DOUBLE_OR_INT)(
+                     int22_dH[i][j][k][l][m][n] -
+                     (int22_dH[i][j][k][l][m][n] - int22_37[i][j][k][l][m][n]) * TT
+                   );
               pf->expint22[i][j][k][l][m][n] = exp(-GT * 10. / kT);
             }
         }
