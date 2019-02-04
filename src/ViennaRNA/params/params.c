@@ -35,10 +35,14 @@
  *** we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,
  *** in the interval b<x<sqrt(3)/2
  */
-#define SMOOTH(X) ((X) / SCALE < -1.2283697) ? 0 : (((X) / SCALE > 0.8660254) ? (X) : \
-                                                    SCALE *0.38490018 *(sin((X) / SCALE - \
-                                                                            0.34242663) + 1) * \
-                                                    (sin((X) / SCALE - 0.34242663) + 1))
+#define CLIP_NEGATIVE(X) ((X)<0 ? 0 : (X))
+#define SMOOTH(X) ( use_mfelike_energies       ?   CLIP_NEGATIVE(X) : \
+                    ((X) / SCALE < -1.2283697) ?                 0  : \
+                    ((X) / SCALE >  0.8660254) ?                (X) : \
+                                                   SCALE*0.38490018   \
+                                                       * (sin((X)/SCALE-0.34242663) + 1) \
+                                                       * (sin((X)/SCALE-0.34242663) + 1) \
+                  )
 
 /* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */
 
