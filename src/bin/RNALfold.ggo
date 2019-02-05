@@ -29,8 +29,9 @@ flag
 off
 
 option  "span"  L
-"Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
- j-i>span will be allowed.\n\n"
+"Set the maximum distance between any two pairing nucleotides.\n"
+details="This option specifies the window length L and therefore the upper limit for the\
+ distance between the bases i and j of any pair (i, j), i.e. (j - i + 1) <= L.\n\n"
 int
 default="150"
 optional
@@ -39,19 +40,24 @@ option  "noconv"  -
 "Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
 off
+hidden
 
 option  "outfile" o
 "Print output to file instead of stdout\n"
 details="This option may be used to write all output to output files rather than printing\
- to stdout. The default filename is \"RNALfold_output.lfold\" if no FASTA header precedes\
- the input sequences and the --auto-id feature is inactive. Otherwise, output files with\
- the scheme \"prefix.lfold\" are generated, where the \"prefix\" is taken from the sequence\
- id. The user may specify a single output file name for all data generated from the input\
- by supplying an optional string as argument to this parameter. In case a file with the same\
- filename already exists, any output of the program will be appended to it.\
- Note: Any special characters in the filename will be replaced by the filename delimiter,\
- hence there is no way to pass an entire directory path through this option yet.\
- (See also the \"--filename-delim\" parameter)\n\n"
+ to stdout. The number of output files created for batch input (multiple sequences) depends\
+ on three conditions: (i) In case an optional filename is given as parameter argument, a\
+ single file with the specified filename will be written into. If the optional argument\
+ is omitted, (ii) FASTA input or an active --auto-id switch will write to multiple files\
+ that follow the naming scheme \"prefix.lfold\". Here, \"prefix\" is taken from the sequence\
+ id as specified in the FASTA header. Lastly, (iii) single-line sequence input without\
+ FASTA header will be written to a single file \"RNALfold_output.lfold\". In case an output\
+ file already exists, any output of the program will be appended to it.\nSince the filename\
+ argument is optional, it must immediately follow the short option flag\
+ to not be mistaken as new parameter to the program. For instance \'-ornafold.out\' will\
+ write to a file \"rnafold.out\".\nNote: Any special characters in the filename will be\
+ replaced by the filename delimiter, hence there is no way to pass an entire directory path\
+ through this option yet. (See also the \"--filename-delim\" parameter)\n\n"
 string
 typestr="<filename>"
 argoptional
@@ -77,7 +83,7 @@ flag
 off
 
 option  "id-prefix" -
-"Prefix for automatically generated IDs (as used in output file names)\n\n"
+"Set prefix for automatically generated IDs\n"
 details="If this parameter is set, each sequence will be prefixed with the\
  provided string. Hence, the output files will obey the following naming\
  scheme: \"prefix_xxxx.lfold\" where xxxx is the sequence number. Note:\
@@ -86,15 +92,17 @@ string
 typestr="prefix"
 default="sequence"
 optional
+hidden
 
 option  "id-delim" -
-"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
+"Change prefix delimiter for automatically generated ids.\n"
 details="This parameter can be used to change the default delimiter \"_\" between
- the prefix string and the increasing number for automatically generated ID.\n\n"
+ the prefix string and the increasing number for automatically generated IDs\n\n"
 string
 typestr="delimiter"
 default="_"
 optional
+dependon="auto-id"
 hidden
 
 option  "id-digits"  -
@@ -160,59 +168,16 @@ optional
 hidden
 
 
-option  "shape" -
-"Use SHAPE reactivity data in the folding recursions (does not work for Zuker suboptimals and stochastic backtracking yet)\n\n"
-string
-typestr="<filename>"
-optional
-
-option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
-details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
-'D': Convert by using a linear equation according to Deigan et al 2009. \
-The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
-This method is recognized by a capital 'D' in the provided parameter, i.e.: \
---shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
-non-default value if necessary, otherwise m=1.8 and b=-0.6. \
-To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
-parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
-parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
-
-'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
-SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
-Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
-The magnitude of the penalties can affected by adjusting the factor beta \
-(e.g. --shapeMethod=\"Zb0.8\").
-
-'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n\n"
-string
-typestr="[D/Z/W] + [optional parameters]"
-dependon="shape"
-default="D"
-optional
-
-option  "shapeConversion" -
-"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
-details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
-'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
-string
-typestr="M/C/S/L/O  + [optional parameters]"
-default="O"
-optional
-
-
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
 
 option  "zscore"  z
-"Activate z-score computation. An optional argument may be supplied to set the threshold\nDue to parsing the\
- commandline parameters a negative value should be given immediately after \"z\" without spaces e.g. -z-4.9\n\n"
+"Limit the output to predictions with a Z-score below a threshold\n"
+details="This option activates z-score regression using a trained SVM. Any predicted structure that\
+ exceeds the specified threshold will be ommited from the output.\nSince the Z-score threshold is\
+ given as a negative number, it must immediately preceed the short option to not be mistaken as\
+ a separate argument, e.g. -z-2.9 sets the threshold to a value of -2.9\n\n"
 double
 default="-2"
 argoptional
@@ -223,8 +188,56 @@ option  "gquad" g
 flag
 off
 
+option  "shape" -
+"Use SHAPE reactivity data to guide structure predictions.\n\n"
+string
+typestr="<filename>"
+optional
+
+option  "shapeMethod" -
+"Include SHAPE reactivity data according to a particular method.\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n\n\
+'D': Convert by using a linear equation according to Deigan et al 2009. \
+The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
+This method is recognized by a capital 'D' in the provided parameter, i.e.: \
+--shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
+non-default value if necessary, otherwise m=1.8 and b=-0.6. \
+To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
+parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
+parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n\
+'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
+SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
+Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
+The magnitude of the penalties can affected by adjusting the factor beta \
+(e.g. --shapeMethod=\"Zb0.8\").\n\n\
+'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
+Perturbation vectors can be calculated by using RNApvmin.\n\n"
+string
+typestr="D/Z/W"
+dependon="shape"
+default="D"
+optional
+hidden
+
+option  "shapeConversion" -
+"Convert SHAPE reactivity according to a particular model.\n"
+details="This method allows one to specify the method or model used to convert SHAPE reactivities to pairing\
+ (or unpaired) probabilities when using the SHAPE approach of Zarringhalam et al. 2012. The following single\
+ letter types are recognized:\n\n\
+'M': Use linear mapping according to Zarringhalam et al. 2012.\n\n\
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")\n\n\
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values\n\n\
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)\n\n\
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
+string
+typestr="type"
+default="O"
+optional
+hidden
+
 
 section "Model Details"
+sectiondesc="You may tweak the energy model and pairing rules additionally using the following parameters\n\n"
 
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
@@ -232,20 +245,23 @@ double
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n\n"
 flag
 off
+hidden
 
 option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
- check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
- any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
- dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
- of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
- of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
- -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
- -d2 setting, i.e. dangling ends will be treated differently.\n\n"
+"Change the dangling end model\n"
+details="This option allows one to change the model \"dangling end\" energy contributions, i.e. those\
+ additional contributions from bases adjacent to helices in free ends and multi-loops\nWith -d1 only\
+ unpaired bases can participate in at most one dangling end. With -d2 this check is ignored, dangling\
+ energies will be added for the bases adjacent to a helix on both sides in any case; this is the default\
+ for mfe and partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly \
+ for debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops.\
+ At the moment the implementation will not allow coaxial stacking of the two interior pairs in a loop\
+ of degree 3 and works only for mfe folding.\n\nNote that with -d1 and -d3 only the MFE computations\
+ will be using this setting while partition function uses -d2 setting, i.e. dangling ends will be treated\
+ differently.\n\n"
 int
 default="2"
 optional
@@ -261,11 +277,13 @@ option  "noGU"  -
 "Do not allow GU pairs\n\n"
 flag
 off
+hidden
 
 option  "noClosingGU" -
 "Do not allow GU pairs at the end of helices\n\n"
 flag
 off
+hidden
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
@@ -274,6 +292,7 @@ details="A sample parameter file should accompany your distribution.\nSee the RN
 string
 typestr="paramfile"
 optional
+
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
