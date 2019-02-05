@@ -15,6 +15,7 @@ vrna_searchdir          = $(pkgincludedir)/search
 vrna_plottingdir        = $(pkgincludedir)/plotting
 vrna_loopsdir           = $(pkgincludedir)/loops
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
+vrna_landscapedir       = $(pkgincludedir)/landscape
 
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
@@ -28,6 +29,7 @@ noinst_LTLIBRARIES =  libRNA_conv.la \
                       libRNA_params.la \
                       libRNA_loops.la \
                       libRNA_eval.la \
+                      libRNA_landscape.la \
                       libRNA_special_const.la
 
 # where to install the headers on the system
@@ -45,7 +47,8 @@ libRNA_conv_la_LIBADD = \
     libRNA_plotting.la \
     libRNA_params.la \
     libRNA_eval.la \
-    libRNA_loops.la
+    libRNA_loops.la \
+    libRNA_landscape.la
 
 
 if VRNA_AM_SWITCH_SIMD_SSE41
@@ -236,6 +239,13 @@ vrna_datastructures_HEADERS = \
     datastructures/hash_tables.h
 
 
+vrna_landscape_HEADERS = \
+    landscape/findpath.h \
+    landscape/neighbor.h \
+    landscape/walk.h \
+    landscape/move.h
+
+
 libRNA_conv_la_SOURCES = \
     fold_compound.c \
     dist_vars.c \
@@ -264,7 +274,6 @@ libRNA_conv_la_SOURCES = \
     LPfold.c \
     part_func_up.c \
     ribo.c \
-    findpath.c \
     MEA.c \
     mm.c \
     2Dfold.c \
@@ -275,7 +284,6 @@ libRNA_conv_la_SOURCES = \
     plex.c \
     snofold.c \
     snoop.c \
-    move_set.c \
     gquad.c \
     perturbation_fold.c \
     centroid.c \
@@ -284,8 +292,6 @@ libRNA_conv_la_SOURCES = \
     boltzmann_sampling.c \
     bs_wrappers.c \
     equilibrium_probs.c \
-    neighbor.c \
-    walk.c \
     ${SVM_SRC} \
     ${JSON_SRC} \
     alphabet.c \
@@ -368,6 +374,13 @@ libRNA_datastructures_la_SOURCES = \
     datastructures/stream_output.c \
     datastructures/hash_tables.c
 
+libRNA_landscape_la_SOURCES = \
+    move_set.c \
+    landscape/move.c \
+    landscape/findpath.c \
+    landscape/neighbor.c \
+    landscape/walk.c
+
 libRNA_special_const_la_SOURCES = \
     special_const.c
 
@@ -449,6 +462,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               data_structures_nonred.inc \
               plotting/ps_helpers.inc \
               ${RNAPUZZLER_INC} \
+              landscapes/local_neighbors.inc \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \

@@ -4,13 +4,15 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/eval.h"
-#include "ViennaRNA/walk.h"
+#include "ViennaRNA/landscape/walk.h"
 
 #ifndef bool
 #define bool int
 #define true 1
 #define false 0
 #endif
+
+#include "local_neighbors.inc"
 
 /*
  #################################

@@ -39,6 +39,15 @@ typedef struct {
   }
 }
 
+%constant unsigned int MOVESET_INSERTION  = VRNA_MOVESET_INSERTION;
+%constant unsigned int MOVESET_DELETION   = VRNA_MOVESET_DELETION;
+%constant unsigned int MOVESET_SHIFT      = VRNA_MOVESET_SHIFT;
+%constant unsigned int MOVESET_NO_LP      = VRNA_MOVESET_NO_LP;
+%constant unsigned int MOVESET_DEFAULT    = VRNA_MOVESET_DEFAULT;
+
+%include  <ViennaRNA/landscape/move.h>
+
+
 %extend vrna_fold_compound_t{
 
 #ifdef SWIGPYTHON
@@ -71,11 +80,5 @@ typedef struct {
   }
 }
 
+%include <ViennaRNA/landscape/neighbor.h>
 
-%constant unsigned int MOVESET_INSERTION  = VRNA_MOVESET_INSERTION;
-%constant unsigned int MOVESET_DELETION   = VRNA_MOVESET_DELETION;
-%constant unsigned int MOVESET_SHIFT      = VRNA_MOVESET_SHIFT;
-%constant unsigned int MOVESET_NO_LP      = VRNA_MOVESET_NO_LP;
-%constant unsigned int MOVESET_DEFAULT    = VRNA_MOVESET_DEFAULT;
-
-%include <ViennaRNA/neighbor.h>

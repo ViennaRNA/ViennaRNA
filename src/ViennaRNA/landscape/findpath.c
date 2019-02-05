@@ -9,7 +9,6 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/findpath.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params/basic.h"
@@ -19,6 +18,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/landscape/findpath.h"
 
 #ifdef _OPENMP
 #include <omp.h>

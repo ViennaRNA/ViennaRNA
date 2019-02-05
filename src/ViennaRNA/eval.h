@@ -5,7 +5,7 @@
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/datastructures/char_stream.h>
-#include "ViennaRNA/neighbor.h"
+#include <ViennaRNA/landscape/move.h>
 #include <ViennaRNA/params/basic.h>   /* for deprecated functions */
 
 #ifdef VRNA_WARN_DEPRECATED
