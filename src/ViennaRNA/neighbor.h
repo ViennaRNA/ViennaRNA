@@ -142,6 +142,9 @@ typedef struct vrna_move_s vrna_move_t;
 #define VRNA_MOVESET_DEFAULT     (VRNA_MOVESET_INSERTION | VRNA_MOVESET_DELETION)
 
 
+#define VRNA_NEIGHBOR_VALID     1
+#define VRNA_NEIGHBOR_INVALID   2
+
 /**
  * @brief   An atomic representation of the transition / move from one structure to its neighbor
  *
@@ -171,6 +174,7 @@ vrna_move_init(int  pos_5,
  */
 void
 vrna_move_list_free(vrna_move_t *moves);
+
 
 
 /**
@@ -258,6 +262,29 @@ vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
                           int                         size_prev_neighbors,
                           int                         *size_neighbors,
                           unsigned int                options);
+
+
+typedef void (vrna_move_update_cb)(const vrna_fold_compound_t *fc,
+                                   const vrna_move_t          neighbor,
+                                   unsigned int               state,
+                                   void                       *data);
+
+
+int
+vrna_neighbors_after_move_local_cb(vrna_fold_compound_t *fc,
+                                   const short          *ptable,
+                                   const vrna_move_t    *move,
+                                   vrna_move_update_cb  *cb,
+                                   void                 *data,
+                                   unsigned int         options);
+
+
+vrna_move_t *
+vrna_neighbors_after_move_local(vrna_fold_compound_t  *fc,
+                                const short           *ptable,
+                                const vrna_move_t     *move,
+                                vrna_move_t           **invalid_moves,
+                                unsigned int          options);
 
 
 /**
