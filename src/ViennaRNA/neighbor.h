@@ -179,9 +179,9 @@ vrna_move_apply(short             *pt,
 
 
 void
-vrna_move_apply_to_db(char              *structure,
-                      const short       *pt,
-                      const vrna_move_t *m);
+vrna_move_apply_db(char              *structure,
+                   const short       *pt,
+                   const vrna_move_t *m);
 
 
 /**
