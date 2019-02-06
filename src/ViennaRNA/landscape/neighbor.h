@@ -112,8 +112,9 @@
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/landscape/move.h>
 
-#define VRNA_NEIGHBOR_VALID     1
-#define VRNA_NEIGHBOR_INVALID   2
+#define VRNA_NEIGHBOR_CHANGED   1
+#define VRNA_NEIGHBOR_REMOVED   2
+#define VRNA_NEIGHBOR_NEW       3
 
 /**
  * @brief Alters the loopIndices array that was constructed with vrna_loopidx_from_ptable().
@@ -185,7 +186,7 @@ vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
                           unsigned int                options);
 
 
-typedef void (vrna_move_update_cb)(const vrna_fold_compound_t *fc,
+typedef void (vrna_move_update_cb)(vrna_fold_compound_t *fc,
                                    const vrna_move_t          neighbor,
                                    unsigned int               state,
                                    void                       *data);
