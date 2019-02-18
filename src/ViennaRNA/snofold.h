@@ -4,6 +4,8 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /* Normal fold */
 
 /**
@@ -74,5 +76,7 @@ extern double nc_fact /* =1 */;
 
 /* max number of mismatch >>>>>..((   )).>>>> */
 #define MISMATCH 3
+
+#endif
 
 #endif

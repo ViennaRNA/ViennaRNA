@@ -10,6 +10,8 @@
  *  This file contains the declarations for several maximum matching implementations
  */
 
+#include <ViennaRNA/fold_compound.h>
+
 int
 vrna_maximum_matching(vrna_fold_compound_t *fc);
 
@@ -17,6 +19,8 @@ vrna_maximum_matching(vrna_fold_compound_t *fc);
 int
 vrna_maximum_matching_simple(const char *sequence);
 
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 unsigned int
 maximumMatching(const char *string);
@@ -32,5 +36,7 @@ maximumMatching2Constraint(const char *string,
                            short      *ptable,
                            short      *ptable2);
 
+
+#endif
 
 #endif

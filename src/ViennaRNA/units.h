@@ -62,9 +62,10 @@ typedef enum {
  *  @param  to      Output unit
  *  @return         Energy value in Output unit
  */
-double vrna_convert_energy( double energy,
-                            vrna_unit_energy_e from,
-                            vrna_unit_energy_e to);
+double
+vrna_convert_energy(double              energy,
+                    vrna_unit_energy_e  from,
+                    vrna_unit_energy_e  to);
 
 
 /**
@@ -76,9 +77,11 @@ double vrna_convert_energy( double energy,
  *  @param  to      Output unit
  *  @return         Temperature value in Output unit
  */
-double vrna_convert_temperature(double temp,
-                                vrna_unit_temperature_e from,
-                                vrna_unit_temperature_e to);
+double
+vrna_convert_temperature(double                   temp,
+                         vrna_unit_temperature_e  from,
+                         vrna_unit_temperature_e  to);
+
 
 /**
  *  @}

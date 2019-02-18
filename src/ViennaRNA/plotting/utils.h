@@ -7,6 +7,10 @@
  *  @brief    Various utilities to assist in plotting secondary structures and consensus structures
  */
 
+#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/model.h>
+#include <ViennaRNA/utils/structures.h>
+
 /**
  *  @addtogroup  plotting_utils
  *  @{

@@ -2,6 +2,7 @@
 #define VIENNA_RNA_PACKAGE_CENTROID_H
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/utils/structures.h>
 
 #ifdef VRNA_WARN_DEPRECATED
@@ -35,8 +36,9 @@
  *  @param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
  *  @return               The centroid structure of the ensemble in dot-bracket notation (@p NULL on error)
  */
-char *vrna_centroid(vrna_fold_compound_t  *vc,
-                    double                *dist);
+char *
+vrna_centroid(vrna_fold_compound_t  *vc,
+              double                *dist);
 
 
 /**
@@ -55,9 +57,10 @@ char *vrna_centroid(vrna_fold_compound_t  *vc,
  *  @param[in]  pl      A pair list containing base pair probability information about the ensemble
  *  @return             The centroid structure of the ensemble in dot-bracket notation (@p NULL on error)
  */
-char *vrna_centroid_from_plist(int        length,
-                               double     *dist,
-                               vrna_ep_t  *pl);
+char *
+vrna_centroid_from_plist(int        length,
+                         double     *dist,
+                         vrna_ep_t  *pl);
 
 
 /**
@@ -76,9 +79,10 @@ char *vrna_centroid_from_plist(int        length,
  *  @param[in]    probs   An upper triangular matrix containing base pair probabilities (access via iindx @ref vrna_idx_row_wise() )
  *  @return               The centroid structure of the ensemble in dot-bracket notation (@p NULL on error)
  */
-char *vrna_centroid_from_probs(int        length,
-                               double     *dist,
-                               FLT_OR_DBL *probs);
+char *
+vrna_centroid_from_probs(int        length,
+                         double     *dist,
+                         FLT_OR_DBL *probs);
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY

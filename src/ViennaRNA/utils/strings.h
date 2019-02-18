@@ -85,8 +85,9 @@ char *strdup(const char *s);
  *  @param  ...     The list of variables used to fill the format string
  *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
  */
-char *vrna_strdup_printf(const char *format,
-                         ...);
+char *
+vrna_strdup_printf(const char *format,
+                   ...);
 
 
 /**
@@ -103,8 +104,9 @@ char *vrna_strdup_printf(const char *format,
  *  @param  argp    The list of arguments to fill the format string
  *  @return         The formatted, null-terminated string, or NULL if something has gone wrong
  */
-char *vrna_strdup_vprintf(const char  *format,
-                          va_list     argp);
+char *
+vrna_strdup_vprintf(const char  *format,
+                    va_list     argp);
 
 
 /**
@@ -125,9 +127,10 @@ char *vrna_strdup_vprintf(const char  *format,
  *  @param  ...     The list of variables used to fill the format string
  *  @return         The number of characters in the final string, or -1 on error
  */
-int vrna_strcat_printf(char       **dest,
-                       const char *format,
-                       ...);
+int
+vrna_strcat_printf(char       **dest,
+                   const char *format,
+                   ...);
 
 
 /**
@@ -142,9 +145,10 @@ int vrna_strcat_printf(char       **dest,
  *  @param  args    The list of argument to fill the format string
  *  @return         The number of characters in the final string, or -1 on error
  */
-int vrna_strcat_vprintf(char        **dest,
-                        const char  *format,
-                        va_list     args);
+int
+vrna_strcat_vprintf(char        **dest,
+                    const char  *format,
+                    va_list     args);
 
 
 /**
@@ -170,11 +174,11 @@ int vrna_strcat_vprintf(char        **dest,
  * @endcode
  *  produces this output:
  *
-@verbatim
-GGGG
-CCCC
-AAAAA
-@endverbatim
+ * @verbatim
+ * GGGG
+ * CCCC
+ * AAAAA
+ * @endverbatim
  *  and properly free's the memory occupied by the returned element array.
  *
  *  @note This function internally uses @em strtok_r() and is therefore
@@ -185,8 +189,9 @@ AAAAA
  *  @param  delimiter The delimiting character. If @c NULL, the delimiter is @c "&"
  *  @return           A @c NULL terminated list of the elements in the string
  */
-char **vrna_strsplit(const char *string,
-                     const char *delimiter);
+char **
+vrna_strsplit(const char  *string,
+              const char  *delimiter);
 
 
 /**
@@ -196,8 +201,9 @@ char **vrna_strsplit(const char *string,
  *  @param symbols  The symbol set
  *  @return         A random string of length 'l' containing characters from the symbolset
  */
-char *vrna_random_string(int        l,
-                         const char symbols[]);
+char *
+vrna_random_string(int        l,
+                   const char symbols[]);
 
 
 /**
@@ -207,8 +213,9 @@ char *vrna_random_string(int        l,
  *  @param s2   The second sequence
  *  @return     The hamming distance between s1 and s2
  */
-int vrna_hamming_distance(const char  *s1,
-                          const char  *s2);
+int
+vrna_hamming_distance(const char  *s1,
+                      const char  *s2);
 
 
 /**
@@ -221,9 +228,10 @@ int vrna_hamming_distance(const char  *s1,
  *  @param  n   The length of the subsequences to consider (starting from the 5' end)
  *  @return     The hamming distance between s1 and s2
  */
-int vrna_hamming_distance_bound(const char  *s1,
-                                const char  *s2,
-                                int         n);
+int
+vrna_hamming_distance_bound(const char  *s1,
+                            const char  *s2,
+                            int         n);
 
 
 /**
@@ -233,7 +241,8 @@ int vrna_hamming_distance_bound(const char  *s1,
  *
  *  @param sequence The sequence to be converted
  */
-void vrna_seq_toRNA(char *sequence);
+void
+vrna_seq_toRNA(char *sequence);
 
 
 /**
@@ -241,7 +250,8 @@ void vrna_seq_toRNA(char *sequence);
  *
  *  @param sequence The sequence to be converted
  */
-void vrna_seq_toupper(char *sequence);
+void
+vrna_seq_toupper(char *sequence);
 
 
 /**
@@ -265,8 +275,9 @@ vrna_seq_ungapped(const char *seq);
  *  @param  cp        The cut-point position
  *  @return           A copy of the provided string including the cut-point character
  */
-char *vrna_cut_point_insert(const char  *string,
-                            int         cp);
+char *
+vrna_cut_point_insert(const char  *string,
+                      int         cp);
 
 
 /**
@@ -281,8 +292,9 @@ char *vrna_cut_point_insert(const char  *string,
  *  @param  cp      The cut-point position
  *  @return         A copy of the input string with the '&' being sliced out
  */
-char *vrna_cut_point_remove(const char  *string,
-                            int         *cp);
+char *
+vrna_cut_point_remove(const char  *string,
+                      int         *cp);
 
 
 /**
@@ -311,7 +323,7 @@ DEPRECATED(void str_DNA2RNA(char *sequence), "Use vrna_seq_toRNA() instead");
  */
 DEPRECATED(char *random_string(int        l,
                                const char symbols[]),
-"Use vrna_random_string() instead");
+           "Use vrna_random_string() instead");
 
 /**
  *  @brief Calculate hamming distance between two sequences
@@ -320,7 +332,7 @@ DEPRECATED(char *random_string(int        l,
  */
 DEPRECATED(int hamming(const char *s1,
                        const char *s2),
-"Use vrna_hamming_distance() instead");
+           "Use vrna_hamming_distance() instead");
 
 /**
  *  @brief Calculate hamming distance between two sequences up to a specified length
@@ -330,7 +342,7 @@ DEPRECATED(int hamming(const char *s1,
 DEPRECATED(int hamming_bound(const char *s1,
                              const char *s2,
                              int        n),
-"Use vrna_hamming_distance_bound() instead");
+           "Use vrna_hamming_distance_bound() instead");
 
 #endif
 

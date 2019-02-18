@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_PERTURBATION_FOLD_H
 #define VIENNA_RNA_PACKAGE_PERTURBATION_FOLD_H
 
-#include "data_structures.h"
+#include <ViennaRNA/fold_compound.h>
 
 /**
  *  @file perturbation_fold.h

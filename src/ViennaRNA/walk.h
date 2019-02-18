@@ -9,6 +9,7 @@
  */
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/neighbor.h>
 
 /**

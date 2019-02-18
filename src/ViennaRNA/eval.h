@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/datastructures/char_stream.h>
 #include "ViennaRNA/neighbor.h"
 #include <ViennaRNA/params/basic.h>   /* for deprecated functions */
@@ -89,8 +90,9 @@
  *  @param structure        Secondary structure in dot-bracket notation
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_structure(vrna_fold_compound_t  *vc,
-                          const char            *structure);
+float
+vrna_eval_structure(vrna_fold_compound_t  *vc,
+                    const char            *structure);
 
 
 /**
@@ -113,8 +115,9 @@ float vrna_eval_structure(vrna_fold_compound_t  *vc,
  *  @param structure        Secondary (consensus) structure in dot-bracket notation
  *  @return                 The covariance pseudo energy score of the input structure given the input sequence alignment in kcal/mol
  */
-float vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
-                                const char            *structure);
+float
+vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
+                          const char            *structure);
 
 
 /**
@@ -130,9 +133,10 @@ float vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_structure_verbose(vrna_fold_compound_t  *vc,
-                                  const char            *structure,
-                                  FILE                  *file);
+float
+vrna_eval_structure_verbose(vrna_fold_compound_t  *vc,
+                            const char            *structure,
+                            FILE                  *file);
 
 
 /**
@@ -160,17 +164,19 @@ float vrna_eval_structure_verbose(vrna_fold_compound_t  *vc,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_structure_v(vrna_fold_compound_t  *vc,
-                            const char            *structure,
-                            int                   verbosity_level,
-                            FILE                  *file);
+float
+vrna_eval_structure_v(vrna_fold_compound_t  *vc,
+                      const char            *structure,
+                      int                   verbosity_level,
+                      FILE                  *file);
 
 
 float
-vrna_eval_structure_cstr(vrna_fold_compound_t  *vc,
-                         const char            *structure,
-                         int                   verbosity_level,
-                         vrna_cstr_t           output_stream);
+vrna_eval_structure_cstr(vrna_fold_compound_t *vc,
+                         const char           *structure,
+                         int                  verbosity_level,
+                         vrna_cstr_t          output_stream);
+
 
 /* End basic eval interface */
 /**@}*/
@@ -199,8 +205,9 @@ vrna_eval_structure_cstr(vrna_fold_compound_t  *vc,
  *  @param pt               Secondary structure as pair_table
  *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
-int vrna_eval_structure_pt(vrna_fold_compound_t *vc,
-                           const short          *pt);
+int
+vrna_eval_structure_pt(vrna_fold_compound_t *vc,
+                       const short          *pt);
 
 
 /**
@@ -216,9 +223,10 @@ int vrna_eval_structure_pt(vrna_fold_compound_t *vc,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
-int vrna_eval_structure_pt_verbose(vrna_fold_compound_t *vc,
-                                   const short          *pt,
-                                   FILE                 *file);
+int
+vrna_eval_structure_pt_verbose(vrna_fold_compound_t *vc,
+                               const short          *pt,
+                               FILE                 *file);
 
 
 /**
@@ -246,10 +254,11 @@ int vrna_eval_structure_pt_verbose(vrna_fold_compound_t *vc,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
-int vrna_eval_structure_pt_v(vrna_fold_compound_t *vc,
-                             const short          *pt,
-                             int                  verbosity_level,
-                             FILE                 *file);
+int
+vrna_eval_structure_pt_v(vrna_fold_compound_t *vc,
+                         const short          *pt,
+                         int                  verbosity_level,
+                         FILE                 *file);
 
 
 /* End basic eval interface with pair table */
@@ -276,8 +285,9 @@ int vrna_eval_structure_pt_v(vrna_fold_compound_t *vc,
  *  @param structure        Secondary structure in dot-bracket notation
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_structure_simple(const char *string,
-                                 const char *structure);
+float
+vrna_eval_structure_simple(const char *string,
+                           const char *structure);
 
 
 /**
@@ -290,8 +300,9 @@ float vrna_eval_structure_simple(const char *string,
  *  @param  structure Secondary structure in dot-bracket notation
  *  @return           The free energy of the structure given the circular input sequence in kcal/mol
  */
-float vrna_eval_circ_structure(const char *string,
-                               const char *structure);
+float
+vrna_eval_circ_structure(const char *string,
+                         const char *structure);
 
 
 /**
@@ -311,8 +322,9 @@ float vrna_eval_circ_structure(const char *string,
  *  @param  structure Secondary structure in dot-bracket notation
  *  @return           The free energy of the structure including contributions of G-quadruplexes in kcal/mol
  */
-float vrna_eval_gquad_structure(const char  *string,
-                                const char  *structure);
+float
+vrna_eval_gquad_structure(const char  *string,
+                          const char  *structure);
 
 
 /**
@@ -333,8 +345,9 @@ float vrna_eval_gquad_structure(const char  *string,
  *  @param  structure Secondary structure in dot-bracket notation
  *  @return           The free energy of the structure including contributions of G-quadruplexes in kcal/mol
  */
-float vrna_eval_circ_gquad_structure(const char *string,
-                                     const char *structure);
+float
+vrna_eval_circ_gquad_structure(const char *string,
+                               const char *structure);
 
 
 /**
@@ -351,9 +364,10 @@ float vrna_eval_circ_gquad_structure(const char *string,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_structure_simple_verbose(const char *string,
-                                         const char *structure,
-                                         FILE       *file);
+float
+vrna_eval_structure_simple_verbose(const char *string,
+                                   const char *structure,
+                                   FILE       *file);
 
 
 /**
@@ -379,10 +393,11 @@ float vrna_eval_structure_simple_verbose(const char *string,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_structure_simple_v(const char *string,
-                                   const char *structure,
-                                   int        verbosity_level,
-                                   FILE       *file);
+float
+vrna_eval_structure_simple_v(const char *string,
+                             const char *structure,
+                             int        verbosity_level,
+                             FILE       *file);
 
 
 /**
@@ -400,10 +415,11 @@ float vrna_eval_structure_simple_v(const char *string,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_circ_structure_v(const char *string,
-                                 const char *structure,
-                                 int        verbosity_level,
-                                 FILE       *file);
+float
+vrna_eval_circ_structure_v(const char *string,
+                           const char *structure,
+                           int        verbosity_level,
+                           FILE       *file);
 
 
 /**
@@ -428,10 +444,11 @@ float vrna_eval_circ_structure_v(const char *string,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_gquad_structure_v(const char  *string,
-                                  const char  *structure,
-                                  int         verbosity_level,
-                                  FILE        *file);
+float
+vrna_eval_gquad_structure_v(const char  *string,
+                            const char  *structure,
+                            int         verbosity_level,
+                            FILE        *file);
 
 
 /**
@@ -454,10 +471,11 @@ float vrna_eval_gquad_structure_v(const char  *string,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in kcal/mol
  */
-float vrna_eval_circ_gquad_structure_v(const char *string,
-                                       const char *structure,
-                                       int        verbosity_level,
-                                       FILE       *file);
+float
+vrna_eval_circ_gquad_structure_v(const char *string,
+                                 const char *structure,
+                                 int        verbosity_level,
+                                 FILE       *file);
 
 
 /* End simplified eval interface */
@@ -490,8 +508,9 @@ float vrna_eval_circ_gquad_structure_v(const char *string,
  *  @param structure        Consensus Secondary structure in dot-bracket notation
  *  @return                 The free energy of the consensus structure given the input alignment in kcal/mol
  */
-float vrna_eval_consensus_structure_simple(const char **alignment,
-                                           const char *structure);
+float
+vrna_eval_consensus_structure_simple(const char **alignment,
+                                     const char *structure);
 
 
 /**
@@ -509,8 +528,9 @@ float vrna_eval_consensus_structure_simple(const char **alignment,
  *  @param  structure Consensus secondary structure in dot-bracket notation
  *  @return           The free energy of the consensus structure given the circular input sequence in kcal/mol
  */
-float vrna_eval_circ_consensus_structure(const char **alignment,
-                                         const char *structure);
+float
+vrna_eval_circ_consensus_structure(const char **alignment,
+                                   const char *structure);
 
 
 /**
@@ -535,8 +555,9 @@ float vrna_eval_circ_consensus_structure(const char **alignment,
  *  @param  structure Consensus secondary structure in dot-bracket notation
  *  @return           The free energy of the consensus structure including contributions of G-quadruplexes in kcal/mol
  */
-float vrna_eval_gquad_consensus_structure(const char  **alignment,
-                                          const char  *structure);
+float
+vrna_eval_gquad_consensus_structure(const char  **alignment,
+                                    const char  *structure);
 
 
 /**
@@ -561,8 +582,9 @@ float vrna_eval_gquad_consensus_structure(const char  **alignment,
  *  @param  structure Consensus secondary structure in dot-bracket notation
  *  @return           The free energy of the consensus structure including contributions of G-quadruplexes in kcal/mol
  */
-float vrna_eval_circ_gquad_consensus_structure(const char **alignment,
-                                               const char *structure);
+float
+vrna_eval_circ_gquad_consensus_structure(const char **alignment,
+                                         const char *structure);
 
 
 /**
@@ -584,9 +606,10 @@ float vrna_eval_circ_gquad_consensus_structure(const char **alignment,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the conensus structure given the aligned input sequences in kcal/mol
  */
-float vrna_eval_consensus_structure_simple_verbose(const char **alignment,
-                                                   const char *structure,
-                                                   FILE       *file);
+float
+vrna_eval_consensus_structure_simple_verbose(const char **alignment,
+                                             const char *structure,
+                                             FILE       *file);
 
 
 /**
@@ -613,10 +636,11 @@ float vrna_eval_consensus_structure_simple_verbose(const char **alignment,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the consensus structure given the sequence alignment in kcal/mol
  */
-float vrna_eval_consensus_structure_simple_v(const char **alignment,
-                                             const char *structure,
-                                             int        verbosity_level,
-                                             FILE       *file);
+float
+vrna_eval_consensus_structure_simple_v(const char **alignment,
+                                       const char *structure,
+                                       int        verbosity_level,
+                                       FILE       *file);
 
 
 /**
@@ -638,10 +662,11 @@ float vrna_eval_consensus_structure_simple_v(const char **alignment,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the consensus structure given the sequence alignment in kcal/mol
  */
-float vrna_eval_circ_consensus_structure_v(const char **alignment,
-                                           const char *structure,
-                                           int        verbosity_level,
-                                           FILE       *file);
+float
+vrna_eval_circ_consensus_structure_v(const char **alignment,
+                                     const char *structure,
+                                     int        verbosity_level,
+                                     FILE       *file);
 
 
 /**
@@ -670,10 +695,11 @@ float vrna_eval_circ_consensus_structure_v(const char **alignment,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the consensus structure given the sequence alignment in kcal/mol
  */
-float vrna_eval_gquad_consensus_structure_v(const char  **alignment,
-                                            const char  *structure,
-                                            int         verbosity_level,
-                                            FILE        *file);
+float
+vrna_eval_gquad_consensus_structure_v(const char  **alignment,
+                                      const char  *structure,
+                                      int         verbosity_level,
+                                      FILE        *file);
 
 
 /**
@@ -702,10 +728,11 @@ float vrna_eval_gquad_consensus_structure_v(const char  **alignment,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the consensus structure given the sequence alignment in kcal/mol
  */
-float vrna_eval_circ_gquad_consensus_structure_v(const char **alignment,
-                                                 const char *structure,
-                                                 int        verbosity_level,
-                                                 FILE       *file);
+float
+vrna_eval_circ_gquad_consensus_structure_v(const char **alignment,
+                                           const char *structure,
+                                           int        verbosity_level,
+                                           FILE       *file);
 
 
 /* End simplified comparative eval interface */
@@ -731,8 +758,9 @@ float vrna_eval_circ_gquad_consensus_structure_v(const char **alignment,
  *  @param pt               Secondary structure as pair_table
  *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
-int vrna_eval_structure_pt_simple(const char  *string,
-                                  const short *pt);
+int
+vrna_eval_structure_pt_simple(const char  *string,
+                              const short *pt);
 
 
 /**
@@ -748,9 +776,10 @@ int vrna_eval_structure_pt_simple(const char  *string,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
-int vrna_eval_structure_pt_simple_verbose(const char  *string,
-                                          const short *pt,
-                                          FILE        *file);
+int
+vrna_eval_structure_pt_simple_verbose(const char  *string,
+                                      const short *pt,
+                                      FILE        *file);
 
 
 /**
@@ -777,10 +806,11 @@ int vrna_eval_structure_pt_simple_verbose(const char  *string,
  *  @param file             A file handle where this function should print to (may be NULL).
  *  @return                 The free energy of the input structure given the input sequence in 10cal/mol
  */
-int vrna_eval_structure_pt_simple_v(const char  *string,
-                                    const short *pt,
-                                    int         verbosity_level,
-                                    FILE        *file);
+int
+vrna_eval_structure_pt_simple_v(const char  *string,
+                                const short *pt,
+                                int         verbosity_level,
+                                FILE        *file);
 
 
 /* End simplified eval interface with pair table */
@@ -805,13 +835,15 @@ int vrna_eval_structure_pt_simple_v(const char  *string,
  *  @param  pt          Secondary structure in pair table format
  *  @return             Free energy of the consensus structure in 10cal/mol
  */
-int vrna_eval_consensus_structure_pt_simple(const char  **alignment,
-                                            const short *pt);
+int
+vrna_eval_consensus_structure_pt_simple(const char  **alignment,
+                                        const short *pt);
 
 
-int vrna_eval_consensus_structure_pt_simple_verbose(const char  **alignment,
-                                                    const short *pt,
-                                                    FILE        *file);
+int
+vrna_eval_consensus_structure_pt_simple_verbose(const char  **alignment,
+                                                const short *pt,
+                                                FILE        *file);
 
 
 int
@@ -852,9 +884,10 @@ vrna_eval_consensus_structure_pt_simple_v(const char  **alignment,
  *  @param pt         the pair table of the secondary structure
  *  @returns          free energy of the loop in 10cal/mol
  */
-int vrna_eval_loop_pt(vrna_fold_compound_t  *vc,
-                      int                   i,
-                      const short           *pt);
+int
+vrna_eval_loop_pt(vrna_fold_compound_t  *vc,
+                  int                   i,
+                  const short           *pt);
 
 
 /**
@@ -866,10 +899,11 @@ int vrna_eval_loop_pt(vrna_fold_compound_t  *vc,
  *  @param verbosity_level  The level of verbosity of this function
  *  @returns          free energy of the loop in 10cal/mol
  */
-int vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
-                        int                   i,
-                        const short           *pt,
-                        int                   verbosity_level);
+int
+vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
+                    int                   i,
+                    const short           *pt,
+                    int                   verbosity_level);
 
 
 /**
@@ -906,10 +940,11 @@ int vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
  *  @param m2         second coordinate of base pair
  *  @returns          energy change of the move in kcal/mol (#INF / 100. upon any error)
  */
-float vrna_eval_move(vrna_fold_compound_t *vc,
-                     const char           *structure,
-                     int                  m1,
-                     int                  m2);
+float
+vrna_eval_move(vrna_fold_compound_t *vc,
+               const char           *structure,
+               int                  m1,
+               int                  m2);
 
 
 /**
@@ -926,16 +961,18 @@ float vrna_eval_move(vrna_fold_compound_t *vc,
  *  @param m2         second coordinate of base pair
  *  @returns          energy change of the move in 10cal/mol
  */
-int vrna_eval_move_pt(vrna_fold_compound_t  *vc,
-                      short                 *pt,
-                      int                   m1,
-                      int                   m2);
+int
+vrna_eval_move_pt(vrna_fold_compound_t  *vc,
+                  short                 *pt,
+                  int                   m1,
+                  int                   m2);
 
 
-int vrna_eval_move_pt_simple(const char *string,
-                             short      *pt,
-                             int        m1,
-                             int        m2);
+int
+vrna_eval_move_pt_simple(const char *string,
+                         short      *pt,
+                         int        m1,
+                         int        m2);
 
 
 int

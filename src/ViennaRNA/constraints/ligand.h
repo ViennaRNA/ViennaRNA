@@ -30,6 +30,7 @@ vrna_sc_add_hi_motif(vc,
 typedef struct vrna_sc_motif_s vrna_sc_motif_t;
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 
 struct vrna_sc_motif_s {
   int i;

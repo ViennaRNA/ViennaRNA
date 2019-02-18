@@ -18,7 +18,7 @@
 typedef struct vrna_command_s *vrna_cmd_t;
 
 
-#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 
 /**
  * @brief Command parse/apply flag indicating hard constraints
@@ -65,8 +65,9 @@ typedef struct vrna_command_s *vrna_cmd_t;
  *  @param    options   Options to limit the type of commands read from the file
  *  @return             A list of abstract commands
  */
-vrna_cmd_t vrna_file_commands_read(const char   *filename,
-                                   unsigned int options);
+vrna_cmd_t
+vrna_file_commands_read(const char    *filename,
+                        unsigned int  options);
 
 
 /**
@@ -82,9 +83,10 @@ vrna_cmd_t vrna_file_commands_read(const char   *filename,
  *  @param    options   Options to limit the type of commands read from the file
  *  @return             The number of commands successfully applied
  */
-int vrna_file_commands_apply(vrna_fold_compound_t *vc,
-                             const char           *filename,
-                             unsigned int         options);
+int
+vrna_file_commands_apply(vrna_fold_compound_t *vc,
+                         const char           *filename,
+                         unsigned int         options);
 
 
 /**
@@ -95,9 +97,10 @@ int vrna_file_commands_apply(vrna_fold_compound_t *vc,
  *  @param    options   Options to limit the type of commands read from the file
  *  @return             The number of commands successfully applied
  */
-int vrna_commands_apply(vrna_fold_compound_t  *vc,
-                        vrna_cmd_t            commands,
-                        unsigned int          options);
+int
+vrna_commands_apply(vrna_fold_compound_t  *vc,
+                    vrna_cmd_t            commands,
+                    unsigned int          options);
 
 
 /**
@@ -106,7 +109,8 @@ int vrna_commands_apply(vrna_fold_compound_t  *vc,
  *  Release memory occupied by a list of commands
  *  @param  commands  A pointer to a list of commands
  */
-void vrna_commands_free(vrna_cmd_t commands);
+void
+vrna_commands_free(vrna_cmd_t commands);
 
 
 /**

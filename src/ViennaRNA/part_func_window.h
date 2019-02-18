@@ -12,6 +12,8 @@
  */
 
 
+#include <ViennaRNA/datastructures/basic.h>
+
 /**
  *  @addtogroup part_func_window
  *  @{
@@ -65,8 +67,8 @@ typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
                                           unsigned int  type,
                                           void          *data);
 
-#include <ViennaRNA/datastructures/basic.h>
-#include <ViennaRNA/params/basic.h>
+#include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/utils/structures.h>
 
 /**
  *  @brief  Exterior loop

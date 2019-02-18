@@ -3,6 +3,8 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *  @file     duplex.h
  *  @ingroup  cofold
@@ -29,5 +31,7 @@ duplexT *aliduplex_subopt(const char  *s1[],
                           int         delta,
                           int         w);
 
+
+#endif
 
 #endif

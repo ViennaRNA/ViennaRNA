@@ -36,6 +36,7 @@ typedef struct vrna_path_s path_t;
 #endif
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 
 /**
  *  @brief  An element of a refolding path list
@@ -68,10 +69,11 @@ struct vrna_path_s {
  *  @param width  A number specifying how many strutures are being kept at each step during the search
  *  @returns      The saddle energy in 10cal/mol
  */
-int vrna_path_findpath_saddle(vrna_fold_compound_t  *vc,
-                              const char            *s1,
-                              const char            *s2,
-                              int                   width);
+int
+vrna_path_findpath_saddle(vrna_fold_compound_t  *vc,
+                          const char            *s1,
+                          const char            *s2,
+                          int                   width);
 
 
 /**
@@ -100,11 +102,12 @@ int vrna_path_findpath_saddle(vrna_fold_compound_t  *vc,
  *  @param maxE   An upper bound for the saddle point energy in 10cal/mol
  *  @returns      The saddle energy in 10cal/mol
  */
-int vrna_path_findpath_saddle_ub(vrna_fold_compound_t *vc,
-                                 const char           *s1,
-                                 const char           *s2,
-                                 int                  width,
-                                 int                  maxE);
+int
+vrna_path_findpath_saddle_ub(vrna_fold_compound_t *vc,
+                             const char           *s1,
+                             const char           *s2,
+                             int                  width,
+                             int                  maxE);
 
 
 /**
@@ -128,10 +131,11 @@ int vrna_path_findpath_saddle_ub(vrna_fold_compound_t *vc,
  *  @param width    A number specifying how many strutures are being kept at each step during the search
  *  @returns        The saddle energy in 10cal/mol
  */
-vrna_path_t *vrna_path_findpath(vrna_fold_compound_t  *vc,
-                                const char            *s1,
-                                const char            *s2,
-                                int                   width);
+vrna_path_t *
+vrna_path_findpath(vrna_fold_compound_t *vc,
+                   const char           *s1,
+                   const char           *s2,
+                   int                  width);
 
 
 /**
@@ -161,11 +165,12 @@ vrna_path_t *vrna_path_findpath(vrna_fold_compound_t  *vc,
  *  @param maxE     An upper bound for the saddle point energy in 10cal/mol
  *  @returns        The saddle energy in 10cal/mol
  */
-vrna_path_t *vrna_path_findpath_ub(vrna_fold_compound_t *vc,
-                                   const char           *s1,
-                                   const char           *s2,
-                                   int                  width,
-                                   int                  maxE);
+vrna_path_t *
+vrna_path_findpath_ub(vrna_fold_compound_t  *vc,
+                      const char            *s1,
+                      const char            *s2,
+                      int                   width,
+                      int                   maxE);
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -182,10 +187,11 @@ vrna_path_t *vrna_path_findpath_ub(vrna_fold_compound_t *vc,
  *  \param width integer how many strutures are being kept during the search
  *  \returns the saddle energy in 10cal/mol
  */
-int find_saddle(const char  *seq,
-                const char  *s1,
-                const char  *s2,
-                int         width);
+int
+find_saddle(const char  *seq,
+            const char  *s1,
+            const char  *s2,
+            int         width);
 
 
 /**
@@ -193,7 +199,8 @@ int find_saddle(const char  *seq,
  *
  *  \param path pointer to memory to be freed
  */
-void    free_path(vrna_path_t *path);
+void
+free_path(vrna_path_t *path);
 
 
 /**
@@ -208,10 +215,11 @@ void    free_path(vrna_path_t *path);
  *  \param width integer how many strutures are being kept during the search
  *  \returns direct refolding path between two structures
  */
-vrna_path_t *get_path(const char  *seq,
-                      const char  *s1,
-                      const char  *s2,
-                      int         width);
+vrna_path_t *
+get_path(const char *seq,
+         const char *s1,
+         const char *s2,
+         int        width);
 
 
 #endif

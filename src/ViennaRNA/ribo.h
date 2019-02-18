@@ -7,6 +7,8 @@
  *  @brief  Parse RiboSum Scoring Matrices for Covariance Scoring of Alignments
  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *  @addtogroup   file_utils
  *  @{
@@ -32,4 +34,6 @@ float **readribosum(char *name);
 /**
  *  @}
  */
+#endif
+
 #endif

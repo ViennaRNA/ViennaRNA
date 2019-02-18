@@ -1,8 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_BOLTZMANN_SAMPLING_H
 #define VIENNA_RNA_PACKAGE_BOLTZMANN_SAMPLING_H
 
-#include <ViennaRNA/datastructures/basic.h>
-
 /**
  *  @file boltzmann_sampling.h
  *  @ingroup subopt_and_representatives
@@ -21,6 +19,7 @@
 typedef void (vrna_boltzmann_sampling_callback)(const char  *stucture,
                                                 void        *data);
 
+#include <ViennaRNA/fold_compound.h>
 
 /**
  *  @brief Sample a secondary structure of a subsequence from the Boltzmann ensemble according its probability

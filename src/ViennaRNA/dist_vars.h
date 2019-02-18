@@ -6,6 +6,8 @@
  *  @brief Global variables for Distance-Package
  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *  @brief Produce an alignment of the two structures being compared by
  *  tracing the editing path giving the minimum distance.
@@ -57,4 +59,6 @@ typedef struct {
                  int    sign;
                  float  weight;
                } swString;
+#endif
+
 #endif

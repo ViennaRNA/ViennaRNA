@@ -79,6 +79,7 @@ typedef struct vrna_pinfo_s pair_info;
 #endif
 
 #include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/model.h>
 
 /**
  *  @brief A base pair info structure
@@ -276,6 +277,7 @@ vrna_aln_consensus_mis(const char       **alignment,
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
+#include <stdio.h>
 /**
  *  @ingroup  aln_utils_deprecated
  */

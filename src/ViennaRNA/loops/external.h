@@ -2,6 +2,7 @@
 #define VIENNA_RNA_PACKAGE_LOOPS_EXTERNAL_H
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
 
 #ifdef VRNA_WARN_DEPRECATED

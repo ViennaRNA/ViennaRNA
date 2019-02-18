@@ -3,6 +3,8 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 #define   RNA_UP_MODE_1   1U
 #define   RNA_UP_MODE_2   2U
 #define   RNA_UP_MODE_3   4U
@@ -144,5 +146,7 @@ free_pu_contrib(pu_contrib *pu);
 /**
  * @}
  */
+
+#endif
 
 #endif

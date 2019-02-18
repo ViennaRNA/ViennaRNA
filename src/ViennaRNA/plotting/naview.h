@@ -10,6 +10,8 @@
  *
  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *
  */
@@ -17,8 +19,11 @@ int naview_xy_coordinates(short *pair_table,
                           float *X,
                           float *Y);
 
+#endif
+
 /**
  * @}
  */
+
 
 #endif

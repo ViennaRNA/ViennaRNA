@@ -7,6 +7,7 @@
 #include <ViennaRNA/mfe.h>
 #include <ViennaRNA/part_func.h>
 #include <ViennaRNA/utils/alignments.h>
+#include <ViennaRNA/utils/structures.h>
 #include <ViennaRNA/boltzmann_sampling.h>
 
 #ifdef VRNA_WARN_DEPRECATED

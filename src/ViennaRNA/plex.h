@@ -3,6 +3,7 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 extern int subopt_sorted;
 
@@ -76,5 +77,7 @@ duplexT** Lduplexfold_CXS(const char*s1,
 
 int      arraySize(duplexT** array);
 void     freeDuplexT(duplexT** array);
+
+#endif
 
 #endif

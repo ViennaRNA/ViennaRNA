@@ -26,17 +26,21 @@
  *  @brief  Functions to cope with various aspects related to the nucleotide sequence alphabet
  */
 
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/model.h>
 
-unsigned int vrna_sequence_length_max(unsigned int options);
+unsigned int
+vrna_sequence_length_max(unsigned int options);
 
 
-int vrna_nucleotide_IUPAC_identity(char a,
-                                   char b);
+int
+vrna_nucleotide_IUPAC_identity(char a,
+                               char b);
 
 
-void vrna_ptypes_prepare(vrna_fold_compound_t *fc,
-                         unsigned int         options);
+void
+vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
+                    unsigned int          options);
 
 
 /**
@@ -48,24 +52,27 @@ void vrna_ptypes_prepare(vrna_fold_compound_t *fc,
  *  @see  vrna_idx_col_wise(), #vrna_fold_compound_t
  *
  */
-char *vrna_ptypes(const short *S,
-                  vrna_md_t   *md);
+char *
+vrna_ptypes(const short *S,
+            vrna_md_t   *md);
 
 
 /**
  *  @brief Get a numerical representation of the nucleotide sequence
  *
  */
-short *vrna_seq_encode(const char *sequence,
-                       vrna_md_t  *md);
+short *
+vrna_seq_encode(const char  *sequence,
+                vrna_md_t   *md);
 
 
 /**
  *  @brief Get a numerical representation of the nucleotide sequence (simple version)
  *
  */
-short *vrna_seq_encode_simple(const char  *sequence,
-                              vrna_md_t   *md);
+short *
+vrna_seq_encode_simple(const char *sequence,
+                       vrna_md_t  *md);
 
 
 /**
@@ -79,8 +86,9 @@ short *vrna_seq_encode_simple(const char  *sequence,
  *  @param  md  The model details that determine the kind of encoding
  *  @return     The encoded nucleotide
  */
-int vrna_nucleotide_encode(char       c,
-                           vrna_md_t  *md);
+int
+vrna_nucleotide_encode(char       c,
+                       vrna_md_t  *md);
 
 
 /**
@@ -94,17 +102,19 @@ int vrna_nucleotide_encode(char       c,
  *  @param  md  The model details that determine the kind of decoding
  *  @return     The decoded nucleotide character
  */
-char vrna_nucleotide_decode(int       enc,
-                            vrna_md_t *md);
+char
+vrna_nucleotide_decode(int        enc,
+                       vrna_md_t  *md);
 
 
-void vrna_aln_encode(const char   *sequence,
-                     short        **S_p,
-                     short        **s5_p,
-                     short        **s3_p,
-                     char         **ss_p,
-                     unsigned int **as_p,
-                     vrna_md_t    *md);
+void
+vrna_aln_encode(const char    *sequence,
+                short         **S_p,
+                short         **s5_p,
+                short         **s3_p,
+                char          **ss_p,
+                unsigned int  **as_p,
+                vrna_md_t     *md);
 
 
 unsigned int
@@ -133,7 +143,7 @@ vrna_get_ptype_window(int   i,
 DEPRECATED(char *get_ptypes(const short   *S,
                             vrna_md_t     *md,
                             unsigned int  idx_type),
-          "Use vrna_pytpes() instead");
+           "Use vrna_pytpes() instead");
 
 #endif
 

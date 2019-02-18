@@ -32,6 +32,7 @@
  *
  */
 
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 

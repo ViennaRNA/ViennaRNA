@@ -110,7 +110,7 @@
 
 typedef struct vrna_move_s vrna_move_t;
 
-#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 
 /**
  *  @brief Option flag indicating insertion move
@@ -130,9 +130,9 @@ typedef struct vrna_move_s vrna_move_t;
  */
 #define VRNA_MOVESET_SHIFT       16
 /**
-*  @brief Option flag indicating moves without lonely base pairs
-*  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
-*/
+ *  @brief Option flag indicating moves without lonely base pairs
+ *  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
+ */
 #define VRNA_MOVESET_NO_LP       32
 
 /**
@@ -154,18 +154,24 @@ typedef struct vrna_move_s vrna_move_t;
  * A value of 0 is either field is typically used to indicate the lists last element.
  */
 struct vrna_move_s {
-  int pos_5;  /**< The 5' position of a base pair, or any position of a shifted pair */
-  int pos_3;  /**< The 3' position of a base pair, or any position of a shifted pair */
-  vrna_move_t *next; /**< The next base pair (if an elementary move changes more than one base pair)
-                          Has to be terminated with move 0,0 */
+  int         pos_5;  /**< The 5' position of a base pair, or any position of a shifted pair */
+  int         pos_3;  /**< The 3' position of a base pair, or any position of a shifted pair */
+  vrna_move_t *next;  /**< The next base pair (if an elementary move changes more than one base pair)
+                       *   Has to be terminated with move 0,0 
+                       */
 };
 
-vrna_move_t vrna_move_init(int pos_5, int pos_3);
+vrna_move_t
+vrna_move_init(int  pos_5,
+               int  pos_3);
+
 
 /**
  * delete all moves in a zero terminated list.
  */
-void vrna_move_list_free(vrna_move_t *moves);
+void
+vrna_move_list_free(vrna_move_t *moves);
+
 
 /**
  * @brief Apply a particular move / transition to a secondary structure, i.e. transform a structure
@@ -179,9 +185,9 @@ vrna_move_apply(short             *pt,
 
 
 void
-vrna_move_apply_db(char              *structure,
-                   const short       *pt,
-                   const vrna_move_t *m);
+vrna_move_apply_db(char               *structure,
+                   const short        *pt,
+                   const vrna_move_t  *m);
 
 
 /**

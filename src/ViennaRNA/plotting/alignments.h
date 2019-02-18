@@ -13,16 +13,6 @@
  */
 
 /**
- *  @brief Produce PostScript sequence alignment color-annotated by consensus
- *  structure
- */
-int PS_color_aln(const char *structure,
-                 const char *filename,
-                 const char *seqs[],
-                 const char *names[]);
-
-
-/**
  *  @param columns  The number of columns before the alignment is wrapped as a new block (values less than 1 indicate no wrapping)
  */
 int
@@ -46,6 +36,18 @@ vrna_file_PS_aln_sub(const char *filename,
                      int        columns);
 
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/**
+ *  @brief Produce PostScript sequence alignment color-annotated by consensus
+ *  structure
+ */
+int PS_color_aln(const char *structure,
+                 const char *filename,
+                 const char *seqs[],
+                 const char *names[]);
+
+
 /**
  *  PS_color_aln for duplexes
  */
@@ -54,6 +56,7 @@ int aliPS_color_aln(const char  *structure,
                     const char  *seqs[],
                     const char  *names[]);
 
+#endif
 
 /**
  * @}
