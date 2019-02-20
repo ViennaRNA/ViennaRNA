@@ -35,14 +35,14 @@
  *** we use a*(sin(x+b)+1)^2, with a=2/(3*sqrt(3)), b=Pi/6-sqrt(3)/2,
  *** in the interval b<x<sqrt(3)/2
  */
-#define CLIP_NEGATIVE(X) ((X)<0 ? 0 : (X))
-#define SMOOTH(X) ( use_mfelike_energies       ?   CLIP_NEGATIVE(X) : \
-                    ((X) / SCALE < -1.2283697) ?                 0  : \
-                    ((X) / SCALE >  0.8660254) ?                (X) : \
-                                                   SCALE*0.38490018   \
-                                                       * (sin((X)/SCALE-0.34242663) + 1) \
-                                                       * (sin((X)/SCALE-0.34242663) + 1) \
-                  )
+#define CLIP_NEGATIVE(X) ((X) < 0 ? 0 : (X))
+#define SMOOTH(X) ((!pf_smooth)               ?   CLIP_NEGATIVE(X) : \
+                   ((X) / SCALE < -1.2283697) ?                 0  : \
+                   ((X) / SCALE > 0.8660254) ?                (X) : \
+                   SCALE *0.38490018   \
+                   * (sin((X) / SCALE - 0.34242663) + 1) \
+                   * (sin((X) / SCALE - 0.34242663) + 1) \
+                   )
 
 /* #define SMOOTH(X) ((X)<0 ? 0 : (X)) */
 
@@ -53,9 +53,7 @@
  * parameters (get_scaled_exp_params()), e.g. for explicit partition function
  * computations.
  */
-#define TRUNC_MAYBE(X) (use_mfelike_energies ? (double)((int)(X)) : (X))
-
-int const use_mfelike_energies = 1;     /* trunc energy values to int before exp() calls */
+#define TRUNC_MAYBE(X) ((!pf_smooth) ? (double)((int)(X)) : (X))
 
 /*
  #################################
@@ -385,7 +383,9 @@ get_scaled_params(vrna_md_t *md)
       params->gquad[i][j] = (int)GQuadAlpha_T * (i - 1) + (int)(((double)GQuadBeta_T) * log(j - 2));
     }
 
-  params->gquadLayerMismatch    = (int)((double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * tempf);
+  params->gquadLayerMismatch =
+    (int)((double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) *
+          tempf);
   params->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
   for (i = 0; i < 31; i++)
@@ -512,6 +512,7 @@ get_scaled_exp_params(vrna_md_t *md,
                       double    pfs)
 {
   unsigned int      i, j, k, l;
+  int               pf_smooth;
   double            kT, TT;
   double            GT;
   vrna_exp_param_t  *pf;
@@ -527,6 +528,7 @@ get_scaled_exp_params(vrna_md_t *md,
   pf->alpha         = md->betaScale;
   pf->kT            = kT = md->betaScale * (md->temperature + K0) * GASCONST; /* kT in cal/mol  */
   pf->pf_scale      = pfs;
+  pf_smooth         = md->pf_smooth;
   TT                = (md->temperature + K0) / (Tmeasure);
 
   for (i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
@@ -538,7 +540,8 @@ get_scaled_exp_params(vrna_md_t *md,
       pf->expgquad[i][j] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
     }
 
-  GT = (double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
+  GT = (double)GQuadLayerMismatchH -
+       (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
   pf->expgquadLayerMismatch = exp(-TRUNC_MAYBE(GT) * 10. / kT);
   pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
@@ -704,6 +707,7 @@ get_exp_params_ali(vrna_md_t    *md,
 {
   /* scale energy parameters and pre-calculate Boltzmann weights */
   unsigned int      i, j, k, l;
+  int               pf_smooth;
   double            kTn, TT;
   double            GT;
   vrna_exp_param_t  *pf;
@@ -714,6 +718,7 @@ get_exp_params_ali(vrna_md_t    *md,
   pf->temperature   = md->temperature;
   pf->pf_scale      = pfs;
   pf->kT            = kTn = ((double)n_seq) * md->betaScale * (md->temperature + K0) * GASCONST; /* kT in cal/mol  */
+  pf_smooth         = md->pf_smooth;
   TT                = (md->temperature + K0) / (Tmeasure);
 
   for (i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
@@ -725,7 +730,8 @@ get_exp_params_ali(vrna_md_t    *md,
       pf->expgquad[i][j] = exp(-GT * 10. / kTn);
     }
 
-  GT = (double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
+  GT = (double)GQuadLayerMismatchH -
+       (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
   pf->expgquadLayerMismatch = exp(-GT * 10. / kTn);
   pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 

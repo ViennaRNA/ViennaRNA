@@ -154,6 +154,9 @@ typedef struct vrna_md_s vrna_md_t;
 #define VRNA_MODEL_DEFAULT_ALI_NC_FACT    1.
 
 
+#define VRNA_MODEL_DEFAULT_PF_SMOOTH      1
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifndef MAXALPHA
@@ -177,6 +180,7 @@ typedef struct vrna_md_s vrna_md_t;
 struct vrna_md_s {
   double  temperature;                      /**<  @brief  The temperature used to scale the thermodynamic parameters */
   double  betaScale;                        /**<  @brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
+  int     pf_smooth;                        /**<  @brief  A flat specifying whether energies in Boltzmann factors need to be smoothed */
   int     dangles;                          /**<  @brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
                                              *
                                              *    If set to 0 no stabilizing energies are assigned to bases adjacent to
@@ -347,6 +351,14 @@ vrna_md_defaults_betaScale(double b);
  */
 double
 vrna_md_defaults_betaScale_get(void);
+
+
+void
+vrna_md_defaults_pf_smooth(int s);
+
+
+int
+vrna_md_defaults_pf_smooth_get(void);
 
 
 /**

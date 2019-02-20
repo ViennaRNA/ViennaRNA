@@ -100,6 +100,7 @@ PRIVATE int       BP_pair[NBASES][NBASES] =
 PRIVATE vrna_md_t defaults = {
   VRNA_MODEL_DEFAULT_TEMPERATURE,
   1.,
+  VRNA_MODEL_DEFAULT_PF_SMOOTH,
   VRNA_MODEL_DEFAULT_DANGLES,
   VRNA_MODEL_DEFAULT_SPECIAL_HP,
   VRNA_MODEL_DEFAULT_NO_LP,
@@ -122,17 +123,17 @@ PRIVATE vrna_md_t defaults = {
   VRNA_MODEL_DEFAULT_ALI_CV_FACT,
   VRNA_MODEL_DEFAULT_ALI_NC_FACT,
   1.07,
-  { 0, 2,  1, 4, 3, 6, 5, 7 },
-  { 0, 1,  2, 3, 4, 3, 2, 0 },
+  { 0,                              2,  1, 4, 3, 6, 5, 7 },
+  { 0,                              1,  2, 3, 4, 3, 2, 0 },
   {
-    { 0, 0,  0, 0, 0, 0, 0, 0 },
-    { 0, 0,  0, 0, 5, 0, 0, 5 },
-    { 0, 0,  0, 1, 0, 0, 0, 0 },
-    { 0, 0,  2, 0, 3, 0, 0, 0 },
-    { 0, 6,  0, 4, 0, 0, 0, 6 },
-    { 0, 0,  0, 0, 0, 0, 2, 0 },
-    { 0, 0,  0, 0, 0, 1, 0, 0 },
-    { 0, 6,  0, 0, 5, 0, 0, 0 }
+    { 0,                            0,  0, 0, 0, 0, 0, 0 },
+    { 0,                            0,  0, 0, 5, 0, 0, 5 },
+    { 0,                            0,  0, 1, 0, 0, 0, 0 },
+    { 0,                            0,  2, 0, 3, 0, 0, 0 },
+    { 0,                            6,  0, 4, 0, 0, 0, 6 },
+    { 0,                            0,  0, 0, 0, 0, 2, 0 },
+    { 0,                            0,  0, 0, 0, 1, 0, 0 },
+    { 0,                            6,  0, 0, 5, 0, 0, 0 }
   }
 };
 
@@ -148,8 +149,8 @@ fill_pair_matrices(vrna_md_t *md);
 
 
 PRIVATE void
-copy_nonstandards(vrna_md_t  *md,
-                  const char *ns);
+copy_nonstandards(vrna_md_t   *md,
+                  const char  *ns);
 
 
 PRIVATE void
@@ -332,6 +333,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.nc_fact          = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
   defaults.temperature      = VRNA_MODEL_DEFAULT_TEMPERATURE;
   defaults.betaScale        = VRNA_MODEL_DEFAULT_BETA_SCALE;
+  defaults.pf_smooth        = VRNA_MODEL_DEFAULT_PF_SMOOTH;
   defaults.sfact            = 1.07;
   defaults.nonstandards[0]  = '\0';
 
@@ -365,6 +367,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_nc_fact(md_p->nc_fact);
     vrna_md_defaults_temperature(md_p->temperature);
     vrna_md_defaults_betaScale(md_p->betaScale);
+    vrna_md_defaults_pf_smooth(md_p->pf_smooth);
     vrna_md_defaults_sfact(md_p->sfact);
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
@@ -432,6 +435,20 @@ PUBLIC double
 vrna_md_defaults_betaScale_get(void)
 {
   return defaults.betaScale;
+}
+
+
+PUBLIC void
+vrna_md_defaults_pf_smooth(int s)
+{
+  defaults.pf_smooth = s;
+}
+
+
+PUBLIC int
+vrna_md_defaults_pf_smooth_get(void)
+{
+  return defaults.pf_smooth;
 }
 
 
@@ -840,7 +857,7 @@ fill_pair_matrices(vrna_md_t *md)
       break;
 
     case 1:
-      for (i = 1; i < MAXALPHA; ) {
+      for (i = 1; i < MAXALPHA;) {
         md->alias[i++]  = 3;            /* A <-> G */
         md->alias[i++]  = 2;            /* B <-> C */
       }
@@ -853,7 +870,7 @@ fill_pair_matrices(vrna_md_t *md)
       break;
 
     case 2:
-      for (i = 1; i < MAXALPHA; ) {
+      for (i = 1; i < MAXALPHA;) {
         md->alias[i++]  = 1;            /* A <-> A*/
         md->alias[i++]  = 4;            /* B <-> U */
       }
@@ -866,7 +883,7 @@ fill_pair_matrices(vrna_md_t *md)
       break;
 
     case 3:
-      for (i = 1; i < MAXALPHA - 2; ) {
+      for (i = 1; i < MAXALPHA - 2;) {
         md->alias[i++]  = 3;            /* A <-> G */
         md->alias[i++]  = 2;            /* B <-> C */
         md->alias[i++]  = 1;            /* C <-> A */
@@ -974,6 +991,7 @@ set_model_details(vrna_md_t *md)
     md->nc_fact         = nc_fact;
     md->temperature     = temperature;
     md->betaScale       = VRNA_MODEL_DEFAULT_BETA_SCALE;
+    md->pf_smooth       = VRNA_MODEL_DEFAULT_PF_SMOOTH;
     md->sfact           = 1.07;
 
     if (nonstandards)
