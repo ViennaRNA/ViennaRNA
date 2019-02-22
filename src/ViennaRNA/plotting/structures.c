@@ -136,8 +136,8 @@ vrna_file_PS_rnaplot_a( const char *seq,
   X = (float *) vrna_alloc((length+1)*sizeof(float));
   Y = (float *) vrna_alloc((length+1)*sizeof(float));
 
-  double *arc_coords;
-  arc_coords = (double *) vrna_alloc(6*length*sizeof(double));
+  double *arc_coords = (double *) vrna_alloc(6*length*sizeof(double));
+
   for (i = 0; i < length; i++) {
     arc_coords[6*i+0] = -1.;
     arc_coords[6*i+1] = -1.;
@@ -209,6 +209,25 @@ vrna_file_PS_rnaplot_a( const char *seq,
 
   /* coordinates */
   print_PS_coords(xyplot, X, Y, length);
+
+  fprintf(xyplot, "/arcs [\n");
+  for (i = 0; i < length; i++)
+  {
+    if (arc_coords[6*i + 2] > 0) { /* 6*i+2 is the radius parameter */
+      fprintf(xyplot, "[%3.8f %3.8f %3.8f %3.8f %3.8f %3.8f]\n",
+        arc_coords[6*i + 0],
+        arc_coords[6*i + 1],
+        arc_coords[6*i + 2],
+        arc_coords[6*i + 3],
+        arc_coords[6*i + 4],
+        arc_coords[6*i + 5]
+      );
+    } else {
+      fprintf(xyplot, "[]\n");
+    }
+  }
+  free(arc_coords);
+  fprintf(xyplot, "] def\n");
 
   /* correction coordinates for quadratic beziers in case we produce a circplot */
   if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR)
