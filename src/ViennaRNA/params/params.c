@@ -55,6 +55,32 @@
  */
 #define TRUNC_MAYBE(X) ((!pf_smooth) ? (double)((int)(X)) : (X))
 
+
+/* Rescale Free energy contribution according to deviation of temperature from measurement conditions */
+#define RESCALE_dG(dG, dH, dT)   ((dH) - ((dH) - (dG)) * dT)
+
+/*
+ * Rescale Free energy contribution according to deviation of temperature from measurement conditions
+ * and convert it to Boltzmann Factor for specific kT
+ */
+#define RESCALE_BF(dG, dH, dT, kT)          ( \
+    exp( \
+      -TRUNC_MAYBE((double)RESCALE_dG((dG), (dH), (dT))) \
+      * 10. \
+      / kT \
+      ) \
+    )
+
+#define RESCALE_BF_SMOOTH(dG, dH, dT, kT)   ( \
+    exp(  \
+      SMOOTH( \
+        -TRUNC_MAYBE((double)RESCALE_dG((dG), (dH), (dT))) \
+        ) \
+      * 10. \
+      / kT \
+      ) \
+    )
+
 /*
  #################################
  # PRIVATE VARIABLES             #
@@ -76,19 +102,23 @@ PRIVATE int               pf_id = -1;
  #################################
  */
 
-PRIVATE vrna_param_t *get_scaled_params(vrna_md_t *md);
+PRIVATE vrna_param_t *
+get_scaled_params(vrna_md_t *md);
 
 
-PRIVATE vrna_exp_param_t *get_scaled_exp_params(vrna_md_t *md,
-                                                double    pfs);
+PRIVATE vrna_exp_param_t *
+get_scaled_exp_params(vrna_md_t *md,
+                      double    pfs);
 
 
-PRIVATE vrna_exp_param_t *get_exp_params_ali(vrna_md_t    *md,
-                                             unsigned int n_seq,
-                                             double       pfs);
+PRIVATE vrna_exp_param_t *
+get_exp_params_ali(vrna_md_t    *md,
+                   unsigned int n_seq,
+                   double       pfs);
 
 
-PRIVATE void              rescale_params(vrna_fold_compound_t *vc);
+PRIVATE void
+rescale_params(vrna_fold_compound_t *vc);
 
 
 /*
@@ -376,81 +406,84 @@ get_scaled_params(vrna_md_t *md)
   params->temperature   = md->temperature;
   tempf                 = ((params->temperature + K0) / Tmeasure);
 
+  params->ninio[2]              = RESCALE_dG(ninio37, niniodH, tempf);
+  params->lxc                   = lxc37 * tempf;
+  params->TripleC               = RESCALE_dG(TripleC37, TripleCdH, tempf);
+  params->MultipleCA            = RESCALE_dG(MultipleCA37, MultipleCAdH, tempf);
+  params->MultipleCB            = RESCALE_dG(MultipleCB37, MultipleCBdH, tempf);
+  params->TerminalAU            = RESCALE_dG(TerminalAU37, TerminalAUdH, tempf);
+  params->DuplexInit            = RESCALE_dG(DuplexInit37, DuplexInitdH, tempf);
+  params->MLbase                = RESCALE_dG(ML_BASE37, ML_BASEdH, tempf);
+  params->MLclosing             = RESCALE_dG(ML_closing37, ML_closingdH, tempf);
+  params->gquadLayerMismatch    = RESCALE_dG(GQuadLayerMismatch37, GQuadLayerMismatchH, tempf);
+  params->gquadLayerMismatchMax = GQuadLayerMismatchMax;
+
   for (i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
     for (j = 3 * VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH; j++) {
-      double  GQuadAlpha_T  = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * tempf;
-      double  GQuadBeta_T   = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * tempf;
+      double  GQuadAlpha_T  = RESCALE_dG(GQuadAlpha37, GQuadAlphadH, tempf);
+      double  GQuadBeta_T   = RESCALE_dG(GQuadBeta37, GQuadBetadH, tempf);
       params->gquad[i][j] = (int)GQuadAlpha_T * (i - 1) + (int)(((double)GQuadBeta_T) * log(j - 2));
     }
 
-  params->gquadLayerMismatch =
-    (int)((double)GQuadLayerMismatchH - (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) *
-          tempf);
-  params->gquadLayerMismatchMax = GQuadLayerMismatchMax;
-
   for (i = 0; i < 31; i++)
-    params->hairpin[i] = hairpindH[i] - (hairpindH[i] - hairpin37[i]) * tempf;
+    params->hairpin[i] = RESCALE_dG(hairpin37[i], hairpindH[i], tempf);
+
   for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
-    params->bulge[i]          = bulgedH[i] - (bulgedH[i] - bulge37[i]) * tempf;
-    params->internal_loop[i]  = internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) *
-                                tempf;
+    params->bulge[i]          = RESCALE_dG(bulge37[i], bulgedH[i], tempf);
+    params->internal_loop[i]  = RESCALE_dG(internal_loop37[i], internal_loopdH[i], tempf);
   }
-  params->lxc = lxc37 * tempf;
+
   for (; i <= MAXLOOP; i++) {
-    params->bulge[i]          = params->bulge[30] + (int)(params->lxc * log((double)(i) / 30.));
-    params->internal_loop[i]  = params->internal_loop[30] +
-                                (int)(params->lxc * log((double)(i) / 30.));
+    params->bulge[i] = params->bulge[30] +
+                       (int)(params->lxc * log((double)(i) / 30.));
+    params->internal_loop[i] = params->internal_loop[30] +
+                               (int)(params->lxc * log((double)(i) / 30.));
   }
-
-  params->ninio[2] = niniodH - (niniodH - ninio37) * tempf;
-
-  params->TripleC     = TripleCdH - (TripleCdH - TripleC37) * tempf;
-  params->MultipleCA  = MultipleCAdH - (MultipleCAdH - MultipleCA37) * tempf;
-  params->MultipleCB  = MultipleCBdH - (MultipleCBdH - MultipleCB37) * tempf;
 
   for (i = 0; (i * 7) < strlen(Tetraloops); i++)
-    params->Tetraloop_E[i] = TetraloopdH[i] - (TetraloopdH[i] - Tetraloop37[i]) * tempf;
+    params->Tetraloop_E[i] = RESCALE_dG(Tetraloop37[i], TetraloopdH[i], tempf);
+
   for (i = 0; (i * 5) < strlen(Triloops); i++)
-    params->Triloop_E[i] = TriloopdH[i] - (TriloopdH[i] - Triloop37[i]) * tempf;
+    params->Triloop_E[i] = RESCALE_dG(Triloop37[i], TriloopdH[i], tempf);
+
   for (i = 0; (i * 9) < strlen(Hexaloops); i++)
-    params->Hexaloop_E[i] = HexaloopdH[i] - (HexaloopdH[i] - Hexaloop37[i]) * tempf;
-
-  params->TerminalAU = TerminalAUdH - (TerminalAUdH - TerminalAU37) * tempf;
-
-  params->DuplexInit = DuplexInitdH - (DuplexInitdH - DuplexInit37) * tempf;
-
-  params->MLbase = ML_BASEdH - (ML_BASEdH - ML_BASE37) * tempf;
+    params->Hexaloop_E[i] = RESCALE_dG(Hexaloop37[i], HexaloopdH[i], tempf);
 
   for (i = 0; i <= NBPAIRS; i++)
-    params->MLintern[i] = ML_interndH - (ML_interndH - ML_intern37) * tempf;
-
-  params->MLclosing = ML_closingdH - (ML_closingdH - ML_closing37) * tempf;
-
+    params->MLintern[i] = RESCALE_dG(ML_intern37, ML_interndH, tempf);
 
   /* stacks    G(T) = H - [H - G(T0)]*T/T0 */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
-      params->stack[i][j] = stackdH[i][j] - (stackdH[i][j] - stack37[i][j]) * tempf;
+      params->stack[i][j] = RESCALE_dG(stack37[i][j],
+                                       stackdH[i][j],
+                                       tempf);
 
   /* mismatches */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j < 5; j++)
       for (k = 0; k < 5; k++) {
         int mm;
-        params->mismatchI[i][j][k] = mismatchIdH[i][j][k] -
-                                     (mismatchIdH[i][j][k] - mismatchI37[i][j][k]) * tempf;
-        params->mismatchH[i][j][k] = mismatchHdH[i][j][k] -
-                                     (mismatchHdH[i][j][k] - mismatchH37[i][j][k]) * tempf;
-        params->mismatch1nI[i][j][k] = mismatch1nIdH[i][j][k] -
-                                       (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k]) * tempf;                     /* interior nx1 loops */
-        params->mismatch23I[i][j][k] = mismatch23IdH[i][j][k] -
-                                       (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k]) * tempf;                     /* interior 2x3 loops */
+        params->mismatchI[i][j][k] = RESCALE_dG(mismatchI37[i][j][k],
+                                                mismatchIdH[i][j][k],
+                                                tempf);
+        params->mismatchH[i][j][k] = RESCALE_dG(mismatchH37[i][j][k],
+                                                mismatchHdH[i][j][k],
+                                                tempf);
+        params->mismatch1nI[i][j][k] = RESCALE_dG(mismatch1nI37[i][j][k],
+                                                  mismatch1nIdH[i][j][k],
+                                                  tempf);
+        params->mismatch23I[i][j][k] = RESCALE_dG(mismatch23I37[i][j][k],
+                                                  mismatch23IdH[i][j][k],
+                                                  tempf);
         if (md->dangles) {
-          mm = mismatchMdH[i][j][k] -
-               (mismatchMdH[i][j][k] - mismatchM37[i][j][k]) * tempf;
+          mm = RESCALE_dG(mismatchM37[i][j][k],
+                          mismatchMdH[i][j][k],
+                          tempf);
           params->mismatchM[i][j][k]  = (mm > 0) ? 0 : mm;
-          mm                          = mismatchExtdH[i][j][k] -
-                                        (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k]) * tempf;
+          mm                          = RESCALE_dG(mismatchExt37[i][j][k],
+                                                   mismatchExtdH[i][j][k],
+                                                   tempf);
           params->mismatchExt[i][j][k] = (mm > 0) ? 0 : mm;
         } else {
           params->mismatchM[i][j][k] = params->mismatchExt[i][j][k] = 0;
@@ -461,18 +494,24 @@ get_scaled_params(vrna_md_t *md)
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j < 5; j++) {
       int dd;
-      dd                    = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j]) * tempf;
+      dd = RESCALE_dG(dangle5_37[i][j],
+                      dangle5_dH[i][j],
+                      tempf);
       params->dangle5[i][j] = (dd > 0) ? 0 : dd;  /* must be <= 0 */
-      dd                    = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j]) * tempf;
+      dd                    = RESCALE_dG(dangle3_37[i][j],
+                                         dangle3_dH[i][j],
+                                         tempf);
       params->dangle3[i][j] = (dd > 0) ? 0 : dd;  /* must be <= 0 */
     }
+
   /* interior 1x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++)
-          params->int11[i][j][k][l] = int11_dH[i][j][k][l] -
-                                      (int11_dH[i][j][k][l] - int11_37[i][j][k][l]) * tempf;
+          params->int11[i][j][k][l] = RESCALE_dG(int11_37[i][j][k][l],
+                                                 int11_dH[i][j][k][l],
+                                                 tempf);
 
   /* interior 2x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
@@ -481,10 +520,11 @@ get_scaled_params(vrna_md_t *md)
         for (l = 0; l < 5; l++) {
           int m;
           for (m = 0; m < 5; m++)
-            params->int21[i][j][k][l][m] = int21_dH[i][j][k][l][m] -
-                                           (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m]) *
-                                           tempf;
+            params->int21[i][j][k][l][m] = RESCALE_dG(int21_37[i][j][k][l][m],
+                                                      int21_dH[i][j][k][l][m],
+                                                      tempf);
         }
+
   /* interior 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
@@ -493,9 +533,9 @@ get_scaled_params(vrna_md_t *md)
           int m, n;
           for (m = 0; m < 5; m++)
             for (n = 0; n < 5; n++)
-              params->int22[i][j][k][l][m][n] = int22_dH[i][j][k][l][m][n] -
-                                                (int22_dH[i][j][k][l][m][n] -
-                                                 int22_37[i][j][k][l][m][n]) * tempf;
+              params->int22[i][j][k][l][m][n] = RESCALE_dG(int22_37[i][j][k][l][m][n],
+                                                           int22_dH[i][j][k][l][m][n],
+                                                           tempf);
         }
 
   strncpy(params->Tetraloops, Tetraloops, 281);
@@ -531,79 +571,63 @@ get_scaled_exp_params(vrna_md_t *md,
   pf_smooth         = md->pf_smooth;
   TT                = (md->temperature + K0) / (Tmeasure);
 
+  pf->lxc                   = lxc37 * TT;
+  pf->expDuplexInit         = RESCALE_BF(DuplexInit37, DuplexInitdH, TT, kT);
+  pf->expTermAU             = RESCALE_BF(TerminalAU37, TerminalAUdH, TT, kT);
+  pf->expMLbase             = RESCALE_BF(ML_BASE37, ML_BASEdH, TT, kT);
+  pf->expMLclosing          = RESCALE_BF(ML_closing37, ML_closingdH, TT, kT);
+  pf->expgquadLayerMismatch = RESCALE_BF(GQuadLayerMismatch37, GQuadLayerMismatchH, TT, kT);
+  pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
+
   for (i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
     for (j = 3 * VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH; j++) {
-      double  GQuadAlpha_T  = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * TT;
-      double  GQuadBeta_T   = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * TT;
+      double  GQuadAlpha_T  = RESCALE_dG(GQuadAlpha37, GQuadAlphadH, TT);
+      double  GQuadBeta_T   = RESCALE_dG(GQuadBeta37, GQuadBetadH, TT);
       GT = ((double)GQuadAlpha_T) * ((double)(i - 1)) + ((double)GQuadBeta_T) *
            log(((double)j) - 2.);
       pf->expgquad[i][j] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
     }
 
-  GT = (double)GQuadLayerMismatchH -
-       (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
-  pf->expgquadLayerMismatch = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-  pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
-
   /* loop energies: hairpins, bulges, interior, mulit-loops */
-  for (i = 0; i < 31; i++) {
-    GT                = hairpindH[i] - (hairpindH[i] - hairpin37[i]) * TT;
-    pf->exphairpin[i] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-  }
+  for (i = 0; i < 31; i++)
+    pf->exphairpin[i] = RESCALE_BF(hairpin37[i], hairpindH[i], TT, kT);
 
   for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
-    GT                  = bulgedH[i] - (bulgedH[i] - bulge37[i]) * TT;
-    pf->expbulge[i]     = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-    GT                  = internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) * TT;
-    pf->expinternal[i]  = exp(-TRUNC_MAYBE(GT) * 10. / kT);
+    pf->expbulge[i]     = RESCALE_BF(bulge37[i], bulgedH[i], TT, kT);
+    pf->expinternal[i]  = RESCALE_BF(internal_loop37[i], internal_loopdH[i], TT, kT);
   }
+
   /* special case of size 2 interior loops (single mismatch) */
   if (james_rule)
     pf->expinternal[2] = exp(-80 * 10. / kT);
 
-  pf->lxc = lxc37 * TT;
+  GT = RESCALE_dG(bulge37[30],
+                  bulgedH[30],
+                  TT);
+  for (i = 31; i <= MAXLOOP; i++)
+    pf->expbulge[i] = exp(-TRUNC_MAYBE(GT + (pf->lxc * log(i / 30.))) * 10. / kT);
 
-  GT                = DuplexInitdH - (DuplexInitdH - DuplexInit37) * TT;
-  pf->expDuplexInit = exp(-TRUNC_MAYBE(GT) * 10. / kT);
+  GT = RESCALE_dG(internal_loop37[30],
+                  internal_loopdH[30],
+                  TT);
+  for (i = 31; i <= MAXLOOP; i++)
+    pf->expinternal[i] = exp(-TRUNC_MAYBE(GT + (pf->lxc * log(i / 30.))) * 10. / kT);
 
-  for (i = 31; i <= MAXLOOP; i++) {
-    GT                  = bulge37[30] * TT + (pf->lxc * log(i / 30.));
-    pf->expbulge[i]     = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-    GT                  = internal_loop37[30] * TT + (pf->lxc * log(i / 30.));
-    pf->expinternal[i]  = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-  }
-
-  GT = niniodH - (niniodH - ninio37) * TT;
+  GT = RESCALE_dG(ninio37, niniodH, TT);
   for (j = 0; j <= MAXLOOP; j++)
     pf->expninio[2][j] = exp(-MIN2(MAX_NINIO, j * TRUNC_MAYBE(GT)) * 10. / kT);
 
-  for (i = 0; (i * 7) < strlen(Tetraloops); i++) {
-    GT              = TetraloopdH[i] - (TetraloopdH[i] - Tetraloop37[i]) * TT;
-    pf->exptetra[i] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-  }
-  for (i = 0; (i * 5) < strlen(Triloops); i++) {
-    GT            = TriloopdH[i] - (TriloopdH[i] - Triloop37[i]) * TT;
-    pf->exptri[i] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-  }
-  for (i = 0; (i * 9) < strlen(Hexaloops); i++) {
-    GT            = HexaloopdH[i] - (HexaloopdH[i] - Hexaloop37[i]) * TT;
-    pf->exphex[i] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-  }
-  GT                = ML_closingdH - (ML_closingdH - ML_closing37) * TT;
-  pf->expMLclosing  = exp(-TRUNC_MAYBE(GT) * 10. / kT);
+  for (i = 0; (i * 7) < strlen(Tetraloops); i++)
+    pf->exptetra[i] = RESCALE_BF(Tetraloop37[i], TetraloopdH[i], TT, kT);
 
-  for (i = 0; i <= NBPAIRS; i++) {
-    GT = ML_interndH - (ML_interndH - ML_intern37) * TT;
-    /* if (i>2) GT += TerminalAU; */
-    pf->expMLintern[i] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-  }
-  GT            = TerminalAUdH - (TerminalAUdH - TerminalAU37) * TT;
-  pf->expTermAU = exp(-TRUNC_MAYBE(GT) * 10. / kT);
+  for (i = 0; (i * 5) < strlen(Triloops); i++)
+    pf->exptri[i] = RESCALE_BF(Triloop37[i], TriloopdH[i], TT, kT);
 
-  GT = ML_BASEdH - (ML_BASEdH - ML_BASE37) * TT;
+  for (i = 0; (i * 9) < strlen(Hexaloops); i++)
+    pf->exphex[i] = RESCALE_BF(Hexaloop37[i], HexaloopdH[i], TT, kT);
 
-  pf->expMLbase = exp(-10. * TRUNC_MAYBE(GT) / kT);
-
+  for (i = 0; i <= NBPAIRS; i++)
+    pf->expMLintern[i] = RESCALE_BF(ML_intern37, ML_interndH, TT, kT);
 
   /* if dangles==0 just set their energy to 0,
    * don't let dangle energies become > 0 (at large temps),
@@ -611,10 +635,8 @@ get_scaled_exp_params(vrna_md_t *md,
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= 4; j++) {
       if (md->dangles) {
-        GT                    = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j]) * TT;
-        pf->expdangle5[i][j]  = exp(SMOOTH(-TRUNC_MAYBE(GT)) * 10. / kT);
-        GT                    = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j]) * TT;
-        pf->expdangle3[i][j]  = exp(SMOOTH(-TRUNC_MAYBE(GT)) * 10. / kT);
+        pf->expdangle5[i][j]  = RESCALE_BF_SMOOTH(dangle5_37[i][j], dangle5_dH[i][j], TT, kT);
+        pf->expdangle3[i][j]  = RESCALE_BF_SMOOTH(dangle3_37[i][j], dangle3_dH[i][j], TT, kT);
       } else {
         pf->expdangle3[i][j] = pf->expdangle5[i][j] = 1;
       }
@@ -622,38 +644,42 @@ get_scaled_exp_params(vrna_md_t *md,
 
   /* stacking energies */
   for (i = 0; i <= NBPAIRS; i++)
-    for (j = 0; j <= NBPAIRS; j++) {
-      GT                  = stackdH[i][j] - (stackdH[i][j] - stack37[i][j]) * TT;
-      pf->expstack[i][j]  = exp(-TRUNC_MAYBE(GT) * 10. / kT);
-    }
+    for (j = 0; j <= NBPAIRS; j++)
+      pf->expstack[i][j] = RESCALE_BF(stack37[i][j], stackdH[i][j], TT, kT);
 
   /* mismatch energies */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j < 5; j++)
       for (k = 0; k < 5; k++) {
-        GT = mismatchIdH[i][j][k] -
-             (mismatchIdH[i][j][k] - mismatchI37[i][j][k]) * TT;
-        pf->expmismatchI[i][j][k] = exp(-TRUNC_MAYBE(GT) * 10.0 / kT);
-        GT                        = mismatch1nIdH[i][j][k] -
-                                    (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k]) * TT;
-        pf->expmismatch1nI[i][j][k] = exp(-TRUNC_MAYBE(GT) * 10.0 / kT);
-        GT                          = mismatchHdH[i][j][k] -
-                                      (mismatchHdH[i][j][k] - mismatchH37[i][j][k]) * TT;
-        pf->expmismatchH[i][j][k] = exp(-TRUNC_MAYBE(GT) * 10.0 / kT);
+        pf->expmismatchI[i][j][k] = RESCALE_BF(mismatchI37[i][j][k],
+                                               mismatchIdH[i][j][k],
+                                               TT,
+                                               kT);
+        pf->expmismatch1nI[i][j][k] = RESCALE_BF(mismatch1nI37[i][j][k],
+                                                 mismatch1nIdH[i][j][k],
+                                                 TT,
+                                                 kT);
+        pf->expmismatchH[i][j][k] = RESCALE_BF(mismatchH37[i][j][k],
+                                               mismatchHdH[i][j][k],
+                                               TT,
+                                               kT);
+        pf->expmismatch23I[i][j][k] = RESCALE_BF(mismatch23I37[i][j][k],
+                                                 mismatch23IdH[i][j][k],
+                                                 TT,
+                                                 kT);
+
         if (md->dangles) {
-          GT = mismatchMdH[i][j][k] -
-               (mismatchMdH[i][j][k] - mismatchM37[i][j][k]) * TT;
-          pf->expmismatchM[i][j][k] = exp(SMOOTH(-TRUNC_MAYBE(GT)) * 10.0 / kT);
-          GT                        = mismatchExtdH[i][j][k] -
-                                      (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k]) * TT;
-          pf->expmismatchExt[i][j][k] = exp(SMOOTH(-TRUNC_MAYBE(GT)) * 10.0 / kT);
+          pf->expmismatchM[i][j][k] = RESCALE_BF_SMOOTH(mismatchM37[i][j][k],
+                                                        mismatchMdH[i][j][k],
+                                                        TT,
+                                                        kT);
+          pf->expmismatchExt[i][j][k] = RESCALE_BF_SMOOTH(mismatchExt37[i][j][k],
+                                                          mismatchExtdH[i][j][k],
+                                                          TT,
+                                                          kT);
         } else {
           pf->expmismatchM[i][j][k] = pf->expmismatchExt[i][j][k] = 1.;
         }
-
-        GT = mismatch23IdH[i][j][k] -
-             (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k]) * TT;
-        pf->expmismatch23I[i][j][k] = exp(-TRUNC_MAYBE(GT) * 10.0 / kT);
       }
 
   /* interior lops of length 2 */
@@ -661,10 +687,12 @@ get_scaled_exp_params(vrna_md_t *md,
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++) {
-          GT = int11_dH[i][j][k][l] -
-               (int11_dH[i][j][k][l] - int11_37[i][j][k][l]) * TT;
-          pf->expint11[i][j][k][l] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
+          pf->expint11[i][j][k][l] = RESCALE_BF(int11_37[i][j][k][l],
+                                                int11_dH[i][j][k][l],
+                                                TT,
+                                                kT);
         }
+
   /* interior 2x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
@@ -672,9 +700,10 @@ get_scaled_exp_params(vrna_md_t *md,
         for (l = 0; l < 5; l++) {
           int m;
           for (m = 0; m < 5; m++) {
-            GT = int21_dH[i][j][k][l][m] -
-                 (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m]) * TT;
-            pf->expint21[i][j][k][l][m] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
+            pf->expint21[i][j][k][l][m] = RESCALE_BF(int21_37[i][j][k][l][m],
+                                                     int21_dH[i][j][k][l][m],
+                                                     TT,
+                                                     kT);
           }
         }
 
@@ -686,9 +715,10 @@ get_scaled_exp_params(vrna_md_t *md,
           int m, n;
           for (m = 0; m < 5; m++)
             for (n = 0; n < 5; n++) {
-              GT = int22_dH[i][j][k][l][m][n] -
-                   (int22_dH[i][j][k][l][m][n] - int22_37[i][j][k][l][m][n]) * TT;
-              pf->expint22[i][j][k][l][m][n] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
+              pf->expint22[i][j][k][l][m][n] = RESCALE_BF(int22_37[i][j][k][l][m][n],
+                                                          int22_dH[i][j][k][l][m][n],
+                                                          TT,
+                                                          kT);
             }
         }
 
@@ -721,25 +751,26 @@ get_exp_params_ali(vrna_md_t    *md,
   pf_smooth         = md->pf_smooth;
   TT                = (md->temperature + K0) / (Tmeasure);
 
-  for (i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
-    for (j = 3 * VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH; j++) {
-      double  GQuadAlpha_T  = (double)GQuadAlphadH - (double)(GQuadAlphadH - GQuadAlpha37) * TT;
-      double  GQuadBeta_T   = (double)GQuadBetadH - (double)(GQuadBetadH - GQuadBeta37) * TT;
-      GT = ((double)GQuadAlpha_T) * ((double)(i - 1)) + ((double)GQuadBeta_T) *
-           log(((double)j) - 2.);
-      pf->expgquad[i][j] = exp(-GT * 10. / kTn);
-    }
-
-  GT = (double)GQuadLayerMismatchH -
-       (double)(GQuadLayerMismatchH - GQuadLayerMismatch37) * TT;
-  pf->expgquadLayerMismatch = exp(-GT * 10. / kTn);
+  pf->lxc                   = lxc37 * TT;
+  pf->expDuplexInit         = RESCALE_BF(DuplexInit37, DuplexInitdH, TT, kTn);
+  pf->expTermAU             = RESCALE_BF(TerminalAU37, TerminalAUdH, TT, kTn);
+  pf->expMLbase             = RESCALE_BF(ML_BASE37, ML_BASEdH, TT, kTn / n_seq);
+  pf->expMLclosing          = RESCALE_BF(ML_closing37, ML_closingdH, TT, kTn);
+  pf->expgquadLayerMismatch = RESCALE_BF(GQuadLayerMismatch37, GQuadLayerMismatchH, TT, kTn);
   pf->gquadLayerMismatchMax = GQuadLayerMismatchMax;
 
+  for (i = VRNA_GQUAD_MIN_STACK_SIZE; i <= VRNA_GQUAD_MAX_STACK_SIZE; i++)
+    for (j = 3 * VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH; j++) {
+      double  GQuadAlpha_T  = RESCALE_dG(GQuadAlpha37, GQuadAlphadH, TT);
+      double  GQuadBeta_T   = RESCALE_dG(GQuadBeta37, GQuadBetadH, TT);
+      GT = ((double)GQuadAlpha_T) * ((double)(i - 1)) + ((double)GQuadBeta_T) *
+           log(((double)j) - 2.);
+      pf->expgquad[i][j] = exp(-TRUNC_MAYBE(GT) * 10. / kTn);
+    }
+
   /* loop energies: hairpins, bulges, interior, mulit-loops */
-  for (i = 0; i < 31; i++) {
-    GT                = hairpindH[i] - (hairpindH[i] - hairpin37[i]) * TT;
-    pf->exphairpin[i] = exp(-GT * 10. / kTn);
-  }
+  for (i = 0; i < 31; i++)
+    pf->exphairpin[i] = RESCALE_BF(hairpin37[i], hairpindH[i], TT, kTn);
   /*add penalty for too short hairpins*/
   for (i = 0; i < 3; i++) {
     GT                = 600 /*Penalty*/ * TT;
@@ -747,58 +778,38 @@ get_exp_params_ali(vrna_md_t    *md,
   }
 
   for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
-    GT                  = bulgedH[i] - (bulgedH[i] - bulge37[i]) * TT;
-    pf->expbulge[i]     = exp(-GT * 10. / kTn);
-    GT                  = internal_loopdH[i] - (internal_loopdH[i] - internal_loop37[i]) * TT;
-    pf->expinternal[i]  = exp(-GT * 10. / kTn);
+    pf->expbulge[i]     = RESCALE_BF(bulge37[i], bulgedH[i], TT, kTn);
+    pf->expinternal[i]  = RESCALE_BF(internal_loop37[i], internal_loopdH[i], TT, kTn);
   }
+
   /* special case of size 2 interior loops (single mismatch) */
   if (james_rule)
     pf->expinternal[2] = exp(-80 * 10. / kTn);
 
-  pf->lxc = lxc37 * TT;
+  GT = RESCALE_dG(bulge37[30], bulgedH[30], TT);
+  for (i = 31; i <= MAXLOOP; i++)
+    pf->expbulge[i] = exp(-(GT + (pf->lxc * log(i / 30.))) * 10. / kTn);
 
-  GT                = DuplexInitdH - (DuplexInitdH - DuplexInit37) * TT;
-  pf->expDuplexInit = exp(-GT * 10. / kTn);
+  GT = RESCALE_dG(internal_loop37[30], internal_loopdH[30], TT);
+  for (i = 31; i <= MAXLOOP; i++)
+    pf->expinternal[i] = exp(-(GT + (pf->lxc * log(i / 30.))) * 10. / kTn);
 
-  for (i = 31; i <= MAXLOOP; i++) {
-    GT                  = bulge37[30] * TT + (pf->lxc * log(i / 30.));
-    pf->expbulge[i]     = exp(-GT * 10. / kTn);
-    GT                  = internal_loop37[30] * TT + (pf->lxc * log(i / 30.));
-    pf->expinternal[i]  = exp(-GT * 10. / kTn);
-  }
-
-  GT = niniodH - (niniodH - ninio37) * TT;
+  GT = RESCALE_dG(ninio37, niniodH, TT);
   for (j = 0; j <= MAXLOOP; j++)
     pf->expninio[2][j] = exp(-MIN2(MAX_NINIO, j * GT) * 10. / kTn);
 
-  for (i = 0; (i * 7) < strlen(Tetraloops); i++) {
-    GT              = TetraloopdH[i] - (TetraloopdH[i] - Tetraloop37[i]) * TT;
-    pf->exptetra[i] = exp(-GT * 10. / kTn);
-  }
-  for (i = 0; (i * 5) < strlen(Triloops); i++) {
-    GT            = TriloopdH[i] - (TriloopdH[i] - Triloop37[i]) * TT;
-    pf->exptri[i] = exp(-GT * 10. / kTn);
-  }
-  for (i = 0; (i * 9) < strlen(Hexaloops); i++) {
-    GT            = HexaloopdH[i] - (HexaloopdH[i] - Hexaloop37[i]) * TT;
-    pf->exphex[i] = exp(-GT * 10. / kTn);
-  }
-  GT                = ML_closingdH - (ML_closingdH - ML_closing37) * TT;
-  pf->expMLclosing  = exp(-GT * 10. / kTn);
+  for (i = 0; (i * 7) < strlen(Tetraloops); i++)
+    pf->exptetra[i] = RESCALE_BF(Tetraloop37[i], TetraloopdH[i], TT, kTn);
 
-  for (i = 0; i <= NBPAIRS; i++) {
+  for (i = 0; (i * 5) < strlen(Triloops); i++)
+    pf->exptri[i] = RESCALE_BF(Triloop37[i], TriloopdH[i], TT, kTn);
+
+  for (i = 0; (i * 9) < strlen(Hexaloops); i++)
+    pf->exphex[i] = RESCALE_BF(Hexaloop37[i], HexaloopdH[i], TT, kTn);
+
+  for (i = 0; i <= NBPAIRS; i++)
     /* includes AU penalty */
-    GT = ML_interndH - (ML_interndH - ML_intern37) * TT;
-    /* if (i>2) GT += TerminalAU; */
-    pf->expMLintern[i] = exp(-GT * 10. / kTn);
-  }
-  GT            = TerminalAUdH - (TerminalAUdH - TerminalAU37) * TT;
-  pf->expTermAU = exp(-GT * 10. / kTn);
-
-  GT            = ML_BASEdH - (ML_BASEdH - ML_BASE37) * TT;
-  pf->expMLbase = exp(-10. * GT / (kTn / n_seq));
-
+    pf->expMLintern[i] = RESCALE_BF(ML_intern37, ML_interndH, TT, kTn);
 
   /* if dangle_model==0 just set their energy to 0,
    * don't let dangle energies become > 0 (at large temps),
@@ -806,10 +817,14 @@ get_exp_params_ali(vrna_md_t    *md,
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= 4; j++) {
       if (md->dangles) {
-        GT                    = dangle5_dH[i][j] - (dangle5_dH[i][j] - dangle5_37[i][j]) * TT;
-        pf->expdangle5[i][j]  = exp(SMOOTH(-GT) * 10. / kTn);
-        GT                    = dangle3_dH[i][j] - (dangle3_dH[i][j] - dangle3_37[i][j]) * TT;
-        pf->expdangle3[i][j]  = exp(SMOOTH(-GT) * 10. / kTn);
+        pf->expdangle5[i][j] = RESCALE_BF_SMOOTH(dangle5_37[i][j],
+                                                 dangle5_dH[i][j],
+                                                 TT,
+                                                 kTn);
+        pf->expdangle3[i][j] = RESCALE_BF_SMOOTH(dangle3_37[i][j],
+                                                 dangle3_dH[i][j],
+                                                 TT,
+                                                 kTn);
       } else {
         pf->expdangle3[i][j] = pf->expdangle5[i][j] = 1;
       }
@@ -818,49 +833,58 @@ get_exp_params_ali(vrna_md_t    *md,
   /* stacking energies */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++) {
-      GT                  = stackdH[i][j] - (stackdH[i][j] - stack37[i][j]) * TT;
-      pf->expstack[i][j]  = exp(-GT * 10. / kTn);
+      pf->expstack[i][j] = RESCALE_BF(stack37[i][j],
+                                      stackdH[i][j],
+                                      TT,
+                                      kTn);
     }
 
   /* mismatch energies */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j < 5; j++)
       for (k = 0; k < 5; k++) {
-        GT = mismatchIdH[i][j][k] -
-             (mismatchIdH[i][j][k] - mismatchI37[i][j][k]) * TT;
-        pf->expmismatchI[i][j][k] = exp(-GT * 10.0 / kTn);
-        GT                        = mismatch1nIdH[i][j][k] -
-                                    (mismatch1nIdH[i][j][k] - mismatch1nI37[i][j][k]) * TT;
-        pf->expmismatch1nI[i][j][k] = exp(-GT * 10.0 / kTn);
-        GT                          = mismatchHdH[i][j][k] -
-                                      (mismatchHdH[i][j][k] - mismatchH37[i][j][k]) * TT;
-        pf->expmismatchH[i][j][k] = exp(-GT * 10.0 / kTn);
+        pf->expmismatchI[i][j][k] = RESCALE_BF(mismatchI37[i][j][k],
+                                               mismatchIdH[i][j][k],
+                                               TT,
+                                               kTn);
+        pf->expmismatch1nI[i][j][k] = RESCALE_BF(mismatch1nI37[i][j][k],
+                                                 mismatch1nIdH[i][j][k],
+                                                 TT,
+                                                 kTn);
+        pf->expmismatchH[i][j][k] = RESCALE_BF(mismatchH37[i][j][k],
+                                               mismatchHdH[i][j][k],
+                                               TT,
+                                               kTn);
+        pf->expmismatch23I[i][j][k] = RESCALE_BF(mismatch23I37[i][j][k],
+                                                 mismatch23IdH[i][j][k],
+                                                 TT,
+                                                 kTn);
+
         if (md->dangles) {
-          GT = mismatchMdH[i][j][k] -
-               (mismatchMdH[i][j][k] - mismatchM37[i][j][k]) * TT;
-          pf->expmismatchM[i][j][k] = exp(SMOOTH(-GT) * 10.0 / kTn);
-          GT                        = mismatchExtdH[i][j][k] -
-                                      (mismatchExtdH[i][j][k] - mismatchExt37[i][j][k]) * TT;
-          pf->expmismatchExt[i][j][k] = exp(SMOOTH(-GT) * 10.0 / kTn);
+          pf->expmismatchM[i][j][k] = RESCALE_BF_SMOOTH(mismatchM37[i][j][k],
+                                                        mismatchMdH[i][j][k],
+                                                        TT,
+                                                        kTn);
+          pf->expmismatchExt[i][j][k] = RESCALE_BF_SMOOTH(mismatchExt37[i][j][k],
+                                                          mismatchExtdH[i][j][k],
+                                                          TT,
+                                                          kTn);
         } else {
           pf->expmismatchM[i][j][k] = pf->expmismatchExt[i][j][k] = 1.;
         }
-
-        GT = mismatch23IdH[i][j][k] -
-             (mismatch23IdH[i][j][k] - mismatch23I37[i][j][k]) * TT;
-        pf->expmismatch23I[i][j][k] = exp(-GT * 10.0 / kTn);
       }
-
 
   /* interior lops of length 2 */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++) {
-          GT = int11_dH[i][j][k][l] -
-               (int11_dH[i][j][k][l] - int11_37[i][j][k][l]) * TT;
-          pf->expint11[i][j][k][l] = exp(-GT * 10. / kTn);
+          pf->expint11[i][j][k][l] = RESCALE_BF(int11_37[i][j][k][l],
+                                                int11_dH[i][j][k][l],
+                                                TT,
+                                                kTn);
         }
+
   /* interior 2x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
@@ -868,9 +892,10 @@ get_exp_params_ali(vrna_md_t    *md,
         for (l = 0; l < 5; l++) {
           int m;
           for (m = 0; m < 5; m++) {
-            GT = int21_dH[i][j][k][l][m] -
-                 (int21_dH[i][j][k][l][m] - int21_37[i][j][k][l][m]) * TT;
-            pf->expint21[i][j][k][l][m] = exp(-GT * 10. / kTn);
+            pf->expint21[i][j][k][l][m] = RESCALE_BF(int21_37[i][j][k][l][m],
+                                                     int21_dH[i][j][k][l][m],
+                                                     TT,
+                                                     kTn);
           }
         }
 
@@ -882,9 +907,10 @@ get_exp_params_ali(vrna_md_t    *md,
           int m, n;
           for (m = 0; m < 5; m++)
             for (n = 0; n < 5; n++) {
-              GT = int22_dH[i][j][k][l][m][n] -
-                   (int22_dH[i][j][k][l][m][n] - int22_37[i][j][k][l][m][n]) * TT;
-              pf->expint22[i][j][k][l][m][n] = exp(-GT * 10. / kTn);
+              pf->expint22[i][j][k][l][m][n] = RESCALE_BF(int22_37[i][j][k][l][m][n],
+                                                          int22_dH[i][j][k][l][m][n],
+                                                          TT,
+                                                          kTn);
             }
         }
 
