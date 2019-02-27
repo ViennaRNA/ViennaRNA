@@ -1,6 +1,6 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveIntersections.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/optimize.h"

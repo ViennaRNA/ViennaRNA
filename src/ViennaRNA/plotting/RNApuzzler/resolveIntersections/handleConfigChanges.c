@@ -1,6 +1,6 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/handleConfigChanges.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"

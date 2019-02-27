@@ -2,7 +2,7 @@
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelTreeNodes.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/boundingWedge.h"

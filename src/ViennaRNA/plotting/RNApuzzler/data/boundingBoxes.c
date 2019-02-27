@@ -1,6 +1,6 @@
 #include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/config_struct.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 
 #include "ViennaRNA/utils.h"
