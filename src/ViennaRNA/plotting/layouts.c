@@ -16,7 +16,7 @@
 #include "ViennaRNA/plotting/layouts.h"
 
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
 #include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
 #include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 

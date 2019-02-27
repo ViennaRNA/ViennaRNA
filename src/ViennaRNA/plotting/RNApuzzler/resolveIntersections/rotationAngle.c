@@ -4,8 +4,6 @@
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelBoundingBoxes.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/GeoGebra_output.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
 #include <stdio.h>
@@ -60,7 +58,7 @@ double fixIntersectionOfRectangleAndCircle(
 
     /// emergency exit
     if (rotationSign == 0) {
-        printError(fnName, "invalid rotation sign\n");
+//        printError(fnName, "invalid rotation sign\n");
         return 0.0;
     }
 
@@ -139,26 +137,26 @@ double fixIntersectionOfRectangleAndCircle(
 
     if (fabs(angle) == 0.0 || fabs(angle) == MATH_TWO_PI) {
         angle = 0.0;
-        printWarning(fnName, "no valid rotation here.\n");
+//        printWarning(fnName, "no valid rotation here.\n");
 
         short showDetails = 0;
         if (showDetails) {
             // rectangle
             double staticRectExt[2] = { staticRectLengthA, staticRectLengthB };
-            printError(fnName, ""); GEOGEBRA_printRectangle("rect", staticRectVecA, staticRectVecB, staticRectCenter, staticRectExt);
+//            printError(fnName, ""); GEOGEBRA_printRectangle("rect", staticRectVecA, staticRectVecB, staticRectCenter, staticRectExt);
             // circle
-            printError(fnName, ""); GEOGEBRA_printCircle("circ", rotationCenter, rotationRadius);
+//            printError(fnName, ""); GEOGEBRA_printCircle("circ", rotationCenter, rotationRadius);
             // lines
-            printError(fnName, ""); GEOGEBRA_printLinePointDir("line_{pos}", axisAnchorPositive, axisDirection);
-            printError(fnName, ""); GEOGEBRA_printLinePointDir("line_{neg}", axisAnchorNegative, axisDirection);
+//           printError(fnName, ""); GEOGEBRA_printLinePointDir("line_{pos}", axisAnchorPositive, axisDirection);
+//           printError(fnName, ""); GEOGEBRA_printLinePointDir("line_{neg}", axisAnchorNegative, axisDirection);
             // cut points
-            for (int i = 0; i < count; i++) {
-                printError(fnName, "Cut%d = (%f, %f)\n", i, cut[i][0], cut[i][1]);
-            }
+//           for (int i = 0; i < count; i++) {
+//               printError(fnName, "Cut%d = (%f, %f)\n", i, cut[i][0], cut[i][1]);
+//           }
             // angles
-            for (int i = 0; i < count; i++) {
-                printError(fnName, "angle%d = %f°\n", angles[i]);
-            }
+//           for (int i = 0; i < count; i++) {
+//                printError(fnName, "angle%d = %f°\n", angles[i]);
+//           }
         }
     }
 //    printDebug(fnName, "return: %+7.2f°\n", angle);
@@ -178,7 +176,7 @@ double fixIntersectionOfCircles(
 
     /// emergency exit
     if (rotationSign == 0) {
-        printError(fnName, "invalid rotation sign\n");
+//        printError(fnName, "invalid rotation sign\n");
         return 0.0;
     }
 
@@ -201,12 +199,14 @@ double fixIntersectionOfCircles(
 
     /// emergency exit ... should never happen
     if (numCutPoints == 0) {
+	/*
         printError(fnName, "calculated cut points: 0 expected: 1+\n");
         printError(fnName, ""); GEOGEBRA_printCircle("static", staticCircleCenter, staticCircleRadius);
         printError(fnName, ""); GEOGEBRA_printCircle("mobile", mobileCircleCenter, mobileCircleRadius);
         printError(fnName, ""); GEOGEBRA_printPoint("rotationcenter", rotationCenter);
         printError(fnName, "distance = %f\n", distance);
         printError(fnName, "rotationsign = %d\n", rotationSign);
+	*/
         return 0.0;
     }
 
@@ -268,7 +268,7 @@ double fixIntersectionOfCircles(
     }
 
     if (rotationAngle == 0.0) {
-        printWarning(fnName, "no valid rotation here.\n");
+//        printWarning(fnName, "no valid rotation here.\n");
     }
     return rotationAngle;
 }
@@ -299,9 +299,9 @@ double getRotationAngleLxL(
     getLBoxCenter(rotationLoop, rotationCenter);
 
     double rotationAngle = fixIntersectionOfCircles(staticCircleCenter, staticCircleRadius, mobileCircleCenter, mobileCircleRadius, rotationCenter, rotationSign);
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//   }
     return rotationAngle;
 }
 
@@ -320,9 +320,9 @@ double getRotationAngleLxS(
     short inverseRotationSign = (-1) * rotationSign;
     double inverseRotationAngle = fixIntersectionOfRectangleAndCircle(staticRect->c, staticRect->a, staticRect->b, staticRect->e[0], staticRect->e[1], mobileCirc->c, mobileCirc->r, rotationLoop->c, inverseRotationSign);
     double rotationAngle = (-1) * inverseRotationAngle;
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//    }
     return rotationAngle;
 }
 
@@ -339,9 +339,9 @@ double getRotationAngleSxL(
     loopBox* rotationLoop = rotationNode->lBox;
 
     double rotationAngle = fixIntersectionOfRectangleAndCircle(staticRect->c, staticRect->a, staticRect->b, staticRect->e[0], staticRect->e[1], mobileCirc->c, mobileCirc->r, rotationLoop->c, rotationSign);
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//    }
     return rotationAngle;
 }
 
@@ -386,9 +386,9 @@ double getRotationAngleLxB(
     // ### resolve
     // --- fix intersection of circles
     double rotationAngle = fixIntersectionOfCircles(staticCircleCenter, staticCircleRadius, mobileCircleCenter, mobileCircleRadius, rotationCenter, rotationSign);
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//    }
     return rotationAngle;
 }
 
@@ -433,9 +433,9 @@ double getRotationAngleBxL(
     // ### resolve
     // --- fix intersection of circles
     double rotationAngle = fixIntersectionOfCircles(staticCircleCenter, staticCircleRadius, mobileCircleCenter, mobileCircleRadius, rotationCenter, rotationSign);
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//    }
     return rotationAngle;
 }
 
@@ -448,9 +448,9 @@ double getRotationAngleSxS(
     char *fnName = "getRotationAngleSxS";
 
     double rotationAngle = getRotationAngleSxL(ancestor, rotationNode, intersector, rotatioSign);
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//    }
     return rotationAngle;
 }
 
@@ -479,9 +479,9 @@ double getRotationAngleSxB(
     circle(mobileBulge[0], mobileBulge[1], mobileBulge[2], mobileCircleCenter, &mobileCircleRadius);
 
     double rotationAngle = fixIntersectionOfRectangleAndCircle(staticStem->c, staticStem->a, staticStem->b, staticStem->e[0], staticStem->e[1], mobileCircleCenter, mobileCircleRadius, rotationLoop->c, rotationSign);
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//    }
     return rotationAngle;
 }
 
@@ -510,9 +510,9 @@ double getRotationAngleBxS(
     circle(mobileBulge[0], mobileBulge[1], mobileBulge[2], mobileCircleCenter, &mobileCircleRadius);
 
     double rotationAngle = fixIntersectionOfRectangleAndCircle(staticStem->c, staticStem->a, staticStem->b, staticStem->e[0], staticStem->e[1], mobileCircleCenter, mobileCircleRadius, rotationLoop->c, rotationSign);
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//    }
     return rotationAngle;
 }
 
@@ -561,9 +561,9 @@ double getRotationAngleBxB(
     // ### resolve
     // --- fix intersection of circles
     double rotationAngle = fixIntersectionOfCircles(staticCircleCenter, staticCircleRadius, mobileCircleCenter, mobileCircleRadius, rotationCenter, rotationSign);
-    if (rotationAngle == 0.0) {
-        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
-    }
+//    if (rotationAngle == 0.0) {
+//        printWarning(fnName, "[%c %c %c] (promoted)\n", getNodeName(ancestor), getNodeName(rotationNode), getNodeName(intersector));
+//    }
     return rotationAngle;
 }
 

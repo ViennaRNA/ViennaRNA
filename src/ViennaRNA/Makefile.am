@@ -340,10 +340,7 @@ libRNA_plotting_la_SOURCES = \
     plotting/RNApuzzler/RNAturtle.c \
     plotting/RNApuzzler/definitions.c \
     plotting/RNApuzzler/vector_math.c \
-    plotting/RNApuzzler/output/output.c \
-    plotting/RNApuzzler/output/GeoGebra_output.c \
-    plotting/RNApuzzler/output/configtree_debug.c \
-    plotting/RNApuzzler/data/cfg_reader.c \
+    plotting/RNApuzzler/data/config.c \
     plotting/RNApuzzler/data/configtree.c \
     plotting/RNApuzzler/data/boundingBoxes.c \
     plotting/RNApuzzler/intersectLevel/intersectLevelLines.c \

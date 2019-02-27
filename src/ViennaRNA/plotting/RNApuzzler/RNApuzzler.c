@@ -3,7 +3,7 @@
 #include "ViennaRNA/plotting/RNApuzzler/postscript/postscriptArcs.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelLines.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveIntersections.h"
@@ -11,10 +11,7 @@
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h"
 #include "ViennaRNA/plotting//RNApuzzler/data/boundingBoxes.h"
 
-#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
 
-#include "ViennaRNA/plotting/RNApuzzler/output/GeoGebra_output.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/configtree_debug.h"
 
 #include "ViennaRNA/utils.h"
 
@@ -164,7 +161,7 @@ short checkRemainingIntersections(
 }
 
 //------------------------------------------------------------------------------
-
+/*
 void DEPRECATED_compareConfigAngleAndChildAngle(
         treeNode* node,
         puzzlerOptions* puzzler
@@ -192,7 +189,7 @@ void DEPRECATED_compareConfigAngleAndChildAngle(
         DEPRECATED_compareConfigAngleAndChildAngle(getChild(node, i), puzzler);
     }
 }
-
+*/
 //------------------------------------------------------------------------------
 
 /**
@@ -372,9 +369,9 @@ int layout_RNApuzzler(
 //    printf("optimize: %d\n", puzzler->optimize);
 //    printf("\n");
 
-    if (puzzler->paired / puzzler->unpaired > 2.0) {
-        printWarning(fnName, "paired:unpaired > 2.0 -> layout might be destroyed!\n");
-    }
+//    if (puzzler->paired / puzzler->unpaired > 2.0) {
+//        printWarning(fnName, "paired:unpaired > 2.0 -> layout might be destroyed!\n");
+//    }
 
     int length = pair_table[0];
     //printf("RNA length: %d\n", length);
@@ -431,12 +428,12 @@ int layout_RNApuzzler(
         /// - One execution of checkAndFixIntersections should always be sufficient
         updateBoundingBoxes(tree, puzzler);
 
-        if (FANCY_PS) {
-            PS_printFancyTree(tree, puzzler);
-        }
+//        if (FANCY_PS) {
+//            PS_printFancyTree(tree, puzzler);
+//       }
         checkAndFixIntersections(tree, 0, puzzler);
-        printf("\n");
-        printInformation("CHANGE COUNT", "%d %s\n\n", puzzler->numberOfChangesAppliedToConfig, puzzler->filename);
+//        printf("\n");
+//        printInformation("CHANGE COUNT", "%d %s\n\n", puzzler->numberOfChangesAppliedToConfig, puzzler->filename);
     }
 
     /// use configuration created by RNApuzzler for RNAturtle
@@ -476,7 +473,7 @@ int layout_RNApuzzler(
                 free(tree->sBox);
                 tree->sBox = NULL;
             }
-            PS_printFancyTree(tree, puzzler);
+//            PS_printFancyTree(tree, puzzler);
         }
     }
 
@@ -494,7 +491,7 @@ int layout_RNApuzzler(
     /// final check based on line segments and arc segments
     short printDetails = 0;
     short intersect = checkRemainingIntersections(myX, myY, arc_coords, printDetails, baseInformation, length);
-    printInformation("RESULT FINAL", "%s %s\n\n", (intersect ? "FAIL   " : "SUCCESS"), puzzler->filename);
+//    printInformation("RESULT FINAL", "%s %s\n\n", (intersect ? "FAIL   " : "SUCCESS"), puzzler->filename);
 
     freeTree(tree);
 //    printf("tree\n");

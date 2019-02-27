@@ -1,14 +1,13 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/handleConfigChanges.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
 
 #include <stdlib.h>
 #include <math.h>
-
+/*
 void logConfigChanges(
     const int id,
     const config *cfg,
@@ -20,10 +19,11 @@ void logConfigChanges(
 ) {
     const char *fnName = "configChanges";
 
-    printInformation(fnName, "Change #%5d  %s  %5d",
+	printInformation(fnName, "Change #%5d  %s  %5d",
                      puzzler->numberOfChangesAppliedToConfig,
                      logTag,
                      id);
+
     if (newRadius - oldRadius != 0.0) {
         printInformation(NULL, "  radius: %9.2lf->%9.2lf (%+7.2lf%%) diff: %+.2le",
                  oldRadius, newRadius,
@@ -44,7 +44,7 @@ void logConfigChanges(
     }
     printInformation(NULL, "\n");
 }
-
+*/
 /**
  * @brief checkAndApplyConfigChanges
  *      - Method for performing of config.
@@ -117,12 +117,12 @@ short checkAndApplyConfigChanges(
         applyChangesToConfigAndBoundingBoxes(tree, deltaCfg, radiusNew, puzzler);
 
         double newRadius = cfg->radius;
-        logConfigChanges(getNodeID(tree), cfg, deltaCfg, oldRadius, newRadius, logTag, puzzler);
+//        logConfigChanges(getNodeID(tree), cfg, deltaCfg, oldRadius, newRadius, logTag, puzzler);
 
         return 1;
     } else {
         /// changes result in angles outside 0° to 360°
-        printError(fnName, "%s cannot apply changes to config. Invalid changes.\n", logTag);
+        //printError(fnName, "%s cannot apply changes to config. Invalid changes.\n", logTag);
 
         /*
         /// print erronious changes

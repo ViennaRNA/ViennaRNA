@@ -10,8 +10,6 @@
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelTreeNodes.h"
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelLines.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/configtree_debug.h"
 
 #include "ViennaRNA/utils.h"
 
@@ -32,7 +30,7 @@ short TENTATIVE3_getRotationSign(
     short result = 0;
 
     if (pathLength < 2) {
-        printError(fnName, "[CRITICAL] path length: %d\n", pathLength);
+//        printError(fnName, "[CRITICAL] path length: %d\n", pathLength);
         return result;
     }
 
@@ -94,7 +92,7 @@ short TENTATIVE2_getRotationSign(
     short result = 0;
 
     if (pathLength < 2) {
-        printError(fnName, "[CRITICAL] path length: %d\n", pathLength);
+//        printError(fnName, "[CRITICAL] path length: %d\n", pathLength);
         return result;
     }
 
@@ -139,7 +137,7 @@ short getRotationSign(
     short result = 0;
 
     if (pathLength < 2) {
-        printError(fnName, "[CRITICAL] path length: %d\n", pathLength);
+//        printError(fnName, "[CRITICAL] path length: %d\n", pathLength);
         return result;
     }
 
@@ -197,11 +195,11 @@ short getRotationSign(
         result = 1;
     }
 //    printDebug(fnName, "return: %d\n", result);
-
+/*
     if (result == 0) {
         printError(fnName, "[CRITICAL] there should always be a non-zero rotation sign. Maybe non-intersecting call?\n");
     }
-
+*/
     return result;
 }
 
@@ -271,9 +269,6 @@ treeNode *fixIntersectionWithAncestor(
         intersectionType itLog = (isExterior(ancestor) ? exterior : it);
         changed = checkAndApplyConfigChanges(rotationNode, deltas, itLog, puzzler);
 
-        if (FANCY_PS) {
-            PS_printFancyPath(ancestor, intersector, rotationNode, puzzler);
-        }
 
         free(deltas);
     }
@@ -403,6 +398,7 @@ treeNode* handleIntersectionWithAncestor(
     intersectionType it = intersectNodeNode(ancestor, intersector);
     if (it == noIntersection) {
         /// Early termination for no intersection.
+/*
         printError(fnName,
                    "wrong input. there is no intersection for %d and %d. [%s_DEBUG_PATH_%05d_%04d_vs_%04d.ps]\n",
                    getNodeID(ancestor),
@@ -412,6 +408,7 @@ treeNode* handleIntersectionWithAncestor(
                    getNodeID(ancestor),
                    getNodeID(intersector));
         PS_printPath(ancestor, intersector, puzzler);
+*/
         return NULL;
     }
 
@@ -448,6 +445,7 @@ treeNode* handleIntersectionWithAncestor(
 
     if (rotationSign == 0) {
         /// path is straight -> no intersection
+/*
         printError(fnName, "[FAILED] invalid rotation sign (zero) for %04d and %04d. [%s_DEBUG_PATH_%05d_%04d_vs_%04d.ps]\n",
                    getNodeID(ancestor),
                    getNodeID(intersector),
@@ -456,6 +454,7 @@ treeNode* handleIntersectionWithAncestor(
                    getNodeID(ancestor),
                    getNodeID(intersector));
 //        PS_printPath(ancestor, intersector, puzzler);
+*/
     } else {
 
 //    printf("[%s] Path of %d vs. %d ...", fnName, getNodeID(ancestor), getNodeID(intersector));
@@ -464,19 +463,12 @@ treeNode* handleIntersectionWithAncestor(
 //    }
 //    printf("\n");
 
-        if (FANCY_PS) {
-            PS_printFancyPath(ancestor, intersector, NULL, puzzler);
-        }
 
         /// run from intersector to ancestor twice:
         /// - in the first run we only choose interior loops for rotations
         int nodeNumber = pathLength - 2; // skip intersector, start with its first ancestor
         while ((changedNode == NULL) && (nodeNumber >= 0)) {
             if (isInteriorLoop(path[nodeNumber])) {
-                if (FANCY_PS) {
-                    PS_printFancyPath(ancestor, intersector, path[nodeNumber], puzzler);
-                }
-
                 /// interior loop: try to improve
                 changedNode = fixIntersectionWithAncestor(ancestor, path[nodeNumber], intersector, childIndex[nodeNumber], rotationSign, it, puzzler);
             }
@@ -489,9 +481,6 @@ treeNode* handleIntersectionWithAncestor(
         nodeNumber = pathLength - 2; // skip intersector, start with its first ancestor
         while ((changedNode == NULL) && (nodeNumber >= 0)) {
             if (isMultiLoop(path[nodeNumber])) {
-                if (FANCY_PS) {
-                    PS_printFancyPath(ancestor, intersector, path[nodeNumber], puzzler);
-                }
 
                 /// multi-loop: try to improve
                 changedNode = fixIntersectionWithAncestor(ancestor, path[nodeNumber], intersector, childIndex[nodeNumber], rotationSign, it, puzzler);
@@ -501,7 +490,7 @@ treeNode* handleIntersectionWithAncestor(
             nodeNumber--;
         }
     }
-
+/*
     if (changedNode == NULL) {
         printError(fnName, "[FAILED] to resolve %04d vs. %04d (%s) [%s_DEBUG_PATH_%05d_%04d_vs_%04d.ps]\n",
                    getNodeID(ancestor),
@@ -515,6 +504,7 @@ treeNode* handleIntersectionWithAncestor(
         printPath(fnName, path, pathLength, -1);
         PS_printPath(ancestor, intersector, puzzler);
     }
+*/
 
     free(path);
     free(childIndex);
@@ -834,12 +824,13 @@ void setupExteriorBoundingBoxes(
             s[0]  = x[2];         s[1]  = lowerY;
             e[0]  = topLevelX;    e[1]  = lowerY;
             sp[0] = x[2];         sp[1] = upperY;
-        } else {
-            /// this would mean rootNode and intersectorNode coincide...
-            /// since this would cause an interior intersection
-            /// we just ignore this case here while giving the following hint.
-            printError(fnName, "unrecognized case (1.#).\n");
-        }
+        } 
+//	else {
+//            /// this would mean rootNode and intersectorNode coincide...
+//            /// since this would cause an interior intersection
+//            /// we just ignore this case here while giving the following hint.
+//            printError(fnName, "unrecognized case (1.#).\n");
+//        }
     } else {
         short sameSide = (refLoop->c[0] - topLevelX < 0) == (parentOfIntersector->lBox->c[0] - topLevelX < 0);
         if (sameSide) {
@@ -859,9 +850,10 @@ void setupExteriorBoundingBoxes(
                 s[0]  = maxX;         s[1]  = lowerY;
                 e[0]  = topLevelX;    e[1]  = lowerY;
                 sp[0] = maxX;         sp[1] = upperY;
-            } else {
-                printError(fnName, "unrecognized case (2.#).\n");
-            }
+            } 
+//	    else {
+//                printError(fnName, "unrecognized case (2.#).\n");
+//            }
         } else {
             /// (3)
             double l1p1[2], l1p2[2], l2p1[2], l2p2[2];
@@ -903,9 +895,10 @@ void setupExteriorBoundingBoxes(
                     s[0]  = x[0];         s[1]  = lowerY;
                     e[0]  = topLevelX;    e[1]  = lowerY;
                     sp[0] = x[0];         sp[1] = upperY;
-                } else {
-                    printError(fnName, "unrecognized case (3.1.#).\n");
-                }
+                } 
+//		else {
+//                    printError(fnName, "unrecognized case (3.1.#).\n");
+//                }
             } else {
                 /// (3.2)
 //                printf("[%s] case 3.2\n", fnName);
@@ -918,9 +911,10 @@ void setupExteriorBoundingBoxes(
                     s[0]  = x[2];         s[1]  = lowerY;
                     e[0]  = topLevelX;    e[1]  = lowerY;
                     sp[0] = x[2];         sp[1] = upperY;
-                } else {
-                    printError(fnName, "unrecognized case (3.2.#).\n");
-                }
+                } 
+//		else {
+//                    printError(fnName, "unrecognized case (3.2.#).\n");
+//                }
             }
         }
 

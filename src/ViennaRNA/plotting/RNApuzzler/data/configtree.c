@@ -1,9 +1,9 @@
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
+
 
 #include "ViennaRNA/utils.h"
 

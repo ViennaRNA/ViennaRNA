@@ -2,14 +2,12 @@
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelTreeNodes.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/boundingWedge.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/handleConfigChanges.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
 
-#include "ViennaRNA/plotting/RNApuzzler/output/configtree_debug.h"
 #include "ViennaRNA/utils.h"
 
 #include <stdlib.h>
@@ -770,17 +768,17 @@ double optimizeNode(
     /// apply best configuration found so far
     applyConfig(node, bestConfig, puzzler);
 
-    if (runNr >= runNrMax) {
-        // Check if improvement search ran out of attempts -> bad sign
-        printWarning(fnName, "run number exceeded during node optimization\n");
-    }
+//    if (runNr >= runNrMax) {
+//        // Check if improvement search ran out of attempts -> bad sign
+//      printWarning(fnName, "run number exceeded during node optimization\n");
+//   }
 
     /// Finished improvements
 //    printDebug(fnName, "%d radii: %16.12lf -- %16.12lf\n", getNodeID(node), bestConfig->radius, initialConfig->radius);
     if (bestConfig->radius < initialConfig->radius) {
         if (FANCY_PS) {
             applyConfig(node, initialConfig, puzzler);
-            PS_printFancyTree(node, puzzler);
+//            PS_printFancyTree(node, puzzler);
             applyConfig(node, bestConfig, puzzler);
         }
 
@@ -789,11 +787,11 @@ double optimizeNode(
             deltas[i] = getArcAngle(bestConfig, i) - getArcAngle(initialConfig, i);
         }
         (puzzler->numberOfChangesAppliedToConfig)++;
-        logConfigChanges(getNodeID(node), cfg, deltas, initialConfig->radius, bestConfig->radius, "OPT", puzzler);
+//        logConfigChanges(getNodeID(node), cfg, deltas, initialConfig->radius, bestConfig->radius, "OPT", puzzler);
 
-        if (FANCY_PS) {
-            PS_printFancyTree(node, puzzler);
-        }
+//        if (FANCY_PS) {
+//            PS_printFancyTree(node, puzzler);
+//        }
     } else {
         /// otherwise revert to initial state
         applyConfig(node, initialConfig, puzzler);
@@ -831,7 +829,7 @@ double optimizeTreeRecursive(
     double minRatio = 1.0;
     do {
         if (puzzler->numberOfChangesAppliedToConfig > puzzler->maximumNumberOfConfigChangesAllowed) {
-            printError(fnName, "Reached maximum number of changes. Abort.\n");
+//            printError(fnName, "Reached maximum number of changes. Abort.\n");
             minRatio = 1.0;
             break;
         }
@@ -885,10 +883,11 @@ double optimizeTree(
     if (!checkIntersections(subtree, sizeSubtree, ancestorList, sizeAncestorList, puzzler)) {
         /// Only start if subtree does not intersect with ancestor tree
         shrinkingRatio = optimizeTreeRecursive(node, subtree, sizeSubtree, ancestorList, sizeAncestorList, puzzler);
-    } else {
-        /// nothing to do if children are intersecting
-        printError(fnName, "Optimization called while %d's subtree intersecting with itself or ancestors!\n", getNodeID(node));
-    }
+    } 
+//    else {
+//        /// nothing to do if children are intersecting
+//        printError(fnName, "Optimization called while %d's subtree intersecting with itself or ancestors!\n", getNodeID(node));
+//    }
 
     free(ancestorList);
     free(subtree);

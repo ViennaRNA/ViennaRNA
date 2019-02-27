@@ -7,8 +7,6 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/boundingWedge.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/calcDeltas.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/handleConfigChanges.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/configtree_debug.h"
 
 #include "ViennaRNA/utils.h"
 
@@ -50,16 +48,16 @@ short fixIntersectionOfSiblings(
 
             treeNode* leftNode  = getChild(tree, left);
             treeNode* rightNode = getChild(tree, right);
-            if (FANCY_PS) {
-                PS_printFancySiblings(tree, leftNode, rightNode, puzzler);
-            }
+//            if (FANCY_PS) {
+//                PS_printFancySiblings(tree, leftNode, rightNode, puzzler);
+//            }
 
             // apply all changes
             changed = checkAndApplyConfigChanges(tree, deltaCfg, siblings, puzzler);
 
-            if (FANCY_PS) {
-                PS_printFancySiblings(tree, leftNode, rightNode, puzzler);
-            }
+//            if (FANCY_PS) {
+//                PS_printFancySiblings(tree, leftNode, rightNode, puzzler);
+//            }
 
             //printf("[%s] changed: %d\n", fnName, changed);
         }
@@ -93,7 +91,7 @@ short handleIntersectionOfSiblings(
     /// - check for new or remaining intersections (at the end)
 
     if (puzzler->numberOfChangesAppliedToConfig > puzzler->maximumNumberOfConfigChangesAllowed) {
-        printError(fnName, "Reached maximum number of changes. Abort.\n");
+//        printError(fnName, "Reached maximum number of changes. Abort.\n");
         return -1;
     }
 

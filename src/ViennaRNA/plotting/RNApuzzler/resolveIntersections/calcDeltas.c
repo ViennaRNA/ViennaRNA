@@ -2,9 +2,8 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/boundingWedge.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/output.h"
 
 #include "ViennaRNA/utils.h"
 
@@ -295,14 +294,14 @@ double calcDeltas(
 
     /// Check: valid angle >= 0.0
     if (deltaAngle < 0.0) {
-        printError(fnName, "cannot handle negative angles! grant proper input! (deltaAngle: %+7.2f°)\n", deltaAngle);
+//        printError(fnName, "cannot handle negative angles! grant proper input! (deltaAngle: %+7.2f°)\n", deltaAngle);
         return 0.0;
     }
 
     /// Check: valid range
-    if (indexLeft == indexRight) {
-        printError(fnName, "non-sense input. indices have to be different. (left: %d right%d)\n", indexLeft, indexRight);
-    }
+ //   if (indexLeft == indexRight) {
+ //       printError(fnName, "non-sense input. indices have to be different. (left: %d right%d)\n", indexLeft, indexRight);
+ //   }
 
     int childCount = node->childCount;
     int configSize = childCount + 1;
@@ -474,12 +473,12 @@ double calcDeltas(
     /// Step 4: equidistant increase with negative remaining target angle
     calcDeltasEquidistantIncrease((-1) * targetAngle, configSize, increase, deltaCfg);
 
-    if (!cfgIsValid(cfg, deltaCfg)) {
-        printError(fnName, "Deltas invalid 3\n");
+//    if (!cfgIsValid(cfg, deltaCfg)) {
+//        printError(fnName, "Deltas invalid 3\n");
         // printConfigError(fnName, node, deltaCfg);
 //    } else {
 //        printDebug(fnName, "Deltas valid 3\n");
-    }
+//    }
 
     /// Fix deltas if changes are too small.
     /// This is necessary because sometimes the calculation results in micro changes.
@@ -543,7 +542,7 @@ double calcDeltas(
     }
 
     if (!cfgIsValid(cfg, deltas)) {
-        printConfigError(fnName, node, deltas);
+//        printConfigError(fnName, node, deltas);
 
         for (int currentArc = 0; currentArc < configSize; currentArc++) {
 //            printf("[%s] delta[%d]: %+7.2f° (space[%d]: %+7.2f°)\n", fnName, currentArc, deltas[currentArc], currentArc, space[currentArc]);

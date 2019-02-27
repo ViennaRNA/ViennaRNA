@@ -1,8 +1,7 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveIntersections.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/cfg_reader.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/config.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
-#include "ViennaRNA/plotting/RNApuzzler/output/configtree_debug.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/optimize.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
@@ -127,9 +126,7 @@ treeNode *checkAndFixIntersections(
 //        PS_printTree(node, puzzler);
 //    }
 
-    if (FANCY_PS) {
-        PS_printFancyTree(node, puzzler);
-    }
+
 
     return NULL;
 }
