@@ -9,16 +9,16 @@
  */
 typedef struct
 {
-    /// - current radius
+    // current radius
     double radius;
 
-    /// - optimal radius for current status
+    // optimal radius for current status
     double minRadius;
 
-    /// - default radius
+    // default radius
     double defaultRadius;
 
-    /// - arcs
+    // arcs
     configArc *cfgArcs;
     int numberOfArcs;
 } config;

@@ -1,3 +1,10 @@
+/*
+ *      RNApuzzler handle sibling intersections
+ *
+ *      c  Daniel Wiegreffe, Daniel Alexander, Dirk Zeckzer
+ *      ViennaRNA package
+ */
+
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/handleSiblingIntersections.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
@@ -48,18 +55,9 @@ short fixIntersectionOfSiblings(
 
             treeNode* leftNode  = getChild(tree, left);
             treeNode* rightNode = getChild(tree, right);
-//            if (FANCY_PS) {
-//                PS_printFancySiblings(tree, leftNode, rightNode, puzzler);
-//            }
 
             // apply all changes
             changed = checkAndApplyConfigChanges(tree, deltaCfg, siblings, puzzler);
-
-//            if (FANCY_PS) {
-//                PS_printFancySiblings(tree, leftNode, rightNode, puzzler);
-//            }
-
-            //printf("[%s] changed: %d\n", fnName, changed);
         }
     }
 
@@ -82,67 +80,43 @@ short handleIntersectionOfSiblings(
         const int* listOfIntersections,
         puzzlerOptions* puzzler
 ) {
+
     char* fnName = "FIX INTERSECTION OF SIBLINGS";
 
-    /// idea:
-    /// - measure each intersection by calculating an overlap angle
-    /// - increase the spaces between intersectors and decrease spaces that are not between them
-    /// - distribute the overlap angle equally to all participating spaces
-    /// - check for new or remaining intersections (at the end)
+    // idea:
+    // measure each intersection by calculating an overlap angle
+    // increase the spaces between intersectors and decrease spaces that are not between them
+    // distribute the overlap angle equally to all participating spaces
+    // check for new or remaining intersections (at the end)
 
     if (puzzler->numberOfChangesAppliedToConfig > puzzler->maximumNumberOfConfigChangesAllowed) {
-//        printError(fnName, "Reached maximum number of changes. Abort.\n");
         return -1;
     }
 
     short changed = 0;
     int intersectionCount = listOfIntersections[0];
 
-        /*
-        printf("[%s] Summary: [", fnName);
-        for (int i = 0; i < intersectionCount; i++) {
-            int left = listOfIntersections[2*i+1];
-            int right = listOfIntersections[2*i+2];
-            treeNode* childLeft  = getChild(tree, left);
-            treeNode* childRight = getChild(tree, right);
-            if (i > 0) {
-                printf("\n[%s]           ", fnName);
-            }
-            printf(" %d[%d]=%d vs. %d[%d]=%d"
-                   , getNodeID(tree), left, getID(childLeft)
-                   , getNodeID(tree), right, getID(childRight)
-                   );
-        }
-        printf(" ]\n");
-        */
-
     int childCount = tree->childCount;
     int configSize = childCount + 1;
 
     double* deltaCfg   = (double*) vrna_alloc(configSize * sizeof (double));
 
-    /// init deltas with zero
+    // init deltas with zero
     for (int i = 0; i < configSize; i++) {
+
         deltaCfg[i] = 0.0;
     }
 
-    /// fix intersections of siblings
+    // fix intersections of siblings
     for (int k = 0; k < intersectionCount; k++) { // for all intersections - start
+
         int left  = listOfIntersections[2 * k + 1];
         int right = listOfIntersections[2 * k + 2];
 
-        /*
-        treeNode* childLeft  = getChild(tree, left);
-        treeNode* childRight = getChild(tree, right);
-        printf("[%s] %d[%d]=%d vs. %d[%d]=%d\n"
-               , fnName
-               , getNodeID(tree), left, getNodeID(childLeft)
-               , getNodeID(tree), right, getNodeID(childRight)
-               );
-        */
-
         changed = fixIntersectionOfSiblings(tree, left, right, deltaCfg, puzzler);
+
         if (changed) {
+
             break;
         }
     }
@@ -156,61 +130,79 @@ short checkSiblings(
         treeNode* node,
         puzzlerOptions* puzzler
 ) {
+
     char* fnName = "CHECK SIBLINGS";
     short ret = _false;
 
     int childCount = node->childCount;
-    /// create array to store all information about overlapping neighbors
+    // create array to store all information about overlapping neighbors
     int* intersectorsBranches = (int*) vrna_alloc((childCount * childCount) * sizeof (int));
+
     for (int i = 0; i < childCount * childCount; i++) {
+
         intersectorsBranches[i] = -1;
     }
 
-    /// actually check for those intersections ...
+    // actually check for those intersections
     for (int i = 0; i < childCount; i++) {
+
         int intersectorsCount = 0;
+
         for (int j = i+1; j < childCount; j++) {
+
             treeNode* childI = getChild(node, i);
             treeNode* childJ = getChild(node, j);
+
             if (intersectTrees(childI, childJ)) {
+
                 intersectorsBranches[i * childCount + intersectorsCount] = j;
                 intersectorsCount++;
             }
         }
     }
 
-    /// ... and count them
+    /// and count them
     int intersectionCount = 0;
+
     for (int i = 0; i < (childCount * childCount); i++) {
+
         if (intersectorsBranches[i] != -1) {
+
             intersectionCount++;
         }
     }
 
     if (intersectionCount > 0) {
+
         ret |= _intersect;
 
-        /// transform intersection information into format
-        /// [ count, [intersector_a, intersector_b], [intersector_a, intersector_b], ... ]
-        /// where count states how many pairs of a/b are there
-        /// the i-th intersection has index a=2*i+1; b=2*i+2
+        // transform intersection information into format
+        // [ count, [intersector_a, intersector_b], [intersector_a, intersector_b], ... ]
+        // where count states how many pairs of a/b are there
+        // the i-th intersection has index a=2*i+1; b=2*i+2
         int* listOfIntersections = (int*) vrna_alloc((1 + 2 * intersectionCount) * sizeof (int));
         listOfIntersections[0] = intersectionCount;
 
         int counter = 0;
         for (int i = 0; i < (childCount * childCount); i++) {
+
             if (intersectorsBranches[i] != -1) {
+
                 listOfIntersections[2 * counter + 1] = i / childCount;
                 listOfIntersections[2 * counter + 2] = intersectorsBranches[i];
                 counter++;
             }
         }
 
-        /// resolve all of those intersections for this node's subtrees
+        // resolve all of those intersections for this node's subtrees
         short retFix = handleIntersectionOfSiblings(node, listOfIntersections, puzzler);
+
         if (retFix < 0) {
+
             ret = retFix;
+
         } else if (retFix) {
+
             ret |= _changed;
         }
 

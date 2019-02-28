@@ -1,3 +1,10 @@
+/*
+ *      RNApuzzler intersection type enum
+ *
+ *      c  Daniel Wiegreffe, Daniel Alexander, Dirk Zeckzer
+ *      ViennaRNA package
+ */
+
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
 char *intersectionTypeToString(

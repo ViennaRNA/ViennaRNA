@@ -1,3 +1,10 @@
+/*
+ *      RNApuzzler options
+ *
+ *      c  Daniel Wiegreffe, Daniel Alexander, Dirk Zeckzer
+ *      ViennaRNA package
+ */
+
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 

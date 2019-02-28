@@ -1,3 +1,10 @@
+/*
+ *      RNApuzzler main algorithm
+ *
+ *      c  Daniel Wiegreffe, Daniel Alexander, Dirk Zeckzer
+ *      ViennaRNA package
+ */
+
 #include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 #include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
 #include "ViennaRNA/plotting/RNApuzzler/postscript/postscriptArcs.h"
@@ -9,7 +16,7 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveIntersections.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveExteriorChildIntersections.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h"
-#include "ViennaRNA/plotting//RNApuzzler/data/boundingBoxes.h"
+#include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
 
 
 
@@ -31,13 +38,7 @@ short checkRemainingIntersections(
     const int length
 ) {
     char *fnName = "checkRemainingIntersections";
-
-    if (printDetails) {
-        printf("\n\n--- checking for remaining intersections ---\n");
-    }
-
     const short skipExterior = 0;
-
     short intersect = 0;
     double arc_i[6];
     short i_is_arc = 0;
@@ -58,7 +59,6 @@ short checkRemainingIntersections(
 
         if (skipExterior
             && ((i0[1] <= EXTERIOR_Y) || (i1[1] <= EXTERIOR_Y))) {
-//            printf("skip i:%3d\n", i);
             continue;
         }
         short intersectIExterior = 0;
@@ -79,9 +79,6 @@ short checkRemainingIntersections(
         intersect = intersect || intersectIExterior;
 
         for (int j = 1; j < i-1; j++) {
-//            if (j != 135 && j != 134) { continue; }
-
-//            if (print_details) { printf("------\n%d-%d vs. %d-%d\n", i-1, i, j-1, j); }
 
             arc_j[0] = arcCoords[6*j+0];
             arc_j[1] = arcCoords[6*j+1];
@@ -94,7 +91,7 @@ short checkRemainingIntersections(
             double j1[2] = { x[j-0], y[j-0] };
 
             if (skipExterior && ((j0[1] <= EXTERIOR_Y) || (j1[1] <= EXTERIOR_Y))) {
-//                printf("skip i:%3d j:%3d\n", i, j);
+
                 continue;
             }
 
@@ -108,49 +105,19 @@ short checkRemainingIntersections(
                     intersect_ij = 0;
                 } else {
                     intersect_ij = intersectArcArc(arc_i, arc_j);
-                    if (intersect_ij) {
-                        printf("A=(%3.2f, %3.2f)\nB=(%3.2f, %3.2f)\n", i0[0], i0[1], i1[0], i1[1]);
-                        printf("C=(%3.2f, %3.2f)\nD=(%3.2f, %3.2f)\n", j0[0], j0[1], j1[0], j1[1]);
-                        printf("[INFO] [%s: %s] (%d %d) (%12.8lf %12.8lf %12.8lf) -- (%12.8lf %12.8lf %12.8lf)\n",
-                                fnName,
-                                "ArcArc",
-                                i, j,
-                                arc_i[0], arc_i[1], arc_i[2],
-                                arc_j[0], arc_j[1], arc_j[2]
-                              );
-                    }
                 }
             } else if (!i_is_arc &&  j_is_arc) {
+
                 intersect_ij = intersectLineArc( i0, i1, arc_j);
-                    if (intersect_ij) {
-                        printf("[INFO] [%s: %s] (%d %d)\n",
-                                fnName,
-                                "LineArc",
-                                i, j
-                              );
-                        printf("%12.8lf %12.8lf -- %12.8lf %12.8lf\n", i0[0], i0[1], i1[0], i1[1]);
-                        printf("%12.8lf %12.8lf %12.8lf %12.8lf\n", arc_j[0], arc_j[1], arc_j[2], arc_j[3]);
-                    }
+
             } else if ( i_is_arc && !j_is_arc) {
-                intersect_ij = intersectLineArc( j0, j1, arc_i);
-                    if (intersect_ij) {
-                        printf("[INFO] [%s: %s] (%d %d)\n",
-                                fnName,
-                                "ArcLine",
-                                i, j
-                              );
-                        printf("%12.8lf %12.8lf %12.8lf %12.8lf\n", arc_i[0], arc_i[1], arc_i[2], arc_i[3]);
-                        printf("%12.8lf %12.8lf -- %12.8lf %12.8lf\n", j0[0], j0[1], j1[0], j1[1]);
-                    }
+
+                intersect_ij = intersectLineArc( j0, j1, arc_i);    
+       
             } else if (!i_is_arc && !j_is_arc) {
+
                 intersect_ij = intersectLineSegments(i0, i1, j0, j1, NULL);
-                    if (intersect_ij) {
-                        printf("[INFO] [%s: %s] (%d %d)\n",
-                                fnName,
-                                "LineSegments",
-                                i, j
-                              );
-                    }
+                   
             }
 
             intersect = intersect || intersect_ij;
@@ -160,36 +127,6 @@ short checkRemainingIntersections(
     return intersect;
 }
 
-//------------------------------------------------------------------------------
-/*
-void DEPRECATED_compareConfigAngleAndChildAngle(
-        treeNode* node,
-        puzzlerOptions* puzzler
-) {
-
-    if (isExterior(node)) {
-        printf("[COMPARE] node: %c (exterior)\n", getNodeName(node));
-        PS_printTree(node, puzzler);
-    } else {
-        printf("[COMPARE] node: %c\n", getNodeName(node));
-        printf("[COMPARE]  i cfg           child         diff\n");
-        double cfg = 0.0;
-        for (int i = 0; i < node->childCount; i++) {
-            cfg += getArcAngle(node->cfg, i);
-            double cfgDegree = toDegree(cfg);
-            double childAngle = getChildAngleByIndex(node, i);
-            double diff = cfgDegree - childAngle;
-            printf("[COMPARE] %2d %12.8lf° %12.8lf° %+.8lf°\n", i, cfgDegree, childAngle, diff);
-        }
-        cfg += getArcAngle(node->cfg, node->childCount);
-        printf("[COMPARE] %2d %12.8lf° ------------- -------------\n", node->childCount, toDegree(cfg));
-    }
-
-    for (int i = 0; i < node->childCount; i++) {
-        DEPRECATED_compareConfigAngleAndChildAngle(getChild(node, i), puzzler);
-    }
-}
-*/
 //------------------------------------------------------------------------------
 
 /**
@@ -208,24 +145,28 @@ void determineNucleotideCoordinates(
         return;
     }
 
-    /// Handle stem of current node
-    /// TODO: bulges!
+    // Handle stem of current node
     if (node->stem_start >= 1) {
         stemBox *sBox = node->sBox;
 
-        /// - prepare bulge information
+        // prepare bulge information
         int leftBulges = 0;
         int rightBulges = 0;
         int currentBulge = 0;
+
         for (int bulge = 0; bulge < sBox->bulgeCount; ++bulge) {
+
             if (sBox->bulges[bulge][0] < 0.0) {
+
                 ++rightBulges;
+
             } else {
+
                 ++leftBulges;
             }
         }
 
-        /// - left side
+        // left side
         int ntStart = node->stem_start;
         int ntEnd   = node->loop_start;
         int ntSegments = ntEnd - ntStart - leftBulges;
@@ -237,11 +178,15 @@ void determineNucleotideCoordinates(
                          };
 
         for (int nt = ntStart; nt < ntEnd; ++nt) {
+
             if (pair_table[nt] == 0) {
+
                 // bulge
                 getBulgeXY(sBox, currentBulge, &(x[nt-1]), &(y[nt-1]));
                 ++currentBulge;
+
             } else {
+
                 x[nt-1] = pStart[0] + (nt - ntStart - currentBulge) * (pEnd[0] - pStart[0]) / ntSegments;
                 y[nt-1] = pStart[1] + (nt - ntStart - currentBulge) * (pEnd[1] - pStart[1]) / ntSegments;
             }
@@ -249,7 +194,7 @@ void determineNucleotideCoordinates(
         x[ntEnd-1] = pEnd[0];
         y[ntEnd-1] = pEnd[1];
 
-        /// - right side
+        // right side
         ntStart = pair_table[node->loop_start];
         ntEnd   = pair_table[node->stem_start];
         ntSegments = ntEnd - ntStart - rightBulges;
@@ -259,11 +204,15 @@ void determineNucleotideCoordinates(
         pEnd[1] = sBox->c[1] - sBox->e[0] * sBox->a[1] - sBox->e[1] * sBox->b[1];
 
         for (int nt = ntStart; nt < ntEnd; ++nt) {
+
             if (pair_table[nt] == 0) {
+
                 // bulge
                 getBulgeXY(sBox, currentBulge, &(x[nt-1]), &(y[nt-1]));
                 ++currentBulge;
+
             } else {
+
                 x[nt-1] = pStart[0] + (nt - ntStart - currentBulge + leftBulges) * (pEnd[0] - pStart[0]) / ntSegments;
                 y[nt-1] = pStart[1] + (nt - ntStart - currentBulge + leftBulges) * (pEnd[1] - pStart[1]) / ntSegments;
             }
@@ -272,46 +221,33 @@ void determineNucleotideCoordinates(
         y[ntEnd-1] = pEnd[1];
     }
 
-    /// loop
+    // loop
     config *cfg = node->cfg;
     if (cfg != NULL) {
         double center[2] = {node->lBox->c[0], node->lBox->c[1]};
         double radius = cfg->radius;
         double pairedAngle = distanceToAngle(radius, pairedDistance);
 
-        /// - determine angle from loop to parent stem
+        // determine angle from loop to parent stem
         double startAngle = 0.0;
         stemBox *sBox = node->sBox;
-        /*
-        if (abs(center[0] - sBox->c[0]) < 1e-10) {
-            if (center[1] > sBox->c[1]) {
-                startAngle = MATH_PI + MATH_PI_HALF;
-            } else {
-                startAngle = MATH_PI_HALF;
-            }
-        } else if (abs(center[1] - sBox->c[1]) < 1e-10) {
-            if (center[0] > sBox->c[0]) {
-                startAngle = MATH_PI;
-            } else {
-                startAngle = 0.0;
-            }
-        } else {
-        */
-            startAngle = atan2((sBox->c[1] - center[1]), (sBox->c[0] - center[0]));
-        //}
+        startAngle = atan2((sBox->c[1] - center[1]), (sBox->c[0] - center[0]));
         startAngle -= pairedAngle / 2.0;
 
-        /// - for all loop arcs
+        // for all loop arcs
         configArc *cfgArc = NULL;
         int nt = node->loop_start;
         double angle = startAngle;
         double arcAngle = 0.0;
         int numberOfArcSegments = 0;
         for (int arc = 0; arc < cfg->numberOfArcs; ++arc) {
+
             cfgArc = &(cfg->cfgArcs[arc]);
             numberOfArcSegments = cfgArc->numberOfArcSegments;
             arcAngle = cfgArc->arcAngle;
+
             for (int arcSegment = 1; arcSegment < numberOfArcSegments; ++arcSegment) {
+
                 angle = startAngle - arcSegment * ((arcAngle - pairedAngle) / numberOfArcSegments);
                 x[nt] = center[0] + radius * cos(angle);
                 y[nt] = center[1] + radius * sin(angle);
@@ -322,28 +258,36 @@ void determineNucleotideCoordinates(
         }
     }
 
-    /// children
+    // children
     for (int child = 0; child < node->childCount; ++child) {
+
         determineNucleotideCoordinates(node->children[child],
                                        pair_table, length,
                                        unpairedDistance, pairedDistance,
                                        x, y);
     }
 
-    /// exterior
+    // exterior
     x[0] = EXTERIOR_Y;
     y[0] = EXTERIOR_Y;
     int start = 1;
     if (pair_table[1] != 0) {
+
         start = pair_table[1] + 1;
+
     } else {
+
         start = 2;
     }
     for (int nt = start; nt <= length; ++nt) {
+
         if (pair_table[nt] == 0) {
+
             x[nt-1] = x[nt-2] + unpairedDistance;
             y[nt-1] = EXTERIOR_Y;
+
         } else {
+
             nt = pair_table[nt];
         }
     }
@@ -353,6 +297,22 @@ void determineNucleotideCoordinates(
 
 //------------------------------------------------------------------------------
 
+// debug method for intersection regression test
+int printInformation(const char* fnName, const char * format, ... ) {
+    FILE* stream = stdout;
+
+    va_list args;
+    if (fnName != NULL) {
+        fprintf(stream, "[INFORMATION] [%s] ", fnName);
+    }
+    va_start(args, format);
+    int ret = vfprintf(stream, format, args);
+    va_end(args);
+    fflush(stream);
+    return ret;
+}
+
+
 int layout_RNApuzzler(
         short const * const pair_table,
         float *x,
@@ -361,142 +321,90 @@ int layout_RNApuzzler(
         puzzlerOptions *puzzler
 ) {
     const char *fnName = "layout_RNApuzzler";
-
-//    printf("[Puzzler Settings]\n");
-//    printf("exterior: %d\n", puzzler->checkExteriorIntersections);
-//    printf("ancestor: %d\n", puzzler->checkAncestorIntersections);
-//    printf("siblings: %d\n", puzzler->checkSiblingIntersections);
-//    printf("optimize: %d\n", puzzler->optimize);
-//    printf("\n");
-
-//    if (puzzler->paired / puzzler->unpaired > 2.0) {
-//        printWarning(fnName, "paired:unpaired > 2.0 -> layout might be destroyed!\n");
-//    }
-
     int length = pair_table[0];
-    //printf("RNA length: %d\n", length);
 
-    /// turtle base information
+    // turtle base information
     tBaseInformation* baseInformation = vrna_alloc((length + 1) * sizeof(tBaseInformation));
+
     for (int i = 0; i <= length; i++) {
+
         baseInformation[i].baseType = TYPE_BASE_NONE;
         baseInformation[i].distance = puzzler->unpaired;
         baseInformation[i].angle = 0.0;
         baseInformation[i].config = NULL;
     }
 
-    /// generate default configuration for each loop
+    // generate default configuration for each loop
     cfgGenerateConfig(pair_table, baseInformation, puzzler->unpaired, puzzler->paired);
 
-    if (printInitialConfig) {
-        printf("** print initial config **\n");
-        for (int i = 0; i <= length; i++) {
-            if (baseInformation[i].config != NULL) {
-                cfgPrintConfig(baseInformation[i].config);
-            }
-        }
-    }
-
-    /// RNAturtle
+    // RNAturtle
     computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
 
-    /// Transform affine coordinates into cartesian coordinates
+    // Transform affine coordinates into cartesian coordinates
     double* myX = (double*) vrna_alloc(length * sizeof(double));
     double* myY = (double*) vrna_alloc(length * sizeof(double));
     affineToCartesianCoordinates(baseInformation, length, myX, myY);
 
-    /// Build RNApuzzler configuration tree from cartesian coordinates
+    // Build RNApuzzler configuration tree from cartesian coordinates
     double distBulge = sqrt(puzzler->unpaired * puzzler->unpaired - 0.25 * puzzler->unpaired * puzzler->unpaired);
     treeNode* tree = buildConfigtree(pair_table, baseInformation, myX, myY, distBulge);
 
-    /// current and maximal number of changes applied to config
+    // current and maximal number of changes applied to config
     puzzler->numberOfChangesAppliedToConfig = 0;
 
-    /// DZ: should be dependent on the RNA length * 10 ???
     puzzler->maximumNumberOfConfigChangesAllowed = 25000;
 
     /// reset angle coordinates
-    /*
+    /**/
     for (int i = 0; i < length+1; i++) {
         baseInformation[i].distance = puzzler->unpaired;
         baseInformation[i].angle = 0.0;
     }
-    */
+    /**/
 
-    /// RNApuzzler
+    // RNApuzzler
     if (puzzler->checkExteriorIntersections || puzzler->checkSiblingIntersections || puzzler->checkAncestorIntersections) {
+
         /// - One execution of checkAndFixIntersections should always be sufficient
         updateBoundingBoxes(tree, puzzler);
-
-//        if (FANCY_PS) {
-//            PS_printFancyTree(tree, puzzler);
-//       }
         checkAndFixIntersections(tree, 0, puzzler);
-//        printf("\n");
-//        printInformation("CHANGE COUNT", "%d %s\n\n", puzzler->numberOfChangesAppliedToConfig, puzzler->filename);
     }
 
     /// use configuration created by RNApuzzler for RNAturtle
-    //computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
-    //affineToCartesianCoordinates(baseInformation, length, myX, myY);
+    computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
+    affineToCartesianCoordinates(baseInformation, length, myX, myY);	
 
-    /// determine x and y coordinates from RNApuzzler result
-    /*
-    for (int i = 0; i < length; i++) {
-      myX[i] = 50 + i;
-      myY[i] = 100 - i;
-    }
-    */
-    determineNucleotideCoordinates(tree,
-                                   pair_table, length,
-                                   puzzler->unpaired, puzzler->paired,
-                                   myX, myY);
+    //determineNucleotideCoordinates(tree,
+    //                               pair_table, length,
+    //                               puzzler->unpaired, puzzler->paired,
+    //                               myX, myY);
 
-    /// this section is for finding and resolving intersections
-    /// of branches of the exterior loop against each other
-    /// stretch backbones of the exterior until the overlap is gone
-    /// may result in wide pictures
+    // this section is for finding and resolving intersections
+    // of branches of the exterior loop against each other
+    // stretch backbones of the exterior until the overlap is gone
+    // may result in wide pictures
+
     short checkIntersectionsOfExteriorBranches = 1;
+
     if (checkIntersectionsOfExteriorBranches) {
-        // resolveExteriorChildrenIntersectionAffin(tree, pair_table, baseInformation, puzzler->unpaired, puzzler->allowFlipping);
-        // resolveExteriorChildIntersections(tree, pair_table, baseInformation, puzzler->unpaired, puzzler->allowFlipping);
-        // affineToCartesianCoordinates(baseInformation, length, myX, myY);
 
         resolveExteriorChildrenIntersectionXY(tree, pair_table, puzzler->unpaired, puzzler->allowFlipping, myX, myY);
-        if (FANCY_PS) {
-
-            if (tree->lBox) {
-                free(tree->lBox);
-                tree->lBox = NULL;
-            }
-            if (tree->sBox) {
-                free(tree->sBox);
-                tree->sBox = NULL;
-            }
-//            PS_printFancyTree(tree, puzzler);
-        }
     }
 
-    /// for all loops: compute postscript arcs instead of lines
+    // for all loops: compute postscript arcs instead of lines
     if (puzzler->drawArcs) {
+
         computeAnglesAndCentersForPS(pair_table, myX, myY, baseInformation, arc_coords);
     }
 
-    /*
-    for (int i = 0; i < length+1; i++) {
-        printf("baseInformation[%d]: %d\n", i, baseInformation[i].baseType);
-    }
-    */
-
-    /// final check based on line segments and arc segments
+    // final check based on line segments and arc segments
     short printDetails = 0;
     short intersect = checkRemainingIntersections(myX, myY, arc_coords, printDetails, baseInformation, length);
-//    printInformation("RESULT FINAL", "%s %s\n\n", (intersect ? "FAIL   " : "SUCCESS"), puzzler->filename);
-
+	
+    //Debug call for intersection regression test, uncomment for output
+    printInformation("RESULT FINAL", "%s %s\n\n", (intersect ? "FAIL   " : "SUCCESS"), puzzler->filename);
     freeTree(tree);
-//    printf("tree\n");
     free(baseInformation);
-//    printf("baseInformation\n");
 
     for (int i = 0; i < length; i++) {
         x[i] = myX[i];
@@ -508,4 +416,6 @@ int layout_RNApuzzler(
 
     return length;
 }
+
+
 

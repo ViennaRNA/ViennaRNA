@@ -1,3 +1,9 @@
+/*
+ *      Bounding Boxes for RNApuzzler
+ *
+ *      c  Daniel Wiegreffe, Daniel Alexander, Dirk Zeckzer
+ *      ViennaRNA package
+ */
 #include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/config_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
@@ -14,6 +20,7 @@ void getBulgeXY(
     double *x,
     double *y
 ) {
+
     double* bulge = stem->bulges[index];
     *x = stem->c[0] + bulge[2] * stem->a[0] + bulge[0] * stem->b[0] * (stem->e[1] + stem->bulgeDist);
     *y = stem->c[1] + bulge[2] * stem->a[1] + bulge[0] * stem->b[1] * (stem->e[1] + stem->bulgeDist);
@@ -27,6 +34,7 @@ void getBulgeCoordinatesExtraDistance(
     double pThis[2],
     double pNext[2]
 ) {
+
     double* bulge = stem->bulges[index];
     pPrev[0] = stem->c[0] + bulge[1] * stem->a[0] + bulge[0] * stem->b[0] *  stem->e[1];
     pPrev[1] = stem->c[1] + bulge[1] * stem->a[1] + bulge[0] * stem->b[1] *  stem->e[1];
@@ -43,10 +51,12 @@ void getBulgeCoordinates(
     double pThis[2],
     double pNext[2]
 ) {
+
     getBulgeCoordinatesExtraDistance(stem, index, 0, pPrev, pThis, pNext);
 }
 
 void translateLoopBox(loopBox* box, const double* vector) {
+
     double center[2] = { box->c[0], box->c[1] };
     double newCenter[2];
     translatePointByVector(center, vector, newCenter);
@@ -55,6 +65,7 @@ void translateLoopBox(loopBox* box, const double* vector) {
 }
 
 void rotateLoopBox(loopBox* box, const double* point, const double angle) {
+
     double loopCenter[2] = { box->c[0], box->c[1] };
     double newLoopCenter[2];
 
@@ -65,6 +76,7 @@ void rotateLoopBox(loopBox* box, const double* point, const double angle) {
 }
 
 void translateStemBox(stemBox* box, const double* vector) {
+
     double center[2] = { box->c[0], box->c[1] };
     double newCenter[2];
     translatePointByVector(center, vector, newCenter);
@@ -73,6 +85,7 @@ void translateStemBox(stemBox* box, const double* vector) {
 }
 
 void rotateStemBox(stemBox* box, const double* point, const double angle) {
+
     double stemCenter[2] = { box->c[0], box->c[1] };
     double stemDirA[2] =   { box->a[0], box->a[1] };
     double stemDirB[2] =   { box->b[0], box->b[1] };
@@ -101,7 +114,6 @@ void getLoopData(
     const double* x,
     const double* y
 ) {
-    // copy/pasted from plot_layouts.c ... consider moving this one to utils or such a thing.
 
     int i = start;
     int end = pair_table[start];
@@ -140,6 +152,7 @@ loopBox* createLoopBox(
     const double center[2],
     const double radius
 ) {
+
     loopBox* box = (loopBox*) vrna_alloc(1*sizeof(loopBox));
 
     box->c[0] = center[0];
@@ -156,15 +169,15 @@ loopBox* buildLoopBox(
     const double* x,
     const double* y
 ) {
+
     double center[2];
     double radius;
 
     // calculate center coords and radius for the loop
     getLoopData(center, &radius, start, pair_table, baseInformation, x, y);
 
-    //printf("lBox [%3.2f %3.2f] r:%3.2f\n", center_x, center_y, radius);
-
     loopBox* box = createLoopBox(center, radius);
+
     return box;
 }
 
@@ -173,6 +186,7 @@ stemBox* createStemBox(
     const double e[2],
     const double sp[2]
 ) {
+
     stemBox* box = (stemBox*) vrna_alloc(1*sizeof(stemBox));
 
     double a[2] = { 0.5 * (e[0] -  s[0]), 0.5 * (e[1] -  s[1]) };
@@ -210,13 +224,17 @@ int countBulges(
     int bulgeCount = 0;
 
     for (int i = start; i < end; i++) {
+
         if (pair_table[i] == 0) {
+
             bulgeCount++;
         }
     }
 
     for (int i = pair_table[end]; i < pair_table[start]; i++) {
+
         if (pair_table[i] == 0) {
+
             bulgeCount++;
         }
     }
@@ -229,19 +247,23 @@ double getA(
     const double x,
     const double y
 ) {
+
     double a[2] = { box->a[0], box->a[1] };
     double b[2] = { box->b[0], box->b[1] };
     double c[2] = { box->c[0], box->c[1] };
     double p[2] = { x - c[0], y - c[1] };
-
     double ret = 0.0;
+
     if (b[0] == 0.0) {
+
         ret = p[0] / a[0];
     }
     else if (b[1] == 0.0) {
+
         ret = p[1] / a[1];
     }
     else {
+
         ret = ( p[0] * b[1] - p[1] * b[0] ) / ( a[0] * b[1] - a[1] * b[0] );
     }
     return ret;
@@ -254,6 +276,7 @@ double * createBulge(
     const int i,
     double bSign
 ) {
+
     double* bulge = (double*) vrna_alloc(4 * sizeof(double));
 
     // remember -1 offset between
@@ -279,7 +302,9 @@ void setBulges(
     const int bulgeCount,
     const double bulgeDist
 ) {
+
     if (bulgeCount <= 0) {
+
         box->bulges = NULL;
         box->bulgeCount = 0;
         box->bulgeDist = bulgeDist;
@@ -289,7 +314,9 @@ void setBulges(
     double** bulges = (double**) vrna_alloc(bulgeCount * sizeof(double*));
     int currentBulge = 0;
     for (int i = start; i < end; i++) {
+
         if (pair_table[i] == 0) {
+
             double bSign = 1.0;
             double* bulge = createBulge(box, x, y, i, bSign);
             bulges[currentBulge] = bulge;
@@ -298,7 +325,9 @@ void setBulges(
     }
 
     for (int i = pair_table[end]; i < pair_table[start]; i++) {
+
         if (pair_table[i] == 0) {
+
             double bSign = -1.0;
             double* bulge = createBulge(box, x, y, i, bSign);
             bulges[currentBulge] = bulge;
@@ -319,11 +348,12 @@ stemBox* buildStemBox(
     const double* y,
     const double bulgeDist
 ) {
+
     int i_s = start;
     int i_e = end;
     int i_sp = pair_table[start];
 
-    /// get coordinates for rectangle corners
+    // get coordinates for rectangle corners
     // -1 for offset pair_table vs. x/y
     double s[2]  = {x[i_s -1], y[i_s -1]};
     double e[2]  = {x[i_e -1], y[i_e -1]};
@@ -332,48 +362,11 @@ stemBox* buildStemBox(
     /// finally create the box
     stemBox* box = createStemBox(s, e, sp);
 
-    /// get coordinates for bulges
+    // get coordinates for bulges
     int bulgeCount = countBulges(pair_table, i_s, i_e);
     setBulges(box, pair_table, i_s, i_e, x, y, bulgeCount, bulgeDist);
 
     return box;
-}
-
-void printLBox(const loopBox* loop) {
-    printf("lBox [%3.2f, %3.2f] r:%3.2f\n",
-            loop->c[0],
-            loop->c[1],
-            loop->r);
-}
-
-void printSBox(const stemBox* stem) {
-    const short type = 1;
-    if (type == 0) {
-        double a[2] = { stem->a[0] * stem->e[0], stem->a[1] * stem->e[0] };
-        double b[2] = { stem->b[0] * stem->e[1], stem->b[1] * stem->e[1] };
-
-        // s  = c - a + b
-        // e  = c + a + b
-        // ep = c + a - b
-        // sp = c - a - b
-        double s[2]  = {  stem->c[0] - a[0] + b[0], stem->c[1] - a[1] + b[1] };
-        double e[2]  = {  stem->c[0] + a[0] + b[0], stem->c[1] + a[1] + b[1] };
-        double ep[2] = {  stem->c[0] + a[0] - b[0], stem->c[1] + a[1] - b[1] };
-        double sp[2] = {  stem->c[0] - a[0] - b[0], stem->c[1] - a[1] - b[1] };
-
-        printf("sBox [%3.2f, %3.2f] -> [%3.2f, %3.2f] -> [%3.2f, %3.2f] -> [%3.2f, %3.2f]\n",
-                       s[0],  s[1],      e[0],  e[1],     ep[0], ep[1],     sp[0], sp[1]);
-    }
-    if (type == 1) {
-        printf("sBox a=(%3.2f, %3.2f) b=(%3.2f, %3.2f) c=(%3.2f, %3.2f)\n"
-                , stem->a[0]
-                , stem->a[1]
-                , stem->b[0]
-                , stem->b[1]
-                , stem->e[0]
-                , stem->e[1]
-                );
-    }
 }
 
 void getLBoxCenter(const loopBox* box, double c[2]) {

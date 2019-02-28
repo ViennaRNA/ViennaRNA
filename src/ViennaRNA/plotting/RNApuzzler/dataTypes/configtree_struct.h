@@ -16,24 +16,24 @@
  */
 typedef struct configtree
 {
-    /// - node name
+    // node name
     int id;
 
-    /// tree information
+    // tree information
     struct configtree*  parent;
     struct configtree** children;
     int childCount;
 
-    /// RNA data
+    // RNA data
     config* cfg;
     int loop_start;
     int stem_start;
 
-    /// for intersection handling
+    // for intersection handling
     struct boundingboxLoop* lBox; // bounding box for this loop         first base at loop_start
     struct boundingboxStem* sBox; // bounding box for the prior stem    first base at stem_start
 
-    /// AABB
+    // AABB
     AABB aabb;
 } treeNode;
 

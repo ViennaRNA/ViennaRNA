@@ -4,6 +4,7 @@
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/config_struct.h>
 
 typedef enum {
+
     TYPE_BASE_NONE = 0,
     TYPE_EXTERIOR = 1,
     TYPE_STEM = 2,
@@ -14,6 +15,7 @@ typedef enum {
     
 typedef struct
 {
+
     BASE_TYPE baseType;
     double angle;
     double distance;
