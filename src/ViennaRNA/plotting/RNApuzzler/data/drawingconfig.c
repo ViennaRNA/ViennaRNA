@@ -190,7 +190,7 @@ double approximateConfigArcRadius(
                       / (-(a * m / (rtn * sqrt(rtn * rtn - a * a / 4)) + b * n / (rtn * sqrt(rtn * rtn - b * b / 4))));
         rtn -= dx;
 
-        if (fabs(dx) < epsilon3) {
+        if (fabs(dx) < EPSILON_3) {
 
             break;
         }
@@ -595,7 +595,7 @@ double cfgApplyChanges(
         // (this forbidds to shrink a loop)
         cfgUpdateMinRadius(cfg, puzzler->unpaired, puzzler->paired);
 
-        if (cfg->minRadius - epsilon0 > oldRadius) {
+        if (cfg->minRadius - EPSILON_0 > oldRadius) {
 
             newRadius = cfg->minRadius;
 
@@ -638,7 +638,7 @@ short cfgIsValid(
         validSingleAngles = validSingleAngles && validAngle;
     }
 
-    short validSumAngles = (fabs(sumAngles - MATH_TWO_PI) < epsilon3);
+    short validSumAngles = (fabs(sumAngles - MATH_TWO_PI) < EPSILON_3);
 
     return validSingleAngles && validSumAngles;
 }

@@ -167,7 +167,7 @@ double calcDeltasMaximumFirstDecrease(
             targetAngle += diff;
         }
 
-        doLoop = targetAngle > 0.0 && fabs(diff) > epsilon3;
+        doLoop = targetAngle > 0.0 && fabs(diff) > EPSILON_3;
     }
 
 
@@ -437,7 +437,7 @@ double calcDeltas(
                 // parent is interior loop
                 double childAngle = getArcAngle(parent->cfg, 0);
 
-                if (fabs(childAngle - MATH_PI) < epsilon3) {
+                if (fabs(childAngle - MATH_PI) < EPSILON_3) {
 
                     // no op
                 } else if (childAngle > MATH_PI) {
@@ -489,7 +489,7 @@ double calcDeltas(
 
             for (int currentArc = 0; currentArc < configSize; currentArc++) {
 
-                if (fabs(deltaCfg[currentArc]) >= epsilon3) {
+                if (fabs(deltaCfg[currentArc]) >= EPSILON_3) {
 
                     valid = 1;
                     break;
@@ -532,7 +532,7 @@ double calcDeltas(
         checkSum += deltas[currentArc];
     }
 
-    if (fabs(checkSum) > epsilon3) {
+    if (fabs(checkSum) > EPSILON_3) {
 
         for (int currentArc = 0; currentArc < configSize; currentArc++) {
 

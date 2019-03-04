@@ -59,7 +59,7 @@ short checkAndApplyConfigChanges(
 
             for (int currentArc = 0; currentArc < cfg->numberOfArcs; currentArc++) {
 
-                if (fabs(deltaCfg[currentArc]) >= epsilon3) {
+                if (fabs(deltaCfg[currentArc]) >= EPSILON_3) {
 
                     valid = 1;
                     break;

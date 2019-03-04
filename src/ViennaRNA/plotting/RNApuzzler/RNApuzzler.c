@@ -355,12 +355,12 @@ int layout_RNApuzzler(
     puzzler->maximumNumberOfConfigChangesAllowed = 25000;
 
     /// reset angle coordinates
-    /**/
+    /*
     for (int i = 0; i < length+1; i++) {
         baseInformation[i].distance = puzzler->unpaired;
         baseInformation[i].angle = 0.0;
     }
-    /**/
+    */
 
     // RNApuzzler
     if (puzzler->checkExteriorIntersections || puzzler->checkSiblingIntersections || puzzler->checkAncestorIntersections) {
@@ -371,13 +371,13 @@ int layout_RNApuzzler(
     }
 
     /// use configuration created by RNApuzzler for RNAturtle
-    computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
-    affineToCartesianCoordinates(baseInformation, length, myX, myY);	
+    //computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
+    //affineToCartesianCoordinates(baseInformation, length, myX, myY);	
 
-    //determineNucleotideCoordinates(tree,
-    //                               pair_table, length,
-    //                               puzzler->unpaired, puzzler->paired,
-    //                               myX, myY);
+    determineNucleotideCoordinates(tree,
+                                   pair_table, length,
+                                   puzzler->unpaired, puzzler->paired,
+                                   myX, myY);
 
     // this section is for finding and resolving intersections
     // of branches of the exterior loop against each other
@@ -402,7 +402,7 @@ int layout_RNApuzzler(
     short intersect = checkRemainingIntersections(myX, myY, arc_coords, printDetails, baseInformation, length);
 	
     //Debug call for intersection regression test, uncomment for output
-    printInformation("RESULT FINAL", "%s %s\n\n", (intersect ? "FAIL   " : "SUCCESS"), puzzler->filename);
+//    printInformation("RESULT FINAL", "%s %s\n\n", (intersect ? "FAIL   " : "SUCCESS"), puzzler->filename);
     freeTree(tree);
     free(baseInformation);
 

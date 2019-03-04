@@ -794,7 +794,7 @@ double optimizeNode(
         const double factor = 0.5;
         double decreaseAngle = factor * fmin((currentNecessarySpace - minNecessarySpace), space);
 
-        if (decreaseAngle < epsilon3) {
+        if (decreaseAngle < EPSILON_3) {
 
             // decreaseAngle too small: leave
             continue;

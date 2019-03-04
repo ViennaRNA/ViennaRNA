@@ -7,9 +7,9 @@
 
 #define epsilonRecognize 14 // font size
 #define epsilonFix 19 // font size + 5 @ resolveIntersections.c
-#define epsilon0 1.0
-#define epsilon3 1e-3
-#define epsilon7 1e-7
+#define EPSILON_0 1.0
+#define EPSILON_3 1e-3
+#define EPSILON_7 1e-7
 #define MIN_POSITIVE_ANGLE +0.0000000001
 #define MIN_NEGATIVE_ANGLE -0.0000000001
 

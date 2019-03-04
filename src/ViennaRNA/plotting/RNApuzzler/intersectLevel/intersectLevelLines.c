@@ -117,11 +117,11 @@ short intersectLineSegments(
         double P[2]
 ) {
 
-    if ((   X[0] < A[0] - epsilon7 && X[0] < B[0] - epsilon7
-         && Y[0] < A[0] - epsilon7 && Y[0] < B[0] - epsilon7)
+    if ((   X[0] < A[0] - EPSILON_7 && X[0] < B[0] - EPSILON_7
+         && Y[0] < A[0] - EPSILON_7 && Y[0] < B[0] - EPSILON_7)
         ||
-        (   X[0] > A[0] + epsilon7 && X[0] > B[0] + epsilon7
-         && Y[0] > A[0] + epsilon7 && Y[0] > B[0] + epsilon7)
+        (   X[0] > A[0] + EPSILON_7 && X[0] > B[0] + EPSILON_7
+         && Y[0] > A[0] + EPSILON_7 && Y[0] > B[0] + EPSILON_7)
         ) {
 
         // Check if the x-coordinates of X and Y are smaller than
@@ -129,11 +129,11 @@ short intersectLineSegments(
         return 0;
     }
 
-    if ((   X[1] < A[1] - epsilon7 && X[1] < B[1] - epsilon7
-         && Y[1] < A[1] - epsilon7 && Y[1] < B[1] - epsilon7)
+    if ((   X[1] < A[1] - EPSILON_7 && X[1] < B[1] - EPSILON_7
+         && Y[1] < A[1] - EPSILON_7 && Y[1] < B[1] - EPSILON_7)
         ||
-        (   X[1] > A[1] + epsilon7 && X[1] > B[1] + epsilon7
-         && Y[1] > A[1] + epsilon7 && Y[1] > B[1] + epsilon7)
+        (   X[1] > A[1] + EPSILON_7 && X[1] > B[1] + EPSILON_7
+         && Y[1] > A[1] + EPSILON_7 && Y[1] > B[1] + EPSILON_7)
         ) {
 
         // Check if the y-coordinates of X and Y are smaller than
@@ -143,7 +143,7 @@ short intersectLineSegments(
 
     double denominator = (B[0] - A[0]) * (X[1] - Y[1]) - (B[1] - A[1]) * (X[0] - Y[0]);
 
-    if (fabs(denominator) < epsilon7) {
+    if (fabs(denominator) < EPSILON_7) {
 
         // lines are parallel
         // check if X is situated on AB line
@@ -152,11 +152,11 @@ short intersectLineSegments(
         double dx = B[0] - A[0];
         double dy = B[1] - A[1];
 
-        if (fabs(dx) > epsilon7) {
+        if (fabs(dx) > EPSILON_7) {
 
             sX = (X[0] - A[0]) / (dx);
             double refXy = A[1] + sX * (dy);
-            if (fabs(refXy - X[1]) > epsilon7) {
+            if (fabs(refXy - X[1]) > EPSILON_7) {
 
                 // AB and XY are not part of the same line
                 return 0;
@@ -167,7 +167,7 @@ short intersectLineSegments(
 
             sX = (X[1] - A[1]) / (dy);
             double refXx = A[0] + sX * (dx);
-            if (fabs(refXx - X[0]) > epsilon7) {
+            if (fabs(refXx - X[0]) > EPSILON_7) {
 
                 // AB and XY are not part of the same line
                 return 0;
@@ -208,7 +208,7 @@ short intersectLineSegments(
             Pt[0] = X[0] + t * (Y[0] - X[0]);
             Pt[1] = X[1] + t * (Y[1] - X[1]);
 
-            if (fabs(Ps[0] - Pt[0]) < epsilon7 && fabs(Ps[1] - Pt[1]) < epsilon7) {
+            if (fabs(Ps[0] - Pt[0]) < EPSILON_7 && fabs(Ps[1] - Pt[1]) < EPSILON_7) {
 
                 if (P != NULL) {
 

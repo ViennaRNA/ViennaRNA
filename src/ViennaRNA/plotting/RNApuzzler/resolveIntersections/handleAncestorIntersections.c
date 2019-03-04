@@ -809,7 +809,7 @@ void setupExteriorBoundingBoxes(
     // (3.1) exterior cut point is between iParent and direct child
     // (3.1) exterior cut point is between iNode and direct child
 
-    if (fabs(parentOfIntersector->lBox->c[0] - topLevelX) < epsilon0) {
+    if (fabs(parentOfIntersector->lBox->c[0] - topLevelX) < EPSILON_0) {
 
         // (1)
         if (refLoop->c[0] < topLevelX) {

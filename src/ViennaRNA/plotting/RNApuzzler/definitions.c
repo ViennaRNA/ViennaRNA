@@ -61,12 +61,12 @@ void bubblesort(
             thisValue = valuesLevel1[indices[j+0]];
             nextValue = valuesLevel1[indices[j+1]];
             swap = 0;
-            if (nextValue - thisValue > epsilon7) {
+            if (nextValue - thisValue > EPSILON_7) {
                 swap = 1;
-            } else if (fabs(nextValue - thisValue) < epsilon7) {
+            } else if (fabs(nextValue - thisValue) < EPSILON_7) {
                 thisValue = valuesLevel2[indices[j+0]];
                 nextValue = valuesLevel2[indices[j+1]];
-                if (nextValue - thisValue > epsilon7) {
+                if (nextValue - thisValue > EPSILON_7) {
                     swap = 1;
                 }
             }

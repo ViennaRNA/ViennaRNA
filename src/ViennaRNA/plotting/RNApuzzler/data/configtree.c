@@ -187,7 +187,7 @@ void updateBoundingBoxes(
 
         if (stemLength == 0) {
 
-            sBox->e[0] = epsilon7;
+            sBox->e[0] = EPSILON_7;
         }
     }
 

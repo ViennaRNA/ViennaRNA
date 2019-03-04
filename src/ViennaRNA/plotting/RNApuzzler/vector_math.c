@@ -95,11 +95,11 @@ double angleBetweenVectors2D(const double vector1[2], const double vector2[2]) {
     normalize(vectorNormalized2);
     double cosAngle = scalarProduct2D(vectorNormalized1, vectorNormalized2);
     double angle = 0.0;
-    if (fabs(cosAngle - -1.00) < epsilon7) {           // cosAngle == -1 -> rad: PI deg: 180°
+    if (fabs(cosAngle - -1.00) < EPSILON_7) {           // cosAngle == -1 -> rad: PI deg: 180°
 
         angle = MATH_PI;
 
-    } else if (fabs(cosAngle -  1.00) < epsilon7) {    // cosAngle == +1 -> rad: 0 deg: 0°
+    } else if (fabs(cosAngle -  1.00) < EPSILON_7) {    // cosAngle == +1 -> rad: 0 deg: 0°
 
         angle =  0;
 
@@ -392,75 +392,99 @@ double sign(const double number) {
     }
 }
 
-void circle(const double A[2], const double B[2], const double C[2], double center[2], double* radius) {
 
-    char* fnName = "CIRCLE";
+void circle(
+    const double P1[2],
+    const double P2[2],
+    const double P3[2],
+    double center[2],
+    double* radius
+) {
 
-    double dy_AB = B[1] - A[1];
-    double dy_BC = C[1] - B[1];
-    double p1[2], p2[2], p3[2];
-    if (dy_AB == 0.0) {
-        p1[0] = A[0];
-        p1[1] = A[1];
-        p2[0] = C[0];
-        p2[1] = C[1];
-        p3[0] = B[0];
-        p3[1] = B[1];
-    } else
-    if (dy_BC == 0.0) {
-        p1[0] = C[0];
-        p1[1] = C[1];
-        p2[0] = A[0];
-        p2[1] = A[1];
-        p3[0] = B[0];
-        p3[1] = B[1];
-    } else
-    {
-        p1[0] = A[0];
-        p1[1] = A[1];
-        p2[0] = B[0];
-        p2[1] = B[1];
-        p3[0] = C[0];
-        p3[1] = C[1];
-    }
-    // note:
-    // we have to make sure there is no horizontal line in the calculation
-    // as this would cause division by zero at some point (which is forbidden)
-    //
-    // if A,B,C form a valid circle we are sure there are at least two lines in (AB, BC, CA)
-    // that are non-horizontal which we take like above
+  //initialize coefficients of the system of equations
+  double alpha[3];
+  alpha[0] = 1;
+  alpha[1] = 1;
+  alpha[2] = 1;
 
+  double beta[3];
+  beta[0] = -P1[0];
+  beta[1] = -P2[0];
+  beta[2] = -P3[0];
 
+  double gamma[3];
+  gamma[0] = -P1[1];
+  gamma[1] = -P2[1];
+  gamma[2] = -P3[1];
 
-    // line p1p2: anchor=p1 direction=v12
-    // line p2p3: anchor=p2 direction=v23
-    double v12[2], v23[2];
-    vector(p1, p2, v12);
-    vector(p2, p3, v23);
+  double r[3];
+  r[0] = -(P1[0] * P1[0] + P1[1] * P1[1]);
+  r[1] = -(P2[0] * P2[0] + P2[1] * P2[1]);
+  r[2] = -(P3[0] * P3[0] + P3[1] * P3[1]);
 
-    // midpoints
-    double m12[2] = { p1[0] + 0.5 * v12[0], p1[1] + 0.5 * v12[1] };
-    double m23[2] = { p2[0] + 0.5 * v23[0], p2[1] + 0.5 * v23[1] };
+  // eliminate alpha 1 und 2
+  beta[1] -= beta[0];
+  gamma[1] -= gamma[0];
+  beta[2] -= beta[0];
+  gamma[2] -= gamma[0];
+  r[1] -= r[0];
+  r[2] -= r[0];
 
-    // normals
-    double n12[2], n23[2];
-    normal(v12, n12);
-    normal(v23, n23);
+  double A;
+  double B;
+  double C;
 
-    // perpendicular to p1p2: anchor=m12 direction=n12
-    // perpendicular to p2p3: anchor=m23 direction=n23
-    double d12 = n12[1] / n12[0];
-    double d23 = n23[1] / n23[0];
+  // solve linear equations
+  if ((fabs(beta[1]) < EPSILON_7)
+      && (fabs(gamma[1]) > EPSILON_7)) {
 
-    double pCut[2];
-    pCut[0] = (d12 * m12[0] - d23 * m23[0] + m23[1] - m12[1]) / (d12 - d23);
-    pCut[1] = d12 * (pCut[0] - m12[0]) + m12[1];
+    	C = r[1] / gamma[1];
+    	B = (r[2] - gamma[2] * C) / beta[2];
+    	//printf("beta[1] == %15.12lf\n",beta [1]);
 
-    double vP1ToPCut[2];
-    vector(p1, pCut, vP1ToPCut);
+  } else if ((fabs(beta[2]) < EPSILON_7)
+             && (fabs(gamma[2]) > EPSILON_7)) {
 
-    center[0] = pCut[0];
-    center[1] = pCut[1];
-    *radius = vectorLength2D(vP1ToPCut);
+    	C = r[2] / gamma[2];
+    	B = (r[1] - gamma[1] * C) / beta[1];
+    	//printf("beta[2] == %15.12lf\n", beta[2]);
 
+  } else {
+
+    	if (fabs(gamma[1]) < EPSILON_7) {
+
+      		B = r[1] / beta[1];
+      		C = (r[2] - beta[2] * B) / gamma[2];
+      		//printf("gamma[1] == %15.12lf\n", gamma[1]);
+
+    	} else if (fabs(gamma[2]) < EPSILON_7) {
+
+      		B = r[2] / beta[2];
+     		C = (r[1] - beta[1] * B) / gamma[1];
+      		//printf("gamma[2] == %15.12lf\n", gamma[2]);
+
+	} else {
+
+	  	//printf("  GL1: %15.12lf * B + %15.12lf * C = %15.12lf\n", beta[1], 
+	  	//          gamma[1], r[1]);
+	  	//printf("  GL2: %15.12lf * B + %15.12lf * C = %15.12lf\n", beta[2], 
+	  	//          gamma[2], r[2]);
+
+	  	gamma[2] = gamma[2] * beta[1] - gamma[1] * beta[2];
+	  	r[2] = r[2] * beta[1] - r[1] * beta[2];
+
+	  	//printf("  GL C: %15.12lf * C = %15.12lf\n", gamma[2], r[2]);
+	  	C = r[2] / gamma[2];
+	  	B = (r[1] - gamma[1] * C) / beta[1];
+	}
+  }
+  
+  A = r[0] - beta[0] * B - gamma[0] * C;
+
+  //calculate center and radius 
+  center[0] = B / 2;
+  center[1] = C / 2;
+  *radius = sqrt(center[0] * center[0] + center[1] * center[1] - A);
 }
+
+
