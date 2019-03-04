@@ -1099,20 +1099,22 @@ PRIVATE void
 free_all_nrll(struct nr_memory **memory_dat)
 {
   int 			i;
-  nr_memory 	*memory_block 		= *memory_dat;
-  nr_memory 	*memory_block_next;
-  while(memory_block){
-	memory_block_next = memory_block->prev_block;
+  if (memory_dat) {
+    nr_memory 	*memory_block 		= *memory_dat;
+    nr_memory 	*memory_block_next;
+    while(memory_block){
+      memory_block_next = memory_block->prev_block;
 #ifdef VRNA_NR_SAMPLING_MPFR
-	for(i = 0; i < memory_block->memory_index; i++){
-		mpfr_clear(memory_block->nr_memory_allocated[i].weight);
-		mpfr_clear(memory_block->nr_memory_allocated[i].max_weight);
-	}
+      for(i = 0; i < memory_block->memory_index; i++){
+        mpfr_clear(memory_block->nr_memory_allocated[i].weight);
+        mpfr_clear(memory_block->nr_memory_allocated[i].max_weight);
+      }
 #endif
-	free(memory_block->nr_memory_allocated);
-	free(memory_block);
-	memory_block = memory_block_next;	
-  }  
+      free(memory_block->nr_memory_allocated);
+      free(memory_block);
+      memory_block = memory_block_next;
+    }
+  }
 }
 #endif
 

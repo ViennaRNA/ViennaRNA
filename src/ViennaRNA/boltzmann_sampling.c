@@ -52,6 +52,14 @@ struct nr_structure_list {
   char          **list;
 };
 
+
+struct vrna_nr_memory_s {
+  double            q_remain;
+  NR_NODE           *root_node;
+  NR_NODE           *current_node;
+  struct nr_memory  *memory_dat;
+};
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -85,31 +93,25 @@ save_nr_samples(const char  *structure,
  * - q_remain is a pointer to value of sum of Boltzmann factors of still accessible solutions at that point
  * - current_node is a double pointer to current node in datastructure memorizing the solutions and paths taken */
 PRIVATE char *
-pbacktrack5_gen(vrna_fold_compound_t  *vc,
-                int                   length,
-                double                *q_remain,
-                NR_NODE               **current_node,
-                struct nr_memory      **memory_dat);
+pbacktrack5_gen(vrna_fold_compound_t    *vc,
+                int                     length,
+                struct vrna_nr_memory_s *nr_mem);
 
 
 PRIVATE int
-backtrack(int                   i,
-          int                   j,
-          char                  *pstruc,
-          vrna_fold_compound_t  *vc,
-          double                *q_remain,
-          NR_NODE               **current_node,
-          struct nr_memory      **memory_dat);
+backtrack(int                     i,
+          int                     j,
+          char                    *pstruc,
+          vrna_fold_compound_t    *vc,
+          struct vrna_nr_memory_s *nr_mem);
 
 
 PRIVATE int
-backtrack_ext_loop(int                  init_val,
-                   char                 *pstruc,
-                   vrna_fold_compound_t *vc,
-                   int                  length,
-                   double               *q_remain,
-                   NR_NODE              **current_node,
-                   struct nr_memory     **memory_dat);
+backtrack_ext_loop(int                      init_val,
+                   char                     *pstruc,
+                   vrna_fold_compound_t     *vc,
+                   int                      length,
+                   struct vrna_nr_memory_s  *nr_mem);
 
 
 PRIVATE int
@@ -120,23 +122,19 @@ backtrack_qm(int                  i,
 
 
 PRIVATE int
-backtrack_qm_nr(int                   i,
-                int                   j,
-                char                  *pstruc,
-                vrna_fold_compound_t  *vc,
-                double                *q_remain,
-                NR_NODE               **current_node,
-                struct nr_memory      **memory_dat);
+backtrack_qm_nr(int                     i,
+                int                     j,
+                char                    *pstruc,
+                vrna_fold_compound_t    *vc,
+                struct vrna_nr_memory_s *nr_mem);
 
 
 PRIVATE int
-backtrack_qm1(int                   i,
-              int                   j,
-              char                  *pstruc,
-              vrna_fold_compound_t  *vc,
-              double                *q_remain,
-              NR_NODE               **current_node,
-              struct nr_memory      **memory_dat);
+backtrack_qm1(int                     i,
+              int                     j,
+              char                    *pstruc,
+              vrna_fold_compound_t    *vc,
+              struct vrna_nr_memory_s *nr_mem);
 
 
 PRIVATE void
@@ -238,35 +236,118 @@ PUBLIC char *
 vrna_pbacktrack5(vrna_fold_compound_t *vc,
                  int                  length)
 {
-  return pbacktrack5_gen(vc, length, NULL, NULL, NULL);
+  return pbacktrack5_gen(vc, length, NULL);
 }
 
 
 PUBLIC char **
-vrna_pbacktrack_nr(vrna_fold_compound_t *vc,
-                   int                  num_samples)
+vrna_pbacktrack_nr(vrna_fold_compound_t *fc,
+                   unsigned int         num_samples)
+{
+  char                    **structures;
+  struct vrna_nr_memory_s *nr_mem;
+
+  nr_mem      = NULL;
+  structures  = vrna_pbacktrack_nr_resume(fc, num_samples, &nr_mem);
+
+  vrna_pbacktrack_nr_free(nr_mem);
+
+  return structures;
+}
+
+
+PUBLIC char **
+vrna_pbacktrack_nr_resume(vrna_fold_compound_t  *vc,
+                          unsigned int          num_samples,
+                          vrna_nr_memory_t      *nr_mem)
 {
   struct nr_structure_list data;
 
   data.num      = 0;
   data.list     = (char **)vrna_alloc(sizeof(char *) * num_samples);
   data.list[0]  = NULL;
-  vrna_pbacktrack_nr_cb(vc, num_samples, &save_nr_samples, (void *)&data);
+
+  vrna_pbacktrack_nr_cb_resume(vc,
+                               num_samples,
+                               &save_nr_samples,
+                               (void *)&data,
+                               nr_mem);
 
   /* re-allocate memory */
   data.list           = (char **)vrna_realloc(data.list, sizeof(char *) * (data.num + 1));
   data.list[data.num] = NULL;
 
+
   return data.list;
 }
 
 
+PRIVATE struct vrna_nr_memory_s *
+nr_init(vrna_fold_compound_t *fc)
+{
+  struct vrna_nr_memory_s *s =
+    (struct vrna_nr_memory_s *)vrna_alloc(sizeof(struct vrna_nr_memory_s));
+
+  double                  pf          = fc->exp_matrices->q[fc->iindx[1] - fc->length];
+  size_t                  block_size  = 5000 * sizeof(NR_NODE);
+
+  s->memory_dat = NULL;
+  s->q_remain   = 0;
+
+#ifdef VRNA_NR_SAMPLING_HASH
+  s->root_node = create_root(fc->length, pf);
+#else
+  s->memory_dat = create_nr_memory(sizeof(NR_NODE), block_size, NULL);  /* memory pre-allocation */
+  s->root_node  = create_ll_root(&(s->memory_dat), pf);
+#endif
+
+  s->current_node = s->root_node;
+
+  return s;
+}
+
+
 PUBLIC void
+vrna_pbacktrack_nr_free(struct vrna_nr_memory_s *s)
+{
+  if (s) {
+#ifdef VRNA_NR_SAMPLING_HASH
+    free_all_nr(s->current_node);
+#else
+    free_all_nrll(&(s->memory_dat));
+#endif
+    free(s);
+  }
+}
+
+
+PUBLIC unsigned int
 vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
-                      int                               num_samples,
+                      unsigned int                      num_samples,
                       vrna_boltzmann_sampling_callback  *bs_cb,
                       void                              *data)
 {
+  unsigned int            i;
+  struct vrna_nr_memory_s *nr_mem;
+
+  nr_mem  = NULL;
+  i       = vrna_pbacktrack_nr_cb_resume(vc, num_samples, bs_cb, data, &nr_mem);
+
+  vrna_pbacktrack_nr_free(nr_mem);
+
+  return i;
+}
+
+
+PUBLIC unsigned int
+vrna_pbacktrack_nr_cb_resume(vrna_fold_compound_t             *vc,
+                             unsigned int                     num_samples,
+                             vrna_boltzmann_sampling_callback *bs_cb,
+                             void                             *data,
+                             vrna_nr_memory_t                 *nr_mem)
+{
+  unsigned int i = 0;
+
   if (vc) {
     if (!vc->exp_params) {
       vrna_message_warning("vrna_pbacktrack_nr_cb: DP matrices are missing! Call vrna_pf() first!");
@@ -279,38 +360,31 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
     } else if (vc->exp_params->model_details.circ) {
       vrna_message_warning(
         "vrna_pbacktrack_nr_cb: No implementation for circular RNAs available yet!");
+    } else if (!nr_mem) {
+      vrna_message_warning(
+        "vrna_pbacktrack_nr_cb_resume: missing pointer to nr_mem data structure!");
     } else {
-      int               i, is_dup, pf_overflow;
-      double            q_remain, part_fci;
-      size_t            block_size;
-      NR_NODE           *current_node;
-      NR_NODE           *root_node;
-      struct nr_memory  *memory_dat;
+      int is_dup, pf_overflow;
 
-      memory_dat  = NULL;
-      block_size  = 5000 * sizeof(NR_NODE);
-      q_remain    = 0;
+      if ((*nr_mem == NULL))
+        *nr_mem = nr_init(vc);
+
       pf_overflow = 0;
-      part_fci    = vc->exp_matrices->q[vc->iindx[1] - vc->length];
-
-#ifdef VRNA_NR_SAMPLING_HASH
-      root_node = create_root(vc->length, part_fci);
-#else
-      memory_dat  = create_nr_memory(sizeof(NR_NODE), block_size, NULL); // memory pre-allocation
-      root_node   = create_ll_root(&memory_dat, part_fci);
-
-#endif
-      current_node = root_node;
 
       for (i = 0; i < num_samples; i++) {
-        is_dup    = 1;
-        q_remain  = vc->exp_matrices->q[vc->iindx[1] - vc->length];
-        char *ss = pbacktrack5_gen(vc, vc->length, &q_remain, &current_node, &memory_dat);
+        is_dup = 1;
+        char *ss = pbacktrack5_gen(vc, vc->length, *nr_mem);
 
 #ifdef VRNA_NR_SAMPLING_HASH
-        current_node = traceback_to_root(current_node, q_remain, &is_dup, &pf_overflow);
+        (*nr_mem)->current_node = traceback_to_root((*nr_mem)->current_node,
+                                                    (*nr_mem)->q_remain,
+                                                    &is_dup,
+                                                    &pf_overflow);
 #else
-        current_node = traceback_to_ll_root(current_node, q_remain, &is_dup, &pf_overflow);
+        (*nr_mem)->current_node = traceback_to_ll_root((*nr_mem)->current_node,
+                                                       (*nr_mem)->q_remain,
+                                                       &is_dup,
+                                                       &pf_overflow);
 #endif
 
         if (pf_overflow) {
@@ -333,32 +407,29 @@ vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
         if (!ss)
           break;
       }
+
       /* print warning if we've aborted backtracking too early */
       if ((i > 0) && (i < num_samples)) {
         vrna_message_warning("vrna_pbacktrack_nr*(): "
                              "Stopped backtracking after %d samples due to numeric instabilities!\n"
                              "Coverage of partition function so far: %.6f%%",
                              i,
-                             100. * return_node_weight(root_node) / part_fci);
+                             100. *
+                             return_node_weight((*nr_mem)->root_node) /
+                             vc->exp_matrices->q[vc->iindx[1] - vc->length]);
       }
-
-#ifdef VRNA_NR_SAMPLING_HASH
-      free_all_nr(current_node);
-#else
-      free_all_nrll(&memory_dat);
-#endif
     }
   }
+
+  return i; /* some failure */
 }
 
 
 /* general expr of vrna5_pbacktrack with possibility of non-redundant sampling */
 PRIVATE char *
-pbacktrack5_gen(vrna_fold_compound_t  *vc,
-                int                   length,
-                double                *q_remain,
-                NR_NODE               **current_node,
-                struct nr_memory      **memory_dat)
+pbacktrack5_gen(vrna_fold_compound_t    *vc,
+                int                     length,
+                struct vrna_nr_memory_s *nr_mem)
 {
   int   ret, i;
   char  *pstruc;
@@ -368,10 +439,13 @@ pbacktrack5_gen(vrna_fold_compound_t  *vc,
   for (i = 0; i < length; i++)
     pstruc[i] = '.';
 
+  if (nr_mem)
+    nr_mem->q_remain = vc->exp_matrices->q[vc->iindx[1] - vc->length];
+
 #ifdef VRNA_WITH_BOUSTROPHEDON
-  ret = backtrack_ext_loop(length, pstruc, vc, length, q_remain, current_node, memory_dat);
+  ret = backtrack_ext_loop(length, pstruc, vc, length, nr_mem);
 #else
-  ret = backtrack_ext_loop(1, pstruc, vc, length, q_remain, current_node, memory_dat);
+  ret = backtrack_ext_loop(1, pstruc, vc, length, nr_mem);
 #endif
 
   if (ret > 0)
@@ -384,13 +458,11 @@ pbacktrack5_gen(vrna_fold_compound_t  *vc,
 
 /* backtrack one external */
 PRIVATE int
-backtrack_ext_loop(int                  init_val,
-                   char                 *pstruc,
-                   vrna_fold_compound_t *vc,
-                   int                  length,
-                   double               *q_remain,
-                   NR_NODE              **current_node,
-                   struct nr_memory     **memory_dat)
+backtrack_ext_loop(int                      init_val,
+                   char                     *pstruc,
+                   vrna_fold_compound_t     *vc,
+                   int                      length,
+                   struct vrna_nr_memory_s  *nr_mem)
 {
   FLT_OR_DBL        r, fbd, fbds, qt, q_temp, qkl;
   int               ret, i, j, ij, n, k, u, type;
@@ -404,10 +476,24 @@ backtrack_ext_loop(int                  init_val,
   vrna_sc_t         *sc;
   vrna_exp_param_t  *pf_params;
 
+  double            *q_remain;
+  NR_NODE           **current_node;
+  struct nr_memory  **memory_dat;
+
+  if (nr_mem) {
+    q_remain      = &(nr_mem->q_remain);
+    current_node  = &(nr_mem->current_node);
+    memory_dat    = &(nr_mem->memory_dat);
+  } else {
+    q_remain      = NULL;
+    current_node  = NULL;
+    memory_dat    = NULL;
+  }
+
 #ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
-  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
-  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
+  NR_NODE *memorized_node_prev  = NULL;           /* remembers previous-to-current node in linked list */
+  NR_NODE *memorized_node_cur   = NULL;           /* remembers actual node in linked list */
 #endif
 
   fbd   = 0.;                             /* stores weight of forbidden terms for given q[ij]*/
@@ -623,9 +709,9 @@ backtrack_ext_loop(int                  init_val,
       }
     }
 
-    backtrack(i, j, pstruc, vc, q_remain, current_node, memory_dat);
+    backtrack(i, j, pstruc, vc, nr_mem);
     j   = i - 1;
-    ret = backtrack_ext_loop(j, pstruc, vc, length, q_remain, current_node, memory_dat);
+    ret = backtrack_ext_loop(j, pstruc, vc, length, nr_mem);
   }
 
 #else
@@ -765,7 +851,7 @@ backtrack_ext_loop(int                  init_val,
     start = j + 1;
     backtrack(i, j, pstruc, vc, q_remain, current_node, memory_dat);
 
-    ret = backtrack_ext_loop(start, pstruc, vc, length, q_remain, current_node, memory_dat);
+    ret = backtrack_ext_loop(start, pstruc, vc, length, nr_mem);
   }
 
 #endif
@@ -866,7 +952,7 @@ backtrack_qm(int                  i,
       return 0;
     }
 
-    ret = backtrack_qm1(k, j, pstruc, vc, NULL, NULL, NULL);
+    ret = backtrack_qm1(k, j, pstruc, vc, NULL);
 
     if (ret == 0)
       return ret;
@@ -901,27 +987,39 @@ backtrack_qm(int                  i,
 
 /* non redundant version of function bactrack_qm */
 PRIVATE int
-backtrack_qm_nr(int                   i,
-                int                   j,
-                char                  *pstruc,
-                vrna_fold_compound_t  *vc,
-                double                *q_remain,
-                NR_NODE               **current_node,
-                struct nr_memory      **memory_dat)
+backtrack_qm_nr(int                     i,
+                int                     j,
+                char                    *pstruc,
+                vrna_fold_compound_t    *vc,
+                struct vrna_nr_memory_s *nr_mem)
 {
   /* divide multiloop into qm and qm1  */
-  FLT_OR_DBL  qmt, fbd, fbds, r, q_temp;
-  int         k, u, cnt, span, turn;
-  int         is_unpaired; /* 1 if [i ... k-1] is unpaired */
-  FLT_OR_DBL  *qm, *qm1, *expMLbase;
-  int         *my_iindx, *jindx, *hc_up_ml, ret;
-  vrna_sc_t   *sc;
-  vrna_hc_t   *hc;
+  FLT_OR_DBL        qmt, fbd, fbds, r, q_temp;
+  int               k, u, cnt, span, turn;
+  int               is_unpaired; /* 1 if [i ... k-1] is unpaired */
+  FLT_OR_DBL        *qm, *qm1, *expMLbase;
+  int               *my_iindx, *jindx, *hc_up_ml, ret;
+  vrna_sc_t         *sc;
+  vrna_hc_t         *hc;
+
+  double            *q_remain;
+  NR_NODE           **current_node;
+  struct nr_memory  **memory_dat;
+
+  if (nr_mem) {
+    q_remain      = &(nr_mem->q_remain);
+    current_node  = &(nr_mem->current_node);
+    memory_dat    = &(nr_mem->memory_dat);
+  } else {
+    q_remain      = NULL;
+    current_node  = NULL;
+    memory_dat    = NULL;
+  }
 
 #ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
-  NR_NODE     *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
-  NR_NODE     *memorized_node_cur   = NULL; /* remembers actual node in linked list */
+  NR_NODE *memorized_node_prev  = NULL;     /* remembers previous-to-current node in linked list */
+  NR_NODE *memorized_node_cur   = NULL;     /* remembers actual node in linked list */
 #endif
 
   ret   = 1;
@@ -1089,7 +1187,7 @@ backtrack_qm_nr(int                   i,
     if (cnt > j)
       return 0;
 
-    ret = backtrack_qm1(k, j, pstruc, vc, q_remain, current_node, memory_dat);
+    ret = backtrack_qm1(k, j, pstruc, vc, nr_mem);
 
     if (ret == 0)
       return ret;
@@ -1099,7 +1197,7 @@ backtrack_qm_nr(int                   i,
 
     if (!is_unpaired) {
       /* if we've chosen creating a branch in [i..k-1] */
-      ret = backtrack_qm_nr(i, k - 1, pstruc, vc, q_remain, current_node, memory_dat);
+      ret = backtrack_qm_nr(i, k - 1, pstruc, vc, nr_mem);
 
       if (ret == 0)
         return ret;
@@ -1111,13 +1209,11 @@ backtrack_qm_nr(int                   i,
 
 
 PRIVATE int
-backtrack_qm1(int                   i,
-              int                   j,
-              char                  *pstruc,
-              vrna_fold_compound_t  *vc,
-              double                *q_remain,
-              NR_NODE               **current_node,
-              struct nr_memory      **memory_dat)
+backtrack_qm1(int                     i,
+              int                     j,
+              char                    *pstruc,
+              vrna_fold_compound_t    *vc,
+              struct vrna_nr_memory_s *nr_mem)
 {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   unsigned int      n;
@@ -1133,10 +1229,24 @@ backtrack_qm1(int                   i,
   vrna_hc_t         *hc;
   vrna_exp_param_t  *pf_params;
 
+  double            *q_remain;
+  NR_NODE           **current_node;
+  struct nr_memory  **memory_dat;
+
+  if (nr_mem) {
+    q_remain      = &(nr_mem->q_remain);
+    current_node  = &(nr_mem->current_node);
+    memory_dat    = &(nr_mem->memory_dat);
+  } else {
+    q_remain      = NULL;
+    current_node  = NULL;
+    memory_dat    = NULL;
+  }
+
 #ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
-  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
-  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
+  NR_NODE *memorized_node_prev  = NULL;           /* remembers previous-to-current node in linked list */
+  NR_NODE *memorized_node_cur   = NULL;           /* remembers actual node in linked list */
 #endif
 
   n         = vc->length;
@@ -1243,7 +1353,7 @@ backtrack_qm1(int                   i,
     }
   }
 
-  return backtrack(i, l, pstruc, vc, q_remain, current_node, memory_dat);
+  return backtrack(i, l, pstruc, vc, nr_mem);
 }
 
 
@@ -1287,19 +1397,17 @@ backtrack_qm2(int                   k,
   if (u == n - turn)
     vrna_message_error("backtrack failed in qm2");
 
-  backtrack_qm1(k, u, pstruc, vc, NULL, NULL, NULL);
-  backtrack_qm1(u + 1, n, pstruc, vc, NULL, NULL, NULL);
+  backtrack_qm1(k, u, pstruc, vc, NULL);
+  backtrack_qm1(u + 1, n, pstruc, vc, NULL);
 }
 
 
 PRIVATE int
-backtrack(int                   i,
-          int                   j,
-          char                  *pstruc,
-          vrna_fold_compound_t  *vc,
-          double                *q_remain,
-          NR_NODE               **current_node,
-          struct nr_memory      **memory_dat)
+backtrack(int                     i,
+          int                     j,
+          char                    *pstruc,
+          vrna_fold_compound_t    *vc,
+          struct vrna_nr_memory_s *nr_mem)
 {
   char              *ptype;
   unsigned char     *hard_constraints, hc_decompose;
@@ -1313,10 +1421,24 @@ backtrack(int                   i,
   vrna_hc_t         *hc;
   short             *S1;
 
+  double            *q_remain;
+  NR_NODE           **current_node;
+  struct nr_memory  **memory_dat;
+
+  if (nr_mem) {
+    q_remain      = &(nr_mem->q_remain);
+    current_node  = &(nr_mem->current_node);
+    memory_dat    = &(nr_mem->memory_dat);
+  } else {
+    q_remain      = NULL;
+    current_node  = NULL;
+    memory_dat    = NULL;
+  }
+
 #ifndef VRNA_NR_SAMPLING_HASH
   /* non-redundant data-structure memorization nodes */
-  NR_NODE           *memorized_node_prev  = NULL; /* remembers previous-to-current node in linked list */
-  NR_NODE           *memorized_node_cur   = NULL; /* remembers actual node in linked list */
+  NR_NODE *memorized_node_prev  = NULL;           /* remembers previous-to-current node in linked list */
+  NR_NODE *memorized_node_cur   = NULL;           /* remembers actual node in linked list */
 #endif
 
   ret     = 1;                            /* default is success */
@@ -1507,7 +1629,7 @@ backtrack(int                   i,
 #endif
         }
 
-        return backtrack(k, l, pstruc, vc, q_remain, current_node, memory_dat); /* found the interior loop, repeat for inside */
+        return backtrack(k, l, pstruc, vc, nr_mem); /* found the interior loop, repeat for inside */
       } else {
         /* interior loop contributions did not exceed threshold, so we break */
         break;
@@ -1624,7 +1746,7 @@ backtrack(int                   i,
 #endif
     }
 
-    ret = backtrack_qm1(k, j, pstruc, vc, q_remain, current_node, memory_dat);
+    ret = backtrack_qm1(k, j, pstruc, vc, nr_mem);
 
     if (ret == 0)
       return ret;
@@ -1632,7 +1754,7 @@ backtrack(int                   i,
     j = k - 1;
 
     ret = (current_node) ?
-          backtrack_qm_nr(i, j, pstruc, vc, q_remain, current_node, memory_dat) :
+          backtrack_qm_nr(i, j, pstruc, vc, nr_mem) :
           backtrack_qm(i, j, pstruc, vc);
   }
 
@@ -1738,7 +1860,7 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
 
       /* found a hairpin? so backtrack in the enclosed part and we're done  */
       if (qt > r) {
-        backtrack(i, j, pstruc, vc, NULL, NULL, NULL);
+        backtrack(i, j, pstruc, vc, NULL);
         return pstruc;
       }
 
@@ -1800,8 +1922,8 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
           /* found an exterior interior loop? also this time, we can go straight  */
           /* forward and backtracking the both enclosed parts and we're done      */
           if (qt > r) {
-            backtrack(i, j, pstruc, vc, NULL, NULL, NULL);
-            backtrack(k, l, pstruc, vc, NULL, NULL, NULL);
+            backtrack(i, j, pstruc, vc, NULL);
+            backtrack(k, l, pstruc, vc, NULL);
             return pstruc;
           }
         }
