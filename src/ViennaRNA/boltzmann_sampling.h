@@ -19,7 +19,7 @@
 typedef void (vrna_boltzmann_sampling_callback)(const char  *stucture,
                                                 void        *data);
 
-typedef struct vrna_nr_memory_s * vrna_nr_memory_t;
+typedef struct vrna_nr_memory_s *vrna_nr_memory_t;
 
 #include <ViennaRNA/fold_compound.h>
 
@@ -36,7 +36,7 @@ typedef struct vrna_nr_memory_s * vrna_nr_memory_t;
  *  @return         A sampled secondary structure in dot-bracket notation (or NULL on error)
  */
 char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
-                       int                  length);
+                       unsigned int         length);
 
 
 /**
@@ -56,8 +56,8 @@ char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
  *  @return           A list of sampled secondary structures in dot-bracket notation, terminated by @em NULL
  */
 char **
-vrna_pbacktrack_nr(vrna_fold_compound_t  *vc,
-                   unsigned int          num_samples);
+vrna_pbacktrack_nr(vrna_fold_compound_t *vc,
+                   unsigned int         num_samples);
 
 
 unsigned int
@@ -74,14 +74,16 @@ vrna_pbacktrack_nr_resume(vrna_fold_compound_t  *vc,
 
 
 unsigned int
-vrna_pbacktrack_nr_cb_resume(vrna_fold_compound_t              *vc,
-                             unsigned int                      num_samples,
-                             vrna_boltzmann_sampling_callback  *bs_cb,
-                             void                              *data,
-                             vrna_nr_memory_t                  *nr_mem);
+vrna_pbacktrack_nr_resume_cb(vrna_fold_compound_t             *vc,
+                             unsigned int                     num_samples,
+                             vrna_boltzmann_sampling_callback *bs_cb,
+                             void                             *data,
+                             vrna_nr_memory_t                 *nr_mem);
+
 
 void
 vrna_pbacktrack_nr_free(vrna_nr_memory_t s);
+
 
 /**
  *  @brief Sample a secondary structure (consensus structure) from the Boltzmann ensemble according its probability

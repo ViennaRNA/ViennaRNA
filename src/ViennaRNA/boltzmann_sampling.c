@@ -47,12 +47,11 @@
 #endif
 
 
-struct nr_structure_list {
-  unsigned int  num;
-  char          **list;
-};
-
-
+/*
+ * In the following:
+ * - q_remain is a pointer to value of sum of Boltzmann factors of still accessible solutions at that point
+ * - current_node is a pointer to current node in datastructure memorizing the solutions and paths taken
+ */
 struct vrna_nr_memory_s {
   double            q_remain;
   NR_NODE           *root_node;
@@ -72,9 +71,30 @@ struct vrna_nr_memory_s {
  #################################
  */
 PRIVATE char *info_set_uniq_ml =
+  "Unique multiloop decomposition is unset!\n"
   "Activate unique multiloop decomposition by setting the"
   " uniq_ML field of the model details structure to a non-zero"
   " value before running vrna_pf()!";
+
+PRIVATE char  *info_call_pf =
+  "DP matrices are missing! Call vrna_pf() first!";
+
+
+PRIVATE char  *info_nr_duplicates =
+  "Duplicate structures detected, presumably due to numerical instabilities";
+
+
+PRIVATE char  *info_nr_overflow =
+  "Partition function overflow detected for forbidden structures,"
+  " presumably due to numerical instabilities.";
+
+
+PRIVATE char  *info_no_circ =
+  "No implementation for circular RNAs available.";
+
+
+PRIVATE char  *info_no_comparative =
+  "No implementation for comparative structure prediction available.";
 
 
 /*
@@ -83,15 +103,10 @@ PRIVATE char *info_set_uniq_ml =
  #################################
  */
 
-
-PRIVATE void
-save_nr_samples(const char  *structure,
-                void        *data);
+PRIVATE struct vrna_nr_memory_s *
+nr_init(vrna_fold_compound_t *fc);
 
 
-/* In the following:
- * - q_remain is a pointer to value of sum of Boltzmann factors of still accessible solutions at that point
- * - current_node is a double pointer to current node in datastructure memorizing the solutions and paths taken */
 PRIVATE char *
 pbacktrack5_gen(vrna_fold_compound_t    *vc,
                 int                     length,
@@ -185,100 +200,137 @@ pbacktrack_comparative(vrna_fold_compound_t *vc,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-
-/*
- * stochastic backtracking in pf_fold arrays
- * returns random structure S with Boltzman probabilty
- * p(S) = exp(-E(S)/kT)/Z
- */
 PUBLIC char *
-vrna_pbacktrack(vrna_fold_compound_t *vc)
+vrna_pbacktrack5(vrna_fold_compound_t *fc,
+                 unsigned int         length)
 {
-  char    *structure  = NULL;
-  double  prob        = 1.;
+  if (fc) {
+    vrna_mx_pf_t *matrices = fc->exp_matrices;
 
-  if (vc) {
-    if (!vc->exp_params) {
-      vrna_message_warning("vrna_pbacktrack: DP matrices are missing! Call vrna_pf() first!");
-      return NULL;
-    } else if (!vc->exp_params->model_details.uniq_ML) {
-      vrna_message_warning("vrna_pbacktrack: Unique multiloop decomposition is unset!");
-      vrna_message_info(stderr, info_set_uniq_ml);
-      return NULL;
-    }
-
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if (vc->exp_params->model_details.circ)
-          return wrap_pbacktrack_circ(vc);
-        else
-          return vrna_pbacktrack5(vc, vc->length);
-
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        return pbacktrack_comparative(vc, &prob);
-        break;
-
-      default:
-        vrna_message_warning("unrecognized fold compound type");
-        return structure;
-        break;
+    if (length > fc->length) {
+      vrna_message_warning("vrna_pbacktrack5: length exceeds sequence length");
+    } else if (length == 0) {
+      vrna_message_warning("vrna_pbacktrack5: length too small");
+    } else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) ||
+               (!fc->exp_params)) {
+      vrna_message_warning("vrna_pbacktrack5: %s", info_call_pf);
+    } else if ((!fc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
+      vrna_message_warning("vrna_pbacktrack5: %s", info_set_uniq_ml);
+    } else if ((fc->exp_params->model_details.circ) && (length < fc->length)) {
+      vrna_message_warning("vrna_pbacktrack5: %s", info_no_circ);
+    } else if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      if (length < fc->length) {
+        vrna_message_warning("vrna_pbacktrack5: %s", info_no_comparative);
+      } else if (fc->exp_params->model_details.circ) {
+        vrna_message_warning("vrna_pbacktrack5: %s", info_no_circ);
+      } else {
+        double prob = 1.;
+        return pbacktrack_comparative(fc, &prob);
+      }
+    } else if (fc->exp_params->model_details.circ) {
+      return wrap_pbacktrack_circ(fc);
+    } else {
+      return pbacktrack5_gen(fc, length, NULL);
     }
   }
 
-  return structure;
+  return NULL;
 }
 
 
-/* adapter function for more general expression using non-redundant sampling */
-PUBLIC char *
-vrna_pbacktrack5(vrna_fold_compound_t *vc,
-                 int                  length)
+PUBLIC unsigned int
+vrna_pbacktrack_nr_resume_cb(vrna_fold_compound_t             *vc,
+                             unsigned int                     num_samples,
+                             vrna_boltzmann_sampling_callback *bs_cb,
+                             void                             *data,
+                             vrna_nr_memory_t                 *nr_mem)
 {
-  return pbacktrack5_gen(vc, length, NULL);
+  unsigned int i = 0;
+
+  if (vc) {
+    vrna_mx_pf_t *matrices = vc->exp_matrices;
+
+    if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!vc->exp_params)) {
+      vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_call_pf);
+    } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
+      vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_set_uniq_ml);
+    } else if (vc->type != VRNA_FC_TYPE_SINGLE) {
+      vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_no_comparative);
+    } else if (vc->exp_params->model_details.circ) {
+      vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_no_circ);
+    } else if (!nr_mem) {
+      vrna_message_warning("vrna_pbacktrack_nr*(): Pointer to nr_mem must not be NULL!");
+    } else {
+      int is_dup, pf_overflow;
+
+      if (*nr_mem == NULL)
+        *nr_mem = nr_init(vc);
+
+      pf_overflow = 0;
+
+      for (i = 0; i < num_samples; i++) {
+        is_dup = 1;
+        char *ss = pbacktrack5_gen(vc, vc->length, *nr_mem);
+
+#ifdef VRNA_NR_SAMPLING_HASH
+        (*nr_mem)->current_node = traceback_to_root((*nr_mem)->current_node,
+                                                    (*nr_mem)->q_remain,
+                                                    &is_dup,
+                                                    &pf_overflow);
+#else
+        (*nr_mem)->current_node = traceback_to_ll_root((*nr_mem)->current_node,
+                                                       (*nr_mem)->q_remain,
+                                                       &is_dup,
+                                                       &pf_overflow);
+#endif
+
+        if (pf_overflow) {
+          vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_nr_overflow);
+          free(ss);
+          break;
+        }
+
+        if (is_dup) {
+          vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_nr_duplicates);
+          free(ss);
+          break;
+        }
+
+        bs_cb(ss, data);
+        free(ss);
+        /* finish if no more structures available */
+        if (!ss)
+          break;
+      }
+
+      /* print warning if we've aborted backtracking too early */
+      if ((i > 0) && (i < num_samples)) {
+        vrna_message_warning("vrna_pbacktrack_nr*(): "
+                             "Stopped backtracking after %d samples due to numeric instabilities!\n"
+                             "Coverage of partition function so far: %.6f%%",
+                             i,
+                             100. *
+                             return_node_weight((*nr_mem)->root_node) /
+                             vc->exp_matrices->q[vc->iindx[1] - vc->length]);
+      }
+    }
+  }
+
+  return i; /* actual number of structures backtraced */
 }
 
 
-PUBLIC char **
-vrna_pbacktrack_nr(vrna_fold_compound_t *fc,
-                   unsigned int         num_samples)
+PUBLIC void
+vrna_pbacktrack_nr_free(struct vrna_nr_memory_s *s)
 {
-  char                    **structures;
-  struct vrna_nr_memory_s *nr_mem;
-
-  nr_mem      = NULL;
-  structures  = vrna_pbacktrack_nr_resume(fc, num_samples, &nr_mem);
-
-  vrna_pbacktrack_nr_free(nr_mem);
-
-  return structures;
-}
-
-
-PUBLIC char **
-vrna_pbacktrack_nr_resume(vrna_fold_compound_t  *vc,
-                          unsigned int          num_samples,
-                          vrna_nr_memory_t      *nr_mem)
-{
-  struct nr_structure_list data;
-
-  data.num      = 0;
-  data.list     = (char **)vrna_alloc(sizeof(char *) * num_samples);
-  data.list[0]  = NULL;
-
-  vrna_pbacktrack_nr_cb_resume(vc,
-                               num_samples,
-                               &save_nr_samples,
-                               (void *)&data,
-                               nr_mem);
-
-  /* re-allocate memory */
-  data.list           = (char **)vrna_realloc(data.list, sizeof(char *) * (data.num + 1));
-  data.list[data.num] = NULL;
-
-
-  return data.list;
+  if (s) {
+#ifdef VRNA_NR_SAMPLING_HASH
+    free_all_nr(s->current_node);
+#else
+    free_all_nrll(&(s->memory_dat));
+#endif
+    free(s);
+  }
 }
 
 
@@ -304,124 +356,6 @@ nr_init(vrna_fold_compound_t *fc)
   s->current_node = s->root_node;
 
   return s;
-}
-
-
-PUBLIC void
-vrna_pbacktrack_nr_free(struct vrna_nr_memory_s *s)
-{
-  if (s) {
-#ifdef VRNA_NR_SAMPLING_HASH
-    free_all_nr(s->current_node);
-#else
-    free_all_nrll(&(s->memory_dat));
-#endif
-    free(s);
-  }
-}
-
-
-PUBLIC unsigned int
-vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
-                      unsigned int                      num_samples,
-                      vrna_boltzmann_sampling_callback  *bs_cb,
-                      void                              *data)
-{
-  unsigned int            i;
-  struct vrna_nr_memory_s *nr_mem;
-
-  nr_mem  = NULL;
-  i       = vrna_pbacktrack_nr_cb_resume(vc, num_samples, bs_cb, data, &nr_mem);
-
-  vrna_pbacktrack_nr_free(nr_mem);
-
-  return i;
-}
-
-
-PUBLIC unsigned int
-vrna_pbacktrack_nr_cb_resume(vrna_fold_compound_t             *vc,
-                             unsigned int                     num_samples,
-                             vrna_boltzmann_sampling_callback *bs_cb,
-                             void                             *data,
-                             vrna_nr_memory_t                 *nr_mem)
-{
-  unsigned int i = 0;
-
-  if (vc) {
-    if (!vc->exp_params) {
-      vrna_message_warning("vrna_pbacktrack_nr_cb: DP matrices are missing! Call vrna_pf() first!");
-    } else if (!vc->exp_params->model_details.uniq_ML) {
-      vrna_message_warning("vrna_pbacktrack_nr_cb: Unique multiloop decomposition is unset!");
-      vrna_message_info(stderr, info_set_uniq_ml);
-    } else if (vc->type != VRNA_FC_TYPE_SINGLE) {
-      vrna_message_warning(
-        "vrna_pbacktrack_nr_cb: No implementation for comparative structure prediction available yet!");
-    } else if (vc->exp_params->model_details.circ) {
-      vrna_message_warning(
-        "vrna_pbacktrack_nr_cb: No implementation for circular RNAs available yet!");
-    } else if (!nr_mem) {
-      vrna_message_warning(
-        "vrna_pbacktrack_nr_cb_resume: missing pointer to nr_mem data structure!");
-    } else {
-      int is_dup, pf_overflow;
-
-      if ((*nr_mem == NULL))
-        *nr_mem = nr_init(vc);
-
-      pf_overflow = 0;
-
-      for (i = 0; i < num_samples; i++) {
-        is_dup = 1;
-        char *ss = pbacktrack5_gen(vc, vc->length, *nr_mem);
-
-#ifdef VRNA_NR_SAMPLING_HASH
-        (*nr_mem)->current_node = traceback_to_root((*nr_mem)->current_node,
-                                                    (*nr_mem)->q_remain,
-                                                    &is_dup,
-                                                    &pf_overflow);
-#else
-        (*nr_mem)->current_node = traceback_to_ll_root((*nr_mem)->current_node,
-                                                       (*nr_mem)->q_remain,
-                                                       &is_dup,
-                                                       &pf_overflow);
-#endif
-
-        if (pf_overflow) {
-          vrna_message_warning("vrna_pbacktrack_nr*(): "
-                               "Partition function overflow detected for forbidden structures, presumably due to numerical instabilities.");
-          free(ss);
-          break;
-        }
-
-        if (is_dup) {
-          vrna_message_warning("vrna_pbacktrack_nr*(): "
-                               "Duplicate structures detected, presumably due to numerical instabilities");
-          free(ss);
-          break;
-        }
-
-        bs_cb(ss, data);
-        free(ss);
-        /* finish if no more structures available */
-        if (!ss)
-          break;
-      }
-
-      /* print warning if we've aborted backtracking too early */
-      if ((i > 0) && (i < num_samples)) {
-        vrna_message_warning("vrna_pbacktrack_nr*(): "
-                             "Stopped backtracking after %d samples due to numeric instabilities!\n"
-                             "Coverage of partition function so far: %.6f%%",
-                             i,
-                             100. *
-                             return_node_weight((*nr_mem)->root_node) /
-                             vc->exp_matrices->q[vc->iindx[1] - vc->length]);
-      }
-    }
-  }
-
-  return i; /* some failure */
 }
 
 
@@ -513,21 +447,6 @@ backtrack_ext_loop(int                      init_val,
 
   hard_constraints  = hc->mx;
   hc_up_ext         = hc->up_ext;
-
-  if (length > n) {
-    vrna_message_warning("vrna_pbacktrack5: 3'-end exceeds sequence length");
-    return -1;
-  } else if (length < 1) {
-    vrna_message_warning("vrna_pbacktrack5: 3'-end too small");
-    return -1;
-  } else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!pf_params)) {
-    vrna_message_warning("vrna_pbacktrack5: DP matrices are missing! Call vrna_pf() first!");
-    return -1;
-  } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
-    vrna_message_warning("vrna_pbacktrack5: Unique multiloop decomposition is unset!");
-    vrna_message_info(stderr, info_set_uniq_ml);
-    return -1;
-  }
 
   /* assume successful backtracing by default */
   ret = 1;
@@ -857,19 +776,6 @@ backtrack_ext_loop(int                      init_val,
 #endif
 
   return ret;
-}
-
-
-PRIVATE void
-save_nr_samples(const char  *structure,
-                void        *data)
-{
-  struct nr_structure_list *d = (struct nr_structure_list *)data;
-
-  if (structure)
-    d->list[d->num++] = strdup(structure);
-  else
-    d->list[d->num++] = NULL;
 }
 
 
@@ -1783,15 +1689,6 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   jindx     = vc->jindx;
   S1        = vc->sequence_encoding;
   sc        = vc->sc;
-
-  if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!pf_params)) {
-    vrna_message_warning("vrna_pbacktrack: DP matrices are missing! Call vrna_pf() first!");
-    return NULL;
-  } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
-    vrna_message_warning("vrna_pbacktrack: Unique multiloop decomposition is unset!");
-    vrna_message_info(stderr, info_set_uniq_ml);
-    return NULL;
-  }
 
   qo    = matrices->qo;
   qmo   = matrices->qmo;

@@ -280,6 +280,7 @@ libRNA_conv_la_SOURCES = \
     model.c \
     dp_matrices.c \
     boltzmann_sampling.c \
+    bs_wrappers.c \
     equilibrium_probs.c \
     neighbor.c \
     walk.c \
