@@ -199,6 +199,7 @@ namespace std {
 %include mfe.i
 %include mfe_window.i
 %include part_func.i
+%include boltzmann_sampling.i
 %include pf_window.i
 %include subopt.i
 %include inverse.i

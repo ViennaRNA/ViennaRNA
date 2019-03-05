@@ -6,6 +6,7 @@ SOURCES = \
     RNA.i \
     aln_utils.i \
     basic_algorithms.i \
+    boltzmann_sampling.i \
     combinatorics.i \
     commands.i \
     compare.i \
@@ -59,6 +60,7 @@ EXTRA_DIST = \
     RNA.i \
     aln_utils.i \
     basic_algorithms.i \
+    boltzmann_sampling.i \
     combinatorics.i \
     commands.i \
     compare.i \
