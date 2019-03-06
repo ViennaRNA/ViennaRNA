@@ -25,6 +25,7 @@
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/boltzmann_sampling.h"
 
+#include "ViennaRNA/loops/external_sc_pf.inc"
 #include "ViennaRNA/loops/multibranch_sc_pf.inc"
 
 #include "ViennaRNA/data_structures_nonred.inc"
@@ -47,6 +48,12 @@
 # define NR_GET_WEIGHT(a, b, c, d, e)  get_weight(b, c, d, e)
 #endif
 
+
+/* combination of soft constraint wrappers */
+struct sc_wrappers {
+  struct sc_wrapper_exp_ext sc_wrapper_ext;
+  struct sc_wrapper_exp_ml  sc_wrapper_ml;
+};
 
 /*
  * In the following:
@@ -108,6 +115,14 @@ PRIVATE struct vrna_nr_memory_s *
 nr_init(vrna_fold_compound_t *fc);
 
 
+PRIVATE struct sc_wrappers *
+sc_init(vrna_fold_compound_t *fc);
+
+
+PRIVATE void
+sc_free(struct sc_wrappers *sc_wrap);
+
+
 PRIVATE char *
 pbacktrack5_gen(vrna_fold_compound_t    *vc,
                 int                     length,
@@ -115,12 +130,12 @@ pbacktrack5_gen(vrna_fold_compound_t    *vc,
 
 
 PRIVATE int
-backtrack(int                       i,
-          int                       j,
-          char                      *pstruc,
-          vrna_fold_compound_t      *vc,
-          struct sc_wrapper_exp_ml  *sc_wrapper_ml,
-          struct vrna_nr_memory_s   *nr_mem);
+backtrack(int                     i,
+          int                     j,
+          char                    *pstruc,
+          vrna_fold_compound_t    *vc,
+          struct sc_wrappers      *sc_wrap,
+          struct vrna_nr_memory_s *nr_mem);
 
 
 PRIVATE int
@@ -128,7 +143,7 @@ backtrack_ext_loop(int                      init_val,
                    char                     *pstruc,
                    vrna_fold_compound_t     *vc,
                    int                      length,
-                   struct sc_wrapper_exp_ml *sc_wrapper_ml,
+                   struct sc_wrappers       *sc_wrap,
                    struct vrna_nr_memory_s  *nr_mem);
 
 
@@ -137,25 +152,25 @@ backtrack_qm(int                      i,
              int                      j,
              char                     *pstruc,
              vrna_fold_compound_t     *vc,
-             struct sc_wrapper_exp_ml *sc_wrapper_ml,
+             struct sc_wrappers       *sc_wrap,
              struct vrna_nr_memory_s  *nr_mem);
 
 
 PRIVATE int
-backtrack_qm1(int                       i,
-              int                       j,
-              char                      *pstruc,
-              vrna_fold_compound_t      *vc,
-              struct sc_wrapper_exp_ml  *sc_wrapper_ml,
-              struct vrna_nr_memory_s   *nr_mem);
+backtrack_qm1(int                     i,
+              int                     j,
+              char                    *pstruc,
+              vrna_fold_compound_t    *vc,
+              struct sc_wrappers      *sc_wrap,
+              struct vrna_nr_memory_s *nr_mem);
 
 
 PRIVATE void
-backtrack_qm2(int                       u,
-              int                       n,
-              char                      *pstruc,
-              vrna_fold_compound_t      *vc,
-              struct sc_wrapper_exp_ml  *sc_wrapper_ml);
+backtrack_qm2(int                   u,
+              int                   n,
+              char                  *pstruc,
+              vrna_fold_compound_t  *vc,
+              struct sc_wrappers    *sc_wrap);
 
 
 PRIVATE char *
@@ -297,6 +312,28 @@ vrna_pbacktrack_nr_free(struct vrna_nr_memory_s *s)
 }
 
 
+PRIVATE struct sc_wrappers *
+sc_init(vrna_fold_compound_t *fc)
+{
+  struct sc_wrappers *sc_wrap = (struct sc_wrappers *)vrna_alloc(sizeof(struct sc_wrappers));
+
+  init_sc_wrapper_ext(fc, &(sc_wrap->sc_wrapper_ext));
+  init_sc_wrapper_ml(fc, &(sc_wrap->sc_wrapper_ml));
+
+  return sc_wrap;
+}
+
+
+PRIVATE void
+sc_free(struct sc_wrappers *sc_wrap)
+{
+  free_sc_wrapper_ext(&(sc_wrap->sc_wrapper_ext));
+  free_sc_wrapper_ml(&(sc_wrap->sc_wrapper_ml));
+
+  free(sc_wrap);
+}
+
+
 PRIVATE struct vrna_nr_memory_s *
 nr_init(vrna_fold_compound_t *fc)
 {
@@ -328,27 +365,27 @@ pbacktrack5_gen(vrna_fold_compound_t    *vc,
                 int                     length,
                 struct vrna_nr_memory_s *nr_mem)
 {
-  int                       ret, i;
-  char                      *pstruc;
-  struct sc_wrapper_exp_ml  sc_wrapper_ml;
+  int                 ret, i;
+  char                *pstruc;
+  struct sc_wrappers  *sc_wrap;
 
   pstruc = vrna_alloc((length + 1) * sizeof(char));
 
   for (i = 0; i < length; i++)
     pstruc[i] = '.';
 
-  init_sc_wrapper(vc, &sc_wrapper_ml);
+  sc_wrap = sc_init(vc);
 
   if (nr_mem)
     nr_mem->q_remain = vc->exp_matrices->q[vc->iindx[1] - vc->length];
 
 #ifdef VRNA_WITH_BOUSTROPHEDON
-  ret = backtrack_ext_loop(length, pstruc, vc, length, &sc_wrapper_ml, nr_mem);
+  ret = backtrack_ext_loop(length, pstruc, vc, length, sc_wrap, nr_mem);
 #else
-  ret = backtrack_ext_loop(1, pstruc, vc, length, &sc_wrapper_ml, nr_mem);
+  ret = backtrack_ext_loop(1, pstruc, vc, length, sc_wrap, nr_mem);
 #endif
 
-  free_sc_wrapper(&sc_wrapper_ml);
+  sc_free(sc_wrap);
 
   if (ret > 0)
     return pstruc;
@@ -364,25 +401,26 @@ backtrack_ext_loop(int                      init_val,
                    char                     *pstruc,
                    vrna_fold_compound_t     *vc,
                    int                      length,
-                   struct sc_wrapper_exp_ml *sc_wrapper_ml,
+                   struct sc_wrappers       *sc_wrap,
                    struct vrna_nr_memory_s  *nr_mem)
 {
-  unsigned int      **a2s, s, n_seq;
-  FLT_OR_DBL        r, fbd, fbds, qt, q_temp, qkl;
-  int               ret, i, j, ij, n, k, u, type;
-  int               *my_iindx, hc_decompose, *hc_up_ext;
-  FLT_OR_DBL        *q, *qb, *q1k, *qln, *scale;
-  unsigned char     *hard_constraints;
-  short             *S1, *S2, **S, **S5, **S3;
-  vrna_mx_pf_t      *matrices;
-  vrna_md_t         *md;
-  vrna_hc_t         *hc;
-  vrna_sc_t         *sc, **scs;
-  vrna_exp_param_t  *pf_params;
+  unsigned int              **a2s, s, n_seq;
+  FLT_OR_DBL                r, fbd, fbds, qt, q_temp, qkl;
+  int                       ret, i, j, ij, n, k, u, type;
+  int                       *my_iindx, hc_decompose, *hc_up_ext;
+  FLT_OR_DBL                *q, *qb, *q1k, *qln, *scale;
+  unsigned char             *hard_constraints;
+  short                     *S1, *S2, **S, **S5, **S3;
+  vrna_mx_pf_t              *matrices;
+  vrna_md_t                 *md;
+  vrna_hc_t                 *hc;
+  vrna_sc_t                 *sc, **scs;
+  vrna_exp_param_t          *pf_params;
 
-  double            *q_remain;
-  NR_NODE           **current_node;
-  struct nr_memory  **memory_dat;
+  double                    *q_remain;
+  NR_NODE                   **current_node;
+  struct nr_memory          **memory_dat;
+  struct sc_wrapper_exp_ext *sc_wrapper_ext;
 
   if (nr_mem) {
     q_remain      = &(nr_mem->q_remain);
@@ -435,6 +473,7 @@ backtrack_ext_loop(int                      init_val,
 
   hard_constraints  = hc->mx;
   hc_up_ext         = hc->up_ext;
+  sc_wrapper_ext    = &(sc_wrap->sc_wrapper_ext);
 
   /* assume successful backtracing by default */
   ret = 1;
@@ -491,15 +530,8 @@ backtrack_ext_loop(int                      init_val,
         r       = vrna_urn() * (q1k[j] - fbd);
         q_temp  = q1k[j - 1] * scale[1];
 
-        if (vc->type == VRNA_FC_TYPE_SINGLE) {
-          if (sc) {
-            if (sc->exp_energy_up)
-              q_temp *= sc->exp_energy_up[j][1];
-
-            if (sc->exp_f)
-              q_temp *= sc->exp_f(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, sc->data);
-          }
-        }
+        if (sc_wrapper_ext->red_ext)
+          q_temp *= sc_wrapper_ext->red_ext(1, j, 1, j - 1, sc_wrapper_ext);
 
         if (current_node) {
           fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_UNPAIRED_SG, j - 1, j) *
@@ -563,13 +595,6 @@ backtrack_ext_loop(int                      init_val,
                                  (i > 1) ? S1[i - 1] : -1,
                                  (j < n) ? S1[j + 1] : -1,
                                  pf_params);
-
-          if ((sc) && (sc->exp_f)) {
-            if (i > 1)
-              qkl *= sc->exp_f(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
-            else
-              qkl *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
-          }
         } else {
           for (s = 0; s < n_seq; s++) {
             type  = vrna_get_ptype_md(S[s][i], S[s][j], md);
@@ -579,6 +604,12 @@ backtrack_ext_loop(int                      init_val,
                                    pf_params);
           }
         }
+
+        if ((sc_wrapper_ext->red_stem) && (i == 1))
+          q_temp *= sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
+        else if ((sc_wrapper_ext->split) && (i > 1))
+          q_temp *= sc_wrapper_ext->split(1, j, i, sc_wrapper_ext) *
+                    sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
 
         if (current_node) {
           fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_EXT_LOOP, i, j) *
@@ -627,9 +658,9 @@ backtrack_ext_loop(int                      init_val,
       }
     }
 
-    backtrack(i, j, pstruc, vc, sc_wrapper_ml, nr_mem);
+    backtrack(i, j, pstruc, vc, sc_wrap, nr_mem);
     j   = i - 1;
-    ret = backtrack_ext_loop(j, pstruc, vc, length, sc_wrapper_ml, nr_mem);
+    ret = backtrack_ext_loop(j, pstruc, vc, length, sc_wrap, nr_mem);
   }
 
 #else
@@ -647,13 +678,8 @@ backtrack_ext_loop(int                      init_val,
         r       = vrna_urn() * (qln[i] - fbd);
         q_temp  = qln[i + 1] * scale[1];
 
-        if (sc) {
-          if (sc->exp_energy_up)
-            q_temp *= sc->exp_energy_up[i][1];
-
-          if (sc->exp_f)
-            q_temp *= sc->exp_f(i, length, i + 1, length, VRNA_DECOMP_EXT_EXT, sc->data);
-        }
+        if (sc_wrapper_ext->red_ext)
+          q_temp *= sc_wrapper_ext->red_ext(i, length, i + 1, length, sc_wrapper_ext);
 
         if (current_node) {
           fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_UNPAIRED_SG, i, i + 1) *
@@ -703,20 +729,19 @@ backtrack_ext_loop(int                      init_val,
       type          = vrna_get_ptype_md(S2[i], S2[j], md);
       hc_decompose  = hard_constraints[n * i + j];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        qkl = qb[ij] * exp_E_ExtLoop(type,
-                                     (i > 1) ? S1[i - 1] : -1,
-                                     (j < n) ? S1[j + 1] : -1,
-                                     pf_params);
+        qkl = qb[ij] *
+              exp_E_ExtLoop(type,
+                            (i > 1) ? S1[i - 1] : -1,
+                            (j < n) ? S1[j + 1] : -1,
+                            pf_params);
 
         if (j < length) {
           qkl *= qln[j + 1];
-          if (sc)
-            if (sc->exp_f)
-              qkl *= sc->exp_f(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
-        } else {
-          if (sc)
-            if (sc->exp_f)
-              qkl *= sc->exp_f(i, j, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
+          if (sc_wrapper_ext->split)
+            qkl *= sc_wrapper_ext->split(i, length, j + 1, sc_wrapper_ext) *
+                   sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
+        } else if (sc_wrapper_ext->red_stem) {
+          qkl *= sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
         }
 
         if (current_node) {
@@ -767,11 +792,11 @@ backtrack_ext_loop(int                      init_val,
     }
 
     start = j + 1;
-    ret   = backtrack(i, j, pstruc, vc, sc_wrapper_ml, nr_mem);
+    ret   = backtrack(i, j, pstruc, vc, sc_wrap, nr_mem);
     if (!ret)
       return ret;
 
-    ret = backtrack_ext_loop(start, pstruc, vc, length, sc_wrapper_ml, nr_mem);
+    ret = backtrack_ext_loop(start, pstruc, vc, length, sc_wrap, nr_mem);
   }
 
 #endif
@@ -786,20 +811,21 @@ backtrack_qm(int                      i,
              int                      j,
              char                     *pstruc,
              vrna_fold_compound_t     *vc,
-             struct sc_wrapper_exp_ml *sc_wrapper_ml,
+             struct sc_wrappers       *sc_wrap,
              struct vrna_nr_memory_s  *nr_mem)
 {
   /* divide multiloop into qm and qm1  */
-  FLT_OR_DBL        qmt, fbd, fbds, r, q_temp;
-  int               k, u, cnt, span, turn;
-  int               is_unpaired; /* 1 if [i ... k-1] is unpaired */
-  FLT_OR_DBL        *qm, *qm1, *expMLbase;
-  int               *my_iindx, *jindx, *hc_up_ml, ret;
-  vrna_hc_t         *hc;
+  FLT_OR_DBL                qmt, fbd, fbds, r, q_temp;
+  int                       k, u, cnt, span, turn;
+  int                       is_unpaired; /* 1 if [i ... k-1] is unpaired */
+  FLT_OR_DBL                *qm, *qm1, *expMLbase;
+  int                       *my_iindx, *jindx, *hc_up_ml, ret;
+  vrna_hc_t                 *hc;
+  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
 
-  double            *q_remain;
-  NR_NODE           **current_node;
-  struct nr_memory  **memory_dat;
+  double                    *q_remain;
+  NR_NODE                   **current_node;
+  struct nr_memory          **memory_dat;
 
   if (nr_mem) {
     q_remain      = &(nr_mem->q_remain);
@@ -828,8 +854,9 @@ backtrack_qm(int                      i,
   my_iindx  = vc->iindx;
   jindx     = vc->jindx;
 
-  hc        = vc->hc;
-  hc_up_ml  = hc->up_ml;
+  hc            = vc->hc;
+  hc_up_ml      = hc->up_ml;
+  sc_wrapper_ml = &(sc_wrap->sc_wrapper_ml);
 
   qm        = matrices->qm;
   qm1       = matrices->qm1;
@@ -975,7 +1002,7 @@ backtrack_qm(int                      i,
     if (cnt > j)
       return 0;
 
-    ret = backtrack_qm1(k, j, pstruc, vc, sc_wrapper_ml, nr_mem);
+    ret = backtrack_qm1(k, j, pstruc, vc, sc_wrap, nr_mem);
 
     if (ret == 0)
       return ret;
@@ -985,7 +1012,7 @@ backtrack_qm(int                      i,
 
     if (!is_unpaired) {
       /* if we've chosen creating a branch in [i..k-1] */
-      ret = backtrack_qm(i, k - 1, pstruc, vc, sc_wrapper_ml, nr_mem);
+      ret = backtrack_qm(i, k - 1, pstruc, vc, sc_wrap, nr_mem);
 
       if (ret == 0)
         return ret;
@@ -997,30 +1024,31 @@ backtrack_qm(int                      i,
 
 
 PRIVATE int
-backtrack_qm1(int                       i,
-              int                       j,
-              char                      *pstruc,
-              vrna_fold_compound_t      *vc,
-              struct sc_wrapper_exp_ml  *sc_wrapper_ml,
-              struct vrna_nr_memory_s   *nr_mem)
+backtrack_qm1(int                     i,
+              int                     j,
+              char                    *pstruc,
+              vrna_fold_compound_t    *vc,
+              struct sc_wrappers      *sc_wrap,
+              struct vrna_nr_memory_s *nr_mem)
 {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
-  unsigned int      n, s, n_seq;
-  int               ii, l, il, type, turn;
-  FLT_OR_DBL        qt, fbd, fbds, r, q_temp;
-  FLT_OR_DBL        *qm1, *qb, *expMLbase;
-  vrna_mx_pf_t      *matrices;
-  int               u, *my_iindx, *jindx, *hc_up_ml;
-  char              *ptype;
-  unsigned char     *hard_constraints;
-  short             *S1, **S, **S5, **S3;
-  vrna_hc_t         *hc;
-  vrna_exp_param_t  *pf_params;
-  vrna_md_t         *md;
+  unsigned int              n, s, n_seq;
+  int                       ii, l, il, type, turn;
+  FLT_OR_DBL                qt, fbd, fbds, r, q_temp;
+  FLT_OR_DBL                *qm1, *qb, *expMLbase;
+  vrna_mx_pf_t              *matrices;
+  int                       u, *my_iindx, *jindx, *hc_up_ml;
+  char                      *ptype;
+  unsigned char             *hard_constraints;
+  short                     *S1, **S, **S5, **S3;
+  vrna_hc_t                 *hc;
+  vrna_exp_param_t          *pf_params;
+  vrna_md_t                 *md;
 
-  double            *q_remain;
-  NR_NODE           **current_node;
-  struct nr_memory  **memory_dat;
+  double                    *q_remain;
+  NR_NODE                   **current_node;
+  struct nr_memory          **memory_dat;
+  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
 
   if (nr_mem) {
     q_remain      = &(nr_mem->q_remain);
@@ -1048,6 +1076,7 @@ backtrack_qm1(int                       i,
   hc                = vc->hc;
   hc_up_ml          = hc->up_ml;
   hard_constraints  = hc->mx;
+  sc_wrapper_ml     = &(sc_wrap->sc_wrapper_ml);
 
   matrices  = vc->exp_matrices;
   qb        = matrices->qb;
@@ -1157,26 +1186,29 @@ backtrack_qm1(int                       i,
     }
   }
 
-  return backtrack(i, l, pstruc, vc, sc_wrapper_ml, nr_mem);
+  return backtrack(i, l, pstruc, vc, sc_wrap, nr_mem);
 }
 
 
 PRIVATE void
-backtrack_qm2(int                       k,
-              int                       n,
-              char                      *pstruc,
-              vrna_fold_compound_t      *vc,
-              struct sc_wrapper_exp_ml  *sc_wrapper_ml)
+backtrack_qm2(int                   k,
+              int                   n,
+              char                  *pstruc,
+              vrna_fold_compound_t  *vc,
+              struct sc_wrappers    *sc_wrap)
 {
-  FLT_OR_DBL  qom2t, r;
-  int         u, turn;
-  FLT_OR_DBL  *qm1, *qm2;
-  int         *jindx;
+  FLT_OR_DBL                qom2t, r;
+  int                       u, turn;
+  FLT_OR_DBL                *qm1, *qm2;
+  int                       *jindx;
+  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
 
-  jindx = vc->jindx;
-  qm1   = vc->exp_matrices->qm1;
-  qm2   = vc->exp_matrices->qm2;
-  turn  = vc->exp_params->model_details.min_loop_size;
+  jindx         = vc->jindx;
+  qm1           = vc->exp_matrices->qm1;
+  qm2           = vc->exp_matrices->qm2;
+  turn          = vc->exp_params->model_details.min_loop_size;
+  sc_wrapper_ml = &(sc_wrap->sc_wrapper_ml);
+
 
   r = vrna_urn() * qm2[k];
   /* we have to search for our barrier u between qm1 and qm1  */
@@ -1200,37 +1232,38 @@ backtrack_qm2(int                       k,
   if (u == n - turn)
     vrna_message_error("backtrack failed in qm2");
 
-  backtrack_qm1(k, u, pstruc, vc, sc_wrapper_ml, NULL);
-  backtrack_qm1(u + 1, n, pstruc, vc, sc_wrapper_ml, NULL);
+  backtrack_qm1(k, u, pstruc, vc, sc_wrap, NULL);
+  backtrack_qm1(u + 1, n, pstruc, vc, sc_wrap, NULL);
 }
 
 
 PRIVATE int
-backtrack(int                       i,
-          int                       j,
-          char                      *pstruc,
-          vrna_fold_compound_t      *vc,
-          struct sc_wrapper_exp_ml  *sc_wrapper_ml,
-          struct vrna_nr_memory_s   *nr_mem)
+backtrack(int                     i,
+          int                     j,
+          char                    *pstruc,
+          vrna_fold_compound_t    *vc,
+          struct sc_wrappers      *sc_wrap,
+          struct vrna_nr_memory_s *nr_mem)
 {
-  char              *ptype;
-  unsigned char     *hard_constraints, hc_decompose;
-  vrna_exp_param_t  *pf_params;
-  vrna_md_t         *md;
-  FLT_OR_DBL        *qb, *qm, *qm1, *scale;
-  FLT_OR_DBL        r, fbd, fbds, qbt1, qbr, qt, q_temp; /* qbr stores qb used for generating r */
-  vrna_mx_pf_t      *matrices;
-  unsigned int      **a2s, s, n_seq, n, type, type_2, *types;
-  int               *my_iindx, *jindx, *hc_up_int, ret;
-  vrna_sc_t         *sc, **scs;
-  vrna_hc_t         *hc;
-  short             *S1, **S, **S5, **S3;
-  int               *pscore;     /* precomputed array of pair types */
+  char                      *ptype;
+  unsigned char             *hard_constraints, hc_decompose;
+  vrna_exp_param_t          *pf_params;
+  vrna_md_t                 *md;
+  FLT_OR_DBL                *qb, *qm, *qm1, *scale;
+  FLT_OR_DBL                r, fbd, fbds, qbt1, qbr, qt, q_temp; /* qbr stores qb used for generating r */
+  vrna_mx_pf_t              *matrices;
+  unsigned int              **a2s, s, n_seq, n, type, type_2, *types;
+  int                       *my_iindx, *jindx, *hc_up_int, ret;
+  vrna_sc_t                 *sc, **scs;
+  vrna_hc_t                 *hc;
+  short                     *S1, **S, **S5, **S3;
+  int                       *pscore; /* precomputed array of pair types */
 
-  FLT_OR_DBL        kTn;
-  double            *q_remain;
-  NR_NODE           **current_node;
-  struct nr_memory  **memory_dat;
+  FLT_OR_DBL                kTn;
+  double                    *q_remain;
+  NR_NODE                   **current_node;
+  struct nr_memory          **memory_dat;
+  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
 
   if (nr_mem) {
     q_remain      = &(nr_mem->q_remain);
@@ -1290,6 +1323,7 @@ backtrack(int                       i,
   hc                = vc->hc;
   hc_up_int         = hc->up_int;
   hard_constraints  = hc->mx;
+  sc_wrapper_ml     = &(sc_wrap->sc_wrapper_ml);
 
   matrices  = vc->exp_matrices;
   qb        = matrices->qb;
@@ -1507,7 +1541,7 @@ backtrack(int                       i,
 
         free(types);
 
-        return backtrack(k, l, pstruc, vc, sc_wrapper_ml, nr_mem); /* found the interior loop, repeat for inside */
+        return backtrack(k, l, pstruc, vc, sc_wrap, nr_mem); /* found the interior loop, repeat for inside */
       } else {
         /* interior loop contributions did not exceed threshold, so we break */
         break;
@@ -1631,7 +1665,7 @@ backtrack(int                       i,
 #endif
     }
 
-    ret = backtrack_qm1(k, j, pstruc, vc, sc_wrapper_ml, nr_mem);
+    ret = backtrack_qm1(k, j, pstruc, vc, sc_wrap, nr_mem);
 
     if (ret == 0) {
       free(types);
@@ -1640,7 +1674,7 @@ backtrack(int                       i,
 
     j = k - 1;
 
-    ret = backtrack_qm(i, j, pstruc, vc, sc_wrapper_ml, nr_mem);
+    ret = backtrack_qm(i, j, pstruc, vc, sc_wrap, nr_mem);
   }
 
   free(types);
@@ -1662,7 +1696,9 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   short                     *S1;
   vrna_mx_pf_t              *matrices;
   vrna_sc_t                 *sc;
-  struct sc_wrapper_exp_ml  sc_wrapper_ml;
+  struct sc_wrappers        *sc_wrap;
+  struct sc_wrapper_exp_ext *sc_wrapper_ext;
+  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
 
   pf_params = vc->exp_params;
   matrices  = vc->exp_matrices;
@@ -1687,7 +1723,9 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   n         = vc->length;
 
 
-  init_sc_wrapper(vc, &sc_wrapper_ml);
+  sc_wrap         = sc_init(vc);
+  sc_wrapper_ext  = &(sc_wrap->sc_wrapper_ext);
+  sc_wrapper_ml   = &(sc_wrap->sc_wrapper_ml);
 
   /*
    * if (init_length<1)
@@ -1702,20 +1740,16 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
     pstruc[i] = '.';
 
   qt = 1.0 * scale[n];
-  /* add soft constraints for open chain configuration */
-  if (sc) {
-    if (sc->exp_energy_up)
-      qt *= sc->exp_energy_up[1][n];
 
-    if (sc->exp_f)
-      qt *= sc->exp_f(1, n, 1, n, VRNA_DECOMP_EXT_UP, sc->data);
-  }
+  /* add soft constraints for open chain configuration */
+  if (sc_wrapper_ext->red_up)
+    qt *= sc_wrapper_ext->red_up(1, n, sc_wrapper_ext);
 
   r = vrna_urn() * qo;
 
   /* open chain? */
   if (qt > r) {
-    free_sc_wrapper(&sc_wrapper_ml);
+    sc_free(sc_wrap);
     return pstruc;
   }
 
@@ -1738,8 +1772,8 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
 
       /* found a hairpin? so backtrack in the enclosed part and we're done  */
       if (qt > r) {
-        backtrack(i, j, pstruc, vc, &sc_wrapper_ml, NULL);
-        free_sc_wrapper(&sc_wrapper_ml);
+        backtrack(i, j, pstruc, vc, sc_wrap, NULL);
+        sc_free(sc_wrap);
         return pstruc;
       }
 
@@ -1801,9 +1835,9 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
           /* found an exterior interior loop? also this time, we can go straight  */
           /* forward and backtracking the both enclosed parts and we're done      */
           if (qt > r) {
-            backtrack(i, j, pstruc, vc, &sc_wrapper_ml, NULL);
-            backtrack(k, l, pstruc, vc, &sc_wrapper_ml, NULL);
-            free_sc_wrapper(&sc_wrapper_ml);
+            backtrack(i, j, pstruc, vc, sc_wrap, NULL);
+            backtrack(k, l, pstruc, vc, sc_wrap, NULL);
+            sc_free(sc_wrap);
             return pstruc;
           }
         }
@@ -1814,24 +1848,23 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
     /* as we reach this part, we have to search for our barrier between qm and qm2  */
     qt  = 0.;
     r   = vrna_urn() * qmo;
-    if ((sc) && (sc->exp_f)) {
+    if (sc_wrapper_ml->decomp_ml) {
       for (k = turn + 2; k < n - 2 * turn - 3; k++) {
         qt += qm[my_iindx[1] - k] *
               qm2[k + 1] *
               expMLclosing *
-              sc->exp_f(1,
-                        n,
-                        k,
-                        k + 1,
-                        VRNA_DECOMP_ML_ML_ML,
-                        sc->data);
+              sc_wrapper_ml->decomp_ml(1,
+                                       n,
+                                       k,
+                                       k + 1,
+                                       sc_wrapper_ml);
 
 
         /* backtrack in qm and qm2 if we've found a valid barrier k  */
         if (qt > r) {
-          backtrack_qm(1, k, pstruc, vc, &sc_wrapper_ml, NULL);
-          backtrack_qm2(k + 1, n, pstruc, vc, &sc_wrapper_ml);
-          free_sc_wrapper(&sc_wrapper_ml);
+          backtrack_qm(1, k, pstruc, vc, sc_wrap, NULL);
+          backtrack_qm2(k + 1, n, pstruc, vc, sc_wrap);
+          sc_free(sc_wrap);
           return pstruc;
         }
       }
@@ -1840,9 +1873,9 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
         qt += qm[my_iindx[1] - k] * qm2[k + 1] * expMLclosing;
         /* backtrack in qm and qm2 if we've found a valid barrier k  */
         if (qt > r) {
-          backtrack_qm(1, k, pstruc, vc, &sc_wrapper_ml, NULL);
-          backtrack_qm2(k + 1, n, pstruc, vc, &sc_wrapper_ml);
-          free_sc_wrapper(&sc_wrapper_ml);
+          backtrack_qm(1, k, pstruc, vc, sc_wrap, NULL);
+          backtrack_qm2(k + 1, n, pstruc, vc, sc_wrap);
+          sc_free(sc_wrap);
           return pstruc;
         }
       }
@@ -1852,7 +1885,7 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   /* cause we HAVE TO find an exterior loop or an open chain!!!         */
   vrna_message_error("backtracking failed in exterior loop");
 
-  free_sc_wrapper(&sc_wrapper_ml);
+  sc_free(sc_wrap);
 
   return pstruc;
 }
