@@ -144,7 +144,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc)
     else
       evaluate = prepare_hc_default(fc, &hc_dat_local);
 
-    init_sc_wrapper_pf(fc, &sc_wrapper);
+    init_sc_wrapper_ext(fc, &sc_wrapper);
 
     /* allocate memory for helper arrays */
     aux_mx =
@@ -304,7 +304,7 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
     turn      = fc->exp_params->model_details.min_loop_size;
     q         = fc->exp_matrices->q_local;
     evaluate  = prepare_hc_default_window(fc, &hc_dat_local);
-    init_sc_wrapper_pf(fc, &sc_wrapper);
+    init_sc_wrapper_ext(fc, &sc_wrapper);
 
 
     for (k = j; k >= MAX2(1, j - turn); k--)
@@ -322,10 +322,10 @@ reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     struct default_data         *hc_dat_local,
                     struct sc_wrapper_exp_ext   *sc_wrapper)
 {
-  int           u;
-  FLT_OR_DBL    q_temp, q_temp2, q, *qq1, **qqu, *scale;
-  vrna_ud_t     *domains_up;
-  sc_red_ext_pf *sc_red_ext;
+  int             u;
+  FLT_OR_DBL      q_temp, q_temp2, q, *qq1, **qqu, *scale;
+  vrna_ud_t       *domains_up;
+  sc_ext_exp_red  *sc_red_ext;
 
   domains_up  = fc->domains_up;
   qq1         = aux_mx->qq1;
@@ -386,7 +386,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
   FLT_OR_DBL        qbt, q_temp, qb;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
-  sc_red_stem_pf    *sc_red_stem;
+  sc_ext_exp_stem   *sc_red_stem;
 
   sc_red_stem = sc_wrapper->red_stem;
   n           = fc->length;
@@ -449,10 +449,10 @@ reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    struct default_data        *hc_dat_local,
                    struct sc_wrapper_exp_ext  *sc_wrapper)
 {
-  int           u;
-  FLT_OR_DBL    qbt, q_temp, *scale;
-  vrna_ud_t     *domains_up;
-  sc_red_up_pf  *sc_red_up;
+  int               u;
+  FLT_OR_DBL        qbt, q_temp, *scale;
+  vrna_ud_t         *domains_up;
+  sc_ext_exp_red_up *sc_red_up;
 
   sc_red_up = sc_wrapper->red_up;
 
@@ -491,9 +491,9 @@ split_ext_fast(vrna_fold_compound_t       *fc,
                struct default_data        *hc_dat_local,
                struct sc_wrapper_exp_ext  *sc_wrapper)
 {
-  int         *idx, k, ij1;
-  FLT_OR_DBL  qbt, *q, *qq, *qqq;
-  sc_split_pf *sc_split;
+  int               *idx, k, ij1;
+  FLT_OR_DBL        qbt, *q, *qq, *qqq;
+  sc_ext_exp_split  *sc_split;
 
   sc_split = sc_wrapper->split;
 
@@ -607,7 +607,7 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   else
     evaluate = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper_pf(fc, &sc_wrapper);
+  init_sc_wrapper_ext(fc, &sc_wrapper);
 
   qbt1 = 0.;
 
@@ -642,7 +642,7 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_f))
     qbt1 += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->data);
 
-  free_sc_wrapper_pf(&sc_wrapper);
+  free_sc_wrapper_ext(&sc_wrapper);
 
   return qbt1;
 }

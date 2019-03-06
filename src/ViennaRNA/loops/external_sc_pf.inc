@@ -2,31 +2,32 @@
  *  This file contains soft constraints wrappers for exterior loop evaluation (partition function version)
  */
 struct sc_wrapper_exp_ext;
-typedef FLT_OR_DBL (sc_red_ext_pf)(int                  i,
-                                   int                  j,
-                                   int                  k,
-                                   int                  l,
-                                   struct sc_wrapper_exp_ext *data);
-typedef FLT_OR_DBL (sc_red_stem_pf)(int                   i,
-                                    int                   j,
-                                    int                   k,
-                                    int                   l,
-                                    struct sc_wrapper_exp_ext  *data);
-typedef FLT_OR_DBL (sc_red_up_pf)(int                   i,
-                                  int                   j,
-                                  struct sc_wrapper_exp_ext  *data);
-typedef FLT_OR_DBL (sc_split_pf)(int                  i,
-                                 int                  j,
-                                 int                  k,
-                                 struct sc_wrapper_exp_ext *data);
+
+typedef FLT_OR_DBL (sc_ext_exp_red)(int                       i,
+                                    int                       j,
+                                    int                       k,
+                                    int                       l,
+                                    struct sc_wrapper_exp_ext *data);
+typedef FLT_OR_DBL (sc_ext_exp_stem)(int                        i,
+                                     int                        j,
+                                     int                        k,
+                                     int                        l,
+                                     struct sc_wrapper_exp_ext  *data);
+typedef FLT_OR_DBL (sc_ext_exp_red_up)(int                        i,
+                                       int                        j,
+                                       struct sc_wrapper_exp_ext  *data);
+typedef FLT_OR_DBL (sc_ext_exp_split)(int                       i,
+                                      int                       j,
+                                      int                       k,
+                                      struct sc_wrapper_exp_ext *data);
 
 struct sc_wrapper_exp_ext {
   FLT_OR_DBL                  **up;
 
-  sc_red_ext_pf               *red_ext;
-  sc_red_stem_pf              *red_stem;
-  sc_red_up_pf                *red_up;
-  sc_split_pf                 *split;
+  sc_ext_exp_red              *red_ext;
+  sc_ext_exp_stem             *red_stem;
+  sc_ext_exp_red_up           *red_up;
+  sc_ext_exp_split            *split;
 
   vrna_callback_sc_exp_energy *user_cb;
   void                        *user_data;
@@ -42,150 +43,150 @@ struct sc_wrapper_exp_ext {
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_default_ext_reduce(int                   i,
-                      int                   j,
-                      int                   k,
-                      int                   l,
-                      struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_reduce(int                       i,
+                  int                       j,
+                  int                       k,
+                  int                       l,
+                  struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_default_ext_reduce_comparative(int                   i,
-                                  int                   j,
-                                  int                   k,
-                                  int                   l,
-                                  struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_reduce_comparative(int                       i,
+                              int                       j,
+                              int                       k,
+                              int                       l,
+                              struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_reduce_to_ext(int                   i,
-                          int                   j,
-                          int                   k,
-                          int                   l,
-                          struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_user_reduce_to_ext(int                       i,
+                              int                       j,
+                              int                       k,
+                              int                       l,
+                              struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_reduce_to_ext_comparative(int                   i,
-                                      int                   j,
-                                      int                   k,
-                                      int                   l,
-                                      struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_user_reduce_to_ext_comparative(int                       i,
+                                          int                       j,
+                                          int                       k,
+                                          int                       l,
+                                          struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_reduce_to_ext(int                   i,
-                              int                   j,
-                              int                   k,
-                              int                   l,
-                              struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_user_def_reduce_to_ext(int                       i,
+                                  int                       j,
+                                  int                       k,
+                                  int                       l,
+                                  struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_reduce_to_ext_comparative(int                   i,
-                                          int                   j,
-                                          int                   k,
-                                          int                   l,
-                                          struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_user_def_reduce_to_ext_comparative(int                       i,
+                                              int                       j,
+                                              int                       k,
+                                              int                       l,
+                                              struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_reduce_to_stem(int                  i,
-                           int                  j,
-                           int                  k,
-                           int                  l,
-                           struct sc_wrapper_exp_ext *data);
+sc_ext_exp_user_reduce_to_stem(int                        i,
+                               int                        j,
+                               int                        k,
+                               int                        l,
+                               struct sc_wrapper_exp_ext  *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_reduce_to_stem_comparative(int                  i,
-                                       int                  j,
-                                       int                  k,
-                                       int                  l,
-                                       struct sc_wrapper_exp_ext *data);
+sc_ext_exp_user_reduce_to_stem_comparative(int                        i,
+                                           int                        j,
+                                           int                        k,
+                                           int                        l,
+                                           struct sc_wrapper_exp_ext  *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_reduce_to_stem(int                  i,
-                               int                  j,
-                               int                  k,
-                               int                  l,
-                               struct sc_wrapper_exp_ext *data);
+sc_ext_exp_user_def_reduce_to_stem(int                        i,
+                                   int                        j,
+                                   int                        k,
+                                   int                        l,
+                                   struct sc_wrapper_exp_ext  *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_reduce_to_stem_comparative(int                  i,
-                                           int                  j,
-                                           int                  k,
-                                           int                  l,
-                                           struct sc_wrapper_exp_ext *data);
+sc_ext_exp_user_def_reduce_to_stem_comparative(int                        i,
+                                               int                        j,
+                                               int                        k,
+                                               int                        l,
+                                               struct sc_wrapper_exp_ext  *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_default_ext_up(int                   i,
-                  int                   j,
-                  struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_up(int                       i,
+              int                       j,
+              struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_default_ext_up_comparative(int                   i,
-                              int                   j,
-                              struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_up_comparative(int                       i,
+                          int                       j,
+                          struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_up(int                  i,
-               int                  j,
-               struct sc_wrapper_exp_ext *data);
+sc_ext_exp_user_up(int                        i,
+                   int                        j,
+                   struct sc_wrapper_exp_ext  *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_up_comparative(int                  i,
-                           int                  j,
-                           struct sc_wrapper_exp_ext *data);
+sc_ext_exp_user_up_comparative(int                        i,
+                               int                        j,
+                               struct sc_wrapper_exp_ext  *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_up(int                  i,
-                   int                  j,
-                   struct sc_wrapper_exp_ext *data);
+sc_ext_exp_user_def_up(int                        i,
+                       int                        j,
+                       struct sc_wrapper_exp_ext  *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_up_comparative(int                  i,
-                               int                  j,
-                               struct sc_wrapper_exp_ext *data);
+sc_ext_exp_user_def_up_comparative(int                        i,
+                                   int                        j,
+                                   struct sc_wrapper_exp_ext  *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_split(int                   i,
-                  int                   j,
-                  int                   k,
-                  struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_user_split(int                       i,
+                      int                       j,
+                      int                       k,
+                      struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_split_comparative(int                   i,
-                              int                   j,
-                              int                   k,
-                              struct sc_wrapper_exp_ext  *data);
+sc_ext_exp_user_split_comparative(int                       i,
+                                  int                       j,
+                                  int                       k,
+                                  struct sc_wrapper_exp_ext *data);
 
 
 PRIVATE INLINE void
-init_sc_wrapper_pf(vrna_fold_compound_t *fc,
-                   struct sc_wrapper_exp_ext *sc_wrapper);
+init_sc_wrapper_ext(vrna_fold_compound_t      *fc,
+                    struct sc_wrapper_exp_ext *sc_wrapper);
 
 
 PRIVATE INLINE void
-free_sc_wrapper_pf(struct sc_wrapper_exp_ext *sc_wrapper);
+free_sc_wrapper_ext(struct sc_wrapper_exp_ext *sc_wrapper);
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_default_ext_reduce(int                   i,
-                      int                   j,
-                      int                   k,
-                      int                   l,
-                      struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_reduce(int                       i,
+                  int                       j,
+                  int                       k,
+                  int                       l,
+                  struct sc_wrapper_exp_ext *data)
 {
   unsigned int  start_2, length_1, length_2;
   FLT_OR_DBL    q_sc, **sc_up;
@@ -209,11 +210,11 @@ sc_default_ext_reduce(int                   i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_default_ext_reduce_comparative(int                   i,
-                                  int                   j,
-                                  int                   k,
-                                  int                   l,
-                                  struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_reduce_comparative(int                       i,
+                              int                       j,
+                              int                       k,
+                              int                       l,
+                              struct sc_wrapper_exp_ext *data)
 {
   unsigned int  s, start_2, length_1, length_2, **a2s;
   FLT_OR_DBL    q_sc, ***sc_up;
@@ -242,22 +243,22 @@ sc_default_ext_reduce_comparative(int                   i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_reduce_to_ext(int                   i,
-                          int                   j,
-                          int                   k,
-                          int                   l,
-                          struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_user_reduce_to_ext(int                       i,
+                              int                       j,
+                              int                       k,
+                              int                       l,
+                              struct sc_wrapper_exp_ext *data)
 {
   return data->user_cb(i, j, k, l, VRNA_DECOMP_EXT_EXT, data->user_data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_reduce_to_ext_comparative(int                   i,
-                                      int                   j,
-                                      int                   k,
-                                      int                   l,
-                                      struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_user_reduce_to_ext_comparative(int                       i,
+                                          int                       j,
+                                          int                       k,
+                                          int                       l,
+                                          struct sc_wrapper_exp_ext *data)
 {
   unsigned int  s;
   FLT_OR_DBL    q_sc;
@@ -273,46 +274,46 @@ sc_user_ext_reduce_to_ext_comparative(int                   i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_reduce_to_ext(int                   i,
-                              int                   j,
-                              int                   k,
-                              int                   l,
-                              struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_user_def_reduce_to_ext(int                       i,
+                                  int                       j,
+                                  int                       k,
+                                  int                       l,
+                                  struct sc_wrapper_exp_ext *data)
 {
-  return sc_default_ext_reduce(i, j, k, l, data) +
-         sc_user_ext_reduce_to_ext(i, j, k, l, data);
+  return sc_ext_exp_reduce(i, j, k, l, data) +
+         sc_ext_exp_user_reduce_to_ext(i, j, k, l, data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_reduce_to_ext_comparative(int                   i,
-                                          int                   j,
-                                          int                   k,
-                                          int                   l,
-                                          struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_user_def_reduce_to_ext_comparative(int                       i,
+                                              int                       j,
+                                              int                       k,
+                                              int                       l,
+                                              struct sc_wrapper_exp_ext *data)
 {
-  return sc_default_ext_reduce_comparative(i, j, k, l, data) +
-         sc_user_ext_reduce_to_ext_comparative(i, j, k, l, data);
+  return sc_ext_exp_reduce_comparative(i, j, k, l, data) +
+         sc_ext_exp_user_reduce_to_ext_comparative(i, j, k, l, data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_reduce_to_stem(int                  i,
-                           int                  j,
-                           int                  k,
-                           int                  l,
-                           struct sc_wrapper_exp_ext *data)
+sc_ext_exp_user_reduce_to_stem(int                        i,
+                               int                        j,
+                               int                        k,
+                               int                        l,
+                               struct sc_wrapper_exp_ext  *data)
 {
   return data->user_cb(i, j, k, l, VRNA_DECOMP_EXT_STEM, data->user_data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_reduce_to_stem_comparative(int                  i,
-                                       int                  j,
-                                       int                  k,
-                                       int                  l,
-                                       struct sc_wrapper_exp_ext *data)
+sc_ext_exp_user_reduce_to_stem_comparative(int                        i,
+                                           int                        j,
+                                           int                        k,
+                                           int                        l,
+                                           struct sc_wrapper_exp_ext  *data)
 {
   unsigned int  s;
   FLT_OR_DBL    q_sc;
@@ -329,33 +330,33 @@ sc_user_ext_reduce_to_stem_comparative(int                  i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_reduce_to_stem(int                  i,
-                               int                  j,
-                               int                  k,
-                               int                  l,
-                               struct sc_wrapper_exp_ext *data)
+sc_ext_exp_user_def_reduce_to_stem(int                        i,
+                                   int                        j,
+                                   int                        k,
+                                   int                        l,
+                                   struct sc_wrapper_exp_ext  *data)
 {
-  return sc_default_ext_reduce(i, j, k, l, data) +
-         sc_user_ext_reduce_to_stem(i, j, k, l, data);
+  return sc_ext_exp_reduce(i, j, k, l, data) +
+         sc_ext_exp_user_reduce_to_stem(i, j, k, l, data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_reduce_to_stem_comparative(int                  i,
-                                           int                  j,
-                                           int                  k,
-                                           int                  l,
-                                           struct sc_wrapper_exp_ext *data)
+sc_ext_exp_user_def_reduce_to_stem_comparative(int                        i,
+                                               int                        j,
+                                               int                        k,
+                                               int                        l,
+                                               struct sc_wrapper_exp_ext  *data)
 {
-  return sc_default_ext_reduce_comparative(i, j, k, l, data) +
-         sc_user_ext_reduce_to_stem_comparative(i, j, k, l, data);
+  return sc_ext_exp_reduce_comparative(i, j, k, l, data) +
+         sc_ext_exp_user_reduce_to_stem_comparative(i, j, k, l, data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_default_ext_up(int                   i,
-                  int                   j,
-                  struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_up(int                       i,
+              int                       j,
+              struct sc_wrapper_exp_ext *data)
 {
   unsigned int  length;
   FLT_OR_DBL    q_sc, **sc_up;
@@ -372,9 +373,9 @@ sc_default_ext_up(int                   i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_default_ext_up_comparative(int                   i,
-                              int                   j,
-                              struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_up_comparative(int                       i,
+                          int                       j,
+                          struct sc_wrapper_exp_ext *data)
 {
   unsigned int  length, s, **a2s;
   FLT_OR_DBL    q_sc, ***sc_up;
@@ -396,18 +397,18 @@ sc_default_ext_up_comparative(int                   i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_up(int                  i,
-               int                  j,
-               struct sc_wrapper_exp_ext *data)
+sc_ext_exp_user_up(int                        i,
+                   int                        j,
+                   struct sc_wrapper_exp_ext  *data)
 {
   return data->user_cb(i, j, i, j, VRNA_DECOMP_EXT_UP, data->user_data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_up_comparative(int                  i,
-                           int                  j,
-                           struct sc_wrapper_exp_ext *data)
+sc_ext_exp_user_up_comparative(int                        i,
+                               int                        j,
+                               struct sc_wrapper_exp_ext  *data)
 {
   unsigned int  s;
   FLT_OR_DBL    q_sc;
@@ -422,40 +423,40 @@ sc_user_ext_up_comparative(int                  i,
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_up(int                  i,
-                   int                  j,
-                   struct sc_wrapper_exp_ext *data)
+sc_ext_exp_user_def_up(int                        i,
+                       int                        j,
+                       struct sc_wrapper_exp_ext  *data)
 {
-  return sc_default_ext_up(i, j, data) +
-         sc_user_ext_up(i, j, data);
+  return sc_ext_exp_up(i, j, data) +
+         sc_ext_exp_user_up(i, j, data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_def_ext_up_comparative(int                  i,
-                               int                  j,
-                               struct sc_wrapper_exp_ext *data)
+sc_ext_exp_user_def_up_comparative(int                        i,
+                                   int                        j,
+                                   struct sc_wrapper_exp_ext  *data)
 {
-  return sc_default_ext_up_comparative(i, j, data) +
-         sc_user_ext_up_comparative(i, j, data);
+  return sc_ext_exp_up_comparative(i, j, data) +
+         sc_ext_exp_user_up_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_split(int                   i,
-                  int                   j,
-                  int                   k,
-                  struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_user_split(int                       i,
+                      int                       j,
+                      int                       k,
+                      struct sc_wrapper_exp_ext *data)
 {
   return data->user_cb(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, data->user_data);
 }
 
 
 PRIVATE INLINE FLT_OR_DBL
-sc_user_ext_split_comparative(int                   i,
-                              int                   j,
-                              int                   k,
-                              struct sc_wrapper_exp_ext  *data)
+sc_ext_exp_user_split_comparative(int                       i,
+                                  int                       j,
+                                  int                       k,
+                                  struct sc_wrapper_exp_ext *data)
 {
   unsigned int  s;
   FLT_OR_DBL    q_sc;
@@ -472,8 +473,8 @@ sc_user_ext_split_comparative(int                   i,
 
 
 PRIVATE INLINE void
-init_sc_wrapper_pf(vrna_fold_compound_t *fc,
-                   struct sc_wrapper_exp_ext *sc_wrapper)
+init_sc_wrapper_ext(vrna_fold_compound_t      *fc,
+                    struct sc_wrapper_exp_ext *sc_wrapper)
 {
   vrna_sc_t *sc, **scs;
 
@@ -504,20 +505,20 @@ init_sc_wrapper_pf(vrna_fold_compound_t *fc,
         /* bind correct wrapper functions */
         if (sc->exp_energy_up) {
           if (sc->exp_f) {
-            sc_wrapper->red_ext   = &sc_user_def_ext_reduce_to_ext;
-            sc_wrapper->red_stem  = &sc_user_def_ext_reduce_to_stem;
-            sc_wrapper->red_up    = &sc_user_def_ext_up;
-            sc_wrapper->split     = &sc_user_ext_split;
+            sc_wrapper->red_ext   = &sc_ext_exp_user_def_reduce_to_ext;
+            sc_wrapper->red_stem  = &sc_ext_exp_user_def_reduce_to_stem;
+            sc_wrapper->red_up    = &sc_ext_exp_user_def_up;
+            sc_wrapper->split     = &sc_ext_exp_user_split;
           } else {
-            sc_wrapper->red_ext   = &sc_default_ext_reduce;
-            sc_wrapper->red_stem  = &sc_default_ext_reduce;
-            sc_wrapper->red_up    = &sc_default_ext_up;
+            sc_wrapper->red_ext   = &sc_ext_exp_reduce;
+            sc_wrapper->red_stem  = &sc_ext_exp_reduce;
+            sc_wrapper->red_up    = &sc_ext_exp_up;
           }
         } else if (sc->exp_f) {
-          sc_wrapper->red_ext   = &sc_user_ext_reduce_to_ext;
-          sc_wrapper->red_stem  = &sc_user_ext_reduce_to_stem;
-          sc_wrapper->red_up    = &sc_user_ext_up;
-          sc_wrapper->split     = &sc_user_ext_split;
+          sc_wrapper->red_ext   = &sc_ext_exp_user_reduce_to_ext;
+          sc_wrapper->red_stem  = &sc_ext_exp_user_reduce_to_stem;
+          sc_wrapper->red_up    = &sc_ext_exp_user_up;
+          sc_wrapper->split     = &sc_ext_exp_user_split;
         }
       }
 
@@ -531,8 +532,8 @@ init_sc_wrapper_pf(vrna_fold_compound_t *fc,
       if (scs) {
         unsigned int s;
 
-        sc_wrapper->up_comparative      = (FLT_OR_DBL ***)vrna_alloc(
-          sizeof(FLT_OR_DBL **) * fc->n_seq);
+        sc_wrapper->up_comparative = (FLT_OR_DBL ***)vrna_alloc(
+          sizeof(FLT_OR_DBL * *) * fc->n_seq);
         sc_wrapper->user_cb_comparative =
           (vrna_callback_sc_exp_energy **)vrna_alloc(
             sizeof(vrna_callback_sc_exp_energy *) * fc->n_seq);
@@ -555,20 +556,20 @@ init_sc_wrapper_pf(vrna_fold_compound_t *fc,
             /* bind the correct wrapper functions */
             if (provides_sc_up) {
               if (provides_sc_user_cb) {
-                sc_wrapper->red_ext   = &sc_user_def_ext_reduce_to_ext_comparative;
-                sc_wrapper->red_stem  = &sc_user_def_ext_reduce_to_stem_comparative;
-                sc_wrapper->red_up    = &sc_user_def_ext_up_comparative;
-                sc_wrapper->split     = &sc_user_ext_split_comparative;
+                sc_wrapper->red_ext   = &sc_ext_exp_user_def_reduce_to_ext_comparative;
+                sc_wrapper->red_stem  = &sc_ext_exp_user_def_reduce_to_stem_comparative;
+                sc_wrapper->red_up    = &sc_ext_exp_user_def_up_comparative;
+                sc_wrapper->split     = &sc_ext_exp_user_split_comparative;
               } else {
-                sc_wrapper->red_ext   = &sc_default_ext_reduce_comparative;
-                sc_wrapper->red_stem  = &sc_default_ext_reduce_comparative;
-                sc_wrapper->red_up    = &sc_default_ext_up_comparative;
+                sc_wrapper->red_ext   = &sc_ext_exp_reduce_comparative;
+                sc_wrapper->red_stem  = &sc_ext_exp_reduce_comparative;
+                sc_wrapper->red_up    = &sc_ext_exp_up_comparative;
               }
             } else if (provides_sc_user_cb) {
-              sc_wrapper->red_ext   = &sc_user_ext_reduce_to_ext_comparative;
-              sc_wrapper->red_stem  = &sc_user_ext_reduce_to_stem_comparative;
-              sc_wrapper->red_up    = &sc_user_ext_up_comparative;
-              sc_wrapper->split     = &sc_user_ext_split_comparative;
+              sc_wrapper->red_ext   = &sc_ext_exp_user_reduce_to_ext_comparative;
+              sc_wrapper->red_stem  = &sc_ext_exp_user_reduce_to_stem_comparative;
+              sc_wrapper->red_up    = &sc_ext_exp_user_up_comparative;
+              sc_wrapper->split     = &sc_ext_exp_user_split_comparative;
             }
           }
         }
@@ -580,7 +581,7 @@ init_sc_wrapper_pf(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE void
-free_sc_wrapper_pf(struct sc_wrapper_exp_ext *sc_wrapper)
+free_sc_wrapper_ext(struct sc_wrapper_exp_ext *sc_wrapper)
 {
   free(sc_wrapper->up_comparative);
   free(sc_wrapper->user_cb_comparative);
