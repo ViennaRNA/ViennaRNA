@@ -1267,42 +1267,21 @@ Boltzmann_sampling(vrna_fold_compound_t *fc,
   unsigned int i;
 
   /*stochastic sampling*/
-  if (opt->non_red) {
-    if (opt->eval_en) {
-      struct nr_en_data dat;
-      dat.output  = rec_output;
-      dat.fc      = fc;
-      dat.kT      = fc->exp_params->kT / 1000.;
-      dat.ens_en  = dG;
+  if (opt->eval_en) {
+    struct nr_en_data dat;
+    dat.output  = rec_output;
+    dat.fc      = fc;
+    dat.kT      = fc->exp_params->kT / 1000.;
+    dat.ens_en  = dG;
 
+    if (opt->non_red)
       vrna_pbacktrack_nr_cb(fc, opt->n_back, &print_nr_samples_en, (void *)&dat);
-    } else {
-      vrna_pbacktrack_nr_cb(fc, opt->n_back, &print_nr_samples, (void *)&rec_output);
-    }
+    else
+      vrna_pbacktrack_num_cb(fc, opt->n_back, &print_nr_samples_en, (void *)&dat);
+  } else if (opt->non_red) {
+    vrna_pbacktrack_nr_cb(fc, opt->n_back, &print_nr_samples, (void *)&rec_output);
   } else {
-    for (i = 0; i < opt->n_back; i++) {
-      char    *s;
-      double  kT, prob;
-
-      prob  = 1.;
-      kT    = fc->exp_params->kT / 1000.;
-      s     = vrna_pbacktrack(fc);
-
-      if (opt->eval_en) {
-        double e = (double)vrna_eval_structure(fc, s);
-        e     -= (double)vrna_eval_covar_structure(fc, s);
-        prob  = exp((dG - e) / kT);
-        vrna_cstr_printf_structure(rec_output,
-                                   s,
-                                   " %6g %.2f",
-                                   prob,
-                                   -1 * (kT * log(prob) - dG));
-      } else {
-        vrna_cstr_printf_structure(rec_output, s, NULL);
-      }
-
-      free(s);
-    }
+    vrna_pbacktrack_num_cb(fc, opt->n_back, &print_nr_samples, (void *)&rec_output);
   }
 }
 
