@@ -103,10 +103,6 @@ PRIVATE char  *info_no_circ =
   "No implementation for circular RNAs available.";
 
 
-PRIVATE char  *info_no_comparative =
-  "No implementation for comparative structure prediction available.";
-
-
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
@@ -191,29 +187,21 @@ vrna_pbacktrack5(vrna_fold_compound_t *fc,
   if (fc) {
     vrna_mx_pf_t *matrices = fc->exp_matrices;
 
-    if (length > fc->length) {
+    if (length > fc->length)
       vrna_message_warning("vrna_pbacktrack5: length exceeds sequence length");
-    } else if (length == 0) {
+    else if (length == 0)
       vrna_message_warning("vrna_pbacktrack5: length too small");
-    } else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) ||
-               (!fc->exp_params)) {
+    else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) ||
+             (!fc->exp_params))
       vrna_message_warning("vrna_pbacktrack5: %s", info_call_pf);
-    } else if ((!fc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
+    else if ((!fc->exp_params->model_details.uniq_ML) || (!matrices->qm1))
       vrna_message_warning("vrna_pbacktrack5: %s", info_set_uniq_ml);
-    } else if ((fc->exp_params->model_details.circ) && (length < fc->length)) {
+    else if ((fc->exp_params->model_details.circ) && (length < fc->length))
       vrna_message_warning("vrna_pbacktrack5: %s", info_no_circ);
-    } else if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
-      if (length < fc->length)
-        vrna_message_warning("vrna_pbacktrack5: %s", info_no_comparative);
-      else if (fc->exp_params->model_details.circ)
-        vrna_message_warning("vrna_pbacktrack5: %s", info_no_circ);
-      else
-        return pbacktrack5_gen(fc, length, NULL);
-    } else if (fc->exp_params->model_details.circ) {
+    else if (fc->exp_params->model_details.circ)
       return wrap_pbacktrack_circ(fc);
-    } else {
+    else
       return pbacktrack5_gen(fc, length, NULL);
-    }
   }
 
   return NULL;
