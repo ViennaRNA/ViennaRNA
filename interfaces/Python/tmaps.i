@@ -55,6 +55,46 @@
 // This tells SWIG to treat char *[], const char **, and const char *[] the same as char **
 %apply char ** { char *[], const char **, const char *[] };
 
+
+/*
+  we need this crazy piece of argout typemap only because we don't
+  want the vrna_nr_memory_t object to be appended to the results(list),
+  but prepended instead. Otherwise, a simple
+  %append_output(SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 0));
+  would have sufficed already
+*/
+%typemap(argout) vrna_nr_memory_t *INOUT {
+  PyObject *o, *o2, *o3;
+  o = SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 1);
+  if ((!$result) || ($result == Py_None)) {
+    $result = o;
+  } else {
+    PyObject *o2 = $result;
+    $result = PyTuple_New(1);
+    PyTuple_SetItem($result,0,o2);
+    o3 = PyTuple_New(1);
+    PyTuple_SetItem(o3,0,o);
+    o2 = $result;
+    $result = PySequence_Concat(o3,o2);
+    Py_DECREF(o2);
+    Py_DECREF(o3);
+  }
+}
+
+
+%typemap(in) vrna_nr_memory_t *INOUT (vrna_nr_memory_t *retval)
+{
+  if ($input == Py_None) {
+    retval = new vrna_nr_memory_t();
+    $1 = retval;
+  } else {
+    /* INOUT in */
+    SWIG_ConvertPtr($input,SWIG_as_voidptrptr(&retval), 0, SWIG_POINTER_DISOWN);
+    $1 = retval;
+  }
+}
+
+
 %typemap(in) PyObject *PyFunc {
   if (!PyCallable_Check($input)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");

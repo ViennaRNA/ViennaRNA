@@ -38,63 +38,6 @@ typedef struct {} vrna_nr_memory_t;
   }
 }
 
-/*
-  we need this crazy piece of argout typemap only because we don't
-  want the vrna_nr_memory_t object to be appended to the results(list),
-  but prepended instead. Otherwise, a simple
-  %append_output(SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 0));
-  would have sufficed already
-*/
-%typemap(argout) vrna_nr_memory_t * {
-#ifdef SWIGPYTHON
-  PyObject *o, *o2, *o3;
-  o = SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 1);
-  if ((!$result) || ($result == Py_None)) {
-    $result = o;
-  } else {
-    PyObject *o2 = $result;
-    $result = PyTuple_New(1);
-    PyTuple_SetItem($result,0,o2);
-    o3 = PyTuple_New(1);
-    PyTuple_SetItem(o3,0,o);
-    o2 = $result;
-    $result = PySequence_Concat(o3,o2);
-    Py_DECREF(o2);
-    Py_DECREF(o3);
-  }
-#elif defined(SWIGPERL5)
-  /* increase output stack if necessary */
-  if (argvi >= items) {
-    EXTEND(sp,1);
-  }
-  /* move already existing return values to the back */
-  for (int i = argvi; i > 0; i--) {
-    ST(i) = ST(i - 1);
-  }
-  /* store result as first element in the stack */
-  ST(0) = SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 0);
-  /* increase return argument counter */
-  argvi++;
-#endif
-}
-
-
-%typemap(in) vrna_nr_memory_t *INOUT (vrna_nr_memory_t *retval)
-{
-#ifdef SWIGPYTHON
-  if ($input == Py_None) {
-#elif defined(SWIGPERL5)
-  if (!SvOK($input)) {
-#endif
-    retval = new vrna_nr_memory_t();
-    $1 = retval;
-  } else {
-    /* INOUT in */
-    SWIG_ConvertPtr($input,SWIG_as_voidptrptr(&retval), 0, SWIG_POINTER_DISOWN);
-    $1 = retval;
-  }
-}
-
 %extend vrna_fold_compound_t {
 
   char *

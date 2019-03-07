@@ -216,6 +216,43 @@ namespace std {
   argvi++;
 }
 
+
+/*
+  we need this crazy piece of argout typemap only because we don't
+  want the vrna_nr_memory_t object to be appended to the results(list),
+  but prepended instead. Otherwise, a simple
+  %append_output(SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 0));
+  would have sufficed already
+*/
+%typemap(argout) vrna_nr_memory_t *INOUT {
+  /* increase output stack if necessary */
+  if (argvi >= items) {
+    EXTEND(sp,1);
+  }
+  /* move already existing return values to the back */
+  for (int i = argvi; i > 0; i--) {
+    ST(i) = ST(i - 1);
+  }
+  /* store result as first element in the stack */
+  ST(0) = SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 0);
+  /* increase return argument counter */
+  argvi++;
+}
+
+
+%typemap(in) vrna_nr_memory_t *INOUT (vrna_nr_memory_t *retval)
+{
+  if (!SvOK($input)) {
+    retval = new vrna_nr_memory_t();
+    $1 = retval;
+  } else {
+    /* INOUT in */
+    SWIG_ConvertPtr($input,SWIG_as_voidptrptr(&retval), 0, SWIG_POINTER_DISOWN);
+    $1 = retval;
+  }
+}
+
+
 %typemap(in) SV *PerlFunc {
   $1 = $input;
 }
