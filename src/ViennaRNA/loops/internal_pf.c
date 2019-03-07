@@ -152,7 +152,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   qbt1        = 0.;
   evaluate    = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_wrapper_int(fc, &sc_wrapper);
 
   ij = (sliding_window) ? 0 : jindx[j] + i;
 
@@ -551,7 +551,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
     free(tt);
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_wrapper_int(&sc_wrapper);
 
   return qbt1;
 }
@@ -601,7 +601,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
 
   evaluate = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_wrapper_int(fc, &sc_wrapper);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc_mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -722,7 +722,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   }
 
   free(tt);
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_wrapper_int(&sc_wrapper);
 
   return q;
 }
@@ -785,7 +785,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
 
   evaluate = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_wrapper_int(fc, &sc_wrapper);
 
   hc_decompose_ij = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
   hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[n * k + l];
@@ -880,7 +880,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
     }
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_wrapper_int(&sc_wrapper);
 
   return qbt1;
 }
