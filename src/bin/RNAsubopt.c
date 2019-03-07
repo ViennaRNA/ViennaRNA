@@ -50,13 +50,13 @@ struct nr_en_data {
 
 
 PRIVATE void
-print_nr_samples(const char *structure,
-                 void       *data);
+print_samples(const char  *structure,
+              void        *data);
 
 
 PRIVATE void
-print_nr_samples_en(const char  *structure,
-                    void        *data);
+print_samples_en(const char *structure,
+                 void       *data);
 
 
 int
@@ -445,33 +445,21 @@ main(int  argc,
       ens_en  = vrna_pf(vc, structure);
       kT      = vc->exp_params->kT / 1000.;
 
-      if (nonRedundant) {
-        if (st_back_en) {
-          struct nr_en_data dat;
-          dat.output  = output;
-          dat.fc      = vc;
-          dat.kT      = kT;
-          dat.ens_en  = ens_en;
+      if (st_back_en) {
+        struct nr_en_data dat;
+        dat.output  = output;
+        dat.fc      = vc;
+        dat.kT      = kT;
+        dat.ens_en  = ens_en;
 
-          vrna_pbacktrack_nr_cb(vc, n_back, &print_nr_samples_en, (void *)&dat);
-        } else {
-          vrna_pbacktrack_nr_cb(vc, n_back, &print_nr_samples, (void *)output);
-        }
+        if (nonRedundant)
+          vrna_pbacktrack_nr_cb(vc, n_back, &print_samples_en, (void *)&dat);
+        else
+          vrna_pbacktrack_num_cb(vc, n_back, &print_samples_en, (void *)&dat);
+      } else if (nonRedundant) {
+        vrna_pbacktrack_nr_cb(vc, n_back, &print_samples, (void *)output);
       } else {
-        for (i = 0; i < n_back; i++) {
-          char *s, *e_string = NULL;
-          s = vrna_pbacktrack(vc);
-          if (st_back_en) {
-            double e, prob;
-            e         = vrna_eval_structure(vc, s);
-            prob      = exp((ens_en - e) / kT);
-            e_string  = vrna_strdup_printf(" %6.2f %6g", e, prob);
-          }
-
-          print_structure(output, s, e_string);
-          free(s);
-          free(e_string);
-        }
+        vrna_pbacktrack_num_cb(vc, n_back, &print_samples, (void *)output);
       }
     }
     /* normal subopt */
@@ -580,8 +568,8 @@ main(int  argc,
 
 
 PRIVATE void
-print_nr_samples(const char *structure,
-                 void       *data)
+print_samples(const char  *structure,
+              void        *data)
 {
   if (structure)
     print_structure((FILE *)data, structure, NULL);
@@ -589,8 +577,8 @@ print_nr_samples(const char *structure,
 
 
 PRIVATE void
-print_nr_samples_en(const char  *structure,
-                    void        *data)
+print_samples_en(const char *structure,
+                 void       *data)
 {
   if (structure) {
     struct nr_en_data     *d      = (struct nr_en_data *)data;
