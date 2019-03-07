@@ -372,7 +372,7 @@ pbacktrack5_gen(vrna_fold_compound_t    *vc,
                 struct vrna_nr_memory_s *nr_mem)
 {
   char                *pstruc;
-  int                 ret, i;
+  int                 ret;
   struct sc_wrappers  *sc_wrap;
 
   pstruc = vrna_alloc((length + 1) * sizeof(char));
@@ -1253,7 +1253,7 @@ backtrack(int                     i,
   short                     *S1, **S, **S5, **S3;
   unsigned int              **a2s, s, n_seq, n, type, type_2, *types, u1_local, u2_local;
   int                       *my_iindx, *jindx, *hc_up_int, ret, *pscore, turn, *rtype,
-                            k, l, kl, u1, u2, max_k, min_l, ii, jj, tt;
+                            k, l, kl, u1, u2, max_k, min_l, ii, jj;
   FLT_OR_DBL                *qb, *qm, *qm1, *scale, r, fbd, fbds, qbt1, qbr, qt, q_temp,
                             kTn, closingPair, expMLclosing;
   double                    *q_remain;
@@ -1644,11 +1644,11 @@ PRIVATE char *
 wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
 {
   unsigned char             *hc_mx, eval_loop;
-  char                      *sequence, *ptype, *pstruc;
+  char                      *pstruc;
   short                     *S1, *S2, **S, **S5, **S3;
   unsigned int              type, type2, *tt, s, n_seq, **a2s, u1_local,
                             u2_local, u3_local;
-  int                       i, j, k, l, n, u, *hc_up, *my_iindx, *jindx, turn,
+  int                       i, j, k, l, n, u, *hc_up, *my_iindx, turn,
                             ln1, ln2, ln3, lstart;
   FLT_OR_DBL                r, qt, q_temp, qo, qmo, *scale, *qb, *qm, *qm2,
                             qb_ij, expMLclosing;
@@ -1660,13 +1660,11 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
   struct sc_wrapper_exp_int *sc_wrapper_int;
   struct sc_wrapper_exp_ml  *sc_wrapper_ml;
 
-  sequence      = vc->sequence;
   n             = vc->length;
   pf_params     = vc->exp_params;
   md            = &(pf_params->model_details);
   matrices      = vc->exp_matrices;
   my_iindx      = vc->iindx;
-  jindx         = vc->jindx;
   expMLclosing  = pf_params->expMLclosing;
   turn          = pf_params->model_details.min_loop_size;
 
@@ -1687,7 +1685,6 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
 
   if (vc->type == VRNA_FC_TYPE_SINGLE) {
     n_seq         = 1;
-    ptype         = vc->ptype;
     tt            = NULL;
     S1            = vc->sequence_encoding;
     S2            = vc->sequence_encoding2;
@@ -1698,7 +1695,6 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
     expMLclosing  = pf_params->expMLclosing;
   } else {
     n_seq         = vc->n_seq;
-    ptype         = NULL;
     tt            = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
     S1            = NULL;
     S2            = NULL;
