@@ -18,23 +18,4 @@ This function is attached as method @b pf_dimer() to objects of type @em fold_co
 This function is attached as method @b mean_bp_distance() to objects of type @em fold_compound
 @endparblock
 
-@fn char *vrna_pbacktrack5(vrna_fold_compound_t *vc, int length)
-@scripting
-@parblock
-This function is attached as overloaded method @b pbacktrack() to objects of type @em fold_compound
-@endparblock
-
-@fn char *vrna_pbacktrack(vrna_fold_compound_t *vc)
-@scripting
-@parblock
-This function is attached as overloaded method @b pbacktrack() to objects of type @em fold_compound
-that accepts an optional @p length argument. Hence, it serves as a replacement for vrna_pbacktrack().
-@endparblock
-
-@fn char *vrna_pbacktrack_nr(vrna_fold_compound_t *vc, int num_samples)
-@scripting
-@parblock
-This function is attached as method @b pbacktrack_nr() to objects of type @em fold_compound.
-@endparblock
-
 */

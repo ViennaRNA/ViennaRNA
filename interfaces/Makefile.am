@@ -38,6 +38,7 @@ SOURCES = \
 DOXYGEN_DOCUMENTATION = \
     aln_utils.dox \
     basic_algorithms.dox \
+    boltzmann_sampling.dox \
     commands.dox \
     combinatorics.dox \
     constraints_hard.dox \
