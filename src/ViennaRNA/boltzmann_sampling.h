@@ -26,17 +26,87 @@ typedef struct vrna_nr_memory_s *vrna_nr_memory_t;
 /**
  *  @brief Sample a secondary structure of a subsequence from the Boltzmann ensemble according its probability
  *
+ *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
+ *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
+ *          with vrna_md_t.uniq_ML = 1.
+ *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *
+ *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
+ *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
+ *
+ *  @see vrna_pbacktrack5_num(), vrna_pbacktrack5_num_cb(), vrna_pbacktrack(), vrna_pbacktrack_nr()
+ *
+ *  @param  fc      The fold compound data structure
+ *  @param  length  The length of the subsequence to consider (starting with 5' end)
+ *  @return         A sampled secondary structure in dot-bracket notation (or NULL on error)
+ */
+char *
+vrna_pbacktrack5(vrna_fold_compound_t *fc,
+                 unsigned int         length);
+
+
+/**
+ *  @brief Obtain a set of secondary structure samples for a subsequence from the Boltzmann ensemble according their probability
+ *
+ *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
+ *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
+ *          with vrna_md_t.uniq_ML = 1.
+ *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *
+ *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
+ *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
+ *
+ *  @see vrna_pbacktrack5(), vrna_pbacktrack5_num_cb(), vrna_pbacktrack_num(), vrna_pbacktrack_nr()
+ *
+ *  @param  fc            The fold compound data structure
+ *  @param  length        The length of the subsequence to consider (starting with 5' end)
+ *  @param  num_samples   The size of the sample set, i.e. number of structures
+ *  @return               A set of secondary structure samples in dot-bracket notation (or NULL on error)
+ */
+char **
+vrna_pbacktrack5_num(vrna_fold_compound_t *fc,
+                     unsigned int         length,
+                     unsigned int         num_samples);
+
+
+unsigned int
+vrna_pbacktrack5_num_cb(vrna_fold_compound_t              *fc,
+                        unsigned int                      length,
+                        unsigned int                      num_samples,
+                        vrna_boltzmann_sampling_callback  *bs_cb,
+                        void                              *data);
+
+
+/**
+ *  @brief Sample a secondary structure (consensus structure) from the Boltzmann ensemble according its probability
+ *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p vc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
  *          with vrna_md_t.uniq_ML = 1.
  *  @pre    vrna_pf() has to be called first to fill the partition function matrices
  *
+ *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
+ *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
+ *
+ *  @note The function will automagically detect cicular RNAs based on the model_details in exp_params as
+ *        provided via the #vrna_fold_compound_t
+ *
  *  @param  vc      The fold compound data structure
- *  @param  length  The length of the subsequence to consider (starting with 5' end)
  *  @return         A sampled secondary structure in dot-bracket notation (or NULL on error)
  */
-char *vrna_pbacktrack5(vrna_fold_compound_t *vc,
-                       unsigned int         length);
+char *vrna_pbacktrack(vrna_fold_compound_t *vc);
+
+
+char **
+vrna_pbacktrack_num(vrna_fold_compound_t  *fc,
+                    unsigned int          num_samples);
+
+
+unsigned int
+vrna_pbacktrack_num_cb(vrna_fold_compound_t             *fc,
+                       unsigned int                     num_samples,
+                       vrna_boltzmann_sampling_callback *bs_cb,
+                       void                             *data);
 
 
 /**
@@ -83,26 +153,6 @@ vrna_pbacktrack_nr_resume_cb(vrna_fold_compound_t             *vc,
 
 void
 vrna_pbacktrack_nr_free(vrna_nr_memory_t s);
-
-
-/**
- *  @brief Sample a secondary structure (consensus structure) from the Boltzmann ensemble according its probability
- *
- *  @pre    Unique multiloop decomposition has to be active upon creation of @p vc with vrna_fold_compound()
- *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
- *
- *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
- *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
- *
- *  @note The function will automagically detect cicular RNAs based on the model_details in exp_params as
- *        provided via the #vrna_fold_compound_t
- *
- *  @param  vc      The fold compound data structure
- *  @return         A sampled secondary structure in dot-bracket notation (or NULL on error)
- */
-char *vrna_pbacktrack(vrna_fold_compound_t *vc);
 
 
 /**@}*/

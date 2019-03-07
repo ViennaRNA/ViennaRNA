@@ -121,10 +121,13 @@ PRIVATE void
 sc_free(struct sc_wrappers *sc_wrap);
 
 
-PRIVATE char *
-pbacktrack5_gen(vrna_fold_compound_t    *vc,
-                int                     length,
-                struct vrna_nr_memory_s *nr_mem);
+PRIVATE unsigned int
+pbacktrack5_gen(vrna_fold_compound_t              *vc,
+                unsigned int                      length,
+                unsigned int                      num_samples,
+                vrna_boltzmann_sampling_callback  *bs_cb,
+                void                              *data,
+                struct vrna_nr_memory_s           *nr_mem);
 
 
 PRIVATE int
@@ -171,8 +174,11 @@ backtrack_qm2(int                   u,
               struct sc_wrappers    *sc_wrap);
 
 
-PRIVATE char *
-wrap_pbacktrack_circ(vrna_fold_compound_t *vc);
+PRIVATE unsigned int
+pbacktrack_circ(vrna_fold_compound_t              *fc,
+                unsigned int                      num_samples,
+                vrna_boltzmann_sampling_callback  *bs_cb,
+                void                              *data);
 
 
 /*
@@ -180,31 +186,36 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc);
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC char *
-vrna_pbacktrack5(vrna_fold_compound_t *fc,
-                 unsigned int         length)
+PUBLIC unsigned int
+vrna_pbacktrack5_num_cb(vrna_fold_compound_t              *fc,
+                        unsigned int                      length,
+                        unsigned int                      num_samples,
+                        vrna_boltzmann_sampling_callback  *bs_cb,
+                        void                              *data)
 {
+  unsigned int i = 0;
+
   if (fc) {
     vrna_mx_pf_t *matrices = fc->exp_matrices;
 
     if (length > fc->length)
-      vrna_message_warning("vrna_pbacktrack5: length exceeds sequence length");
+      vrna_message_warning("vrna_pbacktrack5*(): length exceeds sequence length");
     else if (length == 0)
-      vrna_message_warning("vrna_pbacktrack5: length too small");
+      vrna_message_warning("vrna_pbacktrack5*(): length too small");
     else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) ||
              (!fc->exp_params))
-      vrna_message_warning("vrna_pbacktrack5: %s", info_call_pf);
+      vrna_message_warning("vrna_pbacktrack*(): %s", info_call_pf);
     else if ((!fc->exp_params->model_details.uniq_ML) || (!matrices->qm1))
-      vrna_message_warning("vrna_pbacktrack5: %s", info_set_uniq_ml);
+      vrna_message_warning("vrna_pbacktrack*(): %s", info_set_uniq_ml);
     else if ((fc->exp_params->model_details.circ) && (length < fc->length))
-      vrna_message_warning("vrna_pbacktrack5: %s", info_no_circ);
+      vrna_message_warning("vrna_pbacktrack5*(): %s", info_no_circ);
     else if (fc->exp_params->model_details.circ)
-      return wrap_pbacktrack_circ(fc);
+      i = pbacktrack_circ(fc, num_samples, bs_cb, data);
     else
-      return pbacktrack5_gen(fc, length, NULL);
+      i = pbacktrack5_gen(fc, length, num_samples, bs_cb, data, NULL);
   }
 
-  return NULL;
+  return i;
 }
 
 
@@ -229,47 +240,10 @@ vrna_pbacktrack_nr_resume_cb(vrna_fold_compound_t             *vc,
     } else if (!nr_mem) {
       vrna_message_warning("vrna_pbacktrack_nr*(): Pointer to nr_mem must not be NULL!");
     } else {
-      int is_dup, pf_overflow;
-
       if (*nr_mem == NULL)
         *nr_mem = nr_init(vc);
 
-      pf_overflow = 0;
-
-      for (i = 0; i < num_samples; i++) {
-        is_dup = 1;
-        char *ss = pbacktrack5_gen(vc, vc->length, *nr_mem);
-
-#ifdef VRNA_NR_SAMPLING_HASH
-        (*nr_mem)->current_node = traceback_to_root((*nr_mem)->current_node,
-                                                    (*nr_mem)->q_remain,
-                                                    &is_dup,
-                                                    &pf_overflow);
-#else
-        (*nr_mem)->current_node = traceback_to_ll_root((*nr_mem)->current_node,
-                                                       (*nr_mem)->q_remain,
-                                                       &is_dup,
-                                                       &pf_overflow);
-#endif
-
-        if (pf_overflow) {
-          vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_nr_overflow);
-          free(ss);
-          break;
-        }
-
-        if (is_dup) {
-          vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_nr_duplicates);
-          free(ss);
-          break;
-        }
-
-        bs_cb(ss, data);
-        free(ss);
-        /* finish if no more structures available */
-        if (!ss)
-          break;
-      }
+      i = pbacktrack5_gen(vc, vc->length, num_samples, bs_cb, data, *nr_mem);
 
       /* print warning if we've aborted backtracking too early */
       if ((i > 0) && (i < num_samples)) {
@@ -302,6 +276,11 @@ vrna_pbacktrack_nr_free(struct vrna_nr_memory_s *s)
 }
 
 
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
 PRIVATE struct sc_wrappers *
 sc_init(vrna_fold_compound_t *fc)
 {
@@ -354,37 +333,76 @@ nr_init(vrna_fold_compound_t *fc)
 
 
 /* general expr of vrna5_pbacktrack with possibility of non-redundant sampling */
-PRIVATE char *
-pbacktrack5_gen(vrna_fold_compound_t    *vc,
-                int                     length,
-                struct vrna_nr_memory_s *nr_mem)
+PRIVATE unsigned int
+pbacktrack5_gen(vrna_fold_compound_t              *vc,
+                unsigned int                      length,
+                unsigned int                      num_samples,
+                vrna_boltzmann_sampling_callback  *bs_cb,
+                void                              *data,
+                struct vrna_nr_memory_s           *nr_mem)
 {
   char                *pstruc;
-  int                 ret;
+  unsigned int        i;
+  int                 ret, pf_overflow, is_dup;
   struct sc_wrappers  *sc_wrap;
 
-  pstruc = vrna_alloc((length + 1) * sizeof(char));
+  i           = 0;
+  pf_overflow = 0;
+  sc_wrap     = sc_init(vc);
 
-  memset(pstruc, '.', sizeof(char) * length);
+  for (i = 0; i < num_samples; i++) {
+    is_dup  = 1;
+    pstruc  = vrna_alloc((length + 1) * sizeof(char));
 
-  sc_wrap = sc_init(vc);
+    memset(pstruc, '.', sizeof(char) * length);
 
-  if (nr_mem)
-    nr_mem->q_remain = vc->exp_matrices->q[vc->iindx[1] - vc->length];
+    if (nr_mem)
+      nr_mem->q_remain = vc->exp_matrices->q[vc->iindx[1] - vc->length];
 
 #ifdef VRNA_WITH_BOUSTROPHEDON
-  ret = backtrack_ext_loop(length, pstruc, vc, length, sc_wrap, nr_mem);
+    ret = backtrack_ext_loop(length, pstruc, vc, length, sc_wrap, nr_mem);
 #else
-  ret = backtrack_ext_loop(1, pstruc, vc, length, sc_wrap, nr_mem);
+    ret = backtrack_ext_loop(1, pstruc, vc, length, sc_wrap, nr_mem);
 #endif
+
+    if (nr_mem) {
+#ifdef VRNA_NR_SAMPLING_HASH
+      nr_mem->current_node = traceback_to_root(nr_mem->current_node,
+                                               nr_mem->q_remain,
+                                               &is_dup,
+                                               &pf_overflow);
+#else
+      nr_mem->current_node = traceback_to_ll_root(nr_mem->current_node,
+                                                  nr_mem->q_remain,
+                                                  &is_dup,
+                                                  &pf_overflow);
+#endif
+
+      if (pf_overflow) {
+        vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_nr_overflow);
+        free(pstruc);
+        break;
+      }
+
+      if (is_dup) {
+        vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_nr_duplicates);
+        free(pstruc);
+        break;
+      }
+    }
+
+    if ((ret > 0) && (bs_cb))
+      bs_cb(pstruc, data);
+
+    free(pstruc);
+
+    if (ret == 0)
+      break;
+  }
 
   sc_free(sc_wrap);
 
-  if (ret > 0)
-    return pstruc;
-
-  free(pstruc);
-  return NULL;
+  return i;
 }
 
 
@@ -1628,14 +1646,17 @@ backtrack(int                     i,
 }
 
 
-PRIVATE char *
-wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
+PRIVATE unsigned int
+pbacktrack_circ(vrna_fold_compound_t              *vc,
+                unsigned int                      num_samples,
+                vrna_boltzmann_sampling_callback  *bs_cb,
+                void                              *data)
 {
   unsigned char             *hc_mx, eval_loop;
   char                      *pstruc;
   short                     *S1, *S2, **S, **S5, **S3;
   unsigned int              type, type2, *tt, s, n_seq, **a2s, u1_local,
-                            u2_local, u3_local;
+                            u2_local, u3_local, count;
   int                       i, j, k, l, n, u, *hc_up, *my_iindx, turn,
                             ln1, ln2, ln3, lstart;
   FLT_OR_DBL                r, qt, q_temp, qo, qmo, *scale, *qb, *qm, *qm2,
@@ -1693,181 +1714,178 @@ wrap_pbacktrack_circ(vrna_fold_compound_t *vc)
     expMLclosing  = pow(pf_params->expMLclosing, (double)n_seq);
   }
 
-  /*
-   * if (init_length<1)
-   *  vrna_message_error("can't backtrack without pf arrays.\n"
-   *    "Call pf_circ_fold() before pbacktrack_circ()");
-   */
+  for (count = 0; count < num_samples; count++) {
+    pstruc = vrna_alloc((n + 1) * sizeof(char));
 
-  pstruc = vrna_alloc((n + 1) * sizeof(char));
+    /* initialize pstruct with single bases  */
+    memset(pstruc, '.', sizeof(char) * n);
 
-  /* initialize pstruct with single bases  */
-  memset(pstruc, '.', sizeof(char) * n);
+    qt = 1.0 * scale[n];
 
-  qt = 1.0 * scale[n];
+    /* add soft constraints for open chain configuration */
+    if (sc_wrapper_ext->red_up)
+      qt *= sc_wrapper_ext->red_up(1, n, sc_wrapper_ext);
 
-  /* add soft constraints for open chain configuration */
-  if (sc_wrapper_ext->red_up)
-    qt *= sc_wrapper_ext->red_up(1, n, sc_wrapper_ext);
+    r = vrna_urn() * qo;
 
-  r = vrna_urn() * qo;
+    /* open chain? */
+    if (qt > r)
+      goto pbacktrack_circ_loop_end;
 
-  /* open chain? */
-  if (qt > r) {
-    sc_free(sc_wrap);
-    return pstruc;
-  }
+    for (i = 1; (i < n); i++) {
+      for (j = i + turn + 1; (j <= n); j++) {
+        u = n - j + i - 1;
 
-  for (i = 1; (i < n); i++) {
-    for (j = i + turn + 1; (j <= n); j++) {
-      u = n - j + i - 1;
+        if (u < turn)
+          continue;
 
-      if (u < turn)
-        continue;
+        qb_ij = qb[my_iindx[i] - j];
 
-      qb_ij = qb[my_iindx[i] - j];
+        qt += qb_ij *
+              vrna_exp_E_hp_loop(vc, j, i);
 
-      qt += qb_ij *
-            vrna_exp_E_hp_loop(vc, j, i);
+        /* found a hairpin? so backtrack in the enclosed part and we're done  */
+        if (qt > r) {
+          backtrack(i, j, pstruc, vc, sc_wrap, NULL);
+          goto pbacktrack_circ_loop_end;
+        }
 
-      /* found a hairpin? so backtrack in the enclosed part and we're done  */
-      if (qt > r) {
-        backtrack(i, j, pstruc, vc, sc_wrap, NULL);
-        sc_free(sc_wrap);
-        return pstruc;
-      }
+        /* 2. search for (k,l) with which we can close an interior loop  */
+        if (hc_mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
+          if (vc->type == VRNA_FC_TYPE_SINGLE)
+            type = vrna_get_ptype_md(S2[j], S2[i], md);
+          else
+            for (s = 0; s < n_seq; s++)
+              tt[s] = vrna_get_ptype_md(S[s][j], S[s][i], md);
 
-      /* 2. search for (k,l) with which we can close an interior loop  */
-      if (hc_mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-        if (vc->type == VRNA_FC_TYPE_SINGLE)
-          type = vrna_get_ptype_md(S2[j], S2[i], md);
-        else
-          for (s = 0; s < n_seq; s++)
-            tt[s] = vrna_get_ptype_md(S[s][j], S[s][i], md);
+          for (k = j + 1; (k < n); k++) {
+            ln1 = k - j - 1;
+            if (ln1 + i - 1 > MAXLOOP)
+              break;
 
-        for (k = j + 1; (k < n); k++) {
-          ln1 = k - j - 1;
-          if (ln1 + i - 1 > MAXLOOP)
-            break;
+            if (hc_up[j + 1] < ln1)
+              break;
 
-          if (hc_up[j + 1] < ln1)
-            break;
+            lstart = ln1 + i - 1 + n - MAXLOOP;
+            if (lstart < k + turn + 1)
+              lstart = k + turn + 1;
 
-          lstart = ln1 + i - 1 + n - MAXLOOP;
-          if (lstart < k + turn + 1)
-            lstart = k + turn + 1;
+            for (l = lstart; (l <= n); l++) {
+              ln2 = (i - 1);
+              ln3 = (n - l);
 
-          for (l = lstart; (l <= n); l++) {
-            ln2 = (i - 1);
-            ln3 = (n - l);
+              if (hc_up[l + 1] < (ln2 + ln3))
+                continue;
 
-            if (hc_up[l + 1] < (ln2 + ln3))
-              continue;
+              if ((ln1 + ln2 + ln3) > MAXLOOP)
+                continue;
 
-            if ((ln1 + ln2 + ln3) > MAXLOOP)
-              continue;
+              eval_loop = hc_mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
 
-            eval_loop = hc_mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
+              if (eval_loop) {
+                q_temp = qb_ij *
+                         qb[my_iindx[k] - l] *
+                         scale[ln1 + ln2 + ln3];
 
-            if (eval_loop) {
-              q_temp = qb_ij *
-                       qb[my_iindx[k] - l] *
-                       scale[ln1 + ln2 + ln3];
+                switch (vc->type) {
+                  case VRNA_FC_TYPE_SINGLE:
+                    type2   = vrna_get_ptype_md(S2[l], S2[k], md);
+                    q_temp  *= exp_E_IntLoop(ln2 + ln3,
+                                             ln1,
+                                             type2,
+                                             type,
+                                             S1[l + 1],
+                                             S1[k - 1],
+                                             S1[i - 1],
+                                             S1[j + 1],
+                                             pf_params);
+                    break;
+                  case VRNA_FC_TYPE_COMPARATIVE:
+                    for (s = 0; s < n_seq; s++) {
+                      type2     = vrna_get_ptype_md(S[s][l], S[s][k], md);
+                      u1_local  = a2s[s][i - 1];
+                      u2_local  = a2s[s][k - 1] - a2s[s][j];
+                      u3_local  = a2s[s][n] - a2s[s][l];
+                      q_temp    *= exp_E_IntLoop(u1_local + u3_local,
+                                                 u2_local,
+                                                 type2,
+                                                 tt[s],
+                                                 S3[s][l],
+                                                 S5[s][k],
+                                                 S5[s][i],
+                                                 S3[s][j],
+                                                 pf_params);
+                    }
+                    break;
+                }
 
-              switch (vc->type) {
-                case VRNA_FC_TYPE_SINGLE:
-                  type2   = vrna_get_ptype_md(S2[l], S2[k], md);
-                  q_temp  *= exp_E_IntLoop(ln2 + ln3,
-                                           ln1,
-                                           type2,
-                                           type,
-                                           S1[l + 1],
-                                           S1[k - 1],
-                                           S1[i - 1],
-                                           S1[j + 1],
-                                           pf_params);
-                  break;
-                case VRNA_FC_TYPE_COMPARATIVE:
-                  for (s = 0; s < n_seq; s++) {
-                    type2     = vrna_get_ptype_md(S[s][l], S[s][k], md);
-                    u1_local  = a2s[s][i - 1];
-                    u2_local  = a2s[s][k - 1] - a2s[s][j];
-                    u3_local  = a2s[s][n] - a2s[s][l];
-                    q_temp    *= exp_E_IntLoop(u1_local + u3_local,
-                                               u2_local,
-                                               type2,
-                                               tt[s],
-                                               S3[s][l],
-                                               S5[s][k],
-                                               S5[s][i],
-                                               S3[s][j],
-                                               pf_params);
-                  }
-                  break;
-              }
+                if (sc_wrapper_int->pair_ext)
+                  q_temp *= sc_wrapper_int->pair_ext(i, j, k, l, sc_wrapper_int);
 
-              if (sc_wrapper_int->pair_ext)
-                q_temp *= sc_wrapper_int->pair_ext(i, j, k, l, sc_wrapper_int);
-
-              qt += q_temp;
-              /* found an exterior interior loop? also this time, we can go straight  */
-              /* forward and backtracking the both enclosed parts and we're done      */
-              if (qt > r) {
-                backtrack(i, j, pstruc, vc, sc_wrap, NULL);
-                backtrack(k, l, pstruc, vc, sc_wrap, NULL);
-                sc_free(sc_wrap);
-                return pstruc;
+                qt += q_temp;
+                /* found an exterior interior loop? also this time, we can go straight  */
+                /* forward and backtracking the both enclosed parts and we're done      */
+                if (qt > r) {
+                  backtrack(i, j, pstruc, vc, sc_wrap, NULL);
+                  backtrack(k, l, pstruc, vc, sc_wrap, NULL);
+                  goto pbacktrack_circ_loop_end;
+                }
               }
             }
+          } /* end of kl double loop */
+        }
+      }
+    }     /* end of ij double loop  */
+    {
+      /* as we reach this part, we have to search for our barrier between qm and qm2  */
+      qt  = 0.;
+      r   = vrna_urn() * qmo;
+      if (sc_wrapper_ml->decomp_ml) {
+        for (k = turn + 2; k < n - 2 * turn - 3; k++) {
+          qt += qm[my_iindx[1] - k] *
+                qm2[k + 1] *
+                expMLclosing *
+                sc_wrapper_ml->decomp_ml(1,
+                                         n,
+                                         k,
+                                         k + 1,
+                                         sc_wrapper_ml);
+
+
+          /* backtrack in qm and qm2 if we've found a valid barrier k  */
+          if (qt > r) {
+            backtrack_qm(1, k, pstruc, vc, sc_wrap, NULL);
+            backtrack_qm2(k + 1, n, pstruc, vc, sc_wrap);
+            goto pbacktrack_circ_loop_end;
           }
-        } /* end of kl double loop */
-      }
-    }
-  }     /* end of ij double loop  */
-  {
-    /* as we reach this part, we have to search for our barrier between qm and qm2  */
-    qt  = 0.;
-    r   = vrna_urn() * qmo;
-    if (sc_wrapper_ml->decomp_ml) {
-      for (k = turn + 2; k < n - 2 * turn - 3; k++) {
-        qt += qm[my_iindx[1] - k] *
-              qm2[k + 1] *
-              expMLclosing *
-              sc_wrapper_ml->decomp_ml(1,
-                                       n,
-                                       k,
-                                       k + 1,
-                                       sc_wrapper_ml);
-
-
-        /* backtrack in qm and qm2 if we've found a valid barrier k  */
-        if (qt > r) {
-          backtrack_qm(1, k, pstruc, vc, sc_wrap, NULL);
-          backtrack_qm2(k + 1, n, pstruc, vc, sc_wrap);
-          sc_free(sc_wrap);
-          return pstruc;
         }
-      }
-    } else {
-      for (k = turn + 2; k < n - 2 * turn - 3; k++) {
-        qt += qm[my_iindx[1] - k] *
-              qm2[k + 1] *
-              expMLclosing;
-        /* backtrack in qm and qm2 if we've found a valid barrier k  */
-        if (qt > r) {
-          backtrack_qm(1, k, pstruc, vc, sc_wrap, NULL);
-          backtrack_qm2(k + 1, n, pstruc, vc, sc_wrap);
-          sc_free(sc_wrap);
-          return pstruc;
+      } else {
+        for (k = turn + 2; k < n - 2 * turn - 3; k++) {
+          qt += qm[my_iindx[1] - k] *
+                qm2[k + 1] *
+                expMLclosing;
+          /* backtrack in qm and qm2 if we've found a valid barrier k  */
+          if (qt > r) {
+            backtrack_qm(1, k, pstruc, vc, sc_wrap, NULL);
+            backtrack_qm2(k + 1, n, pstruc, vc, sc_wrap);
+            goto pbacktrack_circ_loop_end;
+          }
         }
       }
     }
+    /* if we reach the actual end of this function, an error has occured  */
+    /* cause we HAVE TO find an exterior loop or an open chain!!!         */
+    vrna_message_error("backtracking failed in exterior loop");
+
+pbacktrack_circ_loop_end:
+
+    if (bs_cb)
+      bs_cb(pstruc, data);
+
+    free(pstruc);
   }
-  /* if we reach the actual end of this function, an error has occured  */
-  /* cause we HAVE TO find an exterior loop or an open chain!!!         */
-  vrna_message_error("backtracking failed in exterior loop");
 
   sc_free(sc_wrap);
 
-  return pstruc;
+  return count;
 }
