@@ -84,7 +84,7 @@ class GeneralTests(unittest.TestCase):
         d       = None
         s_list  = list()
         for i in range(0, iterations):
-            d, ss   = fc.pbacktrack_nr_resume(num_samples, d)
+            d, ss   = fc.pbacktrack_nr(num_samples, d)
             s_list  = s_list + list(ss)
 
         self.assertEqual(len(s_list), iterations * num_samples)

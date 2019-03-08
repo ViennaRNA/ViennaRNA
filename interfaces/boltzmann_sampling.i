@@ -106,8 +106,8 @@ typedef struct {} vrna_nr_memory_t;
   %apply vrna_nr_memory_t *INOUT { vrna_nr_memory_t *nr_memory };
 
   std::vector<std::string>
-  pbacktrack_nr_resume(unsigned int      num_samples,
-                       vrna_nr_memory_t  *nr_memory)
+  pbacktrack_nr(unsigned int      num_samples,
+                vrna_nr_memory_t  *nr_memory)
   {
     std::vector<std::string> str_vec;
 

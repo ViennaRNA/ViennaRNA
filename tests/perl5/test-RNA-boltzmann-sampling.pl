@@ -123,7 +123,7 @@ $d = undef;
 @ss = ();
 
 foreach my $i (1..$iterations) {
-  ($d, $s) = $fc->pbacktrack_nr_resume($num_samples, $d);
+  ($d, $s) = $fc->pbacktrack_nr($num_samples, $d);
   push(@ss, @{$s});
 }
 
