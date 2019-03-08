@@ -122,7 +122,7 @@ sc_free(struct sc_wrappers *sc_wrap);
 
 
 PRIVATE unsigned int
-pbacktrack5_gen(vrna_fold_compound_t              *vc,
+wrap_pbacktrack(vrna_fold_compound_t              *vc,
                 unsigned int                      length,
                 unsigned int                      num_samples,
                 vrna_boltzmann_sampling_callback  *bs_cb,
@@ -212,7 +212,7 @@ vrna_pbacktrack5_num_cb(vrna_fold_compound_t              *fc,
     else if (fc->exp_params->model_details.circ)
       i = pbacktrack_circ(fc, num_samples, bs_cb, data);
     else
-      i = pbacktrack5_gen(fc, length, num_samples, bs_cb, data, NULL);
+      i = wrap_pbacktrack(fc, length, num_samples, bs_cb, data, NULL);
   }
 
   return i;
@@ -243,7 +243,7 @@ vrna_pbacktrack_nr_resume_cb(vrna_fold_compound_t             *vc,
       if (*nr_mem == NULL)
         *nr_mem = nr_init(vc);
 
-      i = pbacktrack5_gen(vc, vc->length, num_samples, bs_cb, data, *nr_mem);
+      i = wrap_pbacktrack(vc, vc->length, num_samples, bs_cb, data, *nr_mem);
 
       /* print warning if we've aborted backtracking too early */
       if ((i > 0) && (i < num_samples)) {
@@ -334,7 +334,7 @@ nr_init(vrna_fold_compound_t *fc)
 
 /* general expr of vrna5_pbacktrack with possibility of non-redundant sampling */
 PRIVATE unsigned int
-pbacktrack5_gen(vrna_fold_compound_t              *vc,
+wrap_pbacktrack(vrna_fold_compound_t              *vc,
                 unsigned int                      length,
                 unsigned int                      num_samples,
                 vrna_boltzmann_sampling_callback  *bs_cb,
@@ -342,13 +342,35 @@ pbacktrack5_gen(vrna_fold_compound_t              *vc,
                 struct vrna_nr_memory_s           *nr_mem)
 {
   char                *pstruc;
-  unsigned int        i;
-  int                 ret, pf_overflow, is_dup;
+  unsigned int        i, n;
+  int                 ret, pf_overflow, is_dup, *my_iindx;
+  FLT_OR_DBL          *q1k, *qln, *q;
+  vrna_mx_pf_t        *matrices;
   struct sc_wrappers  *sc_wrap;
 
   i           = 0;
   pf_overflow = 0;
   sc_wrap     = sc_init(vc);
+
+  n         = vc->length;
+  my_iindx  = vc->iindx;
+  matrices  = vc->exp_matrices;
+  q         = matrices->q;
+  q1k       = matrices->q1k;
+  qln       = matrices->qln;
+
+  if (!(q1k && qln)) {
+    matrices->q1k = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+    matrices->qln = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    q1k           = matrices->q1k;
+    qln           = matrices->qln;
+    for (i = 1; i <= n; i++) {
+      q1k[i]  = q[my_iindx[1] - i];
+      qln[i]  = q[my_iindx[i] - n];
+    }
+    q1k[0]      = 1.0;
+    qln[n + 1]  = 1.0;
+  }
 
   for (i = 0; i < num_samples; i++) {
     is_dup  = 1;
@@ -357,7 +379,7 @@ pbacktrack5_gen(vrna_fold_compound_t              *vc,
     memset(pstruc, '.', sizeof(char) * length);
 
     if (nr_mem)
-      nr_mem->q_remain = vc->exp_matrices->q[vc->iindx[1] - vc->length];
+      nr_mem->q_remain = vc->exp_matrices->q[vc->iindx[1] - length];
 
 #ifdef VRNA_WITH_BOUSTROPHEDON
     ret = backtrack_ext_loop(length, pstruc, vc, length, sc_wrap, nr_mem);
@@ -488,19 +510,6 @@ backtrack_ext_loop(int                      init_val,
   q1k   = matrices->q1k;
   qln   = matrices->qln;
   scale = matrices->scale;
-
-  if (!(q1k && qln)) {
-    matrices->q1k = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
-    matrices->qln = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-    q1k           = matrices->q1k;
-    qln           = matrices->qln;
-    for (k = 1; k <= n; k++) {
-      q1k[k]  = q[my_iindx[1] - k];
-      qln[k]  = q[my_iindx[k] - n];
-    }
-    q1k[0]      = 1.0;
-    qln[n + 1]  = 1.0;
-  }
 
 #ifndef VRNA_NR_SAMPLING_HASH
   if (current_node) {
