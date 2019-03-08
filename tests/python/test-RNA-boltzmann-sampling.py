@@ -38,12 +38,12 @@ class GeneralTests(unittest.TestCase):
         print "test_pbacktrack    (multiple sub-structures, a.k.a. pbacktrack5_num)"
         fc = prepare_fc()
 
-        ss  = fc.pbacktrack(10, 20)
+        ss  = fc.pbacktrack(20, 10)
         self.assertEqual(len(ss), 20)
         for s in ss:
             self.assertEqual(len(s), 10)
 
-        ss  = fc.pbacktrack(50, 100)
+        ss  = fc.pbacktrack(100, 50)
         self.assertEqual(len(ss), 100)
         for s in ss:
             self.assertEqual(len(s), 50)
@@ -59,7 +59,7 @@ class GeneralTests(unittest.TestCase):
         print "test_pbacktrack    (multiple structures, a.k.a. pbacktrack_num)"
         fc = prepare_fc()
 
-        ss  = fc.pbacktrack(0, 100)
+        ss  = fc.pbacktrack(100, 0)
         self.assertEqual(len(ss), 100)
         for s in ss:
             self.assertEqual(len(s), len(sequence))
@@ -68,7 +68,7 @@ class GeneralTests(unittest.TestCase):
         print "test_pbacktrack_nr"
         fc = prepare_fc()
 
-        ss  = fc.pbacktrack_nr(100)
+        ss  = fc.pbacktrack(100, 0, RNA.PBACKTRACK_NON_REDUNDANT)
         self.assertEqual(len(ss), 100)
         for s in ss:
             self.assertEqual(len(s), len(sequence))
@@ -79,12 +79,12 @@ class GeneralTests(unittest.TestCase):
     def test_pbacktrack_nr_resume(self):
         print "test_pbacktrack_nr_resume"
         num_samples = 500
-        iterations  = 5
+        iterations  = 15
         fc      = prepare_fc()
         d       = None
         s_list  = list()
         for i in range(0, iterations):
-            d, ss   = fc.pbacktrack_nr(num_samples, d)
+            d, ss   = fc.pbacktrack(num_samples, d, RNA.PBACKTRACK_NON_REDUNDANT)
             s_list  = s_list + list(ss)
 
         self.assertEqual(len(s_list), iterations * num_samples)
@@ -100,14 +100,14 @@ class GeneralTests(unittest.TestCase):
         print "test_pbacktrack_cb (multiple sub-structures, a.k.a. pbacktrack5_cb)"
         fc = prepare_fc()
         ss = list()
-        i = fc.pbacktrack_cb(10, 20, store_structure, ss)
+        i = fc.pbacktrack(20, 10, store_structure, ss)
         self.assertEqual(i, 20)
         self.assertEqual(len(ss), 20)
         for s in ss:
             self.assertEqual(len(s), 10)
 
         ss = list()
-        i = fc.pbacktrack_cb(50, 100, store_structure, ss)
+        i = fc.pbacktrack(100, 50, store_structure, ss)
         self.assertEqual(i, 100)
         self.assertEqual(len(ss), 100)
         for s in ss:
@@ -117,7 +117,7 @@ class GeneralTests(unittest.TestCase):
         print "test_pbacktrack_cb (multiple structures, a.k.a. pbacktrack_cb)"
         fc = prepare_fc()
         ss = list()
-        i = fc.pbacktrack_cb(0, 100, store_structure, ss)
+        i = fc.pbacktrack(100, store_structure, ss)
         self.assertEqual(i, 100)
         self.assertEqual(len(ss), 100)
         for s in ss:
@@ -127,7 +127,7 @@ class GeneralTests(unittest.TestCase):
         print "test_pbacktrack_nr_cb"
         fc = prepare_fc()
         ss = list()
-        i = fc.pbacktrack_nr_cb(100, store_structure, ss)
+        i = fc.pbacktrack(100, store_structure, ss, RNA.PBACKTRACK_NON_REDUNDANT)
         self.assertEqual(i, 100)
         self.assertEqual(len(ss), 100)
         for s in ss:
@@ -140,12 +140,12 @@ class GeneralTests(unittest.TestCase):
     def test_pbacktrack_nr_resume_cb(self):
         print "test_pbacktrack_nr_resume_cb"
         num_samples = 500
-        iterations  = 5
+        iterations  = 15
         fc = prepare_fc()
         ss = list()
         d  = None
         for i in range(0, iterations):
-            d, i = fc.pbacktrack_nr_resume_cb(num_samples, store_structure, ss, d)
+            d, i = fc.pbacktrack(num_samples, store_structure, ss, d, RNA.PBACKTRACK_NON_REDUNDANT)
             self.assertEqual(i, num_samples)
 
         self.assertEqual(len(ss), iterations * num_samples)

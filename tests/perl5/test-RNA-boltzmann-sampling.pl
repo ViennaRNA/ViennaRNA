@@ -39,7 +39,7 @@ sub uniq {
 my $fc          = prepare_fc();
 my $failure     = 0;
 my $num_samples = 500;
-my $iterations  = 5;
+my $iterations  = 15;
 my $s;
 my $i;
 my @ss;
@@ -55,7 +55,7 @@ ok(length($s) == 50);
 
 
 print "test_pbacktrack    (multiple sub-structures, a.k.a. pbacktrack5_num)\n";
-$s = $fc->pbacktrack(10, 20);
+$s = $fc->pbacktrack(20, 10);
 
 ok(scalar(@{$s}) == 20);
 
@@ -68,7 +68,7 @@ foreach my $s (@{$s}) {
 }
 ok($failure == 0);
 
-$s = $fc->pbacktrack(50, 100);
+$s = $fc->pbacktrack(100, 50);
 ok(scalar(@{$s}) == 100);
 
 $failure = 0;
@@ -87,7 +87,7 @@ ok(length($s) == length($sequence));
 
 
 print "test_pbacktrack    (multiple structures, a.k.a. pbacktrack_num)\n";
-$s = $fc->pbacktrack(0, 100);
+$s = $fc->pbacktrack(100, 0);
 ok(scalar(@{$s}) == 100);
 
 $failure = 0;
@@ -101,7 +101,7 @@ ok($failure == 0);
 
 
 print "test_pbacktrack_nr\n";
-$s = $fc->pbacktrack_nr(100);
+$s = $fc->pbacktrack(100, 0, RNA::PBACKTRACK_NON_REDUNDANT);
 ok(scalar(@{$s}) == 100);
 
 $failure = 0;
@@ -123,7 +123,7 @@ $d = undef;
 @ss = ();
 
 foreach my $i (1..$iterations) {
-  ($d, $s) = $fc->pbacktrack_nr($num_samples, $d);
+  ($d, $s) = $fc->pbacktrack($num_samples, $d, RNA::PBACKTRACK_NON_REDUNDANT);
   push(@ss, @{$s});
 }
 
@@ -145,7 +145,7 @@ ok(scalar(@ss) == scalar(@sss));
 
 print "test_pbacktrack_cb (multiple sub-structures, a.k.a. pbacktrack5_cb)\n";
 @ss = ();
-$i  = $fc->pbacktrack_cb(10, 20, \&store_structure, \@ss);
+$i  = $fc->pbacktrack(20, 10, \&store_structure, \@ss);
 ok($i == 20);
 ok(scalar(@ss) == 20);
 
@@ -159,7 +159,7 @@ foreach my $s (@ss) {
 ok($failure == 0);
 
 @ss = ();
-$i  = $fc->pbacktrack_cb(50, 100, \&store_structure, \@ss);
+$i  = $fc->pbacktrack(100, 50, \&store_structure, \@ss);
 ok($i == 100);
 ok(scalar(@ss) == 100);
 
@@ -175,7 +175,7 @@ ok($failure == 0);
 
 print "test_pbacktrack_cb (multiple structures, a.k.a. pbacktrack_cb)\n";
 @ss = ();
-$i  = $fc->pbacktrack_cb(0, 100, \&store_structure, \@ss);
+$i  = $fc->pbacktrack(100, 0, \&store_structure, \@ss);
 ok($i == 100);
 ok(scalar(@ss) == 100);
 
@@ -191,7 +191,7 @@ ok($failure == 0);
 
 print "test_pbacktrack_nr_cb\n";
 @ss = ();
-$i  = $fc->pbacktrack_nr_cb(100, \&store_structure, \@ss);
+$i  = $fc->pbacktrack(100, \&store_structure, \@ss, RNA::PBACKTRACK_NON_REDUNDANT);
 ok($i == 100);
 ok(scalar(@ss) == 100);
 
@@ -215,7 +215,7 @@ $d  = undef;
 
 $failure = 0;
 foreach my $i (1..$iterations) {
-  ($d, $i) = $fc->pbacktrack_nr_resume_cb($num_samples, \&store_structure, \@ss, $d);
+  ($d, $i) = $fc->pbacktrack($num_samples, \&store_structure, \@ss, $d, RNA::PBACKTRACK_NON_REDUNDANT);
   $failure = 1, last if $i != $num_samples;
 }
 ok($failure == 0);

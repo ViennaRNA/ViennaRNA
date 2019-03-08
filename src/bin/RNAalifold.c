@@ -1264,7 +1264,11 @@ Boltzmann_sampling(vrna_fold_compound_t *fc,
                    struct options       *opt,
                    vrna_cstr_t          rec_output)
 {
-  unsigned int i;
+  unsigned int i, options;
+
+  options = (opt->non_red) ?
+            VRNA_PBACKTRACK_NON_REDUNDANT :
+            VRNA_PBACKTRACK_DEFAULT;
 
   /*stochastic sampling*/
   if (opt->eval_en) {
@@ -1274,14 +1278,17 @@ Boltzmann_sampling(vrna_fold_compound_t *fc,
     dat.kT      = fc->exp_params->kT / 1000.;
     dat.ens_en  = dG;
 
-    if (opt->non_red)
-      vrna_pbacktrack_nr_cb(fc, opt->n_back, &print_nr_samples_en, (void *)&dat);
-    else
-      vrna_pbacktrack_num_cb(fc, opt->n_back, &print_nr_samples_en, (void *)&dat);
-  } else if (opt->non_red) {
-    vrna_pbacktrack_nr_cb(fc, opt->n_back, &print_nr_samples, (void *)&rec_output);
+    vrna_pbacktrack_cb(fc,
+                       opt->n_back,
+                       &print_nr_samples_en,
+                       (void *)&dat,
+                       options);
   } else {
-    vrna_pbacktrack_num_cb(fc, opt->n_back, &print_nr_samples, (void *)&rec_output);
+    vrna_pbacktrack_cb(fc,
+                       opt->n_back,
+                       &print_nr_samples,
+                       (void *)&rec_output,
+                       options);
   }
 }
 

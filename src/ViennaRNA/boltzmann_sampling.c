@@ -62,7 +62,7 @@ struct sc_wrappers {
  * - q_remain is a pointer to value of sum of Boltzmann factors of still accessible solutions at that point
  * - current_node is a pointer to current node in datastructure memorizing the solutions and paths taken
  */
-struct vrna_nr_memory_s {
+struct vrna_pbacktrack_memory_s {
   double            q_remain;
   NR_NODE           *root_node;
   NR_NODE           *current_node;
@@ -109,7 +109,7 @@ PRIVATE char  *info_no_circ =
  #################################
  */
 
-PRIVATE struct vrna_nr_memory_s *
+PRIVATE struct vrna_pbacktrack_memory_s *
 nr_init(vrna_fold_compound_t *fc);
 
 
@@ -127,43 +127,43 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
                 unsigned int                      num_samples,
                 vrna_boltzmann_sampling_callback  *bs_cb,
                 void                              *data,
-                struct vrna_nr_memory_s           *nr_mem);
+                struct vrna_pbacktrack_memory_s   *nr_mem);
 
 
 PRIVATE int
-backtrack(int                     i,
-          int                     j,
-          char                    *pstruc,
-          vrna_fold_compound_t    *vc,
-          struct sc_wrappers      *sc_wrap,
-          struct vrna_nr_memory_s *nr_mem);
+backtrack(int                             i,
+          int                             j,
+          char                            *pstruc,
+          vrna_fold_compound_t            *vc,
+          struct sc_wrappers              *sc_wrap,
+          struct vrna_pbacktrack_memory_s *nr_mem);
 
 
 PRIVATE int
-backtrack_ext_loop(int                      init_val,
-                   char                     *pstruc,
-                   vrna_fold_compound_t     *vc,
-                   int                      length,
-                   struct sc_wrappers       *sc_wrap,
-                   struct vrna_nr_memory_s  *nr_mem);
+backtrack_ext_loop(int                              init_val,
+                   char                             *pstruc,
+                   vrna_fold_compound_t             *vc,
+                   int                              length,
+                   struct sc_wrappers               *sc_wrap,
+                   struct vrna_pbacktrack_memory_s  *nr_mem);
 
 
 PRIVATE int
-backtrack_qm(int                      i,
-             int                      j,
-             char                     *pstruc,
-             vrna_fold_compound_t     *vc,
-             struct sc_wrappers       *sc_wrap,
-             struct vrna_nr_memory_s  *nr_mem);
+backtrack_qm(int                              i,
+             int                              j,
+             char                             *pstruc,
+             vrna_fold_compound_t             *vc,
+             struct sc_wrappers               *sc_wrap,
+             struct vrna_pbacktrack_memory_s  *nr_mem);
 
 
 PRIVATE int
-backtrack_qm1(int                     i,
-              int                     j,
-              char                    *pstruc,
-              vrna_fold_compound_t    *vc,
-              struct sc_wrappers      *sc_wrap,
-              struct vrna_nr_memory_s *nr_mem);
+backtrack_qm1(int                             i,
+              int                             j,
+              char                            *pstruc,
+              vrna_fold_compound_t            *vc,
+              struct sc_wrappers              *sc_wrap,
+              struct vrna_pbacktrack_memory_s *nr_mem);
 
 
 PRIVATE void
@@ -187,74 +187,57 @@ pbacktrack_circ(vrna_fold_compound_t              *fc,
  #################################
  */
 PUBLIC unsigned int
-vrna_pbacktrack5_num_cb(vrna_fold_compound_t              *fc,
-                        unsigned int                      length,
-                        unsigned int                      num_samples,
-                        vrna_boltzmann_sampling_callback  *bs_cb,
-                        void                              *data)
+vrna_pbacktrack5_resume_cb(vrna_fold_compound_t             *fc,
+                           unsigned int                     num_samples,
+                           unsigned int                     length,
+                           vrna_boltzmann_sampling_callback *bs_cb,
+                           void                             *data,
+                           vrna_pbacktrack_mem_t            *nr_mem,
+                           unsigned int                     options)
 {
   unsigned int i = 0;
 
   if (fc) {
     vrna_mx_pf_t *matrices = fc->exp_matrices;
 
-    if (length > fc->length)
+    if (length > fc->length) {
       vrna_message_warning("vrna_pbacktrack5*(): length exceeds sequence length");
-    else if (length == 0)
+    } else if (length == 0) {
       vrna_message_warning("vrna_pbacktrack5*(): length too small");
-    else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) ||
-             (!fc->exp_params))
+    } else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) ||
+               (!fc->exp_params)) {
       vrna_message_warning("vrna_pbacktrack*(): %s", info_call_pf);
-    else if ((!fc->exp_params->model_details.uniq_ML) || (!matrices->qm1))
+    } else if ((!fc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
       vrna_message_warning("vrna_pbacktrack*(): %s", info_set_uniq_ml);
-    else if ((fc->exp_params->model_details.circ) && (length < fc->length))
+    } else if ((fc->exp_params->model_details.circ) && (length < fc->length)) {
       vrna_message_warning("vrna_pbacktrack5*(): %s", info_no_circ);
-    else if (fc->exp_params->model_details.circ)
-      i = pbacktrack_circ(fc, num_samples, bs_cb, data);
-    else
-      i = wrap_pbacktrack(fc, length, num_samples, bs_cb, data, NULL);
-  }
+    } else if (options & VRNA_PBACKTRACK_NON_REDUNDANT) {
+      if (fc->exp_params->model_details.circ) {
+        vrna_message_warning("vrna_pbacktrack5*(): %s", info_no_circ);
+      } else if (!nr_mem) {
+        vrna_message_warning("vrna_pbacktrack5*(): Pointer to nr_mem must not be NULL!");
+      } else {
+        if (*nr_mem == NULL)
+          *nr_mem = nr_init(fc);
 
-  return i;
-}
+        i = wrap_pbacktrack(fc, length, num_samples, bs_cb, data, *nr_mem);
 
-
-PUBLIC unsigned int
-vrna_pbacktrack_nr_resume_cb(vrna_fold_compound_t             *vc,
-                             unsigned int                     num_samples,
-                             vrna_boltzmann_sampling_callback *bs_cb,
-                             void                             *data,
-                             vrna_nr_memory_t                 *nr_mem)
-{
-  unsigned int i = 0;
-
-  if (vc) {
-    vrna_mx_pf_t *matrices = vc->exp_matrices;
-
-    if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) || (!vc->exp_params)) {
-      vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_call_pf);
-    } else if ((!vc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
-      vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_set_uniq_ml);
-    } else if (vc->exp_params->model_details.circ) {
-      vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_no_circ);
-    } else if (!nr_mem) {
-      vrna_message_warning("vrna_pbacktrack_nr*(): Pointer to nr_mem must not be NULL!");
-    } else {
-      if (*nr_mem == NULL)
-        *nr_mem = nr_init(vc);
-
-      i = wrap_pbacktrack(vc, vc->length, num_samples, bs_cb, data, *nr_mem);
-
-      /* print warning if we've aborted backtracking too early */
-      if ((i > 0) && (i < num_samples)) {
-        vrna_message_warning("vrna_pbacktrack_nr*(): "
-                             "Stopped backtracking after %d samples due to numeric instabilities!\n"
-                             "Coverage of partition function so far: %.6f%%",
-                             i,
-                             100. *
-                             return_node_weight((*nr_mem)->root_node) /
-                             vc->exp_matrices->q[vc->iindx[1] - vc->length]);
+        /* print warning if we've aborted backtracking too early */
+        if ((i > 0) && (i < num_samples)) {
+          vrna_message_warning("vrna_pbacktrack5*(): "
+                               "Stopped non-redundant backtracking after %d samples"
+                               " due to numeric instabilities!\n"
+                               "Coverage of partition function so far: %.6f%%",
+                               i,
+                               100. *
+                               return_node_weight((*nr_mem)->root_node) /
+                               fc->exp_matrices->q[fc->iindx[1] - length]);
+        }
       }
+    } else if (fc->exp_params->model_details.circ) {
+      i = pbacktrack_circ(fc, num_samples, bs_cb, data);
+    } else {
+      i = wrap_pbacktrack(fc, length, num_samples, bs_cb, data, NULL);
     }
   }
 
@@ -263,7 +246,7 @@ vrna_pbacktrack_nr_resume_cb(vrna_fold_compound_t             *vc,
 
 
 PUBLIC void
-vrna_pbacktrack_nr_free(struct vrna_nr_memory_s *s)
+vrna_pbacktrack_mem_free(struct vrna_pbacktrack_memory_s *s)
 {
   if (s) {
 #ifdef VRNA_NR_SAMPLING_HASH
@@ -305,14 +288,15 @@ sc_free(struct sc_wrappers *sc_wrap)
 }
 
 
-PRIVATE struct vrna_nr_memory_s *
+PRIVATE struct vrna_pbacktrack_memory_s *
 nr_init(vrna_fold_compound_t *fc)
 {
-  size_t                  block_size;
-  double                  pf;
-  struct vrna_nr_memory_s *s;
+  size_t                          block_size;
+  double                          pf;
+  struct vrna_pbacktrack_memory_s *s;
 
-  s           = (struct vrna_nr_memory_s *)vrna_alloc(sizeof(struct vrna_nr_memory_s));
+  s = (struct vrna_pbacktrack_memory_s *)vrna_alloc(
+    sizeof(struct vrna_pbacktrack_memory_s));
   pf          = fc->exp_matrices->q[fc->iindx[1] - fc->length];
   block_size  = 5000 * sizeof(NR_NODE);
 
@@ -339,7 +323,7 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
                 unsigned int                      num_samples,
                 vrna_boltzmann_sampling_callback  *bs_cb,
                 void                              *data,
-                struct vrna_nr_memory_s           *nr_mem)
+                struct vrna_pbacktrack_memory_s   *nr_mem)
 {
   char                *pstruc;
   unsigned int        i, n;
@@ -430,12 +414,12 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
 
 /* backtrack one external */
 PRIVATE int
-backtrack_ext_loop(int                      init_val,
-                   char                     *pstruc,
-                   vrna_fold_compound_t     *vc,
-                   int                      length,
-                   struct sc_wrappers       *sc_wrap,
-                   struct vrna_nr_memory_s  *nr_mem)
+backtrack_ext_loop(int                              init_val,
+                   char                             *pstruc,
+                   vrna_fold_compound_t             *vc,
+                   int                              length,
+                   struct sc_wrappers               *sc_wrap,
+                   struct vrna_pbacktrack_memory_s  *nr_mem)
 {
   unsigned char             *hard_constraints;
   short                     *S1, *S2, **S, **S5, **S3;
@@ -831,12 +815,12 @@ backtrack_ext_loop(int                      init_val,
 
 /* non redundant version of function bactrack_qm */
 PRIVATE int
-backtrack_qm(int                      i,
-             int                      j,
-             char                     *pstruc,
-             vrna_fold_compound_t     *vc,
-             struct sc_wrappers       *sc_wrap,
-             struct vrna_nr_memory_s  *nr_mem)
+backtrack_qm(int                              i,
+             int                              j,
+             char                             *pstruc,
+             vrna_fold_compound_t             *vc,
+             struct sc_wrappers               *sc_wrap,
+             struct vrna_pbacktrack_memory_s  *nr_mem)
 {
   /* divide multiloop into qm and qm1  */
   int                       k, u, cnt, span, turn, is_unpaired, *my_iindx, *jindx, *hc_up_ml, ret;
@@ -1046,12 +1030,12 @@ backtrack_qm(int                      i,
 
 
 PRIVATE int
-backtrack_qm1(int                     i,
-              int                     j,
-              char                    *pstruc,
-              vrna_fold_compound_t    *vc,
-              struct sc_wrappers      *sc_wrap,
-              struct vrna_nr_memory_s *nr_mem)
+backtrack_qm1(int                             i,
+              int                             j,
+              char                            *pstruc,
+              vrna_fold_compound_t            *vc,
+              struct sc_wrappers              *sc_wrap,
+              struct vrna_pbacktrack_memory_s *nr_mem)
 {
   /* i is paired to l, i<l<j; backtrack in qm1 to find l */
   unsigned char             *hard_constraints;
@@ -1256,12 +1240,12 @@ backtrack_qm2(int                   k,
 
 
 PRIVATE int
-backtrack(int                     i,
-          int                     j,
-          char                    *pstruc,
-          vrna_fold_compound_t    *vc,
-          struct sc_wrappers      *sc_wrap,
-          struct vrna_nr_memory_s *nr_mem)
+backtrack(int                             i,
+          int                             j,
+          char                            *pstruc,
+          vrna_fold_compound_t            *vc,
+          struct sc_wrappers              *sc_wrap,
+          struct vrna_pbacktrack_memory_s *nr_mem)
 {
   unsigned char             *hard_constraints, hc_decompose;
   char                      *ptype;

@@ -219,12 +219,12 @@ namespace std {
 
 /*
   we need this crazy piece of argout typemap only because we don't
-  want the vrna_nr_memory_t object to be appended to the results(list),
+  want the vrna_pbacktrack_mem_t object to be appended to the results(list),
   but prepended instead. Otherwise, a simple
   %append_output(SWIG_NewPointerObj(SWIG_as_voidptr(retval$argnum), $1_descriptor, 0));
   would have sufficed already
 */
-%typemap(argout) vrna_nr_memory_t *INOUT {
+%typemap(argout) vrna_pbacktrack_mem_t *INOUT {
   /* increase output stack if necessary */
   if (argvi >= items) {
     EXTEND(sp,1);
@@ -240,10 +240,10 @@ namespace std {
 }
 
 
-%typemap(in) vrna_nr_memory_t *INOUT (vrna_nr_memory_t *retval)
+%typemap(in) vrna_pbacktrack_mem_t *INOUT (vrna_pbacktrack_mem_t *retval)
 {
   if (!SvOK($input)) {
-    retval = new vrna_nr_memory_t();
+    retval = new vrna_pbacktrack_mem_t();
     $1 = retval;
   } else {
     /* INOUT in */

@@ -69,7 +69,12 @@ vrna_pbacktrack5(vrna_fold_compound_t *fc,
   char          *structure = NULL;
   unsigned int  i;
 
-  i = vrna_pbacktrack5_num_cb(fc, length, 1, &store_sample, (void *)&structure);
+  i = vrna_pbacktrack5_cb(fc,
+                          1,
+                          length,
+                          &store_sample,
+                          (void *)&structure,
+                          VRNA_PBACKTRACK_DEFAULT);
 
   if (i)
     return structure;
@@ -82,8 +87,9 @@ vrna_pbacktrack5(vrna_fold_compound_t *fc,
 
 PUBLIC char **
 vrna_pbacktrack5_num(vrna_fold_compound_t *fc,
+                     unsigned int         num_samples,
                      unsigned int         length,
-                     unsigned int         num_samples)
+                     unsigned int         options)
 {
   unsigned int          i;
   struct structure_list data;
@@ -92,11 +98,12 @@ vrna_pbacktrack5_num(vrna_fold_compound_t *fc,
   data.list     = (char **)vrna_alloc(sizeof(char *) * num_samples);
   data.list[0]  = NULL;
 
-  i = vrna_pbacktrack5_num_cb(fc,
-                              length,
-                              num_samples,
-                              &store_sample_list,
-                              (void *)&data);
+  i = vrna_pbacktrack5_cb(fc,
+                          num_samples,
+                          length,
+                          &store_sample_list,
+                          (void *)&data,
+                          options);
 
   if (i > 0) {
     /* re-allocate memory */
@@ -108,6 +115,31 @@ vrna_pbacktrack5_num(vrna_fold_compound_t *fc,
   }
 
   return data.list;
+}
+
+
+PUBLIC unsigned int
+vrna_pbacktrack5_cb(vrna_fold_compound_t              *fc,
+                    unsigned int                      num_samples,
+                    unsigned int                      length,
+                    vrna_boltzmann_sampling_callback  *bs_cb,
+                    void                              *data,
+                    unsigned int                      options)
+{
+  unsigned int          i;
+  vrna_pbacktrack_mem_t nr_mem = NULL;
+
+  i = vrna_pbacktrack5_resume_cb(fc,
+                                 num_samples,
+                                 length,
+                                 bs_cb,
+                                 data,
+                                 &nr_mem,
+                                 options);
+
+  vrna_pbacktrack_mem_free(nr_mem);
+
+  return i;
 }
 
 
@@ -128,84 +160,116 @@ vrna_pbacktrack(vrna_fold_compound_t *fc)
 
 PUBLIC char **
 vrna_pbacktrack_num(vrna_fold_compound_t  *fc,
-                    unsigned int          num_samples)
+                    unsigned int          num_samples,
+                    unsigned int          options)
 {
-  return vrna_pbacktrack5_num(fc, fc->length, num_samples);
+  if (fc) {
+    return vrna_pbacktrack5_num(fc,
+                                num_samples,
+                                fc->length,
+                                options);
+  }
+
+  return NULL;
 }
 
 
 PUBLIC unsigned int
-vrna_pbacktrack_num_cb(vrna_fold_compound_t             *fc,
-                       unsigned int                     num_samples,
-                       vrna_boltzmann_sampling_callback *bs_cb,
-                       void                             *data)
+vrna_pbacktrack_cb(vrna_fold_compound_t             *fc,
+                   unsigned int                     num_samples,
+                   vrna_boltzmann_sampling_callback *bs_cb,
+                   void                             *data,
+                   unsigned int                     options)
 {
-  return vrna_pbacktrack5_num_cb(fc, fc->length, num_samples, bs_cb, data);
+  if (fc) {
+    return vrna_pbacktrack5_cb(fc,
+                               num_samples,
+                               fc->length,
+                               bs_cb,
+                               data,
+                               options);
+  }
+
+  return 0;
 }
 
 
 PUBLIC char **
-vrna_pbacktrack_nr(vrna_fold_compound_t *fc,
-                   unsigned int         num_samples)
-{
-  char                    **structures;
-  struct vrna_nr_memory_s *nr_mem;
-
-  nr_mem      = NULL;
-  structures  = vrna_pbacktrack_nr_resume(fc, num_samples, &nr_mem);
-
-  vrna_pbacktrack_nr_free(nr_mem);
-
-  return structures;
-}
-
-
-PUBLIC char **
-vrna_pbacktrack_nr_resume(vrna_fold_compound_t  *vc,
-                          unsigned int          num_samples,
-                          vrna_nr_memory_t      *nr_mem)
+vrna_pbacktrack5_resume(vrna_fold_compound_t  *vc,
+                        unsigned int          num_samples,
+                        unsigned int          length,
+                        vrna_pbacktrack_mem_t *nr_mem,
+                        unsigned int          options)
 {
   unsigned int          i;
   struct structure_list data;
 
-  data.num      = 0;
-  data.list     = (char **)vrna_alloc(sizeof(char *) * num_samples);
-  data.list[0]  = NULL;
+  if (vc) {
+    data.num      = 0;
+    data.list     = (char **)vrna_alloc(sizeof(char *) * num_samples);
+    data.list[0]  = NULL;
 
-  i = vrna_pbacktrack_nr_resume_cb(vc,
+    i = vrna_pbacktrack5_resume_cb(vc,
                                    num_samples,
+                                   length,
                                    &store_sample_list,
                                    (void *)&data,
-                                   nr_mem);
+                                   nr_mem,
+                                   options);
 
-  if (i > 0) {
-    /* re-allocate memory */
-    data.list           = (char **)vrna_realloc(data.list, sizeof(char *) * (data.num + 1));
-    data.list[data.num] = NULL;
-  } else {
-    free(data.list);
-    return NULL;
+    if (i > 0) {
+      /* re-allocate memory */
+      data.list           = (char **)vrna_realloc(data.list, sizeof(char *) * (data.num + 1));
+      data.list[data.num] = NULL;
+    } else {
+      free(data.list);
+      return NULL;
+    }
+
+    return data.list;
   }
 
-  return data.list;
+  return NULL;
+}
+
+
+PUBLIC char **
+vrna_pbacktrack_resume(vrna_fold_compound_t   *fc,
+                       unsigned int           num_samples,
+                       vrna_pbacktrack_mem_t  *nr_mem,
+                       unsigned int           options)
+{
+  if (fc) {
+    return vrna_pbacktrack5_resume(fc,
+                                   num_samples,
+                                   fc->length,
+                                   nr_mem,
+                                   options);
+  }
+
+  return NULL;
 }
 
 
 PUBLIC unsigned int
-vrna_pbacktrack_nr_cb(vrna_fold_compound_t              *vc,
-                      unsigned int                      num_samples,
-                      vrna_boltzmann_sampling_callback  *bs_cb,
-                      void                              *data)
+vrna_pbacktrack_resume_cb(vrna_fold_compound_t              *fc,
+                          unsigned int                      num_samples,
+                          vrna_boltzmann_sampling_callback  *bs_cb,
+                          void                              *data,
+                          vrna_pbacktrack_mem_t             *nr_mem,
+                          unsigned int                      options)
 {
-  unsigned int            i;
-  struct vrna_nr_memory_s *nr_mem;
+  if (fc) {
+    return vrna_pbacktrack5_resume_cb(fc,
+                                      num_samples,
+                                      fc->length,
+                                      bs_cb,
+                                      data,
+                                      nr_mem,
+                                      options);
+  }
 
-  nr_mem  = NULL;
-  i       = vrna_pbacktrack_nr_resume_cb(vc, num_samples, bs_cb, data, &nr_mem);
-
-  vrna_pbacktrack_nr_free(nr_mem);
-
-  return i;
+  return 0;
 }
 
 

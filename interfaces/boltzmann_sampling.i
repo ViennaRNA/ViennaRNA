@@ -16,24 +16,24 @@ extern char *pbacktrack(char *sequence);
 
 %newobject vrna_fold_compound_t::pbacktrack_nr_resume;
 
-%ignore vrna_nr_memory_t;
+%ignore vrna_pbacktrack_mem_t;
 %ignore vrna_nr_memory_s;
 
-%rename (nr_memory)  vrna_nr_memory_t;
+%rename (pbacktrack_mem)  vrna_pbacktrack_mem_t;
 
-typedef struct {} vrna_nr_memory_t;
+typedef struct {} vrna_pbacktrack_mem_t;
 
-%nodefaultctor vrna_nr_memory_t;
-%nodefaultdtor vrna_nr_memory_t;
+%nodefaultctor vrna_pbacktrack_mem_t;
+%nodefaultdtor vrna_pbacktrack_mem_t;
 
-%extend vrna_nr_memory_t {
-  vrna_nr_memory_t() {
-    vrna_nr_memory_t *m = (vrna_nr_memory_t *)vrna_alloc(sizeof(vrna_nr_memory_t));
+%extend vrna_pbacktrack_mem_t {
+  vrna_pbacktrack_mem_t() {
+    vrna_pbacktrack_mem_t *m = (vrna_pbacktrack_mem_t *)vrna_alloc(sizeof(vrna_pbacktrack_mem_t));
     *m = NULL;
     return m;
   }
-  ~vrna_nr_memory_t() {
-    vrna_pbacktrack_nr_free(*$self);
+  ~vrna_pbacktrack_mem_t() {
+    vrna_pbacktrack_mem_free(*$self);
     delete $self;
   }
 }
@@ -62,15 +62,43 @@ typedef struct {} vrna_nr_memory_t;
   }
 
   std::vector<std::string>
-  pbacktrack(unsigned int length, unsigned int num_samples)
+  pbacktrack(unsigned int num_samples,
+             unsigned int length,
+             unsigned int options = VRNA_PBACKTRACK_DEFAULT)
   {
     std::vector<std::string> str_vec;
     char  **ptr, **output;
 
     if (length == 0)
-      output = vrna_pbacktrack_num($self, num_samples);
+      output = vrna_pbacktrack_num($self, num_samples, options);
     else
-      output = vrna_pbacktrack5_num($self, length, num_samples);
+      output = vrna_pbacktrack5_num($self, num_samples, length, options);
+
+    if (output) {
+      for (ptr = output; *ptr != NULL; ptr++) {
+        str_vec.push_back(std::string(*ptr));
+        free(*ptr);
+      }
+
+      free(output);
+    }
+
+    return str_vec;
+  }
+
+  %apply vrna_pbacktrack_mem_t *INOUT { vrna_pbacktrack_mem_t *nr_memory };
+
+  std::vector<std::string>
+  pbacktrack(unsigned int          num_samples,
+             vrna_pbacktrack_mem_t *nr_memory,
+             unsigned int          options = VRNA_PBACKTRACK_DEFAULT)
+  {
+    std::vector<std::string> str_vec;
+
+    char **ptr, **output = vrna_pbacktrack_resume($self,
+                                                  num_samples,
+                                                  nr_memory,
+                                                  options);
 
     if (output) {
       for (ptr = output; *ptr != NULL; ptr++) {
@@ -85,11 +113,26 @@ typedef struct {} vrna_nr_memory_t;
   }
 
   std::vector<std::string>
-  pbacktrack_nr(unsigned int num_samples)
+  pbacktrack(unsigned int          num_samples,
+             unsigned int          length,
+             vrna_pbacktrack_mem_t *nr_memory,
+             unsigned int          options = VRNA_PBACKTRACK_DEFAULT)
   {
     std::vector<std::string> str_vec;
 
-    char **ptr, **output = vrna_pbacktrack_nr($self, num_samples);
+    char **ptr, **output;
+    
+    if (length == 0)
+      output = vrna_pbacktrack_resume($self,
+                                      num_samples,
+                                      nr_memory,
+                                      options);
+    else
+      output = vrna_pbacktrack5_resume($self,
+                                       num_samples,
+                                       length,
+                                       nr_memory,
+                                       options);
 
     if (output) {
       for (ptr = output; *ptr != NULL; ptr++) {
@@ -103,31 +146,10 @@ typedef struct {} vrna_nr_memory_t;
     return str_vec;
   }
 
-  %apply vrna_nr_memory_t *INOUT { vrna_nr_memory_t *nr_memory };
-
-  std::vector<std::string>
-  pbacktrack_nr(unsigned int      num_samples,
-                vrna_nr_memory_t  *nr_memory)
-  {
-    std::vector<std::string> str_vec;
-
-    char **ptr, **output = vrna_pbacktrack_nr_resume($self,
-                                                     num_samples,
-                                                     nr_memory);
-
-    if (output) {
-      for (ptr = output; *ptr != NULL; ptr++) {
-        str_vec.push_back(std::string(*ptr));
-        free(*ptr);
-      }
-
-      free(output);
-    }
-
-    return str_vec;
-  }
-
-  %clear vrna_nr_memory_t *nr_memory;
+  %clear vrna_pbacktrack_mem_t *nr_memory;
 }
+
+%constant unsigned int PBACKTRACK_DEFAULT       = VRNA_PBACKTRACK_DEFAULT;
+%constant unsigned int PBACKTRACK_NON_REDUNDANT = VRNA_PBACKTRACK_NON_REDUNDANT;
 
 %include  <ViennaRNA/boltzmann_sampling.h>

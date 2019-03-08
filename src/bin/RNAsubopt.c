@@ -429,7 +429,10 @@ main(int  argc,
 
     /* stochastic backtracking */
     if (n_back > 0) {
-      double mfe, kT, ens_en;
+      double        mfe, kT, ens_en;
+      unsigned int  options = (nonRedundant) ?
+                              VRNA_PBACKTRACK_NON_REDUNDANT :
+                              VRNA_PBACKTRACK_DEFAULT;
 
       if (vc->cutpoint != -1)
         vrna_message_error("Boltzmann sampling for cofolded structures not implemented (yet)!");
@@ -452,14 +455,17 @@ main(int  argc,
         dat.kT      = kT;
         dat.ens_en  = ens_en;
 
-        if (nonRedundant)
-          vrna_pbacktrack_nr_cb(vc, n_back, &print_samples_en, (void *)&dat);
-        else
-          vrna_pbacktrack_num_cb(vc, n_back, &print_samples_en, (void *)&dat);
-      } else if (nonRedundant) {
-        vrna_pbacktrack_nr_cb(vc, n_back, &print_samples, (void *)output);
+        vrna_pbacktrack_cb(vc,
+                           n_back,
+                           &print_samples_en,
+                           (void *)&dat,
+                           options);
       } else {
-        vrna_pbacktrack_num_cb(vc, n_back, &print_samples, (void *)output);
+        vrna_pbacktrack_cb(vc,
+                           n_back,
+                           &print_samples,
+                           (void *)output,
+                           options);
       }
     }
     /* normal subopt */
