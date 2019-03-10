@@ -66,7 +66,7 @@ typedef void (vrna_boltzmann_sampling_callback)(const char  *stucture,
  *  @note Do not forget to release memory occupied by this data structure before
  *        losing its context! Use vrna_pbacktrack_mem_free().
  *
- *  @see  vrna_pbacktrack5_resume(), vrna_pbacktrack_resume(), vrna_pbacktrack_5_resume_cb(),
+ *  @see  vrna_pbacktrack5_resume(), vrna_pbacktrack_resume(), vrna_pbacktrack5_resume_cb(),
  *        vrna_pbacktrack_resume_cb(), vrna_pbacktrack_mem_free()
  */
 typedef struct vrna_pbacktrack_memory_s *vrna_pbacktrack_mem_t;
@@ -201,7 +201,7 @@ vrna_pbacktrack5_num(vrna_fold_compound_t *fc,
  *  @param  num_samples   The size of the sample set, i.e. number of structures
  *  @param  length        The length of the subsequence to consider (starting with 5' end)
  *  @param  cb            The callback that receives the sampled structure
- *  @param  data          A data structure passed through to the callback @p bs_cb
+ *  @param  data          A data structure passed through to the callback @p cb
  *  @param  options       A bitwise OR-flag indicating the backtracing mode.
  *  @return               The number of structures actually backtraced
  */
@@ -209,7 +209,7 @@ unsigned int
 vrna_pbacktrack5_cb(vrna_fold_compound_t              *fc,
                     unsigned int                      num_samples,
                     unsigned int                      length,
-                    vrna_boltzmann_sampling_callback  *bs_cb,
+                    vrna_boltzmann_sampling_callback  *cb,
                     void                              *data,
                     unsigned int                      options);
 
@@ -366,7 +366,7 @@ vrna_pbacktrack5_resume(vrna_fold_compound_t  *vc,
  *  @param  num_samples   The size of the sample set, i.e. number of structures
  *  @param  length        The length of the subsequence to consider (starting with 5' end)
  *  @param  cb            The callback that receives the sampled structure
- *  @param  data          A data structure passed through to the callback @p bs_cb
+ *  @param  data          A data structure passed through to the callback @p cb
  *  @param  nr_mem        The address of the Boltzmann sampling memory data structure
  *  @param  options       A bitwise OR-flag indicating the backtracing mode.
  *  @return               The number of structures actually backtraced
@@ -375,7 +375,7 @@ unsigned int
 vrna_pbacktrack5_resume_cb(vrna_fold_compound_t             *fc,
                            unsigned int                     num_samples,
                            unsigned int                     length,
-                           vrna_boltzmann_sampling_callback *bs_cb,
+                           vrna_boltzmann_sampling_callback *cb,
                            void                             *data,
                            vrna_pbacktrack_mem_t            *nr_mem,
                            unsigned int                     options);
@@ -501,7 +501,7 @@ vrna_pbacktrack_num(vrna_fold_compound_t  *fc,
  *  @param  fc            The fold compound data structure
  *  @param  num_samples   The size of the sample set, i.e. number of structures
  *  @param  cb            The callback that receives the sampled structure
- *  @param  data          A data structure passed through to the callback @p bs_cb
+ *  @param  data          A data structure passed through to the callback @p cb
  *  @param  options       A bitwise OR-flag indicating the backtracing mode.
  *  @return               The number of structures actually backtraced
  */
@@ -656,7 +656,7 @@ vrna_pbacktrack_resume(vrna_fold_compound_t   *fc,
  *  @param  fc            The fold compound data structure
  *  @param  num_samples   The size of the sample set, i.e. number of structures
  *  @param  cb            The callback that receives the sampled structure
- *  @param  data          A data structure passed through to the callback @p bs_cb
+ *  @param  data          A data structure passed through to the callback @p cb
  *  @param  nr_mem        The address of the Boltzmann sampling memory data structure
  *  @param  options       A bitwise OR-flag indicating the backtracing mode.
  *  @return               The number of structures actually backtraced
