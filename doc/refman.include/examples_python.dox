@@ -10,8 +10,16 @@ MFE Prediction (object oriented interface)
 ------------------------------------------
 @include  oo_example1.py
 
+Suboptimal Structure Prediction
+-------------------------------
 @include  subopt.py
 
+Boltzmann Sampling (a.k.a. Probabilistic Backtracing)
+-----------------------------------------------------
+@include  boltzmann_sampling.py
+
+Fun with Soft Constraints
+-------------------------
 @include  maximum_matching.py
 
 */
