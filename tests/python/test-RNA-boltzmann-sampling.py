@@ -25,41 +25,41 @@ def prepare_fc():
 
 class GeneralTests(unittest.TestCase):
     def test_pbacktrack5(self):
-        print "test_pbacktrack    (single sub-structure, a.k.a. pbacktrack5)"
+        print "test_pbacktrack5    (single sub-structure, a.k.a. pbacktrack5)"
         fc = prepare_fc()
 
-        s  = fc.pbacktrack(10)
+        s  = fc.pbacktrack5(10)
         self.assertEqual(len(s), 10)
 
-        s  = fc.pbacktrack(50)
+        s  = fc.pbacktrack5(50)
         self.assertEqual(len(s), 50)
 
     def test_pbacktrack5_multi(self):
-        print "test_pbacktrack    (multiple sub-structures, a.k.a. pbacktrack5_num)"
+        print "test_pbacktrack     (multiple sub-structures, a.k.a. pbacktrack5_num)"
         fc = prepare_fc()
 
-        ss  = fc.pbacktrack(20, 10)
+        ss  = fc.pbacktrack5(20, 10)
         self.assertEqual(len(ss), 20)
         for s in ss:
             self.assertEqual(len(s), 10)
 
-        ss  = fc.pbacktrack(100, 50)
+        ss  = fc.pbacktrack5(100, 50)
         self.assertEqual(len(ss), 100)
         for s in ss:
             self.assertEqual(len(s), 50)
 
     def test_pbacktrack(self):
-        print "test_pbacktrack    (single structure, a.k.a. pbacktrack)"
+        print "test_pbacktrack     (single structure, a.k.a. pbacktrack)"
         fc = prepare_fc()
 
         s  = fc.pbacktrack()
         self.assertEqual(len(s), len(sequence))
 
     def test_pbacktrack_multi(self):
-        print "test_pbacktrack    (multiple structures, a.k.a. pbacktrack_num)"
+        print "test_pbacktrack     (multiple structures, a.k.a. pbacktrack_num)"
         fc = prepare_fc()
 
-        ss  = fc.pbacktrack(100, 0)
+        ss  = fc.pbacktrack(100)
         self.assertEqual(len(ss), 100)
         for s in ss:
             self.assertEqual(len(s), len(sequence))
@@ -68,7 +68,7 @@ class GeneralTests(unittest.TestCase):
         print "test_pbacktrack_nr"
         fc = prepare_fc()
 
-        ss  = fc.pbacktrack(100, 0, RNA.PBACKTRACK_NON_REDUNDANT)
+        ss  = fc.pbacktrack(100, RNA.PBACKTRACK_NON_REDUNDANT)
         self.assertEqual(len(ss), 100)
         for s in ss:
             self.assertEqual(len(s), len(sequence))
@@ -97,24 +97,24 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(len(s_list), len(sss))
 
     def test_pbacktrack5_cb(self):
-        print "test_pbacktrack_cb (multiple sub-structures, a.k.a. pbacktrack5_cb)"
+        print "test_pbacktrack5_cb (multiple sub-structures, a.k.a. pbacktrack5_cb)"
         fc = prepare_fc()
         ss = list()
-        i = fc.pbacktrack(20, 10, store_structure, ss)
+        i = fc.pbacktrack5(20, 10, store_structure, ss)
         self.assertEqual(i, 20)
         self.assertEqual(len(ss), 20)
         for s in ss:
             self.assertEqual(len(s), 10)
 
         ss = list()
-        i = fc.pbacktrack(100, 50, store_structure, ss)
+        i = fc.pbacktrack5(100, 50, store_structure, ss)
         self.assertEqual(i, 100)
         self.assertEqual(len(ss), 100)
         for s in ss:
             self.assertEqual(len(s), 50)
 
     def test_pbacktrack_cb(self):
-        print "test_pbacktrack_cb (multiple structures, a.k.a. pbacktrack_cb)"
+        print "test_pbacktrack_cb  (multiple structures, a.k.a. pbacktrack_cb)"
         fc = prepare_fc()
         ss = list()
         i = fc.pbacktrack(100, store_structure, ss)

@@ -79,28 +79,21 @@ perl_wrap_bs_cb(const char *stucture, void *data){
 %extend vrna_fold_compound_t {
 
   unsigned int
-  pbacktrack(unsigned int  num_samples,
-                unsigned int  length,
-                SV            *PerlFunc,
-                SV            *PerlData = NULL,
-                unsigned int  options = VRNA_PBACKTRACK_DEFAULT)
+  pbacktrack5(unsigned int  num_samples,
+              unsigned int  length,
+              SV            *PerlFunc,
+              SV            *PerlData = NULL,
+              unsigned int  options = VRNA_PBACKTRACK_DEFAULT)
   {
     unsigned int i;
     perl_bs_callback_t *cb = bind_bs_callback(PerlFunc, PerlData);
 
-    if (length == 0)
-      i = vrna_pbacktrack_cb($self,
-                             num_samples,
-                             &perl_wrap_bs_cb,
-                             (void *)cb,
-                             options);
-    else
-      i = vrna_pbacktrack5_cb($self,
-                              num_samples,
-                              length,
-                              &perl_wrap_bs_cb,
-                              (void *)cb,
-                              options);
+    i = vrna_pbacktrack5_cb($self,
+                            num_samples,
+                            length,
+                            &perl_wrap_bs_cb,
+                            (void *)cb,
+                            options);
 
     free(cb);
 
@@ -130,7 +123,7 @@ perl_wrap_bs_cb(const char *stucture, void *data){
   %apply vrna_pbacktrack_mem_t *INOUT { vrna_pbacktrack_mem_t *nr_memory };
 
   unsigned int
-  pbacktrack(unsigned int                     num_samples,
+  pbacktrack(unsigned int           num_samples,
              SV                     *PerlFunc,
              SV                     *PerlData,
              vrna_pbacktrack_mem_t  *nr_memory,
@@ -152,31 +145,23 @@ perl_wrap_bs_cb(const char *stucture, void *data){
   }
 
   unsigned int
-  pbacktrack(unsigned int           num_samples,
-             unsigned int           length,
-             SV                     *PerlFunc,
-             SV                     *PerlData,
-             vrna_pbacktrack_mem_t  *nr_memory,
-             unsigned int           options = VRNA_PBACKTRACK_DEFAULT)
+  pbacktrack5(unsigned int           num_samples,
+              unsigned int           length,
+              SV                     *PerlFunc,
+              SV                     *PerlData,
+              vrna_pbacktrack_mem_t  *nr_memory,
+              unsigned int           options = VRNA_PBACKTRACK_DEFAULT)
   {
     unsigned int i;
     perl_bs_callback_t *cb = bind_bs_callback(PerlFunc, PerlData);
 
-    if (length == 0)
-      i = vrna_pbacktrack_resume_cb($self,
-                                    num_samples,
-                                    &perl_wrap_bs_cb,
-                                    (void *)cb,
-                                    nr_memory,
-                                    options);
-    else
-      i = vrna_pbacktrack5_resume_cb($self,
-                                    num_samples,
-                                    length,
-                                    &perl_wrap_bs_cb,
-                                    (void *)cb,
-                                    nr_memory,
-                                    options);
+    i = vrna_pbacktrack5_resume_cb($self,
+                                   num_samples,
+                                   length,
+                                   &perl_wrap_bs_cb,
+                                   (void *)cb,
+                                   nr_memory,
+                                   options);
 
     free(cb);
 

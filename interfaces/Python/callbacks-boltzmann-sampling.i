@@ -72,38 +72,32 @@ python_wrap_bs_cb(const char *structure, void *data){
 %extend vrna_fold_compound_t {
 
   unsigned int
-  pbacktrack(unsigned int num_samples,
-             unsigned int length,
-             PyObject     *PyFunc,
-             PyObject     *data   = Py_None,
-             unsigned int options = VRNA_PBACKTRACK_DEFAULT)
+  pbacktrack5(unsigned int num_samples,
+              unsigned int length,
+              PyObject     *PyFunc,
+              PyObject     *data   = Py_None,
+              unsigned int options = VRNA_PBACKTRACK_DEFAULT)
   {
     unsigned int i;
     python_bs_callback_t *cb = bind_bs_callback(PyFunc, data);
 
-    if (length == 0)
-      i = vrna_pbacktrack_cb($self,
-                                 num_samples,
-                                 &python_wrap_bs_cb,
-                                 (void *)cb,
-                                 options);
-    else
-      i = vrna_pbacktrack5_cb($self,
-                                  num_samples,
-                                  length,
-                                  &python_wrap_bs_cb,
-                                  (void *)cb,
-                                  options);
+    i = vrna_pbacktrack5_cb($self,
+                            num_samples,
+                            length,
+                            &python_wrap_bs_cb,
+                            (void *)cb,
+                            options);
+
     free(cb);
 
     return i;
   }
 
   unsigned int
-  pbacktrack(unsigned int  num_samples,
-                PyObject      *PyFunc,
-                PyObject      *data   = Py_None,
-                unsigned int  options = VRNA_PBACKTRACK_DEFAULT)
+  pbacktrack(unsigned int num_samples,
+             PyObject     *PyFunc,
+             PyObject     *data   = Py_None,
+             unsigned int options = VRNA_PBACKTRACK_DEFAULT)
   {
     unsigned int i;
     python_bs_callback_t *cb = bind_bs_callback(PyFunc, data);
@@ -144,31 +138,23 @@ python_wrap_bs_cb(const char *structure, void *data){
   }
 
   unsigned int
-  pbacktrack(unsigned int          num_samples,
-             unsigned int          length,
-                          PyObject              *PyFunc,
-                          PyObject              *data,
-                          vrna_pbacktrack_mem_t *nr_memory,
-                          unsigned int          options = VRNA_PBACKTRACK_DEFAULT)
+  pbacktrack5(unsigned int          num_samples,
+              unsigned int          length,
+              PyObject              *PyFunc,
+              PyObject              *data,
+              vrna_pbacktrack_mem_t *nr_memory,
+              unsigned int          options = VRNA_PBACKTRACK_DEFAULT)
   {
     unsigned int i;
     python_bs_callback_t *cb = bind_bs_callback(PyFunc, data);
 
-    if (length == 0)
-      i = vrna_pbacktrack_resume_cb($self,
-                                    num_samples,
-                                    &python_wrap_bs_cb,
-                                    (void *)cb,
-                                    nr_memory,
-                                    options);
-    else
-      i = vrna_pbacktrack5_resume_cb($self,
-                                     num_samples,
-                                     length,
-                                     &python_wrap_bs_cb,
-                                     (void *)cb,
-                                     nr_memory,
-                                     options);
+    i = vrna_pbacktrack5_resume_cb($self,
+                                   num_samples,
+                                   length,
+                                   &python_wrap_bs_cb,
+                                   (void *)cb,
+                                   nr_memory,
+                                   options);
 
     free(cb);
 

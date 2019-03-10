@@ -46,16 +46,16 @@ my @ss;
 my @sss;
 my $d;
 
-print "test_pbacktrack    (single sub-structure, a.k.a. pbacktrack5)\n";
-$s = $fc->pbacktrack(10);
+print "test_pbacktrack5    (single sub-structure, a.k.a. pbacktrack5)\n";
+$s = $fc->pbacktrack5(10);
 ok(length($s) == 10);
 
-$s = $fc->pbacktrack(50);
+$s = $fc->pbacktrack5(50);
 ok(length($s) == 50);
 
 
-print "test_pbacktrack    (multiple sub-structures, a.k.a. pbacktrack5_num)\n";
-$s = $fc->pbacktrack(20, 10);
+print "test_pbacktrack5    (multiple sub-structures, a.k.a. pbacktrack5_num)\n";
+$s = $fc->pbacktrack5(20, 10);
 
 ok(scalar(@{$s}) == 20);
 
@@ -68,7 +68,7 @@ foreach my $s (@{$s}) {
 }
 ok($failure == 0);
 
-$s = $fc->pbacktrack(100, 50);
+$s = $fc->pbacktrack5(100, 50);
 ok(scalar(@{$s}) == 100);
 
 $failure = 0;
@@ -81,13 +81,13 @@ foreach my $s (@{$s}) {
 ok($failure == 0);
 
 
-print "test_pbacktrack    (single structure, a.k.a. pbacktrack)\n";
+print "test_pbacktrack     (single structure, a.k.a. pbacktrack)\n";
 $s = $fc->pbacktrack();
 ok(length($s) == length($sequence));
 
 
-print "test_pbacktrack    (multiple structures, a.k.a. pbacktrack_num)\n";
-$s = $fc->pbacktrack(100, 0);
+print "test_pbacktrack     (multiple structures, a.k.a. pbacktrack_num)\n";
+$s = $fc->pbacktrack(100);
 ok(scalar(@{$s}) == 100);
 
 $failure = 0;
@@ -101,7 +101,7 @@ ok($failure == 0);
 
 
 print "test_pbacktrack_nr\n";
-$s = $fc->pbacktrack(100, 0, RNA::PBACKTRACK_NON_REDUNDANT);
+$s = $fc->pbacktrack(100, RNA::PBACKTRACK_NON_REDUNDANT);
 ok(scalar(@{$s}) == 100);
 
 $failure = 0;
@@ -143,9 +143,9 @@ ok($failure == 0);
 ok(scalar(@ss) == scalar(@sss));
 
 
-print "test_pbacktrack_cb (multiple sub-structures, a.k.a. pbacktrack5_cb)\n";
+print "test_pbacktrack5_cb (multiple sub-structures, a.k.a. pbacktrack5_cb)\n";
 @ss = ();
-$i  = $fc->pbacktrack(20, 10, \&store_structure, \@ss);
+$i  = $fc->pbacktrack5(20, 10, \&store_structure, \@ss);
 ok($i == 20);
 ok(scalar(@ss) == 20);
 
@@ -159,7 +159,7 @@ foreach my $s (@ss) {
 ok($failure == 0);
 
 @ss = ();
-$i  = $fc->pbacktrack(100, 50, \&store_structure, \@ss);
+$i  = $fc->pbacktrack5(100, 50, \&store_structure, \@ss);
 ok($i == 100);
 ok(scalar(@ss) == 100);
 
@@ -173,9 +173,9 @@ foreach my $s (@ss) {
 ok($failure == 0);
 
 
-print "test_pbacktrack_cb (multiple structures, a.k.a. pbacktrack_cb)\n";
+print "test_pbacktrack_cb  (multiple structures, a.k.a. pbacktrack_cb)\n";
 @ss = ();
-$i  = $fc->pbacktrack(100, 0, \&store_structure, \@ss);
+$i  = $fc->pbacktrack(100, \&store_structure, \@ss);
 ok($i == 100);
 ok(scalar(@ss) == 100);
 

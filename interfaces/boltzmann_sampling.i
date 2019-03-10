@@ -39,12 +39,10 @@ typedef struct {} vrna_pbacktrack_mem_t;
 }
 
 #ifdef SWIGPYTHON
+%feature("autodoc")vrna_fold_compound_t::pbacktrack5;
+%feature("kwargs") vrna_fold_compound::pbacktrack5;
 %feature("autodoc")vrna_fold_compound_t::pbacktrack;
 %feature("kwargs") vrna_fold_compound::pbacktrack;
-%feature("autodoc")vrna_fold_compound_t::pbacktrack_nr;
-%feature("kwargs") vrna_fold_compound::pbacktrack_nr;
-%feature("autodoc")vrna_fold_compound_t::pbacktrack_nr_resume;
-%feature("kwargs") vrna_fold_compound::pbacktrack_nr_resume;
 #endif
 
 %extend vrna_fold_compound_t {
@@ -56,23 +54,41 @@ typedef struct {} vrna_pbacktrack_mem_t;
   }
 
   char *
-  pbacktrack(unsigned int length)
+  pbacktrack5(unsigned int length)
   {
     return vrna_pbacktrack5($self, length);
   }
 
   std::vector<std::string>
   pbacktrack(unsigned int num_samples,
-             unsigned int length,
              unsigned int options = VRNA_PBACKTRACK_DEFAULT)
   {
     std::vector<std::string> str_vec;
     char  **ptr, **output;
 
-    if (length == 0)
-      output = vrna_pbacktrack_num($self, num_samples, options);
-    else
-      output = vrna_pbacktrack5_num($self, num_samples, length, options);
+    output = vrna_pbacktrack_num($self, num_samples, options);
+
+    if (output) {
+      for (ptr = output; *ptr != NULL; ptr++) {
+        str_vec.push_back(std::string(*ptr));
+        free(*ptr);
+      }
+
+      free(output);
+    }
+
+    return str_vec;
+  }
+
+  std::vector<std::string>
+  pbacktrack5(unsigned int num_samples,
+              unsigned int length,
+              unsigned int options = VRNA_PBACKTRACK_DEFAULT)
+  {
+    std::vector<std::string> str_vec;
+    char  **ptr, **output;
+
+    output = vrna_pbacktrack5_num($self, num_samples, length, options);
 
     if (output) {
       for (ptr = output; *ptr != NULL; ptr++) {
@@ -113,26 +129,20 @@ typedef struct {} vrna_pbacktrack_mem_t;
   }
 
   std::vector<std::string>
-  pbacktrack(unsigned int          num_samples,
-             unsigned int          length,
-             vrna_pbacktrack_mem_t *nr_memory,
-             unsigned int          options = VRNA_PBACKTRACK_DEFAULT)
+  pbacktrack5(unsigned int          num_samples,
+              unsigned int          length,
+              vrna_pbacktrack_mem_t *nr_memory,
+              unsigned int          options = VRNA_PBACKTRACK_DEFAULT)
   {
     std::vector<std::string> str_vec;
 
     char **ptr, **output;
     
-    if (length == 0)
-      output = vrna_pbacktrack_resume($self,
-                                      num_samples,
-                                      nr_memory,
-                                      options);
-    else
-      output = vrna_pbacktrack5_resume($self,
-                                       num_samples,
-                                       length,
-                                       nr_memory,
-                                       options);
+    output = vrna_pbacktrack5_resume($self,
+                                     num_samples,
+                                     length,
+                                     nr_memory,
+                                     options);
 
     if (output) {
       for (ptr = output; *ptr != NULL; ptr++) {
