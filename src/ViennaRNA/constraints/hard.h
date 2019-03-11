@@ -481,7 +481,7 @@ void vrna_message_constraint_options_all(void);
  *  This function resets the hard constraints to their default values, i.e.
  *  all positions may be unpaired in all contexts, and base pairs are
  *  allowed in all contexts, if they resemble canonical pairs.
- *  Previously set hard constraints will be removed vefore initialization.
+ *  Previously set hard constraints will be removed before initialization.
  *
  *  @ingroup  hard_constraints
  *
