@@ -3,7 +3,7 @@
 
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/plotting/layouts.h>
-#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)

@@ -13,43 +13,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-puzzlerOptions *
-createPuzzlerOptions()
-{
-  puzzlerOptions *puzzler = (puzzlerOptions *)vrna_alloc(sizeof(puzzlerOptions));
 
-  // drawing behavior
-  puzzler->drawArcs = 1;
-  puzzler->paired   = 35.0;
-  puzzler->unpaired = 25.0;
-
-  // intersection resolution behavior
-  puzzler->checkExteriorIntersections = 1;
-  puzzler->checkSiblingIntersections  = 1;
-  puzzler->checkAncestorIntersections = 1;
-  puzzler->optimize                   = 1;
-
-  // import behavior - unused for now
-  puzzler->config = NULL;
-
-  // other stuff
-  puzzler->filename = NULL;
-
-  puzzler->numberOfChangesAppliedToConfig = 0;
-  puzzler->psNumber                       = 0;
-
-  return puzzler;
-}
-
-
-void
-destroyPuzzlerOptions(puzzlerOptions *puzzler)
-{
-  free(puzzler);
-}
-
-
-void
+PRIVATE void
 bubblesort(const int            numValues,
            const double *const  valuesLevel1,
            const double *const  valuesLevel2,
@@ -95,7 +60,7 @@ bubblesort(const int            numValues,
  * @param distance the distance between two points on the circle
  * @return angle in degree
  */
-double
+PRIVATE double
 distanceToAngle(const double  radius,
                 const double  distance)
 {
@@ -103,7 +68,7 @@ distanceToAngle(const double  radius,
 }
 
 
-double
+PRIVATE double
 angleToDistance(const double  radius,
                 const double  angle)
 {

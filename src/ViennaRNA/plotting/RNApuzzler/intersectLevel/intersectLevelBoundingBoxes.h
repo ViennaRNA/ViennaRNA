@@ -11,7 +11,7 @@
  * @param stem2
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectStemStem(const stemBox *stem1,
+PRIVATE short intersectStemStem(const stemBox *stem1,
                         const stemBox *stem2);
 
 
@@ -22,7 +22,7 @@ short intersectStemStem(const stemBox *stem1,
  * @param loop2
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectLoopLoop(const loopBox *loop1,
+PRIVATE short intersectLoopLoop(const loopBox *loop1,
                         const loopBox *loop2);
 
 
@@ -33,7 +33,7 @@ short intersectLoopLoop(const loopBox *loop1,
  * @param loop
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectStemLoop(const stemBox *stem,
+PRIVATE short intersectStemLoop(const stemBox *stem,
                         const loopBox *loop);
 
 
@@ -45,7 +45,7 @@ short intersectStemLoop(const stemBox *stem,
  * @param bulge
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectLoopBulges(const loopBox *loop,
+PRIVATE short intersectLoopBulges(const loopBox *loop,
                           const stemBox *stem,
                           int           *bulge);
 
@@ -54,7 +54,7 @@ short intersectLoopBulges(const loopBox *loop,
  * @brief intersectBulgesBulges
  * @return
  */
-short intersectBulgesBulges(const stemBox *stem1,
+PRIVATE short intersectBulgesBulges(const stemBox *stem1,
                             const stemBox *stem2,
                             int           *bulge1,
                             int           *bulge2);
@@ -67,9 +67,12 @@ short intersectBulgesBulges(const stemBox *stem1,
  * @param bulge2
  * @return
  */
-short intersectStemBulges(const stemBox *stem1,
+PRIVATE short intersectStemBulges(const stemBox *stem1,
                           const stemBox *stem2,
                           int           *bulge2);
+
+
+#include "intersectLevelBoundingBoxes.c"
 
 
 #endif

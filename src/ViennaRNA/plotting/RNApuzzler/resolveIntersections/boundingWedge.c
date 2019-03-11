@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-void
+PRIVATE void
 getBoundingWedgeRec(const treeNode  *root,
                     const treeNode  *node,
                     const double    parentAngle,
@@ -213,7 +213,7 @@ getBoundingWedgeRec(const treeNode  *root,
 }
 
 
-void
+PRIVATE void
 getBoundingWedge(const treeNode *root,
                  const int      childIndex,
                  double         *minAngle,

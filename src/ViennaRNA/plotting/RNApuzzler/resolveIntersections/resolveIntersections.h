@@ -4,9 +4,11 @@
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 
-treeNode *checkAndFixIntersections(treeNode       *node,
+PRIVATE treeNode *checkAndFixIntersections(treeNode       *node,
                                    const int      recursionDepth,
                                    puzzlerOptions *puzzler);
 
+
+#include "resolveIntersections.c"
 
 #endif

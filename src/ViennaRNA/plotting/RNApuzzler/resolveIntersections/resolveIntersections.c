@@ -8,12 +8,11 @@
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/handleSiblingIntersections.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/handleAncestorIntersections.h"
 
-//#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils.h"
 
 #include <stdlib.h>
-//#include <math.h>
 
-treeNode *
+PRIVATE treeNode *
 checkAndFixIntersections(treeNode       *node,
                          const int      recursionDepth,
                          puzzlerOptions *puzzler)

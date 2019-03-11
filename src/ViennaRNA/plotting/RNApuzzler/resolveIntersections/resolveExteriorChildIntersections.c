@@ -10,7 +10,7 @@
 
 //-----------------------------------------------------------------------------
 
-void
+PRIVATE void
 getSimpleBoundingBox(treeNode       *node,
                      double *const  bounds,
                      const int      recursionDepth)
@@ -52,7 +52,7 @@ getSimpleBoundingBox(treeNode       *node,
 /**
  * Resolve the intersections of the children of the exterior loop
  */
-void
+PRIVATE void
 resolveExteriorChildrenIntersectionXY(treeNode            *exteriorNode,
                                       short const *const  pair_table,
                                       const double        unpaired,
@@ -263,7 +263,7 @@ resolveExteriorChildrenIntersectionXY(treeNode            *exteriorNode,
 /**
  * Resolve the intersections of the children of the exterior loop
  */
-void
+PRIVATE void
 resolveExteriorChildrenIntersectionAffin(treeNode                 *exteriorNode,
                                          short const *const       pair_table,
                                          tBaseInformation *const  baseInformation,
@@ -432,7 +432,7 @@ resolveExteriorChildrenIntersectionAffin(treeNode                 *exteriorNode,
 }
 
 
-void
+PRIVATE void
 resolveExteriorChildIntersections(treeNode                *exteriorNode,
                                   short const *const      pair_table,
                                   tBaseInformation *const baseInformation,

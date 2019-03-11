@@ -27,8 +27,11 @@ typedef enum {
  * @param root the root node of your tree
  * @return product of all partial radius ratios (0 < ratio <= 1)
  */
-double optimizeTree(treeNode        *node,
+PRIVATE double optimizeTree(treeNode        *node,
                     puzzlerOptions  *puzzler);
+
+
+#include "optimize.c"
 
 
 #endif

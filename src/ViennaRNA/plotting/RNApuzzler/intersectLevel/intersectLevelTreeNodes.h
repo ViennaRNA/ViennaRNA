@@ -10,7 +10,7 @@
  * @param node
  * @return
  */
-short intersectNodeExterior(const treeNode        *node,
+PRIVATE short intersectNodeExterior(const treeNode        *node,
                             const puzzlerOptions  *puzzler);
 
 
@@ -26,7 +26,7 @@ short intersectNodeExterior(const treeNode        *node,
  * @param bulge2 index of intersecting bulge of node2 if *xB, -1 otherwise
  * @return intersection type
  */
-intersectionType intersectNodeNode(const treeNode *node1,
+PRIVATE intersectionType intersectNodeNode(const treeNode *node1,
                                    const treeNode *node2);
 
 
@@ -42,7 +42,7 @@ intersectionType intersectNodeNode(const treeNode *node1,
  * @return
  *      - 1 if an intersection occured, 0 otherwise
  */
-short intersectNodeTree(const treeNode  *node,
+PRIVATE short intersectNodeTree(const treeNode  *node,
                         treeNode        *tree,
                         treeNode        **intersectorNode);
 
@@ -54,15 +54,17 @@ short intersectNodeTree(const treeNode  *node,
  * this is done recursively...
  * iterate over tree1 and for each node we iterate over tree2 for intersection calcultion
  */
-short intersectTrees(treeNode *tree1,
+PRIVATE short intersectTrees(treeNode *tree1,
                      treeNode *tree2);
 
 
-short intersectNodeLists(treeNode *const              *list1,
+PRIVATE short intersectNodeLists(treeNode *const              *list1,
                          const int                    size1,
                          treeNode *const              *list2,
                          const int                    size2,
                          const puzzlerOptions *const  puzzler);
 
+
+#include "intersectLevelTreeNodes.c"
 
 #endif

@@ -13,7 +13,8 @@
  */
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/plotting/naview.h>
-#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
+
 #ifndef PI
 #define  PI       3.141592654
 #endif

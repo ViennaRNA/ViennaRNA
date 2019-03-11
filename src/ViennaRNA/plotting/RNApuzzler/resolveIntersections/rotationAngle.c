@@ -1,3 +1,9 @@
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
+#include "ViennaRNA/utils/basic.h"
+
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/rotationAngle.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
@@ -6,11 +12,8 @@
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelBoundingBoxes.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 
-double
+PRIVATE double
 pointToAngle(const double center[2],
              const double vRef[2],
              const short  rotationSign,
@@ -46,7 +49,7 @@ pointToAngle(const double center[2],
 }
 
 
-double
+PRIVATE double
 fixIntersectionOfRectangleAndCircle(const double  staticRectCenter[2],
                                     const double  staticRectVecA[2],
                                     const double  staticRectVecB[2],
@@ -175,7 +178,7 @@ fixIntersectionOfRectangleAndCircle(const double  staticRectCenter[2],
 }
 
 
-double
+PRIVATE double
 fixIntersectionOfCircles(const double staticCircleCenter[2],
                          const double staticCircleRadius,
                          const double mobileCircleCenter[2],
@@ -283,7 +286,7 @@ fixIntersectionOfCircles(const double staticCircleCenter[2],
 
 /*----------------------------------------------------------------------*/
 
-double
+PRIVATE double
 getRotationAngleLxL(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -320,7 +323,7 @@ getRotationAngleLxL(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngleLxS(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -351,7 +354,7 @@ getRotationAngleLxS(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngleSxL(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -380,7 +383,7 @@ getRotationAngleSxL(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngleLxB(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -434,7 +437,7 @@ getRotationAngleLxB(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngleBxL(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -488,7 +491,7 @@ getRotationAngleBxL(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngleSxS(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -505,7 +508,7 @@ getRotationAngleSxS(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngleSxB(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -546,7 +549,7 @@ getRotationAngleSxB(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngleBxS(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -587,7 +590,7 @@ getRotationAngleBxS(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngleBxB(const treeNode  *ancestor,
                     const treeNode  *rotationNode,
                     const treeNode  *intersector,
@@ -648,7 +651,7 @@ getRotationAngleBxB(const treeNode  *ancestor,
 }
 
 
-double
+PRIVATE double
 getRotationAngle(const treeNode         *rootNode,
                  const treeNode         *centerNode,
                  const treeNode         *intersectorNode,

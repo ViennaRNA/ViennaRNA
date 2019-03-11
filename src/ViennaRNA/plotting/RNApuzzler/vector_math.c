@@ -11,21 +11,21 @@
 #include <math.h>
 #include <stdio.h>
 
-double
+PRIVATE double
 toDegree(double angle)
 {
   return angle * TO_DEGREE;
 }
 
 
-double
+PRIVATE double
 toRad(double angle)
 {
   return angle * TO_RAD;
 }
 
 
-double
+PRIVATE double
 vectorLength2D(const double vector[2])
 {
   double  x = vector[0];
@@ -35,7 +35,7 @@ vectorLength2D(const double vector[2])
 }
 
 
-double
+PRIVATE double
 vectorLength2DSquared(const double vector[2])
 {
   double  x = vector[0];
@@ -45,7 +45,7 @@ vectorLength2DSquared(const double vector[2])
 }
 
 
-double
+PRIVATE double
 scalarProduct2D(const double  *vector1,
                 const double  *vector2)
 {
@@ -59,7 +59,7 @@ scalarProduct2D(const double  *vector1,
 }
 
 
-void
+PRIVATE void
 normalize(double *vector)
 {
   double length = vectorLength2D(vector);
@@ -69,7 +69,7 @@ normalize(double *vector)
 }
 
 
-short
+PRIVATE short
 isToTheRightPointPoint(const double lineStart[2],
                        const double lineEnd[2],
                        const double point[2])
@@ -118,7 +118,7 @@ isToTheRightPointPoint(const double lineStart[2],
 }
 
 
-short
+PRIVATE short
 isToTheRightPointVector(const double  *lineStart,
                         const double  *lineVector,
                         const double  *point)
@@ -131,7 +131,7 @@ isToTheRightPointVector(const double  *lineStart,
 }
 
 
-double
+PRIVATE double
 angleBetweenVectors2D(const double  vector1[2],
                       const double  vector2[2])
 {
@@ -162,7 +162,7 @@ angleBetweenVectors2D(const double  vector1[2],
 }
 
 
-double
+PRIVATE double
 anglePtPtPt2D(const double  *p1,
               const double  *p2,
               const double  *p3)
@@ -178,7 +178,7 @@ anglePtPtPt2D(const double  *p1,
 }
 
 
-double
+PRIVATE double
 normalizeAngle(const double angle,
                short        useDegree)
 {
@@ -210,7 +210,7 @@ normalizeAngle(const double angle,
 }
 
 
-void
+PRIVATE void
 rotatePointAroundPoint(const double *point,
                        const double *rotationCenter,
                        const double angle,
@@ -227,7 +227,7 @@ rotatePointAroundPoint(const double *point,
 }
 
 
-void
+PRIVATE void
 rotateVectorByAngle(const double  *vector,
                     const double  angle,
                     double        *ret)
@@ -240,7 +240,7 @@ rotateVectorByAngle(const double  *vector,
 }
 
 
-void
+PRIVATE void
 translatePointByVector(const double *point,
                        const double *trans,
                        double       *ret)
@@ -250,7 +250,7 @@ translatePointByVector(const double *point,
 }
 
 
-short
+PRIVATE short
 solveSquareEquation(const double  a,
                     const double  b,
                     const double  c,
@@ -280,7 +280,7 @@ solveSquareEquation(const double  a,
 }
 
 
-short
+PRIVATE short
 getCutPointsOfCircles(const double  *c1,
                       const double  r1,
                       const double  *c2,
@@ -387,7 +387,7 @@ getCutPointsOfCircles(const double  *c1,
 }
 
 
-short
+PRIVATE short
 getCutPointsOfCircleAndLine(const double  *center,
                             const double  radius,
                             const double  *anchor,
@@ -418,7 +418,7 @@ getCutPointsOfCircleAndLine(const double  *center,
 }
 
 
-void
+PRIVATE void
 vector(const double pStart[2],
        const double pEnd[2],
        double       v[2])
@@ -428,7 +428,7 @@ vector(const double pStart[2],
 }
 
 
-void
+PRIVATE void
 normal(const double v[2],
        double       n[2])
 {
@@ -445,7 +445,7 @@ normal(const double v[2],
 }
 
 
-void
+PRIVATE void
 unit(const double v[2],
      double       u[2])
 {
@@ -456,7 +456,7 @@ unit(const double v[2],
 }
 
 
-double
+PRIVATE double
 min(const double  number1,
     const double  number2)
 {
@@ -467,7 +467,7 @@ min(const double  number1,
 }
 
 
-double
+PRIVATE double
 sign(const double number)
 {
   if (number > 0.0)
@@ -479,7 +479,7 @@ sign(const double number)
 }
 
 
-void
+PRIVATE void
 circle(const double P1[2],
        const double P2[2],
        const double P3[2],

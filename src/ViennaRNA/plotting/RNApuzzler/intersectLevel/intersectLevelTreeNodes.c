@@ -5,6 +5,10 @@
  *      ViennaRNA package
  */
 
+#include <stdio.h>
+
+#include "ViennaRNA/utils/basic.h"
+
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelTreeNodes.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
@@ -13,9 +17,7 @@
 #include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelBoundingBoxes.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
-#include <stdio.h>
-
-short
+PRIVATE short
 intersectNodeExterior(const treeNode        *node,
                       const puzzlerOptions  *puzzler)
 {
@@ -37,7 +39,7 @@ intersectNodeExterior(const treeNode        *node,
 }
 
 
-short
+PRIVATE short
 checkBounds(const double  l1,
             const double  l2,
             const double  l3,
@@ -63,7 +65,7 @@ checkBounds(const double  l1,
 }
 
 
-short
+PRIVATE short
 intersectNodesBoundingBoxes(const AABB    *aabb1,
                             const AABB    *aabb2,
                             const stemBox *stem1,
@@ -102,7 +104,7 @@ intersectNodesBoundingBoxes(const AABB    *aabb1,
 }
 
 
-intersectionType
+PRIVATE intersectionType
 intersectNodeNode(const treeNode  *node1,
                   const treeNode  *node2)
 {
@@ -196,7 +198,7 @@ intersectNodeNode(const treeNode  *node1,
 }
 
 
-short
+PRIVATE short
 intersectNodeTree(const treeNode  *node,
                   treeNode        *tree,
                   treeNode        **intersectorNode)
@@ -220,7 +222,7 @@ intersectNodeTree(const treeNode  *node,
 }
 
 
-short
+PRIVATE short
 intersect_iterateTree(treeNode  *tree1,
                       treeNode  *tree2,
                       treeNode  **intersectorNode1,
@@ -250,7 +252,7 @@ intersect_iterateTree(treeNode  *tree1,
  * this is done recursively.
  * iterate over tree1 and for each node we iterate over tree2 for intersection calcultion
  */
-short
+PRIVATE short
 intersectTrees(treeNode *tree1,
                treeNode *tree2)
 {
@@ -265,7 +267,7 @@ intersectTrees(treeNode *tree1,
 }
 
 
-short
+PRIVATE short
 intersectNodeLists(treeNode *const              *list1,
                    const int                    size1,
                    treeNode *const              *list2,

@@ -28,7 +28,7 @@
  * - 1 if rotation is clockwise
  * - 0 else
  */
-short
+PRIVATE short
 TENTATIVE3_getRotationSign(treeNode **const       path,
                            const int              pathLength,
                            const intersectionType it)
@@ -90,7 +90,7 @@ TENTATIVE3_getRotationSign(treeNode **const       path,
  * - 1 if rotation is clockwise
  * - 0 else
  */
-short
+PRIVATE short
 TENTATIVE2_getRotationSign(treeNode **const path,
                            const int        pathLength)
 {
@@ -130,7 +130,7 @@ TENTATIVE2_getRotationSign(treeNode **const path,
  * - 1 if rotation is clockwise
  * - 0 else
  */
-short
+PRIVATE short
 getRotationSign(const treeNode **const  path,
                 const int               pathLength)
 {
@@ -196,7 +196,7 @@ getRotationSign(const treeNode **const  path,
 }
 
 
-treeNode *
+PRIVATE treeNode *
 fixIntersectionWithAncestor(treeNode                *ancestor,
                             treeNode                *rotationNode,
                             treeNode                *intersector,
@@ -276,7 +276,7 @@ fixIntersectionWithAncestor(treeNode                *ancestor,
 /**
  * check if loop is interior and straight
  */
-short
+PRIVATE short
 isStraightInteriorLoop(treeNode *node)
 {
   return
@@ -290,7 +290,7 @@ isStraightInteriorLoop(treeNode *node)
  * skipping straight interior loops that can not be used for rotations
  * -> improves rotation angle and rotation loop computations
  */
-treeNode **
+PRIVATE treeNode **
 constructReducedIntersectionPath(treeNode         *ancestor,
                                  treeNode         *intersector,
                                  intersectionType it,
@@ -339,7 +339,7 @@ constructReducedIntersectionPath(treeNode         *ancestor,
 
 /**
  */
-treeNode *
+PRIVATE treeNode *
 handleIntersectionWithAncestor(treeNode       *ancestor,
                                treeNode       *intersector,
                                const int      recursionDepth,
@@ -419,7 +419,7 @@ handleIntersectionWithAncestor(treeNode       *ancestor,
 }
 
 
-void
+PRIVATE void
 TENTATIVE2_updateExteriorBoundingBoxes(treeNode *exterior,
                                        loopBox  *loop,
                                        double   stemNorthX,
@@ -453,7 +453,7 @@ TENTATIVE2_updateExteriorBoundingBoxes(treeNode *exterior,
 }
 
 
-void
+PRIVATE void
 TENTATIVE3_setupExteriorBoundingBoxes(treeNode              *exterior,
                                       const treeNode        *topLevelAncestor,
                                       const treeNode        *intersector,
@@ -554,7 +554,7 @@ TENTATIVE3_setupExteriorBoundingBoxes(treeNode              *exterior,
 }
 
 
-void
+PRIVATE void
 TENTATIVE_updateExteriorBoundingBoxes(treeNode  *exterior,
                                       loopBox   *loop,
                                       double    stemBottom,
@@ -590,7 +590,7 @@ TENTATIVE_updateExteriorBoundingBoxes(treeNode  *exterior,
 }
 
 
-void
+PRIVATE void
 TENTATIVE2_setupExteriorBoundingBoxes(treeNode              *exterior,
                                       const treeNode        *topLevelAncestor,
                                       const treeNode        *intersector,
@@ -658,7 +658,7 @@ TENTATIVE2_setupExteriorBoundingBoxes(treeNode              *exterior,
 }
 
 
-void
+PRIVATE void
 TENTATIVE_setupExteriorBoundingBoxes(treeNode             *exterior,
                                      const treeNode       *topLevelAncestor,
                                      const treeNode       *intersector,
@@ -722,7 +722,7 @@ TENTATIVE_setupExteriorBoundingBoxes(treeNode             *exterior,
 }
 
 
-void
+PRIVATE void
 setupExteriorBoundingBoxes(treeNode             *exterior,
                            const treeNode       *topLevelAncestor,
                            const treeNode       *intersector,
@@ -909,7 +909,7 @@ setupExteriorBoundingBoxes(treeNode             *exterior,
 }
 
 
-treeNode *
+PRIVATE treeNode *
 checkNodeAgainstAncestors(treeNode        *node,
                           puzzlerOptions  *puzzler)
 {

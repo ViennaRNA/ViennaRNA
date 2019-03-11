@@ -10,21 +10,21 @@
 
 /*--------------------------------------------------------------------------*/
 
-void updateAABB(AABB    *aabb,
+PRIVATE void updateAABB(AABB    *aabb,
                 stemBox *sBox,
                 loopBox *lBox);
 
 
-short isExterior(const treeNode *node);
+PRIVATE short isExterior(const treeNode *node);
 
 
-treeNode *getExterior(treeNode *node);
+PRIVATE treeNode *getExterior(treeNode *node);
 
 
-short isInteriorLoop(const treeNode *node);
+PRIVATE short isInteriorLoop(const treeNode *node);
 
 
-short isMultiLoop(const treeNode *node);
+PRIVATE short isMultiLoop(const treeNode *node);
 
 
 /**
@@ -42,14 +42,14 @@ short isMultiLoop(const treeNode *node);
  *      - a configtree build from the given RNA pairing.
  *        gives information about all configurations (config) applied to the RNA.
  */
-treeNode *buildConfigtree(const short *const      pair_table,
+PRIVATE treeNode *buildConfigtree(const short *const      pair_table,
                           const tBaseInformation  *baseInformation,
                           const double            *x,
                           const double            *y,
                           const double            bulge);
 
 
-void updateBoundingBoxes(treeNode             *node,
+PRIVATE void updateBoundingBoxes(treeNode             *node,
                          const puzzlerOptions *puzzler);
 
 
@@ -67,7 +67,7 @@ void updateBoundingBoxes(treeNode             *node,
  * @param puzzler
  * @return 1 if the changes were applied, 0 otherwise
  */
-void applyChangesToConfigAndBoundingBoxes(treeNode              *tree,
+PRIVATE void applyChangesToConfigAndBoundingBoxes(treeNode              *tree,
                                           const double          *deltaCfg,
                                           const double          radiusNew,
                                           const puzzlerOptions  *puzzler);
@@ -82,7 +82,7 @@ void applyChangesToConfigAndBoundingBoxes(treeNode              *tree,
  * @param vector
  *      - translation vector as double array[2]
  */
-void translateBoundingBoxes(treeNode      *tree,
+PRIVATE void translateBoundingBoxes(treeNode      *tree,
                             const double  *vector);
 
 
@@ -96,7 +96,7 @@ void translateBoundingBoxes(treeNode      *tree,
  * @return
  *      - child index or -1 if tree does not contain such a childnode.
  */
-int getChildIndex(const treeNode  *tree,
+PRIVATE int getChildIndex(const treeNode  *tree,
                   const int       childID);
 
 
@@ -114,7 +114,7 @@ int getChildIndex(const treeNode  *tree,
  *      - angle of child node
  *        the resulting angle might be smaller than 0° or greater than 360°
  */
-double getChildAngle(const treeNode *root,
+PRIVATE double getChildAngle(const treeNode *root,
                      const treeNode *child);
 
 
@@ -131,7 +131,7 @@ double getChildAngle(const treeNode *root,
  *      - angle of child node
  *        the resulting angle might be smaller than 0° or greater than 360°
  */
-double getChildAngleByIndex(const treeNode  *parentNode,
+PRIVATE double getChildAngleByIndex(const treeNode  *parentNode,
                             const int       childIndex);
 
 
@@ -143,7 +143,7 @@ double getChildAngleByIndex(const treeNode  *parentNode,
  * @param p
  *      - double[2] return value for the loop's center coordinates
  */
-void getLoopCenter(const treeNode *node,
+PRIVATE void getLoopCenter(const treeNode *node,
                    double         p[2]);
 
 
@@ -155,7 +155,7 @@ void getLoopCenter(const treeNode *node,
  * @param p
  *      - double[2] return value for the stem's center coordinates
  */
-void getStemCenter(const treeNode *node,
+PRIVATE void getStemCenter(const treeNode *node,
                    double         p[2]);
 
 
@@ -169,46 +169,47 @@ void getStemCenter(const treeNode *node,
  * @return
  *      - ptr to node or NULL if tree does not contain such a childnode.
  */
-treeNode *getChildNode(treeNode   *tree,
+PRIVATE treeNode *getChildNode(treeNode   *tree,
                        const int  childID);
 
 
-treeNode *getParent(const treeNode *node);
+PRIVATE treeNode *getParent(const treeNode *node);
 
 
-treeNode *getChild(const treeNode *node,
+PRIVATE treeNode *getChild(const treeNode *node,
                    const int      index);
 
 
-char getNodeName(const treeNode *node);
+PRIVATE char getNodeName(const treeNode *node);
 
 
-int getNodeID(const treeNode *node);
+PRIVATE int getNodeID(const treeNode *node);
 
 
-void printTree(const treeNode *node,
+PRIVATE void printTree(const treeNode *node,
                const int      level);
 
 
-int countSubtreeNodes(const treeNode *node);
+PRIVATE int countSubtreeNodes(const treeNode *node);
 
 
-int collectSubtreeNodes(treeNode          *node,
+PRIVATE int collectSubtreeNodes(treeNode          *node,
                         treeNode **const  allNodes,
                         const int         index);
 
 
-int countAncestorNodes(const treeNode *node);
+PRIVATE int countAncestorNodes(const treeNode *node);
 
 
-void collectAncestorNodes(const treeNode    *node,
+PRIVATE void collectAncestorNodes(const treeNode    *node,
                           treeNode **const  ancestorList);
 
 
-double getPairedAngle(const treeNode *node);
+PRIVATE double getPairedAngle(const treeNode *node);
 
 
-void freeTree(treeNode *node);
+PRIVATE void freeTree(treeNode *node);
 
+#include "configtree.c"
 
 #endif

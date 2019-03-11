@@ -7,7 +7,7 @@
 
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
-char *
+PRIVATE char *
 intersectionTypeToString(const intersectionType it)
 {
   switch (it) {

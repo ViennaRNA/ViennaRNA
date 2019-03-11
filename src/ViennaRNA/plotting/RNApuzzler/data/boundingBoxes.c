@@ -14,7 +14,7 @@
 #include <math.h>
 #include <stdio.h>
 
-void
+PRIVATE void
 getBulgeXY(const stemBox  *stem,
            const int      index,
            double         *x,
@@ -27,7 +27,7 @@ getBulgeXY(const stemBox  *stem,
 }
 
 
-void
+PRIVATE void
 getBulgeCoordinatesExtraDistance(const stemBox  *stem,
                                  const int      index,
                                  const double   extraDistance,
@@ -48,7 +48,7 @@ getBulgeCoordinatesExtraDistance(const stemBox  *stem,
 }
 
 
-void
+PRIVATE void
 getBulgeCoordinates(const stemBox *stem,
                     const int     index,
                     double        pPrev[2],
@@ -59,7 +59,7 @@ getBulgeCoordinates(const stemBox *stem,
 }
 
 
-void
+PRIVATE void
 translateLoopBox(loopBox      *box,
                  const double *vector)
 {
@@ -74,7 +74,7 @@ translateLoopBox(loopBox      *box,
 }
 
 
-void
+PRIVATE void
 rotateLoopBox(loopBox       *box,
               const double  *point,
               const double  angle)
@@ -91,7 +91,7 @@ rotateLoopBox(loopBox       *box,
 }
 
 
-void
+PRIVATE void
 translateStemBox(stemBox      *box,
                  const double *vector)
 {
@@ -106,7 +106,7 @@ translateStemBox(stemBox      *box,
 }
 
 
-void
+PRIVATE void
 rotateStemBox(stemBox       *box,
               const double  *point,
               const double  angle)
@@ -137,7 +137,7 @@ rotateStemBox(stemBox       *box,
 }
 
 
-void
+PRIVATE void
 getLoopData(double                  *center,
             double                  *radius,
             const int               start,
@@ -187,7 +187,7 @@ getLoopData(double                  *center,
 }
 
 
-loopBox *
+PRIVATE loopBox *
 createLoopBox(const double  center[2],
               const double  radius)
 {
@@ -201,7 +201,7 @@ createLoopBox(const double  center[2],
 }
 
 
-loopBox *
+PRIVATE loopBox *
 buildLoopBox(const int              start,
              const short *const     pair_table,
              const tBaseInformation *baseInformation,
@@ -220,7 +220,7 @@ buildLoopBox(const int              start,
 }
 
 
-stemBox *
+PRIVATE stemBox *
 createStemBox(const double  s[2],
               const double  e[2],
               const double  sp[2])
@@ -259,7 +259,7 @@ createStemBox(const double  s[2],
 }
 
 
-int
+PRIVATE int
 countBulges(const short *const  pair_table,
             const int           start,
             const int           end)
@@ -282,7 +282,7 @@ countBulges(const short *const  pair_table,
 }
 
 
-double
+PRIVATE double
 getA(const stemBox  *box,
      const double   x,
      const double   y)
@@ -315,7 +315,7 @@ getA(const stemBox  *box,
 }
 
 
-double *
+PRIVATE double *
 createBulge(const stemBox *box,
             const double  *x,
             const double  *y,
@@ -338,7 +338,7 @@ createBulge(const stemBox *box,
 }
 
 
-void
+PRIVATE void
 setBulges(stemBox             *box,
           const short *const  pair_table,
           const int           start,
@@ -381,7 +381,7 @@ setBulges(stemBox             *box,
 }
 
 
-stemBox *
+PRIVATE stemBox *
 buildStemBox(const int          start,
              const int          end,
              const short *const pair_table,
@@ -417,7 +417,7 @@ buildStemBox(const int          start,
 }
 
 
-void
+PRIVATE void
 getLBoxCenter(const loopBox *box,
               double        c[2])
 {
@@ -426,7 +426,7 @@ getLBoxCenter(const loopBox *box,
 }
 
 
-void
+PRIVATE void
 getSBoxCenter(const stemBox *box,
               double        c[2])
 {

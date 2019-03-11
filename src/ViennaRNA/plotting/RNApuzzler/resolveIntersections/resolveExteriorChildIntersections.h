@@ -1,9 +1,12 @@
+#ifndef RNAPUZZLER_RESOLVE_EXT_CHILD_INTERSECT
+#define RNAPUZZLER_RESOLVE_EXT_CHILD_INTERSECT
+
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h"
 
 
-void resolveExteriorChildrenIntersectionXY(treeNode           *exteriorNode,
+PRIVATE void resolveExteriorChildrenIntersectionXY(treeNode           *exteriorNode,
                                            short const *const pair_table,
                                            const double       unpaired,
                                            const short        allowFlipping,
@@ -11,15 +14,20 @@ void resolveExteriorChildrenIntersectionXY(treeNode           *exteriorNode,
                                            double             *myY);
 
 
-void resolveExteriorChildrenIntersectionAffin(treeNode                *exteriorNode,
+PRIVATE void resolveExteriorChildrenIntersectionAffin(treeNode                *exteriorNode,
                                               short const *const      pair_table,
                                               tBaseInformation *const baseInformation,
                                               const double            unpaired,
                                               const short             allowFlipping);
 
 
-void resolveExteriorChildIntersections(treeNode                 *exteriorNode,
+PRIVATE void resolveExteriorChildIntersections(treeNode                 *exteriorNode,
                                        short const *const       pair_table,
                                        tBaseInformation *const  baseInformation,
                                        const double             unpaired,
                                        const short              allowFlipping);
+
+
+#include "resolveExteriorChildIntersections.c"
+
+#endif

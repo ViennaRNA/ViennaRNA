@@ -3,13 +3,13 @@
 
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h>
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h>
-#include <ViennaRNA/plotting/RNApuzzler/definitions.h>
+#include <ViennaRNA/plotting/RNApuzzler/RNApuzzler.h>
 
-double getArcAngle(const config *cfg,
+PRIVATE double getArcAngle(const config *cfg,
                    const int    currentArc);
 
 
-double getArcAngleDegree(const config *cfg,
+PRIVATE double getArcAngleDegree(const config *cfg,
                          const int    currentArc);
 
 
@@ -19,7 +19,7 @@ double getArcAngleDegree(const config *cfg,
  * @param config
  *      - config to print
  */
-void cfgPrintConfig(config *config);
+PRIVATE void cfgPrintConfig(config *config);
 
 
 /**
@@ -34,7 +34,7 @@ void cfgPrintConfig(config *config);
  * @param paired
  *      - default distance between paired bases
  */
-void cfgGenerateConfig(const short *const pair_table,
+PRIVATE void cfgGenerateConfig(const short *const pair_table,
                        tBaseInformation   *baseInformation,
                        const double       unpaired,
                        const double       paired);
@@ -47,7 +47,7 @@ void cfgGenerateConfig(const short *const pair_table,
  *      - config to clone
  * @return clone of cfg
  */
-config *cfgCloneConfig(const config *cfg);
+PRIVATE config *cfgCloneConfig(const config *cfg);
 
 
 /**
@@ -56,7 +56,7 @@ config *cfgCloneConfig(const config *cfg);
  * @param cfg
  *      - config to free
  */
-void cfgFreeConfig(config *cfg);
+PRIVATE void cfgFreeConfig(config *cfg);
 
 
 /**
@@ -71,7 +71,7 @@ void cfgFreeConfig(config *cfg);
  * @param radiusNew desired radius to set while applying deltas
  * @param puzzler
  */
-double cfgApplyChanges(config               *cfg,
+PRIVATE double cfgApplyChanges(config               *cfg,
                        const char           loopName,
                        const double         *deltaCfg,
                        const double         radiusNew,
@@ -89,7 +89,7 @@ double cfgApplyChanges(config               *cfg,
  *        in degree format
  * @return true iff config is valid
  */
-short cfgIsValid(config       *config,
+PRIVATE short cfgIsValid(config       *config,
                  const double *deltaCfg);
 
 
@@ -101,7 +101,8 @@ short cfgIsValid(config       *config,
  * @return
  *      - motiv name as char
  */
-char intToMotiv(const int _int);
+PRIVATE char intToMotiv(const int _int);
 
+#include "drawingconfig.c"
 
 #endif

@@ -11,7 +11,7 @@
 
 #include <stdlib.h>
 
-void
+PRIVATE void
 calcArc(const double  center[2],
         const double  radius,
         const short   goClockwise,
@@ -60,15 +60,16 @@ calcArc(const double  center[2],
 }
 
 
-void calcArcsHandleStem(int                     start,
-                        short const *const      pair_table,
-                        double *const           x,
-                        double *const           y,
-                        const tBaseInformation  *baseInformation,
-                        double                  *arcCoords);
+PRIVATE void
+calcArcsHandleStem(int                    start,
+                   short const *const     pair_table,
+                   double *const          x,
+                   double *const          y,
+                   const tBaseInformation *baseInformation,
+                   double                 *arcCoords);
 
 
-void
+PRIVATE void
 calcArcsHandleLoop(int                    start,
                    short const *const     pair_table,
                    double *const          x,
@@ -170,7 +171,7 @@ calcArcsHandleLoop(int                    start,
 }
 
 
-void
+PRIVATE void
 calcArcsHandleStem(int                    start,
                    short const *const     pair_table,
                    double *const          x,
@@ -191,7 +192,7 @@ calcArcsHandleStem(int                    start,
 
 //------------------------------------------------------------------------------
 
-void
+PRIVATE void
 computeAnglesAndCentersForPS(short const *const     pair_table,
                              double *const          x,
                              double *const          y,

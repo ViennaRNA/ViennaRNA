@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-void
+PRIVATE void
 updateAABB(AABB     *aabb,
            stemBox  *sBox,
            loopBox  *lBox)
@@ -90,7 +90,7 @@ updateAABB(AABB     *aabb,
 }
 
 
-void
+PRIVATE void
 updateBoundingBoxes(treeNode              *node,
                     const puzzlerOptions  *puzzler)
 {
@@ -179,7 +179,7 @@ updateBoundingBoxes(treeNode              *node,
 }
 
 
-void
+PRIVATE void
 applyChangesToConfigAndBoundingBoxes(treeNode             *tree,
                                      const double         *deltaCfg,
                                      const double         radiusNew,
@@ -196,7 +196,7 @@ applyChangesToConfigAndBoundingBoxes(treeNode             *tree,
 }
 
 
-void
+PRIVATE void
 freeBulges(stemBox *sBox)
 {
   if (sBox->bulges != NULL) {
@@ -208,7 +208,7 @@ freeBulges(stemBox *sBox)
 }
 
 
-void
+PRIVATE void
 freeTree(treeNode *node)
 {
   for (int currentChild = 0; currentChild < node->childCount; currentChild++)
@@ -236,7 +236,7 @@ freeTree(treeNode *node)
 }
 
 
-int
+PRIVATE int
 countSubtreeNodes(const treeNode *node)
 {
   int count = 1;   // count this node
@@ -249,7 +249,7 @@ countSubtreeNodes(const treeNode *node)
 }
 
 
-int
+PRIVATE int
 countAncestorNodes(const treeNode *node)
 {
   int       count = 0;
@@ -265,7 +265,7 @@ countAncestorNodes(const treeNode *node)
 }
 
 
-int
+PRIVATE int
 collectSubtreeNodes(treeNode          *node,
                     treeNode **const  allNodes,
                     const int         currentIndex)
@@ -281,7 +281,7 @@ collectSubtreeNodes(treeNode          *node,
 }
 
 
-void
+PRIVATE void
 collectAncestorNodes(const treeNode   *node,
                      treeNode **const ancestorList)
 {
@@ -296,7 +296,7 @@ collectAncestorNodes(const treeNode   *node,
 }
 
 
-double
+PRIVATE double
 getPairedAngle(const treeNode *node)
 {
   // get the current node's stem's bounding wedge
@@ -321,7 +321,7 @@ getPairedAngle(const treeNode *node)
 }
 
 
-short
+PRIVATE short
 isExterior(const treeNode *node)
 {
   return getNodeID(node) == 0;
@@ -341,7 +341,7 @@ getExterior(treeNode *node)
 }
 
 
-short
+PRIVATE short
 isInteriorLoop(const treeNode *node)
 {
   return
@@ -350,7 +350,7 @@ isInteriorLoop(const treeNode *node)
 }
 
 
-short
+PRIVATE short
 isMultiLoop(const treeNode *node)
 {
   return
@@ -359,7 +359,7 @@ isMultiLoop(const treeNode *node)
 }
 
 
-int
+PRIVATE int
 getNodeID(const treeNode *node)
 {
   if (node != NULL)
@@ -369,7 +369,7 @@ getNodeID(const treeNode *node)
 }
 
 
-char
+PRIVATE char
 getNodeName(const treeNode *node)
 {
   /**
@@ -395,7 +395,7 @@ getNodeName(const treeNode *node)
 }
 
 
-void
+PRIVATE void
 setChild(treeNode   *parent,
          const int  index,
          treeNode   *child)
@@ -416,7 +416,7 @@ setChild(treeNode   *parent,
  * @return
  *      - number of child nodes
  */
-int
+PRIVATE int
 treeGetChildCount(const int           loopStart,
                   const short *const  pair_table)
 {
@@ -452,7 +452,7 @@ treeGetChildCount(const int           loopStart,
  * @return
  *      - an initialized configtree tBaseInformation with set parent, loopStart, cfg, childCount and initialized children array
  */
-treeNode *
+PRIVATE treeNode *
 createTreeNode(const int          id,
                treeNode           *parent,
                const int          loopStart,
@@ -491,7 +491,7 @@ createTreeNode(const int          id,
 
 
 // stem - loop recursion
-treeNode *treeHandleStem(treeNode               *parent,
+PRIVATE treeNode *treeHandleStem(treeNode               *parent,
                          int                    *nodeID,
                          const int              stemStart,
                          const short *const     pair_table,
@@ -515,7 +515,7 @@ treeNode *treeHandleStem(treeNode               *parent,
  * @return
  *      - pointer to the subtree (configtree) that has this loop as root
  */
-treeNode *
+PRIVATE treeNode *
 treeHandleLoop(treeNode               *parent,
                int                    *nodeID,
                const int              loopStart,
@@ -566,7 +566,7 @@ treeHandleLoop(treeNode               *parent,
  * @return
  *      - pointer to the cunsecutive subtree (configtree) that is created from the consecutive loop
  */
-treeNode *
+PRIVATE treeNode *
 treeHandleStem(treeNode               *parent,
                int                    *nodeID,
                const int              stemStart,
@@ -594,7 +594,7 @@ treeHandleStem(treeNode               *parent,
  * @param bulge
  *      - distance between regular stem and bulge base
  */
-void
+PRIVATE void
 buildBoundingBoxes(treeNode               *tree,
                    const short *const     pair_table,
                    const tBaseInformation *baseInformation,
@@ -625,7 +625,7 @@ buildBoundingBoxes(treeNode               *tree,
 
 
 // documentation at header file
-treeNode *
+PRIVATE treeNode *
 buildConfigtree(const short *const      pair_table,
                 const tBaseInformation  *baseInformation,
                 const double            *x,
@@ -665,7 +665,7 @@ buildConfigtree(const short *const      pair_table,
  * @param vector
  *      - translation vector as double array[2]
  */
-void
+PRIVATE void
 translateBoundingBoxes(treeNode     *tree,
                        const double *vector)
 {
@@ -689,7 +689,7 @@ translateBoundingBoxes(treeNode     *tree,
  * @return
  *      - child index or -1 if tree does not contain such a childnode.
  */
-int
+PRIVATE int
 getChildIndex(const treeNode  *tree,
               const int       childID)
 {
@@ -724,7 +724,7 @@ getChildIndex(const treeNode  *tree,
  *      - angle of child node
  *        the resulting angle might be smaller than 0° or greater than 360°
  */
-double
+PRIVATE double
 getChildAngle(const treeNode  *parentNode,
               const treeNode  *childNode)
 {
@@ -764,7 +764,7 @@ getChildAngle(const treeNode  *parentNode,
  *      - angle of child node
  *        the resulting angle might be smaller than 0° or greater than 360°
  */
-double
+PRIVATE double
 getChildAngleByIndex(const treeNode *parentNode,
                      const int      childIndex)
 {
@@ -780,7 +780,7 @@ getChildAngleByIndex(const treeNode *parentNode,
  * @param p
  *      - double[2] return value for the loop's center coordinates
  */
-void
+PRIVATE void
 getLoopCenter(const treeNode  *node,
               double          p[2])
 {
@@ -796,7 +796,7 @@ getLoopCenter(const treeNode  *node,
  * @param p
  *      - double[2] return value for the stem's center coordinates
  */
-void
+PRIVATE void
 getStemCenter(const treeNode  *node,
               double          p[2])
 {
@@ -814,7 +814,7 @@ getStemCenter(const treeNode  *node,
  * @return
  *      - ptr to node or NULL if tree does not contain such a childnode.
  */
-treeNode *
+PRIVATE treeNode *
 getChildNode(treeNode   *tree,
              const int  childID)
 {
@@ -837,7 +837,7 @@ getChildNode(treeNode   *tree,
 }
 
 
-treeNode *
+PRIVATE treeNode *
 getChild(const treeNode *node,
          const int      index)
 {
@@ -852,7 +852,7 @@ getChild(const treeNode *node,
 }
 
 
-treeNode *
+PRIVATE treeNode *
 getParent(const treeNode *node)
 {
   if (node == NULL)

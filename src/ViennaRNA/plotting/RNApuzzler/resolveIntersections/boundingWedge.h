@@ -15,10 +15,12 @@
  * @param maxAngle
  *      pointer used for returning the maximum angle
  */
-void getBoundingWedge(const treeNode  *root,
+PRIVATE void getBoundingWedge(const treeNode  *root,
                       int             childIndex,
                       double          *minAngle,
                       double          *maxAngle);
 
+
+#include "boundingWedge.c"
 
 #endif

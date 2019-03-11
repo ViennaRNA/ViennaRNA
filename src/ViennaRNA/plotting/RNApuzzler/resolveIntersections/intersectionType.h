@@ -16,7 +16,10 @@ typedef enum {
   exterior        = 11,
 } intersectionType;
 
-char *intersectionTypeToString(const intersectionType it);
+PRIVATE char *intersectionTypeToString(const intersectionType it);
+
+
+#include "intersectionType.c"
 
 
 #endif

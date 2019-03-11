@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-short
+PRIVATE short
 intersectLoopLoop(const loopBox *loop1,
                   const loopBox *loop2)
 {
@@ -32,7 +32,7 @@ intersectLoopLoop(const loopBox *loop1,
 }
 
 
-void
+PRIVATE void
 projectPointOntoLine(const double a[2],
                      const double b[2],
                      const double p[2],
@@ -65,7 +65,7 @@ projectPointOntoLine(const double a[2],
 }
 
 
-void
+PRIVATE void
 ClosestPtPointBulge(const double  p[2],
                     const double  a[2],
                     const double  b[2],
@@ -125,7 +125,7 @@ ClosestPtPointBulge(const double  p[2],
 }
 
 
-void
+PRIVATE void
 ClosestPtPointTriangle(const double p[2],
                        const double a[2],
                        const double b[2],
@@ -236,7 +236,7 @@ ClosestPtPointTriangle(const double p[2],
  * @param ret_p_x   - pointer to closest point's x value (used as return)
  * @param ret_p_y   - pointer to closest point's y value (used as return)
  */
-void
+PRIVATE void
 ClosestPtPointOBB(const stemBox stem,
                   const double  p[2],
                   double        ret_p[2])
@@ -272,7 +272,7 @@ ClosestPtPointOBB(const stemBox stem,
 }
 
 
-short
+PRIVATE short
 intersectStemLoop(const stemBox *stem,
                   const loopBox *loop)
 {
@@ -294,7 +294,7 @@ intersectStemLoop(const stemBox *stem,
 }
 
 
-short
+PRIVATE short
 intersectStemStem(const stemBox *stem1,
                   const stemBox *stem2)
 {
@@ -363,7 +363,7 @@ intersectStemStem(const stemBox *stem1,
 
 
 // Returns true if circle circ intersects triangle ABC, false otherwise.
-short
+PRIVATE short
 TestCircleTriangle(const double circ_c[2],
                    const double circ_r,
                    const double A[2],
@@ -385,7 +385,7 @@ TestCircleTriangle(const double circ_c[2],
 }
 
 
-short
+PRIVATE short
 TestLoopBulge(const double  c[2],
               const double  r,
               const double  pPrev[2],
@@ -438,7 +438,7 @@ TestLoopBulge(const double  c[2],
 }
 
 
-short
+PRIVATE short
 intersectLoopBulges(const loopBox *loop,
                     const stemBox *stem,
                     int           *bulge)
@@ -466,7 +466,7 @@ intersectLoopBulges(const loopBox *loop,
 }
 
 
-short
+PRIVATE short
 intersectBulgesBulges(const stemBox *stem1,
                       const stemBox *stem2,
                       int           *bulge1,
@@ -501,7 +501,7 @@ intersectBulgesBulges(const stemBox *stem1,
 }
 
 
-short
+PRIVATE short
 intersectStemBulges(const stemBox *stem1,
                     const stemBox *stem2,
                     int           *bulge2)

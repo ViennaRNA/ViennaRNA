@@ -4,32 +4,32 @@
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h>
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h>
 
-void translateLoopBox(loopBox       *box,
+PRIVATE void translateLoopBox(loopBox       *box,
                       const double  *vector);
 
 
-void translateStemBox(stemBox       *box,
+PRIVATE void translateStemBox(stemBox       *box,
                       const double  *vector);
 
 
-void rotateLoopBox(loopBox      *box,
+PRIVATE void rotateLoopBox(loopBox      *box,
                    const double *point,
                    const double angle);
 
 
-void rotateStemBox(stemBox      *box,
+PRIVATE void rotateStemBox(stemBox      *box,
                    const double *point,
                    const double angle);
 
 
-loopBox *buildLoopBox(const int               start,
+PRIVATE loopBox *buildLoopBox(const int               start,
                       const short *const      pair_table,
                       const tBaseInformation  *baseInformation,
                       const double            *x,
                       const double            *y);
 
 
-stemBox *buildStemBox(const int           start,
+PRIVATE stemBox *buildStemBox(const int           start,
                       const int           end,
                       const short *const  pair_table,
                       const double        *x,
@@ -37,24 +37,24 @@ stemBox *buildStemBox(const int           start,
                       const double        bulgeDist);
 
 
-loopBox *createLoopBox(const double center[2],
+PRIVATE loopBox *createLoopBox(const double center[2],
                        const double radius);
 
 
-stemBox *createStemBox(const double s[2],
+PRIVATE stemBox *createStemBox(const double s[2],
                        const double e[2],
                        const double sp[2]);
 
 
-void getLBoxCenter(const loopBox  *box,
+PRIVATE void getLBoxCenter(const loopBox  *box,
                    double         c[2]);
 
 
-void getSBoxCenter(const stemBox  *box,
+PRIVATE void getSBoxCenter(const stemBox  *box,
                    double         c[2]);
 
 
-void getBulgeXY(const stemBox *stem,
+PRIVATE void getBulgeXY(const stemBox *stem,
                 const int     index,
                 double        *x,
                 double        *y);
@@ -73,7 +73,7 @@ void getBulgeXY(const stemBox *stem,
  * @param pNext
  *      point successive to the bulges peak
  */
-void getBulgeCoordinates(const stemBox  *stem,
+PRIVATE void getBulgeCoordinates(const stemBox  *stem,
                          const int      index,
                          double         pPrev[2],
                          double         pThis[2],
@@ -96,7 +96,7 @@ void getBulgeCoordinates(const stemBox  *stem,
  * @param pNext
  *      point successive to the bulges peak
  */
-void getBulgeCoordinatesExtraDistance(const stemBox *stem,
+PRIVATE void getBulgeCoordinatesExtraDistance(const stemBox *stem,
                                       const int     index,
                                       const double  extraDistance,
                                       double        pPrev[2],
@@ -104,10 +104,11 @@ void getBulgeCoordinatesExtraDistance(const stemBox *stem,
                                       double        pNext[2]);
 
 
-void printLBox(const loopBox *loop);
+PRIVATE void printLBox(const loopBox *loop);
 
 
-void printSBox(const stemBox *stem);
+PRIVATE void printSBox(const stemBox *stem);
 
+#include "boundingBoxes.c"
 
 #endif

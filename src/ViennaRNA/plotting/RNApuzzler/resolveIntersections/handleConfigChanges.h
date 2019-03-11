@@ -5,14 +5,6 @@
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
 
-void logConfigChanges(const int             id,
-                      const config          *cfg,
-                      const double          *deltaCfg,
-                      const double          oldRadius,
-                      const double          newRadius,
-                      const char            *logTag,
-                      const puzzlerOptions  *puzzler);
-
 
 /**
  * @brief checkAndApplyConfigChanges
@@ -27,10 +19,12 @@ void logConfigChanges(const int             id,
  *        in degree format
  * @return 1 if something changed, 0 otherwise
  */
-short checkAndApplyConfigChanges(treeNode               *tree,
+PRIVATE short checkAndApplyConfigChanges(treeNode               *tree,
                                  double                 *deltaCfg,
                                  const intersectionType it,
                                  puzzlerOptions         *puzzler);
 
+
+#include "handleConfigChanges.c"
 
 #endif

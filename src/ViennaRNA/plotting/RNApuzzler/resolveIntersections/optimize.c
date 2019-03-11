@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-short
+PRIVATE short
 checkIntersections(treeNode *const      *subtree,
                    const int            sizeSubtree,
                    treeNode *const      *ancestorList,
@@ -42,7 +42,7 @@ checkIntersections(treeNode *const      *subtree,
  * @param numNodes
  * @return shrinking ratio: new radius / old radius (0 < ratio <= 1)
  */
-double
+PRIVATE double
 shrinkLoopRadiusLinearSearch(treeNode             *node,
                              treeNode *const      *subtree,
                              const int            sizeSubtree,
@@ -118,7 +118,7 @@ shrinkLoopRadiusLinearSearch(treeNode             *node,
  * @param numNodes
  * @return shrinking ratio: new radius / old radius (0 < ratio <= 1)
  */
-double
+PRIVATE double
 shrinkLoopRadiusBinarySearch(treeNode             *node,
                              treeNode *const      *subtree,
                              const int            sizeSubtree,
@@ -191,7 +191,7 @@ shrinkLoopRadiusBinarySearch(treeNode             *node,
 }
 
 
-double
+PRIVATE double
 shrinkLoopRadius(treeNode             *node,
                  treeNode *const      *subtree,
                  const int            sizeSubtree,
@@ -231,7 +231,7 @@ shrinkLoopRadius(treeNode             *node,
  * @param pairedAngle
  * @param space
  */
-void
+PRIVATE void
 getSpaces(const treeNode  *node,
           const int       configSize,
           const double    pairedAngle,
@@ -270,7 +270,7 @@ getSpaces(const treeNode  *node,
  * @param newRadius
  * @param deltas relative changes
  */
-short
+PRIVATE short
 somethingChanged(config       *cfg,
                  const double oldRadius,
                  const double newRadius,
@@ -302,7 +302,7 @@ somethingChanged(config       *cfg,
  * @param logTag
  * @param puzzler options to apply
  */
-void
+PRIVATE void
 applyDeltas(treeNode              *node,
             double                *deltas,
             const double          targetRadius,
@@ -324,7 +324,7 @@ applyDeltas(treeNode              *node,
  * @param targetRadius
  * @param puzzler options to apply
  */
-void
+PRIVATE void
 applyConfig(treeNode              *node,
             const config          *targetConfig,
             const puzzlerOptions  *puzzler)
@@ -350,7 +350,7 @@ applyConfig(treeNode              *node,
  * @param cfg current loop configuration
  * @param puzzler options to apply
  */
-void
+PRIVATE void
 computeAlphas(double        *alphas,
               const config  *cfg,
               const int     pairedDistance)
@@ -373,7 +373,7 @@ computeAlphas(double        *alphas,
  * @param decreaseIndex
  * @param configSize
  */
-void
+PRIVATE void
 computeIncreasesAllOther(int        *increase,
                          const int  decreaseIndex,
                          const int  configSize)
@@ -394,7 +394,7 @@ computeIncreasesAllOther(int        *increase,
  * @param decreaseIndex
  * @param configSize
  */
-void
+PRIVATE void
 computeIncreasesLeftNeighbor(int        *increase,
                              const int  decreaseIndex,
                              const int  configSize)
@@ -413,7 +413,7 @@ computeIncreasesLeftNeighbor(int        *increase,
  * @param decreaseIndex
  * @param configSize
  */
-void
+PRIVATE void
 computeIncreasesRightNeighbor(int       *increase,
                               const int decreaseIndex,
                               const int configSize)
@@ -432,7 +432,7 @@ computeIncreasesRightNeighbor(int       *increase,
  * @param decreaseIndex
  * @param configSize
  */
-void
+PRIVATE void
 computeIncreasesBothNeighbors(int       *increase,
                               const int decreaseIndex,
                               const int configSize)
@@ -457,7 +457,7 @@ computeIncreasesBothNeighbors(int       *increase,
  * @param decreaseIndex
  * @param configSize
  */
-void
+PRIVATE void
 computeIncreases(int        *increase,
                  const int  decreaseIndex,
                  const int  configSize)
@@ -488,7 +488,7 @@ computeIncreases(int        *increase,
  * distribute changes equally among arcs
  *
  */
-void
+PRIVATE void
 computeDeltasDistributeEqually(double       *deltas,
                                const int    decreaseIndex,
                                const double decreaseAngle,
@@ -509,7 +509,7 @@ computeDeltasDistributeEqually(double       *deltas,
  * distribute changes among arcs proportionally to alpha values of the respective arc
  *
  */
-void
+PRIVATE void
 computeDeltasDistributeProportionally(double          *deltas,
                                       const int       decreaseIndex,
                                       const double    decreaseAngle,
@@ -537,7 +537,7 @@ computeDeltasDistributeProportionally(double          *deltas,
  * Compute configuration angle changes (deltas);
  *
  */
-void
+PRIVATE void
 computeDeltas(double          *deltas,
               const int       decreaseIndex,
               const double    decreaseAngle,
@@ -574,7 +574,7 @@ computeDeltas(double          *deltas,
  * @param sizeAncestorList number of top level tree nodes
  * @param puzzler puzzler options
  */
-short
+PRIVATE short
 searchBestConfig(treeNode         *node,
                  double           *deltas,
                  treeNode *const  *subtree,
@@ -626,7 +626,7 @@ searchBestConfig(treeNode         *node,
 }
 
 
-short
+PRIVATE short
 canShrink(const double  *alphas,
           const int     numberOfArcs,
           const double  unpairedAngle)
@@ -647,7 +647,7 @@ canShrink(const double  *alphas,
  * - change config
  *
  */
-double
+PRIVATE double
 optimizeNode(treeNode         *node,
              treeNode *const  *subtree,
              const int        sizeSubtree,
@@ -836,7 +836,7 @@ optimizeNode(treeNode         *node,
 }
 
 
-double
+PRIVATE double
 optimizeTreeRecursive(treeNode        *node,
                       treeNode *const *subtree,
                       const int       sizeSubtree,
@@ -892,7 +892,7 @@ optimizeTreeRecursive(treeNode        *node,
 }
 
 
-double
+PRIVATE double
 optimizeTree(treeNode       *node,
              puzzlerOptions *puzzler)
 {

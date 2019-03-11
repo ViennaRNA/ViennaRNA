@@ -17,50 +17,9 @@
 #define _intersect 0x0001
 #define _changed   0x0002
 
-typedef struct {
-  /// variables fixed during operation
-  // drawing behavior
-  short       drawArcs;
-  double      paired;
-  double      unpaired;
-
-  // intersection resolution behavior
-  short       checkAncestorIntersections;
-  short       checkSiblingIntersections;
-  short       checkExteriorIntersections;
-  short       allowFlipping;
-  short       optimize;
-  int         maximumNumberOfConfigChangesAllowed;
 
 
-  // import behavior - unused for now
-  char        *config; // file path
-
-  // other stuff
-  const char  *filename;
-
-  /// variables changed during operation
-  int         numberOfChangesAppliedToConfig;
-  int         psNumber;
-} puzzlerOptions;
-
-/**
- * @brief
- *      Constructor.
- * @return
- */
-puzzlerOptions *createPuzzlerOptions();
-
-
-/**
- * @brief
- *      Destructor.
- * @param puzzler
- */
-void destroyPuzzlerOptions(puzzlerOptions *puzzler);
-
-
-void bubblesort(const int           numValues,
+PRIVATE void bubblesort(const int           numValues,
                 const double *const valuesLevel1,
                 const double *const valuesLevel2,
                 int *const          indices);
@@ -76,12 +35,14 @@ void bubblesort(const int           numValues,
  * @param distance the distance between two points on the circle
  * @return angle in degree
  */
-double distanceToAngle(const double radius,
+PRIVATE double distanceToAngle(const double radius,
                        const double distance);
 
 
-double angleToDistance(const double radius,
+PRIVATE double angleToDistance(const double radius,
                        const double degreeAngle);
 
+
+#include "definitions.c"
 
 #endif

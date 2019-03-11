@@ -5,15 +5,17 @@
  *      ViennaRNA package
  */
 
+#include <stdlib.h>
+#include <math.h>
+
+#include "ViennaRNA/utils/basic.h"
+
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/handleConfigChanges.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
-
-#include <stdlib.h>
-#include <math.h>
 
 /**
  * @brief checkAndApplyConfigChanges
@@ -28,7 +30,7 @@
  *        in degree format
  * @return 1 if something changed, 0 otherwise
  */
-short
+PRIVATE short
 checkAndApplyConfigChanges(treeNode               *tree,
                            double                 *deltaCfg,
                            const intersectionType it,

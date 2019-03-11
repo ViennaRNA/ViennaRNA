@@ -25,7 +25,7 @@
  * @return
  *      - an initialized config struct
  */
-config *
+PRIVATE config *
 cfgCreateConfig(const double radius)
 {
   config *cfg = (config *)vrna_alloc(1 * sizeof(config));
@@ -51,7 +51,7 @@ cfgCreateConfig(const double radius)
  * @return
  *      - an initialized configArc struct
  */
-configArc
+PRIVATE configArc
 cfgCreateConfigArc(const double angle,
                    const int    numberOfArcSegments)
 {
@@ -65,7 +65,7 @@ cfgCreateConfigArc(const double angle,
 }
 
 
-config *
+PRIVATE config *
 cfgCloneConfig(const config *cfg)
 {
   config *clonedCfg = (config *)vrna_alloc(sizeof(config));
@@ -88,7 +88,7 @@ cfgCloneConfig(const config *cfg)
 }
 
 
-void
+PRIVATE void
 cfgFreeConfig(config *cfg)
 {
   free(cfg->cfgArcs);
@@ -97,7 +97,7 @@ cfgFreeConfig(config *cfg)
 
 
 // documentation at header file
-void
+PRIVATE void
 cfgPrintConfig(config *cfg)
 {
   short useDegree = 1;
@@ -115,7 +115,7 @@ cfgPrintConfig(config *cfg)
 /*---   access to config elements   ----------------------------------------*/
 /*--------------------------------------------------------------------------*/
 
-double
+PRIVATE double
 getArcAngle(const config  *cfg,
             const int     currentArc)
 {
@@ -123,7 +123,7 @@ getArcAngle(const config  *cfg,
 }
 
 
-double
+PRIVATE double
 getArcAngleDegree(const config  *cfg,
                   const int     currentArc)
 {
@@ -148,7 +148,7 @@ getArcAngleDegree(const config  *cfg,
  * @param n #backbones
  * @param angle angle
  */
-double
+PRIVATE double
 approximateConfigArcRadius(const double a,
                            const double b,
                            const short  m,
@@ -206,7 +206,7 @@ approximateConfigArcRadius(const double a,
 }
 
 
-double
+PRIVATE double
 approximateConfigRadius(const config  *cfg,
                         const double  unpaired,
                         const double  paired)
@@ -250,7 +250,7 @@ approximateConfigRadius(const config  *cfg,
  * @return
  *      - complete config for that loop
  */
-config *
+PRIVATE config *
 cfgGenerateDefaultConfig(const short *const pair_table,
                          const int          start,
                          const int          unpaired,
@@ -326,7 +326,7 @@ cfgGenerateDefaultConfig(const short *const pair_table,
 }
 
 
-void cfgGenHandleStem(int                 baseNr,
+PRIVATE void cfgGenHandleStem(int                 baseNr,
                       const short *const  pair_table,
                       tBaseInformation    *baseInformation,
                       const double        unpaired,
@@ -344,7 +344,7 @@ void cfgGenHandleStem(int                 baseNr,
  * @param baseInformation
  *      - array of tBaseInformation annotations (to save config)
  */
-void
+PRIVATE void
 cfgGenHandleLoop(int                baseNr,
                  const short *const pair_table,
                  tBaseInformation   *baseInformation,
@@ -423,7 +423,7 @@ cfgGenHandleLoop(int                baseNr,
  * @param baseInformation
  *      - array of tBaseInformation annotations (to save config)
  */
-void
+PRIVATE void
 cfgGenHandleStem(int                baseNr,
                  const short *const pair_table,
                  tBaseInformation   *baseInformation,
@@ -447,7 +447,7 @@ cfgGenHandleStem(int                baseNr,
 
 
 // documentation at header file
-void
+PRIVATE void
 cfgGenerateConfig(const short *const  pair_table,
                   tBaseInformation    *baseInformation,
                   const double        unpaired,
@@ -487,7 +487,7 @@ cfgGenerateConfig(const short *const  pair_table,
  * @param radius
  *      - new radius
  */
-void
+PRIVATE void
 cfgSetRadius(config       *cfg,
              const double radius)
 {
@@ -502,7 +502,7 @@ cfgSetRadius(config       *cfg,
  * @param unpaired
  * @param paired
  */
-void
+PRIVATE void
 cfgUpdateMinRadius(config       *cfg,
                    const double unpaired,
                    const double paired)
@@ -513,7 +513,7 @@ cfgUpdateMinRadius(config       *cfg,
 }
 
 
-double
+PRIVATE double
 cfgApplyChanges(config                *cfg,
                 const char            loopName,
                 const double          *deltaCfg,
@@ -564,7 +564,7 @@ cfgApplyChanges(config                *cfg,
 }
 
 
-short
+PRIVATE short
 cfgIsValid(config       *cfg,
            const double *deltaCfg)
 {

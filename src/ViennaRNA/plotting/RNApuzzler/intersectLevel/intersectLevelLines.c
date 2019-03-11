@@ -4,13 +4,15 @@
  *      c  Daniel Wiegreffe, Daniel Alexander, Dirk Zeckzer
  *      ViennaRNA package
  */
-#include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelLines.h"
-#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
-#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
-
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "ViennaRNA/utils/basic.h"
+
+#include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelLines.h"
+#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
+#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 
 /**
  * @brief matchPointArc
@@ -19,7 +21,7 @@
  * @param arc double[6] array with arc coordinates [circleX, circleY, circleR, arcFrom, arcTo, clockwise]
  * @return 1 if point is situated on the wedge, 0 otherwise
  */
-short
+PRIVATE short
 matchPointArc(const double  point[2],
               const double  arc[6])
 {
@@ -70,7 +72,7 @@ matchPointArc(const double  point[2],
 }
 
 
-short
+PRIVATE short
 matchLinePoint(const double pLine[2],
                const double dirLine[2],
                const double p[2])
@@ -93,7 +95,7 @@ matchLinePoint(const double pLine[2],
 }
 
 
-short
+PRIVATE short
 intersectCircleCircle(const double  c1[2],
                       const double  c1r,
                       const double  c2[2],
@@ -110,7 +112,7 @@ intersectCircleCircle(const double  c1[2],
 }
 
 
-short
+PRIVATE short
 intersectLineSegments(const double  A[2],
                       const double  B[2],
                       const double  X[2],
@@ -210,7 +212,7 @@ intersectLineSegments(const double  A[2],
 }
 
 
-short
+PRIVATE short
 intersectLineArc(const double point_1[2],
                  const double point_2[2],
                  const double arc[6])
@@ -267,7 +269,7 @@ intersectLineArc(const double point_1[2],
 }
 
 
-short
+PRIVATE short
 intersectArcArc(const double  arc1[6],
                 const double  arc2[6])
 {

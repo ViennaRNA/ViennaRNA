@@ -5,8 +5,13 @@
  *      ViennaRNA package
  */
 
-#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
-#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
+#include <stdlib.h>
+#include <math.h>
+
+#include "ViennaRNA/utils/basic.h"
+
+#include "coordinates.inc"
+
 #include "ViennaRNA/plotting/RNApuzzler/postscript/postscriptArcs.h"
 #include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
@@ -18,17 +23,48 @@
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
 
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 
-#include "ViennaRNA/utils.h"
-
-#include <stdlib.h>
-#include <math.h>
-
-#define printInitialConfig 0
+#define DEBUG   0
 
 //----------------------------------------------------------------------------
+PUBLIC puzzlerOptions *
+createPuzzlerOptions()
+{
+  puzzlerOptions *puzzler = (puzzlerOptions *)vrna_alloc(sizeof(puzzlerOptions));
 
-short
+  // drawing behavior
+  puzzler->drawArcs = 1;
+  puzzler->paired   = 35.0;
+  puzzler->unpaired = 25.0;
+
+  // intersection resolution behavior
+  puzzler->checkExteriorIntersections = 1;
+  puzzler->checkSiblingIntersections  = 1;
+  puzzler->checkAncestorIntersections = 1;
+  puzzler->optimize                   = 1;
+
+  // import behavior - unused for now
+  puzzler->config = NULL;
+
+  // other stuff
+  puzzler->filename = NULL;
+
+  puzzler->numberOfChangesAppliedToConfig = 0;
+  puzzler->psNumber                       = 0;
+
+  return puzzler;
+}
+
+
+PUBLIC void
+destroyPuzzlerOptions(puzzlerOptions *puzzler)
+{
+  free(puzzler);
+}
+
+
+PRIVATE short
 checkRemainingIntersections(double                  *x,
                             double                  *y,
                             double                  *arcCoords,
@@ -136,7 +172,7 @@ checkRemainingIntersections(double                  *x,
 /**
  * Calculate the coordinates for the drawing with the given angle angles
  */
-void
+PRIVATE void
 determineNucleotideCoordinates(treeNode *const      node,
                                short const *const   pair_table,
                                unsigned short const length,
@@ -282,10 +318,11 @@ determineNucleotideCoordinates(treeNode *const      node,
 }
 
 
+#if DEBUG
 //------------------------------------------------------------------------------
 
 // debug method for intersection regression test
-int
+PRIVATE int
 printInformation(const char *fnName,
                  const char *format,
                  ...)
@@ -304,8 +341,9 @@ printInformation(const char *fnName,
   return ret;
 }
 
+#endif
 
-int
+PUBLIC int
 layout_RNApuzzler(short const *const  pair_table,
                   float               *x,
                   float               *y,
@@ -401,8 +439,11 @@ layout_RNApuzzler(short const *const  pair_table,
                                                     baseInformation,
                                                     length);
 
+#if DEBUG
   //Debug call for intersection regression test, uncomment for output
   //    printInformation("RESULT FINAL", "%s %s\n\n", (intersect ? "FAIL   " : "SUCCESS"), puzzler->filename);
+#endif
+
   freeTree(tree);
   free(baseInformation);
 

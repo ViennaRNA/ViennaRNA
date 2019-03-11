@@ -17,7 +17,7 @@
 #include <math.h>
 
 
-void
+PRIVATE void
 calcDeltasEquidistantIncrease(const double  targetAngleIn,
                               const int     configSize,
                               short         *increase,
@@ -43,7 +43,7 @@ calcDeltasEquidistantIncrease(const double  targetAngleIn,
 }
 
 
-double
+PRIVATE double
 calcDeltasMaximumFirstDecrease(const double targetAngleIn,
                                const int    indexLeft,
                                const int    indexRight,
@@ -152,7 +152,7 @@ calcDeltasMaximumFirstDecrease(const double targetAngleIn,
 }
 
 
-double
+PRIVATE double
 calcDeltasNearestNeighborsFirstDecrease(const double  targetAngleIn,
                                         const int     indexLeft,
                                         const int     indexRight,
@@ -271,7 +271,7 @@ calcDeltasNearestNeighborsFirstDecrease(const double  targetAngleIn,
  * @param deltas
  * @return the amount of change (in positive degree) that can be accomplished with calculated deltas
  */
-double
+PRIVATE double
 calcDeltas(const treeNode *node,
            const treeNode *recursiveEnd,
            const int      indexLeft,

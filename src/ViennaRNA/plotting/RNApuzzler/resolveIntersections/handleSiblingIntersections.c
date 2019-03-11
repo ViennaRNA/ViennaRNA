@@ -32,7 +32,7 @@
  * @return
  *      1 if something was changed, 0 otherwise
  */
-short
+PRIVATE short
 fixIntersectionOfSiblings(treeNode        *tree,
                           const int       left,
                           const int       right,
@@ -82,7 +82,7 @@ fixIntersectionOfSiblings(treeNode        *tree,
  * @return
  *      1 if something was changed, 0 otherwise
  */
-short
+PRIVATE short
 handleIntersectionOfSiblings(treeNode       *tree,
                              const int      *listOfIntersections,
                              puzzlerOptions *puzzler)
@@ -131,7 +131,7 @@ handleIntersectionOfSiblings(treeNode       *tree,
 }
 
 
-short
+PRIVATE short
 checkSiblings(treeNode        *node,
               puzzlerOptions  *puzzler)
 {

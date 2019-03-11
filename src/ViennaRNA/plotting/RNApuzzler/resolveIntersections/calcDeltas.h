@@ -19,7 +19,7 @@
  * @param deltas
  * @return the amount of change (in positive degree) that can be accomplished with calculated deltas
  */
-double calcDeltas(const treeNode  *node,
+PRIVATE double calcDeltas(const treeNode  *node,
                   const treeNode  *recursiveEnd,
                   const int       indexLeft,
                   const int       indexRight,
@@ -27,5 +27,6 @@ double calcDeltas(const treeNode  *node,
                   puzzlerOptions  *puzzler,
                   double          *deltas);
 
+#include "calcDeltas.c"
 
 #endif
