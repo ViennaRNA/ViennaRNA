@@ -23,6 +23,8 @@
 
 #include "ViennaRNA/static/templates_postscript.h"
 
+#include "ViennaRNA/plotting/ps_helpers.inc"
+
 /*
  #################################
  # PRIVATE MACROS                #
@@ -168,11 +170,9 @@ vrna_file_PS_aln_sub(const char *filename,
   imageHeight = startY + ceil((float)length / columnWidth) * ((N + 2) * lineStep + blockStep + consStep + ssStep + rulerStep);
 
   /* Write postscript header including correct bounding box */
-  fprintf(outfile,
-          "%%!PS-Adobe-3.0 EPSF-3.0\n"
-          "%%%%BoundingBox: %d %d %d %d\n"
-          "%%%%EndComments\n",
-          0, 0, (int)imageWidth, (int)imageHeight);
+  print_PS_header(outfile,
+                  "ViennaRNA Package - Alignment",
+                  0, 0, (int)imageWidth, (int)imageHeight);
 
   fprintf(outfile, "%s", PS_aln_macro_base);
   fprintf(outfile, "0 %d translate\n"
@@ -436,11 +436,9 @@ aliPS_color_aln(const char  *structure,
   imageHeight = startY + ceil((float)length / columnWidth) * ((N + 2) * lineStep + blockStep + consStep + ssStep + rulerStep);
 
   /* Write postscript header including correct bounding box */
-  fprintf(outfile,
-          "%%!PS-Adobe-3.0 EPSF-3.0\n"
-          "%%%%BoundingBox: %d %d %d %d\n"
-          "%%%%EndComments\n",
-          0, 0, (int)imageWidth, (int)imageHeight);
+  print_PS_header(outfile,
+                  "ViennaRNA Package - Alignment",
+                  0, 0, (int)imageWidth, (int)imageHeight);
 
   fprintf(outfile, "%s", PS_aln_macro_base);
   fprintf(outfile, "0 %d translate\n"

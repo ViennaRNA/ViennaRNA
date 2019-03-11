@@ -25,6 +25,8 @@
 
 #include "ViennaRNA/static/templates_postscript.h"
 
+#include "ViennaRNA/plotting/ps_helpers.inc"
+
 /*
 #################################
 # PRIVATE MACROS                #
@@ -149,18 +151,13 @@ vrna_file_PS_rnaplot_a( const char *seq,
      ymax = Y[i] > ymax ? Y[i] : ymax;
   }
 
-  fprintf(xyplot,
-          "%%!PS-Adobe-3.0 EPSF-3.0\n"
-          "%%%%Creator: ViennaRNA-%s\n"
-          "%%%%CreationDate: %s"
-          "%%%%Title: RNA Secondary Structure Plot\n"
-          "%%%%BoundingBox: 0 0 700 700\n"
-          "%%%%DocumentFonts: Helvetica\n"
-          "%%%%Pages: 1\n"
-          "%%%%EndComments\n\n"
-          "%%Options: %s\n", VERSION, vrna_time_stamp(), vrna_md_option_string(md_p));
-  fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
-          "%% delete the appropriate line near the end of the file\n\n");
+  print_PS_header(xyplot,
+                  "RNA Secondary Structure Plot",
+                  0, 0, 700, 700);
+
+  print_PS_options(xyplot, md_p);
+
+  print_PS_help_structure(xyplot);
 
   fprintf(xyplot, "%%%%BeginProlog\n");
   fprintf(xyplot, "%s", PS_structure_plot_macro_base);
@@ -181,18 +178,11 @@ vrna_file_PS_rnaplot_a( const char *seq,
   }
 
   /* sequence */
-  fprintf(xyplot,"/sequence (\\\n");
-  i=0;
-  while (i<length) {
-    fprintf(xyplot, "%.255s\\\n", string+i);  /* no lines longer than 255 */
-    i+=255;
-  }
-  fprintf(xyplot,") def\n");
+  print_PS_sequence(xyplot, string);
+
   /* coordinates */
-  fprintf(xyplot, "/coor [\n");
-  for (i = 0; i < length; i++)
-    fprintf(xyplot, "[%3.8f %3.8f]\n", X[i], Y[i]);
-  fprintf(xyplot, "] def\n");
+  print_PS_coords(xyplot, X, Y, length);
+
   /* correction coordinates for quadratic beziers in case we produce a circplot */
   if(rna_plot_type == VRNA_PLOT_TYPE_CIRCULAR)
     fprintf(xyplot, "/cpr %6.2f def\n", (float)3*length);
@@ -531,18 +521,13 @@ PS_rna_plot_snoop_a(const char *string,
      Y[i-1] = Y[i-1] + 0.25*(yC-Y[i-1]);  
   }  
 
-  fprintf(xyplot,
-          "%%!PS-Adobe-3.0 EPSF-3.0\n"
-          "%%%%Creator: ViennaRNA-%s\n"
-          "%%%%CreationDate: %s"
-          "%%%%Title: RNA Secondary Structure Plot\n"
-          "%%%%BoundingBox: 0 0 700 700\n"
-          "%%%%DocumentFonts: Helvetica\n"
-          "%%%%Pages: 1\n"
-          "%%%%EndComments\n\n"
-          "%%Options: %s\n", VERSION, vrna_time_stamp(), option_string());
-  fprintf(xyplot, "%% to switch off outline pairs of sequence comment or\n"
-          "%% delete the appropriate line near the end of the file\n\n");
+  print_PS_header(xyplot,
+                  "RNA Secondary Structure Plot",
+                  0, 0, 700, 700);
+
+  print_PS_options(xyplot, NULL);
+
+  print_PS_help_structure(xyplot);
 
   fprintf(xyplot, "%%%%BeginProlog\n");
   fprintf(xyplot, "%s", PS_structure_plot_macro_base);
@@ -558,19 +543,13 @@ PS_rna_plot_snoop_a(const char *string,
   /* cut_point */
   if (cut_point > 0 && cut_point <= strlen(string))
     fprintf(xyplot, "/cutpoint %d def\n", cut_point-1);
+
   /* sequence */
-  fprintf(xyplot,"/sequence (\\\n");
-  i=0;
-  while (i<length) {
-    fprintf(xyplot, "%.255s\\\n", string+i);  /* no lines longer than 255 */
-    i+=255;
-  }
-  fprintf(xyplot,") def\n");
+  print_PS_sequence(xyplot, string);
+
   /* coordinates */
-  fprintf(xyplot, "/coor [\n");
-  for (i = 0; i < length; i++)
-    fprintf(xyplot, "[%3.3f %3.3f]\n", X[i], Y[i]);
-  fprintf(xyplot, "] def\n");
+  print_PS_coords(xyplot, X, Y, length);
+
   /* base pairs */
   fprintf(xyplot, "/pairs [\n");
   for (i = 1; i <= length; i++)

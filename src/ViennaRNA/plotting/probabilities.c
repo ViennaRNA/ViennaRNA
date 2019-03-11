@@ -24,6 +24,8 @@
 
 #include "ViennaRNA/static/templates_postscript.h"
 
+#include "ViennaRNA/plotting/ps_helpers.inc"
+
 /*
 #################################
 # PRIVATE MACROS                #
@@ -82,7 +84,6 @@ PRIVATE int   sort_cpair_by_type_desc(const void *p1, const void *p2);
 PRIVATE int   sort_cpair_by_prob_asc(const void *p1, const void *p2);
 PRIVATE void  EPS_footer(FILE *eps);
 PRIVATE void  EPS_print_title(FILE *eps, const char *title);
-PRIVATE void  EPS_print_seq(FILE *eps, const char *sequence);
 PRIVATE void  EPS_print_header(FILE *eps, int bbox[4], const char *comment, unsigned int options);
 PRIVATE void  EPS_print_ud_data(FILE *eps, plist *pl, plist *mf);
 PRIVATE void  EPS_print_sc_motif_data(FILE *eps, plist *pl, plist *mf);
@@ -313,7 +314,7 @@ vrna_plot_dp_EPS( const char              *filename,
   /* start printing postscript file */
   EPS_print_header(fh, bbox, comment, DP_MACRO_ALL);
   EPS_print_title(fh, title);
-  EPS_print_seq(fh, sequence);
+  print_PS_sequence(fh, sequence);
 
   fprintf(fh,"%% BEGIN linear data array\n\n");
   EPS_print_linear_data_top(fh, (const char **)lintoptitle, lintop);
@@ -469,38 +470,16 @@ EPS_print_title(FILE *eps, const char *title){
 
 
 PRIVATE void
-EPS_print_seq(FILE *eps, const char *sequence){
-
-  unsigned int i;
-
-  fprintf(eps,"/sequence { (\\\n");
-  for(i = 0; i < strlen(sequence); i += 255)
-    fprintf(eps, "%.255s\\\n", sequence + i);
-  fprintf(eps,") } def\n\n"
-              "/len { sequence length } bind def\n\n");
-}
-
-
-PRIVATE void
 EPS_print_header( FILE          *eps,
                   int           bbox[4],
                   const char    *comment,
                   unsigned int  options){
 
-  fprintf(eps,
-          "%%!PS-Adobe-3.0 EPSF-3.0\n"
-          "%%%%Title: RNA Dot Plot\n"
-          "%%%%Creator: ViennaRNA-%s\n"
-          "%%%%CreationDate: %s"
-          "%%%%BoundingBox: %d %d %d %d\n"
-          "%%%%DocumentFonts: Helvetica\n"
-          "%%%%Pages: 1\n"
-          "%%%%EndComments\n\n"
-          "%%Options: %s\n",
-          VERSION,
-          vrna_time_stamp(),
-          bbox[0], bbox[1], bbox[2], bbox[3],
-          option_string());
+  print_PS_header(eps,
+                  "RNA Dot Plot",
+                  bbox[0], bbox[1], bbox[2], bbox[3]);
+
+  print_PS_options(eps, NULL);
 
   if(comment)
     fprintf(eps,"%% %s\n",comment);
@@ -900,7 +879,7 @@ PS_dot_common(const char *seq,
 
   EPS_print_title(wastl, name);
 
-  EPS_print_seq(wastl, seq);
+  print_PS_sequence(wastl, seq);
 
   if (winsize>0)
     fprintf(wastl,"/winSize %d def\n",winsize);
