@@ -8,28 +8,25 @@
  * @param arc arc
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectLineArc(
-    const double point_1[2],
-    const double point_2[2],
-    const double arc[6]
-);
-
-short intersectArcArc(
-    const double arc1[6],
-    const double arc2[6]
-);
+short intersectLineArc(const double point_1[2],
+                       const double point_2[2],
+                       const double arc[6]);
 
 
-short intersectCircleCircle(
-    const double c1[2], const double c1r,
-    const double c2[2], const double c2r
-);
+short intersectArcArc(const double  arc1[6],
+                      const double  arc2[6]);
 
-short matchLinePoint(
-    const double pLine[2],
-    const double dirLine[2],
-    const double p[2]
-);
+
+short intersectCircleCircle(const double  c1[2],
+                            const double  c1r,
+                            const double  c2[2],
+                            const double  c2r);
+
+
+short matchLinePoint(const double pLine[2],
+                     const double dirLine[2],
+                     const double p[2]);
+
 
 /**
  * @brief intersectLineSegments
@@ -42,10 +39,11 @@ short matchLinePoint(
  * @param P return value for cut point of both line segments
  * @return 1 if intersecting , 0 otherwise
  */
-short intersectLineSegments(
-        const double A[2], const double B[2],
-        const double X[2], const double Y[2],
-        double P[2]
-);
+short intersectLineSegments(const double  A[2],
+                            const double  B[2],
+                            const double  X[2],
+                            const double  Y[2],
+                            double        P[2]);
+
 
 #endif

@@ -6,7 +6,7 @@
 #define EXTERIOR_Y 100.0
 
 #define epsilonRecognize 14 // font size
-#define epsilonFix 19 // font size + 5 @ resolveIntersections.c
+#define epsilonFix 19       // font size + 5 @ resolveIntersections.c
 #define EPSILON_0 1.0
 #define EPSILON_3 1e-3
 #define EPSILON_7 1e-7
@@ -17,32 +17,31 @@
 #define _intersect 0x0001
 #define _changed   0x0002
 
-typedef struct
-{
-    /// variables fixed during operation
-    // drawing behavior
-    short drawArcs;
-    double paired;
-    double unpaired;
+typedef struct {
+  /// variables fixed during operation
+  // drawing behavior
+  short       drawArcs;
+  double      paired;
+  double      unpaired;
 
-    // intersection resolution behavior
-    short checkAncestorIntersections;
-    short checkSiblingIntersections;
-    short checkExteriorIntersections;
-    short allowFlipping;
-    short optimize;
-    int maximumNumberOfConfigChangesAllowed;
+  // intersection resolution behavior
+  short       checkAncestorIntersections;
+  short       checkSiblingIntersections;
+  short       checkExteriorIntersections;
+  short       allowFlipping;
+  short       optimize;
+  int         maximumNumberOfConfigChangesAllowed;
 
 
-    // import behavior - unused for now
-    char* config; // file path
+  // import behavior - unused for now
+  char        *config; // file path
 
-    // other stuff
-    const char* filename;
+  // other stuff
+  const char  *filename;
 
-    /// variables changed during operation
-    int numberOfChangesAppliedToConfig;
-    int psNumber;
+  /// variables changed during operation
+  int         numberOfChangesAppliedToConfig;
+  int         psNumber;
 } puzzlerOptions;
 
 /**
@@ -50,21 +49,22 @@ typedef struct
  *      Constructor.
  * @return
  */
-puzzlerOptions* createPuzzlerOptions();
+puzzlerOptions *createPuzzlerOptions();
+
 
 /**
  * @brief
  *      Destructor.
  * @param puzzler
  */
-void destroyPuzzlerOptions(puzzlerOptions* puzzler);
+void destroyPuzzlerOptions(puzzlerOptions *puzzler);
 
-void bubblesort(
-        const int numValues,
-        const double* const valuesLevel1,
-        const double* const valuesLevel2,
-        int* const indices
-);
+
+void bubblesort(const int           numValues,
+                const double *const valuesLevel1,
+                const double *const valuesLevel2,
+                int *const          indices);
+
 
 /**
  * @brief
@@ -76,6 +76,12 @@ void bubblesort(
  * @param distance the distance between two points on the circle
  * @return angle in degree
  */
-double distanceToAngle(const double radius, const double distance);
-double angleToDistance(const double radius, const double degreeAngle);
+double distanceToAngle(const double radius,
+                       const double distance);
+
+
+double angleToDistance(const double radius,
+                       const double degreeAngle);
+
+
 #endif

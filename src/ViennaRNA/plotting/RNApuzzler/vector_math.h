@@ -8,7 +8,10 @@
 #define TO_RAD       (MATH_PI / 180.0)
 
 double toDegree(double angle);
+
+
 double toRad(double angle);
+
 
 /**
  * @brief vectorLength2D
@@ -20,6 +23,7 @@ double toRad(double angle);
  */
 double vectorLength2D(const double vector[2]);
 
+
 /**
  * @brief vectorLength2DSquared
  *      - calculates the squared length of a 2D vector
@@ -29,6 +33,7 @@ double vectorLength2D(const double vector[2]);
  *      - squared length of input vector
  */
 double vectorLength2DSquared(const double vector[2]);
+
 
 /**
  * @brief scalarProduct2D
@@ -41,7 +46,9 @@ double vectorLength2DSquared(const double vector[2]);
  * @return
  *      - scalar product of both given input vectors
  */
-double scalarProduct2D(const double* vector1, const double* vector2);
+double scalarProduct2D(const double *vector1,
+                       const double *vector2);
+
 
 /**
  * @brief normalize
@@ -49,7 +56,8 @@ double scalarProduct2D(const double* vector1, const double* vector2);
  * @param vector
  *      - double array[2] with vector coordinates x,y
  */
-void normalize(double* vector);
+void normalize(double *vector);
+
 
 /**
  * @brief isToTheRightPointPoint determines if a point is left or right to a line.
@@ -58,11 +66,10 @@ void normalize(double* vector);
  * @param point[2]
  * @return 1 if point is right to the vector from lineStart to lineEnd, 0 otherwise
  */
-short isToTheRightPointPoint(
-    const double lineStart[2],
-    const double lineEnd[2],
-    const double point[2]
-);
+short isToTheRightPointPoint(const double lineStart[2],
+                             const double lineEnd[2],
+                             const double point[2]);
+
 
 /**
  * @brief isToTheRightPointVector
@@ -72,11 +79,10 @@ short isToTheRightPointPoint(
  * @param point
  * @return 1 if point is right to the vector starting at lineStart, 0 otherwise
  */
-short isToTheRightPointVector(
-    const double lineStart[2],
-    const double lineVector[2],
-    const double point[2]
-);
+short isToTheRightPointVector(const double  lineStart[2],
+                              const double  lineVector[2],
+                              const double  point[2]);
+
 
 /**
  * @brief angleBetweenVectors2D
@@ -88,7 +94,9 @@ short isToTheRightPointVector(
  * @return
  *      - angle between vector1 and vector2 in degree
  */
-double angleBetweenVectors2D(const double vector1[2], const double vector2[2]);
+double angleBetweenVectors2D(const double vector1[2],
+                             const double vector2[2]);
+
 
 /**
  * @brief anglePtPtPt2D
@@ -102,7 +110,10 @@ double angleBetweenVectors2D(const double vector1[2], const double vector2[2]);
  * @return
  *      - angle defined by points in degree
  */
-double anglePtPtPt2D(const double* p1, const double* p2, const double* p3);
+double anglePtPtPt2D(const double *p1,
+                     const double *p2,
+                     const double *p3);
+
 
 /**
  * @brief normalizeAngle
@@ -111,7 +122,9 @@ double anglePtPtPt2D(const double* p1, const double* p2, const double* p3);
  * @param useDegree
  * @return angle in interval [0,2*PI] or [0,360°]
  */
-double normalizeAngle(const double angle, short useDegree);
+double normalizeAngle(const double  angle,
+                      short         useDegree);
+
 
 /**
  * @brief rotatePointAroundPoint
@@ -128,7 +141,11 @@ double normalizeAngle(const double angle, short useDegree);
  * @param ret
  *      - insert double array[2] here to act as return value
  */
-void rotatePointAroundPoint(const double* point, const double* rotationCenter, const double angle, double* ret);
+void rotatePointAroundPoint(const double  *point,
+                            const double  *rotationCenter,
+                            const double  angle,
+                            double        *ret);
+
 
 /**
  * @brief rotateVectorByAngle
@@ -143,7 +160,10 @@ void rotatePointAroundPoint(const double* point, const double* rotationCenter, c
  * @param ret
  *      - insert double array[2] here to act as return value
  */
-void rotateVectorByAngle(const double* vector, const double angle, double* ret);
+void rotateVectorByAngle(const double *vector,
+                         const double angle,
+                         double       *ret);
+
 
 /**
  * @brief translatePointByVector
@@ -156,7 +176,10 @@ void rotateVectorByAngle(const double* vector, const double angle, double* ret);
  * @param ret
  *      - insert double array[2] here to act as return value
  */
-void translatePointByVector(const double* point, const double* trans, double* ret);
+void translatePointByVector(const double  *point,
+                            const double  *trans,
+                            double        *ret);
+
 
 /**
  * @brief solveSquareEquation
@@ -173,7 +196,12 @@ void translatePointByVector(const double* point, const double* trans, double* re
  * @return
  *      - count of solutions (0, 1 or 2)
  */
-short solveSquareEquation(const double a, const double b, const double c, double* sol1, double* sol2);
+short solveSquareEquation(const double  a,
+                          const double  b,
+                          const double  c,
+                          double        *sol1,
+                          double        *sol2);
+
 
 /**
  * @brief getCutPointsOfCircles
@@ -195,7 +223,13 @@ short solveSquareEquation(const double a, const double b, const double c, double
  * @return
  *      - number of cut points: 0, 1 or 2. -1 if circles match (infinite cut points)
  */
-short getCutPointsOfCircles(const double* c1, const double r1, const double* c2, const double r2, double* ret1, double* ret2);
+short getCutPointsOfCircles(const double  *c1,
+                            const double  r1,
+                            const double  *c2,
+                            const double  r2,
+                            double        *ret1,
+                            double        *ret2);
+
 
 /**
  * @brief getCutPointsOfCircleAndLine
@@ -217,7 +251,13 @@ short getCutPointsOfCircles(const double* c1, const double r1, const double* c2,
  * @return
  *      - number of cut points: 0, 1 or 2.
  */
-short getCutPointsOfCircleAndLine(const double* center, const double radius, const double* anchor, const double* direction, double* ret1, double* ret2);
+short getCutPointsOfCircleAndLine(const double  *center,
+                                  const double  radius,
+                                  const double  *anchor,
+                                  const double  *direction,
+                                  double        *ret1,
+                                  double        *ret2);
+
 
 /**
  * @brief vector
@@ -229,7 +269,10 @@ short getCutPointsOfCircleAndLine(const double* center, const double radius, con
  * @param v
  *      - double array[2] used to return the vector
  */
-void vector(const double pStart[2], const double pEnd[2], double v[2]);
+void vector(const double  pStart[2],
+            const double  pEnd[2],
+            double        v[2]);
+
 
 /**
  * @brief normal
@@ -240,9 +283,13 @@ void vector(const double pStart[2], const double pEnd[2], double v[2]);
  * @param n
  *      - double array[2] used to return the normal vector
  */
-void normal(const double v[2], double n[2]);
+void normal(const double  v[2],
+            double        n[2]);
 
-void unit(const double v[2], double u[2]);
+
+void unit(const double  v[2],
+          double        u[2]);
+
 
 /**
  * @brief min
@@ -252,7 +299,9 @@ void unit(const double v[2], double u[2]);
  * @return
  *      - the smaller number
  */
-double min(const double number1, const double number2);
+double min(const double number1,
+           const double number2);
+
 
 /**
  * @brief sign
@@ -263,6 +312,12 @@ double min(const double number1, const double number2);
  */
 double sign(const double number);
 
-void circle(const double A[2], const double B[2], const double C[2], double center[2], double* radius);
+
+void circle(const double  A[2],
+            const double  B[2],
+            const double  C[2],
+            double        center[2],
+            double        *radius);
+
 
 #endif

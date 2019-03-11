@@ -14,27 +14,26 @@
  * beginning at small subtrees (e.g. leafs) and going up in that tree
  * level by level until the root is reached and any intersection is gone.
  */
-typedef struct configtree
-{
-    // node name
-    int id;
+typedef struct configtree {
+  // node name
+  int                     id;
 
-    // tree information
-    struct configtree*  parent;
-    struct configtree** children;
-    int childCount;
+  // tree information
+  struct configtree       *parent;
+  struct configtree       **children;
+  int                     childCount;
 
-    // RNA data
-    config* cfg;
-    int loop_start;
-    int stem_start;
+  // RNA data
+  config                  *cfg;
+  int                     loop_start;
+  int                     stem_start;
 
-    // for intersection handling
-    struct boundingboxLoop* lBox; // bounding box for this loop         first base at loop_start
-    struct boundingboxStem* sBox; // bounding box for the prior stem    first base at stem_start
+  // for intersection handling
+  struct boundingboxLoop  *lBox;  // bounding box for this loop         first base at loop_start
+  struct boundingboxStem  *sBox;  // bounding box for the prior stem    first base at stem_start
 
-    // AABB
-    AABB aabb;
+  // AABB
+  AABB                    aabb;
 } treeNode;
 
 #endif

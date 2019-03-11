@@ -10,10 +10,8 @@
  * @param node: node to check
  * @param puzzler: puzzlerOptions
  */
-short checkSiblings(
-        treeNode* node,
-        puzzlerOptions* puzzler
-);
+short checkSiblings(treeNode        *node,
+                    puzzlerOptions  *puzzler);
 
 
 #endif

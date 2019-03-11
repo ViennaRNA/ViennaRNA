@@ -11,7 +11,9 @@
  * @param stem2
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectStemStem(const stemBox* stem1, const stemBox* stem2);
+short intersectStemStem(const stemBox *stem1,
+                        const stemBox *stem2);
+
 
 /**
  * @brief intersectLoopLoop
@@ -20,7 +22,9 @@ short intersectStemStem(const stemBox* stem1, const stemBox* stem2);
  * @param loop2
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectLoopLoop(const loopBox* loop1, const loopBox* loop2);
+short intersectLoopLoop(const loopBox *loop1,
+                        const loopBox *loop2);
+
 
 /**
  * @brief intersectStemLoop
@@ -29,7 +33,9 @@ short intersectLoopLoop(const loopBox* loop1, const loopBox* loop2);
  * @param loop
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectStemLoop(const stemBox* stem , const loopBox* loop );
+short intersectStemLoop(const stemBox *stem,
+                        const loopBox *loop);
+
 
 /**
  * @brief intersectLoopBulges
@@ -39,13 +45,20 @@ short intersectStemLoop(const stemBox* stem , const loopBox* loop );
  * @param bulge
  * @return 1 if intersecting, 0 otherwise
  */
-short intersectLoopBulges(const loopBox* loop, const stemBox* stem, int* bulge);
+short intersectLoopBulges(const loopBox *loop,
+                          const stemBox *stem,
+                          int           *bulge);
+
 
 /**
  * @brief intersectBulgesBulges
  * @return
  */
-short intersectBulgesBulges(const stemBox* stem1, const stemBox* stem2, int* bulge1, int* bulge2);
+short intersectBulgesBulges(const stemBox *stem1,
+                            const stemBox *stem2,
+                            int           *bulge1,
+                            int           *bulge2);
+
 
 /**
  * @brief intersectStemBulges
@@ -54,6 +67,9 @@ short intersectBulgesBulges(const stemBox* stem1, const stemBox* stem2, int* bul
  * @param bulge2
  * @return
  */
-short intersectStemBulges(const stemBox* stem1, const stemBox* stem2, int* bulge2);
+short intersectStemBulges(const stemBox *stem1,
+                          const stemBox *stem2,
+                          int           *bulge2);
+
 
 #endif

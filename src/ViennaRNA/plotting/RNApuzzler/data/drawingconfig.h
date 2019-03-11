@@ -5,8 +5,13 @@
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h>
 #include <ViennaRNA/plotting/RNApuzzler/definitions.h>
 
-double getArcAngle(const config *cfg, const int currentArc);
-double getArcAngleDegree(const config *cfg, const int currentArc);
+double getArcAngle(const config *cfg,
+                   const int    currentArc);
+
+
+double getArcAngleDegree(const config *cfg,
+                         const int    currentArc);
+
 
 /**
  * @brief cfgPrintConfig
@@ -15,6 +20,7 @@ double getArcAngleDegree(const config *cfg, const int currentArc);
  *      - config to print
  */
 void cfgPrintConfig(config *config);
+
 
 /**
  * @brief cfgGenerateConfig
@@ -28,12 +34,11 @@ void cfgPrintConfig(config *config);
  * @param paired
  *      - default distance between paired bases
  */
-void cfgGenerateConfig(
-    const short *const pair_table,
-    tBaseInformation *baseInformation,
-    const double unpaired,
-    const double paired
-);
+void cfgGenerateConfig(const short *const pair_table,
+                       tBaseInformation   *baseInformation,
+                       const double       unpaired,
+                       const double       paired);
+
 
 /**
  * @brief cfgCloneConfig
@@ -44,6 +49,7 @@ void cfgGenerateConfig(
  */
 config *cfgCloneConfig(const config *cfg);
 
+
 /**
  * @brief cfgFreeConfig
  *      - prints the given config to the terminal
@@ -51,6 +57,7 @@ config *cfgCloneConfig(const config *cfg);
  *      - config to free
  */
 void cfgFreeConfig(config *cfg);
+
 
 /**
  * Function to apply a set of config changes.
@@ -64,13 +71,12 @@ void cfgFreeConfig(config *cfg);
  * @param radiusNew desired radius to set while applying deltas
  * @param puzzler
  */
-double cfgApplyChanges(
-    config* cfg,
-    const char loopName,
-    const double* deltaCfg,
-    const double radiusNew,
-    const puzzlerOptions* puzzler
-);
+double cfgApplyChanges(config               *cfg,
+                       const char           loopName,
+                       const double         *deltaCfg,
+                       const double         radiusNew,
+                       const puzzlerOptions *puzzler);
+
 
 /**
  * @brief cfgIsValid
@@ -83,10 +89,9 @@ double cfgApplyChanges(
  *        in degree format
  * @return true iff config is valid
  */
-short cfgIsValid(
-    config* config,
-    const double* deltaCfg
-);
+short cfgIsValid(config       *config,
+                 const double *deltaCfg);
+
 
 /**
  * @brief intToMotiv
@@ -97,5 +102,6 @@ short cfgIsValid(
  *      - motiv name as char
  */
 char intToMotiv(const int _int);
+
 
 #endif
