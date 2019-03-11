@@ -358,7 +358,7 @@ vrna_pf_float_precision(void);
  *
  *  @deprecated   set the @e uniq_ML flag in #vrna_md_t before passing it to vrna_fold_compound().
  *
- *  @ingroup subopt_stochbt
+ *  @ingroup subopt_stochbt_deprecated
  *
  *  @see pbacktrack(), pbacktrack_circ
  */
@@ -488,15 +488,21 @@ DEPRECATED(float   pf_circ_fold(const char  *sequence,
 /**
  *  @brief Sample a secondary structure from the Boltzmann ensemble according its probability
  *
- *  @ingroup subopt_stochbt
  *  @pre    #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()
  *  @pre    pf_fold_par() or pf_fold() have to be called first to fill the partition function matrices
+ *
+ *  @ingroup subopt_stochbt_deprecated
  *
  *  @param  sequence  The RNA sequence
  *  @return           A sampled secondary structure in dot-bracket notation
  */
 DEPRECATED(char *pbacktrack(char *sequence), "Use vrna_pbacktrack() instead");
 
+/**
+ *  @brief Sample a sub-structure from the Boltzmann ensemble according its probability
+ *
+ *  @ingroup subopt_stochbt_deprecated
+ */
 DEPRECATED(char *pbacktrack5(char *sequence,
                              int  length), "Use vrna_pbacktrack5() instead");
 
@@ -505,12 +511,12 @@ DEPRECATED(char *pbacktrack5(char *sequence,
  *
  *  This function does the same as @ref pbacktrack() but assumes the RNA molecule to be circular
  *
- *  @ingroup subopt_stochbt
- *
  *  @pre    #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()
  *  @pre    pf_fold_par() or pf_circ_fold() have to be called first to fill the partition function matrices
  *
  *  @deprecated Use vrna_pbacktrack() instead.
+ *
+ *  @ingroup subopt_stochbt_deprecated
  *
  *  @param  sequence  The RNA sequence
  *  @return           A sampled secondary structure in dot-bracket notation

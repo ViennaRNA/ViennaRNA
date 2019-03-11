@@ -227,19 +227,6 @@ formats, and various output file formats produced by our library.
 @defgroup   eval_loops_mb             Multibranch Loops
 @ingroup    eval_loops
 
-
-@defgroup   mfe_global_deprecated     Deprecated Interface for Global MFE Prediction
-@ingroup    mfe_global
-
-@defgroup   mfe_window_deprecated     Deprecated Interface for Local (Sliding Window) MFE Prediction
-@ingroup    mfe_window
-
-@defgroup   part_func_global_deprecated Deprecated Interface for Global Partition Function Computation
-@ingroup    part_func_global
-
-@defgroup   part_func_window_deprecated  Deprecated Interface for Local (Sliding Window) Partition Function Computation
-@ingroup    part_func_window
-
 @defgroup   pf_cofold                 Partition Function for Two Hybridized Sequences
 @ingroup    cofold
 
@@ -279,14 +266,8 @@ formats, and various output file formats produced by our library.
 @defgroup   struct_utils_tree         Tree Representation of Secondary Structures
 @ingroup    struct_utils
 
-@defgroup   struct_utils_deprecated   Deprecated Interface for Secondary Structure Utilities
-@ingroup    struct_utils
-
 @defgroup   aln_utils                 Multiple Sequence Alignment Utilities
 @ingroup    utils
-
-@defgroup   aln_utils_deprecated      Deprecated Interface for Multiple Sequence Alignment Utilities
-@ingroup    aln_utils
 
 @defgroup   file_utils                Files and I/O
 @ingroup    utils
@@ -332,5 +313,26 @@ formats, and various output file formats produced by our library.
 
 @defgroup   buffer_utils              Buffers
 @ingroup    data_structures
+
+@defgroup   mfe_global_deprecated     Deprecated Interface for Global MFE Prediction
+@ingroup    mfe_global
+
+@defgroup   mfe_window_deprecated     Deprecated Interface for Local (Sliding Window) MFE Prediction
+@ingroup    mfe_window
+
+@defgroup   part_func_global_deprecated Deprecated Interface for Global Partition Function Computation
+@ingroup    part_func_global
+
+@defgroup   part_func_window_deprecated  Deprecated Interface for Local (Sliding Window) Partition Function Computation
+@ingroup    part_func_window
+
+@defgroup   subopt_stochbt_deprecated Deprecated Interface for Stochastic Backtracking
+@ingroup    subopt_stochbt
+
+@defgroup   aln_utils_deprecated      Deprecated Interface for Multiple Sequence Alignment Utilities
+@ingroup    aln_utils
+
+@defgroup   struct_utils_deprecated   Deprecated Interface for Secondary Structure Utilities
+@ingroup    struct_utils
 
 */
