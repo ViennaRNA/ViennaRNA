@@ -94,7 +94,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
   /* create default puzzleroptions, if functions was not called directly by RNAplot. */
   if(!puzzler)
   {
-    puzzlerOptions* puzzler = createPuzzlerOptions();
+    puzzler = createPuzzlerOptions();
     puzzler->filename = ssfile;
     puzzler->drawArcs = 1;
 
