@@ -269,13 +269,14 @@ int file_PS_rnaplot_a(std::string sequence,
     return vrna_file_PS_aln(filename.c_str(), (const char **)&aln_vec[0], (const char **)&id_vec[0], structure.c_str(), columns);
   }
 
-  int file_PS_aln_sub(std::string filename,
-                      std::vector<std::string> alignment,
-                      std::vector<std::string> identifiers,
-                      std::string structure,
-                      int start,
-                      int end,
-                      int columns = 60)
+  int file_PS_aln_slice(std::string filename,
+                        std::vector<std::string> alignment,
+                        std::vector<std::string> identifiers,
+                        std::string structure,
+                        int start,
+                        int end,
+                        int offset = 0,
+                        int columns = 60)
   {
     std::vector<const char*> aln_vec;
     std::transform(alignment.begin(), alignment.end(), std::back_inserter(aln_vec), convert_vecstring2veccharcp);
@@ -284,7 +285,7 @@ int file_PS_rnaplot_a(std::string sequence,
     std::transform(alignment.begin(), alignment.end(), std::back_inserter(id_vec), convert_vecstring2veccharcp);
     id_vec.push_back(NULL); /* mark end of sequences */
 
-    return vrna_file_PS_aln_sub(filename.c_str(), (const char **)&aln_vec[0], (const char **)&id_vec[0], structure.c_str(), start, end, columns);
+    return vrna_file_PS_aln_slice(filename.c_str(), (const char **)&aln_vec[0], (const char **)&id_vec[0], structure.c_str(), start, end, offset, columns);
   }
 
 %}
@@ -317,20 +318,14 @@ int file_PS_aln(std::string filename,
                 std::vector<std::string> identifiers,
                 std::string structure);
 
-int file_PS_aln_sub(std::string filename,
-                    std::vector<std::string> alignment,
-                    std::vector<std::string> identifiers,
-                    std::string structure,
-                    int start,
-                    int end,
-                    int columns);
-
-int file_PS_aln_sub(std::string filename,
-                    std::vector<std::string> alignment,
-                    std::vector<std::string> identifiers,
-                    std::string structure,
-                    int start,
-                    int end);
+int file_PS_aln_slice(std::string filename,
+                      std::vector<std::string> alignment,
+                      std::vector<std::string> identifiers,
+                      std::string structure,
+                      int start,
+                      int end,
+                      int offset = 0,
+                      int columns = 60);
 
 %ignore PS_color_aln;
 %ignore aliPS_color_aln;

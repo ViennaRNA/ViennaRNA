@@ -681,21 +681,17 @@ print_hit_cb(int        start,
         fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
 
       tmp_string = vrna_filename_sanitize(fname, "_");
-      free(fname);
-      fname = tmp_string;
-      char **sub_orig = vrna_aln_slice((const char **)strings_orig,
-                                       (unsigned int)start,
-                                       (unsigned int)end);
 
-      vrna_file_PS_aln_sub(fname,
-                           (const char **)sub_orig,
-                           (const char **)names,
-                           ss,
-                           start,
-                           -1,
-                           columns);
+      vrna_file_PS_aln_slice(tmp_string,
+                             (const char **)strings_orig,
+                             (const char **)names,
+                             ss - start + 1,  
+                             start,           
+                             end,             
+                             0,               
+                             columns);        
       free(fname);
-      vrna_aln_free(sub_orig);
+      free(tmp_string);
     }
 
     if (with_stk) {
