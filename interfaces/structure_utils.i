@@ -266,6 +266,9 @@ my_dist_mountain(std::string str1,
  *  Rename 'struct vrna_ep_t' to target language class 'ep'
  *  and create necessary wrapper extensions
  */
+
+%nodefaultctor vrna_ep_t;
+
 %rename (ep) vrna_ep_t;
 
 %newobject vrna_ep_t::__str__;
@@ -278,6 +281,23 @@ typedef struct {
 } vrna_ep_t;
 
 %extend vrna_ep_t {
+
+    vrna_ep_t(unsigned int  i,
+              unsigned int  j,
+              float         p     = 1.,
+              int           type  = VRNA_PLIST_TYPE_BASEPAIR) {
+
+      vrna_ep_t *pair;
+
+      pair        = (vrna_ep_t *)vrna_alloc(sizeof(vrna_ep_t));
+      pair->i     = (int)i;
+      pair->j     = (int)j;
+      pair->p     = p;
+      pair->type  = type;
+
+      return pair;
+    }
+
     char *__str__() {
       char *tmp = vrna_strdup_printf("[ i: %d, j: %d, p: %.10g, t: %2d ]", $self->i, $self->j, $self->p, $self->type);
       return tmp;
@@ -315,9 +335,20 @@ typedef struct {
   }
 
   std::string db_from_plist(std::vector<vrna_ep_t> pairs, unsigned int length) {
+    vrna_ep_t last_elem;
+    last_elem.i     = last_elem.j = 0;
+    last_elem.p     = 0;
+    last_elem.type  = 0;
+
+    pairs.push_back(last_elem);
+
     char *str = vrna_db_from_plist(&pairs[0], length);
     std::string ret(str);
     free(str);
+
+    /* remove end-of-list marker */
+    pairs.pop_back();
+
     return ret;
   }
 %}
