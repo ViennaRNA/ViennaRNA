@@ -604,7 +604,7 @@ print_hit_cb(int        start,
   if ((en / (float)(end - start + 1)) <= threshold) {
     sub   = vrna_aln_slice((const char **)strings, (unsigned int)start, (unsigned int)end);
     cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
-    A     = vrna_annotate_covar_struct((const char **)sub, ss, md);
+    A     = vrna_annotate_covar_db((const char **)sub, ss, md);
 
 
     if (split_energies) {

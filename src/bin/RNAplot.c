@@ -667,7 +667,7 @@ process_alignment_record(struct record_data_msa *record)
     ffname = vrna_strdup_printf("alirna");
 
   if (opt->annotate_covar) {
-    A = vrna_annotate_covar_struct((const char **)record->alignment, structure, &(opt->md));
+    A = vrna_annotate_covar_db((const char **)record->alignment, structure, &(opt->md));
 
     if (pre)
       pre = vrna_strdup_printf("%s\n%s", pre, A[0]);

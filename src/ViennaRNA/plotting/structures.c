@@ -16,11 +16,12 @@
 #include <ctype.h>
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/plotting/layouts.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/plotting/utils.h"
 #include "ViennaRNA/plotting/structures.h"
 
 #include "ViennaRNA/static/templates_postscript.h"
@@ -56,9 +57,6 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
-
-PRIVATE char **annote(const char *structure, const char *AS[]);
-
 
 /*
 #################################
@@ -151,6 +149,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
      ymax = Y[i] > ymax ? Y[i] : ymax;
   }
 
+
   print_PS_header(xyplot,
                   "RNA Secondary Structure Plot",
                   0, 0, 700, 700);
@@ -230,6 +229,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
     fprintf(xyplot, "%s\n", post);
     fprintf(xyplot, "%% End Annotations\n");
   }
+
   fprintf(xyplot, "%% show it\nshowpage\n");
   fprintf(xyplot, "end\n");
   fprintf(xyplot, "%%%%EOF\n");
@@ -339,6 +339,9 @@ PS_rna_plot_snoop_a(const char *string,
   FILE  *xyplot;
   short *pair_table;
   short *pair_table_snoop;
+  vrna_md_t md;
+
+  set_model_details(&md);
 
   length = strlen(string);
 
@@ -534,7 +537,10 @@ PS_rna_plot_snoop_a(const char *string,
   char **A;
   fprintf(xyplot, "%s", PS_structure_plot_macro_extras);
   if(seqs){
-    A = annote(structure, (const char**) seqs);
+    A = vrna_annotate_covar_db_extended((const char **)seqs,
+                                        structure,
+                                        &md,
+                                        VRNA_BRACKETS_RND | VRNA_BRACKETS_ANG | VRNA_BRACKETS_SQR);
   }
   fprintf(xyplot, "%%%%EndProlog\n");
   
@@ -609,6 +615,7 @@ PS_rna_plot_snoop_a(const char *string,
      fprintf(xyplot, "%s\n", A[1]); 
      fprintf(xyplot, "%% End Annotations\n"); 
    } 
+
   fprintf(xyplot, "%% show it\nshowpage\n");
   fprintf(xyplot, "end\n");
   fprintf(xyplot, "%%%%EOF\n");
@@ -619,81 +626,6 @@ PS_rna_plot_snoop_a(const char *string,
   free(X); free(Y);
   return 1; /* success */
 }
-
-
-PRIVATE char **annote(const char *structure, const char *AS[]) {
-  char *ps, *colorps, **A;
-  int i, n, s, pairings, maxl;
-  short *ptable;
-  char * colorMatrix[6][3] = {
-    {"0.0 1", "0.0 0.6",  "0.0 0.2"},  /* red    */
-    {"0.16 1","0.16 0.6", "0.16 0.2"}, /* ochre  */
-    {"0.32 1","0.32 0.6", "0.32 0.2"}, /* turquoise */
-    {"0.48 1","0.48 0.6", "0.48 0.2"}, /* green  */
-    {"0.65 1","0.65 0.6", "0.65 0.2"}, /* blue   */
-    {"0.81 1","0.81 0.6", "0.81 0.2"} /* violet */
-  };
-
-  vrna_md_t   md;
-  set_model_details(&md);
-
-  n = strlen(AS[0]);
-  maxl = 1024;
-
-  A = (char **) vrna_alloc(sizeof(char *)*2);
-  ps = (char *) vrna_alloc(maxl);
-  colorps = (char *) vrna_alloc(maxl);
-  ptable = vrna_pt_ali_get(structure);
-  for (i=1; i<=n; i++) {
-    char pps[64], ci='\0', cj='\0';
-    int j, type, pfreq[8] = {0,0,0,0,0,0,0,0}, vi=0, vj=0;
-    if ((j=ptable[i])<i) continue;
-    for (s=0; AS[s]!=NULL; s++) {
-      type = md.pair[vrna_nucleotide_encode(AS[s][i-1], &md)][vrna_nucleotide_encode(AS[s][j-1], &md)];
-      pfreq[type]++;
-      if (type) {
-        if (AS[s][i-1] != ci) { ci = AS[s][i-1]; vi++;}
-        if (AS[s][j-1] != cj) { cj = AS[s][j-1]; vj++;}
-      }
-    }
-    for (pairings=0,s=1; s<=7; s++) {
-      if (pfreq[s]) pairings++;
-    }
-
-    if ((maxl - strlen(ps) < 192) || ((maxl - strlen(colorps)) < 64)) {
-      maxl *= 2;
-      ps = realloc(ps, maxl);
-      colorps = realloc(colorps, maxl);
-      if ((ps==NULL) || (colorps == NULL))
-          vrna_message_error("out of memory in realloc");
-    }
-
-    if (pfreq[0]<=2) {
-      snprintf(pps, 64, "%d %d %s colorpair\n",
-               i,j, colorMatrix[pairings-1][pfreq[0]]);
-      strcat(colorps, pps);
-    }
-
-    if (pfreq[0]>0) {
-      snprintf(pps, 64, "%d %d %d gmark\n", i, j, pfreq[0]);
-      strcat(ps, pps);
-    }
-    if (vi>1) {
-      snprintf(pps, 64, "%d cmark\n", i);
-      strcat(ps, pps);
-    }
-    if (vj>1) {
-      snprintf(pps, 64, "%d cmark\n", j);
-      strcat(ps, pps);
-    }
-  }
-  free(ptable);
-  A[0]=colorps;
-  A[1]=ps;
-  return A;
-}
-
-/*--------------------------------------------------------------------------*/
 
 
 int svg_rna_plot(char *string, char *structure, char *ssfile)

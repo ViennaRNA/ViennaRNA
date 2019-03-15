@@ -1241,7 +1241,7 @@ postscript_layout(const char      *filename,
 {
   char **A;
 
-  A = vrna_annotate_covar_struct(alignment, consensus_structure, &(opt->md));
+  A = vrna_annotate_covar_db(alignment, consensus_structure, &(opt->md));
 
   if (opt->color) {
     THREADSAFE_FILE_OUTPUT(
