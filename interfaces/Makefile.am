@@ -54,6 +54,7 @@ DOXYGEN_DOCUMENTATION = \
     neighbor.dox \
     params.dox \
     part_func.dox \
+    plotting.dox \
     subopt.dox \
     walk.dox
 
