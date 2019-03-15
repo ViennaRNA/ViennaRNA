@@ -84,7 +84,7 @@ vrna_file_PS_aln_slice(const char   *filename,
 {
   /* produce PS sequence alignment color-annotated by consensus structure */
 
-  int       N, i, j, k, x, y, tmp, columnWidth;
+  int       N, i, j, k, x, y, tmp, columnWidth, bbox[4];
   char      *tmpBuffer, *ssEscaped, *ruler, *cons, *substructure;
   char      c;
   float     fontWidth, fontHeight, imageHeight, imageWidth, tmpColumns;
@@ -187,12 +187,19 @@ vrna_file_PS_aln_slice(const char   *filename,
                 ceil((float)length / columnWidth) *
                 ((N + 2) * lineStep + blockStep + consStep + ssStep + rulerStep);
 
+  bbox[0] = bbox[1] = 0;
+  bbox[2] = (int)imageWidth;
+  bbox[3] = (int)imageHeight;
+
   /* Write postscript header including correct bounding box */
   print_PS_header(outfile,
                   "ViennaRNA Package - Alignment",
-                  0, 0, (int)imageWidth, (int)imageHeight);
+                  bbox,
+                  &md,
+                  NULL,
+                  "ALNdict",
+                  PS_MACRO_ALN_BASE);
 
-  fprintf(outfile, "%s", PS_aln_macro_base);
   fprintf(outfile, "0 %d translate\n"
           "1 -1 scale\n"
           "/Courier findfont\n"
@@ -381,7 +388,8 @@ vrna_file_PS_aln_slice(const char   *filename,
   }
   free(cons);
 
-  fprintf(outfile, "showpage\n");
+  print_PS_footer(outfile);
+
   fclose(outfile);
 
   free(tmpBuffer);

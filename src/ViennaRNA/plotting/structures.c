@@ -83,7 +83,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
 
   float  xmin, xmax, ymin, ymax;
   int    i, length;
-  int    ee, gb, ge, Lg, l[3];
+  int    ee, gb, ge, Lg, l[3], bbox[4];
   float *X, *Y;
   FILE  *xyplot;
   short *pair_table, *pair_table_g;
@@ -149,24 +149,19 @@ vrna_file_PS_rnaplot_a( const char *seq,
      ymax = Y[i] > ymax ? Y[i] : ymax;
   }
 
+  bbox[0] = bbox[1] = 0;
+  bbox[2] = bbox[3] = 700;
 
   print_PS_header(xyplot,
                   "RNA Secondary Structure Plot",
-                  0, 0, 700, 700);
+                  bbox,
+                  md_p,
+                  "To switch off outline pairs of sequence comment or\n"
+                  "delete the appropriate line near the end of the file",
+                  "RNAplot",
+                  PS_MACRO_LAYOUT_BASE | ((pre || post) ? PS_MACRO_LAYOUT_EXTRAS : 0));
 
-  print_PS_options(xyplot, md_p);
-
-  print_PS_help_structure(xyplot);
-
-  fprintf(xyplot, "%%%%BeginProlog\n");
-  fprintf(xyplot, "%s", PS_structure_plot_macro_base);
-  if (pre || post)
-    fprintf(xyplot, "%s", PS_structure_plot_macro_extras);
-
-  fprintf(xyplot, "%%%%EndProlog\n");
-
-  fprintf(xyplot, "RNAplot begin\n"
-          "%% data start here\n");
+  fprintf(xyplot, "%% data start here\n");
 
   /* cut_point */
   if ((c = strchr(structure, '&'))) {
@@ -230,9 +225,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
     fprintf(xyplot, "%% End Annotations\n");
   }
 
-  fprintf(xyplot, "%% show it\nshowpage\n");
-  fprintf(xyplot, "end\n");
-  fprintf(xyplot, "%%%%EOF\n");
+  print_PS_footer(xyplot);
 
   fclose(xyplot);
 
@@ -334,7 +327,7 @@ PS_rna_plot_snoop_a(const char *string,
                     int *relative_access,
                     const char *seqs[])
 {
-  int    i, length;
+  int    i, length, bbox[4];
   float *X, *Y;
   FILE  *xyplot;
   short *pair_table;
@@ -524,28 +517,27 @@ PS_rna_plot_snoop_a(const char *string,
      Y[i-1] = Y[i-1] + 0.25*(yC-Y[i-1]);  
   }  
 
+  bbox[0] = bbox[1] = 0;
+  bbox[2] = bbox[3] = 700;
+
   print_PS_header(xyplot,
                   "RNA Secondary Structure Plot",
-                  0, 0, 700, 700);
+                  bbox,
+                  &md,
+                  "To switch off outline pairs of sequence comment or\n"
+                  "delete the appropriate line near the end of the file",
+                  "RNAplot",
+                  PS_MACRO_LAYOUT_BASE | PS_MACRO_LAYOUT_EXTRAS);
 
-  print_PS_options(xyplot, NULL);
-
-  print_PS_help_structure(xyplot);
-
-  fprintf(xyplot, "%%%%BeginProlog\n");
-  fprintf(xyplot, "%s", PS_structure_plot_macro_base);
   char **A;
-  fprintf(xyplot, "%s", PS_structure_plot_macro_extras);
   if(seqs){
     A = vrna_annotate_covar_db_extended((const char **)seqs,
                                         structure,
                                         &md,
                                         VRNA_BRACKETS_RND | VRNA_BRACKETS_ANG | VRNA_BRACKETS_SQR);
   }
-  fprintf(xyplot, "%%%%EndProlog\n");
   
-  fprintf(xyplot, "RNAplot begin\n"
-          "%% data start here\n");
+  fprintf(xyplot, "%% data start here\n");
   /* cut_point */
   if (cut_point > 0 && cut_point <= strlen(string))
     fprintf(xyplot, "/cutpoint %d def\n", cut_point-1);
@@ -616,9 +608,7 @@ PS_rna_plot_snoop_a(const char *string,
      fprintf(xyplot, "%% End Annotations\n"); 
    } 
 
-  fprintf(xyplot, "%% show it\nshowpage\n");
-  fprintf(xyplot, "end\n");
-  fprintf(xyplot, "%%%%EOF\n");
+  print_PS_footer(xyplot);
 
   fclose(xyplot);
   if(seqs){free(A[0]);free(A[1]);free(A);}
