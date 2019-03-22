@@ -118,6 +118,15 @@ option  "noPS"  -
 flag
 off
 
+option  "noDP"  -
+"Do not produce dot-plot postscript file containing base pair or stack probabilitities.\n"
+details="In combination with the -p option, this flag turns-off creation of individual\
+ dot-plot files. Consequently, computed base pair probability output is omitted but centroid\
+ and MEA structure prediction is still performed.\n\n"
+flag
+dependon="partfunc"
+off
+
 option  "noconv"  -
 "Do not automatically substitute nucleotide \"T\" with \"U\"\n\n"
 flag

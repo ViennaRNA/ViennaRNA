@@ -56,6 +56,7 @@ struct options {
   char            *filename_delim;
   int             pf;
   int             noPS;
+  int             noDP;
   int             noconv;
   int             MEA;
   double          MEAgamma;
@@ -231,6 +232,7 @@ init_default_options(struct options *opt)
   opt->filename_delim = NULL;
   opt->pf             = 0;
   opt->noPS           = 0;
+  opt->noDP           = 0;
   opt->noconv         = 0;
   opt->MEA            = 0;
   opt->MEAgamma       = 1.;
@@ -369,6 +371,10 @@ main(int  argc,
   /* do not produce postscript output */
   if (args_info.noPS_given)
     opt.noPS = 1;
+
+  /* do not produce dot-plot output */
+  if (args_info.noDP_given)
+    opt.noDP = 1;
 
   /* partition function settings */
   if (args_info.partfunc_given) {
@@ -1064,17 +1070,20 @@ process_record(struct record_data *record)
         fclose(aliout);
       });
 
-      cp = vrna_annotate_covar_pairs((const char **)alignment,
-                                     pl,
-                                     mfel,
-                                     opt->bppmThreshold,
-                                     &(opt->md));
+      if (!opt->noDP) {
+        cp = vrna_annotate_covar_pairs((const char **)alignment,
+                                       pl,
+                                       mfel,
+                                       opt->bppmThreshold,
+                                       &(opt->md));
 
-      THREADSAFE_FILE_OUTPUT((void)PS_color_dot_plot(consensus_sequence,
-                                                     cp,
-                                                     filename_dot));
+        THREADSAFE_FILE_OUTPUT((void)PS_color_dot_plot(consensus_sequence,
+                                                       cp,
+                                                       filename_dot));
 
-      free(cp);
+        free(cp);
+      }
+
       free(pl);
       free(mfel);
 
