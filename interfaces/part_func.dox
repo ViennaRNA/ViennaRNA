@@ -18,6 +18,12 @@ This function is attached as method @b pf_dimer() to objects of type @em fold_co
 This function is attached as method @b mean_bp_distance() to objects of type @em fold_compound
 @endparblock
 
+@fn double vrna_ensemble_defect(vrna_fold_compound_t *fc, const char *structure)
+@scripting
+@parblock
+This function is attached as method @b ensemble_defect() to objects of type @em fold_compound
+@endparblock
+
 @fn double *vrna_positional_entropy(vrna_fold_compound_t *fc)
 @scripting
 @parblock

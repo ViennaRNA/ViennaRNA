@@ -37,9 +37,13 @@ vrna_pairing_probs(vrna_fold_compound_t *vc,
 /**
  *  @brief Get the mean base pair distance in the thermodynamic ensemble from a probability matrix
  *
- *  @f$<d> = \sum_{a,b} p_a p_b d(S_a,S_b)@f$\n
- *  this can be computed from the pair probs @f$p_ij@f$ as\n
- *  @f$<d> = \sum_{ij} p_{ij}(1-p_{ij})@f$
+ *  @f[
+ *  <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
+ *  @f]
+ *  this can be computed from the pair probs @f$ p_{ij} @f$ as
+ *  @f[
+ *  <d> = \sum_{ij} p_{ij}(1-p_{ij})
+ *  @f]
  *
  *  @ingroup  part_func_global
  *
@@ -55,9 +59,13 @@ vrna_mean_bp_distance_pr(int        length,
 /**
  *  @brief Get the mean base pair distance in the thermodynamic ensemble
  *
- *  @f$<d> = \sum_{a,b} p_a p_b d(S_a,S_b)@f$\n
- *  this can be computed from the pair probs @f$p_ij@f$ as\n
- *  @f$<d> = \sum_{ij} p_{ij}(1-p_{ij})@f$
+ *  @f[
+ *  <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
+ *  @f]
+ *  this can be computed from the pair probs @f$p_{ij}@f$ as
+ *  @f[
+ *  <d> = \sum_{ij} p_{ij}(1-p_{ij})
+ *  @f]
  *
  *  @ingroup  part_func_global
  *
