@@ -98,6 +98,32 @@ vrna_ensemble_defect(vrna_fold_compound_t *fc,
 
 
 /**
+ *  @brief  Compute a vector of positional entropies
+ *
+ *  This function computes the positional entropies from base pair probabilities
+ *  as
+ *  @f[
+ *  S(i) = - \sum_i p_{ij} \log(p_{ij}) - q_i \log(q_i)
+ *  @f]
+ *  with unpaired probabilities @f$ q_i = 1 - \sum_j p_{ij} @f$.
+ *
+ *  Low entropy regions have little
+ *  structural flexibility and the reliability of the predicted structure is
+ *  high. High entropy implies many structural alternatives. While these
+ *  alternatives may be functionally important, they make structure prediction
+ *  more difficult and thus less reliable.
+ *
+ *  @pre  This function requires pre-computed base pair probabilities! Thus,
+ *        vrna_pf() must be called beforehand.
+ *
+ *  @param  fc          A fold_compound with pre-computed base pair probabilities
+ *  @return             A 1-based vector of positional entropies @f$ S(i) @f$. (position 0 contains the sequence length)
+ */
+double *
+vrna_positional_entropy(vrna_fold_compound_t *fc);
+
+
+/**
  *  @brief  Compute stacking probabilities
  *
  *  For each possible base pair @f$(i,j)@f$, compute the probability of a stack

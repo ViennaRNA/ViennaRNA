@@ -18,4 +18,10 @@ This function is attached as method @b pf_dimer() to objects of type @em fold_co
 This function is attached as method @b mean_bp_distance() to objects of type @em fold_compound
 @endparblock
 
+@fn double *vrna_positional_entropy(vrna_fold_compound_t *fc)
+@scripting
+@parblock
+This function is attached as method @b positional_entropy() to objects of type @em fold_compound
+@endparblock
+
 */

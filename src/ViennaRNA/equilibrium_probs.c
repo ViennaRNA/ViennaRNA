@@ -382,6 +382,53 @@ vrna_ensemble_defect(vrna_fold_compound_t *fc,
 }
 
 
+PUBLIC double *
+vrna_positional_entropy(vrna_fold_compound_t *fc)
+{
+  double *pos_ent = NULL;
+
+  if ((fc) &&
+      (fc->exp_matrices) &&
+      (fc->exp_matrices->probs)) {
+    unsigned int  i, j, n;
+    int           *my_iindx, ii, turn;
+    FLT_OR_DBL    *probs;
+    double        log2, a, p, *pp;
+
+    log2      = log(2.);
+    n         = fc->length;
+    my_iindx  = fc->iindx;
+    probs     = fc->exp_matrices->probs;
+    turn      = fc->exp_params->model_details.min_loop_size;
+    pos_ent   = (double *)vrna_alloc(sizeof(double) * (n + 1));
+    pp        = (double *)vrna_alloc(sizeof(double) * (n + 1));
+
+    pos_ent[0] = (double)n;
+
+    for (i = 1; i <= n; i++) {
+      ii = my_iindx[i];
+      for (j = i + turn + 1; j <= n; j++) {
+        p = (double)probs[ii - j];
+        a = (p > 0.) ? p * log(p) : 0.;
+        pos_ent[i] += a;
+        pos_ent[j] += a;
+        pp[i]      += p;
+        pp[j]      += p;
+      }
+    }
+
+    for (i = 1; i <= n; i++) {
+      pos_ent[i] += (pp[i] < 1.) ? (1 - pp[i]) * log(1 - pp[i]) : 0;
+      pos_ent[i] /= -log2;
+    }
+
+    free(pp);
+  }
+
+  return pos_ent;
+}
+
+
 PUBLIC vrna_ep_t *
 vrna_stack_prob(vrna_fold_compound_t  *vc,
                 double                cutoff)

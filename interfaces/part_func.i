@@ -99,6 +99,21 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
   ensemble_defect(std::string structure) {
     return vrna_ensemble_defect($self, structure.c_str());
   }
+
+  std::vector<double>
+  positional_entropy(void) {
+    unsigned int        n;
+    double              *pos_ent;
+    std::vector<double> dv;
+
+    n       = $self->length;
+    pos_ent = vrna_positional_entropy($self);
+
+    if (pos_ent)
+      dv.assign(pos_ent, pos_ent + (n + 1));
+
+    return dv;
+  }
 }
 
 %include  <ViennaRNA/part_func.h>
