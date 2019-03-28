@@ -45,13 +45,15 @@ perl_wrap_bs_cb(const char *stucture, void *data){
   func  = cb->cb;
 
   if(func && SvOK(func)){
+    dSP;
+
     SV *err_tmp;
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV *structureSV = sv_newmortal();
     /* add structure and free energy to perl stack */
     sv_setpv(structureSV, stucture);
@@ -59,7 +61,10 @@ perl_wrap_bs_cb(const char *stucture, void *data){
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    SPAGAIN;
 
     err_tmp = ERRSV;
     if (SvTRUE(err_tmp)) {

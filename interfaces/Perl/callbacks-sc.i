@@ -29,15 +29,19 @@ delete_perl_sc_callback(void * data){
   /* first delete user data */
   if(cb->data && SvOK(cb->data)){
     if(cb->delete_data && SvOK(cb->delete_data)){
+      dSP;
+
       SV *err_tmp;
 
-      dSP;
       ENTER;
       SAVETMPS;
-      PUSHMARK(sp);
+      PUSHMARK(SP);
       XPUSHs(cb->data);
       PUTBACK;
+
       perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+      SPAGAIN;
 
       /* Check the eval first */
       err_tmp = ERRSV;
@@ -207,15 +211,19 @@ sc_add_perl_data( vrna_fold_compound_t *vc,
     cb = (perl_sc_callback_t *)vc->sc->data;
     if(cb->data && SvOK(cb->data)){
       if(cb->delete_data && SvOK(cb->delete_data)){
+        dSP;
+
         SV *err_tmp;
 
-        dSP;
         ENTER;
         SAVETMPS;
-        PUSHMARK(sp);
+        PUSHMARK(SP);
         XPUSHs(cb->data);
         PUTBACK;
+
         perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+        SPAGAIN;
 
         /* Check the eval first */
         err_tmp = ERRSV;
@@ -260,7 +268,7 @@ perl_wrap_sc_f_callback(int i,
                         void *data){
 
   int ret, count;
-  SV *func, *err_tmp;
+  SV *func;
 
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
 
@@ -269,13 +277,16 @@ perl_wrap_sc_f_callback(int i,
   ret = 0;
 
   if(func && SvOK(func)){
+    dSP;
+
+    SV  *err_tmp;
     I32 ax; /* expected by ST(x) macro */
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV* pSVi = sv_newmortal();
     sv_setiv(pSVi, (IV)i);
     XPUSHs(pSVi);
@@ -340,7 +351,7 @@ perl_wrap_sc_exp_f_callback(int i,
 
   int count;
   FLT_OR_DBL ret;
-  SV *func, *err_tmp;
+  SV *func;
 
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
 
@@ -348,13 +359,16 @@ perl_wrap_sc_exp_f_callback(int i,
   ret = 1.0;
 
   if(SvOK(func)){
+    dSP;
+
+    SV  *err_tmp;
     I32 ax; /* expected by ST(x) macro */
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV* pSVi = sv_newmortal();
     sv_setiv(pSVi, (IV)i);
     XPUSHs(pSVi);
@@ -418,16 +432,20 @@ perl_wrap_sc_bt_callback( int i,
                           void *data){
 
   int c, count, len, num_pairs;
-  SV *func, *bp, *err_tmp;
+  SV *func, *bp;
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
   vrna_basepair_t *ptr, *pairs = NULL;
   func = cb->cb_bt;
   /* compose function call */
   if(SvOK(func)){
     dSP;
+
+    SV *err_tmp;
+
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV* pSVi = sv_newmortal();
     sv_setiv(pSVi, (IV)i);
     XPUSHs(pSVi);
@@ -447,6 +465,7 @@ perl_wrap_sc_bt_callback( int i,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN;

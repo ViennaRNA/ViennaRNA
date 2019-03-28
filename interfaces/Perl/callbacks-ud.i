@@ -54,15 +54,20 @@ delete_perl_ud_callback(void * data){
   /* first delete user data */
   if(cb->data && SvOK(cb->data)){
     if(cb->delete_data && SvOK(cb->delete_data)){
+      dSP;
+
       SV *err_tmp;
 
-      dSP;
       ENTER;
       SAVETMPS;
-      PUSHMARK(sp);
+      PUSHMARK(SP);
+
       XPUSHs(cb->data);
       PUTBACK;
+
       perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+      SPAGAIN;
 
       /* Check the eval first */
       err_tmp = ERRSV;
@@ -120,16 +125,21 @@ ud_set_data(vrna_fold_compound_t *vc,
     cb = (perl5_ud_callback_t *)vc->domains_up->data;
     if(cb->data && SvOK(cb->data)){
       if(cb->delete_data && SvOK(cb->delete_data)){
+        dSP;
+
         SV *err_tmp;
 
         /* call Perl subroutine */
-        dSP;
         ENTER;
         SAVETMPS;
-        PUSHMARK(sp);
+        PUSHMARK(SP);
+
         XPUSHs(cb->data);
         PUTBACK;
+
         perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+        SPAGAIN;
 
         /* Check the eval first */
         err_tmp = ERRSV;
@@ -282,17 +292,22 @@ perl5_wrap_ud_prod_rule(vrna_fold_compound_t *vc,
   func = cb->prod_rule;
 
   if(func && SvOK(func)){
+    dSP;
+
     SV *err_tmp;
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     if(cb->data && SvOK(cb->data))  /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    SPAGAIN;
 
     /* Check the eval first */
     err_tmp = ERRSV;
@@ -317,17 +332,22 @@ perl5_wrap_ud_exp_prod_rule(vrna_fold_compound_t *vc,
   func = cb->exp_prod_rule;
 
   if(func && SvOK(func)){
+    dSP;
+
     SV *err_tmp;
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     if(cb->data && SvOK(cb->data))  /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    SPAGAIN;
 
     /* Check the eval first */
     err_tmp = ERRSV;
@@ -351,7 +371,7 @@ perl5_wrap_ud_energy( vrna_fold_compound_t *vc,
                       void *data){
 
   int ret, count;
-  SV *func, *err_tmp;
+  SV *func;
   perl5_ud_callback_t *cb = (perl5_ud_callback_t *)data;
 
   func = cb->energy;
@@ -359,13 +379,16 @@ perl5_wrap_ud_energy( vrna_fold_compound_t *vc,
   ret = 0;
 
   if(func && SvOK(func)){
+    dSP;
+
+    SV  *err_tmp;
     I32 ax; /* expected by ST(x) macro */
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV* pSVi = sv_newmortal();
     sv_setiv(pSVi, (IV)i);
     XPUSHs(pSVi);
@@ -379,6 +402,7 @@ perl5_wrap_ud_energy( vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN; /* refresh local copy of the perl stack pointer */
@@ -423,7 +447,7 @@ perl5_wrap_ud_exp_energy( vrna_fold_compound_t *vc,
 
   int count;
   FLT_OR_DBL ret;
-  SV *func, *err_tmp;
+  SV *func;
 
   perl_sc_callback_t *cb = (perl_sc_callback_t *)data;
 
@@ -431,13 +455,16 @@ perl5_wrap_ud_exp_energy( vrna_fold_compound_t *vc,
   ret = 1.0;
 
   if(SvOK(func)){
+    dSP;
+
+    SV  *err_tmp;
     I32 ax; /* expected by ST(x) macro */
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV* pSVi = sv_newmortal();
     sv_setiv(pSVi, (IV)i);
     XPUSHs(pSVi);
@@ -451,6 +478,7 @@ perl5_wrap_ud_exp_energy( vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN; /* refresh local copy of the perl stack pointer */
@@ -499,13 +527,15 @@ perl5_wrap_ud_prob_add( vrna_fold_compound_t *vc,
   func = cb->prob_add;
 
   if(func && SvOK(func)){
+    dSP;
+
     SV *err_tmp;
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV* pSVi = sv_newmortal();
     sv_setiv(pSVi, (IV)i);
     XPUSHs(pSVi);
@@ -522,7 +552,10 @@ perl5_wrap_ud_prob_add( vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))  /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    SPAGAIN;
 
     /* Check the eval first */
     err_tmp = ERRSV;
@@ -548,20 +581,23 @@ perl5_wrap_ud_prob_get( vrna_fold_compound_t *vc,
 
   int count;
   FLT_OR_DBL ret;
-  SV *func, *err_tmp;
+  SV *func;
   perl5_ud_callback_t *cb = (perl5_ud_callback_t *)data;
 
   func  = cb->prob_add;
   ret   = 0.;
 
   if(SvOK(func)){
+    dSP;
+
+    SV  *err_tmp;
     I32 ax; /* expected by ST(x) macro */
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV* pSVi = sv_newmortal();
     sv_setiv(pSVi, (IV)i);
     XPUSHs(pSVi);
@@ -578,6 +614,7 @@ perl5_wrap_ud_prob_get( vrna_fold_compound_t *vc,
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     count = perl_call_sv(func, G_EVAL | G_ARRAY);
 
     SPAGAIN; /* refresh local copy of the perl stack pointer */

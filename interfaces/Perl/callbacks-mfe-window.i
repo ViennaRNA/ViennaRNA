@@ -49,13 +49,15 @@ perl_wrap_mfe_window_cb(int start, int end, const char *stucture, float energy, 
   func  = cb->cb;
 
   if(func && SvOK(func)){
+    dSP;
+
     SV *err_tmp;
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV *startSV     = sv_newmortal();
     SV *stopSV      = sv_newmortal();
     SV *structureSV = sv_newmortal();
@@ -72,7 +74,10 @@ perl_wrap_mfe_window_cb(int start, int end, const char *stucture, float energy, 
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    SPAGAIN;
 
     err_tmp = ERRSV;
     if (SvTRUE(err_tmp)) {
@@ -96,13 +101,15 @@ perl_wrap_mfe_window_zscore_cb(int start, int end, const char *stucture, float e
   func  = cb->cb;
 
   if(func && SvOK(func)){
+    dSP;
+
     SV *err_tmp;
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV *startSV     = sv_newmortal();
     SV *stopSV      = sv_newmortal();
     SV *structureSV = sv_newmortal();
@@ -122,7 +129,10 @@ perl_wrap_mfe_window_zscore_cb(int start, int end, const char *stucture, float e
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    SPAGAIN;
 
     err_tmp = ERRSV;
     if (SvTRUE(err_tmp)) {
