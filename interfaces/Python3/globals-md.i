@@ -20,6 +20,14 @@
   $result = PyFloat_FromDouble(vrna_md_defaults_betaScale_get());
 }
 
+%typemap(varin) int pf_smooth {
+  vrna_md_defaults_pf_smooth((int)PyLong_AsLong($input));
+}
+
+%typemap(varout) int pf_smooth {
+  $result = PyLong_FromLong((long)vrna_md_defaults_pf_smooth_get());
+}
+
 %typemap(varin) int dangles {
   vrna_md_defaults_dangles((int)PyLong_AsLong($input));
 }
