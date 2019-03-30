@@ -35,7 +35,7 @@ Vendor:         Ivo Hofacker, TBI - University of Vienna
 Packager:       Ronny Lorenz <ronny@tbi.univie.ac.at>
 Distribution:   viennarna-package
 
-Group:          Applications/Engineering
+Group:          Productivity/Scientific/Chemistry
 License:        Free for non commercial use.
 URL:            @PACKAGE_URL@
 Source0:        http://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-%{version}.tar.gz
@@ -53,7 +53,17 @@ BuildRequires:  mpfr-devel
 BuildRequires:  perl(ExtUtils::Embed)
 BuildRequires:  perl-Test-Simple
 
-Requires:       perl glibc info gsl mpfr
+Requires:       perl glibc info gsl
+%if 0%{?suse_version}
+%if 0%{?suse_version} >= 1500
+Requires:       libmpfr6
+%else
+Requires:       libmpfr4
+%endif
+%else
+Requires:       mpfr
+%endif
+
 Provides:       Kinfold
 
 %if 0%{?suse_version}
@@ -103,7 +113,7 @@ structures, and the design of RNA sequences with a desired structure.
 
 %package devel
 Summary:  Library and header files for ViennaRNA RNAlib
-Group:    Development/Libraries
+Group:    Development/Libraries/C and C++
 Provides: libRNA.a = %{version}-%{release}
 Requires: %{name} = %{version}-%{release}
 Requires: libstdc++-devel
@@ -114,7 +124,7 @@ Header files for ViennaRNA.
 
 %package -n perl-rna
 Summary:  Perl binding for ViennaRNA RNAlib
-Group:    Development/Languages/Perl
+Group:    Development/Libraries/Perl
 Requires: %{name} = %{version}-%{release}
 Requires: perl
 
@@ -126,7 +136,7 @@ Perl binding for ViennaRNA RNAlib.
 
 %package -n python-rna
 Summary:  Python 2 bindings for ViennaRNA RNAlib
-Group:    Libraries/Python
+Group:    Development/Libraries/Python
 Requires: %{name} = %{version}-%{release}
 Requires: python
 
@@ -137,7 +147,7 @@ Python 2 bindings for ViennaRNA RNAlib.
 
 %package -n python2-rna
 Summary:  Python 2 bindings for ViennaRNA RNAlib
-Group:    Libraries/Python
+Group:    Development/Libraries/Python
 Requires: %{name} = %{version}-%{release}
 Requires: python2
 
@@ -152,14 +162,14 @@ Python 2 bindings for ViennaRNA RNAlib.
 %if 0%{?with_epel7}
 %package -n python3-rna
 Summary:  Python 3 bindings for ViennaRNA RNAlib
-Group:    Libraries/Python
+Group:    Development/Libraries/Python
 Requires: %{name} = %{version}-%{release}
 
 Requires: python34
 %else
 %package -n python3-rna
 Summary:  Python 3 bindings for ViennaRNA RNAlib
-Group:    Libraries/Python
+Group:    Development/Libraries/Python
 Requires: %{name} = %{version}-%{release}
 
 Requires: python3
