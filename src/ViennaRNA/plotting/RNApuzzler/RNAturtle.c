@@ -20,7 +20,7 @@
 
 #include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
 
-//--------------------------------------------------------------------------------------------------------------------------
+/* -------------------------------------------------------------------------------------------------------------------------- */
 
 
 PUBLIC int
@@ -35,7 +35,7 @@ layout_RNAturtle(short const *const pair_table,
   const short       unpaired  = 25.0;
   const int         length    = pair_table[0];
 
-  // turtle base information
+  /* turtle base information */
   tBaseInformation  *baseInformation = vrna_alloc((length + 1) * sizeof(tBaseInformation));
 
   for (int i = 0; i <= length; i++) {
@@ -45,19 +45,19 @@ layout_RNAturtle(short const *const pair_table,
     baseInformation[i].config   = NULL;
   }
 
-  // generate default configuration for each loop
+  /* generate default configuration for each loop */
   cfgGenerateConfig(pair_table, baseInformation, unpaired, paired);
 
-  // compute loop angles
+  /* compute loop angles */
   computeAffineCoordinates(pair_table, paired, unpaired, baseInformation);
 
-  // transform affine coordinates into cartesian coordinates
+  /* transform affine coordinates into cartesian coordinates */
   double  *myX  = (double *)vrna_alloc(length * sizeof(double));
   double  *myY  = (double *)vrna_alloc(length * sizeof(double));
   affineToCartesianCoordinates(baseInformation, length, myX, myY);
 
   if (drawArcs)
-    // compute postscript arcs instead of lines
+    /* compute postscript arcs instead of lines */
     computeAnglesAndCentersForPS(pair_table, myX, myY, baseInformation, arc_coords);
 
   for (int i = 0; i < length; i++) {
@@ -68,7 +68,7 @@ layout_RNAturtle(short const *const pair_table,
   free(myX);
   free(myY);
 
-  // free turtle struct
+  /* free turtle struct */
   free(baseInformation);
 
   return length;

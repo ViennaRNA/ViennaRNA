@@ -33,14 +33,14 @@ updateAABB(AABB     *aabb,
 
   int           numPoints = 6 + sBox->bulgeCount;
 
-  // array of relevant points
+  /* array of relevant points */
   double        **p = (double **)vrna_alloc(numPoints * sizeof(double *));
 
   for (int i = 0; i < numPoints; i++)
 
     p[i] = (double *)vrna_alloc(2 * sizeof(double));
 
-  // corners of stem
+  /* corners of stem */
   p[0][0] = sBox->c[0] - stem_ea[0] + stem_eb[0];
   p[0][1] = sBox->c[1] - stem_ea[1] + stem_eb[1];
   p[1][0] = sBox->c[0] + stem_ea[0] + stem_eb[0];
@@ -50,20 +50,20 @@ updateAABB(AABB     *aabb,
   p[3][0] = sBox->c[0] - stem_ea[0] - stem_eb[0];
   p[3][1] = sBox->c[1] - stem_ea[1] - stem_eb[1];
 
-  // lower left of loop AABB
+  /* lower left of loop AABB */
   p[4][0] = lBox->c[0] - lBox->r;
   p[4][1] = lBox->c[1] - lBox->r;
-  // upper right of loop AABB
+  /* upper right of loop AABB */
   p[5][0] = lBox->c[0] + lBox->r;
   p[5][1] = lBox->c[1] + lBox->r;
 
-  // bulge points
+  /* bulge points */
   double pPrev[2], pNext[2];
   for (int i = 0; i < sBox->bulgeCount; i++)
 
     getBulgeCoordinates(sBox, i, pPrev, p[6 + i], pNext);
 
-  // set aabb
+  /* set aabb */
   aabb->min[0]  = p[0][0];
   aabb->min[1]  = p[0][1];
   aabb->max[0]  = p[0][0];
@@ -82,7 +82,7 @@ updateAABB(AABB     *aabb,
       aabb->max[1] = p[i][1];
   }
 
-  /// free allocated memory
+  /* free allocated memory */
   for (int i = 0; i < numPoints; i++)
 
     free(p[i]);
@@ -94,9 +94,11 @@ PRIVATE void
 updateBoundingBoxes(treeNode              *node,
                     const puzzlerOptions  *puzzler)
 {
-  // fix this node's loop
-  // then for each child fix the stem and bulges
-  // and call recursively
+  /*
+   * fix this node's loop
+   * then for each child fix the stem and bulges
+   * and call recursively
+   */
 
   if (!isExterior(node)) {
     long    numStemBackBones            = lround((2.0 * node->sBox->e[0]) / puzzler->unpaired);
@@ -126,13 +128,13 @@ updateBoundingBoxes(treeNode              *node,
       getLoopCenter(node, parentLoopCenter);
     }
 
-    // fix the stem's extensions
+    /* fix the stem's extensions */
     long    numStemBackBones  = lround((2.0 * sBox->e[0]) / puzzler->unpaired);
     double  stemLength        = puzzler->unpaired * numStemBackBones;
     sBox->e[0]  = 0.5 * stemLength;
     sBox->e[1]  = 0.5 * puzzler->paired;
 
-    // fix the stem's directions
+    /* fix the stem's directions */
     if (isExterior(node))
       childAngleRad = MATH_PI;
     else
@@ -164,7 +166,7 @@ updateBoundingBoxes(treeNode              *node,
 
     double  distanceStemCenter = s0 + 0.5 * stemLength;
 
-    // fix the stem's position
+    /* fix the stem's position */
     sBox->c[0]  = parentLoopCenter[0] + distanceStemCenter * aFixed[0];
     sBox->c[1]  = parentLoopCenter[1] + distanceStemCenter * aFixed[1];
 
@@ -185,13 +187,13 @@ applyChangesToConfigAndBoundingBoxes(treeNode             *tree,
                                      const double         radiusNew,
                                      const puzzlerOptions *puzzler)
 {
-  // Apply all changes to config
+  /* Apply all changes to config */
   config *cfg = tree->cfg;
 
-  // start with adjusting config radius and angles
+  /* start with adjusting config radius and angles */
   cfgApplyChanges(cfg, getNodeName(tree), deltaCfg, radiusNew, puzzler);
 
-  // apply changes of config to bounding boxes
+  /* apply changes of config to bounding boxes */
   updateBoundingBoxes(tree, puzzler);
 }
 
@@ -239,10 +241,10 @@ freeTree(treeNode *node)
 PRIVATE int
 countSubtreeNodes(const treeNode *node)
 {
-  int count = 1;   // count this node
+  int count = 1;   /* count this node */
 
   for (int currentChild = 0; currentChild < node->childCount; currentChild++)
-    // count children and add child count
+    /* count children and add child count */
     count += countSubtreeNodes(getChild(node, currentChild));
 
   return count;
@@ -271,7 +273,7 @@ collectSubtreeNodes(treeNode          *node,
                     const int         currentIndex)
 {
   allNodes[currentIndex] = node;
-  int nextIndex = currentIndex + 1;   // increase index as this one was just taken
+  int nextIndex = currentIndex + 1;   /* increase index as this one was just taken */
 
   for (int currentChild = 0; currentChild < node->childCount; currentChild++)
 
@@ -299,7 +301,7 @@ collectAncestorNodes(const treeNode   *node,
 PRIVATE double
 getPairedAngle(const treeNode *node)
 {
-  // get the current node's stem's bounding wedge
+  /* get the current node's stem's bounding wedge */
   stemBox *sBox = node->sBox;
   double  pStemTopCorner[2];
 
@@ -315,7 +317,7 @@ getPairedAngle(const treeNode *node)
   double  minOuterAngle =
     angleBetweenVectors2D(vLoopCenterToStemCenter, vLoopCenterToStemTopCorner);
 
-  // all arcs share the same stem angle
+  /* all arcs share the same stem angle */
   double  stemAngle = 2 * minOuterAngle;
   return stemAngle;
 }
@@ -426,7 +428,7 @@ treeGetChildCount(const int           loopStart,
 
   for (int i = loopStart + 1; i < end; ++i) {
     if (pair_table[i] > i) {
-      // found new stem
+      /* found new stem */
       childCount++;
       i = pair_table[i];
     }
@@ -460,7 +462,7 @@ createTreeNode(const int          id,
                const short *const pair_table,
                config             *cfg)
 {
-  // allocate children array
+  /* allocate children array */
   int childCount;
 
   if (cfg == NULL)
@@ -490,12 +492,13 @@ createTreeNode(const int          id,
 }
 
 
-// stem - loop recursion
-PRIVATE treeNode *treeHandleStem(treeNode               *parent,
-                         int                    *nodeID,
-                         const int              stemStart,
-                         const short *const     pair_table,
-                         const tBaseInformation *baseInformation);
+/* stem - loop recursion */
+PRIVATE treeNode *
+treeHandleStem(treeNode               *parent,
+               int                    *nodeID,
+               const int              stemStart,
+               const short *const     pair_table,
+               const tBaseInformation *baseInformation);
 
 
 /**
@@ -537,7 +540,7 @@ treeHandleLoop(treeNode               *parent,
 
   for (int i = loopStart + 1; i < end; ++i) {
     if (pair_table[i] > i) {
-      // found new stem
+      /* found new stem */
       treeNode *child = treeHandleStem(subtree, nodeID, i, pair_table, baseInformation);
       child->parent = subtree;
       setChild(subtree, addedChildren, child);
@@ -624,7 +627,7 @@ buildBoundingBoxes(treeNode               *tree,
 }
 
 
-// documentation at header file
+/* documentation at header file */
 PRIVATE treeNode *
 buildConfigtree(const short *const      pair_table,
                 const tBaseInformation  *baseInformation,
@@ -632,7 +635,7 @@ buildConfigtree(const short *const      pair_table,
                 const double            *y,
                 const double            bulge)
 {
-  // create root
+  /* create root */
   int       nodeID  = 0;
   treeNode  *root   = createTreeNode(nodeID, NULL, 1, -1, pair_table, NULL);
 
@@ -641,7 +644,7 @@ buildConfigtree(const short *const      pair_table,
 
   for (int i = 1; i < length; ++i) {
     if (pair_table[i] > i) {
-      // found stem
+      /* found stem */
       treeNode *child = treeHandleStem(root, &nodeID, i, pair_table, baseInformation);
       setChild(root, addedChildren, child);
       addedChildren++;
@@ -693,7 +696,7 @@ PRIVATE int
 getChildIndex(const treeNode  *tree,
               const int       childID)
 {
-  // check if there are further nodes to check
+  /* check if there are further nodes to check */
   int childIndex = tree->childCount - 1;
 
   for (int currentChild = 0;
@@ -820,14 +823,14 @@ getChildNode(treeNode   *tree,
 {
   short treeIsRoot = isExterior(tree);
 
-  // check if this is the wanted node
+  /* check if this is the wanted node */
   if (!treeIsRoot) {
     if (getNodeID(tree) == childID)
 
       return tree;
   }
 
-  // get index of next child on our path
+  /* get index of next child on our path */
   treeNode *child = getChild(tree, getChildIndex(tree, childID));
 
   if (child == NULL)

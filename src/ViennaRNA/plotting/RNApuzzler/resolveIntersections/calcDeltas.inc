@@ -86,7 +86,7 @@ calcDeltasMaximumFirstDecrease(const double targetAngleIn,
           break;
         }
 
-        // sum increase happens afterwards to allow bending the arc containing 180°
+        /* sum increase happens afterwards to allow bending the arc containing 180° */
         sumAngles += cfg;
       }
     } else if (indexRight == -1) {
@@ -111,7 +111,7 @@ calcDeltasMaximumFirstDecrease(const double targetAngleIn,
           break;
         }
 
-        // sum increase happens afterwards to allow bending the arc containing 180°
+        /* sum increase happens afterwards to allow bending the arc containing 180° */
         sumAngles += cfg;
         i--;
       }
@@ -164,7 +164,7 @@ calcDeltasNearestNeighborsFirstDecrease(const double  targetAngleIn,
   char    *fnName     = "CALC DELTAS NEAREST NEIGHBOR FIRST DECREASE";
   double  targetAngle = targetAngleIn;
 
-  // count the number of possible iteration steps
+  /* count the number of possible iteration steps */
   int     startIndex = indexRight + 1;
 
   if (startIndex == configSize)
@@ -184,7 +184,7 @@ calcDeltasNearestNeighborsFirstDecrease(const double  targetAngleIn,
 
     steps++;
   }
-  int   numIt = steps / 2; // implicit floor() operation
+  int   numIt = steps / 2; /* implicit floor() operation */
 
   int   *index  = (int *)vrna_alloc(steps * sizeof(int));
   short changed = 1;
@@ -282,7 +282,7 @@ calcDeltas(const treeNode *node,
 {
   char *fnName = "CALC DELTAS";
 
-  // Check: valid angle >= 0.0
+  /* Check: valid angle >= 0.0 */
   if (deltaAngle < 0.0)
 
     return 0.0;
@@ -290,10 +290,10 @@ calcDeltas(const treeNode *node,
   int     childCount  = node->childCount;
   int     configSize  = childCount + 1;
 
-  // get the current node's stem's bounding wedge
+  /* get the current node's stem's bounding wedge */
   double  minOuterAngle = asin(puzzler->paired / (2 * node->cfg->radius));
 
-  // allocate memory for stuff used in calculation
+  /* allocate memory for stuff used in calculation */
   double  *anglesMin      = (double *)vrna_alloc(childCount * sizeof(double));
   double  *anglesMax      = (double *)vrna_alloc(childCount * sizeof(double));
   double  *space          = (double *)vrna_alloc(configSize * sizeof(double));
@@ -302,14 +302,14 @@ calcDeltas(const treeNode *node,
   short   *decrease       = (short *)vrna_alloc(configSize * sizeof(short));
   double  *currentAngles  = (double *)vrna_alloc(configSize * sizeof(double));
 
-  // Initialization currentAngles
+  /* Initialization currentAngles */
   config  *cfg = node->cfg;
 
   for (int currentArc = 0; currentArc < cfg->numberOfArcs; ++currentArc)
 
     currentAngles[currentArc] = getArcAngle(cfg, currentArc);
 
-  // get all bounding wedges (minAngle, maxAngle)
+  /* get all bounding wedges (minAngle, maxAngle) */
   double min, max;
 
   for (int currentChild = 0; currentChild < childCount; currentChild++) {
@@ -318,7 +318,7 @@ calcDeltas(const treeNode *node,
     anglesMax[currentChild] = max;
   }
 
-  // convert bounding wedges to "free" areas that can be used for compensation of changes
+  /* convert bounding wedges to "free" areas that can be used for compensation of changes */
   space[0] = anglesMin[0] - (0 + minOuterAngle);
 
   for (int i = 1; i < (configSize - 1); i++)
@@ -327,20 +327,20 @@ calcDeltas(const treeNode *node,
 
   space[configSize - 1] = (MATH_TWO_PI - minOuterAngle) - anglesMax[configSize - 2];
 
-  // fix too big spaces (may become bigger than config for very large loops)
+  /* fix too big spaces (may become bigger than config for very large loops) */
   for (int i = 0; i < configSize; i++)
 
     space[i] = fmin(space[i], getArcAngle(node->cfg, i) - 2 * minOuterAngle);
 
-  // Initialization: calculation values (deltaCfg, increase, decrease)
+  /* Initialization: calculation values (deltaCfg, increase, decrease) */
   for (int i = 0; i < configSize; i++) {
     deltaCfg[i] = 0.0;
     increase[i] = -1;
     decrease[i] = -1;
   }
 
-  // Mark increase and decrease areas
-  int currentIndex = indexLeft;   // stemIndex
+  /* Mark increase and decrease areas */
+  int currentIndex = indexLeft;   /* stemIndex */
   while (currentIndex != indexRight) {
     increase[currentIndex + 1]  = 1;
     decrease[currentIndex + 1]  = 0;
@@ -362,10 +362,10 @@ calcDeltas(const treeNode *node,
 
   double targetAngle = deltaAngle;
 
-  // Step 1: equidistant increase
+  /* Step 1: equidistant increase */
   calcDeltasEquidistantIncrease(targetAngle, configSize, increase, deltaCfg);
 
-  // Step 2: nearest neighbor first decrease
+  /* Step 2: nearest neighbor first decrease */
   targetAngle = calcDeltasNearestNeighborsFirstDecrease(targetAngle,
                                                         indexLeft,
                                                         indexRight,
@@ -374,14 +374,16 @@ calcDeltas(const treeNode *node,
                                                         space,
                                                         deltaCfg);
 
-  // Step 3: check if intersections are fixed
+  /* Step 3: check if intersections are fixed */
   short notFixedYet = (targetAngle != 0.0);
 
   if (notFixedYet) {
-    // if the intersection is not yet fixed
-    // check if there is a loop on a higher level that can be bend instead of this one
-    // if this is the case we can apply methods using spaces
-    // otherwise we need to use drastical measures (e.g. maximumFirstDecrease using cfg instead of spaces)
+    /*
+     * if the intersection is not yet fixed
+     * check if there is a loop on a higher level that can be bend instead of this one
+     * if this is the case we can apply methods using spaces
+     * otherwise we need to use drastical measures (e.g. maximumFirstDecrease using cfg instead of spaces)
+     */
 
     treeNode  *parent     = getParent(node);
     short     canGoHigher = 0;
@@ -392,11 +394,11 @@ calcDeltas(const treeNode *node,
         canGoHigher = 1;
         break;
       } else {
-        // parent is interior loop
+        /* parent is interior loop */
         double childAngle = getArcAngle(parent->cfg, 0);
 
         if (fabs(childAngle - MATH_PI) < EPSILON_3) {
-          // no op
+          /* no op */
         } else if (childAngle > MATH_PI) {
           if (indexLeft == 0) {
             canGoHigher = 1;
@@ -410,7 +412,7 @@ calcDeltas(const treeNode *node,
         }
       }
 
-      // if current parent node can not be adapted check its parent
+      /* if current parent node can not be adapted check its parent */
       parent = getParent(parent);
     }
 
@@ -425,18 +427,20 @@ calcDeltas(const treeNode *node,
     }
   }
 
-  // Step 4: equidistant increase with negative remaining target angle
+  /* Step 4: equidistant increase with negative remaining target angle */
   calcDeltasEquidistantIncrease((-1) * targetAngle, configSize, increase, deltaCfg);
 
-  // Fix deltas if changes are too small.
-  // This is necessary because sometimes the calculation results in micro changes.
-  // These micro changes go along with an increase of the loops radius which causes
-  // new problems as the changes being too small to get enough distance to the
-  // changed loop and the intersector being stuck in collision (again).
-  //
-  // multiplying by factor 2.0 we always get a resulting angle between 0.1° and 0.2°
-  // don't use factor 10 as the impact of doing so is way too strong and often causes crashes
-  // in term of applicability of the changes
+  /*
+   * Fix deltas if changes are too small.
+   * This is necessary because sometimes the calculation results in micro changes.
+   * These micro changes go along with an increase of the loops radius which causes
+   * new problems as the changes being too small to get enough distance to the
+   * changed loop and the intersector being stuck in collision (again).
+   *
+   * multiplying by factor 2.0 we always get a resulting angle between 0.1° and 0.2°
+   * don't use factor 10 as the impact of doing so is way too strong and often causes crashes
+   * in term of applicability of the changes
+   */
   short fixTooSmallChanges = 0;
   if (fixTooSmallChanges) {
     for (int cntr = 0; cntr < 100; cntr++) {
@@ -458,12 +462,12 @@ calcDeltas(const treeNode *node,
     }
   }
 
-  // transfer calculated deltas to return area
+  /* transfer calculated deltas to return area */
   for (int currentArc = 0; currentArc < configSize; currentArc++)
 
     deltas[currentArc] = deltaCfg[currentArc];
 
-  // free allocated memory
+  /* free allocated memory */
   free(anglesMin);
   free(anglesMax);
   free(space);
@@ -472,7 +476,7 @@ calcDeltas(const treeNode *node,
   free(decrease);
   free(currentAngles);
 
-  // check if all deltas sum up to zero
+  /* check if all deltas sum up to zero */
   double checkSum = 0.0;
 
   for (int currentArc = 0; currentArc < configSize; currentArc++)
@@ -493,7 +497,7 @@ calcDeltas(const treeNode *node,
     targetAngle = deltaAngle;
   }
 
-  // return the difference that can be accomplished using these deltas
+  /* return the difference that can be accomplished using these deltas */
   double changedAngle = deltaAngle - targetAngle;
   return changedAngle;
 }

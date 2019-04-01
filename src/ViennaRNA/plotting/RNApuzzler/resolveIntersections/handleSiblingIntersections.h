@@ -10,8 +10,9 @@
  * @param node: node to check
  * @param puzzler: puzzlerOptions
  */
-PRIVATE short checkSiblings(treeNode        *node,
-                    puzzlerOptions  *puzzler);
+PRIVATE short
+checkSiblings(treeNode        *node,
+              puzzlerOptions  *puzzler);
 
 
 #include "handleSiblingIntersections.inc"

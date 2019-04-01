@@ -151,12 +151,14 @@ getLoopData(double                  *center,
   config  *cfg  = baseInformation[i].config;
   double  r     = cfg->radius;
 
-  // Reminder to offset -1
-  // x, y and arc_coords as well have their entry for the first base (i=1) at index 0
-  // this results in a offset -1 at every reading access to x, y
-  // consider the stem just before the loop
-  // if i's partner is to the right of the loop's first line
-  // then this loop is directed clockwise, counter clockwise otherwise
+  /*
+   * Reminder to offset -1
+   * x, y and arc_coords as well have their entry for the first base (i=1) at index 0
+   * this results in a offset -1 at every reading access to x, y
+   * consider the stem just before the loop
+   * if i's partner is to the right of the loop's first line
+   * then this loop is directed clockwise, counter clockwise otherwise
+   */
   double  current[2] = {
     x[start - 1], y[start - 1]
   };
@@ -175,11 +177,11 @@ getLoopData(double                  *center,
   double  v_normal[2];
   normal(v_pair, v_normal);
 
-  double  pair_length = vectorLength2D(v_pair);  // = paired
+  double  pair_length = vectorLength2D(v_pair);  /* = paired */
 
   double  center_dist = sqrt(r * r - 0.25 * pair_length * pair_length);
 
-  // for clockwise go to the right... and to the left for counter clockwise loop
+  /* for clockwise go to the right... and to the left for counter clockwise loop */
   short   dir = go_clockwise ? 1 : -1;
   center[0] = last[0] + 0.5 * v_pair[0] + dir * center_dist * v_normal[0];
   center[1] = last[1] + 0.5 * v_pair[1] + dir * center_dist * v_normal[1];
@@ -211,7 +213,7 @@ buildLoopBox(const int              start,
   double  center[2];
   double  radius;
 
-  // calculate center coords and radius for the loop
+  /* calculate center coords and radius for the loop */
   getLoopData(center, &radius, start, pair_table, baseInformation, x, y);
 
   loopBox *box = createLoopBox(center, radius);
@@ -238,9 +240,9 @@ createStemBox(const double  s[2],
   double  length_b  = vectorLength2D(b);
 
   if (length_a == 0) {
-    // solve this using b's normal vector
+    /* solve this using b's normal vector */
     normal(b, a);
-    // make a have length 0.1 to create a proper bounding box
+    /* make a have length 0.1 to create a proper bounding box */
     length_a  = 0.1;
     a[0]      = a[0] * length_a;
     a[1]      = a[1] * length_a;
@@ -324,7 +326,7 @@ createBulge(const stemBox *box,
 {
   double  *bulge = (double *)vrna_alloc(4 * sizeof(double));
 
-  // remember -1 offset between
+  /* remember -1 offset between */
   double  aPrev = getA(box, x[(i - 1) - 1], y[(i - 1) - 1]);
   double  aThis = getA(box, x[(i - 1) + 0], y[(i - 1) + 0]);
   double  aNext = getA(box, x[(i - 1) + 1], y[(i - 1) + 1]);
@@ -389,12 +391,14 @@ buildStemBox(const int          start,
              const double       *y,
              const double       bulgeDist)
 {
-  int     i_s   = start;
-  int     i_e   = end;
-  int     i_sp  = pair_table[start];
+  int i_s   = start;
+  int i_e   = end;
+  int i_sp  = pair_table[start];
 
-  // get coordinates for rectangle corners
-  // -1 for offset pair_table vs. x/y
+  /*
+   * get coordinates for rectangle corners
+   * -1 for offset pair_table vs. x/y
+   */
   double  s[2] = {
     x[i_s - 1], y[i_s - 1]
   };
@@ -405,10 +409,10 @@ buildStemBox(const int          start,
     x[i_sp - 1], y[i_sp - 1]
   };
 
-  /// finally create the box
+  /* finally create the box */
   stemBox *box = createStemBox(s, e, sp);
 
-  // get coordinates for bulges
+  /* get coordinates for bulges */
   int     bulgeCount = countBulges(pair_table, i_s, i_e);
 
   setBulges(box, pair_table, i_s, i_e, x, y, bulgeCount, bulgeDist);

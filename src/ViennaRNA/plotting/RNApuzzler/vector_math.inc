@@ -74,14 +74,16 @@ isToTheRightPointPoint(const double lineStart[2],
                        const double lineEnd[2],
                        const double point[2])
 {
-  // implicite knowledge:
-  // a normal to a vector is always directed to the right
-  //
-  // idea:
-  // add the normal vector of the line to any point of the line  -> the resulting point is to the right of the line
-  // add the negative normal vector to the same point            -> the resulting point is to the left  of the line
-  // now get the distances of these points to the point of interest
-  // if that point is closer to the right point than to the left ->   that point itself is to the right of the line
+  /*
+   * implicite knowledge:
+   * a normal to a vector is always directed to the right
+   *
+   * idea:
+   * add the normal vector of the line to any point of the line  -> the resulting point is to the right of the line
+   * add the negative normal vector to the same point            -> the resulting point is to the left  of the line
+   * now get the distances of these points to the point of interest
+   * if that point is closer to the right point than to the left ->   that point itself is to the right of the line
+   */
 
   double  vline[2] = {
     lineEnd[0] - lineStart[0],
@@ -107,9 +109,11 @@ isToTheRightPointPoint(const double lineStart[2],
     point[0] - left[0], point[1] - left[1]
   };
 
-  // for comparing lengths of vectors there is no need to actually compute their length
-  // comparing their squares of their respective lengths grant the same results
-  // while saving some computation time (spare us the sqrt operation)
+  /*
+   * for comparing lengths of vectors there is no need to actually compute their length
+   * comparing their squares of their respective lengths grant the same results
+   * while saving some computation time (spare us the sqrt operation)
+   */
   double  squaredDistanceRight  = scalarProduct2D(vright, vright);
   double  squaredDistanceLeft   = scalarProduct2D(vleft, vleft);
   short   ret                   = squaredDistanceRight < squaredDistanceLeft;
@@ -147,11 +151,11 @@ angleBetweenVectors2D(const double  vector1[2],
   double  cosAngle  = scalarProduct2D(vectorNormalized1, vectorNormalized2);
   double  angle     = 0.0;
   if (fabs(cosAngle - -1.00) < EPSILON_7) {
-    // cosAngle == -1 -> rad: PI deg: 180°
+    /* cosAngle == -1 -> rad: PI deg: 180° */
 
     angle = MATH_PI;
   } else if (fabs(cosAngle - 1.00) < EPSILON_7) {
-    // cosAngle == +1 -> rad: 0 deg: 0°
+    /* cosAngle == +1 -> rad: 0 deg: 0° */
 
     angle = 0;
   } else {
@@ -220,7 +224,7 @@ rotatePointAroundPoint(const double *point,
   double  y   = point[1];
   double  x0  = rotationCenter[0];
   double  y0  = rotationCenter[1];
-  double  phi = -angle;  // negative value because we rotate clockwise for positive input
+  double  phi = -angle;  /* negative value because we rotate clockwise for positive input */
 
   ret[0]  = x0 + (x - x0) * cos(phi) - (y - y0) * sin(phi);
   ret[1]  = y0 + (x - x0) * sin(phi) + (y - y0) * cos(phi);
@@ -303,35 +307,43 @@ getCutPointsOfCircles(const double  *c1,
   dr = dr < 0 ? -dr : dr;
 
   double  eps = 1.0;
-  // if any delta is smaller than this epsilon this delta will be considered zero
-  // i.e. the values that are being compared are treated as equal
+  /*
+   * if any delta is smaller than this epsilon this delta will be considered zero
+   * i.e. the values that are being compared are treated as equal
+   */
 
-  short   smallDX = dx < eps;
-  short   smallDY = dy < eps;
-  short   smallDR = dr < eps;
+  short smallDX = dx < eps;
+  short smallDY = dy < eps;
+  short smallDR = dr < eps;
 
   if (smallDX && smallDY) {
     if (smallDR)
-      // circles coincide
+      /* circles coincide */
       answers = -1;
     else
-      // circles are concentric but with different radius
+      /* circles are concentric but with different radius */
       answers = 0;
   } else
 
   if (!smallDY) {
-    // (smallDX || !smallDX) && !smallDY
-    // EQ1: circle1: (r1)² = (c1x - x)² + (c1y - y)²
-    // EQ2: circle2: (r2)² = (c2x - x)² + (c2y - y)²
+    /*
+     * (smallDX || !smallDX) && !smallDY
+     * EQ1: circle1: (r1)² = (c1x - x)² + (c1y - y)²
+     * EQ2: circle2: (r2)² = (c2x - x)² + (c2y - y)²
+     */
 
-    // EQ3: EQ1 - EQ2, get y
-    // EQ3: y = (x * k + l) / m = (k / m) * x + (l / m)
+    /*
+     * EQ3: EQ1 - EQ2, get y
+     * EQ3: y = (x * k + l) / m = (k / m) * x + (l / m)
+     */
     double  k = -2 * c1x + 2 * c2x;
     double  l = c1x * c1x - c2x * c2x + c1y * c1y - c2y * c2y - r1 * r1 + r2 * r2;
     double  m = (-1) * (-2 * c1y + 2 * c2y);
 
-    // EQ4: replace y in EQ1 with EQ3
-    // transform equation into ax²+bx+c=0 shape
+    /*
+     * EQ4: replace y in EQ1 with EQ3
+     * transform equation into ax²+bx+c=0 shape
+     */
     double  p = c1y - (l / m);
     double  q = k / m;
     double  a = q * q + 1;
@@ -352,7 +364,7 @@ getCutPointsOfCircles(const double  *c1,
       ret2[1] = (sol2 * k + l) / m;
     }
   } else {
-    // smallDY && !smallDX
+    /* smallDY && !smallDX */
 
     double  k = -2 * c1y + 2 * c2y;
     double  l = (c1x * c1x - c2x * c2x) + (c1y * c1y - c2y * c2y) + (r2 * r2 - r1 * r1);
@@ -486,7 +498,7 @@ circle(const double P1[2],
        double       center[2],
        double       *radius)
 {
-  //initialize coefficients of the system of equations
+  /* initialize coefficients of the system of equations */
   double alpha[3];
 
   alpha[0]  = 1;
@@ -508,7 +520,7 @@ circle(const double P1[2],
   r[1]  = -(P2[0] * P2[0] + P2[1] * P2[1]);
   r[2]  = -(P3[0] * P3[0] + P3[1] * P3[1]);
 
-  // eliminate alpha 1 und 2
+  /* eliminate alpha 1 und 2 */
   beta[1]   -= beta[0];
   gamma[1]  -= gamma[0];
   beta[2]   -= beta[0];
@@ -520,36 +532,38 @@ circle(const double P1[2],
   double  B;
   double  C;
 
-  // solve linear equations
+  /* solve linear equations */
   if ((fabs(beta[1]) < EPSILON_7)
       && (fabs(gamma[1]) > EPSILON_7)) {
     C = r[1] / gamma[1];
     B = (r[2] - gamma[2] * C) / beta[2];
-    //printf("beta[1] == %15.12lf\n",beta [1]);
+    /* printf("beta[1] == %15.12lf\n",beta [1]); */
   } else if ((fabs(beta[2]) < EPSILON_7)
              && (fabs(gamma[2]) > EPSILON_7)) {
     C = r[2] / gamma[2];
     B = (r[1] - gamma[1] * C) / beta[1];
-    //printf("beta[2] == %15.12lf\n", beta[2]);
+    /* printf("beta[2] == %15.12lf\n", beta[2]); */
   } else {
     if (fabs(gamma[1]) < EPSILON_7) {
       B = r[1] / beta[1];
       C = (r[2] - beta[2] * B) / gamma[2];
-      //printf("gamma[1] == %15.12lf\n", gamma[1]);
+      /* printf("gamma[1] == %15.12lf\n", gamma[1]); */
     } else if (fabs(gamma[2]) < EPSILON_7) {
       B = r[2] / beta[2];
       C = (r[1] - beta[1] * B) / gamma[1];
-      //printf("gamma[2] == %15.12lf\n", gamma[2]);
+      /* printf("gamma[2] == %15.12lf\n", gamma[2]); */
     } else {
-      //printf("  GL1: %15.12lf * B + %15.12lf * C = %15.12lf\n", beta[1],
-      //          gamma[1], r[1]);
-      //printf("  GL2: %15.12lf * B + %15.12lf * C = %15.12lf\n", beta[2],
-      //          gamma[2], r[2]);
+      /*
+       * printf("  GL1: %15.12lf * B + %15.12lf * C = %15.12lf\n", beta[1],
+       * gamma[1], r[1]);
+       * printf("  GL2: %15.12lf * B + %15.12lf * C = %15.12lf\n", beta[2],
+       * gamma[2], r[2]);
+       */
 
       gamma[2]  = gamma[2] * beta[1] - gamma[1] * beta[2];
       r[2]      = r[2] * beta[1] - r[1] * beta[2];
 
-      //printf("  GL C: %15.12lf * C = %15.12lf\n", gamma[2], r[2]);
+      /* printf("  GL C: %15.12lf * C = %15.12lf\n", gamma[2], r[2]); */
       C = r[2] / gamma[2];
       B = (r[1] - gamma[1] * C) / beta[1];
     }
@@ -557,7 +571,7 @@ circle(const double P1[2],
 
   A = r[0] - beta[0] * B - gamma[0] * C;
 
-  //calculate center and radius
+  /* calculate center and radius */
   center[0] = B / 2;
   center[1] = C / 2;
   *radius   = sqrt(center[0] * center[0] + center[1] * center[1] - A);

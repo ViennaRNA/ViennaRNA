@@ -11,8 +11,9 @@
  * @param stem2
  * @return 1 if intersecting, 0 otherwise
  */
-PRIVATE short intersectStemStem(const stemBox *stem1,
-                        const stemBox *stem2);
+PRIVATE short
+intersectStemStem(const stemBox *stem1,
+                  const stemBox *stem2);
 
 
 /**
@@ -22,8 +23,9 @@ PRIVATE short intersectStemStem(const stemBox *stem1,
  * @param loop2
  * @return 1 if intersecting, 0 otherwise
  */
-PRIVATE short intersectLoopLoop(const loopBox *loop1,
-                        const loopBox *loop2);
+PRIVATE short
+intersectLoopLoop(const loopBox *loop1,
+                  const loopBox *loop2);
 
 
 /**
@@ -33,8 +35,9 @@ PRIVATE short intersectLoopLoop(const loopBox *loop1,
  * @param loop
  * @return 1 if intersecting, 0 otherwise
  */
-PRIVATE short intersectStemLoop(const stemBox *stem,
-                        const loopBox *loop);
+PRIVATE short
+intersectStemLoop(const stemBox *stem,
+                  const loopBox *loop);
 
 
 /**
@@ -45,19 +48,21 @@ PRIVATE short intersectStemLoop(const stemBox *stem,
  * @param bulge
  * @return 1 if intersecting, 0 otherwise
  */
-PRIVATE short intersectLoopBulges(const loopBox *loop,
-                          const stemBox *stem,
-                          int           *bulge);
+PRIVATE short
+intersectLoopBulges(const loopBox *loop,
+                    const stemBox *stem,
+                    int           *bulge);
 
 
 /**
  * @brief intersectBulgesBulges
  * @return
  */
-PRIVATE short intersectBulgesBulges(const stemBox *stem1,
-                            const stemBox *stem2,
-                            int           *bulge1,
-                            int           *bulge2);
+PRIVATE short
+intersectBulgesBulges(const stemBox *stem1,
+                      const stemBox *stem2,
+                      int           *bulge1,
+                      int           *bulge2);
 
 
 /**
@@ -67,9 +72,10 @@ PRIVATE short intersectBulgesBulges(const stemBox *stem1,
  * @param bulge2
  * @return
  */
-PRIVATE short intersectStemBulges(const stemBox *stem1,
-                          const stemBox *stem2,
-                          int           *bulge2);
+PRIVATE short
+intersectStemBulges(const stemBox *stem1,
+                    const stemBox *stem2,
+                    int           *bulge2);
 
 
 #include "intersectLevelBoundingBoxes.inc"

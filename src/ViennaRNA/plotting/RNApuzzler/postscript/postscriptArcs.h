@@ -6,11 +6,13 @@
 /**
  * Compute arcs instead of lines for postscript loops.
  */
-PRIVATE void computeAnglesAndCentersForPS(short const *const      pair_table,
-                                  double *const           x,
-                                  double *const           y,
-                                  const tBaseInformation  *baseInformation,
-                                  double                  *arcCoords);
+PRIVATE void
+computeAnglesAndCentersForPS(short const *const     pair_table,
+                             double *const          x,
+                             double *const          y,
+                             const tBaseInformation *baseInformation,
+                             double                 *arcCoords);
+
 
 #include "postscriptArcs.inc"
 

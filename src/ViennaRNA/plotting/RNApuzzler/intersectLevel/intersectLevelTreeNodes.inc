@@ -136,60 +136,60 @@ intersectNodeNode(const treeNode  *node1,
   short     node2IsParentOfNode1  = (node2 == parentOfNode1);
   short     nodesHaveCommonParent = (parentOfNode1 == parentOfNode2);
 
-  // SxS
+  /* SxS */
   if (!node1IsParentOfNode2
       && !node2IsParentOfNode1
       && !nodesHaveCommonParent
       && intersectStemStem(sBox_node1, sBox_node2))
-    // successive stems never intersect while config is not broken
+    /* successive stems never intersect while config is not broken */
     return SxS;
 
-  // LxL
+  /* LxL */
   if (!node1IsParentOfNode2
       && !node2IsParentOfNode1
       && intersectLoopLoop(lBox_node1, lBox_node2))
-    // successive loops do never intersect
+    /* successive loops do never intersect */
     return LxL;
 
-  // SxL
+  /* SxL */
   if (!node2IsParentOfNode1
       && intersectStemLoop(sBox_node1, lBox_node2)
       )
 
     return SxL;
 
-  // LxS
+  /* LxS */
   if (!node1IsParentOfNode2
       && intersectStemLoop(sBox_node2, lBox_node1)
       )
 
     return LxS;
 
-  // LxB
+  /* LxB */
   if (!node1IsParentOfNode2) {
     if (intersectLoopBulges(lBox_node1, sBox_node2, &bulge2))
 
       return LxB;
   }
 
-  // BxL
+  /* BxL */
   if (!node2IsParentOfNode1) {
     if (intersectLoopBulges(lBox_node2, sBox_node1, &bulge1))
 
       return BxL;
   }
 
-  // SxB
+  /* SxB */
   if (intersectStemBulges(sBox_node1, sBox_node2, &bulge2))
 
     return SxB;
 
-  // BxS
+  /* BxS */
   if (intersectStemBulges(sBox_node2, sBox_node1, &bulge1))
 
     return BxS;
 
-  // BxB
+  /* BxB */
   if (intersectBulgesBulges(sBox_node1, sBox_node2, &bulge1, &bulge2))
 
     return BxB;

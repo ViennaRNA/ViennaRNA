@@ -55,28 +55,30 @@ shrinkLoopRadiusLinearSearch(treeNode             *node,
   config *const cfg       = node->cfg;
   const double  cfgRadius = cfg->radius;
 
-  // we only want to adjust the radius based on the current config
-  // the current radius is valid because it is
-  // either the result of the intersection resolution
-  // or attained while shrinking (causing no new intersections)
+  /*
+   * we only want to adjust the radius based on the current config
+   * the current radius is valid because it is
+   * either the result of the intersection resolution
+   * or attained while shrinking (causing no new intersections)
+   */
   double  minValidRadius = cfgRadius;
 
-  // setup interval for linear search for a better (smaller) radius
+  /* setup interval for linear search for a better (smaller) radius */
   double  maxRadius = cfgRadius;
   double  minRadius = cfg->minRadius;
 
-  // Check if difference is larger than a minimum
+  /* Check if difference is larger than a minimum */
   double  minAbsoluteDelta = 1.0;
 
   if (maxRadius - minRadius < minAbsoluteDelta)
-    // No change -> shrinkingRatio == 1.0
+    /* No change -> shrinkingRatio == 1.0 */
     return 1.0;
 
-  // initialize linear search
+  /* initialize linear search */
   double    radius  = minRadius;
   double    delta   = 0.1 * (maxRadius - minRadius);
 
-  // set maximum number of steps for linear search
+  /* set maximum number of steps for linear search */
   int       currentStep = 0;
   const int maxSteps    = 10;
 
@@ -102,7 +104,7 @@ shrinkLoopRadiusLinearSearch(treeNode             *node,
 
     applyChangesToConfigAndBoundingBoxes(node, NULL, minValidRadius, puzzler);
 
-  // measure shrinking
+  /* measure shrinking */
   double shrinkingRatio = cfg->radius / maxRadius;
   return shrinkingRatio;
 }
@@ -131,22 +133,24 @@ shrinkLoopRadiusBinarySearch(treeNode             *node,
   config        *cfg      = node->cfg;
   const double  cfgRadius = cfg->radius;
 
-  // we only want to adjust the radius based on the current config
-  // the current radius is valid because it is
-  // - either the result of the intersection resolution
-  // - or attained while shrinking (causing no new intersections)
+  /*
+   * we only want to adjust the radius based on the current config
+   * the current radius is valid because it is
+   * - either the result of the intersection resolution
+   * - or attained while shrinking (causing no new intersections)
+   */
   double    minValidRadius = cfgRadius;
 
-  // set abort criteria for binary search
+  /* set abort criteria for binary search */
   int       searchDepth       = 0;
   const int maxSearchDepth    = 10;
   double    minAbsoluteDelta  = 10.0;
 
-  // setup interval for binary search for a better (smaller) radius
+  /* setup interval for binary search for a better (smaller) radius */
   double    maxRadius = cfgRadius;
   double    minRadius = cfg->minRadius;
 
-  // initialize binary search
+  /* initialize binary search */
   double    radius  = minRadius;
   double    delta   = 0.5 * (maxRadius - minRadius);
 
@@ -185,7 +189,7 @@ shrinkLoopRadiusBinarySearch(treeNode             *node,
 
     applyChangesToConfigAndBoundingBoxes(node, NULL, minValidRadius, puzzler);
 
-  // measure shrinking
+  /* measure shrinking */
   double shrinkingRatio = minValidRadius / cfgRadius;
   return shrinkingRatio;
 }
@@ -203,7 +207,7 @@ shrinkLoopRadius(treeNode             *node,
 
   switch (strategy) {
     case BINARY_SEARCH:
-      // Use binary search
+      /* Use binary search */
       return shrinkLoopRadiusBinarySearch(node,
                                           subtree,
                                           sizeSubtree,
@@ -211,7 +215,7 @@ shrinkLoopRadius(treeNode             *node,
                                           sizeAncestorList,
                                           puzzler);
     case LINEAR_SEARCH:
-      // Use linear search
+      /* Use linear search */
       return shrinkLoopRadiusLinearSearch(node,
                                           subtree,
                                           sizeSubtree,
@@ -237,11 +241,11 @@ getSpaces(const treeNode  *node,
           const double    pairedAngle,
           double          *space)
 {
-  // allocate memory for stuff used in calculation
+  /* allocate memory for stuff used in calculation */
   double  *boundsLeft   = (double *)vrna_alloc(configSize * sizeof(double));
   double  *boundsRight  = (double *)vrna_alloc(configSize * sizeof(double));
 
-  // get all bounding wedges
+  /* get all bounding wedges */
   boundsLeft[0] = 0.0 + 0.5 * pairedAngle;
   double  min, max;
 
@@ -358,7 +362,7 @@ computeAlphas(double        *alphas,
   int     configSize  = cfg->numberOfArcs;
   double  pairedAngle = distanceToAngle(cfg->radius, pairedDistance);
 
-  // Get alphas
+  /* Get alphas */
   for (int currentArc = 0; currentArc < configSize; currentArc++)
 
     alphas[currentArc] =
@@ -583,14 +587,14 @@ searchBestConfig(treeNode         *node,
                  const int        sizeAncestorList,
                  puzzlerOptions   *puzzler)
 {
-  // linear search for best config between current state and desired state (with no intersections)
+  /* linear search for best config between current state and desired state (with no intersections) */
   config  *cfg        = node->cfg;
   int     configSize  = cfg->numberOfArcs;
 
-  // apply the full range of changes
+  /* apply the full range of changes */
   applyDeltas(node, deltas, cfg->radius, puzzler);
 
-  // then search back for the first occuring valid state (which is then closest to the desired state)
+  /* then search back for the first occuring valid state (which is then closest to the desired state) */
   int     numSteps  = 10;
   double  factor    = 1.0 / numSteps;
 
@@ -614,11 +618,12 @@ searchBestConfig(treeNode         *node,
                                         sizeAncestorList,
                                         puzzler);
 
-      if (!intersecting) {
-        // found improved config state
-        // stop search
+      if (!intersecting)
+        /*
+         * found improved config state
+         * stop search
+         */
         break;
-      }
     }
   }
 
@@ -658,95 +663,97 @@ optimizeNode(treeNode         *node,
   char *fnName = "optimizeNode";
 
   if (node->childCount <= 0)
-    // nothing to do for hairpin loops
+    /* nothing to do for hairpin loops */
     return 1.0;
 
   config *const cfg = node->cfg;
 
   if (cfg->radius - cfg->defaultRadius < 5.0)
-    // nothing to do if radius increase is small
+    /* nothing to do if radius increase is small */
     return 1.0;
 
-  // configuration variables
+  /* configuration variables */
   const double  minMultiple = 2;
 
   int           configSize = cfg->numberOfArcs;
 
-  // Save initial loop configuration
+  /* Save initial loop configuration */
   config *const initialConfig = cfgCloneConfig(cfg);
 
-  // Save best configuration so far
+  /* Save best configuration so far */
   config        *bestConfig = cfgCloneConfig(initialConfig);
 
-  // Save radius of initial loop configuration
+  /* Save radius of initial loop configuration */
   double        initialRadius = cfg->radius;
 
-  // Loop characteristics that do change with config changes
+  /* Loop characteristics that do change with config changes */
   double        *alphas = (double *)vrna_alloc(configSize * sizeof(double));
   double        *spaces = (double *)vrna_alloc(configSize * sizeof(double));
   double        *deltas = (double *)vrna_alloc(configSize * sizeof(double));
 
-  // Index arrays
+  /* Index arrays */
   int           *sorted   = (int *)vrna_alloc(configSize * sizeof(int));
   int           *increase = (int *)vrna_alloc((configSize + 1) * sizeof(int));
 
-  // minimal index that has largest space available
+  /* minimal index that has largest space available */
   int           minSortedIndex = 0;
 
-  // Number of runs
+  /* Number of runs */
   int           runNr     = 0;
-  const int     runNrMax  = 100 * configSize; // just in case ...
+  const int     runNrMax  = 100 * configSize; /* just in case ... */
 
   short         configChanged = 1;
   double        unpairedAngle;
 
   while (minSortedIndex < configSize && runNr < runNrMax) {
     runNr++;
-    // save the number of (valid) entries at index 0 of increase
+    /* save the number of (valid) entries at index 0 of increase */
     increase[0] = 0;
 
     if (configChanged) {
-      // get current unpaired angle
+      /* get current unpaired angle */
       unpairedAngle = distanceToAngle(cfg->radius, puzzler->unpaired);
 
-      // compute current angle alpha between two unpaired bases for all arcs of a loop
+      /* compute current angle alpha between two unpaired bases for all arcs of a loop */
       computeAlphas(alphas, cfg, puzzler->paired);
 
       if (canShrink(alphas, configSize, unpairedAngle)
           && shrinkLoopRadius(node, subtree, sizeSubtree, ancestorList, sizeAncestorList,
                               puzzler) < 1.0) {
-        // save current config as best configuration
+        /* save current config as best configuration */
         cfgFreeConfig(bestConfig);
         bestConfig = cfgCloneConfig(cfg);
 
-        // start process again
+        /* start process again */
         minSortedIndex = 0;
 
-        // get current unpaired angle
+        /* get current unpaired angle */
         unpairedAngle = distanceToAngle(cfg->radius, puzzler->unpaired);
 
-        // compute current angle alpha between two unpaired bases for all arcs of a loop
+        /* compute current angle alpha between two unpaired bases for all arcs of a loop */
         computeAlphas(alphas, cfg, puzzler->paired);
       } else {
-        // No improvement
-        // -> reapply best config found so far
+        /*
+         * No improvement
+         * -> reapply best config found so far
+         */
         applyConfig(node, bestConfig, puzzler);
       }
 
       if (minSortedIndex == 0) {
-        // Compute for each arc the available space between two wedges
+        /* Compute for each arc the available space between two wedges */
         double pairedAngle = distanceToAngle(cfg->radius, puzzler->paired);
         getSpaces(node, configSize, pairedAngle, spaces);
 
-        // Sort alphas by size decreasing
+        /* Sort alphas by size decreasing */
         bubblesort(configSize, alphas, spaces, sorted);
       }
     } else {
-      // apply best configuration found so far
+      /* apply best configuration found so far */
       applyConfig(node, bestConfig, puzzler);
     }
 
-    // Find first arc with sufficient space based on alphas and spaces
+    /* Find first arc with sufficient space based on alphas and spaces */
     int decreaseIndex = -1;
 
     for (int index = minSortedIndex; index < configSize; index++) {
@@ -757,9 +764,11 @@ optimizeNode(treeNode         *node,
 
         space = MATH_PI;
 
-      // having some space available is likable
-      // but does not suffice justifying such expensive actions
-      // therefore we claim a minimum distance to throw away in the drawing area
+      /*
+       * having some space available is likable
+       * but does not suffice justifying such expensive actions
+       * therefore we claim a minimum distance to throw away in the drawing area
+       */
 
       double minSpace = minMultiple * unpairedAngle;
 
@@ -771,10 +780,10 @@ optimizeNode(treeNode         *node,
     }
 
     if (decreaseIndex < 0)
-      // No arc found: leave
+      /* No arc found: leave */
       break;
 
-    // Check if current arc has sufficient space
+    /* Check if current arc has sufficient space */
     double        space             = spaces[decreaseIndex];
     double        minNecessarySpace = (cfg->cfgArcs[decreaseIndex]).numberOfArcSegments *
                                       unpairedAngle;
@@ -785,17 +794,19 @@ optimizeNode(treeNode         *node,
     double        decreaseAngle = factor * fmin((currentNecessarySpace - minNecessarySpace), space);
 
     if (decreaseAngle < EPSILON_3)
-      // decreaseAngle too small: leave
+      /* decreaseAngle too small: leave */
       continue;
 
-    // Mark arcs for increase
+    /* Mark arcs for increase */
     computeIncreases(increase, decreaseIndex, configSize);
 
-    // Compute configuration angle changes (deltas)
+    /* Compute configuration angle changes (deltas) */
     computeDeltas(deltas, decreaseIndex, decreaseAngle, cfg->cfgArcs, alphas, increase);
 
-    // Apply changes as far as possible (start):
-    // linear search for best config between current state and desired state (with no intersections)
+    /*
+     * Apply changes as far as possible (start):
+     * linear search for best config between current state and desired state (with no intersections)
+     */
     configChanged = searchBestConfig(node,
                                      deltas,
                                      subtree,
@@ -806,18 +817,18 @@ optimizeNode(treeNode         *node,
                                      );
   }
 
-  // apply best configuration found so far
+  /* apply best configuration found so far */
   applyConfig(node, bestConfig, puzzler);
 
-  // Finished improvements
+  /* Finished improvements */
   if (bestConfig->radius < initialConfig->radius) {
-    // best radius smaller than initial radius: log changes
+    /* best radius smaller than initial radius: log changes */
     for (int i = 0; i < configSize; i++)
 
       deltas[i] = getArcAngle(bestConfig, i) - getArcAngle(initialConfig, i);
     (puzzler->numberOfChangesAppliedToConfig)++;
   } else {
-    // otherwise revert to initial state
+    /* otherwise revert to initial state */
     applyConfig(node, initialConfig, puzzler);
   }
 
@@ -830,7 +841,7 @@ optimizeNode(treeNode         *node,
   cfgFreeConfig(bestConfig);
   cfgFreeConfig(initialConfig);
 
-  // compute and return gain in radius size
+  /* compute and return gain in radius size */
   double shrinkRatio = cfg->radius / initialRadius;
   return shrinkRatio;
 }
@@ -857,8 +868,10 @@ optimizeTreeRecursive(treeNode        *node,
     }
 
     minRatio = 1.0;
-    // do loop until nothing improves further
-    // recursive optimization of all children
+    /*
+     * do loop until nothing improves further
+     * recursive optimization of all children
+     */
     for (int currentChild = 0; currentChild < node->childCount; currentChild++) {
       treeNode *child = getChild(node, currentChild);
       ratio = optimizeTreeRecursive(child,
@@ -876,7 +889,7 @@ optimizeTreeRecursive(treeNode        *node,
       continue;
 
     if (!isExterior(node)) {
-      // shrink current node
+      /* shrink current node */
       ratio = optimizeNode(node,
                            subtree,
                            sizeSubtree,
@@ -904,7 +917,7 @@ optimizeTree(treeNode       *node,
 
   double    shrinkingRatio = 1.0;
 
-  // Collect subtree and ancestor tree nodes for intersection tests
+  /* Collect subtree and ancestor tree nodes for intersection tests */
   int       sizeSubtree = countSubtreeNodes(node);
   treeNode  **subtree   = (treeNode **)vrna_alloc(sizeSubtree * sizeof(treeNode *));
   collectSubtreeNodes(node, subtree, 0);
@@ -914,7 +927,7 @@ optimizeTree(treeNode       *node,
   collectAncestorNodes(node, ancestorList);
 
   if (!checkIntersections(subtree, sizeSubtree, ancestorList, sizeAncestorList, puzzler)) {
-    // Only start if subtree does not intersect with ancestor tree
+    /* Only start if subtree does not intersect with ancestor tree */
     shrinkingRatio = optimizeTreeRecursive(node,
                                            subtree,
                                            sizeSubtree,

@@ -19,10 +19,11 @@
  *        in degree format
  * @return 1 if something changed, 0 otherwise
  */
-PRIVATE short checkAndApplyConfigChanges(treeNode               *tree,
-                                 double                 *deltaCfg,
-                                 const intersectionType it,
-                                 puzzlerOptions         *puzzler);
+PRIVATE short
+checkAndApplyConfigChanges(treeNode               *tree,
+                           double                 *deltaCfg,
+                           const intersectionType it,
+                           puzzlerOptions         *puzzler);
 
 
 #include "handleConfigChanges.inc"

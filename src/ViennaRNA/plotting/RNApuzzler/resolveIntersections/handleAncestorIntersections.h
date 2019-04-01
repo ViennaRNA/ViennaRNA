@@ -4,8 +4,9 @@
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 
-PRIVATE treeNode *checkNodeAgainstAncestors(treeNode        *node,
-                                    puzzlerOptions  *puzzler);
+PRIVATE treeNode *
+checkNodeAgainstAncestors(treeNode        *node,
+                          puzzlerOptions  *puzzler);
 
 
 #include "handleAncestorIntersections.inc"

@@ -13,9 +13,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-/*--------------------------------------------------------------------------*/
-/*---   create, copy, and free config   ------------------------------------*/
-/*--------------------------------------------------------------------------*/
+/*
+ *--------------------------------------------------------------------------
+ *---   create, copy, and free config   ------------------------------------
+ *--------------------------------------------------------------------------
+ */
 
 /**
  * @brief cfgCreateConfig
@@ -96,7 +98,7 @@ cfgFreeConfig(config *cfg)
 }
 
 
-// documentation at header file
+/* documentation at header file */
 PRIVATE void
 cfgPrintConfig(config *cfg)
 {
@@ -111,10 +113,11 @@ cfgPrintConfig(config *cfg)
 }
 
 
-/*--------------------------------------------------------------------------*/
-/*---   access to config elements   ----------------------------------------*/
-/*--------------------------------------------------------------------------*/
-
+/*
+ *--------------------------------------------------------------------------
+ *---   access to config elements   ----------------------------------------
+ *--------------------------------------------------------------------------
+ */
 PRIVATE double
 getArcAngle(const config  *cfg,
             const int     currentArc)
@@ -131,9 +134,11 @@ getArcAngleDegree(const config  *cfg,
 }
 
 
-/*--------------------------------------------------------------------------*/
-/*---   radius computation   -----------------------------------------------*/
-/*--------------------------------------------------------------------------*/
+/*
+ *--------------------------------------------------------------------------
+ *---   radius computation   -----------------------------------------------
+ *--------------------------------------------------------------------------
+ */
 
 /**
  * Approximate the radius of a circle required to draw m base pairs
@@ -157,32 +162,38 @@ approximateConfigArcRadius(const double a,
 {
   const short MAX_ITERATIONS = 1000;
 
-  // calculation:
-  //
-  // be s the length of a line at the circle (paired or unpaired / a or b)
-  // the angle over such a single line be alpha
-  //     alpha = angle / ( m + n )
-  //
-  // for such a single line the following equation holds (where r is the radius of the circle)
-  //     sin( alpha / 2 ) = ( s / 2 ) / r
-  //     r = ( s / 2 ) / sin( alpha / 2 )
-  //     r = ( s / 2 ) / sin( ( angle / ( m + n ) ) / 2 )
-  //
-  // now we replace s with a or b to get the upper or lower bound for the radius interval
+  /*
+   * calculation:
+   *
+   * be s the length of a line at the circle (paired or unpaired / a or b)
+   * the angle over such a single line be alpha
+   * alpha = angle / ( m + n )
+   *
+   * for such a single line the following equation holds (where r is the radius of the circle)
+   * sin( alpha / 2 ) = ( s / 2 ) / r
+   * r = ( s / 2 ) / sin( alpha / 2 )
+   * r = ( s / 2 ) / sin( ( angle / ( m + n ) ) / 2 )
+   *
+   * now we replace s with a or b to get the upper or lower bound for the radius interval
+   */
   double  lowerBound  = (b / 2) / sin((angle / (m + n)) / 2);
   double  upperBound  = (a / 2) / sin((angle / (m + n)) / 2);
-  //    printf("new: lower %f upper %f\n", lowerBound, upperBound);
+  /* printf("new: lower %f upper %f\n", lowerBound, upperBound); */
   double  rtn = 0.5 * (lowerBound + upperBound);
 
-  /// there is a minimum valid radius!
-  /// if rtn is smaller than 0.5*a or 0.5*b than the result will become nan
+  /*
+   * there is a minimum valid radius!
+   * if rtn is smaller than 0.5*a or 0.5*b than the result will become nan
+   */
   rtn = fmax(rtn, 0.5 * a);
   rtn = fmax(rtn, 0.5 * b);
 
-  //printf("lower %f upper %f %f\n", lowerBound, upperBound, rtn);
-  //printf("Angle %f\n", angle);
+  /*
+   * printf("lower %f upper %f %f\n", lowerBound, upperBound, rtn);
+   * printf("Angle %f\n", angle);
+   */
 
-  //    short isERROR = 0;
+  /* short isERROR = 0; */
 
   int j = 0;
 
@@ -211,8 +222,10 @@ approximateConfigRadius(const config  *cfg,
                         const double  unpaired,
                         const double  paired)
 {
-  // calculate a fitting radius for each arc without compressing or stretching arc segments
-  // return the maximum of those values as the radius fitting for the loop
+  /*
+   * calculate a fitting radius for each arc without compressing or stretching arc segments
+   * return the maximum of those values as the radius fitting for the loop
+   */
   double r = 0;
 
   for (int currentArc = 0; currentArc < cfg->numberOfArcs; ++currentArc) {
@@ -231,7 +244,7 @@ approximateConfigRadius(const config  *cfg,
 }
 
 
-//--------------------------------------------------------------------------------------------------------------------------
+/* -------------------------------------------------------------------------------------------------------------------------- */
 
 /**
  * @brief cfgGenerateDefaultConfig
@@ -257,66 +270,66 @@ cfgGenerateDefaultConfig(const short *const pair_table,
                          const int          paired,
                          const double       radius)
 {
-  // create loop configuration
+  /* create loop configuration */
   config  *cfg = cfgCreateConfig(radius);
 
-  // compute angles for paired and unpaired bases
-  double  anglePaired   = 2 * asin(paired / (2 * radius));        // angle over paired
-  double  angleUnpaired = 2 * asin(unpaired / (2 * radius));      // angle over unpaired
+  /* compute angles for paired and unpaired bases */
+  double  anglePaired   = 2 * asin(paired / (2 * radius));        /* angle over paired */
+  double  angleUnpaired = 2 * asin(unpaired / (2 * radius));      /* angle over unpaired */
 
-  // initialize values for first arc
+  /* initialize values for first arc */
   int     arcUnpaired = 0;
-  double  angleArc;  // alpha + numBackbones * beta
+  double  angleArc;  /* alpha + numBackbones * beta */
 
-  // start with first base after parent stem
+  /* start with first base after parent stem */
   int     i = start + 1;
 
   while (i <= pair_table[start]) {
-    // until last base at parent stem
+    /* until last base at parent stem */
     if (pair_table[i] == 0) {
-      // arc
+      /* arc */
       i++;
     } else {
-      // increment number of arcs
+      /* increment number of arcs */
       ++(cfg->numberOfArcs);
 
       if (i != pair_table[start])
-        // skip subtree at stem
+        /* skip subtree at stem */
         i = pair_table[i] + 1;
       else
-        // parent stem -> finish
+        /* parent stem -> finish */
         break;
     }
   }
 
   cfg->cfgArcs = (configArc *)vrna_alloc(cfg->numberOfArcs * sizeof(configArc));
 
-  // start with first base after parent stem
+  /* start with first base after parent stem */
   i = start + 1;
   int currentArc          = 0;
   int numberOfArcSegments = 0;
 
   while (i <= pair_table[start]) {
-    // until last base at parent stem
+    /* until last base at parent stem */
     if (pair_table[i] == 0) {
-      // arc
+      /* arc */
       arcUnpaired++;
       i++;
     } else {
-      // stem: create arc
+      /* stem: create arc */
       angleArc                  = anglePaired + (arcUnpaired + 1) * angleUnpaired;
       numberOfArcSegments       = arcUnpaired + 1;
       cfg->cfgArcs[currentArc]  = cfgCreateConfigArc(angleArc, numberOfArcSegments);
       ++currentArc;
 
       if (i != pair_table[start]) {
-        // initialize values for next arc
+        /* initialize values for next arc */
         arcUnpaired = 0;
 
-        // skip subtree at stem
+        /* skip subtree at stem */
         i = pair_table[i] + 1;
       } else {
-        // parent stem -> finish
+        /* parent stem -> finish */
         break;
       }
     }
@@ -326,11 +339,12 @@ cfgGenerateDefaultConfig(const short *const pair_table,
 }
 
 
-PRIVATE void cfgGenHandleStem(int                 baseNr,
-                      const short *const  pair_table,
-                      tBaseInformation    *baseInformation,
-                      const double        unpaired,
-                      const double        paired);
+PRIVATE void
+cfgGenHandleStem(int                baseNr,
+                 const short *const pair_table,
+                 tBaseInformation   *baseInformation,
+                 const double       unpaired,
+                 const double       paired);
 
 
 /**
@@ -357,20 +371,20 @@ cfgGenHandleLoop(int                baseNr,
   int unpairedCount = 0;
   int stemCount     = 1;
 
-  // count stems and unpaired bases to use for bulge detection
+  /* count stems and unpaired bases to use for bulge detection */
   int i = start + 1;
 
   while (i < end) {
     if (pair_table[i] == 0) {
-      // unpaired base
+      /* unpaired base */
       unpairedCount++;
       i++;
     } else if (pair_table[i] > i) {
-      // found new stem
+      /* found new stem */
       stemCount++;
       i = pair_table[i];
     } else {
-      // returned from stem
+      /* returned from stem */
       i++;
     }
   }
@@ -378,14 +392,14 @@ cfgGenHandleLoop(int                baseNr,
   short isBulge = (stemCount == 2 && unpairedCount == 1);
   if (isBulge) {
     if (pair_table[start + 1] == 0)
-      // unpaired on left strand
+      /* unpaired on left strand */
       cfgGenHandleStem(start + 2, pair_table, baseInformation, unpaired, paired);
     else
-      // unpaired on the right strand
+      /* unpaired on the right strand */
       cfgGenHandleStem(start + 1, pair_table, baseInformation, unpaired, paired);
   } else {
-    int     m             = stemCount;                  // compare RNApuzzler.c -> f_handle_loop
-    int     n             = unpairedCount + stemCount;  // compare RNApuzzler.c -> f_handle_loop
+    int     m             = stemCount;                  /* compare RNApuzzler.c -> f_handle_loop */
+    int     n             = unpairedCount + stemCount;  /* compare RNApuzzler.c -> f_handle_loop */
     double  defaultRadius = approximateConfigArcRadius(paired, unpaired, m, n, MATH_TWO_PI);
     config  *cfgLoop      = cfgGenerateDefaultConfig(pair_table,
                                                      start,
@@ -397,14 +411,14 @@ cfgGenHandleLoop(int                baseNr,
     int i = start + 1;
     while (i < end) {
       if (pair_table[i] == 0) {
-        // unpaired base
+        /* unpaired base */
         i++;
       } else if (pair_table[i] > i) {
-        // found new stem
+        /* found new stem */
         cfgGenHandleStem(i, pair_table, baseInformation, unpaired, paired);
         i = pair_table[i];
       } else {
-        // returned from stem
+        /* returned from stem */
         i++;
       }
     }
@@ -430,7 +444,7 @@ cfgGenHandleStem(int                baseNr,
                  const double       unpaired,
                  const double       paired)
 {
-  // iterating over the stem and calling cfgGenHandleLoop as soon as a loop is found
+  /* iterating over the stem and calling cfgGenHandleLoop as soon as a loop is found */
   short continueStem  = 1;
   int   i             = baseNr;
 
@@ -438,7 +452,7 @@ cfgGenHandleStem(int                baseNr,
     if (pair_table[i + 1] == pair_table[i] - 1) {
       i++;
     } else {
-      // found unpaired above stem
+      /* found unpaired above stem */
       cfgGenHandleLoop(i, pair_table, baseInformation, unpaired, paired);
       continueStem = 0;
     }
@@ -446,39 +460,43 @@ cfgGenHandleStem(int                baseNr,
 }
 
 
-// documentation at header file
+/* documentation at header file */
 PRIVATE void
 cfgGenerateConfig(const short *const  pair_table,
                   tBaseInformation    *baseInformation,
                   const double        unpaired,
                   const double        paired)
 {
-  // iterate over RNA
-  // for each loop generate a default config
+  /*
+   * iterate over RNA
+   * for each loop generate a default config
+   */
   int length  = pair_table[0];
   int i       = 1;
 
   while (i < length) {
     if (pair_table[i] == 0) {
-      // unpaired at exterior loop
+      /* unpaired at exterior loop */
       i++;
     } else if (pair_table[i] > i) {
-      // found stem
+      /* found stem */
       cfgGenHandleStem(i, pair_table, baseInformation, unpaired, paired);
       i = pair_table[i];
     } else {
-      // returned from stem
+      /* returned from stem */
       i++;
     }
   }
 }
 
 
-/*--------------------------------------------------------------------------*/
-/*---   set and update config elements   -----------------------------------*/
-/*--------------------------------------------------------------------------*/
+/*
+ *--------------------------------------------------------------------------
+ *---   set and update config elements   -----------------------------------
+ *--------------------------------------------------------------------------
+ */
 
-// documentation at header file
+/* documentation at header file */
 /**
  * @brief cfgSetRadius
  *      - changes the value of radius for a config to the given value
@@ -520,31 +538,37 @@ cfgApplyChanges(config                *cfg,
                 const double          radiusNew,
                 const puzzlerOptions  *puzzler)
 {
-  // start with adjusting config angles; if applicable
+  /* start with adjusting config angles; if applicable */
   if (deltaCfg != NULL) {
     for (int currentArc = 0; currentArc < cfg->numberOfArcs; currentArc++)
 
       (cfg->cfgArcs[currentArc]).arcAngle += deltaCfg[currentArc];
   }
 
-  // then, adjust config radius
+  /* then, adjust config radius */
   double  oldRadius = cfg->radius;
   double  newRadius = -1.0;
   if (radiusNew > 0.0) {
-    // in case the input is a positive value
-    // we set the minimum of valid and input as new radius
+    /*
+     * in case the input is a positive value
+     * we set the minimum of valid and input as new radius
+     */
     cfgUpdateMinRadius(cfg, puzzler->unpaired, puzzler->paired);
     newRadius = fmax(radiusNew, cfg->minRadius);
     cfgSetRadius(cfg, newRadius);
   } else if (radiusNew == 0.0) {
-    // set the minRadius as new value
-    // (this allows to shrink a loop)
+    /*
+     * set the minRadius as new value
+     * (this allows to shrink a loop)
+     */
     cfgUpdateMinRadius(cfg, puzzler->unpaired, puzzler->paired);
     newRadius = cfg->minRadius;
     cfgSetRadius(cfg, newRadius);
   } else if (radiusNew == -1.0) {
-    // set the minRadius as new value
-    // (this forbidds to shrink a loop)
+    /*
+     * set the minRadius as new value
+     * (this forbidds to shrink a loop)
+     */
     cfgUpdateMinRadius(cfg, puzzler->unpaired, puzzler->paired);
 
     if (cfg->minRadius - EPSILON_0 > oldRadius) {
@@ -556,7 +580,7 @@ cfgApplyChanges(config                *cfg,
 
     cfgSetRadius(cfg, newRadius);
   } else {
-    // all unhandled inputs result in errors
+    /* all unhandled inputs result in errors */
     newRadius = -1.0;
   }
 

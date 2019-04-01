@@ -47,7 +47,7 @@ projectPointOntoLine(const double a[2],
     -v[1], v[0]
   };
 
-  // compute r which grants all needed information
+  /* compute r which grants all needed information */
   double  r = (u[1] - u[0] * w[1] / w[0]) / (v[1] - v[0] * w[1] / w[0]);
 
   if (r < 0.0) {
@@ -74,51 +74,53 @@ ClosestPtPointBulge(const double  p[2],
 {
   char *fnName = "CLOSEST ON BULGE";
 
-  // Note:
-  //
-  // In contrast to ClosestPtPointTriangle (taken from book Real-Time Collision Detection)
-  // this function does not work for general triangles.
-  // We implicitely make use of the fact that our bulges are equiliteral triangles
-  // or to be more precise there are no angles greater than 90° in our triangles.
-  // This allows for only checking for the first occurance of a side where point p
-  // is on the outer side of the triangle and not checking any further.
-  //
-  // In fact applying this function to a triangle with some angle being greater than 90°
-  // may lead to wrong results as follows as described in the mentioned book
-  // (at ClosestPtPointTriangle) as well.
+  /*
+   * Note:
+   *
+   * In contrast to ClosestPtPointTriangle (taken from book Real-Time Collision Detection)
+   * this function does not work for general triangles.
+   * We implicitely make use of the fact that our bulges are equiliteral triangles
+   * or to be more precise there are no angles greater than 90° in our triangles.
+   * This allows for only checking for the first occurance of a side where point p
+   * is on the outer side of the triangle and not checking any further.
+   *
+   * In fact applying this function to a triangle with some angle being greater than 90°
+   * may lead to wrong results as follows as described in the mentioned book
+   * (at ClosestPtPointTriangle) as well.
+   */
 
 
-  // check if p on outer side of AB
+  /* check if p on outer side of AB */
   short orientABC = isToTheRightPointPoint(a, b, c);
   short orientABP = isToTheRightPointPoint(a, b, p);
 
   if (orientABC != orientABP) {
-    // p is on outer side of AB
+    /* p is on outer side of AB */
     projectPointOntoLine(a, b, p, ret_p);
     return;
   }
 
-  // check if p on outer side of BC
+  /* check if p on outer side of BC */
   short orientBCA = isToTheRightPointPoint(b, c, a);
   short orientBCP = isToTheRightPointPoint(b, c, p);
 
   if (orientBCA != orientBCP) {
-    // p is on outer side of BC
+    /* p is on outer side of BC */
     projectPointOntoLine(b, c, p, ret_p);
     return;
   }
 
-  // check if p on outer side of CA
+  /* check if p on outer side of CA */
   short orientCAB = isToTheRightPointPoint(c, a, b);
   short orientCAP = isToTheRightPointPoint(c, a, p);
 
   if (orientCAB != orientCAP) {
-    // p is on outer side of CA
+    /* p is on outer side of CA */
     projectPointOntoLine(c, a, p, ret_p);
     return;
   }
 
-  // p is inside ABC
+  /* p is inside ABC */
   ret_p[0]  = p[0];
   ret_p[1]  = p[1];
   return;
@@ -132,7 +134,7 @@ ClosestPtPointTriangle(const double p[2],
                        const double c[2],
                        double       ret_p[2])
 {
-  // Check if P in vertex region outside A
+  /* Check if P in vertex region outside A */
   double  ab[2];
   double  ac[2];
   double  ap[2];
@@ -144,71 +146,71 @@ ClosestPtPointTriangle(const double p[2],
   double  d2  = scalarProduct2D(ac, ap);
 
   if (d1 <= 0.0 && d2 <= 0.0) {
-    // barycentric coordinates (1,0,0)
+    /* barycentric coordinates (1,0,0) */
     ret_p[0]  = a[0];
     ret_p[1]  = a[1];
     return;
   }
 
-  // Check if P in vertex region outside B
+  /* Check if P in vertex region outside B */
   double  bp[2];
   vector(b, p, bp);
   double  d3  = scalarProduct2D(ab, bp);
   double  d4  = scalarProduct2D(ac, bp);
 
   if (d3 >= 0.0 && d4 <= 0.0) {
-    // barycentric coordinates (0,1,0)
+    /* barycentric coordinates (0,1,0) */
     ret_p[0]  = b[0];
     ret_p[1]  = b[1];
     return;
   }
 
-  // Check if P in edge region of AB, if so return projection of P onto AB
+  /* Check if P in edge region of AB, if so return projection of P onto AB */
   double vc = d1 * d4 - d3 * d2;
 
   if (vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0) {
-    // barycentric coordinates (1-v,v,0)
+    /* barycentric coordinates (1-v,v,0) */
     double v = d1 / (d1 - d3);
     ret_p[0]  = a[0] + v * ab[0];
     ret_p[1]  = a[1] + v * ab[1];
     return;
   }
 
-  // Check if P in vertex region outside C
+  /* Check if P in vertex region outside C */
   double  cp[2];
   vector(c, p, cp);
   double  d5  = scalarProduct2D(ab, cp);
   double  d6  = scalarProduct2D(ac, cp);
 
   if (d6 >= 0.0 && d5 <= d6) {
-    // barycentric coordinates (0,0,1)
+    /* barycentric coordinates (0,0,1) */
     ret_p[0]  = c[0];
     ret_p[1]  = c[1];
     return;
   }
 
-  // Check if P in edge region of AC, if so return projection of P onto AC
+  /* Check if P in edge region of AC, if so return projection of P onto AC */
   double vb = d5 * d2 - d1 * d6;
   if (vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0) {
-    // barycentric coordinates (1-w,0,w)
+    /* barycentric coordinates (1-w,0,w) */
     double w = d2 / (d2 - d6);
     ret_p[0]  = a[0] + w * ac[0];
     ret_p[1]  = a[1] + w * ac[1];
     return;
   }
 
-  // Check if P in edge region of BC, if so return projection of P onto BC
+  /* Check if P in edge region of BC, if so return projection of P onto BC */
   double va = d3 * d6 - d5 * d4;
 
   if (va <= 0.0) {
     if ((d4 - d3) >= 0.0 && (d5 - d6) >= 0.0) {
-      // barycentric coordinates (0,1-w,w)
+      /* barycentric coordinates (0,1-w,w) */
       double w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
       ret_p[0]  = b[0] + w * (c[0] - b[0]);
       ret_p[1]  = b[1] + w * (c[1] - b[1]);
       return;
     } else if ((d4 - d3) <= 0.0 && (d5 - d6) >= 0.0) {
-      // barycentric coordinates (0,1-w,w)
+      /* barycentric coordinates (0,1-w,w) */
       double w = (d3 - d4) / ((d3 - d4) + (d5 - d6));
       ret_p[0]  = b[0] + w * (c[0] - b[0]);
       ret_p[1]  = b[1] + w * (c[1] - b[1]);
@@ -216,7 +218,7 @@ ClosestPtPointTriangle(const double p[2],
     }
   }
 
-  // P inside face region. Compute Q through its barycentric coordinates (u,v,w)
+  /* P inside face region. Compute Q through its barycentric coordinates (u,v,w) */
   double  denom = 1.0 / (va + vb + vc);
   double  v     = vb * denom;
   double  w     = vc * denom;
@@ -263,7 +265,7 @@ ClosestPtPointOBB(const stemBox stem,
   double  abs_e0  = sign_e0 * stem.e[0];
   double  abs_e1  = sign_e1 * stem.e[1];
 
-  // clamp dist_0/1 to the extents of the OBB
+  /* clamp dist_0/1 to the extents of the OBB */
   double  clamped_0 = abs_d0 > abs_e0 ? sign_d0 * abs_e0 : sign_d0 * abs_d0;
   double  clamped_1 = abs_d1 > abs_e1 ? sign_d1 * abs_e1 : sign_d1 * abs_d1;
 
@@ -289,7 +291,7 @@ intersectStemLoop(const stemBox *stem,
   intersect = (distanceSquared <
                ((loop->r + epsilonRecognize) *
                 (loop->r + epsilonRecognize)));
-  // add epsilon to classify nearby objects as intersecting
+  /* add epsilon to classify nearby objects as intersecting */
   return intersect;
 }
 
@@ -298,7 +300,7 @@ PRIVATE short
 intersectStemStem(const stemBox *stem1,
                   const stemBox *stem2)
 {
-  // brute force approach for intersecting two rectangles
+  /* brute force approach for intersecting two rectangles */
   double  stem1_ea[2] = {
     stem1->e[0] * stem1->a[0],
     stem1->e[0] * stem1->a[1]
@@ -349,8 +351,10 @@ intersectStemStem(const stemBox *stem1,
     stem2->c[1] - stem2_ea[1] + stem2_eb[1]
   };
 
-  // Only the sides of the stems (AB, CD) need to be intersected against
-  // each other
+  /*
+   * Only the sides of the stems (AB, CD) need to be intersected against
+   * each other
+   */
   if (intersectLineSegments(A1, B1, A2, B2, NULL)
       || intersectLineSegments(A1, B1, C2, D2, NULL)
       || intersectLineSegments(C1, D1, A2, B2, NULL)
@@ -362,7 +366,7 @@ intersectStemStem(const stemBox *stem1,
 }
 
 
-// Returns true if circle circ intersects triangle ABC, false otherwise.
+/* Returns true if circle circ intersects triangle ABC, false otherwise. */
 PRIVATE short
 TestCircleTriangle(const double circ_c[2],
                    const double circ_r,
@@ -371,11 +375,13 @@ TestCircleTriangle(const double circ_c[2],
                    const double C[2],
                    double       p[2])
 {
-  // Find point P on triangle ABC closest to circle center
+  /* Find point P on triangle ABC closest to circle center */
   ClosestPtPointBulge(circ_c, A, B, C, p);
 
-  // circle and triangle intersect if the (squared) distance from circle
-  // center to point is less than the (squared) circle radius
+  /*
+   * circle and triangle intersect if the (squared) distance from circle
+   * center to point is less than the (squared) circle radius
+   */
   double  v[2];
   vector(p, circ_c, v);
 
@@ -392,11 +398,11 @@ TestLoopBulge(const double  c[2],
               const double  pThis[2],
               const double  pNext[2])
 {
-  // check if bulge point is inside loop
+  /* check if bulge point is inside loop */
   double vCenterBulge[2];
 
   vector(c, pThis, vCenterBulge);
-  // compare r and length of vCenterBulge; using squared distances is less expensive that sqrt
+  /* compare r and length of vCenterBulge; using squared distances is less expensive that sqrt */
   if (r * r > vectorLength2DSquared(vCenterBulge))
 
     return 1;
@@ -409,7 +415,7 @@ TestLoopBulge(const double  c[2],
   double  cut1[2], cut2[2];
   short   numCut;
 
-  // evaluate line pPrev->pThis
+  /* evaluate line pPrev->pThis */
   numCut = getCutPointsOfCircleAndLine(c, r, pPrev, vPrevThis, cut1, cut2);
 
   if (numCut > 0) {
@@ -422,7 +428,7 @@ TestLoopBulge(const double  c[2],
     if (matchLinePoint(pPrev, vPrevThis, cut2))
       return 1;
 
-  // evaluate line pThis->pNext
+  /* evaluate line pThis->pNext */
   numCut = getCutPointsOfCircleAndLine(c, r, pThis, vThisNext, cut1, cut2);
   if (numCut > 0)
     if (matchLinePoint(pThis, vThisNext, cut1))
@@ -512,14 +518,18 @@ intersectStemBulges(const stemBox *stem1,
 
     return 0;
 
-  // simplify to only check bulge lines against left and right stem lines
-  //
-  // if the bulge is surrounded by the stem then there is a Stem vs. Stem intersection
-  // if the bulge intersects the stem's bottom or top line then there is an intersection with the adjacent loop
-  /// -> no need to checks those cases
+  /*
+   * simplify to only check bulge lines against left and right stem lines
+   *
+   * if the bulge is surrounded by the stem then there is a Stem vs. Stem intersection
+   * if the bulge intersects the stem's bottom or top line then there is an intersection with the adjacent loop
+   * -> no need to checks those cases
+   */
 
-  // N - North, E - East, S - South, W - West
-  // north is direction to loop
+  /*
+   * N - North, E - East, S - South, W - West
+   * north is direction to loop
+   */
   double  pNW[2];
   pNW[0]  = stem1->c[0] + stem1->e[0] * stem1->a[0] - stem1->e[1] * stem1->b[0];
   pNW[1]  = stem1->c[1] + stem1->e[0] * stem1->a[1] - stem1->e[1] * stem1->b[1];

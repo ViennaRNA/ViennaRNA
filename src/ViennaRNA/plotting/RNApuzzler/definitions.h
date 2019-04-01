@@ -18,11 +18,11 @@
 #define _changed   0x0002
 
 
-
-PRIVATE void bubblesort(const int           numValues,
-                const double *const valuesLevel1,
-                const double *const valuesLevel2,
-                int *const          indices);
+PRIVATE void
+bubblesort(const int            numValues,
+           const double *const  valuesLevel1,
+           const double *const  valuesLevel2,
+           int *const           indices);
 
 
 /**
@@ -35,12 +35,14 @@ PRIVATE void bubblesort(const int           numValues,
  * @param distance the distance between two points on the circle
  * @return angle in degree
  */
-PRIVATE double distanceToAngle(const double radius,
-                       const double distance);
+PRIVATE double
+distanceToAngle(const double  radius,
+                const double  distance);
 
 
-PRIVATE double angleToDistance(const double radius,
-                       const double degreeAngle);
+PRIVATE double
+angleToDistance(const double  radius,
+                const double  degreeAngle);
 
 
 #include "definitions.inc"

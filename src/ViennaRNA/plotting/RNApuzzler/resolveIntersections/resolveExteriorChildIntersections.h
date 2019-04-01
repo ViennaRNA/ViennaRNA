@@ -6,26 +6,29 @@
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h"
 
 
-PRIVATE void resolveExteriorChildrenIntersectionXY(treeNode           *exteriorNode,
-                                           short const *const pair_table,
-                                           const double       unpaired,
-                                           const short        allowFlipping,
-                                           double             *myX,
-                                           double             *myY);
+PRIVATE void
+resolveExteriorChildrenIntersectionXY(treeNode            *exteriorNode,
+                                      short const *const  pair_table,
+                                      const double        unpaired,
+                                      const short         allowFlipping,
+                                      double              *myX,
+                                      double              *myY);
 
 
-PRIVATE void resolveExteriorChildrenIntersectionAffin(treeNode                *exteriorNode,
-                                              short const *const      pair_table,
-                                              tBaseInformation *const baseInformation,
-                                              const double            unpaired,
-                                              const short             allowFlipping);
+PRIVATE void
+resolveExteriorChildrenIntersectionAffin(treeNode                 *exteriorNode,
+                                         short const *const       pair_table,
+                                         tBaseInformation *const  baseInformation,
+                                         const double             unpaired,
+                                         const short              allowFlipping);
 
 
-PRIVATE void resolveExteriorChildIntersections(treeNode                 *exteriorNode,
-                                       short const *const       pair_table,
-                                       tBaseInformation *const  baseInformation,
-                                       const double             unpaired,
-                                       const short              allowFlipping);
+PRIVATE void
+resolveExteriorChildIntersections(treeNode                *exteriorNode,
+                                  short const *const      pair_table,
+                                  tBaseInformation *const baseInformation,
+                                  const double            unpaired,
+                                  const short             allowFlipping);
 
 
 #include "resolveExteriorChildIntersections.inc"

@@ -49,7 +49,7 @@ fixIntersectionOfSiblings(treeNode        *tree,
 
   short   changed = 0;
   if (targetAngle < 0) {
-    targetAngle = fmax(targetAngle, -MATH_PI_HALF);     // limit the angle to avoid malformed structures
+    targetAngle = fmax(targetAngle, -MATH_PI_HALF);     /* limit the angle to avoid malformed structures */
     double changedAngle = calcDeltas(tree,
                                      getParent(tree),
                                      left,
@@ -62,7 +62,7 @@ fixIntersectionOfSiblings(treeNode        *tree,
       treeNode  *leftNode   = getChild(tree, left);
       treeNode  *rightNode  = getChild(tree, right);
 
-      // apply all changes
+      /* apply all changes */
       changed = checkAndApplyConfigChanges(tree, deltaCfg, siblings, puzzler);
     }
   }
@@ -89,11 +89,13 @@ handleIntersectionOfSiblings(treeNode       *tree,
 {
   char *fnName = "FIX INTERSECTION OF SIBLINGS";
 
-  // idea:
-  // measure each intersection by calculating an overlap angle
-  // increase the spaces between intersectors and decrease spaces that are not between them
-  // distribute the overlap angle equally to all participating spaces
-  // check for new or remaining intersections (at the end)
+  /*
+   * idea:
+   * measure each intersection by calculating an overlap angle
+   * increase the spaces between intersectors and decrease spaces that are not between them
+   * distribute the overlap angle equally to all participating spaces
+   * check for new or remaining intersections (at the end)
+   */
 
   if (puzzler->numberOfChangesAppliedToConfig > puzzler->maximumNumberOfConfigChangesAllowed)
     return -1;
@@ -106,14 +108,14 @@ handleIntersectionOfSiblings(treeNode       *tree,
 
   double  *deltaCfg = (double *)vrna_alloc(configSize * sizeof(double));
 
-  // init deltas with zero
+  /* init deltas with zero */
   for (int i = 0; i < configSize; i++)
 
     deltaCfg[i] = 0.0;
 
-  // fix intersections of siblings
+  /* fix intersections of siblings */
   for (int k = 0; k < intersectionCount; k++) {
-    // for all intersections - start
+    /* for all intersections - start */
 
     int left  = listOfIntersections[2 * k + 1];
     int right = listOfIntersections[2 * k + 2];
@@ -139,14 +141,14 @@ checkSiblings(treeNode        *node,
   short ret     = _false;
 
   int   childCount = node->childCount;
-  // create array to store all information about overlapping neighbors
+  /* create array to store all information about overlapping neighbors */
   int   *intersectorsBranches = (int *)vrna_alloc((childCount * childCount) * sizeof(int));
 
   for (int i = 0; i < childCount * childCount; i++)
 
     intersectorsBranches[i] = -1;
 
-  // actually check for those intersections
+  /* actually check for those intersections */
   for (int i = 0; i < childCount; i++) {
     int intersectorsCount = 0;
 
@@ -161,7 +163,7 @@ checkSiblings(treeNode        *node,
     }
   }
 
-  /// and count them
+  /* and count them */
   int intersectionCount = 0;
 
   for (int i = 0; i < (childCount * childCount); i++) {
@@ -173,10 +175,12 @@ checkSiblings(treeNode        *node,
   if (intersectionCount > 0) {
     ret |= _intersect;
 
-    // transform intersection information into format
-    // [ count, [intersector_a, intersector_b], [intersector_a, intersector_b], ... ]
-    // where count states how many pairs of a/b are there
-    // the i-th intersection has index a=2*i+1; b=2*i+2
+    /*
+     * transform intersection information into format
+     * [ count, [intersector_a, intersector_b], [intersector_a, intersector_b], ... ]
+     * where count states how many pairs of a/b are there
+     * the i-th intersection has index a=2*i+1; b=2*i+2
+     */
     int *listOfIntersections = (int *)vrna_alloc((1 + 2 * intersectionCount) * sizeof(int));
     listOfIntersections[0] = intersectionCount;
 
@@ -189,7 +193,7 @@ checkSiblings(treeNode        *node,
       }
     }
 
-    // resolve all of those intersections for this node's subtrees
+    /* resolve all of those intersections for this node's subtrees */
     short retFix = handleIntersectionOfSiblings(node, listOfIntersections, puzzler);
 
     if (retFix < 0)
