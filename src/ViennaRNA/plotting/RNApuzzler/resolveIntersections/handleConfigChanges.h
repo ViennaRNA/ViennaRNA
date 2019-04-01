@@ -1,5 +1,5 @@
-#ifndef HANDLE_CONFIG_CHANGES_H
-#define HANDLE_CONFIG_CHANGES_H
+#ifndef RNAPUZZLER_HANDLE_CONFIG_CHANGES_H
+#define RNAPUZZLER_HANDLE_CONFIG_CHANGES_H
 
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
@@ -25,6 +25,6 @@ PRIVATE short checkAndApplyConfigChanges(treeNode               *tree,
                                  puzzlerOptions         *puzzler);
 
 
-#include "handleConfigChanges.c"
+#include "handleConfigChanges.inc"
 
 #endif

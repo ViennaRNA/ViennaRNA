@@ -1,5 +1,5 @@
-#ifndef ROTATION_ANGLE_H
-#define ROTATION_ANGLE_H
+#ifndef RNAPUZZLER_ROTATION_ANGLE_H
+#define RNAPUZZLER_ROTATION_ANGLE_H
 
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/intersectionType.h"
@@ -11,7 +11,7 @@ PRIVATE double getRotationAngle(const treeNode          *rootNode,
                         short                   rotationSign);
 
 
-#include "rotationAngle.c"
+#include "rotationAngle.inc"
 
 
 #endif

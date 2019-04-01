@@ -28,6 +28,6 @@ PRIVATE void resolveExteriorChildIntersections(treeNode                 *exterio
                                        const short              allowFlipping);
 
 
-#include "resolveExteriorChildIntersections.c"
+#include "resolveExteriorChildIntersections.inc"
 
 #endif

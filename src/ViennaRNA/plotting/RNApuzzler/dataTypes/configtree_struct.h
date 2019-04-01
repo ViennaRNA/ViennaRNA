@@ -1,5 +1,5 @@
-#ifndef CONFIGTREE_STRUCT_H
-#define CONFIGTREE_STRUCT_H
+#ifndef RNAPUZZLER_CONFIGTREE_STRUCT_H
+#define RNAPUZZLER_CONFIGTREE_STRUCT_H
 
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/AABB_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/config_struct.h"

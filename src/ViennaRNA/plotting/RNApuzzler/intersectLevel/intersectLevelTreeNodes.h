@@ -1,5 +1,5 @@
-#ifndef INTERSECTLEVELTREENODES_H
-#define INTERSECTLEVELTREENODES_H
+#ifndef RNAPUZZLER_INTERSECTLEVELTREENODES_H
+#define RNAPUZZLER_INTERSECTLEVELTREENODES_H
 
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
@@ -65,6 +65,6 @@ PRIVATE short intersectNodeLists(treeNode *const              *list1,
                          const puzzlerOptions *const  puzzler);
 
 
-#include "intersectLevelTreeNodes.c"
+#include "intersectLevelTreeNodes.inc"
 
 #endif

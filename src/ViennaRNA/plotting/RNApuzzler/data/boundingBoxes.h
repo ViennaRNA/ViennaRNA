@@ -1,5 +1,5 @@
-#ifndef BOUNDING_BOXES_H
-#define BOUNDING_BOXES_H
+#ifndef RNAPUZZLER_BOUNDING_BOXES_H
+#define RNAPUZZLER_BOUNDING_BOXES_H
 
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h>
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h>
@@ -109,6 +109,6 @@ PRIVATE void printLBox(const loopBox *loop);
 
 PRIVATE void printSBox(const stemBox *stem);
 
-#include "boundingBoxes.c"
+#include "boundingBoxes.inc"
 
 #endif

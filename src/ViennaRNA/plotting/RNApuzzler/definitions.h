@@ -1,5 +1,5 @@
-#ifndef DEFINITIONS_H
-#define DEFINITIONS_H
+#ifndef RNAPUZZLER_DEFINITIONS_H
+#define RNAPUZZLER_DEFINITIONS_H
 
 #define FANCY_PS 0
 
@@ -43,6 +43,6 @@ PRIVATE double angleToDistance(const double radius,
                        const double degreeAngle);
 
 
-#include "definitions.c"
+#include "definitions.inc"
 
 #endif

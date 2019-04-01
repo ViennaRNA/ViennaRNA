@@ -1,5 +1,5 @@
-#ifndef STRUCTURE_STRUCT_H
-#define STRUCTURE_STRUCT_H
+#ifndef RNAPUZZLER_STRUCTURE_STRUCT_H
+#define RNAPUZZLER_STRUCTURE_STRUCT_H
 
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/config_struct.h>
 

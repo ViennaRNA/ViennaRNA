@@ -1,5 +1,5 @@
-#ifndef CONFIGTREE_H
-#define CONFIGTREE_H
+#ifndef RNAPUZZLER_CONFIGTREE_H
+#define RNAPUZZLER_CONFIGTREE_H
 
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/config_struct.h"
@@ -210,6 +210,6 @@ PRIVATE double getPairedAngle(const treeNode *node);
 
 PRIVATE void freeTree(treeNode *node);
 
-#include "configtree.c"
+#include "configtree.inc"
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef INTERSECTLEVELLINES_H
-#define INTERSECTLEVELLINES_H
+#ifndef RNAPUZZLER_INTERSECTLEVELLINES_H
+#define RNAPUZZLER_INTERSECTLEVELLINES_H
 /**
  * @brief intersectLineArc
  *      checks for intersection of a circle arc and straight line
@@ -46,6 +46,6 @@ PRIVATE short intersectLineSegments(const double  A[2],
                             double        P[2]);
 
 
-#include "intersectLevelLines.c"
+#include "intersectLevelLines.inc"
 
 #endif

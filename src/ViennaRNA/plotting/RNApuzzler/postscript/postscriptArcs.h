@@ -12,6 +12,6 @@ PRIVATE void computeAnglesAndCentersForPS(short const *const      pair_table,
                                   const tBaseInformation  *baseInformation,
                                   double                  *arcCoords);
 
-#include "postscriptArcs.c"
+#include "postscriptArcs.inc"
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef VECTOR_MATH_H
-#define VECTOR_MATH_H
+#ifndef RNAPUZZLER_VECTOR_MATH_H
+#define RNAPUZZLER_VECTOR_MATH_H
 
 #define MATH_PI      3.141592653589793
 #define MATH_PI_HALF (MATH_PI / 2.0)
@@ -319,6 +319,6 @@ PRIVATE void circle(const double  A[2],
             double        center[2],
             double        *radius);
 
-#include "vector_math.c"
+#include "vector_math.inc"
 
 #endif

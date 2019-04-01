@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef RNAPUZZLER_CONFIG_H
+#define RNAPUZZLER_CONFIG_H
 
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h>
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h>
@@ -103,6 +103,6 @@ PRIVATE short cfgIsValid(config       *config,
  */
 PRIVATE char intToMotiv(const int _int);
 
-#include "drawingconfig.c"
+#include "drawingconfig.inc"
 
 #endif

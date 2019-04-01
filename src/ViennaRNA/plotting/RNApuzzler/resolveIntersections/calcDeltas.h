@@ -1,5 +1,5 @@
-#ifndef CALC_DELTAS_H
-#define CALC_DELTAS_H
+#ifndef RNAPUZZLER_CALC_DELTAS_H
+#define RNAPUZZLER_CALC_DELTAS_H
 
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
@@ -27,6 +27,6 @@ PRIVATE double calcDeltas(const treeNode  *node,
                   puzzlerOptions  *puzzler,
                   double          *deltas);
 
-#include "calcDeltas.c"
+#include "calcDeltas.inc"
 
 #endif

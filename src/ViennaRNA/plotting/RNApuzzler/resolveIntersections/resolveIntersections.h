@@ -1,5 +1,5 @@
-#ifndef RESOLVE_INTERSECTIONS_H
-#define RESOLVE_INTERSECTIONS_H
+#ifndef RNAPUZZLER_RESOLVE_INTERSECTIONS_H
+#define RNAPUZZLER_RESOLVE_INTERSECTIONS_H
 
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
@@ -9,6 +9,6 @@ PRIVATE treeNode *checkAndFixIntersections(treeNode       *node,
                                    puzzlerOptions *puzzler);
 
 
-#include "resolveIntersections.c"
+#include "resolveIntersections.inc"
 
 #endif

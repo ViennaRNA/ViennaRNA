@@ -1,5 +1,5 @@
-#ifndef INTERSECTION_TYPE_H
-#define INTERSECTION_TYPE_H
+#ifndef RNAPUZZLER_INTERSECTION_TYPE_H
+#define RNAPUZZLER_INTERSECTION_TYPE_H
 
 typedef enum {
   noIntersection  = 0,
@@ -19,7 +19,7 @@ typedef enum {
 PRIVATE char *intersectionTypeToString(const intersectionType it);
 
 
-#include "intersectionType.c"
+#include "intersectionType.inc"
 
 
 #endif

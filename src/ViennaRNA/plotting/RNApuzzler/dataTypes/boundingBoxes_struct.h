@@ -1,5 +1,5 @@
-#ifndef BOUNDING_BOXES_STRUCT_H
-#define BOUNDING_BOXES_STRUCT_H
+#ifndef RNAPUZZLER_BOUNDING_BOXES_STRUCT_H
+#define RNAPUZZLER_BOUNDING_BOXES_STRUCT_H
 
 typedef struct boundingboxLoop {
   struct configtree *parent;

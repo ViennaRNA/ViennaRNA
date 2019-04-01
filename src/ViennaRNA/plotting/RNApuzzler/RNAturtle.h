@@ -1,5 +1,5 @@
-#ifndef RNA_TURTLE_H
-#define RNA_TURTLE_H
+#ifndef RNATURTLE_H
+#define RNATURTLE_H
 
 #include <ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h>
 

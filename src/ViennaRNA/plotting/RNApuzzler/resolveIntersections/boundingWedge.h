@@ -1,5 +1,5 @@
-#ifndef BOUNDING_WEDGE_H
-#define BOUNDING_WEDGE_H
+#ifndef RNAPUZZLER_BOUNDING_WEDGE_H
+#define RNAPUZZLER_BOUNDING_WEDGE_H
 
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 
@@ -21,6 +21,6 @@ PRIVATE void getBoundingWedge(const treeNode  *root,
                       double          *maxAngle);
 
 
-#include "boundingWedge.c"
+#include "boundingWedge.inc"
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef RNA_PUZZLER_H
-#define RNA_PUZZLER_H
+#ifndef RNAPUZZLER_H
+#define RNAPUZZLER_H
 
 typedef struct {
   /// variables fixed during operation

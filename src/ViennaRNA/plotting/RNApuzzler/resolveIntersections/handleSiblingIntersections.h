@@ -1,5 +1,5 @@
-#ifndef SIBLING_INTERSCTIONS_H
-#define SIBLING_INTERSCTIONS_H
+#ifndef RNAPUZZLER_SIBLING_INTERSCTIONS_H
+#define RNAPUZZLER_SIBLING_INTERSCTIONS_H
 
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
@@ -14,7 +14,7 @@ PRIVATE short checkSiblings(treeNode        *node,
                     puzzlerOptions  *puzzler);
 
 
-#include "handleSiblingIntersections.c"
+#include "handleSiblingIntersections.inc"
 
 
 #endif

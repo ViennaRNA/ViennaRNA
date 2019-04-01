@@ -1,5 +1,5 @@
-#ifndef INTERSECTLEVELBOUNDINGBOXES_H
-#define INTERSECTLEVELBOUNDINGBOXES_H
+#ifndef RNAPUZZLER_INTERSECTLEVELBOUNDINGBOXES_H
+#define RNAPUZZLER_INTERSECTLEVELBOUNDINGBOXES_H
 
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
 #include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
@@ -72,7 +72,7 @@ PRIVATE short intersectStemBulges(const stemBox *stem1,
                           int           *bulge2);
 
 
-#include "intersectLevelBoundingBoxes.c"
+#include "intersectLevelBoundingBoxes.inc"
 
 
 #endif

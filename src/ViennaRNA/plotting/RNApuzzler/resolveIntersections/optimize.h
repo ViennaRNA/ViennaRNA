@@ -1,5 +1,5 @@
-#ifndef OPTIMIZE_H
-#define OPTIMIZE_H
+#ifndef RNAPUZZLER_OPTIMIZE_H
+#define RNAPUZZLER_OPTIMIZE_H
 
 #include "ViennaRNA/plotting/RNApuzzler/dataTypes/configtree_struct.h"
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
@@ -31,7 +31,7 @@ PRIVATE double optimizeTree(treeNode        *node,
                     puzzlerOptions  *puzzler);
 
 
-#include "optimize.c"
+#include "optimize.inc"
 
 
 #endif
