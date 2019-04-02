@@ -72,9 +72,17 @@ int vrna_file_PS_rnaplot_a( const char      *seq,
                             const char      *file,
                             const char      *pre,
                             const char      *post,
-                            vrna_md_t       *md_p,
-                            puzzlerOptions  *puzzler);
+                            vrna_md_t       *md_p);
 
+
+int
+vrna_file_PS_rnaplot_layout(const char           *seq,
+                            const char           *structure,
+                            const char           *ssfile,
+                            const char           *pre,
+                            const char           *post,
+                            vrna_md_t            *md_p,
+                            vrna_figure_layout_t *layout);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

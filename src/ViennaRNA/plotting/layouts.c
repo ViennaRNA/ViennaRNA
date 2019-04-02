@@ -12,7 +12,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
+
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/gquad.h"
 #include "ViennaRNA/plotting/layouts.h"
 
 #include "ViennaRNA/plotting/RNApuzzler/definitions.h"
@@ -21,184 +24,557 @@
 #include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 
 
-#ifdef _OPENMP
-#include <omp.h>
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+PUBLIC int rna_plot_type = 1;   /* 0 = simple, 1 = naview, 2 = circular plot */
+
 #endif
 
-#define PUBLIC
-#define PRIVATE static
 
-PUBLIC  int     rna_plot_type = 1;  /* 0 = simple, 1 = naview, 2 = circular plot */
-
-PRIVATE float   *angle;
-PRIVATE int     *loop_size, *stack_size;
-PRIVATE int     lp, stk;
-
-PRIVATE void  loop(int i, int j, short *pair_table);
-
-#ifdef _OPENMP
-/* NOTE: all threadprivate variables are uninitialized when entering a thread! */
-#pragma omp threadprivate(angle, loop_size, stack_size, lp, stk)
+#ifndef PI
+#define  PI       3.141592654
 #endif
+#define  PIHALF       PI / 2.
 
-/*---------------------------------------------------------------------------*/
 
-PUBLIC int simple_xy_coordinates(short *pair_table, float *x, float *y)
+/*
+ #################################
+ # PRIVATE FUNCTION DECLARATIONS #
+ #################################
+ */
+
+PRIVATE struct vrna_figure_layout_s *
+rna_layout(const char   *structure,
+           unsigned int plot_type,
+           void         *options);
+
+
+PRIVATE int
+coords_simple(const short *pt,
+              float       **x,
+              float       **y);
+
+
+PRIVATE void
+loop(const short  *pair_table,
+     int          i,
+     int          j,
+     float        *angle,
+     int          *stack_size,
+     int          *loop_size,
+     int          *stk,
+     int          *lp);
+
+
+PRIVATE int
+coords_circular(const short *pt,
+                float       **x,
+                float       **y);
+
+
+/*
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
+PUBLIC struct vrna_figure_layout_s *
+vrna_figure_layout(const char   *structure,
+                   unsigned int plot_type)
 {
-  float INIT_ANGLE=0.;     /* initial bending angle */
-  float INIT_X = 100.;     /* coordinate of first digit */
-  float INIT_Y = 100.;     /* see above */
-  float RADIUS =  15.;
+  if (structure)
+    return rna_layout(structure, plot_type, NULL);
 
-  int i, length;
-  float  alpha;
+  return NULL;
+}
 
-  length = pair_table[0];
-  angle =      (float*) vrna_alloc( (length+5)*sizeof(float) );
-  loop_size  =   (int*) vrna_alloc( 16+(length/5)*sizeof(int) );
-  stack_size =   (int*) vrna_alloc( 16+(length/5)*sizeof(int) );
-  lp = stk = 0;
-  loop(0, length, pair_table);
+
+PUBLIC struct vrna_figure_layout_s *
+vrna_figure_layout_simple(const char *structure)
+{
+  return vrna_figure_layout(structure, VRNA_PLOT_TYPE_SIMPLE);
+}
+
+
+PUBLIC struct vrna_figure_layout_s *
+vrna_figure_layout_naview(const char *structure)
+{
+  return vrna_figure_layout(structure, VRNA_PLOT_TYPE_NAVIEW);
+}
+
+
+PUBLIC struct vrna_figure_layout_s *
+vrna_figure_layout_circular(const char *structure)
+{
+  return vrna_figure_layout(structure, VRNA_PLOT_TYPE_CIRCULAR);
+}
+
+
+PUBLIC struct vrna_figure_layout_s *
+vrna_figure_layout_turtle(const char *structure)
+{
+  return vrna_figure_layout(structure, VRNA_PLOT_TYPE_TURTLE);
+}
+
+
+PUBLIC struct vrna_figure_layout_s *
+vrna_figure_layout_puzzler(const char     *structure,
+                           puzzlerOptions *options)
+{
+  if (structure)
+    return rna_layout(structure, VRNA_PLOT_TYPE_PUZZLER, (void *)options);
+
+  return NULL;
+}
+
+
+PUBLIC void
+vrna_figure_layout_free(struct vrna_figure_layout_s *layout)
+{
+  if (layout) {
+    free(layout->x);
+    free(layout->y);
+    free(layout->arcs);
+    free(layout);
+  }
+}
+
+
+PUBLIC int
+vrna_figure_coords(const char *structure,
+                   float      **x,
+                   float      **y,
+                   int        plot_type)
+{
+  if (structure) {
+    int   ret = 0;
+    short *pt = vrna_ptable(structure);
+
+    ret = vrna_figure_coords_pt(pt, x, y, plot_type);
+
+    free(pt);
+
+    return ret;
+  }
+
+  if (x)
+    *x = NULL;
+
+  if (y)
+    *y = NULL;
+
+  return 0;
+}
+
+
+PUBLIC int
+vrna_figure_coords_pt(const short *pt,
+                      float       **x,
+                      float       **y,
+                      int         plot_type)
+{
+  if ((pt) && (x) && (y)) {
+    switch (plot_type) {
+      case VRNA_PLOT_TYPE_SIMPLE:
+        return coords_simple(pt, x, y);
+
+      case VRNA_PLOT_TYPE_CIRCULAR:
+        return coords_circular(pt, x, y);
+    }
+  }
+
+  if (x)
+    *x = NULL;
+
+  if (y)
+    *y = NULL;
+
+  return 0;
+}
+
+
+PUBLIC int
+vrna_figure_coords_simple(const char  *structure,
+                          float       **x,
+                          float       **y)
+{
+  return vrna_figure_coords(structure, x, y, VRNA_PLOT_TYPE_SIMPLE);
+}
+
+
+PUBLIC int
+vrna_figure_coords_simple_pt(const short  *pt,
+                             float        **x,
+                             float        **y)
+{
+  return vrna_figure_coords_pt(pt, x, y, VRNA_PLOT_TYPE_SIMPLE);
+}
+
+
+PUBLIC int
+vrna_figure_coords_circular(const char  *structure,
+                            float       **x,
+                            float       **y)
+{
+  return vrna_figure_coords(structure, x, y, VRNA_PLOT_TYPE_CIRCULAR);
+}
+
+
+PUBLIC int
+vrna_figure_coords_circular_pt(const short  *pt,
+                               float        **x,
+                               float        **y)
+{
+  return vrna_figure_coords_pt(pt, x, y, VRNA_PLOT_TYPE_CIRCULAR);
+}
+
+
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
+PRIVATE struct vrna_figure_layout_s *
+rna_layout(const char   *structure,
+           unsigned int plot_type,
+           void         *options)
+{
+  struct vrna_figure_layout_s *layout;
+  short                       *pt, *pt_g;
+  unsigned int                i, n;
+  int                         xmin, xmax, ymin, ymax, ee, gb, ge, Lg, l[3], r;
+
+
+  n       = strlen(structure);
+  layout  =
+    (struct vrna_figure_layout_s *)vrna_alloc(sizeof(struct vrna_figure_layout_s));
+  layout->length  = n;
+  layout->x       = (float *)vrna_alloc(sizeof(float) * (n + 1));
+  layout->y       = (float *)vrna_alloc(sizeof(float) * (n + 1));
+  layout->arcs    = (double *)vrna_alloc(sizeof(double) * 6 * n);
+
+  for (i = 0; i < n; i++) {
+    layout->arcs[6 * i + 0] = -1;
+    layout->arcs[6 * i + 1] = -1.;
+    layout->arcs[6 * i + 2] = -1.;
+    layout->arcs[6 * i + 3] = -1.;
+    layout->arcs[6 * i + 4] = -1.;
+    layout->arcs[6 * i + 5] = -1.;
+  }
+
+  /* convert dot-bracket string to pair table */
+  pt    = vrna_ptable(structure);
+  pt_g  = vrna_ptable_copy(pt);
+
+  /* account for possible G-Quadruplexes in dot-bracket string */
+  ge = 0;
+  while ((ee = parse_gquad(structure + ge, &Lg, l)) > 0) {
+    ge  += ee;
+    gb  = ge - Lg * 4 - l[0] - l[1] - l[2] + 1;
+    /* add pseudo-base pair encloding gquad */
+    for (i = 0; i < (unsigned int)Lg; i++) {
+      pt_g[ge - i]  = gb + i;
+      pt_g[gb + i]  = ge - i;
+    }
+  }
+
+  switch (plot_type) {
+    case VRNA_PLOT_TYPE_SIMPLE:
+      free(layout->x);
+      free(layout->y);
+      i = coords_simple(pt_g,
+                        &(layout->x),
+                        &(layout->y));
+      break;
+
+    case VRNA_PLOT_TYPE_CIRCULAR:
+      r = 3 * n;
+      free(layout->x);
+      free(layout->y);
+      i = coords_circular(pt_g,
+                          &(layout->x),
+                          &(layout->y));
+
+      for (i = 0; i < n; i++) {
+        layout->x[i]  *= r;
+        layout->x[i]  += r;
+        layout->y[i]  *= r;
+        layout->y[i]  += r;
+      }
+      break;
+
+    case VRNA_PLOT_TYPE_TURTLE:
+      i = layout_RNAturtle(pt,
+                           layout->x,
+                           layout->y,
+                           layout->arcs);
+      break;
+
+    case VRNA_PLOT_TYPE_PUZZLER:
+    {
+      puzzlerOptions *puzzler;
+
+      if (options) {
+        puzzler = (puzzlerOptions *)options;
+      } else {
+        puzzler           = createPuzzlerOptions();
+        puzzler->filename = NULL;
+        puzzler->drawArcs = 1;
+
+        puzzler->checkAncestorIntersections = 1;
+        puzzler->checkSiblingIntersections  = 1;
+        puzzler->checkExteriorIntersections = 1;
+        puzzler->allowFlipping              = 0;
+        puzzler->optimize                   = 1;
+      }
+
+      i = layout_RNApuzzler(pt,
+                            layout->x,
+                            layout->y,
+                            layout->arcs,
+                            puzzler);
+
+      if (!options)
+        destroyPuzzlerOptions(puzzler);
+    }
+    break;
+
+    default:
+      i = naview_xy_coordinates(pt_g,
+                                layout->x,
+                                layout->y);
+      break;
+  }
+
+  if (i != n)
+    vrna_message_warning("strange things happening in vrna_figure_layout*()...");
+
+  /* adjust bounding box coordinates */
+  xmin  = xmax = layout->x[0];
+  ymin  = ymax = layout->y[0];
+
+  for (i = 1; i < n; i++) {
+    xmin  = layout->x[i] < xmin ? layout->x[i] : xmin;
+    xmax  = layout->x[i] > xmax ? layout->x[i] : xmax;
+    ymin  = layout->y[i] < ymin ? layout->y[i] : ymin;
+    ymax  = layout->y[i] > ymax ? layout->y[i] : ymax;
+  }
+
+  layout->bbox[0] = xmin;
+  layout->bbox[1] = ymin;
+  layout->bbox[2] = xmax;
+  layout->bbox[3] = ymax;
+
+  return layout;
+}
+
+
+PRIVATE int
+coords_simple(const short *pt,
+              float       **x,
+              float       **y)
+{
+  float INIT_ANGLE  = 0.;     /* initial bending angle */
+  float INIT_X      = 100.;   /* coordinate of first digit */
+  float INIT_Y      = 100.;   /* see above */
+  float RADIUS      = 15.;
+
+  int   i, length;
+  float alpha;
+
+  float *angle;
+  int   *loop_size, *stack_size;
+  int   lp, stk;
+
+  length      = pt[0];
+  angle       = (float *)vrna_alloc((length + 5) * sizeof(float));
+  loop_size   = (int *)vrna_alloc(16 + (length / 5) * sizeof(int));
+  stack_size  = (int *)vrna_alloc(16 + (length / 5) * sizeof(int));
+  lp          = stk = 0;
+
+  *x  = (float *)vrna_alloc(sizeof(float) * (length + 1));
+  *y  = (float *)vrna_alloc(sizeof(float) * (length + 1));
+
+  loop(pt, 0, length, angle, stack_size, loop_size, &stk, &lp);
+
   loop_size[lp] -= 2;     /* correct for cheating with function loop */
 
-  alpha = INIT_ANGLE;
-  x[0]  = INIT_X;
-  y[0]  = INIT_Y;
+  alpha   = INIT_ANGLE;
+  (*x)[0] = INIT_X;
+  (*y)[0] = INIT_Y;
 
   for (i = 1; i <= length; i++) {
-    x[i] = x[i-1]+RADIUS*cos(alpha);
-    y[i] = y[i-1]+RADIUS*sin(alpha);
-    alpha += PI-angle[i+1];
+    (*x)[i] = (*x)[i - 1] + RADIUS * cos(alpha);
+    (*y)[i] = (*y)[i - 1] + RADIUS * sin(alpha);
+    alpha   += PI - angle[i + 1];
   }
+
   free(angle);
   free(loop_size);
   free(stack_size);
 
   return length;
-
 }
 
-/*---------------------------------------------------------------------------*/
 
-PRIVATE void loop(int i, int j, short *pair_table)
-             /* i, j are the positions AFTER the last pair of a stack; i.e
-                i-1 and j+1 are paired. */
+/*
+ *  i, j are the positions AFTER the last pair of a stack; i.e
+ *  i-1 and j+1 are paired.
+ */
+PRIVATE void
+loop(const short  *pair_table,
+     int          i,
+     int          j,
+     float        *angle,
+     int          *stack_size,
+     int          *loop_size,
+     int          *stk,
+     int          *lp)
 {
-  int    count = 2;   /* counts the VERTICES of a loop polygon; that's
-                           NOT necessarily the number of unpaired bases!
-                           Upon entry the loop has already 2 vertices, namely
-                           the pair i-1/j+1.  */
+  int count = 2;            /*
+                             * counts the VERTICES of a loop polygon; that's
+                             *   NOT necessarily the number of unpaired bases!
+                             *   Upon entry the loop has already 2 vertices, namely
+                             *   the pair i-1/j+1.
+                             */
 
-  int    r = 0, bubble = 0; /* bubble counts the unpaired digits in loops */
+  int   r = 0, bubble = 0;  /* bubble counts the unpaired digits in loops */
 
-  int    i_old, partner, k, l, start_k, start_l, fill, ladder;
-  int    begin, v, diff;
-  float  polygon;
+  int   i_old, partner, k, l, start_k, start_l, fill, ladder;
+  int   begin, v, diff;
+  float polygon;
 
   short *remember;
 
-  remember = (short *) vrna_alloc((3+(j-i)/5)*2*sizeof(short));
+  remember = (short *)vrna_alloc((3 + (j - i) / 5) * 2 * sizeof(short));
 
-  i_old = i-1, j++;         /* j has now been set to the partner of the
-                               previous pair for correct while-loop
-                               termination.  */
+  i_old = i - 1, j++;         /* j has now been set to the partner of the
+                               * previous pair for correct while-loop
+                               * termination.  */
   while (i != j) {
     partner = pair_table[i];
-    if ((!partner) || (i==0))
+    if ((!partner) || (i == 0)) {
       i++, count++, bubble++;
-    else {
-      count += 2;
-      k = i, l = partner;    /* beginning of stack */
+    } else {
+      count         += 2;
+      k             = i, l = partner; /* beginning of stack */
       remember[++r] = k;
       remember[++r] = l;
-      i = partner+1;         /* next i for the current loop */
+      i             = partner + 1; /* next i for the current loop */
 
       start_k = k, start_l = l;
-      ladder = 0;
-      do {
+      ladder  = 0;
+      do
         k++, l--, ladder++;        /* go along the stack region */
-      }
       while ((pair_table[k] == l) && (pair_table[k] > k));
 
-      fill = ladder-2;
+      fill = ladder - 2;
       if (ladder >= 2) {
-        angle[start_k+1+fill] += PIHALF;   /*  Loop entries and    */
-        angle[start_l-1-fill] += PIHALF;   /*  exits get an        */
-        angle[start_k]        += PIHALF;   /*  additional PI/2.    */
-        angle[start_l]        += PIHALF;   /*  Why ? (exercise)    */
+        angle[start_k + 1 + fill] += PIHALF;  /*  Loop entries and    */
+        angle[start_l - 1 - fill] += PIHALF;  /*  exits get an        */
+        angle[start_k]            += PIHALF;  /*  additional PI/2.    */
+        angle[start_l]            += PIHALF;  /*  Why ? (exercise)    */
         if (ladder > 2) {
           for (; fill >= 1; fill--) {
-            angle[start_k+fill] = PI;    /*  fill in the angles  */
-            angle[start_l-fill] = PI;    /*  for the backbone    */
+            angle[start_k + fill] = PI;     /*  fill in the angles  */
+            angle[start_l - fill] = PI;     /*  for the backbone    */
           }
         }
       }
-      stack_size[++stk] = ladder;
-      if(k <= l)
-        loop(k, l, pair_table);
+
+      stack_size[++(*stk)] = ladder;
+      if (k <= l)
+        loop(pair_table, k, l, angle, stack_size, loop_size, stk, lp);
     }
   }
-  polygon = PI*(count-2)/(float)count; /* bending angle in loop polygon */
+  polygon       = PI * (count - 2) / (float)count; /* bending angle in loop polygon */
   remember[++r] = j;
-  begin = i_old < 0 ? 0 : i_old;
+  begin         = i_old < 0 ? 0 : i_old;
   for (v = 1; v <= r; v++) {
-    diff  = remember[v]-begin;
+    diff = remember[v] - begin;
     for (fill = 0; fill <= diff; fill++)
-      angle[begin+fill] += polygon;
+      angle[begin + fill] += polygon;
     if (v > r)
       break;
+
     begin = remember[++v];
   }
-  loop_size[++lp] = bubble;
+  loop_size[++(*lp)] = bubble;
   free(remember);
 }
 
-/*---------------------------------------------------------------------------*/
 
-PUBLIC int simple_circplot_coordinates(short *pair_table, float *x, float *y){
-  unsigned int  length = (unsigned int) pair_table[0];
+PRIVATE int
+coords_circular(const short *pt,
+                float       **x,
+                float       **y)
+{
+  unsigned int  length = (unsigned int)pt[0];
   unsigned int  i;
-  float         d = 2*PI/length;
-  for(i=0; i < length; i++){
-    x[i] = cos(i * d - PI/2);
-    y[i] = sin(i * d - PI/2);
+  float         d = 2 * PI / length;
+
+  *x  = (float *)vrna_alloc(sizeof(float) * (length + 1));
+  *y  = (float *)vrna_alloc(sizeof(float) * (length + 1));
+
+  for (i = 0; i < length; i++) {
+    (*x)[i] = cos(i * d - PIHALF);
+    (*y)[i] = sin(i * d - PIHALF);
   }
+
   return length;
 }
 
-/**
- * RNApuzzler turtle layout
- *
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/*
+ *###########################################
+ *# deprecated functions below              #
+ *###########################################
  */
-PUBLIC int layout_turtle(
-        short *pair_table,
-        char *sequence,
-        float *x,
-        float *y,
-        double *arc_coords
-) {
-    layout_RNAturtle(pair_table, x, y, arc_coords);
+PUBLIC int
+simple_xy_coordinates(short *pair_table,
+                      float *x,
+                      float *y)
+{
+  if ((pair_table) && (x) && (y)) {
+    int   ret, n;
+    float *xx, *yy;
 
-    return pair_table[0];
-}
+    n   = pair_table[0];
+    ret = coords_simple(pair_table, &xx, &yy);
 
-/**
- * RNApuzzler puzzler layout
- *
- */
-PUBLIC int layout_puzzler(
-        short *pair_table,
-        char *sequence,
-        float *x,
-        float *y,
-        double *arc_coords,
-        puzzlerOptions* puzzler
-) {
-    layout_RNApuzzler(pair_table, x, y, arc_coords, puzzler);
+    memcpy(x, xx, sizeof(float) * (n + 1));
+    memcpy(y, yy, sizeof(float) * (n + 1));
 
-    return pair_table[0];
+    free(xx);
+    free(yy);
+  }
+
+  return 0;
 }
 
 
+PUBLIC int
+simple_circplot_coordinates(short *pair_table,
+                            float *x,
+                            float *y)
+{
+  if ((pair_table) && (x) && (y)) {
+    int   ret, n;
+    float *xx, *yy;
+
+    n   = pair_table[0];
+    ret = coords_circular(pair_table, &xx, &yy);
+
+    memcpy(x, xx, sizeof(float) * (n + 1));
+    memcpy(y, yy, sizeof(float) * (n + 1));
+
+    free(xx);
+    free(yy);
+  }
+
+  return 0;
+}
 
 
+#endif

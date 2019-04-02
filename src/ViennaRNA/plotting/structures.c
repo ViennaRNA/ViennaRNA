@@ -23,6 +23,8 @@
 #include "ViennaRNA/plotting/layouts.h"
 #include "ViennaRNA/plotting/utils.h"
 #include "ViennaRNA/plotting/structures.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
 
 #include "ViennaRNA/static/templates_postscript.h"
 
@@ -33,11 +35,6 @@
 # PRIVATE MACROS                #
 #################################
 */
-
-#ifndef PI
-#define  PI       3.141592654
-#endif
-#define  PIHALF       PI/2.
 #define SIZE 452.
 
 /*
@@ -57,6 +54,14 @@
 # PRIVATE FUNCTION DECLARATIONS #
 #################################
 */
+PRIVATE int
+rnaplot_EPS(const char *seq,
+            const char *structure,
+            const char *ssfile,
+            const char *pre,
+            const char *post,
+            vrna_md_t  *md_p,
+            vrna_figure_layout_t *layout);
 
 /*
 #################################
@@ -70,8 +75,9 @@ vrna_file_PS_rnaplot( const char *string,
                       const char *ssfile,
                       vrna_md_t  *md_p){
 
-  return vrna_file_PS_rnaplot_a(string, structure, ssfile, NULL, NULL, md_p,NULL);
+  return vrna_file_PS_rnaplot_a(string, structure, ssfile, NULL, NULL, md_p);
 }
+
 
 PUBLIC int
 vrna_file_PS_rnaplot_a( const char *seq,
@@ -79,31 +85,92 @@ vrna_file_PS_rnaplot_a( const char *seq,
                         const char *ssfile,
                         const char *pre,
                         const char *post,
-                        vrna_md_t  *md_p,
-			puzzlerOptions* puzzler){
+                        vrna_md_t  *md_p)
+{
+  int               ret;
+  vrna_figure_layout_t *layout;
+
+  layout = vrna_figure_layout(structure, rna_plot_type);
+  ret    = vrna_file_PS_rnaplot_layout(seq,
+                                       structure,
+                                       ssfile,
+                                       pre,
+                                       post,
+                                       md_p,
+                                       layout);
+
+  vrna_figure_layout_free(layout);
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_file_PS_rnaplot_layout(const char        *seq,
+                            const char        *structure,
+                            const char        *ssfile,
+                            const char        *pre,
+                            const char        *post,
+                            vrna_md_t         *md_p,
+                            vrna_figure_layout_t *layout)
+{
+  if (!ssfile) {
+    vrna_message_warning("vrna_file_PS_rnaplot*(): "
+                         "Filename missing!");
+  } else if (!seq) {
+    vrna_message_warning("vrna_file_PS_rnaplot*(): "
+                         "Sequence missing");
+  } else if (!structure) {
+    vrna_message_warning("vrna_file_PS_rnaplot*(): "
+                         "Structure missing");
+  } else if (!layout) {
+    vrna_message_warning("vrna_file_PS_rnaplot*(): "
+                         "Layout missing");
+  } else if ((strlen(seq) != strlen(structure)) ||
+             (strlen(structure) != layout->length)) {
+      vrna_message_warning("vrna_file_PS_rnaplot*(): "
+                           "Sequence, structure, and coordinate layout have different lengths! "
+                           "(%u vs. %u vs. %u)",
+                           strlen(seq),
+                           strlen(structure),
+                           layout->length);
+  } else {
+    return rnaplot_EPS(seq,
+                       structure,
+                       ssfile,
+                       pre,
+                       post,
+                       md_p,
+                       layout);
+  }
+
+  return 0;
+}
+
+
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
+
+PRIVATE int
+rnaplot_EPS(const char *seq,
+            const char *structure,
+            const char *ssfile,
+            const char *pre,
+            const char *post,
+            vrna_md_t  *md_p,
+            vrna_figure_layout_t *layout){
 
   float  xmin, xmax, ymin, ymax;
   int    i, length;
   int    ee, gb, ge, Lg, l[3], bbox[4];
   float *X, *Y;
   FILE  *xyplot;
-  short *pair_table, *pair_table_g;
+  short *pair_table;
   char  *c, *string;
   vrna_md_t   md;
-
-  /* create default puzzleroptions, if functions was not called directly by RNAplot. */
-  if(!puzzler)
-  {
-    puzzler = createPuzzlerOptions();
-    puzzler->filename = ssfile;
-    puzzler->drawArcs = 1;
-
-    puzzler->checkAncestorIntersections = 1;
-    puzzler->checkSiblingIntersections =  1;
-    puzzler->checkExteriorIntersections = 1;
-    puzzler->allowFlipping = 0;
-    puzzler->optimize = 1;
-  } 
 
   if(!md_p){
     set_model_details(&md);
@@ -120,67 +187,6 @@ vrna_file_PS_rnaplot_a( const char *seq,
   }
 
   pair_table = vrna_ptable(structure);
-  pair_table_g = vrna_ptable(structure);
-
-  ge=0;
-  while ( (ee=parse_gquad(structure+ge, &Lg, l)) >0 ) {
-    ge += ee;
-    gb=ge-Lg*4-l[0]-l[1]-l[2]+1;
-    /* add pseudo-base pair encloding gquad */
-    for (i=0; i<Lg; i++) {
-      pair_table_g[ge-i]=gb+i;
-      pair_table_g[gb+i]=ge-i;
-    }
-  } 
-      
-  X = (float *) vrna_alloc((length+1)*sizeof(float));
-  Y = (float *) vrna_alloc((length+1)*sizeof(float));
-
-  double *arc_coords = (double *) vrna_alloc(6*length*sizeof(double));
-
-  for (i = 0; i < length; i++) {
-    arc_coords[6*i+0] = -1.;
-    arc_coords[6*i+1] = -1.;
-    arc_coords[6*i+2] = -1.;
-    arc_coords[6*i+3] = -1.;
-    arc_coords[6*i+4] = -1.;
-    arc_coords[6*i+5] = -1.;
-  }
-  
-  switch(rna_plot_type){
-    case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table_g, X, Y);
-                                  break;
-    case VRNA_PLOT_TYPE_CIRCULAR: {
-                                    int radius = 3*length;
-                                    i = simple_circplot_coordinates(pair_table_g, X, Y);
-                                    for (i = 0; i < length; i++) {
-                                      X[i] *= radius;
-                                      X[i] += radius;
-                                      Y[i] *= radius;
-                                      Y[i] += radius;
-                                    }
-                                  }
-                                  break;
-
-    case VRNA_PLOT_TYPE_TURTLE:   i = layout_turtle(pair_table, string, X, Y, arc_coords);
-                                  break;
-
-    case VRNA_PLOT_TYPE_PUZZLER:  i = layout_puzzler(pair_table, string, X, Y, arc_coords, puzzler);
-                                  break;
-    default:                      i = naview_xy_coordinates(pair_table_g, X, Y);
-                                  break;
-  }
-  if(i!=length)
-    vrna_message_warning("strange things happening in PS_rna_plot...");
-
-  xmin = xmax = X[0];
-  ymin = ymax = Y[0];
-  for (i = 1; i < length; i++) {
-     xmin = X[i] < xmin ? X[i] : xmin;
-     xmax = X[i] > xmax ? X[i] : xmax;
-     ymin = Y[i] < ymin ? Y[i] : ymin;
-     ymax = Y[i] > ymax ? Y[i] : ymax;
-  }
 
   bbox[0] = bbox[1] = 0;
   bbox[2] = bbox[3] = 700;
@@ -208,25 +214,25 @@ vrna_file_PS_rnaplot_a( const char *seq,
   print_PS_sequence(xyplot, string);
 
   /* coordinates */
-  print_PS_coords(xyplot, X, Y, length);
+  print_PS_coords(xyplot, layout->x, layout->y, length);
 
   fprintf(xyplot, "/arcs [\n");
   for (i = 0; i < length; i++)
   {
-    if (arc_coords[6*i + 2] > 0) { /* 6*i+2 is the radius parameter */
+    if (layout->arcs[6*i + 2] > 0) { /* 6*i+2 is the radius parameter */
       fprintf(xyplot, "[%3.8f %3.8f %3.8f %3.8f %3.8f %3.8f]\n",
-        arc_coords[6*i + 0],
-        arc_coords[6*i + 1],
-        arc_coords[6*i + 2],
-        arc_coords[6*i + 3],
-        arc_coords[6*i + 4],
-        arc_coords[6*i + 5]
+        layout->arcs[6*i + 0],
+        layout->arcs[6*i + 1],
+        layout->arcs[6*i + 2],
+        layout->arcs[6*i + 3],
+        layout->arcs[6*i + 4],
+        layout->arcs[6*i + 5]
       );
     } else {
       fprintf(xyplot, "[]\n");
     }
   }
-  free(arc_coords);
+
   fprintf(xyplot, "] def\n");
 
   /* correction coordinates for quadratic beziers in case we produce a circplot */
@@ -283,8 +289,7 @@ vrna_file_PS_rnaplot_a( const char *seq,
 
   free(string);
   free(pair_table);
-  free(pair_table_g);
-  free(X); free(Y);
+
   return 1; /* success */
 }
 
@@ -967,8 +972,7 @@ PS_rna_plot_a(char *string,
                                 (const char*)ssfile,
                                 (const char*)pre,
                                 (const char*)post,
-                                NULL,
-				NULL);
+                                NULL);
 }
 
 PUBLIC int
@@ -983,8 +987,7 @@ PS_rna_plot_a_gquad(char *string,
                                 (const char*)ssfile,
                                 (const char*)pre,
                                 (const char*)post,
-                                NULL,
-				NULL);
+                                NULL);
 }
 
 #endif

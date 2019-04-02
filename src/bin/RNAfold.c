@@ -251,8 +251,7 @@ postscript_layout(vrna_fold_compound_t  *fc,
                            filename_plot,
                            annotation,
                            NULL,
-                           md,
-			   NULL));
+                           md));
   free(annotation);
   free(filename_plot);
 }
