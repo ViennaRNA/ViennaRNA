@@ -10,18 +10,17 @@
 
 #include "ViennaRNA/utils/basic.h"
 
-#include "coordinates.inc"
-
-#include "ViennaRNA/plotting/RNApuzzler/postscript/postscriptArcs.h"
-#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
-#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/configtree.h"
-#include "ViennaRNA/plotting/RNApuzzler/intersectLevel/intersectLevelLines.h"
-#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveIntersections.h"
-#include "ViennaRNA/plotting/RNApuzzler/resolveIntersections/resolveExteriorChildIntersections.h"
-#include "ViennaRNA/plotting/RNApuzzler/dataTypes/boundingBoxes_struct.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/boundingBoxes.h"
+#include "includes/coordinates.inc"
+#include "includes/postscriptArcs.inc"
+#include "includes/vector_math.inc"
+#include "includes/definitions.inc"
+#include "includes/drawingconfig.inc"
+#include "includes/configtree.inc"
+#include "includes/intersectLevelLines.inc"
+#include "includes/resolveIntersections.inc"
+#include "includes/resolveExteriorChildIntersections.inc"
+#include "headers/boundingBoxes_struct.h"
+#include "includes/boundingBoxes.inc"
 
 #include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 

@@ -1,8 +1,6 @@
 #ifndef RNATURTLE_H
 #define RNATURTLE_H
 
-#include <ViennaRNA/plotting/RNApuzzler/dataTypes/tBaseInformation_struct.h>
-
 /**
  * Compute layout using RNAturtle algorithm
  */

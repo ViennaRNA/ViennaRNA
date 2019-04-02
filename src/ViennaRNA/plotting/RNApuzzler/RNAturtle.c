@@ -12,11 +12,11 @@
 
 #include "ViennaRNA/utils/basic.h"
 
-#include "coordinates.inc"
-
-#include "ViennaRNA/plotting/RNApuzzler/postscript/postscriptArcs.h"
-#include "ViennaRNA/plotting/RNApuzzler/vector_math.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
+#include "includes/coordinates.inc"
+#include "includes/postscriptArcs.inc"
+#include "includes/vector_math.inc"
+#include "includes/drawingconfig.inc"
+#include "headers/tBaseInformation_struct.h"
 
 #include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
 

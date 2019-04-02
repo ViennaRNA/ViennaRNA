@@ -16,13 +16,8 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/gquad.h"
+
 #include "ViennaRNA/plotting/layouts.h"
-
-#include "ViennaRNA/plotting/RNApuzzler/definitions.h"
-#include "ViennaRNA/plotting/RNApuzzler/data/drawingconfig.h"
-#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
-#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
-
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

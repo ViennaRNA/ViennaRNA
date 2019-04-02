@@ -9,7 +9,9 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/plotting/naview.h>
+#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
 #include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
+
 
 /**
  *  @addtogroup   plot_layout_utils
