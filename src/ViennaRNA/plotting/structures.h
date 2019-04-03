@@ -3,6 +3,7 @@
 
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/plotting/layouts.h>
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)
@@ -66,14 +67,22 @@ vrna_file_PS_rnaplot(const char *seq,
  *  @param md_p       Model parameters used to generate a commandline option string in the output (Maybe NULL)
  *  @return           1 on success, 0 otherwise
  */
-int
-vrna_file_PS_rnaplot_a(const char *seq,
-                       const char *structure,
-                       const char *file,
-                       const char *pre,
-                       const char *post,
-                       vrna_md_t  *md_p);
+int vrna_file_PS_rnaplot_a( const char      *seq,
+                            const char      *structure,
+                            const char      *file,
+                            const char      *pre,
+                            const char      *post,
+                            vrna_md_t       *md_p);
 
+
+int
+vrna_file_PS_rnaplot_layout(const char          *seq,
+                            const char          *structure,
+                            const char          *ssfile,
+                            const char          *pre,
+                            const char          *post,
+                            vrna_md_t           *md_p,
+                            vrna_plot_layout_t  *layout);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

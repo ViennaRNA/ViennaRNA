@@ -18,6 +18,7 @@
 #include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/plotting/alignments.h"
 #include "ViennaRNA/plotting/utils.h"
+#include "ViennaRNA/plotting/layouts.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/file_formats_msa.h"
@@ -50,6 +51,12 @@ struct options {
 
   int           jobs;
   unsigned int  next_record_number;
+  int           drawArcs;
+  int           checkAncestorIntersections;
+  int           checkSiblingIntersections;
+  int           checkExteriorIntersections;
+  int           allowFlipping;
+  int           optimize;
 };
 
 
@@ -117,8 +124,14 @@ init_default_options(struct options *opt)
   strncpy(&(opt->format[0]), "ps", 4);
   opt->format[4] = '\0';
 
-  opt->jobs               = 1;
-  opt->next_record_number = 0;
+  opt->jobs                       = 1;
+  opt->next_record_number         = 0;
+  opt->drawArcs                   = 1;
+  opt->checkAncestorIntersections = 1;
+  opt->checkSiblingIntersections  = 1;
+  opt->checkExteriorIntersections = 1;
+  opt->allowFlipping              = 0;
+  opt->optimize                   = 1;
 }
 
 
@@ -307,7 +320,6 @@ main(int  argc,
   }
 
   UNINIT_PARALLELIZATION
-
   /*
    ################################################
    # post processing
@@ -566,14 +578,44 @@ process_record(struct record_data *record)
       ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
       free(tmp_string);
 
-      THREADSAFE_FILE_OUTPUT(
-        vrna_file_PS_rnaplot_a(rec_sequence,
-                               structure,
-                               ffname,
-                               opt->pre,
-                               opt->post,
-                               &(opt->md))
-        );
+      if (rna_plot_type == VRNA_PLOT_TYPE_PUZZLER) {
+        /* RNA puzzler behavior specification */
+        vrna_plot_options_puzzler_t *puzzler;
+        vrna_plot_layout_t          *layout;
+
+        puzzler           = vrna_plot_options_puzzler();
+        puzzler->filename = ffname;
+        puzzler->drawArcs = 1;
+
+        puzzler->checkAncestorIntersections = opt->checkAncestorIntersections;
+        puzzler->checkSiblingIntersections  = opt->checkSiblingIntersections;
+        puzzler->checkExteriorIntersections = opt->checkExteriorIntersections;
+        puzzler->allowFlipping              = opt->allowFlipping;
+        puzzler->optimize                   = opt->optimize;
+
+        layout = vrna_plot_layout_puzzler(structure,
+                                          puzzler);
+
+        THREADSAFE_FILE_OUTPUT(
+          vrna_file_PS_rnaplot_layout(rec_sequence,
+                                      structure,
+                                      ffname,
+                                      opt->pre,
+                                      opt->post,
+                                      &(opt->md),
+                                      layout));
+
+        vrna_plot_layout_free(layout);
+        vrna_plot_options_puzzler_free(puzzler);
+      } else {
+        THREADSAFE_FILE_OUTPUT(
+          vrna_file_PS_rnaplot_a(rec_sequence,
+                                 structure,
+                                 ffname,
+                                 opt->pre,
+                                 opt->post,
+                                 &(opt->md)));
+      }
 
       break;
 
@@ -667,7 +709,7 @@ process_alignment_record(struct record_data_msa *record)
     ffname = vrna_strdup_printf("alirna");
 
   if (opt->annotate_covar) {
-    A = vrna_annotate_covar_struct((const char **)record->alignment, structure, &(opt->md));
+    A = vrna_annotate_covar_db((const char **)record->alignment, structure, &(opt->md));
 
     if (pre)
       pre = vrna_strdup_printf("%s\n%s", pre, A[0]);
@@ -697,8 +739,7 @@ process_alignment_record(struct record_data_msa *record)
                                ffname,
                                pre,
                                post,
-                               &(opt->md))
-        );
+                               &(opt->md)));
 
       break;
 

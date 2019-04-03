@@ -7,17 +7,27 @@
  *  @brief    Secondary structure plot layout algorithms
  */
 
-/**
- *  @addtogroup   plotting_utils
- *  @{
- */
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/plotting/naview.h>
+#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 
-#ifndef PI
-#define  PI       3.141592654
-#endif
-#define  PIHALF       PI/2.
+
+/**
+ *  @addtogroup   plot_layout_utils
+ *  @{
+ *  @brief  Functions to compute coordinate layouts for secondary structure plots
+ */
+
+
+/**
+ *  @brief  RNA secondary structure figure layout
+ *
+ *  @see  vrna_plot_layout(), vrna_plot_layout_free(), vrna_plot_layout_simple(),
+ *        vrna_plot_layout_circular(), vrna_plot_layout_naview(), vrna_plot_layout_turtle(),
+ *        vrna_plot_layout_puzzler()
+ */
+typedef struct vrna_plot_layout_s vrna_plot_layout_t;
 
 
 /**
@@ -34,7 +44,7 @@
  *  @brief Definition of Plot type <i>Naview</i>
  *
  *  This is the plot type definition for several RNA structure plotting functions telling
- *  them to use <b>Naview</b> plotting algorithm
+ *  them to use <b>Naview</b> plotting algorithm @cite bruccoleri:1988.
  *
  *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
@@ -51,13 +61,387 @@
 #define VRNA_PLOT_TYPE_CIRCULAR   2
 
 /**
+ *  @brief  Definition of Plot type <i>Turtle</i> @cite wiegreffe:2018
+ *
+ */
+#define VRNA_PLOT_TYPE_TURTLE  3
+
+/**
+ *  @brief  Definition of Plot type <i>RNApuzzler</i> @cite wiegreffe:2018
+ *
+ */
+#define VRNA_PLOT_TYPE_PUZZLER  4
+
+
+struct vrna_plot_layout_s {
+  unsigned int  length;
+  float         *x;
+  float         *y;
+  double        *arcs;
+  int           bbox[4];
+};
+
+
+/**
+ *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot
+ *
+ *  This function can be used to create a secondary structure nucleotide layout
+ *  that is then further processed by an actual plotting function. The layout
+ *  algorithm can be specified using the @p plot_type parameter, and the following
+ *  algorithms are currently supported:
+ *  - #VRNA_PLOT_TYPE_SIMPLE
+ *  - #VRNA_PLOT_TYPE_NAVIEW
+ *  - #VRNA_PLOT_TYPE_CIRCULAR
+ *  - #VRNA_PLOT_TYPE_TURTLE
+ *  - #VRNA_PLOT_TYPE_PUZZLER
+ *
+ *  Passing an unsupported selection leads to the default algorithm #VRNA_PLOT_TYPE_NAVIEW
+ *
+ *  @note If only X-Y coordinates of the corresponding structure layout are required, consider
+ *        using vrna_plot_coords() instead!
+ *
+ *  @see  vrna_plot_layout_free(), vrna_plot_layout_simple(), vrna_plot_layout_naview(),
+ *        vrna_plot_layout_circular(), vrna_plot_layout_turtle(), vrna_plot_layout_puzzler(),
+ *        vrna_plot_coords(), vrna_file_PS_rnaplot_layout()
+ *
+ *  @param    structure   The secondary structure in dot-bracket notation
+ *  @param    plot_type   The layout algorithm to be used
+ *  @return               The layout data structure for the provided secondary structure
+ */
+vrna_plot_layout_t *
+vrna_plot_layout(const char   *structure,
+                 unsigned int plot_type);
+
+
+/**
+ *  @brief  Create a layout (coordinates, etc.) for a <i>simple</i> secondary structure plot
+ *
+ *  This function basically is a wrapper to vrna_plot_layout() that passes the @p plot_type #VRNA_PLOT_TYPE_SIMPLE.
+ *
+ *  @note If only X-Y coordinates of the corresponding structure layout are required, consider
+ *        using vrna_plot_coords_simple() instead!
+ *
+ *  @see  vrna_plot_layout_free(), vrna_plot_layout(), vrna_plot_layout_naview(),
+ *        vrna_plot_layout_circular(), vrna_plot_layout_turtle(), vrna_plot_layout_puzzler(),
+ *        vrna_plot_coords_simple(), vrna_file_PS_rnaplot_layout()
+ *
+ *  @param    structure   The secondary structure in dot-bracket notation
+ *  @return               The layout data structure for the provided secondary structure
+ */
+vrna_plot_layout_t *
+vrna_plot_layout_simple(const char *structure);
+
+
+/**
+ *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>Naview Algorithm</i> @cite bruccoleri:1988.
+ *
+ *  This function basically is a wrapper to vrna_plot_layout() that passes the @p plot_type #VRNA_PLOT_TYPE_NAVIEW.
+ *
+ *  @note If only X-Y coordinates of the corresponding structure layout are required, consider
+ *        using vrna_plot_coords_naview() instead!
+ *
+ *  @see  vrna_plot_layout_free(), vrna_plot_layout(), vrna_plot_layout_simple(),
+ *        vrna_plot_layout_circular(), vrna_plot_layout_turtle(), vrna_plot_layout_puzzler(),
+ *        vrna_plot_coords_naview(), vrna_file_PS_rnaplot_layout()
+ *
+ *  @param    structure   The secondary structure in dot-bracket notation
+ *  @return               The layout data structure for the provided secondary structure
+ */
+vrna_plot_layout_t *
+vrna_plot_layout_naview(const char *structure);
+
+
+/**
+ *  @brief  Create a layout (coordinates, etc.) for a <i>circular</i> secondary structure plot
+ *
+ *  This function basically is a wrapper to vrna_plot_layout() that passes the @p plot_type #VRNA_PLOT_TYPE_CIRCULAR.
+ *
+ *  @note If only X-Y coordinates of the corresponding structure layout are required, consider
+ *        using vrna_plot_coords_circular() instead!
+ *
+ *  @see  vrna_plot_layout_free(), vrna_plot_layout(), vrna_plot_layout_naview(),
+ *        vrna_plot_layout_simple(), vrna_plot_layout_turtle(), vrna_plot_layout_puzzler(),
+ *        vrna_plot_coords_circular(), vrna_file_PS_rnaplot_layout()
+ *
+ *  @param    structure   The secondary structure in dot-bracket notation
+ *  @return               The layout data structure for the provided secondary structure
+ */
+vrna_plot_layout_t *
+vrna_plot_layout_circular(const char *structure);
+
+
+/**
+ *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>Turtle Algorithm</i> @cite wiegreffe:2018
+ *
+ *  This function basically is a wrapper to vrna_plot_layout() that passes the @p plot_type #VRNA_PLOT_TYPE_TURTLE.
+ *
+ *  @note If only X-Y coordinates of the corresponding structure layout are required, consider
+ *        using vrna_plot_coords_turtle() instead!
+ *
+ *  @see  vrna_plot_layout_free(), vrna_plot_layout(), vrna_plot_layout_simple(),
+ *        vrna_plot_layout_circular(), vrna_plot_layout_naview(), vrna_plot_layout_puzzler(),
+ *        vrna_plot_coords_turtle(), vrna_file_PS_rnaplot_layout()
+ *
+ *  @param    structure   The secondary structure in dot-bracket notation
+ *  @return               The layout data structure for the provided secondary structure
+ */
+vrna_plot_layout_t *
+vrna_plot_layout_turtle(const char *structure);
+
+
+/**
+ *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>RNApuzzler Algorithm</i> @cite wiegreffe:2018
+ *
+ *  This function basically is a wrapper to vrna_plot_layout() that passes the @p plot_type #VRNA_PLOT_TYPE_PUZZLER.
+ *
+ *  @note If only X-Y coordinates of the corresponding structure layout are required, consider
+ *        using vrna_plot_coords_puzzler() instead!
+ *
+ *  @see  vrna_plot_layout_free(), vrna_plot_layout(), vrna_plot_layout_simple(),
+ *        vrna_plot_layout_circular(), vrna_plot_layout_naview(), vrna_plot_layout_turtle(),
+ *        vrna_plot_coords_puzzler(), vrna_file_PS_rnaplot_layout()
+ *
+ *  @param    structure   The secondary structure in dot-bracket notation
+ *  @return               The layout data structure for the provided secondary structure
+ */
+vrna_plot_layout_t *
+vrna_plot_layout_puzzler(const char                   *structure,
+                         vrna_plot_options_puzzler_t  *options);
+
+
+/**
+ *  @brief  Free memory occupied by a figure layout data structure
+ *
+ *  @see  #vrna_plot_layout_t, vrna_plot_layout(), vrna_plot_layout_simple(),
+ *        vrna_plot_layout_circular(), vrna_plot_layout_naview(), vrna_plot_layout_turtle(),
+ *        vrna_plot_layout_puzzler(), vrna_file_PS_rnaplot_layout()
+ *
+ *  @param  layout  The layout data structure to free
+ */
+void
+vrna_plot_layout_free(vrna_plot_layout_t *layout);
+
+
+/**
+ *  @brief Compute nucleotide coordinates for secondary structure plot
+ *
+ *  This function takes a secondary structure and computes X-Y coordinates
+ *  for each nucleotide that then can be used to create a structure plot.
+ *  The parameter @p plot_type is used to select the underlying layout algorithm.
+ *  Currently, the following selections are provided:
+ *  - #VRNA_PLOT_TYPE_SIMPLE
+ *  - #VRNA_PLOT_TYPE_NAVIEW
+ *  - #VRNA_PLOT_TYPE_CIRCULAR
+ *  - #VRNA_PLOT_TYPE_TURTLE
+ *  - #VRNA_PLOT_TYPE_PUZZLER
+ *
+ *  Passing an unsupported selection leads to the default algorithm #VRNA_PLOT_TYPE_NAVIEW
+ *
+ *  Here is a simple example how to use this function, assuming variable @p structure contains
+ *  a valid dot-bracket string:
+ *  @code{.c}
+ *  float *x, *y;
+ *
+ *  if (vrna_plot_coords(structure, &x, &y)) {
+ *    printf("all fine");
+ *  } else {
+ *    printf("some failure occured!");
+ *  }
+ *
+ *  free(x);
+ *  free(y);
+ *  @endcode
+ *
+ *  @note On success, this function allocates memory for X and Y coordinates and assigns
+ *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *  the users responsibility to cleanup this memory after usage!
+ *
+ *  @see  vrna_plot_coords_pt(), vrna_plot_coords_simple(), vrna_plot_coords_naview()
+ *        vrna_plot_coords_circular(), vrna_plot_coords_turtle(), vrna_plot_coords_puzzler()
+ *
+ *  @param        structure   The secondary structure in dot-bracket notation
+ *  @param[inout] x           The address of a pointer of X coordinates (pointer will point to memory, or NULL on failure)
+ *  @param[inout] y           The address of a pointer of Y coordinates (pointer will point to memory, or NULL on failure)
+ *  @param        plot_type   The layout algorithm to be used
+ *  @return                   The length of the structure on success, 0 otherwise
+ */
+int
+vrna_plot_coords(const char *structure,
+                 float      **x,
+                 float      **y,
+                 int        plot_type);
+
+
+/**
+ *  @brief Compute nucleotide coordinates for secondary structure plot
+ *
+ *  Same as vrna_plot_coords() but takes a pair table with the structure
+ *  information as input.
+ *
+ *  @note On success, this function allocates memory for X and Y coordinates and assigns
+ *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *  the users responsibility to cleanup this memory after usage!
+ *
+ *  @see  vrna_plot_coords(), vrna_plot_coords_simple_pt(), vrna_plot_coords_naview_pt()
+ *        vrna_plot_coords_circular_pt(), vrna_plot_coords_turtle_pt(), vrna_plot_coords_puzzler_pt()
+ *
+ *  @param        pt          The pair table that holds the secondary structure
+ *  @param[inout] x           The address of a pointer of X coordinates (pointer will point to memory, or NULL on failure)
+ *  @param[inout] y           The address of a pointer of Y coordinates (pointer will point to memory, or NULL on failure)
+ *  @param        plot_type   The layout algorithm to be used
+ *  @return                   The length of the structure on success, 0 otherwise
+ */
+int
+vrna_plot_coords_pt(const short *pt,
+                    float       **x,
+                    float       **y,
+                    int         plot_type);
+
+
+/**
+ *  @brief Compute nucleotide coordinates for secondary structure plot the <i>Simple way</i>
+ *
+ *  This function basically is a wrapper to vrna_plot_coords() that passes the @p plot_type #VRNA_PLOT_TYPE_SIMPLE.
+ *
+ *  Here is a simple example how to use this function, assuming variable @p structure contains
+ *  a valid dot-bracket string:
+ *  @code{.c}
+ *  float *x, *y;
+ *
+ *  if (vrna_plot_coords_simple(structure, &x, &y)) {
+ *    printf("all fine");
+ *  } else {
+ *    printf("some failure occured!");
+ *  }
+ *
+ *  free(x);
+ *  free(y);
+ *  @endcode
+ *
+ *  @note On success, this function allocates memory for X and Y coordinates and assigns
+ *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *  the users responsibility to cleanup this memory after usage!
+ *
+ *  @see  vrna_plot_coords(), vrna_plot_coords_simple_pt(), vrna_plot_coords_circular(),
+ *        vrna_plot_coords_naview(), vrna_plot_coords_turtle(), vrna_plot_coords_puzzler()
+ *
+ *  @param        structure   The secondary structure in dot-bracket notation
+ *  @param[inout] x           The address of a pointer of X coordinates (pointer will point to memory, or NULL on failure)
+ *  @param[inout] y           The address of a pointer of Y coordinates (pointer will point to memory, or NULL on failure)
+ *  @return                   The length of the structure on success, 0 otherwise
+ */
+int
+vrna_plot_coords_simple(const char  *structure,
+                        float       **x,
+                        float       **y);
+
+
+/**
+ *  @brief Compute nucleotide coordinates for secondary structure plot the <i>Simple way</i>
+ *
+ *  Same as vrna_plot_coords_simple() but takes a pair table with the structure
+ *  information as input.
+ *
+ *  @note On success, this function allocates memory for X and Y coordinates and assigns
+ *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *  the users responsibility to cleanup this memory after usage!
+ *
+ *  @see  vrna_plot_coords_pt(), vrna_plot_coords_simple(), vrna_plot_coords_circular_pt(),
+ *        vrna_plot_coords_naview_pt(), vrna_plot_coords_turtle_pt(), vrna_plot_coords_puzzler_pt()
+ *
+ *  @param        pt          The pair table that holds the secondary structure
+ *  @param[inout] x           The address of a pointer of X coordinates (pointer will point to memory, or NULL on failure)
+ *  @param[inout] y           The address of a pointer of Y coordinates (pointer will point to memory, or NULL on failure)
+ *  @return                   The length of the structure on success, 0 otherwise
+ */
+int
+vrna_plot_coords_simple_pt(const short  *pt,
+                           float        **x,
+                           float        **y);
+
+
+/**
+ *  @brief Compute coordinates of nucleotides mapped in equal distancies onto a unit circle.
+ *
+ *  This function basically is a wrapper to vrna_plot_coords() that passes the @p plot_type #VRNA_PLOT_TYPE_CIRCULAR.
+ *
+ *  In order to draw nice arcs using quadratic bezier curves that connect base pairs one may calculate
+ *  a second tangential point @f$P^t@f$ in addition to the actual R<sup>2</sup> coordinates.
+ *  the simplest way to do so may be to compute a radius scaling factor @f$rs@f$ in the interval @f$[0,1]@f$ that
+ *  weights the proportion of base pair span to the actual length of the sequence. This scaling factor
+ *  can then be used to calculate the coordinates for @f$P^t@f$, i.e.
+ *  @f[
+ *  P^{t}_x[i] = X[i] * rs
+ *  @f]
+ *  and
+ *  @f[
+ *  P^{t}_y[i] = Y[i] * rs
+ *  @f].
+ *
+ *  @note On success, this function allocates memory for X and Y coordinates and assigns
+ *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *  the users responsibility to cleanup this memory after usage!
+ *
+ *  @see  vrna_plot_coords(), vrna_plot_coords_circular_pt(), vrna_plot_coords_simple(),
+ *        vrna_plot_coords_naview(), vrna_plot_coords_turtle(), vrna_plot_coords_puzzler()
+ *
+ *  @param        structure   The secondary structure in dot-bracket notation
+ *  @param[inout] x           The address of a pointer of X coordinates (pointer will point to memory, or NULL on failure)
+ *  @param[inout] y           The address of a pointer of Y coordinates (pointer will point to memory, or NULL on failure)
+ *  @return                   The length of the structure on success, 0 otherwise
+ */
+int
+vrna_plot_coords_circular(const char  *structure,
+                          float       **x,
+                          float       **y);
+
+
+/**
+ *  @brief Compute nucleotide coordinates for a <i>Circular Plot</i>
+ *
+ *  Same as vrna_plot_coords_circular() but takes a pair table with the structure
+ *  information as input.
+ *
+ *  @note On success, this function allocates memory for X and Y coordinates and assigns
+ *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *  the users responsibility to cleanup this memory after usage!
+ *
+ *  @see  vrna_plot_coords_pt(), vrna_plot_coords_circular(), vrna_plot_coords_simple_pt(),
+ *        vrna_plot_coords_naview_pt(), vrna_plot_coords_turtle_pt(), vrna_plot_coords_puzzler_pt()
+ *
+ *  @param        pt          The pair table that holds the secondary structure
+ *  @param[inout] x           The address of a pointer of X coordinates (pointer will point to memory, or NULL on failure)
+ *  @param[inout] y           The address of a pointer of Y coordinates (pointer will point to memory, or NULL on failure)
+ *  @return                   The length of the structure on success, 0 otherwise
+ */
+int
+vrna_plot_coords_circular_pt(const short  *pt,
+                             float        **x,
+                             float        **y);
+
+
+/**
+ * @}
+ */
+
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/**
+ *  @addtogroup   plotting_utils_deprecated
+ *  @{
+ */
+
+
+/**
  *  @brief this is a workarround for the SWIG Perl Wrapper RNA plot function
  *  that returns an array of type COORDINATE
  */
 typedef struct {
-  float X; /* X coords */
-  float Y; /* Y coords */
+  float X;  /* X coords */
+  float Y;  /* Y coords */
 } COORDINATE;
+
 
 /**
  *  @brief Switch for changing the secondary structure layout algorithm
@@ -73,6 +457,7 @@ typedef struct {
  */
 extern int rna_plot_type;
 
+
 /**
  *  @brief Calculate nucleotide coordinates for secondary structure plot the <i>Simple way</i>
  *
@@ -84,9 +469,11 @@ extern int rna_plot_type;
  *  @param  Y           a pointer to an array with enough allocated space to hold the y coordinates
  *  @return             length of sequence on success, 0 otherwise
  */
-int simple_xy_coordinates(short *pair_table,
-                          float *X,
-                          float *Y);
+int
+simple_xy_coordinates(short *pair_table,
+                      float *X,
+                      float *Y);
+
 
 /**
  *  @brief Calculate nucleotide coordinates for <i>Circular Plot</i>
@@ -108,13 +495,17 @@ int simple_xy_coordinates(short *pair_table,
  *  @param  y           a pointer to an array with enough allocated space to hold the y coordinates
  *  @return             length of sequence on success, 0 otherwise
  */
-int simple_circplot_coordinates(short *pair_table,
-                                float *x,
-                                float *y);
+int
+simple_circplot_coordinates(short *pair_table,
+                            float *x,
+                            float *y);
+
 
 /**
  * @}
  */
+
+#endif
 
 
 #endif

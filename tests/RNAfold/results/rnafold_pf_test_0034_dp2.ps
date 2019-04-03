@@ -1,19 +1,25 @@
 %!PS-Adobe-3.0 EPSF-3.0
+%%Creator: ViennaRNA-2.4.11
+%%CreationDate: Sat Mar 16 10:54:04 2019
 %%Title: RNA Dot Plot
-%%Creator: ViennaRNA-2.4.6
-%%CreationDate: Wed May 16 23:29:20 2018
 %%BoundingBox: 66 211 518 662
 %%DocumentFonts: Helvetica
 %%Pages: 1
 %%EndComments
 
-%Options: 
+% Program options: 
+
 % Probabilities for stacked pairs (i,j)(i+1,j-1)
-%%BeginProlog
-%This file contains the square roots of the base pair probabilities in the form
+
+% This file contains the square roots of probabilities in the form
 % i  j  sqrt(p(i,j)) ubox
+
 /DPdict 100 dict def
+
 DPdict begin
+
+%%BeginProlog
+
 /logscale false def
 /lpmin 1e-05 log def
 /DataVisible  [ true true true true] def
@@ -306,10 +312,8 @@ DPdict begin
     } if
   } for
 } bind def
-end
-%EndProlog
 
-DPdict begin
+%%EndProlog
 
 /DPtitle {
   (rnafold_pf_test_0034)
@@ -318,7 +322,6 @@ DPdict begin
 /sequence { (\
 UAACGGUAUUAAGGGACGACCAGACUCUUGACUAGAUCCAAAUCCACGAGUAUGCAGUUUCUGAAUCCGGACCUGUCGACCGCGGAACCGGGUGGGCUAA\
 ) } def
-
 /len { sequence length } bind def
 
 72 216 translate

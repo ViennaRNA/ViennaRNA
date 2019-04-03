@@ -48,9 +48,22 @@
  #################################
  */
 PUBLIC char **
-vrna_annotate_covar_struct(const char **alignment,
-                           const char *structure,
-                           vrna_md_t  *md_p)
+vrna_annotate_covar_db(const char **alignment,
+                       const char *structure,
+                       vrna_md_t  *md_p)
+{
+  return vrna_annotate_covar_db_extended(alignment,
+                                         structure,
+                                         md_p,
+                                         VRNA_BRACKETS_RND);
+}
+
+
+PUBLIC char **
+vrna_annotate_covar_db_extended(const char   **alignment,
+                                const char   *structure,
+                                vrna_md_t    *md_p,
+                                unsigned int options)
 {
   /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
   char      *ps, *colorps, **A;
@@ -80,7 +93,8 @@ vrna_annotate_covar_struct(const char **alignment,
   A       = (char **)vrna_alloc(sizeof(char *) * 2);
   ps      = (char *)vrna_alloc(maxl);
   colorps = (char *)vrna_alloc(maxl);
-  ptable  = vrna_ptable(structure);
+
+  ptable  = vrna_ptable_from_string(structure, options);
 
   for (i = 1; i <= n; i++) {
     char  pps[64], ci = '\0', cj = '\0';

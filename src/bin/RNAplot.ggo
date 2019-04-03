@@ -93,10 +93,42 @@ dependon="msa"
 hidden
 
 option  "layout-type"  t
-"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
+"Choose the layout algorithm.\n"
+details="Select the layout algorithm that computes the nucleotide coordinates.\
+ Currently, the following algorithms are available:\n\
+ 0: simple radial layout\n\n\
+ 1: Naview layout (Bruccoleri et al. 1988)\n\n\
+ 2: circular layout\n\n\
+ 3: RNAturtle (Wiegreffe et al. 2018)\n\n\
+ 4: RNApuzzler (Wiegreffe et al. 2018)\n\n"
 int
 default="1"
 optional
+
+option  "noOptimization"  -
+"Disable the drawing space optimization of RNApuzzler"
+flag
+off
+
+option  "ignoreExteriorIntersections"  -
+"Ignore intersections with the exterior loop within the RNA-tree."
+flag
+off
+
+option  "ignoreAncestorIntersections"  -
+"Ignore ancestor intersections within the RNA-tree."
+flag
+off
+
+option  "ignoreSiblingIntersections"  -
+"Ignore sibling intersections within the RNA-tree"
+flag
+off
+
+option  "allowFlipping"  -
+"Allow flipping of exterior loop branches to resolve exterior branch intersections."
+flag
+off
 
 option  "output-format"   o
 "Specify output format. Available formats are: PostScript (ps), Graph Meta Language (gml),\

@@ -129,7 +129,7 @@ static double lencut;
 
 static logical debug = false;
 
-static void read_in_bases(short *pair_table);
+static void read_in_bases(const short *pair_table);
 static void find_regions(void);
 static void dump_loops(void);
 static void find_central_loop(void);
@@ -144,6 +144,84 @@ static int depth(struct loop *lp);
 static logical connected_connection(struct connection *cp, struct connection *cpnext);
 static int    find_ic_middle(int icstart, int icend, struct connection *anchor_connection, struct connection *acp, struct loop *lp);
 
+
+
+int
+vrna_plot_coords_naview(const char  *structure,
+                        float       **x,
+                        float       **y)
+{
+  if (structure) {
+    int   ret = 0;
+    short *pt = vrna_ptable(structure);
+
+    ret = vrna_plot_coords_naview_pt(pt, x, y);
+
+    free(pt);
+
+    return ret;
+  }
+
+  if (x)
+    *x = NULL;
+
+  if (y)
+    *y = NULL;
+
+  return 0;
+}
+
+
+int
+vrna_plot_coords_naview_pt(const short *pt,
+                           float       **x,
+                           float       **y)
+{
+  int i;
+
+  if ((pt) && (x) && (y)) {
+    nbase       = pt[0]; /* length */
+    *x          = (float *)vrna_alloc(sizeof(float) * (nbase + 1));
+    *y          = (float *)vrna_alloc(sizeof(float) * (nbase + 1));
+    bases       = (struct base *) vrna_alloc(sizeof(struct base)*(nbase+1));
+    regions     = (struct region *) vrna_alloc(sizeof(struct region)*(nbase+1));
+    loops       = (struct loop *) vrna_alloc(sizeof(struct loop) * (nbase + 1));
+    lencut      = 0.5;
+    rlphead     = NULL;
+    loop_count  = 0;
+
+    read_in_bases(pt);
+
+    find_regions();
+
+    construct_loop(0);
+
+    find_central_loop();
+
+    if (debug)
+      dump_loops();
+
+    traverse_loop(root, NULL);
+
+    for (i = 0; i < nbase; i++) {
+      (*x)[i] = 100 + 15 * bases[i + 1].x;
+      (*y)[i] = 100 + 15 * bases[i + 1].y;
+    }
+    free(bases);
+    free(regions);
+    free(loops);
+
+    return nbase;
+  }
+
+  if (x)
+    *x = NULL;
+
+  if (y)
+    *y = NULL;
+
+  return 0;
+}
 
 
 int naview_xy_coordinates(short *pair_table, float *X, float *Y) {
@@ -174,7 +252,7 @@ int naview_xy_coordinates(short *pair_table, float *X, float *Y) {
 }
 
 
-static void read_in_bases(short *pair_table)
+static void read_in_bases(const short *pair_table)
 {
   int i,npairs;
 

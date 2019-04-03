@@ -1241,25 +1241,15 @@ postscript_layout(const char      *filename,
 {
   char **A;
 
-  A = vrna_annotate_covar_struct(alignment, consensus_structure, &(opt->md));
+  A = vrna_annotate_covar_db(alignment, consensus_structure, &(opt->md));
 
-  if (opt->color) {
-    THREADSAFE_FILE_OUTPUT(
-      (void)vrna_file_PS_rnaplot_a(consensus_sequence,
-                                   consensus_structure,
-                                   filename,
-                                   A[0],
-                                   A[1],
-                                   &(opt->md)));
-  } else {
-    THREADSAFE_FILE_OUTPUT(
-      (void)vrna_file_PS_rnaplot_a(consensus_sequence,
-                                   consensus_structure,
-                                   filename,
-                                   NULL,
-                                   A[1],
-                                   &(opt->md)));
-  }
+  THREADSAFE_FILE_OUTPUT(
+    (void)vrna_file_PS_rnaplot_a(consensus_sequence,
+                                 consensus_structure,
+                                 filename,
+                                 (opt->color) ? A[0] : NULL,
+                                 A[1],
+                                 &(opt->md)));
 
   free(A[0]);
   free(A[1]);

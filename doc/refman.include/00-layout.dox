@@ -284,7 +284,13 @@ formats, and various output file formats produced by our library.
 @defgroup   plotting_utils            Plotting
 @ingroup    utils
 
+@defgroup   plot_layout_utils         Layouts and Coordinates
+@ingroup    plotting_utils
+
 @defgroup   annotation_utils          Annotation
+@ingroup    plotting_utils
+
+@defgroup   alignment_plots           Alignment Plots
 @ingroup    plotting_utils
 
 @defgroup   search_utils              Search Algorithms
@@ -334,5 +340,8 @@ formats, and various output file formats produced by our library.
 
 @defgroup   struct_utils_deprecated   Deprecated Interface for Secondary Structure Utilities
 @ingroup    struct_utils
+
+@defgroup   plotting_utils_deprecated Deprecated Interface for Plotting Utilities
+@ingroup    plotting_utils
 
 */

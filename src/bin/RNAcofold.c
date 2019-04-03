@@ -1012,7 +1012,7 @@ process_record(struct record_data *record)
         /*AB dot_plot*/
         fname_dot = vrna_strdup_printf("AB%s", filename_dot);
         seq       = vrna_strdup_printf("%s%s", orig_Astring, orig_Bstring);
-        comment   = vrna_strdup_printf("\n%%Heterodimer AB FreeEnergy= %.9f\n", AB.FcAB);
+        comment   = vrna_strdup_printf("Heterodimer AB FreeEnergy= %.9f", AB.FcAB);
         THREADSAFE_FILE_OUTPUT(
           (void)vrna_plot_dp_PS_list(seq,
                                      Alength + 1,
@@ -1027,7 +1027,7 @@ process_record(struct record_data *record)
         /*AA dot_plot*/
         fname_dot = vrna_strdup_printf("AA%s", filename_dot);
         seq       = vrna_strdup_printf("%s%s", orig_Astring, orig_Astring);
-        comment   = vrna_strdup_printf("\n%%Homodimer AA FreeEnergy= %.9f\n", AA.FcAB);
+        comment   = vrna_strdup_printf("Homodimer AA FreeEnergy= %.9f", AA.FcAB);
         THREADSAFE_FILE_OUTPUT(
           (void)vrna_plot_dp_PS_list(seq,
                                      Alength + 1,
@@ -1042,7 +1042,7 @@ process_record(struct record_data *record)
         /*BB dot_plot*/
         fname_dot = vrna_strdup_printf("BB%s", filename_dot);
         seq       = vrna_strdup_printf("%s%s", orig_Bstring, orig_Bstring);
-        comment   = vrna_strdup_printf("\n%%Homodimer BB FreeEnergy= %.9f\n", BB.FcAB);
+        comment   = vrna_strdup_printf("Homodimer BB FreeEnergy= %.9f", BB.FcAB);
         THREADSAFE_FILE_OUTPUT(
           (void)vrna_plot_dp_PS_list(seq,
                                      Blength + 1,
@@ -1056,7 +1056,7 @@ process_record(struct record_data *record)
 
         /*A dot plot*/
         fname_dot = vrna_strdup_printf("A%s", filename_dot);
-        comment   = vrna_strdup_printf("\n%%Monomer A FreeEnergy= %.9f\n", AB.FA);
+        comment   = vrna_strdup_printf("Monomer A FreeEnergy= %.9f", AB.FA);
         THREADSAFE_FILE_OUTPUT(
           (void)vrna_plot_dp_PS_list(orig_Astring,
                                      -1,
@@ -1069,7 +1069,7 @@ process_record(struct record_data *record)
 
         /*B monomer dot plot*/
         fname_dot = vrna_strdup_printf("B%s", filename_dot);
-        comment   = vrna_strdup_printf("\n%%Monomer B FreeEnergy= %.9f\n", AB.FB);
+        comment   = vrna_strdup_printf("Monomer B FreeEnergy= %.9f", AB.FB);
         THREADSAFE_FILE_OUTPUT(
           (void)vrna_plot_dp_PS_list(orig_Bstring,
                                      -1,

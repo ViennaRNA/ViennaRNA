@@ -209,7 +209,9 @@ vrna_plotting_HEADERS = \
     plotting/probabilities.h \
     plotting/structures.h \
     plotting/utils.h \
-    plotting/naview.h
+    plotting/naview.h \
+    plotting/RNApuzzler/RNApuzzler.h \
+    plotting/RNApuzzler/RNAturtle.h
 
 
 vrna_io_HEADERS = \
@@ -335,7 +337,9 @@ libRNA_plotting_la_SOURCES = \
     plotting/probabilities.c \
     plotting/structures.c \
     plotting/plot_utils.c \
-    plotting/naview.c
+    plotting/naview.c \
+    plotting/RNApuzzler/RNApuzzler.c \
+    plotting/RNApuzzler/RNAturtle.c
 
 libRNA_loops_la_SOURCES = \
     loops/external.c \
@@ -367,6 +371,37 @@ libRNA_datastructures_la_SOURCES = \
 libRNA_special_const_la_SOURCES = \
     special_const.c
 
+RNAPUZZLER_H = \
+    plotting/RNApuzzler/headers/AABB_struct.h \
+    plotting/RNApuzzler/headers/boundingBoxes_struct.h \
+    plotting/RNApuzzler/headers/configArc_struct.h \
+    plotting/RNApuzzler/headers/config_struct.h \
+    plotting/RNApuzzler/headers/configtree_struct.h \
+    plotting/RNApuzzler/headers/tBaseInformation_struct.h
+
+RNAPUZZLER_INC = \
+    plotting/RNApuzzler/includes/coordinates.inc \
+    plotting/RNApuzzler/includes/definitions.inc \
+    plotting/RNApuzzler/includes/vector_math.inc \
+    plotting/RNApuzzler/includes/boundingBoxes.inc \
+    plotting/RNApuzzler/includes/configtree.inc \
+    plotting/RNApuzzler/includes/drawingconfig.inc \
+    plotting/RNApuzzler/includes/intersectLevelBoundingBoxes.inc \
+    plotting/RNApuzzler/includes/intersectLevelLines.inc \
+    plotting/RNApuzzler/includes/intersectLevelTreeNodes.inc \
+    plotting/RNApuzzler/includes/postscriptArcs.inc \
+    plotting/RNApuzzler/includes/boundingWedge.inc \
+    plotting/RNApuzzler/includes/calcDeltas.inc \
+    plotting/RNApuzzler/includes/handleAncestorIntersections.inc \
+    plotting/RNApuzzler/includes/handleConfigChanges.inc \
+    plotting/RNApuzzler/includes/handleSiblingIntersections.inc \
+    plotting/RNApuzzler/includes/intersectionType.inc \
+    plotting/RNApuzzler/includes/optimize.inc \
+    plotting/RNApuzzler/includes/resolveExteriorChildIntersections.inc \
+    plotting/RNApuzzler/includes/resolveIntersections.inc \
+    plotting/RNApuzzler/includes/rotationAngle.inc
+
+
 # static library for subpackages
 all-local:      libRNA.a
 
@@ -388,9 +423,10 @@ noinst_HEADERS  = params/intl11.h \
                   params/intl22dH.h \
                   params/1.8.4_epars.h \
                   params/1.8.4_intloops.h \
-                  list.h\
+                  ${RNAPUZZLER_H} \
+                  list.h \
                   ${SVM_H} \
-                  ${JSON_H}\
+                  ${JSON_H} \
                   special_const.h
 
 nodist_pkginclude_HEADERS = vrna_config.h
@@ -411,6 +447,8 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               params/svm_model_avg.inc \
               params/svm_model_sd.inc \
               data_structures_nonred.inc \
+              plotting/ps_helpers.inc \
+              ${RNAPUZZLER_INC} \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \
