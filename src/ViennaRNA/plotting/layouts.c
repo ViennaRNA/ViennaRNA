@@ -172,6 +172,9 @@ vrna_plot_coords_pt(const short *pt,
       case VRNA_PLOT_TYPE_SIMPLE:
         return coords_simple(pt, x, y);
 
+      case VRNA_PLOT_TYPE_NAVIEW:
+        return vrna_plot_coords_naview_pt(pt, x, y);
+
       case VRNA_PLOT_TYPE_CIRCULAR:
         return coords_circular(pt, x, y);
 
@@ -248,8 +251,8 @@ rna_layout(const char   *structure,
   n               = strlen(structure);
   layout          = (struct vrna_plot_layout_s *)vrna_alloc(sizeof(struct vrna_plot_layout_s));
   layout->length  = n;
-  layout->x       = (float *)vrna_alloc(sizeof(float) * (n + 1));
-  layout->y       = (float *)vrna_alloc(sizeof(float) * (n + 1));
+  layout->x       = NULL;
+  layout->y       = NULL;
   layout->arcs    = NULL;
 
   /* convert dot-bracket string to pair table */
@@ -270,8 +273,6 @@ rna_layout(const char   *structure,
 
   switch (plot_type) {
     case VRNA_PLOT_TYPE_SIMPLE:
-      free(layout->x);
-      free(layout->y);
       i = coords_simple(pt_g,
                         &(layout->x),
                         &(layout->y));
@@ -279,8 +280,6 @@ rna_layout(const char   *structure,
 
     case VRNA_PLOT_TYPE_CIRCULAR:
       r = 3 * n;
-      free(layout->x);
-      free(layout->y);
       i = coords_circular(pt_g,
                           &(layout->x),
                           &(layout->y));
@@ -294,8 +293,6 @@ rna_layout(const char   *structure,
       break;
 
     case VRNA_PLOT_TYPE_TURTLE:
-      free(layout->x);
-      free(layout->y);
       i = vrna_plot_coords_turtle_pt(pt,
                                      &(layout->x),
                                      &(layout->y),
@@ -303,8 +300,6 @@ rna_layout(const char   *structure,
       break;
 
     case VRNA_PLOT_TYPE_PUZZLER:
-      free(layout->x);
-      free(layout->y);
       i = vrna_plot_coords_puzzler_pt(pt,
                                       &(layout->x),
                                       &(layout->y),
@@ -313,9 +308,9 @@ rna_layout(const char   *structure,
       break;
 
     default:
-      i = naview_xy_coordinates(pt_g,
-                                layout->x,
-                                layout->y);
+      i = vrna_plot_coords_naview_pt(pt_g,
+                                     &(layout->x),
+                                     &(layout->y));
       break;
   }
 
