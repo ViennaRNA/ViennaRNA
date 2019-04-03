@@ -93,12 +93,14 @@ dependon="msa"
 hidden
 
 option  "layout-type"  t
-"Choose the layout algorithm.\n\
- 0: simple radial layout\n\
- 1: naview layout\n\
- 2: circular layout\n\
- 3: RNAturtle\n
- 4: RNApuzzler\n"
+"Choose the layout algorithm.\n"
+details="Select the layout algorithm that computes the nucleotide coordinates.\
+ Currently, the following algorithms are available:\n\
+ 0: simple radial layout\n\n\
+ 1: Naview layout (Bruccoleri et al. 1988)\n\n\
+ 2: circular layout\n\n\
+ 3: RNAturtle (Wiegreffe et al. 2018)\n\n\
+ 4: RNApuzzler (Wiegreffe et al. 2018)\n\n"
 int
 default="1"
 optional
