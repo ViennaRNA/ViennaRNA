@@ -55,13 +55,13 @@
 #################################
 */
 PRIVATE int
-rnaplot_EPS(const char *seq,
-            const char *structure,
-            const char *ssfile,
-            const char *pre,
-            const char *post,
-            vrna_md_t  *md_p,
-            vrna_figure_layout_t *layout);
+rnaplot_EPS(const char         *seq,
+            const char         *structure,
+            const char         *ssfile,
+            const char         *pre,
+            const char         *post,
+            vrna_md_t          *md_p,
+            vrna_plot_layout_t *layout);
 
 /*
 #################################
@@ -88,9 +88,9 @@ vrna_file_PS_rnaplot_a( const char *seq,
                         vrna_md_t  *md_p)
 {
   int               ret;
-  vrna_figure_layout_t *layout;
+  vrna_plot_layout_t *layout;
 
-  layout = vrna_figure_layout(structure, rna_plot_type);
+  layout = vrna_plot_layout(structure, rna_plot_type);
   ret    = vrna_file_PS_rnaplot_layout(seq,
                                        structure,
                                        ssfile,
@@ -99,20 +99,20 @@ vrna_file_PS_rnaplot_a( const char *seq,
                                        md_p,
                                        layout);
 
-  vrna_figure_layout_free(layout);
+  vrna_plot_layout_free(layout);
 
   return ret;
 }
 
 
 PUBLIC int
-vrna_file_PS_rnaplot_layout(const char        *seq,
-                            const char        *structure,
-                            const char        *ssfile,
-                            const char        *pre,
-                            const char        *post,
-                            vrna_md_t         *md_p,
-                            vrna_figure_layout_t *layout)
+vrna_file_PS_rnaplot_layout(const char         *seq,
+                            const char         *structure,
+                            const char         *ssfile,
+                            const char         *pre,
+                            const char         *post,
+                            vrna_md_t          *md_p,
+                            vrna_plot_layout_t *layout)
 {
   if (!ssfile) {
     vrna_message_warning("vrna_file_PS_rnaplot*(): "
@@ -155,13 +155,13 @@ vrna_file_PS_rnaplot_layout(const char        *seq,
  */
 
 PRIVATE int
-rnaplot_EPS(const char *seq,
-            const char *structure,
-            const char *ssfile,
-            const char *pre,
-            const char *post,
-            vrna_md_t  *md_p,
-            vrna_figure_layout_t *layout){
+rnaplot_EPS(const char         *seq,
+            const char         *structure,
+            const char         *ssfile,
+            const char         *pre,
+            const char         *post,
+            vrna_md_t          *md_p,
+            vrna_plot_layout_t *layout){
 
   float  xmin, xmax, ymin, ymax;
   int    i, length;
@@ -217,22 +217,27 @@ rnaplot_EPS(const char *seq,
   print_PS_coords(xyplot, layout->x, layout->y, length);
 
   fprintf(xyplot, "/arcs [\n");
-  for (i = 0; i < length; i++)
-  {
-    if (layout->arcs[6*i + 2] > 0) { /* 6*i+2 is the radius parameter */
-      fprintf(xyplot, "[%3.8f %3.8f %3.8f %3.8f %3.8f %3.8f]\n",
-        layout->arcs[6*i + 0],
-        layout->arcs[6*i + 1],
-        layout->arcs[6*i + 2],
-        layout->arcs[6*i + 3],
-        layout->arcs[6*i + 4],
-        layout->arcs[6*i + 5]
-      );
-    } else {
-      fprintf(xyplot, "[]\n");
+  if (layout->arcs) {
+    for (i = 0; i < length; i++)
+    {
+      if (layout->arcs[6*i + 2] > 0) { /* 6*i+2 is the radius parameter */
+        fprintf(xyplot, "[%3.8f %3.8f %3.8f %3.8f %3.8f %3.8f]\n",
+          layout->arcs[6*i + 0],
+          layout->arcs[6*i + 1],
+          layout->arcs[6*i + 2],
+          layout->arcs[6*i + 3],
+          layout->arcs[6*i + 4],
+          layout->arcs[6*i + 5]
+        );
+      } else {
+        fprintf(xyplot, "[]\n");
+      }
     }
-  }
 
+  } else {
+    for (i = 0; i < length; i++)
+      fprintf(xyplot, "[]\n");
+  }
   fprintf(xyplot, "] def\n");
 
   /* correction coordinates for quadratic beziers in case we produce a circplot */

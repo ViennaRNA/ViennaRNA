@@ -76,13 +76,13 @@ int vrna_file_PS_rnaplot_a( const char      *seq,
 
 
 int
-vrna_file_PS_rnaplot_layout(const char           *seq,
-                            const char           *structure,
-                            const char           *ssfile,
-                            const char           *pre,
-                            const char           *post,
-                            vrna_md_t            *md_p,
-                            vrna_figure_layout_t *layout);
+vrna_file_PS_rnaplot_layout(const char          *seq,
+                            const char          *structure,
+                            const char          *ssfile,
+                            const char          *pre,
+                            const char          *post,
+                            vrna_md_t           *md_p,
+                            vrna_plot_layout_t  *layout);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

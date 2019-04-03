@@ -581,7 +581,7 @@ process_record(struct record_data *record)
       if (rna_plot_type == VRNA_PLOT_TYPE_PUZZLER) {
         /* RNA puzzler behavior specification */
         vrna_plot_options_puzzler_t *puzzler;
-        vrna_figure_layout_t        *layout;
+        vrna_plot_layout_t          *layout;
 
         puzzler           = vrna_plot_options_puzzler();
         puzzler->filename = ffname;
@@ -593,8 +593,8 @@ process_record(struct record_data *record)
         puzzler->allowFlipping              = opt->allowFlipping;
         puzzler->optimize                   = opt->optimize;
 
-        layout = vrna_figure_layout_puzzler(structure,
-                                            puzzler);
+        layout = vrna_plot_layout_puzzler(structure,
+                                          puzzler);
 
         THREADSAFE_FILE_OUTPUT(
           vrna_file_PS_rnaplot_layout(rec_sequence,
@@ -605,7 +605,7 @@ process_record(struct record_data *record)
                                       &(opt->md),
                                       layout));
 
-        vrna_figure_layout_free(layout);
+        vrna_plot_layout_free(layout);
         vrna_plot_options_puzzler_free(puzzler);
       } else {
         THREADSAFE_FILE_OUTPUT(

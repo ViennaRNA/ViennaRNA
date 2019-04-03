@@ -38,7 +38,7 @@ PUBLIC int rna_plot_type = 1;   /* 0 = simple, 1 = naview, 2 = circular plot */
  #################################
  */
 
-PRIVATE struct vrna_figure_layout_s *
+PRIVATE struct vrna_plot_layout_s *
 rna_layout(const char   *structure,
            unsigned int plot_type,
            void         *options);
@@ -72,9 +72,9 @@ coords_circular(const short *pt,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC struct vrna_figure_layout_s *
-vrna_figure_layout(const char   *structure,
-                   unsigned int plot_type)
+PUBLIC struct vrna_plot_layout_s *
+vrna_plot_layout(const char   *structure,
+                 unsigned int plot_type)
 {
   if (structure)
     return rna_layout(structure, plot_type, NULL);
@@ -83,37 +83,37 @@ vrna_figure_layout(const char   *structure,
 }
 
 
-PUBLIC struct vrna_figure_layout_s *
-vrna_figure_layout_simple(const char *structure)
+PUBLIC struct vrna_plot_layout_s *
+vrna_plot_layout_simple(const char *structure)
 {
-  return vrna_figure_layout(structure, VRNA_PLOT_TYPE_SIMPLE);
+  return vrna_plot_layout(structure, VRNA_PLOT_TYPE_SIMPLE);
 }
 
 
-PUBLIC struct vrna_figure_layout_s *
-vrna_figure_layout_naview(const char *structure)
+PUBLIC struct vrna_plot_layout_s *
+vrna_plot_layout_naview(const char *structure)
 {
-  return vrna_figure_layout(structure, VRNA_PLOT_TYPE_NAVIEW);
+  return vrna_plot_layout(structure, VRNA_PLOT_TYPE_NAVIEW);
 }
 
 
-PUBLIC struct vrna_figure_layout_s *
-vrna_figure_layout_circular(const char *structure)
+PUBLIC struct vrna_plot_layout_s *
+vrna_plot_layout_circular(const char *structure)
 {
-  return vrna_figure_layout(structure, VRNA_PLOT_TYPE_CIRCULAR);
+  return vrna_plot_layout(structure, VRNA_PLOT_TYPE_CIRCULAR);
 }
 
 
-PUBLIC struct vrna_figure_layout_s *
-vrna_figure_layout_turtle(const char *structure)
+PUBLIC struct vrna_plot_layout_s *
+vrna_plot_layout_turtle(const char *structure)
 {
-  return vrna_figure_layout(structure, VRNA_PLOT_TYPE_TURTLE);
+  return vrna_plot_layout(structure, VRNA_PLOT_TYPE_TURTLE);
 }
 
 
-PUBLIC struct vrna_figure_layout_s *
-vrna_figure_layout_puzzler(const char                   *structure,
-                           vrna_plot_options_puzzler_t  *options)
+PUBLIC struct vrna_plot_layout_s *
+vrna_plot_layout_puzzler(const char                   *structure,
+                         vrna_plot_options_puzzler_t  *options)
 {
   if (structure)
     return rna_layout(structure, VRNA_PLOT_TYPE_PUZZLER, (void *)options);
@@ -123,7 +123,7 @@ vrna_figure_layout_puzzler(const char                   *structure,
 
 
 PUBLIC void
-vrna_figure_layout_free(struct vrna_figure_layout_s *layout)
+vrna_plot_layout_free(struct vrna_plot_layout_s *layout)
 {
   if (layout) {
     free(layout->x);
@@ -135,16 +135,16 @@ vrna_figure_layout_free(struct vrna_figure_layout_s *layout)
 
 
 PUBLIC int
-vrna_figure_coords(const char *structure,
-                   float      **x,
-                   float      **y,
-                   int        plot_type)
+vrna_plot_coords(const char *structure,
+                 float      **x,
+                 float      **y,
+                 int        plot_type)
 {
   if (structure) {
     int   ret = 0;
     short *pt = vrna_ptable(structure);
 
-    ret = vrna_figure_coords_pt(pt, x, y, plot_type);
+    ret = vrna_plot_coords_pt(pt, x, y, plot_type);
 
     free(pt);
 
@@ -162,10 +162,10 @@ vrna_figure_coords(const char *structure,
 
 
 PUBLIC int
-vrna_figure_coords_pt(const short *pt,
-                      float       **x,
-                      float       **y,
-                      int         plot_type)
+vrna_plot_coords_pt(const short *pt,
+                    float       **x,
+                    float       **y,
+                    int         plot_type)
 {
   if ((pt) && (x) && (y)) {
     switch (plot_type) {
@@ -194,38 +194,38 @@ vrna_figure_coords_pt(const short *pt,
 
 
 PUBLIC int
-vrna_figure_coords_simple(const char  *structure,
+vrna_plot_coords_simple(const char  *structure,
+                        float       **x,
+                        float       **y)
+{
+  return vrna_plot_coords(structure, x, y, VRNA_PLOT_TYPE_SIMPLE);
+}
+
+
+PUBLIC int
+vrna_plot_coords_simple_pt(const short  *pt,
+                           float        **x,
+                           float        **y)
+{
+  return vrna_plot_coords_pt(pt, x, y, VRNA_PLOT_TYPE_SIMPLE);
+}
+
+
+PUBLIC int
+vrna_plot_coords_circular(const char  *structure,
                           float       **x,
                           float       **y)
 {
-  return vrna_figure_coords(structure, x, y, VRNA_PLOT_TYPE_SIMPLE);
+  return vrna_plot_coords(structure, x, y, VRNA_PLOT_TYPE_CIRCULAR);
 }
 
 
 PUBLIC int
-vrna_figure_coords_simple_pt(const short  *pt,
+vrna_plot_coords_circular_pt(const short  *pt,
                              float        **x,
                              float        **y)
 {
-  return vrna_figure_coords_pt(pt, x, y, VRNA_PLOT_TYPE_SIMPLE);
-}
-
-
-PUBLIC int
-vrna_figure_coords_circular(const char  *structure,
-                            float       **x,
-                            float       **y)
-{
-  return vrna_figure_coords(structure, x, y, VRNA_PLOT_TYPE_CIRCULAR);
-}
-
-
-PUBLIC int
-vrna_figure_coords_circular_pt(const short  *pt,
-                               float        **x,
-                               float        **y)
-{
-  return vrna_figure_coords_pt(pt, x, y, VRNA_PLOT_TYPE_CIRCULAR);
+  return vrna_plot_coords_pt(pt, x, y, VRNA_PLOT_TYPE_CIRCULAR);
 }
 
 
@@ -234,20 +234,19 @@ vrna_figure_coords_circular_pt(const short  *pt,
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
-PRIVATE struct vrna_figure_layout_s *
+PRIVATE struct vrna_plot_layout_s *
 rna_layout(const char   *structure,
            unsigned int plot_type,
            void         *options)
 {
-  struct vrna_figure_layout_s *layout;
-  short                       *pt, *pt_g;
-  unsigned int                i, n;
-  int                         xmin, xmax, ymin, ymax, ee, gb, ge, Lg, l[3], r;
+  struct vrna_plot_layout_s *layout;
+  short                     *pt, *pt_g;
+  unsigned int              i, n;
+  int                       xmin, xmax, ymin, ymax, ee, gb, ge, Lg, l[3], r;
 
 
-  n       = strlen(structure);
-  layout  =
-    (struct vrna_figure_layout_s *)vrna_alloc(sizeof(struct vrna_figure_layout_s));
+  n               = strlen(structure);
+  layout          = (struct vrna_plot_layout_s *)vrna_alloc(sizeof(struct vrna_plot_layout_s));
   layout->length  = n;
   layout->x       = (float *)vrna_alloc(sizeof(float) * (n + 1));
   layout->y       = (float *)vrna_alloc(sizeof(float) * (n + 1));
@@ -321,7 +320,7 @@ rna_layout(const char   *structure,
   }
 
   if (i != n)
-    vrna_message_warning("strange things happening in vrna_figure_layout*()...");
+    vrna_message_warning("strange things happening in vrna_plot_layout*()...");
 
   /* adjust bounding box coordinates */
   xmin  = xmax = layout->x[0];
