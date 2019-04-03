@@ -1,6 +1,18 @@
 #ifndef VIENNA_RNA_PACKAGE_PLOT_LAYOUTS_H
 #define VIENNA_RNA_PACKAGE_PLOT_LAYOUTS_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     ViennaRNA/plotting/layouts.h
  *  @ingroup  plotting_utils
@@ -464,15 +476,18 @@ extern int rna_plot_type;
  *  @see make_pair_table(), rna_plot_type, simple_circplot_coordinates(), naview_xy_coordinates(), vrna_file_PS_rnaplot_a(),
  *  vrna_file_PS_rnaplot, svg_rna_plot()
  *
+ *  @deprecated   Consider switching to vrna_plot_coords_simple_pt() instead!
+ *
  *  @param  pair_table  The pair table of the secondary structure
  *  @param  X           a pointer to an array with enough allocated space to hold the x coordinates
  *  @param  Y           a pointer to an array with enough allocated space to hold the y coordinates
  *  @return             length of sequence on success, 0 otherwise
  */
-int
-simple_xy_coordinates(short *pair_table,
-                      float *X,
-                      float *Y);
+DEPRECATED(int
+           simple_xy_coordinates(short  *pair_table,
+                                 float  *X,
+                                 float  *Y),
+           "Use vrna_plot_coords_simple_pt() instead!");
 
 
 /**
@@ -490,15 +505,18 @@ simple_xy_coordinates(short *pair_table,
  *  @see make_pair_table(), rna_plot_type, simple_xy_coordinates(), naview_xy_coordinates(), vrna_file_PS_rnaplot_a(),
  *  vrna_file_PS_rnaplot, svg_rna_plot()
  *
+ *  @deprecated   Consider switching to vrna_plot_coords_circular_pt() instead!
+ *
  *  @param  pair_table  The pair table of the secondary structure
  *  @param  x           a pointer to an array with enough allocated space to hold the x coordinates
  *  @param  y           a pointer to an array with enough allocated space to hold the y coordinates
  *  @return             length of sequence on success, 0 otherwise
  */
-int
-simple_circplot_coordinates(short *pair_table,
-                            float *x,
-                            float *y);
+DEPRECATED(int
+           simple_circplot_coordinates(short  *pair_table,
+                                       float  *x,
+                                       float  *y),
+           "Use vrna_plot_coords_circular_pt() instead!");
 
 
 /**

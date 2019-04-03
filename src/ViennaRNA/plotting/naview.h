@@ -1,6 +1,18 @@
 #ifndef VIENNA_RNA_PACKAGE_PLOT_NAVIEW_H
 #define VIENNA_RNA_PACKAGE_PLOT_NAVIEW_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file ViennaRNA/plotting/naview.h
  *  @ingroup  plotting_utils
@@ -71,9 +83,9 @@ vrna_plot_coords_naview(const char  *structure,
  *  @return                   The length of the structure on success, 0 otherwise
  */
 int
-vrna_plot_coords_naview_pt(const short *pt,
-                           float       **x,
-                           float       **y);
+vrna_plot_coords_naview_pt(const short  *pt,
+                           float        **x,
+                           float        **y);
 
 
 /**
@@ -89,11 +101,13 @@ vrna_plot_coords_naview_pt(const short *pt,
  */
 
 /**
- *
+ *  @deprecated   Consider using vrna_plot_coords_naview_pt() instead!
  */
-int naview_xy_coordinates(short *pair_table,
-                          float *X,
-                          float *Y);
+DEPRECATED(int
+           naview_xy_coordinates(short  *pair_table,
+                                 float  *X,
+                                 float  *Y),
+           "Use vrna_plot_coords_naview_pt() instead!");
 
 #endif
 
