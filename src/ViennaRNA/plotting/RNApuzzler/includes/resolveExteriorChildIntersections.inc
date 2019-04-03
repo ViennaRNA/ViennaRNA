@@ -37,6 +37,7 @@ resolveExteriorChildIntersections(treeNode                *exteriorNode,
                                   const double            unpaired,
                                   const short             allowFlipping);
 
+
 /* ----------------------------------------------------------------------------- */
 
 PRIVATE void
@@ -625,5 +626,6 @@ resolveExteriorChildIntersections(treeNode                *exteriorNode,
   free(bounds);
   free(node);
 }
+
 
 #endif

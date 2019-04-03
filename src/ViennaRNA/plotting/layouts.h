@@ -205,8 +205,8 @@ vrna_figure_layout_turtle(const char *structure);
  *  @return               The layout data structure for the provided secondary structure
  */
 vrna_figure_layout_t *
-vrna_figure_layout_puzzler(const char     *structure,
-                           puzzlerOptions *options);
+vrna_figure_layout_puzzler(const char                   *structure,
+                           vrna_plot_options_puzzler_t  *options);
 
 
 /**

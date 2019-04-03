@@ -58,7 +58,6 @@ angleToDistance(const double  radius,
                 const double  degreeAngle);
 
 
-
 PRIVATE void
 bubblesort(const int            numValues,
            const double *const  valuesLevel1,
@@ -119,5 +118,6 @@ angleToDistance(const double  radius,
 {
   return 2.0 * radius * sin(angle / 2.0);
 }
+
 
 #endif

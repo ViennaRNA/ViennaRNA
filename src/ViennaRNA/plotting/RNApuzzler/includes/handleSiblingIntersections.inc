@@ -26,11 +26,11 @@
  * Check and fix intersections between all siblings of the current node.
  *
  * @param node: node to check
- * @param puzzler: puzzlerOptions
+ * @param puzzler: vrna_plot_options_puzzler_t
  */
 PRIVATE short
-checkSiblings(treeNode        *node,
-              puzzlerOptions  *puzzler);
+checkSiblings(treeNode                    *node,
+              vrna_plot_options_puzzler_t *puzzler);
 
 
 /**
@@ -46,11 +46,11 @@ checkSiblings(treeNode        *node,
  *      1 if something was changed, 0 otherwise
  */
 PRIVATE short
-fixIntersectionOfSiblings(treeNode        *tree,
-                          const int       left,
-                          const int       right,
-                          double          *deltaCfg,
-                          puzzlerOptions  *puzzler)
+fixIntersectionOfSiblings(treeNode                    *tree,
+                          const int                   left,
+                          const int                   right,
+                          double                      *deltaCfg,
+                          vrna_plot_options_puzzler_t *puzzler)
 {
   double  wedgeMin, wedgeMax;
 
@@ -96,9 +96,9 @@ fixIntersectionOfSiblings(treeNode        *tree,
  *      1 if something was changed, 0 otherwise
  */
 PRIVATE short
-handleIntersectionOfSiblings(treeNode       *tree,
-                             const int      *listOfIntersections,
-                             puzzlerOptions *puzzler)
+handleIntersectionOfSiblings(treeNode                     *tree,
+                             const int                    *listOfIntersections,
+                             vrna_plot_options_puzzler_t  *puzzler)
 {
   char *fnName = "FIX INTERSECTION OF SIBLINGS";
 
@@ -147,8 +147,8 @@ handleIntersectionOfSiblings(treeNode       *tree,
 
 
 PRIVATE short
-checkSiblings(treeNode        *node,
-              puzzlerOptions  *puzzler)
+checkSiblings(treeNode                    *node,
+              vrna_plot_options_puzzler_t *puzzler)
 {
   char  *fnName = "CHECK SIBLINGS";
   short ret     = _false;
@@ -221,5 +221,6 @@ checkSiblings(treeNode        *node,
 
   return ret;
 }
+
 
 #endif

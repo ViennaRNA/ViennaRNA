@@ -921,4 +921,5 @@ circle(const double P1[2],
   *radius   = sqrt(center[0] * center[0] + center[1] * center[1] - A);
 }
 
+
 #endif

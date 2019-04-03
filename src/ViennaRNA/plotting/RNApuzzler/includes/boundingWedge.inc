@@ -257,4 +257,5 @@ getBoundingWedge(const treeNode *root,
   getBoundingWedgeRec(root, child, 0, minAngle, maxAngle);
 }
 
+
 #endif

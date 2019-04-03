@@ -112,8 +112,8 @@ vrna_figure_layout_turtle(const char *structure)
 
 
 PUBLIC struct vrna_figure_layout_s *
-vrna_figure_layout_puzzler(const char     *structure,
-                           puzzlerOptions *options)
+vrna_figure_layout_puzzler(const char                   *structure,
+                           vrna_plot_options_puzzler_t  *options)
 {
   if (structure)
     return rna_layout(structure, VRNA_PLOT_TYPE_PUZZLER, (void *)options);
@@ -174,6 +174,12 @@ vrna_figure_coords_pt(const short *pt,
 
       case VRNA_PLOT_TYPE_CIRCULAR:
         return coords_circular(pt, x, y);
+
+      case VRNA_PLOT_TYPE_TURTLE:
+        return vrna_plot_coords_turtle_pt(pt, x, y, NULL);
+
+      case VRNA_PLOT_TYPE_PUZZLER:
+        return vrna_plot_coords_puzzler_pt(pt, x, y, NULL, NULL);
     }
   }
 
@@ -245,16 +251,7 @@ rna_layout(const char   *structure,
   layout->length  = n;
   layout->x       = (float *)vrna_alloc(sizeof(float) * (n + 1));
   layout->y       = (float *)vrna_alloc(sizeof(float) * (n + 1));
-  layout->arcs    = (double *)vrna_alloc(sizeof(double) * 6 * n);
-
-  for (i = 0; i < n; i++) {
-    layout->arcs[6 * i + 0] = -1;
-    layout->arcs[6 * i + 1] = -1.;
-    layout->arcs[6 * i + 2] = -1.;
-    layout->arcs[6 * i + 3] = -1.;
-    layout->arcs[6 * i + 4] = -1.;
-    layout->arcs[6 * i + 5] = -1.;
-  }
+  layout->arcs    = NULL;
 
   /* convert dot-bracket string to pair table */
   pt    = vrna_ptable(structure);
@@ -298,40 +295,23 @@ rna_layout(const char   *structure,
       break;
 
     case VRNA_PLOT_TYPE_TURTLE:
-      i = layout_RNAturtle(pt,
-                           layout->x,
-                           layout->y,
-                           layout->arcs);
+      free(layout->x);
+      free(layout->y);
+      i = vrna_plot_coords_turtle_pt(pt,
+                                     &(layout->x),
+                                     &(layout->y),
+                                     &(layout->arcs));
       break;
 
     case VRNA_PLOT_TYPE_PUZZLER:
-    {
-      puzzlerOptions *puzzler;
-
-      if (options) {
-        puzzler = (puzzlerOptions *)options;
-      } else {
-        puzzler           = createPuzzlerOptions();
-        puzzler->filename = NULL;
-        puzzler->drawArcs = 1;
-
-        puzzler->checkAncestorIntersections = 1;
-        puzzler->checkSiblingIntersections  = 1;
-        puzzler->checkExteriorIntersections = 1;
-        puzzler->allowFlipping              = 0;
-        puzzler->optimize                   = 1;
-      }
-
-      i = layout_RNApuzzler(pt,
-                            layout->x,
-                            layout->y,
-                            layout->arcs,
-                            puzzler);
-
-      if (!options)
-        destroyPuzzlerOptions(puzzler);
-    }
-    break;
+      free(layout->x);
+      free(layout->y);
+      i = vrna_plot_coords_puzzler_pt(pt,
+                                      &(layout->x),
+                                      &(layout->y),
+                                      &(layout->arcs),
+                                      (vrna_plot_options_puzzler_t *)options);
+      break;
 
     default:
       i = naview_xy_coordinates(pt_g,

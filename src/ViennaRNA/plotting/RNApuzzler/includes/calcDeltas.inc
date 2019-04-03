@@ -35,15 +35,13 @@
  * @return the amount of change (in positive degree) that can be accomplished with calculated deltas
  */
 PRIVATE double
-calcDeltas(const treeNode *node,
-           const treeNode *recursiveEnd,
-           const int      indexLeft,
-           const int      indexRight,
-           const double   deltaAngle,
-           puzzlerOptions *puzzler,
-           double         *deltas);
-
-
+calcDeltas(const treeNode               *node,
+           const treeNode               *recursiveEnd,
+           const int                    indexLeft,
+           const int                    indexRight,
+           const double                 deltaAngle,
+           vrna_plot_options_puzzler_t  *puzzler,
+           double                       *deltas);
 
 
 PRIVATE void
@@ -301,13 +299,13 @@ calcDeltasNearestNeighborsFirstDecrease(const double  targetAngleIn,
  * @return the amount of change (in positive degree) that can be accomplished with calculated deltas
  */
 PRIVATE double
-calcDeltas(const treeNode *node,
-           const treeNode *recursiveEnd,
-           const int      indexLeft,
-           const int      indexRight,
-           const double   deltaAngle,
-           puzzlerOptions *puzzler,
-           double         *deltas)
+calcDeltas(const treeNode               *node,
+           const treeNode               *recursiveEnd,
+           const int                    indexLeft,
+           const int                    indexRight,
+           const double                 deltaAngle,
+           vrna_plot_options_puzzler_t  *puzzler,
+           double                       *deltas)
 {
   char *fnName = "CALC DELTAS";
 
@@ -530,5 +528,6 @@ calcDeltas(const treeNode *node,
   double changedAngle = deltaAngle - targetAngle;
   return changedAngle;
 }
+
 
 #endif

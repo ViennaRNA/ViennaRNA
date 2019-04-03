@@ -26,7 +26,6 @@ computeAnglesAndCentersForPS(short const *const     pair_table,
                              double                 *arcCoords);
 
 
-
 PRIVATE void
 calcArc(const double  center[2],
         const double  radius,
@@ -241,5 +240,6 @@ computeAnglesAndCentersForPS(short const *const     pair_table,
     }
   }
 }
+
 
 #endif

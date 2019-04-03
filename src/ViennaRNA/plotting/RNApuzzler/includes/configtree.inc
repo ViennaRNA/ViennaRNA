@@ -71,8 +71,8 @@ buildConfigtree(const short *const      pair_table,
 
 
 PRIVATE void
-updateBoundingBoxes(treeNode              *node,
-                    const puzzlerOptions  *puzzler);
+updateBoundingBoxes(treeNode                          *node,
+                    const vrna_plot_options_puzzler_t *puzzler);
 
 
 /**
@@ -90,10 +90,10 @@ updateBoundingBoxes(treeNode              *node,
  * @return 1 if the changes were applied, 0 otherwise
  */
 PRIVATE void
-applyChangesToConfigAndBoundingBoxes(treeNode             *tree,
-                                     const double         *deltaCfg,
-                                     const double         radiusNew,
-                                     const puzzlerOptions *puzzler);
+applyChangesToConfigAndBoundingBoxes(treeNode                           *tree,
+                                     const double                       *deltaCfg,
+                                     const double                       radiusNew,
+                                     const vrna_plot_options_puzzler_t  *puzzler);
 
 
 /**
@@ -326,8 +326,8 @@ updateAABB(AABB     *aabb,
 
 
 PRIVATE void
-updateBoundingBoxes(treeNode              *node,
-                    const puzzlerOptions  *puzzler)
+updateBoundingBoxes(treeNode                          *node,
+                    const vrna_plot_options_puzzler_t *puzzler)
 {
   /*
    * fix this node's loop
@@ -417,10 +417,10 @@ updateBoundingBoxes(treeNode              *node,
 
 
 PRIVATE void
-applyChangesToConfigAndBoundingBoxes(treeNode             *tree,
-                                     const double         *deltaCfg,
-                                     const double         radiusNew,
-                                     const puzzlerOptions *puzzler)
+applyChangesToConfigAndBoundingBoxes(treeNode                           *tree,
+                                     const double                       *deltaCfg,
+                                     const double                       radiusNew,
+                                     const vrna_plot_options_puzzler_t  *puzzler)
 {
   /* Apply all changes to config */
   config *cfg = tree->cfg;
@@ -1098,5 +1098,6 @@ getParent(const treeNode *node)
   else
     return node->parent;
 }
+
 
 #endif

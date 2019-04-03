@@ -33,10 +33,11 @@
  * @return 1 if something changed, 0 otherwise
  */
 PRIVATE short
-checkAndApplyConfigChanges(treeNode               *tree,
-                           double                 *deltaCfg,
-                           const intersectionType it,
-                           puzzlerOptions         *puzzler);
+checkAndApplyConfigChanges(treeNode                     *tree,
+                           double                       *deltaCfg,
+                           const intersectionType       it,
+                           vrna_plot_options_puzzler_t  *puzzler);
+
 
 /**
  * @brief checkAndApplyConfigChanges
@@ -52,10 +53,10 @@ checkAndApplyConfigChanges(treeNode               *tree,
  * @return 1 if something changed, 0 otherwise
  */
 PRIVATE short
-checkAndApplyConfigChanges(treeNode               *tree,
-                           double                 *deltaCfg,
-                           const intersectionType it,
-                           puzzlerOptions         *puzzler)
+checkAndApplyConfigChanges(treeNode                     *tree,
+                           double                       *deltaCfg,
+                           const intersectionType       it,
+                           vrna_plot_options_puzzler_t  *puzzler)
 {
   char    *fnName = "checkAndApplyConfigChanges";
   config  *cfg    = tree->cfg;
@@ -119,5 +120,6 @@ checkAndApplyConfigChanges(treeNode               *tree,
     return 0;
   }
 }
+
 
 #endif

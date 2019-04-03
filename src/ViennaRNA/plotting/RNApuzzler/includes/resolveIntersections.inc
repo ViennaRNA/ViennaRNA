@@ -16,15 +16,15 @@
 #include "../headers/configtree_struct.h"
 
 PRIVATE treeNode *
-checkAndFixIntersections(treeNode       *node,
-                         const int      recursionDepth,
-                         puzzlerOptions *puzzler);
+checkAndFixIntersections(treeNode                     *node,
+                         const int                    recursionDepth,
+                         vrna_plot_options_puzzler_t  *puzzler);
 
 
 PRIVATE treeNode *
-checkAndFixIntersections(treeNode       *node,
-                         const int      recursionDepth,
-                         puzzlerOptions *puzzler)
+checkAndFixIntersections(treeNode                     *node,
+                         const int                    recursionDepth,
+                         vrna_plot_options_puzzler_t  *puzzler)
 {
   char *fnName = "checkAndFixIntersections";
 
@@ -152,5 +152,6 @@ checkAndFixIntersections(treeNode       *node,
 
   return NULL;
 }
+
 
 #endif

@@ -22,7 +22,6 @@ getRotationAngle(const treeNode         *rootNode,
                  short                  rotationSign);
 
 
-
 PRIVATE double
 pointToAngle(const double center[2],
              const double vRef[2],
@@ -768,5 +767,6 @@ getRotationAngle(const treeNode         *rootNode,
 
   return rotationAngle;
 }
+
 
 #endif

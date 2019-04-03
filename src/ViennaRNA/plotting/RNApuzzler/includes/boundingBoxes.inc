@@ -563,4 +563,5 @@ getSBoxCenter(const stemBox *box,
   c[1]  = box->c[1];
 }
 
+
 #endif

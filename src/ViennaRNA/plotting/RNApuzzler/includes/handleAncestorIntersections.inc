@@ -27,8 +27,8 @@
 
 
 PRIVATE treeNode *
-checkNodeAgainstAncestors(treeNode        *node,
-                          puzzlerOptions  *puzzler);
+checkNodeAgainstAncestors(treeNode                    *node,
+                          vrna_plot_options_puzzler_t *puzzler);
 
 
 /**
@@ -211,13 +211,13 @@ getRotationSign(const treeNode **const  path,
 
 
 PRIVATE treeNode *
-fixIntersectionWithAncestor(treeNode                *ancestor,
-                            treeNode                *rotationNode,
-                            treeNode                *intersector,
-                            const int               rotationIndex,
-                            const short             rotationSign,
-                            const intersectionType  it,
-                            puzzlerOptions          *puzzler)
+fixIntersectionWithAncestor(treeNode                    *ancestor,
+                            treeNode                    *rotationNode,
+                            treeNode                    *intersector,
+                            const int                   rotationIndex,
+                            const short                 rotationSign,
+                            const intersectionType      it,
+                            vrna_plot_options_puzzler_t *puzzler)
 {
   char *fnName = "fixIntersectionWithAncestor";
 
@@ -358,10 +358,10 @@ constructReducedIntersectionPath(treeNode         *ancestor,
 /**
  */
 PRIVATE treeNode *
-handleIntersectionWithAncestor(treeNode       *ancestor,
-                               treeNode       *intersector,
-                               const int      recursionDepth,
-                               puzzlerOptions *puzzler)
+handleIntersectionWithAncestor(treeNode                     *ancestor,
+                               treeNode                     *intersector,
+                               const int                    recursionDepth,
+                               vrna_plot_options_puzzler_t  *puzzler)
 {
   char              *fnName = "handleIntersectionWithAncestor";
 
@@ -474,10 +474,10 @@ TENTATIVE2_updateExteriorBoundingBoxes(treeNode *exterior,
 
 
 PRIVATE void
-TENTATIVE3_setupExteriorBoundingBoxes(treeNode              *exterior,
-                                      const treeNode        *topLevelAncestor,
-                                      const treeNode        *intersector,
-                                      const puzzlerOptions  *puzzler)
+TENTATIVE3_setupExteriorBoundingBoxes(treeNode                          *exterior,
+                                      const treeNode                    *topLevelAncestor,
+                                      const treeNode                    *intersector,
+                                      const vrna_plot_options_puzzler_t *puzzler)
 {
   char        *fnName = "setupExteriorBoundingBoxes";
 
@@ -617,10 +617,10 @@ TENTATIVE_updateExteriorBoundingBoxes(treeNode  *exterior,
 
 
 PRIVATE void
-TENTATIVE2_setupExteriorBoundingBoxes(treeNode              *exterior,
-                                      const treeNode        *topLevelAncestor,
-                                      const treeNode        *intersector,
-                                      const puzzlerOptions  *puzzler)
+TENTATIVE2_setupExteriorBoundingBoxes(treeNode                          *exterior,
+                                      const treeNode                    *topLevelAncestor,
+                                      const treeNode                    *intersector,
+                                      const vrna_plot_options_puzzler_t *puzzler)
 {
   char              *fnName = "setupExteriorBoundingBoxes";
 
@@ -687,10 +687,10 @@ TENTATIVE2_setupExteriorBoundingBoxes(treeNode              *exterior,
 
 
 PRIVATE void
-TENTATIVE_setupExteriorBoundingBoxes(treeNode             *exterior,
-                                     const treeNode       *topLevelAncestor,
-                                     const treeNode       *intersector,
-                                     const puzzlerOptions *puzzler)
+TENTATIVE_setupExteriorBoundingBoxes(treeNode                           *exterior,
+                                     const treeNode                     *topLevelAncestor,
+                                     const treeNode                     *intersector,
+                                     const vrna_plot_options_puzzler_t  *puzzler)
 {
   char              *fnName = "setupExteriorBoundingBoxes";
 
@@ -751,10 +751,10 @@ TENTATIVE_setupExteriorBoundingBoxes(treeNode             *exterior,
 
 
 PRIVATE void
-setupExteriorBoundingBoxes(treeNode             *exterior,
-                           const treeNode       *topLevelAncestor,
-                           const treeNode       *intersector,
-                           const puzzlerOptions *puzzler)
+setupExteriorBoundingBoxes(treeNode                           *exterior,
+                           const treeNode                     *topLevelAncestor,
+                           const treeNode                     *intersector,
+                           const vrna_plot_options_puzzler_t  *puzzler)
 {
   char      *fnName = "setupExteriorBoundingBoxes";
 
@@ -944,8 +944,8 @@ setupExteriorBoundingBoxes(treeNode             *exterior,
 
 
 PRIVATE treeNode *
-checkNodeAgainstAncestors(treeNode        *node,
-                          puzzlerOptions  *puzzler)
+checkNodeAgainstAncestors(treeNode                    *node,
+                          vrna_plot_options_puzzler_t *puzzler)
 {
   char      *fnName = "checkNodeAgainstAncestors";
 
@@ -984,5 +984,6 @@ checkNodeAgainstAncestors(treeNode        *node,
 
   return changedNode;
 }
+
 
 #endif

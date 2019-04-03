@@ -91,11 +91,11 @@ cfgFreeConfig(config *cfg);
  * @param puzzler
  */
 PRIVATE double
-cfgApplyChanges(config                *cfg,
-                const char            loopName,
-                const double          *deltaCfg,
-                const double          radiusNew,
-                const puzzlerOptions  *puzzler);
+cfgApplyChanges(config                            *cfg,
+                const char                        loopName,
+                const double                      *deltaCfg,
+                const double                      radiusNew,
+                const vrna_plot_options_puzzler_t *puzzler);
 
 
 /**
@@ -645,11 +645,11 @@ cfgUpdateMinRadius(config       *cfg,
 
 
 PRIVATE double
-cfgApplyChanges(config                *cfg,
-                const char            loopName,
-                const double          *deltaCfg,
-                const double          radiusNew,
-                const puzzlerOptions  *puzzler)
+cfgApplyChanges(config                            *cfg,
+                const char                        loopName,
+                const double                      *deltaCfg,
+                const double                      radiusNew,
+                const vrna_plot_options_puzzler_t *puzzler)
 {
   /* start with adjusting config angles; if applicable */
   if (deltaCfg != NULL) {
@@ -724,5 +724,6 @@ cfgIsValid(config       *cfg,
 
   return validSingleAngles && validSumAngles;
 }
+
 
 #endif

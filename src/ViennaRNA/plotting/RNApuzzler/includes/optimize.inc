@@ -47,16 +47,16 @@ typedef enum {
  * @return product of all partial radius ratios (0 < ratio <= 1)
  */
 PRIVATE double
-optimizeTree(treeNode       *node,
-             puzzlerOptions *puzzler);
+optimizeTree(treeNode                     *node,
+             vrna_plot_options_puzzler_t  *puzzler);
 
 
 PRIVATE short
-checkIntersections(treeNode *const      *subtree,
-                   const int            sizeSubtree,
-                   treeNode *const      *ancestorList,
-                   const int            sizeAncestorList,
-                   const puzzlerOptions *puzzler)
+checkIntersections(treeNode *const                    *subtree,
+                   const int                          sizeSubtree,
+                   treeNode *const                    *ancestorList,
+                   const int                          sizeAncestorList,
+                   const vrna_plot_options_puzzler_t  *puzzler)
 {
   return intersectNodeLists(subtree, sizeSubtree, subtree, sizeSubtree, puzzler)
          || intersectNodeLists(subtree, sizeSubtree, ancestorList, sizeAncestorList, puzzler);
@@ -74,12 +74,12 @@ checkIntersections(treeNode *const      *subtree,
  * @return shrinking ratio: new radius / old radius (0 < ratio <= 1)
  */
 PRIVATE double
-shrinkLoopRadiusLinearSearch(treeNode             *node,
-                             treeNode *const      *subtree,
-                             const int            sizeSubtree,
-                             treeNode *const      *ancestorList,
-                             const int            sizeAncestorList,
-                             const puzzlerOptions *puzzler)
+shrinkLoopRadiusLinearSearch(treeNode                           *node,
+                             treeNode *const                    *subtree,
+                             const int                          sizeSubtree,
+                             treeNode *const                    *ancestorList,
+                             const int                          sizeAncestorList,
+                             const vrna_plot_options_puzzler_t  *puzzler)
 {
   char          *fnName = "shrinkLoopRadiusLinearSearch";
 
@@ -152,12 +152,12 @@ shrinkLoopRadiusLinearSearch(treeNode             *node,
  * @return shrinking ratio: new radius / old radius (0 < ratio <= 1)
  */
 PRIVATE double
-shrinkLoopRadiusBinarySearch(treeNode             *node,
-                             treeNode *const      *subtree,
-                             const int            sizeSubtree,
-                             treeNode *const      *ancestorList,
-                             const int            sizeAncestorList,
-                             const puzzlerOptions *puzzler)
+shrinkLoopRadiusBinarySearch(treeNode                           *node,
+                             treeNode *const                    *subtree,
+                             const int                          sizeSubtree,
+                             treeNode *const                    *ancestorList,
+                             const int                          sizeAncestorList,
+                             const vrna_plot_options_puzzler_t  *puzzler)
 {
   char          *fnName = "shrinkLoopRadiusBinarySearch";
 
@@ -227,12 +227,12 @@ shrinkLoopRadiusBinarySearch(treeNode             *node,
 
 
 PRIVATE double
-shrinkLoopRadius(treeNode             *node,
-                 treeNode *const      *subtree,
-                 const int            sizeSubtree,
-                 treeNode *const      *ancestorList,
-                 const int            sizeAncestorList,
-                 const puzzlerOptions *puzzler)
+shrinkLoopRadius(treeNode                           *node,
+                 treeNode *const                    *subtree,
+                 const int                          sizeSubtree,
+                 treeNode *const                    *ancestorList,
+                 const int                          sizeAncestorList,
+                 const vrna_plot_options_puzzler_t  *puzzler)
 {
   const searchStrategy strategy = LINEAR_SEARCH;
 
@@ -338,10 +338,10 @@ somethingChanged(config       *cfg,
  * @param puzzler options to apply
  */
 PRIVATE void
-applyDeltas(treeNode              *node,
-            double                *deltas,
-            const double          targetRadius,
-            const puzzlerOptions  *puzzler)
+applyDeltas(treeNode                          *node,
+            double                            *deltas,
+            const double                      targetRadius,
+            const vrna_plot_options_puzzler_t *puzzler)
 {
   if (somethingChanged(node->cfg, node->cfg->radius, targetRadius, deltas))
 
@@ -360,9 +360,9 @@ applyDeltas(treeNode              *node,
  * @param puzzler options to apply
  */
 PRIVATE void
-applyConfig(treeNode              *node,
-            const config          *targetConfig,
-            const puzzlerOptions  *puzzler)
+applyConfig(treeNode                          *node,
+            const config                      *targetConfig,
+            const vrna_plot_options_puzzler_t *puzzler)
 {
   config    *cfg        = node->cfg;
   const int configSize  = cfg->numberOfArcs;
@@ -610,13 +610,13 @@ computeDeltas(double          *deltas,
  * @param puzzler puzzler options
  */
 PRIVATE short
-searchBestConfig(treeNode         *node,
-                 double           *deltas,
-                 treeNode *const  *subtree,
-                 const int        sizeSubtree,
-                 treeNode *const  *ancestorList,
-                 const int        sizeAncestorList,
-                 puzzlerOptions   *puzzler)
+searchBestConfig(treeNode                     *node,
+                 double                       *deltas,
+                 treeNode *const              *subtree,
+                 const int                    sizeSubtree,
+                 treeNode *const              *ancestorList,
+                 const int                    sizeAncestorList,
+                 vrna_plot_options_puzzler_t  *puzzler)
 {
   /* linear search for best config between current state and desired state (with no intersections) */
   config  *cfg        = node->cfg;
@@ -684,12 +684,12 @@ canShrink(const double  *alphas,
  *
  */
 PRIVATE double
-optimizeNode(treeNode         *node,
-             treeNode *const  *subtree,
-             const int        sizeSubtree,
-             treeNode *const  *ancestorList,
-             const int        sizeAncestorList,
-             puzzlerOptions   *puzzler)
+optimizeNode(treeNode                     *node,
+             treeNode *const              *subtree,
+             const int                    sizeSubtree,
+             treeNode *const              *ancestorList,
+             const int                    sizeAncestorList,
+             vrna_plot_options_puzzler_t  *puzzler)
 {
   char *fnName = "optimizeNode";
 
@@ -879,12 +879,12 @@ optimizeNode(treeNode         *node,
 
 
 PRIVATE double
-optimizeTreeRecursive(treeNode        *node,
-                      treeNode *const *subtree,
-                      const int       sizeSubtree,
-                      treeNode *const *ancestorList,
-                      const int       sizeAncestorList,
-                      puzzlerOptions  *puzzler)
+optimizeTreeRecursive(treeNode                    *node,
+                      treeNode *const             *subtree,
+                      const int                   sizeSubtree,
+                      treeNode *const             *ancestorList,
+                      const int                   sizeAncestorList,
+                      vrna_plot_options_puzzler_t *puzzler)
 {
   char    *fnName         = "optimizeTreeRecursive";
   double  shrinkingRatio  = 1.0;
@@ -937,8 +937,8 @@ optimizeTreeRecursive(treeNode        *node,
 
 
 PRIVATE double
-optimizeTree(treeNode       *node,
-             puzzlerOptions *puzzler)
+optimizeTree(treeNode                     *node,
+             vrna_plot_options_puzzler_t  *puzzler)
 {
   char *fnName = "optimizeTree";
 
@@ -972,5 +972,6 @@ optimizeTree(treeNode       *node,
 
   return shrinkingRatio;
 }
+
 
 #endif

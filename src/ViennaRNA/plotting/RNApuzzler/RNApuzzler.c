@@ -27,10 +27,11 @@
 #define DEBUG   0
 
 /* ---------------------------------------------------------------------------- */
-PUBLIC puzzlerOptions *
-createPuzzlerOptions()
+PUBLIC vrna_plot_options_puzzler_t *
+vrna_plot_options_puzzler()
 {
-  puzzlerOptions *puzzler = (puzzlerOptions *)vrna_alloc(sizeof(puzzlerOptions));
+  vrna_plot_options_puzzler_t *puzzler =
+    (vrna_plot_options_puzzler_t *)vrna_alloc(sizeof(vrna_plot_options_puzzler_t));
 
   /* drawing behavior */
   puzzler->drawArcs = 1;
@@ -57,7 +58,7 @@ createPuzzlerOptions()
 
 
 PUBLIC void
-destroyPuzzlerOptions(puzzlerOptions *puzzler)
+vrna_plot_options_puzzler_free(vrna_plot_options_puzzler_t *puzzler)
 {
   free(puzzler);
 }
@@ -344,123 +345,206 @@ printInformation(const char *fnName,
 #endif
 
 PUBLIC int
-layout_RNApuzzler(short const *const  pair_table,
-                  float               *x,
-                  float               *y,
-                  double              *arc_coords,
-                  puzzlerOptions      *puzzler)
+vrna_plot_coords_puzzler(const char                   *structure,
+                         float                        **x,
+                         float                        **y,
+                         double                       **arc_coords,
+                         vrna_plot_options_puzzler_t  *options)
 {
-  const char        *fnName = "layout_RNApuzzler";
-  int               length  = pair_table[0];
+  if (structure) {
+    int   ret = 0;
+    short *pt = vrna_ptable(structure);
 
-  /* turtle base information */
-  tBaseInformation  *baseInformation = vrna_alloc((length + 1) * sizeof(tBaseInformation));
+    ret = vrna_plot_coords_puzzler_pt(pt, x, y, arc_coords, options);
 
-  for (int i = 0; i <= length; i++) {
-    baseInformation[i].baseType = TYPE_BASE_NONE;
-    baseInformation[i].distance = puzzler->unpaired;
-    baseInformation[i].angle    = 0.0;
-    baseInformation[i].config   = NULL;
+    free(pt);
+
+    return ret;
   }
 
-  /* generate default configuration for each loop */
-  cfgGenerateConfig(pair_table, baseInformation, puzzler->unpaired, puzzler->paired);
+  if (x)
+    *x = NULL;
 
-  /* RNAturtle */
-  computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
+  if (y)
+    *y = NULL;
 
-  /* Transform affine coordinates into cartesian coordinates */
-  double    *myX  = (double *)vrna_alloc(length * sizeof(double));
-  double    *myY  = (double *)vrna_alloc(length * sizeof(double));
-  affineToCartesianCoordinates(baseInformation, length, myX, myY);
+  if (arc_coords)
+    *arc_coords = NULL;
 
-  /* Build RNApuzzler configuration tree from cartesian coordinates */
-  double    distBulge = sqrt(
-    puzzler->unpaired * puzzler->unpaired - 0.25 * puzzler->unpaired * puzzler->unpaired);
-  treeNode  *tree = buildConfigtree(pair_table, baseInformation, myX, myY, distBulge);
+  return 0;
+}
 
-  /* current and maximal number of changes applied to config */
-  puzzler->numberOfChangesAppliedToConfig = 0;
 
-  puzzler->maximumNumberOfConfigChangesAllowed = 25000;
+PUBLIC int
+vrna_plot_coords_puzzler_pt(short const *const          pair_table,
+                            float                       **x,
+                            float                       **y,
+                            double                      **arc_coords,
+                            vrna_plot_options_puzzler_t *options)
+{
+  int                         length = pair_table[0];
+  vrna_plot_options_puzzler_t *puzzler;
+
+  if ((pair_table) && (x) && (y)) {
+    *x  = (float *)vrna_alloc(sizeof(float) * (length + 1));
+    *y  = (float *)vrna_alloc(sizeof(float) * (length + 1));
+
+    /* apply default options if none provided */
+    if (options) {
+      puzzler = options;
+    } else {
+      puzzler           = vrna_plot_options_puzzler();
+      puzzler->filename = NULL;
+      puzzler->drawArcs = (arc_coords) ? 1 : 0;
+
+      puzzler->checkAncestorIntersections = 1;
+      puzzler->checkSiblingIntersections  = 1;
+      puzzler->checkExteriorIntersections = 1;
+      puzzler->allowFlipping              = 0;
+      puzzler->optimize                   = 1;
+    }
+
+    /* turtle base information */
+    tBaseInformation *baseInformation = vrna_alloc((length + 1) * sizeof(tBaseInformation));
+
+    for (int i = 0; i <= length; i++) {
+      baseInformation[i].baseType = TYPE_BASE_NONE;
+      baseInformation[i].distance = puzzler->unpaired;
+      baseInformation[i].angle    = 0.0;
+      baseInformation[i].config   = NULL;
+    }
+
+    /* generate default configuration for each loop */
+    cfgGenerateConfig(pair_table, baseInformation, puzzler->unpaired, puzzler->paired);
+
+    /* RNAturtle */
+    computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
+
+    /* Transform affine coordinates into cartesian coordinates */
+    double  *myX  = (double *)vrna_alloc(length * sizeof(double));
+    double  *myY  = (double *)vrna_alloc(length * sizeof(double));
+    affineToCartesianCoordinates(baseInformation, length, myX, myY);
+
+    /* Build RNApuzzler configuration tree from cartesian coordinates */
+    double  distBulge = sqrt(puzzler->unpaired *
+                             puzzler->unpaired -
+                             0.25 *
+                             puzzler->unpaired *
+                             puzzler->unpaired);
+
+    treeNode *tree = buildConfigtree(pair_table, baseInformation, myX, myY, distBulge);
+
+    /* current and maximal number of changes applied to config */
+    puzzler->numberOfChangesAppliedToConfig = 0;
+
+    puzzler->maximumNumberOfConfigChangesAllowed = 25000;
 
 #if 0
-  /* reset angle coordinates */
-  for (int i = 0; i < length + 1; i++) {
-    baseInformation[i].distance = puzzler->unpaired;
-    baseInformation[i].angle    = 0.0;
-  }
+    /* reset angle coordinates */
+    for (int i = 0; i < length + 1; i++) {
+      baseInformation[i].distance = puzzler->unpaired;
+      baseInformation[i].angle    = 0.0;
+    }
 #endif
 
-  /* RNApuzzler */
-  if (puzzler->checkExteriorIntersections || puzzler->checkSiblingIntersections ||
-      puzzler->checkAncestorIntersections) {
-    /* - One execution of checkAndFixIntersections should always be sufficient */
-    updateBoundingBoxes(tree, puzzler);
-    checkAndFixIntersections(tree, 0, puzzler);
-  }
+    /* RNApuzzler */
+    if (puzzler->checkExteriorIntersections ||
+        puzzler->checkSiblingIntersections ||
+        puzzler->checkAncestorIntersections) {
+      /* - One execution of checkAndFixIntersections should always be sufficient */
+      updateBoundingBoxes(tree, puzzler);
+      checkAndFixIntersections(tree, 0, puzzler);
+    }
 
-  /*
-   * use configuration created by RNApuzzler for RNAturtle
-   * computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
-   * affineToCartesianCoordinates(baseInformation, length, myX, myY);
-   */
+    /*
+     * use configuration created by RNApuzzler for RNAturtle
+     * computeAffineCoordinates(pair_table, puzzler->paired, puzzler->unpaired, baseInformation);
+     * affineToCartesianCoordinates(baseInformation, length, myX, myY);
+     */
 
-  determineNucleotideCoordinates(tree,
-                                 pair_table, length,
-                                 puzzler->unpaired, puzzler->paired,
-                                 myX, myY);
+    determineNucleotideCoordinates(tree,
+                                   pair_table, length,
+                                   puzzler->unpaired, puzzler->paired,
+                                   myX, myY);
 
-  /*
-   * this section is for finding and resolving intersections
-   * of branches of the exterior loop against each other
-   * stretch backbones of the exterior until the overlap is gone
-   * may result in wide pictures
-   */
+    /*
+     * this section is for finding and resolving intersections
+     * of branches of the exterior loop against each other
+     * stretch backbones of the exterior until the overlap is gone
+     * may result in wide pictures
+     */
 
-  short checkIntersectionsOfExteriorBranches = 1;
+    short checkIntersectionsOfExteriorBranches = 1;
 
-  if (checkIntersectionsOfExteriorBranches) {
-    resolveExteriorChildrenIntersectionXY(tree,
-                                          pair_table,
-                                          puzzler->unpaired,
-                                          puzzler->allowFlipping,
-                                          myX,
-                                          myY);
-  }
+    if (checkIntersectionsOfExteriorBranches) {
+      resolveExteriorChildrenIntersectionXY(tree,
+                                            pair_table,
+                                            puzzler->unpaired,
+                                            puzzler->allowFlipping,
+                                            myX,
+                                            myY);
+    }
 
-  /* for all loops: compute postscript arcs instead of lines */
-  if (puzzler->drawArcs)
+    /* for all loops: compute postscript arcs instead of lines */
+    if ((puzzler->drawArcs) && (arc_coords)) {
+      *arc_coords = (double *)vrna_alloc(sizeof(double) * 6 * length);
 
-    computeAnglesAndCentersForPS(pair_table, myX, myY, baseInformation, arc_coords);
+      for (int i = 0; i < length; i++) {
+        (*arc_coords)[6 * i + 0]  = -1;
+        (*arc_coords)[6 * i + 1]  = -1.;
+        (*arc_coords)[6 * i + 2]  = -1.;
+        (*arc_coords)[6 * i + 3]  = -1.;
+        (*arc_coords)[6 * i + 4]  = -1.;
+        (*arc_coords)[6 * i + 5]  = -1.;
+      }
 
-  /* final check based on line segments and arc segments */
-  short printDetails  = 0;
-  short intersect     = checkRemainingIntersections(myX,
-                                                    myY,
-                                                    arc_coords,
-                                                    printDetails,
-                                                    baseInformation,
-                                                    length);
+      computeAnglesAndCentersForPS(pair_table, myX, myY, baseInformation, *arc_coords);
+
+      /* final check based on line segments and arc segments */
+      short printDetails  = 0;
+      short intersect     = checkRemainingIntersections(myX,
+                                                        myY,
+                                                        *arc_coords,
+                                                        printDetails,
+                                                        baseInformation,
+                                                        length);
 
 #if DEBUG
-  /* Debug call for intersection regression test, uncomment for output */
-  printInformation("RESULT FINAL",
-                   "%s %s\n\n",
-                   (intersect ? "FAIL   " : "SUCCESS"),
-                   puzzler->filename);
+      /* Debug call for intersection regression test, uncomment for output */
+      printInformation("RESULT FINAL",
+                       "%s %s\n\n",
+                       (intersect ? "FAIL   " : "SUCCESS"),
+                       puzzler->filename);
 #endif
+    } else if (arc_coords) {
+      *arc_coords = NULL;
+    }
 
-  freeTree(tree);
-  free(baseInformation);
+    freeTree(tree);
+    free(baseInformation);
 
-  for (int i = 0; i < length; i++) {
-    x[i]  = myX[i];
-    y[i]  = myY[i];
+    for (int i = 0; i < length; i++) {
+      (*x)[i] = myX[i];
+      (*y)[i] = myY[i];
+    }
+
+    free(myX);
+    free(myY);
+
+    if (!options)
+      vrna_plot_options_puzzler_free(puzzler);
+
+    return length;
   }
 
-  free(myX);
-  free(myY);
+  if (x)
+    *x = NULL;
 
-  return length;
+  if (y)
+    *y = NULL;
+
+  if (arc_coords)
+    *arc_coords = NULL;
+
+  return 0;
 }

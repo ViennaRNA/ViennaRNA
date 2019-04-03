@@ -124,14 +124,14 @@ init_default_options(struct options *opt)
   strncpy(&(opt->format[0]), "ps", 4);
   opt->format[4] = '\0';
 
-  opt->jobs               = 1;
-  opt->next_record_number = 0;
-  opt->drawArcs = 1;
+  opt->jobs                       = 1;
+  opt->next_record_number         = 0;
+  opt->drawArcs                   = 1;
   opt->checkAncestorIntersections = 1;
-  opt->checkSiblingIntersections = 1;
-  opt->checkExteriorIntersections =1;
-  opt->allowFlipping = 0;
-  opt->optimize = 1;
+  opt->checkSiblingIntersections  = 1;
+  opt->checkExteriorIntersections = 1;
+  opt->allowFlipping              = 0;
+  opt->optimize                   = 1;
 }
 
 
@@ -320,7 +320,6 @@ main(int  argc,
   }
 
   UNINIT_PARALLELIZATION
-
   /*
    ################################################
    # post processing
@@ -581,18 +580,18 @@ process_record(struct record_data *record)
 
       if (rna_plot_type == VRNA_PLOT_TYPE_PUZZLER) {
         /* RNA puzzler behavior specification */
-        puzzlerOptions       *puzzler;
-        vrna_figure_layout_t *layout;
+        vrna_plot_options_puzzler_t *puzzler;
+        vrna_figure_layout_t        *layout;
 
-        puzzler = createPuzzlerOptions();
+        puzzler           = vrna_plot_options_puzzler();
         puzzler->filename = ffname;
         puzzler->drawArcs = 1;
 
         puzzler->checkAncestorIntersections = opt->checkAncestorIntersections;
-        puzzler->checkSiblingIntersections =  opt->checkSiblingIntersections;
+        puzzler->checkSiblingIntersections  = opt->checkSiblingIntersections;
         puzzler->checkExteriorIntersections = opt->checkExteriorIntersections;
-        puzzler->allowFlipping = opt->allowFlipping;
-        puzzler->optimize = opt->optimize;
+        puzzler->allowFlipping              = opt->allowFlipping;
+        puzzler->optimize                   = opt->optimize;
 
         layout = vrna_figure_layout_puzzler(structure,
                                             puzzler);
@@ -607,15 +606,15 @@ process_record(struct record_data *record)
                                       layout));
 
         vrna_figure_layout_free(layout);
-        destroyPuzzlerOptions(puzzler);
+        vrna_plot_options_puzzler_free(puzzler);
       } else {
         THREADSAFE_FILE_OUTPUT(
-        vrna_file_PS_rnaplot_a(rec_sequence,
-                               structure,
-                               ffname,
-                               opt->pre,
-                               opt->post,
-                               &(opt->md)));
+          vrna_file_PS_rnaplot_a(rec_sequence,
+                                 structure,
+                                 ffname,
+                                 opt->pre,
+                                 opt->post,
+                                 &(opt->md)));
       }
 
       break;

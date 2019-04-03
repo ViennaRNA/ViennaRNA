@@ -55,4 +55,5 @@ intersectionTypeToString(const intersectionType it)
   }
 }
 
+
 #endif

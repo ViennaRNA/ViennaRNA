@@ -26,8 +26,8 @@
  * @return
  */
 PRIVATE short
-intersectNodeExterior(const treeNode        *node,
-                      const puzzlerOptions  *puzzler);
+intersectNodeExterior(const treeNode                    *node,
+                      const vrna_plot_options_puzzler_t *puzzler);
 
 
 /**
@@ -78,16 +78,16 @@ intersectTrees(treeNode *tree1,
 
 
 PRIVATE short
-intersectNodeLists(treeNode *const              *list1,
-                   const int                    size1,
-                   treeNode *const              *list2,
-                   const int                    size2,
-                   const puzzlerOptions *const  puzzler);
+intersectNodeLists(treeNode *const                          *list1,
+                   const int                                size1,
+                   treeNode *const                          *list2,
+                   const int                                size2,
+                   const vrna_plot_options_puzzler_t *const puzzler);
 
 
 PRIVATE short
-intersectNodeExterior(const treeNode        *node,
-                      const puzzlerOptions  *puzzler)
+intersectNodeExterior(const treeNode                    *node,
+                      const vrna_plot_options_puzzler_t *puzzler)
 {
   if (isExterior(node))
 
@@ -336,11 +336,11 @@ intersectTrees(treeNode *tree1,
 
 
 PRIVATE short
-intersectNodeLists(treeNode *const              *list1,
-                   const int                    size1,
-                   treeNode *const              *list2,
-                   const int                    size2,
-                   const puzzlerOptions *const  puzzler)
+intersectNodeLists(treeNode *const                          *list1,
+                   const int                                size1,
+                   treeNode *const                          *list2,
+                   const int                                size2,
+                   const vrna_plot_options_puzzler_t *const puzzler)
 {
   for (int index1 = 0; index1 < size1; index1++) {
     const treeNode  *node1      = list1[index1];
@@ -367,5 +367,6 @@ intersectNodeLists(treeNode *const              *list1,
 
   return 0;
 }
+
 
 #endif
