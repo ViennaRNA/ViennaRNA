@@ -13,7 +13,15 @@
 #define false 0
 #endif
 
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+
 #include "local_neighbors.inc"
+
+#define DEBUG   0
 
 /*
  #################################
@@ -247,6 +255,7 @@ vrna_path(vrna_fold_compound_t  *vc,
   return moves;
 }
 
+
 PUBLIC vrna_move_t *
 vrna_path_random(vrna_fold_compound_t *vc,
                  short                *pt,
@@ -265,28 +274,29 @@ struct heap {
   vrna_move_t   next_move;
   int           *values;
   vrna_move_t   *moves;
-  int           *reverse_idx;
-  int           *reverse_idx_remove;
+  unsigned int  *reverse_idx;
+  unsigned int  *reverse_idx_remove;
   unsigned int  num_elements;
   unsigned int  mem_elements;
-  void(*free_cb)(vrna_move_t *);
+  void          (*free_cb)(vrna_move_t *);
 };
 
 
 PRIVATE struct heap *
 heap_init(unsigned int n,
-          void(*free_cb)(vrna_move_t *))
+          void (*free_cb)(vrna_move_t *))
 {
-  struct heap *h = (struct heap *)vrna_alloc(sizeof(struct heap));
+  struct heap *h      = (struct heap *)vrna_alloc(sizeof(struct heap));
+  unsigned int  size  = (n * (n + 1)) / 2 + 2;
 
-  h->pt           = NULL;
-  h->num_elements = 0;
-  h->mem_elements = n;
-  h->moves        = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * n);
-  h->values       = (int *)vrna_alloc(sizeof(int) * n);
-  h->reverse_idx  = (int *)vrna_alloc(sizeof(int) * ((n * (n + 1)) / 2 + 2));
-  h->reverse_idx_remove  = (int *)vrna_alloc(sizeof(int) * ((n * (n + 1)) / 2 + 2));
-  h->free_cb      = free_cb;
+  h->pt                 = NULL;
+  h->num_elements       = 0;
+  h->mem_elements       = n;
+  h->moves              = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * n);
+  h->values             = (int *)vrna_alloc(sizeof(int) * n);
+  h->reverse_idx        = (unsigned int *)vrna_alloc(sizeof(unsigned int) * size);
+  h->reverse_idx_remove = (unsigned int *)vrna_alloc(sizeof(unsigned int) * size);
+  h->free_cb            = free_cb;
 
   return h;
 }
@@ -298,133 +308,182 @@ heap_destroy(struct heap *h)
   if (h) {
     free(h->moves);
     free(h->values);
+    free(h->reverse_idx);
+    free(h->reverse_idx_remove);
     free(h);
   }
 }
 
 
-PRIVATE void
-min_heapify(struct heap   *h,
-            unsigned int  i)
+PRIVATE INLINE unsigned int
+heap_parent(unsigned int i)
 {
-  while (i != 0) {
-    unsigned int parent = floor(i / 2);
-    int v               = h->values[parent];
-    vrna_move_t  m      = h->moves[parent];
-
-    printf("compare to parent %d (%d <= %d ?)\n", parent, h->values[i], v);
-    if (h->values[i] < v) {
-      if (h->values[i] == v) {
-      /* only swap if current move is lexigraphically smaller than v */
-
-      }
-      /* swap elements */
-      h->values[parent] = h->values[i];
-      h->values[i]      = v;
-
-      h->moves[parent]  = h->moves[i];
-      h->moves[i]       = m;
-
-      int k, l, p, q;
-      k = h->moves[parent].pos_5;
-      l = h->moves[parent].pos_3;
-      p = h->moves[i].pos_5;
-      q = h->moves[i].pos_3;
-
-      if ((k < 0) && (l < 0)) {
-        k = -k;
-        l = -l;
-        h->reverse_idx_remove[(k * (k - 1)) / 2 + l] = parent;
-      } else {
-        h->reverse_idx[(k * (k - 1)) / 2 + l] = parent;
-      }
-
-      if ((p < 0) && (q < 0)) {
-        p = -p;
-        q = -q;
-        h->reverse_idx_remove[(p * (p - 1)) / 2 + q] = i;
-      } else {
-        h->reverse_idx[(p * (p - 1)) / 2 + q] = i;
-      }
-    } else {
-      break;
-    }
-    i = parent;
-  }
+  return floor(i / 2);
 }
 
 
-PRIVATE void
-min_heapify_down( struct heap   *h,
-                  unsigned int  pos)
+PRIVATE INLINE unsigned int
+heap_left_child(unsigned int i)
 {
-  int has_child1 = 0, has_child2 = 0, cnt;
-  int child_v, child_v1, child_v2, v = h->values[pos];
-  vrna_move_t child_m, child_m1, child_m2, m = h->moves[pos];
-  unsigned int child[2];
+  return 2 * i;
+}
 
-  child[0] = 2 * pos + 1;
-  child[1] = 2 * pos + 2;
 
-  if (child[0] < h->num_elements) {
-    has_child1 = 1;
-    child_m1 = h->moves[child[0]];
-    child_v1 = h->values[child[0]];
-  }
+PRIVATE INLINE unsigned int
+heap_right_child(unsigned int i)
+{
+  return 2 * i + 1;
+}
 
-  if (child[1] < h->num_elements) {
-    has_child2 = 1;
-    child_m2 = h->moves[child[1]];
-    child_v2 = h->values[child[1]];
-  }
 
-  child_m = child_m2;
-  child_v = child_v2;
-  cnt     = 1;
+PRIVATE INLINE unsigned int
+rev_idx(const vrna_move_t *m)
+{
+  int i, j;
 
-  if (has_child1) {
-    if ((!has_child2) || (child_v1 < child_v2)) {
-      child_m = child_m1;
-      child_v = child_v1;
-      cnt = 0;
-    }
-  } else if (!has_child2) {
-    return;
-  }
-
-  /* swap current node with child */
-  h->values[pos]  = child_v;
-  h->moves[pos]   = child_m;
-
-  h->values[child[cnt]] = v;
-  h->moves[child[cnt]]  = m;
-
-  int i        = m.pos_5;
-  int j        = m.pos_3;
-  int  child_i = child_m.pos_5;
-  int  child_j = child_m.pos_3;
-
-  printf("move %d=%d v: %d at pos %d below child %d: %d=%d v: %d at pos %d\n",
-         i, j, v, pos,
-         cnt, child_i, child_j, h->values[pos], child[cnt]);
+  j = m->pos_5;
+  i = m->pos_3;
 
   if ((i < 0) && (j < 0)) {
     i = -i;
     j = -j;
-    h->reverse_idx_remove[(i * (i - 1)) / 2 + j] = child[cnt];
-  } else {
-    h->reverse_idx[(i * (i - 1)) / 2 + j] = child[cnt];
   }
 
-  if ((child_i < 0) && (child_j < 0)) {
-    child_i = -child_i;
-    child_j = -child_j;
-    h->reverse_idx_remove[(child_i + (child_i - 1)) / 2 + child_j] = pos;
-  } else {
-    h->reverse_idx[(child_i + (child_i - 1)) / 2 + child_j] = pos;
+  /* implement shift moves! */
+
+  return (unsigned int)((i * (i - 1)) / 2 + j);
+}
+
+
+PRIVATE INLINE void
+heap_update_rev_idx(struct heap       *h,
+                    const vrna_move_t *m,
+                    unsigned int      pos)
+{
+  unsigned int *idx = (vrna_move_is_deletion(m)) ?
+                      h->reverse_idx_remove :
+                      h->reverse_idx;
+
+  idx[rev_idx(m)] = pos;
+}
+
+
+PRIVATE INLINE unsigned int
+heap_find_move(struct heap        *h,
+               const vrna_move_t  *m)
+{
+  unsigned int *idx = (vrna_move_is_deletion(m)) ?
+                      h->reverse_idx_remove :
+                      h->reverse_idx;
+
+  return idx[rev_idx(m)];
+}
+
+
+PRIVATE INLINE void
+heap_swap(struct heap   *h,
+          unsigned int  a,
+          unsigned int  b)
+{
+  int         v;
+  vrna_move_t m;
+
+  v             = h->values[b];
+  m             = h->moves[b];
+  h->values[b]  = h->values[a];
+  h->moves[b]   = h->moves[a];
+  h->values[a]  = v;
+  h->moves[a]   = m;
+
+  /* update reverse index */
+  heap_update_rev_idx(h, &m, a);
+  heap_update_rev_idx(h, &(h->moves[b]), b);
+}
+
+
+PRIVATE int
+min_heapify(struct heap   *h,
+            unsigned int  i)
+{
+  int ret = 0;
+
+  while (i > 1) {
+    unsigned int  parent  = heap_parent(i);
+    int           v       = h->values[parent];
+
+    /*
+     * stop heapify-up if heap property is fullfilled, i.e.
+     * current node value is larger than that of its parent,
+     * or equal but lexigraphically larger
+     */
+    if ((h->values[i] > v) ||
+        ((h->values[i] == v) &&
+         (vrna_move_compare(&(h->moves[parent]), &(h->moves[i])) < 0)))
+      break;
+
+    heap_swap(h, parent, i);
+
+    i   = parent;
+    ret = 1;
   }
 
-  min_heapify_down(h, child[cnt]);
+  return ret;
+}
+
+
+PRIVATE void
+min_heapify_down(struct heap  *h,
+                 unsigned int pos)
+{
+  int           child_v, child_v2, v;
+  vrna_move_t   *m, *child_m;
+  unsigned int  last_pos, child_pos, child_pos2;
+
+  last_pos = h->num_elements;
+
+  /* nothing to do if already last element */
+  if (pos == last_pos)
+    return;
+
+  v           = h->values[pos];
+  m           = &(h->moves[pos]);
+  child_pos   = heap_left_child(pos);
+  child_pos2  = heap_right_child(pos);
+  child_v     = INF;
+  child_m     = NULL;
+
+  /* compare to 1st child */
+  if (child_pos <= last_pos) {
+    child_v = h->values[child_pos];
+    child_m = &(h->moves[child_pos]);
+    if ((child_v > v) ||
+        ((child_v == v) && (vrna_move_compare(m, child_m) < 0))) {
+      child_pos = 0;
+      child_v   = v;
+      child_m   = m;
+    }
+  } else {
+    child_pos = 0;
+    child_v   = v;
+    child_m   = m;
+  }
+
+  /* compare to 2nd child */
+  if (child_pos2 <= last_pos) {
+    v = h->values[child_pos2];
+    m = &(h->moves[child_pos2]);
+    if ((v < child_v) ||
+        ((v == child_v) && (vrna_move_compare(m, child_m) < 0))) {
+      child_pos = child_pos2;
+    }
+  }
+
+  if (child_pos) {
+    /* swap current node with child */
+    heap_swap(h, pos, child_pos);
+
+    min_heapify_down(h, child_pos);
+  }
 }
 
 
@@ -433,138 +492,101 @@ min_heap_insert(struct heap *h,
                 int         value,
                 vrna_move_t m)
 {
-  if (h) {
-    if (h->num_elements == h->mem_elements) {
+  unsigned int n;
+
+  if ((h) /* && (value <= 0) */) {
+    n = ++h->num_elements;
+
+    if (n == h->mem_elements) {
       h->mem_elements *= 1.4;
-      h->values = (int *)vrna_realloc(h->values, sizeof(int) * h->mem_elements);
-      h->moves  = (vrna_move_t *)vrna_realloc(h->moves, sizeof(vrna_move_t) * h->mem_elements);
+      h->values       = (int *)vrna_realloc(h->values, sizeof(int) * h->mem_elements);
+      h->moves        =
+        (vrna_move_t *)vrna_realloc(h->moves, sizeof(vrna_move_t) * h->mem_elements);
     }
 
-    printf("inserting %d=%d with value %d\n", m.pos_5, m.pos_3, value);
-    h->values[h->num_elements]  = value;
-    h->moves[h->num_elements]   = m;
-    int i = m.pos_5;
-    int j = m.pos_3;
-    if ((i < 0) && (j < 0)) {
-      i = -i;
-      j = -j;
-      h->reverse_idx_remove[(i * (i - 1)) / 2 + j] = h->num_elements;
-    } else {
-      h->reverse_idx[(i * (i - 1)) / 2 + j] = h->num_elements;
-    }
+    h->values[n]  = value;
+    h->moves[n]   = m;
 
-    h->num_elements++;
+    heap_update_rev_idx(h, &m, n);
 
-    min_heapify(h, h->num_elements - 1);
+    min_heapify(h, n);
   }
 }
-
 
 
 PRIVATE void
-min_heap_remove(struct heap *h,
+min_heap_remove(struct heap       *h,
                 const vrna_move_t m)
 {
   if (h) {
-    int i = m.pos_5;
-    int j = m.pos_3;
-    int pos = -1;
+    /* get position of last entry in heap */
+    unsigned int  last_pos = h->num_elements;
 
-    if ((i < 0) && (j < 0)) {
-      i = -i;
-      j = -j;
-      pos = h->reverse_idx_remove[(i * (i - 1)) / 2 + j];
-      h->reverse_idx_remove[(i * (i - 1)) / 2 + j] = -1;
-    } else {
-      pos = h->reverse_idx[(i * (i - 1)) / 2 + j];
-      h->reverse_idx[(i * (i - 1)) / 2 + j] = -1;
-    }
+    /* obtain position of element to remove */
+    unsigned int  pos = heap_find_move(h, &m);
+
+    if (!pos)
+      /* vrna_message_warning("move %d=%d doesn't exist in heap!", m.pos_5, m.pos_3); */
+      return;
+
+    /* delete entry for current element */
+    heap_update_rev_idx(h, &m, 0);
 
     h->num_elements--;
 
-    /* obtain position of element to remove */
+    /* we only need to do anything if we didn't remove the last element */
+    if (pos != last_pos) {
+      h->moves[pos]   = h->moves[last_pos];
+      h->values[pos]  = h->values[last_pos];
 
-    if (pos < 0) {
-      vrna_message_warning("move %d=%d doesn't exist in heap!", m.pos_5, m.pos_3);
-      return;
-    }
+      /* update reverse index */
+      heap_update_rev_idx(h, &(h->moves[pos]), pos);
 
-    printf("removing from pos %d [%d]\n", pos, h->num_elements);
-
-    /* get data from last entry in heap */
-    unsigned int  last_pos    = h->num_elements;
-    int           last_value  = h->values[last_pos];
-    int           last_i      = h->moves[last_pos].pos_5;
-    int           last_j      = h->moves[last_pos].pos_3;
-
-    /* finally remove the move */
-    if (pos != h->num_elements) {
-      /* we only need to do anything if we didn't remove the last element */
-      h->moves[pos] = h->moves[h->num_elements];
-      h->values[pos] = h->values[h->num_elements];
-      if ((last_i < 0) && (last_j < 0)) {
-        last_i = -last_i;
-        last_j = -last_j;
-        h->reverse_idx_remove[(last_i * (last_i - 1)) / 2 + last_j] = pos;
-      } else {
-        h->reverse_idx[(last_i * (last_i - 1)) / 2 + last_j] = pos;
-      }
-      min_heapify_down(h, pos);
+      if (!min_heapify(h, pos))
+        min_heapify_down(h, pos);
     }
   }
 }
 
-void
-gradient_descent_update_cb(vrna_fold_compound_t *fc,
-                           const vrna_move_t          neighbor,
-                           unsigned int               state,
-                           void                       *data)
-{
-  struct heap *h = (struct heap *)data;
-  int i, j, pos, dG, dG_old;
 
-  printf("callback move %d=%d\n", neighbor.pos_5, neighbor.pos_3);
+PRIVATE void
+gradient_descent_update_cb(vrna_fold_compound_t *fc,
+                           const vrna_move_t    neighbor,
+                           unsigned int         state,
+                           void                 *data)
+{
+  struct heap   *h;
+  unsigned int  pos;
+  int           dG, dG_old;
+
+  h = (struct heap *)data;
 
   switch (state) {
     case VRNA_NEIGHBOR_REMOVED:
-      printf("removing move %d=%d\n", neighbor.pos_5, neighbor.pos_3);
       min_heap_remove(h, neighbor);
       break;
 
     case VRNA_NEIGHBOR_NEW:
-      i   = neighbor.pos_5;
-      j   = neighbor.pos_3;
-
-      dG = vrna_eval_move_pt(fc, h->pt, neighbor.pos_5, neighbor.pos_3);
-      printf("insert move %d=%d value: %d\n", neighbor.pos_5, neighbor.pos_3, dG);
+      dG  = vrna_eval_move_pt(fc, h->pt, neighbor.pos_5, neighbor.pos_3);
       min_heap_insert(h, dG, neighbor);
       break;
 
     case VRNA_NEIGHBOR_CHANGED:
-      i   = neighbor.pos_5;
-      j   = neighbor.pos_3;
+      pos = heap_find_move(h, &neighbor);
 
-      if ((i < 0) && (j < 0)) {
-        i = -i;
-        j = -j;
-        pos = h->reverse_idx_remove[(i * (i - 1)) / 2 + j];
-      } else {
-        pos = h->reverse_idx[(i * (i - 1)) / 2 + j];
-      }
+      if (!pos) /* insert as new if not already present? */
+        return;
 
-      /* overwrite in case sign changed */
-      h->moves[pos] = neighbor;
+      dG      = vrna_eval_move_pt(fc, h->pt, neighbor.pos_5, neighbor.pos_3);
+      dG_old  = h->values[pos];
 
-      dG = vrna_eval_move_pt(fc, h->pt, neighbor.pos_5, neighbor.pos_3);
-      dG_old = h->values[pos];
-
-      /* update heap entry */
+      /* update heap entry value */
       h->values[pos] = dG;
-      printf("changed move %d=%d at pos %d from %d to %d\n", neighbor.pos_5, neighbor.pos_3, pos, dG_old, dG);
+
       /* restore min-heap condition */
       if (dG > dG_old)
         min_heapify_down(h, pos);
-      else
+      else if (dG < dG_old)
         min_heapify(h, pos);
 
       break;
@@ -577,17 +599,21 @@ gradient_descent_update_cb(vrna_fold_compound_t *fc,
 
 
 vrna_move_t *
-gradient_descent( vrna_fold_compound_t  *fc,
-                  short                 *pt,
-                  unsigned int          options)
+gradient_descent(vrna_fold_compound_t *fc,
+                 short                *pt,
+                 unsigned int         options)
 {
-  vrna_move_t *moves_applied = NULL;
+  size_t      num_moves, mem_moves;
+  vrna_move_t *moves_applied;
+
+  num_moves     = 0;
+  moves_applied = NULL;
 
   /* obtain initial set of moves to neighboring structures */
   vrna_move_t *neighbors = vrna_neighbors(fc, pt, options);
 
   /* create initial heap for fast traversal */
-  struct heap *h  = heap_init(2 * fc->length, NULL);
+  struct heap *h = heap_init(2 * fc->length, NULL);
 
   for (int i = 0; neighbors[i].pos_5 != 0; i++) {
     int dG = vrna_eval_move_pt(fc, pt, neighbors[i].pos_5, neighbors[i].pos_3);
@@ -595,13 +621,32 @@ gradient_descent( vrna_fold_compound_t  *fc,
   }
 
   h->pt = pt;
-  printf("\n\n===============\nstart with move %d=%d, value: %d\n", h->moves[0].pos_5, h->moves[0].pos_3, h->values[0]);
 
-  int moves=0;
+  if (!(options & VRNA_PATH_NO_TRANSITION_OUTPUT)) {
+    mem_moves = 42;
+    moves_applied = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * mem_moves);
+  }
+
   /* get current energy */
-  while(h->values[0] < 0) {
-    vrna_move_t next_move = h->moves[0];
-    printf("\n===============\nnext step: %d=%d value: %d\n", next_move.pos_5, next_move.pos_3, h->values[0]);
+  while ((h->values[1] <= 0) && (h->num_elements > 0)) {
+#if DEBUG
+    printf("heap entries so far:\n");
+    for (int cnt = 1; cnt <= h->num_elements; cnt++) {
+      printf("\t[%d] => %d, %d v=%d\n", cnt, h->moves[cnt].pos_5, h->moves[cnt].pos_3, h->values[cnt]);
+    }
+#endif
+
+    vrna_move_t next_move = h->moves[1];
+
+    /*
+     *  only accept side-ways moves, i.e. dG == 0,
+     *  if they result in lexicographically smaller
+     *  structure
+     */
+    if ((h->values[1] == 0) &&
+        (vrna_move_is_deletion(&next_move)))
+      break;
+
     vrna_move_neighbor_diff_cb(fc,
                                pt,
                                &(next_move),
@@ -609,10 +654,21 @@ gradient_descent( vrna_fold_compound_t  *fc,
                                (void *)h,
                                options);
 
-    printf("next value: %d\n", h->values[0]);
-    moves++;
-    if (moves == 40)
-      break;
+    if (moves_applied) {
+      moves_applied[num_moves++] = next_move;
+      if (num_moves == mem_moves) {
+        mem_moves *= 1.4;
+        moves_applied = (vrna_move_t *)vrna_realloc(moves_applied, sizeof(vrna_move_t) * mem_moves);
+      }
+    }
+  }
+
+  heap_destroy(h);
+  free(neighbors);
+
+  if (moves_applied) {
+    moves_applied = (vrna_move_t *)vrna_realloc(moves_applied, sizeof(vrna_move_t) * (num_moves + 1));
+    moves_applied[num_moves] = vrna_move_init(0, 0);
   }
 
   return moves_applied;
@@ -633,5 +689,3 @@ vrna_path_gradient(vrna_fold_compound_t *vc,
   return vrna_path(vc, pt, 0, options);
 #endif
 }
-
-
