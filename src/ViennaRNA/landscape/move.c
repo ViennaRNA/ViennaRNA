@@ -117,3 +117,76 @@ vrna_move_apply_db(char               *structure,
     return;
   }
 }
+
+
+PUBLIC int
+vrna_move_is_deletion(const vrna_move_t *m)
+{
+  return (m->pos_5 < 0) && (m->pos_3 < 0);
+}
+
+
+PUBLIC int
+vrna_move_is_insertion(const vrna_move_t *m)
+{
+  return (m->pos_5 > 0) && (m->pos_3 > 0);
+}
+
+
+PUBLIC int
+vrna_move_is_shift(const vrna_move_t *m)
+{
+  return ((m->pos_5 < 0) && (m->pos_3 > 0)) ||
+         ((m->pos_5 > 0) && (m->pos_3 < 0));
+}
+
+
+PUBLIC int
+vrna_move_compare(const vrna_move_t *a,
+                  const vrna_move_t *b)
+{
+  /* assume, both moves a and b are compatible with current structure */
+
+  if (vrna_move_is_deletion(a)) {
+    if (vrna_move_is_deletion(b)) {
+      if (a->pos_5 > b->pos_5)
+        return 1;
+      else if (a->pos_5 < b->pos_5)
+        return -1;
+      else
+        return 0;
+    } else if (vrna_move_is_insertion(b)) {
+      return 1;
+    } else {
+      /*
+       * 'b' is shift move
+       * Implement me!
+       */
+    }
+  } else if (vrna_move_is_insertion(a)) {
+    if (vrna_move_is_insertion(b)) {
+      if (a->pos_5 < b->pos_5)
+        return -1;
+      else if (a->pos_5 > b->pos_5)
+        return 1;
+      else if (a->pos_3 < b->pos_3)
+        return -1;
+      else if (a->pos_3 > b->pos_3)
+        return 1;
+      else
+        return 0;
+    } else if (vrna_move_is_deletion(b)) {
+      return -1;
+    } else {
+      /*
+       * 'b' is shift move
+       * Implement me!
+       */
+    }
+  } else {
+    /*
+     * 'a' is shift move
+     * Implement me!
+     */
+  }
+}

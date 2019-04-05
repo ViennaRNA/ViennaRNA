@@ -87,4 +87,34 @@ vrna_move_apply_db(char               *structure,
                    const vrna_move_t  *m);
 
 
+int
+vrna_move_is_deletion(const vrna_move_t *m);
+
+
+int
+vrna_move_is_insertion(const vrna_move_t *m);
+
+
+int
+vrna_move_is_shift(const vrna_move_t *m);
+
+
+/**
+ *  Compare two moves
+ *
+ *  The function compares two moves @p a and @p b and returns
+ *  whether move @p a is lexicographically smaller (-1), larger (1)
+ *  or equal to move @p b
+ *
+ *  @warning Currently, shift moves are not supported!
+ *
+ *  @param    a   The first move of the comparison
+ *  @param    b   The second move of the comparison
+ *  @return       -1 if @p a < @p b, 1 if @p a > @p b, 0 otherwise
+ */
+int
+vrna_move_compare(const vrna_move_t *a,
+                  const vrna_move_t *b);
+
+
 #endif
