@@ -77,20 +77,22 @@ isLexicographicallySmaller(short        *ptStructure,
                            vrna_move_t  *n)
 {
   if (isDeletion(m) && isDeletion(n)) {
-    if (MIN2(m->pos_5, m->pos_3) > MIN2(n->pos_5, n->pos_3))
+    if (-m->pos_5 > -n->pos_5)
       return true;
     else
       return false;
   }
 
   if (isDeletion(m) && isInsertion(n))
-    return true;
+    return false;
 
   if (isInsertion(m) && isDeletion(n))
     return true;
 
   if (isInsertion(m) && isInsertion(n)) {
-    if (MIN2(m->pos_5, m->pos_3) < MIN2(n->pos_5, n->pos_3))
+    if (m->pos_5 < n->pos_5)
+      return true;
+    else if ((m->pos_5 == n->pos_5) && (m->pos_3 < n->pos_3))
       return true;
     else
       return false;
