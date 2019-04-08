@@ -104,17 +104,23 @@ vrna_move_is_shift(const vrna_move_t *m);
  *
  *  The function compares two moves @p a and @p b and returns
  *  whether move @p a is lexicographically smaller (-1), larger (1)
- *  or equal to move @p b
+ *  or equal to move @p b.
+ *
+ *  If any of the moves @p a or @p b is a shift move, this
+ *  comparison only makes sense in a structure context. Thus,
+ *  the third argument with the current structure must be provided.
  *
  *  @warning Currently, shift moves are not supported!
  *
  *  @param    a   The first move of the comparison
  *  @param    b   The second move of the comparison
+ *  @param    pt  The pair table of the current structure (that is compatible with both moves)
  *  @return       -1 if @p a < @p b, 1 if @p a > @p b, 0 otherwise
  */
 int
 vrna_move_compare(const vrna_move_t *a,
-                  const vrna_move_t *b);
+                  const vrna_move_t *b,
+                  const short       *pt);
 
 
 #endif

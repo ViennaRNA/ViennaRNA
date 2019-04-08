@@ -143,7 +143,8 @@ vrna_move_is_shift(const vrna_move_t *m)
 
 PUBLIC int
 vrna_move_compare(const vrna_move_t *a,
-                  const vrna_move_t *b)
+                  const vrna_move_t *b,
+                  const short       *ptable)
 {
   /* assume, both moves a and b are compatible with current structure */
 
@@ -189,4 +190,6 @@ vrna_move_compare(const vrna_move_t *a,
      * Implement me!
      */
   }
+
+  return 0;
 }
