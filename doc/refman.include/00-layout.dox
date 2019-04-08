@@ -317,6 +317,9 @@ formats, and various output file formats produced by our library.
 @defgroup   hash_table_utils          Hash Tables
 @ingroup    data_structures
 
+@defgroup   heap_utils                Heaps
+@ingroup    data_structures
+
 @defgroup   buffer_utils              Buffers
 @ingroup    data_structures
 
