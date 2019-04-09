@@ -15,14 +15,14 @@ struct movelist {
 
 PRIVATE void
 add_to_incremental_move_list(vrna_fold_compound_t *fc,
-                             const vrna_move_t          next_neighbor,
-                             unsigned int               state,
-                             void                       *data)
+                             vrna_move_t          next_neighbor,
+                             unsigned int         state,
+                             void                 *data)
 {
   /* add move to list */
   struct movelist *mlist = (struct movelist *)data;
 
-  if ((state == VRNA_NEIGHBOR_CHANGED) || (state == VRNA_NEIGHBOR_NEW)) {
+  if ((state == VRNA_NEIGHBOR_CHANGE) || (state == VRNA_NEIGHBOR_NEW)) {
     mlist->moves[mlist->num_moves] = next_neighbor;
     mlist->num_moves++;
 
@@ -33,7 +33,7 @@ add_to_incremental_move_list(vrna_fold_compound_t *fc,
                                                       sizeof(vrna_move_t) *
                                                       mlist->mem_moves);
     }
-  } else if (state == VRNA_NEIGHBOR_REMOVED) {
+  } else if (state == VRNA_NEIGHBOR_INVALID) {
     mlist->moves_invalid[mlist->num_moves_invalid] = next_neighbor;
     mlist->num_moves_invalid++;
 

@@ -443,7 +443,7 @@ gradient_descent_update_cb(vrna_fold_compound_t *fc,
   h       = lookup->heap;
 
   switch (state) {
-    case VRNA_NEIGHBOR_REMOVED:
+    case VRNA_NEIGHBOR_INVALID:
       mm = move_en_init(neighbor, 0);
       free(vrna_heap_remove(h, mm));
       free(mm);
@@ -459,7 +459,7 @@ gradient_descent_update_cb(vrna_fold_compound_t *fc,
 
       break;
 
-    case VRNA_NEIGHBOR_CHANGED:
+    case VRNA_NEIGHBOR_CHANGE:
       dG = vrna_eval_move_pt(fc, lookup->pt, neighbor.pos_5, neighbor.pos_3);
       if (dG <= 0) {
         mm = move_en_init(neighbor, dG);
@@ -530,7 +530,7 @@ gradient_descent(vrna_fold_compound_t *fc,
 
     vrna_move_neighbor_diff_cb(fc,
                                pt,
-                               &(next_move),
+                               next_move,
                                &gradient_descent_update_cb,
                                (void *)lookup,
                                options);

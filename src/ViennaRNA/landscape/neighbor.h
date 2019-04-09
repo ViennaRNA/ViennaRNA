@@ -112,9 +112,45 @@
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/landscape/move.h>
 
-#define VRNA_NEIGHBOR_CHANGED   1
-#define VRNA_NEIGHBOR_REMOVED   2
+/**
+ *  @brief  Prototype of the neighborhood update callback
+ *
+ *  @see  vrna_move_neighbor_diff_cb(), #VRNA_NEIGHBOR_CHANGE, #VRNA_NEIGHBOR_INVALID, #VRNA_NEIGHBOR_NEW
+ *
+ *  @param  fc        The fold compound the calling function is working on
+ *  @param  neighbor  The move that generates the (changed or new) neighbor
+ *  @param  state     The state of the neighbor (move) as supplied by argument @p neighbor
+ *  @param  data      Some arbitrary data pointer as passed to vrna_move_neighbor_diff_cb()
+ */
+typedef void (vrna_callback_move_update)(vrna_fold_compound_t *fc,
+                                         vrna_move_t          neighbor,
+                                         unsigned int         state,
+                                         void                 *data);
+
+
+/**
+ *  @brief  State indicator for a neighbor that has been changed
+ *
+ *  @see vrna_move_neighbor_diff_cb()
+ */
+#define VRNA_NEIGHBOR_CHANGE   1
+
+
+/**
+ *  @brief  State indicator for a neighbor that has been invalidated
+ *
+ *  @see vrna_move_neighbor_diff_cb()
+ */
+#define VRNA_NEIGHBOR_INVALID   2
+
+
+/**
+ *  @brief  State indicator for a neighbor that has become newly available
+ *
+ *  @see vrna_move_neighbor_diff_cb()
+ */
 #define VRNA_NEIGHBOR_NEW       3
+
 
 /**
  * @brief Alters the loopIndices array that was constructed with vrna_loopidx_from_ptable().
@@ -186,25 +222,56 @@ vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
                           unsigned int                options);
 
 
-typedef void (vrna_move_update_cb)(vrna_fold_compound_t *fc,
-                                   const vrna_move_t          neighbor,
-                                   unsigned int               state,
-                                   void                       *data);
-
-
+/**
+ *  @brief  Apply a move to a secondary structure and indicate which neighbors have changed consequentially
+ *
+ *  This function applies a move to a secondary structure and explores the local neighborhood of the
+ *  affected loop. Any changes to previously compatible neighbors that have been affected by this loop
+ *  will be reported through a callback function. In particular, any of the three cases might appear:
+ *  - A previously available neighbor move has changed, usually the free energy change of the move (#VRNA_NEIGHBOR_CHANGE)
+ *  - A previously available neighbor move became invalid (#VRNA_NEIGHBOR_INVALID)
+ *  - A new neighbor move becomes available (#VRNA_NEIGHBOR_NEW)
+ *
+ *  @see  vrna_move_neighbor_diff(), #VRNA_NEIGHBOR_CHANGE, #VRNA_NEIGHBOR_INVALID, #VRNA_NEIGHBOR_NEW,
+ *        #vrna_callback_move_update
+ *
+ *  @param  fc        A fold compound for the RNA sequence(s) that this function operates on
+ *  @param  ptable    The current structure as pair table
+ *  @param  move      The move to apply
+ *  @param  cb        The address of the callback function that is passed the neighborhood changes
+ *  @param  data      An arbitrary data pointer that will be passed through to the callback function @p cb
+ *  @param  options   Options to modify the behavior of this function, .e.g available move set
+ *  @return           Non-zero on success, 0 otherwise
+ */
 int
-vrna_move_neighbor_diff_cb(vrna_fold_compound_t *fc,
-                           short                *ptable,
-                           const vrna_move_t    *move,
-                           vrna_move_update_cb  *cb,
-                           void                 *data,
-                           unsigned int         options);
+vrna_move_neighbor_diff_cb(vrna_fold_compound_t       *fc,
+                           short                      *ptable,
+                           vrna_move_t                move,
+                           vrna_callback_move_update  *cb,
+                           void                       *data,
+                           unsigned int               options);
 
 
+/**
+ *  @brief  Apply a move to a secondary structure and indicate which neighbors have changed consequentially
+ *
+ *  Similar to vrna_move_neighbor_diff_cb(), this function applies a move to a secondary structure and
+ *  reports back the neighbors of the current structure become affected by this move. Instead of executing
+ *  a callback for each of the affected neighbors, this function compiles two lists of neighbor moves, one
+ *  that is returned and consists of all moves that are novel or may have changed in energy, and a second,
+ *  @p invalid_moves, that consists of all the neighbor moves that become invalid, respectively.
+ *
+ *  @param  fc        A fold compound for the RNA sequence(s) that this function operates on
+ *  @param  ptable    The current structure as pair table
+ *  @param  move      The move to apply
+ *  @param  invalid_moves The address of a move list where the function stores those moves that become invalid
+ *  @param  options   Options to modify the behavior of this function, .e.g available move set
+ *  @return           A list of moves that might have changed in energy or are novel compared to the structure before application of the move
+ */
 vrna_move_t *
 vrna_move_neighbor_diff(vrna_fold_compound_t  *fc,
                         short                 *ptable,
-                        const vrna_move_t     *move,
+                        vrna_move_t           move,
                         vrna_move_t           **invalid_moves,
                         unsigned int          options);
 
