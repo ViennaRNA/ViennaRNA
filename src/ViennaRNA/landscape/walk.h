@@ -132,10 +132,6 @@ vrna_path_random(vrna_fold_compound_t *vc,
                  unsigned int         steps,
                  unsigned int         options);
 
-vrna_move_t *
-gradient_descent( vrna_fold_compound_t  *fc,
-                  short                 *pt,
-                  unsigned int          options);
 
 /**
  *  @}

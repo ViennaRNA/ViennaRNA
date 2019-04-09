@@ -68,6 +68,12 @@ do_path(vrna_fold_compound_t  *vc,
         unsigned int          options);
 
 
+PRIVATE vrna_move_t *
+gradient_descent(vrna_fold_compound_t *fc,
+                 short                *pt,
+                 unsigned int         options);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -94,11 +100,11 @@ vrna_path_gradient(vrna_fold_compound_t *vc,
   options &= ~VRNA_PATH_RANDOM;
   options |= VRNA_PATH_STEEPEST_DESCENT;
 
-#if 0
-  return gradient_descent(vc, pt, options);
-#else
-  return vrna_path(vc, pt, 0, options);
-#endif
+  if ((options & VRNA_MOVESET_SHIFT) ||
+      (options & VRNA_MOVESET_NO_LP))
+    return vrna_path(vc, pt, 0, options);
+  else
+    return gradient_descent(vc, pt, options);
 }
 
 
@@ -479,7 +485,7 @@ gradient_descent_update_cb(vrna_fold_compound_t *fc,
 }
 
 
-vrna_move_t *
+PRIVATE vrna_move_t *
 gradient_descent(vrna_fold_compound_t *fc,
                  short                *pt,
                  unsigned int         options)
