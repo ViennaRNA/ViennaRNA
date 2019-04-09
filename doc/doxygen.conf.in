@@ -767,6 +767,7 @@ INPUT                  =  @top_srcdir@/doc/refman.include/ \
                           @top_srcdir@/src/ViennaRNA/loops \
                           @top_srcdir@/src/ViennaRNA/constraints \
                           @top_srcdir@/src/ViennaRNA/io \
+                          @top_srcdir@/src/ViennaRNA/landscape \
                           @top_srcdir@/src/ViennaRNA/plotting \
                           @top_srcdir@/src/ViennaRNA/plotting/RNApuzzler \
                           @top_srcdir@/src/ViennaRNA/utils \
