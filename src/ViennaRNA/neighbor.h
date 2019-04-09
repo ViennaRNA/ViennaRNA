@@ -12,6 +12,7 @@
 #warning "Including deprecated header file <ViennaRNA/neighbor.h>! Use <ViennaRNA/landscape/neighbor.h> instead!"
 # endif
 #include <ViennaRNA/landscape/neighbor.h>
+#include <ViennaRNA/landscape/move.h>
 #endif
 
 #endif
