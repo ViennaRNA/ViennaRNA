@@ -386,7 +386,7 @@ set_move_pos(const void *m,
 
   struct heap_rev_idx *lookup = (struct heap_rev_idx *)d;
 
-  size_t              *idx = (vrna_move_is_deletion(move)) ?
+  size_t              *idx = (vrna_move_is_removal(move)) ?
                              lookup->reverse_idx_remove :
                              lookup->reverse_idx;
 
@@ -401,7 +401,7 @@ get_move_pos(const void *m,
   vrna_move_t         *move   = &(((struct move_en *)m)->move);
   struct heap_rev_idx *lookup = (struct heap_rev_idx *)d;
 
-  size_t              *idx = (vrna_move_is_deletion(move)) ?
+  size_t              *idx = (vrna_move_is_removal(move)) ?
                              lookup->reverse_idx_remove :
                              lookup->reverse_idx;
 
@@ -525,7 +525,7 @@ gradient_descent(vrna_fold_compound_t *fc,
     next_move = next_move_en->move;
 
     if ((dG > 0) ||
-        ((dG == 0) && vrna_move_is_deletion(&(next_move))))
+        ((dG == 0) && vrna_move_is_removal(&(next_move))))
       break;
 
     vrna_move_neighbor_diff_cb(fc,

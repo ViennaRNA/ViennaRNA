@@ -40,17 +40,13 @@ vrna_move_apply(short             *pt,
                 const vrna_move_t *m)
 {
   /* deletion */
-  if (m->pos_5 < 0 && m->pos_3 < 0) {
+  if (vrna_move_is_removal(m)) {
     pt[-m->pos_5] = 0;
     pt[-m->pos_3] = 0;
-  } else
-
-  /* insertion */
-  if (m->pos_5 > 0 && m->pos_3 > 0) {
+  } else if (vrna_move_is_insertion(m)) {
     pt[m->pos_5]  = m->pos_3;
     pt[m->pos_3]  = m->pos_5;
   } else
-
   /* shift right */
   if (m->pos_5 > 0 && m->pos_3 < 0) {
     short previousPairedPosition = pt[m->pos_5];
@@ -76,51 +72,8 @@ vrna_move_apply(short             *pt,
 }
 
 
-PUBLIC void
-vrna_move_apply_db(char               *structure,
-                   const short        *pt,
-                   const vrna_move_t  *m)
-{
-  /* deletion */
-  if (m->pos_5 < 0 && m->pos_3 < 0) {
-    structure[-m->pos_5 - 1]  = '.';
-    structure[-m->pos_3 - 1]  = '.';
-    return;
-  }
-
-  /* insertion */
-  if (m->pos_5 > 0 && m->pos_3 > 0) {
-    structure[m->pos_5 - 1] = '(';
-    structure[m->pos_3 - 1] = ')';
-    return;
-  }
-
-  /* shift right */
-  if (m->pos_5 > 0) {
-    short previousPairedPosition = pt[m->pos_5];
-    structure[previousPairedPosition - 1] = '.';
-    int   left  = m->pos_5 - 1;
-    int   right = -m->pos_3 - 1;
-    structure[left]   = '(';
-    structure[right]  = ')';
-    return;
-  }
-
-  /* shift left */
-  if (m->pos_5 < 0) {
-    short previousPairedPosition = pt[m->pos_3];
-    structure[previousPairedPosition - 1] = '.';
-    int   left  = -m->pos_5 - 1;
-    int   right = m->pos_3 - 1;
-    structure[left]   = '(';
-    structure[right]  = ')';
-    return;
-  }
-}
-
-
 PUBLIC int
-vrna_move_is_deletion(const vrna_move_t *m)
+vrna_move_is_removal(const vrna_move_t *m)
 {
   return (m->pos_5 < 0) && (m->pos_3 < 0);
 }
@@ -148,8 +101,8 @@ vrna_move_compare(const vrna_move_t *a,
 {
   /* assume, both moves a and b are compatible with current structure */
 
-  if (vrna_move_is_deletion(a)) {
-    if (vrna_move_is_deletion(b)) {
+  if (vrna_move_is_removal(a)) {
+    if (vrna_move_is_removal(b)) {
       if (a->pos_5 > b->pos_5)
         return 1;
       else if (a->pos_5 < b->pos_5)
@@ -176,7 +129,7 @@ vrna_move_compare(const vrna_move_t *a,
         return 1;
       else
         return 0;
-    } else if (vrna_move_is_deletion(b)) {
+    } else if (vrna_move_is_removal(b)) {
       return -1;
     } else {
       /*
