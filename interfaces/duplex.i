@@ -11,10 +11,17 @@ typedef struct {
   float energy;
 } duplexT;
 
+%newobject duplexT::__str__;
+
 %extend duplexT {
   ~duplexT() {
     free($self->structure);
     free($self);
+  }
+
+  char *__str__() {
+    char *tmp = vrna_strdup_printf("[ i: %d, j: %d, s: %s, en: %2.6f ]", $self->i, $self->j, $self->structure, $self->energy);
+    return tmp;
   }
 }
 
