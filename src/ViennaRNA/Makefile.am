@@ -464,7 +464,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               data_structures_nonred.inc \
               plotting/ps_helpers.inc \
               ${RNAPUZZLER_INC} \
-              landscapes/local_neighbors.inc \
+              landscape/local_neighbors.inc \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \
