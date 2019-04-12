@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/utils/basic.h"
 
 #define FANCY_PS 0
 
