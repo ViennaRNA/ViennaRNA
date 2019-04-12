@@ -2168,7 +2168,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
             type        = rtype[vrna_get_ptype(jindx[t] + k, ptype)];
 
             temp = probs[kt]
-                   * exp_E_ExtLoop(type, S1[t - 1], samestrand ? S1[k + 1] : -1, pf_params)
+                   * vrna_exp_E_ext_stem(type, S1[t - 1], samestrand ? S1[k + 1] : -1, pf_params)
                    * scale[2];
 
             if (l + 1 < t)
@@ -2187,7 +2187,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
             type  = vrna_get_ptype(jindx[l] + k, ptype);
             temp  = Qrout[l];
 
-            temp *= exp_E_ExtLoop(type,
+            temp *= vrna_exp_E_ext_stem(type,
                                   (k > cp) ? S1[k - 1] : -1,
                                   (l < n) ? S1[l + 1] : -1,
                                   pf_params);
@@ -2209,7 +2209,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
                 type        = rtype[vrna_get_ptype(jindx[k] + s, ptype)];
 
                 temp = probs[sk]
-                       * exp_E_ExtLoop(type, samestrand ? S1[k - 1] : -1, S1[s + 1], pf_params)
+                       * vrna_exp_E_ext_stem(type, samestrand ? S1[k - 1] : -1, S1[s + 1], pf_params)
                        * scale[2];
                 if (s + 1 < t)
                   temp *= q[my_iindx[s + 1] - (t - 1)];
@@ -2228,7 +2228,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
             type  = vrna_get_ptype(jindx[l] + k, ptype);
             temp  = Qlout[k];
 
-            temp *= exp_E_ExtLoop(type,
+            temp *= vrna_exp_E_ext_stem(type,
                                   (k > 1) ? S1[k - 1] : -1,
                                   (l < (cp - 1)) ? S1[l + 1] : -1,
                                   pf_params);
