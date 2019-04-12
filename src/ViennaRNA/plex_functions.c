@@ -116,8 +116,10 @@ duplexfold_XS(const char  *s1,
         c3[j - 11][max_interaction_length -
                    1][0] +=
           E_Hairpin(j - i - 1, type, SS1[i + 1], SS1[j - 1], string, P);
-        /*        c3[j-11][max_interaction_length-1][0] += E_ExtLoop(type, SS1[i+1], SS1[j-1], P); */
-        /*           c3[j-11][max_interaction_length-1][0] += E_ExtLoop(rtype[type], SS1[j-1], SS1[i+1], P); */
+        /*
+         *        c3[j-11][max_interaction_length-1][0] += vrna_E_ext_stem(type, SS1[i+1], SS1[j-1], P);
+         *           c3[j-11][max_interaction_length-1][0] += vrna_E_ext_stem(rtype[type], SS1[j-1], SS1[i+1], P);
+         */
       }
     }
 
@@ -182,9 +184,9 @@ duplexfold_XS(const char  *s1,
           /*           printf("[%d,%d][%d,%d]\t%6.2f\t%6.2f\t%6.2f\n", i, k, l, j, E/100., access_s1[i-k+1][i]/100., access_s1[l-j+1][l]/100.); */
           E += access_s1[i - k + 1][i] + access_s1[l - j + 1][l];
           E +=
-            E_ExtLoop(type2, ((k > i_pos_begin + 1) ? SS1[k - 1] : -1),
-                      ((l < j_pos_end - 1) ? SS1[l + 1] : -1), P);
-          E += E_ExtLoop(rtype[type], SS1[j - 1], SS1[i + 1], P);
+            vrna_E_ext_stem(type2, ((k > i_pos_begin + 1) ? SS1[k - 1] : -1),
+                            ((l < j_pos_end - 1) ? SS1[l + 1] : -1), P);
+          E += vrna_E_ext_stem(rtype[type], SS1[j - 1], SS1[i + 1], P);
           if (E < Emin) {
             Emin  = E;
             k_min = k;
@@ -198,8 +200,10 @@ duplexfold_XS(const char  *s1,
     if (Emin < threshold) {
       struc = backtrack_XS(k_min, l_min, i, j_min, max_interaction_length);
 
-      /* lets take care of the dangles */
-      /* find best combination */
+      /*
+       * lets take care of the dangles
+       * find best combination
+       */
       int dx_5, dx_3, dy_5, dy_3, dGx, dGy, bonus_x, bonus_y;
       dx_5                          = dx_3 = dy_5 = dy_3 = dGx = dGy = bonus_x = bonus_y = 0;
       dGx                           = access_s1[i - k_min + 1][i];
@@ -308,7 +312,7 @@ backtrack_XS(int        k,
         break;
     }
     if (!traced) {
-      E -= E_ExtLoop(type2, ((k < i) ? SS1[k + 1] : -1), ((l > j - 1) ? SS1[l - 1] : -1), P);
+      E -= vrna_E_ext_stem(type2, ((k < i) ? SS1[k + 1] : -1), ((l > j - 1) ? SS1[l - 1] : -1), P);
       break;
       if (E != P->DuplexInit)
         vrna_message_error("backtrack failed in fold duplex bal");
