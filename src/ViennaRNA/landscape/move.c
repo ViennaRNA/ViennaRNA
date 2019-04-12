@@ -1,13 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
-#include "ViennaRNA/pair_mat.h"
-#include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/utils/structures.h"
-#include "ViennaRNA/model.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/landscape/move.h"
 
 
