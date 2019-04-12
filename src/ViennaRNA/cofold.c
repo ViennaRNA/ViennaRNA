@@ -78,47 +78,55 @@ PRIVATE float                 mfe1, mfe2; /* minimum free energies of the monome
  #################################
  */
 
-PRIVATE void  backtrack(sect                  bt_stack[],
-                        vrna_bp_stack_t       *bp_list,
-                        vrna_fold_compound_t  *vc);
+PRIVATE void
+backtrack(sect                  bt_stack[],
+          vrna_bp_stack_t       *bp_list,
+          vrna_fold_compound_t  *vc);
 
 
-PRIVATE int   fill_arrays(vrna_fold_compound_t  *vc,
-                          int                   zuker);
+PRIVATE int
+fill_arrays(vrna_fold_compound_t  *vc,
+            int                   zuker);
 
 
-PRIVATE void  free_end(int                  *array,
-                       int                  i,
-                       int                  start,
-                       vrna_fold_compound_t *vc);
+PRIVATE void
+free_end(int                  *array,
+         int                  i,
+         int                  start,
+         vrna_fold_compound_t *vc);
 
 
-PRIVATE void  doubleseq(vrna_fold_compound_t *vc);  /* do magic */
+PRIVATE void
+doubleseq(vrna_fold_compound_t *vc);                /* do magic */
 
 
-PRIVATE void  halfseq(vrna_fold_compound_t *vc);    /* undo magic */
+PRIVATE void
+halfseq(vrna_fold_compound_t *vc);                  /* undo magic */
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* wrappers for old API compatibility */
-PRIVATE void      wrap_array_export(int   **f5_p,
-                                    int   **c_p,
-                                    int   **fML_p,
-                                    int   **fM1_p,
-                                    int   **fc_p,
-                                    int   **indx_p,
-                                    char  **ptype_p);
+PRIVATE void
+wrap_array_export(int   **f5_p,
+                  int   **c_p,
+                  int   **fML_p,
+                  int   **fM1_p,
+                  int   **fc_p,
+                  int   **indx_p,
+                  char  **ptype_p);
 
 
-PRIVATE float     wrap_cofold(const char    *string,
-                              char          *structure,
-                              vrna_param_t  *parameters,
-                              int           is_constrained);
+PRIVATE float
+wrap_cofold(const char    *string,
+            char          *structure,
+            vrna_param_t  *parameters,
+            int           is_constrained);
 
 
-PRIVATE SOLUTION *wrap_zukersubopt(const char   *string,
-                                   vrna_param_t *parameters);
+PRIVATE SOLUTION *
+wrap_zukersubopt(const char   *string,
+                 vrna_param_t *parameters);
 
 
 #endif
@@ -303,8 +311,10 @@ fill_arrays(vrna_fold_compound_t  *vc,
         my_c[ij] = INF;
       }
 
-      /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
+      /*
+       * done with c[i,j], now compute fML[i,j]
+       * free ends ? -----------------------------------------
+       */
 
       my_fML[ij] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
 
@@ -635,21 +645,21 @@ free_end(int                  *array,
         switch (dangle_model) {
           case 0:
             if (array[j - inc] != INF) {
-              en        = array[j - inc] + energy + E_ExtLoop(type, -1, -1, P);
+              en        = array[j - inc] + energy + vrna_E_ext_stem(type, -1, -1, P);
               array[i]  = MIN2(array[i], en);
             }
 
             break;
           case 2:
             if (array[j - inc] != INF) {
-              en        = array[j - inc] + energy + E_ExtLoop(type, si, sj, P);
+              en        = array[j - inc] + energy + vrna_E_ext_stem(type, si, sj, P);
               array[i]  = MIN2(array[i], en);
             }
 
             break;
           default:
             if (array[j - inc] != INF) {
-              en        = array[j - inc] + energy + E_ExtLoop(type, -1, -1, P);
+              en        = array[j - inc] + energy + vrna_E_ext_stem(type, -1, -1, P);
               array[i]  = MIN2(array[i], en);
             }
 
@@ -657,7 +667,7 @@ free_end(int                  *array,
               if (j > left) {
                 if (hc->up_ext[ii - 1]) {
                   if (array[j - 2] != INF) {
-                    en = array[j - 2] + energy + E_ExtLoop(type, si, -1, P);
+                    en = array[j - 2] + energy + vrna_E_ext_stem(type, si, -1, P);
                     if (sc)
                       if (sc->energy_up)
                         en += sc->energy_up[ii - 1][1];
@@ -669,7 +679,7 @@ free_end(int                  *array,
             } else if (j < right) {
               if (hc->up_ext[jj + 1]) {
                 if (array[j + 2] != INF) {
-                  en = array[j + 2] + energy + E_ExtLoop(type, -1, sj, P);
+                  en = array[j + 2] + energy + vrna_E_ext_stem(type, -1, sj, P);
                   if (sc)
                     if (sc->energy_up)
                       en += sc->energy_up[jj + 1][1];
@@ -712,7 +722,7 @@ free_end(int                  *array,
         if (inc > 0) {
           if (hc->up_ext[jj - 1]) {
             if (array[j - inc] != INF) {
-              en = array[j - inc] + energy + E_ExtLoop(type, -1, sj, P);
+              en = array[j - inc] + energy + vrna_E_ext_stem(type, -1, sj, P);
               if (sc)
                 if (sc->energy_up)
                   en += sc->energy_up[jj + 1][1];
@@ -723,7 +733,7 @@ free_end(int                  *array,
         } else {
           if (hc->up_ext[ii - 1]) {
             if (array[j - inc] != INF) {
-              en = array[j - inc] + energy + E_ExtLoop(type, si, -1, P);
+              en = array[j - inc] + energy + vrna_E_ext_stem(type, si, -1, P);
               if (sc)
                 if (sc->energy_up)
                   en += sc->energy_up[ii - 1][1];
@@ -737,7 +747,7 @@ free_end(int                  *array,
           /* dangle_model on both sides */
           if (hc->up_ext[jj - 1] && hc->up_ext[ii - 1]) {
             if (array[j - 2 * inc] != INF) {
-              en = array[j - 2 * inc] + energy + E_ExtLoop(type, si, sj, P);
+              en = array[j - 2 * inc] + energy + vrna_E_ext_stem(type, si, sj, P);
               if (sc)
                 if (sc->energy_up)
                   en += sc->energy_up[ii - 1][1] + sc->energy_up[jj + 1][1];
@@ -1033,9 +1043,11 @@ vrna_subopt_zuker(vrna_fold_compound_t *vc)
 }
 
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ *###########################################
+ *# deprecated functions below              #
+ *###########################################
+ */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
