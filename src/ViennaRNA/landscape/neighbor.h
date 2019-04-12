@@ -108,7 +108,6 @@
  *
  */
 
-#include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/landscape/move.h>
 
