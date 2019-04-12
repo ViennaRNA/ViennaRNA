@@ -200,9 +200,9 @@ aliduplexfold(const char  *s1[],
 
   n3  = (int)strlen(s1[0]);
   n4  = (int)strlen(s2[0]);
-  for (s = 0; s1[s] != NULL; s++) ;
+  for (s = 0; s1[s] != NULL; s++);
   n_seq = s;
-  for (s = 0; s2[s] != NULL; s++) ;
+  for (s = 0; s2[s] != NULL; s++);
   if (n_seq != s)
     vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
@@ -250,8 +250,8 @@ aliduplexfold(const char  *s1[],
 
       for (s = 0; s < n_seq; s++)
         c[i][j] +=
-          E_ExtLoop(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
-                    P) + 2 * extension_cost;
+          vrna_E_ext_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
+                          P) + 2 * extension_cost;
       for (k = i - 1; k > 0 && k > i - MAXLOOP - 2; k--) {
         for (l = j + 1; l <= n4; l++) {
           int type2;
@@ -277,8 +277,8 @@ aliduplexfold(const char  *s1[],
       E       = c[i][j];
       for (s = 0; s < n_seq; s++)
         E +=
-          E_ExtLoop(rtype[type[s]], (j > 1) ? S2[s][j - 1] : -1, (i < n3) ? S1[s][i + 1] : -1,
-                    P) + 2 * extension_cost;
+          vrna_E_ext_stem(rtype[type[s]], (j > 1) ? S2[s][j - 1] : -1, (i < n3) ? S1[s][i + 1] : -1,
+                          P) + 2 * extension_cost;
       if (E < Emin) {
         Emin  = E;
         i_min = i;
@@ -333,9 +333,9 @@ alibacktrack(int          i,
   n3  = (int)S1[0][0];
   n4  = (int)S2[0][0];
 
-  for (s = 0; S1[s] != NULL; s++) ;
+  for (s = 0; S1[s] != NULL; s++);
   n_seq = s;
-  for (s = 0; S2[s] != NULL; s++) ;
+  for (s = 0; S2[s] != NULL; s++);
   if (n_seq != s)
     vrna_message_error("unequal number of sequences in alibacktrack()\n");
 
@@ -391,8 +391,8 @@ alibacktrack(int          i,
     if (!traced) {
       for (s = 0; s < n_seq; s++)
         E -=
-          E_ExtLoop(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
-                    P) + 2 * extension_cost;
+          vrna_E_ext_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
+                          P) + 2 * extension_cost;
       if (E != n_seq * P->DuplexInit + n_seq * 2 * extension_cost)
         vrna_message_error("backtrack failed in aliduplex");
       else
@@ -464,9 +464,9 @@ aliLduplexfold(const char *s1[],
 
   n1  = (int)strlen(s1[0]);
   n2  = (int)strlen(s2[0]);
-  for (s = 0; s1[s]; s++) ;
+  for (s = 0; s1[s]; s++);
   n_seq = s;
-  for (s = 0; s2[s]; s++) ;
+  for (s = 0; s2[s]; s++);
   if (n_seq != s)
     vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
@@ -608,7 +608,7 @@ aliLduplexfold(const char *s1[],
         continue;
 
       for (s = 0; s < n_seq; s++)
-        lc[idx][j] += E_ExtLoop(type[s], S1[s][i - 1], S2[s][j + 1], P) + 2 * extension_cost;
+        lc[idx][j] += vrna_E_ext_stem(type[s], S1[s][i - 1], S2[s][j + 1], P) + 2 * extension_cost;
       for (s = 0; s < n_seq; s++) {
         type2 = pair[S1[s][i - 1]][S2[s][j + 1]];
         if (type2 == 0)
@@ -760,7 +760,7 @@ aliLduplexfold(const char *s1[],
       lc[idx][j]  -= psc;
       temp        = lc[idx][j];
       for (s = 0; s < n_seq; s++)
-        temp += E_ExtLoop(rtype[type[s]], S2[s][j - 1], S1[s][i + 1], P) + 2 * extension_cost;
+        temp += vrna_E_ext_stem(rtype[type[s]], S2[s][j - 1], S1[s][i + 1], P) + 2 * extension_cost;
       if (min_colonne > temp) {
         min_colonne   = temp;
         min_j_colonne = j;
@@ -832,7 +832,7 @@ alifind_max(const int   *position,
 {
   int n_seq = 0;
 
-  for (n_seq = 0; s1[n_seq] != NULL; n_seq++) ;
+  for (n_seq = 0; s1[n_seq] != NULL; n_seq++);
   int pos = n1 - 9;
   if (fast == 1) {
     while (10 < pos--) {
@@ -926,7 +926,7 @@ aliplot_max(const int   max,
 {
   int n_seq;
 
-  for (n_seq = 0; !(s1[n_seq] == NULL); n_seq++) ;
+  for (n_seq = 0; !(s1[n_seq] == NULL); n_seq++);
   n1  = strlen(s1[0]);  /* get length of alignment */
   n2  = strlen(s2[0]);  /* get length of alignment */
   if (fast == 1) {
@@ -993,9 +993,9 @@ aliduplexfold_XS(const char *s1[],
   int       n_seq;
   n3  = (int)strlen(s1[0]);
   n4  = (int)strlen(s2[0]);
-  for (s = 0; s1[s] != NULL; s++) ;
+  for (s = 0; s1[s] != NULL; s++);
   n_seq = s;
-  for (s = 0; s2[s] != NULL; s++) ;
+  for (s = 0; s2[s] != NULL; s++);
   /* printf("%d \n",i_pos); */
 
   set_model_details(&md);
@@ -1039,10 +1039,10 @@ aliduplexfold_XS(const char *s1[],
       type[s] = 7;
 
   for (s = 0; s < n_seq; s++)
-    c[i][j] += E_ExtLoop(rtype[type[s]],
-                         (j_flag ? S2[s][j - 1] : -1),
-                         (i_flag ? S1[s][i + 1] : -1),
-                         P);
+    c[i][j] += vrna_E_ext_stem(rtype[type[s]],
+                               (j_flag ? S2[s][j - 1] : -1),
+                               (i_flag ? S1[s][i + 1] : -1),
+                               P);
   k_min = i;
   l_min = j;
   Emin  = c[i][j];
@@ -1085,7 +1085,8 @@ aliduplexfold_XS(const char *s1[],
       E       = c[k][l];
       E       += n_seq * (access_s1[i - k + 1][i_pos] + access_s2[l - 1][j_pos + (l - 1) - 1]);
       for (s = 0; s < n_seq; s++)
-        E += E_ExtLoop(type2[s], (k > 1) ? S1[s][k - 1] : -1, (l < n4) ? S2[s][l + 1] : -1, P);
+        E +=
+          vrna_E_ext_stem(type2[s], (k > 1) ? S1[s][k - 1] : -1, (l < n4) ? S2[s][l + 1] : -1, P);
       if (E < Emin) {
         Emin  = E;
         k_min = k;
@@ -1169,9 +1170,9 @@ alibacktrack_XS(int         i,
 
   n3  = (int)S1[0][0];
   n4  = (int)S2[0][0];
-  for (s = 0; S1[s] != NULL; s++) ;
+  for (s = 0; S1[s] != NULL; s++);
   n_seq = s;
-  for (s = 0; S2[s] != NULL; s++) ;
+  for (s = 0; S2[s] != NULL; s++);
   if (n_seq != s)
     vrna_message_error("unequal number of sequences in alibacktrack()\n");
 
@@ -1286,9 +1287,9 @@ aliLduplexfold_XS(const char  *s1[],
 
   n1  = (int)strlen(s1[0]);
   n2  = (int)strlen(s2[0]);
-  for (s = 0; s1[s]; s++) ;
+  for (s = 0; s1[s]; s++);
   n_seq = s;
-  for (s = 0; s2[s]; s++) ;
+  for (s = 0; s2[s]; s++);
   if (n_seq != s)
     vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
@@ -1448,7 +1449,7 @@ aliLduplexfold_XS(const char  *s1[],
         continue;
 
       for (s = 0; s < n_seq; s++)
-        lc[idx][j] += E_ExtLoop(type[s], S1[s][i - 1], S2[s][j + 1], P);
+        lc[idx][j] += vrna_E_ext_stem(type[s], S1[s][i - 1], S2[s][j + 1], P);
       for (s = 0; s < n_seq; s++) {
         type2 = pair[S1[s][i - 1]][S2[s][j + 1]];
         if (type2 == 0)
@@ -1601,7 +1602,7 @@ aliLduplexfold_XS(const char  *s1[],
       temp        = lc[idx][j];
 
       for (s = 0; s < n_seq; s++)
-        temp += E_ExtLoop(rtype[type[s]], S2[s][j - 1], S1[s][i + 1], P);
+        temp += vrna_E_ext_stem(rtype[type[s]], S2[s][j - 1], S1[s][i + 1], P);
       if (min_colonne > temp) {
         min_colonne   = temp;
         min_j_colonne = j;
@@ -1675,7 +1676,7 @@ alifind_max_XS(const int  *position,
 {
   int n_seq = 0;
 
-  for (n_seq = 0; s1[n_seq] != NULL; n_seq++) ;
+  for (n_seq = 0; s1[n_seq] != NULL; n_seq++);
   int pos = n1 - 9;
   if (fast == 1) {
     while (10 < pos--) {
@@ -1785,7 +1786,7 @@ aliplot_max_XS(const int  max,
 {
   int n_seq;
 
-  for (n_seq = 0; !(s1[n_seq] == NULL); n_seq++) ;
+  for (n_seq = 0; !(s1[n_seq] == NULL); n_seq++);
   n1  = strlen(s1[0]);  /* get length of alignment */
   n2  = strlen(s2[0]);  /* get length of alignme */
 
@@ -1848,9 +1849,11 @@ PRIVATE int
 covscore(const int  *types,
          int        n_seq)
 {
-  /* calculate co-variance bonus for a pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
+  /*
+   * calculate co-variance bonus for a pair depending on
+   * compensatory/consistent mutations and incompatible seqs
+   * should be 0 for conserved pairs, >0 for good pairs
+   */
 #define NONE -10000                         /* score for forbidden pairs */
   int k, l, s, score, pscore;
   int dm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */
@@ -1872,8 +1875,10 @@ covscore(const int  *types,
 
   for (k = 1, score = 0; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
     for (l = k + 1; l <= 6; l++)
-      /* scores for replacements between pairtypes    */
-      /* consistent or compensatory mutations score 1 or 2  */
+      /*
+       * scores for replacements between pairtypes
+       * consistent or compensatory mutations score 1 or 2
+       */
       score += pfreq[k] * pfreq[l] * dm[k][l];
 
   /* counter examples score -1, gap-gap scores -0.25   */
