@@ -329,12 +329,10 @@ PUBLIC int gmlRNA(char *string, char *structure, char *ssfile, char option)
   case 'X' :
   case 'x' :
     /* Simple XY Plot */
-    X = (float *) vrna_alloc((length+1)*sizeof(float));
-    Y = (float *) vrna_alloc((length+1)*sizeof(float));
     if (rna_plot_type == 0)
-      i = simple_xy_coordinates(pair_table, X, Y);
+      i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
     else
-      i = naview_xy_coordinates(pair_table, X, Y);
+      i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
 
     if(i!=length)
       vrna_message_warning("strange things happening in gmlRNA ...");
@@ -409,12 +407,11 @@ PS_rna_plot_snoop_a(const char *string,
   pair_table = vrna_ptable(structure);
   pair_table_snoop = vrna_pt_snoop_get(structure);
 
-  X = (float *) vrna_alloc((length+1)*sizeof(float));
-  Y = (float *) vrna_alloc((length+1)*sizeof(float));
   if (rna_plot_type == 0)
-    i = simple_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
   else
-    i = naview_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
+
   if(i!=length)
     vrna_message_warning("strange things happening in PS_rna_plot...");
 /*   printf("cut_point %d\n", cut_point); */
@@ -698,11 +695,8 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
 
   pair_table = vrna_ptable(structure);
 
-  X = (float *) vrna_alloc((length+1)*sizeof(float));
-  Y = (float *) vrna_alloc((length+1)*sizeof(float));
-
   switch(rna_plot_type){
-    case VRNA_PLOT_TYPE_SIMPLE:   i = simple_xy_coordinates(pair_table, X, Y);
+    case VRNA_PLOT_TYPE_SIMPLE:   i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
                                   break;
     case VRNA_PLOT_TYPE_CIRCULAR: {
                                     int radius = 3*length;
@@ -710,7 +704,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
                                     R = (float *) vrna_alloc((length+1)*sizeof(float));
                                     CX = (float *) vrna_alloc((length+1)*sizeof(float));
                                     CY = (float *) vrna_alloc((length+1)*sizeof(float));
-                                    i = simple_circplot_coordinates(pair_table, X, Y);
+                                    i = vrna_plot_coords_circular_pt(pair_table, &X, &Y);
                                     for (i = 0; i < length; i++) {
                                       if(i+1 < pair_table[i+1]){
                                         dr = (pair_table[i+1]-i+1 <= (length/2 + 1)) ? pair_table[i+1]-i : i + length - pair_table[i+1];
@@ -731,13 +725,12 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
                                     }
                                   }
                                   break;
-    default:                      i = naview_xy_coordinates(pair_table, X, Y);
+    default:                      i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
                                   break;
   }
 
   if(i!=length)
     vrna_message_warning("strange things happening in PS_rna_plot...");
-
 
   xmin = xmax = X[0];
   ymin = ymax = Y[0];
@@ -840,13 +833,11 @@ PUBLIC int ssv_rna_plot(char *string, char *structure, char *ssfile)
   pair_table = vrna_ptable(structure);
 
   /* make coordinates */
-  X = (float *) vrna_alloc((length+1)*sizeof(float));
-  Y = (float *) vrna_alloc((length+1)*sizeof(float));
-
   if (rna_plot_type == 0)
-    i = simple_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
   else
-    i = naview_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
+
   if (i!=length)
     vrna_message_warning("strange things happening in ssv_rna_plot...");
 
@@ -923,13 +914,11 @@ PUBLIC int xrna_plot(char *string, char *structure, char *ssfile)
   pair_table = vrna_ptable(structure);
 
   /* make coordinates */
-  X = (float *) vrna_alloc((length+1)*sizeof(float));
-  Y = (float *) vrna_alloc((length+1)*sizeof(float));
-
   if (rna_plot_type == 0)
-    i = simple_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
   else
-    i = naview_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
+
   if (i!=length)
     vrna_message_warning("strange things happening in xrna_plot...");
 
