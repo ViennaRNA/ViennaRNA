@@ -344,9 +344,9 @@ eval_hp_loop_fake(vrna_fold_compound_t  *fc,
       sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
 
       if (md->dangles)
-        e = E_ExtLoop(type, sj, si, P);
+        e = vrna_E_ext_stem(type, sj, si, P);
       else
-        e = E_ExtLoop(type, -1, -1, P);
+        e = vrna_E_ext_stem(type, -1, -1, P);
 
       /* add soft constraints */
       if (sc) {
