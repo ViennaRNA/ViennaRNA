@@ -206,8 +206,10 @@ vrna_file_PS_aln_slice(const char   *filename,
           "[10 0 0 -10 0 0] makefont setfont\n",
           (int)imageHeight);
 
-  /* Create ruler and secondary structure lines */
-  /* Init all with dots */
+  /*
+   * Create ruler and secondary structure lines
+   * Init all with dots
+   */
   memset(ruler, '.', sizeof(char) * length);
 
   for (i = 0; i < length; i++) {
@@ -236,8 +238,10 @@ vrna_file_PS_aln_slice(const char   *filename,
 
   pair_table -= shift;
 
-  /* Draw color annotation first */
-  /* Repeat for all pairs */
+  /*
+   * Draw color annotation first
+   * Repeat for all pairs
+   */
   for (i = start; i <= end; i++) {
     j = pair_table[i] + shift;
     if ((j > i) && (j <= end)) {
@@ -291,7 +295,7 @@ vrna_file_PS_aln_slice(const char   *filename,
   currY   = startY;
   currPos = 0;
 
-  cons = consensus(seqs);
+  cons = vrna_aln_consensus_sequence(seqs, &md);
 
   while (currPos < length) {
     /* Display secondary structure line */
@@ -403,10 +407,11 @@ vrna_file_PS_aln_slice(const char   *filename,
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
-
+/*
+ *###########################################
+ *# deprecated functions below              #
+ *###########################################
+ */
 PUBLIC int
 PS_color_aln(const char *structure,
              const char *filename,
