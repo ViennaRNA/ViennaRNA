@@ -396,11 +396,11 @@ main(int  argc,
 
   /* set cfactor */
   if (args_info.cfactor_given)
-    opt.md.cv_fact = cv_fact = args_info.cfactor_arg;
+    opt.md.cv_fact = args_info.cfactor_arg;
 
   /* set nfactor */
   if (args_info.nfactor_given)
-    opt.md.nc_fact = nc_fact = args_info.nfactor_arg;
+    opt.md.nc_fact = args_info.nfactor_arg;
 
   if (args_info.endgaps_given)
     opt.endgaps = 1;
