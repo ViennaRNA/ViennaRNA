@@ -233,6 +233,13 @@ vrna_params_reset(vrna_fold_compound_t  *vc,
           free(vc->params);
 
         vc->params = vrna_params(md_p);
+
+        if (vc->exp_params) {
+          free(vc->exp_params);
+
+          vc->exp_params = vrna_exp_params(md_p);
+        }
+
         break;
 
       default:
