@@ -589,17 +589,17 @@ backtrack_ext_loop(int                              init_val,
 
         if (vc->type == VRNA_FC_TYPE_SINGLE) {
           type  = vrna_get_ptype_md(S2[i], S2[j], md);
-          qkl   *= exp_E_ExtLoop(type,
-                                 (i > 1) ? S1[i - 1] : -1,
-                                 (j < n) ? S1[j + 1] : -1,
-                                 pf_params);
+          qkl   *= vrna_exp_E_ext_stem(type,
+                                       (i > 1) ? S1[i - 1] : -1,
+                                       (j < n) ? S1[j + 1] : -1,
+                                       pf_params);
         } else {
           for (s = 0; s < n_seq; s++) {
             type  = vrna_get_ptype_md(S[s][i], S[s][j], md);
-            qkl   *= exp_E_ExtLoop(type,
-                                   (a2s[s][i] > 1) ? S5[s][i] : -1,
-                                   (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
-                                   pf_params);
+            qkl   *= vrna_exp_E_ext_stem(type,
+                                         (a2s[s][i] > 1) ? S5[s][i] : -1,
+                                         (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
+                                         pf_params);
           }
         }
 
@@ -729,17 +729,17 @@ backtrack_ext_loop(int                              init_val,
         qkl = qb[ij];
         if (vc->type == VRNA_FC_TYPE_SINGLE) {
           type  = vrna_get_ptype_md(S2[i], S2[j], md);
-          qkl   *= exp_E_ExtLoop(type,
-                                 (i > 1) ? S1[i - 1] : -1,
-                                 (j < n) ? S1[j + 1] : -1,
-                                 pf_params);
+          qkl   *= vrna_exp_E_ext_stem(type,
+                                       (i > 1) ? S1[i - 1] : -1,
+                                       (j < n) ? S1[j + 1] : -1,
+                                       pf_params);
         } else {
           for (s = 0; s < n_seq; s++) {
             type  = vrna_get_ptype_md(S[s][i], S[s][j], md);
-            qkl   *= exp_E_ExtLoop(type,
-                                   (a2s[s][i] > 1) ? S5[s][i] : -1,
-                                   (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
-                                   pf_params);
+            qkl   *= vrna_exp_E_ext_stem(type,
+                                         (a2s[s][i] > 1) ? S5[s][i] : -1,
+                                         (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
+                                         pf_params);
           }
         }
 
@@ -1816,8 +1816,10 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
                   q_temp *= sc_wrapper_int->pair_ext(i, j, k, l, sc_wrapper_int);
 
                 qt += q_temp;
-                /* found an exterior interior loop? also this time, we can go straight  */
-                /* forward and backtracking the both enclosed parts and we're done      */
+                /*
+                 * found an exterior interior loop? also this time, we can go straight
+                 * forward and backtracking the both enclosed parts and we're done
+                 */
                 if (qt > r) {
                   backtrack(i, j, pstruc, vc, sc_wrap, NULL);
                   backtrack(k, l, pstruc, vc, sc_wrap, NULL);
@@ -1866,8 +1868,10 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
         }
       }
     }
-    /* if we reach the actual end of this function, an error has occured  */
-    /* cause we HAVE TO find an exterior loop or an open chain!!!         */
+    /*
+     * if we reach the actual end of this function, an error has occured
+     * cause we HAVE TO find an exterior loop or an open chain!!!
+     */
     vrna_message_error("backtracking failed in exterior loop");
 
 pbacktrack_circ_loop_end:
