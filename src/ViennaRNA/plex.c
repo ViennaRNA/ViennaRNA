@@ -338,16 +338,16 @@ duplexfold_XS(const char  *s1,
    **/
 
 
-  c[i][j] += E_ExtLoop(rtype[type], (j_flag ? SS2[j - 1] : -1), (i_flag ? SS1[i + 1] : -1), P);
+  c[i][j] += vrna_E_ext_stem(rtype[type], (j_flag ? SS2[j - 1] : -1), (i_flag ? SS1[i + 1] : -1), P);
 
   /*   if(j_flag ==0 && i_flag==0){ */
-  /*     c[i][j] += E_ExtLoop(rtype[type], -1 , -1 , P); */
+  /*     c[i][j] += vrna_E_ext_stem(rtype[type], -1 , -1 , P); */
   /*   }else if(j_flag ==0 && i_flag==1){ */
-  /*     c[i][j] += E_ExtLoop(rtype[type], -1 , SS1[i+1], P); */
+  /*     c[i][j] += vrna_E_ext_stem(rtype[type], -1 , SS1[i+1], P); */
   /*   }else if(j_flag ==1 && i_flag==0){ */
-  /*     c[i][j] += E_ExtLoop(rtype[type], SS2[j-1] , -1, P); */
+  /*     c[i][j] += vrna_E_ext_stem(rtype[type], SS2[j-1] , -1, P); */
   /*   }else { */
-  /*     c[i][j] += E_ExtLoop(rtype[type], SS2[j-1] , SS1[i+1], P); */
+  /*     c[i][j] += vrna_E_ext_stem(rtype[type], SS2[j-1] , SS1[i+1], P); */
   /*   } */
   /*  Just in case we have only one bp, we initialize ... */
   /*  k_min, l_min and Emin */
@@ -394,7 +394,7 @@ duplexfold_XS(const char  *s1,
        ***if (l<n4) E += P->dangle3[type2][SS2[l+1]];
        *** Replaced by the line below
        **/
-      E += E_ExtLoop(type2, (k > 1) ? SS1[k - 1] : -1, (l < n4) ? SS2[l + 1] : -1, P);
+      E += vrna_E_ext_stem(type2, (k > 1) ? SS1[k - 1] : -1, (l < n4) ? SS2[l + 1] : -1, P);
 
       if (E < Emin) {
         Emin  = E;
@@ -528,7 +528,7 @@ backtrack_XS(int        i,
         E -= P->TerminalAU;
 
 #endif
-      E -= E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1], P);
+      E -= vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P);
       break;
       if (E != P->DuplexInit)
         vrna_message_error("backtrack failed in fold duplex bal");
@@ -811,7 +811,7 @@ fduplexfold_XS(const char *s1,
       if (!type)
         continue;
 
-      c[i][j] += E_ExtLoop(type, SS1[i - 1], SS2[j + 1], P);
+      c[i][j] += vrna_E_ext_stem(type, SS1[i - 1], SS2[j + 1], P);
       /**
       *** stack extension
       **/
@@ -923,7 +923,7 @@ fduplexfold_XS(const char *s1,
        * remove this line printf("%d\t",c[i][j]);
        */
       temp        = min_colonne;
-      min_colonne = MIN2(c[i][j] + E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1], P), min_colonne);
+      min_colonne = MIN2(c[i][j] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P), min_colonne);
       if (temp > min_colonne)
         min_j_colonne = j;
 
@@ -1109,7 +1109,7 @@ fbacktrack_XS(int       i,
   maxPenalty[3] = (int)-2 * P->stack[2][2];
 
   type    = pair[S1[i]][S2[j]];
-  *dG     += E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1], P);
+  *dG     += vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P);
   *dGplex = *dG;
 
   while (i > 10 && j <= n4 - 9 && traced) {
@@ -1842,7 +1842,7 @@ fbacktrack_XS(int       i,
     *** if (type>2) {E -= P->TerminalAU; *dG+=P->TerminalAU;*dGplex+=P->TerminalAU;}
     **/
     int correction;
-    correction  = E_ExtLoop(type, (i > 1) ? SS1[i - 1] : -1, (j < n4) ? SS2[j + 1] : -1, P);
+    correction  = vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n4) ? SS2[j + 1] : -1, P);
     *dG         += correction;
     *dGplex     += correction;
     E           -= correction;
@@ -2139,7 +2139,7 @@ Lduplexfold_XS(const char *s1,
                   *** stack extension
                   **/
 
-      SA[LCI(idx, j, n2)] += E_ExtLoop(type, SS1[i - 1], SS2[j + 1], P);
+      SA[LCI(idx, j, n2)] += vrna_E_ext_stem(type, SS1[i - 1], SS2[j + 1], P);
       /**
       *** stack extension
       **/
@@ -2280,7 +2280,7 @@ Lduplexfold_XS(const char *s1,
       **/
       /* remove this line printf("LCI %d:%d %d\t",i,j,SA[LCI(idx,j,n2)]); */
       /* remove this line printf("LI %d:%d %d\t",i,j, SA[LINI(idx,j,n2)]); */
-      min_colonne = MIN2(SA[LCI(idx, j, n2)] + E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1], P),
+      min_colonne = MIN2(SA[LCI(idx, j, n2)] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P),
                          min_colonne);
 
       if (temp > min_colonne)
@@ -2677,7 +2677,7 @@ duplexfold(const char *s1,
       ***       if (j<n4) c[i][j] += P->dangle3[type][SS2[j+1]]+ extension_cost;
       ***       if (type>2) c[i][j] += P->TerminalAU;
       **/
-      c[i][j] += E_ExtLoop(type, (i > 1) ? SS1[i - 1] : -1, (j < n4) ? SS2[j + 1] : -1, P);
+      c[i][j] += vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n4) ? SS2[j + 1] : -1, P);
       for (k = i - 1; k > 0 && k > i - MAXLOOP - 2; k--) {
         for (l = j + 1; l <= n4; l++) {
           if (i - k + l - j - 2 > MAXLOOP)
@@ -2700,7 +2700,7 @@ duplexfold(const char *s1,
       ***      if (type>2) E += P->TerminalAU;
       ***
       **/
-      E += E_ExtLoop(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n3) ? SS1[i + 1] : -1, P);
+      E += vrna_E_ext_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n3) ? SS1[i + 1] : -1, P);
       if (E < Emin) {
         Emin  = E;
         i_min = i;
@@ -2783,7 +2783,7 @@ backtrack(int       i,
         break;
     }
     if (!traced) {
-      E -= E_ExtLoop(type, (i > 1) ? SS1[i - 1] : -1, (j < n4) ? SS2[j + 1] : -1, P);
+      E -= vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n4) ? SS2[j + 1] : -1, P);
       /**
       ***      if (i>1) E -= P->dangle5[type][SS1[i-1]]+extension_cost;
       ***      if (j<n4) E -= P->dangle3[type][SS2[j+1]]+extension_cost;
@@ -2959,7 +2959,7 @@ fduplexfold(const char  *s1,
       if (!type)
         continue;
 
-      c[i][j] += E_ExtLoop(type, SS1[i - 1], SS2[j + 1], P) + 2 * extension_cost;
+      c[i][j] += vrna_E_ext_stem(type, SS1[i - 1], SS2[j + 1], P) + 2 * extension_cost;
       /**
       *** stack extension
       **/
@@ -3067,7 +3067,7 @@ fduplexfold(const char  *s1,
       **/
       c[i][j]     = MIN2(by[i - 1][j + 2] + 2 * extension_cost + bext + bAU, c[i][j]);
       temp        = min_colonne;
-      min_colonne = MIN2(c[i][j] + E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1],
+      min_colonne = MIN2(c[i][j] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1],
                                              P) + 2 * extension_cost,
                          min_colonne);
       if (temp > min_colonne)
@@ -3161,7 +3161,7 @@ fbacktrack(int        i,
   k       = i;
   l       = j;
   type    = pair[S1[i]][S2[j]];
-  *dG     += E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1], P);
+  *dG     += vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P);
   /*     (type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]]; */
   while (i > 10 && j <= n4 - 9 && traced) {
     traced = 0;
@@ -3693,7 +3693,7 @@ fbacktrack(int        i,
     ***    if (type>2) {E -= P->TerminalAU; *dG+=P->TerminalAU;}
     **/
     int correction;
-    correction  = E_ExtLoop(type, (i > 1) ? SS1[i - 1] : -1, (j < n4) ? SS2[j + 1] : -1, P);
+    correction  = vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n4) ? SS2[j + 1] : -1, P);
     *dG         += correction;
     E           -= correction + 2 * extension_cost;
     if (E != P->DuplexInit + 2 * extension_cost) {
@@ -3905,7 +3905,7 @@ Lduplexfold(const char  *s1,
                   *** stack extension
                   **/
 
-      SA[LCI(idx, j, n2)] += E_ExtLoop(type, SS1[i - 1], SS2[j + 1], P) + 2 * extension_cost;
+      SA[LCI(idx, j, n2)] += vrna_E_ext_stem(type, SS1[i - 1], SS2[j + 1], P) + 2 * extension_cost;
       /**
       *** stack extension
       **/
@@ -4044,7 +4044,7 @@ Lduplexfold(const char  *s1,
         MIN2(SA[LBYI(idx_1, j + 2, n2)] + 2 * extension_cost + bext + bAU, SA[LCI(idx, j, n2)]);
       temp = min_colonne;
 
-      min_colonne = MIN2(SA[LCI(idx, j, n2)] + E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1],
+      min_colonne = MIN2(SA[LCI(idx, j, n2)] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1],
                                                          P) + 2 * extension_cost,
                          min_colonne);
       if (temp > min_colonne)
