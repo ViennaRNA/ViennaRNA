@@ -438,7 +438,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         sequence[vc->length] = '\0';
 
         /* double check information by comparing the sequence read from */
-        char *tmp_seq = get_ungapped_sequence(vc->sequences[shape_file_association[s]]);
+        char *tmp_seq = vrna_seq_ungapped(vc->sequences[shape_file_association[s]]);
         if (strcmp(tmp_seq, sequence))
           vrna_message_warning("Input sequence %d differs from sequence provided via SHAPE file!",
                                shape_file_association[s] + 1);
