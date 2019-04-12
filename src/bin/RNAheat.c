@@ -34,20 +34,19 @@
 
 
 #define MAXWIDTH  201
-#define GASCONST  1.98717  /* in [cal/K] */
-#define K0        273.15
 
-PRIVATE float F[MAXWIDTH];
-PRIVATE float ddiff(float f[],
-                    float h,
-                    int   m);
+PRIVATE float
+ddiff(float f[],
+      float h,
+      int   m);
 
 
-PRIVATE void heat_capacity(char   *string,
-                           float  T_min,
-                           float  T_max,
-                           float  h,
-                           int    m);
+PRIVATE void
+heat_capacity(vrna_fold_compound_t  *fc,
+              float                 T_min,
+              float                 T_max,
+              float                 h,
+              int                   m);
 
 
 int
@@ -61,6 +60,7 @@ main(int  argc,
   int                       i, length, sym, mpoints, istty, noconv, filename_full;
   float                     T_min, T_max, h;
   dataset_id                id_control;
+  vrna_md_t                 md;
 
   ParamFile     = ns_bases = NULL;
   T_min         = 0.;
@@ -184,6 +184,11 @@ main(int  argc,
     }
   }
 
+  set_model_details(&md);
+
+  md.backtrack    = 0;
+  md.compute_bpp  = 0;
+
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
   read_opt |= VRNA_INPUT_NO_REST;
@@ -200,7 +205,9 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
-    char *SEQ_ID = NULL;
+    vrna_fold_compound_t  *fc;
+
+    char                  *SEQ_ID = NULL;
     /*
      ########################################################
      # init everything according to the data we've read
@@ -212,8 +219,6 @@ main(int  argc,
     /* construct the sequence ID */
     set_next_id(&rec_id, id_control);
     SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
-
-    length = (int)strlen(rec_sequence);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -227,6 +232,8 @@ main(int  argc,
     if (!istty)
       print_fasta_header(stdout, rec_id);
 
+    length = (int)strlen(rec_sequence);
+
     if (istty)
       vrna_message_info(stdout, "length = %d", length);
 
@@ -236,8 +243,12 @@ main(int  argc,
      ########################################################
      */
 
-    heat_capacity(rec_sequence, T_min, T_max, h, mpoints);
+    fc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_DEFAULT);
+
+    heat_capacity(fc, T_min, T_max, h, mpoints);
     (void)fflush(stdout);
+
+    vrna_fold_compound_free(fc);
 
     /* clean up */
     free(rec_id);
@@ -259,64 +270,65 @@ main(int  argc,
 
 
 PRIVATE void
-heat_capacity(char  *string,
-              float T_min,
-              float T_max,
-              float h,
-              int   m)
+heat_capacity(vrna_fold_compound_t  *fc,
+              float                 T_min,
+              float                 T_max,
+              float                 h,
+              int                   m)
 {
-  int   length, i;
-  char  *structure;
-  float hc, kT, min_en;
+  int       length, i;
+  float     hc;
+  float     F[MAXWIDTH];
+  double    min_en;
 
-  length = (int)strlen(string);
+  length = (int)fc->length;
 
-  do_backtrack = 0;
+  vrna_md_t md = fc->params->model_details;
 
-  temperature = T_min - m * h;
+  /* required for vrna_exp_param_rescale() in subsequent calls */
+  md.sfact = 1.;
+
+  md.temperature = T_min - m * h;
+  vrna_params_reset(fc, &md);
+
   /* initialize_fold(length); <- obsolete */
-  structure = (char *)vrna_alloc((unsigned)length + 1);
-  min_en    = fold(string, structure);
-  free(structure);
-  free_arrays();
-  kT        = (temperature + K0) * GASCONST / 1000; /* in kcal */
-  pf_scale  = exp(-(1.07 * min_en) / kT / length);
-  /* init_pf_fold(length); <- obsolete */
-  vrna_exp_param_t  *pf_parameters = NULL;
-  vrna_md_t         md;
-  set_model_details(&md);
-  pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+  min_en  = (double)vrna_mfe(fc, NULL);
+  min_en  *= md.sfact;
 
-  update_pf_params_par(length, pf_parameters);
+  vrna_exp_params_rescale(fc, &min_en);
+
   for (i = 0; i < 2 * m + 1; i++) {
-    F[i]            = pf_fold_par(string, NULL, pf_parameters, 0, 0, 0); /* T_min -2h */
-    md.temperature  = temperature += h;
-    kT              = (temperature + K0) * GASCONST / 1000;
-    pf_scale        = exp(-(F[i] / length + h * 0.00727) / kT); /* try to extrapolate F */
-    free(pf_parameters);
-    pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
-    update_pf_params_par(length, pf_parameters);
+    F[i] = vrna_pf(fc, NULL);
+    /* increase temperature */
+    md.temperature += h;
+    /* reset all energy parameters according to temperature changes */
+    vrna_params_reset(fc, &md);
+
+    min_en = F[i] + h * 0.00727 * length;
+
+    vrna_exp_params_rescale(fc, &min_en);
   }
-  while (temperature <= (T_max + m * h + h)) {
-    hc = -ddiff(F, h, m) * (temperature + K0 - m * h - h);
-    char *tline = vrna_strdup_printf("%g\t%g", (temperature - m * h - h), hc);
+
+  while (md.temperature <= (T_max + m * h + h)) {
+    hc = -ddiff(F, h, m) * (md.temperature + K0 - m * h - h);
+    char *tline = vrna_strdup_printf("%g\t%g", (md.temperature - m * h - h), hc);
     print_table(stdout, NULL, tline);
     free(tline);
 
     for (i = 0; i < 2 * m; i++)
       F[i] = F[i + 1];
 
-    F[2 * m] = pf_fold_par(string, NULL, pf_parameters, 0, 0, 0);
+    F[2 * m] = vrna_pf(fc, NULL);
+
     /*       printf("%g\n", F[2*m]);*/
-    temperature += h;
-    kT          = (temperature + K0) * GASCONST / 1000;
-    pf_scale    = exp(-(F[i] / length + h * 0.00727) / kT);
-    free(pf_parameters);
-    md.temperature  = temperature;
-    pf_parameters   = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
-    update_pf_params_par(length, pf_parameters);
+    md.temperature += h;
+
+    vrna_params_reset(fc, &md);
+
+    min_en = F[i] + h * 0.00727 * length;
+
+    vrna_exp_params_rescale(fc, &min_en);
   }
-  free_pf_arrays();
 }
 
 
