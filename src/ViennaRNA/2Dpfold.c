@@ -998,7 +998,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
       }
 
       if (type) {
-        aux_en = exp_E_ExtLoop(type, (i > 1) || circ ? S1[i - 1] : -1, (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
+        aux_en = vrna_exp_E_ext_stem(type, (i > 1) || circ ? S1[i - 1] : -1, (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
 
         if (matrices->Q_B_rem[ij])
           matrices->Q_rem[ij] += matrices->Q_B_rem[ij] * aux_en;
@@ -1059,7 +1059,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
 
       for (k = j - TURN - 1; k > i; k--) {
         tt    = ptype[jindx[j] + k];
-        temp2 = exp_E_ExtLoop(tt, S1[k - 1], (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
+        temp2 = vrna_exp_E_ext_stem(tt, S1[k - 1], (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
 
         if (matrices->Q_rem[my_iindx[i] - k + 1]) {
           if (matrices->Q_B[my_iindx[k] - j]) {
@@ -2031,7 +2031,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
         type  = ptype[jindx[j] + i];
         if (type) {
           cnt1 = cnt2 = cnt3 = cnt4 = -1;
-          double qkl = exp_E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, S1[j + 1], pf_params);
+          double qkl = vrna_exp_E_ext_stem(type, (i > 1) ? S1[i - 1] : -1, S1[j + 1], pf_params);
 
           if (Q_B_rem[ij] != 0.) {
             if (Q_rem[my_iindx[j + 1] - length] != 0.) {
@@ -2100,7 +2100,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
       ij    = my_iindx[i] - j;
       type  = ptype[jindx[j] + i];
       if (type) {
-        double qkl = exp_E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, (j < n) ? S1[j + 1] : -1, pf_params);
+        double qkl = vrna_exp_E_ext_stem(type, (i > 1) ? S1[i - 1] : -1, (j < n) ? S1[j + 1] : -1, pf_params);
         if (Q_B_rem[ij] != 0.) {
           qt += qkl * Q_B_rem[ij];
           if (qt >= r)
@@ -2186,7 +2186,7 @@ pbacktrack_ext_loop_early_escape_rem:
         type  = ptype[jindx[j] + i];
         if (type) {
           double qkl = 1.0;
-          qkl *= exp_E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, S1[j + 1], pf_params);
+          qkl *= vrna_exp_E_ext_stem(type, (i > 1) ? S1[i - 1] : -1, S1[j + 1], pf_params);
 
           da  = referenceBPs1[sn] - referenceBPs1[ij] - referenceBPs1[my_iindx[j + 1] - length];
           db  = referenceBPs2[sn] - referenceBPs2[ij] - referenceBPs2[my_iindx[j + 1] - length];
@@ -2220,7 +2220,7 @@ pbacktrack_ext_loop_early_escape_rem:
       if (type) {
         double qkl = 1.0;
 
-        qkl *= exp_E_ExtLoop(type, (i > 1) ? S1[i - 1] : -1, (j < n) ? S1[j + 1] : -1, pf_params);
+        qkl *= vrna_exp_E_ext_stem(type, (i > 1) ? S1[i - 1] : -1, (j < n) ? S1[j + 1] : -1, pf_params);
 
         da  = referenceBPs1[sn] - referenceBPs1[ij];
         db  = referenceBPs2[sn] - referenceBPs2[ij];
