@@ -1245,14 +1245,14 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
         switch (dangle_model) {
           /* no dangles */
           case 0:
-            energy += E_ExtLoop(tt, -1, -1, P);
+            energy += vrna_E_ext_stem(tt, -1, -1, P);
             break;
 
           /* the beloved double dangles */
           case 2:
             mm5     = ((ON_SAME_STRAND(p - 1, p, cp)) && (p > 1))       ? s1[p - 1] : -1;
             mm3     = ((ON_SAME_STRAND(q, q + 1, cp)) && (q < length))  ? s1[q + 1] : -1;
-            energy  += E_ExtLoop(tt, mm5, mm3, P);
+            energy  += vrna_E_ext_stem(tt, mm5, mm3, P);
             break;
 
           default:
@@ -1266,12 +1266,12 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
             mm5 = ((ON_SAME_STRAND(p - 1, p, cp)) && (p > 1) && !pt[p - 1])       ? s1[p - 1] : -1;
             mm3 = ((ON_SAME_STRAND(q, q + 1, cp)) && (q < length) && !pt[q + 1])  ? s1[q + 1] : -1;
             tmp = MIN2(
-              E3_occupied + E_ExtLoop(tt, -1, mm3, P),
-              E3_available + E_ExtLoop(tt, mm5, mm3, P)
+              E3_occupied + vrna_E_ext_stem(tt, -1, mm3, P),
+              E3_available + vrna_E_ext_stem(tt, mm5, mm3, P)
               );
             E3_available = MIN2(
-              E3_occupied + E_ExtLoop(tt, -1, -1, P),
-              E3_available + E_ExtLoop(tt, mm5, -1, P)
+              E3_occupied + vrna_E_ext_stem(tt, -1, -1, P),
+              E3_available + vrna_E_ext_stem(tt, mm5, -1, P)
               );
             E3_occupied = tmp;
           }
@@ -1288,13 +1288,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
           switch (dangle_model) {
             case 0:
-              energy += E_ExtLoop(tt, -1, -1, P);
+              energy += vrna_E_ext_stem(tt, -1, -1, P);
               break;
 
             case 2:
               mm5     = (a2s[ss][p] > 1) ? S5[ss][p] : -1;
               mm3     = (a2s[ss][q] < a2s[ss][S[0][0]]) ? S3[ss][q] : -1;  /* why S[0][0] ??? */
-              energy  += E_ExtLoop(tt, mm5, mm3, P);
+              energy  += vrna_E_ext_stem(tt, mm5, mm3, P);
               break;
 
             default:
@@ -1919,8 +1919,10 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
       break;
   }
 
-  /* logarithmic ML loop energy if logML */
-  /* does this work for comparative predictions as well? */
+  /*
+   * logarithmic ML loop energy if logML
+   * does this work for comparative predictions as well?
+   */
   if (logML && (u > 6))
     energy += 6 * P->MLbase + (int)(P->lxc * log((double)u / 6.));
   else
