@@ -6,6 +6,7 @@
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/datastructures/heap.h"
 #include "ViennaRNA/eval.h"
+#include <ViennaRNA/landscape/neighbor.h>
 #include "ViennaRNA/landscape/walk.h"
 
 #ifndef bool
