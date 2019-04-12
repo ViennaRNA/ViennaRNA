@@ -174,7 +174,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
           if (evaluate(ii, jj, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
             type = vrna_get_ptype(idx[k] + ii, ptype);
 
-            if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)) {
+            if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + vrna_E_ext_stem(type, -1, -1, P)) {
               bp_stack[++(*stack_count)].i  = ii;
               bp_stack[(*stack_count)].j    = k;
               *u                            = k + 1;
@@ -200,7 +200,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
             mm3   = (sn[k] == sn[k + 1]) ? S1[k + 1] : -1;
             type  = vrna_get_ptype(idx[k] + ii, ptype);
 
-            if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, mm5, mm3, P)) {
+            if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + vrna_E_ext_stem(type, mm5, mm3, P)) {
               bp_stack[++(*stack_count)].i  = ii;
               bp_stack[(*stack_count)].j    = k;
               *u                            = k + 1;
@@ -224,7 +224,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
         for (k = ii + turn + 1; k <= jj; k++) {
           type = vrna_get_ptype(idx[k] + ii, ptype);
           if (evaluate(ii, jj, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
-            if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + E_ExtLoop(type, -1, -1, P)) {
+            if (fij == my_fc[k + 1] + my_c[idx[k] + ii] + vrna_E_ext_stem(type, -1, -1, P)) {
               bp_stack[++(*stack_count)].i  = ii;
               bp_stack[(*stack_count)].j    = k;
               *u                            = k + 1;
@@ -241,7 +241,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
               if (sc->energy_up)
                 en += sc->energy_up[k + 1][1];
 
-            if (fij == my_fc[k + 2] + en + E_ExtLoop(type, -1, mm3, P)) {
+            if (fij == my_fc[k + 2] + en + vrna_E_ext_stem(type, -1, mm3, P)) {
               bp_stack[++(*stack_count)].i  = ii;
               bp_stack[(*stack_count)].j    = k;
               *u                            = k + 2;
@@ -269,7 +269,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
               if (sc->energy_up)
                 en += sc->energy_up[ii][1];
 
-            if (fij == en + my_fc[k + 1] + E_ExtLoop(type, mm5, -1, P)) {
+            if (fij == en + my_fc[k + 1] + vrna_E_ext_stem(type, mm5, -1, P)) {
               bp_stack[++(*stack_count)].i  = ii + 1;
               bp_stack[(*stack_count)].j    = k;
               *u                            = k + 1;
@@ -289,7 +289,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
               if (sc->energy_up)
                 en += sc->energy_up[k + 1][1];
 
-            if (fij == en + my_fc[k + 2] + E_ExtLoop(type, mm5, mm3, P)) {
+            if (fij == en + my_fc[k + 2] + vrna_E_ext_stem(type, mm5, mm3, P)) {
               bp_stack[++(*stack_count)].i  = ii + 1;
               bp_stack[(*stack_count)].j    = k;
               *u                            = k + 2;
@@ -348,7 +348,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
             if (sn[k] != sn[jj])
               en += P->DuplexInit;
 
-            if (fij == my_fc[k - 1] + en + E_ExtLoop(type, -1, -1, P)) {
+            if (fij == my_fc[k - 1] + en + vrna_E_ext_stem(type, -1, -1, P)) {
               bp_stack[++(*stack_count)].i  = k;
               bp_stack[(*stack_count)].j    = jj;
               *u                            = k - 1;
@@ -378,7 +378,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
             if (sn[k] != sn[jj])
               en += P->DuplexInit;
 
-            if (fij == my_fc[k - 1] + en + E_ExtLoop(type, mm5, mm3, P)) {
+            if (fij == my_fc[k - 1] + en + vrna_E_ext_stem(type, mm5, mm3, P)) {
               bp_stack[++(*stack_count)].i  = k;
               bp_stack[(*stack_count)].j    = jj;
               *u                            = k - 1;
@@ -407,7 +407,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
             if (sn[k] != sn[jj])
               en += P->DuplexInit;
 
-            if (fij == my_fc[k - 1] + en + E_ExtLoop(type, -1, -1, P)) {
+            if (fij == my_fc[k - 1] + en + vrna_E_ext_stem(type, -1, -1, P)) {
               bp_stack[++(*stack_count)].i  = k;
               bp_stack[(*stack_count)].j    = jj;
               *u                            = k - 1;
@@ -431,7 +431,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
               if (sc->energy_up)
                 en += sc->energy_up[k - 1][1];
 
-            if (fij == my_fc[k - 2] + en + E_ExtLoop(type, mm5, -1, P)) {
+            if (fij == my_fc[k - 2] + en + vrna_E_ext_stem(type, mm5, -1, P)) {
               bp_stack[++(*stack_count)].i  = k;
               bp_stack[(*stack_count)].j    = jj;
               *u                            = k - 2;
@@ -454,7 +454,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
               if (sc->energy_up)
                 en += sc->energy_up[jj][1];
 
-            if (fij == en + my_fc[k - 1] + E_ExtLoop(type, -1, mm3, P)) {
+            if (fij == en + my_fc[k - 1] + vrna_E_ext_stem(type, -1, mm3, P)) {
               bp_stack[++(*stack_count)].i  = k;
               bp_stack[(*stack_count)].j    = jj - 1;
               *u                            = k - 1;
@@ -478,7 +478,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
               if (sc->energy_up)
                 en += sc->energy_up[k - 1][1];
 
-            if (fij == my_fc[k - 2] + en + E_ExtLoop(type, mm5, mm3, P)) {
+            if (fij == my_fc[k - 2] + en + vrna_E_ext_stem(type, mm5, mm3, P)) {
               bp_stack[++(*stack_count)].i  = k;
               bp_stack[(*stack_count)].j    = jj - 1;
               *u                            = k - 2;
@@ -1080,19 +1080,19 @@ BT_mb_loop(vrna_fold_compound_t *fc,
 
       switch (dangle_model) {
         case 0:
-          if (en == e + E_ExtLoop(type, -1, -1, P))
+          if (en == e + vrna_E_ext_stem(type, -1, -1, P))
             ii = p, jj = q;
 
           break;
 
         case 2:
-          if (en == e + E_ExtLoop(type, s5, s3, P))
+          if (en == e + vrna_E_ext_stem(type, s5, s3, P))
             ii = p, jj = q;
 
           break;
 
         default:
-          if (en == e + E_ExtLoop(type, -1, -1, P)) {
+          if (en == e + vrna_E_ext_stem(type, -1, -1, P)) {
             ii = p, jj = q;
             break;
           }
@@ -1107,7 +1107,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
                 e += sc->energy_bp[ij];
             }
 
-            if (en == e + E_ExtLoop(type, -1, s3, P)) {
+            if (en == e + vrna_E_ext_stem(type, -1, s3, P)) {
               ii  = p + 1;
               jj  = q;
               break;
@@ -1124,7 +1124,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
                 e += sc->energy_bp[ij];
             }
 
-            if (en == e + E_ExtLoop(type, s5, -1, P)) {
+            if (en == e + vrna_E_ext_stem(type, s5, -1, P)) {
               ii  = p;
               jj  = q - 1;
               break;
@@ -1141,7 +1141,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
                 e += sc->energy_bp[ij];
             }
 
-            if (en == e + E_ExtLoop(type, s5, s3, P)) {
+            if (en == e + vrna_E_ext_stem(type, s5, s3, P)) {
               ii  = p + 1;
               jj  = q - 1;
               break;
@@ -1421,8 +1421,10 @@ BT_mb_loop(vrna_fold_compound_t *fc,
           }
         }
 
-        /* coaxial stacking of (i.j) with (i+1.r) or (r.j-1) */
-        /* use MLintern[1] since coax stacked pairs don't get TerminalAU */
+        /*
+         * coaxial stacking of (i.j) with (i+1.r) or (r.j-1)
+         * use MLintern[1] since coax stacked pairs don't get TerminalAU
+         */
         if (dangle_model == 3) {
           e = eee -
               2 * P->MLintern[1] *

@@ -1,5 +1,7 @@
-/*WBL 24 Aug 2018 Add AVX512 based on sources_034_578/modular_decomposition_id3.c */
-/*WBL 22 Aug 2018 by hand d3c17fd3e04e2419c147a1e097d3c4d2c5a6f11d lines 1355-1357*/
+/*
+ * WBL 24 Aug 2018 Add AVX512 based on sources_034_578/modular_decomposition_id3.c
+ * WBL 22 Aug 2018 by hand d3c17fd3e04e2419c147a1e097d3c4d2c5a6f11d lines 1355-1357
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -587,15 +589,15 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
                fC[j - 1];
       switch (dangle_model) {
         case 0:
-          decomp += E_ExtLoop(tt, -1, -1, P);
+          decomp += vrna_E_ext_stem(tt, -1, -1, P);
           break;
 
         case 2:
-          decomp += E_ExtLoop(tt, S_j1, S_i1, P);
+          decomp += vrna_E_ext_stem(tt, S_j1, S_i1, P);
           break;
 
         default:
-          decomp += E_ExtLoop(tt, -1, -1, P);
+          decomp += vrna_E_ext_stem(tt, -1, -1, P);
           break;
       }
     }
@@ -607,7 +609,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
       if ((fC[i + 2] != INF) && (fC[j - 1] != INF)) {
         en = fC[i + 2] +
              fC[j - 1] +
-             E_ExtLoop(tt, -1, S_i1, P);
+             vrna_E_ext_stem(tt, -1, S_i1, P);
         decomp = MIN2(decomp, en);
       }
     }
@@ -616,7 +618,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
       if ((fC[i + 1] != INF) && (fC[j - 2] != INF)) {
         en = fC[i + 1] +
              fC[j - 2] +
-             E_ExtLoop(tt, S_j1, -1, P);
+             vrna_E_ext_stem(tt, S_j1, -1, P);
         decomp = MIN2(decomp, en);
       }
     }
@@ -625,7 +627,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
       if ((fC[i + 2] != INF) && (fC[j - 2] != INF)) {
         en = fC[i + 2] +
              fC[j - 2] +
-             E_ExtLoop(tt, S_j1, S_i1, P);
+             vrna_E_ext_stem(tt, S_j1, S_i1, P);
         decomp = MIN2(decomp, en);
       }
     }
