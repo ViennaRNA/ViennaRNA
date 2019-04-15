@@ -273,6 +273,9 @@ main(int  argc,
   ggo_get_md_fold(args_info, opt.md);
   ggo_get_md_part(args_info, opt.md);
 
+  /* temperature */
+  ggo_get_temperature(args_info, opt.md.temperature);
+
   /* check dangle model */
   if ((opt.md.dangles < 0) || (opt.md.dangles > 3)) {
     vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
