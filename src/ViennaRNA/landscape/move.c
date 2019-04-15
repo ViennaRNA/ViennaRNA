@@ -66,6 +66,49 @@ vrna_move_apply(short             *pt,
 }
 
 
+PUBLIC void
+vrna_move_apply_db(char               *structure,
+                   const short        *pt,
+                   const vrna_move_t  *m)
+{
+  /* deletion */
+  if (vrna_move_is_removal(m)) {
+    structure[-m->pos_5 - 1]  = '.';
+    structure[-m->pos_3 - 1]  = '.';
+    return;
+  }
+
+  /* insertion */
+  if (vrna_move_is_insertion(m)) {
+    structure[m->pos_5 - 1] = '(';
+    structure[m->pos_3 - 1] = ')';
+    return;
+  }
+
+  /* shift right */
+  if (m->pos_5 > 0) {
+    short previousPairedPosition = pt[m->pos_5];
+    structure[previousPairedPosition - 1] = '.';
+    int   left  = m->pos_5 - 1;
+    int   right = -m->pos_3 - 1;
+    structure[left]   = '(';
+    structure[right]  = ')';
+    return;
+  }
+
+  /* shift left */
+  if (m->pos_5 < 0) {
+    short previousPairedPosition = pt[m->pos_3];
+    structure[previousPairedPosition - 1] = '.';
+    int   left  = -m->pos_5 - 1;
+    int   right = m->pos_3 - 1;
+    structure[left]   = '(';
+    structure[right]  = ')';
+    return;
+  }
+}
+
+
 PUBLIC int
 vrna_move_is_removal(const vrna_move_t *m)
 {

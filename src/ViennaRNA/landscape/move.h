@@ -108,6 +108,12 @@ vrna_move_apply(short             *pt,
                 const vrna_move_t *m);
 
 
+void
+vrna_move_apply_db(char               *structure,
+                   const short        *pt,
+                   const vrna_move_t  *m);
+
+
 /**
  *  @brief  Test whether a move is a base pair removal
  *
