@@ -77,7 +77,7 @@ BuildRequires:  python2-devel python2
 BuildRequires:  python3-devel python3
 %else
 %if 0%{?with_epel7}
-BuildRequires:  python34-devel python34
+BuildRequires:  python36-devel python36
 %else
 BuildRequires:  python-devel python
 %endif
@@ -92,7 +92,7 @@ BuildRequires:  python-devel python
 
 %if 0%{?with_python3}
 %if 0%{?with_epel7}
-%{!?__python3: %global __python3 /usr/bin/python3.4}
+%{!?__python3: %global __python3 /usr/bin/python3.6}
 %else
 %{!?__python3: %global __python3 /usr/bin/python3}
 %endif
@@ -165,7 +165,7 @@ Summary:  Python 3 bindings for ViennaRNA RNAlib
 Group:    Development/Libraries/Python
 Requires: %{name} = %{version}-%{release}
 
-Requires: python34
+Requires: python36
 %else
 %package -n python3-rna
 Summary:  Python 3 bindings for ViennaRNA RNAlib
