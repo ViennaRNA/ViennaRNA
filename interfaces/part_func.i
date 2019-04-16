@@ -257,3 +257,7 @@ double get_pr(int i, int j) {
 %}
 double get_pr(int i, int j);
 /* Get probability of pair i.j from the pr array */
+
+
+
+%include  <ViennaRNA/MEA.h>
