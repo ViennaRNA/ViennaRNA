@@ -277,7 +277,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   rtype           = &(md->rtype[0]);
   evaluate        = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_wrapper_ml(fc, &sc_wrapper);
 
   /* multiple stem loop contribution */
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
@@ -372,7 +372,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
             qqqmmm;
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_wrapper_ml(&sc_wrapper);
 
   return qbt1;
 }
@@ -430,7 +430,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   hc_up_ml        = hc->up_ml;
   evaluate        = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_wrapper_ml(fc, &sc_wrapper);
 
   qbt1    = 0;
   q_temp  = 0.;
@@ -651,7 +651,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_m))
     temp += fc->aux_grammar->cb_aux_exp_m(fc, i, j, fc->aux_grammar->data);
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_wrapper_ml(&sc_wrapper);
 
   return temp + qqm[i];
 }

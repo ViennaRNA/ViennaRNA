@@ -9,6 +9,8 @@
 #include <ViennaRNA/model.h>
 
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *  \file fold_vars.h
  *  \brief Here all all declarations of the global variables used throughout RNAlib
@@ -78,6 +80,7 @@ extern FLT_OR_DBL *pr;
 extern int   *iindx;
 
 
+#endif
 
 
 #endif

@@ -22,6 +22,7 @@ typedef struct  vrna_mx_mfe_s vrna_mx_mfe_t;
 typedef struct  vrna_mx_pf_s vrna_mx_pf_t;
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 
 /**
  *  @brief  An enumerator that is used to specify the type of a polymorphic Dynamic Programming (DP)

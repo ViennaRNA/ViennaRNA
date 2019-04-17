@@ -7,6 +7,7 @@
 %include callbacks-sc.i
 %include callbacks-ud.i
 %include callbacks-subopt.i
+%include callbacks-boltzmann-sampling.i
 %include callbacks-mfe-window.i
 %include callbacks-pf-window.i
 

@@ -16,6 +16,8 @@
 /** @brief Typename for nucleotide sequence representation data structure #vrna_sequence_s */
 typedef struct vrna_sequence_s vrna_seq_t;
 
+#include <ViennaRNA/fold_compound.h>
+
 
 #define VRNA_SEQUENCE_RNA       1U
 
@@ -42,23 +44,28 @@ struct vrna_sequence_s {
 };
 
 
-vrna_seq_t *vrna_sequence(const char    *string,
-                          unsigned int  options);
+vrna_seq_t *
+vrna_sequence(const char    *string,
+              unsigned int  options);
 
 
-int           vrna_sequence_add(vrna_fold_compound_t  *vc,
-                                const char            *string,
-                                unsigned int          options);
+int
+vrna_sequence_add(vrna_fold_compound_t  *fc,
+                  const char            *string,
+                  unsigned int          options);
 
 
-int           vrna_sequence_remove(vrna_fold_compound_t *vc,
-                                   unsigned int         i);
+int
+vrna_sequence_remove(vrna_fold_compound_t *fc,
+                     unsigned int         i);
 
 
-void          vrna_sequence_remove_all(vrna_fold_compound_t *vc);
+void
+vrna_sequence_remove_all(vrna_fold_compound_t *fc);
 
 
-void          vrna_sequence_prepare(vrna_fold_compound_t *fc);
+void
+vrna_sequence_prepare(vrna_fold_compound_t *fc);
 
 
 /**

@@ -10,6 +10,8 @@
  *  @brief Computes a MEA (maximum expected accuracy) structure.
  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *  @brief Computes a MEA (maximum expected accuracy) structure.
  *
@@ -34,5 +36,7 @@ float MEA_seq(plist             *p,
               double            gamma,
               vrna_exp_param_t  *pf);
 
+
+#endif
 
 #endif

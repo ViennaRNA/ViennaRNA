@@ -1,0 +1,19 @@
+/**
+
+@fn int vrna_file_PS_aln(const char *filename, const char **seqs, const char **names, const char *structure, unsigned int columns)
+@scripting
+@parblock
+This function is available as overloaded function @p file_PS_aln() with three additional parameters @p start, @p end,
+and @p offset before the @p columns argument. Thus, it resembles the @p vrna_file_PS_aln_slice() function. The last four
+arguments may be omitted, indicating the default of @p start = @em 0, @p end = @em 0, @p offset = @em 0, and @p columns = @em 60.
+@endparblock
+
+
+@fn int vrna_file_PS_aln_slice(const char *filename, const char **seqs, const char **names, const char *structure, unsigned int start, unsigned int end, int offset, unsigned int columns)
+@scripting
+This function is available as overloaded function @p file_PS_aln() where the last four parameter may be omitted,
+indicating @p start = @em 0, @p end = @em 0, @p offset = @em 0, and @p columns = @em 60.
+@parblock
+@endparblock
+
+*/

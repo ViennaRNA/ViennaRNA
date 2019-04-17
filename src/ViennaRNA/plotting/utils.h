@@ -7,6 +7,10 @@
  *  @brief    Various utilities to assist in plotting secondary structures and consensus structures
  */
 
+#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/model.h>
+#include <ViennaRNA/utils/structures.h>
+
 /**
  *  @addtogroup  plotting_utils
  *  @{
@@ -26,9 +30,16 @@
  *
  */
 char **
-vrna_annotate_covar_struct(const char **alignment,
-                           const char *structure,
-                           vrna_md_t  *md);
+vrna_annotate_covar_db(const char   **alignment,
+                       const char   *structure,
+                       vrna_md_t    *md_p);
+
+
+char **
+vrna_annotate_covar_db_extended(const char   **alignment,
+                                const char   *structure,
+                                vrna_md_t    *md_p,
+                                unsigned int options);
 
 
 /**

@@ -7,6 +7,8 @@
  *  @brief    Several utilities for file handling
  */
 
+#include <stdio.h>
+
 /**
  *  @addtogroup file_utils
  *  @{

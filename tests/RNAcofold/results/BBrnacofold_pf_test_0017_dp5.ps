@@ -1,21 +1,25 @@
 %!PS-Adobe-3.0 EPSF-3.0
+%%Creator: ViennaRNA-2.4.11
+%%CreationDate: Sat Mar 16 10:53:53 2019
 %%Title: RNA Dot Plot
-%%Creator: ViennaRNA-2.4.6
-%%CreationDate: Wed May 16 23:38:42 2018
 %%BoundingBox: 66 211 518 662
 %%DocumentFonts: Helvetica
 %%Pages: 1
 %%EndComments
 
-%Options: 
-% 
-%Homodimer BB FreeEnergy= -35.453230355
+% Program options: 
+
+% Homodimer BB FreeEnergy= -35.453230355
+
+% This file contains the square roots of probabilities in the form
+% i  j  sqrt(p(i,j)) ubox
+
+/DPdict 100 dict def
+
+DPdict begin
 
 %%BeginProlog
-%This file contains the square roots of the base pair probabilities in the form
-% i  j  sqrt(p(i,j)) ubox
-/DPdict 100 dict def
-DPdict begin
+
 /logscale false def
 /lpmin 1e-05 log def
 /DataVisible  [ true true true true] def
@@ -308,10 +312,8 @@ DPdict begin
     } if
   } for
 } bind def
-end
-%EndProlog
 
-DPdict begin
+%%EndProlog
 
 /DPtitle {
   (BBrnacofold_pf_test_0017)
@@ -320,7 +322,6 @@ DPdict begin
 /sequence { (\
 UAAUUAUGGUUGGCUUUUCCAUCUUCAAGAUUAGUACAACUGACCCUUCUUGAAAAUACGGCAAUUGAAGCGGCUGUCUCUAAUUAUGGUUGGCUUUUCCAUCUUCAAGAUUAGUACAACUGACCCUUCUUGAAAAUACGGCAAUUGAAGCGGCUGUCUC\
 ) } def
-
 /len { sequence length } bind def
 
 /cutpoint 81 def

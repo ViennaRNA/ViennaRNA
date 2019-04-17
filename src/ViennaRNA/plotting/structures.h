@@ -3,6 +3,7 @@
 
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/plotting/layouts.h>
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)
@@ -27,13 +28,6 @@
  *  @{
  */
 
-/* write PostScript drawing of structure to file with annotation */
-int PS_rna_plot_snoop_a(const char *string,
-                        const char *structure,
-                        const char *ssfile,
-                        int *relative_access,
-                        const char *seqs[]);
-
 /**
  *  @brief Produce a secondary structure graph in PostScript and write it to 'filename'.
  *
@@ -47,10 +41,12 @@ int PS_rna_plot_snoop_a(const char *string,
  *  @param md_p       Model parameters used to generate a commandline option string in the output (Maybe NULL)
  *  @return           1 on success, 0 otherwise
  */
-int vrna_file_PS_rnaplot( const char *seq,
-                          const char *structure,
-                          const char *file,
-                          vrna_md_t  *md_p);
+int
+vrna_file_PS_rnaplot(const char *seq,
+                     const char *structure,
+                     const char *file,
+                     vrna_md_t  *md_p);
+
 
 /**
  *  @brief Produce a secondary structure graph in PostScript including additional
@@ -71,12 +67,33 @@ int vrna_file_PS_rnaplot( const char *seq,
  *  @param md_p       Model parameters used to generate a commandline option string in the output (Maybe NULL)
  *  @return           1 on success, 0 otherwise
  */
-int vrna_file_PS_rnaplot_a( const char *seq,
-                            const char *structure,
-                            const char *file,
-                            const char *pre,
-                            const char *post,
-                            vrna_md_t  *md_p);
+int vrna_file_PS_rnaplot_a( const char      *seq,
+                            const char      *structure,
+                            const char      *file,
+                            const char      *pre,
+                            const char      *post,
+                            vrna_md_t       *md_p);
+
+
+int
+vrna_file_PS_rnaplot_layout(const char          *seq,
+                            const char          *structure,
+                            const char          *ssfile,
+                            const char          *pre,
+                            const char          *post,
+                            vrna_md_t           *md_p,
+                            vrna_plot_layout_t  *layout);
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/* write PostScript drawing of structure to file with annotation */
+int
+PS_rna_plot_snoop_a(const char  *string,
+                    const char  *structure,
+                    const char  *ssfile,
+                    int         *relative_access,
+                    const char  *seqs[]);
+
 
 /**
  *  @brief Produce a secondary structure graph in Graph Meta Language (gml) and write it to a file
@@ -90,10 +107,12 @@ int vrna_file_PS_rnaplot_a( const char *seq,
  *  @param  option    The option flag
  *  @return           1 on success, 0 otherwise
  */
-int gmlRNA( char *string,
-            char *structure,
-            char *ssfile,
-            char option);
+int
+gmlRNA(char *string,
+       char *structure,
+       char *ssfile,
+       char option);
+
 
 /**
  *  @brief  Produce a secondary structure graph in SStructView format
@@ -105,9 +124,11 @@ int gmlRNA( char *string,
  *  @param  ssfile    The filename of the ssv output
  *  @return           1 on success, 0 otherwise
  */
-int ssv_rna_plot( char *string,
-                  char *structure,
-                  char *ssfile);
+int
+ssv_rna_plot(char *string,
+             char *structure,
+             char *ssfile);
+
 
 /**
  *  @brief Produce a secondary structure plot in SVG format and write it to a file
@@ -117,9 +138,11 @@ int ssv_rna_plot( char *string,
  *  @param ssfile     The filename of the svg output
  *  @return           1 on success, 0 otherwise
  */
-int svg_rna_plot( char *string,
-                  char *structure,
-                  char *ssfile);
+int
+svg_rna_plot(char *string,
+             char *structure,
+             char *ssfile);
+
 
 /**
  *  @brief Produce a secondary structure plot for further editing in XRNA
@@ -129,19 +152,21 @@ int svg_rna_plot( char *string,
  *  @param ssfile     The filename of the xrna output
  *  @return           1 on success, 0 otherwise
  */
-int xrna_plot(char *string,
-              char *structure,
-              char *ssfile);
+int
+xrna_plot(char  *string,
+          char  *structure,
+          char  *ssfile);
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @brief Produce a secondary structure graph in PostScript and write it to 'filename'.
  *
  *  @deprecated   Use vrna_file_PS_rnaplot() instead!
  */
-DEPRECATED(int PS_rna_plot(char *string, char *structure, char *file),
-"Use vrna_file_PS_rnaplot() instead");
+DEPRECATED(int PS_rna_plot(char *string,
+                           char *structure,
+                           char *file),
+           "Use vrna_file_PS_rnaplot() instead");
 
 /**
  *  @brief Produce a secondary structure graph in PostScript including additional
@@ -149,8 +174,12 @@ DEPRECATED(int PS_rna_plot(char *string, char *structure, char *file),
  *
  *  @deprecated   Use vrna_file_PS_rnaplot_a() instead!
  */
-DEPRECATED(int PS_rna_plot_a(char *string, char *structure, char *file, char *pre, char *post),
-"Use vrna_file_PS_rnaplot_a() instead");
+DEPRECATED(int PS_rna_plot_a(char *string,
+                             char *structure,
+                             char *file,
+                             char *pre,
+                             char *post),
+           "Use vrna_file_PS_rnaplot_a() instead");
 
 /**
  *  @brief Produce a secondary structure graph in PostScript including additional
@@ -158,8 +187,12 @@ DEPRECATED(int PS_rna_plot_a(char *string, char *structure, char *file, char *pr
  *
  *  @deprecated   Use vrna_file_PS_rnaplot_a() instead!
  */
-DEPRECATED(int PS_rna_plot_a_gquad(char *string, char *structure, char *ssfile, char *pre, char *post),
-"Use vrna_file_PS_rnaplot_a() instead");
+DEPRECATED(int PS_rna_plot_a_gquad(char *string,
+                                   char *structure,
+                                   char *ssfile,
+                                   char *pre,
+                                   char *post),
+           "Use vrna_file_PS_rnaplot_a() instead");
 
 #endif
 

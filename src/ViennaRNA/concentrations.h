@@ -37,7 +37,6 @@ typedef struct vrna_dimer_conc_s ConcEnt;
 
 #endif
 
-#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
 
 /**
@@ -86,6 +85,8 @@ vrna_dimer_conc_t *vrna_pf_dimer_concentrations(double                  FcAB,
  *  @}
  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /*
  #################################################
  # DEPRECATED FUNCTIONS                          #
@@ -119,5 +120,7 @@ DEPRECATED(vrna_dimer_conc_t *get_concentrations(double FEAB,
                                                  double FEB,
                                                  double *startconc),
           "Use vrna_pf_dimer_concentrations() instead");
+
+#endif
 
 #endif

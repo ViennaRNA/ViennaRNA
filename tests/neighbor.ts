@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ViennaRNA/neighbor.h>
+#include <ViennaRNA/landscape/neighbor.h>
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/utils/basic.h>
 #include <ViennaRNA/utils/structures.h>

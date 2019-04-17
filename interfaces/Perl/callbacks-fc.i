@@ -28,16 +28,21 @@ delete_perl_callback(void * data){
   /* first delete user data */
   if(cb->data && SvOK(cb->data)){
     if(cb->delete_data && SvOK(cb->delete_data)){
+      dSP;
+
       SV *err_tmp;
       
       /* call Perl subroutine */
-      dSP;
       ENTER;
       SAVETMPS;
-      PUSHMARK(sp);
+      PUSHMARK(SP);
+
       XPUSHs(cb->data);
       PUTBACK;
+
       perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+      SPAGAIN;
 
       err_tmp = ERRSV;
       if (SvTRUE(err_tmp)) {
@@ -83,16 +88,21 @@ fc_add_perl_data(vrna_fold_compound_t *vc,
     cb = (perl_callback_t *)vc->auxdata;
     if(cb->data && SvOK(cb->data)){
       if(cb->delete_data && SvOK(cb->delete_data)){
+        dSP;
+
         SV *err_tmp;
 
         /* call Perl subroutine */
-        dSP;
         ENTER;
         SAVETMPS;
-        PUSHMARK(sp);
+        PUSHMARK(SP);
+
         XPUSHs(cb->data);
         PUTBACK;
+
         perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+
+        SPAGAIN;
 
         err_tmp = ERRSV;
         if (SvTRUE(err_tmp)) {
@@ -166,20 +176,25 @@ perl_wrap_fc_status_callback( unsigned char status,
   func = cb->cb;
 
   if(func && SvOK(func)){
+    dSP;
+
     SV *err_tmp;
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
+
     SV* pSV = sv_newmortal();
     sv_setiv(pSV, (IV)status);  /* add status value to perl stack */
     XPUSHs(pSV);
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
     PUTBACK;
+
     perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    SPAGAIN;
 
     err_tmp = ERRSV;
     if (SvTRUE(err_tmp)) {

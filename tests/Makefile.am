@@ -64,6 +64,7 @@ PERL_TESTS =  perl5/test-RNA.pl \
               perl5/test-RNA-mfe_eval.pl \
               perl5/test-RNA-mfe_window.pl \
               perl5/test-RNA-pf_window.pl \
+              perl5/test-RNA-boltzmann-sampling.pl \
               perl5/test-RNA-constraints.pl \
               perl5/test-RNA-constraints-soft.pl \
               perl5/test-RNA-constraints-SHAPE.pl \
@@ -104,6 +105,7 @@ PYTHON2_TESTS = python/test-RNA-combinatorics.py \
                 python/test-RNA-pf_window.py \
                 python/test-RNA-sc-callbacks.py \
                 python/test-RNA-subopt.py \
+                python/test-RNA-boltzmann-sampling.py \
                 python/test-RNA-utils.py \
                 python/test-RNA.py
 
@@ -132,6 +134,7 @@ PYTHON3_TESTS = python3/test-RNA-combinatorics.py3 \
                 python3/test-RNA-pf_window.py3 \
                 python3/test-RNA-sc-callbacks.py3 \
                 python3/test-RNA-subopt.py3 \
+                python3/test-RNA-boltzmann-sampling.py3 \
                 python3/test-RNA-utils.py3 \
                 python3/test-RNA.py3
 

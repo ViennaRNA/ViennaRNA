@@ -582,8 +582,10 @@ add_params(vrna_fold_compound_t *fc,
            vrna_md_t            *md_p,
            unsigned int         options)
 {
-  /* ALWAYS provide regular energy parameters */
-  /* remove previous parameters if present and they differ from current model */
+  /*
+   * ALWAYS provide regular energy parameters
+   * remove previous parameters if present and they differ from current model
+   */
   if (fc->params) {
     if (memcmp(md_p, &(fc->params->model_details), sizeof(vrna_md_t)) != 0) {
       free(fc->params);
@@ -660,7 +662,7 @@ set_fold_compound(vrna_fold_compound_t  *fc,
 
       fc->length = length = fc->length;
 
-      fc->cons_seq  = consensus((const char **)sequences);
+      fc->cons_seq  = vrna_aln_consensus_sequence((const char **)sequences, md_p);
       fc->S_cons    = vrna_seq_encode_simple(fc->cons_seq, md_p);
 
       fc->pscore = vrna_alloc(sizeof(int) * ((length * (length + 1)) / 2 + 2));
@@ -710,9 +712,11 @@ set_fold_compound(vrna_fold_compound_t  *fc,
 PRIVATE void
 make_pscores(vrna_fold_compound_t *fc)
 {
-  /* calculate co-variance bonus for each pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
+  /*
+   * calculate co-variance bonus for each pair depending on
+   * compensatory/consistent mutations and incompatible seqs
+   * should be 0 for conserved pairs, >0 for good pairs
+   */
 
 #define NONE -10000 /* score for forbidden pairs */
 

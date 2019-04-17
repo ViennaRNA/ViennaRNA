@@ -1337,7 +1337,7 @@ scan_interval(vrna_fold_compound_t  *vc,
             break;
         }
 
-        element_energy = E_ExtLoop(type, s5, s3, P);
+        element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
         if (!(ON_SAME_STRAND(k, j, cp))) /*&&(state->is_duplex==0))*/
           element_energy += P->DuplexInit;
@@ -1383,7 +1383,7 @@ scan_interval(vrna_fold_compound_t  *vc,
           break;
       }
 
-      element_energy = E_ExtLoop(type, s5, s3, P);
+      element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
       if (!(ON_SAME_STRAND(1, j, cp)))
         element_energy += P->DuplexInit;
@@ -1644,7 +1644,7 @@ scan_interval(vrna_fold_compound_t  *vc,
             break;
         }
 
-        element_energy = E_ExtLoop(type, s5, s3, P);
+        element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
         if (sc) {
           if (sc->f)
@@ -1680,7 +1680,7 @@ scan_interval(vrna_fold_compound_t  *vc,
           break;
       }
 
-      element_energy = E_ExtLoop(type, s5, s3, P);
+      element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
       if (sc) {
         if (sc->f)
@@ -1749,7 +1749,7 @@ scan_interval(vrna_fold_compound_t  *vc,
             break;
         }
 
-        element_energy = E_ExtLoop(type, s5, s3, P);
+        element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
         if (sc) {
           if (sc->f)
@@ -1785,7 +1785,7 @@ scan_interval(vrna_fold_compound_t  *vc,
           break;
       }
 
-      element_energy = E_ExtLoop(type, s5, s3, P);
+      element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
       if (sc) {
         if (sc->f)
@@ -2068,11 +2068,11 @@ repeat(vrna_fold_compound_t *vc,
       element_energy = 0;
       switch (dangle_model) {
         case 0:
-          element_energy = E_ExtLoop(rt, -1, -1, P);
+          element_energy = vrna_E_ext_stem(rt, -1, -1, P);
           break;
         default:
           element_energy =
-            E_ExtLoop(rt,
+            vrna_E_ext_stem(rt,
                       (ON_SAME_STRAND(j - 1, j, cp)) ?
                       S1[j - 1] :
                       -1,

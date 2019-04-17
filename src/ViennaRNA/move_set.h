@@ -1,6 +1,8 @@
 #ifndef __MOVE_SET_H
 #define __MOVE_SET_H
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *  @brief  Data structure for energy_of_move()
  */
@@ -87,5 +89,6 @@ int browse_neighs( char *seq,
 
 #endif
 
+#endif
 
 

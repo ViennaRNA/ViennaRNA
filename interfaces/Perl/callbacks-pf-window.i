@@ -47,13 +47,14 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
   func  = cb->cb;
 
   if(func && SvOK(func)){
+    dSP;
+
     SV *err_tmp;
 
     /* call Perl subroutine */
-    dSP;
     ENTER;
     SAVETMPS;
-    PUSHMARK(sp);
+    PUSHMARK(SP);
 
     pr_sizeSV = sv_newmortal();
     iSV       = sv_newmortal();
@@ -105,6 +106,8 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
     PUTBACK;
 
     perl_call_sv(func, G_EVAL | G_DISCARD);
+
+    SPAGAIN;
 
     err_tmp = ERRSV;
     if (SvTRUE(err_tmp)) {

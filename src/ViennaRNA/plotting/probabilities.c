@@ -18,11 +18,14 @@
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/plotting/probabilities.h"
 
 #include "ViennaRNA/static/templates_postscript.h"
+
+#include "ViennaRNA/plotting/ps_helpers.inc"
 
 /*
 #################################
@@ -60,14 +63,9 @@
   (data_var)        = (vrna_data_lin_t **)vrna_realloc(data_var, sizeof(vrna_data_lin_t *) * (size + 1)); \
   (title_var)       = (char **)vrna_realloc(title_var, sizeof(char *) * (size + 1));
 
+PRIVATE char *comment_dotplot = "This file contains the square roots of probabilities in the form\n"
+                                "i  j  sqrt(p(i,j)) ubox";
 
-#define DP_MACRO_NONE         0U
-#define DP_MACRO_LINEAR_DATA  1U
-#define DP_MACRO_SC_MOTIFS    2U
-#define DP_MACRO_SD           4U
-#define DP_MACRO_UD           8U
-
-#define DP_MACRO_ALL          (DP_MACRO_LINEAR_DATA | DP_MACRO_SC_MOTIFS | DP_MACRO_SD | DP_MACRO_UD)
 
 /*
 #################################
@@ -80,9 +78,7 @@ PRIVATE int   sort_plist_by_type_desc(const void *p1, const void *p2);
 PRIVATE int   sort_plist_by_prob_asc(const void *p1, const void *p2);
 PRIVATE int   sort_cpair_by_type_desc(const void *p1, const void *p2);
 PRIVATE int   sort_cpair_by_prob_asc(const void *p1, const void *p2);
-PRIVATE void  EPS_footer(FILE *eps);
 PRIVATE void  EPS_print_title(FILE *eps, const char *title);
-PRIVATE void  EPS_print_seq(FILE *eps, const char *sequence);
 PRIVATE void  EPS_print_header(FILE *eps, int bbox[4], const char *comment, unsigned int options);
 PRIVATE void  EPS_print_ud_data(FILE *eps, plist *pl, plist *mf);
 PRIVATE void  EPS_print_sc_motif_data(FILE *eps, plist *pl, plist *mf);
@@ -114,7 +110,7 @@ PS_color_dot_plot(char *seq,
   cpair *ptr;
 
 
-  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, 0, DP_MACRO_SD);
+  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, 0, PS_MACRO_DOTPLOT_SD);
   if (wastl==NULL)  return 0; /* return 0 for failure */
 
   fprintf(wastl, "/hsb {\n"
@@ -150,7 +146,7 @@ PS_color_dot_plot(char *seq,
     i++;
   }
 
-  EPS_footer(wastl);
+  print_PS_footer(wastl);
 
   fclose(wastl);
   return 1; /* success */
@@ -180,7 +176,7 @@ vrna_plot_dp_PS_list( char *seq,
   int pl_size, gq_num;
   plist *pl1;
 
-  wastl = PS_dot_common(seq, cp, wastlfile, comment, 0, DP_MACRO_ALL);
+  wastl = PS_dot_common(seq, cp, wastlfile, comment, 0, PS_MACRO_DOTPLOT_ALL);
 
   if (wastl==NULL) return 0; /* return 0 for failure */
 
@@ -201,7 +197,7 @@ vrna_plot_dp_PS_list( char *seq,
 
   EPS_print_bpp_data(wastl, pl, mf);
 
-  EPS_footer(wastl);
+  print_PS_footer(wastl);
 
   fclose(wastl);
   return 1; /* success */
@@ -311,9 +307,10 @@ vrna_plot_dp_EPS( const char              *filename,
   }
 
   /* start printing postscript file */
-  EPS_print_header(fh, bbox, comment, DP_MACRO_ALL);
+  EPS_print_header(fh, bbox, comment, PS_MACRO_DOTPLOT_ALL);
+
   EPS_print_title(fh, title);
-  EPS_print_seq(fh, sequence);
+  print_PS_sequence(fh, sequence);
 
   fprintf(fh,"%% BEGIN linear data array\n\n");
   EPS_print_linear_data_top(fh, (const char **)lintoptitle, lintop);
@@ -345,7 +342,7 @@ vrna_plot_dp_EPS( const char              *filename,
   EPS_print_sc_motif_data(fh, upper, lower);
   EPS_print_bpp_data(fh, upper, lower);
 
-  EPS_footer(fh);
+  print_PS_footer(fh);
 
   fclose(fh);
   free(lintoptitle);
@@ -375,7 +372,7 @@ PS_color_dot_plot_turn( char *seq,
   FILE *wastl;
   int i;
 
-  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, winSize, DP_MACRO_NONE);
+  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, winSize, 0);
   if (wastl==NULL)
     return 0; /* return 0 for failure */
 
@@ -402,7 +399,7 @@ PS_color_dot_plot_turn( char *seq,
      i++;
    }
 
-   EPS_footer(wastl);
+   print_PS_footer(wastl);
 
    fclose(wastl);
    return 1; /* success */
@@ -420,7 +417,7 @@ PS_dot_plot_turn( char *seq,
   FILE *wastl;
   int i;
 
-  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, winSize, DP_MACRO_NONE);
+  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, winSize, 0);
   if (wastl==NULL)
     return 0; /* return 0 for failure */
 
@@ -439,7 +436,7 @@ PS_dot_plot_turn( char *seq,
     }
   }
 
-  EPS_footer(wastl);
+  print_PS_footer(wastl);
 
   fclose(wastl);
   return 1; /* success */
@@ -453,31 +450,9 @@ PS_dot_plot_turn( char *seq,
 */
 
 PRIVATE void
-EPS_footer(FILE *eps){
-
-   fprintf(eps,"showpage\n"
-               "end\n"
-               "%%%%EOF\n");
-}
-
-
-PRIVATE void
 EPS_print_title(FILE *eps, const char *title){
 
   fprintf(eps,"/DPtitle {\n  (%s)\n} def\n\n", title);
-}
-
-
-PRIVATE void
-EPS_print_seq(FILE *eps, const char *sequence){
-
-  unsigned int i;
-
-  fprintf(eps,"/sequence { (\\\n");
-  for(i = 0; i < strlen(sequence); i += 255)
-    fprintf(eps, "%.255s\\\n", sequence + i);
-  fprintf(eps,") } def\n\n"
-              "/len { sequence length } bind def\n\n");
 }
 
 
@@ -487,45 +462,29 @@ EPS_print_header( FILE          *eps,
                   const char    *comment,
                   unsigned int  options){
 
-  fprintf(eps,
-          "%%!PS-Adobe-3.0 EPSF-3.0\n"
-          "%%%%Title: RNA Dot Plot\n"
-          "%%%%Creator: ViennaRNA-%s\n"
-          "%%%%CreationDate: %s"
-          "%%%%BoundingBox: %d %d %d %d\n"
-          "%%%%DocumentFonts: Helvetica\n"
-          "%%%%Pages: 1\n"
-          "%%%%EndComments\n\n"
-          "%%Options: %s\n",
-          VERSION,
-          vrna_time_stamp(),
-          bbox[0], bbox[1], bbox[2], bbox[3],
-          option_string());
+  char  *full_comment = NULL;
 
-  if(comment)
-    fprintf(eps,"%% %s\n",comment);
+  vrna_md_t md;
 
-  fprintf(eps, "%%%%BeginProlog\n");
-  fprintf(eps,"%s", PS_dot_plot_macro_base);
+  set_model_details(&md);
 
-  /* add auxiliary macros */
-  if(options & DP_MACRO_SD){  /* gquads et al. */
-    fprintf(eps,"%s", PS_dot_plot_macro_sd);
-  }
+  if (comment)
+    full_comment = vrna_strdup_printf("%s\n\n%s",
+                                      comment,
+                                      comment_dotplot);
+  else
+    full_comment = comment_dotplot;
 
-  if(options & DP_MACRO_UD){  /* unstructured domains */
-    fprintf(eps,"%s", PS_dot_plot_macro_ud);
-  }
+  print_PS_header(eps,
+                  "RNA Dot Plot",
+                  bbox,
+                  &md,
+                  full_comment,
+                  "DPdict",
+                  PS_MACRO_DOTPLOT_BASE | options);
 
-  if(options & DP_MACRO_SC_MOTIFS){ /* soft constraint motifs */
-    fprintf(eps,"%s", PS_dot_plot_macro_sc_motifs);
-  }
-
-  if(options & DP_MACRO_LINEAR_DATA){ /* linear data */
-    fprintf(eps,"%s", PS_dot_plot_macro_linear_data);
-  }
-
-  fprintf(eps, "end\n%%EndProlog\n\nDPdict begin\n\n");
+  if (comment)
+    free(full_comment);
 }
 
 
@@ -900,7 +859,7 @@ PS_dot_common(const char *seq,
 
   EPS_print_title(wastl, name);
 
-  EPS_print_seq(wastl, seq);
+  print_PS_sequence(wastl, seq);
 
   if (winsize>0)
     fprintf(wastl,"/winSize %d def\n",winsize);

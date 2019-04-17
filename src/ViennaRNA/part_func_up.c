@@ -761,12 +761,12 @@ pf_interact(const char  *s1,
       if (!type)
         continue;
 
-      qint_4[i][j][0][0] *= exp_E_ExtLoop(type,
+      qint_4[i][j][0][0] *= vrna_exp_E_ext_stem(type,
                                           (i > 1) ? S1[i - 1] : -1,
                                           (j < n2) ? SS2[j + 1] : -1,
                                           Pf);
 
-      rev_d = exp_E_ExtLoop(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? S1[i + 1] : -1, Pf);
+      rev_d = vrna_exp_E_ext_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? S1[i + 1] : -1, Pf);
 
       /* add inc5 and incr3 */
       if ((i - incr5) > 0)

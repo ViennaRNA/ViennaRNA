@@ -57,7 +57,10 @@ typedef struct vrna_subopt_sol_s   SOLUTION;
 
 #endif
 
+#include <stdio.h>
+
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
 
 

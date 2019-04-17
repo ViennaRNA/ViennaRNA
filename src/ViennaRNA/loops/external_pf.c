@@ -144,7 +144,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc)
     else
       evaluate = prepare_hc_default(fc, &hc_dat_local);
 
-    init_sc_wrapper_pf(fc, &sc_wrapper);
+    init_sc_wrapper_ext(fc, &sc_wrapper);
 
     /* allocate memory for helper arrays */
     aux_mx =
@@ -304,7 +304,7 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
     turn      = fc->exp_params->model_details.min_loop_size;
     q         = fc->exp_matrices->q_local;
     evaluate  = prepare_hc_default_window(fc, &hc_dat_local);
-    init_sc_wrapper_pf(fc, &sc_wrapper);
+    init_sc_wrapper_ext(fc, &sc_wrapper);
 
 
     for (k = j; k >= MAX2(1, j - turn); k--)
@@ -322,10 +322,10 @@ reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     struct default_data         *hc_dat_local,
                     struct sc_wrapper_exp_ext   *sc_wrapper)
 {
-  int           u;
-  FLT_OR_DBL    q_temp, q_temp2, q, *qq1, **qqu, *scale;
-  vrna_ud_t     *domains_up;
-  sc_red_ext_pf *sc_red_ext;
+  int             u;
+  FLT_OR_DBL      q_temp, q_temp2, q, *qq1, **qqu, *scale;
+  vrna_ud_t       *domains_up;
+  sc_ext_exp_red  *sc_red_ext;
 
   domains_up  = fc->domains_up;
   qq1         = aux_mx->qq1;
@@ -386,7 +386,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
   FLT_OR_DBL        qbt, q_temp, qb;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
-  sc_red_stem_pf    *sc_red_stem;
+  sc_ext_exp_stem   *sc_red_stem;
 
   sc_red_stem = sc_wrapper->red_stem;
   n           = fc->length;
@@ -411,7 +411,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
         type    = vrna_get_ptype_md(S2[i], S2[j], md);
         s5      = (((i > 1) || circular) && (sn[i] == sn[i - 1])) ? S1[i - 1] : -1;
         s3      = (((j < n) || circular) && (sn[j + 1] == sn[j])) ? S1[j + 1] : -1;
-        q_temp  *= exp_E_ExtLoop(type, s5, s3, pf_params);
+        q_temp  *= vrna_exp_E_ext_stem(type, s5, s3, pf_params);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
@@ -422,10 +422,10 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
         a2s   = fc->a2s;
         for (s = 0; s < n_seq; s++) {
           type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
-          q_temp  *= exp_E_ExtLoop(type,
-                                   ((a2s[s][i] > 1) || circular) ? S5[s][i] : -1,
-                                   ((a2s[s][j] < a2s[s][S[0][0]]) || circular) ? S3[s][j] : -1,
-                                   pf_params);
+          q_temp  *= vrna_exp_E_ext_stem(type,
+                                         ((a2s[s][i] > 1) || circular) ? S5[s][i] : -1,
+                                         ((a2s[s][j] < a2s[s][S[0][0]]) || circular) ? S3[s][j] : -1,
+                                         pf_params);
         }
         break;
     }
@@ -449,10 +449,10 @@ reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    struct default_data        *hc_dat_local,
                    struct sc_wrapper_exp_ext  *sc_wrapper)
 {
-  int           u;
-  FLT_OR_DBL    qbt, q_temp, *scale;
-  vrna_ud_t     *domains_up;
-  sc_red_up_pf  *sc_red_up;
+  int               u;
+  FLT_OR_DBL        qbt, q_temp, *scale;
+  vrna_ud_t         *domains_up;
+  sc_ext_exp_red_up *sc_red_up;
 
   sc_red_up = sc_wrapper->red_up;
 
@@ -491,9 +491,9 @@ split_ext_fast(vrna_fold_compound_t       *fc,
                struct default_data        *hc_dat_local,
                struct sc_wrapper_exp_ext  *sc_wrapper)
 {
-  int         *idx, k, ij1;
-  FLT_OR_DBL  qbt, *q, *qq, *qqq;
-  sc_split_pf *sc_split;
+  int               *idx, k, ij1;
+  FLT_OR_DBL        qbt, *q, *qq, *qqq;
+  sc_ext_exp_split  *sc_split;
 
   sc_split = sc_wrapper->split;
 
@@ -607,7 +607,7 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   else
     evaluate = prepare_hc_default(fc, &hc_dat_local);
 
-  init_sc_wrapper_pf(fc, &sc_wrapper);
+  init_sc_wrapper_ext(fc, &sc_wrapper);
 
   qbt1 = 0.;
 
@@ -642,15 +642,17 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_f))
     qbt1 += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->data);
 
-  free_sc_wrapper_pf(&sc_wrapper);
+  free_sc_wrapper_ext(&sc_wrapper);
 
   return qbt1;
 }
 
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ *###########################################
+ *# deprecated functions below              #
+ *###########################################
+ */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

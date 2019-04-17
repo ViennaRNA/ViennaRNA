@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 
 /**
  *
@@ -93,8 +94,9 @@ vrna_mfe(vrna_fold_compound_t *vc,
  *  @param    structure Will hold the barcket dot structure of the dimer molecule
  *  @return   minimum free energy of the structure
  */
-float vrna_mfe_dimer(vrna_fold_compound_t *vc,
-                     char                 *structure);
+float
+vrna_mfe_dimer(vrna_fold_compound_t *vc,
+               char                 *structure);
 
 
 /* End basic MFE interface */

@@ -114,4 +114,4 @@
 %constant unsigned int PATH_NO_TRANSITION_OUTPUT  = VRNA_PATH_NO_TRANSITION_OUTPUT;
 %constant unsigned int PATH_DEFAULT               = VRNA_PATH_DEFAULT;
 
-%include <ViennaRNA/walk.h>
+%include <ViennaRNA/landscape/walk.h>

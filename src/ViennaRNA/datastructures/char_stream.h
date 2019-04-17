@@ -14,6 +14,7 @@
  */
 
 #include <stdarg.h>
+#include <stdio.h>
 
 /* below is our own implementation of a dynamic char * stream */
 typedef struct vrna_cstr_s *vrna_cstr_t;

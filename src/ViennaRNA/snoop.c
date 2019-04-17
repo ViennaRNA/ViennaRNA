@@ -361,7 +361,7 @@ alisnoopfold(const char **s1,
 
       /* dangle 5'SIDE relative to the mRNA  */
       for (s = 0; s < n_seq; s++)
-        c[i][j] += E_ExtLoop(type[s], Sali1[s][i - 1], Sali2[s][j + 1], P);
+        c[i][j] += vrna_E_ext_stem(type[s], Sali1[s][i - 1], Sali2[s][j + 1], P);
       for (k = i - 1; k > 0 && (i - k) < MAXLOOP_L; k--) {
         for (l = j + 1; l <= n2; l++) {
           if (i - k + l - j > 2 * MAXLOOP_L - 2)
@@ -386,7 +386,7 @@ alisnoopfold(const char **s1,
       r[i][j] -= psc;
       E       = r[i][j];
       for (s = 0; s < n_seq; s++)
-        E += E_ExtLoop(rtype[type[s]], Sali2[s][j - 1], Sali1[s][i + 1], P);
+        E += vrna_E_ext_stem(rtype[type[s]], Sali2[s][j - 1], Sali1[s][i + 1], P);
       /**
       *** if (i<n1) E += P->dangle3[rtype[type[s]]][Sali1[s][i+1]];
       *** if (j>1)  E += P->dangle5[rtype[type[s]]][Sali2[s][j-1]];
@@ -755,7 +755,7 @@ alisnoop_backtrack(int          i,
       type[s] = 7;
 
     *Duplex_Er +=
-      E_ExtLoop(rtype[type[s]], (j > 1) ? Sali2[s][j - 1] : -1, (i < n1) ? Sali1[s][i + 1] : -1, P);
+      vrna_E_ext_stem(rtype[type[s]], (j > 1) ? Sali2[s][j - 1] : -1, (i < n1) ? Sali1[s][i + 1] : -1, P);
     /**
     *** if (i<n1)   *Duplex_Er += P->dangle3[rtype[type[s]]][Sali1[s][i+1]];
     *** if (j>1)    *Duplex_Er += P->dangle5[rtype[type[s]]][Sali2[s][j-1]];
@@ -959,7 +959,7 @@ alisnoop_backtrack(int          i,
     if (!traced) {
       for (s = 0; s < n_seq; s++) {
         int correction;
-        correction = E_ExtLoop(type[s],
+        correction = vrna_E_ext_stem(type[s],
                                (i > 1) ? Sali1[s][i - 1] : -1,
                                (j < n2) ? Sali2[s][j + 1] : -1,
                                P);
@@ -1176,7 +1176,7 @@ Lsnoop_subopt(const char  *s1,
       }
 
       /* dangle 5'SIDE relative to the mRNA  */
-      lc[idx][j] += E_ExtLoop(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
+      lc[idx][j] += vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
       /**
       *** if (i>1)    lc[idx][j] += P->dangle5[type][SS1[i-1]];
       *** if (j<n2)   lc[idx][j] += P->dangle3[type][SS2[j+1]];
@@ -1236,7 +1236,7 @@ Lsnoop_subopt(const char  *s1,
       **/
       min_colonne =
         MIN2(lr[idx][j] +
-             E_ExtLoop(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P),
+             vrna_E_ext_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P),
              min_colonne);
     }
     position[i] = min_colonne;
@@ -1419,7 +1419,7 @@ Lsnoop_subopt_list(const char *s1,
       }
 
       /* dangle 5'SIDE relative to the mRNA  */
-      lc[idx][j] += E_ExtLoop(type, SS1[i - 1], SS2[j + 1], P);
+      lc[idx][j] += vrna_E_ext_stem(type, SS1[i - 1], SS2[j + 1], P);
       /**
       ***      lc[idx][j] += P->dangle5[type][SS1[i-1]];
       ***      lc[idx][j] += P->dangle3[type][SS2[j+1]];
@@ -1478,7 +1478,7 @@ Lsnoop_subopt_list(const char *s1,
 
       /* min_colonne=MIN2(lr[idx][j]+(type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]], min_colonne); */
       int bla;
-      bla         = lr[idx][j] + E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1], P) + 2 * penalty;
+      bla         = lr[idx][j] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P) + 2 * penalty;
       min_colonne = MIN2(bla, min_colonne);
     }
     position[i] = min_colonne;
@@ -1800,7 +1800,7 @@ snoopfold(const char  *s1,
       *** c[i][j] += P->dangle3[type][SS2[j+1]];
       *** if (type>2) c[i][j] += P->TerminalAU;
       **/
-      c[i][j] += E_ExtLoop(type, SS1[i - 1], SS2[j + 1], P);
+      c[i][j] += vrna_E_ext_stem(type, SS1[i - 1], SS2[j + 1], P);
       for (k = i - 1; k > 0 && (i - k) < MAXLOOP_L; k--) {
         for (l = j + 1; l <= n2; l++) {
           if (i - k + l - j > 2 * MAXLOOP_L - 2)
@@ -1825,7 +1825,7 @@ snoopfold(const char  *s1,
       *** if (j>1)  E += P->dangle5[rtype[type]][SS2[j-1]];
       *** f (type>2) E += P->TerminalAU;
       **/
-      E += E_ExtLoop(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
+      E += vrna_E_ext_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
       if (E < Emin) {
         Emin  = E;
         i_min = i;
@@ -1992,7 +1992,7 @@ snoopfold_XS_fill(const char  *s1,
       *** c_fill[i][j] += P->dangle3[type][SS2[j+1]];
       *** if (type>2) c_fill[i][j] += P->TerminalAU;
       **/
-      c_fill[i][j] += E_ExtLoop(type, SS1[i - 1], SS2[j + 1], P);
+      c_fill[i][j] += vrna_E_ext_stem(type, SS1[i - 1], SS2[j + 1], P);
       for (k = i - 1; k > 0 && (i - k) < MAXLOOP_L; k--) {
         for (l = j + 1; l <= n2; l++) {
           if (i - k + l - j > 2 * MAXLOOP_L - 2)
@@ -2017,7 +2017,7 @@ snoopfold_XS_fill(const char  *s1,
       ***  if (j>1)  E += P->dangle5[rtype[type]][SS2[j-1]];
       *** if (type>2) E += P->TerminalAU;
       **/
-      E += E_ExtLoop(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
+      E += vrna_E_ext_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
       if (E < Emin) {
         Emin  = E;
         i_min = i;
@@ -2103,7 +2103,7 @@ snoop_subopt(const char *s1,
       *** if (j>1)  Ed += P->dangle5[type][SS2[j-1]];
       *** if (type>2) Ed += P->TerminalAU;
       **/
-      Ed += E_ExtLoop(type, (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
+      Ed += vrna_E_ext_stem(type, (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
       if (Ed > thresh)
         continue;
 
@@ -2305,7 +2305,7 @@ snoop_subopt_XS(const char  *s1,
        ***if (j>1)  Ed += P->dangle5[type][SS2_fill[j-1]];
        ***if (type>2) Ed += P->TerminalAU;
        **/
-      Ed += E_ExtLoop(type, (j > 1) ? SS2[j - 1] : -1, (i < n3) ? SS1[i + 1] : -1, P);
+      Ed += vrna_E_ext_stem(type, (j > 1) ? SS2[j - 1] : -1, (i < n3) ? SS1[i + 1] : -1, P);
       if (Ed > thresh)
         continue;
 
@@ -2478,7 +2478,7 @@ snoop_backtrack(int         i,
   *** if (j>1)    *Duplex_Er += P->dangle5[rtype[type]][SS2[j-1]];
   *** if (type>2) *Duplex_Er += P->TerminalAU;
   **/
-  *Duplex_Er += E_ExtLoop(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
+  *Duplex_Er += vrna_E_ext_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
   while (i > 0 && j <= n2 - min_d2) {
     if (!traced_r) {
       E           = r[i][j];
@@ -2624,7 +2624,7 @@ snoop_backtrack(int         i,
 
     if (!traced) {
       int correction;
-      correction  = E_ExtLoop(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
+      correction  = vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
       E           -= correction;
       *Duplex_El  += correction;
       /**
@@ -2848,7 +2848,7 @@ Lsnoop_subopt_list_XS(const char  *s1,
       *** lc[idx][j] += P->dangle3[type][SS2[j+1]];
       *** if (type>2) lc[idx][j] += P->TerminalAU;
       **/
-      lc[idx][j] += E_ExtLoop(type, SS1[i - 1], SS2[j + 1], P);
+      lc[idx][j] += vrna_E_ext_stem(type, SS1[i - 1], SS2[j + 1], P);
       /*       if(j<n2 && i>1){ */
       /* type2=pair[S1[i-1]][S2[j+1]]; */
       type2 = lpair[idx_1][j + 1];
@@ -2894,7 +2894,7 @@ Lsnoop_subopt_list_XS(const char  *s1,
       int bla;
       int temp2;
       temp2 = min_colonne;
-      bla   = lr[idx][j] + E_ExtLoop(rtype[type], SS2[j - 1], SS1[i + 1], P);
+      bla   = lr[idx][j] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P);
       /**
       *** (type>2?P->TerminalAU:0)+P->dangle3[rtype[type]][SS1[i+1]]+P->dangle5[rtype[type]][SS2[j-1]];
       **/

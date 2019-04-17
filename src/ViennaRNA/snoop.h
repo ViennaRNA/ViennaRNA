@@ -2,6 +2,9 @@
 #define VIENNA_RNA_PACKAGE_SNOOP_H
 
 #include <ViennaRNA/datastructures/basic.h>
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
 *** computes snoRNA-RNA interactions in RNAduplex manner
 **/
@@ -286,4 +289,6 @@ snoopT snoopfold_XS(const char  *s1,
 
 
 extern int snoop_subopt_sorted;
+#endif
+
 #endif

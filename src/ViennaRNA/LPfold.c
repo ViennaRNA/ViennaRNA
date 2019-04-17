@@ -143,9 +143,10 @@ probability_correction(vrna_fold_compound_t *vc,
 
 
 #if 0
-PRIVATE vrna_ep_t *get_deppp(vrna_fold_compound_t *vc,
-                             vrna_ep_t            *pl,
-                             int                  start);
+PRIVATE vrna_ep_t *
+get_deppp(vrna_fold_compound_t  *vc,
+          vrna_ep_t             *pl,
+          int                   start);
 
 
 #endif
@@ -762,8 +763,10 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         hc_decompose  = hc->matrix_local[i][j - i];
         qbt1          = 0.;
 
-        /* construction of partition function of segment i,j */
-        /* firstly that given i bound to j : qb(i,j) */
+        /*
+         * construction of partition function of segment i,j
+         * firstly that given i bound to j : qb(i,j)
+         */
         if (hc_decompose) {
           /* process hairpin loop(s) */
           qbt1 += vrna_exp_E_hp_loop(vc, i, j);
@@ -792,12 +795,13 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
 
         if (temp > Qmax) {
           Qmax = temp;
-          if (Qmax > max_real / 10.)
+          if (Qmax > max_real / 10.) {
             vrna_message_warning("vrna_probs_window: "
                                  "Q close to overflow: %d %d %g\n",
                                  i,
                                  j,
                                  temp);
+          }
         }
 
         if (temp >= max_real) {
@@ -922,12 +926,13 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
     }
   }
 
-  if (ov > 0)
+  if (ov > 0) {
     vrna_message_warning("vrna_probs_window: "
                          "%d overflows occurred while backtracking;\n"
                          "you might try a smaller pf_scale than %g\n",
                          ov,
                          pf_params->pf_scale);
+  }
 
   free_dp_matrices(vc, options);
   free_helper_arrays(vc, ulength, &aux_arrays, options);
@@ -1076,8 +1081,10 @@ compute_probs(vrna_fold_compound_t        *vc,
 
   /* start recursion */
 
-  /* i=j-winSize; */
-  /* initialize multiloopfs */
+  /*
+   * i=j-winSize;
+   * initialize multiloopfs
+   */
   for (k = j - winSize; k <= MIN2(n, j); k++) {
     prml[k]   = 0;
     prm_l[k]  = 0;
@@ -1113,10 +1120,10 @@ compute_probs(vrna_fold_compound_t        *vc,
                       q[l - winSize + 1][l];
       }
 
-      pR[k][l] *= exp_E_ExtLoop(type,
-                                (k > 1) ? S1[k - 1] : -1,
-                                (l < n) ? S1[l + 1] : -1,
-                                pf_params);
+      pR[k][l] *= vrna_exp_E_ext_stem(type,
+                                      (k > 1) ? S1[k - 1] : -1,
+                                      (l < n) ? S1[l + 1] : -1,
+                                      pf_params);
     }
 
     if (hc->matrix_local[k][l - k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
@@ -1541,8 +1548,10 @@ compute_pU(vrna_fold_compound_t       *vc,
   QBI = (double *)vrna_alloc((MAX2(ulength, MAXLOOP) + 2) * sizeof(double));
   QBH = (double *)vrna_alloc((MAX2(ulength, MAXLOOP) + 2) * sizeof(double));
 
-  /* first, we will */
-  /* for k<=ulength, pU[k][k]=0, because no bp can enclose it */
+  /*
+   * first, we will
+   * for k<=ulength, pU[k][k]=0, because no bp can enclose it
+   */
 
   /* compute pu[k+ulength][ulength] */
   for (i5 = MAX2(k + ulength - winSize + 1, 1); i5 <= k; i5++) {
@@ -2054,9 +2063,29 @@ backward_compat_callback(FLT_OR_DBL   *pr,
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ *###########################################
+ *# deprecated functions below              #
+ *###########################################
+ */
+
+PRIVATE void
+putoutpU_prob_old(double            **pU,
+                  int               length,
+                  int               ulength,
+                  FILE              *fp,
+                  int               energies,
+                  vrna_exp_param_t  *parameters);
+
+
+PRIVATE void
+putoutpU_prob_bin_old(double            **pU,
+                      int               length,
+                      int               ulength,
+                      FILE              *fp,
+                      int               energies,
+                      vrna_exp_param_t  *parameters);
+
 
 PRIVATE vrna_ep_t *
 wrap_pf_foldLP(char             *sequence,
@@ -2249,7 +2278,7 @@ putoutpU_prob(double  **pU,
               int     energies)
 {
   if (backward_compat_compound && backward_compat)
-    putoutpU_prob_par(pU, length, ulength, fp, energies, backward_compat_compound->exp_params);
+    putoutpU_prob_old(pU, length, ulength, fp, energies, backward_compat_compound->exp_params);
   else
     vrna_message_warning("putoutpU_prob: Not doing anything! First, run pfl_fold()!");
 }
@@ -2257,6 +2286,19 @@ putoutpU_prob(double  **pU,
 
 PUBLIC void
 putoutpU_prob_par(double            **pU,
+                  int               length,
+                  int               ulength,
+                  FILE              *fp,
+                  int               energies,
+                  vrna_exp_param_t  *parameters)
+{
+  if ((pU) && (fp) && (parameters))
+    putoutpU_prob_old(pU, length, ulength, fp, energies, parameters);
+}
+
+
+PRIVATE void
+putoutpU_prob_old(double            **pU,
                   int               length,
                   int               ulength,
                   FILE              *fp,
@@ -2306,7 +2348,7 @@ putoutpU_prob_bin(double  **pU,
                   int     energies)
 {
   if (backward_compat_compound && backward_compat)
-    putoutpU_prob_bin_par(pU, length, ulength, fp, energies, backward_compat_compound->exp_params);
+    putoutpU_prob_bin_old(pU, length, ulength, fp, energies, backward_compat_compound->exp_params);
   else
     vrna_message_warning("putoutpU_prob_bin: Not doing anything! First, run pfl_fold()!");
 }
@@ -2314,6 +2356,19 @@ putoutpU_prob_bin(double  **pU,
 
 PUBLIC void
 putoutpU_prob_bin_par(double            **pU,
+                      int               length,
+                      int               ulength,
+                      FILE              *fp,
+                      int               energies,
+                      vrna_exp_param_t  *parameters)
+{
+  if ((pU) && (fp) && (parameters))
+    putoutpU_prob_bin_old(pU, length, ulength, fp, energies, parameters);
+}
+
+
+PRIVATE void
+putoutpU_prob_bin_old(double            **pU,
                       int               length,
                       int               ulength,
                       FILE              *fp,

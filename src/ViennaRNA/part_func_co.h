@@ -54,6 +54,7 @@
 #include <ViennaRNA/part_func.h>
 #include <ViennaRNA/equilibrium_probs.h>
 #include <ViennaRNA/concentrations.h>
+#include <ViennaRNA/utils/structures.h>
 
 /**
  *  @brief Toggles no intrabp in 2nd mol

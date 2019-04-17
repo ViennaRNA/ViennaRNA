@@ -17,6 +17,8 @@
 
 /** \file profiledist.h  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *  \brief Align the 2 probability profiles T1, T2\n
  *
@@ -65,5 +67,7 @@ void  free_profile(float *T);
  */
 DEPRECATED(float *Make_bp_profile(int length),
 "Use Make_bp_profile_bppm() instead");
+
+#endif
 
 #endif

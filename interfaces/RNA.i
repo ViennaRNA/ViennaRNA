@@ -65,6 +65,7 @@ extern "C" {
 #include  <ViennaRNA/boltzmann_sampling.h>
 #include  <ViennaRNA/concentrations.h>
 #include  <ViennaRNA/LPfold.h>
+#include  <ViennaRNA/MEA.h>
 
 #include  <ViennaRNA/inverse.h>
 #include  <ViennaRNA/RNAstruct.h>
@@ -75,13 +76,14 @@ extern "C" {
 #include  <ViennaRNA/pair_mat.h>
 #include  <ViennaRNA/subopt.h>
 #include  <ViennaRNA/duplex.h>
-#include  <ViennaRNA/findpath.h>
-#include  <ViennaRNA/move_set.h>
 
 #include  <ViennaRNA/combinatorics.h>
 
-#include  <ViennaRNA/neighbor.h>
-#include  <ViennaRNA/walk.h>
+#include  <ViennaRNA/move_set.h>
+#include  <ViennaRNA/landscape/findpath.h>
+#include  <ViennaRNA/landscape/move.h>
+#include  <ViennaRNA/landscape/neighbor.h>
+#include  <ViennaRNA/landscape/walk.h>
 
 #include  <ViennaRNA/mm.h>
 }
@@ -199,6 +201,7 @@ namespace std {
 %include mfe.i
 %include mfe_window.i
 %include part_func.i
+%include boltzmann_sampling.i
 %include pf_window.i
 %include subopt.i
 %include inverse.i
@@ -244,16 +247,4 @@ struct bondT {
     return self+i;
   }
 }
-
-%include  <ViennaRNA/move_set.h>
-
-%ignore move_gradient;
-%ignore move_first;
-%ignore move_adaptive;
-%ignore browse_neighs_pt;
-%ignore browse_neighs;
-%ignore print_stren;
-%ignore print_str;
-%ignore copy_arr;
-%ignore allocopy;
 

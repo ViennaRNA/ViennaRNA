@@ -60,6 +60,7 @@ struct options {
   char            *filename_delim;
   int             pf;
   int             noPS;
+  int             noDP;
   int             noconv;
   int             lucky;
   int             MEA;
@@ -361,6 +362,7 @@ init_default_options(struct options *opt)
   opt->filename_delim = NULL;
   opt->pf             = 0;
   opt->noPS           = 0;
+  opt->noDP           = 0;
   opt->noconv         = 0;
   opt->lucky          = 0;
   opt->MEA            = 0;
@@ -418,6 +420,9 @@ main(int  argc,
   ggo_get_md_part(args_info, opt.md);
   ggo_get_circ(args_info, opt.md.circ);
 
+  /* temperature */
+  ggo_get_temperature(args_info, opt.md.temperature);
+
   /* check dangle model */
   if ((opt.md.dangles < 0) || (opt.md.dangles > 3)) {
     vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
@@ -454,6 +459,10 @@ main(int  argc,
   /* do not produce postscript output */
   if (args_info.noPS_given)
     opt.noPS = 1;
+
+  /* do not produce dot-plot output */
+  if (args_info.noDP_given)
+    opt.noDP = 1;
 
   /* partition function settings */
   if (args_info.partfunc_given) {
@@ -954,56 +963,60 @@ process_record(struct record_data *record)
                                  record->tty ? "\n free energy of ensemble = %6.2f kcal/mol" : " [%6.2f]",
                                  energy);
 
-      char  *filename_dotplot = NULL;
-      plist *pl1, *pl2;
+      if (!opt->noDP) {
+        char  *filename_dotplot, *filename_stackplot;
+        plist *pl1, *pl2;
 
-      /* generate initial element probability lists for dot-plot */
-      pl1 = vrna_plist_from_probs(vc, opt->bppmThreshold);
-      pl2 = vrna_plist(mfe_structure, 0.95 * 0.95);
+        filename_dotplot    = NULL;
+        filename_stackplot  = NULL;
 
-      /* add ligand motif annotation if necessary */
-      if (opt->ligandMotif)
-        add_ligand_motifs_dot(vc, &pl1, &pl2, mfe_structure);
+        /* generate initial element probability lists for dot-plot */
+        pl1 = vrna_plist_from_probs(vc, opt->bppmThreshold);
+        pl2 = vrna_plist(mfe_structure, 0.95 * 0.95);
 
-      /* generate dot-plot file name */
-      filename_dotplot = generate_filename("%s%sdp.ps",
-                                           "dot.ps",
-                                           record->SEQ_ID,
-                                           opt->filename_delim);
+        /* add ligand motif annotation if necessary */
+        if (opt->ligandMotif)
+          add_ligand_motifs_dot(vc, &pl1, &pl2, mfe_structure);
 
-      if (filename_dotplot) {
-        THREADSAFE_FILE_OUTPUT(
-          vrna_plot_dp_EPS(filename_dotplot,
-                           record->sequence,
-                           pl1,
-                           pl2,
-                           NULL,
-                           VRNA_PLOT_PROBABILITIES_DEFAULT));
-      }
+        filename_dotplot = generate_filename("%s%sdp.ps",
+                                             "dot.ps",
+                                             record->SEQ_ID,
+                                             opt->filename_delim);
 
-      free(filename_dotplot);
-      free(pl2);
-
-      /* compute stack probabilities and generate dot-plot */
-      if (opt->md.compute_bpp == 2) {
-        char *filename_stackplot = generate_filename("%s%sdp2.ps",
-                                                     "dot2.ps",
-                                                     record->SEQ_ID,
-                                                     opt->filename_delim);
-
-        pl2 = vrna_stack_prob(vc, 1e-5);
-
-        if (filename_stackplot) {
+        if (filename_dotplot) {
           THREADSAFE_FILE_OUTPUT(
-            PS_dot_plot_list(record->sequence, filename_stackplot, pl1, pl2,
-                             "Probabilities for stacked pairs (i,j)(i+1,j-1)"));
+            vrna_plot_dp_EPS(filename_dotplot,
+                             record->sequence,
+                             pl1,
+                             pl2,
+                             NULL,
+                             VRNA_PLOT_PROBABILITIES_DEFAULT));
         }
 
+        free(filename_dotplot);
         free(pl2);
-        free(filename_stackplot);
-      }
 
-      free(pl1);
+        /* compute stack probabilities and generate dot-plot */
+        if (opt->md.compute_bpp == 2) {
+          char *filename_stackplot = generate_filename("%s%sdp2.ps",
+                                                       "dot2.ps",
+                                                       record->SEQ_ID,
+                                                       opt->filename_delim);
+
+          pl2 = vrna_stack_prob(vc, 1e-5);
+
+          if (filename_stackplot) {
+            THREADSAFE_FILE_OUTPUT(
+              PS_dot_plot_list(record->sequence, filename_stackplot, pl1, pl2,
+                               "Probabilities for stacked pairs (i,j)(i+1,j-1)"));
+          }
+
+          free(pl2);
+          free(filename_stackplot);
+        }
+
+        free(pl1);
+      }
 
       /* compute centroid structure */
       compute_centroid(vc, opt->ligandMotif, opt->verbose, o_stream->data);

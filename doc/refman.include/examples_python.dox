@@ -2,16 +2,34 @@
 
 @page  examples_python   Python Examples
 
+@anchor examples_python_mfe
+
 MFE Prediction (flat interface)
 -------------------------------
 @include  helloworld_mfe.py
+
+@anchor examples_python_mfe_oo
 
 MFE Prediction (object oriented interface)
 ------------------------------------------
 @include  oo_example1.py
 
+@anchor examples_python_subopt
+
+Suboptimal Structure Prediction
+-------------------------------
 @include  subopt.py
 
+@anchor examples_python_pbacktrack
+
+Boltzmann Sampling (a.k.a. Probabilistic Backtracing)
+-----------------------------------------------------
+@include  boltzmann_sampling.py
+
+@anchor examples_python_soft_constraints
+
+Fun with Soft Constraints
+-------------------------
 @include  maximum_matching.py
 
 */

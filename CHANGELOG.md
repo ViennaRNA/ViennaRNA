@@ -6,6 +6,48 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.11...HEAD)
 
+### [v2.4.12](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.11...v2.4.12) (2019-04-16)
+
+#### Programs
+  * Add non-redundant stochastic backtracing option for `RNAalifold`
+  * Add `--noDP` option to suppress dot-plot output in `RNAfold` and `RNAalifold`
+  * Add `RNApuzzler` (4) and `RNAturtle` (3) secondary structure layout algorithm options to `RNAfold` and `RNAplot`
+  * Update help/man page of `RNALfold`
+  * Allow for multiple input files and parallel input processing in `RNAheat`
+
+
+#### Library
+  * API: Fix declaration of `vrna_move_apply_db()`
+  * API: Fix `vrna_path()` lexicographical ordering in gradient walks
+  * API: Enable non-redundant stochastic backtracing for comparative structure prediction
+  * API: Enable stochastic backtracing for circular comparative structure prediction
+  * API: Enable stochastic backtracing of subsequences (5' prefixes) for comparative structure prediction
+  * API: Add `pf_smooth` attribute to `vrna_md_t` data stucture to allow for disabling Boltzmann factor energy smoothing
+  * API: Add functions to allow for resuming non-redundant stochastic backtracing
+  * API: Add functions to retrieve multiple stochastically backtraced structures (list and callback variants)
+  * API: Add `vrna_positional_entropy` to compute vector of positional entropies
+  * API: Add `RNApuzzler` and `RNAturtle` secondary structure layout algorithm (Wiegreffe et al. 2018)
+  * API: Add v3.0 API for secondary structure layout/coordinate algorithms
+  * API: Add more helper/utility functions for `vrna_move_t` data structures
+  * API: Add callback-based neighborhood update function for (subsequent) `vrna_move_t` application
+  * API: Add abstract heap data structure available as `<ViennaRNA/datastructures/heap.h>`
+  * API: Refactor and speed-up gradient walk implementation available as `vrna_path_gradient()`
+  * API: Substitute `vrna_file_PS_aln_sub()` alignment plot function by `vrna_file_PS_aln_slice()` that actually slices out a sub-alignment
+  * API: Rename `vrna_annotate_covar_struct()` to `vrna_annotate_covar_db()` and add new function `vrna_annotate_covar_db_extended()` to support more bracket types
+  * API: Calling `vrna_params_reset()` now implies a call to `vrna_exp_params_reset()` as well
+  * API: Move landscape implementations into separate directory, thus headers should be included as `<ViennaRNA/landscape/move.h>`, `<ViennaRNA/landscape/neighbor.h>`, etc.
+  * Ensure proper rescaling of energy parameters upon temperature changes
+  * Refactor soft constraints implementation in stochastic backtracing
+  * SWIG: Wrap all non-redundant stochastic backtracing functions to scripting language interface(s)
+  * SWIG: Refactor stochastic backtracing interface(s)
+  * SWIG: Add proper constructor for objects of type `vrna_ep_t`
+  * SWIG: Sanitize alignment plot function interface(s)
+
+#### Package
+  * Update Ubuntu/Debian and OpenSUSE build instructions
+  * Reduce intra-package dependency on non-v3.0 API
+
+
 ### [v2.4.11](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.10...v2.4.11) (2018-12-17)
 
 #### Programs

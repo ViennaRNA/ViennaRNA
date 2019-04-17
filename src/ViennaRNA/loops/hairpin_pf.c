@@ -142,7 +142,7 @@ exp_eval_hp_loop_fake(vrna_fold_compound_t  *fc,
       s5  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
       s3  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
 
-      temp *= exp_E_ExtLoop(type, s5, s3, pf_params);
+      temp *= vrna_exp_E_ext_stem(type, s5, s3, pf_params);
 
       qq += temp;
 
@@ -216,8 +216,10 @@ exp_eval_hp_loop(vrna_fold_compound_t *fc,
         /* regular hairpin loop */
         q = exp_E_Hairpin(u, type, S[i + 1], S[j - 1], fc->sequence + i - 1, P);
       } else {
-        /* hairpin-like exterior loop (for cofolding) */
-        /* this is currently handle somewhere else */
+        /*
+         * hairpin-like exterior loop (for cofolding)
+         * this is currently handle somewhere else
+         */
       }
 
       break;

@@ -26,28 +26,143 @@
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/file_formats.h"
+#include "ViennaRNA/datastructures/char_stream.h"
+#include "ViennaRNA/datastructures/stream_output.h"
+#include "ViennaRNA/color_output.inc"
+
 #include "RNAheat_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
-
-#include "ViennaRNA/color_output.inc"
+#include "parallel_helpers.h"
 
 
 #define MAXWIDTH  201
-#define GASCONST  1.98717  /* in [cal/K] */
-#define K0        273.15
 
-PRIVATE float F[MAXWIDTH];
-PRIVATE float ddiff(float f[],
-                    float h,
-                    int   m);
+struct options {
+  int             filename_full;
+  int             noconv;
+  float           T_min;
+  float           T_max;
+  float           h;
+  int             mpoints;
+  vrna_md_t       md;
+  dataset_id      id_control;
+
+  int             jobs;
+  int             keep_order;
+  unsigned int    next_record_number;
+  vrna_ostream_t  output_queue;
+};
 
 
-PRIVATE void heat_capacity(char   *string,
-                           float  T_min,
-                           float  T_max,
-                           float  h,
-                           int    m);
+struct record_data {
+  unsigned int    number;
+  char            *id;
+  char            *sequence;
+  char            *SEQ_ID;
+  char            *input_filename;
+  int             multiline_input;
+  struct options  *options;
+  int             tty;
+};
+
+
+struct output_stream {
+  vrna_cstr_t data;
+  vrna_cstr_t err;
+};
+
+
+PRIVATE float
+ddiff(float f[],
+      float h,
+      int   m);
+
+
+static int
+process_input(FILE            *input_stream,
+              const char      *input_filename,
+              struct options  *opt);
+
+
+static void
+process_record(struct record_data *record);
+
+
+void
+init_default_options(struct options *opt)
+{
+  opt->filename_full  = 0;
+  opt->noconv         = 0;
+
+  vrna_md_set_default(&(opt->md));
+  opt->md.backtrack   = 0;
+  opt->md.compute_bpp = 0;
+
+  opt->T_min    = 0.;
+  opt->T_max    = 100.;
+  opt->h        = 1;
+  opt->mpoints  = 2;
+
+  opt->jobs               = 1;
+  opt->keep_order         = 1;
+  opt->next_record_number = 0;
+  opt->output_queue       = NULL;
+}
+
+
+static char **
+collect_unnamed_options(struct RNAheat_args_info  *ggostruct,
+                        int                       *num_files)
+{
+  char          **input_files = NULL;
+  unsigned int  i;
+
+  *num_files = 0;
+
+  /* collect all unnamed options */
+  if (ggostruct->inputs_num > 0) {
+    input_files = (char **)vrna_realloc(input_files, sizeof(char *) * ggostruct->inputs_num);
+    for (i = 0; i < ggostruct->inputs_num; i++)
+      input_files[(*num_files)++] = strdup(ggostruct->inputs[i]);
+  }
+
+  return input_files;
+}
+
+
+static char **
+append_input_files(struct RNAheat_args_info *ggostruct,
+                   char                     **files,
+                   int                      *numfiles)
+{
+  unsigned int i;
+
+  if (ggostruct->infile_given) {
+    files = (char **)vrna_realloc(files, sizeof(char *) * (*numfiles + ggostruct->infile_given));
+    for (i = 0; i < ggostruct->infile_given; i++)
+      files[(*numfiles)++] = strdup(ggostruct->infile_arg[i]);
+  }
+
+  return files;
+}
+
+
+void
+flush_cstr_callback(void          *auxdata,
+                    unsigned int  i,
+                    void          *data)
+{
+  struct output_stream *s = (struct output_stream *)data;
+
+  /* flush/free errors first */
+  vrna_cstr_free(s->err);
+
+  /* flush/free data[k] */
+  vrna_cstr_free(s->data);
+
+  free(s);
+}
 
 
 int
@@ -55,24 +170,13 @@ main(int  argc,
      char *argv[])
 {
   struct RNAheat_args_info  args_info;
-  char                      *ns_bases, *c, *ParamFile, *rec_sequence, *rec_id, **rec_rest,
-                            *orig_sequence;
-  unsigned int              rec_type, read_opt;
-  int                       i, length, sym, mpoints, istty, noconv, filename_full;
-  float                     T_min, T_max, h;
-  dataset_id                id_control;
+  char                      **input_files;
+  int                       num_input;
+  struct options            opt;
 
-  ParamFile     = ns_bases = NULL;
-  T_min         = 0.;
-  T_max         = 100.;
-  h             = 1;
-  mpoints       = 2;
-  noconv        = 0;
-  dangles       = 2; /* dangles can be 0 (no dangles) or 2, default is 2 */
-  rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = orig_sequence = NULL;
-  rec_rest      = NULL;
-  filename_full = 0;
+  num_input = 0;
+
+  init_default_options(&opt);
 
   /*
    #############################################
@@ -82,73 +186,89 @@ main(int  argc,
   if (RNAheat_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
-  /* parse options for ID manipulation */
-  ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
+  /*
+   *  - dangles
+   *  - special_hp
+   *  - gquad
+   *  - energy_set
+   *  - ns_bases
+   *  - parameter file
+   */
+  ggo_get_md_eval(args_info, opt.md);
 
-  /* do not take special tetra loop energies into account */
-  if (args_info.noTetra_given)
-    tetra_loop = 0;
-
-  /* set dangle model */
-  if (args_info.dangles_given) {
-    if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning(
-        "required dangle model not implemented, falling back to default dangles=2");
-    else
-      dangles = args_info.dangles_arg;
+  /* check dangle model */
+  if (!((opt.md.dangles == 0) || (opt.md.dangles == 2))) {
+    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    opt.md.dangles = 2;
   }
 
-  /* do not allow weak pairs */
-  if (args_info.noLP_given)
-    noLonelyPairs = 1;
-
-  /* do not allow wobble pairs (GU) */
-  if (args_info.noGU_given)
-    noGU = 1;
-
-  /* do not allow weak closing pairs (AU,GU) */
-  if (args_info.noClosingGU_given)
-    no_closingGU = 1;
+  /*
+   *  - noLP
+   *  - noGU
+   *  - noGUclosure
+   *  - maxBPspan
+   */
+  ggo_get_md_fold(args_info, opt.md);
+  ggo_get_circ(args_info, opt.md.circ);
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
-    noconv = 1;
-
-  /* set energy model */
-  if (args_info.energyModel_given)
-    energy_set = args_info.energyModel_arg;
-
-  /* take another energy parameter set */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
-
-  /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-  if (args_info.nsp_given)
-    ns_bases = strdup(args_info.nsp_arg);
-
-  ggo_get_gquad(args_info, gquad);
+    opt.noconv = 1;
 
   /* Tmin */
   if (args_info.Tmin_given)
-    T_min = args_info.Tmin_arg;
+    opt.T_min = args_info.Tmin_arg;
 
   /* Tmax */
   if (args_info.Tmax_given)
-    T_max = args_info.Tmax_arg;
+    opt.T_max = args_info.Tmax_arg;
 
   /* step size */
   if (args_info.stepsize_given)
-    h = args_info.stepsize_arg;
+    opt.h = args_info.stepsize_arg;
 
   /* ipoints */
   if (args_info.ipoints_given) {
-    mpoints = args_info.ipoints_arg;
-    if (mpoints < 1)
-      mpoints = 1;
+    opt.mpoints = args_info.ipoints_arg;
+    if (opt.mpoints < 1)
+      opt.mpoints = 1;
 
-    if (mpoints > 100)
-      mpoints = 100;
+    if (opt.mpoints > 100)
+      opt.mpoints = 100;
   }
+
+  if (args_info.jobs_given) {
+#if VRNA_WITH_PTHREADS
+    int thread_max = max_user_threads();
+    if (args_info.jobs_arg == 0) {
+      /* use maximum of concurrent threads */
+      int proc_cores, proc_cores_conf;
+      if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
+        opt.jobs = MIN2(thread_max, proc_cores_conf);
+      } else {
+        vrna_message_warning("Could not determine number of available processor cores!\n"
+                             "Defaulting to serial computation");
+        opt.jobs = 1;
+      }
+    } else {
+      opt.jobs = MIN2(thread_max, args_info.jobs_arg);
+    }
+
+    opt.jobs = MAX2(1, opt.jobs);
+#else
+    vrna_message_warning(
+      "This version of RNAheat has been built without parallel input processing capabilities");
+#endif
+
+    if (args_info.unordered_given)
+      opt.keep_order = 0;
+  }
+
+  input_files = collect_unnamed_options(&args_info, &num_input);
+  input_files = append_input_files(&args_info, input_files, &num_input);
+
+  /* parse options for ID manipulation */
+  ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
 
   /* free allocated memory of command line data structure */
   RNAheat_cmdline_parser_free(&args_info);
@@ -158,36 +278,71 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+  if (opt.md.circ && opt.md.gquad)
+    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
 
-  if (ns_bases != NULL) {
-    nonstandards  = vrna_alloc(33);
-    c             = ns_bases;
-    i             = sym = 0;
-    if (*c == '-') {
-      sym = 1;
-      c++;
-    }
+  if (opt.keep_order)
+    opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
 
-    while (*c != '\0') {
-      if (*c != ',') {
-        nonstandards[i++] = *c++;
-        nonstandards[i++] = *c;
-        if ((sym) && (*c != *(c - 1))) {
-          nonstandards[i++] = *c;
-          nonstandards[i++] = *(c - 1);
-        }
+  /*
+   #############################################
+   # main loop: continue until end of file
+   #############################################
+   */
+  INIT_PARALLELIZATION(opt.jobs);
+
+  if (num_input > 0) {
+    int i, skip;
+    for (skip = i = 0; i < num_input; i++) {
+      if (!skip) {
+        FILE *input_stream = fopen((const char *)input_files[i], "r");
+
+        if (!input_stream)
+          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
+                             input_files[i]);
+
+        if (process_input(input_stream, (const char *)input_files[i], &opt) == 0)
+          skip = 1;
+
+        fclose(input_stream);
       }
 
-      c++;
+      free(input_files[i]);
     }
+  } else {
+    (void)process_input(stdin, NULL, &opt);
   }
 
-  istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
+  UNINIT_PARALLELIZATION
+  /*
+   ################################################
+   # post processing
+   ################################################
+   */
+  vrna_ostream_free(opt.output_queue);
 
-  read_opt |= VRNA_INPUT_NO_REST;
-  if (istty) {
+
+  free(input_files);
+
+  free_id_data(opt.id_control);
+
+  return EXIT_SUCCESS;
+}
+
+
+static int
+process_input(FILE            *input_stream,
+              const char      *input_filename,
+              struct options  *opt)
+{
+  int           ret       = 1;
+  int           istty_in  = isatty(fileno(input_stream));
+  int           istty_out = isatty(fileno(stdout));
+
+  unsigned int  read_opt = VRNA_INPUT_NO_REST;
+
+  /* print user help if we get input from tty */
+  if (istty_in && istty_out) {
     vrna_message_input_seq_simple();
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
   }
@@ -197,126 +352,177 @@ main(int  argc,
    # main loop: continue until end of file
    #############################################
    */
-  while (
-    !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
-      & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
-    char *SEQ_ID = NULL;
+  do {
+    char          *rec_sequence, *rec_id, **rec_rest;
+    unsigned int  rec_type;
+    int           maybe_multiline;
+
+    rec_id          = NULL;
+    rec_rest        = NULL;
+    maybe_multiline = 0;
+
+    rec_type = vrna_file_fasta_read_record(&rec_id,
+                                           &rec_sequence,
+                                           &rec_rest,
+                                           input_stream,
+                                           read_opt);
+
+    if (rec_type & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
+      break;
+
     /*
      ########################################################
      # init everything according to the data we've read
      ########################################################
      */
-    if (rec_id) /* remove '>' from FASTA header */
+    if (rec_id) {
+      maybe_multiline = 1;
+      /* remove '>' from FASTA header */
       rec_id = memmove(rec_id, rec_id + 1, strlen(rec_id));
+    }
 
     /* construct the sequence ID */
-    set_next_id(&rec_id, id_control);
-    SEQ_ID = fileprefix_from_id(rec_id, id_control, filename_full);
+    set_next_id(&rec_id, opt->id_control);
 
-    length = (int)strlen(rec_sequence);
+    struct record_data *record = (struct record_data *)vrna_alloc(sizeof(struct record_data));
 
-    /* convert DNA alphabet to RNA if not explicitely switched off */
-    if (!noconv)
-      vrna_seq_toRNA(rec_sequence);
+    record->number          = opt->next_record_number;
+    record->sequence        = rec_sequence;
+    record->SEQ_ID          = fileprefix_from_id(rec_id, opt->id_control, opt->filename_full);
+    record->id              = rec_id;
+    record->multiline_input = maybe_multiline;
+    record->options         = opt;
+    record->tty             = istty_in && istty_out;
+    record->input_filename  = (input_filename) ? strdup(input_filename) : NULL;
 
-    /* store case-unmodified sequence */
-    orig_sequence = strdup(rec_sequence);
-    /* convert sequence to uppercase letters only */
-    vrna_seq_toupper(rec_sequence);
+    if (opt->output_queue)
+      vrna_ostream_request(opt->output_queue, opt->next_record_number++);
 
-    if (!istty)
-      print_fasta_header(stdout, rec_id);
-
-    if (istty)
-      vrna_message_info(stdout, "length = %d", length);
-
-    /*
-     ########################################################
-     # done with 'stdin' handling
-     ########################################################
-     */
-
-    heat_capacity(rec_sequence, T_min, T_max, h, mpoints);
-    (void)fflush(stdout);
-
-    /* clean up */
-    free(rec_id);
-    free(SEQ_ID);
-    free(rec_sequence);
-    free(orig_sequence);
-    rec_id    = rec_sequence = orig_sequence = NULL;
-    rec_rest  = NULL;
+    RUN_IN_PARALLEL(process_record, record);
 
     /* print user help for the next round if we get input from tty */
-    if (istty)
+    if (istty_in && istty_out)
       vrna_message_input_seq_simple();
-  }
+  } while (1);
 
-  free_id_data(id_control);
-
-  return EXIT_SUCCESS;
+  return ret;
 }
 
 
-PRIVATE void
-heat_capacity(char  *string,
-              float T_min,
-              float T_max,
-              float h,
-              int   m)
+static void
+process_record(struct record_data *record)
 {
-  int   length, i;
-  char  *structure;
-  float hc, kT, min_en;
+  char                  *rec_sequence;
+  int                   i, n, m;
+  float                 hc, F[MAXWIDTH], T_min, T_max, h;
+  double                min_en;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             md;
 
-  length = (int)strlen(string);
+  struct options        *opt;
+  struct output_stream  *o_stream;
 
-  do_backtrack = 0;
+  opt           = record->options;
+  o_stream      = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
+  rec_sequence  = strdup(record->sequence);
 
-  temperature = T_min - m * h;
-  /* initialize_fold(length); <- obsolete */
-  structure = (char *)vrna_alloc((unsigned)length + 1);
-  min_en    = fold(string, structure);
-  free(structure);
-  free_arrays();
-  kT        = (temperature + K0) * GASCONST / 1000; /* in kcal */
-  pf_scale  = exp(-(1.07 * min_en) / kT / length);
-  /* init_pf_fold(length); <- obsolete */
-  vrna_exp_param_t  *pf_parameters = NULL;
-  vrna_md_t         md;
-  set_model_details(&md);
-  pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
+  T_min = opt->T_min;
+  T_max = opt->T_max;
+  h     = opt->h;
+  m     = opt->mpoints;
 
-  update_pf_params_par(length, pf_parameters);
-  for (i = 0; i < 2 * m + 1; i++) {
-    F[i]            = pf_fold_par(string, NULL, pf_parameters, 0, 0, 0); /* T_min -2h */
-    md.temperature  = temperature += h;
-    kT              = (temperature + K0) * GASCONST / 1000;
-    pf_scale        = exp(-(F[i] / length + h * 0.00727) / kT); /* try to extrapolate F */
-    free(pf_parameters);
-    pf_parameters = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
-    update_pf_params_par(length, pf_parameters);
+  /* convert DNA alphabet to RNA if not explicitely switched off */
+  if (!opt->noconv) {
+    vrna_seq_toRNA(rec_sequence);
+    vrna_seq_toRNA(record->sequence);
   }
-  while (temperature <= (T_max + m * h + h)) {
-    hc = -ddiff(F, h, m) * (temperature + K0 - m * h - h);
-    char *tline = vrna_strdup_printf("%g\t%g", (temperature - m * h - h), hc);
-    print_table(stdout, NULL, tline);
-    free(tline);
+
+  /* convert sequence to uppercase letters only */
+  vrna_seq_toupper(rec_sequence);
+
+  fc = vrna_fold_compound(rec_sequence,
+                          &(opt->md),
+                          VRNA_OPTION_DEFAULT);
+
+  n = (int)fc->length;
+
+  /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
+  o_stream->data = vrna_cstr(6 * n, stdout);
+  /* retrieve string stream bound to stderr for any info messages */
+  o_stream->err = vrna_cstr(n, stderr);
+
+  if (record->tty)
+    vrna_message_info(stdout, "length = %d", n);
+
+  /*
+   ########################################################
+   # begin actual computations
+   ########################################################
+   */
+  vrna_cstr_print_fasta_header(o_stream->data, record->id);
+
+  md = fc->params->model_details;
+
+  /* required for vrna_exp_param_rescale() in subsequent calls */
+  md.sfact = 1.;
+
+  md.temperature = T_min - m * h;
+  vrna_params_reset(fc, &md);
+
+  /* initialize_fold(length); <- obsolete */
+  min_en  = (double)vrna_mfe(fc, NULL);
+  min_en  *= md.sfact;
+
+  vrna_exp_params_rescale(fc, &min_en);
+
+  for (i = 0; i < 2 * m + 1; i++) {
+    F[i] = vrna_pf(fc, NULL);
+    /* increase temperature */
+    md.temperature += h;
+    /* reset all energy parameters according to temperature changes */
+    vrna_params_reset(fc, &md);
+
+    min_en = F[i] + h * 0.00727 * n;
+
+    vrna_exp_params_rescale(fc, &min_en);
+  }
+
+  while (md.temperature <= (T_max + m * h + h)) {
+    hc = -ddiff(F, h, m) * (md.temperature + K0 - m * h - h);
+
+    vrna_cstr_printf_tbody(o_stream->data,
+                           "%g\t%g",
+                           (md.temperature - m * h - h),
+                           hc);
 
     for (i = 0; i < 2 * m; i++)
       F[i] = F[i + 1];
 
-    F[2 * m] = pf_fold_par(string, NULL, pf_parameters, 0, 0, 0);
+    F[2 * m] = vrna_pf(fc, NULL);
+
     /*       printf("%g\n", F[2*m]);*/
-    temperature += h;
-    kT          = (temperature + K0) * GASCONST / 1000;
-    pf_scale    = exp(-(F[i] / length + h * 0.00727) / kT);
-    free(pf_parameters);
-    md.temperature  = temperature;
-    pf_parameters   = get_boltzmann_factors(temperature, 1.0, md, pf_scale);
-    update_pf_params_par(length, pf_parameters);
+    md.temperature += h;
+
+    vrna_params_reset(fc, &md);
+
+    min_en = F[i] + h * 0.00727 * n;
+
+    vrna_exp_params_rescale(fc, &min_en);
   }
-  free_pf_arrays();
+
+  if (opt->output_queue)
+    vrna_ostream_provide(opt->output_queue, record->number, (void *)o_stream);
+  else
+    flush_cstr_callback(NULL, 0, (void *)o_stream);
+
+  /* clean up */
+  vrna_fold_compound_free(fc);
+  free(record->id);
+  free(record->SEQ_ID);
+  free(record->sequence);
+  free(rec_sequence);
+  free(record->input_filename);
+  free(record);
 }
 
 
@@ -327,9 +533,8 @@ ddiff(float f[],
       float h,
       int   m)
 {
-  float fp;
   int   i;
-  float A, B;
+  float fp, A, B;
 
   A = (float)(m * (m + 1) * (2 * m + 1) / 3);                                     /* 2*sum(x^2) */
   B = (float)(m * (m + 1) * (2 * m + 1)) * (float)(3 * m * m + 3 * m - 1) / 15.;  /* 2*sum(x^4) */

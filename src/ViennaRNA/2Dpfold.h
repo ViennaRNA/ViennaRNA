@@ -29,7 +29,10 @@
  *
  */
 
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/params/basic.h>
 
 /**
  *  @brief Solution element returned from vrna_pf_TwoD()

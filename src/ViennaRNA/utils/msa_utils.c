@@ -38,8 +38,10 @@
  #################################
  */
 
-/* IUP nucleotide classes indexed by a bit string of the present bases */
-/* A C AC G AG CG ACG U AU CU ACU GU AGU CGU ACGU */
+/*
+ * IUP nucleotide classes indexed by a bit string of the present bases
+ * A C AC G AG CG ACG U AU CU ACU GU AGU CGU ACGU
+ */
 static char IUP[17] = "-ACMGRSVUWYHKDBN";
 
 /*
@@ -187,9 +189,11 @@ PUBLIC int *
 vrna_aln_pscore(const char  **alignment,
                 vrna_md_t   *md)
 {
-  /* calculate co-variance bonus for each pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
+  /*
+   * calculate co-variance bonus for each pair depending on
+   * compensatory/consistent mutations and incompatible seqs
+   * should be 0 for conserved pairs, >0 for good pairs
+   */
 
 #define NONE -10000 /* score for forbidden pairs */
 
@@ -723,13 +727,25 @@ copy_alignment(const char   **alignment,
 }
 
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ *###########################################
+ *# deprecated functions below              #
+ *###########################################
+ */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #define MAX_NUM_NAMES    500
+
+PRIVATE void
+encode_ali_sequence_old(const char      *sequence,
+                        short           *S,
+                        short           *s5,
+                        short           *s3,
+                        char            *ss,
+                        unsigned short  *as,
+                        int             circular);
+
 
 int
 read_clustal(FILE *clust,
@@ -1014,7 +1030,7 @@ alloc_sequence_arrays(const char      **sequences,
       (*a2s)[s] = (unsigned short *)vrna_alloc((length + 2) * sizeof(unsigned short));
       (*Ss)[s]  = (char *)vrna_alloc((length + 2) * sizeof(char));
       (*S)[s]   = (short *)vrna_alloc((length + 2) * sizeof(short));
-      encode_ali_sequence(sequences[s], (*S)[s], (*S5)[s], (*S3)[s], (*Ss)[s], (*a2s)[s], circ);
+      encode_ali_sequence_old(sequences[s], (*S)[s], (*S5)[s], (*S3)[s], (*Ss)[s], (*a2s)[s], circ);
     }
     (*S5)[n_seq]  = NULL;
     (*S3)[n_seq]  = NULL;
@@ -1065,6 +1081,25 @@ encode_ali_sequence(const char      *sequence,
                     char            *ss,
                     unsigned short  *as,
                     int             circular)
+{
+  if ((sequence) &&
+      (S) &&
+      (s5) &&
+      (s3) &&
+      (ss) &&
+      (as))
+    encode_ali_sequence_old(sequence, S, s5, s3, ss, as, circular);
+}
+
+
+PRIVATE void
+encode_ali_sequence_old(const char      *sequence,
+                        short           *S,
+                        short           *s5,
+                        short           *s3,
+                        char            *ss,
+                        unsigned short  *as,
+                        int             circular)
 {
   unsigned int    i, l;
   unsigned short  p;

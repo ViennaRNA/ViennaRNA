@@ -71,6 +71,7 @@ typedef struct vrna_unstructured_domain_s vrna_ud_t;
 typedef struct vrna_unstructured_domain_motif_s vrna_ud_motif_t;
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/utils/structures.h>
 
 /**

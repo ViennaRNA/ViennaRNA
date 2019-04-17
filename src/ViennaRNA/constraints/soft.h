@@ -2,6 +2,7 @@
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_SOFT_H
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/constraints/basic.h>
 
 /**

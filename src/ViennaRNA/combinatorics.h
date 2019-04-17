@@ -7,6 +7,8 @@
  *  @brief    Various implementations that deal with combinatorial aspects of objects
  */
 
+#include <ViennaRNA/fold_compound.h>
+
 /**
  *  @addtogroup   combinatorics_utils
  *  @{

@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_MFE_WINDOW_H
 
 #include <stdio.h>
-#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 
 /**
  *
@@ -103,13 +103,16 @@ typedef void (vrna_mfe_window_zscore_callback)(int        start,
  *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
  *  @param  file      The output file handle where predictions are written to (maybe NULL)
  */
-float vrna_mfe_window(vrna_fold_compound_t  *vc,
-                      FILE                  *file);
+float
+vrna_mfe_window(vrna_fold_compound_t  *vc,
+                FILE                  *file);
 
 
-float vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
-                         vrna_mfe_window_callback *cb,
-                         void                     *data);
+float
+vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
+                   vrna_mfe_window_callback *cb,
+                   void                     *data);
+
 
 #ifdef VRNA_WITH_SVM
 /**
@@ -137,15 +140,18 @@ float vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
  *  @param  min_z     The minimal z-score for a predicted structure to appear in the output
  *  @param  file      The output file handle where predictions are written to (maybe NULL)
  */
-float vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
-                             double               min_z,
-                             FILE                 *file);
+float
+vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
+                       double               min_z,
+                       FILE                 *file);
 
 
-float vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
-                                double                          min_z,
-                                vrna_mfe_window_zscore_callback *cb,
-                                void                            *data);
+float
+vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
+                          double                          min_z,
+                          vrna_mfe_window_zscore_callback *cb,
+                          void                            *data);
+
 
 #endif
 
@@ -241,6 +247,7 @@ float vrna_aliLfold_cb(const char               **alignment,
                        int                      maxdist,
                        vrna_mfe_window_callback *cb,
                        void                     *data);
+
 
 /* End simplified local MFE interface */
 /**@}*/

@@ -18,6 +18,8 @@
  *
  */
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
  *  @brief
  *
@@ -73,5 +75,7 @@ char *settype(enum parset s);
 /**
  *  @}
  */
+
+#endif
 
 #endif

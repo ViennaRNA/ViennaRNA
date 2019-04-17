@@ -133,15 +133,14 @@
 /*
  *  The following macro automatically sets a basic set of
  *  model details:
- *  - temperature
  *  - dangles
  *  - special_hp
  *  - gquad
  *  - energy_set
+ *  - ns_bases
+ *  - parameter file
  */
 #define ggo_get_md_eval(ggostruct, md) ({ \
-    /* temperature */ \
-    ggo_get_temperature(ggostruct, md.temperature); \
     /* dangles */ \
     ggo_get_dangles(ggostruct, md.dangles); \
     /* special_hp */ \

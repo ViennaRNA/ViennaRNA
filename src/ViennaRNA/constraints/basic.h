@@ -1,7 +1,7 @@
 #ifndef VIENNA_RNA_PACKAGE_CONSTRAINTS_H
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_H
 
-#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
 
 /**
  *  @file     constraints/basic.h

@@ -219,121 +219,63 @@ int file_PS_rnaplot_a(std::string sequence,
 /* Create colored alignment plots        */
 /*#######################################*/
 
-%rename (PS_color_aln)  my_PS_color_aln;
-%rename (aliPS_color_aln) my_aliPS_color_aln;
+#ifdef SWIGPYTHON
+%feature("autodoc") file_PS_aln;
+%feature("kwargs") file_PS_aln;
+#endif
 
 %{
-  int my_PS_color_aln(std::string structure,
-                      std::string filename,
-                      std::vector<std::string> alignment,
-                      std::vector<std::string> identifiers)
+  int file_PS_aln(std::string               filename,
+                  std::vector<std::string>  alignment,
+                  std::vector<std::string>  identifiers,
+                  std::string               structure,
+                  unsigned int              start       = 0,
+                  unsigned int              end         = 0,
+                  int                       offset      = 0,
+                  unsigned int              columns     = 60)
   {
     std::vector<const char*> aln_vec;
-    std::transform(alignment.begin(), alignment.end(), std::back_inserter(aln_vec), convert_vecstring2veccharcp);
-    aln_vec.push_back(NULL); /* mark end of sequences */
     std::vector<const char*> id_vec;
-    std::transform(alignment.begin(), alignment.end(), std::back_inserter(id_vec), convert_vecstring2veccharcp);
+
+    std::transform(alignment.begin(),
+                   alignment.end(),
+                   std::back_inserter(aln_vec),
+                   convert_vecstring2veccharcp);
+
+    std::transform(alignment.begin(),
+                   alignment.end(),
+                   std::back_inserter(id_vec),
+                   convert_vecstring2veccharcp);
+
+    aln_vec.push_back(NULL); /* mark end of sequences */
     id_vec.push_back(NULL); /* mark end of sequences */
 
-    return vrna_file_PS_aln(filename.c_str(), (const char **)&aln_vec[0], (const char **)&id_vec[0], structure.c_str(), 60);
-  }
-
-  int my_aliPS_color_aln( std::string structure,
-                          std::string filename,
-                          std::vector<std::string> alignment,
-                          std::vector<std::string> identifiers)
-  {
-    std::vector<const char*> aln_vec;
-    std::transform(alignment.begin(), alignment.end(), std::back_inserter(aln_vec), convert_vecstring2veccharcp);
-    aln_vec.push_back(NULL); /* mark end of sequences */
-    std::vector<const char*> id_vec;
-    std::transform(alignment.begin(), alignment.end(), std::back_inserter(id_vec), convert_vecstring2veccharcp);
-    id_vec.push_back(NULL); /* mark end of sequences */
-
-    return aliPS_color_aln(structure.c_str(), filename.c_str(), (const char **)&aln_vec[0], (const char **)&id_vec[0]);
-  }
-
-  int file_PS_aln(std::string filename,
-                  std::vector<std::string> alignment,
-                  std::vector<std::string> identifiers,
-                  std::string structure,
-                  int columns = 60)
-  {
-    std::vector<const char*> aln_vec;
-    std::transform(alignment.begin(), alignment.end(), std::back_inserter(aln_vec), convert_vecstring2veccharcp);
-    aln_vec.push_back(NULL); /* mark end of sequences */
-    std::vector<const char*> id_vec;
-    std::transform(alignment.begin(), alignment.end(), std::back_inserter(id_vec), convert_vecstring2veccharcp);
-    id_vec.push_back(NULL); /* mark end of sequences */
-
-    return vrna_file_PS_aln(filename.c_str(), (const char **)&aln_vec[0], (const char **)&id_vec[0], structure.c_str(), columns);
-  }
-
-  int file_PS_aln_sub(std::string filename,
-                      std::vector<std::string> alignment,
-                      std::vector<std::string> identifiers,
-                      std::string structure,
-                      int start,
-                      int end,
-                      int columns = 60)
-  {
-    std::vector<const char*> aln_vec;
-    std::transform(alignment.begin(), alignment.end(), std::back_inserter(aln_vec), convert_vecstring2veccharcp);
-    aln_vec.push_back(NULL); /* mark end of sequences */
-    std::vector<const char*> id_vec;
-    std::transform(alignment.begin(), alignment.end(), std::back_inserter(id_vec), convert_vecstring2veccharcp);
-    id_vec.push_back(NULL); /* mark end of sequences */
-
-    return vrna_file_PS_aln_sub(filename.c_str(), (const char **)&aln_vec[0], (const char **)&id_vec[0], structure.c_str(), start, end, columns);
+    return vrna_file_PS_aln_slice(filename.c_str(),
+                                  (const char **)&aln_vec[0],
+                                  (const char **)&id_vec[0],
+                                  structure.c_str(),
+                                  start,
+                                  end,
+                                  offset,
+                                  columns);
   }
 
 %}
 
-#ifdef SWIGPYTHON
-%feature("autodoc") my_PS_color_aln;
-%feature("kwargs") my_PS_color_aln;
-%feature("autodoc") my_aliPS_color_aln;
-%feature("kwargs") my_aliPS_color_aln;
-#endif
+int file_PS_aln(std::string               filename,
+                std::vector<std::string>  alignment,
+                std::vector<std::string>  identifiers,
+                std::string               structure,
+                unsigned int              start   = 0,
+                unsigned int              end     = 0,
+                int                       offset  = 0,
+                unsigned int              columns = 60);
 
-int my_PS_color_aln(std::string structure,
-                    std::string filename,
-                    std::vector<std::string> alignment,
-                    std::vector<std::string> identifiers);
-
-int my_aliPS_color_aln( std::string structure,
-                        std::string filename,
-                        std::vector<std::string> alignment,
-                        std::vector<std::string> identifiers);
-
-int file_PS_aln(std::string filename,
-                std::vector<std::string> alignment,
-                std::vector<std::string> identifiers,
-                std::string structure,
-                int columns);
-
-int file_PS_aln(std::string filename,
-                std::vector<std::string> alignment,
-                std::vector<std::string> identifiers,
-                std::string structure);
-
-int file_PS_aln_sub(std::string filename,
-                    std::vector<std::string> alignment,
-                    std::vector<std::string> identifiers,
-                    std::string structure,
-                    int start,
-                    int end,
-                    int columns);
-
-int file_PS_aln_sub(std::string filename,
-                    std::vector<std::string> alignment,
-                    std::vector<std::string> identifiers,
-                    std::string structure,
-                    int start,
-                    int end);
 
 %ignore PS_color_aln;
 %ignore aliPS_color_aln;
+%ignore vrna_file_PS_aln;
+%ignore vrna_file_PS_aln_slice;
 
 %include <ViennaRNA/plotting/alignments.h>
 

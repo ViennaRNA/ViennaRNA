@@ -127,6 +127,9 @@ main(int  argc,
   ggo_get_md_eval(args_info, md);
   ggo_get_md_fold(args_info, md);
 
+  /* temperature */
+  ggo_get_temperature(args_info, md.temperature);
+
   /* check dangle model */
   if ((md.dangles < 0) || (md.dangles > 3)) {
     vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
@@ -137,13 +140,13 @@ main(int  argc,
 
   /* set cfactor */
   if (args_info.cfactor_given) {
-    md.cv_fact  = cv_fact = args_info.cfactor_arg;
+    md.cv_fact  = args_info.cfactor_arg;
     unchangedcv = 0;
   }
 
   /* set nfactor */
   if (args_info.nfactor_given) {
-    md.nc_fact  = nc_fact = args_info.nfactor_arg;
+    md.nc_fact  = args_info.nfactor_arg;
     unchangednc = 0;
   }
 
@@ -328,10 +331,10 @@ main(int  argc,
    #############################################
    */
   if ((ribo == 1) && (unchangednc))
-    md.nc_fact = nc_fact = 0.5;
+    md.nc_fact = 0.5;
 
   if ((ribo == 1) && (unchangedcv))
-    md.cv_fact = cv_fact = 0.6;
+    md.cv_fact = 0.6;
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
@@ -493,7 +496,9 @@ main(int  argc,
 
     (void)vrna_mfe_window_cb(fc, &print_hit_cb, (void *)&data);
 
-    string = (mis) ? consens_mis((const char **)AS) : consensus((const char **)AS);
+    string =
+      (mis) ? vrna_aln_consensus_mis((const char **)AS,
+                                     &md) : vrna_aln_consensus_sequence((const char **)AS, &md);
     printf("%s\n", string);
 
     (void)fflush(stdout);
@@ -603,8 +608,10 @@ print_hit_cb(int        start,
 
   if ((en / (float)(end - start + 1)) <= threshold) {
     sub   = vrna_aln_slice((const char **)strings, (unsigned int)start, (unsigned int)end);
-    cons  = (with_mis) ? consens_mis((const char **)sub) : consensus((const char **)sub);
-    A     = vrna_annotate_covar_struct((const char **)sub, ss, md);
+    cons  =
+      (with_mis) ? vrna_aln_consensus_mis((const char **)sub,
+                                          md) : vrna_aln_consensus_sequence((const char **)sub, md);
+    A = vrna_annotate_covar_db((const char **)sub, ss, md);
 
 
     if (split_energies) {
@@ -681,21 +688,17 @@ print_hit_cb(int        start,
         fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
 
       tmp_string = vrna_filename_sanitize(fname, "_");
-      free(fname);
-      fname = tmp_string;
-      char **sub_orig = vrna_aln_slice((const char **)strings_orig,
-                                       (unsigned int)start,
-                                       (unsigned int)end);
 
-      vrna_file_PS_aln_sub(fname,
-                           (const char **)sub_orig,
-                           (const char **)names,
-                           ss,
-                           start,
-                           -1,
-                           columns);
+      vrna_file_PS_aln_slice(tmp_string,
+                             (const char **)strings_orig,
+                             (const char **)names,
+                             ss - start + 1,
+                             start,
+                             end,
+                             0,
+                             columns);
       free(fname);
-      vrna_aln_free(sub_orig);
+      free(tmp_string);
     }
 
     if (with_stk) {

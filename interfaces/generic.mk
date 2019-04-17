@@ -10,6 +10,7 @@ SWIG_tmaps = \
 SWIG_misc_src = \
   $(srcdir)/../aln_utils.i \
   $(srcdir)/../basic_algorithms.i \
+  $(srcdir)/../boltzmann_sampling.i \
   $(srcdir)/../combinatorics.i \
   $(srcdir)/../compare.i \
   $(srcdir)/../commands.i \

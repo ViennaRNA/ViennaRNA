@@ -110,6 +110,17 @@ short *encode_seq(char *sequence);
 /* BEGIN interface for Move_Set utilities    */
 /**********************************************/
 
+%ignore move_gradient;
+%ignore move_first;
+%ignore move_adaptive;
+%ignore browse_neighs_pt;
+%ignore browse_neighs;
+%ignore print_stren;
+%ignore print_str;
+%ignore copy_arr;
+%ignore allocopy;
+
+
 %rename (move_standard) my_move_standard;
 
 %{
@@ -128,6 +139,8 @@ short *encode_seq(char *sequence);
 %newobject my_move_standard;
 char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP);
 %ignore move_standard;
+
+
 %include  <ViennaRNA/move_set.h>
 
 

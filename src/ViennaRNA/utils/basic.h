@@ -139,7 +139,8 @@
  *  @param size The size of the memory to be allocated in bytes
  *  @return     A pointer to the allocated memory
  */
-void *vrna_alloc(unsigned size);
+void *
+vrna_alloc(unsigned size);
 
 
 /**
@@ -149,8 +150,9 @@ void *vrna_alloc(unsigned size);
  *  @param size The size of the memory to be allocated in bytes
  *  @return     A pointer to the newly allocated memory
  */
-void *vrna_realloc(void     *p,
-                   unsigned size);
+void *
+vrna_realloc(void     *p,
+             unsigned size);
 
 
 #endif
@@ -158,7 +160,8 @@ void *vrna_realloc(void     *p,
 /**
  *  @brief  Initialize seed for random number generator
  */
-void vrna_init_rand(void);
+void
+vrna_init_rand(void);
 
 
 /**
@@ -178,7 +181,8 @@ extern unsigned short xsubi[3];
  *  @note Usually implemented by calling @e erand48().
  *  @return   A random number in range [0..1]
  */
-double vrna_urn(void);
+double
+vrna_urn(void);
 
 
 /**
@@ -189,8 +193,9 @@ double vrna_urn(void);
  *  @param to     The last number in range
  *  @return       A pseudo random number in range [from, to]
  */
-int vrna_int_urn(int  from,
-                 int  to);
+int
+vrna_int_urn(int  from,
+             int  to);
 
 
 /**
@@ -201,7 +206,8 @@ int vrna_int_urn(int  from,
  *
  *  @return A string containing the timestamp
  */
-char *vrna_time_stamp(void);
+char *
+vrna_time_stamp(void);
 
 
 /**
@@ -224,8 +230,9 @@ char *vrna_time_stamp(void);
  *  @param options  A collection of options for switching the functions behavior
  *  @return         A flag with information about what has been read
  */
-unsigned int get_input_line(char          **string,
-                            unsigned int  options);
+unsigned int
+get_input_line(char         **string,
+               unsigned int options);
 
 
 /**
@@ -241,7 +248,8 @@ unsigned int get_input_line(char          **string,
  *  @param length The length of the RNA sequence
  *  @return       The mapper array
  */
-int *vrna_idx_row_wise(unsigned int length);
+int *
+vrna_idx_row_wise(unsigned int length);
 
 
 /**
@@ -258,7 +266,8 @@ int *vrna_idx_row_wise(unsigned int length);
  *  @return       The mapper array
  *
  */
-int *vrna_idx_col_wise(unsigned int length);
+int *
+vrna_idx_col_wise(unsigned int length);
 
 
 /**
@@ -283,8 +292,9 @@ int *vrna_idx_col_wise(unsigned int length);
  *  @param format The error message to be printed
  *  @param ...    Optional arguments for the formatted message string
  */
-void vrna_message_error(const char *format,
-                        ...);
+void
+vrna_message_error(const char *format,
+                   ...);
 
 
 /**
@@ -299,8 +309,9 @@ void vrna_message_error(const char *format,
  *  @param format The error message to be printed
  *  @param args   The argument list for the formatted message string
  */
-void vrna_message_verror(const char *format,
-                         va_list    args);
+void
+vrna_message_verror(const char  *format,
+                    va_list     args);
 
 
 /**
@@ -314,8 +325,9 @@ void vrna_message_verror(const char *format,
  *  @param format The warning message to be printed
  *  @param ...    Optional arguments for the formatted message string
  */
-void vrna_message_warning(const char *format,
-                          ...);
+void
+vrna_message_warning(const char *format,
+                     ...);
 
 
 /**
@@ -329,8 +341,9 @@ void vrna_message_warning(const char *format,
  *  @param format The warning message to be printed
  *  @param args   The argument list for the formatted message string
  */
-void vrna_message_vwarning(const char *format,
-                           va_list    args);
+void
+vrna_message_vwarning(const char  *format,
+                      va_list     args);
 
 
 /**
@@ -344,9 +357,10 @@ void vrna_message_vwarning(const char *format,
  *  @param format The warning message to be printed
  *  @param ...    Optional arguments for the formatted message string
  */
-void vrna_message_info(FILE       *fp,
-                       const char *format,
-                       ...);
+void
+vrna_message_info(FILE        *fp,
+                  const char  *format,
+                  ...);
 
 
 /**
@@ -360,9 +374,10 @@ void vrna_message_info(FILE       *fp,
  *  @param format The info message to be printed
  *  @param args   The argument list for the formatted message string
  */
-void vrna_message_vinfo(FILE        *fp,
-                        const char  *format,
-                        va_list     args);
+void
+vrna_message_vinfo(FILE       *fp,
+                   const char *format,
+                   va_list    args);
 
 
 /**
@@ -370,7 +385,8 @@ void vrna_message_vinfo(FILE        *fp,
  *
  *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
  */
-void vrna_message_input_seq_simple(void);
+void
+vrna_message_input_seq_simple(void);
 
 
 /**
@@ -381,10 +397,12 @@ void vrna_message_input_seq_simple(void);
  *
  *  @param s A user defined string that will be printed to stdout
  */
-void vrna_message_input_seq(const char *s);
+void
+vrna_message_input_seq(const char *s);
 
 
-void vrna_message_input_msa(const char *s);
+void
+vrna_message_input_msa(const char *s);
 
 
 /**

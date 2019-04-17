@@ -2,6 +2,9 @@
 #define VIENNA_RNA_PACKAGE_ALI_PLEX_H
 
 #include <ViennaRNA/datastructures/basic.h>
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 /**
 *** aliLduplexfold computes the duplexes between two alignments
 **/
@@ -40,4 +43,6 @@ duplexT **aliLduplexfold_XS(const char  *s1[],
  * extern duplexT aliduplexfold_XS(const char *s1[], const char *s2[],const int **access_s1,
  * const int **access_s2, const int i_pos, const int j_pos, const int threshold);
  */
+#endif
+
 #endif

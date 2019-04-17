@@ -56,6 +56,7 @@ struct options {
   char            *filename_delim;
   int             pf;
   int             noPS;
+  int             noDP;
   int             noconv;
   int             MEA;
   double          MEAgamma;
@@ -69,6 +70,7 @@ struct options {
 
   int             n_back;
   int             eval_en;
+  int             non_red;
 
   int             color;
   int             aln_PS;
@@ -117,6 +119,24 @@ struct output_stream {
   vrna_cstr_t data;
   vrna_cstr_t err;
 };
+
+
+struct nr_en_data {
+  vrna_cstr_t           output;
+  vrna_fold_compound_t  *fc;
+  double                kT;
+  double                ens_en;
+};
+
+
+PRIVATE void
+print_nr_samples(const char *structure,
+                 void       *data);
+
+
+PRIVATE void
+print_nr_samples_en(const char  *structure,
+                    void        *data);
 
 
 PRIVATE void
@@ -212,6 +232,7 @@ init_default_options(struct options *opt)
   opt->filename_delim = NULL;
   opt->pf             = 0;
   opt->noPS           = 0;
+  opt->noDP           = 0;
   opt->noconv         = 0;
   opt->MEA            = 0;
   opt->MEAgamma       = 1.;
@@ -224,6 +245,7 @@ init_default_options(struct options *opt)
 
   opt->n_back   = 0;
   opt->eval_en  = 0;
+  opt->non_red  = 0;
 
   opt->color        = 0;
   opt->aln_PS       = 0;
@@ -323,6 +345,9 @@ main(int  argc,
   ggo_get_md_part(args_info, opt.md);
   ggo_get_circ(args_info, opt.md.circ);
 
+  /* temperature */
+  ggo_get_temperature(args_info, opt.md.temperature);
+
   /* check dangle model */
   if (!((opt.md.dangles == 0) || (opt.md.dangles == 2))) {
     vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
@@ -350,6 +375,10 @@ main(int  argc,
   if (args_info.noPS_given)
     opt.noPS = 1;
 
+  /* do not produce dot-plot output */
+  if (args_info.noDP_given)
+    opt.noDP = 1;
+
   /* partition function settings */
   if (args_info.partfunc_given) {
     opt.pf = 1;
@@ -370,11 +399,11 @@ main(int  argc,
 
   /* set cfactor */
   if (args_info.cfactor_given)
-    opt.md.cv_fact = cv_fact = args_info.cfactor_arg;
+    opt.md.cv_fact = args_info.cfactor_arg;
 
   /* set nfactor */
   if (args_info.nfactor_given)
-    opt.md.nc_fact = nc_fact = args_info.nfactor_arg;
+    opt.md.nc_fact = args_info.nfactor_arg;
 
   if (args_info.endgaps_given)
     opt.endgaps = 1;
@@ -416,6 +445,10 @@ main(int  argc,
     opt.eval_en         = 1;
     vrna_init_rand();
   }
+
+  /* non-redundant backtracing */
+  if (args_info.nonRedundant_given)
+    opt.non_red = 1;
 
   if (args_info.ribosum_file_given) {
     RibosumFile = strdup(args_info.ribosum_file_arg);
@@ -1040,17 +1073,20 @@ process_record(struct record_data *record)
         fclose(aliout);
       });
 
-      cp = vrna_annotate_covar_pairs((const char **)alignment,
-                                     pl,
-                                     mfel,
-                                     opt->bppmThreshold,
-                                     &(opt->md));
+      if (!opt->noDP) {
+        cp = vrna_annotate_covar_pairs((const char **)alignment,
+                                       pl,
+                                       mfel,
+                                       opt->bppmThreshold,
+                                       &(opt->md));
 
-      THREADSAFE_FILE_OUTPUT((void)PS_color_dot_plot(consensus_sequence,
-                                                     cp,
-                                                     filename_dot));
+        THREADSAFE_FILE_OUTPUT((void)PS_color_dot_plot(consensus_sequence,
+                                                       cp,
+                                                       filename_dot));
 
-      free(cp);
+        free(cp);
+      }
+
       free(pl);
       free(mfel);
 
@@ -1208,25 +1244,15 @@ postscript_layout(const char      *filename,
 {
   char **A;
 
-  A = vrna_annotate_covar_struct(alignment, consensus_structure, &(opt->md));
+  A = vrna_annotate_covar_db(alignment, consensus_structure, &(opt->md));
 
-  if (opt->color) {
-    THREADSAFE_FILE_OUTPUT(
-      (void)vrna_file_PS_rnaplot_a(consensus_sequence,
-                                   consensus_structure,
-                                   filename,
-                                   A[0],
-                                   A[1],
-                                   &(opt->md)));
-  } else {
-    THREADSAFE_FILE_OUTPUT(
-      (void)vrna_file_PS_rnaplot_a(consensus_sequence,
-                                   consensus_structure,
-                                   filename,
-                                   NULL,
-                                   A[1],
-                                   &(opt->md)));
-  }
+  THREADSAFE_FILE_OUTPUT(
+    (void)vrna_file_PS_rnaplot_a(consensus_sequence,
+                                 consensus_structure,
+                                 filename,
+                                 (opt->color) ? A[0] : NULL,
+                                 A[1],
+                                 &(opt->md)));
 
   free(A[0]);
   free(A[1]);
@@ -1240,31 +1266,64 @@ Boltzmann_sampling(vrna_fold_compound_t *fc,
                    struct options       *opt,
                    vrna_cstr_t          rec_output)
 {
-  unsigned int i;
+  unsigned int i, options;
+
+  options = (opt->non_red) ?
+            VRNA_PBACKTRACK_NON_REDUNDANT :
+            VRNA_PBACKTRACK_DEFAULT;
 
   /*stochastic sampling*/
-  for (i = 0; i < opt->n_back; i++) {
-    char    *s;
-    double  kT, prob;
+  if (opt->eval_en) {
+    struct nr_en_data dat;
+    dat.output  = rec_output;
+    dat.fc      = fc;
+    dat.kT      = fc->exp_params->kT / 1000.;
+    dat.ens_en  = dG;
 
-    prob  = 1.;
-    kT    = fc->exp_params->kT / 1000.;
-    s     = vrna_pbacktrack(fc);
+    vrna_pbacktrack_cb(fc,
+                       opt->n_back,
+                       &print_nr_samples_en,
+                       (void *)&dat,
+                       options);
+  } else {
+    vrna_pbacktrack_cb(fc,
+                       opt->n_back,
+                       &print_nr_samples,
+                       (void *)&rec_output,
+                       options);
+  }
+}
 
-    if (opt->eval_en) {
-      double e = (double)vrna_eval_structure(fc, s);
-      e     -= (double)vrna_eval_covar_structure(fc, s);
-      prob  = exp((dG - e) / kT);
-      vrna_cstr_printf_structure(rec_output,
-                                 s,
-                                 " %6g %.2f",
-                                 prob,
-                                 -1 * (kT * log(prob) - dG));
-    } else {
-      vrna_cstr_printf_structure(rec_output, s, NULL);
-    }
 
-    free(s);
+static void
+print_nr_samples(const char *structure,
+                 void       *data)
+{
+  if (structure)
+    vrna_cstr_printf_structure(*((vrna_cstr_t *)data), structure, NULL);
+}
+
+
+static void
+print_nr_samples_en(const char  *structure,
+                    void        *data)
+{
+  if (structure) {
+    struct nr_en_data     *d      = (struct nr_en_data *)data;
+    vrna_cstr_t           output  = d->output;
+    vrna_fold_compound_t  *fc     = d->fc;
+    double                kT      = d->kT;
+    double                ens_en  = d->ens_en;
+
+    double                e = vrna_eval_structure(fc, structure);
+    e -= (double)vrna_eval_covar_structure(fc, structure);
+    double                prob = exp((ens_en - e) / kT);
+
+    vrna_cstr_printf_structure(output,
+                               structure,
+                               " %6.2f %6g",
+                               e,
+                               prob);
   }
 }
 

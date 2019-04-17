@@ -113,7 +113,8 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
  *  @param struc    The secondary structure in dot-bracket notation
  *  @return         The binary encoded structure
  */
-char *vrna_db_pack(const char *struc);
+char *
+vrna_db_pack(const char *struc);
 
 
 /**
@@ -126,7 +127,8 @@ char *vrna_db_pack(const char *struc);
  *  @param packed   The binary encoded packed secondary structure
  *  @return         The unpacked secondary structure in dot-bracket notation
  */
-char *vrna_db_unpack(const char *packed);
+char *
+vrna_db_unpack(const char *packed);
 
 
 /**
@@ -180,7 +182,8 @@ vrna_db_flatten_to(char         *string,
  *  @param pt The pair table to be copied
  *  @return   A char pointer to the dot-bracket string
  */
-char *vrna_db_from_ptable(short *pt);
+char *
+vrna_db_from_ptable(short *pt);
 
 
 /**
@@ -194,7 +197,8 @@ char *vrna_db_from_ptable(short *pt);
  *  @param  wuss  The input string in WUSS notation
  *  @return       A dot-bracket notation of the input secondary structure
  */
-char *vrna_db_from_WUSS(const char *wuss);
+char *
+vrna_db_from_WUSS(const char *wuss);
 
 
 /**
@@ -206,8 +210,9 @@ char *vrna_db_from_WUSS(const char *wuss);
  *  @param  n       The length of the structure (number of nucleotides)
  *  @return         The dot-bracket string containing the provided base pairs
  */
-char *vrna_db_from_plist(vrna_ep_t    *pairs,
-                         unsigned int n);
+char *
+vrna_db_from_plist(vrna_ep_t    *pairs,
+                   unsigned int n);
 
 
 /**
@@ -216,7 +221,8 @@ char *vrna_db_from_plist(vrna_ep_t    *pairs,
  *  @param  structure   The secondary structure in dot-bracket notation
  *  @return             A string annotating each nucleotide according to it's structural context
  */
-char *vrna_db_to_element_string(const char *structure);
+char *
+vrna_db_to_element_string(const char *structure);
 
 
 /* End dot-bracket interface */
@@ -238,7 +244,8 @@ char *vrna_db_to_element_string(const char *structure);
  *  @param  structure The secondary structure in dot-bracket notation
  *  @return           A pointer to the created pair_table
  */
-short *vrna_ptable(const char *structure);
+short *
+vrna_ptable(const char *structure);
 
 
 /**
@@ -273,7 +280,8 @@ vrna_ptable_from_string(const char    *string,
  *  @param  structure The secondary structure in (extended) dot-bracket notation
  *  @return           A pointer to the created pair_table
  */
-short *vrna_pt_pk_get(const char *structure);
+short *
+vrna_pt_pk_get(const char *structure);
 
 
 /**
@@ -282,14 +290,16 @@ short *vrna_pt_pk_get(const char *structure);
  *  @param pt The pair table to be copied
  *  @return   A pointer to the copy of 'pt'
  */
-short *vrna_ptable_copy(const short *pt);
+short *
+vrna_ptable_copy(const short *pt);
 
 
 /**
  * @brief Create a pair table of a secondary structure (snoop align version)
  *
  */
-short *vrna_pt_ali_get(const char *structure);
+short *
+vrna_pt_ali_get(const char *structure);
 
 
 /**
@@ -299,7 +309,8 @@ short *vrna_pt_ali_get(const char *structure);
  *  0 if i is unpaired, table[0] contains the length of the structure.
  *  The special pseudoknotted H/ACA-mRNA structure is taken into account.
  */
-short *vrna_pt_snoop_get(const char *structure);
+short *
+vrna_pt_snoop_get(const char *structure);
 
 
 /* End pair table interface */
@@ -428,14 +439,16 @@ struct vrna_hx_s {
  *  @param  pt  The secondary structure in pair table representation
  *  @return     The secondary structure represented as a helix list
  */
-vrna_hx_t *vrna_hx_from_ptable(short *pt);
+vrna_hx_t *
+vrna_hx_from_ptable(short *pt);
 
 
 /**
  *  @brief  Create a merged helix list from another helix list
  */
-vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
-                         int              maxdist);
+vrna_hx_t *
+vrna_hx_merge(const vrna_hx_t *list,
+              int             maxdist);
 
 
 /* End helix list interface */
@@ -445,7 +458,8 @@ vrna_hx_t *vrna_hx_merge(const vrna_hx_t  *list,
 /**
  *  @brief Get a loop index representation of a structure
  */
-int *vrna_loopidx_from_ptable(const short *pt);
+int *
+vrna_loopidx_from_ptable(const short *pt);
 
 
 /**
@@ -459,8 +473,9 @@ int *vrna_loopidx_from_ptable(const short *pt);
  *  @param str2   Second structure in dot-bracket notation
  *  @return       The base pair distance between str1 and str2
  */
-int vrna_bp_distance(const char *str1,
-                     const char *str2);
+int
+vrna_bp_distance(const char *str1,
+                 const char *str2);
 
 
 double
@@ -475,8 +490,9 @@ vrna_dist_mountain(const char   *str1,
  *  Get an upper triangular matrix containing the number of basepairs of a reference
  *  structure for each interval [i,j] with i<j. Access it via iindx!!!
  */
-unsigned int *vrna_refBPcnt_matrix(const short  *reference_pt,
-                                   unsigned int turn);
+unsigned int *
+vrna_refBPcnt_matrix(const short  *reference_pt,
+                     unsigned int turn);
 
 
 /**
@@ -486,22 +502,25 @@ unsigned int *vrna_refBPcnt_matrix(const short  *reference_pt,
  *  reference structures for each interval [i,j] with i<j. Access it via iindx!!!
  *
  */
-unsigned int *vrna_refBPdist_matrix(const short   *pt1,
-                                    const short   *pt2,
-                                    unsigned int  turn);
+unsigned int *
+vrna_refBPdist_matrix(const short   *pt1,
+                      const short   *pt2,
+                      unsigned int  turn);
 
 
 /**
  *  @brief Create a dot-bracket like structure string from base pair probability matrix
  */
-char *vrna_db_from_probs(const FLT_OR_DBL *pr,
-                         unsigned int     length);
+char *
+vrna_db_from_probs(const FLT_OR_DBL *pr,
+                   unsigned int     length);
 
 
 /**
  *  @brief Get a pseudo dot bracket notation for a given probability information
  */
-char vrna_bpp_symbol(const float *x);
+char
+vrna_bpp_symbol(const float *x);
 
 
 /**
@@ -515,13 +534,15 @@ char vrna_bpp_symbol(const float *x);
  *  @return       The secondary structure in dot-bracket notation as
  *                provided in the input
  */
-char *vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
-                            unsigned int    length);
+char *
+vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
+                      unsigned int    length);
 
 
-void vrna_letter_structure(char             *structure,
-                           vrna_bp_stack_t  *bp,
-                           unsigned int     length);
+void
+vrna_letter_structure(char            *structure,
+                      vrna_bp_stack_t *bp,
+                      unsigned int    length);
 
 
 /**

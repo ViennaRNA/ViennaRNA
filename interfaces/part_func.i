@@ -54,17 +54,11 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
 
 %ignore pf_circ_fold;
 
-%newobject pbacktrack;
-extern char *pbacktrack(char *sequence);
-
 /* make the float precision identifier available through the interface */
 %rename (pf_float_precision) vrna_pf_float_precision;
 
 /* these functions remain for now due to backward compatibility reasons
 %ignore pf_circ_fold;
-%ignore pbacktrack;
-%ignore pbacktrack5;
-%ignore pbacktrack_circ;
 %ignore free_pf_arrays;
 %ignore update_pf_params;
 %ignore mean_bp_distance;
@@ -105,49 +99,25 @@ extern char *pbacktrack(char *sequence);
   ensemble_defect(std::string structure) {
     return vrna_ensemble_defect($self, structure.c_str());
   }
+
+  std::vector<double>
+  positional_entropy(void) {
+    unsigned int        n;
+    double              *pos_ent;
+    std::vector<double> dv;
+
+    n       = $self->length;
+    pos_ent = vrna_positional_entropy($self);
+
+    if (pos_ent)
+      dv.assign(pos_ent, pos_ent + (n + 1));
+
+    return dv;
+  }
 }
 
 %include  <ViennaRNA/part_func.h>
 %include  <ViennaRNA/equilibrium_probs.h>
-
-/* attach stochastic backtracking functions as method of fold_compound */
-%newobject vrna_fold_compound_t::pbacktrack;
-
-%extend vrna_fold_compound_t {
-
-  char *
-  pbacktrack(void)
-  {
-    return vrna_pbacktrack($self);
-  }
-
-  char *
-  pbacktrack(int length)
-  {
-    return vrna_pbacktrack5($self, length);
-  }
-
-  std::vector<std::string>
-  pbacktrack_nr(int num_samples)
-  {
-    std::vector<std::string> str_vec;
-
-    char **ptr, **output = vrna_pbacktrack_nr($self, num_samples);
-
-    if (output) {
-      for (ptr = output; *ptr != NULL; ptr++) {
-        str_vec.push_back(std::string(*ptr));
-        free(*ptr);
-      }
-
-      free(output);
-    }
-
-    return str_vec;
-  }
-}
-
-%include  <ViennaRNA/boltzmann_sampling.h>
 
 /**********************************************/
 /* BEGIN interface for cofold partition       */
@@ -287,3 +257,7 @@ double get_pr(int i, int j) {
 %}
 double get_pr(int i, int j);
 /* Get probability of pair i.j from the pr array */
+
+
+
+%include  <ViennaRNA/MEA.h>

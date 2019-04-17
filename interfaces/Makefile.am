@@ -6,6 +6,7 @@ SOURCES = \
     RNA.i \
     aln_utils.i \
     basic_algorithms.i \
+    boltzmann_sampling.i \
     combinatorics.i \
     commands.i \
     compare.i \
@@ -37,6 +38,7 @@ SOURCES = \
 DOXYGEN_DOCUMENTATION = \
     aln_utils.dox \
     basic_algorithms.dox \
+    boltzmann_sampling.dox \
     commands.dox \
     combinatorics.dox \
     constraints_hard.dox \
@@ -52,6 +54,7 @@ DOXYGEN_DOCUMENTATION = \
     neighbor.dox \
     params.dox \
     part_func.dox \
+    plotting.dox \
     subopt.dox \
     walk.dox
 
@@ -59,6 +62,7 @@ EXTRA_DIST = \
     RNA.i \
     aln_utils.i \
     basic_algorithms.i \
+    boltzmann_sampling.i \
     combinatorics.i \
     commands.i \
     compare.i \

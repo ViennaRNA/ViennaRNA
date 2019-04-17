@@ -155,7 +155,7 @@ duplexfold_cu(const char  *s1,
       if (!type)
         continue;
 
-      c[i][j] += E_ExtLoop(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
+      c[i][j] += vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
       for (k = i - 1; k > 0 && k > i - MAXLOOP - 2; k--) {
         for (l = j + 1; l <= n2; l++) {
           if (i - k + l - j - 2 > MAXLOOP)
@@ -171,7 +171,7 @@ duplexfold_cu(const char  *s1,
         }
       }
       E = c[i][j];
-      E += E_ExtLoop(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
+      E += vrna_E_ext_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
       if (E < Emin) {
         Emin  = E;
         i_min = i;
@@ -232,7 +232,7 @@ duplex_subopt(const char  *s1,
         continue;
 
       E   = Ed = c[i][j];
-      Ed  += E_ExtLoop(type, (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
+      Ed  += vrna_E_ext_stem(type, (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
       if (Ed > thresh)
         continue;
 
@@ -329,7 +329,7 @@ backtrack(int i,
         break;
     }
     if (!traced) {
-      E -= E_ExtLoop(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
+      E -= vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
       if (E != P->DuplexInit)
         vrna_message_error("backtrack failed in fold duplex");
       else
@@ -410,9 +410,9 @@ aliduplexfold_cu(const char *s1[],
   n1  = (int)strlen(s1[0]);
   n2  = (int)strlen(s2[0]);
 
-  for (s = 0; s1[s] != NULL; s++) ;
+  for (s = 0; s1[s] != NULL; s++);
   n_seq = s;
-  for (s = 0; s2[s] != NULL; s++) ;
+  for (s = 0; s2[s] != NULL; s++);
   if (n_seq != s)
     vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
@@ -458,10 +458,10 @@ aliduplexfold_cu(const char *s1[],
         continue;
 
       for (s = 0; s < n_seq; s++)
-        c[i][j] += E_ExtLoop(type[s],
-                             (i > 1) ? S1[s][i - 1] : -1,
-                             (j < n2) ? S2[s][j + 1] : -1,
-                             P);
+        c[i][j] += vrna_E_ext_stem(type[s],
+                                   (i > 1) ? S1[s][i - 1] : -1,
+                                   (j < n2) ? S2[s][j + 1] : -1,
+                                   P);
 
       for (k = i - 1; k > 0 && k > i - MAXLOOP - 2; k--) {
         for (l = j + 1; l <= n2; l++) {
@@ -487,7 +487,10 @@ aliduplexfold_cu(const char *s1[],
       E       = c[i][j];
       for (s = 0; s < n_seq; s++)
         E +=
-          E_ExtLoop(rtype[type[s]], (j > 1) ? S2[s][j - 1] : -1, (i < n1) ? S1[s][i + 1] : -1, P);
+          vrna_E_ext_stem(rtype[type[s]],
+                          (j > 1) ? S2[s][j - 1] : -1,
+                          (i < n1) ? S1[s][i + 1] : -1,
+                          P);
       if (E < Emin) {
         Emin  = E;
         i_min = i;
@@ -541,7 +544,7 @@ aliduplex_subopt(const char *s1[],
   mfe     = aliduplexfold_cu(s1, s2, 0);
   free(mfe.structure);
 
-  for (s = 0; s1[s] != NULL; s++) ;
+  for (s = 0; s1[s] != NULL; s++);
   n_seq = s;
 
   thresh  = (int)((mfe.energy * 100. + delta) * n_seq + 0.1);
@@ -577,7 +580,8 @@ aliduplex_subopt(const char *s1[],
 
       E = Ed = c[i][j];
       for (s = 0; s < n_seq; s++)
-        Ed += E_ExtLoop(type[s], (j > 1) ? S2[s][j - 1] : -1, (i < n1) ? S1[s][i + 1] : -1, P);
+        Ed +=
+          vrna_E_ext_stem(type[s], (j > 1) ? S2[s][j - 1] : -1, (i < n1) ? S1[s][i + 1] : -1, P);
       if (Ed > thresh)
         continue;
 
@@ -644,9 +648,9 @@ alibacktrack(int          i,
   n1  = (int)S1[0][0];
   n2  = (int)S2[0][0];
 
-  for (s = 0; S1[s] != NULL; s++) ;
+  for (s = 0; S1[s] != NULL; s++);
   n_seq = s;
-  for (s = 0; S2[s] != NULL; s++) ;
+  for (s = 0; S2[s] != NULL; s++);
   if (n_seq != s)
     vrna_message_error("unequal number of sequences in alibacktrack()\n");
 
@@ -700,7 +704,7 @@ alibacktrack(int          i,
     }
     if (!traced) {
       for (s = 0; s < n_seq; s++)
-        E -= E_ExtLoop(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n2) ? S2[s][j + 1] : -1, P);
+        E -= vrna_E_ext_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n2) ? S2[s][j + 1] : -1, P);
       if (E != n_seq * P->DuplexInit)
         vrna_message_error("backtrack failed in aliduplex");
       else
@@ -739,9 +743,11 @@ PRIVATE int
 covscore(const int  *types,
          int        n_seq)
 {
-  /* calculate co-variance bonus for a pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
+  /*
+   * calculate co-variance bonus for a pair depending on
+   * compensatory/consistent mutations and incompatible seqs
+   * should be 0 for conserved pairs, >0 for good pairs
+   */
   int k, l, s, score, pscore;
   int dm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */
                    { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
@@ -763,8 +769,10 @@ covscore(const int  *types,
 
   for (k = 1, score = 0; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
     for (l = k + 1; l <= 6; l++)
-      /* scores for replacements between pairtypes    */
-      /* consistent or compensatory mutations score 1 or 2  */
+      /*
+       * scores for replacements between pairtypes
+       * consistent or compensatory mutations score 1 or 2
+       */
       score += pfreq[k] * pfreq[l] * dm[k][l];
 
   /* counter examples score -1, gap-gap scores -0.25   */
