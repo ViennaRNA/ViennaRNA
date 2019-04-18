@@ -126,8 +126,7 @@ vrna_ht_insert(struct vrna_hash_table_s *ht,
   if ((ht) && (x)) {
     hashval = ht->Hash_function(x, ht->Hash_size);
     if (hashval < ht->Hash_size) {
-      void *entry = ht->Hash_table[hashval];
-      while (entry != NULL) {
+      while (ht->Hash_table[hashval] != NULL) {
         if (ht->Compare_function(x, ht->Hash_table[hashval]) == 0)
           return 1;
 
