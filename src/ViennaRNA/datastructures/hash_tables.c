@@ -21,6 +21,13 @@ struct vrna_hash_table_s {
   vrna_callback_ht_free_entry       *Free_hash_entry;
 };
 
+
+typedef struct vrna_hash_entry_list_s {
+  unsigned long length;
+  unsigned long allocated_length;
+  void **hash_entries;
+} vrna_hash_entry_list_t;
+
 /* ----------------------------------------------------------------- */
 
 PUBLIC struct vrna_hash_table_s *
@@ -35,9 +42,15 @@ vrna_ht_init(unsigned int                     hash_bits,
     ht = (struct vrna_hash_table_s *)vrna_alloc(sizeof(struct vrna_hash_table_s));
 
     ht->hash_bits = hash_bits;
-    /* must be power of 2^hash_bits -1 (example: HASHSIZE 67108864 -1 = 2^26 -1 )*/
+    /* must be power of 2^hash_bits -1 (example: HASHSIZE 67108864 -1 = 2^26 -1 )
+     * if we want to use '&' instead of modulo '%' for limiting the hash value. */
     ht->Hash_size   = (((unsigned long)1 << hash_bits) - 1);
-    ht->Hash_table  = calloc(ht->Hash_size + 1, sizeof(void *));
+    ht->Hash_table  = calloc((ht->Hash_size + 1), sizeof(void *));
+    if(!ht->Hash_table){
+    	fprintf(stderr,"Error: could not allocate space for the hash table!\n");
+    	free(ht);
+    	return NULL;
+    }
     ht->Collisions  = 0;
 
     if ((!compare_function) &&
@@ -100,17 +113,22 @@ vrna_ht_get(struct vrna_hash_table_s  *ht,
 
   if ((ht) && (x)) {
     hashval = ht->Hash_function(x, ht->Hash_size);
-    if (ht->Hash_table[hashval] == NULL)
+    if(hashval >= ht->Hash_size){
+      fprintf(stderr,"Error: hash function returns a value that is larger than the size of the hash map!\n");
       return NULL;
+    }
 
-    while (ht->Hash_table[hashval]) {
-      if (ht->Compare_function(x, ht->Hash_table[hashval]) == 0)
-        return ht->Hash_table[hashval];
-
-      hashval = ((hashval + 1) & (ht->Hash_size));
+    vrna_hash_entry_list_t *entries =  ht->Hash_table[hashval];
+    if(entries){
+      int i;
+      for(i=0; i < entries->length; i++){
+        if(ht->Compare_function(x, entries->hash_entries[i]) == 0){
+          //found the same entry
+          return entries->hash_entries[i]; /* success */
+        }
+      }
     }
   }
-
   return NULL;
 }
 
@@ -125,24 +143,46 @@ vrna_ht_insert(struct vrna_hash_table_s *ht,
 
   if ((ht) && (x)) {
     hashval = ht->Hash_function(x, ht->Hash_size);
-    if (hashval < ht->Hash_size) {
-      while (ht->Hash_table[hashval] != NULL) {
-        if (ht->Compare_function(x, ht->Hash_table[hashval]) == 0)
-          return 1;
+    if(hashval >= ht->Hash_size){
+      fprintf(stderr,"Error: hash function returns a value that is larger than the size of the hash map!\n");
+      return -1; /* failure */;
+    }
+    else {
+      vrna_hash_entry_list_t *entries = (vrna_hash_entry_list_t *)ht->Hash_table[hashval];
+      if(entries){
+        //at first test if the entry is already in the list.
+        int i;
+        for(i=0; i < entries->length; i++){
+          if(ht->Compare_function(x, entries->hash_entries[i]) == 0){
+            //found the same entry
+            return 0; /* success */
+          }
+        }
 
-        hashval = ((hashval + 1) & (ht->Hash_size));
         ht->Collisions++;
+        //append the entry to the list with same hash values.
+        if(i >= entries->length){
+          if(i >= entries->allocated_length){
+            //we have to extend the list.
+            entries->allocated_length += 100;
+            entries->hash_entries = vrna_realloc(entries->hash_entries, entries->allocated_length*sizeof(void*));
+          }
+          entries->hash_entries[entries->length] = x;
+          entries->length++;
+        }
       }
-      ht->Hash_table[hashval] = x;
+      else{
+        //allocate new list and insert the value
+    	entries = malloc(sizeof(vrna_hash_entry_list_t));
+        entries->allocated_length = 2;
+        entries->hash_entries = vrna_alloc(entries->allocated_length*sizeof(void*));
+        entries->hash_entries[0] = x;
+        entries->length = 1;
+        ht->Hash_table[hashval] = entries;
+      }
       return 0; /* success */
-    } else {
-      vrna_message_warning("vrna_ht_insert: "
-                           "The hash table (size %d) is too small for entry with key %d",
-                           ht->Hash_size,
-                           hashval);
     }
   }
-
   return -1; /* failure */
 }
 
@@ -154,9 +194,15 @@ vrna_ht_clear(struct vrna_hash_table_s *ht)
 
   if (ht) {
     for (i = 0; i < ht->Hash_size + 1; i++) {
-      if (ht->Hash_table[i]) {
-        ht->Free_hash_entry(ht->Hash_table[i]);
-        ht->Hash_table[i] = NULL;
+      vrna_hash_entry_list_t *entries = ht->Hash_table[i];
+      if (entries) {
+        int i;
+        for(i=0; i < entries->length; i++){
+          ht->Free_hash_entry(entries->hash_entries[i]);
+          entries->hash_entries[i] = NULL;
+        }
+        free(entries->hash_entries);
+        free(entries);
       }
     }
 
@@ -180,20 +226,37 @@ vrna_ht_free(struct vrna_hash_table_s *ht)
 
 PUBLIC void
 vrna_ht_remove(struct vrna_hash_table_s *ht,
-               void                     *x)           /* doesn't work in case of collisions */
+               void                     *x)
 {
   /* doesn't free anything ! */
   unsigned int hashval;
 
   if ((ht) && (x)) {
     hashval = ht->Hash_function(x, ht->Hash_size);
-    while (ht->Hash_table[hashval]) {
-      if (ht->Compare_function(x, ht->Hash_table[hashval]) == 0) {
-        ht->Hash_table[hashval] = NULL;
-        return;
+    if(hashval >= ht->Hash_size){
+      fprintf(stderr,"Error: hash function returns a value that is larger than the size of the hash map!\n");
+      return;
+    }
+    vrna_hash_entry_list_t *entries =  ht->Hash_table[hashval];
+    if(entries){
+      int i;
+      for(i=0; i < entries->length; i++){
+        if(ht->Compare_function(x, entries->hash_entries[i]) == 0){
+          //found the same entry --> shift the list to the left in order to delete the value.
+          int size_rest = entries->length-i-1;
+          if(size_rest <= 0){
+            entries->hash_entries[i] = 0;
+          }
+          else{
+            void *offset = entries->hash_entries+i;
+            void *next_entry = entries->hash_entries+i+1;
+            memcpy(offset,next_entry, size_rest*sizeof(void*));
+          }
+          entries->hash_entries[entries->length-1] = NULL;
+          entries->length--;
+          return; /* success */
+        }
       }
-
-      hashval = ((hashval + 1) & (ht->Hash_size));
     }
   }
 }
@@ -261,10 +324,10 @@ PUBLIC unsigned int
 vrna_ht_db_hash_func(void           *x,
                      unsigned long  hashtable_size)
 {
-  register char         *k;           /* the key */
-  register unsigned int length;       /* the length of the key */
-  register unsigned int initval = 0;  /* the previous hash, or an arbitrary value */
-  register unsigned int a, b, c, len;
+  register unsigned char  *k;           /* the key */
+  register unsigned int   length;       /* the length of the key */
+  register unsigned int   initval = 0;  /* the previous hash, or an arbitrary value */
+  register unsigned int   a, b, c, len;
 
   /* Set up the internal state */
   k   = ((vrna_ht_entry_db_t *)x)->structure;
@@ -274,19 +337,13 @@ vrna_ht_db_hash_func(void           *x,
 
   /*---------------------------------------- handle most of the key */
   while (len >= 12) {
-    a += ((unsigned int)k[0] +
-          ((unsigned int)k[1] << 8) +
-          ((unsigned int)k[2] << 16) +
-          ((unsigned int)k[3] << 24));
-    b += ((unsigned int)k[4] +
-          ((unsigned int)k[5] << 8) +
-          ((unsigned int)k[6] << 16) +
-          ((unsigned int)k[7] << 24));
-    c += ((unsigned int)k[8] +
-          ((unsigned int)k[9] << 8) +
-          ((unsigned int)k[10] << 16) +
-          ((unsigned int)k[11] << 24));
-
+    a +=
+      (k[0] + ((unsigned int)k[1] << 8) + ((unsigned int)k[2] << 16) + ((unsigned int)k[3] << 24));
+    b +=
+      (k[4] + ((unsigned int)k[5] << 8) + ((unsigned int)k[6] << 16) + ((unsigned int)k[7] << 24));
+    c +=
+      (k[8] + ((unsigned int)k[9] << 8) + ((unsigned int)k[10] << 16) +
+       ((unsigned int)k[11] << 24));
     mix(a, b, c);
     k   += 12;
     len -= 12;
@@ -318,12 +375,12 @@ vrna_ht_db_hash_func(void           *x,
     case 2:
       a += ((unsigned int)k[1] << 8);
     case 1:
-      a += (unsigned int)k[0];
+      a += k[0];
       /* case 0: nothing left to add */
   }
   mix(a, b, c);
   /*-------------------------------------------- report the result */
-  return c & hashtable_size;
+  return c % hashtable_size;
 }
 
 
