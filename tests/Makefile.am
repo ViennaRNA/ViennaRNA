@@ -156,7 +156,8 @@ CHECKMK_FILES = \
               utils.ts \
               eval_structure.ts \
               walk.ts \
-              neighbor.ts
+              neighbor.ts \
+              hash_table.ts
 
 CHECK_CFILES = \
               energy_evaluation.c \
@@ -166,7 +167,8 @@ CHECK_CFILES = \
               utils.c \
               eval_structure.c \
               walk.c \
-              neighbor.c
+              neighbor.c \
+              hash_table.c
 
 LIBRARY_TESTS = energy_evaluation \
                 constraints \
@@ -175,7 +177,8 @@ LIBRARY_TESTS = energy_evaluation \
                 utils \
                 eval_structure \
                 walk \
-                neighbor
+                neighbor \
+                hash_table
 
 check_PROGRAMS = ${LIBRARY_TESTS}
 
