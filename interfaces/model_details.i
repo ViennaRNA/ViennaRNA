@@ -12,6 +12,7 @@
 typedef struct {
   double  temperature;
   double  betaScale;
+  int     pf_smooth;
   int     dangles;
   int     special_hp;
   int     noLP;
@@ -93,6 +94,7 @@ typedef struct {
 extern double temperature;
 extern int    dangles;
 extern double betaScale;
+extern int    pf_smooth;
 extern int    tetra_loop;     /* this is an alias of special_hp */
 extern int    special_hp;
 extern int    noLonelyPairs;  /* this is an alias of noLP */
