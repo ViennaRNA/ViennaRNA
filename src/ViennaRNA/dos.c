@@ -89,7 +89,7 @@ get_energy_bin_index(int min_energy, int step_energy, int energy_length, int tar
   int i = 0;
   int current_energy = min_energy;
 
-  int max_energy = min_energy + (step_energy * (energy_length-1));
+  int max_energy = min_energy + (step_energy * (energy_length - 1));
   //printf("maxe %d\n",max_energy);
   //exit(0);
   if (max_energy <= target_energy) {
@@ -146,9 +146,15 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
     int max_energy = min_energy + (energy_length - 1) * step_energy;
 
     if (energy_hp >= min_energy && energy_hp <= max_energy) {
-      int bin_index = get_energy_bin_index (min_energy, step_energy, energy_length, energy_hp);
-      //printf ("hp energy: %d %d %d %d %d\n", energy_hp, bin_index, i, j, ij);
-      dp_count_matrix_pt->n_ij_e[ij][bin_index] = 1;
+      int energy_index_a;
+      int offset = abs ((energy_hp - min_energy) / step_energy);
+      if (energy < 0) {
+        energy_index_a = 0;
+      }
+      else {
+        energy_index_a = offset;
+      }
+      dp_count_matrix_pt->n_ij_e[ij][energy_index_a] = 1;
     }
 
     /* check for interior loops */
@@ -184,14 +190,22 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
           fc->matrices->c[ij] = MIN2(fc->matrices->c[ij], fc->matrices->c[pq] + energy);
 
           if (dp_count_matrix_pt->n_ij_e[pq] != NULL && dp_count_matrix_pt->n_ij_e[pq] != NULL) {
-            int energy_index;
-            for (energy_index = 0; energy_index < energy_length; energy_index++) {
-              int target_energy = min_energy + energy_index * step_energy + energy;
-              if (target_energy >= min_energy && target_energy <= max_energy) {
-                int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, target_energy);
-                //printf ("aaa %d %d", energy_index, energy_index_b);
-                dp_count_matrix_pt->n_ij_e[ij][energy_index_b] += dp_count_matrix_pt->n_ij_e[pq][energy_index];
-              }
+            int energy_index_a;
+            int energy_index_b;
+            int max_a;
+            int offset = abs (energy / step_energy);
+            if (energy < 0) {
+              energy_index_a = 0;
+              energy_index_b = offset;
+              max_a = energy_length - 1 - offset;
+            }
+            else {
+              energy_index_a = offset;
+              energy_index_b = 0;
+              max_a = energy_length - 1;
+            }
+            for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
+              dp_count_matrix_pt->n_ij_e[ij][energy_index_a] += dp_count_matrix_pt->n_ij_e[pq][energy_index_b];
             }
           }
         }
@@ -239,21 +253,52 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
            dp_count_matrix_pt->n_ij_e[ij][bin_index_m_joined] += dp_count_matrix_pt->n_ij_M_e[i1u][bin_index_m] * dp_count_matrix_pt->n_ij_M1_e[u1j1][bin_index_m1];   //dp_count_matrix_pt->n_ij_e[pq][bin_index_inner_loop];
            */
 
+          //  min_energy = 0;
+          //  energy_length = 11;
+          //  temp2 = 2;
           int energy_a = min_energy;
-          for (; energy_a + temp2 <= max_energy; energy_a += step_energy) {
-            int energy_index_a = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a + temp2);
-            int energy_b = min_energy;
-            for (; energy_b <= max_energy; energy_b += step_energy) {
-              int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, energy_b);
-              if ((energy_a - energy_b) < min_energy || (energy_a - energy_b) > max_energy)
-                continue;
-              int energy_index_c = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a - energy_b);
-              dp_count_matrix_pt->n_ij_e[ij][energy_index_a] += dp_count_matrix_pt->n_ij_M_e[i1u][energy_index_b]
-                  * dp_count_matrix_pt->n_ij_M1_e[u1j1][energy_index_c];
+          int energy_b = min_energy;
+          int energy_c;
 
+          for (; energy_a <= max_energy; energy_a += step_energy) {
+            energy_b = min_energy;
+            int energy_index_a = (energy_a - min_energy + temp2) / step_energy;
+            if ((energy_a + temp2) >= min_energy && (energy_a + temp2) <= max_energy) {
+              for (; energy_b <= max_energy; energy_b += step_energy) {
+                int energy_index_b = (energy_b -min_energy) / step_energy;
+                //energy_b = energy_index_b * step_energy + min_energy;
+                energy_c = energy_a - energy_b - min_energy;
+                //printf("energies: %d %d %d %d %d\n", energy_a, energy_a, energy_b, energy_c + min_energy, temp2);
+                if (energy_c < 0 || energy_c > max_energy - min_energy) {
+                  continue;
+                }
+                int energy_index_c = energy_c / step_energy;
+                //printf("energies: %d %d %d %d %d\n", energy_a_woo, energy_b, energy_c, energy_a_woo + temp2, temp2);
+                energy_index_c = (energy_c) / step_energy;
+                dp_count_matrix_pt->n_ij_e[ij][energy_index_a] += dp_count_matrix_pt->n_ij_M_e[i1u][energy_index_b]
+                    * dp_count_matrix_pt->n_ij_M1_e[u1j1][energy_index_c];
+
+              }
             }
           }
 
+          // exit(0);
+          /*
+           int energy_a = min_energy;
+           for (; energy_a + temp2 <= max_energy; energy_a += step_energy) {
+           int energy_index_a = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a + temp2);
+           int energy_b = min_energy;
+           for (; energy_b <= max_energy; energy_b += step_energy) {
+           int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, energy_b);
+           if ((energy_a - energy_b) < min_energy || (energy_a - energy_b) > max_energy)
+           continue;
+           int energy_index_c = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a - energy_b);
+           dp_count_matrix_pt->n_ij_e[ij][energy_index_a] += dp_count_matrix_pt->n_ij_M_e[i1u][energy_index_b]
+           * dp_count_matrix_pt->n_ij_M1_e[u1j1][energy_index_c];
+
+           }
+           }
+           */
         }
       }
     }
@@ -400,13 +445,13 @@ fill_arrays(vrna_fold_compound_t *fc)
 
   //printf("mfe %f\n", vrna_mfe(fc, NULL));
 
-  int min_energy = (int) round(vrna_mfe(fc, NULL) * 100.0); // -500; // TODO compute mfe.
+  int min_energy = (int) round (vrna_mfe (fc, NULL) * 100.0); // -500; // TODO compute mfe.
   int max_energy = 1500; // TODO compute max_energy.
   int step_energy = 1; // 10 decakal. (smallest unit of energy computations)
   int range = max_energy - min_energy;
-  int energy_length = ceil(range / (float)step_energy) + 1;
+  int energy_length = ceil (range / (float) step_energy) + 1;
   printf ("min_energy: %d \n", min_energy);
-  printf ("max_energy: %d %d\n", max_energy, min_energy + (step_energy * (energy_length-1)));
+  printf ("max_energy: %d %d\n", max_energy, min_energy + (step_energy * (energy_length - 1)));
 
   /* allocate memory for all helper arrays */
   helper_arrays = get_aux_arrays (length);
@@ -485,18 +530,26 @@ fill_arrays(vrna_fold_compound_t *fc)
         matrices->fML[ij] = matrices->fM1[ij] = matrices->c[ij] + temp2;
 
         if (count_matrix_pt.n_ij_e[ij]) {
-          int energy_a = min_energy + temp2;
-          for (; energy_a <= max_energy; energy_a += step_energy) {
-            int energy_b = energy_a - temp2;
-            int energy_index_a = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a);
-            if (energy_a >= min_energy && energy_a <= max_energy) {
-              int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, energy_b);
-              count_matrix_pt.n_ij_M_e[ij][energy_index_a] = count_matrix_pt.n_ij_M1_e[ij][energy_index_a] = count_matrix_pt.n_ij_e[ij][energy_index_b];
-            }
-//#ifdef COUNT_STATES
-            //             matrices->N_M[ij][cnt1][cnt2 / 2] = matrices->N_M1[ij][cnt1][cnt2 / 2] = matrices->N_C[ij][cnt1][cnt2 / 2];
-//#endif
+          int energy_index_a;
+          int energy_index_b;
+          int max_a;
+          int offset = abs (temp2 / step_energy);
+          if (temp2 < 0) {
+            energy_index_a = 0;
+            energy_index_b = offset;
+            max_a = energy_length - 1 - offset;
           }
+          else {
+            energy_index_a = offset;
+            energy_index_b = 0;
+            max_a = energy_length - 1;
+          }
+          for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
+            count_matrix_pt.n_ij_M_e[ij][energy_index_a] = count_matrix_pt.n_ij_M1_e[ij][energy_index_a] = count_matrix_pt.n_ij_e[ij][energy_index_b];
+          }
+//#ifdef COUNT_STATES
+          //             matrices->N_M[ij][cnt1][cnt2 / 2] = matrices->N_M1[ij][cnt1][cnt2 / 2] = matrices->N_C[ij][cnt1][cnt2 / 2];
+//#endif
         }
       }
       else {
@@ -510,18 +563,27 @@ fill_arrays(vrna_fold_compound_t *fc)
         matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[fc->jindx[j] + (i + 1)] + P->MLbase);
         //int energy_index;
         if (count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)]) {
-          int energy_a = min_energy;
-          for (; energy_a <= max_energy; energy_a += step_energy) {
-            int energy_b = energy_a - P->MLbase;
-            int energy_index_a = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a);
-            if (energy_a >= min_energy && energy_a <= max_energy) {
-              int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, energy_b);
-              count_matrix_pt.n_ij_M_e[ij][energy_index_a] += count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)][energy_index_b];
-            }
+          int energy_index_a;
+          int energy_index_b;
+          int max_a;
+          int offset = abs (P->MLbase / step_energy);
+          if (P->MLbase < 0) {
+            energy_index_a = 0;
+            energy_index_b = offset;
+            max_a = energy_length - 1 - offset;
+          }
+          else {
+            energy_index_a = offset;
+            energy_index_b = 0;
+            max_a = energy_length - 1;
+          }
+          for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
+            count_matrix_pt.n_ij_M_e[ij][energy_index_a] += count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)][energy_index_b];
+          }
 //#ifdef COUNT_STATES
 //                matrices->N_M[ij][cnt1 + dia][(cnt2 + dib) / 2] += matrices->N_M[my_iindx[i + 1] - j][cnt1][cnt2 / 2];
 //#endif
-          }
+
         }
       }
       //  }
@@ -533,18 +595,27 @@ fill_arrays(vrna_fold_compound_t *fc)
         //int energy_index;
         if (count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i]) {
           // for (energy_index = 0; energy_index <= energy_length; energy_index++) {
-          int energy_a = min_energy;
-          for (; energy_a <= max_energy; energy_a += step_energy) {
-            int energy_b = energy_a - P->MLbase;
-            int energy_index_a = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a);
-            if (energy_a >= min_energy && energy_a <= max_energy) {
-              int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, energy_b);
-              count_matrix_pt.n_ij_M_e[ij][energy_index_a] += count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i][energy_index_b];
-            }
+          int energy_index_a;
+          int energy_index_b;
+          int max_a;
+          int offset = abs (P->MLbase / step_energy);
+          if (P->MLbase < 0) {
+            energy_index_a = 0;
+            energy_index_b = offset;
+            max_a = energy_length - 1 - offset;
+          }
+          else {
+            energy_index_a = offset;
+            energy_index_b = 0;
+            max_a = energy_length - 1;
+          }
+          for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
+            count_matrix_pt.n_ij_M_e[ij][energy_index_a] += count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i][energy_index_b];
+          }
 //#ifdef COUNT_STATES
 //                 matrices->N_M[ij][cnt1 + dja][(cnt2 + djb) / 2] += matrices->N_M[ij + 1][cnt1][cnt2 / 2];
 //#endif
-          }
+
         }
       }
       //   }
@@ -557,18 +628,27 @@ fill_arrays(vrna_fold_compound_t *fc)
         //int energy_index;
         if (count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i]) {
           //for (energy_index = 0; energy_index <= energy_length; energy_index++) {
-          int energy_a = min_energy;
-          for (; energy_a <= max_energy; energy_a += step_energy) {
-            int energy_b = energy_a - P->MLbase;
-            int energy_index_a = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a);
-            if (energy_a >= min_energy && energy_a <= max_energy) {
-              int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, energy_b);
-              count_matrix_pt.n_ij_M1_e[ij][energy_index_a] += count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i][energy_index_b];
-            }
+          int energy_index_a;
+          int energy_index_b;
+          int max_a;
+          int offset = abs (P->MLbase / step_energy);
+          if (P->MLbase < 0) {
+            energy_index_a = 0;
+            energy_index_b = offset;
+            max_a = energy_length - 1 - offset;
+          }
+          else {
+            energy_index_a = offset;
+            energy_index_b = 0;
+            max_a = energy_length - 1;
+          }
+          for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
+            count_matrix_pt.n_ij_M1_e[ij][energy_index_a] += count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i][energy_index_b];
+          }
 //#ifdef COUNT_STATES
 //                matrices->N_M1[ij][cnt1 + dja][(cnt2 + djb) / 2] += matrices->N_M1[ij + 1][cnt1][cnt2 / 2];
 //#endif
-          }
+
         }
       }
       //   }
@@ -586,19 +666,48 @@ fill_arrays(vrna_fold_compound_t *fc)
           if ((fc->matrices->fML[fc->jindx[u] + i] != INF) && (fc->matrices->fML[fc->jindx[j] + (u + 1)] != INF))
             matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[fc->jindx[u] + i] + matrices->fML[fc->jindx[j] + (u + 1)]);
           //   if ((fc->matrices->fML[fc->jindx[u]+i] != INF) && (fc->matrices->fML[fc->jindx[j] + (u + 1)] != INF)) {
-          int energy_index;
           if (count_matrix_pt.n_ij_M_e[fc->jindx[u] + i] != NULL && count_matrix_pt.n_ij_M1_e[fc->jindx[j] + (u + 1)] != NULL) {
+            int energy_index_a;
+            int energy_index_b;
+            int max_a;
+            int max_b;
+            int offset = 0; //abs (additional_en / step_energy);
+            /*
+             if (additional_en < 0) {
+             energy_index_a = 0;
+             energy_index_b = offset;
+             max_a = energy_length - 1;
+             max_b = energy_length - 1;
+             }
+             else {
+             energy_index_a = offset;
+             energy_index_b = 0;
+             max_a = energy_length - 1;
+             max_b = energy_length - 1;
+             }
+             */
             int energy_a = min_energy;
+            int energy_b = min_energy;
+            int energy_c;
+
             for (; energy_a <= max_energy; energy_a += step_energy) {
-              int energy_index_a = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a);
-              int energy_b = min_energy;
-              for (; energy_b <= max_energy; energy_b += step_energy) {
-                int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, energy_b);
-                if ((energy_a - energy_b) < min_energy || (energy_a - energy_b) > max_energy)
-                  continue;
-                int energy_index_c = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a - energy_b);
-                count_matrix_pt.n_ij_M_e[ij][energy_index_a] += count_matrix_pt.n_ij_M_e[fc->jindx[u] + i][energy_index_b]
-                    * count_matrix_pt.n_ij_M1_e[fc->jindx[j] + (u + 1)][energy_index_c];
+              energy_b = min_energy;
+              energy_index_a = (energy_a -min_energy) / step_energy;
+              if ((energy_a) >= min_energy && (energy_a) <= max_energy) {
+                for (; energy_b <= max_energy; energy_b += step_energy) {
+                  int energy_index_b = (energy_b - min_energy) / step_energy;
+                  //energy_b = energy_index_b * step_energy + min_energy;
+                  energy_c = energy_a - energy_b - min_energy;
+                  // printf("energies: %d %d %d %d %d\n", energy_a_woo, energy_b, energy_c, energy_a_woo + additional_en, additional_en);
+                  if (energy_c < 0 || energy_c > max_energy - min_energy) {
+                    continue;
+                  }
+                  int energy_index_c = energy_c / step_energy;
+                  //printf("energies: %d %d %d %d %d\n", energy_a_woo, energy_b, energy_c, energy_a_woo + temp2, temp2);
+                  energy_index_c = (energy_c) / step_energy;
+                  count_matrix_pt.n_ij_M_e[ij][energy_index_a] += count_matrix_pt.n_ij_M_e[fc->jindx[u] + i][energy_index_b]
+                      * count_matrix_pt.n_ij_M1_e[fc->jindx[j] + (u + 1)][energy_index_c];
+                }
               }
             }
           }
@@ -642,7 +751,7 @@ fill_arrays(vrna_fold_compound_t *fc)
     //print_matrix(f5, fc->jindx, 1, length+1);
   } /* end of i-loop */
   /* calculate energies of 5' fragments */
-  // (void)vrna_E_ext_loop_5(fc);
+// (void)vrna_E_ext_loop_5(fc);
   int x;
   for (x = 0; x <= length; x++) {
     count_matrix_pt.n_ij_A_e[x] = vrna_alloc (sizeof(int) * energy_length);
@@ -650,7 +759,7 @@ fill_arrays(vrna_fold_compound_t *fc)
 
   int open_chain_energy = 0;
   int energy_index = get_energy_bin_index (min_energy, step_energy, energy_length, open_chain_energy);
-  //count_matrix_pt.n_ij_A_e[length][energy_index] = 1;
+//count_matrix_pt.n_ij_A_e[length][energy_index] = 1;
 
   int cnt1;
   for (cnt1 = 1; cnt1 <= TURN + 1; cnt1++) {
@@ -658,8 +767,8 @@ fill_arrays(vrna_fold_compound_t *fc)
   }
 
   for (j = TURN + 2; j <= length; j++) {
-
-    int type = fc->ptype[fc->jindx[j] + 1];
+    ij = fc->jindx[j] + 1;
+    int type = fc->ptype[ij];
     int additional_en = 0;
     if (type) {
       if (dangles == 2)
@@ -678,15 +787,25 @@ fill_arrays(vrna_fold_compound_t *fc)
     // matrices->N_F5[j][cnt1 + da][(cnt2 + db) / 2] += matrices->N_F5[j - 1][cnt1][cnt2 / 2];
 
     /* j pairs with 1 */
-    if (matrices->c[fc->jindx[j] + 1] != INF) {
-      matrices->f5[j] = MIN2(matrices->f5[j], matrices->c[fc->jindx[j] + 1] + additional_en);
-      if (count_matrix_pt.n_ij_e[fc->jindx[j] + 1] != NULL) {
-        for (energy_index = 0; energy_index < energy_length; energy_index++) {
-          int target_energy = min_energy + energy_index * step_energy + additional_en;
-          if (target_energy >= min_energy + additional_en && target_energy <= max_energy+ additional_en) {
-            int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, target_energy);
-            count_matrix_pt.n_ij_A_e[j][energy_index_b] += count_matrix_pt.n_ij_e[fc->jindx[j] + 1][energy_index];
-          }
+    if (matrices->c[ij] != INF) {
+      matrices->f5[j] = MIN2(matrices->f5[j], matrices->c[ij] + additional_en);
+      if (count_matrix_pt.n_ij_e[ij] != NULL) {
+        int energy_index_a;
+        int energy_index_b;
+        int max_a;
+        int offset = abs (additional_en / step_energy);
+        if (additional_en < 0) {
+          energy_index_a = 0;
+          energy_index_b = offset;
+          max_a = energy_length - 1 - offset;
+        }
+        else {
+          energy_index_a = offset;
+          energy_index_b = 0;
+          max_a = energy_length - 1;
+        }
+        for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
+          count_matrix_pt.n_ij_A_e[j][energy_index_a] += count_matrix_pt.n_ij_e[ij][energy_index_b];
         }
         // matrices->N_F5[j][cnt1][cnt2 / 2] += matrices->N_C[my_iindx[1] - j][cnt1][cnt2 / 2];
       }
@@ -709,30 +828,55 @@ fill_arrays(vrna_fold_compound_t *fc)
 
           if (fc->matrices->f5[i - 1] != INF && fc->matrices->c[ij] != INF) {
             matrices->f5[j] = MIN2(matrices->f5[j], matrices->f5[i - 1] + matrices->c[ij] + additional_en);
-            int energy_a = min_energy;
-            for (; energy_a + additional_en <= max_energy; energy_a += step_energy) {
-              if (energy_a + additional_en < min_energy)
-                continue;
-              int energy_index_a = get_energy_bin_index (min_energy, step_energy, energy_length, energy_a + additional_en);
+            if (count_matrix_pt.n_ij_A_e[i - 1] != NULL && count_matrix_pt.n_ij_e[ij] != NULL) {
+              int energy_index_a;
+              int energy_index_b;
+              int max_a;
+              int max_b;
+              int offset = abs (additional_en / step_energy);
+              /*
+               if (additional_en < 0) {
+               energy_index_a = 0;
+               energy_index_b = offset;
+               max_a = energy_length - 1;
+               max_b = energy_length - 1;
+               }
+               else {
+               energy_index_a = offset;
+               energy_index_b = 0;
+               max_a = energy_length - 1;
+               max_b = energy_length - 1;
+               }
+               */
+              int energy_a = min_energy;
               int energy_b = min_energy;
-              for (; energy_b <= max_energy; energy_b += step_energy) {
-                int energy_index_b = get_energy_bin_index (min_energy, step_energy, energy_length, energy_b);
-                if ((energy_a - energy_b) < min_energy || (energy_a - energy_b) > max_energy)
-                  continue;
-                int energy_c = energy_a - energy_b;
-                // if (energy_c >= min_energy && energy_c <= max_energy) {
-                int energy_index_c = get_energy_bin_index (min_energy, step_energy, energy_length, energy_c);
-                // printf("%d %d a,b,c %d %d %d\n", i,j, energy_a, energy_b, energy_c);
+              int energy_c;
 
-                // for(energye_index_b =0; energye_index_b < energy_length; energye_index_b++){
-                if (count_matrix_pt.n_ij_A_e[i - 1] != NULL && count_matrix_pt.n_ij_e[ij] != NULL)
-                  count_matrix_pt.n_ij_A_e[j][energy_index_a] += count_matrix_pt.n_ij_A_e[i - 1][energy_index_b]
-                      * count_matrix_pt.n_ij_e[ij][energy_index_c];
+              for (; energy_a <= max_energy; energy_a += step_energy) {
+                energy_b = min_energy;
+                energy_index_a = (energy_a - min_energy + additional_en) / step_energy;
+                if ((energy_a + additional_en) >= min_energy && (energy_a + additional_en) <= max_energy) {
+                  for (; energy_b <= max_energy; energy_b += step_energy) {
+                    int energy_index_b = (energy_b - min_energy) / step_energy;
+                    //energy_b = energy_index_b * step_energy + min_energy;
+                    energy_c = energy_a - energy_b - min_energy;
+                    // printf("energies: %d %d %d %d %d\n", energy_a_woo, energy_b, energy_c, energy_a_woo + additional_en, additional_en);
+                    if (energy_c < 0 || energy_c > max_energy - min_energy) {
+                      continue;
+                    }
+                    int energy_index_c = energy_c / step_energy;
+                    // for(energye_index_b =0; energye_index_b < energy_length; energye_index_b++){
+                    //printf ("energies: %d %d %d %d %d %d\n", energy_a, energy_a_woo, energy_b, energy_c, energy_a_woo + additional_en, additional_en);
+                    // printf ("indices: %d %d %d\n", energy_index_a, energy_index_b, energy_index_c);
+                    count_matrix_pt.n_ij_A_e[j][energy_index_a] += count_matrix_pt.n_ij_A_e[i - 1][energy_index_b]
+                        * count_matrix_pt.n_ij_e[ij][energy_index_c];
+                  }
+                  //}
+                  // #ifdef COUNT_STATES
+                  //                    matrices->N_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2] += matrices->N_F5[i - 1][cnt3][cnt4 / 2] * matrices->N_C[ij][cnt1][cnt2 / 2];
+                  //#endif
+                }
               }
-              //}
-              // #ifdef COUNT_STATES
-              //                    matrices->N_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2] += matrices->N_F5[i - 1][cnt3][cnt4 / 2] * matrices->N_C[ij][cnt1][cnt2 / 2];
-              //#endif
             }
           }
 
@@ -803,7 +947,7 @@ main()
   md.uniq_ML = 1;
   md.noLP = 0;
   md.circ = 0;
-  md.dangles = 2;
+  md.dangles = 0;
 //md.temperature  = 37;
   vrna_param_t *params = vrna_params (&md);
 //params->model_details.circ = is_circular;
@@ -829,6 +973,7 @@ main()
    */
   printf ("count: %d \n", count);
 
+  free (sequence);
   free (params);
   vrna_fold_compound_free (fc);
 
