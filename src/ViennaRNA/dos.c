@@ -108,7 +108,7 @@ get_energy_bin_index(int min_energy, int step_energy, int energy_length, int tar
 }
 
 PRIVATE INLINE int
-decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, int min_energy, int step_energy, int energy_length,
+decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, int min_energy, int max_e, int step_energy, int energy_length,
                struct dp_counts_per_energy *dp_count_matrix_pt)
 {
   unsigned char hc_decompose;
@@ -145,6 +145,10 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
 
     int max_energy = min_energy + (energy_length - 1) * step_energy;
 
+#if 1
+    if (energy_hp <= max_e)
+      dp_count_matrix_pt->n_ij_e[ij][energy_hp]++;
+#else
     if (energy_hp >= min_energy && energy_hp <= max_energy) {
       int energy_index_a;
       int offset = abs ((energy_hp - min_energy) / step_energy);
@@ -156,6 +160,7 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
       }
       dp_count_matrix_pt->n_ij_e[ij][energy_index_a] = 1;
     }
+#endif
 
     /* check for interior loops */
     //energy  = vrna_E_int_loop(fc, i, j);
@@ -189,6 +194,11 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
         if (fc->matrices->c[pq] != INF) {
           fc->matrices->c[ij] = MIN2(fc->matrices->c[ij], fc->matrices->c[pq] + energy);
 
+#if 1
+          for (int e = min_energy; e <= max_e; e++)
+            if ((e + energy >= min_energy) && (e + energy <= max_e))
+              dp_count_matrix_pt->n_ij_e[ij][e + energy] += dp_count_matrix_pt->n_ij_e[pq][e];
+#else
           if (dp_count_matrix_pt->n_ij_e[pq] != NULL && dp_count_matrix_pt->n_ij_e[pq] != NULL) {
             int energy_index_a;
             int energy_index_b;
@@ -208,6 +218,7 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
               dp_count_matrix_pt->n_ij_e[ij][energy_index_a] += dp_count_matrix_pt->n_ij_e[pq][energy_index_b];
             }
           }
+#endif
         }
       } /* end q-loop */
     } /* end p-loop */
@@ -253,6 +264,14 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
            dp_count_matrix_pt->n_ij_e[ij][bin_index_m_joined] += dp_count_matrix_pt->n_ij_M_e[i1u][bin_index_m] * dp_count_matrix_pt->n_ij_M1_e[u1j1][bin_index_m1];   //dp_count_matrix_pt->n_ij_e[pq][bin_index_inner_loop];
            */
 
+#if 1
+          for (int e = min_energy; e <= max_e; e++) {
+            for (int e2 = min_energy; e2 <= max_e; e2++)
+              if ((e + e2 + temp2 >= min_energy) && (e + e2 + temp2 <= max_e))
+                dp_count_matrix_pt->n_ij_e[ij][e + e2 + temp2] += dp_count_matrix_pt->n_ij_M_e[i1u][e] *
+                                                                  dp_count_matrix_pt->n_ij_M1_e[u1j1][e2];
+          }
+#else
           //  min_energy = 0;
           //  energy_length = 11;
           //  temp2 = 2;
@@ -281,6 +300,7 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
               }
             }
           }
+#endif
 
           // exit(0);
           /*
@@ -387,6 +407,15 @@ print_array_energy_counts(int **matrix, int length_col, int min_energy, int step
 {
   int i, j;
   printf ("\n");
+#if 1
+  int max_energy = min_energy + energy_length - 1;
+  printf("min_e: %d, max_e: %d, length: %d, energy_length: %d\n", min_energy, max_energy, length_col, energy_length);
+  j = length_col;
+  for (int e = min_energy; e <= max_energy; e++)
+    if (matrix[j][e] > 0)
+      printf ("%6.2f\t%d\n", e / 100., matrix[j][e]);
+
+#else
   // for(i=1; i <= length_row; i++){
   for (j = 0; j <= length_col; j++) {
     if (matrix[j] != NULL) {
@@ -399,7 +428,7 @@ print_array_energy_counts(int **matrix, int length_col, int min_energy, int step
       }
     }
   }
-
+#endif
   //}
   printf ("\n");
   return 0;
@@ -446,12 +475,33 @@ fill_arrays(vrna_fold_compound_t *fc)
   //printf("mfe %f\n", vrna_mfe(fc, NULL));
 
   int min_energy = (int) round (vrna_mfe (fc, NULL) * 100.0); // -500; // TODO compute mfe.
-  int max_energy = 1500; // TODO compute max_energy.
+  printf ("min_energy (global): %d \n", min_energy);
+  /* search through DP matrices for minimal entry */
+  for (int i = 1; i < length; i++)
+    for (int j = i + 1; j <= length; j++) {
+      ij = indx[j] + i;
+      int e = fc->matrices->c[ij];
+      if (e < min_energy)
+        min_energy = e;
+
+      e = fc->matrices->fML[ij];
+      if (e < min_energy)
+        min_energy = e;
+    }
+
+  for (int i = 1; i <= length; i++) {
+    int e = fc->matrices->f5[i];
+    if (e < min_energy)
+      min_energy = e;
+  }
+
+  int max_energy = 2000; // TODO compute max_energy.
   int step_energy = 1; // 10 decakal. (smallest unit of energy computations)
   int range = max_energy - min_energy;
   int energy_length = ceil (range / (float) step_energy) + 1;
   printf ("min_energy: %d \n", min_energy);
   printf ("max_energy: %d %d\n", max_energy, min_energy + (step_energy * (energy_length - 1)));
+  printf("range: %d, energy_length: %d\n", range, energy_length);
 
   /* allocate memory for all helper arrays */
   helper_arrays = get_aux_arrays (length);
@@ -501,11 +551,18 @@ fill_arrays(vrna_fold_compound_t *fc)
       count_matrix_pt.n_ij_M_e[ij] = vrna_alloc (sizeof(int) * energy_length);
       count_matrix_pt.n_ij_M1_e[ij] = vrna_alloc (sizeof(int) * energy_length);
 
+#if 1
+      /* do some pointer magic to allow negative array indices if necessary */
+      count_matrix_pt.n_ij_e[ij] -= min_energy;
+      count_matrix_pt.n_ij_M_e[ij] -= min_energy;
+      count_matrix_pt.n_ij_M1_e[ij] -= min_energy;
+#endif
+
       //printf("jiaddress from: %#08x \n", &(count_matrix_pt.n_ij_e[ij]));
 
       /* decompose subsegment [i, j] with pair (i, j) */
       //if (type)
-      c[ij] = decompose_pair (fc, i, j, helper_arrays, min_energy, step_energy, energy_length, &count_matrix_pt);
+      c[ij] = decompose_pair (fc, i, j, helper_arrays, min_energy, max_energy, step_energy, energy_length, &count_matrix_pt);
 
       /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
       //fML[ij] = vrna_E_ml_stems_fast(fc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
@@ -529,6 +586,11 @@ fill_arrays(vrna_fold_compound_t *fc)
       if (matrices->c[ij] != INF) {
         matrices->fML[ij] = matrices->fM1[ij] = matrices->c[ij] + temp2;
 
+#if 1
+        for (int e = min_energy; e < max_energy; e++)
+          if ((e + temp2 >= min_energy) && (e + temp2 <= max_energy))
+            count_matrix_pt.n_ij_M_e[ij][e + temp2] = count_matrix_pt.n_ij_M1_e[ij][e + temp2] = count_matrix_pt.n_ij_e[ij][e];
+#else
         if (count_matrix_pt.n_ij_e[ij]) {
           int energy_index_a;
           int energy_index_b;
@@ -547,20 +609,22 @@ fill_arrays(vrna_fold_compound_t *fc)
           for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
             count_matrix_pt.n_ij_M_e[ij][energy_index_a] = count_matrix_pt.n_ij_M1_e[ij][energy_index_a] = count_matrix_pt.n_ij_e[ij][energy_index_b];
           }
-//#ifdef COUNT_STATES
-          //             matrices->N_M[ij][cnt1][cnt2 / 2] = matrices->N_M1[ij][cnt1][cnt2 / 2] = matrices->N_C[ij][cnt1][cnt2 / 2];
-//#endif
         }
+#endif
       }
       else {
         matrices->fML[ij] = matrices->fM1[ij] = INF;
       }
-      //}
 
       /* 2nd E_M[ij] = MIN(E_M[ij], E_M[i+1,j] + c) */
-      // if (fc->matrices->fML[fc->jindx[j] + (i+1)]) {
       if (fc->matrices->fML[fc->jindx[j] + (i + 1)] != INF) {
         matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[fc->jindx[j] + (i + 1)] + P->MLbase);
+
+#if 1
+        for (int e = min_energy; e <= max_energy; e++)
+          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy))
+            count_matrix_pt.n_ij_M_e[ij][e + P->MLbase] += count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)][e];
+#else
         //int energy_index;
         if (count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)]) {
           int energy_index_a;
@@ -580,18 +644,18 @@ fill_arrays(vrna_fold_compound_t *fc)
           for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
             count_matrix_pt.n_ij_M_e[ij][energy_index_a] += count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)][energy_index_b];
           }
-//#ifdef COUNT_STATES
-//                matrices->N_M[ij][cnt1 + dia][(cnt2 + dib) / 2] += matrices->N_M[my_iindx[i + 1] - j][cnt1][cnt2 / 2];
-//#endif
-
         }
+#endif
       }
-      //  }
 
       /* 3rd E_M[ij] = MIN(E_M[ij], E_M[i,j-1] + c) */
-      // if (fc->matrices->fML[ij+1]) {
       if (fc->matrices->fML[fc->jindx[j - 1] + i] != INF) {
         matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[fc->jindx[j - 1] + i] + P->MLbase);
+#if 1
+        for (int e = min_energy; e <= max_energy; e++)
+          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy))
+            count_matrix_pt.n_ij_M_e[ij][e + P->MLbase] += count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i][e];
+#else
         //int energy_index;
         if (count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i]) {
           // for (energy_index = 0; energy_index <= energy_length; energy_index++) {
@@ -612,22 +676,20 @@ fill_arrays(vrna_fold_compound_t *fc)
           for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
             count_matrix_pt.n_ij_M_e[ij][energy_index_a] += count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i][energy_index_b];
           }
-//#ifdef COUNT_STATES
-//                 matrices->N_M[ij][cnt1 + dja][(cnt2 + djb) / 2] += matrices->N_M[ij + 1][cnt1][cnt2 / 2];
-//#endif
-
         }
+#endif
       }
-      //   }
 
       /* 4th E_M1[ij] = MIN(E_M1[ij], E_M1[i,j-1] + c) */
-      // if (fc->matrices->fM1[fc->jindx[j-1] +i]) {
       if (fc->matrices->fM1[fc->jindx[j - 1] + i] != INF) {
-        // if(count_matrix_pt.n_ij_M1_e[fc->jindx[j-1] +i]){
         matrices->fM1[ij] = MIN2(matrices->fM1[ij], matrices->fM1[fc->jindx[j - 1] + i] + P->MLbase);
+#if 1
+        for (int e = min_energy; e <= max_energy; e++)
+          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy))
+            count_matrix_pt.n_ij_M1_e[ij][e + P->MLbase] += count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i][e];
+#else
         //int energy_index;
         if (count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i]) {
-          //for (energy_index = 0; energy_index <= energy_length; energy_index++) {
           int energy_index_a;
           int energy_index_b;
           int max_a;
@@ -645,14 +707,9 @@ fill_arrays(vrna_fold_compound_t *fc)
           for (; energy_index_a <= max_a; energy_index_a++, energy_index_b++) {
             count_matrix_pt.n_ij_M1_e[ij][energy_index_a] += count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i][energy_index_b];
           }
-//#ifdef COUNT_STATES
-//                matrices->N_M1[ij][cnt1 + dja][(cnt2 + djb) / 2] += matrices->N_M1[ij + 1][cnt1][cnt2 / 2];
-//#endif
-
         }
+#endif
       }
-      //   }
-      //}
 
       /* 5th E_M[ij] = MIN(E_M[ij], min(E_M[i,k] + E_M[k+1,j])) */
       if (j > TURN + 2) {
@@ -665,6 +722,13 @@ fill_arrays(vrna_fold_compound_t *fc)
           //  continue;
           if ((fc->matrices->fML[fc->jindx[u] + i] != INF) && (fc->matrices->fML[fc->jindx[j] + (u + 1)] != INF))
             matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[fc->jindx[u] + i] + matrices->fML[fc->jindx[j] + (u + 1)]);
+#if 1
+          for (int e = min_energy; e <= max_energy; e++)
+            for (int e2 = min_energy; e2 <= max_energy; e2++)
+              if ((e + e2 >= min_energy) && (e + e2 <= max_energy))
+                count_matrix_pt.n_ij_M_e[ij][e + e2] += count_matrix_pt.n_ij_M_e[fc->jindx[u] + i][e] *
+                                                        count_matrix_pt.n_ij_M1_e[fc->jindx[j] + (u + 1)][e2];
+#else
           //   if ((fc->matrices->fML[fc->jindx[u]+i] != INF) && (fc->matrices->fML[fc->jindx[j] + (u + 1)] != INF)) {
           if (count_matrix_pt.n_ij_M_e[fc->jindx[u] + i] != NULL && count_matrix_pt.n_ij_M1_e[fc->jindx[j] + (u + 1)] != NULL) {
             int energy_index_a;
@@ -711,13 +775,7 @@ fill_arrays(vrna_fold_compound_t *fc)
               }
             }
           }
-
-//#ifdef COUNT_STATES
-//                      matrices->N_M[ij][cnt1 + cnt3 + dia][(cnt2 + cnt4 + dib) / 2] += matrices->N_M[my_iindx[i] - u][cnt1][cnt2 / 2] * matrices->N_M1[my_iindx[u + 1] - j][cnt3][cnt4 / 2];
-//#endif
-
-          // }
-
+#endif
         }
       }
 
@@ -755,6 +813,9 @@ fill_arrays(vrna_fold_compound_t *fc)
   int x;
   for (x = 0; x <= length; x++) {
     count_matrix_pt.n_ij_A_e[x] = vrna_alloc (sizeof(int) * energy_length);
+#if 1
+    count_matrix_pt.n_ij_A_e[x] -= min_energy;
+#endif
   }
 
   int open_chain_energy = 0;
@@ -763,13 +824,36 @@ fill_arrays(vrna_fold_compound_t *fc)
 
   int cnt1;
   for (cnt1 = 1; cnt1 <= TURN + 1; cnt1++) {
+#if 1
+    count_matrix_pt.n_ij_A_e[cnt1][0] = 1;
+#else
     count_matrix_pt.n_ij_A_e[cnt1][energy_index] = 1;
+#endif
   }
 
   for (j = TURN + 2; j <= length; j++) {
+
+    /* j-1 is unpaired ... */
+    matrices->f5[j] = MIN2(matrices->f5[j], matrices->f5[j - 1]);
+
+#if 1
+    for (int e = min_energy; e <= max_energy; e++) {
+      count_matrix_pt.n_ij_A_e[j][e] += count_matrix_pt.n_ij_A_e[j - 1][e];
+    }
+#else
+    if (count_matrix_pt.n_ij_A_e[j]) {
+      for (energy_index = 0; energy_index < energy_length; energy_index++) {
+        count_matrix_pt.n_ij_A_e[j][energy_index] += count_matrix_pt.n_ij_A_e[j - 1][energy_index];
+      }
+    }
+#endif
+    // matrices->N_F5[j][cnt1 + da][(cnt2 + db) / 2] += matrices->N_F5[j - 1][cnt1][cnt2 / 2];
+
+    /* j pairs with 1 */
     ij = fc->jindx[j] + 1;
     int type = fc->ptype[ij];
     int additional_en = 0;
+
     if (type) {
       if (dangles == 2)
         additional_en += E_ExtLoop (type, -1, j < length ? S1[j + 1] : -1, P);
@@ -777,18 +861,13 @@ fill_arrays(vrna_fold_compound_t *fc)
         additional_en += E_ExtLoop (type, -1, -1, P);
     }
 
-    /* j-1 is unpaired ... */
-    matrices->f5[j] = MIN2(matrices->f5[j], matrices->f5[j - 1]);
-    if (count_matrix_pt.n_ij_A_e[j]) {
-      for (energy_index = 0; energy_index < energy_length; energy_index++) {
-        count_matrix_pt.n_ij_A_e[j][energy_index] += count_matrix_pt.n_ij_A_e[j - 1][energy_index];
-      }
-    }
-    // matrices->N_F5[j][cnt1 + da][(cnt2 + db) / 2] += matrices->N_F5[j - 1][cnt1][cnt2 / 2];
-
-    /* j pairs with 1 */
     if (matrices->c[ij] != INF) {
       matrices->f5[j] = MIN2(matrices->f5[j], matrices->c[ij] + additional_en);
+#if 1
+      for (int e = min_energy; e <= max_energy; e++)
+        if ((e + additional_en >= min_energy) && (e + additional_en <= max_energy))
+          count_matrix_pt.n_ij_A_e[j][e + additional_en] += count_matrix_pt.n_ij_e[ij][e];
+#else
       if (count_matrix_pt.n_ij_e[ij] != NULL) {
         int energy_index_a;
         int energy_index_b;
@@ -809,6 +888,7 @@ fill_arrays(vrna_fold_compound_t *fc)
         }
         // matrices->N_F5[j][cnt1][cnt2 / 2] += matrices->N_C[my_iindx[1] - j][cnt1][cnt2 / 2];
       }
+#endif
     }
 
     /* j pairs with some other nucleotide -> see below */
@@ -821,13 +901,27 @@ fill_arrays(vrna_fold_compound_t *fc)
         else
           additional_en = E_ExtLoop (type, -1, -1, P);
 
-        if (type) {
-
           //  if (!fc->matrices->c[ij])
           //    continue;
 
           if (fc->matrices->f5[i - 1] != INF && fc->matrices->c[ij] != INF) {
             matrices->f5[j] = MIN2(matrices->f5[j], matrices->f5[i - 1] + matrices->c[ij] + additional_en);
+#if 1
+            for (int e = min_energy; e <= max_energy; e++) {
+              for (int e2 = min_energy; e2 <= max_energy; e2++)
+                if ((e + e2 + additional_en >= min_energy) && (e + e2 + additional_en <= max_energy))
+                  count_matrix_pt.n_ij_A_e[j][e + e2 + additional_en] += count_matrix_pt.n_ij_A_e[i - 1][e] *
+                                                                         count_matrix_pt.n_ij_e[ij][e2];
+            }
+#if 0
+            if ((j == 13) && (i == 2))
+              for (int e = min_energy; e <= max_energy; e++)
+                for (int e2 = min_energy; e2 <= max_energy; e2++)
+                  if (count_matrix_pt.n_ij_A_e[i - 1][e] * count_matrix_pt.n_ij_e[ij][e2])
+                    printf("e1 = %d, e2 = %d, a_e = %d, total: %d [%d * %d = %d]\n", e, e2, additional_en, e + e2 + additional_en, count_matrix_pt.n_ij_A_e[i - 1][e],count_matrix_pt.n_ij_e[ij][e2], count_matrix_pt.n_ij_A_e[i - 1][e] *
+                                                                         count_matrix_pt.n_ij_e[ij][e2]);
+#endif
+#else
             if (count_matrix_pt.n_ij_A_e[i - 1] != NULL && count_matrix_pt.n_ij_e[ij] != NULL) {
               int energy_index_a;
               int energy_index_b;
@@ -878,9 +972,8 @@ fill_arrays(vrna_fold_compound_t *fc)
                 }
               }
             }
+#endif
           }
-
-        }
       }
     }
   }
@@ -914,6 +1007,11 @@ fill_arrays(vrna_fold_compound_t *fc)
   for (i = length - turn - 1; i >= 1; i--) {
     for (j = i + turn + 1; j <= length; j++) {
       ij = indx[j] + i;
+#if 1
+      count_matrix_pt.n_ij_e[ij] += min_energy;
+      count_matrix_pt.n_ij_M_e[ij] += min_energy;
+      count_matrix_pt.n_ij_M1_e[ij] += min_energy;
+#endif
       free (count_matrix_pt.n_ij_e[ij]);
       //free(count_matrix_pt.n_ij_A_e[ij]);
       //free(count_matrix_pt.n_ij_B_e[ij]);
@@ -923,6 +1021,9 @@ fill_arrays(vrna_fold_compound_t *fc)
   }
 
   for (i = 0; i <= length; i++) {
+#if 1
+    count_matrix_pt.n_ij_A_e[i] += min_energy;
+#endif
     free (count_matrix_pt.n_ij_A_e[i]);
   }
 
@@ -940,6 +1041,7 @@ main()
 {
   printf ("hi\n");
   char *sequence = vrna_read_line (stdin);
+  printf ("%s\n", sequence);
   //char *sequence = "GCAACCCUUAACCCUUGGGCAAC"; //"ACGUACGUUGCAACGUACGUUGCA"; // !!! "GCACUUAACCCUUGGGCAAC";
   vrna_fold_compound_t *fc;
   vrna_md_t md;
@@ -947,7 +1049,7 @@ main()
   md.uniq_ML = 1;
   md.noLP = 0;
   md.circ = 0;
-  md.dangles = 0;
+  md.dangles = 2;
 //md.temperature  = 37;
   vrna_param_t *params = vrna_params (&md);
 //params->model_details.circ = is_circular;
