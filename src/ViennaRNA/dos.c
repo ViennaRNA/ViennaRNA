@@ -263,13 +263,21 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
            int bin_index_m_joined = get_energy_bin_index (min_energy, step_energy, energy_length, joined_energy);
            dp_count_matrix_pt->n_ij_e[ij][bin_index_m_joined] += dp_count_matrix_pt->n_ij_M_e[i1u][bin_index_m] * dp_count_matrix_pt->n_ij_M1_e[u1j1][bin_index_m1];   //dp_count_matrix_pt->n_ij_e[pq][bin_index_inner_loop];
            */
-
+          if (i == 1 && j == 20)
+            printf("ML: [%d,%d][%d,%d] = %d + %d + %d = %d\n", i+1, u, u+1,j-1,temp2, fc->matrices->fML[i1u], fc->matrices->fM1[u1j1],fc->matrices->fML[i1u] + fc->matrices->fM1[u1j1] + temp2);
 #if 1
           for (int e = min_energy; e <= max_e; e++) {
-            for (int e2 = min_energy; e2 <= max_e; e2++)
-              if ((e + e2 + temp2 >= min_energy) && (e + e2 + temp2 <= max_e))
+            for (int e2 = min_energy; e2 <= max_e; e2++) {
+              if ((i == 1 && j == 20) &&
+                  (dp_count_matrix_pt->n_ij_M_e[i1u][e]) &&
+                 (dp_count_matrix_pt->n_ij_M1_e[u1j1][e2]) &&
+                 (e + e2 + temp2 == 1520))
+                printf("e: %d, e2: %d => [%d] * [%d]\n", e, e2, dp_count_matrix_pt->n_ij_M_e[i1u][e], dp_count_matrix_pt->n_ij_M1_e[u1j1][e2]);
+              if ((e + e2 + temp2 >= min_energy) && (e + e2 + temp2 <= max_e)) {
                 dp_count_matrix_pt->n_ij_e[ij][e + e2 + temp2] += dp_count_matrix_pt->n_ij_M_e[i1u][e] *
                                                                   dp_count_matrix_pt->n_ij_M1_e[u1j1][e2];
+              }
+            }
           }
 #else
           //  min_energy = 0;
@@ -495,7 +503,8 @@ fill_arrays(vrna_fold_compound_t *fc)
       min_energy = e;
   }
 
-  int max_energy = 2000; // TODO compute max_energy.
+  min_energy -= 1000;
+  int max_energy = 6000; // TODO compute max_energy.
   int step_energy = 1; // 10 decakal. (smallest unit of energy computations)
   int range = max_energy - min_energy;
   int energy_length = ceil (range / (float) step_energy) + 1;
@@ -585,11 +594,15 @@ fill_arrays(vrna_fold_compound_t *fc)
       // if (matrices->c[ij]) {
       if (matrices->c[ij] != INF) {
         matrices->fML[ij] = matrices->fM1[ij] = matrices->c[ij] + temp2;
-
+//        if (matrices->c[ij] + temp2 == 450)
+//          printf("c[%d,%d] + stem = %d + %d = 450\n", i, j, matrices->c[ij], temp2);
 #if 1
-        for (int e = min_energy; e < max_energy; e++)
-          if ((e + temp2 >= min_energy) && (e + temp2 <= max_energy))
+        for (int e = min_energy; e <= max_energy; e++)
+          if ((e + temp2 >= min_energy) && (e + temp2 <= max_energy)) {
             count_matrix_pt.n_ij_M_e[ij][e + temp2] = count_matrix_pt.n_ij_M1_e[ij][e + temp2] = count_matrix_pt.n_ij_e[ij][e];
+//            if (e + temp2 == 450)
+//              printf("ml-stem[%d,%d] = %d\n", i, j, count_matrix_pt.n_ij_e[ij][e]);
+          }
 #else
         if (count_matrix_pt.n_ij_e[ij]) {
           int energy_index_a;
@@ -616,14 +629,18 @@ fill_arrays(vrna_fold_compound_t *fc)
         matrices->fML[ij] = matrices->fM1[ij] = INF;
       }
 
+#if 0
       /* 2nd E_M[ij] = MIN(E_M[ij], E_M[i+1,j] + c) */
       if (fc->matrices->fML[fc->jindx[j] + (i + 1)] != INF) {
         matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[fc->jindx[j] + (i + 1)] + P->MLbase);
 
 #if 1
         for (int e = min_energy; e <= max_energy; e++)
-          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy))
+          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy)) {
+//            if (e + P->MLbase == 450)
+//              printf("ml[%d,%d] += ml[%d,%d] = %d + %d = %d\n", i, j, i + 1, j, count_matrix_pt.n_ij_M_e[ij][e + P->MLbase], count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)][e], count_matrix_pt.n_ij_M_e[ij][e + P->MLbase] + count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)][e]);
             count_matrix_pt.n_ij_M_e[ij][e + P->MLbase] += count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)][e];
+          }
 #else
         //int energy_index;
         if (count_matrix_pt.n_ij_M_e[fc->jindx[j] + (i + 1)]) {
@@ -647,14 +664,18 @@ fill_arrays(vrna_fold_compound_t *fc)
         }
 #endif
       }
+#endif
 
       /* 3rd E_M[ij] = MIN(E_M[ij], E_M[i,j-1] + c) */
       if (fc->matrices->fML[fc->jindx[j - 1] + i] != INF) {
         matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[fc->jindx[j - 1] + i] + P->MLbase);
 #if 1
         for (int e = min_energy; e <= max_energy; e++)
-          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy))
+          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy)) {
+//            if (e + P->MLbase == 450)
+//              printf("ml[%d,%d] += ml[%d,%d] = %d + %d = %d\n", i, j, i, j - 1,count_matrix_pt.n_ij_M_e[ij][e + P->MLbase], count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i][e], count_matrix_pt.n_ij_M_e[ij][e + P->MLbase] + count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i][e] );
             count_matrix_pt.n_ij_M_e[ij][e + P->MLbase] += count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i][e];
+          }
 #else
         //int energy_index;
         if (count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i]) {
@@ -711,6 +732,7 @@ fill_arrays(vrna_fold_compound_t *fc)
 #endif
       }
 
+#if 0
       /* 5th E_M[ij] = MIN(E_M[ij], min(E_M[i,k] + E_M[k+1,j])) */
       if (j > TURN + 2) {
         int u;
@@ -776,6 +798,46 @@ fill_arrays(vrna_fold_compound_t *fc)
             }
           }
 #endif
+        }
+      }
+#endif
+
+      if (j > TURN + 2) {
+        int u;
+        int temp3;
+
+        for (u = i; u < j; u++) {
+          int u1j = fc->jindx[j] + u + 1;
+          int iu  = fc->jindx[u] + i;
+
+          if (fc->matrices->c[u1j] != INF) {
+            type = fc->ptype[u1j];
+
+            /* [i..u] is unpaired */
+            if (dangles == 2)
+              temp2 = E_MLstem (type, S1[u], S1[j + 1], P);
+            else
+              temp2 = E_MLstem (type, -1, -1, P);
+
+            temp3 = temp2 + (u - i + 1) * P->MLbase;
+            matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->c[u1j] + temp3);
+
+            for (int e = min_energy; e <= max_energy; e++)
+              if ((e + temp3 >= min_energy) && (e + temp3 <= max_energy))
+                  count_matrix_pt.n_ij_M_e[ij][e + temp3] += count_matrix_pt.n_ij_e[u1j][e];
+
+
+            /* [i...u] has at least one stem */
+            if (fc->matrices->fML[iu] != INF) {
+              matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[iu] + matrices->c[u1j] + temp2);
+              
+              for (int e = min_energy; e <= max_energy; e++)
+                for (int e2 = min_energy; e2 <= max_energy; e2++)
+                  if ((e + e2 + temp2 >= min_energy) && (e + e2 + temp2 <= max_energy))
+                    count_matrix_pt.n_ij_M_e[ij][e + e2 + temp2] += count_matrix_pt.n_ij_M_e[iu][e] *
+                                                                    count_matrix_pt.n_ij_e[u1j][e2];
+            }
+          }
         }
       }
 
@@ -1049,7 +1111,7 @@ main()
   md.uniq_ML = 1;
   md.noLP = 0;
   md.circ = 0;
-  md.dangles = 2;
+//  md.dangles = 0;
 //md.temperature  = 37;
   vrna_param_t *params = vrna_params (&md);
 //params->model_details.circ = is_circular;
