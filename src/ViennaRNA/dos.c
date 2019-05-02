@@ -6,9 +6,6 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/constraints/hard.h"
-#include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/all.h"
@@ -17,67 +14,10 @@
 #include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/datastructures/hash_tables.h"
 
-struct aux_arrays {
-  int *cc; /* auxilary arrays for canonical structures     */
-  int *cc1; /* auxilary arrays for canonical structures     */
-  int *Fmi; /* holds row i of fML (avoids jumps in memory)  */
-  int *DMLi; /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  int *DMLi1; /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  int *DMLi2; /*                MIN(fML[i+2,k]+fML[k+1,j])    */
-};
-
-PRIVATE INLINE struct aux_arrays *
-get_aux_arrays(unsigned int length)
-{
-  unsigned int j;
-  struct aux_arrays *aux = (struct aux_arrays *) vrna_alloc (sizeof(struct aux_arrays));
-
-  aux->cc = (int *) vrna_alloc (sizeof(int) * (length + 2)); /* auxilary arrays for canonical structures     */
-  aux->cc1 = (int *) vrna_alloc (sizeof(int) * (length + 2)); /* auxilary arrays for canonical structures     */
-  aux->Fmi = (int *) vrna_alloc (sizeof(int) * (length + 1)); /* holds row i of fML (avoids jumps in memory)  */
-  aux->DMLi = (int *) vrna_alloc (sizeof(int) * (length + 1)); /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  aux->DMLi1 = (int *) vrna_alloc (sizeof(int) * (length + 1)); /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  aux->DMLi2 = (int *) vrna_alloc (sizeof(int) * (length + 1)); /*                MIN(fML[i+2,k]+fML[k+1,j])    */
-
-  /* prefill helper arrays */
-  for (j = 0; j <= length; j++)
-    aux->Fmi[j] = aux->DMLi[j] = aux->DMLi1[j] = aux->DMLi2[j] = INF;
-
-  return aux;
-}
-
-PRIVATE INLINE void
-rotate_aux_arrays(struct aux_arrays *aux, unsigned int length)
-{
-  unsigned int j;
-  int *FF;
-
-  FF = aux->DMLi2;
-  aux->DMLi2 = aux->DMLi1;
-  aux->DMLi1 = aux->DMLi;
-  aux->DMLi = FF;
-  FF = aux->cc1;
-  aux->cc1 = aux->cc;
-  aux->cc = FF;
-  for (j = 1; j <= length; j++)
-    aux->cc[j] = aux->Fmi[j] = aux->DMLi[j] = INF;
-}
-
-PRIVATE INLINE void
-free_aux_arrays(struct aux_arrays *aux)
-{
-  free (aux->cc);
-  free (aux->cc1);
-  free (aux->Fmi);
-  free (aux->DMLi);
-  free (aux->DMLi1);
-  free (aux->DMLi2);
-  free (aux);
-}
 
 typedef struct key_value_ {
-  unsigned long key;
-  unsigned long value;
+  int key;
+  int value;
 } key_value;
 
 static unsigned
@@ -127,7 +67,7 @@ create_hashtable()
 
 typedef struct energy_count_ {
   int energy;
-  unsigned long count;
+  double count;
 } energy_count;
 
 typedef struct hashtable_list_ {
@@ -172,7 +112,7 @@ void free_hashtable_list(hashtable_list *ht_list)
 
 static
 void
-hashtable_list_add_count(hashtable_list *htl, int energy, int count)
+hashtable_list_add_count(hashtable_list *htl, int energy, double count)
 {
   if (htl->ht_energy_index != NULL) {
     key_value to_check;
@@ -182,7 +122,7 @@ hashtable_list_add_count(hashtable_list *htl, int energy, int count)
     lookup_result = vrna_ht_get (htl->ht_energy_index, (void *) &to_check);
     if (lookup_result == NULL) {
       //value is not in list.
-      if (htl->length >= (htl->allocated_size-1)) {
+      if (htl->length >= htl->allocated_size) {
         htl->allocated_size += 10;
         htl->list_energy_count_pairs = vrna_realloc (htl->list_energy_count_pairs, sizeof(energy_count) * htl->allocated_size);
         htl->list_key_value_pairs = vrna_realloc (htl->list_key_value_pairs, sizeof(key_value*) * htl->allocated_size);
@@ -190,7 +130,7 @@ hashtable_list_add_count(hashtable_list *htl, int energy, int count)
       energy_count ec;
       ec.count = count;
       ec.energy = energy;
-      unsigned long list_index = htl->length;
+      int list_index = htl->length;
       htl->list_energy_count_pairs[list_index] = ec;
       to_check.value = list_index;
       key_value *to_store = vrna_alloc(sizeof(key_value));
@@ -206,14 +146,14 @@ hashtable_list_add_count(hashtable_list *htl, int energy, int count)
     }
     else {
       // the energy-index pair is already in the list.
-      unsigned long list_index = lookup_result->value;
+      int list_index = lookup_result->value;
       htl->list_energy_count_pairs[list_index].count += count;
     }
   }
 }
 
 static
-unsigned long
+double
 lookup_count_from_energy(hashtable_list *htl, int energy)
 {
   key_value to_check;
@@ -225,14 +165,14 @@ lookup_count_from_energy(hashtable_list *htl, int energy)
     return 0;
   }
   else {
-    unsigned long index = lookup_result->value;
+    int index = lookup_result->value;
     return htl->list_energy_count_pairs[index].count;
   }
 }
 
 static
-unsigned long
-lookup_count_from_index(hashtable_list *htl, unsigned long index)
+double
+lookup_count_from_index(hashtable_list *htl, int index)
 {
   if (index < 0)
     return 0;
@@ -240,7 +180,7 @@ lookup_count_from_index(hashtable_list *htl, unsigned long index)
 }
 
 int
-lookup_energy_from_index(hashtable_list *htl, unsigned long index)
+lookup_energy_from_index(hashtable_list *htl, int index)
 {
   if (index < 0)
     return 1000000;
@@ -305,7 +245,7 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, int min_energy, int max_e
           result_table = &dp_count_matrix_pt->n_ij_e[ij];
           for (int ei = 0; ei < source_table->length; ei++) {
             int pq_energy = lookup_energy_from_index (source_table, ei);
-            unsigned long pq_count = lookup_count_from_index (source_table, ei);
+            double pq_count = lookup_count_from_index (source_table, ei);
             int sum_energy = pq_energy + energy;
             if ((sum_energy >= min_energy) && (sum_energy <= max_e))
               hashtable_list_add_count (result_table, sum_energy, pq_count);
@@ -336,13 +276,13 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, int min_energy, int max_e
           result_table = &dp_count_matrix_pt->n_ij_e[ij];
           for (int ei_1 = 0; ei_1 < source_table->length; ei_1++) {
             int m_energy = lookup_energy_from_index (source_table, ei_1);
-            unsigned long m_count = lookup_count_from_index (source_table, ei_1);
+            double m_count = lookup_count_from_index (source_table, ei_1);
             for (int ei_2 = 0; ei_2 < source_table_2->length; ei_2++) {
               int m1_energy = lookup_energy_from_index (source_table_2, ei_2);
-              unsigned long m1_count = lookup_count_from_index (source_table_2, ei_2);
+              double m1_count = lookup_count_from_index (source_table_2, ei_2);
               int sum_energy = m_energy + m1_energy + temp2;
               if ((sum_energy >= min_energy) && (sum_energy <= max_e)) {
-                unsigned long c_count = m_count * m1_count;
+                double c_count = m_count * m1_count;
                 hashtable_list_add_count(result_table, sum_energy, c_count);
               }
             }
@@ -362,9 +302,9 @@ print_array_energy_counts(hashtable_list *matrix, int length_col, int min_energy
   j = length_col;
   if (matrix[j].length > 0){
     for (int e = min_energy; e <= max_energy; e++){
-      unsigned long count = lookup_count_from_energy(&matrix[j], e);
+      double count = lookup_count_from_energy(&matrix[j], e);
       if (count > 0){
-        printf ("%6.2f\t%d\n", e / 100., count);
+        printf ("%6.2f\t%10.4g\n", e / 100., count);
       }
     }
   }
@@ -478,7 +418,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
         hashtable_list *result_table_2 = &count_matrix_pt.n_ij_M_e[ij];
         for (int ei = 0; ei < source_table->length; ei++) {
           int c_energy = lookup_energy_from_index (source_table, ei);
-          unsigned long c_count = lookup_count_from_index (source_table, ei);
+          double c_count = lookup_count_from_index (source_table, ei);
           int sum_energy = c_energy + temp2;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
             hashtable_list_add_count(result_table, sum_energy, c_count);
@@ -493,7 +433,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
         result_table = &count_matrix_pt.n_ij_M_e[ij];
         for (int ei = 0; ei < source_table->length; ei++) {
           int m_energy = lookup_energy_from_index (source_table, ei);
-          unsigned long m_count = lookup_count_from_index (source_table, ei);
+          double m_count = lookup_count_from_index (source_table, ei);
           int sum_energy = m_energy + P->MLbase;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
             hashtable_list_add_count(result_table, sum_energy, m_count);
@@ -507,7 +447,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
         result_table = &count_matrix_pt.n_ij_M1_e[ij];
         for (int ei = 0; ei < source_table->length; ei++) {
           int m1_energy = lookup_energy_from_index (source_table, ei);
-          unsigned long m1_count = lookup_count_from_index (source_table, ei);
+          double m1_count = lookup_count_from_index (source_table, ei);
           int sum_energy = m1_energy + P->MLbase;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
             hashtable_list_add_count(result_table, sum_energy, m1_count);
@@ -538,7 +478,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
         result_table = &count_matrix_pt.n_ij_M_e[ij];
         for (int ei = 0; ei < source_table->length; ei++) {
           int c_energy = lookup_energy_from_index (source_table, ei);
-          unsigned long c_count = lookup_count_from_index (source_table, ei);
+          double c_count = lookup_count_from_index (source_table, ei);
           int sum_energy = c_energy + temp3;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
             hashtable_list_add_count(result_table, sum_energy, c_count);
@@ -552,13 +492,13 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
         result_table = &count_matrix_pt.n_ij_M_e[ij];
         for (int ei_1 = 0; ei_1 < source_table->length; ei_1++) {
           int c_energy = lookup_energy_from_index (source_table, ei_1);
-          unsigned long c_count = lookup_count_from_index (source_table, ei_1);
+          double c_count = lookup_count_from_index (source_table, ei_1);
           for (int ei_2 = 0; ei_2 < source_table_2->length; ei_2++) {
               int m_energy = lookup_energy_from_index (source_table_2, ei_2);
-              unsigned long m_count = lookup_count_from_index (source_table_2, ei_2);
+              double m_count = lookup_count_from_index (source_table_2, ei_2);
               int sum_energy = c_energy + m_energy + temp2;
               if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-                unsigned long product_count = c_count * m_count;
+                double product_count = c_count * m_count;
                 hashtable_list_add_count(result_table, sum_energy, product_count);
               }
           }
@@ -578,7 +518,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
   int cnt1;
   for (cnt1 = 1; cnt1 <= TURN + 1; cnt1++) {
     int c_energy = 0;
-    unsigned long c_count = 1;
+    double c_count = 1;
     result_table = &count_matrix_pt.n_ij_A_e[cnt1];
     hashtable_list_add_count(result_table, c_energy, c_count);
   }
@@ -590,7 +530,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
         result_table = &count_matrix_pt.n_ij_A_e[j];
         for (int ei = 0; ei < source_table->length; ei++) {
           int c_energy = lookup_energy_from_index (source_table, ei);
-          unsigned long c_count = lookup_count_from_index (source_table, ei);
+          double c_count = lookup_count_from_index (source_table, ei);
           hashtable_list_add_count(result_table, c_energy, c_count);
         }
 
@@ -611,7 +551,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
         result_table = &count_matrix_pt.n_ij_A_e[j];
         for (int ei = 0; ei < source_table->length; ei++) {
           int c_energy = lookup_energy_from_index (source_table, ei);
-          unsigned long c_count = lookup_count_from_index (source_table, ei);
+          double c_count = lookup_count_from_index (source_table, ei);
           int sum_energy = c_energy + additional_en;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
             hashtable_list_add_count(result_table, sum_energy, c_count);
@@ -635,13 +575,13 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
         result_table = &count_matrix_pt.n_ij_A_e[j];
         for (int ei_1 = 0; ei_1 < source_table->length; ei_1++) {
           int c_energy = lookup_energy_from_index (source_table, ei_1);
-          unsigned long c_count = lookup_count_from_index (source_table, ei_1);
+          double c_count = lookup_count_from_index (source_table, ei_1);
           for (int ei_2 = 0; ei_2 < source_table_2->length; ei_2++) {
               int f5_energy = lookup_energy_from_index (source_table_2, ei_2);
-              unsigned long f5_count = lookup_count_from_index (source_table_2, ei_2);
+              double f5_count = lookup_count_from_index (source_table_2, ei_2);
               int sum_energy = c_energy + f5_energy + additional_en;
               if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-                unsigned long product_count = c_count * f5_count;
+                double product_count = c_count * f5_count;
                 hashtable_list_add_count(result_table, sum_energy, product_count);
               }
           }
@@ -700,7 +640,7 @@ main()
     vrna_message_warning ("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
   }
 
-  int max_energy_input = 1430;
+  int max_energy_input = 0; //1430;
   fill_arrays (fc, max_energy_input);
 
   //printf ("result: %d \n", result);
