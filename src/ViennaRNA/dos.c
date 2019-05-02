@@ -76,15 +76,15 @@ free_aux_arrays(struct aux_arrays *aux)
 }
 
 typedef struct key_value_ {
-  int key;
-  int value;
+  unsigned long key;
+  unsigned long value;
 } key_value;
 
 static unsigned
 hash_function_dos(void *hash_entry, unsigned long hashtable_size)
 {
   key_value *hem = ((key_value *) hash_entry);
-  unsigned c = hem->key;
+  unsigned long c = (unsigned long)hem->key;
   return c % hashtable_size;
 }
 
@@ -106,11 +106,12 @@ hash_comparison_dos(void *x, void *y)
 static int
 free_hash_entry_dos(void *hash_entry)
 {
+  /*
   if (hash_entry != NULL) {
     key_value *hem_x = ((key_value *) hash_entry);
-    free (hem_x);
+   free (hem_x);
   }
-
+  */
   return 0;
 }
 
@@ -120,20 +121,20 @@ create_hashtable()
   vrna_callback_ht_free_entry *my_free = free_hash_entry_dos;
   vrna_callback_ht_compare_entries *my_comparison = hash_comparison_dos;
   vrna_callback_ht_hash_function *my_hash_function = hash_function_dos;
-  vrna_hash_table_t ht = vrna_ht_init (10, my_comparison, my_hash_function, my_free);
+  vrna_hash_table_t ht = vrna_ht_init (20, my_comparison, my_hash_function, my_free);
   return ht;
 }
 
 typedef struct energy_count_ {
   int energy;
-  int count;
+  unsigned long count;
 } energy_count;
 
 typedef struct hashtable_list_ {
-  int length;
-  int allocated_size;
+  unsigned long length;
+  unsigned long allocated_size;
   energy_count * list_energy_count_pairs;
-  key_value * list_key_value_pairs;
+  key_value ** list_key_value_pairs;
   vrna_hash_table_t ht_energy_index; // lookup table;
 } hashtable_list;
 
@@ -151,7 +152,7 @@ create_hashtable_list()
   ht_list.allocated_size = 10;
   ht_list.length = 0;
   ht_list.list_energy_count_pairs = vrna_alloc (sizeof(energy_count) * ht_list.allocated_size);
-  ht_list.list_key_value_pairs = vrna_alloc (sizeof(key_value) * ht_list.allocated_size);
+  ht_list.list_key_value_pairs = vrna_alloc (sizeof(key_value*) * ht_list.allocated_size);
   ht_list.ht_energy_index = create_hashtable ();
   return ht_list;
 }
@@ -161,6 +162,11 @@ void free_hashtable_list(hashtable_list *ht_list)
 {
   vrna_ht_free(ht_list->ht_energy_index);
   free(ht_list->list_energy_count_pairs);
+
+  int i=0;
+  for(; i < ht_list->length; i++)
+    free(ht_list->list_key_value_pairs[i]);
+
   free(ht_list->list_key_value_pairs);
 }
 
@@ -168,30 +174,31 @@ static
 void
 hashtable_list_add_count(hashtable_list *htl, int energy, int count)
 {
-  if (htl->length >= htl->allocated_size) {
-    htl->allocated_size += 10;
-    htl->list_energy_count_pairs = vrna_realloc (htl->list_energy_count_pairs, sizeof(energy_count) * htl->allocated_size);
-    htl->list_key_value_pairs = vrna_realloc (htl->list_key_value_pairs, sizeof(key_value) * htl->allocated_size);
-  }
-
   if (htl->ht_energy_index != NULL) {
     key_value to_check;
     to_check.key = energy;
     //to_check.value = count;
-    key_value* lookup_result;
+    key_value* lookup_result = NULL;
     lookup_result = vrna_ht_get (htl->ht_energy_index, (void *) &to_check);
     if (lookup_result == NULL) {
+      //value is not in list.
+      if (htl->length >= (htl->allocated_size-1)) {
+        htl->allocated_size += 10;
+        htl->list_energy_count_pairs = vrna_realloc (htl->list_energy_count_pairs, sizeof(energy_count) * htl->allocated_size);
+        htl->list_key_value_pairs = vrna_realloc (htl->list_key_value_pairs, sizeof(key_value*) * htl->allocated_size);
+      }
       energy_count ec;
       ec.count = count;
       ec.energy = energy;
-      int list_index = htl->length;
+      unsigned long list_index = htl->length;
       htl->list_energy_count_pairs[list_index] = ec;
       to_check.value = list_index;
-      htl->list_key_value_pairs[list_index] = to_check;
+      key_value *to_store = vrna_alloc(sizeof(key_value));
+      *to_store = to_check;
+      htl->list_key_value_pairs[list_index] = to_store;
       htl->length++;
 
-      //value is not in list.
-      key_value* to_insert = &htl->list_key_value_pairs[htl->length];
+      key_value* to_insert = htl->list_key_value_pairs[list_index];
       int res = vrna_ht_insert (htl->ht_energy_index, (void *) to_insert);
       if (res != 0) {
         fprintf (stderr, "dos.c: hash table insert failed!");
@@ -199,14 +206,14 @@ hashtable_list_add_count(hashtable_list *htl, int energy, int count)
     }
     else {
       // the energy-index pair is already in the list.
-      int list_index = lookup_result->value;
+      unsigned long list_index = lookup_result->value;
       htl->list_energy_count_pairs[list_index].count += count;
     }
   }
 }
 
 static
-int
+unsigned long
 lookup_count_from_energy(hashtable_list *htl, int energy)
 {
   key_value to_check;
@@ -215,28 +222,28 @@ lookup_count_from_energy(hashtable_list *htl, int energy)
   lookup_result = vrna_ht_get (htl->ht_energy_index, (void *) &to_check);
   if (lookup_result == NULL) {
     //value is not in list.
-    return -1;
+    return 0;
   }
   else {
-    int index = lookup_result->value;
+    unsigned long index = lookup_result->value;
     return htl->list_energy_count_pairs[index].count;
   }
 }
 
 static
-int
-lookup_count_from_index(hashtable_list *htl, int index)
+unsigned long
+lookup_count_from_index(hashtable_list *htl, unsigned long index)
 {
   if (index < 0)
-    return -1;
+    return 0;
   return htl->list_energy_count_pairs[index].count;
 }
 
 int
-lookup_energy_from_index(hashtable_list *htl, int index)
+lookup_energy_from_index(hashtable_list *htl, unsigned long index)
 {
   if (index < 0)
-    return -1;
+    return 1000000;
   return htl->list_energy_count_pairs[index].energy;
 }
 
@@ -247,6 +254,9 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
   unsigned char hc_decompose;
   unsigned int n;
   int e, new_c, energy, stackEnergy, ij, dangle_model, noLP, *DMLi1, *DMLi2, *cc, *cc1;
+  hashtable_list *source_table;
+  hashtable_list *source_table_2;
+  hashtable_list *result_table;
 
   n = fc->length;
   ij = fc->jindx[j] + i;
@@ -278,7 +288,8 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
 
     if (energy_hp <= max_e) {
       //dp_count_matrix_pt->n_ij_e[ij][energy_hp]++;
-      hashtable_list_add_count (&dp_count_matrix_pt->n_ij_e[ij], energy_hp, 1);
+      result_table = &dp_count_matrix_pt->n_ij_e[ij];
+      hashtable_list_add_count (result_table, energy_hp, 1);
     }
 
     /* check for interior loops */
@@ -309,18 +320,15 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
         if (fc->matrices->c[pq] != INF) {
           fc->matrices->c[ij] = MIN2(fc->matrices->c[ij], fc->matrices->c[pq] + energy);
 
-#if 1
-          for (int ei = 0; ei < dp_count_matrix_pt->n_ij_e[pq].length; ei++) {
-            int pq_energy = lookup_energy_from_index (&dp_count_matrix_pt->n_ij_e[pq], ei);
-            int pq_count = lookup_count_from_index (&dp_count_matrix_pt->n_ij_e[pq], ei);
-            if ((pq_energy + energy >= min_energy) && (pq_energy + energy <= max_e))
-              hashtable_list_add_count (&dp_count_matrix_pt->n_ij_e[ij], pq_energy + energy, pq_count);
+          source_table = &dp_count_matrix_pt->n_ij_e[pq];
+          result_table = &dp_count_matrix_pt->n_ij_e[ij];
+          for (int ei = 0; ei < source_table->length; ei++) {
+            int pq_energy = lookup_energy_from_index (source_table, ei);
+            unsigned long pq_count = lookup_count_from_index (source_table, ei);
+            int sum_energy = pq_energy + energy;
+            if ((sum_energy >= min_energy) && (sum_energy <= max_e))
+              hashtable_list_add_count (result_table, sum_energy, pq_count);
           }
-#else
-          for (int e = min_energy; e <= max_e; e++)
-          if ((e + energy >= min_energy) && (e + energy <= max_e))
-          dp_count_matrix_pt->n_ij_e[ij][e + energy] += dp_count_matrix_pt->n_ij_e[pq][e];
-#endif
         }
       } /* end q-loop */
     } /* end p-loop */
@@ -347,30 +355,23 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, struct aux_arrays *aux, i
           min_ml = MIN2(min_ml, tmp_min_ml);
 
           fc->matrices->c[ij] = MIN2(fc->matrices->c[ij], fc->matrices->fML[i1u] + fc->matrices->fM1[u1j1] + temp2);
-#if 1
-          for (int ei_1 = 0; ei_1 < dp_count_matrix_pt->n_ij_M_e[i1u].length; ei_1++) {
-            int m_energy = lookup_energy_from_index (&dp_count_matrix_pt->n_ij_M_e[i1u], ei_1);
-            int m_count = lookup_count_from_index (&dp_count_matrix_pt->n_ij_M_e[i1u], ei_1);
-            for (int ei_2 = 0; ei_2 < dp_count_matrix_pt->n_ij_M1_e[u1j1].length; ei_2++) {
-              int m1_energy = lookup_energy_from_index (&dp_count_matrix_pt->n_ij_M1_e[u1j1], ei_2);
-              int m1_count = lookup_count_from_index (&dp_count_matrix_pt->n_ij_M1_e[u1j1], ei_2);
-              int sum_energy = ei_1 + ei_2 + temp2;
+
+          source_table = &dp_count_matrix_pt->n_ij_M_e[i1u];
+          source_table_2 = &dp_count_matrix_pt->n_ij_M1_e[u1j1];
+          result_table = &dp_count_matrix_pt->n_ij_e[ij];
+          for (int ei_1 = 0; ei_1 < source_table->length; ei_1++) {
+            int m_energy = lookup_energy_from_index (source_table, ei_1);
+            unsigned long m_count = lookup_count_from_index (source_table, ei_1);
+            for (int ei_2 = 0; ei_2 < source_table_2->length; ei_2++) {
+              int m1_energy = lookup_energy_from_index (source_table_2, ei_2);
+              unsigned long m1_count = lookup_count_from_index (source_table_2, ei_2);
+              int sum_energy = m_energy + m1_energy + temp2;
               if ((sum_energy >= min_energy) && (sum_energy <= max_e)) {
-                int c_count = m_count * m1_count;
-                hashtable_list_add_count(&dp_count_matrix_pt->n_ij_e[ij], sum_energy, c_count);
+                unsigned long c_count = m_count * m1_count;
+                hashtable_list_add_count(result_table, sum_energy, c_count);
               }
             }
           }
-#else
-          for (int e = min_energy; e <= max_e; e++) {
-            for (int e2 = min_energy; e2 <= max_e; e2++) {
-              if ((e + e2 + temp2 >= min_energy) && (e + e2 + temp2 <= max_e)) {
-                dp_count_matrix_pt->n_ij_e[ij][e + e2 + temp2] += dp_count_matrix_pt->n_ij_M_e[i1u][e] *
-                dp_count_matrix_pt->n_ij_M1_e[u1j1][e2];
-              }
-            }
-          }
-#endif
         }
       }
     }
@@ -441,7 +442,7 @@ print_matrix_energy_counts(int **matrix, int *jiindx, int length_row, int length
       if (matrix[ij] != NULL) {
         int e_idx = 0;
         for (; e_idx < energy_length; e_idx++) {
-          int e_count = matrix[ij][e_idx];
+          unsigned long e_count = matrix[ij][e_idx];
           int e = min_energy + e_idx * step_energy;
           if (e_count > 0)
             printf (" %d %d %.2f %d\n", i, j, e / 100., e_count);
@@ -453,7 +454,6 @@ print_matrix_energy_counts(int **matrix, int *jiindx, int length_row, int length
   return 0;
 }
 
-#if 1
 int
 print_array_energy_counts(hashtable_list *matrix, int length_col, int min_energy, int step_energy, int energy_length)
 {
@@ -464,7 +464,7 @@ print_array_energy_counts(hashtable_list *matrix, int length_col, int min_energy
   j = length_col;
   if (matrix[j].length > 0){
     for (int e = min_energy; e <= max_energy; e++){
-      int count = lookup_count_from_energy(&matrix[j], e);
+      unsigned long count = lookup_count_from_energy(&matrix[j], e);
       if (count > 0){
         printf ("%6.2f\t%d\n", e / 100., count);
       }
@@ -473,22 +473,6 @@ print_array_energy_counts(hashtable_list *matrix, int length_col, int min_energy
   printf ("\n");
   return 0;
 }
-#else
-int
-print_array_energy_counts(int **matrix, int length_col, int min_energy, int step_energy, int energy_length)
-{
-  int i, j;
-  printf ("\n");
-  int max_energy = min_energy + energy_length - 1;
-  printf ("min_e: %d, max_e: %d, length: %d, energy_length: %d\n", min_energy, max_energy, length_col, energy_length);
-  j = length_col;
-  for (int e = min_energy; e <= max_energy; e++)
-    if (matrix[j][e] > 0)
-      printf ("%6.2f\t%d\n", e / 100., matrix[j][e]);
-  printf ("\n");
-  return 0;
-}
-#endif
 
 /* fill DP matrices */
 PRIVATE int
@@ -514,6 +498,10 @@ fill_arrays(vrna_fold_compound_t *fc)
   int dangles = P->model_details.dangles;
   short *S1 = fc->sequence_encoding;
   int circ = P->model_details.circ;
+
+  hashtable_list *source_table;
+  hashtable_list *source_table_2;
+  hashtable_list *result_table;
 
   hashtable_list *n_ij_e = (hashtable_list *) vrna_alloc (sizeof(hashtable_list) * ((length + 1) * (length + 1)));
   hashtable_list *n_ij_A_e = (hashtable_list *) vrna_alloc (sizeof(hashtable_list) * (length + 1));
@@ -550,7 +538,7 @@ fill_arrays(vrna_fold_compound_t *fc)
   }
 
   //min_energy -= 1000;
-  int max_energy = 2000; // TODO compute max_energy.
+  int max_energy = 6000; // TODO compute max_energy.
   int step_energy = 1; // 10 decakal. (smallest unit of energy computations)
   int range = max_energy - min_energy;
   int energy_length = ceil (range / (float) step_energy) + 1;
@@ -593,8 +581,6 @@ fill_arrays(vrna_fold_compound_t *fc)
 
       //prepare matrices (add third dimension)
       count_matrix_pt.n_ij_e[ij] = create_hashtable_list ();
-      //count_matrix_pt.n_ij_A_e[ij] = vrna_alloc(sizeof(int) * energy_length);
-      //count_matrix_pt.n_ij_B_e[ij] = vrna_alloc(sizeof(int) * energy_length);
       count_matrix_pt.n_ij_M_e[ij] = create_hashtable_list ();
       count_matrix_pt.n_ij_M1_e[ij] = create_hashtable_list ();
 
@@ -617,66 +603,53 @@ fill_arrays(vrna_fold_compound_t *fc)
       int energy_index;
       if (matrices->c[ij] != INF) {
         matrices->fML[ij] = matrices->fM1[ij] = matrices->c[ij] + temp2;
-
-#if 1
-        for (int ei = 0; ei < count_matrix_pt.n_ij_e[ij].length; ei++) {
-          int c_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_e[ij], ei);
-          int c_count = lookup_count_from_index (&count_matrix_pt.n_ij_e[ij], ei);
+        source_table = &count_matrix_pt.n_ij_e[ij];
+        result_table = &count_matrix_pt.n_ij_M1_e[ij];
+        hashtable_list *result_table_2 = &count_matrix_pt.n_ij_M_e[ij];
+        for (int ei = 0; ei < source_table->length; ei++) {
+          int c_energy = lookup_energy_from_index (source_table, ei);
+          unsigned long c_count = lookup_count_from_index (source_table, ei);
           int sum_energy = c_energy + temp2;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-            hashtable_list_add_count(&count_matrix_pt.n_ij_M1_e[ij], sum_energy, c_count);
-            hashtable_list_add_count(&count_matrix_pt.n_ij_M_e[ij], sum_energy, c_count);
+            hashtable_list_add_count(result_table, sum_energy, c_count);
+            hashtable_list_add_count(result_table_2, sum_energy, c_count);
           }
         }
-#else
-        for (int e = min_energy; e <= max_energy; e++)
-          if ((e + temp2 >= min_energy) && (e + temp2 <= max_energy)) {
-            count_matrix_pt.n_ij_M_e[ij][e + temp2] = count_matrix_pt.n_ij_M1_e[ij][e + temp2] = count_matrix_pt.n_ij_e[ij][e];
-          }
-#endif
       }
       else {
         matrices->fML[ij] = matrices->fM1[ij] = INF;
       }
 
-      /* 3rd E_M[ij] = MIN(E_M[ij], E_M[i,j-1] + c) */
+      /* 2rd E_M[ij] = MIN(E_M[ij], E_M[i,j-1] + c) */
       if (fc->matrices->fML[fc->jindx[j - 1] + i] != INF) {
         matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[fc->jindx[j - 1] + i] + P->MLbase);
-#if 1
-        for (int ei = 0; ei < count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i].length; ei++) {
-          int m_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i], ei);
-          int m_count = lookup_count_from_index (&count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i], ei);
+
+        source_table = &count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i];
+        result_table = &count_matrix_pt.n_ij_M_e[ij];
+        for (int ei = 0; ei < source_table->length; ei++) {
+          int m_energy = lookup_energy_from_index (source_table, ei);
+          unsigned long m_count = lookup_count_from_index (source_table, ei);
           int sum_energy = m_energy + P->MLbase;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-            hashtable_list_add_count(&count_matrix_pt.n_ij_M_e[ij], sum_energy, m_count);
+            hashtable_list_add_count(result_table, sum_energy, m_count);
           }
         }
-#else
-        for (int e = min_energy; e <= max_energy; e++)
-          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy)) {
-            count_matrix_pt.n_ij_M_e[ij][e + P->MLbase] += count_matrix_pt.n_ij_M_e[fc->jindx[j - 1] + i][e];
-          }
-#endif
       }
 
-      /* 4th E_M1[ij] = MIN(E_M1[ij], E_M1[i,j-1] + c) */
+      /* 3th E_M1[ij] = MIN(E_M1[ij], E_M1[i,j-1] + c) */
       if (fc->matrices->fM1[fc->jindx[j - 1] + i] != INF) {
         matrices->fM1[ij] = MIN2(matrices->fM1[ij], matrices->fM1[fc->jindx[j - 1] + i] + P->MLbase);
 
-#if 1
-        for (int ei = 0; ei < count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i].length; ei++) {
-          int m1_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i], ei);
-          int m1_count = lookup_count_from_index (&count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i], ei);
+        source_table = &count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i];
+        result_table = &count_matrix_pt.n_ij_M1_e[ij];
+        for (int ei = 0; ei < source_table->length; ei++) {
+          int m1_energy = lookup_energy_from_index (source_table, ei);
+          unsigned long m1_count = lookup_count_from_index (source_table, ei);
           int sum_energy = m1_energy + P->MLbase;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-            hashtable_list_add_count(&count_matrix_pt.n_ij_M1_e[ij], sum_energy, m1_count);
+            hashtable_list_add_count(result_table, sum_energy, m1_count);
           }
         }
-#else
-        for (int e = min_energy; e <= max_energy; e++)
-          if ((e + P->MLbase >= min_energy) && (e + P->MLbase <= max_energy))
-            count_matrix_pt.n_ij_M1_e[ij][e + P->MLbase] += count_matrix_pt.n_ij_M1_e[fc->jindx[j - 1] + i][e];
-#endif
       }
 
       if (j > TURN + 2) {
@@ -699,45 +672,37 @@ fill_arrays(vrna_fold_compound_t *fc)
             temp3 = temp2 + (u - i + 1) * P->MLbase;
             matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->c[u1j] + temp3);
 
-#if 1
-        for (int ei = 0; ei < count_matrix_pt.n_ij_e[u1j].length; ei++) {
-          int c_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_e[u1j], ei);
-          int c_count = lookup_count_from_index (&count_matrix_pt.n_ij_e[u1j], ei);
+        source_table = &count_matrix_pt.n_ij_e[u1j];
+        result_table = &count_matrix_pt.n_ij_M_e[ij];
+        for (int ei = 0; ei < source_table->length; ei++) {
+          int c_energy = lookup_energy_from_index (source_table, ei);
+          unsigned long c_count = lookup_count_from_index (source_table, ei);
           int sum_energy = c_energy + temp3;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-            hashtable_list_add_count(&count_matrix_pt.n_ij_M_e[ij], sum_energy, c_count);
+            hashtable_list_add_count(result_table, sum_energy, c_count);
           }
         }
-#else
-            for (int e = min_energy; e <= max_energy; e++)
-              if ((e + temp3 >= min_energy) && (e + temp3 <= max_energy))
-                count_matrix_pt.n_ij_M_e[ij][e + temp3] += count_matrix_pt.n_ij_e[u1j][e];
-#endif
 
             /* [i...u] has at least one stem */
             if (fc->matrices->fML[iu] != INF) {
               matrices->fML[ij] = MIN2(matrices->fML[ij], matrices->fML[iu] + matrices->c[u1j] + temp2);
 
-#if 1
-        for (int ei_1 = 0; ei_1 < count_matrix_pt.n_ij_e[u1j].length; ei_1++) {
-          int c_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_e[u1j], ei_1);
-          int c_count = lookup_count_from_index (&count_matrix_pt.n_ij_e[u1j], ei_1);
-          for (int ei_2 = 0; ei_2 < count_matrix_pt.n_ij_M_e[iu].length; ei_2++) {
-              int m_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_M_e[iu], ei_2);
-              int m_count = lookup_count_from_index (&count_matrix_pt.n_ij_M_e[iu], ei_2);
-
+        source_table = &count_matrix_pt.n_ij_e[u1j];
+        source_table_2 = &count_matrix_pt.n_ij_M_e[iu];
+        result_table = &count_matrix_pt.n_ij_M_e[ij];
+        for (int ei_1 = 0; ei_1 < source_table->length; ei_1++) {
+          int c_energy = lookup_energy_from_index (source_table, ei_1);
+          unsigned long c_count = lookup_count_from_index (source_table, ei_1);
+          for (int ei_2 = 0; ei_2 < source_table_2->length; ei_2++) {
+              int m_energy = lookup_energy_from_index (source_table_2, ei_2);
+              unsigned long m_count = lookup_count_from_index (source_table_2, ei_2);
               int sum_energy = c_energy + m_energy + temp2;
               if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-                hashtable_list_add_count(&count_matrix_pt.n_ij_M_e[ij], sum_energy, c_count);
+                unsigned long product_count = c_count * m_count;
+                hashtable_list_add_count(result_table, sum_energy, product_count);
               }
           }
         }
-#else
-              for (int e = min_energy; e <= max_energy; e++)
-                for (int e2 = min_energy; e2 <= max_energy; e2++)
-                  if ((e + e2 + temp2 >= min_energy) && (e + e2 + temp2 <= max_energy))
-                    count_matrix_pt.n_ij_M_e[ij][e + e2 + temp2] += count_matrix_pt.n_ij_M_e[iu][e] * count_matrix_pt.n_ij_e[u1j][e2];
-#endif
             }
           }
         }
@@ -748,50 +713,19 @@ fill_arrays(vrna_fold_compound_t *fc)
     } /* end of j-loop */
 
     rotate_aux_arrays (helper_arrays, length);
-    /*
-     printf("\nPairMatrix:");
-     print_matrix(c, fc->jindx, length, length);
-     printf("\nM_Matrix:");
-     print_matrix(fML, fc->jindx, length, length);
-     printf("\nM1_Matrix:");
-     print_matrix(fM1, fc->jindx, length, length);
-     printf("\nF_Matrix:");
-     */
-
-    /*
-     printf ("\nPairMatrix:");
-     print_matrix_energy_counts (count_matrix_pt.n_ij_e, fc->jindx, length, length, min_energy, step_energy, energy_length);
-     printf ("\nM_Matrix:");
-     print_matrix_energy_counts (count_matrix_pt.n_ij_M_e, fc->jindx, length, length, min_energy, step_energy, energy_length);
-     printf ("\nM1_Matrix:");
-     print_matrix_energy_counts (count_matrix_pt.n_ij_M1_e, fc->jindx, length, length, min_energy, step_energy, energy_length);
-     */
-
-    //print_matrix(f5, fc->jindx, 1, length+1);
   } /* end of i-loop */
   /* calculate energies of 5' fragments */
-// (void)vrna_E_ext_loop_5(fc);
   int x;
   for (x = 0; x <= length; x++) {
-
-#if 1
     count_matrix_pt.n_ij_A_e[x] = create_hashtable_list ();
-#else
-    count_matrix_pt.n_ij_A_e[x] = vrna_alloc (sizeof(int) * energy_length);
-    count_matrix_pt.n_ij_A_e[x] -= min_energy;
-#endif
   }
 
   int cnt1;
   for (cnt1 = 1; cnt1 <= TURN + 1; cnt1++) {
-
-#if 1
     int c_energy = 0;
-    int c_count = 1;
-    hashtable_list_add_count(&count_matrix_pt.n_ij_A_e[cnt1], c_energy, c_count);
-#else
-    count_matrix_pt.n_ij_A_e[cnt1][0] = 1;
-#endif
+    unsigned long c_count = 1;
+    result_table = &count_matrix_pt.n_ij_A_e[cnt1];
+    hashtable_list_add_count(result_table, c_energy, c_count);
   }
 
   for (j = TURN + 2; j <= length; j++) {
@@ -799,17 +733,13 @@ fill_arrays(vrna_fold_compound_t *fc)
     /* j-1 is unpaired ... */
     matrices->f5[j] = MIN2(matrices->f5[j], matrices->f5[j - 1]);
 
-#if 1
-        for (int ei = 0; ei < count_matrix_pt.n_ij_A_e[j - 1].length; ei++) {
-          int c_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_A_e[j - 1], ei);
-          int c_count = lookup_count_from_index (&count_matrix_pt.n_ij_A_e[j - 1], ei);
-          hashtable_list_add_count(&count_matrix_pt.n_ij_A_e[j], c_energy, c_count);
+        source_table = &count_matrix_pt.n_ij_A_e[j - 1];
+        result_table = &count_matrix_pt.n_ij_A_e[j];
+        for (int ei = 0; ei < source_table->length; ei++) {
+          int c_energy = lookup_energy_from_index (source_table, ei);
+          unsigned long c_count = lookup_count_from_index (source_table, ei);
+          hashtable_list_add_count(result_table, c_energy, c_count);
         }
-#else
-    for (int e = min_energy; e <= max_energy; e++) {
-      count_matrix_pt.n_ij_A_e[j][e] += count_matrix_pt.n_ij_A_e[j - 1][e];
-    }
-#endif
 
     /* j pairs with 1 */
     ij = fc->jindx[j] + 1;
@@ -826,20 +756,16 @@ fill_arrays(vrna_fold_compound_t *fc)
     if (matrices->c[ij] != INF) {
       matrices->f5[j] = MIN2(matrices->f5[j], matrices->c[ij] + additional_en);
 
-#if 1
-        for (int ei = 0; ei < count_matrix_pt.n_ij_e[ij].length; ei++) {
-          int c_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_e[ij], ei);
-          int c_count = lookup_count_from_index (&count_matrix_pt.n_ij_e[ij], ei);
+        source_table = &count_matrix_pt.n_ij_e[ij];
+        result_table = &count_matrix_pt.n_ij_A_e[j];
+        for (int ei = 0; ei < source_table->length; ei++) {
+          int c_energy = lookup_energy_from_index (source_table, ei);
+          unsigned long c_count = lookup_count_from_index (source_table, ei);
           int sum_energy = c_energy + additional_en;
           if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-            hashtable_list_add_count(&count_matrix_pt.n_ij_A_e[j], sum_energy, c_count);
+            hashtable_list_add_count(result_table, sum_energy, c_count);
           }
         }
-#else
-      for (int e = min_energy; e <= max_energy; e++)
-        if ((e + additional_en >= min_energy) && (e + additional_en <= max_energy))
-          count_matrix_pt.n_ij_A_e[j][e + additional_en] += count_matrix_pt.n_ij_e[ij][e];
-#endif
     }
 
     /* j pairs with some other nucleotide -> see below */
@@ -858,27 +784,22 @@ fill_arrays(vrna_fold_compound_t *fc)
         if (fc->matrices->f5[i - 1] != INF && fc->matrices->c[ij] != INF) {
           matrices->f5[j] = MIN2(matrices->f5[j], matrices->f5[i - 1] + matrices->c[ij] + additional_en);
 
-#if 1
-        for (int ei_1 = 0; ei_1 < count_matrix_pt.n_ij_e[ij].length; ei_1++) {
-          int c_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_e[ij], ei_1);
-          int c_count = lookup_count_from_index (&count_matrix_pt.n_ij_e[ij], ei_1);
-          for (int ei_2 = 0; ei_2 < count_matrix_pt.n_ij_A_e[i - 1].length; ei_2++) {
-              int f5_energy = lookup_energy_from_index (&count_matrix_pt.n_ij_A_e[i - 1], ei_2);
-              int f5_count = lookup_count_from_index (&count_matrix_pt.n_ij_A_e[i - 1], ei_2);
-
+        source_table = &count_matrix_pt.n_ij_e[ij];
+        source_table_2 = &count_matrix_pt.n_ij_A_e[i - 1];
+        result_table = &count_matrix_pt.n_ij_A_e[j];
+        for (int ei_1 = 0; ei_1 < source_table->length; ei_1++) {
+          int c_energy = lookup_energy_from_index (source_table, ei_1);
+          unsigned long c_count = lookup_count_from_index (source_table, ei_1);
+          for (int ei_2 = 0; ei_2 < source_table_2->length; ei_2++) {
+              int f5_energy = lookup_energy_from_index (source_table_2, ei_2);
+              unsigned long f5_count = lookup_count_from_index (source_table_2, ei_2);
               int sum_energy = c_energy + f5_energy + additional_en;
               if ((sum_energy >= min_energy) && (sum_energy <= max_energy)){
-                hashtable_list_add_count(&count_matrix_pt.n_ij_A_e[j], sum_energy, c_count);
+                unsigned long product_count = c_count * f5_count;
+                hashtable_list_add_count(result_table, sum_energy, product_count);
               }
           }
         }
-#else
-          for (int e = min_energy; e <= max_energy; e++) {
-            for (int e2 = min_energy; e2 <= max_energy; e2++)
-              if ((e + e2 + additional_en >= min_energy) && (e + e2 + additional_en <= max_energy))
-                count_matrix_pt.n_ij_A_e[j][e + e2 + additional_en] += count_matrix_pt.n_ij_A_e[i - 1][e] * count_matrix_pt.n_ij_e[ij][e2];
-          }
-#endif
         }
       }
     }
@@ -914,37 +835,25 @@ fill_arrays(vrna_fold_compound_t *fc)
     for (j = i + turn + 1; j <= length; j++) {
       ij = indx[j] + i;
 
-#if 1
-      free_hashtable_list(&count_matrix_pt.n_ij_e[ij]);
-      free_hashtable_list(&count_matrix_pt.n_ij_M_e[ij]);
-      free_hashtable_list(&count_matrix_pt.n_ij_M1_e[ij]);
-#else
-      count_matrix_pt.n_ij_e[ij] += min_energy;
-      count_matrix_pt.n_ij_M_e[ij] += min_energy;
-      count_matrix_pt.n_ij_M1_e[ij] += min_energy;
-
-      free (count_matrix_pt.n_ij_e[ij]);
-      //free(count_matrix_pt.n_ij_A_e[ij]);
-      //free(count_matrix_pt.n_ij_B_e[ij]);
-      free (count_matrix_pt.n_ij_M_e[ij]);
-      free (count_matrix_pt.n_ij_M1_e[ij]);
-#endif
+      if(count_matrix_pt.n_ij_e[ij].allocated_size > 0)
+        free_hashtable_list(&count_matrix_pt.n_ij_e[ij]);
+      if(count_matrix_pt.n_ij_M_e[ij].allocated_size > 0)
+        free_hashtable_list(&count_matrix_pt.n_ij_M_e[ij]);
+      if(count_matrix_pt.n_ij_M1_e[ij].allocated_size > 0)
+        free_hashtable_list(&count_matrix_pt.n_ij_M1_e[ij]);
     }
   }
 
   for (i = 0; i <= length; i++) {
-    //count_matrix_pt.n_ij_A_e[i] += min_energy;
-    //free (count_matrix_pt.n_ij_A_e[i]);
     free_hashtable_list(&count_matrix_pt.n_ij_A_e[i]);
   }
 
   free (count_matrix_pt.n_ij_e);
   free (count_matrix_pt.n_ij_A_e);
-  //free(count_matrix_pt.n_ij_B_e);
   free (count_matrix_pt.n_ij_M_e);
   free (count_matrix_pt.n_ij_M1_e);
 
-  return f5[length];
+  return 0;
 }
 
 int
@@ -969,21 +878,9 @@ main()
     vrna_message_warning ("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
   }
 
-  int count = fill_arrays (fc);
+  int result = fill_arrays (fc);
 
-  /*
-   vrna_mfe(fc,NULL);
-   int length = fc->length;
-   printf("\nPairMatrix:");
-   print_matrix(fc->matrices->c, fc->jindx, length, length);
-   printf("\nM_Matrix:");
-   print_matrix(fc->matrices->fML, fc->jindx, length, length);
-   printf("\nM1_Matrix:");
-   print_matrix(fc->matrices->fM1, fc->jindx, length, length);
-   printf("\nF_Matrix:");
-   print_matrix(fc->matrices->f5, fc->jindx, 1, length+1);
-   */
-  printf ("count: %d \n", count);
+  printf ("result: %d \n", result);
 
   free (sequence);
   free (params);
