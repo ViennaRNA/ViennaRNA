@@ -1,18 +1,26 @@
+/*
+ *                Compute the density of states
+ *
+ *                c Gregor Entzian, Ronny Lorenz
+ *                Vienna RNA package
+ */
+
 #include <stdlib.h>
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
-#include "ViennaRNA/params/default.h"
+#include "ViennaRNA/params/io.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/structured_domains.h"
-#include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/file_utils.h"
+#include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/datastructures/hash_tables.h"
+
+#include "RNAdos_cmdl.h"
 
 
 typedef struct key_value_ {
@@ -56,12 +64,12 @@ free_hash_entry_dos(void *hash_entry)
 }
 
 static vrna_hash_table_t
-create_hashtable()
+create_hashtable(int hashbits)
 {
   vrna_callback_ht_free_entry *my_free = free_hash_entry_dos;
   vrna_callback_ht_compare_entries *my_comparison = hash_comparison_dos;
   vrna_callback_ht_hash_function *my_hash_function = hash_function_dos;
-  vrna_hash_table_t ht = vrna_ht_init (20, my_comparison, my_hash_function, my_free);
+  vrna_hash_table_t ht = vrna_ht_init (hashbits, my_comparison, my_hash_function, my_free);
   return ht;
 }
 
@@ -86,14 +94,14 @@ struct dp_counts_per_energy {
 };
 
 static hashtable_list
-create_hashtable_list()
+create_hashtable_list(int hashbits)
 {
   hashtable_list ht_list;
   ht_list.allocated_size = 10;
   ht_list.length = 0;
   ht_list.list_energy_count_pairs = vrna_alloc (sizeof(energy_count) * ht_list.allocated_size);
   ht_list.list_key_value_pairs = vrna_alloc (sizeof(key_value*) * ht_list.allocated_size);
-  ht_list.ht_energy_index = create_hashtable ();
+  ht_list.ht_energy_index = create_hashtable (hashbits);
   return ht_list;
 }
 
@@ -208,7 +216,7 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, int min_energy, int max_e
   int no_close = (((type == 3) || (type == 4)) && fc->params->model_details.noGUclosure);
 
   /* do we evaluate this pair? */
-  if (type) { //(hc_decompose) {
+  if (type) {
     /* check for hairpin loop */
     int energy_hp = E_Hairpin (j - i - 1, type, S1[i + 1], S1[j - 1], fc->sequence + i - 1, fc->params);
 
@@ -314,7 +322,7 @@ print_array_energy_counts(hashtable_list *matrix, int length_col, int min_energy
 
 /* fill DP matrices */
 PRIVATE void
-fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
+compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int hashbits, int verbose)
 {
   int i, j, ij, length, turn, *indx;
   vrna_param_t *P;
@@ -343,7 +351,8 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
 
   /* compute mfe and search the matrices for the minimal energy contribution */
   int min_energy = (int) round (vrna_mfe (fc, NULL) * 100.0);
-  printf ("min_energy (global): %d \n", min_energy);
+  if(verbose)
+    printf ("min_energy (global): %d \n", min_energy);
   /* search through DP matrices for minimal entry */
   for (int i = 1; i < length; i++)
     for (int j = i + 1; j <= length; j++) {
@@ -378,10 +387,11 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
   int step_energy = 1; // 1 decakal. (smallest unit of energy computations)
   int range = max_energy - min_energy;
   int energy_length = range +1; // ceil (range / (float) step_energy) + 1;
-  printf ("min_energy: %d \n", min_energy);
-  printf ("max_energy: %d %d\n", max_energy, min_energy + (step_energy * (energy_length - 1)));
-  printf ("range: %d, energy_length: %d\n", range, energy_length);
-
+  if(verbose){
+    printf ("min_energy: %d \n", min_energy);
+    printf ("max_energy: %d %d\n", max_energy, min_energy + (step_energy * (energy_length - 1)));
+    printf ("range: %d, energy_length: %d\n", range, energy_length);
+  }
   /* start recursion */
   if (length <= turn) {
     /* only the open chain is possible */
@@ -395,9 +405,9 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
       int type = fc->ptype[fc->jindx[j] + i];
 
       //prepare matrices (add third dimension)
-      count_matrix_pt.n_ij_e[ij] = create_hashtable_list ();
-      count_matrix_pt.n_ij_M_e[ij] = create_hashtable_list ();
-      count_matrix_pt.n_ij_M1_e[ij] = create_hashtable_list ();
+      count_matrix_pt.n_ij_e[ij] = create_hashtable_list (hashbits);
+      count_matrix_pt.n_ij_M_e[ij] = create_hashtable_list (hashbits);
+      count_matrix_pt.n_ij_M1_e[ij] = create_hashtable_list (hashbits);
 
       /* decompose subsegment [i, j] with pair (i, j) */
       decompose_pair (fc, i, j, min_energy, max_energy, &count_matrix_pt);
@@ -512,7 +522,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
   /* calculate energies of 5' fragments */
   int x;
   for (x = 0; x <= length; x++) {
-    count_matrix_pt.n_ij_A_e[x] = create_hashtable_list ();
+    count_matrix_pt.n_ij_A_e[x] = create_hashtable_list (hashbits);
   }
 
   int cnt1;
@@ -591,7 +601,7 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
     }
   }
 
-  printf ("\nEnergy bands with counted structures:\n");
+  printf ("Energy bands with counted structures:\n");
   print_array_energy_counts (count_matrix_pt.n_ij_A_e, length, min_energy, max_energy_input);
 
   for (i = length - turn - 1; i >= 1; i--) {
@@ -618,34 +628,115 @@ fill_arrays(vrna_fold_compound_t *fc, int max_energy_input)
 
 }
 
+char * read_sequence_from_stdin(){
+   char          *rec_sequence, *rec_id, **rec_rest;
+   unsigned int  rec_type;
+   unsigned int  read_opt = 0;
+
+   rec_id          = NULL;
+   rec_rest        = NULL;
+
+   rec_type = vrna_file_fasta_read_record(&rec_id,
+                                          &rec_sequence,
+                                          &rec_rest,
+                                          stdin,
+                                          read_opt);
+   if (rec_type & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))
+        return "";
+   char *result_sequence = NULL;
+   if(rec_type & VRNA_INPUT_SEQUENCE)
+     result_sequence = rec_sequence;
+
+  return result_sequence;
+}
+
 int
-main()
+main(int  argc,
+     char *argv[])
 {
-  char *sequence = vrna_read_line (stdin);
-  printf ("%s\n", sequence);
-  //char *sequence = "GCAACCCUUAACCCUUGGGCAAC"; //"ACGUACGUUGCAACGUACGUUGCA"; // !!! "GCACUUAACCCUUGGGCAAC";
-  vrna_fold_compound_t *fc;
+  struct        RNAdos_args_info args_info;
+
   vrna_md_t md;
   set_model_details (&md);
   md.uniq_ML = 1;
   md.noLP = 0;
   md.circ = 0;
   md.dangles = 0;
-//md.temperature  = 37;
+
+  int verbose = 0;
+  int max_energy = 0;
+  int hash_bits = 20;
+
+  char *ParamFile = NULL;
+
+  /*
+   #############################################
+   # check the command line prameters
+   #############################################
+   */
+  if (RNAdos_cmdline_parser(argc, argv, &args_info) != 0)
+    exit(1);
+
+  char *rnaSequence = NULL;
+  if (!args_info.sequence_given) {
+
+    rnaSequence = read_sequence_from_stdin();
+    if(rnaSequence == NULL){
+      fprintf(stderr,"No RNA sequence given!");
+      exit(1);
+    }
+  } else {
+    rnaSequence = args_info.sequence_arg;
+  }
+
+  /* temperature */
+  if (args_info.temp_given)
+    md.temperature = temperature = args_info.temp_arg;
+
+  /* dangle options */
+  if (args_info.dangles_given) {
+    if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
+      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    else
+      md.dangles = dangles = args_info.dangles_arg;
+  }
+
+  if(args_info.verbose_given){
+   verbose = 1;
+  }
+
+  if(args_info.max_energy_given) {
+   max_energy = args_info.max_energy_arg;
+  }
+
+  if(args_info.hashtable_bits_given){
+   hash_bits = args_info.hashtable_bits_arg;
+  }
+
+  /* get energy parameter file name */
+  if (args_info.paramFile_given)
+    ParamFile = strdup(args_info.paramFile_arg);
+
+  /* free allocated memory of command line data structure */
+  RNAdos_cmdline_parser_free(&args_info);
+
+  if (ParamFile != NULL)
+    read_parameter_file(ParamFile);
+
+  if(verbose)
+    printf ("%s\n", rnaSequence);
+
   vrna_param_t *params = vrna_params (&md);
-//params->model_details.circ = is_circular;
-  fc = vrna_fold_compound (sequence, &(params->model_details), VRNA_OPTION_DEFAULT | VRNA_OPTION_MFE);
+  vrna_fold_compound_t *fc = vrna_fold_compound (rnaSequence, &(params->model_details), VRNA_OPTION_DEFAULT | VRNA_OPTION_MFE);
 
   if (!vrna_fold_compound_prepare (fc, VRNA_OPTION_MFE)) {
     vrna_message_warning ("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
   }
 
-  int max_energy_input = 0; //1430;
-  fill_arrays (fc, max_energy_input);
+  int max_energy_dcal = max_energy * 100;
+  compute_density_of_states (fc, max_energy_dcal, hash_bits, verbose);
 
-  //printf ("result: %d \n", result);
-
-  free (sequence);
+  free (rnaSequence);
   free (params);
   vrna_fold_compound_free (fc);
 

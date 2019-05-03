@@ -35,7 +35,7 @@ bin_PROGRAMS = \
         RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
         RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
         RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
-        RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin
+        RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin RNAdos
 
 LDADD = \
         $(top_builddir)/src/ViennaRNA/libRNA_conv.la \
@@ -85,7 +85,8 @@ GENGETOPT_CMDL = \
         RNAsnoop_cmdl.c RNAsnoop_cmdl.h \
         RNAdistance_cmdl.c RNAdistance_cmdl.h \
         RNApdist_cmdl.c RNApdist_cmdl.h \
-        RNApvmin_cmdl.c RNApvmin_cmdl.h
+        RNApvmin_cmdl.c RNApvmin_cmdl.h \
+        RNAdos_cmdl.c RNAdos_cmdl.h
 
 GENGETOPT_FILES = \
         RNAfold.ggo RNAalifold.ggo RNAcofold.ggo \
@@ -94,7 +95,7 @@ GENGETOPT_FILES = \
         RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo \
         RNAparconv.ggo RNAinverse.ggo RNApaln.ggo RNAplot.ggo \
         RNAPKplex.ggo RNAplex.ggo RNAsnoop.ggo RNAdistance.ggo \
-        RNApdist.ggo RNApvmin.ggo
+        RNApdist.ggo RNApvmin.ggo RNAdos.ggo
 
 EXTRA_DIST = \
         ${GENGETOPT_FILES} \
@@ -238,3 +239,8 @@ RNApvmin_SOURCES = \
     RNApvmin_cmdl.c \
     RNApvmin_cmdl.h \
     RNApvmin.c
+
+RNAdos_SOURCES = \
+    RNAdos_cmdl.c \
+    RNAdos_cmdl.h \
+    RNAdos.c
