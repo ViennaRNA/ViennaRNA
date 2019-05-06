@@ -661,7 +661,7 @@ main(int  argc,
   md.uniq_ML = 1;
   md.noLP = 0;
   md.circ = 0;
-  md.dangles = 0;
+  md.dangles = 2;
 
   int verbose = 0;
   int max_energy = 0;
