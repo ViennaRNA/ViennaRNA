@@ -531,6 +531,9 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
   } /* end of i-loop */
   /* calculate energies of 5' fragments */
   int x;
+#ifdef _OPENMP
+#pragma omp parallel for private(x)
+#endif
   for (x = 0; x <= length; x++) {
     count_matrix_pt.n_ij_A_e[x] = create_hashtable_list (hashbits);
   }
@@ -593,10 +596,13 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
         source_table_2 = &count_matrix_pt.n_ij_A_e[i - 1];
         if (source_table->length > 0 && source_table_2->length > 0) {
         result_table = &count_matrix_pt.n_ij_A_e[j];
-        for (int ei_1 = 0; ei_1 < source_table->length; ei_1++) {
+
+        int ei_1;
+        for (ei_1 = 0; ei_1 < source_table->length; ei_1++) {
           int c_energy = lookup_energy_from_index (source_table, ei_1);
           double c_count = lookup_count_from_index (source_table, ei_1);
-          for (int ei_2 = 0; ei_2 < source_table_2->length; ei_2++) {
+          int ei_2;
+          for (ei_2 = 0; ei_2 < source_table_2->length; ei_2++) {
               int f5_energy = lookup_energy_from_index (source_table_2, ei_2);
               double f5_count = lookup_count_from_index (source_table_2, ei_2);
               int sum_energy = c_energy + f5_energy + additional_en;
@@ -615,6 +621,9 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
   print_array_energy_counts (count_matrix_pt.n_ij_A_e, length, min_energy, max_energy_input);
 
   for (i = length - turn - 1; i >= 1; i--) {
+#ifdef _OPENMP
+#pragma omp parallel for private(j, ij)
+#endif
     for (j = i + turn + 1; j <= length; j++) {
       ij = indx[j] + i;
 
@@ -627,6 +636,9 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
     }
   }
 
+#ifdef _OPENMP
+#pragma omp parallel for private(i)
+#endif
   for (i = 0; i <= length; i++) {
     free_hashtable_list(&count_matrix_pt.n_ij_A_e[i]);
   }
@@ -727,8 +739,7 @@ main(int  argc,
   if (args_info.numThreads_given){
 #ifdef _OPENMP
     omp_set_num_threads(args_info.numThreads_arg);
-    //omp_set_dynamic(0);
-    printf("numThreads %d\n",args_info.numThreads_arg);
+    omp_set_dynamic(0);
 #endif
   }
 
