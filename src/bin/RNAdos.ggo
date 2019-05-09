@@ -35,6 +35,11 @@ int
 default="0"
 optional
 
+option  "numThreads"  j
+"Set the number of threads used for calculations (only available when compiled with OpenMP support)\n\n"
+int
+optional
+
 section "Model Details"
 
 option  "temp"  T

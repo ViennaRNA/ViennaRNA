@@ -19,7 +19,9 @@
 #include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/datastructures/hash_tables.h"
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include "RNAdos_cmdl.h"
 
 
@@ -398,8 +400,16 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
     return;
   }
 
-  for (i = length - turn - 1; i >= 1; i--) {
-    for (j = i + turn + 1; j <= length; j++) {
+  //for (i = length - turn - 1; i >= 1; i--) {
+  // for (j = i + turn + 1; j <= length; j++) {
+  int d;
+  for (d = turn + 2; d <= length; d++) {
+    /* i,j in [1..length] */
+#ifdef _OPENMP
+#pragma omp parallel for private(j, i, ij, source_table, source_table_2, result_table)
+#endif
+    for (j = d; j <= length; j++) {
+      i = j - d + 1;
       ij = indx[j] + i;
 
       int type = fc->ptype[fc->jindx[j] + i];
@@ -711,6 +721,15 @@ main(int  argc,
 
   if(args_info.hashtable_bits_given){
    hash_bits = args_info.hashtable_bits_arg;
+  }
+
+  /* set number of threads for parallel computation */
+  if (args_info.numThreads_given){
+#ifdef _OPENMP
+    omp_set_num_threads(args_info.numThreads_arg);
+    //omp_set_dynamic(0);
+    printf("numThreads %d\n",args_info.numThreads_arg);
+#endif
   }
 
   /* get energy parameter file name */
