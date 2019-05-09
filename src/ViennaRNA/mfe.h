@@ -99,8 +99,10 @@ vrna_mfe_dimer(vrna_fold_compound_t *vc,
                char                 *structure);
 
 
-/* End basic MFE interface */
-/**@}*/
+/**
+ * End basic MFE interface
+ * @}
+ */
 
 
 /**
@@ -239,11 +241,15 @@ vrna_cofold(const char  *sequence,
             char        *structure);
 
 
-/* End simplified global MFE interface */
-/**@}*/
+/**
+ * End simplified global MFE interface
+ * @}
+ */
 
-/* End group mfe_global */
-/**@}*/
+/**
+ * End group mfe_global
+ * @}
+ */
 
 /**
  *  @addtogroup mfe_backtracking
@@ -261,7 +267,37 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t  *vc,
                               int                   s);
 
 
-/**@}*/
+/**
+ *  @brief Backtrack an MFE (sub)structure
+ *
+ *  This function allows one to backtrack the MFE structure for a (sub)sequence
+ *
+ *  @note On error, the function returns #INF / 100. and stores the empty string
+ *        in @p structure.
+ *
+ *  @pre  Requires pre-filled MFE dynamic programming matrices, i.e. one has to call vrna_mfe()
+ *        prior to calling this function
+ *
+ *  @see vrna_mfe(), vrna_pbacktrack5()
+ *
+ *  @param fc             fold compound
+ *  @param length         The length of the subsequence, starting from the 5' end
+ *  @param structure      A pointer to the character array where the secondary structure in
+ *                        dot-bracket notation will be written to. (Must have size of at least $p length + 1)
+ *
+ *  @return               The minimum free energy (MFE) for the specified @p length in kcal/mol and
+ *                        a corresponding secondary structure in dot-bracket notation (stored in @p structure)
+ */
+float
+vrna_backtrack5(vrna_fold_compound_t  *fc,
+                unsigned int          length,
+                char                  *structure);
+
+
+/**
+ * End backtracking related interfaces
+ * @}
+ */
 
 
 #endif
