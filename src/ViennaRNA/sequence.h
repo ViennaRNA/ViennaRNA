@@ -86,6 +86,11 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc);
 
 
 int
+vrna_sequence_order_update(vrna_fold_compound_t *fc,
+                           const unsigned int   *order);
+
+
+int
 vrna_msa_add( vrna_fold_compound_t      *fc,
               const char                **alignment,
               const char                **names,

@@ -394,6 +394,67 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
 }
 
 
+PUBLIC int
+vrna_sequence_order_update(vrna_fold_compound_t *fc,
+                           const unsigned int   *order)
+{
+  if ((fc) && (order)) {
+    /* first assign new order to strand_oder array */
+    for (size_t i = 0; i < fc->strands; i++) {
+      fc->strand_order[i] = order[i];
+    }
+
+    /* now, update strand_start/end positions and strand_number association */
+    fc->strand_start[0] = 1;
+    fc->strand_end[0]   = fc->strand_start[0] + fc->nucleotides[order[0]].length - 1;
+
+    memset(fc->strand_number, 0, sizeof(unsigned int) * fc->nucleotides[order[0]].length);
+
+    for (size_t i = 1; i < fc->strands; i++) {
+      fc->strand_start[i] = fc->strand_end[i - 1] + 1;
+      fc->strand_end[i]   = fc->strand_start[i] + fc->nucleotides[order[i]].length - 1;
+
+      for (size_t j = fc->strand_start[i]; j <= fc->strand_end[i]; j++)
+        fc->strand_number[j] = i;
+    }
+
+    /* also set pos. n + 1 for convenience reasons */
+    fc->strand_number[fc->length + 1] = order[fc->strands - 1];
+
+    /* update the global sequence string */
+    for (size_t i = 0; i < fc->strands; i++)
+      memcpy(fc->sequence + fc->strand_start[i] - 1,
+             fc->nucleotides[order[i]].string,
+             sizeof(char) * fc->nucleotides[order[i]].length);
+
+    /* finally, update global sequence encoding(s) for new order */
+    for (size_t i = 0; i < fc->strands; i++)
+      memcpy(fc->sequence_encoding + fc->strand_start[i],
+             fc->nucleotides[order[i]].encoding + 1,
+             sizeof(short) * fc->nucleotides[order[i]].length);
+
+    fc->sequence_encoding[0] = fc->sequence_encoding[fc->length];
+    fc->sequence_encoding[fc->length + 1] = fc->sequence_encoding[1];
+
+    for (size_t i = 0; i < fc->strands; i++) {
+      short *enc = vrna_seq_encode_simple(fc->nucleotides[order[i]].string,
+                                          &(fc->params->model_details));
+      memcpy(fc->sequence_encoding2 + fc->strand_start[i],
+             enc + 1,
+             sizeof(short) * fc->nucleotides[order[i]].length);
+      free(enc);
+    }
+
+    fc->sequence_encoding2[0] = (short)fc->length;
+    fc->sequence_encoding2[fc->length + 1] = fc->sequence_encoding2[1];
+
+    return 1;
+  }
+
+  return 0;
+}
+
+
 PRIVATE void
 set_sequence(vrna_seq_t   *obj,
              const char   *string,
