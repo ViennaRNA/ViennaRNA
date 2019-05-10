@@ -163,7 +163,7 @@ BT_stack(vrna_fold_compound_t *fc,
             sj  = (sn[*j] == sn[q]) ? S[q] : -1;
             *en -= E_IntLoop_Co(rtype[type], rtype[type_2],
                                 *i, *j, p, q,
-                                ss[1],
+                                ss[fc->strand_order[1]],
                                 si, sj,
                                 S[p - 1], S[q + 1],
                                 md->dangles,
@@ -337,7 +337,8 @@ BT_int_loop(vrna_fold_compound_t  *fc,
             tt[s] = vrna_get_ptype_md(SS[s][*i], SS[s][*j], md);
 
           if (sliding_window) {
-            if (backtrack_GQuad_IntLoop_L_comparative(en, *i, *j, tt, fc->S_cons, fc->S5, fc->S3, fc->a2s,
+            if (backtrack_GQuad_IntLoop_L_comparative(en, *i, *j, tt, fc->S_cons, fc->S5, fc->S3,
+                                                      fc->a2s,
                                                       fc->matrices->ggg_local, &p, &q, n_seq,
                                                       P)) {
               if (vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count)) {
@@ -346,7 +347,8 @@ BT_int_loop(vrna_fold_compound_t  *fc,
               }
             }
           } else {
-            if (backtrack_GQuad_IntLoop_comparative(en, *i, *j, tt, fc->S_cons, fc->S5, fc->S3, fc->a2s,
+            if (backtrack_GQuad_IntLoop_comparative(en, *i, *j, tt, fc->S_cons, fc->S5, fc->S3,
+                                                    fc->a2s,
                                                     fc->matrices->ggg, idx, &p, &q,
                                                     n_seq,
                                                     P)) {

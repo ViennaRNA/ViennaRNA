@@ -190,7 +190,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
 {
   /* fill "c", "fML" and "f5" arrays and return  optimal energy */
 
-  unsigned int  strands, *sn, *ss, *se;
+  unsigned int  strands, *sn, *ss, *se, *so;
   int           i, j, length, energy;
   int           uniq_ML;
   int           no_close, type, maxj, *indx;
@@ -220,6 +220,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
   sn                = vc->strand_number;
   ss                = vc->strand_start;
   se                = vc->strand_end;
+  so                = vc->strand_order;
   hc                = vc->hc;
   hard_constraints  = hc->mx;
   matrices          = vc->matrices;
@@ -257,7 +258,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
   for (i = length - turn - 1; i >= 1; i--) {
     /* i,j in [1..length] */
 
-    maxj = (zuker) ? (MIN2(i + se[0], length)) : length;
+    maxj = (zuker) ? (MIN2(i + se[so[0]], length)) : length;
     for (j = i + turn + 1; j <= maxj; j++) {
       int ij;
       ij            = indx[j] + i;
@@ -322,12 +323,12 @@ fill_arrays(vrna_fold_compound_t  *vc,
         my_fM1[ij] = E_ml_rightmost_stem(i, j, vc);
     }
 
-    if (i == se[0] + 1)
+    if (i == se[so[0]] + 1)
       for (j = i; j <= maxj; j++)
-        free_end(my_fc, j, ss[1], vc);
+        free_end(my_fc, j, ss[so[1]], vc);
 
-    if (i <= se[0])
-      free_end(my_fc, i, se[0], vc);
+    if (i <= se[so[0]])
+      free_end(my_fc, i, se[so[0]], vc);
 
     {
       int *FF; /* rotate the auxilliary arrays */
@@ -349,10 +350,10 @@ fill_arrays(vrna_fold_compound_t  *vc,
     free_end(my_f5, i, 1, vc);
 
   if (strands > 1) {
-    mfe1  = my_f5[se[0]];
+    mfe1  = my_f5[se[so[0]]];
     mfe2  = my_fc[length];
     /* add DuplexInit, check whether duplex*/
-    for (i = ss[1]; i <= length; i++)
+    for (i = ss[so[1]]; i <= length; i++)
       my_f5[i] = MIN2(my_f5[i] + P->DuplexInit, my_fc[i] + my_fc[1]);
   }
 
@@ -385,7 +386,7 @@ backtrack_co(sect                 bt_stack[],
    *  This is fast, since only few structure elements are recalculated.
    *  ------------------------------------------------------------------*/
 
-  unsigned int  *se;
+  unsigned int  *se, *so;
   int           i, j, ij, k, length, no_close, type;
   char          *string = vc->sequence;
   vrna_param_t  *P      = vc->params;
@@ -402,6 +403,7 @@ backtrack_co(sect                 bt_stack[],
   length  = vc->length;
   my_c    = vc->matrices->c;
   se      = vc->strand_end;
+  so      = vc->strand_order;
 
   /* int   b=0;*/
 
@@ -482,7 +484,7 @@ backtrack_co(sect                 bt_stack[],
         int lower, k, p, q;
         p     = i;
         q     = j;
-        lower = (i <= se[0]) ? 1 : 0;
+        lower = (i <= se[so[0]]) ? 1 : 0;
 
         if (vrna_BT_mb_loop_fake(vc, &k, &i, &j, bp_list, &b)) {
           if (k > 0) {

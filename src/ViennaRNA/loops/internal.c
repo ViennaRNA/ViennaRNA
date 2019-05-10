@@ -196,7 +196,7 @@ eval_int_loop(vrna_fold_compound_t  *fc,
           Sj      = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
           energy  = E_IntLoop_Co(rtype[type], rtype[type2],
                                  i, j, k, l,
-                                 ss[1],
+                                 ss[fc->strand_order[1]], /* serves as cut point substitute */
                                  Si, Sj,
                                  S[k - 1], S[l + 1],
                                  md->dangles,
@@ -459,7 +459,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                 Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
                 eee += E_IntLoop_Co(rtype[type], rtype[type2],
                                     i, j, k, l,
-                                    ss[1],
+                                    ss[fc->strand_order[1]], /* serves as cutpoint replacement */
                                     Si, Sj,
                                     S[i], S[j],
                                     md->dangles,
@@ -531,7 +531,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                   Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
                   eee += E_IntLoop_Co(rtype[type], rtype[type2],
                                       i, j, k, l,
-                                      ss[1],
+                                      ss[fc->strand_order[1]],
                                       Si, Sj,
                                       S[k - 1], S[j],
                                       md->dangles,
@@ -608,7 +608,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                   Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
                   eee += E_IntLoop_Co(rtype[type], rtype[type2],
                                       i, j, k, l,
-                                      ss[1],
+                                      ss[fc->strand_order[1]],
                                       Si, Sj,
                                       S[i], S[l + 1],
                                       md->dangles,
@@ -695,7 +695,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                   Sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
                   eee += E_IntLoop_Co(rtype[type], rtype[type2],
                                       i, j, k, l,
-                                      ss[1],
+                                      ss[fc->strand_order[1]],
                                       Si, Sj,
                                       S[k - 1], S[l + 1],
                                       md->dangles,
@@ -766,10 +766,30 @@ E_internal_loop(vrna_fold_compound_t  *fc,
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
-            if (sliding_window)
-              eee = E_GQuad_IntLoop_L_comparative(i, j, tt, fc->S_cons, S5, S3, a2s, ggg_local, n_seq, P);
-            else
-              eee = E_GQuad_IntLoop_comparative(i, j, tt, fc->S_cons, S5, S3, a2s, ggg, idx, n_seq, P);
+            if (sliding_window) {
+              eee = E_GQuad_IntLoop_L_comparative(i,
+                                                  j,
+                                                  tt,
+                                                  fc->S_cons,
+                                                  S5,
+                                                  S3,
+                                                  a2s,
+                                                  ggg_local,
+                                                  n_seq,
+                                                  P);
+            } else {
+              eee = E_GQuad_IntLoop_comparative(i,
+                                                j,
+                                                tt,
+                                                fc->S_cons,
+                                                S5,
+                                                S3,
+                                                a2s,
+                                                ggg,
+                                                idx,
+                                                n_seq,
+                                                P);
+            }
 
             break;
         }
@@ -949,7 +969,7 @@ E_stack(vrna_fold_compound_t  *fc,
           sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
           e   = E_IntLoop_Co(rtype[type], rtype[type_2],
                              i, j, p, q,
-                             ss[1],
+                             ss[fc->strand_order[1]],
                              si, sj,
                              S[p - 1], S[q + 1],
                              md->dangles,
