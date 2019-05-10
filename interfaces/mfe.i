@@ -211,7 +211,6 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
 %feature("autodoc") mfe_dimer;
 %feature("kwargs") mfe_dimer;
 %feature("autodoc") backtrack;
-%feature("kwargs") backtrack;
 #endif
 
   char *mfe(float *OUTPUT){
@@ -231,13 +230,13 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
 
   char *backtrack(unsigned int length,
                   float *OUTPUT) {
-    char *structure = (char *)vrna_alloc(sizeof(char) * (length));
+    char *structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
     *OUTPUT = vrna_backtrack5($self, length, structure);
     return structure;
   }
 
   char *backtrack(float *OUTPUT) {
-    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length));
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
     *OUTPUT = vrna_backtrack5($self, $self->length, structure);
     return structure;
   }
