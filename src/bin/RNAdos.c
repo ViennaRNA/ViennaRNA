@@ -201,14 +201,13 @@ PRIVATE INLINE int
 decompose_pair(vrna_fold_compound_t *fc, int i, int j, int min_energy, int max_e,
                struct dp_counts_per_energy *dp_count_matrix_pt)
 {
-  unsigned int n;
-  int energy, ij;
   hashtable_list *source_table;
   hashtable_list *source_table_2;
   hashtable_list *result_table;
 
-  n = fc->length;
-  ij = fc->jindx[j] + i;
+  unsigned int n = fc->length;
+  int turn = fc->params->model_details.min_loop_size;
+  int ij = fc->jindx[j] + i;
 
   int *rtype = &(fc->params->model_details.rtype[0]);
   short *S1 = fc->sequence_encoding;
@@ -228,10 +227,11 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, int min_energy, int max_e
     }
 
     /* check for interior loops */
-    int maxp = MIN2(j - 2 - TURN, i + MAXLOOP + 1);
+    int maxp = MIN2(j - 2 - turn, i + MAXLOOP + 1);
     int p, q, type_2, pq;
+    int energy;
     for (p = i + 1; p <= maxp; p++) {
-      unsigned int minq = p + TURN + 1;
+      unsigned int minq = p + turn + 1;
 
       for (q = minq; q < j; q++) {
         pq = fc->jindx[q] + p;
@@ -276,7 +276,7 @@ decompose_pair(vrna_fold_compound_t *fc, int i, int j, int min_energy, int max_e
         temp2 += E_MLstem (tt, -1, -1, fc->params);
 
       int u;
-      for (u = i + TURN + 2; u < j - TURN - 2; u++) {
+      for (u = i + turn + 2; u < j - turn - 2; u++) {
         int i1u = fc->jindx[u] + (i + 1);
         int u1j1 = fc->jindx[j - 1] + (u + 1);
 
@@ -475,7 +475,7 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
         }
       }
 
-      if (j > TURN + 2) {
+      if (j > turn + 2) {
         int u;
         int temp3;
 
@@ -539,19 +539,23 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
   }
 
   int cnt1;
-  for (cnt1 = 1; cnt1 <= TURN + 1; cnt1++) {
+#ifdef _OPENMP
+#pragma omp parallel for private(cnt1)
+#endif
+  for (cnt1 = 1; cnt1 <= turn + 1; cnt1++) {
     int c_energy = 0;
     double c_count = 1;
     result_table = &count_matrix_pt.n_ij_A_e[cnt1];
     hashtable_list_add_count(result_table, c_energy, c_count);
   }
 
-  for (j = TURN + 2; j <= length; j++) {
+  for (j = turn + 2; j <= length; j++) {
 
     /* j-1 is unpaired ... */
         source_table = &count_matrix_pt.n_ij_A_e[j - 1];
         result_table = &count_matrix_pt.n_ij_A_e[j];
-        for (int ei = 0; ei < source_table->length; ei++) {
+        int ei;
+        for (ei = 0; ei < source_table->length; ei++) {
           int c_energy = lookup_energy_from_index (source_table, ei);
           double c_count = lookup_count_from_index (source_table, ei);
           hashtable_list_add_count(result_table, c_energy, c_count);
@@ -572,7 +576,8 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
     source_table = &count_matrix_pt.n_ij_e[ij];
     if (source_table->length > 0) {
         result_table = &count_matrix_pt.n_ij_A_e[j];
-        for (int ei = 0; ei < source_table->length; ei++) {
+        int ei;
+        for (ei = 0; ei < source_table->length; ei++) {
           int c_energy = lookup_energy_from_index (source_table, ei);
           double c_count = lookup_count_from_index (source_table, ei);
           int sum_energy = c_energy + additional_en;
@@ -583,7 +588,7 @@ compute_density_of_states(vrna_fold_compound_t *fc, int max_energy_input, int ha
     }
 
     /* j pairs with some other nucleotide -> see below */
-    for (i = j - TURN - 1; i > 1; i--) {
+    for (i = j - turn - 1; i > 1; i--) {
       ij = fc->jindx[j] + i;
       type = fc->ptype[ij];
       if (type) {
