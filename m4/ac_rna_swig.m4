@@ -9,13 +9,12 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 
   AS_IF([test "x$with_swig" != "xno"],[
     wants_swig="yes"
-    AX_PKG_SWIG(2.0.0, [has_swig="yes"], [has_swig="no"])
+    AX_PKG_SWIG(3.0.0, [has_swig="yes"], [has_swig="no"])
   ],[
     wants_swig="no"
   ])
 
   AM_CONDITIONAL(HAS_SWIG, test "x$has_swig" != "xno")
-  
   RNA_ENABLE_SWIG_PERL
   RNA_ENABLE_SWIG_PYTHON
   RNA_ENABLE_SWIG_PYTHON3
@@ -55,10 +54,6 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
       AC_MSG_ERROR([Perl is required to build.])
       [enable_perl_status="Perl is required to build."]
     fi
-#    AX_PERL_EXT_FLAGS([PERLXS_CFLAGS], [PERLXS_LDFLAGS])
-#    AX_PERL_EXT_LINK_CHECK([with_perl])
-#    AC_SUBST([PERLXS_CFLAGS])
-#    AC_SUBST([PERLXS_LDFLAGS])
   ])
 
   # prepare all files for perl interface

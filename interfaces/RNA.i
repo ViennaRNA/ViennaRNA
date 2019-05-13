@@ -1,4 +1,9 @@
+#ifdef SWIGPYTHON
+%module(moduleimport="from . import _RNA") RNA
+#else
 %module RNA
+#endif
+
 //%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %pragma(perl5)  include="RNA.pod"
 
