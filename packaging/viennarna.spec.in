@@ -310,14 +310,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -n python-rna
 %defattr(-,root,root,-)
-%{python_sitearch}/*
 %{python_sitearch}/RNA/
 
 %else
 
 %files -n python2-rna
 %defattr(-,root,root,-)
-%{python2_sitearch}/*
 %{python2_sitearch}/RNA/
 
 %endif
@@ -326,7 +324,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -n python3-rna
 %defattr(-,root,root,-)
-%{python3_sitearch}/*
 %{python3_sitearch}/RNA/
 
 %endif
