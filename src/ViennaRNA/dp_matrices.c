@@ -109,6 +109,7 @@ PRIVATE void            mfe_matrices_alloc_2Dfold(vrna_mx_mfe_t *vars,
 
 PRIVATE void            mfe_matrices_free_2Dfold(vrna_mx_mfe_t  *self,
                                                  unsigned int   length,
+                                                 int            min_loop_size,
                                                  int            *indx);
 
 
@@ -137,6 +138,7 @@ PRIVATE void            pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
 
 PRIVATE void            pf_matrices_free_2Dfold(vrna_mx_pf_t  *self,
                                                 unsigned int  length,
+                                                int           turn,
                                                 int           *indx,
                                                 int           *jindx);
 
@@ -186,7 +188,7 @@ vrna_mx_mfe_free(vrna_fold_compound_t *vc)
           break;
 
         case VRNA_MX_2DFOLD:
-          mfe_matrices_free_2Dfold(self, vc->length, vc->iindx);
+          mfe_matrices_free_2Dfold(self, vc->length, vc->params->model_details.min_loop_size, vc->iindx);
           break;
 
         default:                /* do nothing */
@@ -215,7 +217,7 @@ vrna_mx_pf_free(vrna_fold_compound_t *vc)
           break;
 
         case VRNA_MX_2DFOLD:
-          pf_matrices_free_2Dfold(self, vc->length, vc->iindx, vc->jindx);
+          pf_matrices_free_2Dfold(self, vc->length, vc->exp_params->model_details.min_loop_size, vc->iindx, vc->jindx);
           break;
 
         default:                /* do nothing */
@@ -924,6 +926,7 @@ mfe_matrices_alloc_2Dfold(vrna_mx_mfe_t *vars,
 PRIVATE void
 mfe_matrices_free_2Dfold(vrna_mx_mfe_t  *self,
                          unsigned int   length,
+                         int            turn,
                          int            *indx)
 {
   unsigned int  i, j, ij;
@@ -1172,7 +1175,7 @@ mfe_matrices_free_2Dfold(vrna_mx_mfe_t  *self,
   }
 
   if (self->E_M2 != NULL) {
-    for (i = 1; i < length - TURN - 1; i++) {
+    for (i = 1; i < length - turn - 1; i++) {
       if (!self->E_M2[i])
         continue;
 
@@ -1497,6 +1500,7 @@ pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
 PRIVATE void
 pf_matrices_free_2Dfold(vrna_mx_pf_t  *self,
                         unsigned int  length,
+                        int           turn,
                         int           *indx,
                         int           *jindx)
 {
@@ -1629,7 +1633,7 @@ pf_matrices_free_2Dfold(vrna_mx_pf_t  *self,
   free(self->k_max_Q_M1);
 
   if (self->Q_M2 != NULL) {
-    for (i = 1; i < length - TURN - 1; i++) {
+    for (i = 1; i < length - turn - 1; i++) {
       if (!self->Q_M2[i])
         continue;
 
