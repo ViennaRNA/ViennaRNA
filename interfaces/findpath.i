@@ -79,6 +79,8 @@ std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::strin
 
     if (E < maxE)
       E_obj = Py_BuildValue("i", E);
+    else
+      Py_INCREF(Py_None); /* increase reference count for Py_None */
 
     return E_obj;
   }
