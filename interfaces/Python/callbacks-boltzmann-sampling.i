@@ -12,13 +12,22 @@ typedef struct {
   PyObject *data;
 } python_bs_callback_t;
 
-static python_bs_callback_t * bind_bs_callback(PyObject *PyFunc, PyObject *data);
-static void python_wrap_bs_cb(const char *structure, void *data);
+static python_bs_callback_t *
+bind_bs_callback(PyObject *PyFunc,
+                 PyObject *data);
+
+static void
+python_wrap_bs_cb(const char *structure,
+                  void       *data);
 
 static python_bs_callback_t *
-bind_bs_callback(PyObject *PyFunc, PyObject *data){
-
+bind_bs_callback(PyObject *PyFunc,
+                 PyObject *data)
+{
   python_bs_callback_t *cb = (python_bs_callback_t *)vrna_alloc(sizeof(python_bs_callback_t));
+
+  Py_INCREF(PyFunc);
+  Py_INCREF(data);
 
   cb->cb    = PyFunc;  /* store callback */
   cb->data  = data;    /* bind data */
@@ -26,9 +35,20 @@ bind_bs_callback(PyObject *PyFunc, PyObject *data){
   return cb;
 }
 
-static void
-python_wrap_bs_cb(const char *structure, void *data){
 
+static void
+release_bs_callback(python_bs_callback_t *cb)
+{
+  Py_DECREF(cb->cb);
+  Py_DECREF(cb->data);
+  free(cb); 
+}
+
+
+static void
+python_wrap_bs_cb(const char *structure,
+                  void       *data)
+{
   PyObject *func, *arglist, *result, *err;
   python_bs_callback_t *cb = (python_bs_callback_t *)data;
 
@@ -41,7 +61,8 @@ python_wrap_bs_cb(const char *structure, void *data){
                                               (cb->data) ? cb->data : Py_None,
                                               NULL);
 
-  Py_DECREF(py_structure);
+  if (py_structure != Py_None)
+    Py_DECREF(py_structure);
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -88,7 +109,7 @@ python_wrap_bs_cb(const char *structure, void *data){
                             (void *)cb,
                             options);
 
-    free(cb);
+    release_bs_callback(cb);
 
     return i;
   }
@@ -108,7 +129,7 @@ python_wrap_bs_cb(const char *structure, void *data){
                            (void *)cb,
                            options);
 
-    free(cb);
+    release_bs_callback(cb);
 
     return i;
   }
@@ -132,7 +153,7 @@ python_wrap_bs_cb(const char *structure, void *data){
                                   nr_memory,
                                   options);
 
-    free(cb);
+    release_bs_callback(cb);
 
     return i;
   }
@@ -156,7 +177,7 @@ python_wrap_bs_cb(const char *structure, void *data){
                                    nr_memory,
                                    options);
 
-    free(cb);
+    release_bs_callback(cb);
 
     return i;
   }
