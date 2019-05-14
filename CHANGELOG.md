@@ -4,7 +4,29 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.11...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.12...HEAD)
+
+#### Programs
+  * Fix centroid structure prediction for `RNAcofold`
+
+#### Library
+  * API: Refactor and fix collision handling in `vrna_hash_table_t`
+  * API: Fix one access using wrong index for odd dangles in `loops/external.c`
+  * API: Add two missing `MLbase` contributions for MFE prediction in `loops/multibranch.c`
+  * API: Refactor multiloop MFE backtracking for odd dangles
+  * API: Add function `vrna_backtrack5()` to allow for MFE backtracking of sub-sequences starting at the 5'-end
+  * API: Reduce usage of global macro `TURN` by replacing it with `min_loop_size` field of `vrna_md_t`
+  * SWIG: Fix access to global variable `pf_smooth` and `pf_smooth` attribute in `model_details` object
+  * SWIG: Fix Python reference counting for `Py_None` in `interfaces/findpath.i` wrapper
+  * SWIG: Refactor reference counting for all Python2 and Python3 wrappers
+
+#### Package
+  * Install example scripts and source code files, e.g. to $prefix/share/ViennaRNA/examples
+  * Properly pass GSL, PTHREADS, and MPFR flags to sub-projects
+  * Fix `RNApuzzler` header file installation
+  * SWIG: Include Python 3.7 and 3.8 in list of autoconf-probed python interpreters
+  * SWIG: Fix wrapper building for `swig >= 4.0.0`
+
 
 ### [v2.4.12](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.11...v2.4.12) (2019-04-16)
 
@@ -14,7 +36,6 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add `RNApuzzler` (4) and `RNAturtle` (3) secondary structure layout algorithm options to `RNAfold` and `RNAplot`
   * Update help/man page of `RNALfold`
   * Allow for multiple input files and parallel input processing in `RNAheat`
-
 
 #### Library
   * API: Fix declaration of `vrna_move_apply_db()`
