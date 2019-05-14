@@ -31,24 +31,31 @@ new_py_ud_cb(void){
 
   py_ud_callback_t *cb = (py_ud_callback_t *)vrna_alloc(sizeof(py_ud_callback_t));
 
+  Py_INCREF(Py_None);
   cb->prod_rule     = Py_None;
+  Py_INCREF(Py_None);
   cb->exp_prod_rule = Py_None;
+  Py_INCREF(Py_None);
   cb->energy        = Py_None;
+  Py_INCREF(Py_None);
   cb->exp_energy    = Py_None;
+  Py_INCREF(Py_None);
   cb->data          = Py_None;
+  Py_INCREF(Py_None);
   cb->delete_data   = Py_None;
+  Py_INCREF(Py_None);
   cb->prob_add      = Py_None;
+  Py_INCREF(Py_None);
   cb->prob_get      = Py_None;
 
   return cb;
 }
 
 static void
-delete_py_ud_callback(void * data){
-
-  py_ud_callback_t *cb = (py_ud_callback_t *)data;
-  /* first delete user data */
-  if(cb->delete_data != Py_None){
+delete_py_ud_data(py_ud_callback_t *cb)
+{
+  if ((cb->data != Py_None) &&
+      (cb->delete_data != Py_None)) {
     PyObject *func, *arglist, *result, *err;
     func = cb->delete_data;
     arglist = Py_BuildValue("O", cb->data);
@@ -73,14 +80,25 @@ delete_py_ud_callback(void * data){
     Py_DECREF(arglist);
     Py_XDECREF(result);
   }
+  Py_DECREF(cb->data);
+  Py_DECREF(cb->delete_data);
+}
+
+
+static void
+delete_py_ud_callback(void * data)
+{
+  py_ud_callback_t *cb = (py_ud_callback_t *)data;
+  /* first delete user data */
+  delete_py_ud_data(cb);
 
   /* now dispose of the registered callbacks */
-  Py_XDECREF(cb->prod_rule);
-  Py_XDECREF(cb->exp_prod_rule);
-  Py_XDECREF(cb->energy);
-  Py_XDECREF(cb->exp_energy);
-  Py_XDECREF(cb->prob_add);
-  Py_XDECREF(cb->prob_get);
+  Py_DECREF(cb->prod_rule);
+  Py_DECREF(cb->exp_prod_rule);
+  Py_DECREF(cb->energy);
+  Py_DECREF(cb->exp_energy);
+  Py_DECREF(cb->prob_add);
+  Py_DECREF(cb->prob_get);
 
   /* finally free pycallback */
   free(cb);
@@ -89,52 +107,27 @@ delete_py_ud_callback(void * data){
 
 static void
 ud_set_pydata(vrna_fold_compound_t *vc,
-              PyObject *data,
-              PyObject *PyFunc){
+              PyObject             *data,
+              PyObject             *PyFunc)
+{
 
   py_ud_callback_t * cb;
 
-  /* try to dispose of previous data */
-  if(vc->domains_up && vc->domains_up->data){
+  if ((vc->domains_up) &&
+      (vc->domains_up->data)) {
     cb = (py_ud_callback_t *)vc->domains_up->data;
-    if(cb->data != Py_None){
-      if(cb->delete_data != Py_None){
-        PyObject *func, *arglist, *result, *err;
-        func    = cb->delete_data;
-        arglist = Py_BuildValue("O", cb->data);
-        result  = PyObject_CallObject(func, arglist);
-
-        /* BEGIN recognizing errors in callback execution */
-        if (result == NULL) {
-          if ((err = PyErr_Occurred())) {
-            /* print error message */
-            PyErr_Print();
-            /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
-            if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
-              throw std::runtime_error( "Unstructured domains  delete_data() callback must take exactly 1 argument" );
-            } else {
-              throw std::runtime_error( "Some error occurred while executing unstructured domains delete_data() callback" );
-            }
-          }
-          PyErr_Clear();
-        }
-        /* END recognizing errors in callback execution */
-
-        Py_DECREF(arglist);
-        Py_XDECREF(result);
-      }
-    }
-    Py_XDECREF(cb->data);
-    Py_XDECREF(cb->delete_data);
   } else {
     cb = new_py_ud_cb();
   }
-  cb->data        = data;   /* remember data */
-  cb->delete_data = PyFunc; /* remember delete data function */
+
+  /* try to dispose of previous data */
+  delete_py_ud_data(cb);
 
   /* increase reference counter */
-  Py_XINCREF(data);
-  Py_XINCREF(PyFunc);
+  Py_INCREF(data);
+  Py_INCREF(PyFunc);
+  cb->data        = data;   /* remember data */
+  cb->delete_data = PyFunc; /* remember delete data function */
 
   /* bind callback wrapper to fold compound */
   vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
@@ -142,96 +135,108 @@ ud_set_pydata(vrna_fold_compound_t *vc,
 
 
 static void
-ud_set_prod_cb( vrna_fold_compound_t *vc,
-                PyObject *prod_cb,
-                PyObject *eval_cb){
+ud_set_prod_cb(vrna_fold_compound_t *vc,
+               PyObject             *prod_cb,
+               PyObject             *eval_cb)
+{
 
   /* try to dispose of previous callback */
   py_ud_callback_t * cb;
   if(vc->domains_up && vc->domains_up->data){
     cb = (py_ud_callback_t *)vc->domains_up->data;
-    /* release previous callback */
-    Py_XDECREF(cb->prod_rule);
-    Py_XDECREF(cb->energy);
   } else {
     cb = new_py_ud_cb();
     /* bind callback wrapper to fold compound */
     vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
   }
-  cb->prod_rule = prod_cb; /* remember callback */
-  cb->prod_rule = eval_cb; /* remember callback */
+  /* release previous callback */
+  Py_DECREF(cb->prod_rule);
+  Py_DECREF(cb->energy);
 
   Py_XINCREF(prod_cb);     /* Increase reference counter */
   Py_XINCREF(eval_cb);     /* Increase reference counter */
+
+  cb->prod_rule = prod_cb; /* remember callback */
+  cb->energy    = eval_cb; /* remember callback */
 
   vrna_ud_set_prod_rule_cb(vc, &py_wrap_ud_prod_rule, &py_wrap_ud_energy);
 }
 
 
 static void
-ud_set_exp_prod_cb( vrna_fold_compound_t *vc,
-                    PyObject *prod_cb,
-                    PyObject *eval_cb){
+ud_set_exp_prod_cb(vrna_fold_compound_t *vc,
+                   PyObject             *prod_cb,
+                   PyObject             *eval_cb)
+{
 
   /* try to dispose of previous callback */
   py_ud_callback_t *cb;
 
   /* now bind the python function to the wrapper structure */
-  if(vc->domains_up && vc->domains_up->data){
+  if ((vc->domains_up) &&
+      (vc->domains_up->data)) {
     cb = (py_ud_callback_t *)vc->domains_up->data;
-    /* release previous callback */
-    Py_XDECREF(cb->exp_prod_rule);
-    Py_XDECREF(cb->exp_energy);
   } else {
     cb = new_py_ud_cb();
     /* bind callback wrapper to fold compound */
     vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
   }
+  /* release previous callback */
+  Py_DECREF(cb->exp_prod_rule);
+  Py_DECREF(cb->exp_energy);
+
+  Py_INCREF(prod_cb); /* Increase reference counter */
+  Py_INCREF(eval_cb); /* Increase reference counter */
+
   cb->exp_prod_rule = prod_cb;
   cb->exp_energy    = eval_cb;
 
-  Py_XINCREF(prod_cb); /* Increase reference counter */
-  Py_XINCREF(eval_cb); /* Increase reference counter */
 
   vrna_ud_set_exp_prod_rule_cb(vc, &py_wrap_ud_exp_prod_rule, &py_wrap_ud_exp_energy);
 }
 
 
 static void
-ud_set_prob_cb( vrna_fold_compound_t *vc,
-                PyObject *setter,
-                PyObject *getter){
+ud_set_prob_cb(vrna_fold_compound_t *vc,
+               PyObject             *setter,
+               PyObject             *getter)
+{
 
   py_ud_callback_t *cb;
 
   /* now bind the python function to the wrapper structure */
-  if(vc->domains_up && vc->domains_up->data){
+  if ((vc->domains_up) &&
+      (vc->domains_up->data)) {
     cb = (py_ud_callback_t *)vc->domains_up->data;
-    /* release previous callbacks */
-    Py_XDECREF(cb->prob_add);
-    Py_XDECREF(cb->prob_get);
   } else {
     cb = new_py_ud_cb();
     /* bind callback wrapper to fold compound */
     vrna_ud_set_data(vc, (void *)cb, &delete_py_ud_callback);
   }
+  /* release previous callbacks */
+  Py_DECREF(cb->prob_add);
+  Py_DECREF(cb->prob_get);
+
+  Py_INCREF(setter); /* Increase reference counter */
+  Py_INCREF(getter); /* Increase reference counter */
+
   cb->prob_add = setter;
   cb->prob_get = getter;
-  Py_XINCREF(setter); /* Increase reference counter */
-  Py_XINCREF(getter); /* Increase reference counter */
 
   vrna_ud_set_prob_cb(vc, &py_wrap_ud_prob_add, &py_wrap_ud_prob_get);
 }
 
 
 static void
-py_wrap_ud_prod_rule( vrna_fold_compound_t *vc,
-                      void *data){
+py_wrap_ud_prod_rule(vrna_fold_compound_t *vc,
+                     void                 *data)
+{
+  PyObject          *func, *arglist, *result, *err;
+  py_ud_callback_t  *cb;
 
-  PyObject *func, *arglist, *result, *err;
-  py_ud_callback_t *cb = (py_ud_callback_t *)data;
+  cb    = (py_ud_callback_t *)data;
+  func  = cb->prod_rule;
 
-  func = cb->prod_rule;
   /* compose argument list */
   arglist = Py_BuildValue("(O,O)", vc, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
@@ -259,13 +264,15 @@ py_wrap_ud_prod_rule( vrna_fold_compound_t *vc,
 
 
 static void
-py_wrap_ud_exp_prod_rule( vrna_fold_compound_t *vc,
-                          void *data){
+py_wrap_ud_exp_prod_rule(vrna_fold_compound_t *vc,
+                         void                 *data)
+{
+  PyObject          *func, *arglist, *result, *err;
+  py_ud_callback_t  *cb;
 
-  PyObject *func, *arglist, *result, *err;
-  py_ud_callback_t *cb = (py_ud_callback_t *)data;
+  cb    = (py_ud_callback_t *)data;
+  func  = cb->exp_prod_rule;
 
-  func = cb->exp_prod_rule;
   /* compose argument list */
   arglist = Py_BuildValue("(O,O)", vc, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
@@ -294,24 +301,20 @@ py_wrap_ud_exp_prod_rule( vrna_fold_compound_t *vc,
 
 static int
 py_wrap_ud_energy(vrna_fold_compound_t *vc,
-                  int i,
-                  int j,
-                  unsigned int looptype,
-                  void *data){
+                  int                  i,
+                  int                  j,
+                  unsigned int         looptype,
+                  void                 *data)
+{
+  int               ret;
+  PyObject          *func, *arglist, *result, *err, *py_vc, *py_i, *py_j, *py_looptype;
+  py_ud_callback_t  *cb;
 
-  int ret;
-  PyObject *func, *arglist, *result, *err;
-  py_ud_callback_t *cb = (py_ud_callback_t *)data;
+  ret   = 0;
+  cb    = (py_ud_callback_t *)data;
+  func  = cb->energy;
 
-  ret  = 0;
-  func = cb->energy;
   /* compose argument list */
-#if 0
-  arglist = Py_BuildValue("(O,i,i,I,O)", vc, i, j, looptype, (cb->data) ? cb->data : Py_None);
-  result =  PyObject_CallObject(func, arglist);
-  Py_DECREF(arglist);
-#else
-  PyObject *py_vc, *py_i, *py_j, *py_looptype;
   py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
                                    SWIGTYPE_p_vrna_fold_compound_t,
                                    SWIG_POINTER_NEW);
@@ -330,7 +333,6 @@ py_wrap_ud_energy(vrna_fold_compound_t *vc,
   Py_DECREF(py_i);
   Py_DECREF(py_j);
   Py_DECREF(py_looptype);
-#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -359,25 +361,23 @@ py_wrap_ud_energy(vrna_fold_compound_t *vc,
 
 static FLT_OR_DBL
 py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
-                      int i,
-                      int j,
-                      unsigned int looptype,
-                      void *data){
+                      int                  i,
+                      int                  j,
+                      unsigned int         looptype,
+                      void                 *data)
+{
+  FLT_OR_DBL        ret;
+  PyObject          *func, *arglist, *result, *err, *py_vc, *py_i, *py_j, *py_looptype;
+  py_ud_callback_t  *cb;
 
-  FLT_OR_DBL ret;
-  PyObject *func, *arglist, *result, *err;
-  py_ud_callback_t *cb = (py_ud_callback_t *)data;
+  ret   = 1.;
+  cb    = (py_ud_callback_t *)data;
+  func  = cb->exp_energy;
 
-  ret  = 1.;
-  func = cb->exp_energy;
   /* compose argument list */
-#if 0
-  arglist = Py_BuildValue("(O,i,i,I,O)", vc, i, j, looptype, (cb->data) ? cb->data : Py_None);
-  result =  PyObject_CallObject(func, arglist);
-  Py_DECREF(arglist);
-#else
-  PyObject *py_vc, *py_i, *py_j, *py_looptype;
-  py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc), SWIGTYPE_p_vrna_fold_compound_t, SWIG_POINTER_NEW);
+  py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
+                                   SWIGTYPE_p_vrna_fold_compound_t,
+                                   SWIG_POINTER_NEW);
   py_i        = PyLong_FromLong(i);
   py_j        = PyLong_FromLong(j);
   py_looptype = PyLong_FromLong(looptype);
@@ -393,7 +393,6 @@ py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
   Py_DECREF(py_i);
   Py_DECREF(py_j);
   Py_DECREF(py_looptype);
-#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -422,23 +421,19 @@ py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
 
 static void
 py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
-                    int i,
-                    int j,
-                    unsigned int looptype,
-                    FLT_OR_DBL prob,
-                    void *data){
+                    int                  i,
+                    int                  j,
+                    unsigned int         looptype,
+                    FLT_OR_DBL           prob,
+                    void                 *data)
+{
+  PyObject          *func, *arglist, *result, *err, *py_vc, *py_i, *py_j, *py_looptype, *py_prob;
+  py_ud_callback_t  *cb;
 
-  PyObject *func, *arglist, *result, *err;
-  py_ud_callback_t *cb = (py_ud_callback_t *)data;
+  cb    = (py_ud_callback_t *)data;
+  func  = cb->prob_add;
 
-  func = cb->prob_add;
   /* compose argument list */
-#if 0
-  arglist = Py_BuildValue("(O,i,i,I,d,O)", vc, i, j, looptype, (double)prob, (cb->data) ? cb->data : Py_None);
-  result =  PyObject_CallObject(func, arglist);
-  Py_DECREF(arglist);
-#else
-  PyObject *py_vc, *py_i, *py_j, *py_looptype, *py_prob;
   py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
                                    SWIGTYPE_p_vrna_fold_compound_t,
                                    SWIG_POINTER_NEW);
@@ -460,7 +455,6 @@ py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
   Py_DECREF(py_j);
   Py_DECREF(py_looptype);
   Py_DECREF(py_prob);
-#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -485,26 +479,21 @@ py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
 
 static FLT_OR_DBL
 py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
-                    int i,
-                    int j,
-                    unsigned int looptype,
-                    int motif,
-                    void *data){
+                    int                  i,
+                    int                  j,
+                    unsigned int         looptype,
+                    int                  motif,
+                    void                 *data)
+{
+  FLT_OR_DBL        ret;
+  PyObject          *func, *arglist, *result, *err, *py_vc, *py_i, *py_j, *py_looptype, *py_motif;
+  py_ud_callback_t  *cb;
 
-  FLT_OR_DBL ret;
-  PyObject *func, *arglist, *result, *err;
-  py_ud_callback_t *cb = (py_ud_callback_t *)data;
-
-  func = cb->prob_get;
-  ret  = 1.;
+  ret   = 1.;
+  cb    = (py_ud_callback_t *)data;
+  func  = cb->prob_get;
 
   /* compose argument list */
-#if 0
-  arglist = Py_BuildValue("(O,i,i,I,i,O)", vc, i, j, looptype, motif, (cb->data) ? cb->data : Py_None);
-  result  =  PyObject_CallObject(func, arglist);
-  Py_DECREF(arglist);
-#else
-  PyObject *py_vc, *py_i, *py_j, *py_looptype, *py_motif;
   py_vc       = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
                                    SWIGTYPE_p_vrna_fold_compound_t,
                                    SWIG_POINTER_NEW);
@@ -526,7 +515,6 @@ py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
   Py_DECREF(py_j);
   Py_DECREF(py_looptype);
   Py_DECREF(py_motif);
-#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -554,10 +542,25 @@ py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
 
 %}
 
-static void ud_set_pydata(vrna_fold_compound_t *vc, PyObject *data, PyObject *PyFuncOrNone);
-static void ud_set_prod_cb(vrna_fold_compound_t *vc, PyObject *prod_cb, PyObject *eval_cb);
-static void ud_set_exp_prod_cb(vrna_fold_compound_t *vc, PyObject *prod_cb, PyObject *eval_cb);
-static void ud_set_prob_cb( vrna_fold_compound_t *vc, PyObject *setter, PyObject *getter);
+static void
+ud_set_pydata(vrna_fold_compound_t *vc,
+              PyObject             *data,
+              PyObject             *PyFuncOrNone);
+
+static void
+ud_set_prod_cb(vrna_fold_compound_t *vc,
+               PyObject             *prod_cb,
+               PyObject             *eval_cb);
+
+static void
+ud_set_exp_prod_cb(vrna_fold_compound_t *vc,
+                   PyObject             *prod_cb,
+                   PyObject             *eval_cb);
+
+static void
+ud_set_prob_cb(vrna_fold_compound_t *vc,
+               PyObject             *setter,
+               PyObject             *getter);
 
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
@@ -571,16 +574,22 @@ static void ud_set_prob_cb( vrna_fold_compound_t *vc, PyObject *setter, PyObject
 %feature("autodoc") ud_set_prob_cb;
 %feature("kwargs") ud_set_prob_cb;
 
-  PyObject *ud_set_data(PyObject *data, PyObject *PyFuncOrNone=Py_None){
+  PyObject *
+  ud_set_data(PyObject *data,
+              PyObject *PyFuncOrNone = Py_None)
+  {
     ud_set_pydata($self, data, PyFuncOrNone);
     Py_RETURN_NONE;
   }
 
-  PyObject *ud_set_prod_rule_cb(PyObject *prod_cb, PyObject *eval_cb){
-    if(!PyCallable_Check(prod_cb)) {
+  PyObject *
+  ud_set_prod_rule_cb(PyObject *prod_cb,
+                      PyObject *eval_cb)
+  {
+    if (!PyCallable_Check(prod_cb)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
       Py_RETURN_NONE;
-    } else if(!PyCallable_Check(eval_cb)){
+    } else if (!PyCallable_Check(eval_cb)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
       Py_RETURN_NONE;
     }
@@ -588,11 +597,14 @@ static void ud_set_prob_cb( vrna_fold_compound_t *vc, PyObject *setter, PyObject
     Py_RETURN_NONE;
   }
 
-  PyObject *ud_set_exp_prod_rule_cb(PyObject *prod_cb, PyObject *eval_cb){
-    if(!PyCallable_Check(prod_cb)) {
+  PyObject *
+  ud_set_exp_prod_rule_cb(PyObject *prod_cb,
+                          PyObject *eval_cb)
+  {
+    if (!PyCallable_Check(prod_cb)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
       Py_RETURN_NONE;
-    } else if(!PyCallable_Check(eval_cb)){
+    } else if (!PyCallable_Check(eval_cb)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
       Py_RETURN_NONE;
     }
@@ -600,11 +612,14 @@ static void ud_set_prob_cb( vrna_fold_compound_t *vc, PyObject *setter, PyObject
     Py_RETURN_NONE;
   }
 
-  PyObject *ud_set_prob_cb(PyObject *setter, PyObject *getter){
-    if(!PyCallable_Check(setter)) {
+  PyObject *
+  ud_set_prob_cb(PyObject *setter,
+                 PyObject *getter)
+  {
+    if (!PyCallable_Check(setter)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
       Py_RETURN_NONE;
-    } else if(!PyCallable_Check(getter)){
+    } else if (!PyCallable_Check(getter)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
       Py_RETURN_NONE;
     }
