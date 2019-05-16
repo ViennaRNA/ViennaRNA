@@ -250,6 +250,16 @@ vrna_file_connect_read_record(FILE          *fp,
                               char          **remainder,
                               unsigned int  options);
 
+int
+vrna_file_RNAstrand_db_read_record(FILE         *fp,
+                                   char         **name_p,
+                                   char         **sequence_p,
+                                   char         **structure_p,
+                                   char         **source_p,
+                                   char         **fname_p,
+                                   char         **id_p,
+                                   unsigned int options);
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**

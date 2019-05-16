@@ -96,6 +96,68 @@ my_file_fasta_read( std::string               *id,
 %clear std::string *id, std::string *sequence;
 %clear std::vector<std::string>& rest;
 
+
+%rename (file_RNAstrand_db_read_record) my_file_RNAstrand_db_read_record;
+
+%{
+  int
+  my_file_RNAstrand_db_read_record(FILE         *fp,
+                                   std::string  *name,
+                                   std::string  *sequence,
+                                   std::string  *structure,
+                                   std::string  *source,
+                                   std::string  *fname,
+                                   std::string  *id,
+                                   unsigned int options = 0)
+  {
+    char *c_name, *c_sequence, *c_structure, *c_source, *c_fname, *c_id;
+
+    int r = vrna_file_RNAstrand_db_read_record(fp,
+                                               &c_name,
+                                               &c_sequence,
+                                               &c_structure,
+                                               &c_source,
+                                               &c_fname,
+                                               &c_id,
+                                               options);
+
+    if (r) {
+      *name      = (c_name) ? c_name : "";
+      *sequence  = (c_sequence) ? c_sequence : "";
+      *structure = (c_structure) ? c_structure : "";
+      *source    = (c_source) ? c_source : "";
+      *fname     = (c_fname) ? c_fname : "";
+      *id        = (c_id) ? c_id : "";
+
+      free(c_name);
+      free(c_sequence);
+      free(c_structure);
+      free(c_source);
+      free(c_fname);
+      free(c_id);
+    }
+
+    return r;
+  }
+
+%}
+
+
+%apply std::string              *OUTPUT { std::string *name, std::string *sequence, std::string *structure, std::string *source, std::string *fname, std::string *id };
+
+int
+my_file_RNAstrand_db_read_record(FILE         *fp,
+                                 std::string  *name,
+                                 std::string  *sequence,
+                                 std::string  *structure,
+                                 std::string  *source,
+                                 std::string  *fname,
+                                 std::string  *id,
+                                 unsigned int options = 0);
+
+%clear std::string *name, std::string *sequence, std::string *structure, std::string *source, std::string *fname, std::string *id;
+
+
 %include <ViennaRNA/io/file_formats.h>
 
 /**********************************************/

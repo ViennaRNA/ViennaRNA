@@ -715,6 +715,202 @@ vrna_file_SHAPE_read(const char *file_name,
 
 
 PUBLIC int
+vrna_file_RNAstrand_db_read_record(FILE         *fp,
+                                   char         **name_p,
+                                   char         **sequence_p,
+                                   char         **structure_p,
+                                   char         **source_p,
+                                   char         **fname_p,
+                                   char         **id_p,
+                                   unsigned int options)
+{
+  char          *ptr;
+  unsigned int  state = 0;
+  int           ret   = 0;
+  size_t        line_length;
+  size_t        seq_len = 0;
+  size_t        struct_len = 0;
+
+  char *line;
+
+  *name_p = *sequence_p = *structure_p = *source_p = *fname_p = *id_p = NULL;
+
+  while ((line = vrna_read_line(fp))) {
+    /* skip lines starting with whitespace */
+    if ((*line == '\0') || isspace(*line)) {
+      /* whitespace should separate blocks from each other, but we allow for whitespace line before record */
+      if (state > 0)
+        state++;
+
+      if (state > 3)
+        break;
+
+      continue;
+    }
+
+    if (state > 3)
+      break; /* we should have read the entire record */
+
+    line_length = strlen(line);
+
+    if (*line == '#') {
+      state = 1;
+      /* still in header */
+      if (!strncmp(line, "# File", 6)) {
+        char *name = (char *)vrna_alloc(sizeof(char) * (line_length - 5));
+        if (sscanf(line, "# File %s", name) == 1) {
+          *name_p = name;
+        } else {
+          free(name);
+          goto RNAstrand_parser_end;
+        }
+      } else if (!strncmp(line, "# External source:", 18)) {
+        char *source = (char *)vrna_alloc(sizeof(char) * (line_length - 18));
+        size_t pos        = 19;
+        size_t source_len = 0;
+        while (line[pos] != '\0') {
+          /* only read until first comma */
+          if (line[pos] == ',')
+            break;
+          source_len++;
+          pos++;
+        }
+        if (source_len > 0) {
+          source = (char *)vrna_realloc(source, sizeof(char) * (source_len + 1));
+          strncpy(source, line + 19, sizeof(char) * source_len);
+          source[source_len] = '\0';
+          *source_p = source;
+
+          /* try detecting the 'file name' */
+          if ((ptr = strstr(line + 19, "file name:"))) {
+            pos = 11;
+            source_len = 0;
+            while (ptr[pos] != '\0') {
+              /* only read until next comma */
+              if (ptr[pos] == ',')
+                break;
+              source_len++;
+              pos++;
+            }
+            if (source_len > 0) {
+              *fname_p = (char *)vrna_alloc(sizeof(char) * (source_len + 1));
+              strncpy(*fname_p, ptr + 11, sizeof(char) * source_len);
+              (*fname_p)[source_len] = '\0';
+            }
+          }
+
+          /* try detecting 'ID' */
+          if ((ptr = strstr(line + 19, "ID:"))) {
+            pos = 4;
+            source_len = 0;
+            while (ptr[pos] != '\0') {
+              /* only read until next comma */
+              if (ptr[pos] == ',')
+                break;
+              source_len++;
+              pos++;
+            }
+            if (source_len > 0) {
+              *id_p = (char *)vrna_alloc(sizeof(char) * (source_len + 1));
+              strncpy(*id_p, ptr + 4, sizeof(char) * source_len);
+              (*id_p)[source_len] = '\0';
+            }
+          }
+        } else {
+          free(source);
+          goto RNAstrand_parser_end;
+        }
+      }
+    } else {
+      /*
+          from here on, we need some heuristic to actually decide whether we
+          read the sequence, or a dot-parenthesis structure.
+          In fact, the sequence may contain some special characters that are used
+          to annotate modified nucleotides. On the other hand, the dot-parenthesis
+          structure may consist of characters other than the usual parenthesis/bracket
+          characters '()', '[]', '{}', and '.'. Pseudo-knots sometimes are annotated
+          as matching upper-case/lowercase letters from the alphabet [A-Z].
+      */
+
+      if (state == 2) {
+        /* lets first count the number of alphabetic characters and brackets/parenthesis */
+        size_t alpha      = 0;
+        size_t dot_parent = 0;
+        for (size_t i = 0; i < line_length; i++) {
+          if ((isalpha(line[i])) ||
+              (line[i] == '~')) {
+            alpha++;
+          } else if ((line[i] == '.') ||
+                     (line[i] == '(') ||
+                     (line[i] == ')') ||
+                     (line[i] == '[') ||
+                     (line[i] == ']') ||
+                     (line[i] == '{') ||
+                     (line[i] == '}') ||
+                     (line[i] == '<') ||
+                     (line[i] == '>')) {
+            dot_parent++;
+          }
+        }
+
+        /*
+            here, we simply assume that if the entire line
+            looks like dot-parenthesis, or at least the majority
+            of characters are more dot-parenthesis-like, we are
+            actually looking at a structure.
+        */
+        if ((dot_parent == line_length) ||
+            ((alpha != line_length) &&
+              (dot_parent > alpha))) {
+            state = 3;
+        }
+
+        if (state == 2) {
+          /* still in sequence scan mode? */
+          size_t tmp_len = seq_len + line_length + 1;
+          *sequence_p = (char *)vrna_realloc(*sequence_p, sizeof(char) * tmp_len);
+          memcpy(*sequence_p + seq_len, line, sizeof(char) * line_length);
+          (*sequence_p)[tmp_len - 1] = '\0';
+          seq_len += line_length;
+        }
+      }
+
+      if (state == 3) {
+        /* we are in state == 3, so this line must be structure */
+        size_t tmp_len = struct_len + line_length + 1;
+        *structure_p = (char *)vrna_realloc(*structure_p, sizeof(char) * tmp_len);
+        memcpy(*structure_p + struct_len, line, sizeof(char) * line_length);
+        (*structure_p)[tmp_len - 1] = '\0';
+        struct_len += line_length;
+      }
+    }
+  }
+
+RNAstrand_parser_end:
+
+  if (*name_p)
+    ret++;
+  if (*source_p)
+    ret++;
+  if (*sequence_p)
+    ret++;
+  if (*structure_p)
+    ret++;
+  if (*fname_p)
+    ret++;
+  if (*id_p)
+    ret++;
+
+  if ((*sequence_p) && (*structure_p))
+    return ret;
+  else {
+    return 0;
+  }
+}
+
+
+
+PUBLIC int
 vrna_file_connect_read_record(FILE          *fp,
                               char          **id,
                               char          **sequence,
