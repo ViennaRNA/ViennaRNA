@@ -1,6 +1,18 @@
 #ifndef VIENNA_RNA_PACKAGE_FIND_PATH_H
 #define VIENNA_RNA_PACKAGE_FIND_PATH_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     ViennaRNA/landscape/findpath.h
  *  @ingroup  paths
@@ -23,6 +35,13 @@
 typedef struct vrna_path_s vrna_path_t;
 
 
+/**
+ *  @brief  Options data structure for (re-)folding path implementations
+ *  @ingroup paths
+ */
+typedef struct vrna_path_options_s *vrna_path_options_t;
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* the following typedefs are for backward compatibility only */
@@ -31,21 +50,42 @@ typedef struct vrna_path_s vrna_path_t;
  *  @brief Old typename of #vrna_path_s
  *  @deprecated Use #vrna_path_t instead!
  */
-typedef struct vrna_path_s path_t;
+DEPRECATED(typedef struct vrna_path_s path_t, "Use vrna_path_t instead!");
 
 #endif
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/landscape/move.h>
+
+#define   VRNA_PATH_TYPE_DOT_BRACKET    1U
+#define   VRNA_PATH_TYPE_MOVES          2U
+
+#define   VRNA_PATH_DIRECT_FINDPATH     4U
+#define   VRNA_PATH_DIRECT_DEFAULT      (VRNA_PATH_DIRECT_FINDPATH | VRNA_PATH_TYPE_DOT_BRACKET)
+
 
 /**
  *  @brief  An element of a refolding path list
  *  @see    vrna_path_findpath()
+ *  @ingroup  paths
  */
 struct vrna_path_s {
-  double  en; /**<  @brief  Free energy of current structure */
-  char    *s; /**<  @brief  Secondary structure in dot-bracket notation */
+  unsigned int  type;
+
+  double        en; /**<  @brief  Free energy of current structure */
+  char          *s; /**<  @brief  Secondary structure in dot-bracket notation */
+
+  vrna_move_t   move;
 };
+
+
+/**
+ *  @brief    Release (free) memory occupied by a (re-)folding path
+ *  @ingroup  paths
+ */
+void
+vrna_path_free(vrna_path_t *path);
 
 
 /**
@@ -173,53 +213,137 @@ vrna_path_findpath_ub(vrna_fold_compound_t  *vc,
                       int                   maxE);
 
 
+/**
+ *  @brief    Create options data structure for findpath direct (re-)folding path heuristic
+ *
+ *  @see      #VRNA_PATH_TYPE_DOT_BRACKET, #VRNA_PATH_TYPE_MOVES, vrna_path_options_free(),
+ *            vrna_path_direct(), vrna_path_direct_ub()
+ *
+ *  @ingroup  paths
+ *
+ *  @param    width   Width of the breath-first search strategy
+ *  @param    type    Setting that specifies how the return (re-)folding path should be encoded
+ *  @returns          An options data structure with settings for the findpath direct path heuristic
+ */
+vrna_path_options_t
+vrna_path_options_findpath(int          width,
+                           unsigned int type);
+
+
+/**
+ *  @brief  Release (free) memory occupied by an options data structure for (re-)folding path implementations
+ *  @see    vrna_path_options_findpath(), vrna_path_direct(), vrna_path_direct_ub()
+ *
+ *  @ingroup  paths
+ *
+ *  @param  options   The options data structure to be free'd
+ */
+void
+vrna_path_options_free(vrna_path_options_t options);
+
+
+/**
+ *  @brief  Determine an optimal direct (re-)folding path between two secondary structures
+ *
+ *  @see    vrna_path_direct_ub(), vrna_path_options_findpath(), vrna_path_options_free(),
+ *          vrna_path_free()
+ *
+ *  @param  fc      The #vrna_fold_compound_t with precomputed sequence encoding and model details
+ *  @param  s1      The start structure in dot-bracket notation
+ *  @param  s2      The target structure in dot-bracket notation
+ *  @param  options An options data structure that specifies the path heuristic and corresponding settings
+ *  @returns        An optimal (re-)folding path between the two input structures
+ */
+vrna_path_t *
+vrna_path_direct(vrna_fold_compound_t *fc,
+                 const char           *s1,
+                 const char           *s2,
+                 vrna_path_options_t  options);
+
+
+/**
+ *  @brief  Determine an optimal direct (re-)folding path between two secondary structures
+ *
+ *  @see    vrna_path_direct_ub(), vrna_path_options_findpath(), vrna_path_options_free(),
+ *          vrna_path_free()
+ *
+ *  @param  fc      The #vrna_fold_compound_t with precomputed sequence encoding and model details
+ *  @param  s1      The start structure in dot-bracket notation
+ *  @param  s2      The target structure in dot-bracket notation
+ *  @param  maxE    Upper bound for the saddle point along the (re-)folding path
+ *  @param  options An options data structure that specifies the path heuristic and corresponding settings
+ *  @returns        An optimal (re-)folding path between the two input structures
+ */
+vrna_path_t *
+vrna_path_direct_ub(vrna_fold_compound_t  *fc,
+                    const char            *s1,
+                    const char            *s2,
+                    int                   maxE,
+                    vrna_path_options_t   options);
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
- *  \brief Find energy of a saddle point between 2 structures
+ *  @brief Find energy of a saddle point between 2 structures
  *  (search only direct path)
  *
- *  \param seq RNA sequence
- *  \param s1 A pointer to the character array where the first
+ *  @deprecated Use vrna_path_findpath_saddle() instead!
+ *
+ *  @ingroup paths_deprecated
+ *
+ *  @param seq RNA sequence
+ *  @param s1 A pointer to the character array where the first
  *         secondary structure in dot-bracket notation will be written to
- *  \param s2 A pointer to the character array where the second
+ *  @param s2 A pointer to the character array where the second
  *         secondary structure in dot-bracket notation will be written to
- *  \param width integer how many strutures are being kept during the search
- *  \returns the saddle energy in 10cal/mol
+ *  @param width integer how many strutures are being kept during the search
+ *  @returns the saddle energy in 10cal/mol
  */
-int
-find_saddle(const char  *seq,
-            const char  *s1,
-            const char  *s2,
-            int         width);
+DEPRECATED(int
+           find_saddle(const char *seq,
+                       const char *s1,
+                       const char *s2,
+                       int        width),
+           "Use vrna_path_findpath_saddle() instead!");
 
 
 /**
- *  \brief Free memory allocated by get_path() function
+ *  @brief Free memory allocated by get_path() function
  *
- *  \param path pointer to memory to be freed
+ *  @deprecated Use vrna_path_free() instead!
+ *
+ *  @ingroup paths_deprecated
+ *
+ *  @param path pointer to memory to be freed
  */
-void
-free_path(vrna_path_t *path);
+DEPRECATED(void
+           free_path(vrna_path_t *path),
+           "Use vrna_path_free() instead!");
 
 
 /**
- *  \brief Find refolding path between 2 structures
+ *  @brief Find refolding path between 2 structures
  *  (search only direct path)
  *
- *  \param seq RNA sequence
- *  \param s1 A pointer to the character array where the first
+ *  @deprecated Use vrna_path_findpath() instead!
+ *
+ *  @ingroup paths_deprecated
+ *
+ *  @param seq RNA sequence
+ *  @param s1 A pointer to the character array where the first
  *         secondary structure in dot-bracket notation will be written to
- *  \param s2 A pointer to the character array where the second
+ *  @param s2 A pointer to the character array where the second
  *         secondary structure in dot-bracket notation will be written to
- *  \param width integer how many strutures are being kept during the search
- *  \returns direct refolding path between two structures
+ *  @param width integer how many strutures are being kept during the search
+ *  @returns direct refolding path between two structures
  */
-vrna_path_t *
-get_path(const char *seq,
-         const char *s1,
-         const char *s2,
-         int        width);
+DEPRECATED(vrna_path_t *
+           get_path(const char *seq,
+                    const char *s1,
+                    const char *s2,
+                    int width),
+           "Use vrna_path_findpath() instead!");
 
 
 #endif
