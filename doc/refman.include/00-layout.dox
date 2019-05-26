@@ -75,7 +75,7 @@ formats, and various output file formats produced by our library.
 
 @page changelog   Changelog
 
-@includedoc ChangeLog
+@include{doc} CHANGELOG.md
 
 */
 
@@ -187,7 +187,7 @@ formats, and various output file formats produced by our library.
 @defgroup   neighbors                 Neighborhood Relation and Move Sets for Secondary Structures
 @ingroup    landscape
 
-@defgroup   paths                     Refolding Paths of Secondary Structures
+@defgroup   paths                     (Re-)folding Paths, Saddle Points, and Energy Barriers
 @ingroup    landscape
 
 @defgroup   probing_data              Experimental Structure Probing Data
