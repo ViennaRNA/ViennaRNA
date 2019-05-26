@@ -14,6 +14,9 @@
  */
 
 
+/**
+ *  @brief  A single move that transforms a secondary structure into one of its neighbors
+ */
 typedef struct vrna_move_s vrna_move_t;
 
 /**
