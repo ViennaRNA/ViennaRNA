@@ -28,7 +28,7 @@ AC_PATH_PROG(dot,[dot],no)
 AC_PATH_PROG(egrep,[egrep],no)
 AC_PATH_PROG(perl,[perl],no)
 
-DOXYGEN_PDFLATEX_WORKARROUND=no
+DOXYGEN_PDFLATEX_WORKARROUND=yes
 
 # check whether we are able to generate the doxygen documentation
 RNA_PACKAGE_IF_ENABLED([doc],[
