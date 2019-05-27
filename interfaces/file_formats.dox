@@ -1,6 +1,6 @@
 /**
 
-@fn vrna_file_msa_detect_format(const char *filename, unsigned int options)
+@fn unsigned int vrna_file_msa_detect_format(const char *filename, unsigned int options)
 @scripting
 @parblock
 This function exists as an overloaded version where the @p options parameter may be omitted!
@@ -8,7 +8,7 @@ In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_DEFAULT
 @endparblock
 
 
-@fn vrna_file_msa_read(const char *filename, char ***names, char ***aln, char **id, char **structure, unsigned int options)
+@fn int vrna_file_msa_read(const char *filename, char ***names, char ***aln, char **id, char **structure, unsigned int options)
 @scripting
 @parblock
 In the target scripting language, only the first and last argument, @p filename and @p options, are passed to the corresponding
@@ -30,7 +30,7 @@ In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_STOCKHO
 @endparblock
 
 
-@fn vrna_file_msa_read_record(FILE *fp, char ***names, char ***aln, char **id, char **structure, unsigned int options)
+@fn int vrna_file_msa_read_record(FILE *fp, char ***names, char ***aln, char **id, char **structure, unsigned int options)
 @scripting
 @parblock
 In the target scripting language, only the first and last argument, @p fp and @p options, are passed to the corresponding
@@ -54,7 +54,7 @@ In that case, the @p options parameter defaults to #VRNA_FILE_FORMAT_MSA_STOCKHO
 @endparblock
 
 
-@fn vrna_file_msa_write(const char *filename, const char **names, const char **aln, const char *id, const char *structure, const char *source, unsigned int options)
+@fn int vrna_file_msa_write(const char *filename, const char **names, const char **aln, const char *id, const char *structure, const char *source, unsigned int options)
 @scripting
 @parblock
 In the target scripting language, this function exists as a set of overloaded versions, where the last four parameters

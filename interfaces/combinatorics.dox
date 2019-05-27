@@ -32,7 +32,7 @@ This function is available as global function @b rotational_symmetry(). See vrna
 for details.
 @endparblock
 
-@fn unsigned int vrna_  rotational_symmetry_pos(const char *string, unsigned int **positions)
+@fn unsigned int vrna_rotational_symmetry_pos(const char *string, unsigned int **positions)
 @scripting
 @parblock
 This function is available as overloaded global function @b rotational_symmetry(). It merges
