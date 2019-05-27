@@ -21,7 +21,7 @@ at
 <br><br>
 http://www.tbi.univie.ac.at/RNA
 
-@date     1994-2018
+@date     1994-2019
 @authors  Ivo Hofacker, Peter Stadler, Ronny Lorenz, and so many more
 
 @section  license License
@@ -31,6 +31,9 @@ http://www.tbi.univie.ac.at/RNA
 @section  contributors  Contributors
 
 @includedoc THANKS
+
+If you want to get involved in the development of the ViennaRNA Package yourself,
+please read the [Contributing page](@ref md_CONTRIBUTING).
 
 @htmlonly
 <hr>
