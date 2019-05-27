@@ -347,4 +347,7 @@ formats, and various output file formats produced by our library.
 @defgroup   plotting_utils_deprecated Deprecated Interface for Plotting Utilities
 @ingroup    plotting_utils
 
+@defgroup   paths_deprecated          Deprecated Interface for (Re-)folding Paths, Saddle Points, and Energy Barriers
+@ingroup    paths
+
 */
