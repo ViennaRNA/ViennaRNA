@@ -31,6 +31,8 @@
 
 #define LOOP_EN
 
+#define   PATH_DIRECT_FINDPATH     1U
+
 /**
  *  @brief
  */
@@ -290,7 +292,7 @@ vrna_path_options_findpath(int          width,
     (struct vrna_path_options_s *)vrna_alloc(sizeof(struct vrna_path_options_s));
 
   options->type   = type;
-  options->method = VRNA_PATH_DIRECT_FINDPATH;
+  options->method = PATH_DIRECT_FINDPATH;
   options->width  = width;
 
   return options;
@@ -313,6 +315,7 @@ findpath_method(vrna_fold_compound_t  *fc,
                 unsigned int          return_type)
 {
   int         E, d;
+  float       last_E;
   vrna_path_t *route = NULL;
 
   E = vrna_path_findpath_saddle_ub(fc, s1, s2, width, maxE);
@@ -326,21 +329,25 @@ findpath_method(vrna_fold_compound_t  *fc,
     switch (return_type) {
       case VRNA_PATH_TYPE_MOVES:
         if (path_fwd) {
-          for (d = 0; d < BP_dist - 1; d++) {
+          last_E = vrna_eval_structure(fc, s1);
+          for (d = 0; d < BP_dist; d++) {
             route[d].type = return_type;
             route[d].move = vrna_move_init(path[d].i,
                                            path[d].j);
-            route[d].en = path[d].E / 100.0;
+            route[d].en = (path[d].E / 100.0) - last_E;
+            last_E      = path[d].E / 100.0;
           }
 
           route[BP_dist].type = return_type;
           route[BP_dist].move = vrna_move_init(0, 0);
         } else {
-          for (d = 0; d < BP_dist - 1; d++) {
+          last_E = vrna_eval_structure(fc, s2);
+          for (d = 0; d < BP_dist; d++) {
             route[BP_dist - d - 2].type = return_type;
             route[BP_dist - d - 2].move = vrna_move_init(path[d].i,
                                                          path[d].j);
-            route[BP_dist - d - 2].en = path[d].E / 100.0;
+            route[BP_dist - d - 2].en = last_E - (path[d].E / 100.0);
+            last_E                    = path[d].E / 100;
           }
 
           route[BP_dist].type = return_type;
@@ -441,20 +448,24 @@ vrna_path_direct_ub(vrna_fold_compound_t        *fc,
                     int                         maxE,
                     struct vrna_path_options_s  *options)
 {
-  int         E, d;
-  vrna_path_t *route = NULL;
+  int                         E, d;
+  struct vrna_path_options_s  *o;
+  vrna_path_t                 *route = NULL;
 
   /* we default to findpath method */
-  if (!options)
-    options = vrna_path_options_findpath(VRNA_PATH_TYPE_DOT_BRACKET, 10);
+  o = options ? options : vrna_path_options_findpath(10,
+                                                     VRNA_PATH_TYPE_DOT_BRACKET);
 
-  switch (options->method) {
-    case VRNA_PATH_DIRECT_FINDPATH:
+  switch (o->method) {
+    case PATH_DIRECT_FINDPATH:
     /* fall through */
     default:
-      route = findpath_method(fc, s1, s2, options->width, maxE, options->type);
+      route = findpath_method(fc, s1, s2, o->width, maxE, o->type);
       break;
   }
+
+  if (!options)
+    vrna_path_options_free(o);
 
   return route;
 }

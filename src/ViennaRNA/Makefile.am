@@ -244,6 +244,7 @@ vrna_datastructures_HEADERS = \
 
 
 vrna_landscape_HEADERS = \
+    landscape/paths.h \
     landscape/findpath.h \
     landscape/neighbor.h \
     landscape/walk.h \
