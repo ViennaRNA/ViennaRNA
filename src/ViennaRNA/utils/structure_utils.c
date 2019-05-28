@@ -22,6 +22,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/MEA.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -233,6 +234,52 @@ vrna_loopidx_from_ptable(const short *pt)
   loop[0] = nl;
   free(stack);
   return loop;
+}
+
+
+PUBLIC short *
+vrna_pt_pk_remove(const short   *ptable,
+                  unsigned int  options)
+{
+  short *pt = NULL;
+
+  if (ptable) {
+    char          *mea_structure;
+    unsigned int  i, j, n;
+    vrna_ep_t     *pairs;
+
+    n             = (unsigned int)ptable[0];
+    mea_structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
+    pairs         = (vrna_ep_t *)vrna_alloc(sizeof(vrna_ep_t) * (n + 1));
+
+    /* compose list of pairs to be used in MEA() function */
+    for (j = 0, i = 1; i <= n; i++)
+      if (ptable[i] > i) {
+        pairs[j].i    = i;
+        pairs[j].j    = ptable[i];
+        pairs[j].p    = 1.;
+        pairs[j].type = VRNA_PLIST_TYPE_BASEPAIR;
+        j++;
+      }
+
+    pairs[j].i    = 0;
+    pairs[j].j    = 0;
+    pairs[j].p    = 0;
+    pairs[j].type = VRNA_PLIST_TYPE_BASEPAIR;
+
+    /* use MEA() implementation to remove crossing base pairs */
+    memset(mea_structure, '.', n);
+
+    (void)MEA(pairs, mea_structure, 2.0);
+
+    /* convert dot-bracket structure to pair table */
+    pt = vrna_ptable(mea_structure);
+
+    free(mea_structure);
+    free(pairs);
+  }
+
+  return pt;
 }
 
 

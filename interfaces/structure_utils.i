@@ -178,6 +178,46 @@ std::vector<int> my_ptable_from_string(std::string str, unsigned int options = V
 std::vector<int> my_ptable_pk(std::string str);
 
 
+%rename (pt_pk_remove)  my_pt_pk_remove;
+
+%{
+  std::vector<int>
+  my_pt_pk_remove(std::vector<int>  pt,
+                  unsigned int      options = 0)
+  {
+    short               *ptable;
+    int                 i;
+    std::vector<short>  vs;
+    std::vector<int>    v_pt;
+
+    /* sanity check and fix */
+    if (pt[0] != pt.size() - 1)
+      pt[0] = pt.size() - 1;
+
+    transform(pt.begin(), pt.end(), back_inserter(vs), convert_vecint2vecshort);
+
+    ptable = vrna_pt_pk_remove((const short*)&vs[0], options);
+
+    for (i = 0; i <= ptable[0]; i++)
+      v_pt.push_back(ptable[i]);
+
+    free(ptable);
+
+    return v_pt;
+  }
+%}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_pt_pk_remove;
+%feature("kwargs") my_pt_pk_remove;
+#endif
+
+std::vector<int>
+my_pt_pk_remove(std::vector<int>  pt,
+                unsigned int      options = 0);
+
+%ignore vrna_pt_pk_remove;
+
 %rename (db_from_ptable) my_db_from_ptable;
 
 %{

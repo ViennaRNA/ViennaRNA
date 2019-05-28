@@ -313,6 +313,24 @@ short *
 vrna_pt_snoop_get(const char *structure);
 
 
+/**
+ *  @brief  Remove pseudo-knots from a pair table
+ *
+ *  This function removes pseudo-knots from an input structure
+ *  by determining the minimum number of base pairs that need
+ *  to be removed to make the structure pseudo-knot free.
+ *
+ *  To accomplish that, we use a dynamic programming algorithm
+ *  similar to the Nussinov maxmimum matching approach.
+ *
+ *  @param  ptable  Input structure that may include pseudo-knots
+ *  @param  options
+ *  @return         The input structure devoid of pseudo-knots
+ */
+short *
+vrna_pt_pk_remove(const short   *ptable,
+                  unsigned int  options);
+
 /* End pair table interface */
 /**@}*/
 
