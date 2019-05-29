@@ -4,7 +4,10 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.12...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.13...HEAD)
+
+
+### [Version 2.4.13](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.12...v2.4.13) (Release date: 2019-05-30)
 
 #### Programs
   * Fix centroid structure prediction for `RNAcofold`
