@@ -1,6 +1,6 @@
 /**
 
-@fn vrna_db_flatten(char *structure, unsigned int options)
+@fn void vrna_db_flatten(char *structure, unsigned int options)
 @scripting
 @parblock
 This function flattens an input structure string in-place!
@@ -20,6 +20,11 @@ for vrna_db_flatten_to().
 This function is available as an overloaded version of vrna_db_flatten()
 @endparblock
 
-
+@fn char *vrna_db_pk_remove(const char *structure, unsigned int options)
+@scripting
+@parblock
+This function is available as an overloaded function @p db_pk_remove() where
+the optional second parameter @p options defaults to #VRNA_BRACKET_DEFAULT.
+@endparblock
 
 */

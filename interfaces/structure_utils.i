@@ -125,7 +125,7 @@ char *my_unpack_structure(const char *packed);
 
   std::vector<int>
   my_ptable_from_string(std::string str,
-                        unsigned int options = VRNA_BRACKETS_DEFAULT)
+                        unsigned int options = VRNA_BRACKETS_ANY)
   {
     short int         *pt;
     int               i;
@@ -149,7 +149,7 @@ char *my_unpack_structure(const char *packed);
 #endif
 
 std::vector<int> my_ptable(std::string str);
-std::vector<int> my_ptable_from_string(std::string str, unsigned int options = VRNA_BRACKETS_DEFAULT);
+std::vector<int> my_ptable_from_string(std::string str, unsigned int options = VRNA_BRACKETS_ANY);
 
 /* pairtable with pseudoknots */
 %rename (ptable_pk) my_ptable_pk;
@@ -391,6 +391,17 @@ typedef struct {
 
     return ret;
   }
+
+  std::string
+  db_pk_remove(std::string  structure,
+               unsigned int options = VRNA_BRACKETS_ANY)
+  {
+    char *db = vrna_db_pk_remove(structure.c_str(), options);
+    std::string ret(db);
+    free(db);
+
+    return ret;
+  }
 %}
 
 #ifdef SWIGPYTHON
@@ -398,10 +409,13 @@ typedef struct {
 %feature("kwargs") my_plist;
 %feature("autodoc") db_from_plist;
 %feature("kwargs") db_from_plist;
+%feature("autodoc") db_pk_remove;
+%feature("kwargs") db_pk_remove;
 #endif
 
 std::vector<vrna_ep_t> my_plist(std::string structure, float pr);
 std::string db_from_plist(std::vector<vrna_ep_t> elem_probs, unsigned int length);
+std::string db_pk_remove(std::string structure, unsigned int options = VRNA_BRACKETS_ANY);
 
 
 %extend vrna_fold_compound_t {
@@ -524,12 +538,13 @@ std::string tree_string_unweight(std::string structure);
 std::string tree_string_to_db(std::string structure);
 
 
-%constant unsigned int BRACKETS_RND   = VRNA_BRACKETS_RND;
-%constant unsigned int BRACKETS_ANG   = VRNA_BRACKETS_ANG;
-%constant unsigned int BRACKETS_SQR   = VRNA_BRACKETS_SQR;
-%constant unsigned int BRACKETS_CLY   = VRNA_BRACKETS_CLY;
-%constant unsigned int BRACKETS_ALPHA = VRNA_BRACKETS_ALPHA;
+%constant unsigned int BRACKETS_RND     = VRNA_BRACKETS_RND;
+%constant unsigned int BRACKETS_ANG     = VRNA_BRACKETS_ANG;
+%constant unsigned int BRACKETS_SQR     = VRNA_BRACKETS_SQR;
+%constant unsigned int BRACKETS_CLY     = VRNA_BRACKETS_CLY;
+%constant unsigned int BRACKETS_ALPHA   = VRNA_BRACKETS_ALPHA;
 %constant unsigned int BRACKETS_DEFAULT = VRNA_BRACKETS_DEFAULT;
+%constant unsigned int BRACKETS_ANY     = VRNA_BRACKETS_ANY;
 
 %newobject vrna_db_to_element_string;
 %rename (db_to_element_string) vrna_db_to_element_string;
