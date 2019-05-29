@@ -284,6 +284,28 @@ vrna_pt_pk_remove(const short   *ptable,
 
 
 PUBLIC char *
+vrna_db_pk_remove(const char    *structure,
+                  unsigned int  options)
+{
+  char  *s;
+  short *pt_pk, *pt;
+
+  s = NULL;
+
+  if (structure) {
+    pt_pk = vrna_ptable_from_string(structure, options & VRNA_BRACKETS_ANY);
+    pt    = vrna_pt_pk_remove(pt_pk, options);
+    s     = vrna_db_from_ptable(pt);
+
+    free(pt_pk);
+    free(pt);
+  }
+
+  return s;
+}
+
+
+PUBLIC char *
 vrna_db_from_ptable(short *pt)
 {
   unsigned int  n;
@@ -335,6 +357,17 @@ vrna_db_flatten_to(char         *string,
 
     if (options & VRNA_BRACKETS_SQR)
       flatten_brackets(string, "<>", target);
+
+    if (options & VRNA_BRACKETS_ALPHA) {
+      char pairs[3];
+
+      for (int i = 65; i < 91; i++) {
+        pairs[0]  = (char)i;
+        pairs[1]  = (char)(i + 32);
+        pairs[2]  = '\0';
+        flatten_brackets(string, pairs, target);
+      }
+    }
   }
 }
 
@@ -388,7 +421,7 @@ vrna_ptable_from_string(const char    *string,
   if (options & VRNA_BRACKETS_ALPHA) {
     for (i = 65; i < 91; i++) {
       pairs[0]  = (char)i;
-      pairs[1]  = (char)(i + 7);
+      pairs[1]  = (char)(i + 32);
       pairs[2]  = '\0';
       if (!extract_pairs(pt, string, pairs)) {
         free(pt);

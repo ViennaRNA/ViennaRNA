@@ -92,13 +92,33 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
 /**
  *  @brief  Default bitmask to indicate secondary structure notation using any pair of brackets
  *
- *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to()
+ *  This set of matching brackets/parenthesis is always nested, i.e. pseudo-knot free, in WUSS
+ *  format. However, in general different kinds of brackets are mostly used for annotating
+ *  pseudo-knots. Thus special care has to be taken to remove pseudo-knots if this bitmask
+ *  is used in functions that return secondary structures without pseudo-knots!
+ *
+ *  @see  vrna_ptable_from_string(), vrna_db_flatten(), vrna_db_flatten_to(), vrna_db_pk_remove()
+ *        vrna_pt_pk_remove()
  */
 #define VRNA_BRACKETS_DEFAULT  \
   (VRNA_BRACKETS_RND | \
    VRNA_BRACKETS_CLY | \
    VRNA_BRACKETS_ANG | \
    VRNA_BRACKETS_SQR)
+
+
+/**
+ *  @brief  Bitmask to indicate secondary structure notation using any pair of brackets or uppercase/lowercase alphabet letters
+ *
+ *  @see  vrna_ptable_from_string(), vrna_db_pk_remove(), vrna_db_flatten(),
+ *        vrna_db_flatten_to()
+ */
+#define VRNA_BRACKETS_ANY \
+  (VRNA_BRACKETS_RND | \
+   VRNA_BRACKETS_CLY | \
+   VRNA_BRACKETS_ANG | \
+   VRNA_BRACKETS_SQR | \
+   VRNA_BRACKETS_ALPHA)
 
 
 /**
@@ -225,6 +245,41 @@ char *
 vrna_db_to_element_string(const char *structure);
 
 
+/**
+ *  @brief  Remove pseudo-knots from an input structure
+ *
+ *  This function removes pseudo-knots from an input structure
+ *  by determining the minimum number of base pairs that need
+ *  to be removed to make the structure pseudo-knot free.
+ *
+ *  To accomplish that, we use a dynamic programming algorithm
+ *  similar to the Nussinov maxmimum matching approach.
+ *
+ *  The input structure must be in a dot-bracket string like form
+ *  where crossing base pairs are denoted by the use of additional
+ *  types of matching brackets, e.g. @p <>, @p {}, @p [], @p {}.
+ *  Furthermore, crossing pairs may be annotated by matching
+ *  uppercase/lowercase letters from the alphabet @p A-Z. For the latter,
+ *  the uppercase letter must be the 5' and the lowercase letter
+ *  the 3' nucleotide of the base pair. The actual type of brackets
+ *  to be recognized by this function must be specifed through the
+ *  @p options parameter.
+ *
+ *  @note Brackets in the input structure string that are not covered
+ *        by the @p options bitmask will be silently ignored!
+ *
+ *  @see vrna_pt_pk_remove(), vrna_db_flatten(),
+ *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
+ *       #VRNA_BRACKETS_ALPHA, #VRNA_BRACKETS_DEFAULT, #VRNA_BRACKETS_ANY
+ *
+ *  @param  structure   Input structure in dot-bracket format that may include pseudo-knots
+ *  @param  options     A bitmask to specify which types of brackets should be processed
+ *  @return             The input structure devoid of pseudo-knots in dot-bracket notation
+ */
+char *
+vrna_db_pk_remove(const char *structure,
+                  unsigned int options);
+
 /* End dot-bracket interface */
 /**@}*/
 
@@ -255,9 +310,13 @@ vrna_ptable(const char *structure);
  *  in @ref dot-bracket-notation or @ref dot-bracket-ext-notation, and converts
  *  it into a pair table representation.
  *
- *  @see vrna_ptable(), vrna_db_from_ptable(), vrna_db_flatten_to(),
+ *  @note   This function also extracts crossing base pairs, i.e. pseudo-knots
+ *          if more than a single matching bracket type is allowed through the
+ *          bitmask @p options.
+ *
+ *  @see vrna_ptable(), vrna_db_from_ptable(), vrna_db_flatten_to(), vrna_pt_pk_remove()
  *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
- *       #VRNA_BRACKETS_DEFAULT
+ *       VRNA_BRACKETS_ALPHA, #VRNA_BRACKETS_DEFAULT, #VRNA_BRACKETS_ANY
  *
  *  @param  string    Secondary structure in @ref dot-bracket-ext-notation
  *  @param  options   A bitmask to specify which brackets are recognized during conversion to pair table
@@ -275,7 +334,12 @@ vrna_ptable_from_string(const char    *string,
  *  or 0 if i is unpaired, table[0] contains the length of the structure.
  *
  *  In contrast to vrna_ptable() this function also recognizes the base pairs
- *  denoted by '[' and ']' brackets.
+ *  denoted by '[' and ']' brackets. Thus, this function behaves like
+ *  @code{.c}
+ *  vrna_ptable_from_string(structure, #VRNA_BRACKET_RND | VRNA_BRACKETS_SQR)
+ *  @endcode
+ *
+ *  @see    vrna_ptable_from_string()
  *
  *  @param  structure The secondary structure in (extended) dot-bracket notation
  *  @return           A pointer to the created pair_table
@@ -322,6 +386,8 @@ vrna_pt_snoop_get(const char *structure);
  *
  *  To accomplish that, we use a dynamic programming algorithm
  *  similar to the Nussinov maxmimum matching approach.
+ *
+ *  @see    vrna_db_pk_remove()
  *
  *  @param  ptable  Input structure that may include pseudo-knots
  *  @param  options
