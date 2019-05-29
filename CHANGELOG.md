@@ -8,6 +8,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 #### Programs
   * Fix centroid structure prediction for `RNAcofold`
+  * Fix `--noLP` option for `RNALalifold`
 
 #### Library
   * API: Refactor and fix collision handling in `vrna_hash_table_t`
@@ -16,9 +17,13 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * API: Refactor multiloop MFE backtracking for odd dangles
   * API: Add function `vrna_backtrack5()` to allow for MFE backtracking of sub-sequences starting at the 5'-end
   * API: Reduce usage of global macro `TURN` by replacing it with `min_loop_size` field of `vrna_md_t`
+  * API: Add functions `vrna_path_direct()` and `vrna_path_direct_ub()` that may also return move lists instead of dot-bracket lists
+  * API: Add functions `vrna_pt_pk_remove()` and `vrna_db_pk_remove()` that remove pseudoknots from an input structure
+  * API: Fix invalid memory access for lonely pair mode (`--noLP`) in comparative sliding-window MFE prediction
   * SWIG: Fix access to global variable `pf_smooth` and `pf_smooth` attribute in `model_details` object
   * SWIG: Fix Python reference counting for `Py_None` in `interfaces/findpath.i` wrapper
   * SWIG: Refactor reference counting for all Python2 and Python3 wrappers
+  * REFMAN: Larger updates and restructuring of reference manual
 
 #### Package
   * Install example scripts and source code files, e.g. to $prefix/share/ViennaRNA/examples
