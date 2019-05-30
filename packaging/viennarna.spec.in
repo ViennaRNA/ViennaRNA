@@ -65,6 +65,7 @@ Requires:       mpfr
 %endif
 
 Provides:       Kinfold
+Provides:       kinwalker
 
 %if 0%{?suse_version}
 BuildRequires:  python-devel python
@@ -185,12 +186,33 @@ Python 3 bindings for ViennaRNA RNAlib.
 
 %build
 %if 0%{?fedora} && 0%{?fedora_version} < 22
-%configure --with-cluster --without-forester --without-rnalocmin --disable-lto --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%configure \
+    --with-cluster \
+    --without-forester \
+    --without-rnalocmin \
+    --with-kinwalker \
+    --disable-lto \
+    --docdir=%{_pkgdocdir} \
+    INSTALLDIRS=vendor \
+    PERL=/usr/bin/perl
 %else
 %if 0%{?with_rnalocmin}
-%configure --with-cluster --without-forester --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%configure \
+    --with-cluster \
+    --without-forester \
+    --with-kinwalker \
+    --docdir=%{_pkgdocdir} \
+    INSTALLDIRS=vendor \
+    PERL=/usr/bin/perl
 %else
-%configure --with-cluster --without-forester --without-rnalocmin --docdir=%{_pkgdocdir} INSTALLDIRS=vendor PERL=/usr/bin/perl
+%configure \
+    --with-cluster \
+    --without-forester \
+    --without-rnalocmin \
+    --with-kinwalker \
+    --docdir=%{_pkgdocdir} \
+    INSTALLDIRS=vendor \
+    PERL=/usr/bin/perl
 %endif
 %endif
 make %{?_smp_mflags}
@@ -286,6 +308,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/RNAdistance.1.gz
 %{_mandir}/man1/RNAplex.1.gz
 %{_mandir}/man1/ct2db.1.gz
+%{_mandir}/man1/kinwalker.1.gz
 %if 0%{?with_rnalocmin}
 %{_mandir}/man1/RNAlocmin.1.gz
 %endif
