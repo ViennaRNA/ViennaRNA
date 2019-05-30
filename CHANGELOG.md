@@ -33,7 +33,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * SWIG: Fix wrapper building for `swig >= 4.0.0`
 
 
-### [v2.4.12](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.11...v2.4.12) (2019-04-16)
+### [Version 2.4.12](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.11...v2.4.12) (Release date: 2019-04-16)
 
 #### Programs
   * Add non-redundant stochastic backtracing option for `RNAalifold`
@@ -74,7 +74,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Reduce intra-package dependency on non-v3.0 API
 
 
-### [v2.4.11](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.10...v2.4.11) (2018-12-17)
+### [Version 2.4.11](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.10...v2.4.11) (Release date: 2018-12-17)
 
 #### Programs
   * Add `--commands` option to `RNAsubopt`
@@ -100,7 +100,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Replace `--enable-sse` configure script option with `--disable-simd`
 
 
-### [v2.4.10](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.9...v2.4.10) (2018-09-26)
+### [Version 2.4.10](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.9...v2.4.10) (Release date: 2018-09-26)
 
 #### Programs
   * Fix wrong output filename for binary opening energies in `RNAplfold`
@@ -125,7 +125,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add `-ftree-vectorize` compile flag by default if supported
 
 
-### [v2.4.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.8...v2.4.9) (2018-07-11)
+### [Version 2.4.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.8...v2.4.9) (Release date: 2018-07-11)
 
 #### Programs
   * Fix interactive mode behavior for multiple sequence alignment input in `RNAalifold`, `RNALalifold`
@@ -150,7 +150,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Remove implicit `exit()` calls from global MFE backtracking implementation.
 
 
-### [v2.4.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.7...v2.4.8) (2018-06-23)
+### [Version 2.4.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.7...v2.4.8) (Release date: 2018-06-23)
 
 #### Programs
   * Fix compilation of RNAforester with C++17 standard
@@ -168,7 +168,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * TESTS: Add test case for RNAcofold -p
 
 
-### [v2.4.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.6...v2.4.7) (2018-06-13)
+### [Version 2.4.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.6...v2.4.7) (Release date: 2018-06-13)
   * Allow for parallel processing across multiple input files in RNAfold
   * Allow for arbitrary number of input files in RNAalifold
   * Allow for parallel processing of input data in RNAalifold
@@ -206,7 +206,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * REFMAN: Large updates in API documentation and structure of reference manual
 
 
-### [v2.4.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.5...v2.4.6) (2018-04-19)
+### [Version 2.4.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.5...v2.4.6) (Release date: 2018-04-19)
   * Stabilize rounding of free energy output in RNAalifold
   * API: Fix potential rounding errors for comparative free energies in eval.c and mfe.c
   * API: Fix regression in exterior loop dangling end contributions for comparative base pair probabilities and Boltzmann sampling (introduced with v2.4.4)
@@ -215,7 +215,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * TESTS: Ignore 'frequency of MFE structure' in RNAcofold partition function checks
 
 
-### [v2.4.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.4...v2.4.5) (2018-04-17)
+### [Version 2.4.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.4...v2.4.5) (Release date: 2018-04-17)
   * Allow for arbitrary number of input files in RNAfold
   * Allow for parallel processing of input data in RNAfold (UNIX only, no Windows support yet)
   * Add SHAPE reactivity support through commandline options for RNAplfold
@@ -239,7 +239,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * SWIG: Add keyword arguments and autodoc feature for Python/Python3 wrappers
 
 
-### [v2.4.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.3...v2.4.4) (2018-03-06)
+### [Version 2.4.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.3...v2.4.4) (Release date: 2018-03-06)
   * Change verbose output for soft-constraints derived ligand binding motifs in RNAfold
   * Allow for lowercase letters in ct2db input
   * Fix bug in interior-like G-Quadruplex MFE computation for single sequences
@@ -268,7 +268,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * REFMAN: Heavy re-ordering of the RNAlib reference manual
 
 
-### [v2.4.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.2...v2.4.3) (2017-11-14)
+### [Version 2.4.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.2...v2.4.3) (Release date: 2017-11-14)
   * Fix handling of dangling end contribution at sequence boundaries for sliding window base pair probability computations
   * Fix handling of base pair hard constraints in sliding-window implementations
   * Fix sliding-window pair probability computations with multibranch-loop unpaired constraints
@@ -285,7 +285,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Include RNAforester v2.0.1
 
 
-### [v2.4.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.1...v2.4.2) (2017-10-13)
+### [Version 2.4.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.1...v2.4.2) (Release date: 2017-10-13)
   * Fix G-Quadruplex energy corrections in comparative structure energy evaluations
   * Fix discrepancy in comparative exterior loop dangling end contribution of eval vs. MFE predictions
   * Fix regression in RNAup unstructuredness and interaction energy computations
@@ -314,7 +314,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * REFMAN: Fix formula to image conversion in HTML output
 
 
-### [v2.4.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.0...v2.4.1) (2017-08-23)
+### [Version 2.4.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.0...v2.4.1) (Release date: 2017-08-23)
   * Fix memory leak in fold_compound methods of SWIG interface
   * Fix memory leaks in double ** returning functions of SWIG Perl5 interface
   * Fix memory leak in vrna_ep_t to-string() function of SWIG interface
@@ -325,7 +325,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add SHAPE reactivity support to RNALalifold
 
 
-### [v2.4.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.5...v2.4.0) (2017-08-01)
+### [Version 2.4.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.5...v2.4.0) (Release date: 2017-08-01)
   * Bump libsvm to version 3.22
   * Print G-Quadruplex corrections in verbose mode of RNAeval
   * Change behavior of RNAfold --outfile option to something more predictable
@@ -387,7 +387,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.3.x
 
-### [v2.3.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.4...v2.3.5) (2017-04-14)
+### [Version 2.3.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.4...v2.3.5) (Release date: 2017-04-14)
   * Fix duplication of output filename prefix in RNAfold
   * Add V3.0 API for sliding window partition function (a.k.a. RNAPLfold)
   * Add G-Quadruplex prediction to RNALalifold
@@ -398,7 +398,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Split move set in neighbor.c
 
 
-### [v2.3.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.3...v2.3.4) (2017-03-10)
+### [Version 2.3.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.3...v2.3.4) (Release date: 2017-03-10)
   * Fix G-Quadruplex probability computation for single sequences
   * Fix double-free when using SHAPE reactivity data in RNAalifold
   * Fix out-of-bounds access in strand_number array
@@ -426,12 +426,12 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add command line parameters to RNAsubopt to allow for specification of input/output files
 
 
-### [v2.3.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.2...v2.3.3) (2017-01-24)
+### [Version 2.3.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.2...v2.3.3) (Release date: 2017-01-24)
   * Fix multiloop contributions for comparative partition function
   * Fix building python2 extension module for OSX
 
 
-### [v2.3.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.1...v2.3.2) (2017-01-18)
+### [Version 2.3.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.1...v2.3.2) (Release date: 2017-01-18)
   * Fix pair probability plist creation with G-Quadruplexes
   * Allow for specification of python2/3-config at configure time
   * Fix init of vrna_md_t data structure after call to set_model_details()
@@ -445,7 +445,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add configure flag to build entirely static executables
 
 
-### [v2.3.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.0...v2.3.1) (2016-11-15)
+### [Version 2.3.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.3.0...v2.3.1) (Release date: 2016-11-15)
   * Add description for how to use unstructured domains through command files to reference manual and RNAfold manpage
   * Fix compilation issue for Windows platforms with MingW
   * Add missing newline in non-TTY-color output of vrna_message_info()
@@ -455,7 +455,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Several fixes and improvements for SWIG generated scripting language interface(s)
 
 
-### [v2.3.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.10...v2.3.0) (2016-11-01)
+### [Version 2.3.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.10...v2.3.0) (Release date: 2016-11-01)
   * Add grammar extension with structured and unstructured domains
   * Add default implementation for unstructured domains to allow for ligand/protein binding to unpaired structure segments (MFE and PF for single sequences)
   * Introduced command files that subsume constraint definition files (currently used in RNAfold and RNAcofold)
@@ -479,7 +479,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.2.x
 
-### [v2.2.10](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.9...v2.2.10) (2016-09-06)
+### [Version 2.2.10](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.9...v2.2.10) (Release date: 2016-09-06)
   * Do not 'forget' subopt results when output is not written to file handle and sorting is switched off
   * Fix bad memory access in vrna_subopt() with sorted output
   * Add SWIG wrappers for vrna_subopt_cb()
@@ -487,7 +487,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Fix autoconf checks to allow for cross compilation again
 
 
-### [v2.2.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.8...v2.2.9) (2016-09-01)
+### [Version 2.2.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.8...v2.2.9) (Release date: 2016-09-01)
   * Fix bug in partition function scaling for backward compatibility of ali_pf_fold()
   * Stabilize v3.0 API when building RNAlib and third party program linking against it with compilers that use different C/C++ standards
   * Add details on how to link against RNAlib to the reference manual
@@ -508,7 +508,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Add various new commandline options to manipulate sequence/alignment IDs in RNAfold, RNAcofold and RNAalifold
 
 
-### [v2.2.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.7...v2.2.8) (2016-08-01)
+### [Version 2.2.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.7...v2.2.8) (Release date: 2016-08-01)
   * Fix bad memory access in RNAalifold
   * Fix regression in RNAalifold to restore covariance contribution ratio determination for circular RNA alignments
   * Changed output of RNAsubopt in energy-band enumeration mode to print MFE and energy range in kcal/mol instead of 10cal/mol
@@ -533,14 +533,14 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Fix --with-*/--without-* and --enable-*/--disable-* configure script behavior
 
 
-### [v2.2.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.6...v2.2.7) (2016-06-30)
+### [Version 2.2.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.6...v2.2.7) (Release date: 2016-06-30)
   * Fix partition function scaling for long sequences in RNAfold, RNAalifold, and RNAup
   * Fix backtracking issue in RNAcofold when --noLP option is activated
   * Fix hard constraints issue for circular RNAs in generating suboptimal structures
   * Rebuild reference manual only when actually required
 
 
-### [v2.2.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.5...v2.2.6) (2016-06-19)
+### [Version 2.2.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.5...v2.2.6) (Release date: 2016-06-19)
   * Plugged memory leak in RNAcofold
   * Fixed partition function rescaling bug in RNAup
   * Fixed bug in RNALfold with window sizes larger than sequence length
@@ -553,7 +553,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Some changes to allow for compilation with newer compilers, such as gcc 6.1
 
 
-### [v2.2.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.4...v2.2.5) (2016-04-09)
+### [Version 2.2.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.4...v2.2.5) (Release date: 2016-04-09)
   * Fixed regression in RNAcofold that prohibited output of concentration computations
   * Fixed behavior of RNAfold and RNAcofold when hard constraints create empty solution set (programs now abort with error message)
   * Added optional Python 3 interface
@@ -569,22 +569,22 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Added new utility script RNAdesign.pl
 
 
-### [v2.2.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.3...v2.2.4) (2016-02-19)
+### [Version 2.2.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.3...v2.2.4) (Release date: 2016-02-19)
   * Fixed bug in RNAsubopt that occasionally produced cofolded structures twice
   * Removed debugging output in preparations of consensus structure prediction datastructures
 
 
-### [v2.2.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.2...v2.2.3) (2016-02-13)
+### [Version 2.2.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.2...v2.2.3) (Release date: 2016-02-13)
   * Added postscipt annotations for found ligand motifs in RNAfold
   * Added more documentation for the constraints features in RNAfold and RNAalifold
   * Restore backward compatibility of get_alipf_arrays()
 
 
-### [v2.2.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.1...v2.2.2) (2016-02-08)
+### [Version 2.2.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.1...v2.2.2) (Release date: 2016-02-08)
   * Fix regression bug that occasionally prevented backtracking with RNAcofold --noLP
 
 
-### [v2.2.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.0...v2.2.1) (2016-02-06)
+### [Version 2.2.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.2.0...v2.2.1) (Release date: 2016-02-06)
   * Fix regression bug that made RNAcofold -a unusable
   * Fix regression bug that prohibited RNAfold to compute the MEA structure when G-Quadruplex support was switched on
   * Fix bug in Kinfold to enable loading energy parameters from file
@@ -595,7 +595,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Install architecture dependent and independent files of the perl and python interface to their correct file system locations
 
 
-### [v2.2.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.9...v2.2.0) (2016-01-25)
+### [Version 2.2.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.9...v2.2.0) (Release date: 2016-01-25)
   * RNAforester is now of version 2.0
   * New program RNApvmin to compute pseudo-energy pertubation vector that minimizes discrepancy between observed and predicted pairing probabilities
   * SHAPE reactivity support for RNAfold, RNAsubopt, and RNAalifold
@@ -620,7 +620,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.1.x
 
-### [v2.1.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.8...v2.1.9)
+### [Version 2.1.9](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.8...v2.1.9)
   * Fixed integer underflow bug in RNALfold
   * Added Sequence Conservation index (SCI) option to RNAalifold
   * Fixed bug in energy evaluation of dangling ends / terminal mismatches of exterior loops and multibranch loops
@@ -629,7 +629,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Fixed bug in alifold backtracking for larger G-Quadruplexes
 
 
-### [v2.1.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.7...v2.1.8)
+### [Version 2.1.8](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.7...v2.1.8)
   * Repaired incorporation of RNAinverse user provided alphabet
   * Fix missing FASTA ID in RNAeval output
   * prevent race condition in parallel calls of Lfold()
@@ -637,7 +637,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Added latest version of switch.pl
 
 
-### [v2.1.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.6...v2.1.7)
+### [Version 2.1.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.6...v2.1.7)
   * Fixed bug in RNALfold -z
   * Python and Perl interface are compiling again under MacOSX
   * Fixed handling of C arrays in Python interface
@@ -645,7 +645,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Make relplot.pl work with RNAcofold output
 
 
-### [v2.1.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.5...v2.1.6)
+### [Version 2.1.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.5...v2.1.6)
   * New commandline switches allow for elimination of non-canonical base pairs from constraint structures in RNAfold, RNAalifold and RNAsubopt
   * updated moveset functions
   * final fix for discrepancy of tri-loop evaluation between partition function and mfe
@@ -653,16 +653,16 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * New program ct2db allows for conversion of .ct files into dot-bracket notation (incl. pseudo-knot removal)
 
 
-### [v2.1.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.4...v2.1.5)
+### [Version 2.1.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.4...v2.1.5)
   * Fix for discrepancy between special hairpin loop evaluation in partition functions and MFE
 
 
-### [v2.1.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.3...v2.1.4)
+### [Version 2.1.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.3...v2.1.4)
   * Fix of G-quadruplex support in subopt()
   * Fix for discrepancy between special hairpin loop evaluation in partition functions and MFE
 
 
-### [v2.1.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.2...v2.1.3)
+### [Version 2.1.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.2...v2.1.3)
   * RNAfold: Bugfix for ignoring user specified energy parameter files
   * RNAcofold: Bugfix for crashing upon constrained folding without specifying a constraint structure
   * RNAsubopt: Added G-quadruplex support
@@ -671,7 +671,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Added G-quadruplex support in subopt()
 
 
-### [v2.1.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.1...v2.1.2)
+### [Version 2.1.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.1...v2.1.2)
   * RNAfold: Bugfix for randomly missing probabilities in dot-plot during batch job execution
   * RNAeval: Bugfix for misinterpreted G-quadruplex containing sequences where the quadruplex starts at nucleotide 1
   * RNAsubopt: Slight changes to the output of stochastic backtracking and zuker subopt
@@ -681,11 +681,11 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Provision of python2 interface support. 
 
 
-### [v2.1.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.0...v2.1.1)
+### [Version 2.1.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.1.0...v2.1.1)
   * Bugfix to restore backward compatibility with ViennaRNA Package 1.8.x API (this bug also affected proper usage of the the perl interface)
 
 
-### [v2.1.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.7...v2.1.0)
+### [Version 2.1.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.7...v2.1.0)
   * G-Quadruplex support in RNAfold, RNAcofold, RNALfold, RNAalifold, RNAeval and RNAplot
   * LPfold got a new option to output its computations in split-mode
   * several G-Quadruplex related functions were introduced with this release
@@ -696,29 +696,29 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.0.x
 
-### [v2.0.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.6...v2.0.7)
+### [Version 2.0.7](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.6...v2.0.7)
   * Bugfix for RNAplfold where segfault happened upon usage of -O option
   * Corrected misbehavior of RNAeval and RNAplot in tty mode
 
 
-### [v2.0.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.5...v2.0.6)
+### [Version 2.0.6](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.5...v2.0.6)
   * Bugfix for bad type casting with gcc under MacOSX (resulted in accidental "sequence too long" errors)
   * Bugfix for disappearing tri-/hexaloop contributions when read in from certain parameter files
   * Bugfix for RNALfold that segfaulted on short strange sequences like AT+ repeats
   * Change of RNA2Dfold output format for stochastic backtracking
 
 
-### [v2.0.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.4...v2.0.5)
+### [Version 2.0.5](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.4...v2.0.5)
   * Restored z-score computation capabilities in RNALfold
 
 
-### [v2.0.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.3...v2.0.4)
+### [Version 2.0.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.3...v2.0.4)
   * Bugfix for RNAcofold partition function
   * Perl wrapper compatibility to changed RNAlib has been restored
   * Backward compatibility for partition function calls has been restored 
 
 
-### [v2.0.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.2...v2.0.3)
+### [Version 2.0.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.2...v2.0.3)
   * Bugfix for RNAalifold partition function and base pair probabilities in v2.0.3b
   * Added Boltzmann factor scaling in RNAsubopt, RNAalifold, RNAplfold and RNAcofold
   * Bugfix for alipfold() in v2.0.3b
@@ -727,13 +727,13 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Added pkg-config file in the distribution to allow easy checks for certain RNAlib2 versions, compiler flags and linker flags.
 
 
-### [v2.0.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.1...v2.0.2)
+### [Version 2.0.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.0.1...v2.0.2)
   * added support for Boltzmann factor scaling in RNAfold
   * fixed fastaheader to filename bug
   * plugged some memory leaks
 
 
-### [v2.0.1]()
+### Version 2.0.1
   * First official release of version 2.0
   * included latest bugfixes
 
