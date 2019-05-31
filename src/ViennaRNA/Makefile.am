@@ -13,6 +13,7 @@ vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_iodir              = $(pkgincludedir)/io
 vrna_searchdir          = $(pkgincludedir)/search
 vrna_plottingdir        = $(pkgincludedir)/plotting
+vrna_puzzlerdir         = $(pkgincludedir)/plotting/RNApuzzler
 vrna_loopsdir           = $(pkgincludedir)/loops
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 vrna_landscapedir       = $(pkgincludedir)/landscape
@@ -212,7 +213,9 @@ vrna_plotting_HEADERS = \
     plotting/probabilities.h \
     plotting/structures.h \
     plotting/utils.h \
-    plotting/naview.h \
+    plotting/naview.h
+
+vrna_puzzler_HEADERS = \
     plotting/RNApuzzler/RNApuzzler.h \
     plotting/RNApuzzler/RNAturtle.h
 
@@ -241,6 +244,7 @@ vrna_datastructures_HEADERS = \
 
 
 vrna_landscape_HEADERS = \
+    landscape/paths.h \
     landscape/findpath.h \
     landscape/neighbor.h \
     landscape/walk.h \

@@ -1015,7 +1015,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
   char                      *ptype, **ptype_local;
   short                     s5, s3, *S1, **SS, **S5, **S3;
   unsigned int              *sn, *se, n_seq, s, *tt;
-  int                       ij, p, q, r, e, eee, tmp_en, *idx, turn, dangle_model,
+  int                       ij, p, q, r, e, tmp_en, *idx, turn, dangle_model,
                             *my_c, *my_fML, *my_fc, *rtype, type, type_2, **c_local, **fML_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -1048,11 +1048,9 @@ BT_mb_loop(vrna_fold_compound_t *fc,
   ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : fc->ptype) : NULL;
   ptype_local     = (sliding_window) ? fc->ptype_local : NULL;
   rtype           = &(md->rtype[0]);
-  type            =
-    (fc->type ==
-     VRNA_FC_TYPE_SINGLE) ? (sliding_window ? rtype[vrna_get_ptype_window(*i, *j,
-                                                                          ptype_local)] : rtype[
-                               vrna_get_ptype(ij, ptype)]) : 0;
+  type            = (fc->type == VRNA_FC_TYPE_SINGLE) ?
+                    (sliding_window ? rtype[vrna_get_ptype_window(*i, *j, ptype_local)] : rtype[vrna_get_ptype(ij, ptype)]) :
+                    0;
   tt            = NULL;
   dangle_model  = md->dangles;
   evaluate      = prepare_hc_default(fc, &hc_dat_local);
@@ -1163,356 +1161,284 @@ BT_mb_loop(vrna_fold_compound_t *fc,
     }
   }
 
+  /* true multi loop? */
+  *component1 = *component2 = 1;  /* both components are MB loop parts by default */
+
+  s5  = -1;
+  s3  = -1;
+
+  if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+    tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
+    for (s = 0; s < n_seq; s++)
+      tt[s] = vrna_get_ptype_md(SS[s][*j], SS[s][*i], md);
+  } else {
+    if (sn[q] == sn[*j])
+      s5 = S1[q];
+
+    if (sn[*i] == sn[p])
+      s3 = S1[p];
+  }
+
   if (evaluate(*i, *j, p, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-    /* true multi loop? */
-    *component1 = *component2 = 1;  /* both components are MB loop parts by default */
+    e = en -
+        P->MLclosing *
+        n_seq;
 
-    s5  = -1;
-    s3  = -1;
+    if (dangles == 2) {
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          e -= E_MLstem(type, s5, s3, P);
+          break;
 
-
-    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
-      tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
-      for (s = 0; s < n_seq; s++)
-        tt[s] = vrna_get_ptype_md(SS[s][*j], SS[s][*i], md);
+        case VRNA_FC_TYPE_COMPARATIVE:
+          for (s = 0; s < n_seq; s++)
+            e -= E_MLstem(tt[s], S5[s][*j], S3[s][*i], P);
+          break;
+      }
     } else {
-      if (sn[q] == sn[*j])
-        s5 = S1[q];
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          e -= E_MLstem(type, -1, -1, P);
+          break;
 
-      if (sn[*i] == sn[p])
-        s3 = S1[p];
-
-      if (sliding_window)
-        type = rtype[vrna_get_ptype_window(*i, *j, ptype_local)];
-      else
-        type = rtype[vrna_get_ptype(ij, ptype)];
+        case VRNA_FC_TYPE_COMPARATIVE:
+          for (s = 0; s < n_seq; s++)
+            e -= E_MLstem(tt[s], -1, -1, P);
+          break;
+      }
     }
 
-    switch (dangle_model) {
-      case 0:
-        e = en -
-            P->MLclosing *
-            n_seq;
+    if (sc_wrapper.pair)
+      e -= sc_wrapper.pair(*i, *j, &sc_wrapper);
 
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            e -= E_MLstem(type, -1, -1, P);
-            break;
+    for (r = *i + 2 + turn; r < *j - 2 - turn; ++r) {
+      if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+        if (sliding_window)
+          tmp_en = fML_local[p][r - p] +
+                   fML_local[r + 1][q - (r + 1)];
+        else
+          tmp_en = my_fML[idx[r] + p] +
+                   my_fML[idx[q] + r + 1];
 
-          case VRNA_FC_TYPE_COMPARATIVE:
-            for (s = 0; s < n_seq; s++)
-              e -= E_MLstem(tt[s], -1, -1, P);
-            break;
-        }
+        if (sc_wrapper.decomp_ml)
+          tmp_en += sc_wrapper.decomp_ml(p, q, r, r + 1, &sc_wrapper);
 
-        if (sc_wrapper.pair)
-          e -= sc_wrapper.pair(*i, *j, &sc_wrapper);
+        if (e == tmp_en)
+          goto odd_dangles_exit;
+      }
+    }
+  }
 
-        for (r = *i + 2 + turn; r < *j - 2 - turn; ++r) {
-          if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-            if (sliding_window)
-              tmp_en = fML_local[p][r - p] +
-                       fML_local[r + 1][q - (r + 1)];
-            else
-              tmp_en = my_fML[idx[r] + p] +
-                       my_fML[idx[q] + r + 1];
+  if (dangles % 2) { /* odd dangles need more special treatment */
+    if (evaluate(*i, *j, p + 1, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+      e = en -
+          (P->MLclosing + P->MLbase) *
+          n_seq;
 
-            if (sc_wrapper.decomp_ml)
-              tmp_en += sc_wrapper.decomp_ml(p, q, r, r + 1, &sc_wrapper);
+      if (sc_wrapper.pair5)
+        e -= sc_wrapper.pair5(*i, *j, &sc_wrapper);
 
-            if (e == tmp_en)
-              break;
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          e -= E_MLstem(type, -1, s3, P);
+          break;
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          for (s = 0; s < n_seq; s++)
+            e -= E_MLstem(tt[s], -1, S3[s][*i], P);
+          break;
+      }
+
+      for (r = p + turn + 1; r < q - turn - 1; ++r) {
+        if (evaluate(p + 1, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+          if (sliding_window)
+            tmp_en = fML_local[p + 1][r - (p + 1)] +
+                     fML_local[r + 1][q - (r + 1)];
+          else
+            tmp_en = my_fML[idx[r] + p + 1] +
+                     my_fML[idx[q] + r + 1];
+
+          if (sc_wrapper.decomp_ml)
+            tmp_en += sc_wrapper.decomp_ml(p + 1, q, r, r + 1, &sc_wrapper);
+
+          if (e == tmp_en) {
+            p += 1;
+            goto odd_dangles_exit;
           }
         }
-        break;
+      }
+    }
 
-      case 2:
-        e = en -
-            P->MLclosing *
-            n_seq;
+    if (evaluate(*i, *j, p, q - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+      e = en -
+          (P->MLclosing + P->MLbase) *
+          n_seq;
 
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            e -= E_MLstem(type, s5, s3, P);
-            break;
+      if (sc_wrapper.pair3)
+        e -= sc_wrapper.pair3(*i, *j, &sc_wrapper);
 
-          case VRNA_FC_TYPE_COMPARATIVE:
-            for (s = 0; s < n_seq; s++)
-              e -= E_MLstem(tt[s], S5[s][*j], S3[s][*i], P);
-            break;
-        }
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          e -= E_MLstem(type, s5, -1, P);
+          break;
 
-        if (sc_wrapper.pair)
-          e -= sc_wrapper.pair(*i, *j, &sc_wrapper);
+        case VRNA_FC_TYPE_COMPARATIVE:
+          for (s = 0; s < n_seq; s++)
+            e -= E_MLstem(tt[s], S5[s][*j], -1, P);
+          break;
+      }
 
-        for (r = p + turn + 1; r < q - turn - 1; ++r) {
-          if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-            if (sliding_window)
-              tmp_en = fML_local[p][r - p] +
-                       fML_local[r + 1][q - (r + 1)];
-            else
-              tmp_en = my_fML[idx[r] + p] +
-                       my_fML[idx[q] + r + 1];
+      for (r = p + turn + 1; r < q - turn - 1; ++r) {
+        if (evaluate(p, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+          if (sliding_window)
+            tmp_en = fML_local[p][r - p] +
+                     fML_local[r + 1][q - 1 - (r + 1)];
+          else
+            tmp_en = my_fML[idx[r] + p] +
+                     my_fML[idx[q - 1] + r + 1];
 
-            if (sc_wrapper.decomp_ml)
-              tmp_en += sc_wrapper.decomp_ml(p, q, r, r + 1, &sc_wrapper);
+          if (sc_wrapper.decomp_ml)
+            tmp_en += sc_wrapper.decomp_ml(p, q - 1, r, r + 1, &sc_wrapper);
 
-            if (e == tmp_en)
-              break;
+          ;
+
+          if (e == tmp_en) {
+            q -= 1;
+            goto odd_dangles_exit;
           }
         }
-        break;
+      }
+    }
 
-      default:
-        eee = en -
-              P->MLclosing *
-              n_seq;
+    if (evaluate(*i, *j, p + 1, q - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+      e = en -
+          (P->MLclosing + 2 * P->MLbase) *
+          n_seq;
 
-        e = eee;
+      if (sc_wrapper.pair53)
+        e -= sc_wrapper.pair53(*i, *j, &sc_wrapper);
 
-        if (sc_wrapper.pair)
-          e -= sc_wrapper.pair(*i, *j, &sc_wrapper);
+      switch (fc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          e -= E_MLstem(type, s5, s3, P);
+          break;
 
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            e -= E_MLstem(type, -1, -1, P);
-            break;
+        case VRNA_FC_TYPE_COMPARATIVE:
+          for (s = 0; s < n_seq; s++)
+            e -= E_MLstem(tt[s], S5[s][*j], S3[s][*i], P);
+          break;
+      }
 
-          case VRNA_FC_TYPE_COMPARATIVE:
-            for (s = 0; s < n_seq; s++)
-              e -= E_MLstem(tt[s], -1, -1, P);
-            break;
-        }
+      for (r = p + turn + 1; r < q - turn - 1; ++r) {
+        if (evaluate(p + 1, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+          if (sliding_window)
+            tmp_en = fML_local[p + 1][r - (p + 1)] +
+                     fML_local[r + 1][q - 1 - (r + 1)];
+          else
+            tmp_en = my_fML[idx[r] + p + 1] +
+                     my_fML[idx[q - 1] + r + 1];
 
-        for (r = p + turn + 1; r < q - turn - 1; ++r) {
-          if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-            if (sliding_window)
-              tmp_en = fML_local[p][r - p] +
-                       fML_local[r + 1][q - (r + 1)];
-            else
-              tmp_en = my_fML[idx[r] + p] +
-                       my_fML[idx[q] + r + 1];
+          if (sc_wrapper.decomp_ml)
+            tmp_en += sc_wrapper.decomp_ml(p + 1, q - 1, r, r + 1, &sc_wrapper);
 
-            if (sc_wrapper.decomp_ml)
-              tmp_en += sc_wrapper.decomp_ml(p, q, r, r + 1, &sc_wrapper);
-
-            if (e == tmp_en)
-              goto odd_dangles_exit;
+          if (e == tmp_en) {
+            p += 1;
+            q -= 1;
+            goto odd_dangles_exit;
           }
         }
+      }
+    }
 
-        if (evaluate(*i, *j, p + 1, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-          e = eee -
-              P->MLbase *
-              n_seq;
+    /*
+     * coaxial stacking of (i.j) with (i+1.r) or (r.j-1)
+     * use MLintern[1] since coax stacked pairs don't get TerminalAU
+     */
+    if (dangle_model == 3) {
+      e = en -
+          (P->MLclosing + 2 * P->MLintern[1]) *
+          n_seq;
 
-          if (sc_wrapper.pair5)
-            e -= sc_wrapper.pair5(*i, *j, &sc_wrapper);
+      if (sc_wrapper.pair)
+        e -= sc_wrapper.pair(*i, *j, &sc_wrapper);
+
+      if (fc->type == VRNA_FC_TYPE_SINGLE)
+        type = rtype[type];
+
+      for (r = p + turn + 1; r < q - turn - 1; ++r) {
+        if (evaluate(*i, *j, p, r, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
+          if (sliding_window)
+            tmp_en = c_local[p][r - p] +
+                     fML_local[r + 1][q - (r + 1)];
+          else
+            tmp_en = my_c[idx[r] + p] +
+                     my_fML[idx[q] + r + 1];
 
           switch (fc->type) {
             case VRNA_FC_TYPE_SINGLE:
-              e -= E_MLstem(type, -1, s3, P);
+              if (sliding_window)
+                type_2 = rtype[vrna_get_ptype_window(p, r, ptype_local)];
+              else
+                type_2 = rtype[vrna_get_ptype(idx[r] + p, ptype)];
+
+              tmp_en += P->stack[type][type_2];
               break;
 
             case VRNA_FC_TYPE_COMPARATIVE:
-              for (s = 0; s < n_seq; s++)
-                e -= E_MLstem(tt[s], -1, S3[s][*i], P);
+              for (s = 0; s < n_seq; s++) {
+                type_2  = vrna_get_ptype_md(SS[s][r], SS[s][p], md);
+                tmp_en  += P->stack[tt[s]][type_2];
+              }
               break;
           }
 
-          for (r = p + turn + 1; r < q - turn - 1; ++r) {
-            if (evaluate(p + 1, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-              if (sliding_window)
-                tmp_en = fML_local[p + 1][r - (p + 1)] +
-                         fML_local[r + 1][q - (r + 1)];
-              else
-                tmp_en = my_fML[idx[r] + p + 1] +
-                         my_fML[idx[q] + r + 1];
+          if (sc_wrapper.coaxial_cls)
+            tmp_en += sc_wrapper.coaxial_cls(*i, *j, p, r, &sc_wrapper);
 
-              if (sc_wrapper.decomp_ml)
-                tmp_en += sc_wrapper.decomp_ml(p + 1, q, r, r + 1, &sc_wrapper);
-
-              if (e == tmp_en) {
-                p += 1;
-                goto odd_dangles_exit;
-              }
-            }
+          if (e == tmp_en) {
+            *component1 = 2;
+            goto odd_dangles_exit;
           }
         }
 
-        if (evaluate(*i, *j, p, q - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-          e = eee -
-              P->MLbase *
-              n_seq;
-
-          if (sc_wrapper.pair3)
-            e -= sc_wrapper.pair3(*i, *j, &sc_wrapper);
+        if (evaluate(*i, *j, r + 1, q, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
+          if (sliding_window)
+            tmp_en = c_local[r + 1][q - (r + 1)] +
+                     fML_local[p][r - p];
+          else
+            tmp_en = my_c[idx[q] + r + 1] +
+                     my_fML[idx[r] + p];
 
           switch (fc->type) {
             case VRNA_FC_TYPE_SINGLE:
-              e -= E_MLstem(type, s5, -1, P);
+              if (sliding_window)
+                type_2 = rtype[vrna_get_ptype_window(r + 1, q, ptype_local)];
+              else
+                type_2 = rtype[vrna_get_ptype(idx[q] + r + 1, ptype)];
+
+              tmp_en += P->stack[type][type_2];
               break;
 
             case VRNA_FC_TYPE_COMPARATIVE:
-              for (s = 0; s < n_seq; s++)
-                e -= E_MLstem(tt[s], S5[s][*j], -1, P);
+              for (s = 0; s < n_seq; s++) {
+                type_2  = vrna_get_ptype_md(SS[s][q], SS[s][r + 1], md);
+                tmp_en  += P->stack[tt[s]][type_2];
+              }
               break;
           }
 
-          for (r = p + turn + 1; r < q - turn - 1; ++r) {
-            if (evaluate(p, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-              if (sliding_window)
-                tmp_en = fML_local[p][r - p] +
-                         fML_local[r + 1][q - 1 - (r + 1)];
-              else
-                tmp_en = my_fML[idx[r] + p] +
-                         my_fML[idx[q - 1] + r + 1];
+          if (sc_wrapper.coaxial_cls)
+            tmp_en += sc_wrapper.coaxial_cls(*i, *j, r + 1, q, &sc_wrapper);
 
-              if (sc_wrapper.decomp_ml)
-                tmp_en += sc_wrapper.decomp_ml(p, q - 1, r, r + 1, &sc_wrapper);
-
-              ;
-
-              if (e == tmp_en) {
-                q -= 1;
-                goto odd_dangles_exit;
-              }
-            }
+          if (e == tmp_en) {
+            *component2 = 2;
+            goto odd_dangles_exit;
           }
         }
-
-        if (evaluate(*i, *j, p + 1, q - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
-          e = eee -
-              2 * P->MLbase *
-              n_seq;
-
-          if (sc_wrapper.pair53)
-            e -= sc_wrapper.pair53(*i, *j, &sc_wrapper);
-
-          switch (fc->type) {
-            case VRNA_FC_TYPE_SINGLE:
-              e -= E_MLstem(type, s5, s3, P);
-              break;
-
-            case VRNA_FC_TYPE_COMPARATIVE:
-              for (s = 0; s < n_seq; s++)
-                e -= E_MLstem(tt[s], S5[s][*j], S3[s][*i], P);
-              break;
-          }
-
-          for (r = p + turn + 1; r < q - turn - 1; ++r) {
-            if (evaluate(p + 1, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
-              if (sliding_window)
-                tmp_en = fML_local[p + 1][r - (p + 1)] +
-                         fML_local[r + 1][q - 1 - (r + 1)];
-              else
-                tmp_en = my_fML[idx[r] + p + 1] +
-                         my_fML[idx[q - 1] + r + 1];
-
-              if (sc_wrapper.decomp_ml)
-                tmp_en += sc_wrapper.decomp_ml(p + 1, q - 1, r, r + 1, &sc_wrapper);
-
-              if (e == tmp_en) {
-                p += 1;
-                q -= 1;
-                goto odd_dangles_exit;
-              }
-            }
-          }
-        }
-
-        /*
-         * coaxial stacking of (i.j) with (i+1.r) or (r.j-1)
-         * use MLintern[1] since coax stacked pairs don't get TerminalAU
-         */
-        if (dangle_model == 3) {
-          e = eee -
-              2 * P->MLintern[1] *
-              n_seq;
-
-          if (sc_wrapper.pair)
-            e -= sc_wrapper.pair(*i, *j, &sc_wrapper);
-
-          if (fc->type == VRNA_FC_TYPE_SINGLE)
-            type = rtype[type];
-
-          for (r = p + turn + 1; r < q - turn - 1; ++r) {
-            if (evaluate(*i, *j, p, r, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
-              if (sliding_window)
-                tmp_en = c_local[p][r - p] +
-                         fML_local[r + 1][q - (r + 1)];
-              else
-                tmp_en = my_c[idx[r] + p] +
-                         my_fML[idx[q] + r + 1];
-
-              switch (fc->type) {
-                case VRNA_FC_TYPE_SINGLE:
-                  if (sliding_window)
-                    type_2 = rtype[vrna_get_ptype_window(p, r, ptype_local)];
-                  else
-                    type_2 = rtype[vrna_get_ptype(idx[r] + p, ptype)];
-
-                  tmp_en += P->stack[type][type_2];
-                  break;
-
-                case VRNA_FC_TYPE_COMPARATIVE:
-                  for (s = 0; s < n_seq; s++) {
-                    type_2  = vrna_get_ptype_md(SS[s][r], SS[s][p], md);
-                    tmp_en  += P->stack[tt[s]][type_2];
-                  }
-                  break;
-              }
-
-              if (sc_wrapper.coaxial_cls)
-                tmp_en += sc_wrapper.coaxial_cls(*i, *j, p, r, &sc_wrapper);
-
-              if (e == tmp_en) {
-                *component1 = 2;
-                goto odd_dangles_exit;
-              }
-            }
-
-            if (evaluate(*i, *j, r + 1, q, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
-              if (sliding_window)
-                tmp_en = c_local[r + 1][q - (r + 1)] +
-                         fML_local[p][r - p];
-              else
-                tmp_en = my_c[idx[q] + r + 1] +
-                         my_fML[idx[r] + p];
-
-              switch (fc->type) {
-                case VRNA_FC_TYPE_SINGLE:
-                  if (sliding_window)
-                    type_2 = rtype[vrna_get_ptype_window(r + 1, q, ptype_local)];
-                  else
-                    type_2 = rtype[vrna_get_ptype(idx[q] + r + 1, ptype)];
-
-                  tmp_en += P->stack[type][type_2];
-                  break;
-
-                case VRNA_FC_TYPE_COMPARATIVE:
-                  for (s = 0; s < n_seq; s++) {
-                    type_2  = vrna_get_ptype_md(SS[s][q], SS[s][r + 1], md);
-                    tmp_en  += P->stack[tt[s]][type_2];
-                  }
-                  break;
-              }
-
-              if (sc_wrapper.coaxial_cls)
-                tmp_en += sc_wrapper.coaxial_cls(*i, *j, r + 1, q, &sc_wrapper);
-
-              if (e == tmp_en) {
-                *component2 = 2;
-                goto odd_dangles_exit;
-              }
-            }
-          }
-        }
+      }
+    }
 
 odd_dangles_exit:
-
-        break;
-    }
 
     free(tt);
   }

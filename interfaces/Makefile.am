@@ -15,7 +15,7 @@ SOURCES = \
     duplex.i \
     eval.i \
     file_formats.i \
-    findpath.i \
+    paths.i \
     fold_compound.i \
     grammar.i \
     inverse.i \
@@ -46,7 +46,7 @@ DOXYGEN_DOCUMENTATION = \
     constraints_SHAPE.dox \
     constraints_soft.dox \
     eval.dox \
-    findpath.dox \
+    paths.dox \
     fold_compound.dox \
     grammar.dox \
     mfe.dox \
@@ -71,7 +71,7 @@ EXTRA_DIST = \
     duplex.i \
     eval.i \
     file_formats.i \
-    findpath.i \
+    paths.i \
     fold_compound.i \
     grammar.i \
     inverse.i \

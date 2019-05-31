@@ -131,6 +131,7 @@ vrna_aln_pinfo(vrna_fold_compound_t *vc,
   int           *my_iindx = vc->iindx;
   FLT_OR_DBL    *probs    = vc->exp_matrices->probs;
   vrna_md_t     *md       = &(vc->exp_params->model_details);
+  int           turn      = md->min_loop_size;
 
   max_p = 64;
   pi    = vrna_alloc(max_p * sizeof(vrna_pinfo_t));
@@ -139,7 +140,7 @@ vrna_aln_pinfo(vrna_fold_compound_t *vc,
     ptable = vrna_ptable(structure);
 
   for (i = 1; i < n; i++)
-    for (j = i + TURN + 1; j <= n; j++) {
+    for (j = i + turn + 1; j <= n; j++) {
       if ((p = probs[my_iindx[i] - j]) >= threshold) {
         duck[i] -= p * log(p);
         duck[j] -= p * log(p);

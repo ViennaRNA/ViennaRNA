@@ -12,8 +12,9 @@
 #include <ViennaRNA/landscape/move.h>
 
 /**
- *  @addtogroup paths
+ *  @addtogroup paths_walk
  *  @{
+ *  @brief  Implementation of gradient- and random walks starting from a single secondary structure
  */
 
 /**

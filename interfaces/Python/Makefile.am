@@ -16,9 +16,8 @@ INTERFACE_FILES = $(SWIG_src) \
                   $(LANG_SPECIFIC_INTERFACE_FILES)
 
 pkgpy2execdir = $(py2execdir)/RNA
-pkgpy2cmoddir = $(py2execdir)
 
-pkgpy2cmod_LTLIBRARIES = _RNA.la
+pkgpy2exec_LTLIBRARIES = _RNA.la
 pkgpy2exec_DATA = RNA/__init__.py
 
 _RNA_la_SOURCES = $(INTERFACE_FILES) \
@@ -73,7 +72,7 @@ $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
 	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
                   -I$(srcdir) -I$(builddir) \
                   $(RNA_CPPFLAGS) \
-                  -python -modern  -c++ \
+                  -python -c++ \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
 
@@ -87,27 +86,33 @@ RNA/__init__.py: $(SWIG_module_name).py
 	$(AM_V_GEN)( test -d RNA || $(MKDIR_P) RNA ) && \
   cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
 
-_RNA$(PYTHON2_SO): _RNA.la
-	$(AM_V_GEN)( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
-  ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) . ) && \
+RNA/_RNA$(PYTHON2_SO): _RNA.la
+	$(AM_V_GEN)( test -d RNA || $(MKDIR_P) RNA ) && \
+  ( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
+  ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) RNA ) && \
   rm -f libtoolconfig.tmp
 
-all-local:  _RNA$(PYTHON2_SO)
+CLEANFILES = \
+    RNA/_RNA$(PYTHON2_SO) \
+    RNA/__init__.py \
+    RNA/__init__.pyc
+
+all-local:  RNA/_RNA$(PYTHON2_SO)
 
 clean-local:
-	-rm -rf RNA _RNA$(PYTHON2_SO)
+	-rm -rf RNA
 
 # Remove the .la file - RNA.la is never linked against (it's a module)
 # and Python doesn't use libltdl.  Note that the library gets installed by
 # install-data, so that's where we need to hook.
 install-data-hook:
-	rm -f $(DESTDIR)$(pkgpy2cmoddir)/_RNA.la
+	rm -f $(DESTDIR)$(pkgpy2execdir)/_RNA.la
 
 # Because we don't install the .la file, "make uninstall" doesn't work and
 # we need to remove the file ourselves.
 uninstall-local:
-	eval `grep '^dlname=' $(pkgpy2cmod_LTLIBRARIES)` ; \
-	rm -f $(DESTDIR)$(pkgpy2cmoddir)/"$$dlname"
+	eval `grep '^dlname=' $(pkgpy2exec_LTLIBRARIES)` ; \
+	rm -f $(DESTDIR)$(pkgpy2execdir)/"$$dlname"
 
 ## remove all generated content
 maintainer-clean-local:

@@ -1,5 +1,4 @@
-sudo: false
-dist: trusty
+dist: xenial
 
 compiler:
 - gcc
@@ -17,10 +16,9 @@ addons:
     - gengetopt
     - flex
     - help2man
-    - libgsl0-dev
+    - libgsl-dev
     - doxygen
     - doxygen-latex
-    - swig
     - libperl-dev
     - python-dev
     - python3-dev
@@ -35,6 +33,12 @@ addons:
 
 before_script:
 - autoreconf -i
+
+
+install:
+  - wget https://github.com/swig/swig/archive/rel-3.0.12.tar.gz
+  - tar -xzvf rel-3.0.12.tar.gz
+  - pushd swig-rel-3.0.12 && ./autogen.sh && ./configure --prefix=/usr && make && sudo make install && popd
 
 
 script:

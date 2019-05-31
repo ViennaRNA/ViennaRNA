@@ -367,7 +367,7 @@ vrna_backtrack5_TwoD(vrna_fold_compound_t *vc,
   unsigned int  i;
   char          *mfe_structure = (char *)vrna_alloc(j + 1);
 
-  if (j < TURN + 2)
+  if (j < vc->params->model_details.min_loop_size + 2)
     return NULL;
 
   for (i = 0; i < j; i++)
@@ -383,7 +383,7 @@ PRIVATE void
 mfe_linear(vrna_fold_compound_t *vc)
 {
   unsigned int  d, i, j, ij, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
-  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, *jindx, circ, *rtype;
+  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, *jindx, circ, *rtype, turn;
   short         *S1, *reference_pt1, *reference_pt2;
   char          *sequence, *ptype;
   vrna_param_t  *P;
@@ -412,8 +412,9 @@ mfe_linear(vrna_fold_compound_t *vc)
   bpdist        = vc->bpdist;
   dangles       = md->dangles;
   circ          = md->circ;
+  turn          = md->min_loop_size;
 
-  for (d = TURN + 2; d <= seq_length; d++) {
+  for (d = turn + 2; d <= seq_length; d++) {
     /* i,j in [1..length] */
 #ifdef _OPENMP
 #pragma omp parallel for private(additional_en, j, energy, temp2, i, ij, dia,dib,dja,djb,cnt1,cnt2,cnt3,cnt4, d1, d2)
@@ -507,9 +508,9 @@ mfe_linear(vrna_fold_compound_t *vc)
         }
 
         /* INTERIOR LOOP STRUCTURES */
-        maxp = MIN2(j - 2 - TURN, i + MAXLOOP + 1);
+        maxp = MIN2(j - 2 - turn, i + MAXLOOP + 1);
         for (p = i + 1; p <= maxp; p++) {
-          unsigned int  minq    = p + TURN + 1;
+          unsigned int  minq    = p + turn + 1;
           unsigned int  ln_pre  = dij + p;
           if (ln_pre > minq + MAXLOOP)
             minq = ln_pre - MAXLOOP - 1;
@@ -584,7 +585,7 @@ mfe_linear(vrna_fold_compound_t *vc)
           else
             temp2 += E_MLstem(tt, -1, -1, P);
 
-          for (u = i + TURN + 2; u < j - TURN - 2; u++) {
+          for (u = i + turn + 2; u < j - turn - 2; u++) {
             int i1u   = my_iindx[i + 1] - u;
             int u1j1  = my_iindx[u + 1] - j + 1;
             /* check all cases where either M or M1 are already out of scope of maxD1 and/or maxD2 */
@@ -942,8 +943,8 @@ mfe_linear(vrna_fold_compound_t *vc)
       }
 
       /* 5th E_M[ij] = MIN(E_M[ij], min(E_M[i,k] + E_M[k+1,j])) */
-      if (j > TURN + 2) {
-        for (u = i + 1 + TURN; u <= j - 2 - TURN; u++) {
+      if (j > turn + 2) {
+        for (u = i + 1 + turn; u <= j - 2 - turn; u++) {
           /* check all cases where M(i,u) and/or M(u+1,j) are already out of scope of maxD1 and/or maxD2 */
           if (matrices->E_M_rem[my_iindx[i] - u] != INF) {
             for (cnt3 = matrices->k_min_M[my_iindx[u + 1] - j];
@@ -1067,7 +1068,7 @@ mfe_linear(vrna_fold_compound_t *vc)
   /* calculate energies of 5' and 3' fragments */
 
   /* prepare first entries in E_F5 */
-  for (cnt1 = 1; cnt1 <= TURN + 1; cnt1++) {
+  for (cnt1 = 1; cnt1 <= turn + 1; cnt1++) {
     matrices->E_F5[cnt1]        = (int **)vrna_alloc(sizeof(int *));
     matrices->E_F5[cnt1][0]     = (int *)vrna_alloc(sizeof(int));
     matrices->E_F5[cnt1][0][0]  = 0;
@@ -1084,7 +1085,7 @@ mfe_linear(vrna_fold_compound_t *vc)
   }
 
 
-  for (j = TURN + 2; j <= seq_length; j++) {
+  for (j = turn + 2; j <= seq_length; j++) {
     unsigned int  da  = referenceBPs1[my_iindx[1] - j] - referenceBPs1[my_iindx[1] - j + 1];
     unsigned int  db  = referenceBPs2[my_iindx[1] - j] - referenceBPs2[my_iindx[1] - j + 1];
 
@@ -1192,7 +1193,7 @@ mfe_linear(vrna_fold_compound_t *vc)
     }
 
     /* j pairs with some other nucleotide -> see below */
-    for (i = j - TURN - 1; i > 1; i--) {
+    for (i = j - turn - 1; i > 1; i--) {
       ij    = my_iindx[i] - j;
       type  = ptype[jindx[j] + i];
       if (type) {
@@ -1280,7 +1281,7 @@ mfe_linear(vrna_fold_compound_t *vc)
 
   if (compute_2Dfold_F3) {
     /* prepare first entries in E_F3 */
-    for (cnt1 = seq_length; cnt1 >= seq_length - TURN - 1; cnt1--) {
+    for (cnt1 = seq_length; cnt1 >= seq_length - turn - 1; cnt1--) {
       matrices->E_F3[cnt1]        = (int **)vrna_alloc(sizeof(int *));
       matrices->E_F3[cnt1][0]     = (int *)vrna_alloc(sizeof(int));
       matrices->E_F3[cnt1][0][0]  = 0;
@@ -1290,7 +1291,7 @@ mfe_linear(vrna_fold_compound_t *vc)
       matrices->l_min_F3[cnt1][0] = matrices->l_max_F3[cnt1][0] = 0;
     }
     /* begin calculations */
-    for (j = seq_length - TURN - 2; j >= 1; j--) {
+    for (j = seq_length - turn - 2; j >= 1; j--) {
       unsigned int  da  = referenceBPs1[my_iindx[j] - seq_length] - referenceBPs1[my_iindx[j + 1] - seq_length];
       unsigned int  db  = referenceBPs2[my_iindx[j] - seq_length] - referenceBPs2[my_iindx[j + 1] - seq_length];
 
@@ -1373,7 +1374,7 @@ mfe_linear(vrna_fold_compound_t *vc)
       }
 
       /* j pairs with some other nucleotide -> see below */
-      for (i = j - TURN - 1; i > 1; i--) {
+      for (i = j - turn - 1; i > 1; i--) {
         ij = my_iindx[i] - j;
         if (!matrices->E_C[ij])
           continue;
@@ -1438,7 +1439,7 @@ backtrack_f5(unsigned int         j,
              char                 *structure,
              vrna_fold_compound_t *vc)
 {
-  int           *my_iindx, *jindx, energy, type, dangles, cnt1, cnt2, cnt3, cnt4;
+  int           *my_iindx, *jindx, energy, type, dangles, cnt1, cnt2, cnt3, cnt4, turn;
   int           **l_min_C, **l_max_C, **l_min_F5, **l_max_F5;
   int           *k_min_C, *k_max_C, *k_min_F5, *k_max_F5;
   int           ***E_C, ***E_F5;
@@ -1463,6 +1464,7 @@ backtrack_f5(unsigned int         j,
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
   dangles       = md->dangles;
+  turn          = md->min_loop_size;
   E_F5          = matrices->E_F5;
   l_min_F5      = matrices->l_min_F5;
   l_max_F5      = matrices->l_max_F5;
@@ -1483,7 +1485,7 @@ backtrack_f5(unsigned int         j,
   da  = referenceBPs1[my_iindx[1] - j] - referenceBPs1[my_iindx[1] - j + 1];
   db  = referenceBPs2[my_iindx[1] - j] - referenceBPs2[my_iindx[1] - j + 1];
 
-  if (j < TURN + 2)
+  if (j < turn + 2)
     return;
 
   /* F5[j] == F5[j-1] ? */
@@ -1544,7 +1546,7 @@ backtrack_f5(unsigned int         j,
     }
   }
 
-  for (i = j - TURN - 1; i > 1; i--) {
+  for (i = j - turn - 1; i > 1; i--) {
     ij    = my_iindx[i] - j;
     type  = ptype[jindx[j] + i];
     if (type) {
@@ -1649,7 +1651,7 @@ backtrack_c(unsigned int          i,
             vrna_fold_compound_t  *vc)
 {
   unsigned int  p, q, pq, ij, maxp, maxD1, maxD2;
-  int           *my_iindx, *jindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int           *my_iindx, *jindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   int           **l_min_C, **l_max_C, **l_min_M, **l_max_M, **l_min_M1, **l_max_M1;
   int           *k_min_C, *k_max_C, *k_min_M, *k_max_M, *k_min_M1, *k_max_M1;
   int           ***E_C, ***E_M, ***E_M1, *E_C_rem, *E_M_rem, *E_M1_rem;
@@ -1672,6 +1674,7 @@ backtrack_c(unsigned int          i,
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
   dangles       = md->dangles;
+  turn          = md->min_loop_size;
 
   E_C     = matrices->E_C;
   l_min_C = matrices->l_min_C;
@@ -1725,10 +1728,10 @@ backtrack_c(unsigned int          i,
           return;
   }
 
-  maxp = MIN2(j - 2 - TURN, i + MAXLOOP + 1);
+  maxp = MIN2(j - 2 - turn, i + MAXLOOP + 1);
   for (p = i + 1; p <= maxp; p++) {
     unsigned int minq, ln_pre;
-    minq    = p + TURN + 1;
+    minq    = p + turn + 1;
     ln_pre  = j - i - 1;
     if (ln_pre > minq + MAXLOOP)
       minq = ln_pre - MAXLOOP - 1;
@@ -1794,7 +1797,7 @@ backtrack_c(unsigned int          i,
     unsigned int  u;
     int           tt;
     if (k == -1) {
-      for (u = i + TURN + 2; u < j - TURN - 2; u++) {
+      for (u = i + turn + 2; u < j - turn - 2; u++) {
         int i1u, u1j1;
         i1u     = my_iindx[i + 1] - u;
         u1j1    = my_iindx[u + 1] - j + 1;
@@ -1881,7 +1884,7 @@ backtrack_c(unsigned int          i,
               }
       }
     } else {
-      for (u = i + TURN + 2; u < j - TURN - 2; u++) {
+      for (u = i + turn + 2; u < j - turn - 2; u++) {
         int i1u, u1j1;
         i1u   = my_iindx[i + 1] - u;
         u1j1  = my_iindx[u + 1] - j + 1;
@@ -1940,7 +1943,7 @@ backtrack_m(unsigned int          i,
             vrna_fold_compound_t  *vc)
 {
   unsigned int  u, ij, seq_length, base_d1, base_d2, d1, d2, maxD1, maxD2;
-  int           *my_iindx, *jindx, type, energy, dangles, circ, cnt1, cnt2, cnt3, cnt4;
+  int           *my_iindx, *jindx, type, energy, dangles, circ, cnt1, cnt2, cnt3, cnt4, turn;
   int           **l_min_C, **l_max_C, **l_min_M, **l_max_M;
   int           *k_min_C, *k_max_C, *k_min_M, *k_max_M;
   int           ***E_C, ***E_M, *E_C_rem, *E_M_rem;
@@ -1963,6 +1966,7 @@ backtrack_m(unsigned int          i,
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
   dangles       = md->dangles;
+  turn          = md->min_loop_size;
 
   E_C     = matrices->E_C;
   l_min_C = matrices->l_min_C;
@@ -2053,7 +2057,7 @@ backtrack_m(unsigned int          i,
     }
 
     /* modular decomposition -------------------------------*/
-    for (u = i + 1 + TURN; u <= j - 2 - TURN; u++) {
+    for (u = i + 1 + turn; u <= j - 2 - turn; u++) {
       int iu, uj;
       iu    = my_iindx[i] - u;
       uj    = my_iindx[u + 1] - j;
@@ -2188,7 +2192,7 @@ backtrack_m(unsigned int          i,
 
     /* modular decomposition -------------------------------*/
 
-    for (u = i + 1 + TURN; u <= j - 2 - TURN; u++) {
+    for (u = i + 1 + turn; u <= j - 2 - turn; u++) {
       if (!E_M[my_iindx[i] - u])
         continue;
 
@@ -2348,7 +2352,7 @@ backtrack_fc(int                  k,
              vrna_fold_compound_t *vc)
 {
   unsigned int  d, i, j, seq_length, base_d1, base_d2, d1, d2, maxD1, maxD2;
-  int           *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int           *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   short         *S1;
   unsigned int  *referenceBPs1, *referenceBPs2;
   char          *sequence, *ptype;
@@ -2376,6 +2380,7 @@ backtrack_fc(int                  k,
   jindx         = vc->jindx;
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
+  turn          = md->min_loop_size;
 
   base_d1 = referenceBPs1[my_iindx[1] - seq_length];
   base_d2 = referenceBPs2[my_iindx[1] - seq_length];
@@ -2437,7 +2442,7 @@ backtrack_fc(int                  k,
 
     /* check for hairpin configurations */
     if (E_Fc_rem == E_FcH_rem) {
-      for (d = TURN + 2; d <= seq_length; d++) /* i,j in [1..length] */
+      for (d = turn + 2; d <= seq_length; d++) /* i,j in [1..length] */
         for (j = d; j <= seq_length; j++) {
           unsigned int  u, ij;
           int           type, no_close;
@@ -2445,7 +2450,7 @@ backtrack_fc(int                  k,
           i   = j - d + 1;
           ij  = my_iindx[i] - j;
           u   = seq_length - j + i - 1;
-          if (u < TURN)
+          if (u < turn)
             continue;
 
           type      = ptype[jindx[j] + i];
@@ -2492,14 +2497,14 @@ backtrack_fc(int                  k,
 
     /* check for interior loop configurations */
     if (E_Fc_rem == E_FcI_rem) {
-      for (d = TURN + 2; d <= seq_length; d++) /* i,j in [1..length] */
+      for (d = turn + 2; d <= seq_length; d++) /* i,j in [1..length] */
         for (j = d; j <= seq_length; j++) {
           unsigned int  u, ij, p, q, pq;
           int           type, type_2;
           i   = j - d + 1;
           ij  = my_iindx[i] - j;
           u   = seq_length - j + i - 1;
-          if (u < TURN)
+          if (u < turn)
             continue;
 
           type = rtype[(unsigned int)ptype[jindx[j] + i]];
@@ -2512,7 +2517,7 @@ backtrack_fc(int                  k,
             if (u1 + i - 1 > MAXLOOP)
               break;
 
-            qmin    = p + TURN + 1;
+            qmin    = p + turn + 1;
             ln_pre  = u1 + i + seq_length;
             if (ln_pre > qmin + MAXLOOP)
               qmin = ln_pre - MAXLOOP - 1;
@@ -2607,8 +2612,8 @@ backtrack_fc(int                  k,
 
     /* check for multi loop configurations */
     if (E_Fc_rem == E_FcM_rem) {
-      if (seq_length > 2 * TURN) {
-        for (i = TURN + 1; i < seq_length - 2 * TURN; i++) {
+      if (seq_length > 2 * turn) {
+        for (i = turn + 1; i < seq_length - 2 * turn; i++) {
           /* get distancies to references
            * d3a = dbp(T1_[1,n}, T1_{1,k} + T1_{k+1, n})
            * d3b = dbp(T2_[1,n}, T2_{1,k} + T2_{k+1, n})
@@ -2692,7 +2697,7 @@ backtrack_fc(int                  k,
     if ((k >= k_min_FcH) && (k <= k_max_FcH)) {
       if ((l >= l_min_FcH[k]) && (l <= l_max_FcH[k])) {
         if (E_Fc[k][l / 2] == E_FcH[k][l / 2]) {
-          for (d = TURN + 2; d <= seq_length; d++) /* i,j in [1..length] */
+          for (d = turn + 2; d <= seq_length; d++) /* i,j in [1..length] */
             for (j = d; j <= seq_length; j++) {
               unsigned int  u, ij;
               int           type, no_close;
@@ -2703,7 +2708,7 @@ backtrack_fc(int                  k,
                 continue;
 
               u = seq_length - j + i - 1;
-              if (u < TURN)
+              if (u < turn)
                 continue;
 
               type = ptype[jindx[j] + i];
@@ -2744,7 +2749,7 @@ backtrack_fc(int                  k,
     if ((k >= k_min_FcI) && (k <= k_max_FcI)) {
       if ((l >= l_min_FcI[k]) && (l <= l_max_FcI[k])) {
         if (E_Fc[k][l / 2] == E_FcI[k][l / 2]) {
-          for (d = TURN + 2; d <= seq_length; d++) /* i,j in [1..length] */
+          for (d = turn + 2; d <= seq_length; d++) /* i,j in [1..length] */
             for (j = d; j <= seq_length; j++) {
               unsigned int  u, ij, p, q, pq;
               int           type, type_2;
@@ -2754,7 +2759,7 @@ backtrack_fc(int                  k,
                 continue;
 
               u = seq_length - j + i - 1;
-              if (u < TURN)
+              if (u < turn)
                 continue;
 
               type = ptype[jindx[j] + i];
@@ -2770,7 +2775,7 @@ backtrack_fc(int                  k,
                 if (u1 + i - 1 > MAXLOOP)
                   break;
 
-                qmin    = p + TURN + 1;
+                qmin    = p + turn + 1;
                 ln_pre  = u1 + i + seq_length;
                 if (ln_pre > qmin + MAXLOOP)
                   qmin = ln_pre - MAXLOOP - 1;
@@ -2819,8 +2824,8 @@ backtrack_fc(int                  k,
     if ((k >= k_min_FcM) && (k <= k_max_FcM)) {
       if ((l >= l_min_FcM[k]) && (l <= l_max_FcM[k])) {
         if (E_Fc[k][l / 2] == E_FcM[k][l / 2]) {
-          if (seq_length > 2 * TURN) {
-            for (i = TURN + 1; i < seq_length - 2 * TURN; i++) {
+          if (seq_length > 2 * turn) {
+            for (i = turn + 1; i < seq_length - 2 * turn; i++) {
               /* get distancies to references
                * d3a = dbp(T1_[1,n}, T1_{1,k} + T1_{k+1, n})
                * d3b = dbp(T2_[1,n}, T2_{1,k} + T2_{k+1, n})
@@ -2867,7 +2872,7 @@ backtrack_m2(unsigned int         i,
   unsigned int  j, ij, j3, n;
   unsigned int  *referenceBPs1, *referenceBPs2;
   unsigned int  d1, d2, base_d1, base_d2, maxD1, maxD2;
-  int           *my_iindx, cnt1, cnt2, cnt3, cnt4;
+  int           *my_iindx, cnt1, cnt2, cnt3, cnt4, turn;
   int           ***E_M1, ***E_M2, *E_M2_rem, *E_M1_rem, e;
   int           **l_min_M1, **l_max_M1, *k_min_M1, *k_max_M1;
   vrna_mx_mfe_t *matrices;
@@ -2877,6 +2882,7 @@ backtrack_m2(unsigned int         i,
   my_iindx      = vc->iindx;
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
+  turn          = vc->params->model_details.min_loop_size;
 
   E_M1      = matrices->E_M1;
   l_min_M1  = matrices->l_min_M1;
@@ -2898,7 +2904,7 @@ backtrack_m2(unsigned int         i,
 
   if (k == -1) {
     e = E_M2_rem[i];
-    for (j = i + TURN + 1; j < n - TURN - 1; j++) {
+    for (j = i + turn + 1; j < n - turn - 1; j++) {
       if (E_M1_rem[my_iindx[i] - j] != INF) {
         if (E_M1[my_iindx[j + 1] - n]) {
           for (cnt1 = k_min_M1[my_iindx[j + 1] - n];
@@ -2963,7 +2969,7 @@ backtrack_m2(unsigned int         i,
         }
     }
   } else {
-    for (j = i + TURN + 1; j < n - TURN - 1; j++) {
+    for (j = i + turn + 1; j < n - turn - 1; j++) {
       if (!E_M1[my_iindx[i] - j])
         continue;
 
@@ -2997,7 +3003,7 @@ PRIVATE void
 mfe_circ(vrna_fold_compound_t *vc)
 {
   unsigned int  d, i, j, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
-  int           *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int           *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   short         *S1;
   char          *sequence, *ptype;
   int           ***E_C, ***E_M, ***E_M1;
@@ -3026,6 +3032,7 @@ mfe_circ(vrna_fold_compound_t *vc)
   mm1           = vc->mm1;
   mm2           = vc->mm2;
   bpdist        = vc->bpdist;
+  turn          = md->min_loop_size;
 
   E_C     = matrices->E_C;
   l_min_C = matrices->l_min_C;
@@ -3052,7 +3059,7 @@ mfe_circ(vrna_fold_compound_t *vc)
 #ifdef _OPENMP
 #pragma omp parallel for private(d1,d2,cnt1,cnt2,cnt3,cnt4,j, i)
 #endif
-  for (i = 1; i < seq_length - TURN - 1; i++) {
+  for (i = 1; i < seq_length - turn - 1; i++) {
     /* guess memory requirements for M2 */
 
     int min_k, max_k, max_l, min_l;
@@ -3089,7 +3096,7 @@ mfe_circ(vrna_fold_compound_t *vc)
                                );
 
     /* begin filling of M2 array */
-    for (j = i + TURN + 1; j < seq_length - TURN - 1; j++) {
+    for (j = i + turn + 1; j < seq_length - turn - 1; j++) {
       if (E_M1_rem[my_iindx[i] - j] != INF) {
         if (E_M1[my_iindx[j + 1] - seq_length]) {
           for (cnt1 = k_min_M1[my_iindx[j + 1] - seq_length];
@@ -3333,7 +3340,7 @@ mfe_circ(vrna_fold_compound_t *vc)
 #pragma omp section
     {
 #endif
-  for (d = TURN + 2; d <= seq_length; d++) /* i,j in [1..length] */
+  for (d = turn + 2; d <= seq_length; d++) /* i,j in [1..length] */
     for (j = d; j <= seq_length; j++) {
       unsigned int  u, ij;
       int           type, no_close;
@@ -3341,7 +3348,7 @@ mfe_circ(vrna_fold_compound_t *vc)
       i   = j - d + 1;
       ij  = my_iindx[i] - j;
       u   = seq_length - j + i - 1;
-      if (u < TURN)
+      if (u < turn)
         continue;
 
       type = ptype[jindx[j] + i];
@@ -3407,14 +3414,14 @@ mfe_circ(vrna_fold_compound_t *vc)
 #pragma omp section
 {
 #endif
-  for (d = TURN + 2; d <= seq_length; d++) /* i,j in [1..length] */
+  for (d = turn + 2; d <= seq_length; d++) /* i,j in [1..length] */
     for (j = d; j <= seq_length; j++) {
       unsigned int  u, ij, p, q, pq;
       int           type, type_2, no_close;
       i   = j - d + 1;
       ij  = my_iindx[i] - j;
       u   = seq_length - j + i - 1;
-      if (u < TURN)
+      if (u < turn)
         continue;
 
       type = ptype[jindx[j] + i];
@@ -3436,7 +3443,7 @@ mfe_circ(vrna_fold_compound_t *vc)
           if (u1 + i - 1 > MAXLOOP)
             break;
 
-          qmin    = p + TURN + 1;
+          qmin    = p + turn + 1;
           ln_pre  = u1 + i + seq_length;
           if (ln_pre > qmin + MAXLOOP)
             qmin = ln_pre - MAXLOOP - 1;
@@ -3483,7 +3490,7 @@ mfe_circ(vrna_fold_compound_t *vc)
           if (u1 + i - 1 > MAXLOOP)
             break;
 
-          qmin    = p + TURN + 1;
+          qmin    = p + turn + 1;
           ln_pre  = u1 + i + seq_length;
           if (ln_pre > qmin + MAXLOOP)
             qmin = ln_pre - MAXLOOP - 1;
@@ -3575,8 +3582,8 @@ mfe_circ(vrna_fold_compound_t *vc)
 #pragma omp section
 {
 #endif
-  if (seq_length > 2 * TURN) {
-    for (i = TURN + 1; i < seq_length - 2 * TURN; i++) {
+  if (seq_length > 2 * turn) {
+    for (i = turn + 1; i < seq_length - 2 * turn; i++) {
       /* get distancies to references
        * d3a = dbp(T1_[1,n}, T1_{1,k} + T1_{k+1, n})
        * d3b = dbp(T2_[1,n}, T2_{1,k} + T2_{k+1, n})

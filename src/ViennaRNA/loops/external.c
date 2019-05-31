@@ -448,6 +448,7 @@ vrna_E_ext_loop(vrna_fold_compound_t  *fc,
   }
 
   if (md->dangles % 2) {
+    ij = idx[j - 1] + i;
     if (evaluate(i, j, i, j - 1, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
       type = vrna_get_ptype(ij, ptype);
 

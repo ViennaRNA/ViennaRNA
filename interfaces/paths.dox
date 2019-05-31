@@ -1,0 +1,58 @@
+/**
+
+@fn int vrna_path_findpath_saddle(vrna_fold_compound_t *vc, const char *s1, const char *s2, int width)
+@scripting
+@parblock
+This function is attached as an overloaded method @em path_findpath_saddle() to objects of type @em fold_compound.
+The optional parameter @p width defaults to 1 if it is omitted.
+@endparblock
+
+@fn int vrna_path_findpath_saddle_ub(vrna_fold_compound_t *vc, const char *s1, const char *s2, int width, int maxE)
+@scripting
+@parblock
+This function is attached as an overloaded method @em path_findpath_saddle() to objects of type @em fold_compound.
+The optional parameter @p width defaults to 1 if it is omitted, while the optional parameter @p maxE defaults to
+#INF. In case the function did not find a path with @f$E_{saddle} < E_{max}@f$ the function returns a @em NULL object,
+i.e. @em undef for Perl and @em None for Python.
+@endparblock
+
+@fn vrna_path_t *vrna_path_findpath(vrna_fold_compound_t *vc, const char *s1, const char *s2, int width)
+@scripting
+@parblock
+This function is attached as an overloaded method @em path_findpath() to objects of type @em fold_compound.
+The optional parameter @p width defaults to 1 if it is omitted.
+@endparblock
+
+@fn vrna_path_t *vrna_path_findpath_ub(vrna_fold_compound_t *vc, const char *s1, const char *s2, int width, int maxE)
+@scripting
+@parblock
+This function is attached as an overloaded method @em path_findpath() to objects of type @em fold_compound.
+The optional parameter @p width defaults to 1 if it is omitted, while the optional parameter @p maxE defaults to
+#INF. In case the function did not find a path with @f$E_{saddle} < E_{max}@f$ the function returns an empty list.
+@endparblock
+
+@fn vrna_path_t *vrna_path_direct(vrna_fold_compound_t *fc, const char *s1,const char *s2, vrna_path_options_t options)
+@scripting
+@parblock
+This function is attached as an overloaded method @em path_direct() to objects of type @em fold_compound.
+The optional parameter @p options defaults to <em>NULL</em> if it is omitted.
+@endparblock
+
+
+@fn vrna_path_t *vrna_path_direct_ub(vrna_fold_compound_t *fc, const char *s1, const char *s2, int maxE, vrna_path_options_t options);
+@scripting
+@parblock
+This function is attached as an overloaded method @em path_direct() to objects of type @em fold_compound.
+The optional parameter @p maxE defaults to #INT_MAX - 1 if it is omitted, while the optional parameter @p options
+defaults to <em>NULL</em>. In case the function did not find a path with @f$E_{saddle} < E_{max}@f$ it returns
+an empty list.
+@endparblock
+
+@fn vrna_path_options_t vrna_path_options_findpath(int width, unsigned int type);
+@scripting
+@parblock
+This function is available as overloaded function @em path_options_findpath().
+The optional parameter @p width defaults to 10 if omitted, while the optional parameter @p type
+defaults to #VRNA_PATH_TYPE_DOT_BRACKET.
+@endparblock
+*/

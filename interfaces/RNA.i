@@ -1,4 +1,9 @@
+#ifdef SWIGPYTHON
+%module(moduleimport="from . import _RNA") RNA
+#else
 %module RNA
+#endif
+
 //%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %pragma(perl5)  include="RNA.pod"
 
@@ -80,6 +85,7 @@ extern "C" {
 #include  <ViennaRNA/combinatorics.h>
 
 #include  <ViennaRNA/move_set.h>
+#include  <ViennaRNA/landscape/paths.h>
 #include  <ViennaRNA/landscape/findpath.h>
 #include  <ViennaRNA/landscape/move.h>
 #include  <ViennaRNA/landscape/neighbor.h>
@@ -214,7 +220,7 @@ namespace std {
 %include duplex.i
 %include neighbor.i
 %include walk.i
-%include findpath.i
+%include paths.i
 %include data_structures.i
 %include fold_compound.i
 

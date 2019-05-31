@@ -201,6 +201,7 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
 /* tell swig that these functions return objects that require memory management */
 %newobject vrna_fold_compound_t::mfe;
 %newobject vrna_fold_compound_t::mfe_dimer;
+%newobject vrna_fold_compound_t::backtrack;
 
 %extend vrna_fold_compound_t {
 
@@ -209,6 +210,7 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
 %feature("kwargs") mfe;
 %feature("autodoc") mfe_dimer;
 %feature("kwargs") mfe_dimer;
+%feature("autodoc") backtrack;
 #endif
 
   char *mfe(float *OUTPUT){
@@ -223,6 +225,19 @@ char *my_alifold(std::vector<std::string> alignment, char *constraints, float *O
 
     char *structure = (char*)vrna_alloc(sizeof(char) * ($self->length + 1));
     *OUTPUT = vrna_mfe_dimer($self, structure);
+    return structure;
+  }
+
+  char *backtrack(unsigned int length,
+                  float *OUTPUT) {
+    char *structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
+    *OUTPUT = vrna_backtrack5($self, length, structure);
+    return structure;
+  }
+
+  char *backtrack(float *OUTPUT) {
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
+    *OUTPUT = vrna_backtrack5($self, $self->length, structure);
     return structure;
   }
 }

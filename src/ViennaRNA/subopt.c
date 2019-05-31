@@ -1615,7 +1615,7 @@ scan_interval(vrna_fold_compound_t  *vc,
         fork_state(i + 1, j, state, tmp_en, 4, env);
     }
 
-    for (k = i + TURN + 1; k < j; k++) {
+    for (k = i + turn + 1; k < j; k++) {
       ik = indx[k] + i;
 
       if ((with_gquad) &&
@@ -1719,7 +1719,7 @@ scan_interval(vrna_fold_compound_t  *vc,
         fork_state(i, j - 1, state, tmp_en, 5, env);
     }
 
-    for (k = j - TURN - 1; k > i; k--) {
+    for (k = j - turn - 1; k > i; k--) {
       kj = indx[j] + k;
 
       if ((with_gquad) &&

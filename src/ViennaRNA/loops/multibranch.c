@@ -383,7 +383,8 @@ ml_pair5(vrna_fold_compound_t       *fc,
           si1 = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
 
           e += E_MLstem(tt, -1, si1, P) +
-               P->MLclosing;
+               P->MLclosing +
+               P->MLbase;
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
@@ -396,7 +397,8 @@ ml_pair5(vrna_fold_compound_t       *fc,
             e   += E_MLstem(tt, -1, S3[s][i], P);
           }
 
-          e += n_seq * P->MLclosing;
+          e += (P->MLclosing + P->MLbase) *
+               n_seq;
           break;
       }
 
@@ -447,7 +449,8 @@ ml_pair3(vrna_fold_compound_t       *fc,
           sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
 
           e += E_MLstem(tt, sj1, -1, P) +
-               P->MLclosing;
+               P->MLclosing +
+               P->MLbase;
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
@@ -460,7 +463,8 @@ ml_pair3(vrna_fold_compound_t       *fc,
             e   += E_MLstem(tt, S5[s][j], -1, P);
           }
 
-          e += n_seq * P->MLclosing;
+          e += (P->MLclosing + P->MLbase) *
+               n_seq;
           break;
       }
 
@@ -504,7 +508,7 @@ ml_pair53(vrna_fold_compound_t      *fc,
           sn      = fc->strand_number;
           S       = fc->sequence_encoding;
           S2      = fc->sequence_encoding2;
-          tt      = vrna_get_ptype_md(S2[j], S2[i], &(P->model_details));
+          tt      = vrna_get_ptype_md(S2[j], S2[i], md);
 
           if (md->noGUclosure && ((tt == 3) || (tt == 4)))
             return INF; /* not allowed */
@@ -513,7 +517,8 @@ ml_pair53(vrna_fold_compound_t      *fc,
           sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
 
           e += E_MLstem(tt, sj1, si1, P) +
-               P->MLclosing;
+               P->MLclosing +
+               2 * P->MLbase;
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
@@ -527,7 +532,8 @@ ml_pair53(vrna_fold_compound_t      *fc,
             e   += E_MLstem(tt, S5[s][j], S3[s][i], P);
           }
 
-          e += n_seq * P->MLclosing;
+          e += (P->MLclosing + 2 * P->MLbase) *
+               n_seq;
           break;
       }
 
