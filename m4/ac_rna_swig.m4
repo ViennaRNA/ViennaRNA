@@ -9,7 +9,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 
   AS_IF([test "x$with_swig" != "xno"],[
     wants_swig="yes"
-    AX_PKG_SWIG(3.0.0, [has_swig="yes"], [has_swig="no"])
+    AX_PKG_SWIG(3.0.11, [has_swig="yes"], [has_swig="no"])
   ],[
     wants_swig="no"
   ])
