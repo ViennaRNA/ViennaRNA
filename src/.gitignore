@@ -1,2 +1,2 @@
-# ignroe libsvm directory
-libsvm-3.22
+# ignore libsvm directory
+libsvm-3.*
