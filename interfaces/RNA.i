@@ -203,6 +203,7 @@ namespace std {
 %include constraints_SHAPE.i
 %include constraints_ligand.i
 %include eval.i
+%include loops.i
 %include basic_algorithms.i
 %include mfe.i
 %include mfe_window.i
@@ -218,6 +219,7 @@ namespace std {
 %include commands.i
 %include combinatorics.i
 %include duplex.i
+%include move.i
 %include neighbor.i
 %include walk.i
 %include paths.i
