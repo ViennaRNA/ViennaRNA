@@ -874,6 +874,45 @@ process_record(struct record_data *record)
       char *costruc;
       prAB = vrna_plist_from_probs(vc, opt->bppmThreshold);
 
+      vrna_ep_t *ptr;
+      double kT = vc->exp_params->kT / 1000.;
+      double dG_nocomplex = exp(-NAB.FA / kT) * exp(-NAB.FB / kT);
+      double dG_complex   = NAB.FcAB;
+      double dG_full      = -kT * log(exp(-dG_complex / kT) + exp(-dG_nocomplex / kT));
+
+      double prob_complex   = exp((dG_full - dG_complex) / kT );
+      double prob_nocomplex = exp((dG_full - dG_nocomplex) / kT );
+
+      vrna_fold_compound_t  *fcA, *fcB;
+      char *seqA, *seqB;
+
+      seqA = vrna_strdup_printf("%.*s", vc->cutpoint - 1, vc->sequence);
+      seqB = vrna_strdup_printf("%.*s", vc->length - vc->cutpoint + 1, vc->sequence + vc->cutpoint - 1);
+
+      fcA = vrna_fold_compound(seqA, &opt->md, VRNA_OPTION_DEFAULT);
+      fcB = vrna_fold_compound(seqB, &opt->md, VRNA_OPTION_DEFAULT);
+
+      double dGA = vrna_pf(fcA, NULL);
+      double dGB = vrna_pf(fcB, NULL);
+
+      vrna_ep_t *prA = vrna_plist_from_probs(fcA, opt->bppmThreshold);
+      vrna_ep_t *prB = vrna_plist_from_probs(fcB, opt->bppmThreshold);
+
+      printf("%s\n%s\n", seqA, seqB);
+
+      printf("p_c = %10.16f, p_nc = %10.16f\n", prob_complex, prob_nocomplex);
+
+      /* now, let's try correcting the pair probabilities */
+      if (0)
+        for (ptr = prAB; ptr->i != 0; ptr++) {
+        ptr->p *= prob_complex;
+        if (ptr->i <= fcA->length && ptr->j <= fcA->length) {
+          ptr->p += fcA->exp_matrices->probs[fcA->iindx[ptr->i] - ptr->j] * prob_nocomplex;
+        } else if (ptr->i > fcA->length && ptr->j > fcA->length) {
+          ptr->p += fcB->exp_matrices->probs[fcB->iindx[ptr->i - fcA->length] - ptr->j + fcA->length] * prob_nocomplex;
+        }
+      }
+
             (void)vrna_plot_dp_PS_list(record->sequence,
                                        vc->cutpoint,
                                        "newdot.ps",
