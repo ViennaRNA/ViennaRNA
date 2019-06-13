@@ -310,9 +310,9 @@ vrna_pairing_probs(vrna_fold_compound_t *vc,
   int ret = 0;
 
   if (vc) {
-    if (vc->strands > 1)
-      ret = pf_co_bppm(vc, structure);
-    else
+    //if (vc->strands > 1)
+    //  ret = pf_co_bppm(vc, structure);
+    //else
       ret = pf_create_bppm(vc, structure);
   }
 
@@ -1535,7 +1535,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       ml_helpers->prml[i] = prmt;
 
       /* l+1 is unpaired */
-      if (hc->up_ml[l + 1]) {
+      if ((hc->up_ml[l + 1]) && (sn[l] == sn[l + 1])) {
         ppp = ml_helpers->prm_l1[i] * expMLbase[1];
         if (sc) {
           if (sc->exp_energy_up)
@@ -1582,7 +1582,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       }
 
       /* i is unpaired */
-      if (hc->up_ml[i]) {
+      if ((hc->up_ml[i]) && (sn[i - 1] == sn[i])) {
         ppp = prm_MLb * expMLbase[1];
         if (sc) {
           if (sc->exp_energy_up)
