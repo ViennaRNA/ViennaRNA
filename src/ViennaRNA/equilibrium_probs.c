@@ -56,6 +56,13 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                char                 *structure);
 
 
+PRIVATE void
+compute_bpp_interstrand(vrna_fold_compound_t *fc,
+                        int                  l,
+                        FLT_OR_DBL           **Q33,
+                        FLT_OR_DBL           *Qmax,
+                        int                  *ov);
+
 PRIVATE int
 pf_co_bppm(vrna_fold_compound_t *vc,
            char                 *structure);
@@ -655,6 +662,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     int           corr_size       = 5;
     int           corr_cnt        = 0;
     vrna_ep_t     *bp_correction  = vrna_alloc(sizeof(vrna_ep_t) * corr_size);
+    FLT_OR_DBL    **Q33           = NULL;
 
     helper_arrays       *ml_helpers;
     constraints_helper  *constraints;
@@ -686,6 +694,12 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     }
 
     Qmax = 0;
+
+    if (vc->strands > 1) {
+      Q33 = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * vc->strands);
+      for (i = 0; i < vc->strands; i++)
+        Q33[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    }
 
     /* init diagonal entries unable to pair in pr matrix */
     for (i = 1; i <= n; i++)
@@ -721,6 +735,13 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                       ml_helpers,
                       &Qmax,
                       &ov);
+
+      if (vc->strands > 1)
+        compute_bpp_interstrand(vc,
+                                l,
+                                Q33,
+                                &Qmax,
+                                &ov);
     }
 
     if (vc->type == VRNA_FC_TYPE_SINGLE) {
@@ -2170,6 +2191,212 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
       probs[kl] += tmp2 * G[kl];
     }
   }
+}
+
+
+PRIVATE void
+compute_bpp_interstrand(vrna_fold_compound_t *fc,
+                        int                  l,
+                        FLT_OR_DBL           **Q33,
+                        FLT_OR_DBL           *Qmax,
+                        int                  *ov)
+{
+  int             i, j, n, ij;
+  unsigned int    type;
+  unsigned int    s;
+  unsigned int    *sn   = fc->strand_number;
+  unsigned int    *ss   = fc->strand_start;
+  unsigned int    *se   = fc->strand_end;
+  unsigned int    *so   = fc->strand_order;
+
+  short       *S        = fc->sequence_encoding2;
+  short       *S1       = fc->sequence_encoding;
+  int         n         = (int)fc->length;
+  int         *my_iindx = fc->iindx;
+  int         *jindx    = fc->jindx;
+  FLT_OR_DBL  *q        = fc->exp_matrices->q;
+  FLT_OR_DBL  *pr       = fc->exp_matrices->probs;
+  FLT_OR_DBL  tmp;
+  FLT_OR_DBL  *Q5, *Q3;
+  vrna_exp_param_t  *pf_params  = fc->exp_params;
+  vrna_md_t         *md         = &(pf_params->model_details);
+
+  Q5 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->strands));
+  Q3 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+
+  unsigned int sbl = 0; /* number of strands before the strand that harbors position l */
+
+  /* get number of strands before position l */
+  for (sbl = 0; so[sbl] != sn[l]; sbl++);
+
+  /*
+      pre-compute Q5[strand], i.e. contribution for all configurations where
+      the strand-nick is in the 5' part of the loop (k, l) is enclosed by
+  */
+  if (sn[l] == sn[l + 1])
+    for (s = 0; s < sbl; s++) {
+      unsigned int strand_end = se[so[s]];
+      for (j = n; j > l; j--) {
+        if (sn[j] == sn[j - 1])
+          for (i = 1; i <= strand_end; i++)
+            if (sn[i] == sn[i + 1]) {
+              ij   = my_iindx[i] - j;
+              if (probs[ij] > 0) {
+                type = vrna_get_ptype_md(S[j], S[i], md);
+                tmp = probs[ij] *
+                      vrna_exp_E_ext_stem(type,
+                                          S1[j - 1],
+                                          S1[i + 1],
+                                          pf_params) *
+                      scale[2];
+
+                if (j > l + 1)
+                  tmp *= q[my_iindx[l + 1] - j + 1];
+
+                tmp *= q[my_iindx[i + 1] - strand_end];
+
+                Q5[so[s]] += tmp;
+              }
+            }
+      }
+    }
+
+  /*
+      pre-compute Q3[k], i.e. contributions for all configurations where
+      the strand-nick is in the 3' part of the loop (k, l) is enclosed by
+      under the condition that the nick is either between l and l + 1, or
+      between j - 1 and j
+
+      Note, at this point we also pre-compute Q33[strand][k], i.e.
+      contributions for all conformations where the strand-nick is in the
+      3' part of the loop (k, l) is enclosed by under the condition that
+      the nick is somewhere between l + 1 and j - 1.
+  */
+
+  if (sn[l] != sn[l + 1]) {
+    /* 0th case: j = l + 1 and nick between l and j */
+    j = l + 1;
+    for (k = 2; k < l; k++)
+      if (sn[k - 1] == sn[k])
+        for (i = 1; i < k; i++)
+          if (sn[i] == sn[i + 1]) {
+            ij = my_iindx[i] - j;
+            if (probs[ij]) {
+              type = vrna_get_ptype_md(S[j], S[i], md);
+              tmp  = probs[ij] *
+                     vrna_exp_E_ext_stem(type,
+                                         -1,
+                                         S1[i + 1],
+                                         pf_params) *
+                     scale[2];
+
+              if (i + 1 < k)
+                tmp *= q[my_iindx[i + 1] - k + 1];
+
+              Q3[k] += tmp;
+            }
+          }
+
+    /* other cases where nick is between l and l + 1 */
+    for (k = 2; k < l; k++)
+      if (sn[k - 1] == sn[k])
+        for (j = n; j > l + 1; j--)
+          if (sn[j - 1] == sn[j])
+            for (i = 1; i < k; i++)
+              if (sn[i] == sn[i + 1]) {
+                ij = my_iindx[i] - j;
+                if (probs[ij]) {
+                  type = vrna_get_ptype_md(S[j], S[i], md);
+                  tmp  = probs[ij] *
+                         vrna_exp_E_ext_stem(type,
+                                             S1[j - 1],
+                                             S1[i + 1],
+                                             pf_params) *
+                         scale[2];
+
+                  if (i + 1 < k)
+                    tmp *= q[my_iindx[i + 1] - k + 1];
+
+                  tmp *= q[my_iindx[l + 1] - j + 1];
+
+                  Q3[k] += tmp;
+
+                  /* trick to subsequently add up contributions on Q33 */
+                  Q33[so[sbl + 1]][k]  += tmp;
+                }
+              }
+  } else {
+    /* cases where nick is between j - 1 and j */
+    for (s = sbl + 1; s < fc->strands; s++) {
+      j = ss[so[s]];
+      for (k = 2; k < l; k++)
+        if (sn[k - 1] == sn[k])
+          for (i = 1; i < k; i++)
+            if (sn[i] == sn[i + 1]) {
+              ij = my_iindx[i] - j;
+              if (probs[ij]) {
+                type = vrna_get_ptype_md(S[j], S[i], md);
+                tmp  = probs[ij] *
+                       vrna_exp_E_ext_stem(type,
+                                           -1,
+                                           S1[i + 1],
+                                           pf_params) *
+                       scale[2];
+
+                if (i + 1 < k)
+                  tmp *= q[my_iindx[i + 1] - k + 1];
+
+                if (l + 1 < j)
+                  tmp *= q[my_iindx[l + 1] - j + 1];
+              }
+            }
+    }
+  }
+
+  /* finally, compute p[kl] for all k < l */
+  for (s = 0; s < sbl; s++) {
+    unsigned int strand_end = se[so[s]];
+    for (k = strand_end + 1; k < l; k++) {
+      kl = my_iindx[k] - l;
+      if (qb[kl] > 0) {
+        type = vrna_get_ptype_md(S[l], S[k], md);
+        tmp  = Q5[so[s]] *
+               vrna_exp_E_ext_stem(type,
+                                   S1[l + 1],
+                                   (sn[k - 1] == sn[k]) ? S1[k - 1] : -1,
+                                   pf_params);
+
+        if (strand_end + 1 < k)
+          tmp *= q[my_iindx[strand_end + 1] - k + 1];
+
+        probs[kl] += tmp;
+      }
+    }
+  }
+
+  for (s = sbl + 1; s < fc->strands; s++) {
+    unsigned int strand_start = ss[so[s]];
+    for (k = 2; k < l; k++) {
+      kl = my_iindx[k] - l;
+      if (qb[kl] > 0) {
+        type = vrna_get_ptype_md[S[l], S[k], md);
+        tmp  = vrna_exp_E_ext_stem(type,
+                                   (sn[l] == sn[l + 1]) ? S1[l + 1] : -1,
+                                   S1[k - 1],
+                                   pf_params);
+
+        probs[kl] += Q3[k] *
+                     tmp;
+
+        if (l + 1 < strand_start)
+          tmp *= q[my_iindx[l + 1] - strand_start + 1];
+
+        probs[kl += Q33[so[s]][k] *
+                    tmp;
+      }
+    }
+  }
+
 }
 
 
