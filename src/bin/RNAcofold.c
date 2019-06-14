@@ -185,6 +185,7 @@ init_default_options(struct options *opt)
   opt->commands       = NULL;
   opt->id_control     = NULL;
   set_model_details(&(opt->md));
+  //opt->md.pf_smooth  = 0;
 
   opt->doC                = 0; /* toggle to compute concentrations */
   opt->concentration_file = NULL;
@@ -954,7 +955,7 @@ process_record(struct record_data *record)
       vrna_cstr_printf_structure(o_stream->data,
                                  NULL,
                                  " free energy of full ensemble = %.6f kcal/mol\n"
-                                 " free energy of connected ensemble = %.6f kcal/mol\n"
+                                 " free energy of connected ensemble = %2.15f kcal/mol\n"
                                  " free energy of single A ensemble = %.6f kcal/mol\n"
                                  " free energy of single B ensemble = %.6f kcal/mol\n",
                                  NAB.FAB,

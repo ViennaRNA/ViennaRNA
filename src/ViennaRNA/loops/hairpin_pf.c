@@ -203,7 +203,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *fc,
   q = 0.;
 
   if (sn[j] != sn[i])
-    return exp_eval_hp_loop_fake(fc, i, j);
+    return 0; //exp_eval_hp_loop_fake(fc, i, j);
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:

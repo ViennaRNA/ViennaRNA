@@ -849,6 +849,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     free_constraints_helper(constraints);
 
     free(bp_correction);
+    free(Q33);
   } /* end if 'check for forward recursion' */
   else {
     vrna_message_warning("bppm calculations have to be done after calling forward recursion");
@@ -2201,30 +2202,35 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
                         FLT_OR_DBL           *Qmax,
                         int                  *ov)
 {
-  int             i, j, n, ij;
-  unsigned int    type;
-  unsigned int    s;
-  unsigned int    *sn   = fc->strand_number;
-  unsigned int    *ss   = fc->strand_start;
-  unsigned int    *se   = fc->strand_end;
-  unsigned int    *so   = fc->strand_order;
+  short             *S, *S1;
+  unsigned int      type, s, *sn, *ss, *se, *so, sbl;
+  int               i, j, k, n, ij, kl, *my_iindx, *jindx;
+  FLT_OR_DBL  *q,   *probs, *scale, *qb, tmp, *Q5, *Q3;
+  vrna_mx_pf_t      *matrices;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
 
-  short       *S        = fc->sequence_encoding2;
-  short       *S1       = fc->sequence_encoding;
-  int         n         = (int)fc->length;
-  int         *my_iindx = fc->iindx;
-  int         *jindx    = fc->jindx;
-  FLT_OR_DBL  *q        = fc->exp_matrices->q;
-  FLT_OR_DBL  *pr       = fc->exp_matrices->probs;
-  FLT_OR_DBL  tmp;
-  FLT_OR_DBL  *Q5, *Q3;
-  vrna_exp_param_t  *pf_params  = fc->exp_params;
-  vrna_md_t         *md         = &(pf_params->model_details);
+  n         = (int)fc->length;
+  sn        = fc->strand_number;
+  ss        = fc->strand_start;
+  se        = fc->strand_end;
+  so        = fc->strand_order;
+  S         = fc->sequence_encoding2;
+  S1        = fc->sequence_encoding;
+  my_iindx  = fc->iindx;
+  jindx     = fc->jindx;
+  matrices  = fc->exp_matrices;
+  q         = matrices->q;
+  probs     = matrices->probs;
+  scale     = matrices->scale;
+  qb        = matrices->qb;
+  pf_params = fc->exp_params;
+  md        = &(pf_params->model_details);
 
   Q5 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->strands));
   Q3 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
 
-  unsigned int sbl = 0; /* number of strands before the strand that harbors position l */
+  sbl = 0; /* number of strands before the strand that harbors position l */
 
   /* get number of strands before position l */
   for (sbl = 0; so[sbl] != sn[l]; sbl++);
@@ -2236,6 +2242,7 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
   if (sn[l] == sn[l + 1])
     for (s = 0; s < sbl; s++) {
       unsigned int strand_end = se[so[s]];
+
       for (j = n; j > l; j--) {
         if (sn[j] == sn[j - 1])
           for (i = 1; i <= strand_end; i++)
@@ -2257,6 +2264,22 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
 
                 Q5[so[s]] += tmp;
               }
+            } else if (i == strand_end) {
+              ij = my_iindx[i] - j;
+              if (probs[ij] > 0) {
+                type = vrna_get_ptype_md(S[j], S[i], md);
+                tmp = probs[ij] *
+                      vrna_exp_E_ext_stem(type,
+                                          S1[j - 1],
+                                          -1,
+                                          pf_params) *
+                      scale[2];
+
+                if (j > l + 1)
+                  tmp *= q[my_iindx[l + 1] - j + 1];
+
+                Q5[so[s]] += tmp;
+              }
             }
       }
     }
@@ -2275,6 +2298,8 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
 
   if (sn[l] != sn[l + 1]) {
     /* 0th case: j = l + 1 and nick between l and j */
+    
+    /* 0.a) l + 1 == j */
     j = l + 1;
     for (k = 2; k < l; k++)
       if (sn[k - 1] == sn[k])
@@ -2297,7 +2322,7 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
             }
           }
 
-    /* other cases where nick is between l and l + 1 */
+    /* 0.b) other cases where nick is between l and l + 1 */
     for (k = 2; k < l; k++)
       if (sn[k - 1] == sn[k])
         for (j = n; j > l + 1; j--)
@@ -2321,7 +2346,10 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
 
                   Q3[k] += tmp;
 
-                  /* trick to subsequently add up contributions on Q33 */
+                  /*
+                      here, we add contributions to Q33 to actually
+                      stay within O(n^3)
+                  */
                   Q33[so[sbl + 1]][k]  += tmp;
                 }
               }
@@ -2346,8 +2374,9 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
                 if (i + 1 < k)
                   tmp *= q[my_iindx[i + 1] - k + 1];
 
-                if (l + 1 < j)
-                  tmp *= q[my_iindx[l + 1] - j + 1];
+                tmp *= q[my_iindx[l + 1] - j + 1];
+
+                Q3[k] += tmp;
               }
             }
     }
@@ -2359,11 +2388,11 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
     for (k = strand_end + 1; k < l; k++) {
       kl = my_iindx[k] - l;
       if (qb[kl] > 0) {
-        type = vrna_get_ptype_md(S[l], S[k], md);
+        type = vrna_get_ptype_md(S[k], S[l], md);
         tmp  = Q5[so[s]] *
                vrna_exp_E_ext_stem(type,
-                                   S1[l + 1],
                                    (sn[k - 1] == sn[k]) ? S1[k - 1] : -1,
+                                   S1[l + 1],
                                    pf_params);
 
         if (strand_end + 1 < k)
@@ -2374,29 +2403,42 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
     }
   }
 
-  for (s = sbl + 1; s < fc->strands; s++) {
-    unsigned int strand_start = ss[so[s]];
-    for (k = 2; k < l; k++) {
-      kl = my_iindx[k] - l;
-      if (qb[kl] > 0) {
-        type = vrna_get_ptype_md[S[l], S[k], md);
-        tmp  = vrna_exp_E_ext_stem(type,
-                                   (sn[l] == sn[l + 1]) ? S1[l + 1] : -1,
-                                   S1[k - 1],
-                                   pf_params);
+  for (k = 2; k < l; k++) {
+    kl = my_iindx[k] - l;
+    if (qb[kl] > 0) {
+      type = vrna_get_ptype_md(S[k], S[l], md);
+      tmp  = vrna_exp_E_ext_stem(type,
+                                 S1[k - 1],
+                                 (sn[l] == sn[l + 1]) ? S1[l + 1] : -1,
+                                 pf_params);
 
-        probs[kl] += Q3[k] *
-                     tmp;
-
-        if (l + 1 < strand_start)
-          tmp *= q[my_iindx[l + 1] - strand_start + 1];
-
-        probs[kl += Q33[so[s]][k] *
-                    tmp;
-      }
+      probs[kl] += Q3[k] *
+                   tmp;
     }
   }
 
+  for (s = sbl + 1; s < fc->strands; s++) {
+    unsigned int strand_start = ss[so[s]];
+    if (strand_start > l + 1)
+      for (k = 2; k < l; k++) {
+        kl = my_iindx[k] - l;
+        if (qb[kl] > 0) {
+          type = vrna_get_ptype_md(S[k], S[l], md);
+          tmp  = vrna_exp_E_ext_stem(type,
+                                     S1[k - 1],
+                                     S1[l + 1],
+                                     pf_params);
+
+          tmp *= q[my_iindx[l + 1] - strand_start + 1];
+
+          probs[kl] += Q33[so[s]][k] *
+                      tmp;
+        }
+      }
+  }
+
+  free(Q5);
+  free(Q3);
 }
 
 
