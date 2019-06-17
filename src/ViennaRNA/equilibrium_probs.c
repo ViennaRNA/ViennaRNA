@@ -2301,84 +2301,69 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
     
     /* 0.a) l + 1 == j */
     j = l + 1;
-    for (k = 2; k < l; k++)
-      if (sn[k - 1] == sn[k])
-        for (i = 1; i < k; i++)
+    for (i = 1; i < l; i++)
+      if (sn[i] == sn[i + 1]) {
+        ij = my_iindx[i] - j;
+        if (probs[ij]) {
+          type = vrna_get_ptype_md(S[j], S[i], md);
+          tmp  = probs[ij] *
+                 vrna_exp_E_ext_stem(type,
+                                     -1,
+                                     S1[i + 1],
+                                     pf_params) *
+                 scale[2];
+
+          Q3[i] += tmp;
+        }
+      }
+
+    /* 0.b) other cases where nick is between l and l + 1 */
+    for (j = n; j > l + 1; j--)
+      if (sn[j - 1] == sn[j])
+        for (i = 1; i < l; i++)
           if (sn[i] == sn[i + 1]) {
             ij = my_iindx[i] - j;
             if (probs[ij]) {
               type = vrna_get_ptype_md(S[j], S[i], md);
               tmp  = probs[ij] *
                      vrna_exp_E_ext_stem(type,
-                                         -1,
+                                         S1[j - 1],
                                          S1[i + 1],
                                          pf_params) *
                      scale[2];
 
-              if (i + 1 < k)
-                tmp *= q[my_iindx[i + 1] - k + 1];
+              tmp *= q[my_iindx[l + 1] - j + 1];
 
-              Q3[k] += tmp;
+              Q3[i] += tmp;
+
+              /*
+                  here, we add contributions to Q33 to actually
+                  stay within O(n^3)
+              */
+              Q33[so[sbl + 1]][i]  += tmp;
             }
           }
-
-    /* 0.b) other cases where nick is between l and l + 1 */
-    for (k = 2; k < l; k++)
-      if (sn[k - 1] == sn[k])
-        for (j = n; j > l + 1; j--)
-          if (sn[j - 1] == sn[j])
-            for (i = 1; i < k; i++)
-              if (sn[i] == sn[i + 1]) {
-                ij = my_iindx[i] - j;
-                if (probs[ij]) {
-                  type = vrna_get_ptype_md(S[j], S[i], md);
-                  tmp  = probs[ij] *
-                         vrna_exp_E_ext_stem(type,
-                                             S1[j - 1],
-                                             S1[i + 1],
-                                             pf_params) *
-                         scale[2];
-
-                  if (i + 1 < k)
-                    tmp *= q[my_iindx[i + 1] - k + 1];
-
-                  tmp *= q[my_iindx[l + 1] - j + 1];
-
-                  Q3[k] += tmp;
-
-                  /*
-                      here, we add contributions to Q33 to actually
-                      stay within O(n^3)
-                  */
-                  Q33[so[sbl + 1]][k]  += tmp;
-                }
-              }
   } else {
     /* cases where nick is between j - 1 and j */
     for (s = sbl + 1; s < fc->strands; s++) {
       j = ss[so[s]];
-      for (k = 2; k < l; k++)
-        if (sn[k - 1] == sn[k])
-          for (i = 1; i < k; i++)
-            if (sn[i] == sn[i + 1]) {
-              ij = my_iindx[i] - j;
-              if (probs[ij]) {
-                type = vrna_get_ptype_md(S[j], S[i], md);
-                tmp  = probs[ij] *
-                       vrna_exp_E_ext_stem(type,
-                                           -1,
-                                           S1[i + 1],
-                                           pf_params) *
-                       scale[2];
+      for (i = 1; i < l; i++)
+        if (sn[i] == sn[i + 1]) {
+          ij = my_iindx[i] - j;
+          if (probs[ij]) {
+            type = vrna_get_ptype_md(S[j], S[i], md);
+            tmp  = probs[ij] *
+                   vrna_exp_E_ext_stem(type,
+                                       -1,
+                                       S1[i + 1],
+                                       pf_params) *
+                   scale[2];
 
-                if (i + 1 < k)
-                  tmp *= q[my_iindx[i + 1] - k + 1];
+            tmp *= q[my_iindx[l + 1] - j + 1];
 
-                tmp *= q[my_iindx[l + 1] - j + 1];
-
-                Q3[k] += tmp;
-              }
-            }
+            Q3[i] += tmp;
+          }
+        }
     }
   }
 
@@ -2406,14 +2391,20 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
   for (k = 2; k < l; k++) {
     kl = my_iindx[k] - l;
     if (qb[kl] > 0) {
-      type = vrna_get_ptype_md(S[k], S[l], md);
-      tmp  = vrna_exp_E_ext_stem(type,
-                                 S1[k - 1],
-                                 (sn[l] == sn[l + 1]) ? S1[l + 1] : -1,
-                                 pf_params);
+      for (i = 1; i < k; i++)
+        if (sn[i] == sn[i + 1]) {
+          type = vrna_get_ptype_md(S[k], S[l], md);
+          tmp  = vrna_exp_E_ext_stem(type,
+                                     S1[k - 1],
+                                     (sn[l] == sn[l + 1]) ? S1[l + 1] : -1,
+                                     pf_params);
 
-      probs[kl] += Q3[k] *
-                   tmp;
+          if (i + 1 < k)
+            tmp *= q[my_iindx[i + 1] - k + 1];
+
+          probs[kl] += Q3[i] *
+                       tmp;
+        }
     }
   }
 
@@ -2423,16 +2414,22 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
       for (k = 2; k < l; k++) {
         kl = my_iindx[k] - l;
         if (qb[kl] > 0) {
-          type = vrna_get_ptype_md(S[k], S[l], md);
-          tmp  = vrna_exp_E_ext_stem(type,
-                                     S1[k - 1],
-                                     S1[l + 1],
-                                     pf_params);
+          for (i = 1; i < k; i++)
+            if (sn[i] == sn[i + 1]) {
+              type = vrna_get_ptype_md(S[k], S[l], md);
+              tmp  = vrna_exp_E_ext_stem(type,
+                                         S1[k - 1],
+                                         S1[l + 1],
+                                         pf_params);
 
-          tmp *= q[my_iindx[l + 1] - strand_start + 1];
+              tmp *= q[my_iindx[l + 1] - strand_start + 1];
 
-          probs[kl] += Q33[so[s]][k] *
-                      tmp;
+              if (i + 1 < k)
+                tmp *= q[my_iindx[i + 1] - k + 1];
+
+              probs[kl] += Q33[so[s]][i] *
+                          tmp;
+            }
         }
       }
   }
