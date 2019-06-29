@@ -3,7 +3,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
 
     # (AM_PATH_PYTHON) cannot be used for multiple Python version at once
     if test -z "$PYTHON3" ; then
-      AC_PATH_PROGS([PYTHON3], [python3 python38 python3.8 python37 python3.7 python36 python3.6 python35 python3.5 python34 python3.4 python33 python3.3], [no])
+      AC_PATH_PROGS([PYTHON3], [python3 python38 python3.8 python37 python3.7 python36 python3.6 python35 python3.5 python34 python3.4], [no])
     fi
     AC_ARG_VAR(PYTHON3, [Path to Python3 interpreter (e.g.: /usr/bin/python3)])
 
@@ -69,15 +69,15 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
           AC_MSG_RESULT([$PYTHON3_SO])
 
           AC_MSG_CHECKING([for Python3 tag for cached compiled scripts])
-          PYTHON3_CACHE_TAG=`$PYTHON3 -c "import imp; \
-                  print(imp.get_tag())"`
+          PYTHON3_CACHE_TAG=`$PYTHON3 -c "import sys; \
+                  print(sys.implementation.cache_tag)"`
           AC_SUBST(PYTHON3_CACHE_TAG)
           AC_MSG_RESULT([$PYTHON3_CACHE_TAG])
 
           AC_MSG_CHECKING([for Python3 extension of cached and optimized bytecode])
-          PYTHON3_CACHE_OPT1_EXT=`$PYTHON3 -c "import imp,sys; \
-                  print('%s.pyo'%imp.get_tag()) if sys.version_info.minor<5 \
-                  else print('{1}{2}'.format(*imp.util.cache_from_source('',optimization=1).rpartition(imp.get_tag())))"`
+          PYTHON3_CACHE_OPT1_EXT=`$PYTHON3 -c "import importlib,sys; \
+                  print('%s.pyo'%sys.implementation.cache_tag) if sys.version_info.minor<5 \
+                  else print('{1}{2}'.format(*importlib.util.cache_from_source('',optimization=1).rpartition(sys.implementation.cache_tag)))"`
           AC_SUBST(PYTHON3_CACHE_OPT1_EXT)
           AC_MSG_RESULT([$PYTHON3_CACHE_OPT1_EXT])
 
