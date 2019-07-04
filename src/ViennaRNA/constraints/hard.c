@@ -32,6 +32,21 @@
 #define FULL_HC_MX  1
 
 
+struct hc_basepair {
+  unsigned int  strand;
+  unsigned int  start;
+  unsigned int  end;
+  unsigned char context;
+  unsigned char replace;
+};
+
+
+struct vrna_hc_depot_s {
+  unsigned char       **up; /* position-wise unpaired-context constraints (0th dimension: strand, 1st: i */
+  struct hc_basepair  ***bp;  /* list of base pair constraints (0th dimension: strand, 1st: i, 2nd: entries for each interval [j:k] */
+};
+
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -108,6 +123,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
 PRIVATE void
 hc_add_up(vrna_fold_compound_t  *vc,
           int                   i,
+          int                   strand,
           unsigned char         option);
 
 
@@ -128,6 +144,32 @@ hc_update_up(vrna_fold_compound_t *vc);
 PRIVATE void
 hc_update_up_window(vrna_fold_compound_t  *vc,
                     int                   i);
+
+
+PRIVATE void
+hc_depot_init(vrna_fold_compound_t *fc);
+
+
+PRIVATE void
+hc_depot_store_up(vrna_fold_compound_t  *fc,
+                  unsigned int          i,
+                  unsigned int          strand,
+                  unsigned char         context,
+                  unsigned char         replace);
+
+
+PRIVATE void
+hc_depot_store_bp(vrna_fold_compound_t  *fc,
+                  unsigned int          i,
+                  unsigned int          strand,
+                  unsigned int          start,
+                  unsigned int          end,
+                  unsigned int          context,
+                  unsigned char         replace);
+
+
+PRIVATE void
+hc_depot_free(vrna_fold_compound_t *fc);
 
 
 /*
@@ -189,6 +231,7 @@ vrna_hc_init(vrna_fold_compound_t *vc)
   hc->up_hp   = (int *)vrna_alloc(sizeof(int) * (n + 2));
   hc->up_int  = (int *)vrna_alloc(sizeof(int) * (n + 2));
   hc->up_ml   = (int *)vrna_alloc(sizeof(int) * (n + 2));
+  hc->depot   = NULL;
 
   /* set new hard constraints */
   vc->hc = hc;
@@ -228,6 +271,7 @@ vrna_hc_init_window(vrna_fold_compound_t *vc)
   hc->up_hp         = NULL;
   hc->up_int        = NULL;
   hc->up_ml         = NULL;
+  hc->depot         = NULL;
 
   /* set new hard constraints */
   vc->hc = hc;
@@ -285,7 +329,7 @@ vrna_hc_add_up(vrna_fold_compound_t *vc,
         return;
       }
 
-      hc_add_up(vc, i, option);
+      hc_add_up(vc, i, -1, option);
 
       if (vc->hc->type != VRNA_HC_WINDOW)
         hc_update_up(vc);
@@ -313,7 +357,7 @@ vrna_hc_add_up_batch(vrna_fold_compound_t *vc,
           return ret;
         }
 
-        hc_add_up(vc, pos, options);
+        hc_add_up(vc, pos, -1, options);
       }
 
       if (vc->hc->type != VRNA_HC_WINDOW)
@@ -802,6 +846,158 @@ hc_init_bp_storage(vrna_hc_t *hc)
 
 
 PRIVATE void
+hc_depot_init(vrna_fold_compound_t *fc)
+{
+  vrna_hc_t *hc = fc->hc;
+  if (!hc->depot) {
+    hc->depot = (vrna_hc_depot_t *)vrna_alloc(sizeof(vrna_hc_depot_t));
+
+    /*
+        by default, we only allocate memory for potential constraints for
+        each strand. Missing entries, i.e. NULL pointers for any of the nt
+        a constraint may be specified for are considered unconstrained, i.e
+        default rules apply
+    */
+    if (fc->strands > 0) {
+      hc->depot->up = (unsigned char **)vrna_alloc(sizeof(unsigned char *) * fc->strands);
+      hc->depot->bp = (struct hc_basepair ***)vrna_alloc(sizeof(struct hc_basepair **) * fc->strands);
+    } else {
+      hc->depot->up = NULL;
+      hc->depot->bp = NULL;
+    }
+  }
+}
+
+
+PRIVATE void
+hc_depot_store_up(vrna_fold_compound_t  *fc,
+                  unsigned int          i,
+                  unsigned int          strand,
+                  unsigned char         context,
+                  unsigned char         replace)
+{
+  vrna_hc_t *hc = fc->hc;
+
+  hc_depot_init(fc);
+
+  if (!hc->depot->up[strand]) {
+    unsigned int length = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->nucleotides[strand].length : fc->alignment[strand].sequences[0].length;
+    hc->depot->up[strand] = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (length + 1));
+    memset(hc->depot->up[strand] + 1, (int)VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS, sizeof(unsigned char) * length);
+  }
+
+  if (replace)
+    hc->depot->up[strand][i] = context;
+  else
+    hc->depot->up[strand][i] |= context;
+}
+
+
+PRIVATE void
+hc_depot_store_bp(vrna_fold_compound_t  *fc,
+                  unsigned int          i,
+                  unsigned int          strand,
+                  unsigned int          start,
+                  unsigned int          end,
+                  unsigned int          context,
+                  unsigned char         replace)
+{
+  size_t              list_size;
+  vrna_hc_t           *hc;
+  struct hc_basepair  *list, *ptr, *ptr_last;
+
+  hc_depot_init(fc);
+
+  hc = fc->hc;
+
+  if (!hc->depot->bp[strand]) {
+    unsigned int length = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->nucleotides[strand].length : fc->alignment[strand].sequences[0].length;
+    hc->depot->bp[strand] = (struct hc_basepair **)vrna_alloc(sizeof(struct hc_basepair *) * (length + 1));
+  }
+
+  if (!hc->depot->bp[strand][i]) {
+    hc->depot->bp[strand][i] = (struct hc_basepair *)vrna_alloc(sizeof(struct hc_basepair) * 2);
+    ptr = hc->depot->bp[strand][i];
+  } else {
+    /* find out total size of depot */
+    for (ptr = hc->depot->bp[strand][i]; ptr->end != 0; ptr++);
+
+    list_size = ptr - hc->depot->bp[strand][i];
+
+    /* increase memory for bp constraints */
+    hc->depot->bp[strand][i] = (struct hc_basepair *)vrna_realloc(hc->depot->bp[strand][i],
+                                                                  sizeof(struct hc_basepair) * (list_size + 2));
+
+    list = hc->depot->bp[strand][i];
+
+    /* find position where we want to insert the new constraint */
+    for (ptr = list; ptr->end != 0; ptr++) {
+      if (ptr->strand < strand)
+        continue;
+      else if (ptr->strand > strand)
+        break;
+
+      /* we only perform the following check for ptr->strand == strand */
+      if (ptr->start > start)
+        break; /* want to insert before current constraint */
+
+      if (ptr->end < end)
+        continue; /* want to insert after current constraint */
+    }
+
+    size_t  offset = ptr - list;
+
+    /* shift trailing constraints by 1 entry */
+    memmove(list + offset + 1, list + offset,
+            sizeof(struct hc_basepair) * (list_size - offset + 1));
+  }
+
+  ptr->start    = start;
+  ptr->end      = end;
+  ptr->strand   = strand;
+  ptr->context  = context;
+  ptr->replace  = replace;
+}
+
+
+PRIVATE void
+hc_depot_free(vrna_fold_compound_t *fc)
+{
+  unsigned int    s, i, n;
+  vrna_hc_depot_t *depot = fc->hc->depot;
+
+  if (depot) {
+    if (depot->up) {
+      for (s = 0; s < fc->strands; s++)
+        free(depot->up[s]);
+
+      free(depot->up);
+    }
+
+    if (depot->bp) {
+      for (s = 0; s < fc->strands; s++) {
+        if (depot->bp[s]) {
+          n = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->nucleotides[s].length : fc->alignment[s].sequences[0].length;
+          for (i = 1; i <= n; i++)
+            free(depot->bp[s][i]);
+
+          free(depot->bp[s]);
+        }
+      }
+
+      free(depot->bp);
+    }
+
+    free(depot);
+  }
+  
+  fc->hc->depot = NULL;
+}
+
+
+
+
+PRIVATE void
 hc_store_bp_override(vrna_hc_bp_storage_t **container,
                      int                  i,
                      int                  start,
@@ -935,6 +1131,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
 PRIVATE void
 hc_add_up(vrna_fold_compound_t  *vc,
           int                   i,
+          int                   strand,
           unsigned char         option)
 {
   unsigned char type = VRNA_CONSTRAINT_CONTEXT_NONE;
@@ -1386,7 +1583,7 @@ db_constraints_exit:
 PRIVATE void
 hc_reset_to_default(vrna_fold_compound_t *vc)
 {
-  unsigned int  i, j, ij, n;
+  unsigned int  i, j, ij, n, s, strands;
   int           *idx;
   vrna_hc_t     *hc;
 

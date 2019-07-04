@@ -41,6 +41,8 @@ typedef struct  vrna_hc_s vrna_hc_t;
  */
 typedef struct vrna_hc_up_s vrna_hc_up_t;
 
+typedef struct vrna_hc_depot_s  vrna_hc_depot_t;
+
 /**
  * @brief Callback to evaluate whether or not a particular decomposition step is contributing to the solution space
  *
@@ -344,6 +346,7 @@ typedef struct {
   unsigned char replace : 1;
 } vrna_hc_bp_storage_t;
 
+
 /**
  *  @brief  The hard constraints data structure
  *
@@ -425,6 +428,8 @@ struct vrna_hc_s {
                                            *    memory, the user may use this pointer to free
                                            *    memory occupied by auxiliary data.
                                            */
+
+  vrna_hc_depot_t             *depot;
 };
 
 /**
@@ -434,6 +439,7 @@ struct vrna_hc_s {
  */
 struct vrna_hc_up_s {
   int position;           /**<  @brief The sequence position (1-based)  */
+  unsigned int  strand;
   unsigned char options;  /**<  @brief The hard constraint option       */
 };
 
