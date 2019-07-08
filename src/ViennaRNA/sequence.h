@@ -38,8 +38,11 @@ typedef enum {
  */
 struct vrna_sequence_s {
   vrna_seq_type_e type;       /**< @brief The type of sequence */
+  char            *name;
   char            *string;    /**< @brief The string representation of the sequence */
   short           *encoding;  /**< @brief The integer representation of the sequence */
+  short           *encoding5;
+  short           *encoding3;
   unsigned int    length;     /**< @brief The length of the sequence */
 };
 

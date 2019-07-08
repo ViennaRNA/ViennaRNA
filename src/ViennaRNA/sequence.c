@@ -24,6 +24,7 @@
  */
 PRIVATE void set_sequence(vrna_seq_t    *obj,
                           const char    *string,
+                          const char    *name,
                           vrna_md_t     *md,
                           unsigned int  options);
 
@@ -44,7 +45,7 @@ vrna_sequence(const char    *string,
 
   if (string) {
     data = (vrna_seq_t *)vrna_alloc(sizeof(vrna_seq_t));
-    set_sequence(data, string, NULL, options);
+    set_sequence(data, string, NULL, NULL, options);
   }
 
   return data;
@@ -68,6 +69,7 @@ vrna_sequence_add(vrna_fold_compound_t  *vc,
                                                  (vc->strands + 1));
     set_sequence(&(vc->nucleotides[vc->strands]),
                  string,
+                 NULL,
                  &(vc->params->model_details),
                  options);
 
@@ -243,9 +245,11 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
 PRIVATE void
 set_sequence(vrna_seq_t   *obj,
              const char   *string,
+             const char   *name,
              vrna_md_t    *md,
              unsigned int options)
 {
+  obj->name   = name ? strdup(name) : NULL;
   obj->string = strdup(string);
   vrna_seq_toupper(obj->string);
   obj->length = strlen(obj->string);
@@ -255,7 +259,44 @@ set_sequence(vrna_seq_t   *obj,
       obj->type = VRNA_SEQ_RNA;
   }
 
-  obj->encoding = vrna_seq_encode(obj->string, md);
+  obj->encoding   = vrna_seq_encode(obj->string, md);
+  obj->encoding5  = (short *)vrna_alloc(sizeof(short) * (obj->length + 1));
+  obj->encoding3  = (short *)vrna_alloc(sizeof(short) * (obj->length + 1));
+
+  if (md->circ) {
+    for (size_t i = obj->length; i > 0; i--) {
+      if (obj->encoding[i] == 0) /* no nucleotide, i.e. gap */
+        continue;
+
+      obj->encoding5[1] = obj->encoding[i];
+      break;
+    }
+    for (size_t i = 1; i <= obj->length; i++) {
+      if (obj->encoding[i] == 0) /* no nucleotide, i.e. gap */
+        continue;
+
+      obj->encoding3[obj->length] = obj->encoding[i];
+      break;
+    }
+  } else {
+    obj->encoding5[1] = obj->encoding3[obj->length] = 0;
+  }
+
+  for (size_t i = 1, p = 0; i < obj->length; i++) {
+    if (obj->encoding[i] == 0) {
+      obj->encoding5[i + 1] = obj->encoding5[i];
+    } else {
+      obj->encoding5[i + 1]  = obj->encoding[i];
+    }
+  }
+
+  for (size_t i = obj->length; i > 1; i--) {
+    if (obj->encoding[i] == 0)
+      obj->encoding3[i - 1] = obj->encoding3[i];
+    else
+      obj->encoding3[i - 1] = obj->encoding[i];
+  }
+
 }
 
 
@@ -263,7 +304,15 @@ PRIVATE void
 free_sequence_data(vrna_seq_t *obj)
 {
   free(obj->string);
+  free(obj->name);
   free(obj->encoding);
+  free(obj->encoding5);
+  free(obj->encoding3);
+  obj->string = NULL;
+  obj->name = NULL;
+  obj->encoding = NULL;
+  obj->encoding5 = NULL;
+  obj->encoding3 = NULL;
   obj->type   = VRNA_SEQ_UNKNOWN;
   obj->length = 0;
 }
