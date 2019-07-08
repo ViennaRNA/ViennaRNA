@@ -267,6 +267,25 @@ vrna_fold_compound_comparative(const char   **sequences,
                                vrna_md_t    *md_p,
                                unsigned int options)
 {
+  return vrna_fold_compound_comparative2(sequences,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         NULL,
+                                         md_p,
+                                         options);
+}
+
+
+PUBLIC vrna_fold_compound_t *
+vrna_fold_compound_comparative2(const char                **sequences,
+                                const char                **names,
+                                const unsigned char       *orientation,
+                                const unsigned long long  *start,
+                                const unsigned long long  *genome_size,
+                                vrna_md_t                 *md_p,
+                                unsigned int              options)
+{
   int                   s, n_seq, length;
   vrna_fold_compound_t  *fc;
   vrna_md_t             md;
@@ -303,9 +322,6 @@ vrna_fold_compound_comparative(const char   **sequences,
 
   fc->n_seq     = n_seq;
   fc->length    = length;
-  fc->sequences = vrna_alloc(sizeof(char *) * (fc->n_seq + 1));
-  for (s = 0; sequences[s]; s++)
-    fc->sequences[s] = strdup(sequences[s]);
 
   /* get a copy of the model details */
   if (md_p)
@@ -317,6 +333,18 @@ vrna_fold_compound_comparative(const char   **sequences,
   add_params(fc, &md, options);
 
   sanitize_bp_span(fc, options);
+
+  vrna_msa_add( fc,
+                sequences,
+                names,
+                orientation,
+                start,
+                genome_size,
+                VRNA_SEQUENCE_RNA);
+
+  fc->sequences = vrna_alloc(sizeof(char *) * (fc->n_seq + 1));
+  for (s = 0; sequences[s]; s++)
+    fc->sequences[s] = strdup(sequences[s]);
 
   if (options & VRNA_OPTION_WINDOW) {
     set_fold_compound(fc, options, aux_options);
@@ -875,6 +903,7 @@ nullify(vrna_fold_compound_t *fc)
     fc->strand_start  = NULL;
     fc->strand_end    = NULL;
     fc->nucleotides   = NULL;
+    fc->alignment     = NULL;
 
     fc->hc            = NULL;
     fc->matrices      = NULL;

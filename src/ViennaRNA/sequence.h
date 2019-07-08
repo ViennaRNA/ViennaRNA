@@ -16,6 +16,8 @@
 /** @brief Typename for nucleotide sequence representation data structure #vrna_sequence_s */
 typedef struct vrna_sequence_s vrna_seq_t;
 
+typedef struct vrna_alignment_s vrna_msa_t;
+
 #include <ViennaRNA/fold_compound.h>
 
 
@@ -47,6 +49,18 @@ struct vrna_sequence_s {
 };
 
 
+struct vrna_alignment_s {
+  unsigned int  n_seq;
+  vrna_seq_t          *sequences;
+  char                **gapfree_seq;
+  unsigned int        *gapfree_size;  /* for MAF alignment coordinates */
+  unsigned long long  *genome_size;     /* for MAF alignment coordinates */
+  unsigned long long  *start;           /* for MAF alignment coordinates */
+  unsigned char       *orientation;     /* for MAF alignment coordinates */
+  unsigned int        **a2s;
+};
+
+
 vrna_seq_t *
 vrna_sequence(const char    *string,
               unsigned int  options);
@@ -69,6 +83,16 @@ vrna_sequence_remove_all(vrna_fold_compound_t *fc);
 
 void
 vrna_sequence_prepare(vrna_fold_compound_t *fc);
+
+
+int
+vrna_msa_add( vrna_fold_compound_t      *fc,
+              const char                **alignment,
+              const char                **names,
+              const unsigned char       *orientation,
+              const unsigned long long  *start,
+              const unsigned long long  *genome_size,
+              unsigned int              options);
 
 
 /**

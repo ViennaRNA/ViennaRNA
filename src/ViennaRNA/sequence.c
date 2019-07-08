@@ -122,6 +122,159 @@ vrna_sequence_add(vrna_fold_compound_t  *vc,
 
 
 PUBLIC int
+vrna_msa_add( vrna_fold_compound_t      *fc,
+              const char                **alignment,
+              const char                **names,
+              const unsigned char       *orientation,
+              const unsigned long long  *start,
+              const unsigned long long  *genome_size,
+              unsigned int              options)
+{
+  int ret;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (alignment)) {
+    size_t      s, ss, cnt, num_names, num_orientations, num_starts, num_genome_sizes;
+    vrna_msa_t  *msa;
+
+    num_names = num_orientations = num_starts = num_genome_sizes = 0;
+
+    /* add the sequence to the nucleotides container */
+    fc->alignment = (vrna_msa_t *)vrna_realloc(fc->alignment,
+                                               sizeof(vrna_msa_t) *
+                                               (fc->strands + 1));
+
+    /* count number of sequences in alignment */
+    for (s = 0; alignment[s]; s++);
+
+    msa = &(fc->alignment[fc->strands]);
+
+    msa->n_seq        = s;
+    msa->sequences    = (vrna_seq_t *)vrna_alloc(sizeof(vrna_seq_t) * s);
+    msa->orientation  = NULL;
+    msa->start        = NULL;
+    msa->genome_size  = NULL;
+    msa->a2s          = NULL; /* alignment column to nt number mapping */
+    msa->gapfree_seq  = NULL; /* gap-free sequence */
+    msa->gapfree_size = NULL; /* gap-free sequence length */
+
+    if (names) {
+      for (s = 0; s < msa->n_seq; s++) {
+        if (!names[s])
+          break;
+
+        num_names++;
+      }
+
+      if (num_names != msa->n_seq)
+        vrna_message_warning("vrna_msa_add(): "
+                             "Too few names provided for sequences in MSA input! "
+                             "Expected %u but received %u ",
+                             msa->n_seq,
+                             num_names);
+    }
+
+    for (s = 0; alignment[s]; s++) {
+      set_sequence(&(msa->sequences[s]),
+                   alignment[s],
+                   (s < num_names) ? names[s] : NULL,
+                   &(fc->params->model_details),
+                   options);
+    }
+
+    if (orientation) {
+      /* check whether the all orientations are provided */
+      for (s = 0; s < msa->n_seq; s++) {
+        if (!orientation[s])
+          break;
+
+        num_orientations++;
+      }
+
+      if (s != msa->n_seq)
+        vrna_message_warning("vrna_msa_add(): "
+                             "Too few orientations provided for sequences in MSA input! "
+                             "Expected %u but received %u ",
+                             msa->n_seq,
+                             num_orientations);
+
+      msa->orientation = (unsigned char *)vrna_alloc(sizeof(unsigned char) * msa->n_seq);
+
+      memcpy(msa->orientation, orientation, sizeof(unsigned char) * num_orientations);
+    }
+
+    if (start) {
+      /* check whether the all orientations are provided */
+      for (s = 0; s < msa->n_seq; s++) {
+        if (!start[s])
+          break;
+
+        num_starts++;
+      }
+
+      if (s != msa->n_seq)
+        vrna_message_warning("vrna_msa_add(): "
+                             "Too few start positions provided for sequences in MSA input! "
+                             "Expected %u but received %u ",
+                             msa->n_seq,
+                             num_starts);
+
+      msa->start = (unsigned long long *)vrna_alloc(sizeof(unsigned long long) * msa->n_seq);
+
+      memcpy(msa->start, start, sizeof(unsigned long long) * num_starts);
+    }
+
+    if (genome_size) {
+      /* check whether the all orientations are provided */
+      for (s = 0; s < msa->n_seq; s++) {
+        if (!genome_size[s])
+          break;
+
+        num_genome_sizes++;
+      }
+
+      if (s != msa->n_seq)
+        vrna_message_warning("vrna_msa_add(): "
+                             "Too few genome sizes provided for sequences in MSA input! "
+                             "Expected %u but received %u ",
+                             msa->n_seq,
+                             num_genome_sizes);
+
+      msa->genome_size = (unsigned long long *)vrna_alloc(sizeof(unsigned long long) * msa->n_seq);
+
+      memcpy(msa->genome_size, genome_size, sizeof(unsigned long long) * num_genome_sizes);
+    }
+
+    /* now for the gap-free sequence properties */
+    msa->gapfree_seq  = (char **)vrna_alloc(sizeof(char *) * msa->n_seq);
+    msa->gapfree_size = (unsigned int *)vrna_alloc(sizeof(unsigned int) * msa->n_seq);
+    msa->a2s          = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * msa->n_seq);
+
+    for (s = 0; s < msa->n_seq; s++) {
+      msa->gapfree_seq[s]   = vrna_seq_ungapped(msa->sequences[s].string);
+      msa->gapfree_size[s]  = strlen(msa->gapfree_seq[s]);
+      msa->a2s[s]           = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (msa->sequences[s].length + 1));
+
+      for (ss = 1, cnt = 0; ss <= msa->sequences[s].length; ss++) {
+        if (msa->sequences[s].encoding[ss])
+          cnt++;
+
+        msa->a2s[s][ss] = cnt;
+      }
+    }
+
+    /* increase strands counter */
+    fc->strands++;
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
 vrna_sequence_remove(vrna_fold_compound_t *vc,
                      unsigned int         i)
 {
@@ -220,7 +373,6 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
          *  for now, comparative structure prediction does not allow for RNA-RNA interactions,
          *  so we pretend working on a single strand
          */
-        fc->strands     = 1;
         fc->nucleotides = (vrna_seq_t *)vrna_realloc(fc->nucleotides,
                                                      sizeof(vrna_seq_t) * (fc->strands + 1));
         fc->nucleotides[0].string = NULL;

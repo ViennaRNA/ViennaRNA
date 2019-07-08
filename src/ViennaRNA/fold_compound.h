@@ -153,6 +153,7 @@ struct vrna_fc_s {
 
   unsigned int      strands;
   vrna_seq_t        *nucleotides;
+  vrna_msa_t        *alignment;
 
   vrna_hc_t         *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
 
@@ -465,6 +466,16 @@ vrna_fold_compound_t *
 vrna_fold_compound_comparative(const char   **sequences,
                                vrna_md_t    *md_p,
                                unsigned int options);
+
+
+vrna_fold_compound_t *
+vrna_fold_compound_comparative2(const char                **sequences,
+                                const char                **names,
+                                const unsigned char       *orientation,
+                                const unsigned long long  *start,
+                                const unsigned long long  *genome_size,
+                                vrna_md_t                 *md_p,
+                                unsigned int              options);
 
 
 vrna_fold_compound_t *
