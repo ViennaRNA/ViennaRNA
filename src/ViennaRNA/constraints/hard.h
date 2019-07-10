@@ -438,8 +438,8 @@ struct vrna_hc_s {
  *  @ingroup hard_constraints
  */
 struct vrna_hc_up_s {
-  int position;           /**<  @brief The sequence position (1-based)  */
-  unsigned int  strand;
+  int   position;           /**<  @brief The sequence position (1-based)  */
+  int   strand;
   unsigned char options;  /**<  @brief The hard constraint option       */
 };
 
@@ -501,6 +501,10 @@ void vrna_hc_init(vrna_fold_compound_t *vc);
 void vrna_hc_init_window(vrna_fold_compound_t *vc);
 
 
+int
+vrna_hc_prepare(vrna_fold_compound_t *fc,
+                unsigned int         options);
+
 void
 vrna_hc_update(vrna_fold_compound_t *fc,
                unsigned int         i);
@@ -525,6 +529,12 @@ void vrna_hc_add_up(vrna_fold_compound_t  *vc,
                     unsigned char         option);
 
 
+int
+vrna_hc_add_up_strand(vrna_fold_compound_t *fc,
+                      unsigned int         i,
+                      unsigned int         strand,
+                      unsigned char        option);
+
 /**
  *  @brief Apply a list of hard constraints for single nucleotides
  *
@@ -538,6 +548,9 @@ int
 vrna_hc_add_up_batch(vrna_fold_compound_t *vc,
                      vrna_hc_up_t         *constraints);
 
+int
+vrna_hc_add_up_strand_batch(vrna_fold_compound_t *fc,
+                            vrna_hc_up_t         *constraints);
 
 /**
  *  @brief  Favorize/Enforce  a certain base pair (i,j)
@@ -560,6 +573,14 @@ void vrna_hc_add_bp(vrna_fold_compound_t  *vc,
                     int                   j,
                     unsigned char         option);
 
+
+int
+vrna_hc_add_bp_strand(vrna_fold_compound_t *fc,
+                      unsigned int         i,
+                      unsigned int         strand_i,
+                      unsigned int         j,
+                      unsigned int         strand_j,
+                      unsigned char        option);
 
 /**
  *  @brief  Enforce a nucleotide to be paired (upstream/downstream)

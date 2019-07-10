@@ -519,15 +519,13 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
   /* prepare ptype array(s) */
   vrna_ptypes_prepare(fc, options);
 
-  if (options & VRNA_OPTION_MFE) {
-    /* prepare for MFE computation */
+  if (options & VRNA_OPTION_PF) {
+    /* prepare for partition function computation */
+
     switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if (options & VRNA_OPTION_WINDOW) {
-          /* check for minimal hard constraints structure */
-          if ((!fc->hc) || (fc->hc->type != VRNA_HC_WINDOW) || (!fc->hc->matrix_local))
-            vrna_hc_init_window(fc);
-        }
+      case VRNA_FC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
+        if (fc->domains_up)                            /* turn on unique ML decomposition with qm1 array */
+          fc->exp_params->model_details.uniq_ML = 1;
 
         break;
 
@@ -537,25 +535,23 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
     }
   }
 
-  if (options & VRNA_OPTION_PF) {
-    /* prepare for partition function computation */
+  int n = fc->length;
+  if (!(options & VRNA_OPTION_WINDOW)) {
+    printf("before\n");
+    for (int i = 1; i <= n; i++) {
+      for (int j = i; j <= n; j++)
+        printf("mx[%d,%d] = %u\n", i, j, fc->hc->mx[n * i + j]);
+    }
+  }
 
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
-        if (options & VRNA_OPTION_WINDOW) {
-          /* check for minimal hard constraints structure */
-          if ((!fc->hc) || (fc->hc->type != VRNA_HC_WINDOW) || (!fc->hc->matrix_local))
-            vrna_hc_init_window(fc);
-        }
+  /* prepare hard constraints */
+  vrna_hc_prepare(fc, options);
 
-        if (fc->domains_up)                            /* turn on unique ML decomposition with qm1 array */
-          fc->exp_params->model_details.uniq_ML = 1;
-
-        break;
-
-      default:
-        /* not doing anything here... */
-        break;
+  if (!(options & VRNA_OPTION_WINDOW)) {
+    printf("after\n");
+    for (int i = 1; i <= n; i++) {
+      for (int j = i; j <= n; j++)
+        printf("mx[%d,%d] = %u\n", i, j, fc->hc->mx[n * i + j]);
     }
   }
 
