@@ -9,7 +9,6 @@ struct hc_basepair {
 
 
 struct hc_nuc {
-  unsigned int  i;
   int           direction;
   unsigned char context;
   unsigned char nonspec;
@@ -20,7 +19,6 @@ struct hc_nuc {
 struct vrna_hc_depot_s {
   unsigned int        strands;
   size_t              *up_size;
-  size_t              *up_num;
   struct hc_nuc       **up;
   size_t              *bp_size;
   size_t              *bp_num;
@@ -99,7 +97,6 @@ hc_depot_init(vrna_fold_compound_t *fc)
     hc->depot->strands = fc->strands;
     if (fc->strands > 0) {
       hc->depot->up_size = (size_t *)vrna_alloc(sizeof(size_t) * fc->strands);
-      hc->depot->up_num  = (size_t *)vrna_alloc(sizeof(size_t) * fc->strands);
       hc->depot->up = (struct hc_nuc **)vrna_alloc(sizeof(struct hc_nuc *) * fc->strands);
       hc->depot->bp_size = (size_t *)vrna_alloc(sizeof(size_t) * fc->strands);
       hc->depot->bp_num  = (size_t *)vrna_alloc(sizeof(size_t) * fc->strands);
@@ -118,22 +115,27 @@ hc_depot_store_up(vrna_fold_compound_t  *fc,
                   unsigned int          strand,
                   unsigned char         context)
 {
-  vrna_hc_t *hc = fc->hc;
+  unsigned int  k, old_size;
+  vrna_hc_t     *hc = fc->hc;
 
   hc_depot_init(fc);
 
-  if (hc->depot->up_num[strand] == hc->depot->up_size[strand]) {
-    hc->depot->up_size[strand] += 32;
+  if (hc->depot->up_size[strand] < i) {
+    old_size = hc->depot->up_size[strand];
+    hc->depot->up_size[strand] = i;
     hc->depot->up[strand] = (struct hc_nuc *)vrna_realloc(hc->depot->up[strand],
-                                                          sizeof(struct hc_nuc) * (hc->depot->up_size[strand]));
+                                                          sizeof(struct hc_nuc) * (hc->depot->up_size[strand] + 1));
+    /* initialize new entries */
+    for (k = old_size + 1; k < i; k++) {
+      hc->depot->up[strand][k].context   = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
+      hc->depot->up[strand][k].direction = 0;
+      hc->depot->up[strand][k].nonspec   = 0;
+    }
   }
 
-  hc->depot->up[strand][hc->depot->up_num[strand]].i         = i;
-  hc->depot->up[strand][hc->depot->up_num[strand]].context   = context;
-  hc->depot->up[strand][hc->depot->up_num[strand]].direction = 0;
-  hc->depot->up[strand][hc->depot->up_num[strand]].nonspec   = 0;
-
-  hc->depot->up_num[strand]++;
+  hc->depot->up[strand][i].context   = context;
+  hc->depot->up[strand][i].direction = 0;
+  hc->depot->up[strand][i].nonspec   = 0;
 }
 
 
@@ -144,22 +146,27 @@ hc_depot_store_nonspec(vrna_fold_compound_t  *fc,
                        int                   d,
                        unsigned char         context)
 {
+  size_t    k, old_size;
   vrna_hc_t *hc = fc->hc;
 
   hc_depot_init(fc);
 
-  if (hc->depot->up_num[strand] == hc->depot->up_size[strand]) {
-    hc->depot->up_size[strand] += 32;
+  if (hc->depot->up_size[strand] < i) {
+    old_size = hc->depot->up_size[strand];
+    hc->depot->up_size[strand] = i;
     hc->depot->up[strand] = (struct hc_nuc *)vrna_realloc(hc->depot->up[strand],
-                                                          sizeof(struct hc_nuc) * (hc->depot->up_size[strand]));
+                                                          sizeof(struct hc_nuc) * (hc->depot->up_size[strand] + 1));
+    /* initialize new entries */
+    for (k = old_size + 1; k < i; k++) {
+      hc->depot->up[strand][k].context   = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
+      hc->depot->up[strand][k].direction = 0;
+      hc->depot->up[strand][k].nonspec   = 0;
+    }
   }
 
-  hc->depot->up[strand][hc->depot->up_num[strand]].i         = i;
-  hc->depot->up[strand][hc->depot->up_num[strand]].context   = context;
-  hc->depot->up[strand][hc->depot->up_num[strand]].direction = d;
-  hc->depot->up[strand][hc->depot->up_num[strand]].nonspec   = 1;
-
-  hc->depot->up_num[strand]++;
+  hc->depot->up[strand][i].context   = context;
+  hc->depot->up[strand][i].direction = d;
+  hc->depot->up[strand][i].nonspec   = 1;
 }
 
 

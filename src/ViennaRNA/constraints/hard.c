@@ -1005,10 +1005,11 @@ prepare_hc_up(vrna_fold_compound_t *fc,
     /* 2. apply constraints as stored in depot */
     if ((depot) && (depot->up)) {
       for (s = 0; s < depot->strands; s++) {
-        for (k = 0; k < depot->up_num[s]; k++) {
+        for (k = 1; k <= depot->up_size[s]; k++) {
           /* process nucleotide-specific constraint */
           option = depot->up[s][k].context;
-          i      = ss[s] + depot->up[s][k].i - 1; /* constraint position in current strand order */
+          i      = ss[s] + k - 1; /* constraint position in current strand order */
+
           if (depot->up[s][k].nonspec) {
             /* this is actually a must-pair constraint */
             type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
