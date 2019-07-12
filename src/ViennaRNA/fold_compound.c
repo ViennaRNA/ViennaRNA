@@ -535,25 +535,8 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
     }
   }
 
-  int n = fc->length;
-  if (!(options & VRNA_OPTION_WINDOW)) {
-    printf("before\n");
-    for (int i = 1; i <= n; i++) {
-      for (int j = i; j <= n; j++)
-        printf("mx[%d,%d] = %u\n", i, j, fc->hc->mx[n * i + j]);
-    }
-  }
-
   /* prepare hard constraints */
   vrna_hc_prepare(fc, options);
-
-  if (!(options & VRNA_OPTION_WINDOW)) {
-    printf("after\n");
-    for (int i = 1; i <= n; i++) {
-      for (int j = i; j <= n; j++)
-        printf("mx[%d,%d] = %u\n", i, j, fc->hc->mx[n * i + j]);
-    }
-  }
 
   /* prepare soft constraints data structure, if required */
   vrna_sc_prepare(fc, options);

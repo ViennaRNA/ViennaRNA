@@ -375,6 +375,8 @@ struct vrna_hc_s {
   vrna_hc_type_e  type;
   unsigned int    n;
 
+  unsigned char   state;
+
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
   union {
