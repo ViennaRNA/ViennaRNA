@@ -58,10 +58,6 @@ endif WITH_REFERENCE_MANUAL_HTML
 ## In case the PDF manual should be created, here   ##
 ## is the rule how to do so                         ##
 ##--------------------------------------------------##
-if ! WITH_REFERENCE_MANUAL_PDFLATEX
-  CONVERT_TO_PDF = $(DOXYGEN_CMD_DVIPDF) refman.dvi;
-endif ! WITH_REFERENCE_MANUAL_PDFLATEX
-
 if WITH_REFERENCE_MANUAL_PDF
 
 $(REFERENCE_MANUAL_FILES_PDF): refman-html
@@ -80,7 +76,6 @@ $(REFERENCE_MANUAL_FILES_PDF): refman-html
       done; \
   $(DOXYGEN_CMD_MAKEINDEX) refman.idx >>doxyref.log 2>&1;\
   $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
-  $(CONVERT_TO_PDF) \
   mv refman.pdf "../$(REFERENCE_MANUAL_FILES_PDF)"; \
   cd ..; \
   $(clean_latex);

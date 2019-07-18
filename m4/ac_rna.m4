@@ -318,10 +318,10 @@ Scripting Language Interfaces
 
 Documentation
 -------------
-  * Reference Manual (PDF)    : ${result_doc_pdf}
-  * Reference Manual (HTML)   : ${result_doc_html}
-  * Tutorial (PDF)            : ${result_tutorial_pdf}
-  * Tutorial (HTML)           : ${result_tutorial_html}
+  * Reference Manual (PDF)    : ${result_doc_pdf} ${doc_pdf_failed}
+  * Reference Manual (HTML)   : ${result_doc_html} ${doc_html_failed}
+  * Tutorial (PDF)            : ${result_tutorial_pdf} ${tutorial_pdf_failed}
+  * Tutorial (HTML)           : ${result_tutorial_html} ${tutorial_html_failed}
 
 Unit Tests
 ----------

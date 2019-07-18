@@ -60,17 +60,12 @@ endif WITH_TUTORIAL_HTML
 ##--------------------------------------------------##
 if WITH_TUTORIAL_PDF
 
-if ! WITH_TUTORIAL_PDFLATEX
-  CONVERT_TUT_TO_PDF = $(TUTORIAL_CMD_DVIPDF) tutorial.dvi;
-endif ! WITH_TUTORIAL_PDFLATEX
-
 $(TUTORIAL_FILES_PDF):
-	$(tutorial_verbose)$(clean_tutorial); \
-  $(TUTORIAL_CMD_LATEX) tutorial >>tutorial.log 2>&1; \
-  $(TUTORIAL_CMD_LATEX) tutorial >>tutorial.log 2>&1; \
-  $(TUTORIAL_CMD_LATEX) tutorial >>tutorial.log 2>&1; \
-  $(CONVERT_TUT_TO_PDF) \
-  mv tutorial.pdf $(TUTORIAL_FILES_PDF); \
+	$(tutorial_verbose)$(clean_tutorial) && \
+  $(TUTORIAL_CMD_LATEX) tutorial >/dev/null 2>&1 && \
+  $(TUTORIAL_CMD_LATEX) tutorial >/dev/null 2>&1 && \
+  $(TUTORIAL_CMD_LATEX) tutorial >/dev/null 2>&1 && \
+  mv tutorial.pdf $(TUTORIAL_FILES_PDF) && \
   $(clean_tutorial);
 
 endif WITH_TUTORIAL_PDF
