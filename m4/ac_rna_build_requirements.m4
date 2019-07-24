@@ -29,7 +29,7 @@ AC_DEFUN([RNA_CHECK_SRC_BUILDERS], [
     AC_ARG_VAR([HELP2MAN], [the 'help2man' script to generate man pages from command line options of our executable programs])
     AC_PATH_PROG([HELP2MAN], [help2man], [no])
     AC_SUBST([HELP2MAN])
-    AM_CONDITIONAL(VRNA_AM_SWITCH_HAS_HELP2MAN, test "x$HELP2MAN" != "xno")
+    AM_CONDITIONAL(VRNA_AM_SWITCH_BUILD_MANPAGES, test "x$HELP2MAN" != "xno" && test "x$GENGETOPT" != "xno")
 ])
 
 

@@ -35,7 +35,7 @@ SUFFIXES = .1 .ggo
 
 vpath %.ggo = ../src/bin
 
-if VRNA_AM_SWITCH_HAS_HELP2MAN
+if VRNA_AM_SWITCH_BUILD_MANPAGES
 
 .ggo.1 :
 	$(manpages_verbose)./help2manWrapper.sh \
