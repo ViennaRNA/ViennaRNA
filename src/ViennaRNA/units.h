@@ -47,9 +47,9 @@ typedef enum {
   VRNA_UNIT_DEG_F,        /**< @brief Degree Fahrenheit (&deg;F) (@f$ [^{\circ}F] = [K] \times \frac{9}{5} - 459.67 @f$ ) */
   VRNA_UNIT_DEG_R,        /**< @brief Degree Rankine (&deg;R) (@f$ [^{\circ}R] = [K] \times \frac{9}{5} @f$ ) */
   VRNA_UNIT_DEG_N,        /**< @brief Degree Newton (&deg;N) (@f$ [^{\circ}N] = ([K] - 273.15) \times \frac{33}{100} @f$ ) */
-  VRNA_UNIT_DEG_DE,       /**< @brief Degree Delisle (&deg;De) (@f$ [^{\circ}De] = (373.15 - [K]) \time \frac{3}{2} @f$ ) */
+  VRNA_UNIT_DEG_DE,       /**< @brief Degree Delisle (&deg;De) (@f$ [^{\circ}De] = (373.15 - [K]) \times \frac{3}{2} @f$ ) */
   VRNA_UNIT_DEG_RE,       /**< @brief Degree R&eacute;aumur (&deg;R&eacute;) (@f$ [^{\circ}R{\acute e}] = ([K] - 273.15) \times \frac{4}{5} @f$ ) */
-  VRNA_UNIT_DEG_RO,       /**< @brief Degree R&oslash;mer (&deg;R&oslash;) (@f$ [^{\circ}\mathrm{R{\o}}] = ([K] - 273.15) \times \frac{21}{40} + 7.5 @f$ ) */
+  VRNA_UNIT_DEG_RO,       /**< @brief Degree R&oslash;mer (&deg;R&oslash;) (@f$ [^{\circ}\text{R{\o}}] = ([K] - 273.15) \times \frac{21}{40} + 7.5 @f$ ) */
 } vrna_unit_temperature_e;
 
 
