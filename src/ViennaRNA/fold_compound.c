@@ -657,6 +657,7 @@ set_fold_compound(vrna_fold_compound_t  *fc,
       }
 
       free(sequences);
+      free(sequence);
 
       if (fc->strands > 1) {
         fc->cutpoint = fc->nucleotides[0].length + 1;
