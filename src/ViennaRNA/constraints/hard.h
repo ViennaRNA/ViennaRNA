@@ -321,6 +321,10 @@ typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
                                                               VRNA_CONSTRAINT_CONTEXT_ENCLOSED_LOOPS)
 
 
+#define VRNA_CONSTRAINT_WINDOW_UPDATE_5       1U
+
+#define VRNA_CONSTRAINT_WINDOW_UPDATE_3       2U
+
 /**
  *  @brief  The hard constraints type
  *
@@ -509,7 +513,8 @@ vrna_hc_prepare(vrna_fold_compound_t *fc,
 
 void
 vrna_hc_update(vrna_fold_compound_t *fc,
-               unsigned int         i);
+               unsigned int         i,
+               unsigned int         options);
 
 
 /**
