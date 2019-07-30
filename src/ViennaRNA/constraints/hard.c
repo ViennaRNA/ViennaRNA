@@ -1358,7 +1358,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
                unsigned int         options)
 {
   unsigned char constraint;
-  unsigned int  j, k, n, turn, strand, sj, actual_i, actual_j, *sn, *ss;
+  unsigned int  j, k, p, n, turn, strand, sj, actual_i, actual_j, *sn, *ss;
   vrna_hc_t     *hc;
 
   n         = fc->length;
@@ -1383,27 +1383,81 @@ populate_hc_bp(vrna_fold_compound_t *fc,
       hc->matrix_local[i][j - i] = constraint;
     }
 
-    /* apply remainder of (partly) applied nucleotide-specific constraints */
-    if ((hc->depot) &&
-        (hc->depot->up)) {
-      for (k = 0; k < maxdist; k++) {
-        j         = i + k;
-        sj        = sn[j];
-        actual_j  = j - ss[sj] + 1;
+    if (hc->depot) {
+      /* apply remainder of (partly) applied nucleotide-specific constraints */
+      if (hc->depot->up) {
 
-        if ((hc->depot->up[sj]) &&
-            (hc->depot->up_size[sj] >= actual_j)) {
-            if ((hc->depot->up[sj][actual_j].nonspec != 0)) {
+        /*
+            apply remainder of (partly) applied nucleotide-specific
+            constraints for i
+        */
+        if ((hc->depot->up[strand]) &&
+            (hc->depot->up_size[strand] >= actual_i)) {
+          constraint = hc->depot->up[strand][actual_i].context;
+
+          if (hc->depot->up[strand][actual_i].nonspec != 0) {
+            /* i must be paired, check preferred direction */
+            if (hc->depot->up[sj][actual_j].direction < 0) {
+              /* i is only allowed to pair upstream */
+              /* remove all base pairs (i, j) with i < j < i + maxist */
+              for (p = i + 1; p < MIN2(i + maxdist, n + 1); p++)
+                hc->matrix_local[i][p - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+            } else if (hc->depot->up[sj][actual_j].direction > 0) {
+              /* nothing to do */
+            }
+          } else if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+            if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
+              /* remove all base pairs (i, j) with i < j < i + maxdist */
+              for (p = i + 1; p < MIN2(i + maxdist, n + 1); p++)
+                hc->matrix_local[i][p - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+            } else {
+              constraint = ~constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+              for (p = i + 1; p < MIN2(i + maxdist, n + 1); p++)
+                hc->matrix_local[i][p - i] = constraint;
+            }
+          }
+        }
+
+        /*
+            apply remainder of (partly) applied nucleotide-specific
+            constraints for j with i < j < i + maxdist
+        */
+        for (k = 1; k < maxdist; k++) {
+          j         = i + k;
+          sj        = sn[j];
+          actual_j  = j - ss[sj] + 1;
+
+          if (j > n)
+            break;
+
+          if ((hc->depot->up[sj]) &&
+              (hc->depot->up_size[sj] >= actual_j)) {
+            constraint = hc->depot->up[sj][actual_j].context;
+
+            if (hc->depot->up[sj][actual_j].nonspec != 0) {
               /* j must be paired, check preferred direction */
               if (hc->depot->up[sj][actual_j].direction < 0) {
-                
+                /* nothing to do */
               } else if (hc->depot->up[sj][actual_j].direction > 0) {
-                
+                /* remove (i, j) base pair */
+                hc->matrix_local[i][j - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
               }
-            } else {
-            
+            } else if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+              if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
+                /* remove (i, j) base pair */
+                hc->matrix_local[i][j - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              } else {
+                constraint = ~constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                hc->matrix_local[i][j - i] = constraint;
+              }
             }
+          }
         }
+      }
+
+      /* now for the actual base pair constraints */
+      if (hc->depot->bp) {
+
       }
     }
 
@@ -1412,24 +1466,100 @@ populate_hc_bp(vrna_fold_compound_t *fc,
       if (j > n)
         break;
 
-      constraint = default_pair_constraint(fc, i, j);
-
       /* check whether we have constraints on any pairing partner i or j */
       if ((hc->bp_storage) && (hc->bp_storage[i]))
         apply_stored_bp_hc(&constraint, hc->bp_storage[i], j);
-
-      if (hc->type == VRNA_HC_WINDOW) {
-        hc->matrix_local[i][j - i] = constraint;
-      } else {
-        hc->matrix[fc->jindx[j] + i] = constraint;
-
-        hc->mx[n * i + j] = constraint;
-        hc->mx[n * j + i] = constraint;
-      }
     }
   } else if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_5) {
-    /* the sliding window moves from 5' to 3' side */
-  
+    /* the sliding window moves from 5' to 3' side (i is 3' nucleotide) */
+
+    /* apply default constraints first */
+    unsigned int j_start = 1;
+    unsigned int j_stop  = i;
+
+    if (i > maxdist)
+      j_start = i - maxdist + 1;
+
+    if (i > turn + 1)
+      j_stop = i - turn - 1;
+
+    for (j = j_start; j <= j_stop; j++)
+      hc->matrix_local[j][i - j] = default_pair_constraint(fc, j, i);
+
+    /* next are user-defined constraints */
+    if (hc->depot) {
+      /* apply remainder of (partly) applied nucleotide-specific constraints */
+      if (hc->depot->up) {
+
+        /*
+            apply remainder of (partly) applied nucleotide-specific
+            constraints for i
+        */
+        if ((hc->depot->up[strand]) &&
+            (hc->depot->up_size[strand] >= actual_i)) {
+          constraint = hc->depot->up[strand][actual_i].context;
+
+          if (hc->depot->up[strand][actual_i].nonspec != 0) {
+            /* i must be paired, check preferred direction */
+            if (hc->depot->up[sj][actual_j].direction < 0) {
+              /* nothing to do */
+            } else if (hc->depot->up[sj][actual_j].direction > 0) {
+              /* i is only allowed to pair downstream */
+              /* remove all base pairs (j, i) with i - maxdist < j < i */
+              for (j = j_start; j <= j_stop; j++)
+                hc->matrix_local[j][i - j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+            }
+          } else if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+            if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
+              /* remove all base pairs (j, i) with i - maxdist < j < i */
+              for (j = j_start; j <= j_stop; j++)
+                hc->matrix_local[j][i - j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+            } else {
+              constraint = ~constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+              for (j = j_start; j <= j_stop; j++)
+                hc->matrix_local[j][i - j] = constraint;
+            }
+          }
+        }
+
+        /*
+            apply remainder of (partly) applied nucleotide-specific
+            constraints for j with i - maxdist < j < i
+        */
+        for (j = j_start; j <= j_stop; j++) {
+          sj        = sn[j];
+          actual_j  = j - ss[sj] + 1;
+
+          if ((hc->depot->up[sj]) &&
+              (hc->depot->up_size[sj] >= actual_j)) {
+            constraint = hc->depot->up[sj][actual_j].context;
+
+            if (hc->depot->up[sj][actual_j].nonspec != 0) {
+              /* j must be paired, check preferred direction */
+              if (hc->depot->up[sj][actual_j].direction < 0) {
+                /* remove (j, i) base pair */
+                hc->matrix_local[j][i - j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              } else if (hc->depot->up[sj][actual_j].direction > 0) {
+                /* nothing to do */
+              }
+            } else if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+              if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
+                /* remove (j, i) base pair */
+                hc->matrix_local[j][i - j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              } else {
+                constraint = ~constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                hc->matrix_local[j][i - j] = constraint;
+              }
+            }
+          }
+        }
+      }
+
+      /* now for the actual base pair constraints */
+      if (hc->depot->bp) {
+      
+      }
+    }
   }
 }
 
