@@ -1154,7 +1154,7 @@ prepare_hc_bp(vrna_fold_compound_t *fc,
               unsigned int         options)
 {
   unsigned char   option, type;
-  unsigned int    i, j, k, p, q, n, strand_j, start, end, t_start, t_end, s, *sn, *ss, *se;
+  unsigned int    i, j, k, p, q, n, actual_i, actual_j, strand_j, start, end, t_start, t_end, s, *sn, *ss, *se;
   int             *idx, ij;
   vrna_hc_t       *hc;
   vrna_hc_depot_t *depot;
@@ -1176,80 +1176,82 @@ prepare_hc_bp(vrna_fold_compound_t *fc,
 
     /* 2. apply constraints stored in depot */
     for (s = 0; s < depot->strands; s++) {
-      for (k = 0; k < depot->bp_num[s]; k++) {
-        /* process base pair specific constraint */
-        option    = depot->bp[s][k].context;
-        i         = ss[s] + depot->bp[s][k].i - 1;  /* constraint position in current strand order */
-        strand_j  = depot->bp[s][k].strand_j;
-        j         = ss[strand_j] + depot->bp[s][k].j - 1;  /* constraint position in current strand order */
+      for (actual_i = 1; actual_i <= depot->bp_size[s]; actual_i++) {
+        for (k = 0; k < depot->bp[s][actual_i].list_size; k++) {
+          option    = depot->bp[s][actual_i].context[k];
+          strand_j  = depot->bp[s][actual_i].strand_j[k];
+          actual_j  = depot->bp[s][actual_i].j[k];
+          i         = ss[s] + actual_i - 1;         /* constraint position in current strand order */
+          j         = ss[strand_j] + actual_j - 1;  /* constraint position in current strand order */
 
-        /* actually apply the constraint */
-        hc->matrix[idx[j] + i]  = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-        hc->mx[n * i + j]       = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-        hc->mx[n * j + i]       = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          /* apply the constraint */
+          hc->matrix[idx[j] + i]  = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          hc->mx[n * i + j]       = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+          hc->mx[n * j + i]       = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
-        /* is the ptype reset actually required??? */
-        if (option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS) {
-          /* reset ptype in case (i,j) is a non-canonical pair */
-          if (fc->ptype[idx[j] + i] == 0)
-            fc->ptype[idx[j] + i] = 7;
-        }
+          /* is the ptype reset actually required??? */
+          if (option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS) {
+            /* reset ptype in case (i,j) is a non-canonical pair */
+            if (fc->ptype[idx[j] + i] == 0)
+              fc->ptype[idx[j] + i] = 7;
+          }
 
-        if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
-          /*
-           * remove all conflicting base pairs, i.e. do not allow i,j to pair
-           * with any other nucleotide k
-           */
-          for (p = 1; p < i; p++) {
-            hc->matrix[idx[i] + p]  = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->matrix[idx[j] + p]  = VRNA_CONSTRAINT_CONTEXT_NONE;
+          if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+            /*
+             * remove all conflicting base pairs, i.e. do not allow i,j to pair
+             * with any other nucleotide k
+             */
+            for (p = 1; p < i; p++) {
+              hc->matrix[idx[i] + p]  = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->matrix[idx[j] + p]  = VRNA_CONSTRAINT_CONTEXT_NONE;
 
-            hc->mx[n * i + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * p + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * j + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * p + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * i + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * p + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * j + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * p + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
 
-            for (q = i + 1; q < j; q++) {
-              hc->matrix[idx[q] + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              for (q = i + 1; q < j; q++) {
+                hc->matrix[idx[q] + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
 
-              hc->mx[n * p + q] = VRNA_CONSTRAINT_CONTEXT_NONE;
-              hc->mx[n * q + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                hc->mx[n * p + q] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                hc->mx[n * q + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              }
+            }
+            for (p = i + 1; p < j; p++) {
+              hc->matrix[idx[p] + i]  = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->matrix[idx[j] + p]  = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+              hc->mx[n * i + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * p + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * j + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * p + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+              for (q = j + 1; q <= n; q++) {
+                hc->matrix[idx[q] + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+                hc->mx[n * p + q] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                hc->mx[n * q + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              }
+            }
+            for (p = j + 1; p <= n; p++) {
+              hc->matrix[idx[p] + i]  = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->matrix[idx[p] + j]  = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+              hc->mx[n * i + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * p + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * j + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              hc->mx[n * p + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
             }
           }
-          for (p = i + 1; p < j; p++) {
-            hc->matrix[idx[p] + i]  = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->matrix[idx[j] + p]  = VRNA_CONSTRAINT_CONTEXT_NONE;
 
-            hc->mx[n * i + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * p + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * j + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * p + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+          if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
+            /* do not allow i,j to be unpaired */
+            hc->matrix[idx[i] + i]  = VRNA_CONSTRAINT_CONTEXT_NONE;
+            hc->matrix[idx[j] + j]  = VRNA_CONSTRAINT_CONTEXT_NONE;
 
-            for (q = j + 1; q <= n; q++) {
-              hc->matrix[idx[q] + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
-
-              hc->mx[n * p + q] = VRNA_CONSTRAINT_CONTEXT_NONE;
-              hc->mx[n * q + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            }
+            hc->mx[n * i + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+            hc->mx[n * j + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
           }
-          for (p = j + 1; p <= n; p++) {
-            hc->matrix[idx[p] + i]  = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->matrix[idx[p] + j]  = VRNA_CONSTRAINT_CONTEXT_NONE;
-
-            hc->mx[n * i + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * p + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * j + p] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            hc->mx[n * p + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
-          }
-        }
-
-        if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
-          /* do not allow i,j to be unpaired */
-          hc->matrix[idx[i] + i]  = VRNA_CONSTRAINT_CONTEXT_NONE;
-          hc->matrix[idx[j] + j]  = VRNA_CONSTRAINT_CONTEXT_NONE;
-
-          hc->mx[n * i + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
-          hc->mx[n * j + j] = VRNA_CONSTRAINT_CONTEXT_NONE;
         }
       }
     }
