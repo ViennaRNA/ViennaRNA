@@ -235,7 +235,7 @@ main(int  argc,
 
     vrna_sc_SHAPE_to_pr(args_info.shapeConversion_arg, shape_data, length, -1);
 
-    vc  = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+    vc  = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_DEFAULT);
     mfe = (double)vrna_mfe(vc, NULL);
     vrna_exp_params_rescale(vc, &mfe);
 

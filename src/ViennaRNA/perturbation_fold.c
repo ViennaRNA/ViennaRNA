@@ -64,36 +64,18 @@ addSoftConstraint(vrna_fold_compound_t  *vc,
                   const double          *epsilon,
                   int                   length)
 {
-  vrna_sc_t *sc;
-  int       i, j;
-  double    kT = vc->exp_params->kT / 1000;
+  /* remove previous soft constraints */
+  vrna_sc_init(vc);
 
-  sc = vrna_alloc(sizeof(vrna_sc_t));
+  /* prepare vector of unpaired constraints in kcal/mol */
+  FLT_OR_DBL *constraints = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
 
-  sc->exp_energy_up     = vrna_alloc(sizeof(FLT_OR_DBL *) * (length + 2));
-  sc->exp_energy_up[0]  = vrna_alloc(1);
-  for (i = 1; i <= length; ++i)
-    sc->exp_energy_up[i] = vrna_alloc(sizeof(FLT_OR_DBL) * (length - i + 2));
+  memcpy(constraints + 1, epsilon + 1, sizeof(FLT_OR_DBL) * length);
 
-  for (i = 1; i <= length; ++i) {
-    sc->exp_energy_up[i][0] = 1;
-    for (j = 1; j <= length - i + 1; ++j)
-      sc->exp_energy_up[i][j] = sc->exp_energy_up[i][j - 1] * exp(-(epsilon[i + j - 1]) / kT);
-  }
+  /* add new soft constraints */
+  vrna_sc_set_up(vc, (const FLT_OR_DBL *)constraints, VRNA_OPTION_DEFAULT);
 
-  /* also add sc for MFE computation */
-  sc->energy_up     = vrna_alloc(sizeof(int *) * (length + 2));
-  sc->energy_up[0]  = vrna_alloc(sizeof(int));
-  for (i = 1; i <= length; ++i)
-    sc->energy_up[i] = vrna_alloc(sizeof(int) * (length - i + 2));
-
-  for (i = 1; i <= length; ++i) {
-    sc->energy_up[i][0] = 0;
-    for (j = 1; j <= length - i + 1; ++j)
-      sc->energy_up[i][j] = sc->energy_up[i][j - 1] + (epsilon[i + j - 1] * 100.);
-  }
-
-  vc->sc = sc;
+  free(constraints);
 }
 
 
@@ -131,6 +113,7 @@ evaluate_perturbation_vector_score(vrna_fold_compound_t *vc,
 
   addSoftConstraint(vc, epsilon, length);
 
+  vc->params->model_details.compute_bpp     = 1;
   vc->exp_params->model_details.compute_bpp = 1;
 
   /* get new (constrained) MFE to scale pf computations properly */
@@ -171,6 +154,7 @@ pairing_probabilities_from_restricted_pf(vrna_fold_compound_t *vc,
   int i;
 
   addSoftConstraint(vc, epsilon, length);
+  vc->params->model_details.compute_bpp     = 1;
   vc->exp_params->model_details.compute_bpp = 1;
 
   /* get new (constrained) MFE to scale pf computations properly */
@@ -200,7 +184,7 @@ pairing_probabilities_from_restricted_pf(vrna_fold_compound_t *vc,
 
     restricted_vc = vrna_fold_compound(vc->sequence,
                                        &(vc->exp_params->model_details),
-                                       VRNA_OPTION_PF);
+                                       VRNA_OPTION_DEFAULT);
     vrna_constraints_add(restricted_vc, hc_string, constraint_options);
     free(hc_string);
 
@@ -231,6 +215,7 @@ pairing_probabilities_from_sampling(vrna_fold_compound_t  *vc,
 
   addSoftConstraint(vc, epsilon, length);
 
+  vc->params->model_details.compute_bpp     = 0;
   vc->exp_params->model_details.compute_bpp = 0;
 
   /* get new (constrained) MFE to scale pf computations properly */
