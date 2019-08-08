@@ -4,7 +4,45 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.13...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.14...HEAD)
+
+
+### [Version 2.4.14](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.13...v2.4.14) (Release date: 2019-08-13)
+
+#### Programs
+  * Fix `RNApvmin` pertubation vector computation
+  * Add non-redundant sampling option to `RNApvmin`
+  * Add `RNAdos` program to compute density of states
+  * Add `-P DNA` convenience command line parameter to most programs to quickly load DNA parameters without any input file
+  * MAN: Add example section to man-page of `RNAalifold`
+
+#### Library
+  * API: Fix memory leak in `vrna_path_gradient()`
+  * API: Fix release of memory fir `vrna_sequence_remove_all()`
+  * API: Fix soft-constraints application in `vrna_sc_minimize_pertubation()` that prevented proper computation of the pertubation vector
+  * API: Add 5' and 3' neighbor nucleotide encoding arrays and name string to `vrna_seq_t`
+  * API: Add new data structure for multiple sequence alignments
+  * API: Add `vrna_sequence_order_update()` function
+  * API: Add non-redundant sampling mode to `vrna_sc_minimize_pertubation()` through passing negative sample-sizes
+  * API: Add v3.0 API functions for maximum expected accuracy (MEA) computation
+  * API: Include energy parameter sets into `RNAlib` and provide functions to load them at runtime
+  * API: Prepare sequence data in `vrna_fold_compound_t` with `vrna_sequence_add()`
+  * API: Use `vrna_pbacktrack_num()` instead of `vrna_pbacktrack()` in `vrna_sc_minimize_pertubation()` to speed-up sample generation
+  * Reduce use of global variable `cut_point` in `RNAlib`
+  * SWIG: Use `importlib` in favor of `imp` to determine Python 3 tag extension
+  * SWIG: Update various wrapper functions
+  * SWIG: Add wrappers for MEA computation with `vrna_MEA()` and `vrna_MEA_from_plist`
+  * SWIG: Add wrappers for `vrna_pr_structure()` and `vrna_pr_energy()`
+
+#### Package
+  * REFMAN: Fix LaTeX code in `units.h` that prevented proper compilation with `pdflatex`
+  * Add an R script to create 2D landscape plots from `RNA2Dfold` output
+  * Add `gengetopt` to configure-time requirements to build man-pages
+  * Add new energy parameter file `rna_misc_special_hairpins.par` with additional UV-melting derived parameters for Tri- and Tetra-loops
+  * Update RNA Tutorial
+  * Colorize final configure script message
+  * REFMAN: Always use `pdflatex` to compile reference manual and tutorial
+  * EXAMPLES: Add Python script that performs computations equivalent to `RNAfold -p --MEA`
 
 
 ### [Version 2.4.13](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.12...v2.4.13) (Release date: 2019-05-30)

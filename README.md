@@ -70,8 +70,8 @@ and installation process.*
 
 Usually you'll simply unpack the distribution tarball, configure and make:
 ```
-tar -zxvf ViennaRNA-2.4.13.tar.gz
-cd ViennaRNA-2.4.13
+tar -zxvf ViennaRNA-2.4.14.tar.gz
+cd ViennaRNA-2.4.14
 ./configure
 make
 sudo make install
@@ -278,6 +278,7 @@ The ViennaRNA Package includes the following executable programs:
 | `RNAalifold`    | Calculate secondary structures for a set of aligned RNA sequences                                                         |
 | `RNAcofold`     | Calculate secondary structures of two RNAs with dimerization                                                              |
 | `RNAdistance`   | Calculate distances between RNA secondary structures                                                                      |
+| `RNAdos`        | Compute the density of states for the conformation space of a given RNA sequence                                          |
 | `RNAduplex`     | Compute the structure upon hybridization of two RNA strands                                                               |
 | `RNAeval`       | Evaluate free energy of RNA sequences with given secondary structure                                                      |
 | `RNAfold`       | Calculate minimum free energy secondary structures and partition function of RNAs                                         |
