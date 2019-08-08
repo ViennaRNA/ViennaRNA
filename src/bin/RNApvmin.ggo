@@ -70,6 +70,11 @@ int
 default="1000"
 optional
 
+option "nonRedundant" N
+"Enable non-redundant sampling strategy.\n\n"
+flag
+off
+
 option  "intermediatePath"  -
 "Write an output file for each iteration of the minimization process. Each file contains the used perturbation vector and the score \
 of the objective function. The number of the iteration will be appended to the given path.\n\n"

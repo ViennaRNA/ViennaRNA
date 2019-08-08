@@ -206,49 +206,44 @@ pairing_probabilities_from_sampling(vrna_fold_compound_t  *vc,
                                     const double          *epsilon,
                                     int                   sample_size,
                                     double                *prob_unpaired,
-                                    double                **conditional_prob_unpaired)
+                                    double                **conditional_prob_unpaired,
+                                    unsigned int          options)
 {
-  int length = vc->length;
-  int i, j, s;
+  char    **samples, **ptr;
+  int     length, i, j, s;
+  double  mfe;
 
-  st_back = 1; /* is this really required? */
-
+  length = vc->length;
   addSoftConstraint(vc, epsilon, length);
 
   vc->params->model_details.compute_bpp     = 0;
   vc->exp_params->model_details.compute_bpp = 0;
 
   /* get new (constrained) MFE to scale pf computations properly */
-  double mfe = (double)vrna_mfe(vc, NULL);
+  mfe = (double)vrna_mfe(vc, NULL);
   vrna_exp_params_rescale(vc, &mfe);
 
   vrna_pf(vc, NULL);
 
+  samples = vrna_pbacktrack_num(vc,
+                                (unsigned int)sample_size,
+                                options);
 
-#ifdef _OPENMP
-#pragma omp parallel for private(s)
-#endif
-  for (s = 0; s < sample_size; ++s) {
-    char *sample = vrna_pbacktrack(vc);
-
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-    {
-      for (i = 1; i <= length; ++i) {
-        if (sample[i - 1] != '.')
-          continue;
-
+  for (ptr = samples; (*ptr); ptr++) {
+    for (i = length; i > 0; i--) {
+      if ((*ptr)[i - 1] == '.') {
         ++prob_unpaired[i];
 
-        for (j = 1; j <= length; ++j)
-          if (sample[j - 1] == '.')
+        for (j = length; j > 0; j--)
+          if ((*ptr)[j - 1] == '.')
             ++conditional_prob_unpaired[i][j];
       }
     }
 
-    free(sample);
+    free(*ptr);
   }
+
+  free(samples);
 
   for (i = 1; i <= length; ++i) {
     if (prob_unpaired[i])
@@ -316,7 +311,15 @@ evaluate_perturbation_vector_gradient(vrna_fold_compound_t  *vc,
                                         epsilon,
                                         sample_size,
                                         p_prob_unpaired,
-                                        p_conditional_prob_unpaired);
+                                        p_conditional_prob_unpaired,
+                                        VRNA_PBACKTRACK_DEFAULT);
+  } else if (sample_size < 0) {
+    pairing_probabilities_from_sampling(vc,
+                                        epsilon,
+                                        -sample_size,
+                                        p_prob_unpaired,
+                                        p_conditional_prob_unpaired,
+                                        VRNA_PBACKTRACK_NON_REDUNDANT);
   } else {
     pairing_probabilities_from_restricted_pf(vc,
                                              epsilon,

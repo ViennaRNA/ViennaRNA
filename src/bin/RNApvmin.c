@@ -93,7 +93,7 @@ main(int  argc,
   char                      *rec_id, *rec_sequence, **rec_rest, *shape_sequence;
   size_t                    length;
   unsigned int              read_opt, rec_type;
-  int                       istty, algorithm, i;
+  int                       istty, algorithm, i, sample_size;
   double                    *shape_data, initialStepSize, minStepSize, minImprovement,
                             minimizerTolerance;
 
@@ -103,6 +103,7 @@ main(int  argc,
   minStepSize         = 1e-15;
   minImprovement      = 1e-3;
   minimizerTolerance  = 1e-3;
+  sample_size         = 1000;
   algorithm           = VRNA_MINIMIZER_DEFAULT;
 
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
@@ -198,6 +199,15 @@ main(int  argc,
   if (args_info.pfScale_given)
     md.sfact = args_info.pfScale_arg;
 
+  if (args_info.sampleSize_given) {
+    sample_size = args_info.sampleSize_arg;
+    if (sample_size < 0)
+      sample_size = -sample_size;
+  }
+
+  if (args_info.nonRedundant_given)
+    sample_size = -sample_size;
+
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
   if (istty) {
     vrna_message_input_seq_simple();
@@ -246,7 +256,7 @@ main(int  argc,
                                  args_info.objectiveFunction_arg,
                                  sigma, tau,
                                  algorithm,
-                                 args_info.sampleSize_arg,
+                                 sample_size,
                                  epsilon,
                                  initialStepSize,
                                  minStepSize,
