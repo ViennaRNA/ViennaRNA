@@ -125,13 +125,13 @@ vrna_sequence_add(vrna_fold_compound_t  *vc,
 
 
 PUBLIC int
-vrna_msa_add( vrna_fold_compound_t      *fc,
-              const char                **alignment,
-              const char                **names,
-              const unsigned char       *orientation,
-              const unsigned long long  *start,
-              const unsigned long long  *genome_size,
-              unsigned int              options)
+vrna_msa_add(vrna_fold_compound_t     *fc,
+             const char               **alignment,
+             const char               **names,
+             const unsigned char      *orientation,
+             const unsigned long long *start,
+             const unsigned long long *genome_size,
+             unsigned int             options)
 {
   int ret;
 
@@ -172,12 +172,13 @@ vrna_msa_add( vrna_fold_compound_t      *fc,
         num_names++;
       }
 
-      if (num_names != msa->n_seq)
+      if (num_names != msa->n_seq) {
         vrna_message_warning("vrna_msa_add(): "
                              "Too few names provided for sequences in MSA input! "
                              "Expected %u but received %u ",
                              msa->n_seq,
                              num_names);
+      }
     }
 
     for (s = 0; alignment[s]; s++) {
@@ -197,12 +198,13 @@ vrna_msa_add( vrna_fold_compound_t      *fc,
         num_orientations++;
       }
 
-      if (s != msa->n_seq)
+      if (s != msa->n_seq) {
         vrna_message_warning("vrna_msa_add(): "
                              "Too few orientations provided for sequences in MSA input! "
                              "Expected %u but received %u ",
                              msa->n_seq,
                              num_orientations);
+      }
 
       msa->orientation = (unsigned char *)vrna_alloc(sizeof(unsigned char) * msa->n_seq);
 
@@ -218,12 +220,13 @@ vrna_msa_add( vrna_fold_compound_t      *fc,
         num_starts++;
       }
 
-      if (s != msa->n_seq)
+      if (s != msa->n_seq) {
         vrna_message_warning("vrna_msa_add(): "
                              "Too few start positions provided for sequences in MSA input! "
                              "Expected %u but received %u ",
                              msa->n_seq,
                              num_starts);
+      }
 
       msa->start = (unsigned long long *)vrna_alloc(sizeof(unsigned long long) * msa->n_seq);
 
@@ -239,12 +242,13 @@ vrna_msa_add( vrna_fold_compound_t      *fc,
         num_genome_sizes++;
       }
 
-      if (s != msa->n_seq)
+      if (s != msa->n_seq) {
         vrna_message_warning("vrna_msa_add(): "
                              "Too few genome sizes provided for sequences in MSA input! "
                              "Expected %u but received %u ",
                              msa->n_seq,
                              num_genome_sizes);
+      }
 
       msa->genome_size = (unsigned long long *)vrna_alloc(sizeof(unsigned long long) * msa->n_seq);
 
@@ -259,7 +263,8 @@ vrna_msa_add( vrna_fold_compound_t      *fc,
     for (s = 0; s < msa->n_seq; s++) {
       msa->gapfree_seq[s]   = vrna_seq_ungapped(msa->sequences[s].string);
       msa->gapfree_size[s]  = strlen(msa->gapfree_seq[s]);
-      msa->a2s[s]           = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (msa->sequences[s].length + 1));
+      msa->a2s[s]           =
+        (unsigned int *)vrna_alloc(sizeof(unsigned int) * (msa->sequences[s].length + 1));
 
       for (ss = 1, cnt = 0; ss <= msa->sequences[s].length; ss++) {
         if (msa->sequences[s].encoding[ss])
@@ -307,20 +312,43 @@ vrna_sequence_remove(vrna_fold_compound_t *vc,
 PUBLIC void
 vrna_sequence_remove_all(vrna_fold_compound_t *fc)
 {
-  unsigned int i;
+  unsigned int i, s;
 
   if (fc) {
-    for (i = 0; i < fc->strands; i++)
-      free_sequence_data(&(fc->nucleotides[i]));
+    if (fc->type == VRNA_FC_TYPE_SINGLE) {
+      for (i = 0; i < fc->strands; i++)
+        free_sequence_data(&(fc->nucleotides[i]));
 
-    free(fc->nucleotides);
+      free(fc->nucleotides);
+      fc->nucleotides = NULL;
+    } else {
+      for (i = 0; i < fc->strands; i++) {
+        for (s = 0; s < fc->alignment[i].n_seq; s++) {
+          free_sequence_data(&(fc->alignment[i].sequences[s]));
+          free(fc->alignment[i].gapfree_seq[s]);
+          free(fc->alignment[i].a2s[s]);
+        }
+
+        free(fc->alignment[i].sequences);
+        free(fc->alignment[i].gapfree_seq);
+        free(fc->alignment[i].a2s);
+        free(fc->alignment[i].gapfree_size);
+        free(fc->alignment[i].genome_size);
+        free(fc->alignment[i].start);
+        free(fc->alignment[i].orientation);
+      }
+      free(fc->alignment);
+      fc->alignment = NULL;
+      /* free memory occupied by temporary hack in vrna_sequence_prepare() */
+      free_sequence_data(&(fc->nucleotides[0]));
+    }
+
     free(fc->strand_number);
     free(fc->strand_order);
     free(fc->strand_start);
     free(fc->strand_end);
 
     fc->strands       = 0;
-    fc->nucleotides   = NULL;
     fc->strand_number = NULL;
     fc->strand_order  = NULL;
     fc->strand_start  = NULL;
@@ -499,11 +527,10 @@ set_sequence(vrna_seq_t   *obj,
   }
 
   for (size_t i = 1, p = 0; i < obj->length; i++) {
-    if (obj->encoding[i] == 0) {
+    if (obj->encoding[i] == 0)
       obj->encoding5[i + 1] = obj->encoding5[i];
-    } else {
-      obj->encoding5[i + 1]  = obj->encoding[i];
-    }
+    else
+      obj->encoding5[i + 1] = obj->encoding[i];
   }
 
   for (size_t i = obj->length; i > 1; i--) {
@@ -512,7 +539,6 @@ set_sequence(vrna_seq_t   *obj,
     else
       obj->encoding3[i - 1] = obj->encoding[i];
   }
-
 }
 
 
@@ -524,11 +550,11 @@ free_sequence_data(vrna_seq_t *obj)
   free(obj->encoding);
   free(obj->encoding5);
   free(obj->encoding3);
-  obj->string = NULL;
-  obj->name = NULL;
-  obj->encoding = NULL;
-  obj->encoding5 = NULL;
-  obj->encoding3 = NULL;
-  obj->type   = VRNA_SEQ_UNKNOWN;
-  obj->length = 0;
+  obj->string     = NULL;
+  obj->name       = NULL;
+  obj->encoding   = NULL;
+  obj->encoding5  = NULL;
+  obj->encoding3  = NULL;
+  obj->type       = VRNA_SEQ_UNKNOWN;
+  obj->length     = 0;
 }
