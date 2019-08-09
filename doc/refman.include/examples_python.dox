@@ -26,6 +26,12 @@ Boltzmann Sampling (a.k.a. Probabilistic Backtracing)
 -----------------------------------------------------
 @include  boltzmann_sampling.py
 
+@anchor examples_python_MEA
+
+RNAfold -p --MEA equivalent
+-----------------------------------------------------
+@include  RNAfold_MEA.py
+
 @anchor examples_python_soft_constraints
 
 Fun with Soft Constraints
