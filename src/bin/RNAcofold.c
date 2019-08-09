@@ -500,7 +500,6 @@ main(int  argc,
   }
 
   UNINIT_PARALLELIZATION
-
   /*
    ################################################
    # post processing
@@ -684,7 +683,6 @@ process_record(struct record_data *record)
                         (int)n - vc->cutpoint + 1);
     }
   }
-
 
   if (vc->cutpoint == vc->length / 2 + 1) {
     if (!strncmp(vc->sequence, vc->sequence + vc->cutpoint - 1, vc->cutpoint - 1)) {
@@ -1246,21 +1244,8 @@ compute_MEA(vrna_fold_compound_t  *fc,
 {
   char  *structure, *mea_structure;
   float mea, mea_en;
-  /*  this is a hack since vrna_plist_from_probs() always resolves g-quad pairs,
-   *  while MEA_seq() still expects unresolved gquads */
-  int   gq = fc->exp_params->model_details.gquad;
 
-  /* we need to create a string as long as the sequence for the MEA implementation :( */
-  structure = strdup(fc->sequence);
-
-  fc->exp_params->model_details.gquad = 0;
-  plist *pl = vrna_plist_from_probs(fc, 1e-4 / (1 + MEAgamma));
-  fc->exp_params->model_details.gquad = gq;
-
-  if (gq)
-    mea = MEA_seq(pl, fc->sequence, structure, MEAgamma, fc->exp_params);
-  else
-    mea = MEA(pl, structure, MEAgamma);
+  structure = vrna_MEA(fc, MEAgamma, &mea);
 
   mea_en = vrna_eval_structure(fc, (const char *)structure);
 
@@ -1269,7 +1254,6 @@ compute_MEA(vrna_fold_compound_t  *fc,
 
   vrna_cstr_printf_structure(rec_output, mea_structure, " {%6.2f MEA=%.2f}", mea_en, mea);
 
-  free(pl);
   free(structure);
   free(mea_structure);
 }
