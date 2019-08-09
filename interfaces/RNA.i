@@ -70,6 +70,7 @@ extern "C" {
 #include  <ViennaRNA/boltzmann_sampling.h>
 #include  <ViennaRNA/concentrations.h>
 #include  <ViennaRNA/LPfold.h>
+#include  <ViennaRNA/centroid.h>
 #include  <ViennaRNA/MEA.h>
 
 #include  <ViennaRNA/inverse.h>

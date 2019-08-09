@@ -30,4 +30,30 @@ This function is attached as method @b ensemble_defect() to objects of type @em 
 This function is attached as method @b positional_entropy() to objects of type @em fold_compound
 @endparblock
 
+@fn double vrna_pr_structure(vrna_fold_compound_t *fc, const char *structure)
+@scripting
+@parblock
+This function is attached as method @b pr_structure() to objects of type @em fold_compound
+@endparblock
+
+@fn double vrna_pr_energy(vrna_fold_compound_t *fc, double e)
+@scripting
+@parblock
+This function is attached as method @b pr_energy() to objects of type @em fold_compound
+@endparblock
+
+@fn char *vrna_MEA(vrna_fold_compound_t *fc, double gamma, float *mea)
+@scripting
+@parblock
+This function is attached as overloaded method @b MEA(gamma = 1.) to objects of type @em fold_compound.
+Note, that it returns the MEA structure and MEA value as a tuple (MEA_structure, MEA)
+@endparblock
+
+@fn char *vrna_MEA_from_plist(vrna_ep_t *plist, const char *sequence, double gamma, vrna_md_t *md,float *mea)
+@scripting
+@parblock
+This function is available as overloaded function @b MEA_from_plist(gamma = 1., md = NULL).
+Note, that it returns the MEA structure and MEA value as a tuple (MEA_structure, MEA)
+@endparblock
+
 */

@@ -32,15 +32,8 @@
 /* hide all attributes in vrna_fold_compound_t */
 typedef struct {} vrna_fold_compound_t;
 
-%newobject vrna_fold_compound_t::centroid;
-
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
-
-#ifdef SWIGPYTHON
-%feature("autodoc") centroid;
-%feature("kwargs") centroid;
-#endif
 
   /* the default constructor, *md and option are optional, for single sequences*/
   vrna_fold_compound_t( const char *sequence,
@@ -82,15 +75,6 @@ typedef struct {} vrna_fold_compound_t;
   
   unsigned int length(){
     return $self->length;
-  }
-
-  /*  ################
-      # in centroid.h
-      ################
-  */
-
-  char *centroid(double *OUTPUT){
-    return vrna_centroid($self,OUTPUT);
   }
 
 }
