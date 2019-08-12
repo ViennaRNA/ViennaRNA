@@ -41,4 +41,74 @@ Passing an object of type #vrna_md_s resets the fold compound according to the s
 within the #vrna_md_s object.
 @endparblock
 
+@fn int vrna_params_load(const char fname[], unsigned int options)
+@scripting
+@parblock
+This function is available as overloaded function @b params_load(fname="", options=#VRNA_PARAMETER_FORMAT_DEFAULT).
+Here, the empty filename string indicates to load default RNA parameters, i.e. this is equivalent to calling
+vrna_params_load_defaults().
+@endparblock
+
+@fn int vrna_params_save(const char fname[], unsigned int options)
+@scripting
+@parblock
+This function is available as overloaded function @b params_save(fname, options=#VRNA_PARAMETER_FORMAT_DEFAULT).
+@endparblock
+
+@fn int vrna_params_load_from_string(const char *string, const char *name, unsigned int options)
+@scripting
+@parblock
+This function is available as overloaded function @b params_load_from_string(string, name="", options=#VRNA_PARAMETER_FORMAT_DEFAULT).
+@endparblock
+
+@fn int vrna_params_load_defaults(void)
+@scripting
+@parblock
+This function is available as overloaded function @b params_load().
+@endparblock
+
+@fn int vrna_params_load_RNA_Turner2004(void)
+@scripting
+@parblock
+This function is available as function @b params_load_RNA_Turner2004().
+@endparblock
+
+@fn int vrna_params_load_RNA_Turner1999(void)
+@scripting
+@parblock
+This function is available as function @b params_load_RNA_Turner1999().
+@endparblock
+
+@fn int vrna_params_load_RNA_Andronescu2007(void)
+@scripting
+@parblock
+This function is available as function @b params_load_RNA_Andronescu2007().
+@endparblock
+
+@fn int vrna_params_load_RNA_Langdon2018(void)
+@scripting
+@parblock
+This function is available as function @b params_load_RNA_Langdon2018().
+@endparblock
+
+@fn int vrna_params_load_RNA_misc_special_hairpins(void)
+@scripting
+@parblock
+This function is available as function @b params_load_RNA_misc_special_hairpins().
+@endparblock
+
+@fn int vrna_params_load_DNA_Mathews2004(void)
+@scripting
+@parblock
+This function is available as function @b params_load_DNA_Mathews2004().
+@endparblock
+
+@fn int vrna_params_load_DNA_Mathews1999(void)
+@scripting
+@parblock
+This function is available as function @b params_load_DNA_Mathews1999().
+@endparblock
+
+
+
 */

@@ -20,17 +20,65 @@
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/io.h"
+#include "ViennaRNA/static/energy_parameter_sets.h"
 
-#define PUBLIC
-#define PRIVATE   static
-#define PARSET 20
 
 #define DEF -50
 #define NST 0
 
-PRIVATE FILE  *fp;
+/*
+ #################################
+ # PRIVATE VARIABLES             #
+ #################################
+ */
 
 PRIVATE char  *last_param_file = NULL;
+
+PRIVATE int   stack_dim[2] = {
+  NBPAIRS + 1, NBPAIRS + 1
+};
+PRIVATE int   stack_shift[2] = {
+  1, 1
+};
+PRIVATE int   mismatch_dim[3] = {
+  NBPAIRS + 1, 5, 5
+};
+PRIVATE int   mismatch_shift[3] = {
+  1, 0, 0
+};
+PRIVATE int   int11_dim[4] = {
+  NBPAIRS + 1, NBPAIRS + 1, 5, 5
+};
+PRIVATE int   int11_shift[4] = {
+  1, 1, 0, 0
+};
+PRIVATE int   int21_dim[5] = {
+  NBPAIRS + 1, NBPAIRS + 1, 5, 5, 5
+};
+PRIVATE int   int21_shift[5] = {
+  1, 1, 0, 0, 0
+};
+PRIVATE int   int22_dim[6] = {
+  NBPAIRS + 1, NBPAIRS + 1, 5, 5, 5, 5
+};
+PRIVATE int   int22_shift[6] = {
+  1, 1, 1, 1, 1, 1
+};
+PRIVATE int   int22_post[6] = {
+  1, 1, 0, 0, 0, 0
+};
+PRIVATE int   dangle_dim[2] = {
+  NBPAIRS + 1, 5
+};
+PRIVATE int   dangle_shift[2] = {
+  1, 0
+};
+
+/*
+ #################################
+ # PRIVATE FUNCTION DECLARATIONS #
+ #################################
+ */
 
 PRIVATE void
 display_array(int   *p,
@@ -40,8 +88,10 @@ display_array(int   *p,
 
 
 PRIVATE char *
-get_array1(int  *arr,
-           int  size);
+get_array1(char   **content,
+           size_t *line_no,
+           int    *arr,
+           int    size);
 
 
 PRIVATE void
@@ -63,212 +113,369 @@ update_nst(int array[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5]);
 *** \param shift  the first position the new values will be written in
 **/
 PRIVATE void
-rd_1dim(int *array,
-        int dim,
-        int shift);
+rd_1dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim,
+        int     shift);
 
 
 PRIVATE void
-rd_1dim_slice(int *array,
-              int dim,
-              int shift,
-              int post);
+rd_1dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim,
+              int     shift,
+              int     post);
 
 
 PRIVATE void
-rd_2dim(int *array,
-        int dim1,
-        int dim2,
-        int shift1,
-        int shift2);
+rd_2dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[2],
+        int     shift[2]);
 
 
 PRIVATE void
-rd_2dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int shift1,
-              int shift2,
-              int post1,
-              int post2);
+rd_2dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[2],
+              int     shift[2],
+              int     post[2]);
 
 
 PRIVATE void
-rd_3dim(int *array,
-        int dim1,
-        int dim2,
-        int dim3,
-        int shift1,
-        int shift2,
-        int shift3);
+rd_3dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[3],
+        int     shift[3]);
 
 
 PRIVATE void
-rd_3dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int dim3,
-              int shift1,
-              int shift2,
-              int shift3,
-              int post1,
-              int post2,
-              int post3);
+rd_3dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[3],
+              int     shift[3],
+              int     post[3]);
 
 
 PRIVATE void
-rd_4dim(int *array,
-        int dim1,
-        int dim2,
-        int dim3,
-        int dim4,
-        int shift1,
-        int shift2,
-        int shift3,
-        int shift4);
+rd_4dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[4],
+        int     shift[4]);
 
 
 PRIVATE void
-rd_4dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int dim3,
-              int dim4,
-              int shift1,
-              int shift2,
-              int shift3,
-              int shift4,
-              int post1,
-              int post2,
-              int post3,
-              int post4);
+rd_4dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[4],
+              int     shift[4],
+              int     post[4]);
 
 
 PRIVATE void
-rd_5dim(int *array,
-        int dim1,
-        int dim2,
-        int dim3,
-        int dim4,
-        int dim5,
-        int shift1,
-        int shift2,
-        int shift3,
-        int shift4,
-        int shift5);
+rd_5dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[5],
+        int     shift[5]);
 
 
 PRIVATE void
-rd_5dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int dim3,
-              int dim4,
-              int dim5,
-              int shift1,
-              int shift2,
-              int shift3,
-              int shift4,
-              int shift5,
-              int post1,
-              int post2,
-              int post3,
-              int post4,
-              int post5);
+rd_5dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[5],
+              int     shift[5],
+              int     post[5]);
 
 
 PRIVATE void
-rd_6dim(int *array,
-        int dim1,
-        int dim2,
-        int dim3,
-        int dim4,
-        int dim5,
-        int dim6,
-        int shift1,
-        int shift2,
-        int shift3,
-        int shift4,
-        int shift5,
-        int shift6);
+rd_6dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[6],
+        int     shift[6]);
 
 
 PRIVATE void
-rd_6dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int dim3,
-              int dim4,
-              int dim5,
-              int dim6,
-              int shift1,
-              int shift2,
-              int shift3,
-              int shift4,
-              int shift5,
-              int shift6,
-              int post1,
-              int post2,
-              int post3,
-              int post4,
-              int post5,
-              int post6);
+rd_6dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[6],
+              int     shift[6],
+              int     post[6]);
 
 
 PRIVATE void
-rd_Tetraloop37(void);
+rd_Tetraloop37(char   **content,
+               size_t *line_no);
 
 
 PRIVATE void
-rd_Triloop37(void);
+rd_Triloop37(char   **content,
+             size_t *line_no);
 
 
 PRIVATE void
-rd_Hexaloop37(void);
+rd_Hexaloop37(char    **content,
+              size_t  *line_no);
 
 
-PUBLIC const char *
-last_parameter_file(void)
+PRIVATE int
+set_parameters_from_string(char       **file_content,
+                           const char *name);
+
+
+PRIVATE char **
+file2array(const char fname[]);
+
+
+PRIVATE int
+save_parameter_file(const char    fname[],
+                    unsigned int  options);
+
+
+/*
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
+PUBLIC int
+vrna_params_load(const char   fname[],
+                 unsigned int options)
 {
-  return (const char *)last_param_file;
+  char  *name, **file_content, **ptr;
+  int   ret;
+
+  ret           = 0;
+  file_content  = file2array(fname);
+
+  if (file_content) {
+    name = vrna_basename(fname);
+
+    ret = set_parameters_from_string(file_content,
+                                     (const char *)name);
+
+    free(name);
+    for (ptr = file_content; *ptr != NULL; ptr++)
+      free(*ptr);
+
+    free(file_content);
+  }
+
+  return ret;
 }
 
 
-/*------------------------------------------------------------*/
-PUBLIC void
-read_parameter_file(const char fname[])
+PUBLIC int
+vrna_params_save(const char   fname[],
+                 unsigned int options)
 {
+  return save_parameter_file(fname, options);
+}
+
+
+PUBLIC int
+vrna_params_load_from_string(const char   *string,
+                             const char   *name,
+                             unsigned int options)
+{
+  int ret = 0;
+
+  if (string) {
+    char    **params_array, **ptr, *tmp_string, *token, *rest;
+    size_t  lines, lines_mem;
+
+    lines         = lines_mem = 0;
+    params_array  = NULL;
+
+    /* convert string into array of lines */
+    tmp_string = strdup(string);
+
+    token = strtok_r(tmp_string, "\n", &rest);
+
+    while (token != NULL) {
+      if (lines == lines_mem) {
+        lines_mem     += 32768;
+        params_array  = (char **)vrna_realloc(params_array, sizeof(char *) * lines_mem);
+      }
+
+      params_array[lines++] = strdup(token);
+
+      token = strtok_r(NULL, "\n", &rest);
+    }
+
+    /* reallocate to actual requirements */
+    params_array        = (char **)vrna_realloc(params_array, sizeof(char *) * (lines + 1));
+    params_array[lines] = NULL;
+
+    /* actually apply parameters */
+    ret = set_parameters_from_string(params_array,
+                                     name);
+
+    /* cleanup memory */
+    free(tmp_string);
+
+    for (ptr = params_array; *ptr != NULL; ptr++)
+      free(*ptr);
+
+    free(params_array);
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_params_load_defaults(void)
+{
+  return vrna_params_load_RNA_Turner2004();
+}
+
+
+PUBLIC int
+vrna_params_load_RNA_Turner2004(void)
+{
+  return vrna_params_load_from_string(parameter_set_rna_turner2004,
+                                      "RNA - Turner 2004",
+                                      0);
+}
+
+
+PUBLIC int
+vrna_params_load_RNA_Turner1999(void)
+{
+  return vrna_params_load_from_string(parameter_set_rna_turner1999,
+                                      "RNA - Turner 1999",
+                                      0);
+}
+
+
+PUBLIC int
+vrna_params_load_RNA_Andronescu2007(void)
+{
+  return vrna_params_load_from_string(parameter_set_rna_andronescu2007,
+                                      "RNA - Andronescu 2007",
+                                      0);
+}
+
+
+PUBLIC int
+vrna_params_load_RNA_Langdon2018(void)
+{
+  return vrna_params_load_from_string(parameter_set_rna_langdon2018,
+                                      "RNA - Langdon 2018",
+                                      0);
+}
+
+
+PUBLIC int
+vrna_params_load_RNA_misc_special_hairpins(void)
+{
+  return vrna_params_load_from_string(parameter_set_rna_misc_special_hairpins,
+                                      "RNA - Misc. Special Hairpins",
+                                      0);
+}
+
+
+PUBLIC int
+vrna_params_load_DNA_Mathews2004(void)
+{
+  return vrna_params_load_from_string(parameter_set_dna_mathews2004,
+                                      "DNA - Mathews 2004",
+                                      0);
+}
+
+
+PUBLIC int
+vrna_params_load_DNA_Mathews1999(void)
+{
+  return vrna_params_load_from_string(parameter_set_dna_mathews1999,
+                                      "DNA - Mathews 1999",
+                                      0);
+}
+
+
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
+PRIVATE char **
+file2array(const char fname[])
+{
+  char    **content, *line;
+  size_t  lines_num, lines_mem;
+  FILE    *fp;
+
+  content = NULL;
+
+  if ((fp = fopen(fname, "r"))) {
+    lines_num = 0;
+    lines_mem = 32768;
+
+    content = (char **)vrna_alloc(sizeof(char *) * lines_mem);
+
+    /* read file line-by-line */
+    while ((line = vrna_read_line(fp))) {
+      if (lines_num == lines_mem) {
+        lines_mem += 32768;
+        content   = (char **)vrna_realloc(content, sizeof(char *) * lines_mem);
+      }
+
+      content[lines_num] = line;
+      lines_num++;
+    }
+
+    /* reallocate to actual requirements */
+    content             = (char **)vrna_realloc(content, sizeof(char *) * (lines_num + 1));
+    content[lines_num]  = NULL;
+
+    fclose(fp);
+  } else {
+    vrna_message_warning("read_parameter_file():"
+                         "Can't open file %s\n",
+                         fname);
+  }
+
+  return content;
+}
+
+
+PRIVATE int
+set_parameters_from_string(char       **file_content,
+                           const char *name)
+{
+  size_t      line_no;
   char        *line, ident[256];
   enum parset type;
   int         r;
 
-  if (!(fp = fopen(fname, "r"))) {
-    vrna_message_warning("\nread_parameter_file:\n"
-                         "\t\tcan't open file %s\n"
-                         "\t\tusing default parameters instead.",
-                         fname);
-    return;
-  }
+  line_no = 0;
 
-  if (!(line = vrna_read_line(fp))) {
-    vrna_message_warning(" File %s is invalid.\n", fname);
-    fclose(fp);
-    return;
-  }
+  if ((!file_content) ||
+      (!file_content[line_no]))
+    return 0;
 
-  if (strncmp(line, "## RNAfold parameter file v2.0", 30) != 0) {
+  /* store file name of parameter data set */
+  free(last_param_file);
+  last_param_file = (name) ? strdup(name) : NULL;
+
+  if (strncmp(file_content[line_no++], "## RNAfold parameter file v2.0", 30) != 0) {
     vrna_message_warning("Missing header line in file.\n"
                          "May be this file has not v2.0 format.\n"
                          "Use INTERRUPT-key to stop.");
   }
 
-  free(line);
-
-  /* store file name of parameter data set */
-  free(last_param_file);
-  last_param_file = vrna_basename(fname);
-
-  while ((line = vrna_read_line(fp))) {
+  while ((line = file_content[line_no++])) {
     r = sscanf(line, "# %255s", ident);
     if (r == 1) {
       type = gettype(ident);
@@ -276,139 +483,147 @@ read_parameter_file(const char fname[])
         case QUIT:
           break;
         case S:
-          rd_2dim(&(stack37[0][0]), NBPAIRS + 1, NBPAIRS + 1, 1, 1);
+          rd_2dim(file_content, &line_no, &(stack37[0][0]), stack_dim, stack_shift);
           break;
         case S_H:
-          rd_2dim(&(stackdH[0][0]), NBPAIRS + 1, NBPAIRS + 1, 1, 1);
+          rd_2dim(file_content, &line_no, &(stackdH[0][0]), stack_dim, stack_shift);
           break;
         case HP:
-          rd_1dim(&(hairpin37[0]), 31, 0);
+          rd_1dim(file_content, &line_no, &(hairpin37[0]), 31, 0);
           break;
         case HP_H:
-          rd_1dim(&(hairpindH[0]), 31, 0);
+          rd_1dim(file_content, &line_no, &(hairpindH[0]), 31, 0);
           break;
         case B:
-          rd_1dim(&(bulge37[0]), 31, 0);
+          rd_1dim(file_content, &line_no, &(bulge37[0]), 31, 0);
           break;
         case B_H:
-          rd_1dim(&(bulgedH[0]), 31, 0);
+          rd_1dim(file_content, &line_no, &(bulgedH[0]), 31, 0);
           break;
         case IL:
-          rd_1dim(&(internal_loop37[0]), 31, 0);
+          rd_1dim(file_content, &line_no, &(internal_loop37[0]), 31, 0);
           break;
         case IL_H:
-          rd_1dim(&(internal_loopdH[0]), 31, 0);
+          rd_1dim(file_content, &line_no, &(internal_loopdH[0]), 31, 0);
           break;
         case MME:
-          rd_3dim(&(mismatchExt37[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatchExt37[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MME_H:
-          rd_3dim(&(mismatchExtdH[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatchExtdH[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMH:
-          rd_3dim(&(mismatchH37[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatchH37[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMH_H:
-          rd_3dim(&(mismatchHdH[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatchHdH[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMI:
-          rd_3dim(&(mismatchI37[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatchI37[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMI_H:
-          rd_3dim(&(mismatchIdH[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatchIdH[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMI1N:
-          rd_3dim(&(mismatch1nI37[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatch1nI37[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMI1N_H:
-          rd_3dim(&(mismatch1nIdH[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatch1nIdH[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMI23:
-          rd_3dim(&(mismatch23I37[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatch23I37[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMI23_H:
-          rd_3dim(&(mismatch23IdH[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatch23IdH[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMM:
-          rd_3dim(&(mismatchM37[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatchM37[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case MMM_H:
-          rd_3dim(&(mismatchMdH[0][0][0]),
-                  NBPAIRS + 1, 5, 5,
-                  1, 0, 0);
+          rd_3dim(file_content, &line_no, &(mismatchMdH[0][0][0]),
+                  mismatch_dim,
+                  mismatch_shift);
           break;
         case INT11:
-          rd_4dim(&(int11_37[0][0][0][0]),
-                  NBPAIRS + 1, NBPAIRS + 1, 5, 5,
-                  1, 1, 0, 0);
+          rd_4dim(file_content, &line_no, &(int11_37[0][0][0][0]),
+                  int11_dim,
+                  int11_shift);
           break;
         case INT11_H:
-          rd_4dim(&(int11_dH[0][0][0][0]),
-                  NBPAIRS + 1, NBPAIRS + 1, 5, 5,
-                  1, 1, 0, 0);
+          rd_4dim(file_content, &line_no, &(int11_dH[0][0][0][0]),
+                  int11_dim,
+                  int11_shift);
           break;
         case INT21:
-          rd_5dim(&(int21_37[0][0][0][0][0]),
-                  NBPAIRS + 1, NBPAIRS + 1, 5, 5, 5,
-                  1, 1, 0, 0, 0);
+          rd_5dim(file_content, &line_no, &(int21_37[0][0][0][0][0]),
+                  int21_dim,
+                  int21_shift);
           break;
         case INT21_H:
-          rd_5dim(&(int21_dH[0][0][0][0][0]),
-                  NBPAIRS + 1, NBPAIRS + 1, 5, 5, 5,
-                  1, 1, 0, 0, 0);
+          rd_5dim(file_content, &line_no, &(int21_dH[0][0][0][0][0]),
+                  int21_dim,
+                  int21_shift);
           break;
         case INT22:
-          rd_6dim_slice(&(int22_37[0][0][0][0][0][0]),
-                        NBPAIRS + 1, NBPAIRS + 1, 5, 5, 5, 5,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 0, 0, 0, 0);
+          rd_6dim_slice(file_content, &line_no, &(int22_37[0][0][0][0][0][0]),
+                        int22_dim,
+                        int22_shift,
+                        int22_post);
           update_nst(int22_37);
           break;
         case INT22_H:
-          rd_6dim_slice(&(int22_dH[0][0][0][0][0][0]),
-                        NBPAIRS + 1, NBPAIRS + 1, 5, 5, 5, 5,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 0, 0, 0, 0);
+          rd_6dim_slice(file_content, &line_no, &(int22_dH[0][0][0][0][0][0]),
+                        int22_dim,
+                        int22_shift,
+                        int22_post);
           update_nst(int22_dH);
           break;
         case D5:
-          rd_2dim(&(dangle5_37[0][0]), NBPAIRS + 1, 5, 1, 0);
+          rd_2dim(file_content, &line_no, &(dangle5_37[0][0]),
+                  dangle_dim,
+                  dangle_shift);
           break;
         case D5_H:
-          rd_2dim(&(dangle5_dH[0][0]), NBPAIRS + 1, 5, 1, 0);
+          rd_2dim(file_content, &line_no, &(dangle5_dH[0][0]),
+                  dangle_dim,
+                  dangle_shift);
           break;
         case D3:
-          rd_2dim(&(dangle3_37[0][0]), NBPAIRS + 1, 5, 1, 0);
+          rd_2dim(file_content, &line_no, &(dangle3_37[0][0]),
+                  dangle_dim,
+                  dangle_shift);
           break;
         case D3_H:
-          rd_2dim(&(dangle3_dH[0][0]), NBPAIRS + 1, 5, 1, 0);
+          rd_2dim(file_content, &line_no, &(dangle3_dH[0][0]),
+                  dangle_dim,
+                  dangle_shift);
           break;
         case ML:
         {
           int values[6];
-          rd_1dim(&values[0], 6, 0);
+          rd_1dim(file_content, &line_no, &values[0], 6, 0);
           ML_BASE37     = values[0];
           ML_BASEdH     = values[1];
           ML_closing37  = values[2];
@@ -420,7 +635,7 @@ read_parameter_file(const char fname[])
         case NIN:
         {
           int values[3];
-          rd_1dim(&values[0], 3, 0);
+          rd_1dim(file_content, &line_no, &values[0], 3, 0);
           ninio37   = values[0];
           niniodH   = values[1];
           MAX_NINIO = values[2];
@@ -429,7 +644,7 @@ read_parameter_file(const char fname[])
         case MISC:
         {
           int values[4];
-          rd_1dim(&values[0], 4, 0);
+          rd_1dim(file_content, &line_no, &values[0], 4, 0);
           DuplexInit37  = values[0];
           DuplexInitdH  = values[1];
           TerminalAU37  = values[2];
@@ -437,25 +652,22 @@ read_parameter_file(const char fname[])
         }
         break;
         case TL:
-          rd_Tetraloop37();
+          rd_Tetraloop37(file_content, &line_no);
           break;
         case TRI:
-          rd_Triloop37();
+          rd_Triloop37(file_content, &line_no);
           break;
         case HEX:
-          rd_Hexaloop37();
+          rd_Hexaloop37(file_content, &line_no);
           break;
         default:      /* do nothing but complain */
           vrna_message_warning("read_epars: Unknown field identifier in `%s'", line);
       }
     } /* else ignore line */
-
-    free(line);
   }
-  fclose(fp);
 
   check_symmetry();
-  return;
+  return 1;
 }
 
 
@@ -497,8 +709,10 @@ display_array(int   *p,
 /*------------------------------------------------------------*/
 
 PRIVATE char *
-get_array1(int  *arr,
-           int  size)
+get_array1(char   **content,
+           size_t *line_no,
+           int    *arr,
+           int    size)
 {
   int   i, p, pos, pp, r, last;
   char  *line, buf[16];
@@ -506,7 +720,7 @@ get_array1(int  *arr,
 
   i = last = 0;
   while (i < size) {
-    line = vrna_read_line(fp);
+    line = content[(*line_no)++];
     if (!line)
       vrna_message_error("unexpected end of file in get_array1");
 
@@ -542,7 +756,6 @@ get_array1(int  *arr,
 
       arr[i++] = p;
     }
-    free(line);
   }
 
   return NULL;
@@ -550,23 +763,27 @@ get_array1(int  *arr,
 
 
 PRIVATE void
-rd_1dim(int *array,
-        int dim,
-        int shift)
+rd_1dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim,
+        int     shift)
 {
-  rd_1dim_slice(array, dim, shift, 0);
+  rd_1dim_slice(content, line_no, array, dim, shift, 0);
 }
 
 
 PRIVATE void
-rd_1dim_slice(int *array,
-              int dim,
-              int shift,
-              int post)
+rd_1dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim,
+              int     shift,
+              int     post)
 {
   char *cp;
 
-  cp = get_array1(array + shift, dim - shift - post);
+  cp = get_array1(content, line_no, array + shift, dim - shift - post);
 
   if (cp) {
     vrna_message_error("\nrd_1dim: %s", cp);
@@ -578,191 +795,173 @@ rd_1dim_slice(int *array,
 
 
 PRIVATE void
-rd_2dim(int *array,
-        int dim1,
-        int dim2,
-        int shift1,
-        int shift2)
+rd_2dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[2],
+        int     shift[2])
 {
-  rd_2dim_slice(array, dim1, dim2, shift1, shift2, 0, 0);
+  int post[2] = {
+    0, 0
+  };
+
+  rd_2dim_slice(content, line_no, array, dim, shift, post);
 }
 
 
 PRIVATE void
-rd_2dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int shift1,
-              int shift2,
-              int post1,
-              int post2)
+rd_2dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[2],
+              int     shift[2],
+              int     post[2])
 {
   int i;
-  int delta_pre   = shift1 + shift2;
-  int delta_post  = post1 + post2;
+  int delta_pre   = shift[0] + shift[1];
+  int delta_post  = post[0] + post[1];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(array, dim1 * dim2, 0);
+    rd_1dim(content, line_no, array, dim[0] * dim[1], 0);
     return;
   }
 
-  for (i = shift1; i < dim1 - post1; i++)
-    rd_1dim_slice(array + (i * dim2), dim2, shift2, post2);
+  for (i = shift[0]; i < dim[0] - post[0]; i++)
+    rd_1dim_slice(content, line_no, array + (i * dim[1]), dim[1], shift[1], post[1]);
   return;
 }
 
 
 PRIVATE void
-rd_3dim(int *array,
-        int dim1,
-        int dim2,
-        int dim3,
-        int shift1,
-        int shift2,
-        int shift3)
+rd_3dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[3],
+        int     shift[3])
 {
-  rd_3dim_slice(array,
-                dim1, dim2, dim3,
-                shift1, shift2, shift3,
-                0, 0, 0);
+  int post[3] = {
+    0, 0, 0
+  };
+
+  rd_3dim_slice(content, line_no, array,
+                dim,
+                shift,
+                post);
 }
 
 
 PRIVATE void
-rd_3dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int dim3,
-              int shift1,
-              int shift2,
-              int shift3,
-              int post1,
-              int post2,
-              int post3)
+rd_3dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[3],
+              int     shift[3],
+              int     post[3])
 {
   int i;
-  int delta_pre   = shift1 + shift2 + shift3;
-  int delta_post  = post1 + post2 + post3;
+  int delta_pre   = shift[0] + shift[1] + shift[2];
+  int delta_post  = post[0] + post[1] + post[2];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(array, dim1 * dim2 * dim3, 0);
+    rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2], 0);
     return;
   }
 
-  for (i = shift1; i < dim1 - post1; i++) {
-    rd_2dim_slice(array + (i * dim2 * dim3),
-                  dim2, dim3,
-                  shift2, shift3,
-                  post2, post3);
-  }
-  return;
-}
-
-
-PRIVATE void
-rd_4dim(int *array,
-        int dim1,
-        int dim2,
-        int dim3,
-        int dim4,
-        int shift1,
-        int shift2,
-        int shift3,
-        int shift4)
-{
-  rd_4dim_slice(array,
-                dim1, dim2, dim3, dim4,
-                shift1, shift2, shift3, shift4,
-                0, 0, 0, 0);
-}
-
-
-PRIVATE void
-rd_4dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int dim3,
-              int dim4,
-              int shift1,
-              int shift2,
-              int shift3,
-              int shift4,
-              int post1,
-              int post2,
-              int post3,
-              int post4)
-{
-  int i;
-  int delta_pre   = shift1 + shift2 + shift3 + shift4;
-  int delta_post  = post1 + post2 + post3 + post4;
-
-  if (delta_pre + delta_post == 0) {
-    rd_1dim(array, dim1 * dim2 * dim3 * dim4, 0);
-    return;
-  }
-
-  for (i = shift1; i < dim1 - post1; i++) {
-    rd_3dim_slice(array + (i * dim2 * dim3 * dim4),
-                  dim2, dim3, dim4,
-                  shift2, shift3, shift4,
-                  post2, post3, post4);
+  for (i = shift[0]; i < dim[0] - post[0]; i++) {
+    rd_2dim_slice(content, line_no, array + (i * dim[1] * dim[2]),
+                  dim + 1,
+                  shift + 1,
+                  post + 1);
   }
   return;
 }
 
 
 PRIVATE void
-rd_5dim(int *array,
-        int dim1,
-        int dim2,
-        int dim3,
-        int dim4,
-        int dim5,
-        int shift1,
-        int shift2,
-        int shift3,
-        int shift4,
-        int shift5)
+rd_4dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[4],
+        int     shift[4])
 {
-  rd_5dim_slice(array,
-                dim1, dim2, dim3, dim4, dim5,
-                shift1, shift2, shift3, shift4, shift5,
-                0, 0, 0, 0, 0);
+  int post[4] = {
+    0, 0, 0, 0
+  };
+
+  rd_4dim_slice(content, line_no, array,
+                dim,
+                shift,
+                post);
 }
 
 
 PRIVATE void
-rd_5dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int dim3,
-              int dim4,
-              int dim5,
-              int shift1,
-              int shift2,
-              int shift3,
-              int shift4,
-              int shift5,
-              int post1,
-              int post2,
-              int post3,
-              int post4,
-              int post5)
+rd_4dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[4],
+              int     shift[4],
+              int     post[4])
 {
   int i;
-  int delta_pre   = shift1 + shift2 + shift3 + shift4 + shift5;
-  int delta_post  = post1 + post2 + post3 + post4 + post5;
+  int delta_pre   = shift[0] + shift[1] + shift[2] + shift[3];
+  int delta_post  = post[0] + post[1] + post[2] + post[3];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(array, dim1 * dim2 * dim3 * dim4 * dim5, 0);
+    rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3], 0);
     return;
   }
 
-  for (i = shift1; i < dim1 - post1; i++)
-    rd_4dim_slice(array + (i * dim2 * dim3 * dim4 * dim5),
-                  dim2, dim3, dim4, dim5,
-                  shift2, shift3, shift4, shift5,
-                  post2, post3, post4, post5);
+  for (i = shift[0]; i < dim[0] - post[0]; i++) {
+    rd_3dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3]),
+                  dim + 1,
+                  shift + 1,
+                  post + 1);
+  }
+  return;
+}
+
+
+PRIVATE void
+rd_5dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[5],
+        int     shift[5])
+{
+  int post[5] = {
+    0, 0, 0, 0, 0
+  };
+
+  rd_5dim_slice(content, line_no, array,
+                dim,
+                shift,
+                post);
+}
+
+
+PRIVATE void
+rd_5dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[5],
+              int     shift[5],
+              int     post[5])
+{
+  int i;
+  int delta_pre   = shift[0] + shift[1] + shift[2] + shift[3] + shift[4];
+  int delta_post  = post[0] + post[1] + post[2] + post[3] + post[4];
+
+  if (delta_pre + delta_post == 0) {
+    rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3] * dim[4], 0);
+    return;
+  }
+
+  for (i = shift[0]; i < dim[0] - post[0]; i++)
+    rd_4dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3] * dim[4]),
+                  dim + 1,
+                  shift + 1,
+                  post + 1);
   return;
 }
 
@@ -772,69 +971,53 @@ rd_5dim_slice(int *array,
 *** \param shift1 The pre shift for the first dimension
 **/
 PRIVATE void
-rd_6dim(int *array,
-        int dim1,
-        int dim2,
-        int dim3,
-        int dim4,
-        int dim5,
-        int dim6,
-        int shift1,
-        int shift2,
-        int shift3,
-        int shift4,
-        int shift5,
-        int shift6)
+rd_6dim(char    **content,
+        size_t  *line_no,
+        int     *array,
+        int     dim[6],
+        int     shift[6])
 {
-  rd_6dim_slice(array,
-                dim1, dim2, dim3, dim4, dim5, dim6,
-                shift1, shift2, shift3, shift4, shift5, shift6,
-                0, 0, 0, 0, 0, 0);
+  int post[6] = {
+    0, 0, 0, 0, 0, 0
+  };
+
+  rd_6dim_slice(content, line_no, array,
+                dim,
+                shift,
+                post);
 }
 
 
 PRIVATE void
-rd_6dim_slice(int *array,
-              int dim1,
-              int dim2,
-              int dim3,
-              int dim4,
-              int dim5,
-              int dim6,
-              int shift1,
-              int shift2,
-              int shift3,
-              int shift4,
-              int shift5,
-              int shift6,
-              int post1,
-              int post2,
-              int post3,
-              int post4,
-              int post5,
-              int post6)
+rd_6dim_slice(char    **content,
+              size_t  *line_no,
+              int     *array,
+              int     dim[6],
+              int     shift[6],
+              int     post[6])
 {
   int i;
-  int delta_pre   = shift1 + shift2 + shift3 + shift4 + shift5 + shift6;
-  int delta_post  = post1 + post2 + post3 + post4 + post5 + post6;
+  int delta_pre   = shift[0] + shift[1] + shift[2] + shift[3] + shift[4] + shift[5];
+  int delta_post  = post[0] + post[1] + post[2] + post[3] + post[4] + post[5];
 
   if (delta_pre + delta_post == 0) {
-    rd_1dim(array, dim1 * dim2 * dim3 * dim4 * dim5 * dim6, 0);
+    rd_1dim(content, line_no, array, dim[0] * dim[1] * dim[2] * dim[3] * dim[4] * dim[5], 0);
     return;
   }
 
-  for (i = shift1; i < dim1 - post1; i++)
-    rd_5dim_slice(array + (i * dim2 * dim3 * dim4 * dim5 * dim6),
-                  dim2, dim3, dim4, dim5, dim6,
-                  shift2, shift3, shift4, shift5, shift6,
-                  post2, post3, post4, post5, post6);
+  for (i = shift[0]; i < dim[0] - post[0]; i++)
+    rd_5dim_slice(content, line_no, array + (i * dim[1] * dim[2] * dim[3] * dim[4] * dim[5]),
+                  dim + 1,
+                  shift + 1,
+                  post + 1);
   return;
 }
 
 
 /*------------------------------------------------------------*/
 PRIVATE void
-rd_Tetraloop37(void)
+rd_Tetraloop37(char   **content,
+               size_t *line_no)
 {
   int   i, r;
   char  *buf;
@@ -845,13 +1028,12 @@ rd_Tetraloop37(void)
   memset(&Tetraloop37, 0, sizeof(int) * 40);
   memset(&TetraloopdH, 0, sizeof(int) * 40);
   do {
-    buf = vrna_read_line(fp);
+    buf = content[(*line_no)++];
     if (buf == NULL)
       break;
 
     r = sscanf(buf, "%6s %d %d", &Tetraloops[7 * i], &Tetraloop37[i], &TetraloopdH[i]);
     strcat(Tetraloops, " ");
-    free(buf);
     i++;
   } while ((r == 3) && (i < 40));
   return;
@@ -860,7 +1042,8 @@ rd_Tetraloop37(void)
 
 /*------------------------------------------------------------*/
 PRIVATE void
-rd_Hexaloop37(void)
+rd_Hexaloop37(char    **content,
+              size_t  *line_no)
 {
   int   i, r;
   char  *buf;
@@ -871,13 +1054,12 @@ rd_Hexaloop37(void)
   memset(&Hexaloop37, 0, sizeof(int) * 40);
   memset(&HexaloopdH, 0, sizeof(int) * 40);
   do {
-    buf = vrna_read_line(fp);
+    buf = content[(*line_no)++];
     if (buf == NULL)
       break;
 
     r = sscanf(buf, "%8s %d %d", &Hexaloops[9 * i], &Hexaloop37[i], &HexaloopdH[i]);
     strcat(Hexaloops, " ");
-    free(buf);
     i++;
   } while ((r == 3) && (i < 40));
   return;
@@ -886,7 +1068,8 @@ rd_Hexaloop37(void)
 
 /*------------------------------------------------------------*/
 PRIVATE void
-rd_Triloop37(void)
+rd_Triloop37(char   **content,
+             size_t *line_no)
 {
   int   i, r;
   char  *buf;
@@ -897,13 +1080,12 @@ rd_Triloop37(void)
   memset(&Triloop37, 0, sizeof(int) * 40);
   memset(&TriloopdH, 0, sizeof(int) * 40);
   do {
-    buf = vrna_read_line(fp);
+    buf = content[(*line_no)++];
     if (buf == NULL)
       break;
 
     r = sscanf(buf, "%5s %d %d", &Triloops[6 * i], &Triloop37[i], &TriloopdH[i]);
     strcat(Triloops, " ");
-    free(buf);
     i++;
   } while ((r == 3) && (i < 40));
   return;
@@ -916,8 +1098,10 @@ rd_Triloop37(void)
 PRIVATE void
 ignore_comment(char *line)
 {
-  /* excise C style comments */
-  /* only one comment per line, no multiline comments */
+  /*
+   * excise C style comments
+   * only one comment per line, no multiline comments
+   */
   char *cp1, *cp2;
 
   if ((cp1 = strstr(line, "/*"))) {
@@ -936,6 +1120,494 @@ ignore_comment(char *line)
 
 
 /*------------------------------------------------------------*/
+
+PRIVATE void
+check_symmetry(void)
+{
+  int i, j, k, l;
+
+  for (i = 0; i <= NBPAIRS; i++)
+    for (j = 0; j <= NBPAIRS; j++)
+      if (stack37[i][j] != stack37[j][i])
+        vrna_message_warning("stacking energies not symmetric");
+
+  for (i = 0; i <= NBPAIRS; i++)
+    for (j = 0; j <= NBPAIRS; j++)
+      if (stackdH[i][j] != stackdH[j][i])
+        vrna_message_warning("stacking enthalpies not symmetric");
+
+  /* interior 1x1 loops */
+  for (i = 0; i <= NBPAIRS; i++)
+    for (j = 0; j <= NBPAIRS; j++)
+      for (k = 0; k < 5; k++)
+        for (l = 0; l < 5; l++)
+          if (int11_37[i][j][k][l] != int11_37[j][i][l][k])
+            vrna_message_warning("int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)",
+                                 i, j, k, l, int11_37[i][j][k][l], int11_37[j][i][l][k]);
+
+  for (i = 0; i <= NBPAIRS; i++)
+    for (j = 0; j <= NBPAIRS; j++)
+      for (k = 0; k < 5; k++)
+        for (l = 0; l < 5; l++)
+          if (int11_dH[i][j][k][l] != int11_dH[j][i][l][k])
+            vrna_message_warning("int11 enthalpies not symmetric");
+
+  /* interior 2x2 loops */
+  for (i = 0; i <= NBPAIRS; i++)
+    for (j = 0; j <= NBPAIRS; j++)
+      for (k = 0; k < 5; k++)
+        for (l = 0; l < 5; l++) {
+          int m, n;
+          for (m = 0; m < 5; m++)
+            for (n = 0; n < 5; n++)
+              if (int22_37[i][j][k][l][m][n] != int22_37[j][i][m][n][k][l])
+                vrna_message_warning("int22 energies not symmetric");
+        }
+
+  for (i = 0; i <= NBPAIRS; i++)
+    for (j = 0; j <= NBPAIRS; j++)
+      for (k = 0; k < 5; k++)
+        for (l = 0; l < 5; l++) {
+          int m, n;
+          for (m = 0; m < 5; m++)
+            for (n = 0; n < 5; n++)
+              if (int22_dH[i][j][k][l][m][n] != int22_dH[j][i][m][n][k][l])
+                vrna_message_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d",
+                                     i, j, k, l, m, n);
+        }
+}
+
+
+/* update nonstandard nucleotide/basepair involved contributions for int22 */
+PRIVATE void
+update_nst(int array[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5])
+{
+  int i, j, k, l, m, n;
+  int max, max2, max3, max4, max5, max6;
+
+  /* get maxima for one nonstandard nucleotide */
+  for (i = 1; i < NBPAIRS; i++) {
+    for (j = 1; j < NBPAIRS; j++) {
+      for (k = 1; k < 5; k++) {
+        for (l = 1; l < 5; l++) {
+          for (m = 1; m < 5; m++) {
+            max = max2 = max3 = max4 = -INF; /* max of {CGAU} */
+            for (n = 1; n < 5; n++) {
+              max   = MAX2(max, array[i][j][k][l][m][n]);
+              max2  = MAX2(max2, array[i][j][k][l][n][m]);
+              max3  = MAX2(max3, array[i][j][k][n][l][m]);
+              max4  = MAX2(max4, array[i][j][n][k][l][m]);
+            }
+            array[i][j][k][l][m][0] = max;
+            array[i][j][k][l][0][m] = max2;
+            array[i][j][k][0][l][m] = max3;
+            array[i][j][0][k][l][m] = max4;
+          }
+        }
+      }
+    }
+  }
+  /* get maxima for two nonstandard nucleotides */
+  for (i = 1; i < NBPAIRS; i++) {
+    for (j = 1; j < NBPAIRS; j++) {
+      for (k = 1; k < 5; k++) {
+        for (l = 1; l < 5; l++) {
+          max = max2 = max3 = max4 = max5 = max6 = -INF; /* max of {CGAU} */
+          for (m = 1; m < 5; m++) {
+            max   = MAX2(max, array[i][j][k][l][m][0]);
+            max2  = MAX2(max2, array[i][j][k][m][0][l]);
+            max3  = MAX2(max3, array[i][j][m][0][k][l]);
+            max4  = MAX2(max4, array[i][j][0][k][l][m]);
+            max5  = MAX2(max5, array[i][j][0][k][m][l]);
+            max6  = MAX2(max6, array[i][j][k][0][l][m]);
+          }
+          array[i][j][k][l][0][0] = max;
+          array[i][j][k][0][0][l] = max2;
+          array[i][j][0][0][k][l] = max3;
+          array[i][j][k][0][l][0] = max6;
+          array[i][j][0][k][0][l] = max5;
+          array[i][j][0][k][l][0] = max4;
+        }
+      }
+    }
+  }
+  /* get maxima for three nonstandard nucleotides */
+  for (i = 1; i < NBPAIRS; i++) {
+    for (j = 1; j < NBPAIRS; j++) {
+      for (k = 1; k < 5; k++) {
+        max = max2 = max3 = max4 = -INF; /* max of {CGAU} */
+        for (l = 1; l < 5; l++) {
+          /* should be arbitrary where index l resides in last 3 possible locations */
+          max   = MAX2(max, array[i][j][k][l][0][0]);
+          max2  = MAX2(max2, array[i][j][0][k][l][0]);
+          max3  = MAX2(max3, array[i][j][0][0][k][l]);
+          max4  = MAX2(max4, array[i][j][0][0][l][k]);
+        }
+        array[i][j][k][0][0][0] = max;
+        array[i][j][0][k][0][0] = max2;
+        array[i][j][0][0][k][0] = max3;
+        array[i][j][0][0][0][k] = max4;
+      }
+    }
+  }
+  /* get maxima for 4 nonstandard nucleotides */
+  for (i = 1; i < NBPAIRS; i++) {
+    for (j = 1; j < NBPAIRS; j++) {
+      max = -INF; /* max of {CGAU} */
+      for (k = 1; k < 5; k++)
+        max = MAX2(max, array[i][j][k][0][0][0]);
+      array[i][j][0][0][0][0] = max;
+    }
+  }
+
+  /*
+   * now compute contributions for nonstandard base pairs ...
+   * first, 1 nonstandard bp
+   */
+  for (i = 1; i < NBPAIRS; i++) {
+    for (k = 0; k < 5; k++) {
+      for (l = 0; l < 5; l++) {
+        for (m = 0; m < 5; m++) {
+          for (n = 0; n < 5; n++) {
+            max = max2 = -INF;
+            for (j = 1; j < NBPAIRS; j++) {
+              max   = MAX2(max, array[i][j][k][l][m][n]);
+              max2  = MAX2(max2, array[j][i][k][l][m][n]);
+            }
+            array[i][NBPAIRS][k][l][m][n] = max;
+            array[NBPAIRS][i][k][l][m][n] = max2;
+          }
+        }
+      }
+    }
+  }
+
+  /* now 2 nst base pairs */
+  for (k = 0; k < 5; k++) {
+    for (l = 0; l < 5; l++) {
+      for (m = 0; m < 5; m++) {
+        for (n = 0; n < 5; n++) {
+          max = -INF;
+          for (j = 1; j < NBPAIRS; j++)
+            max = MAX2(max, array[NBPAIRS][j][k][l][m][n]);
+          array[NBPAIRS][NBPAIRS][k][l][m][n] = max;
+        }
+      }
+    }
+  }
+}
+
+
+PRIVATE int
+save_parameter_file(const char    fname[],
+                    unsigned int  options)
+{
+  FILE  *outfp;
+  int   c;
+  char  *pnames[] = {
+    "NP", "CG", "GC", "GU", "UG", "AU", "UA", " @"
+  };
+  char  bnames[] = "@ACGU";
+
+  outfp = fopen(fname, "w");
+  if (!outfp) {
+    vrna_message_warning("can't open file %s", fname);
+    return 0;
+  }
+
+  fprintf(outfp, "## RNAfold parameter file v2.0\n");
+
+  fprintf(outfp, "\n# %s\n", settype(S));
+  fprintf(outfp, "/*  CG    GC    GU    UG    AU    UA    @  */\n");
+  for (c = 1; c < NBPAIRS + 1; c++)
+    display_array(stack37[c] + 1, NBPAIRS, NBPAIRS, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(S_H));
+  fprintf(outfp, "/*  CG    GC    GU    UG    AU    UA    @  */\n");
+  for (c = 1; c < NBPAIRS + 1; c++)
+    display_array(stackdH[c] + 1, NBPAIRS, NBPAIRS, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(MMH));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatchH37[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMH_H));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatchHdH[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMI));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatchI37[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMI_H));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatchIdH[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMI1N));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatch1nI37[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMI1N_H));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatch1nIdH[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMI23));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatch23I37[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMI23_H));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatch23IdH[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMM));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatchM37[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MMM_H));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatchMdH[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MME));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatchExt37[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(MME_H));
+  {
+    int i, k;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (i = 0; i < 5; i++)
+        display_array(mismatchExtdH[k][i], 5, 5, outfp);
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(D5));
+  fprintf(outfp, "/*  @     A     C     G     U   */\n");
+  for (c = 1; c < NBPAIRS + 1; c++)
+    display_array(dangle5_37[c], 5, 5, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(D5_H));
+  fprintf(outfp, "/*  @     A     C     G     U   */\n");
+  for (c = 1; c < NBPAIRS + 1; c++)
+    display_array(dangle5_dH[c], 5, 5, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(D3));
+  fprintf(outfp, "/*  @     A     C     G     U   */\n");
+  for (c = 1; c < NBPAIRS + 1; c++)
+    display_array(dangle3_37[c], 5, 5, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(D3_H));
+  fprintf(outfp, "/*  @     A     C     G     U   */\n");
+  for (c = 1; c < NBPAIRS + 1; c++)
+    display_array(dangle3_dH[c], 5, 5, outfp);
+
+
+  /* dont print "no pair" entries for interior loop arrays */
+  fprintf(outfp, "\n# %s\n", settype(INT11));
+  {
+    int i, k, l;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (l = 1; l < NBPAIRS + 1; l++) {
+        fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
+        for (i = 0; i < 5; i++)
+          display_array(int11_37[k][l][i], 5, 5, outfp);
+      }
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(INT11_H));
+  {
+    int i, k, l;
+    for (k = 1; k < NBPAIRS + 1; k++)
+      for (l = 1; l < NBPAIRS + 1; l++) {
+        fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
+        for (i = 0; i < 5; i++)
+          display_array(int11_dH[k][l][i], 5, 5, outfp);
+      }
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(INT21));
+  {
+    int p1, p2, i, j;
+    for (p1 = 1; p1 < NBPAIRS + 1; p1++)
+      for (p2 = 1; p2 < NBPAIRS + 1; p2++)
+        for (i = 0; i < 5; i++) {
+          fprintf(outfp, "/* %2s.%c..%2s */\n",
+                  pnames[p1], bnames[i], pnames[p2]);
+          for (j = 0; j < 5; j++)
+            display_array(int21_37[p1][p2][i][j], 5, 5, outfp);
+        }
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(INT21_H));
+  {
+    int p1, p2, i, j;
+    for (p1 = 1; p1 < NBPAIRS + 1; p1++)
+      for (p2 = 1; p2 < NBPAIRS + 1; p2++)
+        for (i = 0; i < 5; i++) {
+          fprintf(outfp, "/* %2s.%c..%2s */\n",
+                  pnames[p1], bnames[i], pnames[p2]);
+          for (j = 0; j < 5; j++)
+            display_array(int21_dH[p1][p2][i][j], 5, 5, outfp);
+        }
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(INT22));
+  {
+    int p1, p2, i, j, k;
+    for (p1 = 1; p1 < NBPAIRS; p1++)
+      for (p2 = 1; p2 < NBPAIRS; p2++)
+        for (i = 1; i < 5; i++)
+          for (j = 1; j < 5; j++) {
+            fprintf(outfp, "/* %2s.%c%c..%2s */\n",
+                    pnames[p1], bnames[i], bnames[j], pnames[p2]);
+            for (k = 1; k < 5; k++)
+              display_array(int22_37[p1][p2][i][j][k] + 1, 4, 5, outfp);
+          }
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(INT22_H));
+  {
+    int p1, p2, i, j, k;
+    for (p1 = 1; p1 < NBPAIRS; p1++)
+      for (p2 = 1; p2 < NBPAIRS; p2++)
+        for (i = 1; i < 5; i++)
+          for (j = 1; j < 5; j++) {
+            fprintf(outfp, "/* %2s.%c%c..%2s */\n",
+                    pnames[p1], bnames[i], bnames[j], pnames[p2]);
+            for (k = 1; k < 5; k++)
+              display_array(int22_dH[p1][p2][i][j][k] + 1, 4, 5, outfp);
+          }
+  }
+
+  fprintf(outfp, "\n# %s\n", settype(HP));
+  display_array(hairpin37, 31, 10, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(HP_H));
+  display_array(hairpindH, 31, 10, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(B));
+  display_array(bulge37, 31, 10, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(B_H));
+  display_array(bulgedH, 31, 10, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(IL));
+  display_array(internal_loop37, 31, 10, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(IL_H));
+  display_array(internal_loopdH, 31, 10, outfp);
+
+  fprintf(outfp, "\n# %s\n", settype(ML));
+  fprintf(outfp, "/* F = cu*n_unpaired + cc + ci*loop_degree (+TermAU) */\n");
+  fprintf(outfp, "/*\t    cu\t cu_dH\t    cc\t cc_dH\t    ci\t ci_dH  */\n");
+  fprintf(outfp,
+          "\t%6d\t%6d\t%6d\t%6d\t%6d\t%6d\n",
+          ML_BASE37,
+          ML_BASEdH,
+          ML_closing37,
+          ML_closingdH,
+          ML_intern37,
+          ML_interndH);
+
+  fprintf(outfp, "\n# %s\n", settype(NIN));
+  fprintf(outfp, "/* Ninio = MIN(max, m*|n1-n2| */\n"
+          "/*\t    m\t  m_dH     max  */\n"
+          "\t%6d\t%6d\t%6d\n", ninio37, niniodH, MAX_NINIO);
+
+  fprintf(outfp, "\n# %s\n", settype(MISC));
+  fprintf(outfp, "/* all parameters are pairs of 'energy enthalpy' */\n");
+  fprintf(outfp, "/*    DuplexInit     TerminalAU      LXC */\n");
+  fprintf(outfp,
+          "   %6d %6d %6d  %6d %3.6f %6d\n",
+          DuplexInit37,
+          DuplexInitdH,
+          TerminalAU37,
+          TerminalAUdH,
+          lxc37,
+          0);
+
+  fprintf(outfp, "\n# %s\n", settype(HEX));
+  for (c = 0; c < strlen(Hexaloops) / 9; c++)
+    fprintf(outfp, "\t%.8s %6d %6d\n", Hexaloops + c * 9, Hexaloop37[c], HexaloopdH[c]);
+
+  fprintf(outfp, "\n# %s\n", settype(TL));
+  for (c = 0; c < strlen(Tetraloops) / 7; c++)
+    fprintf(outfp, "\t%.6s %6d %6d\n", Tetraloops + c * 7, Tetraloop37[c], TetraloopdH[c]);
+
+  fprintf(outfp, "\n# %s\n", settype(TRI));
+  for (c = 0; c < strlen(Triloops) / 6; c++)
+    fprintf(outfp, "\t%.5s %6d %6d\n", Triloops + c * 6, Triloop37[c], TriloopdH[c]);
+
+  fprintf(outfp, "\n# %s\n", settype(QUIT));
+  fclose(outfp);
+
+  return 1;
+}
+
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/*
+ *###########################################
+ *# deprecated functions below              #
+ *###########################################
+ */
+PUBLIC const char *
+last_parameter_file(void)
+{
+  return (const char *)last_param_file;
+}
+
+
+/*------------------------------------------------------------*/
+PUBLIC void
+read_parameter_file(const char fname[])
+{
+  (void)vrna_params_load(fname, VRNA_PARAMETER_FORMAT_DEFAULT);
+}
+
 
 PUBLIC char *
 settype(enum parset s)
@@ -1394,176 +2066,4 @@ write_parameter_file(const char fname[])
 }
 
 
-PRIVATE void
-check_symmetry(void)
-{
-  int i, j, k, l;
-
-  for (i = 0; i <= NBPAIRS; i++)
-    for (j = 0; j <= NBPAIRS; j++)
-      if (stack37[i][j] != stack37[j][i])
-        vrna_message_warning("stacking energies not symmetric");
-
-  for (i = 0; i <= NBPAIRS; i++)
-    for (j = 0; j <= NBPAIRS; j++)
-      if (stackdH[i][j] != stackdH[j][i])
-        vrna_message_warning("stacking enthalpies not symmetric");
-
-  /* interior 1x1 loops */
-  for (i = 0; i <= NBPAIRS; i++)
-    for (j = 0; j <= NBPAIRS; j++)
-      for (k = 0; k < 5; k++)
-        for (l = 0; l < 5; l++)
-          if (int11_37[i][j][k][l] != int11_37[j][i][l][k])
-            vrna_message_warning("int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)",
-                                 i, j, k, l, int11_37[i][j][k][l], int11_37[j][i][l][k]);
-
-  for (i = 0; i <= NBPAIRS; i++)
-    for (j = 0; j <= NBPAIRS; j++)
-      for (k = 0; k < 5; k++)
-        for (l = 0; l < 5; l++)
-          if (int11_dH[i][j][k][l] != int11_dH[j][i][l][k])
-            vrna_message_warning("int11 enthalpies not symmetric");
-
-  /* interior 2x2 loops */
-  for (i = 0; i <= NBPAIRS; i++)
-    for (j = 0; j <= NBPAIRS; j++)
-      for (k = 0; k < 5; k++)
-        for (l = 0; l < 5; l++) {
-          int m, n;
-          for (m = 0; m < 5; m++)
-            for (n = 0; n < 5; n++)
-              if (int22_37[i][j][k][l][m][n] != int22_37[j][i][m][n][k][l])
-                vrna_message_warning("int22 energies not symmetric");
-        }
-
-  for (i = 0; i <= NBPAIRS; i++)
-    for (j = 0; j <= NBPAIRS; j++)
-      for (k = 0; k < 5; k++)
-        for (l = 0; l < 5; l++) {
-          int m, n;
-          for (m = 0; m < 5; m++)
-            for (n = 0; n < 5; n++)
-              if (int22_dH[i][j][k][l][m][n] != int22_dH[j][i][m][n][k][l])
-                vrna_message_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d",
-                                     i, j, k, l, m, n);
-        }
-}
-
-
-/* update nonstandard nucleotide/basepair involved contributions for int22 */
-PRIVATE void
-update_nst(int array[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5])
-{
-  int i, j, k, l, m, n;
-  int max, max2, max3, max4, max5, max6;
-
-  /* get maxima for one nonstandard nucleotide */
-  for (i = 1; i < NBPAIRS; i++) {
-    for (j = 1; j < NBPAIRS; j++) {
-      for (k = 1; k < 5; k++) {
-        for (l = 1; l < 5; l++) {
-          for (m = 1; m < 5; m++) {
-            max = max2 = max3 = max4 = -INF; /* max of {CGAU} */
-            for (n = 1; n < 5; n++) {
-              max   = MAX2(max, array[i][j][k][l][m][n]);
-              max2  = MAX2(max2, array[i][j][k][l][n][m]);
-              max3  = MAX2(max3, array[i][j][k][n][l][m]);
-              max4  = MAX2(max4, array[i][j][n][k][l][m]);
-            }
-            array[i][j][k][l][m][0] = max;
-            array[i][j][k][l][0][m] = max2;
-            array[i][j][k][0][l][m] = max3;
-            array[i][j][0][k][l][m] = max4;
-          }
-        }
-      }
-    }
-  }
-  /* get maxima for two nonstandard nucleotides */
-  for (i = 1; i < NBPAIRS; i++) {
-    for (j = 1; j < NBPAIRS; j++) {
-      for (k = 1; k < 5; k++) {
-        for (l = 1; l < 5; l++) {
-          max = max2 = max3 = max4 = max5 = max6 = -INF; /* max of {CGAU} */
-          for (m = 1; m < 5; m++) {
-            max   = MAX2(max, array[i][j][k][l][m][0]);
-            max2  = MAX2(max2, array[i][j][k][m][0][l]);
-            max3  = MAX2(max3, array[i][j][m][0][k][l]);
-            max4  = MAX2(max4, array[i][j][0][k][l][m]);
-            max5  = MAX2(max5, array[i][j][0][k][m][l]);
-            max6  = MAX2(max6, array[i][j][k][0][l][m]);
-          }
-          array[i][j][k][l][0][0] = max;
-          array[i][j][k][0][0][l] = max2;
-          array[i][j][0][0][k][l] = max3;
-          array[i][j][k][0][l][0] = max6;
-          array[i][j][0][k][0][l] = max5;
-          array[i][j][0][k][l][0] = max4;
-        }
-      }
-    }
-  }
-  /* get maxima for three nonstandard nucleotides */
-  for (i = 1; i < NBPAIRS; i++) {
-    for (j = 1; j < NBPAIRS; j++) {
-      for (k = 1; k < 5; k++) {
-        max = max2 = max3 = max4 = -INF; /* max of {CGAU} */
-        for (l = 1; l < 5; l++) {
-          /* should be arbitrary where index l resides in last 3 possible locations */
-          max   = MAX2(max, array[i][j][k][l][0][0]);
-          max2  = MAX2(max2, array[i][j][0][k][l][0]);
-          max3  = MAX2(max3, array[i][j][0][0][k][l]);
-          max4  = MAX2(max4, array[i][j][0][0][l][k]);
-        }
-        array[i][j][k][0][0][0] = max;
-        array[i][j][0][k][0][0] = max2;
-        array[i][j][0][0][k][0] = max3;
-        array[i][j][0][0][0][k] = max4;
-      }
-    }
-  }
-  /* get maxima for 4 nonstandard nucleotides */
-  for (i = 1; i < NBPAIRS; i++) {
-    for (j = 1; j < NBPAIRS; j++) {
-      max = -INF; /* max of {CGAU} */
-      for (k = 1; k < 5; k++)
-        max = MAX2(max, array[i][j][k][0][0][0]);
-      array[i][j][0][0][0][0] = max;
-    }
-  }
-
-  /* now compute contributions for nonstandard base pairs ... */
-  /* first, 1 nonstandard bp */
-  for (i = 1; i < NBPAIRS; i++) {
-    for (k = 0; k < 5; k++) {
-      for (l = 0; l < 5; l++) {
-        for (m = 0; m < 5; m++) {
-          for (n = 0; n < 5; n++) {
-            max = max2 = -INF;
-            for (j = 1; j < NBPAIRS; j++) {
-              max   = MAX2(max, array[i][j][k][l][m][n]);
-              max2  = MAX2(max2, array[j][i][k][l][m][n]);
-            }
-            array[i][NBPAIRS][k][l][m][n] = max;
-            array[NBPAIRS][i][k][l][m][n] = max2;
-          }
-        }
-      }
-    }
-  }
-
-  /* now 2 nst base pairs */
-  for (k = 0; k < 5; k++) {
-    for (l = 0; l < 5; l++) {
-      for (m = 0; m < 5; m++) {
-        for (n = 0; n < 5; n++) {
-          max = -INF;
-          for (j = 1; j < NBPAIRS; j++)
-            max = MAX2(max, array[NBPAIRS][j][k][l][m][n]);
-          array[NBPAIRS][NBPAIRS][k][l][m][n] = max;
-        }
-      }
-    }
-  }
-}
+#endif

@@ -12,6 +12,8 @@ RNA_CHECK_SRC_BUILDERS
 ## and Dot plots.
 RNA_CHECK_POSTSCRIPT_TEMPLATES
 
+RNA_CHECK_PARAMETER_FILES
+
 ])
 
 
@@ -92,5 +94,66 @@ static const char PS_$template_name[[]] = {
     # substitute file list for static/Makefile.am
     AC_SUBST(PS_TEMPLATE_FILES)
     AC_SUBST(PS_TEMPLATE_FILES_HEX)
+])
+
+AC_DEFUN([RNA_CHECK_PARAMETER_FILES], [
+    STATIC_FILE_DIR="${srcdir}/src/ViennaRNA/static"
+    PARAMETER_FILE_LIST="${srcdir}/misc/parameter_files.txt"
+
+    ## load list of energy parameter files and replace '\n' by ' '
+    PARAMETER_FILES=`cat $PARAMETER_FILE_LIST | sed 's/^/misc\//' | tr '\012' ' '`
+    ## create list of hex energy parameter files
+    PARAMETER_FILES_HEX=`AS_ECHO("$PARAMETER_FILES") | sed 's/\.par/\.hex/g'`
+
+    if test "x$XXD" = "xno"
+    then
+        for parfile in $PARAMETER_FILES_HEX
+        do
+            AC_RNA_TEST_FILE($STATIC_FILE_DIR/$parfile,[],[
+                AC_MSG_ERROR([
+=================================================
+Can't find the energy parameter hex file
+
+${parfile}
+
+Make sure you've installed the 'xxd' tool to
+generate it from source!
+=================================================
+])
+            ])
+        done
+    fi
+
+    # prepare substitution string for
+    # templates_postscript.h file
+    ENERGY_PARAMETER_CONST=""
+    for parfile in $PARAMETER_FILES_HEX
+    do
+      # remove the 'parameters/' prefix
+      parfile_name=`AS_ECHO("$parfile") | sed 's/misc\///g'`
+      # remove the trailing .hex
+      parfile_name=`AS_ECHO("$parfile_name") | sed 's/.hex//g'`
+
+      # create a C variable defintion for the template
+      # note [[]] will turn into [] after M4 processed everythin
+      ENERGY_PARAMETER_CONST="$ENERGY_PARAMETER_CONST
+static const char parameter_set_$parfile_name[[]] = {
+#include \"$parfile\"
+};
+"
+    done
+
+    # Add templates_postscript.h to the files to be processed by
+    # the configure script
+    AC_CONFIG_FILES([src/ViennaRNA/static/energy_parameter_sets.h])
+
+    # substitute C variable definitions
+    AC_SUBST(ENERGY_PARAMETER_CONST)
+    # hack to avoid placing the multiline ENERGY_PARAMETER_CONST into any Makefile
+    _AM_SUBST_NOTMAKE(ENERGY_PARAMETER_CONST)
+
+    # substitute file list for static/Makefile.am
+    AC_SUBST(PARAMETER_FILES)
+    AC_SUBST(PARAMETER_FILES_HEX)
 ])
 
