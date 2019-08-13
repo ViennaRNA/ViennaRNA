@@ -117,7 +117,7 @@
   my_cofold(char  *string,
             float *energy)
   {
-    char *s, **tok, *struc, *sequence;
+    char *s, **tok, **ptr, *struc, *sequence;
 
     sequence = string;
     struc    = (char *)calloc(strlen(string)+1,sizeof(char));
@@ -150,8 +150,8 @@
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
     /* clean up */
     if (tok) {
-      for (s = *tok; s; s++)
-        free(s);
+      for (ptr = tok; *ptr; ptr++)
+        free(*ptr);
 
       free(tok);
     }
@@ -168,7 +168,7 @@
             char  *constraints,
             float *energy)
   {
-    char *s, **tok, *struc, *sequence;
+    char *s, **tok, **ptr, *struc, *sequence;
     vrna_fold_compound_t      *fc;
 
     sequence = string;
@@ -207,8 +207,8 @@
     /* clean up */
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
     if (tok) {
-      for (s = *tok; s; s++)
-        free(s);
+      for (ptr = tok; *ptr; ptr++)
+        free(*ptr);
 
       free(tok);
     }
