@@ -122,8 +122,8 @@ main(int  argc,
 #endif
 
   /* get energy parameter file name */
-  if (args_info.parameterFile_given)
-    ParamFile = strdup(args_info.parameterFile_arg);
+  if (args_info.paramFile_given)
+    ParamFile = strdup(args_info.paramFile_arg);
 
   /* do not allow GU pairs ? */
   if (args_info.noGU_given)
@@ -168,8 +168,12 @@ main(int  argc,
    # begin actual program code
    #############################################
    */
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+  if (ParamFile != NULL) {
+    if (!strcmp(ParamFile, "DNA"))
+        vrna_params_load_DNA_Mathews2004();
+    else
+      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
+  }
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
 

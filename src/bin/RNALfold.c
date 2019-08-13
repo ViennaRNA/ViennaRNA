@@ -234,8 +234,12 @@ main(int  argc,
     input = stdin;
   }
 
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+  if (ParamFile != NULL) {
+    if (!strcmp(ParamFile, "DNA"))
+        vrna_params_load_DNA_Mathews2004();
+    else
+      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
+  }
 
   if (command_file != NULL)
     commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
