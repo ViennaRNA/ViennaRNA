@@ -185,6 +185,7 @@ Python 3 bindings for ViennaRNA RNAlib.
 %setup -n ViennaRNA-%{version} -q
 
 %build
+%global _lto_cflags %{_lto_cflags} -ffat-lto-objects
 %if 0%{?fedora} && 0%{?fedora_version} < 22
 %configure \
     --with-cluster \
@@ -197,6 +198,17 @@ Python 3 bindings for ViennaRNA RNAlib.
     PERL=/usr/bin/perl
 %else
 %if 0%{?with_rnalocmin}
+%if 0%{?suse_version} > 1500
+%define _lto_cflags %{nil}
+%configure \
+    --with-cluster \
+    --without-forester \
+    --with-kinwalker \
+    --disable-lto \
+    --docdir=%{_pkgdocdir} \
+    INSTALLDIRS=vendor \
+    PERL=/usr/bin/perl
+%else
 %configure \
     --with-cluster \
     --without-forester \
@@ -204,6 +216,7 @@ Python 3 bindings for ViennaRNA RNAlib.
     --docdir=%{_pkgdocdir} \
     INSTALLDIRS=vendor \
     PERL=/usr/bin/perl
+%endif
 %else
 %configure \
     --with-cluster \
@@ -215,7 +228,7 @@ Python 3 bindings for ViennaRNA RNAlib.
     PERL=/usr/bin/perl
 %endif
 %endif
-make %{?_smp_mflags}
+make %{?_smp_mflags} V=1
 
 
 ########################################
@@ -225,7 +238,7 @@ make %{?_smp_mflags}
 ########################################
 %if 0%{?centos_version} >= 700 || %{defined el7} || 0%{?fedora} || 0%{?is_opensuse}
 %check
-make check
+make %{?_smp_mflags} check
 %endif
 
 
@@ -280,12 +293,18 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_bindir}/*
-%{_datadir}/ViennaRNA/
+%dir %{_datadir}/ViennaRNA
+%{_datadir}/ViennaRNA/bin
+%{_datadir}/ViennaRNA/tutorial
+%{_datadir}/ViennaRNA/*.par
+%{_datadir}/ViennaRNA/*.R
+%{_datadir}/ViennaRNA/*.gri
 %{_mandir}/man1/RNAplfold.1.gz
 %{_mandir}/man1/AnalyseSeqs.1.gz
 %{_mandir}/man1/Kinfold.1.gz
 %{_mandir}/man1/RNApdist.1.gz
 %{_mandir}/man1/RNAduplex.1.gz
+%{_mandir}/man1/RNAdos.1.gz
 %{_mandir}/man1/RNAup.1.gz
 %{_mandir}/man1/RNAheat.1.gz
 %{_mandir}/man1/RNAeval.1.gz
@@ -319,6 +338,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libRNA.la
 %{_includedir}/ViennaRNA
 %{_libdir}/pkgconfig/RNAlib2.pc
+%{_datadir}/ViennaRNA/viennarna.bib
+%{_datadir}/ViennaRNA/DoxygenLayout.xml
+%{_datadir}/ViennaRNA/examples
 %doc %{_pkgdocdir}
 %doc /usr/share/info/RNAlib.info.gz
 
