@@ -75,7 +75,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
           AC_MSG_RESULT([$PYTHON3_CACHE_TAG])
 
           AC_MSG_CHECKING([for Python3 extension of cached and optimized bytecode])
-          PYTHON3_CACHE_OPT1_EXT=`$PYTHON3 -c "import importlib,sys; \
+          PYTHON3_CACHE_OPT1_EXT=`$PYTHON3 -c "import importlib.util; import sys; \
                   print('%s.pyo'%sys.implementation.cache_tag) if sys.version_info.minor<5 \
                   else print('{1}{2}'.format(*importlib.util.cache_from_source('',optimization=1).rpartition(sys.implementation.cache_tag)))"`
           AC_SUBST(PYTHON3_CACHE_OPT1_EXT)
