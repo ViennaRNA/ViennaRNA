@@ -122,10 +122,11 @@ print_ligand_motifs(vrna_fold_compound_t  *vc,
                     vrna_cstr_t           buf);
 
 
-static void add_ligand_motif(vrna_fold_compound_t *vc,
-                             char                 *motifstring,
-                             int                  verbose,
-                             unsigned int         options);
+static void
+add_ligand_motif(vrna_fold_compound_t *vc,
+                 char                 *motifstring,
+                 int                  verbose,
+                 unsigned int         options);
 
 
 static char *
@@ -1142,17 +1143,11 @@ compute_MEA(vrna_fold_compound_t  *fc,
    *  while MEA_seq() still expects unresolved gquads */
   int   gq = fc->exp_params->model_details.gquad;
 
-  /* we need to create a string as long as the sequence for the MEA implementation :( */
-  structure = strdup(fc->sequence);
-
   fc->exp_params->model_details.gquad = 0;
   plist *pl = vrna_plist_from_probs(fc, 1e-4 / (1 + MEAgamma));
   fc->exp_params->model_details.gquad = gq;
 
-  if (gq)
-    mea = MEA_seq(pl, fc->sequence, structure, MEAgamma, fc->exp_params);
-  else
-    mea = MEA(pl, structure, MEAgamma);
+  structure = vrna_MEA(fc, MEAgamma, &mea);
 
   mea_en = vrna_eval_structure(fc, (const char *)structure);
 

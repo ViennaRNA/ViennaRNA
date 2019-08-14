@@ -19,9 +19,11 @@ SOURCES = \
     fold_compound.i \
     grammar.i \
     inverse.i \
+    loops.i \
     mfe.i \
     mfe_window.i \
     model_details.i \
+    move.i \
     neighbor.i \
     params.i \
     part_func.i \
@@ -71,16 +73,18 @@ EXTRA_DIST = \
     duplex.i \
     eval.i \
     file_formats.i \
-    paths.i \
     fold_compound.i \
     grammar.i \
     inverse.i \
+    loops.i \
     mfe.i \
     mfe_window.i \
     model_details.i \
+    move.i \
     neighbor.i \
     params.i \
     part_func.i \
+    paths.i \
     pf_window.i \
     plotting.i \
     sequence.i \

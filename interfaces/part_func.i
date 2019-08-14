@@ -114,6 +114,18 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
 
     return dv;
   }
+
+  double
+  pr_structure(std::string structure)
+  {
+    return vrna_pr_structure($self, structure.c_str());
+  }
+
+  double
+  pr_energy(double e)
+  {
+    return vrna_pr_energy($self, e);
+  }
 }
 
 %include  <ViennaRNA/part_func.h>
@@ -259,5 +271,121 @@ double get_pr(int i, int j);
 /* Get probability of pair i.j from the pr array */
 
 
+/**********************************************/
+/* BEGIN interface for centroid structure     */
+/**********************************************/
+
+%newobject vrna_fold_compound_t::centroid;
+
+#ifdef SWIGPYTHON
+%feature("autodoc") vrna_fold_compound_t::centroid;
+%feature("kwargs") vrna_fold_compound_t::centroid;
+#endif
+
+%extend vrna_fold_compound_t{
+
+  char *centroid(double *OUTPUT){
+    return vrna_centroid($self,OUTPUT);
+  }
+
+}
+
+%include  <ViennaRNA/centroid.h>
+
+/**********************************************/
+/* BEGIN interface for MEA structure          */
+/**********************************************/
+
+%newobject vrna_fold_compound_t::MEA;
+
+#ifdef SWIGPYTHON
+%feature("autodoc") vrna_fold_compound_t::MEA;
+%feature("kwargs") vrna_fold_compound_t::MEA;
+#endif
+
+%extend vrna_fold_compound_t{
+
+  char *MEA(float *OUTPUT){
+    return vrna_MEA($self, 1., OUTPUT);
+  }
+  char *MEA(double gamma, float *OUTPUT){
+    return vrna_MEA($self, gamma, OUTPUT);
+  }
+}
+
+%rename (MEA_from_plist)  my_MEA_from_plist;
+
+%{
+  char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                          std::string            sequence,
+                          double                 gamma,
+                          vrna_md_t              *md,
+                          float                  *OUTPUT)
+  {
+    return vrna_MEA_from_plist(&plist[0],
+                               sequence.c_str(),
+                               gamma,
+                               md,
+                               OUTPUT);
+  }
+
+  char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                          std::string            sequence,
+                          vrna_md_t              *md,
+                          float                  *OUTPUT)
+  {
+    return vrna_MEA_from_plist(&plist[0],
+                               sequence.c_str(),
+                               1.,
+                               md,
+                               OUTPUT);
+  }
+
+  char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                          std::string            sequence,
+                          double                 gamma,
+                          float                  *OUTPUT)
+  {
+    return vrna_MEA_from_plist(&plist[0],
+                               sequence.c_str(),
+                               gamma,
+                               NULL,
+                               OUTPUT);
+  }
+
+  char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                          std::string            sequence,
+                          float                  *OUTPUT)
+  {
+    return vrna_MEA_from_plist(&plist[0],
+                               sequence.c_str(),
+                               1.,
+                               NULL,
+                               OUTPUT);
+  }
+
+%}
+
+%newobject MEA_from_plist;
+
+char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                        std::string            sequence,
+                        double                 gamma,
+                        vrna_md_t              *md,
+                        float                  *OUTPUT);
+char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                        std::string            sequence,
+                        vrna_md_t              *md,
+                        float                  *OUTPUT);
+char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                        std::string            sequence,
+                        double                 gamma,
+                        float                  *OUTPUT);
+char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                        std::string            sequence,
+                        float                  *OUTPUT);
+
+%ignore MEA;
+%ignore MEA_seq;
 
 %include  <ViennaRNA/MEA.h>

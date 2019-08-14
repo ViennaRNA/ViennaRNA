@@ -60,13 +60,6 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
                   $(PYTHON3_SO) \
                   $(PYTHON3_LDFLAGS)
 
-if VRNA_AM_SWITCH_LTO
-_RNA_la_CFLAGS += $(LTO_CFLAGS)
-_RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
-_RNA_la_LDFLAGS += $(LTO_LDFLAGS)
-endif
-
-
 if HAS_SWIG
 
 $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)

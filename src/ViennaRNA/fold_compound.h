@@ -147,12 +147,13 @@ struct vrna_fc_s {
                                      */
 
   unsigned int      *strand_number; /**<  @brief  The strand number a particular nucleotide is associated with */
-  unsigned int      *strand_order;
-  unsigned int      *strand_start;
-  unsigned int      *strand_end;
+  unsigned int      *strand_order;  /**<  @brief  The strand order, i.e. permutation of current concatenated sequence */
+  unsigned int      *strand_start;  /**<  @brief  The start position of a particular strand within the current concatenated sequence */
+  unsigned int      *strand_end;    /**<  @brief  The end (last) position of a particular strand within the current concatenated sequence */
 
   unsigned int      strands;
   vrna_seq_t        *nucleotides;
+  vrna_msa_t        *alignment;
 
   vrna_hc_t         *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
 
@@ -210,10 +211,10 @@ struct vrna_fc_s {
     struct {
 #endif
 
-      /**
-       *  @name Data fields available for single/hybrid structure prediction
-       *  @{
-       */
+  /**
+   *  @name Data fields available for single/hybrid structure prediction
+   *  @{
+   */
       char *sequence;                   /**<  @brief  The input sequence string
                                          *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                          */
@@ -221,7 +222,7 @@ struct vrna_fc_s {
                                          *    @see    vrna_sequence_encode()
                                          *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                          */
-      short *sequence_encoding2;
+  short *sequence_encoding2;
       char *ptype;                      /**<  @brief  Pair type array
                                          *
                                          *    Contains the numerical encoding of the pair type for each pair (i,j) used
@@ -240,20 +241,20 @@ struct vrna_fc_s {
                                          *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                          */
 
-      /**
-       *  @}
-       */
+  /**
+   *  @}
+   */
 
 #ifndef VRNA_DISABLE_C11_FEATURES
-      /* C11 support for unnamed unions/structs */
-    };
-    struct {
+  /* C11 support for unnamed unions/structs */
+};
+struct {
 #endif
 
-      /**
-       *  @name Data fields for consensus structure prediction
-       *  @{
-       */
+  /**
+   *  @name Data fields for consensus structure prediction
+   *  @{
+   */
       char          **sequences;        /**<  @brief  The aligned sequences
                                          *    @note   The end of the alignment is indicated by a NULL pointer in the second dimension
                                          *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
@@ -276,8 +277,8 @@ struct vrna_fc_s {
       short         **S3;               /**<  @brief    Sl[s][i] holds next base 3' of i in sequence s
                                          *    @warning  Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                          */
-      char          **Ss;
-      unsigned int  **a2s;
+  char          **Ss;
+  unsigned int  **a2s;
       int           *pscore;              /**<  @brief  Precomputed array of pair types expressed as pairing scores
                                            *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                            */
@@ -291,14 +292,14 @@ struct vrna_fc_s {
       vrna_sc_t     **scs;                /**<  @brief  A set of soft constraints (for each sequence in the alignment)
                                            *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_COMPARATIVE @endverbatim
                                            */
-      int           oldAliEn;
+  int           oldAliEn;
 
-      /**
-       *  @}
-       */
+  /**
+   *  @}
+   */
 #ifndef VRNA_DISABLE_C11_FEATURES
-    };
-  };
+};
+};
 #endif
 
   /**
@@ -468,6 +469,16 @@ vrna_fold_compound_comparative(const char   **sequences,
 
 
 vrna_fold_compound_t *
+vrna_fold_compound_comparative2(const char                **sequences,
+                                const char                **names,
+                                const unsigned char       *orientation,
+                                const unsigned long long  *start,
+                                const unsigned long long  *genome_size,
+                                vrna_md_t                 *md_p,
+                                unsigned int              options);
+
+
+vrna_fold_compound_t *
 vrna_fold_compound_TwoD(const char    *sequence,
                         const char    *s1,
                         const char    *s2,
@@ -508,9 +519,10 @@ vrna_fold_compound_free(vrna_fold_compound_t *fc);
  *  @param  data  A pointer to an arbitrary data structure
  *  @param  f     A pointer to function that free's memory occupied by the arbitrary data (May be NULL)
  */
-void vrna_fold_compound_add_auxdata(vrna_fold_compound_t        *fc,
-                                    void                        *data,
-                                    vrna_callback_free_auxdata  *f);
+void
+vrna_fold_compound_add_auxdata(vrna_fold_compound_t       *fc,
+                               void                       *data,
+                               vrna_callback_free_auxdata *f);
 
 
 /**
@@ -528,8 +540,9 @@ void vrna_fold_compound_add_auxdata(vrna_fold_compound_t        *fc,
  *  @param  fc    The fold_compound the callback function should be attached to
  *  @param  f     The pointer to the recursion status callback function
  */
-void vrna_fold_compound_add_callback(vrna_fold_compound_t           *fc,
-                                     vrna_callback_recursion_status *f);
+void
+vrna_fold_compound_add_callback(vrna_fold_compound_t            *fc,
+                                vrna_callback_recursion_status  *f);
 
 
 /**

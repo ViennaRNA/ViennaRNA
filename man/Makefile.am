@@ -26,7 +26,8 @@ main_manpages = RNA2Dfold.1 \
                 RNAsnoop.1 \
                 RNAplex.1 \
                 RNAdistance.1 \
-                RNApdist.1
+                RNApdist.1 \
+                RNAdos.1
 
 dist_man_MANS = $(main_manpages) \
                 ct2db.1
@@ -35,7 +36,7 @@ SUFFIXES = .1 .ggo
 
 vpath %.ggo = ../src/bin
 
-if VRNA_AM_SWITCH_HAS_HELP2MAN
+if VRNA_AM_SWITCH_BUILD_MANPAGES
 
 .ggo.1 :
 	$(manpages_verbose)./help2manWrapper.sh \

@@ -93,7 +93,7 @@ main(int  argc,
   char                      *rec_id, *rec_sequence, **rec_rest, *shape_sequence;
   size_t                    length;
   unsigned int              read_opt, rec_type;
-  int                       istty, algorithm, i;
+  int                       istty, algorithm, i, sample_size;
   double                    *shape_data, initialStepSize, minStepSize, minImprovement,
                             minimizerTolerance;
 
@@ -103,6 +103,7 @@ main(int  argc,
   minStepSize         = 1e-15;
   minImprovement      = 1e-3;
   minimizerTolerance  = 1e-3;
+  sample_size         = 1000;
   algorithm           = VRNA_MINIMIZER_DEFAULT;
 
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
@@ -130,8 +131,12 @@ main(int  argc,
     vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
 #endif
 
-  if (args_info.paramFile_given)
-    read_parameter_file(args_info.paramFile_arg);
+  if (args_info.paramFile_given) {
+    if (!strcmp(args_info.paramFile_arg, "DNA"))
+        vrna_params_load_DNA_Mathews2004();
+    else
+      vrna_params_load(args_info.paramFile_arg, VRNA_PARAMETER_FORMAT_DEFAULT);
+  }
 
   if (args_info.temp_given)
     md.temperature = args_info.temp_arg;
@@ -198,6 +203,15 @@ main(int  argc,
   if (args_info.pfScale_given)
     md.sfact = args_info.pfScale_arg;
 
+  if (args_info.sampleSize_given) {
+    sample_size = args_info.sampleSize_arg;
+    if (sample_size < 0)
+      sample_size = -sample_size;
+  }
+
+  if (args_info.nonRedundant_given)
+    sample_size = -sample_size;
+
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
   if (istty) {
     vrna_message_input_seq_simple();
@@ -235,7 +249,7 @@ main(int  argc,
 
     vrna_sc_SHAPE_to_pr(args_info.shapeConversion_arg, shape_data, length, -1);
 
-    vc  = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_MFE | VRNA_OPTION_PF);
+    vc  = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_DEFAULT);
     mfe = (double)vrna_mfe(vc, NULL);
     vrna_exp_params_rescale(vc, &mfe);
 
@@ -246,7 +260,7 @@ main(int  argc,
                                  args_info.objectiveFunction_arg,
                                  sigma, tau,
                                  algorithm,
-                                 args_info.sampleSize_arg,
+                                 sample_size,
                                  epsilon,
                                  initialStepSize,
                                  minStepSize,

@@ -173,6 +173,7 @@ AS_IF([test $with_python3 = "yes"],[
 AS_IF([test "x$enable_universal_binary" != "xno"],[
   _osx_arch=$osx_arch
   ],[
+  osx_arch="no"
 ])
 
 AS_IF([test "x$with_doc" != "xno"],[
@@ -182,7 +183,8 @@ AS_IF([test "x$with_doc" != "xno"],[
     _htmldir=""
     ])
   AS_IF([test "x$with_doc_pdf" != "xno"],[
-    eval _pdfdir=$(eval printf "%s" $pdfdir)],[
+    eval _pdfdir=$(eval printf "%s" $pdfdir)
+    eval _pdfdir2=$(eval printf "%s" $_pdfdir)],[
     _pdfdir=""
   ])
   ],[
@@ -204,94 +206,158 @@ $ac_rna_warning
 "
 ])
 
+
+m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
+            [kinfold],
+            [forester],
+            [cluster],
+            [rnalocmin],
+            [kinwalker],
+            [svm],
+            [gsl],
+            [json],
+            [perl],
+            [python],
+            [python3],
+            [doc_pdf],
+            [doc_html],
+            [tutorial_pdf],
+            [tutorial_html],
+            [check])
+
+m4_map_args([ AC_RNA_COLOR_RESULT_FEATURE],
+            [mpfr],
+            [boustrophedon],
+            [NRhash],
+            [c11],
+            [tty_colors],
+            [floatpf],
+            [warn_deprecated],
+            [vectorize],
+            [simd],
+            [lto],
+            [pthreads],
+            [openmp],
+            [unittests],
+            [check_perl],
+            [check_python],
+            [check_python3],
+            [macosx_installer],
+            [macosx_sdk])
+
+m4_map_args([ AC_RNA_COLOR_RESULT_SIMPLE],
+            [osx_arch],
+            [_bindir],
+            [_libdir],
+            [_includedir],
+            [_mandir],
+            [_datadir],
+            [_docdir],
+            [_htmldir],
+            [_pdfdir2],
+            [_perl_install],
+            [_perl_arch_dir],
+            [_perl_lib_dir],
+            [_python2_install],
+            [_python2_arch_dir],
+            [_python2_lib_dir],
+            [_python3_install],
+            [_python3_arch_dir],
+            [_python3_lib_dir])
+
 # Notify the user
+
+AC_RNA_STRING_APPEND_FORMAT_BOLD([ac_rna_name_string], [ViennaRNA Package ${PACKAGE_VERSION}])
+AC_RNA_STRING_APPEND_FORMAT_BOLD([ac_rna_final_msg], [You can run 'make', 'make check', and 'make install' now!])
 
 AC_MSG_NOTICE([
 
 ======================================
-    ViennaRNA Package ${PACKAGE_VERSION}
+    $ac_rna_name_string
 ======================================
+
+Successfully configured with the following options:
 
 Sub Packages
 ------------
-  * Kinfold                   : ${with_kinfold:-no}
-  * RNAforester               : ${with_forester:-no}
-  * Analyse{Dists,Seqs}       : ${with_cluster:-no}
-  * RNAlocmin                 : ${with_rnalocmin:-no}
-  * Kinwalker                 : ${with_kinwalker:-no}
+  * Kinfold                   : ${result_kinfold}
+  * RNAforester               : ${result_forester}
+  * Analyse{Dists,Seqs}       : ${result_cluster}
+  * RNAlocmin                 : ${result_rnalocmin}
+  * Kinwalker                 : ${result_kinwalker}
 
 Extra Libraries
 ---------------
-  * Support Vector Machine    : ${with_svm:-no}
-  * GNU Scientific Library    : ${with_gsl:-no}
-  * GNU MPFR                  : ${enable_mpfr:-no}
-  * JSON                      : ${with_json:-no}
+  * Support Vector Machine    : ${result_svm}
+  * GNU Scientific Library    : ${result_gsl}
+  * GNU MPFR                  : ${result_mpfr}
+  * JSON                      : ${result_json}
 
 Features
 --------
-  * Boustrophedon             : ${enable_boustrophedon:-no}
-  * Use hash for NR Sampling  : ${enable_NRhash:-no}
-  * C11 features              : ${enable_c11:-no}
-  * TTY colors                : ${enable_tty_colors:-no}
-  * Float Precision(PF}       : ${enable_floatpf:-no}
-  * Deprecation Warnings      : ${enable_warn_deprecated:-no}
+  * Boustrophedon             : ${result_boustrophedon}
+  * Use hash for NR Sampling  : ${result_NRhash}
+  * C11 features              : ${result_c11}
+  * TTY colors                : ${result_tty_colors}
+  * Float Precision(PF}       : ${result_floatpf}
+  * Deprecation Warnings      : ${result_warn_deprecated}
 
 Optimizations
 -------------
-  * Auto Vectorization        : ${enable_vectorize:-no}
-  * Explicit SIMD Extension   : ${enable_simd:-no} ${simd_failed}
-  * Link Time Optimization    : ${enable_lto:-no}
-  * POSIX Threads             : ${enable_pthreads:-no}
-  * OpenMP                    : ${enable_openmp:-no}
+  * Auto Vectorization        : ${result_vectorize}
+  * Explicit SIMD Extension   : ${result_simd} ${simd_failed}
+  * Link Time Optimization    : ${result_lto}
+  * POSIX Threads             : ${result_pthreads}
+  * OpenMP                    : ${result_openmp}
 
 Scripting Language Interfaces
 -----------------------------
-  * Perl 5                    : ${with_perl:-no}
-  * Python 2                  : ${with_python:-no}
-  * Python 3                  : ${with_python3:-no}
+  * Perl 5                    : ${result_perl}
+  * Python 2                  : ${result_python}
+  * Python 3                  : ${result_python3}
 
 Documentation
 -------------
-  * Reference Manual (PDF)    : ${with_doc_pdf:-no}
-  * Reference Manual (HTML)   : ${with_doc_html:-no}
-  * Tutorial (PDF)            : ${with_tutorial_pdf:-no}
-  * Tutorial (HTML)           : ${with_tutorial_html:-no}
+  * Reference Manual (PDF)    : ${result_doc_pdf} ${doc_pdf_failed}
+  * Reference Manual (HTML)   : ${result_doc_html} ${doc_html_failed}
+  * Tutorial (PDF)            : ${result_tutorial_pdf} ${tutorial_pdf_failed}
+  * Tutorial (HTML)           : ${result_tutorial_html} ${tutorial_html_failed}
 
 Unit Tests
 ----------
-  * Executable Programs       : ${enable_unittests:-no}
-  * C-Library                 : ${with_check:-no}
-  * Perl 5 Interface          : ${enable_check_perl:-no}
-  * Python 2 Interface        : ${enable_check_python:-no}
-  * Python 3 Interface        : ${enable_check_python3:-no}
+  * Executable Programs       : ${result_unittests}
+  * C-Library                 : ${result_check}
+  * Perl 5 Interface          : ${result_check_perl}
+  * Python 2 Interface        : ${result_check_python}
+  * Python 3 Interface        : ${result_check_python3}
 
 MacOS X
 -------
-  * Universal Binary          : ${osx_arch:-no}
-  * Installer                 : ${enable_macosx_installer:-no}
-  * SDK                       : ${enable_macosx_sdk:-no}
+  * Universal Binary          : ${result_osx_arch}
+  * Installer                 : ${result_macosx_installer}
+  * SDK                       : ${result_macosx_sdk}
 
 Install Directories
 -------------------
-  * Executables               : $_bindir
-  * Libraries                 : $_libdir
-  * Header files              : $_includedir
-  * Extra Data                : $_datadir
-  * Man pages                 : $_mandir
-  * Documentation             : $_docdir
-      (HTML)                  : $(eval printf "%s" $_htmldir)
-      (PDF)                   : $(eval printf "%s" $_pdfdir)
-  * Perl5 Interface           : $_perl_install
-      (binaries)              : $_perl_arch_dir
-      (scripts)               : $_perl_lib_dir
-  * Python2 Interface         : $_python2_install
-      (binaries)              : $_python2_arch_dir
-      (scripts)               : $_python2_lib_dir
-  * Python3 Interface         : $_python3_install
-      (binaries)              : $_python3_arch_dir
-      (scripts)               : $_python3_lib_dir
+  * Executables               : $result__bindir
+  * Libraries                 : $result__libdir
+  * Header files              : $result__includedir
+  * Extra Data                : $result__datadir
+  * Man pages                 : $result__mandir
+  * Documentation             : $result__docdir
+      (HTML)                  : $result__htmldir
+      (PDF)                   : $result__pdfdir2
+  * Perl5 Interface           : $result__perl_install
+      (binaries)              : $result__perl_arch_dir
+      (scripts)               : $result__perl_lib_dir
+  * Python2 Interface         : $result__python2_install
+      (binaries)              : $result__python2_arch_dir
+      (scripts)               : $result__python2_lib_dir
+  * Python3 Interface         : $result__python3_install
+      (binaries)              : $result__python3_arch_dir
+      (scripts)               : $result__python3_lib_dir
 $ac_rna_warning
-You can run 'make', 'make check' and 'make install' now!])
+$ac_rna_final_msg])
 ])
 
 

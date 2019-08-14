@@ -262,7 +262,7 @@ vrna_mx_mfe_add(vrna_fold_compound_t  *vc,
 
   if (vc->params) {
     options |= VRNA_OPTION_MFE;
-    if (vc->cutpoint > 0)
+    if (vc->strands > 1)
       options |= VRNA_OPTION_HYBRID;
 
     mx_alloc_vector = get_mx_alloc_vector(&(vc->params->model_details),
@@ -316,7 +316,7 @@ vrna_mx_prepare(vrna_fold_compound_t  *vc,
       else                              /* default is regular MFE */
         mx_type = VRNA_MX_DEFAULT;
 
-      if (vc->cutpoint > 0)
+      if (vc->strands > 1)
         options |= VRNA_OPTION_HYBRID;
 
       realloc = 0;
@@ -345,7 +345,7 @@ vrna_mx_prepare(vrna_fold_compound_t  *vc,
       else                              /* default is regular MFE */
         mx_type = VRNA_MX_DEFAULT;
 
-      if (vc->cutpoint > 0)
+      if (vc->strands > 1)
         options |= VRNA_OPTION_HYBRID;
 
       realloc = 0;

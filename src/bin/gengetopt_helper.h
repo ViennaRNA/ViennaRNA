@@ -125,8 +125,12 @@
 
 #define ggo_get_read_paramFile(ggostruct) ({ \
     /* take another energy parameter set */ \
-    if (ggostruct.paramFile_given) \
-      read_parameter_file(ggostruct.paramFile_arg); \
+    if (ggostruct.paramFile_given) { \
+      if (!strcmp(ggostruct.paramFile_arg, "DNA")) \
+        vrna_params_load_DNA_Mathews2004();\
+      else \
+        vrna_params_load(ggostruct.paramFile_arg, VRNA_PARAMETER_FORMAT_DEFAULT); \
+    } \
   })
 
 

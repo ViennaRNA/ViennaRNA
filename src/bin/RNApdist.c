@@ -349,8 +349,12 @@ command_line(int        argc,
   RNApdist_cmdline_parser_free(&args_info);
 
   /* do some preparations */
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+  if (ParamFile != NULL) {
+    if (!strcmp(ParamFile, "DNA"))
+        vrna_params_load_DNA_Mathews2004();
+    else
+      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
+  }
 
   if (ns_bases != NULL)
     vrna_md_set_nonstandards(md, ns_bases);

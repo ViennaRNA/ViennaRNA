@@ -84,6 +84,7 @@ section "Core" sec_core
   File "../src/bin/.libs/RNAheat.exe"
   File "../src/bin/.libs/RNApdist.exe"
   File "../src/bin/.libs/RNAdistance.exe"
+  File "../src/bin/.libs/RNAdos.exe"
   File "../src/bin/.libs/RNAinverse.exe"
   File "../src/bin/.libs/RNAplot.exe"
   File "../src/bin/.libs/RNAsubopt.exe"
@@ -185,6 +186,7 @@ section "Uninstall"
   delete $INSTDIR\RNAheat.exe
   delete $INSTDIR\RNApdist.exe
   delete $INSTDIR\RNAdistance.exe
+  delete $INSTDIR\RNAdos.exe
   delete $INSTDIR\RNAinverse.exe
   delete $INSTDIR\RNAplot.exe
   delete $INSTDIR\RNAsubopt.exe

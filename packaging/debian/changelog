@@ -1,3 +1,9 @@
+viennarna (2.4.14-1) UNRELEASED; urgency=low
+
+  * Bump to upstream release 2.4.14
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Tue, 13 Aug 2019 12:00:00 +0100
+
 viennarna (2.4.13-1) UNRELEASED; urgency=low
 
   * Bump to upstream release 2.4.13

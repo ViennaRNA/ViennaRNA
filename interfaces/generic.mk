@@ -23,16 +23,18 @@ SWIG_misc_src = \
   $(srcdir)/../duplex.i \
   $(srcdir)/../eval.i \
   $(srcdir)/../file_formats.i \
-  $(srcdir)/../paths.i \
   $(srcdir)/../fold_compound.i \
   $(srcdir)/../grammar.i \
   $(srcdir)/../inverse.i \
+  $(srcdir)/../loops.i \
   $(srcdir)/../mfe.i \
   $(srcdir)/../mfe_window.i \
   $(srcdir)/../model_details.i \
+  $(srcdir)/../move.i \
   $(srcdir)/../neighbor.i \
   $(srcdir)/../params.i \
   $(srcdir)/../part_func.i \
+  $(srcdir)/../paths.i \
   $(srcdir)/../pf_window.i \
   $(srcdir)/../plotting.i \
   $(srcdir)/../sequence.i \

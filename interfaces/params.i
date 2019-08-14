@@ -135,6 +135,71 @@ typedef struct {
 /* BEGIN interface for parameter file I/O     */
 /**********************************************/
 
+%rename(params_load)                            my_params_load;
+%rename(params_save)                            my_params_save;
+%rename(params_load_from_string)                my_params_load_from_string;
+%rename(params_load_RNA_Turner2004)             vrna_params_load_RNA_Turner2004;
+%rename(params_load_RNA_Turner1999)             vrna_params_load_RNA_Turner1999;
+%rename(params_load_RNA_Andronsecu2007)         vrna_params_load_RNA_Andronsecu2007;
+%rename(params_load_RNA_Langdon2018)            vrna_params_load_RNA_Langdon2018;
+%rename(params_load_RNA_misc_special_hairpins)  vrna_params_load_RNA_misc_special_hairpins;
+%rename(params_load_DNA_Mathews2004)            vrna_params_load_RNA_Mathews2004;
+%rename(params_load_DNA_Mathews1999)            vrna_params_load_RNA_Mathews1999;
+
+#ifdef SWIGPYTHON
+%feature("autodoc")my_params_load;
+%feature("kwargs")my_params_load;
+%feature("autodoc")my_params_save;
+%feature("kwargs")my_params_save;
+%feature("autodoc")my_params_load_from_string;
+%feature("kwargs")my_params_load_from_string;
+#endif
+%{
+  int
+  my_params_load(std::string  filename = "",
+                 unsigned int options = VRNA_PARAMETER_FORMAT_DEFAULT)
+  {
+    if (!filename.compare(""))
+      return vrna_params_load_defaults();
+
+    return vrna_params_load(filename.c_str(), options);
+  }
+
+  int
+  my_params_save(std::string filename,
+                 unsigned int options = VRNA_PARAMETER_FORMAT_DEFAULT)
+  {
+    return vrna_params_save(filename.c_str(), options);
+  }
+
+  int
+  my_params_load_from_string(std::string parameters,
+                             std::string name = "",
+                             unsigned int options = VRNA_PARAMETER_FORMAT_DEFAULT)
+  {
+    return vrna_params_load_from_string(parameters.c_str(),
+                                        name.c_str(),
+                                        options);
+  }
+%}
+
+int
+my_params_load(std::string  filename = "",
+               unsigned int options = VRNA_PARAMETER_FORMAT_DEFAULT);
+
+int
+my_params_save(std::string filename,
+               unsigned int options = VRNA_PARAMETER_FORMAT_DEFAULT);
+
+int
+my_params_load_from_string(std::string parameters,
+                           std::string name = "",
+                           unsigned int options = VRNA_PARAMETER_FORMAT_DEFAULT);
+
+
+%constant unsigned int PARAMETER_FORMAT_DEFAULT = VRNA_PARAMETER_FORMAT_DEFAULT;
+
+
 %include <ViennaRNA/params/io.h>
 
 /**********************************************/

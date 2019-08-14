@@ -296,34 +296,3 @@ my_eval_structure_pt_simple(std::vector<std::string> alignment,
 
 
 %include  <ViennaRNA/eval.h>
-
-
-%extend vrna_fold_compound_t{
-
-#ifdef SWIGPYTHON
-%feature("autodoc") E_ext_loop;
-%feature("kwargs") E_ext_loop;
-%feature("autodoc") eval_hp_loop;
-%feature("kwargs") eval_hp_loop;
-%feature("autodoc") eval_int_loop;
-%feature("kwargs") eval_int_loop;
-#endif
-
-  int E_ext_loop(int i, int j){
-    return vrna_E_ext_loop($self, i, j);
-  }
-
-  int eval_hp_loop(int i, int j){
-    return vrna_eval_hp_loop($self, i, j);
-  }
-
-  int eval_int_loop(int i, int j, int k, int l){
-    return vrna_eval_int_loop($self, i, j, k, l);
-  }
-
-}
-
-%include  <ViennaRNA/loops/external.h>
-%include  <ViennaRNA/loops/hairpin.h>
-%include  <ViennaRNA/loops/internal.h>
-%include  <ViennaRNA/loops/multibranch.h>

@@ -1,0 +1,104 @@
+## RNAfold parameter file v2.0
+
+/*                                                        */
+/* This is a set of free energy parameters for tetra- and */
+/* tri-loop hairpins obtained from various publications   */
+/* (mainly from the Znosko group). Parameters originally  */
+/* distributed with the Turner 2004 energy parameter set  */
+/* for RNAs are marked by 'Turner 2004' comment           */
+/*                                                        */
+/* Sheehy JP, Davis AR, and Znosko BM,                    */
+/* "Thermodynamic characterization of naturally occurring */
+/* RNA tetraloops", 2010, RNA 16:417-429                  */
+/*                                                        */
+/* Thulasi P, Pandya LK, and Znosko BM,                   */
+/* "Thermodynamic Characterization of RNA Triloops", 2010,*/
+/* Biochemistry 49(42): 9058-9062                         */
+/*                                                        */
+/* Serra MJ, Lyttle MH, Axenson TJ, Schadt CA, and Turner */
+/* DH                                                     */
+/* "RNA hairpin loop stability depends on closing base    */
+/* pair", 1993, Nucleic Acids Res. 21:3845-3849           */
+/*                                                        */
+/* Dale T, Smith R, and Serra MJ                          */
+/* "A test of the model to predict unusually stable RNA   */
+/* hairpin loop stability", 2000, RNA 6:608-615           */
+/*                                                        */
+
+# Tetraloops
+CAACGG     550     690  /* Turner 2004 */
+CCAAGG     330   -1030  /* Turner 2004 */
+CCACGG     370    -330  /* Turner 2004 */
+CCCAGG     340    -890  /* Turner 2004 */
+CCGAGG     350    -660  /* Turner 2004 */
+CCGCGG     360    -750  /* Turner 2004 */
+CCUAGG     370    -350  /* Turner 2004 */
+CCUCGG     250   -1390  /* Turner 2004 */
+CUAAGG     360    -760  /* Turner 2004 */
+CUACGG     280   -1070  /* Turner 2004 */
+CUCAGG     370    -660  /* Turner 2004 */
+CUCCGG     270   -1290  /* Turner 2004 */
+CUGCGG     280   -1070  /* Turner 2004 */
+CUUAGG     350    -620  /* Turner 2004 */
+CUUCGG     370   -1530  /* Turner 2004 */
+CUUUGG     370    -680  /* Turner 2004 */
+AAACAU     490    -240  /* Sheehy et al. 2010 */
+AGAAAU     400    -900  /* Sheehy et al. 2010 */
+AGCAAU     407    -720  /* Sheehy et al. 2010 */
+CGAAAG     285    -710  /* Sheehy et al. 2010 */
+CGAAGG     382    -300  /* Sheehy et al. 2010 */
+CGAGAG     347    -560  /* Sheehy et al. 2010 */
+CGCAAG     310    -530  /* Sheehy et al. 2010 */
+CGCGAG     259   -1190  /* Sheehy et al. 2010 */
+CGUAAG     279    -810  /* Sheehy et al. 2010 */
+CGUGAG     297   -1000  /* Sheehy et al. 2010 */
+CUAACG     382    -450  /* Sheehy et al. 2010 */
+CUACGG     243   -1140  /* Sheehy et al. 2010 */
+CUUCGG     126   -2100  /* Sheehy et al. 2010 */
+GGAAAC     375    -830  /* Sheehy et al. 2010 */
+GGAGAC     378   -1060  /* Sheehy et al. 2010 */
+GGCAAC     355    -890  /* Sheehy et al. 2010 */
+GGGAAC     390    -830  /* Sheehy et al. 2010 */
+GGGGAC     375   -2280  /* Sheehy et al. 2010 */
+GGUAAC     419    -610  /* Sheehy et al. 2010 */
+GGUGAC     408    -640  /* Sheehy et al. 2010 */
+UGAAAA     400    -750  /* Sheehy et al. 2010 */
+UGAAAG     420    -710  /* Sheehy et al. 2010 */
+UGAGAG     423    -810  /* Sheehy et al. 2010 */
+CGGAAG     340    -520  /* Dale et al. 2000 */
+
+# Triloops
+CAACG     680    2370   /* Turner 2004 */
+GUUAC     690    1080   /* Turner 2004 */
+CGAAG     465    -170   /* Thulasi et al. 2010 */
+CUAUG     476     -90   /* Thulasi et al. 2010 */
+GUUUC     470    -450   /* Thulasi et al. 2010 */
+UUUUA     535     260   /* Thulasi et al. 2010 */
+GAAAU     540    -220   /* Thulasi et al. 2010 */
+AAAAU     644     870   /* Thulasi et al. 2010 */
+ACAUU     633     710   /* Thulasi et al. 2010 */
+CAUAG     576     640   /* Serra et al. 1997 */
+AUAUU     595     510   /* Thulasi et al. 2010 */
+CACAG     584     350   /* Thulasi et al. 2010 */
+CAGAG     554     190   /* Thulasi et al. 2010 */
+CCUUG     453   -1010   /* Thulasi et al. 2010 */
+CUCCG     523     230   /* Thulasi et al. 2010 */
+CUUCG     562     560   /* Thulasi et al. 2010 */
+GAAAC     547      90   /* Thulasi et al. 2010 */
+GACAC     644     980   /* Thulasi et al. 2010 */
+GACCC     587     360   /* Thulasi et al. 2010 */
+GAGAC     599     190   /* Thulasi et al. 2010 */
+GCAAC     568     590   /* Thulasi et al. 2010 */
+GCUUC     682    1220   /* Thulasi et al. 2010 */
+UAAAA     633     890   /* Thulasi et al. 2010 */
+UAACG     589     590   /* Thulasi et al. 2010 */
+UACAA     619     810   /* Thulasi et al. 2010 */
+UACCA     617     790   /* Thulasi et al. 2010 */
+UCAAA     640    1090   /* Thulasi et al. 2010 */
+UUAUA     595     710   /* Thulasi et al. 2010 */
+GAAAU     510     330   /* Thulasi et al. 2010 */
+GAUAC     634     -80   /* Serra et al. 1997 */
+
+
+
+#END

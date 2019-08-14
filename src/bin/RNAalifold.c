@@ -680,7 +680,6 @@ main(int  argc,
   }
 
   UNINIT_PARALLELIZATION
-
   /*
    ################################################
    # post processing
@@ -1336,24 +1335,9 @@ compute_MEA(vrna_fold_compound_t  *fc,
   char  *MEA_structure;
   int   gq;
   float mea, *ens;
-  plist *pl;
-
-  MEA_structure = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
-  gq            = fc->exp_params->model_details.gquad;
-
-  /* MEA() determines the length of the RNA from the strlen() of the input structure */
-  MEA_structure = memset(MEA_structure, '.', fc->length);
-
-  /* retieve plist */
-  fc->exp_params->model_details.gquad = 0;
-  pl                                  = vrna_plist_from_probs(fc, 1e-4 / (1 + opt->MEAgamma));
-  fc->exp_params->model_details.gquad = gq;
 
   /* compute MEA */
-  if (gq)
-    mea = MEA_seq(pl, fc->cons_seq, MEA_structure, opt->MEAgamma, fc->exp_params);
-  else
-    mea = MEA(pl, MEA_structure, opt->MEAgamma);
+  MEA_structure = vrna_MEA(fc, opt->MEAgamma, &mea);
 
   /* evaluate MEA structure */
   ens     = (float *)vrna_alloc(2 * sizeof(float));
@@ -1371,7 +1355,6 @@ compute_MEA(vrna_fold_compound_t  *fc,
   /* cleanup */
   free(MEA_structure);
   free(ens);
-  free(pl);
 }
 
 

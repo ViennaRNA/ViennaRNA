@@ -28,7 +28,8 @@ examples_python = \
     Python/helloworld_nondefault.py \
     Python/maximum_matching.py \
     Python/oo_example1.py \
-    Python/subopt.py
+    Python/subopt.py \
+    Python/RNAfold_MEA.py
 
 data_files = \
     files/alignment_clustal.aln \

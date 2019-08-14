@@ -3,6 +3,8 @@
 #
 AC_DEFUN([RNA_ENABLE_TUTORIAL],[
 
+    AC_REQUIRE([RNA_LATEX_ENVIRONMENT])
+
 RNA_ADD_PACKAGE([tutorial_pdf],
                 [PDF tutorial],
                 [yes])
@@ -20,9 +22,6 @@ RNA_ADD_PACKAGE([tutorial],
                 [])
 
 
-AC_PATH_PROG(pdflatex,[pdflatex],no)
-AC_PATH_PROG(latex,[latex],no)
-AC_PATH_PROG(dvipdf,[dvipdf],no)
 AC_PATH_PROG(htlatex,[htlatex],no)
 
 # setup everything in order to generate the doxygen configfile
@@ -33,37 +32,29 @@ RNA_PACKAGE_IF_ENABLED([tutorial],[
   AC_SUBST([TUTORIAL_DOCDIR], [ifelse([$2], [], [RNA-Tutorial], [$2])])
 
   RNA_PACKAGE_IF_ENABLED([tutorial_pdf], [
-    # check whether pdflatex or latex and dvipdf are available
-    if test "x$pdflatex" = xno;
+    # check whether pdflatex is available
+    if test "x$LATEX_CMD" = xno;
     then
-      if test "x$latex" = xno;
-      then
-        AC_MSG_WARN([neither latex or pdflatex exists on your system!])
-        AC_MSG_WARN([deactivating automatic (re)generation of tutorial!])
-        tutorial_requirements_pdf=no
-      else
-        if test "x$dvipdf" = xno;
-        then
-          AC_MSG_WARN([dvipdf command is missing on your system!])
-          AC_MSG_WARN([deactivating automatic (re)generation of tutorial!])
-          tutorial_requirements_pdf=no
-        else
-          _latex_cmd=$latex
-        fi
-      fi
+      AC_MSG_WARN([Could not find pdflatex!])
+      AC_MSG_WARN([deactivating automatic (re)generation of tutorial!])
+      _tutorial_pdf_failed="pdflatex command is missing!"
+      tutorial_requirements_pdf=no
     else
-      _latex_cmd=$pdflatex
+      RNA_LATEX_TEST_PACKAGES([babel url color caption amssymb amsmath upquote verbatim keystroke fancyvrb hyperref graphics pgf xcolor], [], [
+        _tutorial_pdf_failed="Required LaTeX packages are missing!"
+        tutorial_requirements_pdf=no
+      ])
     fi
 
-    AC_SUBST([TUTORIAL_CMD_LATEX], [$_latex_cmd])
-    AC_SUBST([TUTORIAL_CMD_DVIPDF], [$dvipdf])
+    AC_SUBST([TUTORIAL_CMD_LATEX], ["$LATEX_CMD -interaction=nonstopmode -halt-on-error"])
 
     # check if a generated tutorial already exists
     if test "x$tutorial_requirements_pdf" = xno;
     then
       AC_RNA_TEST_FILE( [$TUTORIAL_DOCDIR/$TUTORIAL_PROJECT_NAME.pdf],
                         [with_tutorial_pdf=yes],
-                        [with_tutorial_pdf=no])
+                        [with_tutorial_pdf=no
+                         tutorial_pdf_failed="($_tutorial_pdf_failed)"])
     fi
   ])
 
@@ -84,6 +75,7 @@ RNA_PACKAGE_IF_ENABLED([tutorial],[
     then
         AC_MSG_WARN([htlatex does not exists on your system!])
         AC_MSG_WARN([deactivating automatic (re)generation of HTML tutorial!])
+        tutorial_html_failed="(htlatex command is missing!)"
         with_tutorial_html=no
     fi
 
@@ -104,6 +96,5 @@ AM_CONDITIONAL(WITH_TUTORIAL, test "x$with_tutorial" != xno)
 AM_CONDITIONAL(WITH_TUTORIAL_BUILD, test "x$tutorial_requirements_pdf" != xno)
 AM_CONDITIONAL(WITH_TUTORIAL_PDF, test "x$with_tutorial_pdf" != xno)
 AM_CONDITIONAL(WITH_TUTORIAL_HTML, test "x$with_tutorial_html" != xno)
-AM_CONDITIONAL(WITH_TUTORIAL_PDFLATEX, test "x$pdflatex" != xno)
 ])
 
