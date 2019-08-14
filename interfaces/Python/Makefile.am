@@ -56,12 +56,6 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
                   $(PYTHON2_SO) \
                   $(PYTHON2_LDFLAGS) 
 
-if VRNA_AM_SWITCH_LTO
-_RNA_la_CFLAGS += $(LTO_CFLAGS)
-_RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
-_RNA_la_LDFLAGS += $(LTO_LDFLAGS)
-endif
-
 ##
 ## SWIG interface wrapper code generation
 ##
