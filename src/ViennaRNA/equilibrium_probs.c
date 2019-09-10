@@ -34,6 +34,8 @@
 
 #include "ViennaRNA/loops/internal_sc_pf.inc"
 
+#define NEW_MULTI
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -228,6 +230,29 @@ PRIVATE FLT_OR_DBL
 contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
                              unsigned int         i,
                              unsigned int         j);
+
+
+PRIVATE void
+multistrand_update_Y5(vrna_fold_compound_t *fc,
+                      int                   l,
+                      FLT_OR_DBL           *Y5,
+                      FLT_OR_DBL           **Y5p);
+
+
+PRIVATE void
+multistrand_update_Y3(vrna_fold_compound_t *fc,
+                      int                   l,
+                      FLT_OR_DBL           **Y3,
+                      FLT_OR_DBL           **Y3p);
+
+
+PRIVATE void
+multistrand_contrib(vrna_fold_compound_t  *fc,
+                    int                   l,
+                    FLT_OR_DBL            *Y5,
+                    FLT_OR_DBL            **Y3,
+                    FLT_OR_DBL           *Qmax,
+                    int                  *ov);
 
 
 /*
@@ -609,6 +634,7 @@ PRIVATE int
 pf_create_bppm(vrna_fold_compound_t *vc,
                char                 *structure)
 {
+  unsigned int      s;
   int               n, i, j, l, ij, *pscore, *jindx, ov = 0;
   FLT_OR_DBL        Qmax = 0;
   FLT_OR_DBL        *qb, *G, *probs;
@@ -663,6 +689,12 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     int           corr_cnt        = 0;
     vrna_ep_t     *bp_correction  = vrna_alloc(sizeof(vrna_ep_t) * corr_size);
     FLT_OR_DBL    **Q33           = NULL;
+    FLT_OR_DBL    *Y5, **Y5p, **Y3, **Y3p;
+
+    Y5  = NULL;
+    Y5p = NULL;
+    Y3  = NULL;
+    Y3p = NULL;
 
     helper_arrays       *ml_helpers;
     constraints_helper  *constraints;
@@ -696,9 +728,23 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     Qmax = 0;
 
     if (vc->strands > 1) {
+#ifdef NEW_MULTI
+      Y5  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * vc->strands);
+      Y5p = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL*) * vc->strands);
+      for (s = 0; s < vc->strands; s++)
+        Y5p[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+
+      Y3  = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL*) * vc->strands);
+      Y3p = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL*) * vc->strands);
+      for (s = 0; s < vc->strands; s++) {
+        Y3[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+        Y3p[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+      }
+#else
       Q33 = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * vc->strands);
       for (i = 0; i < vc->strands; i++)
         Q33[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+#endif
     }
 
     /* init diagonal entries unable to pair in pr matrix */
@@ -736,12 +782,24 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                       &Qmax,
                       &ov);
 
-      if (vc->strands > 1)
+      if (vc->strands > 1) {
+#ifdef NEW_MULTI
+        multistrand_update_Y5(vc, l, Y5, Y5p);
+        multistrand_update_Y3(vc, l, Y3, Y3p);
+        multistrand_contrib(vc,
+                            l,
+                            Y5,
+                            Y3,
+                            &Qmax,
+                            &ov);
+#else
         compute_bpp_interstrand(vc,
                                 l,
                                 Q33,
                                 &Qmax,
                                 &ov);
+#endif
+      }
     }
 
     if (vc->type == VRNA_FC_TYPE_SINGLE) {
@@ -849,7 +907,25 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     free_constraints_helper(constraints);
 
     free(bp_correction);
+#ifdef NEW_MULTI
+    free(Y5);
+    if (Y5p)
+      for (unsigned int s = 0; s < vc->strands; s++)
+        free(Y5p[s]);
+    free(Y5p);
+
+    if (Y3)
+      for (unsigned int s = 0; s < vc->strands; s++)
+        free(Y3[s]);
+    free(Y3);
+
+    if (Y3p)
+      for (unsigned int s = 0; s < vc->strands; s++)
+        free(Y3p[s]);
+    free(Y3p);
+#else
     free(Q33);
+#endif
   } /* end if 'check for forward recursion' */
   else {
     vrna_message_warning("bppm calculations have to be done after calling forward recursion");
@@ -2436,6 +2512,381 @@ compute_bpp_interstrand(vrna_fold_compound_t *fc,
 
   free(Q5);
   free(Q3);
+}
+
+
+PRIVATE void
+multistrand_update_Y5(vrna_fold_compound_t *fc,
+                      int                   l,
+                      FLT_OR_DBL           *Y5,
+                      FLT_OR_DBL           **Y5p)
+{
+  short         *S, *S1;
+  unsigned int  i, s, *so, *se, *sn, type, n, end;
+  int           *my_iindx;
+  FLT_OR_DBL    *probs, *q, *scale;
+  vrna_md_t     *md;
+  vrna_exp_param_t  *pf_params;
+
+  n         = fc->length;
+  sn        = fc->strand_number;
+  se        = fc->strand_end;
+  so        = fc->strand_order;
+  my_iindx  = fc->iindx;
+  q         = fc->exp_matrices->q;
+  probs     = fc->exp_matrices->probs;
+  scale     = fc->exp_matrices->scale;
+  pf_params = fc->exp_params;
+  md        = &(pf_params->model_details);
+  S         = fc->sequence_encoding2;
+  S1        = fc->sequence_encoding;
+
+  /* compute Y5 for all strands */
+  for (s = 0; s < fc->strands; s++) {
+    unsigned int j;
+
+    Y5[s] = 0;
+
+    if ((se[s] < l) &&
+        (sn[l] == sn[l + 1])) {
+
+      /* pre-compute newly available Y5p[s][j] with j == l + 1 */
+      end = se[s];
+      j = l + 1;
+
+      Y5p[s][j] = 0.;
+
+      if (probs[my_iindx[end] - j] > 0) {
+        type      = vrna_get_ptype_md(S[j], S[end], md);
+        Y5p[s][j]  +=  probs[my_iindx[end] - j] *
+                      vrna_exp_E_ext_stem(type,
+                                        S[j - 1],
+                                        -1,
+                                        pf_params) *
+                      scale[2];
+      }
+
+      for (i = 1; i < end; i++) {
+        if ((probs[my_iindx[i] - j] > 0) &&
+            (sn[i] == sn[i + 1])) {
+          type      = vrna_get_ptype_md(S[j], S[i], md);
+          Y5p[s][j]  +=  probs[my_iindx[i] - j] *
+                        vrna_exp_E_ext_stem(type,
+                                          S[j - 1],
+                                          S[i + 1],
+                                          pf_params) *
+                        q[my_iindx[i + 1] - end] *
+                      scale[2];
+        }
+      }
+
+      if ((probs[my_iindx[i] - j] > 0) &&
+          (sn[i] == sn[i + 1])) {
+        type      = vrna_get_ptype_md(S[j], S[i], md);
+        Y5p[s][j]  +=  probs[my_iindx[i] - j] *
+                      vrna_exp_E_ext_stem(type,
+                                        S[j - 1],
+                                        S[i + 1],
+                                        pf_params) *
+                      scale[2];
+      }
+
+      /* recompute Y5[s] */
+      Y5[s] += Y5p[s][l + 1];
+      for (j = l + 2; j <= n; j++) {
+        Y5[s] +=  q[my_iindx[l + 1] - (j - 1)] *
+                  Y5p[s][j];
+      }
+    }
+  }
+}
+
+
+PRIVATE FLT_OR_DBL **
+multistrand_precompute_Y5(vrna_fold_compound_t *fc)
+{
+  short         *S, *S1;
+  unsigned int  i, j, k, n, turn, s, *se, *sn, end, type;
+  int           *my_iindx;
+  FLT_OR_DBL    **Y5, *probs, *q;
+  vrna_md_t     *md;
+  vrna_exp_param_t  *pf_params;
+
+  n   = fc->length;
+  sn  = fc->strand_number;
+  se  = fc->strand_end;
+  q   = fc->exp_matrices->q;
+  probs = fc->exp_matrices->probs;
+  my_iindx  = fc->iindx;
+  S         = fc->sequence_encoding2;
+  S1        = fc->sequence_encoding;
+  pf_params = fc->exp_params;
+  md        = &(pf_params->model_details);
+  turn      = md->min_loop_size;
+
+  Y5  = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL*) * fc->strands);
+
+  for (s = 0; s < fc->strands; s++)
+    Y5[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+
+  /* pre-compute Y3p */
+  for (s = 0; s < fc->strands; s++) {
+    end = se[s];
+    for (j = end + turn + 1; j <= n; j++) {
+      Y5[s][j] = 0.;
+
+      if (sn[j - 1] == sn[j]) {
+        if (probs[my_iindx[end] - j] > 0) {
+          type      = vrna_get_ptype_md(S[j], S[end], md);
+          Y5[s][j]  +=  probs[my_iindx[end] - j] *
+                        vrna_exp_E_ext_stem(type,
+                                          S[j - 1],
+                                          -1,
+                                          pf_params);
+        }
+
+        for (i = 1; i < end; i++) {
+          if ((probs[my_iindx[i] - j] > 0) &&
+              (sn[i] == sn[i + 1])) {
+            type      = vrna_get_ptype_md(S[j], S[i], md);
+            Y5[s][j]  +=  probs[my_iindx[i] - j] *
+                          vrna_exp_E_ext_stem(type,
+                                            S[j - 1],
+                                            S[i + 1],
+                                            pf_params) *
+                          q[my_iindx[i + 1] - end];
+          }
+        }
+      }
+    }
+  }
+
+  return Y5;
+}
+
+
+PRIVATE FLT_OR_DBL **
+multistrand_precompute_Y3(vrna_fold_compound_t *fc)
+{
+  short         *S, *S1;
+  unsigned int  i, j, k, n, s, *ss, *sn, start, type;
+  int           *my_iindx;
+  FLT_OR_DBL    **Y3, **Y3p, *probs, *q;
+  vrna_md_t     *md;
+  vrna_exp_param_t  *pf_params;
+
+  n   = fc->length;
+  sn  = fc->strand_number;
+  ss  = fc->strand_start;
+  q   = fc->exp_matrices->q;
+  probs = fc->exp_matrices->probs;
+  my_iindx  = fc->iindx;
+  S         = fc->sequence_encoding2;
+  S1        = fc->sequence_encoding;
+  pf_params = fc->exp_params;
+  md        = &(pf_params->model_details);
+
+  Y3  = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL*) * fc->strands);
+  Y3p = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL*) * fc->strands);
+
+  for (s = 0; s < fc->strands; s++) {
+    Y3[s]   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+    Y3p[s]  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+  }
+
+  /* pre-compute Y3p */
+  for (s = 0; s < fc->strands; s++) {
+    start = ss[s];
+    for (i = 1; i < start; i++) {
+      Y3p[s][i] = 0;
+
+      if (sn[i] == sn[i + 1]) {
+        if (probs[my_iindx[i] - start] > 0) {
+          type      = vrna_get_ptype_md(S[start], S[i], md);
+          Y3p[s][i] +=  probs[my_iindx[i] - start] *
+                        vrna_exp_E_ext_stem(type,
+                                          -1,
+                                          S[i + 1],
+                                          pf_params);
+        }
+
+        for (j = start + 1; j <= n; j++) {
+          if ((probs[my_iindx[i] - j] > 0) &&
+              (sn[j - 1] == sn[j])) {
+            type      = vrna_get_ptype_md(S[j], S[i], md);
+            Y3p[s][i] +=  probs[my_iindx[i] - j] *
+                          vrna_exp_E_ext_stem(type,
+                                            S[j - 1],
+                                            S[i + 1],
+                                            pf_params) *
+                          q[my_iindx[start] - (j - 1)];
+          }
+        }
+      }
+    }
+  }
+
+  /* now, pre-compute Y3 */
+  for (s = 0; s < fc->strands; s++) {
+    for (k = 1; k < n; k++) {
+      Y3[s][k] = 0.;
+
+      if (sn[k - 1] == sn[k])
+        for (i = 1; i < k; i++) {
+          if (sn[i] == sn[i + 1]) {
+            Y3[s][k] += q[my_iindx[i + 1] - (k - 1)] *
+                        Y3p[s][i];
+          }
+        }
+    }
+  }
+
+  /* clean up */
+  for (s = 0; s < fc->strands; s++)
+    free(Y3p[s]);
+  free(Y3p);
+
+  return Y3;
+}
+
+
+PRIVATE void
+multistrand_update_Y3(vrna_fold_compound_t *fc,
+                      int                   l,
+                      FLT_OR_DBL           **Y3,
+                      FLT_OR_DBL           **Y3p)
+{
+  short         *S, *S1;
+  unsigned int i, j, k, s, n, start, type, *ss, *sn;
+  int           *my_iindx;
+  FLT_OR_DBL    *q, *probs, *scale;
+  vrna_md_t     *md;
+  vrna_exp_param_t  *pf_params;
+
+  n = fc->length;
+  sn  = fc->strand_number;
+  ss  = fc->strand_start;
+  S   = fc->sequence_encoding2;
+  S1  = fc->sequence_encoding;
+  my_iindx = fc->iindx;
+  q         = fc->exp_matrices->q;
+  probs     = fc->exp_matrices->probs;
+  scale     = fc->exp_matrices->scale;
+  pf_params = fc->exp_params;
+  md        = &(pf_params->model_details);
+
+  for (s = 0; s < fc->strands; s++) {
+    start = ss[s];
+    if (start == l + 1) {
+      for (i = 1; i < start; i++) {
+        Y3p[s][i] = 0;
+
+        if (sn[i] == sn[i + 1]) {
+          if (probs[my_iindx[i] - start] > 0) {
+            type      = vrna_get_ptype_md(S[start], S[i], md);
+            Y3p[s][i] +=  probs[my_iindx[i] - start] *
+                          vrna_exp_E_ext_stem(type,
+                                            -1,
+                                            S[i + 1],
+                                            pf_params) *
+                      scale[2];
+          }
+
+          for (j = start + 1; j <= n; j++) {
+            if ((probs[my_iindx[i] - j] > 0) &&
+                (sn[j - 1] == sn[j])) {
+              type      = vrna_get_ptype_md(S[j], S[i], md);
+              Y3p[s][i] +=  probs[my_iindx[i] - j] *
+                            vrna_exp_E_ext_stem(type,
+                                              S[j - 1],
+                                              S[i + 1],
+                                              pf_params) *
+                            q[my_iindx[start] - (j - 1)] *
+                      scale[2];
+            }
+          }
+        }
+      }
+
+      for (k = 1; k < start; k++) {
+        Y3[s][k] = 0.;
+
+        if (sn[k - 1] == sn[k]) {
+          for (i = 1; i < k - 1; i++) {
+            if (sn[i] == sn[i + 1]) {
+              Y3[s][k] += q[my_iindx[i + 1] - (k - 1)] *
+                          Y3p[s][i];
+            }
+          }
+
+          Y3[s][k] += Y3p[s][k - 1];
+        }
+      }
+    }
+  }
+}
+
+
+PRIVATE void
+multistrand_contrib(vrna_fold_compound_t  *fc,
+                    int                   l,
+                    FLT_OR_DBL            *Y5,
+                    FLT_OR_DBL            **Y3,
+                    FLT_OR_DBL           *Qmax,
+                    int                  *ov)
+{
+  short         *S, *S1, s5, s3;
+  unsigned int  k, turn, s, *sn, *se, *ss, end, start, type;
+  int           *my_iindx, kl;
+  FLT_OR_DBL    *q, *qb, *probs, tmp;
+  vrna_md_t     *md;
+  vrna_exp_param_t  *pf_params;
+
+  sn  = fc->strand_number;
+  ss  = fc->strand_start;
+  se  = fc->strand_end;
+  S   = fc->sequence_encoding2;
+  S1  = fc->sequence_encoding;
+  pf_params = fc->exp_params;
+  md = &(pf_params->model_details);
+  turn = md->min_loop_size;
+  my_iindx  = fc->iindx;
+  q     = fc->exp_matrices->q;
+  qb    = fc->exp_matrices->qb;
+  probs = fc->exp_matrices->probs;
+
+  for (k = l - turn - 1; k > 1; k--) {
+    kl = my_iindx[k] - l;
+    if (qb[kl] > 0) {
+      tmp = 0.;
+      for (s = 0; s < fc->strands; s++) {
+        end   = se[s];
+        start = ss[s];
+        if (end == k - 1) {
+          tmp +=  Y5[s];
+        } else if ((end < k - 1) &&
+                   (sn[k - 1] == sn[k])) {
+          tmp +=  Y5[s] *
+                  q[my_iindx[end + 1] - (k - 1)];
+        } else if (start == l + 1) {
+          tmp +=  Y3[s][k];
+        } else if ((start > l + 1) &&
+                   (sn[l] == sn[l + 1])) {
+          tmp +=  Y3[s][k] *
+                  q[my_iindx[l + 1] - (start - 1)];
+        }
+      }
+
+      type = vrna_get_ptype_md(S[k], S[l], md);
+      s5 = (sn[k - 1] == sn[k]) ? S1[k - 1] : -1;
+      s3 = (sn[l] == sn[l + 1]) ? S1[l + 1] : -1;
+      probs[kl] +=  tmp *
+                    vrna_exp_E_ext_stem(type,
+                                        s5,
+                                        s3,
+                                        pf_params);
+    }
+  }
 }
 
 
