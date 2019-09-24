@@ -25,6 +25,7 @@
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/pf_multifold.h"
+#include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/part_func.h"
 
 #ifdef _OPENMP
@@ -327,14 +328,13 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
 }
 
 
-PUBLIC vrna_dimer_pf_t
-vrna_pf_dimer2(vrna_fold_compound_t *fc,
-               char                 *structure)
+PUBLIC double
+vrna_pf_multimer(vrna_fold_compound_t *fc,
+                 char                 *structure)
 {
   unsigned int      *so, *ss, *se;
   int               n;
   FLT_OR_DBL        Q;
-  vrna_dimer_pf_t   X;
   double            free_energy;
   char              *sequence;
   vrna_md_t         *md;
@@ -343,8 +343,7 @@ vrna_pf_dimer2(vrna_fold_compound_t *fc,
 
   if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID)) {
     vrna_message_warning("vrna_pf_dimer@part_func_co.c: Failed to prepare vrna_fold_compound");
-    X.FA = X.FB = X.FAB = X.F0AB = X.FcAB = 0;
-    return X;
+    return (double)(INF / 100.);
   }
 
   params    = fc->exp_params;
@@ -374,8 +373,6 @@ vrna_pf_dimer2(vrna_fold_compound_t *fc,
   vrna_pf_multifold_prepare(fc);
 
   if (!fill_arrays(fc)) {
-    X.FA    = X.FB = X.FAB = X.F0AB = (float)(INF / 100.);
-    X.FcAB  = 0;
 
 #ifdef SUN4
     standard_arithmetic();
@@ -383,7 +380,7 @@ vrna_pf_dimer2(vrna_fold_compound_t *fc,
     fpsetfastmode(0);
 #endif
 
-    return X;
+    return (double)(INF / 100.);
   }
 
   vrna_gr_reset(fc);
@@ -403,43 +400,18 @@ vrna_pf_dimer2(vrna_fold_compound_t *fc,
   if (Q <= FLT_MIN)
     vrna_message_warning("pf_scale too large");
 
-  free_energy = (-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0;
-  /* in case we abort because of floating point errors */
-  vrna_message_info(stderr, "free energy2 = %8.2f", free_energy);
-
-  /* probability of molecules being bound together */
-
-  /*
-   * Computation of "real" Partition function
-   * Need that for concentrations
-   */
   if (fc->strands > 1) {
-    double kT, QAB, QToT, Qzero;
-    kT  = params->kT / 1000.0;
-    QAB = matrices->q[fc->iindx[1] - n] *
-          params->expDuplexInit;
+    /* check for rotational symmetry correction */
+    unsigned int sym = vrna_rotational_symmetry_num((const unsigned int *) so,
+                                                    (size_t)fc->strands);
+    Q /= (FLT_OR_DBL)sym;
 
-    /*correction for symmetry*/
-    if ((n - 2 * se[so[0]]) == 0)
-      if ((strncmp(sequence, sequence + se[so[0]], se[so[0]])) == 0)
-        QAB /= 2;
-
-    QToT = matrices->q[fc->iindx[1] - se[so[0]]] *
-           matrices->q[fc->iindx[ss[so[1]]] - n] + QAB;
-    X.FAB   = -kT * (log(QToT) + n * log(params->pf_scale));
-    X.FcAB  = -kT * (log(QAB) + n * log(params->pf_scale));
-    X.FA    = -kT *
-              (log(matrices->q[fc->iindx[1] - se[so[0]]]) + se[so[0]] *
-               log(params->pf_scale));
-    X.FB = -kT *
-           (log(matrices->q[fc->iindx[ss[so[1]]] - n]) + (n - ss[so[1]] + 1) *
-            log(params->pf_scale));
-
-    /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]); */
-  } else {
-    X.FA    = X.FB = X.FAB = X.F0AB = free_energy;
-    X.FcAB  = 0;
+    /* add interaction penalty */
+    Q *= params->expDuplexInit *
+         (FLT_OR_DBL)(fc->strands - 1);
   }
+
+  free_energy = (-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0;
 
   /* backtracking to construct binding probabilities of pairs */
   if (md->compute_bpp) {
@@ -463,7 +435,7 @@ vrna_pf_dimer2(vrna_fold_compound_t *fc,
   fpsetfastmode(0);
 #endif
 
-  return X;
+  return free_energy;
 }
 
 

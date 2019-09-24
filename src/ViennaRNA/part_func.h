@@ -163,9 +163,9 @@ vrna_dimer_pf_t
 vrna_pf_dimer(vrna_fold_compound_t  *vc,
               char                  *structure);
 
-vrna_dimer_pf_t
-vrna_pf_dimer2(vrna_fold_compound_t  *vc,
-              char                  *structure);
+double
+vrna_pf_multimer(vrna_fold_compound_t  *vc,
+                 char                  *structure);
 
 /* End basic global interface */
 /**@}*/
