@@ -185,7 +185,6 @@ init_default_options(struct options *opt)
   opt->commands       = NULL;
   opt->id_control     = NULL;
   set_model_details(&(opt->md));
-  //opt->md.pf_smooth  = 0;
 
   opt->doC                = 0; /* toggle to compute concentrations */
   opt->concentration_file = NULL;
@@ -782,13 +781,8 @@ process_record(struct record_data *record)
    */
 
   /* compute mfe of AB dimer */
-  for (i = 0; i < n; i++)
-    mfe_structure[i] = '.';
-
-  vc->params->model_details.backtrack = 0;
   min_en  = vrna_mfe_dimer(vc, mfe_structure);
   mfAB    = vrna_plist(mfe_structure, 0.95);
-  vc->params->model_details.backtrack = 1;
 
   /* check whether the constraint allows for any solution */
   if ((fold_constrained) || (opt->commands)) {
@@ -837,7 +831,7 @@ process_record(struct record_data *record)
   if (opt->pf) {
     char              *Astring, *Bstring, *orig_Astring, *orig_Bstring, *pairing_propensity;
     int               Blength, Alength;
-    vrna_dimer_pf_t   AB, AA, BB, NAB;
+    vrna_dimer_pf_t   AB, AA, BB;
     vrna_dimer_conc_t *conc_result;
 
     conc_result = NULL;
@@ -869,57 +863,9 @@ process_record(struct record_data *record)
     /* compute partition function */
     AB = AA = BB = vrna_pf_dimer(vc, pairing_propensity);
 
-    NAB = vrna_pf_dimer2(vc, pairing_propensity);
-
     if (opt->md.compute_bpp) {
       char *costruc;
       prAB = vrna_plist_from_probs(vc, opt->bppmThreshold);
-
-      vrna_ep_t *ptr;
-      double kT = vc->exp_params->kT / 1000.;
-      double dG_nocomplex = exp(-NAB.FA / kT) * exp(-NAB.FB / kT);
-      double dG_complex   = NAB.FcAB;
-      double dG_full      = -kT * log(exp(-dG_complex / kT) + exp(-dG_nocomplex / kT));
-
-      double prob_complex   = exp((dG_full - dG_complex) / kT );
-      double prob_nocomplex = exp((dG_full - dG_nocomplex) / kT );
-
-      vrna_fold_compound_t  *fcA, *fcB;
-      char *seqA, *seqB;
-
-      seqA = vrna_strdup_printf("%.*s", vc->cutpoint - 1, vc->sequence);
-      seqB = vrna_strdup_printf("%.*s", vc->length - vc->cutpoint + 1, vc->sequence + vc->cutpoint - 1);
-
-      fcA = vrna_fold_compound(seqA, &opt->md, VRNA_OPTION_DEFAULT);
-      fcB = vrna_fold_compound(seqB, &opt->md, VRNA_OPTION_DEFAULT);
-
-      double dGA = vrna_pf(fcA, NULL);
-      double dGB = vrna_pf(fcB, NULL);
-
-      vrna_ep_t *prA = vrna_plist_from_probs(fcA, opt->bppmThreshold);
-      vrna_ep_t *prB = vrna_plist_from_probs(fcB, opt->bppmThreshold);
-
-      printf("%s\n%s\n", seqA, seqB);
-
-      printf("p_c = %10.16f, p_nc = %10.16f\n", prob_complex, prob_nocomplex);
-
-      /* now, let's try correcting the pair probabilities */
-      if (0)
-        for (ptr = prAB; ptr->i != 0; ptr++) {
-        ptr->p *= prob_complex;
-        if (ptr->i <= fcA->length && ptr->j <= fcA->length) {
-          ptr->p += fcA->exp_matrices->probs[fcA->iindx[ptr->i] - ptr->j] * prob_nocomplex;
-        } else if (ptr->i > fcA->length && ptr->j > fcA->length) {
-          ptr->p += fcB->exp_matrices->probs[fcB->iindx[ptr->i - fcA->length] - ptr->j + fcA->length] * prob_nocomplex;
-        }
-      }
-
-            (void)vrna_plot_dp_PS_list(record->sequence,
-                                       vc->cutpoint,
-                                       "newdot.ps",
-                                       prAB,
-                                       mfAB,
-                                       "doof");
 
       costruc = vrna_cut_point_insert(pairing_propensity, vc->cutpoint);
       if (opt->csv_output) {
@@ -948,22 +894,9 @@ process_record(struct record_data *record)
     } else {
       vrna_cstr_printf_structure(o_stream->data,
                                  NULL,
-                                 " free energy of ensemble = %g kcal/mol",
+                                 " free energy of ensemble = %6.2f kcal/mol",
                                  AB.FAB);
     }
-
-      vrna_cstr_printf_structure(o_stream->data,
-                                 NULL,
-                                 " free energy of full ensemble = %.6f kcal/mol\n"
-                                 " free energy of connected ensemble = %2.15f kcal/mol\n"
-                                 " free energy of single A ensemble = %.6f kcal/mol\n"
-                                 " free energy of single B ensemble = %.6f kcal/mol\n",
-                                 NAB.FAB,
-                                 NAB.FcAB,
-                                 NAB.FA,
-                                 NAB.FB);
-
-    goto cleanup_record;
 
     /* compute MEA structure */
     if (opt->centroid)
