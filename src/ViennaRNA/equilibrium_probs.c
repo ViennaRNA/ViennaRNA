@@ -2560,7 +2560,7 @@ multistrand_update_Y5(vrna_fold_compound_t *fc,
         type      = vrna_get_ptype_md(S[j], S[end], md);
         Y5p[s][j]  +=  probs[my_iindx[end] - j] *
                       vrna_exp_E_ext_stem(type,
-                                        S[j - 1],
+                                        S1[j - 1],
                                         -1,
                                         pf_params) *
                       scale[2];
@@ -2572,8 +2572,8 @@ multistrand_update_Y5(vrna_fold_compound_t *fc,
           type      = vrna_get_ptype_md(S[j], S[i], md);
           Y5p[s][j]  +=  probs[my_iindx[i] - j] *
                         vrna_exp_E_ext_stem(type,
-                                          S[j - 1],
-                                          S[i + 1],
+                                          S1[j - 1],
+                                          S1[i + 1],
                                           pf_params) *
                         q[my_iindx[i + 1] - end] *
                       scale[2];
@@ -2585,8 +2585,8 @@ multistrand_update_Y5(vrna_fold_compound_t *fc,
         type      = vrna_get_ptype_md(S[j], S[i], md);
         Y5p[s][j]  +=  probs[my_iindx[i] - j] *
                       vrna_exp_E_ext_stem(type,
-                                        S[j - 1],
-                                        S[i + 1],
+                                        S1[j - 1],
+                                        S1[i + 1],
                                         pf_params) *
                       scale[2];
       }
@@ -2787,7 +2787,7 @@ multistrand_update_Y3(vrna_fold_compound_t *fc,
             Y3p[s][i] +=  probs[my_iindx[i] - start] *
                           vrna_exp_E_ext_stem(type,
                                             -1,
-                                            S[i + 1],
+                                            S1[i + 1],
                                             pf_params) *
                       scale[2];
           }
@@ -2798,8 +2798,8 @@ multistrand_update_Y3(vrna_fold_compound_t *fc,
               type      = vrna_get_ptype_md(S[j], S[i], md);
               Y3p[s][i] +=  probs[my_iindx[i] - j] *
                             vrna_exp_E_ext_stem(type,
-                                              S[j - 1],
-                                              S[i + 1],
+                                              S1[j - 1],
+                                              S1[i + 1],
                                               pf_params) *
                             q[my_iindx[start] - (j - 1)] *
                       scale[2];
