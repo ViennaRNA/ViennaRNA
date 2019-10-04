@@ -12,19 +12,14 @@ purpose "calculate secondary structures of two RNAs with dimerization"
 args "--file-name=RNAmultifold_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAmultifold_cmdline_parser --arg-struct-name=RNAmultifold_args_info"
 
 
-description "The program works much like RNAfold, but allows one to specify two RNA sequences which are\
- then allowed to form a dimer structure. RNA sequences are read from stdin in the usual\
+description "The program works much like RNAfold, but allows one to specify multiple RNA sequences which are\
+ then allowed to form conncected components. RNA sequences are read from stdin in the usual\
  format, i.e. each line of input corresponds to one sequence, except for lines starting\
- with \">\" which contain the name of the next sequence.\nTo compute the hybrid structure\
- of two molecules, the two sequences must be concatenated using the \'&\' character as\
- separator.\nRNAmultifold can compute minimum free energy (mfe) structures, as well as\
- partition function (pf) and base pairing probability matrix (using the -p switch)\nSince\
- dimer formation is concentration dependent, RNAmultifold can be used to compute equilibrium\
- concentrations for all five monomer and (homo/hetero)-dimer species, given input\
- concentrations for the monomers.\nOutput consists of the mfe structure in bracket\
- notation as well as PostScript structure plots and \"dot plot\" files containing the\
- pair probabilities, see the RNAfold man page for details. In the dot plots a cross marks\
- the chain break between the two concatenated sequences.\nThe program will continue to\
+ with \">\" which contain the name of the next sequence(s).\nMultiple strands must be concatenated\
+ using the \'&\' character as\
+ separator.\nRNAmultifold currently only computs the partition function, corresponding ensemble free energy\
+ and base pairing probabilities.\nOutput consists of a PostScript \"dot plot\" file containing\
+ the pair probabilities, see the RNAfold man page for details.\nThe program will continue to\
  read new sequences until a line consisting of the single character @ or an end of file\
  condition is encountered.\n\n"
 
@@ -68,11 +63,6 @@ off
 dependon="jobs"
 hidden
 
-
-option  "noPS"  -
-"Do not produce postscript drawing of the mfe structure.\n\n"
-flag
-off
 
 option  "noconv"  -
 "Do not automatically substitute nucleotide \"T\" with \"U\"\n\n"
@@ -165,36 +155,6 @@ flag
 off
 hidden
 
-option  "output-format" -
-"Change the default output format\n\n"
-details="The following output formats are currently supported:\n ViennaRNA format (V),\
- Delimiter-separated format (D) also known as CSV format.\n\n"
-string
-typestr="format-character"
-default="V"
-optional
-hidden
-
-
-option  "csv-delim" -
-"Change the delimiting character for Delimiter-separated output format, such as CSV\n\n"
-details="Delimiter-separated output defaults to comma separated values (CSV), i.e.\
- all data in one data set is delimited by a comma character. This option allows one to\
- change the delimiting character to something else. Note, to switch to tab-separated\
- data, use $'\\t' as delimiting character.\n\n"
-string
-typestr="delimiter"
-default=","
-optional
-hidden
-
-
-option  "csv-noheader" -
-"Do not print header for Delimiter-separated output, such as CSV\n\n"
-flag
-off
-hidden
-
 
 # Options
 section "Structure Constraints"
@@ -206,97 +166,6 @@ int
 default="-1"
 optional
 
-option  "constraint"  C
-"Calculate structures subject to constraints.\n"
-details="The program reads first the\
- sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
- for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
- a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
- exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
- sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n\n"
-string
-typestr="<filename>"
-default = ""
-argoptional
-
-option  "batch"   -
-"Use constraints for multiple sequences.\n"
-details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
- RNAmultifold will stop its computation and quit after the first input sequence was processed. Using this\
- switch, RNAmultifold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
-flag
-off
-dependon="constraint"
-
-option  "canonicalBPonly" -
-"Remove non-canonical base pairs from the structure constraint\n\n"
-flag
-off
-dependon="constraint"
-
-option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
-flag
-off
-dependon="constraint"
-
-option  "shape" -
-"Use SHAPE reactivity data to guide structure predictions\n\n"
-string
-typestr="<filename>"
-optional
-
-option  "shapeMethod" -
-"Select method to incorporate SHAPE reactivity data.\n"
-details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
-'D': Convert by using a linear equation according to Deigan et al 2009. \
-The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
-This method is recognized by a capital 'D' in the provided parameter, i.e.: \
---shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
-non-default value if necessary, otherwise m=1.8 and b=-0.6. \
-To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
-parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
-parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
-
-'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
-SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
-Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
-The magnitude of the penalties can affected by adjusting the factor beta \
-(e.g. --shapeMethod=\"Zb0.8\").
-
-'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n\n"
-string
-typestr="[D/Z/W] + [optional parameters]"
-dependon="shape"
-default="D"
-optional
-
-option  "shapeConversion" -
-"Select method to convert SHAPE reactivities to pairing probabilities.\n"
-details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
-The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
-'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
-string
-typestr="M/C/S/L/O  + [optional parameters]"
-default="O"
-optional
-
-option  "commands"   -
-"Read additional commands from file\n"
-details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
- loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
- domains.\n\n"
-string
-typestr="<filename>"
-optional
-hidden
-
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
@@ -307,10 +176,7 @@ option  "partfunc"  p
  addition to the mfe structure. Default is calculation of mfe structure only.\n"
 details="In addition to the MFE structure\
  we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
- the ensemble free energy, as well as the centroid structure derived from the pair probabilities together with\
- its free energy and distance to the ensemble. Finally it prints the frequency of the mfe structure, and the\
- structural diversity (mean distance between the structures in the ensemble).\nSee the description of pf_fold()\
- and mean_bp_dist() and centroid() in the RNAlib documentation for details.\nNote that unless you also specify\
+ the ensemble free energy.\nNote that unless you also specify\
  -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
  discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
  of partition function calculation:\n\n\
@@ -318,63 +184,6 @@ details="In addition to the MFE structure\
  50% in runtime. This prints the ensemble free energy -kT ln(Z).\n\n"
 int
 default="1"
-argoptional
-optional
-
-option "all_pf" a
-"Compute the partition function and free energies not only of the hetero-dimer consisting\
- of the two input sequences (the \"AB dimer\"), but also of the homo-dimers AA and BB as\
- well as A and B monomers.\n"
-details="The output will contain the free energies for each of these species, as well as\
- 5 dot plots containing the conditional pair probabilities, called \"ABname5.ps\", \"AAname5.ps\"\
- and so on. For later use, these dot plot files also contain the free energy of the\
- ensemble as a comment. Using -a automatically switches on the -p option.\
- Base pair probability computations may be turned off altogether by providing \"0\" as\
- an argument to this parameter. In that case, no dot plot files will be generated.\n\n"
-int
-default="1"
-argoptional
-optional
-
-
-option  "concentrations"  c
-"In addition to everything listed under the -a option, read in initial monomer concentrations\
- and compute the expected equilibrium concentrations of the 5 possible species (AB, AA, BB, A, B).\n"
-details="Start concentrations are read from stdin (unless the -f option is used) in [mol/l],\
- equilibrium concentrations are given realtive to the sum of the two inputs. An arbitrary number\
- of initial concentrations can be specified (one pair of concentrations per line).\n\n"
-flag
-off
-
-option  "concfile"  f
-"Specify a file with initial concentrations for the two sequences."
-details="The table consits of arbitrary many lines with just two numbers (the concentration of\
- sequence A and B). This option will automatically toggle the -c (and thus -a and -p) options (see above).\n\n"
-string
-typestr="filename"
-optional
-
-option  "centroid"  -
-"Compute the centroid structure.\n"
-details="Additionally to the MFE structure, compute the centroid representative of the structure ensemble.\
- Here, we apply the base pair distance as distance measure, and report the structure that minimizes its\
- Boltzmann weighted base pair distance to the rest of the ensemble. Computing the centroid structure\
- requires equilibrium base pair probabilities. Therefore, this option implies the -p switch. For historical\
- reasons, the centroid structure output is deactivated by default.\n\n"
-flag
-off
-
-option  "MEA"   -
-"Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
- pair probabilities: each base pair (i,j) gets a score 2*gamma*p_ij and the score of an unpaired base is\
- given by the probability of not forming a pair.\n"
-details="The parameter gamma tunes the importance of correctly\
- predicted pairs versus unpaired bases. Thus, for small values of gamma the MEA structure will contain\
- only pairs with very high probability.\nUsing --MEA implies -p for\
- computing the pair probabilities.\n\n"
-float
-typestr="gamma"
-default="1."
 argoptional
 optional
 

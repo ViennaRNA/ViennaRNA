@@ -185,7 +185,6 @@ init_default_options(struct options *opt)
   opt->commands       = NULL;
   opt->id_control     = NULL;
   set_model_details(&(opt->md));
-  //opt->md.pf_smooth  = 0;
 
   opt->doC                = 0; /* toggle to compute concentrations */
   opt->concentration_file = NULL;
@@ -283,42 +282,15 @@ main(int  argc,
     opt.md.dangles = dangles = 2;
   }
 
-  /* SHAPE reactivity data */
-  ggo_get_SHAPE(args_info, opt.shape, opt.shape_file, opt.shape_method, opt.shape_conversion);
-
   ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
-
-  ggo_get_constraints_settings(args_info,
-                               fold_constrained,
-                               opt.constraint_file,
-                               opt.constraint_enforce,
-                               opt.constraint_batch);
-
-  /* enforce canonical base pairs in any case? */
-  if (args_info.canonicalBPonly_given)
-    opt.constraint_canonical = 1;
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
     opt.noconv = 1;
 
-  /*  */
-  if (args_info.noPS_given)
-    opt.noPS = 1;
-
-  /* concentrations from stdin */
-  if (args_info.concentrations_given)
-    opt.doC = opt.doT = opt.pf = 1;
-
   /* set the bppm threshold for the dotplot */
   if (args_info.bppmThreshold_given)
     opt.bppmThreshold = MIN2(1., MAX2(0., args_info.bppmThreshold_arg));
-
-  /* concentrations in file */
-  if (args_info.concfile_given) {
-    opt.concentration_file  = strdup(args_info.concfile_arg);
-    opt.doC                 = opt.doT = opt.pf = 1;
-  }
 
   /* partition function settings */
   if (args_info.partfunc_given) {
@@ -327,44 +299,8 @@ main(int  argc,
       opt.md.compute_bpp = args_info.partfunc_arg;
   }
 
-  if (args_info.all_pf_given) {
-    opt.doT = opt.pf = 1;
-    if (args_info.all_pf_arg != 1)
-      opt.md.compute_bpp = args_info.all_pf_arg;
-    else
-      opt.md.compute_bpp = 1;
-  }
-
-  /* MEA (maximum expected accuracy) settings */
-  if (args_info.MEA_given) {
-    opt.MEA = 1;
-
-    if (args_info.MEA_arg != -1)
-      opt.MEAgamma = args_info.MEA_arg;
-
-    if (!opt.pf)
-      opt.pf = 1;
-
-    if (!opt.md.compute_bpp)
-      opt.md.compute_bpp = 1;
-  }
-
-  if (args_info.centroid_given) {
-    opt.centroid = 1;
-
-    if (!opt.pf)
-      opt.pf = 1;
-
-    if (!opt.md.compute_bpp)
-      opt.md.compute_bpp = 1;
-  }
-
   if (args_info.verbose_given)
     opt.verbose = 1;
-
-  if (args_info.commands_given)
-    opt.commands = vrna_file_commands_read(args_info.commands_arg,
-                                           VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
@@ -380,39 +316,6 @@ main(int  argc,
   /* full filename from FASTA header support */
   if (args_info.filename_full_given)
     opt.filename_full = 1;
-
-  /* output format changes */
-  if (args_info.output_format_given) {
-    switch (*(args_info.output_format_arg)) {
-      case 'D':
-      /* fall-through */
-      case 'd':
-        opt.csv_output = 1;
-        break;
-      case 'V':
-      /* fall-through */
-      case 'v':
-        opt.csv_output = 0;
-        break;
-      default:
-        vrna_message_warning("unknown output format \"%c\", using defaults!",
-                             *(args_info.output_format_arg));
-        break;
-    }
-  }
-
-  /* one-line output delimiter */
-  if (args_info.csv_delim_given) {
-    opt.csv_output_delim = *(args_info.csv_delim_arg);
-    if (!opt.csv_output_delim) {
-      vrna_message_warning("Delimiting character for One-Line output is missing, using defaults!");
-      opt.csv_output_delim = ',';
-    }
-  }
-
-  /* one-line output header */
-  if (args_info.csv_noheader_given)
-    opt.csv_header = 0;
 
   if (args_info.jobs_given) {
 #if VRNA_WITH_PTHREADS
@@ -848,27 +751,35 @@ process_record(struct record_data *record)
     dG = vrna_pf_multimer(vc, pairing_propensity);
 
     if (opt->md.compute_bpp) {
-      char *costruc;
+      char *costruc, *filename_dot, *comment;
       prAB = vrna_plist_from_probs(vc, opt->bppmThreshold);
 
-      (void)vrna_plot_dp_PS_list(record->sequence,
-                                 vc->cutpoint,
-                                 "newdot.ps",
-                                 prAB,
-                                 NULL,
-                                 "Multi Probs");
+      filename_dot = get_filename(record->SEQ_ID, "dp.ps", "dot.ps", opt);
 
-    char *pstruct, *tmp_struct = strdup(pairing_propensity);
+      /*AB dot_plot*/
+      comment   = vrna_strdup_printf("Heterodimer AB FreeEnergy= %.9f", dG);
+      THREADSAFE_FILE_OUTPUT(
+        (void)vrna_plot_dp_PS_list(record->sequence,
+                                   vc->cutpoint,
+                                   filename_dot,
+                                   prAB,
+                                   NULL,
+                                   comment));
 
-    if (vc->strands == 1) {
-      costruc = tmp_struct;
-    } else {
-      for (unsigned int i = 1; i < vc->strands; i++) {
-        costruc = vrna_cut_point_insert(tmp_struct, (int)vc->strand_start[i] + (i - 1));
-        free(tmp_struct);
-        tmp_struct = costruc;
+      free(comment);
+      free(filename_dot);
+
+      char *pstruct, *tmp_struct = strdup(pairing_propensity);
+
+      if (vc->strands == 1) {
+        costruc = tmp_struct;
+      } else {
+        for (unsigned int i = 1; i < vc->strands; i++) {
+          costruc = vrna_cut_point_insert(tmp_struct, (int)vc->strand_start[i] + (i - 1));
+          free(tmp_struct);
+          tmp_struct = costruc;
+        }
       }
-    }
 
       vrna_cstr_printf_structure(o_stream->data,
                                  costruc,
@@ -876,6 +787,20 @@ process_record(struct record_data *record)
                                  dG);
 
       free(costruc);
+
+      /* compute MEA structure */
+      if (opt->centroid)
+        compute_centroid(vc,
+                         o_stream->data);
+
+      /* compute MEA structure */
+      if (opt->MEA) {
+        compute_MEA(vc,
+                    opt->MEAgamma,
+                    o_stream->data);
+    }
+
+
     } else {
       vrna_cstr_printf_structure(o_stream->data,
                                  NULL,
