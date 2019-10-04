@@ -194,6 +194,10 @@ vrna_strsplit(const char  *string,
               const char  *delimiter);
 
 
+char *
+vrna_strjoin(const char **strings,
+             const char *delimiter);
+
 /**
  *  @brief Create a random string using characters from a specified symbol set
  *

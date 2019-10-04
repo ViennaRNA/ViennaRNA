@@ -384,6 +384,110 @@ vrna_strsplit(const char  *string,
 
 
 PUBLIC char *
+vrna_strjoin(const char **strings,
+             const char *delimiter)
+{
+  char        *s = NULL;
+  size_t      n, offset, *lengths, num_strings, mem_strings, total_length;
+
+  if (strings) {
+    total_length  = 0;
+    mem_strings   = 32;
+    lengths       = (size_t *)vrna_alloc(sizeof(size_t) * mem_strings);
+
+    for (n = 0; strings[n]; n++) {
+      lengths[n]    = strlen(strings[n]);
+      total_length += lengths[n];
+
+      if (n == mem_strings) {
+        mem_strings += 32;
+        lengths      = (size_t *)vrna_realloc(lengths, sizeof(size_t) * mem_strings);
+      }
+    }
+
+    if ((delimiter) && (*delimiter))
+      total_length += (n - 1);
+
+    /* finally, glue the strings together */
+    s = (char *)vrna_alloc(sizeof(char) * (total_length + 1));
+
+    for (offset = 0, n = 0; strings[n]; n++) {
+      memcpy(s + offset, strings[n], sizeof(char) * lengths[n]);
+      offset += lengths[n];
+
+      if ((delimiter) &&
+          (*delimiter) &&
+          (strings[n + 1]))
+        s[offset++] = *delimiter;
+    }
+
+    s[total_length] = '\0';
+
+    free(lengths);
+  }
+
+  return s;
+}
+
+
+#if 0
+PUBLIC char *
+vrna_strsplice(const char   *string,
+               const char   *delimiter,
+               unsigned int **positions,
+               unsigned int options)
+{
+  char *result = NULL;
+  
+  if (string) {
+    if (delimiter) {
+      if (options & VRNA_STRSPLICE_IN){
+        if (positions) {
+          /* count how many more characters we require for the fully spliced string */
+          for (size_t n = 0; positions[n] != 0; n++);
+
+          size_t dl = strlen(delimiter);
+          size_t l  = strlen(string);
+
+          result = (char *)vrna_alloc(sizeof(char) * (l + dl * n + 1));
+
+          /* finally, construct the spliced sequence */
+          size_t start = 0;
+          size_t end   = 0;
+          size_t last_pos = 0;
+          /* handle first case separately */
+          memcpy(result, string, sizeof(char) * ((*positions)[0] - 1));
+          memcpy(result + (*positions)[0] - 1, delimiter, sizeof(char) * dl);
+          start += (*positions)[0] - 1;
+          end   += (*positions)[0] - 1 + dl;
+
+          for (size_t i = 1; i < n; i++) {
+            memcpy(result + end, string + start, sizeof(char) * positions
+          }
+
+        } else {
+          result = strdup(string);
+        }
+      } else if (options & VRNA_STRSPLICE_OUT) {
+        
+      }
+    } else {
+      /* no delimiter specified, so we don't need to do anything */
+      result = strdup(string);
+      if ((options & VRNA_STRSPLICE_OUT) &&
+          (positions)) {
+        *positions = (unsigned int *)vrna_alloc(sizeof(unsigned int));
+        (*positions)[0] = 0;
+      }
+    }
+  }
+
+  return result;
+}
+
+#endif
+
+PUBLIC char *
 vrna_seq_ungapped(const char *seq)
 {
   char  *tmp_sequence, *b;
