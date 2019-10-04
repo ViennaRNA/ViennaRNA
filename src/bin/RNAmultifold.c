@@ -775,10 +775,20 @@ process_record(struct record_data *record)
   for (i = 0; i < n; i++)
     mfe_structure[i] = '.';
 
-  vc->params->model_details.backtrack = 0;
-  min_en  = vrna_mfe_dimer(vc, mfe_structure);
+  /*
+      here, we simply try to obtain a guess of the MFE by ignoring the
+      strand nicks and treating the input as a single strand
+      This will of course change in the final version of RNAmultifold!
+  */
+  vrna_fold_compound_t  *fc_dummy = vrna_fold_compound(vc->sequence,
+                                                       &(opt->md),
+                                                       VRNA_OPTION_DEFAULT);
+  /* turn-off backtracing since we actually don't compute the correct MFE */
+  fc_dummy->params->model_details.backtrack = 0;
+  min_en  = vrna_mfe(fc_dummy, mfe_structure);
+  fc_dummy->params->model_details.backtrack = 1;
   mfAB    = vrna_plist(mfe_structure, 0.95);
-  vc->params->model_details.backtrack = 1;
+  vrna_fold_compound_free(fc_dummy);
 
   /* check whether the constraint allows for any solution */
   if ((fold_constrained) || (opt->commands)) {
@@ -791,31 +801,20 @@ process_record(struct record_data *record)
   }
 
   {
-    char *pstruct = vrna_cut_point_insert(mfe_structure, vc->cutpoint);
+    char *pstruct, *tmp_struct = strdup(mfe_structure);
 
-    if (opt->csv_output) {
-      vrna_cstr_printf(o_stream->data,
-                       "%ld%c"          /* sequence number */
-                       "%s%c"           /* sequence id */
-                       "\"%s\"%c"       /* sequence */
-                       "\"%s\"%c"       /* MFE structure */
-                       "%6.2f",         /* MFE */
-                       get_current_id(opt->id_control), opt->csv_output_delim,
-                       (record->id) ? record->id : "", opt->csv_output_delim,
-                       record->sequence, opt->csv_output_delim,
-                       (pstruct) ? pstruct : "", opt->csv_output_delim,
-                       min_en);
+    if (vc->strands == 1) {
+      pstruct = tmp_struct;
     } else {
-      vrna_cstr_print_fasta_header(o_stream->data, record->id);
-      vrna_cstr_printf(o_stream->data, "%s\n", record->sequence);
-      vrna_cstr_printf_structure(o_stream->data,
-                                 pstruct,
-                                 record->tty ? "\n minimum free energy = %6.2f kcal/mol" : " (%6.2f)",
-                                 min_en);
+      for (unsigned int i = 1; i < vc->strands; i++) {
+        pstruct = vrna_cut_point_insert(tmp_struct, (int)vc->strand_start[i] + (i - 1));
+        free(tmp_struct);
+        tmp_struct = pstruct;
+      }
     }
 
-    if (!opt->noPS)
-      postscript_layout(vc, record->sequence, pstruct, record->SEQ_ID, opt);
+    vrna_cstr_print_fasta_header(o_stream->data, record->id);
+    vrna_cstr_printf(o_stream->data, "%s\n", record->sequence);
 
     free(pstruct);
   }
@@ -859,7 +858,18 @@ process_record(struct record_data *record)
                                  NULL,
                                  "Multi Probs");
 
-      costruc = vrna_cut_point_insert(pairing_propensity, vc->cutpoint);
+    char *pstruct, *tmp_struct = strdup(pairing_propensity);
+
+    if (vc->strands == 1) {
+      costruc = tmp_struct;
+    } else {
+      for (unsigned int i = 1; i < vc->strands; i++) {
+        costruc = vrna_cut_point_insert(tmp_struct, (int)vc->strand_start[i] + (i - 1));
+        free(tmp_struct);
+        tmp_struct = costruc;
+      }
+    }
+
       vrna_cstr_printf_structure(o_stream->data,
                                  costruc,
                                  record->tty ? "\n free energy of connected ensemble = %6.2f kcal/mol" : " [%6.2f]",
