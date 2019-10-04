@@ -407,8 +407,7 @@ vrna_pf_multimer(vrna_fold_compound_t *fc,
     Q /= (FLT_OR_DBL)sym;
 
     /* add interaction penalty */
-    Q *= params->expDuplexInit *
-         (FLT_OR_DBL)(fc->strands - 1);
+    Q *= pow(params->expDuplexInit, (FLT_OR_DBL)(fc->strands - 1));
   }
 
   free_energy = (-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0;
