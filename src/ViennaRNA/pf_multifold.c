@@ -115,8 +115,13 @@ mf_rule_pair(vrna_fold_compound_t *fc,
                    VRNA_DECOMP_EXT_EXT_EXT,
                    &hc_dat_local))
 */
-        tmp += q[my_iindx[i + 1] - ends[sn[nick]]] *
-               q[my_iindx[ends[sn[nick]] + 1] - j + 1];
+        tmp2 = 1.;
+        if (i + 1 <= ends[sn[nick]])
+          tmp2 *= q[my_iindx[i + 1] - ends[sn[nick]]];
+        if (ends[sn[nick]] + 1 <= j - 1)
+          tmp2 *= q[my_iindx[ends[sn[nick]] + 1] - j + 1];
+
+        tmp += tmp2;
 
 
       nick = ends[sn[nick]] + 1;
