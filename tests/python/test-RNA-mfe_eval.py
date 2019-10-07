@@ -24,14 +24,6 @@ class mfe_eval_functionTest(unittest.TestCase):
         self.assertEqual(ss,struct1)
 
 
-    def test_mfe_Dimer(self):
-        print "test_mfe_Dimer"
-        fc=RNA.fold_compound(seq1Dimer)
-        (ss,mfe) = fc.mfe_dimer()
-        print ss, "[ %6.2f ]" % mfe
-        self.assertEqual(ss,struct1Dimer)
-
-
     def test_eval_structure(self):
         print "test_eval_structure"
         fc = RNA.fold_compound(seq1)

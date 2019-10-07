@@ -3,7 +3,7 @@
 ######################### We start with some black magic to print on failure.
 # (It may become useful if the test is moved to ./t subdirectory.)
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 10;
 use Data::Dumper;
 use FileHandle;
 
@@ -31,13 +31,6 @@ $fc= new RNA::fold_compound($seq1);
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is($ss,$struct1);
-undef $fc;
-##################################
-print "test_mfe_Dimer\n";
-$fc= new RNA::fold_compound($seq1Dimer);
-($ss,$mfe) = $fc->mfe_dimer();
-printf("%s [%6.2f] \n",$ss,$mfe);
-is($ss,$struct1Dimer);
 undef $fc;
 ##################################
 print "test_eval_structure\n";

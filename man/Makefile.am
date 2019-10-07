@@ -7,7 +7,6 @@ info_TEXINFOS = RNAlib.texi
 main_manpages = RNA2Dfold.1 \
                 RNAaliduplex.1 \
                 RNAalifold.1 \
-                RNAcofold.1 \
                 RNAduplex.1 \
                 RNAeval.1 \
                 RNAfold.1 \
