@@ -261,9 +261,23 @@ typestr="range"
 optional
 
 option  "sorted"  s
-"Sort the suboptimal structures by energy.\n"
-details="Since the sort in is done in memory, this becomes impractical when the number of structures produced\
- goes into millions. In such cases better pipe the output through \"sort +1n\".\n\n"
+"Sort the suboptimal structures by energy and lexicographical order.\n"
+details="Structures are first sorted by energy in ascending order. Within groups of the same\
+ energy, structures are then sorted in ascending in lexicographical order of their dot-bracket\
+ notation. See the --en-only flag to deactivate this second step. Note that sorting is done in\
+ memory, thus it can easily lead to exhaution of RAM! This is especially true if the number of\
+ structures produced becomes large or the RNA sequence is rather long. In such cases better use\
+ an external sort method, such as UNIX \"sort\".\n\n"
+flag
+off
+
+option  "en-only" -
+"Only sort structures by free energy.\n"
+details="In combination with --sorted, this flag deactivates the second sorting criteria and\
+ sorts structures solely by their free energy instead of additionally sorting by lexicographic\
+ order in each energy band. This might save some time during the sorting process in situations\
+ where lexicographic order is not required.\n\n"
+dependon="sorted"
 flag
 off
 
