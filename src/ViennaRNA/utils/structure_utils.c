@@ -92,10 +92,10 @@ vrna_db_pack(const char *struc)
         case '(':
         case '\0':
           break;
-        case '.':
+        case ')':
           p++;
           break;
-        case ')':
+        case '.':
           p += 2;
           break;
         default:
@@ -125,7 +125,7 @@ vrna_db_unpack(const char *packed)
   char                *struc;
   unsigned const char *pp;
   char                code[3] = {
-    '(', '.', ')'
+    '(', ')', '.'
   };
 
   l     = (int)strlen(packed);
@@ -144,7 +144,9 @@ vrna_db_unpack(const char *packed)
     j += 5;
   }
   struc[j--] = '\0';
-  while (struc[j] == '(') /* strip trailing ( */
+  /* strip trailing ( */
+  while ((j >= 0) &&
+         (struc[j] == '('))
     struc[j--] = '\0';
 
   return struc;
