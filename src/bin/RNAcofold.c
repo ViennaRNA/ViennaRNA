@@ -668,6 +668,9 @@ process_record(struct record_data *record)
                                                 VRNA_OPTION_DEFAULT | VRNA_OPTION_HYBRID);
   n = vc->length;
 
+  if (vc->strands > 2)
+    vrna_message_error("More than one strand delimiter in input!");
+
   /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
   o_stream->data = vrna_cstr(6 * n, stdout);
   /* retrieve string stream bound to stderr for any info messages */
