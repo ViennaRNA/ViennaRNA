@@ -173,10 +173,14 @@ vrna_plot_dp_PS_list( char *seq,
                       char *comment){
 
   FILE *wastl;
-  int pl_size, gq_num;
+  int pl_size, gq_num, cut;
   plist *pl1;
 
-  wastl = PS_dot_common(seq, cp, wastlfile, comment, 0, PS_MACRO_DOTPLOT_ALL);
+  char *seq_plain = vrna_cut_point_remove(seq, &cut);
+
+  wastl = PS_dot_common(seq_plain, cut, wastlfile, comment, 0, PS_MACRO_DOTPLOT_ALL);
+
+  free(seq_plain);
 
   if (wastl==NULL) return 0; /* return 0 for failure */
 
