@@ -172,17 +172,44 @@ vrna_plot_dp_PS_list( char *seq,
                       plist *mf,
                       char *comment){
 
-  FILE *wastl;
-  int pl_size, gq_num, cut;
-  plist *pl1;
+  FILE    *wastl;
+  size_t  cnt;
+  char    *seq_plain, *tmp, **seqs;
+  int     pl_size, gq_num, cut;
+  plist   *pl1;
 
-  char *seq_plain = vrna_cut_point_remove(seq, &cut);
+  seq_plain = tmp = NULL;
+  cut       = -1;
+  seqs      = vrna_strsplit(seq, "&");
+
+  if (seqs) {
+    seq_plain = seqs[0];
+
+    if (seqs[1]) {
+      /* get first cut point and concatenate sequences */
+      cut = (int)strlen(seq_plain) + 1;
+      vrna_strcat_printf(&seq_plain, "%s", seqs[1]);
+      free(tmp);
+      free(seqs[1]);
+
+      /* add all remaining sequences (so far, we do not store the individual nicks for the remaining sequences */
+      cnt = 2;
+      while(seqs[cnt]) {
+        vrna_strcat_printf(&seq_plain, "%s", seqs[cnt]);
+        free(tmp);
+        free(seqs[cnt++]);
+      }
+    }
+
+    free(seqs);
+  }
 
   wastl = PS_dot_common(seq_plain, cut, wastlfile, comment, 0, PS_MACRO_DOTPLOT_ALL);
 
   free(seq_plain);
 
-  if (wastl==NULL) return 0; /* return 0 for failure */
+  if (wastl==NULL)
+    return 0; /* return 0 for failure */
 
   fprintf(wastl,"%%data starts here\n");
 
