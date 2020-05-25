@@ -322,8 +322,10 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
             if (sc->f)
               en += sc->f(1, jj, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
 
+#if 0
           if (sn[jj] != sn[u])
             en += P->DuplexInit;
+#endif
 
           if (fij == vrna_E_ext_stem(type, -1, -1, P) + en + my_f5[u - 1]) {
             *i                            = u;
@@ -357,8 +359,10 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
             if (sc->f)
               en += sc->f(1, jj, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
 
+#if 0
           if (sn[jj] != sn[u])
             en += P->DuplexInit;
+#endif
 
           if (fij == vrna_E_ext_stem(type, mm5, mm3, P) + en + my_f5[u - 1]) {
             *i                            = u;
@@ -389,8 +393,10 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
           if (sc->f)
             en += sc->f(1, jj, 1, jj, VRNA_DECOMP_EXT_STEM, sc->data);
 
+#if 0
         if (sn[jj] != sn[1])
           en += P->DuplexInit;
+#endif
 
         if (fij == en + vrna_E_ext_stem(type, -1, -1, P)) {
           *i                            = 1;
@@ -416,8 +422,10 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
               en += sc->f(1, jj, 1, jj - 1, VRNA_DECOMP_EXT_STEM, sc->data);
           }
 
+#if 0
           if (sn[jj - 1] != sn[1])
             en += P->DuplexInit;
+#endif
 
           if (fij == en + vrna_E_ext_stem(type, -1, mm3, P)) {
             *i                            = 1;
@@ -442,8 +450,10 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
         type = vrna_get_ptype(idx[jj] + u, ptype);
 
         en = my_c[idx[jj] + u];
+#if 0
         if (sn[jj] != sn[u])
           en += P->DuplexInit;
+#endif
 
         if (evaluate(1, jj, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
           e = my_f5[u - 1] +
@@ -493,8 +503,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
         type = vrna_get_ptype(idx[jj - 1] + u, ptype);
 
         en = my_c[idx[jj - 1] + u];
+
+#if 0
         if (sn[jj - 1] != sn[u])
           en += P->DuplexInit;
+#endif
 
         mm5 = (sn[u] == sn[u - 1]) ? S1[u - 1] : -1;
         mm3 = (sn[jj] == sn[jj - 1]) ? S1[jj] : -1;

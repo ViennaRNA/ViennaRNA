@@ -190,6 +190,7 @@ eval_int_loop(vrna_fold_compound_t  *fc,
           /* regular interior loop */
           energy = E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
         } else {
+#if 0
           /* interior loop like cofold structure */
           short Si, Sj;
           Si      = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
@@ -201,6 +202,9 @@ eval_int_loop(vrna_fold_compound_t  *fc,
                                  S[k - 1], S[l + 1],
                                  md->dangles,
                                  P);
+#else
+          energy = INF;
+#endif
         }
 
         break;
@@ -453,6 +457,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                       rtype[vrna_get_ptype(kl, ptype)];
 
               if ((has_nick) && ((sn[i] != sn[i + 1]) || (sn[j - 1] != sn[j]))) {
+#if 0
                 /* interior loop like cofold structure */
                 short Si, Sj;
                 Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
@@ -464,6 +469,9 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                     S[i], S[j],
                                     md->dangles,
                                     P);
+#else
+                eee = INF;
+#endif
               } else {
                 eee += E_IntLoop(0, 0, type, type2, S[i + 1], S[j - 1], S[i], S[j], P);
               }
@@ -526,6 +534,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                     continue;
 
                   if ((has_nick) && ((sn[i] != sn[k]) || (sn[j - 1] != sn[j]))) {
+#if 0
                     /* interior loop like cofold structure */
                     short Si, Sj;
                     Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
@@ -537,6 +546,9 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                         S[k - 1], S[j],
                                         md->dangles,
                                         P);
+#else
+                    eee = INF;
+#endif
                   } else {
                     eee += E_IntLoop(u1, 0, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
                   }
@@ -606,6 +618,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                     continue;
 
                   if ((has_nick) && ((sn[i] != sn[i + 1]) || (sn[j] != sn[l]))) {
+#if 0
                     /* interior loop like cofold structure */
                     short Si, Sj;
                     Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
@@ -617,6 +630,9 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                         S[i], S[l + 1],
                                         md->dangles,
                                         P);
+#else
+                    eee = INF;
+#endif
                   } else {
                     eee += E_IntLoop(0, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
                   }
@@ -696,6 +712,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                     continue;
 
                   if ((has_nick) && ((sn[i] != sn[k]) || (sn[j] != sn[l]))) {
+#if 0
                     /* interior loop like cofold structure */
                     short Si, Sj;
                     Si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
@@ -707,6 +724,9 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                         S[k - 1], S[l + 1],
                                         md->dangles,
                                         P);
+#else
+                    eee = INF;
+#endif
                   } else {
                     eee +=
                       E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
@@ -972,6 +992,7 @@ E_stack(vrna_fold_compound_t  *fc,
           /* regular stack */
           e = P->stack[type][type_2];
         } else {
+#if 0
           /* stack like cofold structure */
           short si, sj;
           si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
@@ -983,6 +1004,9 @@ E_stack(vrna_fold_compound_t  *fc,
                              S[p - 1], S[q + 1],
                              md->dangles,
                              P);
+#else
+          e = INF;
+#endif
         }
 
         break;

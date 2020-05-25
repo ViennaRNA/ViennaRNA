@@ -233,8 +233,10 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
   domains_up  = fc->domains_up;
   e           = INF;
 
+#if 0
   if (sn[j] != sn[i])
     return eval_hp_loop_fake(fc, i, j);
+#endif
 
   init_sc_hp(fc, &sc_wrapper);
 

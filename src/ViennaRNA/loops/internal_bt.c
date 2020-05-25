@@ -156,6 +156,7 @@ BT_stack(vrna_fold_compound_t *fc,
             /* regular stack */
             *en -= P->stack[type][type_2];
           } else {
+#if 0
             /* stack like cofold structure */
             short si, sj, *S;
             S   = fc->sequence_encoding;
@@ -168,6 +169,9 @@ BT_stack(vrna_fold_compound_t *fc,
                                 S[p - 1], S[q + 1],
                                 md->dangles,
                                 P);
+#else
+            return 0;
+#endif
           }
 
           break;

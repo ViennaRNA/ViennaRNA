@@ -546,6 +546,7 @@ ml_pair53(vrna_fold_compound_t      *fc,
 }
 
 
+#if 0
 PRIVATE int
 E_mb_loop_fake(vrna_fold_compound_t *fc,
                int                  i,
@@ -643,6 +644,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
 
   return e;
 }
+#endif
 
 
 PRIVATE int
@@ -701,11 +703,13 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
 
   e = MIN2(e, decomp);
 
+#if 0
   /* add additional cases for possible strand nicks between i and j */
   if ((fc->type == VRNA_FC_TYPE_SINGLE) && (sn[i] != sn[j])) {
     decomp  = E_mb_loop_fake(fc, i, j);
     e       = MIN2(e, decomp);
   }
+#endif
 
   return e;
 }
