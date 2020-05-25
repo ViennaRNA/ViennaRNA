@@ -1312,14 +1312,14 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
      *  decomposition
      */
     while (1) {
-      int last_nt = se[sn[k - 1]];  /* go to last nucleotide of current strand */
+      int last_nt = se[sn[k]];  /* go to last nucleotide of current strand */
       if (last_nt > j - turn - 2)
         last_nt = j - turn - 2;     /* at most go to last possible decomposition split before reaching j */
 
       if (last_nt < i)
         last_nt = i; /* do not start before i */
 
-      const int count = last_nt - k + 1;
+      const int count = last_nt - k;
 
       en      = vrna_fun_zip_add_min(fmi_tmp + k, fm + k1j, count);
       decomp  = MIN2(decomp, en);
