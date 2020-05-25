@@ -678,6 +678,10 @@ process_record(struct record_data *record)
   for (i = 0; i < n; i++)
     mfe_structure[i] = '.';
 
+#if 1
+  min_en  = vrna_mfe(vc, mfe_structure);
+  mfAB    = vrna_plist(mfe_structure, 0.95);
+#else
   /*
       here, we simply try to obtain a guess of the MFE by ignoring the
       strand nicks and treating the input as a single strand
@@ -692,6 +696,7 @@ process_record(struct record_data *record)
   fc_dummy->params->model_details.backtrack = 1;
   mfAB    = vrna_plist(mfe_structure, 0.95);
   vrna_fold_compound_free(fc_dummy);
+#endif
 
   /* check whether the constraint allows for any solution */
   if ((fold_constrained) || (opt->commands)) {
@@ -718,6 +723,11 @@ process_record(struct record_data *record)
 
     vrna_cstr_print_fasta_header(o_stream->data, record->id);
     vrna_cstr_printf(o_stream->data, "%s\n", record->sequence);
+
+    vrna_cstr_printf_structure(o_stream->data,
+                               pstruct,
+                               record->tty ?  "\n minimum free energy = %6.2f kcal/mol" : " (%6.2f)",
+                               min_en);
 
     free(pstruct);
   }
