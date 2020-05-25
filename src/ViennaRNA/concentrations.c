@@ -238,18 +238,22 @@ equilibrium_constants(double  *dG_complexes,
 
 
 /*
- *  function to maximize to obtain equlibrium concentrations
+ *  function to minimize to obtain equlibrium concentrations
  *  of multistrand systems. We use the transformation
  *
  *  L_a = lambda_a + ln Z_a
  *
  *  such that h(L) reads
  *
- *  h(L) = \sum_a (c_a L_a - exp(L_a)) - sum_k K_k exp(sum_b L_b A_{b,k}
+ *  h(L) = -\sum_a (c_a L_a - exp(L_a)) + sum_k K_k exp(sum_b L_b A_{b,k}
  *
  *  with total concentration c_a of strand a, equilibrium constant
  *  K_k of strand k, and membership matrix A[b][k] denoting the number
  *  of strands b in complex k
+ *
+ *  Note, here we minimize h(L) due to implementation issues whereas
+ *  in our publication we've written h'(L) = -h(L) to effectively
+ *  maximize the function instead.
  */
 PRIVATE double
 h(double        *L,
@@ -274,12 +278,12 @@ h(double        *L,
   }
 
   for (size_t a = 0; a < strands; a++)
-    h += conc_strands_total[a] *
+    h -= conc_strands_total[a] *
          L[a] -
          exp(L[a]);
 
   for (size_t k = 0; k < complexes; k++)
-    h -= K[k];
+    h += K[k];
 
   free(K);
 
@@ -313,11 +317,11 @@ gradient(double       *L,
   }
 
   for (size_t a = 0; a < strands; a++) {
-    g[a] = conc_strands_total[a] -
+    g[a] = -conc_strands_total[a] +
            exp(L[a]);
 
     for (size_t k = 0; k < complexes; k++)
-      g[a] -= A[a][k] *
+      g[a] += A[a][k] *
               K[k];
   }
 
@@ -356,11 +360,11 @@ Hessian(double        *L,
     H[a] = (double *)vrna_alloc(sizeof(double) * strands);
 
     for (size_t b = 0; b < strands; b++) {
-      H[a][b] = -delta[a][b] *
+      H[a][b] = delta[a][b] *
                 exp(L[a]);
 
       for (size_t k = 0; k < complexes; k++) {
-        H[a][b] -= A[a][k] *
+        H[a][b] += A[a][k] *
                    A[b][k] *
                    K[k];
       }
@@ -375,7 +379,7 @@ Hessian(double        *L,
 
 /*
  *  Get concentrations of single strands from
- *  a given vector L (that maximizes h(L))
+ *  a given vector L (that minimizes h(L))
  */
 PRIVATE double *
 conc_single_strands(double  *L,
@@ -392,7 +396,7 @@ conc_single_strands(double  *L,
 
 /*
  *  Get concentrations of complexes from
- *  a given vector L (that maximizes h(L))
+ *  a given vector L (that minimizes h(L))
  */
 PRIVATE double *
 conc_complexes(double       *L,
