@@ -114,6 +114,19 @@ hc_default(int            i,
 
       break;
 
+    case VRNA_DECOMP_EXT_STEM_EXT:
+      if (dat->mx[n * k + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+        eval = (unsigned char)1;
+        if (i != l) {
+          /* otherwise, stem spans from i to j */
+          di = l - k - 1;
+          if ((di != 0) && (dat->hc_up[k + 1] < di))
+            eval = (unsigned char)0;
+        }
+      }
+
+      break;
+
     case VRNA_DECOMP_EXT_EXT_STEM1:
       if (dat->mx[n * (j - 1) + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         eval = (unsigned char)1;
@@ -205,6 +218,8 @@ hc_sn(int            i,
         break;
       /* fall through */
     case VRNA_DECOMP_EXT_EXT_STEM:
+      /* fall through */
+    case VRNA_DECOMP_EXT_STEM_EXT:
       /* fall through */
     case VRNA_DECOMP_EXT_EXT_EXT:
       if (sn[k] == sn[l])
