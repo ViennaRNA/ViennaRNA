@@ -86,34 +86,29 @@ mf_rule_pair(vrna_fold_compound_t *fc,
                  VRNA_DECOMP_EXT_EXT_EXT,
                  &hc_dat_local))
 */
-      tmp2 = 1.;
+    if (sn[i] != sn[i + 1]) {
+      if ((sn[j - 1] != sn[j]) &&
+          (i + 1 == j)) {
+        tmp = 1.;
+      } else if (sn[j - 1] == sn[j]) {
+        tmp = q[my_iindx[i + 1] - j + 1];
+      }
+    } else if (sn[j - 1] != sn[j]) {
+      tmp = q[my_iindx[i + 1] - j + 1];
+    } else{
+      tmp = q[my_iindx[i + 1] - ends[sn[i]]] *
+            q[my_iindx[ends[sn[i]] + 1] - j + 1];
 
-      if (ends[sn[i]] > i)
-        tmp2 *= q[my_iindx[i + 1] - ends[sn[i]]];
-
-      if (j - 1 > ends[sn[i]])
-        tmp2 *= q[my_iindx[ends[sn[i]] + 1] - j + 1];
-
-      tmp += tmp2;
-
+      /* check whether we find more strand nicks between i and j */
+      nick = ends[sn[i]] + 1;
+      while (sn[nick] != sn[j]) {
 /*
-      printf("[%d, %d]: q[%d,%d] * q[%d,%d] => %g\n",
-              i, j,
-              i + 1, ends[sn[i]],
-              ends[sn[i]] + 1, j - 1,
-              tmp2);
-*/
-
-    /* check whether we find more strand nicks between i and j */
-    nick = ends[sn[i]] + 1;
-    while (sn[nick] != sn[j]) {
-/*
-      if (evaluate(i + 1,
-                   j - 1,
-                   ends[sn[nick]],
-                   ends[sn[nick]] + 1,
-                   VRNA_DECOMP_EXT_EXT_EXT,
-                   &hc_dat_local))
+        if (evaluate(i + 1,
+                     j - 1,
+                     ends[sn[nick]],
+                     ends[sn[nick]] + 1,
+                     VRNA_DECOMP_EXT_EXT_EXT,
+                     &hc_dat_local))
 */
         tmp2 = 1.;
         if (i + 1 <= ends[sn[nick]])
@@ -124,7 +119,8 @@ mf_rule_pair(vrna_fold_compound_t *fc,
         tmp += tmp2;
 
 
-      nick = ends[sn[nick]] + 1;
+        nick = ends[sn[nick]] + 1;
+      }
     }
 
     contribution = qbase *
