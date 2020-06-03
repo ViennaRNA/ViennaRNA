@@ -25,6 +25,11 @@
 #include "globals.h"
 #include "cmdline.h"
 
+
+GlobVars GSV;
+GlobArrays GAV;
+GlobToggles GTV;
+
 /* forward declarations privat functions */
 static void ini_globs(void);
 static void ini_gtoggles (void);
