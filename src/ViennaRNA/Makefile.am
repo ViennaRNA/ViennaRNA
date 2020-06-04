@@ -86,6 +86,17 @@ if VRNA_AM_SWITCH_JSON
   JSON_INC    = -I$(top_srcdir)/src/json
 endif
 
+bin_PROGRAMS = test_dlib
+
+test_dlib_CPPFLAGS = \
+    -I$(top_srcdir)/src/dlib-19.19
+
+test_dlib_LDADD = \
+    -L$(top_builddir)/src/dlib-19.19/build/dlib -ldlib -lblas -llapack
+
+test_dlib_SOURCES = \
+    wrap_dlib.cpp
+
 pkginclude_HEADERS =  \
     pair_mat.h \
     RNAstruct.h \
