@@ -22,7 +22,8 @@ vrna_landscapedir       = $(pkgincludedir)/landscape
 lib_LTLIBRARIES = libRNA.la
 
 # convenience library
-noinst_LTLIBRARIES =  libRNA_conv.la \
+noinst_LTLIBRARIES =  libRNA_concentrations.la \
+                      libRNA_conv.la \
                       libRNA_constraints.la \
                       libRNA_datastructures.la \
                       libRNA_utils.la \
@@ -41,7 +42,16 @@ libRNA_la_SOURCES =
 libRNA_la_LIBADD = libRNA_conv.la
 libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS) $(PTHREAD_LIBS)
 
+libRNA_concentrations_la_CPPFLAGS = \
+    -I$(top_srcdir)/src/dlib-19.19
+
+
+libRNA_concentrations_la_LDFLAGS = \
+    -L$(top_builddir)/src/dlib-19.19/build/dlib -ldlib -lblas -llapack
+
+
 libRNA_conv_la_LIBADD = \
+    libRNA_concentrations.la \
     libRNA_constraints.la \
     libRNA_datastructures.la \
     libRNA_utils.la \
@@ -86,18 +96,10 @@ if VRNA_AM_SWITCH_JSON
   JSON_INC    = -I$(top_srcdir)/src/json
 endif
 
-bin_PROGRAMS = test_dlib
-
-test_dlib_CPPFLAGS = \
-    -I$(top_srcdir)/src/dlib-19.19
-
-test_dlib_LDADD = \
-    -L$(top_builddir)/src/dlib-19.19/build/dlib -ldlib -lblas -llapack
-
-test_dlib_SOURCES = \
-    wrap_dlib.cpp
 
 pkginclude_HEADERS =  \
+    concentrations.h \
+    wrap_dlib.h \
     pair_mat.h \
     RNAstruct.h \
     dist_vars.h \
@@ -118,7 +120,6 @@ pkginclude_HEADERS =  \
     duplex.h \
     alifold.h \
     part_func_co.h \
-    concentrations.h \
     ProfileAln.h \
     LPfold.h \
     Lfold.h \
@@ -291,7 +292,6 @@ libRNA_conv_la_SOURCES = \
     Lfold.c \
     cofold.c \
     part_func_co.c \
-    concentrations.c \
     ProfileAln.c \
     duplex.c \
     alifold.c \
@@ -332,6 +332,12 @@ endif
 libRNA_eval_la_SOURCES = \
     eval.c \
     eval_wrappers.c
+
+
+libRNA_concentrations_la_SOURCES = \
+    concentrations.c \
+    wrap_dlib.cpp
+
 
 libRNA_constraints_la_SOURCES = \
     constraints/constraints.c \
