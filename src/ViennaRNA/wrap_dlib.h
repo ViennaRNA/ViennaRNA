@@ -5,10 +5,13 @@
 extern "C" {
 #endif
 
-#include "utils/basic.h"
+double *
+vrna_equilibrium_conc(const double        *eq_constants,
+                      double              *concentration_strands,
+                      const unsigned int  **A,
+                      size_t              num_strands,
+                      size_t              num_complexes);
 
-PUBLIC double  *
-vrna_equilibrium_conc(void);
 
 #ifdef __cplusplus
 }
