@@ -80,6 +80,13 @@ vrna_dimer_conc_t *vrna_pf_dimer_concentrations(double                  FcAB,
                                                 const double            *startconc,
                                                 const vrna_exp_param_t  *exp_params);
 
+double *
+vrna_equilibrium_constants(const double        *dG_complexes,
+                      const double        *dG_strands,
+                      const unsigned int  **A,
+                      double        kT,
+                      size_t        strands,
+                      size_t        complexes);
 
 /**
  *  @}

@@ -215,23 +215,25 @@ Newton_Conc(double  KAB,
  *  from its respective ensemble free energy and the
  *  ensemble free energies of the single strands
  */
-PRIVATE double *
-equilibrium_constants(double  *dG_complexes,
-                      double  *dG_strands,
-                      double  kT,
-                      size_t  strands,
-                      size_t  complexes)
+PUBLIC double *
+vrna_equilibrium_constants(const double        *dG_complexes,
+                      const double        *dG_strands,
+                      const unsigned int  **A,
+                      double        kT,
+                      size_t        strands,
+                      size_t        complexes)
 {
   double *K, tmp, tmp2;
 
   K   = (double *)vrna_alloc(sizeof(double) * complexes);
-  tmp = 0;
 
-  for (size_t a = 0; a < strands; a++)
-    tmp += dG_strands[a];
+  for (size_t k = 0; k < complexes; k++) {
+    tmp = 0;
+    for (size_t a = 0; a < strands; a++)
+      tmp += (double)A[a][k] * dG_strands[a];
 
-  for (size_t k = 0; k < complexes; k++)
     K[k] = exp((tmp - dG_complexes[k]) / kT);
+  }
 
   return K;
 }
