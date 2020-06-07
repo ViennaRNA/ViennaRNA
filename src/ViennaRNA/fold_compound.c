@@ -887,6 +887,7 @@ nullify(vrna_fold_compound_t *fc)
     fc->cutpoint      = -1;
     fc->strand_number = NULL;
     fc->strand_order  = NULL;
+    fc->strand_order_uniq  = NULL;
     fc->strand_start  = NULL;
     fc->strand_end    = NULL;
     fc->nucleotides   = NULL;

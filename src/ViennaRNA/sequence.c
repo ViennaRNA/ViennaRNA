@@ -345,12 +345,14 @@ vrna_sequence_remove_all(vrna_fold_compound_t *fc)
 
     free(fc->strand_number);
     free(fc->strand_order);
+    free(fc->strand_order_uniq);
     free(fc->strand_start);
     free(fc->strand_end);
 
     fc->strands       = 0;
     fc->strand_number = NULL;
     fc->strand_order  = NULL;
+    fc->strand_order_uniq  = NULL;
     fc->strand_start  = NULL;
     fc->strand_end    = NULL;
   }
@@ -365,10 +367,12 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
   if (fc) {
     free(fc->strand_number);
     free(fc->strand_order);
+    free(fc->strand_order_uniq);
     free(fc->strand_start);
     free(fc->strand_end);
 
     fc->strand_order  = NULL;
+    fc->strand_order_uniq  = NULL;
     fc->strand_start  = NULL;
     fc->strand_end    = NULL;
 
@@ -377,6 +381,7 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
         /* 1. store initial strand order */
+        fc->strand_order_uniq = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
         fc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
         for (cnt = 0; cnt < fc->strands; cnt++)
           fc->strand_order[cnt] = cnt;
@@ -411,6 +416,7 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
         fc->nucleotides[0].length = fc->length;
 
         /* 1. store initial strand order */
+        fc->strand_order_uniq = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
         fc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
 
         /* 2. mark start and end positions of sequences */
@@ -431,6 +437,7 @@ vrna_sequence_order_update(vrna_fold_compound_t *fc,
 {
   if ((fc) && (order)) {
     /* first assign new order to strand_oder array */
+    memcpy(fc->strand_order_uniq, order, sizeof(unsigned int) * fc->strands);
     memcpy(fc->strand_order, order, sizeof(unsigned int) * fc->strands);
 
     /* now, update strand_start/end positions and strand_number association */

@@ -153,6 +153,7 @@ struct vrna_fc_s {
 
   unsigned int      *strand_number; /**<  @brief  The strand number a particular nucleotide is associated with */
   unsigned int      *strand_order;  /**<  @brief  The strand order, i.e. permutation of current concatenated sequence */
+  unsigned int      *strand_order_uniq; /**<  @brief  The strand order array where identical sequences have the same ID */
   unsigned int      *strand_start;  /**<  @brief  The start position of a particular strand within the current concatenated sequence */
   unsigned int      *strand_end;    /**<  @brief  The end (last) position of a particular strand within the current concatenated sequence */
 
