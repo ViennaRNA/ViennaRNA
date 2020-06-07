@@ -59,6 +59,9 @@ if VRNA_AM_SWITCH_SVM
 LDADD += $(SVM_LIBS)
 endif
 
+RNAmultifold_LDADD = $(LDADD)
+RNAmultifold_LDADD += -lstdc++
+ 
 GENGETOPT_CMDL = \
         RNAfold_cmdl.c RNAfold_cmdl.h \
         RNAalifold_cmdl.c RNAalifold_cmdl.h \

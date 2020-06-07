@@ -187,6 +187,39 @@ default="1"
 argoptional
 optional
 
+option "all_pf" a
+"Compute the partition function and free energies not only of the hetero-dimer consisting\
+ of the two input sequences (the \"AB dimer\"), but also of the homo-dimers AA and BB as\
+ well as A and B monomers.\n"
+details="The output will contain the free energies for each of these species, as well as\
+ 5 dot plots containing the conditional pair probabilities, called \"ABname5.ps\", \"AAname5.ps\"\
+ and so on. For later use, these dot plot files also contain the free energy of the\
+ ensemble as a comment. Using -a automatically switches on the -p option.\
+ Base pair probability computations may be turned off altogether by providing \"0\" as\
+ an argument to this parameter. In that case, no dot plot files will be generated.\n\n"
+int
+default="1"
+argoptional
+optional
+
+
+option  "concentrations"  c
+"In addition to everything listed under the -a option, read in initial monomer concentrations\
+ and compute the expected equilibrium concentrations of the 5 possible species (AB, AA, BB, A, B).\n"
+details="Start concentrations are read from stdin (unless the -f option is used) in [mol/l],\
+ equilibrium concentrations are given realtive to the sum of the two inputs. An arbitrary number\
+ of initial concentrations can be specified (one pair of concentrations per line).\n\n"
+flag
+off
+
+option  "concfile"  f
+"Specify a file with initial concentrations for the two sequences."
+details="The table consits of arbitrary many lines with just two numbers (the concentration of\
+ sequence A and B). This option will automatically toggle the -c (and thus -a and -p) options (see above).\n\n"
+string
+typestr="filename"
+optional
+
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
