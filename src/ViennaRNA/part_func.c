@@ -328,22 +328,27 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
 }
 
 
-PUBLIC double
+PUBLIC vrna_multimer_pf_t
 vrna_pf_multimer(vrna_fold_compound_t *fc,
                  char                 *structure)
 {
-  unsigned int      *so, *ss, *se;
-  int               n;
-  FLT_OR_DBL        Q;
-  double            free_energy;
-  char              *sequence;
-  vrna_md_t         *md;
-  vrna_exp_param_t  *params;
-  vrna_mx_pf_t      *matrices;
+  unsigned int        *so, *ss, *se;
+  int                 n;
+  FLT_OR_DBL          Q;
+  double              free_energy;
+  char                *sequence;
+  vrna_md_t           *md;
+  vrna_exp_param_t    *params;
+  vrna_mx_pf_t        *matrices;
+  vrna_multimer_pf_t  result = {
+    .F_connected  = (double)(INF / 100.),
+    .F_monomers   = NULL,
+    .num_monomers = 0
+  };
 
   if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID)) {
     vrna_message_warning("vrna_pf_dimer@part_func_co.c: Failed to prepare vrna_fold_compound");
-    return (double)(INF / 100.);
+    return result;
   }
 
   params    = fc->exp_params;
@@ -373,14 +378,13 @@ vrna_pf_multimer(vrna_fold_compound_t *fc,
   vrna_pf_multifold_prepare(fc);
 
   if (!fill_arrays(fc)) {
-
 #ifdef SUN4
     standard_arithmetic();
 #elif defined(HP9)
     fpsetfastmode(0);
 #endif
 
-    return (double)(INF / 100.);
+    return result;
   }
 
   vrna_gr_reset(fc);
@@ -402,8 +406,7 @@ vrna_pf_multimer(vrna_fold_compound_t *fc,
 
   if (fc->strands > 1) {
     /* check for rotational symmetry correction */
-    unsigned int sym = vrna_rotational_symmetry_num((const unsigned int *) so,
-                                                    (size_t)fc->strands);
+    unsigned int sym = vrna_rotational_symmetry(fc->sequence);
     Q /= (FLT_OR_DBL)sym;
 
     /* add interaction penalty */
@@ -411,6 +414,19 @@ vrna_pf_multimer(vrna_fold_compound_t *fc,
   }
 
   free_energy = (-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0;
+
+  result.F_connected  = free_energy;
+  result.num_monomers = fc->strands;
+  result.F_monomers   = (double *)vrna_alloc(sizeof(double) * fc->strands);
+
+  for (size_t i = 0; i < fc->strands; i++) {
+    size_t start, end;
+    start                 = ss[so[i]];
+    end                   = se[so[i]];
+    Q                     = matrices->q[fc->iindx[start] - end];
+    result.F_monomers[i]  = (-log(Q) - (end - start + 1) * log(params->pf_scale)) * params->kT /
+                            1000.0;
+  }
 
   /* backtracking to construct binding probabilities of pairs */
   if (md->compute_bpp) {
@@ -434,7 +450,7 @@ vrna_pf_multimer(vrna_fold_compound_t *fc,
   fpsetfastmode(0);
 #endif
 
-  return free_energy;
+  return result;
 }
 
 
