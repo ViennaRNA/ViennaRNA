@@ -824,7 +824,6 @@ process_record(struct record_data *record)
   /* compute partition function */
   if (opt->pf) {
     char              *pairing_propensity;
-    double            dG;
 
     prAB                = NULL;
     pairing_propensity  = (char *)vrna_alloc(sizeof(char) * (n + 1));
@@ -844,9 +843,8 @@ process_record(struct record_data *record)
                              vc->exp_params->pf_scale);
 
     /* compute partition function */
-    vrna_multimer_pf_t pf_results, pf_results_AA, pf_results_BB;
-    pf_results = vrna_pf_multimer(vc, pairing_propensity);
-    dG = pf_results.F_connected;
+    FLT_OR_DBL dG, dG_AA, dG_BB;
+    dG = vrna_pf_multimer(vc, pairing_propensity);
 
     if (opt->md.compute_bpp) {
       char *costruc, *filename_dot, *comment;
@@ -909,15 +907,24 @@ process_record(struct record_data *record)
       /* generate all complexes */
       size_t  max_interacting_strands = vc->strands;
 
-      unsigned int ***complexes = (unsigned int ***)vrna_alloc(sizeof(unsigned int **) * max_interacting_strands);
+      unsigned int ***complexes     = (unsigned int ***)vrna_alloc(sizeof(unsigned int **) * max_interacting_strands);
+      double        **dG_complexes  = (double **)vrna_alloc(sizeof(double *) * max_interacting_strands);
 
       complexes -= 1;
+      dG_complexes -= 1;
 
       for (size_t k = 1; k <= max_interacting_strands; k++) {
+        size_t  num_complexes = 0;
+        printf("Processing complexes of size %u\n", k);
+        /* enumerate all complexes of current size */
         complexes[k] = n_multichoose_k(vc->strands, k);
 
-        printf("Processing complexes of size %u\n", k);
-        for (size_t c_cnt = 0; complexes[k][c_cnt] != NULL; c_cnt++) {
+        /* count number of complexes of current size */
+        for (; complexes[k][num_complexes] != NULL; num_complexes++);
+
+        dG_complexes[k] = (double *)vrna_alloc(sizeof(double) * num_complexes);
+
+        for (size_t c_cnt = 0; c_cnt < num_complexes; c_cnt++) {
           /* Now, enumerate all non-cyclic permutations for current complex */
 
           /* first, compose a list of species counts */
@@ -937,17 +944,54 @@ process_record(struct record_data *record)
           }
           species[known_species] = 0;
 
+          /* enumerate all non-cyclic permutations of current complex */
           unsigned int **permutations = vrna_enumerate_necklaces(species);
+          printf("--- ");
+          for (size_t j = 0; j < k; j++)
+            printf("%u ", complexes[k][c_cnt][j]);
+          printf(" ---\n");
 
-          printf("Enumerating all non-cyclic permutations:\n");
+          double dG_current = 0.;
 
           for (size_t i = 0; permutations[i]; i++) {
-            for (size_t j = 1; j <= k; j++)
-              printf("%u ", mapping[permutations[i][j]]);
-            printf("\n");
-          }
-        }
+            char *current_sequence = NULL;
 
+            printf("%u ", mapping[permutations[i][1]]);
+
+            vrna_strcat_printf(&current_sequence,
+                               "%s",
+                               vc->nucleotides[mapping[permutations[i][1]]].string);
+
+            for (size_t j = 2; j <= k; j++) {
+              printf("%u ", mapping[permutations[i][j]]);
+              vrna_strcat_printf(&current_sequence,
+                                 "&%s",
+                                 vc->nucleotides[mapping[permutations[i][j]]].string);
+            }
+            printf("\n");
+
+            int bpp_comp = opt->md.compute_bpp;
+            opt->md.compute_bpp = 0;
+            vrna_fold_compound_t  *fc_current = vrna_fold_compound(current_sequence, &(opt->md), VRNA_OPTION_DEFAULT);
+
+            double mfe_current = vrna_mfe(fc_current, NULL);
+
+            vrna_exp_params_rescale(fc_current, &mfe_current);
+
+            double F = vrna_pf_multimer(fc_current, NULL);
+
+            /* store, or add up contribution from current permutation */
+            dG_current = (i == 0) ? F : vrna_pf_add(dG_current, F, kT);
+
+            free(current_sequence);
+            vrna_fold_compound_free(fc_current);
+            opt->md.compute_bpp = bpp_comp;
+          }
+
+          dG_complexes[k][c_cnt] = dG_current;
+
+          printf("dG: %g\n", dG_current);
+        }
       }
 
 
@@ -965,7 +1009,7 @@ process_record(struct record_data *record)
 
       vrna_exp_params_rescale(fc_AA, &mfe_AA);
 
-      pf_results_AA = vrna_pf_multimer(fc_AA, NULL);
+      dG_AA = vrna_pf_multimer(fc_AA, NULL);
 
       free(seq_AA);
       vrna_fold_compound_free(fc_AA);
@@ -981,22 +1025,24 @@ process_record(struct record_data *record)
 
       vrna_exp_params_rescale(fc_BB, &mfe_BB);
 
-      pf_results_BB = vrna_pf_multimer(fc_BB, NULL);
+      dG_BB = vrna_pf_multimer(fc_BB, NULL);
 
       free(seq_BB);
       vrna_fold_compound_free(fc_BB);
 
       opt->md.compute_bpp = bpp_comp;
 
+      FLT_OR_DBL *F_monomers = vrna_pf_substrands(vc, 1);
+
       vrna_cstr_printf_comment(o_stream->data, "Free Energies:");
       vrna_cstr_printf_thead(o_stream->data, "AB\t\tAA\t\tBB\t\tA\t\tB");
       vrna_cstr_printf_tbody(o_stream->data,
                              "%.6f\t%6f\t%6f\t%6f\t%6f",
-                             pf_results.F_connected,
-                             pf_results_AA.F_connected,
-                             pf_results_BB.F_connected,
-                             pf_results.F_monomers[0],
-                             pf_results.F_monomers[1]);
+                             dG,
+                             dG_AA,
+                             dG_BB,
+                             F_monomers[0],
+                             F_monomers[1]);
 
       if (opt->doC) {
         double *conc_complexes, *conc_monomers;
@@ -1021,11 +1067,11 @@ process_record(struct record_data *record)
 
         dG_complexes = (double *)vrna_alloc(sizeof(double) * 3);
         dG_strands    = (double *)vrna_alloc(sizeof(double) * 2);
-        dG_complexes[0] = pf_results.F_connected;
-        dG_complexes[1] = pf_results_AA.F_connected;
-        dG_complexes[2] = pf_results_BB.F_connected;
-        dG_strands[0] = pf_results.F_monomers[0];
-        dG_strands[1] = pf_results.F_monomers[1];
+        dG_complexes[0] = dG;
+        dG_complexes[1] = dG_AA;
+        dG_complexes[2] = dG_BB;
+        dG_strands[0] = F_monomers[0];
+        dG_strands[1] = F_monomers[1];
 
         equilibrium_constants_complex = vrna_equilibrium_constants((const double *)dG_complexes,
                                                                   (const double *)dG_strands,
@@ -1071,10 +1117,12 @@ process_record(struct record_data *record)
                                  cc[1] / tot);
         }
       }
+
+      free(F_monomers);
     }
 
-    free(prAB);
-    free(pairing_propensity);
+   free(prAB);
+   free(pairing_propensity);
 
     
   }   /*end if(pf)*/
