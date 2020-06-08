@@ -172,10 +172,18 @@ vrna_pf_dimer(vrna_fold_compound_t  *vc,
               char                  *structure);
 
 
-vrna_multimer_pf_t
+FLT_OR_DBL
 vrna_pf_multimer(vrna_fold_compound_t *vc,
                  char                 *structure);
 
+FLT_OR_DBL *
+vrna_pf_substrands(vrna_fold_compound_t *fc,
+                   size_t               complex_size);
+
+FLT_OR_DBL
+vrna_pf_add(FLT_OR_DBL  dG1,
+            FLT_OR_DBL  dG2,
+            double      kT);
 
 /*
  * End basic global interface

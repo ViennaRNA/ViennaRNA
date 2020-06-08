@@ -328,27 +328,23 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
 }
 
 
-PUBLIC vrna_multimer_pf_t
+PUBLIC FLT_OR_DBL
 vrna_pf_multimer(vrna_fold_compound_t *fc,
                  char                 *structure)
 {
   unsigned int        *so, *ss, *se;
   int                 n;
-  FLT_OR_DBL          Q;
-  double              free_energy;
+  FLT_OR_DBL          Q, dG;
   char                *sequence;
   vrna_md_t           *md;
   vrna_exp_param_t    *params;
   vrna_mx_pf_t        *matrices;
-  vrna_multimer_pf_t  result = {
-    .F_connected  = (double)(INF / 100.),
-    .F_monomers   = NULL,
-    .num_monomers = 0
-  };
 
-  if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID)) {
-    vrna_message_warning("vrna_pf_dimer@part_func_co.c: Failed to prepare vrna_fold_compound");
-    return result;
+  dG = (double)(INF / 100.);
+
+  if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF)) {
+    vrna_message_warning("vrna_pf_multimer@part_func_co.c: Failed to prepare vrna_fold_compound");
+    return dG;
   }
 
   params    = fc->exp_params;
@@ -384,7 +380,7 @@ vrna_pf_multimer(vrna_fold_compound_t *fc,
     fpsetfastmode(0);
 #endif
 
-    return result;
+    return dG;
   }
 
   vrna_gr_reset(fc);
@@ -413,20 +409,7 @@ vrna_pf_multimer(vrna_fold_compound_t *fc,
     Q *= pow(params->expDuplexInit, (FLT_OR_DBL)(fc->strands - 1));
   }
 
-  free_energy = (-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0;
-
-  result.F_connected  = free_energy;
-  result.num_monomers = fc->strands;
-  result.F_monomers   = (double *)vrna_alloc(sizeof(double) * fc->strands);
-
-  for (size_t i = 0; i < fc->strands; i++) {
-    size_t start, end;
-    start                 = ss[so[i]];
-    end                   = se[so[i]];
-    Q                     = matrices->q[fc->iindx[start] - end];
-    result.F_monomers[i]  = (-log(Q) - (end - start + 1) * log(params->pf_scale)) * params->kT /
-                            1000.0;
-  }
+  dG = (FLT_OR_DBL)((-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0);
 
   /* backtracking to construct binding probabilities of pairs */
   if (md->compute_bpp) {
@@ -450,7 +433,7 @@ vrna_pf_multimer(vrna_fold_compound_t *fc,
   fpsetfastmode(0);
 #endif
 
-  return result;
+  return dG;
 }
 
 
@@ -460,6 +443,57 @@ vrna_pf_float_precision(void)
   return sizeof(FLT_OR_DBL) == sizeof(float);
 }
 
+
+PUBLIC FLT_OR_DBL *
+vrna_pf_substrands(vrna_fold_compound_t *fc,
+                   size_t               complex_size)
+{
+  FLT_OR_DBL *Q_sub = NULL;
+
+  if ((fc) &&
+      (fc->strands >= complex_size) &&
+      (fc->exp_matrices) &&
+      (fc->exp_matrices->q))
+  {
+    unsigned int      *ss, *se, *so;
+    FLT_OR_DBL        Q;
+    vrna_exp_param_t  *params;
+    vrna_mx_pf_t      *matrices;
+
+    ss      = fc->strand_start;
+    se      = fc->strand_end;
+    so      = fc->strand_order;
+    params  = fc->exp_params;
+    matrices  = fc->exp_matrices;
+
+    Q_sub = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->strands - complex_size + 1));
+
+    for (size_t i = 0; i < fc->strands - complex_size + 1; i++) {
+      size_t start, end;
+      start     = ss[so[i]];
+      end       = se[so[i + complex_size - 1]];
+      Q         = matrices->q[fc->iindx[start] - end];
+      Q_sub[i]  = (-log(Q) - (end - start + 1) * log(params->pf_scale)) *
+                  params->kT /
+                  1000.0;
+    }
+  }
+
+  return Q_sub;
+}
+
+
+PUBLIC FLT_OR_DBL
+vrna_pf_add(FLT_OR_DBL  dG1,
+            FLT_OR_DBL  dG2,
+            double      kT)
+{
+  double  x1 = -(double)dG1 / kT;
+  double  x2 = -(double)dG2 / kT;
+  double  xs = MAX2(x1, x2);
+
+  return -kT * (xs + log(exp(x1 - xs) + exp(x2 - xs)));
+}
 
 /*
  #################################
