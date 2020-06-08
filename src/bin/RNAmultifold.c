@@ -859,7 +859,7 @@ process_record(struct record_data *record)
                                    vc->cutpoint,
                                    filename_dot,
                                    prAB,
-                                   NULL,
+                                   mfAB,
                                    comment));
 
       free(comment);
@@ -915,7 +915,9 @@ process_record(struct record_data *record)
 
       for (size_t k = 1; k <= max_interacting_strands; k++) {
         size_t  num_complexes = 0;
+#if DEBUG
         printf("Processing complexes of size %u\n", k);
+#endif
         /* enumerate all complexes of current size */
         complexes[k] = n_multichoose_k(vc->strands, k);
 
@@ -946,32 +948,44 @@ process_record(struct record_data *record)
 
           /* enumerate all non-cyclic permutations of current complex */
           unsigned int **permutations = vrna_enumerate_necklaces(species);
+
+#if DEBUG
           printf("--- ");
           for (size_t j = 0; j < k; j++)
             printf("%u ", complexes[k][c_cnt][j]);
           printf(" ---\n");
+#endif
 
           double dG_current = 0.;
 
           for (size_t i = 0; permutations[i]; i++) {
             char *current_sequence = NULL;
 
+#if DEBUG
             printf("%u ", mapping[permutations[i][1]]);
+#endif
 
             vrna_strcat_printf(&current_sequence,
                                "%s",
                                vc->nucleotides[mapping[permutations[i][1]]].string);
 
             for (size_t j = 2; j <= k; j++) {
+#if DEBUG
               printf("%u ", mapping[permutations[i][j]]);
+#endif
               vrna_strcat_printf(&current_sequence,
                                  "&%s",
                                  vc->nucleotides[mapping[permutations[i][j]]].string);
             }
+#if DEBUG
             printf("\n");
+#endif
 
+            /* for now, do not compute base pair probs */
             int bpp_comp = opt->md.compute_bpp;
             opt->md.compute_bpp = 0;
+
+            /* compute MFE and PF for current permutation */
             vrna_fold_compound_t  *fc_current = vrna_fold_compound(current_sequence, &(opt->md), VRNA_OPTION_DEFAULT);
 
             double mfe_current = vrna_mfe(fc_current, NULL);
@@ -985,17 +999,191 @@ process_record(struct record_data *record)
 
             free(current_sequence);
             vrna_fold_compound_free(fc_current);
+
+            /* restore original base pair probs behavior */
             opt->md.compute_bpp = bpp_comp;
+
+            free(permutations[i]);
           }
 
-          dG_complexes[k][c_cnt] = dG_current;
+          free(species);
+          free(species_count);
+          free(mapping);
+          free(permutations);
 
-          printf("dG: %g\n", dG_current);
+          dG_complexes[k][c_cnt] = dG_current;
         }
       }
 
+      vrna_cstr_printf_comment(o_stream->data, "Free Energies:");
 
+      /* construct ASCII complex strings in reverse size order, i.e. larges complexes first */
+      char  *monomer_string       = NULL;
+      char  *complex_string       = NULL;
+      char  *dG_string            = NULL;
+      char  *dG_string_monomers   = NULL;
+      char  *curr_complex_string  = (char *)vrna_alloc(sizeof(char) * (max_interacting_strands + 1));
+      for (size_t i = max_interacting_strands; i > 1; i--) {
+        for (size_t j = 0; complexes[i][j] != NULL; j++) {
+          for (size_t k = 0; k < i; k++) {
+            curr_complex_string[k] = complexes[i][j][k];
+            curr_complex_string[k] += (curr_complex_string[k] > 25) ? 'a' : 'A';
+          }
+          curr_complex_string[i] = '\0';
+          if ((i == max_interacting_strands) && (j == 0)) {
+            vrna_strcat_printf(&complex_string, "%s", curr_complex_string);
+            vrna_strcat_printf(&dG_string, "%6f", dG_complexes[i][j]);
+          } else {
+            vrna_strcat_printf(&complex_string, "\t\t%s", curr_complex_string);
+            vrna_strcat_printf(&dG_string, "\t%6f", dG_complexes[i][j]);
+          }
+        }
+      }
 
+      for (size_t j = 0; complexes[1][j] != NULL; j++) {
+        curr_complex_string[0] = complexes[1][j][0];
+        curr_complex_string[0] += (curr_complex_string[0] > 25) ? 'a' : 'A';
+        curr_complex_string[1] = '\0';
+        if (j == 0) {
+          vrna_strcat_printf(&monomer_string, "%s", curr_complex_string);
+          vrna_strcat_printf(&dG_string_monomers, "%6f", dG_complexes[1][j]);
+        } else {
+          vrna_strcat_printf(&monomer_string, "\t\t%s", curr_complex_string);
+          vrna_strcat_printf(&dG_string_monomers, "\t%6f", dG_complexes[1][j]);
+        }
+      }
+
+      free(curr_complex_string);
+
+      vrna_strcat_printf(&complex_string, "\t\t%s", monomer_string);
+      vrna_strcat_printf(&dG_string, "\t%s", dG_string_monomers);
+
+      vrna_cstr_printf_thead(o_stream->data, complex_string);
+      vrna_cstr_printf_tbody(o_stream->data, dG_string);
+
+      free(dG_string_monomers);
+      free(dG_string);
+
+      /* concentration computations */
+      if (opt->doC) {
+        size_t num_strands = vc->strands;
+
+        /* count number of true complexes */
+        size_t num_true_complexes = 0;
+        for (size_t s = max_interacting_strands; s > 1; s--)
+          for (size_t i = 0; complexes[s][i] != NULL; i++)
+            num_true_complexes++;
+
+        /* create complex-strand association matrix */
+        unsigned int **A = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * num_strands);
+        for (size_t a = 0; a < num_strands; a++)
+          A[a] = (unsigned int *)vrna_alloc(sizeof(unsigned int) * num_true_complexes);
+
+        /* fill complex-strand association matrix */
+        size_t curr_complex = 0;
+        for (size_t s = max_interacting_strands; s > 1; s--)
+          for (size_t i = 0; complexes[s][i] != NULL; i++) {
+            for (size_t j = 0; j < s; j++)
+              A[complexes[s][i][j]][curr_complex]++;
+
+            curr_complex++;
+          }
+
+        /* create F_complexes and F_monomer arrays to compute equilibrium constants K */
+        double *equilibrium_constants_complexes;
+        double *F_monomers   = (double *)vrna_alloc(sizeof(double) * num_strands);
+        double *F_complexes  = (double *)vrna_alloc(sizeof(double) * num_true_complexes);
+
+        for (size_t s = 0; s < num_strands; s++)
+          F_monomers[s] = dG_complexes[1][s];
+
+        curr_complex = 0;
+        for (size_t s = max_interacting_strands; s > 1; s--)
+          for (size_t i = 0; complexes[s][i] != NULL; i++) {
+            F_complexes[curr_complex] = dG_complexes[s][i];
+            curr_complex++;
+          }
+
+        equilibrium_constants_complexes = vrna_equilibrium_constants((const double *)F_complexes,
+                                                                     (const double *)F_monomers,
+                                                                      (const unsigned int **)A,
+                                                                      kT,
+                                                                      num_strands,
+                                                                      num_true_complexes);
+
+        /* count number of concentration computations */
+        size_t num_conc = 0;
+        for (; concentrations[(num_conc * num_strands)] != 0.; num_conc++);
+
+        vrna_cstr_printf_thead(o_stream->data,
+                             "Initial concentrations\t\trelative Equilibrium concentrations\n"
+                             "%s\t\t%s", monomer_string, complex_string);
+
+        double *cc = (double *)vrna_alloc(sizeof(double) * num_strands);
+        double *conc_complexes;
+
+        for (size_t c_i = 0; c_i < num_conc; c_i++) {
+          char    *line = NULL;
+          double  tot   = 0.;
+
+          memcpy(cc, concentrations + (c_i * num_strands), sizeof(double) * num_strands);
+
+          tot = cc[0];
+
+          /* prepare output line with initial concentration data */
+          vrna_strcat_printf(&line, "%-10g", cc[0]);
+
+          for (size_t i = 1; i < num_strands; i++) {
+            vrna_strcat_printf(&line, "\t%-10g", cc[i]);
+            tot += cc[i];
+          }
+
+          conc_complexes = vrna_equilibrium_conc(equilibrium_constants_complexes,
+                                                 cc,
+                                                 (const unsigned int **)A,
+                                                 num_strands,
+                                                 num_true_complexes);
+
+          /* append complex concentrations to output line */
+          for (size_t i = 0; i < num_true_complexes; i++)
+            vrna_strcat_printf(&line, "\t%.5f ", conc_complexes[i] / tot);
+
+          /* append monomer concentrations to output line */
+          for (size_t i = 0; i < num_strands; i++)
+            vrna_strcat_printf(&line, "\t%.5f ", cc[i] / tot);
+
+          vrna_cstr_printf_tbody(o_stream->data, line);
+
+          free(line);
+          free(conc_complexes);
+        }
+
+        free(cc);
+        free(concentrations);
+        free(equilibrium_constants_complexes);
+        free(F_monomers);
+        free(F_complexes);
+        for (size_t a = 0; a < num_strands; a++)
+          free(A[a]);
+        free(A);
+      }
+
+      free(complex_string);
+      free(monomer_string);
+
+      /* major cleanup */
+      for (size_t k = 1; k <= max_interacting_strands; k++) {
+        for (size_t i = 0; complexes[k][i] != NULL; i++)
+          free(complexes[k][i]);
+        free(complexes[k]);
+        free(dG_complexes[k]);
+      }
+
+      complexes += 1;
+      dG_complexes += 1;
+      free(complexes);
+      free(dG_complexes);
+#if 0
       /* AA */
       char *seq_AA = vrna_strdup_printf("%s&%s",
                                         vc->nucleotides[0].string,
@@ -1119,6 +1307,8 @@ process_record(struct record_data *record)
       }
 
       free(F_monomers);
+#endif
+
     }
 
    free(prAB);
@@ -1133,6 +1323,7 @@ process_record(struct record_data *record)
     flush_cstr_callback(NULL, 0, (void *)o_stream);
 
   /* clean up */
+  free(mfAB);
   free(record->SEQ_ID);
   free(record->id);
   free(sequence);
