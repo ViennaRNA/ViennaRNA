@@ -141,7 +141,7 @@ vrna_enumerate_necklaces(const unsigned int *entity_counts)
 
   /* do initial step */
   for (i = 1; i <= n; i++)
-    result[result_count][i] = content[num_entities - 1].value;
+    result[result_count][i] = num_entities - 1;
 
   result[result_count][1] = 0;
   content[0].count        = content[0].count - 1;
