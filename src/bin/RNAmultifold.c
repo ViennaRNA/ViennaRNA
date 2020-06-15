@@ -915,9 +915,7 @@ process_record(struct record_data *record)
 
       for (size_t k = 1; k <= max_interacting_strands; k++) {
         size_t  num_complexes = 0;
-#if DEBUG
-        printf("Processing complexes of size %u\n", k);
-#endif
+
         /* enumerate all complexes of current size */
         complexes[k] = n_multichoose_k(vc->strands, k);
 
@@ -926,7 +924,18 @@ process_record(struct record_data *record)
 
         dG_complexes[k] = (double *)vrna_alloc(sizeof(double) * num_complexes);
 
+        char *verbose_line = NULL;
+
+        if (opt->verbose)
+          fprintf(stderr, "Processing complexes of size %u\n", k);
+
         for (size_t c_cnt = 0; c_cnt < num_complexes; c_cnt++) {
+          if (opt->verbose)
+            vrna_strcat_printf(&verbose_line,
+                               "Complex %u/%u (size %d) ",
+                               c_cnt + 1,
+                               num_complexes, k);
+
           /* Now, enumerate all non-cyclic permutations for current complex */
 
           /* first, compose a list of species counts */
@@ -941,6 +950,13 @@ process_record(struct record_data *record)
             if (species_count[kk] > 0) {
               mapping[known_species] = kk;
               species[known_species] = species_count[kk];
+
+              if (opt->verbose)
+                vrna_strcat_printf(&verbose_line,
+                                   ", %u x %c",
+                                   species_count[kk],
+                                   kk < 26 ? kk + 'A' : kk + 'a');
+
               known_species++;
             }
           }
@@ -949,37 +965,31 @@ process_record(struct record_data *record)
           /* enumerate all non-cyclic permutations of current complex */
           unsigned int **permutations = vrna_enumerate_necklaces(species);
 
-#if DEBUG
-          printf("--- ");
-          for (size_t j = 0; j < k; j++)
-            printf("%u ", complexes[k][c_cnt][j]);
-          printf(" ---\n");
-#endif
-
           double dG_current = 0.;
+          size_t  num_perm = 0;
+
+          if (opt->verbose)
+            for (; permutations[num_perm]; num_perm++);
 
           for (size_t i = 0; permutations[i]; i++) {
             char *current_sequence = NULL;
 
-#if DEBUG
-            printf("%u ", mapping[permutations[i][1]]);
-#endif
+            if (opt->verbose) {
+              fprintf(stderr, "\r%s, permutation %u/%u                    ",
+                    verbose_line,
+                    i+1, num_perm);
+              fflush(stderr);
+            }
 
             vrna_strcat_printf(&current_sequence,
                                "%s",
                                vc->nucleotides[mapping[permutations[i][1]]].string);
 
             for (size_t j = 2; j <= k; j++) {
-#if DEBUG
-              printf("%u ", mapping[permutations[i][j]]);
-#endif
               vrna_strcat_printf(&current_sequence,
                                  "&%s",
                                  vc->nucleotides[mapping[permutations[i][j]]].string);
             }
-#if DEBUG
-            printf("\n");
-#endif
 
             /* for now, do not compute base pair probs */
             int bpp_comp = opt->md.compute_bpp;
@@ -1012,6 +1022,13 @@ process_record(struct record_data *record)
           free(permutations);
 
           dG_complexes[k][c_cnt] = dG_current;
+          if (opt->verbose) {
+            free(verbose_line);
+            verbose_line = NULL;
+          }
+        }
+        if (opt->verbose) {
+          fprintf(stderr, "\n");
         }
       }
 
@@ -1111,6 +1128,11 @@ process_record(struct record_data *record)
                                                                       num_strands,
                                                                       num_true_complexes);
 
+#if DEBUG
+        for (size_t i = 0; i < num_true_complexes; i++)
+          printf("K_%u = %g\n", equilibrium_constants_complexes[i]);
+#endif
+
         /* count number of concentration computations */
         size_t num_conc = 0;
         for (; concentrations[(num_conc * num_strands)] != 0.; num_conc++);
@@ -1146,11 +1168,11 @@ process_record(struct record_data *record)
 
           /* append complex concentrations to output line */
           for (size_t i = 0; i < num_true_complexes; i++)
-            vrna_strcat_printf(&line, "\t%.5f ", conc_complexes[i] / tot);
+            vrna_strcat_printf(&line, "\t%.6g", conc_complexes[i] / tot);
 
           /* append monomer concentrations to output line */
           for (size_t i = 0; i < num_strands; i++)
-            vrna_strcat_printf(&line, "\t%.5f ", cc[i] / tot);
+            vrna_strcat_printf(&line, "\t%.6g", cc[i] / tot);
 
           vrna_cstr_printf_tbody(o_stream->data, line);
 
