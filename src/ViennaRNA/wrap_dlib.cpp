@@ -351,6 +351,16 @@ conc_complexes(const column_vector& L,
   double *c, *c_free;
 
   c       = (double *)vrna_alloc(sizeof(double) * complexes);
+#if 1
+  for (size_t k = 0; k < complexes; k++) {
+    c[k] = log(eq_const[k]);
+
+    for (size_t a = 0; a < strands; a++)
+      c[k] += (double)A[a][k] * L(a);
+
+    c[k] = exp(c[k]);
+  }
+#else
   c_free  = conc_single_strands(L, strands);
 
   for (size_t k = 0; k < complexes; k++) {
@@ -361,6 +371,7 @@ conc_complexes(const column_vector& L,
   }
 
   free(c_free);
+#endif
 
   return c;
 }
