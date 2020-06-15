@@ -156,27 +156,43 @@ h(const column_vector&  L,
   size_t                strands,
   size_t                complexes)
 {
-  double h, hh, *K;
+  double h, hh, *K, maxK;
 
   K = (double *)vrna_alloc(sizeof(double) * complexes);
   h = 0.;
+  maxK = (double)(-INF);
+
+  for (size_t a = 0; a < strands; a++) {
+//    printf("L[%u] = %g\n", a, L(a));
+    maxK = (maxK < L(a)) ? L(a) : maxK;
+  }
 
   for (size_t k = 0; k < complexes; k++) {
-    for (size_t a = 0; a < strands; a++)
+    K[k] = log(eq_constants[k]);
+
+    for (size_t a = 0; a < strands; a++) {
       K[k] += L(a) *
               (double)A[a][k];
+    }
 
-    K[k] = eq_constants[k] *
-           exp(K[k]);
+    maxK = (maxK < K[k]) ? K[k] : maxK;
   }
 
   for (size_t a = 0; a < strands; a++)
     h -= concentration_strands_tot[a] *
-         L(a) -
-         exp(L(a));
+         L(a);
+
+//  printf("h = %g\n", h);
+  hh = 0;
+
+  for (size_t a = 0; a < strands; a++)
+    hh += exp(L(a) - maxK);
 
   for (size_t k = 0; k < complexes; k++)
-    h += K[k];
+    hh += exp(K[k] - maxK);
+
+  h += exp(maxK + log(hh));
+//  printf("h = %g\n", h);
 
   free(K);
 
@@ -195,30 +211,44 @@ h_derivative(const column_vector& L,
              size_t               strands,
              size_t               complexes)
 {
-  double        gg, *K;
+  double        gg, *K, *maxK;
   column_vector g(strands);
 
-  K = (double *)vrna_alloc(sizeof(double) * complexes);
+  K     = (double *)vrna_alloc(sizeof(double) * complexes);
+  maxK  = (double *)vrna_alloc(sizeof(double) * strands);
+
+  for (size_t a = 0; a < strands; a++)
+    maxK[a] = L(a);
 
   for (size_t k = 0; k < complexes; k++) {
+    K[k] = log(eq_constants[k]);
     for (size_t a = 0; a < strands; a++)
       K[k] += L(a) *
               (double)A[a][k];
 
-    K[k] = eq_constants[k] *
-           exp(K[k]);
+    for (size_t a = 0; a < strands; a++)
+      if (A[a][k] > 0)
+        maxK[a] = (maxK[a] < K[k] + log((double)A[a][k])) ?
+                  K[k] + log((double)A[a][k]) :
+                  maxK[a];
   }
 
   for (size_t a = 0; a < strands; a++) {
-    g(a) = -concentration_strands_tot[a] +
-           exp(L(a));
+    g(a) = -concentration_strands_tot[a];
 
+    double hh = exp(L(a) - maxK[a]);
     for (size_t k = 0; k < complexes; k++)
-      g(a) += (double)A[a][k] *
-              K[k];
+      if (A[a][k] > 0)
+        hh += exp(log((double)A[a][k]) +
+                  K[k] -
+                  maxK[a]);
+
+    g(a) += exp(maxK[a] + log(hh));
+//    printf("g(%u) = %g\n", a, g(a));
   }
 
   free(K);
+  free(maxK);
 
   return g;
 }
@@ -235,33 +265,55 @@ h_hessian(const column_vector&  L,
           size_t                strands,
           size_t                complexes)
 {
-  double                  hh, *K;
+  double                  hh, *K, **xs;
 
   PRIVATE matrix<double>  H(strands, strands);
 
   K = (double *)vrna_alloc(sizeof(double) * complexes);
+  xs = (double **)vrna_alloc(sizeof(double *) * strands);
+
+  for (size_t a = 0; a < strands; a++) {
+    xs[a] = (double *)vrna_alloc(sizeof(double) * strands);
+    for (size_t b = 0; b < strands; b++)
+      xs[a][b] = (a == b) ? L(a) : (double)(-INF);
+  }
 
   for (size_t k = 0; k < complexes; k++) {
+    K[k] = log(eq_constants[k]);
     for (size_t a = 0; a < strands; a++)
       K[k] += L(a) *
               (double)A[a][k];
 
-    K[k] = eq_constants[k] *
-           exp(K[k]);
+    for (size_t a = 0; a < strands; a++)
+      for (size_t b = 0; b < strands; b++) {
+        if ((A[a][k] > 0) && (A[b][k] > 0))
+          xs[a][b] = (xs[a][b] < K[k] + log((double)A[a][k]) + log((double)A[b][k])) ?
+                      K[k] + log((double)A[a][k]) + log((double)A[b][k]) :
+                      xs[a][b];
+      }
   }
 
   for (size_t a = 0; a < strands; a++) {
     for (size_t b = 0; b < strands; b++) {
-      H(a, b) = //delta[a][b] *
-                exp(L(a));
+      double hh = (a == b) ? exp(L(a) - xs[a][b]) : 0.;
 
       for (size_t k = 0; k < complexes; k++)
-        H(a, b) += (double)(A[a][k] * A[b][k]) *
-                   K[k];
+        if ((A[a][k] > 0) && (A[b][k] > 0))
+          hh += exp(log((double)A[a][k]) +
+                    log((double)A[b][k]) +
+                    K[k] -
+                    xs[a][b]);
+
+      H(a,b) = exp(xs[a][b] + log(hh));
+//      H(b,a) = H(a,b);
+//      printf("H(%u,%u) = %g\n", a, b, H(a,b));
     }
   }
 
   free(K);
+  for (size_t a = 0; a < strands; a++)
+    free(xs[a]);
+  free(xs);
 
   return H;
 }
@@ -352,6 +404,9 @@ conc_complexes(const column_vector& L,
 
   c       = (double *)vrna_alloc(sizeof(double) * complexes);
 #if 1
+//  for (size_t a = 0; a < strands; a++)
+//    printf("L[%u] = %g\n", a, L(a));
+
   for (size_t k = 0; k < complexes; k++) {
     c[k] = log(eq_const[k]);
 
@@ -403,7 +458,7 @@ vrna_equilibrium_conc(const double        *eq_constants,
   for (size_t a = 0; a < num_strands; a++)
     starting_point(a) = 0.;
 
-  find_min_trust_region(objective_delta_stop_strategy(1e-32),
+  find_min_trust_region(objective_delta_stop_strategy(1e-18),
                         h,
                         starting_point,
                         1   // initial trust region radius
