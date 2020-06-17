@@ -73,6 +73,23 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
 /* make the float precision identifier available through the interface */
 %rename (pf_float_precision) vrna_pf_float_precision;
 
+%rename (pf_add) my_pf_add;
+%{
+  double
+  my_pf_add(double dG1,
+            double dG2,
+            double kT = 0) {
+    double result = 0;
+
+    if (kT == 0)
+      kT = (37. + K0) * GASCONST / 1000.;
+
+    return (double)vrna_pf_add((FLT_OR_DBL)(dG1), (FLT_OR_DBL)(dG2), kT);
+  }
+%}
+
+double my_pf_add(double dG1, double dG2, double kT = 0);
+
 /* these functions remain for now due to backward compatibility reasons
 %ignore pf_circ_fold;
 %ignore free_pf_arrays;
@@ -105,6 +122,14 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
   {
     char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
     *OUTPUT= vrna_pf($self, structure);
+    return structure;
+  }
+
+  char *
+  pf_multimer(float *OUTPUT)
+  {
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
+    *OUTPUT= vrna_pf_multimer($self, structure);
     return structure;
   }
 
