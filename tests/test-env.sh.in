@@ -21,9 +21,9 @@ export CURRENT_VERSION=@VERSION@
 export DIFF=@DIFF@
 
 # set results directories
-export RNAFOLD_RESULTSDIR=RNAfold/results
-export RNAALIFOLD_RESULTSDIR=RNAalifold/results
-export RNACOFOLD_RESULTSDIR=RNAcofold/results
+export RNAFOLD_RESULTSDIR=@srcdir@/RNAfold/results
+export RNAALIFOLD_RESULTSDIR=@srcdir@/RNAalifold/results
+export RNACOFOLD_RESULTSDIR=@srcdir@/RNAcofold/results
 
 # misc/ directory
 export MISC_DIR=@top_srcdir@/misc
