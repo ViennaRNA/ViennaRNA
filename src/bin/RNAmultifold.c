@@ -62,11 +62,12 @@ struct options {
   double          bppmThreshold;
   int             verbose;
   vrna_md_t       md;
-  vrna_cmd_t      commands;
+  vrna_cmd_t      cmds;
 
   dataset_id      id_control;
 
   char            *concentration_file;
+  int             concentration_absolute;
 
   char            *constraint_file;
   int             constraint_batch;
@@ -186,12 +187,13 @@ init_default_options(struct options *opt)
   opt->MEAgamma       = 1.;
   opt->bppmThreshold  = 1e-5;
   opt->verbose        = 0;
-  opt->commands       = NULL;
+  opt->cmds           = NULL;
   opt->id_control     = NULL;
   set_model_details(&(opt->md));
 
   opt->doC                = 0; /* toggle to compute concentrations */
   opt->concentration_file = NULL;
+  opt->concentration_absolute = 0;
 
   opt->constraint_file      = NULL;
   opt->constraint_batch     = 0;
@@ -311,11 +313,22 @@ main(int  argc,
       opt.md.compute_bpp = 1;
   }
 
+  if (args_info.concentrations_given) {
+    opt.doC = opt.doT = opt.pf = 1;
+    if (args_info.absolute_concentrations_given)
+      opt.concentration_absolute = 1;
+  }
+
   /* concentrations in file */
   if (args_info.concfile_given) {
     opt.concentration_file  = strdup(args_info.concfile_arg);
     opt.doC                 = opt.doT = opt.pf = 1;
+    if (args_info.absolute_concentrations_given)
+      opt.concentration_absolute = 1;
   }
+
+  if (args_info.commands_given)
+    opt.cmds = vrna_file_commands_read(args_info.commands_arg, VRNA_CMD_PARSE_DEFAULTS);
 
   if (args_info.verbose_given)
     opt.verbose = 1;
@@ -436,7 +449,7 @@ main(int  argc,
   free(opt.shape_method);
   free(opt.shape_conversion);
   free(opt.filename_delim);
-  vrna_commands_free(opt.commands);
+  vrna_commands_free(opt.cmds);
   free(opt.concentration_file);
 
   free_id_data(opt.id_control);
@@ -753,8 +766,8 @@ process_record(struct record_data *record)
                                VRNA_OPTION_DEFAULT | VRNA_OPTION_HYBRID);
   }
 
-  if (opt->commands)
-    vrna_commands_apply(vc, opt->commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+  if (opt->cmds)
+    vrna_commands_apply(vc, opt->cmds, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   if (opt->doC) {
     if (opt->concentration_file) {
@@ -785,7 +798,7 @@ process_record(struct record_data *record)
   mfAB    = vrna_plist(mfe_structure, 0.95);
 
   /* check whether the constraint allows for any solution */
-  if ((fold_constrained) || (opt->commands)) {
+  if ((fold_constrained) || (opt->cmds)) {
     if (min_en == (double)(INF / 100.)) {
       vrna_message_error(
         "Supplied structure constraints create empty solution set for sequence:\n%s",
@@ -1167,12 +1180,21 @@ process_record(struct record_data *record)
                                                  num_true_complexes);
 
           /* append complex concentrations to output line */
-          for (size_t i = 0; i < num_true_complexes; i++)
-            vrna_strcat_printf(&line, "\t%.6g", conc_complexes[i] / tot);
+          if (opt->concentration_absolute) {
+            for (size_t i = 0; i < num_true_complexes; i++)
+              vrna_strcat_printf(&line, "\t%.6g", conc_complexes[i]);
 
-          /* append monomer concentrations to output line */
-          for (size_t i = 0; i < num_strands; i++)
-            vrna_strcat_printf(&line, "\t%.6g", cc[i] / tot);
+            /* append monomer concentrations to output line */
+            for (size_t i = 0; i < num_strands; i++)
+              vrna_strcat_printf(&line, "\t%.6g", cc[i]);
+          } else {
+            for (size_t i = 0; i < num_true_complexes; i++)
+              vrna_strcat_printf(&line, "\t%.6g", conc_complexes[i] / tot);
+
+            /* append monomer concentrations to output line */
+            for (size_t i = 0; i < num_strands; i++)
+              vrna_strcat_printf(&line, "\t%.6g", cc[i] / tot);
+          }
 
           vrna_cstr_printf_tbody(o_stream->data, line);
 

@@ -166,6 +166,16 @@ int
 default="-1"
 optional
 
+option  "commands"   -
+"Read additional commands from file\n"
+details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
+ loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
+ domains.\n\n"
+string
+typestr="<filename>"
+optional
+hidden
+
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
@@ -219,6 +229,14 @@ details="The table consits of arbitrary many lines with just two numbers (the co
 string
 typestr="filename"
 optional
+
+
+option  "absolute-concentrations"   -
+"Report absolute instead of relative concentrations\n\n"
+flag
+off
+dependon="concentrations"
+
 
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
