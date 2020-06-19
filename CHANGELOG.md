@@ -105,7 +105,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 ### [Version 2.5.0alpha2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.15...HEAD)
 
 #### Programs
-  * Add rudimentary version of `RNAmultifold` to compute base pairing probabilities for multiple interacting RNAs
+  * Add first draft version of `RNAmultifold` to compute base pairing probabilities, MFE, and equilibrium concentrations for multiple interacting RNAs
 
 
 ### [Version 2.4.15](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.14...v2.4.15) (Release date: 2020-08-18)
