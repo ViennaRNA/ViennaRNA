@@ -997,6 +997,86 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 
 
 PRIVATE int
+eval_hp_loop_fake(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j)
+{
+  short         *S, *S2;
+  unsigned int  *sn;
+  int           u, e, ij, type, *idx, en, noGUclosure;
+  vrna_param_t  *P;
+  vrna_sc_t     *sc;
+  vrna_md_t     *md;
+  vrna_ud_t     *domains_up;
+
+  idx         = fc->jindx;
+  P           = fc->params;
+  md          = &(P->model_details);
+  noGUclosure = md->noGUclosure;
+  sn          = fc->strand_number;
+  domains_up  = fc->domains_up;
+  e           = INF;
+
+  switch (fc->type) {
+    /* single sequences and cofolding hybrids */
+    case  VRNA_FC_TYPE_SINGLE:
+      S     = fc->sequence_encoding;
+      S2    = fc->sequence_encoding2;
+      sc    = fc->sc;
+      u     = j - i - 1;
+      ij    = idx[j] + i;
+      type  = vrna_get_ptype_md(S2[j], S2[i], md);
+
+      if (noGUclosure && ((type == 3) || (type == 4)))
+        break;
+
+      /* hairpin-like exterior loop (for cofolding) */
+      short si, sj;
+
+      si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
+      sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
+
+      if (md->dangles)
+        e = vrna_E_ext_stem(type, sj, si, P);
+      else
+        e = vrna_E_ext_stem(type, -1, -1, P);
+
+      /* add soft constraints */
+      if (sc) {
+        if (sc->energy_up)
+          e += sc->energy_up[i + 1][u];
+
+        if (sc->energy_bp)
+          e += sc->energy_bp[ij];
+
+        if (sc->f)
+          e += sc->f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+      }
+
+      /* consider possible ligand binding */
+      if (domains_up && domains_up->energy_cb) {
+        en = domains_up->energy_cb(fc,
+                                   i + 1, j - 1,
+                                   VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
+                                   domains_up->data);
+        if (en != INF)
+          en += e;
+
+        e = MIN2(e, en);
+      }
+
+      break;
+
+    /* nothing */
+    default:
+      break;
+  }
+
+  return e;
+}
+
+
+PRIVATE int
 stack_energy(vrna_fold_compound_t *vc,
              int                  i,
              const short          *pt,
@@ -1081,7 +1161,11 @@ stack_energy(vrna_fold_compound_t *vc,
 
   if (p > q) {
     /* hairpin */
-    ee      = vrna_eval_hp_loop(vc, i, j);
+    if (sn[j] != sn[i]) {
+      ee = eval_hp_loop_fake(vc, i, j);
+    } else {
+      ee      = vrna_eval_hp_loop(vc, i, j);
+    }
     energy  = ADD_OR_INF(energy, ee);
 
     if (verbosity_level > 0) {
