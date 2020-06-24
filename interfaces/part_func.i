@@ -322,7 +322,15 @@ double get_pr(int i, int j);
                           vrna_md_t              *md,
                           float                  *OUTPUT)
   {
-    return vrna_MEA_from_plist(&plist[0],
+    vrna_ep_t               pp;
+    std::vector<vrna_ep_t>  pl = plist;
+
+    pp.i = pp.j = 0;
+    pp.p = 0.;
+    pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+    pl.push_back(pp);
+
+    return vrna_MEA_from_plist(&pl[0],
                                sequence.c_str(),
                                gamma,
                                md,
@@ -334,7 +342,15 @@ double get_pr(int i, int j);
                           vrna_md_t              *md,
                           float                  *OUTPUT)
   {
-    return vrna_MEA_from_plist(&plist[0],
+    vrna_ep_t               pp;
+    std::vector<vrna_ep_t>  pl = plist;
+
+    pp.i = pp.j = 0;
+    pp.p = 0.;
+    pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+    pl.push_back(pp);
+
+    return vrna_MEA_from_plist(&pl[0],
                                sequence.c_str(),
                                1.,
                                md,
@@ -346,7 +362,15 @@ double get_pr(int i, int j);
                           double                 gamma,
                           float                  *OUTPUT)
   {
-    return vrna_MEA_from_plist(&plist[0],
+    vrna_ep_t               pp;
+    std::vector<vrna_ep_t>  pl = plist;
+
+    pp.i = pp.j = 0;
+    pp.p = 0.;
+    pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+    pl.push_back(pp);
+
+    return vrna_MEA_from_plist(&pl[0],
                                sequence.c_str(),
                                gamma,
                                NULL,
@@ -357,7 +381,15 @@ double get_pr(int i, int j);
                           std::string            sequence,
                           float                  *OUTPUT)
   {
-    return vrna_MEA_from_plist(&plist[0],
+    vrna_ep_t               pp;
+    std::vector<vrna_ep_t>  pl = plist;
+
+    pp.i = pp.j = 0;
+    pp.p = 0.;
+    pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+    pl.push_back(pp);
+
+    return vrna_MEA_from_plist(&pl[0],
                                sequence.c_str(),
                                1.,
                                NULL,
