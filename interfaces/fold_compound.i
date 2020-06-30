@@ -35,18 +35,23 @@ typedef struct {} vrna_fold_compound_t;
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc")vrna_fold_compound_t::vrna_fold_compound_t;
+%feature("kwargs")vrna_fold_compound_t::vrna_fold_compound_t;
+#endif
   /* the default constructor, *md and option are optional, for single sequences*/
-  vrna_fold_compound_t( const char *sequence,
-                        vrna_md_t *md=NULL,
-                        unsigned int options=VRNA_OPTION_DEFAULT){
+  vrna_fold_compound_t( const char    *sequence,
+                        vrna_md_t     *md = NULL,
+                        unsigned int  options = VRNA_OPTION_DEFAULT)
+  {
 
     return vrna_fold_compound(sequence, md, options);
   }
 
   /*the constructor for alignments, *md and options are optional  */
-  vrna_fold_compound_t( std::vector<std::string> alignment,
-                        vrna_md_t *md=NULL,
-                        unsigned int options=VRNA_OPTION_DEFAULT){
+  vrna_fold_compound_t( std::vector<std::string>  alignment,
+                        vrna_md_t                 *md = NULL,
+                        unsigned int              options = VRNA_OPTION_DEFAULT){
 
     std::vector<const char*>  vc;
     transform(alignment.begin(), alignment.end(), back_inserter(vc), convert_vecstring2veccharcp);
