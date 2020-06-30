@@ -70,13 +70,9 @@ typedef struct {
 
 /* make a nice object oriented interface to vrna_param_t */
 %extend vrna_param_t {
-  vrna_param_t(){
-    vrna_param_t *P = vrna_params(NULL);
-    return P;
-  }
-  vrna_param_t(vrna_md_t *md){
-    vrna_param_t *P = vrna_params(md);
-    return P;
+  vrna_param_t(vrna_md_t *md = NULL)
+  {
+    return vrna_params(md);
   }
 
   double  get_temperature(){
@@ -86,11 +82,8 @@ typedef struct {
 
 /* make a nice object oriented interface to vrna_exp_param_t */
 %extend vrna_exp_param_t {
-  vrna_exp_param_t(){
-    vrna_exp_param_t *P = vrna_exp_params(NULL);
-    return P;
-  }
-  vrna_exp_param_t(vrna_md_t *md){
+  vrna_exp_param_t(vrna_md_t *md = NULL)
+  {
     vrna_exp_param_t *P = vrna_exp_params(md);
     return P;
   }
