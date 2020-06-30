@@ -127,6 +127,7 @@ extern "C" {
 %include "std_vector.i";
 %include "std_string.i";
 
+
 namespace std {
   %template(DoublePair) std::pair<double,double>;
   %template(IntVector) std::vector<int>;
@@ -138,7 +139,7 @@ namespace std {
   %template(CoordinateVector) std::vector<COORDINATE>;
   %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
   %template(IntIntVector) std::vector<std::vector<int> > ;
-  %template(ElemProbVector) std::vector<vrna_ep_t>;
+  %template(ElemProbVector) vector<vrna_ep_t>;
   %template(PathVector) std::vector<vrna_path_t>;
   %template(MoveVector) std::vector<vrna_move_t>;
 };
