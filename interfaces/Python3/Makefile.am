@@ -67,7 +67,7 @@ $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
                   -I$(srcdir) -I$(builddir) \
                   -DPY3 \
                   $(RNA_CPPFLAGS) \
-                  -python -py3 -c++ \
+                  -python -py3 -c++ -keyword -w511 \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
 
