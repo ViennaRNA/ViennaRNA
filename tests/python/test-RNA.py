@@ -196,13 +196,13 @@ class GeneralTests(unittest.TestCase):
         print "test_model_details_parameter_structure"
 
         # check model details structure
-        md = RNA.md(); # default values
+        md = RNA.md();
         self.assertEqual(int(md.dangles), 2)
         self.assertEqual(md.temperature, 37.0)
 
         RNA.cvar.dangles     = 0
         RNA.cvar.temperature = 40.1
-        md = RNA.md("global") # global values
+        md = RNA.md()
         self.assertEqual(int(md.dangles), 0)
         self.assertEqual(int(RNA.cvar.dangles), 0)
         self.assertEqual(md.temperature, 40.1)

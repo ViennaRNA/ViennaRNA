@@ -225,7 +225,7 @@ is($md->{temperature}, 37.0);
 
 $RNA::dangles     = 0;
 $RNA::temperature = 40.1;
-$md = RNA::md->new("global"); # global values
+$md = RNA::md->new(); # global values
 is(int($md->{dangles}), 0);
 is(int($RNA::dangles), 0);
 is($md->{temperature}, 40.1);
