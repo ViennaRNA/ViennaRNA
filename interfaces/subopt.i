@@ -5,6 +5,10 @@
 
 // from subopt.h
 
+%{
+#include <sstream>
+%}
+
 
 extern  int subopt_sorted;                       /* sort output by energy */
 
@@ -63,18 +67,39 @@ typedef struct {
     char *structure;
 } subopt_solution;
 
+%newobject subopt_solution::__str__;
+%newobject subopt_solution::__repr__;
+
 %extend subopt_solution {
 
   ~subopt_solution() {
     free($self->structure);
     free($self);
   }
+
+  std::string __str__()
+  {
+    std::ostringstream out;
+    out << "{ structure: \"" << $self->structure << "\"";
+    out << ", energy: " << $self->energy;
+    out << " }";
+
+    return std::string(out.str());
+  }
+
+#ifdef SWIGPYTHON
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
+#endif
+
 }
 
-namespace std {
-  %template(SuboptVector) std::vector<subopt_solution>;
-};
-
+%template(SuboptVector) std::vector<subopt_solution>;
 
 %{
 
@@ -102,7 +127,7 @@ namespace std {
 
 %}
 
-%newobject my_subopt;
+//%newobject my_subopt;
 
 SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *nullfile = NULL);
 std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NULL);
