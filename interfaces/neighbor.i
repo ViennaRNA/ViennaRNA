@@ -10,8 +10,8 @@
 #endif
 
   std::vector<vrna_move_t>
-  neighbors(std::vector<int> pt,
-            unsigned int options = VRNA_MOVESET_DEFAULT)
+  neighbors(std::vector<int>  pt,
+            unsigned int      options = VRNA_MOVESET_DEFAULT)
   {
     std::vector<vrna_move_t>  v; /* fill vector with returned vrna_move_t */
     vrna_move_t *move_t, *ptr;

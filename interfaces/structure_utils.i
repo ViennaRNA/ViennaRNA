@@ -1,6 +1,9 @@
 /*#######################################*/
 /* Structure Utitlities section          */
 /*#######################################*/
+%{
+#include <sstream>
+%}
 
 /* first, the ignore list */
 %ignore pack_structure;
@@ -58,8 +61,8 @@ typedef struct {
     vrna_ep_t(unsigned int  i,
               unsigned int  j,
               float         p     = 1.,
-              int           type  = VRNA_PLIST_TYPE_BASEPAIR) {
-
+              int           type  = VRNA_PLIST_TYPE_BASEPAIR)
+    {
       vrna_ep_t *pair;
 
       pair        = (vrna_ep_t *)vrna_alloc(sizeof(vrna_ep_t));
@@ -71,10 +74,28 @@ typedef struct {
       return pair;
     }
 
-    char *__str__() {
-      char *tmp = vrna_strdup_printf("[ i: %d, j: %d, p: %.10g, t: %2d ]", $self->i, $self->j, $self->p, $self->type);
-      return tmp;
+#ifdef SWIGPYTHON
+    std::string
+    __str__()
+    {
+      std::ostringstream out;
+      out << "{ i: " << $self->i;
+      out << ", j: " << $self->j;
+      out << ", p: " << $self->p;
+      out << ", t: " << $self->type;
+      out << " }";
+
+      return std::string(out.str());
     }
+
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
+#endif
 }
 
 

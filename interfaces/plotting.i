@@ -3,7 +3,9 @@
 /*#######################################*/
 
 %{
-  COORDINATE *get_xy_coordinates(const char *structure){
+  COORDINATE *
+  get_xy_coordinates(const char *structure)
+  {
     int i;
     short *table = vrna_ptable(structure);
     short length = (short) strlen(structure);
@@ -40,7 +42,9 @@
 COORDINATE *get_xy_coordinates(const char *structure);
 
 %extend COORDINATE {
-  COORDINATE *get(int i) {
+  COORDINATE *
+  get(int i)
+  {
     return self+i;
   }
 
@@ -55,7 +59,9 @@ COORDINATE *get_xy_coordinates(const char *structure);
 #include <vector>
 #include <string>
 
-  std::vector<COORDINATE> my_simple_xy_coordinates(std::string structure){
+  std::vector<COORDINATE>
+  my_simple_xy_coordinates(std::string structure)
+  {
     std::vector<COORDINATE> ret;
     short *table  = vrna_ptable(structure.c_str());
     float *X      = (float *) vrna_alloc((table[0]+1)*sizeof(float));
@@ -75,7 +81,9 @@ COORDINATE *get_xy_coordinates(const char *structure);
     return ret;
   }
 
-  std::vector<COORDINATE> my_simple_circplot_coordinates(std::string structure){
+  std::vector<COORDINATE>
+  my_simple_circplot_coordinates(std::string structure)
+  {
     std::vector<COORDINATE> ret;
     short *table  = vrna_ptable(structure.c_str());
     float *X      = (float *) vrna_alloc((table[0]+1)*sizeof(float));
@@ -95,7 +103,9 @@ COORDINATE *get_xy_coordinates(const char *structure);
     return ret;
   }
 
-  std::vector<COORDINATE> my_naview_xy_coordinates(std::string structure){
+  std::vector<COORDINATE>
+  my_naview_xy_coordinates(std::string structure)
+  {
     std::vector<COORDINATE> ret;
     short *table  = vrna_ptable(structure.c_str());
     float *X      = (float *) vrna_alloc((table[0]+1)*sizeof(float));
@@ -140,11 +150,12 @@ std::vector<COORDINATE> my_naview_xy_coordinates(std::string);
 %rename (my_PS_rna_plot_snoop_a) PS_rna_plot_snoop_a;
 
 %{
-  int my_PS_rna_plot_snoop_a( std::string sequence,
-                              std::string structure,
-                              std::string filename,
-                              std::vector<int> relative_access,
-                              std::vector<std::string> seqs)
+  int
+  my_PS_rna_plot_snoop_a( std::string               sequence,
+                          std::string               structure,
+                          std::string               filename,
+                          std::vector<int>          relative_access,
+                          std::vector<std::string>  seqs)
   {
     std::vector<const char*> seqs_vec;
     std::transform(seqs.begin(), seqs.end(), std::back_inserter(seqs_vec), convert_vecstring2veccharcp);
@@ -157,20 +168,22 @@ std::vector<COORDINATE> my_naview_xy_coordinates(std::string);
                                 (const char **)&seqs_vec[0]);
   }
 
-  int file_PS_rnaplot(std::string sequence,
-                      std::string structure,
-                      std::string filename,
-                      vrna_md_t  *md_p = NULL)
+  int
+  file_PS_rnaplot(std::string sequence,
+                  std::string structure,
+                  std::string filename,
+                  vrna_md_t   *md_p = NULL)
   {
     return vrna_file_PS_rnaplot(sequence.c_str(), structure.c_str(), filename.c_str(), md_p);
   }
 
-  int file_PS_rnaplot_a(std::string sequence,
-                        std::string structure,
-                        std::string filename,
-                        std::string pre,
-                        std::string post,
-                        vrna_md_t  *md_p = NULL)
+  int
+  file_PS_rnaplot_a(std::string sequence,
+                    std::string structure,
+                    std::string filename,
+                    std::string pre,
+                    std::string post,
+                    vrna_md_t   *md_p = NULL)
   {
     return vrna_file_PS_rnaplot_a(sequence.c_str(), structure.c_str(), filename.c_str(), pre.c_str(), post.c_str(), md_p);
   }
@@ -225,14 +238,15 @@ int file_PS_rnaplot_a(std::string sequence,
 #endif
 
 %{
-  int file_PS_aln(std::string               filename,
-                  std::vector<std::string>  alignment,
-                  std::vector<std::string>  identifiers,
-                  std::string               structure,
-                  unsigned int              start       = 0,
-                  unsigned int              end         = 0,
-                  int                       offset      = 0,
-                  unsigned int              columns     = 60)
+  int
+  file_PS_aln(std::string               filename,
+              std::vector<std::string>  alignment,
+              std::vector<std::string>  identifiers,
+              std::string               structure,
+              unsigned int              start       = 0,
+              unsigned int              end         = 0,
+              int                       offset      = 0,
+              unsigned int              columns     = 60)
   {
     std::vector<const char*> aln_vec;
     std::vector<const char*> id_vec;

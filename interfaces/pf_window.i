@@ -18,7 +18,11 @@
 %{
 #include <vector>
 
-  std::vector<vrna_ep_t> my_pfl_fold(std::string sequence, int w, int L, double cutoff)
+  std::vector<vrna_ep_t>
+  my_pfl_fold(std::string sequence,
+              int         w,
+              int         L,
+              double      cutoff)
   {
     std::vector<vrna_ep_t > vplist;
     vrna_ep_t *ptr, *plist;
@@ -38,10 +42,11 @@
     return vplist;
   }
 
-  std::vector<std::vector<double> > pfl_fold_up(std::string sequence,
-                                                int ulength,
-                                                int window_size,
-                                                int max_bp_span)
+  std::vector<std::vector<double> >
+  pfl_fold_up(std::string sequence,
+               int        ulength,
+               int        window_size,
+               int        max_bp_span)
   {
     double **up = vrna_pfl_fold_up(sequence.c_str(), ulength, window_size, max_bp_span);
 

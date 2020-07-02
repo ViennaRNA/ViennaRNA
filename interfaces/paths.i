@@ -83,10 +83,11 @@ my_path_options_findpath(int          width = 10,
 %rename (get_path) my_get_path;
 
 %{
-  std::vector<vrna_path_t> my_get_path(std::string seq,
-                                       std::string s1,
-                                       std::string s2,
-                                       int         maxkeep)
+  std::vector<vrna_path_t>
+  my_get_path(std::string seq,
+              std::string s1,
+              std::string s2,
+              int         maxkeep)
   {
     std::vector<vrna_path_t>  v; /* fill vector with returned vrna_path_t*/
     vrna_path_t *path_t, *ptr;
@@ -126,7 +127,11 @@ std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::strin
 %feature("kwargs") path_findpath_saddle;
 
   PyObject *
-  path_findpath_saddle(std::string s1, std::string s2, int width = 1, int maxE = INT_MAX){
+  path_findpath_saddle(std::string  s1,
+                       std::string  s2,
+                       int          width = 1,
+                       int          maxE = INT_MAX)
+  {
     PyObject *E_obj = Py_None;
 
     int E = vrna_path_findpath_saddle_ub($self, s1.c_str(), s2.c_str(), width, maxE);
@@ -142,7 +147,11 @@ std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::strin
 
 #ifdef SWIGPERL5
   SV *
-  path_findpath_saddle(std::string s1, std::string s2, int width = 1, int maxE = INT_MAX - 1){
+  path_findpath_saddle(std::string  s1,
+                       std::string  s2,
+                       int          width = 1,
+                       int          maxE = INT_MAX - 1)
+  {
     SV *E_obj;
 
     int E = vrna_path_findpath_saddle_ub($self, s1.c_str(), s2.c_str(), width, maxE);
@@ -159,7 +168,12 @@ std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::strin
 
 #endif
 
-  std::vector<vrna_path_t> path_findpath(std::string s1, std::string s2, int width = 1, int maxE = INT_MAX - 1){
+  std::vector<vrna_path_t>
+  path_findpath(std::string s1,
+                std::string s2,
+                int         width = 1,
+                int         maxE = INT_MAX - 1)
+  {
       std::vector<vrna_path_t>  v; /* fill vector with returned vrna_path_t*/
       vrna_path_t *path_t, *ptr;
       path_t = ptr = vrna_path_findpath_ub($self, s1.c_str(), s2.c_str(), width, maxE);

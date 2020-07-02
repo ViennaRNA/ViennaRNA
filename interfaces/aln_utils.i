@@ -11,7 +11,8 @@
 #include <vector>
 
   std::string
-  my_consensus_sequence(std::vector<std::string> alignment, vrna_md_t *md_p = NULL)
+  my_consensus_sequence(std::vector<std::string>  alignment,
+                        vrna_md_t                 *md_p = NULL)
   {
     /* convert std::vector<std::string> to vector<const char *> */
     std::vector<const char*>  v;
@@ -25,7 +26,8 @@
   }
 
   std::string
-  my_aln_consensus_mis(std::vector<std::string> alignment, vrna_md_t *md_p = NULL)
+  my_aln_consensus_mis(std::vector<std::string> alignment,
+                       vrna_md_t                *md_p = NULL)
   {
     /* convert std::vector<std::string> to vector<const char *> */
     std::vector<const char*>  v;
@@ -91,8 +93,8 @@ my_aln_mpi(std::vector<std::string> alignment);
 #include <vector>
 
   std::vector<std::vector<int> >
-  my_aln_pscore(std::vector<std::string> alignment,
-                vrna_md_t *md = NULL)
+  my_aln_pscore(std::vector<std::string>  alignment,
+                vrna_md_t                 *md = NULL)
   {
 
     /* convert std::vector<std::string> to vector<const char *> */

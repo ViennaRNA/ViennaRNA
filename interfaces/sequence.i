@@ -5,7 +5,7 @@
 %extend vrna_fold_compound_t {
 
   int
-  sequence_add(std::string sequence,
+  sequence_add(std::string  sequence,
                unsigned int options = VRNA_SEQUENCE_RNA)
   {
     return vrna_sequence_add($self,

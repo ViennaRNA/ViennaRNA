@@ -75,7 +75,9 @@ typedef struct {
     return vrna_params(md);
   }
 
-  double  get_temperature(){
+  double
+  get_temperature()
+  {
     return $self->temperature;
   }
 }
@@ -88,18 +90,24 @@ typedef struct {
     return P;
   }
 
-  double  get_temperature(){
+  double
+  get_temperature()
+  {
     return $self->temperature;
   }
 }
 
 %extend vrna_fold_compound_t {
 
-  void exp_params_rescale(void) {
+  void
+  exp_params_rescale(void)
+  {
     vrna_exp_params_rescale($self, NULL);
   }
 
-  void exp_params_rescale(double fe) {
+  void
+  exp_params_rescale(double fe)
+  {
     vrna_exp_params_rescale($self, &fe);
   }
 }

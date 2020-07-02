@@ -32,13 +32,16 @@ typedef struct {
 %feature("kwargs")vrna_move_t::vrna_move_t;
 #endif
 
-  vrna_move_t(int pos_5 = 0, int pos_3 = 0) {
+  vrna_move_t(int pos_5 = 0,
+              int pos_3 = 0)
+  {
     vrna_move_t *m = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t));
     *m = vrna_move_init(pos_5, pos_3);
     return m;
   }
 
-  ~vrna_move_t(){
+  ~vrna_move_t()
+  {
     vrna_move_list_free($self->next);
     free($self);
   }
@@ -76,6 +79,7 @@ typedef struct {
     return result;
   }
 
+#ifdef SWIGPYTHON
   std::string
   __str__()
   {
@@ -87,7 +91,6 @@ typedef struct {
     return std::string(out.str());
   }
 
-#ifdef SWIGPYTHON
 %pythoncode %{
 def __repr__(self):
     # reformat string representation (self.__str__()) to something

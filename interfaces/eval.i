@@ -5,14 +5,16 @@
 
 %extend vrna_fold_compound_t{
 
-  float eval_structure(const char *structure){
-
+  float
+  eval_structure(const char *structure)
+  {
     return vrna_eval_structure($self,structure);
   }
 
   /* calculate free energy for structure given in pairtable */
-  int eval_structure_pt(std::vector<int> pt){
-
+  int
+  eval_structure_pt(std::vector<int> pt)
+  {
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
     return vrna_eval_structure_pt($self, (const short*)&vc[0]);
@@ -20,42 +22,55 @@
   
   /*  compute free energy for structure given in dot-bracket notation, 
       but now with different FileHandler for verbose, NULL = STDOUT */
-  float eval_structure_verbose(char *structure, FILE *nullfile = NULL){
-
+  float
+  eval_structure_verbose(char *structure,
+                         FILE *nullfile = NULL)
+  {
     return vrna_eval_structure_verbose($self, structure, nullfile);
   }
   
   /* compute free energy for structure given in pairtable (verbose), with different FileHandler for verbose, Default value = NULL + STDOUT*/
-  int eval_structure_pt_verbose(std::vector<int> pt, FILE *nullfile = NULL){
-
+  int
+  eval_structure_pt_verbose(std::vector<int>  pt,
+                            FILE              *nullfile = NULL)
+  {
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
     return vrna_eval_structure_pt_verbose($self, (const short*)&vc[0], nullfile);
   }
   
   /* compute covariance contributions for consensus structure given in dot-bracket notation */
-  float eval_covar_structure(char * structure){
-
+  float
+  eval_covar_structure(char *structure)
+  {
     return vrna_eval_covar_structure($self, structure);
   }
 
   /* returns the energy of a loop specified by i to pt[i] */
-  int eval_loop_pt(int i, std::vector<int> pt){
-
+  int
+  eval_loop_pt(int              i, 
+               std::vector<int> pt)
+  {
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
     return vrna_eval_loop_pt($self, i, (const short*)&vc[0]);
   }
 
   /* returns the energy change by introducing a move on a given structure */
-  float eval_move(const char *structure, int m1, int m2){
-
+  float
+  eval_move(const char  *structure,
+            int         m1,
+            int         m2)
+  {
     return vrna_eval_move($self, structure, m1, m2);
   }
 
   /* returns the energy change by introducing a move on a given pairtable */
-  int eval_move_pt(std::vector<int> pt, int m1, int m2){
-
+  int
+  eval_move_pt(std::vector<int> pt,
+               int              m1,
+               int              m2)
+  {
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
     return vrna_eval_move_pt($self, ((short*)&vc[0]), m1, m2);   /*attention here no const short* as argument*/
@@ -125,9 +140,9 @@
 
   float
   my_eval_structure_simple(std::vector<std::string> alignment,
-                           std::string structure,
-                           int         verbosity_level = VRNA_VERBOSITY_QUIET,
-                           FILE        *file = NULL)
+                           std::string              structure,
+                           int                      verbosity_level = VRNA_VERBOSITY_QUIET,
+                           FILE                     *file = NULL)
   {
     std::vector<const char*>  vc;
 
@@ -139,9 +154,9 @@
 
   float
   my_eval_circ_structure(std::vector<std::string> alignment,
-                         std::string structure,
-                         int         verbosity_level = VRNA_VERBOSITY_QUIET,
-                         FILE        *file = NULL)
+                         std::string              structure,
+                         int                      verbosity_level = VRNA_VERBOSITY_QUIET,
+                         FILE                     *file = NULL)
   {
     std::vector<const char*>  vc;
 
@@ -152,10 +167,10 @@
   }
 
   float
-  my_eval_gquad_structure(std::vector<std::string> alignment,
-                          std::string structure,
-                          int         verbosity_level = VRNA_VERBOSITY_QUIET,
-                          FILE        *file = NULL)
+  my_eval_gquad_structure(std::vector<std::string>  alignment,
+                          std::string               structure,
+                          int                       verbosity_level = VRNA_VERBOSITY_QUIET,
+                          FILE                      *file = NULL)
   {
     std::vector<const char*>  vc;
 
@@ -167,9 +182,9 @@
 
   float
   my_eval_circ_gquad_structure(std::vector<std::string> alignment,
-                               std::string structure,
-                               int         verbosity_level = VRNA_VERBOSITY_QUIET,
-                               FILE        *file = NULL)
+                               std::string              structure,
+                               int                      verbosity_level = VRNA_VERBOSITY_QUIET,
+                               FILE                     *file = NULL)
   {
     std::vector<const char*>  vc;
 
@@ -180,10 +195,10 @@
   }
 
   float
-  my_eval_structure_pt_simple(std::string sequence,
-                              std::vector<int> pt,
-                              int         verbosity_level = VRNA_VERBOSITY_QUIET,
-                              FILE        *file = NULL)
+  my_eval_structure_pt_simple(std::string       sequence,
+                              std::vector<int>  pt,
+                              int               verbosity_level = VRNA_VERBOSITY_QUIET,
+                              FILE              *file = NULL)
   {
     std::vector<short> vc;
 
@@ -193,10 +208,10 @@
   }
 
   float
-  my_eval_structure_pt_simple(std::vector<std::string> alignment,
-                              std::vector<int> pt,
-                              int         verbosity_level = VRNA_VERBOSITY_QUIET,
-                              FILE        *file = NULL)
+  my_eval_structure_pt_simple(std::vector<std::string>  alignment,
+                              std::vector<int>          pt,
+                              int                       verbosity_level = VRNA_VERBOSITY_QUIET,
+                              FILE                      *file = NULL)
   {
     std::vector<const char*>  vc;
     std::vector<short> ptv;
@@ -214,8 +229,8 @@
 float
 my_eval_structure_simple(std::string sequence,
                          std::string structure,
-                           int         verbosity_level = VRNA_VERBOSITY_QUIET,
-                           FILE        *file = NULL);
+                         int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                         FILE        *file = NULL);
 
 float
 my_eval_circ_structure(std::string sequence,
@@ -238,8 +253,8 @@ my_eval_circ_gquad_structure(std::string sequence,
 float
 my_eval_structure_simple(std::vector<std::string> alignment,
                          std::string structure,
-                           int         verbosity_level = VRNA_VERBOSITY_QUIET,
-                           FILE        *file = NULL);
+                         int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                         FILE        *file = NULL);
 
 float
 my_eval_circ_structure(std::vector<std::string> alignment,

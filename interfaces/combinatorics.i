@@ -11,7 +11,8 @@
 
 %{
   std::vector<std::vector<int> >
-  my_enumerate_necklaces( std::vector<unsigned int> entity_counts){
+  my_enumerate_necklaces( std::vector<unsigned int> entity_counts)
+  {
     std::vector<std::vector<int> > permutations;
     /* add a 0 entry, just in case it has been forgotten */
     entity_counts.push_back(0);

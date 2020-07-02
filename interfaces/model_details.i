@@ -111,21 +111,32 @@ typedef struct {
     return md;
   }
 
-  ~vrna_md_t(){
+  ~vrna_md_t()
+  {
     free($self);
   }
 
-  void reset(){
+  void
+  reset()
+  {
     vrna_md_set_default($self);
   }
-  void set_from_globals(){
+
+  void
+  set_from_globals()
+  {
     set_model_details($self);
   }
-  char *option_string(){
+
+  char *
+  option_string()
+  {
     return vrna_md_option_string($self);
   }
 
-  std::string __str__()
+#ifdef SWIGPYTHON
+  std::string
+  __str__()
   {
     std::ostringstream out;
     out << "{ temperature: " << $self->temperature ;
@@ -157,7 +168,6 @@ typedef struct {
     return std::string(out.str());
   }
 
-#ifdef SWIGPYTHON
 %pythoncode %{
 def __repr__(self):
     # reformat string representation (self.__str__()) to something

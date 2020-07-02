@@ -20,17 +20,22 @@ typedef struct {
 } SOLUTION;
 
 %extend SOLUTION {
-        SOLUTION *get(int i) {
+        SOLUTION *
+        get(int i)
+        {
            return self+i;
         }
 
-        int size() {
+        int
+        size()
+        {
            SOLUTION *s;
            for (s=self; s->structure; s++);
            return (int)(s-self);
         }
 
-        ~SOLUTION() {
+        ~SOLUTION()
+        {
            SOLUTION *s;
            for (s=$self; s->structure; s++) free(s->structure);
            free($self);
@@ -67,17 +72,18 @@ typedef struct {
     char *structure;
 } subopt_solution;
 
-%newobject subopt_solution::__str__;
-%newobject subopt_solution::__repr__;
 
 %extend subopt_solution {
 
-  ~subopt_solution() {
+  ~subopt_solution()
+  {
     free($self->structure);
     free($self);
   }
 
-  std::string __str__()
+#ifdef SWIGPYTHON
+  std::string
+  __str__()
   {
     std::ostringstream out;
     out << "{ structure: \"" << $self->structure << "\"";
@@ -87,7 +93,6 @@ typedef struct {
     return std::string(out.str());
   }
 
-#ifdef SWIGPYTHON
 %pythoncode %{
 def __repr__(self):
     # reformat string representation (self.__str__()) to something
@@ -103,11 +108,20 @@ def __repr__(self):
 
 %{
 
-  SOLUTION *my_subopt(char *seq, char *constraint, int delta, FILE *nullfile = NULL){
+  SOLUTION *
+  my_subopt(char  *seq,
+            char  *constraint,
+            int   delta,
+            FILE  *nullfile = NULL)
+  {
     return subopt(seq, constraint, delta, nullfile);
   }
 
-  std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NULL){
+  std::vector<subopt_solution>
+  my_subopt(char  *seq,
+            int   delta,
+            FILE  *nullfile = NULL)
+  {
     std::vector<subopt_solution> ret;
     SOLUTION *sol = subopt(seq, NULL, delta, nullfile);
     if (sol)
@@ -139,7 +153,11 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NU
 %feature("kwargs") subopt;
 #endif
 
-  std::vector<subopt_solution> subopt(int delta, int sorted = 1, FILE *nullfile = NULL){
+  std::vector<subopt_solution>
+  subopt(int  delta,
+         int  sorted = 1,
+         FILE *nullfile = NULL)
+  {
     std::vector<subopt_solution> ret;
     SOLUTION *sol = vrna_subopt($self, delta, sorted, nullfile);
     if (sol)
@@ -157,7 +175,9 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NU
     return ret;
   }
 
-  std::vector<subopt_solution> subopt_zuker(void){
+  std::vector<subopt_solution>
+  subopt_zuker(void)
+  {
     std::vector<subopt_solution> ret;
     SOLUTION *sol = vrna_subopt_zuker($self);
     if (sol)

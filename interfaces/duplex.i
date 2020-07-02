@@ -68,20 +68,23 @@ namespace std {
 
 %{
 
-  duplexT my_duplexfold(std::string s1,
-                        std::string s2)
+  duplexT
+  my_duplexfold(std::string s1,
+                std::string s2)
   {
     return duplexfold(s1.c_str(), s2.c_str());
   }
 
-  std::vector<duplex_list_t>  my_duplex_subopt( std::string s1,
-                                                std::string s2,
-                                                int delta,
-                                                int w)
+  std::vector<duplex_list_t>
+  my_duplex_subopt( std::string s1,
+                    std::string s2,
+                    int         delta,
+                    int         w)
   {
     std::vector<duplex_list_t> ret;
     duplexT *list, *ptr;
     list = duplex_subopt(s1.c_str(), s2.c_str(), delta, w);
+ 
     for (ptr = list; ptr->structure != NULL; ptr++) {
       duplex_list_t a;
       a.i         = ptr->i;
@@ -95,8 +98,9 @@ namespace std {
     return ret;
   }
 
-  duplexT my_aliduplexfold(std::vector<std::string> alignment1,
-                           std::vector<std::string> alignment2)
+  duplexT
+  my_aliduplexfold(std::vector<std::string> alignment1,
+                   std::vector<std::string> alignment2)
   {
     std::vector<const char*> aln_vec1;
     std::transform(alignment1.begin(), alignment1.end(), std::back_inserter(aln_vec1), convert_vecstring2veccharcp);
@@ -108,10 +112,11 @@ namespace std {
     return aliduplexfold((const char **)&aln_vec1[0], (const char **)&aln_vec2[0]);
   }
 
-  std::vector<duplex_list_t> aliduplex_subopt(std::vector<std::string> alignment1,
-                                              std::vector<std::string> alignment2,
-                                              int delta,
-                                              int w)
+  std::vector<duplex_list_t>
+  aliduplex_subopt(std::vector<std::string> alignment1,
+                   std::vector<std::string> alignment2,
+                   int                      delta,
+                   int                      w)
   {
     std::vector<duplex_list_t> ret;
     duplexT *list, *ptr;
