@@ -230,13 +230,13 @@ class FoldCompoundTest(unittest.TestCase):
         print "test_create_fold_compound_Single"
 
         fc = RNA.fold_compound(seq1)
-        self.assertEqual(fc.type(),0)
+        self.assertEqual(fc.type, RNA.FC_TYPE_SINGLE)
 
 
     def test_create_fold_compound_Align(self):
         print "test_create_fold_compound_Align"
         fc= RNA.fold_compound(align)
-        self.assertEqual(fc.type(),1)
+        self.assertEqual(fc.type, RNA.FC_TYPE_COMPARATIVE)
 
 
     def test_create_fold_compound_2D(self):

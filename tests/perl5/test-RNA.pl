@@ -265,13 +265,13 @@ $struct3=       "(..(((...)))...)";
 ##test_create_fold_compound_Single
 print "test_create_fold_compound_Single\n";
 my $fc = new RNA::fold_compound($seq1);
-is($fc->type(),0);
+is($fc->{type}, RNA::FC_TYPE_SINGLE);
 undef $fc;
 ####################################################
 ##test_create_fold_compound_Align:
 print "test_create_fold_compound_Align\n";
 $fc = new RNA::fold_compound(\@align);
-is($fc->type(),1);
+is($fc->{type},RNA::FC_TYPE_COMPARATIVE);
 undef $fc;
 ####################################################
 ##test_create_fold_compound_2D
