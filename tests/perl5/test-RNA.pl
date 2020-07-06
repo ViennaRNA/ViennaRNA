@@ -236,16 +236,16 @@ $RNA::temperature = 37.0;
 
 # check parameter structures
 my $params = RNA::param->new();
-is($params->get_temperature(), 37.0);
+is($params->{temperature}, 37.0);
 
 $params = RNA::param->new($md);
-is($params->get_temperature(), 40.1);
+is($params->{temperature}, 40.1);
 
 my $pf_params = RNA::exp_param->new();
-is($pf_params->get_temperature(), 37.0);
+is($pf_params->{temperature}, 37.0);
 
 $pf_params = RNA::exp_param->new($md);
-is($pf_params->get_temperature(), 40.1);
+is($pf_params->{temperature}, 40.1);
 
 undef $md;
 

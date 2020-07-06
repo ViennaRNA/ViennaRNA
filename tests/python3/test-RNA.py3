@@ -206,14 +206,14 @@ class GeneralTests(unittest.TestCase):
 
         # check parameter structures
         params = RNA.param()
-        self.assertEqual(params.get_temperature(),37.0)
+        self.assertEqual(params.temperature,37.0)
         params = RNA.param(md)
-        self.assertEqual(params.get_temperature(),40.1)
+        self.assertEqual(params.temperature,40.1)
 
         pf_params = RNA.exp_param()
-        self.assertEqual(pf_params.get_temperature(),37.0)
+        self.assertEqual(pf_params.temperature,37.0)
         pf_params = RNA.exp_param(md)
-        self.assertEqual(pf_params.get_temperature(),40.1)
+        self.assertEqual(pf_params.temperature,40.1)
         md = None
 
 

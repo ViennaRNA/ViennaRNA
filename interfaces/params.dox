@@ -3,7 +3,21 @@
 @fn void vrna_params_subst(vrna_fold_compound_t *vc, vrna_param_t *par)
 @scripting
 @parblock
-This function is attached to #vrna_fc_s objects as @b params_subst() method.
+This function is attached to #vrna_fc_s objects as overloaded @b params_subst() method.
+
+When no parameter is passed, the resulting action is the same as passing @em NULL as
+second parameter to vrna_params_subst(), i.e. resetting the parameters to the global
+defaults.
+@endparblock
+
+@fn void vrna_exp_params_subst(vrna_fold_compound_t *vc, vrna_exp_param_t *params)
+@scripting
+@parblock
+This function is attached to #vrna_fc_s objects as overloaded @b exp_params_subst() method.
+
+When no parameter is passed, the resulting action is the same as passing @em NULL as
+second parameter to vrna_exp_params_subst(), i.e. resetting the parameters to the global
+defaults.
 @endparblock
 
 @fn void vrna_exp_params_rescale(vrna_fold_compound_t *vc, double *mfe)
