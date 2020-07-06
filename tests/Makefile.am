@@ -21,6 +21,7 @@ TEST_EXTENSIONS = .pl .t .py .py3
 if WITH_UNIT_TESTS
 
 AM_TESTS_ENVIRONMENT =  \
+                        CK_DEFAULT_TIMEOUT=20 \
 ## Some environment initializations are kept in a separate shell
 ## file 'tests-env.sh', which can make it easier to also run tests
 ## from the command line.
