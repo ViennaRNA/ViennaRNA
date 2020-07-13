@@ -70,8 +70,9 @@ main(int  argc,
                               *shape_file, *shape_method, *shape_conversion;
   unsigned int                rec_type, read_opt;
   int                         length, istty, noconv, maxdist, zsc, tofile, filename_full,
-                              with_shapes, verbose;
+                              with_shapes, verbose, backtrack;
   double                      min_en, min_z;
+  long                        file_pos;
   vrna_md_t                   md;
   vrna_cmd_t                  commands;
   dataset_id                  id_control;
@@ -79,6 +80,7 @@ main(int  argc,
   ParamFile     = ns_bases = NULL;
   do_backtrack  = 1;
   noconv        = 0;
+  backtrack     = 0;
   dangles       = 2;
   maxdist       = 150;
   zsc           = 0;
@@ -95,6 +97,7 @@ main(int  argc,
   filename_full = 0;
   command_file  = NULL;
   commands      = NULL;
+  file_pos      = -1;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -126,6 +129,10 @@ main(int  argc,
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
+
+  /* do not allow weak pairs */
+  if (args_info.backtrack_given)
+    backtrack = tofile = 1;
 
   /* do not allow weak pairs */
   if (args_info.noLP_given)
@@ -299,8 +306,11 @@ main(int  argc,
         vrna_message_error("Input and output file names are identical");
 
       output = fopen((const char *)v_file_name, "a");
+
       if (!output)
         vrna_message_error("Failed to open file for writing");
+
+      file_pos = ftell(output);
     } else {
       output = stdout;
     }
@@ -374,6 +384,55 @@ main(int  argc,
     if (tofile && output) {
       fclose(output);
       output = NULL;
+    }
+
+    if (backtrack) {
+      FILE *f = fopen((const char *)v_file_name, "r");
+      if (f) {
+        if (fseek(f, file_pos, SEEK_SET) != -1) {
+          size_t num_lines, mem_lines;
+          num_lines = 0;
+          mem_lines = 1024;
+
+          long *lines = (long *)vrna_alloc(sizeof(long) * mem_lines);
+
+          lines[num_lines++] = ftell(f);
+
+          do {
+            /* increase memory if necessary */
+            if (num_lines == mem_lines) {
+              mem_lines *= 1.4;
+              lines = (long *)vrna_realloc(lines, sizeof(long) * mem_lines);
+            }
+
+            /* seek to next newline char */
+            do {
+              char c = fgetc(f);
+              if ((feof(f)) || (c == '\n'))
+                break;
+            } while (1);
+            
+            /* stop at end of file */
+            if (feof(f))
+              break;
+
+            lines[num_lines++] = ftell(f);
+          } while(1);
+
+          num_lines--;
+
+          for (size_t i = 0; i < num_lines; i++) {
+            printf("line %u at %ld\n", i, lines[i]);
+            fseek(f, lines[i], SEEK_SET);
+            char *l = vrna_read_line(f);
+            printf("%s\n", l);
+            free(l);
+          }
+
+        }
+        fclose(f);
+
+      }
     }
 
     /* clean up */
