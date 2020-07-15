@@ -58,6 +58,15 @@ default_callback(int        start,
                  float      en,
                  void       *data);
 
+struct local_struct {
+  short               *pt;
+  unsigned int        start;
+  unsigned int        shift;
+  unsigned int        length;
+  int                 energy;
+  struct local_struct *next_entry;
+};
+
 
 int
 main(int  argc,
@@ -419,16 +428,37 @@ main(int  argc,
             lines[num_lines++] = ftell(f);
           } while(1);
 
-          num_lines--;
+          if (num_lines > 0) {
+            num_lines--;
+            char                *mfe_structure = (char *)vrna_alloc(sizeof(char) * (vc->length + 1));
+            struct local_struct *ss = (struct local_struct *)vrna_alloc(sizeof(struct local_struct) * (maxdist + 1));
+            size_t              num_ss = 0;
 
-          for (size_t i = 0; i < num_lines; i++) {
-            printf("line %u at %ld\n", i, lines[i]);
-            fseek(f, lines[i], SEEK_SET);
-            char *l = vrna_read_line(f);
-            printf("%s\n", l);
-            free(l);
+            for (size_t i = num_lines - 1; ; i--) {
+
+              printf("line %u at %ld\n", i, lines[i]);
+              fseek(f, lines[i], SEEK_SET);
+              char *l = vrna_read_line(f);
+              long int  start = 0;
+              float     en = INF / 100.;
+              char      *structure = (char *)vrna_alloc(sizeof(char) * (strlen(l) + 1));
+              if (sscanf(l, "%[.()] %*c %f %*c %ld", structure, &en, &start) == 3) {
+                printf("s: %s, en: %6.2f, start: %ld\n", structure, en, start);
+                ss[num_ss].pt     = vrna_ptable(structure);
+                ss[num_ss].start  = start;
+                ss[num_ss].shift  = 0;
+                ss[num_ss].length = strlen(structure);
+                ss[num_ss].energy = (int)(en * 100.);
+              } else {
+                printf("%s\n", l);
+              }
+              free(structure);
+              free(l);
+
+              if (i == 0)
+                break;
+            }
           }
-
         }
         fclose(f);
 
