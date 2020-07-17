@@ -341,17 +341,6 @@ typedef enum {
 
 
 /**
- *  @brief  A base pair hard constraint
- */
-typedef struct {
-  int           interval_start;
-  int           interval_end;
-  unsigned char loop_type;
-  unsigned char replace : 1;
-} vrna_hc_bp_storage_t;
-
-
-/**
  *  @brief  The hard constraints data structure
  *
  *  The content of this data structure determines the decomposition pattern
@@ -395,8 +384,6 @@ struct vrna_hc_s {
     struct {
 #endif
       unsigned char         **matrix_local;
-      unsigned char         *up_storage;
-      vrna_hc_bp_storage_t  **bp_storage;
 #ifndef VRNA_DISABLE_C11_FEATURES
     };
   };
@@ -575,7 +562,7 @@ vrna_hc_add_up_strand_batch(vrna_fold_compound_t *fc,
  *  @param  j       The 3' located nucleotide position of the base pair (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
  */
-void vrna_hc_add_bp(vrna_fold_compound_t  *vc,
+int vrna_hc_add_bp(vrna_fold_compound_t  *vc,
                     int                   i,
                     int                   j,
                     unsigned char         option);

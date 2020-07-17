@@ -129,12 +129,22 @@ hc_depot_store_up(vrna_fold_compound_t  *fc,
       hc->depot->up[strand][k].context   = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
       hc->depot->up[strand][k].direction = 0;
       hc->depot->up[strand][k].nonspec   = 0;
+      printf("storing hc_up[%d] = %u, dir: %d, nonspec: %d\n",
+        k,
+        VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE,
+        0,
+        0);
     }
   }
 
   hc->depot->up[strand][i].context   = context;
   hc->depot->up[strand][i].direction = 0;
   hc->depot->up[strand][i].nonspec   = 0;
+  printf("storing hc_up[%d] = %u, dir: %d, nonspec: %d\n",
+    i,
+    context,
+    0,
+    0);
 }
 
 
@@ -161,12 +171,22 @@ hc_depot_store_nonspec(vrna_fold_compound_t  *fc,
       hc->depot->up[strand][k].context   = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
       hc->depot->up[strand][k].direction = 0;
       hc->depot->up[strand][k].nonspec   = 0;
+      printf("storing hc_up[%d] = %u, dir: %d, nonspec: %d\n",
+        k,
+        VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE,
+        0,
+        0);
     }
   }
 
   hc->depot->up[strand][i].context   = context;
   hc->depot->up[strand][i].direction = d;
   hc->depot->up[strand][i].nonspec   = 1;
+  printf("storing hc_up[%d] = %u, dir: %d, nonspec: %d\n",
+    i,
+    context,
+    d,
+    1);
 }
 
 

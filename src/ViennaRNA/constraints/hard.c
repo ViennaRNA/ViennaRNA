@@ -59,45 +59,6 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
                         int                   j);
 
 
-PRIVATE void
-hc_init_up_storage(vrna_hc_t *hc);
-
-
-PRIVATE void
-hc_init_bp_storage(vrna_hc_t *hc);
-
-
-PRIVATE void
-hc_store_bp(vrna_hc_bp_storage_t  **container,
-            int                   i,
-            int                   start,
-            int                   end,
-            unsigned char         loop_type,
-            unsigned char         replace);
-
-
-PRIVATE void
-hc_store_bp_override(vrna_hc_bp_storage_t **container,
-                     int                  i,
-                     int                  start,
-                     int                  end,
-                     unsigned char        loop_type);
-
-
-PRIVATE void
-hc_store_bp_add(vrna_hc_bp_storage_t  **container,
-                int                   i,
-                int                   start,
-                int                   end,
-                unsigned char         loop_type);
-
-
-PRIVATE INLINE void
-apply_stored_bp_hc(unsigned char        *current,
-                   vrna_hc_bp_storage_t *container,
-                   unsigned int         j);
-
-
 PRIVATE INLINE void
 populate_hc_up(vrna_fold_compound_t *fc,
                unsigned int         i);
@@ -240,8 +201,6 @@ vrna_hc_init_window(vrna_fold_compound_t *vc)
   hc->type          = VRNA_HC_WINDOW;
   hc->n             = n;
   hc->matrix_local  = (unsigned char **)vrna_alloc(sizeof(unsigned char *) * (n + 2));
-  hc->up_storage    = NULL;
-  hc->bp_storage    = NULL;
   hc->up_ext        = NULL;
   hc->up_hp         = NULL;
   hc->up_int        = NULL;
@@ -489,7 +448,6 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
                            int                  d,
                            unsigned char        option)
 {
-  unsigned char type, t1, t2;
   unsigned int  n, strand, actual_i, *sn, *ss, *se;
   int           p;
   vrna_hc_t     *hc;
@@ -510,12 +468,6 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
       strand    = sn[i];
       actual_i  = i - ss[strand] + 1;
 
-      /* position i may pair in provided contexts */
-      type = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-      /* acknowledge pairing direction */
-      t1  = (d <= 0) ? type : VRNA_CONSTRAINT_CONTEXT_NONE;
-      t2  = (d >= 0) ? type : VRNA_CONSTRAINT_CONTEXT_NONE;
-
       hc_depot_store_nonspec(vc,
                              actual_i,
                              strand,
@@ -523,19 +475,6 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
                              option);
 
       hc->state |= STATE_DIRTY_UP;
-
-      if (hc->type == VRNA_HC_WINDOW) {
-        /* nucleotide mustn't be unpaired */
-        hc_init_up_storage(hc);
-        hc->up_storage[i] = VRNA_CONSTRAINT_CONTEXT_NONE;
-
-        /* force pairing direction */
-        hc_init_bp_storage(hc);
-        for (p = 1; p < i; p++)
-          hc_store_bp_add(hc->bp_storage, p, i, i, t1);
-
-        hc_store_bp_add(hc->bp_storage, i, i + 1, n, t2);
-      }
     }
   }
 }
@@ -599,15 +538,17 @@ vrna_hc_add_bp_strand(vrna_fold_compound_t *fc,
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_hc_add_bp(vrna_fold_compound_t *vc,
                int                  i,
                int                  j,
                unsigned char        option)
 {
   unsigned int  n, *sn, *se, *ss, strand_i, strand_j, actual_i, actual_j;
-  int           k, l;
+  int           k, l, ret;
   vrna_hc_t     *hc;
+
+  ret = 0;
 
   if (vc) {
     sn  = vc->strand_number;
@@ -617,69 +558,37 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
     if (vc->hc) {
       if ((i <= 0) || (j <= i) || (j > vc->length)) {
         vrna_message_warning("vrna_hc_add_bp: position out of range, omitting constraint");
-        return;
       } else if ((sn[i] == sn[j]) && ((j - i - 1) < vc->params->model_details.min_loop_size)) {
         vrna_message_warning(
           "vrna_hc_add_bp: Pairing partners (%d, %d) violate minimum loop size settings of %dnt, omitting constraint",
           i,
           j,
           vc->params->model_details.min_loop_size);
-        return;
-      }
+      } else {
 
-      hc        = vc->hc;
-      n         = hc->n;
+        hc        = vc->hc;
+        n         = hc->n;
 
-      /*
-          determine the corresponding strand numbers and the actual
-          position (relative to the strand)
-      */
-      strand_i  = sn[i];
-      strand_j  = sn[j];
-      actual_i  = i - ss[strand_i] + 1;
-      actual_j  = j - ss[strand_j] + 1;
+        /*
+            determine the corresponding strand numbers and the actual
+            position (relative to the strand)
+        */
+        strand_i  = sn[i];
+        strand_j  = sn[j];
+        actual_i  = i - ss[strand_i] + 1;
+        actual_j  = j - ss[strand_j] + 1;
 
-      if(!vrna_hc_add_bp_strand(vc,
-                                actual_i,
-                                strand_i,
-                                actual_j,
-                                strand_j,
-                                option))
-        return;
-
-      hc->state |= STATE_DIRTY_BP;
-
-      if (hc->type == VRNA_HC_WINDOW) {
-        hc_init_bp_storage(hc);
-        hc_store_bp_override(hc->bp_storage, i, j, j,
-                             option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-
-        if (!(option & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
-          /*
-           * remove all conflicting base pairs, i.e. do not allow i or j to pair
-           * with any other nucleotide k
-           */
-          for (k = 1; k < i; k++)
-            hc_store_bp_add(hc->bp_storage, k, i, j, VRNA_CONSTRAINT_CONTEXT_NONE);             /* (k, i), (k, i + 1), ..., (k, j) with 1 <= k < i */
-
-          hc_store_bp_add(hc->bp_storage, i, i + 1, j - 1, VRNA_CONSTRAINT_CONTEXT_NONE);       /* (i, k), i < k < j */
-
-          for (k = i + 1; k < j; k++)
-            hc_store_bp_add(hc->bp_storage, k, j, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);    /* (i + 1, k), (i + 1, k), ..., (j - 1, k) with (j < k <= n */
-
-          hc_store_bp_add(hc->bp_storage, i, j + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);  /* (i, k), j < k <= n */
-          hc_store_bp_add(hc->bp_storage, j, j + 1, vc->length, VRNA_CONSTRAINT_CONTEXT_NONE);  /* (j, k), j < k <= n */
-        }
-
-        if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
-          /* do not allow i,j to be unpaired */
-          hc_init_up_storage(hc);
-          hc->up_storage[i] = VRNA_CONSTRAINT_CONTEXT_NONE;
-          hc->up_storage[j] = VRNA_CONSTRAINT_CONTEXT_NONE;
-        }
+        ret = vrna_hc_add_bp_strand(vc,
+                                    actual_i,
+                                    strand_i,
+                                    actual_j,
+                                    strand_j,
+                                    option);
       }
     }
   }
+
+  return ret;
 }
 
 
@@ -693,12 +602,6 @@ vrna_hc_free(vrna_hc_t *hc)
     } else if (hc->type == VRNA_HC_WINDOW) {
       unsigned int i;
       free(hc->matrix_local);
-      free(hc->up_storage);
-      if (hc->bp_storage) {
-        for (i = 1; i <= hc->n; i++)
-          free(hc->bp_storage[i]);
-        free(hc->bp_storage);
-      }
     }
 
     hc_depot_free(hc);
@@ -901,28 +804,13 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
 }
 
 
-PRIVATE void
-hc_init_up_storage(vrna_hc_t *hc)
-{
-  unsigned int i;
-
-  if (hc->up_storage == NULL) {
-    free(hc->up_storage);
-    hc->up_storage = (unsigned char *)vrna_alloc(sizeof(unsigned char) * (hc->n + 2));
-
-    for (i = 1; i <= hc->n; i++)
-      /* by default unpaired nucleotides are allowed in all contexts */
-      hc->up_storage[i] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-  }
-}
-
-
 PRIVATE INLINE void
 populate_hc_up(vrna_fold_compound_t *fc,
                unsigned int         i)
 {
   unsigned char context;
-  unsigned int actual_i, strand;
+  unsigned int  actual_i, strand;
+
   vrna_hc_t *hc = fc->hc;
 
   if (hc->type == VRNA_HC_WINDOW) {
@@ -936,44 +824,25 @@ populate_hc_up(vrna_fold_compound_t *fc,
       context = hc->depot->up[strand][i].context;
 
       if (hc->depot->up[strand][i].nonspec) {
-        /* this nucleotide must pair */
+        /* this nucleotide must not stay unpaired */
         hc->matrix_local[actual_i][0] = VRNA_CONSTRAINT_CONTEXT_NONE;
 
         /* pairing direction will be enforced by populate_hc_bp() */
       } else if (context & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
         hc->matrix_local[i][0] = context & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-        /* removal of base pairs involving i will be handled by populate_hc_bp() */
+        /* restriction of base pairing contexts and removal of possible pairing will be handled by populate_hc_bp() */
       } else {
         hc->matrix_local[i][0] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-        /* restriction of base pairing contexts involving i will be handled by populate_hc_bp() */
+        /* restriction of base pairing contexts and removal of possible pairing will be handled by populate_hc_bp() */
       }
-    } else if (hc->up_storage) {
-      /* We use user-defined constraints for unpaired nucleotides */
-      hc->matrix_local[i][0] = hc->up_storage[i];
     } else {
-      /* ... or simply allow unpaired nucleotides in all contexts */
+      /* if no constraints are available, we simply allow it to be unpaired in all contexts */
       hc->matrix_local[i][0] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
     }
 
     hc_update_up_window(fc, i);
   } else {
     /* do something reasonable here... */
-  }
-}
-
-
-PRIVATE void
-hc_init_bp_storage(vrna_hc_t *hc)
-{
-  unsigned int i;
-
-  if (hc->bp_storage == NULL) {
-    hc->bp_storage = (vrna_hc_bp_storage_t **)vrna_alloc(
-      sizeof(vrna_hc_bp_storage_t *) * (hc->n + 2));
-
-    for (i = 1; i <= hc->n; i++)
-      /* by default we do not limit base pairs to any context */
-      hc->bp_storage[i] = NULL;
   }
 }
 
@@ -1259,108 +1128,14 @@ prepare_hc_bp(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE void
-hc_store_bp_override(vrna_hc_bp_storage_t **container,
-                     int                  i,
-                     int                  start,
-                     int                  end,
-                     unsigned char        loop_type)
-{
-  hc_store_bp(container, i, start, end, loop_type, 1);
-}
-
-
-PRIVATE void
-hc_store_bp_add(vrna_hc_bp_storage_t  **container,
-                int                   i,
-                int                   start,
-                int                   end,
-                unsigned char         loop_type)
-{
-  hc_store_bp(container, i, start, end, loop_type, 0);
-}
-
-
-PRIVATE void
-hc_store_bp(vrna_hc_bp_storage_t  **container,
-            int                   i,
-            int                   start,
-            int                   end,
-            unsigned char         loop_type,
-            unsigned char         replace)
-{
-  int size, cnt = 0;
-
-  if (!container[i]) {
-    container[i] = (vrna_hc_bp_storage_t *)vrna_alloc(sizeof(vrna_hc_bp_storage_t) * 2);
-  } else {
-    /* find out total size of container */
-    for (size = 0; container[i][size].interval_start != 0; size++);
-
-    /* find position where we want to insert the new constraint */
-    for (cnt = 0; cnt < size; cnt++) {
-      if (container[i][cnt].interval_start > start)
-        break; /* want to insert before current constraint */
-
-      if (container[i][cnt].interval_end < end)
-        continue; /* want to insert after current constraint */
-    }
-    /* increase memory for bp constraints */
-    container[i] = (vrna_hc_bp_storage_t *)vrna_realloc(container[i],
-                                                        sizeof(vrna_hc_bp_storage_t) * (size + 2));
-    /* shift trailing constraints by 1 entry */
-    memmove(container[i] + cnt + 1, container[i] + cnt,
-            sizeof(vrna_hc_bp_storage_t) * (size - cnt + 1));
-  }
-
-  container[i][cnt].interval_start  = start;
-  container[i][cnt].interval_end    = end;
-  container[i][cnt].loop_type       = loop_type;
-  container[i][cnt].replace         = replace ? 1 : 0;
-}
-
-
-PRIVATE INLINE void
-apply_stored_bp_hc(unsigned char        *current,
-                   vrna_hc_bp_storage_t *container,
-                   unsigned int         j)
-{
-  unsigned int  cnt, replace;
-  unsigned char constraint = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-  replace = 0;
-  /* go through list of constraints for current position i */
-  for (cnt = 0; container[cnt].interval_start != 0; cnt++) {
-    if (container[cnt].interval_start > j)
-      break; /* only constraints for pairs (i,q) with q > j left */
-
-    if (container[cnt].interval_end < j)
-      continue; /* constraint for pairs (i,q) with q < j */
-
-    /* constraint has interval [p,q] with p <= j <= q */
-    constraint &= container[cnt].loop_type;
-
-    /* is this a replacement or addition constraint? */
-    replace = (container[cnt].replace) ? 1 : 0;
-  }
-
-  if (replace)
-    /* overwrite current constraint */
-    *current = constraint;
-  else
-    /* apply constraint to current (canonical) bp */
-    *current &= constraint;
-}
-
-
 PRIVATE INLINE void
 populate_hc_bp(vrna_fold_compound_t *fc,
                unsigned int         i,
                unsigned int         maxdist,
                unsigned int         options)
 {
-  unsigned char constraint;
-  unsigned int  j, k, p, n, turn, strand, sj, actual_i, actual_j, *sn, *ss;
+  unsigned char constraint, type, t1, t2;
+  unsigned int  j, k, p, n, l, turn, strand, sj, sl, actual_i, actual_j, actual_l, *sn, *ss;
   vrna_hc_t     *hc;
 
   n         = fc->length;
@@ -1386,42 +1161,50 @@ populate_hc_bp(vrna_fold_compound_t *fc,
     }
 
     if (hc->depot) {
-      /* apply remainder of (partly) applied nucleotide-specific constraints */
+      /* 1. apply remainder of (partly) applied nucleotide-specific constraints */
       if (hc->depot->up) {
 
-        /*
-            apply remainder of (partly) applied nucleotide-specific
-            constraints for i
-        */
+        /* 1.a apply nucleotide specific constraints for i */
         if ((hc->depot->up[strand]) &&
             (hc->depot->up_size[strand] >= actual_i)) {
+
           constraint = hc->depot->up[strand][actual_i].context;
 
-          if (hc->depot->up[strand][actual_i].nonspec != 0) {
-            /* i must be paired, check preferred direction */
-            if (hc->depot->up[sj][actual_j].direction < 0) {
-              /* i is only allowed to pair upstream */
-              /* remove all base pairs (i, j) with i < j < i + maxist */
-              for (p = i + 1; p < MIN2(i + maxdist, n + 1); p++)
-                hc->matrix_local[i][p - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
-            } else if (hc->depot->up[sj][actual_j].direction > 0) {
-              /* nothing to do */
-            }
-          } else if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
-            if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
-              /* remove all base pairs (i, j) with i < j < i + maxdist */
-              for (p = i + 1; p < MIN2(i + maxdist, n + 1); p++)
-                hc->matrix_local[i][p - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+          if (hc->depot->up[strand][actual_i].nonspec) {
+            /* handle unspecific pairing contraint */
+
+            /* remove downstream pairs if necessary */
+            if (hc->depot->up[strand][actual_i].direction < 0) {
+              for (k = i + turn + 1; k < MIN2(i + maxdist, n + 1); k++)
+                hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
             } else {
-              constraint = ~constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-              for (p = i + 1; p < MIN2(i + maxdist, n + 1); p++)
-                hc->matrix_local[i][p - i] = constraint;
+              /* enforce the base pair type */
+              for (k = i + turn + 1; k < MIN2(i + maxdist, n + 1); k++)
+                hc->matrix_local[i][k - i] &= constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+            }
+          } else {
+            /* handle 'regular' unpairedness constraint */
+
+            if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
+              if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+                /* do not allow i to be paired with any other nucleotide */
+                for (k = i + turn + 1; k < MIN2(i + maxdist, n + 1); k++)
+                  hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              }
+            } else {
+              type = constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+              if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+                /* only allow i to be paired for particular types */
+                for (k = i + turn + 1; k < MIN2(i + maxdist, n + 1); k++)
+                  hc->matrix_local[i][k - i] &= ~type;
+              }
             }
           }
         }
 
+        
         /*
-            apply remainder of (partly) applied nucleotide-specific
+            1.b apply remainder of (partly) applied nucleotide-specific
             constraints for j with i < j < i + maxdist
         */
         for (k = 1; k < maxdist; k++) {
@@ -1436,42 +1219,99 @@ populate_hc_bp(vrna_fold_compound_t *fc,
               (hc->depot->up_size[sj] >= actual_j)) {
             constraint = hc->depot->up[sj][actual_j].context;
 
-            if (hc->depot->up[sj][actual_j].nonspec != 0) {
+            if (hc->depot->up[sj][actual_j].nonspec) {
               /* j must be paired, check preferred direction */
-              if (hc->depot->up[sj][actual_j].direction < 0) {
-                /* nothing to do */
-              } else if (hc->depot->up[sj][actual_j].direction > 0) {
-                /* remove (i, j) base pair */
+              if (hc->depot->up[sj][actual_j].direction > 0) {
+                /* j must pair downstream, so we remove base pair (i, j) */
                 hc->matrix_local[i][j - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              } else {
+                /* enforce base pair type */
+                hc->matrix_local[i][j - i] &= constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
               }
             } else if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
               if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
                 /* remove (i, j) base pair */
                 hc->matrix_local[i][j - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
               } else {
-                constraint = ~constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-                hc->matrix_local[i][j - i] = constraint;
+                constraint = constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+                hc->matrix_local[i][j - i] &= ~constraint;
               }
             }
           }
         }
       }
 
-      /* now for the actual base pair constraints */
+      /* 2. now for the actual base pair constraints */
       if (hc->depot->bp) {
 
+        /* 2.a apply base pair specific constraint for nucleotide i */
+        if ((hc->depot->bp[strand]) &&
+            (hc->depot->bp_size[strand] >= actual_i) &&
+            (hc->depot->bp[strand][actual_i].list_size > 0)) {
+          /* go through list of all constraints for this nucleotide */
+          for (size_t cnt = 0; cnt < hc->depot->bp[strand][actual_i].list_size; cnt++) {
+            constraint  = hc->depot->bp[strand][actual_i].context[cnt];
+            actual_j    = hc->depot->bp[strand][actual_i].j[cnt];
+            sj          = hc->depot->bp[strand][actual_i].strand_j[cnt];
+            j           = ss[sj] + actual_j - 1;
+
+            /* apply the constraint */
+            if ((j > i) && (i + maxdist > j))
+              hc->matrix_local[i][j - i] = constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
+
+            /* do not allow i to stay unpaired if necessary */
+            if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE)
+              hc->matrix_local[i][0] = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+            /* remove other base pairs violating the constraint */
+            if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+              /* remove any base pair (i, k) with k != j */
+              for (k = i + turn + 1; k < MIN2(i + maxdist, n); k++)
+                hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+              if ((j > i) && (i + maxdist > j)) {
+                /* remove any base pair (k, j) with k != i */
+                for (k = i + 1; k < j; k++)
+                  hc->matrix_local[k][j - k] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                for (k = j + 1; k < MIN2(i + maxdist, n + 1); k++)
+                  hc->matrix_local[j][k - j] = VRNA_CONSTRAINT_CONTEXT_NONE;
+                
+                /* remove all pairs crossing (i, j) */
+                for (k = i + 1; k < j; k++)
+                  for (l = j + 1; l < MIN2(i + maxdist, n + 1); l++)
+                    hc->matrix_local[k][l - k] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              }
+            }
+          }
+        }
+
+        /* 2.b apply base pair specific constraints for j with i < j < i + maxdist that possibly affect position i */
+        for (k = 1; k < maxdist; k++) {
+          j         = i + k;
+          sj        = sn[j];
+          actual_j  = j - ss[sj] + 1;
+
+          if (j > n)
+            break;
+
+          if ((hc->depot->bp[sj]) &&
+              (hc->depot->bp_size[sj] >= actual_j) &&
+              (hc->depot->bp[sj][actual_j].list_size > 0)) {
+            /* go through list of all constraints for this nucleotide */
+            for (size_t cnt = 0; cnt < hc->depot->bp[sj][actual_j].list_size; cnt++) {
+              constraint  = hc->depot->bp[sj][actual_j].context[cnt];
+              actual_l    = hc->depot->bp[sj][actual_j].j[cnt];
+              sl          = hc->depot->bp[sj][actual_j].strand_j[cnt];
+              l           = ss[sl] + actual_l - 1;
+            
+            }
+          }
+        }
       }
     }
 
-    for (k = turn + 1; k < maxdist; k++) {
-      j = i + k;
-      if (j > n)
-        break;
 
-      /* check whether we have constraints on any pairing partner i or j */
-      if ((hc->bp_storage) && (hc->bp_storage[i]))
-        apply_stored_bp_hc(&constraint, hc->bp_storage[i], j);
-    }
+    hc_update_up_window(fc, i);
   } else if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_5) {
     /* the sliding window moves from 5' to 3' side (i is 3' nucleotide) */
 
@@ -1957,28 +1797,7 @@ hc_update_up(vrna_fold_compound_t *vc)
   hc  = vc->hc;
 
   if (hc->type == VRNA_HC_WINDOW) {
-    /* do we actually have any constraints on unpaired positions? */
-    if (hc->up_storage) {
-      for (hc->up_ext[n + 1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
-        hc->up_ext[i] = (hc->up_storage[i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ? 1 +
-                        hc->up_ext[i + 1] : 0;
-
-      for (hc->up_hp[n + 1] = 0, i = n; i > 0; i--)  /* unpaired stretch in hairpin loop */
-        hc->up_hp[i] = (hc->up_storage[i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ? 1 +
-                       hc->up_hp[i + 1] : 0;
-
-      for (hc->up_int[n + 1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
-        hc->up_int[i] = (hc->up_storage[i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 +
-                        hc->up_int[i + 1] : 0;
-
-      for (hc->up_ml[n + 1] = 0, i = n; i > 0; i--)  /* unpaired stretch in multibranch loop */
-        hc->up_ml[i] = (hc->up_storage[i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ? 1 +
-                       hc->up_ml[i + 1] : 0;
-    } else {
-      /* no constraints on unpaired positions */
-      for (u = n, i = 1; i <= n; i++, u--)
-        hc->up_ext[i] = hc->up_hp[i] = hc->up_int[i] = hc->up_ml[i] = u;
-    }
+    /* do nothing for now! */
   } else {
     for (hc->up_ext[n + 1] = 0, i = n; i > 0; i--) /* unpaired stretch in exterior loop */
       hc->up_ext[i] = (hc->mx[n * i + i] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ? 1 +
