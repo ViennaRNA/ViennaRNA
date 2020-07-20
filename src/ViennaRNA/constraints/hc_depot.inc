@@ -8,21 +8,30 @@ struct hc_basepair {
   unsigned char *context;
 };
 
-
 struct hc_nuc {
   int           direction;
   unsigned char context;
   unsigned char nonspec;
 };
 
+struct hc_basepair_rev {
+  size_t    source_size;
+  size_t    source_mem;
+  unsigned int  *strand_i;
+  unsigned int  *i;
+  size_t        *entry;
+};
+
 
 /* store, for each strand, a list of nucleotide/base pair constraints */
 struct vrna_hc_depot_s {
-  unsigned int        strands;
-  size_t              *up_size;
-  struct hc_nuc       **up;
-  size_t              *bp_size;
-  struct hc_basepair  **bp;
+  unsigned int            strands;
+  size_t                  *up_size;
+  struct hc_nuc           **up;
+  size_t                  *bp_size;
+  struct hc_basepair      **bp;
+  size_t                  *rev_size;
+  struct hc_basepair_rev  **rev;
 };
 
 
@@ -100,9 +109,15 @@ hc_depot_init(vrna_fold_compound_t *fc)
       hc->depot->up = (struct hc_nuc **)vrna_alloc(sizeof(struct hc_nuc *) * fc->strands);
       hc->depot->bp_size = (size_t *)vrna_alloc(sizeof(size_t) * fc->strands);
       hc->depot->bp = (struct hc_basepair **)vrna_alloc(sizeof(struct hc_basepair *) * fc->strands);
+      hc->depot->rev_size = (size_t *)vrna_alloc(sizeof(size_t) * fc->strands);
+      hc->depot->rev = (struct hc_basepair_rev **)vrna_alloc(sizeof(struct hc_basepair_rev *) * fc->strands);
     } else {
+      hc->depot->up_size = NULL;
       hc->depot->up = NULL;
+      hc->depot->bp_size = NULL;
       hc->depot->bp = NULL;
+      hc->depot->rev_size = NULL;
+      hc->depot->rev = NULL;
     }
   }
 }
@@ -198,13 +213,16 @@ hc_depot_store_bp(vrna_fold_compound_t  *fc,
                   unsigned int          strand_j,
                   unsigned char         context)
 {
-  size_t    k, old_size;
+  size_t    k, old_size, next_entry, entry;
   vrna_hc_t           *hc;
 
   hc_depot_init(fc);
 
   hc = fc->hc;
 
+  /* 1st, store the actual constraint */
+
+  /* 1a, resize memory for constraints on strand_i if necessary */
   if (hc->depot->bp_size[strand_i] < i) {
     old_size = hc->depot->bp_size[strand_i];
     hc->depot->bp_size[strand_i] = i;
@@ -221,6 +239,7 @@ hc_depot_store_bp(vrna_fold_compound_t  *fc,
     }
   }
 
+  /* 1b, resize memory for constraints for nucleotide i on strand_i if necessary */
   if (hc->depot->bp[strand_i][i].list_size == hc->depot->bp[strand_i][i].list_mem) {
     hc->depot->bp[strand_i][i].list_mem += 32;
     hc->depot->bp[strand_i][i].j = (unsigned int *)vrna_realloc(hc->depot->bp[strand_i][i].j,
@@ -234,13 +253,55 @@ hc_depot_store_bp(vrna_fold_compound_t  *fc,
                                                                 (hc->depot->bp[strand_i][i].list_mem + 1));
   }
 
-  size_t next_entry = hc->depot->bp[strand_i][i].list_size;
+  /* 1c, store the constraint */
+  entry = next_entry = hc->depot->bp[strand_i][i].list_size;
 
   hc->depot->bp[strand_i][i].j[next_entry]         = j;
   hc->depot->bp[strand_i][i].strand_j[next_entry]  = strand_j;
   hc->depot->bp[strand_i][i].context[next_entry]   = context;
 
   hc->depot->bp[strand_i][i].list_size++;
+
+  /* 2nd. store a reverse-lookup entry for this base pair constraint */
+
+  /* 2a, resize memory for reverse lookup entries affecting strand_j if necessary */
+  if (hc->depot->rev_size[strand_j] < j) {
+    old_size = hc->depot->rev_size[strand_j];
+    hc->depot->rev_size[strand_j] = j;
+    hc->depot->rev[strand_j] = (struct hc_basepair_rev *)vrna_realloc(hc->depot->rev[strand_j],
+                                                                      sizeof(struct hc_basepair_rev) *
+                                                                      (hc->depot->rev_size[strand_j] + 1));
+
+    /* initialize new entries */
+    for (k = old_size + 1; k <= j; k++) {
+      hc->depot->rev[strand_j][k].source_size = 0;
+      hc->depot->rev[strand_j][k].source_mem  = 0;
+      hc->depot->rev[strand_j][k].strand_i    = NULL;
+      hc->depot->rev[strand_j][k].i           = NULL;
+      hc->depot->rev[strand_j][k].entry       = NULL;
+    }
+  }
+
+  /* 2b, resize memory for reverse lookup entries affecting position j on strand_j if necessary */
+  if (hc->depot->rev[strand_j][j].source_size == hc->depot->rev[strand_j][j].source_mem) {
+    hc->depot->rev[strand_j][j].source_mem += 32;
+    hc->depot->rev[strand_j][j].strand_i = (unsigned int *)vrna_realloc(hc->depot->rev[strand_j][j].strand_i,
+                                                                             sizeof(unsigned int) *
+                                                                             (hc->depot->rev[strand_j][j].source_mem + 1));
+    hc->depot->rev[strand_j][j].i = (unsigned int *)vrna_realloc(hc->depot->rev[strand_j][j].i,
+                                                                sizeof(unsigned int) *
+                                                                (hc->depot->rev[strand_j][j].source_mem + 1));
+    hc->depot->rev[strand_j][j].entry = (size_t *)vrna_realloc(hc->depot->rev[strand_j][j].entry,
+                                                                sizeof(size_t) *
+                                                                (hc->depot->rev[strand_j][j].source_mem + 1));
+  }
+
+  /* 2c, store the reverse lookup */
+  next_entry = hc->depot->rev[strand_j][j].source_size;
+
+  hc->depot->rev[strand_j][j].strand_i[next_entry]  = strand_i;
+  hc->depot->rev[strand_j][j].i[next_entry]         = i;
+  hc->depot->rev[strand_j][j].entry[next_entry]     = entry;
 }
 
 
@@ -269,6 +330,20 @@ hc_depot_free(vrna_hc_t *hc)
       }
 
       free(depot->bp);
+    }
+
+    if (depot->rev) {
+      for (s = 0; s < depot->strands; s++) {
+        for (i = 1; i <= depot->rev_size[s]; i++) {
+          free(depot->rev[s][i].strand_i);
+          free(depot->rev[s][i].i);
+          free(depot->rev[s][i].entry);
+        }
+
+        free(depot->rev[s]);
+      }
+
+      free(depot->rev);
     }
 
     free(depot);
