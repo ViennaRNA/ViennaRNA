@@ -1266,7 +1266,10 @@ populate_hc_bp(vrna_fold_compound_t *fc,
             /* remove other base pairs violating the constraint */
             if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
               /* remove any base pair (i, k) with k != j */
-              for (k = i + turn + 1; k < MIN2(i + maxdist, n); k++)
+              for (k = i + turn + 1; k < j; k++)
+                hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+              for (k = j + 1; k < MIN2(i + maxdist, n + 1); k++)
                 hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
 
               if ((j > i) && (i + maxdist > j)) {
@@ -1285,7 +1288,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
           }
         }
 
-        /* 2.b apply base pair specific constraints for j with i < j < i + maxdist that possibly affect position i */
+        /* 2.b acknowledge base pair constraints for (j, l) with i < j < i + maxdist */
         for (k = 1; k < maxdist; k++) {
           j         = i + k;
           sj        = sn[j];
@@ -1303,7 +1306,51 @@ populate_hc_bp(vrna_fold_compound_t *fc,
               actual_l    = hc->depot->bp[sj][actual_j].j[cnt];
               sl          = hc->depot->bp[sj][actual_j].strand_j[cnt];
               l           = ss[sl] + actual_l - 1;
-            
+
+              if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+                /* remove base pairs (i, p) with j <= p <= l */
+                if (l > j)
+                  for (p = j; p < MIN2(i + maxdist, l + 1); p++)
+                    hc->matrix_local[i][p - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              }
+            }
+          }
+        }
+
+        /* 2c, acknowledge base pair constraints for (j, i) with 1 <= j < i */
+        if (hc->depot->rev_size[strand] >= actual_i) {
+          for (size_t cnt = 0; cnt < hc->depot->rev[strand][actual_i].source_size; cnt++) {
+            sj          = hc->depot->rev[strand][actual_i].strand_i[cnt];
+            actual_j    = hc->depot->rev[strand][actual_i].i[cnt];
+            j           = ss[sj] + actual_j - 1;
+            constraint  = hc->depot->bp[sj][j].context[hc->depot->rev[strand][actual_i].entry[cnt]];
+
+            if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE)
+              hc->matrix_local[i][0] = VRNA_CONSTRAINT_CONTEXT_NONE;
+
+            if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
+              /* remove all base pairs (i, k) for i < k < i + maxdist */
+              for (k = i + turn + 1; k < MIN2(i + maxdist, n + 1); k++)
+                hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+            }
+          }
+        }
+
+        /* 2d, acknowledge base pair constraints for (l, j) with l < i < j < i + maxdist */
+        for (j = i + 1; j < MIN2(i + maxdist, n + 1); j++) {
+          sj = sn[j];
+          actual_j = j - ss[sj] + 1;
+
+          if (hc->depot->rev_size[sj] >= actual_j) {
+            for (size_t cnt = 0; cnt < hc->depot->rev[sj][actual_j].source_size; cnt++) {
+              sl = hc->depot->rev[sj][actual_j].strand_i[cnt];
+              actual_l = hc->depot->rev[sj][actual_j].i[cnt];
+              l         = ss[sl] + actual_l - 1;
+
+              if (l < i) {
+                for (k = j; k < MIN2(i + maxdist, n + 1); k++)
+                  hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
+              }
             }
           }
         }
