@@ -119,6 +119,8 @@ Provides: libRNA.a = %{version}-%{release}
 Requires: %{name} = %{version}-%{release}
 Requires: libstdc++-devel
 Requires: pkgconfig
+Requires: gsl-devel
+Requires: mpfr-devel
 
 %description devel
 Header files for ViennaRNA.
