@@ -21,7 +21,7 @@ Package: viennarna-dev
 Section: devel
 Architecture: any
 Conflicts: vienna-rna (<< 2.2.1-2)
-Depends: ${misc:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, libgsl0-dev | libgsl-dev, libmpfr-dev
 Description: ViennaRNA Package - RNAlib Development files
  Header files and static RNAlib C-library of the ViennaRNA Package
 
