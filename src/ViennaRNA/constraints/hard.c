@@ -61,13 +61,13 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
 
 PRIVATE INLINE void
 populate_hc_up(vrna_fold_compound_t *fc,
-               unsigned int         i);
+               unsigned int         i,
+               unsigned int         options);
 
 
 PRIVATE INLINE void
 populate_hc_bp(vrna_fold_compound_t *fc,
                unsigned int         i,
-               unsigned int         maxdist,
                unsigned int         options);
 
 
@@ -87,7 +87,8 @@ hc_update_up(vrna_fold_compound_t *vc);
 
 PRIVATE void
 hc_update_up_window(vrna_fold_compound_t  *vc,
-                    int                   i);
+                    int                   i,
+                    unsigned int          options);
 
 
 PRIVATE void
@@ -246,8 +247,8 @@ vrna_hc_update(vrna_fold_compound_t *fc,
         hc_update_up(fc);
       }
 
-      populate_hc_up(fc, i);
-      populate_hc_bp(fc, i, maxdist, options);
+      populate_hc_up(fc, i, options);
+      populate_hc_bp(fc, i, options);
     }
   }
 }
@@ -806,7 +807,8 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
 
 PRIVATE INLINE void
 populate_hc_up(vrna_fold_compound_t *fc,
-               unsigned int         i)
+               unsigned int         i,
+               unsigned int         options)
 {
   unsigned char context;
   unsigned int  actual_i, strand;
@@ -840,7 +842,7 @@ populate_hc_up(vrna_fold_compound_t *fc,
       hc->matrix_local[i][0] = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
     }
 
-    hc_update_up_window(fc, i);
+    hc_update_up_window(fc, i, options);
   } else {
     /* do something reasonable here... */
   }
@@ -1131,14 +1133,14 @@ prepare_hc_bp(vrna_fold_compound_t *fc,
 PRIVATE INLINE void
 populate_hc_bp(vrna_fold_compound_t *fc,
                unsigned int         i,
-               unsigned int         maxdist,
                unsigned int         options)
 {
   unsigned char constraint, type, t1, t2;
-  unsigned int  j, k, p, n, l, turn, strand, sj, sl, actual_i, actual_j, actual_l, *sn, *ss;
+  unsigned int  maxdist, j, k, p, n, l, turn, strand, sj, sl, actual_i, actual_j, actual_l, *sn, *ss;
   vrna_hc_t     *hc;
 
   n         = fc->length;
+  maxdist   = fc->window_size;
   sn        = fc->strand_number;
   ss        = fc->strand_start;
   strand    = sn[i];
@@ -1358,10 +1360,25 @@ populate_hc_bp(vrna_fold_compound_t *fc,
     }
 
 
-    hc_update_up_window(fc, i);
+    hc_update_up_window(fc, i, options);
   } else if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_5) {
     /* the sliding window moves from 5' to 3' side (i is 3' nucleotide) */
 
+#if 1
+    /* apply default constraints first */
+    for (k = turn + 1; k < maxdist; k++) {
+      j = i + k;
+      if (j > n)
+        break;
+
+      constraint = default_pair_constraint(fc, i, j);
+
+      hc->matrix_local[i][j - i] = constraint;
+      printf("constr: (%d, %d): %u\n", i, j, constraint);
+    }
+
+    hc_update_up_window(fc, i, options);
+#else
     /* apply default constraints first */
     unsigned int j_start = 1;
     unsigned int j_stop  = i;
@@ -1374,7 +1391,9 @@ populate_hc_bp(vrna_fold_compound_t *fc,
 
     for (j = j_start; j <= j_stop; j++)
       hc->matrix_local[j][i - j] = default_pair_constraint(fc, j, i);
+#endif
 
+#if 0
     /* next are user-defined constraints */
     if (hc->depot) {
       /* apply remainder of (partly) applied nucleotide-specific constraints */
@@ -1449,6 +1468,8 @@ populate_hc_bp(vrna_fold_compound_t *fc,
       
       }
     }
+#endif
+
   }
 }
 
@@ -1914,24 +1935,70 @@ hc_update_up(vrna_fold_compound_t *vc)
 
 PRIVATE void
 hc_update_up_window(vrna_fold_compound_t  *vc,
-                    int                   i)
+                    int                   i,
+                    unsigned int          options)
 {
   vrna_hc_t *hc;
+  int       k, winsize, up_ext, up_hp, up_int, up_ml;
 
-  hc = vc->hc;
+  hc      = vc->hc;
+  winsize = vc->window_size;
 
-  hc->up_ext[i] = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ?
-                  1 + hc->up_ext[i + 1] :
-                  0;
-  hc->up_hp[i] = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ?
-                 1 + hc->up_hp[i + 1] :
-                 0;
-  hc->up_int[i] = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ?
-                  1 + hc->up_int[i + 1] :
-                  0;
-  hc->up_ml[i] = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ?
-                 1 + hc->up_ml[i + 1] :
-                 0;
+  if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_5) {
+    up_ext  = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ?
+              1 : 0;
+    up_hp   = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ?
+              1 : 0;
+    up_int  = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ?
+              1 : 0;
+    up_ml   = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ?
+              1 : 0;
+  } else {
+    up_ext  = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ?
+              1 + hc->up_ext[i + 1] :
+              0;
+    up_hp   = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ?
+              1 + hc->up_hp[i + 1] :
+              0;
+    up_int  = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ?
+              1 + hc->up_int[i + 1] :
+              0;
+    up_ml   = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) ?
+              1 + hc->up_ml[i + 1] :
+              0;
+  }
+
+  hc->up_ext[i] = up_ext;
+  hc->up_hp[i]  = up_hp;
+  hc->up_int[i] = up_int;
+  hc->up_ml[i]  = up_ml;
+
+  if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_5) {
+    /* the sliding window proceeds from 5' to 3' so we update constraints 3' to 5' */
+    for (k = i - 1; k >= MAX2(1, i - winsize); k--) {
+      if (hc->up_ext[k] < 1)
+        break;
+      hc->up_ext[k] += up_ext;
+    }
+
+    for (k = i - 1; k >= MAX2(1, i - winsize); k--) {
+      if (hc->up_hp[k] < 1)
+        break;
+      hc->up_hp[k]  += up_hp;
+    }
+
+    for (k = i - 1; k >= MAX2(1, i - winsize); k--) {
+      if (hc->up_int[k] < 1)
+        break;
+      hc->up_int[k] += up_int;
+    }
+
+    for (k = i - 1; k >= MAX2(1, i - winsize); k--) {
+      if (hc->up_ml[k] < 1)
+        break;
+      hc->up_ml[k]  += up_ml;
+    }
+  }
 }
 
 
