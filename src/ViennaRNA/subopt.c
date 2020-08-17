@@ -1072,7 +1072,8 @@ scan_interval(vrna_fold_compound_t  *vc,
   if ((i > 1) && (!array_flag))
     vrna_message_error("Error while backtracking!");
 
-  if (j < i + turn + 1 && (sn[i] == sn[j])) {
+  if ((j < i + turn + 1) &&
+	  ((sn[i] == so[1]) || (sn[j] == so[0]))) {
     /* minimal structure element */
     if (array_flag == 0)
       /* do not forget to add f5[j], since it may contain pseudo energies from soft constraining */
