@@ -73,6 +73,7 @@ struct old_subopt_dat {
   unsigned long n_sol;
   SOLUTION      *SolutionList;
   FILE          *fp;
+  int           cp;
 };
 
 /*
@@ -594,7 +595,9 @@ make_output(SOLUTION  *SL,
   for (sol = SL; sol->structure != NULL; sol++) {
     char *e_string  = vrna_strdup_printf(" %6.2f", sol->energy);
     char *ss        = vrna_db_unpack(sol->structure);
-    print_structure(fp, ss, e_string);
+    char *s         = vrna_cut_point_insert(ss, cp);
+    print_structure(fp, s, e_string);
+    free(s);
     free(ss);
     free(e_string);
   }
@@ -752,6 +755,7 @@ vrna_subopt(vrna_fold_compound_t  *vc,
   data.max_sol      = 128;
   data.n_sol        = 0;
   data.fp           = fp;
+  data.cp           = vc->cutpoint;
 
   if (vc) {
     /* SolutionList stores the suboptimal structures found */
@@ -2300,7 +2304,14 @@ old_subopt_store_compressed(const char *structure,
 
   if (structure) {
     d->SolutionList[d->n_sol].energy      = energy;
-    d->SolutionList[d->n_sol++].structure = vrna_db_pack(structure);
+    if (d->cp > 0) {
+      int   cp = d->cp;
+      char  *s = vrna_cut_point_remove(structure, &cp);
+      d->SolutionList[d->n_sol++].structure = vrna_db_pack(s);
+      free(s);
+    } else { 
+      d->SolutionList[d->n_sol++].structure = vrna_db_pack(structure);
+    }
   } else {
     d->SolutionList[d->n_sol].energy      = 0;
     d->SolutionList[d->n_sol++].structure = NULL;
