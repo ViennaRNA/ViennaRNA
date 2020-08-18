@@ -4,7 +4,44 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.14...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.15...HEAD)
+
+
+### [Version 2.4.15](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.14...v2.4.15) (Release date: 2020-08-18)
+
+#### Programs
+  * Fix compilation of `Kinfold` with GCC 10
+  * Add `--en-only` flag to `RNAsubopt` to allow for sorting by energy only
+  * Prevent `RNAcofold` to process input with more than two strands
+  * Add cutpoint marker to dot-plots created with `RNAcofold -a`
+  * Update `Kinfold` to version `1.4`
+
+#### Library
+  * API: Fix removal of strand delimiter in `vrna_plot_dp_PS_list()`
+  * API: Fix `vrna_enumerate_necklaces()`
+  * API: Fix bogus backtracing for co-folded structures in `vrna_subopt()` and `vrna_subopt_cb()`
+  * API: Fix storing co-folded structures for sorted output in `vrna_subopt()`
+  * API: Fix multibranch loop component hard constraints for multi-strand cases
+  * API: Prevent adding internal loop energy contributions to enclosed parts with `energy=INF`
+  * API: Adapt `vrna_db_pack()/vrna_db_unpack()` functions to produce comparable strings
+  * API: Add sorting modes `VRNA_UNSORTED`, `VRNA_SORT_BY_ENERGY_LEXICOGRAPHIC_ASC`, and `VRNA_SORT_BY_ENERGY_ASC` to `vrna_subopt()`
+  * API: Add `vrna_strjoin()` function
+  * API: Add missing case to external loop hard constraints
+  * API: Make hard constrains strand-aware
+  * SWIG: Fix invalid memory access when using `MEA_from_plist()` in `Perl 5` or `Python`
+  * SWIG: Enable keyword argument features in `Python` interface of constructors for `fold_compound`, `md`, `move`, `param`, and `exp_param` objects
+  * SWIG: Enable autodoc feature for `Python` interface of constructors for `fold_compound`, `md`, and `move` objects
+  * SWIG: Enable `toString` conversion for `Python` interface for objects of type `fold_compound`, `md`, `move`, `params`, `exp_params`, and `subopt_solution`
+  * SWIG: Add (read-only) attributes `type`, `length`, `strands`, `params`, and `exp_params` to objects of type `fold_compound`
+  * SWIG: Make attributes of objects of type `param` and `exp_param` read-only
+  * Add array of strand nicks to EPS dot plot files instead of single cutpoint
+  * Draw separator line for each strand nick in EPS dot-plots
+  * Update `libsvm` to version 3.24
+
+#### Package
+  * Disable Link-Time-Optimization (`LTO`) for third-party programs linking against `RNAlib` using `pkg-config`
+  * TESTS: Fix results dir path for out-of-tree builds
+  * TESTS: Set default timeout for library tests to 20s
 
 
 ### [Version 2.4.14](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.13...v2.4.14) (Release date: 2019-08-13)
