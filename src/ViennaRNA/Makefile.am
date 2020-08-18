@@ -451,6 +451,7 @@ noinst_HEADERS  = params/intl11.h \
 nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
+              constraints/hc_depot.inc \
               loops/external_hc.inc \
               loops/external_sc.inc \
               loops/external_sc_pf.inc \
