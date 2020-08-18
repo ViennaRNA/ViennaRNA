@@ -79,6 +79,7 @@ typedef struct _GlobToogles {
   int phi;
   int lmin;
   int fpt;
+  int rect;
   int mc;
   int verbose;
 } GlobToggles;

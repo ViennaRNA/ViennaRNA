@@ -233,6 +233,11 @@ int sel_nb(void) {
     }
   }
 
+  /* Recurrence time: Ignore when you observe the start structure for the first time. */
+  if ((found_stop > 0) && (GTV.rect == 1) && (strcmp(GAV.startform, GAV.currform) == 0)) {
+    GTV.rect = 0; found_stop = 0;
+  }
+
   if ( ((found_stop > 0) && (GTV.fpt == 1)) || (Zeit > GSV.time) ) {
     /* met condition to stop simulation */
 
@@ -246,7 +251,7 @@ int sel_nb(void) {
     
     /* this goes to stdout */
     if ( !GTV.silent ) {
-      printf("%s %6.2f %10.3f", costring(GAV.currform), GSV.currE, Zeit);
+      printf("%s  %6.2f %10.3f", costring(GAV.currform), GSV.currE, Zeit);
 
       /* laplace stuff*/
       if (GTV.phi) printf(" %8.3f %8.3f %3g", zeitInc, L, D); 
@@ -262,6 +267,7 @@ int sel_nb(void) {
     }
 
     /* this goes to log */
+    fprintf(logFP, "(%5hu %5hu %5hu)", GAV.subi[0], GAV.subi[1], GAV.subi[2]);
     /* comment log steps of simulation as well !!! %6.2f  round */
     if ( found_stop ) {
       fprintf(logFP," X%02d %12.3f", found_stop, Zeit);
@@ -279,11 +285,12 @@ int sel_nb(void) {
 
       fprintf(logFP," %d %s\n", lmin, costring(GAV.currform));
     }
+    fflush(logFP);
+
+    /* set random number for next round */
     GAV.subi[0] = xsubi[0];
     GAV.subi[1] = xsubi[1];
     GAV.subi[2] = xsubi[2];
-    fprintf(logFP, "(%5hu %5hu %5hu)", GAV.subi[0], GAV.subi[1], GAV.subi[2]);
-    fflush(logFP);
     
     Zeit = 0.0;
 
