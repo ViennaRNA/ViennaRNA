@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.61)
 
-AC_INIT([kinfold], [1.3], [rna@tbi.univie.ac.at], [Kinfold])
+AC_INIT([kinfold], [1.4], [rna@tbi.univie.ac.at], [Kinfold])
 AC_CONFIG_SRCDIR([cache_util.h])
 
 AM_SILENT_RULES([yes])
