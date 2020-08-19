@@ -13,8 +13,14 @@ ifeq ($(shell lsb_release --short --codename),precise)
 BUILDOPTS+= --disable-lto --without-rnalocmin
 endif
 
+ifeq ($(shell lsb_release --short --codename),focal)
+HELPEROPTS= --with python3
+else
+HELPEROPTS= --with python2,python3
+endif
+
 %:
-	dh $@ --parallel --with python2,python3
+	dh $@ --parallel $(HELPEROPTS)
 
 override_dh_auto_configure:
 	dh_auto_configure --  $(BUILDOPTS) INSTALLDIRS=vendor

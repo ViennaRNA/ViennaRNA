@@ -4,7 +4,7 @@ Section: science
 Priority: optional
 Standards-Version: 3.9.5
 X-Python-Version: >= 2.7
-Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev | libgsl-dev, libmpfr-dev, gawk, perl, libperl-dev, python-all, python-all-dev, python3-all, python3-all-dev, lsb-release
+Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev | libgsl-dev, libmpfr-dev, gawk, perl, libperl-dev, python-all, python-all-dev, python3-all, python3-all-dev, dh-python, lsb-release
 
 Package: viennarna
 Architecture: any
