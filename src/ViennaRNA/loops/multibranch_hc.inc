@@ -219,8 +219,12 @@ hc_sn(int           i,
 
     case VRNA_DECOMP_ML_STEM:
     /* fall through */
+
     case VRNA_DECOMP_ML_ML:
-      if ((sn[i] == sn[k]) && (sn[l] == sn[j]))
+      if ((sn[i] == sn[k]) &&
+          (sn[l] == sn[j]) &&
+          (sn[i - 1] == sn[i]) &&
+          (sn[j + 1] == sn[j]))
         eval = (unsigned char)1;
 
       break;

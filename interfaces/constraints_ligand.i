@@ -9,12 +9,13 @@
 %feature("kwargs") sc_add_hi_motif;
 #endif
 
-  int sc_add_hi_motif(const char *seq,
-                      const char *structure,
-                      FLT_OR_DBL energy,
-                      unsigned int options=VRNA_OPTION_DEFAULT){
-
-    return vrna_sc_add_hi_motif($self,seq,structure,energy,options);
+  int
+  sc_add_hi_motif(const char    *seq,
+                  const char    *structure,
+                  FLT_OR_DBL    energy,
+                  unsigned int  options = VRNA_OPTION_DEFAULT)
+  {
+    return vrna_sc_add_hi_motif($self, seq, structure, energy,options);
   }
 }
 

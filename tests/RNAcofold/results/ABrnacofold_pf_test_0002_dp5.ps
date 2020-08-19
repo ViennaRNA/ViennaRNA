@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0 EPSF-3.0
-%%Creator: ViennaRNA-2.4.11
-%%CreationDate: Sat Mar 16 10:53:51 2019
+%%Creator: ViennaRNA-2.4.14
+%%CreationDate: Wed Jun 17 17:24:52 2020
 %%Title: RNA Dot Plot
 %%BoundingBox: 66 211 518 662
 %%DocumentFonts: Helvetica
@@ -77,12 +77,21 @@ DPdict begin
   } for
   [] 0 setdash
   0.04 setlinewidth
-  currentdict /cutpoint known {
-    cutpoint 1 sub
+  % draw strand separators if required
+  currentdict /nicks known {
+    gsave
+    % draw lines in red color
+    0 1 1 sethsbcolor
+    % draw with line thickness of 0.2
+    0.2 setlinewidth
+    nicks
+    { 1 sub
     dup dup -1 moveto len 1 add lineto
     len exch sub dup
     -1 exch moveto len 1 add exch lineto
     stroke
+    } forall
+    grestore
   } if
   % draw diagonal
   0 len moveto len 0 lineto stroke
@@ -326,6 +335,7 @@ CUGUGCGGACUACUAUCCUGACCACAUAGUACGGCCGUGAUGCGAAGAACGAAGUUAUUGGUGUAUGACUAUCCCCCAAA
 
 /cutpoint 71 def
 
+/nicks [ 71 ] def
 72 216 translate
 72 6 mul len 1 add div dup scale
 /Helvetica findfont 0.95 scalefont setfont

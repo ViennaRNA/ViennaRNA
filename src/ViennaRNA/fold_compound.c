@@ -519,35 +519,11 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
   /* prepare ptype array(s) */
   vrna_ptypes_prepare(fc, options);
 
-  if (options & VRNA_OPTION_MFE) {
-    /* prepare for MFE computation */
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if (options & VRNA_OPTION_WINDOW) {
-          /* check for minimal hard constraints structure */
-          if ((!fc->hc) || (fc->hc->type != VRNA_HC_WINDOW) || (!fc->hc->matrix_local))
-            vrna_hc_init_window(fc);
-        }
-
-        break;
-
-      default:
-        /* not doing anything here... */
-        break;
-    }
-  }
-
   if (options & VRNA_OPTION_PF) {
     /* prepare for partition function computation */
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
-        if (options & VRNA_OPTION_WINDOW) {
-          /* check for minimal hard constraints structure */
-          if ((!fc->hc) || (fc->hc->type != VRNA_HC_WINDOW) || (!fc->hc->matrix_local))
-            vrna_hc_init_window(fc);
-        }
-
         if (fc->domains_up)                            /* turn on unique ML decomposition with qm1 array */
           fc->exp_params->model_details.uniq_ML = 1;
 
@@ -558,6 +534,9 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
         break;
     }
   }
+
+  /* prepare hard constraints */
+  vrna_hc_prepare(fc, options);
 
   /* prepare soft constraints data structure, if required */
   vrna_sc_prepare(fc, options);

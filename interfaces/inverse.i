@@ -7,7 +7,11 @@
 
 %rename (inverse_fold) my_inverse_fold;
 %{
-  char *my_inverse_fold(char *start, const char *target, float *cost) {
+  char *
+  my_inverse_fold(char        *start,
+                  const char  *target,
+                  float *cost)
+  {
     char *seq;
     int n;
     n = strlen(target);
@@ -32,7 +36,11 @@ char * my_inverse_fold(char *start, const char *target, float *OUTPUT);
 
 %rename (inverse_pf_fold) my_inverse_pf_fold;
 %{
-  char *my_inverse_pf_fold(char *start, const char *target, float *cost) {
+  char *
+  my_inverse_pf_fold( char        *start,
+                      const char  *target,
+                      float       *cost)
+  {
     char *seq;
     int n;
     n = strlen(target);

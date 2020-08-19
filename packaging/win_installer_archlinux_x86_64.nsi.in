@@ -119,7 +119,7 @@ section "Core" sec_core
   File "/usr/x86_64-w64-mingw32/bin/libgomp-1.dll"
   File "/usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll"
   File "/usr/x86_64-w64-mingw32/bin/libgcc_s_seh-1.dll"
-  File "/usr/x86_64-w64-mingw32/bin/libgsl-23.dll"
+  File "/usr/x86_64-w64-mingw32/bin/libgsl-25.dll"
   File "/usr/x86_64-w64-mingw32/bin/libgslcblas-0.dll"
   File "/usr/x86_64-w64-mingw32/bin/libmpfr-6.dll"
   File "/usr/x86_64-w64-mingw32/bin/libgmp-10.dll"
@@ -239,7 +239,7 @@ section "Uninstall"
   delete $INSTDIR\libgomp-1.dll
   delete $INSTDIR\libwinpthread-1.dll
   delete $INSTDIR\libgcc_s_seh-1.dll
-  delete $INSTDIR\libgsl-23.dll
+  delete $INSTDIR\libgsl-25.dll
   delete $INSTDIR\libgslcblas-0.dll
   delete $INSTDIR\libmpfr-6.dll
   delete $INSTDIR\libgmp-10.dll

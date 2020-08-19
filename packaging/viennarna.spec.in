@@ -3,25 +3,8 @@
 # Copyright (c) 1994-2017 Ivo Hofacker, Peter Stadler, Ronny Lorenz rna@tbi.univie.ac.at
 #
 
-
-%if 0%{?centos_version} >= 700 || %{defined el7}
 %global with_python3 1
-%global with_epel7 1
 %global with_rnalocmin 1
-%else
-%if 0%{?fedora} || 0%{?is_opensuse}
-%global with_python3 1
-%if 0%{?fedora} && 0%{?fedora_version} < 22
-%global with_rnalocmin 0
-%else
-%global with_rnalocmin 1
-%endif
-%else
-%global with_python3 0
-%global with_rnalocmin 0
-%endif
-%endif
-
 
 %{!?_pkgdocdir: %global _pkgdocdir %%{_docdir}/%{name}}
 
@@ -67,21 +50,13 @@ Requires:       mpfr
 Provides:       Kinfold
 Provides:       kinwalker
 
-%if 0%{?suse_version}
-BuildRequires:  python-devel python
-%else
 BuildRequires:  python2-devel python2
-%endif
 
 %if 0%{?with_python3}
-%if 0%{?suse_version} || 0%{?fedora}
-BuildRequires:  python3-devel python3
-%else
-%if 0%{?with_epel7}
+%if %{defined el7}
 BuildRequires:  python36-devel python36
 %else
-BuildRequires:  python-devel python
-%endif
+BuildRequires:  python3-devel python3
 %endif
 %endif
 
@@ -92,7 +67,7 @@ BuildRequires:  python-devel python
 %global __provides_exclude_from ^%{python2_sitearch}/.*\\.so$
 
 %if 0%{?with_python3}
-%if 0%{?with_epel7}
+%if %{defined el7}
 %{!?__python3: %global __python3 /usr/bin/python3.6}
 %else
 %{!?__python3: %global __python3 /usr/bin/python3}
@@ -119,6 +94,8 @@ Provides: libRNA.a = %{version}-%{release}
 Requires: %{name} = %{version}-%{release}
 Requires: libstdc++-devel
 Requires: pkgconfig
+Requires: gsl-devel
+Requires: mpfr-devel
 
 %description devel
 Header files for ViennaRNA.
@@ -133,45 +110,30 @@ Requires: perl
 %description -n perl-rna
 Perl binding for ViennaRNA RNAlib.
 
-%if 0%{?suse_version}
-
-%package -n python-rna
-Summary:  Python 2 bindings for ViennaRNA RNAlib
-Group:    Development/Libraries/Python
-Requires: %{name} = %{version}-%{release}
-Requires: python
-
-%description -n python-rna
-Python 2 bindings for ViennaRNA RNAlib.
-
-%else
 
 %package -n python2-rna
 Summary:  Python 2 bindings for ViennaRNA RNAlib
 Group:    Development/Libraries/Python
 Requires: %{name} = %{version}-%{release}
 Requires: python2
+# The package was previoulsy known as python-rna but renamed to python2-rna since version 2.4.15
+Conflicts: python-rna
 
 %description -n python2-rna
 Python 2 bindings for ViennaRNA RNAlib.
 
-%endif
 
 
 %if 0%{?with_python3}
 
-%if 0%{?with_epel7}
 %package -n python3-rna
 Summary:  Python 3 bindings for ViennaRNA RNAlib
 Group:    Development/Libraries/Python
 Requires: %{name} = %{version}-%{release}
+%if %{defined el7}
 
 Requires: python36
 %else
-%package -n python3-rna
-Summary:  Python 3 bindings for ViennaRNA RNAlib
-Group:    Development/Libraries/Python
-Requires: %{name} = %{version}-%{release}
 
 Requires: python3
 %endif
@@ -185,20 +147,9 @@ Python 3 bindings for ViennaRNA RNAlib.
 %setup -n ViennaRNA-%{version} -q
 
 %build
-%global _lto_cflags %{_lto_cflags} -ffat-lto-objects
-%if 0%{?fedora} && 0%{?fedora_version} < 22
-%configure \
-    --with-cluster \
-    --without-forester \
-    --without-rnalocmin \
-    --with-kinwalker \
-    --disable-lto \
-    --docdir=%{_pkgdocdir} \
-    INSTALLDIRS=vendor \
-    PERL=/usr/bin/perl
-%else
 %if 0%{?with_rnalocmin}
-%if 0%{?suse_version} > 1500
+
+%if 0%{?suse_version}
 %define _lto_cflags %{nil}
 %configure \
     --with-cluster \
@@ -217,7 +168,9 @@ Python 3 bindings for ViennaRNA RNAlib.
     INSTALLDIRS=vendor \
     PERL=/usr/bin/perl
 %endif
+
 %else
+
 %configure \
     --with-cluster \
     --without-forester \
@@ -226,7 +179,6 @@ Python 3 bindings for ViennaRNA RNAlib.
     --docdir=%{_pkgdocdir} \
     INSTALLDIRS=vendor \
     PERL=/usr/bin/perl
-%endif
 %endif
 make %{?_smp_mflags} V=1
 
@@ -348,27 +300,21 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{perl_vendorlib}/RNA.pm
 %{perl_vendorlib}/RNA
-%{perl_vendorarch}/auto/RNA
+%dir %{perl_vendorarch}/auto/RNA
 %attr(755,root,root) %{perl_vendorarch}/auto/RNA/RNA.so
 
-%if 0%{?suse_version}
-
-%files -n python-rna
-%defattr(-,root,root,-)
-%{python_sitearch}/RNA/
-
-%else
 
 %files -n python2-rna
 %defattr(-,root,root,-)
-%{python2_sitearch}/RNA/
-
-%endif
+%dir %{python2_sitearch}/RNA
+%{python2_sitearch}/RNA/*
 
 %if 0%{?with_python3}
 
 %files -n python3-rna
 %defattr(-,root,root,-)
-%{python3_sitearch}/RNA/
+%dir %{python3_sitearch}/RNA
+%{python3_sitearch}/RNA/*
+%pycache_only %{python3_sitearch}/RNA/__pycache__
 
 %endif

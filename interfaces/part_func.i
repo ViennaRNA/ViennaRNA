@@ -5,13 +5,21 @@
 
 %rename (pf_fold) my_pf_fold;
 %{
-  char *my_pf_fold(char *string, float *energy) {
+  char *
+  my_pf_fold(char   *string,
+             float  *energy)
+  {
     char *struc;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
     *energy = pf_fold(string, struc);
     return(struc);
   }
-  char *my_pf_fold(char *string, char *constraints, float *energy) {
+
+  char *
+  my_pf_fold(char *string,
+             char *constraints,
+             float *energy)
+  {
     char *struc;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
@@ -30,13 +38,21 @@ char *my_pf_fold(char *string, char *constraints, float *OUTPUT);
 
 %rename (pf_circ_fold) my_pf_circ_fold;
 %{
-  char *my_pf_circ_fold(char *string, float *energy) {
+  char *
+  my_pf_circ_fold(char  *string,
+                  float *energy)
+  {
     char *struc;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
     *energy = pf_circ_fold(string, struc);
     return(struc);
   }
-  char *my_pf_circ_fold(char *string, char *constraints, float *energy) {
+
+  char *
+  my_pf_circ_fold(char  *string,
+                  char  *constraints,
+                  float *energy)
+  {
     char *struc;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
     if (constraints && fold_constrained)
@@ -84,24 +100,29 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
 
 %extend vrna_fold_compound_t{
 
-  char *pf(float *OUTPUT){
-
+  char *
+  pf(float *OUTPUT)
+  {
     char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
     *OUTPUT= vrna_pf($self, structure);
     return structure;
   }
 
-  double mean_bp_distance(){
+  double
+  mean_bp_distance()
+  {
     return vrna_mean_bp_distance($self);
   }
 
   double
-  ensemble_defect(std::string structure) {
+  ensemble_defect(std::string structure)
+  {
     return vrna_ensemble_defect($self, structure.c_str());
   }
 
   std::vector<double>
-  positional_entropy(void) {
+  positional_entropy(void)
+  {
     unsigned int        n;
     double              *pos_ent;
     std::vector<double> dv;
@@ -140,7 +161,13 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
 
 %rename (co_pf_fold) my_co_pf_fold;
 %{
-  char *my_co_pf_fold(char *string, float *FA, float *FB, float *FcAB, float *FAB) {
+  char *
+  my_co_pf_fold(char  *string,
+                float *FA,
+                float *FB,
+                float *FcAB,
+                float *FAB)
+  {
     char *struc;
     vrna_dimer_pf_t temp;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
@@ -151,7 +178,14 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
     *FB = temp.FB;
     return(struc);
   }
-  char *my_co_pf_fold(char *string, char *constraints, float *FA, float *FB, float *FcAB, float *FAB) {
+  char *
+  my_co_pf_fold(char  *string,
+                char  *constraints,
+                float *FA,
+                float *FB,
+                float *FcAB,
+                float *FAB)
+  {
     char *struc;
     vrna_dimer_pf_t temp;
     struc = (char *)calloc(strlen(string)+1,sizeof(char));
@@ -186,7 +220,20 @@ char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPU
 
 %rename (get_concentrations) my_get_concentrations;
 %{
- void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA, double FEB, double Ac_start, double Bc_start, double *AB, double *AA, double *BB, double *A, double *B) {
+ void
+ my_get_concentrations(double FcAB,
+                       double FcAA,
+                       double FcBB,
+                       double FEA,
+                       double FEB,
+                       double Ac_start,
+                       double Bc_start,
+                       double *AB,
+                       double *AA,
+                       double *BB,
+                       double *A,
+                       double *B)
+  {
     vrna_dimer_conc_t *temp;
     double *concis;
     concis = (double *)calloc(4,sizeof(double));
@@ -215,8 +262,12 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 
   %apply float *OUTPUT { float *FA, float *FB, float *FcAB, float *FAB };
 
-  char *pf_dimer(float *FA, float *FB, float *FcAB, float *FAB){
-
+  char *
+  pf_dimer(float *FA,
+           float *FB,
+           float *FcAB,
+           float *FAB)
+  {
     char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
     vrna_dimer_pf_t temp = vrna_pf_dimer($self, structure);
     *FAB  = (float)temp.FAB;
@@ -236,7 +287,9 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 
 %extend vrna_fold_compound_t{
 
-  std::vector<std::vector<double> > bpp(void){
+  std::vector<std::vector<double> >
+  bpp(void)
+  {
     std::vector<std::vector<double> > probabilities;
     vrna_fold_compound_t *vc = $self;
     if(vc->exp_matrices && vc->exp_matrices->probs){
@@ -261,7 +314,10 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 }
 
 %{
-double get_pr(int i, int j) {
+double
+get_pr(int i,
+       int j)
+{
   int ii;
   if (i>j) {ii=i; i=j; j=ii;}
   return pr[iindx[i]-j];
@@ -284,8 +340,10 @@ double get_pr(int i, int j);
 
 %extend vrna_fold_compound_t{
 
-  char *centroid(double *OUTPUT){
-    return vrna_centroid($self,OUTPUT);
+  char *
+  centroid(double *OUTPUT)
+  {
+    return vrna_centroid($self, OUTPUT);
   }
 
 }
@@ -305,10 +363,16 @@ double get_pr(int i, int j);
 
 %extend vrna_fold_compound_t{
 
-  char *MEA(float *OUTPUT){
+  char *
+  MEA(float *OUTPUT)
+  {
     return vrna_MEA($self, 1., OUTPUT);
   }
-  char *MEA(double gamma, float *OUTPUT){
+
+  char *
+  MEA(double  gamma,
+      float   *OUTPUT)
+  {
     return vrna_MEA($self, gamma, OUTPUT);
   }
 }
@@ -316,48 +380,84 @@ double get_pr(int i, int j);
 %rename (MEA_from_plist)  my_MEA_from_plist;
 
 %{
-  char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
-                          std::string            sequence,
-                          double                 gamma,
-                          vrna_md_t              *md,
-                          float                  *OUTPUT)
+  char *
+  my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                    std::string            sequence,
+                    double                 gamma,
+                    vrna_md_t              *md,
+                    float                  *OUTPUT)
   {
-    return vrna_MEA_from_plist(&plist[0],
+    vrna_ep_t               pp;
+    std::vector<vrna_ep_t>  pl = plist;
+
+    pp.i = pp.j = 0;
+    pp.p = 0.;
+    pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+    pl.push_back(pp);
+
+    return vrna_MEA_from_plist(&pl[0],
                                sequence.c_str(),
                                gamma,
                                md,
                                OUTPUT);
   }
 
-  char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
-                          std::string            sequence,
-                          vrna_md_t              *md,
-                          float                  *OUTPUT)
+  char *
+  my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                    std::string            sequence,
+                    vrna_md_t              *md,
+                    float                  *OUTPUT)
   {
-    return vrna_MEA_from_plist(&plist[0],
+    vrna_ep_t               pp;
+    std::vector<vrna_ep_t>  pl = plist;
+
+    pp.i = pp.j = 0;
+    pp.p = 0.;
+    pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+    pl.push_back(pp);
+
+    return vrna_MEA_from_plist(&pl[0],
                                sequence.c_str(),
                                1.,
                                md,
                                OUTPUT);
   }
 
-  char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
-                          std::string            sequence,
-                          double                 gamma,
-                          float                  *OUTPUT)
+  char *
+  my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                    std::string            sequence,
+                    double                 gamma,
+                    float                  *OUTPUT)
   {
-    return vrna_MEA_from_plist(&plist[0],
+    vrna_ep_t               pp;
+    std::vector<vrna_ep_t>  pl = plist;
+
+    pp.i = pp.j = 0;
+    pp.p = 0.;
+    pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+    pl.push_back(pp);
+
+    return vrna_MEA_from_plist(&pl[0],
                                sequence.c_str(),
                                gamma,
                                NULL,
                                OUTPUT);
   }
 
-  char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
-                          std::string            sequence,
-                          float                  *OUTPUT)
+  char *
+  my_MEA_from_plist(std::vector<vrna_ep_t> plist,
+                    std::string            sequence,
+                    float                  *OUTPUT)
   {
-    return vrna_MEA_from_plist(&plist[0],
+    vrna_ep_t               pp;
+    std::vector<vrna_ep_t>  pl = plist;
+
+    pp.i = pp.j = 0;
+    pp.p = 0.;
+    pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+    pl.push_back(pp);
+
+    return vrna_MEA_from_plist(&pl[0],
                                sequence.c_str(),
                                1.,
                                NULL,

@@ -1,5 +1,7 @@
 AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 
+  AC_ARG_VAR([SWIG], [Path to the 'swig' program to generate scripting language interfaces])
+
   AX_REQUIRE_DEFINED([AX_PKG_SWIG])
 
   RNA_ADD_PACKAGE([swig],
@@ -9,7 +11,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 
   AS_IF([test "x$with_swig" != "xno"],[
     wants_swig="yes"
-    AX_PKG_SWIG(3.0.11, [has_swig="yes"], [has_swig="no"])
+    AX_PKG_SWIG(4.0.2, [has_swig="yes"], [has_swig="no"])
   ],[
     wants_swig="no"
   ])

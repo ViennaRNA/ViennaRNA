@@ -79,6 +79,7 @@ typedef struct _GlobToogles {
   int phi;
   int lmin;
   int fpt;
+  int rect;
   int mc;
   int verbose;
 } GlobToggles;
@@ -88,9 +89,9 @@ void clean_up_globals(void);
 void log_prog_params(FILE *FP);
 void log_start_stop(FILE *FP);
 
-GlobVars GSV;
-GlobArrays GAV;
-GlobToggles GTV;
+extern GlobVars GSV;
+extern GlobArrays GAV;
+extern GlobToggles GTV;
 
 #endif
 

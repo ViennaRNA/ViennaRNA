@@ -189,13 +189,13 @@ class GeneralTests(unittest.TestCase):
         print("test_model_details_parameter_structure")
 
         # check model details structure
-        md = RNA.md(); # default values
+        md = RNA.md();
         self.assertEqual(int(md.dangles), 2)
         self.assertEqual(md.temperature, 37.0)
 
         RNA.cvar.dangles     = 0
         RNA.cvar.temperature = 40.1
-        md = RNA.md("global") # global values
+        md = RNA.md()
         self.assertEqual(int(md.dangles), 0)
         self.assertEqual(int(RNA.cvar.dangles), 0)
         self.assertEqual(md.temperature, 40.1)
@@ -206,14 +206,14 @@ class GeneralTests(unittest.TestCase):
 
         # check parameter structures
         params = RNA.param()
-        self.assertEqual(params.get_temperature(),37.0)
+        self.assertEqual(params.temperature,37.0)
         params = RNA.param(md)
-        self.assertEqual(params.get_temperature(),40.1)
+        self.assertEqual(params.temperature,40.1)
 
         pf_params = RNA.exp_param()
-        self.assertEqual(pf_params.get_temperature(),37.0)
+        self.assertEqual(pf_params.temperature,37.0)
         pf_params = RNA.exp_param(md)
-        self.assertEqual(pf_params.get_temperature(),40.1)
+        self.assertEqual(pf_params.temperature,40.1)
         md = None
 
 
@@ -223,13 +223,13 @@ class FoldCompoundTest(unittest.TestCase):
         print("test_create_fold_compound_Single")
 
         fc = RNA.fold_compound(seq1)
-        self.assertEqual(fc.type(),0)
+        self.assertEqual(fc.type, RNA.FC_TYPE_SINGLE)
 
 
     def test_create_fold_compound_Align(self):
         print("test_create_fold_compound_Align")
         fc= RNA.fold_compound(align)
-        self.assertEqual(fc.type(),1)
+        self.assertEqual(fc.type, RNA.FC_TYPE_COMPARATIVE)
 
 
     def test_create_fold_compound_2D(self):

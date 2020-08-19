@@ -10,12 +10,13 @@
 
 %{
 
-  std::vector<double> my_file_SHAPE_read( std::string file_name,
-                                          int length,
-                                          double default_value,
-                                          std::string *shape_sequence,
-                                          int *status){
-
+  std::vector<double>
+  my_file_SHAPE_read( std::string file_name,
+                      int         length,
+                      double      default_value,
+                      std::string *shape_sequence,
+                      int         *status)
+  {
     std::vector<double> values (length+1, -999);
     char *seq = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
@@ -30,10 +31,10 @@
 %}
 
 std::vector<double> my_file_SHAPE_read( const char *file_name,
-                                          int length,
-                                          double default_value,
-                                          std::string *shape_sequence,
-                                          int *status);
+                                        int length,
+                                        double default_value,
+                                        std::string *shape_sequence,
+                                        int *status);
 
 %clear int *status;
 %clear std::string *shape_sequence;
@@ -59,12 +60,13 @@ std::vector<double> my_file_SHAPE_read( const char *file_name,
   }
 
 
-  int my_file_msa_read( std::string               filename,
-                        std::vector<std::string>  *names,
-                        std::vector<std::string>  *alignment,
-                        std::string               *id,
-                        std::string               *structure,
-                        unsigned int              options = VRNA_FILE_FORMAT_MSA_STOCKHOLM)
+  int
+  my_file_msa_read( std::string               filename,
+                    std::vector<std::string>  *names,
+                    std::vector<std::string>  *alignment,
+                    std::string               *id,
+                    std::string               *structure,
+                    unsigned int              options = VRNA_FILE_FORMAT_MSA_STOCKHOLM)
   {
     char **c_names, **c_aln, *c_id, *c_structure;
 
@@ -98,12 +100,13 @@ std::vector<double> my_file_SHAPE_read( const char *file_name,
   }
 
 
-  int my_file_msa_read_record(FILE                      *filehandle,
-                              std::vector<std::string>  *names,
-                              std::vector<std::string>  *alignment,
-                              std::string               *id,
-                              std::string               *structure,
-                              unsigned int              options = VRNA_FILE_FORMAT_MSA_STOCKHOLM)
+  int
+  my_file_msa_read_record(FILE                      *filehandle,
+                          std::vector<std::string>  *names,
+                          std::vector<std::string>  *alignment,
+                          std::string               *id,
+                          std::string               *structure,
+                          unsigned int              options = VRNA_FILE_FORMAT_MSA_STOCKHOLM)
   {
     char **c_names, **c_aln, *c_id, *c_structure;
 
@@ -137,13 +140,14 @@ std::vector<double> my_file_SHAPE_read( const char *file_name,
   }
 
 
-  int my_file_msa_write(std::string               filename,
-                        std::vector<std::string>  names,
-                        std::vector<std::string>  alignment,
-                        std::string               id = "",
-                        std::string               structure = "",
-                        std::string               source = "",
-                        unsigned int              options = VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND)
+  int
+  my_file_msa_write(std::string               filename,
+                    std::vector<std::string>  names,
+                    std::vector<std::string>  alignment,
+                    std::string               id = "",
+                    std::string               structure = "",
+                    std::string               source = "",
+                    unsigned int              options = VRNA_FILE_FORMAT_MSA_STOCKHOLM | VRNA_FILE_FORMAT_MSA_APPEND)
   {
     std::vector<const char*>  v_names;
     std::vector<const char*>  v_aln;

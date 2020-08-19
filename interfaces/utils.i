@@ -45,7 +45,10 @@
 
 %rename (hamming) my_hamming;
 %{
-  int my_hamming(const char *s1, const char *s2){
+  int
+  my_hamming(const char *s1,
+             const char *s2)
+  {
     return vrna_hamming_distance(s1, s2);
   }
 %}
@@ -53,7 +56,11 @@ int my_hamming(const char *s1, const char *s2);
 
 %rename (hamming_bound) my_hamming_bound;
 %{
-  int my_hamming_bound(const char *s1, const char *s2, int n){
+  int
+  my_hamming_bound(const char *s1,
+                   const char *s2,
+                   int n)
+  {
     return vrna_hamming_distance_bound(s1, s2, n);
   }
 %}
@@ -74,7 +81,9 @@ int my_hamming_bound(const char *s1, const char *s2, int n);
 
 #include <cstring>
 
-short *encode_seq(char *sequence) {
+short *
+encode_seq(char *sequence)
+{
   unsigned int i,l;
   short *S;
   l = strlen(sequence);
@@ -124,7 +133,15 @@ short *encode_seq(char *sequence);
 %rename (move_standard) my_move_standard;
 
 %{
-  char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,int verbosity_level, int shifts, int noLP){
+  char *
+  my_move_standard(int            *OUTPUT,
+                   char           *seq,
+                   char           *struc,
+                   enum MOVE_TYPE type,
+                   int            verbosity_level,
+                   int            shifts,
+                   int            noLP)
+  {
     char *structure =  (char *)calloc(strlen(struc)+1,sizeof(char));
     strcpy(structure,struc);
     *OUTPUT = move_standard(seq,structure,type,verbosity_level,shifts,noLP);
@@ -151,7 +168,9 @@ char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,
 %rename (filename_sanitize) my_filename_sanitize;
 
 %{
-  std::string my_filename_sanitize(std::string name) {
+  std::string
+  my_filename_sanitize(std::string name)
+  {
     std::string s;
     char *name_sanitized = vrna_filename_sanitize(name.c_str(), NULL);
     if (name_sanitized)
@@ -160,7 +179,10 @@ char *my_move_standard(int *OUTPUT, char *seq, char *struc, enum MOVE_TYPE type,
     return s;
   }
 
-  std::string my_filename_sanitize(std::string name, char c) {
+  std::string
+  my_filename_sanitize(std::string  name,
+                       char         c)
+  {
     std::string s;
     char *name_sanitized = vrna_filename_sanitize(name.c_str(), &c);
     if (name_sanitized)

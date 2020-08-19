@@ -73,6 +73,7 @@ struct old_subopt_dat {
   unsigned long n_sol;
   SOLUTION      *SolutionList;
   FILE          *fp;
+  int           cp;
 };
 
 /*
@@ -209,6 +210,10 @@ PRIVATE int
 compare(const void  *solution1,
         const void  *solution2);
 
+PRIVATE int
+compare_en(const void  *solution1,
+           const void  *solution2);
+
 
 PRIVATE void
 make_output(SOLUTION  *SL,
@@ -250,6 +255,12 @@ PRIVATE void
 old_subopt_store(const char *structure,
                  float      energy,
                  void       *data);
+
+
+PRIVATE void
+old_subopt_store_compressed(const char *structure,
+                            float      energy,
+                            void       *data);
 
 
 /*
@@ -558,6 +569,20 @@ compare(const void  *solution1,
 }
 
 
+PRIVATE int
+compare_en(const void  *solution1,
+           const void  *solution2)
+{
+  if (((SOLUTION *)solution1)->energy > ((SOLUTION *)solution2)->energy)
+    return 1;
+
+  if (((SOLUTION *)solution1)->energy < ((SOLUTION *)solution2)->energy)
+    return -1;
+
+  return 0;
+}
+
+
 /*---------------------------------------------------------------------------*/
 
 PRIVATE void
@@ -568,8 +593,12 @@ make_output(SOLUTION  *SL,
   SOLUTION *sol;
 
   for (sol = SL; sol->structure != NULL; sol++) {
-    char *e_string = vrna_strdup_printf(" %6.2f", sol->energy);
-    print_structure(fp, sol->structure, e_string);
+    char *e_string  = vrna_strdup_printf(" %6.2f", sol->energy);
+    char *ss        = vrna_db_unpack(sol->structure);
+    char *s         = vrna_cut_point_insert(ss, cp);
+    print_structure(fp, s, e_string);
+    free(s);
+    free(ss);
     free(e_string);
   }
 }
@@ -720,11 +749,13 @@ vrna_subopt(vrna_fold_compound_t  *vc,
             FILE                  *fp)
 {
   struct old_subopt_dat data;
+  vrna_subopt_callback  *cb;
 
   data.SolutionList = NULL;
   data.max_sol      = 128;
   data.n_sol        = 0;
   data.fp           = fp;
+  data.cp           = vc->cutpoint;
 
   if (vc) {
     /* SolutionList stores the suboptimal structures found */
@@ -750,14 +781,31 @@ vrna_subopt(vrna_fold_compound_t  *vc,
       vrna_mx_mfe_free(vc);
     }
 
+    cb = old_subopt_store;
+
+    if (fp)
+      cb = (sorted) ? old_subopt_store_compressed : old_subopt_print;
+
     /* call subopt() */
-    vrna_subopt_cb(vc, delta, (!sorted && fp) ? &old_subopt_print : &old_subopt_store,
-                   (void *)&data);
+    vrna_subopt_cb(vc, delta, cb, (void *)&data);
 
     if (sorted) {
       /* sort structures by energy */
-      if (data.n_sol > 0)
-        qsort(data.SolutionList, data.n_sol - 1, sizeof(SOLUTION), compare);
+      if (data.n_sol > 0) {
+        int (*compare_fun)(const void *a, const void *b);
+
+        switch (sorted) {
+          case VRNA_SORT_BY_ENERGY_ASC:
+            compare_fun = compare_en;
+            break;
+
+          default: /* a.k.a. VRNA_SORT_BY_ENERGY_LEXICOGRAPHIC_ASC */
+            compare_fun = compare;
+            break;
+        }
+
+        qsort(data.SolutionList, data.n_sol - 1, sizeof(SOLUTION), compare_fun);
+      }
 
       if (fp)
         make_output(data.SolutionList, vc->cutpoint, fp);
@@ -1028,7 +1076,8 @@ scan_interval(vrna_fold_compound_t  *vc,
   if ((i > 1) && (!array_flag))
     vrna_message_error("Error while backtracking!");
 
-  if (j < i + turn + 1 && (sn[i] == sn[j])) {
+  if ((j < i + turn + 1) &&
+	  ((sn[i] == so[1]) || (sn[j] == so[0]))) {
     /* minimal structure element */
     if (array_flag == 0)
       /* do not forget to add f5[j], since it may contain pseudo energies from soft constraining */
@@ -2233,6 +2282,36 @@ old_subopt_store(const char *structure,
   if (structure) {
     d->SolutionList[d->n_sol].energy      = energy;
     d->SolutionList[d->n_sol++].structure = strdup(structure);
+  } else {
+    d->SolutionList[d->n_sol].energy      = 0;
+    d->SolutionList[d->n_sol++].structure = NULL;
+  }
+}
+
+
+PRIVATE void
+old_subopt_store_compressed(const char *structure,
+                            float      energy,
+                            void       *data)
+{
+  struct old_subopt_dat *d = (struct old_subopt_dat *)data;
+
+  /* store solution */
+  if (d->n_sol + 1 == d->max_sol) {
+    d->max_sol      *= 2;
+    d->SolutionList = (SOLUTION *)vrna_realloc(d->SolutionList, d->max_sol * sizeof(SOLUTION));
+  }
+
+  if (structure) {
+    d->SolutionList[d->n_sol].energy      = energy;
+    if (d->cp > 0) {
+      int   cp = d->cp;
+      char  *s = vrna_cut_point_remove(structure, &cp);
+      d->SolutionList[d->n_sol++].structure = vrna_db_pack(s);
+      free(s);
+    } else { 
+      d->SolutionList[d->n_sol++].structure = vrna_db_pack(structure);
+    }
   } else {
     d->SolutionList[d->n_sol].energy      = 0;
     d->SolutionList[d->n_sol++].structure = NULL;

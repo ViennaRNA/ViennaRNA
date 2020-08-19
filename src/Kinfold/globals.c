@@ -25,6 +25,11 @@
 #include "globals.h"
 #include "cmdline.h"
 
+
+GlobVars GSV;
+GlobArrays GAV;
+GlobToggles GTV;
+
 /* forward declarations privat functions */
 static void ini_globs(void);
 static void ini_gtoggles (void);
@@ -67,6 +72,7 @@ static struct option const long_options[] =
   {"start",   no_argument,       &GTV.start, 1},
   {"stop",    no_argument,       &GTV.stop, 1},
   {"fpt",     no_argument,       &GTV.fpt, 0},
+  {"rect",     no_argument,       &GTV.rect, 1},
   {"met",      no_argument,       &GTV.mc, 1},
   {"grow",    required_argument, 0,  0},
   {"glen",    required_argument, 0,  0},
@@ -131,6 +137,7 @@ static void usage(int status) {
 	  "  --stop                set stop structure(s)\n"
 	  "  --met                 use Metropolis rule not Kawasaki rule\n"
 	  "  --fpt                 stop stop structure(s) is reached\n"
+	  "  --rect                stop start structure is reached\n"
 	  "  --grow <float>        grow chain every <float> time steps\n"
 	  "  --phi <double>        set phi value to <double>\n"
 	  "  --pbounds <d1=d2=d3>  set phi_min to d1\n"
@@ -164,7 +171,7 @@ void log_prog_params(FILE *FP) {
 	     "#<\n#Date: %s"
 	     "#EnergyModel: dangle=%d Temp=%.1f logML=%s Par=%s\n"
 	     "#MoveSet: noShift=%s noLP=%s\n"
-	     "#Simulation: num=%d time=%.2f seed=%s fpt=%s mc=%s\n"
+	     "#Simulation: num=%d time=%.2f seed=%s fpt=%s rect=%s mc=%s\n"
 	     "#Simulation: phi=%g pbounds=%s\n"
 	     "#Output: log=%s silent=%s lmin=%s cut=%.2f\n",
 	     time_stamp(),
@@ -178,6 +185,7 @@ void log_prog_params(FILE *FP) {
 	     GSV.time,
 	     verbose(GTV.seed, "seed"),
 	     verbose(GTV.fpt, NULL),
+	     verbose(GTV.rect, NULL),
 	     verbose(GTV.mc, "met"),
 	     GSV.phi,
 	     verbose(GTV.phi, "pbounds"),
@@ -191,12 +199,13 @@ void log_prog_params(FILE *FP) {
 /**/
 void log_start_stop(FILE *FP) {
   int i;
-  fprintf(FP, "#%s\n#%s (%6.2f)\n", costring(GAV.farbe),
-	  costring(GAV.startform), GSV.startE);
+  fprintf(FP, "#%s\n", costring(GAV.farbe)); 
+  /* SB: I don't know why, but having two costring calls in one print function yields
+   * the same return value twice, so let's just use two lines of code. */
+  fprintf(FP, "#%s (%6.2f)\n", costring(GAV.startform), GSV.startE);
   for (i = 0; i < GSV.maxS; i++) {
     fprintf(FP, "#%s (%6.2f) X%02d\n", costring(GAV.stopform[i]), GAV.sE[i], i+1);
   }
-  fprintf(FP, "(%-5hu %5hu %5hu)", GAV.subi[0], GAV.subi[1], GAV.subi[2]);
   costring(NULL);
   fflush(FP);
 }
@@ -223,6 +232,7 @@ static void display_settings(void) {
 	  "  --stop    = %s\n"
 	  "  --met     = %s\n"
 	  "  --fpt     = %s\n"
+	  "  --rect     = %s\n"
 	  " Output\n"
 	  "  --log     = %s\n"
 	  "  --silent  = %s\n"
@@ -244,6 +254,7 @@ static void display_settings(void) {
 	  verbose(GTV.stop, "stop"),
 	  verbose(GTV.mc, "met"),
 	  verbose(GTV.fpt, NULL),
+	  verbose(GTV.rect, NULL),
 	  GAV.BaseName,
 	  verbose(GTV.silent, NULL),
 	  verbose(GTV.verbose, NULL),
@@ -370,6 +381,7 @@ static void process_options_gg (int argc, char *argv[]) {
   GSV.glen = args_info.glen_arg;
   GTV.lmin = args_info.lmin_flag;
   GTV.fpt  = args_info.fpt_flag;
+  GTV.rect = args_info.rect_flag;
   cmdline_parser_free(&args_info);
 }
 /**/
@@ -533,6 +545,7 @@ static void ini_gtoggles(void) {
   GTV.verbose = 0;
   GTV.lmin = 0;
   GTV.fpt = 1;
+  GTV.rect = 0;
   GTV.mc = 0;
 }
 
@@ -558,7 +571,7 @@ static void ini_garrays(void) {
   assert(GAV.ProgramName != NULL);
   GAV.ParamFile   = (char *)calloc((size_t)256, sizeof(char));
   assert(GAV.ParamFile != NULL);
-  strcpy(GAV.ParamFile,"VRNA-1.4");
+  strcpy(GAV.ParamFile, "None");
   GAV.BaseName    = (char *)calloc((size_t)256, sizeof(char));
   assert(GAV.BaseName != NULL);
   strcpy(GAV.BaseName, "kinout");

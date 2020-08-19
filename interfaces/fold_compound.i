@@ -29,25 +29,38 @@
 %nodefaultctor vrna_fold_compound_t;
 %nodefaultdtor vrna_fold_compound_t;
 
-/* hide all attributes in vrna_fold_compound_t */
-typedef struct {} vrna_fold_compound_t;
+/*
+  hide almost all attributes in vrna_fold_compound_t
+  non-hidden attributes are made read-only using 'const' 
+*/
+typedef struct {
+  const vrna_fc_type_e      type;
+  const unsigned int        length;
+  const unsigned int        strands;
+  vrna_param_t      *const  params;
+  vrna_exp_param_t  *const  exp_params;
+} vrna_fold_compound_t;
 
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
 
+#ifdef SWIGPYTHON
+%feature("autodoc")vrna_fold_compound_t::vrna_fold_compound_t;
+%feature("kwargs")vrna_fold_compound_t::vrna_fold_compound_t;
+#endif
   /* the default constructor, *md and option are optional, for single sequences*/
-  vrna_fold_compound_t( const char *sequence,
-                        vrna_md_t *md=NULL,
-                        unsigned int options=VRNA_OPTION_DEFAULT){
-
+  vrna_fold_compound_t( const char    *sequence,
+                        vrna_md_t     *md = NULL,
+                        unsigned int  options = VRNA_OPTION_DEFAULT)
+  {
     return vrna_fold_compound(sequence, md, options);
   }
 
   /*the constructor for alignments, *md and options are optional  */
-  vrna_fold_compound_t( std::vector<std::string> alignment,
-                        vrna_md_t *md=NULL,
-                        unsigned int options=VRNA_OPTION_DEFAULT){
-
+  vrna_fold_compound_t( std::vector<std::string>  alignment,
+                        vrna_md_t                 *md = NULL,
+                        unsigned int              options = VRNA_OPTION_DEFAULT)
+  {
     std::vector<const char*>  vc;
     transform(alignment.begin(), alignment.end(), back_inserter(vc), convert_vecstring2veccharcp);
     vc.push_back(NULL); /* mark end of sequences */
@@ -55,28 +68,51 @@ typedef struct {} vrna_fold_compound_t;
   }
 
   /* constructor for distance class partitioning, *md and options are, for single sequences*/
-  vrna_fold_compound_t( const char *sequence,
-                        char *s1,
-                        char *s2,
-                        vrna_md_t *md=NULL,
-                        unsigned int options=VRNA_OPTION_DEFAULT){
-
+  vrna_fold_compound_t( const char    *sequence,
+                        char          *s1,
+                        char          *s2,
+                        vrna_md_t     *md = NULL,
+                        unsigned int  options=VRNA_OPTION_DEFAULT)
+  {
     return vrna_fold_compound_TwoD(sequence,s1,s2, md, options);
   }
 
-  ~vrna_fold_compound_t(){
+  ~vrna_fold_compound_t()
+  {
     vrna_fold_compound_free($self);
   }
-  
 
-  vrna_fc_type_e type(){
-    return $self->type;
-  }
-  
-  unsigned int length(){
-    return $self->length;
+#ifdef SWIGPYTHON
+ std::string
+  __str__()
+  {
+    std::ostringstream out;
+
+    out << "{ ";
+
+    if ($self->type == VRNA_FC_TYPE_SINGLE) {
+      out << "sequence: \"" << $self->sequence << "\"";
+    } else {
+      out << "sequences: (" << "\"" << $self->sequences[0] << "\"";
+      for (size_t i = 1; i < $self->n_seq; i++)
+        out << ", \"" << $self->sequences[i] << "\"";
+      out << ")";
+    }
+    out << ", length: " << $self->length;
+    out << ", strands: " << $self->strands;
+    out << " }";
+
+    return std::string(out.str());
   }
 
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
+#endif
 }
 
 
