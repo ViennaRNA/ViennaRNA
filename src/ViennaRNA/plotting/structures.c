@@ -25,6 +25,7 @@
 #include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 #include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
+#include "ViennaRNA/plotting/RNApuzzler/includes/svgArcs.inc"
 
 #include "ViennaRNA/static/templates_postscript.h"
 
@@ -684,6 +685,7 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
   float *X, *Y, *R = NULL, *CX = NULL, *CY = NULL;
   FILE  *xyplot;
   short *pair_table;
+  double * arccoords, * arccoordsSVG;
 
   length = strlen(string);
 
@@ -725,6 +727,19 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
                                     }
                                   }
                                   break;
+    case VRNA_PLOT_TYPE_TURTLE: {
+									i = vrna_plot_coords_puzzler_pt(pair_table,&X,&Y,&arccoords, NULL); 
+									transformPSArcsToSVG(i,arccoords, &arccoordsSVG);					//The arccoords for PS transformed to SVG Arcs data. Method implemented in ViennaRNA/plotting/RNApuzzler/includes/svgArcs.inc
+								 }
+								 break;
+    case VRNA_PLOT_TYPE_PUZZLER: {
+									i = vrna_plot_coords_puzzler_pt(pair_table,&X,&Y,&arccoords, NULL);
+									transformPSArcsToSVG(i,arccoords, &arccoordsSVG);					// See Turtle from above.
+				 
+				 
+				 				 }
+			        			 break;
+
     default:                      i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
                                   break;
   }
@@ -774,13 +789,55 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
           "  <rect style=\"stroke: white; fill: white\" height=\"452\" x=\"0\" y=\"0\" width=\"452\" onclick=\"click(evt)\" />\n"
           "  <g transform=\"scale(%7f,%7f) translate(%7f,%7f)\">\n",
           SIZE/size, SIZE/size, (size-xmin-xmax)/2, (size-ymin-ymax)/2);
+	
+  if(!(rna_plot_type == VRNA_PLOT_TYPE_PUZZLER || rna_plot_type == VRNA_PLOT_TYPE_TURTLE)){
+	  fprintf(xyplot,
+			  "    <polyline style=\"stroke: black; fill: none; stroke-width: 1.5\" id=\"outline\" points=\"\n");
+	  for (i = 0; i < length; i++)
+		fprintf(xyplot, "      %3.3f,%3.3f\n", X[i], Y[i]);
+	  fprintf(xyplot,"    \" />\n");
+  } else {
+	  
+	  //################################### SVG for Puzzler and Turtle ##########################################
+	  //Draw Backbone
+	  // Idea: We look at a point and test if there exist an arc between previous point and the actual point.
+	  // But beware: Most of the indexes of this part of the code are "half" magic numbers;they were made with brute force(trial and error) until it eventually worked. 
+	  short newLine = 0;		//Flag if new Polyline should be created
+	  fprintf(xyplot,
+			  "    <polyline style=\"stroke: black; fill: none; stroke-width: 1.5\" id=\"outline\" points=\"\n");
+	   for (int j = 1; j <= length; j++){
+		if(arccoordsSVG[2*(j-1)] < 0){		//No arc(no valid radius) -> draw backbone
+			if(newLine){
+				newLine =0;
+				fprintf(xyplot,
+			  "    <polyline style=\"stroke: black; fill: none; stroke-width: 1.5\" id=\"outline%i\" points=\"\n",j);
+				fprintf(xyplot, "      %3.3f,%3.3f\n", X[j-2], Y[j-2]);											//If new line is created, it should include the previous previous point
+			}
+			fprintf(xyplot, "      %3.3f,%3.3f\n", X[j-1], Y[j-1]);												// Then we include the previous point
+		} else{												//If there exist an arc, and there is no newline, then we are the last point in the polyline -> we set newLine to True and end Polyline
+				if(!newLine){
+					newLine = 1;
+					fprintf(xyplot,"    \" />\n");
+				}
+		}
+		   
+	   }
+	  fprintf(xyplot,"    \" />\n");
+	
+	  
+	  //arcs
+	   fprintf(xyplot,"    <g style=\"stroke: black; stroke-width: 1; fill: none;\" id=\"arcs\">\n");
+	   for(int j = 0;j<length-1;j++){
+	   		if(arccoordsSVG[2*(j+1)] > 0)				//If arc exists, then we draw the arc. Not much more to say
+				fprintf(xyplot,
+                "      <path  d=\"M %6.15f, %6.15f A %6.15f,%6.15f, %6.15f,%i, %i, %6.15f, %6.15f\" />\n",
+                X[j], Y[j], arccoordsSVG[2*(j+1)], arccoordsSVG[2*(j+1)], 0., 0,(int)arccoordsSVG[2*(j+1)+1], X[j+1], Y[j+1]);
+	   
+	   }
+	   fprintf(xyplot, "    </g>\n");
 
-  fprintf(xyplot,
-          "    <polyline style=\"stroke: black; fill: none; stroke-width: 1.5\" id=\"outline\" points=\"\n");
-  for (i = 0; i < length; i++)
-    fprintf(xyplot, "      %3.3f,%3.3f\n", X[i], Y[i]);
-  fprintf(xyplot,"    \" />\n");
-
+  }
+  //################################# END SVG Puzzler and TUrtle #########################################
   fprintf(xyplot,"    <g style=\"stroke: black; stroke-width: 1; fill: none;\" id=\"pairs\">\n");
   for (i = 1; i <= length; i++) {
     int j;
@@ -810,6 +867,8 @@ int svg_rna_plot(char *string, char *structure, char *ssfile)
   if(R) free(R);
   if(CX) free(CX);
   if(CY) free(CY);
+  if(arccoords) free(arccoords);
+  if(arccoordsSVG) free(arccoordsSVG);	
   return 1; /* success */
 }
 
