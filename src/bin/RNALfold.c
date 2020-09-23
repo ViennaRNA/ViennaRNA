@@ -73,6 +73,136 @@ struct local_struct {
 };
 
 
+struct block {
+  vrna_fold_compound_t  *fc;
+  short                 *pt;
+  unsigned int          start;
+  unsigned int          end;
+  unsigned int          shift;
+  int                   energy;
+  int                   energy_no3d; /* energy without 3'dangle */
+  struct block          *next_entry;
+};
+
+
+
+PRIVATE void
+update_energies(unsigned int  i,
+                struct block  *b)
+{
+  short                 *S1, *S2, d5, d3;
+  unsigned int          type;
+  int                   n, i_local, j_local, ediff, dangles;
+  vrna_fold_compound_t  *fc;
+  vrna_param_t          *params;
+  vrna_md_t             *md;
+
+  fc      = b->fc;
+  n       = fc->length;
+  S1      = fc->sequence_encoding;
+  S2      = fc->sequence_encoding2;
+  params  = fc->params;
+  md      = &(params->model_details);
+  dangles = md->dangles;
+
+  /* re-evaluate energy for removal of base pair (i, k) */
+  if (b->pt[i]) {
+    i_local = (int)i + b->start - 1;
+    j_local = (int)(b->pt[i_local]);
+    /* compute energy differences due to removal of base pair (i_local, j_local) */
+    ediff   = vrna_eval_move_pt(fc, b->pt, -i_local, -j_local);
+
+    /* update energy */
+    b->energy += ediff;
+    /* remove base pair from pair table */
+    b->pt[i_local] = b->pt[j_local] = 0;
+    /* since we've removed the outermost base pair, the block size
+        decreases on the 3' end as well */
+    b->end = (unsigned int)(j_local - 1);
+
+    /* check whether we need to split the block into multiple ones */
+
+
+    /* update for odd dangle models below */
+    if (dangles % 1) {
+    
+    }
+  } else {
+    /* position i is unpaired, so we only need to update energies if
+       position i + 1 forms a base pair due to 5' dangles
+    */
+    if (b->pt[i + 1]) {
+      i_local = (int)i + b->start - 1 + 1;
+      j_local = b->pt[i_local + 1];
+      switch (dangles) {
+        case 2:
+          d5    = S1[i_local - 1];
+          d3    = (j_local + 1 <= i_local + n - 1) ? S1[j_local + 1 - 1] : -1;
+          type  = vrna_get_ptype_md(S2[i_local],
+                                    S2[j_local],
+                                    md);
+          ediff = vrna_E_ext_stem(type, -1, d3, params) -
+                  vrna_E_ext_stem(type, d5, d3, params);
+          break;
+
+        case 0:
+          ediff = 0;
+          break;
+
+        default:
+          ediff = 0;
+          break;
+      }
+      /* update the energy */
+      b->energy += ediff;
+    }
+
+    /* increment start position and shift */
+    b->start++;
+    b->shift++;
+  }         
+}
+
+
+PRIVATE void
+truncate_blocks(unsigned int i,
+                struct block *block_list)
+{
+  struct block *ptr_prev = NULL, *ptr = block_list;
+
+  while (ptr) {
+    /* remove block if it was superseded by index i */
+    if (ptr->end < i) {
+      if (ptr_prev) {
+        ptr_prev->next_entry = ptr->next_entry;
+        free(ptr->pt);
+        free(ptr);
+        ptr = ptr_prev->next_entry;
+      } else {
+        ptr_prev = ptr->next_entry;
+        free(ptr->pt);
+        free(ptr);
+        ptr       = ptr_prev;
+        ptr_prev  = NULL;
+      }
+
+      continue;
+    }
+
+    if (ptr->start == i) {
+      /* remove nucleotide at position i and update energies accordingly */
+      /* this also splits a substructure component into consecutive
+         tokens, if necessary
+      */
+      update_energies(i, ptr);
+    }
+
+    ptr_prev  = ptr;
+    ptr       = ptr->next_entry;
+  }
+}
+
+
 int
 main(int  argc,
      char *argv[])
