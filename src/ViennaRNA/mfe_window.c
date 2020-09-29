@@ -30,6 +30,8 @@
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/constraints/hard.h"
+#include "ViennaRNA/eval.h"
+#include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/mfe_window.h"
 
 
@@ -1554,4 +1556,457 @@ default_callback_comparative(int        start,
     else
       fprintf(output, "%s (%6.2f) %4d - %4d\n", structure, en, start, end);
   }
+}
+
+
+struct block {
+  vrna_fold_compound_t  *fc;
+  short                 *pt;
+  unsigned long int     start;
+  unsigned long int     end;
+  unsigned long int     shift;
+  int                   energy;
+  int                   energy_no3d; /* energy without 3'dangle */
+  struct block          *next_entry;
+};
+
+
+struct local_struct {
+  short               *pt;
+  unsigned int        start;
+  unsigned int        shift;
+  unsigned int        length;
+  int                 energy;
+  unsigned char       valid;
+  struct local_struct *next_entry;
+};
+
+
+
+PRIVATE void
+update_block(unsigned int  i,
+             struct block  *b)
+{
+  short                 *S1, *S2, d5, d3;
+  unsigned int          type;
+  int                   n, i_local, j_local, ediff, dangles;
+  vrna_fold_compound_t  *fc;
+  vrna_param_t          *params;
+  vrna_md_t             *md;
+
+  fc      = b->fc;
+  n       = fc->length;
+  S1      = fc->sequence_encoding;
+  S2      = fc->sequence_encoding2;
+  params  = fc->params;
+  md      = &(params->model_details);
+  dangles = md->dangles;
+
+  /* re-evaluate energy for removal of base pair (i, k) */
+  i_local = (int)(i - (b->start - b->shift) + 1);
+
+  if (b->pt[i_local]) {
+    j_local = (int)(b->pt[i_local]);
+    /* compute energy differences due to removal of base pair (i_local, j_local) */
+    ediff   = vrna_eval_move_pt(fc, b->pt, -i_local, -j_local);
+
+    /* update energy */
+    b->energy += ediff;
+    /* remove base pair from pair table */
+    b->pt[i_local] = b->pt[j_local] = 0;
+    /* since we've removed the outermost base pair, the block size
+        decreases on the 3' end as well */
+    b->end = (unsigned int)(j_local - 1);
+
+    /* check whether we need to split the block into multiple ones */
+
+
+    /* update for odd dangle models below */
+    if (dangles % 1) {
+    
+    }
+  } else if (dangles % 1) {
+    /* position i is unpaired, so we only need to update energies if
+       position i + 1 forms a base pair due to 5' dangles
+    */
+    if (b->pt[i + 1]) {
+      i_local = (int)i + b->start - 1 + 1;
+      j_local = b->pt[i_local + 1];
+      switch (dangles) {
+        case 2:
+          d5    = S1[i_local - 1];
+          d3    = (j_local + 1 <= i_local + n - 1) ? S1[j_local + 1 - 1] : -1;
+          type  = vrna_get_ptype_md(S2[i_local],
+                                    S2[j_local],
+                                    md);
+          ediff = vrna_E_ext_stem(type, -1, d3, params) -
+                  vrna_E_ext_stem(type, d5, d3, params);
+          break;
+
+        case 0:
+          ediff = 0;
+          break;
+
+        default:
+          ediff = 0;
+          break;
+      }
+      /* update the energy */
+      b->energy += ediff;
+    }
+
+  }
+
+  /* increment start position and shift */
+  b->start++;
+  b->shift++;
+}
+
+
+PRIVATE void
+truncate_blocks(unsigned long i,
+                struct block  **block_list)
+{
+  struct block *ptr_prev, *ptr;
+
+  ptr_prev  = NULL;
+  ptr       = *block_list;
+
+  while (ptr) {
+    /* 1. remove block if it was superseded by index i */
+    if (ptr->end <= i) {
+      if (ptr_prev) {
+        ptr_prev->next_entry = ptr->next_entry;
+        vrna_fold_compound_free(ptr->fc);
+        free(ptr->pt);
+        free(ptr);
+        ptr = ptr_prev->next_entry;
+      } else {
+        /* we are still processing the head of the list */
+        *block_list = ptr->next_entry;
+        vrna_fold_compound_free(ptr->fc);
+        free(ptr->pt);
+        free(ptr);
+        ptr         = *block_list;
+      }
+
+      continue;
+    }
+
+    /* 2. Update energy */
+    if (ptr->start == i) {
+      /* remove nucleotide at position i and update energies accordingly */
+      /* this also splits a substructure component into consecutive
+         tokens, if necessary
+      */
+      update_block(i, ptr);
+    }
+
+    /* go to next block */
+    ptr_prev  = ptr;
+    ptr       = ptr->next_entry;
+  }
+}
+
+
+PRIVATE struct block  *
+extract_Lfold_entry(FILE            *f,
+                    long            line_start,
+                    const char      *sequence,
+                    const vrna_md_t *md)
+{
+  char              *l, *seq_local, *structure;
+  unsigned long int start, i, j;
+  float             en;
+  struct block      *storage;
+
+  storage = NULL;
+
+  if (fseek(f, line_start, SEEK_SET) != -1) {
+    l         = vrna_read_line(f);
+    en        = INF / 100.;
+    structure = (char *)vrna_alloc(sizeof(char) * (strlen(l) + 1));
+
+    /*  each line should consist of 3 parts,
+        1. A dot-bracket structure
+        2. An energy value in kcal/mol
+        3. A starting position
+    */
+    if (sscanf(l, "%[.()] %*c %f %*c %lu", structure, &en, &i) == 3) {
+#if DEBUG
+      printf("s: %s, en: %6.2f, start: %lu\n", structure, en, i);
+#endif
+      storage = (struct block *)vrna_alloc(sizeof(struct block));
+
+      j = i + strlen(structure) - 1;
+
+      seq_local = (char *)vrna_alloc(sizeof(char) * (j - i + 2));
+      memcpy(seq_local, sequence + i - 1, (sizeof(char) * (j - i + 1)));
+
+      storage->fc           = vrna_fold_compound(seq_local, md, VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
+      storage->pt           = vrna_ptable(structure);
+      storage->start        = i;
+      storage->end          = j;
+      storage->shift        = 0;
+      storage->energy       = (int)(en * 100.);
+      storage->energy_no3d  = 0; /* energy without 3'dangle */
+      storage->next_entry   = NULL;
+
+      /* with dangles==0 or dangles==2, we don't need the trailing and leading unpaired base(s) */
+      if ((md->dangles % 1) == 0) {
+        if (storage->pt[1] == 0) {
+          storage->start++;
+          storage->shift++;
+        }
+        if (storage->pt[storage->fc->length] == 0)
+          storage->end--;
+      }
+    }
+
+    /* we only store the pair table, and drop the dot-bracket string */
+    free(structure);
+    free(l);
+  }
+
+  return storage;
+}
+
+
+PUBLIC int
+vrna_backtrack_window(vrna_fold_compound_t  *fc,
+                      const char            *Lfold_filename,
+                      long                  file_pos,
+                      char                  **structure,
+                      float                 mfe)
+{
+  int   ret, min_en;
+  FILE  *f;
+
+  ret         = 0;
+  *structure  = NULL;
+
+  if ((fc) &&
+      (Lfold_filename) &&
+      (structure)) {
+    int       maxdist;
+    vrna_md_t *md;
+
+    md      = &(fc->params->model_details);
+    maxdist = md->window_size;
+    min_en  = (int)(mfe * 100.);
+
+    /* default to start at beginning of file */
+    if (file_pos < 0)
+      file_pos = 0;
+
+    /* open Lfold output file and start parsing line positions */
+    if ((f = fopen(Lfold_filename, "r"))) {
+      if (fseek(f, file_pos, SEEK_SET) != -1) {
+        size_t  num_lines, mem_lines;
+        long    *lines; /* array of file positions indicating start of lines */
+
+        num_lines = 0;
+        mem_lines = 1024;
+
+        lines               = (long *)vrna_alloc(sizeof(long) * mem_lines);
+        lines[num_lines++]  = ftell(f);
+
+        /* 1. Fill array of file positions that coincide with start of lines */
+        do {
+          /* increase memory if necessary */
+          if (num_lines == mem_lines) {
+            mem_lines *= 1.4;
+            lines = (long *)vrna_realloc(lines, sizeof(long) * mem_lines);
+          }
+
+          /* seek to next newline char */
+          while ((!feof(f)) && (fgetc(f) != '\n'));
+
+          /* stop at end of file */
+          if (feof(f))
+            break;
+
+          lines[num_lines++] = ftell(f);
+        } while(1);
+
+        /* do the actual parsing of the data */
+        if (num_lines > 0) {
+          num_lines--;
+
+          size_t  block_num = 0;
+          size_t  i         = num_lines;
+
+          /* we will use *ptr as current block pointer and save the list start in 8block_list */
+          struct block  *block_list, *ptr;
+
+          /* handle first block separately */
+          do {
+            i--;
+
+            block_list = ptr = extract_Lfold_entry(f, lines[i], fc->sequence, md);
+          } while ((block_list == NULL) && (i > 0));
+
+          if (block_list) {
+            block_num++;
+
+            /*  go through remaining file in reverse order
+                to extract the relevant data
+            */
+            do {
+              i--;
+
+              ptr->next_entry = extract_Lfold_entry(f, lines[i], fc->sequence, md);
+
+              if (ptr->next_entry != NULL) {
+                block_num++;
+                ptr = ptr->next_entry;
+              }
+            } while (i > 0);
+
+            printf("Read %u blocks\n", block_num);
+
+            /* start actual backtracking procedure */
+            *structure = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
+            memset(*structure, (int)'.', fc->length);
+
+            int *f3 = fc->matrices->f3_local;
+            int e   = min_en;
+
+            /* check whether we need to adjust energies due to integer underflows in the forward recursion */
+            if (min_en != f3[1]) {
+              printf("min_en != f3[1]! %d vs. %d\n", min_en, f3[1]);
+            }
+
+            ptr = block_list;
+
+            /* The last block is always part of the full length MFE */
+            for (i = ptr->start; i <= ptr->end; i++) {
+              size_t i_local = i - ptr->start + 1;
+              if (ptr->pt[i_local] > i_local) {
+                (*structure)[i - 1] = '(';
+                (*structure)[ptr->start + ptr->pt[i_local] - 1 - 1] = ')';
+              }
+            }
+
+            e -= ptr->energy;
+
+            for (i = ptr->start; i <= ptr->end; i++)
+              /* truncate remaining blocks */
+              truncate_blocks((unsigned long)i, &block_list);
+
+#if DEBUG
+            size_t  cnt = 0;
+            for (ptr = block_list; ptr; ptr = ptr->next_entry, cnt++)
+              printf("block %u: en=%d, start: %lu, end: %lu\n", cnt, ptr->energy, ptr->start, ptr->end);
+            printf("%u blocks remaining\n", cnt);
+#endif
+
+            /* proceed with remaining blocks */
+            for (; i <= fc->length; i++) {
+              printf("e=%d, f3[%d]=%d\n", e, i, f3[i]);
+              /* i pairs with some k, find block representing the substructure enclodes by (i,k) */
+              if (e != f3[i + 1]) {
+              
+              } else {
+                /* i is unpaired */
+              }
+
+              truncate_blocks((unsigned int)i, &block_list);
+            }
+
+            ret = 1;
+          }
+
+        }
+#if 0
+          /* start backtracing */
+          char  *mfe_structure = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
+          memset(mfe_structure, (int)'.', fc->length);
+
+          int *f3 = fc->matrices->f3_local;
+
+          /* The last structure is always part of the full length MFE */
+          size_t s = 0;
+          for (size_t l = 1; l <= ss[s].length; l++)
+            if (ss[s].pt[l] > l) {
+              mfe_structure[ss[s].start + l - 1] = '(';
+              mfe_structure[ss[s].start + ss[s].pt[l] - 1] = ')';
+            }
+
+          /* truncate other structures overlapping with the last one */
+          size_t min_s = 1;
+          for (unsigned int l = ss[s].start + 1; l < ss[s].start + ss[s].length ; l++) {
+            printf("l=%u\n", l);
+            for (size_t sss = min_s; sss < num_ss; sss++) {
+              /* stop correction if structure starts later */
+              if (ss[sss].start > l)
+                break;
+
+              /* only correct structure if it is not entirely subsumed */
+              if (ss[sss].valid) {
+                unsigned int i, j, i_local, j_local;
+                i       = ss[sss].start;
+                j       = i + ss[sss].length - 1;
+                i_local = l - i + 1;
+                j_local = ss[sss].pt[i_local];
+                char *seq_local = (char *)vrna_alloc(sizeof(char) * (j - i + 2));
+                memcpy(seq_local, fc->sequence + i - 1, (sizeof(char) * (j - i + 1)));
+
+                printf("truncating and updating structure %u, interval [%d:%d]\n%s\n%s (%6.2f) shift:%d\n", sss, i, j, seq_local, vrna_db_from_ptable(ss[sss].pt), (float)ss[sss].energy / 100., ss[sss].shift);
+                if (j <= l) {
+                  ss[sss].valid = 0;
+                } else if (j_local != 0) {
+                  /* we will remove the base pair (i_local, j_local) */
+                  /* compute energy difference of the removal step */
+                  /* This requires further work to acknowledge dangle model!!!! */
+                  int ediff = vrna_eval_move_pt_simple(seq_local, ss[sss].pt, -i_local, -j_local);
+                  /* remove the pair */
+                  ss[sss].pt[i_local] = ss[sss].pt[j_local] = 0;
+                  /* update energy for the remaining substructure */
+                  ss[sss].energy += ediff;
+                } else if ((j > l) &&
+                           (ss[sss].pt[i_local + 1] != 0)) {
+                  /* i is unpaired, we will remove it's 5' dangle contribution to base pair (i + 1, p) */
+                  unsigned int  type;
+                  int           ediff, d5, d3;
+                  
+                  j_local = ss[sss].pt[i_local + 1];
+                  
+                  switch (dangles) {
+                    case 2:
+                      d5    = fc->sequence_encoding2[i + i_local - 1];
+                      d3    = (j_local + 1 <= i_local + ss[sss].length - 1) ? fc->sequence_encoding2[i + j_local + 1 - 1] : -1;
+                      type  = vrna_get_ptype_md(fc->sequence_encoding2[i + i_local - 1 + 1],
+                                                fc->sequence_encoding2[i + j_local - 1],
+                                                &(fc->params->model_details));
+                      printf("pair (%d, %d) energy: %d vs. %d (%d, %d, type: %d)\n", i_local + 1, j_local, vrna_E_ext_stem(type, -1, d3, fc->params), vrna_E_ext_stem(type, d5, d3, fc->params), d5, d3, type);
+                      ediff = vrna_E_ext_stem(type, -1, d3, fc->params) -
+                              vrna_E_ext_stem(type, d5, d3, fc->params);
+                      break;
+
+                    case 0:
+                      ediff = 0;
+                      break;
+
+                    default:
+                      ediff = 0;
+                      break;
+                  }
+                  /* update energy for the remaining substructure */
+                  ss[sss].energy += ediff;
+                } else if (j > l) {
+                  /* nothing to do here, since we simply remove an unpaired nucleotide that contributes 0 */
+                }
+                ss[sss].shift++;
+                printf("to\n%s (%6.2f) shift:%d\n", vrna_db_from_ptable(ss[sss].pt), (float)ss[sss].energy / 100., ss[sss].shift);
+              }
+            }
+          }
+#endif
+      }
+      fclose(f);
+    }
+  }
+
+  return ret;
 }

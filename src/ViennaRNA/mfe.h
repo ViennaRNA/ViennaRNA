@@ -293,6 +293,12 @@ vrna_backtrack5(vrna_fold_compound_t  *fc,
                 unsigned int          length,
                 char                  *structure);
 
+int
+vrna_backtrack_window(vrna_fold_compound_t  *fc,
+                      const char            *Lfold_filename,
+                      long                  file_pos,
+                      char                  **structure,
+                      float                 mfe);
 
 /**
  * End backtracking related interfaces
