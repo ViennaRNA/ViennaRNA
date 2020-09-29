@@ -185,9 +185,9 @@ vrna_fold_compound_free(vrna_fold_compound_t *fc)
 
 
 PUBLIC vrna_fold_compound_t *
-vrna_fold_compound(const char   *sequence,
-                   vrna_md_t    *md_p,
-                   unsigned int options)
+vrna_fold_compound(const char       *sequence,
+                   const vrna_md_t  *md_p,
+                   unsigned int     options)
 {
   unsigned int          length, aux_options;
   vrna_fold_compound_t  *fc;

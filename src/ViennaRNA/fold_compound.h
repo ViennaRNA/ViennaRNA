@@ -420,9 +420,9 @@ struct {
  *  @return               A prefilled vrna_fold_compound_t ready to be used for computations (may be @p NULL on error)
  */
 vrna_fold_compound_t *
-vrna_fold_compound(const char   *sequence,
-                   vrna_md_t    *md_p,
-                   unsigned int options);
+vrna_fold_compound(const char       *sequence,
+                   const vrna_md_t  *md_p,
+                   unsigned int     options);
 
 
 /**
