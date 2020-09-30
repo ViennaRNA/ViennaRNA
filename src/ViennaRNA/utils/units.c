@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/units.h"
+#include "ViennaRNA/utils/units.h"
 
 #ifdef __GNUC__
 # define INLINE inline
