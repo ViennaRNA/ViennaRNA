@@ -209,6 +209,21 @@ vrna_convert_temperature( double temp,
   return temp;
 }
 
+
+PUBLIC int
+vrna_convert_kcal_to_dcal(double energy)
+{
+  return (energy < 0) ? ((int)(energy * 100. - 0.5)) : ((int)(energy * 100. + 0.5));
+}
+
+
+PUBLIC double
+vrna_convert_dcal_to_kcal(int energy)
+{
+  return ((double)energy) / 100.;
+}
+
+
 /*
 #################################
 # STATIC helper functions below #

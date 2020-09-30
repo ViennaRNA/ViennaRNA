@@ -83,6 +83,14 @@ vrna_convert_temperature(double                   temp,
                          vrna_unit_temperature_e  to);
 
 
+int
+vrna_convert_kcal_to_dcal(double energy);
+
+
+double
+vrna_convert_dcal_to_kcal(int energy);
+
+
 /**
  *  @}
  */
