@@ -32,6 +32,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/utils/units.h"
 #include "ViennaRNA/mfe_window.h"
 
 
@@ -1619,7 +1620,16 @@ update_block(unsigned int  i,
     b->end = (unsigned int)(j_local - 1);
 
     /* check whether we need to split the block into multiple ones */
+    size_t stems = 0;
+    for (size_t pos = i_local + 1; pos <= b->end; pos++)
+      if (b->pt[pos] > pos) {
+        stems++;
+        pos = b->pt[pos];
+      }
 
+    if (stems > 1) {
+      printf("splitting interval [%d:%d] into %u blocks\n", i_local + 1, b->end, stems);
+    }
 
     /* update for odd dangle models below */
     if (dangles % 1) {
@@ -1700,6 +1710,8 @@ truncate_blocks(unsigned long i,
          tokens, if necessary
       */
       update_block(i, ptr);
+    } else if (ptr->start > i) {
+      break;
     }
 
     /* go to next block */
@@ -1748,7 +1760,7 @@ extract_Lfold_entry(FILE            *f,
       storage->start        = i;
       storage->end          = j;
       storage->shift        = 0;
-      storage->energy       = (int)(en * 100.);
+      storage->energy       = vrna_convert_kcal_to_dcal(en);
       storage->energy_no3d  = 0; /* energy without 3'dangle */
       storage->next_entry   = NULL;
 
@@ -1777,7 +1789,7 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
                       const char            *Lfold_filename,
                       long                  file_pos,
                       char                  **structure,
-                      float                 mfe)
+                      double                mfe)
 {
   int   ret, min_en;
   FILE  *f;
@@ -1793,7 +1805,7 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
 
     md      = &(fc->params->model_details);
     maxdist = md->window_size;
-    min_en  = (int)(mfe * 100.);
+    min_en  = vrna_convert_kcal_to_dcal(mfe);
 
     /* default to start at beginning of file */
     if (file_pos < 0)
@@ -1889,12 +1901,13 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
             }
 
             e -= ptr->energy;
+            size_t ii = ptr->end;
 
-            for (i = ptr->start; i <= ptr->end; i++)
+            for (i = ptr->start; i <= ii; i++)
               /* truncate remaining blocks */
               truncate_blocks((unsigned long)i, &block_list);
 
-#if DEBUG
+#if 1
             size_t  cnt = 0;
             for (ptr = block_list; ptr; ptr = ptr->next_entry, cnt++)
               printf("block %u: en=%d, start: %lu, end: %lu\n", cnt, ptr->energy, ptr->start, ptr->end);
@@ -1906,7 +1919,32 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
               printf("e=%d, f3[%d]=%d\n", e, i, f3[i]);
               /* i pairs with some k, find block representing the substructure enclodes by (i,k) */
               if (e != f3[i + 1]) {
-              
+                /* go through list of blocks that start at i to check which one we can insert */
+                for (ptr = block_list; ptr; ptr = ptr->next_entry) {
+                  if (ptr->start > i)
+                    break;
+
+                  if ((ptr->start == i) &&
+                      (e == (ptr->energy + f3[ptr->end + 1]))) {
+                    /* found the block, let's insert it */
+                    for (ii = ptr->start; ii <= ptr->end; ii++) {
+                      size_t i_local = ii - ptr->start + 1;
+                      if (ptr->pt[i_local] > i_local) {
+                        (*structure)[ii - 1] = '(';
+                        (*structure)[ptr->start + ptr->pt[i_local] - 1 - 1] = ')';
+                      }
+                    }
+
+                    e -= ptr->energy;
+
+                    for (size_t iii = ptr->start; iii <= ii; iii++)
+                      /* truncate remaining blocks */
+                      truncate_blocks((unsigned long)iii, &block_list);
+                    
+                    i = ii;
+                    break;
+                  }
+                }
               } else {
                 /* i is unpaired */
               }
