@@ -578,19 +578,19 @@ get_gquad_pf_matrix(short             *S,
 
 
 PUBLIC FLT_OR_DBL *
-get_gquad_pf_matrix_comparative(short             *S_cons,
+get_gquad_pf_matrix_comparative(unsigned int      n,
+                                short             *S_cons,
                                 short             **S,
                                 unsigned int      **a2s,
                                 FLT_OR_DBL        *scale,
                                 unsigned int      n_seq,
                                 vrna_exp_param_t  *pf)
 {
-  int                     n, size, *gg, i, j, *my_index;
+  int                     size, *gg, i, j, *my_index;
   FLT_OR_DBL              *data;
   struct gquad_ali_helper gq_help;
 
 
-  n             = S[0][0];
   size          = (n * (n + 1)) / 2 + 2;
   data          = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
   gg            = get_g_islands(S_cons);
@@ -617,17 +617,17 @@ get_gquad_pf_matrix_comparative(short             *S_cons,
 
 
 PUBLIC int *
-get_gquad_ali_matrix(short        *S_cons,
+get_gquad_ali_matrix(unsigned int  n,
+                     short        *S_cons,
                      short        **S,
                      unsigned int **a2s,
                      int          n_seq,
                      vrna_param_t *P)
 {
-  int                     n, size, *data, *gg;
+  int                     size, *data, *gg;
   int                     i, j, *my_index;
   struct gquad_ali_helper gq_help;
 
-  n         = S[0][0];
   size      = (n * (n + 1)) / 2 + 2;
   data      = (int *)vrna_alloc(sizeof(int) * size);
   gg        = get_g_islands(S_cons);

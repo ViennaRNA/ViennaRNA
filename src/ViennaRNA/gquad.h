@@ -67,7 +67,8 @@ int *get_gquad_matrix(short         *S,
                       vrna_param_t  *P);
 
 
-int *get_gquad_ali_matrix(short         *S_cons,
+int *get_gquad_ali_matrix(unsigned int  n,
+                          short         *S_cons,
                           short         **S,
                           unsigned int  **a2s,
                           int           n_seq,
@@ -79,7 +80,8 @@ FLT_OR_DBL *get_gquad_pf_matrix(short             *S,
                                 vrna_exp_param_t  *pf);
 
 
-FLT_OR_DBL *get_gquad_pf_matrix_comparative(short             *S_cons,
+FLT_OR_DBL *get_gquad_pf_matrix_comparative(unsigned int  n,
+                                            short             *S_cons,
                                             short             **S,
                                             unsigned int      **a2s,
                                             FLT_OR_DBL        *scale,

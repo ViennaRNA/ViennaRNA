@@ -1170,7 +1170,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     if (RibosumFile != NULL)
       dm = readribosum(RibosumFile);
     else
-      dm = get_ribosum((const char **)strings, n_seq, S[0][0]);
+      dm = get_ribosum((const char **)strings, n_seq, length);
   } else {
     /*use usual matrix*/
     dm = (float **)vrna_alloc(7 * sizeof(float *));

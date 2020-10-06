@@ -80,7 +80,8 @@ alisnoinitialize_fold(const int length);
 
 
 PRIVATE void
-make_pscores(const short *const *S,
+make_pscores(int                length,
+             const short *const *S,
              const char *const  *AS,
              int                n_seq,
              const char         *structure);
@@ -390,7 +391,8 @@ snofold(const char  *string,
 
 
 PRIVATE void
-make_pscores(const short *const *S,
+make_pscores(int                n,
+             const short *const *S,
              const char *const  *AS,
              int                n_seq,
              const char         *structure)
@@ -399,7 +401,7 @@ make_pscores(const short *const *S,
   /* compensatory/consistent mutations and incompatible seqs */
   /* should be 0 for conserved pairs, >0 for good pairs      */
 #define NONE -10000                         /* score for forbidden pairs */
-  int n, i, j, k, l, s, score;
+  int i, j, k, l, s, score;
   int dm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */
                    { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
                    { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
@@ -407,7 +409,7 @@ make_pscores(const short *const *S,
                    { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
                    { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
                    { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
-  n = Sali[0][0];  /* length of seqs */
+
   for (i = 1; i < n; i++) {
     for (j = i + 1; (j < i + TURN + 1) && (j <= n); j++)
       pscore[indx[j] + i] = NONE;
@@ -559,7 +561,7 @@ alisnofold(const char **strings,
 
     Sali[s] = aliencode_seq(strings[s]);
   }
-  make_pscores((const short **)Sali, (const char *const *)strings, n_seq, structure);
+  make_pscores(length, (const short **)Sali, (const char *const *)strings, n_seq, structure);
   energy = alifill_arrays(strings, max_assym, threshloop, min_s2, max_s2, half_stem, max_half_stem);
   alibacktrack((const char **)strings, 0);
   for (s = 0; s < n_seq; s++)

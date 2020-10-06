@@ -1005,7 +1005,7 @@ contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
   for (s = 0; s < n_seq; s++) {
     type  = vrna_get_ptype_md(S[s][i], S[s][j], md);
     s5    = (a2s[s][i] > 1) ? S5[s][i] : -1;
-    s3    = (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1;
+    s3    = (a2s[s][j] < n) ? S3[s][j] : -1;
 
     contribution *= vrna_exp_E_ext_stem(type, s5, s3, pf_params);
   }

@@ -598,7 +598,7 @@ backtrack_ext_loop(int                              init_val,
             type  = vrna_get_ptype_md(S[s][i], S[s][j], md);
             qkl   *= vrna_exp_E_ext_stem(type,
                                          (a2s[s][i] > 1) ? S5[s][i] : -1,
-                                         (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
+                                         (a2s[s][j] < n) ? S3[s][j] : -1,
                                          pf_params);
           }
         }
@@ -738,7 +738,7 @@ backtrack_ext_loop(int                              init_val,
             type  = vrna_get_ptype_md(S[s][i], S[s][j], md);
             qkl   *= vrna_exp_E_ext_stem(type,
                                          (a2s[s][i] > 1) ? S5[s][i] : -1,
-                                         (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
+                                         (a2s[s][j] < n) ? S3[s][j] : -1,
                                          pf_params);
           }
         }
