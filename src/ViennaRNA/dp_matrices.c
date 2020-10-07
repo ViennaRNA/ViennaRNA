@@ -545,7 +545,8 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
             case VRNA_MX_WINDOW:                              /* do nothing, since we handle memory somewhere else */
               break;
             default:
-              vc->matrices->ggg = get_gquad_ali_matrix(vc->S_cons,
+              vc->matrices->ggg = get_gquad_ali_matrix(vc->length,
+                                                       vc->S_cons,
                                                        vc->S,
                                                        vc->a2s,
                                                        vc->n_seq,

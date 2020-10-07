@@ -75,7 +75,9 @@ aliduplexfold(const char  *s1[],
 
 
 PRIVATE char *
-alibacktrack(int          i,
+alibacktrack(int          n3,
+             int          n4,
+             int          i,
              int          j,
              const short  *s1[],
              const short  *s2[],
@@ -118,7 +120,9 @@ aliduplexfold_XS(const char *s1[],
 
 
 PRIVATE char *
-alibacktrack_XS(int         i,
+alibacktrack_XS(int         n3,
+                int         n4,
+                int         i,
                 int         j,
                 const short *s1[],
                 const short *s2[],
@@ -287,7 +291,7 @@ aliduplexfold(const char  *s1[],
     }
   }
   struc =
-    alibacktrack(i_min, j_min, (const short int **)S1, (const short int **)S2, extension_cost);
+    alibacktrack(n3, n4, i_min, j_min, (const short int **)S1, (const short int **)S2, extension_cost);
   if (i_min < n3)
     i_min++;
 
@@ -319,7 +323,9 @@ aliduplexfold(const char  *s1[],
 
 
 PRIVATE char *
-alibacktrack(int          i,
+alibacktrack(int          n3,
+             int          n4,
+             int          i,
              int          j,
              const short  *S1[],
              const short  *S2[],
@@ -329,9 +335,6 @@ alibacktrack(int          i,
    * return structure in bracket notation with & as separator */
   int   k, l, *type, type2, E, traced, i0, j0, s, n_seq;
   char  *st1, *st2, *struc;
-
-  n3  = (int)S1[0][0];
-  n4  = (int)S2[0][0];
 
   for (s = 0; S1[s] != NULL; s++);
   n_seq = s;
@@ -1110,7 +1113,9 @@ aliduplexfold_XS(const char *s1[],
     free(type2);
     return mfe;
   } else {
-    struc = alibacktrack_XS(k_min,
+    struc = alibacktrack_XS(n3,
+                            n4,
+                            k_min,
                             l_min,
                             (const short int **)S1,
                             (const short int **)S2,
@@ -1156,7 +1161,9 @@ aliduplexfold_XS(const char *s1[],
 
 
 PRIVATE char *
-alibacktrack_XS(int         i,
+alibacktrack_XS(int         n3,
+                int         n4,
+                int         i,
                 int         j,
                 const short *S1[],
                 const short *S2[],
@@ -1165,11 +1172,9 @@ alibacktrack_XS(int         i,
                 const int   i_flag,
                 const int   j_flag)
 {
-  int   n3, n4, k, l, *type, type2, E, traced, i0, j0, s, n_seq, psc;
+  int   k, l, *type, type2, E, traced, i0, j0, s, n_seq, psc;
   char  *st1 = NULL, *st2 = NULL, *struc = NULL;
 
-  n3  = (int)S1[0][0];
-  n4  = (int)S2[0][0];
   for (s = 0; S1[s] != NULL; s++);
   n_seq = s;
   for (s = 0; S2[s] != NULL; s++);

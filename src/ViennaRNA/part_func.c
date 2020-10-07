@@ -389,7 +389,8 @@ fill_arrays(vrna_fold_compound_t *fc)
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        fc->exp_matrices->G = get_gquad_pf_matrix_comparative(fc->S_cons,
+        fc->exp_matrices->G = get_gquad_pf_matrix_comparative(fc->length,
+                                                              fc->S_cons,
                                                               fc->S,
                                                               fc->a2s,
                                                               fc->exp_matrices->scale,
