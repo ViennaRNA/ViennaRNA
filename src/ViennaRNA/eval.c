@@ -1297,7 +1297,7 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
             case 2:
               mm5     = (a2s[ss][p] > 1) ? S5[ss][p] : -1;
-              mm3     = (a2s[ss][q] < length) ? S3[ss][q] : -1;
+              mm3     = (a2s[ss][q] < a2s[ss][length]) ? S3[ss][q] : -1;
               energy  += vrna_E_ext_stem(tt, mm5, mm3, P);
               break;
 
@@ -1650,7 +1650,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
                 tt = 7;
 
               mm5     = ((a2s[ss][p] > 1) || circular) ? S5[ss][p] : -1;
-              mm3     = ((a2s[ss][q] < n) || circular) ? S3[ss][q] : -1;
+              mm3     = ((a2s[ss][q] < a2s[ss][n]) || circular) ? S3[ss][q] : -1;
               energy  += E_MLstem(tt, mm5, mm3, P);
             }
 

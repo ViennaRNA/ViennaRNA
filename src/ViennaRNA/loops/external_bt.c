@@ -673,7 +673,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
           for (ss = 0; ss < n_seq; ss++) {
             tt  = vrna_get_ptype_md(S[ss][u], S[ss][jj], md);
             mm5 = (a2s[ss][u] > 1) ? S5[ss][u] : -1;
-            mm3 = (a2s[ss][jj] < n) ? S3[ss][jj] : -1;
+            mm3 = (a2s[ss][jj] < a2s[ss][n]) ? S3[ss][jj] : -1;
             en  += vrna_E_ext_stem(tt, mm5, mm3, P);
           }
 
@@ -1130,7 +1130,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
             type  = vrna_get_ptype_md(S[ss][ii], S[ss][u], md);
             cc    +=
               vrna_E_ext_stem(type, (a2s[ss][ii] > 1) ? S5[ss][ii] : -1,
-                              (a2s[ss][u] < n) ? S3[ss][u] : -1, P);
+                              (a2s[ss][u] < a2s[ss][n]) ? S3[ss][u] : -1, P);
           }
 
           if (fij == cc + f3[u + 1]) {
@@ -1501,7 +1501,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
               cc  +=
                 vrna_E_ext_stem(tt,
                                 (a2s[s][start] > 1) ? S5[s][start] : -1,
-                                (a2s[s][j] < length) ? S3[s][j] : -1,
+                                (a2s[s][j] < a2s[s][length]) ? S3[s][j] : -1,
                                 P);
             }
 

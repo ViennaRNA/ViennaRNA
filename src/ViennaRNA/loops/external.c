@@ -1133,7 +1133,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
       s3j = (short *)vrna_alloc(sizeof(short) * n_seq);
       sj  = (short *)vrna_alloc(sizeof(short) * n_seq);
       for (s = 0; s < n_seq; s++) {
-        s3j[s]  = (a2s[s][j] < n) ? S3[s][j] : -1;
+        s3j[s]  = (a2s[s][j] < a2s[s][n]) ? S3[s][j] : -1;
         sj[s]   = SS[s][j];
       }
 
@@ -1273,7 +1273,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
           energy = c[j];
           for (s = 0; s < n_seq; s++) {
             type    = vrna_get_ptype_md(si[s], S[s][j], md);
-            sj1     = (a2s[s][j] < length) ? S3[s][j] : -1;
+            sj1     = (a2s[s][j] < a2s[s][length]) ? S3[s][j] : -1;
             energy  += vrna_E_ext_stem(type, s5i1[s], sj1, P);
           }
           stems[j] = energy;
@@ -1515,7 +1515,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
           energy = c[j - 1];
           for (s = 0; s < n_seq; s++) {
             type    = vrna_get_ptype_md(si[s], S[s][j - 1], md);
-            sj1     = (a2s[s][j - 1] < length) ? S3[s][j - 1] : -1;
+            sj1     = (a2s[s][j - 1] < a2s[s][length]) ? S3[s][j - 1] : -1;
             energy  += vrna_E_ext_stem(type, -1, sj1, P);
           }
           stems[j] = energy;
@@ -1535,7 +1535,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
           energy = c[j - 1];
           for (s = 0; s < n_seq; s++) {
             type    = vrna_get_ptype_md(si[s], S[s][j - 1], md);
-            sj1     = (a2s[s][j - 1] < length) ? S3[s][j - 1] : -1;
+            sj1     = (a2s[s][j - 1] < a2s[s][length]) ? S3[s][j - 1] : -1;
             energy  += vrna_E_ext_stem(type, -1, sj1, P);
           }
 
@@ -1630,7 +1630,7 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
       s3j1  = (short *)vrna_alloc(sizeof(short) * n_seq);
       ssj1  = (short *)vrna_alloc(sizeof(short) * n_seq);
       for (s = 0; s < n_seq; s++) {
-        s3j1[s] = (a2s[s][j - 1] < n) ? S3[s][j - 1] : -1;
+        s3j1[s] = (a2s[s][j - 1] < a2s[s][n]) ? S3[s][j - 1] : -1;
         ssj1[s] = SS[s][j - 1];
       }
 
@@ -1885,7 +1885,7 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
       s3j1  = (short *)vrna_alloc(sizeof(short) * n_seq);
       ssj1  = (short *)vrna_alloc(sizeof(short) * n_seq);
       for (s = 0; s < n_seq; s++) {
-        s3j1[s] = (a2s[s][j - 1] < n) ? S3[s][j - 1] : -1;
+        s3j1[s] = (a2s[s][j - 1] < a2s[s][n]) ? S3[s][j - 1] : -1;
         ssj1[s] = SS[s][j - 1];
       }
 
@@ -2020,7 +2020,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
           energy = c[j - 1];
           for (s = 0; s < n_seq; s++) {
             type    = vrna_get_ptype_md(ssi1[s], S[s][j - 1], md);
-            sj1     = (a2s[s][j - 1] < length) ? S3[s][j - 1] : -1;
+            sj1     = (a2s[s][j - 1] < a2s[s][length]) ? S3[s][j - 1] : -1;
             energy  += vrna_E_ext_stem(type, s5i1[s], sj1, P);
           }
           stems[j] = energy;
@@ -2039,7 +2039,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
           energy = c[j - 1];
           for (s = 0; s < n_seq; s++) {
             type    = vrna_get_ptype_md(ssi1[s], S[s][j - 1], md);
-            sj1     = (a2s[s][j - 1] < length) ? S3[s][j - 1] : -1;
+            sj1     = (a2s[s][j - 1] < a2s[s][length]) ? S3[s][j - 1] : -1;
             energy  += vrna_E_ext_stem(type, s5i1[s], sj1, P);
           }
 
