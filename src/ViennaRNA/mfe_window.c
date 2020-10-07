@@ -1615,21 +1615,115 @@ update_block(unsigned int  i,
     b->energy += ediff;
     /* remove base pair from pair table */
     b->pt[i_local] = b->pt[j_local] = 0;
+
     /* since we've removed the outermost base pair, the block size
-        decreases on the 3' end as well */
-    b->end = (unsigned int)(j_local - 1);
+        decreases on the 3' end as well. At this point, we also
+        remove any further trailing bases, if any
+    */
+    int end = j_local;
+
+    do {
+      b->end--;
+      if (b->start == b->end)
+        break;
+    } while (b->pt[--end] == 0);
 
     /* check whether we need to split the block into multiple ones */
-    size_t stems = 0;
-    for (size_t pos = i_local + 1; pos <= b->end; pos++)
+    size_t  stems       = 0;
+    size_t  mem_stems   = 10;
+    size_t  *start_stem = (size_t *)vrna_alloc(sizeof(size_t) * mem_stems);
+    size_t  *end_stem   = (size_t *)vrna_alloc(sizeof(size_t) * mem_stems);
+
+    for (size_t pos = i_local + 1; pos <= end; pos++)
       if (b->pt[pos] > pos) {
+        start_stem[stems] = pos;
+        end_stem[stems]   = b->pt[pos];
         stems++;
+        if (stems == mem_stems) {
+          mem_stems *= 1.4;
+          start_stem  = vrna_realloc(start_stem, sizeof(size_t) * mem_stems);
+          end_stem    = vrna_realloc(end_stem, sizeof(size_t) * mem_stems);
+        }
         pos = b->pt[pos];
       }
 
     if (stems > 1) {
-      printf("splitting interval [%d:%d] into %u blocks\n", i_local + 1, b->end, stems);
+      printf("splitting interval [%d:%d] into %u blocks\n", b->start + 1, b->end, stems);
+      char *ss = vrna_db_from_ptable(b->pt);
+      printf("%s\n%s (%6.2f)\n", b->fc->sequence, ss, (float)b->energy / 100.);
+      free(ss);
+
+      struct block *tmp = b->next_entry;
+      for (size_t k = stems - 1; k > 0; k--) {
+
+        /* create a new block */
+        struct block *new_block = (struct block *)vrna_alloc(sizeof(struct block));
+
+        /* construct global coordinates for new block */
+        new_block->start  = i + start_stem[k] - 1;
+        new_block->end    = i + end_stem[k] - 1;
+        new_block->shift  = 0;
+
+        printf("separating branch [%d, %d] into block [%d:%d]\n", start_stem[k], end_stem[k], new_block->start, new_block->end);
+
+        /* create structure pair table for new block */
+        size_t  l         = end_stem[k] - start_stem[k] + 1;
+        new_block->pt     = (short *)vrna_alloc(sizeof(short) * (l + 1));
+        new_block->pt[0]  = l;
+        /* go through original structure and extract base pair positions relative to new block */
+        for (size_t p = start_stem[k]; p <= end_stem[k]; p++) {
+          if (b->pt[p] > p) {
+            short i,j;
+
+            i = p - start_stem[k] + 1;
+            j = b->pt[p] - start_stem[k] + 1;
+
+            new_block->pt[i] = j;
+            new_block->pt[j] = i;
+
+            /* remove base pair from original block */
+            b->pt[b->pt[p]] = 0;
+            b->pt[p]        = 0;
+          }
+        }
+
+        /* create fold_compound for new block */
+        char *seq_block = (char *)vrna_alloc(sizeof(char) * (l + 1));
+        memcpy(seq_block, b->fc->sequence + start_stem[k] - 1, sizeof(char) * (l));
+        new_block->fc = vrna_fold_compound(seq_block, &(b->fc->params->model_details), VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
+        int e = vrna_eval_structure_pt(new_block->fc, new_block->pt);
+        char *ss = vrna_db_from_ptable(new_block->pt);
+        printf("%s\n%s (%6.2f)\n", seq_block, ss, (float)e / 100.);
+        free(ss);
+        free(seq_block);
+
+        /* compute energy of new block */
+        new_block->energy = e;
+        
+        /* link new block into list */
+        new_block->next_entry = tmp;
+
+        tmp = new_block;
+      }
+
+      /* link all newly created blocks to our main list */
+      b->next_entry = tmp;
+
+      /* Finally, we need to update the original block */
+
+      /* update global end position */
+      b->end = i + end_stem[0] - 1;
+
+      /* update energy */
+      b->energy = vrna_eval_structure_pt(b->fc, b->pt);
+      ss = vrna_db_from_ptable(b->pt);
+      printf("%s\n%s (%6.2f)\n", b->fc->sequence, ss, (float)b->energy / 100.);
+      free(ss);
     }
+
+    /* clean up memory */
+    free(start_stem);
+    free(end_stem);
 
     /* update for odd dangle models below */
     if (dangles % 1) {
@@ -1745,9 +1839,6 @@ extract_Lfold_entry(FILE            *f,
         3. A starting position
     */
     if (sscanf(l, "%[.()] %*c %f %*c %lu", structure, &en, &i) == 3) {
-#if DEBUG
-      printf("s: %s, en: %6.2f, start: %lu\n", structure, en, i);
-#endif
       storage = (struct block *)vrna_alloc(sizeof(struct block));
 
       j = i + strlen(structure) - 1;
@@ -1755,6 +1846,9 @@ extract_Lfold_entry(FILE            *f,
       seq_local = (char *)vrna_alloc(sizeof(char) * (j - i + 2));
       memcpy(seq_local, sequence + i - 1, (sizeof(char) * (j - i + 1)));
 
+#if 1
+      printf("%s\n%s (%6.2f), start: %lu\n", seq_local, structure, en, i);
+#endif
       storage->fc           = vrna_fold_compound(seq_local, md, VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
       storage->pt           = vrna_ptable(structure);
       storage->start        = i;
