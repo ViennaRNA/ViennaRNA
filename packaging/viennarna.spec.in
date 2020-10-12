@@ -36,6 +36,8 @@ BuildRequires:  mpfr-devel
 BuildRequires:  perl(ExtUtils::Embed)
 BuildRequires:  perl-Test-Simple
 
+BuildRequires:  perl(FileHandle)
+
 Requires:       perl glibc info gsl
 %if 0%{?suse_version}
 %if 0%{?suse_version} >= 1500
@@ -110,7 +112,6 @@ Requires: perl
 %description -n perl-rna
 Perl binding for ViennaRNA RNAlib.
 
-
 %package -n python2-rna
 Summary:  Python 2 bindings for ViennaRNA RNAlib
 Group:    Development/Libraries/Python
@@ -122,20 +123,21 @@ Conflicts: python-rna
 %description -n python2-rna
 Python 2 bindings for ViennaRNA RNAlib.
 
-
-
 %if 0%{?with_python3}
 
 %package -n python3-rna
 Summary:  Python 3 bindings for ViennaRNA RNAlib
 Group:    Development/Libraries/Python
 Requires: %{name} = %{version}-%{release}
+
 %if %{defined el7}
 
 Requires: python36
+
 %else
 
 Requires: python3
+
 %endif
 
 %description -n python3-rna
@@ -147,10 +149,10 @@ Python 3 bindings for ViennaRNA RNAlib.
 %setup -n ViennaRNA-%{version} -q
 
 %build
+
 %if 0%{?with_rnalocmin}
 
 %if 0%{?suse_version}
-%define _lto_cflags %{nil}
 %configure \
     --with-cluster \
     --without-forester \
@@ -180,6 +182,7 @@ Python 3 bindings for ViennaRNA RNAlib.
     INSTALLDIRS=vendor \
     PERL=/usr/bin/perl
 %endif
+
 make %{?_smp_mflags} V=1
 
 
@@ -303,7 +306,6 @@ rm -rf $RPM_BUILD_ROOT
 %dir %{perl_vendorarch}/auto/RNA
 %attr(755,root,root) %{perl_vendorarch}/auto/RNA/RNA.so
 
-
 %files -n python2-rna
 %defattr(-,root,root,-)
 %dir %{python2_sitearch}/RNA
@@ -315,6 +317,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %dir %{python3_sitearch}/RNA
 %{python3_sitearch}/RNA/*
+%if 0%{?suse_version}
 %pycache_only %{python3_sitearch}/RNA/__pycache__
-
+%endif
 %endif
