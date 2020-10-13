@@ -1775,7 +1775,8 @@ decompose_pair(vrna_fold_compound_t *fc,
       stackEnergy = vrna_E_stack(fc, i, j);
       new_c       = MIN2(new_c, cc1[j - 1] + stackEnergy);
       cc[j]       = new_c;
-      if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+      if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+          (cc[j] != INF))
         cc[j] -= fc->pscore[ij];
 
       e = cc1[j - 1] + stackEnergy;
@@ -1789,7 +1790,8 @@ decompose_pair(vrna_fold_compound_t *fc,
       new_c   = MIN2(new_c, energy);
     }
 
-    if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+    if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+        (e != INF))
       e -= fc->pscore[ij];
   } /* end >> if (pair) << */
 
