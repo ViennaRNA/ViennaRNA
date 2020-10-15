@@ -57,6 +57,7 @@ DOXYGEN_DOCUMENTATION = \
     params.dox \
     part_func.dox \
     plotting.dox \
+    sequence.dox \
     subopt.dox \
     walk.dox
 

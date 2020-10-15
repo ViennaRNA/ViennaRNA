@@ -23,41 +23,41 @@ section "General Options"
 sectiondesc="Below are command line options which alter the general behavior of this program\n"
 
 option  "constraint"  C
-"Calculate structures subject to constraints.\n"
-details="The program reads first the\
- sequence(s), then a string containing constraints on the structure encoded with the symbols:\n\
- . (no constraint for this base)\n
- x (the base is unpaired)\n\
- < (base i is paired with a base j>i) (solely used for calculation of unpaired regions)\n\
- > (base i is paired with a base j<i) (solely used for calculation of unpaired regions)\n\
- ( ) (base i pairs base j)\n\
- | (the corresponding base has to be paired intermolecularily (works only in interaction mode)\n\n"
+"Apply structural constraint(s) during prediction."
+details="The program first reads the sequence(s), then a dot-bracket like string containing\
+ constraints on the structure. The following symbols are recognized:\n\
+ '.' ... no constraint for this base\n\n\
+ 'x' ... the base is unpaired\n\n\
+ '<' ... the base pairs downstream, i.e. i is paired with j > i\n\n\
+ '>' ... the base pairs upstream, i.e. i is paired with j < i\n\n\
+ '()' ... base i pairs with base j\n\n\
+ '|' ... the corresponding base has to be paired intermolecularily (only for interaction mode)\n"
 flag
 off
 
 option  "no_output_file" o
-"Do not produce an output file\n\n"
+"Do not produce an output file."
 flag
 off
 
 option  "no_header" -
-"Do not produce a header with the command line parameters used in the outputfile\n\n"
+"Do not produce a header with the command line parameters used in the outputfile."
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"."
 flag
 off
 
 section "Calculations of opening energies"
 
 option  "ulength"   u
-"specifies the length of the unstructured region in the output.\n"
+"Specify the length of the unstructured region in the output."
 details="The probability of being unpaired is plotted on the right border\
  of the unpaired region. You can specify up to 20 different length values:\
  use \"-\" to specify a range of continuous values (e.g. -u 4-8) or specify\
- a list of comma separated values (e.g. -u 4,8,15).\n\n"
+ a list of comma separated values (e.g. -u 4,8,15).\n"
 string
 multiple
 typestr="length"
@@ -65,13 +65,13 @@ default="4"
 optional
 
 option "contributions"  c
-"Specify the contributions listed in the output\n"
+"Specify the contributions listed in the output."
 details="By default only the full probability of being unpaired is plotted.\
  The -c option allows one to get the different contributions (c) to the probability\
  of being unpaired: The full probability of being unpaired (\"S\" is the sum of\
  the probability of being unpaired in the exterior loop (\"E\"), within a\
  hairpin loop (\"H\"), within an interior loop (\"I\") and within a multiloop\
- (\"M\"). Any combination of these letters may be given.\n\n"
+ (\"M\"). Any combination of these letters may be given.\n"
 string
 typestr="SHIME"
 default="S"
@@ -79,114 +79,120 @@ optional
 
 section "Calculations of RNA-RNA interactions"
 option  "window"  w
-"Determine the maximal length of the region of interaction\n\n"
+"Set the maximal length of the region of interaction."
 int
 default="25"
 optional
 
 option  "include_both"  b
-"Include the probability of unpaired regions in both (b) RNAs. By default
-only the probability of being unpaired in the longer RNA (target) is used.\n\n"
+"Include the probability of unpaired regions in both (b) RNAs."
+details="By default only the probability of being unpaired in the longer RNA\
+ (target) is used.\n"
 flag
 off
 
 option  "extend5" 5
-"Extend the region of interaction in the target to some residues on the 5' side\n"
+"Extend the region of interaction in the target to some residues on the 5' side."
 details="The underlying assumption is that it is favorable for an interaction if\
- not only the direct region of contact is unpaired but also a few residues 5'\n\n"
+ not only the direct region of contact is unpaired but also a few residues 5'\n"
 int
 optional
 
 option  "extend3" 3
-"Extend the region of interaction in the target to some residues on the 3' side\n"
+"Extend the region of interaction in the target to some residues on the 3' side."
 details="The underlying assumption is that it is favorable for an interaction if\
- not only the direct region of contact is unpaired but also a few residues 3'\n\n"
+ not only the direct region of contact is unpaired but also a few residues 3'\n"
 int
 optional
 
 option  "interaction_pairwise"  -
-"Activate pairwise interaction mode\n"
+"Activate pairwise interaction mode."
 details="The first sequence interacts with the 2nd, the third with the 4th etc.\
  If activated, two interacting sequences may be given in a single line separated\
- by \"&\" or each sequence may be given on an extra line.\n\n"
+ by \"&\" or each sequence may be given on an extra line.\n"
 flag
 off
 
 option  "interaction_first" -
-"Activate interaction mode using first sequence only\n"
+"Activate interaction mode using first sequence only."
 details="The interaction of each sequence with the first one is calculated\
  (e.g. interaction of one mRNA with many small RNAs). Each sequence has to be\
- given on an extra line\n\n"
+ given on an extra line\n"
 flag
 off
 
 section "Model Details"
 
 option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble\
- free energy (used to avoid overflows). The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+"Set scaling factor for Boltzmann factors to prevent under/overflows."
+details="In the calculation of the pf use scale*mfe as an estimate for the ensemble\
+ free energy (used to avoid overflows). The default is 1.07, useful values\
+ are 1.0 to 1.2. Occasionally needed for long sequences.\nYou can also recompile\
+ the program to use double precision (see the README file).\n"
 double
 optional
 hidden
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+"Rescale energy parameters to a temperature in degrees centigrade."
 double
+default="37.0"
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins."
+details="Mostly for testing.\n"
 flag
 off
 
 option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+"Specify \"dangling end\" model for bases adjacent to helices in free ends and multi-loops."
 details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides in any case.\n\
- The option -d0 ignores dangling ends altogether (mostly for debugging).\n\n"
+ The option -d0 ignores dangling ends altogether (mostly for debugging).\n"
 int
 default="2"
 optional
 
 option  "noLP"  -
-"Produce structures without lonely pairs (helices of length 1).\n"
+"Produce structures without lonely pairs (helices of length 1)."
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n\n"
+ pairs may still occasionally occur as helices of length 1.\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n\n"
+"Do not allow GU pairs."
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
+"Do not allow GU pairs at the end of helices."
 flag
 off
 
 option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+"Read energy parameters from paramfile, instead of using the default parameter set."
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
  RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ DNA parameters are loaded without the need to actually specify any input file.\n"
 string
 typestr="paramfile"
 optional
 
 option  "nsp" -
-"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+"Allow other pairs in addition to the usual AU,GC,and GU pairs."
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n\n"
+ energy.\n"
 string
 optional
 hidden
 
 option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
+"Set energy model."
+details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
 int
 optional
 hidden

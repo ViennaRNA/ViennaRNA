@@ -22,117 +22,119 @@ section "General Options"
 sectiondesc="Command line options which alter the general behavior of this program\n\n"
 
 option  "verbose" v
-"Be verbose.\n\n"
+"Be verbose."
 flag
 off
 
 option  "winsize" W
-"Average the pair probabilities over windows of given size\n\n"
+"Average the pair probabilities over windows of given size."
 int
 default="70"
 typestr="size"
 optional
 
 option  "span"  L
-"Set the maximum allowed separation of a base pair to span. I.e. no pairs (i,j) with\
- j-i > span will be allowed. Defaults to winsize if parameter is omitted\n\n"
+"Set the maximum allowed separation of a base pair to span."
+details="By setting the maximum base pair span no pairs (i,j) with\
+ j-i > span will be allowed. Defaults to winsize if parameter is omitted.\n"
 int
 typestr="size"
 optional
 
 option  "cutoff"  c
-"Report only base pairs with an average probability > cutoff in the dot plot\n\n"
+"Report only base pairs with an average probability > cutoff in the dot plot."
 float
 default="0.01"
 optional
 
 option  "print_onthefly"  o
-"Save memory by printing out everything during computation.\nNOTE: activated per default for sequences over 1M bp.\n\n"
+"Save memory by printing out everything during computation."
+details="NOTE: activated per default for sequences over 1M bp.\n"
 flag
 off
 
 option  "ulength" u
-"Compute the mean probability that regions of length 1 to a given length are unpaired.\
- Output is saved in a _lunp file.\n\n"
+"Compute the mean probability that regions of length 1 to a given length are unpaired."
+details="Output is saved in a _lunp file.\n"
 int
 typestr="length"
 default="31"
 optional
 
 option  "opening_energies"  O
-"Switch output from probabilities to their logarithms, which are NOT exactly the mean\
- energies needed to the respective stretch of bases!\nNOTE: This actives -u option.\n\n"
+"Switch output from probabilities to their logarithms."
+details="This is NOT exactly the mean energies needed to unfold the respective stretch\
+ of bases! (implies --ulength option).\n\n"
 flag
 off
 
 option  "plex_output" -
-"Create additional output files for RNAplex.\n\n"
+"Create additional output files for RNAplex."
 flag
 off
 hidden
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"."
 flag
 off
 
 option  "auto-id"  -
-"Automatically generate an ID for each sequence.\n"
+"Automatically generate an ID for each sequence."
 details="The default mode of RNAplfold is to automatically determine an ID from the input sequence\
  data if the input file format allows to do that. Sequence IDs are usually given in the FASTA\
  header of input sequences. If this flag is active, RNAplfold ignores any IDs retrieved from the\
  input and automatically generates an ID for each sequence. This ID consists of a prefix and an\
  increasing number. This flag can also be used to add a FASTA header to the output even if\
- the input has none.\n\n"
+ the input has none.\n"
 flag
 off
 
 option  "id-prefix" -
-"Prefix for automatically generated IDs (as used in output file names)\n\n"
+"Prefix for automatically generated IDs (as used in output file names)."
 details="If this parameter is set, each sequences' FASTA id will be prefixed\
  with the provided string. FASTA ids then take the form \">prefix_xxxx\" where\
  xxxx is the sequence number. Hence, the output files will obey the following naming\
  scheme: \"prefix_xxxx_dp.ps\" (dot-plot), \"prefix_xxxx_lunp\" (unpaired probabilities),\
- etc. Note: Setting this parameter implies --auto-id.\n\n"
+ etc. Note: Setting this parameter implies --auto-id.\n"
 string
 typestr="prefix"
 default="sequence"
 optional
 
 option  "id-delim" -
-"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)."
 details="This parameter can be used to change the default delimiter \"_\" between
- the prefix string and the increasing number for automatically generated ID.\n\n"
+ the prefix string and the increasing number for automatically generated ID.\n"
 string
-typestr="delimiter"
 default="_"
 optional
 hidden
 
 option  "id-digits"  -
-"Specify the number of digits of the counter in automatically generated alignment IDs.\n"
+"Specify the number of digits of the counter in automatically generated alignment IDs."
 details="When alignments IDs are automatically generated, they receive an increasing number, starting\
  with 1. This number will always be left-padded by leading zeros, such that the number takes up a\
  certain width. Using this parameter, the width can be specified to the users need. We allow\
- numbers in the range [1:18]. This option implies --auto-id.\n\n"
+ numbers in the range [1:18]. This option implies --auto-id.\n"
 int
 default="4"
 optional
 hidden
 
 option  "id-start"  -
-"Specify the first number in automatically generated alignment IDs.\n"
+"Specify the first number in automatically generated alignment IDs."
 details="When sequence IDs are automatically generated, they receive an increasing number,\
  usually starting with 1. Using this parameter, the first number can be specified to the users\
  requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
- to ignore any IDs retrieved from the input data, i.e. it activates the --auto-id flag.\n\n"
+ to ignore any IDs retrieved from the input data, i.e. it activates the --auto-id flag.\n"
 long
 default="1"
 optional
 hidden
 
 option  "filename-delim" -
-"Change the delimiting character that is used for sanitized filenames\n\n"
+"Change the delimiting character that is used for sanitized filenames."
 details="This parameter can be used to change the delimiting character used while\
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
@@ -140,15 +142,14 @@ details="This parameter can be used to change the delimiting character used whil
  characters will be simply removed rather than substituted.\
  Currently, we regard the following characters as illegal for use in filenames:\
  backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
- pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
+ pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n"
 string
-typestr="delimiter"
 default="ID-delimiter"
 optional
 hidden
 
 option  "filename-full" -
-"Use full FASTA header to create filenames\n\n"
+"Use full FASTA header to create filenames."
 details="This parameter can be used to deactivate the default behavior of limiting\
  output filenames to the first word of the sequence ID. Consider the following example:\
  An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
@@ -156,19 +157,19 @@ details="This parameter can be used to deactivate the default behavior of limiti
  header, e.g. \"NM_0001_dp.ps\". With this flag set, no truncation of the output filenames\
  is performed, i.e. output filenames receive the full FASTA header data as prefixes. Note,\
  however, that invalid characters (such as whitespace) will be substituted by a delimiting\
- character or simply removed, (see also the parameter option --filename-delim).\n\n"
+ character or simply removed, (see also the parameter option --filename-delim).\n"
 flag
 off
 hidden
 
 option  "shape" -
-"Use SHAPE reactivity data to guide structure predictions\n\n"
+"Use SHAPE reactivity data to guide structure predictions."
 string
 typestr="<filename>"
 optional
 
 option  "shapeMethod" -
-"Select method to incorporate SHAPE reactivity data.\n"
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions."
 details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
 'D': Convert by using a linear equation according to Deigan et al 2009. \
 The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
@@ -186,33 +187,32 @@ The magnitude of the penalties can affected by adjusting the factor beta \
 (e.g. --shapeMethod=\"Zb0.8\").
 
 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n\n"
+Perturbation vectors can be calculated by using RNApvmin.\n"
 string
-typestr="[D/Z/W] + [optional parameters]"
 dependon="shape"
 default="D"
 optional
+hidden
 
 option  "shapeConversion" -
-"Select method to convert SHAPE reactivities to pairing probabilities.\n"
-details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
-The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
-'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
+"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al."
+details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.\n
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")\n
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values\n
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)\n
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
 string
-typestr="M/C/S/L/O  + [optional parameters]"
 default="O"
 optional
+hidden
 
 
 option  "commands"   -
-"Read additional commands from file\n"
+"Read additional commands from file."
 details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
  loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
- domains.\n\n"
+ domains.\n"
 string
 typestr="<filename>"
 optional
@@ -222,92 +222,95 @@ hidden
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+"Rescale energy parameters to a temperature in degrees centigrade."
 double
+default="37.0"
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins."
+details="Mostly for testing.\n"
 flag
 off
 
 option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+"Specify \"dangling end\" model for bases adjacent to helices in free ends and multi-loops."
 details="With -d2 dangling energies will be added for the bases adjacent to a helix on both sides in\
- any case.\n\n-d0 ignores dangling ends altogether (mostly for debugging).\n\n"
+ any case while -d0 ignores dangling ends altogether (mostly for debugging).\n"
 int
 default="2"
 optional
 
 option  "noLP"  -
-"Produce structures without lonely pairs (helices of length 1).\n"
+"Produce structures without lonely pairs (helices of length 1)."
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n\n"
+ pairs may still occasionally occur as helices of length 1.\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n\n"
+"Do not allow GU pairs."
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
+"Do not allow GU pairs at the end of helices."
 flag
 off
 
 option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+"Read energy parameters from paramfile, instead of using the default parameter set."
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
  RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ DNA parameters are loaded without the need to actually specify any input file.\n"
 string
 typestr="paramfile"
 optional
 
 option  "pfScale" S
-"In the calculation of the partition function use pfScale * average_free_energy as\
- an estimate for the ensemble free energy (used to avoid overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for longer folding windows.\n\n"
+"Set scaling factor for Boltzmann factors to prevent under/overflows."
+details="In the calculation of the partition function use pfScale * average_free_energy as\
+ an estimate for the ensemble free energy (used to avoid overflows). The default is 1.07,\
+ useful values are 1.0 to 1.2. Occasionally needed for longer folding windows.\n"
 double
-typestr="scaling factor"
 optional
 hidden
 
 option  "binaries"  b
-"Output accessibility profiles in binary format\n."
+"Output accessibility profiles in binary format."
 details=" The binary files produced by RNAplfold do not need to be parsed\
  by RNAplex, so that they are directly loaded into memory. This is useful when large\
  sequences have to be searched for putative hybridization sites. Another advantage of\
- the binary format is the 50% file size decrease.\n\n" 
+ the binary format is the 50% file size decrease.\n" 
 flag
 off
+hidden
 
 option  "nsp" -
-"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+"Allow other pairs in addition to the usual AU,GC,and GU pairs."
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n\n"
+ energy.\n"
 string
 optional
 hidden
 
 option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
+"Set energy model."
+details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
 int
 optional
 hidden
 
 option  "betaScale" -
-"Set the scaling of the Boltzmann factors\n"
+"Set the scaling of the Boltzmann factors."
 details="The argument provided with this option enables to scale the thermodynamic temperature\
  used in the Boltzmann factors independently from the temperature used to scale the individual\
  energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
  where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
- absolute temperature.\n\n"
+ absolute temperature.\n"
 double
 default="1."
 optional

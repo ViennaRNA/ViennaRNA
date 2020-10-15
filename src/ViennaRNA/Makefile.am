@@ -200,6 +200,7 @@ vrna_utils_HEADERS = \
     utils/alignments.h \
     utils/higher_order_functions.h \
     utils/cpu.h \
+    utils/units.h \
     ${SVM_UTILS_H}
 
 
@@ -323,12 +324,12 @@ libRNA_utils_la_SOURCES = \
     utils/msa_utils.c \
     utils/higher_order_functions.c \
     utils/cpu.c \
+    utils/units.c \
     io/io_utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \
     search/BoyerMoore.c \
     commands.c \
-    units.c \
     combinatorics.c \
     ${SVM_UTILS}
 

@@ -1170,7 +1170,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     if (RibosumFile != NULL)
       dm = readribosum(RibosumFile);
     else
-      dm = get_ribosum((const char **)strings, n_seq, S[0][0]);
+      dm = get_ribosum((const char **)strings, n_seq, length);
   } else {
     /*use usual matrix*/
     dm = (float **)vrna_alloc(7 * sizeof(float *));
@@ -1232,12 +1232,24 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
         /* remember stack energy for --noLP option */
         if (md->noLP) {
           stackEnergy = vrna_E_stack(fc, i, j);
-          new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
-          cc[j - i]   = new_c - psc; /* add covariance bonnus/penalty */
-          c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy - psc;
+
+          if (cc1[j - 1 - (i + 1)] != INF) {
+            new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
+            c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy;
+          } else {
+            c[i][j - i] = INF;
+          }
+
+          if (new_c != INF)
+            new_c -= psc;
+
+          cc[j - i]   = new_c; /* add covariance bonnus/penalty */
         } else {
-          c[i][j - i] = new_c - psc; /* add covariance bonnus/penalty */
+          c[i][j - i] = new_c; /* add covariance bonnus/penalty */
         }
+
+        if (c[i][j - i] != INF)
+          c[i][j - i] -= psc;
       } /* end >> if (pair) << */
       else {
         c[i][j - i] = INF;

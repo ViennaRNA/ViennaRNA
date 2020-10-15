@@ -554,7 +554,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
                            vrna_bp_stack_t      *bp_stack,
                            int                  *stack_count)
 {
-  unsigned int              **a2s;
+  unsigned int              **a2s, n;
   short                     **S, **S5, **S3;
   unsigned int              tt;
   int                       fij, fi, jj, u, en, *my_f5, *my_c, *my_ggg, *idx,
@@ -566,6 +566,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   struct default_data       hc_dat_local;
 
   n_seq         = fc->n_seq;
+  n             = fc->length;
   S             = fc->S;
   S5            = fc->S5;
   S3            = fc->S3;
@@ -672,7 +673,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
           for (ss = 0; ss < n_seq; ss++) {
             tt  = vrna_get_ptype_md(S[ss][u], S[ss][jj], md);
             mm5 = (a2s[ss][u] > 1) ? S5[ss][u] : -1;
-            mm3 = (a2s[ss][jj] < a2s[ss][S[0][0]]) ? S3[ss][jj] : -1;      /* why S[0][0] ??? */
+            mm3 = (a2s[ss][jj] < a2s[ss][n]) ? S3[ss][jj] : -1;
             en  += vrna_E_ext_stem(tt, mm5, mm3, P);
           }
 
@@ -1019,7 +1020,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
 {
   short                     **S, **S5, **S3;
   unsigned int              type, ss, n_seq, **a2s;
-  int                       fij, cc, fj, ii, u, *f3, **c, **ggg,
+  int                       n, fij, cc, fj, ii, u, *f3, **c, **ggg,
                             dangle_model, turn, with_gquad;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -1027,6 +1028,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
   vrna_callback_hc_evaluate *evaluate;
   struct default_data       hc_dat_local;
 
+  n             = fc->length;
   n_seq         = fc->n_seq;
   S             = fc->S;
   S5            = fc->S5;   /* S5[s][i] holds next base 5' of i in sequence s */
@@ -1050,7 +1052,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
     fij = f3[ii];
     fj  = INF;
 
-    if (evaluate(ii, maxdist, ii + 1, maxdist, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+    if (evaluate(ii, n, ii + 1, n, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
       fj = f3[ii + 1];
       if (scs) {
         for (ss = 0; ss < n_seq; ss++)
@@ -1059,7 +1061,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
               fj += scs[ss]->energy_up[ii][1];
 
             if (scs[ss]->f)
-              fj += scs[ss]->f(ii, maxdist, ii + 1, maxdist, VRNA_DECOMP_EXT_EXT, scs[ss]->data);
+              fj += scs[ss]->f(ii, n, ii + 1, n, VRNA_DECOMP_EXT_EXT, scs[ss]->data);
           }
       }
     }
@@ -1092,7 +1094,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(ii, maxdist, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
+        if (evaluate(ii, n, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           cc = c[ii][u - ii];
           for (ss = 0; ss < n_seq; ss++) {
             type  = vrna_get_ptype_md(S[ss][ii], S[ss][u], md);
@@ -1122,13 +1124,13 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(ii, maxdist, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
+        if (evaluate(ii, n, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
           cc = c[ii][u - ii];
           for (ss = 0; ss < n_seq; ss++) {
             type  = vrna_get_ptype_md(S[ss][ii], S[ss][u], md);
             cc    +=
               vrna_E_ext_stem(type, (a2s[ss][ii] > 1) ? S5[ss][ii] : -1,
-                              (a2s[ss][u] < a2s[ss][S[0][0]]) ? S3[ss][u] : -1, P);
+                              (a2s[ss][u] < a2s[ss][n]) ? S3[ss][u] : -1, P);
           }
 
           if (fij == cc + f3[u + 1]) {
@@ -1499,7 +1501,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
               cc  +=
                 vrna_E_ext_stem(tt,
                                 (a2s[s][start] > 1) ? S5[s][start] : -1,
-                                (a2s[s][j] < a2s[s][S[0][0]]) ? S3[s][j] : -1,
+                                (a2s[s][j] < a2s[s][length]) ? S3[s][j] : -1,
                                 P);
             }
 

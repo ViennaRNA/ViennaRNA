@@ -1,0 +1,13 @@
+/**
+
+@fn short *vrna_seq_encode(const char *sequence, vrna_md_t *md)
+
+@scripting
+@parblock
+In the target scripting language, this function is wrapped as overloaded function @em seq_encode() where the
+last parameter, the @em model_details data structure, is optional. If it is omitted, default model settings
+are applied, i.e. default nucleotide letter conversion. The wrapped function returns a list/tuple of integer
+representations of the input sequence.
+@endparblock
+
+*/

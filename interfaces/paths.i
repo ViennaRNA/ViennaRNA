@@ -7,6 +7,11 @@
 #include <vector>
 #include <limits.h>
 
+%{
+#include <sstream>
+%}
+
+
 %ignore path;
 
 /* scripting language access through 'fold_compound' instead of 'vrna_fold_compound_t' */
@@ -23,10 +28,102 @@ typedef struct {
 } vrna_path_t;
 
 %extend vrna_path_t {
+
+#ifdef SWIGPYTHON
+%feature("autodoc")vrna_path_t::vrna_path_t;
+%feature("kwargs")vrna_path_t::vrna_path_t;
+#endif
+
+  vrna_path_t(double        en,
+              std::string   s     = "",
+              vrna_move_t   *move = NULL,
+              unsigned int  type  = VRNA_PATH_TYPE_DOT_BRACKET)
+  {
+    vrna_path_t *step = (vrna_path_t *)vrna_alloc(sizeof(vrna_path_t));
+
+    step->type  = type;
+    step->en    = en;
+
+    if ((s == "") && (move))
+      type = VRNA_PATH_TYPE_MOVES;
+
+    switch (type) {
+      case VRNA_PATH_TYPE_DOT_BRACKET:
+        if (s != "") {
+          step->s = (char *)vrna_alloc(sizeof(char) * (s.length() + 1));
+          memcpy(step->s, s.c_str(), sizeof(char) * s.length());
+        } else {
+          step->s = NULL;
+        }
+        break;
+
+      case VRNA_PATH_TYPE_MOVES:
+        if (move) {
+          step->move.pos_5 = move->pos_5;
+          step->move.pos_3 = move->pos_3;
+        } else {
+          step->move.pos_5 = 0;
+          step->move.pos_3 = 0;
+        }
+        break;
+
+      default:
+        break;
+    }
+
+
+    return step;
+  }
+
   ~vrna_path_t() {
     free($self->s);
     free($self);
   }
+
+#ifdef SWIGPYTHON
+  std::string
+  __str__()
+  {
+    std::ostringstream out;
+    out << "{ type: " << $self->type;
+    switch($self->type) {
+      case VRNA_PATH_TYPE_MOVES:
+        out << ", s: None";
+        break;
+
+      case VRNA_PATH_TYPE_DOT_BRACKET:
+        if ($self->s)
+          out << ", s: \"" << $self->s << "\"";
+        else
+          out << ", s: None";
+        break;
+
+      default:
+        out << ", s: None";
+        break;
+    }
+
+    out << ", en: " << $self->en;
+
+    if ($self->type == VRNA_PATH_TYPE_MOVES)
+      out << ", move: { pos_5: " << $self->move.pos_5 << ", pos_3: " << $self->move.pos_3 << "}";
+    else
+      out << ", move: None";
+
+    out << " }";
+
+    return std::string(out.str());
+  }
+
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
+#endif
+
 }
 
 /**********************************************/
@@ -97,8 +194,11 @@ my_path_options_findpath(int          width = 10,
     while (ptr->s != NULL)
     {
         vrna_path_t p;
-        p.en = ptr->en;
-        p.s  = ptr->s;
+
+        p.type  = VRNA_PATH_TYPE_DOT_BRACKET;
+        p.en    = ptr->en;
+        p.s     = ptr->s;
+
         v.push_back(p);
         ptr++;
         
@@ -182,8 +282,11 @@ std::vector<vrna_path_t> my_get_path(std::string seq, std::string s1, std::strin
         while (ptr->s != NULL)
         {
             vrna_path_t p;
-            p.en = ptr->en;
-            p.s  = ptr->s;
+
+            p.type  = VRNA_PATH_TYPE_DOT_BRACKET;
+            p.en    = ptr->en;
+            p.s     = ptr->s;
+
             v.push_back(p);
             ptr++;
         }

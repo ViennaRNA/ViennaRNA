@@ -60,6 +60,9 @@ vrna_ptypes(const short *S,
 /**
  *  @brief Get a numerical representation of the nucleotide sequence
  *
+ *  @param  sequence    The input sequence in upper-case letters
+ *  @param  md          A pointer to a #vrna_md_t data structure that specifies the conversion type
+ *  @return             A list of integer encodings for each sequence letter (1-based). Position 0 denotes the length of the list
  */
 short *
 vrna_seq_encode(const char  *sequence,

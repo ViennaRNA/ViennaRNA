@@ -4,7 +4,25 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.15...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.16...HEAD)
+
+
+### [Version 2.4.16](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.15...v2.4.16) (Release date: 2020-10-09)
+
+#### Programs
+  * Fix backtracing errors in `RNALalifold` for alignments with more than `32768` columns
+  * Fix backtracing errors in `RNAalifold` and `RNALalifold` for rare cases when two alignment columns may pair due to covariance score threshold but still yield infinite energies due to energy model
+  * Refactored manpages/help options for `RNAplfold`, `RNAplot`, `RNApvmin`, `RNAsubopt`, and `RNAup`
+
+#### Library
+  * API: Fix undefined behavior due to short int overflows when accessing alignment lengths with alignments larger than 32768 columns. This fixes occasional backtracing errors in `RNALalifold` and `vrna_mfe_window()`
+  * API: Fix adding pscore to base pairs that yield INF energy in comparative global and local MFE prediction
+  * API: Add `vrna_convert_kcal_to_dcal()` and vice-versa function for safely converting integer to float representations of energy values
+  * SWIG: Add a reasonable `Python` interface for objects of type `vrna_path_t`
+  * SWIG: Add a wrapper for `vrna_seq_encode()`
+
+#### Package
+  * Move `units.h` include file to `ViennaRNA/utils/units.h`
 
 
 ### [Version 2.4.15](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.14...v2.4.15) (Release date: 2020-08-18)
