@@ -381,7 +381,7 @@ main(int  argc,
                                 file_pos,
                                 &mfe_structure,
                                 min_en))
-        printf("%s (%6.2f)\n", mfe_structure, min_en);
+        printf("%s\n%s (%6.2f)\n", orig_sequence, mfe_structure, min_en);
     } else {
       if (!tofile && istty)
         msg = vrna_strdup_printf(" minimum free energy = %6.2f kcal/mol", min_en);
