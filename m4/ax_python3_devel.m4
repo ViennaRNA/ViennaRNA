@@ -3,7 +3,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
 
     # (AM_PATH_PYTHON) cannot be used for multiple Python version at once
     if test -z "$PYTHON3" ; then
-      AC_PATH_PROGS([PYTHON3], [python3 python38 python3.8 python37 python3.7 python36 python3.6 python35 python3.5 python34 python3.4], [no])
+      AC_PATH_PROGS([PYTHON3], [python3 python39 python3.9 python38 python3.8 python37 python3.7 python36 python3.6 python35 python3.5 python34 python3.4], [no])
     fi
     AC_ARG_VAR(PYTHON3, [Path to Python3 interpreter (e.g.: /usr/bin/python3)])
 
