@@ -1,0 +1,8 @@
+#ifndef VIENNA_RNA_PACKAGE_PLOT_SVG_TEMPLATES_H
+#define VIENNA_RNA_PACKAGE_PLOT_SVG_TEMPLATES_H
+
+/* The strings below are automatically generated from corresponding .svg files */
+
+@SVG_TEMPLATE_CONST@
+
+#endif

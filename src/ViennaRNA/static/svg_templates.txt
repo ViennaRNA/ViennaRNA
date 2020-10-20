@@ -1,0 +1,2 @@
+svg/structure_plot_header.svg
+svg/structure_plot_footer.svg

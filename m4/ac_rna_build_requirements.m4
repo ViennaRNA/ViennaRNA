@@ -12,6 +12,11 @@ RNA_CHECK_SRC_BUILDERS
 ## and Dot plots.
 RNA_CHECK_POSTSCRIPT_TEMPLATES
 
+## Check for presence of (or capability to generate) the
+## SVG templates we use for RNA secondary structure-
+## and Dot plots.
+RNA_CHECK_SVG_TEMPLATES
+
 RNA_CHECK_PARAMETER_FILES
 
 ])
@@ -42,7 +47,7 @@ AC_DEFUN([RNA_CHECK_POSTSCRIPT_TEMPLATES], [
     ## load list of postscript template files and replace '\n' by ' '
     PS_TEMPLATE_FILES=`cat $POSTSCRIPT_FILE_LIST | tr '\012' ' '`
     ## create list of hex postscript template files
-    PS_TEMPLATE_FILES_HEX=`AS_ECHO("$PS_TEMPLATE_FILES") | sed 's/.ps/.hex/g'`
+    PS_TEMPLATE_FILES_HEX=`AS_ECHO("$PS_TEMPLATE_FILES") | sed 's/\.ps/\.hex/g'`
 
     if test "x$XXD" = "xno"
     then
@@ -71,7 +76,7 @@ generate it from source!
       # remove the 'postscript/' prefix
       template_name=`AS_ECHO("$template") | sed 's/postscript\///g'`
       # remove the trailing .hex
-      template_name=`AS_ECHO("$template_name") | sed 's/.hex//g'`
+      template_name=`AS_ECHO("$template_name") | sed 's/\.hex//g'`
 
       # create a C variable defintion for the template
       # note [[]] will turn into [] after M4 processed everythin
@@ -94,6 +99,67 @@ static const unsigned char PS_$template_name[[]] = {
     # substitute file list for static/Makefile.am
     AC_SUBST(PS_TEMPLATE_FILES)
     AC_SUBST(PS_TEMPLATE_FILES_HEX)
+])
+
+AC_DEFUN([RNA_CHECK_SVG_TEMPLATES], [
+    STATIC_FILE_DIR="${srcdir}/src/ViennaRNA/static"
+    SVG_FILE_LIST="$STATIC_FILE_DIR/svg_templates.txt"
+
+    ## load list of svg template files and replace '\n' by ' '
+    SVG_TEMPLATE_FILES=`cat $SVG_FILE_LIST | tr '\012' ' '`
+    ## create list of hex postscript template files
+    SVG_TEMPLATE_FILES_HEX=`AS_ECHO("$SVG_TEMPLATE_FILES") | sed 's/\.svg/\.hex/g'`
+
+    if test "x$XXD" = "xno"
+    then
+        for template in $SVG_TEMPLATE_FILES_HEX
+        do
+            AC_RNA_TEST_FILE($STATIC_FILE_DIR/$template,[],[
+                AC_MSG_ERROR([
+=================================================
+Can't find the svg hex template
+
+${template}
+
+Make sure you've installed the 'xxd' tool to
+generate it from source!
+=================================================
+])
+            ])
+        done
+    fi
+
+    # prepare substitution string for
+    # templates_svg.h file
+    SVG_TEMPLATE_CONST=""
+    for template in $SVG_TEMPLATE_FILES_HEX
+    do
+      # remove the 'svg/' prefix
+      template_name=`AS_ECHO("$template") | sed 's/svg\///g'`
+      # remove the trailing .hex
+      template_name=`AS_ECHO("$template_name") | sed 's/\.hex//g'`
+
+      # create a C variable defintion for the template
+      # note [[]] will turn into [] after M4 processed everythin
+      SVG_TEMPLATE_CONST="$SVG_TEMPLATE_CONST
+static const char SVG_$template_name[[]] = {
+#include \"$template\"
+};
+"
+    done
+
+    # Add templates_svg.h to the files to be processed by
+    # the configure script
+    AC_CONFIG_FILES([src/ViennaRNA/static/templates_svg.h])
+
+    # substitute C variable definitions
+    AC_SUBST(SVG_TEMPLATE_CONST)
+    # hack to avoid placing the multiline SVG_TEMPLATE_CONST into any Makefile
+    _AM_SUBST_NOTMAKE(SVG_TEMPLATE_CONST)
+
+    # substitute file list for static/Makefile.am
+    AC_SUBST(SVG_TEMPLATE_FILES)
+    AC_SUBST(SVG_TEMPLATE_FILES_HEX)
 ])
 
 AC_DEFUN([RNA_CHECK_PARAMETER_FILES], [
