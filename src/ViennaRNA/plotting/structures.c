@@ -739,10 +739,10 @@ svg_rna_plot(char *string,
 {
   float   xmin, xmax, ymin, ymax, size;
   int     i, length;
-  float   *X, *Y, *R = NULL, *CX = NULL, *CY = NULL;
+  float   *X = NULL, *Y = NULL, *R = NULL, *CX = NULL, *CY = NULL;
   FILE    *xyplot;
   short   *pair_table;
-  double  *arccoords, *arccoordsSVG;
+  double  *arccoords = NULL, *arccoordsSVG = NULL;
 
   length = strlen(string);
 
@@ -948,20 +948,11 @@ svg_rna_plot(char *string,
   free(pair_table);
   free(X);
   free(Y);
-  if (R)
-    free(R);
-
-  if (CX)
-    free(CX);
-
-  if (CY)
-    free(CY);
-
-  if (arccoords)
-    free(arccoords);
-
-  if (arccoordsSVG)
-    free(arccoordsSVG);
+  free(R);
+  free(CX);
+  free(CY);
+  free(arccoords);
+  free(arccoordsSVG);
 
   return 1; /* success */
 }
