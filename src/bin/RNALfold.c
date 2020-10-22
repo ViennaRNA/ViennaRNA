@@ -75,7 +75,7 @@ main(int  argc,
   int                         length, istty, noconv, maxdist, zsc, tofile, filename_full,
                               with_shapes, verbose, backtrack;
   double                      min_en, min_z;
-  long                        file_pos;
+  long int                    file_pos_start, file_pos_end;
   vrna_md_t                   md;
   vrna_cmd_t                  commands;
   dataset_id                  id_control;
@@ -100,7 +100,8 @@ main(int  argc,
   filename_full = 0;
   command_file  = NULL;
   commands      = NULL;
-  file_pos      = -1;
+  file_pos_start  = -1;
+  file_pos_end    = -1;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -313,7 +314,7 @@ main(int  argc,
       if (!output)
         vrna_message_error("Failed to open file for writing");
 
-      file_pos = ftell(output);
+      file_pos_start = ftell(output);
     } else {
       output = stdout;
     }
@@ -373,15 +374,15 @@ main(int  argc,
     fprintf(output, "%s\n", orig_sequence);
 
     char *msg = NULL;
+    char *mfe_structure = NULL;
 
     if (backtrack) {
-      char  *mfe_structure;
       if (vrna_backtrack_window(vc,
                                 (const char *)v_file_name,
-                                file_pos,
+                                file_pos_start,
                                 &mfe_structure,
                                 min_en))
-        printf("%s\n%s (%6.2f)\n", orig_sequence, mfe_structure, min_en);
+        msg = vrna_strdup_printf(" (%6.2f)", min_en);
     } else {
       if (!tofile && istty)
         msg = vrna_strdup_printf(" minimum free energy = %6.2f kcal/mol", min_en);
@@ -389,7 +390,7 @@ main(int  argc,
         msg = vrna_strdup_printf(" (%6.2f)", min_en);
     }
 
-    print_structure(output, NULL, msg);
+    print_structure(output, mfe_structure, msg);
     free(msg);
 
     if (output)
