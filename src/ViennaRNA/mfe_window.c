@@ -1572,18 +1572,6 @@ struct block {
 };
 
 
-struct local_struct {
-  short               *pt;
-  unsigned int        start;
-  unsigned int        shift;
-  unsigned int        length;
-  int                 energy;
-  unsigned char       valid;
-  struct local_struct *next_entry;
-};
-
-
-
 PRIVATE int
 update_block(unsigned int  i,
              unsigned int  max_n,
@@ -1606,10 +1594,6 @@ update_block(unsigned int  i,
 
   /* re-evaluate energy for removal of base pair (i, k) */
   i_local = (int)(i - (b->start - b->shift) + 1);
-
-#if DEBUG
-  printf("block pre truncation: [%d:%d] (shift %d), e = %d\n", b->start, b->end, b->shift, b->energy);
-#endif
 
   if (b->pt[i_local]) {
     j_local = (int)(b->pt[i_local]);
@@ -1703,7 +1687,6 @@ update_block(unsigned int  i,
         /* compute energy of new block */
         new_block->energy = vrna_eval_structure_pt(new_block->fc, new_block->pt);
 
-#if 1
         /* search for position where we can link the new block to */
         struct block *ptr, *ptr_prev;
         ptr_prev = ptr = b;
@@ -1716,16 +1699,7 @@ update_block(unsigned int  i,
         ptr_prev->next_entry = new_block;
         new_block->next_entry = ptr;
       }
-#else
-        /* link new block into list */
-        new_block->next_entry = tmp;
 
-        tmp = new_block;
-      }
-
-      /* link all newly created blocks to our main list */
-      b->next_entry = tmp;
-#endif
       /* Finally, we need to update the original block */
 
       /* update global end position */
@@ -1778,10 +1752,6 @@ update_block(unsigned int  i,
   /* increment start position and shift */
   b->start++;
   b->shift++;
-
-#if DEBUG
-  printf("block post truncation: [%d:%d] (shift %d), e = %d\n", b->start, b->end, b->shift, b->energy);
-#endif
 
   return 1;
 }
@@ -1884,9 +1854,6 @@ extract_Lfold_entry(FILE            *f,
       seq_local = (char *)vrna_alloc(sizeof(char) * (j - i + 2));
       memcpy(seq_local, sequence + i - 1, (sizeof(char) * (j - i + 1)));
 
-#if DEBUG
-      printf("%s\n%s (%6.2f), start: %lu\n", seq_local, structure, en, i);
-#endif
       storage->fc           = vrna_fold_compound(seq_local, md, VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
       storage->pt           = vrna_ptable(structure);
       storage->start        = i;
@@ -1985,7 +1952,6 @@ append_blocks(struct block        **last_block,
   };
 }
 
-//#define READALL
 
 PUBLIC int
 vrna_backtrack_window(vrna_fold_compound_t  *fc,
@@ -1995,7 +1961,9 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
                       double                mfe)
 {
   unsigned int  n, look_ahead;
+  int           e, maxdist, underflows, *f3;
   int           ret, min_en;
+  double        mfe_corr;
   FILE          *f;
 
   ret         = 0;
@@ -2004,22 +1972,24 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
   if ((fc) &&
       (Lfold_filename) &&
       (structure)) {
-    int       maxdist;
     vrna_md_t *md;
 
     n       = fc->length;
     md      = &(fc->params->model_details);
     maxdist = md->window_size;
-    min_en  = vrna_convert_kcal_to_dcal(mfe);
     look_ahead  = 3 * maxdist;
+    underflows  = 0;
+    mfe_corr    = mfe;
 
-    int *f3 = fc->matrices->f3_local;
-    int e   = min_en;
+    f3 = fc->matrices->f3_local;
 
     /* check whether we need to adjust energies due to integer underflows in the forward recursion */
-    if (min_en != f3[1]) {
-      printf("min_en != f3[1]! %d vs. %d\n", min_en, f3[1]);
-    }
+    while (vrna_convert_kcal_to_dcal(mfe_corr) < f3[1]) {
+      mfe_corr -= (double)(UNDERFLOW_CORRECTION) / 100.;
+      underflows++;
+    }        
+
+    e = min_en  = vrna_convert_kcal_to_dcal(mfe_corr);
 
     /* default to start at beginning of file */
     if (file_pos < 0)
@@ -2082,25 +2052,12 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
             /*  go through remaining file in reverse order
                 to extract the relevant data
             */
-#ifndef READALL
             append_blocks(&block_list_last,
                           f,
                           lines,
                           &lines_left,
                           fc,
                           ptr->start + look_ahead);
-#else
-            do {
-              lines_left--;
-
-              ptr->next_entry = extract_Lfold_entry(f, lines[lines_left], fc->sequence, md);
-
-              if (ptr->next_entry != NULL) {
-                block_num++;
-                block_list_last = ptr = ptr->next_entry;
-              }
-            } while (lines_left > 0);
-#endif
 
             ptr = block_list;
 
@@ -2109,14 +2066,12 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
             for (unsigned long int ii = ptr->start; ii <= i; ii++) {
               /* truncate remaining blocks */
               truncate_blocks(ii, n, &block_list);
-#ifndef READALL
               append_blocks(&block_list_last,
                           f,
                           lines,
                           &lines_left,
                           fc,
                           ii + look_ahead);
-#endif
             }
 
             i++;
@@ -2127,25 +2082,40 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
 
               /* i pairs with some k, find block representing the substructure enclodes by (i,k) */
               if (e != f3[i + 1]) {
-                /* go through list of blocks that start at i to check which one we can insert */
-                char found = 0;
-                for (ptr = block_list; ptr; ptr = ptr->next_entry) {
-                  if (ptr->start > i)
-                    break;
+                if ((underflows) &&
+                    (e == (f3[i + 1] - UNDERFLOW_CORRECTION))) {
+                  underflows--;
+                  e += UNDERFLOW_CORRECTION;
+                } else {
+                  /* go through list of blocks that start at i to check which one we can insert */
+                  char found = 0;
+                  for (ptr = block_list; ptr; ptr = ptr->next_entry) {
+                    if (ptr->start > i)
+                      break;
 
-                  if ((ptr->start == i) && (ptr->end > i) &&
-                      (e == (ptr->energy + f3[ptr->end + 1]))) {
-                    /* found the block, let's insert it */
+                    if ((ptr->start == i) &&
+                        (ptr->end > i)) {
+                      if (e == (ptr->energy + f3[ptr->end + 1])) {
+                        /* found the block, let's insert it */
+                        found = 1;
 
-                    found = 1;
+                        i = insert_block(*structure, ptr, &e);
 
-                    i = insert_block(*structure, ptr, &e);
+                        break;
+                      } else if ((underflows) &&
+                                 (e == (ptr->energy + f3[ptr->end + 1] - UNDERFLOW_CORRECTION))) {
+                        underflows--;
+                        found = 1;
+                        e += UNDERFLOW_CORRECTION;
+                        i = insert_block(*structure, ptr, &e);
 
-                    break;
+                        break;
+                      }
+                    }
                   }
+                  if (!found)
+                    printf("didn't find block for position %d\n", i);
                 }
-                if (!found)
-                  printf("didn't find block for position %d\n", i);
               }
 
               /*
@@ -2154,14 +2124,12 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
               */
               for (unsigned long int ii = prev_i; ii <= i; ii++) {
                 truncate_blocks(ii, n, &block_list);
-#ifndef READALL
                 append_blocks(&block_list_last,
                               f,
                               lines,
                               &lines_left,
                               fc,
                               ii + look_ahead);
-#endif
               }
             }
 
