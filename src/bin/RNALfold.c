@@ -376,6 +376,9 @@ main(int  argc,
     char *msg = NULL;
     char *mfe_structure = NULL;
 
+    if (output)
+      (void)fflush(output);
+
     if (backtrack) {
       if (vrna_backtrack_window(vc,
                                 (const char *)v_file_name,
