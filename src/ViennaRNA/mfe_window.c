@@ -49,7 +49,7 @@
 
 #define MAXSECTORS                  500   /* dimension for a backtrack array */
 #define INT_CLOSE_TO_UNDERFLOW(i)   ((i) <= (INT_MIN / 16))
-#define UNDERFLOW_CORRECTION        (INT_MIN / 32)
+#define UNDERFLOW_CORRECTION        (((INT_MIN / 32) / 100) * 100)
 
 #define NONE -10000 /* score for forbidden pairs */
 
@@ -1962,7 +1962,7 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
 {
   unsigned int  n, look_ahead;
   int           e, maxdist, underflows, *f3;
-  int           ret, min_en;
+  int           ret;
   double        mfe_corr;
   FILE          *f;
 
@@ -1989,7 +1989,14 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
       underflows++;
     }        
 
-    e = min_en  = vrna_convert_kcal_to_dcal(mfe_corr);
+    e = vrna_convert_kcal_to_dcal(mfe_corr);
+
+#if 0
+    if (underflows)
+      printf("detected %d underflows %d vs. %d vs %6.2f\n", underflows, e, f3[1], mfe);
+#endif
+
+    e = f3[1];
 
     /* default to start at beginning of file */
     if (file_pos < 0)
