@@ -1120,9 +1120,14 @@ scan_interval(vrna_fold_compound_t  *vc,
           fi += sc->f(i, j, i, j - 1, VRNA_DECOMP_ML_ML, sc->data);
       }
 
-      if ((fi + best_energy <= threshold) && (sn[j - 1] == sn[j]))
+      if ((fi + best_energy <= threshold) && (sn[j - 1] == sn[j])) {
         /* no basepair, nibbling of 3'-end */
-        fork_state(i, j - 1, state, P->MLbase, array_flag, env);
+        if ((sc) &&
+            (sc->energy_up))
+          fork_state(i, j - 1, state, P->MLbase + sc->energy_up[j][1], array_flag, env);
+        else
+          fork_state(i, j - 1, state, P->MLbase, array_flag, env);
+      }
     }
 
     hc_decompose = hard_constraints[length * i + j];
