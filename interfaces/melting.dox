@@ -1,0 +1,26 @@
+/**
+
+@fn vrna_heat_capacity_t *vrna_heat_capacity(vrna_fold_compound_t *fc, float T_min, float T_max, float T_increment, unsigned int mpoints)
+@scripting
+@parblock
+This function is attached as overloaded method @b heat_capacity() to objects of type @em fold_compound.
+If the optional function arguments @p T_min, @p T_max, @p T_increment, and @p mpoints are omitted,
+they default to 0.0, 100.0, 1.0 and 2, respectively.
+@endparblock
+
+@fn int vrna_heat_capacity_cb(vrna_fold_compound_t *fc, float T_min, float T_max, float T_increment, unsigned int mpoints, vrna_heat_capacity_callback *cb, void *data)
+@scripting
+@parblock
+This function is attached as method @b heat_capacity_cb() to objects of type @em fold_compound
+@endparblock
+
+@fn vrna_heat_capacity_t *
+vrna_heat_capacity_simple(const char *sequence, float T_min, float T_max, float T_increment, unsigned int mpoints)
+@scripting
+@parblock
+This function is available as overloaded function @b heat_capacity().
+If the optional function arguments @p T_min, @p T_max, @p T_increment, and @p mpoints are omitted,
+they default to 0.0, 100.0, 1.0 and 2, respectively.
+@endparblock
+
+*/

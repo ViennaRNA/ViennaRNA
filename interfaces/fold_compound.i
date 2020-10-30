@@ -10,6 +10,7 @@
 %include callbacks-boltzmann-sampling.i
 %include callbacks-mfe-window.i
 %include callbacks-pf-window.i
+%include callbacks-melting.i
 
 /* start constructing a sane interface to vrna_fold_compound_t */
 
