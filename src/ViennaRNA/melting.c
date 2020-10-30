@@ -69,8 +69,9 @@ vrna_heat_capacity(vrna_fold_compound_t *fc,
 
     d.num_entries       = 0;
     d.allocated_memory  = 127;
-    d.data              = (struct vrna_heat_capacity_s *)vrna_alloc(sizeof(struct vrna_heat_capacity_s) *
-                                                                      d.allocated_memory);
+    d.data              =
+      (struct vrna_heat_capacity_s *)vrna_alloc(sizeof(struct vrna_heat_capacity_s) *
+                                                d.allocated_memory);
 
     (void)vrna_heat_capacity_cb(fc,
                                 T_min,
@@ -82,9 +83,9 @@ vrna_heat_capacity(vrna_fold_compound_t *fc,
 
     results = (struct vrna_heat_capacity_s *)vrna_realloc(d.data,
                                                           sizeof(struct vrna_heat_capacity_s) *
-                                                            (d.num_entries + 1));
-    results[d.num_entries].temperature    = -K0;
-    results[d.num_entries].heat_capacity  = -K0;
+                                                          (d.num_entries + 1));
+    results[d.num_entries].temperature    = -K0 - 1.;
+    results[d.num_entries].heat_capacity  = -K0 - 1.;
   }
 
   return results;
@@ -109,11 +110,25 @@ vrna_heat_capacity_cb(vrna_fold_compound_t        *fc,
   ret = 0;
 
   if ((fc) && (cb)) {
+    /* sanity checks first */
     if (m > 100)
       m = 100;
     else if (m == 0)
       m = 1;
 
+    if (T_min > T_max) {
+      hc    = T_min;
+      T_min = T_max;
+      T_max = hc;
+    }
+
+    if (T_min <= -K0)
+      T_min = -K0;
+
+    if (h > (T_max - T_min))
+      h = T_max - T_min;
+
+    /* now for the actual algorithm */
     n       = fc->length;
     md_init = md = fc->params->model_details;
 
@@ -125,9 +140,7 @@ vrna_heat_capacity_cb(vrna_fold_compound_t        *fc,
     md.temperature = T_min - m * h;
     vrna_params_reset(fc, &md);
 
-    /* initialize_fold(length); <- obsolete */
-    min_en  = (double)vrna_mfe(fc, NULL);
-    min_en  *= md.sfact;
+    min_en = (double)vrna_mfe(fc, NULL);
 
     vrna_exp_params_rescale(fc, &min_en);
 
@@ -164,7 +177,7 @@ vrna_heat_capacity_cb(vrna_fold_compound_t        *fc,
       vrna_exp_params_rescale(fc, &min_en);
     }
 
-    /* restore original state of (the model) the fold_compound */
+    /* restore original state of (the model of) the fold_compound */
     vrna_params_reset(fc, &md_init);
 
     ret = 1;
@@ -205,8 +218,9 @@ store_results_cb(float  t,
   if (d->num_entries == d->allocated_memory) {
     d->allocated_memory *= 1.4;
     d->data             = (struct vrna_heat_capacity_s *)vrna_realloc(d->data,
-                                                                      sizeof(struct vrna_heat_capacity_s) *
-                                                                        d->allocated_memory);
+                                                                      sizeof(struct
+                                                                             vrna_heat_capacity_s) *
+                                                                      d->allocated_memory);
   }
 
   d->data[d->num_entries].temperature   = t;

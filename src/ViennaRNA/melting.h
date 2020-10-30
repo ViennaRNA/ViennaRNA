@@ -79,8 +79,9 @@ struct vrna_heat_capacity_s {
  *  @param  T_min         Lowest temperature in &deg;C
  *  @param  T_max         Highest temperature in &deg;C
  *  @param  T_increment   Stepsize for temperature incrementation in &deg;C (a reasonable choice might be 1&deg;C)
- *  @param  mpoints       The number of interpolation points to calculate 2nd derivative (a reasonable choice might be 2)
- *  @return               A list of pairs of temperatures and corresponding heat capacity. The last entry is indicated by a @b temperature field set to -#K0
+ *  @param  mpoints       The number of interpolation points to calculate 2nd derivative (a reasonable choice might be 2, min: 1, max: 100)
+ *  @return               A list of pairs of temperatures and corresponding heat capacity or @em NULL upon any failure.
+ *                        The last entry of the list is indicated by a @b temperature field set to a value smaller than @p T_min
  */
 vrna_heat_capacity_t *
 vrna_heat_capacity(vrna_fold_compound_t *fc,
@@ -114,7 +115,7 @@ vrna_heat_capacity(vrna_fold_compound_t *fc,
  *  @param  T_min         Lowest temperature in &deg;C
  *  @param  T_max         Highest temperature in &deg;C
  *  @param  T_increment   Stepsize for temperature incrementation in &deg;C (a reasonable choice might be 1&deg;C)
- *  @param  mpoints       The number of interpolation points to calculate 2nd derivative (a reasonable choice might be 2)
+ *  @param  mpoints       The number of interpolation points to calculate 2nd derivative (a reasonable choice might be 2, min: 1, max: 100)
  *  @param  cb            The user-defined callback function that receives the individual results
  *  @param  data          An arbitrary data structure that will be passed to the callback in conjunction with the results
  *  @return               Returns 0 upon failure, and non-zero otherwise
@@ -151,8 +152,9 @@ vrna_heat_capacity_cb(vrna_fold_compound_t        *fc,
  *  @param  T_min         Lowest temperature in &deg;C
  *  @param  T_max         Highest temperature in &deg;C
  *  @param  T_increment   Stepsize for temperature incrementation in &deg;C (a reasonable choice might be 1&deg;C)
- *  @param  mpoints       The number of interpolation points to calculate 2nd derivative (a reasonable choice might be 2)
- *  @return               A list of pairs of temperatures and corresponding heat capacity. The last entry is indicated by a @b temperature field set to -#K0
+ *  @param  mpoints       The number of interpolation points to calculate 2nd derivative (a reasonable choice might be 2, min: 1, max: 100)
+ *  @return               A list of pairs of temperatures and corresponding heat capacity or @em NULL upon any failure.
+ *                        The last entry of the list is indicated by a @b temperature field set to a value smaller than @p T_min
  */
 vrna_heat_capacity_t *
 vrna_heat_capacity_simple(const char    *sequence,
