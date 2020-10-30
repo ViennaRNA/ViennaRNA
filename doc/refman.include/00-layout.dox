@@ -174,6 +174,9 @@ formats, and various output file formats produced by our library.
 @defgroup   kl_neighborhood_stochbt   Stochastic Backtracking of Structures from Distance Based Partitioning
 @ingroup    kl_neighborhood subopt_stochbt
 
+@defgroup   thermodynamics            Predicting various thermodynamic properties
+@ingroup    part_func_global
+
 @defgroup   dos                       Compute the Density of States
 @ingroup    class_fold
 

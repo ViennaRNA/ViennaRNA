@@ -8,7 +8,7 @@
 
 /**
  *  @file     equilibrium_probs.h
- *  @ingroup  pf_fold
+ *  @ingroup  thermodynamics
  *  @brief    Equilibrium Probability implementations
  *
  *  This file includes various implementations for equilibrium
@@ -23,16 +23,46 @@
  #################################################
  */
 
+
+/**
+ *  @addtogroup  thermodynamics
+ *  @{
+ *  @brief      Compute various thermodynamic properties using the partition function
+ *
+ *  Many thermodynamic properties can be derived from the partition function
+ *  @f[ Q = \sum_{s \in \omega} e^{\frac{-E(s)}{kT}}. @f]
+ *  In particular, for nucleic acids in equilibrium the probabilty @f$ p(F) @f$ of
+ *  a particular structural feature @f$ F @f$ follows Boltzmanns law, i.e.
+ *  @f[ p(F) \propto \sum_{s \mid F \in s} e^{\frac{-E(s)}{kT}}. @f]
+ *  The actual probabilities can then be obtained from the ratio of those
+ *  structures containing @f$ F @f$ and @em all structures, i.e.
+ *  @f[ p(F) = \frac{1}{Q} \sum_{s \mid F \in s} e^{\frac{-E(s)}{kT}}. @f]
+ *
+ *  Consequently, a particular secondary structure @f$ s @f$ has equilibrium
+ *  probability
+ *  @f[ p(s) = \frac{1}{Q} e^{\frac{-E(s)}{kT}} @f]
+ *  which can be easily computed once @f$ Q @f$ and @f$ E(s) @f$ are known.
+ *
+ *  On the other hand, efficient dynamic programming algorithms exist to
+ *  compute the equilibrium probabilities
+ *  @f[ p_{ij} = \frac{1}{Q} \sum_{s \mid (i,j) \in s} e^{\frac{-E(s)}{kT}} @f]
+ *  of base pairs @f$ (i,j) @f$ without the need for exhaustive enumeration
+ *  of @f$ s @f$.
+ *
+ *  This interface provides the functions for all thermodynamic property
+ *  computations implemented in @em RNAlib.
+ */
+
+
+/**
+ *  @name Base pair probabilities and derived computations
+ *  @{
+ */
+
 int
 vrna_pairing_probs(vrna_fold_compound_t *vc,
                    char                 *structure);
 
-
-/**
- *  @ingroup part_func_global
- *  @name Base pair related probability computations
- *  @{
- */
 
 /**
  *  @brief Get the mean base pair distance in the thermodynamic ensemble from a probability matrix
@@ -44,8 +74,6 @@ vrna_pairing_probs(vrna_fold_compound_t *vc,
  *  @f[
  *  <d> = \sum_{ij} p_{ij}(1-p_{ij})
  *  @f]
- *
- *  @ingroup  part_func_global
  *
  *  @param length The length of the sequence
  *  @param pr     The matrix containing the base pair probabilities
@@ -66,8 +94,6 @@ vrna_mean_bp_distance_pr(int        length,
  *  @f[
  *  <d> = \sum_{ij} p_{ij}(1-p_{ij})
  *  @f]
- *
- *  @ingroup  part_func_global
  *
  *  @param vc     The fold compound data structure
  *  @return       The mean pair distance of the structure ensemble
@@ -91,8 +117,6 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc);
  *  @pre  The #vrna_fold_compound_t input parameter @p fc must contain a valid base pair
  *        probability matrix. This means that partition function and base pair probabilities
  *        must have been computed using @p fc before execution of this function!
- *
- *  @ingroup  part_func_global
  *
  *  @see vrna_pf(), vrna_pairing_probs()
  *
@@ -137,8 +161,6 @@ vrna_positional_entropy(vrna_fold_compound_t *fc);
  *  For each possible base pair @f$(i,j)@f$, compute the probability of a stack
  *  @f$(i,j)@f$, @f$(i+1, j-1)@f$.
  *
- *  @ingroup  part_func_global
- *
  *  @param  vc      The fold compound data structure with precomputed base pair probabilities
  *  @param  cutoff  A cutoff value that limits the output to stacks with @f$ p > \textrm{cutoff} @f$.
  *  @return         A list of stacks with enclosing base pair @f$(i,j)@f$ and probabiltiy @f$ p @f$
@@ -152,6 +174,12 @@ vrna_stack_prob(vrna_fold_compound_t  *vc,
 /**@}*/
 
 /**
+ *  @addtogroup thermodynamics
+ *  @name Multimer probabilities computations
+ *  @{
+ */
+
+/**
  *  @brief Compute Boltzmann probabilities of dimerization without homodimers
  *
  *  Given the pair probabilities and free energies (in the null model) for a
@@ -159,8 +187,6 @@ vrna_stack_prob(vrna_fold_compound_t  *vc,
  *  probabilities given that a dimer AB actually forms.
  *  Null model pair probabilities are given as a list as produced by
  *  vrna_plist_from_probs(), the dimer probabilities 'prAB' are modified in place.
- *
- *  @ingroup  part_func_global
  *
  *  @param FAB        free energy of dimer AB
  *  @param FA         free energy of monomer A
@@ -182,6 +208,14 @@ vrna_pf_dimer_probs(double                  FAB,
                     const vrna_exp_param_t  *exp_params);
 
 
+/* End multimer probability related functions */
+/**@}*/
+
+/**
+ *  @name Structure probability computations
+ *  @{
+ */
+
 /**
  *  @brief Compute the equilibrium probability of a particular secondary structure
  *
@@ -200,7 +234,6 @@ vrna_pf_dimer_probs(double                  FAB,
  *        fill the dynamic programming matrices with the corresponding partition
  *        function.
  *
- *  @ingroup  part_func_global
  *  @param  fc          The fold compound data structure with precomputed partition function
  *  @param  structure   The secondary structure to compute the probability for in dot-bracket notation
  *  @return             The probability of the input structure (range @f$[0:1]@f$)
@@ -214,5 +247,13 @@ double
 vrna_pr_energy(vrna_fold_compound_t *vc,
                double               e);
 
+
+/* End structure probability related functions */
+/**@}*/
+
+/*
+ * End thermodynamics melting
+ **@}
+ */
 
 #endif

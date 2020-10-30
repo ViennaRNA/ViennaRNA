@@ -8,16 +8,16 @@
 /**
  *
  *  @file melting.h
- *  @ingroup  part_func_global
+ *  @ingroup  thermodynamics
  *
- *  @brief Compute melting curves for an RNA
+ *  @brief Compute heat capacity for an RNA
  *
- *  This file includes the interface to all functions related to predicting the melting curves of an RNA.
+ *  This file includes the interface to all functions related to predicting the heat capacity for an RNA.
  */
 
 
 /**
- *  @addtogroup  part_func_global
+ *  @addtogroup  thermodynamics
  *  @{
  */
 
@@ -58,6 +58,11 @@ struct vrna_heat_capacity_s {
   float heat_capacity;  /**< @brief   The specific heat at this temperature in Kcal/(Mol * K) */
 };
 
+
+/**
+ *  @name Basic heat capacity function interface
+ *  @{
+ */
 
 /**
  *  @brief  Compute the specific heat for an RNA
@@ -130,6 +135,14 @@ vrna_heat_capacity_cb(vrna_fold_compound_t        *fc,
                       void                        *data);
 
 
+/* End basic interface */
+/**@}*/
+
+/**
+ *  @name Simplified heat capacity computation
+ *  @{
+ */
+
 /**
  *  @brief  Compute the specific heat for an RNA (simplified variant)
  *
@@ -163,9 +176,11 @@ vrna_heat_capacity_simple(const char    *sequence,
                           float         T_increment,
                           unsigned int  mpoints);
 
+/* End basic interface */
+/**@}*/
 
 /*
- * End group part_func_global
+ * End thermodynamics melting
  **@}
  */
 
