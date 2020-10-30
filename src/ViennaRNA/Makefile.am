@@ -173,6 +173,7 @@ pkginclude_HEADERS =  \
     combinatorics.h \
     neighbor.h \
     walk.h \
+    melting.h \
     ${SVM_UTILS_H_OLD} \
     ${SVM_H} \
     ${JSON_H}
@@ -303,7 +304,8 @@ libRNA_conv_la_SOURCES = \
     alphabet.c \
     sequence.c \
     unstructured_domains.c \
-    grammar.c
+    grammar.c \
+    melting.c
 
 libRNA_eval_la_SOURCES = \
     eval.c \

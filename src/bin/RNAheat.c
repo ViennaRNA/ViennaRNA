@@ -20,14 +20,12 @@
 #include <unistd.h>
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
-#include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/fold.h"
-#include "ViennaRNA/part_func.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
+#include "ViennaRNA/melting.h"
 #include "ViennaRNA/color_output.inc"
 
 #include "RNAheat_cmdl.h"
@@ -73,12 +71,6 @@ struct output_stream {
 };
 
 
-PRIVATE float
-ddiff(float f[],
-      float h,
-      int   m);
-
-
 static int
 process_input(FILE            *input_stream,
               const char      *input_filename,
@@ -87,6 +79,12 @@ process_input(FILE            *input_stream,
 
 static void
 process_record(struct record_data *record);
+
+
+static void
+print_to_stream_callback(float  temperature,
+                         float  hc,
+                         void   *d);
 
 
 void
@@ -461,54 +459,10 @@ process_record(struct record_data *record)
    */
   vrna_cstr_print_fasta_header(o_stream->data, record->id);
 
-  md = fc->params->model_details;
-
-  /* required for vrna_exp_param_rescale() in subsequent calls */
-  md.sfact = 1.;
-
-  md.temperature = T_min - m * h;
-  vrna_params_reset(fc, &md);
-
-  /* initialize_fold(length); <- obsolete */
-  min_en  = (double)vrna_mfe(fc, NULL);
-  min_en  *= md.sfact;
-
-  vrna_exp_params_rescale(fc, &min_en);
-
-  for (i = 0; i < 2 * m + 1; i++) {
-    F[i] = vrna_pf(fc, NULL);
-    /* increase temperature */
-    md.temperature += h;
-    /* reset all energy parameters according to temperature changes */
-    vrna_params_reset(fc, &md);
-
-    min_en = F[i] + h * 0.00727 * n;
-
-    vrna_exp_params_rescale(fc, &min_en);
-  }
-
-  while (md.temperature <= (T_max + m * h + h)) {
-    hc = -ddiff(F, h, m) * (md.temperature + K0 - m * h - h);
-
-    vrna_cstr_printf_tbody(o_stream->data,
-                           "%g\t%g",
-                           (md.temperature - m * h - h),
-                           hc);
-
-    for (i = 0; i < 2 * m; i++)
-      F[i] = F[i + 1];
-
-    F[2 * m] = vrna_pf(fc, NULL);
-
-    /*       printf("%g\n", F[2*m]);*/
-    md.temperature += h;
-
-    vrna_params_reset(fc, &md);
-
-    min_en = F[i] + h * 0.00727 * n;
-
-    vrna_exp_params_rescale(fc, &min_en);
-  }
+  (void)vrna_heat_capacity_cb(fc,
+                              T_min, T_max, h, m,
+                              &print_to_stream_callback,
+                              (void *)o_stream->data);
 
   if (opt->output_queue)
     vrna_ostream_provide(opt->output_queue, record->number, (void *)o_stream);
@@ -526,23 +480,13 @@ process_record(struct record_data *record)
 }
 
 
-/* ------------------------------------------------------------------------- */
-
-PRIVATE float
-ddiff(float f[],
-      float h,
-      int   m)
+PRIVATE void
+print_to_stream_callback(float  temperature,
+                         float  hc,
+                         void   *d)
 {
-  int   i;
-  float fp, A, B;
-
-  A = (float)(m * (m + 1) * (2 * m + 1) / 3);                                     /* 2*sum(x^2) */
-  B = (float)(m * (m + 1) * (2 * m + 1)) * (float)(3 * m * m + 3 * m - 1) / 15.;  /* 2*sum(x^4) */
-
-  fp = 0.;
-  for (i = 0; i < 2 * m + 1; i++)
-    fp += f[i] * (A - (float)((2 * m + 1) * (i - m) * (i - m)));
-
-  fp /= ((A * A - B * ((float)(2 * m + 1))) * h * h / 2.);
-  return (float)fp;
+  vrna_cstr_printf_tbody((vrna_cstr_t)d,
+                         "%g\t%g",
+                         temperature,
+                         hc);
 }
