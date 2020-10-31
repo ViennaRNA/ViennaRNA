@@ -20,7 +20,7 @@ SOURCES = \
     grammar.i \
     inverse.i \
     loops.i \
-    melting.i \
+    heat_capacity.i \
     mfe.i \
     mfe_window.i \
     model_details.i \
@@ -52,7 +52,7 @@ DOXYGEN_DOCUMENTATION = \
     paths.dox \
     fold_compound.dox \
     grammar.dox \
-    melting.dox \
+    heat_capacity.dox \
     mfe.dox \
     model_details.dox \
     neighbor.dox \
@@ -80,7 +80,7 @@ EXTRA_DIST = \
     grammar.i \
     inverse.i \
     loops.i \
-    melting.i \
+    heat_capacity.i \
     mfe.i \
     mfe_window.i \
     model_details.i \

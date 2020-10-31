@@ -6,7 +6,7 @@
 #include  "ViennaRNA/params/constants.h"
 #include  "ViennaRNA/mfe.h"
 #include  "ViennaRNA/part_func.h"
-#include  "ViennaRNA/melting.h"
+#include  "ViennaRNA/heat_capacity.h"
 
 #define MAXWIDTH  201
 

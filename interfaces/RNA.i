@@ -72,7 +72,7 @@ extern "C" {
 #include  <ViennaRNA/LPfold.h>
 #include  <ViennaRNA/centroid.h>
 #include  <ViennaRNA/MEA.h>
-#include  <ViennaRNA/melting.h>
+#include  <ViennaRNA/heat_capacity.h>
 
 #include  <ViennaRNA/inverse.h>
 #include  <ViennaRNA/RNAstruct.h>
@@ -226,7 +226,7 @@ namespace std {
 %include neighbor.i
 %include walk.i
 %include paths.i
-%include melting.i
+%include heat_capacity.i
 %include data_structures.i
 %include fold_compound.i
 

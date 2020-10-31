@@ -25,7 +25,7 @@
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
-#include "ViennaRNA/melting.h"
+#include "ViennaRNA/heat_capacity.h"
 #include "ViennaRNA/color_output.inc"
 
 #include "RNAheat_cmdl.h"

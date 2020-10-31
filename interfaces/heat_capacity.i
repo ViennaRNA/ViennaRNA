@@ -126,4 +126,4 @@ my_heat_capacity(std::string   sequence,
                  float         T_increment  = 1.,
                  unsigned int  mpoints      = 2U);
 
-%include  <ViennaRNA/melting.h>
+%include  <ViennaRNA/heat_capacity.h>

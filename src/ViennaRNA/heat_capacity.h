@@ -7,7 +7,7 @@
 
 /**
  *
- *  @file melting.h
+ *  @file heat_capacity.h
  *  @ingroup  thermodynamics
  *
  *  @brief Compute heat capacity for an RNA
