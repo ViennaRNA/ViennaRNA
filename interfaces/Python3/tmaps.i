@@ -19,6 +19,20 @@
   }
 }
 
+%typemap(varout) int [ANY][ANY] {
+  size_t i, j;
+  //$1, $1_dim0, $1_dim1
+  $result = PyList_New($1_dim0);
+  for (i = 0; i < $1_dim0; i++) {
+    PyObject *l = PyList_New($1_dim1);
+    for (j = 0; j < $1_dim1; j++) {
+      PyObject *o = PyLong_FromLong((long) $1[i][j]);
+      PyList_SetItem(l, j, o);
+    }
+    PyList_SetItem($result,i,l);
+  }
+}
+
 // This tells SWIG to treat char ** as a special case
 %typemap(in) char ** {
   /* Check if is a list */

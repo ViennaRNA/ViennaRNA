@@ -324,4 +324,10 @@ my_params_load_from_string(std::string parameters,
 /* BEGIN interface for energy constants       */
 /**********************************************/
 
+%immutable;
+
 %include  <ViennaRNA/params/constants.h>
+
+%include  <ViennaRNA/params/default.h>
+
+%mutable;

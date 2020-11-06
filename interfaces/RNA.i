@@ -34,6 +34,7 @@ extern "C" {
 #include  <ViennaRNA/params/constants.h>
 #include  <ViennaRNA/params/basic.h>
 #include  <ViennaRNA/params/io.h>
+#include  <ViennaRNA/params/default.h>
 
 #include  <ViennaRNA/constraints/basic.h>
 #include  <ViennaRNA/constraints/hard.h>
