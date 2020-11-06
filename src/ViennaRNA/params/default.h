@@ -15,7 +15,6 @@ extern double lxc37;   /* parameter for logarithmic loop
 
 extern int stack37[NBPAIRS+1][NBPAIRS+1];
 extern int stackdH[NBPAIRS+1][NBPAIRS+1]; /* stack enthalpies */
-extern int entropies[NBPAIRS+1][NBPAIRS+1];  /* not used anymore */
 
 extern int hairpin37[31];
 extern int hairpindH[31];
@@ -23,8 +22,6 @@ extern int bulge37[31];
 extern int bulgedH[31];
 extern int internal_loop37[31];
 extern int internal_loopdH[31];
-extern int internal2_energy;
-extern int old_mismatch_37[NBPAIRS+1][5][5];
 extern int mismatchI37[NBPAIRS+1][5][5];  /* interior loop mismatches */
 extern int mismatchIdH[NBPAIRS+1][5][5];  /* interior loop mismatches */
 extern int mismatch1nI37[NBPAIRS+1][5][5];  /* interior loop mismatches */
