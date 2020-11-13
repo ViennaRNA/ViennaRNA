@@ -1043,6 +1043,10 @@ rd_Tetraloop37(char   **content,
     strcat(Tetraloops, " ");
     i++;
   } while ((r == 3) && (i < 40));
+
+  /* decrease line number to continue parsing at line that failed before */
+  (*line_no)--;
+
   return;
 }
 
@@ -1069,6 +1073,10 @@ rd_Hexaloop37(char    **content,
     strcat(Hexaloops, " ");
     i++;
   } while ((r == 3) && (i < 40));
+
+  /* decrease line number to continue parsing at line that failed before */
+  (*line_no)--;
+
   return;
 }
 
@@ -1095,6 +1103,10 @@ rd_Triloop37(char   **content,
     strcat(Triloops, " ");
     i++;
   } while ((r == 3) && (i < 40));
+
+  /* decrease line number to continue parsing at line that failed before */
+  (*line_no)--;
+
   return;
 }
 
