@@ -300,9 +300,16 @@ vrna_params_load_from_string(const char   *string,
     /* convert string into array of lines */
     tmp_string = strdup(string);
 
-    token = strtok_r(tmp_string, "\n", &rest);
+    token = tmp_string;
 
-    while (token != NULL) {
+    /* tokenize the input string by separating lines at '\n' */
+    while (1) {
+      rest = strchr(token, '\n');
+      if (rest != NULL)
+        *rest = '\0';
+      else
+        break;
+
       if (lines == lines_mem) {
         lines_mem     += 32768;
         params_array  = (char **)vrna_realloc(params_array, sizeof(char *) * lines_mem);
@@ -310,7 +317,7 @@ vrna_params_load_from_string(const char   *string,
 
       params_array[lines++] = strdup(token);
 
-      token = strtok_r(NULL, "\n", &rest);
+      token = rest + 1;
     }
 
     /* reallocate to actual requirements */
