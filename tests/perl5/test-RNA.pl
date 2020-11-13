@@ -129,7 +129,7 @@ RNA::parse_structure($struc1);
 is($RNA::loops,2);
 is($RNA::pairs,6);
 is($RNA::unpaired,4);
-is(RNA::intP_getitem($RNA::loop_degree,1),2);
+is($RNA::loop_degree->[1],2);
 
 
 RNA::PS_rna_plot($seq1, $struc1, "test_ss.ps");
