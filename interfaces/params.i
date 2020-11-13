@@ -261,8 +261,8 @@ typedef struct {
 %rename(params_load_RNA_Andronsecu2007)         vrna_params_load_RNA_Andronsecu2007;
 %rename(params_load_RNA_Langdon2018)            vrna_params_load_RNA_Langdon2018;
 %rename(params_load_RNA_misc_special_hairpins)  vrna_params_load_RNA_misc_special_hairpins;
-%rename(params_load_DNA_Mathews2004)            vrna_params_load_RNA_Mathews2004;
-%rename(params_load_DNA_Mathews1999)            vrna_params_load_RNA_Mathews1999;
+%rename(params_load_DNA_Mathews2004)            vrna_params_load_DNA_Mathews2004;
+%rename(params_load_DNA_Mathews1999)            vrna_params_load_DNA_Mathews1999;
 
 #ifdef SWIGPYTHON
 %feature("autodoc")my_params_load;
