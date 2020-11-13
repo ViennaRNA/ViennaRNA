@@ -5,7 +5,7 @@
 #include <sstream>
 %}
 
-/* do not create default constructor and hide data fields of vrna_param_t from SWIG */
+/* do not create default constructor */
 %ignore paramT;
 %ignore pf_paramT;
 
@@ -17,13 +17,26 @@
 
 %nodefaultctor vrna_param_t;
 typedef struct {
+  const int       id;
+  const int       stack[NBPAIRS + 1][NBPAIRS + 1];
   const int       hairpin[31];
-  const int       bulge[MAXLOOP+1];
-  const int       internal_loop[MAXLOOP+1];
+  const int       bulge[MAXLOOP + 1];
+  const int       internal_loop[MAXLOOP + 1];
+  const int       mismatchExt[NBPAIRS + 1][5][5];
+  const int       mismatchI[NBPAIRS + 1][5][5];
+  const int       mismatch1nI[NBPAIRS + 1][5][5];
+  const int       mismatch23I[NBPAIRS + 1][5][5];
+  const int       mismatchH[NBPAIRS + 1][5][5];
+  const int       mismatchM[NBPAIRS + 1][5][5];
+  const int       dangle5[NBPAIRS + 1][5];
+  const int       dangle3[NBPAIRS + 1][5];
+  const int       int11[NBPAIRS + 1][NBPAIRS + 1][5][5];
+  const int       int21[NBPAIRS + 1][NBPAIRS + 1][5][5][5];
+  const int       int22[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5];
   const int       ninio[5];
   const double    lxc;
   const int       MLbase;
-  const int       MLintern[NBPAIRS+1];
+  const int       MLintern[NBPAIRS + 1];
   const int       MLclosing;
   const int       TerminalAU;
   const int       DuplexInit;
@@ -36,20 +49,40 @@ typedef struct {
   const int       TripleC;
   const int       MultipleCA;
   const int       MultipleCB;
+  const int       gquad[VRNA_GQUAD_MAX_STACK_SIZE + 1][3 * VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
+  const int       gquadLayerMismatch;
+  const int       gquadLayerMismatchMax;
+
   const double    temperature;
+
   const vrna_md_t model_details;
   const char      param_file[256];
 } vrna_param_t;
 
-/* do not create default constructor and hide data fields of vrna_param_t from SWIG */
+/* do not create default constructor */
 %nodefaultctor vrna_exp_param_t;
+
 typedef struct {
+  const int     id;
+  const double  expstack[NBPAIRS + 1][NBPAIRS + 1];
   const double  exphairpin[31];
-  const double  expbulge[MAXLOOP+1];
-  const double  expinternal[MAXLOOP+1];
+  const double  expbulge[MAXLOOP + 1];
+  const double  expinternal[MAXLOOP + 1];
+  const double  expmismatchExt[NBPAIRS + 1][5][5];
+  const double  expmismatchI[NBPAIRS + 1][5][5];
+  const double  expmismatch23I[NBPAIRS + 1][5][5];
+  const double  expmismatch1nI[NBPAIRS + 1][5][5];
+  const double  expmismatchH[NBPAIRS + 1][5][5];
+  const double  expmismatchM[NBPAIRS + 1][5][5];
+  const double  expdangle5[NBPAIRS + 1][5];
+  const double  expdangle3[NBPAIRS + 1][5];
+  const double  expint11[NBPAIRS + 1][NBPAIRS + 1][5][5];
+  const double  expint21[NBPAIRS + 1][NBPAIRS + 1][5][5][5];
+  const double  expint22[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5];
+  const double  expninio[5][MAXLOOP + 1];
   const double  lxc;
   const double  expMLbase;
-  const double  expMLintern[NBPAIRS+1];
+  const double  expMLintern[NBPAIRS + 1];
   const double  expMLclosing;
   const double  expTermAU;
   const double  expDuplexInit;
@@ -63,10 +96,16 @@ typedef struct {
   const double  expTripleC;
   const double  expMultipleCA;
   const double  expMultipleCB;
+  const double  expgquad[VRNA_GQUAD_MAX_STACK_SIZE + 1][3 * VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
+  const double  expgquadLayerMismatch;
+  const int     gquadLayerMismatchMax;
+
   const double  kT;
   const double  pf_scale;
+
   const double  temperature;
   const double  alpha;
+
   const vrna_md_t model_details;
   const char      param_file[256];
 } vrna_exp_param_t;
@@ -158,6 +197,13 @@ typedef struct {
     return std::string(out.str());
   }
 
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
 #endif
 
 }
@@ -186,6 +232,13 @@ typedef struct {
     return std::string(out.str());
   }
 
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
 #endif
 
 }
