@@ -40,8 +40,9 @@ typedef struct {
   double  cv_fact;
   double  nc_fact;
   double  sfact;
-  int     rtype[8];
-  short   alias[MAXALPHA+1];
+  const int     rtype[8];
+  const short   alias[MAXALPHA+1];
+  const int const pair[MAXALPHA+1][MAXALPHA+1];
 } vrna_md_t;
 
 
