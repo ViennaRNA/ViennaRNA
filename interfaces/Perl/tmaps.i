@@ -216,6 +216,68 @@ namespace std {
   argvi++;
 }
 
+%typemap(varout) int [ANY] 
+{ 
+  AV* av = (AV*)sv_2mortal((SV*)newAV());
+  int i = 0,len = 0;
+  len = $1_dim0;
+
+  for (i = 0; i < len ; i++) {
+      SV *v = newSViv($1[i]);
+      if (!av_store(av, i, v))
+          SvREFCNT_dec(v);
+  }
+  sv_setsv($result, sv_2mortal(newRV_noinc((SV*) av )));
+}
+
+/* for global variables */
+%typemap(varout) int [ANY][ANY] {
+  AV *arr = (AV*)sv_2mortal((SV*)newAV());
+  int i,j = 0, len1 = 0, len2 = 0;
+
+  len1 = $1_dim0;
+  len2 = $1_dim1;
+
+  for (i = 0; i < len1 ; i++) {
+      AV *vec = newAV();
+      for (j = 0; j < len2; j++) {
+        SV *v = newSViv($1[i][j]);
+        if (!av_store(vec, j, v))
+          SvREFCNT_dec(v);
+      }
+      /* store reference to array */
+      av_store(arr, i, newRV_noinc((SV*) vec));
+  }
+
+  sv_setsv($result, sv_2mortal(newRV_noinc((SV*) arr )));
+}
+
+/* for structure members */
+%typemap(out) int [ANY][ANY]
+{ 
+  AV *arr = newAV();
+  int i,j = 0, len1 = 0, len2 = 0;
+
+  len1 = $1_dim0;
+  len2 = $1_dim1;
+
+  for (i = 0; i < len1 ; i++) {
+      AV *vec = newAV();
+      for (j = 0; j < len2; j++) {
+        SV *v = newSViv($1[i][j]);
+        if (!av_store(vec, j, v))
+          SvREFCNT_dec(v);
+      }
+      /* store reference to array */
+      av_store(arr, i, newRV_noinc((SV*) vec));
+  }
+
+  $result = newRV_noinc((SV*) arr );
+  sv_2mortal( $result );
+  argvi++;
+}
+
+%apply int [ANY][ANY] { const int[ANY][ANY], long int [ANY][ANY], const long int [ANY][ANY], short [ANY][ANY], const short [ANY][ANY] };
 
 /*
   we need this crazy piece of argout typemap only because we don't

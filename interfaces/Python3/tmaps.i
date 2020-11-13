@@ -19,6 +19,7 @@
   }
 }
 
+/* for global variables */
 %typemap(varout) int [ANY][ANY] {
   size_t i, j;
   //$1, $1_dim0, $1_dim1
@@ -32,6 +33,23 @@
     PyList_SetItem($result,i,l);
   }
 }
+
+/* for structure members */
+%typemap(out) int [ANY][ANY] {
+  size_t i, j;
+  //$1, $1_dim0, $1_dim1
+  $result = PyList_New($1_dim0);
+  for (i = 0; i < $1_dim0; i++) {
+    PyObject *l = PyList_New($1_dim1);
+    for (j = 0; j < $1_dim1; j++) {
+      PyObject *o = PyLong_FromLong((long) $1[i][j]);
+      PyList_SetItem(l, j, o);
+    }
+    PyList_SetItem($result,i,l);
+  }
+}
+
+%apply int [ANY][ANY] { const int[ANY][ANY], long int [ANY][ANY], const long int [ANY][ANY], short [ANY][ANY], const short [ANY][ANY] };
 
 // This tells SWIG to treat char ** as a special case
 %typemap(in) char ** {
