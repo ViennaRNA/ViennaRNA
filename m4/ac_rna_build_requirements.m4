@@ -76,7 +76,7 @@ generate it from source!
       # create a C variable defintion for the template
       # note [[]] will turn into [] after M4 processed everythin
       PS_TEMPLATE_CONST="$PS_TEMPLATE_CONST
-static const char PS_$template_name[[]] = {
+static const unsigned char PS_$template_name[[]] = {
 #include \"$template\"
 };
 "
@@ -137,7 +137,7 @@ generate it from source!
       # create a C variable defintion for the template
       # note [[]] will turn into [] after M4 processed everythin
       ENERGY_PARAMETER_CONST="$ENERGY_PARAMETER_CONST
-static const char parameter_set_$parfile_name[[]] = {
+static const unsigned char parameter_set_$parfile_name[[]] = {
 #include \"$parfile\"
 };
 "

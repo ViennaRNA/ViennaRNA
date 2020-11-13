@@ -351,7 +351,7 @@ vrna_params_load_defaults(void)
 PUBLIC int
 vrna_params_load_RNA_Turner2004(void)
 {
-  return vrna_params_load_from_string(parameter_set_rna_turner2004,
+  return vrna_params_load_from_string((const char *)parameter_set_rna_turner2004,
                                       "RNA - Turner 2004",
                                       0);
 }
@@ -360,7 +360,7 @@ vrna_params_load_RNA_Turner2004(void)
 PUBLIC int
 vrna_params_load_RNA_Turner1999(void)
 {
-  return vrna_params_load_from_string(parameter_set_rna_turner1999,
+  return vrna_params_load_from_string((const char *)parameter_set_rna_turner1999,
                                       "RNA - Turner 1999",
                                       0);
 }
@@ -369,7 +369,7 @@ vrna_params_load_RNA_Turner1999(void)
 PUBLIC int
 vrna_params_load_RNA_Andronescu2007(void)
 {
-  return vrna_params_load_from_string(parameter_set_rna_andronescu2007,
+  return vrna_params_load_from_string((const char *)parameter_set_rna_andronescu2007,
                                       "RNA - Andronescu 2007",
                                       0);
 }
@@ -378,7 +378,7 @@ vrna_params_load_RNA_Andronescu2007(void)
 PUBLIC int
 vrna_params_load_RNA_Langdon2018(void)
 {
-  return vrna_params_load_from_string(parameter_set_rna_langdon2018,
+  return vrna_params_load_from_string((const char *)parameter_set_rna_langdon2018,
                                       "RNA - Langdon 2018",
                                       0);
 }
@@ -387,7 +387,7 @@ vrna_params_load_RNA_Langdon2018(void)
 PUBLIC int
 vrna_params_load_RNA_misc_special_hairpins(void)
 {
-  return vrna_params_load_from_string(parameter_set_rna_misc_special_hairpins,
+  return vrna_params_load_from_string((const char *)parameter_set_rna_misc_special_hairpins,
                                       "RNA - Misc. Special Hairpins",
                                       0);
 }
@@ -396,7 +396,7 @@ vrna_params_load_RNA_misc_special_hairpins(void)
 PUBLIC int
 vrna_params_load_DNA_Mathews2004(void)
 {
-  return vrna_params_load_from_string(parameter_set_dna_mathews2004,
+  return vrna_params_load_from_string((const char *)parameter_set_dna_mathews2004,
                                       "DNA - Mathews 2004",
                                       0);
 }
@@ -405,7 +405,7 @@ vrna_params_load_DNA_Mathews2004(void)
 PUBLIC int
 vrna_params_load_DNA_Mathews1999(void)
 {
-  return vrna_params_load_from_string(parameter_set_dna_mathews1999,
+  return vrna_params_load_from_string((const char *)parameter_set_dna_mathews1999,
                                       "DNA - Mathews 1999",
                                       0);
 }
