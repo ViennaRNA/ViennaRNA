@@ -729,7 +729,11 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #endif
           ss = backtrack(vc, ii, jj);
           if (prev) {
-            if ((jj < prev_j) || (strncmp(ss + prev_i - ii, prev, prev_j - prev_i + 1))) {
+            if ((jj < prev_j) ||
+#ifdef VRNA_WITH_SVM
+                (prevz < thisz) || /* yield last structure if it's z-score is higher than the current one */
+#endif
+                (strncmp(ss + prev_i - ii, prev, prev_j - prev_i + 1))) {
               /* ss does not contain prev */
 #ifdef VRNA_WITH_SVM
               if (zsc_data->with_zsc)
