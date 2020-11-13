@@ -77,15 +77,15 @@ extern int TerminalAUdH;
 extern int DuplexInit37;
 extern int DuplexInitdH;
 /* stabilizing contribution due to special hairpins of size 4 (tetraloops) */
-extern char Tetraloops[];  /* string containing the special tetraloops */
-extern int  Tetraloop37[];  /* Bonus energy for special tetraloops */
-extern int  TetraloopdH[];
-extern char Triloops[];    /* string containing the special triloops */
-extern int  Triloop37[]; /* Bonus energy for special Triloops */
-extern int  TriloopdH[]; /* Bonus energy for special Triloops */
-extern char Hexaloops[];    /* string containing the special triloops */
-extern int  Hexaloop37[]; /* Bonus energy for special Triloops */
-extern int  HexaloopdH[]; /* Bonus energy for special Triloops */
+extern char Tetraloops[281];  /* string containing the special tetraloops */
+extern int  Tetraloop37[40];  /* Bonus energy for special tetraloops */
+extern int  TetraloopdH[40];
+extern char Triloops[241];    /* string containing the special triloops */
+extern int  Triloop37[40]; /* Bonus energy for special Triloops */
+extern int  TriloopdH[40]; /* Bonus energy for special Triloops */
+extern char Hexaloops[361];    /* string containing the special triloops */
+extern int  Hexaloop37[40]; /* Bonus energy for special Triloops */
+extern int  HexaloopdH[40]; /* Bonus energy for special Triloops */
 
 extern int GQuadAlpha37;
 extern int GQuadAlphadH;
