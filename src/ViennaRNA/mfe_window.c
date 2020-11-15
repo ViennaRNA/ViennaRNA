@@ -605,6 +605,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
 #ifdef VRNA_WITH_SVM
   double        prevz;
+  int           blank_f3;
 #endif
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -628,7 +629,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
   prev          = NULL;
   prev_en       = 0;
 #ifdef VRNA_WITH_SVM
-  prevz = 0.;
+  prevz     = 0.;
+  blank_f3  = 1;
 #endif
 
   c   = vc->matrices->c_local;
@@ -753,6 +755,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
           prev_en   = f3[ii] - f3[jj + 1];
 #ifdef VRNA_WITH_SVM
           prevz = thisz;
+        } else if (blank_f3) {
+          f3[i] = f3[i + 1];
         }
 
 #endif
