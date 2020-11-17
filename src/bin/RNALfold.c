@@ -73,7 +73,7 @@ main(int  argc,
                               *shape_file, *shape_method, *shape_conversion;
   unsigned int                rec_type, read_opt;
   int                         length, istty, noconv, maxdist, zsc, tofile, filename_full,
-                              with_shapes, verbose, backtrack;
+                              with_shapes, verbose, backtrack, zsc_hard;
   double                      min_en, min_z;
   long int                    file_pos_start, file_pos_end;
   vrna_md_t                   md;
@@ -87,6 +87,7 @@ main(int  argc,
   dangles       = 2;
   maxdist       = 150;
   zsc           = 0;
+  zsc_hard      = 0;
   min_z         = -2.0;
   gquad         = 0;
   rec_type      = read_opt = 0;
@@ -175,6 +176,12 @@ main(int  argc,
     zsc = 1;
     if (args_info.zscore_arg != -2)
       min_z = args_info.zscore_arg;
+
+    if (args_info.zscore_hard_filter_given)
+      md.window_zscore_options |= VRNA_ZSCORE_HARD_FILTER;
+
+    if (args_info.zscore_report_subsumed_given)
+      md.window_zscore_options |= VRNA_ZSCORE_REPORT_SUBSUMED;
 
 #else
     vrna_message_error("\'z\' option is available only if compiled with SVM support!");

@@ -183,6 +183,25 @@ default="-2"
 argoptional
 optional
 
+option  "zscore-hard-filter"  -
+"Apply a hard filter on zscore to limit the solution space\n"
+details="Some more description.\n\n"
+flag
+dependon="zscore"
+off
+
+option  "zscore-report-subsumed"  -
+"Report subsumed structures if their z-score is less than that of the enclosing structure\n"
+details="Some more description.\n\n"
+flag
+dependon="zscore"
+off
+
+option  "backtrack"   b
+"Backtrack a global structure.\n\n"
+flag
+off
+
 option  "gquad" g
 "Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
 flag
@@ -311,11 +330,6 @@ option  "energyModel" e
 int
 optional
 hidden
-
-option  "backtrack"   b
-"Backtrack a global structure.\n\n"
-flag
-off
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"
