@@ -185,20 +185,42 @@ optional
 
 option  "zscore-hard-filter"  -
 "Apply a hard filter on zscore to limit the solution space\n"
-details="Some more description.\n\n"
+details="The default mode of z-score filtering considers the entire structure space to\
+ filter whether or not a locally optimal structure at any position i is reported or not.\
+ Thus, alternative locally optimal structures starting at i with higher energy but lower\
+ z-score can be easily missed. Using this option restricts the structure space to find\
+ an optimal solution only among those candidates that satisfy the z-score threshold instead.\
+ Therefore, good results according to the z-score threshold criterion are less likely to\
+ be superseded by results with better energy but worse z-score. Note, that activating\
+ this switch results in higher computation time which scales linear in the window length.\n\n"
 flag
 dependon="zscore"
 off
 
 option  "zscore-report-subsumed"  -
 "Report subsumed structures if their z-score is less than that of the enclosing structure\n"
-details="Some more description.\n\n"
+details="In default mode, RNALfold only reports locally optimal structures if they\
+ are no constituents of another, larger structure with less free energy. In z-score mode,\
+ however, such a larger structure may have a higher z-score, thus may be less informative\
+ than the smaller substructure. Using this switch activates reporting both, the smaller\
+ and the larger structure if the z-score of the smaller is lower than that of the larger.\n\n"
 flag
 dependon="zscore"
 off
 
-option  "backtrack"   b
-"Backtrack a global structure.\n\n"
+option  "backtrack-global"   b
+"Backtrack a global MFE structure.\n"
+details="Instead of just reporting the locally stable secondary structure\
+ a global MFE structure can be constructed that only consists of locally\
+ optimal substructures. This switch activates a post-processing step that\
+ takes the locally optimal structures to generate the global MFE structure\
+ which constitutes the MFE value reported in the last line. The respective\
+ global MFE structure is printed just after the inut sequence part on the\
+ last line, preceding the global MFE score.\nNote, that this option implies\
+ -o/--outfile since the locally optimal structures must be read after the\
+ regular prediction step! Also note, that using this this option in combination\
+ with -z/--zscore implies --zscore-hard-filter to ensure proper construction\
+ of the global MFE structure!\n\n"
 flag
 off
 

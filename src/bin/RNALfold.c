@@ -136,7 +136,7 @@ main(int  argc,
   }
 
   /* do not allow weak pairs */
-  if (args_info.backtrack_given)
+  if (args_info.backtrack_global_given)
     backtrack = tofile = 1;
 
   /* do not allow weak pairs */
@@ -183,6 +183,8 @@ main(int  argc,
     if (args_info.zscore_report_subsumed_given)
       md.window_zscore_options |= VRNA_ZSCORE_REPORT_SUBSUMED;
 
+    if (backtrack) /* global backtracing implies hard z-score filter! */
+      md.window_zscore_options |= VRNA_ZSCORE_HARD_FILTER;
 #else
     vrna_message_error("\'z\' option is available only if compiled with SVM support!");
 #endif
