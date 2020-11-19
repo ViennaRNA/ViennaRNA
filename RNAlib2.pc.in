@@ -7,6 +7,6 @@ Name: @PACKAGE_NAME@
 Description: ViennaRNA Package 2 - Core library.
 Version: @PACKAGE_VERSION@
 URL: @PACKAGE_URL@
-Libs: -fno-lto -Wl,-fno-lto -L${libdir} -lRNA @LIBGOMPFLAG@ @GSL_LIBS@ @PTHREAD_LIBS@ @MPFR_LIBS@
+Libs: -fno-lto -Wl,-fno-lto -L${libdir} -lRNA @LIBGOMPFLAG@ @GSL_LIBS@ @PTHREAD_LIBS@ @MPFR_LIBS@ @SVM_LIBS@
 Libs.private: -lm
 Cflags: -I${includedir} -I${includedir}/ViennaRNA @FLOAT_PF_FLAG@ @DEPRECATION_WARNING@ @DISABLE_C11_FEATURES@ @PTHREAD_CFLAGS@

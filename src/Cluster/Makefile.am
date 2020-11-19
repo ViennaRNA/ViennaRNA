@@ -14,6 +14,11 @@ endif
 
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la
 
+# Link against stdc++ if we use SVM
+if VRNA_AM_SWITCH_SVM
+LDADD += $(SVM_LIBS)
+endif
+
 AnalyseDists_SOURCES = split.c \
           distance_matrix.c \
           cluster.c \

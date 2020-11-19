@@ -53,13 +53,9 @@ noinst_HEADERS = \
 
 SUFFIXES = _cmdl.c _cmdl.h .ggo
 
-# Link against stdc++ if we use SVM in RNALfold
-RNALfold_LDADD = $(LDADD)
-RNALalifold_LDADD = $(LDADD)
-
+# Link against stdc++ if we use SVM
 if VRNA_AM_SWITCH_SVM
-RNALfold_LDADD += -lstdc++
-RNALalifold_LDADD += -lstdc++
+LDADD += $(SVM_LIBS)
 endif
 
 GENGETOPT_CMDL = \

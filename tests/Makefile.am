@@ -15,6 +15,11 @@ if VRNA_AM_SWITCH_MPFR
 LDADD += $(MPFR_LIBS)
 endif
 
+# Link against stdc++ if we use SVM
+if VRNA_AM_SWITCH_SVM
+LDADD += $(SVM_LIBS)
+endif
+
 SUFFIXES = .c .ts
 TEST_EXTENSIONS = .pl .t .py .py3
 

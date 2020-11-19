@@ -36,6 +36,11 @@ EXTRA_DIST = $(pscript) ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la -lm
 
+# Link against stdc++ if we use SVM
+if VRNA_AM_SWITCH_SVM
+LDADD += $(SVM_LIBS)
+endif
+
 SUFFIXES = .ggo _cmdl.h _cmdl.c
 
 # this is how we make the commandline interface parser

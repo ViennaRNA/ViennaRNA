@@ -16,9 +16,11 @@ AC_DEFUN([RNA_ENABLE_SVM],[
     ## substitution for reference manual config
     AC_SUBST([REFDOC_PREDEF_SVM], [VRNA_WITH_SVM])
     AC_DEFINE([VRNA_WITH_SVM], [1], [Compute z-scores for RNALfold])
+    SVM_LIBS="-lstdc++"
     CONFIG_SVM="#define VRNA_WITH_SVM"
   ])
 
+  AC_SUBST(SVM_LIBS)
   AC_SUBST(CONFIG_SVM)
   AM_CONDITIONAL(VRNA_AM_SWITCH_SVM, test "$with_svm" != "no")
 ])
