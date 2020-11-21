@@ -183,13 +183,14 @@ default="-2"
 argoptional
 optional
 
-option  "zscore-hard-filter"  -
-"Apply a hard filter on zscore to limit the solution space\n"
+option  "zscore-pre-filter"  -
+"Apply the z-score filtering in the forward recursions\n"
 details="The default mode of z-score filtering considers the entire structure space to\
- filter whether or not a locally optimal structure at any position i is reported or not.\
- Thus, alternative locally optimal structures starting at i with higher energy but lower\
- z-score can be easily missed. Using this option restricts the structure space to find\
- an optimal solution only among those candidates that satisfy the z-score threshold instead.\
+ decide whether or not a locally optimal structure at any position i is reported or not.\
+ When using this post-filtering step, however, alternative locally optimal structures
+ starting at i with higher energy but lower z-score can be easily missed. The pre-filter
+ option restricts the structure space already in the forward recursions, such that
+ only optimal solution among those candidates that satisfy the z-score threshold are considered.\
  Therefore, good results according to the z-score threshold criterion are less likely to\
  be superseded by results with better energy but worse z-score. Note, that activating\
  this switch results in higher computation time which scales linear in the window length.\n\n"

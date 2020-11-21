@@ -33,10 +33,6 @@
  */
 
 
-#ifdef VRNA_WITH_SVM
-typedef struct vrna_zsc_dat_s *vrna_zsc_dat_t;
-#endif
-
 /**
  *  @name Basic free energy interface
  *  @{
@@ -98,34 +94,8 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc);
 
 int
 vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
-#ifdef VRNA_WITH_SVM
-                  int                   i,
-                  vrna_zsc_dat_t        zsc_data);
-#else
                   int                   i);
-#endif
 
-
-#ifdef VRNA_WITH_SVM
-vrna_zsc_dat_t
-vrna_zsc_dat_init(double        min_z,
-                  unsigned int  options);
-
-void
-vrna_zsc_dat_free(vrna_zsc_dat_t  zsc_data);
-
-
-int
-vrna_zsc_threshold(vrna_zsc_dat_t zsc_data);
-
-int
-vrna_zsc_want_backtrack(vrna_fold_compound_t *fc,
-                        int                  i,
-                        int                  j,
-                        vrna_zsc_dat_t       d,
-                        double               *z);
-
-#endif
 
 /* End basic interface */
 /**@}*/

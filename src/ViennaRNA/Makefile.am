@@ -178,6 +178,10 @@ pkginclude_HEADERS =  \
     ${SVM_H} \
     ${JSON_H}
 
+if VRNA_AM_SWITCH_SVM
+pkginclude_HEADERS +=  zscore.h
+endif
+
 vrna_constraints_HEADERS = \
     constraints/basic.h \
     constraints/ligand.h \
@@ -306,6 +310,10 @@ libRNA_conv_la_SOURCES = \
     unstructured_domains.c \
     grammar.c \
     heat_capacity.c
+
+if VRNA_AM_SWITCH_SVM
+libRNA_conv_la_SOURCES += zscore.c
+endif
 
 libRNA_eval_la_SOURCES = \
     eval.c \
@@ -477,3 +485,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               ${JSON_H} \
               color_output.inc \
               special_const.h
+
+if VRNA_AM_SWITCH_SVM
+EXTRA_DIST += zscore_dat.inc
+endif

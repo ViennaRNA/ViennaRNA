@@ -28,9 +28,7 @@
 #endif
 
 #ifdef VRNA_WITH_SVM
-#include <svm.h>
-#include "ViennaRNA/utils/svm.h"
-#include "ViennaRNA/mfe_window.h" /* for VRNA_ZSCORE_* macros */
+#include "ViennaRNA/zscore.h" /* for VRNA_ZSCORE_* macros */
 #endif
 
 
@@ -38,13 +36,7 @@
 #include "external_sc.inc"
 
 #ifdef VRNA_WITH_SVM
-struct vrna_zsc_dat_s {
-  struct svm_model  *avg_model;
-  struct svm_model  *sd_model;
-  double            min_z;
-  int               with_zsc;
-  unsigned char     zsc_hard_filter;
-};
+#include "ViennaRNA/zscore_dat.inc"
 #endif
 
 /*
@@ -79,9 +71,6 @@ get_stem_contributions_d0(vrna_fold_compound_t      *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
                              int                        i,
-#ifdef VRNA_WITH_SVM
-                             vrna_zsc_dat_t             zsc_data,
-#endif
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper);
@@ -98,9 +87,6 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
                              int                        i,
-#ifdef VRNA_WITH_SVM
-                             vrna_zsc_dat_t             zsc_data,
-#endif
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper);
@@ -117,9 +103,6 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
                              int                        i,
-#ifdef VRNA_WITH_SVM
-                             vrna_zsc_dat_t             zsc_data,
-#endif
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper);
@@ -136,9 +119,6 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
                              int                        i,
-#ifdef VRNA_WITH_SVM
-                             vrna_zsc_dat_t             zsc_data,
-#endif
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper);
@@ -155,9 +135,6 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
                               int                       i,
-#ifdef VRNA_WITH_SVM
-                              vrna_zsc_dat_t            zsc_data,
-#endif
                               vrna_callback_hc_evaluate *evaluate,
                               struct default_data       *hc_dat_local,
                               struct sc_wrapper_f3      *sc_wrapper);
@@ -187,9 +164,6 @@ decompose_f5_ext_stem_d0(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int
 decompose_f3_ext_stem_d0(vrna_fold_compound_t       *fc,
                          int                        i,
-#ifdef VRNA_WITH_SVM
-                         vrna_zsc_dat_t             zsc_data,
-#endif
                          vrna_callback_hc_evaluate  *evaluate,
                          struct default_data        *hc_dat_local,
                          struct sc_wrapper_f3       *sc_wrapper);
@@ -206,9 +180,6 @@ decompose_f5_ext_stem_d2(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int
 decompose_f3_ext_stem_d2(vrna_fold_compound_t       *fc,
                          int                        i,
-#ifdef VRNA_WITH_SVM
-                         vrna_zsc_dat_t             zsc_data,
-#endif
                          vrna_callback_hc_evaluate  *evaluate,
                          struct default_data        *hc_dat_local,
                          struct sc_wrapper_f3       *sc_wrapper);
@@ -225,9 +196,6 @@ decompose_f5_ext_stem_d1(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int
 decompose_f3_ext_stem_d1(vrna_fold_compound_t       *fc,
                          int                        i,
-#ifdef VRNA_WITH_SVM
-                         vrna_zsc_dat_t             zsc_data,
-#endif
                          vrna_callback_hc_evaluate  *evaluate,
                          struct default_data        *hc_dat_local,
                          struct sc_wrapper_f3       *sc_wrapper);
@@ -248,17 +216,6 @@ add_f3_gquad(vrna_fold_compound_t       *fc,
              struct default_data        *hc_dat_local,
              struct sc_wrapper_f3       *sc_wrapper);
 
-
-#ifdef VRNA_WITH_SVM
-
-PRIVATE INLINE double
-get_zscore(vrna_fold_compound_t *fc,
-           int                  i,
-           int                  j,
-           int                  e,
-           vrna_zsc_dat_t       d);
-
-#endif
 
 /*
  #################################
@@ -377,12 +334,7 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
 
 PUBLIC int
 vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
-#ifdef VRNA_WITH_SVM
-                  int                   i,
-                       vrna_zsc_dat_t   zsc_data)
-#else
                   int                   i)
-#endif
 {
   if (fc) {
     int                       e, en, dangle_model, with_gquad;
@@ -408,29 +360,17 @@ vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
     /* decompose into stem followed by exterior loop part */
     switch (dangle_model) {
       case 0:
-#ifdef VRNA_WITH_SVM
-        en  = decompose_f3_ext_stem_d0(fc, i, zsc_data, evaluate, &hc_dat_local, &sc_wrapper);
-#else
         en  = decompose_f3_ext_stem_d0(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
-#endif
         e   = MIN2(e, en);
         break;
 
       case 2:
-#ifdef VRNA_WITH_SVM
-        en  = decompose_f3_ext_stem_d2(fc, i, zsc_data, evaluate, &hc_dat_local, &sc_wrapper);
-#else
         en  = decompose_f3_ext_stem_d2(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
-#endif
         e   = MIN2(e, en);
         break;
 
       default:
-#ifdef VRNA_WITH_SVM
-        en  = decompose_f3_ext_stem_d1(fc, i, zsc_data, evaluate, &hc_dat_local, &sc_wrapper);
-#else
         en  = decompose_f3_ext_stem_d1(fc, i, evaluate, &hc_dat_local, &sc_wrapper);
-#endif
         e   = MIN2(e, en);
         break;
     }
@@ -547,67 +487,6 @@ vrna_E_ext_loop(vrna_fold_compound_t  *fc,
   return e;
 }
 
-#ifdef VRNA_WITH_SVM
-
-PUBLIC vrna_zsc_dat_t
-vrna_zsc_dat_init(double        min_z,
-                  unsigned int  options)
-{
-  vrna_zsc_dat_t d = (vrna_zsc_dat_t)vrna_alloc(sizeof(struct vrna_zsc_dat_s));
-
-  d->with_zsc         = (options & VRNA_ZSCORE_THRESHOLD) ? 1 : 0;
-  d->zsc_hard_filter  = (options & VRNA_ZSCORE_HARD_FILTER) ? 1 : 0;
-  d->min_z            = min_z;
-  d->avg_model        = svm_load_model_string(avg_model_string);
-  d->sd_model         = svm_load_model_string(sd_model_string);
-
-  return d;
-}
-
-
-PUBLIC void
-vrna_zsc_dat_free(vrna_zsc_dat_t  zsc_data)
-{
-  svm_free_model_content(zsc_data->avg_model);
-  svm_free_model_content(zsc_data->sd_model);
-  free(zsc_data);
-}
-
-
-PUBLIC int
-vrna_zsc_threshold(vrna_zsc_dat_t zsc_data)
-{
-  return zsc_data->with_zsc;
-}
-
-PUBLIC int
-vrna_zsc_want_backtrack(vrna_fold_compound_t *fc,
-                        int                  i,
-                        int                  j,
-                        vrna_zsc_dat_t       d,
-                        double               *z)
-{
-  int bt, *f3;
-
-  bt = 1; /* we want to backtrack by default */
-  *z = (double)INF;
-
-  if ((fc) &&
-      (d) &&
-      (d->with_zsc)) {
-    bt  = 0;
-    f3  = fc->matrices->f3_local;
-    *z  = get_zscore(fc, i, j, f3[i] - f3[j + 1], d);
-
-    if ((*z) <= d->min_z)
-      bt = 1;
-  }
-
-  return bt;
-}
-
-
-#endif
 
 /*
  #####################################
@@ -640,9 +519,6 @@ decompose_f5_ext_stem_d0(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int
 decompose_f3_ext_stem_d0(vrna_fold_compound_t       *fc,
                          int                        i,
-#ifdef VRNA_WITH_SVM
-                         vrna_zsc_dat_t             zsc_data,
-#endif
                          vrna_callback_hc_evaluate  *evaluate,
                          struct default_data        *hc_dat_local,
                          struct sc_wrapper_f3       *sc_wrapper)
@@ -652,11 +528,7 @@ decompose_f3_ext_stem_d0(vrna_fold_compound_t       *fc,
   length  = (int)fc->length;
   maxdist = fc->window_size;
 
-#ifdef VRNA_WITH_SVM
-  stems = f3_get_stem_contributions_d0(fc, i, zsc_data, evaluate, hc_dat_local, sc_wrapper);
-#else
   stems = f3_get_stem_contributions_d0(fc, i, evaluate, hc_dat_local, sc_wrapper);
-#endif
 
   /* 1st case, actual decompostion */
   e = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist), stems);
@@ -698,9 +570,6 @@ decompose_f5_ext_stem_d2(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int
 decompose_f3_ext_stem_d2(vrna_fold_compound_t       *fc,
                          int                        i,
-#ifdef VRNA_WITH_SVM
-                         vrna_zsc_dat_t             zsc_data,
-#endif
                          vrna_callback_hc_evaluate  *evaluate,
                          struct default_data        *hc_dat_local,
                          struct sc_wrapper_f3       *sc_wrapper)
@@ -709,11 +578,7 @@ decompose_f3_ext_stem_d2(vrna_fold_compound_t       *fc,
 
   length  = (int)fc->length;
   maxdist = fc->window_size;
-#ifdef VRNA_WITH_SVM
-  stems   = f3_get_stem_contributions_d2(fc, i, zsc_data, evaluate, hc_dat_local, sc_wrapper);
-#else
   stems   = f3_get_stem_contributions_d2(fc, i, evaluate, hc_dat_local, sc_wrapper);
-#endif
 
   /* 1st case, actual decompostion */
   e = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist), stems);
@@ -800,9 +665,6 @@ decompose_f5_ext_stem_d1(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int
 decompose_f3_ext_stem_d1(vrna_fold_compound_t       *fc,
                          int                        i,
-#ifdef VRNA_WITH_SVM
-                         vrna_zsc_dat_t             zsc_data,
-#endif
                          vrna_callback_hc_evaluate  *evaluate,
                          struct default_data        *hc_dat_local,
                          struct sc_wrapper_f3       *sc_wrapper)
@@ -816,11 +678,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t       *fc,
   /* A) without dangling end contributions */
 
   /* 1st case, actual decompostion */
-#ifdef VRNA_WITH_SVM
-  stems = f3_get_stem_contributions_d0(fc, i, zsc_data, evaluate, hc_dat_local, sc_wrapper);
-#else
   stems = f3_get_stem_contributions_d0(fc, i, evaluate, hc_dat_local, sc_wrapper);
-#endif
 
   ee = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist), stems);
 
@@ -834,11 +692,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t       *fc,
   e = MIN2(e, ee);
 
   /* B) with dangling end contribution on 3' side of stem */
-#ifdef VRNA_WITH_SVM
-  stems = f3_get_stem_contributions_d3(fc, i, zsc_data, evaluate, hc_dat_local, sc_wrapper);
-#else
   stems = f3_get_stem_contributions_d3(fc, i, evaluate, hc_dat_local, sc_wrapper);
-#endif
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -853,11 +707,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t       *fc,
   e = MIN2(e, ee);
 
   /* C) with dangling end contribution on 5' side of stem */
-#ifdef VRNA_WITH_SVM
-  stems = f3_get_stem_contributions_d5(fc, i, zsc_data, evaluate, hc_dat_local, sc_wrapper);
-#else
   stems = f3_get_stem_contributions_d5(fc, i, evaluate, hc_dat_local, sc_wrapper);
-#endif
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -872,11 +722,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t       *fc,
   e = MIN2(e, ee);
 
   /* D) with dangling end contribution on both sides of stem */
-#ifdef VRNA_WITH_SVM
-  stems = f3_get_stem_contributions_d53(fc, i, zsc_data, evaluate, hc_dat_local, sc_wrapper);
-#else
   stems = f3_get_stem_contributions_d53(fc, i, evaluate, hc_dat_local, sc_wrapper);
-#endif
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -1102,9 +948,6 @@ get_stem_contributions_d0(vrna_fold_compound_t      *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
                              int                        i,
-#ifdef VRNA_WITH_SVM
-                             vrna_zsc_dat_t             zsc_data,
-#endif
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper)
@@ -1112,9 +955,12 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
   char                    **ptype;
   short                   **S, *si;
   unsigned int            s, n_seq, type, length;
-  int                     energy, j, max_j, turn, *c, *stems, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, maxdist, zsc_pre_filter;
   vrna_param_t            *P;
   vrna_md_t               *md;
+#ifdef VRNA_WITH_SVM
+  vrna_zsc_dat_t          zsc_data;
+#endif
 
   sc_f3_split_in_ext_stem *sc_spl_stem;
   sc_f3_reduce_to_stem    *sc_red_stem;
@@ -1130,7 +976,12 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
   ptype   = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->ptype_local : NULL;
   n_seq   = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   S       = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
-
+#ifdef VRNA_WITH_SVM
+  zsc_data        = fc->zscore_data;
+  zsc_pre_filter  = ((zsc_data) &&
+                     (zsc_data->filter_on) &&
+                     (zsc_data->pre_filter)) ? 1 : 0;
+#endif
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
   stems -= i;
 
@@ -1138,6 +989,18 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
   sc_red_stem = sc_wrapper->red_stem;
 
   max_j = MIN2(length - 1, i + maxdist);
+
+#ifdef VRNA_WITH_SVM
+  /* re-set pointer */
+  if (zsc_pre_filter) {
+    zsc_data->current_z += zsc_data->current_i;
+    /* initialize */
+    memset(zsc_data->current_z, 0, sizeof(double) * (maxdist + 2));
+    /* move pointer for convenience */
+    zsc_data->current_i = i;
+    zsc_data->current_z -= zsc_data->current_i;
+  }
+#endif
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1153,13 +1016,11 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
 
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
-      if ((zsc_data) &&
-          (zsc_data->with_zsc) &&
-          (zsc_data->zsc_hard_filter)) {
+      if (zsc_pre_filter) {
         for (j = i + turn + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
         }
@@ -1222,12 +1083,10 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
       if ((fc->type == VRNA_FC_TYPE_SINGLE) &&
-          (zsc_data) &&
-          (zsc_data->with_zsc) &&
-          (zsc_data->zsc_hard_filter) &&
+          (zsc_pre_filter) &&
           (energy != INF)) {
-        double z = get_zscore(fc, i, j, energy, zsc_data);
-        if (z > zsc_data->min_z)
+        zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+        if (zsc_data->current_z[j] > zsc_data->min_z)
           energy = INF;
       }
 #endif
@@ -1379,9 +1238,6 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
                              int                        i,
-#ifdef VRNA_WITH_SVM
-                             vrna_zsc_dat_t             zsc_data,
-#endif
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper)
@@ -1389,9 +1245,12 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
   char                    **ptype;
   short                   **S, **S5, **S3, *S1, si1, sj1, *s5i1, *si;
   unsigned int            s, n_seq, type, length, **a2s;
-  int                     energy, j, max_j, turn, *c, *stems, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, maxdist, zsc_pre_filter;
   vrna_param_t            *P;
   vrna_md_t               *md;
+#ifdef VRNA_WITH_SVM
+  vrna_zsc_dat_t          zsc_data;
+#endif
 
   sc_f3_split_in_ext_stem *sc_spl_stem;
   sc_f3_reduce_to_stem    *sc_red_stem;
@@ -1403,12 +1262,30 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
   c       = fc->matrices->c_local[i];
   c       -= i;
   turn    = md->min_loop_size;
+#ifdef VRNA_WITH_SVM
+  zsc_data        = fc->zscore_data;
+  zsc_pre_filter  = ((zsc_data) &&
+                     (zsc_data->filter_on) &&
+                     (zsc_data->pre_filter)) ? 1 : 0;
+#endif
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
   stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem;
   sc_red_stem = sc_wrapper->red_stem;
+
+#ifdef VRNA_WITH_SVM
+  /* re-set pointer */
+  if (zsc_pre_filter) {
+    zsc_data->current_z += zsc_data->current_i;
+    /* initialize */
+    memset(zsc_data->current_z, 0, sizeof(double) * (maxdist + 2));
+    /* move pointer for convenience */
+    zsc_data->current_i = i;
+    zsc_data->current_z -= zsc_data->current_i;
+  }
+#endif
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1430,13 +1307,11 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
 
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
-      if ((zsc_data) &&
-          (zsc_data->with_zsc) &&
-          (zsc_data->zsc_hard_filter)) {
+      if (zsc_pre_filter) {
         for (j = i + turn + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
         }
@@ -1459,12 +1334,10 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
                      vrna_E_ext_stem(type, si1, -1, P);
 
 #ifdef VRNA_WITH_SVM
-          if ((zsc_data) &&
-              (zsc_data->with_zsc) &&
-              (zsc_data->zsc_hard_filter) &&
+          if ((zsc_pre_filter) &&
               (stems[j] != INF)) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
 #endif
@@ -1658,9 +1531,6 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
                              int                        i,
-#ifdef VRNA_WITH_SVM
-                             vrna_zsc_dat_t             zsc_data,
-#endif
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper)
@@ -1668,9 +1538,12 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
   char                    **ptype;
   short                   *S1, **S, **S3, sj1, *si;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist, zsc_pre_filter;
   vrna_param_t            *P;
   vrna_md_t               *md;
+#ifdef VRNA_WITH_SVM
+  vrna_zsc_dat_t          zsc_data;
+#endif
 
   sc_f3_split_in_ext_stem *sc_spl_stem;
   sc_f3_reduce_to_stem    *sc_red_stem;
@@ -1682,12 +1555,30 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
   c       = fc->matrices->c_local[i];
   c       -= i;
   turn    = md->min_loop_size;
+#ifdef VRNA_WITH_SVM
+  zsc_data        = fc->zscore_data;
+  zsc_pre_filter  = ((zsc_data) &&
+                     (zsc_data->filter_on) &&
+                     (zsc_data->pre_filter)) ? 1 : 0;
+#endif
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
   stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem;
   sc_red_stem = sc_wrapper->red_stem;
+
+#ifdef VRNA_WITH_SVM
+  /* re-set pointer */
+  if (zsc_pre_filter) {
+    zsc_data->current_z += zsc_data->current_i;
+    /* initialize */
+    memset(zsc_data->current_z, 0, sizeof(double) * (maxdist + 2));
+    /* move pointer for convenience */
+    zsc_data->current_i = i;
+    zsc_data->current_z -= zsc_data->current_i;
+  }
+#endif
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1707,13 +1598,11 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
 
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
-      if ((zsc_data) &&
-          (zsc_data->with_zsc) &&
-          (zsc_data->zsc_hard_filter)) {
+      if (zsc_pre_filter) {
         for (j = i + turn + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
         }
@@ -1736,12 +1625,10 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
 
 #ifdef VRNA_WITH_SVM
           /* if necessary, remove those stems where the z-score threshold is not satisfied */
-          if ((zsc_data) &&
-              (zsc_data->with_zsc) &&
-              (zsc_data->zsc_hard_filter) &&
+          if ((zsc_pre_filter) &&
               (stems[j] != INF)) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
 #endif
@@ -1935,9 +1822,6 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
                              int                        i,
-#ifdef VRNA_WITH_SVM
-                             vrna_zsc_dat_t             zsc_data,
-#endif
                              vrna_callback_hc_evaluate  *evaluate,
                              struct default_data        *hc_dat_local,
                              struct sc_wrapper_f3       *sc_wrapper)
@@ -1945,9 +1829,12 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
   char                    **ptype;
   short                   *S1, **S, **S5, *s5i1, si, *si1;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist, zsc_pre_filter;
   vrna_param_t            *P;
   vrna_md_t               *md;
+#ifdef VRNA_WITH_SVM
+  vrna_zsc_dat_t          zsc_data;
+#endif
 
   sc_f3_split_in_ext_stem *sc_spl_stem;
   sc_f3_reduce_to_stem    *sc_red_stem;
@@ -1959,12 +1846,30 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
   c       = fc->matrices->c_local[i + 1];
   c       -= i + 1;
   turn    = P->model_details.min_loop_size;
+#ifdef VRNA_WITH_SVM
+  zsc_data        = fc->zscore_data;
+  zsc_pre_filter  = ((zsc_data) &&
+                     (zsc_data->filter_on) &&
+                     (zsc_data->pre_filter)) ? 1 : 0;
+#endif
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
   stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem1;
   sc_red_stem = sc_wrapper->red_stem;
+
+#ifdef VRNA_WITH_SVM
+  /* re-set pointer */
+  if (zsc_pre_filter) {
+    zsc_data->current_z += zsc_data->current_i;
+    /* initialize */
+    memset(zsc_data->current_z, 0, sizeof(double) * (maxdist + 2));
+    /* move pointer for convenience */
+    zsc_data->current_i = i;
+    zsc_data->current_z -= zsc_data->current_i;
+  }
+#endif
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1985,13 +1890,11 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
 
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
-      if ((zsc_data) &&
-          (zsc_data->with_zsc) &&
-          (zsc_data->zsc_hard_filter)) {
+      if (zsc_pre_filter) {
         for (j = i + turn + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
         }
@@ -2015,12 +1918,10 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
 
 #ifdef VRNA_WITH_SVM
           /* if necessary, remove those stems where the z-score threshold is not satisfied */
-          if ((zsc_data) &&
-              (zsc_data->with_zsc) &&
-              (zsc_data->zsc_hard_filter) &&
+          if ((zsc_pre_filter) &&
               (stems[j] != INF)) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
 #endif
@@ -2220,9 +2121,6 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
 PRIVATE INLINE int *
 f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
                               int                       i,
-#ifdef VRNA_WITH_SVM
-                              vrna_zsc_dat_t            zsc_data,
-#endif
                               vrna_callback_hc_evaluate *evaluate,
                               struct default_data       *hc_dat_local,
                               struct sc_wrapper_f3      *sc_wrapper)
@@ -2230,9 +2128,12 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
   char                    **ptype;
   short                   *S1, **S, **S5, **S3, *s5i1, si1, sj1, *ssi1;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist, zsc_pre_filter;
   vrna_param_t            *P;
   vrna_md_t               *md;
+#ifdef VRNA_WITH_SVM
+  vrna_zsc_dat_t          zsc_data;
+#endif
 
   sc_f3_split_in_ext_stem *sc_spl_stem;
   sc_f3_reduce_to_stem    *sc_red_stem;
@@ -2244,12 +2145,30 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
   c       = fc->matrices->c_local[i + 1];
   c       -= i + 1;
   turn    = md->min_loop_size;
+#ifdef VRNA_WITH_SVM
+  zsc_data        = fc->zscore_data;
+  zsc_pre_filter  = ((zsc_data) &&
+                     (zsc_data->filter_on) &&
+                     (zsc_data->pre_filter)) ? 1 : 0;
+#endif
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
   stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem1;
   sc_red_stem = sc_wrapper->red_stem;
+
+#ifdef VRNA_WITH_SVM
+  /* re-set pointer */
+  if (zsc_pre_filter) {
+    zsc_data->current_z += zsc_data->current_i;
+    /* initialize */
+    memset(zsc_data->current_z, 0, sizeof(double) * (maxdist + 2));
+    /* move pointer for convenience */
+    zsc_data->current_i = i;
+    zsc_data->current_z -= zsc_data->current_i;
+  }
+#endif
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -2270,13 +2189,11 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
 
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
-      if ((zsc_data) &&
-          (zsc_data->with_zsc) &&
-          (zsc_data->zsc_hard_filter)) {
+      if (zsc_pre_filter) {
         for (j = i + turn + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
         }
@@ -2298,12 +2215,10 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
 
 #ifdef VRNA_WITH_SVM
           /* if necessary, remove those stems where the z-score threshold is not satisfied */
-          if ((zsc_data) &&
-              (zsc_data->with_zsc) &&
-              (zsc_data->zsc_hard_filter) &&
+          if ((zsc_pre_filter) &&
               (stems[j] != INF)) {
-            double z = get_zscore(fc, i, j, stems[j], zsc_data);
-            if (z > zsc_data->min_z)
+            zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
+            if (zsc_data->current_z[j] > zsc_data->min_z)
               stems[j] = INF;
           }
 #endif
@@ -2470,57 +2385,6 @@ decompose_f3_ext_stem(vrna_fold_compound_t  *fc,
   return e;
 }
 
-
-#ifdef VRNA_WITH_SVM
-PRIVATE INLINE double
-get_zscore(vrna_fold_compound_t *fc,
-           int                  i,
-           int                  j,
-           int                  e,
-           vrna_zsc_dat_t       d)
-{
-  short   *S;
-  int     info_avg, start, end, dangle_model, length;
-  double  average_free_energy;
-  double  sd_free_energy;
-  double  z;
-
-  length        = fc->length;
-  S             = fc->sequence_encoding2;
-  dangle_model  = fc->params->model_details.dangles;
-  z             = (double)INF;
-
-  start = (dangle_model) ? MAX2(1, i - 1) : i;
-  end   = (dangle_model) ? MIN2(length, j + 1) : j;
-
-  int *AUGC = get_seq_composition(S, start, end, length);
-
-  /*\svm*/
-  average_free_energy = avg_regression(AUGC[0],
-                                       AUGC[1],
-                                       AUGC[2],
-                                       AUGC[3],
-                                       AUGC[4],
-                                       d->avg_model,
-                                       &info_avg);
-
-  if (info_avg == 0) {
-    double min_sd     = minimal_sd(AUGC[0], AUGC[1], AUGC[2], AUGC[3], AUGC[4]);
-    double difference = ((double)e / 100.) - average_free_energy;
-
-    if (difference - (d->min_z * min_sd) <= 0.0001) {
-      sd_free_energy  = sd_regression(AUGC[0], AUGC[1], AUGC[2], AUGC[3], AUGC[4], d->sd_model);
-      z               = difference / sd_free_energy;
-    }
-  }
-
-  free(AUGC);
-
-  return z;
-}
-
-
-#endif
 
 /*
  *###########################################

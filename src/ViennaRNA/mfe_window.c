@@ -35,6 +35,9 @@
 #include "ViennaRNA/utils/units.h"
 #include "ViennaRNA/mfe_window.h"
 
+#ifdef VRNA_WITH_SVM
+#include "ViennaRNA/zscore_dat.inc"
+#endif
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -88,7 +91,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
             int                             *underflow,
             vrna_mfe_window_callback        *cb,
 #ifdef VRNA_WITH_SVM
-            vrna_zsc_dat_t                  z_dat,
             vrna_mfe_window_zscore_callback *cb_z,
 #endif
             void                            *data);
@@ -165,6 +167,12 @@ default_callback_z(int        start,
                    void       *data);
 
 
+PRIVATE INLINE int
+want_backtrack(vrna_fold_compound_t *fc,
+               int                  i,
+               int                  j,
+               double               *z);
+
 #endif
 
 
@@ -198,9 +206,6 @@ vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
   int           energy, underflow, n_seq;
   float         mfe_local;
 
-#ifdef VRNA_WITH_SVM
-  vrna_zsc_dat_t  z_dat;
-#endif
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
 
@@ -218,17 +223,12 @@ vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
     mfe_local += (float)energy / (100. * n_seq);
   } else {
 #ifdef VRNA_WITH_SVM
-    z_dat  = vrna_zsc_dat_init(0., VRNA_ZSCORE_SETTINGS_NONE);
-    energy = fill_arrays(vc, &underflow, cb, z_dat, NULL, data);
+    energy = fill_arrays(vc, &underflow, cb, NULL, data);
 #else
     energy = fill_arrays(vc, &underflow, cb, data);
 #endif
     mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / 100. : 0.;
     mfe_local += (float)energy / 100.;
-
-#ifdef VRNA_WITH_SVM
-    vrna_zsc_dat_free(z_dat);
-#endif
   }
 
   return mfe_local;
@@ -257,9 +257,8 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
                           vrna_mfe_window_zscore_callback *cb_z,
                           void                            *data)
 {
-  int             energy, underflow;
-  float           mfe_local;
-  vrna_zsc_dat_t  zsc_data;
+  int   energy, underflow;
+  float mfe_local;
 
   if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
     vrna_message_warning(
@@ -272,18 +271,12 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
     return (float)(INF / 100.);
   }
 
-  unsigned int zsc_options = VRNA_ZSCORE_SETTINGS_DEFAULT;
-  if (vc->params->model_details.window_zscore_options & VRNA_ZSCORE_HARD_FILTER)
-    zsc_options |= VRNA_ZSCORE_HARD_FILTER;
-
-  zsc_data = vrna_zsc_dat_init(min_z, zsc_options);
+  vrna_zsc_filter_update(vc, min_z, VRNA_ZSCORE_OPTIONS_NONE);
 
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
 
-  energy = fill_arrays(vc, &underflow, NULL, zsc_data, cb_z, data);
-
-  vrna_zsc_dat_free(zsc_data);
+  energy = fill_arrays(vc, &underflow, NULL, cb_z, data);
 
   mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / 100. : 0.;
   mfe_local += (float)energy / 100.;
@@ -572,7 +565,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
             int                             *underflow,
             vrna_mfe_window_callback        *cb,
 #ifdef VRNA_WITH_SVM
-            vrna_zsc_dat_t                  zsc_data,
             vrna_mfe_window_zscore_callback *cb_z,
 #endif
             void                            *data)
@@ -587,10 +579,12 @@ fill_arrays(vrna_fold_compound_t            *vc,
                 prev_end, prev_en, new_c, stackEnergy;
 
 #ifdef VRNA_WITH_SVM
-  double        prevz;
-  unsigned char with_zscore;
-  unsigned char report_subsumed;
+  double          prevz;
+  unsigned char   with_zscore;
+  unsigned char   report_subsumed;
+  vrna_zsc_dat_t  zsc_data;
 #endif
+
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
@@ -614,8 +608,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
   prev_en       = 0;
 #ifdef VRNA_WITH_SVM
   prevz           = 0.;
-  with_zscore     = vrna_zsc_threshold(zsc_data);
-  report_subsumed = (md->window_zscore_options & VRNA_ZSCORE_REPORT_SUBSUMED) ? (unsigned char)1 : (unsigned char)0;
+  zsc_data        = vc->zscore_data;
+  with_zscore     = (zsc_data) ? zsc_data->filter_on : 0;
+  report_subsumed = (zsc_data) ? zsc_data->report_subsumed : 0;
 #endif
 
   c   = vc->matrices->c_local;
@@ -695,11 +690,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
-#ifdef VRNA_WITH_SVM
-    f3[i] = vrna_E_ext_loop_3(vc, i, zsc_data);
-#else
     f3[i] = vrna_E_ext_loop_3(vc, i);
-#endif
     {
       char *ss = NULL;
 
@@ -716,7 +707,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
         if (jj > 0) {
 #ifdef VRNA_WITH_SVM
           double thisz = 0;
-          if (vrna_zsc_want_backtrack(vc, ii, jj, zsc_data, &thisz)) {
+          if (want_backtrack(vc, ii, jj, &thisz)) {
 #endif
           ss = backtrack(vc, ii, jj);
           if (prev) {
@@ -776,7 +767,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
           if (jj > 0) {
 #ifdef VRNA_WITH_SVM
             double thisz = 0;
-            if (vrna_zsc_want_backtrack(vc, ii, jj, zsc_data, &thisz)) {
+            if (want_backtrack(vc, ii, jj, &thisz)) {
 #endif
             ss = backtrack(vc, ii, jj);
 #ifdef VRNA_WITH_SVM
@@ -839,6 +830,39 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
   return f3[1];
 }
+
+#ifdef VRNA_WITH_SVM
+PRIVATE INLINE int
+want_backtrack(vrna_fold_compound_t *fc,
+               int                  i,
+               int                  j,
+               double               *z)
+{
+  int bt, *f3;
+
+  bt = 1; /* we want to backtrack by default */
+  *z = (double)INF;
+
+  if ((fc->zscore_data) &&
+      (fc->zscore_data->filter_on)) {
+    if ((fc->zscore_data->pre_filter) &&
+        (fc->zscore_data->current_i == i)) {
+      *z = fc->zscore_data->current_z[j];
+    } else {
+      bt  = 0;
+      f3  = fc->matrices->f3_local;
+      *z  = vrna_zsc_compute(fc, i, j, f3[i] - f3[j + 1]);
+    }
+
+    if ((*z) <= fc->zscore_data->min_z)
+      bt = 1;
+  }
+
+  return bt;
+}
+
+
+#endif
 
 
 PRIVATE char *
@@ -1199,11 +1223,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
-#ifdef VRNA_WITH_SVM
-    f3[i] = vrna_E_ext_loop_3(fc, i, NULL);
-#else
     f3[i] = vrna_E_ext_loop_3(fc, i);
-#endif
 
     if (f3[i] < f3[i + 1]) {
       /*

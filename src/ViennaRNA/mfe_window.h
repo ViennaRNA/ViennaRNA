@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <ViennaRNA/fold_compound.h>
 
+#ifdef VRNA_WITH_SVM
+#include <ViennaRNA/zscore.h>
+#endif
+
 /**
  *
  *  @file mfe_window.h
@@ -115,14 +119,6 @@ vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
 
 
 #ifdef VRNA_WITH_SVM
-
-#define VRNA_ZSCORE_SETTINGS_NONE     0U
-#define VRNA_ZSCORE_THRESHOLD         1U
-#define VRNA_ZSCORE_HARD_FILTER       2U
-#define VRNA_ZSCORE_REPORT_SUBSUMED   4U
-#define VRNA_ZSCORE_MODEL_DEFAULT     8U
-#define VRNA_ZSCORE_SETTINGS_DEFAULT  (VRNA_ZSCORE_THRESHOLD | VRNA_ZSCORE_MODEL_DEFAULT)
-
 /**
  *  @brief Local MFE prediction using a sliding window approach (with z-score cut-off)
  *

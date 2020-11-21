@@ -27,9 +27,6 @@
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
 #include "ViennaRNA/constraints/SHAPE.h"
-#include "ViennaRNA/eval.h"
-#include "ViennaRNA/alphabet.h"
-
 #include "RNALfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
@@ -73,7 +70,7 @@ main(int  argc,
                               *shape_file, *shape_method, *shape_conversion;
   unsigned int                rec_type, read_opt;
   int                         length, istty, noconv, maxdist, zsc, tofile, filename_full,
-                              with_shapes, verbose, backtrack, zsc_hard;
+                              with_shapes, verbose, backtrack, zsc_pre, zsc_subsumed;
   double                      min_en, min_z;
   long int                    file_pos_start, file_pos_end;
   vrna_md_t                   md;
@@ -87,7 +84,8 @@ main(int  argc,
   dangles       = 2;
   maxdist       = 150;
   zsc           = 0;
-  zsc_hard      = 0;
+  zsc_pre       = 0;
+  zsc_subsumed  = 0;
   min_z         = -2.0;
   gquad         = 0;
   rec_type      = read_opt = 0;
@@ -177,14 +175,12 @@ main(int  argc,
     if (args_info.zscore_arg != -2)
       min_z = args_info.zscore_arg;
 
-    if (args_info.zscore_hard_filter_given)
-      md.window_zscore_options |= VRNA_ZSCORE_HARD_FILTER;
+    if ((args_info.zscore_pre_filter_given) ||
+        (backtrack)) /* global backtracing implies hard z-score filter! */
+      zsc_pre = 1;
 
     if (args_info.zscore_report_subsumed_given)
-      md.window_zscore_options |= VRNA_ZSCORE_REPORT_SUBSUMED;
-
-    if (backtrack) /* global backtracing implies hard z-score filter! */
-      md.window_zscore_options |= VRNA_ZSCORE_HARD_FILTER;
+      zsc_subsumed = 1;
 #else
     vrna_message_error("\'z\' option is available only if compiled with SVM support!");
 #endif
@@ -367,6 +363,20 @@ main(int  argc,
                                  verbose,
                                  VRNA_OPTION_WINDOW);
     }
+
+#ifdef VRNA_WITH_SVM
+    if (zsc) {
+      unsigned int zsc_options = VRNA_ZSCORE_FILTER_ON;
+
+      if (zsc_pre)
+        zsc_options |= VRNA_ZSCORE_PRE_FILTER;
+
+      if (zsc_subsumed)
+        zsc_options |= VRNA_ZSCORE_REPORT_SUBSUMED;
+
+      vrna_zsc_filter_init(vc, min_z, zsc_options);
+    }
+#endif
 
     hit_data data;
     data.output       = output;

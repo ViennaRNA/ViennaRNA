@@ -175,6 +175,9 @@ vrna_fold_compound_free(vrna_fold_compound_t *fc)
     /* free local folding related stuff (should be NULL if not used) */
     free(fc->ptype_local);
     free(fc->pscore_local);
+#ifdef VRNA_WITH_SVM
+    vrna_zsc_filter_free(fc);
+#endif
 
     if (fc->free_auxdata)
       fc->free_auxdata(fc->auxdata);
@@ -943,5 +946,8 @@ nullify(vrna_fold_compound_t *fc)
 
     fc->window_size = -1;
     fc->ptype_local = NULL;
+#ifdef VRNA_WITH_SVM
+    fc->zscore_data = NULL;
+#endif
   }
 }

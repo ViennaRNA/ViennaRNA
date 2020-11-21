@@ -105,8 +105,13 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 #include <ViennaRNA/constraints/hard.h>
 #include <ViennaRNA/constraints/soft.h>
 #include <ViennaRNA/grammar.h>
-#include "ViennaRNA/structured_domains.h"
-#include "ViennaRNA/unstructured_domains.h"
+#include <ViennaRNA/structured_domains.h>
+#include <ViennaRNA/unstructured_domains.h>
+
+#ifdef VRNA_WITH_SVM
+#include <ViennaRNA/zscore.h>
+#endif
+
 
 /**
  *  @brief  An enumerator that is used to specify the type of a #vrna_fold_compound_t
@@ -332,6 +337,10 @@ struct {
    */
   int   window_size;              /**<  @brief  window size for local folding sliding window approach */
   char  **ptype_local;            /**<  @brief  Pair type array (for local folding) */
+#ifdef VRNA_WITH_SVM
+  vrna_zsc_dat_t  zscore_data;
+#endif
+
   /**
    *  @}
    */

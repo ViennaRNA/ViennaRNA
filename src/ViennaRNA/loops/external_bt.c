@@ -26,6 +26,10 @@
 # define INLINE
 #endif
 
+#ifdef VRNA_WITH_SVM
+#include "ViennaRNA/zscore_dat.inc"
+#endif
+
 #include "external_hc.inc"
 #include "external_sc.inc"
 
@@ -1165,12 +1169,15 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     short                     *S1;
     unsigned int              type;
     int                       traced2, length, turn, dangle_model, with_gquad, maxdist, cc,
-                              **c, **ggg, *f3, fij, ii;
+                              **c, **ggg, *f3, fij, ii, zsc_pre_filter;
     vrna_param_t              *P;
     vrna_md_t                 *md;
     vrna_sc_t                 *sc;
     vrna_callback_hc_evaluate *evaluate;
     struct default_data       hc_dat_local;
+#ifdef VRNA_WITH_SVM
+    vrna_zsc_dat_t            zsc_data;
+#endif
 
     length        = fc->length;
     S1            = fc->sequence_encoding;
@@ -1188,6 +1195,13 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     traced2       = 0;
     ii            = start;
     evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
+#ifdef VRNA_WITH_SVM
+    zsc_data        = fc->zscore_data;
+    zsc_pre_filter  = ((zsc_data) &&
+                       (zsc_data->filter_on) &&
+                       (zsc_data->pre_filter) &&
+                       (zsc_data->current_i == ii)) ? 1 : 0;
+#endif
 
     fij = f3[start];
 
@@ -1211,6 +1225,11 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
       case 0:
         for (j = start + turn; j <= ii + maxdist; j++) {
           if (evaluate(start, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
+#ifdef VRNA_WITH_SVM
+            if ((zsc_pre_filter) &&
+                (zsc_data->current_z[j] > zsc_data->min_z))
+              continue;
+#endif
             type = vrna_get_ptype_window(start, j, ptype);
 
             cc = c[start][j - start] +
@@ -1239,6 +1258,11 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
       case 2:
         for (j = start + turn; j <= ii + maxdist; j++) {
           if (evaluate(start, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
+#ifdef VRNA_WITH_SVM
+            if ((zsc_pre_filter) &&
+                (zsc_data->current_z[j] > zsc_data->min_z))
+              continue;
+#endif
             type = vrna_get_ptype_window(start, j, ptype);
 
             cc = c[start][j - start] +
