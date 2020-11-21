@@ -225,9 +225,6 @@ struct vrna_md_s {
                                              *    be 0 in cofolding context.
                                              */
   int     window_size;                      /**<  @brief  Size of the sliding window for locally optimal structure prediction */
-#ifdef VRNA_WITH_SVM
-  unsigned int window_zscore_options;       /**<  @brief  If not 0, only consider external loop stems that satisfy the z-score threshold (experimental, do not use in third-party apps) */
-#endif
   int     oldAliEn;                         /**<  @brief  Use old alifold energy model */
   int     ribo;                             /**<  @brief  Use ribosum scoring table in alifold energy model */
   double  cv_fact;                          /**<  @brief  Co-variance scaling factor for consensus structure prediction */

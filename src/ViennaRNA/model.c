@@ -118,9 +118,6 @@ PRIVATE vrna_md_t defaults = {
   VRNA_MODEL_DEFAULT_MAX_BP_SPAN,
   TURN,
   VRNA_MODEL_DEFAULT_WINDOW_SIZE,
-#ifdef VRNA_WITH_SVM
-  (unsigned int)0,
-#endif
   VRNA_MODEL_DEFAULT_ALI_OLD_EN,
   VRNA_MODEL_DEFAULT_ALI_RIBO,
   VRNA_MODEL_DEFAULT_ALI_CV_FACT,
@@ -330,9 +327,6 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.max_bp_span      = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;
   defaults.min_loop_size    = TURN;
   defaults.window_size      = VRNA_MODEL_DEFAULT_WINDOW_SIZE;
-#ifdef VRNA_WITH_SVM
-  defaults.window_zscore_options = (unsigned int)0;
-#endif
   defaults.oldAliEn         = VRNA_MODEL_DEFAULT_ALI_OLD_EN;
   defaults.ribo             = VRNA_MODEL_DEFAULT_ALI_RIBO;
   defaults.cv_fact          = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
@@ -367,9 +361,6 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_max_bp_span(md_p->max_bp_span);
     vrna_md_defaults_min_loop_size(md_p->min_loop_size);
     vrna_md_defaults_window_size(md_p->window_size);
-#ifdef VRNA_WITH_SVM
-    defaults.window_zscore_options = md_p->window_zscore_options;
-#endif
     vrna_md_defaults_oldAliEn(md_p->oldAliEn);
     vrna_md_defaults_ribo(md_p->ribo);
     vrna_md_defaults_cv_fact(md_p->cv_fact);
@@ -994,9 +985,6 @@ set_model_details(vrna_md_t *md)
     md->max_bp_span     = max_bp_span;
     md->min_loop_size   = TURN;
     md->window_size     = VRNA_MODEL_DEFAULT_WINDOW_SIZE;
-#ifdef VRNA_WITH_SVM
-    md->window_zscore_options = (unsigned int)0;
-#endif
     md->oldAliEn        = oldAliEn;
     md->ribo            = ribo;
     md->cv_fact         = cv_fact;
