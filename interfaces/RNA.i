@@ -75,6 +75,10 @@ extern "C" {
 #include  <ViennaRNA/MEA.h>
 #include  <ViennaRNA/heat_capacity.h>
 
+#ifdef VRNA_WITH_SVM
+#include  <ViennaRNA/zscore.h>
+#endif
+
 #include  <ViennaRNA/inverse.h>
 #include  <ViennaRNA/RNAstruct.h>
 #include  <ViennaRNA/treedist.h>

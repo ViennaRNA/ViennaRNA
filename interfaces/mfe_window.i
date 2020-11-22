@@ -23,10 +23,50 @@
   {
     return vrna_mfe_window_zscore($self, min_z, nullfile);
   }
+
+  int
+  zsc_filter_init(double        min_z   = -2.0,
+                  unsigned int  options = VRNA_ZSCORE_SETTINGS_DEFAULT)
+  {
+    return vrna_zsc_filter_init($self, min_z, options);
+  }
+
+  int
+  zsc_filter_update(double        min_z,
+                    unsigned int  options = VRNA_ZSCORE_OPTIONS_NONE)
+  {
+    return vrna_zsc_filter_update($self, min_z, options);
+  }
+
+  void
+  zsc_filter_free(void)
+  {
+    vrna_zsc_filter_free($self);
+  }
+
+  int
+  zsc_filter_on(void)
+  {
+    return vrna_zsc_filter_on($self);
+  }
+
+  double
+  zsc_filter_threshold(void)
+  {
+    return vrna_zsc_filter_threshold($self);
+  }
+
+  double
+  zsc_compute(unsigned int  i,
+              unsigned int  j,
+              int           e)
+  {
+    return vrna_zsc_compute($self, i, j, e);
+  }
+
 #endif
 }
 
-/* tell swig that these functions return objects that require memory management */
 %ignore Lfoldz;
 %ignore Lfold;
 %ignore aliLfold;
@@ -103,3 +143,15 @@ my_aliLfold(std::vector<std::string> alignment,
 
 
 %include <ViennaRNA/mfe_window.h>
+
+#ifdef VRNA_WITH_SVM
+%constant unsigned int ZSCORE_OPTIONS_NONE      =  VRNA_ZSCORE_OPTIONS_NONE;
+%constant unsigned int ZSCORE_FILTER_ON         =  VRNA_ZSCORE_FILTER_ON;
+%constant unsigned int ZSCORE_PRE_FILTER        = VRNA_ZSCORE_PRE_FILTER;
+%constant unsigned int ZSCORE_REPORT_SUBSUMED   = VRNA_ZSCORE_REPORT_SUBSUMED;
+%constant unsigned int ZSCORE_MODEL_DEFAULT     = VRNA_ZSCORE_MODEL_DEFAULT;
+%constant unsigned int ZSCORE_SETTINGS_DEFAULT  = VRNA_ZSCORE_SETTINGS_DEFAULT;
+
+
+%include <ViennaRNA/zscore.h>
+#endif
