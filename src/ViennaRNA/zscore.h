@@ -11,17 +11,19 @@ typedef struct vrna_zsc_dat_s *vrna_zsc_dat_t;
 #define VRNA_ZSCORE_SETTINGS_DEFAULT  (VRNA_ZSCORE_FILTER_ON | VRNA_ZSCORE_MODEL_DEFAULT)
 
 int
-vrna_zsc_filter_init(vrna_fold_compound_t  *fc,
-                     double                min_z,
-                     unsigned int          options);
+vrna_zsc_filter_init(vrna_fold_compound_t *fc,
+                     double               min_z,
+                     unsigned int         options);
+
 
 int
-vrna_zsc_filter_update(vrna_fold_compound_t  *fc,
-                       double                min_z,
-                       unsigned int          options);
+vrna_zsc_filter_update(vrna_fold_compound_t *fc,
+                       double               min_z,
+                       unsigned int         options);
+
 
 void
-vrna_zsc_filter_free(vrna_fold_compound_t  *fc);
+vrna_zsc_filter_free(vrna_fold_compound_t *fc);
 
 
 int
@@ -37,5 +39,6 @@ vrna_zsc_compute(vrna_fold_compound_t *fc,
                  unsigned int         i,
                  unsigned int         j,
                  int                  e);
+
 
 #endif
