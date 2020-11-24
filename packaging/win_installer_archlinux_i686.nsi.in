@@ -124,6 +124,7 @@ section "Core" sec_core
   File "/usr/i686-w64-mingw32/bin/libmpfr-6.dll"
   File "/usr/i686-w64-mingw32/bin/libgmp-10.dll"
   File "/usr/i686-w64-mingw32/bin/libgmpxx-4.dll"
+  File "/usr/i686-w64-mingw32/bin/libssp-0.dll"
 
   File ".local"
 
@@ -244,6 +245,7 @@ section "Uninstall"
   delete $INSTDIR\libmpfr-6.dll
   delete $INSTDIR\libgmp-10.dll
   delete $INSTDIR\libgmpxx-4.dll
+  delete $INSTDIR\libssp-0.dll
   delete $INSTDIR\.local
 
   delete "$INSTDIR\Uninstall-${PACKAGE}.exe"
