@@ -151,8 +151,8 @@ reason detects that your compiler supports this feature although it doesn't, you
 ./configure --disable-lto
 @endverbatim
 
-Note, that GCC before version 5 is known to produce unreliable LTO code, especially in combination with SSE (see @ref config_sse).
-We therefore recommend using a more recent compiler (GCC 5 or above) or to turn off one of the two features, LTO or SSE
+Note, that GCC before version 5 is known to produce unreliable LTO code, especially in combination with SIMD (see @ref config_simd).
+We therefore recommend using a more recent compiler (GCC 5 or above) or to turn off one of the two features, LTO or SIMD
 optimized code.
 
 @subsection config_openmp  OpenMP support
@@ -279,7 +279,7 @@ e.g.:
 
 and start using our fast and efficient algorithm implementations.
 
-@see In the @ref mp_example and @ref newAPI_examples sections, we list a small set of example code that usually is a good starting point for
+@see In the @ref examples_c and @ref newAPI_examples sections, we list a small set of example code that usually is a good starting point for
 your application.
 
 @subsection linking_flags   Compiler and Linker flags

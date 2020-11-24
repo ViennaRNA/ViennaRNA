@@ -79,7 +79,7 @@
  *  by the implementations in the submodules
  *
  *  - @ref SHAPE_reactivities and
- *  - @ref ligands.
+ *  - @ref constraints_ligand.
  *
  *  An implementation that generates soft constraints for unpaired nucleotides
  *  by minimizing the discrepancy between their predicted and expected pairing

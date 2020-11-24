@@ -70,7 +70,7 @@ typedef struct {
  *  @endcode
  *
  *  @note On success, this function allocates memory for X, Y and arc coordinates and assigns
- *  the pointers at addressess @p x, @p y and @arc_coords to the corresponding memory locations. It's
+ *  the pointers at addressess @p x, @p y and @p arc_coords to the corresponding memory locations. It's
  *  the users responsibility to cleanup this memory after usage!
  *
  *  @see  vrna_plot_coords(), vrna_plot_coords_puzzler_pt(), vrna_plot_coords_circular(),
@@ -99,7 +99,7 @@ vrna_plot_coords_puzzler(const char                   *structure,
  *  information as input.
  *
  *  @note On success, this function allocates memory for X, Y and arc coordinates and assigns
- *  the pointers at addressess @p x, @p y and @arc_coords to the corresponding memory locations. It's
+ *  the pointers at addressess @p x, @p y and @p arc_coords to the corresponding memory locations. It's
  *  the users responsibility to cleanup this memory after usage!
  *
  *  @see  vrna_plot_coords_pt(), vrna_plot_coords_puzzler(), vrna_plot_coords_circular_pt(),

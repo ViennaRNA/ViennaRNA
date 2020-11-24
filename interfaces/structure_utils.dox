@@ -24,7 +24,7 @@ This function is available as an overloaded version of vrna_db_flatten()
 @scripting
 @parblock
 This function is available as an overloaded function @p db_pk_remove() where
-the optional second parameter @p options defaults to #VRNA_BRACKET_ANY.
+the optional second parameter @p options defaults to #VRNA_BRACKETS_ANY.
 @endparblock
 
 */

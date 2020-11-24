@@ -265,7 +265,7 @@ vrna_seq_toupper(char *sequence);
  *  @return           A copy of the input sequence with all gap characters removed
  */
 char *
-vrna_seq_ungapped(const char *seq);
+vrna_seq_ungapped(const char *sequence);
 
 
 /**

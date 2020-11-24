@@ -179,9 +179,7 @@ vrna_heat_capacity_simple(const char    *sequence,
 /* End basic interface */
 /**@}*/
 
-/*
- * End thermodynamics melting
- **@}
- */
+/* End thermodynamics */
+/**@}*/
 
 #endif

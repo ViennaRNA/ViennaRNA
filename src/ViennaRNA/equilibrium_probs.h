@@ -174,7 +174,6 @@ vrna_stack_prob(vrna_fold_compound_t  *vc,
 /**@}*/
 
 /**
- *  @addtogroup thermodynamics
  *  @name Multimer probabilities computations
  *  @{
  */
@@ -251,9 +250,7 @@ vrna_pr_energy(vrna_fold_compound_t *vc,
 /* End structure probability related functions */
 /**@}*/
 
-/*
- * End thermodynamics melting
- **@}
- */
+/* End thermodynamics */
+/**@}*/
 
 #endif

@@ -45,6 +45,6 @@ compatibility in one of our next releases of ViennaRNA Package 2.x.
 @section newAPI_examples  Some Examples using RNAlib API v3.0
 
 Examples on how to use the new v3.0 API can be found in the
-@ref examples_c_new_API section.
+@ref ex_c_fc section.
 
  */

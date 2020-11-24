@@ -47,8 +47,7 @@ We implement a wide variety of variants of the partition function algorithm acco
 McCaskill 1990 @cite mccaskill:1990. See the corresponding submodules for specific implementation
 details.
 
-@see @ref pf_fold, @ref consensus_pf_fold, @ref pf_cofold, @ref up_cofold, @ref local_pf_fold,
-     @ref kl_neighborhood_pf
+@see @ref pf_fold, @ref cofold, @ref up_cofold, @ref kl_neighborhood_pf
 
 @htmlonly
 <hr>

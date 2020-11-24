@@ -13,6 +13,9 @@ Using the flat interface
 - MFE prediction
 @include  helloworld_mfe.pl
 
+- comparative MFE prediction for sequence alignments
+@include helloworld_mfe_comparative.pl
+
 Using the object oriented interface
 -----------------------------------
 
@@ -22,16 +25,10 @@ Using the object oriented interface
 Changing the Model Settings
 ===========================
 
-Using the flat interface
-------------------------
-
-- MFE prediction at different temperature and dangle model
-@include  helloworld_nondefault.pl
-
 Using the object oriented interface
 -----------------------------------
 
 - MFE prediction at different temperature and dangle model
-@include  oo_mfe_nondefault.pl
+@include  helloworld_nondefault.pl
 
 */

@@ -178,7 +178,7 @@ vrna_ht_remove(vrna_hash_table_t  ht,
  *
  *  This function removes all entries from the hash table and
  *  automatically free's the memory occupied by each entry using
- *  the bound @vrna_callback_ht_free_entry() function.
+ *  the bound #vrna_callback_ht_free_entry() function.
  *
  *  @see vrna_ht_free(), vrna_ht_init()
  *

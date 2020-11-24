@@ -18,7 +18,7 @@ This function is attached as method @b mfe_dimer() to objects of type @em fold_c
 This function is attached as method @b mfe_window() to objects of type @em fold_compound
 @endparblock
 
-@fn float vrna_backtrack5(vrna_fold_compound_t *vc, unsigned int length, char *structure)
+@fn float vrna_backtrack5(vrna_fold_compound_t *fc, unsigned int length, char *structure)
 @scripting
 @parblock
 This function is attached as overloaded method @b backtrack() to objects of type

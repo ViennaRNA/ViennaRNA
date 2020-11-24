@@ -58,7 +58,7 @@ relevant functions of the C-library are attached as methods.
 @section scripting_examples Examples
 
 Examples on the basic usage of the scripting language interfaces can be
-found in the @ref scripting_perl_examples and @ref scripting_python_examples
+found in the @ref examples_perl5 and @ref examples_python
 section.
 
 @section scripting_wrapper_notes  SWIG generated Wrapper notes

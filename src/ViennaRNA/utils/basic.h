@@ -216,7 +216,7 @@ vrna_time_stamp(void);
  *  This function returns the type of input it has read if recognized.
  *  An option argument allows one to switch between different reading modes.\n
  *  Currently available options are:\n
- *  #VRNA_INPUT_NOPRINT_COMMENTS, #VRNA_INPUT_NOSKIP_COMMENTS, #VRNA_INPUT_NOELIM_WS_SUFFIX
+ *  #VRNA_INPUT_COMMENT, #VRNA_INPUT_NOSKIP_COMMENTS, #VRNA_INPUT_NO_TRUNCATION
  *
  *  pass a collection of options as one value like this:
  *  @verbatim get_input_line(string, option_1 | option_2 | option_n) @endverbatim

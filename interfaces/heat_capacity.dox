@@ -14,8 +14,7 @@ they default to 0.0, 100.0, 1.0 and 2, respectively.
 This function is attached as method @b heat_capacity_cb() to objects of type @em fold_compound
 @endparblock
 
-@fn vrna_heat_capacity_t *
-vrna_heat_capacity_simple(const char *sequence, float T_min, float T_max, float T_increment, unsigned int mpoints)
+@fn vrna_heat_capacity_t *vrna_heat_capacity_simple(const char *sequence, float T_min, float T_max, float T_increment, unsigned int mpoints)
 @scripting
 @parblock
 This function is available as overloaded function @b heat_capacity().
