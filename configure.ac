@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 m4_define([vrna_version_major], [2])
 m4_define([vrna_version_minor], [4])
-m4_define([vrna_version_patch], [16])
+m4_define([vrna_version_patch], [17])
 
 dnl Every other copy of the package version number gets its value from here
 AC_INIT([ViennaRNA],vrna_version_major.vrna_version_minor.vrna_version_patch,[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.at/RNA])

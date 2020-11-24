@@ -4,7 +4,34 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.16...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.17...HEAD)
+
+### [Version 2.4.17](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.16...v2.4.17) (Release date: 2020-11-25)
+
+#### Programs
+  * Fix `RNAup -b` mode with shorter sequence first
+  * Add `--backtrack-global` option to `RNALfold` (currently only available for dangles == 2 | 0)
+  * Add `--zscore-pre-filter` and `--zscore-report-subsumed` options to `RNALfold`
+
+#### Library
+  * API: Fix multiloop backtracing with soft constraints for unpaired positions in `vrna_subopt()` and `vrna_subopt_cb()`
+  * API: Fix parameter parse in `vrna_params_load_from_string()`
+  * API: Add `vrna_heat_capacity()` and `vrna_head_capacity_cb()` functions to RNAlib
+  * API: Add backtracing function `vrna_backtrack_window()` for global MFE structure to sliding-window predictions
+  * API: Add SVG support for `RNApuzzler` structure layouts
+  * API: Make `vrna_md_t` argument to vrna_fold_compound() a constant pointer
+  * API: Remove missing symbols from header file `ViennaRNA/params/default.h`
+  * API: Refactor z-score threshold filter handling for sliding-window MFE prediction
+  * SWIG: Fix typo in interface functions to load DNA parameters
+  * SWIG: Add python-3.9 autoconf checks
+  * SWIG: Add `vrna_head_capacity*()` wrappers
+  * SWIG: Add access to raw energy parameters
+  * SWIG: Add `alias` and `pair` attribute to objects of type `md`
+  * SWIG: Add out/varout typemaps for 2-dimensional int-like arrays
+  * SWIG: Add all data fields to objects of type 'param' and 'exp_param'
+
+#### Package
+  * Fix Debian and Windows installer files
 
 
 ### [Version 2.4.16](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.15...v2.4.16) (Release date: 2020-10-09)
