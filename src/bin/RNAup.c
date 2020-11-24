@@ -611,33 +611,20 @@ main(int  argc,
     if (up_mode & RNA_UP_MODE_3) {
       /* if we haven't seen the target yet, store it now */
       if (s_target == NULL) {
-        if (rotated) {
-          s_target      = s2;
-          orig_target   = orig_s2;
-          s2            = NULL;
-          orig_s2       = NULL;
-          length_target = length2;
-          strcpy(fname_target, fname2);
-          if (fold_constrained) {
-            cstruc_target = cstruc2;
-            cstruc2       = NULL;
-          }
-        } else {
-          s_target      = s1;
-          orig_target   = orig_s1;
-          length_target = length1;
-          s1            = s2;
-          orig_s1       = orig_s2;
-          s2            = NULL;
-          orig_s2       = NULL;
-          length1       = length2;
-          strcpy(fname_target, fname1);
-          strcpy(fname1, fname2);
-          if (fold_constrained) {
-            cstruc_target = cstruc1;
-            cstruc1       = cstruc2;
-            cstruc2       = NULL;
-          }
+        s_target      = s1;
+        orig_target   = orig_s1;
+        length_target = length1;
+        s1            = s2;
+        orig_s1       = orig_s2;
+        s2            = NULL;
+        orig_s2       = NULL;
+        length1       = length2;
+        strcpy(fname_target, fname1);
+        strcpy(fname1, fname2);
+        if (fold_constrained) {
+          cstruc_target = cstruc1;
+          cstruc1       = cstruc2;
+          cstruc2       = NULL;
         }
 
         fname2[0] = '\0';
@@ -712,10 +699,16 @@ main(int  argc,
     unstr_out = pf_unstru(s1, wplus);
     free_pf_arrays();
 
-    if (fold_constrained && !(up_mode & RNA_UP_MODE_1)) {
-      cstruc_combined = (char *)vrna_alloc(sizeof(char) * (length1 + length2 + 1));
-      strncpy(cstruc_combined, cstruc1, length1 + 1);
-      strcat(cstruc_combined, cstruc2);
+    if (fold_constrained) {
+      if (up_mode & RNA_UP_MODE_2) {
+        cstruc_combined = (char *)vrna_alloc(sizeof(char) * (length1 + length2 + 1));
+        strncpy(cstruc_combined, cstruc1, length1 + 1);
+        strcat(cstruc_combined, cstruc2);
+      } else if (up_mode & RNA_UP_MODE_3) {
+        cstruc_combined = (char *)vrna_alloc(sizeof(char) * (length_target + length1 + 1));
+        strncpy(cstruc_combined, cstruc_target, length_target + 1);
+        strcat(cstruc_combined, cstruc1);
+      }
     }
 
     contrib1  = contrib2 = NULL;
