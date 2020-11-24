@@ -637,6 +637,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #endif
 
   if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
+#ifdef VRNA_WITH_SVM
     /* no z-scoring for comparative structure prediction */
     if (zsc_data) {
       vrna_zsc_filter_free(vc);
@@ -644,6 +645,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
       with_zscore     = 0;
       report_subsumed = 0;
     }
+#endif
 
     if (md->ribo) {
       if (RibosumFile != NULL)

@@ -1169,13 +1169,14 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     short                     *S1;
     unsigned int              type;
     int                       traced2, length, turn, dangle_model, with_gquad, maxdist, cc,
-                              **c, **ggg, *f3, fij, ii, zsc_pre_filter;
+                              **c, **ggg, *f3, fij, ii;
     vrna_param_t              *P;
     vrna_md_t                 *md;
     vrna_sc_t                 *sc;
     vrna_callback_hc_evaluate *evaluate;
     struct default_data       hc_dat_local;
 #ifdef VRNA_WITH_SVM
+    int                       zsc_pre_filter;
     vrna_zsc_dat_t            zsc_data;
 #endif
 

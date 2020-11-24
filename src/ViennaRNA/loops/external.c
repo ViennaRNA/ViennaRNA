@@ -955,10 +955,11 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
   char                    **ptype;
   short                   **S, *si;
   unsigned int            s, n_seq, type, length;
-  int                     energy, j, max_j, turn, *c, *stems, maxdist, zsc_pre_filter;
+  int                     energy, j, max_j, turn, *c, *stems, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 #ifdef VRNA_WITH_SVM
+  int                     zsc_pre_filter;
   vrna_zsc_dat_t          zsc_data;
 #endif
 
@@ -1245,10 +1246,11 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
   char                    **ptype;
   short                   **S, **S5, **S3, *S1, si1, sj1, *s5i1, *si;
   unsigned int            s, n_seq, type, length, **a2s;
-  int                     energy, j, max_j, turn, *c, *stems, maxdist, zsc_pre_filter;
+  int                     energy, j, max_j, turn, *c, *stems, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 #ifdef VRNA_WITH_SVM
+  int                     zsc_pre_filter;
   vrna_zsc_dat_t          zsc_data;
 #endif
 
@@ -1538,10 +1540,11 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
   char                    **ptype;
   short                   *S1, **S, **S3, sj1, *si;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, *c, *stems, length, maxdist, zsc_pre_filter;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 #ifdef VRNA_WITH_SVM
+  int                     zsc_pre_filter;
   vrna_zsc_dat_t          zsc_data;
 #endif
 
@@ -1829,10 +1832,11 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
   char                    **ptype;
   short                   *S1, **S, **S5, *s5i1, si, *si1;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, *c, *stems, length, maxdist, zsc_pre_filter;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 #ifdef VRNA_WITH_SVM
+  int                     zsc_pre_filter;
   vrna_zsc_dat_t          zsc_data;
 #endif
 
@@ -2128,10 +2132,11 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
   char                    **ptype;
   short                   *S1, **S, **S5, **S3, *s5i1, si1, sj1, *ssi1;
   unsigned int            s, n_seq, **a2s, type;
-  int                     energy, j, max_j, turn, *c, *stems, length, maxdist, zsc_pre_filter;
+  int                     energy, j, max_j, turn, *c, *stems, length, maxdist;
   vrna_param_t            *P;
   vrna_md_t               *md;
 #ifdef VRNA_WITH_SVM
+  int                     zsc_pre_filter;
   vrna_zsc_dat_t          zsc_data;
 #endif
 
