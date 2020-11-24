@@ -125,7 +125,7 @@ vrna_eval_covar_structure(vrna_fold_compound_t  *vc,
  *
  *  This function is a simplyfied version of vrna_eval_structure_v() that uses the @em default
  *  verbosity level.
- * (
+ *
  *  @see vrna_eval_structure_pt(), vrna_eval_structure_verbose(), vrna_eval_structure_pt_verbose(),
  *
  *  @param vc               A vrna_fold_compound_t containing the energy parameters and model details

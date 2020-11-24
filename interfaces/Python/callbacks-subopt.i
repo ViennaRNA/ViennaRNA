@@ -12,13 +12,23 @@ typedef struct {
   PyObject *data;
 } python_subopt_callback_t;
 
-static python_subopt_callback_t * bind_subopt_callback(PyObject *PyFunc, PyObject *data);
-static void python_wrap_subopt_cb(const char *structure, float energy, void *data);
+static python_subopt_callback_t *
+bind_subopt_callback(PyObject *PyFunc,
+                     PyObject *data);
+
+static void
+python_wrap_subopt_cb(const char *structure,
+                      float      energy,
+                      void       *data);
 
 static python_subopt_callback_t *
-bind_subopt_callback(PyObject *PyFunc, PyObject *data){
-
+bind_subopt_callback(PyObject *PyFunc,
+                     PyObject *data)
+{
   python_subopt_callback_t *cb = (python_subopt_callback_t *)vrna_alloc(sizeof(python_subopt_callback_t));
+
+  Py_INCREF(PyFunc);
+  Py_INCREF(data);
 
   cb->cb    = PyFunc;  /* store callback */
   cb->data  = data;    /* bind data */
@@ -27,19 +37,26 @@ bind_subopt_callback(PyObject *PyFunc, PyObject *data){
 }
 
 static void
-python_wrap_subopt_cb(const char *structure, float energy, void *data){
+release_subopt_callback(python_subopt_callback_t *cb)
+{
+  Py_DECREF(cb->cb);
+  Py_DECREF(cb->data);
+  free(cb); 
+}
 
-  PyObject *func, *arglist, *result, *err;
-  python_subopt_callback_t *cb = (python_subopt_callback_t *)data;
 
-  func = cb->cb;
+static void
+python_wrap_subopt_cb(const char *structure,
+                      float      energy,
+                      void       *data)
+{
+  PyObject                  *func, *arglist, *result, *err, *py_structure, *py_energy;
+  python_subopt_callback_t  *cb;
+
+  cb    = (python_subopt_callback_t *)data;
+  func  = cb->cb;
+
   /* compose argument list */
-#if 0
-  arglist = Py_BuildValue("(z,d,O)", structure, (double)energy, (cb->data) ? cb->data : Py_None);
-  result =  PyObject_CallObject(func, arglist);
-  Py_DECREF(arglist);
-#else
-  PyObject *py_structure, *py_energy;
   py_structure = (structure) ? PyString_FromString(structure) : Py_None;
   py_energy    = PyFloat_FromDouble((double)energy);
   result       = PyObject_CallFunctionObjArgs(func,
@@ -48,9 +65,10 @@ python_wrap_subopt_cb(const char *structure, float energy, void *data){
                                               (cb->data) ? cb->data : Py_None,
                                               NULL);
 
-  Py_DECREF(py_structure);
+  if (py_structure != Py_None)
+    Py_DECREF(py_structure);
+
   Py_DECREF(py_energy);
-#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -81,11 +99,14 @@ python_wrap_subopt_cb(const char *structure, float energy, void *data){
 %feature("autodoc") subopt_cb;
 %feature("kwargs") subopt_cb;
 
-  PyObject *subopt_cb(int delta, PyObject *PyFunc, PyObject *data = Py_None){
-
+  PyObject *
+  subopt_cb(int      delta,
+            PyObject *PyFunc,
+            PyObject *data = Py_None)
+  {
     python_subopt_callback_t *cb = bind_subopt_callback(PyFunc, data);
     vrna_subopt_cb($self, delta, &python_wrap_subopt_cb, (void *)cb);
-    free(cb);
+    release_subopt_callback(cb);
     Py_RETURN_NONE;
   }
 

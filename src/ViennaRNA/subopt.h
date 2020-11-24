@@ -84,6 +84,10 @@ struct vrna_subopt_sol_s {
  *  @}
  */
 
+#define VRNA_UNSORTED                           0
+#define VRNA_SORT_BY_ENERGY_LEXICOGRAPHIC_ASC   1
+#define VRNA_SORT_BY_ENERGY_ASC                 2
+
 /**
  *  @brief Returns list of subopt structures or writes to fp
  * 

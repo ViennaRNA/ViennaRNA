@@ -1,0 +1,83 @@
+# Name of your program
+package "RNAdos" # don't use package if you're using automake
+
+purpose "Calculate the density of states for each energy band of an RNA"
+
+usage "RNAdos [OPTIONS]"
+
+#version "1.0"   # don't use version if you're using automake
+
+# command line options passed to gengetopt
+args "--file-name=RNAdos_cmdl --include-getopt --default-optional --unamed-opts --func-name=RNAdos_cmdline_parser --arg-struct-name=RNAdos_args_info"
+
+
+description "The program reads an RNA sequence and computes the density of states for each energy band.\n\n"
+
+# Options
+section "General Options"
+sectiondesc="Command line options which alter the general behavior of this program\n\n"
+
+option  "verbose" v
+"Be verbose.\n\n"
+flag
+off
+
+
+option  "sequence" s
+"The RNA sequence (ACGU)\n"
+string
+optional
+
+
+option  "max-energy"  e
+"Structures are only counted until this threshold is reached. Default is 0 kcal/mol.\n"
+int
+default="0"
+optional
+
+option  "numThreads"  j
+"Set the number of threads used for calculations (only available when compiled with OpenMP support)\n\n"
+int
+optional
+
+section "Model Details"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+double
+optional
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
+ check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
+ any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
+ dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
+ of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
+ of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
+ -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
+ -d2 setting, i.e. dangling ends will be treated differently.\n\n"
+int
+default="2"
+optional
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n\n"
+string
+typestr="paramfile"
+optional
+
+section "Advanced options"
+
+option  "hashtable-bits"  b
+"Set the size of the hash table for each cell in the dp-matrices.\n\n"
+int
+default="20"
+optional
+
+
+text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
+ rna@tbi.univie.ac.at.\n\n"

@@ -4,7 +4,7 @@
 
 AC_DEFUN([RNA_ENABLE_SVM],[
 
-  SVM_VERSION=3.23
+  SVM_VERSION=3.24
 
   RNA_ADD_PACKAGE([svm],
                   [svm classifiers],

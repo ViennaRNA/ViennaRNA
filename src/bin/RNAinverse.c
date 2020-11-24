@@ -138,8 +138,12 @@ main(int  argc,
   /* free allocated memory of command line data structure */
   RNAinverse_cmdline_parser_free(&args_info);
 
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+  if (ParamFile != NULL) {
+    if (!strcmp(ParamFile, "DNA"))
+        vrna_params_load_DNA_Mathews2004();
+    else
+      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
+  }
 
   kT = (temperature + 273.15) * 1.98717 / 1000.0;
 

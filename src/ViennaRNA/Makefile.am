@@ -13,6 +13,7 @@ vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_iodir              = $(pkgincludedir)/io
 vrna_searchdir          = $(pkgincludedir)/search
 vrna_plottingdir        = $(pkgincludedir)/plotting
+vrna_puzzlerdir         = $(pkgincludedir)/plotting/RNApuzzler
 vrna_loopsdir           = $(pkgincludedir)/loops
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 vrna_landscapedir       = $(pkgincludedir)/landscape
@@ -199,6 +200,7 @@ vrna_utils_HEADERS = \
     utils/alignments.h \
     utils/higher_order_functions.h \
     utils/cpu.h \
+    utils/units.h \
     ${SVM_UTILS_H}
 
 
@@ -212,7 +214,9 @@ vrna_plotting_HEADERS = \
     plotting/probabilities.h \
     plotting/structures.h \
     plotting/utils.h \
-    plotting/naview.h \
+    plotting/naview.h
+
+vrna_puzzler_HEADERS = \
     plotting/RNApuzzler/RNApuzzler.h \
     plotting/RNApuzzler/RNAturtle.h
 
@@ -241,6 +245,7 @@ vrna_datastructures_HEADERS = \
 
 
 vrna_landscape_HEADERS = \
+    landscape/paths.h \
     landscape/findpath.h \
     landscape/neighbor.h \
     landscape/walk.h \
@@ -319,12 +324,12 @@ libRNA_utils_la_SOURCES = \
     utils/msa_utils.c \
     utils/higher_order_functions.c \
     utils/cpu.c \
+    utils/units.c \
     io/io_utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \
     search/BoyerMoore.c \
     commands.c \
-    units.c \
     combinatorics.c \
     ${SVM_UTILS}
 
@@ -447,6 +452,7 @@ noinst_HEADERS  = params/intl11.h \
 nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
+              constraints/hc_depot.inc \
               loops/external_hc.inc \
               loops/external_sc.inc \
               loops/external_sc_pf.inc \

@@ -22,6 +22,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/MEA.h"
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -91,10 +92,10 @@ vrna_db_pack(const char *struc)
         case '(':
         case '\0':
           break;
-        case '.':
+        case ')':
           p++;
           break;
-        case ')':
+        case '.':
           p += 2;
           break;
         default:
@@ -124,7 +125,7 @@ vrna_db_unpack(const char *packed)
   char                *struc;
   unsigned const char *pp;
   char                code[3] = {
-    '(', '.', ')'
+    '(', ')', '.'
   };
 
   l     = (int)strlen(packed);
@@ -143,7 +144,9 @@ vrna_db_unpack(const char *packed)
     j += 5;
   }
   struc[j--] = '\0';
-  while (struc[j] == '(') /* strip trailing ( */
+  /* strip trailing ( */
+  while ((j >= 0) &&
+         (struc[j] == '('))
     struc[j--] = '\0';
 
   return struc;
@@ -236,6 +239,74 @@ vrna_loopidx_from_ptable(const short *pt)
 }
 
 
+PUBLIC short *
+vrna_pt_pk_remove(const short   *ptable,
+                  unsigned int  options)
+{
+  short *pt = NULL;
+
+  if (ptable) {
+    char          *mea_structure;
+    unsigned int  i, j, n;
+    vrna_ep_t     *pairs;
+
+    n             = (unsigned int)ptable[0];
+    mea_structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
+    pairs         = (vrna_ep_t *)vrna_alloc(sizeof(vrna_ep_t) * (n + 1));
+
+    /* compose list of pairs to be used in MEA() function */
+    for (j = 0, i = 1; i <= n; i++)
+      if (ptable[i] > i) {
+        pairs[j].i    = i;
+        pairs[j].j    = ptable[i];
+        pairs[j].p    = 1.;
+        pairs[j].type = VRNA_PLIST_TYPE_BASEPAIR;
+        j++;
+      }
+
+    pairs[j].i    = 0;
+    pairs[j].j    = 0;
+    pairs[j].p    = 0;
+    pairs[j].type = VRNA_PLIST_TYPE_BASEPAIR;
+
+    /* use MEA() implementation to remove crossing base pairs */
+    memset(mea_structure, '.', n);
+
+    (void)MEA(pairs, mea_structure, 2.0);
+
+    /* convert dot-bracket structure to pair table */
+    pt = vrna_ptable(mea_structure);
+
+    free(mea_structure);
+    free(pairs);
+  }
+
+  return pt;
+}
+
+
+PUBLIC char *
+vrna_db_pk_remove(const char    *structure,
+                  unsigned int  options)
+{
+  char  *s;
+  short *pt_pk, *pt;
+
+  s = NULL;
+
+  if (structure) {
+    pt_pk = vrna_ptable_from_string(structure, options & VRNA_BRACKETS_ANY);
+    pt    = vrna_pt_pk_remove(pt_pk, options);
+    s     = vrna_db_from_ptable(pt);
+
+    free(pt_pk);
+    free(pt);
+  }
+
+  return s;
+}
+
+
 PUBLIC char *
 vrna_db_from_ptable(short *pt)
 {
@@ -288,6 +359,17 @@ vrna_db_flatten_to(char         *string,
 
     if (options & VRNA_BRACKETS_SQR)
       flatten_brackets(string, "<>", target);
+
+    if (options & VRNA_BRACKETS_ALPHA) {
+      char pairs[3];
+
+      for (int i = 65; i < 91; i++) {
+        pairs[0]  = (char)i;
+        pairs[1]  = (char)(i + 32);
+        pairs[2]  = '\0';
+        flatten_brackets(string, pairs, target);
+      }
+    }
   }
 }
 
@@ -341,7 +423,7 @@ vrna_ptable_from_string(const char    *string,
   if (options & VRNA_BRACKETS_ALPHA) {
     for (i = 65; i < 91; i++) {
       pairs[0]  = (char)i;
-      pairs[1]  = (char)(i + 7);
+      pairs[1]  = (char)(i + 32);
       pairs[2]  = '\0';
       if (!extract_pairs(pt, string, pairs)) {
         free(pt);

@@ -72,11 +72,6 @@ formats, and various output file formats produced by our library.
 - @subpage  examples_perl5
 - @subpage  examples_python
 
-
-@page changelog   Changelog
-
-@includedoc ChangeLog
-
 */
 
 
@@ -187,8 +182,14 @@ formats, and various output file formats produced by our library.
 @defgroup   neighbors                 Neighborhood Relation and Move Sets for Secondary Structures
 @ingroup    landscape
 
-@defgroup   paths                     Refolding Paths of Secondary Structures
+@defgroup   paths                     (Re-)folding Paths, Saddle Points, Energy Barriers, and Local Minima
 @ingroup    landscape
+
+@defgroup   paths_direct              Direct Refolding Paths between two Secondary Structures
+@ingroup    paths
+
+@defgroup   paths_walk                Folding Paths that start at a single Secondary Structure
+@ingroup    paths
 
 @defgroup   probing_data              Experimental Structure Probing Data
 @brief                                Include Experimental Structure Probing Data to Guide Structure Predictions
@@ -238,9 +239,6 @@ formats, and various output file formats produced by our library.
 
 @defgroup   energy_parameters_convert Converting Energy Parameter Files
 @ingroup    energy_parameters_rw
-
-@defgroup   direct_paths              Direct Refolding Paths between two Secondary Structures
-@ingroup    paths
 
 @defgroup   alphabet_utils            Utilities to deal with Nucleotide Alphabets
 @ingroup    utils
@@ -346,5 +344,8 @@ formats, and various output file formats produced by our library.
 
 @defgroup   plotting_utils_deprecated Deprecated Interface for Plotting Utilities
 @ingroup    plotting_utils
+
+@defgroup   paths_deprecated          Deprecated Interface for (Re-)folding Paths, Saddle Points, and Energy Barriers
+@ingroup    paths
 
 */

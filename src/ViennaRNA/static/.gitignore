@@ -1,3 +1,4 @@
 *.hex
 templates_postscript.h
-
+energy_parameter_sets.h
+misc/

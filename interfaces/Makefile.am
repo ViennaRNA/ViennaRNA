@@ -15,13 +15,15 @@ SOURCES = \
     duplex.i \
     eval.i \
     file_formats.i \
-    findpath.i \
+    paths.i \
     fold_compound.i \
     grammar.i \
     inverse.i \
+    loops.i \
     mfe.i \
     mfe_window.i \
     model_details.i \
+    move.i \
     neighbor.i \
     params.i \
     part_func.i \
@@ -46,7 +48,7 @@ DOXYGEN_DOCUMENTATION = \
     constraints_SHAPE.dox \
     constraints_soft.dox \
     eval.dox \
-    findpath.dox \
+    paths.dox \
     fold_compound.dox \
     grammar.dox \
     mfe.dox \
@@ -55,6 +57,7 @@ DOXYGEN_DOCUMENTATION = \
     params.dox \
     part_func.dox \
     plotting.dox \
+    sequence.dox \
     subopt.dox \
     walk.dox
 
@@ -71,16 +74,18 @@ EXTRA_DIST = \
     duplex.i \
     eval.i \
     file_formats.i \
-    findpath.i \
     fold_compound.i \
     grammar.i \
     inverse.i \
+    loops.i \
     mfe.i \
     mfe_window.i \
     model_details.i \
+    move.i \
     neighbor.i \
     params.i \
     part_func.i \
+    paths.i \
     pf_window.i \
     plotting.i \
     sequence.i \

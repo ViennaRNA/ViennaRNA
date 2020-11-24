@@ -1,0 +1,8 @@
+#ifndef VIENNA_RNA_PACKAGE_ENERGY_PARAMETER_SETS_H
+#define VIENNA_RNA_PACKAGE_ENERGY_PARAMETER_SETS_H
+
+/* The strings below are automatically generated from corresponding .par files */
+
+@ENERGY_PARAMETER_CONST@
+
+#endif

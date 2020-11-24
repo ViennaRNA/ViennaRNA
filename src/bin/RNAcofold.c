@@ -500,7 +500,6 @@ main(int  argc,
   }
 
   UNINIT_PARALLELIZATION
-
   /*
    ################################################
    # post processing
@@ -669,6 +668,9 @@ process_record(struct record_data *record)
                                                 VRNA_OPTION_DEFAULT | VRNA_OPTION_HYBRID);
   n = vc->length;
 
+  if (vc->strands > 2)
+    vrna_message_error("More than one strand delimiter in input!");
+
   /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
   o_stream->data = vrna_cstr(6 * n, stdout);
   /* retrieve string stream bound to stderr for any info messages */
@@ -684,7 +686,6 @@ process_record(struct record_data *record)
                         (int)n - vc->cutpoint + 1);
     }
   }
-
 
   if (vc->cutpoint == vc->length / 2 + 1) {
     if (!strncmp(vc->sequence, vc->sequence + vc->cutpoint - 1, vc->cutpoint - 1)) {
@@ -1014,7 +1015,7 @@ process_record(struct record_data *record)
 
         /*AB dot_plot*/
         fname_dot = vrna_strdup_printf("AB%s", filename_dot);
-        seq       = vrna_strdup_printf("%s%s", orig_Astring, orig_Bstring);
+        seq       = vrna_strdup_printf("%s&%s", orig_Astring, orig_Bstring);
         comment   = vrna_strdup_printf("Heterodimer AB FreeEnergy= %.9f", AB.FcAB);
         THREADSAFE_FILE_OUTPUT(
           (void)vrna_plot_dp_PS_list(seq,
@@ -1029,7 +1030,7 @@ process_record(struct record_data *record)
 
         /*AA dot_plot*/
         fname_dot = vrna_strdup_printf("AA%s", filename_dot);
-        seq       = vrna_strdup_printf("%s%s", orig_Astring, orig_Astring);
+        seq       = vrna_strdup_printf("%s&%s", orig_Astring, orig_Astring);
         comment   = vrna_strdup_printf("Homodimer AA FreeEnergy= %.9f", AA.FcAB);
         THREADSAFE_FILE_OUTPUT(
           (void)vrna_plot_dp_PS_list(seq,
@@ -1044,7 +1045,7 @@ process_record(struct record_data *record)
 
         /*BB dot_plot*/
         fname_dot = vrna_strdup_printf("BB%s", filename_dot);
-        seq       = vrna_strdup_printf("%s%s", orig_Bstring, orig_Bstring);
+        seq       = vrna_strdup_printf("%s&%s", orig_Bstring, orig_Bstring);
         comment   = vrna_strdup_printf("Homodimer BB FreeEnergy= %.9f", BB.FcAB);
         THREADSAFE_FILE_OUTPUT(
           (void)vrna_plot_dp_PS_list(seq,
@@ -1246,21 +1247,8 @@ compute_MEA(vrna_fold_compound_t  *fc,
 {
   char  *structure, *mea_structure;
   float mea, mea_en;
-  /*  this is a hack since vrna_plist_from_probs() always resolves g-quad pairs,
-   *  while MEA_seq() still expects unresolved gquads */
-  int   gq = fc->exp_params->model_details.gquad;
 
-  /* we need to create a string as long as the sequence for the MEA implementation :( */
-  structure = strdup(fc->sequence);
-
-  fc->exp_params->model_details.gquad = 0;
-  plist *pl = vrna_plist_from_probs(fc, 1e-4 / (1 + MEAgamma));
-  fc->exp_params->model_details.gquad = gq;
-
-  if (gq)
-    mea = MEA_seq(pl, fc->sequence, structure, MEAgamma, fc->exp_params);
-  else
-    mea = MEA(pl, structure, MEAgamma);
+  structure = vrna_MEA(fc, MEAgamma, &mea);
 
   mea_en = vrna_eval_structure(fc, (const char *)structure);
 
@@ -1269,7 +1257,6 @@ compute_MEA(vrna_fold_compound_t  *fc,
 
   vrna_cstr_printf_structure(rec_output, mea_structure, " {%6.2f MEA=%.2f}", mea_en, mea);
 
-  free(pl);
   free(structure);
   free(mea_structure);
 }

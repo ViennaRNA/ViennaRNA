@@ -424,7 +424,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
           type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
           q_temp  *= vrna_exp_E_ext_stem(type,
                                          ((a2s[s][i] > 1) || circular) ? S5[s][i] : -1,
-                                         ((a2s[s][j] < a2s[s][S[0][0]]) || circular) ? S3[s][j] : -1,
+                                         ((a2s[s][j] < a2s[s][n]) || circular) ? S3[s][j] : -1,
                                          pf_params);
         }
         break;

@@ -21,6 +21,7 @@ TEST_EXTENSIONS = .pl .t .py .py3
 if WITH_UNIT_TESTS
 
 AM_TESTS_ENVIRONMENT =  \
+                        CK_DEFAULT_TIMEOUT=20 \
 ## Some environment initializations are kept in a separate shell
 ## file 'tests-env.sh', which can make it easier to also run tests
 ## from the command line.
@@ -156,7 +157,8 @@ CHECKMK_FILES = \
               utils.ts \
               eval_structure.ts \
               walk.ts \
-              neighbor.ts
+              neighbor.ts \
+              hash_table.ts
 
 CHECK_CFILES = \
               energy_evaluation.c \
@@ -166,7 +168,8 @@ CHECK_CFILES = \
               utils.c \
               eval_structure.c \
               walk.c \
-              neighbor.c
+              neighbor.c \
+              hash_table.c
 
 LIBRARY_TESTS = energy_evaluation \
                 constraints \
@@ -175,7 +178,8 @@ LIBRARY_TESTS = energy_evaluation \
                 utils \
                 eval_structure \
                 walk \
-                neighbor
+                neighbor \
+                hash_table
 
 check_PROGRAMS = ${LIBRARY_TESTS}
 

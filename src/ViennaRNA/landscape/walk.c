@@ -497,6 +497,7 @@ gradient_descent(vrna_fold_compound_t *fc,
   struct heap_rev_idx   *lookup;
   vrna_heap_t           h;
   vrna_move_t           *neighbors, *moves_applied, next_move;
+  void                  *ptr;
 
   num_moves     = 0;
   moves_applied = NULL;
@@ -551,6 +552,10 @@ gradient_descent(vrna_fold_compound_t *fc,
       }
     }
   }
+
+  /* remove remaining entries in heap */
+  while ((ptr = vrna_heap_pop(h)))
+    free(ptr);
 
   gradient_descent_data_free(lookup);
   vrna_heap_free(h);

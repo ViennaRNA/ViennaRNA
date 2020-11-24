@@ -54,12 +54,6 @@ endif
 
 RNA_la_LDFLAGS =
 
-if VRNA_AM_SWITCH_LTO
-RNA_la_CFLAGS += $(LTO_CFLAGS)
-RNA_la_CXXFLAGS += $(LTO_CXXFLAGS)
-RNA_la_LDFLAGS += $(LTO_LDFLAGS)
-endif
-
 RNA_la_LDFLAGS += -Xcompiler $(PTHREAD_CFLAGS) \
                   $(PTHREAD_LIBS) \
                   -avoid-version \

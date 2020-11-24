@@ -41,6 +41,8 @@ typedef struct  vrna_hc_s vrna_hc_t;
  */
 typedef struct vrna_hc_up_s vrna_hc_up_t;
 
+typedef struct vrna_hc_depot_s  vrna_hc_depot_t;
+
 /**
  * @brief Callback to evaluate whether or not a particular decomposition step is contributing to the solution space
  *
@@ -319,6 +321,10 @@ typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
                                                               VRNA_CONSTRAINT_CONTEXT_ENCLOSED_LOOPS)
 
 
+#define VRNA_CONSTRAINT_WINDOW_UPDATE_5       1U
+
+#define VRNA_CONSTRAINT_WINDOW_UPDATE_3       2U
+
 /**
  *  @brief  The hard constraints type
  *
@@ -333,16 +339,6 @@ typedef enum {
                      */
 } vrna_hc_type_e;
 
-
-/**
- *  @brief  A base pair hard constraint
- */
-typedef struct {
-  int           interval_start;
-  int           interval_end;
-  unsigned char loop_type;
-  unsigned char replace : 1;
-} vrna_hc_bp_storage_t;
 
 /**
  *  @brief  The hard constraints data structure
@@ -372,6 +368,8 @@ struct vrna_hc_s {
   vrna_hc_type_e  type;
   unsigned int    n;
 
+  unsigned char   state;
+
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
   union {
@@ -386,8 +384,6 @@ struct vrna_hc_s {
     struct {
 #endif
       unsigned char         **matrix_local;
-      unsigned char         *up_storage;
-      vrna_hc_bp_storage_t  **bp_storage;
 #ifndef VRNA_DISABLE_C11_FEATURES
     };
   };
@@ -425,6 +421,8 @@ struct vrna_hc_s {
                                            *    memory, the user may use this pointer to free
                                            *    memory occupied by auxiliary data.
                                            */
+
+  vrna_hc_depot_t             *depot;
 };
 
 /**
@@ -433,7 +431,8 @@ struct vrna_hc_s {
  *  @ingroup hard_constraints
  */
 struct vrna_hc_up_s {
-  int position;           /**<  @brief The sequence position (1-based)  */
+  int   position;           /**<  @brief The sequence position (1-based)  */
+  int   strand;
   unsigned char options;  /**<  @brief The hard constraint option       */
 };
 
@@ -495,9 +494,14 @@ void vrna_hc_init(vrna_fold_compound_t *vc);
 void vrna_hc_init_window(vrna_fold_compound_t *vc);
 
 
+int
+vrna_hc_prepare(vrna_fold_compound_t *fc,
+                unsigned int         options);
+
 void
 vrna_hc_update(vrna_fold_compound_t *fc,
-               unsigned int         i);
+               unsigned int         i,
+               unsigned int         options);
 
 
 /**
@@ -519,6 +523,12 @@ void vrna_hc_add_up(vrna_fold_compound_t  *vc,
                     unsigned char         option);
 
 
+int
+vrna_hc_add_up_strand(vrna_fold_compound_t *fc,
+                      unsigned int         i,
+                      unsigned int         strand,
+                      unsigned char        option);
+
 /**
  *  @brief Apply a list of hard constraints for single nucleotides
  *
@@ -532,6 +542,9 @@ int
 vrna_hc_add_up_batch(vrna_fold_compound_t *vc,
                      vrna_hc_up_t         *constraints);
 
+int
+vrna_hc_add_up_strand_batch(vrna_fold_compound_t *fc,
+                            vrna_hc_up_t         *constraints);
 
 /**
  *  @brief  Favorize/Enforce  a certain base pair (i,j)
@@ -549,11 +562,19 @@ vrna_hc_add_up_batch(vrna_fold_compound_t *vc,
  *  @param  j       The 3' located nucleotide position of the base pair (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
  */
-void vrna_hc_add_bp(vrna_fold_compound_t  *vc,
+int vrna_hc_add_bp(vrna_fold_compound_t  *vc,
                     int                   i,
                     int                   j,
                     unsigned char         option);
 
+
+int
+vrna_hc_add_bp_strand(vrna_fold_compound_t *fc,
+                      unsigned int         i,
+                      unsigned int         strand_i,
+                      unsigned int         j,
+                      unsigned int         strand_j,
+                      unsigned char        option);
 
 /**
  *  @brief  Enforce a nucleotide to be paired (upstream/downstream)

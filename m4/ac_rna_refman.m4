@@ -1,7 +1,13 @@
 # RNA_ENABLE_DOXYGEN_REFMAN(PROJECT_NAME, [config-file], [documentation-output-directory])
 #
 #
+
+
+
+
 AC_DEFUN([RNA_ENABLE_DOXYGEN_REFMAN],[
+
+    AC_REQUIRE([RNA_LATEX_ENVIRONMENT])
 
 RNA_ADD_PACKAGE([doc_pdf],
                 [PDF RNAlib reference manual],
@@ -19,66 +25,35 @@ RNA_ADD_PACKAGE([doc],
 
 
 AC_PATH_PROG(doxygen, [doxygen],no)
-AC_PATH_PROG(pdflatex,[pdflatex],no)
-AC_PATH_PROG(latex,[latex],no)
-AC_PATH_PROG(dvipdf,[dvipdf],no)
-AC_PATH_PROG(bibtex,[bibtex],no)
-AC_PATH_PROG(makeindex,[makeindex],no)
 AC_PATH_PROG(dot,[dot],no)
 AC_PATH_PROG(egrep,[egrep],no)
 AC_PATH_PROG(perl,[perl],no)
-
-DOXYGEN_PDFLATEX_WORKARROUND=yes
 
 # check whether we are able to generate the doxygen documentation
 RNA_PACKAGE_IF_ENABLED([doc],[
   if test "x$doxygen" != xno;
   then
+
     # test for programs necessary in order to use doxygen
-
-    if test "x$DOXYGEN_PDFLATEX_WORKARROUND" = xno;
+    if test "x$LATEX_CMD" = xno;
     then
-    # this is a workarround for older versions of doxygen as installed e.g. in fc12 where
-    # pdflatex usage does not work
-
-      if test "x$pdflatex" = xno;
-      then
-        if test "x$latex" = xno;
-        then
-          AC_MSG_WARN([neither latex or pdflatex exists on your system!])
-          AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
-          doxygen=no
-        else
-          if test "x$dvipdf" = xno;
-          then
-            AC_MSG_WARN([dvipdf command is missing on your system!])
-            AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
-          else
-            _latex_cmd=$latex
-          fi
-        fi
-      else
-        _latex_cmd=$pdflatex
-      fi
+      AC_MSG_WARN([Could not find pdflatex!])
+      AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
+      doxygen_failed="pdflatex command is missing!"
+      doxygen=no
     else
-      if test "x$latex" = xno;
-      then
-        AC_MSG_WARN([neither latex or pdflatex exists on your system!])
-        AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
-        doxygen=no
-        _latex_cmd=
-      else
-        AC_MSG_WARN([due to a bug in older versions of doxygen, latex will be used for reference manual generation even if pdflatex is available])
-        _latex_cmd=$latex
-        pdflatex=no
-      fi
+      RNA_LATEX_TEST_PACKAGES(
+        [fixltx2e calc graphicx makeidx multicol multirow textcomp xcolor fontenc helvet courier amssymb sectsty geometry fancyhdr natbib tocloft amsmath amsfonts newunicodechar hyperref caption etoc ], [], [
+          doxygen_failed="Required LaTeX packages are missing!"
+          doxygen=no
+      ])
     fi
-    AC_SUBST(_latex_cmd)
 
     if test "x$makeindex" = xno;
     then
       AC_MSG_WARN([makeindex command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
+      doxygen_failed="makeindex command is missing!"
       doxygen=no
     fi
 
@@ -86,6 +61,7 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     then
       AC_MSG_WARN([bibtex command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
+      doxygen_failed="bibtex command is missing!"
       doxygen=no
     fi
 
@@ -93,6 +69,7 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     then
       AC_MSG_WARN([egrep command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
+      doxygen_failed="egrep command is missing!"
       doxygen=no
     fi
 
@@ -106,9 +83,11 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     then
       AC_MSG_WARN([perl command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
+      doxygen_failed="perl command is missing!"
       doxygen=no
     fi
-
+  else
+    doxygen_failed="doxygen command is missing!"
   fi
 ])
 
@@ -127,12 +106,11 @@ RNA_PACKAGE_IF_ENABLED([doc],[
   if test "x$doxygen" != xno;
   then
 
-    AC_SUBST([DOXYGEN_CMD_LATEX], [$_latex_cmd])
-    AC_SUBST([DOXYGEN_CMD_BIBTEX], [$bibtex])
-    AC_SUBST([DOXYGEN_CMD_DVIPDF], [$dvipdf])
-    AC_SUBST([DOXYGEN_CMD_MAKEINDEX], [$makeindex])
+    AC_SUBST([DOXYGEN_CMD_LATEX], ["$LATEX_CMD -interaction=nonstopmode -halt-on-error"])
+    AC_SUBST([DOXYGEN_CMD_BIBTEX], [$BIBTEX_CMD])
+    AC_SUBST([DOXYGEN_CMD_MAKEINDEX], [$MAKEINDEX_CMD])
     AC_SUBST([DOXYGEN_HAVE_DOT],[ifelse([$dot], [no], [NO], [YES])])
-    AC_SUBST([DOXYGEN_WITH_PDFLATEX], [ifelse([$pdflatex],[no],[NO],[YES])])
+    AC_SUBST([DOXYGEN_WITH_PDFLATEX], [YES])
     AC_SUBST([DOXYGEN_GENERATE_HTML], [ifelse([$with_doc_html], [no], [NO], [YES])])
     AC_SUBST([DOXYGEN_GENERATE_LATEX], [ifelse([$with_doc_pdf], [no], [NO], [YES])])
 
@@ -145,12 +123,14 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     RNA_PACKAGE_IF_ENABLED([doc_pdf],[
       AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/$DOXYGEN_PROJECT_NAME.pdf],
                         [with_doc_pdf=yes],
-                        [with_doc_pdf=no])])
+                        [with_doc_pdf=no
+                         doc_pdf_failed="($doxygen_failed)"])])
 
     RNA_PACKAGE_IF_ENABLED([doc_html],[
       AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/html/index.html],
                         [with_doc_html=yes],
-                        [with_doc_html=no])])
+                        [with_doc_html=no
+                         doc_html_failed="($doxygen_failed)"])])
 
     if test "x$with_doc_pdf" = "x$with_doc_html";
     then
@@ -200,6 +180,5 @@ AM_CONDITIONAL(WITH_REFERENCE_MANUAL, test "x$with_doc" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_BUILD, test "x$doxygen" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_PDF, test "x$with_doc_pdf" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_HTML, test "x$with_doc_html" != xno)
-AM_CONDITIONAL(WITH_REFERENCE_MANUAL_PDFLATEX, test "x$pdflatex" != xno)
 ])
 

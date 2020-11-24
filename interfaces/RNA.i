@@ -1,4 +1,9 @@
+#ifdef SWIGPYTHON
+%module(moduleimport="from . import _RNA") RNA
+#else
 %module RNA
+#endif
+
 //%pragma(perl5)  modulecode="@EXPORT=qw(fold);"
 %pragma(perl5)  include="RNA.pod"
 
@@ -65,6 +70,7 @@ extern "C" {
 #include  <ViennaRNA/boltzmann_sampling.h>
 #include  <ViennaRNA/concentrations.h>
 #include  <ViennaRNA/LPfold.h>
+#include  <ViennaRNA/centroid.h>
 #include  <ViennaRNA/MEA.h>
 
 #include  <ViennaRNA/inverse.h>
@@ -80,6 +86,7 @@ extern "C" {
 #include  <ViennaRNA/combinatorics.h>
 
 #include  <ViennaRNA/move_set.h>
+#include  <ViennaRNA/landscape/paths.h>
 #include  <ViennaRNA/landscape/findpath.h>
 #include  <ViennaRNA/landscape/move.h>
 #include  <ViennaRNA/landscape/neighbor.h>
@@ -120,6 +127,7 @@ extern "C" {
 %include "std_vector.i";
 %include "std_string.i";
 
+
 namespace std {
   %template(DoublePair) std::pair<double,double>;
   %template(IntVector) std::vector<int>;
@@ -131,7 +139,7 @@ namespace std {
   %template(CoordinateVector) std::vector<COORDINATE>;
   %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
   %template(IntIntVector) std::vector<std::vector<int> > ;
-  %template(ElemProbVector) std::vector<vrna_ep_t>;
+  %template(ElemProbVector) vector<vrna_ep_t>;
   %template(PathVector) std::vector<vrna_path_t>;
   %template(MoveVector) std::vector<vrna_move_t>;
 };
@@ -197,6 +205,7 @@ namespace std {
 %include constraints_SHAPE.i
 %include constraints_ligand.i
 %include eval.i
+%include loops.i
 %include basic_algorithms.i
 %include mfe.i
 %include mfe_window.i
@@ -212,9 +221,10 @@ namespace std {
 %include commands.i
 %include combinatorics.i
 %include duplex.i
+%include move.i
 %include neighbor.i
 %include walk.i
-%include findpath.i
+%include paths.i
 %include data_structures.i
 %include fold_compound.i
 

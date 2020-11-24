@@ -29,6 +29,7 @@
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/mfe_window.h"
 
 
@@ -87,10 +88,10 @@ make_ptypes(vrna_fold_compound_t  *vc,
             int                   i);
 
 
-PRIVATE char
-*backtrack(vrna_fold_compound_t *vc,
-           int                  start,
-           int                  maxdist);
+PRIVATE char *
+backtrack(vrna_fold_compound_t  *vc,
+          int                   start,
+          int                   maxdist);
 
 
 PRIVATE int
@@ -337,6 +338,15 @@ allocate_dp_matrices(vrna_fold_compound_t *fc)
       fc->pscore_local[i] = vrna_alloc(sizeof(int) * (maxdist + 5));
   }
 
+  /*
+   *  allocate one more entry for comparative predictions to allow for
+   *  access to i - 1 when processing [i ... maxdist]. This is required
+   *  for (default) hard constraints with noLP option
+   */
+  if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+    if (length > maxdist + 5)
+      fc->pscore_local[length - maxdist - 5] = vrna_alloc(sizeof(int) * (maxdist + 5));
+
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
       sc = fc->sc;
@@ -506,7 +516,7 @@ init_constraints(vrna_fold_compound_t *fc,
     case VRNA_FC_TYPE_SINGLE:
       for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
         make_ptypes(fc, i);
-        vrna_hc_update(fc, i);
+        vrna_hc_update(fc, i, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
         vrna_sc_update(fc, i, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
       }
       break;
@@ -514,8 +524,13 @@ init_constraints(vrna_fold_compound_t *fc,
     case VRNA_FC_TYPE_COMPARATIVE:
       for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
         make_pscores(fc, i, dm);
-        vrna_hc_update(fc, i);
+        vrna_hc_update(fc, i, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
       }
+
+      /* for noLP option */
+      if (length > maxdist + 5)
+        make_pscores(fc, length - maxdist - 5, dm);
+
       break;
   }
 }
@@ -538,7 +553,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
         fc->ptype_local[i + maxdist + 4]  = NULL;
         if (i > 1) {
           make_ptypes(fc, i - 1);
-          vrna_hc_update(fc, i - 1);
+          vrna_hc_update(fc, i - 1, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
           vrna_sc_update(fc, i - 1, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
         }
       }
@@ -547,11 +562,17 @@ rotate_constraints(vrna_fold_compound_t *fc,
 
     case VRNA_FC_TYPE_COMPARATIVE:
       if (i + maxdist + 4 <= length) {
-        fc->pscore_local[i - 1]           = fc->pscore_local[i + maxdist + 4];
-        fc->pscore_local[i + maxdist + 4] = NULL;
         if (i > 1) {
-          make_pscores(fc, i - 1, dm);
-          vrna_hc_update(fc, i - 1);
+          fc->pscore_local[i - 2]           = fc->pscore_local[i + maxdist + 4];
+          fc->pscore_local[i + maxdist + 4] = NULL;
+          if (i > 2)
+            make_pscores(fc, i - 2, dm);
+
+          vrna_hc_update(fc, i - 1, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
+        } else if (i == 1) {
+          free(fc->pscore_local[i - 1]);
+          fc->pscore_local[i - 1]           = fc->pscore_local[i + maxdist + 4];
+          fc->pscore_local[i + maxdist + 4] = NULL;
         }
       }
 
@@ -676,8 +697,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
         c[i][j - i] = INF;
       }
 
-      /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
+      /*
+       * done with c[i,j], now compute fML[i,j]
+       * free ends ? -----------------------------------------
+       */
       fML[i][j - i] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
     } /* for (j...) */
 
@@ -1147,7 +1170,7 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
     if (RibosumFile != NULL)
       dm = readribosum(RibosumFile);
     else
-      dm = get_ribosum((const char **)strings, n_seq, S[0][0]);
+      dm = get_ribosum((const char **)strings, n_seq, length);
   } else {
     /*use usual matrix*/
     dm = (float **)vrna_alloc(7 * sizeof(float *));
@@ -1209,12 +1232,24 @@ fill_arrays_comparative(vrna_fold_compound_t      *fc,
         /* remember stack energy for --noLP option */
         if (md->noLP) {
           stackEnergy = vrna_E_stack(fc, i, j);
-          new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
-          cc[j - i]   = new_c - psc; /* add covariance bonnus/penalty */
-          c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy - psc;
+
+          if (cc1[j - 1 - (i + 1)] != INF) {
+            new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
+            c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy;
+          } else {
+            c[i][j - i] = INF;
+          }
+
+          if (new_c != INF)
+            new_c -= psc;
+
+          cc[j - i]   = new_c; /* add covariance bonnus/penalty */
         } else {
-          c[i][j - i] = new_c - psc; /* add covariance bonnus/penalty */
+          c[i][j - i] = new_c; /* add covariance bonnus/penalty */
         }
+
+        if (c[i][j - i] != INF)
+          c[i][j - i] -= psc;
       } /* end >> if (pair) << */
       else {
         c[i][j - i] = INF;
@@ -1398,8 +1433,10 @@ cov_score(vrna_fold_compound_t  *fc,
   } else {
     for (k = 1, score = 0.; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
       for (l = k; l <= 6; l++)
-        /* scores for replacements between pairtypes    */
-        /* consistent or compensatory mutations score 1 or 2  */
+        /*
+         * scores for replacements between pairtypes
+         * consistent or compensatory mutations score 1 or 2
+         */
         score += pfreq[k] * pfreq[l] * dm[k][l];
   }
 
@@ -1413,9 +1450,11 @@ make_pscores(vrna_fold_compound_t *fc,
              int                  i,
              float                **dm)
 {
-  /* calculate co-variance bonus for each pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
+  /*
+   * calculate co-variance bonus for each pair depending on
+   * compensatory/consistent mutations and incompatible seqs
+   * should be 0 for conserved pairs, >0 for good pairs
+   */
   int n, j, **pscore, maxd, turn, noLP;
   vrna_md_t *md;
 

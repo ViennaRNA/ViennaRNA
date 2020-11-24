@@ -1,7 +1,8 @@
 # Last changed Time-stamp: <2010-06-24 13:37:42 ivo> 
 # $Id kinfold.ggo,v 1.1 2008/07/02 15:42:20 ivo Exp $
 package "Kinfold"
-purpose "Kinetic Folding Program for Nucleic Acids"
+#purpose "Kinetic Folding Program for Nucleic Acids"
+purpose "Stochastic Folding Simulations of Single-Stranded Nucleic Acids"
 args    "--default-optional --include-getopt"
 
 section "Energy Model"
@@ -17,9 +18,10 @@ option  "seed"    -  "set random number seed specify 3 integers as int=int=int" 
 option  "time"    -  "set maxtime of simulation" float default="500"
 option  "num"     -  "set number of trajectories" int default="1"
 option  "start"   -  "read start structure from stdin (otherwise use open chain)" flag off
-option  "stop"    -  "read stop structure(s) from stdin (optherwise use MFE)" flag off
+option  "stop"    -  "read stop structure(s) from stdin (otherwise use MFE)" flag off
 option  "met"     -  "use Metropolis rule for rates (not Kawasaki rule)" flag off
 option  "fpt"     -  "compute first passage time (stop when a stop-structure is reached)" flag on
+option  "rect"     - "compute recurrence time (of a start structure which is contained in stop structures)" flag off
 option  "grow"    -  "grow chain every <float> time units" float default="0"
 option  "glen"    -  "initial size of growing chain" int default="15"
 option  "phi"     -  "set phi value" double hidden
@@ -29,8 +31,8 @@ option  "log"     -  "set basename of log-file" string typestr="filename" defaul
 option  "silent"  q  "no output to stdout" flag off
 option  "verbose" v  "more information to stdout" flag off
 option  "lmin"    -  "output only local minima to stdout" flag off
-option  "cut"     -  "output structures with E <= <float> to stdout" float default="20"
-section "Input File Format"
-text "1st line sequence"
-text "2nd line start structure (if option --start is used)"
-text "following lines stop structures"
+option  "cut"     -  "only print structures with E <= MFE + <float> to stdout" float default="20"
+text "Input File Format:\n"
+text "  1st line sequence\n"
+text "  2nd line start structure (if option --start is used)\n"
+text "  following lines are stop structures (if option --stop is used)"

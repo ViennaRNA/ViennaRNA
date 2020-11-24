@@ -647,7 +647,7 @@ init_constraints(vrna_fold_compound_t *fc,
 
   for (j = 1; j <= max_j; j++) {
     make_ptypes(fc, j);
-    vrna_hc_update(fc, j);
+    vrna_hc_update(fc, j, VRNA_CONSTRAINT_WINDOW_UPDATE_5);
     vrna_sc_update(fc, j, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
   }
 }
@@ -660,7 +660,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
 {
   if (j + 1 <= fc->length) {
     make_ptypes(fc, j + 1);
-    vrna_hc_update(fc, j + 1);
+    vrna_hc_update(fc, j + 1, VRNA_CONSTRAINT_WINDOW_UPDATE_5);
     vrna_sc_update(fc, j + 1, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
   }
 }

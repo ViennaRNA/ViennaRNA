@@ -134,7 +134,7 @@ struct vrna_dimer_pf_s {
  *  @param[in,out]  vc              The fold compound data structure
  *  @param[in,out]  structure       A pointer to the character array where position-wise pairing propensity
  *                                  will be stored. (Maybe NULL)
- *  @return         The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ *  @return         The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 float
 vrna_pf(vrna_fold_compound_t  *vc,
@@ -191,7 +191,7 @@ vrna_pf_dimer(vrna_fold_compound_t  *vc,
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
  *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
- *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ *  @return           The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 float
 vrna_pf_fold(const char *sequence,
@@ -221,7 +221,7 @@ vrna_pf_fold(const char *sequence,
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
  *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
- *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ *  @return           The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 float
 vrna_pf_circfold(const char *sequence,
@@ -248,7 +248,7 @@ vrna_pf_circfold(const char *sequence,
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
  *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
- *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ *  @return           The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 float
 vrna_pf_alifold(const char  **sequences,
@@ -278,7 +278,7 @@ vrna_pf_alifold(const char  **sequences,
  *  @param structure  A pointer to the character array where position-wise pairing propensity
  *                    will be stored. (Maybe NULL)
  *  @param pl         A pointer to a list of #vrna_ep_t to store pairing probabilities (Maybe NULL)
- *  @return The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ *  @return           The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 float
 vrna_pf_circalifold(const char  **sequences,
@@ -402,7 +402,7 @@ extern int st_back;
  *  @param[in]      calculate_bppm  Switch to Base pair probability calculations on/off (0==off)
  *  @param[in]      is_constrained  Switch to indicate that a structure contraint is passed via the structure argument (0==off)
  *  @param[in]      is_circular     Switch to (de-)activate postprocessing steps in case RNA sequence is circular (0==off)
- *  @return         The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ *  @return         The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 DEPRECATED(float   pf_fold_par(const char       *sequence,
                                char             *structure,
@@ -449,7 +449,7 @@ DEPRECATED(float   pf_fold_par(const char       *sequence,
  *  @see    pf_fold_par(), pf_circ_fold(), bppm_to_structure(), export_bppm()
  *  @param sequence   The RNA sequence input
  *  @param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
- *  @return           The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ *  @return           The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 DEPRECATED(float   pf_fold(const char *sequence,
                            char       *structure),
@@ -479,7 +479,7 @@ DEPRECATED(float   pf_fold(const char *sequence,
  *  @param[in]      sequence   The RNA sequence input
  *  @param[in,out]  structure  A pointer to a char array where a base pair probability information can be
  *                  stored in a pseudo-dot-bracket notation (may be NULL, too)
- *  @return         The Gibbs free energy of the ensemble (@f$G = -RT \cdot \log(Q) @f$) in kcal/mol
+ *  @return         The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 DEPRECATED(float   pf_circ_fold(const char  *sequence,
                                 char        *structure),

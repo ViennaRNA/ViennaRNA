@@ -225,7 +225,7 @@ is($md->{temperature}, 37.0);
 
 $RNA::dangles     = 0;
 $RNA::temperature = 40.1;
-$md = RNA::md->new("global"); # global values
+$md = RNA::md->new(); # global values
 is(int($md->{dangles}), 0);
 is(int($RNA::dangles), 0);
 is($md->{temperature}, 40.1);
@@ -236,16 +236,16 @@ $RNA::temperature = 37.0;
 
 # check parameter structures
 my $params = RNA::param->new();
-is($params->get_temperature(), 37.0);
+is($params->{temperature}, 37.0);
 
 $params = RNA::param->new($md);
-is($params->get_temperature(), 40.1);
+is($params->{temperature}, 40.1);
 
 my $pf_params = RNA::exp_param->new();
-is($pf_params->get_temperature(), 37.0);
+is($pf_params->{temperature}, 37.0);
 
 $pf_params = RNA::exp_param->new($md);
-is($pf_params->get_temperature(), 40.1);
+is($pf_params->{temperature}, 40.1);
 
 undef $md;
 
@@ -265,13 +265,13 @@ $struct3=       "(..(((...)))...)";
 ##test_create_fold_compound_Single
 print "test_create_fold_compound_Single\n";
 my $fc = new RNA::fold_compound($seq1);
-is($fc->type(),0);
+is($fc->{type}, RNA::FC_TYPE_SINGLE);
 undef $fc;
 ####################################################
 ##test_create_fold_compound_Align:
 print "test_create_fold_compound_Align\n";
 $fc = new RNA::fold_compound(\@align);
-is($fc->type(),1);
+is($fc->{type},RNA::FC_TYPE_COMPARATIVE);
 undef $fc;
 ####################################################
 ##test_create_fold_compound_2D

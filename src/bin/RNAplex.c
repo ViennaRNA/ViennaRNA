@@ -291,8 +291,12 @@ main(int  argc,
   probe_concentration = args_info.probe_concentration_arg;
 
   /*Probe mode Salt concentration*/
-  if (ParamFile != NULL)
-    read_parameter_file(ParamFile);
+  if (ParamFile != NULL) {
+    if (!strcmp(ParamFile, "DNA"))
+        vrna_params_load_DNA_Mathews2004();
+    else
+      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
+  }
 
   if (ns_bases != NULL) {
     nonstandards  = vrna_alloc(33);

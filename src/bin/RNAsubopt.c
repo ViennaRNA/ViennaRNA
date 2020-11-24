@@ -156,8 +156,11 @@ main(int  argc,
     deltap = args_info.deltaEnergyPost_arg;
 
   /* sorted output */
-  if (args_info.sorted_given)
-    subopt_sorted = 1;
+  if (args_info.sorted_given) {
+    subopt_sorted = VRNA_SORT_BY_ENERGY_LEXICOGRAPHIC_ASC;
+    if (args_info.en_only_given)
+      subopt_sorted = VRNA_SORT_BY_ENERGY_ASC;
+  }
 
   /* stochastic backtracking */
   if (args_info.stochBT_given) {

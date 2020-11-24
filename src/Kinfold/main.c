@@ -75,20 +75,20 @@ int main(int argc, char *argv[]) {
   */
     
   start = strdup(GAV.startform); /* remember startform for next run */
+  int rect; rect = GTV.rect; /* Backup and reset the recurrence time option for every simulation.  */
   for (i = 0; i < GSV.num; i++) {
-
+    GTV.rect = rect;
     /*
       initialize or reset ringlist to start conditions
     */
     ini_or_reset_rl();
     if (GSV.grow>0) {
       if (strlen(GAV.farbe)>GSV.glen) {
-	start[GSV.glen] = '\0';
-	GAV.farbe[GSV.glen] = '\0';
-	strcpy(GAV.startform,start);
-	strcpy(GAV.currform,start);
-	GSV.len=GSV.glen;
-
+        start[GSV.glen] = '\0';
+        GAV.farbe[GSV.glen] = '\0';
+        strcpy(GAV.startform,start);
+        strcpy(GAV.currform,start);
+        GSV.len=GSV.glen;
 #if HAVE_LIBRNA_API3
         GAV.vc->length = GSV.len;
 #endif

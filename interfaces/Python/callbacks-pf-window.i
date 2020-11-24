@@ -12,13 +12,29 @@ typedef struct {
   PyObject *data;
 } python_pf_window_callback_t;
 
-static python_pf_window_callback_t * bind_pf_window_callback(PyObject *PyFunc, PyObject *data);
-static void python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int type, void *data);
 
 static python_pf_window_callback_t *
-bind_pf_window_callback(PyObject *PyFunc, PyObject *data){
+bind_pf_window_callback(PyObject *PyFunc,
+                        PyObject *data);
 
+
+static void
+python_wrap_pf_window_cb(FLT_OR_DBL   *pr,
+                         int          pr_size,
+                         int          i,
+                         int          max,
+                         unsigned int type,
+                         void         *data);
+
+
+static python_pf_window_callback_t *
+bind_pf_window_callback(PyObject *PyFunc,
+                        PyObject *data)
+{
   python_pf_window_callback_t *cb = (python_pf_window_callback_t *)vrna_alloc(sizeof(python_pf_window_callback_t));
+
+  Py_INCREF(PyFunc);
+  Py_INCREF(data);
 
   cb->cb    = PyFunc;  /* store callback */
   cb->data  = data;    /* bind data */
@@ -26,9 +42,24 @@ bind_pf_window_callback(PyObject *PyFunc, PyObject *data){
   return cb;
 }
 
-static void
-python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int type, void *data){
 
+static void
+release_pf_window_callback(python_pf_window_callback_t *cb)
+{
+  Py_DECREF(cb->cb);
+  Py_DECREF(cb->data);
+  free(cb); 
+}
+
+
+static void
+python_wrap_pf_window_cb(FLT_OR_DBL   *pr,
+                         int          pr_size,
+                         int          i,
+                         int          max,
+                         unsigned int type,
+                         void *data)
+{
   PyObject *func, *arglist, *result, *pr_list, *err;
   python_pf_window_callback_t *cb = (python_pf_window_callback_t *)data;
 
@@ -40,6 +71,7 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
     pr_list = PyList_New((Py_ssize_t) max + 1);
 
     /* 0th element */
+    Py_INCREF(Py_None);
     PyList_SET_ITEM(pr_list, 0, Py_None);
 
     /* actual values in range [1, MIN(i, max)] */
@@ -47,17 +79,20 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
       PyList_SET_ITEM(pr_list, (Py_ssize_t) cnt, PyFloat_FromDouble(pr[cnt]));
 
     /* empty values in range [0,i - 1] */
-    for (int cnt = pr_size + 1; cnt <= max; cnt++)
+    for (int cnt = pr_size + 1; cnt <= max; cnt++) {
+      Py_INCREF(Py_None);
       PyList_SET_ITEM(pr_list, (Py_ssize_t) cnt, Py_None);
-
+    }
   } else { /* and pairing/stacking probabilities for pair (i, j) or ensemble free energies for subsegment [i, j] */
 
     /* create PYTHON list for pr values */
     pr_list = PyList_New((Py_ssize_t) (pr_size + 1));
 
     /* empty values in range [0, i] */
-    for (int cnt = 0; cnt <= i; cnt++)
+    for (int cnt = 0; cnt <= i; cnt++) {
+      Py_INCREF(Py_None);
       PyList_SET_ITEM(pr_list, (Py_ssize_t) cnt, Py_None);
+    }
 
     /* actual values in range [i + 1, pr_size] */
     for (int cnt = i + 1; cnt <= pr_size; cnt++)
@@ -65,11 +100,6 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
   }
 
   /* compose argument list */
-#if 0
-  arglist = Py_BuildValue("(O, i, i, i, i, O)", pr_list, pr_size, i, max, type, (cb->data) ? cb->data : Py_None);
-  result =  PyObject_CallObject(func, arglist);
-  Py_DECREF(arglist);
-#else
   PyObject *py_size, *py_i, *py_max, *py_type;
   py_size = PyInt_FromLong(pr_size);
   py_i    = PyInt_FromLong(i);
@@ -88,7 +118,6 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
   Py_DECREF(py_i);
   Py_DECREF(py_max);
   Py_DECREF(py_type);
-#endif
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
@@ -119,10 +148,15 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
 %feature("autodoc") probs_window;
 %feature("kwargs") probs_window;
 
-  int probs_window(int ulength, unsigned int options, PyObject *PyFunc, PyObject *data = Py_None) {
+  int
+  probs_window(int          ulength,
+               unsigned int options,
+               PyObject     *PyFunc,
+               PyObject     *data = Py_None)
+  {
     python_pf_window_callback_t *cb = bind_pf_window_callback(PyFunc, data);
     int r = vrna_probs_window($self, ulength, options, &python_wrap_pf_window_cb, (void *)cb);
-    free(cb);
+    release_pf_window_callback(cb);
     return r;
   }
 }
@@ -131,17 +165,30 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
 /* Also add wrappers for the 'simple' callback interface of pfl_fold_*_cb() functions */
 %{
 
-  int pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None) {
+  int
+  pfl_fold_cb(std::string sequence,
+              int         window_size,
+              int         max_bp_span,
+              PyObject    *PyFunc,
+              PyObject    *data = Py_None)
+  {
     python_pf_window_callback_t *cb = bind_pf_window_callback(PyFunc, data);
     int r = vrna_pfl_fold_cb(sequence.c_str(), window_size, max_bp_span, &python_wrap_pf_window_cb, (void *)cb);
-    free(cb);
+    release_pf_window_callback(cb);
     return r;
   }
 
-  int pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None) {
+  int
+  pfl_fold_up_cb(std::string  sequence,
+                 int          ulength,
+                 int          window_size,
+                 int          max_bp_span,
+                 PyObject     *PyFunc,
+                 PyObject     *data = Py_None)
+  {
     python_pf_window_callback_t *cb = bind_pf_window_callback(PyFunc, data);
     int r = vrna_pfl_fold_up_cb(sequence.c_str(), ulength, window_size, max_bp_span, &python_wrap_pf_window_cb, (void *)cb);
-    free(cb);
+    release_pf_window_callback(cb);
     return r;
   }
 
@@ -152,7 +199,19 @@ python_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned i
 %feature("autodoc") pfl_fold_up_cb;
 %feature("kwargs") pfl_fold_up_cb;
 
-int pfl_fold_cb(std::string sequence, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None);
-int pfl_fold_up_cb(std::string sequence, int ulength, int window_size, int max_bp_span, PyObject *PyFunc, PyObject *data = Py_None);
+int
+pfl_fold_cb(std::string sequence,
+            int         window_size,
+            int         max_bp_span,
+            PyObject    *PyFunc,
+            PyObject    *data = Py_None);
+
+int
+pfl_fold_up_cb(std::string  sequence,
+               int          ulength,
+               int          window_size,
+               int          max_bp_span,
+               PyObject     *PyFunc,
+               PyObject     *data = Py_None);
 
 #endif

@@ -369,7 +369,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
   unsigned int      *referenceBPs1, *referenceBPs2,
                     d, i, j, ij, seq_length, maxD1,
                     maxD2, *mm1, *mm2, *bpdist;
-  int               *my_iindx, *jindx, circ, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int               *my_iindx, *jindx, circ, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   double            max_real;
   FLT_OR_DBL        *scale, Qmax;
   vrna_exp_param_t  *pf_params;
@@ -397,6 +397,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
   referenceBPs2 = vc->referenceBPs2;
   dangles       = md->dangles;
   circ          = md->circ;
+  turn          = md->min_loop_size;
   mm1           = vc->mm1;
   mm2           = vc->mm2;
   bpdist        = vc->bpdist;
@@ -406,7 +407,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
    * qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
 
   for (j = 1; j <= seq_length; j++)
-    for (i = (j > TURN ? (j - TURN) : 1); i <= j; i++) {
+    for (i = (j > turn ? (j - turn) : 1); i <= j; i++) {
       ij                        = my_iindx[i] - j;
       matrices->k_min_Q[ij]     = 0;
       matrices->k_max_Q[ij]     = 0;
@@ -420,7 +421,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
     }
 
 
-  for (d = TURN + 2; d <= seq_length; d++) {
+  for (d = turn + 2; d <= seq_length; d++) {
     /* i,j in [1..seq_length] */
 #ifdef _OPENMP
 #pragma omp parallel for private(i, j, ij, cnt1, cnt2, cnt3, cnt4)
@@ -511,9 +512,9 @@ pf2D_linear(vrna_fold_compound_t *vc)
          *  check for elementary structures involving more than one
          *  closing pair.
          *  --------------------------------------------------------*/
-        for (k = i + 1; k <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); k++) {
+        for (k = i + 1; k <= MIN2(j - 2 - turn, i + MAXLOOP + 1); k++) {
           unsigned int minl, ln_pre;
-          minl    = k + TURN + 1;
+          minl    = k + turn + 1;
           ln_pre  = dij + k;
           if (ln_pre > minl + MAXLOOP)
             minl = ln_pre - MAXLOOP - 1;
@@ -566,7 +567,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
 
         /* multi-loop contribution ------------------------*/
         if (!no_close) {
-          for (u = i + TURN + 2; u < j - TURN - 2; u++) {
+          for (u = i + turn + 2; u < j - turn - 2; u++) {
             tt    = rtype[type];
             temp2 = pf_params->expMLclosing * exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params) * scale[2];
 
@@ -1057,7 +1058,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
           }
       }
 
-      for (k = j - TURN - 1; k > i; k--) {
+      for (k = j - turn - 1; k > i; k--) {
         tt    = ptype[jindx[j] + k];
         temp2 = vrna_exp_E_ext_stem(tt, S1[k - 1], (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
 
@@ -1175,7 +1176,7 @@ PRIVATE void
 pf2D_circ(vrna_fold_compound_t *vc)
 {
   unsigned int      d, p, q, pq, k, l, kl, u, da, db, seq_length, maxD1, maxD2, base_d1, base_d2, *mm1, *mm2, *bpdist;
-  int               *my_iindx, *jindx, type, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int               *my_iindx, *jindx, type, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   short             *S1;
   unsigned int      *referenceBPs1, *referenceBPs2;
   char              *sequence, *ptype;
@@ -1200,6 +1201,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
   dangles       = md->dangles;
+  turn          = md->min_loop_size;
   mm1           = vc->mm1;
   mm2           = vc->mm2;
   bpdist        = vc->bpdist;
@@ -1242,7 +1244,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
 #ifdef _OPENMP
 #pragma omp parallel for private(d, k, l, da, db, cnt1, cnt2, cnt3, cnt4)
 #endif
-  for (k = 1; k < seq_length - TURN - 1; k++) {
+  for (k = 1; k < seq_length - turn - 1; k++) {
     int k_min_Q_M2, k_max_Q_M2, l_min_Q_M2, l_max_Q_M2;
     int k_min_post_m2, k_max_post_m2, *l_min_post_m2, *l_max_post_m2;
     int update_m2 = 0;
@@ -1282,7 +1284,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
     }
 
     /* construct Q_M2 */
-    for (l = k + TURN + 1; l < seq_length - TURN - 1; l++) {
+    for (l = k + turn + 1; l < seq_length - turn - 1; l++) {
       if (Q_M1_rem[jindx[l] + k]) {
         if (Q_M1[jindx[seq_length] + l + 1]) {
           for (cnt1 = k_min_Q_M1[jindx[seq_length] + l + 1];
@@ -1506,7 +1508,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
 #endif
 
 
-  for (d = TURN + 2; d <= seq_length; d++) /* i,j in [1..length] */
+  for (d = turn + 2; d <= seq_length; d++) /* i,j in [1..length] */
 #ifdef _OPENMP
 #pragma omp parallel for private(p, q, pq, k, l, kl, u, da, db, type, cnt1, cnt2, cnt3, cnt4)
 #endif
@@ -1518,7 +1520,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
 
       /* 1. get exterior hairpin contribution  */
       u = seq_length - q + p - 1;
-      if (u < TURN)
+      if (u < turn)
         continue;
 
       type = ptype[jindx[q] + p];
@@ -1580,7 +1582,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
           if (ln1 + p - 1 > MAXLOOP)
             break;
 
-          lstart  = k + TURN + 1;
+          lstart  = k + turn + 1;
           ln_pre  = ln1 + p + seq_length;
           if (ln_pre > lstart + MAXLOOP)
             lstart = ln_pre - MAXLOOP - 1;
@@ -1623,7 +1625,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
           if (ln1 + p - 1 > MAXLOOP)
             break;
 
-          lstart  = k + TURN + 1;
+          lstart  = k + turn + 1;
           ln_pre  = ln1 + p + seq_length;
           if (ln_pre > lstart + MAXLOOP)
             lstart = ln_pre - MAXLOOP - 1;
@@ -1714,11 +1716,11 @@ pf2D_circ(vrna_fold_compound_t *vc)
   }
 
   /* 3. Multiloops  */
-  if (seq_length > 2 * TURN - 3) {
+  if (seq_length > 2 * turn - 3) {
 #ifdef _OPENMP
 #pragma omp parallel for private(k, da, db, cnt1, cnt2, cnt3, cnt4)
 #endif
-    for (k = TURN + 2; k < seq_length - 2 * TURN - 3; k++) {
+    for (k = turn + 2; k < seq_length - 2 * turn - 3; k++) {
       if (Q_M_rem[my_iindx[1] - k]) {
         if (matrices->Q_M2[k + 1]) {
           for (cnt1 = matrices->k_min_Q_M2[k + 1];
@@ -1899,7 +1901,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
       **l_min_Q, **l_max_Q,
       **l_min_Q_B, **l_max_Q_B,
       *k_min_Q, *k_max_Q,
-      *k_min_Q_B, *k_max_Q_B;
+      *k_min_Q_B, *k_max_Q_B, turn;
   FLT_OR_DBL r, qt, *scale, ***Q, ***Q_B, *Q_rem, *Q_B_rem;
   vrna_exp_param_t *pf_params;
   vrna_md_t *md;
@@ -1918,6 +1920,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
   S1            = vc->sequence_encoding;
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
+  turn          = pf_params->model_details.min_loop_size;
 
   Q       = matrices->Q;
   l_min_Q = matrices->l_min_Q;
@@ -2026,7 +2029,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
 
       /* i is paired, find pairing partner j */
       r = vrna_urn() * (qln_i - qln_i1 * scale[1]);
-      for (qt = 0, j = i + TURN + 1; j < length; j++) {
+      for (qt = 0, j = i + turn + 1; j < length; j++) {
         ij    = my_iindx[i] - j;
         type  = ptype[jindx[j] + i];
         if (type) {
@@ -2448,7 +2451,7 @@ backtrack_qcH(vrna_fold_compound_t  *vc,
                *referenceBPs1, *referenceBPs2;
   int u, *my_iindx, *jindx, ij, cnt1, cnt2, type,
       **l_min_Q_B, **l_max_Q_B,
-      *k_min_Q_B, *k_max_Q_B, *rtype;
+      *k_min_Q_B, *k_max_Q_B, *rtype, turn;
   FLT_OR_DBL r, qt, *scale, qot,
              ***Q_B, **Q_cH, *Q_B_rem,
              Q_cH_rem;
@@ -2472,6 +2475,7 @@ backtrack_qcH(vrna_fold_compound_t  *vc,
   referenceBPs2 = vc->referenceBPs2;
   maxD1         = vc->maxD1;
   maxD2         = vc->maxD2;
+  turn          = md->min_loop_size;
 
   Q_B_rem   = matrices->Q_B_rem;
   Q_B       = matrices->Q_B;
@@ -2491,11 +2495,11 @@ backtrack_qcH(vrna_fold_compound_t  *vc,
   if (d1 == -1) {
     r = vrna_urn() * Q_cH_rem;
     for (i = 1; i < n; i++)
-      for (j = i + TURN + 1; j <= n; j++) {
+      for (j = i + turn + 1; j <= n; j++) {
         char loopseq[10];
         ij  = my_iindx[i] - j;
         u   = n - j + i - 1;
-        if (u < TURN)
+        if (u < turn)
           continue;
 
         type = ptype[jindx[j] + i];
@@ -2548,14 +2552,14 @@ backtrack_qcH(vrna_fold_compound_t  *vc,
   } else {
     r = vrna_urn() * Q_cH[d1][d2 / 2];
     for (i = 1; i < n; i++)
-      for (j = i + TURN + 1; j <= n; j++) {
+      for (j = i + turn + 1; j <= n; j++) {
         char loopseq[10];
         ij = my_iindx[i] - j;
         if (!Q_B[ij])
           continue;
 
         u = n - j + i - 1;
-        if (u < TURN)
+        if (u < turn)
           continue;
 
         type = ptype[jindx[j] + i];
@@ -2613,7 +2617,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
                *referenceBPs1, *referenceBPs2;
   int *my_iindx, *jindx, cnt1, cnt2, cnt3, cnt4, type,
       **l_min_Q_B, **l_max_Q_B,
-      *k_min_Q_B, *k_max_Q_B, *rtype;
+      *k_min_Q_B, *k_max_Q_B, *rtype, turn;
   FLT_OR_DBL r, qt, *scale, qot,
              ***Q_B, *Q_B_rem,
              **Q_cI, Q_cI_rem;
@@ -2635,6 +2639,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
   referenceBPs2 = vc->referenceBPs2;
   maxD1         = vc->maxD1;
   maxD2         = vc->maxD2;
+  turn          = md->min_loop_size;
 
   Q_B       = matrices->Q_B;
   l_min_Q_B = matrices->l_min_Q_B;
@@ -2654,7 +2659,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
   if (d1 == -1) {
     r = vrna_urn() * Q_cI_rem;
     for (i = 1; i < n; i++)
-      for (j = i + TURN + 1; j <= n; j++) {
+      for (j = i + turn + 1; j <= n; j++) {
         ij    = my_iindx[i] - j;
         type  = rtype[(unsigned int)ptype[jindx[j] + i]];
         if (!type)
@@ -2667,7 +2672,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
             if (ln1 + i - 1 > MAXLOOP)
               break;
 
-            qstart  = p + TURN + 1;
+            qstart  = p + turn + 1;
             ln_pre  = ln1 + i + n;
             if (ln_pre > qstart + MAXLOOP)
               qstart = ln_pre - MAXLOOP - 1;
@@ -2725,7 +2730,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
             if (ln1 + i - 1 > MAXLOOP)
               break;
 
-            qstart  = p + TURN + 1;
+            qstart  = p + turn + 1;
             ln_pre  = ln1 + i + n;
             if (ln_pre > qstart + MAXLOOP)
               qstart = ln_pre - MAXLOOP - 1;
@@ -2803,7 +2808,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
   } else {
     r = vrna_urn() * Q_cI[d1][d2 / 2];
     for (i = 1; i < n; i++)
-      for (j = i + TURN + 1; j <= n; j++) {
+      for (j = i + turn + 1; j <= n; j++) {
         ij    = my_iindx[i] - j;
         type  = rtype[(unsigned int)ptype[jindx[j] + i]];
         if (!type)
@@ -2818,7 +2823,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
           if (ln1 + i - 1 > MAXLOOP)
             break;
 
-          qstart  = p + TURN + 1;
+          qstart  = p + turn + 1;
           ln_pre  = ln1 + i + n;
           if (ln_pre > qstart + MAXLOOP)
             qstart = ln_pre - MAXLOOP - 1;
@@ -2893,7 +2898,7 @@ backtrack_qcM(vrna_fold_compound_t  *vc,
       **l_min_Q_M, **l_max_Q_M,
       **l_min_Q_M2, **l_max_Q_M2,
       *k_min_Q_M, *k_max_Q_M,
-      *k_min_Q_M2, *k_max_Q_M2;
+      *k_min_Q_M2, *k_max_Q_M2, turn;
   FLT_OR_DBL r, qt, qot,
              ***Q_M, ***Q_M2, **Q_cM,
              *Q_M_rem, *Q_M2_rem, Q_cM_rem;
@@ -2908,6 +2913,7 @@ backtrack_qcM(vrna_fold_compound_t  *vc,
   referenceBPs2 = vc->referenceBPs2;
   maxD1         = vc->maxD1;
   maxD2         = vc->maxD2;
+  turn          = pf_params->model_details.min_loop_size;
 
   Q_cM = matrices->Q_cM;
 
@@ -2933,8 +2939,8 @@ backtrack_qcM(vrna_fold_compound_t  *vc,
 
   if (d1 == -1) {
     r = vrna_urn() * Q_cM_rem;
-    for (k = TURN + 2;
-         k < n - 2 * TURN - 3;
+    for (k = turn + 2;
+         k < n - 2 * turn - 3;
          k++) {
       if (Q_M_rem[my_iindx[1] - k]) {
         if (Q_M2[k + 1]) {
@@ -3024,8 +3030,8 @@ backtrack_qcM(vrna_fold_compound_t  *vc,
     }
   } else {
     r = vrna_urn() * Q_cM[d1][d2 / 2];
-    for (k = TURN + 2;
-         k < n - 2 * TURN - 3;
+    for (k = turn + 2;
+         k < n - 2 * turn - 3;
          k++) {
       da = base_d1
            - referenceBPs1[my_iindx[1] - k]
@@ -3077,7 +3083,7 @@ backtrack_qm2(vrna_fold_compound_t  *vc,
                *referenceBPs1, *referenceBPs2;
   int *my_iindx, *jindx, cnt1, cnt2, cnt3, cnt4,
       *k_min_Q_M1, *k_max_Q_M1,
-      **l_min_Q_M1, **l_max_Q_M1;
+      **l_min_Q_M1, **l_max_Q_M1, turn;
   FLT_OR_DBL r, qt, qot,
              ***Q_M2, ***Q_M1,
              *Q_M2_rem, *Q_M1_rem;
@@ -3091,6 +3097,7 @@ backtrack_qm2(vrna_fold_compound_t  *vc,
   referenceBPs2 = vc->referenceBPs2;
   maxD1         = vc->maxD1;
   maxD2         = vc->maxD2;
+  turn          = vc->exp_params->model_details.min_loop_size;
 
   Q_M1_rem    = matrices->Q_M1_rem;
   Q_M1        = matrices->Q_M1;
@@ -3106,7 +3113,7 @@ backtrack_qm2(vrna_fold_compound_t  *vc,
 
   if (d1 == -1) {
     r = vrna_urn() * Q_M2_rem[k];
-    for (l = k + TURN + 1; l < n - TURN - 1; l++) {
+    for (l = k + turn + 1; l < n - turn - 1; l++) {
       if (Q_M1_rem[jindx[l] + k]) {
         if (Q_M1[jindx[n] + l + 1]) {
           for (cnt1 = k_min_Q_M1[jindx[n] + l + 1];
@@ -3193,7 +3200,7 @@ backtrack_qm2(vrna_fold_compound_t  *vc,
     }
   } else {
     r = vrna_urn() * Q_M2[k][d1][d2 / 2];
-    for (l = k + TURN + 1; l < n - TURN - 1; l++) {
+    for (l = k + turn + 1; l < n - turn - 1; l++) {
       if (!Q_M1[jindx[l] + k])
         continue;
 
@@ -3250,7 +3257,7 @@ backtrack(vrna_fold_compound_t  *vc,
   unsigned int *referenceBPs1, *referenceBPs2;
   char *ptype, *sequence;
   short *S1, *reference_pt1, *reference_pt2;
-  int *my_iindx, *jindx, ij, cnt1, cnt2, cnt3, cnt4, *rtype;
+  int *my_iindx, *jindx, ij, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   vrna_exp_param_t *pf_params;      /* holds all [unscaled] pf parameters */
   vrna_md_t *md;
   vrna_mx_pf_t *matrices;
@@ -3271,6 +3278,7 @@ backtrack(vrna_fold_compound_t  *vc,
   reference_pt2 = vc->reference_pt2;
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
+  turn          = md->min_loop_size;
 
   FLT_OR_DBL ***Q_B, ***Q_M, ***Q_M1, *Q_B_rem, *Q_M_rem, *Q_M1_rem;
   int *k_min_Q_M, *k_max_Q_M, *k_min_Q_M1, *k_max_Q_M1, *k_min_Q_B, *k_max_Q_B;
@@ -3334,12 +3342,12 @@ backtrack(vrna_fold_compound_t  *vc,
         return;            /* found the hairpin we're done */
 
       /* lets see if we form an interior loop */
-      for (k = i + 1; k <= MIN2(i + MAXLOOP + 1, j - TURN - 2); k++) {
+      for (k = i + 1; k <= MIN2(i + MAXLOOP + 1, j - turn - 2); k++) {
         unsigned int u_pre, lmin;
         u1    = k - i - 1;
-        lmin  = k + TURN + 1;
+        lmin  = k + turn + 1;
         u_pre = u1 + j;
-        /* lmin = MAX2(k + TURN + 1, u1 + j - 1 - MAXLOOP) */
+        /* lmin = MAX2(k + turn + 1, u1 + j - 1 - MAXLOOP) */
         if (u_pre > lmin + MAXLOOP)
           lmin = u_pre - 1 - MAXLOOP;
 
@@ -3408,12 +3416,12 @@ backtrack_int_early_escape_rem:
       if (qbt1 >= r)
         return;            /* found the hairpin we're done */
 
-      for (k = i + 1; k <= MIN2(i + MAXLOOP + 1, j - TURN - 2); k++) {
+      for (k = i + 1; k <= MIN2(i + MAXLOOP + 1, j - turn - 2); k++) {
         unsigned int u_pre, lmin;
         u1    = k - i - 1;
-        lmin  = k + TURN + 1;
+        lmin  = k + turn + 1;
         u_pre = u1 + j;
-        /* lmin = MAX2(k + TURN + 1, u1 + j - 1 - MAXLOOP) */
+        /* lmin = MAX2(k + turn + 1, u1 + j - 1 - MAXLOOP) */
         if (u_pre > lmin + MAXLOOP)
           lmin = u_pre - 1 - MAXLOOP;
 
@@ -3656,7 +3664,7 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
   unsigned int *referenceBPs1, *referenceBPs2;
   char *ptype;
   short *S1;
-  int *my_iindx, *jindx, cnt1, cnt2;
+  int *my_iindx, *jindx, cnt1, cnt2, turn;
 
   vrna_exp_param_t *pf_params;      /* holds all [unscaled] pf parameters */
   vrna_mx_pf_t *matrices;
@@ -3672,6 +3680,7 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
   S1            = vc->sequence_encoding;
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
+  turn          = pf_params->model_details.min_loop_size;
 
   FLT_OR_DBL ***Q_B, ***Q_M1, *Q_B_rem, *Q_M1_rem;
   int *k_min_Q_M1, *k_max_Q_M1, *k_min_Q_B, *k_max_Q_B;
@@ -3711,7 +3720,7 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
     vrna_message_error("backtrack_qm1@2Dpfold.c: backtracking failed\n");
 
   ii = my_iindx[i];
-  for (qt = 0., l = i + TURN + 1; l <= j; l++) {
+  for (qt = 0., l = i + turn + 1; l <= j; l++) {
     type = ptype[jindx[l] + i];
     if (type) {
       FLT_OR_DBL tmp = exp_E_MLstem(type, S1[i - 1], S1[l + 1], pf_params) * pow(pf_params->expMLbase, j - l) * scale[j - l];
@@ -3776,7 +3785,7 @@ backtrack_qm(vrna_fold_compound_t *vc,
   FLT_OR_DBL r, *scale;
   unsigned int maxD1, maxD2, da, db, da2, db2;
   unsigned int *referenceBPs1, *referenceBPs2;
-  int *my_iindx, *jindx, cnt1, cnt2, cnt3, cnt4;
+  int *my_iindx, *jindx, cnt1, cnt2, cnt3, cnt4, turn;
 
   vrna_exp_param_t *pf_params;      /* holds all [unscaled] pf parameters */
   vrna_mx_pf_t *matrices;
@@ -3790,6 +3799,7 @@ backtrack_qm(vrna_fold_compound_t *vc,
   scale         = matrices->scale;
   referenceBPs1 = vc->referenceBPs1;
   referenceBPs2 = vc->referenceBPs2;
+  turn          = pf_params->model_details.min_loop_size;
 
   FLT_OR_DBL ***Q_M, ***Q_M1, *Q_M_rem, *Q_M1_rem;
   int *k_min_Q_M, *k_max_Q_M, *k_min_Q_M1, *k_max_Q_M1;
@@ -3997,7 +4007,7 @@ backtrack_qm_early_escape:
 
     backtrack_qm1(vc, pstruc, cnt3, cnt4, k, j);
 
-    if (k < i + TURN)
+    if (k < i + turn)
       break;            /* no more pairs */
 
     d1  = cnt1;

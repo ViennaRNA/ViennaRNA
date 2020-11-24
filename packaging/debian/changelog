@@ -1,3 +1,27 @@
+viennarna (2.4.16-1) UNRELEASED; urgency=low
+
+  * Bump to upstream release 2.4.16
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Fri, 09 Oct 2020 12:00:00 +0100
+
+viennarna (2.4.15-1) UNRELEASED; urgency=low
+
+  * Bump to upstream release 2.4.15
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Tue, 18 Aug 2020 20:00:00 +0100
+
+viennarna (2.4.14-1) UNRELEASED; urgency=low
+
+  * Bump to upstream release 2.4.14
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Tue, 13 Aug 2019 12:00:00 +0100
+
+viennarna (2.4.13-1) UNRELEASED; urgency=low
+
+  * Bump to upstream release 2.4.13
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Thu, 30 May 2019 10:00:00 +0100
+
 viennarna (2.4.12-1) UNRELEASED; urgency=low
 
   * Bump to upstream release 2.4.12

@@ -84,6 +84,7 @@ section "Core" sec_core
   File "../src/bin/.libs/RNAheat.exe"
   File "../src/bin/.libs/RNApdist.exe"
   File "../src/bin/.libs/RNAdistance.exe"
+  File "../src/bin/.libs/RNAdos.exe"
   File "../src/bin/.libs/RNAinverse.exe"
   File "../src/bin/.libs/RNAplot.exe"
   File "../src/bin/.libs/RNAsubopt.exe"
@@ -117,8 +118,8 @@ section "Core" sec_core
   # then all the necessary libraries
   File "/usr/i686-w64-mingw32/bin/libgomp-1.dll"
   File "/usr/i686-w64-mingw32/bin/libwinpthread-1.dll"
-  File "/usr/i686-w64-mingw32/bin/libgcc_s_sjlj-1.dll"
-  File "/usr/i686-w64-mingw32/bin/libgsl-23.dll"
+  File "/usr/i686-w64-mingw32/bin/libgcc_s_dw2-1.dll"
+  File "/usr/i686-w64-mingw32/bin/libgsl-25.dll"
   File "/usr/i686-w64-mingw32/bin/libgslcblas-0.dll"
   File "/usr/i686-w64-mingw32/bin/libmpfr-6.dll"
   File "/usr/i686-w64-mingw32/bin/libgmp-10.dll"
@@ -185,6 +186,7 @@ section "Uninstall"
   delete $INSTDIR\RNAheat.exe
   delete $INSTDIR\RNApdist.exe
   delete $INSTDIR\RNAdistance.exe
+  delete $INSTDIR\RNAdos.exe
   delete $INSTDIR\RNAinverse.exe
   delete $INSTDIR\RNAplot.exe
   delete $INSTDIR\RNAsubopt.exe
@@ -236,8 +238,8 @@ section "Uninstall"
 
   delete $INSTDIR\libgomp-1.dll
   delete $INSTDIR\libwinpthread-1.dll
-  delete $INSTDIR\libgcc_s_sjlj-1.dll
-  delete $INSTDIR\libgsl-23.dll
+  delete $INSTDIR\libgcc_s_dw2-1.dll
+  delete $INSTDIR\libgsl-25.dll
   delete $INSTDIR\libgslcblas-0.dll
   delete $INSTDIR\libmpfr-6.dll
   delete $INSTDIR\libgmp-10.dll

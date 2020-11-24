@@ -218,6 +218,53 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t  *fc,
 }
 
 
+PUBLIC float
+vrna_backtrack5(vrna_fold_compound_t  *fc,
+                unsigned int          length,
+                char                  *structure)
+{
+  char            *ss;
+  int             s;
+  float           mfe;
+  sect            bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
+  vrna_bp_stack_t *bp;
+
+  s   = 0;
+  mfe = (float)(INF / 100.);
+
+  if ((fc) && (structure) && (fc->matrices) && (fc->matrices->f5) &&
+      (!fc->params->model_details.circ)) {
+    memset(structure, '\0', sizeof(char) * (length + 1));
+
+    if (length > fc->length)
+      return mfe;
+
+    /* add a guess of how many G's may be involved in a G quadruplex */
+    bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));
+
+    bt_stack[++s].i = 1;
+    bt_stack[s].j   = length;
+    bt_stack[s].ml  = 0;
+
+
+    if (backtrack(fc, bp, bt_stack, s) != 0) {
+      ss = vrna_db_from_bp_stack(bp, length);
+      strncpy(structure, ss, length + 1);
+      free(ss);
+
+      if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+        mfe = (float)fc->matrices->f5[length] / (100. * (float)fc->n_seq);
+      else
+        mfe = (float)fc->matrices->f5[length] / 100.;
+    }
+
+    free(bp);
+  }
+
+  return mfe;
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #
@@ -292,8 +339,10 @@ fill_arrays(vrna_fold_compound_t *fc)
     } /* end of j-loop */
 
     rotate_aux_arrays(helper_arrays, length);
-  } /* end of i-loop */
-    /* calculate energies of 5' fragments */
+  } /*
+     * end of i-loop
+     * calculate energies of 5' fragments
+     */
   (void)vrna_E_ext_loop_5(fc);
 
   /* clean up memory */
@@ -1726,7 +1775,8 @@ decompose_pair(vrna_fold_compound_t *fc,
       stackEnergy = vrna_E_stack(fc, i, j);
       new_c       = MIN2(new_c, cc1[j - 1] + stackEnergy);
       cc[j]       = new_c;
-      if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+      if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+          (cc[j] != INF))
         cc[j] -= fc->pscore[ij];
 
       e = cc1[j - 1] + stackEnergy;
@@ -1740,7 +1790,8 @@ decompose_pair(vrna_fold_compound_t *fc,
       new_c   = MIN2(new_c, energy);
     }
 
-    if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+    if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+        (e != INF))
       e -= fc->pscore[ij];
   } /* end >> if (pair) << */
 

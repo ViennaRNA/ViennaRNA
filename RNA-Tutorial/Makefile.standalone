@@ -5,11 +5,10 @@ all: ${TARGET}.pdf
 pdf: ${TARGET}.pdf
 
 ${TARGET}.pdf: cleantex ${TARGET}.tex
-	latex ${TARGET}
+	pdflatex ${TARGET}
 #	bibtex ${TARGET}
-	latex ${TARGET}
-	latex ${TARGET}
-	dvipdf ${TARGET}.dvi
+	pdflatex ${TARGET}
+	pdflatex ${TARGET}
 
 html: index.html
 
@@ -22,7 +21,7 @@ tutorial.html: tutorial.tex ViennaRNA-homepage.cfg
 clean:  cleantex cleanhtml
 
 cleantex:
-	rm -f *.ps *.dvi *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl ${TARGET}.pdf
+	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl ${TARGET}.pdf
 
 cleanhtml:
 	rm -f *.4ct *.4tc *.tmp *.lg *.xref ${TARGET}.css ${TARGET}.html index.html

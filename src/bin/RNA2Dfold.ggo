@@ -90,10 +90,11 @@ option  "noTetra" 4
 flag
 off
 
-option  "parameterFile" P
+option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n\n"
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\"\
+ DNA parameters are loaded without the need to actually specify an input file.\n\n"
 string
 typestr="paramfile"
 

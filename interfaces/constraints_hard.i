@@ -15,26 +15,42 @@
 %feature("kwargs") hc_add_from_db;
 #endif
 
-  void hc_init(){
+  void
+  hc_init()
+  {
     vrna_hc_init($self);
   }
 
   /* Make a certain nucleotide unpaired */
-  void hc_add_up(int i, unsigned int option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
+  void
+  hc_add_up(int          i,
+            unsigned int option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
+  {
     vrna_hc_add_up($self,i, (unsigned char)option);
   }
 
   /* Enforce a nucleotide to be paired (upstream/downstream) */
-  void hc_add_bp_nonspecific(int i, int d, unsigned int option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
+  void
+  hc_add_bp_nonspecific(int           i,
+                        int           d,
+                        unsigned int  option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
+  {
     vrna_hc_add_bp_nonspecific($self,i,d, (unsigned char)option);
   }
   
   /* Favorize/Enforce  a certain base pair (i,j) */
-  void hc_add_bp(int i, int j, unsigned int option=VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS){
+  void
+  hc_add_bp(int           i,
+            int           j,
+            unsigned int  option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
+  {
     vrna_hc_add_bp($self,i,j,(unsigned char)option);
   } 
   
-  int hc_add_from_db(const char *constraint, unsigned int options=VRNA_CONSTRAINT_DB_DEFAULT){
+  int
+  hc_add_from_db(const char   *constraint,
+                 unsigned int options = VRNA_CONSTRAINT_DB_DEFAULT)
+  {
     return vrna_hc_add_from_db($self,constraint, options);
   }
 }

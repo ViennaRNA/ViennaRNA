@@ -66,12 +66,6 @@ vrna_E_mb_loop_fast(vrna_fold_compound_t  *fc,
 
 
 int
-vrna_E_mb_loop_stack(vrna_fold_compound_t *fc,
-                     int                  i,
-                     int                  j);
-
-
-int
 E_ml_rightmost_stem(int                   i,
                     int                   j,
                     vrna_fold_compound_t  *fc);

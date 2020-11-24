@@ -42,12 +42,6 @@
 
 #include "ViennaRNA/color_output.inc"
 
-#ifdef ON_SAME_STRAND
-#undef ON_SAME_STRAND
-#endif
-
-#define ON_SAME_STRAND(I, J, C)  (((I) >= (C)) || ((J) < (C)))
-
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -86,9 +80,9 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
 
 
 PRIVATE int
-cut_in_loop(int         i,
-            const short *pt,
-            int         cp);
+cut_in_loop(int           i,
+            const short   *pt,
+            unsigned int  *sn);
 
 
 PRIVATE int
@@ -279,7 +273,8 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
                     int                   verbosity_level)
 {
   /* compute energy of a single loop closed by base pair (i,j) */
-  int           j, type, p, q, energy, cp;
+  unsigned int  *sn, *so, *ss;
+  int           j, type, p, q, energy;
   short         *s;
   vrna_param_t  *P;
 
@@ -287,7 +282,9 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
 
   if (pt && vc) {
     P   = vc->params;
-    cp  = vc->cutpoint;
+    sn  = vc->strand_number;
+    so  = vc->strand_order;
+    ss  = vc->strand_start;
     s   = vc->sequence_encoding2;
 
     vrna_sc_prepare(vc, VRNA_OPTION_MFE);
@@ -329,7 +326,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
     } else if (pt[q] != (short)p) {
       /* multi-loop */
       int ii;
-      ii      = cut_in_loop(i, (const short *)pt, cp);
+      ii      = cut_in_loop(i, (const short *)pt, sn);
       energy  =
         (ii == 0) ? energy_of_ml_pt(vc, i, (const short *)pt) : energy_of_extLoop_pt(vc,
                                                                                      ii,
@@ -363,11 +360,14 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
                   int                   m2)
 {
   /*compute change in energy given by move (m1,m2)*/
-  int           en_post, en_pre, i, j, k, l, len, cp;
+  unsigned int  *sn, *so, *ss;
+  int           en_post, en_pre, i, j, k, l, len;
   vrna_param_t  *P;
 
   len = vc->length;
-  cp  = vc->cutpoint;
+  sn  = vc->strand_number;
+  so  = vc->strand_order;
+  ss  = vc->strand_start;
   P   = vc->params;
 
   k = (m1 > 0) ? m1 : -m1;
@@ -415,13 +415,13 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
   }
 
   /* Cofolding -- Check if move changes COFOLD-Penalty */
-  if (!ON_SAME_STRAND(k, l, cp)) {
+  if (sn[k] != sn[l]) {
     int p, c;
     p = c = 0;
-    for (p = 1; p < cp;) {
+    for (p = 1; p < ss[so[1]];) {
       /* Count basepairs between two strands */
       if (pt[p] != 0) {
-        if (ON_SAME_STRAND(p, pt[p], cp)) /* Skip stuff */
+        if (sn[p] == sn[pt[p]]) /* Skip stuff */
           p = pt[p];
         else if (++c > 1)
           break;                 /* Count a basepair, break if we have more than one */
@@ -599,10 +599,11 @@ eval_pt(vrna_fold_compound_t  *vc,
         vrna_cstr_t           output_stream,
         int                   verbosity_level)
 {
-  int i, length, energy, cp;
+  unsigned int  *sn;
+  int           i, length, energy;
 
   length  = vc->length;
-  cp      = vc->cutpoint;
+  sn      = vc->strand_number;
 
   if (vc->params->model_details.gquad)
     vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\n"
@@ -629,8 +630,8 @@ eval_pt(vrna_fold_compound_t  *vc,
     energy  += stack_energy(vc, i, pt, output_stream, verbosity_level);
     i       = pt[i];
   }
-  for (i = 1; !ON_SAME_STRAND(i, length, cp); i++) {
-    if (!ON_SAME_STRAND(i, pt[i], cp)) {
+  for (i = 1; sn[i] != sn[length]; i++) {
+    if (sn[i] != sn[pt[i]]) {
       energy += vc->params->DuplexInit;
       break;
     }
@@ -1009,14 +1010,16 @@ stack_energy(vrna_fold_compound_t *vc,
              int                  verbosity_level)
 {
   /* recursively calculate energy of substructure enclosed by (i,j) */
-
-  int           ee, energy, j, p, q, cp;
+  unsigned int  *sn, *so, *ss;
+  int           ee, energy, j, p, q;
   char          *string;
   short         *s;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
-  cp      = vc->cutpoint;
+  sn      = vc->strand_number;
+  so      = vc->strand_order;
+  ss      = vc->strand_start;
   s       = vc->sequence_encoding2;
   P       = vc->params;
   md      = &(P->model_details);
@@ -1113,7 +1116,7 @@ stack_energy(vrna_fold_compound_t *vc,
   switch (vc->type) {
     case VRNA_FC_TYPE_SINGLE:
     {
-      int ii = cut_in_loop(i, pt, cp);
+      int ii = cut_in_loop(i, pt, sn);
       ee = (ii == 0) ? energy_of_ml_pt(vc, i, pt) : energy_of_extLoop_pt(vc, ii, pt);
     }
     break;
@@ -1151,7 +1154,8 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
                      int                  i,
                      const short          *pt)
 {
-  int           energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, n_seq, cp, ss, u,
+  unsigned int  *sn;
+  int           energy, mm5, mm3, bonus, p, q, q_prev, length, dangle_model, n_seq, ss, u,
                 start;
   short         *s, *s1, **S, **S5, **S3;
   unsigned int  **a2s;
@@ -1167,7 +1171,7 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
   /* initialize vars */
   length        = vc->length;
-  cp            = vc->cutpoint;
+  sn            = vc->strand_number;
   P             = vc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
@@ -1250,8 +1254,8 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
           /* the beloved double dangles */
           case 2:
-            mm5     = ((ON_SAME_STRAND(p - 1, p, cp)) && (p > 1))       ? s1[p - 1] : -1;
-            mm3     = ((ON_SAME_STRAND(q, q + 1, cp)) && (q < length))  ? s1[q + 1] : -1;
+            mm5     = ((sn[p - 1] == sn[p]) && (p > 1))       ? s1[p - 1] : -1;
+            mm3     = ((sn[q] == sn[q + 1]) && (q < length))  ? s1[q + 1] : -1;
             energy  += vrna_E_ext_stem(tt, mm5, mm3, P);
             break;
 
@@ -1263,8 +1267,8 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
               E3_occupied   = E3_available;
             }
 
-            mm5 = ((ON_SAME_STRAND(p - 1, p, cp)) && (p > 1) && !pt[p - 1])       ? s1[p - 1] : -1;
-            mm3 = ((ON_SAME_STRAND(q, q + 1, cp)) && (q < length) && !pt[q + 1])  ? s1[q + 1] : -1;
+            mm5 = ((sn[p - 1] == sn[p]) && (p > 1) && !pt[p - 1])       ? s1[p - 1] : -1;
+            mm3 = ((sn[q] == sn[q + 1]) && (q < length) && !pt[q + 1])  ? s1[q + 1] : -1;
             tmp = MIN2(
               E3_occupied + vrna_E_ext_stem(tt, -1, mm3, P),
               E3_available + vrna_E_ext_stem(tt, mm5, mm3, P)
@@ -1293,7 +1297,7 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
             case 2:
               mm5     = (a2s[ss][p] > 1) ? S5[ss][p] : -1;
-              mm3     = (a2s[ss][q] < a2s[ss][S[0][0]]) ? S3[ss][q] : -1;  /* why S[0][0] ??? */
+              mm3     = (a2s[ss][q] < a2s[ss][length]) ? S3[ss][q] : -1;
               energy  += vrna_E_ext_stem(tt, mm5, mm3, P);
               break;
 
@@ -1369,7 +1373,8 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
                 int                   i,
                 const short           *pt)
 {
-  int           energy, cx_energy, tmp, tmp2, best_energy = INF, bonus, *idx, cp, dangle_model,
+  unsigned int  *sn;
+  int           energy, cx_energy, tmp, tmp2, best_energy = INF, bonus, *idx, dangle_model,
                 logML, circular, *rtype, ss, n, n_seq;
   int           i1, j, p, q, q_prev, q_prev2, u, uu, x, type, count, mm5, mm3, tt, ld5, new_cx,
                 dang5, dang3, dang;
@@ -1388,7 +1393,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
   int           E2_mm5_occupied;    /* energy of 5' part where 5' mismatch of current stem is unavailable with possible 3' dangle for enclosing pair (i,j) */
 
   n   = vc->length;
-  cp  = vc->cutpoint;
+  sn  = vc->strand_number;
   P   = vc->params;
   md  = &(P->model_details);
   idx = vc->jindx;
@@ -1602,8 +1607,8 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             if (tt == 0)
               tt = 7;
 
-            mm5     = ON_SAME_STRAND(p - 1, p, cp) ? s1[p - 1] : -1;
-            mm3     = ON_SAME_STRAND(q, q + 1, cp) ? s1[q + 1] : -1;
+            mm5     = sn[p - 1] == sn[p] ? s1[p - 1] : -1;
+            mm3     = sn[q] == sn[q + 1] ? s1[q + 1] : -1;
             energy  += E_MLstem(tt, mm5, mm3, P);
 
             /* seek to the next stem */
@@ -1623,8 +1628,8 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             if (tt == 0)
               tt = 7;
 
-            mm5     = ON_SAME_STRAND(j - 1, j, cp) ? s1[j - 1] : -1;
-            mm3     = ON_SAME_STRAND(i, i + 1, cp) ? s1[i + 1] : -1;
+            mm5     = sn[j - 1] == sn[j] ? s1[j - 1] : -1;
+            mm3     = sn[i] == sn[i + 1] ? s1[i + 1] : -1;
             energy  += E_MLstem(tt, mm5, mm3, P);
           } else {
             /* virtual closing pair */
@@ -1645,7 +1650,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
                 tt = 7;
 
               mm5     = ((a2s[ss][p] > 1) || circular) ? S5[ss][p] : -1;
-              mm3     = ((a2s[ss][q] < a2s[ss][S[0][0]]) || circular) ? S3[ss][q] : -1;
+              mm3     = ((a2s[ss][q] < a2s[ss][n]) || circular) ? S3[ss][q] : -1;
               energy  += E_MLstem(tt, mm5, mm3, P);
             }
 
@@ -1704,9 +1709,9 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             type = 7;
 
           /* prime the ld5 variable */
-          if (ON_SAME_STRAND(j - 1, j, cp)) {
+          if (sn[j - 1] == sn[j]) {
             ld5 = P->dangle5[type][s1[j - 1]];
-            if ((p = (unsigned int)pt[j - 2]) && ON_SAME_STRAND(j - 2, j - 1, cp))
+            if ((p = (unsigned int)pt[j - 2]) && (sn[j - 2] == sn[j - 1]))
               if (P->dangle3[P->model_details.pair[s[p]][s[j - 2]]][s1[j - 1]] < ld5)
                 ld5 = 0;
           }
@@ -1748,16 +1753,16 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
           cx_energy += mlintern[tt];
 
           dang5 = dang3 = 0;
-          if ((ON_SAME_STRAND(p - 1, p, cp)) && (p > 1))
+          if ((sn[p - 1] == sn[p]) && (p > 1))
             dang5 = P->dangle5[tt][s1[p - 1]];          /* 5'dangle of pq pair */
 
-          if ((ON_SAME_STRAND(i1, i1 + 1, cp)) && (i1 < (unsigned int)s[0]))
+          if ((sn[i1] == sn[i1 + 1]) && (i1 < (unsigned int)s[0]))
             dang3 = P->dangle3[type][s1[i1 + 1]];       /* 3'dangle of previous pair */
 
           switch (p - i1 - 1) {
             case 0:           /* adjacent helices */
               if (i1 != 0) {
-                if (ON_SAME_STRAND(i1, p, cp)) {
+                if (sn[i1] == sn[p]) {
                   new_cx = energy + P->stack[rtype[type]][rtype[tt]];
                   /* subtract 5'dangle and TerminalAU penalty */
                   new_cx += -ld5 - mlintern[tt] - mlintern[type] + 2 * mlintern[1];
@@ -1828,8 +1833,8 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
           E2_mm5_occupied   = E2_mm5_available;
         }
 
-        mm5       = ((ON_SAME_STRAND(p - 1, p, cp)) && !pt[p - 1])  ? s1[p - 1] : -1;
-        mm3       = ((ON_SAME_STRAND(q, q + 1, cp)) && !pt[q + 1])  ? s1[q + 1] : -1;
+        mm5       = ((sn[p - 1] == sn[p]) && !pt[p - 1])  ? s1[p - 1] : -1;
+        mm3       = ((sn[q] == sn[q + 1]) && !pt[q + 1])  ? s1[q + 1] : -1;
         e_stem    = E_MLstem(tt, -1, -1, P);
         e_stem5   = E_MLstem(tt, mm5, -1, P);
         e_stem3   = E_MLstem(tt, -1, mm3, P);
@@ -1872,8 +1877,8 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
         if (type == 0)
           type = 7;
 
-        mm5 = ((ON_SAME_STRAND(j - 1, j, cp)) && !pt[j - 1])  ? s1[j - 1] : -1;
-        mm3 = ((ON_SAME_STRAND(i, i + 1, cp)) && !pt[i + 1])  ? s1[i + 1] : -1;
+        mm5 = ((sn[j - 1] == sn[j]) && !pt[j - 1])  ? s1[j - 1] : -1;
+        mm3 = ((sn[i] == sn[i + 1]) && !pt[i + 1])  ? s1[i + 1] : -1;
         if (q_prev + 2 < p) {
           E_mm5_available = MIN2(E_mm5_available, E_mm5_occupied);
           E_mm5_occupied  = E_mm5_available;
@@ -1933,9 +1938,9 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
 
 
 PRIVATE int
-cut_in_loop(int         i,
-            const short *pt,
-            int         cp)
+cut_in_loop(int           i,
+            const short   *pt,
+            unsigned int  *sn)
 {
   /* walk around the loop;  return j pos of pair after cut if
    * cut_point in loop else 0 */
@@ -1947,8 +1952,8 @@ cut_in_loop(int         i,
     p = i + 1;
     while (pt[p] == 0)
       p++;
-  } while (p != j && ON_SAME_STRAND(i, p, cp));
-  return ON_SAME_STRAND(i, p, cp) ? 0 : j;
+  } while (p != j && (sn[i] == sn[p]));
+  return sn[i] == sn[p] ? 0 : j;
 }
 
 

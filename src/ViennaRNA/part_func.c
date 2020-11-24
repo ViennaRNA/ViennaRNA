@@ -188,6 +188,7 @@ PUBLIC vrna_dimer_pf_t
 vrna_pf_dimer(vrna_fold_compound_t  *fc,
               char                  *structure)
 {
+  unsigned int      *so, *se, *ss;
   int               n;
   FLT_OR_DBL        Q;
   vrna_dimer_pf_t   X;
@@ -205,6 +206,9 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
 
   params    = fc->exp_params;
   n         = fc->length;
+  so        = fc->strand_order;
+  se        = fc->strand_end;
+  ss        = fc->strand_start;
   md        = &(params->model_details);
   matrices  = fc->exp_matrices;
   sequence  = fc->sequence;
@@ -262,30 +266,32 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
 
   /* probability of molecules being bound together */
 
-  /* Computation of "real" Partition function */
-  /* Need that for concentrations */
-  if (fc->cutpoint > 0) {
+  /*
+   * Computation of "real" Partition function
+   * Need that for concentrations
+   */
+  if (fc->strands > 1) {
     double kT, QAB, QToT, Qzero;
     kT    = params->kT / 1000.0;
     Qzero = matrices->q[fc->iindx[1] - n];
     QAB   =
-      (matrices->q[fc->iindx[1] - n] - matrices->q[fc->iindx[1] - (fc->cutpoint - 1)] *
-       matrices->q[fc->iindx[fc->cutpoint] - n]) * params->expDuplexInit;
+      (matrices->q[fc->iindx[1] - n] - matrices->q[fc->iindx[1] - se[so[0]]] *
+       matrices->q[fc->iindx[ss[so[1]]] - n]) * params->expDuplexInit;
     /*correction for symmetry*/
-    if ((n - (fc->cutpoint - 1) * 2) == 0)
-      if ((strncmp(sequence, sequence + fc->cutpoint - 1, fc->cutpoint - 1)) == 0)
+    if ((n - 2 * se[so[0]]) == 0)
+      if ((strncmp(sequence, sequence + se[so[0]], se[so[0]])) == 0)
         QAB /= 2;
 
-    QToT = matrices->q[fc->iindx[1] - (fc->cutpoint - 1)] *
-           matrices->q[fc->iindx[fc->cutpoint] - n] + QAB;
+    QToT = matrices->q[fc->iindx[1] - se[so[0]]] *
+           matrices->q[fc->iindx[ss[so[1]]] - n] + QAB;
     X.FAB   = -kT * (log(QToT) + n * log(params->pf_scale));
     X.F0AB  = -kT * (log(Qzero) + n * log(params->pf_scale));
     X.FcAB  = (QAB > 1e-17) ? -kT * (log(QAB) + n * log(params->pf_scale)) : 999;
     X.FA    = -kT *
-              (log(matrices->q[fc->iindx[1] - (fc->cutpoint - 1)]) + (fc->cutpoint - 1) *
+              (log(matrices->q[fc->iindx[1] - se[so[0]]]) + (se[so[0]]) *
                log(params->pf_scale));
     X.FB = -kT *
-           (log(matrices->q[fc->iindx[fc->cutpoint] - n]) + (n - fc->cutpoint + 1) *
+           (log(matrices->q[fc->iindx[ss[so[1]]] - n]) + (n - ss[so[1]] + 1) *
             log(params->pf_scale));
 
     /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]); */
@@ -383,7 +389,8 @@ fill_arrays(vrna_fold_compound_t *fc)
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        fc->exp_matrices->G = get_gquad_pf_matrix_comparative(fc->S_cons,
+        fc->exp_matrices->G = get_gquad_pf_matrix_comparative(fc->length,
+                                                              fc->S_cons,
                                                               fc->S,
                                                               fc->a2s,
                                                               fc->exp_matrices->scale,
@@ -510,10 +517,12 @@ decompose_pair(vrna_fold_compound_t *fc,
 }
 
 
-/* calculate partition function for circular case */
-/* NOTE: this is the postprocessing step ONLY     */
-/* You have to call fill_arrays first to calculate  */
-/* complete circular case!!!                      */
+/*
+ * calculate partition function for circular case
+ * NOTE: this is the postprocessing step ONLY
+ * You have to call fill_arrays first to calculate
+ * complete circular case!!!
+ */
 PRIVATE void
 postprocess_circular(vrna_fold_compound_t *fc)
 {

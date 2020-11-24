@@ -73,6 +73,7 @@ struct old_subopt_dat {
   unsigned long n_sol;
   SOLUTION      *SolutionList;
   FILE          *fp;
+  int           cp;
 };
 
 /*
@@ -209,6 +210,10 @@ PRIVATE int
 compare(const void  *solution1,
         const void  *solution2);
 
+PRIVATE int
+compare_en(const void  *solution1,
+           const void  *solution2);
+
 
 PRIVATE void
 make_output(SOLUTION  *SL,
@@ -250,6 +255,12 @@ PRIVATE void
 old_subopt_store(const char *structure,
                  float      energy,
                  void       *data);
+
+
+PRIVATE void
+old_subopt_store_compressed(const char *structure,
+                            float      energy,
+                            void       *data);
 
 
 /*
@@ -558,6 +569,20 @@ compare(const void  *solution1,
 }
 
 
+PRIVATE int
+compare_en(const void  *solution1,
+           const void  *solution2)
+{
+  if (((SOLUTION *)solution1)->energy > ((SOLUTION *)solution2)->energy)
+    return 1;
+
+  if (((SOLUTION *)solution1)->energy < ((SOLUTION *)solution2)->energy)
+    return -1;
+
+  return 0;
+}
+
+
 /*---------------------------------------------------------------------------*/
 
 PRIVATE void
@@ -568,8 +593,12 @@ make_output(SOLUTION  *SL,
   SOLUTION *sol;
 
   for (sol = SL; sol->structure != NULL; sol++) {
-    char *e_string = vrna_strdup_printf(" %6.2f", sol->energy);
-    print_structure(fp, sol->structure, e_string);
+    char *e_string  = vrna_strdup_printf(" %6.2f", sol->energy);
+    char *ss        = vrna_db_unpack(sol->structure);
+    char *s         = vrna_cut_point_insert(ss, cp);
+    print_structure(fp, s, e_string);
+    free(s);
+    free(ss);
     free(e_string);
   }
 }
@@ -720,11 +749,13 @@ vrna_subopt(vrna_fold_compound_t  *vc,
             FILE                  *fp)
 {
   struct old_subopt_dat data;
+  vrna_subopt_callback  *cb;
 
   data.SolutionList = NULL;
   data.max_sol      = 128;
   data.n_sol        = 0;
   data.fp           = fp;
+  data.cp           = vc->cutpoint;
 
   if (vc) {
     /* SolutionList stores the suboptimal structures found */
@@ -736,7 +767,7 @@ vrna_subopt(vrna_fold_compound_t  *vc,
     if (fp) {
       float min_en;
       char  *SeQ, *energies = NULL;
-      if (vc->cutpoint > 0)
+      if (vc->strands > 1)
         min_en = vrna_mfe_dimer(vc, NULL);
       else
         min_en = vrna_mfe(vc, NULL);
@@ -750,14 +781,31 @@ vrna_subopt(vrna_fold_compound_t  *vc,
       vrna_mx_mfe_free(vc);
     }
 
+    cb = old_subopt_store;
+
+    if (fp)
+      cb = (sorted) ? old_subopt_store_compressed : old_subopt_print;
+
     /* call subopt() */
-    vrna_subopt_cb(vc, delta, (!sorted && fp) ? &old_subopt_print : &old_subopt_store,
-                   (void *)&data);
+    vrna_subopt_cb(vc, delta, cb, (void *)&data);
 
     if (sorted) {
       /* sort structures by energy */
-      if (data.n_sol > 0)
-        qsort(data.SolutionList, data.n_sol - 1, sizeof(SOLUTION), compare);
+      if (data.n_sol > 0) {
+        int (*compare_fun)(const void *a, const void *b);
+
+        switch (sorted) {
+          case VRNA_SORT_BY_ENERGY_ASC:
+            compare_fun = compare_en;
+            break;
+
+          default: /* a.k.a. VRNA_SORT_BY_ENERGY_LEXICOGRAPHIC_ASC */
+            compare_fun = compare;
+            break;
+        }
+
+        qsort(data.SolutionList, data.n_sol - 1, sizeof(SOLUTION), compare_fun);
+      }
 
       if (fp)
         make_output(data.SolutionList, vc->cutpoint, fp);
@@ -786,8 +834,9 @@ vrna_subopt_cb(vrna_fold_compound_t *vc,
   subopt_env    *env;
   STATE         *state;
   INTERVAL      *interval;
+  unsigned int  *so, *ss, *se;
   int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular,
-                threshold, cp;
+                threshold;
   double        structure_energy, min_en, eprint;
   char          *struc, *structure;
   float         correction;
@@ -800,7 +849,9 @@ vrna_subopt_cb(vrna_fold_compound_t *vc,
   vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
 
   length  = vc->length;
-  cp      = vc->cutpoint;
+  so      = vc->strand_order;
+  ss      = vc->strand_start;
+  se      = vc->strand_end;
   P       = vc->params;
   md      = &(P->model_details);
 
@@ -927,7 +978,7 @@ vrna_subopt_cb(vrna_fold_compound_t *vc,
 
       density_of_states[e]++;
       if (structure_energy <= eprint) {
-        char *outstruct = vrna_cut_point_insert(structure, cp);
+        char *outstruct = vrna_cut_point_insert(structure, (vc->strands > 1) ? ss[so[1]] : -1);
         cb((const char *)outstruct, structure_energy, data);
         free(outstruct);
       }
@@ -974,10 +1025,11 @@ scan_interval(vrna_fold_compound_t  *vc,
   register int  type;
   register int  dangle_model;
   register int  noLP;
+  unsigned int  *sn, *so, *ss, *se;
   int           element_energy, best_energy;
   int           *fc, *f5, *c, *fML, *fM1, *ggg;
   int           FcH, FcI, FcM, *fM2;
-  int           length, *indx, *rtype, circular, with_gquad, turn, cp;
+  int           length, *indx, *rtype, circular, with_gquad, turn;
   char          *ptype;
   short         *S1;
   unsigned char *hard_constraints, hc_decompose;
@@ -985,7 +1037,10 @@ scan_interval(vrna_fold_compound_t  *vc,
   vrna_sc_t     *sc;
 
   length  = vc->length;
-  cp      = vc->cutpoint;
+  sn      = vc->strand_number;
+  so      = vc->strand_order;
+  ss      = vc->strand_start;
+  se      = vc->strand_end;
   indx    = vc->jindx;
   ptype   = vc->ptype;
   S1      = vc->sequence_encoding;
@@ -1021,7 +1076,8 @@ scan_interval(vrna_fold_compound_t  *vc,
   if ((i > 1) && (!array_flag))
     vrna_message_error("Error while backtracking!");
 
-  if (j < i + turn + 1 && ON_SAME_STRAND(i, j, cp)) {
+  if ((j < i + turn + 1) &&
+	  ((sn[i] == so[1]) || (sn[j] == so[0]))) {
     /* minimal structure element */
     if (array_flag == 0)
       /* do not forget to add f5[j], since it may contain pseudo energies from soft constraining */
@@ -1064,7 +1120,7 @@ scan_interval(vrna_fold_compound_t  *vc,
           fi += sc->f(i, j, i, j - 1, VRNA_DECOMP_ML_ML, sc->data);
       }
 
-      if ((fi + best_energy <= threshold) && (ON_SAME_STRAND(j - 1, j, cp)))
+      if ((fi + best_energy <= threshold) && (sn[j - 1] == sn[j]))
         /* no basepair, nibbling of 3'-end */
         fork_state(i, j - 1, state, P->MLbase, array_flag, env);
     }
@@ -1083,12 +1139,8 @@ scan_interval(vrna_fold_compound_t  *vc,
             break;
           default:
             element_energy = E_MLstem(type,
-                                      (((i > 1) && (ON_SAME_STRAND(i - 1,
-                                                                   i,
-                                                                   cp))) || circular)       ? S1[i - 1] : -1,
-                                      (((j < length) && (ON_SAME_STRAND(j,
-                                                                        j + 1,
-                                                                        cp))) || circular)  ? S1[j + 1] : -1,
+                                      (((i > 1) && (sn[i - 1] == sn[i])) || circular) ? S1[i - 1] : -1,
+                                      (((j < length) && (sn[j] == sn[j + 1])) || circular)  ? S1[j + 1] : -1,
                                       P);
             break;
         }
@@ -1120,13 +1172,13 @@ scan_interval(vrna_fold_compound_t  *vc,
     /*                          or in this block */
 
     int stopp, k1j;
-    if ((ON_SAME_STRAND(i - 1, i, cp)) && (ON_SAME_STRAND(j, j + 1, cp))) {
+    if ((sn[i - 1] == sn[i]) && (sn[j] == sn[j + 1])) {
       /*backtrack in FML only if multiloop is possible*/
       for (k = i + turn + 1; k <= j - 1 - turn; k++) {
         /* Multiloop decomposition if i,j contains more than 1 stack */
 
         if ((with_gquad) &&
-            (ON_SAME_STRAND(k, k + 1, cp)) &&
+            (sn[k] == sn[k + 1]) &&
             (fML[indx[k] + i] != INF) &&
             (ggg[indx[j] + k + 1] != INF)) {
           element_energy = E_MLstem(0, -1, -1, P);
@@ -1161,8 +1213,8 @@ scan_interval(vrna_fold_compound_t  *vc,
               break;
 
             default:
-              s5  = (ON_SAME_STRAND(i - 1, i, cp)) ? S1[k] : -1;
-              s3  = (ON_SAME_STRAND(j, j + 1, cp)) ? S1[j + 1] : -1;
+              s5  = (sn[i - 1] == sn[i]) ? S1[k] : -1;
+              s3  = (sn[j] == sn[j + 1]) ? S1[j + 1] : -1;
               break;
           }
 
@@ -1173,7 +1225,7 @@ scan_interval(vrna_fold_compound_t  *vc,
               element_energy += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_STEM, sc->data);
           }
 
-          if (ON_SAME_STRAND(k, k + 1, cp)) {
+          if (sn[k] == sn[k + 1]) {
             if (fML[indx[k] + i] + c[k1j] + element_energy + best_energy <= threshold) {
               temp_state  = derive_new_state(i, k, state, 0, array_flag);
               env->nopush = false;
@@ -1193,13 +1245,16 @@ scan_interval(vrna_fold_compound_t  *vc,
       }
     }
 
-    stopp = (cp > 0) ? (cp - 2) : (length); /*if cp -1: k on cut, => no ml*/
-    stopp = MIN2(stopp, j - 1 - turn);
-    if (i > cp)
+    if (vc->strands > 1) {
+      stopp = se[so[0]] - 1; /*if cp -1: k on cut, => no ml*/
+      stopp = MIN2(stopp, j - 1 - turn);
+      if (i > ss[so[1]])
+        stopp = j - 1 - turn;
+      else if (i == ss[so[1]])
+        stopp = 0;               /*not a multi loop*/
+    } else {
       stopp = j - 1 - turn;
-    else if (i == cp)
-      stopp = 0;               /*not a multi loop*/
-
+    }
     int up = 1;
     for (k = i; k <= stopp; k++, up++) {
       if (hc->up_ml[i] >= up) {
@@ -1228,8 +1283,8 @@ scan_interval(vrna_fold_compound_t  *vc,
               s5 = s3 = -1;
               break;
             default:
-              s5  = (ON_SAME_STRAND(k - 1, k, cp)) ? S1[k] : -1;
-              s3  = (ON_SAME_STRAND(j, j + 1, cp)) ? S1[j + 1] : -1;
+              s5  = (sn[k - 1] == sn[k]) ? S1[k] : -1;
+              s3  = (sn[j] == sn[j + 1]) ? S1[j + 1] : -1;
               break;
           }
 
@@ -1299,7 +1354,7 @@ scan_interval(vrna_fold_compound_t  *vc,
       kj = indx[j] + k;
 
       if ((with_gquad) &&
-          (ON_SAME_STRAND(k, j, cp)) &&
+          (sn[k] == sn[j]) &&
           (f5[k - 1] != INF) &&
           (ggg[kj] != INF)) {
         element_energy = 0;
@@ -1332,14 +1387,14 @@ scan_interval(vrna_fold_compound_t  *vc,
             s5 = s3 = -1;
             break;
           default:
-            s5  = (ON_SAME_STRAND(k - 1, k, cp)) ? S1[k - 1] : -1;
-            s3  = ((j < length) && (ON_SAME_STRAND(j, j + 1, cp))) ? S1[j + 1] : -1;
+            s5  = (sn[k - 1] == sn[k]) ? S1[k - 1] : -1;
+            s3  = ((j < length) && (sn[j] == sn[j + 1])) ? S1[j + 1] : -1;
             break;
         }
 
         element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-        if (!(ON_SAME_STRAND(k, j, cp))) /*&&(state->is_duplex==0))*/
+        if (sn[k] != sn[j]) /*&&(state->is_duplex==0))*/
           element_energy += P->DuplexInit;
 
         /*state->is_duplex=1;*/
@@ -1360,7 +1415,7 @@ scan_interval(vrna_fold_compound_t  *vc,
     kj = indx[j] + 1;
 
     if ((with_gquad) &&
-        (ON_SAME_STRAND(k, j, cp)) &&
+        (sn[k] == sn[j]) &&
         (ggg[kj] != INF)) {
       element_energy = 0;
 
@@ -1379,13 +1434,13 @@ scan_interval(vrna_fold_compound_t  *vc,
           s3 = -1;
           break;
         default:
-          s3 = (j < length) && (ON_SAME_STRAND(j, j + 1, cp)) ? S1[j + 1] : -1;
+          s3 = (j < length) && (sn[j] == sn[j + 1]) ? S1[j + 1] : -1;
           break;
       }
 
       element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-      if (!(ON_SAME_STRAND(1, j, cp)))
+      if (sn[1] != sn[j])
         element_energy += P->DuplexInit;
 
       if (sc) {
@@ -1615,7 +1670,7 @@ scan_interval(vrna_fold_compound_t  *vc,
         fork_state(i + 1, j, state, tmp_en, 4, env);
     }
 
-    for (k = i + TURN + 1; k < j; k++) {
+    for (k = i + turn + 1; k < j; k++) {
       ik = indx[k] + i;
 
       if ((with_gquad) &&
@@ -1660,13 +1715,13 @@ scan_interval(vrna_fold_compound_t  *vc,
       }
     }
 
-    ik = indx[cp - 1] + i; /* indx[j] + i; */
+    ik = indx[se[so[0]]] + i; /* indx[j] + i; */
 
     if ((with_gquad) && (ggg[ik] != INF))
       if (ggg[ik] + best_energy <= threshold)
-        repeat_gquad(vc, i, cp - 1, state, 0, 0, best_energy, threshold, env);
+        repeat_gquad(vc, i, se[so[0]], state, 0, 0, best_energy, threshold, env);
 
-    if ((hard_constraints[length * i + cp - 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
+    if ((hard_constraints[length * i + se[so[0]]] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
         (c[ik] != INF)) {
       type  = vrna_get_ptype(ik, ptype);
       s3    = -1;
@@ -1684,11 +1739,11 @@ scan_interval(vrna_fold_compound_t  *vc,
 
       if (sc) {
         if (sc->f)
-          element_energy += sc->f(i, cp - 1, i, cp - 1, VRNA_DECOMP_EXT_STEM, sc->data);
+          element_energy += sc->f(i, se[so[0]], i, se[so[0]], VRNA_DECOMP_EXT_STEM, sc->data);
       }
 
       if (c[ik] + element_energy + best_energy <= threshold)
-        repeat(vc, i, cp - 1, state, element_energy, 0, best_energy, threshold, env);
+        repeat(vc, i, se[so[0]], state, element_energy, 0, best_energy, threshold, env);
     }
   } /* array_flag == 4 */
 
@@ -1719,7 +1774,7 @@ scan_interval(vrna_fold_compound_t  *vc,
         fork_state(i, j - 1, state, tmp_en, 5, env);
     }
 
-    for (k = j - TURN - 1; k > i; k--) {
+    for (k = j - turn - 1; k > i; k--) {
       kj = indx[j] + k;
 
       if ((with_gquad) &&
@@ -1765,13 +1820,13 @@ scan_interval(vrna_fold_compound_t  *vc,
       }
     }
 
-    kj = indx[j] + cp; /* indx[j] + i; */
+    kj = indx[j] + ss[so[1]]; /* indx[j] + i; */
 
     if ((with_gquad) && (ggg[kj] != INF))
       if (ggg[kj] + best_energy <= threshold)
-        repeat_gquad(vc, cp, j, state, 0, 0, best_energy, threshold, env);
+        repeat_gquad(vc, ss[so[1]], j, state, 0, 0, best_energy, threshold, env);
 
-    if ((hard_constraints[length * cp + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
+    if ((hard_constraints[length * ss[so[1]] + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
         (c[kj] != INF)) {
       type  = vrna_get_ptype(kj, ptype);
       s5    = -1;
@@ -1789,11 +1844,11 @@ scan_interval(vrna_fold_compound_t  *vc,
 
       if (sc) {
         if (sc->f)
-          element_energy += sc->f(cp, j, cp, j, VRNA_DECOMP_EXT_STEM, sc->data);
+          element_energy += sc->f(ss[so[1]], j, ss[so[1]], j, VRNA_DECOMP_EXT_STEM, sc->data);
       }
 
       if (c[kj] + element_energy + best_energy <= threshold)
-        repeat(vc, cp, j, state, element_energy, 0, best_energy, threshold, env);
+        repeat(vc, ss[so[1]], j, state, element_energy, 0, best_energy, threshold, env);
     }
   } /* array_flag == 5 */
 
@@ -1827,12 +1882,13 @@ repeat_gquad(vrna_fold_compound_t *vc,
              int                  threshold,
              subopt_env           *env)
 {
-  int           *ggg, *indx, element_energy, cp;
+  unsigned int  *sn;
+  int           *ggg, *indx, element_energy;
   short         *S1;
   vrna_param_t  *P;
 
   indx  = vc->jindx;
-  cp    = vc->cutpoint;
+  sn    = vc->strand_number;
   ggg   = vc->matrices->ggg;
   S1    = vc->sequence_encoding;
   P     = vc->params;
@@ -1843,7 +1899,7 @@ repeat_gquad(vrna_fold_compound_t *vc,
   best_energy += part_energy; /* energy of current structural element */
   best_energy += temp_energy; /* energy from unpushed interval */
 
-  if (ON_SAME_STRAND(i, j, cp)) {
+  if (sn[i] == sn[j]) {
     element_energy = ggg[indx[j] + i];
     if ((element_energy != INF) &&
         (element_energy + best_energy <= threshold)) {
@@ -1903,10 +1959,10 @@ repeat(vrna_fold_compound_t *vc,
   register int  mm;
   register int  no_close, type, type_2;
   char          *ptype;
-  unsigned int  n;
+  unsigned int  n, *sn, *so, *ss, *se;
   int           element_energy;
   int           *fc, *c, *fML, *fM1, *ggg;
-  int           rt, *indx, *rtype, noGUclosure, noLP, with_gquad, dangle_model, turn, cp;
+  int           rt, *indx, *rtype, noGUclosure, noLP, with_gquad, dangle_model, turn;
   short         *S1;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
@@ -1915,7 +1971,10 @@ repeat(vrna_fold_compound_t *vc,
   S1    = vc->sequence_encoding;
   ptype = vc->ptype;
   indx  = vc->jindx;
-  cp    = vc->cutpoint;
+  sn    = vc->strand_number;
+  so    = vc->strand_order;
+  ss    = vc->strand_start;
+  se    = vc->strand_end;
   P     = vc->params;
   md    = &(P->model_details);
   rtype = &(md->rtype[0]);
@@ -1952,7 +2011,7 @@ repeat(vrna_fold_compound_t *vc,
           type_2  = rtype[vrna_get_ptype(indx[j - 1] + i + 1, ptype)];
           energy  = 0;
 
-          if (ON_SAME_STRAND(i, i + 1, cp) && ON_SAME_STRAND(j - 1, j, cp)) {
+          if ((sn[i] == sn[i + 1]) && (sn[j - 1] == sn[j])) {
             energy = E_IntLoop(0, 0, type, type_2, S1[i + 1], S1[j - 1], S1[i + 1], S1[j - 1], P);
 
             if (sc) {
@@ -2021,7 +2080,7 @@ repeat(vrna_fold_compound_t *vc,
 
         /* continue unless stack */
 
-        if (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp)) {
+        if ((sn[i] == sn[p]) && (sn[q] == sn[j])) {
           energy = E_IntLoop(p - i - 1, j - q - 1, type, rtype[type_2],
                              S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1], P);
 
@@ -2058,7 +2117,7 @@ repeat(vrna_fold_compound_t *vc,
     }     /* end of p-loop */
   }
 
-  if (!ON_SAME_STRAND(i, j, cp)) {
+  if (sn[i] != sn[j]) {
     /*look in fc*/
     if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
         (fc[i + 1] != INF) &&
@@ -2073,10 +2132,10 @@ repeat(vrna_fold_compound_t *vc,
         default:
           element_energy =
             vrna_E_ext_stem(rt,
-                      (ON_SAME_STRAND(j - 1, j, cp)) ?
+                      (sn[j - 1] == sn[j]) ?
                       S1[j - 1] :
                       -1,
-                      (ON_SAME_STRAND(i, i + 1, cp)) ?
+                      (sn[i] == sn[i + 1]) ?
                       S1[i + 1] :
                       -1,
                       P);
@@ -2084,14 +2143,15 @@ repeat(vrna_fold_compound_t *vc,
       }
 
       if (fc[i + 1] + fc[j - 1] + element_energy + best_energy <= threshold)
-        fork_two_states_pair(i, j, cp, state, part_energy + element_energy, 4, 5, env);
+        fork_two_states_pair(i, j, ss[so[1]], state, part_energy + element_energy, 4, 5, env);
     }
   }
 
   mm  = P->MLclosing;
   rt  = rtype[type];
 
-  if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) && (i != cp - 1) && (j != cp)) {
+  if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
+      ((vc->strands < 2) || ((i != se[so[0]]) && (j != ss[so[1]])))) {
     element_energy = mm;
     switch (dangle_model) {
       case 0:
@@ -2138,7 +2198,7 @@ repeat(vrna_fold_compound_t *vc,
     }
   }
 
-  if (ON_SAME_STRAND(i, j, cp)) {
+  if (sn[i] == sn[j]) {
     if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) &&
         (!no_close)) {
 
@@ -2222,6 +2282,36 @@ old_subopt_store(const char *structure,
   if (structure) {
     d->SolutionList[d->n_sol].energy      = energy;
     d->SolutionList[d->n_sol++].structure = strdup(structure);
+  } else {
+    d->SolutionList[d->n_sol].energy      = 0;
+    d->SolutionList[d->n_sol++].structure = NULL;
+  }
+}
+
+
+PRIVATE void
+old_subopt_store_compressed(const char *structure,
+                            float      energy,
+                            void       *data)
+{
+  struct old_subopt_dat *d = (struct old_subopt_dat *)data;
+
+  /* store solution */
+  if (d->n_sol + 1 == d->max_sol) {
+    d->max_sol      *= 2;
+    d->SolutionList = (SOLUTION *)vrna_realloc(d->SolutionList, d->max_sol * sizeof(SOLUTION));
+  }
+
+  if (structure) {
+    d->SolutionList[d->n_sol].energy      = energy;
+    if (d->cp > 0) {
+      int   cp = d->cp;
+      char  *s = vrna_cut_point_remove(structure, &cp);
+      d->SolutionList[d->n_sol++].structure = vrna_db_pack(s);
+      free(s);
+    } else { 
+      d->SolutionList[d->n_sol++].structure = vrna_db_pack(structure);
+    }
   } else {
     d->SolutionList[d->n_sol].energy      = 0;
     d->SolutionList[d->n_sol++].structure = NULL;

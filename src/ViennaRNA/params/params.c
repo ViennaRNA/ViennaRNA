@@ -285,7 +285,7 @@ vrna_exp_params_subst(vrna_fold_compound_t  *vc,
       switch (vc->type) {
         case VRNA_FC_TYPE_SINGLE:
           vc->exp_params = vrna_exp_params(NULL);
-          if (vc->cutpoint > 0)
+          if (vc->strands > 1)
             vc->exp_params->model_details.min_loop_size = 0;
 
           break;
@@ -951,10 +951,11 @@ rescale_params(vrna_fold_compound_t *vc)
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
-
+/*
+ *###########################################
+ *# deprecated functions below              #
+ *###########################################
+ */
 PUBLIC vrna_param_t *
 scale_parameters(void)
 {

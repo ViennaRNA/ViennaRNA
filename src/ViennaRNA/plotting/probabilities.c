@@ -73,7 +73,7 @@ PRIVATE char *comment_dotplot = "This file contains the square roots of probabil
 #################################
 */
 
-PRIVATE FILE  *PS_dot_common(const char *seq, int cp, const char *wastlfile, char *comment, int winsize, unsigned int options);
+PRIVATE FILE  *PS_dot_common(const char *seq, unsigned int *nicks, const char *wastlfile, char *comment, int winsize, unsigned int options);
 PRIVATE int   sort_plist_by_type_desc(const void *p1, const void *p2);
 PRIVATE int   sort_plist_by_prob_asc(const void *p1, const void *p2);
 PRIVATE int   sort_cpair_by_type_desc(const void *p1, const void *p2);
@@ -105,13 +105,25 @@ PS_color_dot_plot(char *seq,
 
   /* produce color PostScript dot plot from cpair */
 
-  FILE *wastl;
-  int i, gq_num, pi_size;
-  cpair *ptr;
+  FILE          *wastl;
+  unsigned int  *nicks;
+  int           i, gq_num, pi_size;
+  cpair         *ptr;
 
+  nicks = NULL;
 
-  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, 0, PS_MACRO_DOTPLOT_SD);
-  if (wastl==NULL)  return 0; /* return 0 for failure */
+  if (cut_point > 0) {
+    nicks = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
+    nicks[0] = cut_point;
+    nicks[1] = 0;
+  }
+
+  wastl = PS_dot_common(seq, nicks, wastlfile, NULL, 0, PS_MACRO_DOTPLOT_SD);
+
+  free(nicks);
+
+  if (wastl==NULL)
+    return 0; /* return 0 for failure */
 
   fprintf(wastl, "/hsb {\n"
           "dup 0.3 mul 1 exch sub sethsbcolor\n"
@@ -172,13 +184,55 @@ vrna_plot_dp_PS_list( char *seq,
                       plist *mf,
                       char *comment){
 
-  FILE *wastl;
-  int pl_size, gq_num;
-  plist *pl1;
+  FILE          *wastl;
+  size_t        cnt;
+  char          *seq_plain, *tmp, **seqs;
+  unsigned int  *nicks, curr_length;
+  int           pl_size, gq_num;
+  plist         *pl1;
 
-  wastl = PS_dot_common(seq, cp, wastlfile, comment, 0, PS_MACRO_DOTPLOT_ALL);
+  nicks     = NULL;
+  seq_plain = tmp = NULL;
+  seqs      = vrna_strsplit(seq, "&");
 
-  if (wastl==NULL) return 0; /* return 0 for failure */
+  if (seqs) {
+    /* count total number of strands */
+    for (cnt = 0; seqs[cnt]; cnt++);
+
+    seq_plain   = seqs[0];
+    curr_length = strlen(seq_plain);
+
+    if (seqs[1]) {
+      nicks = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (cnt + 1));
+
+      /* get first cut point and concatenate sequences */
+      nicks[0] = curr_length + 1;
+      vrna_strcat_printf(&seq_plain, "%s", seqs[1]);
+      curr_length += strlen(seqs[1]);
+      free(tmp);
+      free(seqs[1]);
+
+      /* add all remaining sequences (so far, we do not store the individual nicks for the remaining sequences */
+      cnt = 2;
+      while(seqs[cnt]) {
+        nicks[cnt - 1] = curr_length + 1;
+        vrna_strcat_printf(&seq_plain, "%s", seqs[cnt]);
+        curr_length += strlen(seqs[cnt]);
+        free(tmp);
+        free(seqs[cnt++]);
+      }
+    }
+
+    free(seqs);
+  }
+
+  wastl = PS_dot_common(seq_plain, nicks, wastlfile, comment, 0, PS_MACRO_DOTPLOT_ALL);
+
+  free(seq_plain);
+  free(nicks);
+
+  if (wastl==NULL)
+    return 0; /* return 0 for failure */
 
   fprintf(wastl,"%%data starts here\n");
 
@@ -369,10 +423,22 @@ PS_color_dot_plot_turn( char *seq,
 
   /* produce color PostScript dot plot from cpair */
 
-  FILE *wastl;
-  int i;
+  FILE          *wastl;
+  unsigned int  *nicks;
+  int           i;
 
-  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, winSize, 0);
+  nicks = NULL;
+
+  if (cut_point > 0) {
+    nicks = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
+    nicks[0] = cut_point;
+    nicks[1] = 0;
+  }
+
+  wastl = PS_dot_common(seq, nicks, wastlfile, NULL, winSize, 0);
+
+  free(nicks);
+
   if (wastl==NULL)
     return 0; /* return 0 for failure */
 
@@ -414,10 +480,22 @@ PS_dot_plot_turn( char *seq,
 
   /* produce color PostScript dot plot from cpair */
 
-  FILE *wastl;
-  int i;
+  FILE          *wastl;
+  unsigned int  *nicks;
+  int           i;
 
-  wastl = PS_dot_common(seq, cut_point, wastlfile, NULL, winSize, 0);
+  nicks = NULL;
+
+  if (cut_point > 0) {
+    nicks = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
+    nicks[0] = cut_point;
+    nicks[1] = 0;
+  }
+
+  wastl = PS_dot_common(seq, nicks, wastlfile, NULL, winSize, 0);
+
+  free(nicks);
+
   if (wastl==NULL)
     return 0; /* return 0 for failure */
 
@@ -822,12 +900,13 @@ plist_to_ud_motif_prob(plist *pl, unsigned int length){
 
 
 PRIVATE FILE *
-PS_dot_common(const char *seq,
-              int cp,
-              const char *wastlfile,
-              char *comment,
-              int winsize,
-              unsigned int options){
+PS_dot_common(const char    *seq,
+              unsigned int  *nicks,
+              const char    *wastlfile,
+              char          *comment,
+              int           winsize,
+              unsigned int  options)
+{
 
   /* write PS header etc for all dot plot variants */
   FILE *wastl;
@@ -864,7 +943,19 @@ PS_dot_common(const char *seq,
   if (winsize>0)
     fprintf(wastl,"/winSize %d def\n",winsize);
 
-  if (cp>0) fprintf(wastl,"/cutpoint %d def\n\n", cp);
+  if (nicks) {
+    /* backward compatibility */
+    fprintf(wastl,"/cutpoint %d def\n\n", nicks[0]);
+
+    size_t cnt = 0;
+
+    fprintf(wastl, "/nicks [ ");
+
+    while (nicks[cnt])
+      fprintf(wastl, "%d ", nicks[cnt++]);
+
+    fprintf(wastl, "] def\n");
+  }
 
 
   if (winsize>0)

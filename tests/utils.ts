@@ -1,8 +1,18 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/utils/strings.h>
 #include <ViennaRNA/alphabet.h>
+#include <ViennaRNA/mfe.h>
+
+static int
+compare_str(const void  *a,
+            const void  *b)
+{
+  return strcmp(*((const char **)a), *((const char **)b));
+}
 
 #suite Utilities
 
@@ -202,6 +212,93 @@
   free(idx);
   free(ptype);
 }
+
+#test test_pack_unpack_structure
+{
+  int i;
+  vrna_init_rand();
+  for (i = 0; i < 16; i++) {
+    /* generate random sequence */
+    char *seq = vrna_random_string(100, "ACGU");
+    char *ss = (char *)space(sizeof(char) * (strlen(seq) + 1));
+
+    /* compute structure */
+    (void)vrna_fold(seq, ss);
+
+    /* compress structure */
+    char *ss_packed = vrna_db_pack(ss);
+
+    /* uncompress structure again */
+    char *ss_unpacked = vrna_db_unpack(ss_packed);
+
+    /* compare original and packed/unpacked structure */
+    ck_assert_str_eq(ss, ss_unpacked);
+
+    /* cleanup memory */
+    free(ss_unpacked);
+    free(ss_packed);
+    free(ss);
+    free(seq);
+  }
+}
+
+#test test_pack_lexicographic_order
+{
+  int i, j, k, l, m;
+  char db[3] = { '.', '(', ')' };
+  char **uncompressed = (char **)space(sizeof(char *) * 245);
+  char **compressed = (char **)space(sizeof(char *) * 245);
+
+  /* generate all (possibly invalid) db strings of length 5 */
+  size_t counter = 0;
+  for (i = 0; i < 3; i++) {
+    for (j = 0; j < 3; j++) {
+      for (k = 0; k < 3; k++) {
+        for (l = 0; l < 3; l++) {
+          for (m = 0; m < 3; m++) {
+            char *str = (char *)space(sizeof(char) * 6);
+            str[0] = db[i];
+            str[1] = db[j];
+            str[2] = db[k];
+            str[3] = db[l];
+            str[4] = db[m];
+            str[5] = '\0';
+            uncompressed[counter] = str;
+            compressed[counter]   = vrna_db_pack(str);
+            printf("%d\t%s\t%s\n", counter, uncompressed[counter], vrna_db_unpack(compressed[counter]));
+            counter++;
+          }
+        }
+      }
+    }
+  }
+
+  /* sort both lists of structures */
+  qsort(uncompressed, 243, sizeof(char *), compare_str);
+  qsort(compressed, 243, sizeof(char *), compare_str);
+
+  /* now, go through both lists and pair-wise compare their elements */
+  for (i = 0; i < 243; i++) {
+    char *decompressed = vrna_db_unpack(compressed[i]);
+
+    j = 4;
+    while (uncompressed[i][j] == '(') {
+      uncompressed[i][j] = '\0';
+      if (j == 0)
+        break;
+      j--;
+    }
+
+    ck_assert_str_eq(uncompressed[i], decompressed);
+    free(decompressed);
+    free(compressed[i]);
+    free(uncompressed[i]);
+  }
+  free(compressed);
+  free(uncompressed);
+}
+
+
 //@TODO: extend alphabeth
 //@TODO: details.noLP = 1
 //@TODO: idx_type = 1

@@ -11,7 +11,7 @@ purpose "calculate suboptimal secondary structures of RNAs"
 args "--file-name=RNAsubopt_cmdl --include-getopt --default-optional --func-name=RNAsubopt_cmdline_parser --arg-struct-name=RNAsubopt_args_info"
 
 
-description "reads RNA sequences from stdin and (in the default -e mode) calculates all suboptimal secondary\
+description "Reads RNA sequences from stdin and (in the default -e mode) calculates all suboptimal secondary\
  structures within a user defined energy range above the minimum free energy (mfe). It prints the suboptimal\
  structures in dot-bracket notation followed by the energy in kcal/mol to stdout. Be careful, the number of\
  structures returned grows exponentially with both sequence length and energy range.\n\nAlternatively, when\
@@ -23,25 +23,25 @@ section "General Options"
 sectiondesc="Command line options which alter the general behavior of this program\n\n"
 
 option  "verbose" v
-"Be verbose\n\n"
+"Be verbose."
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+"Do not automatically substitude nucleotide \"T\" with \"U\"."
 flag
 off
 
 option  "infile"  i
-"Read a file instead of reading from stdin\n"
+"Read a file instead of reading from stdin."
 details="The default behavior of RNAsubopt is to read input from stdin. Using this parameter\
- the user can specify an input file name where data is read from.\n\n"
+ the user can specify an input file name where data is read from.\n"
 string
 typestr="<filename>"
 optional
 
 option  "outfile" o
-"Print output to file instead of stdout\n"
+"Print output to file instead of stdout."
 details="This option may be used to write all output to output files rather than printing\
  to stdout. The default filename is \"RNAsubopt_output.sub\" if no FASTA header precedes\
  the input sequences and the --auto-id feature is inactive. Otherwise, output files with\
@@ -51,67 +51,66 @@ details="This option may be used to write all output to output files rather than
  filename already exists, any output of the program will be appended to it.\
  Note: Any special characters in the filename will be replaced by the filename delimiter,\
  hence there is no way to pass an entire directory path through this option yet.\
- (See also the \"--filename-delim\" parameter)\n\n"
+ (See also the \"--filename-delim\" parameter)\n"
 string
 typestr="<filename>"
 argoptional
 optional
 
 option  "auto-id"  -
-"Automatically generate an ID for each sequence.\n"
+"Automatically generate an ID for each sequence."
 details="The default mode of RNAsubopt is to automatically determine an ID from the input sequence\
  data if the input file format allows to do that. Sequence IDs are usually given in the FASTA\
  header of input sequences. If this flag is active, RNAsubopt ignores any IDs retrieved from the\
  input and automatically generates an ID for each sequence. This ID consists of a prefix and an\
  increasing number. This flag can also be used to add a FASTA header to the output even if\
- the input has none.\n\n"
+ the input has none.\n"
 flag
 off
 
 option  "id-prefix" -
-"Prefix for automatically generated IDs (as used in output file names)\n\n"
+"Prefix for automatically generated IDs (as used in output file names)."
 details="If this parameter is set, each sequences' FASTA id will be prefixed\
  with the provided string. FASTA ids then take the form \">prefix_xxxx\" where\
- xxxx is the sequence number. Note: Setting this parameter implies --auto-id.\n\n"
+ xxxx is the sequence number. Note: Setting this parameter implies --auto-id.\n"
 string
 typestr="prefix"
 default="sequence"
 optional
 
 option  "id-delim" -
-"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
-details="This parameter can be used to change the default delimiter \"_\" between
- the prefix string and the increasing number for automatically generated ID.\n\n"
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)."
+details="This parameter can be used to change the default delimiter \"_\" between\
+ the prefix string and the increasing number for automatically generated ID.\n"
 string
-typestr="delimiter"
 default="_"
 optional
 hidden
 
 option  "id-digits"  -
-"Specify the number of digits of the counter in automatically generated alignment IDs.\n"
+"Specify the number of digits of the counter in automatically generated alignment IDs."
 details="When alignments IDs are automatically generated, they receive an increasing number, starting\
  with 1. This number will always be left-padded by leading zeros, such that the number takes up a\
  certain width. Using this parameter, the width can be specified to the users need. We allow\
- numbers in the range [1:18]. This option implies --auto-id.\n\n"
+ numbers in the range [1:18]. This option implies --auto-id.\n"
 int
 default="4"
 optional
 hidden
 
 option  "id-start"  -
-"Specify the first number in automatically generated alignment IDs.\n"
+"Specify the first number in automatically generated alignment IDs."
 details="When sequence IDs are automatically generated, they receive an increasing number,\
  usually starting with 1. Using this parameter, the first number can be specified to the users\
  requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
- to ignore any IDs retrieved from the input data, i.e. it activates the --auto-id flag.\n\n"
+ to ignore any IDs retrieved from the input data, i.e. it activates the --auto-id flag.\n"
 long
 default="1"
 optional
 hidden
 
 option  "filename-delim" -
-"Change the delimiting character that is used for sanitized filenames\n\n"
+"Change the delimiting character that is used for sanitized filenames."
 details="This parameter can be used to change the delimiting character used while\
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
@@ -119,15 +118,14 @@ details="This parameter can be used to change the delimiting character used whil
  characters will be simply removed rather than substituted.\
  Currently, we regard the following characters as illegal for use in filenames:\
  backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
- pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
+ pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n"
 string
-typestr="delimiter"
 default="ID-delimiter"
 optional
 hidden
 
 option  "filename-full" -
-"Use full FASTA header to create filenames\n\n"
+"Use full FASTA header to create filenames."
 details="This parameter can be used to deactivate the default behavior of limiting\
  output filenames to the first word of the sequence ID. Consider the following example:\
  An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
@@ -135,7 +133,7 @@ details="This parameter can be used to deactivate the default behavior of limiti
  header, e.g. \"NM_0001.sub\". With this flag set, no truncation of the output filenames\
  is performed, i.e. output filenames receive the full FASTA header data as prefixes. Note,\
  however, that invalid characters (such as whitespace) will be substituted by a delimiting\
- character or simply removed, (see also the parameter option --filename-delim).\n\n"
+ character or simply removed, (see also the parameter option --filename-delim).\n"
 flag
 off
 hidden
@@ -145,54 +143,61 @@ section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
 option  "maxBPspan" -
-"Set the maximum base pair span\n\n"
+"Set the maximum base pair span."
 int
 default="-1"
 optional
 
 option  "constraint"  C
-"Calculate structures subject to constraints.\n"
-details="The program reads first the\
- sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
- for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
- a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
- exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
- sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n\n"
+"Apply structural constraint(s) during prediction."
+details="The program first reads the sequence(s), then a dot-bracket like string containing\
+ constraints on the structure. The following symbols are recognized:\n\
+ '.' ... no constraint for this base\n\n\
+ 'x' ... the base is unpaired\n\n\
+ '<' ... the base pairs downstream, i.e. i is paired with j > i\n\n\
+ '>' ... the base pairs upstream, i.e. i is paired with j < i\n\n\
+ '|' ... the corresponding base has to be paired\n\n\
+ '()' ... base i pairs with base j\n\n\
+ Due to historic behavior of this program, all pairing constraints will only disallow pairs\
+ that conflict with the constraint. This is usually sufficient to enforce the constraint,\
+ but occasionally a base may stay unpaired in spite of constraints. Use the --enforceConstraint\
+ to really exclude unpaired states.\n"
 string
 typestr="<filename>"
 default = ""
 argoptional
 
 option  "batch"   -
-"Use constraints for multiple sequences.\n"
+"Use constraints for multiple sequences."
 details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
  RNAsubopt will stop its computation and quit after the first input sequence was processed. Using this\
- switch, RNAsubopt processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
+ switch, RNAsubopt processes multiple input sequences and applies the same provided constraints to each of them.\n"
 flag
 off
 dependon="constraint"
+hidden
 
 option  "canonicalBPonly" -
-"Remove non-canonical base pairs from the structure constraint\n\n"
+"Remove non-canonical base pairs from the structure constraint."
 flag
 off
 dependon="constraint"
+hidden
 
 option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
+"Enforce base pairs given by round brackets ( ) in structure constraint."
 flag
 off
 dependon="constraint"
 
 option  "shape" -
-"Use SHAPE reactivity data in the folding recursions (does not work for Zuker suboptimals and stochastic backtracking yet)\n\n"
+"Use SHAPE reactivity data in the folding recursions (does not work for Zuker suboptimals)."
 string
 typestr="<filename>"
 optional
 
 option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions."
 details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
 'D': Convert by using a linear equation according to Deigan et al 2009. \
 The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
@@ -210,25 +215,25 @@ The magnitude of the penalties can affected by adjusting the factor beta \
 (e.g. --shapeMethod=\"Zb0.8\").
 
 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n\n"
+Perturbation vectors can be calculated by using RNApvmin.\n"
 string
-typestr="[D/Z/W] + [optional parameters]"
 dependon="shape"
 default="D"
 optional
+hidden
 
 option  "shapeConversion" -
-"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
+"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al."
 details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
-'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
+'M': Use linear mapping according to Zarringhalam et al.\n
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")\n
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values\n
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)\n
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
 string
-typestr="M/C/S/L/O  + [optional parameters]"
 default="O"
 optional
+hidden
 
 option  "commands"   -
 "Read additional commands from file\n"
@@ -246,96 +251,114 @@ section "Algorithms"
 sectiondesc="Select the algorithms which should be applied to the given RNA sequence.\n\n"
 
 option  "deltaEnergy" e
-"Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol).\
- Default is calculation of mfe structure only.\n\n"
+"Compute suboptimal structures with energy in a certain range of the optimum (kcal/mol)."
+details="Default is calculation of mfe structure only.\n"
 float
 typestr="range"
 optional
 
 option  "deltaEnergyPost" -
-"Only print structures with energy within range of the mfe after post reevaluation of energies.\n"
+"Only print structures with energy within range of the mfe after post reevaluation of energies."
 details="Useful in conjunction with -logML, -d1 or -d3: while the -e option specifies the range\
- before energies are re-evaluated, this option specifies the maximum energy after re-evaluation.\n\n"
+ before energies are re-evaluated, this option specifies the maximum energy after re-evaluation.\n"
 float
 typestr="range"
 optional
+hidden
 
 option  "sorted"  s
-"Sort the suboptimal structures by energy.\n"
-details="Since the sort in is done in memory, this becomes impractical when the number of structures produced\
- goes into millions. In such cases better pipe the output through \"sort +1n\".\n\n"
+"Sort the suboptimal structures by energy and lexicographical order."
+details="Structures are first sorted by energy in ascending order. Within groups of the same\
+ energy, structures are then sorted in ascending in lexicographical order of their dot-bracket\
+ notation. See the --en-only flag to deactivate this second step. Note that sorting is done in\
+ memory, thus it can easily lead to exhaution of RAM! This is especially true if the number of\
+ structures produced becomes large or the RNA sequence is rather long. In such cases better use\
+ an external sort method, such as UNIX \"sort\".\n"
 flag
 off
 
+option  "en-only" -
+"Only sort structures by free energy."
+details="In combination with --sorted, this flag deactivates the second sorting criteria and\
+ sorts structures solely by their free energy instead of additionally sorting by lexicographic\
+ order in each energy band. This might save some time during the sorting process in situations\
+ where lexicographic order is not required.\n"
+dependon="sorted"
+flag
+off
+hidden
+
 option "stochBT"  p
-"Instead of producing all suboptimals in an energy range, produce a random sample of suboptimal structures,\
+"Randomly draw structures according to their probability in the Boltzmann ensemble."
+details="Instead of producing all suboptimals in an energy range, produce a random sample of suboptimal structures,\
  drawn with probabilities equal to their Boltzmann weights via stochastic backtracking in the partition\
- function. The -e and -p options are mutually exclusive.\n\n"
+ function. The -e and -p options are mutually exclusive.\n"
 int
 typestr="number"
 optional
 
 option  "stochBT_en"      -
-"Same as \"--stochBT\" but also print out the energies and probabilities of the backtraced structures.\n\n"
+"Same as \"--stochBT\" but also print free energies and probabilities of the backtraced structures."
 int
 typestr="number"
 optional
-
+hidden
 
 option "nonRedundant" N
-"Enable non-redundant sampling strategy.\n\n"
+"Enable non-redundant sampling strategy."
 flag
 off
 
 
 option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
- overflows). Needed by stochastic backtracking\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+"Set scaling factor for Boltzmann factors to prevent under/overflows."
+details="In the calculation of the pf use scale*mfe as an estimate for the ensemble\
+ free energy (used to avoid overflows). The default is 1.07, useful values\
+ are 1.0 to 1.2. Occasionally needed for long sequences.\nYou can also recompile\
+ the program to use double precision (see the README file).\n"
 double
-typestr="scaling factor"
 optional
 hidden
 
 option  "circ"    c
-"Assume a circular (instead of linear) RNA molecule.\n\n"
+"Assume a circular (instead of linear) RNA molecule."
 flag
 off
 
 option  "dos" D
-"Compute density of states instead of secondary structures\n"
+"Compute density of states instead of secondary structures."
 details="This option enables the evaluation of the number of secondary structures in certain energy bands around\
- the MFE.\n\n"
+ the MFE.\n"
 flag
 off
 
 option  "zuker" z
-"Compute Zuker suboptimals instead of all suboptimal structures within an engery band around the MFE.\n\n"
+"Compute Zuker suboptimals instead of all suboptimal structures within an energy band around the MFE."
 flag
 off
 
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n(no support of G-quadruplex\
- prediction for stochastic backtracking and Zuker-style suboptimals yet)\n\n"
+"Incoorporate G-Quadruplex formation."
+details="No support of G-quadruplex prediction for stochastic backtracking and Zuker-style suboptimals yet).\n"
 flag
 off
 
 section "Model Details"
 
 option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+"Rescale energy parameters to a temperature in degrees centigrade."
 double
+default="37.0"
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
-details="Mostly for testing.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins."
+details="Mostly for testing.\n"
 flag
 off
 
 option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+"Specify \"dangling end\" model for bases adjacent to helices in free ends and multi-loops."
 details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
  check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
  any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
@@ -343,68 +366,70 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
  of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
  -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
- -d2 setting, i.e. dangling ends will be treated differently.\n\n"
+ -d2 setting, i.e. dangling ends will be treated differently.\n"
 int
 default="2"
 optional
 
 option  "noLP"  -
-"Produce structures without lonely pairs (helices of length 1).\n"
+"Produce structures without lonely pairs (helices of length 1)."
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n\n"
+ pairs may still occasionally occur as helices of length 1.\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n\n"
+"Do not allow GU pairs."
 flag
 off
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
+"Do not allow GU pairs at the end of helices."
 flag
 off
 
 option  "logML" -
-"Recalculate energies of structures using a logarithmic energy function for multi-loops before output."
+"Recompute energies of structures using a logarithmic energy function for multi-loops before output."
 details="This option does not effect structure generation, only the energies that are printed out.\
- Since logML lowers energies somewhat, some structures may be missing.\n\n"
+ Since logML lowers energies somewhat, some structures may be missing.\n"
 flag
 off
 
 option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="A sample parameter file should accompany your distribution.\nSee the RNAlib\
- documentation for details on the file format.\n\n"
+"Read energy parameters from paramfile, instead of using the default parameter set."
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n"
 string
 typestr="paramfile"
 optional
 
 option  "nsp" -
-"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
+"Allow other pairs in addition to the usual AU,GC,and GU pairs."
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAsubopt -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n\n"
+ energy.\n"
 string
 optional
 hidden
 
 option  "energyModel" -
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
+"Set energy model."
+details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
 int
 optional
 hidden
 
 
 option  "betaScale" -
-"Set the scaling of the Boltzmann factors\n"
+"Set the scaling of the Boltzmann factors."
 details="The argument provided with this option enables to scale the thermodynamic temperature\
  used in the Boltzmann factors independently from the temperature used to scale the individual\
  energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
  where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
- absolute temperature.\n\n"
+ absolute temperature.\n"
 double
 default="1."
 optional
