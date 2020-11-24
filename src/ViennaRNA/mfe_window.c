@@ -58,6 +58,16 @@ typedef struct {
   int   csv;
 } hit_data;
 
+
+struct aux_arrays {
+  int *cc;    /* auxilary arrays for canonical structures     */
+  int *cc1;   /* auxilary arrays for canonical structures     */
+  int *Fmi;   /* holds row i of fML (avoids jumps in memory)  */
+  int *DMLi;  /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  int *DMLi1; /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  int *DMLi2; /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+};
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -117,13 +127,6 @@ make_pscores(vrna_fold_compound_t *fc,
              float                **dm);
 
 
-PRIVATE int
-fill_arrays_comparative(vrna_fold_compound_t      *fc,
-                        int                       *underflow,
-                        vrna_mfe_window_callback  *cb,
-                        void                      *data);
-
-
 PRIVATE void
 default_callback_comparative(int        start,
                              int        end,
@@ -156,6 +159,26 @@ rotate_constraints(vrna_fold_compound_t *fc,
                    int                  i);
 
 
+PRIVATE INLINE struct aux_arrays *
+get_aux_arrays(unsigned int maxdist);
+
+
+PRIVATE INLINE void
+rotate_aux_arrays(struct aux_arrays *aux,
+                  unsigned int      maxdist);
+
+
+PRIVATE INLINE void
+free_aux_arrays(struct aux_arrays *aux);
+
+
+PRIVATE INLINE int
+decompose_pair(vrna_fold_compound_t *fc,
+               int                  i,
+               int                  j,
+               struct aux_arrays    *aux);
+
+
 #ifdef VRNA_WITH_SVM
 
 PRIVATE void
@@ -172,6 +195,7 @@ want_backtrack(vrna_fold_compound_t *fc,
                int                  i,
                int                  j,
                double               *z);
+
 
 #endif
 
@@ -203,8 +227,8 @@ vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
                    vrna_mfe_window_callback *cb,
                    void                     *data)
 {
-  int           energy, underflow, n_seq;
-  float         mfe_local;
+  int   energy, underflow, n_seq;
+  float mfe_local, e_factor;
 
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
@@ -214,22 +238,16 @@ vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
     return (float)(INF / 100.);
   }
 
-  if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
-    n_seq   = vc->n_seq;
-    energy  = fill_arrays_comparative(vc, &underflow, cb, data) / 100.;
+  n_seq     = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->n_seq : 1;
+  e_factor  = 100. * n_seq;
 
-    mfe_local =
-      (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / (100. * n_seq) : 0.;
-    mfe_local += (float)energy / (100. * n_seq);
-  } else {
 #ifdef VRNA_WITH_SVM
-    energy = fill_arrays(vc, &underflow, cb, NULL, data);
+  energy = fill_arrays(vc, &underflow, cb, NULL, data);
 #else
-    energy = fill_arrays(vc, &underflow, cb, data);
+  energy = fill_arrays(vc, &underflow, cb, data);
 #endif
-    mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / 100. : 0.;
-    mfe_local += (float)energy / 100.;
-  }
+  mfe_local = (underflow > 0) ? ((float)underflow * (float)(UNDERFLOW_CORRECTION)) / e_factor : 0.;
+  mfe_local += (float)energy / e_factor;
 
   return mfe_local;
 }
@@ -571,41 +589,46 @@ fill_arrays(vrna_fold_compound_t            *vc,
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
-  char          **ptype, *prev;
-  unsigned char hc_decompose;
-  int           i, j, length, energy, maxdist, **c, **fML, *f3, no_close,
-                type, with_gquad, dangle_model, noLP, noGUclosure, turn,
-                *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2, prev_i, prev_j,
-                prev_end, prev_en, new_c, stackEnergy;
+  char              *prev;
+  int               i, j, length, maxdist, **c, **fML, *f3,
+                    with_gquad, dangle_model, turn, n_seq,
+                    prev_i, prev_j, prev_end, prev_en;
+  float             **dm;
+  double            e_fact;
 
 #ifdef VRNA_WITH_SVM
-  double          prevz;
-  unsigned char   with_zscore;
-  unsigned char   report_subsumed;
-  vrna_zsc_dat_t  zsc_data;
+  double            prevz;
+  unsigned char     with_zscore;
+  unsigned char     report_subsumed;
+  vrna_zsc_dat_t    zsc_data;
 #endif
 
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_hc_t     *hc;
+  vrna_md_t         *md;
+  struct aux_arrays *helper_arrays;
 
+  int               olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 },/* hamming distance between pairs */
+                                    { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
+                                    { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
+                                    { 0, 2, 1, 0, 2, 1, 2 } /* GU */,
+                                    { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
+                                    { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
+                                    { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
+
+  n_seq         = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->n_seq : 1;
   length        = vc->length;
-  ptype         = vc->ptype_local;
   maxdist       = vc->window_size;
-  P             = vc->params;
-  md            = &(P->model_details);
+  md            = &(vc->params->model_details);
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
-  noLP          = md->noLP;
-  noGUclosure   = md->noGUclosure;
   turn          = md->min_loop_size;
-  hc            = vc->hc;
   do_backtrack  = 0;
   prev_i        = 0;
   prev_j        = 0;
   prev_end      = 0;
   prev          = NULL;
   prev_en       = 0;
+  e_fact        = 100 * n_seq;
+  dm            = NULL;
 #ifdef VRNA_WITH_SVM
   prevz           = 0.;
   zsc_data        = vc->zscore_data;
@@ -613,24 +636,42 @@ fill_arrays(vrna_fold_compound_t            *vc,
   report_subsumed = (zsc_data) ? zsc_data->report_subsumed : 0;
 #endif
 
+  if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
+    /* no z-scoring for comparative structure prediction */
+    if (zsc_data) {
+      vrna_zsc_filter_free(vc);
+      zsc_data        = NULL;
+      with_zscore     = 0;
+      report_subsumed = 0;
+    }
+
+    if (md->ribo) {
+      if (RibosumFile != NULL)
+        dm = readribosum(RibosumFile);
+      else
+        dm = get_ribosum((const char **)vc->sequences, n_seq, length);
+    } else {
+      /*use usual matrix*/
+      dm = (float **)vrna_alloc(7 * sizeof(float *));
+      for (i = 0; i < 7; i++) {
+        dm[i] = (float *)vrna_alloc(7 * sizeof(float));
+        for (j = 0; j < 7; j++)
+          dm[i][j] = (float)olddm[i][j];
+      }
+    }
+  }
+
   c   = vc->matrices->c_local;
   fML = vc->matrices->fML_local;
   f3  = vc->matrices->f3_local;
 
-  cc    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5)); /* linear array for calculating canonical structures */
-  cc1   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5)); /*   "     "        */
-  Fmi   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5)); /* holds row i of fML (avoids jumps in memory) */
-  DMLi  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5)); /* DMLi[j] holds MIN(fML[i,k]+fML[k+1,j])  */
-  DMLi1 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5)); /*             MIN(fML[i+1,k]+fML[k+1,j])  */
-  DMLi2 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5)); /*             MIN(fML[i+2,k]+fML[k+1,j])  */
+  /* allocate memory for all helper arrays */
+  helper_arrays = get_aux_arrays(maxdist);
 
   /* reserve additional memory for j-dimension */
   allocate_dp_matrices(vc);
 
-  init_constraints(vc, NULL);
-
-  for (j = 0; j < maxdist + 5; j++)
-    Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
+  init_constraints(vc, dm);
 
   if (with_gquad)
     vrna_gquad_mx_local_update(vc, length - maxdist - 4);
@@ -638,59 +679,19 @@ fill_arrays(vrna_fold_compound_t            *vc,
   for (i = length - turn - 1; i >= 1; i--) {
     /* i,j in [1..length] */
     for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
-      hc_decompose  = hc->matrix_local[i][j - i];
-      type          = vrna_get_ptype_window(i, j, ptype);
+      /* decompose subsegment [i, j] with pair (i, j) */
+      c[i][j - i] = decompose_pair(vc, i, j, helper_arrays);
 
-      no_close = (((type == 3) || (type == 4)) && noGUclosure);
+      /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
+      fML[i][j - i] = vrna_E_ml_stems_fast(vc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
 
-      if (hc_decompose) {
-        /* we have a pair */
-        new_c       = INF;
-        stackEnergy = INF;
-
-        if (!no_close) {
-          /* check for hairpin loop */
-          energy  = vrna_E_hp_loop(vc, i, j);
-          new_c   = MIN2(new_c, energy);
-
-          /* check for multibranch loops */
-          energy  = vrna_E_mb_loop_fast(vc, i, j, DMLi1, DMLi2);
-          new_c   = MIN2(new_c, energy);
-        }
-
-        if (dangle_model == 3) {
-          /* coaxial stacking */
-          energy  = vrna_E_mb_loop_stack(vc, i, j);
-          new_c   = MIN2(new_c, energy);
-        }
-
-        /* check for interior loops */
-        energy  = vrna_E_int_loop(vc, i, j);
-        new_c   = MIN2(new_c, energy);
-
-        /* remember stack energy for --noLP option */
-        if (noLP) {
-          stackEnergy = vrna_E_stack(vc, i, j);
-          new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
-          cc[j - i]   = new_c;
-          c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy;
-        } else {
-          c[i][j - i] = new_c;
-        }
-      } /* end >> if (pair) << */
-      else {
-        c[i][j - i] = INF;
-      }
-
-      /*
-       * done with c[i,j], now compute fML[i,j]
-       * free ends ? -----------------------------------------
-       */
-      fML[i][j - i] = vrna_E_ml_stems_fast(vc, i, j, Fmi, DMLi);
+      if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux))
+        vc->aux_grammar->cb_aux(vc, i, j, vc->aux_grammar->data);
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
     f3[i] = vrna_E_ext_loop_3(vc, i);
+
     {
       char *ss = NULL;
 
@@ -719,10 +720,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
               /* ss does not contain prev */
 #ifdef VRNA_WITH_SVM
               if (with_zscore)
-                cb_z(prev_i, prev_end, prev, prev_en / 100., prevz, data);
+                cb_z(prev_i, prev_end, prev, prev_en / e_fact, prevz, data);
               else
 #endif
-              cb(prev_i, prev_end, prev, prev_en / 100., data);
+              cb(prev_i, prev_end, prev, prev_en / e_fact, data);
             }
 
             free(prev);
@@ -748,10 +749,10 @@ fill_arrays(vrna_fold_compound_t            *vc,
         if (prev) {
 #ifdef VRNA_WITH_SVM
           if (with_zscore)
-            cb_z(prev_i, prev_end, prev, prev_en / 100., prevz, data);
+            cb_z(prev_i, prev_end, prev, prev_en / e_fact, prevz, data);
           else
 #endif
-          cb(prev_i, prev_end, prev, prev_en / 100., data);
+          cb(prev_i, prev_end, prev, prev_en / e_fact, data);
 
           free(prev);
           prev = NULL;
@@ -773,11 +774,11 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #ifdef VRNA_WITH_SVM
             if (with_zscore)
               cb_z(ii, MIN2(jj + ((dangle_model) ? 1 : 0),
-                            length), ss, (f3[1] - f3[jj + 1]) / 100., thisz, data);
+                            length), ss, (f3[1] - f3[jj + 1]) / e_fact, thisz, data);
             else
 #endif
             cb(ii, MIN2(jj + ((dangle_model) ? 1 : 0),
-                        length), ss, (f3[1] - f3[jj + 1]) / 100., data);
+                        length), ss, (f3[1] - f3[jj + 1]) / e_fact, data);
 
             free(ss);
 #ifdef VRNA_WITH_SVM
@@ -792,44 +793,33 @@ fill_arrays(vrna_fold_compound_t            *vc,
       }
     }
 
-    {
-      int *FF; /* rotate the auxilliary arrays */
-
-      /* check for values close to integer underflow */
-      if (INT_CLOSE_TO_UNDERFLOW(f3[i])) {
-        /* correct f3 free energies and increase underflow counter */
-        int cnt;
-        for (cnt = i; cnt <= MIN2(i + maxdist + 2, length); cnt++)
-          f3[cnt] -= UNDERFLOW_CORRECTION;
-        (*underflow)++;
-      }
-
-      FF    = DMLi2;
-      DMLi2 = DMLi1;
-      DMLi1 = DMLi;
-      DMLi  = FF;
-      FF    = cc1;
-      cc1   = cc;
-      cc    = FF;
-      for (j = 0; j < maxdist + 5; j++)
-        cc[j] = Fmi[j] = DMLi[j] = INF;
-
-      rotate_dp_matrices(vc, i);
-      rotate_constraints(vc, NULL, i);
+    /* check for values close to integer underflow */
+    if (INT_CLOSE_TO_UNDERFLOW(f3[i])) {
+      /* correct f3 free energies and increase underflow counter */
+      int cnt;
+      for (cnt = i; cnt <= MIN2(i + maxdist + 2, length); cnt++)
+        f3[cnt] -= UNDERFLOW_CORRECTION;
+      (*underflow)++;
     }
+
+    rotate_aux_arrays(helper_arrays, maxdist);
+    rotate_dp_matrices(vc, i);
+    rotate_constraints(vc, dm, i);
   }
 
-  free(cc);
-  free(cc1);
-  free(Fmi);
-  free(DMLi);
-  free(DMLi1);
-  free(DMLi2);
-
+  /* clean up memory */
+  free_aux_arrays(helper_arrays);
   free_dp_matrices(vc);
+
+  if (dm) {
+    for (i = 0; i < 7; i++)
+      free(dm[i]);
+    free(dm);
+  }
 
   return f3[1];
 }
+
 
 #ifdef VRNA_WITH_SVM
 PRIVATE INLINE int
@@ -840,8 +830,8 @@ want_backtrack(vrna_fold_compound_t *fc,
 {
   int bt, *f3;
 
-  bt = 1; /* we want to backtrack by default */
-  *z = (double)INF;
+  bt  = 1; /* we want to backtrack by default */
+  *z  = (double)INF;
 
   if ((fc->zscore_data) &&
       (fc->zscore_data->filter_on)) {
@@ -1079,250 +1069,6 @@ repeat1:
 }
 
 
-PRIVATE int
-fill_arrays_comparative(vrna_fold_compound_t      *fc,
-                        int                       *underflow,
-                        vrna_mfe_window_callback  *cb,
-                        void                      *data)
-{
-  /* fill "c", "fML" and "f3" arrays and return  optimal energy */
-  short **S;
-  char **strings, *prev, *ss;
-  int **pscore, i, j, length, energy, turn, n_seq, **c,
-      **fML, *f3, *cc, *cc1, *Fmi, *DMLi, *DMLi1, *DMLi2,
-      maxdist, prev_i, prev_j, prev_en, prev_end, with_gquad,
-      new_c, psc, stackEnergy, dangle_model;
-  float **dm;
-  vrna_mx_mfe_t *matrices;
-  vrna_param_t *P;
-  vrna_md_t *md;
-  vrna_hc_t *hc;
-
-  int olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 },             /* hamming distance between pairs PRIVATE needed??*/
-                      { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
-                      { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
-                      { 0, 2, 1, 0, 2, 1, 2 } /* GU */,
-                      { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
-                      { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
-                      { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
-
-  do_backtrack  = 0;
-  prev_i        = 0;
-  prev_j        = 0;
-  prev_end      = 0;
-  prev_en       = INF;
-
-  dm    = NULL;
-  prev  = NULL;
-  ss    = NULL;
-
-  strings       = fc->sequences;
-  S             = fc->S;
-  n_seq         = fc->n_seq;
-  length        = fc->length;
-  maxdist       = fc->window_size;
-  matrices      = fc->matrices;
-  hc            = fc->hc;
-  P             = fc->params;
-  md            = &(P->model_details);
-  turn          = md->min_loop_size;
-  dangle_model  = md->dangles;
-  with_gquad    = md->gquad;
-
-  if (md->ribo) {
-    if (RibosumFile != NULL)
-      dm = readribosum(RibosumFile);
-    else
-      dm = get_ribosum((const char **)strings, n_seq, length);
-  } else {
-    /*use usual matrix*/
-    dm = (float **)vrna_alloc(7 * sizeof(float *));
-    for (i = 0; i < 7; i++) {
-      dm[i] = (float *)vrna_alloc(7 * sizeof(float));
-      for (j = 0; j < 7; j++)
-        dm[i][j] = (float)olddm[i][j];
-    }
-  }
-
-  pscore = fc->pscore_local;      /* precomputed array of pair types */
-
-  c   = fc->matrices->c_local;    /* energy array, given that i-j pair */
-  fML = fc->matrices->fML_local;  /* multi-loop auxiliary energy array */
-  f3  = fc->matrices->f3_local;   /* energy of 5' end */
-
-  cc    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-  cc1   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-  Fmi   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-  DMLi  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-  DMLi1 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-  DMLi2 = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-
-  /* reserve additional memory for j-dimension */
-  allocate_dp_matrices(fc);
-
-  init_constraints(fc, dm);
-
-  for (j = 0; j < maxdist + 5; j++)
-    Fmi[j] = DMLi[j] = DMLi1[j] = DMLi2[j] = INF;
-
-  if (with_gquad)
-    vrna_gquad_mx_local_update(fc, length - maxdist - 4);
-
-  for (i = length - turn - 1; i >= 1; i--) {
-    /* i,j in [1..length] */
-    for (j = i + 1; j <= length && j <= i + turn; j++)
-      c[i][j - i] = fML[i][j - i] = INF;
-    for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
-      psc = pscore[i][j - i];
-
-      if (hc->matrix_local[i][j - i]) {
-        /* we evaluate this pair */
-        new_c       = INF;
-        stackEnergy = INF;
-
-        /* hairpin ----------------------------------------------*/
-        energy  = vrna_E_hp_loop(fc, i, j);
-        new_c   = MIN2(new_c, energy);
-
-        /* check for multibranch loops */
-        energy  = vrna_E_mb_loop_fast(fc, i, j, DMLi1, NULL);
-        new_c   = MIN2(new_c, energy);
-
-        /* check for interior loops */
-        energy  = vrna_E_int_loop(fc, i, j);
-        new_c   = MIN2(new_c, energy);
-
-        /* remember stack energy for --noLP option */
-        if (md->noLP) {
-          stackEnergy = vrna_E_stack(fc, i, j);
-
-          if (cc1[j - 1 - (i + 1)] != INF) {
-            new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
-            c[i][j - i] = cc1[j - 1 - (i + 1)] + stackEnergy;
-          } else {
-            c[i][j - i] = INF;
-          }
-
-          if (new_c != INF)
-            new_c -= psc;
-
-          cc[j - i]   = new_c; /* add covariance bonnus/penalty */
-        } else {
-          c[i][j - i] = new_c; /* add covariance bonnus/penalty */
-        }
-
-        if (c[i][j - i] != INF)
-          c[i][j - i] -= psc;
-      } /* end >> if (pair) << */
-      else {
-        c[i][j - i] = INF;
-      }
-
-      /* done with c[i,j], now compute fML[i,j] */
-      fML[i][j - i] = vrna_E_ml_stems_fast(fc, i, j, Fmi, DMLi);
-    } /* for (j...) */
-
-    /* calculate energies of 5' and 3' fragments */
-    f3[i] = vrna_E_ext_loop_3(fc, i);
-
-    if (f3[i] < f3[i + 1]) {
-      /*
-       * instead of backtracing in the next iteration, we backtrack now
-       * already. This is necessary to accomodate for change in free
-       * energy due to unpaired nucleotides in the exterior loop, which
-       * may happen in the case of using soft constraints
-       */
-      int ii, jj;
-      ii  = i;
-      jj  = vrna_BT_ext_loop_f3_pp(fc, &ii, maxdist);
-      if (jj > 0) {
-        ss = backtrack(fc, ii, jj);
-        if (prev) {
-          if ((jj < prev_j) || (strncmp(ss + prev_i - ii, prev, prev_j - prev_i + 1)))
-            /* ss does not contain prev */
-            cb(prev_i, prev_end, prev, prev_en / (100. * n_seq), data);
-
-          free(prev);
-        }
-
-        prev      = ss;
-        prev_i    = ii;
-        prev_j    = jj;
-        prev_end  = MIN2(jj + ((dangle_model) ? 1 : 0), length);
-        prev_en   = f3[ii] - f3[jj + 1];
-      } else if (jj == -1) {
-        /* some error occured during backtracking */
-        vrna_message_error("backtrack failed in short backtrack 1");
-      }
-    }
-
-    if (i == 1) {
-      if (prev) {
-        cb(prev_i, prev_end, prev, prev_en / (100. * n_seq), data);
-
-        free(prev);
-        prev = NULL;
-      } else if (f3[i] < 0) {
-        int ii, jj;
-        ii  = i;
-        jj  = vrna_BT_ext_loop_f3_pp(fc, &ii, maxdist);
-        if (jj > 0) {
-          ss = backtrack(fc, ii, jj);
-          cb(ii, MIN2(jj + ((dangle_model) ? 1 : 0),
-                      length), ss, (f3[1] - f3[jj + 1]) / (100. * n_seq), data);
-
-          free(ss);
-        } else if (jj == -1) {
-          /* some error occured during backtracking */
-          vrna_message_error("backtrack failed in short backtrack 2");
-        }
-      }
-    }
-
-    {
-      int *FF; /* rotate the auxilliary arrays */
-
-      /* check for values close to integer underflow */
-      if (INT_CLOSE_TO_UNDERFLOW(f3[i])) {
-        /* correct f3 free energies and increase underflow counter */
-        int cnt;
-        for (cnt = i; cnt <= MIN2(i + maxdist + 2, length); cnt++)
-          f3[cnt] -= UNDERFLOW_CORRECTION;
-        (*underflow)++;
-      }
-
-      FF    = DMLi2;
-      DMLi2 = DMLi1;
-      DMLi1 = DMLi;
-      DMLi  = FF;
-      FF    = cc1;
-      cc1   = cc;
-      cc    = FF;
-      for (j = 0; j < maxdist + 5; j++)
-        cc[j] = Fmi[j] = DMLi[j] = INF;
-
-      rotate_dp_matrices(fc, i);
-      rotate_constraints(fc, dm, i);
-    }
-  }
-
-  free(cc);
-  free(cc1);
-  free(Fmi);
-  free(DMLi);
-  free(DMLi1);
-  free(DMLi2);
-
-  for (i = 0; i < 7; i++)
-    free(dm[i]);
-  free(dm);
-
-  free_dp_matrices(fc);
-
-  return matrices->f3[1];
-}
-
-
 PRIVATE void
 make_ptypes(vrna_fold_compound_t  *vc,
             int                   i)
@@ -1521,28 +1267,28 @@ default_callback_comparative(int        start,
 
 
 struct block {
-  vrna_fold_compound_t  *fc;
-  short                 *pt;
-  unsigned long int     start;
-  unsigned long int     end;
-  unsigned long int     shift;
-  int                   energy;
-  int                   energy_no3d; /* energy without 3'dangle */
-  struct block          *next_entry;
+  vrna_fold_compound_t *fc;
+  short *pt;
+  unsigned long int start;
+  unsigned long int end;
+  unsigned long int shift;
+  int energy;
+  int energy_no3d;                   /* energy without 3'dangle */
+  struct block *next_entry;
 };
 
 
 PRIVATE int
-update_block(unsigned int  i,
-             unsigned int  max_n,
-             struct block  *b)
+update_block(unsigned int i,
+             unsigned int max_n,
+             struct block *b)
 {
-  short                 *S1, *S2, d5, d3;
-  unsigned int          type;
-  int                   n, i_local, j_local, ediff, dangles;
-  vrna_fold_compound_t  *fc;
-  vrna_param_t          *params;
-  vrna_md_t             *md;
+  short *S1, *S2, d5, d3;
+  unsigned int type;
+  int n, i_local, j_local, ediff, dangles;
+  vrna_fold_compound_t *fc;
+  vrna_param_t *params;
+  vrna_md_t *md;
 
   fc      = b->fc;
   n       = fc->length;
@@ -1558,7 +1304,7 @@ update_block(unsigned int  i,
   if (b->pt[i_local]) {
     j_local = (int)(b->pt[i_local]);
     /* compute energy differences due to removal of base pair (i_local, j_local) */
-    ediff   = vrna_eval_move_pt(fc, b->pt, -i_local, -j_local);
+    ediff = vrna_eval_move_pt(fc, b->pt, -i_local, -j_local);
 
     /* update energy */
     b->energy += ediff;
@@ -1566,9 +1312,9 @@ update_block(unsigned int  i,
     b->pt[i_local] = b->pt[j_local] = 0;
 
     /* since we've removed the outermost base pair, the block size
-        decreases on the 3' end as well. At this point, we also
-        remove any further trailing bases, if any
-    */
+     *  decreases on the 3' end as well. At this point, we also
+     *  remove any further trailing bases, if any
+     */
     int end = j_local;
 
     do {
@@ -1581,10 +1327,10 @@ update_block(unsigned int  i,
       return 0;
 
     /* check whether we need to split the block into multiple ones */
-    size_t  stems       = 0;
-    size_t  mem_stems   = 10;
-    size_t  *start_stem = (size_t *)vrna_alloc(sizeof(size_t) * mem_stems);
-    size_t  *end_stem   = (size_t *)vrna_alloc(sizeof(size_t) * mem_stems);
+    size_t stems        = 0;
+    size_t mem_stems    = 10;
+    size_t *start_stem  = (size_t *)vrna_alloc(sizeof(size_t) * mem_stems);
+    size_t *end_stem    = (size_t *)vrna_alloc(sizeof(size_t) * mem_stems);
 
     for (size_t pos = i_local + 1; pos <= end; pos++)
       if (b->pt[pos] > pos) {
@@ -1592,17 +1338,16 @@ update_block(unsigned int  i,
         end_stem[stems]   = b->pt[pos];
         stems++;
         if (stems == mem_stems) {
-          mem_stems *= 1.4;
+          mem_stems   *= 1.4;
           start_stem  = vrna_realloc(start_stem, sizeof(size_t) * mem_stems);
           end_stem    = vrna_realloc(end_stem, sizeof(size_t) * mem_stems);
         }
+
         pos = b->pt[pos];
       }
 
     if (stems > 1) {
-      struct block *tmp = b->next_entry;
       for (size_t k = stems - 1; k > 0; k--) {
-
         /* create a new block */
         struct block *new_block = (struct block *)vrna_alloc(sizeof(struct block));
 
@@ -1612,11 +1357,11 @@ update_block(unsigned int  i,
         new_block->shift  = (dangles == 2) ? 1 : 0;
 
         /* create structure pair table for new block */
-        size_t  l         = end_stem[k] - start_stem[k] + 1;
+        size_t l = end_stem[k] - start_stem[k] + 1;
         if (dangles == 2) {
-          l++; /* for 5' dangles */
+          l++;    /* for 5' dangles */
           if (new_block->end < max_n)
-            l++; /* for 3' dangles */
+            l++;  /* for 3' dangles */
         }
 
         new_block->pt     = (short *)vrna_alloc(sizeof(short) * (l + 1));
@@ -1624,13 +1369,13 @@ update_block(unsigned int  i,
         /* go through original structure and extract base pair positions relative to new block */
         for (size_t p = start_stem[k]; p <= end_stem[k]; p++) {
           if (b->pt[p] > p) {
-            short i,j;
+            short i, j;
 
             i = p - start_stem[k] + 1 + new_block->shift;
             j = b->pt[p] - start_stem[k] + 1 + new_block->shift;
 
-            new_block->pt[i] = j;
-            new_block->pt[j] = i;
+            new_block->pt[i]  = j;
+            new_block->pt[j]  = i;
 
             /* remove base pair from original block */
             b->pt[b->pt[p]] = 0;
@@ -1640,8 +1385,11 @@ update_block(unsigned int  i,
 
         /* create fold_compound for new block */
         char *seq_block = (char *)vrna_alloc(sizeof(char) * (l + 1));
-        memcpy(seq_block, b->fc->sequence + start_stem[k] - 1 - new_block->shift, sizeof(char) * (l));
-        new_block->fc = vrna_fold_compound(seq_block, &(b->fc->params->model_details), VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
+        memcpy(seq_block, b->fc->sequence + start_stem[k] - 1 - new_block->shift,
+               sizeof(char) * (l));
+        new_block->fc = vrna_fold_compound(seq_block,
+                                           &(b->fc->params->model_details),
+                                           VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
         free(seq_block);
 
         /* compute energy of new block */
@@ -1651,12 +1399,12 @@ update_block(unsigned int  i,
         struct block *ptr, *ptr_prev;
         ptr_prev = ptr = b;
         do {
-          ptr_prev = ptr;
-          ptr = ptr->next_entry;
+          ptr_prev  = ptr;
+          ptr       = ptr->next_entry;
         } while ((ptr) && (ptr->start < new_block->start));
 
         /* insert new block */
-        ptr_prev->next_entry = new_block;
+        ptr_prev->next_entry  = new_block;
         new_block->next_entry = ptr;
       }
 
@@ -1675,12 +1423,11 @@ update_block(unsigned int  i,
 
     /* update for odd dangle models below */
     if (dangles % 1) {
-    
     }
   } else if (dangles % 1) {
     /* position i is unpaired, so we only need to update energies if
-       position i + 1 forms a base pair due to 5' dangles
-    */
+     * position i + 1 forms a base pair due to 5' dangles
+     */
     if (b->pt[i + 1]) {
       i_local = (int)i + b->start - 1 + 1;
       j_local = b->pt[i_local + 1];
@@ -1706,7 +1453,6 @@ update_block(unsigned int  i,
       /* update the energy */
       b->energy += ediff;
     }
-
   }
 
   /* increment start position and shift */
@@ -1747,7 +1493,7 @@ remove_block(struct block **before,
 PRIVATE void
 truncate_blocks(unsigned long int i,
                 unsigned long int n,
-                struct block  **block_list)
+                struct block      **block_list)
 {
   struct block *ptr_prev, *ptr;
 
@@ -1765,8 +1511,8 @@ truncate_blocks(unsigned long int i,
     if (ptr->start == i) {
       /* remove nucleotide at position i and update energies accordingly */
       /* this also splits a substructure component into consecutive
-         tokens, if necessary
-      */
+       * tokens, if necessary
+       */
       if (!update_block(i, n, ptr)) {
         /* this block doesn't contain any more pairs so we remove it entirely */
         ptr = remove_block((ptr_prev) ? &ptr_prev : block_list, ptr);
@@ -1783,16 +1529,16 @@ truncate_blocks(unsigned long int i,
 }
 
 
-PRIVATE struct block  *
+PRIVATE struct block *
 extract_Lfold_entry(FILE            *f,
                     long            line_start,
                     const char      *sequence,
                     const vrna_md_t *md)
 {
-  char              *l, *seq_local, *structure;
-  unsigned long int start, i, j;
-  float             en;
-  struct block      *storage;
+  char *l, *seq_local, *structure;
+  unsigned long int i, j;
+  float en;
+  struct block *storage;
 
   storage = NULL;
 
@@ -1802,10 +1548,10 @@ extract_Lfold_entry(FILE            *f,
     structure = (char *)vrna_alloc(sizeof(char) * (strlen(l) + 1));
 
     /*  each line should consist of 3 parts,
-        1. A dot-bracket structure
-        2. An energy value in kcal/mol
-        3. A starting position
-    */
+     *  1. A dot-bracket structure
+     *  2. An energy value in kcal/mol
+     *  3. A starting position
+     */
     if (sscanf(l, "%[.()] %*c %f %*c %lu", structure, &en, &i) == 3) {
       storage = (struct block *)vrna_alloc(sizeof(struct block));
 
@@ -1814,7 +1560,9 @@ extract_Lfold_entry(FILE            *f,
       seq_local = (char *)vrna_alloc(sizeof(char) * (j - i + 2));
       memcpy(seq_local, sequence + i - 1, (sizeof(char) * (j - i + 1)));
 
-      storage->fc           = vrna_fold_compound(seq_local, md, VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
+      storage->fc = vrna_fold_compound(seq_local,
+                                       md,
+                                       VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
       storage->pt           = vrna_ptable(structure);
       storage->start        = i;
       storage->end          = j;
@@ -1831,6 +1579,7 @@ extract_Lfold_entry(FILE            *f,
           storage->start++;
           storage->shift++;
         }
+
         if (storage->pt[storage->fc->length] == 0)
           storage->end--;
       }
@@ -1850,9 +1599,9 @@ insert_block(char         *structure,
              struct block *selected,
              int          *energy)
 {
-  short             *pt;
+  short *pt;
   unsigned int long i, i_local, start, end, shift;
-  int               e;
+  int e;
 
   pt    = selected->pt;
   start = selected->start;
@@ -1864,8 +1613,8 @@ insert_block(char         *structure,
   for (i = start; i <= end; i++) {
     i_local = i - start + shift + 1;
     if (pt[i_local] > i_local) {
-      structure[i - 1] = '(';
-      structure[start - shift + pt[i_local] - 1 - 1] = ')';
+      structure[i - 1]                                = '(';
+      structure[start - shift + pt[i_local] - 1 - 1]  = ')';
     }
   }
 
@@ -1879,37 +1628,44 @@ PRIVATE void
 print_block_list(struct block *block_list)
 {
   struct block *ptr;
-  size_t  cnt = 0;
+  size_t cnt = 0;
+
   for (ptr = block_list; ptr; ptr = ptr->next_entry, cnt++)
-    printf("block %u: en=%d, start: %lu, end: %lu, shift: %d\n", cnt, ptr->energy, ptr->start, ptr->end, ptr->shift);
-  printf("%u blocks remaining\n", cnt);
+    printf("block %lu: en=%d, start: %lu, end: %lu, shift: %lu\n",
+           cnt,
+           ptr->energy,
+           ptr->start,
+           ptr->end,
+           ptr->shift);
+  printf("%lu blocks remaining\n", cnt);
   fflush(stdout);
 }
 
+
 PRIVATE void
-append_blocks(struct block        **last_block,
-              FILE                 *f,
-              long                 *lines,
-              size_t               *lines_left,
-              vrna_fold_compound_t *fc,
-              unsigned long int    max_start)
+append_blocks(struct block          **last_block,
+              FILE                  *f,
+              long                  *lines,
+              size_t                *lines_left,
+              vrna_fold_compound_t  *fc,
+              unsigned long int     max_start)
 {
   vrna_md_t *md;
 
   md = &(fc->params->model_details);
 
   while (((*lines_left) > 0) &&
-           ((*last_block)->start < max_start))
-  {
+         ((*last_block)->start < max_start)) {
     (*lines_left)--;
 
     struct block *ptr = extract_Lfold_entry(f, lines[(*lines_left)], fc->sequence, md);
 
     if (ptr != NULL) {
       (*last_block)->next_entry = ptr;
-      *last_block = ptr;
+      *last_block               = ptr;
     }
-  };
+  }
+  ;
 }
 
 
@@ -1920,11 +1676,11 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
                       char                  **structure,
                       double                mfe)
 {
-  unsigned int  n, look_ahead;
-  int           e, maxdist, underflows, *f3;
-  int           ret;
-  double        mfe_corr;
-  FILE          *f;
+  unsigned int n, look_ahead;
+  int e, maxdist, underflows, *f3;
+  int ret;
+  double mfe_corr;
+  FILE *f;
 
   ret         = 0;
   *structure  = NULL;
@@ -1934,9 +1690,9 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
       (structure)) {
     vrna_md_t *md;
 
-    n       = fc->length;
-    md      = &(fc->params->model_details);
-    maxdist = md->window_size;
+    n           = fc->length;
+    md          = &(fc->params->model_details);
+    maxdist     = md->window_size;
     look_ahead  = 3 * maxdist;
     underflows  = 0;
     mfe_corr    = mfe;
@@ -1947,13 +1703,14 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
     while (vrna_convert_kcal_to_dcal(mfe_corr) < f3[1]) {
       mfe_corr -= (double)(UNDERFLOW_CORRECTION) / 100.;
       underflows++;
-    }        
+    }
 
     e = vrna_convert_kcal_to_dcal(mfe_corr);
 
 #if 0
     if (underflows)
       printf("detected %d underflows %d vs. %d vs %6.2f\n", underflows, e, f3[1], mfe);
+
 #endif
 
     e = f3[1];
@@ -1965,8 +1722,8 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
     /* open Lfold output file and start parsing line positions */
     if ((f = fopen(Lfold_filename, "r"))) {
       if (fseek(f, file_pos, SEEK_SET) != -1) {
-        size_t  num_lines, mem_lines;
-        long    *lines; /* array of file positions indicating start of lines */
+        size_t num_lines, mem_lines;
+        long *lines;    /* array of file positions indicating start of lines */
 
         num_lines = 0;
         mem_lines = 1024;
@@ -1979,7 +1736,7 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
           /* increase memory if necessary */
           if (num_lines == mem_lines) {
             mem_lines *= 1.4;
-            lines = (long *)vrna_realloc(lines, sizeof(long) * mem_lines);
+            lines     = (long *)vrna_realloc(lines, sizeof(long) * mem_lines);
           }
 
           /* seek to next newline char */
@@ -1996,18 +1753,21 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
         if (num_lines > 0) {
           num_lines--;
 
-          size_t  block_num   = 0;
+          size_t block_num    = 0;
           unsigned long int i = num_lines;
-          size_t lines_left  = num_lines;
+          size_t lines_left   = num_lines;
 
           /* we will use *ptr as current block pointer and save the list start in 8block_list */
-          struct block  *block_list, *ptr, *block_list_last;
+          struct block *block_list, *ptr, *block_list_last;
 
           /* handle first block separately */
           do {
             lines_left--;
 
-            block_list_last = block_list = ptr = extract_Lfold_entry(f, lines[lines_left], fc->sequence, md);
+            block_list_last = block_list = ptr = extract_Lfold_entry(f,
+                                                                     lines[lines_left],
+                                                                     fc->sequence,
+                                                                     md);
           } while ((block_list == NULL) && (lines_left > 0));
 
           /* start the actual backtracing procedure if we've read at least one block */
@@ -2017,8 +1777,8 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
             memset(*structure, (int)'.', fc->length);
 
             /*  go through remaining file in reverse order
-                to extract the relevant data
-            */
+             *  to extract the relevant data
+             */
             append_blocks(&block_list_last,
                           f,
                           lines,
@@ -2034,11 +1794,11 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
               /* truncate remaining blocks */
               truncate_blocks(ii, n, &block_list);
               append_blocks(&block_list_last,
-                          f,
-                          lines,
-                          &lines_left,
-                          fc,
-                          ii + look_ahead);
+                            f,
+                            lines,
+                            &lines_left,
+                            fc,
+                            ii + look_ahead);
             }
 
             i++;
@@ -2073,22 +1833,22 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
                                  (e == (ptr->energy + f3[ptr->end + 1] - UNDERFLOW_CORRECTION))) {
                         underflows--;
                         found = 1;
-                        e += UNDERFLOW_CORRECTION;
-                        i = insert_block(*structure, ptr, &e);
+                        e     += UNDERFLOW_CORRECTION;
+                        i     = insert_block(*structure, ptr, &e);
 
                         break;
                       }
                     }
                   }
                   if (!found)
-                    printf("didn't find block for position %d\n", i);
+                    printf("didn't find block for position %lu\n", i);
                 }
               }
 
               /*
-                  if i is unpaired, so we do nothing except for
-                  truncating the remaining blocks
-              */
+               *  if i is unpaired, so we do nothing except for
+               *  truncating the remaining blocks
+               */
               for (unsigned long int ii = prev_i; ii <= i; ii++) {
                 truncate_blocks(ii, n, &block_list);
                 append_blocks(&block_list_last,
@@ -2102,12 +1862,135 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
 
             ret = 1;
           }
-
         }
       }
+
       fclose(f);
     }
   }
 
   return ret;
+}
+
+
+PRIVATE INLINE int
+decompose_pair(vrna_fold_compound_t *fc,
+               int                  i,
+               int                  j,
+               struct aux_arrays    *aux)
+{
+  unsigned char hc_decompose;
+  int e, new_c, energy, stackEnergy, dangle_model, noLP,
+      *DMLi1, *DMLi2, *cc, *cc1;
+
+  dangle_model  = fc->params->model_details.dangles;
+  noLP          = fc->params->model_details.noLP;
+  hc_decompose  = fc->hc->matrix_local[i][j - i];
+  DMLi1         = aux->DMLi1;
+  DMLi2         = aux->DMLi2;
+  cc            = aux->cc;
+  cc1           = aux->cc1;
+  e             = INF;
+
+  /* do we evaluate this pair? */
+  if (hc_decompose) {
+    new_c = INF;
+
+    /* check for hairpin loop */
+    energy  = vrna_E_hp_loop(fc, i, j);
+    new_c   = MIN2(new_c, energy);
+
+    /* check for multibranch loops */
+    energy  = vrna_E_mb_loop_fast(fc, i, j, DMLi1, DMLi2);
+    new_c   = MIN2(new_c, energy);
+
+    if (dangle_model == 3) {
+      /* coaxial stacking */
+      energy  = vrna_E_mb_loop_stack(fc, i, j);
+      new_c   = MIN2(new_c, energy);
+    }
+
+    /* check for interior loops */
+    energy  = vrna_E_int_loop(fc, i, j);
+    new_c   = MIN2(new_c, energy);
+
+    /* remember stack energy for --noLP option */
+    if (noLP) {
+      stackEnergy = vrna_E_stack(fc, i, j);
+      new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
+      cc[j - i]   = new_c;
+      if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+          (cc[j - i] != INF))
+        cc[j - i] -= fc->pscore_local[i][j - i];
+
+      e = cc1[j - 1 - (i + 1)] + stackEnergy;
+    } else {
+      e = new_c;
+    }
+
+    /* finally, check for auxiliary grammar rule(s) */
+    if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_c)) {
+      energy  = fc->aux_grammar->cb_aux_c(fc, i, j, fc->aux_grammar->data);
+      new_c   = MIN2(new_c, energy);
+    }
+
+    if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+        (e != INF))
+      e -= fc->pscore_local[i][j - i];
+  } /* end >> if (pair) << */
+
+  return e;
+}
+
+
+PRIVATE INLINE struct aux_arrays *
+get_aux_arrays(unsigned int maxdist)
+{
+  unsigned int j;
+  struct aux_arrays *aux = (struct aux_arrays *)vrna_alloc(sizeof(struct aux_arrays));
+
+  aux->cc     = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* auxilary arrays for canonical structures     */
+  aux->cc1    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* auxilary arrays for canonical structures     */
+  aux->Fmi    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* holds row i of fML (avoids jumps in memory)  */
+  aux->DMLi   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
+  aux->DMLi1  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /*                MIN(fML[i+1,k]+fML[k+1,j])    */
+  aux->DMLi2  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+
+  /* prefill helper arrays */
+  for (j = 0; j < maxdist + 5; j++)
+    aux->Fmi[j] = aux->DMLi[j] = aux->DMLi1[j] = aux->DMLi2[j] = INF;
+
+  return aux;
+}
+
+
+PRIVATE INLINE void
+rotate_aux_arrays(struct aux_arrays *aux,
+                  unsigned int      maxdist)
+{
+  unsigned int j;
+  int *FF;
+
+  FF          = aux->DMLi2;
+  aux->DMLi2  = aux->DMLi1;
+  aux->DMLi1  = aux->DMLi;
+  aux->DMLi   = FF;
+  FF          = aux->cc1;
+  aux->cc1    = aux->cc;
+  aux->cc     = FF;
+  for (j = 1; j < maxdist + 5; j++)
+    aux->cc[j] = aux->Fmi[j] = aux->DMLi[j] = INF;
+}
+
+
+PRIVATE INLINE void
+free_aux_arrays(struct aux_arrays *aux)
+{
+  free(aux->cc);
+  free(aux->cc1);
+  free(aux->Fmi);
+  free(aux->DMLi);
+  free(aux->DMLi1);
+  free(aux->DMLi2);
+  free(aux);
 }
