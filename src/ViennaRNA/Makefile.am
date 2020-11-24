@@ -429,8 +429,8 @@ RNAPUZZLER_INC = \
     plotting/RNApuzzler/includes/optimize.inc \
     plotting/RNApuzzler/includes/resolveExteriorChildIntersections.inc \
     plotting/RNApuzzler/includes/resolveIntersections.inc \
-    plotting/RNApuzzler/includes/rotationAngle.inc
-
+    plotting/RNApuzzler/includes/rotationAngle.inc \
+    plotting/RNApuzzler/includes/svgArcs.inc
 
 # static library for subpackages
 all-local:      libRNA.a
@@ -479,6 +479,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               params/svm_model_sd.inc \
               data_structures_nonred.inc \
               plotting/ps_helpers.inc \
+              plotting/svg_helpers.inc \
               ${RNAPUZZLER_INC} \
               landscape/local_neighbors.inc \
               ${SVM_H} \
