@@ -115,6 +115,7 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     AC_SUBST([DOXYGEN_GENERATE_LATEX], [ifelse([$with_doc_pdf], [no], [NO], [YES])])
 
     AC_CONFIG_FILES([${DOXYGEN_DOCDIR}/${DOXYGEN_CONF}])
+    AC_CONFIG_FILES([${DOXYGEN_DOCDIR}/refman.include/install.dox])
 
   else
 
