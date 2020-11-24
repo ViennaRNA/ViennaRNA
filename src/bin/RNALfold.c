@@ -134,8 +134,16 @@ main(int  argc,
   }
 
   /* do not allow weak pairs */
-  if (args_info.backtrack_global_given)
-    backtrack = tofile = 1;
+  if (args_info.backtrack_global_given) {
+    if (dangles % 2) {
+      vrna_message_warning(
+        "Global mfE structure backtracking not available for odd dangle models yet!"
+        " Deactivating global backtracing now...");
+      backtrack = 0;
+    } else {
+      backtrack = tofile = 1;
+    }
+  }
 
   /* do not allow weak pairs */
   if (args_info.noLP_given)

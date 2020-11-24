@@ -1701,6 +1701,12 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
 
     f3 = fc->matrices->f3_local;
 
+    if (md->dangles % 2) {
+      vrna_message_warning(
+        "Global mfE structure backtracking not available for odd dangle models yet!");
+      return ret;
+    }
+
     /* check whether we need to adjust energies due to integer underflows in the forward recursion */
     while (vrna_convert_kcal_to_dcal(mfe_corr) < f3[1]) {
       mfe_corr -= (double)(UNDERFLOW_CORRECTION) / 100.;
