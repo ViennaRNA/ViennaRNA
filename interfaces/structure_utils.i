@@ -163,7 +163,38 @@ def __repr__(self):
     free(c_str);
     return db;
   }
+
+  std::string
+  abstract_shapes(std::string   structure,
+                  unsigned int  level = 5)
+  {
+    if (structure.size() == 0)
+      return structure;
+
+    char *c_str = vrna_abstract_shapes(structure.c_str(), level);
+    std::string SHAPE = c_str;
+    free(c_str);
+    return SHAPE;
+  }
+
+  std::string
+  abstract_shapes(std::vector<int> pt,
+                  unsigned int     level = 5)
+  {
+    if (pt.size() == 0)
+      return "";
+
+    std::vector<short> vc;
+    transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
+
+    char *c_str = vrna_abstract_shapes_pt((short*)&vc[0], level);
+
+    std::string SHAPE = c_str;
+    free(c_str);
+    return SHAPE;
+  }
 %}
+
 
 #ifdef SWIGPYTHON
 %feature("autodoc") my_db_from_ptable;
@@ -172,6 +203,8 @@ def __repr__(self):
 %feature("kwargs") my_pack_structure;
 %feature("autodoc") my_unpack_structure;
 %feature("kwargs") my_unpack_structure;
+%feature("autodoc") abstract_shapes;
+%feature("kwargs") abstract_shapes;
 #endif
 
 char        *my_pack_structure(const char *s);
@@ -180,6 +213,8 @@ char        *my_db_from_ptable(std::vector<int> pt);
 void        db_flatten(char *structure, unsigned int options = VRNA_BRACKETS_DEFAULT);
 void        db_flatten(char *structure, std::string target, unsigned int options = VRNA_BRACKETS_DEFAULT);
 std::string db_from_WUSS(std::string wuss);
+std::string abstract_shapes(std::string structure, unsigned int  level = 5);
+std::string abstract_shapes(std::vector<int>, unsigned int  level = 5);
 
 
 /************************************/

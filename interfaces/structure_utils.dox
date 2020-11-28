@@ -27,4 +27,18 @@ This function is available as an overloaded function @p db_pk_remove() where
 the optional second parameter @p options defaults to #VRNA_BRACKETS_ANY.
 @endparblock
 
+@fn char *vrna_abstract_shapes(const char *structure, unsigned int  level)
+@scripting
+@parblock
+This function is available as an overloaded function @p abstract_shapes() where
+the optional second parameter @p level defaults to 5.
+@endparblock
+
+@fn char *vrna_abstract_shapes_pt(const short *pt, unsigned int level)
+@scripting
+@parblock
+This function is available as an overloaded function @p abstract_shapes() where
+the optional second parameter @p level defaults to 5.
+@endparblock
+
 */
