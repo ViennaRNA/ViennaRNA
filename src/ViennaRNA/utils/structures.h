@@ -501,6 +501,79 @@ vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *vc,
 
 
 /**
+ *  @addtogroup struct_utils_abstract_shapes
+ *  @{
+ *  @brief  Abstract Shapes, introduced by Giegerich et al. in (2004) @cite giegerich:2004,
+ *          collapse the secondary structure while retaining the nestedness of helices and
+ *          hairpin loops.
+ *
+ *  The abstract shapes representation abstracts the structure from individual base pairs
+ *  and their corresponding location in the sequence, while retaining the inherent nestedness
+ *  of helices and hairpin loops.
+ *
+ *  Below is a description of what is included in the abstract shapes abstraction for each
+ *  respective level together with an example structure:
+ *
+ *      CGUCUUAAACUCAUCACCGUGUGGAGCUGCGACCCUUCCCUAGAUUCGAAGACGAG
+ *      ((((((...(((..(((...))))))...(((..((.....))..)))))))))..
+ *
+ *  ______
+ *
+ *  Shape Level | Description                     |   Result
+ *  ----------- | ------------------------------- | --------
+ *  1           | Most accurate - all loops and all unpaired | `[_[_[]]_[_[]_]]_`
+ *  2           | Nesting pattern for all loop types and unpaired regions in external loop and multiloop | `[[_[]][_[]_]]`
+ *  3           | Nesting pattern for all loop types but no unpaired regions | `[[[]][[]]]`
+ *  4           | Helix nesting pattern in external loop and multiloop | `[[][[]]]`
+ *  5           | Most abstract - helix nesting pattern and no unpaired regions | `[[][]]`
+ *
+ *  @note   Our implementations also provide the special Shape Level 0, which does not
+ *          collapse any structural features but simply convert base pairs and unpaired
+ *          nucleotides into their corresponding set of symbols for abstract shapes.
+ */
+
+/**
+ *  @brief  Convert a secondary structure in dot-bracket notation to its abstract shapes representation
+ *
+ *  This function converts a secondary structure into its abstract shapes representation as
+ *  presented by Giegerich et al. 2004 @cite giegerich:2004.
+ *
+ *  @see vrna_abstract_shapes_pt()
+ *
+ *  @param  structure A secondary structure in dot-bracket notation
+ *  @param  level     The abstraction level (integer in the range of 0 to 5)
+ *  @return           The secondary structure in abstract shapes notation
+ */
+char *
+vrna_abstract_shapes(const char    *structure,
+                     unsigned int  level);
+
+
+/**
+ *  @brief  Convert a secondary structure to its abstract shapes representation
+ *
+ *  This function converts a secondary structure into its abstract shapes representation as
+ *  presented by Giegerich et al. 2004 @cite giegerich:2004. This function is equivalent to
+ *  vrna_db_to_shapes(), but requires a pair table input instead of a dot-bracket structure.
+ *
+ *  @note   The length of the structure must be present at @p pt[0]!
+ *
+ *  @see vrna_abstract_shapes()
+ *
+ *  @param  pt      A secondary structure in pair table format
+ *  @param  level   The abstraction level (integer in the range of 0 to 5)
+ *  @return         The secondary structure in abstract shapes notation
+ */
+char *
+vrna_abstract_shapes_pt(const short  *pt,
+                        unsigned int level);
+
+
+/* End abstract shapes interface */
+/**@}*/
+
+
+/**
  *  @addtogroup struct_utils_helix_list
  *  @{
  */
