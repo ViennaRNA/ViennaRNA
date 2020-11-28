@@ -278,6 +278,85 @@ vrna_seq_toupper(char *sequence)
 }
 
 
+PUBLIC void
+vrna_seq_reverse(char *sequence)
+{
+  if (sequence) {
+    char *p1 = sequence;
+    char *p2 = sequence + strlen(sequence) - 1;
+
+    while (p1 < p2) {
+      char tmp = *p1;
+      *p1++ = *p2;
+      *p2-- = tmp;
+    }
+  }
+}
+
+
+PUBLIC char *
+vrna_DNA_complement(const char *sequence)
+{
+  char    *complement, *ptr;
+  size_t  n;
+
+  complement = NULL;
+
+  if (sequence) {
+    n           = strlen(sequence);
+    complement  = (char *)vrna_alloc(sizeof(char) * (n + 1));
+    /* copy the input string */
+    complement  = memcpy(complement, sequence, sizeof(char) * n);
+
+    /* complement characters */
+    for (ptr = complement; *ptr; ptr++) {
+      switch (*ptr) {
+        case 'A':
+          *ptr = 'T';
+          break;
+
+        case 'a':
+          *ptr = 't';
+          break;
+
+        case 'C':
+          *ptr = 'G';
+          break;
+
+        case 'c':
+          *ptr = 'g';
+          break;
+
+        case 'G':
+          *ptr = 'C';
+          break;
+
+        case 'g':
+          *ptr = 'c';
+          break;
+
+        case 'T': /* fall through */
+        case 'U':
+          *ptr = 'A';
+          break;
+
+        case 't': /* fall through */
+        case 'u':
+          *ptr = 'a';
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    complement[n] = '\0';
+  }
+
+  return complement;
+}
+
+
 PUBLIC char *
 vrna_cut_point_insert(const char  *string,
                       int         cp)

@@ -259,6 +259,46 @@ vrna_seq_toupper(char *sequence);
 
 
 /**
+ *  @brief  Reverse a string in-place
+ *
+ *  This function reverses a character string in the form of
+ *  an array of characters in-place, i.e. it changes the input
+ *  parameter.
+ *
+ *  @post After execution, the input @p sequence consists of the
+ *        reverse string prior to the execution.
+ *
+ *  @see vrna_DNA_complement()
+ *
+ *  @param  sequence  The string to reverse
+ */
+void
+vrna_seq_reverse(char *sequence);
+
+
+/**
+ *  @brief  Retrieve a DNA sequence which resembles the complement of the input sequence
+ *
+ *  This function returns a mew DNA string which is the complement
+ *  of the input, i.e. the nucleotide letters `A`,`C`,`G`, and `T`
+ *  are substituted by their complements `T`,`G`,`C`, and `A`, respectively.
+ *
+ *  Any characters not belonging to the alphabet of the 4 canonical
+ *  bases of DNA are not altered.
+ *
+ *  @note This function also handles lower-case input sequences and
+ *        treats `U` of the RNA alphabet equally to `T`
+ *
+ *  @see vrna_seq_reverse()
+ *
+ *  @param  sequence  the input DNA sequence
+ *  @return           The complement of the input DNA sequence
+ */
+char *
+vrna_DNA_complement(const char *sequence);
+
+
+/**
  *  @brief  Remove gap characters from a nucleotide sequence
  *
  *  @param  sequence  The original, null-terminated nucleotide sequence
