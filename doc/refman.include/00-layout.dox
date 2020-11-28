@@ -255,10 +255,16 @@ formats, and various output file formats produced by our library.
 @defgroup   struct_utils_dot_bracket  Dot-Bracket Notation of Secondary Structures
 @ingroup    struct_utils
 
+@defgroup   struct_utils_wuss         Washington University Secondary Structure (WUSS) notation
+@ingroup    struct_utils
+
 @defgroup   struct_utils_pair_table   Pair Table Representation of Secondary Structures
 @ingroup    struct_utils
 
 @defgroup   struct_utils_plist        Pair List Representation of Secondary Structures
+@ingroup    struct_utils
+
+@defgroup   struct_utils_abstract_shapes   Abstract Shapes Representation of Secondary Structures
 @ingroup    struct_utils
 
 @defgroup   struct_utils_helix_list   Helix List Representation of Secondary Structures
