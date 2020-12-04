@@ -135,7 +135,7 @@ vrna_ensemble_defect(vrna_fold_compound_t *fc,
  *  This function computes the positional entropies from base pair probabilities
  *  as
  *  @f[
- *  S(i) = - \sum_i p_{ij} \log(p_{ij}) - q_i \log(q_i)
+ *  S(i) = - \sum_j p_{ij} \log(p_{ij}) - q_i \log(q_i)
  *  @f]
  *  with unpaired probabilities @f$ q_i = 1 - \sum_j p_{ij} @f$.
  *
