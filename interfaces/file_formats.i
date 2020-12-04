@@ -39,6 +39,63 @@ std::vector<double> my_file_SHAPE_read( const char *file_name,
 %clear int *status;
 %clear std::string *shape_sequence;
 
+%apply std::string              *OUTPUT { std::string *id, std::string *sequence };
+%apply std::vector<std::string> *OUTPUT { std::vector<std::string> *rest };
+
+%rename (file_fasta_read) my_file_fasta_read;
+
+%{
+  int
+  my_file_fasta_read( std::string               *id,
+                      std::string               *sequence,
+                      std::vector<std::string>  *rest,
+                      FILE                      *file,
+                      unsigned int              options = 0)
+  {
+    char  *c_seq, *c_id, **c_rest, **ptr;
+    int   ret;
+
+    ret = vrna_file_fasta_read_record(&c_id, &c_seq, &c_rest, file, options);
+
+    if (ret != -1) {
+      rest->clear();
+      rest->reserve(ret);
+
+      *id        = (c_id) ? c_id : "";
+      *sequence  = (c_seq) ? c_seq : "";
+
+      if ((c_rest) &&
+          (*c_rest))
+        for (ptr = c_rest; *ptr; ptr++) {
+          std::string line(*ptr);
+          rest->push_back(line);
+          free(*ptr);
+        }
+
+      free(c_id);
+      free(c_seq);
+      free(c_rest);
+    }
+
+    return ret;
+  }
+
+%}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_file_fasta_read;
+#endif
+
+int
+my_file_fasta_read( std::string               *id,
+                    std::string               *sequence,
+                    std::vector<std::string>  *rest,
+                    FILE                      *file,
+                    unsigned int              options = 0);
+
+%clear std::string *id, std::string *sequence;
+%clear std::vector<std::string>& rest;
+
 %include <ViennaRNA/io/file_formats.h>
 
 /**********************************************/
