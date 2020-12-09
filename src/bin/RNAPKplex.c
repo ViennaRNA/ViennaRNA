@@ -29,12 +29,14 @@
 #include "ViennaRNA/PKplex.h"
 #include "RNAPKplex_cmdl.h"
 
-int PlexHit_cmp(const void  *c1,
-                const void  *c2);
+int
+PlexHit_cmp(const void  *c1,
+            const void  *c2);
 
 
-int PlexHit_cmp_energy(const void *c1,
-                       const void *c2);
+int
+PlexHit_cmp_energy(const void *c1,
+                   const void *c2);
 
 
 /*--------------------------------------------------------------------------*/
@@ -139,7 +141,7 @@ main(int  argc,
    */
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
@@ -160,7 +162,8 @@ main(int  argc,
    # main loop: continue until end of file
    #############################################
    */
-  while (!(vrna_file_fasta_read_record(&id_s1, &s1, &rest, NULL, options) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
+  while (!(vrna_file_fasta_read_record(&id_s1, &s1, &rest, NULL,
+                                       options) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
     /*
      ########################################################
      # handle user input from 'stdin'
@@ -271,7 +274,7 @@ main(int  argc,
       NumberOfHits++;
 
       for (i = 0; i < NumberOfHits; i++) {
-        PlexHits[i].inactive = 0;
+        PlexHits[i].inactive  = 0;
         PlexHits[i].processed = 0;
       }
 
@@ -281,14 +284,14 @@ main(int  argc,
       /*  now we re-evaluate the energies and thereby prune the list of pre-results
        *  such that the re-avaluation process is not done too often.
        */
-      double  mfe         = 0.;
-      double  mfe_pk      = 0.;
-      char    *mfe_struct = NULL;
+      double                mfe         = 0.;
+      double                mfe_pk      = 0.;
+      char                  *mfe_struct = NULL;
 
       constraint  = (char *)vrna_alloc(sizeof(char) * (length + 1));
       mfe_struct  = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
-      vrna_fold_compound_t *fc = vrna_fold_compound (s1, &md, VRNA_OPTION_MFE);
+      vrna_fold_compound_t  *fc = vrna_fold_compound(s1, &md, VRNA_OPTION_MFE);
       mfe = mfe_pk = vrna_mfe(fc, mfe_struct);
       /*      if(verbose)
        *        printf("%s (%6.2f) [mfe-pkfree]\n", mfe_struct, mfe);
@@ -308,7 +311,7 @@ main(int  argc,
 
             /* energy evaluation */
             vrna_hc_init(fc);
-            vrna_hc_add_from_db (fc, constraint, VRNA_CONSTRAINT_DB_X);
+            vrna_hc_add_from_db(fc, constraint, VRNA_CONSTRAINT_DB_X);
             constrainedEnergy = vrna_mfe(fc, constraint);
 
             /* check if this structure is worth keeping */
@@ -319,7 +322,8 @@ main(int  argc,
                   constraint[i] = '[';
 
               for (i = PlexHits[current].qb - 1; i < PlexHits[current].qe; i++)
-                if (PlexHits[current].structure[i - PlexHits[current].qb + 1 + 1 + 1 + PlexHits[current].te - PlexHits[current].tb] == ')')
+                if (PlexHits[current].structure[i - PlexHits[current].qb + 1 + 1 + 1 +
+                                                PlexHits[current].te - PlexHits[current].tb] == ')')
                   constraint[i] = ']';
 
               PlexHits[current].energy = constrainedEnergy + PlexHits[current].ddG + pk_penalty;
@@ -420,12 +424,23 @@ main(int  argc,
       if (verbose) {
         printf("\n");
         for (i = 0; i < NumberOfHits; i++)
-          printf("%d\t%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n", PlexHits[i].inactive, PlexHits[i].structure, PlexHits[i].tb, PlexHits[i].te, PlexHits[i].qb, PlexHits[i].qe, PlexHits[i].ddG, PlexHits[i].energy, PlexHits[i].dG1, PlexHits[i].dG2);
+          printf("%d\t%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
+                 PlexHits[i].inactive,
+                 PlexHits[i].structure,
+                 PlexHits[i].tb,
+                 PlexHits[i].te,
+                 PlexHits[i].qb,
+                 PlexHits[i].qe,
+                 PlexHits[i].ddG,
+                 PlexHits[i].energy,
+                 PlexHits[i].dG1,
+                 PlexHits[i].dG2);
       }
 
       current = -1;
 
-      while ((PlexHits[0].ddG + subopts >= PlexHits[current + 1].ddG) && (current + 1 < NumberOfHits)) {
+      while ((PlexHits[0].ddG + subopts >= PlexHits[current + 1].ddG) &&
+             (current + 1 < NumberOfHits)) {
         current++;
 
         /*
@@ -462,12 +477,15 @@ main(int  argc,
               constraint[i] = '[';
 
           for (i = PlexHits[current].qb - 1; i <= PlexHits[current].qe - 1; i++)
-            if (PlexHits[current].structure[i - PlexHits[current].qb + 1 + 1 + 1 + PlexHits[current].te - PlexHits[current].tb] == ')')
+            if (PlexHits[current].structure[i - PlexHits[current].qb + 1 + 1 + 1 +
+                                            PlexHits[current].te - PlexHits[current].tb] == ')')
               constraint[i] = ']';
         }
 
         if (PlexHits[current].structure)
-          printf("%s   (%3.2f)\n", constraint, constrainedEnergy + PlexHits[current].ddG - (float)pk_penalty);
+          printf("%s   (%3.2f)\n",
+                 constraint,
+                 constrainedEnergy + PlexHits[current].ddG - (float)pk_penalty);
         else
           printf("%s   (%3.2f)\n", constraint, constrainedEnergy + PlexHits[current].ddG);
 
@@ -489,7 +507,8 @@ main(int  argc,
               if ((stem) && (PlexHits[current].structure[i] != '(')) {
                 end   = i - 1;
                 stem  = 0;
-                sprintf(temp, "%d %d 13 1 0 0 omark\n", (int)PlexHits[current].tb + start, PlexHits[current].tb + end);
+                sprintf(temp, "%d %d 13 1 0 0 omark\n", (int)PlexHits[current].tb + start,
+                        PlexHits[current].tb + end);
                 strcat(annotation, temp);
               }
 
@@ -504,7 +523,11 @@ main(int  argc,
               if ((stem) && (PlexHits[current].structure[i] != ')')) {
                 end   = i - 1;
                 stem  = 0;
-                sprintf(temp, "%d %d 13 1 0 0 omark\n", PlexHits[current].qb + start - PlexHits[current].te + PlexHits[current].tb - 2, PlexHits[current].qb + end - PlexHits[current].te + PlexHits[current].tb - 2);
+                sprintf(temp,
+                        "%d %d 13 1 0 0 omark\n",
+                        PlexHits[current].qb + start - PlexHits[current].te + PlexHits[current].tb - 2,
+                        PlexHits[current].qb + end - PlexHits[current].te + PlexHits[current].tb -
+                        2);
                 strcat(annotation, temp);
               }
 
@@ -514,7 +537,10 @@ main(int  argc,
               }
             }
 
-            sprintf(temp, "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth", PlexHits[current].tb, PlexHits[current].qe);
+            sprintf(temp,
+                    "0 0 2 setrgbcolor\n2 setlinewidth\n%d cmark\n%d cmark\n1 setlinewidth",
+                    PlexHits[current].tb,
+                    PlexHits[current].qe);
             strcat(annotation, temp);
             vrna_file_PS_rnaplot_a(s1, constraint, fname, annotation, "", &md);
             free(annotation);
