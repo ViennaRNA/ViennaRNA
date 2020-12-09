@@ -270,6 +270,11 @@ main(int  argc,
       PlexHits[NumberOfHits].structure  = NULL;
       NumberOfHits++;
 
+      for (i = 0; i < NumberOfHits; i++) {
+        PlexHits[i].inactive = 0;
+        PlexHits[i].processed = 0;
+      }
+
       /* first sort all the pre-results descending by their estimated energy */
       qsort(PlexHits, NumberOfHits, sizeof(dupVar), PlexHit_cmp);
 
