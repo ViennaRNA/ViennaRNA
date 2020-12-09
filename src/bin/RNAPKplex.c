@@ -322,7 +322,7 @@ main(int  argc,
                 if (PlexHits[current].structure[i - PlexHits[current].qb + 1 + 1 + 1 + PlexHits[current].te - PlexHits[current].tb] == ')')
                   constraint[i] = ']';
 
-              PlexHits[current].energy = constrainedEnergy + PlexHits[current].ddG + (float)pk_penalty + PlexHits[current].dG1 + PlexHits[current].dG2;
+              PlexHits[current].energy = constrainedEnergy + PlexHits[current].ddG + pk_penalty;
               if (PlexHits[current].energy < mfe_pk)
                 mfe_pk = PlexHits[current].energy;
 
