@@ -53,7 +53,6 @@ main(int  argc,
   double                  **pup, subopts, pk_penalty;
   plist                   *pl, *dpp;
   vrna_md_t               md;
-  vrna_param_t            *par;
 
   options     = 0;
   pup         = NULL;           /*prob of being unpaired, lengthwise*/
@@ -70,10 +69,9 @@ main(int  argc,
   pk_penalty  = 8.10;
   ParamFile   = ns_bases = NULL;
   s1          = id_s1 = orig_s1 = NULL;
-  par         = NULL;
   annotation  = NULL;
 
-  set_model_details(&md);
+  vrna_md_set_default(&md);
 
   /*
    #############################################
@@ -201,7 +199,6 @@ main(int  argc,
      # do PLfold computations
      ########################################################
      */
-    update_fold_params();
     if (length >= 5) {
       pf_scale = -1;
 
@@ -283,7 +280,6 @@ main(int  argc,
       double  mfe_pk      = 0.;
       char    *mfe_struct = NULL;
 
-      par         = vrna_params(&md);
       constraint  = (char *)vrna_alloc(sizeof(char) * (length + 1));
       mfe_struct  = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
@@ -365,7 +361,6 @@ main(int  argc,
         }
       }
       constraint = NULL;
-      free(par);
       vrna_fold_compound_free(fc);
 
       /* now sort the actual results again according to their energy */

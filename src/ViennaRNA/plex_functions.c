@@ -377,7 +377,7 @@ update_dfold_params(void)
   if (P)
     free(P);
 
-  set_model_details(&md);
+  vrna_md_set_default(&md);
   P = vrna_params(&md);
   make_pair_matrix();
 }
