@@ -287,7 +287,8 @@ main(int  argc,
       constraint  = (char *)vrna_alloc(sizeof(char) * (length + 1));
       mfe_struct  = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
-      mfe = mfe_pk = fold_par(s1, mfe_struct, par, 0, 0);
+      vrna_fold_compound_t *fc = vrna_fold_compound (s1, &md, VRNA_OPTION_MFE);
+      mfe = mfe_pk = vrna_mfe(fc, mfe_struct);
       /*      if(verbose)
        *        printf("%s (%6.2f) [mfe-pkfree]\n", mfe_struct, mfe);
        */
@@ -305,7 +306,9 @@ main(int  argc,
             constraint[length] = '\0';
 
             /* energy evaluation */
-            constrainedEnergy = fold_par(s1, constraint, par, 1, 0);
+            vrna_hc_init(fc);
+            vrna_hc_add_from_db (fc, constraint, VRNA_CONSTRAINT_DB_X);
+            constrainedEnergy = vrna_mfe(fc, constraint);
 
             /* check if this structure is worth keeping */
             if (constrainedEnergy + PlexHits[current].ddG + pk_penalty <= mfe_pk + subopts) {
@@ -363,6 +366,7 @@ main(int  argc,
       }
       constraint = NULL;
       free(par);
+      vrna_fold_compound_free(fc);
 
       /* now sort the actual results again according to their energy */
 
