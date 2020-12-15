@@ -350,11 +350,7 @@ main(int  argc,
             if (!PlexHits[i].inactive) {
               if (PlexHits[i].structure) {
                 if (!PlexHits[i].processed) {
-                  double cost = PlexHits[i].dG1;
-                  if (PlexHits[i].dG2 > cost)
-                    cost = PlexHits[i].dG2;
-
-                  cost += mfe + PlexHits[i].ddG + pk_penalty;
+                  double cost = mfe + PlexHits[i].ddG + pk_penalty;
                   if (cost > mfe + subopts)
                     PlexHits[i].inactive = 1;
                 } else {
