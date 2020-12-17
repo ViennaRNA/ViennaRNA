@@ -61,7 +61,7 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
     maxSV     = sv_newmortal();
     typeSV    = sv_newmortal();
 
-    prAV = newAV();
+    prAV = (AV *)sv_2mortal((SV *)newAV()); /* newAV(); */
 
     if (type & VRNA_PROBS_WINDOW_UP) { /* We distinguish output for unpaired probabilities */
 
@@ -94,7 +94,7 @@ perl_wrap_pf_window_cb(FLT_OR_DBL *pr, int pr_size, int i, int max, unsigned int
     sv_setiv(maxSV, (IV)max);
     sv_setuv(typeSV, (UV)type);
 
-    XPUSHs(sv_2mortal(newRV_noinc((SV*) prAV)));
+    XPUSHs((SV *)sv_2mortal(newRV_inc((SV*) prAV)));
     XPUSHs(pr_sizeSV);
     XPUSHs(iSV);
     XPUSHs(maxSV);

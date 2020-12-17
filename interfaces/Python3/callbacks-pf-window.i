@@ -17,6 +17,7 @@ static python_pf_window_callback_t *
 bind_pf_window_callback(PyObject *PyFunc,
                         PyObject *data);
 
+
 static void
 python_wrap_pf_window_cb(FLT_OR_DBL   *pr,
                          int          pr_size,
@@ -41,6 +42,7 @@ bind_pf_window_callback(PyObject *PyFunc,
   return cb;
 }
 
+
 static void
 release_pf_window_callback(python_pf_window_callback_t *cb)
 {
@@ -48,6 +50,7 @@ release_pf_window_callback(python_pf_window_callback_t *cb)
   Py_DECREF(cb->data);
   free(cb); 
 }
+
 
 static void
 python_wrap_pf_window_cb(FLT_OR_DBL   *pr,
@@ -115,6 +118,7 @@ python_wrap_pf_window_cb(FLT_OR_DBL   *pr,
   Py_DECREF(py_i);
   Py_DECREF(py_max);
   Py_DECREF(py_type);
+  Py_DECREF(pr_list);
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {

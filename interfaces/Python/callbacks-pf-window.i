@@ -118,6 +118,7 @@ python_wrap_pf_window_cb(FLT_OR_DBL   *pr,
   Py_DECREF(py_i);
   Py_DECREF(py_max);
   Py_DECREF(py_type);
+  Py_DECREF(pr_list);
 
   /* BEGIN recognizing errors in callback execution */
   if (result == NULL) {
