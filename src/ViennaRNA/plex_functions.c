@@ -81,6 +81,7 @@ duplexfold_XS(const char  *s1,
   int   type, type2, type3, E, tempK;
   char  *struc;
   int   length = (int)strlen(s1);
+  int   *rtype = &(P->model_details.rtype[0]);
 
   struc = NULL;
 
@@ -112,14 +113,19 @@ duplexfold_XS(const char  *s1,
     for (j = i + 4; j < n1 - 10; j++) {
       type = ptype[indx[j] + i];
       if (type) {
-        c3[j - 11][max_interaction_length - 1][0] = P->DuplexInit;
-        c3[j - 11][max_interaction_length -
-                   1][0] +=
-          E_Hairpin(j - i - 1, type, SS1[i + 1], SS1[j - 1], string, P);
-        /*
-         *        c3[j-11][max_interaction_length-1][0] += vrna_E_ext_stem(type, SS1[i+1], SS1[j-1], P);
-         *           c3[j-11][max_interaction_length-1][0] += vrna_E_ext_stem(rtype[type], SS1[j-1], SS1[i+1], P);
-         */
+#if 1
+        c3[j - 11][max_interaction_length - 1][0] = vrna_E_ext_stem(rtype[type],
+                                                                    SS1[j - 1],
+                                                                    SS1[i + 1],
+                                                                    P);
+#else
+        c3[j - 11][max_interaction_length - 1][0] = E_Hairpin(j - i - 1,
+                                                              type,
+                                                              SS1[i + 1],
+                                                              SS1[j - 1],
+                                                              string,
+                                                              P);
+#endif
       }
     }
 
@@ -143,16 +149,15 @@ duplexfold_XS(const char  *s1,
             if (!type3)
               continue;
 
-            E =
-              E_IntLoop(p - k - 1,
-                        l - q - 1,
-                        type2,
-                        rtype[type3],
-                        SS1[k + 1],
-                        SS1[l - 1],
-                        SS1[p - 1],
-                        SS1[q + 1],
-                        P);
+            E = E_IntLoop(p - k - 1,
+                          l - q - 1,
+                          type2,
+                          rtype[type3],
+                          SS1[k + 1],
+                          SS1[l - 1],
+                          SS1[p - 1],
+                          SS1[q + 1],
+                          P);
             for (j = MAX2(i + 4, l - max_interaction_length + 1); j <= q; j++) {
               type = ptype[indx[j] + i];
               if (type) {
@@ -181,12 +186,15 @@ duplexfold_XS(const char  *s1,
             continue;
 
           E = c3[j - 11][max_interaction_length - i + k - 1][l - j];
-          /*           printf("[%d,%d][%d,%d]\t%6.2f\t%6.2f\t%6.2f\n", i, k, l, j, E/100., access_s1[i-k+1][i]/100., access_s1[l-j+1][l]/100.); */
           E += access_s1[i - k + 1][i] + access_s1[l - j + 1][l];
-          E +=
-            vrna_E_ext_stem(type2, ((k > i_pos_begin + 1) ? SS1[k - 1] : -1),
-                            ((l < j_pos_end - 1) ? SS1[l + 1] : -1), P);
-          E += vrna_E_ext_stem(rtype[type], SS1[j - 1], SS1[i + 1], P);
+          E += vrna_E_ext_stem(type2,
+                               ((k > i_pos_begin + 1) ? SS1[k - 1] : -1),
+                               ((l < j_pos_end - 1) ? SS1[l + 1] : -1),
+                               P);
+          E += vrna_E_ext_stem(rtype[type],
+                               SS1[j - 1],
+                               SS1[i + 1],
+                               P);
           if (E < Emin) {
             Emin  = E;
             k_min = k;
@@ -262,9 +270,10 @@ backtrack_XS(int        k,
 {
   /* backtrack structure going backwards from i, and forwards from j
    * return structure in bracket notation with & as separator */
-  int   p, q, type, type2, E, traced, i0, j0;
+  int   p, q, type, type2, E, traced, i0, j0, *rtype;
   char  *st1, *st2, *struc;
 
+  rtype           = &(P->model_details.rtype[0]);
   st1             = (char *)vrna_alloc(sizeof(char) * (i - k + 2));
   st1[i - k + 1]  = '\0';
   st2             = (char *)vrna_alloc(sizeof(char) * (l - j + 2));
@@ -312,9 +321,18 @@ backtrack_XS(int        k,
         break;
     }
     if (!traced) {
-      E -= vrna_E_ext_stem(type2, ((k < i) ? SS1[k + 1] : -1), ((l > j - 1) ? SS1[l - 1] : -1), P);
-      break;
-      if (E != P->DuplexInit)
+#if 1
+      E -= vrna_E_ext_stem(rtype[type],
+                           SS1[l - 1],
+                           SS1[k + 1],
+                           P);
+#else
+      char string[10] = {
+        '\0'
+      };
+      E -= E_Hairpin(l - k - 1, type, SS1[k + 1], SS1[l - 1], string, P);
+#endif
+      if (E != 0)
         vrna_message_error("backtrack failed in fold duplex bal");
       else
         break;
@@ -357,7 +375,6 @@ PKLduplexfold_XS(const char *s1,
   ptype = (char *)vrna_alloc(sizeof(char) * ((n1 * (n1 + 1)) / 2 + 2));
   make_ptypes(s1);
 
-  P->DuplexInit = 0;
   duplexfold_XS(s1, access_s1, threshold, max_interaction_length);
   free(S1);
   free(SS1);
