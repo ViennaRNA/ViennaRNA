@@ -1,9 +1,9 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.61)
+AC_PREREQ([2.70])
 
-AC_INIT([kinfold], [1.4], [rna@tbi.univie.ac.at], [Kinfold])
+AC_INIT([kinfold],[1.4],[rna@tbi.univie.ac.at],[Kinfold])
 AC_CONFIG_SRCDIR([cache_util.h])
 
 AM_SILENT_RULES([yes])
@@ -71,7 +71,9 @@ AM_CONDITIONAL([WITH_LIBRNA_API3], [test "x${HAVE_LIBRNA_API3}" = "x1"])
 AM_CONDITIONAL([WITH_LIBRNA_API2], [test "x${HAVE_LIBRNA_API2}" = "x1"])
 
 dnl Checks for header files.
-AC_HEADER_STDC
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_CHECK_HEADERS(stdlib.h string.h strings.h unistd.h)
 
 dnl Checks for libraries.
