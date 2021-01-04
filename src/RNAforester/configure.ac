@@ -1,18 +1,19 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision: 1.13 $)
-AC_INIT(RNAforester,2.0.1,sschirme@techfak.uni-bielefeld.de,RNAforester)
-AC_PREREQ([2.59])
+AC_INIT([RNAforester],[2.0.1],[sschirme@techfak.uni-bielefeld.de],[RNAforester])
+AC_PREREQ([2.70])
 
 AM_SILENT_RULES([yes])
 AM_INIT_AUTOMAKE([1.11])
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
-AM_CONFIG_HEADER(config.h)
-		
+AC_CONFIG_HEADERS([config.h])
+
 dnl Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
 AC_LANG(C++)
+AC_PROG_LEX(yywrap)
 AM_PROG_LEX
 AC_PROG_YACC
 
@@ -56,7 +57,9 @@ CPPFLAGS=["-Ig2-0.72/src/ ${CPPFLAGS}"]
 dnl AC_CHECK_LIB(gd,main,,)
 		  
 dnl Checks for header files.
-AC_HEADER_STDC
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_CHECK_HEADER(g2.h,AC_DEFINE(HAVE_LIBG2,1,Define to 1 if you have the `g2' library (-lg2).),AC_MSG_WARN(Compiling without support for graphical output. Install the g2 library that comes with the RNAforester distribution or download the latest version at http://g2.sourceforge.net/))
 dnl AC_CHECK_HEADER(g2_PS.h,,AC_MSG_WARN(Compiling without support for graphical output. Install the g2 library that comes with the RNAforester distribution or download the latest version at http://g2.sourceforge.net/))
 
@@ -80,7 +83,8 @@ AC_SUBST(LDFLAGS)
 dnl Checks for library functions.
 
 AC_CONFIG_SUBDIRS(g2-0.72)
-AC_OUTPUT(Makefile src/Makefile man/Makefile)
+AC_CONFIG_FILES([Makefile src/Makefile man/Makefile])
+AC_OUTPUT
 
 
 
