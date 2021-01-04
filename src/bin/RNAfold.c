@@ -827,6 +827,12 @@ process_record(struct record_data *record)
 
   vc = vrna_fold_compound(rec_sequence, &(opt->md), VRNA_OPTION_DEFAULT);
 
+  if (!vc) {
+    vrna_message_warning("Skipping computations for \"%s\"",
+                         (record->id) ? record->id : "identifier unavailable");
+    return;
+  }
+
   length = vc->length;
 
   if ((opt->md.circ) && (vrna_rotational_symmetry(rec_sequence) > 1))
