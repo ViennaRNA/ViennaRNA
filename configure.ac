@@ -1,4 +1,4 @@
-AC_INIT(RNAlocmin,2.1.0)
+AC_INIT([RNAlocmin],[2.1.0])
 
 AC_CONFIG_MACRO_DIR([.])
 
@@ -44,5 +44,6 @@ PKG_CHECK_MODULES([VRNA], [RNAlib2],
                   ],
                   [])
 
-AC_OUTPUT(Makefile)
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
 
