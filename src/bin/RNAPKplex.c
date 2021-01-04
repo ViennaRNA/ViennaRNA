@@ -239,8 +239,8 @@ main(int  argc,
 
       for (i = 11; i < length + 11; i++) {
         for (j = 1; j < unpaired + 1; j++)
-          if (pup[i - 10][j - 1 + 1] > 0)
-            access[j][i] = rint(100 * (-log(pup[i - 10][j - 1 + 1])) * kT);
+          if (pup[i - 10][j] > 0)
+            access[j][i] = rint(100 * (-log(pup[i - 10][j])) * kT);
       }
 
       access[0][0] = unpaired + 2;
@@ -291,27 +291,21 @@ main(int  argc,
       constraint  = (char *)vrna_alloc(sizeof(char) * (length + 1));
       mfe_struct  = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
-      vrna_fold_compound_t  *fc = vrna_fold_compound(s1, &md, VRNA_OPTION_MFE);
+      vrna_fold_compound_t  *fc = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT);
       mfe = mfe_pk = vrna_mfe(fc, mfe_struct);
-      /*      if(verbose)
-       *        printf("%s (%6.2f) [mfe-pkfree]\n", mfe_struct, mfe);
-       */
+
       for (current = 0; current < NumberOfHits; current++) {
         /* do evaluation for structures above the subopt threshold only */
         if (!PlexHits[current].inactive) {
           if (PlexHits[current].structure) {
             /* prepare the structure constraint for constrained folding */
-            for (i = 0; i < length; i++)
-              constraint[i] = '.';
-            for (i = PlexHits[current].tb - 1; i < PlexHits[current].te; i++)
-              constraint[i] = 'x';
-            for (i = PlexHits[current].qb - 1; i < PlexHits[current].qe; i++)
-              constraint[i] = 'x';
-            constraint[length] = '\0';
+            vrna_hc_init(fc);
+            for (i = PlexHits[current].tb; i <= PlexHits[current].te; i++)
+              vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+            for (i = PlexHits[current].qb; i <= PlexHits[current].qe; i++)
+              vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
 
             /* energy evaluation */
-            vrna_hc_init(fc);
-            vrna_hc_add_from_db(fc, constraint, VRNA_CONSTRAINT_DB_X);
             constrainedEnergy = vrna_mfe(fc, constraint);
 
             /* check if this structure is worth keeping */
