@@ -442,6 +442,12 @@ process_record(struct record_data *record)
                           &(opt->md),
                           VRNA_OPTION_DEFAULT);
 
+  if (!fc) {
+    vrna_message_warning("Skipping computations for \"%s\"",
+                         (record->id) ? record->id : "identifier unavailable");
+    return;
+  }
+
   n = (int)fc->length;
 
   /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
