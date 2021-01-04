@@ -1,4 +1,4 @@
-AC_INIT(kinwalker,2.0)
+AC_INIT([kinwalker],[2.0])
 
 AM_SILENT_RULES([yes])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -32,4 +32,5 @@ PKG_CHECK_MODULES([VRNA], [RNAlib2],
                     AC_SUBST([VRNA_LIBS])
                   ],
                   [])
-AC_OUTPUT(Makefile man/Makefile)
+AC_CONFIG_FILES([Makefile man/Makefile])
+AC_OUTPUT
