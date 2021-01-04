@@ -42,14 +42,7 @@ libRNA_la_SOURCES =
 libRNA_la_LIBADD = libRNA_conv.la
 libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS) $(PTHREAD_LIBS)
 
-libRNA_concentrations_la_CPPFLAGS = \
-    -I$(top_srcdir)/src/dlib-19.19 \
-    -DDLIB_NO_GUI_SUPPORT
-
-
-##libRNA_concentrations_la_LDFLAGS = \
-##    -lblas -llapack
-
+libRNA_concentrations_la_CPPFLAGS = $(DLIB_CPPFLAGS)
 
 libRNA_conv_la_LIBADD = \
     libRNA_concentrations.la \
@@ -337,7 +330,7 @@ libRNA_eval_la_SOURCES = \
 
 libRNA_concentrations_la_SOURCES = \
     concentrations.c \
-    $(top_srcdir)/src/dlib-19.19/dlib/all/source.cpp \
+    ../@DLIB_DIR@/dlib/all/source.cpp \
     wrap_dlib.cpp
 
 

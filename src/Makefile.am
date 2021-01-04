@@ -4,4 +4,4 @@ EXTRA_DIST = \
   @LIBSVM_DIR@ \
   json \
   cthreadpool \
-  dlib-19.19
+  @DLIB_DIR@

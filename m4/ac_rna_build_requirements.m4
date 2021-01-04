@@ -19,6 +19,8 @@ RNA_CHECK_SVG_TEMPLATES
 
 RNA_CHECK_PARAMETER_FILES
 
+RNA_CHECK_DLIB
+
 ])
 
 
@@ -223,3 +225,24 @@ static const unsigned char parameter_set_$parfile_name[[]] = {
     AC_SUBST(PARAMETER_FILES_HEX)
 ])
 
+
+AC_DEFUN([RNA_CHECK_DLIB], [
+  DLIB_VERSION=19.21
+  DLIB_DIR="dlib-${DLIB_VERSION}"
+  DLIB_PATH="${srcdir}/src/${DLIB_DIR}"
+  DLIB_SRC_FILE="${DLIB_PATH}/dlib/all/source.cpp"
+
+  AC_RNA_TEST_FILE($DLIB_SRC_FILE,[],[
+    AC_MSG_ERROR([
+=================================================
+Can't find dlib's source.cpp
+
+Make sure you've unpacked 'src/dlib-${DLIB_VERSION}.tar.bz2'!
+=================================================
+])
+  ])
+
+  AC_SUBST(DLIB_CPPFLAGS, "-I\$(top_srcdir)/src/${DLIB_DIR} -DDLIB_NO_GUI_SUPPORT")
+  AC_SUBST(DLIB_DIR)
+
+])

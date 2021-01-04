@@ -106,7 +106,15 @@ tar -xzf libsvm-3.24.tar.gz
 cd ..
 ```
 
-2. Install the additional maintainer tools `gengetopt`, `help2man`,`flex`,`xxd`,
+2. Unpack the `dlib` archive to allow for concentration dependency computations with the
+   program `RNAmultifold`:
+```
+cd src
+tar -xjf dlib-19.21.tar.bz2
+cd ..
+```
+
+3. Install the additional maintainer tools `gengetopt`, `help2man`,`flex`,`xxd`,
    and `swig` if necessary. For instance, in RedHat based distributions, the
    following packages need to be installed:
     - `gengetopt` (to generate command line parameter parsers)
@@ -115,7 +123,7 @@ cd ..
     - `vim-common` (for the `xxd` program)
     - `swig` (to generate the scripting language interfaces)
 
-3. Finally, run the autoconf/automake toolchain:
+4. Finally, run the autoconf/automake toolchain:
 ```
 autoreconf -i
 ```
