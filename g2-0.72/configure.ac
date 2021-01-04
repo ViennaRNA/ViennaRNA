@@ -2,7 +2,8 @@
 #
 # Check for one project file
 #
-AC_INIT(src/g2_device.c)
+AC_INIT
+AC_CONFIG_SRCDIR([src/g2_device.c])
 
 PRODUCT=g2
 
@@ -108,7 +109,12 @@ fi
 #
 # handling cygwin environment (and gd for cygwin == bgd)
 #
-AC_CYGWIN
+AC_CANONICAL_HOST
+case $host_os in
+  *cygwin* ) CYGWIN=yes;;
+	 * ) CYGWIN=no;;
+esac
+
 if test "$CYGWIN" = yes
 then
 	LIBS="$LIBS -L/lib/w32api"
@@ -132,14 +138,17 @@ AC_SUBST(DO_WIN32)
 AC_SUBST(DO_GD)
 AC_SUBST(DO_GIF)
 
-AC_HEADER_STDC
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_CHECK_HEADERS(limits.h)
 
 #
 # finally create makefiles using Makefile.in
 #
 echo
-AC_OUTPUT(Makefile demo/Makefile g2_perl/Makefile.PL g2_python/Makefile)
+AC_CONFIG_FILES([Makefile demo/Makefile g2_perl/Makefile.PL g2_python/Makefile])
+AC_OUTPUT
 
 echo
 echo "Supported devices:"
