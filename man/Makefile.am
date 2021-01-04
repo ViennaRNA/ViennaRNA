@@ -14,6 +14,7 @@ main_manpages = RNA2Dfold.1 \
                 RNAinverse.1 \
                 RNALalifold.1 \
                 RNALfold.1 \
+                RNAmultifold.1 \
                 RNApaln.1 \
                 RNAparconv.1 \
                 RNAplfold.1 \
