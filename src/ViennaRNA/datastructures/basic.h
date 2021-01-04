@@ -36,6 +36,8 @@ typedef struct vrna_data_linear_s vrna_data_lin_t;
 
 typedef struct vrna_color_s vrna_color_t;
 
+typedef struct vrna_pkplex_result_s vrna_pkplex_t;
+
 /** @brief Typename for floating point number in partition function computations */
 #ifdef  USE_FLOAT_PF
 typedef float FLT_OR_DBL;
@@ -76,6 +78,12 @@ typedef struct vrna_sect_s sect;
  *  @deprecated Use #vrna_bp_stack_t instead!
  */
 typedef struct vrna_bp_stack_s bondT;
+
+/**
+ *  @brief Old typename of #vrna_pkplex_result_s
+ *  @deprecated Use #vrna_pkplex_t instead!
+ */
+typedef struct vrna_pkplex_result_s dupVar;
 
 #endif
 
@@ -274,7 +282,7 @@ typedef struct {
 /**
  *  @brief  Data structure used in RNApkplex
  */
-typedef struct dupVar {
+struct vrna_pkplex_result_s {
   int     i;
   int     j;
   int     end;
@@ -291,7 +299,7 @@ typedef struct dupVar {
   int     qe;
   int     inactive;
   int     processed;
-} dupVar;
+};
 
 /**
  *  @brief  Dummy symbol to check whether the library was build using C11/C++11 features

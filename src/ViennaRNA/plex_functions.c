@@ -69,6 +69,25 @@ PUBLIC int            PlexHitsArrayLength = 100;
 PUBLIC int            NumberOfHits        = 0;
 PUBLIC int            verbose             = 0;
 
+
+PUBLIC vrna_pkplex_t *
+vrna_PKplex(vrna_fold_compound_t  *fc,
+            int                   threshold,
+            int                   delta,
+            unsigned int          max_interaction_length,
+            unsigned int          options)
+{
+  vrna_pkplex_t *result = NULL;
+
+  if (fc) {
+/*
+  duplexfold_XS(s1, access_s1, threshold, max_interaction_length);
+*/
+  }
+
+  return result;
+}
+
 /*-----------------------------------------------------------------------duplexfold_XS---------------------------------------------------------------------------*/
 
 PRIVATE void
@@ -360,7 +379,7 @@ backtrack_XS(int        k,
 PUBLIC dupVar **
 PKLduplexfold_XS(const char *s1,
                  int        **access_s1,
-                 const int  threshold,
+                 const int  penalty,
                  const int  max_interaction_length,
                  const int  delta)
 {
