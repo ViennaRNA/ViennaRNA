@@ -901,6 +901,13 @@ process_record(struct record_data *record)
   vc = vrna_fold_compound_comparative((const char **)alignment,
                                       &(opt->md),
                                       VRNA_OPTION_DEFAULT);
+
+  if (!vc) {
+    vrna_message_warning("Skipping computations for \"%s\"",
+                         (record->MSA_ID) ? record->MSA_ID : "identifier unavailable");
+    return;
+  }
+
   n = vc->length;
 
   if (fold_constrained)
