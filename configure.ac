@@ -4,8 +4,8 @@ m4_define([vrna_version_minor], [4])
 m4_define([vrna_version_patch], [17])
 
 dnl Every other copy of the package version number gets its value from here
-AC_INIT([ViennaRNA],vrna_version_major.vrna_version_minor.vrna_version_patch,[rna@tbi.univie.ac.at],[ViennaRNA], [http://www.tbi.univie.ac.at/RNA])
-AC_PREREQ([2.60])
+AC_INIT([ViennaRNA],[vrna_version_major.vrna_version_minor.vrna_version_patch],[rna@tbi.univie.ac.at],[ViennaRNA],[http://www.tbi.univie.ac.at/RNA])
+AC_PREREQ([2.70])
 AC_CONFIG_AUX_DIR(config)
 
 AC_SUBST(VERSION)
@@ -51,9 +51,8 @@ AC_PROG_MKDIR_P
 AM_PROG_CC_C_O
 AC_PROG_SED
 AC_PROG_LN_S
-AC_PROG_CC_C99
+AC_PROG_CC
 
-AC_PROG_LIBTOOL
 LT_INIT([pic-only, static])
 AC_SUBST(LIBTOOL_DEPS)
 
@@ -62,7 +61,9 @@ dnl Checks for libraries.
 AC_CHECK_LIB([m], [exp])
 
 dnl Checks for header files.
-AC_HEADER_STDC
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([malloc.h float.h limits.h stdlib.h string.h strings.h unistd.h math.h stdarg.h])
 
