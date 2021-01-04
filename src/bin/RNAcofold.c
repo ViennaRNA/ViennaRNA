@@ -666,6 +666,13 @@ process_record(struct record_data *record)
   vrna_fold_compound_t *vc = vrna_fold_compound(sequence,
                                                 &(opt->md),
                                                 VRNA_OPTION_DEFAULT | VRNA_OPTION_HYBRID);
+
+  if (!vc) {
+    vrna_message_warning("Skipping computations for \"%s\"",
+                         (record->id) ? record->id : "identifier unavailable");
+    return;
+  }
+
   n = vc->length;
 
   if (vc->strands > 2)
