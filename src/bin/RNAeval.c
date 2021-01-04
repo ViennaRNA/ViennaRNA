@@ -631,6 +631,12 @@ process_record(struct record_data *record)
                           &(opt->md),
                           VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
+  if (!vc) {
+    vrna_message_warning("Skipping computations for \"%s\"",
+                         (record->id) ? record->id : "identifier unavailable");
+    return;
+  }
+
   n = (int)vc->length;
 
   if (opt->shape) {
@@ -752,6 +758,13 @@ process_alignment_record(struct record_data_msa *record)
   vc = vrna_fold_compound_comparative((const char **)alignment,
                                       &(opt->md),
                                       VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
+
+  if (!vc) {
+    vrna_message_warning("Skipping computations for \"%s\"",
+                         (record->MSA_ID) ? record->MSA_ID : "identifier unavailable");
+    return;
+  }
+
   n = vc->length;
 
   /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
