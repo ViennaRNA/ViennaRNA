@@ -204,6 +204,22 @@ vrna_rotational_symmetry_db_pos(vrna_fold_compound_t  *fc,
 
 
 /**
+ *  @brief  Obtain a list of k-combinations with repetition (n multichoose k)
+ *
+ *  This function compiles a list of k-combinations, or k-multicombination, i.e.
+ *  a list of multisubsets of size k from a set of integer values from 0 to n - 1.
+ *  For that purpose, we enumerate n + k - 1 choose k and decrease each index
+ *  position i by i to obtain n multichoose k.
+ *
+ *  @param  n   Maximum number to choose from (interval of integers from 0 to @p n - 1)
+ *  @param  k   Number of elements to choose, i.e. size of each multisubset
+ *  @return     A list of lists of elements of combinations (last entry is terminated by @b NULL
+ */
+unsigned int **
+vrna_n_multichoose_k(size_t  n,
+                     size_t  k);
+
+/**
  *  @}
  */
 #endif

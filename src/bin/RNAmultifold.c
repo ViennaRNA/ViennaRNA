@@ -572,91 +572,6 @@ process_input(FILE            *input_stream,
 
 
 static void
-n_choose_k( const unsigned int  *input,
-            unsigned int  *current,
-            size_t        start,
-            size_t        end,
-            size_t        selected,
-            size_t        k,
-            unsigned int  ***output,
-            size_t        *output_size,
-            size_t        *cnt);
-
-
-static unsigned int **
-n_multichoose_k(size_t  n,
-                size_t  k)
-{
-  size_t        result_size = 2;
-  unsigned int  **result = NULL;
-  unsigned int  *current = (unsigned int *)vrna_alloc(sizeof(unsigned int) * k);
-
-  result = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * result_size);
-
-  /* We want to enumerate n multichoose k for total strand number n and
-     interacting strands k. For that purpose, we enumerate n + k - 1 choose k
-     and decrease each index position i by i to obtain n multichoose k
-  */
-  unsigned int *helper = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + k));
-  for (size_t i = 0; i < n + k; i++)
-    helper[i] = i;
-
-  size_t  counter = 0;
-
-  n_choose_k(helper, current, 0, n + k - 2, 0, k, &result, &result_size, &counter);
-
-  for (size_t j = 0; j < counter; j++)
-    for (size_t i = 0; i < k; i++)
-      result[j][i] -= i;
-
-  /* resize to actual requirements */
-  result = (unsigned int **)vrna_realloc(result, sizeof(unsigned int *) * (counter + 1));
-
-  /* add end of list marker */
-  result[counter] = NULL;
-
-  free(helper);
-  free(current);
-
-  return result;
-}
-
-static void
-n_choose_k( const unsigned int  *input,
-            unsigned int  *current,
-            size_t        start,
-            size_t        end,
-            size_t        selected,
-            size_t        k,
-            unsigned int  ***output,
-            size_t        *output_size,
-            size_t        *cnt)
-{
-  if (selected == k) {
-    if (*output_size == *cnt) {
-      *output_size *= 2;
-      *output = (unsigned int **)vrna_realloc(*output, sizeof(unsigned int *) * (*output_size));
-    }
-
-    (*output)[(*cnt)] = (unsigned int *)vrna_alloc(sizeof(unsigned int) * k);
-
-    for (size_t j = 0; j < k; j++)
-      (*output)[(*cnt)][j] = current[j];
-
-    (*cnt)++;
-    return;
-  }
-
-  for (size_t i = start; i <= end && end - i + 1 >= k - selected; i++){
-    current[selected] = input[i];
-    n_choose_k(input, current, i + 1, end, selected + 1, k, output, output_size, cnt);
-  }
-
-  return;
-}
-
-
-static void
 process_record(struct record_data *record)
 {
   char                  *mfe_structure, *sequence, **rec_rest;
@@ -930,7 +845,7 @@ process_record(struct record_data *record)
         size_t  num_complexes = 0;
 
         /* enumerate all complexes of current size */
-        complexes[k] = n_multichoose_k(vc->strands, k);
+        complexes[k] = vrna_n_multichoose_k(vc->strands, k);
 
         /* count number of complexes of current size */
         for (; complexes[k][num_complexes] != NULL; num_complexes++);

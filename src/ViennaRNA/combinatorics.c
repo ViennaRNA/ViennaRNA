@@ -86,6 +86,17 @@ PRIVATE void    sawada_fast(unsigned int            t,
                             unsigned int            *result_size);
 
 
+PRIVATE void
+n_choose_k( unsigned int  *current,
+            size_t        start,
+            size_t        end,
+            size_t        selected,
+            size_t        k,
+            unsigned int  ***output,
+            size_t        *output_size,
+            size_t        *cnt);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -494,6 +505,39 @@ vrna_rotational_symmetry_db_pos(vrna_fold_compound_t  *fc,
 }
 
 
+PUBLIC unsigned int **
+vrna_n_multichoose_k(size_t  n,
+                     size_t  k)
+{
+  size_t        result_size = 2;
+  unsigned int  **result = NULL;
+  unsigned int  *current = (unsigned int *)vrna_alloc(sizeof(unsigned int) * k);
+
+  result = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * result_size);
+
+  /* We want to enumerate n multichoose k for total strand number n and
+     interacting strands k. For that purpose, we enumerate n + k - 1 choose k
+     and decrease each index position i by i to obtain n multichoose k
+  */
+  size_t  counter = 0;
+
+  n_choose_k(current, 0, n + k - 2, 0, k, &result, &result_size, &counter);
+
+  for (size_t j = 0; j < counter; j++)
+    for (size_t i = 0; i < k; i++)
+      result[j][i] -= i;
+
+  /* resize to actual requirements */
+  result = (unsigned int **)vrna_realloc(result, sizeof(unsigned int *) * (counter + 1));
+
+  /* add end of list marker */
+  result[counter] = NULL;
+
+  free(current);
+
+  return result;
+}
+
 /*
  #################################
  # STATIC helper functions below #
@@ -698,4 +742,38 @@ sawada_fast(unsigned int            t,
     }
     result[t] = k - 1;
   }
+}
+
+
+PRIVATE void
+n_choose_k( unsigned int  *current,
+            size_t        start,
+            size_t        end,
+            size_t        selected,
+            size_t        k,
+            unsigned int  ***output,
+            size_t        *output_size,
+            size_t        *cnt)
+{
+  if (selected == k) {
+    if (*output_size == *cnt) {
+      *output_size *= 2;
+      *output = (unsigned int **)vrna_realloc(*output, sizeof(unsigned int *) * (*output_size));
+    }
+
+    (*output)[(*cnt)] = (unsigned int *)vrna_alloc(sizeof(unsigned int) * k);
+
+    for (size_t j = 0; j < k; j++)
+      (*output)[(*cnt)][j] = current[j];
+
+    (*cnt)++;
+    return;
+  }
+
+  for (size_t i = start; i <= end && end - i + 1 >= k - selected; i++){
+    current[selected] = (unsigned int)i;
+    n_choose_k(current, i + 1, end, selected + 1, k, output, output_size, cnt);
+  }
+
+  return;
 }
