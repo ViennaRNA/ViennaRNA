@@ -472,15 +472,9 @@ eval_ext_int_loop(vrna_fold_compound_t  *vc,
       sj      = S[i - 1];
       sp      = S[p - 1];
       sq      = S[q + 1];
-      type    = (unsigned char)md->pair[S[j]][S[i]];
-      type_2  = (unsigned char)md->pair[S[q]][S[p]];
+      type    = vrna_get_ptype_md(S[j], S[i], md);
+      type_2  = vrna_get_ptype_md(S[q], S[p], md);
       sc      = vc->sc;
-
-      if (type == 0)
-        type = 7;
-
-      if (type_2 == 0)
-        type_2 = 7;
 
       e = ubf_eval_ext_int_loop(i, j, p, q,
                                 i - 1, j + 1, p - 1, q + 1,
@@ -500,13 +494,8 @@ eval_ext_int_loop(vrna_fold_compound_t  *vc,
       scs   = vc->scs;
 
       for (e = 0, s = 0; s < n_seq; s++) {
-        type = (unsigned char)md->pair[SS[s][j]][SS[s][i]];
-        if (type == 0)
-          type = 7;
-
-        type_2 = (unsigned char)md->pair[SS[s][q]][SS[s][p]];
-        if (type_2 == 0)
-          type_2 = 7;
+        type    = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+        type_2  = vrna_get_ptype_md(SS[s][q], SS[s][p], md);
 
         sc = (scs && scs[s]) ? scs[s] : NULL;
 
@@ -1242,9 +1231,7 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:     /* get type of base pair (p,q) */
-        tt = md->pair[s[p]][s[q]];
-        if (tt == 0)
-          tt = 7;
+        tt = vrna_get_ptype_md(s[p], s[q], md);
 
         switch (dangle_model) {
           /* no dangles */
@@ -1286,9 +1273,7 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
       case VRNA_FC_TYPE_COMPARATIVE:
         for (ss = 0; ss < n_seq; ss++) {
           /* get type of base pair (p,q) */
-          tt = md->pair[S[ss][p]][S[ss][q]];
-          if (tt == 0)
-            tt = 7;
+          tt = vrna_get_ptype_md(S[ss][p], S[ss][q], md);
 
           switch (dangle_model) {
             case 0:
@@ -1510,9 +1495,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             /* p must have a pairing partner */
             q = (int)pt[p];
             /* get type of base pair (p,q) */
-            tt = md->pair[s[p]][s[q]];
-            if (tt == 0)
-              tt = 7;
+            tt = vrna_get_ptype_md(s[p], s[q], md);
 
             energy += E_MLstem(tt, -1, -1, P);
 
@@ -1531,9 +1514,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
           /* now lets get the energy of the enclosing stem */
           if (i > 0) {
             /* actual closing pair */
-            tt = md->pair[s[j]][s[i]];
-            if (tt == 0)
-              tt = 7;
+            tt = vrna_get_ptype_md(s[j], s[i], md);
 
             energy += E_MLstem(tt, -1, -1, P);
           } else {
@@ -1549,9 +1530,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             q = (int)pt[p];
             for (ss = 0; ss < n_seq; ss++) {
               /* get type of base pair (p,q) */
-              tt = md->pair[S[ss][p]][S[ss][q]];
-              if (tt == 0)
-                tt = 7;
+              tt = vrna_get_ptype_md(S[ss][p], S[ss][q], md);
 
               energy += E_MLstem(tt, -1, -1, P);
             }
@@ -1581,9 +1560,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
           if (i > 0) {
             /* actual closing pair */
             for (ss = 0; ss < n_seq; ss++) {
-              tt = md->pair[S[ss][j]][S[ss][i]];
-              if (tt == 0)
-                tt = 7;
+              tt = vrna_get_ptype_md(S[ss][j], S[ss][i], md);
 
               energy += E_MLstem(tt, -1, -1, P);
             }
@@ -1603,9 +1580,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
             /* p must have a pairing partner */
             q = (int)pt[p];
             /* get type of base pair (p,q) */
-            tt = md->pair[s[p]][s[q]];
-            if (tt == 0)
-              tt = 7;
+            tt = vrna_get_ptype_md(s[p], s[q], md);
 
             mm5     = sn[p - 1] == sn[p] ? s1[p - 1] : -1;
             mm3     = sn[q] == sn[q + 1] ? s1[q + 1] : -1;
@@ -1624,9 +1599,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
           }
           if (i > 0) {
             /* actual closing pair */
-            tt = md->pair[s[j]][s[i]];
-            if (tt == 0)
-              tt = 7;
+            tt = vrna_get_ptype_md(s[j], s[i], md);
 
             mm5     = sn[j - 1] == sn[j] ? s1[j - 1] : -1;
             mm3     = sn[i] == sn[i + 1] ? s1[i + 1] : -1;
@@ -1645,9 +1618,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
 
             for (ss = 0; ss < n_seq; ss++) {
               /* get type of base pair (p,q) */
-              tt = md->pair[S[ss][p]][S[ss][q]];
-              if (tt == 0)
-                tt = 7;
+              tt = vrna_get_ptype_md(S[ss][p], S[ss][q], md);
 
               mm5     = ((a2s[ss][p] > 1) || circular) ? S5[ss][p] : -1;
               mm3     = ((a2s[ss][q] < a2s[ss][n]) || circular) ? S3[ss][q] : -1;
@@ -1678,9 +1649,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
           if (i > 0) {
             /* actual closing pair */
             for (ss = 0; ss < n_seq; ss++) {
-              tt = md->pair[S[ss][j]][S[ss][i]];
-              if (tt == 0)
-                tt = 7;
+              tt = vrna_get_ptype_md(S[ss][j], S[ss][i], md);
 
               mm5     = S5[ss][j];
               mm3     = S3[ss][i];
@@ -1704,15 +1673,13 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
           type  = 0;         /* no pair */
         } else {
           j     = (unsigned int)pt[i];
-          type  = P->model_details.pair[s[j]][s[i]];
-          if (type == 0)
-            type = 7;
+          type  = vrna_get_ptype_md(s[j], s[i], md);
 
           /* prime the ld5 variable */
           if (sn[j - 1] == sn[j]) {
             ld5 = P->dangle5[type][s1[j - 1]];
             if ((p = (unsigned int)pt[j - 2]) && (sn[j - 2] == sn[j - 1]))
-              if (P->dangle3[P->model_details.pair[s[p]][s[j - 2]]][s1[j - 1]] < ld5)
+              if (P->dangle3[md->pair[s[p]][s[j - 2]]][s1[j - 1]] < ld5)
                 ld5 = 0;
           }
         }
@@ -1744,9 +1711,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
           } else {
             q = (unsigned int)pt[p];
             /* get type of base pair P->q */
-            tt = P->model_details.pair[s[p]][s[q]];
-            if (tt == 0)
-              tt = 7;
+            tt = vrna_get_ptype_md(s[p], s[q], md);
           }
 
           energy    += mlintern[tt];
@@ -1819,9 +1784,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
         /* p must have a pairing partner */
         q = (int)pt[p];
         /* get type of base pair (p,q) */
-        tt = P->model_details.pair[s[p]][s[q]];
-        if (tt == 0)
-          tt = 7;
+        tt = vrna_get_ptype_md(s[p], s[q], md);
 
         if (q_prev + 2 < p) {
           E_mm5_available = MIN2(E_mm5_available, E_mm5_occupied);
@@ -1873,9 +1836,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
       }
       if (i > 0) {
         /* actual closing pair */
-        type = P->model_details.pair[s[j]][s[i]];
-        if (type == 0)
-          type = 7;
+        type = vrna_get_ptype_md(s[j], s[i], md);
 
         mm5 = ((sn[j - 1] == sn[j]) && !pt[j - 1])  ? s1[j - 1] : -1;
         mm3 = ((sn[i] == sn[i + 1]) && !pt[i + 1])  ? s1[i + 1] : -1;
@@ -2134,9 +2095,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
           if (num_g == 1) {
             /* a) an interior loop like structure */
             for (cnt = 0; cnt < n_seq; cnt++) {
-              type = md->pair[S[cnt][r]][S[cnt][s]];
-              if (type == 0)
-                type = 7;
+              type = vrna_get_ptype_md(S[cnt][r], S[cnt][s], md);
 
               if (dangle_model == 2)
                 e_plus += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
@@ -2162,9 +2121,7 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
           } else {
             /* or b) a multibranch loop like structure */
             for (cnt = 0; cnt < n_seq; cnt++) {
-              type = md->pair[S[cnt][s]][S[cnt][r]];
-              if (type == 0)
-                type = 7;
+              type = vrna_get_ptype_md(S[cnt][s], S[cnt][r], md);
 
               e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
             }
@@ -2193,15 +2150,11 @@ en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
           e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
 
           for (cnt = 0; cnt < n_seq; cnt++) {
-            type = md->pair[S[cnt][s]][S[cnt][r]];
-            if (type == 0)
-              type = 7;
+            type = vrna_get_ptype_md(S[cnt][s], S[cnt][r], md);
 
             e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
 
-            type = md->pair[S[cnt][elem_i]][S[cnt][elem_j]];
-            if (type == 0)
-              type = 7;
+            type = vrna_get_ptype_md(S[cnt][elem_i], S[cnt][elem_j], md);
 
             e_plus += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
           }
