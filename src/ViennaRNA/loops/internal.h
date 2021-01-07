@@ -666,7 +666,7 @@ E_IntLoop_Co(int          type,
              int          dangles,
              vrna_param_t *P)
 {
-  int energy, ci, cj, cp, cq, d3, d5, d5_2, d3_2, tmm, tmm_2;
+  int e, energy, ci, cj, cp, cq, d3, d5, d5_2, d3_2, tmm, tmm_2;
 
   energy = 0;
   if (type > 2)
@@ -696,24 +696,60 @@ E_IntLoop_Co(int          type,
 
   /* now we may have non-double dangles only */
   if (p - i > 2) {
-    if (j - q > 2)
-      energy += tmm + tmm_2;
-    else if (j - q == 2)
-      energy += (cj && cq) ? MIN2(tmm + d5_2, tmm_2 + d3) : tmm + tmm_2;
-    else
+    if (j - q > 2) {
+      /* all degrees of freedom */
+      e = MIN2(tmm, d5);
+      e = MIN2(e, d3);
+      energy += e;
+      e = MIN2(tmm_2, d5_2);
+      e = MIN2(e, d3_2);
+      energy += e;
+    } else if (j - q == 2) {
+      /* all degrees of freedom in 5' part between i and p */
+      e = MIN2(tmm + d5_2, d3 + d5_2);
+      e = MIN2(e, d5 + d5_2);
+      e = MIN2(e, d3 + tmm_2);
+      e = MIN2(e, d3 + d3_2);
+      e = MIN2(e, tmm_2); /* no dangles on enclosing pair */
+      e = MIN2(e, d5_2);  /* no dangles on enclosing pair */
+      e = MIN2(e, d3_2);  /* no dangles on enclosing pair */
+      energy += e;
+    } else {
+      /* no unpaired base between q and j */
       energy += d3 + d5_2;
+    }
   } else if (p - i == 2) {
-    if (j - q > 2)
-      energy += (ci && cp) ? MIN2(tmm + d3_2, tmm_2 + d5) : tmm + tmm_2;
-    else if (j - q == 2)
-      energy += MIN2(tmm, MIN2(tmm_2, MIN2(d5 + d5_2, d3 + d3_2)));
-    else
+    if (j - q > 2) {
+      /* all degrees of freedom in 3' part between q and j */
+      e = MIN2(tmm + d3_2, d5 + d3_2);
+      e = MIN2(e, d5 + d3_2);
+      e = MIN2(e, d3 + d3_2);
+      e = MIN2(e, d5 + tmm_2);
+      e = MIN2(e, tmm_2);
+      e = MIN2(e, d5_2);
+      e = MIN2(e, d3_2);
+      energy += e;
+    } else if (j - q == 2) {
+      /* one possible dangling base between either side */
+      e = MIN2(tmm, tmm_2);
+      e = MIN2(e, d3);
+      e = MIN2(e, d5);
+      e = MIN2(e, d5_2);
+      e = MIN2(e, d3_2);
+      energy += e;
+    } else {
+      /* one unpaired base between i and p */
       energy += MIN2(d3, d5_2);
+    }
   } else {
-    if (j - q > 2)
+    /* no unpaired base between i and p */
+    if (j - q > 2) {
+      /* all degrees of freedom in 3' part between q and j */
       energy += d5 + d3_2;
-    else if (j - q == 2)
+    } else if (j - q == 2) {
+      /* one unpaired base between q and j */
       energy += MIN2(d5, d3_2);
+    }
   }
 
   return energy;

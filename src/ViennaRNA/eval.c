@@ -1942,7 +1942,7 @@ cut_in_loop(int           i,
             const short   *pt,
             unsigned int  *sn)
 {
-  /* walk around the loop;  return j pos of pair after cut if
+  /* walk around the loop;  return 5' pos of first pair after cut if
    * cut_point in loop else 0 */
   int p, j;
 
@@ -1952,8 +1952,8 @@ cut_in_loop(int           i,
     p = i + 1;
     while (pt[p] == 0)
       p++;
-  } while (p != j && (sn[i] == sn[p]));
-  return sn[i] == sn[p] ? 0 : j;
+  } while ((p != j) && (sn[i] == sn[p]));
+  return sn[i] == sn[p] ? 0 : p;
 }
 
 

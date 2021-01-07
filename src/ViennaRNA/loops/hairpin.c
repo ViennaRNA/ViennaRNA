@@ -343,10 +343,22 @@ eval_hp_loop_fake(vrna_fold_compound_t  *fc,
       si  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
       sj  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
 
-      if (md->dangles)
-        e = vrna_E_ext_stem(type, sj, si, P);
-      else
-        e = vrna_E_ext_stem(type, -1, -1, P);
+      switch (md->dangles) {
+        case 0:
+          e = vrna_E_ext_stem(type, -1, -1, P);
+          break;
+
+        case 2:
+          e = vrna_E_ext_stem(type, sj, si, P);
+          break;
+
+        default:
+          e = vrna_E_ext_stem(type, -1, -1, P);
+          e = MIN2(e, vrna_E_ext_stem(type, sj, -1, P));
+          e = MIN2(e, vrna_E_ext_stem(type, -1, si, P));
+          e = MIN2(e, vrna_E_ext_stem(type, sj, si, P));
+          break;
+      }
 
       /* add soft constraints */
       if (sc) {
