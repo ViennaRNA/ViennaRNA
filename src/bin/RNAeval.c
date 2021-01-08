@@ -43,6 +43,8 @@
 
 #define DBL_ROUND(a, digits) (round((a) * pow(10., (double)(digits))) / pow(10., (double)(digits)))
 
+#define MULTISTRAND_EVAL
+
 struct options {
   unsigned int    msa_format;
   int             filename_full;
@@ -661,21 +663,66 @@ process_record(struct record_data *record)
     vrna_message_error("structure missing for record %d\n", record->number);
 
   {
+#ifdef MULTISTRAND_EVAL
+    char **structures = vrna_strsplit(tmp, "&");
+    for (unsigned int a = 0; a < vc->strands; a++) {
+      if (!structures[a])
+        vrna_message_error("Sequence and Structure have different number of strand delimiters");
+
+      unsigned int l = strlen(structures[a]);
+      switch (vc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          if (vc->nucleotides[a].length != l)
+            vrna_message_error("Structure and sequence part of strand %u differ in length (%u vs. %u)", a, l, vc->nucleotides[a].length);
+          break;
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          break;
+      }
+    }
+    structure = vrna_strjoin((const char **)structures, NULL);
+    for (unsigned int a = 0; a < vc->strands; a++)
+      free(structures[a]);
+    free(structures);
+#else
     int cp = -1;
     structure = vrna_cut_point_remove(tmp, &cp);
     if (cp != vc->cutpoint) {
       vrna_message_warning("cut_point = %d cut = %d", vc->cutpoint, cp);
       vrna_message_error("Sequence and Structure have different cut points.");
     }
-
     n = (int)strlen(structure);
     if (n != vc->length)
       vrna_message_error("structure and sequence differ in length!");
+#endif
 
     free(tmp);
   }
 
   if (record->tty) {
+#ifdef MULTISTRAND_EVAL
+    if (vc->strands == 1) {
+      vrna_message_info(stdout, "length = %u", vc->length);
+    } else {
+      switch (vc->type) {
+        case VRNA_FC_TYPE_SINGLE:
+          for (unsigned int a = 0; a < vc->strands; a++)
+            vrna_message_info(stdout,
+                              "length%u = %u",
+                              a + 1,
+                              vc->nucleotides[a].length);
+          break;
+
+        case VRNA_FC_TYPE_COMPARATIVE:
+          for (unsigned int a = 0; a < vc->strands; a++)
+            vrna_message_info(stdout,
+                              "length%u = %u",
+                              a + 1,
+                              vc->alignment[a].sequences[0].length);
+          break;
+      }
+    }
+#else
     if (vc->cutpoint == -1) {
       vrna_message_info(stdout, "length = %d", n);
     } else {
@@ -684,6 +731,7 @@ process_record(struct record_data *record)
                         vc->cutpoint - 1,
                         n - vc->cutpoint + 1);
     }
+#endif
   }
 
   /*
