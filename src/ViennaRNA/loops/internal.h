@@ -736,6 +736,8 @@ E_IntLoop_Co(int          type,
       e = MIN2(e, d5);
       e = MIN2(e, d5_2);
       e = MIN2(e, d3_2);
+      e = MIN2(e, d3 + d3_2);
+      e = MIN2(e, d5 + d5_2);
       energy += e;
     } else {
       /* one unpaired base between i and p */
