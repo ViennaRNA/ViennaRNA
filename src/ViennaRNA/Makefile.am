@@ -110,6 +110,7 @@ pkginclude_HEADERS =  \
     treedist.h \
     inverse.h \
     subopt.h \
+    subopt_zuker.h \
     cofold.h \
     duplex.h \
     alifold.h \
@@ -283,6 +284,7 @@ libRNA_conv_la_SOURCES = \
     fold.c \
     stringdist.c \
     subopt.c \
+    subopt_zuker.c \
     Lfold.c \
     cofold.c \
     part_func_co.c \

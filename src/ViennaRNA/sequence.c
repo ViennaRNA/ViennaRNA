@@ -399,8 +399,9 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
           for (i = fc->strand_start[cnt]; i <= fc->strand_end[cnt]; i++)
             fc->strand_number[i] = cnt;
         }
-        /* this sets pos. n + 1 as well */
-        fc->strand_number[fc->length + 1] = fc->strands - 1;
+        /* this sets pos. 0 and n + 1 as well for convenience reasons */
+        fc->strand_number[0]              = fc->strand_number[1];
+        fc->strand_number[fc->length + 1] = fc->strand_number[fc->length];
 
         break;
 
@@ -456,8 +457,9 @@ vrna_sequence_order_update(vrna_fold_compound_t *fc,
         fc->strand_number[j] = order[i];
     }
 
-    /* also set pos. n + 1 for convenience reasons */
-    fc->strand_number[fc->length + 1] = order[fc->strands - 1];
+    /* also set pos. 0 and n + 1 for convenience reasons */
+    fc->strand_number[0]              = fc->strand_number[1];
+    fc->strand_number[fc->length + 1] = fc->strand_number[fc->length];
 
     /* update the global concatenated sequence string */
     for (size_t i = 0; i < fc->strands; i++)

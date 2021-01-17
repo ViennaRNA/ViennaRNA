@@ -203,7 +203,8 @@ eval_int_loop(vrna_fold_compound_t  *fc,
                                  md->dangles,
                                  P);
 #else
-          energy = INF;
+          free_sc_wrapper(&sc_wrapper);
+          return INF;
 #endif
         }
 

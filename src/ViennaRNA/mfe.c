@@ -2329,7 +2329,7 @@ backtrack(vrna_fold_compound_t  *fc,
   vrna_param_t  *P;
 
   ret             = 1;
-  b               = 0;
+  b               = bp_stack[0].i;
   length          = fc->length;
   my_c            = fc->matrices->c;
   indx            = fc->jindx;

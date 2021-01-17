@@ -1,6 +1,8 @@
 #ifndef VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H
 #define VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H
 
+#include <math.h>
+
 #include <ViennaRNA/utils/basic.h>
 #include <ViennaRNA/params/default.h>
 #include <ViennaRNA/datastructures/basic.h>

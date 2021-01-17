@@ -448,6 +448,7 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
     pt[l] = 0;
   }
 
+#ifndef MULTISTRAND_EVAL
   /* Cofolding -- Check if move changes COFOLD-Penalty */
   if (sn[k] != sn[l]) {
     int p, c;
@@ -469,6 +470,7 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
     if (c == 0) /* Must have been a delete move */
       return en_post - en_pre + P->DuplexInit;
   }
+#endif
 
   return en_post - en_pre;
 }
