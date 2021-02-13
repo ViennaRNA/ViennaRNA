@@ -280,7 +280,7 @@ sc_ext_exp_user_def_reduce_to_ext(int                       i,
                                   int                       l,
                                   struct sc_wrapper_exp_ext *data)
 {
-  return sc_ext_exp_reduce(i, j, k, l, data) +
+  return sc_ext_exp_reduce(i, j, k, l, data) *
          sc_ext_exp_user_reduce_to_ext(i, j, k, l, data);
 }
 
@@ -292,7 +292,7 @@ sc_ext_exp_user_def_reduce_to_ext_comparative(int                       i,
                                               int                       l,
                                               struct sc_wrapper_exp_ext *data)
 {
-  return sc_ext_exp_reduce_comparative(i, j, k, l, data) +
+  return sc_ext_exp_reduce_comparative(i, j, k, l, data) *
          sc_ext_exp_user_reduce_to_ext_comparative(i, j, k, l, data);
 }
 
@@ -336,7 +336,7 @@ sc_ext_exp_user_def_reduce_to_stem(int                        i,
                                    int                        l,
                                    struct sc_wrapper_exp_ext  *data)
 {
-  return sc_ext_exp_reduce(i, j, k, l, data) +
+  return sc_ext_exp_reduce(i, j, k, l, data) *
          sc_ext_exp_user_reduce_to_stem(i, j, k, l, data);
 }
 
@@ -348,7 +348,7 @@ sc_ext_exp_user_def_reduce_to_stem_comparative(int                        i,
                                                int                        l,
                                                struct sc_wrapper_exp_ext  *data)
 {
-  return sc_ext_exp_reduce_comparative(i, j, k, l, data) +
+  return sc_ext_exp_reduce_comparative(i, j, k, l, data) *
          sc_ext_exp_user_reduce_to_stem_comparative(i, j, k, l, data);
 }
 
@@ -427,7 +427,7 @@ sc_ext_exp_user_def_up(int                        i,
                        int                        j,
                        struct sc_wrapper_exp_ext  *data)
 {
-  return sc_ext_exp_up(i, j, data) +
+  return sc_ext_exp_up(i, j, data) *
          sc_ext_exp_user_up(i, j, data);
 }
 
@@ -437,7 +437,7 @@ sc_ext_exp_user_def_up_comparative(int                        i,
                                    int                        j,
                                    struct sc_wrapper_exp_ext  *data)
 {
-  return sc_ext_exp_up_comparative(i, j, data) +
+  return sc_ext_exp_up_comparative(i, j, data) *
          sc_ext_exp_user_up_comparative(i, j, data);
 }
 
