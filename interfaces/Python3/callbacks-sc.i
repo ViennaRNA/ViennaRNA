@@ -89,113 +89,156 @@ delete_py_sc_callback(void * data)
   free(cb);
 }
 
-static void
+static int
 sc_add_f_pycallback(vrna_fold_compound_t *vc,
                     PyObject             *PyFunc)
 {
 
   /* try to dispose of previous callback */
   py_sc_callback_t * cb;
-  vrna_sc_add_f(vc, &py_wrap_sc_f_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the python function to the wrapper structure */
-  if(vc->sc->data){
-    cb = (py_sc_callback_t *)vc->sc->data;
-    /* release previous callback */
-    Py_DECREF(cb->cb_f);
-  } else {
-    cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
-    Py_INCREF(Py_None);
-    cb->cb_bt       = Py_None;
-    Py_INCREF(Py_None);
-    cb->cb_exp_f    = Py_None;
-    Py_INCREF(Py_None);
-    cb->data        = Py_None;
-    Py_INCREF(Py_None);
-    cb->delete_data = Py_None;
-  }
-  Py_INCREF(PyFunc); /* Increase referenc counter */
-  cb->cb_f = PyFunc;  /* remember callback */
+  if (vrna_sc_add_f(vc, &py_wrap_sc_f_callback)) {
+    /*
+        The above call returns 0 on any error.
+        Otherwise it binds the wrapper function and
+        prepares the soft constraint data structure
+        inside vc
+    */
 
-  /* finaly bind callback wrapper to fold compound */
-  vc->sc->data = (void *)cb;
+    /* now bind the python function to the wrapper structure */
+    if(vc->sc->data){
+      /* re-use previously bound wrapper data structure */
+      cb = (py_sc_callback_t *)vc->sc->data;
+      /* release previous callback */
+      Py_DECREF(cb->cb_f);
+    } else {
+      cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
 
-  if(!vc->sc->free_data)
+      /* initialize the remaining soft constraint callbacks */
+      Py_INCREF(Py_None);
+      cb->cb_bt       = Py_None;
+      Py_INCREF(Py_None);
+      cb->cb_exp_f    = Py_None;
+      Py_INCREF(Py_None);
+      cb->data        = Py_None;
+      Py_INCREF(Py_None);
+      cb->delete_data = Py_None;
+    }
+    Py_INCREF(PyFunc); /* Increase referenc counter */
+    cb->cb_f = PyFunc;  /* remember callback */
+
+    /* finaly bind callback wrapper to fold compound */
+    vc->sc->data = (void *)cb;
+
+    /* also (re-)bind the free-callback-data function */
     vc->sc->free_data = &delete_py_sc_callback;
+
+    return 1;
+  }
+
+  return 0;
 }
 
-static void
+static int
 sc_add_exp_f_pycallback(vrna_fold_compound_t *vc,
                         PyObject             *PyFunc)
 {
 
   /* try to dispose of previous callback */
   py_sc_callback_t * cb;
-  vrna_sc_add_exp_f(vc, &py_wrap_sc_exp_f_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the python function to the wrapper structure */
-  if(vc->sc->data){
-    cb = (py_sc_callback_t *)vc->sc->data;
-    /* release previous callback */
-    Py_DECREF(cb->cb_exp_f);
-  } else {
-    cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
-    Py_INCREF(Py_None);
-    cb->cb_f        = Py_None;
-    Py_INCREF(Py_None);
-    cb->cb_bt       = Py_None;
-    Py_INCREF(Py_None);
-    cb->data        = Py_None;
-    Py_INCREF(Py_None);
-    cb->delete_data = Py_None;
-  }
-  Py_INCREF(PyFunc); /* Increase referenc counter */
-  cb->cb_exp_f = PyFunc;  /* remember callback */
+  if (vrna_sc_add_exp_f(vc, &py_wrap_sc_exp_f_callback)) {
+    /*
+        The above call returns 0 on any error.
+        Otherwise it binds the wrapper function and
+        prepares the soft constraint data structure
+        inside vc
+    */
 
-  /* finaly bind callback wrapper to fold compound */
-  vc->sc->data = (void *)cb;
+    /* now bind the python function to the wrapper structure */
+    if(vc->sc->data){
+      /* re-use previously bound wrapper data structure */
+      cb = (py_sc_callback_t *)vc->sc->data;
+      /* release previous callback */
+      Py_DECREF(cb->cb_exp_f);
+    } else {
+      cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
 
-  if(!vc->sc->free_data)
+      /* initialize the remaining soft constraint callbacks */
+      Py_INCREF(Py_None);
+      cb->cb_f        = Py_None;
+      Py_INCREF(Py_None);
+      cb->cb_bt       = Py_None;
+      Py_INCREF(Py_None);
+      cb->data        = Py_None;
+      Py_INCREF(Py_None);
+      cb->delete_data = Py_None;
+    }
+    Py_INCREF(PyFunc); /* Increase referenc counter */
+    cb->cb_exp_f = PyFunc;  /* remember callback */
+
+    /* finaly bind callback wrapper to fold compound */
+    vc->sc->data = (void *)cb;
+
+    /* also (re-)bind the free-callback-data function */
     vc->sc->free_data = &delete_py_sc_callback;
+
+    return 1;
+  }
+
+  return 0;
 }
 
-static void
+static int
 sc_add_bt_pycallback( vrna_fold_compound_t *vc,
                       PyObject             *PyFunc)
 {
 
   /* try to dispose of previous callback */
   py_sc_callback_t * cb;
-  vrna_sc_add_bt(vc, &py_wrap_sc_bt_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the python function to the wrapper structure */
-  if(vc->sc->data){
-    cb = (py_sc_callback_t *)vc->sc->data;
-    /* release previous callback */
-    Py_DECREF(cb->cb_bt);
-  } else {
-    cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
-    Py_INCREF(Py_None);
-    cb->cb_f        = Py_None;
-    Py_INCREF(Py_None);
-    cb->cb_exp_f    = Py_None;
-    Py_INCREF(Py_None);
-    cb->data        = Py_None;
-    Py_INCREF(Py_None);
-    cb->delete_data = Py_None;
+  if(vrna_sc_add_bt(vc, &py_wrap_sc_bt_callback)) {
+    /*
+        The above call returns 0 on any error.
+        Otherwise it binds the wrapper function and
+        prepares the soft constraint data structure
+        inside vc
+    */
+
+    /* now bind the python function to the wrapper structure */
+    if(vc->sc->data){
+      /* re-use previously bound wrapper data structure */
+      cb = (py_sc_callback_t *)vc->sc->data;
+      /* release previous callback */
+      Py_DECREF(cb->cb_bt);
+    } else {
+      cb = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
+      Py_INCREF(Py_None);
+      cb->cb_f        = Py_None;
+      Py_INCREF(Py_None);
+      cb->cb_exp_f    = Py_None;
+      Py_INCREF(Py_None);
+      cb->data        = Py_None;
+      Py_INCREF(Py_None);
+      cb->delete_data = Py_None;
+    }
+
+    Py_XINCREF(PyFunc); /* Increase referenc counter */
+    cb->cb_bt = PyFunc;  /* remember callback */
+
+    /* finaly bind callback wrapper to fold compound */
+    vc->sc->data = (void *)cb;
+
+    /* also (re-)bind the free-callback-data function */
+    vc->sc->free_data = &delete_py_sc_callback;
+
+    return 1;
   }
 
-  Py_XINCREF(PyFunc); /* Increase referenc counter */
-  cb->cb_bt = PyFunc;  /* remember callback */
-
-  /* finaly bind callback wrapper to fold compound */
-  vc->sc->data = (void *)cb;
-
-  if(!vc->sc->free_data)
-    vc->sc->free_data = &delete_py_sc_callback;
+  return 0;
 }
 
-static void
+static int
 sc_add_pydata(vrna_fold_compound_t *vc,
               PyObject             *data,
               PyObject             *PyFunc)
@@ -203,34 +246,40 @@ sc_add_pydata(vrna_fold_compound_t *vc,
 
   py_sc_callback_t * cb;
 
-  /* create soft constraints data structure */
-  if(!vc->sc)
-    vrna_sc_init(vc);
+  if (vc->type == VRNA_FC_TYPE_SINGLE) {
+    /* create soft constraints data structure */
+    if(!vc->sc)
+      vrna_sc_init(vc);
 
-  /* try to dispose of previous data */
-  if(vc->sc->data){
-    cb = (py_sc_callback_t *)vc->sc->data;
-    delete_py_sc_data(cb);
-  } else {
-    cb              = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
-    Py_INCREF(Py_None);
-    cb->cb_f        = Py_None;
-    Py_INCREF(Py_None);
-    cb->cb_bt       = Py_None;
-    Py_INCREF(Py_None);
-    cb->cb_exp_f    = Py_None;
-  }
-  /* increase reference counters */
-  Py_INCREF(data);
-  Py_INCREF(PyFunc);
+    /* try to dispose of previous data */
+    if(vc->sc->data){
+      cb = (py_sc_callback_t *)vc->sc->data;
+      delete_py_sc_data(cb);
+    } else {
+      cb              = (py_sc_callback_t *)vrna_alloc(sizeof(py_sc_callback_t));
+      Py_INCREF(Py_None);
+      cb->cb_f        = Py_None;
+      Py_INCREF(Py_None);
+      cb->cb_bt       = Py_None;
+      Py_INCREF(Py_None);
+      cb->cb_exp_f    = Py_None;
+    }
+    /* increase reference counters */
+    Py_INCREF(data);
+    Py_INCREF(PyFunc);
 
-  cb->data        = data;   /* remember data */
-  cb->delete_data = PyFunc; /* remember delete data function */
+    cb->data        = data;   /* remember data */
+    cb->delete_data = PyFunc; /* remember delete data function */
 
-  vc->sc->data = (void *)cb;
+    vc->sc->data = (void *)cb;
 
-  if(!vc->sc->free_data)
+    /* also (re-)bind the free-callback-data function */
     vc->sc->free_data = &delete_py_sc_callback;
+
+    return 1;
+  }
+
+  return 0;
 }
 
 static int
@@ -466,19 +515,19 @@ py_wrap_sc_exp_f_callback(int           i,
 
 %}
 
-static void
+static int
 sc_add_f_pycallback(vrna_fold_compound_t *vc,
                     PyObject             *PyFunc);
 
-static void
+static int
 sc_add_bt_pycallback(vrna_fold_compound_t *vc,
                      PyObject             *PyFunc);
 
-static void
+static int
 sc_add_exp_f_pycallback(vrna_fold_compound_t *vc,
                         PyObject             *PyFunc);
 
-static void
+static int
 sc_add_pydata(vrna_fold_compound_t *vc,
               PyObject             *data,
               PyObject             *PyFuncOrNone);
@@ -495,33 +544,29 @@ sc_add_pydata(vrna_fold_compound_t *vc,
 %feature("autodoc") sc_add_exp_f;
 %feature("kwargs") sc_add_exp_f;
 
-  PyObject *
+  int
   sc_add_data(PyObject *data,
               PyObject *PyFuncOrNone = Py_None)
   {
-    sc_add_pydata($self, data, PyFuncOrNone);
-    Py_RETURN_NONE;
+    return sc_add_pydata($self, data, PyFuncOrNone);
   }
   
-  PyObject *
+  int
   sc_add_f(PyObject *PyFunc)
   {
-    sc_add_f_pycallback($self, PyFunc);
-    Py_RETURN_NONE;
+    return sc_add_f_pycallback($self, PyFunc);
   }
 
-  PyObject *
+  int
   sc_add_bt(PyObject *PyFunc)
   {
-    sc_add_bt_pycallback($self, PyFunc);
-    Py_RETURN_NONE;
+    return sc_add_bt_pycallback($self, PyFunc);
   }
 
-  PyObject *
+  int
   sc_add_exp_f(PyObject *PyFunc)
   {
-    sc_add_exp_f_pycallback($self, PyFunc);
-    Py_RETURN_NONE;
+    return sc_add_exp_f_pycallback($self, PyFunc);
   }
 }
 

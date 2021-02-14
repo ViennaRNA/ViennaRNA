@@ -68,121 +68,135 @@ delete_perl_sc_callback(void * data){
   free(cb);
 }
 
-static void
+static int
 sc_add_f_perl_callback( vrna_fold_compound_t *vc,
                         SV *PerlFunc){
 
   /* check whether PerlFunc actually is a reference to a Perl subroutine */
   if(SvTYPE(SvRV(PerlFunc)) != SVt_PVCV){
     fprintf(stderr, "Warning: invalid argument for fold_compound::sc_add_f, must be code reference\n");
-    return;
+    return 0;
   }
 
   /* try to dispose of previous callback */
   perl_sc_callback_t * cb;
-  vrna_sc_add_f(vc, &perl_wrap_sc_f_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the Perl function to the wrapper structure */
-  if(vc->sc->data){
-    cb = (perl_sc_callback_t *)vc->sc->data;
-    /* release previous callback */
-    if(cb->cb_f && SvOK(cb->cb_f))
-      SvREFCNT_dec(cb->cb_f);
-  } else {
-    cb = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
-    cb->cb_f        = NULL;
-    cb->cb_bt       = NULL;
-    cb->cb_exp_f    = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
-  }
-  cb->cb_f = PerlFunc;      /* remember callback */
-  SvREFCNT_inc(PerlFunc);   /* Increase referenc counter */
+  if (vrna_sc_add_f(vc, &perl_wrap_sc_f_callback)) {
 
-  /* finaly bind callback wrapper to fold compound */
-  vc->sc->data = (void *)cb;
-  if(!vc->sc->free_data){
+    /* now bind the Perl function to the wrapper structure */
+    if(vc->sc->data){
+      cb = (perl_sc_callback_t *)vc->sc->data;
+      /* release previous callback */
+      if(cb->cb_f && SvOK(cb->cb_f))
+        SvREFCNT_dec(cb->cb_f);
+    } else {
+      cb = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
+      cb->cb_f        = NULL;
+      cb->cb_bt       = NULL;
+      cb->cb_exp_f    = NULL;
+      cb->data        = NULL;
+      cb->delete_data = NULL;
+    }
+    cb->cb_f = PerlFunc;      /* remember callback */
+    SvREFCNT_inc(PerlFunc);   /* Increase referenc counter */
+
+    /* finaly bind callback wrapper to fold compound */
+    vc->sc->data = (void *)cb;
+
     vc->sc->free_data = &delete_perl_sc_callback;
+
+    return 1;
   }
+
+  return 0;
 }
 
-static void
+static int
 sc_add_exp_f_perl_callback( vrna_fold_compound_t *vc,
                             SV *PerlFunc){
 
   /* check whether PerlFunc actually is a reference to a Perl subroutine */
   if(SvTYPE(SvRV(PerlFunc)) != SVt_PVCV){
     fprintf(stderr, "Warning: invalid argument for fold_compound::sc_add_exp_f, must be code reference\n");
-    return;
+    return 0;
   }
 
   /* try to dispose of previous callback */
   perl_sc_callback_t * cb;
-  vrna_sc_add_exp_f(vc, &perl_wrap_sc_exp_f_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the python function to the wrapper structure */
-  if(vc->sc->data){
-    cb = (perl_sc_callback_t *)vc->sc->data;
-    /* release previous callback */
-    if(cb->cb_exp_f && SvOK(cb->cb_exp_f))
-      SvREFCNT_dec(cb->cb_exp_f);
-  } else {
-    cb = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
-    cb->cb_f        = NULL;
-    cb->cb_bt       = NULL;
-    cb->cb_exp_f    = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
-  }
-  cb->cb_exp_f = PerlFunc;  /* remember callback */
-  SvREFCNT_inc(PerlFunc);   /* Increase referenc counter */
+  if (vrna_sc_add_exp_f(vc, &perl_wrap_sc_exp_f_callback)) {
 
-  /* finaly bind callback wrapper to fold compound */
-  vc->sc->data = (void *)cb;
-  if(!vc->sc->free_data){
+    /* now bind the python function to the wrapper structure */
+    if(vc->sc->data){
+      cb = (perl_sc_callback_t *)vc->sc->data;
+      /* release previous callback */
+      if(cb->cb_exp_f && SvOK(cb->cb_exp_f))
+        SvREFCNT_dec(cb->cb_exp_f);
+    } else {
+      cb = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
+      cb->cb_f        = NULL;
+      cb->cb_bt       = NULL;
+      cb->cb_exp_f    = NULL;
+      cb->data        = NULL;
+      cb->delete_data = NULL;
+    }
+    cb->cb_exp_f = PerlFunc;  /* remember callback */
+    SvREFCNT_inc(PerlFunc);   /* Increase referenc counter */
+
+    /* finaly bind callback wrapper to fold compound */
+    vc->sc->data = (void *)cb;
+
     vc->sc->free_data = &delete_perl_sc_callback;
+
+    return 1;
   }
+
+  return 0;
 }
 
-static void
+static int
 sc_add_bt_perl_callback(vrna_fold_compound_t *vc,
                         SV *PerlFunc){
 
   /* check whether PerlFunc actually is a reference to a Perl subroutine */
   if(SvTYPE(SvRV(PerlFunc)) != SVt_PVCV){
     fprintf(stderr, "Warning: invalid argument for fold_compound::sc_add_bt, must be code reference\n");
-    return;
+    return 0;
   }
 
   /* try to dispose of previous callback */
   perl_sc_callback_t * cb;
-  vrna_sc_add_bt(vc, &perl_wrap_sc_bt_callback); /* this also creates the soft constraint data structure inside vc */
 
-  /* now bind the Perl function to the wrapper structure */
-  if(vc->sc->data){
-    cb = (perl_sc_callback_t *)vc->sc->data;
-    /* release previous callback */
-    if(cb->cb_bt && SvOK(cb->cb_bt))
-      SvREFCNT_dec(cb->cb_bt);
-  } else {
-    cb = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
-    cb->cb_f        = NULL;
-    cb->cb_bt       = NULL;
-    cb->cb_exp_f    = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
-  }
-  cb->cb_bt = PerlFunc;   /* remember callback */
-  SvREFCNT_inc(PerlFunc); /* Increase referenc counter */
+  if (vrna_sc_add_bt(vc, &perl_wrap_sc_bt_callback)) {
 
-  /* finaly bind callback wrapper to fold compound */
-  vc->sc->data = (void *)cb;
-  if(!vc->sc->free_data){
+    /* now bind the Perl function to the wrapper structure */
+    if(vc->sc->data){
+      cb = (perl_sc_callback_t *)vc->sc->data;
+      /* release previous callback */
+      if(cb->cb_bt && SvOK(cb->cb_bt))
+        SvREFCNT_dec(cb->cb_bt);
+    } else {
+      cb = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
+      cb->cb_f        = NULL;
+      cb->cb_bt       = NULL;
+      cb->cb_exp_f    = NULL;
+      cb->data        = NULL;
+      cb->delete_data = NULL;
+    }
+    cb->cb_bt = PerlFunc;   /* remember callback */
+    SvREFCNT_inc(PerlFunc); /* Increase referenc counter */
+
+    /* finaly bind callback wrapper to fold compound */
+    vc->sc->data = (void *)cb;
     vc->sc->free_data = &delete_perl_sc_callback;
+
+    return 1;
   }
+
+  return 0;
 }
 
-static void
+static int
 sc_add_perl_data( vrna_fold_compound_t *vc,
                   SV *data,
                   SV *PerlFunc){
@@ -190,73 +204,78 @@ sc_add_perl_data( vrna_fold_compound_t *vc,
   /* check whether PerlFunc actually is a reference to a Perl subroutine */
   if(!SvOK(data)){
     fprintf(stderr, "Warning: argument 1 for fold_compound::sc_add_data, must be defined\n");
-    return;
+    return 0;
   }
 
   if(PerlFunc && SvOK(PerlFunc)){
     if(SvTYPE(SvRV(PerlFunc)) != SVt_PVCV){
       fprintf(stderr, "Warning: argument 2 for fold_compound::sc_add_data, must be undef or code reference\n");
-      return;
+      return 0;
     }
   }
 
   perl_sc_callback_t * cb;
 
-  /* create soft constraints data structure */
-  if(!vc->sc)
-    vrna_sc_init(vc);
+  if (vc->type == VRNA_FC_TYPE_SINGLE) {
+    /* create soft constraints data structure */
+    if(!vc->sc)
+      vrna_sc_init(vc);
 
-  /* try to dispose of previous data */
-  if(vc->sc->data){
-    cb = (perl_sc_callback_t *)vc->sc->data;
-    if(cb->data && SvOK(cb->data)){
-      if(cb->delete_data && SvOK(cb->delete_data)){
-        dSP;
+    /* try to dispose of previous data */
+    if(vc->sc->data){
+      cb = (perl_sc_callback_t *)vc->sc->data;
+      if(cb->data && SvOK(cb->data)){
+        if(cb->delete_data && SvOK(cb->delete_data)){
+          dSP;
 
-        SV *err_tmp;
+          SV *err_tmp;
 
-        ENTER;
-        SAVETMPS;
-        PUSHMARK(SP);
-        XPUSHs(cb->data);
-        PUTBACK;
+          ENTER;
+          SAVETMPS;
+          PUSHMARK(SP);
+          XPUSHs(cb->data);
+          PUTBACK;
 
-        perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
+          perl_call_sv(cb->delete_data, G_EVAL | G_DISCARD);
 
-        SPAGAIN;
+          SPAGAIN;
 
-        /* Check the eval first */
-        err_tmp = ERRSV;
-        if (SvTRUE(err_tmp)) {
-          croak ("Some error occurred while executing generic soft constraint delete_data() callback - %s\n", SvPV_nolen(err_tmp));
+          /* Check the eval first */
+          err_tmp = ERRSV;
+          if (SvTRUE(err_tmp)) {
+            croak ("Some error occurred while executing generic soft constraint delete_data() callback - %s\n", SvPV_nolen(err_tmp));
+          }
+
+          FREETMPS;
+          LEAVE;
+          SvREFCNT_dec(cb->delete_data);
         }
-
-        FREETMPS;
-        LEAVE;
-        SvREFCNT_dec(cb->delete_data);
+        SvREFCNT_dec(cb->data);
       }
-      SvREFCNT_dec(cb->data);
+    } else {
+      cb              = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
+      cb->cb_f        = NULL;
+      cb->cb_bt       = NULL;
+      cb->cb_exp_f    = NULL;
+      cb->data        = NULL;
+      cb->delete_data = NULL;
     }
-  } else {
-    cb              = (perl_sc_callback_t *)vrna_alloc(sizeof(perl_sc_callback_t));
-    cb->cb_f        = NULL;
-    cb->cb_bt       = NULL;
-    cb->cb_exp_f    = NULL;
-    cb->data        = NULL;
-    cb->delete_data = NULL;
-  }
-  cb->data        = data;     /* remember data */
-  cb->delete_data = PerlFunc; /* remember delete data function */
-  /* increase reference counter */
-  if(data && SvOK(data))
-    SvREFCNT_inc(data);
-  if(PerlFunc && SvOK(PerlFunc))
-    SvREFCNT_inc(PerlFunc);
+    cb->data        = data;     /* remember data */
+    cb->delete_data = PerlFunc; /* remember delete data function */
+    /* increase reference counter */
+    if(data && SvOK(data))
+      SvREFCNT_inc(data);
+    if(PerlFunc && SvOK(PerlFunc))
+      SvREFCNT_inc(PerlFunc);
 
-  vc->sc->data = (void *)cb;
-  if(!vc->sc->free_data){
+    vc->sc->data = (void *)cb;
+
     vc->sc->free_data = &delete_perl_sc_callback;
+
+    return 1;
   }
+
+  return 0;
 }
 
 static int
@@ -546,28 +565,36 @@ perl_wrap_sc_bt_callback( int i,
 
 %}
 
-static void sc_add_f_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
-static void sc_add_bt_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
-static void sc_add_exp_f_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
-static void sc_add_perl_data(vrna_fold_compound_t *vc, SV *data, SV *PerlFunc);
+static int sc_add_f_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
+static int sc_add_bt_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
+static int sc_add_exp_f_perl_callback(vrna_fold_compound_t *vc, SV *PerlFunc);
+static int sc_add_perl_data(vrna_fold_compound_t *vc, SV *data, SV *PerlFunc);
 
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
-  void sc_add_data(SV *data, SV *PerlFunc){
-    sc_add_perl_data($self, data, PerlFunc);
+  int
+  sc_add_data(SV *data, SV *PerlFunc)
+  {
+    return sc_add_perl_data($self, data, PerlFunc);
   }
   
-  void sc_add_f(SV *PerlFunc){
-    sc_add_f_perl_callback($self, PerlFunc);
+  int
+  sc_add_f(SV *PerlFunc)
+  {
+    return sc_add_f_perl_callback($self, PerlFunc);
   }
 
-  void sc_add_bt(SV *PerlFunc){
-    sc_add_bt_perl_callback($self, PerlFunc);
+  int
+  sc_add_bt(SV *PerlFunc)
+  {
+    return sc_add_bt_perl_callback($self, PerlFunc);
   }
 
-  void sc_add_exp_f(SV *PerlFunc){
-    sc_add_exp_f_perl_callback($self, PerlFunc);
+  int
+  sc_add_exp_f(SV *PerlFunc)
+  {
+    return sc_add_exp_f_perl_callback($self, PerlFunc);
   }
 }
 
