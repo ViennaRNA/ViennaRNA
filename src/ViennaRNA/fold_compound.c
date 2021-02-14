@@ -849,7 +849,7 @@ init_fc_single(void)
   vrna_fold_compound_t  *fc = vrna_alloc(sizeof(vrna_fold_compound_t));
 
   if (fc) {
-    memcpy(fc, &init, sizeof(vrna_fold_compound));
+    memcpy(fc, &init, sizeof(vrna_fold_compound_t));
     nullify(fc);
   }
 
@@ -866,7 +866,7 @@ init_fc_comparative(void)
   vrna_fold_compound_t  *fc = vrna_alloc(sizeof(vrna_fold_compound_t));
 
   if (fc) {
-    memcpy(fc, &init, sizeof(vrna_fold_compound));
+    memcpy(fc, &init, sizeof(vrna_fold_compound_t));
     nullify(fc);
   }
 
