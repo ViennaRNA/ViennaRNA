@@ -456,7 +456,7 @@ vrna_sc_add_up(vrna_fold_compound_t *vc,
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_sc_set_stack(vrna_fold_compound_t  *vc,
                   const FLT_OR_DBL      *constraints,
                   unsigned int          options)
@@ -480,16 +480,20 @@ vrna_sc_set_stack(vrna_fold_compound_t  *vc,
         for (i = 1; i <= vc->length; ++i)
           vc->sc->energy_stack[i] = (int)roundf(constraints[i] * 100.);
 
+        return 1;
+
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
         break;
     }
   }
+
+  return 0;
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_sc_add_stack(vrna_fold_compound_t  *vc,
                   int                   i,
                   FLT_OR_DBL            energy,
@@ -515,6 +519,8 @@ vrna_sc_add_stack(vrna_fold_compound_t  *vc,
             vc->sc->energy_stack = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
 
           vc->sc->energy_stack[i] += (int)roundf(energy * 100.);
+
+          return 1;
         }
 
         break;
@@ -523,10 +529,12 @@ vrna_sc_add_stack(vrna_fold_compound_t  *vc,
         break;
     }
   }
+
+  return 0;
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_sc_add_data(vrna_fold_compound_t       *vc,
                  void                       *data,
                  vrna_callback_free_auxdata *free_data)
@@ -538,12 +546,15 @@ vrna_sc_add_data(vrna_fold_compound_t       *vc,
 
       vc->sc->data      = data;
       vc->sc->free_data = free_data;
+      return 1;
     }
   }
+
+  return 0;
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_sc_add_f(vrna_fold_compound_t    *vc,
               vrna_callback_sc_energy *f)
 {
@@ -553,12 +564,15 @@ vrna_sc_add_f(vrna_fold_compound_t    *vc,
         vrna_sc_init(vc);
 
       vc->sc->f = f;
+      return 1;
     }
   }
+
+  return 0;
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_sc_add_bt(vrna_fold_compound_t       *vc,
                vrna_callback_sc_backtrack *f)
 {
@@ -568,12 +582,15 @@ vrna_sc_add_bt(vrna_fold_compound_t       *vc,
         vrna_sc_init(vc);
 
       vc->sc->bt = f;
+      return 1;
     }
   }
+
+  return 0;
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_sc_add_exp_f(vrna_fold_compound_t        *vc,
                   vrna_callback_sc_exp_energy *exp_f)
 {
@@ -583,8 +600,11 @@ vrna_sc_add_exp_f(vrna_fold_compound_t        *vc,
         vrna_sc_init(vc);
 
       vc->sc->exp_f = exp_f;
+      return 1;
     }
   }
+
+  return 0;
 }
 
 
