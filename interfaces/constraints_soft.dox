@@ -14,14 +14,14 @@ This function is attached as method @b sc_remove() to objects of type @em fold_c
 @endparblock
 
 
-@fn void vrna_sc_set_bp(vrna_fold_compound_t *vc, const FLT_OR_DBL **constraints, unsigned int options)
+@fn int vrna_sc_set_bp(vrna_fold_compound_t *vc, const FLT_OR_DBL **constraints, unsigned int options)
 @scripting
 @parblock
 This function is attached as method @b sc_set_bp() to objects of type @em fold_compound
 @endparblock
 
 
-@fn void vrna_sc_add_bp(vrna_fold_compound_t *vc, int i, int j, FLT_OR_DBL energy, unsigned int options)
+@fn int vrna_sc_add_bp(vrna_fold_compound_t *vc, int i, int j, FLT_OR_DBL energy, unsigned int options)
 @scripting
 @parblock
 
@@ -40,14 +40,14 @@ In both variants, the @p options argument is optional can may be omitted.
 @endparblock
 
 
-@fn void vrna_sc_set_up(vrna_fold_compound_t *vc, const FLT_OR_DBL *constraints, unsigned int options)
+@fn int vrna_sc_set_up(vrna_fold_compound_t *vc, const FLT_OR_DBL *constraints, unsigned int options)
 @scripting
 @parblock
 This function is attached as method @b sc_set_up() to objects of type @em fold_compound
 @endparblock
 
 
-@fn void vrna_sc_add_up( vrna_fold_compound_t *vc, int i, FLT_OR_DBL energy, unsigned int options)
+@fn int vrna_sc_add_up( vrna_fold_compound_t *vc, int i, FLT_OR_DBL energy, unsigned int options)
 @scripting
 @parblock
 This function is attached as an overloaded method @b sc_add_up() to objects of type
@@ -65,28 +65,28 @@ In both variants, the @p options argument is optional can may be omitted.
 @endparblock
 
 
-@fn void vrna_sc_add_data(vrna_fold_compound_t *vc, void *data, vrna_callback_free_auxdata *free_data)
+@fn int vrna_sc_add_data(vrna_fold_compound_t *vc, void *data, vrna_callback_free_auxdata *free_data)
 @scripting
 @parblock
 This function is attached as method @b sc_add_data() to objects of type @em fold_compound
 @endparblock
 
 
-@fn void vrna_sc_add_f( vrna_fold_compound_t *vc, vrna_callback_sc_energy *f)
+@fn int vrna_sc_add_f( vrna_fold_compound_t *vc, vrna_callback_sc_energy *f)
 @scripting
 @parblock
 This function is attached as method @b sc_add_f() to objects of type @em fold_compound
 @endparblock
 
 
-@fn void vrna_sc_add_bt(vrna_fold_compound_t *vc, vrna_callback_sc_backtrack *f)
+@fn int vrna_sc_add_bt(vrna_fold_compound_t *vc, vrna_callback_sc_backtrack *f)
 @scripting
 @parblock
 This function is attached as method @b sc_add_bt() to objects of type @em fold_compound
 @endparblock
 
 
-@fn void vrna_sc_add_exp_f( vrna_fold_compound_t *vc, vrna_callback_sc_exp_energy *exp_f)
+@fn int vrna_sc_add_exp_f( vrna_fold_compound_t *vc, vrna_callback_sc_exp_energy *exp_f)
 @scripting
 @parblock
 This function is attached as method @b sc_add_exp_f() to objects of type @em fold_compound
