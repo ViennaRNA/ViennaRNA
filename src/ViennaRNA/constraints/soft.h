@@ -252,7 +252,7 @@ vrna_sc_prepare(vrna_fold_compound_t  *vc,
                 unsigned int          options);
 
 
-void
+int
 vrna_sc_update(vrna_fold_compound_t *vc,
                unsigned int         i,
                unsigned int         options);
@@ -271,10 +271,12 @@ vrna_sc_update(vrna_fold_compound_t *vc,
  *  @param  vc          The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  constraints A two-dimensional array of pseudo free energies in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
+ *  @return             Non-zero on successful application of the constraint, 0 otherwise.
  */
-void vrna_sc_set_bp(vrna_fold_compound_t  *vc,
-                    const FLT_OR_DBL      **constraints,
-                    unsigned int          options);
+int
+vrna_sc_set_bp(vrna_fold_compound_t  *vc,
+               const FLT_OR_DBL      **constraints,
+               unsigned int          options);
 
 
 /**
@@ -289,12 +291,14 @@ void vrna_sc_set_bp(vrna_fold_compound_t  *vc,
  *  @param  j           The 3' position of the base pair the soft constraint is added for
  *  @param  energy      The free energy (soft-constraint) in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
+ *  @return             Non-zero on successful application of the constraint, 0 otherwise.
  */
-void vrna_sc_add_bp(vrna_fold_compound_t  *vc,
-                    int                   i,
-                    int                   j,
-                    FLT_OR_DBL            energy,
-                    unsigned int          options);
+int
+vrna_sc_add_bp(vrna_fold_compound_t  *vc,
+               int                   i,
+               int                   j,
+               FLT_OR_DBL            energy,
+               unsigned int          options);
 
 
 /**
@@ -310,10 +314,12 @@ void vrna_sc_add_bp(vrna_fold_compound_t  *vc,
  *  @param  vc          The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  constraints A vector of pseudo free energies in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
+ *  @return             Non-zero on successful application of the constraint, 0 otherwise.
  */
-void vrna_sc_set_up(vrna_fold_compound_t  *vc,
-                    const FLT_OR_DBL      *constraints,
-                    unsigned int          options);
+int
+vrna_sc_set_up(vrna_fold_compound_t  *vc,
+               const FLT_OR_DBL      *constraints,
+               unsigned int          options);
 
 
 /**
@@ -327,11 +333,13 @@ void vrna_sc_set_up(vrna_fold_compound_t  *vc,
  *  @param  i           The nucleotide position the soft constraint is added for
  *  @param  energy      The free energy (soft-constraint) in @f$ kcal / mol @f$
  *  @param  options     The options flag indicating how/where to store the soft constraints
+ *  @return             Non-zero on successful application of the constraint, 0 otherwise.
  */
-void vrna_sc_add_up(vrna_fold_compound_t  *vc,
-                    int                   i,
-                    FLT_OR_DBL            energy,
-                    unsigned int          options);
+int
+vrna_sc_add_up(vrna_fold_compound_t  *vc,
+               int                   i,
+               FLT_OR_DBL            energy,
+               unsigned int          options);
 
 
 int
@@ -341,22 +349,36 @@ vrna_sc_set_stack(vrna_fold_compound_t *vc,
 
 
 int
+vrna_sc_set_stack_comparative(vrna_fold_compound_t  *fc,
+                              const FLT_OR_DBL      **constraints,
+                              unsigned int          options);
+
+
+int
 vrna_sc_add_stack(vrna_fold_compound_t *vc,
                   int                  i,
                   FLT_OR_DBL           energy,
                   unsigned int         options);
 
 
+int
+vrna_sc_add_stack_comparative(vrna_fold_compound_t  *fc,
+                              int                   i,
+                              const FLT_OR_DBL      *energies,
+                              unsigned int          options);
+
+
 /**
  *  @brief  Remove soft constraints from #vrna_fold_compound_t
  *
- *  \note Accepts vrna_fold_compound_t of type #VRNA_FC_TYPE_SINGLE and #VRNA_FC_TYPE_COMPARATIVE
+ *  @note Accepts vrna_fold_compound_t of type #VRNA_FC_TYPE_SINGLE and #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @ingroup  soft_constraints
  *
  *  @param  vc  The #vrna_fold_compound_t possibly containing soft constraints
  */
-void vrna_sc_remove(vrna_fold_compound_t *vc);
+void
+vrna_sc_remove(vrna_fold_compound_t *vc);
 
 
 /**
@@ -366,7 +388,8 @@ void vrna_sc_remove(vrna_fold_compound_t *vc);
  *
  *  @param  sc  The data structure to free from memory
  */
-void vrna_sc_free(vrna_sc_t *sc);
+void
+vrna_sc_free(vrna_sc_t *sc);
 
 
 /**
@@ -385,6 +408,12 @@ int
 vrna_sc_add_data(vrna_fold_compound_t       *vc,
                  void                       *data,
                  vrna_callback_free_auxdata *free_data);
+
+
+int
+vrna_sc_add_data_comparative(vrna_fold_compound_t       *vc,
+                             void                       **data,
+                             vrna_callback_free_auxdata **free_data);
 
 
 /**
@@ -406,6 +435,11 @@ vrna_sc_add_data(vrna_fold_compound_t       *vc,
 int
 vrna_sc_add_f(vrna_fold_compound_t    *vc,
               vrna_callback_sc_energy *f);
+
+
+int
+vrna_sc_add_f_comparative(vrna_fold_compound_t    *vc,
+                          vrna_callback_sc_energy **f);
 
 
 /**
@@ -451,6 +485,11 @@ vrna_sc_add_bt(vrna_fold_compound_t       *vc,
 int
 vrna_sc_add_exp_f(vrna_fold_compound_t        *vc,
                   vrna_callback_sc_exp_energy *exp_f);
+
+
+int
+vrna_sc_add_exp_f_comparative(vrna_fold_compound_t        *vc,
+                              vrna_callback_sc_exp_energy **exp_f);
 
 
 #endif

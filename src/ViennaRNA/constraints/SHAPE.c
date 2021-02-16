@@ -49,8 +49,10 @@ sc_parse_parameters(const char  *string,
                     float       *v2);
 
 
-PRIVATE void
-prepare_Boltzmann_weights_stack(vrna_fold_compound_t *vc);
+PRIVATE FLT_OR_DBL
+conversion_deigan(double reactivity,
+                  double m,
+                  double b);
 
 
 /*
@@ -315,32 +317,26 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
   int         i;
   FLT_OR_DBL  *values;
 
-  if (vc) {
-    if (!reactivities) {
-      if (options & VRNA_OPTION_PF) {
-        prepare_Boltzmann_weights_stack(vc);
-        return 1;
-      }
-    } else {
-      switch (vc->type) {
-        case VRNA_FC_TYPE_SINGLE:
-          values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
+  if ((vc) &&
+      (reactivities)) {
+    switch (vc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
 
-          /* first convert the values according to provided slope and intercept values */
-          for (i = 1; i <= vc->length; ++i)
-            values[i] = reactivities[i] < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivities[i] + 1) + b);
+        /* first convert the values according to provided slope and intercept values */
+        for (i = 1; i <= vc->length; ++i)
+          values[i] = conversion_deigan(reactivities[i], m, b);
 
-          /* always store soft constraints in plain format */
-          vrna_sc_set_stack(vc, (const FLT_OR_DBL *)values, options);
-          free(values);
+        /* always store soft constraints in plain format */
+        vrna_sc_set_stack(vc, (const FLT_OR_DBL *)values, options);
+        free(values);
 
-          return 1; /* success */
+        return 1; /* success */
 
-        case VRNA_FC_TYPE_COMPARATIVE:
-          vrna_message_warning("vrna_sc_add_SHAPE_deigan() not implemented for comparative prediction! "
-                               "Use vrna_sc_add_SHAPE_deigan_ali() instead!");
-          break;
-      }
+      case VRNA_FC_TYPE_COMPARATIVE:
+        vrna_message_warning("vrna_sc_add_SHAPE_deigan() not implemented for comparative prediction! "
+                             "Use vrna_sc_add_SHAPE_deigan_ali() instead!");
+        break;
     }
   }
 
@@ -359,8 +355,11 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
   FILE          *fp;
   float         reactivity, *reactivities, weight;
   char          *line, nucleotide, *sequence;
-  int           s, i, r, n_data, position, *pseudo_energies, n_seq;
+  int           s, i, r, n_data, position, n_seq, ret;
+  FLT_OR_DBL    **contributions, energy;
   unsigned int  **a2s;
+
+  ret = 0;
 
   if (vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
     n_seq = vc->n_seq;
@@ -381,6 +380,9 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
     }
 
     weight = (n_data > 0) ? ((float)n_seq / (float)n_data) : 0.;
+
+    /* collect contributions for the sequences in the alignment */
+    contributions = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n_seq));
 
     for (s = 0; shape_file_association[s] != -1; s++) {
       int ss = shape_file_association[s]; /* actual sequence number in alignment */
@@ -445,72 +447,41 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
 
         free(tmp_seq);
 
-        /* convert reactivities to pseudo energies */
-        for (i = 1; i <= vc->length; i++) {
-          if (reactivities[i] < 0)
-            reactivities[i] = 0.;
-          else
-            reactivities[i] = m * log(reactivities[i] + 1.) + b; /* this should be a value in kcal/mol */
-
-          /* weight SHAPE data derived pseudo energies for this alignment */
-          reactivities[i] *= weight;
-        }
-
-        /*  begin actual storage of the pseudo energies */
+        /*  begin preparation of the pseudo energies */
         /*  beware of the fact that energy_stack will be accessed through a2s[s] array,
          *  hence pseudo_energy might be gap-free (default)
          */
-        /* ALWAYS store soft constraints in plain format */
-        int energy, cnt, gaps, is_gap;
-        pseudo_energies = (int *)vrna_alloc(sizeof(int) * (vc->length + 1));
-        for (gaps = cnt = 0, i = 1; i <= vc->length; i++) {
+        int gaps, is_gap;
+        contributions[ss] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
+        for (gaps = 0, i = 1; i <= vc->length; i++) {
           is_gap  = (vc->sequences[ss][i - 1] == '-') ? 1 : 0;
-          energy  = ((i - gaps > 0) && !(is_gap)) ? (int)roundf(reactivities[i - gaps] * 100.) : 0;
-
+          energy  = ((i - gaps > 0) && !(is_gap)) ? conversion_deigan(reactivities[i - gaps], m, b) * weight : 0.;
+          
           if (vc->params->model_details.oldAliEn) {
-            pseudo_energies[i] = energy;
-            cnt++;
+            contributions[ss][i] = energy;
           } else if (!is_gap) {
-            /* store gap-free */
-            pseudo_energies[a2s[ss][i]] = energy;
-            cnt++;
+            contributions[ss][a2s[ss][i]] = energy;
           }
 
           gaps += is_gap;
         }
 
-        /* resize to actual number of entries */
-        pseudo_energies = vrna_realloc(
-          pseudo_energies,
-          sizeof(int) * (vc->a2s[ss][vc->length] + 1));
-        vc->scs[ss]->energy_stack = pseudo_energies;
-#if 0
-        if (options & VRNA_OPTION_PF) {
-          FLT_OR_DBL *exp_pe = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
-          for (i = 0; i <= vc->length; i++)
-            exp_pe[i] = 1.;
-
-          for (p = 0, i = 1; i <= vc->length; i++) {
-            e1 = (i - p > 0) ? reactivities[i - p] : 0.;
-            if (vc->sequences[ss][i - 1] == '-') {
-              p++;
-              e1 = 0.;
-            }
-
-            exp_pe[i] = (FLT_OR_DBL)exp(-(e1 * 1000.) / vc->exp_params->kT);
-          }
-          vc->scs[ss]->exp_energy_stack = exp_pe;
-        }
-
-#endif
         free(reactivities);
       }
+
+
     }
 
-    return 1; /* success */
-  } else {
-    return 0; /* error */
+    ret = vrna_sc_set_stack_comparative(vc, (const FLT_OR_DBL **)contributions, options);
+
+    for (s = 0; s < n_seq; s++)
+      free(contributions[s]);
+
+    free(contributions);
+
   }
+
+  return ret;
 }
 
 
@@ -605,50 +576,11 @@ sc_parse_parameters(const char  *string,
 }
 
 
-PRIVATE void
-prepare_Boltzmann_weights_stack(vrna_fold_compound_t *fc)
+PRIVATE FLT_OR_DBL
+conversion_deigan(double reactivity,
+                  double m,
+                  double b)
 {
-  unsigned int  s, n_seq;
-  int           i;
-  vrna_sc_t     *sc, **scs;
-
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      sc = fc->sc;
-      if ((sc) && (sc->energy_stack)) {
-        if (!sc->exp_energy_stack) {
-          sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
-          for (i = 0; i <= fc->length; ++i)
-            sc->exp_energy_stack[i] = 1.;
-        }
-
-        for (i = 1; i <= fc->length; ++i)
-          sc->exp_energy_stack[i] = (FLT_OR_DBL)exp(
-            -(sc->energy_stack[i] * 10.) / fc->exp_params->kT);
-      }
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      scs   = fc->scs;
-      n_seq = fc->n_seq;
-      if (scs) {
-        for (s = 0; s < n_seq; s++) {
-          if (scs[s] && scs[s]->energy_stack) {
-            if (!scs[s]->exp_energy_stack) {
-              scs[s]->exp_energy_stack =
-                (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->a2s[s][fc->length] + 1));
-              for (i = 0; i <= fc->a2s[s][fc->length]; i++)
-                scs[s]->exp_energy_stack[i] = 1.;
-            }
-
-            for (i = 1; i <= fc->a2s[s][fc->length]; ++i)
-              scs[s]->exp_energy_stack[i] = (FLT_OR_DBL)exp(
-                -(scs[s]->energy_stack[i] * 10.) / fc->exp_params->kT);
-          }
-        }
-      }
-
-      break;
-  }
+  return reactivity < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivity + 1) + b);
 }
+
