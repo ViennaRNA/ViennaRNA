@@ -24,11 +24,6 @@
  *  @{
  */
 
-#include <stdio.h>
-#include <stdarg.h>
-
-#include <ViennaRNA/datastructures/basic.h>
-
 /* two helper macros to indicate whether a function should be exported in
  * the library or stays hidden */
 #define PUBLIC
@@ -124,6 +119,11 @@
  *  @brief Get the maximum of three comparable values
  */
 #define MAX3(A, B, C)   (MAX2((MAX2((A), (B))), (C)))
+
+#include <stdio.h>
+#include <stdarg.h>
+
+#include <ViennaRNA/datastructures/basic.h>
 
 
 #ifdef WITH_DMALLOC

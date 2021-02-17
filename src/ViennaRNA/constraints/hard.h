@@ -19,8 +19,6 @@
  *  @ingroup    hard_constraints
  *  @brief      Functions and data structures for handling of secondary structure hard constraints
  */
-#include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/constraints/basic.h>
 
 /**
  *  @addtogroup hard_constraints
@@ -42,6 +40,9 @@ typedef struct  vrna_hc_s vrna_hc_t;
 typedef struct vrna_hc_up_s vrna_hc_up_t;
 
 typedef struct vrna_hc_depot_s  vrna_hc_depot_t;
+
+#include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/constraints/basic.h>
 
 /**
  * @brief Callback to evaluate whether or not a particular decomposition step is contributing to the solution space

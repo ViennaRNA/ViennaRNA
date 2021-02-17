@@ -19,12 +19,6 @@
  *  @brief    Secondary structure plot layout algorithms
  */
 
-#include <ViennaRNA/datastructures/basic.h>
-#include <ViennaRNA/plotting/naview.h>
-#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
-#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
-
-
 /**
  *  @addtogroup   plot_layout_utils
  *  @{
@@ -40,6 +34,12 @@
  *        vrna_plot_layout_puzzler()
  */
 typedef struct vrna_plot_layout_s vrna_plot_layout_t;
+
+
+#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/plotting/naview.h>
+#include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
+#include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 
 
 /**

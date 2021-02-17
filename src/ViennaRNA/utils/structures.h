@@ -13,10 +13,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-#include <stdio.h>
-
-#include <ViennaRNA/datastructures/basic.h>
-
 /**
  *  @file     ViennaRNA/utils/structures.h
  *  @ingroup  struct_utils
@@ -140,6 +136,10 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
    VRNA_BRACKETS_SQR | \
    VRNA_BRACKETS_ALPHA)
 
+
+#include <stdio.h>
+
+#include <ViennaRNA/datastructures/basic.h>
 
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
