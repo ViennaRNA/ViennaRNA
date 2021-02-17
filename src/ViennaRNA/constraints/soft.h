@@ -1,10 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_CONSTRAINTS_SOFT_H
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_SOFT_H
 
-#include <ViennaRNA/datastructures/basic.h>
-#include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/constraints/basic.h>
-
 /**
  *  @file     constraints/soft.h
  *  @ingroup  soft_constraints
@@ -28,6 +24,10 @@
  *  @ingroup  soft_constraints
  */
 typedef struct  vrna_sc_s vrna_sc_t;
+
+#include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/constraints/basic.h>
 
 /**
  * @brief Callback to retrieve pseudo energy contribution for soft constraint feature
@@ -169,7 +169,7 @@ typedef struct {
  *  @ingroup soft_constraints
  */
 struct vrna_sc_s {
-  vrna_sc_type_e        type;
+  const vrna_sc_type_e  type;
   unsigned int          n;
 
   unsigned char         state;
