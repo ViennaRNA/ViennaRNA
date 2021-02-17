@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_REVISION($Revision: 1.13 $)
 AC_INIT([RNAforester],[2.0.1],[sschirme@techfak.uni-bielefeld.de],[RNAforester])
-AC_PREREQ([2.70])
+AC_PREREQ([2.69])
 
 AM_SILENT_RULES([yes])
 AM_INIT_AUTOMAKE([1.11])
@@ -57,7 +57,7 @@ CPPFLAGS=["-Ig2-0.72/src/ ${CPPFLAGS}"]
 dnl AC_CHECK_LIB(gd,main,,)
 		  
 dnl Checks for header files.
-AC_CHECK_INCLUDES_DEFAULT
+AC_INCLUDES_DEFAULT
 AC_PROG_EGREP
 
 AC_CHECK_HEADER(g2.h,AC_DEFINE(HAVE_LIBG2,1,Define to 1 if you have the `g2' library (-lg2).),AC_MSG_WARN(Compiling without support for graphical output. Install the g2 library that comes with the RNAforester distribution or download the latest version at http://g2.sourceforge.net/))
