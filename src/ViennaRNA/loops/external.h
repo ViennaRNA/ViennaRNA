@@ -140,29 +140,29 @@ vrna_exp_E_ext_stem(unsigned int      type,
                     vrna_exp_param_t  *p);
 
 
-struct vrna_mx_pf_aux_el_s *
+vrna_mx_pf_aux_el_t
 vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc);
 
 
 void
-vrna_exp_E_ext_fast_rotate(struct vrna_mx_pf_aux_el_s *aux_mx);
+vrna_exp_E_ext_fast_rotate(vrna_mx_pf_aux_el_t aux_mx);
 
 
 void
-vrna_exp_E_ext_fast_free(struct vrna_mx_pf_aux_el_s *aux_mx);
+vrna_exp_E_ext_fast_free(vrna_mx_pf_aux_el_t aux_mx);
 
 
 FLT_OR_DBL
-vrna_exp_E_ext_fast(vrna_fold_compound_t        *fc,
-                    int                         i,
-                    int                         j,
-                    struct vrna_mx_pf_aux_el_s  *aux_mx);
+vrna_exp_E_ext_fast(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    vrna_mx_pf_aux_el_t   aux_mx);
 
 
 void
-vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
-                           int                        j,
-                           struct vrna_mx_pf_aux_el_s *aux_mx);
+vrna_exp_E_ext_fast_update(vrna_fold_compound_t *fc,
+                           int                  j,
+                           vrna_mx_pf_aux_el_t  aux_mx);
 
 
 /* End partition function interface */

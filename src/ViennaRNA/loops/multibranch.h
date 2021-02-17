@@ -118,11 +118,11 @@ vrna_exp_E_ml_fast_free(vrna_mx_pf_aux_ml_t aux_mx);
 
 
 const FLT_OR_DBL *
-vrna_exp_E_ml_fast_qqm(struct vrna_mx_pf_aux_ml_s *aux_mx);
+vrna_exp_E_ml_fast_qqm(vrna_mx_pf_aux_ml_t aux_mx);
 
 
 const FLT_OR_DBL *
-vrna_exp_E_ml_fast_qqm1(struct vrna_mx_pf_aux_ml_s *aux_mx);
+vrna_exp_E_ml_fast_qqm1(vrna_mx_pf_aux_ml_t aux_mx);
 
 
 FLT_OR_DBL
