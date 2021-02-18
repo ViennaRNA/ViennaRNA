@@ -38,11 +38,11 @@ PRIVATE void
 update_dfold_params(void);
 
 
-PRIVATE void
-duplexfold_XS(const char  *s1,
-              int         **access_s1,
-              const int   threshold,
-              const int   max_interaction_length);
+PRIVATE vrna_pkplex_t *
+duplexfold_XS(const char    *s1,
+              const int     **access_s1,
+              const int     penalty,
+              const int     max_interaction_length);
 
 
 PRIVATE char *
@@ -64,15 +64,12 @@ PRIVATE int           n1;
 PRIVATE char          *ptype  = NULL; /* precomputed array of pair types */
 PRIVATE int           *indx   = NULL; /* index for moving in the triangle matrices ptype[] */
 
-PUBLIC dupVar         *PlexHits           = NULL;
-PUBLIC int            PlexHitsArrayLength = 100;
-PUBLIC int            NumberOfHits        = 0;
 PUBLIC int            verbose             = 0;
 
 
 PUBLIC vrna_pkplex_t *
 vrna_PKplex(vrna_fold_compound_t  *fc,
-            int                   threshold,
+            int                   penalty,
             int                   delta,
             unsigned int          max_interaction_length,
             unsigned int          options)
@@ -81,28 +78,65 @@ vrna_PKplex(vrna_fold_compound_t  *fc,
 
   if (fc) {
 /*
-  duplexfold_XS(s1, access_s1, threshold, max_interaction_length);
+  duplexfold_XS(s1, access_s1, penalty, max_interaction_length);
 */
   }
 
   return result;
 }
 
+PUBLIC vrna_pkplex_t *
+PKLduplexfold_XS(const char *s1,
+                 const int  **access_s1,
+                 int  penalty,
+                 int  max_interaction_length,
+                 int  delta)
+{
+  vrna_pkplex_t *hits;
+
+  if ((!P) || (fabs(P->temperature - temperature) > 1e-6))
+    update_dfold_params();
+
+  n1  = (int)strlen(s1);
+  S1  = encode_sequence(s1, 0);
+  SS1 = encode_sequence(s1, 1);
+
+  indx  = vrna_idx_col_wise(n1);
+  ptype = (char *)vrna_alloc(sizeof(char) * ((n1 * (n1 + 1)) / 2 + 2));
+  make_ptypes(s1);
+
+  hits = duplexfold_XS(s1, access_s1, penalty, max_interaction_length);
+  free(S1);
+  free(SS1);
+  free(indx);
+  free(ptype);
+
+  return hits;
+}
+
 /*-----------------------------------------------------------------------duplexfold_XS---------------------------------------------------------------------------*/
 
-PRIVATE void
+PRIVATE vrna_pkplex_t *
 duplexfold_XS(const char  *s1,
-              int         **access_s1,
-              const int   threshold,
+              const int   **access_s1,
+              const int   penalty,
               const int   max_interaction_length)
 {
+  size_t  storage_size, storage_fill;
   int   i, j, k, l, p, q, Emin = INF, l_min = 0, k_min = 0, j_min = 0;
   int   type, type2, type3, E, tempK;
   char  *struc;
   int   length = (int)strlen(s1);
   int   *rtype = &(P->model_details.rtype[0]);
 
+
+  vrna_pkplex_t *storage;
+
   struc = NULL;
+
+  storage_size  = 64;
+  storage_fill  = 0;
+  storage       = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t) * storage_size);
 
   c3 = (int ***)vrna_alloc(sizeof(int **) * (length));
   for (i = 0; i < length; i++) {
@@ -224,50 +258,55 @@ duplexfold_XS(const char  *s1,
       }
     }
 
-    if (Emin < threshold) {
+    if (Emin < penalty) {
+      int dGx, dGy, total;
+
       struc = backtrack_XS(k_min, l_min, i, j_min, max_interaction_length);
 
-      /*
-       * lets take care of the dangles
-       * find best combination
-       */
-      int dx_5, dx_3, dy_5, dy_3, dGx, dGy, bonus_x, bonus_y;
-      dx_5                          = dx_3 = dy_5 = dy_3 = dGx = dGy = bonus_x = bonus_y = 0;
-      dGx                           = access_s1[i - k_min + 1][i];
-      dGy                           = access_s1[l_min - j_min + 1][l_min];
-      PlexHits[NumberOfHits].tb     = k_min - 10 - dx_5;
-      PlexHits[NumberOfHits].te     = i - 10 + dx_3;
-      PlexHits[NumberOfHits].qb     = j_min - 10 - dy_5;
-      PlexHits[NumberOfHits].qe     = l_min - 10 + dy_3;
-      PlexHits[NumberOfHits].ddG    = (double)Emin * 0.01;
-      PlexHits[NumberOfHits].dG1    = (double)dGx * 0.01;
-      PlexHits[NumberOfHits].dG2    = (double)dGy * 0.01;
-      PlexHits[NumberOfHits].energy = PlexHits[NumberOfHits].ddG - PlexHits[NumberOfHits].dG1 -
-                                      PlexHits[NumberOfHits].dG2;
-      PlexHits[NumberOfHits].structure = struc;
+      dGx   = access_s1[i - k_min + 1][i];
+      dGy   = access_s1[l_min - j_min + 1][l_min];
+      total = Emin - dGx - dGy;
 
-      /* output: */
-      if (PlexHits[NumberOfHits].energy * 100 < threshold) {
+      if (total < penalty) {
+        storage[storage_fill].tb        = k_min - 10;
+        storage[storage_fill].te        = i - 10;
+        storage[storage_fill].qb        = j_min - 10;
+        storage[storage_fill].qe        = l_min - 10;
+        storage[storage_fill].ddG       = (double)Emin * 0.01;
+        storage[storage_fill].dG1       = (double)dGx * 0.01;
+        storage[storage_fill].dG2       = (double)dGy * 0.01;
+        storage[storage_fill].energy    = (double)total * 0.01;
+        storage[storage_fill].structure = struc;
+        storage[storage_fill].inactive  = 0;
+        storage[storage_fill].processed = 0;
+
+        /* output: */
         if (verbose) {
           printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
-                 PlexHits[NumberOfHits].structure,
-                 PlexHits[NumberOfHits].tb,
-                 PlexHits[NumberOfHits].te,
-                 PlexHits[NumberOfHits].qb,
-                 PlexHits[NumberOfHits].qe,
-                 PlexHits[NumberOfHits].ddG,
-                 PlexHits[NumberOfHits].energy,
-                 PlexHits[NumberOfHits].dG1,
-                 PlexHits[NumberOfHits].dG2);
+                 storage[storage_fill].structure,
+                 storage[storage_fill].tb,
+                 storage[storage_fill].te,
+                 storage[storage_fill].qb,
+                 storage[storage_fill].qe,
+                 storage[storage_fill].ddG,
+                 storage[storage_fill].energy,
+                 storage[storage_fill].dG1,
+                 storage[storage_fill].dG2);
         }
 
-        NumberOfHits++;
-        if (NumberOfHits == PlexHitsArrayLength - 1) {
-          PlexHitsArrayLength *= 2;
-          PlexHits            = (dupVar *)vrna_realloc(PlexHits,
-                                                       sizeof(dupVar) * PlexHitsArrayLength);
+        storage_fill++;
+
+        if (storage_fill == storage_size - 1) {
+          storage_size *= 1.4;
+          storage       = (vrna_pkplex_t *)vrna_realloc(storage,
+                                                        sizeof(vrna_pkplex_t) *
+                                                        storage_size);
         }
+
+      } else {
+        free(struc);
       }
+
     }
   }
 
@@ -277,6 +316,16 @@ duplexfold_XS(const char  *s1,
     free(c3[i]);
   }
   free(c3);
+
+  /* resize to space actually required */
+  storage = (vrna_pkplex_t *)vrna_realloc(storage,
+                                          sizeof(vrna_pkplex_t) *
+                                          (storage_fill + 1));
+
+  /* add end-of-list identifier */
+  storage[storage_fill].structure = NULL;
+
+  return storage;
 }
 
 
@@ -375,32 +424,6 @@ backtrack_XS(int        k,
   return struc;
 }
 
-
-PUBLIC dupVar **
-PKLduplexfold_XS(const char *s1,
-                 int        **access_s1,
-                 const int  penalty,
-                 const int  max_interaction_length,
-                 const int  delta)
-{
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6))
-    update_dfold_params();
-
-  n1  = (int)strlen(s1);
-  S1  = encode_sequence(s1, 0);
-  SS1 = encode_sequence(s1, 1);
-
-  indx  = vrna_idx_col_wise(n1);
-  ptype = (char *)vrna_alloc(sizeof(char) * ((n1 * (n1 + 1)) / 2 + 2));
-  make_ptypes(s1);
-
-  duplexfold_XS(s1, access_s1, threshold, max_interaction_length);
-  free(S1);
-  free(SS1);
-  free(indx);
-  free(ptype);
-  return NULL;
-}
 
 
 /*---------------------------------UTILS------------------------------------------*/

@@ -38,6 +38,10 @@ int
 PlexHit_cmp_energy(const void *c1,
                    const void *c2);
 
+int
+PlexHit_cmp_active_energy(const void *c1,
+                          const void *c2);
+
 
 /*--------------------------------------------------------------------------*/
 
@@ -203,6 +207,7 @@ main(int  argc,
      ########################################################
      */
     if (length >= 5) {
+      vrna_pkplex_t *hits, *hit_ptr;
       pf_scale = -1;
 
       pup       = (double **)vrna_alloc((length + 1) * sizeof(double *));
@@ -224,8 +229,6 @@ main(int  argc,
        # do Plex computations
        ########################################################
        */
-      NumberOfHits  = 0;
-      PlexHits      = (dupVar *)vrna_alloc(sizeof(dupVar) * PlexHitsArrayLength);
       double  kT = (temperature + K0) * GASCONST / 1000.0;
       int     **access;
       /* prepare the accesibility array */
@@ -253,163 +256,127 @@ main(int  argc,
       if (verbose)
         printf("EnergyCutoff = %f\n", pk_penalty);
 
-      PKLduplexfold_XS(plexstring, access, (int)(-pk_penalty * 100) - 1, MIN2(12, length - 3), 0);
+      hits  = PKLduplexfold_XS(plexstring,
+                               (const int **)access,
+                               (int)(-pk_penalty * 100) - 1,
+                               MIN2(12, length - 3),
+                               0);
 
       /*
        ########################################################
        # analyze Plex output
        ########################################################
        */
+      size_t NumberOfHits = 0;
 
-      /*adding empty hit*/
-      PlexHits[NumberOfHits].tb         = 0;
-      PlexHits[NumberOfHits].te         = 0;
-      PlexHits[NumberOfHits].qb         = 0;
-      PlexHits[NumberOfHits].qe         = 0;
-      PlexHits[NumberOfHits].ddG        = 0;
-      PlexHits[NumberOfHits].dG1        = 0;
-      PlexHits[NumberOfHits].dG2        = 0;
-      PlexHits[NumberOfHits].energy     = 0;
-      PlexHits[NumberOfHits].structure  = NULL;
-      NumberOfHits++;
+      if (hits) {
+        for (hit_ptr = hits; hit_ptr->structure; hit_ptr++)
+          NumberOfHits++;
 
-      for (i = 0; i < NumberOfHits; i++) {
-        PlexHits[i].inactive  = 0;
-        PlexHits[i].processed = 0;
-      }
+        /* first sort all the pre-results descending by their estimated energy */
+        qsort(hits, NumberOfHits, sizeof(vrna_pkplex_t), PlexHit_cmp);
 
-      /* first sort all the pre-results descending by their estimated energy */
-      qsort(PlexHits, NumberOfHits, sizeof(dupVar), PlexHit_cmp);
+        /*  now we re-evaluate the energies and thereby prune the list of pre-results
+        *  such that the re-avaluation process is not done too often.
+        */
+        double                mfe         = 0.;
+        double                mfe_pk      = 0.;
+        char                  *mfe_struct = NULL;
 
-      /*  now we re-evaluate the energies and thereby prune the list of pre-results
-       *  such that the re-avaluation process is not done too often.
-       */
-      double                mfe         = 0.;
-      double                mfe_pk      = 0.;
-      char                  *mfe_struct = NULL;
+        constraint  = (char *)vrna_alloc(sizeof(char) * (length + 1));
+        mfe_struct  = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
-      constraint  = (char *)vrna_alloc(sizeof(char) * (length + 1));
-      mfe_struct  = (char *)vrna_alloc(sizeof(char) * (length + 1));
+        vrna_fold_compound_t  *fc = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT);
+        mfe = mfe_pk = vrna_mfe(fc, mfe_struct);
 
-      vrna_fold_compound_t  *fc = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT);
-      mfe = mfe_pk = vrna_mfe(fc, mfe_struct);
+        for (hit_ptr = hits; hit_ptr->structure; hit_ptr++) {
+          /* do evaluation for structures above the subopt threshold only */
+          if (!hit_ptr->inactive) {
+            if (hit_ptr->structure) {
+              /* prepare the structure constraint for constrained folding */
+              vrna_hc_init(fc);
+              for (i = hit_ptr->tb; i <= hit_ptr->te; i++)
+                vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+              for (i = hit_ptr->qb; i <= hit_ptr->qe; i++)
+                vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
 
-      for (current = 0; current < NumberOfHits; current++) {
-        /* do evaluation for structures above the subopt threshold only */
-        if (!PlexHits[current].inactive) {
-          if (PlexHits[current].structure) {
-            /* prepare the structure constraint for constrained folding */
-            vrna_hc_init(fc);
-            for (i = PlexHits[current].tb; i <= PlexHits[current].te; i++)
-              vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-            for (i = PlexHits[current].qb; i <= PlexHits[current].qe; i++)
-              vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
+              /* energy evaluation */
+              constrainedEnergy = vrna_mfe(fc, constraint);
 
-            /* energy evaluation */
-            constrainedEnergy = vrna_mfe(fc, constraint);
+              /* check if this structure is worth keeping */
+              if (constrainedEnergy + hit_ptr->ddG + pk_penalty <= mfe_pk + subopts) {
+                /* add pseudo-knot brackets to the structure */
+                for (i = hit_ptr->tb - 1; i < hit_ptr->te; i++)
+                  if (hit_ptr->structure[i - hit_ptr->tb + 1] == '(')
+                    constraint[i] = '[';
 
-            /* check if this structure is worth keeping */
-            if (constrainedEnergy + PlexHits[current].ddG + pk_penalty <= mfe_pk + subopts) {
-              /* add pseudo-knot brackets to the structure */
-              for (i = PlexHits[current].tb - 1; i < PlexHits[current].te; i++)
-                if (PlexHits[current].structure[i - PlexHits[current].tb + 1] == '(')
-                  constraint[i] = '[';
+                for (i = hit_ptr->qb - 1; i < hit_ptr->qe; i++)
+                  if (hit_ptr->structure[i - hit_ptr->qb + 1 + 1 + 1 +
+                                                  hit_ptr->te - hit_ptr->tb] == ')')
+                    constraint[i] = ']';
 
-              for (i = PlexHits[current].qb - 1; i < PlexHits[current].qe; i++)
-                if (PlexHits[current].structure[i - PlexHits[current].qb + 1 + 1 + 1 +
-                                                PlexHits[current].te - PlexHits[current].tb] == ')')
-                  constraint[i] = ']';
+                hit_ptr->energy = constrainedEnergy + hit_ptr->ddG + pk_penalty;
+                if (hit_ptr->energy < mfe_pk)
+                  mfe_pk = hit_ptr->energy;
 
-              PlexHits[current].energy = constrainedEnergy + PlexHits[current].ddG + pk_penalty;
-              if (PlexHits[current].energy < mfe_pk)
-                mfe_pk = PlexHits[current].energy;
-
-              free(PlexHits[current].structure);
-              PlexHits[current].structure = strdup(constraint);
-              PlexHits[current].processed = 1;
-            } else {
-              PlexHits[current].inactive = 1;
-            }
-          } else {
-            PlexHits[current].energy = mfe;
-            if (mfe > mfe_pk + subopts)
-              PlexHits[current].inactive = 1;
-          }
-
-          /*
-           * now go through the rest of the PlexHits array and mark all hits as inactive if they can
-           * definetely not be within the results set according to current subopt settings
-           */
-          for (i = 0; i < NumberOfHits; i++) {
-            if (!PlexHits[i].inactive) {
-              if (PlexHits[i].structure) {
-                if (!PlexHits[i].processed) {
-                  double cost = mfe + PlexHits[i].ddG + pk_penalty;
-                  if (cost > mfe + subopts)
-                    PlexHits[i].inactive = 1;
-                } else {
-                  if (PlexHits[i].energy > mfe_pk + subopts)
-                    PlexHits[i].inactive = 1;
-                }
+                hit_ptr->structure = strdup(constraint);
+                hit_ptr->processed = 1;
               } else {
-                if (mfe > mfe_pk + subopts)
-                  PlexHits[i].inactive = 1;
+                hit_ptr->inactive = 1;
               }
+              free(hit_ptr->structure);
+            } else {
+              hit_ptr->inactive = 1;
             }
           }
         }
-      }
-      constraint = NULL;
-      vrna_fold_compound_free(fc);
 
-      /* now sort the actual results again according to their energy */
-
-      qsort(PlexHits, NumberOfHits, sizeof(dupVar), PlexHit_cmp_energy);
-
-      /* and print the results to stdout */
-      for (i = 0; i < NumberOfHits; i++) {
-        if (!PlexHits[i].inactive) {
-          if (PlexHits[i].structure)
-            printf("%s (%6.2f)\n", PlexHits[i].structure, PlexHits[i].energy);
-          else
-            printf("%s (%6.2f)\n", mfe_struct, mfe);
+        /*
+        * now go through the active hits again and filter those out that are below
+        * the subopt threshold
+        */
+        for (hit_ptr = hits; hit_ptr->structure; hit_ptr++) {
+          if ((!hit_ptr->inactive) &&
+              (hit_ptr->energy > mfe_pk + subopts))
+            hit_ptr->inactive = 1;
         }
+
+        constraint = NULL;
+        vrna_fold_compound_free(fc);
+
+        /* now sort the actual results again according to their energy */
+
+        qsort(hits, NumberOfHits, sizeof(vrna_pkplex_t), PlexHit_cmp_active_energy);
+
+        /* and print the results to stdout */
+        for (hit_ptr = hits; hit_ptr->inactive; hit_ptr++)
+          printf("%s (%6.2f)\n", hit_ptr->structure, hit_ptr->energy);
+
+        /*
+         ########################################################
+         # Generate Plot for the best structure
+         ########################################################
+         */
+
+        /* make an EPS layout file for the MFE structure, i.e. first in the list */
+        hit_ptr = hits;
+        annotation = vrna_strdup_printf("%d %d 13 1 0 0 omark\n"
+                                        "%d %d 13 1 0 0 omark\n"
+                                        "0 0 2 setrgbcolor\n"
+                                        "2 setlinewidth\n"
+                                        "%d cmark\n"
+                                        "%d cmark\n"
+                                        "1 setlinewidth",
+                                        (int)hit_ptr->tb,
+                                        hit_ptr->te,
+                                        (int)hit_ptr->qb,
+                                        hit_ptr->qe,
+                                        hit_ptr->tb,
+                                        hit_ptr->qe);
+        vrna_file_PS_rnaplot_a(s1, hit_ptr->structure, fname, annotation, "", &md);
+        free(annotation);
+        annotation = NULL;
       }
-
-      /*
-       ########################################################
-       # Generate Plot for the best structure
-       ########################################################
-       */
-
-      /* and print the results to stdout */
-      for (i = 0; i < NumberOfHits; i++) {
-        if (!PlexHits[i].inactive) {
-          if (PlexHits[i].structure) {
-            annotation = vrna_strdup_printf("%d %d 13 1 0 0 omark\n"
-                                            "%d %d 13 1 0 0 omark\n"
-                                            "0 0 2 setrgbcolor\n"
-                                            "2 setlinewidth\n"
-                                            "%d cmark\n"
-                                            "%d cmark\n"
-                                            "1 setlinewidth",
-                                            (int)PlexHits[i].tb,
-                                            PlexHits[i].te,
-                                            (int)PlexHits[i].qb,
-                                            PlexHits[i].qe,
-                                            PlexHits[i].tb,
-                                            PlexHits[i].qe);
-            vrna_file_PS_rnaplot_a(s1, PlexHits[i].structure, fname, annotation, "", &md);
-            free(annotation);
-            annotation = NULL;
-          } else {
-            vrna_file_PS_rnaplot(s1, mfe_struct, fname, &md);
-          }
-
-          break;
-        }
-      }
-
 #if 0
       if (verbose) {
         printf("\n");
@@ -547,6 +514,7 @@ main(int  argc,
        # free memory
        ########################################################
        */
+      free(hits);
       free(pl);
       free(pup[0]);
       free(pup);
@@ -563,7 +531,6 @@ main(int  argc,
     free(id_s1);
     free(plexstring);
     free(nonstandards);
-    free(PlexHits);
     s1 = id_s1 = orig_s1 = NULL;
 
     plexstring = NULL;
@@ -598,6 +565,27 @@ PlexHit_cmp_energy(const void *c1,
     return 1;
   else if (p1->energy < p2->energy)
     return -1;
+
+  return 0;
+}
+
+int
+PlexHit_cmp_active_energy(const void *c1,
+                          const void *c2)
+{
+  dupVar  *p1 = (dupVar *)c1;
+  dupVar  *p2 = (dupVar *)c2;
+
+  if (p1->inactive > p2->inactive) {
+    return 1;
+  } else if (p1->inactive < p2->inactive) {
+    return -1;
+  } else if (!p2->inactive) {
+    if (p1->energy < p2->energy)
+      return -1;
+    else if (p1->energy > p2->energy)
+      return 1;
+  }
 
   return 0;
 }

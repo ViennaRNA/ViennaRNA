@@ -3,23 +3,23 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 
-extern dupVar *PlexHits;
-extern int    PlexHitsArrayLength;
-extern int    NumberOfHits;
 extern int    verbose;
 
 
 /**
  *  \brief 
  */
-dupVar  **PKLduplexfold_XS( const char *s1,
-                            int **access_s1,
-                            const int threshold,
-                            const int alignment_length,
-                            const int delta);
+vrna_pkplex_t *
+PKLduplexfold_XS(const char *s1,
+                 const int  **access_s1,
+                 int  penalty,
+                 int  max_interaction_length,
+                 int  delta);
 
-int     arraySize(duplexT **array);
+int
+arraySize(duplexT **array);
 
-void    freeDuplexT(duplexT **array);
+void
+freeDuplexT(duplexT **array);
 
 #endif
