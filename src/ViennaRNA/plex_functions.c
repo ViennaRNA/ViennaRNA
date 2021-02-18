@@ -259,54 +259,48 @@ duplexfold_XS(const char  *s1,
     }
 
     if (Emin < penalty) {
-      int dGx, dGy, total;
+      int dGx, dGy, inter;
 
       struc = backtrack_XS(k_min, l_min, i, j_min, max_interaction_length);
 
       dGx   = access_s1[i - k_min + 1][i];
       dGy   = access_s1[l_min - j_min + 1][l_min];
-      total = Emin - dGx - dGy;
+      inter = Emin - dGx - dGy;
 
-      if (total < penalty) {
-        storage[storage_fill].tb        = k_min - 10;
-        storage[storage_fill].te        = i - 10;
-        storage[storage_fill].qb        = j_min - 10;
-        storage[storage_fill].qe        = l_min - 10;
-        storage[storage_fill].ddG       = (double)Emin * 0.01;
-        storage[storage_fill].dG1       = (double)dGx * 0.01;
-        storage[storage_fill].dG2       = (double)dGy * 0.01;
-        storage[storage_fill].energy    = (double)total * 0.01;
-        storage[storage_fill].structure = struc;
-        storage[storage_fill].inactive  = 0;
-        storage[storage_fill].processed = 0;
+      storage[storage_fill].tb        = k_min - 10;
+      storage[storage_fill].te        = i - 10;
+      storage[storage_fill].qb        = j_min - 10;
+      storage[storage_fill].qe        = l_min - 10;
+      storage[storage_fill].ddG       = (double)Emin * 0.01;
+      storage[storage_fill].dG1       = (double)dGx * 0.01;
+      storage[storage_fill].dG2       = (double)dGy * 0.01;
+      storage[storage_fill].energy    = (double)inter * 0.01;
+      storage[storage_fill].structure = struc;
+      storage[storage_fill].inactive  = 0;
+      storage[storage_fill].processed = 0;
 
-        /* output: */
-        if (verbose) {
-          printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
-                 storage[storage_fill].structure,
-                 storage[storage_fill].tb,
-                 storage[storage_fill].te,
-                 storage[storage_fill].qb,
-                 storage[storage_fill].qe,
-                 storage[storage_fill].ddG,
-                 storage[storage_fill].energy,
-                 storage[storage_fill].dG1,
-                 storage[storage_fill].dG2);
-        }
-
-        storage_fill++;
-
-        if (storage_fill == storage_size - 1) {
-          storage_size *= 1.4;
-          storage       = (vrna_pkplex_t *)vrna_realloc(storage,
-                                                        sizeof(vrna_pkplex_t) *
-                                                        storage_size);
-        }
-
-      } else {
-        free(struc);
+      /* output: */
+      if (verbose) {
+        printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
+               storage[storage_fill].structure,
+               storage[storage_fill].tb,
+               storage[storage_fill].te,
+               storage[storage_fill].qb,
+               storage[storage_fill].qe,
+               storage[storage_fill].ddG,
+               storage[storage_fill].energy,
+               storage[storage_fill].dG1,
+               storage[storage_fill].dG2);
       }
 
+      storage_fill++;
+
+      if (storage_fill == storage_size - 1) {
+        storage_size *= 1.4;
+        storage       = (vrna_pkplex_t *)vrna_realloc(storage,
+                                                      sizeof(vrna_pkplex_t) *
+                                                      storage_size);
+      }
     }
   }
 
@@ -318,12 +312,18 @@ duplexfold_XS(const char  *s1,
   free(c3);
 
   /* resize to space actually required */
-  storage = (vrna_pkplex_t *)vrna_realloc(storage,
-                                          sizeof(vrna_pkplex_t) *
-                                          (storage_fill + 1));
+  if (storage_fill > 0) {
+    storage = (vrna_pkplex_t *)vrna_realloc(storage,
+                                            sizeof(vrna_pkplex_t) *
+                                            (storage_fill + 1));
 
-  /* add end-of-list identifier */
-  storage[storage_fill].structure = NULL;
+    /* add end-of-list identifier */
+    storage[storage_fill].structure = NULL;
+    storage[storage_fill].inactive  = 1;
+  } else {
+    free(storage);
+    storage = NULL;
+  }
 
   return storage;
 }
