@@ -26,6 +26,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/LPfold.h"
 
 #include "ViennaRNA/loops/external_hc.inc"
 
@@ -33,6 +34,24 @@
 
 #undef  MAXLOOP
 #define MAXLOOP 10
+
+/*
+ #################################
+ # GLOBAL VARIABLES              #
+ #################################
+ */
+
+/*
+ #################################
+ # PRIVATE VARIABLES             #
+ #################################
+ */
+
+/*
+ #################################
+ # PRIVATE FUNCTION DECLARATIONS #
+ #################################
+ */
 
 
 PRIVATE vrna_pkplex_t *
@@ -56,6 +75,12 @@ PRIVATE int
 prepare_PKplex(vrna_fold_compound_t *fc);
 
 
+/*
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
+
 PUBLIC vrna_pkplex_t *
 vrna_PKplex(vrna_fold_compound_t  *fc,
             const int             **accessibility,
@@ -64,7 +89,8 @@ vrna_PKplex(vrna_fold_compound_t  *fc,
             unsigned int          max_interaction_length,
             unsigned int          options)
 {
-  if (fc) {
+  if ((fc) &&
+      (accessibility)) {
     prepare_PKplex(fc);
 
     return duplexfold_XS(fc,
@@ -86,20 +112,84 @@ PKLduplexfold_XS(const char *s1,
   vrna_fold_compound_t  *fc;
   vrna_pkplex_t         *hits;
 
-  fc = vrna_fold_compound(s1, NULL, VRNA_OPTION_DEFAULT);
+  hits = NULL;
 
-  prepare_PKplex(fc);
+  if ((s1) &&
+      (access_s1)) {
+    fc = vrna_fold_compound(s1, NULL, VRNA_OPTION_DEFAULT);
 
-  hits = duplexfold_XS(fc,
-                       access_s1,
-                       penalty,
-                       max_interaction_length);
+    prepare_PKplex(fc);
 
-  vrna_fold_compound_free(fc);
+    hits = duplexfold_XS(fc,
+                         access_s1,
+                         penalty,
+                         max_interaction_length);
+
+    vrna_fold_compound_free(fc);
+  }
 
   return hits;
 }
 
+
+PUBLIC int **
+vrna_PKplex_accessibilities(const char    *sequence,
+                            unsigned int  unpaired,
+                            double        cutoff)
+{
+  unsigned int  n, i, j;
+  int           **a = NULL;
+  double        **pup, kT;
+  plist         *dpp = NULL;
+  vrna_fold_compound_t  *fc;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+
+  if (sequence) {
+    fc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_DEFAULT | VRNA_OPTION_WINDOW);
+
+    n   = fc->length;
+    P   = fc->params;
+    md  = &(P->model_details);
+
+    pup       = (double **)vrna_alloc((n + 1) * sizeof(double *));
+    pup[0]    = (double *)vrna_alloc(sizeof(double));   /*I only need entry 0*/
+    pup[0][0] = (double)unpaired;
+
+    (void)pfl_fold(fc->sequence, n, n, cutoff, pup, &dpp, NULL, NULL);
+
+    kT = (md->temperature + K0) * GASCONST / 1000.0;
+
+    /* prepare the accesibility array */
+    a = (int **)vrna_alloc(sizeof(int *) * (unpaired + 2));
+
+    for (i = 0; i < unpaired + 2; i++)
+      a[i] = (int *)vrna_alloc(sizeof(int) * (n + 1));
+
+    for (i = 0; i <= n; i++)
+      for (j = 0; j < unpaired + 2; j++)
+        a[j][i] = INF;
+
+    for (i = 1; i <= n; i++) {
+      for (j = 1; j < unpaired + 1; j++)
+        if (pup[i][j] > 0)
+          a[j][i] = rint(100 * (-log(pup[i][j])) * kT);
+    }
+
+    a[0][0] = unpaired + 2;
+
+    vrna_fold_compound_free(fc);
+  }
+
+  return a;
+}
+
+
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
 
 PRIVATE int ***
 get_array(unsigned int n,

@@ -209,46 +209,16 @@ main(int  argc,
      */
     if (length >= 5) {
       vrna_pkplex_t *hits, *hit_ptr;
-      pf_scale = -1;
-
-      pup       = (double **)vrna_alloc((length + 1) * sizeof(double *));
-      pup[0]    = (double *)vrna_alloc(sizeof(double));   /*I only need entry 0*/
-      pup[0][0] = unpaired;
-
-      pUfp = spup = NULL;
 
       if (verbose)
         printf("Winsize = %d\nPairdist = %d\nUnpaired = %d\n", winsize, pairdist, unpaired);
-
-      int tempdangles = dangles;
-      dangles = 2;
-      pl      = pfl_fold(s1, winsize, pairdist, cutoff, pup, &dpp, pUfp, spup);
-      dangles = tempdangles;
 
       /*
        ########################################################
        # do Plex computations
        ########################################################
        */
-      double  kT = (temperature + K0) * GASCONST / 1000.0;
-      int     **access;
-      /* prepare the accesibility array */
-      access = (int **)vrna_alloc(sizeof(int *) * (unpaired + 2));
-
-      for (i = 0; i < unpaired + 2; i++)
-        access[i] = (int *)vrna_alloc(sizeof(int) * (length + 1));
-
-      for (i = 0; i <= length; i++)
-        for (j = 0; j < unpaired + 2; j++)
-          access[j][i] = INF;
-
-      for (i = 1; i <= length; i++) {
-        for (j = 1; j < unpaired + 1; j++)
-          if (pup[i][j] > 0)
-            access[j][i] = rint(100 * (-log(pup[i][j])) * kT);
-      }
-
-      access[0][0] = unpaired + 2;
+      int **access = vrna_PKplex_accessibilities(s1, unpaired, cutoff);
 
       if (verbose)
         printf("EnergyCutoff = %f\n", pk_penalty);
@@ -431,9 +401,6 @@ main(int  argc,
 
       free(hits);
 
-      free(pl);
-      free(pup[0]);
-      free(pup);
       (void)fflush(stdout);
       i = access[0][0];
       while (--i > -1)

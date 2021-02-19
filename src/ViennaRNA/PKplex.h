@@ -3,9 +3,6 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 
-extern int    verbose;
-
-
 /**
  *  \brief 
  */
@@ -16,10 +13,9 @@ PKLduplexfold_XS(const char *s1,
                  int  max_interaction_length,
                  int  delta);
 
-int
-arraySize(duplexT **array);
-
-void
-freeDuplexT(duplexT **array);
+int **
+vrna_PKplex_accessibilities(const char    *sequence,
+                            unsigned int  unpaired,
+                            double        cutoff);
 
 #endif
