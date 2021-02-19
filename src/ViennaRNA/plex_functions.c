@@ -178,7 +178,7 @@ duplexfold_XS(vrna_fold_compound_t *fc,
               const int   max_interaction_length)
 {
   char          *struc;
-  short         *S, *S1;
+  short         *S, *S1, si, sk, sl, sp, sq;
   size_t        storage_size, storage_fill;
   unsigned int  n, type, type2, type3;
   int           ***c3, i, j, k, l, p, q, Emin, l_min, k_min, j_min, E,
@@ -210,10 +210,8 @@ duplexfold_XS(vrna_fold_compound_t *fc,
 
   c3  = get_array(n, max_interaction_length);
 
-  if (n > 20) {
-    i   = n - 9;
-
-    while (i-- > 11) {
+  if (n > turn + 1) {
+    for (i = n - turn - 1; i > 0; i--) {
       Emin  = INF;
       j_min = 0;
       l_min = 0;
@@ -221,50 +219,57 @@ duplexfold_XS(vrna_fold_compound_t *fc,
 
       reset_array(c3, n, max_interaction_length);
 
+      si = S1[i + 1];
+
       /* matrix starting values for (i,j)-basepairs */
-      for (j = i + turn + 1; j < n - 10; j++) {
+      for (j = i + turn + 1; j <= n; j++) {
         if (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
           type = md->pair[S[j]][S[i]];
-          c3[j - 11][max_interaction_length - 1][0] = vrna_E_ext_stem(type,
-                                                                      S1[j - 1],
-                                                                      S1[i + 1],
-                                                                      P);
+          c3[j - 1][max_interaction_length - 1][0] = vrna_E_ext_stem(type,
+                                                                 S1[j - 1],
+                                                                 si,
+                                                                 P);
         }
       }
 
-      i_pos_begin = MAX2(9, i - max_interaction_length); /* why 9 ??? */
+      i_pos_begin = MAX2(0, i - max_interaction_length);
 
       /* fill matrix */
       for (k = i - 1; k > i_pos_begin; k--) {
         tempK = max_interaction_length - i + k - 1;
-        for (l = i + turn + 1; l < n - 9; l++) {
+        sk    = S1[k + 1];
+        for (l = i + turn + 1; l <= n; l++) {
           if (hc->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
             /* again, why 9 less then the sequence length ? */
             type2 = md->pair[S[k]][S[l]];
+            sl    = S1[l - 1];
 
             for (p = k + 1; (p <= i) && (p <= k + MAXLOOP + 1); p++) {
+              sp  = S1[p - 1];
+
               for (q = l - 1; (q >= i + turn + 1) && (q >= l - MAXLOOP - 1); q--) {
                 if (p - k + l - q - 2 > MAXLOOP)
                   break;
 
                 if (hc->mx[n * p + q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
                   type3 = md->pair[S[q]][S[p]];
+                  sq    = S1[q + 1];
 
                   E = E_IntLoop(p - k - 1,
                                 l - q - 1,
                                 type2,
                                 type3,
-                                S1[k + 1],
-                                S1[l - 1],
-                                S1[p - 1],
-                                S1[q + 1],
+                                sk,
+                                sl,
+                                sp,
+                                sq,
                                 P);
                   for (j = MAX2(i + turn + 1, l - max_interaction_length + 1); j <= q; j++) {
                     if (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
                       type = md->pair[S[i]][S[j]];
-                      c3[j - 11][tempK][l - j] =
-                          MIN2(c3[j - 11][tempK][l - j],
-                               c3[j - 11][max_interaction_length - i + p - 1][q - j] + E);
+                      c3[j - 1][tempK][l - j] =
+                          MIN2(c3[j - 1][tempK][l - j],
+                               c3[j - 1][max_interaction_length - i + p - 1][q - j] + E);
                     }
                   }
                 }
@@ -275,21 +280,19 @@ duplexfold_XS(vrna_fold_compound_t *fc,
       }         /* next k */
 
       /* read out matrix minimum */
-      for (j = i + turn + 1; j < n - 10; j++) {
+      for (j = i + turn + 1; j <= n; j++) {
         if (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
-          j_pos_end = MIN2(n - 9, j + max_interaction_length);
+          j_pos_end = MIN2(n + 1, j + max_interaction_length);
           for (k = i - 1; k > i_pos_begin; k--) {
+            sk = (k > i_pos_begin + 1) ? S1[k - 1] : -1; /* should actually be k > 10 */
             for (l = j + 1; l < j_pos_end; l++) {
               if (evaluate_ext(k, l, k, l, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
                 type2 = md->pair[S[k]][S[l]];
-
-                E = c3[j - 11][max_interaction_length - i + k - 1][l - j] +
-                    vrna_E_ext_stem(type2,
-                                    ((k > i_pos_begin + 1) ? S1[k - 1] : -1),
-                                    ((l < j_pos_end - 1) ? S1[l + 1] : -1),
-                                    P) +
-                    access_s1[i - k + 1][i] +
-                    access_s1[l - j + 1][l];
+                sl  = (l < j_pos_end - 1) ? S1[l + 1] : -1; /* should actually be l < n - 10 */
+                E   = c3[j - 1][max_interaction_length - i + k - 1][l - j] +
+                      vrna_E_ext_stem(type2, sk, sl, P) +
+                      access_s1[i - k + 1][i] +
+                      access_s1[l - j + 1][l];
 
                 if (E < Emin) {
                   Emin  = E;
@@ -310,10 +313,10 @@ duplexfold_XS(vrna_fold_compound_t *fc,
         dGy   = access_s1[l_min - j_min + 1][l_min];
         inter = Emin - dGx - dGy;
 
-        storage[storage_fill].tb        = k_min - 10;
-        storage[storage_fill].te        = i - 10;
-        storage[storage_fill].qb        = j_min - 10;
-        storage[storage_fill].qe        = l_min - 10;
+        storage[storage_fill].tb        = k_min;
+        storage[storage_fill].te        = i;
+        storage[storage_fill].qb        = j_min;
+        storage[storage_fill].qe        = l_min;
         storage[storage_fill].ddG       = (double)Emin * 0.01;
         storage[storage_fill].dG1       = (double)dGx * 0.01;
         storage[storage_fill].dG2       = (double)dGy * 0.01;
@@ -384,7 +387,7 @@ backtrack_XS(vrna_fold_compound_t *fc,
   i0  = k;
   j0  = l;
   while (k <= i && l >= j) {
-    E           = c3[j - 11][max_interaction_length - i + k - 1][l - j];
+    E           = c3[j - 1][max_interaction_length - i + k - 1][l - j];
     traced      = 0;
     st1[k - i0] = '(';
     st2[l - j]  = ')';
@@ -414,7 +417,7 @@ backtrack_XS(vrna_fold_compound_t *fc,
                        S1[p - 1],
                        S1[q + 1],
                        P);
-        if (E == c3[j - 11][max_interaction_length - i + p - 1][q - j] + LE) {
+        if (E == c3[j - 1][max_interaction_length - i + p - 1][q - j] + LE) {
           traced  = 1;
           k       = p;
           l       = q;

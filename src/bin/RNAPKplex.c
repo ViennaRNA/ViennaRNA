@@ -234,30 +234,26 @@ main(int  argc,
       int     **access;
       /* prepare the accesibility array */
       access = (int **)vrna_alloc(sizeof(int *) * (unpaired + 2));
-      for (i = 0; i < unpaired + 2; i++)
-        access[i] = (int *)vrna_alloc(sizeof(int) * (length + 20));
 
-      for (i = 0; i < length + 20; i++)
+      for (i = 0; i < unpaired + 2; i++)
+        access[i] = (int *)vrna_alloc(sizeof(int) * (length + 1));
+
+      for (i = 0; i <= length; i++)
         for (j = 0; j < unpaired + 2; j++)
           access[j][i] = INF;
 
-      for (i = 11; i < length + 11; i++) {
+      for (i = 1; i <= length; i++) {
         for (j = 1; j < unpaired + 1; j++)
-          if (pup[i - 10][j] > 0)
-            access[j][i] = rint(100 * (-log(pup[i - 10][j])) * kT);
+          if (pup[i][j] > 0)
+            access[j][i] = rint(100 * (-log(pup[i][j])) * kT);
       }
 
       access[0][0] = unpaired + 2;
 
-      plexstring = (char *)vrna_alloc(length + 1 + 20);
-      strcpy(plexstring, "NNNNNNNNNN"); /*add NNNNNNNNNN to avoid boundary check*/
-      strcat(plexstring, s1);
-      strcat(plexstring, "NNNNNNNNNN\0");
-
       if (verbose)
         printf("EnergyCutoff = %f\n", pk_penalty);
 
-      hits  = PKLduplexfold_XS(plexstring,
+      hits  = PKLduplexfold_XS(s1,
                                (const int **)access,
                                (int)(-pk_penalty * 100) - 1,
                                MIN2(12, length - 3),
