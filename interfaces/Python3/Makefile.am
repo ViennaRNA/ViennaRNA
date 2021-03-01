@@ -64,11 +64,17 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
 if HAS_SWIG
 
 $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
-	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
-                  -I$(srcdir) -I$(builddir) \
+	$(swig_verbose)$(SWIG) \
+                  -I$(top_srcdir)/src \
+                  -I$(srcdir) \
+                  -I$(builddir) \
                   -DPY3 \
                   $(RNA_CPPFLAGS) \
-                  -python -py3 -c++ -keyword -w511 \
+                  -python \
+                  -py3 \
+                  -c++ \
+                  -keyword \
+                  -w511,509 \
                   -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
 

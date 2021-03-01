@@ -80,11 +80,18 @@ EXTRA_DIST = \
 if HAS_SWIG
 
 $(SWIG_wrapper) $(PERL_MODULE): $(INTERFACE_FILES)
-	$(swig_verbose)$(SWIG) -I$(top_srcdir)/src \
-                  -I$(srcdir) -I$(builddir) \
+	$(swig_verbose)$(SWIG) \
+                  -I$(top_srcdir)/src \
+                  -I$(srcdir) \
+                  -I$(builddir) \
                   $(RNA_CPPFLAGS) \
-                  -perl5 -proxy -const -c++ \
-                  -module RNA -o $(SWIG_wrapper) \
+                  -perl5 \
+                  -proxy \
+                  -const \
+                  -c++ \
+                  -w509 \
+                  -module RNA \
+                  -o $(SWIG_wrapper) \
                   $(SWIG_main_src)
 
 endif
