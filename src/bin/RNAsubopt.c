@@ -450,6 +450,9 @@ main(int  argc,
       mfe = vrna_mfe(vc, structure);
       /* rescale Boltzmann factors according to predicted MFE */
       vrna_exp_params_rescale(vc, &mfe);
+
+      vrna_mx_mfe_free(vc);
+
       /* ignore return value, we are not interested in the free energy */
       ens_en  = vrna_pf(vc, structure);
       kT      = vc->exp_params->kT / 1000.;
