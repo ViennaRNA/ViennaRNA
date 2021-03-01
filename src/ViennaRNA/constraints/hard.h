@@ -376,9 +376,6 @@ struct vrna_hc_s {
   union {
     struct {
 #endif
-      unsigned char *matrix;     /**<  @brief  Upper triangular matrix that encodes where a
-                                  *            base pair or unpaired nucleotide is allowed
-                                  */
       unsigned char *mx;
 #ifndef VRNA_DISABLE_C11_FEATURES
     };
