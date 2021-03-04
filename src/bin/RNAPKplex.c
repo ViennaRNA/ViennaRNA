@@ -19,6 +19,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/units.h"
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/plotting/probabilities.h"
@@ -218,11 +219,27 @@ main(int  argc,
        # do Plex computations
        ########################################################
        */
-      int **access = vrna_PKplex_accessibilities(s1, unpaired, cutoff);
+      int **access = vrna_pk_plex_accessibility(s1, unpaired, cutoff);
 
       if (verbose)
         printf("EnergyCutoff = %f\n", pk_penalty);
 
+#if 1
+      vrna_fold_compound_t  *fc;
+      vrna_pk_plex_opt_t    pk_plex_options;
+
+      fc = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT);
+
+
+      pk_plex_options = vrna_pk_plex_opt((unsigned int)vrna_convert_kcal_to_dcal(subopts),
+                                         MIN2(12, length - 3),
+                                         (unsigned int)vrna_convert_kcal_to_dcal(pk_penalty));
+      hits = vrna_pk_plex(fc,
+                          (const int **)access,
+                          pk_plex_options);
+
+      vrna_fold_compound_free(fc);
+#else
       hits  = PKLduplexfold_XS(s1,
                                (const int **)access,
                                (int)(-pk_penalty * 100) - 1,
@@ -280,7 +297,7 @@ main(int  argc,
           double best_e = hit_ptr->energy +
                           mfe +
                           pk_penalty +
-                          MAX2(hit_ptr->dG1, hit_ptr->dG2);
+                          MIN2(hit_ptr->dG1, hit_ptr->dG2);
 
           if (best_e <= mfe_pk + subopts) {
             /* now for the exact evaluation of the structures energy incl. PKs */
@@ -357,10 +374,25 @@ main(int  argc,
       /* now sort the actual results again according to their energy */
 
       qsort(hits, NumberOfHits, sizeof(vrna_pkplex_t), PlexHit_cmp_active_energy);
+#endif
 
       /* and print the results to stdout */
-      for (hit_ptr = hits; !hit_ptr->inactive; hit_ptr++)
-        printf("%s (%6.2f)\n", hit_ptr->structure, hit_ptr->energy);
+      for (hit_ptr = hits; !hit_ptr->inactive; hit_ptr++) {
+          if (verbose) {
+            printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
+                    hit_ptr->structure,
+                    hit_ptr->tb,
+                    hit_ptr->te,
+                    hit_ptr->qb,
+                    hit_ptr->qe,
+                    hit_ptr->ddG,
+                    hit_ptr->energy,
+                    hit_ptr->dG1,
+                    hit_ptr->dG2);
+          } else {
+            printf("%s (%6.2f)\n", hit_ptr->structure, hit_ptr->energy);
+          }
+      }
 
       /*
        ########################################################
