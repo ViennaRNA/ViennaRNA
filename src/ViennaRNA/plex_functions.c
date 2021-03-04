@@ -41,7 +41,6 @@
 #define DEFAULT_DELTA               0
 #define DEFAULT_INTERACTION_LENGTH  12
 
-#define WITH_HEAP
 
 struct vrna_pk_plex_option_s {
   unsigned int                delta;
@@ -81,11 +80,7 @@ default_pk_plex_penalty(const short *pt,
                         void        *data);
 
 
-#ifdef WITH_HEAP
 PRIVATE vrna_heap_t
-#else
-PRIVATE vrna_pkplex_t *
-#endif
 duplexfold_XS(vrna_fold_compound_t        *fc,
               const int                   **access_s1,
               const int                   max_interaction_length,
@@ -108,28 +103,14 @@ prepare_PKplex(vrna_fold_compound_t *fc);
 
 
 PRIVATE int
-PlexHit_cmp(const void  *c1,
-            const void  *c2);
-
-
-PRIVATE int
-PlexHit_cmp_energy(const void *c1,
-                   const void *c2);
-
+PKplex_heap_cmp(const void *a,
+                const void *b,
+                void       *data);
 
 PRIVATE int
-PlexHit_cmp_active_energy(const void *c1,
-                          const void *c2);
-
-PRIVATE
-int PKplex_heap_cmp(const void *a,
-                    const void *b,
-                    void       *data);
-
-PRIVATE
-int PKplex_heap_result_cmp(const void *a,
-                           const void *b,
-                           void       *data);
+PKplex_heap_result_cmp(const void *a,
+                       const void *b,
+                       void       *data);
 
 /*
  #################################
@@ -189,23 +170,17 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
              const int            **accessibility,
              vrna_pk_plex_opt_t   user_options)
 {
-  char *mfe_struct, *constraint;
-  int i;
-  double mfe, mfe_pk, constrainedEnergy, pk_penalty, subopts;
-  size_t  NumberOfHits;
-
-  vrna_pkplex_t       *hits, *hit_ptr;
+  size_t              cnt;
+  char                *mfe_struct, *constraint;
+  int                 i;
+  double              mfe, mfe_pk, constrainedEnergy, pk_penalty, subopts;
   default_data        scoring_dat;
+  vrna_pkplex_t       *hits, *hit_ptr, *ptr, *mfe_entry;
   vrna_pk_plex_opt_t  options;
-#ifdef WITH_HEAP
   vrna_heap_t         interactions, results;
-#else
-  vrna_pkplex_t       *interactions;
-#endif
 
-  hits  = NULL;
+  hits    = NULL;
   results = NULL;
-
 
   if ((fc) &&
       (accessibility)) {
@@ -229,26 +204,15 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
                          options->scoring_function,
                          options->scoring_data);
 
-    NumberOfHits = 0;
-
     pk_penalty = ((double)options->scoring_function(NULL, 0, 0, 0, 0, options->scoring_data) / 100.);
     subopts     = ((double)options->delta / 100.);
 
-#ifdef WITH_HEAP
     if (vrna_heap_size(interactions) > 0) {
       results = vrna_heap_init(vrna_heap_size(interactions) + 2,
                                            PKplex_heap_result_cmp,
                                             NULL,
                                             NULL,
                                             NULL);
-#else
-    if (interactions) {
-      for (hit_ptr = interactions; hit_ptr->structure; hit_ptr++)
-        NumberOfHits++;
-
-      /* first sort all the pre-results descending by their estimated energy */
-      qsort(interactions, NumberOfHits, sizeof(vrna_pkplex_t), PlexHit_cmp);
-#endif
 
       /*  now we re-evaluate the energies and thereby prune the list of pre-results
       *  such that the re-avaluation process is not done too often.
@@ -256,11 +220,7 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
 
       constraint  = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
 
-#ifdef WITH_HEAP
-      while (hit_ptr = vrna_heap_pop(interactions)) {
-#else
-      for (hit_ptr = interactions; hit_ptr->structure; hit_ptr++) {
-#endif
+      while ((hit_ptr = vrna_heap_pop(interactions))) {
         /*
         * simple check whether we believe that this structure might achieve
         * a net free energy within our boundaries
@@ -312,27 +272,22 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
             hit_ptr->processed = 1;
             hit_ptr->inactive  = 0;
 
-#ifdef WITH_HEAP
             vrna_heap_insert(results, hit_ptr);
-#endif
+
             constraint = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
             continue;
           }
         }
 
-#ifdef WITH_HEAP
         free(hit_ptr->structure);
         free(hit_ptr);
-#else
-        hit_ptr->inactive = 1;
-#endif
       }
 
       free(constraint);
     }
 
-#ifdef WITH_HEAP
-    vrna_pkplex_t *mfe_entry = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t));
+    /* Add the PK-free MFE as potential result */
+    mfe_entry = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t));
 
     mfe_entry->structure = mfe_struct;
     mfe_entry->energy    = mfe;
@@ -346,19 +301,8 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
                                NULL,
                                NULL);
     }
-    vrna_heap_insert(results, (void *)mfe_entry);
 
-#else
-    /* add the MFE structure without PKs to list */
-    hits = (vrna_pkplex_t *)vrna_realloc(interactions, sizeof(vrna_pkplex_t) * (NumberOfHits + 2));
-    hits[NumberOfHits].structure  = mfe_struct;
-    hits[NumberOfHits].energy     = mfe;
-    hits[NumberOfHits].tb         = 0;
-    hits[NumberOfHits++].inactive = 0;
-    hits[NumberOfHits].structure  = NULL;
-    hits[NumberOfHits].energy     = (double)INF * 0.01;
-    hits[NumberOfHits].inactive   = 1;
-#endif
+    vrna_heap_insert(results, (void *)mfe_entry);
 
     /*
     * now go through the active hits again and filter those out that are above
@@ -366,11 +310,8 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
     * been processing the list once we always compared against the best known
     * pk-MFE. But this value might have changed during processing.
     */
-#ifdef WITH_HEAP
-    size_t  cnt = 0;
-    vrna_pkplex_t *ptr;
-
-    hits = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t) * (vrna_heap_size(results) + 1));
+    cnt   = 0;
+    hits  = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t) * (vrna_heap_size(results) + 1));
     /* collect all final results */
     while((ptr = vrna_heap_pop(results))) {
       if (ptr->energy > mfe_pk + subopts)
@@ -391,16 +332,7 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
     /* cleanup the heap storages */
     vrna_heap_free(interactions);
     vrna_heap_free(results);
-#else
-    for (hit_ptr = hits; hit_ptr->structure; hit_ptr++) {
-      if ((!hit_ptr->inactive) &&
-          (hit_ptr->energy > mfe_pk + subopts))
-        hit_ptr->inactive = 1;
-    }
 
-    /* now sort the actual results again according to their energy */
-    qsort(hits, NumberOfHits, sizeof(vrna_pkplex_t), PlexHit_cmp_active_energy);
-#endif
     if (options != user_options)
       free(options);
   }
@@ -418,13 +350,9 @@ PKLduplexfold_XS(const char *s1,
   vrna_fold_compound_t  *fc;
   vrna_pkplex_t         *hits;
   default_data          scoring_dat;
-#ifdef WITH_HEAP
   size_t                cnt;
   vrna_heap_t           interactions;
   vrna_pkplex_t         *entry;
-#else
-  vrna_pkplex_t         *interactions;
-#endif
 
   hits = NULL;
 
@@ -442,7 +370,6 @@ PKLduplexfold_XS(const char *s1,
                          &default_pk_plex_penalty,
                          (void *)&scoring_dat);
 
-#ifdef WITH_HEAP
     cnt  = 0;
     hits = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t) * (vrna_heap_size(interactions) + 2));
     while((entry = vrna_heap_pop(interactions)))
@@ -450,10 +377,8 @@ PKLduplexfold_XS(const char *s1,
 
     hits[cnt].inactive   = 1;
     hits[cnt].structure  = NULL;
-#else
-    hits = interactions;
-#endif
 
+    vrna_heap_free(interactions);
     vrna_fold_compound_free(fc);
   }
 
@@ -534,7 +459,7 @@ PRIVATE int ***
 get_array(unsigned int n,
           unsigned int interaction_length)
 {
-  unsigned int  i, j, k;
+  unsigned int  i, j;
   int           ***c3;
 
   c3 = (int ***)vrna_alloc(sizeof(int **) * (n));
@@ -597,14 +522,12 @@ prepare_PKplex(vrna_fold_compound_t *fc)
 
   /* prepare soft constraints data structure, if required */
   vrna_sc_prepare(fc, VRNA_OPTION_MFE);
+
+  return 1;
 }
 
 
-#ifdef WITH_HEAP
 PRIVATE vrna_heap_t
-#else
-PRIVATE vrna_pkplex_t *
-#endif
 duplexfold_XS(vrna_fold_compound_t        *fc,
               const int                   **access_s1,
               const int                   max_interaction_length,
@@ -613,21 +536,16 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
 {
   char          *struc;
   short         *S, *S1, si, sk, sl, sp, sq;
-  size_t        storage_size, storage_fill;
   unsigned int  n, type, type2, type3;
   int           ***c3, i, j, k, l, p, q, Emin, l_min, k_min, j_min, E,
-                tempK, *rtype, i_pos_begin, j_pos_end, dGx, dGy, inter,
+                tempK, i_pos_begin, j_pos_end, dGx, dGy, inter,
                 turn, penalty;
 
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
-#ifdef WITH_HEAP
   vrna_heap_t   storage;
   vrna_pkplex_t *entry;
-#else
-  vrna_pkplex_t *storage;
-#endif
 
   vrna_callback_hc_evaluate *evaluate_ext;
   struct default_data       hc_dat_local;
@@ -639,21 +557,14 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
   P       = fc->params;
   md      = &(P->model_details);
   turn    = md->min_loop_size;
-  rtype   = &(md->rtype[0]);
   hc      = fc->hc;
   penalty = scoring_function(NULL, 0, 0, 0, 0, scoring_data);
 
-#ifdef WITH_HEAP
   storage = vrna_heap_init(128,
                            PKplex_heap_cmp,
                            NULL,
                            NULL,
                            NULL);
-#else
-  storage_size  = 64;
-  storage_fill  = 0;
-  storage       = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t) * storage_size);
-#endif
 
   evaluate_ext  = prepare_hc_default(fc, &hc_dat_local);
 
@@ -767,7 +678,6 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
         dGy   = access_s1[l_min - j_min + 1][l_min];
         inter = Emin - dGx - dGy;
 
-#ifdef WITH_HEAP
         entry = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t));
         entry->tb        = k_min;
         entry->te        = i;
@@ -782,49 +692,11 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
         entry->processed = 0;
 
         vrna_heap_insert(storage, entry);
-#else
-        storage[storage_fill].tb        = k_min;
-        storage[storage_fill].te        = i;
-        storage[storage_fill].qb        = j_min;
-        storage[storage_fill].qe        = l_min;
-        storage[storage_fill].ddG       = (double)Emin * 0.01;
-        storage[storage_fill].dG1       = (double)dGx * 0.01;
-        storage[storage_fill].dG2       = (double)dGy * 0.01;
-        storage[storage_fill].energy    = (double)inter * 0.01;
-        storage[storage_fill].structure = struc;
-        storage[storage_fill].inactive  = 0;
-        storage[storage_fill].processed = 0;
-
-        storage_fill++;
-
-        if (storage_fill == storage_size - 1) {
-          storage_size *= 1.4;
-          storage       = (vrna_pkplex_t *)vrna_realloc(storage,
-                                                        sizeof(vrna_pkplex_t) *
-                                                        storage_size);
-        }
-#endif
       }
     }
   }
 
   free_array(c3, n, max_interaction_length);
-
-#ifndef WITH_HEAP
-  /* resize to space actually required */
-  if (storage_fill > 0) {
-    storage = (vrna_pkplex_t *)vrna_realloc(storage,
-                                            sizeof(vrna_pkplex_t) *
-                                            (storage_fill + 1));
-
-    /* add end-of-list identifier */
-    storage[storage_fill].structure = NULL;
-    storage[storage_fill].inactive  = 1;
-  } else {
-    free(storage);
-    storage = NULL;
-  }
-#endif
 
   return storage;
 }
@@ -931,53 +803,6 @@ backtrack_XS(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE int
-PlexHit_cmp(const void  *c1,
-            const void  *c2)
-{
-  dupVar  *p1 = (dupVar *)c1;
-  dupVar  *p2 = (dupVar *)c2;
-
-  return p1->ddG >= p2->ddG;
-}
-
-
-PRIVATE int
-PlexHit_cmp_energy(const void *c1,
-                   const void *c2)
-{
-  dupVar  *p1 = (dupVar *)c1;
-  dupVar  *p2 = (dupVar *)c2;
-
-  if (p1->energy > p2->energy)
-    return 1;
-  else if (p1->energy < p2->energy)
-    return -1;
-
-  return 0;
-}
-
-PRIVATE int
-PlexHit_cmp_active_energy(const void *c1,
-                          const void *c2)
-{
-  dupVar  *p1 = (dupVar *)c1;
-  dupVar  *p2 = (dupVar *)c2;
-
-  if (p1->inactive > p2->inactive) {
-    return 1;
-  } else if (p1->inactive < p2->inactive) {
-    return -1;
-  } else if (!p2->inactive) {
-    if (p1->energy < p2->energy)
-      return -1;
-    else if (p1->energy > p2->energy)
-      return 1;
-  }
-
-  return 0;
-}
-
 PRIVATE
 int PKplex_heap_cmp(const void *a,
                     const void *b,
@@ -988,6 +813,7 @@ int PKplex_heap_cmp(const void *a,
 
   return p1->ddG >= p2->ddG;
 }
+
 
 PRIVATE
 int PKplex_heap_result_cmp(const void *a,
