@@ -311,7 +311,7 @@ def __repr__(self):
 %rename(params_load_from_string)                my_params_load_from_string;
 %rename(params_load_RNA_Turner2004)             vrna_params_load_RNA_Turner2004;
 %rename(params_load_RNA_Turner1999)             vrna_params_load_RNA_Turner1999;
-%rename(params_load_RNA_Andronsecu2007)         vrna_params_load_RNA_Andronsecu2007;
+%rename(params_load_RNA_Andronescu2007)         vrna_params_load_RNA_Andronescu2007;
 %rename(params_load_RNA_Langdon2018)            vrna_params_load_RNA_Langdon2018;
 %rename(params_load_RNA_misc_special_hairpins)  vrna_params_load_RNA_misc_special_hairpins;
 %rename(params_load_DNA_Mathews2004)            vrna_params_load_DNA_Mathews2004;
