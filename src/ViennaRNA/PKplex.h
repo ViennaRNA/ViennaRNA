@@ -1,25 +1,42 @@
-#ifndef PKPLEX_H
-#define PKPLEX_H
+#ifndef VIENNA_RNA_PACKAGE_PKPLEX_DEPRECATED_H
+#define VIENNA_RNA_PACKAGE_PKPLEX_DEPRECATED_H
+
+/**
+ *  @file ViennaRNA/utils.h
+ *  @brief      Use ViennaRNA/utils/basic.h instead
+ *  @deprecated Use ViennaRNA/utils/basic.h instead
+ */
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+# ifdef VRNA_WARN_DEPRECATED
+#warning "Including deprecated header file <ViennaRNA/PKplex.h>! Use <ViennaRNA/pk_plex.h> instead!"
+# endif
+
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
 
 #include <ViennaRNA/datastructures/basic.h>
 
-extern dupVar *PlexHits;
-extern int    PlexHitsArrayLength;
-extern int    NumberOfHits;
-extern int    verbose;
 
+DEPRECATED(dupVar *
+PKLduplexfold_XS(const char *s1,
+                 const int  **access_s1,
+                 int  penalty,
+                 int  max_interaction_length,
+                 int  delta),
+          "Use vrna_pk_plex() instead!");
 
-/**
- *  \brief 
- */
-dupVar  **PKLduplexfold_XS( const char *s1,
-                            int **access_s1,
-                            const int threshold,
-                            const int alignment_length,
-                            const int delta);
+#include <ViennaRNA/pk_plex.h>
 
-int     arraySize(duplexT **array);
-
-void    freeDuplexT(duplexT **array);
+#endif
 
 #endif

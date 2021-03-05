@@ -127,6 +127,7 @@ pkginclude_HEADERS =  \
     2Dfold.h \
     2Dpfold.h \
     PKplex.h\
+    pk_plex.h\
     ali_plex.h \
     plex.h \
     snofold.h \
