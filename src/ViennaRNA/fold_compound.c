@@ -516,6 +516,9 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
     return 0;
   }
 
+  /* make sure to always provide sane bp-span settings */
+  sanitize_bp_span(fc, options);
+
   /* prepare Boltzmann factors if required */
   vrna_params_prepare(fc, options);
 
