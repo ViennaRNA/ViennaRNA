@@ -40,7 +40,7 @@
 #define DEFAULT_PENALTY             8.10
 #define DEFAULT_DELTA               0
 #define DEFAULT_INTERACTION_LENGTH  12
-
+#define DEFAULT_CUTOFF              1e-3
 
 struct vrna_pk_plex_option_s {
   unsigned int                delta;
@@ -165,25 +165,25 @@ vrna_pk_plex_opt_fun(unsigned int                 delta,
 
 
 
-PUBLIC vrna_pkplex_t *
+PUBLIC vrna_pk_plex_t *
 vrna_pk_plex(vrna_fold_compound_t *fc,
              const int            **accessibility,
              vrna_pk_plex_opt_t   user_options)
 {
   size_t              cnt;
   char                *mfe_struct, *constraint;
-  int                 i;
-  double              mfe, mfe_pk, constrainedEnergy, pk_penalty, subopts;
+  int                 i, **opening_energies;
+  double              mfe, mfe_pk, constrainedEnergy, pk_penalty, subopts, best_e;
   default_data        scoring_dat;
-  vrna_pkplex_t       *hits, *hit_ptr, *ptr, *mfe_entry;
+  vrna_pk_plex_t      *hits, *hit_ptr, *ptr, *mfe_entry;
   vrna_pk_plex_opt_t  options;
   vrna_heap_t         interactions, results;
 
-  hits    = NULL;
-  results = NULL;
+  hits              = NULL;
+  results           = NULL;
+  opening_energies  = NULL;
 
-  if ((fc) &&
-      (accessibility)) {
+  if (fc) {
     mfe_struct = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
 
     mfe = mfe_pk = (double)vrna_mfe(fc, mfe_struct);
@@ -197,9 +197,18 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
       options->scoring_data     = (void *)&scoring_dat;
     }
 
+    /* sanity check for maximum interaction length */
+    options->max_interaction_length = MIN2(DEFAULT_INTERACTION_LENGTH, fc->length - 3);
+
+    /* compute opening energies if not passed as argument */
+    if (!accessibility)
+      opening_energies = vrna_pk_plex_accessibility(fc->sequence,
+                                                    options->max_interaction_length,
+                                                    DEFAULT_CUTOFF);
+
     /* obtain list of potential PK interactions */
     interactions = duplexfold_XS(fc,
-                         accessibility,
+                         (accessibility) ? accessibility : (const int **)opening_energies,
                          options->max_interaction_length,
                          options->scoring_function,
                          options->scoring_data);
@@ -229,7 +238,7 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
         * one of the PK interaction sites. This for now seems a good
         * choice for a lower bound of the actual energy
         */
-        double best_e = hit_ptr->energy +
+        best_e = hit_ptr->dGint +
                         mfe +
                         pk_penalty +
                         MIN2(hit_ptr->dG1, hit_ptr->dG2);
@@ -240,28 +249,47 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
           /* prepare the structure constraint for constrained folding */
           vrna_hc_init(fc);
 
-          for (i = hit_ptr->tb; i <= hit_ptr->te; i++)
+          for (i = hit_ptr->start_5; i <= hit_ptr->end_5; i++)
             vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-          for (i = hit_ptr->qb; i <= hit_ptr->qe; i++)
+          for (i = hit_ptr->start_3; i <= hit_ptr->end_3; i++)
             vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
 
           /* energy evaluation */
           constrainedEnergy = vrna_mfe(fc, constraint);
 
-          /* compute net free energy */
-          hit_ptr->energy += constrainedEnergy +
-                             pk_penalty;
+          if (options->scoring_function != &default_pk_plex_penalty) {
+            short *pt = vrna_ptable(constraint);
+            hit_ptr->dGpk = ((double)options->scoring_function((const short *)pt,
+                                                                hit_ptr->start_5,
+                                                                hit_ptr->end_5,
+                                                                hit_ptr->start_3,
+                                                                hit_ptr->end_3,
+                                                                options->scoring_data) / 100.);
+            free(pt);
+          } else {
+            hit_ptr->dGpk = pk_penalty;
+          }
+
+          /*
+              compute net free energy, i.e.:
+              interaction energy +
+              constrained MFE +
+              pseudo-knot penalty
+          */
+          hit_ptr->energy = hit_ptr->dGint +
+                            constrainedEnergy +
+                            hit_ptr->dGpk;
 
           /* check if this structure is worth keeping */
           if (hit_ptr->energy <= mfe_pk + subopts) {
             /* add pseudo-knot brackets to the structure */
-            for (i = hit_ptr->tb - 1; i < hit_ptr->te; i++)
-              if (hit_ptr->structure[i - hit_ptr->tb + 1] == '(')
+            for (i = hit_ptr->start_5 - 1; i < hit_ptr->end_5; i++)
+              if (hit_ptr->structure[i - hit_ptr->start_5 + 1] == '(')
                 constraint[i] = '[';
 
-            for (i = hit_ptr->qb - 1; i < hit_ptr->qe; i++)
-              if (hit_ptr->structure[i - hit_ptr->qb + 1 + 1 + 1 +
-                                              hit_ptr->te - hit_ptr->tb] == ')')
+            for (i = hit_ptr->start_3 - 1; i < hit_ptr->end_3; i++)
+              if (hit_ptr->structure[i - hit_ptr->start_3 + 1 + 1 + 1 +
+                                              hit_ptr->end_5 - hit_ptr->start_5] == ')')
                 constraint[i] = ']';
 
             if (hit_ptr->energy < mfe_pk)
@@ -269,12 +297,11 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
 
             free(hit_ptr->structure);
             hit_ptr->structure = constraint;
-            hit_ptr->processed = 1;
-            hit_ptr->inactive  = 0;
 
             vrna_heap_insert(results, hit_ptr);
 
             constraint = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
+
             continue;
           }
         }
@@ -287,12 +314,11 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
     }
 
     /* Add the PK-free MFE as potential result */
-    mfe_entry = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t));
+    mfe_entry = (vrna_pk_plex_t *)vrna_alloc(sizeof(vrna_pk_plex_t));
 
     mfe_entry->structure = mfe_struct;
     mfe_entry->energy    = mfe;
-    mfe_entry->tb        = 0;
-    mfe_entry->inactive  = 0;
+    mfe_entry->start_5   = 0;
 
     if (results == NULL) {
       results = vrna_heap_init(1,
@@ -311,7 +337,7 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
     * pk-MFE. But this value might have changed during processing.
     */
     cnt   = 0;
-    hits  = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t) * (vrna_heap_size(results) + 1));
+    hits  = (vrna_pk_plex_t *)vrna_alloc(sizeof(vrna_pk_plex_t) * (vrna_heap_size(results) + 1));
     /* collect all final results */
     while((ptr = vrna_heap_pop(results))) {
       if (ptr->energy > mfe_pk + subopts)
@@ -320,7 +346,7 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
       hits[cnt++] = *ptr;
     }
 
-    hits[cnt].inactive   = 1;
+    /* end of list marker */
     hits[cnt].structure  = NULL;
 
     /* remove intermediate hits that didn't surpass the threshold */
@@ -333,53 +359,15 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
     vrna_heap_free(interactions);
     vrna_heap_free(results);
 
+    if (opening_energies) {
+      i = opening_energies[0][0];
+      while (--i > -1)
+        free(opening_energies[i]);
+      free(opening_energies);
+    }
+
     if (options != user_options)
       free(options);
-  }
-
-  return hits;
-}
-
-PUBLIC vrna_pkplex_t *
-PKLduplexfold_XS(const char *s1,
-                 const int  **access_s1,
-                 int  penalty,
-                 int  max_interaction_length,
-                 int  delta)
-{
-  vrna_fold_compound_t  *fc;
-  vrna_pkplex_t         *hits;
-  default_data          scoring_dat;
-  size_t                cnt;
-  vrna_heap_t           interactions;
-  vrna_pkplex_t         *entry;
-
-  hits = NULL;
-
-  if ((s1) &&
-      (access_s1)) {
-    fc = vrna_fold_compound(s1, NULL, VRNA_OPTION_DEFAULT);
-
-    prepare_PKplex(fc);
-
-    scoring_dat.penalty = -penalty;
-
-    interactions = duplexfold_XS(fc,
-                         access_s1,
-                         max_interaction_length,
-                         &default_pk_plex_penalty,
-                         (void *)&scoring_dat);
-
-    cnt  = 0;
-    hits = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t) * (vrna_heap_size(interactions) + 2));
-    while((entry = vrna_heap_pop(interactions)))
-      hits[cnt++] = *entry;
-
-    hits[cnt].inactive   = 1;
-    hits[cnt].structure  = NULL;
-
-    vrna_heap_free(interactions);
-    vrna_fold_compound_free(fc);
   }
 
   return hits;
@@ -433,6 +421,10 @@ vrna_pk_plex_accessibility(const char    *sequence,
     a[0][0] = unpaired + 2;
 
     vrna_fold_compound_free(fc);
+
+    for (i = 0; i <= n; i++)
+      free(pup[i]);
+    free(pup);
   }
 
   return a;
@@ -545,7 +537,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_heap_t   storage;
-  vrna_pkplex_t *entry;
+  vrna_pk_plex_t *entry;
 
   vrna_callback_hc_evaluate *evaluate_ext;
   struct default_data       hc_dat_local;
@@ -678,18 +670,16 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
         dGy   = access_s1[l_min - j_min + 1][l_min];
         inter = Emin - dGx - dGy;
 
-        entry = (vrna_pkplex_t *)vrna_alloc(sizeof(vrna_pkplex_t));
-        entry->tb        = k_min;
-        entry->te        = i;
-        entry->qb        = j_min;
-        entry->qe        = l_min;
-        entry->ddG       = (double)Emin * 0.01;
+        entry = (vrna_pk_plex_t *)vrna_alloc(sizeof(vrna_pk_plex_t));
+        entry->start_5   = k_min;
+        entry->end_5     = i;
+        entry->start_3   = j_min;
+        entry->end_3     = l_min;
+        entry->energy    = (double)Emin * 0.01;
         entry->dG1       = (double)dGx * 0.01;
         entry->dG2       = (double)dGy * 0.01;
-        entry->energy    = (double)inter * 0.01;
+        entry->dGint     = (double)inter * 0.01;
         entry->structure = struc;
-        entry->inactive  = 0;
-        entry->processed = 0;
 
         vrna_heap_insert(storage, entry);
       }
@@ -808,20 +798,8 @@ int PKplex_heap_cmp(const void *a,
                     const void *b,
                     void       *data)
 {
-  dupVar  *p1 = (dupVar *)a;
-  dupVar  *p2 = (dupVar *)b;
-
-  return p1->ddG >= p2->ddG;
-}
-
-
-PRIVATE
-int PKplex_heap_result_cmp(const void *a,
-                           const void *b,
-                           void       *data)
-{
-  dupVar  *p1 = (dupVar *)a;
-  dupVar  *p2 = (dupVar *)b;
+  vrna_pk_plex_t  *p1 = (vrna_pk_plex_t *)a;
+  vrna_pk_plex_t  *p2 = (vrna_pk_plex_t *)b;
 
   if (p1->energy > p2->energy)
     return 1;
@@ -830,3 +808,86 @@ int PKplex_heap_result_cmp(const void *a,
 
   return 0;
 }
+
+
+PRIVATE
+int PKplex_heap_result_cmp(const void *a,
+                           const void *b,
+                           void       *data)
+{
+  vrna_pk_plex_t  *p1 = (vrna_pk_plex_t *)a;
+  vrna_pk_plex_t  *p2 = (vrna_pk_plex_t *)b;
+
+  if (p1->energy > p2->energy)
+    return 1;
+  else if (p1->energy < p2->energy)
+    return -1;
+
+  return 0;
+}
+
+/*###########################################*/
+/*# deprecated functions below              #*/
+/*###########################################*/
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+PUBLIC dupVar *
+PKLduplexfold_XS(const char *s1,
+                 const int  **access_s1,
+                 int  penalty,
+                 int  max_interaction_length,
+                 int  delta)
+{
+  vrna_fold_compound_t  *fc;
+  dupVar                *hits;
+  default_data          scoring_dat;
+  size_t                cnt;
+  vrna_heap_t           interactions;
+  vrna_pk_plex_t        *entry;
+
+  hits = NULL;
+
+  if ((s1) &&
+      (access_s1)) {
+    fc = vrna_fold_compound(s1, NULL, VRNA_OPTION_DEFAULT);
+
+    prepare_PKplex(fc);
+
+    scoring_dat.penalty = -penalty;
+
+    interactions = duplexfold_XS(fc,
+                         access_s1,
+                         max_interaction_length,
+                         &default_pk_plex_penalty,
+                         (void *)&scoring_dat);
+
+    cnt  = 0;
+    hits = (dupVar *)vrna_alloc(sizeof(dupVar) * (vrna_heap_size(interactions) + 2));
+    while((entry = vrna_heap_pop(interactions))) {
+      hits[cnt].structure = entry->structure;
+      hits[cnt].tb = entry->start_5;
+      hits[cnt].te = entry->end_5;
+      hits[cnt].qb = entry->start_3;
+      hits[cnt].qe = entry->end_3;
+      hits[cnt].ddG = entry->energy;
+      hits[cnt].dG1 = entry->dG1;
+      hits[cnt].dG2 = entry->dG2;
+      hits[cnt].energy = entry->dGint;
+      hits[cnt].inactive = 0;
+      hits[cnt].processed = 0;
+      free(entry);
+      cnt++;
+    }
+
+    hits[cnt].inactive   = 1;
+    hits[cnt].structure  = NULL;
+
+    vrna_heap_free(interactions);
+    vrna_fold_compound_free(fc);
+  }
+
+  return hits;
+}
+
+#endif

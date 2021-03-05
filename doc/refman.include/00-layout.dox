@@ -212,7 +212,10 @@ formats, and various output file formats produced by our library.
 @defgroup   constraints_ligand        Incorporating Ligands Binding to Specific Sequence/Structure Motifs using Soft Constraints
 @ingroup    ligand_binding
 
-@defgroup   paired_modules            Complex Structured Modules
+@defgroup   paired_modules            Structure Modules and Pseudoknots
+
+@defgroup   pseudoknots               Pseudoknots
+@ingroup    paired_modules
 
 @defgroup   gquads                    G-Quadruplexes
 @ingroup    paired_modules

@@ -27,7 +27,7 @@
 #include <ViennaRNA/datastructures/basic.h>
 
 
-DEPRECATED(vrna_pkplex_t *
+DEPRECATED(dupVar *
 PKLduplexfold_XS(const char *s1,
                  const int  **access_s1,
                  int  penalty,

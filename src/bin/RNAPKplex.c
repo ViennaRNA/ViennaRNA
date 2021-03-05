@@ -209,7 +209,7 @@ main(int  argc,
      ########################################################
      */
     if (length >= 5) {
-      vrna_pkplex_t *hits, *hit_ptr;
+      vrna_pk_plex_t *hits, *hit_ptr;
 
       if (verbose)
         printf("Winsize = %d\nPairdist = %d\nUnpaired = %d\n", winsize, pairdist, unpaired);
@@ -224,7 +224,6 @@ main(int  argc,
       if (verbose)
         printf("EnergyCutoff = %f\n", pk_penalty);
 
-#if 1
       vrna_fold_compound_t  *fc;
       vrna_pk_plex_opt_t    pk_plex_options;
 
@@ -239,156 +238,20 @@ main(int  argc,
                           pk_plex_options);
 
       vrna_fold_compound_free(fc);
-#else
-      hits  = PKLduplexfold_XS(s1,
-                               (const int **)access,
-                               (int)(-pk_penalty * 100) - 1,
-                               MIN2(12, length - 3),
-                               0);
-
-      /*
-       ########################################################
-       # analyze Plex output
-       ########################################################
-       */
-      size_t  NumberOfHits;
-      char    *mfe_struct;
-      double  mfe, mfe_pk;
-      vrna_fold_compound_t  *fc;
-
-      NumberOfHits  = 0;
-      mfe_struct    = (char *)vrna_alloc(sizeof(char) * (length + 1));
-
-      fc  = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT);
-      mfe = mfe_pk = vrna_mfe(fc, mfe_struct);
-
-      if (hits) {
-        for (hit_ptr = hits; hit_ptr->structure; hit_ptr++) {
-          /* output: */
-          if (verbose) {
-            printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
-                    hit_ptr->structure,
-                    hit_ptr->tb,
-                    hit_ptr->te,
-                    hit_ptr->qb,
-                    hit_ptr->qe,
-                    hit_ptr->ddG,
-                    hit_ptr->energy,
-                    hit_ptr->dG1,
-                    hit_ptr->dG2);
-          }
-          NumberOfHits++;
-        }
-
-        /* first sort all the pre-results descending by their estimated energy */
-        qsort(hits, NumberOfHits, sizeof(vrna_pkplex_t), PlexHit_cmp);
-
-        /*  now we re-evaluate the energies and thereby prune the list of pre-results
-        *  such that the re-avaluation process is not done too often.
-        */
-
-        constraint  = (char *)vrna_alloc(sizeof(char) * (length + 1));
-
-        for (hit_ptr = hits; hit_ptr->structure; hit_ptr++) {
-          /*
-          * simple check whether we believe that this structure might achieve
-          * a net free energy within our boundaries
-          */
-          double best_e = hit_ptr->energy +
-                          mfe +
-                          pk_penalty +
-                          MIN2(hit_ptr->dG1, hit_ptr->dG2);
-
-          if (best_e <= mfe_pk + subopts) {
-            /* now for the exact evaluation of the structures energy incl. PKs */
-
-            /* prepare the structure constraint for constrained folding */
-            vrna_hc_init(fc);
-
-            for (i = hit_ptr->tb; i <= hit_ptr->te; i++)
-              vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-            for (i = hit_ptr->qb; i <= hit_ptr->qe; i++)
-              vrna_hc_add_up(fc, i, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS);
-
-            /* energy evaluation */
-            constrainedEnergy = vrna_mfe(fc, constraint);
-
-            /* compute net free energy */
-            hit_ptr->energy += constrainedEnergy +
-                               pk_penalty;
-
-            /* check if this structure is worth keeping */
-            if (hit_ptr->energy <= mfe_pk + subopts) {
-              /* add pseudo-knot brackets to the structure */
-              for (i = hit_ptr->tb - 1; i < hit_ptr->te; i++)
-                if (hit_ptr->structure[i - hit_ptr->tb + 1] == '(')
-                  constraint[i] = '[';
-
-              for (i = hit_ptr->qb - 1; i < hit_ptr->qe; i++)
-                if (hit_ptr->structure[i - hit_ptr->qb + 1 + 1 + 1 +
-                                                hit_ptr->te - hit_ptr->tb] == ')')
-                  constraint[i] = ']';
-
-              if (hit_ptr->energy < mfe_pk)
-                mfe_pk = hit_ptr->energy;
-
-              free(hit_ptr->structure);
-              hit_ptr->structure = constraint;
-              hit_ptr->processed = 1;
-              hit_ptr->inactive  = 0;
-
-              constraint = (char *)vrna_alloc(sizeof(char) * (length + 1));
-              continue;
-            }
-          }
-
-          hit_ptr->inactive = 1;
-        }
-
-        free(constraint);
-        constraint = NULL;
-        vrna_fold_compound_free(fc);
-      }
-
-      /* add the MFE structure without PKs to list */
-      hits = (vrna_pkplex_t *)vrna_realloc(hits, sizeof(vrna_pkplex_t) * (NumberOfHits + 2));
-      hits[NumberOfHits].structure  = mfe_struct;
-      hits[NumberOfHits].energy     = mfe;
-      hits[NumberOfHits].tb         = 0;
-      hits[NumberOfHits++].inactive = 0;
-      hits[NumberOfHits].structure  = NULL;
-      hits[NumberOfHits].energy     = (double)INF * 0.01;
-      hits[NumberOfHits].inactive   = 1;
-
-      /*
-      * now go through the active hits again and filter those out that are above
-      * the subopt threshold
-      */
-      for (hit_ptr = hits; hit_ptr->structure; hit_ptr++) {
-        if ((!hit_ptr->inactive) &&
-            (hit_ptr->energy > mfe_pk + subopts))
-          hit_ptr->inactive = 1;
-      }
-
-
-      /* now sort the actual results again according to their energy */
-
-      qsort(hits, NumberOfHits, sizeof(vrna_pkplex_t), PlexHit_cmp_active_energy);
-#endif
 
       /* and print the results to stdout */
-      for (hit_ptr = hits; !hit_ptr->inactive; hit_ptr++) {
+      for (hit_ptr = hits; hit_ptr->structure; hit_ptr++) {
           if (verbose) {
             printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
                     hit_ptr->structure,
-                    hit_ptr->tb,
-                    hit_ptr->te,
-                    hit_ptr->qb,
-                    hit_ptr->qe,
-                    hit_ptr->ddG,
+                    hit_ptr->start_5,
+                    hit_ptr->end_5,
+                    hit_ptr->start_3,
+                    hit_ptr->end_3,
                     hit_ptr->energy,
-                    hit_ptr->dG1,
-                    hit_ptr->dG2);
+                    hit_ptr->energy - hit_ptr->dGint - hit_ptr->dGpk,
+                    hit_ptr->dGint,
+                    hit_ptr->dGpk);
           } else {
             printf("%s (%6.2f)\n", hit_ptr->structure, hit_ptr->energy);
           }
@@ -402,20 +265,20 @@ main(int  argc,
 
       /* make an EPS layout file for the MFE structure, i.e. first in the list */
       hit_ptr = hits;
-      if (hit_ptr->tb > 0) { /* true hit with PK */
-        annotation = vrna_strdup_printf("%d %d 13 1 0 0 omark\n"
-                                        "%d %d 13 1 0 0 omark\n"
+      if (hit_ptr->start_5 > 0) { /* true hit with PK */
+        annotation = vrna_strdup_printf("%u %u 13 1 0 0 omark\n"
+                                        "%u %u 13 1 0 0 omark\n"
                                         "0 0 2 setrgbcolor\n"
                                         "2 setlinewidth\n"
-                                        "%d cmark\n"
-                                        "%d cmark\n"
+                                        "%u cmark\n"
+                                        "%u cmark\n"
                                         "1 setlinewidth",
-                                        (int)hit_ptr->tb,
-                                        hit_ptr->te,
-                                        (int)hit_ptr->qb,
-                                        hit_ptr->qe,
-                                        hit_ptr->tb,
-                                        hit_ptr->qe);
+                                        hit_ptr->start_5,
+                                        hit_ptr->end_5,
+                                        hit_ptr->start_3,
+                                        hit_ptr->end_3,
+                                        hit_ptr->start_5,
+                                        hit_ptr->end_3);
         vrna_file_PS_rnaplot_a(s1, hit_ptr->structure, fname, annotation, "", &md);
         free(annotation);
         annotation = NULL;
