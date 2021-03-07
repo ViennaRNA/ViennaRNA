@@ -3,7 +3,7 @@
 
 /**
  *  @file pk_plex.h
- *  @ingroup  pseudoknots 
+ *  @ingroup  pseudoknots
  *  @brief    Heuristics for two-step pseudoknot forming interaction predictions
  */
 
@@ -55,14 +55,14 @@ typedef int (vrna_callback_pk_plex_score)(const short *pt,
  *  @see  vrna_pk_plex_opt_defaults(), vrna_pk_plex_opt(), vrna_pk_plex_opt_fun(),
  *        vrna_pk_plex(), #vrna_callback_pk_plex_score
  */
-typedef struct vrna_pk_plex_option_s  *vrna_pk_plex_opt_t;
+typedef struct vrna_pk_plex_option_s *vrna_pk_plex_opt_t;
 
 /**
  *  @brief  Convenience typedef for results of the RNA PKplex prediction
  *
  *  @see #vrna_pk_plex_results_s, vrna_pk_plex()
  */
-typedef struct vrna_pk_plex_result_s  vrna_pk_plex_t;
+typedef struct vrna_pk_plex_result_s vrna_pk_plex_t;
 
 #include <ViennaRNA/fold_compound.h>
 
@@ -130,9 +130,10 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
  *  @return           Opening energies as required for vrna_pk_plex()
  */
 int **
-vrna_pk_plex_accessibility(const char    *sequence,
-                           unsigned int  unpaired,
-                           double        cutoff);
+vrna_pk_plex_accessibility(const char   *sequence,
+                           unsigned int unpaired,
+                           double       cutoff);
+
 
 /**
  *  @brief  Default options for PKplex algorithm
@@ -158,7 +159,7 @@ vrna_pk_plex_opt_defaults(void);
 vrna_pk_plex_opt_t
 vrna_pk_plex_opt(unsigned int delta,
                  unsigned int max_interaction_length,
-                 int      pk_penalty);
+                 int          pk_penalty);
 
 
 /**
@@ -177,6 +178,7 @@ vrna_pk_plex_opt_fun(unsigned int                 delta,
                      unsigned int                 max_interaction_length,
                      vrna_callback_pk_plex_score  *scoring_function,
                      void                         *scoring_data);
+
 
 /**
  * @}
