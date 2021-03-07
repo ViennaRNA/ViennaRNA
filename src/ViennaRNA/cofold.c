@@ -78,7 +78,7 @@ PRIVATE float                 mfe1, mfe2; /* minimum free energies of the monome
  #################################
  */
 
-PRIVATE void
+PRIVATE int
 backtrack(sect                  bt_stack[],
           vrna_bp_stack_t       *bp_list,
           vrna_fold_compound_t  *vc);
@@ -353,8 +353,19 @@ fill_arrays(vrna_fold_compound_t  *vc,
     mfe1  = my_f5[se[so[0]]];
     mfe2  = my_fc[length];
     /* add DuplexInit, check whether duplex*/
-    for (i = ss[so[1]]; i <= length; i++)
-      my_f5[i] = MIN2(my_f5[i] + P->DuplexInit, my_fc[i] + my_fc[1]);
+    for (i = ss[so[1]]; i <= length; i++) {
+      if (my_f5[i] != INF)
+        my_f5[i] += P->DuplexInit;
+
+      if ((my_fc[i] != INF) &&
+          (my_fc[1] != INF)) {
+        energy  = my_fc[i] +
+                  my_fc[1];
+
+        if (energy < my_f5[i])
+          my_f5[i] = energy;
+      }
+    }
   }
 
   energy = my_f5[length];
@@ -373,7 +384,7 @@ fill_arrays(vrna_fold_compound_t  *vc,
 }
 
 
-PRIVATE void
+PRIVATE int
 backtrack_co(sect                 bt_stack[],
              vrna_bp_stack_t      *bp_list,
              int                  s,
@@ -387,7 +398,7 @@ backtrack_co(sect                 bt_stack[],
    *  ------------------------------------------------------------------*/
 
   unsigned int  *se, *so;
-  int           i, j, ij, k, length, no_close, type;
+  int           i, j, ij, k, length, no_close, type, ret;
   char          *string = vc->sequence;
   vrna_param_t  *P      = vc->params;
   int           *indx   = vc->jindx;
@@ -400,6 +411,7 @@ backtrack_co(sect                 bt_stack[],
   /* the folding matrices */
   int           *my_c;
 
+  ret     = 1;
   length  = vc->length;
   my_c    = vc->matrices->c;
   se      = vc->strand_end;
@@ -443,7 +455,9 @@ backtrack_co(sect                 bt_stack[],
 
           continue;
         } else {
-          vrna_message_error("backtrack failed in f5, segment [%d,%d]\n", i, j);
+          vrna_message_warning("backtracking failed in f5, segment [%d,%d]\n", i, j);
+          ret = 0;
+          goto backtrack_exit;
         }
       }
       break;
@@ -467,7 +481,9 @@ backtrack_co(sect                 bt_stack[],
 
           continue;
         } else {
-          vrna_message_error("backtrack failed in fML\n%s", string);
+          vrna_message_warning("backtrack failed in fML\n%s", string);
+          ret = 0;
+          goto backtrack_exit;
         }
       }
       break;
@@ -498,7 +514,9 @@ backtrack_co(sect                 bt_stack[],
 
           continue;
         } else {
-          vrna_message_error("backtrack failed in fc\n%s", string);
+          vrna_message_warning("backtrack failed in fc\n%s", string);
+          ret = 0;
+          goto backtrack_exit;
         }
       }
       break;
@@ -550,13 +568,18 @@ repeat1:
       bt_stack[s].j   = j;
       bt_stack[s].ml  = comp2;
     } else {
-      vrna_message_error("backtracking failed in repeat");
+      vrna_message_warning("backtracking failed in repeat, segment [%d,%d]\n", i, j);
+      ret = 0;
+      goto backtrack_exit;
     }
 
     /* end of repeat: --------------------------------------------------*/
   } /* end >> while (s>0) << */
 
+backtrack_exit:
+
   bp_list[0].i = b;    /* save the total number of base pairs */
+  return ret;
 }
 
 
@@ -764,13 +787,13 @@ free_end(int                  *array,
 }
 
 
-PRIVATE void
+PRIVATE int
 backtrack(sect                  bt_stack[],
           vrna_bp_stack_t       *bp_list,
           vrna_fold_compound_t  *vc)
 {
   /*routine to call backtrack_co from 1 to n, backtrack type??*/
-  backtrack_co(bt_stack, bp_list, 0, 0, vc);
+  return backtrack_co(bt_stack, bp_list, 0, 0, vc);
 }
 
 
