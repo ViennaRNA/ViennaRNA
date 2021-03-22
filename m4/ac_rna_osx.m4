@@ -81,7 +81,7 @@ AC_DEFUN([RNA_ENABLE_OSX_SDK],[
       if test -d "$enable_macosx_sdk_path" ; then
         macosx_sdk_path="$enable_macosx_sdk_path"
         # determine the version
-        macosx_sdk_version=10.11
+        macosx_sdk_version=11.3
       else
         AC_MSG_ERROR([
 **********************************************************************
@@ -110,7 +110,7 @@ AC_DEFUN([RNA_ENABLE_OSX_SDK],[
       # automatic determination of latest SDK
       if test "x$enable_macosx_sdk" = "xyes" || test "x$enable_macosx_sdk" = "xlatest" ; then
         ## check for possible SDKs in descending order
-        macosx_sdk_versions="10.11 10.10 10.9 10.8 10.7 10.6 10.5"
+        macosx_sdk_versions="11.3 11.2 11.1 11.0 10.15 10.14 10.13 10.12 10.11 10.10 10.9 10.8 10.7 10.6 10.5"
       else
         macosx_sdk_versions="${enable_macosx_sdk}"
       fi
@@ -146,7 +146,7 @@ AC_DEFUN([RNA_ENABLE_OSX_SDK],[
           10.5)
               with_macosx_version_min_required="10.5";;
           *)
-              with_macosx_version_min_required="10.6";;
+              with_macosx_version_min_required="11.3";;
           esac
       fi
 
@@ -178,7 +178,7 @@ AC_DEFUN([RNA_ENABLE_OSX_SDK],[
             INSTALL_NAME_TOOL=`xcrun -find install_name_tool`
             #LIBTOOL=libtool
             ;;
-        10.7|10.8|10.9|10.10|10.11)
+        10.7|10.8|10.9|10.10|10.11|10.12|10.13|10.14|10.15|11.0|11.1|11.2|11.3)
             if test "$with_macosx_version_min_required" != 10.6; then
               # Use libc++ instead of libstdc++ when possible
               stdlib=-stdlib=libc++
@@ -213,7 +213,7 @@ AC_DEFUN([RNA_ENABLE_OSX_UNIVERSAL_BINARY],[
   RNA_ADD_FEATURE([universal_binary],
                   [generate universal (fat) binaries on MacOSX],
                   [no],[],[],
-                  ["-arch i386 -arch x86_64"])
+                  ["-arch arm64 -arch x86_64"])
 
   RNA_FEATURE_IF_ENABLED([universal_binary],[
 
@@ -243,7 +243,7 @@ AC_DEFUN([RNA_ENABLE_OSX_UNIVERSAL_BINARY],[
       osx_arch="$enable_universal_binary"
     else
       ## otherwise, use default options
-      osx_arch="-arch i386 -arch x86_64"
+      osx_arch="-arch arm64 -arch x86_64"
     fi
 
     CFLAGS="${CFLAGS} $osx_arch"
