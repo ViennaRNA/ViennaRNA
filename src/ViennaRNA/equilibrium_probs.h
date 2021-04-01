@@ -103,7 +103,7 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc);
 
 
 /**
- *  @brief  Compute the Ensemble Defect for a given target structure
+ *  @brief  Compute the Ensemble Defect for a given target structure provided as a @b vrna_ptable
  *
  *  Given a target structure @f$s@f$, compute the average dissimilarity of a randomly
  *  drawn structure from the ensemble, i.e.:
@@ -118,7 +118,7 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc);
  *        probability matrix. This means that partition function and base pair probabilities
  *        must have been computed using @p fc before execution of this function!
  *
- *  @see vrna_pf(), vrna_pairing_probs()
+ *  @see vrna_pf(), vrna_pairing_probs(), vrna_ensemble_defect()
  *
  *  @param  fc          A fold_compound with pre-computed base pair probabilities
  *  @param  pt          A pair table representing a target structure
@@ -132,6 +132,7 @@ vrna_ensemble_defect_pt(vrna_fold_compound_t *fc,
 /**
  *  @brief  Compute the Ensemble Defect for a given target structure
  *
+ *  This is a wrapper around @b vrna_ensemble_defect_pt().
  *  Given a target structure @f$s@f$, compute the average dissimilarity of a randomly
  *  drawn structure from the ensemble, i.e.:
  *  @f[
