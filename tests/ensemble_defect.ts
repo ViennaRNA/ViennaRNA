@@ -30,8 +30,8 @@
 
   ptpk = vrna_ptable_from_string(str1, VRNA_BRACKETS_ANY);
 
-  ck_assert_double_eq(vrna_ensemble_defect(vc, str1), 0.6140797258673892);
-  ck_assert_double_eq(vrna_ensemble_defect_pt(vc, ptpk), 0.7279171755397522);
+  ck_assert(vrna_ensemble_defect(vc, str1) == 0.6140797258673892);
+  ck_assert(vrna_ensemble_defect_pt(vc, ptpk) == 0.7279171755397522);
 
   vrna_fold_compound_free(vc);
   free(ptpk);
