@@ -1031,7 +1031,8 @@ prepare_hc_bp(vrna_fold_compound_t *fc,
             hc->mx[n * j + i]       = option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
 
             /* is the ptype reset actually required??? */
-            if (option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS) {
+            if ((fc->type == VRNA_FC_TYPE_SINGLE) &&
+                (option & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)) {
               /* reset ptype in case (i,j) is a non-canonical pair */
               if (fc->ptype[idx[j] + i] == 0)
                 fc->ptype[idx[j] + i] = 7;
