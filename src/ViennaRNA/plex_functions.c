@@ -37,7 +37,7 @@
 #undef  MAXLOOP
 #define MAXLOOP 10
 
-#define DEFAULT_PENALTY             8.10
+#define DEFAULT_PENALTY             810
 #define DEFAULT_DELTA               0
 #define DEFAULT_INTERACTION_LENGTH  12
 #define DEFAULT_CUTOFF              1e-3
