@@ -1282,8 +1282,8 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
 
           u2 = j - l - 1;
 
-          if (hc->up_int[k + 1] < u2)
-            continue;
+          if (hc->up_int[l + 1] < u2)
+            break;
 
           if (hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
             q_temp = 1.;
