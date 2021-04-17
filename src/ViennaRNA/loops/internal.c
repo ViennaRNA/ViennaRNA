@@ -147,13 +147,13 @@ eval_int_loop(vrna_fold_compound_t  *fc,
               int                   k,
               int                   l)
 {
-  unsigned int          *sn, *ss, n_seq, s, **a2s;
-  int                   e, *rtype, type, type2, with_ud;
-  short                 *S, *S2, **SS, **S5, **S3;
-  vrna_param_t          *P;
-  vrna_md_t             *md;
-  vrna_ud_t             *domains_up;
-  struct sc_wrapper_int sc_wrapper;
+  unsigned int      *sn, *ss, n_seq, s, **a2s;
+  int               e, *rtype, type, type2, with_ud;
+  short             *S, *S2, **SS, **S5, **S3;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
+  struct sc_int_dat sc_wrapper;
 
   n_seq       = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   P           = fc->params;
@@ -171,7 +171,7 @@ eval_int_loop(vrna_fold_compound_t  *fc,
   with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
   e           = INF;
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_int(fc, &sc_wrapper);
 
   {
     int energy, e5, e3, u1, u2;
@@ -249,7 +249,7 @@ eval_int_loop(vrna_fold_compound_t  *fc,
     }
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_int(&sc_wrapper);
 
   return e;
 }
@@ -262,13 +262,13 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
                   int                   k,
                   int                   l)
 {
-  unsigned int          n, n_seq, s, **a2s;
-  int                   e, type, type2, with_ud;
-  short                 *S, *S2, **SS, **S5, **S3;
-  vrna_param_t          *P;
-  vrna_md_t             *md;
-  vrna_ud_t             *domains_up;
-  struct sc_wrapper_int sc_wrapper;
+  unsigned int      n, n_seq, s, **a2s;
+  int               e, type, type2, with_ud;
+  short             *S, *S2, **SS, **S5, **S3;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
+  struct sc_int_dat sc_wrapper;
 
   n           = fc->length;
   n_seq       = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -284,7 +284,7 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
   with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
   e           = INF;
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_int(fc, &sc_wrapper);
 
   {
     int energy, e5, e3, u1, u2, u3;
@@ -351,7 +351,7 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
     }
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_int(&sc_wrapper);
 
   return e;
 }
@@ -371,12 +371,12 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
-  struct hc_int_def_dat   hc_dat_local;
+  struct hc_int_def_dat hc_dat_local;
   eval_hc               *evaluate;
-  struct sc_wrapper_int sc_wrapper;
+  struct sc_int_dat     sc_wrapper;
 
   evaluate = prepare_hc_int_def(fc, &hc_dat_local);
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_int(fc, &sc_wrapper);
 
   e = INF;
 
@@ -548,7 +548,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                     int u1_local = a2s[s][k - 1] - a2s[s][i];
                     type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
                     eee   +=
-                      E_IntLoop(u1_local, 0, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
+                      E_IntLoop(u1_local, 0, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l],
+                                P);
                   }
 
                   break;
@@ -627,7 +628,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                     int u2_local = a2s[s][j - 1] - a2s[s][l];
                     type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
                     eee   +=
-                      E_IntLoop(0, u2_local, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
+                      E_IntLoop(0, u2_local, tt[s], type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l],
+                                P);
                   }
 
                   break;
@@ -706,7 +708,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                         md->dangles,
                                         P);
                   } else {
-                    eee += E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
+                    eee +=
+                      E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
                   }
 
                   break;
@@ -807,7 +810,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
     }
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_int(&sc_wrapper);
 
   return e;
 }
@@ -820,14 +823,14 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
                     int                   *ip,
                     int                   *iq)
 {
-  int                 q, p, e, s, u1, u2, qmin, energy,
-                      n, *indx, *hc_up, *c, turn, n_seq;
-  unsigned char       *hc, eval_loop;
-  unsigned int        *tt;
-  short               **SS;
-  vrna_md_t           *md;
-  vrna_param_t        *P;
-  eval_hc             *evaluate;
+  int                   q, p, e, s, u1, u2, qmin, energy,
+                        n, *indx, *hc_up, *c, turn, n_seq;
+  unsigned char         *hc, eval_loop;
+  unsigned int          *tt;
+  short                 **SS;
+  vrna_md_t             *md;
+  vrna_param_t          *P;
+  eval_hc               *evaluate;
   struct hc_int_def_dat hc_dat_local;
 
   n     = fc->length;
@@ -918,8 +921,8 @@ E_stack(vrna_fold_compound_t  *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   eval_hc               *evaluate;
-  struct hc_int_def_dat   hc_dat_local;
-  struct sc_wrapper_int sc_wrapper;
+  struct hc_int_def_dat hc_dat_local;
+  struct sc_int_dat     sc_wrapper;
 
   e               = INF;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -947,7 +950,7 @@ E_stack(vrna_fold_compound_t  *fc,
   pq          = (sliding_window) ? 0 : indx[q] + p;
   evaluate    = prepare_hc_int_def(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_int(fc, &sc_wrapper);
 
   hc_decompose_ij = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
   hc_decompose_pq = (sliding_window) ? hc_mx_local[p][q - p] : hc_mx[n * p + q];
@@ -1000,7 +1003,7 @@ E_stack(vrna_fold_compound_t  *fc,
       e += sc_wrapper.pair(i, j, p, q, &sc_wrapper);
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_int(&sc_wrapper);
 
   return e;
 }

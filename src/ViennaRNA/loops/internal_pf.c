@@ -105,20 +105,20 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                int                  i,
                int                  j)
 {
-  unsigned char             sliding_window, hc_decompose_ij, hc_decompose_kl;
-  char                      *ptype, **ptype_local;
-  unsigned char             *hc_mx, **hc_mx_local;
-  short                     *S1, **SS, **S5, **S3;
-  unsigned int              *sn, *se, *ss, n_seq, s, **a2s, n;
-  int                       *rtype, noclose, *my_iindx, *jindx, *hc_up, ij,
-                            with_gquad, with_ud;
-  FLT_OR_DBL                qbt1, q_temp, *qb, **qb_local, *G, *scale;
-  vrna_exp_param_t          *pf_params;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  eval_hc                   *evaluate;
-  struct hc_int_def_dat     hc_dat_local;
-  struct sc_wrapper_exp_int sc_wrapper;
+  unsigned char         sliding_window, hc_decompose_ij, hc_decompose_kl;
+  char                  *ptype, **ptype_local;
+  unsigned char         *hc_mx, **hc_mx_local;
+  short                 *S1, **SS, **S5, **S3;
+  unsigned int          *sn, *se, *ss, n_seq, s, **a2s, n;
+  int                   *rtype, noclose, *my_iindx, *jindx, *hc_up, ij,
+                        with_gquad, with_ud;
+  FLT_OR_DBL            qbt1, q_temp, *qb, **qb_local, *G, *scale;
+  vrna_exp_param_t      *pf_params;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  eval_hc               *evaluate;
+  struct hc_int_def_dat hc_dat_local;
+  struct sc_int_exp_dat sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n               = fc->length;
@@ -152,7 +152,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   qbt1        = 0.;
   evaluate    = prepare_hc_int_def(fc, &hc_dat_local);
 
-  init_sc_wrapper_int(fc, &sc_wrapper);
+  init_sc_int_exp(fc, &sc_wrapper);
 
   ij = (sliding_window) ? 0 : jindx[j] + i;
 
@@ -551,7 +551,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
     free(tt);
   }
 
-  free_sc_wrapper_int(&sc_wrapper);
+  free_sc_int_exp(&sc_wrapper);
 
   return qbt1;
 }
@@ -562,19 +562,19 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
                    int                  i,
                    int                  j)
 {
-  unsigned char             *hc_mx, eval_loop;
-  short                     *S, *S2, **SS, **S5, **S3;
-  unsigned int              *tt, n_seq, s, **a2s, type, type2;
-  int                       k, l, u1, u2, u3, qmin, with_ud,
-                            n, *my_iindx, *hc_up, turn,
-                            u1_local, u2_local, u3_local;
-  FLT_OR_DBL                q, q_temp, *qb, *scale;
-  vrna_exp_param_t          *pf_params;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  eval_hc                   *evaluate;
-  struct hc_int_def_dat       hc_dat_local;
-  struct sc_wrapper_exp_int sc_wrapper;
+  unsigned char         *hc_mx, eval_loop;
+  short                 *S, *S2, **SS, **S5, **S3;
+  unsigned int          *tt, n_seq, s, **a2s, type, type2;
+  int                   k, l, u1, u2, u3, qmin, with_ud,
+                        n, *my_iindx, *hc_up, turn,
+                        u1_local, u2_local, u3_local;
+  FLT_OR_DBL            q, q_temp, *qb, *scale;
+  vrna_exp_param_t      *pf_params;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  eval_hc               *evaluate;
+  struct hc_int_def_dat hc_dat_local;
+  struct sc_int_exp_dat sc_wrapper;
 
   n           = fc->length;
   n_seq       = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -601,7 +601,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
 
   evaluate = prepare_hc_int_def(fc, &hc_dat_local);
 
-  init_sc_wrapper_int(fc, &sc_wrapper);
+  init_sc_int_exp(fc, &sc_wrapper);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc_mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -722,7 +722,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   }
 
   free(tt);
-  free_sc_wrapper_int(&sc_wrapper);
+  free_sc_int_exp(&sc_wrapper);
 
   return q;
 }
@@ -735,19 +735,19 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
                     int                   k,
                     int                   l)
 {
-  unsigned char             sliding_window, type, type2;
-  char                      *ptype, **ptype_local;
-  unsigned char             *hc_mx, **hc_mx_local, eval_loop, hc_decompose_ij, hc_decompose_kl;
-  short                     *S1, **SS, **S5, **S3;
-  unsigned int              n, *sn, n_seq, s, **a2s;
-  int                       u1, u2, *rtype, *jindx, *hc_up;
-  FLT_OR_DBL                qbt1, q_temp, *scale;
-  vrna_exp_param_t          *pf_params;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  eval_hc                   *evaluate;
-  struct hc_int_def_dat       hc_dat_local;
-  struct sc_wrapper_exp_int sc_wrapper;
+  unsigned char         sliding_window, type, type2;
+  char                  *ptype, **ptype_local;
+  unsigned char         *hc_mx, **hc_mx_local, eval_loop, hc_decompose_ij, hc_decompose_kl;
+  short                 *S1, **SS, **S5, **S3;
+  unsigned int          n, *sn, n_seq, s, **a2s;
+  int                   u1, u2, *rtype, *jindx, *hc_up;
+  FLT_OR_DBL            qbt1, q_temp, *scale;
+  vrna_exp_param_t      *pf_params;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  eval_hc               *evaluate;
+  struct hc_int_def_dat hc_dat_local;
+  struct sc_int_exp_dat sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n               = fc->length;
@@ -785,7 +785,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
 
   evaluate = prepare_hc_int_def(fc, &hc_dat_local);
 
-  init_sc_wrapper_int(fc, &sc_wrapper);
+  init_sc_int_exp(fc, &sc_wrapper);
 
   hc_decompose_ij = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
   hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[n * k + l];
@@ -880,7 +880,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
     }
   }
 
-  free_sc_wrapper_int(&sc_wrapper);
+  free_sc_int_exp(&sc_wrapper);
 
   return qbt1;
 }

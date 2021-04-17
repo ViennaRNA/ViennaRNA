@@ -249,8 +249,8 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
-  struct sc_wrapper_exp_ml  sc_wrapper;
+  struct hc_mb_def_dat      hc_dat_local;
+  struct sc_mb_exp_dat      sc_wrapper;
 
   qqm1            = aux_mx->qqm1;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -277,7 +277,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   rtype           = &(md->rtype[0]);
   evaluate        = prepare_hc_mb_def(fc, &hc_dat_local);
 
-  init_sc_wrapper_ml(fc, &sc_wrapper);
+  init_sc_mb_exp(fc, &sc_wrapper);
 
   /* multiple stem loop contribution */
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
@@ -372,7 +372,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
             qqqmmm;
   }
 
-  free_sc_wrapper_ml(&sc_wrapper);
+  free_sc_mb_exp(&sc_wrapper);
 
   return qbt1;
 }
@@ -396,8 +396,8 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   vrna_ud_t                 *domains_up;
   vrna_hc_t                 *hc;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
-  struct sc_wrapper_exp_ml  sc_wrapper;
+  struct hc_mb_def_dat      hc_dat_local;
+  struct sc_mb_exp_dat      sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n               = (int)fc->length;
@@ -430,7 +430,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   hc_up_ml        = hc->up_ml;
   evaluate        = prepare_hc_mb_def(fc, &hc_dat_local);
 
-  init_sc_wrapper_ml(fc, &sc_wrapper);
+  init_sc_mb_exp(fc, &sc_wrapper);
 
   qbt1    = 0;
   q_temp  = 0.;
@@ -651,7 +651,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_m))
     temp += fc->aux_grammar->cb_aux_exp_m(fc, i, j, fc->aux_grammar->data);
 
-  free_sc_wrapper_ml(&sc_wrapper);
+  free_sc_mb_exp(&sc_wrapper);
 
   return temp + qqm[i];
 }

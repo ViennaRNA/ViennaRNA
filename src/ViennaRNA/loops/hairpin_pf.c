@@ -71,7 +71,7 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
                    int                  j)
 {
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_hp_def_dat       hc_dat_local;
+  struct hc_hp_def_dat      hc_dat_local;
 
   if (fc->hc->type == VRNA_HC_WINDOW)
     evaluate = prepare_hc_hp_def_window(fc, &hc_dat_local);
@@ -182,16 +182,16 @@ exp_eval_hp_loop(vrna_fold_compound_t *fc,
                  int                  i,
                  int                  j)
 {
-  char                      **Ss;
-  unsigned int              **a2s;
-  short                     *S, *S2, **SS, **S5, **S3;
-  unsigned int              *sn;
-  int                       u, type, n_seq, s;
-  FLT_OR_DBL                q, qbt1, *scale;
-  vrna_exp_param_t          *P;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  struct sc_wrapper_exp_hp  sc_wrapper;
+  char                  **Ss;
+  unsigned int          **a2s;
+  short                 *S, *S2, **SS, **S5, **S3;
+  unsigned int          *sn;
+  int                   u, type, n_seq, s;
+  FLT_OR_DBL            q, qbt1, *scale;
+  vrna_exp_param_t      *P;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  struct sc_hp_exp_dat  sc_wrapper;
 
   P           = fc->exp_params;
   md          = &(P->model_details);
@@ -199,7 +199,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *fc,
   scale       = fc->exp_matrices->scale;
   domains_up  = fc->domains_up;
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_hp_exp(fc, &sc_wrapper);
   q = 0.;
 
   if (sn[j] != sn[i])
@@ -263,7 +263,7 @@ exp_eval_hp_loop(vrna_fold_compound_t *fc,
 
   q *= scale[j - i + 1];
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_hp_exp(&sc_wrapper);
 
   return q;
 }
@@ -274,17 +274,17 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *fc,
                      int                  i,
                      int                  j)
 {
-  char                      **Ss, *sequence, loopseq[10] = {
+  char                  **Ss, *sequence, loopseq[10] = {
     0
   };
-  unsigned int              **a2s;
-  short                     *S, *S2, **SS, **S5, **S3;
-  int                       u1, u2, n, type, n_seq, s, noGUclosure;
-  FLT_OR_DBL                q, qbt1, *scale;
-  vrna_exp_param_t          *P;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  struct sc_wrapper_exp_hp  sc_wrapper;
+  unsigned int          **a2s;
+  short                 *S, *S2, **SS, **S5, **S3;
+  int                   u1, u2, n, type, n_seq, s, noGUclosure;
+  FLT_OR_DBL            q, qbt1, *scale;
+  vrna_exp_param_t      *P;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  struct sc_hp_exp_dat  sc_wrapper;
 
   n           = fc->length;
   P           = fc->exp_params;
@@ -293,7 +293,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *fc,
   scale       = fc->exp_matrices->scale;
   domains_up  = fc->domains_up;
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_hp_exp(fc, &sc_wrapper);
 
   q   = 0.;
   u1  = n - j;
@@ -369,7 +369,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *fc,
 
   q *= scale[u1 + u2];
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_hp_exp(&sc_wrapper);
 
   return q;
 }

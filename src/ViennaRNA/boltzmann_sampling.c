@@ -52,9 +52,9 @@
 
 /* combination of soft constraint wrappers */
 struct sc_wrappers {
-  struct sc_wrapper_exp_ext sc_wrapper_ext;
-  struct sc_wrapper_exp_int sc_wrapper_int;
-  struct sc_wrapper_exp_ml  sc_wrapper_ml;
+  struct sc_ext_exp_dat sc_wrapper_ext;
+  struct sc_int_exp_dat sc_wrapper_int;
+  struct sc_mb_exp_dat  sc_wrapper_ml;
 };
 
 /*
@@ -269,9 +269,9 @@ sc_init(vrna_fold_compound_t *fc)
 {
   struct sc_wrappers *sc_wrap = (struct sc_wrappers *)vrna_alloc(sizeof(struct sc_wrappers));
 
-  init_sc_wrapper_ext(fc, &(sc_wrap->sc_wrapper_ext));
-  init_sc_wrapper_int(fc, &(sc_wrap->sc_wrapper_int));
-  init_sc_wrapper_ml(fc, &(sc_wrap->sc_wrapper_ml));
+  init_sc_ext_exp(fc, &(sc_wrap->sc_wrapper_ext));
+  init_sc_int_exp(fc, &(sc_wrap->sc_wrapper_int));
+  init_sc_mb_exp(fc, &(sc_wrap->sc_wrapper_ml));
 
   return sc_wrap;
 }
@@ -280,9 +280,9 @@ sc_init(vrna_fold_compound_t *fc)
 PRIVATE void
 sc_free(struct sc_wrappers *sc_wrap)
 {
-  free_sc_wrapper_ext(&(sc_wrap->sc_wrapper_ext));
-  free_sc_wrapper_int(&(sc_wrap->sc_wrapper_int));
-  free_sc_wrapper_ml(&(sc_wrap->sc_wrapper_ml));
+  free_sc_ext_exp(&(sc_wrap->sc_wrapper_ext));
+  free_sc_int_exp(&(sc_wrap->sc_wrapper_int));
+  free_sc_mb_exp(&(sc_wrap->sc_wrapper_ml));
 
   free(sc_wrap);
 }
@@ -433,7 +433,7 @@ backtrack_ext_loop(int                              init_val,
   vrna_exp_param_t          *pf_params;
 
   struct nr_memory          **memory_dat;
-  struct sc_wrapper_exp_ext *sc_wrapper_ext;
+  struct sc_ext_exp_dat     *sc_wrapper_ext;
 
   NR_NODE                   **current_node;
 
@@ -829,7 +829,7 @@ backtrack_qm(int                              i,
   vrna_hc_t                 *hc;
   vrna_mx_pf_t              *matrices;
 
-  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
+  struct sc_mb_exp_dat      *sc_wrapper_ml;
   struct nr_memory          **memory_dat;
 
   NR_NODE                   **current_node;
@@ -1051,7 +1051,7 @@ backtrack_qm1(int                             i,
   vrna_mx_pf_t              *matrices;
 
   struct nr_memory          **memory_dat;
-  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
+  struct sc_mb_exp_dat      *sc_wrapper_ml;
 
   NR_NODE                   **current_node;
 
@@ -1204,7 +1204,7 @@ backtrack_qm2(int                   k,
 {
   int                       u, turn, *jindx;
   FLT_OR_DBL                qom2t, r, *qm1, *qm2;
-  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
+  struct sc_mb_exp_dat      *sc_wrapper_ml;
 
   jindx         = vc->jindx;
   qm1           = vc->exp_matrices->qm1;
@@ -1262,8 +1262,8 @@ backtrack(int                             i,
   vrna_hc_t                 *hc;
 
   struct nr_memory          **memory_dat;
-  struct sc_wrapper_exp_int *sc_wrapper_int;
-  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
+  struct sc_int_exp_dat     *sc_wrapper_int;
+  struct sc_mb_exp_dat      *sc_wrapper_ml;
 
   NR_NODE                   **current_node;
 
@@ -1658,9 +1658,9 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
   vrna_md_t                 *md;
   vrna_mx_pf_t              *matrices;
   struct sc_wrappers        *sc_wrap;
-  struct sc_wrapper_exp_ext *sc_wrapper_ext;
-  struct sc_wrapper_exp_int *sc_wrapper_int;
-  struct sc_wrapper_exp_ml  *sc_wrapper_ml;
+  struct sc_ext_exp_dat     *sc_wrapper_ext;
+  struct sc_int_exp_dat     *sc_wrapper_int;
+  struct sc_mb_exp_dat      *sc_wrapper_ml;
 
   n             = vc->length;
   pf_params     = vc->exp_params;

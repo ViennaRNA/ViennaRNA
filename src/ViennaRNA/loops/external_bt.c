@@ -1230,6 +1230,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
             if ((zsc_pre_filter) &&
                 (zsc_data->current_z[j] > zsc_data->min_z))
               continue;
+
 #endif
             type = vrna_get_ptype_window(start, j, ptype);
 
@@ -1263,6 +1264,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
             if ((zsc_pre_filter) &&
                 (zsc_data->current_z[j] > zsc_data->min_z))
               continue;
+
 #endif
             type = vrna_get_ptype_window(start, j, ptype);
 

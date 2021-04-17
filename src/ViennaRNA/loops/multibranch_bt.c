@@ -116,7 +116,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
+  struct hc_mb_def_dat      hc_dat_local;
 
   length        = fc->length;
   P             = fc->params;
@@ -518,8 +518,8 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
-  struct sc_wrapper_ml      sc_wrapper;
+  struct hc_mb_def_dat      hc_dat_local;
+  struct sc_mb_dat          sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -549,7 +549,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   evaluate      = prepare_hc_mb_def(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_mb(fc, &sc_wrapper);
 
   ii  = *i;
   jj  = *j;
@@ -905,7 +905,10 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][ii], SS[s][jj], md);
-              en2   += E_MLstem(type, S5[s][ii], S3[s][jj], P);
+              en2   += E_MLstem(type,
+                                S5[s][ii],
+                                S3[s][jj],
+                                P);
             }
             break;
         }
@@ -964,8 +967,9 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
           case VRNA_FC_TYPE_SINGLE:
             type =
               (sliding_window) ? rtype[vrna_get_ptype_window(ii, u,
-                                                             ptype_local)] : rtype[vrna_get_ptype(ik,
-                                                                                                  ptype)
+                                                             ptype_local)] : rtype[vrna_get_ptype(
+                                                                                     ik,
+                                                                                     ptype)
               ];
             type_2 =
               (sliding_window) ? rtype[vrna_get_ptype_window(u + 1, jj,
@@ -1021,10 +1025,10 @@ BT_mb_loop(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
+  struct hc_mb_def_dat      hc_dat_local;
   vrna_callback_hc_evaluate *evaluate_ext;
-  struct hc_mb_def_dat       hc_dat_local_ext;
-  struct sc_wrapper_ml      sc_wrapper;
+  struct hc_mb_def_dat      hc_dat_local_ext;
+  struct sc_mb_dat          sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -1049,14 +1053,16 @@ BT_mb_loop(vrna_fold_compound_t *fc,
   ptype_local     = (sliding_window) ? fc->ptype_local : NULL;
   rtype           = &(md->rtype[0]);
   type            = (fc->type == VRNA_FC_TYPE_SINGLE) ?
-                    (sliding_window ? rtype[vrna_get_ptype_window(*i, *j, ptype_local)] : rtype[vrna_get_ptype(ij, ptype)]) :
+                    (sliding_window ? rtype[vrna_get_ptype_window(*i, *j,
+                                                                  ptype_local)] : rtype[
+                       vrna_get_ptype(ij, ptype)]) :
                     0;
   tt            = NULL;
   dangle_model  = md->dangles;
   evaluate      = prepare_hc_mb_def(fc, &hc_dat_local);
   evaluate_ext  = prepare_hc_mb_def_ext(fc, &hc_dat_local_ext);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_mb(fc, &sc_wrapper);
 
   p = *i + 1;
   q = *j - 1;
@@ -1229,7 +1235,8 @@ BT_mb_loop(vrna_fold_compound_t *fc,
     }
   }
 
-  if (dangles % 2) { /* odd dangles need more special treatment */
+  if (dangles % 2) {
+    /* odd dangles need more special treatment */
     if (evaluate(*i, *j, p + 1, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
       e = en -
           (P->MLclosing + P->MLbase) *

@@ -104,8 +104,8 @@ BT_stack(vrna_fold_compound_t *fc,
   vrna_md_t             *md;
   vrna_hc_t             *hc;
   eval_hc               *evaluate;
-  struct hc_int_def_dat   hc_dat_local;
-  struct sc_wrapper_int sc_wrapper;
+  struct hc_int_def_dat hc_dat_local;
+  struct sc_int_dat     sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n               = fc->length;
@@ -128,7 +128,7 @@ BT_stack(vrna_fold_compound_t *fc,
   ret             = 0;
   evaluate        = prepare_hc_int_def(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_int(fc, &sc_wrapper);
 
   eee = (sliding_window) ? c_local[*i][*j - *i] : my_c[ij];
 
@@ -194,7 +194,7 @@ BT_stack(vrna_fold_compound_t *fc,
     }
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_int(&sc_wrapper);
 
   return ret;
 }
@@ -208,16 +208,16 @@ BT_int_loop(vrna_fold_compound_t  *fc,
             vrna_bp_stack_t       *bp_stack,
             int                   *stack_count)
 {
-  unsigned char       sliding_window, hc_decompose_ij, hc_decompose_pq;
-  unsigned char       eval_loop;
-  short               *S2, **SS;
-  unsigned int        n, n_seq, s, *sn, type, *tt;
-  int                 ij, p, q, minq, turn, *idx, no_close, energy, *my_c,
-                      **c_local, ret;
-  vrna_param_t        *P;
-  vrna_md_t           *md;
-  vrna_hc_t           *hc;
-  eval_hc             *evaluate;
+  unsigned char         sliding_window, hc_decompose_ij, hc_decompose_pq;
+  unsigned char         eval_loop;
+  short                 *S2, **SS;
+  unsigned int          n, n_seq, s, *sn, type, *tt;
+  int                   ij, p, q, minq, turn, *idx, no_close, energy, *my_c,
+                        **c_local, ret;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  vrna_hc_t             *hc;
+  eval_hc               *evaluate;
   struct hc_int_def_dat hc_dat_local;
 
   ret             = 0;

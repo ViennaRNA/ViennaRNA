@@ -63,8 +63,8 @@ extend_fm_3p(int                        i,
              int                        *fm,
              vrna_fold_compound_t       *fc,
              vrna_callback_hc_evaluate  *evaluate,
-             struct hc_mb_def_dat        *hc_data,
-             struct sc_wrapper_ml       *sc_wrapper);
+             struct hc_mb_def_dat       *hc_data,
+             struct sc_mb_dat           *sc_wrapper);
 
 
 PRIVATE int
@@ -79,8 +79,8 @@ ml_pair5(vrna_fold_compound_t       *fc,
          int                        j,
          int                        *dmli2,
          vrna_callback_hc_evaluate  *evaluate,
-         struct hc_mb_def_dat        *hc_wrapper,
-         struct sc_wrapper_ml       *sc_wrapper);
+         struct hc_mb_def_dat       *hc_wrapper,
+         struct sc_mb_dat           *sc_wrapper);
 
 
 PRIVATE INLINE int
@@ -89,8 +89,8 @@ ml_pair3(vrna_fold_compound_t       *fc,
          int                        j,
          int                        *dmli1,
          vrna_callback_hc_evaluate  *evaluate,
-         struct hc_mb_def_dat        *hc_wrapper,
-         struct sc_wrapper_ml       *sc_wrapper);
+         struct hc_mb_def_dat       *hc_wrapper,
+         struct sc_mb_dat           *sc_wrapper);
 
 
 PRIVATE INLINE int
@@ -100,8 +100,8 @@ ml_pair53(vrna_fold_compound_t      *fc,
           int                       *dmli1,
           int                       *dmli2,
           vrna_callback_hc_evaluate *evaluate,
-          struct hc_mb_def_dat       *hc_wrapper,
-          struct sc_wrapper_ml      *sc_wrapper);
+          struct hc_mb_def_dat      *hc_wrapper,
+          struct sc_mb_dat          *sc_wrapper);
 
 
 /*
@@ -165,12 +165,12 @@ E_ml_rightmost_stem(int                   i,
   e = INF;
 
   if ((fc) && (fc->matrices) && (fc->matrices->fM1)) {
-    struct hc_mb_def_dat       hc_dat_local;
-    struct sc_wrapper_ml      sc_wrapper;
+    struct hc_mb_def_dat      hc_dat_local;
+    struct sc_mb_dat          sc_wrapper;
     vrna_callback_hc_evaluate *evaluate;
 
     evaluate = prepare_hc_mb_def(fc, &hc_dat_local);
-    init_sc_wrapper(fc, &sc_wrapper);
+    init_sc_mb(fc, &sc_wrapper);
 
     e = extend_fm_3p(i, j, fc->matrices->fM1, fc, evaluate, &hc_dat_local, &sc_wrapper);
 
@@ -179,7 +179,7 @@ E_ml_rightmost_stem(int                   i,
       e = MIN2(e, ee);
     }
 
-    free_sc_wrapper(&sc_wrapper);
+    free_sc_mb(&sc_wrapper);
   }
 
   return e;
@@ -197,8 +197,8 @@ ml_pair_d0(vrna_fold_compound_t       *fc,
            int                        j,
            int                        *dmli1,
            vrna_callback_hc_evaluate  *evaluate,
-           struct hc_mb_def_dat        *hc_wrapper,
-           struct sc_wrapper_ml       *sc_wrapper)
+           struct hc_mb_def_dat       *hc_wrapper,
+           struct sc_mb_dat           *sc_wrapper)
 {
   short         *S, **SS;
   unsigned int  tt, s, n_seq;
@@ -255,8 +255,8 @@ ml_pair_d1(vrna_fold_compound_t       *fc,
            int                        *dmli1,
            int                        *dmli2,
            vrna_callback_hc_evaluate  *evaluate,
-           struct hc_mb_def_dat        *hc_wrapper,
-           struct sc_wrapper_ml       *sc_wrapper)
+           struct hc_mb_def_dat       *hc_wrapper,
+           struct sc_mb_dat           *sc_wrapper)
 {
   int e, en;
 
@@ -285,8 +285,8 @@ ml_pair_d2(vrna_fold_compound_t       *fc,
            int                        j,
            int                        *dmli1,
            vrna_callback_hc_evaluate  *evaluate,
-           struct hc_mb_def_dat        *hc_wrapper,
-           struct sc_wrapper_ml       *sc_wrapper)
+           struct hc_mb_def_dat       *hc_wrapper,
+           struct sc_mb_dat           *sc_wrapper)
 {
   short         *S, *S2, **SS, **S5, **S3, si1, sj1;
   unsigned int  tt, strands, *sn, s, n_seq;
@@ -351,8 +351,8 @@ ml_pair5(vrna_fold_compound_t       *fc,
          int                        j,
          int                        *dmli2,
          vrna_callback_hc_evaluate  *evaluate,
-         struct hc_mb_def_dat        *hc_wrapper,
-         struct sc_wrapper_ml       *sc_wrapper)
+         struct hc_mb_def_dat       *hc_wrapper,
+         struct sc_mb_dat           *sc_wrapper)
 {
   short         *S, *S2, **SS, **S3, si1;
   unsigned int  tt, strands, *sn, n_seq, s;
@@ -417,8 +417,8 @@ ml_pair3(vrna_fold_compound_t       *fc,
          int                        j,
          int                        *dmli1,
          vrna_callback_hc_evaluate  *evaluate,
-         struct hc_mb_def_dat        *hc_wrapper,
-         struct sc_wrapper_ml       *sc_wrapper)
+         struct hc_mb_def_dat       *hc_wrapper,
+         struct sc_mb_dat           *sc_wrapper)
 {
   short         *S, *S2, **SS, **S5, sj1;
   unsigned int  tt, strands, *sn, n_seq, s;
@@ -484,8 +484,8 @@ ml_pair53(vrna_fold_compound_t      *fc,
           int                       *dmli1,
           int                       *dmli2,
           vrna_callback_hc_evaluate *evaluate,
-          struct hc_mb_def_dat       *hc_wrapper,
-          struct sc_wrapper_ml      *sc_wrapper)
+          struct hc_mb_def_dat      *hc_wrapper,
+          struct sc_mb_dat          *sc_wrapper)
 {
   short         *S, *S2, **SS, **S3, **S5, si1, sj1;
   unsigned int  tt, strands, *sn, n_seq, s;
@@ -557,7 +557,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
+  struct hc_mb_def_dat      hc_dat_local;
 
   S             = fc->sequence_encoding;
   S2            = fc->sequence_encoding2;
@@ -657,8 +657,8 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
-  struct sc_wrapper_ml      sc_wrapper;
+  struct hc_mb_def_dat      hc_dat_local;
+  struct sc_mb_dat          sc_wrapper;
 
   sn            = fc->strand_number;
   P             = fc->params;
@@ -671,7 +671,7 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
 
   evaluate = prepare_hc_mb_def(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_mb(fc, &sc_wrapper);
 
   /* do pointer magic for sliding window implementation */
   if (fc->hc->type == VRNA_HC_WINDOW) {
@@ -697,7 +697,7 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
       break;
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_mb(&sc_wrapper);
 
   e = MIN2(e, decomp);
 
@@ -724,8 +724,8 @@ E_mb_loop_stack(vrna_fold_compound_t  *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
-  struct sc_wrapper_ml      sc_wrapper;
+  struct hc_mb_def_dat      hc_dat_local;
+  struct sc_mb_dat          sc_wrapper;
 
   sliding_window = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
 
@@ -749,7 +749,7 @@ E_mb_loop_stack(vrna_fold_compound_t  *fc,
   e     = INF;
 
   evaluate = prepare_hc_mb_def(fc, &hc_dat_local);
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_mb(fc, &sc_wrapper);
 
   /* prepare type(s) for enclosing pair (i, j) */
   if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
@@ -885,7 +885,7 @@ E_mb_loop_stack(vrna_fold_compound_t  *fc,
     e = decomp;
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_mb(&sc_wrapper);
   free(tt);
 
   return e;
@@ -904,8 +904,8 @@ extend_fm_3p(int                        i,
              int                        *fm,
              vrna_fold_compound_t       *fc,
              vrna_callback_hc_evaluate  *evaluate,
-             struct hc_mb_def_dat        *hc_dat_local,
-             struct sc_wrapper_ml       *sc_wrapper)
+             struct hc_mb_def_dat       *hc_dat_local,
+             struct sc_mb_dat           *sc_wrapper)
 {
   short         *S, **SS, **S5, **S3;
   unsigned int  *sn, n_seq, s, sliding_window;
@@ -1057,8 +1057,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_mb_def_dat       hc_dat_local;
-  struct sc_wrapper_ml      sc_wrapper;
+  struct hc_mb_def_dat      hc_dat_local;
+  struct sc_mb_dat          sc_wrapper;
 
   sliding_window = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
 
@@ -1092,7 +1092,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   e             = INF;
   evaluate      = prepare_hc_mb_def(fc, &hc_dat_local);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_mb(fc, &sc_wrapper);
 
   /*
    *  extension with one unpaired nucleotide at the right (3' site)
@@ -1451,7 +1451,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
 
   fmi[j] = e;
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_mb(&sc_wrapper);
 
   return e;
 }

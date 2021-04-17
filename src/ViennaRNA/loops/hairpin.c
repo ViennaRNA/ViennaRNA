@@ -62,7 +62,7 @@ vrna_E_hp_loop(vrna_fold_compound_t *fc,
                int                  j)
 {
   vrna_callback_hc_evaluate *evaluate;
-  struct hc_hp_def_dat       hc_dat_local;
+  struct hc_hp_def_dat      hc_dat_local;
 
   if (fc->hc->type == VRNA_HC_WINDOW)
     evaluate = prepare_hc_hp_def_window(fc, &hc_dat_local);
@@ -107,15 +107,15 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,
                       int                   i,
                       int                   j)
 {
-  char                  **Ss, loopseq[10] = {
+  char              **Ss, loopseq[10] = {
     0
   };
-  unsigned int          **a2s;
-  short                 *S, *S2, **SS, **S5, **S3;
-  int                   u1, u2, e, s, type, n_seq, length, noGUclosure;
-  vrna_param_t          *P;
-  vrna_md_t             *md;
-  struct sc_wrapper_hp  sc_wrapper;
+  unsigned int      **a2s;
+  short             *S, *S2, **SS, **S5, **S3;
+  int               u1, u2, e, s, type, n_seq, length, noGUclosure;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
+  struct sc_hp_dat  sc_wrapper;
 
   length      = fc->length;
   P           = fc->params;
@@ -123,7 +123,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,
   noGUclosure = md->noGUclosure;
   e           = INF;
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_hp(fc, &sc_wrapper);
 
   u1  = length - j;
   u2  = i - 1;
@@ -192,7 +192,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,
     if (sc_wrapper.pair_ext)
       e += sc_wrapper.pair_ext(i, j, &sc_wrapper);
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_hp(&sc_wrapper);
 
   return e;
 }
@@ -216,15 +216,15 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j)
 {
-  char                  **Ss;
-  unsigned int          **a2s;
-  short                 *S, *S2, **SS, **S5, **S3;
-  unsigned int          *sn;
-  int                   u, e, s, type, n_seq, en, noGUclosure;
-  vrna_param_t          *P;
-  vrna_md_t             *md;
-  vrna_ud_t             *domains_up;
-  struct sc_wrapper_hp  sc_wrapper;
+  char              **Ss;
+  unsigned int      **a2s;
+  short             *S, *S2, **SS, **S5, **S3;
+  unsigned int      *sn;
+  int               u, e, s, type, n_seq, en, noGUclosure;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
+  vrna_ud_t         *domains_up;
+  struct sc_hp_dat  sc_wrapper;
 
   P           = fc->params;
   md          = &(P->model_details);
@@ -236,7 +236,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
   if (sn[j] != sn[i])
     return eval_hp_loop_fake(fc, i, j);
 
-  init_sc_wrapper(fc, &sc_wrapper);
+  init_sc_hp(fc, &sc_wrapper);
 
   /* regular hairpin loop */
   switch (fc->type) {
@@ -297,7 +297,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
     }
   }
 
-  free_sc_wrapper(&sc_wrapper);
+  free_sc_hp(&sc_wrapper);
 
   return e;
 }

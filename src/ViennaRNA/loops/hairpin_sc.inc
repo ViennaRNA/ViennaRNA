@@ -1,11 +1,11 @@
-struct sc_wrapper_hp;
+struct sc_hp_dat;
 
-typedef int (sc_pair)(int                   i,
-                      int                   j,
-                      struct sc_wrapper_hp  *data);
+typedef int (sc_hp_cb)(int              i,
+                       int              j,
+                       struct sc_hp_dat *data);
 
 
-struct sc_wrapper_hp {
+struct sc_hp_dat {
   int                     n;
   unsigned int            n_seq;
   unsigned int            **a2s;
@@ -24,24 +24,24 @@ struct sc_wrapper_hp {
   vrna_callback_sc_energy **user_cb_comparative;
   void                    **user_data_comparative;
 
-  sc_pair                 *pair;
-  sc_pair                 *pair_ext;
+  sc_hp_cb                *pair;
+  sc_hp_cb                *pair_ext;
 };
 
 
 PRIVATE INLINE int
-sc_pair_up(int                  i,
-           int                  j,
-           struct sc_wrapper_hp *data)
+sc_hp_cb_up(int               i,
+            int               j,
+            struct sc_hp_dat  *data)
 {
   return data->up[i + 1][j - i - 1];
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_comparative(int                  i,
-                       int                  j,
-                       struct sc_wrapper_hp *data)
+sc_hp_cb_up_comparative(int               i,
+                        int               j,
+                        struct sc_hp_dat  *data)
 {
   unsigned int  s;
   int           sc;
@@ -59,18 +59,18 @@ sc_pair_up_comparative(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_bp(int                  i,
-           int                  j,
-           struct sc_wrapper_hp *data)
+sc_hp_cb_bp(int               i,
+            int               j,
+            struct sc_hp_dat  *data)
 {
   return data->bp[data->idx[j] + i];
 }
 
 
 PRIVATE INLINE int
-sc_pair_bp_comparative(int                  i,
-                       int                  j,
-                       struct sc_wrapper_hp *data)
+sc_hp_cb_bp_comparative(int               i,
+                        int               j,
+                        struct sc_hp_dat  *data)
 {
   unsigned int  s;
   int           sc;
@@ -86,18 +86,18 @@ sc_pair_bp_comparative(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_bp_local(int                  i,
-                 int                  j,
-                 struct sc_wrapper_hp *data)
+sc_hp_cb_bp_local(int               i,
+                  int               j,
+                  struct sc_hp_dat  *data)
 {
   return data->bp_local[i][j - i];
 }
 
 
 PRIVATE INLINE int
-sc_pair_bp_local_comparative(int                  i,
-                             int                  j,
-                             struct sc_wrapper_hp *data)
+sc_hp_cb_bp_local_comparative(int               i,
+                              int               j,
+                              struct sc_hp_dat  *data)
 {
   unsigned int  s;
   int           sc;
@@ -113,9 +113,9 @@ sc_pair_bp_local_comparative(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_user(int                  i,
-             int                  j,
-             struct sc_wrapper_hp *data)
+sc_hp_cb_user(int               i,
+              int               j,
+              struct sc_hp_dat  *data)
 {
   return data->user_cb(i, j, i, j,
                        VRNA_DECOMP_PAIR_HP,
@@ -124,9 +124,9 @@ sc_pair_user(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_user_comparative(int                  i,
-                         int                  j,
-                         struct sc_wrapper_hp *data)
+sc_hp_cb_user_comparative(int               i,
+                          int               j,
+                          struct sc_hp_dat  *data)
 {
   unsigned int  s;
   int           sc;
@@ -144,153 +144,153 @@ sc_pair_user_comparative(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_up_bp(int                   i,
-              int                   j,
-              struct sc_wrapper_hp  *data)
+sc_hp_cb_up_bp(int              i,
+               int              j,
+               struct sc_hp_dat *data)
 {
-  return sc_pair_up(i, j, data) +
-         sc_pair_bp(i, j, data);
+  return sc_hp_cb_up(i, j, data) +
+         sc_hp_cb_bp(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_bp_comparative(int                   i,
-                          int                   j,
-                          struct sc_wrapper_hp  *data)
+sc_hp_cb_up_bp_comparative(int              i,
+                           int              j,
+                           struct sc_hp_dat *data)
 {
-  return sc_pair_up_comparative(i, j, data) +
-         sc_pair_bp_comparative(i, j, data);
+  return sc_hp_cb_up_comparative(i, j, data) +
+         sc_hp_cb_bp_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_bp_local(int                   i,
-                    int                   j,
-                    struct sc_wrapper_hp  *data)
+sc_hp_cb_up_bp_local(int              i,
+                     int              j,
+                     struct sc_hp_dat *data)
 {
-  return sc_pair_up(i, j, data) +
-         sc_pair_bp_local(i, j, data);
+  return sc_hp_cb_up(i, j, data) +
+         sc_hp_cb_bp_local(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_bp_local_comparative(int                   i,
-                                int                   j,
-                                struct sc_wrapper_hp  *data)
+sc_hp_cb_up_bp_local_comparative(int              i,
+                                 int              j,
+                                 struct sc_hp_dat *data)
 {
-  return sc_pair_up_comparative(i, j, data) +
-         sc_pair_bp_local_comparative(i, j, data);
+  return sc_hp_cb_up_comparative(i, j, data) +
+         sc_hp_cb_bp_local_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_user(int                   i,
-                int                   j,
-                struct sc_wrapper_hp  *data)
+sc_hp_cb_up_user(int              i,
+                 int              j,
+                 struct sc_hp_dat *data)
 {
-  return sc_pair_up(i, j, data) +
-         sc_pair_user(i, j, data);
+  return sc_hp_cb_up(i, j, data) +
+         sc_hp_cb_user(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_user_comparative(int                   i,
-                            int                   j,
-                            struct sc_wrapper_hp  *data)
+sc_hp_cb_up_user_comparative(int              i,
+                             int              j,
+                             struct sc_hp_dat *data)
 {
-  return sc_pair_up_comparative(i, j, data) +
-         sc_pair_user_comparative(i, j, data);
+  return sc_hp_cb_up_comparative(i, j, data) +
+         sc_hp_cb_user_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_bp_user(int                   i,
-                int                   j,
-                struct sc_wrapper_hp  *data)
+sc_hp_cb_bp_user(int              i,
+                 int              j,
+                 struct sc_hp_dat *data)
 {
-  return sc_pair_bp(i, j, data) +
-         sc_pair_user(i, j, data);
+  return sc_hp_cb_bp(i, j, data) +
+         sc_hp_cb_user(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_bp_user_comparative(int                   i,
-                            int                   j,
-                            struct sc_wrapper_hp  *data)
+sc_hp_cb_bp_user_comparative(int              i,
+                             int              j,
+                             struct sc_hp_dat *data)
 {
-  return sc_pair_bp_comparative(i, j, data) +
-         sc_pair_user_comparative(i, j, data);
+  return sc_hp_cb_bp_comparative(i, j, data) +
+         sc_hp_cb_user_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_bp_local_user(int                   i,
-                      int                   j,
-                      struct sc_wrapper_hp  *data)
+sc_hp_cb_bp_local_user(int              i,
+                       int              j,
+                       struct sc_hp_dat *data)
 {
-  return sc_pair_bp_local(i, j, data) +
-         sc_pair_user(i, j, data);
+  return sc_hp_cb_bp_local(i, j, data) +
+         sc_hp_cb_user(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_bp_local_user_comparative(int                   i,
-                                  int                   j,
-                                  struct sc_wrapper_hp  *data)
+sc_hp_cb_bp_local_user_comparative(int              i,
+                                   int              j,
+                                   struct sc_hp_dat *data)
 {
-  return sc_pair_bp_local_comparative(i, j, data) +
-         sc_pair_user_comparative(i, j, data);
+  return sc_hp_cb_bp_local_comparative(i, j, data) +
+         sc_hp_cb_user_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_bp_user(int                  i,
-                   int                  j,
-                   struct sc_wrapper_hp *data)
+sc_hp_cb_up_bp_user(int               i,
+                    int               j,
+                    struct sc_hp_dat  *data)
 {
-  return sc_pair_up(i, j, data) +
-         sc_pair_bp(i, j, data) +
-         sc_pair_user(i, j, data);
+  return sc_hp_cb_up(i, j, data) +
+         sc_hp_cb_bp(i, j, data) +
+         sc_hp_cb_user(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_bp_user_comparative(int                  i,
-                               int                  j,
-                               struct sc_wrapper_hp *data)
+sc_hp_cb_up_bp_user_comparative(int               i,
+                                int               j,
+                                struct sc_hp_dat  *data)
 {
-  return sc_pair_up_comparative(i, j, data) +
-         sc_pair_bp_comparative(i, j, data) +
-         sc_pair_user_comparative(i, j, data);
+  return sc_hp_cb_up_comparative(i, j, data) +
+         sc_hp_cb_bp_comparative(i, j, data) +
+         sc_hp_cb_user_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_bp_local_user(int                  i,
-                         int                  j,
-                         struct sc_wrapper_hp *data)
+sc_hp_cb_up_bp_local_user(int               i,
+                          int               j,
+                          struct sc_hp_dat  *data)
 {
-  return sc_pair_up(i, j, data) +
-         sc_pair_bp_local(i, j, data) +
-         sc_pair_user(i, j, data);
+  return sc_hp_cb_up(i, j, data) +
+         sc_hp_cb_bp_local(i, j, data) +
+         sc_hp_cb_user(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_up_bp_local_user_comparative(int                  i,
-                                     int                  j,
-                                     struct sc_wrapper_hp *data)
+sc_hp_cb_up_bp_local_user_comparative(int               i,
+                                      int               j,
+                                      struct sc_hp_dat  *data)
 {
-  return sc_pair_up_comparative(i, j, data) +
-         sc_pair_bp_local_comparative(i, j, data) +
-         sc_pair_user_comparative(i, j, data);
+  return sc_hp_cb_up_comparative(i, j, data) +
+         sc_hp_cb_bp_local_comparative(i, j, data) +
+         sc_hp_cb_user_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_ext_up(int                  i,
-               int                  j,
-               struct sc_wrapper_hp *data)
+sc_hp_cb_ext_up(int               i,
+                int               j,
+                struct sc_hp_dat  *data)
 {
   int sc, u1, u2;
 
@@ -309,9 +309,9 @@ sc_pair_ext_up(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_ext_up_comparative(int                  i,
-                           int                  j,
-                           struct sc_wrapper_hp *data)
+sc_hp_cb_ext_up_comparative(int               i,
+                            int               j,
+                            struct sc_hp_dat  *data)
 {
   unsigned int  s;
   int           sc, u1, u2;
@@ -335,9 +335,9 @@ sc_pair_ext_up_comparative(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_ext_user(int                  i,
-                 int                  j,
-                 struct sc_wrapper_hp *data)
+sc_hp_cb_ext_user(int               i,
+                  int               j,
+                  struct sc_hp_dat  *data)
 {
   return data->user_cb(j, i, j, i,
                        VRNA_DECOMP_PAIR_HP,
@@ -346,9 +346,9 @@ sc_pair_ext_user(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_ext_user_comparative(int                  i,
-                             int                  j,
-                             struct sc_wrapper_hp *data)
+sc_hp_cb_ext_user_comparative(int               i,
+                              int               j,
+                              struct sc_hp_dat  *data)
 {
   unsigned int  s;
   int           sc;
@@ -366,28 +366,28 @@ sc_pair_ext_user_comparative(int                  i,
 
 
 PRIVATE INLINE int
-sc_pair_ext_up_user(int                   i,
-                    int                   j,
-                    struct sc_wrapper_hp  *data)
+sc_hp_cb_ext_up_user(int              i,
+                     int              j,
+                     struct sc_hp_dat *data)
 {
-  return sc_pair_ext_up(i, j, data) +
-         sc_pair_ext_user(i, j, data);
+  return sc_hp_cb_ext_up(i, j, data) +
+         sc_hp_cb_ext_user(i, j, data);
 }
 
 
 PRIVATE INLINE int
-sc_pair_ext_up_user_comparative(int                   i,
-                                int                   j,
-                                struct sc_wrapper_hp  *data)
+sc_hp_cb_ext_up_user_comparative(int              i,
+                                 int              j,
+                                 struct sc_hp_dat *data)
 {
-  return sc_pair_ext_up_comparative(i, j, data) +
-         sc_pair_ext_user_comparative(i, j, data);
+  return sc_hp_cb_ext_up_comparative(i, j, data) +
+         sc_hp_cb_ext_user_comparative(i, j, data);
 }
 
 
 PRIVATE INLINE void
-init_sc_wrapper(vrna_fold_compound_t  *fc,
-                struct sc_wrapper_hp  *sc_wrapper)
+init_sc_hp(vrna_fold_compound_t *fc,
+           struct sc_hp_dat     *sc_wrapper)
 {
   unsigned char sliding_window;
   unsigned int  s;
@@ -453,37 +453,37 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
           provides_sc_user = 1;
 
         if (provides_sc_user) {
-          sc_wrapper->pair_ext = &sc_pair_ext_user;
+          sc_wrapper->pair_ext = &sc_hp_cb_ext_user;
           if (provides_sc_up) {
-            sc_wrapper->pair_ext = &sc_pair_ext_up_user;
+            sc_wrapper->pair_ext = &sc_hp_cb_ext_up_user;
 
             if (provides_sc_bp)
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_pair_up_bp_local_user :
-                                 &sc_pair_up_bp_user;
+                                 &sc_hp_cb_up_bp_local_user :
+                                 &sc_hp_cb_up_bp_user;
             else
-              sc_wrapper->pair = &sc_pair_up_user;
+              sc_wrapper->pair = &sc_hp_cb_up_user;
           } else if (provides_sc_bp) {
             sc_wrapper->pair = (sliding_window) ?
-                               &sc_pair_bp_local_user :
-                               &sc_pair_bp_user;
+                               &sc_hp_cb_bp_local_user :
+                               &sc_hp_cb_bp_user;
           } else {
-            sc_wrapper->pair = &sc_pair_user;
+            sc_wrapper->pair = &sc_hp_cb_user;
           }
         } else {
           if (provides_sc_up) {
-            sc_wrapper->pair_ext = &sc_pair_ext_up;
+            sc_wrapper->pair_ext = &sc_hp_cb_ext_up;
             if (provides_sc_bp) {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_pair_up_bp_local :
-                                 &sc_pair_up_bp;
+                                 &sc_hp_cb_up_bp_local :
+                                 &sc_hp_cb_up_bp;
             } else {
-              sc_wrapper->pair = &sc_pair_up;
+              sc_wrapper->pair = &sc_hp_cb_up;
             }
           } else if (provides_sc_bp) {
             sc_wrapper->pair = (sliding_window) ?
-                               &sc_pair_bp_local :
-                               &sc_pair_bp;
+                               &sc_hp_cb_bp_local :
+                               &sc_hp_cb_bp;
           }
         }
       }
@@ -549,37 +549,37 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
         }
 
         if (provides_sc_user) {
-          sc_wrapper->pair_ext = &sc_pair_ext_user_comparative;
+          sc_wrapper->pair_ext = &sc_hp_cb_ext_user_comparative;
           if (provides_sc_up) {
-            sc_wrapper->pair_ext = &sc_pair_ext_up_user_comparative;
+            sc_wrapper->pair_ext = &sc_hp_cb_ext_up_user_comparative;
 
             if (provides_sc_bp)
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_pair_up_bp_local_user_comparative :
-                                 &sc_pair_up_bp_user_comparative;
+                                 &sc_hp_cb_up_bp_local_user_comparative :
+                                 &sc_hp_cb_up_bp_user_comparative;
             else
-              sc_wrapper->pair = &sc_pair_up_user_comparative;
+              sc_wrapper->pair = &sc_hp_cb_up_user_comparative;
           } else if (provides_sc_bp) {
             sc_wrapper->pair = (sliding_window) ?
-                               &sc_pair_bp_local_user_comparative :
-                               &sc_pair_bp_user_comparative;
+                               &sc_hp_cb_bp_local_user_comparative :
+                               &sc_hp_cb_bp_user_comparative;
           } else {
-            sc_wrapper->pair = &sc_pair_user_comparative;
+            sc_wrapper->pair = &sc_hp_cb_user_comparative;
           }
         } else {
           if (provides_sc_up) {
-            sc_wrapper->pair_ext = &sc_pair_ext_up_comparative;
+            sc_wrapper->pair_ext = &sc_hp_cb_ext_up_comparative;
             if (provides_sc_bp) {
               sc_wrapper->pair = (sliding_window) ?
-                                 &sc_pair_up_bp_local_comparative :
-                                 &sc_pair_up_bp_comparative;
+                                 &sc_hp_cb_up_bp_local_comparative :
+                                 &sc_hp_cb_up_bp_comparative;
             } else {
-              sc_wrapper->pair = &sc_pair_up_comparative;
+              sc_wrapper->pair = &sc_hp_cb_up_comparative;
             }
           } else if (provides_sc_bp) {
             sc_wrapper->pair = (sliding_window) ?
-                               &sc_pair_bp_local_comparative :
-                               &sc_pair_bp_comparative;
+                               &sc_hp_cb_bp_local_comparative :
+                               &sc_hp_cb_bp_comparative;
           }
         }
       }
@@ -590,7 +590,7 @@ init_sc_wrapper(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE void
-free_sc_wrapper(struct sc_wrapper_hp *sc_wrapper)
+free_sc_hp(struct sc_hp_dat *sc_wrapper)
 {
   free(sc_wrapper->up_comparative);
   free(sc_wrapper->bp_comparative);
