@@ -31,6 +31,8 @@
 
 #include "ViennaRNA/loops/external_hc.inc"
 
+#include "ViennaRNA/loops/internal_sc_pf.inc"
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -145,23 +147,25 @@ compute_bpp_external(vrna_fold_compound_t *fc);
 
 
 PRIVATE void
-compute_bpp_internal(vrna_fold_compound_t *fc,
-                     int                  l,
-                     vrna_ep_t            **bp_correction,
-                     int                  *corr_cnt,
-                     int                  *corr_size,
-                     FLT_OR_DBL           *Qmax,
-                     int                  *ov);
+compute_bpp_internal(vrna_fold_compound_t   *fc,
+                     int                    l,
+                     vrna_ep_t              **bp_correction,
+                     int                    *corr_cnt,
+                     int                    *corr_size,
+                     FLT_OR_DBL             *Qmax,
+                     int                    *ov,
+                     struct sc_int_exp_dat  *sc_wrapper_int);
 
 
 PRIVATE void
-compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
-                                 int                  l,
-                                 vrna_ep_t            **bp_correction,
-                                 int                  *corr_cnt,
-                                 int                  *corr_size,
-                                 FLT_OR_DBL           *Qmax,
-                                 int                  *ov);
+compute_bpp_internal_comparative(vrna_fold_compound_t   *fc,
+                                 int                    l,
+                                 vrna_ep_t              **bp_correction,
+                                 int                    *corr_cnt,
+                                 int                    *corr_size,
+                                 FLT_OR_DBL             *Qmax,
+                                 int                    *ov,
+                                 struct sc_int_exp_dat  *sc_wrapper_int);
 
 
 PRIVATE void
@@ -582,6 +586,8 @@ pf_create_bppm(vrna_fold_compound_t *vc,
   vrna_mx_pf_t      *matrices;
   vrna_md_t         *md;
   vrna_ud_t         *domains_up;
+  struct sc_int_exp_dat sc_wrapper_int;
+
 
   n           = vc->length;
   pscore      = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->pscore : NULL;
@@ -622,7 +628,11 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     int           corr_cnt        = 0;
     vrna_ep_t     *bp_correction  = vrna_alloc(sizeof(vrna_ep_t) * corr_size);
 
+    struct sc_int_exp_dat sc_wrapper_int;
+
     helper_arrays *ml_helpers = get_ml_helper_arrays(vc);
+    init_sc_int_exp(vc, &sc_wrapper_int);
+
 
     void          (*compute_bpp_int)(vrna_fold_compound_t *fc,
                                      int                  l,
@@ -630,7 +640,8 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                                      int                  *corr_cnt,
                                      int                  *corr_size,
                                      FLT_OR_DBL           *Qmax,
-                                     int                  *ov);
+                                     int                  *ov,
+                                     struct sc_int_exp_dat *sc_wrapper_int);
 
     void (*compute_bpp_mul)(vrna_fold_compound_t  *fc,
                             int                   l,
@@ -664,7 +675,8 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                     &corr_cnt,
                     &corr_size,
                     &Qmax,
-                    &ov);
+                    &ov,
+                    &sc_wrapper_int);
 
     for (l = n - 1; l > turn + 1; l--) {
       compute_bpp_int(vc,
@@ -673,7 +685,8 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                       &corr_cnt,
                       &corr_size,
                       &Qmax,
-                      &ov);
+                      &ov,
+                      &sc_wrapper_int);
 
       compute_bpp_mul(vc,
                       l,
@@ -783,6 +796,8 @@ pf_create_bppm(vrna_fold_compound_t *vc,
 
     /* clean up */
     free_ml_helper_arrays(ml_helpers);
+
+    free_sc_int_exp(&sc_wrapper_int);
 
     free(bp_correction);
   } /* end if 'check for forward recursion' */
@@ -1035,13 +1050,14 @@ contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
 
 
 PRIVATE void
-compute_bpp_internal(vrna_fold_compound_t *fc,
-                     int                  l,
-                     vrna_ep_t            **bp_correction,
-                     int                  *corr_cnt,
-                     int                  *corr_size,
-                     FLT_OR_DBL           *Qmax,
-                     int                  *ov)
+compute_bpp_internal(vrna_fold_compound_t   *fc,
+                     int                    l,
+                     vrna_ep_t              **bp_correction,
+                     int                    *corr_cnt,
+                     int                    *corr_size,
+                     FLT_OR_DBL             *Qmax,
+                     int                    *ov,
+                     struct sc_int_exp_dat  *sc_wrapper_int)
 {
   unsigned char     type, type_2;
   char              *ptype;
@@ -1123,27 +1139,8 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
                                      S1[l + 1],
                                      pf_params);
 
-              if (sc) {
-                if (sc->exp_energy_up)
-                  tmp2 *= sc->exp_energy_up[i + 1][u1]
-                          * sc->exp_energy_up[l + 1][u2];
-
-                if (sc->exp_energy_bp)
-                  tmp2 *= sc->exp_energy_bp[jij];
-
-                if (sc->exp_energy_stack) {
-                  if ((i + 1 == k) &&
-                      (j - 1 == l)) {
-                    tmp2 *= sc->exp_energy_stack[i]
-                            * sc->exp_energy_stack[k]
-                            * sc->exp_energy_stack[l]
-                            * sc->exp_energy_stack[j];
-                  }
-                }
-
-                if (sc->exp_f)
-                  tmp2 *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
-              }
+              if (sc_wrapper_int->pair)
+                tmp2 *= sc_wrapper_int->pair(i, j, k, l, sc_wrapper_int);
 
               if (with_ud) {
                 FLT_OR_DBL qql, qqr;
@@ -1215,18 +1212,19 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
 
 
 PRIVATE void
-compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
-                                 int                  l,
-                                 vrna_ep_t            **bp_correction,
-                                 int                  *corr_cnt,
-                                 int                  *corr_size,
-                                 FLT_OR_DBL           *Qmax,
-                                 int                  *ov)
+compute_bpp_internal_comparative(vrna_fold_compound_t   *fc,
+                                 int                    l,
+                                 vrna_ep_t              **bp_correction,
+                                 int                    *corr_cnt,
+                                 int                    *corr_size,
+                                 FLT_OR_DBL             *Qmax,
+                                 int                    *ov,
+                                 struct sc_int_exp_dat  *sc_wrapper_int)
 {
   short             **SS, **S5, **S3;
   unsigned int      type, *tt, s, n_seq, **a2s, *sn;
   int               i, j, k, n, ij, kl, u1, u2, *my_iindx, *jindx, turn, *pscore, *hc_up_int;
-  FLT_OR_DBL        temp, tmp2, *qb, *probs, *scale;
+  FLT_OR_DBL        tmp2, *qb, *probs, *scale, psc_exp;
   double            max_real, kTn;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
@@ -1266,7 +1264,7 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
       continue;
 
     if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
-      temp = 0.;
+      psc_exp = exp(pscore[jindx[l] + k] / kTn);
 
       for (s = 0; s < n_seq; s++)
         tt[s] = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
@@ -1290,7 +1288,9 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
           if (hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
             if ((sn[k] == sn[i]) &&
                 (sn[j] == sn[l])) {
-              tmp2 = 1.;
+              tmp2 = probs[ij] *
+                     scale[u1 + u2 + 2] *
+                     psc_exp;
 
               for (s = 0; s < n_seq; s++) {
                 int u1_loc  = a2s[s][k - 1] - a2s[s][i];
@@ -1307,42 +1307,14 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
                                        pf_params);
               }
 
-              if (scs) {
-                for (s = 0; s < n_seq; s++) {
-                  if (scs[s]) {
-                    if (scs[s]->exp_energy_up)
-                      tmp2 *= scs[s]->exp_energy_up[a2s[s][i + 1]][u1] *
-                              scs[s]->exp_energy_up[a2s[s][l + 1]][u2];
+              if (sc_wrapper_int->pair)
+                tmp2 *= sc_wrapper_int->pair(i, j, k, l, sc_wrapper_int);
 
-                    if (scs[s]->exp_energy_bp)
-                      tmp2 *= scs[s]->exp_energy_bp[jindx[j] + i];
-
-                    if (scs[s]->exp_energy_stack) {
-                      if ((a2s[s][k - 1] == a2s[s][i]) &&
-                          (a2s[s][j - 1] == a2s[s][l])) {
-                        tmp2 *= scs[s]->exp_energy_stack[a2s[s][i]] *
-                                scs[s]->exp_energy_stack[a2s[s][j]] *
-                                scs[s]->exp_energy_stack[a2s[s][k]] *
-                                scs[s]->exp_energy_stack[a2s[s][l]];
-                      }
-                    }
-
-                    if (scs[s]->exp_f)
-                      tmp2 *= scs[s]->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, scs[s]->data);
-                  }
-                }
-              }
-
-              temp += probs[ij] *
-                      tmp2 *
-                      scale[u1 + u2 + 2];
+              probs[kl] += tmp2;
             }
           }
         }
       }
-
-      probs[kl] += temp *
-                   exp(pscore[jindx[l] + k] / kTn);
     }
 
     if (probs[kl] > (*Qmax)) {
@@ -1838,31 +1810,31 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
           continue;
       }
 
-      if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-        temp = prm_MLb;
+      temp = prm_MLb;
 
-        if (sn[k] == sn[k - 1]) {
-          for (i = 1; i <= k - 2; i++)
-            if (sn[i + 1] == sn[i])
-              temp += ml_helpers->prml[i] *
-                      qm[my_iindx[i + 1] - (k - 1)];
-        }
+      if (sn[k] == sn[k - 1]) {
+        for (i = 1; i <= k - 2; i++)
+          if (sn[i + 1] == sn[i])
+            temp += ml_helpers->prml[i] *
+                    qm[my_iindx[i + 1] - (k - 1)];
+      }
 
-        if ((with_gquad) &&
-            (qb[kl] == 0.)) {
-          temp *= G[kl] *
-                  expMLstem;
-        } else {
+      if ((with_gquad) &&
+          (qb[kl] == 0.)) {
+        temp *= G[kl] *
+                expMLstem;
+      } else {
+        if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
           for (s = 0; s < n_seq; s++) {
             tt    = vrna_get_ptype_md(S[s][k], S[s][l], md);
             temp  *= exp_E_MLstem(tt, S5[s][k], S3[s][l], pf_params);
           }
         }
-
-        probs[kl] += temp *
-                     scale[2] *
-                     exp(pscore[jindx[l] + k] / kTn);
       }
+
+      probs[kl] += temp *
+                   scale[2] *
+                   exp(pscore[jindx[l] + k] / kTn);
 
       if (probs[kl] > (*Qmax)) {
         (*Qmax) = probs[kl];
@@ -2149,6 +2121,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
   char              *ptype;
   vrna_mx_pf_t      *matrices;
   int               *rtype;
+  struct sc_int_exp_dat sc_wrapper_int;
 
   n         = vc->length;
   cp        = vc->cutpoint;
@@ -2183,6 +2156,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
     vrna_ep_t     *bp_correction  = vrna_alloc(sizeof(vrna_ep_t) * corr_size);
 
     helper_arrays *ml_helpers = get_ml_helper_arrays(vc);
+    init_sc_int_exp(vc, &sc_wrapper_int);
 
     Qmax  = 0;
     Qrout = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
@@ -2211,7 +2185,8 @@ pf_co_bppm(vrna_fold_compound_t *vc,
                          &corr_cnt,
                          &corr_size,
                          &Qmax,
-                         &ov);
+                         &ov,
+                         &sc_wrapper_int);
 
     for (l = n - 1; l > turn + 1; l--) {
       compute_bpp_internal(vc,
@@ -2220,7 +2195,8 @@ pf_co_bppm(vrna_fold_compound_t *vc,
                            &corr_cnt,
                            &corr_size,
                            &Qmax,
-                           &ov);
+                           &ov,
+                           &sc_wrapper_int);
 
       compute_bpp_multibranch(vc,
                               l,
@@ -2336,6 +2312,8 @@ pf_co_bppm(vrna_fold_compound_t *vc,
 
     /* clean up */
     free_ml_helper_arrays(ml_helpers);
+
+    free_sc_int_exp(&sc_wrapper_int);
 
     free(bp_correction);
   }   /* end if (do_backtrack) */
