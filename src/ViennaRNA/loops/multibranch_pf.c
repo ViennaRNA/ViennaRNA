@@ -249,7 +249,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_mb_def_dat       hc_dat_local;
   struct sc_wrapper_exp_ml  sc_wrapper;
 
   qqm1            = aux_mx->qqm1;
@@ -275,7 +275,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   expMLclosing    = pf_params->expMLclosing;
   qbt1            = 0.;
   rtype           = &(md->rtype[0]);
-  evaluate        = prepare_hc_default(fc, &hc_dat_local);
+  evaluate        = prepare_hc_mb_def(fc, &hc_dat_local);
 
   init_sc_wrapper_ml(fc, &sc_wrapper);
 
@@ -396,7 +396,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   vrna_ud_t                 *domains_up;
   vrna_hc_t                 *hc;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_mb_def_dat       hc_dat_local;
   struct sc_wrapper_exp_ml  sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -428,7 +428,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   with_gquad      = md->gquad;
   with_ud         = (domains_up && domains_up->exp_energy_cb);
   hc_up_ml        = hc->up_ml;
-  evaluate        = prepare_hc_default(fc, &hc_dat_local);
+  evaluate        = prepare_hc_mb_def(fc, &hc_dat_local);
 
   init_sc_wrapper_ml(fc, &sc_wrapper);
 

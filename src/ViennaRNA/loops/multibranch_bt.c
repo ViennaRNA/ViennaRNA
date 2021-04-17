@@ -116,7 +116,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_mb_def_dat       hc_dat_local;
 
   length        = fc->length;
   P             = fc->params;
@@ -133,7 +133,7 @@ vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   dangle_model  = md->dangles;
-  evaluate      = prepare_hc_default_ext(fc, &hc_dat_local);
+  evaluate      = prepare_hc_mb_def_ext(fc, &hc_dat_local);
 
   ii  = *i;
   jj  = *j;
@@ -518,7 +518,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_mb_def_dat       hc_dat_local;
   struct sc_wrapper_ml      sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -547,7 +547,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   with_gquad    = md->gquad;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   dangle_model  = md->dangles;
-  evaluate      = prepare_hc_default(fc, &hc_dat_local);
+  evaluate      = prepare_hc_mb_def(fc, &hc_dat_local);
 
   init_sc_wrapper(fc, &sc_wrapper);
 
@@ -1021,9 +1021,9 @@ BT_mb_loop(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_mb_def_dat       hc_dat_local;
   vrna_callback_hc_evaluate *evaluate_ext;
-  struct default_data       hc_dat_local_ext;
+  struct hc_mb_def_dat       hc_dat_local_ext;
   struct sc_wrapper_ml      sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -1053,8 +1053,8 @@ BT_mb_loop(vrna_fold_compound_t *fc,
                     0;
   tt            = NULL;
   dangle_model  = md->dangles;
-  evaluate      = prepare_hc_default(fc, &hc_dat_local);
-  evaluate_ext  = prepare_hc_default_ext(fc, &hc_dat_local_ext);
+  evaluate      = prepare_hc_mb_def(fc, &hc_dat_local);
+  evaluate_ext  = prepare_hc_mb_def_ext(fc, &hc_dat_local_ext);
 
   init_sc_wrapper(fc, &sc_wrapper);
 

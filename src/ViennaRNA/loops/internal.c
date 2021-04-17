@@ -371,11 +371,11 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
-  struct default_data   hc_dat_local;
+  struct hc_int_def_dat   hc_dat_local;
   eval_hc               *evaluate;
   struct sc_wrapper_int sc_wrapper;
 
-  evaluate = prepare_hc_default(fc, &hc_dat_local);
+  evaluate = prepare_hc_int_def(fc, &hc_dat_local);
   init_sc_wrapper(fc, &sc_wrapper);
 
   e = INF;
@@ -828,7 +828,7 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
   vrna_md_t           *md;
   vrna_param_t        *P;
   eval_hc             *evaluate;
-  struct default_data hc_dat_local;
+  struct hc_int_def_dat hc_dat_local;
 
   n     = fc->length;
   n_seq = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -844,7 +844,7 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
 
   e = INF;
 
-  evaluate = prepare_hc_default(fc, &hc_dat_local);
+  evaluate = prepare_hc_int_def(fc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -918,7 +918,7 @@ E_stack(vrna_fold_compound_t  *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   eval_hc               *evaluate;
-  struct default_data   hc_dat_local;
+  struct hc_int_def_dat   hc_dat_local;
   struct sc_wrapper_int sc_wrapper;
 
   e               = INF;
@@ -945,7 +945,7 @@ E_stack(vrna_fold_compound_t  *fc,
   hc_mx_local = (sliding_window) ? fc->hc->matrix_local : NULL;
   ij          = (sliding_window) ? 0 : indx[j] + i;
   pq          = (sliding_window) ? 0 : indx[q] + p;
-  evaluate    = prepare_hc_default(fc, &hc_dat_local);
+  evaluate    = prepare_hc_int_def(fc, &hc_dat_local);
 
   init_sc_wrapper(fc, &sc_wrapper);
 

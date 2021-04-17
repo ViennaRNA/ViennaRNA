@@ -182,7 +182,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
   vrna_sc_t                 *sc;
   vrna_ud_t                 *domains_up;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat     hc_dat_local;
 
   length        = fc->length;
   P             = fc->params;
@@ -200,7 +200,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
-  evaluate      = prepare_hc_default(fc, &hc_dat_local);
+  evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
 
   jj = *k;
 
@@ -567,7 +567,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat     hc_dat_local;
 
   n_seq         = fc->n_seq;
   n             = fc->length;
@@ -585,7 +585,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
-  evaluate      = prepare_hc_default(fc, &hc_dat_local);
+  evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
 
   jj = *k;
 
@@ -722,7 +722,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat     hc_dat_local;
 
   length        = fc->length;
   P             = fc->params;
@@ -736,7 +736,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
-  evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
+  evaluate      = prepare_hc_ext_def_window(fc, &hc_dat_local);
 
   ii = *k;
 
@@ -1030,7 +1030,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat     hc_dat_local;
 
   n             = fc->length;
   n_seq         = fc->n_seq;
@@ -1047,7 +1047,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   with_gquad    = md->gquad;
-  evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
+  evaluate      = prepare_hc_ext_def_window(fc, &hc_dat_local);
 
   ii = *k;
 
@@ -1174,7 +1174,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     vrna_md_t                 *md;
     vrna_sc_t                 *sc;
     vrna_callback_hc_evaluate *evaluate;
-    struct default_data       hc_dat_local;
+    struct hc_ext_def_dat     hc_dat_local;
 #ifdef VRNA_WITH_SVM
     int                       zsc_pre_filter;
     vrna_zsc_dat_t            zsc_data;
@@ -1195,7 +1195,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     maxdist       = MIN2(fc->window_size, maxj);
     traced2       = 0;
     ii            = start;
-    evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
+    evaluate      = prepare_hc_ext_def_window(fc, &hc_dat_local);
 #ifdef VRNA_WITH_SVM
     zsc_data        = fc->zscore_data;
     zsc_pre_filter  = ((zsc_data) &&
@@ -1417,7 +1417,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
     vrna_md_t                 *md;
     vrna_sc_t                 **scs;
     vrna_callback_hc_evaluate *evaluate;
-    struct default_data       hc_dat_local;
+    struct hc_ext_def_dat     hc_dat_local;
 
     length        = fc->length;
     n_seq         = fc->n_seq;
@@ -1437,7 +1437,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
     maxdist       = MIN2(fc->window_size, maxj);
     traced2       = 0;
     start         = *i;
-    evaluate      = prepare_hc_default_window(fc, &hc_dat_local);
+    evaluate      = prepare_hc_ext_def_window(fc, &hc_dat_local);
 
     fij = f3[start];
 

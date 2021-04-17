@@ -929,8 +929,8 @@ compute_bpp_external(vrna_fold_compound_t *fc)
   if (circular) {
     (fc->type == VRNA_FC_TYPE_SINGLE) ? bppm_circ(fc) : bppm_circ_comparative(fc);
   } else {
-    struct default_data       hc_dat_local;
-    vrna_callback_hc_evaluate *evaluate = prepare_hc_default(fc, &hc_dat_local);
+    struct hc_ext_def_dat     hc_dat_local;
+    vrna_callback_hc_evaluate *evaluate = prepare_hc_ext_def(fc, &hc_dat_local);
 
     for (i = 1; i <= n; i++) {
       for (j = i + turn + 1; j <= n; j++) {

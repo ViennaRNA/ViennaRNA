@@ -51,7 +51,7 @@ reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     int                         j,
                     struct vrna_mx_pf_aux_el_s  *aux_mx,
                     vrna_callback_hc_evaluate   *evaluate,
-                    struct default_data         *hc_dat_local,
+                    struct hc_ext_def_dat         *hc_dat_local,
                     struct sc_wrapper_exp_ext   *sc_wrapper);
 
 
@@ -61,7 +61,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      int                        j,
                      struct vrna_mx_pf_aux_el_s *aux_mx,
                      vrna_callback_hc_evaluate  *evaluate,
-                     struct default_data        *hc_dat_local,
+                     struct hc_ext_def_dat        *hc_dat_local,
                      struct sc_wrapper_exp_ext  *sc_wrapper);
 
 
@@ -71,7 +71,7 @@ reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    int                        j,
                    struct vrna_mx_pf_aux_el_s *aux_mx,
                    vrna_callback_hc_evaluate  *evaluate,
-                   struct default_data        *hc_dat_local,
+                   struct hc_ext_def_dat        *hc_dat_local,
                    struct sc_wrapper_exp_ext  *sc_wrapper);
 
 
@@ -81,7 +81,7 @@ split_ext_fast(vrna_fold_compound_t       *fc,
                int                        j,
                struct vrna_mx_pf_aux_el_s *aux_mx,
                vrna_callback_hc_evaluate  *evaluate,
-               struct default_data        *hc_dat_local,
+               struct hc_ext_def_dat        *hc_dat_local,
                struct sc_wrapper_exp_ext  *sc_wrapper);
 
 
@@ -129,7 +129,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc)
     int                       i, j, max_j, d, n, turn, ij, *iidx, with_ud;
     FLT_OR_DBL                *q, **q_local;
     vrna_callback_hc_evaluate *evaluate;
-    struct default_data       hc_dat_local;
+    struct hc_ext_def_dat       hc_dat_local;
     struct sc_wrapper_exp_ext sc_wrapper;
     vrna_ud_t                 *domains_up;
 
@@ -140,9 +140,9 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc)
     with_ud     = (domains_up && domains_up->exp_energy_cb);
 
     if (fc->hc->type == VRNA_HC_WINDOW)
-      evaluate = prepare_hc_default_window(fc, &hc_dat_local);
+      evaluate = prepare_hc_ext_def_window(fc, &hc_dat_local);
     else
-      evaluate = prepare_hc_default(fc, &hc_dat_local);
+      evaluate = prepare_hc_ext_def(fc, &hc_dat_local);
 
     init_sc_wrapper_ext(fc, &sc_wrapper);
 
@@ -292,7 +292,7 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
   int                       k, turn;
   FLT_OR_DBL                **q;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat       hc_dat_local;
   struct sc_wrapper_exp_ext sc_wrapper;
 
   /*
@@ -303,7 +303,7 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
   if ((fc) && (fc->hc->type == VRNA_HC_WINDOW)) {
     turn      = fc->exp_params->model_details.min_loop_size;
     q         = fc->exp_matrices->q_local;
-    evaluate  = prepare_hc_default_window(fc, &hc_dat_local);
+    evaluate  = prepare_hc_ext_def_window(fc, &hc_dat_local);
     init_sc_wrapper_ext(fc, &sc_wrapper);
 
 
@@ -319,7 +319,7 @@ reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     int                         j,
                     struct vrna_mx_pf_aux_el_s  *aux_mx,
                     vrna_callback_hc_evaluate   *evaluate,
-                    struct default_data         *hc_dat_local,
+                    struct hc_ext_def_dat         *hc_dat_local,
                     struct sc_wrapper_exp_ext   *sc_wrapper)
 {
   int             u;
@@ -377,7 +377,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      int                        j,
                      struct vrna_mx_pf_aux_el_s *aux_mx,
                      vrna_callback_hc_evaluate  *evaluate,
-                     struct default_data        *hc_dat_local,
+                     struct hc_ext_def_dat        *hc_dat_local,
                      struct sc_wrapper_exp_ext  *sc_wrapper)
 {
   short             **S, **S5, **S3, *S1, *S2, s5, s3;
@@ -446,7 +446,7 @@ reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    int                        j,
                    struct vrna_mx_pf_aux_el_s *aux_mx,
                    vrna_callback_hc_evaluate  *evaluate,
-                   struct default_data        *hc_dat_local,
+                   struct hc_ext_def_dat        *hc_dat_local,
                    struct sc_wrapper_exp_ext  *sc_wrapper)
 {
   int               u;
@@ -488,7 +488,7 @@ split_ext_fast(vrna_fold_compound_t       *fc,
                int                        j,
                struct vrna_mx_pf_aux_el_s *aux_mx,
                vrna_callback_hc_evaluate  *evaluate,
-               struct default_data        *hc_dat_local,
+               struct hc_ext_def_dat        *hc_dat_local,
                struct sc_wrapper_exp_ext  *sc_wrapper)
 {
   int               *idx, k, ij1;
@@ -545,7 +545,7 @@ split_ext_fast(vrna_fold_compound_t       *fc,
    *  increases speed. However, once we check for the split point between
    *  strands in hard constraints, we have to think of something else...
    */
-  if ((evaluate == &hc_default) || (evaluate == &hc_default_window)) {
+  if ((evaluate == &hc_ext_cb_def) || (evaluate == &hc_ext_cb_def_window)) {
     for (k = j; k > i; k--) {
       qbt += q[ij1] *
              qqq[k];
@@ -591,7 +591,7 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   vrna_exp_param_t          *pf_params;
   vrna_ud_t                 *domains_up;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat       hc_dat_local;
   struct sc_wrapper_exp_ext sc_wrapper;
 
   qq          = aux_mx->qq;
@@ -603,9 +603,9 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   with_ud     = (domains_up && domains_up->exp_energy_cb);
 
   if (fc->hc->type == VRNA_HC_WINDOW)
-    evaluate = prepare_hc_default_window(fc, &hc_dat_local);
+    evaluate = prepare_hc_ext_def_window(fc, &hc_dat_local);
   else
-    evaluate = prepare_hc_default(fc, &hc_dat_local);
+    evaluate = prepare_hc_ext_def(fc, &hc_dat_local);
 
   init_sc_wrapper_ext(fc, &sc_wrapper);
 

@@ -117,7 +117,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   eval_hc                   *evaluate;
-  struct  default_data      hc_dat_local;
+  struct hc_int_def_dat     hc_dat_local;
   struct sc_wrapper_exp_int sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -150,7 +150,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   with_ud     = ((domains_up) && (domains_up->exp_energy_cb)) ? 1 : 0;
   rtype       = &(md->rtype[0]);
   qbt1        = 0.;
-  evaluate    = prepare_hc_default(fc, &hc_dat_local);
+  evaluate    = prepare_hc_int_def(fc, &hc_dat_local);
 
   init_sc_wrapper_int(fc, &sc_wrapper);
 
@@ -573,7 +573,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   eval_hc                   *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_int_def_dat       hc_dat_local;
   struct sc_wrapper_exp_int sc_wrapper;
 
   n           = fc->length;
@@ -599,7 +599,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
 
   q = 0.;
 
-  evaluate = prepare_hc_default(fc, &hc_dat_local);
+  evaluate = prepare_hc_int_def(fc, &hc_dat_local);
 
   init_sc_wrapper_int(fc, &sc_wrapper);
 
@@ -746,7 +746,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   eval_hc                   *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_int_def_dat       hc_dat_local;
   struct sc_wrapper_exp_int sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -783,7 +783,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
   if (hc_up[i + 1] < u1)
     return qbt1;
 
-  evaluate = prepare_hc_default(fc, &hc_dat_local);
+  evaluate = prepare_hc_int_def(fc, &hc_dat_local);
 
   init_sc_wrapper_int(fc, &sc_wrapper);
 

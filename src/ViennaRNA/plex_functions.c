@@ -538,7 +538,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
   vrna_pk_plex_t            *entry;
 
   vrna_callback_hc_evaluate *evaluate_ext;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat     hc_dat_local;
 
   struc   = NULL;
   n       = fc->length;
@@ -556,7 +556,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
                            NULL,
                            NULL);
 
-  evaluate_ext = prepare_hc_default(fc, &hc_dat_local);
+  evaluate_ext = prepare_hc_ext_def(fc, &hc_dat_local);
 
   c3 = get_array(n, max_interaction_length);
 

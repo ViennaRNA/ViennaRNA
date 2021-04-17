@@ -9,7 +9,7 @@ typedef unsigned char (eval_hc)(int   i,
                                 int   l,
                                 void  *data);
 
-struct default_data {
+struct hc_int_def_dat {
   unsigned char             *mx;
   unsigned char             **mx_local;
   int                       *up;
@@ -20,19 +20,19 @@ struct default_data {
 
 
 PRIVATE unsigned char
-hc_default(int  i,
-           int  j,
-           int  k,
-           int  l,
-           void *data);
+hc_int_cb_def(int   i,
+              int   j,
+              int   k,
+              int   l,
+              void  *data);
 
 
 PRIVATE unsigned char
-hc_default_user(int   i,
-                int   j,
-                int   k,
-                int   l,
-                void  *data);
+hc_int_cb_def_user(int  i,
+                   int  j,
+                   int  k,
+                   int  l,
+                   void *data);
 
 
 PRIVATE INLINE int
@@ -53,8 +53,8 @@ ubf_eval_int_loop_comparative(int           col_i,
 
 
 PRIVATE INLINE eval_hc *
-prepare_hc_default(vrna_fold_compound_t *fc,
-                   struct default_data  *dat);
+prepare_hc_int_def(vrna_fold_compound_t   *fc,
+                   struct hc_int_def_dat  *dat);
 
 
 /*
@@ -63,14 +63,14 @@ prepare_hc_default(vrna_fold_compound_t *fc,
  #################################
  */
 PRIVATE unsigned char
-hc_default(int  i,
-           int  j,
-           int  k,
-           int  l,
-           void *data)
+hc_int_cb_def(int   i,
+              int   j,
+              int   k,
+              int   l,
+              void  *data)
 {
 #if 0
-  struct default_data *dat = (struct default_data *)data;
+  struct hc_int_def_dat *dat = (struct hc_int_def_dat *)data;
 #endif
 
   return (unsigned char)1;
@@ -78,21 +78,21 @@ hc_default(int  i,
 
 
 PRIVATE unsigned char
-hc_default_user(int   i,
-                int   j,
-                int   k,
-                int   l,
-                void  *data)
+hc_int_cb_def_user(int  i,
+                   int  j,
+                   int  k,
+                   int  l,
+                   void *data)
 {
-  struct default_data *dat = (struct default_data *)data;
+  struct hc_int_def_dat *dat = (struct hc_int_def_dat *)data;
 
   return dat->hc_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, dat->hc_dat);
 }
 
 
 PRIVATE INLINE eval_hc *
-prepare_hc_default(vrna_fold_compound_t *fc,
-                   struct default_data  *dat)
+prepare_hc_int_def(vrna_fold_compound_t   *fc,
+                   struct hc_int_def_dat  *dat)
 {
   dat->mx       = (fc->hc->type == VRNA_HC_WINDOW) ? NULL : fc->hc->mx;
   dat->mx_local = (fc->hc->type == VRNA_HC_WINDOW) ? fc->hc->matrix_local : NULL;
@@ -103,10 +103,10 @@ prepare_hc_default(vrna_fold_compound_t *fc,
   if (fc->hc->f) {
     dat->hc_f   = fc->hc->f;
     dat->hc_dat = fc->hc->data;
-    return &hc_default_user;
+    return &hc_int_cb_def_user;
   }
 
-  return &hc_default;
+  return &hc_int_cb_def;
 }
 
 

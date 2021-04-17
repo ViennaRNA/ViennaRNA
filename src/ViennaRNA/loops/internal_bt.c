@@ -104,7 +104,7 @@ BT_stack(vrna_fold_compound_t *fc,
   vrna_md_t             *md;
   vrna_hc_t             *hc;
   eval_hc               *evaluate;
-  struct default_data   hc_dat_local;
+  struct hc_int_def_dat   hc_dat_local;
   struct sc_wrapper_int sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -126,7 +126,7 @@ BT_stack(vrna_fold_compound_t *fc,
   p               = *i + 1;
   q               = *j - 1;
   ret             = 0;
-  evaluate        = prepare_hc_default(fc, &hc_dat_local);
+  evaluate        = prepare_hc_int_def(fc, &hc_dat_local);
 
   init_sc_wrapper(fc, &sc_wrapper);
 
@@ -218,7 +218,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
   vrna_md_t           *md;
   vrna_hc_t           *hc;
   eval_hc             *evaluate;
-  struct default_data hc_dat_local;
+  struct hc_int_def_dat hc_dat_local;
 
   ret             = 0;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -236,7 +236,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
   turn            = md->min_loop_size;
   ij              = (sliding_window) ? 0 : idx[*j] + *i;
   tt              = NULL;
-  evaluate        = prepare_hc_default(fc, &hc_dat_local);
+  evaluate        = prepare_hc_int_def(fc, &hc_dat_local);
 
   hc_decompose_ij = (sliding_window) ? hc->matrix_local[*i][*j - *i] : hc->mx[n * (*i) + (*j)];
 

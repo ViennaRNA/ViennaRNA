@@ -3,7 +3,7 @@
  *  partition function version of multibranch loop evaluation
  */
 
-struct default_data {
+struct hc_mb_def_dat {
   unsigned char             *mx;
   unsigned char             **mx_window;
   unsigned int              *sn;
@@ -15,43 +15,16 @@ struct default_data {
 
 
 PRIVATE unsigned char
-hc_default(int            i,
-           int            j,
-           int            k,
-           int            l,
-           unsigned char  d,
-           void           *data);
+hc_mb_cb_def(int            i,
+             int            j,
+             int            k,
+             int            l,
+             unsigned char  d,
+             void           *data);
 
 
 PRIVATE unsigned char
-hc_default_sn(int           i,
-              int           j,
-              int           k,
-              int           l,
-              unsigned char d,
-              void          *data);
-
-
-PRIVATE unsigned char
-hc_default_window(int           i,
-                  int           j,
-                  int           k,
-                  int           l,
-                  unsigned char d,
-                  void          *data);
-
-
-PRIVATE unsigned char
-hc_default_ext(int            i,
-               int            j,
-               int            k,
-               int            l,
-               unsigned char  d,
-               void           *data);
-
-
-PRIVATE unsigned char
-hc_default_user(int           i,
+hc_mb_cb_def_sn(int           i,
                 int           j,
                 int           k,
                 int           l,
@@ -60,25 +33,7 @@ hc_default_user(int           i,
 
 
 PRIVATE unsigned char
-hc_default_sn_user(int            i,
-                   int            j,
-                   int            k,
-                   int            l,
-                   unsigned char  d,
-                   void           *data);
-
-
-PRIVATE unsigned char
-hc_default_user_window(int            i,
-                       int            j,
-                       int            k,
-                       int            l,
-                       unsigned char  d,
-                       void           *data);
-
-
-PRIVATE unsigned char
-hc_default_user_ext(int           i,
+hc_mb_cb_def_window(int           i,
                     int           j,
                     int           k,
                     int           l,
@@ -86,19 +41,64 @@ hc_default_user_ext(int           i,
                     void          *data);
 
 
-PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default(vrna_fold_compound_t *fc,
-                   struct default_data  *dat);
+PRIVATE unsigned char
+hc_mb_cb_def_ext(int            i,
+                 int            j,
+                 int            k,
+                 int            l,
+                 unsigned char  d,
+                 void           *data);
+
+
+PRIVATE unsigned char
+hc_mb_cb_def_user(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data);
+
+
+PRIVATE unsigned char
+hc_mb_cb_def_sn_user(int            i,
+                     int            j,
+                     int            k,
+                     int            l,
+                     unsigned char  d,
+                     void           *data);
+
+
+PRIVATE unsigned char
+hc_mb_cb_def_user_window(int            i,
+                         int            j,
+                         int            k,
+                         int            l,
+                         unsigned char  d,
+                         void           *data);
+
+
+PRIVATE unsigned char
+hc_mb_cb_def_user_ext(int           i,
+                      int           j,
+                      int           k,
+                      int           l,
+                      unsigned char d,
+                      void          *data);
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default_window(vrna_fold_compound_t  *fc,
-                          struct default_data   *dat);
+prepare_hc_mb_def(vrna_fold_compound_t  *fc,
+                  struct hc_mb_def_dat  *dat);
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default_ext(vrna_fold_compound_t *fc,
-                       struct default_data  *dat);
+prepare_hc_mb_def_window(vrna_fold_compound_t *fc,
+                         struct hc_mb_def_dat *dat);
+
+
+PRIVATE INLINE vrna_callback_hc_evaluate *
+prepare_hc_mb_def_ext(vrna_fold_compound_t  *fc,
+                      struct hc_mb_def_dat  *dat);
 
 
 /*
@@ -107,17 +107,17 @@ prepare_hc_default_ext(vrna_fold_compound_t *fc,
  #################################
  */
 PRIVATE unsigned char
-hc_default(int            i,
-           int            j,
-           int            k,
-           int            l,
-           unsigned char  d,
-           void           *data)
+hc_mb_cb_def(int            i,
+             int            j,
+             int            k,
+             int            l,
+             unsigned char  d,
+             void           *data)
 {
-  unsigned char       eval;
-  unsigned int        n;
-  int                 di, dj, u;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned char         eval;
+  unsigned int          n;
+  int                   di, dj, u;
+  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
   eval  = (unsigned char)0;
   di    = k - i;
@@ -203,9 +203,9 @@ hc_sn(int           i,
       unsigned char d,
       void          *data)
 {
-  unsigned int        *sn;
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned int          *sn;
+  unsigned char         eval;
+  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
   sn    = dat->sn;
   eval  = (unsigned char)0;
@@ -260,16 +260,16 @@ hc_sn(int           i,
 
 
 PRIVATE unsigned char
-hc_default_window(int           i,
-                  int           j,
-                  int           k,
-                  int           l,
-                  unsigned char d,
-                  void          *data)
+hc_mb_cb_def_window(int           i,
+                    int           j,
+                    int           k,
+                    int           l,
+                    unsigned char d,
+                    void          *data)
 {
-  int                 di, dj, u;
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  int                   di, dj, u;
+  unsigned char         eval;
+  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
   eval  = (unsigned char)0;
   di    = k - i;
@@ -347,17 +347,17 @@ hc_default_window(int           i,
 
 
 PRIVATE unsigned char
-hc_default_ext(int            i,
-               int            j,
-               int            k,
-               int            l,
-               unsigned char  d,
-               void           *data)
+hc_mb_cb_def_ext(int            i,
+                 int            j,
+                 int            k,
+                 int            l,
+                 unsigned char  d,
+                 void           *data)
 {
-  unsigned int        n;
-  int                 di, dj;
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned int          n;
+  int                   di, dj;
+  unsigned char         eval;
+  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
   eval  = (unsigned char)0;
   di    = k - i;
@@ -465,34 +465,34 @@ hc_default_ext(int            i,
 
 
 PRIVATE INLINE unsigned char
-hc_default_sn(int           i,
-              int           j,
-              int           k,
-              int           l,
-              unsigned char d,
-              void          *data)
-{
-  unsigned char eval;
-
-  eval  = hc_default(i, j, k, l, d, data);
-  eval  = hc_sn(i, j, k, l, d, data) ? eval : (unsigned char)0;
-
-  return eval;
-}
-
-
-PRIVATE unsigned char
-hc_default_user(int           i,
+hc_mb_cb_def_sn(int           i,
                 int           j,
                 int           k,
                 int           l,
                 unsigned char d,
                 void          *data)
 {
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned char eval;
 
-  eval  = hc_default(i, j, k, l, d, data);
+  eval  = hc_mb_cb_def(i, j, k, l, d, data);
+  eval  = hc_sn(i, j, k, l, d, data) ? eval : (unsigned char)0;
+
+  return eval;
+}
+
+
+PRIVATE unsigned char
+hc_mb_cb_def_user(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data)
+{
+  unsigned char         eval;
+  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
+
+  eval  = hc_mb_cb_def(i, j, k, l, d, data);
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
@@ -500,17 +500,17 @@ hc_default_user(int           i,
 
 
 PRIVATE unsigned char
-hc_default_sn_user(int            i,
-                   int            j,
-                   int            k,
-                   int            l,
-                   unsigned char  d,
-                   void           *data)
+hc_mb_cb_def_sn_user(int            i,
+                     int            j,
+                     int            k,
+                     int            l,
+                     unsigned char  d,
+                     void           *data)
 {
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned char         eval;
+  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
-  eval  = hc_default(i, j, k, l, d, data);
+  eval  = hc_mb_cb_def(i, j, k, l, d, data);
   eval  = hc_sn(i, j, k, l, d, data) ? eval : (unsigned char)0;
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
@@ -519,17 +519,17 @@ hc_default_sn_user(int            i,
 
 
 PRIVATE unsigned char
-hc_default_user_window(int            i,
-                       int            j,
-                       int            k,
-                       int            l,
-                       unsigned char  d,
-                       void           *data)
+hc_mb_cb_def_user_window(int            i,
+                         int            j,
+                         int            k,
+                         int            l,
+                         unsigned char  d,
+                         void           *data)
 {
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned char         eval;
+  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
-  eval  = hc_default_window(i, j, k, l, d, data);
+  eval  = hc_mb_cb_def_window(i, j, k, l, d, data);
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
@@ -537,17 +537,17 @@ hc_default_user_window(int            i,
 
 
 PRIVATE unsigned char
-hc_default_user_ext(int           i,
-                    int           j,
-                    int           k,
-                    int           l,
-                    unsigned char d,
-                    void          *data)
+hc_mb_cb_def_user_ext(int           i,
+                      int           j,
+                      int           k,
+                      int           l,
+                      unsigned char d,
+                      void          *data)
 {
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned char         eval;
+  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
-  eval  = hc_default_ext(i, j, k, l, d, data);
+  eval  = hc_mb_cb_def_ext(i, j, k, l, d, data);
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
@@ -555,8 +555,8 @@ hc_default_user_ext(int           i,
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default(vrna_fold_compound_t *fc,
-                   struct default_data  *dat)
+prepare_hc_mb_def(vrna_fold_compound_t  *fc,
+                  struct hc_mb_def_dat  *dat)
 {
   dat->mx         = fc->hc->mx;
   dat->n          = fc->hc->n;
@@ -568,23 +568,23 @@ prepare_hc_default(vrna_fold_compound_t *fc,
     dat->hc_f   = fc->hc->f;
     dat->hc_dat = fc->hc->data;
     return (fc->hc->type == VRNA_HC_WINDOW) ?
-           &hc_default_user_window :
+           &hc_mb_cb_def_user_window :
            ((fc->strands == 1) ?
-            &hc_default_user :
-            &hc_default_sn_user);
+            &hc_mb_cb_def_user :
+            &hc_mb_cb_def_sn_user);
   }
 
   return (fc->hc->type == VRNA_HC_WINDOW) ?
-         &hc_default_window :
+         &hc_mb_cb_def_window :
          ((fc->strands == 1) ?
-          &hc_default :
-          hc_default_sn);
+          &hc_mb_cb_def :
+          hc_mb_cb_def_sn);
 }
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default_window(vrna_fold_compound_t  *fc,
-                          struct default_data   *dat)
+prepare_hc_mb_def_window(vrna_fold_compound_t *fc,
+                         struct hc_mb_def_dat *dat)
 {
   dat->mx_window  = fc->hc->matrix_local;
   dat->hc_up      = fc->hc->up_ml;
@@ -593,16 +593,16 @@ prepare_hc_default_window(vrna_fold_compound_t  *fc,
   if (fc->hc->f) {
     dat->hc_f   = fc->hc->f;
     dat->hc_dat = fc->hc->data;
-    return &hc_default_user_window;
+    return &hc_mb_cb_def_user_window;
   }
 
-  return &hc_default_window;
+  return &hc_mb_cb_def_window;
 }
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default_ext(vrna_fold_compound_t *fc,
-                       struct default_data  *dat)
+prepare_hc_mb_def_ext(vrna_fold_compound_t  *fc,
+                      struct hc_mb_def_dat  *dat)
 {
   dat->mx     = fc->hc->mx;
   dat->n      = fc->hc->n;
@@ -612,8 +612,8 @@ prepare_hc_default_ext(vrna_fold_compound_t *fc,
   if (fc->hc->f) {
     dat->hc_f   = fc->hc->f;
     dat->hc_dat = fc->hc->data;
-    return &hc_default_user_ext;
+    return &hc_mb_cb_def_user_ext;
   }
 
-  return &hc_default_ext;
+  return &hc_mb_cb_def_ext;
 }

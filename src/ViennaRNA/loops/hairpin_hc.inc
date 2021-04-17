@@ -3,7 +3,7 @@
  *  partition function version of hairpin loop evaluation
  */
 
-struct default_data {
+struct hc_hp_def_dat {
   int                       n;
   unsigned char             *mx;
   unsigned char             **mx_window;
@@ -15,16 +15,25 @@ struct default_data {
 
 
 PRIVATE unsigned char
-hc_default(int            i,
-           int            j,
-           int            k,
-           int            l,
-           unsigned char  d,
-           void           *data);
+hc_hp_cb_def(int            i,
+             int            j,
+             int            k,
+             int            l,
+             unsigned char  d,
+             void           *data);
 
 
 PRIVATE unsigned char
-hc_default_window(int           i,
+hc_hp_cb_def_window(int           i,
+                    int           j,
+                    int           k,
+                    int           l,
+                    unsigned char d,
+                    void          *data);
+
+
+PRIVATE unsigned char
+hc_hp_cb_def_user(int           i,
                   int           j,
                   int           k,
                   int           l,
@@ -33,31 +42,22 @@ hc_default_window(int           i,
 
 
 PRIVATE unsigned char
-hc_default_user(int           i,
-                int           j,
-                int           k,
-                int           l,
-                unsigned char d,
-                void          *data);
-
-
-PRIVATE unsigned char
-hc_default_user_window(int            i,
-                       int            j,
-                       int            k,
-                       int            l,
-                       unsigned char  d,
-                       void           *data);
+hc_hp_cb_def_user_window(int            i,
+                         int            j,
+                         int            k,
+                         int            l,
+                         unsigned char  d,
+                         void           *data);
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default(vrna_fold_compound_t *fc,
-                   struct default_data  *dat);
+prepare_hc_hp_def(vrna_fold_compound_t  *fc,
+                  struct hc_hp_def_dat  *dat);
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default_window(vrna_fold_compound_t  *fc,
-                          struct default_data   *dat);
+prepare_hc_hp_def_window(vrna_fold_compound_t *fc,
+                         struct hc_hp_def_dat *dat);
 
 
 /*
@@ -66,16 +66,16 @@ prepare_hc_default_window(vrna_fold_compound_t  *fc,
  #################################
  */
 PRIVATE unsigned char
-hc_default(int            i,
-           int            j,
-           int            k,
-           int            l,
-           unsigned char  d,
-           void           *data)
+hc_hp_cb_def(int            i,
+             int            j,
+             int            k,
+             int            l,
+             unsigned char  d,
+             void           *data)
 {
-  int                 u, p, q;
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  int                   u, p, q;
+  unsigned char         eval;
+  struct hc_hp_def_dat  *dat = (struct hc_hp_def_dat *)data;
 
   eval = (char)0;
 
@@ -102,16 +102,16 @@ hc_default(int            i,
 
 
 PRIVATE unsigned char
-hc_default_window(int           i,
-                  int           j,
-                  int           k,
-                  int           l,
-                  unsigned char d,
-                  void          *data)
+hc_hp_cb_def_window(int           i,
+                    int           j,
+                    int           k,
+                    int           l,
+                    unsigned char d,
+                    void          *data)
 {
-  int                 u;
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  int                   u;
+  unsigned char         eval;
+  struct hc_hp_def_dat  *dat = (struct hc_hp_def_dat *)data;
 
   eval = (unsigned char)0;
 
@@ -128,17 +128,17 @@ hc_default_window(int           i,
 
 
 PRIVATE unsigned char
-hc_default_user(int           i,
-                int           j,
-                int           k,
-                int           l,
-                unsigned char d,
-                void          *data)
+hc_hp_cb_def_user(int           i,
+                  int           j,
+                  int           k,
+                  int           l,
+                  unsigned char d,
+                  void          *data)
 {
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned char         eval;
+  struct hc_hp_def_dat  *dat = (struct hc_hp_def_dat *)data;
 
-  eval  = hc_default(i, j, k, l, d, data);
+  eval  = hc_hp_cb_def(i, j, k, l, d, data);
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
@@ -146,17 +146,17 @@ hc_default_user(int           i,
 
 
 PRIVATE unsigned char
-hc_default_user_window(int            i,
-                       int            j,
-                       int            k,
-                       int            l,
-                       unsigned char  d,
-                       void           *data)
+hc_hp_cb_def_user_window(int            i,
+                         int            j,
+                         int            k,
+                         int            l,
+                         unsigned char  d,
+                         void           *data)
 {
-  unsigned char       eval;
-  struct default_data *dat = (struct default_data *)data;
+  unsigned char         eval;
+  struct hc_hp_def_dat  *dat = (struct hc_hp_def_dat *)data;
 
-  eval  = hc_default_window(i, j, k, l, d, data);
+  eval  = hc_hp_cb_def_window(i, j, k, l, d, data);
   eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
 
   return eval;
@@ -164,8 +164,8 @@ hc_default_user_window(int            i,
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default(vrna_fold_compound_t *fc,
-                   struct default_data  *dat)
+prepare_hc_hp_def(vrna_fold_compound_t  *fc,
+                  struct hc_hp_def_dat  *dat)
 {
   dat->mx     = fc->hc->mx;
   dat->hc_up  = fc->hc->up_hp;
@@ -175,16 +175,16 @@ prepare_hc_default(vrna_fold_compound_t *fc,
   if (fc->hc->f) {
     dat->hc_f   = fc->hc->f;
     dat->hc_dat = fc->hc->data;
-    return &hc_default_user;
+    return &hc_hp_cb_def_user;
   }
 
-  return &hc_default;
+  return &hc_hp_cb_def;
 }
 
 
 PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_default_window(vrna_fold_compound_t  *fc,
-                          struct default_data   *dat)
+prepare_hc_hp_def_window(vrna_fold_compound_t *fc,
+                         struct hc_hp_def_dat *dat)
 {
   dat->mx_window  = fc->hc->matrix_local;
   dat->hc_up      = fc->hc->up_hp;
@@ -194,8 +194,8 @@ prepare_hc_default_window(vrna_fold_compound_t  *fc,
   if (fc->hc->f) {
     dat->hc_f   = fc->hc->f;
     dat->hc_dat = fc->hc->data;
-    return &hc_default_user_window;
+    return &hc_hp_cb_def_user_window;
   }
 
-  return &hc_default_window;
+  return &hc_hp_cb_def_window;
 }
