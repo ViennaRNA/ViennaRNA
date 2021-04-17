@@ -1566,37 +1566,31 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           continue;
       }
 
-      if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-        temp = prm_MLb;
+      temp = prm_MLb;
 
-        if (sn[k] == sn[k - 1]) {
-          for (i = 1; i <= k - 2; i++)
-            if (sn[i + 1] == sn[i])
-              temp += ml_helpers->prml[i] *
-                      qm[my_iindx[i + 1] - (k - 1)];
-        }
-
-        s5  = ((k > 1) && (sn[k] == sn[k - 1])) ? S1[k - 1] : -1;
-        s3  = ((l < n) && (sn[l + 1] == sn[l])) ? S1[l + 1] : -1;
-
-        if (with_gquad) {
-          if (tt)
-            temp *= exp_E_MLstem(tt, s5, s3, pf_params) *
-                    scale[2];
-          else
-            temp *= G[kl] *
-                    expMLstem *
-                    scale[2];
-        } else {
-          if (tt == 0)
-            tt = 7;
-
-          temp *= exp_E_MLstem(tt, s5, s3, pf_params) *
-                  scale[2];
-        }
-
-        probs[kl] += temp;
+      if (sn[k] == sn[k - 1]) {
+        for (i = 1; i <= k - 2; i++)
+          if (sn[i + 1] == sn[i])
+            temp += ml_helpers->prml[i] *
+                    qm[my_iindx[i + 1] - (k - 1)];
       }
+
+      s5  = ((k > 1) && (sn[k] == sn[k - 1])) ? S1[k - 1] : -1;
+      s3  = ((l < n) && (sn[l + 1] == sn[l])) ? S1[l + 1] : -1;
+
+      if ((with_gquad) &&
+          (qb[kl] == 0.)) {
+        temp *= G[kl] *
+                expMLstem;
+      } else if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+        if (tt == 0)
+          tt = 7;
+
+        temp *= exp_E_MLstem(tt, s5, s3, pf_params);
+      }
+
+      probs[kl] += temp *
+                   scale[2];
 
       if (probs[kl] > (*Qmax)) {
         (*Qmax) = probs[kl];
