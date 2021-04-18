@@ -30,6 +30,7 @@
 #include "ViennaRNA/equilibrium_probs.h"
 
 #include "ViennaRNA/loops/external_hc.inc"
+#include "ViennaRNA/loops/internal_hc.inc"
 
 #include "ViennaRNA/loops/internal_sc_pf.inc"
 
@@ -126,6 +127,14 @@ typedef struct {
 } helper_arrays;
 
 
+typedef struct {
+  eval_hc               *hc_eval_int;
+  struct hc_int_def_dat hc_dat_int;
+
+  struct sc_int_exp_dat sc_wrapper_int;
+} constraints_helper;
+
+
 PRIVATE helper_arrays *
 get_ml_helper_arrays(vrna_fold_compound_t *fc);
 
@@ -142,6 +151,14 @@ PRIVATE void
 rotate_ml_helper_arrays_inner(helper_arrays *ml_helpers);
 
 
+PRIVATE constraints_helper *
+get_constraints_helper(vrna_fold_compound_t *fc);
+
+
+PRIVATE void
+free_constraints_helper(constraints_helper *helper);
+
+
 PRIVATE void
 compute_bpp_external(vrna_fold_compound_t *fc);
 
@@ -154,7 +171,7 @@ compute_bpp_internal(vrna_fold_compound_t   *fc,
                      int                    *corr_size,
                      FLT_OR_DBL             *Qmax,
                      int                    *ov,
-                     struct sc_int_exp_dat  *sc_wrapper_int);
+                     constraints_helper     *constraints);
 
 
 PRIVATE void
@@ -165,7 +182,7 @@ compute_bpp_internal_comparative(vrna_fold_compound_t   *fc,
                                  int                    *corr_size,
                                  FLT_OR_DBL             *Qmax,
                                  int                    *ov,
-                                 struct sc_int_exp_dat  *sc_wrapper_int);
+                                 constraints_helper     *constraints);
 
 
 PRIVATE void
@@ -586,8 +603,6 @@ pf_create_bppm(vrna_fold_compound_t *vc,
   vrna_mx_pf_t      *matrices;
   vrna_md_t         *md;
   vrna_ud_t         *domains_up;
-  struct sc_int_exp_dat sc_wrapper_int;
-
 
   n           = vc->length;
   pscore      = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->pscore : NULL;
@@ -628,11 +643,11 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     int           corr_cnt        = 0;
     vrna_ep_t     *bp_correction  = vrna_alloc(sizeof(vrna_ep_t) * corr_size);
 
-    struct sc_int_exp_dat sc_wrapper_int;
+    helper_arrays       *ml_helpers;
+    constraints_helper  *constraints;
 
-    helper_arrays *ml_helpers = get_ml_helper_arrays(vc);
-    init_sc_int_exp(vc, &sc_wrapper_int);
-
+    ml_helpers  = get_ml_helper_arrays(vc);
+    constraints = get_constraints_helper(vc);
 
     void          (*compute_bpp_int)(vrna_fold_compound_t *fc,
                                      int                  l,
@@ -641,7 +656,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                                      int                  *corr_size,
                                      FLT_OR_DBL           *Qmax,
                                      int                  *ov,
-                                     struct sc_int_exp_dat *sc_wrapper_int);
+                                     constraints_helper   *constraints);
 
     void (*compute_bpp_mul)(vrna_fold_compound_t  *fc,
                             int                   l,
@@ -676,7 +691,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                     &corr_size,
                     &Qmax,
                     &ov,
-                    &sc_wrapper_int);
+                    constraints);
 
     for (l = n - 1; l > turn + 1; l--) {
       compute_bpp_int(vc,
@@ -686,7 +701,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                       &corr_size,
                       &Qmax,
                       &ov,
-                      &sc_wrapper_int);
+                      constraints);
 
       compute_bpp_mul(vc,
                       l,
@@ -797,7 +812,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     /* clean up */
     free_ml_helper_arrays(ml_helpers);
 
-    free_sc_int_exp(&sc_wrapper_int);
+    free_constraints_helper(constraints);
 
     free(bp_correction);
   } /* end if 'check for forward recursion' */
@@ -910,6 +925,29 @@ rotate_ml_helper_arrays_inner(helper_arrays *ml_helpers)
   if (ml_helpers->prm_MLbu)
     for (u = ml_helpers->ud_max_size; u > 0; u--)
       ml_helpers->prm_MLbu[u] = ml_helpers->prm_MLbu[u - 1];
+}
+
+
+PRIVATE constraints_helper *
+get_constraints_helper(vrna_fold_compound_t *fc){
+  constraints_helper *helpers;
+
+  helpers = (constraints_helper *)vrna_alloc(sizeof(constraints_helper));
+
+  helpers->hc_eval_int = prepare_hc_int_def(fc, &(helpers->hc_dat_int));
+  init_sc_int_exp(fc, &(helpers->sc_wrapper_int));
+
+  return helpers;
+}
+
+
+PRIVATE void
+free_constraints_helper(constraints_helper *helper)
+{
+
+  free_sc_int_exp(&(helper->sc_wrapper_int));
+
+  free(helper);
 }
 
 
@@ -1057,7 +1095,7 @@ compute_bpp_internal(vrna_fold_compound_t   *fc,
                      int                    *corr_size,
                      FLT_OR_DBL             *Qmax,
                      int                    *ov,
-                     struct sc_int_exp_dat  *sc_wrapper_int)
+                     constraints_helper     *constraints)
 {
   unsigned char     type, type_2;
   char              *ptype;
@@ -1072,6 +1110,13 @@ compute_bpp_internal(vrna_fold_compound_t   *fc,
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
   vrna_ud_t         *domains_up;
+  eval_hc                *hc_eval;
+  struct hc_int_def_dat  *hc_dat_local;
+  struct sc_int_exp_dat  *sc_wrapper_int;
+
+  hc_eval         = constraints->hc_eval_int;
+  hc_dat_local    = &(constraints->hc_dat_int);
+  sc_wrapper_int  = &(constraints->sc_wrapper_int);
 
   n           = (int)fc->length;
   ptype       = fc->ptype;
@@ -1110,23 +1155,32 @@ compute_bpp_internal(vrna_fold_compound_t   *fc,
         if (hc_up_int[i + 1] < u1)
           continue;
 
-        for (j = l + 1; j <= MIN2(l + MAXLOOP - k + i + 2, n); j++) {
+        int max_j = l + 1 + MAXLOOP - u1;
+
+        if (max_j > n)
+          max_j = n;
+
+        if (max_j > l + 1 + hc_up_int[l + 1])
+          max_j = l + 1 + hc_up_int[l + 1];
+
+        u2 = 0;
+
+        for (j = l + 1; j <= max_j; j++, u2++) {
           ij = my_iindx[i] - j;
 
           if (probs[ij] == 0.)
             continue;
 
-          u2 = j - l - 1;
-
-          if (hc_up_int[l + 1] < u2)
-            break;
-
+#if 0
+          if (hc_eval(i, j, k, l, hc_dat_local)) {
+            {
+#else
           if (hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-            int jij = jindx[j] + i;
-            type = vrna_get_ptype(jij, ptype);
-
             if ((sn[k] == sn[i]) &&
                 (sn[j] == sn[l])) {
+#endif
+              int jij = jindx[j] + i;
+              type = vrna_get_ptype(jij, ptype);
               tmp2 = probs[ij]
                      * scale[u1 + u2 + 2]
                      * exp_E_IntLoop(u1,
@@ -1219,7 +1273,7 @@ compute_bpp_internal_comparative(vrna_fold_compound_t   *fc,
                                  int                    *corr_size,
                                  FLT_OR_DBL             *Qmax,
                                  int                    *ov,
-                                 struct sc_int_exp_dat  *sc_wrapper_int)
+                                 constraints_helper     *constraints)
 {
   short             **SS, **S5, **S3;
   unsigned int      type, *tt, s, n_seq, **a2s, *sn;
@@ -1230,6 +1284,13 @@ compute_bpp_internal_comparative(vrna_fold_compound_t   *fc,
   vrna_md_t         *md;
   vrna_hc_t         *hc;
   vrna_sc_t         **scs;
+  eval_hc                *hc_eval;
+  struct hc_int_def_dat  *hc_dat_local;
+  struct sc_int_exp_dat  *sc_wrapper_int;
+
+  hc_eval         = constraints->hc_eval_int;
+  hc_dat_local    = &(constraints->hc_dat_int);
+  sc_wrapper_int  = &(constraints->sc_wrapper_int);
 
   n         = (int)fc->length;
   n_seq     = fc->n_seq;
@@ -2115,7 +2176,8 @@ pf_co_bppm(vrna_fold_compound_t *vc,
   char              *ptype;
   vrna_mx_pf_t      *matrices;
   int               *rtype;
-  struct sc_int_exp_dat sc_wrapper_int;
+  helper_arrays       *ml_helpers;
+  constraints_helper  *constraints;
 
   n         = vc->length;
   cp        = vc->cutpoint;
@@ -2149,8 +2211,8 @@ pf_co_bppm(vrna_fold_compound_t *vc,
     int           corr_cnt        = 0;
     vrna_ep_t     *bp_correction  = vrna_alloc(sizeof(vrna_ep_t) * corr_size);
 
-    helper_arrays *ml_helpers = get_ml_helper_arrays(vc);
-    init_sc_int_exp(vc, &sc_wrapper_int);
+    ml_helpers  = get_ml_helper_arrays(vc);
+    constraints = get_constraints_helper(vc);
 
     Qmax  = 0;
     Qrout = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
@@ -2180,7 +2242,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
                          &corr_size,
                          &Qmax,
                          &ov,
-                         &sc_wrapper_int);
+                         constraints);
 
     for (l = n - 1; l > turn + 1; l--) {
       compute_bpp_internal(vc,
@@ -2190,7 +2252,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
                            &corr_size,
                            &Qmax,
                            &ov,
-                           &sc_wrapper_int);
+                           constraints);
 
       compute_bpp_multibranch(vc,
                               l,
@@ -2307,7 +2369,7 @@ pf_co_bppm(vrna_fold_compound_t *vc,
     /* clean up */
     free_ml_helper_arrays(ml_helpers);
 
-    free_sc_int_exp(&sc_wrapper_int);
+    free_constraints_helper(constraints);
 
     free(bp_correction);
   }   /* end if (do_backtrack) */
