@@ -552,22 +552,23 @@ split_ext_fast(vrna_fold_compound_t       *fc,
       ij1 -= factor;
     }
   } else {
-    for (k = j; k > i; k--)
-      if (evaluate(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, hc_dat_local)) {
+    for (k = j; k > i; k--) {
+      if (evaluate(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, hc_dat_local))
         qbt += q[ij1] *
                qqq[k];
-        ij1 -= factor;
-      }
+
+      ij1 -= factor;
+    }
   }
 
 #else
-  for (k = j; k > i; k--)
-    if (evaluate(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, hc_dat_local)) {
+  for (k = j; k > i; k--) {
+    if (evaluate(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_EXT, hc_dat_local))
       qbt += q[ij1] *
              qqq[k];
-      ij1 -= factor;
-    }
 
+    ij1 -= factor;
+  }
 #endif
 
   if (qqq != qq) {
