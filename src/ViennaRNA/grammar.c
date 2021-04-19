@@ -263,7 +263,7 @@ vrna_gr_reset(vrna_fold_compound_t *fc)
 PRIVATE void
 add_aux_grammar(vrna_fold_compound_t *fc)
 {
-  fc->aux_grammar = (struct vrna_gr_aux_s *)vrna_alloc(sizeof(struct vrna_gr_aux_s *));
+  fc->aux_grammar = (struct vrna_gr_aux_s *)vrna_alloc(sizeof(struct vrna_gr_aux_s));
 
   fc->aux_grammar->cb_proc = NULL;
 
