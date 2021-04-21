@@ -680,6 +680,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
   for (i = length - turn - 1; i >= 1; i--) {
     /* i,j in [1..length] */
+    for (j = i + 1; j <= MIN2(i + turn, length); j++)
+      c[i][j - i] = fML[i][j - i] = INF;
+
     for (j = i + turn + 1; j <= length && j <= i + maxdist; j++) {
       /* decompose subsegment [i, j] with pair (i, j) */
       c[i][j - i] = decompose_pair(vc, i, j, helper_arrays);
