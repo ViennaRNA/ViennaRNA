@@ -27,6 +27,25 @@ This function is available as an overloaded function @p db_pk_remove() where
 the optional second parameter @p options defaults to #VRNA_BRACKETS_ANY.
 @endparblock
 
+@fn short *vrna_ptable(const char *structure)
+@scripting
+@parblock
+This functions is wrapped as overloaded function @p ptable() that takes
+an optional argument @p options to specify which type of matching brackets
+should be considered during conversion. The default set is round brackets,
+i.e. #VRNA_BRACKETS_RND.
+@endparblock
+
+
+@fn short *vrna_ptable_from_string(const char *structure, unsigned int options)
+@scripting
+@parblock
+This functions is wrapped as overloaded function @p ptable() that takes
+an optional argument @p options to specify which type of matching brackets
+should be considered during conversion. The default set is round brackets,
+i.e. #VRNA_BRACKETS_RND.
+@endparblock
+
 @fn char *vrna_abstract_shapes(const char *structure, unsigned int  level)
 @scripting
 @parblock

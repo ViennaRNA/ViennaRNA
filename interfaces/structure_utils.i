@@ -229,22 +229,8 @@ std::string abstract_shapes(std::vector<int>, unsigned int  level = 5);
 #include <vector>
 
   std::vector<int>
-  my_ptable(std::string str)
-  {
-    short int* pt = vrna_ptable(str.c_str());
-    std::vector<int> v_pt;
-    int i;
-
-    for(i=0; i <= pt[0]; i++){
-      v_pt.push_back(pt[i]);
-    }
-    free(pt);
-    return v_pt;
-  }
-
-  std::vector<int>
-  my_ptable_from_string(std::string str,
-                        unsigned int options = VRNA_BRACKETS_ANY)
+  my_ptable(std::string   str,
+            unsigned int  options = VRNA_BRACKETS_RND)
   {
     short int         *pt;
     int               i;
@@ -303,16 +289,13 @@ std::string abstract_shapes(std::vector<int>, unsigned int  level = 5);
 #ifdef SWIGPYTHON
 %feature("autodoc") my_ptable;
 %feature("kwargs") my_ptable;
-%feature("autodoc") my_ptable_from_string;
-%feature("kwargs") my_ptable_from_string;
 %feature("autodoc") my_ptable_pk;
 %feature("kwargs") my_ptable_pk;
 %feature("autodoc") my_pt_pk_remove;
 %feature("kwargs") my_pt_pk_remove;
 #endif
 
-std::vector<int> my_ptable(std::string str);
-std::vector<int> my_ptable_from_string(std::string str, unsigned int options = VRNA_BRACKETS_ANY);
+std::vector<int> my_ptable(std::string str, unsigned int options = VRNA_BRACKETS_RND);
 std::vector<int> my_ptable_pk(std::string str);
 std::vector<int> my_pt_pk_remove(std::vector<int> pt, unsigned int options = 0);
 
