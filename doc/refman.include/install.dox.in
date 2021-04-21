@@ -39,15 +39,45 @@ This will install the entire ViennaRNA Package into a new directory ViennaRNA di
 
 @subsection macosx_notes  Notes for MacOS X users
 
+@subsubsection macosx_notes_compiler  Compilation
+
 Although users will find /usr/bin/gcc and /usr/bin/g++ executables in their directory tree, these programs are not at all
 what they pretend to be. Instead of including the GNU programs, Apple decided to install clang/llvm in disguise. Unfortunately,
 the default version of clang/llvm does not support OpenMP (yet), but only complains at a late stage of the build process when
 this support is required. Therefore, it seems necessary to deactivate OpenMP support by passing the option --disable-openmp
 to the ./configure script.
 
-Additionally, since MacOS X 10.5 the perl and python installation distributed with MacOS X always include so called
-universal-binaries (a.k.a. fat-binaries), i.e. binaries for multiple architecture types.
-In order to compile and link the programs, library, and scripting language interfaces of the ViennaRNA Package for multiple
+@subsubsection  macosx_notes_perl   Missing EXTERN.h include file
+
+Furthermore, as far as we are informed, users are discouraged to use the Perl 5 interpreter that is shipped with Mac OS X.
+Instead, one should install a more recent version from another source, e.g. `homebrew`. If, however, for any reason you
+do not want to install your own Perl 5 interpreter but use the one from Apple, you need to specify its include path to
+enable building the ViennaRNA Perl interface. Otherwise, the file `EXTERN.h` will be missing at compile time.
+To fix this problem, you first need to find out where `EXTERN.h` is located:
+
+@verbatim
+sudo find /Library -type f -name EXTERN.h
+@endverbatim
+
+Then choose the one that corresponds to your default perl interpreter (find out the version number with `perl -v | grep version`), simply
+execute the following before running the `./configure` script, e.g.:
+
+@verbatim
+export CPATH=/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/5.18/darwin-thread-multi-2level/CORE
+@endverbatim
+
+if your default perl is v5.18 running on MacOSX10.15. Change the paths according to your current setup. After that,
+running `./configure` and compilation should run fine.
+
+See also https://stackoverflow.com/questions/52682304/fatal-error-extern-h-file-not-found-while-installing-perl-modules/52997962
+
+@subsubsection  macosx_notes_universal  Universal binaries
+
+Additionally, if you intend to build the @PACKAGE_NAME@ such that it runs on both, x86_64 and the armv8 (such as for the
+M1 processors in recent MacBooks), architectures, you need to build a so-called universal binary. Note, however, that to
+accomplish this task, you might need to deactivate any third-party library dependency as in most cases, only one architecture
+will be available at link time. This includes the Perl 5 and Python interfaces but also MPFR and GSL support, possibly even
+more. In order to compile and link the programs, library, and scripting language interfaces of the ViennaRNA Package for multiple
 architectures, we've added a new configure switch that sets up the required changes automatically:
 
 @verbatim
