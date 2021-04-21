@@ -335,21 +335,20 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc)
 
 
 PUBLIC double
-vrna_ensemble_defect(vrna_fold_compound_t *fc,
-                     const char           *structure)
+vrna_ensemble_defect_pt(vrna_fold_compound_t *fc,
+                        short                *pt)
 {
   unsigned int  i, j, n;
   int           ii;
   double        ed = -1.;
 
   if ((fc) &&
-      (structure) &&
-      (strlen(structure) == fc->length) &&
+      (pt) &&
+      (pt[0] == fc->length) &&
       (fc->exp_matrices) &&
       (fc->exp_matrices->probs)) {
     n = fc->length;
 
-    short       *pt     = vrna_ptable(structure);
     FLT_OR_DBL  *probs  = fc->exp_matrices->probs;
     int         *idx    = fc->iindx;
     ed = 0.;
@@ -375,8 +374,22 @@ vrna_ensemble_defect(vrna_fold_compound_t *fc,
 
     ed /= (double)n;
 
-    free(pt);
   }
+
+  return ed;
+}
+
+
+PUBLIC double
+vrna_ensemble_defect(vrna_fold_compound_t *fc,
+                     const char           *structure)
+{
+  double ed = -1.;
+  short *pt = vrna_ptable(structure);
+
+  ed = vrna_ensemble_defect_pt(fc, pt);
+
+  free(pt);
 
   return ed;
 }

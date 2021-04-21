@@ -18,10 +18,19 @@ This function is attached as method @b pf_dimer() to objects of type @em fold_co
 This function is attached as method @b mean_bp_distance() to objects of type @em fold_compound
 @endparblock
 
+@fn double vrna_ensemble_defect_pt(vrna_fold_compound_t *fc, short *pt)
+@scripting
+@parblock
+This function is attached as method @b ensemble_defect() to objects of type @em fold_compound.
+Note that the SWIG wrapper takes a structor in dot-bracket notation and an optional argument
+specifying the bracket types (default: @b VRNA_BRACKETS_RND).
+@endparblock
+
 @fn double vrna_ensemble_defect(vrna_fold_compound_t *fc, const char *structure)
 @scripting
 @parblock
-This function is attached as method @b ensemble_defect() to objects of type @em fold_compound
+This function wraps around @b vrna_ensemble_defect_pt() and is attached as method
+@b ensemble_defect() to objects of type @em fold_compound.
 @endparblock
 
 @fn double *vrna_positional_entropy(vrna_fold_compound_t *fc)

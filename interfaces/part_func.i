@@ -115,9 +115,19 @@ char *my_pf_circ_fold(char *string, float *OUTPUT);
   }
 
   double
-  ensemble_defect(std::string structure)
+  ensemble_defect(std::string structure,
+                  unsigned int options = VRNA_BRACKETS_RND)
   {
-    return vrna_ensemble_defect($self, structure.c_str());
+    double ed;
+    short int         *pt;
+
+    pt = vrna_ptable_from_string(structure.c_str(), options);
+
+    ed = vrna_ensemble_defect_pt($self, pt);
+
+    free(pt);
+
+    return ed;
   }
 
   std::vector<double>
