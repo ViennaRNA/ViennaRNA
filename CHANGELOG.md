@@ -4,7 +4,57 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.4.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.17...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.18...HEAD)
+
+### [Version 2.4.18](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.17...v2.4.18) (Release date: 2021-04-22)
+
+#### Programs
+  * Fix and refactor `RNApkplex` program
+  * Fix occasional backtracing errors in `RNALalifold`
+  * Restrict available dangling end models in `RNALalifold` to 0 and 2
+  * Prevent segmentation faults upon bogus input data in `RNAfold`, `RNAalifold`, `RNAcofold`, `RNAheat`, and `RNAeval`
+  * Free MFE DP matrices in `RNAsubopt` Boltzmann sampling when not required anymore 
+
+#### Library
+  * API: Add `vrna_abstract_shapes()` and `vrna_abstract_shapes_pt()` functions to convert secondary structures into their respective abstract shape notation ala Giegerich et al. 2004
+  * API: Add functions `vrna_seq_reverse()` and `vrna_DNA_complement()` to create reverse complements of a sequence
+  * API: Add more soft constraint handling to comparative structure prediction
+  * API: Add generic soft constraints for sliding window comparative MFE backtracing
+  * API: Add `vrna_ensemble_defect_pt()` that accepts pair table input instead of dot-bracket string to allow for non-nested reference structures
+  * API: Add failure/success return values to generic soft constraints application functions
+  * API: Refactor `RNAPKplex` implementation by better using constraints framework and moving out many parts from `RNAPKplex.c` into `RNAlib` as separate re-usable functions
+  * API: Fix energy contributions used in `RNAPKplex` implementations
+  * API: Fix energy evaluation for cofolding with dangle model 1
+  * API: Fix wrong arithmetic usage for PF variant of combined generic and simple soft constraints applied to external loops
+  * API: Fix memory size in #vrna_fold_compound_t initialization
+  * API: Fix bogus memory access for comparative prediction when preparing hard constraints
+  * API: Fix wrong index usage in hard constraints for comparative base pair probability computations of internal loops
+  * API: Fix G-Quadruplex contributions as part of multibranch loops in single sequence base pair probability computations
+  * API: Fix multibranch loop MFE decomposition step for multiple strand cases
+  * API: Fix external loop generic hard constraint index updating for partition function computations
+  * API: Fix memory allocation for auxiliary grammar data structure
+  * API: Fix incorporation of auxiliary grammar contrib for closing pairs in sliding-window MFE computation
+  * API: Fix DP matrix intitialization in sliding window MFE computations (fixes occasional backtracing issues in comparative sliding-window MFE computations)
+  * API: Make `vrna_sc_t.type` attribute a constant
+  * API: Remove upper-triangular hard constraint matrix in favor of full matrix
+  * API: Always ensure sane base pair span settings after `vrna_fold_compound_prepare()`
+  * API: Return INF on predictions of `vrna_mfe_dimer()` that fail due to unsatisfiable constraints
+  * API: Rename internally used hard and soft constraints API symbols
+  * API: Fix header file inclusions to prevent #include cycles
+  * SWIG: Add wrapper for `vrna_file_fasta_read_record()`
+  * SWIG: Fix memory leak in wrapper for `vrna_probs_window()`
+  * SWIG: Refactor and therefore fix soft constraint binding functions for use in comparative structure predictions
+  * SWIG: Fix typo that prevented properly wrapping `vrna_params_load_RNA_Andronescu2007()`
+  * SWIG: Unify wrappers for `vrna_ptable()` and `vrna_ptable_from_string()`
+
+#### Package
+  * REFMAN: Refactored structure annotation documentation
+  * REFMAN: Update Mac OS X install section
+  * Replace `DEF` placeholders in energy parameter files with their value of -50
+  * Update `RNAlocmin` subpackage to properly compile with more stringent C++ compilers
+  * Update `RNAforester` subpackage to properly compile with more stringent C++ compilers
+  * Update autotools framework, e.g. checks for pthreads
+  * Update universal binary build instructions for Mac OS X builds to enable ARM compilation for M1 CPUs
 
 ### [Version 2.4.17](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.16...v2.4.17) (Release date: 2020-11-25)
 
