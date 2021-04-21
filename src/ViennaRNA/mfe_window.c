@@ -1939,7 +1939,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     /* finally, check for auxiliary grammar rule(s) */
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_c)) {
       energy  = fc->aux_grammar->cb_aux_c(fc, i, j, fc->aux_grammar->data);
-      new_c   = MIN2(new_c, energy);
+      e   = MIN2(e, energy);
     }
 
     if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
