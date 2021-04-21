@@ -103,7 +103,7 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc);
 
 
 /**
- *  @brief  Compute the Ensemble Defect for a given target structure
+ *  @brief  Compute the Ensemble Defect for a given target structure provided as a @b vrna_ptable
  *
  *  Given a target structure @f$s@f$, compute the average dissimilarity of a randomly
  *  drawn structure from the ensemble, i.e.:
@@ -118,7 +118,35 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc);
  *        probability matrix. This means that partition function and base pair probabilities
  *        must have been computed using @p fc before execution of this function!
  *
- *  @see vrna_pf(), vrna_pairing_probs()
+ *  @see vrna_pf(), vrna_pairing_probs(), vrna_ensemble_defect()
+ *
+ *  @param  fc          A fold_compound with pre-computed base pair probabilities
+ *  @param  pt          A pair table representing a target structure
+ *  @return             The ensemble defect with respect to the target structure, or -1. upon failure, e.g. pre-conditions are not met
+ */
+double
+vrna_ensemble_defect_pt(vrna_fold_compound_t *fc,
+                        short                *pt);
+
+
+/**
+ *  @brief  Compute the Ensemble Defect for a given target structure
+ *
+ *  This is a wrapper around @b vrna_ensemble_defect_pt().
+ *  Given a target structure @f$s@f$, compute the average dissimilarity of a randomly
+ *  drawn structure from the ensemble, i.e.:
+ *  @f[
+ *    ED(s) = 1 - \frac{1}{n} \sum_{ij, (i,j) \in s} p_{ij} - \frac{1}{n} \sum_{i}(1 - s_i)q_i
+ *  @f]
+ *  with sequence length @f$n@f$, the probability @f$p_{ij}@f$ of a base pair @f$(i,j)@f$,
+ *  the probability @f$q_i = 1 - \sum_j p_{ij}@f$ of nucleotide @f$i@f$ being unpaired, and
+ *  the indicator variable @f$s_i = 1@f$ if @f$\exists (i,j) \in s@f$, and @f$s_i = 0@f$ otherwise.
+ *
+ *  @pre  The #vrna_fold_compound_t input parameter @p fc must contain a valid base pair
+ *        probability matrix. This means that partition function and base pair probabilities
+ *        must have been computed using @p fc before execution of this function!
+ *
+ *  @see vrna_pf(), vrna_pairing_probs(), vrna_ensemble_defect_pt()
  *
  *  @param  fc          A fold_compound with pre-computed base pair probabilities
  *  @param  structure   A target structure in dot-bracket notation

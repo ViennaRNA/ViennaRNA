@@ -66,6 +66,7 @@ PERL_TESTS =  perl5/test-RNA.pl \
               perl5/test-RNA-callbacks.pl \
               perl5/test-RNA-combinatorics.pl \
               perl5/test-RNA-Design.t \
+              perl5/test-RNA-ensemble_defect.pl \
               perl5/test-RNA-file-formats.pl \
               perl5/test-RNA-mfe_eval.pl \
               perl5/test-RNA-mfe_window.pl \
@@ -105,6 +106,7 @@ PYTHON2_TESTS = python/test-RNA-combinatorics.py \
                 python/test-RNA-constraints-soft.py \
                 python/test-RNA-constraints-SHAPE.py \
                 python/test-RNA-constraints-special.py \
+                python/test-RNA-ensemble_defect.py \
                 python/test-RNA-file-formats.py \
                 python/test-RNA-mfe_eval.py \
                 python/test-RNA-mfe_window.py \
@@ -134,6 +136,7 @@ PYTHON3_TESTS = python3/test-RNA-combinatorics.py3 \
                 python3/test-RNA-constraints-soft.py3 \
                 python3/test-RNA-constraints-SHAPE.py3 \
                 python3/test-RNA-constraints-special.py3 \
+                python3/test-RNA-ensemble_defect.py3 \
                 python3/test-RNA-file-formats.py3 \
                 python3/test-RNA-mfe_eval.py3 \
                 python3/test-RNA-mfe_window.py3 \
@@ -158,6 +161,7 @@ CHECKMK_FILES = \
               energy_evaluation.ts \
               constraints.ts \
               constraints_soft.ts \
+              ensemble_defect.ts \
               fold.ts \
               utils.ts \
               eval_structure.ts \
@@ -169,6 +173,7 @@ CHECK_CFILES = \
               energy_evaluation.c \
               constraints.c \
               constraints_soft.c \
+              ensemble_defect.c \
               fold.c \
               utils.c \
               eval_structure.c \
@@ -179,6 +184,7 @@ CHECK_CFILES = \
 LIBRARY_TESTS = energy_evaluation \
                 constraints \
                 constraints_soft \
+                ensemble_defect \
                 fold \
                 utils \
                 eval_structure \
