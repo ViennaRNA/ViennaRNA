@@ -341,7 +341,7 @@ vrna_ptable_from_string(const char    *string,
  *  In contrast to vrna_ptable() this function also recognizes the base pairs
  *  denoted by '[' and ']' brackets. Thus, this function behaves like
  *  @code{.c}
- *  vrna_ptable_from_string(structure, #VRNA_BRACKET_RND | VRNA_BRACKETS_SQR)
+ *  vrna_ptable_from_string(structure, #VRNA_BRACKETS_RND | VRNA_BRACKETS_SQR)
  *  @endcode
  *
  *  @see    vrna_ptable_from_string()
