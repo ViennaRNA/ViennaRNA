@@ -126,7 +126,7 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc);
  */
 double
 vrna_ensemble_defect_pt(vrna_fold_compound_t *fc,
-                        short                *pt);
+                        const short          *pt);
 
 
 /**

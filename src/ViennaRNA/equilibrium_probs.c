@@ -363,7 +363,7 @@ vrna_mean_bp_distance(vrna_fold_compound_t *vc)
 
 PUBLIC double
 vrna_ensemble_defect_pt(vrna_fold_compound_t *fc,
-                        short                *pt)
+                        const short          *pt)
 {
   unsigned int  i, j, n;
   int           ii;
