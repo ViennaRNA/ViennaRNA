@@ -552,19 +552,22 @@ vrna_bp_distance(const char *str1,
   t1    = vrna_ptable(str1);
   t2    = vrna_ptable(str2);
 
-  l = (t1[0] < t2[0]) ? t1[0] : t2[0]; /* minimum of the two lengths */
+  if (t1 && t2) {
+    l = (t1[0] < t2[0]) ? t1[0] : t2[0]; /* minimum of the two lengths */
 
-  for (i = 1; i <= l; i++)
-    if (t1[i] != t2[i]) {
-      if (t1[i] > i)
-        dist++;
+    for (i = 1; i <= l; i++)
+      if (t1[i] != t2[i]) {
+        if (t1[i] > i)
+          dist++;
 
-      if (t2[i] > i)
-        dist++;
-    }
+        if (t2[i] > i)
+          dist++;
+      }
+  }
 
   free(t1);
   free(t2);
+
   return dist;
 }
 
