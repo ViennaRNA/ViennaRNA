@@ -180,7 +180,7 @@ E_Hairpin(int           size,
       memcpy(tl, string, sizeof(char) * 8);
       tl[8] = '\0';
       if ((ts = strstr(P->Hexaloops, tl)))
-        return energy = P->Hexaloop_E[(ts - P->Hexaloops) / 9];
+        return P->Hexaloop_E[(ts - P->Hexaloops) / 9];
     } else if (size == 3) {
       char tl[6] = {
         0
