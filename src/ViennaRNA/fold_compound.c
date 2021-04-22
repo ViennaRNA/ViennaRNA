@@ -323,67 +323,69 @@ vrna_fold_compound_comparative2(const char                **sequences,
 
   fc = init_fc_comparative();
 
-  fc->n_seq     = n_seq;
-  fc->length    = length;
+  if (fc) {
+    fc->n_seq     = n_seq;
+    fc->length    = length;
 
-  /* get a copy of the model details */
-  if (md_p)
-    md = *md_p;
-  else /* this fallback relies on global parameters and thus is not threadsafe */
-    vrna_md_set_default(&md);
+    /* get a copy of the model details */
+    if (md_p)
+      md = *md_p;
+    else /* this fallback relies on global parameters and thus is not threadsafe */
+      vrna_md_set_default(&md);
 
-  /* now for the energy parameters */
-  add_params(fc, &md, options);
+    /* now for the energy parameters */
+    add_params(fc, &md, options);
 
-  sanitize_bp_span(fc, options);
+    sanitize_bp_span(fc, options);
 
-  vrna_msa_add( fc,
-                sequences,
-                names,
-                orientation,
-                start,
-                genome_size,
-                VRNA_SEQUENCE_RNA);
+    vrna_msa_add( fc,
+                  sequences,
+                  names,
+                  orientation,
+                  start,
+                  genome_size,
+                  VRNA_SEQUENCE_RNA);
 
-  fc->sequences = vrna_alloc(sizeof(char *) * (fc->n_seq + 1));
-  for (s = 0; sequences[s]; s++)
-    fc->sequences[s] = strdup(sequences[s]);
+    fc->sequences = vrna_alloc(sizeof(char *) * (fc->n_seq + 1));
+    for (s = 0; sequences[s]; s++)
+      fc->sequences[s] = strdup(sequences[s]);
 
-  if (options & VRNA_OPTION_WINDOW) {
-    set_fold_compound(fc, options, aux_options);
+    if (options & VRNA_OPTION_WINDOW) {
+      set_fold_compound(fc, options, aux_options);
 
-    fc->pscore_local = vrna_alloc(sizeof(int *) * (fc->length + 1));
+      fc->pscore_local = vrna_alloc(sizeof(int *) * (fc->length + 1));
 
 #if 0
-    for (i = (int)fc->length; (i > (int)fc->length - fc->window_size - 5) && (i >= 0); i--)
-      fc->pscore_local[i] = vrna_alloc(sizeof(int) * (fc->window_size + 5));
+      for (i = (int)fc->length; (i > (int)fc->length - fc->window_size - 5) && (i >= 0); i--)
+        fc->pscore_local[i] = vrna_alloc(sizeof(int) * (fc->window_size + 5));
 #endif
 
-    if (!(options & VRNA_OPTION_EVAL_ONLY)) {
-      /* add minimal hard constraint data structure */
-      vrna_hc_init_window(fc);
+      if (!(options & VRNA_OPTION_EVAL_ONLY)) {
+        /* add minimal hard constraint data structure */
+        vrna_hc_init_window(fc);
 
-      /* add DP matrices */
-      vrna_mx_add(fc, VRNA_MX_WINDOW, options);
-    }
-  } else {
-    /* regular global structure prediction */
+        /* add DP matrices */
+        vrna_mx_add(fc, VRNA_MX_WINDOW, options);
+      }
+    } else {
+      /* regular global structure prediction */
 
-    aux_options |= WITH_PTYPE;
+      aux_options |= WITH_PTYPE;
 
-    if (options & VRNA_OPTION_PF)
-      aux_options |= WITH_PTYPE_COMPAT;
+      if (options & VRNA_OPTION_PF)
+        aux_options |= WITH_PTYPE_COMPAT;
 
-    set_fold_compound(fc, options, aux_options);
+      set_fold_compound(fc, options, aux_options);
 
-    make_pscores(fc);
+      make_pscores(fc);
 
-    if (!(options & VRNA_OPTION_EVAL_ONLY)) {
-      /* add default hard constraints */
-      vrna_hc_init(fc);
+      if (!(options & VRNA_OPTION_EVAL_ONLY)) {
+        /* add default hard constraints */
+        vrna_hc_init(fc);
 
-      /* add DP matrices (if required) */
-      vrna_mx_add(fc, VRNA_MX_DEFAULT, options);
+        /* add DP matrices (if required) */
+        vrna_mx_add(fc, VRNA_MX_DEFAULT, options);
+      }
     }
   }
 
@@ -434,45 +436,47 @@ vrna_fold_compound_TwoD(const char    *sequence,
   }
 
   fc            = init_fc_single();
-  fc->length    = length;
-  fc->sequence  = strdup(sequence);
+  if (fc) {
+    fc->length    = length;
+    fc->sequence  = strdup(sequence);
 
-  /* get a copy of the model details */
-  if (md_p)
-    md = *md_p;
-  else /* this fallback relies on global parameters and thus is not threadsafe */
-    vrna_md_set_default(&md);
+    /* get a copy of the model details */
+    if (md_p)
+      md = *md_p;
+    else /* this fallback relies on global parameters and thus is not threadsafe */
+      vrna_md_set_default(&md);
 
-  /* always make uniq ML decomposition ! */
-  md.uniq_ML      = 1;
-  md.compute_bpp  = 0;
+    /* always make uniq ML decomposition ! */
+    md.uniq_ML      = 1;
+    md.compute_bpp  = 0;
 
-  /* now for the energy parameters */
-  add_params(fc, &md, options);
+    /* now for the energy parameters */
+    add_params(fc, &md, options);
 
-  set_fold_compound(fc, options, WITH_PTYPE | WITH_PTYPE_COMPAT);
+    set_fold_compound(fc, options, WITH_PTYPE | WITH_PTYPE_COMPAT);
 
-  if (!(options & VRNA_OPTION_EVAL_ONLY)) {
-    vrna_hc_init(fc); /* add default hard constraints */
+    if (!(options & VRNA_OPTION_EVAL_ONLY)) {
+      vrna_hc_init(fc); /* add default hard constraints */
 
-    /* add DP matrices */
-    vrna_mx_add(fc, VRNA_MX_2DFOLD, options);
+      /* add DP matrices */
+      vrna_mx_add(fc, VRNA_MX_2DFOLD, options);
+    }
+
+    /* set all fields that are unique to Distance class partitioning... */
+    turn              = fc->params->model_details.min_loop_size;
+    fc->reference_pt1 = vrna_ptable(s1);
+    fc->reference_pt2 = vrna_ptable(s2);
+    fc->referenceBPs1 = vrna_refBPcnt_matrix(fc->reference_pt1, turn);
+    fc->referenceBPs2 = vrna_refBPcnt_matrix(fc->reference_pt2, turn);
+    fc->bpdist        = vrna_refBPdist_matrix(fc->reference_pt1, fc->reference_pt2, turn);
+    /* compute maximum matching with reference structure 1 disallowed */
+    fc->mm1 = maximumMatchingConstraint(fc->sequence, fc->reference_pt1);
+    /* compute maximum matching with reference structure 2 disallowed */
+    fc->mm2 = maximumMatchingConstraint(fc->sequence, fc->reference_pt2);
+
+    fc->maxD1 = fc->mm1[fc->iindx[1] - length] + fc->referenceBPs1[fc->iindx[1] - length];
+    fc->maxD2 = fc->mm2[fc->iindx[1] - length] + fc->referenceBPs2[fc->iindx[1] - length];
   }
-
-  /* set all fields that are unique to Distance class partitioning... */
-  turn              = fc->params->model_details.min_loop_size;
-  fc->reference_pt1 = vrna_ptable(s1);
-  fc->reference_pt2 = vrna_ptable(s2);
-  fc->referenceBPs1 = vrna_refBPcnt_matrix(fc->reference_pt1, turn);
-  fc->referenceBPs2 = vrna_refBPcnt_matrix(fc->reference_pt2, turn);
-  fc->bpdist        = vrna_refBPdist_matrix(fc->reference_pt1, fc->reference_pt2, turn);
-  /* compute maximum matching with reference structure 1 disallowed */
-  fc->mm1 = maximumMatchingConstraint(fc->sequence, fc->reference_pt1);
-  /* compute maximum matching with reference structure 2 disallowed */
-  fc->mm2 = maximumMatchingConstraint(fc->sequence, fc->reference_pt2);
-
-  fc->maxD1 = fc->mm1[fc->iindx[1] - length] + fc->referenceBPs1[fc->iindx[1] - length];
-  fc->maxD2 = fc->mm2[fc->iindx[1] - length] + fc->referenceBPs2[fc->iindx[1] - length];
 
   return fc;
 }
@@ -615,13 +619,10 @@ set_fold_compound(vrna_fold_compound_t  *fc,
 {
   char          *sequence, **sequences, **ptr;
   unsigned int  length, s;
-  int           cp;
-  char          *seq, *seq2;
   vrna_md_t     *md_p;
 
   sequence  = NULL;
   sequences = NULL;
-  cp        = -1;
 
   md_p = &(fc->params->model_details);
 
