@@ -493,9 +493,6 @@ decompose_pair(vrna_fold_compound_t *fc,
 
   contribution  = 0.;
   n             = fc->length;
-  pscore        = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->pscore : NULL;
-  jindx         = fc->jindx;
-  kTn           = fc->exp_params->kT / 10.;  /* kT in cal/mol */
   hc            = fc->hc;
 
   if (hc->mx[j * n + i]) {
@@ -509,8 +506,12 @@ decompose_pair(vrna_fold_compound_t *fc,
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_c))
       contribution += fc->aux_grammar->cb_aux_exp_c(fc, i, j, fc->aux_grammar->data);
 
-    if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
-      contribution *= exp(pscore[jindx[j] + i] / kTn);
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      jindx         = fc->jindx;
+      pscore        = fc->pscore;
+      kTn           = fc->exp_params->kT / 10.;  /* kT in cal/mol */
+      contribution  *= exp(pscore[jindx[j] + i] / kTn);
+    }
   }
 
   return contribution;
