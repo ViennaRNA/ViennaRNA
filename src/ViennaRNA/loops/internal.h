@@ -488,8 +488,6 @@ E_IntLoop(int           n1,
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, u, energy;
 
-  energy = INF;
-
   if (n1 > n2) {
     nl  = n1;
     ns  = n2;
