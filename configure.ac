@@ -36,6 +36,7 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_CC
 AC_PROG_CPP
+AC_PROG_CC_C99
 
 if test "$GCC" = yes; then
    AC_DEFINE(UNUSED, __attribute__ ((unused)), avoid warning about unused variables)
@@ -51,7 +52,6 @@ AC_PROG_MKDIR_P
 AM_PROG_CC_C_O
 AC_PROG_SED
 AC_PROG_LN_S
-AC_PROG_CC
 
 LT_INIT([pic-only, static])
 AC_SUBST(LIBTOOL_DEPS)
