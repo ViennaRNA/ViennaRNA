@@ -10,7 +10,8 @@
     <pkg-ref id="org.TBI.ViennaRNA.tutorial"/>
     <pkg-ref id="org.TBI.ViennaRNA.perl"/>
     <pkg-ref id="org.TBI.ViennaRNA.python"/>
-    <options customize="always" hostArchitectures="i386,x86_64" />
+    <pkg-ref id="org.TBI.ViennaRNA.python3"/>
+    <options customize="always" hostArchitectures="x86_64" />
     <domains enable_localSystem="true" enableCurrentUserHome="false" enable_anywhere="false" />
     <background file="ohm.png" mime-type="image/png" alignment="right" scaling="none" />
     <title>@PACKAGE_NAME@ Package @PACKAGE_VERSION@</title>
@@ -29,6 +30,7 @@
         <line choice="org.TBI.ViennaRNA.tutorial"/>
         <line choice="org.TBI.ViennaRNA.perl"/>
         <line choice="org.TBI.ViennaRNA.python"/>
+        <line choice="org.TBI.ViennaRNA.python3"/>
     </choices-outline>
     <choice id="org.TBI.ViennaRNA.core" title="Core" enabled="false"
         description="Executable programs, utilities, and corresponding manual pages">
@@ -66,9 +68,13 @@
         description="Perl bindings for the C-library and additional Perl packages">
         <pkg-ref id="org.TBI.ViennaRNA.perl">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Perl.pkg</pkg-ref>
     </choice>
-    <choice id="org.TBI.ViennaRNA.python" title="Python Interface"
+    <choice id="org.TBI.ViennaRNA.python" title="Python 2 Interface"
         description="Python 2 bindings for the C-library">
         <pkg-ref id="org.TBI.ViennaRNA.python">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Python.pkg</pkg-ref>
+    </choice>
+    <choice id="org.TBI.ViennaRNA.python3" title="Python 3 Interface"
+        description="Python 3 bindings for the C-library">
+        <pkg-ref id="org.TBI.ViennaRNA.python3">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Python3.pkg</pkg-ref>
     </choice>
     <pkg-ref id="org.TBI.ViennaRNA.core" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Core.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.tutorial" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Tutorial.pkg</pkg-ref>
@@ -79,5 +85,6 @@
     <pkg-ref id="org.TBI.ViennaRNA.rnalocmin" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAlocmin.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.libRNA" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Development.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.perl" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Perl.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.python" version="2@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Python.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.python" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Python.pkg</pkg-ref>
+    <pkg-ref id="org.TBI.ViennaRNA.python3" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Python3.pkg</pkg-ref>
 </installer-gui-script>
