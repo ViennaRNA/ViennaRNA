@@ -60,7 +60,7 @@ struct ms_helpers {
   int                       **fms5;
   int                       **fms3;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat       hc_dat_local;
 };
 
 /*
@@ -1659,7 +1659,7 @@ get_ms_helpers(vrna_fold_compound_t *fc)
     dat->fms3[s] = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
   }
 
-  dat->evaluate = prepare_hc_default(fc, &(dat->hc_dat_local));
+  dat->evaluate = prepare_hc_ext_def(fc, &(dat->hc_dat_local));
 
   return dat;
 }
@@ -1692,7 +1692,7 @@ update_fms5_arrays(vrna_fold_compound_t       *fc,
   vrna_param_t              *params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       *hc_dat_local;
+  struct hc_ext_def_dat       *hc_dat_local;
 
   n             = fc->length;
   S1            = fc->sequence_encoding;
@@ -1787,7 +1787,7 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
   vrna_param_t  *params;
   vrna_md_t     *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       *hc_dat_local;
+  struct hc_ext_def_dat       *hc_dat_local;
 
   n             = fc->length;
   S1            = fc->sequence_encoding;
@@ -1886,7 +1886,7 @@ pair_multi_strand(vrna_fold_compound_t *fc,
   vrna_param_t              *params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       *hc_dat_local;
+  struct hc_ext_def_dat       *hc_dat_local;
 
   contribution  = INF;
   S1            = fc->sequence_encoding;
@@ -2007,7 +2007,7 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
   vrna_param_t              *params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       *hc_dat_local;
+  struct hc_ext_def_dat       *hc_dat_local;
 
   if (fc) {
     S1            = fc->sequence_encoding;
@@ -2130,7 +2130,7 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
   vrna_param_t              *params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       *hc_dat_local;
+  struct hc_ext_def_dat       *hc_dat_local;
 
   S1  = fc->sequence_encoding;
   S2  = fc->sequence_encoding2;
@@ -2226,7 +2226,7 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
   vrna_param_t              *params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       *hc_dat_local;
+  struct hc_ext_def_dat       *hc_dat_local;
 
   n   = fc->length;
   S1  = fc->sequence_encoding;

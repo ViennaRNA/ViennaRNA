@@ -54,7 +54,7 @@ mf_rule_pair(vrna_fold_compound_t *fc,
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
-  struct default_data       hc_dat_local;
+  struct hc_ext_def_dat       hc_dat_local;
 
   contribution  = 0;
   S1            = fc->sequence_encoding;
@@ -66,7 +66,7 @@ mf_rule_pair(vrna_fold_compound_t *fc,
   q             = fc->exp_matrices->q;
   scale         = fc->exp_matrices->scale;
   my_iindx      = fc->iindx;
-  evaluate      = prepare_hc_default(fc, &hc_dat_local);
+  evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
 
   if ((sn[i] != sn[j]) &&
       (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local))) {
