@@ -47,28 +47,14 @@ PRIVATE int *
 compute_f3(vrna_fold_compound_t  *fc);
 
 
-PRIVATE char *
-backtrack_pair(vrna_fold_compound_t *fc);
-
 
 PRIVATE char *
-backtrack_ext5(vrna_fold_compound_t *fc,
-               unsigned int         k);
-
-
-PRIVATE char *
-backtrack_ext3(vrna_fold_compound_t  *fc,
-               unsigned int          k,
-               int                   e,
-               int                   *f3);
-
-
-PRIVATE char *
-backtrack_ext53(vrna_fold_compound_t *fc,
-                unsigned int          k,
-                unsigned int          l,
-                int                   e,
-                int                   *f3);
+backtrack(vrna_fold_compound_t  *fc,
+          unsigned int          k,
+          unsigned int          l,
+          int                   e,
+          int                   *outside_c,
+          int                   *f3);
 
 
 PRIVATE int
@@ -77,22 +63,6 @@ backtrack_f3(vrna_fold_compound_t *fc,
              unsigned int         *i,
              unsigned int         *j,
              int                  *f3);
-
-
-PRIVATE char *
-backtrack_int(vrna_fold_compound_t  *fc,
-              unsigned int          k,
-              unsigned int          l,
-              int                   e,
-              int                   *outside_c);
-
-
-PRIVATE char *
-backtrack_mb(vrna_fold_compound_t  *fc,
-             unsigned int          k,
-             unsigned int          l,
-             int                   e,
-             int                   *outside_c);
 
 
 PUBLIC vrna_subopt_solution_t *
@@ -150,11 +120,11 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
       outside_c[kl] = e;
 
       if (c[kl] != INF) {
-        e += c[kl];
 
         /* this is the only possibility for pair (1,n), so let's backtrack */
-        s = backtrack_pair(fc);
-        printf("%s (%6.2f) [0]\n", s, (float)(e / 100.));
+        s = backtrack(fc, 1, n, e, outside_c, f3);
+        e += c[kl];
+        printf("%s (%6.2f) [0] (%d, %d)\n", s, (float)(e / 100.), 1, n);
         free(s);
       }
     }
@@ -177,10 +147,9 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
           outside_c[kl] = e;
 
           if (c[kl] != INF) {
+            s = backtrack(fc, k, n, e, outside_c, f3);
             e += c[kl];
-            /* this is the only possibility for pair (k,n), so let's backtrack */
-            s = backtrack_ext5(fc, k);
-            printf("%s (%6.2f) [1]\n", s, (float)(e / 100.));
+            printf("%s (%6.2f) [1] (%d, %d)\n", s, (float)(e / 100.), k, n);
             free(s);
           }
         }
@@ -205,10 +174,9 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
           outside_c[kl] = e;
 
           if (c[kl] != INF) {
+            s = backtrack(fc, 1, k, e, outside_c, f3);
             e += c[kl];
-            /* this is the only possibility for pair (k,n), so let's backtrack */
-            s = backtrack_ext3(fc, k, e, f3);
-            printf("%s (%6.2f) [2]\n", s, (float)(e / 100.));
+            printf("%s (%6.2f) [2] (%d, %d)\n", s, (float)(e / 100.), 1, k);
             free(s);
           }
         }
@@ -317,27 +285,11 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
         if (e != INF) {
           outside_c[kl] = e;
 
-          if (e == e_ext) {
-            e += c[kl];
-            /* backtrack from external pair (k,l) */
-            s = backtrack_ext53(fc, k, l, e, f3);
-            printf("%s (%6.2f) [3]\n", s, (float)(e / 100.));
-            free(s);
-          } else if (e == e_int) {
-            e += c[kl];
-            /* backtrack from internal loop pair (k,l) */
-            s = backtrack_int(fc, k, l, e, outside_c);
-            printf("%s (%6.2f) [4]\n", s, (float)(e / 100.));
-            free(s);
-          } else if (e == e_mb) {
-            e += c[kl];
-            /* backtrack from multibranch loop pair (k,l) */
-            s = backtrack_mb(fc, k, l, e, outside_c);
-            printf("%s (%6.2f) [5]\n", s, (float)(e / 100.));
-            free(s);
-          } else {
-            /* do nothing, since there seems no solution for pair (k,l) */
-          }
+          s = backtrack(fc, k, l, e, outside_c, f3);
+          e += c[kl];
+
+          printf("%s (%6.2f) [3] (%d, %d)\n", s, (float)(e / 100.), k, l);
+          free(s);
         }
       } /* ... end for (k = 2; ...)  */
     } /* ... end for (l = n - 1; ...) */
@@ -580,212 +532,106 @@ compute_f3(vrna_fold_compound_t  *fc)
 
 
 PRIVATE char *
-backtrack_pair(vrna_fold_compound_t *fc)
+backtrack(vrna_fold_compound_t  *fc,
+          unsigned int          k,
+          unsigned int          l,
+          int                   e,
+          int                   *outside_c,
+          int                   *f3)
 {
-  char            *structure;
-  int             s;
-  unsigned int    n;
-  sect            bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  vrna_bp_stack_t *bp;
-
-  structure = NULL;
-  n         = fc->length;
-  s         = 0;
-
-  /* add a guess of how many G's may be involved in a G quadruplex */
-  bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + n / 2)));
-
-  /* push interval enclosed by (i,j) on bt_stack */
-  bt_stack[++s].i = 1;
-  bt_stack[s].j   = n;
-  bt_stack[s].ml  = 2;
-
-  if (vrna_backtrack_from_intervals(fc, bp, bt_stack, s))
-    structure = vrna_db_from_bp_stack(bp, n);
-
-  free(bp);
-
-  return structure;
-}
-
-
-PRIVATE char *
-backtrack_ext5(vrna_fold_compound_t *fc,
-               unsigned int         k)
-{
-  char              *structure;
+  char          *structure;
+  short         *S, *S1, s5, s3;
+  unsigned int  n, i, j, stack_count, type;
+  int           en, fij, *f5, *c, *idx, kl;
   int               s;
-  unsigned int      n;
   sect              bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
   vrna_bp_stack_t   *bp;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
 
   structure = NULL;
   n         = fc->length;
+  S         = fc->sequence_encoding2;
+  S1        = fc->sequence_encoding;
+  idx       = fc->jindx;
+  P         = fc->params;
+  md        = &(P->model_details);
+  f5        = fc->matrices->f5;
+  c         = fc->matrices->c;
   s         = 0;
 
   /* add a guess of how many G's may be involved in a G quadruplex */
   bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + n / 2)));
 
-  /* push 5' external loop interval (1,k - 1) on bt_stack */
-  bt_stack[++s].i = 1;
-  bt_stack[s].j   = k - 1;
-  bt_stack[s].ml  = 0;
+  kl = idx[l] + k;
 
-  /* push interval enclosed by (i,j) on bt_stack */
-  bt_stack[++s].i = k;
-  bt_stack[s].j   = n;
-  bt_stack[s].ml  = 2;
-
-  if (vrna_backtrack_from_intervals(fc, bp, bt_stack, s))
-    structure = vrna_db_from_bp_stack(bp, n);
-
-  free(bp);
-
-  return structure;
-}
-
-PRIVATE char *
-backtrack_ext3(vrna_fold_compound_t *fc,
-              unsigned int          k,
-              int                   e,
-              int                   *f3)
-{
-  char            *structure;
-  unsigned int    i, j, n, stack_count;
-  int             s;
-  sect            bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  vrna_bp_stack_t *bp;
-
-  structure = NULL;
-  n         = fc->length;
-  s         = 0;
-
-  /* add a guess of how many G's may be involved in a G quadruplex */
-  bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + n / 2)));
-
-  /* push interval enclosed by (1, k) on bt_stack */
-  bt_stack[++s].i = 1;
-  bt_stack[s].j   = k;
-  bt_stack[s].ml  = 2;
-
-  /* process remaining 3' part (external loop [k + 1, n] */
-  stack_count = 0;
-  i           = 0;
-  j           = 0;
-  k++;
-
-  while (k <= n) {
-    if (backtrack_f3(fc, &k, &i, &j, f3)) {
-      if (i > 0) { /* store base pair for future backtracking */
-        bt_stack[++s].i = i;
-        bt_stack[s].j   = j;
-        bt_stack[s].ml  = 2;
-      }
-    } else {
-      vrna_message_warning("Backtracking failed in f3[%d] = %d", k, f3[k]);
-    }
-
-    if (k == 0)
-      break;
-  }
-
-  /* finally, process all remaining inside segments we've encountered so far */
-  if (vrna_backtrack_from_intervals(fc, bp, bt_stack, s))
-    structure = vrna_db_from_bp_stack(bp, n);
-
-  free(bp);
-
-  return structure;
-}
-
-
-PRIVATE char *
-backtrack_ext53(vrna_fold_compound_t *fc,
-                unsigned int          k,
-                unsigned int          l,
-                int                   e,
-                int                   *f3)
-{
-  char              *structure;
-  int               s;
-  unsigned int      i, j, n, stack_count;
-  sect              bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
-  vrna_bp_stack_t   *bp;
-
-  structure = NULL;
-  n         = fc->length;
-  s         = 0;
-
-  /* add a guess of how many G's may be involved in a G quadruplex */
-  bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + n / 2)));
-
-  /* push 5' external loop interval (1,k - 1) on bt_stack */
-  bt_stack[++s].i = 1;
-  bt_stack[s].j   = k - 1;
-  bt_stack[s].ml  = 0;
+  fij = e;
 
   /* push interval enclosed by (i,j) on bt_stack */
   bt_stack[++s].i = k;
   bt_stack[s].j   = l;
   bt_stack[s].ml  = 2;
 
-  /* process remaining 3' part (external loop [k + 1, n] */
-  stack_count = 0;
-  i           = 0;
-  j           = 0;
-  k++;
+  /* 1st case, (k,l) is not enclosed by any other pair */
+  type  = vrna_get_ptype_md(S[k], S[l], md);
+  s5 = (k > 1) ? S1[k - 1] : -1;
+  s3 = (l < n) ? S1[l + 1] : -1;
+  en = vrna_E_ext_stem(type, s5, s3, P);
 
-  while (k <= n) {
-    if (backtrack_f3(fc, &k, &i, &j, f3)) {
-      if (i > 0) { /* store base pair for future backtracking */
-        bt_stack[++s].i = i;
-        bt_stack[s].j   = j;
-        bt_stack[s].ml  = 2;
-      }
-    } else {
-      vrna_message_warning("Backtracking failed in f3[%d] = %d", k, f3[k]);
+  if (k > 1)
+    en += f5[k - 1];
+  if (l < n)
+    en += f3[l + 1];
+
+  if (fij == en) {
+    if (k > 1) {
+      /* push 5' external loop interval (1,k - 1) on bt_stack */
+      bt_stack[++s].i = 1;
+      bt_stack[s].j   = k - 1;
+      bt_stack[s].ml  = 0;
     }
 
-    if (k == 0)
-      break;
+    if (l < n) {
+      /* process remaining 3' part (external loop [k + 1, n] */
+      stack_count = 0;
+      i           = 0;
+      j           = 0;
+
+      k = l + 1;
+
+      while (k <= n) {
+        if (backtrack_f3(fc, &k, &i, &j, f3)) {
+          if (i > 0) { /* store base pair for future backtracking */
+            bt_stack[++s].i = i;
+            bt_stack[s].j   = j;
+            bt_stack[s].ml  = 2;
+          }
+        } else {
+          vrna_message_warning("Backtracking failed in f3[%d] = %d", k, f3[k]);
+          exit(1);
+        }
+
+        if (k == 0)
+          break;
+      }
+    }
+
+    goto backtrack_inside;
   }
 
+  /* 2nd, (k,l) enclosde by a single pair (i,j) forming a multibranch loop */
+  en = c[kl];
 
+  goto backtrack_fail;
+
+backtrack_inside:
   if (vrna_backtrack_from_intervals(fc, bp, bt_stack, s))
     structure = vrna_db_from_bp_stack(bp, n);
 
+backtrack_fail:
+
+
   free(bp);
-
-  return structure;
-
-}
-
-
-PRIVATE char *
-backtrack_int(vrna_fold_compound_t  *fc,
-              unsigned int          k,
-              unsigned int          l,
-              int                   e,
-              int                   *outside_c)
-{
-  char  *structure;
-
-  structure = NULL;
-
-  return structure;
-}
-
-
-PRIVATE char *
-backtrack_mb(vrna_fold_compound_t  *fc,
-             unsigned int          k,
-             unsigned int          l,
-             int                   e,
-             int                   *outside_c)
-{
-  char  *structure;
-
-  structure = NULL;
 
   return structure;
 }
