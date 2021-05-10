@@ -25,6 +25,7 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/subopt.h"
+#include "ViennaRNA/subopt_zuker.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/SHAPE.h"
@@ -347,10 +348,7 @@ main(int  argc,
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
-    vrna_fold_compound_t *vc =
-      vrna_fold_compound(rec_sequence, &md,
-                         VRNA_OPTION_MFE | (circ ? 0 : VRNA_OPTION_HYBRID) |
-                         ((n_back > 0) ? VRNA_OPTION_PF : 0));
+    vrna_fold_compound_t *vc = vrna_fold_compound(rec_sequence, &md, VRNA_OPTION_DEFAULT);
     length = vc->length;
 
     structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
@@ -509,7 +507,7 @@ main(int  argc,
 
       fprintf(output, "%s\n", rec_sequence);
 
-      zr = vrna_subopt_zuker(vc);
+      zr = vrna_subopt_zuker2(vc);
 
       putoutzuker(output, zr);
       (void)fflush(output);
