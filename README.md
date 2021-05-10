@@ -110,7 +110,7 @@ cd ..
    program `RNAmultifold`:
 ```
 cd src
-tar -xjf dlib-19.21.tar.bz2
+tar -xjf dlib-19.22.tar.bz2
 cd ..
 ```
 
