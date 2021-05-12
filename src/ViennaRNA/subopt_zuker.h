@@ -8,4 +8,5 @@
 vrna_subopt_solution_t *
 vrna_subopt_zuker2(vrna_fold_compound_t *fc);
 
+
 #endif
