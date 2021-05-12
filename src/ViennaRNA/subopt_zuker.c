@@ -104,12 +104,11 @@ PUBLIC vrna_subopt_solution_t *
 vrna_subopt_zuker2(vrna_fold_compound_t *fc)
 {
   unsigned char           **todo;
-  char                    *s, *mfe_structure;
+  char                    *s;
   short                   *S, *S1, s5, s3;
   unsigned int            i, j, k, l, n, min_i, turn, type, *sn, u1, u2, u, num_pairs, num_struct;
   int                     e, tmp, ppp, ij, kl, *c, *outside_c, *f5, *f3, *fML,
-                          *idx, dangle_model;
-  float                   mfe;
+                          *idx;
   vrna_param_t            *P;
   vrna_md_t               *md;
   vrna_hc_t               *hc;
@@ -122,14 +121,14 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
   sol = NULL;
 
   if (fc) {
-    mfe   = vrna_mfe(fc, NULL);
+    (void)vrna_mfe(fc, NULL);
+
     n     = fc->length;
     sn    = fc->strand_number;
     S     = fc->sequence_encoding2;
     S1    = fc->sequence_encoding;
     P     = fc->params;
     md    = &(P->model_details);
-    dangle_model = md->dangles;
     turn  = md->min_loop_size;
     idx   = fc->jindx;
     f5    = fc->matrices->f5;
@@ -216,6 +215,11 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
             e_ext = f5[k - 1] +
                     f3[l + 1] +
                     vrna_E_ext_stem(type, s5, s3, P);
+
+            if (sc) {
+              if (sc->f)
+                e_ext += sc->f(1, n, k, l, VRNA_DECOMP_EXT_STEM_OUTSIDE, sc->data);
+            }
           }
         }
 
@@ -231,7 +235,7 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
             if (u2 + k - min_i - 1 > MAXLOOP)
               min_i = k - 1 - (MAXLOOP - u2);
 
-              for (i = k - 1; i >= min_i; i--) {
+            for (i = k - 1; i >= min_i; i--) {
               ij = idx[j] + i;
 
               u1 = k - i - 1;
@@ -266,6 +270,15 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
                       e +
                       aux_mb[i];
 
+                if (sc) {
+                  if (sc->energy_up)
+                    ppp += sc->energy_up[i + 1][u];
+
+                  if (sc->f)
+                    ppp += sc->f(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_STEM, sc->data) +
+                           sc->f(i + 1, k - 1, i + 1, k - 1, VRNA_DECOMP_ML_UP, sc->data);
+                }
+
                 e_mb = MIN2(e_mb, ppp);
               }
 
@@ -275,6 +288,11 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
                 ppp = fML[idx[k - 1] + i + 1] +
                       e +
                       aux_mb[i];
+
+                if (sc) {
+                  if (sc->f)
+                    ppp +=sc->f(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_STEM, sc->data);
+                }
 
                 e_mb = MIN2(e_mb, ppp);
               }
@@ -287,6 +305,11 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
               ppp = fML[idx[k - 1] + i + 1] +
                     e +
                     aux_mb_up[i];
+
+              if (sc) {
+                if (sc->f)
+                  ppp +=sc->f(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_STEM, sc->data);
+              }
 
               e_mb = MIN2(e_mb, ppp);
             }
@@ -416,12 +439,13 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
                     zuker_aux_mx        *aux_mx)
 {
   short         *S, *S1;
-  unsigned int  i, j, n, type, turn, u;
-  int           ij, e, ee, *idx, *fML, dangle_model;
+  unsigned int  i, j, n, type, turn;
+  int           e, *idx, *fML, *outside_c, *aux_mb,
+                *aux_mb_up, *aux_mb_up1;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
-  int           *outside_c, *aux_mb, *aux_mb_up, *aux_mb_up1;
+  vrna_sc_t     *sc;
 
   n     = fc->length;
   S     = fc->sequence_encoding2;
@@ -430,8 +454,8 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
   P     = fc->params;
   md    = &(P->model_details);
   turn  = md->min_loop_size;
-  dangle_model  = md->dangles;
   hc            = fc->hc;
+  sc            = fc->sc;
   fML           = fc->matrices->fML;
   outside_c     = aux_mx->outside_c;
   aux_mb        = aux_mx->mb[l];
@@ -456,6 +480,12 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
                 E_MLstem(type, S1[j - 1], S1[i + 1], P) +
                 P->MLclosing;
 
+            if (sc) {
+              if (sc->f)
+                e += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data) +
+                     sc->f(i + 1, j - 1, l, l + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+            }
+
             aux_mb[i] = MIN2(aux_mb[i], e);
           }
         }
@@ -469,9 +499,20 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
     */
     if (hc->up_ml[l + 1]) {
       for (i = l - turn - 2; i > 0; i--) {
-        if (aux_mb_up1[i] != INF)
-          aux_mb_up[i]  = aux_mb_up1[i] +
-                          P->MLbase;
+        if (aux_mb_up1[i] != INF) {
+          e = aux_mb_up1[i] +
+              P->MLbase;
+
+          if (sc) {
+            if (sc->energy_up)
+              e += sc->energy_up[l + 1][1];
+
+            if (sc->f)
+              e += sc->f(i + 1, l + 1, i + 1, l, VRNA_DECOMP_ML_ML, sc->data);
+          }
+
+          aux_mb_up[i] = e;
+        }
       }
     }
 
@@ -481,6 +522,11 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
         e = outside_c[idx[l + 1] + i] +
             E_MLstem(type, S1[l], S1[i + 1], P) +
             P->MLclosing;
+
+        if (sc) {
+          if (sc->f)
+            e += sc->f(i, l + 1, i + 1, l, VRNA_DECOMP_PAIR_ML, sc->data);
+        }
 
         aux_mb_up[i] = MIN2(aux_mb_up[i], e);
       }
@@ -641,10 +687,9 @@ backtrack(vrna_fold_compound_t  *fc,
           zuker_aux_mx          *aux_mx,
           vrna_bp_stack_t       *bp)
 {
-  char          *structure;
   short         *S, *S1, s5, s3;
   unsigned int  n, i, j, b, type, u1, u2, max_j, min_i, turn;
-  int           e, tmp, en, *f5, *c, *idx, kl, ij;
+  int           e, tmp, en, *f5, *idx, kl, ij;
   int               s;
   int                   *outside_c;
   int                   *f3;
@@ -655,8 +700,8 @@ backtrack(vrna_fold_compound_t  *fc,
   vrna_param_t      *P;
   vrna_md_t         *md;
   vrna_hc_t         *hc;
+  vrna_sc_t         *sc;
 
-  structure   = NULL;                    
   n           = fc->length;              
   S           = fc->sequence_encoding2;  
   S1          = fc->sequence_encoding;   
@@ -665,8 +710,8 @@ backtrack(vrna_fold_compound_t  *fc,
   md          = &(P->model_details);     
   turn        = md->min_loop_size;
   f5          = fc->matrices->f5;        
-  c           = fc->matrices->c;         
   hc          = fc->hc;                  
+  sc          = fc->sc;
   s           = 0;                       
   b           = bp[0].i; /* number of already backtraced outside pairs */
   outside_c   = aux_mx->outside_c;
@@ -751,6 +796,14 @@ backtrack_outside:
             mb[i] +
             u1 * P->MLbase;
 
+      if (sc) {
+        if (sc->energy_up)
+          en += sc->energy_up[i + 1][u1];
+
+        if (sc->f)
+          en += sc->f(i + 1, l, k, l, VRNA_DECOMP_ML_ML, sc->data);
+      }
+
       if (e == en) {
         if (backtrack_mb(fc, i, &k, &l, aux_mx)) {
 
@@ -780,6 +833,14 @@ backtrack_outside:
                 mb[i] +
                 u1 * P->MLbase;
 
+          if (sc) {
+            if (sc->energy_up)
+              en += sc->energy_up[i + 1][u1];
+
+            if (sc->f)
+              en += sc->f(i + 1, l, k, l, VRNA_DECOMP_ML_ML, sc->data);
+          }
+
           /* (k,l) is left-most pair in a multibranch loop */
           if (e == en) {
             if (backtrack_mb(fc, i, &k, &l, aux_mx)) {
@@ -803,6 +864,11 @@ backtrack_outside:
         en =  tmp + 
               mb[i] +
               fML[idx[k - 1] + i + 1];
+
+        if (sc) {
+          if (sc->f)
+            en += sc->f(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+        }
 
         if (e == en) {
           if (backtrack_mb(fc, i, &k, &l, aux_mx)) {
@@ -832,6 +898,11 @@ backtrack_outside:
         en  = tmp +
               mb_up[i] +
               fML[idx[k - 1] + i + 1];
+
+        if (sc) {
+          if (sc->f)
+            en += sc->f(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+        }
 
         if (e == en) {
           if (backtrack_mb_up(fc, i, &k, &l, aux_mx)) {
@@ -864,6 +935,11 @@ backtrack_outside:
       en += f5[k - 1];
     if (l < n)
       en += f3[l + 1];
+
+    if (sc) {
+      if (sc->f)
+        en += sc->f(1, n, k, l, VRNA_DECOMP_EXT_STEM_OUTSIDE, sc->data);
+    }
 
     if (e == en) {
       if (k > 1) {
@@ -925,6 +1001,7 @@ backtrack_mb(vrna_fold_compound_t *fc,
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   n     = fc->length;
   S     = fc->sequence_encoding2;
@@ -936,6 +1013,7 @@ backtrack_mb(vrna_fold_compound_t *fc,
   md    = &(P->model_details);
   turn  = md->min_loop_size;
   hc    = fc->hc;
+  sc    = fc->sc;
   e     = aux_mx->mb[*l][i];
 
   for (j = *l + turn + 3; j <= n; j++) {
@@ -947,6 +1025,12 @@ backtrack_mb(vrna_fold_compound_t *fc,
               fML[idx[j - 1] + *l + 1] +
               E_MLstem(type, S1[j - 1], S1[i + 1], P) +
               P->MLclosing;
+
+      if (sc) {
+        if (sc->f)
+          en += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data) +
+                sc->f(i + 1, j - 1, *l, *l + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
+      }
 
       if (e == en) {
         *k = i;
@@ -972,6 +1056,7 @@ backtrack_mb_up(vrna_fold_compound_t *fc,
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   n         = fc->length;
   S         = fc->sequence_encoding2;
@@ -981,6 +1066,7 @@ backtrack_mb_up(vrna_fold_compound_t *fc,
   md        = &(P->model_details);
   outside_c = aux_mx->outside_c;
   hc        = fc->hc;
+  sc        = fc->sc;
   e         = aux_mx->mb_up[*l][i];
   u         = 0;
 
@@ -993,6 +1079,15 @@ backtrack_mb_up(vrna_fold_compound_t *fc,
               E_MLstem(type, S1[j - 1], S1[i + 1], P) +
               u * P->MLbase +
               P->MLclosing;
+
+      if (sc) {
+        if (sc->energy_up)
+          en += sc->energy_up[*l + 1][u];
+
+        if (sc->f)
+          en += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data) +
+                sc->f(i + 1, j - 1, i + 1, *l, VRNA_DECOMP_ML_ML, sc->data);
+      }
 
       if (e == en) {
         *k = i;
