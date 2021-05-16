@@ -87,6 +87,7 @@ extern "C" {
 #include  <ViennaRNA/dist_vars.h>
 #include  <ViennaRNA/pair_mat.h>
 #include  <ViennaRNA/subopt.h>
+#include  <ViennaRNA/subopt_zuker.h>
 #include  <ViennaRNA/duplex.h>
 
 #include  <ViennaRNA/combinatorics.h>

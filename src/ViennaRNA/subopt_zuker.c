@@ -100,7 +100,7 @@ comp_pair(const void  *A,
 
 
 PUBLIC vrna_subopt_solution_t *
-vrna_subopt_zuker2(vrna_fold_compound_t *fc)
+vrna_subopt_zuker(vrna_fold_compound_t *fc)
 {
   unsigned char           **todo;
   char                    *s;

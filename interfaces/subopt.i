@@ -205,3 +205,4 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NU
 %ignore zukersubopt_par;
 
 %include  <ViennaRNA/subopt.h>
+%include  <ViennaRNA/subopt_zuker.h>

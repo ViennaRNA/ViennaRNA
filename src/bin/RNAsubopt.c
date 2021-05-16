@@ -507,7 +507,7 @@ main(int  argc,
 
       fprintf(output, "%s\n", rec_sequence);
 
-      zr = vrna_subopt_zuker2(vc);
+      zr = vrna_subopt_zuker(vc);
 
       putoutzuker(output, zr);
       (void)fflush(output);
