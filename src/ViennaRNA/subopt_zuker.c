@@ -105,9 +105,10 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
   unsigned char           **todo;
   char                    *s;
   short                   *S, *S1, s5, s3;
-  unsigned int            i, j, k, l, n, min_i, turn, type, *sn, u1, u2, u, num_pairs, num_struct;
+  unsigned int            i, j, k, l, n, min_i, turn, type, *sn, u1, u2, u,
+                          num_pairs, num_struct;
   int                     e, tmp, ppp, ij, kl, *c, *outside_c, *f5, *f3, *fML,
-                          *idx;
+                          *idx, dangle_model;
   vrna_param_t            *P;
   vrna_md_t               *md;
   vrna_hc_t               *hc;
@@ -122,19 +123,20 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
   if (fc) {
     (void)vrna_mfe(fc, NULL);
 
-    n     = fc->length;
-    sn    = fc->strand_number;
-    S     = fc->sequence_encoding2;
-    S1    = fc->sequence_encoding;
-    P     = fc->params;
-    md    = &(P->model_details);
-    turn  = md->min_loop_size;
-    idx   = fc->jindx;
-    f5    = fc->matrices->f5;
-    c     = fc->matrices->c;
-    fML   = fc->matrices->fML;
-    hc    = fc->hc;
-    sc    = fc->sc;
+    n             = fc->length;
+    sn            = fc->strand_number;
+    S             = fc->sequence_encoding2;
+    S1            = fc->sequence_encoding;
+    P             = fc->params;
+    md            = &(P->model_details);
+    turn          = md->min_loop_size;
+    dangle_model  = md->dangles;
+    idx           = fc->jindx;
+    f5            = fc->matrices->f5;
+    c             = fc->matrices->c;
+    fML           = fc->matrices->fML;
+    hc            = fc->hc;
+    sc            = fc->sc;
 
     aux_mx = get_zuker_aux_mx(fc);
 
@@ -156,8 +158,17 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
         if ((sn[k - 1] == sn[k]) &&
             (f5[k - 1] != INF)) {
           type  = vrna_get_ptype_md(S[k], S[n], md);
-          e     = f5[k - 1] +
-                  vrna_E_ext_stem(type, S1[k - 1], -1, P);
+          e     = f5[k - 1];
+
+          switch (dangle_model) {
+            case 2:
+              e += vrna_E_ext_stem(type, S1[k - 1], -1, P);
+              break;
+
+            default:
+              e += vrna_E_ext_stem(type, -1, -1, P);
+              break;
+          }
 
           if (sc)
             if (sc->f)
@@ -175,8 +186,17 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
         if ((sn[k] == sn[k + 1]) &&
             (f3[k + 1] != INF)) {
           type  = vrna_get_ptype_md(S[1], S[k], md);
-          e     = f3[k + 1] +
-                  vrna_E_ext_stem(type, -1, S1[k + 1], P);
+          e     = f3[k + 1];
+
+          switch (dangle_model) {
+            case 2:
+              e += vrna_E_ext_stem(type, -1, S1[k + 1], P);
+              break;
+
+            default:
+              e += vrna_E_ext_stem(type, -1, -1, P);
+              break;
+          }
 
           if (sc)
             if (sc->f)
@@ -207,11 +227,15 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
               (f3[l + 1] != INF) &&
               (sn[k - 1] == sn[k]) &&
               (sn[l] == sn[l + 1])) {
-            s5    = S1[k - 1];
-            s3    = S1[l + 1];
             e_ext = f5[k - 1] +
-                    f3[l + 1] +
-                    vrna_E_ext_stem(type, s5, s3, P);
+                    f3[l + 1];
+            switch (dangle_model) {
+              case 2:
+                e_ext += vrna_E_ext_stem(type, S1[k - 1], S1[l + 1], P);
+                break;
+              default:
+                e_ext += vrna_E_ext_stem(type, -1, -1, P);
+            }
 
             if (sc)
               if (sc->f)
@@ -254,7 +278,14 @@ vrna_subopt_zuker2(vrna_fold_compound_t *fc)
           int *aux_mb     = aux_mx->mb[l];
           int *aux_mb_up  = aux_mx->mb_up[l];
 
-          e = E_MLstem(type, S1[k - 1], S1[l + 1], P);
+          switch (dangle_model) {
+            case 2:
+              e = E_MLstem(type, S1[k - 1], S1[l + 1], P);
+              break;
+            default:
+              e = E_MLstem(type, -1, -1, P);
+              break;
+          }
 
           for (i = k - 1; i > 0; i--) {
             /* left-most or somewhere in the middle */
@@ -437,26 +468,27 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
   short         *S, *S1;
   unsigned int  i, j, n, type, turn;
   int           e, *idx, *fML, *outside_c, *aux_mb,
-                *aux_mb_up, *aux_mb_up1;
+                *aux_mb_up, *aux_mb_up1, dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  n           = fc->length;
-  S           = fc->sequence_encoding2;
-  S1          = fc->sequence_encoding;
-  idx         = fc->jindx;
-  P           = fc->params;
-  md          = &(P->model_details);
-  turn        = md->min_loop_size;
-  hc          = fc->hc;
-  sc          = fc->sc;
-  fML         = fc->matrices->fML;
-  outside_c   = aux_mx->outside_c;
-  aux_mb      = aux_mx->mb[l];
-  aux_mb_up   = aux_mx->mb_up[l];
-  aux_mb_up1  = aux_mx->mb_up[l + 1];
+  n             = fc->length;
+  S             = fc->sequence_encoding2;
+  S1            = fc->sequence_encoding;
+  idx           = fc->jindx;
+  P             = fc->params;
+  md            = &(P->model_details);
+  turn          = md->min_loop_size;
+  dangle_model  = md->dangles;
+  hc            = fc->hc;
+  sc            = fc->sc;
+  fML           = fc->matrices->fML;
+  outside_c     = aux_mx->outside_c;
+  aux_mb        = aux_mx->mb[l];
+  aux_mb_up     = aux_mx->mb_up[l];
+  aux_mb_up1    = aux_mx->mb_up[l + 1];
 
   /* initialize with INF */
   for (i = 0; i < l; i++) {
@@ -473,8 +505,16 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
             type  = vrna_get_ptype_md(S[j], S[i], md);
             e     = outside_c[idx[j] + i] +
                     fML[idx[j - 1] + l + 1] +
-                    E_MLstem(type, S1[j - 1], S1[i + 1], P) +
                     P->MLclosing;
+
+            switch (dangle_model) {
+              case 2:
+                e += E_MLstem(type, S1[j - 1], S1[i + 1], P);
+                break;
+              default:
+                e += E_MLstem(type, -1, -1, P);
+                break;
+            }
 
             if (sc) {
               if (sc->f)
@@ -516,8 +556,16 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
       if (hc->mx[(l + 1) * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
         type  = vrna_get_ptype_md(S[l + 1], S[i], md);
         e     = outside_c[idx[l + 1] + i] +
-                E_MLstem(type, S1[l], S1[i + 1], P) +
                 P->MLclosing;
+
+        switch (dangle_model) {
+          case 2:
+            e += E_MLstem(type, S1[l], S1[i + 1], P);
+            break;
+          default:
+            e += E_MLstem(type, -1, -1, P);
+            break;
+        }
 
         if (sc)
           if (sc->f)
@@ -556,23 +604,24 @@ compute_f3(vrna_fold_compound_t *fc)
 {
   short         *S, *S1;
   unsigned int  j, min_j, k, n, u, jk, turn, *sn, type;
-  int           e, *c, *f3, *idx;
+  int           e, *c, *f3, *idx, dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  n     = fc->length;
-  S     = fc->sequence_encoding2;
-  S1    = fc->sequence_encoding;
-  sn    = fc->strand_number;
-  P     = fc->params;
-  md    = &(P->model_details);
-  turn  = md->min_loop_size;
-  idx   = fc->jindx;
-  c     = fc->matrices->c;
-  hc    = fc->hc;
-  sc    = fc->sc;
+  n             = fc->length;
+  S             = fc->sequence_encoding2;
+  S1            = fc->sequence_encoding;
+  sn            = fc->strand_number;
+  P             = fc->params;
+  md            = &(P->model_details);
+  turn          = md->min_loop_size;
+  dangle_model  = md->dangles;
+  idx           = fc->jindx;
+  c             = fc->matrices->c;
+  hc            = fc->hc;
+  sc            = fc->sc;
 
   /* init */
   f3 = (int *)vrna_alloc(sizeof(int) * (n + 2));
@@ -637,8 +686,16 @@ compute_f3(vrna_fold_compound_t *fc)
             (sn[k] == sn[k + 1])) {
           type  = vrna_get_ptype_md(S[j], S[k], md);
           e     = c[jk] +
-                  f3[k + 1] +
-                  vrna_E_ext_stem(type, S1[j - 1], S1[k + 1], P);
+                  f3[k + 1];
+
+          switch (dangle_model) {
+            case 2:
+              e += vrna_E_ext_stem(type, S1[j - 1], S1[k + 1], P);
+              break;
+            default:
+              e += vrna_E_ext_stem(type, -1, -1, P);
+              break;
+          }
 
           if (sc)
             if (sc->f)
@@ -654,8 +711,15 @@ compute_f3(vrna_fold_compound_t *fc)
       jk = idx[n] + j;
       if (c[jk] != INF) {
         type  = vrna_get_ptype_md(S[j], S[n], md);
-        e     = c[jk] +
-                vrna_E_ext_stem(type, S1[j - 1], -1, P);
+        e     = c[jk];
+        switch (dangle_model) {
+          case 2:
+            e += vrna_E_ext_stem(type, S1[j - 1], -1, P);
+            break;
+          default:
+            e += vrna_E_ext_stem(type, -1, -1, P);
+            break;
+        }
 
         if (sc)
           if (sc->f)
@@ -678,37 +742,33 @@ backtrack(vrna_fold_compound_t  *fc,
           vrna_bp_stack_t       *bp)
 {
   short         *S, *S1, s5, s3;
-  unsigned int  n, i, j, b, type, u1, u2, max_j, min_i, turn;
-  int           e, tmp, en, *f5, *idx, kl, ij;
-  int           s;
-  int           *outside_c;
-  int           *f3;
-  int           *fML;
-  int           **aux_mb;
-  int           **aux_mb_up;
+  unsigned int  n, i, j, b, type, u1, u2, max_j, min_i, turn, prev_l, prev_k;
+  int           e, tmp, en, *f5, *idx, kl, ij, s, *outside_c,
+                *f3, *fML, **aux_mb, **aux_mb_up, dangle_model, *mb, *mb_up;
   sect          bt_stack[MAXSECTORS];     /* stack of partial structures for backtracking */
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  n         = fc->length;
-  S         = fc->sequence_encoding2;
-  S1        = fc->sequence_encoding;
-  idx       = fc->jindx;
-  P         = fc->params;
-  md        = &(P->model_details);
-  turn      = md->min_loop_size;
-  f5        = fc->matrices->f5;
-  hc        = fc->hc;
-  sc        = fc->sc;
-  s         = 0;
-  b         = bp[0].i;   /* number of already backtraced outside pairs */
-  outside_c = aux_mx->outside_c;
-  f3        = aux_mx->f3;
-  fML       = fc->matrices->fML;
-  aux_mb    = aux_mx->mb;
-  aux_mb_up = aux_mx->mb_up;
+  n             = fc->length;
+  S             = fc->sequence_encoding2;
+  S1            = fc->sequence_encoding;
+  idx           = fc->jindx;
+  P             = fc->params;
+  md            = &(P->model_details);
+  turn          = md->min_loop_size;
+  dangle_model  = md->dangles;
+  f5            = fc->matrices->f5;
+  hc            = fc->hc;
+  sc            = fc->sc;
+  s             = 0;
+  b             = bp[0].i; /* number of already backtraced outside pairs */
+  outside_c     = aux_mx->outside_c;
+  f3            = aux_mx->f3;
+  fML           = fc->matrices->fML;
+  aux_mb        = aux_mx->mb;
+  aux_mb_up     = aux_mx->mb_up;
 
   /* push interval enclosed by (i,j) on bt_stack */
   bt_stack[++s].i = k;
@@ -761,19 +821,25 @@ backtrack_outside:
   if ((k > 1) &&
       (l < n) &&
       (hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)) {
-    unsigned int  prev_l, prev_k;
-    int           *mb     = aux_mb[l];
-    int           *mb_up  = aux_mb_up[l];
-
+    mb      = aux_mb[l];
+    mb_up   = aux_mb_up[l];
     prev_k  = k;
     prev_l  = l;
     min_i   = 1;
+
     if (k > turn + 1)
       min_i = k - turn - 1;
 
     u1 = 0;
 
-    tmp = E_MLstem(type, S1[k - 1], S1[l + 1], P);
+    switch (dangle_model) {
+      case 2:
+        tmp = E_MLstem(type, S1[k - 1], S1[l + 1], P);
+        break;
+      default:
+        tmp = E_MLstem(type, -1, -1, P);
+        break;
+    }
 
     for (i = k - 1; i >= min_i; i--, u1++) {
       if (mb[i] == INF)
@@ -912,9 +978,16 @@ backtrack_outside:
 
   /* 3rd and last chance, (k,l) is not enclosed by any other pair */
   if (hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-    s5  = (k > 1) ? S1[k - 1] : -1;
-    s3  = (l < n) ? S1[l + 1] : -1;
-    en  = vrna_E_ext_stem(type, s5, s3, P);
+    switch (dangle_model) {
+      case 2:
+        s5  = (k > 1) ? S1[k - 1] : -1;
+        s3  = (l < n) ? S1[l + 1] : -1;
+        en  = vrna_E_ext_stem(type, s5, s3, P);
+        break;
+      default:
+        en = vrna_E_ext_stem(type, -1, -1, P);
+        break;
+    }
 
     if (k > 1)
       en += f5[k - 1];
@@ -983,24 +1056,25 @@ backtrack_mb(vrna_fold_compound_t *fc,
 {
   short         *S, *S1;
   unsigned int  j, n, turn, type;
-  int           e, en, *outside_c, *idx, *fML;
+  int           e, en, *outside_c, *idx, *fML, dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  n         = fc->length;
-  S         = fc->sequence_encoding2;
-  S1        = fc->sequence_encoding;
-  idx       = fc->jindx;
-  fML       = fc->matrices->fML;
-  outside_c = aux_mx->outside_c;
-  P         = fc->params;
-  md        = &(P->model_details);
-  turn      = md->min_loop_size;
-  hc        = fc->hc;
-  sc        = fc->sc;
-  e         = aux_mx->mb[*l][i];
+  n             = fc->length;
+  S             = fc->sequence_encoding2;
+  S1            = fc->sequence_encoding;
+  idx           = fc->jindx;
+  fML           = fc->matrices->fML;
+  outside_c     = aux_mx->outside_c;
+  P             = fc->params;
+  md            = &(P->model_details);
+  turn          = md->min_loop_size;
+  dangle_model  = md->dangles;
+  hc            = fc->hc;
+  sc            = fc->sc;
+  e             = aux_mx->mb[*l][i];
 
   for (j = *l + turn + 3; j <= n; j++) {
     if ((hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
@@ -1009,8 +1083,16 @@ backtrack_mb(vrna_fold_compound_t *fc,
       type  = vrna_get_ptype_md(S[j], S[i], md);
       en    = outside_c[idx[j] + i] +
               fML[idx[j - 1] + *l + 1] +
-              E_MLstem(type, S1[j - 1], S1[i + 1], P) +
               P->MLclosing;
+
+      switch (dangle_model) {
+        case 2:
+          en += E_MLstem(type, S1[j - 1], S1[i + 1], P);
+          break;
+        default:
+          en += E_MLstem(type, -1, -1, P);
+          break;
+      }
 
       if (sc) {
         if (sc->f)
@@ -1039,23 +1121,24 @@ backtrack_mb_up(vrna_fold_compound_t  *fc,
 {
   short         *S, *S1;
   unsigned int  j, u, n, type;
-  int           e, en, *outside_c, *idx;
+  int           e, en, *outside_c, *idx, dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  n         = fc->length;
-  S         = fc->sequence_encoding2;
-  S1        = fc->sequence_encoding;
-  idx       = fc->jindx;
-  P         = fc->params;
-  md        = &(P->model_details);
-  outside_c = aux_mx->outside_c;
-  hc        = fc->hc;
-  sc        = fc->sc;
-  e         = aux_mx->mb_up[*l][i];
-  u         = 0;
+  n             = fc->length;
+  S             = fc->sequence_encoding2;
+  S1            = fc->sequence_encoding;
+  idx           = fc->jindx;
+  P             = fc->params;
+  md            = &(P->model_details);
+  dangle_model  = md->dangles;
+  outside_c     = aux_mx->outside_c;
+  hc            = fc->hc;
+  sc            = fc->sc;
+  e             = aux_mx->mb_up[*l][i];
+  u             = 0;
 
   /* find pairing partner j */
   for (j = *l + 1; j <= n; j++) {
@@ -1063,9 +1146,17 @@ backtrack_mb_up(vrna_fold_compound_t  *fc,
         (outside_c[idx[j] + i] != INF)) {
       type  = vrna_get_ptype_md(S[j], S[i], md);
       en    = outside_c[idx[j] + i] +
-              E_MLstem(type, S1[j - 1], S1[i + 1], P) +
               u * P->MLbase +
               P->MLclosing;
+
+      switch (dangle_model) {
+        case 2:
+          en += E_MLstem(type, S1[j - 1], S1[i + 1], P);
+          break;
+        default:
+          en += E_MLstem(type, -1, -1, P);
+          break;
+      }
 
       if (sc) {
         if (sc->energy_up)
