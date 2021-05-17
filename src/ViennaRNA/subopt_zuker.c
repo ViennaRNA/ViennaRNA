@@ -221,14 +221,16 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
         kl    = idx[l] + k;
         e_ext = e_int = e_mb = INF;
 
-        /* 1. (k,l) not enclosed by any other pair */
+        /* 1. (k,l) is external pair */
         if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+          /* 1.a (k,l) not enclosed by any other pair */
           if ((f5[k - 1] != INF) &&
               (f3[l + 1] != INF) &&
               (sn[k - 1] == sn[k]) &&
               (sn[l] == sn[l + 1])) {
             e_ext = f5[k - 1] +
                     f3[l + 1];
+
             switch (dangle_model) {
               case 2:
                 e_ext += vrna_E_ext_stem(type, S1[k - 1], S1[l + 1], P);
@@ -240,6 +242,10 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
             if (sc)
               if (sc->f)
                 e_ext += sc->f(1, n, k, l, VRNA_DECOMP_EXT_STEM_OUTSIDE, sc->data);
+          }
+
+          /* 1.b (k,l) is enclosed by another pair in a loop with strand nick, a.k.a. multi strand case */
+          if (fc->strands > 1) {
           }
         }
 
@@ -274,7 +280,9 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
         }
 
         /* 3. (k,l) enclosed as part of a multibranch loop */
-        if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+        if ((hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
+            (sn[l] == sn[l + 1]) &&
+            (sn[k - 1] == sn[k])) {
           int *aux_mb     = aux_mx->mb[l];
           int *aux_mb_up  = aux_mx->mb_up[l];
 
@@ -292,7 +300,8 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
             if (aux_mb[i] != INF) {
               u = k - i - 1;
               /* left-most */
-              if (hc->up_ml[i + 1] >= u) {
+              if ((hc->up_ml[i + 1] >= u) &&
+                  (sn[i] == sn[k])) {
                 ppp = u * P->MLbase +
                       e +
                       aux_mb[i];
@@ -311,7 +320,8 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
 
               /* somewhere in the middle */
               if ((i + turn + 2 < k) &&
-                  (fML[idx[k - 1] + i + 1] != INF)) {
+                  (fML[idx[k - 1] + i + 1] != INF) &&
+                  (sn[i] == sn[i + 1])) {
                 ppp = fML[idx[k - 1] + i + 1] +
                       e +
                       aux_mb[i];
@@ -327,7 +337,8 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
             /* right-most */
             if ((i + turn + 2 < k) &&
                 (aux_mb_up[i] != INF) &&
-                (fML[idx[k - 1] + i + 1] != INF)) {
+                (fML[idx[k - 1] + i + 1] != INF) &&
+                (sn[i] == sn[i + 1])) {
               ppp = fML[idx[k - 1] + i + 1] +
                     e +
                     aux_mb_up[i];
@@ -466,7 +477,7 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
                   zuker_aux_mx          *aux_mx)
 {
   short         *S, *S1;
-  unsigned int  i, j, n, type, turn;
+  unsigned int  i, j, n, type, turn, *sn;
   int           e, *idx, *fML, *outside_c, *aux_mb,
                 *aux_mb_up, *aux_mb_up1, dangle_model;
   vrna_param_t  *P;
@@ -477,6 +488,7 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
   n             = fc->length;
   S             = fc->sequence_encoding2;
   S1            = fc->sequence_encoding;
+  sn            = fc->strand_number;
   idx           = fc->jindx;
   P             = fc->params;
   md            = &(P->model_details);
@@ -496,11 +508,14 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
     aux_mb_up[i]  = INF;
   }
 
-  if (l > turn + 2) {
+  if ((l > turn + 2) &&
+      (sn[l] == sn[l + 1])) {
     for (j = l + turn + 1; j <= n; j++) {
-      for (i = l - turn - 2; i > 0; i--) {
-        if (hc->mx[j * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-          if ((outside_c[idx[j] + i] != INF) &&
+      if (sn[j] == sn[j - 1]) {
+        for (i = l - turn - 2; i > 0; i--) {
+          if ((hc->mx[j * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
+              (sn[i] == sn[i + 1]) &&
+              (outside_c[idx[j] + i] != INF) &&
               (fML[idx[j - 1] + l + 1] != INF)) {
             type  = vrna_get_ptype_md(S[j], S[i], md);
             e     = outside_c[idx[j] + i] +
@@ -533,7 +548,8 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
      *  decreasing values of l, up[i] can be updated by a
      *  single loop over all i
      */
-    if (hc->up_ml[l + 1]) {
+    if ((hc->up_ml[l + 1]) &&
+        (sn[l] == sn[l + 1])) {
       for (i = l - turn - 2; i > 0; i--) {
         if (aux_mb_up1[i] != INF) {
           e = aux_mb_up1[i] +
@@ -553,7 +569,8 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
     }
 
     for (i = l - turn - 2; i > 0; i--) {
-      if (hc->mx[(l + 1) * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+      if ((hc->mx[(l + 1) * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
+          (sn[i] == sn[i + 1])) {
         type  = vrna_get_ptype_md(S[l + 1], S[i], md);
         e     = outside_c[idx[l + 1] + i] +
                 P->MLclosing;
@@ -631,7 +648,8 @@ compute_f3(vrna_fold_compound_t *fc)
   min_j = (n > turn) ? n - turn : 1;
 
   f3[n] = INF;
-  if (hc->up_ext[n]) {
+  if ((hc->up_ext[n]) &&
+      (sn[n - 1] == sn[n])) {
     f3[n] = 0;
     if (sc) {
       if (sc->energy_up)
@@ -742,10 +760,11 @@ backtrack(vrna_fold_compound_t  *fc,
           vrna_bp_stack_t       *bp)
 {
   short         *S, *S1, s5, s3;
-  unsigned int  n, i, j, b, type, u1, u2, max_j, min_i, turn, prev_l, prev_k;
+  unsigned int  n, i, j, b, type, u1, u2, max_j, min_i, turn, prev_l, prev_k,
+                *sn;
   int           e, tmp, en, *f5, *idx, kl, ij, s, *outside_c,
                 *f3, *fML, **aux_mb, **aux_mb_up, dangle_model, *mb, *mb_up;
-  sect          bt_stack[MAXSECTORS];     /* stack of partial structures for backtracking */
+  sect          bt_stack[MAXSECTORS];
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
@@ -754,6 +773,7 @@ backtrack(vrna_fold_compound_t  *fc,
   n             = fc->length;
   S             = fc->sequence_encoding2;
   S1            = fc->sequence_encoding;
+  sn            = fc->strand_number;
   idx           = fc->jindx;
   P             = fc->params;
   md            = &(P->model_details);
@@ -781,7 +801,7 @@ backtrack_outside:
   e     = outside_c[kl];
   type  = vrna_get_ptype_md(S[k], S[l], md);
 
-  /* 1st case, (k,l) enclosed by a single pair (i,j) forming a multibranch loop */
+  /* 1st case, (k,l) enclosed by a single pair (i,j) forming an internal loop */
   if ((k > 1) &&
       (l < n) &&
       (hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) {
@@ -792,6 +812,9 @@ backtrack_outside:
       if (hc->up_int[i + 1] < u1)
         break;
 
+      if (sn[i] != sn[k])
+        break;
+
       max_j = l + MAXLOOP + 1 - u1;
       if (max_j > n)
         max_j = n;
@@ -799,6 +822,9 @@ backtrack_outside:
       u2 = 0;
       for (j = l + 1; j <= max_j; j++, u2++) {
         if (hc->up_int[l + 1] < u2)
+          break;
+
+        if (sn[l] != sn[j])
           break;
 
         if (hc->mx[j * n + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
@@ -820,7 +846,9 @@ backtrack_outside:
   /* 2nd case, (k,l) enclosed by a pair (i,j) forming a multibranch loop */
   if ((k > 1) &&
       (l < n) &&
-      (hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)) {
+      (hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
+      (sn[k - 1] == sn[k]) &&
+      (sn[l] == sn[l + 1])) {
     mb      = aux_mb[l];
     mb_up   = aux_mb_up[l];
     prev_k  = k;
@@ -846,6 +874,9 @@ backtrack_outside:
         continue;
 
       if (hc->up_ml[i + 1] < u1)
+        break;
+
+      if (sn[i + 1] != sn[k])
         break;
 
       en = tmp +
@@ -883,7 +914,8 @@ backtrack_outside:
 
     for (; i > 0; i--, u1++) {
       if (mb[i] != INF) {
-        if (hc->up_ml[i + 1] >= u1) {
+        if ((hc->up_ml[i + 1] >= u1) &&
+            (sn[i + 1] == sn[k])) {
           en = tmp +
                mb[i] +
                u1 * P->MLbase;
@@ -916,38 +948,41 @@ backtrack_outside:
         }
 
         /* (k,l) is somewhere in the middle of a multibranch loop */
-        en = tmp +
-             mb[i] +
-             fML[idx[k - 1] + i + 1];
+        if (sn[k - 1] == sn[k]) {
+          en = tmp +
+               mb[i] +
+               fML[idx[k - 1] + i + 1];
 
-        if (sc)
-          if (sc->f)
-            en += sc->f(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+          if (sc)
+            if (sc->f)
+              en += sc->f(i + 1, l, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
 
-        if (e == en) {
-          if (backtrack_mb(fc, i, &k, &l, aux_mx)) {
-            bt_stack[++s].i = prev_l + 1;
-            bt_stack[s].j   = l - 1;
-            bt_stack[s].ml  = 1;
+          if (e == en) {
+            if (backtrack_mb(fc, i, &k, &l, aux_mx)) {
+              bt_stack[++s].i = prev_l + 1;
+              bt_stack[s].j   = l - 1;
+              bt_stack[s].ml  = 1;
 
-            bt_stack[++s].i = i + 1;
-            bt_stack[s].j   = prev_k - 1;
-            bt_stack[s].ml  = 1;
+              bt_stack[++s].i = i + 1;
+              bt_stack[s].j   = prev_k - 1;
+              bt_stack[s].ml  = 1;
 
-            bp[++b].i = k;
-            bp[b].j   = l;
+              bp[++b].i = k;
+              bp[b].j   = l;
 
-            goto backtrack_outside;
-          } else {
-            vrna_message_warning("backtracking failed for pair (%d,%d) in mb[%d] 3", k, l, i);
+              goto backtrack_outside;
+            } else {
+              vrna_message_warning("backtracking failed for pair (%d,%d) in mb[%d] 3", k, l, i);
+            }
+
+            break;
           }
-
-          break;
         }
       }
 
       /* (k,l) is right-most pair of a multibranch loop */
-      if (mb_up[i] != INF) {
+      if ((mb_up[i] != INF) &&
+          (sn[k - 1] == sn[k])) {
         en = tmp +
              mb_up[i] +
              fML[idx[k - 1] + i + 1];
@@ -977,7 +1012,9 @@ backtrack_outside:
   }
 
   /* 3rd and last chance, (k,l) is not enclosed by any other pair */
-  if (hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+  if ((hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
+      ((k == 1) || (sn[k - 1] == sn[k])) &&
+      ((l == n) || (sn[l] == sn[l + 1]))) {
     switch (dangle_model) {
       case 2:
         s5  = (k > 1) ? S1[k - 1] : -1;
@@ -1055,7 +1092,7 @@ backtrack_mb(vrna_fold_compound_t *fc,
              zuker_aux_mx         *aux_mx)
 {
   short         *S, *S1;
-  unsigned int  j, n, turn, type;
+  unsigned int  j, n, turn, type, *sn;
   int           e, en, *outside_c, *idx, *fML, dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -1065,6 +1102,7 @@ backtrack_mb(vrna_fold_compound_t *fc,
   n             = fc->length;
   S             = fc->sequence_encoding2;
   S1            = fc->sequence_encoding;
+  sn            = fc->strand_number;
   idx           = fc->jindx;
   fML           = fc->matrices->fML;
   outside_c     = aux_mx->outside_c;
@@ -1079,7 +1117,8 @@ backtrack_mb(vrna_fold_compound_t *fc,
   for (j = *l + turn + 3; j <= n; j++) {
     if ((hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
         (outside_c[idx[j] + i] != INF) &&
-        (fML[idx[j - 1] + *l + 1] != INF)) {
+        (fML[idx[j - 1] + *l + 1] != INF) &&
+        (sn[j - 1] == sn[j])) {
       type  = vrna_get_ptype_md(S[j], S[i], md);
       en    = outside_c[idx[j] + i] +
               fML[idx[j - 1] + *l + 1] +
@@ -1120,7 +1159,7 @@ backtrack_mb_up(vrna_fold_compound_t  *fc,
                 zuker_aux_mx          *aux_mx)
 {
   short         *S, *S1;
-  unsigned int  j, u, n, type;
+  unsigned int  j, u, n, type, *sn;
   int           e, en, *outside_c, *idx, dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -1130,6 +1169,7 @@ backtrack_mb_up(vrna_fold_compound_t  *fc,
   n             = fc->length;
   S             = fc->sequence_encoding2;
   S1            = fc->sequence_encoding;
+  sn            = fc->strand_number;
   idx           = fc->jindx;
   P             = fc->params;
   md            = &(P->model_details);
@@ -1143,7 +1183,8 @@ backtrack_mb_up(vrna_fold_compound_t  *fc,
   /* find pairing partner j */
   for (j = *l + 1; j <= n; j++) {
     if ((hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
-        (outside_c[idx[j] + i] != INF)) {
+        (outside_c[idx[j] + i] != INF) &&
+        (sn[*l] == sn[j])) {
       type  = vrna_get_ptype_md(S[j], S[i], md);
       en    = outside_c[idx[j] + i] +
               u * P->MLbase +
