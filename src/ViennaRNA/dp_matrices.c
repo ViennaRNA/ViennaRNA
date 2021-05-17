@@ -18,6 +18,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include "ViennaRNA/datastructures/basic.h"
@@ -44,9 +45,8 @@
 #define ALLOC_AUX         512
 
 #define ALLOC_CIRC        1024
-#define ALLOC_HYBRID      2048
+#define ALLOC_MULTISTRAND 2048
 #define ALLOC_UNIQ        4096
-
 
 #define ALLOC_MFE_DEFAULT         (ALLOC_F5 | ALLOC_C | ALLOC_FML)
 #define ALLOC_MFE_LOCAL           (ALLOC_F3 | ALLOC_C | ALLOC_FML)
@@ -71,9 +71,9 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE unsigned int    get_mx_alloc_vector(vrna_md_t       *md_p,
-                                            vrna_mx_type_e  type,
-                                            unsigned int    options);
+PRIVATE unsigned int    get_mx_alloc_vector(vrna_fold_compound_t  *fc,
+                                            vrna_mx_type_e        type,
+                                            unsigned int          options);
 
 
 PRIVATE unsigned int    get_mx_mfe_alloc_vector_current(vrna_mx_mfe_t   *mx,
@@ -84,27 +84,12 @@ PRIVATE unsigned int    get_mx_pf_alloc_vector_current(vrna_mx_pf_t   *mx,
                                                        vrna_mx_type_e mx_type);
 
 
-PRIVATE void            mfe_matrices_alloc_default(vrna_mx_mfe_t  *vars,
-                                                   unsigned int   m,
-                                                   unsigned int   alloc_vector);
-
-
 PRIVATE void            mfe_matrices_free_default(vrna_mx_mfe_t *self);
-
-
-PRIVATE void            mfe_matrices_alloc_window(vrna_mx_mfe_t *vars,
-                                                  unsigned int  m,
-                                                  unsigned int  alloc_vector);
 
 
 PRIVATE void            mfe_matrices_free_window(vrna_mx_mfe_t  *self,
                                                  unsigned int   length,
                                                  unsigned int   window_size);
-
-
-PRIVATE void            mfe_matrices_alloc_2Dfold(vrna_mx_mfe_t *vars,
-                                                  unsigned int  m,
-                                                  unsigned int  alloc_vector);
 
 
 PRIVATE void            mfe_matrices_free_2Dfold(vrna_mx_mfe_t  *self,
@@ -143,10 +128,9 @@ PRIVATE void            pf_matrices_free_2Dfold(vrna_mx_pf_t  *self,
                                                 int           *jindx);
 
 
-PRIVATE vrna_mx_mfe_t *get_mfe_matrices_alloc(unsigned int    n,
-                                              unsigned int    m,
-                                              vrna_mx_type_e  type,
-                                              unsigned int    alloc_vector);
+PRIVATE vrna_mx_mfe_t *get_mfe_matrices_alloc(vrna_fold_compound_t  *fc,
+                                              vrna_mx_type_e        type,
+                                              unsigned int          alloc_vector);
 
 
 PRIVATE vrna_mx_pf_t *get_pf_matrices_alloc(unsigned int    n,
@@ -165,6 +149,28 @@ PRIVATE int
 add_mfe_matrices(vrna_fold_compound_t *vc,
                  vrna_mx_type_e       type,
                  unsigned int         alloc_vector);
+
+
+PRIVATE vrna_mx_mfe_t *
+init_mx_mfe_default(vrna_fold_compound_t *fc,
+                    unsigned int          m,
+                    unsigned int          alloc_vector);
+
+
+PRIVATE vrna_mx_mfe_t *
+init_mx_mfe_window(vrna_fold_compound_t *fc,
+                    unsigned int          m,
+                    unsigned int          alloc_vector);
+
+
+PRIVATE vrna_mx_mfe_t *
+init_mx_mfe_2Dfold(vrna_fold_compound_t *fc,
+                    unsigned int          m,
+                    unsigned int          alloc_vector);
+
+
+PRIVATE INLINE void
+nullify_mfe(vrna_mx_mfe_t *mx);
 
 
 /*
@@ -262,10 +268,8 @@ vrna_mx_mfe_add(vrna_fold_compound_t  *vc,
 
   if (vc->params) {
     options |= VRNA_OPTION_MFE;
-    if (vc->strands > 1)
-      options |= VRNA_OPTION_HYBRID;
 
-    mx_alloc_vector = get_mx_alloc_vector(&(vc->params->model_details),
+    mx_alloc_vector = get_mx_alloc_vector(vc,
                                           mx_type,
                                           options);
     vrna_mx_mfe_free(vc);
@@ -284,7 +288,7 @@ vrna_mx_pf_add(vrna_fold_compound_t *vc,
   unsigned int mx_alloc_vector;
 
   if (vc->exp_params) {
-    mx_alloc_vector = get_mx_alloc_vector(&(vc->exp_params->model_details),
+    mx_alloc_vector = get_mx_alloc_vector(vc,
                                           mx_type,
                                           options | VRNA_OPTION_PF);
     vrna_mx_pf_free(vc);
@@ -325,7 +329,7 @@ vrna_mx_prepare(vrna_fold_compound_t  *vc,
         realloc = 1;
       } else {
         mx_alloc_vector =
-          get_mx_alloc_vector(&(vc->params->model_details), mx_type, options);
+          get_mx_alloc_vector(vc, mx_type, options);
         mx_alloc_vector_current = get_mx_mfe_alloc_vector_current(vc->matrices, mx_type);
         if ((mx_alloc_vector & mx_alloc_vector_current) != mx_alloc_vector)
           realloc = 1;
@@ -355,7 +359,7 @@ vrna_mx_prepare(vrna_fold_compound_t  *vc,
           (vc->exp_matrices->length < vc->length)) {
         realloc = 1;
       } else {
-        mx_alloc_vector = get_mx_alloc_vector(&(vc->exp_params->model_details),
+        mx_alloc_vector = get_mx_alloc_vector(vc,
                                               mx_type,
                                               options);
         mx_alloc_vector_current = get_mx_pf_alloc_vector_current(vc->exp_matrices, mx_type);
@@ -400,8 +404,10 @@ get_mx_mfe_alloc_vector_current(vrna_mx_mfe_t   *mx,
         if (mx->f3)
           mx_alloc_vector |= ALLOC_F3;
 
-        if (mx->fc)
-          mx_alloc_vector |= ALLOC_HYBRID;
+        if ((mx->fc) ||
+            (mx->fms5) ||
+            (mx->fms3))
+          mx_alloc_vector |= ALLOC_MULTISTRAND;
 
         if (mx->c)
           mx_alloc_vector |= ALLOC_C;
@@ -517,14 +523,7 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
                  unsigned int         alloc_vector)
 {
   if (vc) {
-    switch (mx_type) {
-      case VRNA_MX_WINDOW:
-        vc->matrices = get_mfe_matrices_alloc(vc->length, vc->window_size, mx_type, alloc_vector);
-        break;
-      default:
-        vc->matrices = get_mfe_matrices_alloc(vc->length, vc->length, mx_type, alloc_vector);
-        break;
-    }
+    vc->matrices = get_mfe_matrices_alloc(vc, mx_type, alloc_vector);
 
     if (!vc->matrices)
       return 0;
@@ -565,12 +564,26 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
 
 
 PRIVATE vrna_mx_mfe_t *
-get_mfe_matrices_alloc(unsigned int   n,
-                       unsigned int   m,
-                       vrna_mx_type_e type,
-                       unsigned int   alloc_vector)
+get_mfe_matrices_alloc(vrna_fold_compound_t *fc,
+                       vrna_mx_type_e       type,
+                       unsigned int         alloc_vector)
 {
+  unsigned int  n, m;
   vrna_mx_mfe_t *vars;
+
+  vars  = NULL;
+  n     = fc->length;
+
+  switch (type) {
+    case VRNA_MX_WINDOW:
+      m = fc->window_size;
+      break;
+
+    default:
+      m = n;
+      break;
+  }
+
 
   if ((int)(n * m) >= (int)INT_MAX) {
     vrna_message_warning("get_mfe_matrices_alloc: "
@@ -579,21 +592,17 @@ get_mfe_matrices_alloc(unsigned int   n,
     return NULL;
   }
 
-  vars          = (vrna_mx_mfe_t *)vrna_alloc(sizeof(vrna_mx_mfe_t));
-  vars->length  = n;
-  vars->type    = type;
-
   switch (type) {
     case VRNA_MX_DEFAULT:
-      mfe_matrices_alloc_default(vars, m, alloc_vector);
+      vars = init_mx_mfe_default(fc, m, alloc_vector);
       break;
 
     case VRNA_MX_WINDOW:
-      mfe_matrices_alloc_window(vars, m, alloc_vector);
+      vars = init_mx_mfe_window(fc, m, alloc_vector);
       break;
 
     case VRNA_MX_2DFOLD:
-      mfe_matrices_alloc_2Dfold(vars, m, alloc_vector);
+      vars = init_mx_mfe_2Dfold(fc, m, alloc_vector);
       break;
 
     default:                /* do nothing */
@@ -602,6 +611,9 @@ get_mfe_matrices_alloc(unsigned int   n,
 
   return vars;
 }
+
+
+
 
 
 PRIVATE vrna_mx_pf_t *
@@ -655,11 +667,14 @@ get_pf_matrices_alloc(unsigned int    n,
 
 
 PRIVATE unsigned int
-get_mx_alloc_vector(vrna_md_t       *md_p,
-                    vrna_mx_type_e  mx_type,
-                    unsigned int    options)
+get_mx_alloc_vector(vrna_fold_compound_t  *fc,
+                    vrna_mx_type_e        mx_type,
+                    unsigned int          options)
 {
   unsigned int v;
+  vrna_md_t    *md_p;
+
+  md_p  = &(fc->params->model_details);
 
   v = ALLOC_NOTHING;
 
@@ -671,8 +686,8 @@ get_mx_alloc_vector(vrna_md_t       *md_p,
   if (options & VRNA_OPTION_PF)
     v |= (md_p->compute_bpp) ? ALLOC_PF_DEFAULT : ALLOC_PF_WO_PROBS;
 
-  if (options & VRNA_OPTION_HYBRID)
-    v |= ALLOC_HYBRID;
+  if ((fc->strands > 1) || (options & VRNA_OPTION_HYBRID))
+    v |= ALLOC_MULTISTRAND;
 
   /* matrices for circular folding ? */
   if (md_p->circ) {
@@ -689,88 +704,29 @@ get_mx_alloc_vector(vrna_md_t       *md_p,
 
 
 PRIVATE void
-mfe_matrices_alloc_default(vrna_mx_mfe_t  *vars,
-                           unsigned int   m,
-                           unsigned int   alloc_vector)
-{
-  unsigned int n, size, lin_size;
-
-  n         = vars->length;
-  size      = ((n + 1) * (m + 2)) / 2;
-  lin_size  = n + 2;
-
-  vars->f5  = NULL;
-  vars->f3  = NULL;
-  vars->fc  = NULL;
-  vars->c   = NULL;
-  vars->fML = NULL;
-  vars->fM1 = NULL;
-  vars->fM2 = NULL;
-  vars->ggg = NULL;
-
-  if (alloc_vector & ALLOC_F5)
-    vars->f5 = (int *)vrna_alloc(sizeof(int) * lin_size);
-
-  if (alloc_vector & ALLOC_F3)
-    vars->f3 = (int *)vrna_alloc(sizeof(int) * lin_size);
-
-  if (alloc_vector & ALLOC_HYBRID)
-    vars->fc = (int *)vrna_alloc(sizeof(int) * lin_size);
-
-  if (alloc_vector & ALLOC_C)
-    vars->c = (int *)vrna_alloc(sizeof(int) * size);
-
-  if (alloc_vector & ALLOC_FML)
-    vars->fML = (int *)vrna_alloc(sizeof(int) * size);
-
-  if (alloc_vector & ALLOC_UNIQ)
-    vars->fM1 = (int *)vrna_alloc(sizeof(int) * size);
-
-  if (alloc_vector & ALLOC_CIRC)
-    vars->fM2 = (int *)vrna_alloc(sizeof(int) * lin_size);
-
-  /* setting exterior loop energies for circular case to INF is always safe */
-  vars->FcH = vars->FcI = vars->FcM = vars->Fc = INF;
-}
-
-
-PRIVATE void
 mfe_matrices_free_default(vrna_mx_mfe_t *self)
 {
   free(self->f5);
   free(self->f3);
+
+  if (self->fms5)
+    for (unsigned int s = 0; s < self->strands; s++)
+      free(self->fms5[s]);
+
+  free(self->fms5);
+
+  if (self->fms3)
+    for (unsigned int s = 0; s < self->strands; s++)
+      free(self->fms3[s]);
+
+  free(self->fms3);
+
   free(self->fc);
   free(self->c);
   free(self->fML);
   free(self->fM1);
   free(self->fM2);
   free(self->ggg);
-}
-
-
-PRIVATE void
-mfe_matrices_alloc_window(vrna_mx_mfe_t *vars,
-                          unsigned int  m,
-                          unsigned int  alloc_vector)
-{
-  unsigned int n, lin_size;
-
-  n         = vars->length;
-  lin_size  = n + 2;
-
-  vars->f3_local  = NULL;
-  vars->c_local   = NULL;
-  vars->fML_local = NULL;
-  vars->ggg_local = NULL;
-
-  if (alloc_vector & ALLOC_F3)
-    vars->f3_local = (int *)vrna_alloc(sizeof(int) * lin_size);
-
-  if (alloc_vector & ALLOC_C)
-    vars->c_local = (int **)vrna_alloc(sizeof(int *) * lin_size);
-
-  if (alloc_vector & ALLOC_FML)
-    vars->fML_local = (int **)vrna_alloc(sizeof(int *) * lin_size);
 }
 
 
@@ -783,144 +739,6 @@ mfe_matrices_free_window(vrna_mx_mfe_t  *self,
   free(self->fML_local);
   free(self->ggg_local);
   free(self->f3_local);
-}
-
-
-PRIVATE void
-mfe_matrices_alloc_2Dfold(vrna_mx_mfe_t *vars,
-                          unsigned int  m,
-                          unsigned int  alloc_vector)
-{
-  unsigned int n, i, size, lin_size;
-
-  n         = vars->length;
-  size      = ((n + 1) * (m + 2)) / 2;
-  lin_size  = n + 2;
-
-  vars->E_F5      = NULL;
-  vars->l_min_F5  = NULL;
-  vars->l_max_F5  = NULL;
-  vars->k_min_F5  = NULL;
-  vars->k_max_F5  = NULL;
-  vars->E_F5_rem  = NULL;
-
-  vars->E_F3      = NULL;
-  vars->l_min_F3  = NULL;
-  vars->l_max_F3  = NULL;
-  vars->k_min_F3  = NULL;
-  vars->k_max_F3  = NULL;
-  vars->E_F3_rem  = NULL;
-
-  vars->E_C     = NULL;
-  vars->l_min_C = NULL;
-  vars->l_max_C = NULL;
-  vars->k_min_C = NULL;
-  vars->k_max_C = NULL;
-  vars->E_C_rem = NULL;
-
-  vars->E_M     = NULL;
-  vars->l_min_M = NULL;
-  vars->l_max_M = NULL;
-  vars->k_min_M = NULL;
-  vars->k_max_M = NULL;
-  vars->E_M_rem = NULL;
-
-  vars->E_M1      = NULL;
-  vars->l_min_M1  = NULL;
-  vars->l_max_M1  = NULL;
-  vars->k_min_M1  = NULL;
-  vars->k_max_M1  = NULL;
-  vars->E_M1_rem  = NULL;
-
-  vars->E_M2      = NULL;
-  vars->l_min_M2  = NULL;
-  vars->l_max_M2  = NULL;
-  vars->k_min_M2  = NULL;
-  vars->k_max_M2  = NULL;
-  vars->E_M2_rem  = NULL;
-
-  /* setting exterior loop energies for circular case to INF is always safe */
-  vars->E_Fc      = NULL;
-  vars->E_FcH     = NULL;
-  vars->E_FcI     = NULL;
-  vars->E_FcM     = NULL;
-  vars->E_Fc_rem  = INF;
-  vars->E_FcH_rem = INF;
-  vars->E_FcI_rem = INF;
-  vars->E_FcM_rem = INF;
-
-  if (alloc_vector & ALLOC_F5) {
-    vars->E_F5      = (int ***)vrna_alloc(sizeof(int **) * lin_size);
-    vars->l_min_F5  = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    vars->l_max_F5  = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    vars->k_min_F5  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    vars->k_max_F5  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    vars->E_F5_rem  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    for (i = 0; i <= n; i++)
-      vars->E_F5_rem[i] = INF;
-  }
-
-  if (alloc_vector & ALLOC_F3) {
-    vars->E_F3      = (int ***)vrna_alloc(sizeof(int **) * lin_size);
-    vars->l_min_F3  = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    vars->l_max_F3  = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    vars->k_min_F3  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    vars->k_max_F3  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    vars->E_F3_rem  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    for (i = 0; i <= n; i++)
-      vars->E_F3_rem[i] = INF;
-  }
-
-  if (alloc_vector & ALLOC_C) {
-    vars->E_C     = (int ***)vrna_alloc(sizeof(int **) * size);
-    vars->l_min_C = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->l_max_C = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->k_min_C = (int *)vrna_alloc(sizeof(int) * size);
-    vars->k_max_C = (int *)vrna_alloc(sizeof(int) * size);
-    vars->E_C_rem = (int *)vrna_alloc(sizeof(int) * size);
-    for (i = 0; i < size; i++)
-      vars->E_C_rem[i] = INF;
-  }
-
-  if (alloc_vector & ALLOC_FML) {
-    vars->E_M     = (int ***)vrna_alloc(sizeof(int **) * size);
-    vars->l_min_M = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->l_max_M = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->k_min_M = (int *)vrna_alloc(sizeof(int) * size);
-    vars->k_max_M = (int *)vrna_alloc(sizeof(int) * size);
-    vars->E_M_rem = (int *)vrna_alloc(sizeof(int) * size);
-    for (i = 0; i < size; i++)
-      vars->E_M_rem[i] = INF;
-  }
-
-  if (alloc_vector & ALLOC_UNIQ) {
-    vars->E_M1      = (int ***)vrna_alloc(sizeof(int **) * size);
-    vars->l_min_M1  = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->l_max_M1  = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->k_min_M1  = (int *)vrna_alloc(sizeof(int) * size);
-    vars->k_max_M1  = (int *)vrna_alloc(sizeof(int) * size);
-    vars->E_M1_rem  = (int *)vrna_alloc(sizeof(int) * size);
-    for (i = 0; i < size; i++)
-      vars->E_M1_rem[i] = INF;
-  }
-
-  if (alloc_vector & ALLOC_CIRC) {
-    vars->E_M2      = (int ***)vrna_alloc(sizeof(int **) * lin_size);
-    vars->l_min_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    vars->l_max_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    vars->k_min_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    vars->k_max_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    vars->E_M2_rem  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    for (i = 0; i <= n; i++)
-      vars->E_M2_rem[i] = INF;
-  }
-
-#ifdef COUNT_STATES
-  vars->N_C   = (unsigned long ***)vrna_alloc(sizeof(unsigned long **) * size);
-  vars->N_F5  = (unsigned long ***)vrna_alloc(sizeof(unsigned long **) * lin_size);
-  vars->N_M   = (unsigned long ***)vrna_alloc(sizeof(unsigned long **) * size);
-  vars->N_M1  = (unsigned long ***)vrna_alloc(sizeof(unsigned long **) * size);
-#endif
 }
 
 
@@ -1734,4 +1552,317 @@ pf_matrices_free_2Dfold(vrna_mx_pf_t  *self,
   free(self->Q_M_rem);
   free(self->Q_M1_rem);
   free(self->Q_M2_rem);
+}
+
+
+PRIVATE vrna_mx_mfe_t *
+init_mx_mfe_default(vrna_fold_compound_t *fc,
+                    unsigned int          m,
+                    unsigned int          alloc_vector)
+{
+  unsigned int  n, size, lin_size, s, strands;
+  vrna_mx_mfe_t *mx;
+  vrna_mx_mfe_t init = {
+    .type = VRNA_MX_DEFAULT
+  };
+
+  mx = vrna_alloc(sizeof(vrna_mx_mfe_t));
+
+  if (mx) {
+    memcpy(mx, &init, sizeof(vrna_mx_mfe_t));
+    nullify_mfe(mx);
+
+    n           = fc->length;
+    strands     = fc->strands;
+    size        = ((n + 1) * (m + 2)) / 2;
+    lin_size    = n + 2;
+    mx->length  = n;
+    mx->strands = strands;
+
+    if (alloc_vector & ALLOC_F5)
+      mx->f5 = (int *)vrna_alloc(sizeof(int) * lin_size);
+
+    if (alloc_vector & ALLOC_F3)
+      mx->f3 = (int *)vrna_alloc(sizeof(int) * lin_size);
+
+    if (alloc_vector & ALLOC_MULTISTRAND) {
+      mx->fc    = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->fms5  = (int **)vrna_alloc(sizeof(int *) * strands);
+      mx->fms3  = (int **)vrna_alloc(sizeof(int *) * strands);
+
+      for (s = 0; s < strands; s++) {
+        mx->fms5[s] = (int *)vrna_alloc(sizeof(int) * (n + 1));
+        mx->fms3[s] = (int *)vrna_alloc(sizeof(int) * (n + 1));
+      }
+    }
+
+    if (alloc_vector & ALLOC_C)
+      mx->c = (int *)vrna_alloc(sizeof(int) * size);
+
+    if (alloc_vector & ALLOC_FML)
+      mx->fML = (int *)vrna_alloc(sizeof(int) * size);
+
+    if (alloc_vector & ALLOC_UNIQ)
+      mx->fM1 = (int *)vrna_alloc(sizeof(int) * size);
+
+    if (alloc_vector & ALLOC_CIRC)
+      mx->fM2 = (int *)vrna_alloc(sizeof(int) * lin_size);
+  }
+
+  return mx;
+}
+
+
+PRIVATE vrna_mx_mfe_t *
+init_mx_mfe_window(vrna_fold_compound_t *fc,
+                    unsigned int          m,
+                    unsigned int          alloc_vector)
+{
+  unsigned int  n, size, lin_size;
+  vrna_mx_mfe_t *mx;
+  vrna_mx_mfe_t init = {
+    .type = VRNA_MX_WINDOW
+  };
+
+  mx = vrna_alloc(sizeof(vrna_mx_mfe_t));
+
+  if (mx) {
+    memcpy(mx, &init, sizeof(vrna_mx_mfe_t));
+    nullify_mfe(mx);
+
+    n           = fc->length;
+    lin_size    = n + 2;
+    mx->length  = n;
+    mx->strands = fc->strands;
+
+    if (alloc_vector & ALLOC_F3)
+      mx->f3_local = (int *)vrna_alloc(sizeof(int) * lin_size);
+
+    if (alloc_vector & ALLOC_C)
+      mx->c_local = (int **)vrna_alloc(sizeof(int *) * lin_size);
+
+    if (alloc_vector & ALLOC_FML)
+      mx->fML_local = (int **)vrna_alloc(sizeof(int *) * lin_size);
+  }
+
+  return mx;
+}
+
+
+PRIVATE vrna_mx_mfe_t *
+init_mx_mfe_2Dfold(vrna_fold_compound_t *fc,
+                    unsigned int          m,
+                    unsigned int          alloc_vector)
+{
+  unsigned int  n, i, size, lin_size;
+  vrna_mx_mfe_t *mx;
+  vrna_mx_mfe_t init = {
+    .type = VRNA_MX_2DFOLD
+  };
+
+  mx = vrna_alloc(sizeof(vrna_mx_mfe_t));
+
+  if (mx) {
+    memcpy(mx, &init, sizeof(vrna_mx_mfe_t));
+    nullify_mfe(mx);
+
+    n           = fc->length;
+    size        = ((n + 1) * (m + 2)) / 2;
+    lin_size    = n + 2;
+    mx->length  = n;
+    mx->strands = fc->strands;
+
+    if (alloc_vector & ALLOC_F5) {
+      mx->E_F5      = (int ***)vrna_alloc(sizeof(int **) * lin_size);
+      mx->l_min_F5  = (int **)vrna_alloc(sizeof(int *) * lin_size);
+      mx->l_max_F5  = (int **)vrna_alloc(sizeof(int *) * lin_size);
+      mx->k_min_F5  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->k_max_F5  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->E_F5_rem  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      for (i = 0; i <= n; i++)
+        mx->E_F5_rem[i] = INF;
+    }
+
+    if (alloc_vector & ALLOC_F3) {
+      mx->E_F3      = (int ***)vrna_alloc(sizeof(int **) * lin_size);
+      mx->l_min_F3  = (int **)vrna_alloc(sizeof(int *) * lin_size);
+      mx->l_max_F3  = (int **)vrna_alloc(sizeof(int *) * lin_size);
+      mx->k_min_F3  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->k_max_F3  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->E_F3_rem  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      for (i = 0; i <= n; i++)
+        mx->E_F3_rem[i] = INF;
+    }
+
+    if (alloc_vector & ALLOC_C) {
+      mx->E_C     = (int ***)vrna_alloc(sizeof(int **) * size);
+      mx->l_min_C = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->l_max_C = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->k_min_C = (int *)vrna_alloc(sizeof(int) * size);
+      mx->k_max_C = (int *)vrna_alloc(sizeof(int) * size);
+      mx->E_C_rem = (int *)vrna_alloc(sizeof(int) * size);
+      for (i = 0; i < size; i++)
+        mx->E_C_rem[i] = INF;
+    }
+
+    if (alloc_vector & ALLOC_FML) {
+      mx->E_M     = (int ***)vrna_alloc(sizeof(int **) * size);
+      mx->l_min_M = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->l_max_M = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->k_min_M = (int *)vrna_alloc(sizeof(int) * size);
+      mx->k_max_M = (int *)vrna_alloc(sizeof(int) * size);
+      mx->E_M_rem = (int *)vrna_alloc(sizeof(int) * size);
+      for (i = 0; i < size; i++)
+        mx->E_M_rem[i] = INF;
+    }
+
+    if (alloc_vector & ALLOC_UNIQ) {
+      mx->E_M1      = (int ***)vrna_alloc(sizeof(int **) * size);
+      mx->l_min_M1  = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->l_max_M1  = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->k_min_M1  = (int *)vrna_alloc(sizeof(int) * size);
+      mx->k_max_M1  = (int *)vrna_alloc(sizeof(int) * size);
+      mx->E_M1_rem  = (int *)vrna_alloc(sizeof(int) * size);
+      for (i = 0; i < size; i++)
+        mx->E_M1_rem[i] = INF;
+    }
+
+    if (alloc_vector & ALLOC_CIRC) {
+      mx->E_M2      = (int ***)vrna_alloc(sizeof(int **) * lin_size);
+      mx->l_min_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
+      mx->l_max_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
+      mx->k_min_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->k_max_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->E_M2_rem  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      for (i = 0; i <= n; i++)
+        mx->E_M2_rem[i] = INF;
+    }
+
+#ifdef COUNT_STATES
+    mx->N_C   = (unsigned long ***)vrna_alloc(sizeof(unsigned long **) * size);
+    mx->N_F5  = (unsigned long ***)vrna_alloc(sizeof(unsigned long **) * lin_size);
+    mx->N_M   = (unsigned long ***)vrna_alloc(sizeof(unsigned long **) * size);
+    mx->N_M1  = (unsigned long ***)vrna_alloc(sizeof(unsigned long **) * size);
+#endif
+  }
+
+  return mx;
+}
+
+
+PRIVATE INLINE void
+nullify_mfe(vrna_mx_mfe_t *mx)
+{
+  if (mx) {
+
+    mx->length  = 0;
+    mx->strands = 0;
+
+    switch (mx->type) {
+      case VRNA_MX_DEFAULT:
+        mx->c     = NULL;
+        mx->f5    = NULL;
+        mx->f3    = NULL;
+        mx->fms5  = NULL;
+        mx->fms3  = NULL;
+        mx->fc    = NULL;
+        mx->fML   = NULL;
+        mx->fM1   = NULL;
+        mx->fM2   = NULL;
+        mx->ggg   = NULL;
+        mx->Fc    = INF;
+        mx->FcH   = INF;
+        mx->FcI   = INF;
+        mx->FcM   = INF;
+        break;
+
+      case VRNA_MX_WINDOW:
+        mx->c_local   = NULL;
+        mx->f3_local  = NULL;
+        mx->fML_local = NULL;
+        mx->ggg_local = NULL;
+        break;
+
+      case VRNA_MX_2DFOLD:
+        mx->E_F5      = NULL;
+        mx->l_min_F5  = NULL;
+        mx->l_max_F5  = NULL;
+        mx->k_min_F5  = NULL;
+        mx->k_max_F5  = NULL;
+        mx->E_F5_rem  = NULL;
+
+        mx->E_F3      = NULL;
+        mx->l_min_F3  = NULL;
+        mx->l_max_F3  = NULL;
+        mx->k_min_F3  = NULL;
+        mx->k_max_F3  = NULL;
+        mx->E_F3_rem  = NULL;
+
+        mx->E_C     = NULL;
+        mx->l_min_C = NULL;
+        mx->l_max_C = NULL;
+        mx->k_min_C = NULL;
+        mx->k_max_C = NULL;
+        mx->E_C_rem = NULL;
+
+        mx->E_M     = NULL;
+        mx->l_min_M = NULL;
+        mx->l_max_M = NULL;
+        mx->k_min_M = NULL;
+        mx->k_max_M = NULL;
+        mx->E_M_rem = NULL;
+
+        mx->E_M1      = NULL;
+        mx->l_min_M1  = NULL;
+        mx->l_max_M1  = NULL;
+        mx->k_min_M1  = NULL;
+        mx->k_max_M1  = NULL;
+        mx->E_M1_rem  = NULL;
+
+        mx->E_M2      = NULL;
+        mx->l_min_M2  = NULL;
+        mx->l_max_M2  = NULL;
+        mx->k_min_M2  = NULL;
+        mx->k_max_M2  = NULL;
+        mx->E_M2_rem  = NULL;
+
+        mx->E_Fc      = NULL;
+        mx->l_min_Fc  = NULL;
+        mx->l_max_Fc  = NULL;
+        mx->k_min_Fc  = 0;
+        mx->k_max_Fc  = 0;
+
+        mx->E_FcH     = NULL;
+        mx->l_min_FcH = NULL;
+        mx->l_max_FcH = NULL;
+        mx->k_min_FcH = 0;
+        mx->k_max_FcH = 0;
+
+        mx->E_FcI     = NULL;
+        mx->l_min_FcI = NULL;
+        mx->l_max_FcI = NULL;
+        mx->k_min_FcI = 0;
+        mx->k_max_FcI = 0;
+
+        mx->E_FcM     = NULL;
+        mx->l_min_FcM = NULL;
+        mx->l_max_FcM = NULL;
+        mx->k_min_FcM = 0;
+        mx->k_max_FcM = 0;
+
+        mx->E_Fc_rem  = INF;
+        mx->E_FcH_rem = INF;
+        mx->E_FcI_rem = INF;
+        mx->E_FcM_rem = INF;
+
+#ifdef COUNT_STATES
+        mx->N_F5  = NULL;
+        mx->N_C   = NULL;
+        mx->N_M   = NULL;
+        mx->N_M1  = NULL;
+#endif
+
+        break;
+    }
+  }
 }

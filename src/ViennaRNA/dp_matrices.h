@@ -47,8 +47,9 @@ struct vrna_mx_mfe_s {
   /** @name Common fields for MFE matrices
    *  @{
    */
-  vrna_mx_type_e  type;
+  const vrna_mx_type_e  type;
   unsigned int    length;  /**<  @brief  Length of the sequence, therefore an indicator of the size of the DP matrices */
+  unsigned int    strands;
   /**
    *  @}
    */
@@ -66,6 +67,8 @@ struct vrna_mx_mfe_s {
   int *c;           /**<  @brief  Energy array, given that i-j pair */
   int *f5;          /**<  @brief  Energy of 5' end */
   int *f3;          /**<  @brief  Energy of 3' end */
+  int **fms5;
+  int **fms3;
   int *fc;          /**<  @brief  Energy from i to cutpoint (and vice versa if i>cut) */
   int *fML;         /**<  @brief  Multi-loop auxiliary energy array */
   int *fM1;         /**<  @brief  Second ML array, only for unique multibrnach loop decomposition */

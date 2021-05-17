@@ -57,8 +57,6 @@ struct aux_arrays {
 #include "ViennaRNA/loops/external_hc.inc"
 
 struct ms_helpers {
-  int                       **fms5;
-  int                       **fms3;
   vrna_callback_hc_evaluate *evaluate;
   struct hc_ext_def_dat       hc_dat_local;
 };
@@ -1651,14 +1649,6 @@ get_ms_helpers(vrna_fold_compound_t *fc)
 {
   struct ms_helpers *dat = (struct ms_helpers *)vrna_alloc(sizeof(struct ms_helpers));
 
-  dat->fms5 = (int **)vrna_alloc(sizeof(int *) * fc->strands);
-  dat->fms3 = (int **)vrna_alloc(sizeof(int *) * fc->strands);
-
-  for (size_t s = 0; s < fc->strands; s++) {
-    dat->fms5[s] = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
-    dat->fms3[s] = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
-  }
-
   dat->evaluate = prepare_hc_ext_def(fc, &(dat->hc_dat_local));
 
   return dat;
@@ -1669,15 +1659,7 @@ PRIVATE void
 free_ms_helpers(struct ms_helpers *ms_dat,
                 size_t            strands)
 {
-  if (ms_dat) {
-    for (size_t s = 0; s < strands; s++) {
-      free(ms_dat->fms5[s]);
-      free(ms_dat->fms3[s]);
-    }
-    free(ms_dat->fms5);
-    free(ms_dat->fms3);
-    free(ms_dat);
-  }
+  free(ms_dat);
 }
 
 
@@ -1699,7 +1681,7 @@ update_fms5_arrays(vrna_fold_compound_t       *fc,
   S2            = fc->sequence_encoding2;
   idx           = fc->jindx;
   c             = fc->matrices->c;
-  fms5          = ms_dat->fms5;
+  fms5          = fc->matrices->fms5;
   sn            = fc->strand_number;
   se            = fc->strand_end;
   params        = fc->params;
@@ -1794,7 +1776,7 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
   S2            = fc->sequence_encoding2;
   idx           = fc->jindx;
   c             = fc->matrices->c;
-  fms3          = ms_dat->fms3;
+  fms3          = fc->matrices->fms3;
   sn            = fc->strand_number;
   ss            = fc->strand_start;
   params        = fc->params;
@@ -1896,8 +1878,8 @@ pair_multi_strand(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   sn            = fc->strand_number;
   ends          = fc->strand_end;
-  fms5          = ms_dat->fms5;
-  fms3          = ms_dat->fms3;
+  fms5          = fc->matrices->fms5;
+  fms3          = fc->matrices->fms3;
   idx           = fc->jindx;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
@@ -2018,8 +2000,8 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
     sn            = fc->strand_number;
     idx           = fc->jindx;
     ends          = fc->strand_end;
-    fms5          = ms_dat->fms5;
-    fms3          = ms_dat->fms3;
+    fms5          = fc->matrices->fms5;
+    fms3          = fc->matrices->fms3;
     evaluate      = ms_dat->evaluate;
     hc_dat_local  = &(ms_dat->hc_dat_local);
 
@@ -2143,7 +2125,7 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   c       = fc->matrices->c;
-  fms5    = ms_dat->fms5;
+  fms5    = fc->matrices->fms5;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
 
@@ -2240,7 +2222,7 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   c       = fc->matrices->c;
-  fms3    = ms_dat->fms3;
+  fms3    = fc->matrices->fms3;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
 
@@ -2438,7 +2420,7 @@ backtrack(vrna_fold_compound_t  *fc,
 
             continue;
           } else {
-            vrna_message_warning("backtracking failed in fsm5[%d][%d] = %d (%d:%d)\n", strand, i, ms_dat->fms5[strand][i], fc->strand_start[strand], fc->strand_end[strand]);
+            vrna_message_warning("backtracking failed in fsm5[%d][%d] (%d:%d)\n", strand, i, fc->strand_start[strand], fc->strand_end[strand]);
             ret = 0;
             goto backtrack_exit;
           }
