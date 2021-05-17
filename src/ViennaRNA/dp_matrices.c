@@ -71,72 +71,55 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE unsigned int    get_mx_alloc_vector(vrna_fold_compound_t  *fc,
-                                            vrna_mx_type_e        type,
-                                            unsigned int          options);
+PRIVATE unsigned int
+get_mx_alloc_vector(vrna_fold_compound_t  *fc,
+                    vrna_mx_type_e        type,
+                    unsigned int          options);
 
 
-PRIVATE unsigned int    get_mx_mfe_alloc_vector_current(vrna_mx_mfe_t   *mx,
-                                                        vrna_mx_type_e  mx_type);
+PRIVATE unsigned int
+get_mx_mfe_alloc_vector_current(vrna_mx_mfe_t   *mx,
+                                vrna_mx_type_e  mx_type);
 
 
-PRIVATE unsigned int    get_mx_pf_alloc_vector_current(vrna_mx_pf_t   *mx,
-                                                       vrna_mx_type_e mx_type);
+PRIVATE unsigned int
+get_mx_pf_alloc_vector_current(vrna_mx_pf_t   *mx,
+                               vrna_mx_type_e mx_type);
 
 
-PRIVATE void            mfe_matrices_free_default(vrna_mx_mfe_t *self);
+PRIVATE void
+mfe_matrices_free_default(vrna_mx_mfe_t *self);
 
 
-PRIVATE void            mfe_matrices_free_window(vrna_mx_mfe_t  *self,
-                                                 unsigned int   length,
-                                                 unsigned int   window_size);
+PRIVATE void
+mfe_matrices_free_window(vrna_mx_mfe_t  *self,
+                         unsigned int   length,
+                         unsigned int   window_size);
 
 
-PRIVATE void            mfe_matrices_free_2Dfold(vrna_mx_mfe_t  *self,
-                                                 unsigned int   length,
-                                                 int            min_loop_size,
-                                                 int            *indx);
+PRIVATE void
+mfe_matrices_free_2Dfold(vrna_mx_mfe_t  *self,
+                         unsigned int   length,
+                         int            min_loop_size,
+                         int            *indx);
 
 
-PRIVATE void            pf_matrices_alloc_default(vrna_mx_pf_t  *vars,
-                                                  unsigned int  m,
-                                                  unsigned int  alloc_vector);
+PRIVATE void
+pf_matrices_free_default(vrna_mx_pf_t *self);
 
 
-PRIVATE void            pf_matrices_free_default(vrna_mx_pf_t *self);
+PRIVATE void
+pf_matrices_free_window(vrna_mx_pf_t  *self,
+                        unsigned int  length,
+                        unsigned int  window_size);
 
 
-PRIVATE void            pf_matrices_alloc_window(vrna_mx_pf_t *vars,
-                                                 unsigned int m,
-                                                 unsigned int alloc_vector);
-
-
-PRIVATE void            pf_matrices_free_window(vrna_mx_pf_t  *self,
-                                                unsigned int  length,
-                                                unsigned int  window_size);
-
-
-PRIVATE void            pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
-                                                 unsigned int m,
-                                                 unsigned int alloc_vector);
-
-
-PRIVATE void            pf_matrices_free_2Dfold(vrna_mx_pf_t  *self,
-                                                unsigned int  length,
-                                                int           turn,
-                                                int           *indx,
-                                                int           *jindx);
-
-
-PRIVATE vrna_mx_mfe_t *get_mfe_matrices_alloc(vrna_fold_compound_t  *fc,
-                                              vrna_mx_type_e        type,
-                                              unsigned int          alloc_vector);
-
-
-PRIVATE vrna_mx_pf_t *get_pf_matrices_alloc(unsigned int    n,
-                                            unsigned int    m,
-                                            vrna_mx_type_e  type,
-                                            unsigned int    alloc_vector);
+PRIVATE void
+pf_matrices_free_2Dfold(vrna_mx_pf_t  *self,
+                        unsigned int  length,
+                        int           turn,
+                        int           *indx,
+                        int           *jindx);
 
 
 PRIVATE int
@@ -152,25 +135,41 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
 
 
 PRIVATE vrna_mx_mfe_t *
-init_mx_mfe_default(vrna_fold_compound_t *fc,
-                    unsigned int          m,
+init_mx_mfe_default(vrna_fold_compound_t  *fc,
                     unsigned int          alloc_vector);
 
 
 PRIVATE vrna_mx_mfe_t *
 init_mx_mfe_window(vrna_fold_compound_t *fc,
-                    unsigned int          m,
-                    unsigned int          alloc_vector);
+                   unsigned int         alloc_vector);
 
 
 PRIVATE vrna_mx_mfe_t *
 init_mx_mfe_2Dfold(vrna_fold_compound_t *fc,
-                    unsigned int          m,
-                    unsigned int          alloc_vector);
+                   unsigned int         alloc_vector);
 
 
 PRIVATE INLINE void
 nullify_mfe(vrna_mx_mfe_t *mx);
+
+
+PRIVATE vrna_mx_pf_t *
+init_mx_pf_default(vrna_fold_compound_t *fc,
+                   unsigned int         alloc_vector);
+
+
+PRIVATE vrna_mx_pf_t *
+init_mx_pf_window(vrna_fold_compound_t  *fc,
+                  unsigned int          alloc_vector);
+
+
+PRIVATE vrna_mx_pf_t *
+init_mx_pf_2Dfold(vrna_fold_compound_t  *fc,
+                  unsigned int          alloc_vector);
+
+
+PRIVATE INLINE void
+nullify_pf(vrna_mx_pf_t *mx);
 
 
 /*
@@ -194,7 +193,10 @@ vrna_mx_mfe_free(vrna_fold_compound_t *vc)
           break;
 
         case VRNA_MX_2DFOLD:
-          mfe_matrices_free_2Dfold(self, vc->length, vc->params->model_details.min_loop_size, vc->iindx);
+          mfe_matrices_free_2Dfold(self,
+                                   vc->length,
+                                   vc->params->model_details.min_loop_size,
+                                   vc->iindx);
           break;
 
         default:                /* do nothing */
@@ -223,7 +225,11 @@ vrna_mx_pf_free(vrna_fold_compound_t *vc)
           break;
 
         case VRNA_MX_2DFOLD:
-          pf_matrices_free_2Dfold(self, vc->length, vc->exp_params->model_details.min_loop_size, vc->iindx, vc->jindx);
+          pf_matrices_free_2Dfold(self,
+                                  vc->length,
+                                  vc->exp_params->model_details.min_loop_size,
+                                  vc->iindx,
+                                  vc->jindx);
           break;
 
         default:                /* do nothing */
@@ -480,18 +486,20 @@ add_pf_matrices(vrna_fold_compound_t  *vc,
 {
   if (vc) {
     switch (mx_type) {
+      case VRNA_MX_DEFAULT:
+        vc->exp_matrices = init_mx_pf_default(vc, alloc_vector);
+        break;
+
       case VRNA_MX_WINDOW:
-        vc->exp_matrices = get_pf_matrices_alloc(vc->length,
-                                                 vc->window_size,
-                                                 mx_type,
-                                                 alloc_vector);
+        vc->exp_matrices = init_mx_pf_window(vc, alloc_vector);
         break;
-      default:
-        vc->exp_matrices = get_pf_matrices_alloc(vc->length,
-                                                 vc->length,
-                                                 mx_type,
-                                                 alloc_vector);
+
+      case VRNA_MX_2DFOLD:
+        vc->exp_matrices = init_mx_pf_2Dfold(vc, alloc_vector);
         break;
+
+      default:                /* do nothing */
+        return 0;
     }
 
     if (!vc->exp_matrices)
@@ -523,7 +531,22 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
                  unsigned int         alloc_vector)
 {
   if (vc) {
-    vc->matrices = get_mfe_matrices_alloc(vc, mx_type, alloc_vector);
+    switch (mx_type) {
+      case VRNA_MX_DEFAULT:
+        vc->matrices = init_mx_mfe_default(vc, alloc_vector);
+        break;
+
+      case VRNA_MX_WINDOW:
+        vc->matrices = init_mx_mfe_window(vc, alloc_vector);
+        break;
+
+      case VRNA_MX_2DFOLD:
+        vc->matrices = init_mx_mfe_2Dfold(vc, alloc_vector);
+        break;
+
+      default:
+        return 0;
+    }
 
     if (!vc->matrices)
       return 0;
@@ -563,118 +586,15 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
 }
 
 
-PRIVATE vrna_mx_mfe_t *
-get_mfe_matrices_alloc(vrna_fold_compound_t *fc,
-                       vrna_mx_type_e       type,
-                       unsigned int         alloc_vector)
-{
-  unsigned int  n, m;
-  vrna_mx_mfe_t *vars;
-
-  vars  = NULL;
-  n     = fc->length;
-
-  switch (type) {
-    case VRNA_MX_WINDOW:
-      m = fc->window_size;
-      break;
-
-    default:
-      m = n;
-      break;
-  }
-
-
-  if ((int)(n * m) >= (int)INT_MAX) {
-    vrna_message_warning("get_mfe_matrices_alloc: "
-                         "sequence length %d exceeds addressable range",
-                         n);
-    return NULL;
-  }
-
-  switch (type) {
-    case VRNA_MX_DEFAULT:
-      vars = init_mx_mfe_default(fc, m, alloc_vector);
-      break;
-
-    case VRNA_MX_WINDOW:
-      vars = init_mx_mfe_window(fc, m, alloc_vector);
-      break;
-
-    case VRNA_MX_2DFOLD:
-      vars = init_mx_mfe_2Dfold(fc, m, alloc_vector);
-      break;
-
-    default:                /* do nothing */
-      break;
-  }
-
-  return vars;
-}
-
-
-
-
-
-PRIVATE vrna_mx_pf_t *
-get_pf_matrices_alloc(unsigned int    n,
-                      unsigned int    m,
-                      vrna_mx_type_e  type,
-                      unsigned int    alloc_vector)
-{
-  unsigned int  lin_size;
-  vrna_mx_pf_t  *vars;
-
-  if ((int)(n * m) >= (int)INT_MAX) {
-    vrna_message_warning("get_pf_matrices_alloc: "
-                         "sequence length %d exceeds addressable range",
-                         n);
-    return NULL;
-  }
-
-  lin_size      = n + 2;
-  vars          = (vrna_mx_pf_t *)vrna_alloc(sizeof(vrna_mx_pf_t));
-  vars->length  = n;
-  vars->type    = type;
-
-
-  switch (type) {
-    case VRNA_MX_DEFAULT:
-      pf_matrices_alloc_default(vars, n, alloc_vector);
-      break;
-
-    case VRNA_MX_WINDOW:
-      pf_matrices_alloc_window(vars, m, alloc_vector);
-      break;
-
-    case VRNA_MX_2DFOLD:
-      pf_matrices_alloc_2Dfold(vars, n, alloc_vector);
-      break;
-
-    default:                /* do nothing */
-      break;
-  }
-
-  /*
-   *  always alloc the helper arrays for unpaired nucleotides in multi-
-   *  branch loops and scaling
-   */
-  vars->scale     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-  vars->expMLbase = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-
-  return vars;
-}
-
-
 PRIVATE unsigned int
 get_mx_alloc_vector(vrna_fold_compound_t  *fc,
                     vrna_mx_type_e        mx_type,
                     unsigned int          options)
 {
-  unsigned int v;
-  vrna_md_t    *md_p;
+  unsigned int  v;
+  vrna_md_t     *md_p;
 
-  md_p  = &(fc->params->model_details);
+  md_p = &(fc->params->model_details);
 
   v = ALLOC_NOTHING;
 
@@ -1098,51 +1018,6 @@ mfe_matrices_free_2Dfold(vrna_mx_mfe_t  *self,
 
 
 PRIVATE void
-pf_matrices_alloc_default(vrna_mx_pf_t  *vars,
-                          unsigned int  m,
-                          unsigned int  alloc_vector)
-{
-  unsigned int n, size, lin_size;
-
-  n         = vars->length;
-  size      = ((n + 1) * (n + 2)) / 2;
-  lin_size  = n + 2;
-
-  vars->q     = NULL;
-  vars->qb    = NULL;
-  vars->qm    = NULL;
-  vars->qm1   = NULL;
-  vars->qm2   = NULL;
-  vars->probs = NULL;
-  vars->q1k   = NULL;
-  vars->qln   = NULL;
-
-  if (alloc_vector & ALLOC_F)
-    vars->q = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-
-  if (alloc_vector & ALLOC_C)
-    vars->qb = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-
-  if (alloc_vector & ALLOC_FML)
-    vars->qm = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-
-  if (alloc_vector & ALLOC_UNIQ)
-    vars->qm1 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-
-  if (alloc_vector & ALLOC_CIRC)
-    vars->qm2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-
-  if (alloc_vector & ALLOC_PROBS)
-    vars->probs = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-
-  if (alloc_vector & ALLOC_AUX) {
-    vars->q1k = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-    vars->qln = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-  }
-}
-
-
-PRIVATE void
 pf_matrices_free_default(vrna_mx_pf_t *self)
 {
   free(self->q);
@@ -1154,46 +1029,6 @@ pf_matrices_free_default(vrna_mx_pf_t *self)
   free(self->G);
   free(self->q1k);
   free(self->qln);
-}
-
-
-PRIVATE void
-pf_matrices_alloc_window(vrna_mx_pf_t *vars,
-                         unsigned int m,
-                         unsigned int alloc_vector)
-{
-  unsigned int n, lin_size;
-
-  n         = vars->length;
-  lin_size  = n + 2;
-
-  vars->q_local   = NULL;
-  vars->qb_local  = NULL;
-  vars->qm_local  = NULL;
-  vars->qm2_local = NULL;
-  vars->pR        = NULL;
-  vars->QI5       = NULL;
-  vars->q2l       = NULL;
-  vars->qmb       = NULL;
-  vars->G_local   = NULL;
-
-  if (alloc_vector & ALLOC_F)
-    vars->q_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
-
-  if (alloc_vector & ALLOC_C)
-    vars->qb_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
-
-  if (alloc_vector & ALLOC_FML)
-    vars->qm_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
-
-  vars->pR = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
-
-  if (alloc_vector & ALLOC_PROBS) {
-    vars->QI5       = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
-    vars->qmb       = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
-    vars->qm2_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
-    vars->q2l       = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
-  }
 }
 
 
@@ -1211,108 +1046,6 @@ pf_matrices_free_window(vrna_mx_pf_t  *self,
   free(self->q2l);
   free(self->qmb);
   free(self->G_local);
-}
-
-
-PRIVATE void
-pf_matrices_alloc_2Dfold(vrna_mx_pf_t *vars,
-                         unsigned int m,
-                         unsigned int alloc_vector)
-{
-  unsigned int n, size, lin_size;
-
-  n         = vars->length;
-  size      = ((n + 1) * (n + 2)) / 2;
-  lin_size  = n + 2;
-
-  vars->Q       = NULL;
-  vars->l_min_Q = NULL;
-  vars->l_max_Q = NULL;
-  vars->k_min_Q = NULL;
-  vars->k_max_Q = NULL;
-  vars->Q_rem   = NULL;
-
-  vars->Q_B       = NULL;
-  vars->l_min_Q_B = NULL;
-  vars->l_max_Q_B = NULL;
-  vars->k_min_Q_B = NULL;
-  vars->k_max_Q_B = NULL;
-  vars->Q_B_rem   = NULL;
-
-  vars->Q_M       = NULL;
-  vars->l_min_Q_M = NULL;
-  vars->l_max_Q_M = NULL;
-  vars->k_min_Q_M = NULL;
-  vars->k_max_Q_M = NULL;
-  vars->Q_M_rem   = NULL;
-
-  vars->Q_M1        = NULL;
-  vars->l_min_Q_M1  = NULL;
-  vars->l_max_Q_M1  = NULL;
-  vars->k_min_Q_M1  = NULL;
-  vars->k_max_Q_M1  = NULL;
-  vars->Q_M1_rem    = NULL;
-
-  vars->Q_M2        = NULL;
-  vars->l_min_Q_M2  = NULL;
-  vars->l_max_Q_M2  = NULL;
-  vars->k_min_Q_M2  = NULL;
-  vars->k_max_Q_M2  = NULL;
-  vars->Q_M2_rem    = NULL;
-
-  vars->Q_c       = NULL;
-  vars->Q_cH      = NULL;
-  vars->Q_cI      = NULL;
-  vars->Q_cM      = NULL;
-  vars->Q_c_rem   = 0.;
-  vars->Q_cH_rem  = 0.;
-  vars->Q_cI_rem  = 0.;
-  vars->Q_cM_rem  = 0.;
-
-  if (alloc_vector & ALLOC_F) {
-    vars->Q       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
-    vars->l_min_Q = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->l_max_Q = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->k_min_Q = (int *)vrna_alloc(sizeof(int) * size);
-    vars->k_max_Q = (int *)vrna_alloc(sizeof(int) * size);
-    vars->Q_rem   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-  }
-
-  if (alloc_vector & ALLOC_C) {
-    vars->Q_B       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
-    vars->l_min_Q_B = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->l_max_Q_B = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->k_min_Q_B = (int *)vrna_alloc(sizeof(int) * size);
-    vars->k_max_Q_B = (int *)vrna_alloc(sizeof(int) * size);
-    vars->Q_B_rem   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-  }
-
-  if (alloc_vector & ALLOC_FML) {
-    vars->Q_M       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
-    vars->l_min_Q_M = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->l_max_Q_M = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->k_min_Q_M = (int *)vrna_alloc(sizeof(int) * size);
-    vars->k_max_Q_M = (int *)vrna_alloc(sizeof(int) * size);
-    vars->Q_M_rem   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-  }
-
-  if (alloc_vector & ALLOC_UNIQ) {
-    vars->Q_M1        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
-    vars->l_min_Q_M1  = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->l_max_Q_M1  = (int **)vrna_alloc(sizeof(int *) * size);
-    vars->k_min_Q_M1  = (int *)vrna_alloc(sizeof(int) * size);
-    vars->k_max_Q_M1  = (int *)vrna_alloc(sizeof(int) * size);
-    vars->Q_M1_rem    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-  }
-
-  if (alloc_vector & ALLOC_CIRC) {
-    vars->Q_M2        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * lin_size);
-    vars->l_min_Q_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    vars->l_max_Q_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
-    vars->k_min_Q_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    vars->k_max_Q_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
-    vars->Q_M2_rem    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-  }
 }
 
 
@@ -1556,8 +1289,7 @@ pf_matrices_free_2Dfold(vrna_mx_pf_t  *self,
 
 
 PRIVATE vrna_mx_mfe_t *
-init_mx_mfe_default(vrna_fold_compound_t *fc,
-                    unsigned int          m,
+init_mx_mfe_default(vrna_fold_compound_t  *fc,
                     unsigned int          alloc_vector)
 {
   unsigned int  n, size, lin_size, s, strands;
@@ -1565,6 +1297,13 @@ init_mx_mfe_default(vrna_fold_compound_t *fc,
   vrna_mx_mfe_t init = {
     .type = VRNA_MX_DEFAULT
   };
+
+  if ((int)(n * n) >= (int)INT_MAX) {
+    vrna_message_warning("init_mx_mfe_default(): "
+                         "sequence length %d exceeds addressable range",
+                         n);
+    return NULL;
+  }
 
   mx = vrna_alloc(sizeof(vrna_mx_mfe_t));
 
@@ -1574,7 +1313,7 @@ init_mx_mfe_default(vrna_fold_compound_t *fc,
 
     n           = fc->length;
     strands     = fc->strands;
-    size        = ((n + 1) * (m + 2)) / 2;
+    size        = ((n + 1) * (n + 2)) / 2;
     lin_size    = n + 2;
     mx->length  = n;
     mx->strands = strands;
@@ -1615,14 +1354,22 @@ init_mx_mfe_default(vrna_fold_compound_t *fc,
 
 PRIVATE vrna_mx_mfe_t *
 init_mx_mfe_window(vrna_fold_compound_t *fc,
-                    unsigned int          m,
-                    unsigned int          alloc_vector)
+                   unsigned int         alloc_vector)
 {
-  unsigned int  n, size, lin_size;
+  unsigned int  n, m, size, lin_size;
   vrna_mx_mfe_t *mx;
   vrna_mx_mfe_t init = {
     .type = VRNA_MX_WINDOW
   };
+
+  m = fc->window_size;
+
+  if ((int)(n * m) >= (int)INT_MAX) {
+    vrna_message_warning("init_mx_mfe_window(): "
+                         "sequence length %d exceeds addressable range",
+                         n);
+    return NULL;
+  }
 
   mx = vrna_alloc(sizeof(vrna_mx_mfe_t));
 
@@ -1651,14 +1398,20 @@ init_mx_mfe_window(vrna_fold_compound_t *fc,
 
 PRIVATE vrna_mx_mfe_t *
 init_mx_mfe_2Dfold(vrna_fold_compound_t *fc,
-                    unsigned int          m,
-                    unsigned int          alloc_vector)
+                   unsigned int         alloc_vector)
 {
   unsigned int  n, i, size, lin_size;
   vrna_mx_mfe_t *mx;
   vrna_mx_mfe_t init = {
     .type = VRNA_MX_2DFOLD
   };
+
+  if ((int)(n * n) >= (int)INT_MAX) {
+    vrna_message_warning("init_mx_mfe_2Dfold(): "
+                         "sequence length %d exceeds addressable range",
+                         n);
+    return NULL;
+  }
 
   mx = vrna_alloc(sizeof(vrna_mx_mfe_t));
 
@@ -1667,7 +1420,7 @@ init_mx_mfe_2Dfold(vrna_fold_compound_t *fc,
     nullify_mfe(mx);
 
     n           = fc->length;
-    size        = ((n + 1) * (m + 2)) / 2;
+    size        = ((n + 1) * (n + 2)) / 2;
     lin_size    = n + 2;
     mx->length  = n;
     mx->strands = fc->strands;
@@ -1754,7 +1507,6 @@ PRIVATE INLINE void
 nullify_mfe(vrna_mx_mfe_t *mx)
 {
   if (mx) {
-
     mx->length  = 0;
     mx->strands = 0;
 
@@ -1831,28 +1583,27 @@ nullify_mfe(vrna_mx_mfe_t *mx)
         mx->l_max_Fc  = NULL;
         mx->k_min_Fc  = 0;
         mx->k_max_Fc  = 0;
+        mx->E_Fc_rem  = INF;
 
         mx->E_FcH     = NULL;
         mx->l_min_FcH = NULL;
         mx->l_max_FcH = NULL;
         mx->k_min_FcH = 0;
         mx->k_max_FcH = 0;
+        mx->E_FcH_rem = INF;
 
         mx->E_FcI     = NULL;
         mx->l_min_FcI = NULL;
         mx->l_max_FcI = NULL;
         mx->k_min_FcI = 0;
         mx->k_max_FcI = 0;
+        mx->E_FcI_rem = INF;
 
         mx->E_FcM     = NULL;
         mx->l_min_FcM = NULL;
         mx->l_max_FcM = NULL;
         mx->k_min_FcM = 0;
         mx->k_max_FcM = 0;
-
-        mx->E_Fc_rem  = INF;
-        mx->E_FcH_rem = INF;
-        mx->E_FcI_rem = INF;
         mx->E_FcM_rem = INF;
 
 #ifdef COUNT_STATES
@@ -1861,6 +1612,315 @@ nullify_mfe(vrna_mx_mfe_t *mx)
         mx->N_M   = NULL;
         mx->N_M1  = NULL;
 #endif
+
+        break;
+    }
+  }
+}
+
+
+PRIVATE vrna_mx_pf_t *
+init_mx_pf_default(vrna_fold_compound_t *fc,
+                   unsigned int         alloc_vector)
+{
+  unsigned int  n, size, lin_size, s, strands;
+  vrna_mx_pf_t  *mx;
+  vrna_mx_pf_t  init = {
+    .type = VRNA_MX_DEFAULT
+  };
+
+  if ((int)(n * n) >= (int)INT_MAX) {
+    vrna_message_warning("init_mx_pf_default(): "
+                         "sequence length %d exceeds addressable range",
+                         n);
+    return NULL;
+  }
+
+  mx = vrna_alloc(sizeof(vrna_mx_pf_t));
+
+  if (mx) {
+    memcpy(mx, &init, sizeof(vrna_mx_pf_t));
+    nullify_pf(mx);
+
+    n           = fc->length;
+    size        = ((n + 1) * (n + 2)) / 2;
+    lin_size    = n + 2;
+    mx->length  = n;
+
+    if (alloc_vector & ALLOC_F)
+      mx->q = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+
+    if (alloc_vector & ALLOC_C)
+      mx->qb = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+
+    if (alloc_vector & ALLOC_FML)
+      mx->qm = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+
+    if (alloc_vector & ALLOC_UNIQ)
+      mx->qm1 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+
+    if (alloc_vector & ALLOC_CIRC)
+      mx->qm2 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+
+    if (alloc_vector & ALLOC_PROBS)
+      mx->probs = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+
+    if (alloc_vector & ALLOC_AUX) {
+      mx->q1k = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+      mx->qln = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+    }
+
+    /*
+     *  always alloc the helper arrays for unpaired nucleotides in multi-
+     *  branch loops and scaling
+     */
+    mx->scale     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+    mx->expMLbase = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+  }
+
+  return mx;
+}
+
+
+PRIVATE vrna_mx_pf_t *
+init_mx_pf_window(vrna_fold_compound_t  *fc,
+                  unsigned int          alloc_vector)
+{
+  unsigned int  n, m, size, lin_size, s, strands;
+  vrna_mx_pf_t  *mx;
+  vrna_mx_pf_t  init = {
+    .type = VRNA_MX_WINDOW
+  };
+
+  m = fc->window_size;
+
+  if ((int)(n * m) >= (int)INT_MAX) {
+    vrna_message_warning("init_mx_pf_window(): "
+                         "sequence length %d exceeds addressable range",
+                         n);
+    return NULL;
+  }
+
+  mx = vrna_alloc(sizeof(vrna_mx_pf_t));
+
+  if (mx) {
+    memcpy(mx, &init, sizeof(vrna_mx_pf_t));
+    nullify_pf(mx);
+
+    n           = fc->length;
+    lin_size    = n + 2;
+    mx->length  = n;
+
+    if (alloc_vector & ALLOC_F)
+      mx->q_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
+
+    if (alloc_vector & ALLOC_C)
+      mx->qb_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
+
+    if (alloc_vector & ALLOC_FML)
+      mx->qm_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
+
+    mx->pR = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
+
+    if (alloc_vector & ALLOC_PROBS) {
+      mx->QI5       = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
+      mx->qmb       = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
+      mx->qm2_local = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
+      mx->q2l       = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * lin_size);
+    }
+
+    /*
+     *  always alloc the helper arrays for unpaired nucleotides in multi-
+     *  branch loops and scaling
+     */
+    mx->scale     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+    mx->expMLbase = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+  }
+
+  return mx;
+}
+
+
+PRIVATE vrna_mx_pf_t *
+init_mx_pf_2Dfold(vrna_fold_compound_t  *fc,
+                  unsigned int          alloc_vector)
+{
+  unsigned int  n, size, lin_size, s, strands;
+  vrna_mx_pf_t  *mx;
+  vrna_mx_pf_t  init = {
+    .type = VRNA_MX_2DFOLD
+  };
+
+  if ((int)(n * n) >= (int)INT_MAX) {
+    vrna_message_warning("init_mx_pf_2Dfold(): "
+                         "sequence length %d exceeds addressable range",
+                         n);
+    return NULL;
+  }
+
+  mx = vrna_alloc(sizeof(vrna_mx_pf_t));
+
+  if (mx) {
+    memcpy(mx, &init, sizeof(vrna_mx_pf_t));
+    nullify_pf(mx);
+
+    n           = fc->length;
+    size        = ((n + 1) * (n + 2)) / 2;
+    lin_size    = n + 2;
+    mx->length  = n;
+
+    if (alloc_vector & ALLOC_F) {
+      mx->Q       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
+      mx->l_min_Q = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->l_max_Q = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->k_min_Q = (int *)vrna_alloc(sizeof(int) * size);
+      mx->k_max_Q = (int *)vrna_alloc(sizeof(int) * size);
+      mx->Q_rem   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+    }
+
+    if (alloc_vector & ALLOC_C) {
+      mx->Q_B       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
+      mx->l_min_Q_B = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->l_max_Q_B = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->k_min_Q_B = (int *)vrna_alloc(sizeof(int) * size);
+      mx->k_max_Q_B = (int *)vrna_alloc(sizeof(int) * size);
+      mx->Q_B_rem   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+    }
+
+    if (alloc_vector & ALLOC_FML) {
+      mx->Q_M       = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
+      mx->l_min_Q_M = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->l_max_Q_M = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->k_min_Q_M = (int *)vrna_alloc(sizeof(int) * size);
+      mx->k_max_Q_M = (int *)vrna_alloc(sizeof(int) * size);
+      mx->Q_M_rem   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+    }
+
+    if (alloc_vector & ALLOC_UNIQ) {
+      mx->Q_M1        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * size);
+      mx->l_min_Q_M1  = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->l_max_Q_M1  = (int **)vrna_alloc(sizeof(int *) * size);
+      mx->k_min_Q_M1  = (int *)vrna_alloc(sizeof(int) * size);
+      mx->k_max_Q_M1  = (int *)vrna_alloc(sizeof(int) * size);
+      mx->Q_M1_rem    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+    }
+
+    if (alloc_vector & ALLOC_CIRC) {
+      mx->Q_M2        = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * lin_size);
+      mx->l_min_Q_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
+      mx->l_max_Q_M2  = (int **)vrna_alloc(sizeof(int *) * lin_size);
+      mx->k_min_Q_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->k_max_Q_M2  = (int *)vrna_alloc(sizeof(int) * lin_size);
+      mx->Q_M2_rem    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+    }
+
+    /*
+     *  always alloc the helper arrays for unpaired nucleotides in multi-
+     *  branch loops and scaling
+     */
+    mx->scale     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+    mx->expMLbase = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
+  }
+
+  return mx;
+}
+
+
+PRIVATE INLINE void
+nullify_pf(vrna_mx_pf_t *mx)
+{
+  if (mx) {
+    mx->length    = 0;
+    mx->scale     = NULL;
+    mx->expMLbase = NULL;
+
+    switch (mx->type) {
+      case VRNA_MX_DEFAULT:
+        mx->q     = NULL;
+        mx->qb    = NULL;
+        mx->qm    = NULL;
+        mx->qm1   = NULL;
+        mx->qm2   = NULL;
+        mx->probs = NULL;
+        mx->q1k   = NULL;
+        mx->qln   = NULL;
+        break;
+
+      case VRNA_MX_WINDOW:
+        mx->q_local   = NULL;
+        mx->qb_local  = NULL;
+        mx->qm_local  = NULL;
+        mx->qm2_local = NULL;
+        mx->pR        = NULL;
+        mx->QI5       = NULL;
+        mx->q2l       = NULL;
+        mx->qmb       = NULL;
+        mx->G_local   = NULL;
+        break;
+
+      case VRNA_MX_2DFOLD:
+        mx->Q       = NULL;
+        mx->l_min_Q = NULL;
+        mx->l_max_Q = NULL;
+        mx->k_min_Q = NULL;
+        mx->k_max_Q = NULL;
+        mx->Q_rem   = NULL;
+
+        mx->Q_B       = NULL;
+        mx->l_min_Q_B = NULL;
+        mx->l_max_Q_B = NULL;
+        mx->k_min_Q_B = NULL;
+        mx->k_max_Q_B = NULL;
+        mx->Q_B_rem   = NULL;
+
+        mx->Q_M       = NULL;
+        mx->l_min_Q_M = NULL;
+        mx->l_max_Q_M = NULL;
+        mx->k_min_Q_M = NULL;
+        mx->k_max_Q_M = NULL;
+        mx->Q_M_rem   = NULL;
+
+        mx->Q_M1        = NULL;
+        mx->l_min_Q_M1  = NULL;
+        mx->l_max_Q_M1  = NULL;
+        mx->k_min_Q_M1  = NULL;
+        mx->k_max_Q_M1  = NULL;
+        mx->Q_M1_rem    = NULL;
+
+        mx->Q_M2        = NULL;
+        mx->l_min_Q_M2  = NULL;
+        mx->l_max_Q_M2  = NULL;
+        mx->k_min_Q_M2  = NULL;
+        mx->k_max_Q_M2  = NULL;
+        mx->Q_M2_rem    = NULL;
+
+        mx->Q_c       = NULL;
+        mx->l_min_Q_c = NULL;
+        mx->l_max_Q_c = NULL;
+        mx->k_min_Q_c = 0;
+        mx->k_max_Q_c = 0;
+        mx->Q_c_rem   = 0.;
+
+        mx->Q_cH        = NULL;
+        mx->l_min_Q_cH  = NULL;
+        mx->l_max_Q_cH  = NULL;
+        mx->k_min_Q_cH  = 0;
+        mx->k_max_Q_cH  = 0;
+        mx->Q_cH_rem    = 0.;
+
+        mx->Q_cI        = NULL;
+        mx->l_min_Q_cI  = NULL;
+        mx->l_max_Q_cI  = NULL;
+        mx->k_min_Q_cI  = 0;
+        mx->k_max_Q_cI  = 0;
+        mx->Q_cI_rem    = 0.;
+
+        mx->Q_cM        = NULL;
+        mx->l_min_Q_cM  = NULL;
+        mx->l_max_Q_cM  = NULL;
+        mx->k_min_Q_cM  = 0;
+        mx->k_max_Q_cM  = 0;
+        mx->Q_cM_rem    = 0.;
 
         break;
     }
