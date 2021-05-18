@@ -40,10 +40,6 @@
 #define true              1
 #define false             0
 
-#ifndef ON_SAME_STRAND
-#define ON_SAME_STRAND(I, J, C)  (((I) >= (C)) || ((J) < (C)))
-#endif
-
 /**
  *  @brief  Sequence interval stack element used in subopt.c
  */
@@ -706,6 +702,57 @@ fork_two_states_pair(int        i,
 
 
 PRIVATE void
+fork_state_pair_interval(int        i,
+                         int        j,
+                         int        k,
+                         int        l,
+                         STATE      *s,
+                         int        e,
+                         int        flag,
+                         subopt_env *env)
+{
+  INTERVAL  *interval;
+  STATE     *new_state;
+
+  new_state = copy_state(s);
+  interval = make_interval(k, l, flag);
+  push(new_state->Intervals, interval);
+
+  make_pair(i, j, new_state);
+  new_state->partial_energy += e;
+
+  push(env->Stack, new_state);
+  env->nopush = false;
+}
+
+
+PRIVATE void
+fork_two_states_pair_ms(int        i,
+                        int        j,
+                        int        sn1,
+                        int        sn2,
+                        STATE      *s,
+                        int        e,
+                        subopt_env *env)
+{
+  INTERVAL  *interval1, *interval2;
+  STATE     *new_state;
+
+  new_state = copy_state(s);
+  interval1 = make_interval(i + 1, sn1, 4);
+  interval2 = make_interval(j - 1, sn2, 5);
+  push(new_state->Intervals, interval1);
+  push(new_state->Intervals, interval2);
+
+  make_pair(i, j, new_state);
+  new_state->partial_energy += e;
+
+  push(env->Stack, new_state);
+  env->nopush = false;
+}
+
+
+PRIVATE void
 fork_two_states(int         i,
                 int         j,
                 int         p,
@@ -1027,7 +1074,7 @@ scan_interval(vrna_fold_compound_t  *vc,
   register int  noLP;
   unsigned int  *sn, *so, *ss, *se;
   int           element_energy, best_energy;
-  int           *fc, *f5, *c, *fML, *fM1, *ggg;
+  int           *f5, *c, *fML, *fM1, *ggg;
   int           FcH, FcI, FcM, *fM2;
   int           length, *indx, *rtype, circular, with_gquad, turn;
   char          *ptype;
@@ -1054,7 +1101,6 @@ scan_interval(vrna_fold_compound_t  *vc,
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
 
-  fc  = vc->matrices->fc;
   f5  = vc->matrices->f5;
   c   = vc->matrices->c;
   fML = vc->matrices->fML;
@@ -1077,7 +1123,9 @@ scan_interval(vrna_fold_compound_t  *vc,
     vrna_message_error("Error while backtracking!");
 
   if ((j < i + turn + 1) &&
-	  ((sn[i] == so[1]) || (sn[j] == so[0]))) {
+      (array_flag != 5) &&
+      (array_flag != 4) &&
+      ((sn[i] == so[1]) || (sn[j] == so[0]))) {
     /* minimal structure element */
     if (array_flag == 0)
       /* do not forget to add f5[j], since it may contain pseudo energies from soft constraining */
@@ -1091,7 +1139,9 @@ scan_interval(vrna_fold_compound_t  *vc,
     return;
   }
 
-  ij = indx[j] + i;
+  if ((array_flag != 4) &&
+      (array_flag != 5))
+    ij = indx[j] + i;
 
   /* 13131313131313131313131313131313131313131313131313131313131313131313131 */
   if (array_flag == 3 || array_flag == 1) {
@@ -1656,6 +1706,8 @@ scan_interval(vrna_fold_compound_t  *vc,
   /*                                                    */
   /* 44444444444444444444444444444444444444444444444444 */
   if (array_flag == 4) {
+#if 1
+#else
     int ik, s5, s3, tmp_en;
 
     if ((hc->up_ext[i]) &&
@@ -1750,6 +1802,7 @@ scan_interval(vrna_fold_compound_t  *vc,
       if (c[ik] + element_energy + best_energy <= threshold)
         repeat(vc, i, se[so[0]], state, element_energy, 0, best_energy, threshold, env);
     }
+#endif
   } /* array_flag == 4 */
 
   /* 55555555555555555555555555555555555555555555555555 */
@@ -1760,6 +1813,8 @@ scan_interval(vrna_fold_compound_t  *vc,
   /*                                                    */
   /* 55555555555555555555555555555555555555555555555555 */
   if (array_flag == 5) {
+#if 1
+#else
     int kj, s5, s3, tmp_en;
 
     if ((hc->up_ext[j]) &&
@@ -1855,6 +1910,7 @@ scan_interval(vrna_fold_compound_t  *vc,
       if (c[kj] + element_energy + best_energy <= threshold)
         repeat(vc, ss[so[1]], j, state, element_energy, 0, best_energy, threshold, env);
     }
+#endif
   } /* array_flag == 5 */
 
   if (array_flag == 6) {
@@ -1964,9 +2020,9 @@ repeat(vrna_fold_compound_t *vc,
   register int  mm;
   register int  no_close, type, type_2;
   char          *ptype;
-  unsigned int  n, *sn, *so, *ss, *se;
+  unsigned int  n, *sn, *so, *ss, *se, nick;
   int           element_energy;
-  int           *fc, *c, *fML, *fM1, *ggg;
+  int           *fc, *c, *fML, *fM1, *ggg, **fms5, **fms3;
   int           rt, *indx, *rtype, noGUclosure, noLP, with_gquad, dangle_model, turn;
   short         *S1;
   vrna_hc_t     *hc;
@@ -1995,6 +2051,8 @@ repeat(vrna_fold_compound_t *vc,
   fML = vc->matrices->fML;
   fM1 = vc->matrices->fM1;
   ggg = vc->matrices->ggg;
+  fms5  = vc->matrices->fms5;
+  fms3  = vc->matrices->fms3;
 
   hc  = vc->hc;
   sc  = vc->sc;
@@ -2008,45 +2066,43 @@ repeat(vrna_fold_compound_t *vc,
 
   no_close = (((type == 3) || (type == 4)) && noGUclosure);
 
-  if (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    if (noLP) {
-      /* always consider the structure with additional stack */
-      if (i + turn + 2 < j) {
-        if (hc->mx[n * (i + 1) + j - 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
-          type_2  = rtype[vrna_get_ptype(indx[j - 1] + i + 1, ptype)];
-          energy  = 0;
+  if ((noLP) &&
+      (i + turn + 2 < j)) {
+    /* always consider the structure with additional stack */
+    if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
+        (hc->mx[n * (i + 1) + j - 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
+        (sn[i] == sn[i + 1]) &&
+        (sn[j - 1] == sn[j])) {
+      type_2  = rtype[vrna_get_ptype(indx[j - 1] + i + 1, ptype)];
+      energy  = 0;
 
-          if ((sn[i] == sn[i + 1]) && (sn[j - 1] == sn[j])) {
-            energy = E_IntLoop(0, 0, type, type_2, S1[i + 1], S1[j - 1], S1[i + 1], S1[j - 1], P);
+      energy = E_IntLoop(0, 0, type, type_2, S1[i + 1], S1[j - 1], S1[i + 1], S1[j - 1], P);
 
-            if (sc) {
-              if (sc->energy_bp)
-                energy += sc->energy_bp[ij];
+      if (sc) {
+        if (sc->energy_bp)
+          energy += sc->energy_bp[ij];
 
-              if (sc->energy_stack) {
-                energy += sc->energy_stack[i]
-                          + sc->energy_stack[i + 1]
-                          + sc->energy_stack[j - 1]
-                          + sc->energy_stack[j];
-              }
-
-              if (sc->f)
-                energy += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_IL, sc->data);
-            }
-
-            new_state = derive_new_state(i + 1, j - 1, state, part_energy + energy, 2);
-            make_pair(i, j, new_state);
-            make_pair(i + 1, j - 1, new_state);
-
-            /* new_state->best_energy = new + best_energy; */
-            push(env->Stack, new_state);
-            env->nopush = false;
-            if (i == 1 || state->structure[i - 2] != '(' || state->structure[j] != ')')
-              /* adding a stack is the only possible structure */
-              return;
-          }
+        if (sc->energy_stack) {
+          energy += sc->energy_stack[i]
+                    + sc->energy_stack[i + 1]
+                    + sc->energy_stack[j - 1]
+                    + sc->energy_stack[j];
         }
+
+        if (sc->f)
+          energy += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_IL, sc->data);
       }
+
+      new_state = derive_new_state(i + 1, j - 1, state, part_energy + energy, 2);
+      make_pair(i, j, new_state);
+      make_pair(i + 1, j - 1, new_state);
+
+      /* new_state->best_energy = new + best_energy; */
+      push(env->Stack, new_state);
+      env->nopush = false;
+      if (i == 1 || state->structure[i - 2] != '(' || state->structure[j] != ')')
+        /* adding a stack is the only possible structure */
+        return;
     }
   }
 
@@ -2122,33 +2178,104 @@ repeat(vrna_fold_compound_t *vc,
     }     /* end of p-loop */
   }
 
-  if (sn[i] != sn[j]) {
-    /*look in fc*/
-    if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
-        (fc[i + 1] != INF) &&
-        (fc[j - 1] != INF)) {
-      rt = rtype[type];
+  /* base pair (i,j) encloses a loop with strand nick? */
+  if ((sn[i] != sn[j]) &&
+      (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) {
 
-      element_energy = 0;
-      switch (dangle_model) {
-        case 0:
-          element_energy = vrna_E_ext_stem(rt, -1, -1, P);
-          break;
-        default:
-          element_energy =
-            vrna_E_ext_stem(rt,
-                      (sn[j - 1] == sn[j]) ?
-                      S1[j - 1] :
-                      -1,
-                      (sn[i] == sn[i + 1]) ?
-                      S1[i + 1] :
-                      -1,
-                      P);
-          break;
+    rt = rtype[type];
+
+    element_energy = 0;
+
+    switch (dangle_model) {
+      case 0:
+        element_energy = vrna_E_ext_stem(rt, -1, -1, P);
+        break;
+      default:
+        element_energy =
+          vrna_E_ext_stem(rt,
+                    (sn[j - 1] == sn[j]) ?
+                    S1[j - 1] :
+                    -1,
+                    (sn[i] == sn[i + 1]) ?
+                    S1[i + 1] :
+                    -1,
+                    P);
+        break;
+    }
+
+    element_energy += P->DuplexInit;
+
+    if (sn[i] != sn[i + 1]) {
+      if ((sn[j - 1] != sn[j]) &&
+          (i + 1 == j)) {
+        if (element_energy + best_energy <= threshold)
+          fork_state_pair(i,
+                          j,
+                          state,
+                          part_energy + element_energy,
+                          env);
+      } else if (sn[j - 1] == sn[j]) {
+        if (fms3[sn[i + 1]][j - 1] + element_energy + best_energy <= threshold)
+          /* continue backtracking in fms3[sn[i + 1]][j - 1] */
+          fork_state_pair_interval(i,
+                                   j,
+                                   j - 1,
+                                   sn[i + 1],
+                                   state,
+                                   part_energy + element_energy,
+                                   5,
+                                   env);
       }
+    } else if (sn[j - 1] != sn[j]) {
+      if (fms5[sn[j - 1]][i + 1] + element_energy + best_energy <= threshold)
+        /* continue backtracking in fms5[sn[j - 1]][i + 1] */
+          fork_state_pair_interval(i,
+                                   j,
+                                   i + 1,
+                                   sn[j - 1],
+                                   state,
+                                   part_energy + element_energy,
+                                   4,
+                                   env);
+    } else {
+      energy = 0;
 
-      if (fc[i + 1] + fc[j - 1] + element_energy + best_energy <= threshold)
-        fork_two_states_pair(i, j, ss[so[1]], state, part_energy + element_energy, 4, 5, env);
+      if (se[sn[i]] > i)
+        energy += fms5[sn[i]][i + 1];
+
+      if (j - 1 > se[sn[i]])
+        energy += fms3[sn[se[sn[i]] + 1]][j - 1];
+
+      if (energy + element_energy + best_energy <= threshold)
+        fork_two_states_pair_ms(i,
+                                j,
+                                sn[i],
+                                sn[se[sn[i]] + 1],
+                                state,
+                                part_energy + element_energy,
+                                env);
+
+      nick = se[sn[i]] + 1;
+
+      while (sn[nick] != sn[j]) {
+        energy = 0;
+        if (i + 1 <= se[sn[nick]])
+          energy += fms5[sn[nick]][i + 1];
+
+        if (se[sn[nick]] + 1 <= j - 1)
+          energy += fms3[sn[se[sn[nick]] + 1]][j - 1];
+
+        if (energy + element_energy + best_energy <= threshold)
+          fork_two_states_pair_ms(i,
+                                  j,
+                                  sn[nick],
+                                  sn[se[sn[nick]] + 1],
+                                  state,
+                                  part_energy + element_energy,
+                                  env);
+
+        nick = se[sn[nick]] + 1;
+      }
     }
   }
 
