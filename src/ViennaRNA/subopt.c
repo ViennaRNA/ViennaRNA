@@ -1715,7 +1715,6 @@ scan_interval(vrna_fold_compound_t  *vc,
   /*                                                    */
   /* 44444444444444444444444444444444444444444444444444 */
   if (array_flag == 4) {
-#if 1
     /* find split in fms5 */
     int strand = j;
     int end = (int)se[strand];
@@ -1810,102 +1809,6 @@ scan_interval(vrna_fold_compound_t  *vc,
         }
       }
     }
-#else
-    int ik, s5, s3, tmp_en;
-
-    if ((hc->up_ext[i]) &&
-        (fc[i + 1] != INF)) {
-      tmp_en = 0;
-
-      if (sc) {
-        if (sc->energy_up)
-          tmp_en += sc->energy_up[i][1];
-
-        if (sc->f)
-          tmp_en += sc->f(i, j, i + 1, j, VRNA_DECOMP_EXT_EXT, sc->data);
-      }
-
-      if (fc[i + 1] + tmp_en + best_energy <= threshold)
-        /* no basepair, nibbling of 5'-end */
-        fork_state(i + 1, j, state, tmp_en, 4, env);
-    }
-
-    for (k = i + turn + 1; k < j; k++) {
-      ik = indx[k] + i;
-
-      if ((with_gquad) &&
-          (fc[k + 1] != INF) &&
-          (ggg[ik] != INF)) {
-        if (fc[k + 1] + ggg[ik] + best_energy <= threshold) {
-          temp_state  = derive_new_state(k + 1, j, state, 0, 4);
-          env->nopush = false;
-          repeat_gquad(vc, i, k, temp_state, 0, fc[k + 1], best_energy, threshold, env);
-          free_state_node(temp_state);
-        }
-      }
-
-      if ((hard_constraints[length * i + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
-          (fc[k + 1] != INF) &&
-          (c[ik] != INF)) {
-        type = vrna_get_ptype(ik, ptype);
-
-        switch (dangle_model) {
-          case 0:
-            s5 = s3 = -1;
-            break;
-          default:
-            s5  = (i > 1) ? S1[i - 1] : -1;
-            s3  = S1[k + 1];
-            break;
-        }
-
-        element_energy = vrna_E_ext_stem(type, s5, s3, P);
-
-        if (sc) {
-          if (sc->f)
-            element_energy += sc->f(i, j, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
-        }
-
-        if (fc[k + 1] + c[ik] + element_energy + best_energy <= threshold) {
-          temp_state  = derive_new_state(k + 1, j, state, 0, 4);
-          env->nopush = false;
-          repeat(vc, i, k, temp_state, element_energy, fc[k + 1], best_energy, threshold, env);
-          free_state_node(temp_state);
-        }
-      }
-    }
-
-    ik = indx[se[so[0]]] + i; /* indx[j] + i; */
-
-    if ((with_gquad) && (ggg[ik] != INF))
-      if (ggg[ik] + best_energy <= threshold)
-        repeat_gquad(vc, i, se[so[0]], state, 0, 0, best_energy, threshold, env);
-
-    if ((hard_constraints[length * i + se[so[0]]] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
-        (c[ik] != INF)) {
-      type  = vrna_get_ptype(ik, ptype);
-      s3    = -1;
-
-      switch (dangle_model) {
-        case 0:
-          s5 = -1;
-          break;
-        default:
-          s5 = (i > 1) ? S1[i - 1] : -1;
-          break;
-      }
-
-      element_energy = vrna_E_ext_stem(type, s5, s3, P);
-
-      if (sc) {
-        if (sc->f)
-          element_energy += sc->f(i, se[so[0]], i, se[so[0]], VRNA_DECOMP_EXT_STEM, sc->data);
-      }
-
-      if (c[ik] + element_energy + best_energy <= threshold)
-        repeat(vc, i, se[so[0]], state, element_energy, 0, best_energy, threshold, env);
-    }
-#endif
   } /* array_flag == 4 */
 
   /* 55555555555555555555555555555555555555555555555555 */
@@ -1916,7 +1819,6 @@ scan_interval(vrna_fold_compound_t  *vc,
   /*                                                    */
   /* 55555555555555555555555555555555555555555555555555 */
   if (array_flag == 5) {
-#if 1
     int strand = j;
     int start   = ss[strand];
     int s5, s3;
@@ -2008,103 +1910,6 @@ scan_interval(vrna_fold_compound_t  *vc,
         }
       }
     }
-#else
-    int kj, s5, s3, tmp_en;
-
-    if ((hc->up_ext[j]) &&
-        (fc[j - 1] != INF)) {
-      tmp_en = 0;
-
-      if (sc) {
-        if (sc->energy_up)
-          tmp_en += sc->energy_up[j][1];
-
-        if (sc->f)
-          tmp_en += sc->f(i, j, i, j - 1, VRNA_DECOMP_EXT_EXT, sc->data);
-      }
-
-      if (fc[j - 1] + tmp_en + best_energy <= threshold)
-        /* no basepair, nibbling of 3'-end */
-        fork_state(i, j - 1, state, tmp_en, 5, env);
-    }
-
-    for (k = j - turn - 1; k > i; k--) {
-      kj = indx[j] + k;
-
-      if ((with_gquad) &&
-          (fc[k - 1] != INF) &&
-          (ggg[kj] != INF)) {
-        if (fc[k - 1] + ggg[kj] + best_energy <= threshold) {
-          temp_state  = derive_new_state(i, k - 1, state, 0, 5);
-          env->nopush = false;
-          repeat_gquad(vc, k, j, temp_state, 0, fc[k - 1], best_energy, threshold, env);
-          free_state_node(temp_state);
-        }
-      }
-
-      if ((hard_constraints[length * j + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
-          (fc[k - 1] != INF) &&
-          (c[kj] != INF)) {
-        type            = vrna_get_ptype(kj, ptype);
-        element_energy  = 0;
-
-        switch (dangle_model) {
-          case 0:
-            s3 = s5 = -1;
-            break;
-          default:
-            s5  = S1[k - 1];
-            s3  = (j < length) ? S1[j + 1] : -1;
-            break;
-        }
-
-        element_energy = vrna_E_ext_stem(type, s5, s3, P);
-
-        if (sc) {
-          if (sc->f)
-            element_energy += sc->f(i, j, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
-        }
-
-        if (fc[k - 1] + c[kj] + element_energy + best_energy <= threshold) {
-          temp_state  = derive_new_state(i, k - 1, state, 0, 5);
-          env->nopush = false;
-          repeat(vc, k, j, temp_state, element_energy, fc[k - 1], best_energy, threshold, env);
-          free_state_node(temp_state);
-        }
-      }
-    }
-
-    kj = indx[j] + ss[so[1]]; /* indx[j] + i; */
-
-    if ((with_gquad) && (ggg[kj] != INF))
-      if (ggg[kj] + best_energy <= threshold)
-        repeat_gquad(vc, ss[so[1]], j, state, 0, 0, best_energy, threshold, env);
-
-    if ((hard_constraints[length * ss[so[1]] + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
-        (c[kj] != INF)) {
-      type  = vrna_get_ptype(kj, ptype);
-      s5    = -1;
-
-      switch (dangle_model) {
-        case 0:
-          s3 = -1;
-          break;
-        default:
-          s3 = (j < length) ? S1[j + 1] : -1;
-          break;
-      }
-
-      element_energy = vrna_E_ext_stem(type, s5, s3, P);
-
-      if (sc) {
-        if (sc->f)
-          element_energy += sc->f(ss[so[1]], j, ss[so[1]], j, VRNA_DECOMP_EXT_STEM, sc->data);
-      }
-
-      if (c[kj] + element_energy + best_energy <= threshold)
-        repeat(vc, ss[so[1]], j, state, element_energy, 0, best_energy, threshold, env);
-    }
-#endif
   } /* array_flag == 5 */
 
   if (array_flag == 6) {
