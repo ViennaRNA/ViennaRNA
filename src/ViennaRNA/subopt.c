@@ -30,6 +30,16 @@
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/subopt.h"
 
+#include "ViennaRNA/loops/external_hc.inc"
+#include "ViennaRNA/loops/hairpin_hc.inc"
+#include "ViennaRNA/loops/internal_hc.inc"
+#include "ViennaRNA/loops/multibranch_hc.inc"
+
+#include "ViennaRNA/loops/external_sc.inc"
+#include "ViennaRNA/loops/hairpin_sc.inc"
+#include "ViennaRNA/loops/internal_sc.inc"
+#include "ViennaRNA/loops/multibranch_sc.inc"
+
 /* hack */
 #include "ViennaRNA/color_output.inc"
 
@@ -45,6 +55,20 @@
 
 #define true              1
 #define false             0
+
+typedef struct {
+  struct hc_ext_def_dat     hc_dat_ext;
+  vrna_callback_hc_evaluate *hc_eval_ext;
+
+  struct hc_hp_def_dat      hc_dat_hp;
+  vrna_callback_hc_evaluate *hc_eval_hp;
+
+  struct hc_int_def_dat     hc_dat_int;
+  eval_hc                   *hc_eval_int;
+
+  struct hc_mb_def_dat      hc_dat_mb;
+  vrna_callback_hc_evaluate *hc_eval_mb;
+} constraint_helpers;
 
 /**
  *  @brief  Sequence interval stack element used in subopt.c
@@ -108,6 +132,11 @@ PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
+
+PRIVATE void
+init_constraint_helpers(vrna_fold_compound_t  *fc,
+                        constraint_helpers    *d);
+
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -189,7 +218,8 @@ scan_interval(vrna_fold_compound_t  *fc,
               int                   array_flag,
               int                   threshold,
               STATE                 *state,
-              subopt_env            *env);
+              subopt_env            *env,
+              constraint_helpers    *constraints_dat);
 
 
 PRIVATE INLINE void
@@ -198,7 +228,8 @@ scan_mb(vrna_fold_compound_t  *fc,
         int                   j,
         int                   threshold,
         STATE                 *state,
-        subopt_env            *env);
+        subopt_env            *env,
+        constraint_helpers    *constraints_dat);
 
 
 PRIVATE INLINE void
@@ -208,7 +239,8 @@ scan_m1(vrna_fold_compound_t  *fc,
         int                   array_flag,
         int                   threshold,
         STATE                 *state,
-        subopt_env            *env);
+        subopt_env            *env,
+        constraint_helpers    *constraints_dat);
 
 
 PRIVATE INLINE void
@@ -217,7 +249,8 @@ scan_pair(vrna_fold_compound_t  *fc,
           int                   j,
           int                   threshold,
           STATE                 *state,
-          subopt_env            *env);
+          subopt_env            *env,
+          constraint_helpers    *constraints_dat);
 
 
 PRIVATE INLINE void
@@ -226,7 +259,8 @@ scan_ext(vrna_fold_compound_t *fc,
          int                  j,
          int                  threshold,
          STATE                *state,
-         subopt_env           *env);
+         subopt_env           *env,
+         constraint_helpers   *constraints_dat);
 
 
 PRIVATE INLINE void
@@ -235,7 +269,8 @@ scan_circular(vrna_fold_compound_t  *fc,
               int                   j,
               int                   threshold,
               STATE                 *state,
-              subopt_env            *env);
+              subopt_env            *env,
+              constraint_helpers    *constraints_dat);
 
 
 PRIVATE INLINE void
@@ -244,7 +279,8 @@ scan_fms5(vrna_fold_compound_t  *fc,
           unsigned int          strand,
           int                   threshold,
           STATE                 *state,
-          subopt_env            *env);
+          subopt_env            *env,
+          constraint_helpers    *constraints_dat);
 
 
 PRIVATE INLINE void
@@ -253,7 +289,8 @@ scan_fms3(vrna_fold_compound_t  *fc,
           unsigned int          strand,
           int                   threshold,
           STATE                 *state,
-          subopt_env            *env);
+          subopt_env            *env,
+          constraint_helpers    *constraints_dat);
 
 
 PRIVATE INLINE void
@@ -262,7 +299,8 @@ scan_gquad(vrna_fold_compound_t *fc,
            int                  j,
            int                  threshold,
            STATE                *state,
-           subopt_env           *env);
+           subopt_env           *env,
+           constraint_helpers   *constraints_dat);
 
 
 PRIVATE void
@@ -307,7 +345,8 @@ repeat(vrna_fold_compound_t *fc,
        int                  temp_energy,
        int                  best_energy,
        int                  threshold,
-       subopt_env           *env);
+       subopt_env           *env,
+       constraint_helpers   *constraints_dat);
 
 
 PRIVATE void
@@ -319,7 +358,8 @@ repeat_gquad(vrna_fold_compound_t *fc,
              int                  temp_energy,
              int                  best_energy,
              int                  threshold,
-             subopt_env           *env);
+             subopt_env           *env,
+             constraint_helpers   *constraints_dat);
 
 
 PRIVATE void
@@ -433,20 +473,22 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
                vrna_subopt_callback *cb,
                void                 *data)
 {
-  subopt_env    *env;
-  STATE         *state;
-  INTERVAL      *interval;
-  unsigned int  *so, *ss, *se;
-  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular,
-                threshold;
-  double        structure_energy, min_en, eprint;
-  char          *struc, *structure;
-  float         correction;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  int           minimal_energy;
-  int           Fc;
-  int           *f5;
+  subopt_env          *env;
+  STATE               *state;
+  INTERVAL            *interval;
+  unsigned int        *so, *ss, *se;
+  int                 maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length,
+                      circular,
+                      threshold;
+  double              structure_energy, min_en, eprint;
+  char                *struc, *structure;
+  float               correction;
+  vrna_param_t        *P;
+  vrna_md_t           *md;
+  int                 minimal_energy;
+  int                 Fc;
+  int                 *f5;
+  constraint_helpers  constraints_dat;
 
   vrna_fold_compound_prepare(fc, VRNA_OPTION_MFE);
 
@@ -491,6 +533,7 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
   correction = (min_en < 0) ? -0.1 : 0.1;
 
   /* Initialize ------------------------------------------------------------ */
+  init_constraint_helpers(fc, &constraints_dat);
 
   maxlevel        = 0;
   count           = 0;
@@ -584,7 +627,13 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
       /* get (and remove) next interval of state to analyze */
 
       interval = pop(state->Intervals);
-      scan_interval(fc, interval->i, interval->j, interval->array_flag, threshold, state, env);
+      scan_interval(fc,
+                    interval->i,
+                    interval->j,
+                    interval->array_flag,
+                    threshold,
+                    state, env,
+                    &constraints_dat);
 
       free_interval_node(interval);        /* free the current interval */
     }
@@ -602,6 +651,17 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
+PRIVATE void
+init_constraint_helpers(vrna_fold_compound_t  *fc,
+                        constraint_helpers    *d)
+{
+  /* hard constraints first */
+  d->hc_eval_ext  = prepare_hc_ext_def(fc, &(d->hc_dat_ext));
+  d->hc_eval_hp   = prepare_hc_hp_def(fc, &(d->hc_dat_hp));
+  d->hc_eval_int  = prepare_hc_int_def(fc, &(d->hc_dat_int));
+  d->hc_eval_mb   = prepare_hc_mb_def(fc, &(d->hc_dat_mb));
+}
+
 
 /*
  * ---------------------------------------------------------------------------
@@ -1105,7 +1165,8 @@ scan_interval(vrna_fold_compound_t  *fc,
               int                   array_flag,
               int                   threshold,
               STATE                 *state,
-              subopt_env            *env)
+              subopt_env            *env,
+              constraint_helpers    *constraints_dat)
 {
   /* real backtrack routine */
 
@@ -1120,31 +1181,31 @@ scan_interval(vrna_fold_compound_t  *fc,
 
   switch (array_flag) {
     case 0:
-      scan_ext(fc, i, j, threshold, state, env);
+      scan_ext(fc, i, j, threshold, state, env, constraints_dat);
       break;
 
     case 1:
-      scan_mb(fc, i, j, threshold, state, env);
+      scan_mb(fc, i, j, threshold, state, env, constraints_dat);
     /* fall through */
 
     case 3:
-      scan_m1(fc, i, j, array_flag, threshold, state, env);
+      scan_m1(fc, i, j, array_flag, threshold, state, env, constraints_dat);
       break;
 
     case 2:
-      scan_pair(fc, i, j, threshold, state, env);
+      scan_pair(fc, i, j, threshold, state, env, constraints_dat);
       return;
 
     case 4:
-      scan_fms5(fc, i, j, threshold, state, env);
+      scan_fms5(fc, i, j, threshold, state, env, constraints_dat);
       break;
 
     case 5:
-      scan_fms3(fc, i, j, threshold, state, env);
+      scan_fms3(fc, i, j, threshold, state, env, constraints_dat);
       break;
 
     case 6:
-      scan_gquad(fc, i, j, threshold, state, env);
+      scan_gquad(fc, i, j, threshold, state, env, constraints_dat);
       return;
   }
 
@@ -1161,7 +1222,8 @@ scan_mb(vrna_fold_compound_t  *fc,
         int                   j,
         int                   threshold,
         STATE                 *state,
-        subopt_env            *env)
+        subopt_env            *env,
+        constraint_helpers    *constraints_dat)
 {
   unsigned char *hard_constraints;
   char          *ptype;
@@ -1233,15 +1295,20 @@ scan_mb(vrna_fold_compound_t  *fc,
                        fML[indx[k] + i],
                        best_energy,
                        threshold,
-                       env);
+                       env,
+                       constraints_dat);
           free_state_node(temp_state);
         }
       }
 
       k1j = indx[j] + k + 1;
 
+#if 1
+      if ((constraints_dat->hc_eval_mb(i, j, k, k + 1, VRNA_DECOMP_ML_ML_STEM, &(constraints_dat->hc_dat_mb))) &&
+#else
       if ((hard_constraints[length * j + k + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
           (sn[k] == sn[k + 1]) &&
+#endif
           (fML[indx[k] + i] != INF) &&
           (c[k1j] != INF)) {
         type = vrna_get_ptype(k1j, ptype);
@@ -1274,7 +1341,8 @@ scan_mb(vrna_fold_compound_t  *fc,
                  fML[indx[k] + i],
                  best_energy,
                  threshold,
-                 env);
+                 env,
+                 constraints_dat);
           free_state_node(temp_state);
         }
       }
@@ -1306,11 +1374,25 @@ scan_mb(vrna_fold_compound_t  *fc,
           if (sc->energy_up)
             element_energy += sc->energy_up[i][up];
 
-        if (ggg[k1j] + element_energy + best_energy <= threshold)
-          repeat_gquad(fc, k + 1, j, state, element_energy, 0, best_energy, threshold, env);
+        if (ggg[k1j] + element_energy + best_energy <= threshold) {
+          repeat_gquad(fc,
+                       k + 1,
+                       j,
+                       state,
+                       element_energy,
+                       0,
+                       best_energy,
+                       threshold,
+                       env,
+                       constraints_dat);
+        }
       }
 
+#if 1
+      if ((constraints_dat->hc_eval_mb(i, j, k + 1, j, VRNA_DECOMP_ML_STEM, &(constraints_dat->hc_dat_mb))) &&
+#else
       if ((hard_constraints[length * j + k + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
+#endif
           (c[k1j] != INF)) {
         type = vrna_get_ptype(k1j, ptype);
 
@@ -1336,8 +1418,18 @@ scan_mb(vrna_fold_compound_t  *fc,
             element_energy += sc->f(i, j, k + 1, j, VRNA_DECOMP_ML_STEM, sc->data);
         }
 
-        if (c[k1j] + element_energy + best_energy <= threshold)
-          repeat(fc, k + 1, j, state, element_energy, 0, best_energy, threshold, env);
+        if (c[k1j] + element_energy + best_energy <= threshold) {
+          repeat(fc,
+                 k + 1,
+                 j,
+                 state,
+                 element_energy,
+                 0,
+                 best_energy,
+                 threshold,
+                 env,
+                 constraints_dat);
+        }
       }
     }
   }
@@ -1351,7 +1443,8 @@ scan_m1(vrna_fold_compound_t  *fc,
         int                   array_flag,
         int                   threshold,
         STATE                 *state,
-        subopt_env            *env)
+        subopt_env            *env,
+        constraint_helpers    *constraints_dat)
 {
   unsigned char *hard_constraints, hc_decompose;
   char          *ptype;
@@ -1402,7 +1495,11 @@ scan_m1(vrna_fold_compound_t  *fc,
 
   ij = indx[j] + i;
 
+#if 1
+  if ((constraints_dat->hc_eval_mb(i, j, i, j - 1, VRNA_DECOMP_ML_ML, &(constraints_dat->hc_dat_mb))) &&
+#else
   if ((hc->up_ml[j]) &&
+#endif
       (((array_flag == 3) && (fM1[indx[j - 1] + i] != INF)) ||
        (fML[indx[j - 1] + i] != INF))) {
     if (array_flag == 3)
@@ -1430,7 +1527,11 @@ scan_m1(vrna_fold_compound_t  *fc,
 
   hc_decompose = hard_constraints[length * i + j];
 
+#if 1
+  if (constraints_dat->hc_eval_mb(i, j, i, j, VRNA_DECOMP_ML_STEM, &(constraints_dat->hc_dat_mb))) {
+#else
   if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+#endif
     /* i,j may pair */
     cij = c[ij];
     if (cij != INF) {
@@ -1454,15 +1555,35 @@ scan_m1(vrna_fold_compound_t  *fc,
 
       cij += element_energy;
 
-      if (cij + best_energy <= threshold)
-        repeat(fc, i, j, state, element_energy, 0, best_energy, threshold, env);
+      if (cij + best_energy <= threshold) {
+        repeat(fc,
+               i,
+               j,
+               state,
+               element_energy,
+               0,
+               best_energy,
+               threshold,
+               env,
+               constraints_dat);
+      }
     }
   } else if ((with_gquad) && (ggg[ij] != INF)) {
     element_energy  = E_MLstem(0, -1, -1, P);
     cij             = ggg[ij] + element_energy;
 
-    if (cij + best_energy <= threshold)
-      repeat_gquad(fc, i, j, state, element_energy, 0, best_energy, threshold, env);
+    if (cij + best_energy <= threshold) {
+      repeat_gquad(fc,
+                   i,
+                   j,
+                   state,
+                   element_energy,
+                   0,
+                   best_energy,
+                   threshold,
+                   env,
+                   constraints_dat);
+    }
   }
 
   return;
@@ -1475,7 +1596,8 @@ scan_pair(vrna_fold_compound_t  *fc,
           int                   j,
           int                   threshold,
           STATE                 *state,
-          subopt_env            *env)
+          subopt_env            *env,
+          constraint_helpers    *constraints_dat)
 {
   unsigned int  *sn, turn, noLP;
   int           best_energy;
@@ -1495,7 +1617,16 @@ scan_pair(vrna_fold_compound_t  *fc,
     return;
   }
 
-  repeat(fc, i, j, state, 0, 0, best_energy, threshold, env);
+  repeat(fc,
+         i,
+         j,
+         state,
+         0,
+         0,
+         best_energy,
+         threshold,
+         env,
+         constraints_dat);
 
   if (env->nopush)
     if (!noLP)
@@ -1509,7 +1640,8 @@ scan_ext(vrna_fold_compound_t *fc,
          int                  j,
          int                  threshold,
          STATE                *state,
-         subopt_env           *env)
+         subopt_env           *env,
+         constraint_helpers   *constraints_dat)
 {
   unsigned char *hard_constraints;
   char          *ptype;
@@ -1547,7 +1679,7 @@ scan_ext(vrna_fold_compound_t *fc,
   sc = fc->sc;
 
   if (circular) {
-    scan_circular(fc, i, j, threshold, state, env);
+    scan_circular(fc, i, j, threshold, state, env, constraints_dat);
     return;
   }
 
@@ -1557,7 +1689,7 @@ scan_ext(vrna_fold_compound_t *fc,
     vrna_message_error("Error while backtracking!");
 
   if ((j < i + turn + 1) &&
-      ((sn[i] == so[1]) || (sn[j] == so[0]))) {
+      (sn[i] == so[j])) {
     /*
      * minimal structure element
      * do not forget to add f5[j], since it may contain pseudo energies from soft constraining
@@ -1572,9 +1704,14 @@ scan_ext(vrna_fold_compound_t *fc,
     return;
   }
 
+#if 1
+  if ((constraints_dat->hc_eval_ext(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &(constraints_dat->hc_dat_ext))) &&
+      (f5[j - 1] != INF)) {
+#else
   if ((hc->up_ext[j]) &&
       (f5[j - 1] != INF) &&
       (sn[j - 1] == sn[j])) {
+#endif
     tmp_en = 0;
 
     if (sc) {
@@ -1612,15 +1749,22 @@ scan_ext(vrna_fold_compound_t *fc,
                      f5[k - 1],
                      best_energy,
                      threshold,
-                     env);
+                     env,
+                     constraints_dat);
         free_state_node(temp_state);
       }
     }
 
+#if 1
+    if ((constraints_dat->hc_eval_ext(1, j, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, &(constraints_dat->hc_dat_ext))) &&
+        (f5[k - 1] != INF) &&
+        (c[kj] != INF)) {
+#else
     if ((hard_constraints[length * j + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
         (sn[k - 1] == sn[k]) &&
         (f5[k - 1] != INF) &&
         (c[kj] != INF)) {
+#endif
       type = vrna_get_ptype(kj, ptype);
 
       /* k and j pair */
@@ -1644,7 +1788,16 @@ scan_ext(vrna_fold_compound_t *fc,
       if (f5[k - 1] + c[kj] + element_energy + best_energy <= threshold) {
         temp_state  = derive_new_state(1, k - 1, state, 0, 0);
         env->nopush = false;
-        repeat(fc, k, j, temp_state, element_energy, f5[k - 1], best_energy, threshold, env);
+        repeat(fc,
+               k,
+               j,
+               temp_state,
+               element_energy,
+               f5[k - 1],
+               best_energy,
+               threshold,
+               env,
+               constraints_dat);
         free_state_node(temp_state);
       }
     }
@@ -1657,13 +1810,28 @@ scan_ext(vrna_fold_compound_t *fc,
       (ggg[kj] != INF)) {
     element_energy = 0;
 
-    if (ggg[kj] + element_energy + best_energy <= threshold)
+    if (ggg[kj] + element_energy + best_energy <= threshold) {
       /* backtrace the quadruplex */
-      repeat_gquad(fc, 1, j, state, element_energy, 0, best_energy, threshold, env);
+      repeat_gquad(fc,
+                   1,
+                   j,
+                   state,
+                   element_energy,
+                   0,
+                   best_energy,
+                   threshold,
+                   env,
+                   constraints_dat);
+    }
   }
 
+#if 1
+  if ((constraints_dat->hc_eval_ext(1, j, 1, j, VRNA_DECOMP_EXT_STEM, &(constraints_dat->hc_dat_ext))) &&
+      (c[kj] != INF)) {
+#else
   if ((hard_constraints[length + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) &&
       (c[kj] != INF)) {
+#endif
     type  = vrna_get_ptype(kj, ptype);
     s5    = -1;
 
@@ -1682,8 +1850,18 @@ scan_ext(vrna_fold_compound_t *fc,
       if (sc->f)
         element_energy += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
 
-    if (c[kj] + element_energy + best_energy <= threshold)
-      repeat(fc, 1, j, state, element_energy, 0, best_energy, threshold, env);
+    if (c[kj] + element_energy + best_energy <= threshold) {
+      repeat(fc,
+             1,
+             j,
+             state,
+             element_energy,
+             0,
+             best_energy,
+             threshold,
+             env,
+             constraints_dat);
+    }
   }
 }
 
@@ -1694,7 +1872,8 @@ scan_circular(vrna_fold_compound_t  *fc,
               int                   j,
               int                   threshold,
               STATE                 *state,
-              subopt_env            *env)
+              subopt_env            *env,
+              constraint_helpers    *constraints_dat)
 {
   unsigned char *hard_constraints;
   char          *ptype;
@@ -1757,7 +1936,11 @@ scan_circular(vrna_fold_compound_t  *fc,
    * this is an ugly work-arround cause in case of an open chain we do not have to
    * backtrack anything further...
    */
+#if 1
+  if (constraints_dat->hc_eval_ext(1, length, 1, length, VRNA_DECOMP_EXT_UP, &(constraints_dat->hc_dat_ext))) {
+#else
   if (hc->up_ext[1] >= length) {
+#endif
     tmp_en = 0;
 
     if (sc) {
@@ -1837,7 +2020,11 @@ scan_circular(vrna_fold_compound_t  *fc,
               if (hc->up_int[q + 1] < (j - q + k - 1))
                 break;
 
+#if 1
+              if ((constraints_dat->hc_eval_int(k, l, p, q, &(constraints_dat->hc_dat_int))) &&
+#else
               if ((hard_constraints[length * p + q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
+#endif
                   (c[indx[q] + p] != INF)) {
                 type_2 = rtype[vrna_get_ptype(indx[q] + p, ptype)];
 
@@ -1894,8 +2081,14 @@ scan_circular(vrna_fold_compound_t  *fc,
      * first we want to find out which split inidices we can use without exceeding the threshold
      */
     for (k = turn + 1; k < j - 2 * turn; k++) {
+#if 1
+      if ((constraints_dat->hc_eval_mb(1, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, &(constraints_dat->hc_dat_mb))) &&
+          (fML[indx[k] + 1] != INF) &&
+          (fM2[k + 1] != INF)) {
+#else
       if ((fML[indx[k] + 1] != INF) &&
           (fM2[k + 1] != INF)) {
+#endif
         tmpE2 = fML[indx[k] + 1] + fM2[k + 1] + P->MLclosing;
 
         if (tmpE2 + best_energy <= threshold) {
@@ -1904,36 +2097,44 @@ scan_circular(vrna_fold_compound_t  *fc,
            * lets do it first in fM2 anyway
            */
           for (l = k + turn + 2; l < j - turn - 1; l++) {
-            tmpE2 = fM1[indx[l] + k + 1] + fM1[indx[j] + l + 1];
-            if (tmpE2 + fML[indx[k] + 1] + P->MLclosing <= threshold) {
-              /*
-               * we've (hopefully) found a valid decomposition of fM2 and therefor we have all
-               * three intervals for our new state to be pushed on stack R
-               */
-              new_state = copy_state(state);
+#if 1
+            if ((constraints_dat->hc_eval_mb(k + 1, j, l, l + 1, VRNA_DECOMP_ML_ML_ML, &(constraints_dat->hc_dat_mb))) &&
+                (fM1[indx[l] + k + 1] != INF) &&
+                (fM1[indx[j] + l + 1] != INF)) {
+#else
+            if ((fM1[indx[l] + k + 1] != INF) &&
+                (fM1[indx[j] + l + 1] != INF)) {
+#endif
+              tmpE2 = fM1[indx[l] + k + 1] + fM1[indx[j] + l + 1];
+              if (tmpE2 + fML[indx[k] + 1] + P->MLclosing <= threshold) {
+                /*
+                 * we've (hopefully) found a valid decomposition of fM2 and therefor we have all
+                 * three intervals for our new state to be pushed on stack R
+                 */
+                new_state = copy_state(state);
 
-              /* first interval leads for search in fML array */
-              new_interval = make_interval(1, k, 1);
-              push(new_state->Intervals, new_interval);
-              env->nopush = false;
+                /* first interval leads for search in fML array */
+                new_interval = make_interval(1, k, 1);
+                push(new_state->Intervals, new_interval);
+                env->nopush = false;
 
-              /* next, we have the first interval that has to be traced in fM1 */
-              new_interval = make_interval(k + 1, l, 3);
-              push(new_state->Intervals, new_interval);
-              env->nopush = false;
+                /* next, we have the first interval that has to be traced in fM1 */
+                new_interval = make_interval(k + 1, l, 3);
+                push(new_state->Intervals, new_interval);
+                env->nopush = false;
 
-              /* and the last of our three intervals is also one to be traced within fM1 array... */
-              new_interval = make_interval(l + 1, j, 3);
-              push(new_state->Intervals, new_interval);
-              env->nopush = false;
+                /* and the last of our three intervals is also one to be traced within fM1 array... */
+                new_interval = make_interval(l + 1, j, 3);
+                push(new_state->Intervals, new_interval);
+                env->nopush = false;
 
-              /* mmh, we add the energy for closing the multiloop now... */
-              new_state->partial_energy += P->MLclosing;
-              /* next we push our state onto the R stack */
-              push(env->Stack, new_state);
-              env->nopush = false;
+                /* mmh, we add the energy for closing the multiloop now... */
+                new_state->partial_energy += P->MLclosing;
+                /* next we push our state onto the R stack */
+                push(env->Stack, new_state);
+                env->nopush = false;
+              }
             }
-
             /* else we search further... */
           }
 
@@ -1951,7 +2152,8 @@ scan_fms5(vrna_fold_compound_t  *fc,
           unsigned int          strand,
           int                   threshold,
           STATE                 *state,
-          subopt_env            *env)
+          subopt_env            *env,
+          constraint_helpers    *constraints_dat)
 {
   unsigned char *hard_constraints;
   char          *ptype;
@@ -2005,7 +2207,11 @@ scan_fms5(vrna_fold_compound_t  *fc,
 
   /* find split in fms5 */
 
+#if 1
+  if ((constraints_dat->hc_eval_ext(i, end, i + 1, end, VRNA_DECOMP_EXT_EXT, &(constraints_dat->hc_dat_ext))) &&
+#else
   if ((hc->up_ext[i]) &&
+#endif
       (fms5[strand][i] != INF)) {
     element_energy = 0;
 
@@ -2022,7 +2228,11 @@ scan_fms5(vrna_fold_compound_t  *fc,
       fork_state(i + 1, strand, state, element_energy, 4, env);
   }
 
-  if (hard_constraints[length * i + end] & VRNA_DECOMP_EXT_STEM) {
+#if 1
+  if (constraints_dat->hc_eval_ext(i, end, i, end, VRNA_DECOMP_EXT_STEM, &(constraints_dat->hc_dat_ext))) {
+#else
+  if (hard_constraints[length * i + end] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+#endif
     type = vrna_get_ptype(indx[end] + i, ptype);
 
     switch (dangle_model) {
@@ -2043,13 +2253,34 @@ scan_fms5(vrna_fold_compound_t  *fc,
       if (sc->f)
         element_energy += sc->f(i, end, i, end, VRNA_DECOMP_EXT_STEM, sc->data);
 
-    if (c[indx[end] + i] + element_energy + best_energy <= threshold)
-      repeat(fc, i, end, state, element_energy, 0, best_energy, threshold, env);
+    if (c[indx[end] + i] + element_energy + best_energy <= threshold) {
+      repeat(fc,
+             i,
+             end,
+             state,
+             element_energy,
+             0,
+             best_energy,
+             threshold,
+             env,
+             constraints_dat);
+    }
   }
 
-  if ((with_gquad) && (ggg[indx[end] + i] != INF))
-    if (ggg[indx[end] + i] + best_energy <= threshold)
-      repeat_gquad(fc, i, end, state, 0, 0, best_energy, threshold, env);
+  if ((with_gquad) && (ggg[indx[end] + i] != INF)) {
+    if (ggg[indx[end] + i] + best_energy <= threshold) {
+      repeat_gquad(fc,
+                   i,
+                   end,
+                   state,
+                   0,
+                   0,
+                   best_energy,
+                   threshold,
+                   env,
+                   constraints_dat);
+    }
+  }
 
   for (k = i + turn + 1; k < end; k++) {
     if ((with_gquad) &&
@@ -2058,12 +2289,25 @@ scan_fms5(vrna_fold_compound_t  *fc,
       if (fms5[strand][k + 1] + ggg[indx[k] + i] + best_energy <= threshold) {
         temp_state  = derive_new_state(k + 1, strand, state, 0, 4);
         env->nopush = false;
-        repeat_gquad(fc, i, k, temp_state, 0, fms5[strand][k + 1], best_energy, threshold, env);
+        repeat_gquad(fc,
+                     i,
+                     k,
+                     temp_state,
+                     0,
+                     fms5[strand][k + 1],
+                     best_energy,
+                     threshold,
+                     env,
+                     constraints_dat);
         free_state_node(temp_state);
       }
     }
 
-    if (hard_constraints[length * i + k] & VRNA_DECOMP_EXT_STEM) {
+#if 1
+    if (constraints_dat->hc_eval_ext(i, end, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, &(constraints_dat->hc_dat_ext))) {
+#else
+    if (hard_constraints[length * i + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+#endif
       type = vrna_get_ptype(indx[k] + i, ptype);
 
       switch (dangle_model) {
@@ -2095,7 +2339,8 @@ scan_fms5(vrna_fold_compound_t  *fc,
                fms5[strand][k + 1],
                best_energy,
                threshold,
-               env);
+               env,
+               constraints_dat);
         free_state_node(temp_state);
       }
     }
@@ -2109,7 +2354,8 @@ scan_fms3(vrna_fold_compound_t  *fc,
           unsigned int          strand,
           int                   threshold,
           STATE                 *state,
-          subopt_env            *env)
+          subopt_env            *env,
+          constraint_helpers    *constraints_dat)
 {
   unsigned char *hard_constraints;
   char          *ptype;
@@ -2161,7 +2407,11 @@ scan_fms3(vrna_fold_compound_t  *fc,
     return;
   }
 
+#if 1
+  if ((constraints_dat->hc_eval_ext(start, i, start, i - 1, VRNA_DECOMP_EXT_EXT, &(constraints_dat->hc_dat_ext))) &&
+#else
   if ((hc->up_ext[i]) &&
+#endif
       (fms3[strand][i - 1] != INF)) {
     element_energy = 0;
 
@@ -2178,7 +2428,11 @@ scan_fms3(vrna_fold_compound_t  *fc,
       fork_state(i - 1, strand, state, element_energy, 5, env);
   }
 
+#if 1
+  if (constraints_dat->hc_eval_ext(start, i, start, i, VRNA_DECOMP_EXT_STEM, &(constraints_dat->hc_dat_ext))) {
+#else
   if (hard_constraints[length * i + start] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+#endif
     type = vrna_get_ptype(indx[i] + start, ptype);
 
     switch (dangle_model) {
@@ -2198,13 +2452,34 @@ scan_fms3(vrna_fold_compound_t  *fc,
       if (sc->f)
         element_energy += sc->f(start, i, start, i, VRNA_DECOMP_EXT_STEM, sc->data);
 
-    if (c[indx[i] + start] + element_energy + best_energy <= threshold)
-      repeat(fc, start, i, state, element_energy, 0, best_energy, threshold, env);
+    if (c[indx[i] + start] + element_energy + best_energy <= threshold) {
+      repeat(fc,
+             start,
+             i,
+             state,
+             element_energy,
+             0,
+             best_energy,
+             threshold,
+             env,
+             constraints_dat);
+    }
   }
 
-  if ((with_gquad) && (ggg[indx[i] + start] != INF))
-    if (ggg[indx[i] + start] + best_energy <= threshold)
-      repeat_gquad(fc, start, i, state, 0, 0, best_energy, threshold, env);
+  if ((with_gquad) && (ggg[indx[i] + start] != INF)) {
+    if (ggg[indx[i] + start] + best_energy <= threshold) {
+      repeat_gquad(fc,
+                   start,
+                   i,
+                   state,
+                   0,
+                   0,
+                   best_energy,
+                   threshold,
+                   env,
+                   constraints_dat);
+    }
+  }
 
   for (k = start; k < i - turn; k++) {
     if ((with_gquad) &&
@@ -2213,12 +2488,25 @@ scan_fms3(vrna_fold_compound_t  *fc,
       if (fms3[strand][k] + ggg[indx[i] + k + 1] + best_energy <= threshold) {
         temp_state  = derive_new_state(k, strand, state, 0, 5);
         env->nopush = false;
-        repeat_gquad(fc, k + 1, i, temp_state, 0, fms3[strand][k], best_energy, threshold, env);
+        repeat_gquad(fc,
+                     k + 1,
+                     i,
+                     temp_state,
+                     0,
+                     fms3[strand][k],
+                     best_energy,
+                     threshold,
+                     env,
+                     constraints_dat);
         free_state_node(temp_state);
       }
     }
 
+#if 1
+    if (constraints_dat->hc_eval_ext(start, i, k, k + 1, VRNA_DECOMP_EXT_EXT_STEM, &(constraints_dat->hc_dat_ext))) {
+#else
     if (hard_constraints[length * i + k + 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+#endif
       type = vrna_get_ptype(indx[i] + k + 1, ptype);
 
       switch (dangle_model) {
@@ -2249,7 +2537,8 @@ scan_fms3(vrna_fold_compound_t  *fc,
                fms3[strand][k],
                best_energy,
                threshold,
-               env);
+               env,
+               constraints_dat);
         free_state_node(temp_state);
       }
     }
@@ -2263,14 +2552,24 @@ scan_gquad(vrna_fold_compound_t *fc,
            int                  j,
            int                  threshold,
            STATE                *state,
-           subopt_env           *env)
+           subopt_env           *env,
+           constraint_helpers   *constraints_dat)
 {
   int best_energy;
 
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
   /* we have a gquad */
-  repeat_gquad(fc, i, j, state, 0, 0, best_energy, threshold, env);
+  repeat_gquad(fc,
+               i,
+               j,
+               state,
+               0,
+               0,
+               best_energy,
+               threshold,
+               env,
+               constraints_dat);
 
   if (env->nopush)
     vrna_message_warning("%d,%d\nOops, no solution in gquad-repeat!", i, j);
@@ -2286,7 +2585,8 @@ repeat_gquad(vrna_fold_compound_t *fc,
              int                  temp_energy,
              int                  best_energy,
              int                  threshold,
-             subopt_env           *env)
+             subopt_env           *env,
+             constraint_helpers   *constraints_dat)
 {
   short         *S1;
   unsigned int  *sn;
@@ -2350,7 +2650,8 @@ repeat(vrna_fold_compound_t *fc,
        int                  temp_energy,
        int                  best_energy,
        int                  threshold,
-       subopt_env           *env)
+       subopt_env           *env,
+       constraint_helpers   *constraints_dat)
 {
   /*
    * routine to find stacks, bulges, internal loops and  multiloops
@@ -2410,10 +2711,14 @@ repeat(vrna_fold_compound_t *fc,
   if ((noLP) &&
       (i + turn + 2 < j)) {
     /* always consider the structure with additional stack */
+#if 1
+    if (constraints_dat->hc_eval_int(i, j, i + 1, j - 1, &(constraints_dat->hc_dat_int))) {
+#else
     if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
         (hc->mx[n * (i + 1) + j - 1] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
         (sn[i] == sn[i + 1]) &&
         (sn[j - 1] == sn[j])) {
+#endif
       type_2  = rtype[vrna_get_ptype(indx[j - 1] + i + 1, ptype)];
       energy  = 0;
 
@@ -2480,9 +2785,11 @@ repeat(vrna_fold_compound_t *fc,
             if ((p > i + 1) || (q < j - 1))
               continue;
 
-        /* continue unless stack */
-
+#if 1
+        if (constraints_dat->hc_eval_int(i, j, p, q, &(constraints_dat->hc_dat_int))) {
+#else
         if ((sn[i] == sn[p]) && (sn[q] == sn[j])) {
+#endif
           energy = E_IntLoop(p - i - 1, j - q - 1, type, rtype[type_2],
                              S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1], P);
 
@@ -2521,7 +2828,11 @@ repeat(vrna_fold_compound_t *fc,
 
   /* base pair (i,j) encloses a loop with strand nick? */
   if ((sn[i] != sn[j]) &&
+#if 1
+      (constraints_dat->hc_eval_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &(constraints_dat->hc_dat_ext)))) {
+#else
       (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) {
+#endif
     rt = rtype[type];
 
     element_energy = 0;
@@ -2627,8 +2938,12 @@ repeat(vrna_fold_compound_t *fc,
   mm  = P->MLclosing;
   rt  = rtype[type];
 
+#if 1
+  if (constraints_dat->hc_eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &(constraints_dat->hc_dat_mb))) {
+#else
   if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
       ((fc->strands < 2) || ((i != se[so[0]]) && (j != ss[so[1]])))) {
+#endif
     element_energy = mm;
     switch (dangle_model) {
       case 0:
@@ -2650,9 +2965,13 @@ repeat(vrna_fold_compound_t *fc,
     /* multiloop decomposition */
     if ((sc) && (sc->f)) {
       for (k = i + turn + 2; k <= j - turn - 2; k++) {
+#if 1
+        if (constraints_dat->hc_eval_mb(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &(constraints_dat->hc_dat_mb))) {
+#endif
         eee = fML[indx[k - 1] + i + 1];
 
-        if ((eee != INF) && (fM1[indx[j - 1] + k] != INF)) {
+        if ((eee != INF) &&
+            (fM1[indx[j - 1] + k] != INF)) {
           eee += fM1[indx[j - 1] + k] +
                  best_energy;
           aux_eee = element_energy +
@@ -2660,24 +2979,38 @@ repeat(vrna_fold_compound_t *fc,
           if ((eee + aux_eee) <= threshold)
             fork_two_states_pair(i, j, k, state, part_energy + aux_eee, 1, 3, env);
         }
+#if 1
+        }
+#endif
       }
     } else {
       for (k = i + turn + 2; k <= j - turn - 2; k++) {
+#if 1
+        if (constraints_dat->hc_eval_mb(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &(constraints_dat->hc_dat_mb))) {
+#endif
         eee = fML[indx[k - 1] + i + 1];
 
-        if ((eee != INF) && (fM1[indx[j - 1] + k] != INF)) {
+        if ((eee != INF) &&
+            (fM1[indx[j - 1] + k] != INF)) {
           /* multiloop decomposition */
           if ((eee + fM1[indx[j - 1] + k] +
                element_energy + best_energy) <= threshold)
             fork_two_states_pair(i, j, k, state, part_energy + element_energy, 1, 3, env);
         }
+#if 1
+        }
+#endif
       }
     }
   }
 
   if (sn[i] == sn[j]) {
+#if 1
+    if (!no_close) {
+#else
     if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) &&
         (!no_close)) {
+#endif
       element_energy = vrna_E_hp_loop(fc, i, j);
 
       if (element_energy != INF) {
