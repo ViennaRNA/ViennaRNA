@@ -759,7 +759,7 @@ reduce_f5_up(vrna_fold_compound_t       *fc,
   domains_up  = fc->domains_up;
   e           = INF;
 
-  sc_red_ext = sc_wrapper->red_ext;
+  sc_red_ext = sc_wrapper->red_ext5;
 
   /* check for 3' extension with one unpaired nucleotide */
   if (f5[j - 1] != INF) {
@@ -878,8 +878,8 @@ get_stem_contributions_d0(vrna_fold_compound_t      *fc,
   n_seq = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   S     = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
 
-  sc_spl_stem = sc_wrapper->decomp_stem;
-  sc_red_stem = sc_wrapper->red_stem;
+  sc_spl_stem = sc_wrapper->decomp_stem5;
+  sc_red_stem = sc_wrapper->red_stem5;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1143,8 +1143,8 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
   turn  = md->min_loop_size;
   ij    = indx[j] + j - turn - 1;
 
-  sc_spl_stem = sc_wrapper->decomp_stem;
-  sc_red_stem = sc_wrapper->red_stem;
+  sc_spl_stem = sc_wrapper->decomp_stem5;
+  sc_red_stem = sc_wrapper->red_stem5;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1448,8 +1448,8 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
   turn  = md->min_loop_size;
   ij    = indx[j] + j - turn;
 
-  sc_spl_stem = sc_wrapper->decomp_stem;
-  sc_red_stem = sc_wrapper->red_stem;
+  sc_spl_stem = sc_wrapper->decomp_stem5;
+  sc_red_stem = sc_wrapper->red_stem5;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -1740,8 +1740,8 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
   turn  = P->model_details.min_loop_size;
   ij    = indx[j - 1] + j - turn - 1;
 
-  sc_spl_stem = sc_wrapper->decomp_stem1;
-  sc_red_stem = sc_wrapper->red_stem;
+  sc_spl_stem = sc_wrapper->decomp_stem51;
+  sc_red_stem = sc_wrapper->red_stem5;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -2043,8 +2043,8 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
   turn  = md->min_loop_size;
   ij    = indx[j - 1] + j - turn;
 
-  sc_spl_stem = sc_wrapper->decomp_stem1;
-  sc_red_stem = sc_wrapper->red_stem;
+  sc_spl_stem = sc_wrapper->decomp_stem51;
+  sc_red_stem = sc_wrapper->red_stem5;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:

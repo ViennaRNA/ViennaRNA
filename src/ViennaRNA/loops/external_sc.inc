@@ -17,13 +17,28 @@ typedef int (sc_f3_cb)(int              j,
                        struct sc_f3_dat *data);
 
 
+typedef int (sc_ext_pair_cb)(int               i,
+                             int               j,
+                             struct sc_f5_dat  *data);
+
+typedef int (sc_ext_red_cb)(int              i,
+                            int              j,
+                            int              k,
+                            int              l,
+                            struct sc_f5_dat *data);
+
 struct sc_f5_dat {
   int                     **up;
 
-  sc_f5_cb                *red_ext;
-  sc_f5_cb                *red_stem;
-  sc_f5_cb                *decomp_stem;
-  sc_f5_cb                *decomp_stem1;
+  sc_f5_cb                *red_ext5;
+  sc_f5_cb                *red_stem5;
+  sc_f5_cb                *decomp_stem5;
+  sc_f5_cb                *decomp_stem51;
+
+  sc_ext_pair_cb          *pair;
+  sc_ext_red_cb           *red_ext;
+  sc_ext_red_cb           *red_stem;
+  sc_ext_red_cb           *decomp;
 
   vrna_callback_sc_energy *user_cb;
   void                    *user_data;
@@ -88,6 +103,14 @@ sc_f5_cb_reduce(int               j,
 
 
 PRIVATE INLINE int
+sc_ext_cb_reduce(int i,
+                int               j,
+                int               k,
+                int               l,
+                struct sc_f5_dat  *data);
+
+
+PRIVATE INLINE int
 sc_f3_cb_reduce(int               i,
                 int               k,
                 int               l,
@@ -96,6 +119,14 @@ sc_f3_cb_reduce(int               i,
 
 PRIVATE INLINE int
 sc_f5_cb_reduce_comparative(int               j,
+                            int               k,
+                            int               l,
+                            struct sc_f5_dat  *data);
+
+
+PRIVATE INLINE int
+sc_ext_cb_reduce_comparative(int i,
+                            int               j,
                             int               k,
                             int               l,
                             struct sc_f5_dat  *data);
@@ -116,6 +147,14 @@ sc_f5_cb_user_def_reduce_to_ext(int               j,
 
 
 PRIVATE INLINE int
+sc_ext_cb_user_def_reduce_to_ext(int i,
+                                int               j,
+                                int               k,
+                                int               l,
+                                struct sc_f5_dat  *data);
+
+
+PRIVATE INLINE int
 sc_f3_cb_user_def_reduce_to_ext(int               i,
                                 int               k,
                                 int               l,
@@ -124,6 +163,13 @@ sc_f3_cb_user_def_reduce_to_ext(int               i,
 
 PRIVATE INLINE int
 sc_f5_cb_user_reduce_to_ext(int               j,
+                            int               k,
+                            int               l,
+                            struct sc_f5_dat  *data);
+
+PRIVATE INLINE int
+sc_ext_cb_user_reduce_to_ext(int i,
+                              int               j,
                             int               k,
                             int               l,
                             struct sc_f5_dat  *data);
@@ -142,6 +188,13 @@ sc_f5_cb_user_def_reduce_to_ext_comparative(int               j,
                                             int               l,
                                             struct sc_f5_dat  *data);
 
+PRIVATE INLINE int
+sc_ext_cb_user_def_reduce_to_ext_comparative(int i,
+                                              int               j,
+                                            int               k,
+                                            int               l,
+                                            struct sc_f5_dat  *data);
+
 
 PRIVATE INLINE int
 sc_f3_cb_user_def_reduce_to_ext_comparative(int               i,
@@ -152,6 +205,13 @@ sc_f3_cb_user_def_reduce_to_ext_comparative(int               i,
 
 PRIVATE INLINE int
 sc_f5_cb_user_reduce_to_ext_comparative(int               j,
+                                        int               k,
+                                        int               l,
+                                        struct sc_f5_dat  *data);
+
+PRIVATE INLINE int
+sc_ext_cb_user_reduce_to_ext_comparative(int i,
+                                        int               j,
                                         int               k,
                                         int               l,
                                         struct sc_f5_dat  *data);
@@ -170,6 +230,13 @@ sc_f5_cb_user_def_reduce_to_stem(int              j,
                                  int              l,
                                  struct sc_f5_dat *data);
 
+PRIVATE INLINE int
+sc_ext_cb_user_def_reduce_to_stem(int i,
+                                  int              j,
+                                 int              k,
+                                 int              l,
+                                 struct sc_f5_dat *data);
+
 
 PRIVATE INLINE int
 sc_f3_cb_user_def_reduce_to_stem(int              i,
@@ -180,6 +247,13 @@ sc_f3_cb_user_def_reduce_to_stem(int              i,
 
 PRIVATE INLINE int
 sc_f5_cb_user_reduce_to_stem(int              j,
+                             int              k,
+                             int              l,
+                             struct sc_f5_dat *data);
+
+PRIVATE INLINE int
+sc_ext_cb_user_reduce_to_stem(int i,
+                                int              j,
                              int              k,
                              int              l,
                              struct sc_f5_dat *data);
@@ -198,6 +272,13 @@ sc_f5_cb_user_def_reduce_to_stem_comparative(int              j,
                                              int              l,
                                              struct sc_f5_dat *data);
 
+PRIVATE INLINE int
+sc_ext_cb_user_def_reduce_to_stem_comparative(int i,
+                                            int              j,
+                                             int              k,
+                                             int              l,
+                                             struct sc_f5_dat *data);
+
 
 PRIVATE INLINE int
 sc_f3_cb_user_def_reduce_to_stem_comparative(int              i,
@@ -208,6 +289,13 @@ sc_f3_cb_user_def_reduce_to_stem_comparative(int              i,
 
 PRIVATE INLINE int
 sc_f5_cb_user_reduce_to_stem_comparative(int              j,
+                                         int              k,
+                                         int              l,
+                                         struct sc_f5_dat *data);
+
+PRIVATE INLINE int
+sc_ext_cb_user_reduce_to_stem_comparative(int i,
+                                          int              j,
                                          int              k,
                                          int              l,
                                          struct sc_f5_dat *data);
@@ -226,6 +314,13 @@ sc_f5_cb_split_in_ext_stem(int              j,
                            int              l,
                            struct sc_f5_dat *data);
 
+PRIVATE INLINE int
+sc_ext_cb_split(int i,
+                            int              j,
+                           int              k,
+                           int              l,
+                           struct sc_f5_dat *data);
+
 
 PRIVATE INLINE int
 sc_f3_cb_split_in_stem_ext(int              i,
@@ -236,6 +331,13 @@ sc_f3_cb_split_in_stem_ext(int              i,
 
 PRIVATE INLINE int
 sc_f5_cb_user_def_split_in_ext_stem(int               j,
+                                    int               k,
+                                    int               l,
+                                    struct sc_f5_dat  *data);
+
+PRIVATE INLINE int
+sc_ext_cb_user_def_split(int i,
+                                      int               j,
                                     int               k,
                                     int               l,
                                     struct sc_f5_dat  *data);
@@ -254,6 +356,13 @@ sc_f5_cb_user_split_in_ext_stem(int               j,
                                 int               l,
                                 struct sc_f5_dat  *data);
 
+PRIVATE INLINE int
+sc_ext_cb_user_split(int i,
+                                int               j,
+                                int               k,
+                                int               l,
+                                struct sc_f5_dat  *data);
+
 
 PRIVATE INLINE int
 sc_f3_cb_user_split_in_stem_ext(int               i,
@@ -264,6 +373,13 @@ sc_f3_cb_user_split_in_stem_ext(int               i,
 
 PRIVATE INLINE int
 sc_f5_cb_split_in_ext_stem_comparative(int              j,
+                                       int              k,
+                                       int              l,
+                                       struct sc_f5_dat *data);
+
+PRIVATE INLINE int
+sc_ext_cb_split_comparative(int i,
+                                        int              j,
                                        int              k,
                                        int              l,
                                        struct sc_f5_dat *data);
@@ -282,6 +398,13 @@ sc_f5_cb_user_def_split_in_ext_stem_comparative(int               j,
                                                 int               l,
                                                 struct sc_f5_dat  *data);
 
+PRIVATE INLINE int
+sc_ext_cb_user_def_split_comparative(int i,
+                                                int               j,
+                                                int               k,
+                                                int               l,
+                                                struct sc_f5_dat  *data);
+
 
 PRIVATE INLINE int
 sc_f3_cb_user_def_split_in_stem_ext_comparative(int               i,
@@ -292,6 +415,13 @@ sc_f3_cb_user_def_split_in_stem_ext_comparative(int               i,
 
 PRIVATE INLINE int
 sc_f5_cb_user_split_in_ext_stem_comparative(int               j,
+                                            int               k,
+                                            int               l,
+                                            struct sc_f5_dat  *data);
+
+PRIVATE INLINE int
+sc_ext_cb_user_split_comparative(int i,
+                                            int               j,
                                             int               k,
                                             int               l,
                                             struct sc_f5_dat  *data);
@@ -409,11 +539,15 @@ init_sc_f5(vrna_fold_compound_t *fc,
   sc_wrapper->user_data_comparative = NULL;
 
   /* no soft constraints by default */
-  sc_wrapper->red_ext       = NULL;
-  sc_wrapper->red_stem      = NULL;
-  sc_wrapper->decomp_stem   = NULL;
-  sc_wrapper->decomp_stem1  = NULL;
+  sc_wrapper->red_ext5      = NULL;
+  sc_wrapper->red_stem5     = NULL;
+  sc_wrapper->decomp_stem5  = NULL;
+  sc_wrapper->decomp_stem51 = NULL;
 
+  sc_wrapper->pair= NULL;
+  sc_wrapper->red_ext= NULL;
+  sc_wrapper->red_stem= NULL;
+  sc_wrapper->decomp = NULL;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -426,21 +560,30 @@ init_sc_f5(vrna_fold_compound_t *fc,
         /* bind correct wrapper functions */
         if (sc->energy_up) {
           if (sc->f) {
-            sc_wrapper->red_ext       = &sc_f5_cb_user_def_reduce_to_ext;
-            sc_wrapper->red_stem      = &sc_f5_cb_user_def_reduce_to_stem;
-            sc_wrapper->decomp_stem   = &sc_f5_cb_user_def_split_in_ext_stem;
-            sc_wrapper->decomp_stem1  = &sc_f5_cb_user_def_split_in_ext_stem1;
+            sc_wrapper->red_ext5      = &sc_f5_cb_user_def_reduce_to_ext;
+            sc_wrapper->red_stem5      = &sc_f5_cb_user_def_reduce_to_stem;
+            sc_wrapper->decomp_stem5   = &sc_f5_cb_user_def_split_in_ext_stem;
+            sc_wrapper->decomp_stem51  = &sc_f5_cb_user_def_split_in_ext_stem1;
+            sc_wrapper->red_ext         = &sc_ext_cb_user_def_reduce_to_ext;
+            sc_wrapper->red_stem      = &sc_ext_cb_user_def_reduce_to_stem;
+            sc_wrapper->decomp   = &sc_ext_cb_user_def_split;
           } else {
-            sc_wrapper->red_ext       = &sc_f5_cb_reduce;
-            sc_wrapper->red_stem      = &sc_f5_cb_reduce;
-            sc_wrapper->decomp_stem   = &sc_f5_cb_split_in_ext_stem;
-            sc_wrapper->decomp_stem1  = &sc_f5_cb_split_in_ext_stem1;
+            sc_wrapper->red_ext5       = &sc_f5_cb_reduce;
+            sc_wrapper->red_stem5      = &sc_f5_cb_reduce;
+            sc_wrapper->decomp_stem5   = &sc_f5_cb_split_in_ext_stem;
+            sc_wrapper->decomp_stem51  = &sc_f5_cb_split_in_ext_stem1;
+            sc_wrapper->red_ext       = &sc_ext_cb_reduce;
+            sc_wrapper->red_stem      = &sc_ext_cb_reduce;
+            sc_wrapper->decomp   = &sc_ext_cb_split;
           }
         } else if (sc->f) {
-          sc_wrapper->red_ext       = &sc_f5_cb_user_reduce_to_ext;
-          sc_wrapper->red_stem      = &sc_f5_cb_user_reduce_to_stem;
-          sc_wrapper->decomp_stem   = &sc_f5_cb_user_split_in_ext_stem;
-          sc_wrapper->decomp_stem1  = &sc_f5_cb_user_split_in_ext_stem1;
+          sc_wrapper->red_ext5       = &sc_f5_cb_user_reduce_to_ext;
+          sc_wrapper->red_stem5      = &sc_f5_cb_user_reduce_to_stem;
+          sc_wrapper->decomp_stem5   = &sc_f5_cb_user_split_in_ext_stem;
+          sc_wrapper->decomp_stem51  = &sc_f5_cb_user_split_in_ext_stem1;
+          sc_wrapper->red_ext       = &sc_ext_cb_user_reduce_to_ext;
+          sc_wrapper->red_stem      = &sc_ext_cb_user_reduce_to_stem;
+          sc_wrapper->decomp   = &sc_ext_cb_user_split;
         }
       }
 
@@ -475,21 +618,30 @@ init_sc_f5(vrna_fold_compound_t *fc,
         /* bind the correct wrapper functions */
         if (provides_sc_up) {
           if (provides_sc_user_cb) {
-            sc_wrapper->red_ext       = &sc_f5_cb_user_def_reduce_to_ext_comparative;
-            sc_wrapper->red_stem      = &sc_f5_cb_user_def_reduce_to_stem_comparative;
-            sc_wrapper->decomp_stem   = &sc_f5_cb_user_def_split_in_ext_stem_comparative;
-            sc_wrapper->decomp_stem1  = &sc_f5_cb_user_def_split_in_ext_stem1_comparative;
+            sc_wrapper->red_ext5       = &sc_f5_cb_user_def_reduce_to_ext_comparative;
+            sc_wrapper->red_stem5      = &sc_f5_cb_user_def_reduce_to_stem_comparative;
+            sc_wrapper->decomp_stem5   = &sc_f5_cb_user_def_split_in_ext_stem_comparative;
+            sc_wrapper->decomp_stem51  = &sc_f5_cb_user_def_split_in_ext_stem1_comparative;
+            sc_wrapper->red_ext       = &sc_ext_cb_user_def_reduce_to_ext_comparative;
+            sc_wrapper->red_stem      = &sc_ext_cb_user_def_reduce_to_stem_comparative;
+            sc_wrapper->decomp   = &sc_ext_cb_user_def_split;
           } else {
-            sc_wrapper->red_ext       = &sc_f5_cb_reduce_comparative;
-            sc_wrapper->red_stem      = &sc_f5_cb_reduce_comparative;
-            sc_wrapper->decomp_stem   = &sc_f5_cb_split_in_ext_stem_comparative;
-            sc_wrapper->decomp_stem1  = &sc_f5_cb_split_in_ext_stem1_comparative;
+            sc_wrapper->red_ext5       = &sc_f5_cb_reduce_comparative;
+            sc_wrapper->red_stem5      = &sc_f5_cb_reduce_comparative;
+            sc_wrapper->decomp_stem5   = &sc_f5_cb_split_in_ext_stem_comparative;
+            sc_wrapper->decomp_stem51  = &sc_f5_cb_split_in_ext_stem1_comparative;
+            sc_wrapper->red_ext       = &sc_ext_cb_reduce_comparative;
+            sc_wrapper->red_stem      = &sc_ext_cb_reduce_comparative;
+            sc_wrapper->decomp   = &sc_ext_cb_split;
           }
         } else if (provides_sc_user_cb) {
-          sc_wrapper->red_ext       = &sc_f5_cb_user_reduce_to_ext_comparative;
-          sc_wrapper->red_stem      = &sc_f5_cb_user_reduce_to_stem_comparative;
-          sc_wrapper->decomp_stem   = &sc_f5_cb_user_split_in_ext_stem_comparative;
-          sc_wrapper->decomp_stem1  = &sc_f5_cb_user_split_in_ext_stem1_comparative;
+          sc_wrapper->red_ext5       = &sc_f5_cb_user_reduce_to_ext_comparative;
+          sc_wrapper->red_stem5      = &sc_f5_cb_user_reduce_to_stem_comparative;
+          sc_wrapper->decomp_stem5   = &sc_f5_cb_user_split_in_ext_stem_comparative;
+          sc_wrapper->decomp_stem51  = &sc_f5_cb_user_split_in_ext_stem1_comparative;
+          sc_wrapper->red_ext       = &sc_ext_cb_user_reduce_to_ext_comparative;
+          sc_wrapper->red_stem      = &sc_ext_cb_user_reduce_to_stem_comparative;
+          sc_wrapper->decomp   = &sc_ext_cb_user_split;
         }
       }
 
@@ -626,6 +778,17 @@ sc_f5_cb_reduce(int               j,
                 int               l,
                 struct sc_f5_dat  *data)
 {
+  return sc_ext_cb_reduce(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_reduce(int i,
+                int               j,
+                int               k,
+                int               l,
+                struct sc_f5_dat  *data)
+{
   unsigned int  start_2, length_1, length_2;
   int           e_sc, **sc_up;
 
@@ -633,12 +796,12 @@ sc_f5_cb_reduce(int               j,
 
   e_sc = 0;
 
-  length_1  = k - 1;
+  length_1  = k - i;
   start_2   = l + 1;
   length_2  = j - l;
 
   if (length_1 != 0)
-    e_sc += sc_up[1][length_1];
+    e_sc += sc_up[i][length_1];
 
   if (length_2 != 0)
     e_sc += sc_up[start_2][length_2];
@@ -680,7 +843,18 @@ sc_f5_cb_reduce_comparative(int               j,
                             int               l,
                             struct sc_f5_dat  *data)
 {
-  unsigned int  s, start_2, length_1, length_2, **a2s;
+  return sc_ext_cb_reduce_comparative(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_reduce_comparative(int  i,
+                             int               j,
+                             int               k,
+                             int               l,
+                             struct sc_f5_dat  *data)
+{
+  unsigned int  s, start_1, start_2, length_1, length_2, **a2s;
   int           e_sc, ***sc_up;
 
   sc_up = data->up_comparative;
@@ -690,12 +864,13 @@ sc_f5_cb_reduce_comparative(int               j,
 
   for (s = 0; s < data->n_seq; s++) {
     if (sc_up[s]) {
-      length_1  = a2s[s][k - 1];
+      start_1   = a2s[s][i];
+      length_1  = a2s[s][k] - start_1;
       start_2   = a2s[s][l] + 1;
       length_2  = a2s[s][j] - a2s[s][l];
 
       if (length_1 != 0)
-        e_sc += sc_up[s][1][length_1];
+        e_sc += sc_up[s][start_1][length_1];
 
       if (length_2 != 0)
         e_sc += sc_up[s][start_2][length_2];
@@ -749,6 +924,17 @@ sc_f5_cb_user_reduce_to_ext(int               j,
 
 
 PRIVATE INLINE int
+sc_ext_cb_user_reduce_to_ext(int i,
+                            int               j,
+                            int               k,
+                            int               l,
+                            struct sc_f5_dat  *data)
+{
+  return data->user_cb(i, j, k, l, VRNA_DECOMP_EXT_EXT, data->user_data);
+}
+
+
+PRIVATE INLINE int
 sc_f3_cb_user_reduce_to_ext(int               i,
                             int               k,
                             int               l,
@@ -764,6 +950,17 @@ sc_f5_cb_user_reduce_to_ext_comparative(int               j,
                                         int               l,
                                         struct sc_f5_dat  *data)
 {
+  return sc_ext_cb_user_reduce_to_ext_comparative(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_user_reduce_to_ext_comparative(int i,
+                                          int               j,
+                                        int               k,
+                                        int               l,
+                                        struct sc_f5_dat  *data)
+{
   unsigned int  s;
   int           e_sc;
 
@@ -771,9 +968,12 @@ sc_f5_cb_user_reduce_to_ext_comparative(int               j,
 
   for (s = 0; s < data->n_seq; s++)
     if (data->user_cb_comparative[s])
-      e_sc +=
-        data->user_cb_comparative[s](1, j, k, l, VRNA_DECOMP_EXT_EXT,
-                                     data->user_data_comparative[s]);
+      e_sc += data->user_cb_comparative[s](i,
+                                           j,
+                                           k,
+                                           l,
+                                           VRNA_DECOMP_EXT_EXT,
+                                           data->user_data_comparative[s]);
 
   return e_sc;
 }
@@ -806,8 +1006,19 @@ sc_f5_cb_user_def_reduce_to_ext(int               j,
                                 int               l,
                                 struct sc_f5_dat  *data)
 {
-  return sc_f5_cb_reduce(j, k, l, data) +
-         sc_f5_cb_user_reduce_to_ext(j, k, l, data);
+  return sc_ext_cb_user_def_reduce_to_ext(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_user_def_reduce_to_ext(int i,
+                                int               j,
+                                int               k,
+                                int               l,
+                                struct sc_f5_dat  *data)
+{
+  return sc_ext_cb_reduce(i, j, k, l, data) +
+         sc_ext_cb_user_reduce_to_ext(i, j, k, l, data);
 }
 
 
@@ -828,8 +1039,19 @@ sc_f5_cb_user_def_reduce_to_ext_comparative(int               j,
                                             int               l,
                                             struct sc_f5_dat  *data)
 {
-  return sc_f5_cb_reduce_comparative(j, k, l, data) +
-         sc_f5_cb_user_reduce_to_ext_comparative(j, k, l, data);
+  return sc_ext_cb_user_def_reduce_to_ext_comparative(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_user_def_reduce_to_ext_comparative(int i,
+                                              int               j,
+                                            int               k,
+                                            int               l,
+                                            struct sc_f5_dat  *data)
+{
+  return sc_ext_cb_reduce_comparative(i, j, k, l, data) +
+         sc_ext_cb_user_reduce_to_ext_comparative(i, j, k, l, data);
 }
 
 
@@ -850,7 +1072,17 @@ sc_f5_cb_user_reduce_to_stem(int              j,
                              int              l,
                              struct sc_f5_dat *data)
 {
-  return data->user_cb(1, j, k, l, VRNA_DECOMP_EXT_STEM, data->user_data);
+  return sc_ext_cb_user_reduce_to_stem(1, j, k, l, data);
+}
+
+PRIVATE INLINE int
+sc_ext_cb_user_reduce_to_stem(int i,
+                            int              j,
+                             int              k,
+                             int              l,
+                             struct sc_f5_dat *data)
+{
+  return data->user_cb(i, j, k, l, VRNA_DECOMP_EXT_STEM, data->user_data);
 }
 
 
@@ -870,6 +1102,17 @@ sc_f5_cb_user_reduce_to_stem_comparative(int              j,
                                          int              l,
                                          struct sc_f5_dat *data)
 {
+  return sc_ext_cb_user_reduce_to_stem_comparative(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_user_reduce_to_stem_comparative(int i,
+                                          int              j,
+                                         int              k,
+                                         int              l,
+                                         struct sc_f5_dat *data)
+{
   unsigned int  s;
   int           e_sc;
 
@@ -877,9 +1120,12 @@ sc_f5_cb_user_reduce_to_stem_comparative(int              j,
 
   for (s = 0; s < data->n_seq; s++)
     if (data->user_cb_comparative[s])
-      e_sc +=
-        data->user_cb_comparative[s](1, j, k, l, VRNA_DECOMP_EXT_STEM,
-                                     data->user_data_comparative[s]);
+      e_sc += data->user_cb_comparative[s](i,
+                                           j,
+                                           k,
+                                           l,
+                                           VRNA_DECOMP_EXT_STEM,
+                                           data->user_data_comparative[s]);
 
   return e_sc;
 }
@@ -912,8 +1158,19 @@ sc_f5_cb_user_def_reduce_to_stem(int              j,
                                  int              l,
                                  struct sc_f5_dat *data)
 {
-  return sc_f5_cb_reduce(j, k, l, data) +
-         sc_f5_cb_user_reduce_to_stem(j, k, l, data);
+  return sc_ext_cb_user_def_reduce_to_stem(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_user_def_reduce_to_stem(int i,
+                                  int              j,
+                                 int              k,
+                                 int              l,
+                                 struct sc_f5_dat *data)
+{
+  return sc_ext_cb_reduce(i, j, k, l, data) +
+         sc_ext_cb_user_reduce_to_stem(i, j, k, l, data);
 }
 
 
@@ -934,8 +1191,19 @@ sc_f5_cb_user_def_reduce_to_stem_comparative(int              j,
                                              int              l,
                                              struct sc_f5_dat *data)
 {
-  return sc_f5_cb_reduce_comparative(j, k, l, data) +
-         sc_f5_cb_user_reduce_to_stem_comparative(j, k, l, data);
+  return sc_ext_cb_user_def_reduce_to_stem_comparative(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_user_def_reduce_to_stem_comparative(int i,
+                                              int              j,
+                                             int              k,
+                                             int              l,
+                                             struct sc_f5_dat *data)
+{
+  return sc_ext_cb_reduce_comparative(i, j, k, l, data) +
+         sc_ext_cb_user_reduce_to_stem_comparative(i, j, k, l, data);
 }
 
 
@@ -952,6 +1220,17 @@ sc_f3_cb_user_def_reduce_to_stem_comparative(int              i,
 
 PRIVATE INLINE int
 sc_f5_cb_split_in_ext_stem(int              j,
+                           int              k,
+                           int              l,
+                           struct sc_f5_dat *data)
+{
+  return sc_ext_cb_split(1, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_split(int i,
+                            int              j,
                            int              k,
                            int              l,
                            struct sc_f5_dat *data)
@@ -1023,6 +1302,34 @@ sc_f5_cb_split_in_ext_stem_comparative(int              j,
   return e_sc;
 }
 
+PRIVATE INLINE int
+sc_ext_cb_split_comparative(int i,
+                                        int              j,
+                                       int              k,
+                                       int              l,
+                                       struct sc_f5_dat *data)
+{
+  unsigned int  s, start_1, length_1, **a2s;
+  int           e_sc, ***sc_up;
+
+  sc_up = data->up_comparative;
+  a2s   = data->a2s;
+
+  e_sc = 0;
+
+  for (s = 0; s < data->n_seq; s++) {
+    if (sc_up[s]) {
+      start_1   = a2s[s][k] + 1;
+      length_1  = a2s[l - 1] - a2s[k];
+
+      if (length_1 != 0)
+        e_sc += sc_up[s][start_1][length_1];
+    }
+  }
+
+  return e_sc;
+}
+
 
 PRIVATE INLINE int
 sc_f3_cb_split_in_stem_ext_comparative(int              i,
@@ -1063,6 +1370,17 @@ sc_f5_cb_user_split_in_ext_stem(int               j,
 
 
 PRIVATE INLINE int
+sc_ext_cb_user_split(int i,
+                                int               j,
+                                int               k,
+                                int               l,
+                                struct sc_f5_dat  *data)
+{
+  return data->user_cb(i, j, k, l, VRNA_DECOMP_EXT_EXT_EXT, data->user_data);
+}
+
+
+PRIVATE INLINE int
 sc_f3_cb_user_split_in_stem_ext(int               i,
                                 int               k,
                                 int               l,
@@ -1088,6 +1406,31 @@ sc_f5_cb_user_split_in_ext_stem_comparative(int               j,
       e_sc +=
         data->user_cb_comparative[s](1, j, k, l, VRNA_DECOMP_EXT_EXT_STEM,
                                      data->user_data_comparative[s]);
+
+  return e_sc;
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_user_split_comparative(int i,
+                                            int               j,
+                                            int               k,
+                                            int               l,
+                                            struct sc_f5_dat  *data)
+{
+  unsigned int  s;
+  int           e_sc;
+
+  e_sc = 0;
+
+  for (s = 0; s < data->n_seq; s++)
+    if (data->user_cb_comparative[s])
+      e_sc += data->user_cb_comparative[s](i,
+                                           j,
+                                           k,
+                                           l,
+                                           VRNA_DECOMP_EXT_EXT_EXT,
+                                           data->user_data_comparative[s]);
 
   return e_sc;
 }
@@ -1126,6 +1469,18 @@ sc_f5_cb_user_def_split_in_ext_stem(int               j,
 
 
 PRIVATE INLINE int
+sc_ext_cb_user_def_split(int i,
+                                    int               j,
+                                    int               k,
+                                    int               l,
+                                    struct sc_f5_dat  *data)
+{
+  return sc_ext_cb_split(i, j, k, l, data) +
+         sc_ext_cb_user_split(i, j, k, l, data);
+}
+
+
+PRIVATE INLINE int
 sc_f3_cb_user_def_split_in_stem_ext(int               i,
                                     int               k,
                                     int               l,
@@ -1144,6 +1499,18 @@ sc_f5_cb_user_def_split_in_ext_stem_comparative(int               j,
 {
   return sc_f5_cb_split_in_ext_stem_comparative(j, k, l, data) +
          sc_f5_cb_user_split_in_ext_stem_comparative(j, k, l, data);
+}
+
+
+PRIVATE INLINE int
+sc_ext_cb_user_def_split_comparative(int i,
+                                                  int               j,
+                                                int               k,
+                                                int               l,
+                                                struct sc_f5_dat  *data)
+{
+  return sc_ext_cb_split_comparative(i, j, k, l, data) +
+         sc_ext_cb_user_split_comparative(i, j, k, l, data);
 }
 
 
