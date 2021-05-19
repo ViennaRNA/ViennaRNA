@@ -68,6 +68,11 @@ typedef struct {
 
   struct hc_mb_def_dat      hc_dat_mb;
   vrna_callback_hc_evaluate *hc_eval_mb;
+
+  struct sc_f5_dat          sc_dat_f5;
+  struct sc_hp_dat          sc_dat_hp;
+  struct sc_int_dat         sc_dat_int;
+  struct sc_mb_dat          sc_dat_mb;
 } constraint_helpers;
 
 /**
@@ -136,6 +141,10 @@ PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 PRIVATE void
 init_constraint_helpers(vrna_fold_compound_t  *fc,
                         constraint_helpers    *d);
+
+
+PRIVATE void
+free_constraint_helpers(constraint_helpers *d);
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -642,6 +651,8 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
   } /* end of while (1) */
 
   /* cleanup memory */
+  free_constraint_helpers(&constraints_dat);
+
   free(env);
 }
 
@@ -660,8 +671,23 @@ init_constraint_helpers(vrna_fold_compound_t  *fc,
   d->hc_eval_hp   = prepare_hc_hp_def(fc, &(d->hc_dat_hp));
   d->hc_eval_int  = prepare_hc_int_def(fc, &(d->hc_dat_int));
   d->hc_eval_mb   = prepare_hc_mb_def(fc, &(d->hc_dat_mb));
+
+  init_sc_f5(fc, &(d->sc_dat_f5));
+  init_sc_hp(fc, &(d->sc_dat_hp));
+  init_sc_int(fc, &(d->sc_dat_int));
+  init_sc_mb(fc, &(d->sc_dat_mb));
 }
 
+
+PRIVATE void
+free_constraint_helpers(constraint_helpers *d)
+{
+  /* currently only required for comparative folding soft constraints, but here for consistency reasons */
+  free_sc_f5(&(d->sc_dat_f5));
+  free_sc_hp(&(d->sc_dat_hp));
+  free_sc_int(&(d->sc_dat_int));
+  free_sc_mb(&(d->sc_dat_mb));
+}
 
 /*
  * ---------------------------------------------------------------------------
@@ -1326,9 +1352,17 @@ scan_mb(vrna_fold_compound_t  *fc,
 
         element_energy = E_MLstem(type, s5, s3, P);
 
+#if 1
+        if (constraints_dat->sc_dat_mb.decomp_ml)
+          element_energy += constraints_dat->sc_dat_mb.decomp_ml(i, j, k, k + 1, &(constraints_dat->sc_dat_mb));
+
+        if (constraints_dat->sc_dat_mb.red_stem)
+          element_energy += constraints_dat->sc_dat_mb.red_stem(k + 1, j, k + 1, j, &(constraints_dat->sc_dat_mb));
+#else
         if (sc)
           if (sc->f)
             element_energy += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_STEM, sc->data);
+#endif
 
         if (fML[indx[k] + i] + c[k1j] + element_energy + best_energy <= threshold) {
           temp_state  = derive_new_state(i, k, state, 0, 1);
@@ -1410,6 +1444,10 @@ scan_mb(vrna_fold_compound_t  *fc,
 
         element_energy += P->MLbase * up;
 
+#if 1
+        if (constraints_dat->sc_dat_mb.red_stem)
+          element_energy += constraints_dat->sc_dat_mb.red_stem(i, j, k + 1, j, &(constraints_dat->sc_dat_mb));
+#else
         if (sc) {
           if (sc->energy_up)
             element_energy += sc->energy_up[i][up];
@@ -1417,6 +1455,7 @@ scan_mb(vrna_fold_compound_t  *fc,
           if (sc->f)
             element_energy += sc->f(i, j, k + 1, j, VRNA_DECOMP_ML_STEM, sc->data);
         }
+#endif
 
         if (c[k1j] + element_energy + best_energy <= threshold) {
           repeat(fc,
@@ -1502,34 +1541,37 @@ scan_m1(vrna_fold_compound_t  *fc,
 #endif
       (((array_flag == 3) && (fM1[indx[j - 1] + i] != INF)) ||
        (fML[indx[j - 1] + i] != INF))) {
-    if (array_flag == 3)
-      fi = fM1[indx[j - 1] + i] + P->MLbase;
-    else
-      fi = fML[indx[j - 1] + i] + P->MLbase;
+     element_energy = P->MLbase;
 
+#if 1
+    if (constraints_dat->sc_dat_mb.red_ml)
+      element_energy += constraints_dat->sc_dat_mb.red_ml(i, j, i, j - 1, &(constraints_dat->sc_dat_mb));
+#else
     if (sc) {
       if (sc->energy_up)
-        fi += sc->energy_up[j][1];
+        element_energy += sc->energy_up[j][1];
 
       if (sc->f)
-        fi += sc->f(i, j, i, j - 1, VRNA_DECOMP_ML_ML, sc->data);
+        element_energy += sc->f(i, j, i, j - 1, VRNA_DECOMP_ML_ML, sc->data);
+    }
+#endif
+
+    if (array_flag == 3) {
+      fi = element_energy +
+           fM1[indx[j - 1] + i];
+    } else {
+      fi = element_energy +
+           fML[indx[j - 1] + i];
     }
 
-    if ((fi + best_energy <= threshold) && (sn[j - 1] == sn[j])) {
-      /* no basepair, nibbling of 3'-end */
-      if ((sc) &&
-          (sc->energy_up))
-        fork_state(i, j - 1, state, P->MLbase + sc->energy_up[j][1], array_flag, env);
-      else
-        fork_state(i, j - 1, state, P->MLbase, array_flag, env);
-    }
+    if (fi + best_energy <= threshold)
+      fork_state(i, j - 1, state, element_energy, array_flag, env);
   }
-
-  hc_decompose = hard_constraints[length * i + j];
 
 #if 1
   if (constraints_dat->hc_eval_mb(i, j, i, j, VRNA_DECOMP_ML_STEM, &(constraints_dat->hc_dat_mb))) {
 #else
+  hc_decompose = hard_constraints[length * i + j];
   if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
 #endif
     /* i,j may pair */
@@ -1549,9 +1591,14 @@ scan_m1(vrna_fold_compound_t  *fc,
           break;
       }
 
+#if 1
+      if (constraints_dat->sc_dat_mb.red_stem)
+        element_energy += constraints_dat->sc_dat_mb.red_stem(i, j, i, j, &(constraints_dat->sc_dat_mb));
+#else
       if (sc)
         if (sc->f)
           element_energy += sc->f(i, j, i, j, VRNA_DECOMP_ML_STEM, sc->data);
+#endif
 
       cij += element_energy;
 
@@ -1714,6 +1761,10 @@ scan_ext(vrna_fold_compound_t *fc,
 #endif
     tmp_en = 0;
 
+#if 1
+    if (constraints_dat->sc_dat_f5.red_ext)
+      tmp_en += constraints_dat->sc_dat_f5.red_ext(j, 1, j - 1, &(constraints_dat->sc_dat_f5));
+#else
     if (sc) {
       if (sc->energy_up)
         tmp_en += sc->energy_up[j][1];
@@ -1721,6 +1772,7 @@ scan_ext(vrna_fold_compound_t *fc,
       if (sc->f)
         tmp_en += sc->f(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, sc->data);
     }
+#endif
 
     if (f5[j - 1] + tmp_en + best_energy <= threshold)
       /* no basepair, nibbling of 3'-end */
@@ -1780,10 +1832,14 @@ scan_ext(vrna_fold_compound_t *fc,
 
       element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-      /*state->is_duplex=1;*/
+#if 1
+      if (constraints_dat->sc_dat_f5.decomp_stem)
+        element_energy += constraints_dat->sc_dat_f5.decomp_stem(j, k - 1, k, &(constraints_dat->sc_dat_f5));
+#else
       if (sc)
         if (sc->f)
           element_energy += sc->f(1, j, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
+#endif
 
       if (f5[k - 1] + c[kj] + element_energy + best_energy <= threshold) {
         temp_state  = derive_new_state(1, k - 1, state, 0, 0);
@@ -1846,9 +1902,14 @@ scan_ext(vrna_fold_compound_t *fc,
 
     element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
+#if 1
+    if (constraints_dat->sc_dat_f5.red_stem)
+      element_energy += constraints_dat->sc_dat_f5.red_stem(j, 1, j, &(constraints_dat->sc_dat_f5));
+#else
     if (sc)
       if (sc->f)
         element_energy += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
+#endif
 
     if (c[kj] + element_energy + best_energy <= threshold) {
       repeat(fc,
@@ -2042,6 +2103,10 @@ scan_circular(vrna_fold_compound_t  *fc,
                                  S1[q + 1],
                                  P);
 
+#if 1
+                if (constraints_dat->sc_dat_int.pair_ext)
+                  tmpE += constraints_dat->sc_dat_int.pair_ext(k, l, p, q, &(constraints_dat->sc_dat_int));
+#else
                 if (sc) {
                   if (sc->energy_up)
                     tmpE += sc->energy_up[l + 1][p - l - 1]
@@ -2057,6 +2122,7 @@ scan_circular(vrna_fold_compound_t  *fc,
                     }
                   }
                 }
+#endif
 
                 if (c[kl] + c[indx[q] + p] + tmpE + best_energy <= threshold)
                   /*
@@ -2091,6 +2157,9 @@ scan_circular(vrna_fold_compound_t  *fc,
 #endif
         tmpE2 = fML[indx[k] + 1] + fM2[k + 1] + P->MLclosing;
 
+        if (constraints_dat->sc_dat_mb.decomp_ml)
+          tmpE2 += constraints_dat->sc_dat_mb.decomp_ml(1, j, k, k + 1, &(constraints_dat->sc_dat_mb));
+
         if (tmpE2 + best_energy <= threshold) {
           /*
            * grmpfh, we have found a possible split index k so we have to split fM2 and fML now
@@ -2106,6 +2175,10 @@ scan_circular(vrna_fold_compound_t  *fc,
                 (fM1[indx[j] + l + 1] != INF)) {
 #endif
               tmpE2 = fM1[indx[l] + k + 1] + fM1[indx[j] + l + 1];
+
+              if (constraints_dat->sc_dat_mb.decomp_ml)
+                tmpE2 += constraints_dat->sc_dat_mb.decomp_ml(k + 1, j, l, l + 1, &(constraints_dat->sc_dat_mb));
+
               if (tmpE2 + fML[indx[k] + 1] + P->MLclosing <= threshold) {
                 /*
                  * we've (hopefully) found a valid decomposition of fM2 and therefor we have all
@@ -2724,6 +2797,10 @@ repeat(vrna_fold_compound_t *fc,
 
       energy = E_IntLoop(0, 0, type, type_2, S1[i + 1], S1[j - 1], S1[i + 1], S1[j - 1], P);
 
+#if 1
+      if (constraints_dat->sc_dat_int.pair)
+        energy += constraints_dat->sc_dat_int.pair(i, j, i + 1, j - 1, &(constraints_dat->sc_dat_int));
+#else
       if (sc) {
         if (sc->energy_bp)
           energy += sc->energy_bp[ij];
@@ -2738,6 +2815,7 @@ repeat(vrna_fold_compound_t *fc,
         if (sc->f)
           energy += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_IL, sc->data);
       }
+#endif
 
       new_state = derive_new_state(i + 1, j - 1, state, part_energy + energy, 2);
       make_pair(i, j, new_state);
@@ -2795,6 +2873,10 @@ repeat(vrna_fold_compound_t *fc,
 
           new = energy + c[indx[q] + p];
 
+#if 1
+          if (constraints_dat->sc_dat_int.pair)
+            energy += constraints_dat->sc_dat_int.pair(i, j, p, q, &(constraints_dat->sc_dat_int));
+#else
           if (sc) {
             if (sc->energy_up)
               energy += sc->energy_up[i + 1][p - i - 1]
@@ -2815,6 +2897,7 @@ repeat(vrna_fold_compound_t *fc,
             if (sc->f)
               energy += sc->f(i, j, p, q, VRNA_DECOMP_PAIR_IL, sc->data);
           }
+#endif
 
           new = energy + c[indx[q] + p];
 
@@ -2835,7 +2918,7 @@ repeat(vrna_fold_compound_t *fc,
 #endif
     rt = rtype[type];
 
-    element_energy = 0;
+    element_energy = P->DuplexInit;
 
     switch (dangle_model) {
       case 0:
@@ -2853,8 +2936,6 @@ repeat(vrna_fold_compound_t *fc,
                           P);
         break;
     }
-
-    element_energy += P->DuplexInit;
 
     if (sn[i] != sn[i + 1]) {
       if ((sn[j - 1] != sn[j]) &&
@@ -2954,6 +3035,10 @@ repeat(vrna_fold_compound_t *fc,
         break;
     }
 
+#if 1
+    if (constraints_dat->sc_dat_mb.pair)
+      element_energy += constraints_dat->sc_dat_mb.pair(i, j, &(constraints_dat->sc_dat_mb));
+#else
     if (sc) {
       if (sc->energy_bp)
         element_energy += sc->energy_bp[ij];
@@ -2961,6 +3046,7 @@ repeat(vrna_fold_compound_t *fc,
       if (sc->f)
         element_energy += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, sc->data);
     }
+#endif
 
     /* multiloop decomposition */
     if ((sc) && (sc->f)) {
@@ -2975,7 +3061,11 @@ repeat(vrna_fold_compound_t *fc,
           eee += fM1[indx[j - 1] + k] +
                  best_energy;
           aux_eee = element_energy +
+#if 1
+                    constraints_dat->sc_dat_mb.decomp_ml(i + 1, j - 1, k - 1, k, &(constraints_dat->sc_dat_mb));
+#else
                     sc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+#endif
           if ((eee + aux_eee) <= threshold)
             fork_two_states_pair(i, j, k, state, part_energy + aux_eee, 1, 3, env);
         }
@@ -3038,6 +3128,10 @@ repeat(vrna_fold_compound_t *fc,
             (hc->up_int[qs[cnt] + 1] >= j - qs[cnt] - 1)) {
           tmp_en = en[cnt];
 
+#if 1
+          if (constraints_dat->sc_dat_int.pair)
+            tmp_en += constraints_dat->sc_dat_int.pair(i, j, ps[cnt], qs[cnt], &(constraints_dat->sc_dat_int));
+#else
           if (sc) {
             if (sc->energy_bp)
               tmp_en += sc->energy_bp[ij];
@@ -3046,7 +3140,7 @@ repeat(vrna_fold_compound_t *fc,
               tmp_en += sc->energy_up[i + 1][ps[cnt] - i - 1]
                         + sc->energy_up[qs[cnt] + 1][j - qs[cnt] - 1];
           }
-
+#endif
           new_state = derive_new_state(ps[cnt], qs[cnt], state, tmp_en + part_energy, 6);
 
           make_pair(i, j, new_state);
