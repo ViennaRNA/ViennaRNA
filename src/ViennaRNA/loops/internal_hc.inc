@@ -13,6 +13,7 @@ struct hc_int_def_dat {
   unsigned char             *mx;
   unsigned char             **mx_local;
   unsigned int              *sn;
+  unsigned int              n;
   int                       *up;
 
   void                      *hc_dat;
@@ -70,13 +71,27 @@ hc_int_cb_def(int   i,
               int   l,
               void  *data)
 {
+  unsigned char pij, pkl;
+
   struct hc_int_def_dat *dat = (struct hc_int_def_dat *)data;
 
   if ((dat->sn[i] != dat->sn[k]) ||
       (dat->sn[l] != dat->sn[j]))
     return (unsigned char)0;
 
-  return (unsigned char)1;
+  if (dat->mx) {
+    pij = dat->mx[dat->n * i + j];
+    pkl = dat->mx[dat->n * k + l];
+  } else {
+    pij = dat->mx_local[i][j - i];
+    pkl = dat->mx_local[k][l - k];
+  }
+
+  if ((pij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
+      (pkl & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC))
+    return (unsigned char)1;
+
+  return (unsigned char)0;
 }
 
 
@@ -89,7 +104,9 @@ hc_int_cb_def_user(int  i,
 {
   struct hc_int_def_dat *dat = (struct hc_int_def_dat *)data;
 
-  return dat->hc_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, dat->hc_dat);
+  unsigned char eval = hc_int_cb_def(i, j, k, l, data);
+
+  return (dat->hc_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, dat->hc_dat)) ? eval : (unsigned char)0;
 }
 
 
@@ -99,6 +116,7 @@ prepare_hc_int_def(vrna_fold_compound_t   *fc,
 {
   dat->mx       = (fc->hc->type == VRNA_HC_WINDOW) ? NULL : fc->hc->mx;
   dat->mx_local = (fc->hc->type == VRNA_HC_WINDOW) ? fc->hc->matrix_local : NULL;
+  dat->n        = fc->length;
   dat->up       = fc->hc->up_int;
   dat->sn       = fc->strand_number;
   dat->hc_f     = NULL;
