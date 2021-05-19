@@ -128,20 +128,35 @@ hc_mb_cb_def(int            i,
     case VRNA_DECOMP_ML_ML_ML:
       u     = l - k - 1;
       eval  = (unsigned char)1;
-      if ((u != 0) && (dat->hc_up[k + 1] < u))
+      if ((u != 0) &&
+          (dat->hc_up[k + 1] < u))
         eval = (unsigned char)0;
 
+#if 0
       if (dat->sn[k] != dat->sn[l])
         eval = (unsigned char)0;
+#endif
 
       break;
 
     case VRNA_DECOMP_ML_ML:
       eval = (unsigned char)1;
-      if ((di != 0) && ((dat->hc_up[i] < di) || (dat->sn[i] != dat->sn[k])))
+#if 1
+      if ((di != 0) &&
+          (dat->hc_up[i] < di))
+#else
+      if ((di != 0) &&
+          ((dat->hc_up[i] < di) || (dat->sn[i] != dat->sn[k])))
+#endif
         eval = (unsigned char)0;
 
-      if ((dj != 0) && ((dat->hc_up[l + 1] < dj) || (dat->sn[l] != dat->sn[j])))
+#if 1
+      if ((dj != 0) &&
+          (dat->hc_up[l + 1] < dj))
+#else
+      if ((dj != 0) &&
+          ((dat->hc_up[l + 1] < dj) || (dat->sn[l] != dat->sn[j])))
+#endif
         eval = (unsigned char)0;
 
       break;
@@ -149,10 +164,12 @@ hc_mb_cb_def(int            i,
     case VRNA_DECOMP_ML_STEM:
       if (dat->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
         eval = (unsigned char)1;
-        if ((di != 0) && (dat->hc_up[i] < di))
+        if ((di != 0) &&
+            (dat->hc_up[i] < di))
           eval = (unsigned char)0;
 
-        if ((dj != 0) && (dat->hc_up[l + 1] < dj))
+        if ((dj != 0) &&
+            (dat->hc_up[l + 1] < dj))
           eval = (unsigned char)0;
       }
 
@@ -163,12 +180,29 @@ hc_mb_cb_def(int            i,
         eval = (unsigned char)1;
         di--;
         dj--;
-        if ((di != 0) && (dat->hc_up[i + 1] < di))
+        if ((di != 0) &&
+            (dat->hc_up[i + 1] < di))
           eval = (unsigned char)0;
 
-        if ((dj != 0) && (dat->hc_up[l + 1] < dj))
+        if ((dj != 0) &&
+            (dat->hc_up[l + 1] < dj))
           eval = (unsigned char)0;
       }
+
+      break;
+
+    case VRNA_DECOMP_ML_ML_STEM:
+      u     = l - k - 1;
+      if (dat->mx[n * j + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
+        eval = (unsigned char)1;
+
+      if ((u != 0) && (dat->hc_up[k + 1] < u))
+        eval = (unsigned char)0;
+
+#if 0
+      if (dat->sn[k] != dat->sn[l])
+        eval = (unsigned char)0;
+#endif
 
       break;
 
@@ -186,7 +220,7 @@ hc_mb_cb_def(int            i,
       break;
 
     default:
-      vrna_message_warning("hc_cb@multibranch_loops.c: "
+      vrna_message_warning("hc_mb_cb_def@multibranch_hc.inc: "
                            "Unrecognized decomposition %d",
                            d);
   }
@@ -212,6 +246,8 @@ hc_sn(int           i,
 
   switch (d) {
     case VRNA_DECOMP_ML_ML_ML:
+      /* fall through */
+    case VRNA_DECOMP_ML_ML_STEM:
       if (sn[k] == sn[l])
         eval = (unsigned char)1;
 
@@ -230,15 +266,18 @@ hc_sn(int           i,
       break;
 
     case VRNA_DECOMP_PAIR_ML:
-      if ((sn[i] == sn[k]) && (sn[l] == sn[j]))
+      if ((sn[i] == sn[k]) &&
+          (sn[l] == sn[j]))
         eval = (unsigned char)1;
 
       break;
 
     case VRNA_DECOMP_ML_COAXIAL:
-      if ((i == k - 1) && (sn[i] == sn[k]))
+      if ((i == k - 1) &&
+          (sn[i] == sn[k]))
         eval = (unsigned char)1;
-      else if ((l + 1 == j) && (sn[l] == sn[j]))
+      else if ((l + 1 == j) &&
+               (sn[l] == sn[j]))
         eval = (unsigned char)1;
 
       break;
@@ -250,7 +289,7 @@ hc_sn(int           i,
       break;
 
     default:
-      vrna_message_warning("hc_cb@multibranch_loops.c: "
+      vrna_message_warning("hc_sn@multibranch_hc.inc: "
                            "Unrecognized decomposition %d",
                            d);
   }
@@ -337,7 +376,7 @@ hc_mb_cb_def_window(int           i,
       break;
 
     default:
-      vrna_message_warning("hc_cb@multibranch_loops.c: "
+      vrna_message_warning("hc_mb_cb_def_window@multibranch_hc.inc: "
                            "Unrecognized decomposition %d",
                            d);
   }
@@ -456,7 +495,7 @@ hc_mb_cb_def_ext(int            i,
       break;
 
     default:
-      vrna_message_warning("hc_cb@multibranch_loops.c: "
+      vrna_message_warning("hc_mb_cb_def_ext@multibranch_hc.inc: "
                            "Unrecognized decomposition %d",
                            d);
   }
