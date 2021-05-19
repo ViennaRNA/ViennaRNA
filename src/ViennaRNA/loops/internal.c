@@ -976,8 +976,8 @@ E_stack(vrna_fold_compound_t  *fc,
   hc_decompose_ij = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
   hc_decompose_pq = (sliding_window) ? hc_mx_local[p][q - p] : hc_mx[n * p + q];
 
-  eval_loop = (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (hc_decompose_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP);
+  eval_loop = (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
+              (hc_decompose_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
   if (eval_loop && evaluate(i, j, p, q, &hc_dat_local)) {
     switch (fc->type) {
