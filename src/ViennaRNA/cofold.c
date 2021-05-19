@@ -96,14 +96,6 @@ free_end(int                  *array,
          vrna_fold_compound_t *vc);
 
 
-PRIVATE void
-doubleseq(vrna_fold_compound_t *vc);                /* do magic */
-
-
-PRIVATE void
-halfseq(vrna_fold_compound_t *vc);                  /* undo magic */
-
-
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* wrappers for old API compatibility */
