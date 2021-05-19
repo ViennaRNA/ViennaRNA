@@ -71,11 +71,11 @@ typedef struct {
 
 
 struct old_subopt_dat {
-  unsigned long max_sol;
-  unsigned long n_sol;
-  SOLUTION      *SolutionList;
-  FILE          *fp;
-  int           cp;
+  unsigned long           max_sol;
+  unsigned long           n_sol;
+  vrna_subopt_solution_t  *SolutionList;
+  FILE                    *fp;
+  int                     cp;
 };
 
 /*
@@ -111,7 +111,7 @@ PRIVATE vrna_fold_compound_t  *backward_compat_compound = NULL;
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-PRIVATE SOLUTION *
+PRIVATE vrna_subopt_solution_t *
 wrap_subopt(char          *seq,
             char          *structure,
             vrna_param_t  *parameters,
@@ -160,7 +160,8 @@ print_state(STATE *state);
 
 
 PRIVATE void
-UNUSED print_stack(LIST *list);
+UNUSED
+print_stack(LIST *list);
 
 
 PRIVATE LIST *
@@ -172,17 +173,17 @@ push(LIST *list,
      void *data);
 
 
-PRIVATE void
-*pop(LIST *list);
+PRIVATE void *
+pop(LIST *list);
 
 
 PRIVATE int
-best_attainable_energy(vrna_fold_compound_t *vc,
+best_attainable_energy(vrna_fold_compound_t *fc,
                        STATE                *state);
 
 
 PRIVATE void
-scan_interval(vrna_fold_compound_t  *vc,
+scan_interval(vrna_fold_compound_t  *fc,
               int                   i,
               int                   j,
               int                   array_flag,
@@ -192,7 +193,7 @@ scan_interval(vrna_fold_compound_t  *vc,
 
 
 PRIVATE INLINE void
-scan_mb(vrna_fold_compound_t  *vc,
+scan_mb(vrna_fold_compound_t  *fc,
         int                   i,
         int                   j,
         int                   threshold,
@@ -201,7 +202,7 @@ scan_mb(vrna_fold_compound_t  *vc,
 
 
 PRIVATE INLINE void
-scan_m1(vrna_fold_compound_t  *vc,
+scan_m1(vrna_fold_compound_t  *fc,
         int                   i,
         int                   j,
         int                   array_flag,
@@ -212,20 +213,20 @@ scan_m1(vrna_fold_compound_t  *vc,
 
 PRIVATE INLINE void
 scan_pair(vrna_fold_compound_t  *fc,
-              int                   i,
-              int                   j,
-              int                   threshold,
-              STATE                 *state,
-              subopt_env            *env);
+          int                   i,
+          int                   j,
+          int                   threshold,
+          STATE                 *state,
+          subopt_env            *env);
 
 
 PRIVATE INLINE void
-scan_ext(vrna_fold_compound_t  *fc,
-              int                   i,
-              int                   j,
-              int                   threshold,
-              STATE                 *state,
-              subopt_env            *env);
+scan_ext(vrna_fold_compound_t *fc,
+         int                  i,
+         int                  j,
+         int                  threshold,
+         STATE                *state,
+         subopt_env           *env);
 
 
 PRIVATE INLINE void
@@ -257,11 +258,11 @@ scan_fms3(vrna_fold_compound_t  *fc,
 
 PRIVATE INLINE void
 scan_gquad(vrna_fold_compound_t *fc,
-           int                   i,
-           int                   j,
-           int                   threshold,
-           STATE                 *state,
-           subopt_env            *env);
+           int                  i,
+           int                  j,
+           int                  threshold,
+           STATE                *state,
+           subopt_env           *env);
 
 
 PRIVATE void
@@ -282,22 +283,23 @@ get_structure(STATE *state);
 
 
 PRIVATE int
-compare(const void  *solution1,
-        const void  *solution2);
+compare(const void  *a,
+        const void  *b);
+
 
 PRIVATE int
-compare_en(const void  *solution1,
-           const void  *solution2);
+compare_en(const void *a,
+           const void *b);
 
 
 PRIVATE void
-make_output(SOLUTION  *SL,
-            int       cp,
-            FILE      *fp);
+make_output(vrna_subopt_solution_t  *SL,
+            int                     cp,
+            FILE                    *fp);
 
 
 PRIVATE void
-repeat(vrna_fold_compound_t *vc,
+repeat(vrna_fold_compound_t *fc,
        int                  i,
        int                  j,
        STATE                *state,
@@ -309,7 +311,7 @@ repeat(vrna_fold_compound_t *vc,
 
 
 PRIVATE void
-repeat_gquad(vrna_fold_compound_t *vc,
+repeat_gquad(vrna_fold_compound_t *fc,
              int                  i,
              int                  j,
              STATE                *state,
@@ -333,9 +335,9 @@ old_subopt_store(const char *structure,
 
 
 PRIVATE void
-old_subopt_store_compressed(const char *structure,
-                            float      energy,
-                            void       *data);
+old_subopt_store_compressed(const char  *structure,
+                            float       energy,
+                            void        *data);
 
 
 /*
@@ -343,12 +345,269 @@ old_subopt_store_compressed(const char *structure,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
+PUBLIC vrna_subopt_solution_t *
+vrna_subopt(vrna_fold_compound_t  *fc,
+            int                   delta,
+            int                   sorted,
+            FILE                  *fp)
+{
+  struct old_subopt_dat data;
+  vrna_subopt_callback  *cb;
+
+  data.SolutionList = NULL;
+  data.max_sol      = 128;
+  data.n_sol        = 0;
+  data.fp           = fp;
+  data.cp           = fc->cutpoint;
+
+  if (fc) {
+    /* SolutionList stores the suboptimal structures found */
+
+    data.SolutionList =
+      (vrna_subopt_solution_t *)vrna_alloc(data.max_sol * sizeof(vrna_subopt_solution_t));
+
+    /* end initialize ------------------------------------------------------- */
+
+    if (fp) {
+      float min_en;
+      char  *SeQ, *energies = NULL;
+      min_en = vrna_mfe(fc, NULL);
+
+      SeQ       = vrna_cut_point_insert(fc->sequence, fc->cutpoint);
+      energies  = vrna_strdup_printf(" %6.2f %6.2f", min_en, (float)delta / 100.);
+      print_structure(fp, SeQ, energies);
+      free(SeQ);
+      free(energies);
+
+      vrna_mx_mfe_free(fc);
+    }
+
+    cb = old_subopt_store;
+
+    if (fp)
+      cb = (sorted) ? old_subopt_store_compressed : old_subopt_print;
+
+    /* call subopt() */
+    vrna_subopt_cb(fc, delta, cb, (void *)&data);
+
+    if (sorted) {
+      /* sort structures by energy */
+      if (data.n_sol > 0) {
+        int (*compare_fun)(const void *a,
+                           const void *b);
+
+        switch (sorted) {
+          case VRNA_SORT_BY_ENERGY_ASC:
+            compare_fun = compare_en;
+            break;
+
+          default: /* a.k.a. VRNA_SORT_BY_ENERGY_LEXICOGRAPHIC_ASC */
+            compare_fun = compare;
+            break;
+        }
+
+        qsort(data.SolutionList, data.n_sol - 1, sizeof(vrna_subopt_solution_t), compare_fun);
+      }
+
+      if (fp)
+        make_output(data.SolutionList, fc->cutpoint, fp);
+    }
+
+    if (fp) {
+      /* we've printed everything -- free solutions */
+      vrna_subopt_solution_t *sol;
+      for (sol = data.SolutionList; sol->structure != NULL; sol++)
+        free(sol->structure);
+      free(data.SolutionList);
+      data.SolutionList = NULL;
+    }
+  }
+
+  return data.SolutionList;
+}
 
 
-/*---------------------------------------------------------------------------*/
-/*List routines--------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
+PUBLIC void
+vrna_subopt_cb(vrna_fold_compound_t *fc,
+               int                  delta,
+               vrna_subopt_callback *cb,
+               void                 *data)
+{
+  subopt_env    *env;
+  STATE         *state;
+  INTERVAL      *interval;
+  unsigned int  *so, *ss, *se;
+  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular,
+                threshold;
+  double        structure_energy, min_en, eprint;
+  char          *struc, *structure;
+  float         correction;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  int           minimal_energy;
+  int           Fc;
+  int           *f5;
 
+  vrna_fold_compound_prepare(fc, VRNA_OPTION_MFE);
+
+  length  = fc->length;
+  so      = fc->strand_order;
+  ss      = fc->strand_start;
+  se      = fc->strand_end;
+  P       = fc->params;
+  md      = &(P->model_details);
+
+  /*
+   * do mfe folding to get fill arrays and get ground state energy
+   * in case dangles is neither 0 or 2, set dangles=2 while folding
+   */
+
+  circular    = md->circ;
+  logML       = md->logML;
+  old_dangles = dangle_model = md->dangles;
+
+  if (md->uniq_ML != 1) /* failsafe mechanism to enforce valid fM1 array */
+    md->uniq_ML = 1;
+
+  /* temporarily set dangles to 2 if necessary */
+  if ((md->dangles != 0) && (md->dangles != 2))
+    md->dangles = 2;
+
+  struc = (char *)vrna_alloc(sizeof(char) * (length + 1));
+
+  min_en = vrna_mfe(fc, struc);
+
+  /* restore dangle model */
+  md->dangles = old_dangles;
+
+  /* re-evaluate in case we're using logML etc */
+  min_en  = vrna_eval_structure(fc, struc);
+  f5      = fc->matrices->f5;
+  Fc      = fc->matrices->Fc;
+
+  free(struc);
+  eprint = print_energy + min_en;
+
+  correction = (min_en < 0) ? -0.1 : 0.1;
+
+  /* Initialize ------------------------------------------------------------ */
+
+  maxlevel        = 0;
+  count           = 0;
+  partial_energy  = 0;
+
+  /* Initialize the stack ------------------------------------------------- */
+
+  minimal_energy  = (circular) ? Fc : f5[length];
+  threshold       = minimal_energy + delta;
+  if (threshold >= INF) {
+    vrna_message_warning("Energy range too high, limiting to reasonable value");
+    threshold = INF - EMAX;
+  }
+
+  /* init env data structure */
+  env             = (subopt_env *)vrna_alloc(sizeof(subopt_env));
+  env->Stack      = NULL;
+  env->nopush     = true;
+  env->Stack      = make_list();                      /* anchor */
+  env->Intervals  = make_list();                      /* initial state: */
+  interval        = make_interval(1, length, 0);      /* interval [1,length,0] */
+  push(env->Intervals, interval);
+  env->nopush = false;
+  state       = make_state(env->Intervals, NULL, partial_energy, 0, length);
+  /* state->best_energy = minimal_energy; */
+  push(env->Stack, state);
+  env->nopush = false;
+
+  /* end initialize ------------------------------------------------------- */
+
+
+  while (1) {
+    /* forever, til nothing remains on stack */
+
+    maxlevel = (env->Stack->count > maxlevel ? env->Stack->count : maxlevel);
+
+    if (LST_EMPTY(env->Stack)) {
+      /*
+       * we are done! clean up and quit
+       * fprintf(stderr, "maxlevel: %d\n", maxlevel);
+       */
+
+      lst_kill(env->Stack, free_state_node);
+
+      cb(NULL, 0, data);   /* NULL (last time to call callback function */
+
+      break;
+    }
+
+    /* pop the last element ---------------------------------------------- */
+
+    state = pop(env->Stack);                       /* current state to work with */
+
+    if (LST_EMPTY(state->Intervals)) {
+      int e;
+      /* state has no intervals left: we got a solution */
+
+      count++;
+      structure         = get_structure(state);
+      structure_energy  = state->partial_energy / 100.;
+
+#ifdef CHECK_ENERGY
+      structure_energy = vrna_eval_structure(fc, structure);
+
+      if (!logML)
+        if ((double)(state->partial_energy / 100.) != structure_energy) {
+          vrna_message_error("%s %6.2f %6.2f",
+                             structure,
+                             state->partial_energy / 100.,
+                             structure_energy);
+          exit(1);
+        }
+
+#endif
+      if (logML || (dangle_model == 1) || (dangle_model == 3)) /* recalc energy */
+        structure_energy = vrna_eval_structure(fc, structure);
+
+      e = (int)((structure_energy - min_en) * 10. - correction); /* avoid rounding errors */
+      if (e > MAXDOS)
+        e = MAXDOS;
+
+      density_of_states[e]++;
+      if (structure_energy <= eprint) {
+        char *outstruct = vrna_cut_point_insert(structure, (fc->strands > 1) ? ss[so[1]] : -1);
+        cb((const char *)outstruct, structure_energy, data);
+        free(outstruct);
+      }
+
+      free(structure);
+    } else {
+      /* get (and remove) next interval of state to analyze */
+
+      interval = pop(state->Intervals);
+      scan_interval(fc, interval->i, interval->j, interval->array_flag, threshold, state, env);
+
+      free_interval_node(interval);        /* free the current interval */
+    }
+
+    free_state_node(state);                     /* free the current state */
+  } /* end of while (1) */
+
+  /* cleanup memory */
+  free(env);
+}
+
+
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
+
+/*
+ * ---------------------------------------------------------------------------
+ * List routines--------------------------------------------------------------
+ *---------------------------------------------------------------------------
+ */
 PRIVATE void
 make_pair(int   i,
           int   j,
@@ -376,8 +635,6 @@ make_gquad(int    i,
 }
 
 
-/*---------------------------------------------------------------------------*/
-
 PRIVATE INTERVAL *
 make_interval(int i,
               int j,
@@ -393,16 +650,12 @@ make_interval(int i,
 }
 
 
-/*---------------------------------------------------------------------------*/
-
 PRIVATE void
 free_interval_node(INTERVAL *node)
 {
   lst_freenode(node);
 }
 
-
-/*---------------------------------------------------------------------------*/
 
 PRIVATE void
 free_state_node(STATE *node)
@@ -414,8 +667,6 @@ free_state_node(STATE *node)
   lst_freenode(node);
 }
 
-
-/*---------------------------------------------------------------------------*/
 
 PRIVATE STATE *
 make_state(LIST *Intervals,
@@ -448,8 +699,6 @@ make_state(LIST *Intervals,
 }
 
 
-/*---------------------------------------------------------------------------*/
-
 PRIVATE STATE *
 copy_state(STATE *state)
 {
@@ -480,8 +729,6 @@ copy_state(STATE *state)
 }
 
 
-/*---------------------------------------------------------------------------*/
-
 /*@unused @*/ PRIVATE void
 print_state(STATE *state)
 {
@@ -502,8 +749,6 @@ print_state(STATE *state)
 }
 
 
-/*---------------------------------------------------------------------------*/
-
 /*@unused @*/ PRIVATE void
 print_stack(LIST *list)
 {
@@ -519,16 +764,12 @@ print_stack(LIST *list)
 }
 
 
-/*---------------------------------------------------------------------------*/
-
 PRIVATE LIST *
 make_list(void)
 {
   return lst_init();
 }
 
-
-/*---------------------------------------------------------------------------*/
 
 PRIVATE void
 push(LIST *list,
@@ -538,20 +779,19 @@ push(LIST *list,
 }
 
 
-/* PRIVATE void */
-/* push_stack(STATE *state) { */ /* keep the stack sorted by energy */
-/*   STATE *after, *next; */
-/*   nopush = false; */
-/*   next = after = LST_HEAD(Stack); */
-/*   while ( next = lst_next(next)) { */
-/*     if ( next->best_energy >= state->best_energy ) break; */
-/*     after = next; */
-/*   } */
-/*   lst_insertafter(Stack, state, after); */
-/* } */
-
-/*---------------------------------------------------------------------------*/
-
+/*
+ * PRIVATE void
+ * push_stack(STATE *state) { */ /* keep the stack sorted by energy
+ *   STATE *after, *next;
+ *   nopush = false;
+ *   next = after = LST_HEAD(Stack);
+ *   while ( next = lst_next(next)) {
+ *     if ( next->best_energy >= state->best_energy ) break;
+ *     after = next;
+ *   }
+ *   lst_insertafter(Stack, state, after);
+ * }
+ */
 PRIVATE void *
 pop(LIST *list)
 {
@@ -562,12 +802,13 @@ pop(LIST *list)
 }
 
 
-/*---------------------------------------------------------------------------*/
-/*auxiliary routines---------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
-
+/*
+ * ---------------------------------------------------------------------------
+ * auxiliary routines---------------------------------------------------------
+ *---------------------------------------------------------------------------
+ */
 PRIVATE int
-best_attainable_energy(vrna_fold_compound_t *vc,
+best_attainable_energy(vrna_fold_compound_t *fc,
                        STATE                *state)
 {
   /* evaluation of best possible energy attainable within remaining intervals */
@@ -578,9 +819,9 @@ best_attainable_energy(vrna_fold_compound_t *vc,
   vrna_mx_mfe_t *matrices;
   int           *indx;
 
-  md        = &(vc->params->model_details);
-  matrices  = vc->matrices;
-  indx      = vc->jindx;
+  md        = &(fc->params->model_details);
+  matrices  = fc->matrices;
+  indx      = fc->jindx;
 
   sum = state->partial_energy;  /* energy of already found elements */
 
@@ -605,8 +846,6 @@ best_attainable_energy(vrna_fold_compound_t *vc,
 }
 
 
-/*---------------------------------------------------------------------------*/
-
 PRIVATE void
 push_back(LIST  *Stack,
           STATE *state)
@@ -615,8 +854,6 @@ push_back(LIST  *Stack,
   return;
 }
 
-
-/*---------------------------------------------------------------------------*/
 
 PRIVATE char *
 get_structure(STATE *state)
@@ -628,49 +865,46 @@ get_structure(STATE *state)
 }
 
 
-/*---------------------------------------------------------------------------*/
 PRIVATE int
-compare(const void  *solution1,
-        const void  *solution2)
+compare(const void  *a,
+        const void  *b)
 {
-  if (((SOLUTION *)solution1)->energy > ((SOLUTION *)solution2)->energy)
+  if (((vrna_subopt_solution_t *)a)->energy > ((vrna_subopt_solution_t *)b)->energy)
     return 1;
 
-  if (((SOLUTION *)solution1)->energy < ((SOLUTION *)solution2)->energy)
+  if (((vrna_subopt_solution_t *)a)->energy < ((vrna_subopt_solution_t *)b)->energy)
     return -1;
 
-  return strcmp(((SOLUTION *)solution1)->structure,
-                ((SOLUTION *)solution2)->structure);
+  return strcmp(((vrna_subopt_solution_t *)a)->structure,
+                ((vrna_subopt_solution_t *)b)->structure);
 }
 
 
 PRIVATE int
-compare_en(const void  *solution1,
-           const void  *solution2)
+compare_en(const void *a,
+           const void *b)
 {
-  if (((SOLUTION *)solution1)->energy > ((SOLUTION *)solution2)->energy)
+  if (((vrna_subopt_solution_t *)a)->energy > ((vrna_subopt_solution_t *)b)->energy)
     return 1;
 
-  if (((SOLUTION *)solution1)->energy < ((SOLUTION *)solution2)->energy)
+  if (((vrna_subopt_solution_t *)a)->energy < ((vrna_subopt_solution_t *)b)->energy)
     return -1;
 
   return 0;
 }
 
 
-/*---------------------------------------------------------------------------*/
-
 PRIVATE void
-make_output(SOLUTION  *SL,
-            int       cp,
-            FILE      *fp)                                /* prints stuff */
+make_output(vrna_subopt_solution_t  *SL,
+            int                     cp,
+            FILE                    *fp)                  /* prints stuff */
 {
-  SOLUTION *sol;
+  vrna_subopt_solution_t *sol;
 
   for (sol = SL; sol->structure != NULL; sol++) {
-    char *e_string  = vrna_strdup_printf(" %6.2f", sol->energy);
-    char *ss        = vrna_db_unpack(sol->structure);
-    char *s         = vrna_cut_point_insert(ss, cp);
+    char  *e_string = vrna_strdup_printf(" %6.2f", sol->energy);
+    char  *ss       = vrna_db_unpack(sol->structure);
+    char  *s        = vrna_cut_point_insert(ss, cp);
     print_structure(fp, s, e_string);
     free(s);
     free(ss);
@@ -794,7 +1028,7 @@ fork_state_pair_interval(int        i,
   STATE     *new_state;
 
   new_state = copy_state(s);
-  interval = make_interval(k, l, flag);
+  interval  = make_interval(k, l, flag);
   push(new_state->Intervals, interval);
 
   make_pair(i, j, new_state);
@@ -806,13 +1040,13 @@ fork_state_pair_interval(int        i,
 
 
 PRIVATE void
-fork_two_states_pair_ms(int        i,
-                        int        j,
-                        int        sn1,
-                        int        sn2,
-                        STATE      *s,
-                        int        e,
-                        subopt_env *env)
+fork_two_states_pair_ms(int         i,
+                        int         j,
+                        int         sn1,
+                        int         sn2,
+                        STATE       *s,
+                        int         e,
+                        subopt_env  *env)
 {
   INTERVAL  *interval1, *interval2;
   STATE     *new_state;
@@ -864,258 +1098,8 @@ fork_two_states(int         i,
 }
 
 
-/*---------------------------------------------------------------------------*/
-/* start of subopt backtracking ---------------------------------------------*/
-/*---------------------------------------------------------------------------*/
-
-PUBLIC SOLUTION *
-vrna_subopt(vrna_fold_compound_t  *vc,
-            int                   delta,
-            int                   sorted,
-            FILE                  *fp)
-{
-  struct old_subopt_dat data;
-  vrna_subopt_callback  *cb;
-
-  data.SolutionList = NULL;
-  data.max_sol      = 128;
-  data.n_sol        = 0;
-  data.fp           = fp;
-  data.cp           = vc->cutpoint;
-
-  if (vc) {
-    /* SolutionList stores the suboptimal structures found */
-
-    data.SolutionList = (SOLUTION *)vrna_alloc(data.max_sol * sizeof(SOLUTION));
-
-    /* end initialize ------------------------------------------------------- */
-
-    if (fp) {
-      float min_en;
-      char  *SeQ, *energies = NULL;
-      min_en = vrna_mfe(vc, NULL);
-
-      SeQ       = vrna_cut_point_insert(vc->sequence, vc->cutpoint);
-      energies  = vrna_strdup_printf(" %6.2f %6.2f", min_en, (float)delta / 100.);
-      print_structure(fp, SeQ, energies);
-      free(SeQ);
-      free(energies);
-
-      vrna_mx_mfe_free(vc);
-    }
-
-    cb = old_subopt_store;
-
-    if (fp)
-      cb = (sorted) ? old_subopt_store_compressed : old_subopt_print;
-
-    /* call subopt() */
-    vrna_subopt_cb(vc, delta, cb, (void *)&data);
-
-    if (sorted) {
-      /* sort structures by energy */
-      if (data.n_sol > 0) {
-        int (*compare_fun)(const void *a, const void *b);
-
-        switch (sorted) {
-          case VRNA_SORT_BY_ENERGY_ASC:
-            compare_fun = compare_en;
-            break;
-
-          default: /* a.k.a. VRNA_SORT_BY_ENERGY_LEXICOGRAPHIC_ASC */
-            compare_fun = compare;
-            break;
-        }
-
-        qsort(data.SolutionList, data.n_sol - 1, sizeof(SOLUTION), compare_fun);
-      }
-
-      if (fp)
-        make_output(data.SolutionList, vc->cutpoint, fp);
-    }
-
-    if (fp) {
-      /* we've printed everything -- free solutions */
-      SOLUTION *sol;
-      for (sol = data.SolutionList; sol->structure != NULL; sol++)
-        free(sol->structure);
-      free(data.SolutionList);
-      data.SolutionList = NULL;
-    }
-  }
-
-  return data.SolutionList;
-}
-
-
-PUBLIC void
-vrna_subopt_cb(vrna_fold_compound_t *vc,
-               int                  delta,
-               vrna_subopt_callback *cb,
-               void                 *data)
-{
-  subopt_env    *env;
-  STATE         *state;
-  INTERVAL      *interval;
-  unsigned int  *so, *ss, *se;
-  int           maxlevel, count, partial_energy, old_dangles, logML, dangle_model, length, circular,
-                threshold;
-  double        structure_energy, min_en, eprint;
-  char          *struc, *structure;
-  float         correction;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  int           minimal_energy;
-  int           Fc;
-  int           *f5;
-
-  vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_HYBRID);
-
-  length  = vc->length;
-  so      = vc->strand_order;
-  ss      = vc->strand_start;
-  se      = vc->strand_end;
-  P       = vc->params;
-  md      = &(P->model_details);
-
-  /* do mfe folding to get fill arrays and get ground state energy  */
-  /* in case dangles is neither 0 or 2, set dangles=2 while folding */
-
-  circular    = md->circ;
-  logML       = md->logML;
-  old_dangles = dangle_model = md->dangles;
-
-  if (md->uniq_ML != 1) /* failsafe mechanism to enforce valid fM1 array */
-    md->uniq_ML = 1;
-
-  /* temporarily set dangles to 2 if necessary */
-  if ((md->dangles != 0) && (md->dangles != 2))
-    md->dangles = 2;
-
-  struc = (char *)vrna_alloc(sizeof(char) * (length + 1));
-
-  min_en  = vrna_mfe(vc, struc);
-
-  /* restore dangle model */
-  md->dangles = old_dangles;
-
-  /* re-evaluate in case we're using logML etc */
-  min_en  = vrna_eval_structure(vc, struc);
-  f5      = vc->matrices->f5;
-  Fc      = vc->matrices->Fc;
-
-  free(struc);
-  eprint = print_energy + min_en;
-
-  correction = (min_en < 0) ? -0.1 : 0.1;
-
-  /* Initialize ------------------------------------------------------------ */
-
-  maxlevel        = 0;
-  count           = 0;
-  partial_energy  = 0;
-
-  /* Initialize the stack ------------------------------------------------- */
-
-  minimal_energy  = (circular) ? Fc : f5[length];
-  threshold       = minimal_energy + delta;
-  if (threshold >= INF) {
-    vrna_message_warning("Energy range too high, limiting to reasonable value");
-    threshold = INF - EMAX;
-  }
-
-  /* init env data structure */
-  env             = (subopt_env *)vrna_alloc(sizeof(subopt_env));
-  env->Stack      = NULL;
-  env->nopush     = true;
-  env->Stack      = make_list();                      /* anchor */
-  env->Intervals  = make_list();                      /* initial state: */
-  interval        = make_interval(1, length, 0);      /* interval [1,length,0] */
-  push(env->Intervals, interval);
-  env->nopush = false;
-  state       = make_state(env->Intervals, NULL, partial_energy, 0, length);
-  /* state->best_energy = minimal_energy; */
-  push(env->Stack, state);
-  env->nopush = false;
-
-  /* end initialize ------------------------------------------------------- */
-
-
-  while (1) {
-    /* forever, til nothing remains on stack */
-
-    maxlevel = (env->Stack->count > maxlevel ? env->Stack->count : maxlevel);
-
-    if (LST_EMPTY(env->Stack)) {
-      /* we are done! clean up and quit */
-      /* fprintf(stderr, "maxlevel: %d\n", maxlevel); */
-
-      lst_kill(env->Stack, free_state_node);
-
-      cb(NULL, 0, data);   /* NULL (last time to call callback function */
-
-      break;
-    }
-
-    /* pop the last element ---------------------------------------------- */
-
-    state = pop(env->Stack);                       /* current state to work with */
-
-    if (LST_EMPTY(state->Intervals)) {
-      int e;
-      /* state has no intervals left: we got a solution */
-
-      count++;
-      structure         = get_structure(state);
-      structure_energy  = state->partial_energy / 100.;
-
-#ifdef CHECK_ENERGY
-      structure_energy = vrna_eval_structure(vc, structure);
-
-      if (!logML)
-        if ((double)(state->partial_energy / 100.) != structure_energy) {
-          vrna_message_error("%s %6.2f %6.2f",
-                             structure,
-                             state->partial_energy / 100.,
-                             structure_energy);
-          exit(1);
-        }
-
-#endif
-      if (logML || (dangle_model == 1) || (dangle_model == 3)) /* recalc energy */
-        structure_energy = vrna_eval_structure(vc, structure);
-
-      e = (int)((structure_energy - min_en) * 10. - correction); /* avoid rounding errors */
-      if (e > MAXDOS)
-        e = MAXDOS;
-
-      density_of_states[e]++;
-      if (structure_energy <= eprint) {
-        char *outstruct = vrna_cut_point_insert(structure, (vc->strands > 1) ? ss[so[1]] : -1);
-        cb((const char *)outstruct, structure_energy, data);
-        free(outstruct);
-      }
-
-      free(structure);
-    } else {
-      /* get (and remove) next interval of state to analyze */
-
-      interval = pop(state->Intervals);
-      scan_interval(vc, interval->i, interval->j, interval->array_flag, threshold, state, env);
-
-      free_interval_node(interval);        /* free the current interval */
-    }
-
-    free_state_node(state);                     /* free the current state */
-  } /* end of while (1) */
-
-  /* cleanup memory */
-  free(env);
-}
-
-
 PRIVATE void
-scan_interval(vrna_fold_compound_t  *vc,
+scan_interval(vrna_fold_compound_t  *fc,
               int                   i,
               int                   j,
               int                   array_flag,
@@ -1125,40 +1109,42 @@ scan_interval(vrna_fold_compound_t  *vc,
 {
   /* real backtrack routine */
 
-  /* array_flag = 0:  trace back in f5-array  */
-  /* array_flag = 1:  trace back in fML-array */
-  /* array_flag = 2:  trace back in repeat()  */
-  /* array_flag = 3:  trace back in fM1-array */
+  /*
+   * array_flag = 0:  trace back in f5-array
+   * array_flag = 1:  trace back in fML-array
+   * array_flag = 2:  trace back in repeat()
+   * array_flag = 3:  trace back in fM1-array
+   */
 
   env->nopush = true;
 
   switch (array_flag) {
     case 0:
-      scan_ext(vc, i, j, threshold, state, env);
+      scan_ext(fc, i, j, threshold, state, env);
       break;
 
     case 1:
-      scan_mb(vc, i, j, threshold, state, env);
-      /* fall through */
+      scan_mb(fc, i, j, threshold, state, env);
+    /* fall through */
 
     case 3:
-      scan_m1(vc, i, j, array_flag, threshold, state, env);
+      scan_m1(fc, i, j, array_flag, threshold, state, env);
       break;
 
     case 2:
-      scan_pair(vc, i, j, threshold, state, env);
+      scan_pair(fc, i, j, threshold, state, env);
       return;
 
     case 4:
-      scan_fms5(vc, i, j, threshold, state, env);
+      scan_fms5(fc, i, j, threshold, state, env);
       break;
 
     case 5:
-      scan_fms3(vc, i, j, threshold, state, env);
+      scan_fms3(fc, i, j, threshold, state, env);
       break;
 
     case 6:
-      scan_gquad(vc, i, j, threshold, state, env);
+      scan_gquad(fc, i, j, threshold, state, env);
       return;
   }
 
@@ -1170,54 +1156,50 @@ scan_interval(vrna_fold_compound_t  *vc,
 
 
 PRIVATE INLINE void
-scan_mb(vrna_fold_compound_t  *vc,
+scan_mb(vrna_fold_compound_t  *fc,
         int                   i,
         int                   j,
         int                   threshold,
         STATE                 *state,
         subopt_env            *env)
 {
-  STATE         *temp_state;
+  unsigned char *hard_constraints;
+  char          *ptype;
+  short         *S1, s5, s3;
+  unsigned int  *sn, *so, *ss, *se;
+  int           k, type, dangle_model, element_energy, best_energy, *c, *fML,
+                *ggg, length, *indx, with_gquad, turn, stopp, k1j;
   vrna_param_t  *P;
   vrna_md_t     *md;
-  int  k;
-  int  type;
-  int  dangle_model;
-  unsigned int  *sn, *so, *ss, *se;
-  int           element_energy, best_energy;
-  int           *c, *fML, *ggg;
-  int           length, *indx, with_gquad, turn;
-  char          *ptype;
-  short         *S1;
-  unsigned char *hard_constraints;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
+  STATE         *temp_state;
 
-  length  = vc->length;
-  sn      = vc->strand_number;
-  so      = vc->strand_order;
-  ss      = vc->strand_start;
-  se      = vc->strand_end;
-  indx    = vc->jindx;
-  ptype   = vc->ptype;
-  S1      = vc->sequence_encoding;
-  P       = vc->params;
+  length  = fc->length;
+  sn      = fc->strand_number;
+  so      = fc->strand_order;
+  ss      = fc->strand_start;
+  se      = fc->strand_end;
+  indx    = fc->jindx;
+  ptype   = fc->ptype;
+  S1      = fc->sequence_encoding;
+  P       = fc->params;
   md      = &(P->model_details);
 
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
 
-  c   = vc->matrices->c;
-  fML = vc->matrices->fML;
-  ggg = vc->matrices->ggg;
+  c   = fc->matrices->c;
+  fML = fc->matrices->fML;
+  ggg = fc->matrices->ggg;
 
-  hc                = vc->hc;
+  hc                = fc->hc;
   hard_constraints  = hc->mx;
 
-  sc = vc->sc;
+  sc = fc->sc;
 
-  best_energy = best_attainable_energy(vc, state);  /* .. on remaining intervals */
+  best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
   if ((j < i + turn + 1) &&
       (sn[i] == so[j])) {
@@ -1228,9 +1210,6 @@ scan_mb(vrna_fold_compound_t  *vc,
 
     return;
   }
-
-
-  int stopp, k1j;
 
   if ((sn[i - 1] == sn[i]) && (sn[j] == sn[j + 1])) {
     /*backtrack in FML only if multiloop is possible*/
@@ -1246,7 +1225,7 @@ scan_mb(vrna_fold_compound_t  *vc,
         if (fML[indx[k] + i] + ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold) {
           temp_state  = derive_new_state(i, k, state, 0, 1);
           env->nopush = false;
-          repeat_gquad(vc,
+          repeat_gquad(fc,
                        k + 1,
                        j,
                        temp_state,
@@ -1265,7 +1244,6 @@ scan_mb(vrna_fold_compound_t  *vc,
           (sn[k] == sn[k + 1]) &&
           (fML[indx[k] + i] != INF) &&
           (c[k1j] != INF)) {
-        short s5, s3;
         type = vrna_get_ptype(k1j, ptype);
 
         switch (dangle_model) {
@@ -1281,15 +1259,14 @@ scan_mb(vrna_fold_compound_t  *vc,
 
         element_energy = E_MLstem(type, s5, s3, P);
 
-        if (sc) {
+        if (sc)
           if (sc->f)
             element_energy += sc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_STEM, sc->data);
-        }
 
         if (fML[indx[k] + i] + c[k1j] + element_energy + best_energy <= threshold) {
           temp_state  = derive_new_state(i, k, state, 0, 1);
           env->nopush = false;
-          repeat(vc,
+          repeat(fc,
                  k + 1,
                  j,
                  temp_state,
@@ -1304,7 +1281,7 @@ scan_mb(vrna_fold_compound_t  *vc,
     }
   }
 
-  if (vc->strands > 1) {
+  if (fc->strands > 1) {
     stopp = se[so[0]] - 1; /*if cp -1: k on cut, => no ml*/
     stopp = MIN2(stopp, j - 1 - turn);
     if (i > ss[so[1]])
@@ -1314,7 +1291,9 @@ scan_mb(vrna_fold_compound_t  *vc,
   } else {
     stopp = j - 1 - turn;
   }
+
   int up = 1;
+
   for (k = i; k <= stopp; k++, up++) {
     if (hc->up_ml[i] >= up) {
       k1j = indx[j] + k + 1;
@@ -1328,13 +1307,11 @@ scan_mb(vrna_fold_compound_t  *vc,
             element_energy += sc->energy_up[i][up];
 
         if (ggg[k1j] + element_energy + best_energy <= threshold)
-          repeat_gquad(vc, k + 1, j, state, element_energy, 0, best_energy, threshold, env);
+          repeat_gquad(fc, k + 1, j, state, element_energy, 0, best_energy, threshold, env);
       }
 
       if ((hard_constraints[length * j + k + 1] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) &&
           (c[k1j] != INF)) {
-        int s5, s3;
-
         type = vrna_get_ptype(k1j, ptype);
 
         switch (dangle_model) {
@@ -1360,16 +1337,15 @@ scan_mb(vrna_fold_compound_t  *vc,
         }
 
         if (c[k1j] + element_energy + best_energy <= threshold)
-          repeat(vc, k + 1, j, state, element_energy, 0, best_energy, threshold, env);
+          repeat(fc, k + 1, j, state, element_energy, 0, best_energy, threshold, env);
       }
     }
   }
-
 }
 
 
 PRIVATE INLINE void
-scan_m1(vrna_fold_compound_t  *vc,
+scan_m1(vrna_fold_compound_t  *fc,
         int                   i,
         int                   j,
         int                   array_flag,
@@ -1377,28 +1353,24 @@ scan_m1(vrna_fold_compound_t  *vc,
         STATE                 *state,
         subopt_env            *env)
 {
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  int  fi, cij, ij;
-  int  type;
-  int  dangle_model;
-  unsigned int  *sn, *so;
-  int           element_energy, best_energy;
-  int           *c, *fML, *fM1, *ggg;
-  int           length, *indx, circular, with_gquad, turn;
+  unsigned char *hard_constraints, hc_decompose;
   char          *ptype;
   short         *S1;
-  unsigned char *hard_constraints, hc_decompose;
+  unsigned int  *sn, *so;
+  int           fi, cij, ij, type, dangle_model, element_energy, best_energy,
+                *c, *fML, *fM1, *ggg, length, *indx, circular, with_gquad, turn;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  length  = vc->length;
-  sn      = vc->strand_number;
-  so      = vc->strand_order;
-  indx    = vc->jindx;
-  ptype   = vc->ptype;
-  S1      = vc->sequence_encoding;
-  P       = vc->params;
+  length  = fc->length;
+  sn      = fc->strand_number;
+  so      = fc->strand_order;
+  indx    = fc->jindx;
+  ptype   = fc->ptype;
+  S1      = fc->sequence_encoding;
+  P       = fc->params;
   md      = &(P->model_details);
 
   dangle_model  = md->dangles;
@@ -1406,17 +1378,17 @@ scan_m1(vrna_fold_compound_t  *vc,
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
 
-  c   = vc->matrices->c;
-  fML = vc->matrices->fML;
-  fM1 = vc->matrices->fM1;
-  ggg = vc->matrices->ggg;
+  c   = fc->matrices->c;
+  fML = fc->matrices->fML;
+  fM1 = fc->matrices->fM1;
+  ggg = fc->matrices->ggg;
 
-  hc                = vc->hc;
+  hc                = fc->hc;
   hard_constraints  = hc->mx;
 
-  sc = vc->sc;
+  sc = fc->sc;
 
-  best_energy = best_attainable_energy(vc, state);  /* .. on remaining intervals */
+  best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
   if ((j < i + turn + 1) &&
       (sn[i] == so[j])) {
@@ -1432,8 +1404,7 @@ scan_m1(vrna_fold_compound_t  *vc,
 
   if ((hc->up_ml[j]) &&
       (((array_flag == 3) && (fM1[indx[j - 1] + i] != INF)) ||
-        (fML[indx[j - 1] + i] != INF))) {
-
+       (fML[indx[j - 1] + i] != INF))) {
     if (array_flag == 3)
       fi = fM1[indx[j - 1] + i] + P->MLbase;
     else
@@ -1461,9 +1432,9 @@ scan_m1(vrna_fold_compound_t  *vc,
 
   if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
     /* i,j may pair */
-    cij   = c[ij];
+    cij = c[ij];
     if (cij != INF) {
-      type  = vrna_get_ptype(ij, ptype);
+      type = vrna_get_ptype(ij, ptype);
 
       switch (dangle_model) {
         case 0:
@@ -1477,22 +1448,21 @@ scan_m1(vrna_fold_compound_t  *vc,
           break;
       }
 
-      if (sc) {
+      if (sc)
         if (sc->f)
           element_energy += sc->f(i, j, i, j, VRNA_DECOMP_ML_STEM, sc->data);
-      }
 
       cij += element_energy;
 
       if (cij + best_energy <= threshold)
-        repeat(vc, i, j, state, element_energy, 0, best_energy, threshold, env);
+        repeat(fc, i, j, state, element_energy, 0, best_energy, threshold, env);
     }
   } else if ((with_gquad) && (ggg[ij] != INF)) {
     element_energy  = E_MLstem(0, -1, -1, P);
     cij             = ggg[ij] + element_energy;
 
     if (cij + best_energy <= threshold)
-      repeat_gquad(vc, i, j, state, element_energy, 0, best_energy, threshold, env);
+      repeat_gquad(fc, i, j, state, element_energy, 0, best_energy, threshold, env);
   }
 
   return;
@@ -1501,11 +1471,11 @@ scan_m1(vrna_fold_compound_t  *vc,
 
 PRIVATE INLINE void
 scan_pair(vrna_fold_compound_t  *fc,
-              int                   i,
-              int                   j,
-              int                   threshold,
-              STATE                 *state,
-              subopt_env            *env)
+          int                   i,
+          int                   j,
+          int                   threshold,
+          STATE                 *state,
+          subopt_env            *env)
 {
   unsigned int  *sn, turn, noLP;
   int           best_energy;
@@ -1515,7 +1485,7 @@ scan_pair(vrna_fold_compound_t  *fc,
   noLP        = fc->params->model_details.noLP;
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
- if ((j < i + turn + 1) &&
+  if ((j < i + turn + 1) &&
       (sn[i] == sn[j])) {
     if (env->nopush) {
       push_back(env->Stack, state);
@@ -1530,33 +1500,28 @@ scan_pair(vrna_fold_compound_t  *fc,
   if (env->nopush)
     if (!noLP)
       vrna_message_warning("%d,%d\nOops, no solution in repeat!", i, j);
-
 }
 
+
 PRIVATE INLINE void
-scan_ext(vrna_fold_compound_t  *fc,
-              int                   i,
-              int                   j,
-              int                   threshold,
-              STATE                 *state,
-              subopt_env            *env)
+scan_ext(vrna_fold_compound_t *fc,
+         int                  i,
+         int                  j,
+         int                  threshold,
+         STATE                *state,
+         subopt_env           *env)
 {
-  STATE         *temp_state;
+  unsigned char *hard_constraints;
+  char          *ptype;
+  short         *S1, s5, s3;
+  unsigned int  *sn, *so;
+  int           k, type, dangle_model, element_energy, best_energy, *f5, *c, *ggg,
+                length, *indx, circular, with_gquad, turn, kj, tmp_en;
   vrna_param_t  *P;
   vrna_md_t     *md;
-  int  k;
-  int  type;
-  int  dangle_model;
-  unsigned int  *sn, *so;
-  int           element_energy, best_energy;
-  int           *f5, *c, *ggg;
-  int           length, *indx, circular, with_gquad, turn;
-  int           s5, s3, kj, tmp_en;
-  char          *ptype;
-  short         *S1;
-  unsigned char *hard_constraints;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
+  STATE         *temp_state;
 
   length  = fc->length;
   sn      = fc->strand_number;
@@ -1593,8 +1558,10 @@ scan_ext(vrna_fold_compound_t  *fc,
 
   if ((j < i + turn + 1) &&
       ((sn[i] == so[1]) || (sn[j] == so[0]))) {
-    /* minimal structure element */
-    /* do not forget to add f5[j], since it may contain pseudo energies from soft constraining */
+    /*
+     * minimal structure element
+     * do not forget to add f5[j], since it may contain pseudo energies from soft constraining
+     */
     state->partial_energy += f5[j];
 
     if (env->nopush) {
@@ -1604,7 +1571,6 @@ scan_ext(vrna_fold_compound_t  *fc,
 
     return;
   }
-
 
   if ((hc->up_ext[j]) &&
       (f5[j - 1] != INF) &&
@@ -1671,10 +1637,9 @@ scan_ext(vrna_fold_compound_t  *fc,
       element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
       /*state->is_duplex=1;*/
-      if (sc) {
+      if (sc)
         if (sc->f)
           element_energy += sc->f(1, j, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
-      }
 
       if (f5[k - 1] + c[kj] + element_energy + best_energy <= threshold) {
         temp_state  = derive_new_state(1, k - 1, state, 0, 0);
@@ -1713,10 +1678,9 @@ scan_ext(vrna_fold_compound_t  *fc,
 
     element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-    if (sc) {
+    if (sc)
       if (sc->f)
         element_energy += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
-    }
 
     if (c[kj] + element_energy + best_energy <= threshold)
       repeat(fc, 1, j, state, element_energy, 0, best_energy, threshold, env);
@@ -1732,27 +1696,18 @@ scan_circular(vrna_fold_compound_t  *fc,
               STATE                 *state,
               subopt_env            *env)
 {
-  /* real backtrack routine */
-
-  /* array_flag = 0:  trace back in f5-array  */
-  /* array_flag = 1:  trace back in fML-array */
-  /* array_flag = 2:  trace back in repeat()  */
-  /* array_flag = 3:  trace back in fM1-array */
-
-  STATE         *new_state;
-  INTERVAL      *new_interval;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  int  k, l, p, q, tmp_en;
-  int           best_energy;
-  int           *c, *fML, *fM1, Fc;
-  int           FcH, FcI, FcM, *fM2;
-  int           length, *indx, *rtype, turn;
+  unsigned char *hard_constraints;
   char          *ptype;
   short         *S1;
-  unsigned char *hard_constraints;
+  int           k, l, p, q, tmp_en, best_energy, *c, *fML, *fM1, Fc, FcH,
+                FcI, FcM, *fM2, length, *indx, *rtype, turn, kl, type, tmpE,
+                u1, qmin, u2, type_2, tmpE2;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
+  STATE         *new_state;
+  INTERVAL      *new_interval;
 
   length  = fc->length;
   indx    = fc->jindx;
@@ -1762,12 +1717,12 @@ scan_circular(vrna_fold_compound_t  *fc,
   md      = &(P->model_details);
   rtype   = &(md->rtype[0]);
 
-  turn          = md->min_loop_size;
+  turn = md->min_loop_size;
 
   c   = fc->matrices->c;
   fML = fc->matrices->fML;
   fM1 = fc->matrices->fM1;
-  Fc    = fc->matrices->Fc;
+  Fc  = fc->matrices->Fc;
   FcH = fc->matrices->FcH;
   FcI = fc->matrices->FcI;
   FcM = fc->matrices->FcM;
@@ -1795,11 +1750,13 @@ scan_circular(vrna_fold_compound_t  *fc,
     return;
   }
 
-  /* if we've done everything right, we will never reach this case more than once   */
-  /* right after the initilization of the stack with ([1,n], empty, 0)              */
-  /* lets check, if we can have an open chain without breaking the threshold        */
-  /* this is an ugly work-arround cause in case of an open chain we do not have to  */
-  /* backtrack anything further...                                                  */
+  /*
+   * if we've done everything right, we will never reach this point more than once
+   * right after the initilization of the stack with ([1,n], empty, 0)
+   * lets check, if we can have an open chain without breaking the threshold
+   * this is an ugly work-arround cause in case of an open chain we do not have to
+   * backtrack anything further...
+   */
   if (hc->up_ext[1] >= length) {
     tmp_en = 0;
 
@@ -1819,32 +1776,35 @@ scan_circular(vrna_fold_compound_t  *fc,
     }
   }
 
-  /* ok, lets check if we can do an exterior hairpin without breaking the threshold */
-  /* best energy should be 0 if we are here                                         */
+  /*
+   * ok, lets check if we can do an exterior hairpin without breaking the threshold
+   * best energy should be 0 if we are here
+   */
   if (FcH + best_energy <= threshold) {
-    /* lets search for all exterior hairpin cases, that fit into our threshold barrier  */
-    /* we use index k,l to avoid confusion with i,j index of our state...               */
-    /* if we reach here, i should be 1 and j should be n respectively                   */
+    /*
+     * lets search for all exterior hairpin cases, that fit into our threshold barrier
+     * we use index k,l to avoid confusion with i,j index of our state...
+     * if we reach here, i should be 1 and j should be n respectively
+     */
     for (k = i; k < j; k++) {
       if (hc->up_hp[1] < k)
         break;
 
       for (l = j; l >= k + turn + 1; l--) {
-        int kl, tmpE;
-
         kl = indx[l] + k;
 
         if (c[kl] != INF) {
-          tmpE  = vrna_E_hp_loop(fc, l, k);
+          tmpE = vrna_E_hp_loop(fc, l, k);
 
-          if (c[kl] + tmpE + best_energy <= threshold) {
-            /* what we really have to do is something like this, isn't it?  */
-            /* we have to create a new state, with interval [k,l], then we  */
-            /* add our loop energy as initial energy of this state and put  */
-            /* the state onto the stack R... for further refinement...      */
-            /* we also denote this new interval to be scanned in C          */
+          if (c[kl] + tmpE + best_energy <= threshold)
+            /*
+             * what we really have to do is something like this, isn't it?
+             * we have to create a new state, with interval [k,l], then we
+             * add our loop energy as initial energy of this state and put
+             * the state onto the stack R... for further refinement...
+             * we also denote this new interval to be scanned in C
+             */
             fork_state(k, l, state, tmpE, 2, env);
-          }
         }
       }
     }
@@ -1855,8 +1815,6 @@ scan_circular(vrna_fold_compound_t  *fc,
     /* now we search for our exterior interior loop possibilities */
     for (k = i; k < j; k++) {
       for (l = j; l >= k + turn + 1; l--) {
-        int kl, type, tmpE;
-
         kl = indx[l] + k;         /* just confusing these indices ;-) */
 
         if ((hard_constraints[length * k + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
@@ -1864,7 +1822,6 @@ scan_circular(vrna_fold_compound_t  *fc,
           type = rtype[vrna_get_ptype(kl, ptype)];
 
           for (p = l + 1; p < j; p++) {
-            int u1, qmin;
             u1 = p - l - 1;
             if (u1 + k - 1 > MAXLOOP)
               break;
@@ -1877,8 +1834,6 @@ scan_circular(vrna_fold_compound_t  *fc,
               qmin = p + turn + 1;
 
             for (q = j; q >= qmin; q--) {
-              int u2, type_2;
-
               if (hc->up_int[q + 1] < (j - q + k - 1))
                 break;
 
@@ -1916,13 +1871,14 @@ scan_circular(vrna_fold_compound_t  *fc,
                   }
                 }
 
-                if (c[kl] + c[indx[q] + p] + tmpE + best_energy <= threshold) {
-                  /* ok, similar to the hairpin stuff, we add new states onto the stack R */
-                  /* but in contrast to the hairpin decomposition, we have to add two new */
-                  /* intervals, enclosed by k,l and p,q respectively and we also have to  */
-                  /* add the partial energy, that comes from the exterior interior loop   */
+                if (c[kl] + c[indx[q] + p] + tmpE + best_energy <= threshold)
+                  /*
+                   * ok, similar to the hairpin stuff, we add new states onto the stack R
+                   * but in contrast to the hairpin decomposition, we have to add two new
+                   * intervals, enclosed by k,l and p,q respectively and we also have to
+                   * add the partial energy, that comes from the exterior interior loop
+                   */
                   fork_two_states(k, l, p, q, state, tmpE, 2, 2, env);
-                }
               }
             }
           }
@@ -1933,22 +1889,27 @@ scan_circular(vrna_fold_compound_t  *fc,
 
   /* and last but not least, we have a look, if we can do an exterior multiloop within the energy threshold */
   if (FcM <= threshold) {
-    /* this decomposition will be somehow more complicated...so lets see what we do here...           */
-    /* first we want to find out which split inidices we can use without exceeding the threshold */
-    int tmpE2;
+    /*
+     * this decomposition will be somehow more complicated...so lets see what we do here...
+     * first we want to find out which split inidices we can use without exceeding the threshold
+     */
     for (k = turn + 1; k < j - 2 * turn; k++) {
       if ((fML[indx[k] + 1] != INF) &&
           (fM2[k + 1] != INF)) {
         tmpE2 = fML[indx[k] + 1] + fM2[k + 1] + P->MLclosing;
 
         if (tmpE2 + best_energy <= threshold) {
-          /* grmpfh, we have found a possible split index k so we have to split fM2 and fML now */
-          /* lets do it first in fM2 anyway */
+          /*
+           * grmpfh, we have found a possible split index k so we have to split fM2 and fML now
+           * lets do it first in fM2 anyway
+           */
           for (l = k + turn + 2; l < j - turn - 1; l++) {
             tmpE2 = fM1[indx[l] + k + 1] + fM1[indx[j] + l + 1];
             if (tmpE2 + fML[indx[k] + 1] + P->MLclosing <= threshold) {
-              /* we've (hopefully) found a valid decomposition of fM2 and therefor we have all */
-              /* three intervals for our new state to be pushed on stack R */
+              /*
+               * we've (hopefully) found a valid decomposition of fM2 and therefor we have all
+               * three intervals for our new state to be pushed on stack R
+               */
               new_state = copy_state(state);
 
               /* first interval leads for search in fML array */
@@ -1992,28 +1953,17 @@ scan_fms5(vrna_fold_compound_t  *fc,
           STATE                 *state,
           subopt_env            *env)
 {
-  /* real backtrack routine */
-
-  /* array_flag = 0:  trace back in f5-array  */
-  /* array_flag = 1:  trace back in fML-array */
-  /* array_flag = 2:  trace back in repeat()  */
-  /* array_flag = 3:  trace back in fM1-array */
-
-  STATE         *temp_state;
+  unsigned char *hard_constraints;
+  char          *ptype;
+  short         *S1, s5, s3;
+  unsigned int  k, type, *sn, *se, end;
+  int           dangle_model, element_energy, best_energy, *c, *ggg, **fms5,
+                length, *indx, with_gquad, turn;
   vrna_param_t  *P;
   vrna_md_t     *md;
-  int  dangle_model;
-  unsigned int  k, type;
-  unsigned int  *sn, *se, end;
-  int           element_energy, best_energy;
-  int           *c, *ggg, **fms5;
-  int           length, *indx, with_gquad, turn;
-  char          *ptype;
-  short         *S1;
-  short s5, s3;
-  unsigned char *hard_constraints;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
+  STATE         *temp_state;
 
   length  = fc->length;
   sn      = fc->strand_number;
@@ -2028,8 +1978,8 @@ scan_fms5(vrna_fold_compound_t  *fc,
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
 
-  c   = fc->matrices->c;
-  ggg = fc->matrices->ggg;
+  c     = fc->matrices->c;
+  ggg   = fc->matrices->ggg;
   fms5  = fc->matrices->fms5;
 
   hc                = fc->hc;
@@ -2077,22 +2027,21 @@ scan_fms5(vrna_fold_compound_t  *fc,
 
     switch (dangle_model) {
       case 2:
-        s5 = ((i > 1) && (sn[i - 1] == sn[i])) ? S1[i - 1] : -1;
-        s3 = -1;
+        s5  = ((i > 1) && (sn[i - 1] == sn[i])) ? S1[i - 1] : -1;
+        s3  = -1;
         break;
 
       default:
-        s5 = -1;
-        s3 = -1;
+        s5  = -1;
+        s3  = -1;
         break;
     }
 
     element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-    if (sc) {
+    if (sc)
       if (sc->f)
         element_energy += sc->f(i, end, i, end, VRNA_DECOMP_EXT_STEM, sc->data);
-    }
 
     if (c[indx[end] + i] + element_energy + best_energy <= threshold)
       repeat(fc, i, end, state, element_energy, 0, best_energy, threshold, env);
@@ -2119,27 +2068,34 @@ scan_fms5(vrna_fold_compound_t  *fc,
 
       switch (dangle_model) {
         case 2:
-          s5 = ((i > 1) && (sn[i - 1] == sn[i])) ? S1[i - 1] : -1;
-          s3 = (sn[k] == sn[k + 1]) ? S1[k + 1] : -1;
+          s5  = ((i > 1) && (sn[i - 1] == sn[i])) ? S1[i - 1] : -1;
+          s3  = (sn[k] == sn[k + 1]) ? S1[k + 1] : -1;
           break;
 
         default:
-          s5 = -1;
-          s3 = -1;
+          s5  = -1;
+          s3  = -1;
           break;
       }
 
       element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-      if (sc) {
+      if (sc)
         if (sc->f)
           element_energy += sc->f(i, end, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
-      }
 
       if (fms5[strand][k + 1] + c[indx[k] + i] + element_energy + best_energy <= threshold) {
         temp_state  = derive_new_state(k + 1, strand, state, 0, 4);
         env->nopush = false;
-        repeat(fc, i, k, temp_state, element_energy, fms5[strand][k + 1], best_energy, threshold, env);
+        repeat(fc,
+               i,
+               k,
+               temp_state,
+               element_energy,
+               fms5[strand][k + 1],
+               best_energy,
+               threshold,
+               env);
         free_state_node(temp_state);
       }
     }
@@ -2155,20 +2111,17 @@ scan_fms3(vrna_fold_compound_t  *fc,
           STATE                 *state,
           subopt_env            *env)
 {
-  STATE         *temp_state;
+  unsigned char *hard_constraints;
+  char          *ptype;
+  short         *S1, s5, s3;
+  unsigned int  *sn, *ss, start, k, type;
+  int           dangle_model, element_energy, best_energy, *c, *ggg, **fms3, length,
+                *indx, with_gquad, turn;
   vrna_param_t  *P;
   vrna_md_t     *md;
-  unsigned int  *sn, *ss, start, k, type;
-  int           dangle_model;
-  int           element_energy, best_energy;
-  int           *c, *ggg, **fms3;
-  int           length, *indx, with_gquad, turn;
-  char          *ptype;
-  short         *S1;
-  short s5, s3;
-  unsigned char *hard_constraints;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
+  STATE         *temp_state;
 
   length  = fc->length;
   sn      = fc->strand_number;
@@ -2183,8 +2136,8 @@ scan_fms3(vrna_fold_compound_t  *fc,
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
 
-  c   = fc->matrices->c;
-  ggg = fc->matrices->ggg;
+  c     = fc->matrices->c;
+  ggg   = fc->matrices->ggg;
   fms3  = fc->matrices->fms3;
 
   hc                = fc->hc;
@@ -2226,12 +2179,12 @@ scan_fms3(vrna_fold_compound_t  *fc,
   }
 
   if (hard_constraints[length * i + start] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-    type = vrna_get_ptype(indx[i] + start, ptype); 
+    type = vrna_get_ptype(indx[i] + start, ptype);
 
     switch (dangle_model) {
       case 2:
-        s5    = -1;
-        s3    = ((i < length) && (sn[i] == sn[i + 1])) ? S1[i + 1] : -1;
+        s5  = -1;
+        s3  = ((i < length) && (sn[i] == sn[i + 1])) ? S1[i + 1] : -1;
         break;
 
       default:
@@ -2241,10 +2194,9 @@ scan_fms3(vrna_fold_compound_t  *fc,
 
     element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-    if (sc) {
+    if (sc)
       if (sc->f)
         element_energy += sc->f(start, i, start, i, VRNA_DECOMP_EXT_STEM, sc->data);
-    }
 
     if (c[indx[i] + start] + element_energy + best_energy <= threshold)
       repeat(fc, start, i, state, element_energy, 0, best_energy, threshold, env);
@@ -2282,15 +2234,22 @@ scan_fms3(vrna_fold_compound_t  *fc,
 
       element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-      if (sc) {
+      if (sc)
         if (sc->f)
           element_energy += sc->f(start, i, k, k + 1, VRNA_DECOMP_EXT_EXT_STEM, sc->data);
-      }
 
       if (fms3[strand][k] + c[indx[i] + k + 1] + element_energy + best_energy <= threshold) {
         temp_state  = derive_new_state(k, strand, state, 0, 5);
         env->nopush = false;
-        repeat(fc, k + 1, i, temp_state, element_energy, fms3[strand][k], best_energy, threshold, env);
+        repeat(fc,
+               k + 1,
+               i,
+               temp_state,
+               element_energy,
+               fms3[strand][k],
+               best_energy,
+               threshold,
+               env);
         free_state_node(temp_state);
       }
     }
@@ -2300,11 +2259,11 @@ scan_fms3(vrna_fold_compound_t  *fc,
 
 PRIVATE INLINE void
 scan_gquad(vrna_fold_compound_t *fc,
-           int                   i,
-           int                   j,
-           int                   threshold,
-           STATE                 *state,
-           subopt_env            *env)
+           int                  i,
+           int                  j,
+           int                  threshold,
+           STATE                *state,
+           subopt_env           *env)
 {
   int best_energy;
 
@@ -2318,9 +2277,8 @@ scan_gquad(vrna_fold_compound_t *fc,
 }
 
 
-/*---------------------------------------------------------------------------*/
 PRIVATE void
-repeat_gquad(vrna_fold_compound_t *vc,
+repeat_gquad(vrna_fold_compound_t *fc,
              int                  i,
              int                  j,
              STATE                *state,
@@ -2330,20 +2288,21 @@ repeat_gquad(vrna_fold_compound_t *vc,
              int                  threshold,
              subopt_env           *env)
 {
-  unsigned int  *sn;
-  int           *ggg, *indx, element_energy;
   short         *S1;
+  unsigned int  *sn;
+  int           *ggg, *indx, element_energy, cnt, *L, *l, num_gquads;
   vrna_param_t  *P;
 
-  indx  = vc->jindx;
-  sn    = vc->strand_number;
-  ggg   = vc->matrices->ggg;
-  S1    = vc->sequence_encoding;
-  P     = vc->params;
+  indx  = fc->jindx;
+  sn    = fc->strand_number;
+  ggg   = fc->matrices->ggg;
+  S1    = fc->sequence_encoding;
+  P     = fc->params;
 
 
   /* find all gquads that fit into the energy range and the interval [i,j] */
   STATE *new_state;
+
   best_energy += part_energy; /* energy of current structural element */
   best_energy += temp_energy; /* energy from unpushed interval */
 
@@ -2351,11 +2310,8 @@ repeat_gquad(vrna_fold_compound_t *vc,
     element_energy = ggg[indx[j] + i];
     if ((element_energy != INF) &&
         (element_energy + best_energy <= threshold)) {
-      int cnt;
-      int *L;
-      int *l;
       /* find out how many gquads we might expect in the interval [i,j] */
-      int num_gquads = get_gquad_count(S1, i, j);
+      num_gquads = get_gquad_count(S1, i, j);
       num_gquads++;
       L     = (int *)vrna_alloc(sizeof(int) * num_gquads);
       l     = (int *)vrna_alloc(sizeof(int) * num_gquads * 3);
@@ -2386,7 +2342,7 @@ repeat_gquad(vrna_fold_compound_t *vc,
 
 
 PRIVATE void
-repeat(vrna_fold_compound_t *vc,
+repeat(vrna_fold_compound_t *fc,
        int                  i,
        int                  j,
        STATE                *state,
@@ -2396,34 +2352,33 @@ repeat(vrna_fold_compound_t *vc,
        int                  threshold,
        subopt_env           *env)
 {
-  /* routine to find stacks, bulges, internal loops and  multiloops */
-  /* within interval closed by basepair i,j */
+  /*
+   * routine to find stacks, bulges, internal loops and  multiloops
+   * within interval closed by basepair i,j
+   */
 
-  STATE         *new_state;
+  char          *ptype;
+  short         *S1;
+  unsigned int  n, *sn, *so, *ss, *se, nick;
+  int           ij, k, p, q, energy, new, mm, no_close, type, type_2, element_energy,
+                *c, *fML, *fM1, *ggg, **fms5, **fms3, rt, *indx, *rtype, noGUclosure,
+                noLP, with_gquad, dangle_model, turn, minq, eee, aux_eee, cnt, *ps, *qs,
+                *en, tmp_en;
   vrna_param_t  *P;
   vrna_md_t     *md;
-
-  register int  ij, k, p, q, energy, new;
-  register int  mm;
-  register int  no_close, type, type_2;
-  char          *ptype;
-  unsigned int  n, *sn, *so, *ss, *se, nick;
-  int           element_energy;
-  int           *fc, *c, *fML, *fM1, *ggg, **fms5, **fms3;
-  int           rt, *indx, *rtype, noGUclosure, noLP, with_gquad, dangle_model, turn;
-  short         *S1;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
+  STATE         *new_state;
 
-  n     = vc->length;
-  S1    = vc->sequence_encoding;
-  ptype = vc->ptype;
-  indx  = vc->jindx;
-  sn    = vc->strand_number;
-  so    = vc->strand_order;
-  ss    = vc->strand_start;
-  se    = vc->strand_end;
-  P     = vc->params;
+  n     = fc->length;
+  S1    = fc->sequence_encoding;
+  ptype = fc->ptype;
+  indx  = fc->jindx;
+  sn    = fc->strand_number;
+  so    = fc->strand_order;
+  ss    = fc->strand_start;
+  se    = fc->strand_end;
+  P     = fc->params;
   md    = &(P->model_details);
   rtype = &(md->rtype[0]);
 
@@ -2433,16 +2388,15 @@ repeat(vrna_fold_compound_t *vc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
 
-  fc  = vc->matrices->fc;
-  c   = vc->matrices->c;
-  fML = vc->matrices->fML;
-  fM1 = vc->matrices->fM1;
-  ggg = vc->matrices->ggg;
-  fms5  = vc->matrices->fms5;
-  fms3  = vc->matrices->fms3;
+  c     = fc->matrices->c;
+  fML   = fc->matrices->fML;
+  fM1   = fc->matrices->fM1;
+  ggg   = fc->matrices->ggg;
+  fms5  = fc->matrices->fms5;
+  fms3  = fc->matrices->fms3;
 
-  hc  = vc->hc;
-  sc  = vc->sc;
+  hc  = fc->hc;
+  sc  = fc->sc;
 
   ij = indx[j] + i;
 
@@ -2498,7 +2452,7 @@ repeat(vrna_fold_compound_t *vc,
 
   if (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     for (p = i + 1; p <= MIN2(j - 2 - turn, i + MAXLOOP + 1); p++) {
-      int minq = j - i + p - MAXLOOP - 2;
+      minq = j - i + p - MAXLOOP - 2;
       if (minq < p + 1 + turn)
         minq = p + 1 + turn;
 
@@ -2568,7 +2522,6 @@ repeat(vrna_fold_compound_t *vc,
   /* base pair (i,j) encloses a loop with strand nick? */
   if ((sn[i] != sn[j]) &&
       (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) {
-
     rt = rtype[type];
 
     element_energy = 0;
@@ -2580,13 +2533,13 @@ repeat(vrna_fold_compound_t *vc,
       default:
         element_energy =
           vrna_E_ext_stem(rt,
-                    (sn[j - 1] == sn[j]) ?
-                    S1[j - 1] :
-                    -1,
-                    (sn[i] == sn[i + 1]) ?
-                    S1[i + 1] :
-                    -1,
-                    P);
+                          (sn[j - 1] == sn[j]) ?
+                          S1[j - 1] :
+                          -1,
+                          (sn[i] == sn[i + 1]) ?
+                          S1[i + 1] :
+                          -1,
+                          P);
         break;
     }
 
@@ -2595,14 +2548,15 @@ repeat(vrna_fold_compound_t *vc,
     if (sn[i] != sn[i + 1]) {
       if ((sn[j - 1] != sn[j]) &&
           (i + 1 == j)) {
-        if (element_energy + best_energy <= threshold)
+        if (element_energy + best_energy <= threshold) {
           fork_state_pair(i,
                           j,
                           state,
                           part_energy + element_energy,
                           env);
+        }
       } else if (sn[j - 1] == sn[j]) {
-        if (fms3[sn[i + 1]][j - 1] + element_energy + best_energy <= threshold)
+        if (fms3[sn[i + 1]][j - 1] + element_energy + best_energy <= threshold) {
           /* continue backtracking in fms3[sn[i + 1]][j - 1] */
           fork_state_pair_interval(i,
                                    j,
@@ -2612,18 +2566,20 @@ repeat(vrna_fold_compound_t *vc,
                                    part_energy + element_energy,
                                    5,
                                    env);
+        }
       }
     } else if (sn[j - 1] != sn[j]) {
-      if (fms5[sn[j - 1]][i + 1] + element_energy + best_energy <= threshold)
+      if (fms5[sn[j - 1]][i + 1] + element_energy + best_energy <= threshold) {
         /* continue backtracking in fms5[sn[j - 1]][i + 1] */
-          fork_state_pair_interval(i,
-                                   j,
-                                   i + 1,
-                                   sn[j - 1],
-                                   state,
-                                   part_energy + element_energy,
-                                   4,
-                                   env);
+        fork_state_pair_interval(i,
+                                 j,
+                                 i + 1,
+                                 sn[j - 1],
+                                 state,
+                                 part_energy + element_energy,
+                                 4,
+                                 env);
+      }
     } else {
       energy = 0;
 
@@ -2642,6 +2598,7 @@ repeat(vrna_fold_compound_t *vc,
                                 part_energy + element_energy,
                                 env);
       }
+
       nick = se[sn[i]] + 1;
 
       while (sn[nick] != sn[j]) {
@@ -2652,7 +2609,7 @@ repeat(vrna_fold_compound_t *vc,
         if (se[sn[nick]] + 1 <= j - 1)
           energy += fms3[sn[se[sn[nick]] + 1]][j - 1];
 
-        if (energy + element_energy + best_energy <= threshold)
+        if (energy + element_energy + best_energy <= threshold) {
           fork_two_states_pair_ms(i,
                                   j,
                                   sn[nick],
@@ -2660,6 +2617,7 @@ repeat(vrna_fold_compound_t *vc,
                                   state,
                                   part_energy + element_energy,
                                   env);
+        }
 
         nick = se[sn[nick]] + 1;
       }
@@ -2670,7 +2628,7 @@ repeat(vrna_fold_compound_t *vc,
   rt  = rtype[type];
 
   if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
-      ((vc->strands < 2) || ((i != se[so[0]]) && (j != ss[so[1]])))) {
+      ((fc->strands < 2) || ((i != se[so[0]]) && (j != ss[so[1]])))) {
     element_energy = mm;
     switch (dangle_model) {
       case 0:
@@ -2692,20 +2650,20 @@ repeat(vrna_fold_compound_t *vc,
     /* multiloop decomposition */
     if ((sc) && (sc->f)) {
       for (k = i + turn + 2; k <= j - turn - 2; k++) {
-        int eee = fML[indx[k - 1] + i + 1];
+        eee = fML[indx[k - 1] + i + 1];
 
         if ((eee != INF) && (fM1[indx[j - 1] + k] != INF)) {
           eee += fM1[indx[j - 1] + k] +
                  best_energy;
-          int aux_eee = element_energy +
-                        sc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
+          aux_eee = element_energy +
+                    sc->f(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, sc->data);
           if ((eee + aux_eee) <= threshold)
             fork_two_states_pair(i, j, k, state, part_energy + aux_eee, 1, 3, env);
         }
       }
     } else {
       for (k = i + turn + 2; k <= j - turn - 2; k++) {
-        int eee = fML[indx[k - 1] + i + 1];
+        eee = fML[indx[k - 1] + i + 1];
 
         if ((eee != INF) && (fM1[indx[j - 1] + k] != INF)) {
           /* multiloop decomposition */
@@ -2720,8 +2678,7 @@ repeat(vrna_fold_compound_t *vc,
   if (sn[i] == sn[j]) {
     if ((hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) &&
         (!no_close)) {
-
-      element_energy = vrna_E_hp_loop(vc, i, j);
+      element_energy = vrna_E_hp_loop(fc, i, j);
 
       if (element_energy != INF) {
         if (element_energy + best_energy <= threshold)
@@ -2732,12 +2689,20 @@ repeat(vrna_fold_compound_t *vc,
 
     if (with_gquad) {
       /* now we have to find all loops where (i,j) encloses a gquad in an interior loops style */
-      int cnt, *p, *q, *en, tmp_en;
-      p   = q = en = NULL;
-      en  =
-        E_GQuad_IntLoop_exhaustive(i, j, &p, &q, type, S1, ggg, threshold - best_energy, indx, P);
-      for (cnt = 0; p[cnt] != -1; cnt++) {
-        if ((hc->up_int[i + 1] >= p[cnt] - i - 1) && (hc->up_int[q[cnt] + 1] >= j - q[cnt] - 1)) {
+      ps  = qs = en = NULL;
+      en  = E_GQuad_IntLoop_exhaustive(i,
+                                       j,
+                                       &ps,
+                                       &qs,
+                                       type,
+                                       S1,
+                                       ggg,
+                                       threshold - best_energy,
+                                       indx,
+                                       P);
+      for (cnt = 0; ps[cnt] != -1; cnt++) {
+        if ((hc->up_int[i + 1] >= ps[cnt] - i - 1) &&
+            (hc->up_int[qs[cnt] + 1] >= j - qs[cnt] - 1)) {
           tmp_en = en[cnt];
 
           if (sc) {
@@ -2745,11 +2710,11 @@ repeat(vrna_fold_compound_t *vc,
               tmp_en += sc->energy_bp[ij];
 
             if (sc->energy_up)
-              tmp_en += sc->energy_up[i + 1][p[cnt] - i - 1]
-                        + sc->energy_up[q[cnt] + 1][j - q[cnt] - 1];
+              tmp_en += sc->energy_up[i + 1][ps[cnt] - i - 1]
+                        + sc->energy_up[qs[cnt] + 1][j - qs[cnt] - 1];
           }
 
-          new_state = derive_new_state(p[cnt], q[cnt], state, tmp_en + part_energy, 6);
+          new_state = derive_new_state(ps[cnt], qs[cnt], state, tmp_en + part_energy, 6);
 
           make_pair(i, j, new_state);
 
@@ -2759,8 +2724,8 @@ repeat(vrna_fold_compound_t *vc,
         }
       }
       free(en);
-      free(p);
-      free(q);
+      free(ps);
+      free(qs);
     }
   }
 
@@ -2795,7 +2760,9 @@ old_subopt_store(const char *structure,
   /* store solution */
   if (d->n_sol + 1 == d->max_sol) {
     d->max_sol      *= 2;
-    d->SolutionList = (SOLUTION *)vrna_realloc(d->SolutionList, d->max_sol * sizeof(SOLUTION));
+    d->SolutionList =
+      (vrna_subopt_solution_t *)vrna_realloc(d->SolutionList,
+                                             d->max_sol * sizeof(vrna_subopt_solution_t));
   }
 
   if (structure) {
@@ -2809,26 +2776,28 @@ old_subopt_store(const char *structure,
 
 
 PRIVATE void
-old_subopt_store_compressed(const char *structure,
-                            float      energy,
-                            void       *data)
+old_subopt_store_compressed(const char  *structure,
+                            float       energy,
+                            void        *data)
 {
   struct old_subopt_dat *d = (struct old_subopt_dat *)data;
 
   /* store solution */
   if (d->n_sol + 1 == d->max_sol) {
     d->max_sol      *= 2;
-    d->SolutionList = (SOLUTION *)vrna_realloc(d->SolutionList, d->max_sol * sizeof(SOLUTION));
+    d->SolutionList =
+      (vrna_subopt_solution_t *)vrna_realloc(d->SolutionList,
+                                             d->max_sol * sizeof(vrna_subopt_solution_t));
   }
 
   if (structure) {
-    d->SolutionList[d->n_sol].energy      = energy;
+    d->SolutionList[d->n_sol].energy = energy;
     if (d->cp > 0) {
-      int   cp = d->cp;
-      char  *s = vrna_cut_point_remove(structure, &cp);
+      int   cp  = d->cp;
+      char  *s  = vrna_cut_point_remove(structure, &cp);
       d->SolutionList[d->n_sol++].structure = vrna_db_pack(s);
       free(s);
-    } else { 
+    } else {
       d->SolutionList[d->n_sol++].structure = vrna_db_pack(structure);
     }
   } else {
@@ -2838,9 +2807,11 @@ old_subopt_store_compressed(const char *structure,
 }
 
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 PUBLIC SOLUTION *
@@ -2885,7 +2856,7 @@ wrap_subopt(char          *string,
             int           is_circular,
             FILE          *fp)
 {
-  vrna_fold_compound_t  *vc;
+  vrna_fold_compound_t  *fc;
   vrna_param_t          *P;
   char                  *seq;
 
@@ -2907,19 +2878,21 @@ wrap_subopt(char          *string,
   P->model_details.circ     = is_circular;
   P->model_details.uniq_ML  = uniq_ML = 1;
 
-  /* what about cofold sequences here? Is it safe to call the below cut_point_insert() ? */
-  /* dirty hack to reinsert the '&' according to the global variable 'cut_point' */
+  /*
+   * what about cofold sequences here? Is it safe to call the below cut_point_insert() ?
+   * dirty hack to reinsert the '&' according to the global variable 'cut_point'
+   */
   seq = vrna_cut_point_insert(string, cut_point);
 
-  vc =
+  fc =
     vrna_fold_compound(seq,
                        &(P->model_details),
                        ((is_circular == 0) ? VRNA_OPTION_HYBRID : VRNA_OPTION_DEFAULT));
 
   if (parameters) {
     /* replace params if necessary */
-    free(vc->params);
-    vc->params = P;
+    free(fc->params);
+    fc->params = P;
   } else {
     free(P);
   }
@@ -2936,24 +2909,26 @@ wrap_subopt(char          *string,
                           | VRNA_CONSTRAINT_DB_INTRAMOL
                           | VRNA_CONSTRAINT_DB_INTERMOL;
 
-    vrna_constraints_add(vc, (const char *)structure, constraint_options);
+    vrna_constraints_add(fc, (const char *)structure, constraint_options);
   }
 
   if (backward_compat_compound && backward_compat)
     vrna_fold_compound_free(backward_compat_compound);
 
-  backward_compat_compound  = vc;
+  backward_compat_compound  = fc;
   backward_compat           = 1;
 
   /* cleanup */
   free(seq);
 
-  return vrna_subopt(vc, delta, subopt_sorted, fp);
+  return vrna_subopt(fc, delta, subopt_sorted, fp);
 }
 
 
 #endif
 
-/*---------------------------------------------------------------------------*/
-/* Well, that is the end!----------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
+/*
+ * ---------------------------------------------------------------------------
+ * Well, that is the end!----------------------------------------------------
+ *---------------------------------------------------------------------------
+ */

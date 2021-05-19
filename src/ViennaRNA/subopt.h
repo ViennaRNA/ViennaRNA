@@ -28,7 +28,7 @@
 /**
  *  @brief Typename for the subopt solution list repesenting data structure #vrna_subopt_sol_s
  */
-typedef struct vrna_subopt_sol_s   vrna_subopt_solution_t;
+typedef struct vrna_subopt_sol_s vrna_subopt_solution_t;
 
 /**
  *  @brief  Callback for vrna_subopt_cb()
@@ -45,7 +45,9 @@ typedef struct vrna_subopt_sol_s   vrna_subopt_solution_t;
  * @param energy    The free energy of the secondary structure in kcal/mol
  * @param data      Some arbitrary, auxiliary data address as passed to vrna_subopt_cb()
  */
-typedef void (vrna_subopt_callback)(const char *stucture, float energy, void *data);
+typedef void (vrna_subopt_callback)(const char  *stucture,
+                                    float       energy,
+                                    void        *data);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -53,7 +55,7 @@ typedef void (vrna_subopt_callback)(const char *stucture, float energy, void *da
  *  @brief  Backward compatibility typedef for #vrna_subopt_sol_s
  *  @deprecated Use #vrna_subopt_solution_t instead!
  */
-typedef struct vrna_subopt_sol_s   SOLUTION;
+typedef struct vrna_subopt_sol_s SOLUTION;
 
 #endif
 
@@ -69,7 +71,7 @@ typedef struct vrna_subopt_sol_s   SOLUTION;
  */
 struct vrna_subopt_sol_s {
   float energy;       /**< @brief Free Energy of structure in kcal/mol */
-  char *structure;    /**< @brief Structure in dot-bracket notation */
+  char  *structure;   /**< @brief Structure in dot-bracket notation */
 };
 
 /**
@@ -90,7 +92,7 @@ struct vrna_subopt_sol_s {
 
 /**
  *  @brief Returns list of subopt structures or writes to fp
- * 
+ *
  *  This function produces <b>all</b> suboptimal secondary structures within
  *  'delta' * 0.01 kcal/mol of the optimum, see @cite wuchty:1999. The results
  *  are either directly written to a 'fp' (if 'fp' is not NULL), or
@@ -104,25 +106,26 @@ struct vrna_subopt_sol_s {
  *        @p vc (argument 1) must be initialized with #vrna_md_t.uniq_ML = 1, for
  *        instance like this:
  *        @code
-  vrna_md_t md;
-  vrna_md_set_default(&md);
-  md.uniq_ML = 1;
-
-  vrna_fold_compound_t *vc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
+ * vrna_md_t md;
+ * vrna_md_set_default(&md);
+ * md.uniq_ML = 1;
+ *
+ * vrna_fold_compound_t *vc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
  *        @endcode
  *
  *  @see vrna_subopt_cb(), vrna_subopt_zuker()
- *  @param  vc
+ *  @param  fc
  *  @param  delta
  *  @param  sorted  Sort results by energy in ascending order
  *  @param  fp
  *  @return
  */
 vrna_subopt_solution_t *
-vrna_subopt(vrna_fold_compound_t *vc,
-            int delta,
-            int sorted,
-            FILE *fp);
+vrna_subopt(vrna_fold_compound_t  *fc,
+            int                   delta,
+            int                   sorted,
+            FILE                  *fp);
+
 
 /**
  *  @brief  Generate suboptimal structures within an energy band arround the MFE
@@ -145,41 +148,41 @@ vrna_subopt(vrna_fold_compound_t *vc,
  *        @p vc (argument 1) must be initialized with #vrna_md_t.uniq_ML = 1, for
  *        instance like this:
  *        @code
-  vrna_md_t md;
-  vrna_md_set_default(&md);
-  md.uniq_ML = 1;
-
-  vrna_fold_compound_t *vc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
+ * vrna_md_t md;
+ * vrna_md_set_default(&md);
+ * md.uniq_ML = 1;
+ *
+ * vrna_fold_compound_t *vc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
  *        @endcode
  *
  *  @see vrna_subopt_callback, vrna_subopt(), vrna_subopt_zuker()
- *  @param  vc      fold compount with the sequence data
+ *  @param  fc      fold compount with the sequence data
  *  @param  delta   Energy band arround the MFE in 10cal/mol, i.e. deka-calories
  *  @param  cb      Pointer to a callback function that handles the backtracked structure and its free energy in kcal/mol
  *  @param  data    Pointer to some data structure that is passed along to the callback
  */
 void
-vrna_subopt_cb( vrna_fold_compound_t *vc,
-                int delta,
-                vrna_subopt_callback *cb,
-                void *data);
+vrna_subopt_cb(vrna_fold_compound_t *fc,
+               int                  delta,
+               vrna_subopt_callback *cb,
+               void                 *data);
 
 
 /**
  *  @brief printing threshold for use with logML
- * 
+ *
  *  @ingroup subopt_wuchty
  *
  */
-extern  double  print_energy;
+extern double print_energy;
 
 /**
  *  @brief Sort output by energy
- * 
+ *
  *  @ingroup subopt_wuchty
  *
  */
-extern  int     subopt_sorted;
+extern int subopt_sorted;
 
 /**
  *  @addtogroup dos
@@ -197,7 +200,7 @@ extern  int     subopt_sorted;
  *  @see  subopt_par(), subopt(), subopt_circ()
  *
  */
-extern  int     density_of_states[MAXDOS+1];
+extern int density_of_states[MAXDOS + 1];
 
 /** @} */ /* End of group dos */
 
@@ -205,7 +208,7 @@ extern  int     density_of_states[MAXDOS+1];
 
 /**
  *  @brief Returns list of subopt structures or writes to fp
- * 
+ *
  *  This function produces <b>all</b> suboptimal secondary structures within
  *  'delta' * 0.01 kcal/mol of the optimum. The results are either
  *  directly written to a 'fp' (if 'fp' is not NULL), or
@@ -220,23 +223,26 @@ extern  int     density_of_states[MAXDOS+1];
  *  @param  fp
  *  @return
  */
-DEPRECATED(SOLUTION *subopt (char *seq, char *structure, int delta, FILE *fp),
-"Use vrna_subopt() or vrna_subopt_cb() instead");
+DEPRECATED(SOLUTION * subopt(char *seq, char *structure, int delta, FILE * fp),
+           "Use vrna_subopt() or vrna_subopt_cb() instead");
 
 /**
  *  @brief Returns list of subopt structures or writes to fp
- * 
+ *
  *  @ingroup subopt_wuchty
  */
-DEPRECATED(SOLUTION *subopt_par(char *seq, char *structure, vrna_param_t *parameters, int delta, int is_constrained, int is_circular, FILE *fp),
-"Use vrna_subopt() or vrna_subopt_cb() instead");
+DEPRECATED(SOLUTION *
+           subopt_par(char *seq, char *structure, vrna_param_t * parameters, int delta,
+                      int is_constrained,
+                      int is_circular, FILE * fp),
+           "Use vrna_subopt() or vrna_subopt_cb() instead");
 
 /**
  *  @brief Returns list of circular subopt structures or writes to fp
- * 
+ *
  *  This function is similar to subopt() but calculates secondary structures
  *  assuming the RNA sequence to be circular instead of linear
- * 
+ *
  *  @ingroup subopt_wuchty
  *
  *  @param  seq
@@ -245,8 +251,8 @@ DEPRECATED(SOLUTION *subopt_par(char *seq, char *structure, vrna_param_t *parame
  *  @param  fp
  *  @return
  */
-DEPRECATED(SOLUTION *subopt_circ(char *seq, char *sequence, int delta, FILE *fp),
-"Use vrna_subopt() or vrna_subopt_cb() instead");
+DEPRECATED(SOLUTION * subopt_circ(char *seq, char *sequence, int delta, FILE * fp),
+           "Use vrna_subopt() or vrna_subopt_cb() instead");
 
 /**
  *  @brief Compute Zuker type suboptimal structures
@@ -262,8 +268,8 @@ DEPRECATED(SOLUTION *subopt_circ(char *seq, char *sequence, int delta, FILE *fp)
  *  @param  string  RNA sequence
  *  @return         List of zuker suboptimal structures
  */
-DEPRECATED(SOLUTION  *zukersubopt(const char *string),
-"Use vrna_subopt_zuker() instead");
+DEPRECATED(SOLUTION * zukersubopt(const char *string),
+           "Use vrna_subopt_zuker() instead");
 
 /**
  *  @brief Compute Zuker type suboptimal structures
@@ -273,8 +279,8 @@ DEPRECATED(SOLUTION  *zukersubopt(const char *string),
  *  @deprecated use vrna_zukersubopt() instead
  *
  */
-DEPRECATED(SOLUTION  *zukersubopt_par(const char *string, vrna_param_t *parameters),
-"Use vrna_subopt_zuker() instead");
+DEPRECATED(SOLUTION * zukersubopt_par(const char *string, vrna_param_t * parameters),
+           "Use vrna_subopt_zuker() instead");
 
 
 #endif
