@@ -125,14 +125,6 @@ double my_pf_add(double dG1, double dG2, double kT = 0);
     return structure;
   }
 
-  char *
-  pf_multimer(float *OUTPUT)
-  {
-    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1)); /*output is a structure pointer*/
-    *OUTPUT= vrna_pf_multimer($self, structure);
-    return structure;
-  }
-
   double
   mean_bp_distance()
   {

@@ -600,7 +600,7 @@ process_record(struct record_data *record)
 
   vrna_fold_compound_t *vc = vrna_fold_compound(sequence,
                                                 &(opt->md),
-                                                VRNA_OPTION_DEFAULT | VRNA_OPTION_HYBRID);
+                                                VRNA_OPTION_DEFAULT);
   n = vc->length;
 
   /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
@@ -772,7 +772,7 @@ process_record(struct record_data *record)
 
     /* compute partition function */
     FLT_OR_DBL dG, dG_AA, dG_BB;
-    dG = vrna_pf_multimer(vc, pairing_propensity);
+    dG = vrna_pf(vc, pairing_propensity);
 
     if (opt->md.compute_bpp) {
       char *costruc, *filename_dot, *comment;
@@ -930,7 +930,7 @@ process_record(struct record_data *record)
 
             vrna_exp_params_rescale(fc_current, &mfe_current);
 
-            double F = vrna_pf_multimer(fc_current, NULL);
+            double F = vrna_pf(fc_current, NULL);
 
             /* store, or add up contribution from current permutation */
             dG_current = (i == 0) ? F : vrna_pf_add(dG_current, F, kT);

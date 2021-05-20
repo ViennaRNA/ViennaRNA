@@ -144,7 +144,7 @@ struct vrna_multimer_pf_s {
  *                                  will be stored. (Maybe NULL)
  *  @return         The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
-float
+FLT_OR_DBL
 vrna_pf(vrna_fold_compound_t  *vc,
         char                  *structure);
 
@@ -171,10 +171,6 @@ vrna_dimer_pf_t
 vrna_pf_dimer(vrna_fold_compound_t  *vc,
               char                  *structure);
 
-
-FLT_OR_DBL
-vrna_pf_multimer(vrna_fold_compound_t *vc,
-                 char                 *structure);
 
 FLT_OR_DBL *
 vrna_pf_substrands(vrna_fold_compound_t *fc,

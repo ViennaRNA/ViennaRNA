@@ -69,29 +69,34 @@ decompose_pair(vrna_fold_compound_t *fc,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-PUBLIC float
+PUBLIC FLT_OR_DBL
 vrna_pf(vrna_fold_compound_t  *fc,
         char                  *structure)
 {
+  unsigned int        *so, *ss, *se;
   int               n;
-  FLT_OR_DBL        Q;
-  double            free_energy;
+  FLT_OR_DBL        Q, dG;
+  char                *sequence;
   vrna_md_t         *md;
   vrna_exp_param_t  *params;
   vrna_mx_pf_t      *matrices;
 
-  free_energy = (float)(INF / 100.);
+  dG = (FLT_OR_DBL)(INF / 100.);
 
   if (fc) {
     /* make sure, everything is set up properly to start partition function computations */
     if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF)) {
       vrna_message_warning("vrna_pf@part_func.c: Failed to prepare vrna_fold_compound");
-      return free_energy;
+      return dG;
     }
 
     n         = fc->length;
+    sequence  = fc->sequence;
     params    = fc->exp_params;
     matrices  = fc->exp_matrices;
+    so        = fc->strand_order;
+    ss        = fc->strand_start,
+    se        = fc->strand_end;
     md        = &(params->model_details);
 
 #ifdef _OPENMP
@@ -109,6 +114,10 @@ vrna_pf(vrna_fold_compound_t  *fc,
     if (fc->stat_cb)
       fc->stat_cb(VRNA_STATUS_PF_PRE, fc->auxdata);
 
+    /* for now, multi-strand folding is implemented as additional grammar rule */
+    if (fc->strands > 1)
+      vrna_pf_multifold_prepare(fc);
+      
     /* call user-defined grammar pre-condition callback function */
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
       fc->aux_grammar->cb_proc(fc, VRNA_STATUS_PF_PRE, fc->aux_grammar->data);
@@ -119,36 +128,23 @@ vrna_pf(vrna_fold_compound_t  *fc,
 #elif defined(HP9)
       fpsetfastmode(0);
 #endif
-      return (float)(INF / 100.);
+      return dG;
     }
 
     if (md->circ)
       /* do post processing step for circular RNAs */
       postprocess_circular(fc);
 
-    /* calculate base pairing probability matrix (bppm)  */
-    if (md->compute_bpp) {
-      vrna_pairing_probs(fc, structure);
+    /* call user-defined grammar post-condition callback function */
+    if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
+      fc->aux_grammar->cb_proc(fc, VRNA_STATUS_PF_POST, fc->aux_grammar->data);
 
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
-
-      /*
-       *  Backward compatibility:
-       *  This block may be removed if deprecated functions
-       *  relying on the global variable "pr" vanish from within the package!
-       */
-      pr = matrices->probs;
-
-#endif
-    }
+    if (fc->strands > 1)
+      vrna_gr_reset(fc);
 
     /* call user-defined recursion status callback function */
     if (fc->stat_cb)
       fc->stat_cb(VRNA_STATUS_PF_POST, fc->auxdata);
-
-    /* call user-defined grammar post-condition callback function */
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
-      fc->aux_grammar->cb_proc(fc, VRNA_STATUS_PF_POST, fc->aux_grammar->data);
 
     switch (md->backtrack_type) {
       case 'C':
@@ -168,12 +164,38 @@ vrna_pf(vrna_fold_compound_t  *fc,
     if (Q <= FLT_MIN)
       vrna_message_warning("pf_scale too large");
 
-    free_energy = (-log(Q) - n * log(params->pf_scale)) *
-                  params->kT /
-                  1000.0;
+    if (fc->strands > 1) {
+      /* check for rotational symmetry correction */
+      unsigned int sym = vrna_rotational_symmetry(fc->sequence);
+      Q /= (FLT_OR_DBL)sym;
+
+      /* add interaction penalty */
+      Q *= pow(params->expDuplexInit, (FLT_OR_DBL)(fc->strands - 1));
+    }
+
+    dG = (FLT_OR_DBL)((-log(Q) - n * log(params->pf_scale)) *
+          params->kT /
+          1000.0);
 
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
-      free_energy /= fc->n_seq;
+      dG /= fc->n_seq;
+
+    /* calculate base pairing probability matrix (bppm)  */
+    if (md->compute_bpp) {
+      vrna_pairing_probs(fc, structure);
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+      /*
+       *  Backward compatibility:
+       *  This block may be removed if deprecated functions
+       *  relying on the global variable "pr" vanish from within the package!
+       */
+      pr = matrices->probs;
+
+#endif
+    }
+
 
 #ifdef SUN4
     standard_arithmetic();
@@ -182,8 +204,9 @@ vrna_pf(vrna_fold_compound_t  *fc,
 #endif
   }
 
-  return free_energy;
+  return dG;
 }
+
 
 
 PUBLIC vrna_dimer_pf_t
@@ -325,115 +348,6 @@ vrna_pf_dimer(vrna_fold_compound_t  *fc,
 #endif
 
   return X;
-}
-
-
-PUBLIC FLT_OR_DBL
-vrna_pf_multimer(vrna_fold_compound_t *fc,
-                 char                 *structure)
-{
-  unsigned int        *so, *ss, *se;
-  int                 n;
-  FLT_OR_DBL          Q, dG;
-  char                *sequence;
-  vrna_md_t           *md;
-  vrna_exp_param_t    *params;
-  vrna_mx_pf_t        *matrices;
-
-  dG = (double)(INF / 100.);
-
-  if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF)) {
-    vrna_message_warning("vrna_pf_multimer@part_func_co.c: Failed to prepare vrna_fold_compound");
-    return dG;
-  }
-
-  params    = fc->exp_params;
-  n         = fc->length;
-  so        = fc->strand_order;
-  ss        = fc->strand_start,
-  se        = fc->strand_end;
-  md        = &(params->model_details);
-  matrices  = fc->exp_matrices;
-  sequence  = fc->sequence;
-
-#ifdef _OPENMP
-  /* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-#ifdef SUN4
-  nonstandard_arithmetic();
-#elif defined(HP9)
-  fpsetfastmode(1);
-#endif
-
-  /* call user-defined recursion status callback function */
-  if (fc->stat_cb)
-    fc->stat_cb(VRNA_STATUS_PF_PRE, fc->auxdata);
-
-  vrna_pf_multifold_prepare(fc);
-
-  if (!fill_arrays(fc)) {
-#ifdef SUN4
-    standard_arithmetic();
-#elif defined(HP9)
-    fpsetfastmode(0);
-#endif
-
-    return dG;
-  }
-
-  vrna_gr_reset(fc);
-
-  /* call user-defined recursion status callback function */
-  if (fc->stat_cb)
-    fc->stat_cb(VRNA_STATUS_PF_POST, fc->auxdata);
-
-  if (md->backtrack_type == 'C')
-    Q = matrices->qb[fc->iindx[1] - n];
-  else if (md->backtrack_type == 'M')
-    Q = matrices->qm[fc->iindx[1] - n];
-  else
-    Q = matrices->q[fc->iindx[1] - n];
-
-  /* ensemble free energy in Kcal/mol */
-  if (Q <= FLT_MIN)
-    vrna_message_warning("pf_scale too large");
-
-  if (fc->strands > 1) {
-    /* check for rotational symmetry correction */
-    unsigned int sym = vrna_rotational_symmetry(fc->sequence);
-    Q /= (FLT_OR_DBL)sym;
-
-    /* add interaction penalty */
-    Q *= pow(params->expDuplexInit, (FLT_OR_DBL)(fc->strands - 1));
-  }
-
-  dG = (FLT_OR_DBL)((-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0);
-
-  /* backtracking to construct binding probabilities of pairs */
-  if (md->compute_bpp) {
-    vrna_pairing_probs(fc, structure);
-
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
-
-    /*
-     *  Backward compatibility:
-     *  This block may be removed if deprecated functions
-     *  relying on the global variable "pr" vanish from within the package!
-     */
-    pr = fc->exp_matrices->probs;
-
-#endif
-  }
-
-#ifdef SUN4
-  standard_arithmetic();
-#elif defined(HP9)
-  fpsetfastmode(0);
-#endif
-
-  return dG;
 }
 
 
