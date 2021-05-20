@@ -40,9 +40,9 @@
  *  @return   minimum free energy of the structure
  */
 DEPRECATED(float
-cofold( const char *sequence,
-        char *structure),
-        "Use vrna_cofold() instead");
+           cofold(const char  *sequence,
+                  char        *structure),
+           "Use vrna_cofold() instead");
 
 /**
  *  @brief Compute the minimum free energy of two interacting RNA molecules
@@ -52,11 +52,11 @@ cofold( const char *sequence,
  *  @ingroup mfe_global_deprecated
  */
 DEPRECATED(float
-cofold_par( const char *string,
-            char *structure,
-            vrna_param_t *parameters,
-            int is_constrained),
-            "Use the new API and vrna_mfe_dimer() instead");
+           cofold_par(const char    *string,
+                      char          *structure,
+                      vrna_param_t  *parameters,
+                      int           is_constrained),
+           "Use the new API and vrna_mfe_dimer() instead");
 
 /**
  *  @brief Free memory occupied by cofold()
@@ -69,8 +69,9 @@ cofold_par( const char *string,
  *
  *  @ingroup mfe_global_deprecated
  */
-DEPRECATED(void free_co_arrays(void),
-          "This function is obsolete");
+DEPRECATED(void
+           free_co_arrays(void),
+           "This function is obsolete");
 
 /**
  *  @brief Recalculate parameters
@@ -78,8 +79,9 @@ DEPRECATED(void free_co_arrays(void),
  *
  *  @ingroup mfe_global_deprecated
  */
-DEPRECATED(void update_cofold_params(void),
-          "This function is obsolete");
+DEPRECATED(void
+           update_cofold_params(void),
+           "This function is obsolete");
 
 /**
  *  @brief Recalculate parameters
@@ -87,8 +89,9 @@ DEPRECATED(void update_cofold_params(void),
  *
  *  @ingroup mfe_global_deprecated
  */
-DEPRECATED(void update_cofold_params_par(vrna_param_t *parameters),
-          "Use the new API with vrna_fold_compound_t instead");
+DEPRECATED(void
+           update_cofold_params_par(vrna_param_t *parameters),
+           "Use the new API with vrna_fold_compound_t instead");
 
 
 /**
@@ -112,15 +115,16 @@ DEPRECATED(void update_cofold_params_par(vrna_param_t *parameters),
  *  @param  indx_p  A pointer to the indexing array used for accessing the energy matrices
  *  @param  ptype_p A pointer to the ptype array containing the base pair types for each possibility (i,j)
  */
-DEPRECATED(void export_cofold_arrays_gq(int **f5_p,
-                                        int **c_p,
-                                        int **fML_p,
-                                        int **fM1_p,
-                                        int **fc_p,
-                                        int **ggg_p,
-                                        int **indx_p,
-                                        char **ptype_p),
-          "Use the new API with vrna_fold_compound_t instead");
+DEPRECATED(void
+           export_cofold_arrays_gq(int  **f5_p,
+                                   int  **c_p,
+                                   int  **fML_p,
+                                   int  **fM1_p,
+                                   int  **fc_p,
+                                   int  **ggg_p,
+                                   int  **indx_p,
+                                   char **ptype_p),
+           "Use the new API with vrna_fold_compound_t instead");
 
 /**
  *  @brief Export the arrays of partition function cofold
@@ -142,29 +146,15 @@ DEPRECATED(void export_cofold_arrays_gq(int **f5_p,
  *  @param  indx_p  A pointer to the indexing array used for accessing the energy matrices
  *  @param  ptype_p A pointer to the ptype array containing the base pair types for each possibility (i,j)
  */
-DEPRECATED(void export_cofold_arrays( int **f5_p,
-                                      int **c_p,
-                                      int **fML_p,
-                                      int **fM1_p,
-                                      int **fc_p,
-                                      int **indx_p,
-                                      char **ptype_p),
-          "Use the new API with vrna_fold_compound_t instead");
-
-
-
-/**
- *  @brief get_monomer_free_energies
- *
- *  Export monomer free energies out of cofold arrays
- *  @deprecated{This function is obsolete and will be removed soon!}
- *
- *  @ingroup mfe_global_deprecated
- *  @param e1 A pointer to a variable where the energy of molecule A will be written to
- *  @param e2 A pointer to a variable where the energy of molecule B will be written to
- */
-DEPRECATED(void get_monomere_mfes( float *e1, float *e2),
-          "This function is obsolete");
+DEPRECATED(void
+           export_cofold_arrays(int   **f5_p,
+                                int   **c_p,
+                                int   **fML_p,
+                                int   **fM1_p,
+                                int   **fc_p,
+                                int   **indx_p,
+                                char  **ptype_p),
+           "Use the new API with vrna_fold_compound_t instead");
 
 
 /**
@@ -173,8 +163,9 @@ DEPRECATED(void get_monomere_mfes( float *e1, float *e2),
  *
  *  @ingroup mfe_global_deprecated
  */
-DEPRECATED(void initialize_cofold(int length),
-          "This function is obsolete");
+DEPRECATED(void
+           initialize_cofold(int length),
+           "This function is obsolete");
 
 #endif
 

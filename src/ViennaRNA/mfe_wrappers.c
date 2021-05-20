@@ -116,3 +116,11 @@ vrna_cofold(const char  *seq,
 
   return mfe;
 }
+
+
+PUBLIC float
+vrna_mfe_dimer(vrna_fold_compound_t *vc,
+               char                 *structure)
+{
+  return vrna_mfe(vc, structure);
+}

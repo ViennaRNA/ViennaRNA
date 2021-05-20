@@ -5,6 +5,19 @@
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
+
 /**
  *
  *  @file mfe.h
@@ -60,9 +73,10 @@
  *  structure of an RNA sequence, or RNA sequence alignment
  *
  *  Depending on the type of the provided #vrna_fold_compound_t, this function
- *  predicts the MFE for a single sequence, or a corresponding averaged MFE for
- *  a sequence alignment. If backtracking is activated, it also constructs the
- *  corresponding secondary structure, or consensus structure.
+ *  predicts the MFE for a single sequence (or connected component of multiple
+ *  sequences), or an averaged MFE for a sequence alignment.
+ *  If backtracking is activated, it also constructs the corresponding secondary
+ *  structure, or consensus structure.
  *  Therefore, the second parameter, @a structure, has to point to an allocated
  *  block of memory with a size of at least @f$\mathrm{strlen}(\mathrm{sequence})+1@f$ to
  *  store the backtracked MFE structure. (For consensus structures, this is the length of
@@ -90,13 +104,20 @@ vrna_mfe(vrna_fold_compound_t *vc,
  *
  *  The code is analog to the vrna_mfe() function.
  *
+ *  @deprecated This function is obsolete since vrna_mfe() can handle complexes multiple
+ *              sequences since v2.5.0. Use vrna_mfe() for connected component MFE instead
+ *              and compute MFEs of unconnected states separately.
+ *
+ *  @see  vrna_mfe()
+ *
  *  @param    vc  fold compound
  *  @param    structure Will hold the barcket dot structure of the dimer molecule
  *  @return   minimum free energy of the structure
  */
-float
-vrna_mfe_dimer(vrna_fold_compound_t *vc,
-               char                 *structure);
+DEPRECATED(float
+           vrna_mfe_dimer(vrna_fold_compound_t  *vc,
+                          char                  *structure),
+           "Use vrna_mfe() instead");
 
 
 /**
@@ -229,16 +250,21 @@ vrna_circalifold(const char **sequences,
  *  you require other conditions than specified by the default model details, use vrna_mfe(),
  *  and the data structure #vrna_fold_compound_t instead.
  *
- *  @see vrna_mfe_dimer(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_cut_point_insert()
+ *  @deprecated This function is obsolete since vrna_mfe()/vrna_fold() can handle complexes multiple
+ *              sequences since v2.5.0. Use vrna_mfe()/vrna_fold() for connected component MFE instead
+ *              and compute MFEs of unconnected states separately.
+ *
+ *  @see  vrna_fold(), vrna_mfe(), vrna_fold_compound(), #vrna_fold_compound_t, vrna_cut_point_insert()
  *
  *  @param sequence   two RNA sequences separated by the '&' character
  *  @param structure  A pointer to the character array where the
  *         secondary structure in dot-bracket notation will be written to
  *  @return the minimum free energy (MFE) in kcal/mol
  */
-float
-vrna_cofold(const char  *sequence,
-            char        *structure);
+DEPRECATED(float
+           vrna_cofold(const char *sequence,
+                       char       *structure),
+           "USe vrna_fold() instead");
 
 
 /**
@@ -293,12 +319,14 @@ vrna_backtrack5(vrna_fold_compound_t  *fc,
                 unsigned int          length,
                 char                  *structure);
 
+
 int
 vrna_backtrack_window(vrna_fold_compound_t  *fc,
                       const char            *Lfold_filename,
                       long                  file_pos,
                       char                  **structure,
                       double                mfe);
+
 
 /**
  * End backtracking related interfaces

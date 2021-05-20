@@ -69,7 +69,6 @@ struct vrna_mx_mfe_s {
   int *f3;          /**<  @brief  Energy of 3' end */
   int **fms5;
   int **fms3;
-  int *fc;          /**<  @brief  Energy from i to cutpoint (and vice versa if i>cut) */
   int *fML;         /**<  @brief  Multi-loop auxiliary energy array */
   int *fM1;         /**<  @brief  Second ML array, only for unique multibrnach loop decomposition */
   int *fM2;         /**<  @brief  Energy for a multibranch loop region with exactly two stems, extending to 3' end */

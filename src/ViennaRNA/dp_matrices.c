@@ -410,8 +410,7 @@ get_mx_mfe_alloc_vector_current(vrna_mx_mfe_t   *mx,
         if (mx->f3)
           mx_alloc_vector |= ALLOC_F3;
 
-        if ((mx->fc) ||
-            (mx->fms5) ||
+        if ((mx->fms5) ||
             (mx->fms3))
           mx_alloc_vector |= ALLOC_MULTISTRAND;
 
@@ -641,7 +640,6 @@ mfe_matrices_free_default(vrna_mx_mfe_t *self)
 
   free(self->fms3);
 
-  free(self->fc);
   free(self->c);
   free(self->fML);
   free(self->fM1);
@@ -1325,7 +1323,6 @@ init_mx_mfe_default(vrna_fold_compound_t  *fc,
       mx->f3 = (int *)vrna_alloc(sizeof(int) * lin_size);
 
     if (alloc_vector & ALLOC_MULTISTRAND) {
-      mx->fc    = (int *)vrna_alloc(sizeof(int) * lin_size);
       mx->fms5  = (int **)vrna_alloc(sizeof(int *) * strands);
       mx->fms3  = (int **)vrna_alloc(sizeof(int *) * strands);
 
@@ -1517,7 +1514,6 @@ nullify_mfe(vrna_mx_mfe_t *mx)
         mx->f3    = NULL;
         mx->fms5  = NULL;
         mx->fms3  = NULL;
-        mx->fc    = NULL;
         mx->fML   = NULL;
         mx->fM1   = NULL;
         mx->fM2   = NULL;

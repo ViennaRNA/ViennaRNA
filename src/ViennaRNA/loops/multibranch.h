@@ -171,15 +171,6 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
 
 
 int
-vrna_BT_mb_loop_fake(vrna_fold_compound_t *fc,
-                     int                  *u,
-                     int                  *i,
-                     int                  *j,
-                     vrna_bp_stack_t      *bp_stack,
-                     int                  *stack_count);
-
-
-int
 vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
                       int                   *i,
                       int                   *j,
