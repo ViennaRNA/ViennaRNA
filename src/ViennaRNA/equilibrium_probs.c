@@ -34,8 +34,6 @@
 
 #include "ViennaRNA/loops/internal_sc_pf.inc"
 
-#define NEW_MULTI
-
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -56,18 +54,6 @@
 PRIVATE int
 pf_create_bppm(vrna_fold_compound_t *vc,
                char                 *structure);
-
-
-PRIVATE void
-compute_bpp_interstrand(vrna_fold_compound_t *fc,
-                        int                  l,
-                        FLT_OR_DBL           **Q33,
-                        FLT_OR_DBL           *Qmax,
-                        int                  *ov);
-
-PRIVATE int
-pf_co_bppm(vrna_fold_compound_t *vc,
-           char                 *structure);
 
 
 PRIVATE INLINE void
@@ -339,16 +325,10 @@ PUBLIC int
 vrna_pairing_probs(vrna_fold_compound_t *vc,
                    char                 *structure)
 {
-  int ret = 0;
+  if (vc)
+    return pf_create_bppm(vc, structure);
 
-  if (vc) {
-    //if (vc->strands > 1)
-    //  ret = pf_co_bppm(vc, structure);
-    //else
-      ret = pf_create_bppm(vc, structure);
-  }
-
-  return ret;
+  return 0;
 }
 
 
@@ -728,7 +708,6 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     Qmax = 0;
 
     if (vc->strands > 1) {
-#ifdef NEW_MULTI
       Y5  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * vc->strands);
       Y5p = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL*) * vc->strands);
       for (s = 0; s < vc->strands; s++)
@@ -740,11 +719,6 @@ pf_create_bppm(vrna_fold_compound_t *vc,
         Y3[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
         Y3p[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
       }
-#else
-      Q33 = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * vc->strands);
-      for (i = 0; i < vc->strands; i++)
-        Q33[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-#endif
     }
 
     /* init diagonal entries unable to pair in pr matrix */
@@ -783,7 +757,6 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                       &ov);
 
       if (vc->strands > 1) {
-#ifdef NEW_MULTI
         multistrand_update_Y5(vc, l, Y5, Y5p);
         multistrand_update_Y3(vc, l, Y3, Y3p);
         multistrand_contrib(vc,
@@ -792,13 +765,6 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                             Y3,
                             &Qmax,
                             &ov);
-#else
-        compute_bpp_interstrand(vc,
-                                l,
-                                Q33,
-                                &Qmax,
-                                &ov);
-#endif
       }
     }
 
@@ -907,7 +873,6 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     free_constraints_helper(constraints);
 
     free(bp_correction);
-#ifdef NEW_MULTI
     free(Y5);
     if (Y5p)
       for (unsigned int s = 0; s < vc->strands; s++)
@@ -923,9 +888,6 @@ pf_create_bppm(vrna_fold_compound_t *vc,
       for (unsigned int s = 0; s < vc->strands; s++)
         free(Y3p[s]);
     free(Y3p);
-#else
-    free(Q33);
-#endif
   } /* end if 'check for forward recursion' */
   else {
     vrna_message_warning("bppm calculations have to be done after calling forward recursion");
@@ -2272,250 +2234,6 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
 
 
 PRIVATE void
-compute_bpp_interstrand(vrna_fold_compound_t *fc,
-                        int                  l,
-                        FLT_OR_DBL           **Q33,
-                        FLT_OR_DBL           *Qmax,
-                        int                  *ov)
-{
-  short             *S, *S1;
-  unsigned int      type, s, *sn, *ss, *se, *so, sbl;
-  int               i, j, k, n, ij, kl, *my_iindx, *jindx;
-  FLT_OR_DBL  *q,   *probs, *scale, *qb, tmp, *Q5, *Q3;
-  vrna_mx_pf_t      *matrices;
-  vrna_exp_param_t  *pf_params;
-  vrna_md_t         *md;
-
-  n         = (int)fc->length;
-  sn        = fc->strand_number;
-  ss        = fc->strand_start;
-  se        = fc->strand_end;
-  so        = fc->strand_order;
-  S         = fc->sequence_encoding2;
-  S1        = fc->sequence_encoding;
-  my_iindx  = fc->iindx;
-  jindx     = fc->jindx;
-  matrices  = fc->exp_matrices;
-  q         = matrices->q;
-  probs     = matrices->probs;
-  scale     = matrices->scale;
-  qb        = matrices->qb;
-  pf_params = fc->exp_params;
-  md        = &(pf_params->model_details);
-
-  Q5 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->strands));
-  Q3 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-
-  sbl = 0; /* number of strands before the strand that harbors position l */
-
-  /* get number of strands before position l */
-  for (sbl = 0; so[sbl] != sn[l]; sbl++);
-
-  /*
-      pre-compute Q5[strand], i.e. contribution for all configurations where
-      the strand-nick is in the 5' part of the loop (k, l) is enclosed by
-  */
-  if (sn[l] == sn[l + 1])
-    for (s = 0; s < sbl; s++) {
-      unsigned int strand_end = se[so[s]];
-
-      for (j = n; j > l; j--) {
-        if (sn[j] == sn[j - 1])
-          for (i = 1; i <= strand_end; i++)
-            if (sn[i] == sn[i + 1]) {
-              ij   = my_iindx[i] - j;
-              if (probs[ij] > 0) {
-                type = vrna_get_ptype_md(S[j], S[i], md);
-                tmp = probs[ij] *
-                      vrna_exp_E_ext_stem(type,
-                                          S1[j - 1],
-                                          S1[i + 1],
-                                          pf_params) *
-                      scale[2];
-
-                if (j > l + 1)
-                  tmp *= q[my_iindx[l + 1] - j + 1];
-
-                tmp *= q[my_iindx[i + 1] - strand_end];
-
-                Q5[so[s]] += tmp;
-              }
-            } else if (i == strand_end) {
-              ij = my_iindx[i] - j;
-              if (probs[ij] > 0) {
-                type = vrna_get_ptype_md(S[j], S[i], md);
-                tmp = probs[ij] *
-                      vrna_exp_E_ext_stem(type,
-                                          S1[j - 1],
-                                          -1,
-                                          pf_params) *
-                      scale[2];
-
-                if (j > l + 1)
-                  tmp *= q[my_iindx[l + 1] - j + 1];
-
-                Q5[so[s]] += tmp;
-              }
-            }
-      }
-    }
-
-  /*
-      pre-compute Q3[k], i.e. contributions for all configurations where
-      the strand-nick is in the 3' part of the loop (k, l) is enclosed by
-      under the condition that the nick is either between l and l + 1, or
-      between j - 1 and j
-
-      Note, at this point we also pre-compute Q33[strand][k], i.e.
-      contributions for all conformations where the strand-nick is in the
-      3' part of the loop (k, l) is enclosed by under the condition that
-      the nick is somewhere between l + 1 and j - 1.
-  */
-
-  if (sn[l] != sn[l + 1]) {
-    /* 0th case: j = l + 1 and nick between l and j */
-    
-    /* 0.a) l + 1 == j */
-    j = l + 1;
-    for (i = 1; i < l; i++)
-      if (sn[i] == sn[i + 1]) {
-        ij = my_iindx[i] - j;
-        if (probs[ij]) {
-          type = vrna_get_ptype_md(S[j], S[i], md);
-          tmp  = probs[ij] *
-                 vrna_exp_E_ext_stem(type,
-                                     -1,
-                                     S1[i + 1],
-                                     pf_params) *
-                 scale[2];
-
-          Q3[i] += tmp;
-        }
-      }
-
-    /* 0.b) other cases where nick is between l and l + 1 */
-    for (j = n; j > l + 1; j--)
-      if (sn[j - 1] == sn[j])
-        for (i = 1; i < l; i++)
-          if (sn[i] == sn[i + 1]) {
-            ij = my_iindx[i] - j;
-            if (probs[ij]) {
-              type = vrna_get_ptype_md(S[j], S[i], md);
-              tmp  = probs[ij] *
-                     vrna_exp_E_ext_stem(type,
-                                         S1[j - 1],
-                                         S1[i + 1],
-                                         pf_params) *
-                     scale[2];
-
-              tmp *= q[my_iindx[l + 1] - j + 1];
-
-              Q3[i] += tmp;
-
-              /*
-                  here, we add contributions to Q33 to actually
-                  stay within O(n^3)
-              */
-              Q33[so[sbl + 1]][i]  += tmp;
-            }
-          }
-  } else {
-    /* cases where nick is between j - 1 and j */
-    for (s = sbl + 1; s < fc->strands; s++) {
-      j = ss[so[s]];
-      for (i = 1; i < l; i++)
-        if (sn[i] == sn[i + 1]) {
-          ij = my_iindx[i] - j;
-          if (probs[ij]) {
-            type = vrna_get_ptype_md(S[j], S[i], md);
-            tmp  = probs[ij] *
-                   vrna_exp_E_ext_stem(type,
-                                       -1,
-                                       S1[i + 1],
-                                       pf_params) *
-                   scale[2];
-
-            tmp *= q[my_iindx[l + 1] - j + 1];
-
-            Q3[i] += tmp;
-          }
-        }
-    }
-  }
-
-  /* finally, compute p[kl] for all k < l */
-  for (s = 0; s < sbl; s++) {
-    unsigned int strand_end = se[so[s]];
-    for (k = strand_end + 1; k < l; k++) {
-      kl = my_iindx[k] - l;
-      if (qb[kl] > 0) {
-        type = vrna_get_ptype_md(S[k], S[l], md);
-        tmp  = Q5[so[s]] *
-               vrna_exp_E_ext_stem(type,
-                                   (sn[k - 1] == sn[k]) ? S1[k - 1] : -1,
-                                   S1[l + 1],
-                                   pf_params);
-
-        if (strand_end + 1 < k)
-          tmp *= q[my_iindx[strand_end + 1] - k + 1];
-
-        probs[kl] += tmp;
-      }
-    }
-  }
-
-  for (k = 2; k < l; k++) {
-    kl = my_iindx[k] - l;
-    if (qb[kl] > 0) {
-      for (i = 1; i < k; i++)
-        if (sn[i] == sn[i + 1]) {
-          type = vrna_get_ptype_md(S[k], S[l], md);
-          tmp  = vrna_exp_E_ext_stem(type,
-                                     S1[k - 1],
-                                     (sn[l] == sn[l + 1]) ? S1[l + 1] : -1,
-                                     pf_params);
-
-          if (i + 1 < k)
-            tmp *= q[my_iindx[i + 1] - k + 1];
-
-          probs[kl] += Q3[i] *
-                       tmp;
-        }
-    }
-  }
-
-  for (s = sbl + 1; s < fc->strands; s++) {
-    unsigned int strand_start = ss[so[s]];
-    if (strand_start > l + 1)
-      for (k = 2; k < l; k++) {
-        kl = my_iindx[k] - l;
-        if (qb[kl] > 0) {
-          for (i = 1; i < k; i++)
-            if (sn[i] == sn[i + 1]) {
-              type = vrna_get_ptype_md(S[k], S[l], md);
-              tmp  = vrna_exp_E_ext_stem(type,
-                                         S1[k - 1],
-                                         S1[l + 1],
-                                         pf_params);
-
-              tmp *= q[my_iindx[l + 1] - strand_start + 1];
-
-              if (i + 1 < k)
-                tmp *= q[my_iindx[i + 1] - k + 1];
-
-              probs[kl] += Q33[so[s]][i] *
-                          tmp;
-            }
-        }
-      }
-  }
-
-  free(Q5);
-  free(Q3);
-}
-
-
-PRIVATE void
 multistrand_update_Y5(vrna_fold_compound_t *fc,
                       int                   l,
                       FLT_OR_DBL           *Y5,
@@ -2887,233 +2605,6 @@ multistrand_contrib(vrna_fold_compound_t  *fc,
                                         pf_params);
     }
   }
-}
-
-
-/* outside recursion of pf cofolding */
-PRIVATE int
-pf_co_bppm(vrna_fold_compound_t *vc,
-           char                 *structure)
-{
-  unsigned int      *sn;
-  int               n, i, j, k, l, ij, kl, type, turn, ov = 0,
-                    *my_iindx, *jindx, cp;
-  FLT_OR_DBL        temp, Qmax = 0;
-  FLT_OR_DBL        *probs, *q1k, *qln, *q, *qb, *scale;
-  vrna_exp_param_t  *pf_params;
-  vrna_md_t         *md;
-  short             *S, *S1;
-  char              *ptype;
-  vrna_mx_pf_t      *matrices;
-  int               *rtype;
-  helper_arrays       *ml_helpers;
-  constraints_helper  *constraints;
-
-  n         = vc->length;
-  cp        = vc->cutpoint;
-  pf_params = vc->exp_params;
-  md        = &(pf_params->model_details);
-  S         = vc->sequence_encoding2;
-  S1        = vc->sequence_encoding;
-  sn        = vc->strand_number;
-  jindx     = vc->jindx;
-  my_iindx  = vc->iindx;
-  ptype     = vc->ptype;
-  rtype     = &(md->rtype[0]);
-  turn      = md->min_loop_size;
-
-  matrices  = vc->exp_matrices;
-  probs     = matrices->probs;
-  scale     = matrices->scale;
-  q1k       = matrices->q1k;
-  qln       = matrices->qln;
-  q         = matrices->q;
-  qb        = matrices->qb;
-
-  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
-  turn = 0;
-
-  /* backtracking to construct binding probabilities of pairs*/
-  if ((S != NULL) && (S1 != NULL)) {
-    FLT_OR_DBL    *Qlout, *Qrout;
-
-    int           corr_size       = 5;
-    int           corr_cnt        = 0;
-    vrna_ep_t     *bp_correction  = vrna_alloc(sizeof(vrna_ep_t) * corr_size);
-
-    ml_helpers  = get_ml_helper_arrays(vc);
-    constraints = get_constraints_helper(vc);
-
-    Qmax  = 0;
-    Qrout = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-    Qlout = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (cp + 2));
-
-    for (k = 1; k <= n; k++) {
-      q1k[k]  = q[my_iindx[1] - k];
-      qln[k]  = q[my_iindx[k] - n];
-    }
-    q1k[0]      = 1.0;
-    qln[n + 1]  = 1.0;
-
-    /* init diagonal entries unable to pair in pr matrix */
-    for (i = 1; i <= n; i++)
-      for (j = i; j <= MIN2(i + turn, n); j++)
-        probs[my_iindx[i] - j] = 0.;
-
-    /* 1. external loop pairs, i.e. pairs not enclosed by any other pair (or external loop for circular RNAs) */
-    compute_bpp_external(vc);
-
-    /* 2. all cases where base pair (k,l) is enclosed by another pair (i,j) */
-    l = n;
-    compute_bpp_internal(vc,
-                         l,
-                         &bp_correction,
-                         &corr_cnt,
-                         &corr_size,
-                         &Qmax,
-                         &ov,
-                         constraints);
-
-    for (l = n - 1; l > turn + 1; l--) {
-      compute_bpp_internal(vc,
-                           l,
-                           &bp_correction,
-                           &corr_cnt,
-                           &corr_size,
-                           &Qmax,
-                           &ov,
-                           constraints);
-
-      compute_bpp_multibranch(vc,
-                              l,
-                              ml_helpers,
-                              &Qmax,
-                              &ov);
-
-      /* computation of .(..(...)..&..). type features? */
-      if (vc->strands <= 1)
-        continue;                     /* no .(..(...)..&..). type features */
-
-      if (l <= 2)
-        continue;                     /* no .(..(...)..&..). type features */
-
-      /*new version with O(n^3)??*/
-      if (l > cp) {
-        int t, kt;
-        for (t = n; t > l; t--) {
-          for (k = 1; k < cp; k++) {
-            int samestrand;
-            kt = my_iindx[k] - t;
-
-            samestrand  = (sn[k + 1] == sn[k]) ? 1 : 0;
-            type        = rtype[vrna_get_ptype(jindx[t] + k, ptype)];
-
-            temp = probs[kt]
-                   * vrna_exp_E_ext_stem(type, S1[t - 1], samestrand ? S1[k + 1] : -1, pf_params)
-                   * scale[2];
-
-            if (l + 1 < t)
-              temp *= q[my_iindx[l + 1] - (t - 1)];
-
-            if (samestrand)
-              temp *= q[my_iindx[k + 1] - (cp - 1)];
-
-            Qrout[l] += temp;
-          }
-        }
-
-        for (k = l - 1; k >= cp; k--) {
-          if (qb[my_iindx[k] - l]) {
-            kl    = my_iindx[k] - l;
-            type  = vrna_get_ptype(jindx[l] + k, ptype);
-            temp  = Qrout[l];
-
-            temp *= vrna_exp_E_ext_stem(type,
-                                  (k > cp) ? S1[k - 1] : -1,
-                                  (l < n) ? S1[l + 1] : -1,
-                                  pf_params);
-            if (k > cp)
-              temp *= q[my_iindx[cp] - (k - 1)];
-
-            probs[kl] += temp;
-          }
-        }
-      } else if (l == cp) {
-        int t, sk, s;
-        for (t = 2; t < cp; t++) {
-          for (s = 1; s < t; s++) {
-            for (k = cp; k <= n; k++) {
-              sk = my_iindx[s] - k;
-              if (qb[sk]) {
-                int samestrand;
-                samestrand  = (sn[k] == sn[k - 1]) ? 1 : 0;
-                type        = rtype[vrna_get_ptype(jindx[k] + s, ptype)];
-
-                temp = probs[sk]
-                       * vrna_exp_E_ext_stem(type, samestrand ? S1[k - 1] : -1, S1[s + 1], pf_params)
-                       * scale[2];
-                if (s + 1 < t)
-                  temp *= q[my_iindx[s + 1] - (t - 1)];
-
-                if (samestrand)
-                  temp *= q[my_iindx[cp] - (k - 1)];
-
-                Qlout[t] += temp;
-              }
-            }
-          }
-        }
-      } else if (l < cp) {
-        for (k = 1; k < l; k++) {
-          if (qb[my_iindx[k] - l]) {
-            type  = vrna_get_ptype(jindx[l] + k, ptype);
-            temp  = Qlout[k];
-
-            temp *= vrna_exp_E_ext_stem(type,
-                                  (k > 1) ? S1[k - 1] : -1,
-                                  (l < (cp - 1)) ? S1[l + 1] : -1,
-                                  pf_params);
-            if (l + 1 < cp)
-              temp *= q[my_iindx[l + 1] - (cp - 1)];
-
-            probs[my_iindx[k] - l] += temp;
-          }
-        }
-      }
-    }  /* end for (l=..)   */
-    free(Qlout);
-    free(Qrout);
-    for (i = 1; i <= n; i++)
-      for (j = i + turn + 1; j <= n; j++) {
-        ij        = my_iindx[i] - j;
-        probs[ij] *= qb[ij];
-      }
-
-    if (structure != NULL) {
-      char *s = vrna_db_from_probs(probs, (unsigned int)n);
-      memcpy(structure, s, n);
-      structure[n] = '\0';
-      free(s);
-    }
-
-    /* clean up */
-    free_ml_helper_arrays(ml_helpers);
-
-    free_constraints_helper(constraints);
-
-    free(bp_correction);
-  }   /* end if (do_backtrack) */
-  else {
-    vrna_message_warning("bppm calculations have to be done after calling forward recursion");
-    return 0;
-  }
-
-  if (ov > 0)
-    vrna_message_warning("%d overflows occurred while backtracking;\n"
-                         "you might try a smaller pf_scale than %g\n",
-                         ov, pf_params->pf_scale);
-
-  return 1;
 }
 
 
