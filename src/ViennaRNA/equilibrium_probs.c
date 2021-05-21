@@ -30,9 +30,14 @@
 #include "ViennaRNA/equilibrium_probs.h"
 
 #include "ViennaRNA/loops/external_hc.inc"
+#include "ViennaRNA/loops/hairpin_hc.inc"
 #include "ViennaRNA/loops/internal_hc.inc"
+#include "ViennaRNA/loops/multibranch_hc.inc"
 
+#include "ViennaRNA/loops/external_sc_pf.inc"
+#include "ViennaRNA/loops/hairpin_sc_pf.inc"
 #include "ViennaRNA/loops/internal_sc_pf.inc"
+#include "ViennaRNA/loops/multibranch_sc_pf.inc"
 
 /*
  #################################
@@ -123,10 +128,22 @@ typedef struct {
 
 
 typedef struct {
-  eval_hc               *hc_eval_int;
-  struct hc_int_def_dat hc_dat_int;
+  struct hc_ext_def_dat     hc_dat_ext;
+  vrna_callback_hc_evaluate *hc_eval_ext;
 
-  struct sc_int_exp_dat sc_wrapper_int;
+  struct hc_hp_def_dat      hc_dat_hp;
+  vrna_callback_hc_evaluate *hc_eval_hp;
+
+  struct hc_int_def_dat     hc_dat_int;
+  eval_hc                   *hc_eval_int;
+
+  struct hc_mb_def_dat      hc_dat_mb;
+  vrna_callback_hc_evaluate *hc_eval_mb;
+
+  struct sc_ext_exp_dat     sc_wrapper_ext;
+  struct sc_hp_exp_dat      sc_wrapper_hp;
+  struct sc_int_exp_dat     sc_wrapper_int;
+  struct sc_mb_exp_dat      sc_wrapper_mb;
 } constraints_helper;
 
 
@@ -159,25 +176,25 @@ compute_bpp_external(vrna_fold_compound_t *fc);
 
 
 PRIVATE void
-compute_bpp_internal(vrna_fold_compound_t   *fc,
-                     int                    l,
-                     vrna_ep_t              **bp_correction,
-                     int                    *corr_cnt,
-                     int                    *corr_size,
-                     FLT_OR_DBL             *Qmax,
-                     int                    *ov,
-                     constraints_helper     *constraints);
+compute_bpp_internal(vrna_fold_compound_t *fc,
+                     int                  l,
+                     vrna_ep_t            **bp_correction,
+                     int                  *corr_cnt,
+                     int                  *corr_size,
+                     FLT_OR_DBL           *Qmax,
+                     int                  *ov,
+                     constraints_helper   *constraints);
 
 
 PRIVATE void
-compute_bpp_internal_comparative(vrna_fold_compound_t   *fc,
-                                 int                    l,
-                                 vrna_ep_t              **bp_correction,
-                                 int                    *corr_cnt,
-                                 int                    *corr_size,
-                                 FLT_OR_DBL             *Qmax,
-                                 int                    *ov,
-                                 constraints_helper     *constraints);
+compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
+                                 int                  l,
+                                 vrna_ep_t            **bp_correction,
+                                 int                  *corr_cnt,
+                                 int                  *corr_size,
+                                 FLT_OR_DBL           *Qmax,
+                                 int                  *ov,
+                                 constraints_helper   *constraints);
 
 
 PRIVATE void
@@ -195,7 +212,8 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                         int                   l,
                         helper_arrays         *ml_helpers,
                         FLT_OR_DBL            *Qmax,
-                        int                   *ov);
+                        int                   *ov,
+                        constraints_helper    *constraints);
 
 
 PRIVATE void
@@ -203,7 +221,8 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
                                     int                   l,
                                     helper_arrays         *ml_helpers,
                                     FLT_OR_DBL            *Qmax,
-                                    int                   *ov);
+                                    int                   *ov,
+                                    constraints_helper    *constraints);
 
 
 PRIVATE FLT_OR_DBL
@@ -682,20 +701,21 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     ml_helpers  = get_ml_helper_arrays(vc);
     constraints = get_constraints_helper(vc);
 
-    void          (*compute_bpp_int)(vrna_fold_compound_t *fc,
-                                     int                  l,
-                                     vrna_ep_t            **bp_correction,
-                                     int                  *corr_cnt,
-                                     int                  *corr_size,
-                                     FLT_OR_DBL           *Qmax,
-                                     int                  *ov,
-                                     constraints_helper   *constraints);
+    void                (*compute_bpp_int)(vrna_fold_compound_t *fc,
+                                           int                  l,
+                                           vrna_ep_t            **bp_correction,
+                                           int                  *corr_cnt,
+                                           int                  *corr_size,
+                                           FLT_OR_DBL           *Qmax,
+                                           int                  *ov,
+                                           constraints_helper   *constraints);
 
     void (*compute_bpp_mul)(vrna_fold_compound_t  *fc,
                             int                   l,
                             helper_arrays         *ml_helpers,
                             FLT_OR_DBL            *Qmax,
-                            int                   *ov);
+                            int                   *ov,
+                            constraints_helper    *constraints);
 
     if (vc->type == VRNA_FC_TYPE_SINGLE) {
       compute_bpp_int = &compute_bpp_internal;
@@ -754,7 +774,8 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                       l,
                       ml_helpers,
                       &Qmax,
-                      &ov);
+                      &ov,
+                      constraints);
 
       if (vc->strands > 1) {
         multistrand_update_Y5(vc, l, Y5, Y5p);
@@ -1002,13 +1023,21 @@ rotate_ml_helper_arrays_inner(helper_arrays *ml_helpers)
 
 
 PRIVATE constraints_helper *
-get_constraints_helper(vrna_fold_compound_t *fc){
+get_constraints_helper(vrna_fold_compound_t *fc)
+{
   constraints_helper *helpers;
 
   helpers = (constraints_helper *)vrna_alloc(sizeof(constraints_helper));
 
-  helpers->hc_eval_int = prepare_hc_int_def(fc, &(helpers->hc_dat_int));
+  helpers->hc_eval_ext  = prepare_hc_ext_def(fc, &(helpers->hc_dat_ext));
+  helpers->hc_eval_hp   = prepare_hc_hp_def(fc, &(helpers->hc_dat_hp));
+  helpers->hc_eval_int  = prepare_hc_int_def(fc, &(helpers->hc_dat_int));
+  helpers->hc_eval_mb   = prepare_hc_mb_def(fc, &(helpers->hc_dat_mb));
+
+  init_sc_ext_exp(fc, &(helpers->sc_wrapper_ext));
+  init_sc_hp_exp(fc, &(helpers->sc_wrapper_hp));
   init_sc_int_exp(fc, &(helpers->sc_wrapper_int));
+  init_sc_mb_exp(fc, &(helpers->sc_wrapper_mb));
 
   return helpers;
 }
@@ -1017,8 +1046,10 @@ get_constraints_helper(vrna_fold_compound_t *fc){
 PRIVATE void
 free_constraints_helper(constraints_helper *helper)
 {
-
+  free_sc_ext_exp(&(helper->sc_wrapper_ext));
+  free_sc_hp_exp(&(helper->sc_wrapper_hp));
   free_sc_int_exp(&(helper->sc_wrapper_int));
+  free_sc_mb_exp(&(helper->sc_wrapper_mb));
 
   free(helper);
 }
@@ -1476,22 +1507,27 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                         int                   l,
                         helper_arrays         *ml_helpers,
                         FLT_OR_DBL            *Qmax,
-                        int                   *ov)
+                        int                   *ov,
+                        constraints_helper    *constraints)
 {
-  unsigned char     tt;
-  char              *ptype;
-  short             *S, *S1, s5, s3;
-  unsigned int      *sn;
-  int               cnt, i, j, k, n, u, ii, ij, kl, lj, turn, *my_iindx, *jindx,
-                    *rtype, with_gquad, with_ud;
-  FLT_OR_DBL        temp, ppp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *G, *scale,
-                    *expMLbase, expMLclosing, expMLstem;
-  double            max_real;
-  vrna_exp_param_t  *pf_params;
-  vrna_md_t         *md;
-  vrna_hc_t         *hc;
-  vrna_sc_t         *sc;
-  vrna_ud_t         *domains_up;
+  unsigned char             tt;
+  char                      *ptype;
+  short                     *S, *S1, s5, s3;
+  unsigned int              *sn;
+  int                       cnt, i, j, k, n, u, ii, ij, kl, lj, turn, *my_iindx, *jindx,
+                            *rtype, with_gquad, with_ud;
+  FLT_OR_DBL                temp, ppp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *G, *scale,
+                            *expMLbase, expMLclosing, expMLstem;
+  double                    max_real;
+  vrna_exp_param_t          *pf_params;
+  vrna_md_t                 *md;
+  vrna_hc_t                 *hc;
+  vrna_sc_t                 *sc;
+  vrna_ud_t                 *domains_up;
+  struct hc_mb_def_dat      *hc_dat;
+  vrna_callback_hc_evaluate *hc_eval;
+  struct sc_mb_exp_dat      *sc_wrapper;
+
 
   n             = (int)fc->length;
   S             = fc->sequence_encoding2;
@@ -1518,6 +1554,10 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
   with_gquad    = md->gquad;
   expMLstem     = (with_gquad) ? exp_E_MLstem(0, -1, -1, pf_params) : 0;
 
+  hc_dat      = &(constraints->hc_dat_mb);
+  hc_eval     = constraints->hc_eval_mb;
+  sc_wrapper  = &(constraints->sc_wrapper_mb);
+
   prm_MLb   = 0.;
   max_real  = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -1536,8 +1576,12 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       s3  = S1[i + 1];
       if (sn[k] == sn[i]) {
         for (j = l + 2; j <= n; j++, ij--, lj--) {
+#if 1
+          if (hc_eval(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc_dat)) {
+#else
           if ((hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
               (sn[j] == sn[j - 1])) {
+#endif
             tt = vrna_get_ptype_md(S[j], S[i], md);
 
             /* which decomposition is covered here? =>
@@ -1551,6 +1595,11 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                   * exp_E_MLstem(tt, S1[j - 1], s3, pf_params)
                   * qm[lj];
 
+# if 1
+            if (sc_wrapper->pair)
+              ppp *= sc_wrapper->pair(i, j, sc_wrapper);
+
+#else
             if (sc) {
               if (sc->exp_energy_bp)
                 ppp *= sc->exp_energy_bp[jindx[j] + i];
@@ -1561,6 +1610,8 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                */
             }
 
+#endif
+
             prmt += ppp;
           }
         }
@@ -1568,7 +1619,11 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
         ii  = my_iindx[i];  /* ii-j=[i,j]     */
         tt  = vrna_get_ptype(jindx[l + 1] + i, ptype);
         tt  = rtype[tt];
+#if 1
+        if (hc_eval(i, l + 1, i + 1, l, VRNA_DECOMP_PAIR_ML, hc_dat)) {
+#else
         if (hc->mx[(l + 1) * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+#endif
           prmt1 = probs[ii - (l + 1)]
                   *expMLclosing
                   *exp_E_MLstem(tt,
@@ -1577,6 +1632,11 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                                 pf_params);
 
 
+#if 1
+          if (sc_wrapper->pair)
+            prmt1 *= sc_wrapper->pair(i, l + 1, sc_wrapper);
+
+#else
           if (sc) {
             /* which decompositions are covered here? => (i, l+1) -> enclosing pair */
             if (sc->exp_energy_bp)
@@ -1587,6 +1647,8 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
              *        prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
              */
           }
+
+#endif
         }
       }
 
@@ -1595,8 +1657,18 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       ml_helpers->prml[i] = prmt;
 
       /* l+1 is unpaired */
+#if 1
+      if (hc_eval(k, l + 1, k, l, VRNA_DECOMP_ML_ML, hc_dat)) {
+#else
       if ((hc->up_ml[l + 1]) && (sn[l] == sn[l + 1])) {
+#endif
         ppp = ml_helpers->prm_l1[i] * expMLbase[1];
+
+#if 1
+        if (sc_wrapper->red_ml)
+          ppp *= sc_wrapper->red_ml(k, l + 1, k, l, sc_wrapper);
+
+#else
         if (sc) {
           if (sc->exp_energy_up)
             ppp *= sc->exp_energy_up[l + 1][1];
@@ -1607,12 +1679,18 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
            */
         }
 
+#endif
+
         /* add contributions of MB loops where any unstructured domain starts at l+1 */
         if (with_ud) {
           for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
             u = domains_up->uniq_motif_size[cnt];
-            if (hc->up_ml[l + 1] >= u) {
-              if (l + u < n) {
+            if (l + u < n) {
+#if 1
+              if (hc_eval(k, l + u, k, l, VRNA_DECOMP_ML_ML, hc_dat)) {
+#else
+              if (hc->up_ml[l + 1] >= u) {
+#endif
                 temp = domains_up->exp_energy_cb(fc,
                                                  l + 1,
                                                  l + u,
@@ -1621,9 +1699,16 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                        * ml_helpers->pmlu[u][i]
                        * expMLbase[u];
 
+#if 1
+                if (sc_wrapper->red_ml)
+                  temp *= sc_wrapper->red_ml(k, l + u, k, l, sc_wrapper);
+
+#else
                 if (sc)
                   if (sc->exp_energy_up)
                     temp *= sc->exp_energy_up[l + 1][u];
+
+#endif
 
                 ppp += temp;
               }
@@ -1641,9 +1726,19 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           ml_helpers->pmlu[0][i] = prmt1;
       }
 
+#if 1
+      if (hc_eval(i, l, i + 1, l, VRNA_DECOMP_ML_ML, hc_dat)) {
+#else
       /* i is unpaired */
       if ((hc->up_ml[i]) && (sn[i - 1] == sn[i])) {
+#endif
         ppp = prm_MLb * expMLbase[1];
+
+#if 1
+        if (sc_wrapper->red_ml)
+          ppp *= sc_wrapper->red_ml(i, l, i + 1, l, sc_wrapper);
+
+#else
         if (sc) {
           if (sc->exp_energy_up)
             ppp *= sc->exp_energy_up[i][1];
@@ -1654,23 +1749,38 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
            */
         }
 
+#endif
+
         if (with_ud) {
           for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
             u = domains_up->uniq_motif_size[cnt];
-            if (hc->up_ml[i] >= u) {
-              temp = ml_helpers->prm_MLbu[u]
-                     * expMLbase[u]
-                     * domains_up->exp_energy_cb(fc,
-                                                 i,
-                                                 i + u,
-                                                 VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                                 domains_up->data);
+            if (1 + u <= i) {
+#if 1
+              if (hc_eval(i - u + 1, l, i + 1, l, VRNA_DECOMP_ML_ML, hc_dat)) {
+#else
+              if (hc->up_ml[i - u + 1] >= u) {
+#endif
+                temp = ml_helpers->prm_MLbu[u]
+                       * expMLbase[u]
+                       * domains_up->exp_energy_cb(fc,
+                                                   i - u + 1,
+                                                   i,
+                                                   VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                                   domains_up->data);
 
-              if (sc)
-                if (sc->exp_energy_up)
-                  temp *= sc->exp_energy_up[i][u];
+#if 1
+                if (sc_wrapper->red_ml)
+                  temp *= sc_wrapper->red_ml(i - u + 1, l, i + 1, l, sc_wrapper);
 
-              ppp += temp;
+#else
+                if (sc)
+                  if (sc->exp_energy_up)
+                    temp *= sc->exp_energy_up[i - u + 1][u];
+
+#endif
+
+                ppp += temp;
+              }
             }
           }
           ml_helpers->prm_MLbu[0] = ppp + ml_helpers->prml[i];
@@ -1703,10 +1813,16 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       temp = prm_MLb;
 
       if (sn[k] == sn[k - 1]) {
-        for (i = 1; i <= k - 2; i++)
-          if (sn[i + 1] == sn[i])
+        if (sc_wrapper->decomp_ml) {
+          for (i = 1; i <= k - 2; i++)
+            temp += ml_helpers->prml[i] *
+                    qm[my_iindx[i + 1] - (k - 1)] *
+                    sc_wrapper->decomp_ml(i + 1, l, k - 1, k, sc_wrapper);
+        } else {
+          for (i = 1; i <= k - 2; i++)
             temp += ml_helpers->prml[i] *
                     qm[my_iindx[i + 1] - (k - 1)];
+        }
       }
 
       s5  = ((k > 1) && (sn[k] == sn[k - 1])) ? S1[k - 1] : -1;
@@ -1716,12 +1832,19 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           (qb[kl] == 0.)) {
         temp *= G[kl] *
                 expMLstem;
+#if 1
+      } else if (hc_eval(k, l, k, l, VRNA_DECOMP_ML_STEM, hc_dat)) {
+#else
       } else if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
+#endif
         if (tt == 0)
           tt = 7;
 
         temp *= exp_E_MLstem(tt, s5, s3, pf_params);
       }
+
+      if (sc_wrapper->red_stem)
+        temp *= sc_wrapper->red_stem(k, l, k, l, sc_wrapper);
 
       probs[kl] += temp *
                    scale[2];
@@ -1752,7 +1875,8 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
                                     int                   l,
                                     helper_arrays         *ml_helpers,
                                     FLT_OR_DBL            *Qmax,
-                                    int                   *ov)
+                                    int                   *ov,
+                                    constraints_helper    *constraints)
 {
   unsigned char     tt;
   short             **S, **S5, **S3;
