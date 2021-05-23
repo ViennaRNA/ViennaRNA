@@ -1576,12 +1576,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       s3  = S1[i + 1];
       if (sn[k] == sn[i]) {
         for (j = l + 2; j <= n; j++, ij--, lj--) {
-#if 1
           if (hc_eval(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc_dat)) {
-#else
-          if ((hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
-              (sn[j] == sn[j - 1])) {
-#endif
             tt = vrna_get_ptype_md(S[j], S[i], md);
 
             /* which decomposition is covered here? =>
@@ -1595,22 +1590,8 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                   * exp_E_MLstem(tt, S1[j - 1], s3, pf_params)
                   * qm[lj];
 
-# if 1
             if (sc_wrapper->pair)
               ppp *= sc_wrapper->pair(i, j, sc_wrapper);
-
-#else
-            if (sc) {
-              if (sc->exp_energy_bp)
-                ppp *= sc->exp_energy_bp[jindx[j] + i];
-
-              /*
-               *        if(sc->exp_f)
-               *          ppp *= sc->exp_f(i, j, l+1, j-1, , sc->data);
-               */
-            }
-
-#endif
 
             prmt += ppp;
           }
@@ -1619,11 +1600,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
         ii  = my_iindx[i];  /* ii-j=[i,j]     */
         tt  = vrna_get_ptype(jindx[l + 1] + i, ptype);
         tt  = rtype[tt];
-#if 1
         if (hc_eval(i, l + 1, i + 1, l, VRNA_DECOMP_PAIR_ML, hc_dat)) {
-#else
-        if (hc->mx[(l + 1) * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-#endif
           prmt1 = probs[ii - (l + 1)]
                   *expMLclosing
                   *exp_E_MLstem(tt,
@@ -1631,24 +1608,8 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                                 S1[i + 1],
                                 pf_params);
 
-
-#if 1
           if (sc_wrapper->pair)
             prmt1 *= sc_wrapper->pair(i, l + 1, sc_wrapper);
-
-#else
-          if (sc) {
-            /* which decompositions are covered here? => (i, l+1) -> enclosing pair */
-            if (sc->exp_energy_bp)
-              prmt1 *= sc->exp_energy_bp[jindx[l + 1] + i];
-
-            /*
-             *      if(sc->exp_f)
-             *        prmt1 *= sc->exp_f(i, l+1, k, l, , sc->data);
-             */
-          }
-
-#endif
         }
       }
 
@@ -1657,40 +1618,18 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       ml_helpers->prml[i] = prmt;
 
       /* l+1 is unpaired */
-#if 1
       if (hc_eval(k, l + 1, k, l, VRNA_DECOMP_ML_ML, hc_dat)) {
-#else
-      if ((hc->up_ml[l + 1]) && (sn[l] == sn[l + 1])) {
-#endif
         ppp = ml_helpers->prm_l1[i] * expMLbase[1];
 
-#if 1
         if (sc_wrapper->red_ml)
           ppp *= sc_wrapper->red_ml(k, l + 1, k, l, sc_wrapper);
-
-#else
-        if (sc) {
-          if (sc->exp_energy_up)
-            ppp *= sc->exp_energy_up[l + 1][1];
-
-          /*
-           *      if(sc_exp_f)
-           *        ppp *= sc->exp_f(, sc->data);
-           */
-        }
-
-#endif
 
         /* add contributions of MB loops where any unstructured domain starts at l+1 */
         if (with_ud) {
           for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
             u = domains_up->uniq_motif_size[cnt];
             if (l + u < n) {
-#if 1
               if (hc_eval(k, l + u, k, l, VRNA_DECOMP_ML_ML, hc_dat)) {
-#else
-              if (hc->up_ml[l + 1] >= u) {
-#endif
                 temp = domains_up->exp_energy_cb(fc,
                                                  l + 1,
                                                  l + u,
@@ -1699,16 +1638,8 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                        * ml_helpers->pmlu[u][i]
                        * expMLbase[u];
 
-#if 1
                 if (sc_wrapper->red_ml)
                   temp *= sc_wrapper->red_ml(k, l + u, k, l, sc_wrapper);
-
-#else
-                if (sc)
-                  if (sc->exp_energy_up)
-                    temp *= sc->exp_energy_up[l + 1][u];
-
-#endif
 
                 ppp += temp;
               }
@@ -1726,40 +1657,17 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           ml_helpers->pmlu[0][i] = prmt1;
       }
 
-#if 1
       if (hc_eval(i, l, i + 1, l, VRNA_DECOMP_ML_ML, hc_dat)) {
-#else
-      /* i is unpaired */
-      if ((hc->up_ml[i]) && (sn[i - 1] == sn[i])) {
-#endif
         ppp = prm_MLb * expMLbase[1];
 
-#if 1
         if (sc_wrapper->red_ml)
           ppp *= sc_wrapper->red_ml(i, l, i + 1, l, sc_wrapper);
-
-#else
-        if (sc) {
-          if (sc->exp_energy_up)
-            ppp *= sc->exp_energy_up[i][1];
-
-          /*
-           *      if(sc->exp_f)
-           *        ppp *= sc->exp_f(, sc->data);
-           */
-        }
-
-#endif
 
         if (with_ud) {
           for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
             u = domains_up->uniq_motif_size[cnt];
             if (1 + u <= i) {
-#if 1
               if (hc_eval(i - u + 1, l, i + 1, l, VRNA_DECOMP_ML_ML, hc_dat)) {
-#else
-              if (hc->up_ml[i - u + 1] >= u) {
-#endif
                 temp = ml_helpers->prm_MLbu[u]
                        * expMLbase[u]
                        * domains_up->exp_energy_cb(fc,
@@ -1768,16 +1676,8 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
                                                    VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
                                                    domains_up->data);
 
-#if 1
                 if (sc_wrapper->red_ml)
                   temp *= sc_wrapper->red_ml(i - u + 1, l, i + 1, l, sc_wrapper);
-
-#else
-                if (sc)
-                  if (sc->exp_energy_up)
-                    temp *= sc->exp_energy_up[i - u + 1][u];
-
-#endif
 
                 ppp += temp;
               }
@@ -1832,11 +1732,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           (qb[kl] == 0.)) {
         temp *= G[kl] *
                 expMLstem;
-#if 1
       } else if (hc_eval(k, l, k, l, VRNA_DECOMP_ML_STEM, hc_dat)) {
-#else
-      } else if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
-#endif
         if (tt == 0)
           tt = 7;
 
