@@ -13,6 +13,7 @@ typedef FLT_OR_DBL (sc_mb_exp_red_cb)(int                   i,
 
 
 struct sc_mb_exp_dat {
+  unsigned int                n;
   unsigned int                n_seq;
   unsigned int                **a2s;
 
@@ -26,6 +27,7 @@ struct sc_mb_exp_dat {
   FLT_OR_DBL                  ***bp_local_comparative;
 
   sc_mb_exp_pair_cb           *pair;
+  sc_mb_exp_pair_cb           *pair_ext;
   sc_mb_exp_red_cb            *red_stem;
   sc_mb_exp_red_cb            *red_ml;
   sc_mb_exp_red_cb            *decomp_ml;
@@ -104,6 +106,17 @@ sc_mb_exp_pair_cb_user(int                  i,
 
 
 PRIVATE INLINE FLT_OR_DBL
+sc_mb_exp_pair_ext_cb_user(int                  i,
+                           int                  j,
+                           struct sc_mb_exp_dat *data)
+{
+  return data->user_cb(i, j, i - 1, j + 1,
+                       VRNA_DECOMP_PAIR_ML,
+                       data->user_data);
+}
+
+
+PRIVATE INLINE FLT_OR_DBL
 sc_mb_exp_pair_cb_user_comparative(int                  i,
                                    int                  j,
                                    struct sc_mb_exp_dat *data)
@@ -116,6 +129,26 @@ sc_mb_exp_pair_cb_user_comparative(int                  i,
   for (s = 0; s < data->n_seq; s++)
     if (data->user_cb_comparative[s])
       sc *= data->user_cb_comparative[s](i, j, i + 1, j - 1,
+                                         VRNA_DECOMP_PAIR_ML,
+                                         data->user_data_comparative[s]);
+
+  return sc;
+}
+
+
+PRIVATE INLINE FLT_OR_DBL
+sc_mb_exp_pair_ext_cb_user_comparative(int                  i,
+                                       int                  j,
+                                       struct sc_mb_exp_dat *data)
+{
+  unsigned int  s;
+  FLT_OR_DBL    sc;
+
+  sc = 1.;
+
+  for (s = 0; s < data->n_seq; s++)
+    if (data->user_cb_comparative[s])
+      sc *= data->user_cb_comparative[s](i, j, i - 1, j + 1,
                                          VRNA_DECOMP_PAIR_ML,
                                          data->user_data_comparative[s]);
 
@@ -375,6 +408,7 @@ init_sc_mb_exp(vrna_fold_compound_t *fc,
   unsigned char sliding_window;
   vrna_sc_t     *sc, **scs;
 
+  sc_wrapper->n     = fc->length;
   sc_wrapper->n_seq = 1;
   sc_wrapper->idx   = fc->jindx;
   sc_wrapper->a2s   = NULL;
@@ -392,6 +426,7 @@ init_sc_mb_exp(vrna_fold_compound_t *fc,
   sc_wrapper->user_data_comparative = NULL;
 
   sc_wrapper->pair      = NULL;
+  sc_wrapper->pair_ext  = NULL;
   sc_wrapper->red_stem  = NULL;
   sc_wrapper->red_ml    = NULL;
   sc_wrapper->decomp_ml = NULL;
@@ -437,12 +472,16 @@ init_sc_mb_exp(vrna_fold_compound_t *fc,
           sc_wrapper->red_stem  = &sc_mb_exp_red_cb_stem_user;
           sc_wrapper->red_ml    = &sc_mb_exp_red_cb_user;
           sc_wrapper->pair      = &sc_mb_exp_pair_cb_user;
+          if (!sliding_window)
+            sc_wrapper->pair_ext  = &sc_mb_exp_pair_ext_cb_user;
 
           if (provides_sc_bp) {
-            if (sliding_window)
+            if (sliding_window) {
               sc_wrapper->pair = &sc_mb_exp_pair_cb_bp_local_user;
-            else
-              sc_wrapper->pair = &sc_mb_exp_pair_cb_bp_user;
+            } else {
+              sc_wrapper->pair      = &sc_mb_exp_pair_cb_bp_user;
+              sc_wrapper->pair_ext  = &sc_mb_exp_pair_ext_cb_user;
+            }
           }
 
           if (provides_sc_up) {
@@ -450,10 +489,11 @@ init_sc_mb_exp(vrna_fold_compound_t *fc,
             sc_wrapper->red_ml    = &sc_mb_exp_red_cb_up_user;
           }
         } else if (provides_sc_bp) {
-          if (sliding_window)
+          if (sliding_window) {
             sc_wrapper->pair = &sc_mb_exp_pair_cb_bp_local;
-          else
-            sc_wrapper->pair = &sc_mb_exp_pair_cb_bp;
+          } else {
+            sc_wrapper->pair      = &sc_mb_exp_pair_cb_bp;
+          }
 
           if (provides_sc_up) {
             sc_wrapper->red_stem  = &sc_mb_exp_red_cb_up;
@@ -529,12 +569,16 @@ init_sc_mb_exp(vrna_fold_compound_t *fc,
           sc_wrapper->red_stem  = &sc_mb_exp_red_cb_stem_user_comparative;
           sc_wrapper->red_ml    = &sc_mb_exp_red_cb_user_comparative;
           sc_wrapper->pair      = &sc_mb_exp_pair_cb_user_comparative;
+          if (!sliding_window)
+            sc_wrapper->pair_ext  = &sc_mb_exp_pair_ext_cb_user_comparative;
 
           if (provides_sc_bp) {
-            if (sliding_window)
+            if (sliding_window) {
               sc_wrapper->pair = &sc_mb_exp_pair_cb_bp_local_user_comparative;
-            else
-              sc_wrapper->pair = &sc_mb_exp_pair_cb_bp_user_comparative;
+            } else {
+              sc_wrapper->pair      = &sc_mb_exp_pair_cb_bp_user_comparative;
+              sc_wrapper->pair_ext  = &sc_mb_exp_pair_ext_cb_user_comparative;
+            }
           }
 
           if (provides_sc_up) {
@@ -542,10 +586,11 @@ init_sc_mb_exp(vrna_fold_compound_t *fc,
             sc_wrapper->red_ml    = &sc_mb_exp_red_cb_up_user_comparative;
           }
         } else if (provides_sc_bp) {
-          if (sliding_window)
+          if (sliding_window) {
             sc_wrapper->pair = &sc_mb_exp_pair_cb_bp_local_comparative;
-          else
-            sc_wrapper->pair = &sc_mb_exp_pair_cb_bp_comparative;
+          } else {
+            sc_wrapper->pair      = &sc_mb_exp_pair_cb_bp_comparative;
+          }
 
           if (provides_sc_up) {
             sc_wrapper->red_stem  = &sc_mb_exp_red_cb_up_comparative;

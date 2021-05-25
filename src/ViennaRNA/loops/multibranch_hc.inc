@@ -42,15 +42,6 @@ hc_mb_cb_def_window(int           i,
 
 
 PRIVATE unsigned char
-hc_mb_cb_def_ext(int            i,
-                 int            j,
-                 int            k,
-                 int            l,
-                 unsigned char  d,
-                 void           *data);
-
-
-PRIVATE unsigned char
 hc_mb_cb_def_user(int           i,
                   int           j,
                   int           k,
@@ -77,15 +68,6 @@ hc_mb_cb_def_user_window(int            i,
                          void           *data);
 
 
-PRIVATE unsigned char
-hc_mb_cb_def_user_ext(int           i,
-                      int           j,
-                      int           k,
-                      int           l,
-                      unsigned char d,
-                      void          *data);
-
-
 PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_mb_def(vrna_fold_compound_t  *fc,
                   struct hc_mb_def_dat  *dat);
@@ -94,11 +76,6 @@ prepare_hc_mb_def(vrna_fold_compound_t  *fc,
 PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_mb_def_window(vrna_fold_compound_t *fc,
                          struct hc_mb_def_dat *dat);
-
-
-PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_mb_def_ext(vrna_fold_compound_t  *fc,
-                      struct hc_mb_def_dat  *dat);
 
 
 /*
@@ -132,31 +109,17 @@ hc_mb_cb_def(int            i,
           (dat->hc_up[k + 1] < u))
         eval = (unsigned char)0;
 
-#if 0
-      if (dat->sn[k] != dat->sn[l])
-        eval = (unsigned char)0;
-#endif
-
       break;
 
     case VRNA_DECOMP_ML_ML:
       eval = (unsigned char)1;
-#if 1
+
       if ((di != 0) &&
           (dat->hc_up[i] < di))
-#else
-      if ((di != 0) &&
-          ((dat->hc_up[i] < di) || (dat->sn[i] != dat->sn[k])))
-#endif
         eval = (unsigned char)0;
 
-#if 1
       if ((dj != 0) &&
           (dat->hc_up[l + 1] < dj))
-#else
-      if ((dj != 0) &&
-          ((dat->hc_up[l + 1] < dj) || (dat->sn[l] != dat->sn[j])))
-#endif
         eval = (unsigned char)0;
 
       break;
@@ -191,6 +154,22 @@ hc_mb_cb_def(int            i,
 
       break;
 
+    case VRNA_DECOMP_PAIR_ML_EXT:
+      if (dat->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
+        eval = (unsigned char)1;
+        di++;
+        dj++;
+        if ((di != 0) &&
+            (dat->hc_up[k + 1] < di))
+          eval = (unsigned char)0;
+
+        if ((dj != 0) &&
+            (dat->hc_up[j + 1] < dj))
+          eval = (unsigned char)0;
+      }
+
+      break;
+
     case VRNA_DECOMP_ML_ML_STEM:
       u     = l - k - 1;
       if (dat->mx[n * j + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
@@ -198,11 +177,6 @@ hc_mb_cb_def(int            i,
 
       if ((u != 0) && (dat->hc_up[k + 1] < u))
         eval = (unsigned char)0;
-
-#if 0
-      if (dat->sn[k] != dat->sn[l])
-        eval = (unsigned char)0;
-#endif
 
       break;
 
@@ -265,6 +239,8 @@ hc_sn(int           i,
 
       break;
 
+    case VRNA_DECOMP_PAIR_ML_EXT:
+      /* fall through */
     case VRNA_DECOMP_PAIR_ML:
       if ((sn[i] == sn[k]) &&
           (sn[l] == sn[j]))
@@ -385,124 +361,6 @@ hc_mb_cb_def_window(int           i,
 }
 
 
-PRIVATE unsigned char
-hc_mb_cb_def_ext(int            i,
-                 int            j,
-                 int            k,
-                 int            l,
-                 unsigned char  d,
-                 void           *data)
-{
-  unsigned int          n;
-  int                   di, dj;
-  unsigned char         eval;
-  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
-
-  eval  = (unsigned char)0;
-  di    = k - i;
-  dj    = j - l;
-  n     = dat->n;
-
-  switch (d) {
-    case VRNA_DECOMP_EXT_EXT_STEM:
-      if (dat->mx[n * j + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (unsigned char)1;
-        if (i != l) {
-          /* otherwise, stem spans from i to j */
-          di = l - k - 1;
-          if ((di != 0) && (dat->hc_up[k + 1] < di))
-            eval = (unsigned char)0;
-        }
-      }
-
-      break;
-
-    case VRNA_DECOMP_EXT_STEM_EXT:
-      if (dat->mx[n * i + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (unsigned char)1;
-        if (j != k) {
-          /* otherwise, stem spans from i to j */
-          dj = l - k - 1;
-          if ((dj != 0) && (dat->hc_up[k + 1] < dj))
-            eval = (unsigned char)0;
-        }
-      }
-
-      break;
-
-    case VRNA_DECOMP_EXT_EXT_STEM1:
-      if (dat->mx[n * (j - 1) + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (unsigned char)1;
-
-        if (dat->hc_up[j] == 0)
-          eval = (unsigned char)0;
-
-        if (i != l) {
-          /* otherwise, stem spans from i to j - 1 */
-          di = l - k - 1;
-
-          if ((di != 0) && (dat->hc_up[k + 1] < di))
-            eval = (unsigned char)0;
-        }
-      }
-
-      break;
-
-    case VRNA_DECOMP_EXT_STEM_EXT1:
-      if (dat->mx[n * (i + 1) + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (unsigned char)1;
-        if (dat->hc_up[i] == 0)
-          eval = (unsigned char)0;
-
-        if (j != k) {
-          /* otherwise, stem spans from i + 1 to j */
-          dj = l - k - 1;
-          if ((dj != 0) && (dat->hc_up[k + 1] < dj))
-            eval = (unsigned char)0;
-        }
-      }
-
-      break;
-
-    case VRNA_DECOMP_EXT_STEM:
-      if (dat->mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        eval = (unsigned char)1;
-        if ((di != 0) && (dat->hc_up[i] < di))
-          eval = (unsigned char)0;
-
-        if ((dj != 0) && (dat->hc_up[l + 1] < dj))
-          eval = (unsigned char)0;
-
-        if ((dat->sn[k] != dat->sn[i]) || (dat->sn[l] != dat->sn[j]))
-          eval = (unsigned char)0;
-      }
-
-      break;
-
-    case VRNA_DECOMP_EXT_EXT:
-      eval = (unsigned char)1;
-      if ((di != 0) && (dat->hc_up[i] < di))
-        eval = (unsigned char)0;
-
-      if ((dj != 0) && (dat->hc_up[l + 1] < dj))
-        eval = (unsigned char)0;
-
-      break;
-
-    case VRNA_DECOMP_EXT_UP:
-      di    = j - i + 1;
-      eval  = (dat->hc_up[i] >= di) ? (unsigned char)1 : (unsigned char)0;
-      break;
-
-    default:
-      vrna_message_warning("hc_mb_cb_def_ext@multibranch_hc.inc: "
-                           "Unrecognized decomposition %d",
-                           d);
-  }
-  return eval;
-}
-
-
 PRIVATE INLINE unsigned char
 hc_mb_cb_def_sn(int           i,
                 int           j,
@@ -575,24 +433,6 @@ hc_mb_cb_def_user_window(int            i,
 }
 
 
-PRIVATE unsigned char
-hc_mb_cb_def_user_ext(int           i,
-                      int           j,
-                      int           k,
-                      int           l,
-                      unsigned char d,
-                      void          *data)
-{
-  unsigned char         eval;
-  struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
-
-  eval  = hc_mb_cb_def_ext(i, j, k, l, d, data);
-  eval  = (dat->hc_f(i, j, k, l, d, dat->hc_dat)) ? eval : (unsigned char)0;
-
-  return eval;
-}
-
-
 PRIVATE INLINE vrna_callback_hc_evaluate *
 prepare_hc_mb_def(vrna_fold_compound_t  *fc,
                   struct hc_mb_def_dat  *dat)
@@ -636,23 +476,4 @@ prepare_hc_mb_def_window(vrna_fold_compound_t *fc,
   }
 
   return &hc_mb_cb_def_window;
-}
-
-
-PRIVATE INLINE vrna_callback_hc_evaluate *
-prepare_hc_mb_def_ext(vrna_fold_compound_t  *fc,
-                      struct hc_mb_def_dat  *dat)
-{
-  dat->mx     = fc->hc->mx;
-  dat->n      = fc->hc->n;
-  dat->hc_up  = fc->hc->up_ext;
-  dat->sn     = fc->strand_number;
-
-  if (fc->hc->f) {
-    dat->hc_f   = fc->hc->f;
-    dat->hc_dat = fc->hc->data;
-    return &hc_mb_cb_def_user_ext;
-  }
-
-  return &hc_mb_cb_def_ext;
 }
