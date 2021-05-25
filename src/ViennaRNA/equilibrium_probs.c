@@ -93,13 +93,8 @@ pf_create_bppm(vrna_fold_compound_t *vc,
 
 
 PRIVATE INLINE void
-bppm_circ(vrna_fold_compound_t *vc,
-          constraints_helper   *constraints);
-
-
-PRIVATE INLINE void
-bppm_circ_comparative(vrna_fold_compound_t *vc,
-                      constraints_helper   *constraints);
+bppm_circ(vrna_fold_compound_t  *fc,
+          constraints_helper    *constraints);
 
 
 PRIVATE INLINE void
@@ -752,8 +747,12 @@ pf_create_bppm(vrna_fold_compound_t *vc,
         probs[my_iindx[i] - j] = 0.;
 
     /* 1. external loop pairs, i.e. pairs not enclosed by any other pair (or external loop for circular RNAs) */
-    compute_bpp_external(vc,
-                         constraints);
+    if (circular)
+      bppm_circ(vc,
+                constraints);
+    else
+      compute_bpp_external(vc,
+                           constraints);
 
     /* 2. all cases where base pair (k,l) is enclosed by another pair (i,j) */
     l = n;
@@ -1065,19 +1064,19 @@ PRIVATE void
 compute_bpp_external(vrna_fold_compound_t *fc,
                      constraints_helper   *constraints)
 {
-  unsigned int      i, j, n, turn;
-  int               circular, *my_iindx, ij;
-  FLT_OR_DBL        *probs, *q1k, *qln, *qb;
-  vrna_exp_param_t  *pf_params;
-  vrna_md_t         *md;
-  vrna_mx_pf_t      *matrices;
+  unsigned int              i, j, n, turn;
+  int                       *my_iindx, ij;
+  FLT_OR_DBL                *probs, *q1k, *qln, *qb;
+  vrna_exp_param_t          *pf_params;
+  vrna_md_t                 *md;
+  vrna_mx_pf_t              *matrices;
   struct hc_ext_def_dat     *hc_dat;
   vrna_callback_hc_evaluate *evaluate;
 
-  FLT_OR_DBL        (*contrib_f)(vrna_fold_compound_t *,
-                                 unsigned int,
-                                 unsigned int,
-                                 constraints_helper *);
+  FLT_OR_DBL                (*contrib_f)(vrna_fold_compound_t *,
+                                         unsigned int,
+                                         unsigned int,
+                                         constraints_helper *);
 
   n         = fc->length;
   my_iindx  = fc->iindx;
@@ -1088,28 +1087,23 @@ compute_bpp_external(vrna_fold_compound_t *fc,
   probs     = matrices->probs;
   q1k       = matrices->q1k;
   qln       = matrices->qln;
-  circular  = md->circ;
   turn      = md->min_loop_size;
   hc_dat    = &(constraints->hc_dat_ext);
   evaluate  = constraints->hc_eval_ext;
 
-  if (circular) {
-    (fc->type == VRNA_FC_TYPE_SINGLE) ? bppm_circ(fc, constraints) : bppm_circ_comparative(fc, constraints);
-  } else {
-    contrib_f = (fc->type == VRNA_FC_TYPE_SINGLE) ? &contrib_ext_pair : &contrib_ext_pair_comparative;
+  contrib_f = (fc->type == VRNA_FC_TYPE_SINGLE) ? &contrib_ext_pair : &contrib_ext_pair_comparative;
 
-    for (i = 1; i <= n; i++) {
-      for (j = i + turn + 1; j <= n; j++) {
-        ij        = my_iindx[i] - j;
-        probs[ij] = 0.;
+  for (i = 1; i <= n; i++) {
+    for (j = i + turn + 1; j <= n; j++) {
+      ij        = my_iindx[i] - j;
+      probs[ij] = 0.;
 
-        if ((evaluate(1, n, i, j, VRNA_DECOMP_EXT_STEM_OUTSIDE, hc_dat)) &&
-            (qb[ij] > 0.)) {
-          probs[ij] = q1k[i - 1] *
-                      qln[j + 1] /
-                      q1k[n];
-          probs[ij] *= contrib_f(fc, i, j, constraints);
-        }
+      if ((evaluate(1, n, i, j, VRNA_DECOMP_EXT_STEM_OUTSIDE, hc_dat)) &&
+          (qb[ij] > 0.)) {
+        probs[ij] = q1k[i - 1] *
+                    qln[j + 1] /
+                    q1k[n];
+        probs[ij] *= contrib_f(fc, i, j, constraints);
       }
     }
   }
@@ -3859,42 +3853,47 @@ numerator_comparative(vrna_fold_compound_t  *vc,
 
 /* calculate base pairing probs */
 PRIVATE INLINE void
-bppm_circ(vrna_fold_compound_t *vc,
-          constraints_helper   *constraints)
+bppm_circ(vrna_fold_compound_t  *fc,
+          constraints_helper    *constraints)
 {
-  unsigned char     type;
-  char              *ptype;
-  unsigned char     *hard_constraints, eval;
-  short             *S, *S1;
-  int               n, i, j, k, l, ij, *rtype, *my_iindx, *jindx, turn;
-  FLT_OR_DBL        tmp, tmp2, expMLclosing, *qb, *qm, *qm1, *probs, *scale, *expMLbase, qo;
-  vrna_hc_t         *hc;
-  vrna_sc_t         *sc;
-  vrna_exp_param_t  *pf_params;
-  vrna_mx_pf_t      *matrices;
-  vrna_md_t         *md;
-  struct hc_int_def_dat     *hc_dat_int;
+  char                      *ptype;
+  unsigned char             *hard_constraints, eval;
+  short                     *S, *S1, **SS, **S5, **S3;
+  unsigned int              s, n_seq, type, rt, *tt, **a2s;
+  int                       n, i, j, k, l, ij, *rtype, *my_iindx, *jindx, turn;
+  FLT_OR_DBL                tmp, tmp2, expMLclosing, *qb, *qm, *qm1, *probs, *scale, *expMLbase, qo;
+  vrna_hc_t                 *hc;
+  vrna_exp_param_t          *pf_params;
+  vrna_mx_pf_t              *matrices;
+  vrna_md_t                 *md;
   struct hc_mb_def_dat      *hc_dat_mb;
-  eval_hc                   *hc_eval_int;
   vrna_callback_hc_evaluate *hc_eval_mb;
   struct sc_int_exp_dat     *sc_dat_int;
   struct sc_mb_exp_dat      *sc_dat_mb;
 
-  FLT_OR_DBL        (*numerator_f)(vrna_fold_compound_t *vc,
-                                   int                  i,
-                                   int                  j);
+  FLT_OR_DBL                (*numerator_f)(vrna_fold_compound_t *fc,
+                                           int                  i,
+                                           int                  j);
 
-  pf_params         = vc->exp_params;
+  n                 = (int)fc->length;
+  n_seq             = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  SS                = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  S5                = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
+  S3                = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
+  a2s               = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
+  pf_params         = fc->exp_params;
   md                = &(pf_params->model_details);
-  S                 = vc->sequence_encoding2;
-  S1                = vc->sequence_encoding;
-  my_iindx          = vc->iindx;
-  jindx             = vc->jindx;
-  ptype             = vc->ptype;
+  S                 = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
+  S1                = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
+  my_iindx          = fc->iindx;
+  jindx             = fc->jindx;
+  ptype             = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->ptype : NULL;
+  type              = 0;
+  rt                = 0;
+  tt                = NULL;
   turn              = md->min_loop_size;
-  hc                = vc->hc;
-  sc                = vc->sc;
-  matrices          = vc->exp_matrices;
+  hc                = fc->hc;
+  matrices          = fc->exp_matrices;
   qb                = matrices->qb;
   qm                = matrices->qm;
   qm1               = matrices->qm1;
@@ -3903,23 +3902,22 @@ bppm_circ(vrna_fold_compound_t *vc,
   expMLbase         = matrices->expMLbase;
   qo                = matrices->qo;
   hard_constraints  = hc->mx;
-  hc_dat_int        = &(constraints->hc_dat_int);
   hc_dat_mb         = &(constraints->hc_dat_mb);
   hc_eval_mb        = constraints->hc_eval_mb;
-  hc_eval_int       = constraints->hc_eval_int;
   sc_dat_int        = &(constraints->sc_wrapper_int);
   sc_dat_mb         = &(constraints->sc_wrapper_mb);
 
   expMLclosing  = pf_params->expMLclosing;
   rtype         = &(pf_params->model_details.rtype[0]);
-  n             = S[0];
 
-  switch (vc->type) {
+  switch (fc->type) {
     case  VRNA_FC_TYPE_SINGLE:
       numerator_f = numerator_single;
+      tt          = NULL;
       break;
     case  VRNA_FC_TYPE_COMPARATIVE:
       numerator_f = numerator_comparative;
+      tt          = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
       break;
     default:
       numerator_f = NULL;
@@ -3933,19 +3931,25 @@ bppm_circ(vrna_fold_compound_t *vc,
     for (j = i + turn + 1; j <= n; j++) {
       ij = my_iindx[i] - j;
       if (qb[ij] > 0.) {
-        probs[ij] = numerator_f(vc, i, j) / qo;
+        probs[ij] = numerator_f(fc, i, j) / qo;
 
-        type = vrna_get_ptype(jindx[j] + i, ptype);
-
-        unsigned char rt = rtype[type];
+        if (fc->type == VRNA_FC_TYPE_SINGLE) {
+          type  = vrna_get_ptype_md(S[i], S[j], md);
+          rt    = vrna_get_ptype_md(S[j], S[i], md);
+        } else {
+          for (s = 0; s < n_seq; s++)
+            tt[s] = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
+        }
 
         /* 1.1. Exterior Hairpin Contribution */
-        tmp2 = vrna_exp_E_hp_loop(vc, j, i);
+        tmp2 = vrna_exp_E_hp_loop(fc, j, i);
 
         if (hard_constraints[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-          /* 1.2. Exterior Interior Loop Contribution                     */
-          /* 1.2.1. i,j  delimtis the "left" part of the interior loop    */
-          /* (j,i) is "outer pair"                                        */
+          /*
+           * 1.2. Exterior Interior Loop Contribution
+           * 1.2.1. i,j  delimtis the "left" part of the interior loop
+           * (j,i) is "outer pair"
+           */
           for (k = 1; k < i - turn - 1; k++) {
             int ln1, ln3, lstart;
             ln1 = k - 1;
@@ -3962,7 +3966,7 @@ bppm_circ(vrna_fold_compound_t *vc,
               lstart = k + turn + 1;
 
             for (l = lstart; l < i; l++) {
-              int ln2, type_2;
+              int ln2, ln2a, ln1a, type_2;
               ln2 = i - l - 1;
 
               if ((ln1 + ln2 + ln3) > MAXLOOP)
@@ -3971,23 +3975,43 @@ bppm_circ(vrna_fold_compound_t *vc,
               if (hc->up_int[l + 1] < ln2)
                 continue;
 
+              if (qb[my_iindx[k] - l] == 0.)
+                continue;
+
               eval = (hard_constraints[k * n + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 : 0;
               if (hc->f)
                 eval = hc->f(k, l, i, j, VRNA_DECOMP_PAIR_IL, hc->data);
 
               if (eval) {
-                type_2 = vrna_get_ptype(jindx[l] + k, ptype);
+                tmp = qb[my_iindx[k] - l];
 
-                tmp = qb[my_iindx[k] - l]
-                      * exp_E_IntLoop(ln1 + ln3,
-                                      ln2,
-                                      rt,
-                                      rtype[type_2],
-                                      S1[j + 1],
-                                      S1[i - 1],
-                                      S1[k - 1],
-                                      S1[l + 1],
-                                      pf_params);
+                if (fc->type == VRNA_FC_TYPE_SINGLE) {
+                  type_2 = vrna_get_ptype(jindx[l] + k, ptype);
+
+                  tmp *= exp_E_IntLoop(ln1 + ln3,
+                                       ln2,
+                                       rt,
+                                       rtype[type_2],
+                                       S1[j + 1],
+                                       S1[i - 1],
+                                       S1[k - 1],
+                                       S1[l + 1],
+                                       pf_params);
+                } else {
+                  for (s = 0; s < n_seq; s++) {
+                    ln2a    = a2s[s][i - 1];
+                    ln2a    -= a2s[s][l];
+                    ln1a    = a2s[s][n] - a2s[s][j];
+                    ln1a    += a2s[s][k - 1];
+                    type_2  = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                    tmp     *= exp_E_IntLoop(ln1a, ln2a, tt[s], type_2,
+                                             S3[s][j],
+                                             S5[s][i],
+                                             S5[s][k],
+                                             S3[s][l],
+                                             pf_params);
+                  }
+                }
 
                 if (sc_dat_int->pair_ext)
                   tmp *= sc_dat_int->pair_ext(k, l, i, j, sc_dat_int);
@@ -4014,7 +4038,7 @@ bppm_circ(vrna_fold_compound_t *vc,
               lstart = k + turn + 1;
 
             for (l = lstart; l <= n; l++) {
-              int ln2, ln3, type_2;
+              int ln2, ln3, ln2a, ln1a, type_2;
               ln2 = i - 1;
               ln3 = n - l;
 
@@ -4024,22 +4048,40 @@ bppm_circ(vrna_fold_compound_t *vc,
               if (hc->up_int[l + 1] < (ln2 + ln3))
                 continue;
 
+              if (qb[my_iindx[k] - l] == 0.)
+                continue;
+
               eval = (hard_constraints[k * n + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 : 0;
               if (hc->f)
                 eval = hc->f(i, j, k, l, VRNA_DECOMP_PAIR_IL, hc->data) ? eval : 0;
 
               if (eval) {
-                type_2  = vrna_get_ptype(jindx[l] + k, ptype);
-                tmp     = qb[my_iindx[k] - l] *
-                          exp_E_IntLoop(ln2 + ln3,
-                                        ln1,
-                                        rtype[type_2],
-                                        rt,
-                                        S1[l + 1],
-                                        S1[k - 1],
-                                        S1[i - 1],
-                                        S1[j + 1],
-                                        pf_params);
+                tmp = qb[my_iindx[k] - l];
+
+                if (fc->type == VRNA_FC_TYPE_SINGLE) {
+                  type_2  = vrna_get_ptype(jindx[l] + k, ptype);
+                  tmp     *= exp_E_IntLoop(ln2 + ln3,
+                                           ln1,
+                                           rtype[type_2],
+                                           rt,
+                                           S1[l + 1],
+                                           S1[k - 1],
+                                           S1[i - 1],
+                                           S1[j + 1],
+                                           pf_params);
+                } else {
+                  for (s = 0; s < n_seq; s++) {
+                    ln1a    = a2s[s][k] - a2s[s][j + 1];
+                    ln2a    = a2s[s][i - 1] + a2s[s][n] - a2s[s][l];
+                    type_2  = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                    tmp     *= exp_E_IntLoop(ln2a, ln1a, type_2, tt[s],
+                                             S3[s][l],
+                                             S5[s][k],
+                                             S5[s][i],
+                                             S3[s][j],
+                                             pf_params);
+                  }
+                }
 
                 if (sc_dat_int->pair_ext)
                   tmp *= sc_dat_int->pair_ext(i, j, k, l, sc_dat_int);
@@ -4062,12 +4104,23 @@ bppm_circ(vrna_fold_compound_t *vc,
           if ((i > turn + 2) &&
               (j < n - turn - 1)) {
             tmp = qm[my_iindx[1] - i + 1] *
-                  qm[my_iindx[j + 1] - n] *
-                  expMLclosing *
-                  exp_E_MLstem(type,
-                               S1[i - 1],
-                               S1[j + 1],
-                               pf_params);
+                  qm[my_iindx[j + 1] - n];
+
+            if (fc->type == VRNA_FC_TYPE_SINGLE) {
+              tmp *= exp_E_MLstem(type,
+                                  S1[i - 1],
+                                  S1[j + 1],
+                                  pf_params) *
+                     expMLclosing;
+            } else {
+              for (s = 0; s < n_seq; s++)
+                tmp *= exp_E_MLstem(rtype[tt[s]],
+                                    S5[s][i],
+                                    S3[s][j],
+                                    pf_params);
+
+              tmp *= pow(expMLclosing, n_seq);
+            }
 
             tmp2 += tmp *
                     sc_contrib;
@@ -4080,12 +4133,23 @@ bppm_circ(vrna_fold_compound_t *vc,
                   (hc_eval_mb(1, i - 1, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
                 tmp = qm[my_iindx[1] - k] *
                       qm1[jindx[i - 1] + k + 1] *
-                      expMLbase[n - j] *
-                      expMLclosing *
-                      exp_E_MLstem(type,
-                                   S1[i - 1],
-                                   S1[j + 1],
-                                   pf_params);
+                      expMLbase[n - j];
+
+                if (fc->type == VRNA_FC_TYPE_SINGLE) {
+                  tmp *= exp_E_MLstem(type,
+                                      S1[i - 1],
+                                      S1[j + 1],
+                                      pf_params) *
+                         expMLclosing;
+                } else {
+                  for (s = 0; s < n_seq; s++)
+                    tmp *= exp_E_MLstem(rtype[tt[s]],
+                                        S5[s][i],
+                                        S3[s][j],
+                                        pf_params);
+
+                  tmp *= pow(expMLclosing, n_seq);
+                }
 
                 if (sc_dat_mb->red_ml)
                   tmp *= sc_dat_mb->red_ml(i, n, i, j, sc_dat_mb);
@@ -4106,12 +4170,23 @@ bppm_circ(vrna_fold_compound_t *vc,
                   (hc_eval_mb(j + 1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
                 tmp = qm[my_iindx[j + 1] - k] *
                       qm1[jindx[n] + k + 1] *
-                      expMLbase[i - 1] *
-                      expMLclosing *
-                      exp_E_MLstem(type,
-                                   S1[i - 1],
-                                   S1[j + 1],
-                                   pf_params);
+                      expMLbase[i - 1];
+
+                if (fc->type == VRNA_FC_TYPE_SINGLE) {
+                  tmp *= exp_E_MLstem(type,
+                                      S1[i - 1],
+                                      S1[j + 1],
+                                      pf_params) *
+                         expMLclosing;
+                } else {
+                  for (s = 0; s < n_seq; s++)
+                    tmp *= exp_E_MLstem(rtype[tt[s]],
+                                        S5[s][i],
+                                        S3[s][j],
+                                        pf_params);
+
+                  tmp *= pow(expMLclosing, n_seq);
+                }
 
                 if (sc_dat_mb->red_ml)
                   tmp *= sc_dat_mb->red_ml(1, j, i, j, sc_dat_mb);
@@ -4134,275 +4209,8 @@ bppm_circ(vrna_fold_compound_t *vc,
       }
     }
   }
-}
 
-
-PRIVATE INLINE void
-bppm_circ_comparative(vrna_fold_compound_t *vc,
-                      constraints_helper   *constraints)
-{
-  unsigned char     *hard_constraints;
-  short             **S, **S5, **S3;
-  unsigned int      s, n_seq, *type, **a2s;
-  int               i, j, k, l, n, ij, turn, *my_iindx, *jindx, *pscore, *rtype;
-  FLT_OR_DBL        *qb, *qm, *qm1, *probs, qo, *scale, *expMLbase, expMLclosing, tmp2, tmp3;
-  double            kTn;
-  vrna_exp_param_t  *pf_params;
-  vrna_md_t         *md;
-  vrna_hc_t         *hc;
-  vrna_sc_t         **scs;
-  struct hc_int_def_dat     *hc_dat_int;
-  struct hc_mb_def_dat      *hc_dat_mb;
-  eval_hc                   *hc_eval_int;
-  vrna_callback_hc_evaluate *hc_eval_mb;
-  struct sc_int_exp_dat     *sc_dat_int;
-  struct sc_mb_exp_dat      *sc_dat_mb;
-
-  n                 = (int)vc->length;
-  n_seq             = vc->n_seq;
-  S                 = vc->S;
-  S5                = vc->S5;
-  S3                = vc->S3;
-  a2s               = vc->a2s;
-  my_iindx          = vc->iindx;
-  jindx             = vc->jindx;
-  pf_params         = vc->exp_params;
-  md                = &(pf_params->model_details);
-  qb                = vc->exp_matrices->qb;
-  qm                = vc->exp_matrices->qm;
-  qm1               = vc->exp_matrices->qm1;
-  qo                = vc->exp_matrices->qo;
-  probs             = vc->exp_matrices->probs;
-  scale             = vc->exp_matrices->scale;
-  pscore            = vc->pscore;
-  expMLbase         = vc->exp_matrices->expMLbase;
-  expMLclosing      = pf_params->expMLclosing;
-  turn              = md->min_loop_size;
-  rtype             = &(md->rtype[0]);
-  kTn               = pf_params->kT / 10.;   /* kT in cal/mol  */
-  hc                = vc->hc;
-  scs               = vc->scs;
-  hard_constraints  = hc->mx;
-  hc_dat_int        = &(constraints->hc_dat_int);
-  hc_dat_mb         = &(constraints->hc_dat_mb);
-  hc_eval_mb        = constraints->hc_eval_mb;
-  hc_eval_int       = constraints->hc_eval_int;
-  sc_dat_int        = &(constraints->sc_wrapper_int);
-  sc_dat_mb         = &(constraints->sc_wrapper_mb);
-
-  type = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
-
-  for (i = 1; i <= n; i++) {
-    for (j = i + turn + 1; j <= n; j++) {
-      ij = my_iindx[i] - j;
-      if (qb[ij] > 0.) {
-        probs[ij] = exp(pscore[jindx[j] + i] / kTn) / qo;
-
-        /* get pair types  */
-        for (s = 0; s < n_seq; s++)
-          type[s] = vrna_get_ptype_md(S[s][j], S[s][i], md);
-
-        tmp2 = 0.;
-
-        /* 1.1. Exterior Hairpin Contribution */
-        tmp2 += vrna_exp_E_hp_loop(vc, j, i);
-        /* 1.2. Exterior Interior Loop Contribution */
-        /* recycling of k and l... */
-        if (hard_constraints[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-          /* 1.2.1. first we calc exterior loop energy with constraint, that i,j  */
-          /* delimtis the "right" part of the interior loop                       */
-          /* (l,k) is "outer pair"                                                */
-          for (k = 1; k < i - turn - 1; k++) {
-            int ln1, ln3, lstart;
-            ln1 = k - 1;
-            ln3 = n - j;
-
-            if (hc->up_int[j + 1] < (ln1 + ln3))
-              break;
-
-            if ((ln1 + ln3) > MAXLOOP)
-              break;
-
-            lstart = (ln1 + ln3) + i - 1 - MAXLOOP;
-            if (lstart < k + turn + 1)
-              lstart = k + turn + 1;
-
-            for (l = lstart; l < i; l++) {
-              int ln2, ln2a, ln1a, type_2;
-              ln2 = i - l - 1;
-
-              if ((ln1 + ln2 + ln3) > MAXLOOP)
-                continue;
-
-              if (hc->up_int[l + 1] < ln2)
-                continue;
-
-              if (!(hard_constraints[k * n + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
-                continue;
-
-              if (qb[my_iindx[k] - l] == 0.)
-                continue;
-
-              FLT_OR_DBL qloop = qb[my_iindx[k] - l];
-
-              for (s = 0; s < n_seq; s++) {
-                ln2a    = a2s[s][i - 1];
-                ln2a    -= a2s[s][l];
-                ln1a    = a2s[s][n] - a2s[s][j];
-                ln1a    += a2s[s][k - 1];
-                type_2  = vrna_get_ptype_md(S[s][l], S[s][k], md);
-                qloop   *= exp_E_IntLoop(ln1a, ln2a, type[s], type_2,
-                                         S3[s][j],
-                                         S5[s][i],
-                                         S5[s][k],
-                                         S3[s][l], pf_params);
-              }
-
-              if (sc_dat_int->pair_ext)
-                qloop *= sc_dat_int->pair_ext(k, l, i, j, sc_dat_int);
-
-              tmp2 += qloop *
-                      scale[ln1 + ln2 + ln3];
-            }
-          }
-
-          /* 1.2.2. second we calc exterior loop energy with constraint, that i,j */
-          /* delimtis the "left" part of the interior loop                        */
-          /* (j,i) is "outer pair"                                                */
-          for (k = j + 1; k < n - turn; k++) {
-            /* so first, lets calc the length of loop between l and i */
-            int ln1, lstart;
-            ln1 = k - j - 1;
-
-            if (hc->up_int[j + 1] < ln1)
-              break;
-
-            if ((ln1 + i - 1) > MAXLOOP)
-              break;
-
-            lstart = ln1 + i - 1 + n - MAXLOOP;
-            if (lstart < k + turn + 1)
-              lstart = k + turn + 1;
-
-            for (l = lstart; l <= n; l++) {
-              int ln2, ln3, ln2a, ln1a, type_2;
-              ln2 = i - 1;
-              ln3 = n - l;
-
-              if ((ln1 + ln2 + ln3) > MAXLOOP)
-                continue;
-
-              if (hc->up_int[l + 1] < (ln2 + ln3))
-                continue;
-
-              if (!(hard_constraints[k * n + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP))
-                continue;
-
-              FLT_OR_DBL qloop = qb[my_iindx[k] - l];
-
-              if (qb[my_iindx[k] - l] == 0.)
-                continue;
-
-              for (s = 0; s < n_seq; s++) {
-                ln1a    = a2s[s][k] - a2s[s][j + 1];
-                ln2a    = a2s[s][i - 1] + a2s[s][n] - a2s[s][l];
-                type_2  = vrna_get_ptype_md(S[s][l], S[s][k], md);
-                qloop   *= exp_E_IntLoop(ln2a, ln1a, type_2, type[s],
-                                         S3[s][l],
-                                         S5[s][k],
-                                         S5[s][i],
-                                         S3[s][j], pf_params);
-              }
-
-              if (sc_dat_int->pair_ext)
-                qloop *= sc_dat_int->pair_ext(i, j, k, l, sc_dat_int);
-
-              tmp2 += qloop *
-                      scale[ln1 + ln2 + ln3];
-            }
-          }
-        }
-
-        /* 1.3 Exterior multiloop decomposition */
-        if (hc_eval_mb(i, j, i - 1, j + 1, VRNA_DECOMP_PAIR_ML_EXT, hc_dat_mb)) {
-          FLT_OR_DBL sc_contrib = 1.;
-
-          if (sc_dat_mb->pair_ext)
-            sc_contrib = sc_dat_mb->pair_ext(i, j, sc_dat_mb);
-
-          /* 1.3.1 Middle part                    */
-          if ((i > turn + 2) &&
-              (j < n - turn - 1)) {
-            tmp3 = qm[my_iindx[1] - i + 1] *
-                   qm[my_iindx[j + 1] - n] *
-                   pow(expMLclosing, n_seq);
-
-            for (s = 0; s < n_seq; s++)
-              tmp3 *= exp_E_MLstem(rtype[type[s]], S5[s][i], S3[s][j], pf_params);
-
-            tmp2 += tmp3 *
-                    sc_contrib;
-          }
-
-          /* 1.3.2 Left part    */
-          if (hc->up_ml[j + 1] >= (n - j)) {
-            for (k = turn + 2; k < i - turn - 2; k++) {
-              if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                  (hc_eval_mb(1, i - 1, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
-                tmp3 = qm[my_iindx[1] - k] *
-                       qm1[jindx[i - 1] + k + 1] *
-                       expMLbase[n - j] *
-                       pow(expMLclosing, n_seq);
-
-                for (s = 0; s < n_seq; s++)
-                  tmp3 *= exp_E_MLstem(rtype[type[s]], S5[s][i], S3[s][j], pf_params);
-
-                if (sc_dat_mb->red_ml)
-                  tmp3 *= sc_dat_mb->red_ml(i, n, i, j, sc_dat_mb);
-
-                if (sc_dat_mb->decomp_ml)
-                  tmp3 *= sc_dat_mb->decomp_ml(1, i - 1, k, k + 1, sc_dat_mb);
-
-                tmp2 += tmp3 *
-                        sc_contrib;
-              }
-            }
-          }
-
-          /* 1.3.3 Right part    */
-          if (hc->up_ml[1] >= (i - 1)) {
-            for (k = j + turn + 2; k < n - turn - 1; k++) {
-              if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                  (hc_eval_mb(j + 1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
-                tmp3 = qm[my_iindx[j + 1] - k] *
-                       qm1[jindx[n] + k + 1] *
-                       expMLbase[i - 1] *
-                       pow(expMLclosing, n_seq);
-
-                for (s = 0; s < n_seq; s++)
-                  tmp3 *= exp_E_MLstem(rtype[type[s]], S5[s][i], S3[s][j], pf_params);
-
-                if (sc_dat_mb->red_ml)
-                  tmp3 *= sc_dat_mb->red_ml(1, j, i, j, sc_dat_mb);
-
-                if (sc_dat_mb->decomp_ml)
-                  tmp3 *= sc_dat_mb->decomp_ml(j + 1, n, k, k + 1, sc_dat_mb);
-
-                tmp2 += tmp3 *
-                        sc_contrib;
-              }
-            }
-          }
-        }
-
-        probs[ij] *= tmp2;
-      } else {
-        probs[ij] = 0;
-      }
-    } /* end for j=..*/
-  }   /* end or i=...  */
-
-  free(type);
+  free(tt);
 }
 
 
