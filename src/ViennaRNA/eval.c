@@ -42,6 +42,8 @@
 
 #include "ViennaRNA/color_output.inc"
 
+#define ADD_OR_INF(a,b)     (((a) != INF) && ((b) != INF) ?  (a) + (b) : INF)
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -589,7 +591,7 @@ eval_pt(vrna_fold_compound_t  *vc,
         int                   verbosity_level)
 {
   unsigned int  *sn;
-  int           i, length, energy;
+  int           i, length, ee, energy;
 
   length  = vc->length;
   sn      = vc->strand_number;
@@ -616,15 +618,18 @@ eval_pt(vrna_fold_compound_t  *vc,
     if (pt[i] == 0)
       continue;
 
-    energy  += stack_energy(vc, i, pt, output_stream, verbosity_level);
+    ee      = stack_energy(vc, i, pt, output_stream, verbosity_level);
+    energy  = ADD_OR_INF(energy, ee);
     i       = pt[i];
   }
-  for (i = 1; sn[i] != sn[length]; i++) {
-    if (sn[i] != sn[pt[i]]) {
-      energy += vc->params->DuplexInit;
-      break;
+
+  if (energy != INF)
+    for (i = 1; sn[i] != sn[length]; i++) {
+      if (sn[i] != sn[pt[i]]) {
+        energy += vc->params->DuplexInit;
+        break;
+      }
     }
-  }
 
   return energy;
 }
@@ -1067,7 +1072,7 @@ stack_energy(vrna_fold_compound_t *vc,
                                     ee);
     }
 
-    energy  += ee;
+    energy  = ADD_OR_INF(energy, ee);
     i       = p;
     j       = q;
   } /* end while */
@@ -1077,7 +1082,7 @@ stack_energy(vrna_fold_compound_t *vc,
   if (p > q) {
     /* hairpin */
     ee      = vrna_eval_hp_loop(vc, i, j);
-    energy  += ee;
+    energy  = ADD_OR_INF(energy, ee);
 
     if (verbosity_level > 0) {
       vrna_cstr_print_eval_hp_loop(output_stream,
@@ -1094,7 +1099,8 @@ stack_energy(vrna_fold_compound_t *vc,
   /* (i,j) is exterior pair of multiloop */
   while (p < j) {
     /* add up the contributions of the substructures of the ML */
-    energy  += stack_energy(vc, p, pt, output_stream, verbosity_level);
+    ee = stack_energy(vc, p, pt, output_stream, verbosity_level);
+    energy  = ADD_OR_INF(energy, ee);
     p       = pt[p];
     /* search for next base pair in multiloop */
     while (pt[++p] == 0);
@@ -1115,7 +1121,8 @@ stack_energy(vrna_fold_compound_t *vc,
       break;
   }
 
-  energy += ee;
+  energy = ADD_OR_INF(energy, ee);
+
   if (verbosity_level > 0) {
     vrna_cstr_print_eval_mb_loop(output_stream,
                                  i, j,
