@@ -752,24 +752,28 @@ vrna_db_from_probs(const FLT_OR_DBL *p,
   float P[3];    /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
   char  *s;
 
-  index = vrna_idx_row_wise(length);
-  s     = (char *)vrna_alloc(sizeof(char) * (length + 1));
+  s = NULL;
 
-  for (j = 1; j <= length; j++) {
-    P[0]  = 1.0;
-    P[1]  = P[2] = 0.0;
-    for (i = 1; i < j; i++) {
-      P[2]  += (float)p[index[i] - j];  /* j is paired downstream */
-      P[0]  -= (float)p[index[i] - j];  /* j is unpaired */
+  if (p) {
+    index = vrna_idx_row_wise(length);
+    s     = (char *)vrna_alloc(sizeof(char) * (length + 1));
+
+    for (j = 1; j <= length; j++) {
+      P[0]  = 1.0;
+      P[1]  = P[2] = 0.0;
+      for (i = 1; i < j; i++) {
+        P[2]  += (float)p[index[i] - j];  /* j is paired downstream */
+        P[0]  -= (float)p[index[i] - j];  /* j is unpaired */
+      }
+      for (i = j + 1; i <= length; i++) {
+        P[1]  += (float)p[index[j] - i];  /* j is paired upstream */
+        P[0]  -= (float)p[index[j] - i];  /* j is unpaired */
+      }
+      s[j - 1] = vrna_bpp_symbol(P);
     }
-    for (i = j + 1; i <= length; i++) {
-      P[1]  += (float)p[index[j] - i];  /* j is paired upstream */
-      P[0]  -= (float)p[index[j] - i];  /* j is unpaired */
-    }
-    s[j - 1] = vrna_bpp_symbol(P);
+    s[length] = '\0';
+    free(index);
   }
-  s[length] = '\0';
-  free(index);
 
   return s;
 }
@@ -819,37 +823,42 @@ vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
   int   k, i, j, temp;
   char  *structure;
 
-  structure = vrna_alloc(sizeof(char) * (length + 1));
+  structure = NULL;
 
-  if (length > 0)
-    memset(structure, '.', length);
+  if (bp) {
+    structure = vrna_alloc(sizeof(char) * (length + 1));
 
-  structure[length] = '\0';
+    if (length > 0)
+      memset(structure, '.', length);
 
-  for (k = 1; k <= bp[0].i; k++) {
-    i = bp[k].i;
-    j = bp[k].j;
-    if (i > length)
-      i -= length;
+    structure[length] = '\0';
 
-    if (j > length)
-      j -= length;
+    for (k = 1; k <= bp[0].i; k++) {
+      i = bp[k].i;
+      j = bp[k].j;
+      if (i > length)
+        i -= length;
 
-    if (i > j) {
-      temp  = i;
-      i     = j;
-      j     = temp;
-    }
+      if (j > length)
+        j -= length;
 
-    if (i == j) {
-      /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[i - 1] = '+';
-    } else {
-      /* the following ones are regular base pairs */
-      structure[i - 1]  = '(';
-      structure[j - 1]  = ')';
+      if (i > j) {
+        temp  = i;
+        i     = j;
+        j     = temp;
+      }
+
+      if (i == j) {
+        /* Gquad bonds are marked as bp[i].i == bp[i].j */
+        structure[i - 1] = '+';
+      } else {
+        /* the following ones are regular base pairs */
+        structure[i - 1]  = '(';
+        structure[j - 1]  = ')';
+      }
     }
   }
+
   return structure;
 }
 
@@ -863,40 +872,44 @@ vrna_plist(const char *struc,
   int       i, k = 0, size, n;
   vrna_ep_t *gpl, *ptr, *pl;
 
-  size  = strlen(struc);
-  n     = 2;
+  pl = NULL;
 
-  pt  = vrna_ptable(struc);
-  pl  = (vrna_ep_t *)vrna_alloc(n * size * sizeof(vrna_ep_t));
-  for (i = 1; i < size; i++) {
-    if (pt[i] > i) {
-      (pl)[k].i       = i;
-      (pl)[k].j       = pt[i];
-      (pl)[k].p       = pr;
-      (pl)[k++].type  = VRNA_PLIST_TYPE_BASEPAIR;
-    }
-  }
+  if (struc) {
+    size  = strlen(struc);
+    n     = 2;
 
-  gpl = get_plist_gquad_from_db(struc, pr);
-  for (ptr = gpl; ptr->i != 0; ptr++) {
-    if (k == n * size - 1) {
-      n   *= 2;
-      pl  = (vrna_ep_t *)vrna_realloc(pl, n * size * sizeof(vrna_ep_t));
+    pt  = vrna_ptable(struc);
+    pl  = (vrna_ep_t *)vrna_alloc(n * size * sizeof(vrna_ep_t));
+    for (i = 1; i < size; i++) {
+      if (pt[i] > i) {
+        (pl)[k].i       = i;
+        (pl)[k].j       = pt[i];
+        (pl)[k].p       = pr;
+        (pl)[k++].type  = VRNA_PLIST_TYPE_BASEPAIR;
+      }
     }
 
-    (pl)[k].i       = ptr->i;
-    (pl)[k].j       = ptr->j;
-    (pl)[k].p       = ptr->p;
-    (pl)[k++].type  = ptr->type;
-  }
-  free(gpl);
+    gpl = get_plist_gquad_from_db(struc, pr);
+    for (ptr = gpl; ptr->i != 0; ptr++) {
+      if (k == n * size - 1) {
+        n   *= 2;
+        pl  = (vrna_ep_t *)vrna_realloc(pl, n * size * sizeof(vrna_ep_t));
+      }
 
-  (pl)[k].i       = 0;
-  (pl)[k].j       = 0;
-  (pl)[k].p       = 0.;
-  (pl)[k++].type  = 0;
-  free(pt);
-  pl = (vrna_ep_t *)vrna_realloc(pl, k * sizeof(vrna_ep_t));
+      (pl)[k].i       = ptr->i;
+      (pl)[k].j       = ptr->j;
+      (pl)[k].p       = ptr->p;
+      (pl)[k++].type  = ptr->type;
+    }
+    free(gpl);
+
+    (pl)[k].i       = 0;
+    (pl)[k].j       = 0;
+    (pl)[k].p       = 0.;
+    (pl)[k++].type  = 0.;
+    free(pt);
+    pl = (vrna_ep_t *)vrna_realloc(pl, k * sizeof(vrna_ep_t));
+  }
 
   return pl;
 }
@@ -924,7 +937,8 @@ vrna_db_from_plist(vrna_ep_t    *pairs,
   vrna_ep_t *ptr;
   char      *structure = NULL;
 
-  if (n > 0) {
+  if ((n > 0) &&
+      (pairs)) {
     structure = (char *)vrna_alloc(sizeof(char) * (n + 1));
     memset(structure, '.', n);
     structure[n] = '\0';
@@ -976,40 +990,45 @@ vrna_hx_from_ptable(short *pt)
   int       i, k, n, l, s, *stack;
   vrna_hx_t *list;
 
-  n     = pt[0];
-  l     = 0;
-  s     = 1;
-  list  = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * n / 2);
-  stack = (int *)vrna_alloc(sizeof(int) * n / 2);
+  list = NULL;
 
-  stack[s] = 1;
+  if (pt) {
+    n     = pt[0];
+    l     = 0;
+    s     = 1;
+    list  = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * n / 2);
+    stack = (int *)vrna_alloc(sizeof(int) * n / 2);
 
-  do {
-    for (i = stack[s--]; i <= n; i++) {
-      if (pt[i] > (short)i) {
-        /* found a base pair */
-        k = i;
-        /* go through stack */
-        for (; pt[k + 1] == pt[k] - 1; k++);
-        list[l].start   = i;
-        list[l].end     = pt[i];
-        list[l].length  = k - i + 1;
-        list[l].up5     = list[l].up3 = 0;
-        l++;
-        stack[++s]  = pt[i] + 1;
-        stack[++s]  = k + 1;
-        break;
-      } else if (pt[i]) {
-        /* end of region */
-        break;
+    stack[s] = 1;
+
+    do {
+      for (i = stack[s--]; i <= n; i++) {
+        if (pt[i] > (short)i) {
+          /* found a base pair */
+          k = i;
+          /* go through stack */
+          for (; pt[k + 1] == pt[k] - 1; k++);
+          list[l].start   = i;
+          list[l].end     = pt[i];
+          list[l].length  = k - i + 1;
+          list[l].up5     = list[l].up3 = 0;
+          l++;
+          stack[++s]  = pt[i] + 1;
+          stack[++s]  = k + 1;
+          break;
+        } else if (pt[i]) {
+          /* end of region */
+          break;
+        }
       }
-    }
-  } while (s > 0);
+    } while (s > 0);
 
-  list          = vrna_realloc(list, (l + 1) * sizeof(vrna_hx_t));
-  list[l].start = list[l].end = list[l].length = list[l].up5 = list[l].up3 = 0;
+    list          = vrna_realloc(list, (l + 1) * sizeof(vrna_hx_t));
+    list[l].start = list[l].end = list[l].length = list[l].up5 = list[l].up3 = 0;
 
-  free(stack);
+    free(stack);
+  }
+
   return list;
 }
 
@@ -1021,58 +1040,62 @@ vrna_hx_merge(const vrna_hx_t *list,
   int       merged, i, j, s, neighbors, n;
   vrna_hx_t *merged_list;
 
-  for (n = 0; list[n].length > 0; n++); /* check size of list */
+  merged_list = NULL;
 
-  merged_list = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * (n + 1));
-  memcpy(merged_list, list, sizeof(vrna_hx_t) * (n + 1));
+  if (list) {
+    for (n = 0; list[n].length > 0; n++); /* check size of list */
 
-  s = n + 1;
+    merged_list = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * (n + 1));
+    memcpy(merged_list, list, sizeof(vrna_hx_t) * (n + 1));
 
-  do {
-    merged = 0;
-    for (i = 1; merged_list[i].length > 0; i++) {
-      /*
-       * GOAL: merge two consecutive helices i and i-1, if i-1
-       * subsumes i, and not more than i
-       */
+    s = n + 1;
 
-      /* 1st, check for neighbors */
-      neighbors = 0;
-      for (j = i + 1; merged_list[j].length > 0; j++) {
-        if (merged_list[j].start > merged_list[i - 1].end)
-          break;
+    do {
+      merged = 0;
+      for (i = 1; merged_list[i].length > 0; i++) {
+        /*
+         * GOAL: merge two consecutive helices i and i-1, if i-1
+         * subsumes i, and not more than i
+         */
 
-        if (merged_list[j].start < merged_list[i].end)
+        /* 1st, check for neighbors */
+        neighbors = 0;
+        for (j = i + 1; merged_list[j].length > 0; j++) {
+          if (merged_list[j].start > merged_list[i - 1].end)
+            break;
+
+          if (merged_list[j].start < merged_list[i].end)
+            continue;
+
+          neighbors = 1;
+        }
+        if (neighbors)
           continue;
 
-        neighbors = 1;
+        /* check if we may merge i with i-1 */
+        if (merged_list[i].end < merged_list[i - 1].end) {
+          merged_list[i - 1].up5 += merged_list[i].start
+                                    - merged_list[i - 1].start
+                                    - merged_list[i - 1].length
+                                    - merged_list[i - 1].up5
+                                    + merged_list[i].up5;
+          merged_list[i - 1].up3 += merged_list[i - 1].end
+                                    - merged_list[i - 1].length
+                                    - merged_list[i - 1].up3
+                                    - merged_list[i].end
+                                    + merged_list[i].up3;
+          merged_list[i - 1].length += merged_list[i].length;
+          /* splice out helix i */
+          memmove(merged_list + i, merged_list + i + 1, sizeof(vrna_hx_t) * (n - i));
+          s--;
+          merged = 1;
+          break;
+        }
       }
-      if (neighbors)
-        continue;
+    } while (merged);
 
-      /* check if we may merge i with i-1 */
-      if (merged_list[i].end < merged_list[i - 1].end) {
-        merged_list[i - 1].up5 += merged_list[i].start
-                                  - merged_list[i - 1].start
-                                  - merged_list[i - 1].length
-                                  - merged_list[i - 1].up5
-                                  + merged_list[i].up5;
-        merged_list[i - 1].up3 += merged_list[i - 1].end
-                                  - merged_list[i - 1].length
-                                  - merged_list[i - 1].up3
-                                  - merged_list[i].end
-                                  + merged_list[i].up3;
-        merged_list[i - 1].length += merged_list[i].length;
-        /* splice out helix i */
-        memmove(merged_list + i, merged_list + i + 1, sizeof(vrna_hx_t) * (n - i));
-        s--;
-        merged = 1;
-        break;
-      }
-    }
-  } while (merged);
-
-  merged_list = vrna_realloc(merged_list, sizeof(vrna_hx_t) * s);
+    merged_list = vrna_realloc(merged_list, sizeof(vrna_hx_t) * s);
+  }
 
   return merged_list;
 }
