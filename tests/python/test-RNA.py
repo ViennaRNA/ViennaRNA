@@ -65,29 +65,29 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_cofold_andMore(self):
-#        print "test_cofold"
-#        RNA.cvar.cut_point = len(seq1)+1
-#        (costruct,comfe) = RNA.cofold(seq1 + seq2)
-#        self.assertEqual(costruct,'(((.(((...))))))((((((...))).)))')
-#        cmfe = RNA.energy_of_struct(seq1 + seq2, costruct)
-#        self.assertTrue(abs(comfe - cmfe) < 1e-5)
-#        (x,ac,bc,fcab,cf) = RNA.co_pf_fold(seq1 + seq2, struct)
-#        self.assertTrue(cf<comfe)
-#        self.assertTrue(comfe-cf<1.3)
+        print "test_cofold"
+        RNA.cvar.cut_point = len(seq1)+1
+        (costruct,comfe) = RNA.cofold(seq1 + seq2)
+        self.assertEqual(costruct,'(((.(((...))))))((((((...))).)))')
+        cmfe = RNA.energy_of_struct(seq1 + seq2, costruct)
+        self.assertTrue(abs(comfe - cmfe) < 1e-5)
+        (x,ac,bc,fcab,cf) = RNA.co_pf_fold(seq1 + seq2, struct)
+        self.assertTrue(cf<comfe)
+        self.assertTrue(comfe-cf<1.3)
 
-#        (x,usel1, usel2, fcaa, usel3)= RNA.co_pf_fold(seq1 + seq1, struct)
-#        RNA.cvar.cut_point = len(seq2)+1
-#        (x,usel1, usel2, fcbb, usel3)= RNA.co_pf_fold(seq2 + seq2, struct)
-#        (AB,AA,BB,A,B) = RNA.get_concentrations(fcab, fcaa, fcbb,ac, bc, 1e-5, 1e-5)
-#        AB/=2e-5
-#        AA/=2e-5
-#        BB/=2e-5
-#        A/=2e-5
-#        B/=2e-5
+        (x,usel1, usel2, fcaa, usel3)= RNA.co_pf_fold(seq1 + seq1, struct)
+        RNA.cvar.cut_point = len(seq2)+1
+        (x,usel1, usel2, fcbb, usel3)= RNA.co_pf_fold(seq2 + seq2, struct)
+        (AB,AA,BB,A,B) = RNA.get_concentrations(fcab, fcaa, fcbb,ac, bc, 1e-5, 1e-5)
+        AB/=2e-5
+        AA/=2e-5
+        BB/=2e-5
+        A/=2e-5
+        B/=2e-5
 
-#        ret = (abs(AB-0.0)+abs(AA-0.00578)+abs(BB-0.01100)+abs(A-0.48843)+abs(B-0.47801))
-#        self.assertTrue(ret<0.0001)
-#        RNA.cvar.cut_point=-1
+        ret = (abs(AB-0.0)+abs(AA-0.00578)+abs(BB-0.01100)+abs(A-0.48843)+abs(B-0.47801))
+        self.assertTrue(ret<0.0001)
+        RNA.cvar.cut_point=-1
         #pf_fo ld
         s,f = RNA.pf_fold(seq1,struct)
         self.assertTrue(f < mfe)
@@ -143,13 +143,13 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(ss, struct1)
 
 
-#    def test_eos_dimer(self):
-#        print "test_eos_dimer"
+    def test_eos_dimer(self):
+        print "test_eos_dimer"
 
-#        RNA.cvar.cut_point = 3
-#        e =  RNA.energy_of_struct("GCGC", "(())")
-#        RNA.cvar.cut_point = -1
-#        self.assertEqual(int(e*100+0.5), 70)
+        RNA.cvar.cut_point = 3
+        e =  RNA.energy_of_struct("GCGC", "(())")
+        RNA.cvar.cut_point = -1
+        self.assertEqual(int(e*100+0.5), 70)
 
 
     def test_duplexfold(self):
@@ -267,16 +267,16 @@ class FoldCompoundTest(unittest.TestCase):
         self.assertTrue(bp_dis)
 
 
-#    def test_pf_dimer(self):
-#        print "testing pf_dimer() method"
-#        fc = RNA.fold_compound(seq1 + "&" + seq2)
-#        (costruct, comfe) = fc.mfe_dimer()
-#        self.assertEqual(costruct, "(((.(((...))))))((((((...))).)))")
-#        cmfe = fc.eval_structure(costruct)
-#        self.assertTrue(abs(comfe-cmfe) < 1e-5)
+    def test_pf_dimer(self):
+        print "testing pf_dimer() method"
+        fc = RNA.fold_compound(seq1 + "&" + seq2)
+        (costruct, comfe) = fc.mfe_dimer()
+        self.assertEqual(costruct, "(((.(((...))))))((((((...))).)))")
+        cmfe = fc.eval_structure(costruct)
+        self.assertTrue(abs(comfe-cmfe) < 1e-5)
 
-#        (x,ac,bc,fcab,cf) = fc.pf_dimer()
-#        self.assertTrue((cf < comfe) and (comfe - cf < 1.3))
+        (x,ac,bc,fcab,cf) = fc.pf_dimer()
+        self.assertTrue((cf < comfe) and (comfe - cf < 1.3))
 
 
 if __name__ == '__main__':

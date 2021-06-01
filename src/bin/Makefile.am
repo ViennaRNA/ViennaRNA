@@ -33,7 +33,7 @@ endif
 
 bin_PROGRAMS = \
         RNAfold RNAeval RNAheat RNApdist RNAdistance RNAinverse \
-        RNAplot RNAsubopt RNALfold RNApaln RNAduplex \
+        RNAplot RNAsubopt RNALfold RNAcofold RNApaln RNAduplex \
         RNAalifold RNAplfold RNAup RNAaliduplex RNALalifold RNA2Dfold \
         RNAparconv RNAPKplex RNAplex RNAsnoop RNApvmin RNAdos \
         RNAmultifold
@@ -65,6 +65,7 @@ RNAmultifold_LDADD += -lstdc++
 GENGETOPT_CMDL = \
         RNAfold_cmdl.c RNAfold_cmdl.h \
         RNAalifold_cmdl.c RNAalifold_cmdl.h \
+        RNAcofold_cmdl.c  RNAcofold_cmdl.h \
         RNAup_cmdl.c  RNAup_cmdl.h \
         RNALfold_cmdl.c RNALfold_cmdl.h \
         RNALalifold_cmdl.c RNALalifold_cmdl.h \
@@ -89,7 +90,7 @@ GENGETOPT_CMDL = \
         RNAmultifold_cmdl.c RNAmultifold_cmdl.h
 
 GENGETOPT_FILES = \
-        RNAfold.ggo RNAalifold.ggo \
+        RNAfold.ggo RNAalifold.ggo RNAcofold.ggo \
         RNAup.ggo RNALfold.ggo RNALalifold.ggo \
         RNAplfold.ggo RNAduplex.ggo RNAaliduplex.ggo \
         RNAeval.ggo RNAheat.ggo RNAsubopt.ggo RNA2Dfold.ggo \
@@ -139,6 +140,11 @@ RNAalifold_SOURCES = \
     RNAalifold_cmdl.c \
     RNAalifold_cmdl.h \
     RNAalifold.c
+
+RNAcofold_SOURCES = \
+    RNAcofold_cmdl.c \
+    RNAcofold_cmdl.h \
+    RNAcofold.c
 
 RNAup_SOURCES = \
     RNAup_cmdl.c \
