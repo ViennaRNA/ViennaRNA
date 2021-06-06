@@ -18,13 +18,13 @@ function testline {
 # MFE and input without FASTA header
 testline "MFE prediction (.seq file)"
 RNAfold --noPS < ${DATADIR}/rnafold.seq > rnafold_long.fold
-diff=$(${DIFF} ${RNAFOLD_RESULTSDIR}/rnafold.seq.mfe.gold rnafold_long.fold)
+diff=$(${DIFF} -ru ${RNAFOLD_RESULTSDIR}/rnafold.seq.mfe.gold rnafold_long.fold)
 if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
 
 # MFE and input with FASTA header
 testline "MFE prediction (.fasta file)"
 RNAfold --noPS < ${DATADIR}/rnafold.fasta > rnafold_long.fold
-diff=$(${DIFF} ${RNAFOLD_RESULTSDIR}/rnafold.fasta.mfe.gold rnafold_long.fold)
+diff=$(${DIFF} -ru ${RNAFOLD_RESULTSDIR}/rnafold.fasta.mfe.gold rnafold_long.fold)
 if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
 
 # clean up
