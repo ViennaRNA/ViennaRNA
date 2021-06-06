@@ -83,9 +83,9 @@ vrna_E_ext_stem(unsigned int  type,
  *  @return       Free energy contribution that arises when this pair is formed in the exterior loop
  */
 int
-vrna_E_ext_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j);
+vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
+                   int                   i,
+                   int                   j);
 
 
 int

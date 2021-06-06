@@ -412,9 +412,9 @@ vrna_E_ext_stem(unsigned int  type,
 
 
 PUBLIC int
-vrna_E_ext_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j)
+vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
+                   int                   i,
+                   int                   j)
 {
   char                      *ptype;
   short                     *S;
@@ -479,6 +479,19 @@ vrna_E_ext_loop(vrna_fold_compound_t  *fc,
       if (sc)
         if (sc->f)
           en += sc->f(i, j, i + 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
+
+      e = MIN2(e, en);
+    }
+
+    ij = idx[j - 1] + i + 1;
+    if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+      type = vrna_get_ptype(ij, ptype);
+
+      en = vrna_E_ext_stem(type, S[i], S[j], P);
+
+      if (sc)
+        if (sc->f)
+          en += sc->f(i, j, i + 1, j - 1, VRNA_DECOMP_EXT_STEM, sc->data);
 
       e = MIN2(e, en);
     }

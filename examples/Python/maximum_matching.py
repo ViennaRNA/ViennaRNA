@@ -19,11 +19,10 @@ revert_NN = {
     RNA.DECOMP_ML_ML:         lambda i, j, k, l, f, p: - (j - i - k + l) * p.MLbase,
     RNA.DECOMP_ML_ML_ML:      lambda i, j, k, l, f, p: 0,
     RNA.DECOMP_ML_UP:         lambda i, j, k, l, f, p: - (j - i + 1) * p.MLbase,
-    RNA.DECOMP_EXT_STEM:      lambda i, j, k, l, f, p: - f.E_ext_loop(k, l),
+    RNA.DECOMP_EXT_STEM:      lambda i, j, k, l, f, p: - f.eval_ext_stem(k, l),
     RNA.DECOMP_EXT_EXT:       lambda i, j, k, l, f, p: 0,
-    RNA.DECOMP_EXT_STEM_EXT:  lambda i, j, k, l, f, p: - f.E_ext_loop(i, k),
-    RNA.DECOMP_EXT_EXT_STEM:  lambda i, j, k, l, f, p: - f.E_ext_loop(l, j),
-    RNA.DECOMP_EXT_EXT_STEM1: lambda i, j, k, l, f, p: - f.E_ext_loop(l, j-1),
+    RNA.DECOMP_EXT_STEM_EXT:  lambda i, j, k, l, f, p: - f.eval_ext_stem(i, k),
+    RNA.DECOMP_EXT_EXT_STEM:  lambda i, j, k, l, f, p: - f.eval_ext_stem(l, j),
             }
 
 # Maximum Matching callback function (will be called by RNAlib in each decomposition step)

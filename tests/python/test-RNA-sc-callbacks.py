@@ -53,16 +53,16 @@ def MaximumMatching(i,j,k,l,d,data=None):
         e = e - u * data['params'].MLbase
 
     elif d == RNA.DECOMP_EXT_STEM:
-        e = e - data['fc'].E_ext_loop(k, l)
+        e = e - data['fc'].eval_ext_stem(k, l)
 
     elif d == RNA.DECOMP_EXT_STEM_EXT:
-        e = e - data['fc'].E_ext_loop(i, k)
+        e = e - data['fc'].eval_ext_stem(i, k)
 
     elif d == RNA.DECOMP_EXT_EXT_STEM:
-        e = e - data['fc'].E_ext_loop(l, j)
+        e = e - data['fc'].eval_ext_stem(l, j)
 
     elif d == RNA.DECOMP_EXT_EXT_STEM1:
-        e = e - data['fc'].E_ext_loop(l, j-1)
+        e = e - data['fc'].eval_ext_stem(l, j-1)
 
     return e
 

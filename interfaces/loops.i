@@ -19,10 +19,10 @@
 #endif
 
   int
-  E_ext_loop(int i,
-             int j)
+  eval_ext_stem(int i,
+                int j)
   {
-    return vrna_E_ext_loop($self, i, j);
+    return vrna_eval_ext_stem($self, i, j);
   }
 
   int
