@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/model.h"
@@ -122,5 +123,41 @@ PUBLIC float
 vrna_mfe_dimer(vrna_fold_compound_t *vc,
                char                 *structure)
 {
-  return vrna_mfe(vc, structure);
+  char          *s1, *s2, *ss1, *ss2;
+  unsigned int  l1, l2;
+  float         mfe, mfe1, mfe2;
+
+  mfe = vrna_mfe(vc, structure);
+
+  /*
+      for backward compatibility reasons, we alson need
+      to see whether the unconnected structure is better
+  */
+  if (vc->strands > 1) {
+    l1 = vc->nucleotides[0].length;
+    l2 = vc->nucleotides[1].length;
+    s1 = vc->nucleotides[0].string;
+    s2 = vc->nucleotides[1].string;
+    ss1 = (char *)vrna_alloc(sizeof(char) * (l1 + 1));
+    ss2 = (char *)vrna_alloc(sizeof(char) * (l2 + 1));
+
+    mfe1 = vrna_backtrack5(vc, l1, ss1);
+
+    vrna_fold_compound_t *fc2 = vrna_fold_compound(s2, &(vc->params->model_details), VRNA_OPTION_DEFAULT);
+
+    mfe2 = vrna_mfe(fc2, ss2);
+
+    if (mfe1 + mfe2 < mfe) {
+      mfe = mfe1 + mfe2;
+      memcpy(structure, ss1, sizeof(char) * l1);
+      memcpy(structure + l1, ss2, sizeof(char) * l2);
+      structure[l1 + l2] = '\0';
+    }
+
+    vrna_fold_compound_free(fc2);
+    free(ss1);
+    free(ss2);
+  }
+
+  return mfe;
 }
