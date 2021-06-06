@@ -380,7 +380,7 @@ ml_pair5(vrna_fold_compound_t       *fc,
           if (md->noGUclosure && ((tt == 3) || (tt == 4)))
             return INF; /* not allowed */
 
-          si1 = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
+          si1 = ((strands == 1) || (sn[i] == sn[i + 2])) ? S[i + 1] : -1;
 
           e += E_MLstem(tt, -1, si1, P) +
                P->MLclosing +
@@ -446,7 +446,7 @@ ml_pair3(vrna_fold_compound_t       *fc,
           if (md->noGUclosure && ((tt == 3) || (tt == 4)))
             return INF; /* not allowed */
 
-          sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+          sj1 = ((strands == 1) || (sn[j - 2] == sn[j])) ? S[j - 1] : -1;
 
           e += E_MLstem(tt, sj1, -1, P) +
                P->MLclosing +
@@ -513,8 +513,8 @@ ml_pair53(vrna_fold_compound_t      *fc,
           if (md->noGUclosure && ((tt == 3) || (tt == 4)))
             return INF; /* not allowed */
 
-          si1 = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
-          sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+          si1 = ((strands == 1) || (sn[i] == sn[i + 2])) ? S[i + 1] : -1;
+          sj1 = ((strands == 1) || (sn[j - 2] == sn[j])) ? S[j - 1] : -1;
 
           e += E_MLstem(tt, sj1, si1, P) +
                P->MLclosing +
@@ -1010,6 +1010,93 @@ extend_fm_3p(int                        i,
     }
   }
 
+  if (dangle_model % 2) {
+    if ((i + 1 < j) &&
+        (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_STEM, hc_dat_local))) {
+      en = (sliding_window) ? c_local[i + 1][j - i - 1] : c[indx[j] + i + 1];
+      if (en != INF) {
+        switch (fc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type = (sliding_window) ?
+                    vrna_get_ptype_window(i + 1, j, fc->ptype_local) :
+                    vrna_get_ptype(indx[j] + i + 1, fc->ptype);
+
+            en += E_MLstem(type, S[i], -1, P);
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            for (s = 0; s < n_seq; s++) {
+              type  = vrna_get_ptype_md(SS[s][i + 1], SS[s][j], md);
+              en    += E_MLstem(type, S5[s][i + 1], -1, P);
+            }
+            break;
+        }
+
+        if (sc_wrapper->red_stem)
+          en += sc_wrapper->red_stem(i, j, i + 1, j, sc_wrapper);
+
+        e = MIN2(e, en);
+      }
+    }
+
+    if ((i + 1 < j) &&
+        (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_STEM, hc_dat_local))) {
+      en = (sliding_window) ? c_local[i][j - 1 - i] : c[indx[j - 1] + i];
+      if (en != INF) {
+        switch (fc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type = (sliding_window) ?
+                    vrna_get_ptype_window(i, j - 1, fc->ptype_local) :
+                    vrna_get_ptype(indx[j - 1] + i, fc->ptype);
+
+            en += E_MLstem(type, -1, S[j], P);
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            for (s = 0; s < n_seq; s++) {
+              type  = vrna_get_ptype_md(SS[s][i], SS[s][j - 1], md);
+              en    += E_MLstem(type, -1, S3[s][j], P);
+            }
+            break;
+        }
+
+        if (sc_wrapper->red_stem)
+          en += sc_wrapper->red_stem(i, j, i, j - 1, sc_wrapper);
+
+        e = MIN2(e, en);
+      }
+    }
+
+    if ((i + 2 < j) &&
+        (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_ML_STEM, hc_dat_local))) {
+      en = (sliding_window) ? c_local[i + 1][j - 1 - i - 1] : c[indx[j - 1] + i + 1];
+      if (en != INF) {
+        switch (fc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type = (sliding_window) ?
+                    vrna_get_ptype_window(i + 1, j - 1, fc->ptype_local) :
+                    vrna_get_ptype(indx[j - 1] + i + 1, fc->ptype);
+
+            en += E_MLstem(type, S[i], S[j], P);
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            for (s = 0; s < n_seq; s++) {
+              type  = vrna_get_ptype_md(SS[s][i + 1], SS[s][j - 1], md);
+              en    += E_MLstem(type, S5[s][i], S3[s][j], P);
+            }
+            break;
+        }
+
+        if (sc_wrapper->red_stem)
+          en += sc_wrapper->red_stem(i, j, i + 1, j - 1, sc_wrapper);
+
+        e = MIN2(e, en);
+      }
+    }
+
+  }
+
   if (with_ud) {
     for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
       u = domains_up->uniq_motif_size[cnt];
@@ -1109,7 +1196,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
    *  and all other variants which are needed for odd
    *  dangle models
    */
-  if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+  if ((i + turn + 1 < j) &&
+      (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, &hc_dat_local))) {
     en = (sliding_window) ? fm_local[i + 1][j - i - 1] : fm[ij + 1];
     if (en != INF) {
       en += P->MLbase *
@@ -1163,7 +1251,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
         mm3 = S[j];
     }
 
-    if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+    if ((i + turn + 1 < j) &&
+        (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_STEM, &hc_dat_local))) {
       en = (sliding_window) ? c_local[i + 1][j - (i + 1)] : c[ij + 1];
       if (en != INF) {
         en += P->MLbase *
@@ -1193,7 +1282,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       }
     }
 
-    if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+    if ((i + turn + 1 < j) &&
+        (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_STEM, &hc_dat_local))) {
       en = (sliding_window) ? c_local[i][j - 1 - i] : c[indx[j - 1] + i];
       if (en != INF) {
         en += P->MLbase *
@@ -1224,7 +1314,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       }
     }
 
-    if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+    if ((i + turn + 2 < j) &&
+        (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_ML_STEM, &hc_dat_local))) {
       en = (sliding_window) ? c_local[i + 1][j - 1 - (i + 1)] : c[indx[j - 1] + i + 1];
       if (en != INF) {
         en += 2 * P->MLbase *

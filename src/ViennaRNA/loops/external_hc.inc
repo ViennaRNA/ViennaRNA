@@ -144,6 +144,24 @@ hc_ext_cb_def(int           i,
 
       break;
 
+    case VRNA_DECOMP_EXT_STEM_EXT1:
+      if (dat->mx[n * k + i + 1] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
+        eval = (unsigned char)1;
+
+        if (dat->hc_up[i] == 0)
+          eval = (unsigned char)0;
+
+        if (j != k) {
+          /* otherwise, stem spans from i + 1 to j */
+          dj = l - k - 1;
+
+          if ((dj != 0) && (dat->hc_up[k + 1] < dj))
+            eval = (unsigned char)0;
+        }
+      }
+
+      break;
+
     case VRNA_DECOMP_EXT_EXT_EXT:
       eval  = (unsigned char)1;
       di    = l - k - 1;
@@ -218,7 +236,20 @@ hc_ext_cb_sn(int            i,
       if (sn[j - 1] != sn[j])
         break;
 
-    /* fall through */
+      if (sn[k] == sn[l])
+        eval = (unsigned char)1;
+
+      break;
+
+    case VRNA_DECOMP_EXT_STEM_EXT1:
+      if (sn[i] != sn[i + 1])
+        break;
+
+      if (sn[k] == sn[l])
+        eval = (unsigned char)1;
+
+      break;
+
     case VRNA_DECOMP_EXT_EXT_STEM:
     /* fall through */
     case VRNA_DECOMP_EXT_STEM_EXT:
