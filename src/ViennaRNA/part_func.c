@@ -64,6 +64,15 @@ decompose_pair(vrna_fold_compound_t *fc,
                vrna_mx_pf_aux_ml_t  aux_mx_ml);
 
 
+PRIVATE void
+extract_dimer_props(vrna_fold_compound_t  *fc,
+                    double                *F0AB,
+                    double                *FAB,
+                    double                *FcAB,
+                    double                *FA,
+                    double                *FB);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -73,10 +82,10 @@ PUBLIC FLT_OR_DBL
 vrna_pf(vrna_fold_compound_t  *fc,
         char                  *structure)
 {
-  unsigned int        *so, *ss, *se;
+  unsigned int      *so, *ss, *se;
   int               n;
   FLT_OR_DBL        Q, dG;
-  char                *sequence;
+  char              *sequence;
   vrna_md_t         *md;
   vrna_exp_param_t  *params;
   vrna_mx_pf_t      *matrices;
@@ -117,7 +126,7 @@ vrna_pf(vrna_fold_compound_t  *fc,
     /* for now, multi-strand folding is implemented as additional grammar rule */
     if (fc->strands > 1)
       vrna_pf_multifold_prepare(fc);
-      
+
     /* call user-defined grammar pre-condition callback function */
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
       fc->aux_grammar->cb_proc(fc, VRNA_STATUS_PF_PRE, fc->aux_grammar->data);
@@ -174,8 +183,8 @@ vrna_pf(vrna_fold_compound_t  *fc,
     }
 
     dG = (FLT_OR_DBL)((-log(Q) - n * log(params->pf_scale)) *
-          params->kT /
-          1000.0);
+                      params->kT /
+                      1000.0);
 
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
       dG /= fc->n_seq;
@@ -196,7 +205,6 @@ vrna_pf(vrna_fold_compound_t  *fc,
 #endif
     }
 
-
 #ifdef SUN4
     standard_arithmetic();
 #elif defined(HP9)
@@ -208,144 +216,25 @@ vrna_pf(vrna_fold_compound_t  *fc,
 }
 
 
-
 PUBLIC vrna_dimer_pf_t
 vrna_pf_dimer(vrna_fold_compound_t  *fc,
               char                  *structure)
 {
-  unsigned int      *so, *se, *ss;
-  int               n;
-  FLT_OR_DBL        Q;
-  vrna_dimer_pf_t   X;
-  double            free_energy;
-  char              *sequence;
-  vrna_md_t         *md;
-  vrna_exp_param_t  *params;
-  vrna_mx_pf_t      *matrices;
+  vrna_dimer_pf_t X;
 
-  if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF | VRNA_OPTION_HYBRID)) {
-    vrna_message_warning("vrna_pf_dimer@part_func_co.c: Failed to prepare vrna_fold_compound");
-    X.FA = X.FB = X.FAB = X.F0AB = X.FcAB = 0;
-    return X;
+  X.F0AB = X.FAB = X.FcAB = X.FA = X.FB = 0.;
+
+  if (fc) {
+    (void)vrna_pf(fc, structure);
+
+    /* backward compatibility partition function and ensemble energy computation */
+    extract_dimer_props(fc,
+                        &(X.F0AB),
+                        &(X.FAB),
+                        &(X.FcAB),
+                        &(X.FA),
+                        &(X.FB));
   }
-
-  params    = fc->exp_params;
-  n         = fc->length;
-  so        = fc->strand_order;
-  se        = fc->strand_end;
-  ss        = fc->strand_start;
-  md        = &(params->model_details);
-  matrices  = fc->exp_matrices;
-  sequence  = fc->sequence;
-
-#ifdef _OPENMP
-  /* Explicitly turn off dynamic threads */
-  omp_set_dynamic(0);
-#endif
-
-#ifdef SUN4
-  nonstandard_arithmetic();
-#elif defined(HP9)
-  fpsetfastmode(1);
-#endif
-
-  /* hard code min_loop_size to 0, since we can not be sure yet that this is already the case */
-  md->min_loop_size = 0;
-
-  /* call user-defined recursion status callback function */
-  if (fc->stat_cb)
-    fc->stat_cb(VRNA_STATUS_PF_PRE, fc->auxdata);
-
-  if (!fill_arrays(fc)) {
-    X.FA    = X.FB = X.FAB = X.F0AB = (float)(INF / 100.);
-    X.FcAB  = 0;
-
-#ifdef SUN4
-    standard_arithmetic();
-#elif defined(HP9)
-    fpsetfastmode(0);
-#endif
-
-    return X;
-  }
-
-  /* call user-defined recursion status callback function */
-  if (fc->stat_cb)
-    fc->stat_cb(VRNA_STATUS_PF_POST, fc->auxdata);
-
-  if (md->backtrack_type == 'C')
-    Q = matrices->qb[fc->iindx[1] - n];
-  else if (md->backtrack_type == 'M')
-    Q = matrices->qm[fc->iindx[1] - n];
-  else
-    Q = matrices->q[fc->iindx[1] - n];
-
-  /* ensemble free energy in Kcal/mol */
-  if (Q <= FLT_MIN)
-    vrna_message_warning("pf_scale too large");
-
-  free_energy = (-log(Q) - n * log(params->pf_scale)) * params->kT / 1000.0;
-  /* in case we abort because of floating point errors */
-  if (n > 1600)
-    vrna_message_info(stderr, "free energy = %8.2f", free_energy);
-
-  /* probability of molecules being bound together */
-
-  /*
-   * Computation of "real" Partition function
-   * Need that for concentrations
-   */
-  if (fc->strands > 1) {
-    double kT, QAB, QToT, Qzero;
-    kT    = params->kT / 1000.0;
-    Qzero = matrices->q[fc->iindx[1] - n];
-    QAB   =
-      (matrices->q[fc->iindx[1] - n] - matrices->q[fc->iindx[1] - se[so[0]]] *
-       matrices->q[fc->iindx[ss[so[1]]] - n]) * params->expDuplexInit;
-    /*correction for symmetry*/
-    if ((n - 2 * se[so[0]]) == 0)
-      if ((strncmp(sequence, sequence + se[so[0]], se[so[0]])) == 0)
-        QAB /= 2;
-
-    QToT = matrices->q[fc->iindx[1] - se[so[0]]] *
-           matrices->q[fc->iindx[ss[so[1]]] - n] + QAB;
-    X.FAB   = -kT * (log(QToT) + n * log(params->pf_scale));
-    X.F0AB  = -kT * (log(Qzero) + n * log(params->pf_scale));
-    X.FcAB  = (QAB > 1e-17) ? -kT * (log(QAB) + n * log(params->pf_scale)) : 999;
-    X.FA    = -kT *
-              (log(matrices->q[fc->iindx[1] - se[so[0]]]) + (se[so[0]]) *
-               log(params->pf_scale));
-    X.FB = -kT *
-           (log(matrices->q[fc->iindx[ss[so[1]]] - n]) + (n - ss[so[1]] + 1) *
-            log(params->pf_scale));
-
-    /* printf("QAB=%.9f\tQtot=%.9f\n",QAB/scale[n],QToT/scale[n]); */
-  } else {
-    X.FA    = X.FB = X.FAB = X.F0AB = free_energy;
-    X.FcAB  = 0;
-  }
-
-  /* backtracking to construct binding probabilities of pairs */
-  if (md->compute_bpp) {
-    vrna_pairing_probs(fc, structure);
-
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
-
-    /*
-     *  Backward compatibility:
-     *  This block may be removed if deprecated functions
-     *  relying on the global variable "pr" vanish from within the package!
-     */
-    pr = fc->exp_matrices->probs;
-
-#endif
-  }
-
-#ifdef SUN4
-  standard_arithmetic();
-#elif defined(HP9)
-  fpsetfastmode(0);
-#endif
 
   return X;
 }
@@ -367,17 +256,16 @@ vrna_pf_substrands(vrna_fold_compound_t *fc,
   if ((fc) &&
       (fc->strands >= complex_size) &&
       (fc->exp_matrices) &&
-      (fc->exp_matrices->q))
-  {
+      (fc->exp_matrices->q)) {
     unsigned int      *ss, *se, *so;
     FLT_OR_DBL        Q;
     vrna_exp_param_t  *params;
     vrna_mx_pf_t      *matrices;
 
-    ss      = fc->strand_start;
-    se      = fc->strand_end;
-    so      = fc->strand_order;
-    params  = fc->exp_params;
+    ss        = fc->strand_start;
+    se        = fc->strand_end;
+    so        = fc->strand_order;
+    params    = fc->exp_params;
     matrices  = fc->exp_matrices;
 
     Q_sub = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->strands - complex_size + 1));
@@ -402,12 +290,13 @@ vrna_pf_add(FLT_OR_DBL  dG1,
             FLT_OR_DBL  dG2,
             double      kT)
 {
-  double  x1 = -(double)dG1 / kT;
-  double  x2 = -(double)dG2 / kT;
-  double  xs = MAX2(x1, x2);
+  double  x1  = -(double)dG1 / kT;
+  double  x2  = -(double)dG2 / kT;
+  double  xs  = MAX2(x1, x2);
 
   return -kT * (xs + log(exp(x1 - xs) + exp(x2 - xs)));
 }
+
 
 /*
  #################################
@@ -905,4 +794,61 @@ postprocess_circular(vrna_fold_compound_t *fc)
   matrices->qho = qho;
   matrices->qio = qio;
   matrices->qmo = qmo;
+}
+
+
+PRIVATE void
+extract_dimer_props(vrna_fold_compound_t  *fc,
+                    double                *F0AB,  /**< @brief Null model without DuplexInit */
+                    double                *FAB,   /**< @brief all states with DuplexInit correction */
+                    double                *FcAB,  /**< @brief true hybrid states only */
+                    double                *FA,    /**< @brief monomer A */
+                    double                *FB     /**< @brief monomer B */
+                    )
+{
+  unsigned int      n, sym, *ss, *so, *se;
+  double            kT, QAB, QToT, Qzero;
+  vrna_mx_pf_t      *matrices;
+  vrna_exp_param_t  *params;
+
+  n         = fc->length;
+  ss        = fc->strand_start;
+  se        = fc->strand_end;
+  so        = fc->strand_order;
+  params    = fc->exp_params;
+  matrices  = fc->exp_matrices;
+
+  if (fc->strands > 1) {
+    kT  = params->kT / 1000.0;
+    QAB = matrices->q[fc->iindx[1] - n];
+
+    /* check for rotational symmetry correction */
+    sym = vrna_rotational_symmetry(fc->sequence);
+    QAB /= (FLT_OR_DBL)sym;
+
+    /* add interaction penalty */
+    QAB *= pow(params->expDuplexInit, (FLT_OR_DBL)(fc->strands - 1));
+
+    Qzero = matrices->q[fc->iindx[1] - n] +
+            matrices->q[fc->iindx[1] - se[so[0]]] *
+            matrices->q[fc->iindx[ss[so[1]]] - n];
+
+    QToT = matrices->q[fc->iindx[1] - se[so[0]]] *
+           matrices->q[fc->iindx[ss[so[1]]] - n] +
+           QAB;
+
+    *FAB  = -kT * (log(QToT) + n * log(params->pf_scale));
+    *F0AB = -kT * (log(Qzero) + n * log(params->pf_scale));
+    *FcAB = (QAB > 1e-17) ? -kT * (log(QAB) + n * log(params->pf_scale)) : 999;
+    *FA   = -kT *
+            (log(matrices->q[fc->iindx[1] - se[so[0]]]) + (se[so[0]]) *
+             log(params->pf_scale));
+    *FB = -kT *
+          (log(matrices->q[fc->iindx[ss[so[1]]] - n]) + (n - ss[so[1]] + 1) *
+           log(params->pf_scale));
+  } else {
+    *FA = *FB = *FAB = *F0AB = (-log(matrices->q[fc->iindx[1] - n]) - n * log(params->pf_scale)) *
+                               params->kT / 1000.0;
+    *FcAB = 0;
+  }
 }
