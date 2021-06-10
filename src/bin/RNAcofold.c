@@ -951,7 +951,7 @@ process_record(struct record_data *record)
       if (opt->md.compute_bpp) {
         vrna_pf_dimer_probs(AB.F0AB, AB.FA, AB.FB, prAB, prA, prB, Alength, vc->exp_params);
         vrna_pf_dimer_probs(AA.F0AB, AA.FA, AA.FA, prAA, prA, prA, Alength, vc->exp_params);
-        vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prA, prB, Blength, vc->exp_params);
+        vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prB, prB, Blength, vc->exp_params);
       }
 
       if (opt->doC) {
