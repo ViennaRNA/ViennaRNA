@@ -910,8 +910,26 @@ process_record(struct record_data *record)
                   o_stream->data);
     }
 
+
+    if (opt->csv_output) {
+      vrna_cstr_printf(o_stream->data,
+                       "%c"
+                       "%g%c"   /* probability of MFE structure */
+                       "%6.2f", /* delta G binding */
+                       opt->csv_output_delim,
+                       exp((AB.FAB - min_en) / kT), opt->csv_output_delim,
+                       AB.FcAB - AB.FA - AB.FB);
+    } else {
+      vrna_cstr_printf_structure(o_stream->data,
+                                 NULL,
+                                 " frequency of mfe structure in ensemble %g"
+                                 "; delta G binding=%6.2f",
+                                 exp((AB.FAB - min_en) / kT),
+                                 AB.FcAB - AB.FA - AB.FB);
+    }
+
     if (opt->doT) {
-      if (vc->cutpoint <= 0) {
+      if (vc->strands < 2) {
         vrna_message_warning(
           "Sorry, i cannot do that with only one molecule, please give me two or leave it");
         free(mfAB);
@@ -920,6 +938,64 @@ process_record(struct record_data *record)
         goto cleanup_record;
       }
 
+#if 1
+      Alength = vc->nucleotides[0].length;    /* length of first molecule */
+      Blength = vc->nucleotides[1].length;    /* length of 2nd molecule   */
+      orig_Astring  = (char *)vrna_alloc(sizeof(char) * (Alength + 1)); /*Sequence of first molecule*/
+      orig_Bstring  = (char *)vrna_alloc(sizeof(char) * (Blength + 1)); /*Sequence of second molecule*/
+      strncat(orig_Astring, record->sequence, Alength);
+      strncat(orig_Bstring, record->sequence + Alength + 1, Blength);
+
+      char *seq_AA = vrna_strdup_printf("%s&%s",
+                                        vc->nucleotides[0].string,
+                                        vc->nucleotides[0].string);
+
+      char  *ss_AA  = (char *)vrna_alloc(sizeof(char) * (2 * Alength + 1));
+      vrna_fold_compound_t  *fc_AA = vrna_fold_compound(seq_AA, &(opt->md), VRNA_OPTION_DEFAULT);
+
+      double mfe_AA = vrna_mfe(fc_AA, ss_AA);
+      vrna_mx_mfe_free(fc_AA);
+
+      vrna_exp_params_rescale(fc_AA, &mfe_AA);
+
+      AA = vrna_pf_dimer(fc_AA, NULL);
+
+      mfAA  = vrna_plist(ss_AA, 0.95);
+      prAA  = vrna_plist_from_probs(fc_AA, opt->bppmThreshold);
+
+      free(seq_AA);
+      free(ss_AA);
+      vrna_fold_compound_free(fc_AA);
+
+      char *seq_BB = vrna_strdup_printf("%s&%s",
+                                        vc->nucleotides[1].string,
+                                        vc->nucleotides[1].string);
+
+      char  *ss_BB  = (char *)vrna_alloc(sizeof(char) * (2 * Blength + 1));
+      vrna_fold_compound_t  *fc_BB = vrna_fold_compound(seq_BB, &(opt->md), VRNA_OPTION_DEFAULT);
+
+      double mfe_BB = vrna_mfe(fc_BB, ss_BB);
+      vrna_mx_mfe_free(fc_BB);
+
+      vrna_exp_params_rescale(fc_BB, &mfe_BB);
+
+      BB = vrna_pf_dimer(fc_BB, NULL);
+
+      mfBB  = vrna_plist(ss_BB, 0.95);
+      prBB  = vrna_plist_from_probs(fc_BB, opt->bppmThreshold);
+
+      free(seq_BB);
+      free(ss_BB);
+      vrna_fold_compound_free(fc_BB);
+
+      /* compute A monomer */
+      do_partfunc(vc->nucleotides[0].string, Alength, 1, &prA, &mfA, kT, opt);
+
+      /* compute B monomer */
+      do_partfunc(vc->nucleotides[1].string, Blength, 1, &prB, &mfB, kT, opt);
+
+
+#else
       if (opt->md.dangles == 1)
         opt->md.dangles = 2;
 
@@ -954,6 +1030,7 @@ process_record(struct record_data *record)
         vrna_pf_dimer_probs(BB.F0AB, BB.FA, BB.FA, prBB, prB, prB, Blength, vc->exp_params);
       }
 
+#endif
       if (opt->doC) {
         conc_result = vrna_pf_dimer_concentrations(AB.FcAB,
                                                    AA.FcAB,
@@ -963,26 +1040,7 @@ process_record(struct record_data *record)
                                                    concentrations,
                                                    vc->exp_params);
       }
-    }
 
-    if (opt->csv_output) {
-      vrna_cstr_printf(o_stream->data,
-                       "%c"
-                       "%g%c"   /* probability of MFE structure */
-                       "%6.2f", /* delta G binding */
-                       opt->csv_output_delim,
-                       exp((AB.FAB - min_en) / kT), opt->csv_output_delim,
-                       AB.FcAB - AB.FA - AB.FB);
-    } else {
-      vrna_cstr_printf_structure(o_stream->data,
-                                 NULL,
-                                 " frequency of mfe structure in ensemble %g"
-                                 "; delta G binding=%6.2f",
-                                 exp((AB.FAB - min_en) / kT),
-                                 AB.FcAB - AB.FA - AB.FB);
-    }
-
-    if (opt->doT) {
       if (opt->csv_output) {
         vrna_cstr_printf(o_stream->data,
                          "%c"
