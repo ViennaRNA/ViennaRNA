@@ -505,7 +505,7 @@ A		B		AB		AA		BB		A		B
 0.0595247 	0.0595247 	0.00138 	0.24927 	0.24925 	0.00008 	0.00011
 0.0931997 	0.0931997 	0.00138 	0.24928 	0.24927 	0.00006 	0.00009
 UGUAAACAGCAACUAGAUGUCUUGUCAACCGGCACCUAAUGACCAUAUAAACUCGGGUUGAGAUGAGUUG&CGUAUGCGAGUUGGGGAGAUGUGGGCAACACUAUCUAGCAGUCCGUCCUCCUCCCUCUGGUUAACUUUUGAGAUUUGGAU
-............((((((.((..((.((((((.................((((((.((............&...)).))))))((((((..((((((..(........)..)))))..)..)))))))))))).))....)).)))))).. (-34.90)
+............((((((.((..((.((((((.................((((((.((((..........&)).)).))))))((((((..((((((..(........)..)))))..)..)))))))))))).))....)).)))))).. (-34.90)
 ,,,.....,,,.((((((.((..((.((((((.......,,.,{,....((((((.{{.....,,,,,..&,},)).})})))((((((..{{((((..,........}..))))).}},,)))))})))))).))....)).)))))).. [-38.75]
  frequency of mfe structure in ensemble 0.00193524; delta G binding= -8.57
 Free Energies:
@@ -1657,7 +1657,7 @@ A		B		AB		AA		BB		A		B
 AGCUCCACGUCGGAAUGAUCUCGAGGUCAAUCUGGUCUUACGGCGCAAUAGUAUUUCCUGUCAGCGUUGC&UUGUGCCCGUCCGUUAAGACUUCAAACAAGACGAAAGUUUUGGGAUGCCCUGUGCACACAAGUUUUAAGGAUGGCACUAU
 .........(((((.(((((....))))).))))).....((((((.((((......))))..)))))).&..(((((.((((.(((((((((....((((((....))))))(..(((.....)))..)))))))))))))))))))... (-43.20)
 ........,{((((.(((((....))))).))))}.....((((((.((((......))))..)))))).&..((({((((((.(((((((((....((((((....))))))(..(((.....)))..))))))))))))))))))),.. [-45.40]
- frequency of mfe structure in ensemble 0.0280695; delta G binding=  1.30
+ frequency of mfe structure in ensemble 0.0280693; delta G binding=  1.30
 Free Energies:
 AB		AA		BB		A		B
 -44.029536	-51.412721	-65.758349	-17.699225	-27.632607
