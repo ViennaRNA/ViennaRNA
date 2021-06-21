@@ -48,3 +48,7 @@
   free(resultMoves);
   free(resultStructure);
 }
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

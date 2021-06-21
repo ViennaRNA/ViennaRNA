@@ -302,3 +302,7 @@ compare_str(const void  *a,
 //@TODO: extend alphabeth
 //@TODO: details.noLP = 1
 //@TODO: idx_type = 1
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

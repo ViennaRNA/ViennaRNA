@@ -22,6 +22,9 @@ endif
 
 SUFFIXES = .c .ts
 TEST_EXTENSIONS = .pl .t .py .py3
+LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+                  $(top_srcdir)/config/tap-driver.sh
+
 
 if WITH_UNIT_TESTS
 
@@ -52,6 +55,11 @@ BUILT_SOURCES = perl5/test-RNA-Design.t
 
 PL_LOG_COMPILER = $(PERL)
 T_LOG_COMPILER = $(PERL)
+PL_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+                  $(top_srcdir)/config/tap-driver.sh
+T_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+                  $(top_srcdir)/config/tap-driver.sh
+
 AM_PL_LOG_FLAGS = -Mstrict -w \
                   -I$(top_builddir)/interfaces/Perl \
                   -I$(top_srcdir)/interfaces/Perl \
@@ -202,15 +210,15 @@ endif
 if WITH_EXECUTABLE_TESTS
 
 EXECUTABLE_TESTS  = \
-                  RNAfold/general.sh \
-                  RNAfold/partfunc.sh \
-                  RNAfold/special.sh \
-                  RNAfold/long.sh \
-                  RNAcofold/general.sh \
-                  RNAcofold/partfunc.sh \
-                  RNAalifold/general.sh \
-                  RNAalifold/partfunc.sh \
-                  RNAalifold/special.sh
+                  RNAfold/general \
+                  RNAfold/partfunc \
+                  RNAfold/special \
+                  RNAfold/long \
+                  RNAcofold/general \
+                  RNAcofold/partfunc \
+                  RNAalifold/general \
+                  RNAalifold/partfunc \
+                  RNAalifold/special
 
 endif
 
@@ -228,15 +236,12 @@ TESTS = \
 
 endif
 
-EXTRA_DIST =  data \
+EXTRA_DIST =  $(TESTS) \
+              data \
               RNAfold/results \
               RNAcofold/results \
               RNAalifold/results \
-              ${CHECKMK_FILES} ${CHECK_CFILES} \
-              ${PERL_TESTS} \
-              ${PYTHON2_TESTS} \
-              ${PYTHON3_TESTS} \
-              ${EXECUTABLE_TESTS}
+              ${CHECKMK_FILES} ${CHECK_CFILES}
 
 clean-local:
 	-rm -rf ${PERL_TEST_OUTPUT} \

@@ -32,19 +32,21 @@ my %goldhash;
 
 map { $goldhash{join(",", @{$_})} = 1 } @perm_real;
 
-print "test_enumerate_necklaces (4 sequences, 1 strand per sequences)\n";
 my $permutations = RNA::enumerate_necklaces(\@content);
 map { $reshash{join(",", @{$_})} = 1 } @{$permutations};
 
-is_deeply(\%goldhash, \%reshash);
+is_deeply(\%goldhash,
+          \%reshash,
+          "Enumerate Necklaces (4 sequences, 1 strand per sequences)");
 
 %reshash  = ();
 %goldhash = ();
 
 map { $goldhash{join(",", @{$_})} = 1 } @perm_real2;
 
-print "test_enumerate_necklaces (3 sequences, different number of strands per sequence)\n";
 $permutations = RNA::enumerate_necklaces(\@content2);
 map { $reshash{join(",", @{$_})} = 1 } @{$permutations};
 
-is_deeply(\%goldhash, \%reshash);
+is_deeply(\%goldhash,
+          \%reshash,
+          "Enumerate necklaces (3 sequences, different number of strands per sequence)");

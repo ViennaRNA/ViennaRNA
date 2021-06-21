@@ -1,69 +1,81 @@
-echo "Testing RNAcofold (MFE and general features):"
+#!/bin/sh
+
+echo 1..14 # Number of tests to be executed.
 
 RETURN=0
 
 function failed {
     RETURN=1
-    echo " [ NOT OK ]"
+    if [ "x$1" != "x" ]
+    then
+        echo "not ok - $1"
+    else
+        echo "not ok"
+    fi
 }
 
 function passed {
-    echo " [ OK ]"
+    if [ "x$1" != "x" ]
+    then
+        echo "ok - $1"
+    else
+        echo "ok"
+    fi
 }
 
-function testline {
-  echo -en "...testing $1:\t\t"
-}
 
 # simple version test
-testline "correct version number"
+testname="Version number (RNAcofold --version)"
 rnacofold_version=$(RNAcofold --version)
 rnacofold_version=${rnacofold_version/$CURRENT_VERSION/LATEST}
-if [ "x${rnacofold_version}" != "xRNAcofold LATEST" ] ; then failed; else passed; fi
+if [ "x${rnacofold_version}" != "xRNAcofold LATEST" ] ; then failed "$testname"; else passed "$testname"; fi
+
 
 # Test dangle models (d0, d1, d2, d3)
 for dangles in 0 1 2 3
 do
-  testline "MFE prediction (RNAcofold -d${dangles})"
+  testname="MFE prediction (RNAcofold -d${dangles})"
   RNAcofold --noPS -d ${dangles} < ${DATADIR}/rnacofold.small.seq > rnacofold.fold
   diff=$(${DIFF} -ru ${RNACOFOLD_RESULTSDIR}/rnacofold.small.d${dangles}.mfe.gold rnacofold.fold)
-  if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+  if [ "x${diff}" != "x" ]; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 done
 
+
 # Test --noLP
-testline "MFE prediction (RNAcofold --noLP)"
+testname="MFE prediction (RNAcofold --noLP)"
 RNAcofold --noPS --noLP < ${DATADIR}/rnacofold.small.seq > rnacofold.fold
 diff=$(${DIFF} -ru ${RNACOFOLD_RESULTSDIR}/rnacofold.small.noLP.mfe.gold rnacofold.fold)
-if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
+
 
 # Test temperatures (25degC, 40degC)
 for T in 25 40
 do
-  testline "MFE prediction (RNAcofold -T ${T})"
+  testname="MFE prediction (RNAcofold -T ${T})"
   RNAcofold --noPS -T ${T} < ${DATADIR}/rnacofold.small.seq > rnacofold.fold
   diff=$(${DIFF} -ru ${RNACOFOLD_RESULTSDIR}/rnacofold.small.T${T}.mfe.gold rnacofold.fold)
-  if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+  if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 done
 
 # Test maximum base pair span
-testline "MFE prediction (RNAcofold --maxBPspan=30)"
+testname="MFE prediction (RNAcofold --maxBPspan=30)"
 RNAcofold --noPS --maxBPspan=30 < ${DATADIR}/rnacofold.small.seq > rnacofold.fold
 diff=$(${DIFF} -ru ${RNACOFOLD_RESULTSDIR}/rnacofold.small.span30.gold rnacofold.fold)
-if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 
 # Test automatic ID generation
-testline "MFE prediction and automatic sequence ID feature"
+testname="MFE prediction and automatic sequence ID feature"
 RNAcofold --noPS --auto-id --id-prefix="ballaballa" --id-start=40 < ${DATADIR}/rnacofold.small.seq > rnacofold.fold
 diff=$(${DIFF} -ru ${RNACOFOLD_RESULTSDIR}/rnacofold.small.id.mfe.gold rnacofold.fold)
-if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 
 # Test parameter file loading
 for par in dna_mathews1999.par dna_mathews2004.par rna_andronescu2007.par rna_turner1999.par
 do
-  testline "MFE prediction (-P ${par})"
+  testname="MFE prediction (-P ${par})"
   RNAcofold --noPS -P ${MISC_DIR}/${par} < ${DATADIR}/rnacofold.small.seq > rnacofold.fold
   diff=$(${DIFF} -ru ${RNACOFOLD_RESULTSDIR}/rnacofold.small.${par}.mfe.gold rnacofold.fold)
-  if [ "x${diff}" != "x" ] ; then failed; echo -e "$diff"; else passed; fi
+  if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 done
 
 # clean up

@@ -216,3 +216,7 @@
   vrna_fold_compound_free(fc);
   free(seq);
 }
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

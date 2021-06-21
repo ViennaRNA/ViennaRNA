@@ -773,3 +773,7 @@ test_RNA2_move_it(vrna_fold_compound_t  *vc,
                     );
   vrna_fold_compound_free(vc);
 }
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

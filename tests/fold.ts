@@ -142,3 +142,7 @@
   free(plist_constrained);
   free(plist_unconstrained);
 }
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

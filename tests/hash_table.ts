@@ -77,3 +77,7 @@ free_dummy(void *x)
   //vrna_ht_clear(ht);
   vrna_ht_free(ht);
 }
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

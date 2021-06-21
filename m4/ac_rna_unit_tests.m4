@@ -30,6 +30,8 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
 
   RNA_FEATURE_IF_ENABLED([unittests],[
 
+  AC_REQUIRE_AUX_FILE([tap-driver.sh])
+
     # check prerequisties for unit testing support
     RNA_PACKAGE_IF_ENABLED([check],[
       PKG_CHECK_MODULES([CHECK], [check >= 0.9.4], [],[

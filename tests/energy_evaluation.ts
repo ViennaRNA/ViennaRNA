@@ -2,13 +2,13 @@
 #include <ViennaRNA/utils/basic.h>
 #include <ViennaRNA/loops/all.h>
 
-#suite Energy_Evaluating_Functions
+#suite EnergyEvaluation
 
 /*
  * check for properly working E_Hairpin() function
  */
 
-#test eval_E_hairpin
+#test HairpinLoops
 {
   vrna_param_t  param = {
     0
@@ -208,3 +208,7 @@
   ck_assert_int_eq(E_IntLoop(3, 5, 1, 2, 1, 2, 3, 4, &param), 235);
   ck_assert_int_eq(E_IntLoop(5, 3, 1, 2, 1, 2, 3, 4, &param), 235);
 }
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

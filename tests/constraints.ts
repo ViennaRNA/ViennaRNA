@@ -448,3 +448,7 @@ writeTempFile(char        *tempfile,
   ck_assert(deltaCompare(p1, 0));
   ck_assert(deltaCompare(p2, 0));
 }
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

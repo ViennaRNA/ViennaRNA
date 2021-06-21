@@ -148,3 +148,7 @@ typedef struct {
     vrna_fold_compound_free(vc);
   }
 }
+
+
+#main-pre
+    srunner_set_tap(sr, "-");

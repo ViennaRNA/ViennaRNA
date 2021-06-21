@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# Testing RNAfold (longer sequences)
+
+echo 1..2 # Number of tests to be executed.
+
+RETURN=0
+
+function failed {
+    RETURN=1
+    if [ "x$1" != "x" ]
+    then
+        echo "not ok - $1"
+    else
+        echo "not ok"
+    fi
+}
+
+function passed {
+    if [ "x$1" != "x" ]
+    then
+        echo "ok - $1"
+    else
+        echo "ok"
+    fi
+}
+
+# MFE and input without FASTA header
+testname="MFE prediction (.seq file)"
+RNAfold --noPS < ${DATADIR}/rnafold.seq > rnafold_long.fold
+diff=$(${DIFF} -ru ${RNAFOLD_RESULTSDIR}/rnafold.seq.mfe.gold rnafold_long.fold)
+if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
+
+# MFE and input with FASTA header
+testname="MFE prediction (.fasta file)"
+RNAfold --noPS < ${DATADIR}/rnafold.fasta > rnafold_long.fold
+diff=$(${DIFF} -ru ${RNAFOLD_RESULTSDIR}/rnafold.fasta.mfe.gold rnafold_long.fold)
+if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
+
+# clean up
+rm rnafold_long.fold
+
+exit ${RETURN}

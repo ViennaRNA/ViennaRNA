@@ -18,7 +18,7 @@ dnl change the default installation prefix
 dnl AC_PREFIX_DEFAULT(/usr/local/RNA)
 
 AM_SILENT_RULES([yes])
-AM_INIT_AUTOMAKE([1.11 tar-ustar])
+AM_INIT_AUTOMAKE([foreign 1.11 tar-ustar])
 
 dnl create a config.h file (Automake will add -DHAVE_CONFIG_H)
 AC_CONFIG_HEADERS([config.h])
@@ -51,6 +51,7 @@ AC_PROG_GREP
 AC_PROG_MKDIR_P
 AM_PROG_CC_C_O
 AC_PROG_SED
+AC_PROG_AWK
 AC_PROG_LN_S
 
 LT_INIT([pic-only, static])
