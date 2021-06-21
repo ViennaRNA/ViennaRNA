@@ -237,11 +237,13 @@ vrna_plot_dp_PS_list( char *seq,
   fprintf(wastl,"%%data starts here\n");
 
   /* sort the plist to bring all gquad triangles to the front */
-  for(gq_num = pl_size = 0, pl1 = pl; pl1->i > 0; pl1++, pl_size++)
-    if (pl1->type == VRNA_PLIST_TYPE_GQUAD) gq_num++;
-  qsort(pl, pl_size, sizeof(plist), sort_plist_by_type_desc);
-  /* sort all gquad triangles by probability to bring lower probs to the front */
-  qsort(pl, gq_num, sizeof(plist), sort_plist_by_prob_asc);
+  if (pl) {
+    for(gq_num = pl_size = 0, pl1 = pl; pl1->i > 0; pl1++, pl_size++)
+      if (pl1->type == VRNA_PLIST_TYPE_GQUAD) gq_num++;
+    qsort(pl, pl_size, sizeof(plist), sort_plist_by_type_desc);
+    /* sort all gquad triangles by probability to bring lower probs to the front */
+    qsort(pl, gq_num, sizeof(plist), sort_plist_by_prob_asc);
+  }
 
   EPS_print_sd_data(wastl, pl, mf);
   EPS_print_sc_motif_data(wastl, pl, mf);
@@ -576,23 +578,26 @@ EPS_print_sd_data(FILE          *eps,
   plist   *pl1;
 
   /* sort the plist to bring all gquad triangles to the front */
-  for(gq_num = pl_size = 0, pl1 = pl; pl1->i > 0; pl1++, pl_size++)
-    if(pl1->type == VRNA_PLIST_TYPE_GQUAD) gq_num++;
+  if (pl) {
+    for(gq_num = pl_size = 0, pl1 = pl; pl1->i > 0; pl1++, pl_size++)
+      if(pl1->type == VRNA_PLIST_TYPE_GQUAD) gq_num++;
 
-  qsort(pl, pl_size, sizeof(plist), sort_plist_by_type_desc);
+    qsort(pl, pl_size, sizeof(plist), sort_plist_by_type_desc);
 
-  /* sort all gquad triangles by probability to bring lower probs to the front */
-  qsort(pl, gq_num, sizeof(plist), sort_plist_by_prob_asc);
+    /* sort all gquad triangles by probability to bring lower probs to the front */
+    qsort(pl, gq_num, sizeof(plist), sort_plist_by_prob_asc);
+  }
 
   /* print triangles for g-quadruplexes in upper half */
   fprintf(eps,"\n%%start of quadruplex data\n");
 
-  for (pl1=pl; pl1->i > 0; pl1++) {
-    if(pl1->type == VRNA_PLIST_TYPE_GQUAD){
-      tmp = sqrt(pl1->p);
-      fprintf(eps, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
+  if (pl)
+    for (pl1=pl; pl1->i > 0; pl1++) {
+      if(pl1->type == VRNA_PLIST_TYPE_GQUAD){
+        tmp = sqrt(pl1->p);
+        fprintf(eps, "%d %d %1.9f utri\n", pl1->i, pl1->j, tmp);
+      }
     }
-  }
 }
 
 
@@ -606,48 +611,55 @@ EPS_print_sc_motif_data(FILE          *eps,
 
   /* print triangles for hairpin loop motifs in upper half */
   fprintf(eps,"\n%%start of Hmotif data\n");
-  for (pl1=pl; pl1->i > 0; pl1++) {
-    if(pl1->type == VRNA_PLIST_TYPE_H_MOTIF){
-      tmp = sqrt(pl1->p);
-      fprintf(eps, "%d %d %1.9f uHmotif\n", pl1->i, pl1->j, tmp);
+  if (pl)
+    for (pl1=pl; pl1->i > 0; pl1++) {
+      if(pl1->type == VRNA_PLIST_TYPE_H_MOTIF){
+        tmp = sqrt(pl1->p);
+        fprintf(eps, "%d %d %1.9f uHmotif\n", pl1->i, pl1->j, tmp);
+      }
     }
-  }
-  for (pl1=mf; pl1->i > 0; pl1++) {
-    if(pl1->type == VRNA_PLIST_TYPE_H_MOTIF){
-      tmp = sqrt(pl1->p);
-      fprintf(eps, "%d %d %1.9f lHmotif\n", pl1->i, pl1->j, tmp);
+
+  if (mf)
+    for (pl1=mf; pl1->i > 0; pl1++) {
+      if(pl1->type == VRNA_PLIST_TYPE_H_MOTIF){
+        tmp = sqrt(pl1->p);
+        fprintf(eps, "%d %d %1.9f lHmotif\n", pl1->i, pl1->j, tmp);
+      }
     }
-  }
 
   /* print triangles for interior loop motifs in upper half */
   fprintf(eps,"\n%%start of Imotif data\n");
   int   a,b;
   float ppp;
   a = b = 0;
-  for (pl1=pl; pl1->i > 0; pl1++) {
-    if(pl1->type == VRNA_PLIST_TYPE_I_MOTIF){
-      if(a == 0){
-        a = pl1->i;
-        b = pl1->j;
-        ppp = tmp = sqrt(pl1->p);
-      } else {
-        fprintf(eps, "%d %d %d %d %1.9f uImotif\n", a, b, pl1->i, pl1->j, ppp);
-        a = b = 0;
+
+  if (pl)
+    for (pl1=pl; pl1->i > 0; pl1++) {
+      if(pl1->type == VRNA_PLIST_TYPE_I_MOTIF){
+        if(a == 0){
+          a = pl1->i;
+          b = pl1->j;
+          ppp = tmp = sqrt(pl1->p);
+        } else {
+          fprintf(eps, "%d %d %d %d %1.9f uImotif\n", a, b, pl1->i, pl1->j, ppp);
+          a = b = 0;
+        }
       }
     }
-  }
-  for (a = b= 0, pl1=mf; pl1->i > 0; pl1++) {
-    if(pl1->type == VRNA_PLIST_TYPE_I_MOTIF){
-      if(a == 0){
-        a = pl1->i;
-        b = pl1->j;
-        ppp = sqrt(pl1->p);
-      } else {
-        fprintf(eps, "%d %d %d %d %1.9f lImotif\n", a, b, pl1->i, pl1->j, ppp);
-        a = b = 0;
+
+  if (mf)
+    for (a = b= 0, pl1=mf; pl1->i > 0; pl1++) {
+      if(pl1->type == VRNA_PLIST_TYPE_I_MOTIF){
+        if(a == 0){
+          a = pl1->i;
+          b = pl1->j;
+          ppp = sqrt(pl1->p);
+        } else {
+          fprintf(eps, "%d %d %d %d %1.9f lImotif\n", a, b, pl1->i, pl1->j, ppp);
+          a = b = 0;
+        }
       }
     }
-  }
 }
 
 
@@ -662,19 +674,21 @@ EPS_print_bpp_data( FILE          *eps,
   fprintf(eps,"%%start of base pair probability data\n");
 
   /* print boxes in upper right half*/
-  for (pl1 = pl; pl1->i>0; pl1++) {
-    tmp = sqrt(pl1->p);
-    if(pl1->type == VRNA_PLIST_TYPE_BASEPAIR)
-        fprintf(eps,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
-  }
+  if (pl)
+    for (pl1 = pl; pl1->i>0; pl1++) {
+      tmp = sqrt(pl1->p);
+      if(pl1->type == VRNA_PLIST_TYPE_BASEPAIR)
+          fprintf(eps,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
+    }
 
 
   /* print boxes in lower left half (mfe) */
-  for (pl1=mf; pl1->i>0; pl1++) {
-    tmp = sqrt(pl1->p);
-    if(pl1->type == VRNA_PLIST_TYPE_BASEPAIR)
-      fprintf(eps,"%d %d %1.7f lbox\n", pl1->i, pl1->j, tmp);
-  }
+  if (mf)
+    for (pl1=mf; pl1->i>0; pl1++) {
+      tmp = sqrt(pl1->p);
+      if(pl1->type == VRNA_PLIST_TYPE_BASEPAIR)
+        fprintf(eps,"%d %d %1.7f lbox\n", pl1->i, pl1->j, tmp);
+    }
 }
 
 
@@ -688,18 +702,21 @@ EPS_print_ud_data(FILE          *eps,
 
   /* print triangles for unstructured domain motifs in upper half */
   fprintf(eps,"\n%%start of unstructured domain motif data\n");
-  for(pl1 = pl; pl1->i > 0; pl1++){
-    if(pl1->type == VRNA_PLIST_TYPE_UD_MOTIF){
-      tmp = sqrt(pl1->p);
-      fprintf(eps, "%d %d %1.9f uUDmotif\n", pl1->i, pl1->j, tmp);
+  if (pl)
+    for(pl1 = pl; pl1->i > 0; pl1++){
+      if(pl1->type == VRNA_PLIST_TYPE_UD_MOTIF){
+        tmp = sqrt(pl1->p);
+        fprintf(eps, "%d %d %1.9f uUDmotif\n", pl1->i, pl1->j, tmp);
+      }
     }
-  }
-  for(pl1 = mf; pl1->i > 0; pl1++){
-    if(pl1->type == VRNA_PLIST_TYPE_UD_MOTIF){
-      tmp = sqrt(pl1->p);
-      fprintf(eps, "%d %d %1.9f lUDmotif\n", pl1->i, pl1->j, tmp);
+
+  if (mf)
+    for(pl1 = mf; pl1->i > 0; pl1++){
+      if(pl1->type == VRNA_PLIST_TYPE_UD_MOTIF){
+        tmp = sqrt(pl1->p);
+        fprintf(eps, "%d %d %1.9f lUDmotif\n", pl1->i, pl1->j, tmp);
+      }
     }
-  }
 }
 
 
@@ -991,39 +1008,55 @@ int PS_dot_plot(char *string, char *wastlfile) {
   plist *pl;
   plist *mf;
 
-  length = strlen(string);
-  maxl = 2*length;
-  pl = (plist *)vrna_alloc(maxl*sizeof(plist));
-  k=0;
-  /*make plist out of pr array*/
-  for (i=1; i<length; i++)
-    for (j=i+1; j<=length; j++) {
-      if (pr[iindx[i]-j]<PMIN) continue;
-      if (k>=maxl-1) {
-        maxl *= 2;
-        pl = (plist *)vrna_realloc(pl,maxl*sizeof(plist));
+  i = 0;
+
+  if ((string) &&
+      (wastlfile) &&
+      (pr) &&
+      (iindx)) {
+    length = strlen(string);
+    maxl = 2*length;
+    pl = (plist *)vrna_alloc(maxl*sizeof(plist));
+    k=0;
+    /*make plist out of pr array*/
+    for (i=1; i<length; i++)
+      for (j=i+1; j<=length; j++) {
+        if (pr[iindx[i]-j]<PMIN) continue;
+        if (k>=maxl-1) {
+          maxl *= 2;
+          pl = (plist *)vrna_realloc(pl,maxl*sizeof(plist));
+        }
+        pl[k].i = i;
+        pl[k].j = j;
+        pl[k].p = pr[iindx[i]-j];
+        pl[k++].type = VRNA_PLIST_TYPE_BASEPAIR;
       }
-      pl[k].i = i;
-      pl[k].j = j;
-      pl[k++].p = pr[iindx[i]-j];
+    pl[k].i=0;
+    pl[k].j=0;
+    pl[k].p=0.;
+    pl[k++].type=VRNA_PLIST_TYPE_BASEPAIR;
+    /*make plist out of base_pair array*/
+    mf_num = base_pair ? base_pair[0].i : 0;
+    if (mf_num > 0) {
+      mf = (plist *)vrna_alloc((mf_num+1)*sizeof(plist));
+      for (k=0; k<mf_num; k++) {
+        mf[k].i = base_pair[k+1].i;
+        mf[k].j = base_pair[k+1].j;
+        mf[k].p = 0.95*0.95;
+        mf[k].type = VRNA_PLIST_TYPE_BASEPAIR;
+      }
+      mf[k].i=0;
+      mf[k].j=0;
+      mf[k].p=0.;
+      mf[k].type=0;
+    } else {
+      mf = NULL;
     }
-  pl[k].i=0;
-  pl[k].j=0;
-  pl[k++].p=0.;
-  /*make plist out of base_pair array*/
-  mf_num = base_pair ? base_pair[0].i : 0;
-  mf = (plist *)vrna_alloc((mf_num+1)*sizeof(plist));
-  for (k=0; k<mf_num; k++) {
-    mf[k].i = base_pair[k+1].i;
-    mf[k].j = base_pair[k+1].j;
-    mf[k].p = 0.95*0.95;
+    i = PS_dot_plot_list(string, wastlfile, pl, mf, "");
+    free(mf);
+    free(pl);
   }
-  mf[k].i=0;
-  mf[k].j=0;
-  mf[k].p=0.;
-  i = PS_dot_plot_list(string, wastlfile, pl, mf, "");
-  free(mf);
-  free(pl);
+
   return (i);
 }
 

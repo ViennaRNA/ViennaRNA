@@ -894,7 +894,7 @@ vrna_plist(const char *struc,
   (pl)[k].i       = 0;
   (pl)[k].j       = 0;
   (pl)[k].p       = 0.;
-  (pl)[k++].type  = 0.;
+  (pl)[k++].type  = 0;
   free(pt);
   pl = (vrna_ep_t *)vrna_realloc(pl, k * sizeof(vrna_ep_t));
 
@@ -961,6 +961,7 @@ vrna_plist_append(vrna_ep_t       **target,
     if (*target) {
       memcpy(*target + size1, list, sizeof(vrna_ep_t) * size2);
       (*target)[size1 + size2].i = (*target)[size1 + size2].j = 0;
+      (*target)[size1 + size2].type = 0;
       return 1;
     }
   }
