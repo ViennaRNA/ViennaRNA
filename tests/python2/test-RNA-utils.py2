@@ -34,6 +34,25 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(d,3)
 
 
+    def test_basePairDistancePairTable(self):
+        """Base Pair Distance - PairTable"""
+        pt1 = RNA.ptable("(((.(((...))))))")
+        pt2 = RNA.ptable("(((..........)))")
+
+        d = RNA.bp_distance(pt1,pt2)
+
+        self.assertEqual(d,3)
+
+
+    def test_basePairDistancePseudoknot(self):
+        """Base Pair Distance (pk) - PairTable"""
+        d1 = RNA.bp_distance(struct1, struct1pk)
+        d2 = RNA.bp_distance(struct1, struct1pk, RNA.BRACKETS_ANY)
+
+        self.assertEqual(d1, 2)
+        self.assertEqual(d2, 3)
+
+
     def test_plists(self):
         """RNA,plist()"""
         plist = RNA.plist(struct1,0.6)
