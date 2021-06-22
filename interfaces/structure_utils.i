@@ -625,10 +625,35 @@ std::vector<vrna_hx_t> my_hx_from_ptable(std::vector<int> pt);
 
 %{
   int
-  my_bp_distance(const char *str1,
-                 const char *str2)
+  my_bp_distance(std::string str1,
+                 std::string str2,
+                 unsigned int options = VRNA_BRACKETS_RND)
   {
-    return vrna_bp_distance(str1,str2);
+    int dist = 0;
+    short int *pt1, *pt2;
+
+    pt1 = vrna_ptable_from_string(str1.c_str(), options);
+    pt2 = vrna_ptable_from_string(str2.c_str(), options);
+
+    dist = vrna_bp_distance_pt(pt1, pt2);
+
+    free(pt1);
+    free(pt2);
+
+    return dist;
+  }
+
+  int
+  my_bp_distance(std::vector<int> pt1,
+                 std::vector<int> pt2)
+  {
+    std::vector<short> pt1_v_short;
+    std::vector<short> pt2_v_short;
+
+    transform(pt1.begin(), pt1.end(), back_inserter(pt1_v_short), convert_vecint2vecshort);
+    transform(pt2.begin(), pt2.end(), back_inserter(pt2_v_short), convert_vecint2vecshort);
+
+    return vrna_bp_distance_pt((short*)&pt1_v_short[0], (short*)&pt2_v_short[0]);
   }
 
   double
@@ -645,7 +670,8 @@ std::vector<vrna_hx_t> my_hx_from_ptable(std::vector<int> pt);
 %feature("kwargs") my_bp_distance;
 #endif
 
-int     my_bp_distance(const char *str1, const char *str2);
+int     my_bp_distance(std::string str1, std::string str2, unsigned int options = VRNA_BRACKETS_RND);
+int     my_bp_distance(std::vector<int> pt1, std::vector<int> pt2);
 double  my_dist_mountain(std::string str1, std::string str2, unsigned int p = 1);
 
 /************************************/

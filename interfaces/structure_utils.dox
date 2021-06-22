@@ -60,4 +60,21 @@ This function is available as an overloaded function @p abstract_shapes() where
 the optional second parameter @p level defaults to 5.
 @endparblock
 
+@fn int vrna_bp_distance_pt(const short *pt1, const short *pt2)
+@scripting
+@parblock
+This function is available as an overloaded method @b bp_distance().
+@endparblock
+
+@fn int vrna_bp_distance(const char *str1, const char *str2)
+@scripting
+@parblock
+This function is available as an overloaded method @b bp_distance().
+Note that the SWIG wrapper takes two structure in dot-bracket notation and converts them into
+pair tables using vrna_ptable_from_string(). The resulting pair tables are then internally
+passed to vrna_bp_distance_pt(). To control which kind of matching brackets will be used
+during conversion, the optional argument @p options can be used. See also the description of
+vrna_ptable_from_string() for available options. (default: @b VRNA_BRACKETS_RND).
+@endparblock
+
 */
