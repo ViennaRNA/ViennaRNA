@@ -539,34 +539,47 @@ vrna_db_from_WUSS(const char *wuss)
 /*---------------------------------------------------------------------------*/
 
 PUBLIC int
-vrna_bp_distance(const char *str1,
-                 const char *str2)
+vrna_bp_distance_pt(const short *pt1,
+                    const short *pt2)
 {
   /* dist = {number of base pairs in one structure but not in the other} */
   /* same as edit distance with pair_open pair_close as move set */
   int   dist;
   short i, l;
-  short *t1, *t2;
 
   dist  = 0;
-  t1    = vrna_ptable(str1);
-  t2    = vrna_ptable(str2);
 
-  if (t1 && t2) {
-    l = (t1[0] < t2[0]) ? t1[0] : t2[0]; /* minimum of the two lengths */
+  if (pt1 && pt2) {
+    l = (pt1[0] < pt2[0]) ? pt1[0] : pt2[0]; /* minimum of the two lengths */
 
     for (i = 1; i <= l; i++)
-      if (t1[i] != t2[i]) {
-        if (t1[i] > i)
+      if (pt1[i] != pt2[i]) {
+        if (pt1[i] > i)
           dist++;
 
-        if (t2[i] > i)
+        if (pt2[i] > i)
           dist++;
       }
   }
 
-  free(t1);
-  free(t2);
+  return dist;
+}
+
+
+PUBLIC int
+vrna_bp_distance(const char *str1,
+                 const char *str2)
+{
+  int   dist = 0;
+  short *pt1, *pt2;
+
+  pt1    = vrna_ptable(str1);
+  pt2    = vrna_ptable(str2);
+
+  dist = vrna_bp_distance_pt(pt1, pt2);
+
+  free(pt1);
+  free(pt2);
 
   return dist;
 }
