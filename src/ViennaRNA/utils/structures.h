@@ -698,11 +698,31 @@ vrna_loopidx_from_ptable(const short *pt);
 
 
 /**
+ *  @brief Compute the "base pair" distance between two pair tables pt1 and pt2 of secondary structures.
+ *
+ *  The pair tables should have the same length.
+ *  dist = number of base pairs in one structure but not in the other
+ *  same as edit distance with open-pair close-pair as move-set
+ *
+ *  @see vrna_bp_distance()
+ *
+ *  @param pt1   First structure in dot-bracket notation
+ *  @param pt2   Second structure in dot-bracket notation
+ *  @return       The base pair distance between pt1 and pt2
+ */
+int
+vrna_bp_distance_pt(const short *pt1,
+                    const short *pt2);
+
+/**
  *  @brief Compute the "base pair" distance between two secondary structures s1 and s2.
  *
+ *  This is a wrapper around @b vrna_bp_distance_pt().
  *  The sequences should have the same length.
  *  dist = number of base pairs in one structure but not in the other
  *  same as edit distance with open-pair close-pair as move-set
+ *
+ *  @see vrna_bp_distance_pt()
  *
  *  @param str1   First structure in dot-bracket notation
  *  @param str2   Second structure in dot-bracket notation
