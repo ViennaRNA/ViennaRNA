@@ -44,7 +44,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_basePairDistancePseudoknot(self):
-        print "test_basePairDistancePairTable"
+        print "test_basePairDistancePseudoknot"
         d1 = RNA.bp_distance(struct1, struct1pk)
         d2 = RNA.bp_distance(struct1, struct1pk, RNA.BRACKETS_ANY)
 
