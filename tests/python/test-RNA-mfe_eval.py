@@ -4,6 +4,7 @@ RNApath.addSwigInterfacePath()
 
 import RNA
 import unittest
+from py_include import taprunner
 
 seq1          = "CGCAGGGAUACCCGCG"
 struct1       = "(((.(((...))))))"
@@ -17,7 +18,7 @@ struct1_pt    = [len(struct1),16,15,14,0,13,12,11,0,0,0,7,6,5,3,2,1]
 class mfe_eval_functionTest(unittest.TestCase):
 
     def test_mfe(self):
-        print "test_mfe"
+        """MFE prediction - single sequence"""
         fc= RNA.fold_compound(seq1)
         (ss,mfe) = fc.mfe()
         print ss, "[ %6.2f ]" % mfe
@@ -25,7 +26,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_mfe_Dimer(self):
-        print "test_mfe_Dimer"
+        """MFE prediction - dimer"""
         fc=RNA.fold_compound(seq1Dimer)
         (ss,mfe) = fc.mfe_dimer()
         print ss, "[ %6.2f ]" % mfe
@@ -33,7 +34,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_eval_structure(self):
-        print "test_eval_structure"
+        """Structure energy evaluation - dot-bracket string"""
         fc = RNA.fold_compound(seq1)
         energy= fc.eval_structure(struct1)
         self.assertEqual("%6.2f" % energy, "%6.2f" % -5.60)
@@ -41,7 +42,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_eval_structure_pt(self):
-        print "test_eval_structure_pt"
+        """Structure energy evaluation - pair table"""
         fc=RNA.fold_compound(seq1)
         energy= fc.eval_structure_pt(struct1_pt) /100.; #/100 for dcal
 
@@ -51,7 +52,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
     # Testing with filehandler and with stdout
     def test_eval_structure_verbose(self):
-        print "test_eval_structure_verbose"
+        """Structure energy evaluation - dot-bracket string - verbose output"""
         fc = RNA.fold_compound(seq1)
         filename= "test-RNA-mfe_eval.py.out"
         try:
@@ -67,8 +68,8 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_eval_structure_pt_verbose(self):
-        print "test_eval_structure_pt_verbose"
-        filename= "test-RNA-mfe_eval.py.out"
+        """Structure energy evaluation - pair table - verbose output"""
+        filename= "test-RNA-mfe_eval.py3.out"
         try:
             with open(filename, 'w') as f:
                 print filename, " is opened for writing"
@@ -85,7 +86,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_eval_covar_structure(self):
-        print "test_eval_covar_structure"
+        """Structure energy evaluation - Covariance energy contribution"""
         s1="CCCCAAAACGGG"
         s2="CCCGAAAAGGGG"
         s3="CCCCAAAAGGGG"
@@ -99,7 +100,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_eval_loop_pt(self):
-        print "test_eval_loop_pt"
+        """Loop energy evaluation"""
         fc= RNA.fold_compound(seq1)
         energy= fc.eval_loop_pt(6, struct1_pt) / 100.; #/100 for dcal
         print "[ %6.2f ]" % energy
@@ -107,7 +108,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_eval_move_del(self):
-        print "test_eval_move_del"
+        """Move energy evaluation - base pair removal"""
         fc = RNA.fold_compound(seq1)
         energy = fc.eval_move(struct1, -7, -11);  # remove basepair (7,11) ,  energy change should be 2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % 2.10)
@@ -115,7 +116,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_eval_move_ins(self):
-        print "test_eval_move_ins"
+        """Move energy evaluation - base pair insertion"""
         fc = RNA.fold_compound(seq1)
         energy = fc.eval_move(struct11, 7, 11);  # add basepair (7,11) ,  energy change should be -2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % -2.10)
@@ -123,7 +124,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_eval_move_pt_del(self):
-        print "test_eval_move_pt_del"
+        """Move energy evaluation - base pair removal - pair table"""
         fc = RNA.fold_compound(seq1)
         energy = fc.eval_move_pt(struct1_pt, -7, -11) / 100.;  # remove basepair (7,11) ,  energy change should be 2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % 2.10)
@@ -131,4 +132,4 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

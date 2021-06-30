@@ -4,6 +4,7 @@ RNApath.addSwigInterfacePath()
 
 import RNA
 import unittest
+from py_include import taprunner
 
 seq_con     = "CCCAAAAGGGCCCAAAAGGG"
 short_seq   = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUA"
@@ -20,9 +21,7 @@ def mfe_window_callback(start, end, structure, energy, data=None):
 class constraintsTest(unittest.TestCase):
 
     def test_sc_set_up(self):
-        print "test_sc_set_up"
-
-        #        "1234567890
+        """Soft constraints - unpaired nucleotides"""
         seq_sc  =      "CCCAAAAGGG"
         fc = RNA.fold_compound(seq_sc)
         (ss,mfe) = fc.mfe()
@@ -40,9 +39,8 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_sc_set_bp(self):
-        print "test_sc_set_bp"
-
-        #add energy of -5 to basepair 1-9 if formed, prefed structure should now be ((.....))., with a energy of -4.90
+        """Soft constraints - base pairs"""
+        #add energy of -5 to basepair 1-9 if formed, prefed structure should now be ((.....))., with a energy of -4.90, #matrix is also beginning with position 0
         m = [[0 for x in range(11)] for y in range(11)]
         m[1][9] = -5.0 # base 1-9 should get -5.0 if basepair
         m[9][1] = -5.0 # base 1-9 should get -5.0 if basepair
@@ -56,15 +54,16 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual("%6.2f" %mfeNew,"%6.2f" % -4.90)
 
 
-    """
-    Compute partition function and base pair probabilities both, constrained
-    and unconstrained, where the constraint simply shifts the free energy base
-    line by -1 kcal/mol per nucleotide.
-    When comparing both results, equilibrium probabilities must not have changed,
-    except for free energy of the ensemble!
-    """
     def test_sc_shift(self):
-        print "test_sc_shift"
+        """
+        Soft constraints - shift energy landscape
+
+        Compute partition function and base pair probabilities both, constrained
+        and unconstrained, where the constraint simply shifts the free energy base
+        line by -1 kcal/mol per nucleotide.
+        When comparing both results, equilibrium probabilities must not have changed,
+        except for free energy of the ensemble!
+        """
         fc = RNA.fold_compound(short_seq)
         # unconstrained partition function
         ss, dG = fc.pf()
@@ -97,8 +96,7 @@ class constraintsTest(unittest.TestCase):
 
 class constraintsMFEWindowTest(unittest.TestCase):
     def test_sc_mfe_window_add_bp(self):
-        print "test_sc_mfe_window_bp"
-
+        """Soft constraints - base pairs sliding window MFE"""
         fc = RNA.fold_compound(seq_long, None, RNA.OPTION_WINDOW)
 
         # add twice -10.0 kcal/mol on base pair (55,60)
@@ -132,8 +130,7 @@ class constraintsMFEWindowTest(unittest.TestCase):
 
 
     def test_sc_mfe_window_add_up(self):
-        print "test_sc_mfe_window_up"
-
+        """Soft constraints - unpaired nucleotides sliding window MFE"""
         fc = RNA.fold_compound(seq_long, None, RNA.OPTION_WINDOW)
 
         # add twice -5.0 kcal/mol per unpaired nucleotide in segment [55,60]
@@ -175,4 +172,4 @@ class constraintsMFEWindowTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

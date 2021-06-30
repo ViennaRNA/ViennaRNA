@@ -4,10 +4,16 @@ RNApath.addSwigInterfacePath(3)
 
 import RNA
 import unittest
+from py_include import taprunner
 
-seq_con     = "CCCAAAAGGGCCCAAAAGGG"
-str_con     = "..........(((....)))"
-str_con_def = "(((....)))(((....)))"
+motif_seq_theo = "GAUACCAG&CCCUUGGCAGC"
+motif_str_theo = "(...((((&)...)))...)"
+e_binding_theo = -9.22
+
+str_hp    = "((((...((((.....(.(.....).).))))...))))...((.((((((((((.((((((.((.((((....)))).))..)))))).)))))))))))).."
+e_hp      = -35.60
+str_theo  = "((((...((((((((......)))))...)))...))))...((.((((((((((.((((((.((.((((....)))).))..)))))).)))))))))))).."
+e_theo    = -33.82
 
 datadir = RNApath.getDataDirPath()
 
@@ -15,33 +21,23 @@ datadir = RNApath.getDataDirPath()
 class constraintsTest(unittest.TestCase):
 
     def test_sc_add_hi_motif(self):
-        print("test_sc_add_hi_motif")
-        fc= RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG")
-        #struct =          ".(((((..((((((((((((((((((....(((((((............)))))))........)))))))))))))...)))))))))).............."
-        #structWithMotif=      "((((...((((((((......)))))...)))...))))...((.((((((((((.((((((.((.((((....)))).))..)))))).)))))))))))).."
-        ret = fc.sc_add_hi_motif("GAUACCAG&CCCUUGGCAGC","(...((((&)...)))...)",-9.22)
-        (ss,mfe) = fc.mfe()
-        print(ret,"\t",ss, "[ %6.2f ]" % mfe)
-        self.assertEqual(ret,1)
-
-
-    def test_theophylline_ligand_binding_interface(self):
-        print("test_theophylline_ligand_binding_interface")
-        RNA.noLonelyPairs = 0
+        """Soft constraints - Motif - Hairpin"""
         fc = RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG")
-        (ss, mfe) = fc.mfe()
-        print("%s [ %6.2f ]" % (ss, mfe))
-
-        fc.sc_add_hi_motif("GAUACCAG&CCCUUGGCAGC", "(...((((&)...)))...)", -9.22)
-        (ss, mfe) = fc.mfe()
-        print("%s [ %6.2f ]" % (ss, mfe))
-
-        fc.sc_remove()
-
         fc.sc_add_hi_motif("GAAAAAU", "(.....)", -19)
         (ss, mfe) = fc.mfe()
         print("%s [ %6.2f ]" % (ss, mfe))
 
 
+    def test_theophylline_ligand_binding_interface(self):
+        """Soft constraints - Motif - Theophylline aptamer"""
+        fc  = RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG")
+        ret = fc.sc_add_hi_motif(motif_seq_theo, motif_str_theo, e_binding_theo)
+        (ss, mfe) = fc.mfe()
+        print("%s [ %6.2f ]" % (ss, mfe))
+        self.assertEqual(ret,1)
+        self.assertEqual(ss, str_theo)
+        self.assertAlmostEqual(mfe, e_theo, delta=1e-3)
+
+
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

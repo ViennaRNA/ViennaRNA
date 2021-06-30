@@ -5,10 +5,12 @@ RNApath.addSwigInterfacePath(3)
 
 import RNA
 import unittest
+from py_include import taprunner
 from struct import *
 import locale
 
 locale.setlocale(locale.LC_ALL, 'C')
+
 
 seq1      = "CGCAGGGAUACCCGCG"
 struct1   = "(((.(((...))))))"
@@ -23,23 +25,26 @@ align     = [seq1,seq2,seq3]
 
 
 class GeneralTests(unittest.TestCase):
+    """Some general tests"""
+
     def test_version(self):
-        print("test version number")
+        """Version number"""
         self.assertEqual(RNA.__version__, RNApath.VERSION_NUMBER)
 
+
     def test_hammingDistance(self):
-        print("test_hammingDistance \t calculate a hamming distance")
+        """Compute hamming distance between sequences and structures"""
         self.assertEqual(RNA.hamming(seq1,seq2),16)
         self.assertEqual(RNA.bp_distance(struct1,struct2),6)
 
 
     def test_temperature(self):
-        print("test_temperature")
+        """Default global Temperature"""
         self.assertEqual(RNA.cvar.temperature,37)
 
 
     def test_foldASequence(self):
-        print("test_foldASequence")
+        """Simple MFE prediction, structure, energy"""
         # new better interface
         (struct, mfe) = RNA.fold(seq1)
         self.assertEqual(struct,struct1)
@@ -48,15 +53,16 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_constrained_folding(self):
-        print("test_constrained_folding")
+        """Simple constrained MFE folding"""
         RNA.cvar.fold_constrained = 1
         (struct,cmfe) = RNA.fold(seq1,"....xx....xx....")
         self.assertEqual(struct,'(((..........)))')
         self.assertTrue(abs(RNA.energy_of_struct(seq1, struct) - cmfe) < 0.0001)
         RNA.cvar.fold_constrained = 0
 
+
     def test_tree_distance(self):
-        print("test_tree_distance");
+        """Tree edit distance"""
         xstruc = RNA.expand_Full(struct1)
         T1 = RNA.make_tree(xstruc)
         xstruc = RNA.expand_Full(struct2)
@@ -68,7 +74,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_cofold_andMore(self):
-        print("test_cofold")
+        """Cofolding of two sequences, MFE and Partition function, base pairing probabilities"""
         RNA.cvar.cut_point = len(seq1)+1
         (costruct,comfe) = RNA.cofold(seq1 + seq2)
         self.assertEqual(costruct,'(((.(((...))))))((((((...))).)))')
@@ -96,8 +102,6 @@ class GeneralTests(unittest.TestCase):
         self.assertTrue(f < mfe)
         self.assertTrue(mfe-f < 0.8)
 
-        print("test_bp_prop")
-
         p1 = RNA.get_pr(2,15)
         ii = RNA.intP_getitem(RNA.cvar.iindx, 2)
 
@@ -109,15 +113,16 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_parse_structure(self):
-        print("test_parse_structure")
+        """Structure parsing and splitting into components"""
         RNA.parse_structure(struct1)
         self.assertEqual(RNA.cvar.loops,2)
         self.assertEqual(RNA.cvar.pairs,6)
         self.assertEqual(RNA.cvar.unpaired,4)
         self.assertEqual(RNA.intP_getitem(RNA.cvar.loop_degree,1),2)
 
+
     def test_rna_plots(self):
-        print("test_rna_plots")
+        """Creating structure layout and base pair probability EPS plots"""
         RNA.PS_rna_plot(seq1, struct1, "test_ss.ps")
         anote = "2 15 1 gmark\n" + "3 cmark\n"
         RNA.PS_rna_plot_a(seq1, struct1, "test_ss_a.ps", None, anote)
@@ -128,7 +133,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_different_symbol_set(self):
-        print("test_different_symbol_set")
+        """Reduced symbol set"""
         RNA.cvar.symbolset = "GC"
         start = RNA.random_string(len(struct1), "GC")
         (sinv, cost) = RNA.inverse_fold(start, struct1)
@@ -137,8 +142,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_eos_dimer(self):
-        print("test_eos_dimer")
-
+        """Energy of dimer structure"""
         RNA.cvar.cut_point = 3
         e =  RNA.energy_of_struct("GCGC", "(())")
         RNA.cvar.cut_point = -1
@@ -146,13 +150,13 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_duplexfold(self):
-        print("testing duplexfold()")
+        """Duplex fold structure prediction"""
         duplex = RNA.duplexfold(seq1, seq2)
         self.assertEqual(duplex.structure, ".(((.....(((.&)))))).")
 
 
     def test_alifold(self):
-        print("testing alifold()")
+        """Comparative MFE prediction (alifold)"""
         align = ["GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC"]
 
         (css, cen) = RNA.alifold(align)
@@ -162,8 +166,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_moveSets(self):
-        print("test_moveSets")
-
+        """Move set - gradient descent (energy, structure)"""
         RNA.cvar.cut_point=-1
         struct1_move = "(..............)"
         #move_standard( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
@@ -171,28 +174,31 @@ class GeneralTests(unittest.TestCase):
         print("energy = ",energy," s = ", s);
         self.assertEqual(s, "................")
 
+    def test_moveSets2(self):
+        """Move set - First (structure)"""
         struct1_move = "(..............)"
         (s,energy) =  RNA.move_standard(seq1, struct1_move, 1, 1, 0, 0)
         self.assertEqual(s, "(((.((....)).)))")
 
 
     def test_simplexycoordinates(self):
-        print("test_simplexycoordinates")
-
+        """Simple XY coordinates"""
         coords = RNA.simple_xy_coordinates(struct1)
 
         for c in (coords):
             print(c.X, ",", c.Y)
 
 
-    def test_model_details_structure(self):
-        print("test_model_details_parameter_structure")
-
+    def test_model_details_defaults(self):
+        """Model details data structure - default values"""
         # check model details structure
         md = RNA.md();
         self.assertEqual(int(md.dangles), 2)
         self.assertEqual(md.temperature, 37.0)
 
+
+    def test_model_details_glob(self):
+        """Model details data structure - default values from global settings"""
         RNA.cvar.dangles     = 0
         RNA.cvar.temperature = 40.1
         md = RNA.md()
@@ -204,43 +210,49 @@ class GeneralTests(unittest.TestCase):
         RNA.cvar.dangles = 2
         RNA.cvar.temperature= 37.0
 
+    def test_params(self):
+        """Energy Parameter structure"""
         # check parameter structures
+        md = RNA.md()
+        md.temperature = 45
         params = RNA.param()
+
         self.assertEqual(params.temperature,37.0)
         params = RNA.param(md)
-        self.assertEqual(params.temperature,40.1)
+        self.assertEqual(params.temperature,45)
 
+    def test_exp_params(self):
+        """Energy Parameter structure - Boltzmann factors"""
+        md = RNA.md()
+        md.temperature = 42.1
         pf_params = RNA.exp_param()
         self.assertEqual(pf_params.temperature,37.0)
         pf_params = RNA.exp_param(md)
-        self.assertEqual(pf_params.temperature,40.1)
-        md = None
+        self.assertEqual(pf_params.temperature,42.1)
 
 
 class FoldCompoundTest(unittest.TestCase):
-
     def test_create_fold_compound_Single(self):
-        print("test_create_fold_compound_Single")
-
+        """Creating fold_compound - Single sequence"""
         fc = RNA.fold_compound(seq1)
         self.assertEqual(fc.type, RNA.FC_TYPE_SINGLE)
 
 
     def test_create_fold_compound_Align(self):
-        print("test_create_fold_compound_Align")
+        """Creating fold_compound - Multiple sequence alignment"""
         fc= RNA.fold_compound(align)
         self.assertEqual(fc.type, RNA.FC_TYPE_COMPARATIVE)
 
 
     def test_create_fold_compound_2D(self):
-        print("test_create_fold_compound_2D")
+        """Creating fold_compound - Single sequence 2D fold"""
         fc= RNA.fold_compound(seq1,seq2,seq3)
         self.assertTrue(fc)
 
 
     ###centroid.h
     def test_centroid(self):
-        print("test_centroid")
+        """fold_compound method - centroid structure"""
         fc=RNA.fold_compound(align)
         fc.pf()
         (sc,dist) = fc.centroid()
@@ -250,7 +262,7 @@ class FoldCompoundTest(unittest.TestCase):
 
     ## partition function from here
     def test_pf(self):
-        print("test_pf")
+        """fold_compound method - Partition function, mean base pair distance"""
         fc= RNA.fold_compound(seq1)
         (ss,gfe) = fc.pf()
         print(ss, "[ %6.2f ]" % gfe)
@@ -261,7 +273,7 @@ class FoldCompoundTest(unittest.TestCase):
 
 
     def test_pf_dimer(self):
-        print("testing pf_dimer() method")
+        """fold_compound method - Partition function for dimer"""
         fc = RNA.fold_compound(seq1 + "&" + seq2)
         (costruct, comfe) = fc.mfe_dimer()
         self.assertEqual(costruct, "(((.(((...))))))((((((...))).)))")
@@ -273,5 +285,5 @@ class FoldCompoundTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())
 

@@ -5,6 +5,7 @@ RNApath.addSwigInterfacePath()
 
 import RNA
 import unittest
+from py_include import taprunner
 
 
 seq          = "AGGAAACCUUAAUUGGUUA"
@@ -12,7 +13,7 @@ structpk     = ".((...))(([[..))]]."
 
 class ensemble_defectTest(unittest.TestCase):
     def test_ensemble_defect(self):
-        print "test_ensemble_defect"
+        """Ensembe defect"""
         fc = RNA.fold_compound(seq)
         fc.pf()
 
@@ -32,4 +33,4 @@ class ensemble_defectTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

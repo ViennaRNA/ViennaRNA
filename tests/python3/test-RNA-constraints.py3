@@ -4,6 +4,7 @@ RNApath.addSwigInterfacePath(3)
 
 import RNA
 import unittest
+from py_include import taprunner
 
 seq_con     = "CCCAAAAGGGCCCAAAAGGG"
 str_con     = "..........(((....)))"
@@ -19,13 +20,13 @@ def mfe_window_callback(start, end, structure, energy, data=None):
 class constraintsTest(unittest.TestCase):
 
     def test_constraints_add(self):
+        """Add (hard and soft) contraints from file"""
         #seq_con  =      "CCCAAAAGGGCCCAAAAGGG"
         #str_con_def=    "(((....)))(((....)))"
         #hc.txt=    "P 1 0 2"
         #str_con=    "..........(((....)))"
 
         hc_file = datadir + "hc.txt"
-        print("test_constraints_add")
         fc = RNA.fold_compound(seq_con)
         fc.constraints_add(hc_file)
         (ss,mfe) = fc.mfe()
@@ -47,10 +48,10 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_hc_add_up(self):
+        """Add hard constraints - unpaired"""
         #seq_con  =      "CCCAAAAGGGCCCAAAAGGG"
         #str_con_def=    "(((....)))(((....)))"
         #str_con=    "..........(((....)))"
-        print("test_hc_add_up")
         fc = RNA.fold_compound(seq_con)
         fc.hc_add_up(1,RNA.CONSTRAINT_CONTEXT_ALL_LOOPS)
         (ss,mfe) = fc.mfe()
@@ -59,7 +60,7 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_hc_add_bp_nonspecific(self):
-        print("test_hc_add_bp_nonspecific")
+        """Add hard constraints - base pairing unspecific"""
         #GGGCCCCCCCCCCCCCCCCC
         #(((......)))........
         fc=RNA.fold_compound("GGGCCCCCCCCCCCCCCCCC")
@@ -70,7 +71,7 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_hc_add_bp(self):
-        print("test_hc_add_bp")
+        """Add hard constraints - base pairs"""
         seq_con  =      "CCCAAAAGGGCCCAAAAGGG"
         str_con_def=    "(((....)))(((....)))"
         fc=RNA.fold_compound(seq_con)
@@ -81,7 +82,7 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_hc_add_from_db(self):
-        print("test_hc_add_from_db")
+        """Add hard constraints from dot-bracket string"""
         #seq_con  =      "CCCAAAAGGGCCCAAAAGGG"
         #str_con_def=    "(((....)))(((....)))"
         #hc.txt=    "xxx................."
@@ -94,7 +95,7 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_hc_mfe_window_bp(self):
-        print("test test_hc_mfe_window_bp")
+        """Hard constraints - base pairs in sliding-window MFE prediction"""
         fc = RNA.fold_compound(seq_long, None, RNA.OPTION_WINDOW)
         fc.hc_add_bp(1, 10, RNA.CONSTRAINT_CONTEXT_ALL_LOOPS | RNA.CONSTRAINT_CONTEXT_ENFORCE);
         fc.hc_add_bp(101, 110, RNA.CONSTRAINT_CONTEXT_ALL_LOOPS | RNA.CONSTRAINT_CONTEXT_ENFORCE);
@@ -113,4 +114,4 @@ class constraintsTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

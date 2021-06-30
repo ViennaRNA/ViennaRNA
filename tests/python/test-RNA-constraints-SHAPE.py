@@ -4,6 +4,7 @@ RNApath.addSwigInterfacePath()
 
 import RNA
 import unittest
+from py_include import taprunner
 
 seq_con     = "CCCAAAAGGGCCCAAAAGGG"
 str_con     = "..........(((....)))"
@@ -43,7 +44,7 @@ def getShapeSequenceFromFile(filepath):
 class constraintsTest(unittest.TestCase):
 
     def test_sc_add_deigan(self):
-        print "test_sc_add_deigan"
+        """SHAPE data Deigan et al. 2009 method - Lysine riboswitch"""
         seq          = getShapeSequenceFromFile(datadir + "Lysine_riboswitch_T._martima.db")
         reactivities = getShapeDataFromFile(datadir + "Lysine_riboswitch_T._martima.shape_2rows")
 
@@ -57,7 +58,7 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_sc_add_SHAPE_deigan2(self):
-        print "test_sc_add_SHAPE_deigan2"
+        """SHAPE data Deigan et al. 2009 method - TPP riboswitch"""
         seq_ribo     = getShapeSequenceFromFile(datadir + "TPP_riboswitch_E.coli.db")
         reactivities = getShapeDataFromFile(datadir + "TPP_riboswitch_E.coli.shape_2rows")
 
@@ -72,7 +73,7 @@ class constraintsTest(unittest.TestCase):
 
     # I just added completely randomly choosen sequences and shape data, this test only checks if the function can be called, not if it results correct results.
     def test_sc_add_SHAPE_deigan_ali(self):
-        print "test_sc_add_SHAPE_deigan_ali"
+        """SHAPE data Deigan et al. 2009 method - Comparative MFE prediction"""
         # shape data from
         shapeSeq1 = "CCCAAAAGGG"
         shapeSeq2 = "AAUAAAAAUU"
@@ -89,7 +90,7 @@ class constraintsTest(unittest.TestCase):
 
 
     def test_sc_add_SHAPE_zarringhalam(self):
-        print "test_sc_add_SHAPE_zarringhalam"
+        """SHAPE data Zarringhalam et al 2012 method"""
         seq_ribo     = getShapeSequenceFromFile(datadir + "TPP_riboswitch_E.coli.db")
         fc           = RNA.fold_compound(seq_ribo)
         reactivities = getShapeDataFromFile(datadir + "TPP_riboswitch_E.coli.shape_2rows")
@@ -100,6 +101,5 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual("%6.2f" %mfe,"%6.2f" % -5.28 )
 
 
-
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

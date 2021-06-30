@@ -4,6 +4,7 @@ RNApath.addSwigInterfacePath(3)
 
 import RNA
 import unittest
+from py_include import taprunner
 
 sequence = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUACUUAUACCGCCUGUGCGGACUACUAUCCUGACCACAUAGU"
 
@@ -25,7 +26,7 @@ def prepare_fc():
 
 class GeneralTests(unittest.TestCase):
     def test_pbacktrack5(self):
-        print("test_pbacktrack5    (single sub-structure, a.k.a. pbacktrack5)")
+        """Boltzmann sampling (single sub-structure, a.k.a. pbacktrack5)"""
         fc = prepare_fc()
 
         s  = fc.pbacktrack5(10)
@@ -35,7 +36,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(len(s), 50)
 
     def test_pbacktrack5_multi(self):
-        print("test_pbacktrack5    (multiple sub-structures, a.k.a. pbacktrack5_num)")
+        """Boltzmann sampling (multiple sub-structures, a.k.a. pbacktrack5_num)"""
         fc = prepare_fc()
 
         ss  = fc.pbacktrack5(20, 10)
@@ -49,14 +50,14 @@ class GeneralTests(unittest.TestCase):
             self.assertEqual(len(s), 50)
 
     def test_pbacktrack(self):
-        print("test_pbacktrack     (single structure, a.k.a. pbacktrack)")
+        """Boltzmann sampling (single structure, a.k.a. pbacktrack)"""
         fc = prepare_fc()
 
         s  = fc.pbacktrack()
         self.assertEqual(len(s), len(sequence))
 
     def test_pbacktrack_multi(self):
-        print("test_pbacktrack     (multiple structures, a.k.a. pbacktrack_num)")
+        """Boltzmann sampling (multiple structures, a.k.a. pbacktrack_num)"""
         fc = prepare_fc()
 
         ss  = fc.pbacktrack(100)
@@ -65,7 +66,7 @@ class GeneralTests(unittest.TestCase):
             self.assertEqual(len(s), len(sequence))
 
     def test_pbacktrack_nr(self):
-        print("test_pbacktrack_nr")
+        """Boltzmann sampling - non redundant"""
         fc = prepare_fc()
 
         ss  = fc.pbacktrack(100, RNA.PBACKTRACK_NON_REDUNDANT)
@@ -77,7 +78,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(len(ss), len(sss))
 
     def test_pbacktrack_nr_resume(self):
-        print("test_pbacktrack_nr_resume")
+        """Boltzmann sampling - non redundant resume"""
         num_samples = 500
         iterations  = 15
         fc      = prepare_fc()
@@ -97,7 +98,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(len(s_list), len(sss))
 
     def test_pbacktrack5_cb(self):
-        print("test_pbacktrack5_cb (multiple sub-structures, a.k.a. pbacktrack5_cb)")
+        """Boltzmann sampling (multiple sub-structures, a.k.a. pbacktrack5_cb)"""
         fc = prepare_fc()
         ss = list()
         i = fc.pbacktrack5(20, 10, store_structure, ss)
@@ -114,7 +115,7 @@ class GeneralTests(unittest.TestCase):
             self.assertEqual(len(s), 50)
 
     def test_pbacktrack_cb(self):
-        print("test_pbacktrack_cb  (multiple structures, a.k.a. pbacktrack_cb)")
+        """Boltzmann sampling (multiple structures, a.k.a. pbacktrack_cb)"""
         fc = prepare_fc()
         ss = list()
         i = fc.pbacktrack(100, store_structure, ss)
@@ -124,7 +125,7 @@ class GeneralTests(unittest.TestCase):
             self.assertEqual(len(s), len(sequence))
 
     def test_pbacktrack_nr_cb(self):
-        print("test_pbacktrack_nr_cb")
+        """Boltzmann sampling - non redundant - callback"""
         fc = prepare_fc()
         ss = list()
         i = fc.pbacktrack(100, store_structure, ss, RNA.PBACKTRACK_NON_REDUNDANT)
@@ -138,7 +139,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(len(ss), len(sss))
 
     def test_pbacktrack_nr_resume_cb(self):
-        print("test_pbacktrack_nr_resume_cb")
+        """Boltzmann sampling - non redundant resume - callback"""
         num_samples = 500
         iterations  = 15
         fc = prepare_fc()
@@ -158,4 +159,4 @@ class GeneralTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main();
+    unittest.main(testRunner=taprunner.TAPTestRunner())

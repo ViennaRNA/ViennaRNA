@@ -7,6 +7,7 @@ from operator import add
 import RNA
 import math
 import unittest
+from py_include import taprunner
 
 kT = 0.61632077549999997
 # maximum allowed difference beteen compared probabilties
@@ -87,7 +88,7 @@ def up_split_callback(v, v_size, i, maxsize, what, data):
 class pf_window_functionTest(unittest.TestCase):
 
     def test_pfl_fold(self):
-        print "test_pfl_fold"
+        """RNA.pfl_fold() - sanity check for base pair probabilities"""
         bpp = RNA.pfl_fold(longseq, 200, 150, 0.01)
 
         # sanity check for base pair probabilities
@@ -98,7 +99,7 @@ class pf_window_functionTest(unittest.TestCase):
 
 
     def test_pfl_fold_up(self):
-        print "test_pfl_fold_up"
+        """RNA.pfl_fold_up() - sanity check for unpaired probabilities"""
         up = RNA.pfl_fold_up(longseq, 10, 200, 150)
         # sanity check for unpaired probabilities
         self.assertTrue(len(up) == 301)
@@ -109,7 +110,7 @@ class pf_window_functionTest(unittest.TestCase):
 
 
     def test_probs_window(self):
-        print "test_probs_window"
+        """fold_compound.probs_window() - sanity checks for probabiities"""
         data = { 'bpp': [], 'up': []}
         md = RNA.md()
         md.max_bp_span = 150
@@ -131,7 +132,7 @@ class pf_window_functionTest(unittest.TestCase):
 
 
     def test_pfl_SHAPE(self):
-        print "test_pfl_SHAPE"
+        """SHAPE data"""
         benchmark_set = ["Lysine_riboswitch_T._martima", "TPP_riboswitch_E.coli" ]
 
         for b in benchmark_set:
@@ -165,13 +166,13 @@ class pf_window_functionTest(unittest.TestCase):
                 self.assertEqual("%2.8f" % abs(p - p2), "%2.8f" % 0.)
 
 
-    """
-    Compute partition function and base pair probabilities both, using the implementation
-    for local structure prediction and global structure prediction.
-    When comparing both results, equilibrium probabilities must not have changed!
-    """
     def test_pfl_window_full(self):
-        print "test_probs_window_full"
+        """Compare results from local and global predictions
+        
+        Compute partition function and base pair probabilities both, using the implementation
+        for local structure prediction and global structure prediction.
+        When comparing both results, equilibrium probabilities must not have changed!
+        """
 
         data = []
 
@@ -199,15 +200,15 @@ class pf_window_functionTest(unittest.TestCase):
             self.assertEqual("%g" % p, "%g" % p2)
 
 
-    """
-    Compute partition function and base pair probabilities both, constrained
-    and unconstrained, where the constraint simply shifts the free energy base
-    line by -1 kcal/mol per nucleotide.
-    When comparing both results, equilibrium probabilities must not have changed,
-    except for free energy of the ensemble!
-    """
     def test_pfl_sc(self):
-        print "test_pfl_sc"
+        """Soft constraints - energy landscape shift - base pair probabilities
+        
+        Compute partition function and base pair probabilities both, constrained
+        and unconstrained, where the constraint simply shifts the free energy base
+        line by -1 kcal/mol per nucleotide.
+        When comparing both results, equilibrium probabilities must not have changed,
+        except for free energy of the ensemble!
+        """
 
         fc = RNA.fold_compound(longseq, None, RNA.OPTION_WINDOW)
 
@@ -234,13 +235,13 @@ class pf_window_functionTest(unittest.TestCase):
             self.assertEqual("%g" % du['p'], "%g" % dc['p'])
 
 
-    """
-    Compute unpaired probabilities both, constrained and unconstrained, where the
-    constraint simply shifts the free energy base line by -1 kcal/mol per nucleotide.
-    When comparing both results, equilibrium probabilities must not have changed!
-    """
     def test_probs_window(self):
-        print "test_probs_window_up"
+        """Soft constraints - energy landscape shift - unpaired probabilities
+        
+        Compute unpaired probabilities both, constrained and unconstrained, where the
+        constraint simply shifts the free energy base line by -1 kcal/mol per nucleotide.
+        When comparing both results, equilibrium probabilities must not have changed!
+        """
 
         ulength = 45
         data = []
@@ -272,13 +273,13 @@ class pf_window_functionTest(unittest.TestCase):
                     break
                 self.assertEqual("%g" % data[i - 1]['up'][u], "%g" % data2[i - 1]['up'][u])
 
-    """
-    Compute unpaired probabilities both, split into different loop contexts and full probability
-    for all loop contexts. This check verifies that the sum of the individual loop types actually
-    adds up to that obtained for any loop
-    """
     def test_up_split_sum(self):
-        print "Testing whether individual loop context unpaired probabilities sum up properly"
+        """Reporting check for probs_window() callback
+
+        Compute unpaired probabilities both, split into different loop contexts and full probability
+        for all loop contexts. This check verifies that the sum of the individual loop types actually
+        adds up to that obtained for any loop
+        """
         ulength = 10
         data_split = {'ext': [], 'hp': [], 'int': [], 'mb': [] }
         data_all = []
@@ -318,7 +319,7 @@ class pf_window_functionTest(unittest.TestCase):
 
 
     def test_up_1_diff_pf(self):
-        print "Testing whether unpaired probabilities for u = 1 are identical to what we get using regular partition function method"
+        """Unpaired probabilities for u=1 are the same as obtained from global fold"""
         ulength = 1
         data = []
 
@@ -353,8 +354,7 @@ class pf_window_functionTest(unittest.TestCase):
 
 
     def test_up_exhaustive(self):
-        print "Testing whether unpaired probabilties for short RNAs are identical to what we get from exhaustive enumeration"
-
+        """Unpaired probabilties for short RNAs are identical to what we get from exhaustive enumeration"""
         RNA.init_rand()
         randseq_length = 20
         ulength = 5
@@ -484,4 +484,4 @@ class pf_window_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

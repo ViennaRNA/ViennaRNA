@@ -4,6 +4,7 @@ RNApath.addSwigInterfacePath(3)
 
 import RNA
 import unittest
+from py_include import taprunner
 
 seq1 = "CGCAGGGAUACCCGCG"
 longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
@@ -20,7 +21,7 @@ def mfe_window_callback(start, end, structure, energy, data=None):
 class mfe_window_functionTest(unittest.TestCase):
 
     def test_mfe_window(self):
-        print("test_mfe_window")
+        """MFE prediction - fold_compound.mfe_window()"""
         fc= RNA.fold_compound(seq1, None, RNA.OPTION_MFE | RNA.OPTION_WINDOW)
         (mfe) = fc.mfe_window()
         print("[ %6.2f ]" % mfe)
@@ -28,7 +29,7 @@ class mfe_window_functionTest(unittest.TestCase):
 
 
     def test_Lfold_cb(self):
-        print("test_Lfold_cb")
+        """MFE prediction - RNA.Lfold_cb"""
         data = []
         mfe = RNA.Lfold_cb(seq1, 150, mfe_window_callback, data)
         self.assertTrue(len(data) == 2)
@@ -39,7 +40,7 @@ class mfe_window_functionTest(unittest.TestCase):
 
 
     def test_mfe_window_cb(self):
-        print("test_mfe_window_cb")
+        """MFE prediction - fold_compound.mfe_window_cb"""
         fc= RNA.fold_compound(seq1, None, RNA.OPTION_MFE | RNA.OPTION_WINDOW)
         data = []
         mfe = fc.mfe_window_cb(mfe_window_callback, data)
@@ -51,7 +52,7 @@ class mfe_window_functionTest(unittest.TestCase):
 
 
     def test_aliLfold_cb(self):
-        print("test_aliLfold_cb")
+        """MFE prediction - sequence aignments - RNA.aliLfold_cb"""
         data = []
         mfe = RNA.aliLfold_cb(ali, 150, mfe_window_callback, data)
         self.assertTrue(len(data) == 2)
@@ -62,7 +63,7 @@ class mfe_window_functionTest(unittest.TestCase):
 
 
     def test_mfe_window_cb(self):
-        print("test_mfe_window_cb (comparative)")
+        """MFE prediction - sequence alignments - fold_compound.mfe_window_cb"""
         fc= RNA.fold_compound(ali, None, RNA.OPTION_MFE | RNA.OPTION_WINDOW)
         data = []
         mfe = fc.mfe_window_cb(mfe_window_callback, data)
@@ -75,4 +76,4 @@ class mfe_window_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

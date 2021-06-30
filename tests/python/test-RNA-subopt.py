@@ -4,6 +4,7 @@ RNApath.addSwigInterfacePath()
 
 import RNA
 import unittest
+from py_include import taprunner
 
 sequence = "CGCAGGGAUACCCGCG"
 
@@ -14,8 +15,7 @@ def print_subopt_result(structure, energy, data=None):
 
 class GeneralTests(unittest.TestCase):
     def test_subopt0(self):
-        print "test_subopt (pointer mode)"
-
+        """RNA.subopt (pointer mode)"""
         RNA.cvar.subopt_sorted = 1
         RNA.cvar.noLonelyPairs = 1
         solution = RNA.subopt(sequence, None, 500, None)
@@ -30,7 +30,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_subopt1(self):
-        print "test_subopt (list mode)"
+        """RNA.subopt (list mode)"""
         ## test native array output of subopt()
         RNA.cvar.subopt_sorted = 1
         RNA.cvar.noLonelyPairs = 1
@@ -42,8 +42,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_subopt2(self):
-        print "test_subopt (as fold_compound method)"
-
+        """fold_compound.subopt()"""
         a = RNA.fold_compound(sequence)
         solution = a.subopt(500)
         print "%d suboptimals" % len(solution)
@@ -52,13 +51,13 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_subopt3(self):
-        print "test_subopt_cb (as fold_compound method)"
+        """fold_compound.subopt_cb()"""
         a = RNA.fold_compound(sequence)
         a.subopt_cb(500, print_subopt_result);
 
 
     def test_zuker_subopt(self):
-        print "test Zuker subopt (pointer mode)"
+        """RNA.zukersubopt() (pointer mode)"""
         solution = RNA.zukersubopt(sequence)
         for x in range(0,solution.size()):
         # the last access should produce a "value out of range" warning
@@ -67,7 +66,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_subopt_zuker(self):
-        print "testing subopt_zuker() method"
+        """fold_compound.subopt_zuker()"""
         fc = RNA.fold_compound(sequence)
         solution = fc.subopt_zuker()
         print sequence
@@ -76,4 +75,4 @@ class GeneralTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main();
+    unittest.main(testRunner=taprunner.TAPTestRunner())

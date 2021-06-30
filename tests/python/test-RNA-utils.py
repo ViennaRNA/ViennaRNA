@@ -5,6 +5,7 @@ RNApath.addSwigInterfacePath()
 
 import RNA
 import unittest
+from py_include import taprunner
 
 
 seq1          = "CGCAGGGAUACCCGCG"
@@ -14,7 +15,7 @@ struct2       = "(..............)"
 
 class GeneralTests(unittest.TestCase):
     def test_pairtable(self):
-        print "test_pairtable"
+        """Create pair table"""
         pairTable = RNA.ptable(struct1)
         correctPairTable = (16, 16, 15, 14, 0, 13, 12, 11, 0, 0, 0, 7, 6, 5, 3, 2, 1)
         self.assertEqual(pairTable,correctPairTable)
@@ -28,19 +29,19 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_basePairDistance(self):
-        print "test_basePairDistance"
+        """Base pair distance"""
         d = RNA.bp_distance("(((.(((...))))))","(((..........)))")
         self.assertEqual(d,3)
 
 
     def test_plists(self):
-        print "test_plists"
+        """RNA,plist()"""
         plist = RNA.plist(struct1,0.6)
         print plist
 
 
     def test_filename_sanitize_simple(self):
-        print "test_filename_sanitize_simple"
+        """Sanitize file names - with directories and special characters"""
         fn = "bla/bla??_foo\\bar\"r<u>m:ble"
         fs = RNA.filename_sanitize(fn)
         self.assertEqual(fs, "blabla_foobarrumble")
@@ -49,7 +50,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_filename_sanitize_special(self):
-        print "test_filename_sanitize_special_names"
+        """Sanitize file names - special characters"""
         fn = "??"
         fs = RNA.filename_sanitize(fn)
         self.assertEqual(fs, "")
@@ -58,7 +59,7 @@ class GeneralTests(unittest.TestCase):
 
 
     def test_filename_sanitize_long(self):
-        print "test_filename_sanitize_long_names"
+        """Sanitize (too) long file names"""
         fn = "%s%s%sDEFGHIJ.svg" % ("A" * 120, "B" * 120, "C" * 10)
         fs = RNA.filename_sanitize(fn)
         self.assertEqual(fs, "%s%s%sD.svg" % ("A" * 120, "B" * 120, "C" * 10))
@@ -69,4 +70,4 @@ class GeneralTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

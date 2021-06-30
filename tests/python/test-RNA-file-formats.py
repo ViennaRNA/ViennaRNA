@@ -5,43 +5,44 @@ RNApath.addSwigInterfacePath()
 
 import RNA
 import unittest
+from py_include import taprunner
 
 datadir = RNApath.getDataDirPath()
 
 class file_utils_msa_Test(unittest.TestCase):
 
     def test_file_msa_detect_format_stk(self):
-        print "test_file_msa_detect_STOCKHOLM_format"
+        """Detect STOCKHOLM formatted MSA file"""
         msa_format = RNA.file_msa_detect_format(datadir + "/rfam_seed_selected.stk")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_STOCKHOLM)
 
 
     def test_file_msa_detect_format_clustal(self):
-        print "test_file_msa_detect_CLUSTAL_format"
+        """Detect CLUSTAL formatted MSA file"""
         msa_format = RNA.file_msa_detect_format(datadir + "/070313_ecoli_cdiff_16S_clustalw.aln")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_CLUSTAL)
 
 
     def test_file_msa_detect_format_fasta(self):
-        print "test_file_msa_detect_FASTA_format"
+        """Detect FASTA formatted MSA file"""
         msa_format = RNA.file_msa_detect_format(datadir + "/070313_ecoli_cdiff_16S_fasta.aln")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_FASTA)
 
 
     def test_file_msa_detect_format_maf(self):
-        print "test_file_msa_detect_MAF_format"
+        """Detect MAF formatted MSA file"""
         msa_format = RNA.file_msa_detect_format(datadir + "/test.maf")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_MAF)
 
 
     def test_file_msa_detect_format_unknown(self):
-        print "test_file_msa_detect_non_MSA_format"
+        """Detect unknown MSA file format"""
         msa_format = RNA.file_msa_detect_format(datadir + "/rnafold.cmds")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_UNKNOWN)
 
 
     def test_file_msa_read_stk(self):
-        print "test_file_msa_read_stk"
+        """Read Stockholm formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
             RNA.file_msa_read(datadir + "/rfam_seed_selected.stk",
                               RNA.FILE_FORMAT_MSA_STOCKHOLM | \
@@ -60,7 +61,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
     def test_file_msa_read_clustal(self):
-        print "test_file_msa_read_clustal"
+        """Read Clustal formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
             RNA.file_msa_read(datadir + "/070313_ecoli_cdiff_16S_clustalw.aln",
                               RNA.FILE_FORMAT_MSA_CLUSTAL | \
@@ -76,7 +77,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
     def test_file_msa_read_fasta(self):
-        print "test_file_msa_read_fasta"
+        """Read FASTA formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
             RNA.file_msa_read(datadir + "/070313_ecoli_cdiff_16S_fasta.aln",
                               RNA.FILE_FORMAT_MSA_FASTA | \
@@ -92,7 +93,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
     def test_file_msa_read_maf(self):
-        print "test_file_msa_read_maf"
+        """Read MAF formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
             RNA.file_msa_read(datadir + "/test.maf",
                               RNA.FILE_FORMAT_MSA_MAF | \
@@ -108,7 +109,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
     def test_file_msa_read_multi_stk(self):
-        print "test_file_msa_read_multi_stk"
+        """Read Multiple MSAs from Stockholm file"""
         f = open(datadir + "/rfam_seed_selected.stk", 'r')
         counter = 0
         while True:
@@ -132,7 +133,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
     def test_file_msa_read_multi_maf(self):
-        print "test_file_msa_read_multi_maf"
+        """Read multiple MSAs from MAF file"""
         f = open(datadir + "/test.maf", 'r')
         counter = 0
         while True:
@@ -157,4 +158,4 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=taprunner.TAPTestRunner())

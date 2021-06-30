@@ -54,10 +54,10 @@ if WITH_PERL_TESTS
 BUILT_SOURCES = perl5/test-RNA-Design.t
 
 PL_LOG_COMPILER = $(PERL)
-T_LOG_COMPILER = $(PERL)
-PL_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+T_LOG_COMPILER  = $(PERL)
+PL_LOG_DRIVER   = env AM_TAP_AWK='$(AWK)' $(SHELL) \
                   $(top_srcdir)/config/tap-driver.sh
-T_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+T_LOG_DRIVER    = env AM_TAP_AWK='$(AWK)' $(SHELL) \
                   $(top_srcdir)/config/tap-driver.sh
 
 AM_PL_LOG_FLAGS = -Mstrict -w \
@@ -107,6 +107,8 @@ if WITH_PYTHON_TESTS
 
 PY_LOG_COMPILER = $(PYTHON2)
 AM_PY_LOG_FLAGS =
+PY_LOG_DRIVER   = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+                  $(top_srcdir)/config/tap-driver.sh
 
 # add test scripts here
 PYTHON2_TESTS = python/test-RNA-combinatorics.py \
@@ -135,8 +137,10 @@ endif
 ######################################
 if WITH_PYTHON3_TESTS
 
-PY3_LOG_COMPILER = $(PYTHON3)
-AM_PY3_LOG_FLAGS =
+PY3_LOG_COMPILER  = $(PYTHON3)
+AM_PY3_LOG_FLAGS  =
+PY3_LOG_DRIVER    = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+                    $(top_srcdir)/config/tap-driver.sh
 
 # add test scripts here
 PYTHON3_TESTS = python3/test-RNA-combinatorics.py3 \
@@ -236,12 +240,18 @@ TESTS = \
 
 endif
 
-EXTRA_DIST =  $(TESTS) \
-              data \
+EXTRA_DIST =  data \
+              py_include/__init__.py \
+              py_include/taprunner/__init__.py \
               RNAfold/results \
               RNAcofold/results \
               RNAalifold/results \
-              ${CHECKMK_FILES} ${CHECK_CFILES}
+              ${EXECUTABLE_TESTS} \
+              $(CHECKMK_FILES) \
+              $(CHECK_CFILES) \
+              ${PERL_TESTS} \
+              ${PYTHON2_TESTS} \
+              ${PYTHON3_TESTS}
 
 clean-local:
 	-rm -rf ${PERL_TEST_OUTPUT} \

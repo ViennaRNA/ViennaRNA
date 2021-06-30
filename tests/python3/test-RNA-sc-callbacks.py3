@@ -4,6 +4,7 @@ RNApath.addSwigInterfacePath(3)
 
 import RNA
 import unittest
+from py_include import taprunner
 
 seq1 = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCC"
 struct1 = ".(((..((.((((((((((....).)))).)).))))).)))(((....))).."
@@ -121,7 +122,7 @@ def bt_hp_basepair(i,j,k,l,d,data=None):
 class mfe_eval_functionTest(unittest.TestCase):
 
     def test_maximum_matching(self):
-        print("Revert MFE to MaximumMatching")
+        """Revert MFE to MaximumMatching"""
         mm_data = { 'fc': RNA.fold_compound(seq1),
                     'params': RNA.param()
                   }
@@ -146,7 +147,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_backtrack_hp_dict(self):
-        print("Hairpin backtracking (Dictionary)")
+        """Hairpin backtracking (Dictionary)"""
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_dict)
         (s, mfe) = fc.mfe()
@@ -155,7 +156,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_backtrack_hp_tuples(self):
-        print("Hairpin backtracking (Tuples)")
+        """Hairpin backtracking (Tuples)"""
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_tuples)
         (s, mfe) = fc.mfe()
@@ -164,7 +165,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
     def test_backtrack_hp_basepair(self):
-        print("Hairpin backtracking (basepair)")
+        """Hairpin backtracking (basepair)"""
         fc = RNA.fold_compound(seq2)
         fc.sc_add_bt(bt_hp_basepair)
         (s, mfe) = fc.mfe()
@@ -173,4 +174,4 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main();
+    unittest.main(testRunner=taprunner.TAPTestRunner())

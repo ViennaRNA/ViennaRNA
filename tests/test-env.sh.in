@@ -2,7 +2,7 @@
 ##
 
 # include current directory into our Python path variable
-PYTHONPATH='.:${PYTHONPATH}'
+PYTHONPATH='@builddir@:@srcdir@:${PYTHONPATH}'
 
 export PYTHONPATH
 
