@@ -2813,10 +2813,10 @@ repeat(vrna_fold_compound_t *fc,
 
     switch (dangle_model) {
       case 0:
-        element_energy = vrna_E_ext_stem(rt, -1, -1, P);
+        element_energy += vrna_E_ext_stem(rt, -1, -1, P);
         break;
       default:
-        element_energy =
+        element_energy +=
           vrna_E_ext_stem(rt,
                           (sn[j - 1] == sn[j]) ?
                           S1[j - 1] :
