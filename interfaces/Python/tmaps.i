@@ -1,14 +1,5 @@
 // convert between python and C file handle
-%typemap(in) FILE * {
-  if (PyFile_Check($input)) /* check for undef */
-        $1 = PyFile_AsFile($input);
-  else  $1 = NULL;
-}
-
-%typemap(typecheck) FILE * {
-  if (PyFile_Check($input)) /* check for undef */
-    $1 = PyFile_AsFile($input) ? 1 : 0;
-}
+%include "file_py3.i" // python 3 FILE *
 
 %typemap(out) float [ANY] {
   int i;
@@ -69,8 +60,8 @@
     $1 = (char **) malloc((size+1)*sizeof(char *));
     for (i = 0; i < size; i++) {
       PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
-        $1[i] = PyString_AsString(PyList_GetItem($input,i));
+      if (PyUnicode_Check(o))
+        $1[i] = PyString_AsString(PyUnicode_AsASCIIString(o));
       else {
         PyErr_SetString(PyExc_TypeError,"list must contain strings");
         free($1);
@@ -86,7 +77,6 @@
 
 // This tells SWIG to treat char *[], const char **, and const char *[] the same as char **
 %apply char ** { char *[], const char **, const char *[] };
-
 
 /*
   we need this crazy piece of argout typemap only because we don't
@@ -145,6 +135,7 @@
   $1 = $input;
 }
 
-%typemap(in) PyObject *data {
+
+%typemap(in) PyObject * {
   $1 = $input;
 }

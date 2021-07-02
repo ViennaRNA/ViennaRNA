@@ -30,8 +30,8 @@ centroid_en = fc.eval_structure(centroid_struct)
 MEA_en = fc.eval_structure(MEA_struct)
 
 # print everything like RNAfold -p --MEA
-print("%s\n%s (%6.2f)" % (seq, mfe_struct, mfe))
-print("%s [%6.2f]" % (pp, pf))
-print("%s {%6.2f d=%.2f}" % (centroid_struct, centroid_en, dist))
-print("%s {%6.2f MEA=%.2f}" % (MEA_struct, MEA_en, MEA))
-print(" frequency of mfe structure in ensemble %g; ensemble diversity %-6.2f" % (fc.pr_structure(mfe_struct), fc.mean_bp_distance()))
+print("{}\n{} ({:6.2f})".format(seq, mfe_struct, mfe))
+print("{} [{:6.2f}]".format(pp, pf))
+print("{} {{{:6.2f} d={:.2f}}}".format(centroid_struct, centroid_en, dist))
+print("{} {{{:6.2f} MEA={:.2f}}}".format(MEA_struct, MEA_en, MEA))
+print(" frequency of mfe structure in ensemble {:g}; ensemble diversity {:-6.2f}".format(fc.pr_structure(mfe_struct), fc.mean_bp_distance()))

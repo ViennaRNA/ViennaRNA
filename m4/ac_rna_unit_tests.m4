@@ -21,11 +21,11 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
                   [yes])
 
   RNA_ADD_FEATURE([check_python],
-                  [Python interface Unit tests],
+                  [Python 3.x interface Unit tests],
                   [yes])
 
-  RNA_ADD_FEATURE([check_python3],
-                  [Python3 interface Unit tests],
+  RNA_ADD_FEATURE([check_python2],
+                  [Python 2.x interface Unit tests],
                   [yes])
 
   RNA_FEATURE_IF_ENABLED([unittests],[
@@ -69,10 +69,10 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
       fi
     ])
 
-    RNA_FEATURE_IF_ENABLED([check_python3],[
-      ## switch off if python3 interface is not going to be build
-      if test "x$with_python3" != "xyes" ; then
-        enable_check_python3="no"
+    RNA_FEATURE_IF_ENABLED([check_python2],[
+      ## switch off if python2 interface is not going to be build
+      if test "x$with_python2" != "xyes" ; then
+        enable_check_python2="no"
       fi
     ])
 
@@ -82,7 +82,7 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
     with_check="no"
     enable_check_perl="no"
     enable_check_python="no"
-    enable_check_python3="no"
+    enable_check_python2="no"
   ])
 
   AM_CONDITIONAL(WITH_UNIT_TESTS, test "x$enable_unittests" != "xno")
@@ -90,7 +90,7 @@ AC_DEFUN([RNA_ENABLE_UNIT_TESTS],[
   AM_CONDITIONAL(WITH_EXECUTABLE_TESTS, test "x$with_check_executables" != "xno")
   AM_CONDITIONAL(WITH_PERL_TESTS, test "x$enable_check_perl" != "xno")
   AM_CONDITIONAL(WITH_PYTHON_TESTS, test "x$enable_check_python" != "xno")
-  AM_CONDITIONAL(WITH_PYTHON3_TESTS, test "x$enable_check_python3" != "xno")
+  AM_CONDITIONAL(WITH_PYTHON2_TESTS, test "x$enable_check_python2" != "xno")
 
   AC_CONFIG_FILES([tests/Makefile tests/RNApath.py tests/RNAHelpers.pm tests/test-env.sh])
 ])

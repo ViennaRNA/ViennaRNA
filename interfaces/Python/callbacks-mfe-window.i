@@ -38,6 +38,7 @@ static python_mfe_window_callback_t *
 bind_mfe_window_callback(PyObject *PyFunc,
                          PyObject *data)
 {
+
   python_mfe_window_callback_t *cb = (python_mfe_window_callback_t *)vrna_alloc(sizeof(python_mfe_window_callback_t));
 
   Py_INCREF(PyFunc);
@@ -49,7 +50,6 @@ bind_mfe_window_callback(PyObject *PyFunc,
   return cb;
 }
 
-
 static void
 release_mfe_window_callback(python_mfe_window_callback_t *cb)
 {
@@ -57,7 +57,6 @@ release_mfe_window_callback(python_mfe_window_callback_t *cb)
   Py_DECREF(cb->data);
   free(cb); 
 }
-
 
 static void
 python_wrap_mfe_window_cb(int         start,
@@ -72,8 +71,8 @@ python_wrap_mfe_window_cb(int         start,
   func = cb->cb;
   /* compose argument list */
   PyObject *py_start, *py_end, *py_structure, *py_energy;
-  py_start      = PyInt_FromLong(start);
-  py_end        = PyInt_FromLong(end);
+  py_start      = PyLong_FromLong(start);
+  py_end        = PyLong_FromLong(end);
   py_structure  = PyString_FromString(structure);
   py_energy     = PyFloat_FromDouble((double)energy);
   result        = PyObject_CallFunctionObjArgs(func,
@@ -119,26 +118,26 @@ python_wrap_mfe_window_zscore_cb(int        start,
                                  float      zscore,
                                  void       *data)
 {
+
   PyObject *func, *arglist, *result, *err;
   python_mfe_window_callback_t *cb = (python_mfe_window_callback_t *)data;
 
   func = cb->cb;
   /* compose argument list */
   PyObject *py_start, *py_end, *py_structure, *py_energy, *py_zscore;
-  py_start      = PyInt_FromLong(start);
-  py_end        = PyInt_FromLong(end);
+  py_start = PyLong_FromLong(start);
+  py_end   = PyLong_FromLong(end);
   py_structure  = PyString_FromString(structure);
   py_energy     = PyFloat_FromDouble((double)energy);
   py_zscore     = PyFloat_FromDouble((double)zscore);
   result        = PyObject_CallFunctionObjArgs(func,
-                                               py_start,
-                                               py_end,
-                                               py_structure,
-                                               py_energy,
-                                               py_zscore,
-                                               (cb->data) ? cb->data : Py_None,
-                                               NULL);
-
+                                        py_start,
+                                        py_end,
+                                        py_structure,
+                                        py_energy,
+                                        py_zscore,
+                                        (cb->data) ? cb->data : Py_None,
+                                        NULL);
   Py_DECREF(py_start);
   Py_DECREF(py_end);
   Py_DECREF(py_structure);
@@ -265,7 +264,6 @@ my_Lfold_cb(char      *string,
             int       window_size,
             PyObject  *PyFunc,
             PyObject  *data);
-
 %ignore vrna_Lfold_cb;
 
 #ifdef VRNA_WITH_SVM
@@ -278,7 +276,6 @@ my_Lfoldz_cb(char     *string,
              double   min_z,
              PyObject *PyFunc,
              PyObject *data);
-
 %ignore vrna_Lfoldz_cb;
 #endif
 
@@ -289,7 +286,6 @@ my_aliLfold_cb(std::vector<std::string> alignment,
                int                      window_size,
                PyObject                 *PyFunc,
                PyObject                 *data);
-
 %ignore vrna_aliLfold_cb;
 %ignore aliLfold_cb;
 

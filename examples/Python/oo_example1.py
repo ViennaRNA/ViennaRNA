@@ -9,4 +9,4 @@ fc = RNA.fold_compound(sequence)
 (ss, mfe) = fc.mfe()
 
 # print output
-print "%s [ %6.2f ]" % (ss, mfe)
+print("{} [ {:6.2f} ]".format(ss, mfe))

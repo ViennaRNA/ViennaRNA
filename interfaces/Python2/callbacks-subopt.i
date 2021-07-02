@@ -25,11 +25,11 @@ static python_subopt_callback_t *
 bind_subopt_callback(PyObject *PyFunc,
                      PyObject *data)
 {
-
   python_subopt_callback_t *cb = (python_subopt_callback_t *)vrna_alloc(sizeof(python_subopt_callback_t));
 
   Py_INCREF(PyFunc);
   Py_INCREF(data);
+
   cb->cb    = PyFunc;  /* store callback */
   cb->data  = data;    /* bind data */
 
@@ -104,7 +104,6 @@ python_wrap_subopt_cb(const char *structure,
             PyObject *PyFunc,
             PyObject *data = Py_None)
   {
-
     python_subopt_callback_t *cb = bind_subopt_callback(PyFunc, data);
     vrna_subopt_cb($self, delta, &python_wrap_subopt_cb, (void *)cb);
     release_subopt_callback(cb);

@@ -2,6 +2,7 @@ include ../generic.mk
 
 LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/tmaps.i \
+  $(srcdir)/file_py3.i \
   $(srcdir)/globals-md.i \
   $(srcdir)/callbacks-fc.i \
   $(srcdir)/callbacks-sc.i \
@@ -16,10 +17,13 @@ LANG_SPECIFIC_INTERFACE_FILES = \
 INTERFACE_FILES = $(SWIG_src) \
                   $(LANG_SPECIFIC_INTERFACE_FILES)
 
-pkgpy2execdir = $(py2execdir)/RNA
+pkgpyexecdir = $(py3execdir)/RNA
+pkgpycachedir = $(pkgpyexecdir)/__pycache__
 
-pkgpy2exec_LTLIBRARIES = _RNA.la
-pkgpy2exec_DATA = RNA/__init__.py
+pkgpyexec_LTLIBRARIES = _RNA.la
+pkgpyexec_DATA =  RNA/__init__.py
+pkgpycache_DATA = RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
+                  RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@
 
 _RNA_la_SOURCES = $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
@@ -31,7 +35,7 @@ EXTRA_DIST = \
 
 _RNA_la_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 _RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS) -Wno-unused-label -Wno-unused-variable
-_RNA_la_CPPFLAGS = -I$(PYTHON2_INC) $(RNA_CPPFLAGS) -I$(top_srcdir)/src
+_RNA_la_CPPFLAGS = -I$(PYTHON3_INC) $(RNA_CPPFLAGS) -I$(top_srcdir)/src
 
 _RNA_la_LIBADD = \
     $(LDADD) \
@@ -54,12 +58,8 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
                   -shared \
                   -export-dynamic \
                   -shrext \
-                  $(PYTHON2_SO) \
-                  $(PYTHON2_LDFLAGS) 
-
-##
-## SWIG interface wrapper code generation
-##
+                  $(PYTHON3_SO) \
+                  $(PYTHON3_LDFLAGS)
 
 if HAS_SWIG
 
@@ -68,8 +68,10 @@ $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
                   -I$(top_srcdir)/src \
                   -I$(srcdir) \
                   -I$(builddir) \
+                  -DPY3 \
                   $(RNA_CPPFLAGS) \
                   -python \
+                  -py3 \
                   -c++ \
                   -keyword \
                   -w511,509 \
@@ -86,18 +88,30 @@ RNA/__init__.py: $(SWIG_module_name).py
 	$(AM_V_GEN)( test -d RNA || $(MKDIR_P) RNA ) && \
   cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
 
-RNA/_RNA$(PYTHON2_SO): _RNA.la
+# We "import _RNA" first so that if we fail to import the glue library
+# we don't generate a broken .pyc or .pyo.
+RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc: RNA/__init__.py RNA/_RNA$(PYTHON3_SO)
+	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -c "import _RNA" ; \
+  PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -c "import RNA" )
+
+RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@: RNA/__init__.py RNA/_RNA$(PYTHON3_SO)
+	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -O -c "import _RNA" ; \
+  PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -O -c "import RNA" )
+
+RNA/_RNA$(PYTHON3_SO): _RNA.la
 	$(AM_V_GEN)( test -d RNA || $(MKDIR_P) RNA ) && \
   ( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
-  ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON2_SO) RNA ) && \
+  ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) RNA ) && \
   rm -f libtoolconfig.tmp
 
 CLEANFILES = \
-    RNA/_RNA$(PYTHON2_SO) \
+    RNA/_RNA$(PYTHON3_SO) \
     RNA/__init__.py \
-    RNA/__init__.pyc
+    RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
+    RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@\
+    $(srcdir)/*.pyc
 
-all-local:  RNA/_RNA$(PYTHON2_SO)
+all-local:  RNA/_RNA$(PYTHON3_SO)
 
 clean-local:
 	-rm -rf RNA
@@ -106,13 +120,13 @@ clean-local:
 # and Python doesn't use libltdl.  Note that the library gets installed by
 # install-data, so that's where we need to hook.
 install-data-hook:
-	rm -f $(DESTDIR)$(pkgpy2execdir)/_RNA.la
+	rm -f $(DESTDIR)$(pkgpyexecdir)/_RNA.la
 
 # Because we don't install the .la file, "make uninstall" doesn't work and
 # we need to remove the file ourselves.
 uninstall-local:
-	eval `grep '^dlname=' $(pkgpy2exec_LTLIBRARIES)` ; \
-	rm -f $(DESTDIR)$(pkgpy2execdir)/"$$dlname"
+	eval `grep '^dlname=' $(pkgpyexec_LTLIBRARIES)` ; \
+	rm -f $(DESTDIR)$(pkgpyexecdir)/"$$dlname"
 
 ## remove all generated content
 maintainer-clean-local:

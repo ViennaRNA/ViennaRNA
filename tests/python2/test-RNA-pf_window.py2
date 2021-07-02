@@ -1,6 +1,6 @@
 import RNApath
 
-RNApath.addSwigInterfacePath(3)
+RNApath.addSwigInterfacePath(2)
 
 
 from operator import add
@@ -230,7 +230,7 @@ class pf_window_functionTest(unittest.TestCase):
 
         # check pairing probabilities
         for du in data:
-            dc = next(i for i in data2 if (i['i'] == du['i'] and i['j'] == du['j']))
+            dc = (i for i in data2 if (i['i'] == du['i'] and i['j'] == du['j'])).next()
             self.assertTrue(dc != None)
             self.assertEqual("%g" % du['p'], "%g" % dc['p'])
 
@@ -470,11 +470,11 @@ class pf_window_functionTest(unittest.TestCase):
             diff_int_var = sum(map(lambda x: (x - diff_int_avg)**2, diff_int)) / float(len(diff_int))
             diff_mb_var = sum(map(lambda x: (x - diff_mb_avg)**2, diff_mb)) / float(len(diff_mb))
 
-            print("\tTrial %d - Difference between pflfold unpaired probs and exhaustive enumeration" % trial)
-            print("\tExterior loop    (avg, var)\t%g\t%g" % (diff_ext_avg, diff_ext_var))
-            print("\tHairpin loop     (avg, var)\t%g\t%g" % (diff_hp_avg, diff_hp_var))
-            print("\tInterior loop    (avg, var)\t%g\t%g" % (diff_int_avg, diff_int_var))
-            print("\tMultibranch loop (avg, var)\t%g\t%g" % (diff_mb_avg, diff_mb_var))
+            print "\tTrial %d - Difference between pflfold unpaired probs and exhaustive enumeration" % trial
+            print "\tExterior loop    (avg, var)\t%g\t%g" % (diff_ext_avg, diff_ext_var)
+            print "\tHairpin loop     (avg, var)\t%g\t%g" % (diff_hp_avg, diff_hp_var)
+            print "\tInterior loop    (avg, var)\t%g\t%g" % (diff_int_avg, diff_int_var)
+            print "\tMultibranch loop (avg, var)\t%g\t%g" % (diff_mb_avg, diff_mb_var)
 
             self.assertTrue(diff_ext_avg < allowed_diff)
             self.assertTrue(diff_hp_avg < allowed_diff)

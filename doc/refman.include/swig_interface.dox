@@ -31,7 +31,7 @@ in the Perl 5 interface, and
 ```
 structure,mfe = RNA.fold(sequence)
 ```
-for Python 2/3. Note, that in this example we also make use of the possibilty to
+for Python. Note, that in this example we also make use of the possibilty to
 return multiple data at once in the scripting language, while the C library function
 uses additional parameters to return multiple data.
 

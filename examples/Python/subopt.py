@@ -10,9 +10,8 @@ subopt_data = { 'counter' : 1, 'sequence' : sequence }
 # Print a subopt result as FASTA record
 def print_subopt_result(structure, energy, data):
     if not structure == None:
-        print ">subopt %d" % data['counter']
-        print "%s" % data['sequence']
-        print "%s [%6.2f]" % (structure, energy)
+        print(">subopt {:d}".format(data['counter']))
+        print("{}\n{} [{:6.2f}]".format(data['sequence'], structure, energy))
         # increase structure counter
         data['counter'] = data['counter'] + 1
 

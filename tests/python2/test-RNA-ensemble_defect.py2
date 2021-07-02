@@ -1,6 +1,6 @@
 import RNApath
 
-RNApath.addSwigInterfacePath(3)
+RNApath.addSwigInterfacePath(2)
 
 
 import RNA

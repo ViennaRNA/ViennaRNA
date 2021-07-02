@@ -604,11 +604,11 @@
     /* compose argument list */
     PyObject *py_i, *py_j, *py_k, *py_l, *py_d;
 
-    py_i    = PyInt_FromLong(i);
-    py_j    = PyInt_FromLong(j);
-    py_k    = PyInt_FromLong(k);
-    py_l    = PyInt_FromLong(l);
-    py_d    = PyInt_FromLong(d);
+    py_i    = PyLong_FromLong(i);
+    py_j    = PyLong_FromLong(j);
+    py_k    = PyLong_FromLong(k);
+    py_l    = PyLong_FromLong(l);
+    py_d    = PyLong_FromLong(d);
     result  = PyObject_CallFunctionObjArgs(func,
                                            py_i,
                                            py_j,
@@ -642,8 +642,6 @@
       }
 
       PyErr_Clear();
-    } else if (PyInt_Check(result)) {
-      ret = (int)PyInt_AsLong(result);
     } else if (PyLong_Check(result)) {
       ret = (int)PyLong_AsLong(result);
     } else {
@@ -679,11 +677,11 @@
     /* compose argument list */
     PyObject *py_i, *py_j, *py_k, *py_l, *py_d;
 
-    py_i    = PyInt_FromLong(i);
-    py_j    = PyInt_FromLong(j);
-    py_k    = PyInt_FromLong(k);
-    py_l    = PyInt_FromLong(l);
-    py_d    = PyInt_FromLong(d);
+    py_i    = PyLong_FromLong(i);
+    py_j    = PyLong_FromLong(j);
+    py_k    = PyLong_FromLong(k);
+    py_l    = PyLong_FromLong(l);
+    py_d    = PyLong_FromLong(d);
     result  = PyObject_CallFunctionObjArgs(func,
                                            py_i,
                                            py_j,
@@ -739,10 +737,10 @@
         /* users may also specify base pairs as tuples of size 2 */
         else if (PyTuple_Check(bp)) {
           if ((PyTuple_Size(bp) == 2)
-              && PyInt_Check(PyTuple_GetItem(bp, 0))
-              && PyInt_Check(PyTuple_GetItem(bp, 1))) {
-            pairs[num_pairs].i  = (int)PyInt_AsLong(PyTuple_GetItem(bp, 0));
-            pairs[num_pairs].j  = (int)PyInt_AsLong(PyTuple_GetItem(bp, 1));
+              && PyLong_Check(PyTuple_GetItem(bp, 0))
+              && PyLong_Check(PyTuple_GetItem(bp, 1))) {
+            pairs[num_pairs].i  = (int)PyLong_AsLong(PyTuple_GetItem(bp, 0));
+            pairs[num_pairs].j  = (int)PyLong_AsLong(PyTuple_GetItem(bp, 1));
             num_pairs++;
           }
         }
@@ -753,9 +751,9 @@
           bp_i  = PyDict_GetItemString(bp, "i");
           bp_j  = PyDict_GetItemString(bp, "j");
           /* both dictionary keys must be present and the corresponding values have to be integer types */
-          if (bp_i && bp_j && PyInt_Check(bp_i) && PyInt_Check(bp_j)) {
-            pairs[num_pairs].i  = (int)PyInt_AsLong(bp_i);
-            pairs[num_pairs].j  = (int)PyInt_AsLong(bp_j);
+          if (bp_i && bp_j && PyLong_Check(bp_i) && PyLong_Check(bp_j)) {
+            pairs[num_pairs].i  = (int)PyLong_AsLong(bp_i);
+            pairs[num_pairs].j  = (int)PyLong_AsLong(bp_j);
             num_pairs++;
           }
         } else {
@@ -797,11 +795,11 @@
     /* compose argument list */
     PyObject *py_i, *py_j, *py_k, *py_l, *py_d;
 
-    py_i  = PyInt_FromLong(i);
-    py_j  = PyInt_FromLong(j);
-    py_k  = PyInt_FromLong(k);
-    py_l  = PyInt_FromLong(l);
-    py_d  = PyInt_FromLong(d);
+    py_i  = PyLong_FromLong(i);
+    py_j  = PyLong_FromLong(j);
+    py_k  = PyLong_FromLong(k);
+    py_l  = PyLong_FromLong(l);
+    py_d  = PyLong_FromLong(d);
 
     result = PyObject_CallFunctionObjArgs(func,
                                           py_i,

@@ -14,4 +14,4 @@ cons = RNA.consensus(sequences)
 (ss, mfe) = RNA.alifold(sequences);
 
 # print output
-print "%s\n%s [ %6.2f ]" % (cons, ss, mfe)
+print("{}\n{} [ {:6.2f} ]".format(cons, ss, mfe))

@@ -1,6 +1,6 @@
 import RNApath
 
-RNApath.addSwigInterfacePath(3)
+RNApath.addSwigInterfacePath(2)
 
 import RNA
 import unittest
@@ -25,7 +25,7 @@ class constraintsTest(unittest.TestCase):
         fc = RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG")
         fc.sc_add_hi_motif("GAAAAAU", "(.....)", -19)
         (ss, mfe) = fc.mfe()
-        print("%s [ %6.2f ]" % (ss, mfe))
+        print "%s [ %6.2f ]" % (ss, mfe)
 
 
     def test_theophylline_ligand_binding_interface(self):
@@ -33,7 +33,7 @@ class constraintsTest(unittest.TestCase):
         fc  = RNA.fold_compound("GGUGAUACCAGAUUUCGCGAAAAAUCCCUUGGCAGCACCUCGCACAUCUUGUUGUCUGAUUAUUGAUUUUUCGCGAAACCAUUUGAUCAUAUGACAAGAUUGAG")
         ret = fc.sc_add_hi_motif(motif_seq_theo, motif_str_theo, e_binding_theo)
         (ss, mfe) = fc.mfe()
-        print("%s [ %6.2f ]" % (ss, mfe))
+        print "%s [ %6.2f ]" % (ss, mfe)
         self.assertEqual(ret,1)
         self.assertEqual(ss, str_theo)
         self.assertAlmostEqual(mfe, e_theo, delta=1e-3)

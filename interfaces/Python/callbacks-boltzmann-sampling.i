@@ -24,17 +24,16 @@ static python_bs_callback_t *
 bind_bs_callback(PyObject *PyFunc,
                  PyObject *data)
 {
+
   python_bs_callback_t *cb = (python_bs_callback_t *)vrna_alloc(sizeof(python_bs_callback_t));
 
   Py_INCREF(PyFunc);
   Py_INCREF(data);
-
   cb->cb    = PyFunc;  /* store callback */
   cb->data  = data;    /* bind data */
 
   return cb;
 }
-
 
 static void
 release_bs_callback(python_bs_callback_t *cb)
@@ -43,7 +42,6 @@ release_bs_callback(python_bs_callback_t *cb)
   Py_DECREF(cb->data);
   free(cb); 
 }
-
 
 static void
 python_wrap_bs_cb(const char *structure,

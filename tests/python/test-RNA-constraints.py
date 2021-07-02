@@ -27,16 +27,15 @@ class constraintsTest(unittest.TestCase):
         #str_con=    "..........(((....)))"
 
         hc_file = datadir + "hc.txt"
-        print "test_constraints_add"
         fc = RNA.fold_compound(seq_con)
         fc.constraints_add(hc_file)
         (ss,mfe) = fc.mfe()
-        print ss, "[ %6.2f ]" % mfe
+        print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,str_con)
 
         fc.hc_init()
         (ss,mfe) = fc.mfe()
-        print ss, "[ %6.2f ]" % mfe
+        print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,str_con_def)
 
         #sc.txt = E 3 8 1 -5
@@ -44,7 +43,7 @@ class constraintsTest(unittest.TestCase):
         fc.sc_init()
         fc.constraints_add(sc_file)
         (ss,mfeNew) = fc.mfe()
-        print ss, "[ %6.2f ]" % mfeNew
+        print(ss, "[ %6.2f ]" % mfeNew)
         self.assertEqual("%6.2f" %mfe, "%6.2f" % (mfeNew +5))
 
 
@@ -53,11 +52,10 @@ class constraintsTest(unittest.TestCase):
         #seq_con  =      "CCCAAAAGGGCCCAAAAGGG"
         #str_con_def=    "(((....)))(((....)))"
         #str_con=    "..........(((....)))"
-        print "test_hc_add_up"
         fc = RNA.fold_compound(seq_con)
         fc.hc_add_up(1,RNA.CONSTRAINT_CONTEXT_ALL_LOOPS)
         (ss,mfe) = fc.mfe()
-        print ss, "[ %6.2f ]" % mfe
+        print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,".((....)).(((....)))")
 
 
@@ -68,7 +66,7 @@ class constraintsTest(unittest.TestCase):
         fc=RNA.fold_compound("GGGCCCCCCCCCCCCCCCCC")
         fc.hc_add_bp_nonspecific(20,-1); # force the last base to pair with some bases upstream
         (ss,mfe) = fc.mfe()
-        print ss, "[ %6.2f ]" % mfe
+        print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,"(((..............)))")
 
 
@@ -79,7 +77,7 @@ class constraintsTest(unittest.TestCase):
         fc=RNA.fold_compound(seq_con)
         fc.hc_add_bp(1,20,RNA.CONSTRAINT_CONTEXT_ENFORCE | RNA.CONSTRAINT_CONTEXT_ALL_LOOPS)
         (ss,mfe) = fc.mfe()
-        print ss, "[ %6.2f ]" % mfe
+        print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,"(((..............)))")
 
 
@@ -92,7 +90,7 @@ class constraintsTest(unittest.TestCase):
         fc = RNA.fold_compound(seq_con)
         fc.hc_add_from_db("xxx.................")
         (ss,mfe) = fc.mfe()
-        print ss, "[ %6.2f ]" % mfe
+        print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,str_con)
 
 

@@ -21,7 +21,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         """MFE prediction - single sequence"""
         fc= RNA.fold_compound(seq1)
         (ss,mfe) = fc.mfe()
-        print ss, "[ %6.2f ]" % mfe
+        print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,struct1)
 
 
@@ -29,7 +29,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         """MFE prediction - dimer"""
         fc=RNA.fold_compound(seq1Dimer)
         (ss,mfe) = fc.mfe_dimer()
-        print ss, "[ %6.2f ]" % mfe
+        print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,struct1Dimer)
 
 
@@ -38,7 +38,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc = RNA.fold_compound(seq1)
         energy= fc.eval_structure(struct1)
         self.assertEqual("%6.2f" % energy, "%6.2f" % -5.60)
-        print "\n", struct1, "[ %6.2f ]" % energy
+        print("\n", struct1, "[ %6.2f ]" % energy)
 
 
     def test_eval_structure_pt(self):
@@ -47,7 +47,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         energy= fc.eval_structure_pt(struct1_pt) /100.; #/100 for dcal
 
         self.assertEqual("%6.2f" % energy, "%6.2f" % -5.60)
-        print  struct1, "[ %6.2f ]" % energy
+        print( struct1, "[ %6.2f ]" % energy)
 
 
     # Testing with filehandler and with stdout
@@ -57,32 +57,32 @@ class mfe_eval_functionTest(unittest.TestCase):
         filename= "test-RNA-mfe_eval.py.out"
         try:
             with open(filename, 'w') as f:
-                print filename ," is opened for writing"
+                print(filename ," is opened for writing")
                 energy = fc.eval_structure_verbose(struct1, f)
                 energy2 = fc.eval_structure_verbose(struct1)
 
                 self.assertEqual("%6.2f" % energy, "%6.2f" % -5.60)
-                print  struct1, "[ %6.2f ]" % energy
+                print( struct1, "[ %6.2f ]" % energy)
         except IOError:
-            print "Could not open ", filename
+            print("Could not open ", filename)
 
 
     def test_eval_structure_pt_verbose(self):
         """Structure energy evaluation - pair table - verbose output"""
-        filename= "test-RNA-mfe_eval.py3.out"
+        filename= "test-RNA-mfe_eval.py.out"
         try:
             with open(filename, 'w') as f:
-                print filename, " is opened for writing"
+                print(filename, " is opened for writing")
                 fc=RNA.fold_compound(seq1)
 
                 energy = fc.eval_structure_pt_verbose(struct1_pt, f)/100.;  # / 100 for dcal
                 energy2 = fc.eval_structure_pt_verbose(struct1_pt)/100.;  # / 100 for dcal
 
                 self.assertEqual("%6.2f" % energy, "%6.2f" % -5.6)
-                print struct1, "[ %6.2f ]" % energy
+                print( struct1, "[ %6.2f ]" % energy)
 
         except IOError:
-            print "Could not open ", filename
+            print("Could not open ", filename)
 
 
     def test_eval_covar_structure(self):
@@ -95,7 +95,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
         fc = RNA.fold_compound(ali)
         pseudoEScore=fc.eval_covar_structure(covarStructure)
-        print covarStructure, "[ %6.2f ]" % pseudoEScore
+        print(covarStructure, "[ %6.2f ]" % pseudoEScore)
         self.assertTrue(pseudoEScore)
 
 
@@ -103,7 +103,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         """Loop energy evaluation"""
         fc= RNA.fold_compound(seq1)
         energy= fc.eval_loop_pt(6, struct1_pt) / 100.; #/100 for dcal
-        print "[ %6.2f ]" % energy
+        print("[ %6.2f ]" % energy)
         self.assertEqual("%6.2f" % energy,"%6.2f" % -3.3)
 
 
@@ -112,7 +112,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc = RNA.fold_compound(seq1)
         energy = fc.eval_move(struct1, -7, -11);  # remove basepair (7,11) ,  energy change should be 2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % 2.10)
-        print "\n", struct1, " moveset (-7,-11) --> [ %6.2f ]" % energy
+        print("\n", struct1, " moveset (-7,-11) --> [ %6.2f ]" % energy)
 
 
     def test_eval_move_ins(self):
@@ -120,7 +120,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc = RNA.fold_compound(seq1)
         energy = fc.eval_move(struct11, 7, 11);  # add basepair (7,11) ,  energy change should be -2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % -2.10)
-        print "\n", struct11, " moveset (7,11) --> [ %6.2f ]" % energy
+        print("\n", struct11, " moveset (7,11) --> [ %6.2f ]" % energy)
 
 
     def test_eval_move_pt_del(self):
@@ -128,7 +128,7 @@ class mfe_eval_functionTest(unittest.TestCase):
         fc = RNA.fold_compound(seq1)
         energy = fc.eval_move_pt(struct1_pt, -7, -11) / 100.;  # remove basepair (7,11) ,  energy change should be 2.10
         self.assertEqual("%6.2f" % energy, "%6.2f" % 2.10)
-        print "\n", struct1, " moveset (-7,-11) --> [ %6.2f ]" % energy
+        print("\n", struct1, " moveset (-7,-11) --> [ %6.2f ]" % energy)
 
 
 if __name__ == '__main__':

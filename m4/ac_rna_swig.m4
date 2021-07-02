@@ -18,8 +18,8 @@ AC_DEFUN([RNA_ENABLE_SWIG_INTERFACES],[
 
   AM_CONDITIONAL(HAS_SWIG, test "x$has_swig" != "xno")
   RNA_ENABLE_SWIG_PERL
+  RNA_ENABLE_SWIG_PYTHON2
   RNA_ENABLE_SWIG_PYTHON
-  RNA_ENABLE_SWIG_PYTHON3
 
 ])
 
@@ -90,10 +90,10 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
 
 AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
 
-  AX_REQUIRE_DEFINED([AX_PYTHON2_DEVEL])
+  AX_REQUIRE_DEFINED([AX_PYTHON3_DEVEL])
 
   RNA_ADD_PACKAGE([python],
-                  [Python interface],
+                  [Python 3.x interface],
                   [yes],[],[],
                   [${srcdir}/interfaces/Python/Makefile.am])
 
@@ -118,66 +118,66 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
 
   AS_IF([test "x$with_python" != "xno"],[
 
+    ## check for python3 config
+    AX_PYTHON3_DEVEL
+
+    if test "x$python3_enabled_but_failed" != "x"
+    then
+      with_python="no"
+    else
+      AC_DEFINE([WITH_PYTHON_INTERFACE], [1], [Create the Python 3.x interface to RNAlib])
+      AC_SUBST([PYTHON_INTERFACE], [Python])
+    fi
+
+    AC_CONFIG_FILES([interfaces/Python/Makefile interfaces/Python/version.i])
+  ])
+])
+
+AC_DEFUN([RNA_ENABLE_SWIG_PYTHON2],[
+
+  AX_REQUIRE_DEFINED([AX_PYTHON2_DEVEL])
+
+  RNA_ADD_PACKAGE([python2],
+                  [Python2 interface],
+                  [yes],[],[],
+                  [${srcdir}/interfaces/Python2/Makefile.am])
+
+
+  ## check for python2 requirements
+  AS_IF([test "x$with_python2" != "xno"],[
+    AS_IF([test "x$wants_swig" = "xno"],[
+      with_python2="no"
+    ],[
+      ## if swig is not available, check whether we already have swig generated sources
+      if test "x$has_swig" != "xyes"
+      then
+        AC_RNA_TEST_FILE([${srcdir}/interfaces/Python2/RNA_wrap.cpp],[],[
+          with_python2="no"
+        ])
+        AC_RNA_TEST_FILE([${srcdir}/interfaces/Python2/RNA.py],[],[
+          with_python2="no"
+        ])
+      fi
+    ])
+  ])
+
+  AS_IF([test "x$with_python2" != "xno"],[
+
     ## check for python2 config
     AX_PYTHON2_DEVEL
 
     if test "x$python2_enabled_but_failed" != "x"
     then
-      with_python="no"
+      with_python2="no"
     else
       AC_SUBST(PYTHON2DIR,$python2dir)
       AC_SUBST(PKGPYTHON2DIR,$pkgpython2dir)
       AC_SUBST(PYEXEC2DIR,$py2execdir)
       AC_SUBST(PKGPYEXEC2DIR,$pkgpy2execdir)
 
-      AC_DEFINE([WITH_PYTHON2_INTERFACE], [1], [Create the python2 interface to RNAlib])
-      AC_SUBST([PYTHON2_INTERFACE], [Python])
-      AC_CONFIG_FILES([interfaces/Python/Makefile interfaces/Python/version.i])
+      AC_DEFINE([WITH_PYTHON2_INTERFACE], [1], [Create the Python 2.x interface to RNAlib])
+      AC_SUBST([PYTHON2_INTERFACE], [Python2])
+      AC_CONFIG_FILES([interfaces/Python2/Makefile interfaces/Python2/version.i])
     fi
-  ])
-])
-
-AC_DEFUN([RNA_ENABLE_SWIG_PYTHON3],[
-
-  AX_REQUIRE_DEFINED([AX_PYTHON3_DEVEL])
-
-  RNA_ADD_PACKAGE([python3],
-                  [Python3 interface],
-                  [yes],[],[],
-                  [${srcdir}/interfaces/Python3/Makefile.am])
-
-
-  ## check for python requirements
-  AS_IF([test "x$with_python3" != "xno"],[
-    AS_IF([test "x$wants_swig" = "xno"],[
-      with_python3="no"
-    ],[
-      ## if swig is not available, check whether we already have swig generated sources
-      if test "x$has_swig" != "xyes"
-      then
-        AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA_wrap.cpp],[],[
-          with_python3="no"
-        ])
-        AC_RNA_TEST_FILE([${srcdir}/interfaces/Python3/RNA.py],[],[
-          with_python3="no"
-        ])
-      fi
-    ])
-  ])
-
-  AS_IF([test "x$with_python3" != "xno"],[
-
-    ## check for python3 config
-    AX_PYTHON3_DEVEL
-
-    if test "x$python3_enabled_but_failed" != "x"
-    then
-      with_python3="no"
-    else
-      AC_DEFINE([WITH_PYTHON3_INTERFACE], [1], [Create the Python3 interface to RNAlib])
-      AC_SUBST([PYTHON3_INTERFACE], [Python3])
-    fi
-
-    AC_CONFIG_FILES([interfaces/Python3/Makefile interfaces/Python3/version.i])
   ])
 ])

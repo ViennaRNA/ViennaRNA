@@ -18,7 +18,6 @@ static void
 py_wrap_fc_status_callback(unsigned char status,
                            void          *data);
 
-
 static void
 delete_pydata(pycallback_t *cb)
 {
@@ -74,6 +73,7 @@ static void
 fc_add_pycallback(vrna_fold_compound_t *vc,
                   PyObject             *PyFunc)
 {
+
   /* try to dispose of previous callback */
   pycallback_t * cb;
   if(vc->auxdata){
@@ -82,7 +82,6 @@ fc_add_pycallback(vrna_fold_compound_t *vc,
     Py_XDECREF(cb->cb);
   } else {
     cb = (pycallback_t *)vrna_alloc(sizeof(pycallback_t));
-
     Py_INCREF(Py_None);
     cb->data = Py_None;
 
@@ -105,6 +104,7 @@ fc_add_pydata(vrna_fold_compound_t *vc,
               PyObject             *data,
               PyObject             *PyFunc)
 {
+
   pycallback_t * cb;
   /* try to dispose of previous data */
   if(vc->auxdata){
@@ -124,7 +124,6 @@ fc_add_pydata(vrna_fold_compound_t *vc,
   Py_INCREF(PyFunc);
 
   vc->auxdata = (void *)cb;
-
   if(!vc->free_auxdata)
     vc->free_auxdata = &delete_pycallback;
 }
@@ -133,6 +132,7 @@ static void
 py_wrap_fc_status_callback( unsigned char status,
                             void          *data)
 {
+
   PyObject *func, *arglist, *result, *err;
   pycallback_t *cb = (pycallback_t *)data;
 

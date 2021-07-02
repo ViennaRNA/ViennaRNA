@@ -155,20 +155,20 @@ AS_IF([test $with_perl = "yes"],[
   _perl_install="Not to be installed"
 ])
 AS_IF([test $with_python = "yes"],[
+  eval _python_arch_dir=$(eval printf "%s" ${py3execdir})
+  eval _python_lib_dir=$(eval printf "%s" ${python3dir})
+  ],[
+    _python_arch_dir=""
+    _python_lib_dir=""
+    _python_install="Not to be installed $python3_enabled_but_failed"
+])
+AS_IF([test $with_python2 = "yes"],[
   eval _python2_arch_dir=$(eval printf "%s" ${py2execdir})
   eval _python2_lib_dir=$(eval printf "%s" ${python2dir})
   ],[
     _python2_arch_dir=""
     _python2_lib_dir=""
     _python2_install="Not to be installed $python2_enabled_but_failed"
-])
-AS_IF([test $with_python3 = "yes"],[
-  eval _python3_arch_dir=$(eval printf "%s" ${py3execdir})
-  eval _python3_lib_dir=$(eval printf "%s" ${python3dir})
-  ],[
-    _python3_arch_dir=""
-    _python3_lib_dir=""
-    _python3_install="Not to be installed $python3_enabled_but_failed"
 ])
 AS_IF([test "x$enable_universal_binary" != "xno"],[
   _osx_arch=$osx_arch
@@ -218,7 +218,7 @@ m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
             [json],
             [perl],
             [python],
-            [python3],
+            [python2],
             [doc_pdf],
             [doc_html],
             [tutorial_pdf],
@@ -241,7 +241,7 @@ m4_map_args([ AC_RNA_COLOR_RESULT_FEATURE],
             [unittests],
             [check_perl],
             [check_python],
-            [check_python3],
+            [check_python2],
             [macosx_installer],
             [macosx_sdk])
 
@@ -261,9 +261,9 @@ m4_map_args([ AC_RNA_COLOR_RESULT_SIMPLE],
             [_python2_install],
             [_python2_arch_dir],
             [_python2_lib_dir],
-            [_python3_install],
-            [_python3_arch_dir],
-            [_python3_lib_dir])
+            [_python_install],
+            [_python_arch_dir],
+            [_python_lib_dir])
 
 # Notify the user
 
@@ -313,8 +313,8 @@ Optimizations
 Scripting Language Interfaces
 -----------------------------
   * Perl 5                    : ${result_perl}
-  * Python 2                  : ${result_python}
-  * Python 3                  : ${result_python3}
+  * Python 3.x                : ${result_python}
+  * Python 2.x                : ${result_python2}
 
 Documentation
 -------------
@@ -328,8 +328,8 @@ Unit Tests
   * Executable Programs       : ${result_unittests}
   * C-Library                 : ${result_check}
   * Perl 5 Interface          : ${result_check_perl}
-  * Python 2 Interface        : ${result_check_python}
-  * Python 3 Interface        : ${result_check_python3}
+  * Python 3.x Interface      : ${result_check_python}
+  * Python 2.x Interface      : ${result_check_python2}
 
 MacOS X
 -------
@@ -350,12 +350,12 @@ Install Directories
   * Perl5 Interface           : $result__perl_install
       (binaries)              : $result__perl_arch_dir
       (scripts)               : $result__perl_lib_dir
-  * Python2 Interface         : $result__python2_install
+  * Python 3.x Interface      : $result__python_install
+      (binaries)              : $result__python_arch_dir
+      (scripts)               : $result__python_lib_dir
+  * Python 2.x Interface      : $result__python2_install
       (binaries)              : $result__python2_arch_dir
       (scripts)               : $result__python2_lib_dir
-  * Python3 Interface         : $result__python3_install
-      (binaries)              : $result__python3_arch_dir
-      (scripts)               : $result__python3_lib_dir
 $ac_rna_warning
 $ac_rna_final_msg])
 ])

@@ -1,17 +1,12 @@
 import RNApath
 
-RNApath.addSwigInterfacePath(3)
+RNApath.addSwigInterfacePath(2)
 
 
 import RNA
 import unittest
 from py_include import taprunner
 from struct import *
-import locale
-
-locale.setlocale(locale.LC_ALL, 'C')
-
-
 seq1      = "CGCAGGGAUACCCGCG"
 struct1   = "(((.(((...))))))"
 
@@ -26,7 +21,6 @@ align     = [seq1,seq2,seq3]
 
 class GeneralTests(unittest.TestCase):
     """Some general tests"""
-
     def test_version(self):
         """Version number"""
         self.assertEqual(RNA.__version__, RNApath.VERSION_NUMBER)
@@ -102,6 +96,17 @@ class GeneralTests(unittest.TestCase):
         self.assertTrue(f < mfe)
         self.assertTrue(mfe-f < 0.8)
 
+
+        print "test_check_access_C_array"
+        ret = RNA.intP_getitem(RNA.cvar.iindx,3)
+        self.assertEqual(ret,108)
+        RNA.ushortP_setitem(RNA.cvar.xsubi, 0, 171)
+        RNA.ushortP_setitem(RNA.cvar.xsubi, 1, 42)
+        RNA.ushortP_setitem(RNA.cvar.xsubi, 2, 93)
+        self.assertEqual(RNA.cdata(RNA.cvar.xsubi, 6),pack('HHH',171,42,93))
+
+        print "test_bp_prop"
+
         p1 = RNA.get_pr(2,15)
         ii = RNA.intP_getitem(RNA.cvar.iindx, 2)
 
@@ -128,7 +133,7 @@ class GeneralTests(unittest.TestCase):
         RNA.PS_rna_plot_a(seq1, struct1, "test_ss_a.ps", None, anote)
         RNA.PS_dot_plot(seq1, "test_dp.ps")
         RNA.ssv_rna_plot(seq1, struct, "test.coord")
-        print("please check the two postscript files test_ss.ps and test_dp.ps")
+        print "please check the two postscript files test_ss.ps and test_dp.ps"
         RNA.write_parameter_file("test.par")
 
 
@@ -171,7 +176,7 @@ class GeneralTests(unittest.TestCase):
         struct1_move = "(..............)"
         #move_standard( sequence, start structure, move_type(GRADIENT, FIRST, ADAPTIVE), verbosity, shifts, noLP)
         (s,energy) = RNA.move_standard(seq1, struct1_move, 0, 1, 0, 0)
-        print("energy = ",energy," s = ", s);
+        print "energy = ", energy, " s = ", s;
         self.assertEqual(s, "................")
 
     def test_moveSets2(self):
@@ -186,7 +191,7 @@ class GeneralTests(unittest.TestCase):
         coords = RNA.simple_xy_coordinates(struct1)
 
         for c in (coords):
-            print(c.X, ",", c.Y)
+            print c.X, ",", c.Y
 
 
     def test_model_details_defaults(self):
@@ -256,7 +261,7 @@ class FoldCompoundTest(unittest.TestCase):
         fc=RNA.fold_compound(align)
         fc.pf()
         (sc,dist) = fc.centroid()
-        print(sc, "\tDistance of :  %6.2f" % dist)
+        print sc, "\tDistance of :  %6.2f" % dist
         self.assertTrue(sc and dist)
 
 
@@ -265,10 +270,10 @@ class FoldCompoundTest(unittest.TestCase):
         """fold_compound method - Partition function, mean base pair distance"""
         fc= RNA.fold_compound(seq1)
         (ss,gfe) = fc.pf()
-        print(ss, "[ %6.2f ]" % gfe)
+        print "%s [ %6.2f ]" % (ss, gfe)
         self.assertTrue(ss)
         bp_dis = fc.mean_bp_distance()
-        print(seq1, "\t meanBPDistance : ", bp_dis)
+        print seq1, "\t meanBPDistance : ", bp_dis
         self.assertTrue(bp_dis)
 
 

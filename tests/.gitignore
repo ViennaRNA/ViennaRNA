@@ -7,14 +7,15 @@
 *.trs
 
 # ignore executables
-fold
-utils
-energy_evaluation
 constraints
-eval_structure
-walk
-neighbor
 constraints_soft
+energy_evaluation
+ensemble_defect
+eval_structure
+fold
+neighbor
+utils
+walk
 
 # ignore perl5 unit test output
 test_ss.ps
@@ -27,7 +28,8 @@ perl5/test-RNA-Design.t
 RNAHelpers.pm
 RNApath.py
 RNApath.pyc
+*.pyc
 __pycache__
 test-RNA-mfe_eval.pl.out
 test-RNA-mfe_eval.py.out
-test-RNA-mfe_eval.py3.out
+test-RNA-mfe_eval.py2.out

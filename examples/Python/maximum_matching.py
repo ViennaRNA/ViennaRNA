@@ -40,5 +40,5 @@ fc.sc_add_data(mm_data, None)
 (s, mm) = fc.mfe()
 
 # print result
-print "%s\n%s (MM: %d)\n" %  (seq1, s, -mm)
+print("{}\n{} (MM: {:d})".format(seq1, s, int(-mm)))
 

@@ -2,9 +2,9 @@ import sys
 
 VERSION_NUMBER = "@VERSION@"
 
-def addSwigInterfacePath(version=2):
-    if version == 3:
-        sys.path.insert(0, '@top_builddir@/interfaces/Python3')
+def addSwigInterfacePath(version=3):
+    if version == 2:
+        sys.path.insert(0, '@top_builddir@/interfaces/Python2')
     else:
         sys.path.insert(0, '@top_builddir@/interfaces/Python')
 

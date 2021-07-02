@@ -36,8 +36,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(len(s), 50)
 
     def test_pbacktrack5_multi(self):
-        """Boltzmann sampling (multiple sub-structures, a.k.a. pbacktrack5_num)
-        """
+        """Boltzmann sampling (multiple sub-structures, a.k.a. pbacktrack5_num)"""
         fc = prepare_fc()
 
         ss  = fc.pbacktrack5(20, 10)

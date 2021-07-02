@@ -21,7 +21,7 @@ LDADD += $(SVM_LIBS)
 endif
 
 SUFFIXES = .c .ts
-TEST_EXTENSIONS = .pl .t .py .py3
+TEST_EXTENSIONS = .pl .t .py .py2
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
                   $(top_srcdir)/config/tap-driver.sh
 
@@ -103,15 +103,47 @@ endif
 ######################################  
 ## unit tests for Python2 interface ##
 ######################################
-if WITH_PYTHON_TESTS
+if WITH_PYTHON2_TESTS
 
-PY_LOG_COMPILER = $(PYTHON2)
-AM_PY_LOG_FLAGS =
-PY_LOG_DRIVER   = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+PY2_LOG_COMPILER = $(PYTHON2)
+AM_PY2_LOG_FLAGS =
+PY2_LOG_DRIVER   = env AM_TAP_AWK='$(AWK)' $(SHELL) \
                   $(top_srcdir)/config/tap-driver.sh
 
 # add test scripts here
-PYTHON2_TESTS = python/test-RNA-combinatorics.py \
+PYTHON2_TESTS = python2/test-RNA-combinatorics.py2 \
+                python2/test-RNA-constraints.py2 \
+                python2/test-RNA-constraints-soft.py2 \
+                python2/test-RNA-constraints-SHAPE.py2 \
+                python2/test-RNA-constraints-special.py2 \
+                python2/test-RNA-ensemble_defect.py2 \
+                python2/test-RNA-file-formats.py2 \
+                python2/test-RNA-mfe_eval.py2 \
+                python2/test-RNA-mfe_window.py2 \
+                python2/test-RNA-pf_window.py2 \
+                python2/test-RNA-sc-callbacks.py2 \
+                python2/test-RNA-subopt.py2 \
+                python2/test-RNA-boltzmann-sampling.py2 \
+                python2/test-RNA-utils.py2 \
+                python2/test-RNA.py2
+
+# add test script output files here
+PYTHON2_TEST_OUTPUT = test-RNA-mfe_eval.py2.out
+
+endif
+
+######################################
+## unit tests for Python3 interface ##
+######################################
+if WITH_PYTHON_TESTS
+
+PY_LOG_COMPILER  = $(PYTHON3)
+AM_PY_LOG_FLAGS  =
+PY_LOG_DRIVER    = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+                   $(top_srcdir)/config/tap-driver.sh
+
+# add test scripts here
+PYTHON3_TESTS = python/test-RNA-combinatorics.py \
                 python/test-RNA-constraints.py \
                 python/test-RNA-constraints-soft.py \
                 python/test-RNA-constraints-SHAPE.py \
@@ -128,39 +160,7 @@ PYTHON2_TESTS = python/test-RNA-combinatorics.py \
                 python/test-RNA.py
 
 # add test script output files here
-PYTHON2_TEST_OUTPUT = test-RNA-mfe_eval.py.out
-
-endif
-
-######################################
-## unit tests for Python3 interface ##
-######################################
-if WITH_PYTHON3_TESTS
-
-PY3_LOG_COMPILER  = $(PYTHON3)
-AM_PY3_LOG_FLAGS  =
-PY3_LOG_DRIVER    = env AM_TAP_AWK='$(AWK)' $(SHELL) \
-                    $(top_srcdir)/config/tap-driver.sh
-
-# add test scripts here
-PYTHON3_TESTS = python3/test-RNA-combinatorics.py3 \
-                python3/test-RNA-constraints.py3 \
-                python3/test-RNA-constraints-soft.py3 \
-                python3/test-RNA-constraints-SHAPE.py3 \
-                python3/test-RNA-constraints-special.py3 \
-                python3/test-RNA-ensemble_defect.py3 \
-                python3/test-RNA-file-formats.py3 \
-                python3/test-RNA-mfe_eval.py3 \
-                python3/test-RNA-mfe_window.py3 \
-                python3/test-RNA-pf_window.py3 \
-                python3/test-RNA-sc-callbacks.py3 \
-                python3/test-RNA-subopt.py3 \
-                python3/test-RNA-boltzmann-sampling.py3 \
-                python3/test-RNA-utils.py3 \
-                python3/test-RNA.py3
-
-# add test script output files here
-PYTHON3_TEST_OUTPUT = test-RNA-mfe_eval.py3.out
+PYTHON3_TEST_OUTPUT = test-RNA-mfe_eval.py.out
 
 endif
 

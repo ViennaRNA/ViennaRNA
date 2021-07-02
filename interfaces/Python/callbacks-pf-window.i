@@ -101,10 +101,10 @@ python_wrap_pf_window_cb(FLT_OR_DBL   *pr,
 
   /* compose argument list */
   PyObject *py_size, *py_i, *py_max, *py_type;
-  py_size = PyInt_FromLong(pr_size);
-  py_i    = PyInt_FromLong(i);
-  py_max  = PyInt_FromLong(max);
-  py_type = PyInt_FromLong(type);
+  py_size = PyLong_FromLong(pr_size);
+  py_i    = PyLong_FromLong(i);
+  py_max  = PyLong_FromLong(max);
+  py_type = PyLong_FromLong(type);
   result  = PyObject_CallFunctionObjArgs(func,
                                          pr_list,
                                          py_size,
