@@ -254,8 +254,13 @@ EXTRA_DIST =  data \
               ${PYTHON3_TESTS}
 
 clean-local:
-	-rm -rf ${PERL_TEST_OUTPUT} \
-                $(PYTHON2_TEST_OUTPUT) \
-                $(PYTHON3_TEST_OUTPUT) \
-                *.pyc \
-                __pycache__
+	-rm -rf \
+    ${PERL_TEST_OUTPUT} \
+    $(PYTHON2_TEST_OUTPUT) \
+    $(PYTHON3_TEST_OUTPUT) \
+    *.pyc \
+    __pycache__ \
+    py_include/*.pyc \
+    py_include/__pycache__ \
+    py_include/taprunner/*.pyc \
+    py_include/taprunner/__pycache__
