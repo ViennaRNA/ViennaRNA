@@ -1296,6 +1296,8 @@ init_mx_mfe_default(vrna_fold_compound_t  *fc,
     .type = VRNA_MX_DEFAULT
   };
 
+  n = fc->length;
+
   if ((int)(n * n) >= (int)INT_MAX) {
     vrna_message_warning("init_mx_mfe_default(): "
                          "sequence length %d exceeds addressable range",
@@ -1309,7 +1311,6 @@ init_mx_mfe_default(vrna_fold_compound_t  *fc,
     memcpy(mx, &init, sizeof(vrna_mx_mfe_t));
     nullify_mfe(mx);
 
-    n           = fc->length;
     strands     = fc->strands;
     size        = ((n + 1) * (n + 2)) / 2;
     lin_size    = n + 2;
@@ -1359,6 +1360,7 @@ init_mx_mfe_window(vrna_fold_compound_t *fc,
     .type = VRNA_MX_WINDOW
   };
 
+  n = fc->length;
   m = fc->window_size;
 
   if ((int)(n * m) >= (int)INT_MAX) {
@@ -1374,7 +1376,6 @@ init_mx_mfe_window(vrna_fold_compound_t *fc,
     memcpy(mx, &init, sizeof(vrna_mx_mfe_t));
     nullify_mfe(mx);
 
-    n           = fc->length;
     lin_size    = n + 2;
     mx->length  = n;
     mx->strands = fc->strands;
@@ -1403,6 +1404,8 @@ init_mx_mfe_2Dfold(vrna_fold_compound_t *fc,
     .type = VRNA_MX_2DFOLD
   };
 
+  n = fc->length;
+
   if ((int)(n * n) >= (int)INT_MAX) {
     vrna_message_warning("init_mx_mfe_2Dfold(): "
                          "sequence length %d exceeds addressable range",
@@ -1416,7 +1419,6 @@ init_mx_mfe_2Dfold(vrna_fold_compound_t *fc,
     memcpy(mx, &init, sizeof(vrna_mx_mfe_t));
     nullify_mfe(mx);
 
-    n           = fc->length;
     size        = ((n + 1) * (n + 2)) / 2;
     lin_size    = n + 2;
     mx->length  = n;
@@ -1625,6 +1627,8 @@ init_mx_pf_default(vrna_fold_compound_t *fc,
     .type = VRNA_MX_DEFAULT
   };
 
+  n = fc->length;
+
   if ((int)(n * n) >= (int)INT_MAX) {
     vrna_message_warning("init_mx_pf_default(): "
                          "sequence length %d exceeds addressable range",
@@ -1638,7 +1642,6 @@ init_mx_pf_default(vrna_fold_compound_t *fc,
     memcpy(mx, &init, sizeof(vrna_mx_pf_t));
     nullify_pf(mx);
 
-    n           = fc->length;
     size        = ((n + 1) * (n + 2)) / 2;
     lin_size    = n + 2;
     mx->length  = n;
@@ -1688,6 +1691,7 @@ init_mx_pf_window(vrna_fold_compound_t  *fc,
     .type = VRNA_MX_WINDOW
   };
 
+  n = fc->length;
   m = fc->window_size;
 
   if ((int)(n * m) >= (int)INT_MAX) {
@@ -1703,7 +1707,6 @@ init_mx_pf_window(vrna_fold_compound_t  *fc,
     memcpy(mx, &init, sizeof(vrna_mx_pf_t));
     nullify_pf(mx);
 
-    n           = fc->length;
     lin_size    = n + 2;
     mx->length  = n;
 
@@ -1747,6 +1750,8 @@ init_mx_pf_2Dfold(vrna_fold_compound_t  *fc,
     .type = VRNA_MX_2DFOLD
   };
 
+  n = fc->length;
+
   if ((int)(n * n) >= (int)INT_MAX) {
     vrna_message_warning("init_mx_pf_2Dfold(): "
                          "sequence length %d exceeds addressable range",
@@ -1760,7 +1765,6 @@ init_mx_pf_2Dfold(vrna_fold_compound_t  *fc,
     memcpy(mx, &init, sizeof(vrna_mx_pf_t));
     nullify_pf(mx);
 
-    n           = fc->length;
     size        = ((n + 1) * (n + 2)) / 2;
     lin_size    = n + 2;
     mx->length  = n;
