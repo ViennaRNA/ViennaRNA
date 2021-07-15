@@ -220,6 +220,7 @@ vrna_tree_string_to_db(const char *structure)
 
 tree_string_to_db_exit:
 
+    vrna_cstr_discard(tmp_struct);
     vrna_cstr_free(tmp_struct);
     free(match_paren);
   }
@@ -346,6 +347,7 @@ db2HIT(const char *structure)
 
     HIT = strdup(vrna_cstr_string(tmp_struct));
 
+    vrna_cstr_discard(tmp_struct);
     vrna_cstr_free(tmp_struct);
     free(annot_struct);
   }
@@ -470,6 +472,7 @@ db2Shapiro(const char *structure,
                                 vrna_cstr_string(tmp_struct));
     }
 
+    vrna_cstr_discard(tmp_struct);
     vrna_cstr_free(tmp_struct);
     free(loop_degree);
     free(loop_size);
@@ -505,6 +508,7 @@ db2ExpandedTree(const char *structure)
   tree = vrna_strdup_printf("(%sR)",
                             vrna_cstr_string(tmp_struct));
 
+  vrna_cstr_discard(tmp_struct);
   vrna_cstr_free(tmp_struct);
 
   return tree;
