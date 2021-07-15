@@ -22,7 +22,7 @@ typedef struct vrna_cstr_s *vrna_cstr_t;
 /**
  *  @brief  Create a dynamic char * stream data structure
  *
- *  @see  vrna_cstr_free(), vrna_cstr_close(), vrna_cstr_fflush(), vrna_cstr_printf()
+ *  @see  vrna_cstr_free(), vrna_cstr_close(), vrna_cstr_fflush(), vrna_cstr_discard(), vrna_cstr_printf()
  *
  *  @param  size    The initial size of the buffer in characters
  *  @param  output  An optional output file stream handle that is used to write the collected data to (defaults to @em stdout if @em NULL)
@@ -30,6 +30,17 @@ typedef struct vrna_cstr_s *vrna_cstr_t;
 vrna_cstr_t
 vrna_cstr(size_t  size,
           FILE    *output);
+
+
+/**
+ *  @brief  Discard the current content of the dynamic char * stream data structure
+ *
+ *  @see  vrna_cstr_free(), vrna_cstr_close(), vrna_cstr_fflush(), vrna_cstr_printf()
+ *
+ *  @param  buf   The dynamic char * stream data structure to free
+ */
+void
+vrna_cstr_discard(struct vrna_cstr_s *buf);
 
 
 /**

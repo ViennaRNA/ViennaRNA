@@ -77,6 +77,17 @@ vrna_cstr_free(struct vrna_cstr_s *buf)
 
 
 void
+vrna_cstr_discard(struct vrna_cstr_s *buf)
+{
+  if (buf) {
+    buf->size       = CSTR_OVERHEAD;
+    buf->string     = (char *)vrna_realloc(buf->string, sizeof(char) * buf->size);
+    buf->string[0]  = '\0';
+  }
+}
+
+
+void
 vrna_cstr_close(struct vrna_cstr_s *buf)
 {
   if (buf) {
@@ -106,7 +117,9 @@ void
 vrna_cstr_fflush(struct vrna_cstr_s *buf)
 {
   if (buf) {
-    if (buf->output) {
+    if ((buf->output) &&
+        (buf->string) &&
+        (buf->string[0] != '\0')) {
       fprintf(buf->output, "%s", buf->string);
       (void)fflush(buf->output);
     }
