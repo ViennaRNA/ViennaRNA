@@ -411,7 +411,7 @@ vrna_ensemble_defect_pt(vrna_fold_compound_t  *fc,
     int         *idx    = fc->iindx;
     ed = 0.;
 
-    for (i = 1; i < n; i++) {
+    for (i = 1; i <= n; i++) {
       ii = idx[i];
       double pi;
 
