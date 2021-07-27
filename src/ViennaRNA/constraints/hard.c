@@ -919,9 +919,10 @@ prepare_hc_up(vrna_fold_compound_t *fc,
                 hc->mx[n * i + j]       &= t2;
                 hc->mx[n * j + i]       &= t2;
               }
-              /* nucleotide mustn't be unpaired */
-              hc->mx[n * i + i]       = VRNA_CONSTRAINT_CONTEXT_NONE;
             }
+            /* nucleotide mustn't be unpaired */
+            if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE)
+              hc->mx[n * i + i] = VRNA_CONSTRAINT_CONTEXT_NONE;
           } else {
             /* 'regular' nucleotide-specific constraint */
             if (option & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
@@ -1620,6 +1621,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                                                size_bp_unspecific);
           }
 
+#if 0
           if (!(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)) {
             /* (re-)allow this nucleotide to stay unpaired for nostalgic reasons */
             up[num_up].position = j;
@@ -1633,6 +1635,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
               up      = (vrna_hc_up_t *)vrna_realloc(up, sizeof(vrna_hc_up_t) * size_up);
             }
           }
+#endif
         }
 
         break;
@@ -1653,6 +1656,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                                                size_bp_unspecific);
           }
 
+#if 0
           if (!(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)) {
             /* (re-)allow this nucleotide to stay unpaired for nostalgic reasons */
             up[num_up].position = j;
@@ -1666,6 +1670,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
               up      = (vrna_hc_up_t *)vrna_realloc(up, sizeof(vrna_hc_up_t) * size_up);
             }
           }
+#endif
         }
 
         break;
