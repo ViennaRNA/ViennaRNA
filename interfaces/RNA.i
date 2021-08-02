@@ -147,6 +147,7 @@ namespace std {
   %template(DoubleDoubleVector) std::vector< std::vector<double> > ;
   %template(IntIntVector) std::vector<std::vector<int> > ;
   %template(ElemProbVector) vector<vrna_ep_t>;
+  %template(HelixVector) vector<vrna_hx_t>;
   %template(PathVector) std::vector<vrna_path_t>;
   %template(MoveVector) std::vector<vrna_move_t>;
 };

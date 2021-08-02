@@ -26,8 +26,8 @@
 %ignore assign_plist_from_db;
 %ignore assign_plist_from_pr;
 
-%ignore vrna_hx_t;
-%ignore vrna_hx_s;
+//%ignore vrna_hx_t;
+//%ignore vrna_hx_s;
 %ignore vrna_ptable_from_string;
 %ignore vrna_db_flatten;
 %ignore vrna_db_flatten_to;
@@ -516,6 +516,106 @@ std::string tree_string_to_db(std::string structure);
 #endif
 
 std::vector<int> my_loopidx_from_ptable(std::vector<int> pt);
+
+
+
+%nodefaultctor vrna_hx_t;
+
+%rename (hx) vrna_hx_t;
+
+%newobject vrna_hx_t::__str__;
+
+typedef struct {
+  unsigned int  start;
+  unsigned int  end;
+  unsigned int  length;
+  unsigned int  up5;
+  unsigned int  up3;
+} vrna_hx_t;
+
+
+%extend vrna_hx_t {
+
+    vrna_hx_t(unsigned int  start,
+              unsigned int  end,
+              unsigned int  length,
+              unsigned int  up5 = 0,
+              unsigned int  up3 = 0)
+    {
+      vrna_hx_t *helix;
+
+      helix         = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t));
+      helix->start  = start;
+      helix->end    = end;
+      helix->length = length;
+      helix->up5    = up5;
+      helix->up3    = up3;
+
+      return helix;
+    }
+
+#ifdef SWIGPYTHON
+    std::string
+    __str__()
+    {
+      std::ostringstream out;
+      out << "{ start: " << $self->start;
+      out << ", end: " << $self->end;
+      out << ", length: " << $self->length;
+      out << ", up5: " << $self->up5;
+      out << ", up3: " << $self->up3;
+      out << " }";
+
+      return std::string(out.str());
+    }
+
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
+#endif
+}
+
+%rename (hx_from_ptable) my_hx_from_ptable;
+
+%{
+#include <vector>
+  std::vector<vrna_hx_t>
+  my_hx_from_ptable(std::vector<int> pt)
+  {
+    std::vector<vrna_hx_t>  hx_v;
+    std::vector<short>      v_pt;
+    vrna_hx_t               *ptr, *hxlist;
+
+    transform(pt.begin(), pt.end(), back_inserter(v_pt), convert_vecint2vecshort);
+
+    hxlist = vrna_hx_from_ptable((short *)&v_pt[0]);
+
+    for (ptr = hxlist; ptr->start && ptr->end; ptr++) {
+      vrna_hx_t hx;
+      hx.start  = ptr->start;
+      hx.end    = ptr->end;
+      hx.length = ptr->length;
+      hx.up5    = ptr->up5;
+      hx.up3    = ptr->up3;
+      hx_v.push_back(hx);
+    }
+
+    free(hxlist);
+
+    return hx_v;
+  }
+%}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_hx_from_ptable;
+%feature("kwargs") my_hx_from_ptable;
+#endif
+
+std::vector<vrna_hx_t> my_hx_from_ptable(std::vector<int> pt);
 
 /************************************/
 /*  Distance measures               */
