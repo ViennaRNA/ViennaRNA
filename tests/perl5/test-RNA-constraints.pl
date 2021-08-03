@@ -40,17 +40,16 @@ sub mfe_window_callback {
 ##################################
 
 my $hc_file = $datadir . "hc.txt";
-print "test_constraints_add";
 $fc = new RNA::fold_compound($seq_con);
 $fc->constraints_add($hc_file);
 ($ss,$mfe) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfe);
-is($ss,$str_con);
+#printf("%s [%6.2f] \n",$ss,$mfe);
+is($ss,$str_con, "Fold compound method - constraints_add - hard constraints");
 
 $fc->hc_init();
 ($ss,$mfe) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfe);
-is($ss,$str_con_def);
+#printf("%s [%6.2f] \n",$ss,$mfe);
+is($ss,$str_con_def, "Fold compound method - hc_init");
 
 ##################################
 #sc.txt = E 3 8 1 -5
@@ -59,58 +58,48 @@ my $sc_file = $datadir . "sc.txt";
 $fc->sc_init();
 $fc->constraints_add($sc_file);
 ($ss,my $mfeNew) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfeNew);
-is(sprintf ("%6.2f",$mfe), sprintf ("%6.2f",$mfeNew+5));
+#printf("%s [%6.2f] \n",$ss,$mfeNew);
+is(sprintf ("%6.2f",$mfe), sprintf ("%6.2f",$mfeNew+5), "Fold compound method - constraints_add - soft constraints");
 
 ##################################
 ##test_hc_add_up:
 ##################################
-print "test_hc_add_up\n";
-
 $fc = new RNA::fold_compound($seq_con);
 $fc->hc_add_up(1,RNA::CONSTRAINT_CONTEXT_ALL_LOOPS);
 ($ss,$mfe) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfe);
-is($ss,".((....)).(((....)))");
+#printf("%s [%6.2f] \n",$ss,$mfe);
+is($ss,".((....)).(((....)))", "Fold compound method - hc_add_up");
 
 ##################################
 ## test_hc_add_bp_nonspecific
 ##################################
-print "test_hc_add_bp_nonspecific";
-
-$fc= new RNA::fold_compound("GGGCCCCCCCCCCCCCCCCC");
-$fc->hc_add_bp_nonspecific(20,-1); # force the last base to pair with some bases upstream
+$fc = new RNA::fold_compound("GGGCCCCCCCCCCCCCCCCC");
+$fc->hc_add_bp_nonspecific(20,-1, RNA::CONSTRAINT_CONTEXT_ALL_LOOPS | RNA::CONSTRAINT_CONTEXT_ENFORCE); # force the last base to pair with some bases upstream
 ($ss,$mfe) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfe);
-is($ss,"(((..............)))");
+#printf("%s [%6.2f] \n",$ss,$mfe);
+is($ss,"(((..............)))", "Fold compound method - hc_add_bp_nonspecific");
 
 ##################################
 ## test_hc_add_bp
 ##################################
-print "test_hc_add_bp";
-
 $fc= new RNA::fold_compound($seq_con);
 $fc->hc_add_bp(1,20,RNA::CONSTRAINT_CONTEXT_ENFORCE | RNA::CONSTRAINT_CONTEXT_ALL_LOOPS);
 ($ss,$mfe) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfe);
-is($ss,"(((..............)))");
+#printf("%s [%6.2f] \n",$ss,$mfe);
+is($ss,"(((..............)))", "Fold compound method - hc_ad_bp");
 
 ##################################
 ##  test_hc_add_from_db
 ##################################
-print "test_hc_add_from_db";
-
 $fc = new RNA::fold_compound($seq_con);
 $fc->hc_add_from_db("xxx.................");
 ($ss,$mfe) = $fc->mfe();
-printf("%s [%6.2f] \n",$ss,$mfe);
-is($ss,$str_con);
+#printf("%s [%6.2f] \n",$ss,$mfe);
+is($ss,$str_con, "Fold compound method - hc_add_from_db");
 
 ##################################
 ##  test_hc_mfe_window (base pairs)
 ##################################
-print "test hc_mfe_window_bp\n";
-
 $fc = new RNA::fold_compound($seq_long, undef, RNA::OPTION_WINDOW);
 $fc->hc_add_bp(1, 10, RNA::CONSTRAINT_CONTEXT_ALL_LOOPS | RNA::CONSTRAINT_CONTEXT_ENFORCE);
 $fc->hc_add_bp(101, 110, RNA::CONSTRAINT_CONTEXT_ALL_LOOPS | RNA::CONSTRAINT_CONTEXT_ENFORCE);
@@ -132,6 +121,6 @@ foreach my $hit (@data) {
     }
 }
 
-ok($everythingFine == 1);
+ok($everythingFine == 1, "Fold compound method - hc_add_bp - sliding window MFE");
 
 undef $fc;

@@ -64,7 +64,7 @@ class constraintsTest(unittest.TestCase):
         #GGGCCCCCCCCCCCCCCCCC
         #(((......)))........
         fc=RNA.fold_compound("GGGCCCCCCCCCCCCCCCCC")
-        fc.hc_add_bp_nonspecific(20,-1); # force the last base to pair with some bases upstream
+        fc.hc_add_bp_nonspecific(20, -1, RNA.CONSTRAINT_CONTEXT_ENFORCE | RNA.CONSTRAINT_CONTEXT_ALL_LOOPS) # force the last base to pair with some bases upstream
         (ss,mfe) = fc.mfe()
         print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ss,"(((..............)))")
