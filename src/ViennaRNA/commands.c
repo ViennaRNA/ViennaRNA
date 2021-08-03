@@ -412,7 +412,7 @@ apply_hard_constraint(vrna_fold_compound_t  *vc,
             if (orientation != '\0')
               d = (orientation == 'U') ? -1 : 1;
 
-            vrna_hc_add_bp_nonspecific(vc, cnt1 + (cnt3 - 1), d, t);
+            vrna_hc_add_bp_nonspecific(vc, cnt1 + (cnt3 - 1), d, t | VRNA_CONSTRAINT_CONTEXT_ENFORCE);
           } else {
             /* enforce / prohibit base pair */
             vrna_hc_add_bp(vc, cnt1 + (cnt3 - 1), cnt2 - (cnt3 - 1), t);
