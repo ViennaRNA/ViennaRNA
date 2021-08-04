@@ -1009,8 +1009,8 @@ vrna_hx_from_ptable(short *pt)
     n     = pt[0];
     l     = 0;
     s     = 1;
-    list  = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * n / 2);
-    stack = (int *)vrna_alloc(sizeof(int) * n / 2);
+    list  = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * (n / 2 + 2));
+    stack = (int *)vrna_alloc(sizeof(int) * (n / 2 + 2));
 
     stack[s] = 1;
 
