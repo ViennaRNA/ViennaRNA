@@ -333,6 +333,9 @@ rna_layout(const char   *structure,
   layout->bbox[2] = xmax;
   layout->bbox[3] = ymax;
 
+  free(pt);
+  free(pt_g);
+
   return layout;
 }
 
