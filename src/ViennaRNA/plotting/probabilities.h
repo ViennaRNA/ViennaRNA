@@ -73,34 +73,34 @@ vrna_plot_dp_EPS(const char             *filename,
 
 
 int
-vrna_plot_dp_PS_list(char   *seq,
-                     int    cp,
-                     char   *wastlfile,
-                     plist  *pl,
-                     plist  *mf,
-                     char   *comment);
+vrna_plot_dp_PS_list(char       *seq,
+                     int        cp,
+                     char       *wastlfile,
+                     vrna_ep_t  *pl,
+                     vrna_ep_t  *mf,
+                     char       *comment);
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 int
-PS_color_dot_plot(char  *string,
-                  cpair *pi,
-                  char  *filename);
+PS_color_dot_plot(char          *string,
+                  vrna_cpair_t  *pi,
+                  char          *filename);
 
 
 int
-PS_color_dot_plot_turn(char   *seq,
-                       cpair  *pi,
-                       char   *filename,
-                       int    winSize);
+PS_color_dot_plot_turn(char         *seq,
+                       vrna_cpair_t *pi,
+                       char         *filename,
+                       int          winSize);
 
 
 int
-PS_dot_plot_turn(char   *seq,
-                 plist  *pl,
-                 char   *filename,
-                 int    winSize);
+PS_dot_plot_turn(char       *seq,
+                 vrna_ep_t  *pl,
+                 char       *filename,
+                 int        winSize);
 
 
 /**
@@ -122,11 +122,11 @@ PS_dot_plot_turn(char   *seq,
  *  @param comment  A comment
  *  @return         1 if postscript was successfully written, 0 otherwise
  */
-int PS_dot_plot_list(char   *seq,
-                     char   *filename,
-                     plist  *pl,
-                     plist  *mf,
-                     char   *comment);
+int PS_dot_plot_list(char       *seq,
+                     char       *filename,
+                     vrna_ep_t  *pl,
+                     vrna_ep_t  *mf,
+                     char       *comment);
 
 
 /**
