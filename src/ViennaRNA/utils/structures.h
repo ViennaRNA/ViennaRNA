@@ -698,6 +698,11 @@ vrna_loopidx_from_ptable(const short *pt);
 
 
 /**
+ *  @addtogroup struct_utils_metrics
+ *  @{
+ */
+
+/**
  *  @brief Compute the "base pair" distance between two pair tables pt1 and pt2 of secondary structures.
  *
  *  The pair tables should have the same length.
@@ -738,6 +743,9 @@ vrna_dist_mountain(const char   *str1,
                    const char   *str2,
                    unsigned int p);
 
+
+/* End metrics interface */
+/**@}*/
 
 /**
  *  @brief Make a reference base pair count matrix

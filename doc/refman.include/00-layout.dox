@@ -276,6 +276,9 @@ formats, and various output file formats produced by our library.
 @defgroup   struct_utils_tree         Tree Representation of Secondary Structures
 @ingroup    struct_utils
 
+@defgroup   struct_utils_metrics      Distance measures between Secondary Structures
+@ingroup    struct_utils
+
 @defgroup   aln_utils                 Multiple Sequence Alignment Utilities
 @ingroup    utils
 
