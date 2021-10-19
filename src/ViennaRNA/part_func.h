@@ -181,10 +181,8 @@ vrna_pf_add(FLT_OR_DBL  dG1,
             FLT_OR_DBL  dG2,
             double      kT);
 
-/*
- * End basic global interface
- **@}
- */
+/* End basic global interface */
+/**@}*/
 
 /**
  *  @name Simplified global partition function computation using sequence(s) or multiple sequence alignment(s)
@@ -337,10 +335,8 @@ vrna_pf_co_fold(const char  *seq,
                 vrna_ep_t   **pl);
 
 
-/*
- * End simplified global interface
- **@}
- */
+/* End simplified global interface */
+/**@}*/
 
 /**@}*/
 
