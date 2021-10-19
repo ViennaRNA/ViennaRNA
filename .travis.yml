@@ -42,7 +42,7 @@ install:
 
 
 script:
-- cd src && tar xzf libsvm-3.24.tar.gz && cd ..
+- cd src && tar xzf libsvm-3.25.tar.gz && cd ..
 - cd src && tar xjf dlib-19.22.tar.bz2 && cd ..
 - ./configure --with-cluster --with-kinwalker --disable-lto
 - make -j${CPU_COUNT}
