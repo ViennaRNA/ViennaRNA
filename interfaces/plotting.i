@@ -299,6 +299,46 @@ int file_PS_aln(std::string               filename,
 %include <ViennaRNA/plotting/alignments.h>
 
 
+%{
+  int
+  plot_dp_EPS(std::string             filename,
+              std::string             sequence,
+              std::vector<vrna_ep_t>  upper_triangle,
+              std::vector<vrna_ep_t>  lower_triangle = std::vector<vrna_ep_t>(),
+              vrna_dotplot_auxdata_t  *auxdata = NULL,
+              unsigned int            options = VRNA_PLOT_PROBABILITIES_DEFAULT)
+  {
+    vrna_ep_t               pp;
+
+    if ((sequence.length() > 0) &&
+        (filename.length() > 0)) {
+      pp.i = pp.j = 0;
+      pp.p = 0.;
+      pp.type = VRNA_PLIST_TYPE_BASEPAIR;
+      upper_triangle.push_back(pp);
+      lower_triangle.push_back(pp);
+
+      return vrna_plot_dp_EPS(filename.c_str(),
+                              sequence.c_str(),
+                              &upper_triangle[0],
+                              &lower_triangle[0],
+                              auxdata,
+                              options);
+    }
+
+    return 0;
+  }
+%}
+
+int
+plot_dp_EPS(std::string             filename,
+            std::string             sequence,
+            std::vector<vrna_ep_t>  upper_triangle,
+            std::vector<vrna_ep_t>  lower_triangle = std::vector<vrna_ep_t>(),
+            vrna_dotplot_auxdata_t  *auxdata = NULL,
+            unsigned int            options = VRNA_PLOT_PROBABILITIES_DEFAULT);
+
+
 %include <ViennaRNA/plotting/probabilities.h>
 
 /*#################################*/
