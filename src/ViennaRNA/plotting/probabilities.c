@@ -36,6 +36,20 @@
 #define SIZE 452.
 #define PMIN 0.00001
 
+typedef struct {
+  vrna_data_lin_t **data;
+  char            **titles;
+  size_t          size;
+  size_t          mem;
+} lin_data_container;
+
+typedef struct {
+  lin_data_container north;
+  lin_data_container east;
+  lin_data_container south;
+  lin_data_container west;
+} lin_dat;
+
 /*
 #################################
 # GLOBAL VARIABLES              #
@@ -83,14 +97,21 @@ PRIVATE void  EPS_print_header(FILE *eps, int bbox[4], const char *comment, unsi
 PRIVATE void  EPS_print_ud_data(FILE *eps, plist *pl, plist *mf);
 PRIVATE void  EPS_print_sc_motif_data(FILE *eps, plist *pl, plist *mf);
 PRIVATE void  EPS_print_bpp_data(FILE *eps, plist *pl, plist *mf);
-PRIVATE void  EPS_print_linear_data_top(FILE *eps, const char **data_title, vrna_data_lin_t **data);
-PRIVATE void  EPS_print_linear_data_left(FILE *eps, const char **data_title, vrna_data_lin_t **data);
-PRIVATE void  EPS_print_linear_data_bottom(FILE *eps, const char **data_title, vrna_data_lin_t **data);
-PRIVATE void  EPS_print_linear_data_right(FILE *eps, const char **data_title, vrna_data_lin_t **data);
-PRIVATE void  EPS_print_linear_data(FILE *eps, const char *varname, const char **data_title, vrna_data_lin_t **data);
+PRIVATE void  EPS_print_linear_data(FILE *eps, const char *varname, lin_data_container *data);
 PRIVATE vrna_data_lin_t *plist_to_accessibility(plist *pl, unsigned int length);
 PRIVATE vrna_data_lin_t *plist_to_ud_motif_prob(plist *pl, unsigned int length);
 PRIVATE void  EPS_print_sd_data(FILE *eps, vrna_ep_t *pl, vrna_ep_t *mf);
+
+INLINE PRIVATE int
+init_lin_data(lin_dat *dat);
+
+INLINE PRIVATE void
+free_lin_data(lin_dat *dat);
+
+INLINE PRIVATE int
+push_lin_data(lin_data_container  *c,
+              vrna_data_lin_t     *data,
+              char                *title);
 
 /*
 #################################
@@ -275,7 +296,8 @@ vrna_plot_dp_EPS( const char              *filename,
                   linright_size, bbox[4];
   FILE            *fh;
   vrna_data_lin_t **lintop, **linbottom, **linleft, **linright, *ud_lin, *access;
-
+  lin_dat         linear_data;
+  
   fh = fopen(filename, "w");
   if(!fh){
     vrna_message_warning("can't open %s for dot plot", filename);
@@ -283,6 +305,8 @@ vrna_plot_dp_EPS( const char              *filename,
   }
 
   comment = title = NULL;
+
+  init_lin_data(&linear_data);
 
   lintop_num      = 0;
   lintop_size     = 5;
@@ -311,45 +335,40 @@ vrna_plot_dp_EPS( const char              *filename,
   if(options & VRNA_PLOT_PROBABILITIES_UD_LIN){
     ud_lin = plist_to_ud_motif_prob(upper, strlen(sequence));
     if(ud_lin){
-      dp_add_lindata(lintop, ud_lin, lintoptitle, "Protein binding", lintop_num, lintop_size);
-      dp_add_lindata(linleft, ud_lin, linlefttitle, "Protein binding", linleft_num, linleft_size);
-      dp_add_lindata(linbottom, ud_lin, linbottomtitle, "Protein binding", linbottom_num, linbottom_size);
-      dp_add_lindata(linright, ud_lin, linrighttitle, "Protein binding", linright_num, linright_size);
+      push_lin_data(&(linear_data.north), ud_lin, "Protein binding");
+      push_lin_data(&(linear_data.east), ud_lin, "Protein binding");
+      push_lin_data(&(linear_data.south), ud_lin, "Protein binding");
+      push_lin_data(&(linear_data.west), ud_lin, "Protein binding");
     }
   }
 
   if(options & VRNA_PLOT_PROBABILITIES_ACC){
     access = plist_to_accessibility(upper, strlen(sequence));
-    dp_add_lindata(lintop, access, lintoptitle, "Accessibility", lintop_num, lintop_size);
+    push_lin_data(&(linear_data.north), access, "Accessibility");
   }
 
   if(auxdata){
     if(auxdata->top){
       for(i = 0; auxdata->top[i]; i++){
-        dp_add_lindata(lintop, auxdata->top[i], lintoptitle, auxdata->top_title[i], lintop_num, lintop_size);
+        push_lin_data(&(linear_data.north), auxdata->top[i], auxdata->top_title[i]);
       }
     }
     if(auxdata->bottom){
       for(i = 0; auxdata->bottom[i]; i++){
-        dp_add_lindata(linbottom, auxdata->bottom[i], linbottomtitle, auxdata->bottom_title[i], linbottom_num, linbottom_size);
+        push_lin_data(&(linear_data.south), auxdata->bottom[i], auxdata->bottom_title[i]);
       }
     }
     if(auxdata->left){
       for(i = 0; auxdata->left[i]; i++){
-        dp_add_lindata(linleft, auxdata->left[i], linlefttitle, auxdata->left_title[i], linleft_num, linleft_size);
+        push_lin_data(&(linear_data.west), auxdata->left[i], auxdata->left_title[i]);
       }
     }
     if(auxdata->right){
       for(i = 0; auxdata->right[i]; i++){
-        dp_add_lindata(linright, auxdata->right[i], linrighttitle, auxdata->right_title[i], linright_num, linright_size);
+        push_lin_data(&(linear_data.east), auxdata->right[i], auxdata->right_title[i]);
       }
     }
   }
-
-  dp_finalize_lindata(lintop, lintoptitle, lintop_num);
-  dp_finalize_lindata(linbottom, linbottomtitle, linbottom_num);
-  dp_finalize_lindata(linleft, linlefttitle, linleft_num);
-  dp_finalize_lindata(linright, linrighttitle, linright_num);
 
   if(auxdata){
     comment = auxdata->comment;
@@ -369,10 +388,11 @@ vrna_plot_dp_EPS( const char              *filename,
   print_PS_sequence(fh, sequence);
 
   fprintf(fh,"%% BEGIN linear data array\n\n");
-  EPS_print_linear_data_top(fh, (const char **)lintoptitle, lintop);
-  EPS_print_linear_data_left(fh, (const char **)linlefttitle, linleft);
-  EPS_print_linear_data_bottom(fh, (const char **)linbottomtitle, linbottom);
-  EPS_print_linear_data_right(fh, (const char **)linrighttitle, linright);
+  EPS_print_linear_data(fh, "topData", &(linear_data.north));
+  EPS_print_linear_data(fh, "leftData", &(linear_data.west));
+  EPS_print_linear_data(fh, "bottomData", &(linear_data.south));
+  EPS_print_linear_data(fh, "rightData", &(linear_data.east));
+
   fprintf(fh,"%% END linear data arrays\n");
 
   fprintf(fh, "\n%%Finally, prepare canvas\n\n"
@@ -399,6 +419,8 @@ vrna_plot_dp_EPS( const char              *filename,
   EPS_print_bpp_data(fh, upper, lower);
 
   print_PS_footer(fh);
+
+  free_lin_data(&linear_data);
 
   fclose(fh);
   free(lintoptitle);
@@ -721,57 +743,19 @@ EPS_print_ud_data(FILE          *eps,
 
 
 PRIVATE void
-EPS_print_linear_data_top(FILE            *eps,
-                          const char      **data_title,
-                          vrna_data_lin_t **data){
+EPS_print_linear_data(FILE                *eps,
+                      const char          *varname,
+                      lin_data_container  *c){
 
-  EPS_print_linear_data(eps, "topData", data_title, data);
-}
-
-
-PRIVATE void
-EPS_print_linear_data_left( FILE            *eps,
-                            const char      **data_title,
-                            vrna_data_lin_t **data){
-
-  EPS_print_linear_data(eps, "leftData", data_title, data);
-}
-
-
-PRIVATE void
-EPS_print_linear_data_bottom( FILE            *eps,
-                              const char      **data_title,
-                              vrna_data_lin_t **data){
-
-  EPS_print_linear_data(eps, "bottomData", data_title, data);
-}
-
-
-PRIVATE void
-EPS_print_linear_data_right(FILE            *eps,
-                            const char      **data_title,
-                            vrna_data_lin_t **data){
-
-  EPS_print_linear_data(eps, "rightData", data_title, data);
-}
-
-
-PRIVATE void
-EPS_print_linear_data(FILE            *eps,
-                      const char      *varname,
-                      const char      **data_title,
-                      vrna_data_lin_t **data){
-
-  int             n, i;
+  size_t          i;
   vrna_data_lin_t *ptr;
 
   /* count number of data sets */
-  for(n = 0; data_title[n]; n++);
 
   fprintf(eps, "/%s [\n", varname);
-  for(i = 0; i < n; i++){
-    fprintf(eps, "[ (%s)\n", data_title[i]);
-    for(ptr = data[i]; ptr->position > 0; ptr++){
+  for(i = 0; i < c->size; i++){
+    fprintf(eps, "[ (%s)\n", c->titles[i]);
+    for(ptr = c->data[i]; ptr->position > 0; ptr++){
       if((ptr->color.hue + ptr->color.sat + ptr->color.bri) == 0.){
         fprintf(eps, "  [ %d %1.9f ]\n", ptr->position, ptr->value);
       } else {
@@ -914,6 +898,101 @@ plist_to_ud_motif_prob(plist *pl, unsigned int length){
   }
 }
 
+
+INLINE PRIVATE int
+init_lin_data(lin_dat *dat)
+{
+  if (dat) {
+    dat->north.size   = 0;
+    dat->north.mem    = 8;
+    dat->north.data   = (vrna_data_lin_t **)vrna_alloc(sizeof(vrna_data_lin_t *) * dat->north.mem);
+    dat->north.titles = (char **)vrna_alloc(sizeof(char *) * dat->north.mem);
+
+    dat->east.size   = 0;
+    dat->east.mem    = 8;
+    dat->east.data   = (vrna_data_lin_t **)vrna_alloc(sizeof(vrna_data_lin_t *) * dat->east.mem);
+    dat->east.titles = (char **)vrna_alloc(sizeof(char *) * dat->east.mem);
+
+    dat->south.size   = 0;
+    dat->south.mem    = 8;
+    dat->south.data   = (vrna_data_lin_t **)vrna_alloc(sizeof(vrna_data_lin_t *) * dat->south.mem);
+    dat->south.titles = (char **)vrna_alloc(sizeof(char *) * dat->south.mem);
+
+    dat->west.size   = 0;
+    dat->west.mem    = 8;
+    dat->west.data   = (vrna_data_lin_t **)vrna_alloc(sizeof(vrna_data_lin_t *) * dat->west.mem);
+    dat->west.titles = (char **)vrna_alloc(sizeof(char *) * dat->west.mem);
+
+    if ((dat->north.data == NULL) ||
+        (dat->east.data == NULL) ||
+        (dat->south.data == NULL) ||
+        (dat->west.data == NULL) ||
+        (dat->north.titles == NULL) ||
+        (dat->east.titles == NULL) ||
+        (dat->south.titles == NULL) ||
+        (dat->west.titles == NULL))  {
+      free(dat->north.data);
+      free(dat->east.data);
+      free(dat->south.data);
+      free(dat->west.data);
+      free(dat->north.titles);
+      free(dat->east.titles);
+      free(dat->south.titles);
+      free(dat->west.titles);
+      return 0; 
+    }
+  }
+
+  return 1;
+}
+
+
+INLINE PRIVATE void
+free_lin_data(lin_dat *dat)
+{
+  if (dat) {
+      free(dat->north.data);
+      free(dat->east.data);
+      free(dat->south.data);
+      free(dat->west.data);
+      free(dat->north.titles);
+      free(dat->east.titles);
+      free(dat->south.titles);
+      free(dat->west.titles);
+  }
+}
+
+
+INLINE PRIVATE int
+push_lin_data(lin_data_container  *c,
+              vrna_data_lin_t     *data,
+              char                *title)
+{
+  c->data[c->size]    = data;
+  c->titles[c->size]  = title;
+
+  if (++(c->size) == c->mem) {
+    c->mem += 8;
+    c->data = (vrna_data_lin_t **)vrna_realloc(c->data,
+                                               sizeof(vrna_data_lin_t *) *
+                                               c->mem);
+    c->titles = (char **)vrna_realloc(c->titles,
+                                      sizeof(char *) *
+                                      c->mem);
+  }
+
+  /* check whether we successfully re-allocated memory */
+  if ((c->data == NULL) ||
+      (c->titles == NULL)) {
+    free(c->data);
+    free(c->titles);
+    c->size = 0;
+    c->mem  = 0;
+    return 0;
+  }
+
+  return 1;
+}
 
 
 PRIVATE FILE *
