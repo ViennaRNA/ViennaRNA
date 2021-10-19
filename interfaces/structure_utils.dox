@@ -77,4 +77,13 @@ during conversion, the optional argument @p options can be used. See also the de
 vrna_ptable_from_string() for available options. (default: @b VRNA_BRACKETS_RND).
 @endparblock
 
+@fn char *vrna_db_from_probs(const FLT_OR_DBL *pr, unsigned int length)
+@scripting
+@parblock
+This function is available as parameter-less method @b db_from_probs() bound to objects
+of type @em fold_compound. Parameters @p pr and @p length are implicitely taken from
+the @em fold_compound object the method is bound to. Upon missing base pair probabilities,
+this method returns an empty string.
+@endparblock
+
 */

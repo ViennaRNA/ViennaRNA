@@ -407,6 +407,24 @@ std::string db_pk_remove(std::string structure, unsigned int options = VRNA_BRAC
 
     return ep_v;
   }
+
+  std::string
+  db_from_probs(void)
+  {
+    if (($self->exp_matrices) &&
+        ($self->exp_matrices->probs)) {
+      char *propensities = vrna_db_from_probs($self->exp_matrices->probs,
+                                              $self->length);
+
+      std::string prop_string(propensities);
+
+      free(propensities);
+
+      return prop_string;
+    }
+
+    return std::string("");
+  }
 }
 
 /************************************/
