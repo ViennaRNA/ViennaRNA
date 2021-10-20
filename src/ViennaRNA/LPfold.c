@@ -491,8 +491,9 @@ PRIVATE INLINE void
 free_dp_matrices(vrna_fold_compound_t *vc,
                  unsigned int         options)
 {
+  size_t        i;
   char          **ptype;
-  int           i, n, winSize;
+  int           n, winSize;
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
   vrna_hc_t     *hc;
@@ -568,8 +569,9 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
                    int                  j,
                    unsigned int         options)
 {
+  size_t        i;
   char          **ptype;
-  int           i, winSize, length;
+  int           winSize, length;
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
   vrna_hc_t     *hc;
@@ -587,7 +589,7 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
   sc      = vc->sc;
 
   if (j > 2 * winSize + MAXLOOP + 1) {
-    i = j - (2 * winSize + MAXLOOP + 1);
+    i = (size_t)j - (2 * winSize + MAXLOOP + 1);
     /* free arrays may be faster than pointer rotation and reset to 0 values */
     free(pR[i] + i);
     free(q[i] + i);
