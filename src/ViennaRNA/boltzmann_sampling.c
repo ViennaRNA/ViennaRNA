@@ -365,11 +365,7 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
     if (nr_mem)
       nr_mem->q_remain = vc->exp_matrices->q[vc->iindx[1] - length];
 
-#ifdef VRNA_WITH_BOUSTROPHEDON
     ret = backtrack_ext_loop(length, pstruc, vc, length, sc_wrap, nr_mem);
-#else
-    ret = backtrack_ext_loop(1, pstruc, vc, length, sc_wrap, nr_mem);
-#endif
 
     if (nr_mem) {
 #ifdef VRNA_NR_SAMPLING_HASH
@@ -505,7 +501,6 @@ backtrack_ext_loop(int                              init_val,
 
   q_temp = 0.;
 
-#ifdef VRNA_WITH_BOUSTROPHEDON
   j = init_val;
   if (j > 1) {
     /* find j position of first pair */
@@ -661,154 +656,6 @@ backtrack_ext_loop(int                              init_val,
     ret = backtrack_ext_loop(j, pstruc, vc, length, sc_wrap, nr_mem);
   }
 
-#else
-  int start = init_val;
-  if (start < length) {
-    /* find i position of first pair */
-    for (i = start; i < length; i++) {
-      if (hc_up_ext[i]) {
-        if (current_node) {
-          fbd = NR_TOTAL_WEIGHT(*current_node) *
-                qln[i] /
-                (*q_remain);
-        }
-
-        r       = vrna_urn() * (qln[i] - fbd);
-        q_temp  = qln[i + 1] * scale[1];
-
-        if (sc_wrapper_ext->red_ext)
-          q_temp *= sc_wrapper_ext->red_ext(i, length, i + 1, length, sc_wrapper_ext);
-
-        if (current_node) {
-          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_UNPAIRED_SG, i, i + 1) *
-                 qln[i] /
-                 (*q_remain);
-        }
-
-        if (r > (q_temp - fbds)) {
-          break;                /* i is paired */
-        } else if (current_node) {
-          *q_remain *= q_temp / qln[i];
-#ifdef VRNA_NR_SAMPLING_HASH
-          *current_node = add_if_nexists(NRT_UNPAIRED_SG, i, i + 1, *current_node, *q_remain);
-#else
-          *current_node = add_if_nexists_ll(memory_dat,
-                                            NRT_UNPAIRED_SG,
-                                            i,
-                                            i + 1,
-                                            memorized_node_prev,
-                                            memorized_node_cur,
-                                            *current_node,
-                                            *q_remain);
-          reset_cursor(&memorized_node_prev, &memorized_node_cur, *current_node); /* resets cursor */
-#endif
-        }
-      }
-    }
-    if (i >= length)
-      return ret;         /* no more pairs, but still successful */
-
-#ifndef VRNA_NR_SAMPLING_HASH
-    if (current_node)
-      advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_UNPAIRED_SG, i, i + 1);
-
-#endif
-
-    /* now find the pairing partner j */
-    if (current_node) {
-      fbd = NR_TOTAL_WEIGHT_TYPE(NRT_EXT_LOOP, *current_node) *
-            qln[i] /
-            (*q_remain);
-    }
-
-    r = vrna_urn() * (qln[i] - q_temp - fbd);
-    for (qt = 0, j = i + 1; j <= length; j++) {
-      ij            = my_iindx[i] - j;
-      hc_decompose  = hard_constraints[n * i + j];
-      if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
-        qkl = qb[ij];
-        if (vc->type == VRNA_FC_TYPE_SINGLE) {
-          type  = vrna_get_ptype_md(S2[i], S2[j], md);
-          qkl   *= vrna_exp_E_ext_stem(type,
-                                       (i > 1) ? S1[i - 1] : -1,
-                                       (j < n) ? S1[j + 1] : -1,
-                                       pf_params);
-        } else {
-          for (s = 0; s < n_seq; s++) {
-            type  = vrna_get_ptype_md(S[s][i], S[s][j], md);
-            qkl   *= vrna_exp_E_ext_stem(type,
-                                         (a2s[s][i] > 1) ? S5[s][i] : -1,
-                                         (a2s[s][j] < a2s[s][n]) ? S3[s][j] : -1,
-                                         pf_params);
-          }
-        }
-
-        if (j < length) {
-          qkl *= qln[j + 1];
-          if (sc_wrapper_ext->split)
-            qkl *= sc_wrapper_ext->split(i, length, j + 1, sc_wrapper_ext) *
-                   sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
-        } else if (sc_wrapper_ext->red_stem) {
-          qkl *= sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
-        }
-
-        if (current_node) {
-          fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_EXT_LOOP, i, j) *
-                 qln[i] /
-                 (*q_remain);
-          qt += qkl - fbds;
-        } else {
-          qt += qkl;
-        }
-
-        if (qt > r) {
-          if (current_node) {
-            *q_remain *= qkl / qln[i];
-#ifdef VRNA_NR_SAMPLING_HASH
-            *current_node = add_if_nexists(NRT_EXT_LOOP, i, j, *current_node, *q_remain);
-#else
-            *current_node = add_if_nexists_ll(memory_dat,
-                                              NRT_EXT_LOOP,
-                                              i,
-                                              j,
-                                              memorized_node_prev,
-                                              memorized_node_cur,
-                                              *current_node,
-                                              *q_remain);
-#endif
-          }
-
-          break;       /* j is paired */
-        }
-
-#ifndef VRNA_NR_SAMPLING_HASH
-        if (current_node)
-          advance_cursor(&memorized_node_prev, &memorized_node_cur, NRT_EXT_LOOP, i, j);
-
-#endif
-      }
-    }
-    if (j == length + 1) {
-      if (current_node) {
-        /* exhausted ensemble */
-        return 0;
-      } else {
-        vrna_message_warning("backtracking failed in ext loop");
-        /* error */
-        return -1;
-      }
-    }
-
-    start = j + 1;
-    ret   = backtrack(i, j, pstruc, vc, sc_wrap, nr_mem);
-    if (!ret)
-      return ret;
-
-    ret = backtrack_ext_loop(start, pstruc, vc, length, sc_wrap, nr_mem);
-  }
-
-#endif
-
   return ret;
 }
 
@@ -908,12 +755,8 @@ backtrack_qm(int                              i,
 #endif
 
       for (span = j - i, cnt = i + 1; cnt <= j; cnt++) {
-#ifdef VRNA_WITH_BOUSTROPHEDON
         k = (int)(i + 1 + span * ((cnt - i - 1) % 2)) +
             (int)((1 - (2 * ((cnt - i - 1) % 2))) * ((cnt - i) / 2));
-#else
-        k = cnt;
-#endif
         q_temp  = 0.;
         u       = k - i;
         /* [i...k] is unpaired */

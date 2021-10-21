@@ -38,14 +38,6 @@
 @CONFIG_FLOAT_PF@
 
 /*
- * Build with Boustrophedon speedup in stochastic backtracking
- *
- * If this feature is present, the next line defines
- * 'VRNA_WITH_BOUSTROPHEDON'
- */
-@CONFIG_BOUSTROPHEDON@
-
-/*
  * Build with JSON input/output support
  *
  * If this feature is present, the next line defines

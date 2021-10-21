@@ -83,25 +83,6 @@ AC_DEFUN([RNA_ENABLE_GSL],[
 
 
 #
-# Boustrophedon scheme for stochastic backtracking
-#
-
-AC_DEFUN([RNA_ENABLE_BOUSTROPHEDON],[
-
-  RNA_ADD_FEATURE([boustrophedon],
-                  [Boustrophedon scheme for stochastic backtracking],
-                  [yes])
-
-  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
-  RNA_FEATURE_IF_ENABLED([boustrophedon],[
-    AC_DEFINE([VRNA_WITH_BOUSTROPHEDON], [1], [Use Boustrophedon scheme for stochastic backtracking])
-    CONFIG_BOUSTROPHEDON="#define VRNA_WITH_BOUSTROPHEDON"
-  ])
-
-  AC_SUBST(CONFIG_BOUSTROPHEDON)
-])
-
-#
 # Use hash for non-redundant sampling
 #
 
@@ -111,7 +92,6 @@ AC_DEFUN([RNA_ENABLE_NR_SAMPLE_HASH],[
                   [Hash for non-redundant sampling datas structure],
                   [no])
 
-  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_ENABLED([NRhash],[
     AC_DEFINE([VRNA_NR_SAMPLING_HASH], [1], [Use Hash for non-redundant sampling data structure])
     CONFIG_NR_SAMPLING="#define VRNA_NR_SAMPLING_HASH"
@@ -345,7 +325,6 @@ AC_DEFUN([RNA_ENABLE_COLORED_TTY],[
                   [Colored TTY output],
                   [yes])
 
-  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_DISABLED([tty_colors],[
     AC_DEFINE([VRNA_WITHOUT_TTY_COLORS], [1], [Do not use colors for TTY output])
     CONFIG_TTY_COLORS="#define VRNA_WITHOUT_TTY_COLORS"
@@ -527,17 +506,12 @@ Please consider using the successor option --enable-simd instead.
 ])
 
 
-#
-# Boustrophedon scheme for stochastic backtracking
-#
-
 AC_DEFUN([RNA_ENABLE_VECTORIZE],[
 
   RNA_ADD_FEATURE([vectorize],
                   [Apply automatic SIMD vectorization to optimize execution speed],
                   [yes])
 
-  ## Add preprocessor define statement for Boustrophedon scheme in stochastic backtracking in part_func.c
   RNA_FEATURE_IF_ENABLED([vectorize],[
     AC_LANG_PUSH([C])
     AX_CHECK_COMPILE_FLAG([-ftree-vectorize], [

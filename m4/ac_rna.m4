@@ -51,7 +51,6 @@ RNA_ENABLE_JSON
 RNA_ENABLE_GSL
 RNA_ENABLE_OPENMP
 RNA_ENABLE_PTHREADS
-RNA_ENABLE_BOUSTROPHEDON
 RNA_ENABLE_NR_SAMPLE_HASH
 RNA_ENABLE_FLOATPF
 RNA_ENABLE_DEPRECATION_WARNINGS
@@ -227,7 +226,6 @@ m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
 
 m4_map_args([ AC_RNA_COLOR_RESULT_FEATURE],
             [mpfr],
-            [boustrophedon],
             [NRhash],
             [c11],
             [tty_colors],
@@ -295,7 +293,6 @@ Extra Libraries
 
 Features
 --------
-  * Boustrophedon             : ${result_boustrophedon}
   * Use hash for NR Sampling  : ${result_NRhash}
   * C11 features              : ${result_c11}
   * TTY colors                : ${result_tty_colors}

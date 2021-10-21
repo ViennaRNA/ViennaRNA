@@ -209,16 +209,6 @@ add the following configure option
 ./configure --disable-pthreads
 @endverbatim
 
-@subsection config_boustrophedon  Stochastic backtracking using Boustrophedon scheme
-
-Stochastic backtracking for single RNA sequences, e.g. available through the RNAsubopt program, received a major speedup by
-implementing a Boustrophedon scheme (see this article for details). If for some reason you want to deactivate this feature, you
-can do that by adding the following switch to the configure script:
-
-@verbatim
-./configure --disable-boustrophedon
-@endverbatim
-
 
 @subsection config_svm  SVM Z-score filter in RNALfold
 
