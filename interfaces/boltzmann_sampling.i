@@ -59,6 +59,13 @@ typedef struct {} vrna_pbacktrack_mem_t;
     return vrna_pbacktrack5($self, length);
   }
 
+  char *
+  pbacktrack_sub(unsigned int start,
+                 unsigned int end)
+  {
+    return vrna_pbacktrack_sub($self, start, end);
+  }
+
   std::vector<std::string>
   pbacktrack(unsigned int num_samples,
              unsigned int options = VRNA_PBACKTRACK_DEFAULT)
@@ -89,6 +96,29 @@ typedef struct {} vrna_pbacktrack_mem_t;
     char  **ptr, **output;
 
     output = vrna_pbacktrack5_num($self, num_samples, length, options);
+
+    if (output) {
+      for (ptr = output; *ptr != NULL; ptr++) {
+        str_vec.push_back(std::string(*ptr));
+        free(*ptr);
+      }
+
+      free(output);
+    }
+
+    return str_vec;
+  }
+
+  std::vector<std::string>
+  pbacktrack_sub(unsigned int num_samples,
+                 unsigned int start,
+                 unsigned int end,
+                 unsigned int options = VRNA_PBACKTRACK_DEFAULT)
+  {
+    std::vector<std::string> str_vec;
+    char  **ptr, **output;
+
+    output = vrna_pbacktrack_sub_num($self, num_samples, start, end, options);
 
     if (output) {
       for (ptr = output; *ptr != NULL; ptr++) {
@@ -143,6 +173,36 @@ typedef struct {} vrna_pbacktrack_mem_t;
                                      length,
                                      nr_memory,
                                      options);
+
+    if (output) {
+      for (ptr = output; *ptr != NULL; ptr++) {
+        str_vec.push_back(std::string(*ptr));
+        free(*ptr);
+      }
+
+      free(output);
+    }
+
+    return str_vec;
+  }
+
+  std::vector<std::string>
+  pbacktrack_sub(unsigned int          num_samples,
+                 unsigned int          start,
+                 unsigned int          end,
+                 vrna_pbacktrack_mem_t *nr_memory,
+                 unsigned int          options = VRNA_PBACKTRACK_DEFAULT)
+  {
+    std::vector<std::string> str_vec;
+
+    char **ptr, **output;
+    
+    output = vrna_pbacktrack_sub_resume($self,
+                                        num_samples,
+                                        start,
+                                        end,
+                                        nr_memory,
+                                        options);
 
     if (output) {
       for (ptr = output; *ptr != NULL; ptr++) {

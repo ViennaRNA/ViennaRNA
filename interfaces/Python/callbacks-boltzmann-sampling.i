@@ -132,6 +132,30 @@ python_wrap_bs_cb(const char *structure,
     return i;
   }
 
+  unsigned int
+  pbacktrack_sub(unsigned int num_samples,
+                 unsigned int start,
+                 unsigned int end,
+                 PyObject     *PyFunc,
+                 PyObject     *data   = Py_None,
+                 unsigned int options = VRNA_PBACKTRACK_DEFAULT)
+  {
+    unsigned int i;
+    python_bs_callback_t *cb = bind_bs_callback(PyFunc, data);
+
+    i = vrna_pbacktrack_sub_cb($self,
+                               num_samples,
+                               start,
+                               end,
+                               &python_wrap_bs_cb,
+                               (void *)cb,
+                               options);
+
+    release_bs_callback(cb);
+
+    return i;
+  }
+
   %apply vrna_pbacktrack_mem_t *INOUT { vrna_pbacktrack_mem_t *nr_memory };
 
   unsigned int
@@ -174,6 +198,32 @@ python_wrap_bs_cb(const char *structure,
                                    (void *)cb,
                                    nr_memory,
                                    options);
+
+    release_bs_callback(cb);
+
+    return i;
+  }
+
+  unsigned int
+  pbacktrack_sub(unsigned int          num_samples,
+                 unsigned int          start,
+                 unsigned int          end,
+                 PyObject              *PyFunc,
+                 PyObject              *data,
+                 vrna_pbacktrack_mem_t *nr_memory,
+                 unsigned int          options = VRNA_PBACKTRACK_DEFAULT)
+  {
+    unsigned int i;
+    python_bs_callback_t *cb = bind_bs_callback(PyFunc, data);
+
+    i = vrna_pbacktrack_sub_resume_cb($self,
+                                      num_samples,
+                                      start,
+                                      end,
+                                      &python_wrap_bs_cb,
+                                      (void *)cb,
+                                      nr_memory,
+                                      options);
 
     release_bs_callback(cb);
 
