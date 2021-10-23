@@ -219,6 +219,51 @@ unsigned int **
 vrna_n_multichoose_k(size_t  n,
                      size_t  k);
 
+
+/**
+ *  @brief Generate a sequence of Boustrophedon distributed numbers
+ *
+ *  This function generates a sequence of positive natural numbers within the
+ *  interval @f$ [start, end] @f$ in a Boustrophedon fashion. That is, the
+ *  numbers @f$ start, \ldots, end @f$ in the resulting list are alternating
+ *  between left and right ends of the interval while progressing to the inside,
+ *  i.e. the list consists of a sequence of natural numbers of the form:
+ *
+ *  @f[ start, end, start + 1, end - 1, start + 2, end - 2, \ldots @f]
+ *
+ *  The resulting list is 1-based and contains the length of the sequence
+ *  of numbers at it's 0-th position.
+ *
+ *  Upon failure, the function returns @b NULL
+ *
+ *  @see vrna_boustrophedon_pos()
+ *
+ *  @param  start   The first number of the list (left side of the interval)
+ *  @param  end     The last number of the list (right side of the interval)
+ *  @return         A list of alternating numbers from the interval @f$ [start, end] @f$ (or @b NULL on error)
+ */
+unsigned int *
+vrna_boustrophedon(size_t start,
+                   size_t end);
+
+
+/**
+ *  @brief Obtain the i-th element in a Boustrophedon distributed interval of natural numbers
+ *
+ *  
+ *  @see vrna_boustrophedon()
+ *
+ *  @param  start   The first number of the list (left side of the interval)
+ *  @param  end     The last number of the list (right side of the interval)
+ *  @param  pos     The index of the number within the Boustrophedon distributed sequence (1-based)
+ *  @return         The @p pos-th element in the Boustrophedon distributed sequence of natural numbers of the interval
+ */
+unsigned int
+vrna_boustrophedon_pos(size_t start,
+                       size_t end,
+                       size_t pos);
+
+
 /**
  *  @}
  */

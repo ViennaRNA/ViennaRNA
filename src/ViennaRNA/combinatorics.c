@@ -21,6 +21,12 @@
 #include "ViennaRNA/search/BoyerMoore.h"
 #include "ViennaRNA/combinatorics.h"
 
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -95,6 +101,12 @@ n_choose_k( unsigned int  *current,
             unsigned int  ***output,
             size_t        *output_size,
             size_t        *cnt);
+
+
+PRIVATE INLINE unsigned int
+boustrophedon_at(size_t start,
+                 size_t end,
+                 size_t pos);
 
 
 /*
@@ -538,6 +550,39 @@ vrna_n_multichoose_k(size_t  n,
   return result;
 }
 
+
+PUBLIC unsigned int
+vrna_boustrophedon_pos(size_t start,
+                       size_t end,
+                       size_t pos)
+{
+  if ((end >= start) &&
+      (pos <= end - start + 1))
+    return boustrophedon_at(start, end, pos);
+
+  return 0;
+}
+
+PUBLIC unsigned int *
+vrna_boustrophedon(size_t start,
+                   size_t end)
+{
+  unsigned int *seq, pos;
+
+  seq = NULL;
+
+  if (end >= start) {
+    seq = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (end - start + 2));
+    seq[0] = end - start + 1;
+
+    for (pos = 1; pos <= end - start + 1; pos++)
+      seq[pos]  = boustrophedon_at(start, end, pos);
+  }
+
+  return seq;
+}
+
+
 /*
  #################################
  # STATIC helper functions below #
@@ -776,4 +821,19 @@ n_choose_k( unsigned int  *current,
   }
 
   return;
+}
+
+
+PRIVATE INLINE unsigned int
+boustrophedon_at(size_t start,
+                 size_t end,
+                 size_t pos)
+{
+  size_t  count   = pos - 1;
+  size_t  advance = (size_t)(count / 2);
+
+  return start +
+         (end - start) * (count % 2) +
+         advance -
+         (2 * (count % 2)) * advance;
 }
