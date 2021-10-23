@@ -85,6 +85,11 @@ RNA_ENABLE_DOXYGEN_REFMAN([RNAlib])
 RNA_ENABLE_TUTORIAL([tutorial])
 
 ##--------------------##
+## Enable CLA         ##
+##--------------------##
+RNA_ENABLE_CLA
+
+##--------------------##
 ## Enable Unit tests  ##
 ##--------------------##
 RNA_ENABLE_UNIT_TESTS
@@ -126,7 +131,7 @@ AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile RNAlib2.pc])
 AC_CONFIG_FILES([src/Utils/Makefile src/bin/Makefile src/Makefile src/ViennaRNA/Makefile])
 AC_CONFIG_FILES([src/ViennaRNA/static/Makefile])
-AC_CONFIG_FILES([man/Makefile doc/Makefile RNA-Tutorial/Makefile])
+AC_CONFIG_FILES([man/Makefile doc/Makefile doc/CLA/Makefile RNA-Tutorial/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
 AC_CONFIG_FILES([examples/Makefile])
 AC_CONFIG_FILES([packaging/viennarna.spec packaging/PKGBUILD])
@@ -222,6 +227,7 @@ m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
             [doc_html],
             [tutorial_pdf],
             [tutorial_html],
+            [cla_pdf],
             [check])
 
 m4_map_args([ AC_RNA_COLOR_RESULT_FEATURE],
@@ -319,6 +325,7 @@ Documentation
   * Reference Manual (HTML)   : ${result_doc_html} ${doc_html_failed}
   * Tutorial (PDF)            : ${result_tutorial_pdf} ${tutorial_pdf_failed}
   * Tutorial (HTML)           : ${result_tutorial_html} ${tutorial_html_failed}
+  * CLA (PDF)                 : ${result_cla_pdf} ${cla_pdf_failed}
 
 Unit Tests
 ----------
