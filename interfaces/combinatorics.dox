@@ -61,4 +61,17 @@ in a rotationally symmetric structure. The length of the list then determines th
 symmetry.
 @endparblock
 
+@fn unsigned int vrna_boustrophedon_pos(size_t start, size_t end, size_t pos)
+@scripting
+@parblock
+This function is available as overloaded global function @b boustrophedon(). Omitting
+the @p pos argument yields the entire sequence from @p start to @p end.
+@endparblock
+
+@fn unsigned int vrna_boustrophedon(size_t start, size_t end)
+@scripting
+@parblock
+This function is available as overloaded global function @b boustrophedon().
+@endparblock
+
 */

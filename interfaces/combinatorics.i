@@ -98,4 +98,37 @@ std::vector<unsigned int>      my_rotational_symmetry(std::string string);
 }
 
 
+%{
+  std::vector<unsigned int>
+  boustrophedon(unsigned int start,
+                unsigned int end)
+  {
+    std::vector<unsigned int> sequence;
+    unsigned int *result = vrna_boustrophedon(start, end);
+
+    if (result) {
+      for (size_t i = 0; i <= result[0]; i++)
+        sequence.push_back(result[i]);
+
+      free(result);
+    }
+
+    return sequence;
+  }
+
+  unsigned int
+  boustrophedon(unsigned int start,
+                unsigned int end,
+                unsigned int pos)
+  {
+    return vrna_boustrophedon_pos((size_t)start,
+                                  (size_t)end,
+                                  (size_t)pos);
+  }
+%}
+
+std::vector<unsigned int> boustrophedon(unsigned int start, unsigned int end);
+unsigned int              boustrophedon(unsigned int start, unsigned int end, unsigned int pos);
+
+
 %include  <ViennaRNA/combinatorics.h>
