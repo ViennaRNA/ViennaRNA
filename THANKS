@@ -8,6 +8,8 @@ such as the new, generalized constraints framework, RNA folding grammar domain e
 and the major part of the scripting language interface. Below is a list of most people
 who contributed larger parts of the implementations:
 
+- Daniel Wiegreffe  (RNAturtle and RNApuzzler secondary structure layouts)
+- Andreas Gruber    (first approach on RNALfold Z-score filtering)
 - Juraj Michalik    (non-redundant Boltzmann sampling)
 - Gregor Entzian    (neighbor, walk)
 - Mario Koestl      (worked on SWIG interface and related unit testing)
