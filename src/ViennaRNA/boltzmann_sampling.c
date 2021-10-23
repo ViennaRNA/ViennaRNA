@@ -23,6 +23,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/boltzmann_sampling.h"
 
 #include "ViennaRNA/loops/external_sc_pf.inc"
@@ -435,28 +436,6 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
 }
 
 
-/**
- *  Generate the pos-th number within the interval [start:end]
- *  according to the Boustrophedon scheme. That is, the following
- *  series:
- *  pos = 1: start
- *  pos = 2: end
- *  pos = 3: start + 1
- *  pos = 4: end - 1
- *  pos = 5: start + 2
- *  ...
- */
-INLINE PRIVATE int
-boustrophedon(int start,
-              int end,
-              int pos)
-{
-  return  start +
-          (end - start) * (int)((pos - 1) % 2) +
-          ((1 - (2 * ((pos - 1) % 2))) * (int)((pos - 1) / 2));
-}
-
-
 /* backtrack one external */
 PRIVATE int
 backtrack_ext_loop(int                              start,
@@ -621,14 +600,11 @@ backtrack_ext_loop(int                              start,
     u = j - 1;
     i = 2;
 
+    unsigned int *is = vrna_boustrophedon(start, j - 1);
+
     for (qt = 0, k = 1; k + start <= j; k++) {
       /* apply alternating boustrophedon scheme to variable i */
-#if 1
-      i = boustrophedon(start, j - 1, k);
-#else
-      i = (int)(1 + (u - 1) * ((k - 1) % 2)) +
-          (int)((1 - (2 * ((k - 1) % 2))) * ((k - 1) / 2));
-#endif
+      i             = is[k];
       ij            = my_iindx[i] - j;
       hc_decompose  = hard_constraints[n * j + i];
       if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
@@ -693,6 +669,9 @@ backtrack_ext_loop(int                              start,
 #endif
       }
     }
+
+    free(is);
+
     if (k + start > j) {
       if (current_node) {
         /* exhausted ensemble */
