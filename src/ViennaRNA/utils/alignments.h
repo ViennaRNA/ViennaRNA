@@ -135,6 +135,17 @@ vrna_aln_pscore(const char  **alignment,
                 vrna_md_t   *md);
 
 
+int
+vrna_pscore(vrna_fold_compound_t  *fc,
+            unsigned int          i,
+            unsigned int          j);
+
+
+int
+vrna_pscore_freq(vrna_fold_compound_t *fc,
+                 const unsigned int   *frequencies,
+                 unsigned int         pairs);
+
 /**
  *  @brief  Slice out a subalignment from a larger alignment
  *

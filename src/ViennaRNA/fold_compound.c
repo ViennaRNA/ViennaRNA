@@ -725,7 +725,6 @@ make_pscores(vrna_fold_compound_t *fc)
 #define NONE -10000 /* score for forbidden pairs */
 
   int       i, j, k, l, s, max_span, turn;
-  float     **dm;
   int       olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */
                             { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
                             { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
@@ -747,17 +746,21 @@ make_pscores(vrna_fold_compound_t *fc)
   turn = md->min_loop_size;
 
   if (md->ribo) {
+    float **dm = NULL;
+
     if (RibosumFile != NULL)
       dm = readribosum(RibosumFile);
     else
       dm = get_ribosum((const char **)AS, n_seq, n);
-  } else {
-    /*use usual matrix*/
-    dm = vrna_alloc(7 * sizeof(float *));
-    for (i = 0; i < 7; i++) {
-      dm[i] = vrna_alloc(7 * sizeof(float));
-      for (j = 0; j < 7; j++)
-        dm[i][j] = (float)olddm[i][j];
+
+    if (dm) {
+      for (i = 0; i < 7; i++) {
+        for (j = 0; j < 7; j++)
+          md->pair_dist[i][j] = dm[i][j];
+
+        free(dm[i]);
+      }
+      free(dm);
     }
   }
 
@@ -769,10 +772,15 @@ make_pscores(vrna_fold_compound_t *fc)
     for (j = i + 1; (j < i + turn + 1) && (j <= n); j++)
       pscore[indx[j] + i] = NONE;
     for (j = i + turn + 1; j <= n; j++) {
-      int     pfreq[8] = {
+      if ((j - i + 1) > max_span) {
+        pscore[indx[j] + i] = NONE;
+        continue;
+      }
+
+      unsigned int     pfreq[8] = {
         0, 0, 0, 0, 0, 0, 0, 0
       };
-      double  score;
+
       for (s = 0; s < n_seq; s++) {
         int type;
         if (S[s][i] == 0 && S[s][j] == 0) {
@@ -789,20 +797,8 @@ make_pscores(vrna_fold_compound_t *fc)
 
         pfreq[type]++;
       }
-      if (pfreq[0] * 2 + pfreq[7] >= n_seq) {
-        pscore[indx[j] + i] = NONE;
-        continue;
-      }
 
-      for (k = 1, score = 0; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
-        for (l = k; l <= 6; l++)
-          score += pfreq[k] * pfreq[l] * dm[k][l];
-      /* counter examples score -1, gap-gap scores -0.25   */
-      pscore[indx[j] + i] = md->cv_fact * ((UNIT * score) / n_seq -
-                            md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
-
-      if ((j - i + 1) > max_span)
-        pscore[indx[j] + i] = NONE;
+      pscore[indx[j] + i] = vrna_pscore_freq(fc, &pfreq[0], 6);
     }
   }
 
@@ -818,8 +814,9 @@ make_pscores(vrna_fold_compound_t *fc)
           if ((i > 1) && (j < n))
             ntype = pscore[indx[j + 1] + i - 1];
 
-          if ((otype < md->cv_fact * MINPSCORE) && (ntype < md->cv_fact * MINPSCORE)) /* too many counterexamples */
-            pscore[indx[j] + i] = NONE;                                               /* i.j can only form isolated pairs */
+          if ((otype < md->cv_fact * MINPSCORE) &&
+              (ntype < md->cv_fact * MINPSCORE))  /* too many counterexamples */
+            pscore[indx[j] + i] = NONE;           /* i.j can only form isolated pairs */
 
           otype = type;
           type  = ntype;
@@ -828,11 +825,6 @@ make_pscores(vrna_fold_compound_t *fc)
         }
       }
   }
-
-  /*free dm */
-  for (i = 0; i < 7; i++)
-    free(dm[i]);
-  free(dm);
 
   /* copy over pscores for backward compatibility */
   if (fc->pscore_pf_compat) {

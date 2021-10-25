@@ -117,14 +117,12 @@ default_callback(int        start,
 PRIVATE double
 cov_score(vrna_fold_compound_t  *fc,
           int                   i,
-          int                   j,
-          float                 **dm);
+          int                   j);
 
 
 PRIVATE void
 make_pscores(vrna_fold_compound_t *fc,
-             int                  start,
-             float                **dm);
+             int                  start);
 
 
 PRIVATE void
@@ -149,13 +147,11 @@ rotate_dp_matrices(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE void
-init_constraints(vrna_fold_compound_t *fc,
-                 float                **dm);
+init_constraints(vrna_fold_compound_t *fc);
 
 
 PRIVATE INLINE void
 rotate_constraints(vrna_fold_compound_t *fc,
-                   float                **dm,
                    int                  i);
 
 
@@ -501,8 +497,7 @@ rotate_dp_matrices(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE void
-init_constraints(vrna_fold_compound_t *fc,
-                 float                **dm)
+init_constraints(vrna_fold_compound_t *fc)
 {
   int i, length, maxdist;
 
@@ -520,13 +515,13 @@ init_constraints(vrna_fold_compound_t *fc,
 
     case VRNA_FC_TYPE_COMPARATIVE:
       for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
-        make_pscores(fc, i, dm);
+        make_pscores(fc, i);
         vrna_hc_update(fc, i, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
       }
 
       /* for noLP option */
       if (length > maxdist + 5)
-        make_pscores(fc, length - maxdist - 5, dm);
+        make_pscores(fc, length - maxdist - 5);
 
       break;
   }
@@ -535,7 +530,6 @@ init_constraints(vrna_fold_compound_t *fc,
 
 PRIVATE INLINE void
 rotate_constraints(vrna_fold_compound_t *fc,
-                   float                **dm,
                    int                  i)
 {
   int length, maxdist;
@@ -563,7 +557,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
           fc->pscore_local[i - 2]           = fc->pscore_local[i + maxdist + 4];
           fc->pscore_local[i + maxdist + 4] = NULL;
           if (i > 2)
-            make_pscores(fc, i - 2, dm);
+            make_pscores(fc, i - 2);
 
           vrna_hc_update(fc, i - 1, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
         } else if (i == 1) {
@@ -593,7 +587,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
   int               i, j, length, maxdist, **c, **fML, *f3,
                     with_gquad, dangle_model, turn, n_seq,
                     prev_i, prev_j, prev_end, prev_en;
-  float             **dm;
   double            e_fact;
 
 #ifdef VRNA_WITH_SVM
@@ -605,14 +598,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
   vrna_md_t         *md;
   struct aux_arrays *helper_arrays;
-
-  int               olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 },/* hamming distance between pairs */
-                                    { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
-                                    { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
-                                    { 0, 2, 1, 0, 2, 1, 2 } /* GU */,
-                                    { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
-                                    { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
-                                    { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
 
   n_seq         = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->n_seq : 1;
   length        = vc->length;
@@ -628,7 +613,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
   prev          = NULL;
   prev_en       = 0;
   e_fact        = 100 * n_seq;
-  dm            = NULL;
 #ifdef VRNA_WITH_SVM
   prevz           = 0.;
   zsc_data        = vc->zscore_data;
@@ -648,17 +632,23 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #endif
 
     if (md->ribo) {
+      float **dm = NULL;
+
       if (RibosumFile != NULL)
         dm = readribosum(RibosumFile);
       else
         dm = get_ribosum((const char **)vc->sequences, n_seq, length);
-    } else {
-      /*use usual matrix*/
-      dm = (float **)vrna_alloc(7 * sizeof(float *));
-      for (i = 0; i < 7; i++) {
-        dm[i] = (float *)vrna_alloc(7 * sizeof(float));
-        for (j = 0; j < 7; j++)
-          dm[i][j] = (float)olddm[i][j];
+
+      /* update distance matrix */
+      if (dm) {
+        for (i = 0; i < 7; i++) {
+          for (j = 0; j < 7; j++)
+            md->pair_dist[i][j] = dm[i][j];
+
+          free(dm[i]);
+        }
+
+        free(dm);
       }
     }
   }
@@ -673,7 +663,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   /* reserve additional memory for j-dimension */
   allocate_dp_matrices(vc);
 
-  init_constraints(vc, dm);
+  init_constraints(vc);
 
   if (with_gquad)
     vrna_gquad_mx_local_update(vc, length - maxdist - 4);
@@ -809,18 +799,12 @@ fill_arrays(vrna_fold_compound_t            *vc,
 
     rotate_aux_arrays(helper_arrays, maxdist);
     rotate_dp_matrices(vc, i);
-    rotate_constraints(vc, dm, i);
+    rotate_constraints(vc, i);
   }
 
   /* clean up memory */
   free_aux_arrays(helper_arrays);
   free_dp_matrices(vc);
-
-  if (dm) {
-    for (i = 0; i < 7; i++)
-      free(dm[i]);
-    free(dm);
-  }
 
   return f3[1];
 }
@@ -1112,15 +1096,13 @@ make_ptypes(vrna_fold_compound_t  *vc,
 PRIVATE double
 cov_score(vrna_fold_compound_t  *fc,
           int                   i,
-          int                   j,
-          float                 **dm)
+          int                   j)
 {
   char **AS;
   short **S;
   int n_seq, k, l, s, type;
-  double score;
   vrna_md_t *md;
-  int pfreq[8] = {
+  unsigned int pfreq[8] = {
     0, 0, 0, 0, 0, 0, 0, 0
   };
 
@@ -1142,28 +1124,13 @@ cov_score(vrna_fold_compound_t  *fc,
     pfreq[type]++;
   }
 
-  if (pfreq[0] * 2 + pfreq[7] >= n_seq) {
-    return NONE;
-  } else {
-    for (k = 1, score = 0.; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
-      for (l = k; l <= 6; l++)
-        /*
-         * scores for replacements between pairtypes
-         * consistent or compensatory mutations score 1 or 2
-         */
-        score += pfreq[k] * pfreq[l] * dm[k][l];
-  }
-
-  /* counter examples score -1, gap-gap scores -0.25   */
-  return md->cv_fact * ((UNIT * score) / n_seq -
-         md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
+  return vrna_pscore_freq(fc, &pfreq[0], 6);
 }
 
 
 PRIVATE void
 make_pscores(vrna_fold_compound_t *fc,
-             int                  i,
-             float                **dm)
+             int                  i)
 {
   /*
    * calculate co-variance bonus for each pair depending on
@@ -1184,14 +1151,14 @@ make_pscores(vrna_fold_compound_t *fc,
   for (j = i + 1; (j < i + turn + 1) && (j <= n); j++)
     pscore[i][j - i] = NONE;
   for (j = i + turn + 1; ((j <= n) && (j <= i + maxd)); j++)
-    pscore[i][j - i] = cov_score(fc, i, j, dm);
+    pscore[i][j - i] = cov_score(fc, i, j);
 
   if (noLP) {
     /* remove unwanted lonely pairs */
     int otype = 0, ntype = 0;
     for (j = i + turn; ((j < n) && (j < i + maxd)); j++) {
       if ((i > 1) && (j < n))
-        otype = cov_score(fc, i - 1, j + 1, dm);
+        otype = cov_score(fc, i - 1, j + 1);
 
       if (i < n)
         ntype = pscore[i + 1][j - 1 - (i + 1)];

@@ -26,6 +26,7 @@
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/alignments.h"
 
+#define NONE -10000 /* score for forbidden pairs */
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -186,6 +187,111 @@ vrna_aln_pinfo(vrna_fold_compound_t *vc,
 }
 
 
+PUBLIC int
+vrna_pscore(vrna_fold_compound_t  *fc,
+            unsigned int          i,
+            unsigned int          j)
+{
+  char          **AS;
+  short         **S;
+  unsigned int  k, l, n, tmp, u, s, n_seq;
+  int           turn, max_span;
+  vrna_md_t     *md;
+
+  if (i > j) {
+    tmp = i;
+    i = j;
+    j = tmp;
+  }
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (fc->length >= j)) {
+
+    n         = fc->length;
+    n_seq     = fc->n_seq;
+    u         = j - i - 1;
+    md        = &(fc->params->model_details);
+    turn      = md->min_loop_size;
+    max_span  = md->max_bp_span;
+    AS        = fc->sequences;
+    S         = fc->S;
+
+    if ((max_span < turn + 2) ||
+        (max_span > (int)n))
+      max_span = (int)n;
+
+
+    if ((u > turn) &&
+        (u + 2) <= max_span) {
+      double  score;
+      unsigned int pfreq[8] = {
+        0, 0, 0, 0, 0, 0, 0, 0
+      };
+
+      /* collect base pair frequencies */
+      for (s = 0; s < n_seq; s++) {
+        unsigned int type;
+
+        if (S[s][i] == 0 && S[s][j] == 0) {
+          type = 7;                             /* gap-gap  */
+        } else {
+          if ((AS[s][i] == '~') || (AS[s][j] == '~'))
+            type = 7;
+          else
+            type = md->pair[S[s][i]][S[s][j]];
+        }
+
+        pfreq[type]++;
+      }
+
+      return vrna_pscore_freq(fc, (const unsigned int *)pfreq, 6);
+    }
+  }
+
+  return NONE;
+}
+
+
+PUBLIC int
+vrna_pscore_freq(vrna_fold_compound_t *fc,
+                 const unsigned int   *frequencies,
+                 unsigned int         pairs)
+{
+  if ((fc) &&
+      (frequencies)) {
+    unsigned int  k, l, n_seq;
+    double        score;
+    vrna_md_t     *md;    
+
+    n_seq = fc->n_seq;
+    md    = &(fc->params->model_details);
+
+    /*
+        assume first (0) and last (pairs + 1) frequency to reflect
+        counter-examples and gap-pairs, respectively
+    */
+    if (2 * frequencies[0] +
+        frequencies[pairs + 1] < n_seq) {
+      score = 0.;
+
+      for (k = 1; k <= pairs; k++) /* ignore pairtype 7 (gap-gap) */
+        for (l = k; l <= pairs; l++) {
+          score += (double)frequencies[k] *
+                   (double)frequencies[l] *
+                   md->pair_dist[k][l];
+        }
+
+      /* counter examples score -1, gap-gap scores -0.25   */
+      return md->cv_fact * ((UNIT * score) / n_seq -
+             md->nc_fact * UNIT * (frequencies[0] + frequencies[pairs + 1] * 0.25));
+    
+    }
+  }
+
+  return NONE;
+}
+
 PUBLIC int *
 vrna_aln_pscore(const char  **alignment,
                 vrna_md_t   *md)
@@ -196,7 +302,6 @@ vrna_aln_pscore(const char  **alignment,
    * should be 0 for conserved pairs, >0 for good pairs
    */
 
-#define NONE -10000 /* score for forbidden pairs */
 
   int       i, j, k, l, s, n, n_seq, *indx, turn, max_span;
   float     **dm;
