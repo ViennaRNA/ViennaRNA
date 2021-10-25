@@ -1142,7 +1142,7 @@ cov_score(vrna_fold_compound_t  *fc,
     pfreq[type]++;
   }
 
-  if (pfreq[0] * 2 + pfreq[7] > n_seq) {
+  if (pfreq[0] * 2 + pfreq[7] >= n_seq) {
     return NONE;
   } else {
     for (k = 1, score = 0.; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
@@ -1155,7 +1155,8 @@ cov_score(vrna_fold_compound_t  *fc,
   }
 
   /* counter examples score -1, gap-gap scores -0.25   */
-  return md->cv_fact * ((UNIT * score) / n_seq - md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
+  return md->cv_fact * ((UNIT * score) / n_seq -
+         md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
 }
 
 

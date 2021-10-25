@@ -764,7 +764,7 @@ covscore(const int  *types,
   for (s = 0; s < n_seq; s++)
     pfreq[types[s]]++;
 
-  if (pfreq[0] * 2 > n_seq)
+  if (pfreq[0] * 2 + pfreq[7] >= n_seq)
     return NONE;
 
   for (k = 1, score = 0; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
@@ -776,7 +776,7 @@ covscore(const int  *types,
       score += pfreq[k] * pfreq[l] * dm[k][l];
 
   /* counter examples score -1, gap-gap scores -0.25   */
-  pscore = cv_fact *
-           ((UNIT * score) / n_seq - nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
+  pscore = cv_fact * ((UNIT * score) / n_seq -
+           nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
   return pscore;
 }

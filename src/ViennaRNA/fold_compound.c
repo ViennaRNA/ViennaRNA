@@ -789,7 +789,7 @@ make_pscores(vrna_fold_compound_t *fc)
 
         pfreq[type]++;
       }
-      if (pfreq[0] * 2 + pfreq[7] > n_seq) {
+      if (pfreq[0] * 2 + pfreq[7] >= n_seq) {
         pscore[indx[j] + i] = NONE;
         continue;
       }
@@ -798,9 +798,8 @@ make_pscores(vrna_fold_compound_t *fc)
         for (l = k; l <= 6; l++)
           score += pfreq[k] * pfreq[l] * dm[k][l];
       /* counter examples score -1, gap-gap scores -0.25   */
-      pscore[indx[j] + i] = md->cv_fact *
-                            ((UNIT * score) / n_seq - md->nc_fact * UNIT *
-                             (pfreq[0] + pfreq[7] * 0.25));
+      pscore[indx[j] + i] = md->cv_fact * ((UNIT * score) / n_seq -
+                            md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
 
       if ((j - i + 1) > max_span)
         pscore[indx[j] + i] = NONE;

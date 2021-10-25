@@ -30,7 +30,7 @@ CCAAAGGCUCUUUUAAGAGCCACC_CACAUUUUCAAAAAAAUGUUGU
 .....((((((....)))))).......................... (-11.24 =  -9.42 +  -1.82)
 >MicF
 CGCUAUCAUCAUUAACUUUAUUUAUUACCGUCAUUCACU__UCUGAAUGUCUGUUUACCCCUAUUUCAACCGGAUGCUUCGCAUCCGGUUUUUUUU
-..........................((.(.(((((((....))))))).).)).............((((((((((...))))))))))...... (-17.29 = -17.23 +  -0.06)
+..........................((.(.((((((......)))))).).)).............((((((((((...))))))))))...... (-16.61 = -16.17 +  -0.44)
 >RprA
 ACGGAUAUA__AAUCA_ACACAUUGAUUUA_UAAUUAUGGAAA__UCC_CCUGAGCG__AAACAAC_GAAUUGCUGUGUGUAGUCUUUGCCCGUCAC__CUAAGAUGGGCUUUUUUUUUU
 .....................................................................(((((.....)))))....(((((((........))))))).......... (-15.03 = -14.12 +  -0.91)
@@ -90,7 +90,7 @@ GAAAGCACGACAUUGCUCACAUUGCUUCCAGUAUUAUUU__AGCCAGC___UUGG_UGCUGGCUUUUUUUU
 ..............((.......))................(((((((.........)))))))....... (-14.16 = -11.94 +  -2.22)
 >HgcE
 GGCGCGCAAUGAACG_AGGUGACGUCGCCGGGCGGACAGGGCCCGGUCUCCGGGGCCGCCUGAGGGUGCCGAGAA_GGCGGUCAAUGAAGGCGGGCGGAUAAGCCGGGCCC__AAACCACUUUAAUUCUAA__UU
-((((((((.........)))).)))).((....))...(((((((((.((((...((((((..((.((((......)))).)).....)))))).))))...)))))))))........................ (-47.58 = -48.08 +   0.50)
+..(((.............))).((((....))))....(((((((((.((((...((((((..(..((((......)))).....)..)))))).))))...)))))))))........................ (-44.94 = -44.50 +  -0.44)
 >SscA
 AGGCCAAAUGAGGCCCCCUCAACUAA_GGCGGGUUUCCCGCCGGAGGGGGCCGAUGUCCGAAAGCUUUAAAAAGUAAGCUCAAAAGUAGGGUUAGGC
 ...........((((((((((......((((((...))))))))))))))))............................................. (-32.60 = -30.32 +  -2.28)
@@ -681,7 +681,7 @@ GGAGGAGACUGAUGAUGGAACCGUCUGACACGCCGGCCCCCGCCGGCGCCGACGGUGCCUCCAAGGUCGACCCUCCAGCU
 (((((((..(((((((((.((((((.(...(((((((....))))))).)))))))((((...)))).(((..........))).....))))))))).)).)))))....((((..(((................)))..))))....... (-48.66 = -48.86 +   0.20)
 >snoR98
 GUUUAAUAGAU_AACCAUAU_UGCC__UAUA___UCUCUCCGCACAUCAAAUAAGGCAGAUAUUAAUGCUUGUGUUCCUCUCUAUAUGGA_CUUCAAGUUUGGCUAUCCUGUCACAUUU
-...................................................................(((((.(((((.........)))))..))))).((((......))))..... ( -9.65 = -10.15 +   0.50)
+...................................................................(((((...(((.........)))....))))).((((......))))..... ( -8.85 =  -8.35 +  -0.50)
 >snosnR60_Z15
 __GGGUCA___AUGAUGAU________AA_AAUGCAUAGUUCA_ACUGAUUAA__________UUUAUGAAGAUUA__AUU__CAUC____AUAGUCUUUCGCUCCUAUCUGA___UGACUCU_
 ............................................................................................................................ (  0.00 =   0.00 +   0.00)
@@ -798,7 +798,7 @@ __GAUGCAAUGAUGAGAUAA_AGCACG__AAGAGUGUGAGAAGGGCAGUGGACA_________________________U
 ..........................................(..(((((((..................................................................)))))))..)..... ( -3.95 =  -4.86 +   0.91)
 >snoR20
 AAGGAUGAU____GAAUACAAUUG____GUACAUAAAAUUAGUUGUGA__AACUCACAUGUUGAAAAAAGUAGAAUAC__CGAUGAAUAUCAAAGCUGACUU
-...................................(((((((((.(((.....(((..((((...........))))......)))...))).))))))))) ( -2.56 =  -4.00 +   1.44)
+......................................((((((.(((.....(((..((((...........))))......)))...))).))))))... ( -1.16 =  -1.85 +   0.69)
 >snoR21
 _AUCCCAAUGAUGAAUGAU_AUGAU_AAAAAUGUUAAAAGUAGUGA_CUGAU_AUCCAUUGAUGACUAGU___CAAUUCUGAGGGAUU
 ((((((...((..................................................................))...)))))) ( -3.56 =  -3.81 +   0.25)
@@ -858,7 +858,7 @@ AUAACGUGAUGGGAAGCGGCGCGCUUCCCGUGUAUGAUUGAACCCGCAUGGCUCCCGAAUCAUUCGGGGAAGCGCUGAGG
 ....((((((((((((((...)))))))))).))))..(((((((.((..((((((..........))).)))..)).)))))))....... (-35.31 = -34.75 +  -0.56)
 >sroH
 AAAAACAAGAACACAUGAUAACACAGUCAAGGAUGCAGCAGACUGAAG_AAUCCAGACAUCCCGCAACAAGCGAA___CGC_AGGUC_AGGCAAAGUCCGGUAAAGGCGCUCUGAAUACCAGAGAUAAU__UCUGGCGAAACCCACCUCAAGGUGGGUUUU
-((.((((((....)))))).))...(((((((((((.....((((..........(((...((...((((((((...)))).))))...))....)))))))....))))))))))).(((((((....))))))).((((((((((....)))))))))) (-43.55 = -47.05 +   3.50)
+........................((((.((..((...))..))))))....(((((.....((((...)))).....(((........((......)).......)))(((((.....))))).......))))).((((((((((....)))))))))) (-33.85 = -31.35 +  -2.50)
 >Gammaretro_CES
 GUCUGUACUAGUUAGCUAACUAGCUCUGUAUCUGGCGGACCCGUGGUGGAACUGACGAGUUCGGAACACCCGGCCGCAACC_CUGGGAGACGUCCCAG_GGAC
 .......((((((....))))))...........((((.((.(.(((((((((....)))))....)))))))))))..((.((((((....)))))).)).. (-37.60 = -35.85 +  -1.75)
@@ -1098,7 +1098,7 @@ UUGUGCCUACUCCUACUUUCCGUAGGGGUAGGCAUCU
 ....((((((((((((.....)))))))))))).... (-22.57 = -22.12 +  -0.45)
 >snosnR48
 UUACA_AUGAUGAU_CUCAUUU________AUGUUU_UUUCUGGCAUCUCUAAUGUUAGGAUG_CGAAGUUUAAGUACUCUC_CACUCGAUGAAUACAA_CUUUUGAC___AAUAUCUGAAA
-........................................(((((((.....)))))))((((.(((.((......)))))..))))................................... ( -7.68 =  -7.17 +  -0.51)
+........................................(((((((.....)))))))(((((..................)))))................................... ( -7.50 =  -6.35 +  -1.15)
 >snosnR55
 UUAUUUGAUGAAUA__CAUUACA__CAUCUUUUU_UUAUCCGGCGAUGAUUCCUU__GAA_UAUGUGCCAUGGAUAAAAACAUGCAUCACCAUCUGAUU
 .....................................(((((((......................)))..))))........................ ( -5.50 =  -5.17 +  -0.33)
@@ -1200,7 +1200,7 @@ CCAUCACCAC_CAUCAUCCUGA_CUAG_UCUUUCAGGC__GAUGU_____GUGC_U____GGAAGACAUUAA____GAUC
 .....................................................(.(....((((((............))))))))........................................(((((((((((((........)))))))))))))...... (-34.80 = -31.38 +  -3.42)
 >ylbH
 AUAAAAAAA_CCCAGC___AAA____GCAGGG_______________UCCUUCU__UCCUA_AAUUCA_AAGGA_GAAGGCAAAGGGAGAGGAGAAACCGGAGGAAGAACUUAUGGGGAAACGUAAGUCUUCUCCGCGG
-..........(((((((((....)))))))))................((((((..((((((......)))))))))))).....((((((((....((((((......))).)))...........)))))))).... (-42.68 = -37.10 +  -5.58)
+..........(((((((((....)))))))))................(((((...((((((......)))))).))))).....((((((((....((((((......))).)))...........)))))))).... (-42.66 = -36.67 +  -6.00)
 >serC
 CGGUGGGACACCCCUC_CCCAACGAG_GGGCGA_CUAUCUGGAAGGAUAGCAUAA
 ..........((((((.......))).))).....(((((....)))))...... (-13.57 = -12.04 +  -1.53)
