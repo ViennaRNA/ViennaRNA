@@ -19,7 +19,8 @@ who contributed larger parts of the implementations:
 - Ronny Lorenz      (circfold, version 2.0, generic constraints, grammar extensions, and much more)
 - Hakim Tafer       (RNAplex, RNAsnoop)
 - Ulrike Mueckstein (RNAup)
-- Stephan Bernhart  (cofold, plfold, unpaired probabilities, alifold, and so many more)
+- Stephan Bernhart  (RNAcofold, RNAplfold, unpaired probabilities, alifold, and so many more)
+- Stefan Wuchty     (RNAsubopt)
 - Ivo Hofacker, Peter Stadler, and Christoph Flamm (almost every implementation up to version 1.8.5)
 
 We also want to thank the following people:

@@ -2,9 +2,63 @@
 
 Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
 
-## Version 2.4.x
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.0...HEAD)
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.18...HEAD)
+## Version 2.5.x
+
+### [Version 2.5.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.18...v2.5.0) (Release date: 2021-11-08)
+
+#### Programs
+  * Add `RNAmultifold` program to compute secondary structures for multiple interacting RNAs
+  * Add multistrand capabilities to `RNAeval`
+  * Add multistrand capabilities to `RNAsubopt`
+  * Replace `RNAcofold` with a wrapper to `RNAmultifold`
+  * Fix computation of BB homodimer base pair probabilities in `RNAcofold`
+
+#### Library
+  * API: Fix use of undefined values in deprecated function `PS_dot_plot()`
+  * API: Fix probability computations for unstructured domains within multibranch loops
+  * API: Fix index error in ensemble defect computations
+  * API: Fix hard constraints behavior on non-specific base pairing
+  * API: Fix segmentation fault for short input sequences in `vrna_hx_from_ptable()`
+  * API: Fix memory leak in static `rna_layout()` function
+  * API: Fix corner-case in covariance score computation on sequence alignments that determines which alignment columns may pair and which don't
+  * API: Add MFE computations for multiple interacting strands
+  * API: Add partition function computations for multiple interacting strands
+  * API: Add base pair probability computations for multiple interacting strands
+  * API: Add suboptimal structure prediction for multiple interacting strands
+  * API: Add multistrand capabilities to `vrna_eval*()` functions
+  * API: Add new function `vrna_equilibrium_conc()` fir concentration dependency computations of multiple interacting strands with `dlib` backend
+  * API: Add `vrna_equilibrium_constants()` function to obtain equilibrium constants for different complexes of multiple interacting strands
+  * API: Add function `vrna_pf_add()` to add ensemble free energies of two ensembles
+  * API: Add function `vrna_pf_substrands()` to get ensemble free energies for complexes up to a specific number of interacting strands
+  * API: Add function `vrna_n_multichoose_k()` to obtain a list of k-combinations with repetition
+  * API: Add `vrna_cstr_discard()` function to allow for discarding char streams prior to flushing
+  * API: Add `vrna_bp_distance_pt()` function to allow for base pair distance computation with pseudo-knots
+  * API: Add functions `vrna_pbacktrack_sub*()` to allow for stochastic backtracing within arbitrary sequence intervals
+  * API: Add functions `vrna_boustrophedon()` and `vrna_boustrophedon_pos()` to generate lists of or obtain values from sequences of Boustrophedon distributed integer numbers
+  * API: Add `vrna_pscore()` and `vrna_pscore_freq()` functions to obtain covariance score for particular alignment columns
+  * API: Rewrite Zuker suboptimals implementation
+  * API: Remove old cofold implementations
+  * API: Make `type` attribute of `vrna_mx_mfe_t` and `vrna_mx_pf_t` a constant
+  * API: Guard more functions in `utils/structure_utils.c` against `NULL` input
+  * API: Rename `vrna_E_ext_loop()` to `vrna_eval_ext_stem()`
+  * API: Use v3 typedefs in dot-plot function declarations
+  * SWIG: Fix Python 3 file handle as optional argument in `eval*` functions and methods
+  * SWIG: Add wrapper for `vrna_pf_add()`
+  * SWIG: Add wrapper for `vrna_hx_from_ptable()`
+  * SWIG: Add wrapper for `vrna_db_from_probs()`
+
+#### Package
+  * Update `libsvm` to version 3.25
+  * Make Python 3.x the default Python for the scripting languange interfaces
+  * Add Python3 capability for Mac OS X installer builds
+  * TESTS: Create TAP driver output for all unit tests (library, executables, SWIG interfaces)
+  * Remove compile-time switch to deactivate Boustrophedon backtracing scheme (this is the status-quo now)
+  * Add Contributors License Agreement (CLA) to the Package in `doc/CLA/`
+
+
+## Version 2.4.x
 
 ### [Version 2.4.18](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.17...v2.4.18) (Release date: 2021-04-22)
 
