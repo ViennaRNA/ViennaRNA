@@ -112,7 +112,7 @@ If for any reason you want to disable this feature at compile-time use the follo
 
 @subsection config_swig   Scripting Interfaces
 
-The ViennaRNA Package comes with scripting language interfaces for Perl 5, Python 2, and Python 3 (provided by swig),
+The ViennaRNA Package comes with scripting language interfaces for Perl 5, Python 3.x, and Python 2.x (provided by swig),
 that allow one to use the implemented algorithms directly without the need of calling an executable program. The interfaces
 are build by default whenever the autoconf tool-chain detects the required build tools on your system. You may, however,
 explicitly turn off particular scripting language interface support at configure-time, for instance for Perl 5 and Python 2,
@@ -121,7 +121,7 @@ before the actual installation.
 Example:
 
 @verbatim
-./configure --without-perl --without-python
+./configure --without-perl --without-python2
 @endverbatim
 
 Disabling the scripting language support all-together can be accomplished using the following switch:
