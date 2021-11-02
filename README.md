@@ -19,7 +19,7 @@ Amongst other things, our implementations allow you to:
 - predict melting curves
 - search for sequences folding into a given structure
 - compare two secondary structures 
-- predict hybridization structures of two RNA molecules
+- predict interactions between multiple RNA molecules
 
 The package includes `Perl 5`, `Python 2`, and `Python 3` modules that give
 access to almost all functions of the C library from within the respective
@@ -182,12 +182,12 @@ implemented algorithms directly without the need of calling an executable
 program. The necessary requirements are determined at configure time and
 particular languages may be deactivated automatically, if the requirements are
 not met. You may also switch-off particular languages by passing the
-`--without-perl`, `--without-python`, and/or `--without-python3` configure
+`--without-perl`, `--without-python`, and/or `--without-python2` configure
 options, e.g.
 ```
 ./configure --without-perl --without-python
 ```
-will turn-off the `Perl 5` and `Python 2` interfaces.
+will turn-off the `Perl 5` and `Python 3` interfaces.
 
 Disabling the entire scripting language support alltogether can be accomplished
 with the `--without-swig` switch.
@@ -294,6 +294,7 @@ The ViennaRNA Package includes the following executable programs:
 | `RNAinverse`    | Find RNA sequences with given secondary structure (sequence design)                                                       |
 | `RNALalifold`   | Calculate locally stable secondary structures for a set of aligned RNAs                                                   |
 | `RNALfold`      | Calculate locally stable secondary structures of long RNAs                                                                |
+| `RNAmultifold`  | Compute secondary structures and probabilities for multiple interacting RNAs                                              |
 | `RNApaln`       | RNA alignment based on sequence base pairing propensities                                                                 |
 | `RNApdist`      | Calculate distances between thermodynamic RNA secondary structures ensembles                                              |
 | `RNAparconv`    | Convert energy parameter files from ViennaRNA 1.8 to 2.0 format                                                           |
