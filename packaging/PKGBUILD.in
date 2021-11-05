@@ -107,14 +107,14 @@ package_viennarna() {
 package_python2-rna() {
   depends=('python2' viennarna="${pkgver}")
   cd "${srcdir}/ViennaRNA-${pkgver}"
-  cd interfaces/Python
+  cd interfaces/Python2
   make DESTDIR="${pkgdir}" install
 }
 
 package_python-rna() {
   depends=('python' viennarna="${pkgver}")
   cd "${srcdir}/ViennaRNA-${pkgver}"
-  cd interfaces/Python3
+  cd interfaces/Python
   make DESTDIR="${pkgdir}" install
 }
 

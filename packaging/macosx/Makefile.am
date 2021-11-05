@@ -205,7 +205,7 @@ staging-perl:
 ##
 staging-python:
 	$(prepare_verbose)$(remove_staging_python_dir)
-	$(AM_V_at)cd $(top_srcdir)/interfaces/Python \
+	$(AM_V_at)cd $(top_srcdir)/interfaces/Python2 \
       && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_python_dir)
 
 ##
@@ -213,7 +213,7 @@ staging-python:
 ##
 staging-python3:
 	$(prepare_verbose)$(remove_staging_python3_dir)
-	$(AM_V_at)cd $(top_srcdir)/interfaces/Python3 \
+	$(AM_V_at)cd $(top_srcdir)/interfaces/Python \
       && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_python3_dir)
 
 ##
