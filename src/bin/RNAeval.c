@@ -394,7 +394,7 @@ process_input(FILE            *input_stream,
   /* print user help if we get input from tty */
   if (istty_in && istty_out) {
     read_opt |= VRNA_INPUT_NOSKIP_BLANK_LINES;
-    vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.\n"
+    vrna_message_input_seq("Use '&' to connect sequences that shall form a complex.\n"
                            "Input sequence (upper or lower case) followed by structure");
   }
 
@@ -459,7 +459,7 @@ process_input(FILE            *input_stream,
 
     /* print user help for the next round if we get input from tty */
     if (istty_in && istty_out)
-      vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.\n"
+      vrna_message_input_seq("Use '&' to connect sequences that shall form a complex.\n"
                              "Input sequence (upper or lower case) followed by structure");
   } while (1);
 
