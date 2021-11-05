@@ -1,7 +1,7 @@
 # Name of your program
 package "RNAmultifold" # don't use package if you're using automake
 
-purpose "calculate secondary structures of two RNAs with dimerization"
+purpose "Compute secondary structures of multiple interacting RNAs"
 
 #usage "RNAmultifold [options] [<input0.fa>] [<input1.fa>]...\n"
 # Version of your program
@@ -17,8 +17,11 @@ description "The program works much like RNAfold, but allows one to specify mult
  format, i.e. each line of input corresponds to one sequence, except for lines starting\
  with \">\" which contain the name of the next sequence(s).\nMultiple strands must be concatenated\
  using the \'&\' character as\
- separator.\nRNAmultifold currently only computs the partition function, corresponding ensemble free energy\
- and base pairing probabilities.\nOutput consists of a PostScript \"dot plot\" file containing\
+ separator.\nRNAmultifold can compute MFE, partition function, corresponding ensemble free energy\
+ and base pairing probabilities. These properties are either computed for a particular arrangement\
+ (concatenation) of sequences, for the full ensemble of the complex of input RNAs, or all complexes\
+ formed by the input sequences up to a specified number of interacting sequences.\nOutput consists\
+ of a PostScript \"dot plot\" file containing\
  the pair probabilities, see the RNAfold man page for details.\nThe program will continue to\
  read new sequences until a line consisting of the single character @ or an end of file\
  condition is encountered.\n\n"
@@ -183,7 +186,7 @@ sectiondesc="Select additional algorithms which should be included in the calcul
 
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix in\
- addition to the mfe structure. Default is calculation of mfe structure only.\n"
+ addition to the MFE structure. Default is calculation of mfe structure only.\n"
 details="In addition to the MFE structure\
  we print a coarse representation of the pair probabilities in form of a pseudo bracket notation, followed by\
  the ensemble free energy.\nNote that unless you also specify\
@@ -198,15 +201,11 @@ argoptional
 optional
 
 option "all_pf" a
-"Compute the partition function and free energies not only of the hetero-dimer consisting\
- of the two input sequences (the \"AB dimer\"), but also of the homo-dimers AA and BB as\
- well as A and B monomers.\n"
-details="The output will contain the free energies for each of these species, as well as\
- 5 dot plots containing the conditional pair probabilities, called \"ABname5.ps\", \"AAname5.ps\"\
- and so on. For later use, these dot plot files also contain the free energy of the\
- ensemble as a comment. Using -a automatically switches on the -p option.\
- Base pair probability computations may be turned off altogether by providing \"0\" as\
- an argument to this parameter. In that case, no dot plot files will be generated.\n\n"
+"Compute the partition function and free energies not only for the complex formed by the\
+ input sequences (the \"ABC... mutimer\"), but also of all complexes formed by the input\
+ sequences up to the number of input sequences, e.g. AAA, AAB, ABB, BBB, etc.\n"
+details="The output will contain the free energies for each of these species.\
+ Using -a automatically switches on the -p option.\n\n"
 int
 default="1"
 argoptional
@@ -215,17 +214,18 @@ optional
 
 option  "concentrations"  c
 "In addition to everything listed under the -a option, read in initial monomer concentrations\
- and compute the expected equilibrium concentrations of the 5 possible species (AB, AA, BB, A, B).\n"
+ and compute the expected equilibrium concentrations of all possible species (A, B, AA, BB, AB, etc).\n"
 details="Start concentrations are read from stdin (unless the -f option is used) in [mol/l],\
- equilibrium concentrations are given realtive to the sum of the two inputs. An arbitrary number\
- of initial concentrations can be specified (one pair of concentrations per line).\n\n"
+ equilibrium concentrations are given realtive to the sum of the inputs. An arbitrary number\
+ of initial concentrations can be specified (one tuple of concentrations per line).\n\n"
 flag
 off
 
 option  "concfile"  f
-"Specify a file with initial concentrations for the two sequences."
-details="The table consits of arbitrary many lines with just two numbers (the concentration of\
- sequence A and B). This option will automatically toggle the -c (and thus -a and -p) options (see above).\n\n"
+"Specify a file with initial concentrations for the input sequences."
+details="The table consits of arbitrary many lines with multiple numbers separated by whitespace\
+ (the concentration of the input sequences A, B, C, etc.).\
+ This option will automatically toggle the -c (and thus -a and -p) options (see above).\n\n"
 string
 typestr="filename"
 optional
@@ -260,7 +260,8 @@ default="1e-5"
 hidden
 
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n"
+details="Note, only intramolecular G-quadruplexes are considered.\n\n"
 flag
 off
 

@@ -480,9 +480,9 @@ process_input(FILE            *input_stream,
         VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK |
         VRNA_CONSTRAINT_DB_RND_BRACK);
       vrna_message_input_seq("Input sequence (upper or lower case) followed by structure constraint\n"
-                             "Use '&' to connect 2 sequences that shall form a complex.");
+                             "Use '&' to connect sequences that shall form a complex.");
     } else {
-      vrna_message_input_seq("Use '&' to connect 2 sequences that shall form a complex.");
+      vrna_message_input_seq("Use '&' to connect sequences that shall form a complex.");
     }
   }
 
@@ -554,7 +554,7 @@ process_input(FILE            *input_stream,
 
     /* print user help for the next round if we get input from tty */
     if (istty) {
-      printf("Use '&' to connect 2 sequences that shall form a complex.\n");
+      printf("Use '&' to connect sequences that shall form a complex.\n");
       if (fold_constrained) {
         vrna_message_constraint_options(
           VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_ANG_BRACK |
