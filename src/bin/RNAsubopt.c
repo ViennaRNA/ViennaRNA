@@ -269,7 +269,7 @@ main(int  argc,
   /* print user help if we get input from tty */
   if (istty) {
     if (!zuker)
-      print_comment(stdout, "Use '&' to connect 2 sequences that shall form a complex.");
+      print_comment(stdout, "Use '&' to connect sequences that shall form a complex.");
 
     if (fold_constrained) {
       vrna_message_constraint_options(
@@ -439,7 +439,7 @@ main(int  argc,
                               VRNA_PBACKTRACK_DEFAULT;
 
       if (vc->cutpoint != -1)
-        vrna_message_error("Boltzmann sampling for cofolded structures not implemented (yet)!");
+        vrna_message_error("Boltzmann sampling for multiple interacting sequences not implemented (yet)!");
 
       print_fasta_header(output, rec_id);
 
@@ -552,7 +552,7 @@ main(int  argc,
     /* print user help for the next round if we get input from tty */
     if (istty) {
       if (!zuker)
-        print_comment(stdout, "Use '&' to connect 2 sequences that shall form a complex.");
+        print_comment(stdout, "Use '&' to connect sequences that shall form a complex.");
 
       if (fold_constrained) {
         vrna_message_constraint_options(
