@@ -725,14 +725,6 @@ make_pscores(vrna_fold_compound_t *fc)
 #define NONE -10000 /* score for forbidden pairs */
 
   int       i, j, k, l, s, max_span, turn;
-  int       olddm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */
-                            { 0, 0, 2, 2, 1, 2, 2 } /* CG */,
-                            { 0, 2, 0, 1, 2, 2, 2 } /* GC */,
-                            { 0, 2, 1, 0, 2, 1, 2 } /* GU */,
-                            { 0, 1, 2, 2, 0, 2, 1 } /* UG */,
-                            { 0, 2, 2, 1, 2, 0, 2 } /* AU */,
-                            { 0, 2, 2, 2, 1, 2, 0 } /* UA */ };
-
   short     **S   = fc->S;
   char      **AS  = fc->sequences;
   int       n_seq = fc->n_seq;
