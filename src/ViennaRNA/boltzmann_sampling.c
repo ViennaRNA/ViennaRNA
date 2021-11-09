@@ -353,9 +353,9 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
                 struct vrna_pbacktrack_memory_s   *nr_mem)
 {
   char                *pstruc;
-  unsigned int        i, n;
+  unsigned int        i;
   int                 ret, pf_overflow, is_dup, *my_iindx;
-  FLT_OR_DBL          *q1k, *qln, *q;
+  FLT_OR_DBL          *q;
   vrna_mx_pf_t        *matrices;
   struct aux_mem      helper_arrays;
   struct sc_wrappers  *sc_wrap;
@@ -364,13 +364,9 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
   pf_overflow = 0;
   sc_wrap     = sc_init(vc);
 
-  n         = vc->length;
   my_iindx  = vc->iindx;
   matrices  = vc->exp_matrices;
   q         = matrices->q;
-
-  q1k       = matrices->q1k;
-  qln       = matrices->qln;
 
   helper_arrays.qik = (FLT_OR_DBL*)vrna_alloc(sizeof(FLT_OR_DBL) * (end - start + 2));
   helper_arrays.qik -= start - 1;
@@ -449,8 +445,8 @@ backtrack_ext_loop(int                              start,
   unsigned char             *hard_constraints;
   short                     *S1, *S2, **S, **S5, **S3;
   unsigned int              **a2s, s, n_seq;
-  int                       ret, i, j, ij, n, k, u, type, *my_iindx, hc_decompose, *hc_up_ext;
-  FLT_OR_DBL                r, fbd, fbds, qt, q_temp, qkl, *q, *qb, *q1k, *scale;
+  int                       ret, i, j, ij, n, k, type, *my_iindx, hc_decompose, *hc_up_ext;
+  FLT_OR_DBL                r, fbd, fbds, qt, q_temp, qkl, *qb, *q1k, *scale;
   double                    *q_remain;
   vrna_mx_pf_t              *matrices;
   vrna_md_t                 *md;
@@ -514,7 +510,6 @@ backtrack_ext_loop(int                              start,
   /* assume successful backtracing by default */
   ret = 1;
 
-  q     = matrices->q;
   qb    = matrices->qb;
   q1k   = helper_arrays->qik;
   scale = matrices->scale;
@@ -597,7 +592,6 @@ backtrack_ext_loop(int                              start,
     }
 
     r = vrna_urn() * (q1k[j] - q_temp - fbd);
-    u = j - 1;
     i = 2;
 
     unsigned int *is = vrna_boustrophedon(start, j - 1);
