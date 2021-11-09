@@ -226,8 +226,8 @@ hc_depot_store_bp(vrna_fold_compound_t  *fc,
                   unsigned int          strand_j,
                   unsigned char         context)
 {
-  size_t    k, old_size, next_entry, entry;
-  vrna_hc_t           *hc;
+  size_t    next_entry;
+  vrna_hc_t *hc;
 
   hc_depot_init(fc);
 
@@ -260,7 +260,7 @@ hc_depot_store_bp(vrna_fold_compound_t  *fc,
 PRIVATE void
 hc_depot_free(vrna_hc_t *hc)
 {
-  unsigned int    s, i, n;
+  unsigned int    s, i;
   vrna_hc_depot_t *depot = hc->depot;
 
   if (depot) {

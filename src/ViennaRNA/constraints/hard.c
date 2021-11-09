@@ -223,13 +223,12 @@ vrna_hc_update(vrna_fold_compound_t *fc,
                unsigned int         i,
                unsigned int         options)
 {
-  unsigned int  n, maxdist;
+  unsigned int  n;
   vrna_hc_t     *hc;
 
   if (fc) {
-    n       = fc->length;
-    maxdist = fc->window_size;
-    hc      = fc->hc;
+    n   = fc->length;
+    hc  = fc->hc;
 
     if (i > n) {
       vrna_message_warning("vrna_hc_update(): Position %u out of range!",
@@ -398,7 +397,7 @@ vrna_hc_add_up_strand_batch(vrna_fold_compound_t *fc,
                             vrna_hc_up_t         *constraints)
 {
   unsigned char options;
-  unsigned int  i, strand, pos, n_pos, *ss, *sn;
+  unsigned int  i, strand, pos, n_pos;
   int           ret;
 
   ret = 0; /* failure */
@@ -406,9 +405,6 @@ vrna_hc_add_up_strand_batch(vrna_fold_compound_t *fc,
   if ((fc) &&
       (constraints)) {
     if (fc->hc) {
-      sn = fc->strand_number;
-      ss = fc->strand_start;
-
       for (i = 0; constraints[i].position != 0; i++) {
         pos     = (unsigned int)constraints[i].position;
         strand  = (unsigned int)constraints[i].strand;
@@ -448,8 +444,7 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
                            int                  d,
                            unsigned char        option)
 {
-  unsigned int  n, strand, actual_i, *sn, *ss, *se;
-  int           p;
+  unsigned int  strand, actual_i, *sn, *ss;
   vrna_hc_t     *hc;
 
   if (vc) {
@@ -461,10 +456,8 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
       }
 
       hc        = vc->hc;
-      n         = hc->n;
       sn        = vc->strand_number;
       ss        = vc->strand_start;
-      se        = vc->strand_end;
       strand    = sn[i];
       actual_i  = i - ss[strand] + 1;
 
@@ -488,7 +481,7 @@ vrna_hc_add_bp_strand(vrna_fold_compound_t *fc,
                       unsigned int         strand_j,
                       unsigned char        option)
 {
-  unsigned int  n, *sn, *se, *ss, n_i, n_j, k, l;
+  unsigned int  n_i, n_j;
   int           ret, turn;
   vrna_hc_t     *hc;
 
@@ -500,9 +493,6 @@ vrna_hc_add_bp_strand(vrna_fold_compound_t *fc,
       (strand_j < fc->strands) &&
       (i > 0) &&
       (j > 0)) {
-    sn  = fc->strand_number;
-    ss  = fc->strand_start;
-    se  = fc->strand_end;
     hc        = fc->hc;
     n_i       = (fc->type == VRNA_FC_TYPE_SINGLE) ?
                 fc->nucleotides[strand_i].length :
@@ -544,16 +534,14 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
                int                  j,
                unsigned char        option)
 {
-  unsigned int  n, *sn, *se, *ss, strand_i, strand_j, actual_i, actual_j;
-  int           k, l, ret;
-  vrna_hc_t     *hc;
+  unsigned int  *sn, *ss, strand_i, strand_j, actual_i, actual_j;
+  int           ret;
 
   ret = 0;
 
   if (vc) {
     sn  = vc->strand_number;
     ss  = vc->strand_start;
-    se  = vc->strand_end;
 
     if (vc->hc) {
       if ((i <= 0) || (j <= i) || (j > vc->length)) {
@@ -565,10 +553,6 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
           j,
           vc->params->model_details.min_loop_size);
       } else {
-
-        hc        = vc->hc;
-        n         = hc->n;
-
         /*
             determine the corresponding strand numbers and the actual
             position (relative to the strand)
@@ -599,7 +583,6 @@ vrna_hc_free(vrna_hc_t *hc)
     if (hc->type == VRNA_HC_DEFAULT) {
       free(hc->mx);
     } else if (hc->type == VRNA_HC_WINDOW) {
-      unsigned int i;
       free(hc->matrix_local);
     }
 
@@ -851,7 +834,6 @@ default_hc_up(vrna_fold_compound_t *fc,
 {
   unsigned int    i, n;
   vrna_hc_t       *hc;
-  vrna_hc_depot_t *depot;
 
   hc = fc->hc;
 
@@ -995,17 +977,15 @@ PRIVATE void
 prepare_hc_bp(vrna_fold_compound_t *fc,
               unsigned int         options)
 {
-  unsigned char   option, type;
-  unsigned int    i, j, k, p, q, n, actual_i, actual_j, strand_j, start, end, t_start, t_end, s, *sn, *ss, *se;
+  unsigned char   option;
+  unsigned int    i, j, k, p, q, n, actual_i, actual_j, strand_j, s, *ss;
   int             *idx;
   vrna_hc_t       *hc;
   vrna_hc_depot_t *depot;
 
   hc    = fc->hc;
   depot = hc->depot;
-  sn = fc->strand_number;
   ss = fc->strand_start;
-  se = fc->strand_end;
 
   if ((!depot) || (!depot->bp))
     return;
@@ -1092,7 +1072,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
                unsigned int         i,
                unsigned int         options)
 {
-  unsigned char constraint, type, t1, t2;
+  unsigned char constraint, type;
   unsigned int  max_span, maxdist, j, k, p, n, l, turn, strand, sj, sl, actual_i, actual_j, actual_l, *sn, *ss;
   vrna_hc_t     *hc;
 
@@ -1861,7 +1841,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc)
 PRIVATE void
 hc_update_up(vrna_fold_compound_t *vc)
 {
-  unsigned int  i, n, u;
+  unsigned int  i, n;
   vrna_hc_t     *hc;
 
   n   = vc->length;
