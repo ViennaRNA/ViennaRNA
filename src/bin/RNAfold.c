@@ -971,11 +971,10 @@ process_record(struct record_data *record)
                                  energy);
 
       if (!opt->noDP) {
-        char  *filename_dotplot, *filename_stackplot;
+        char  *filename_dotplot;
         plist *pl1, *pl2;
 
         filename_dotplot    = NULL;
-        filename_stackplot  = NULL;
 
         /* generate initial element probability lists for dot-plot */
         pl1 = vrna_plist_from_probs(vc, opt->bppmThreshold);
