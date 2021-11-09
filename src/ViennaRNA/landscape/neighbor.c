@@ -2524,7 +2524,7 @@ generate_local_nb_insertion(vrna_fold_compound_t      *fc,
                             unsigned int              options)
 {
   unsigned int  n = fc->length;
-  int           i, j;
+  int           i;
   int           enclosing_5   = 0;          /* exterior loop */
   int           enclosing_3   = (int)n + 1; /* exterior loop */
   int           min_loop_size = fc->params->model_details.min_loop_size;
@@ -2876,7 +2876,7 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t      *fc,
                                       unsigned int              options)
 {
   unsigned int  n = fc->length;
-  int           i, j;
+  int           i;
   int           enclosing_5   = 0;          /* exterior loop */
   int           enclosing_3   = (int)n + 1; /* exterior loop */
   int           min_loop_size = fc->params->model_details.min_loop_size;
