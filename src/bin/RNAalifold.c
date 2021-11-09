@@ -1272,7 +1272,7 @@ Boltzmann_sampling(vrna_fold_compound_t *fc,
                    struct options       *opt,
                    vrna_cstr_t          rec_output)
 {
-  unsigned int i, options;
+  unsigned int options;
 
   options = (opt->non_red) ?
             VRNA_PBACKTRACK_NON_REDUNDANT :
@@ -1340,7 +1340,6 @@ compute_MEA(vrna_fold_compound_t  *fc,
             vrna_cstr_t           rec_output)
 {
   char  *MEA_structure;
-  int   gq;
   float mea, *ens;
 
   /* compute MEA */
