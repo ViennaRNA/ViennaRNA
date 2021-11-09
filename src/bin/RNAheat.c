@@ -411,11 +411,9 @@ static void
 process_record(struct record_data *record)
 {
   char                  *rec_sequence;
-  int                   i, n, m;
-  float                 hc, F[MAXWIDTH], T_min, T_max, h;
-  double                min_en;
+  int                   n, m;
+  float                 T_min, T_max, h;
   vrna_fold_compound_t  *fc;
-  vrna_md_t             md;
 
   struct options        *opt;
   struct output_stream  *o_stream;
