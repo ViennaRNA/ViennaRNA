@@ -467,7 +467,7 @@ vrna_strjoin(const char **strings,
              const char *delimiter)
 {
   char        *s = NULL;
-  size_t      n, offset, *lengths, num_strings, mem_strings, total_length;
+  size_t      n, offset, *lengths, mem_strings, total_length;
 
   if (strings) {
     total_length  = 0;
