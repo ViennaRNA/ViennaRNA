@@ -50,22 +50,16 @@ int
 main(int  argc,
      char *argv[])
 {
-  FILE                    *pUfp, *spup;
   struct PKplex_args_info args_info;
   char                    *id_s1, *s1, *orig_s1, *ParamFile, *ns_bases, *plexstring,
                           *constraint, fname[FILENAME_MAX_LENGTH], *annotation, **rest;
   unsigned int            options;
-  int                     istty, i, j, noconv, length, pairdist, current, unpaired, winsize, verbose;
-  float                   cutoff, constrainedEnergy;
-  double                  **pup, subopts, pk_penalty;
-  plist                   *pl, *dpp;
+  int                     istty, i, noconv, length, pairdist, unpaired, winsize, verbose;
+  float                   cutoff;
+  double                  subopts, pk_penalty;
   vrna_md_t               md;
 
   options     = 0;
-  pup         = NULL;           /*prob of being unpaired, lengthwise*/
-  pUfp        = NULL;
-  dpp         = NULL;
-  spup        = NULL;
   subopts     = 0.0;
   dangles     = 2;
   winsize     = 70;
@@ -77,6 +71,7 @@ main(int  argc,
   ParamFile   = ns_bases = NULL;
   s1          = id_s1 = orig_s1 = NULL;
   annotation  = NULL;
+  constraint  = NULL;
   verbose     = 0;
 
   vrna_md_set_default(&md);
