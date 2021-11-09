@@ -654,7 +654,6 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
                int                  *dmli1,
                int                  *dmli2)
 {
-  unsigned int              *sn;
   int                       decomp, e, dangle_model;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -662,7 +661,6 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_dat          sc_wrapper;
 
-  sn            = fc->strand_number;
   P             = fc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
