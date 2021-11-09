@@ -2031,15 +2031,13 @@ pair_multi_strand(vrna_fold_compound_t *fc,
 {
   short                     *S1, *S2, s5, s3;
   unsigned int              *sn, *ends, type, nick;
-  int                       *idx;
-  int                       start, n, contribution, **fms5, **fms3, base, tmp, tmp2, dangle_model;
+  int                       start, contribution, **fms5, **fms3, base, tmp, tmp2, dangle_model;
   vrna_param_t              *params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
   struct hc_ext_def_dat       *hc_dat_local;
 
   contribution  = INF;
-  n             = fc->length;
   S1            = fc->sequence_encoding;
   S2            = fc->sequence_encoding2;
   params        = fc->params;
@@ -2049,7 +2047,6 @@ pair_multi_strand(vrna_fold_compound_t *fc,
   ends          = fc->strand_end;
   fms5          = fc->matrices->fms5;
   fms3          = fc->matrices->fms3;
-  idx           = fc->jindx;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
 
@@ -2280,22 +2277,20 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
 {
   short                     *S1, *S2, s5, s3;
   unsigned int              *sn, *ends, type, nick;
-  int                       *idx, **fms5, **fms3;
-  int                       start, n, base, tmp, dangle_model;
+  int                       **fms5, **fms3;
+  int                       start, base, tmp, dangle_model;
   vrna_param_t              *params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
   struct hc_ext_def_dat       *hc_dat_local;
 
   if (fc) {
-    n             = fc->length;
     S1            = fc->sequence_encoding;
     S2            = fc->sequence_encoding2;
     params        = fc->params;
     md            = &(params->model_details);
     dangle_model  = md->dangles;
     sn            = fc->strand_number;
-    idx           = fc->jindx;
     ends          = fc->strand_end;
     fms5          = fc->matrices->fms5;
     fms3          = fc->matrices->fms3;
@@ -2745,7 +2740,7 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
 {
   short                     *S1, *S2, s5, s3;
   unsigned int              *sn, *ss, type;
-  int                       u, *idx, start, n, *c, **fms3, base, tmp, dangle_model, turn;
+  int                       u, *idx, start, n, *c, **fms3, base, dangle_model, turn;
   vrna_param_t              *params;
   vrna_md_t                 *md;
   vrna_callback_hc_evaluate *evaluate;
