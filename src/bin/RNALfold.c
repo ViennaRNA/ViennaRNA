@@ -72,7 +72,7 @@ main(int  argc,
   int                         length, istty, noconv, maxdist, zsc, tofile, filename_full,
                               with_shapes, verbose, backtrack, zsc_pre, zsc_subsumed;
   double                      min_en, min_z;
-  long int                    file_pos_start, file_pos_end;
+  long int                    file_pos_start;
   vrna_md_t                   md;
   vrna_cmd_t                  commands;
   dataset_id                  id_control;
@@ -100,7 +100,6 @@ main(int  argc,
   command_file  = NULL;
   commands      = NULL;
   file_pos_start  = -1;
-  file_pos_end    = -1;
 
   /* apply default model details */
   vrna_md_set_default(&md);
