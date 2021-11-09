@@ -49,41 +49,6 @@ Newton_Conc(double  ZAB,
 
 
 PRIVATE double *
-equilibrium_constants(double  *dG_complexes,
-                      double  *dG_strands,
-                      double  kT,
-                      size_t  strands,
-                      size_t  complexes);
-
-
-PRIVATE double
-h(double        *L,
-  double        *eq_const,
-  double        *conc_strands_total,
-  unsigned int  **A,
-  size_t        strands,
-  size_t        complexes);
-
-
-PRIVATE double *
-gradient(double       *L,
-         double       *eq_const,
-         double       *conc_strands_total,
-         unsigned int **A,
-         size_t       strands,
-         size_t       complexes);
-
-
-PRIVATE double **
-Hessian(double        *L,
-        double        *eq_const,
-        double        **delta,
-        unsigned int  **A,
-        size_t        strands,
-        size_t        complexes);
-
-
-PRIVATE double *
 conc_single_strands(double  *L,
                     size_t  strands);
 
@@ -216,14 +181,14 @@ Newton_Conc(double  KAB,
  *  ensemble free energies of the single strands
  */
 PUBLIC double *
-vrna_equilibrium_constants(const double        *dG_complexes,
-                      const double        *dG_strands,
-                      const unsigned int  **A,
-                      double        kT,
-                      size_t        strands,
-                      size_t        complexes)
+vrna_equilibrium_constants(const double       *dG_complexes,
+                           const double       *dG_strands,
+                           const unsigned int **A,
+                           double             kT,
+                           size_t             strands,
+                           size_t             complexes)
 {
-  double *K, tmp, tmp2;
+  double *K, tmp;
 
   K   = (double *)vrna_alloc(sizeof(double) * complexes);
 
@@ -236,146 +201,6 @@ vrna_equilibrium_constants(const double        *dG_complexes,
   }
 
   return K;
-}
-
-
-/*
- *  function to minimize to obtain equlibrium concentrations
- *  of multistrand systems. We use the transformation
- *
- *  L_a = lambda_a + ln Z_a
- *
- *  such that h(L) reads
- *
- *  h(L) = -\sum_a (c_a L_a - exp(L_a)) + sum_k K_k exp(sum_b L_b A_{b,k}
- *
- *  with total concentration c_a of strand a, equilibrium constant
- *  K_k of strand k, and membership matrix A[b][k] denoting the number
- *  of strands b in complex k
- *
- *  Note, here we minimize h(L) due to implementation issues whereas
- *  in our publication we've written h'(L) = -h(L) to effectively
- *  maximize the function instead.
- */
-PRIVATE double
-h(double        *L,
-  double        *eq_const,
-  double        *conc_strands_total,
-  unsigned int  **A,
-  size_t        strands,
-  size_t        complexes)
-{
-  double h, hh, *K;
-
-  K = (double *)vrna_alloc(sizeof(double) * complexes);
-  h = 0.;
-
-  for (size_t k = 0; k < complexes; k++) {
-    for (size_t a = 0; a < strands; a++)
-      K[k] += L[a] *
-              A[a][k];
-
-    K[k] = eq_const[k] *
-           exp(K[k]);
-  }
-
-  for (size_t a = 0; a < strands; a++)
-    h -= conc_strands_total[a] *
-         L[a] -
-         exp(L[a]);
-
-  for (size_t k = 0; k < complexes; k++)
-    h += K[k];
-
-  free(K);
-
-  return h;
-}
-
-
-/*
- *  Get gradient of h(L)
- */
-PRIVATE double *
-gradient(double       *L,
-         double       *eq_const,
-         double       *conc_strands_total,
-         unsigned int **A,
-         size_t       strands,
-         size_t       complexes)
-{
-  double *g, gg, *K;
-
-  g = (double *)vrna_alloc(sizeof(double) * strands);
-  K = (double *)vrna_alloc(sizeof(double) * complexes);
-
-  for (size_t k = 0; k < complexes; k++) {
-    for (size_t a = 0; a < strands; a++)
-      K[k] += L[a] *
-              A[a][k];
-
-    K[k] = eq_const[k] *
-           exp(K[k]);
-  }
-
-  for (size_t a = 0; a < strands; a++) {
-    g[a] = -conc_strands_total[a] +
-           exp(L[a]);
-
-    for (size_t k = 0; k < complexes; k++)
-      g[a] += A[a][k] *
-              K[k];
-  }
-
-  free(K);
-
-  return g;
-}
-
-
-/*
- *  Get Hessian of h(L)
- */
-PRIVATE double **
-Hessian(double        *L,
-        double        *eq_const,
-        double        **delta,
-        unsigned int  **A,
-        size_t        strands,
-        size_t        complexes)
-{
-  double **H, hh, *K;
-
-  H = (double **)vrna_alloc(sizeof(double *) * strands);
-  K = (double *)vrna_alloc(sizeof(double) * complexes);
-
-  for (size_t k = 0; k < complexes; k++) {
-    for (size_t a = 0; a < strands; a++)
-      K[k] += L[a] *
-              A[a][k];
-
-    K[k] = eq_const[k] *
-           exp(K[k]);
-  }
-
-  for (size_t a = 0; a < strands; a++) {
-    H[a] = (double *)vrna_alloc(sizeof(double) * strands);
-
-    for (size_t b = 0; b < strands; b++) {
-      H[a][b] = delta[a][b] *
-                exp(L[a]);
-
-      for (size_t k = 0; k < complexes; k++) {
-        H[a][b] += A[a][k] *
-                   A[b][k] *
-                   K[k];
-      }
-    }
-  }
-
-  free(K);
-
-  return H;
 }
 
 
