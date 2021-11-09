@@ -1354,7 +1354,7 @@ PRIVATE vrna_mx_mfe_t *
 init_mx_mfe_window(vrna_fold_compound_t *fc,
                    unsigned int         alloc_vector)
 {
-  unsigned int  n, m, size, lin_size;
+  unsigned int  n, m, lin_size;
   vrna_mx_mfe_t *mx;
   vrna_mx_mfe_t init = {
     .type = VRNA_MX_WINDOW
@@ -1621,7 +1621,7 @@ PRIVATE vrna_mx_pf_t *
 init_mx_pf_default(vrna_fold_compound_t *fc,
                    unsigned int         alloc_vector)
 {
-  unsigned int  n, size, lin_size, s, strands;
+  unsigned int  n, size, lin_size;
   vrna_mx_pf_t  *mx;
   vrna_mx_pf_t  init = {
     .type = VRNA_MX_DEFAULT
@@ -1685,7 +1685,7 @@ PRIVATE vrna_mx_pf_t *
 init_mx_pf_window(vrna_fold_compound_t  *fc,
                   unsigned int          alloc_vector)
 {
-  unsigned int  n, m, size, lin_size, s, strands;
+  unsigned int  n, m, lin_size;
   vrna_mx_pf_t  *mx;
   vrna_mx_pf_t  init = {
     .type = VRNA_MX_WINDOW
@@ -1744,7 +1744,7 @@ PRIVATE vrna_mx_pf_t *
 init_mx_pf_2Dfold(vrna_fold_compound_t  *fc,
                   unsigned int          alloc_vector)
 {
-  unsigned int  n, size, lin_size, s, strands;
+  unsigned int  n, size, lin_size;
   vrna_mx_pf_t  *mx;
   vrna_mx_pf_t  init = {
     .type = VRNA_MX_2DFOLD
