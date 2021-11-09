@@ -48,12 +48,6 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *fc,
                      int                  j);
 
 
-PRIVATE FLT_OR_DBL
-exp_eval_hp_loop_fake(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j);
-
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -88,92 +82,6 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
   }
 
   return 0.;
-}
-
-
-PRIVATE FLT_OR_DBL
-exp_eval_hp_loop_fake(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j)
-{
-  short             *S, *S2, s5, s3;
-  unsigned int      *sn, *ss, *se;
-  int               u, type, *iidx, *jidx;
-  FLT_OR_DBL        qq, temp, *q, *scale;
-  vrna_exp_param_t  *pf_params;
-  vrna_sc_t         *sc;
-  vrna_md_t         *md;
-  vrna_ud_t         *domains_up;
-
-  iidx        = fc->iindx;
-  jidx        = fc->jindx;
-  pf_params   = fc->exp_params;
-  md          = &(pf_params->model_details);
-  q           = fc->exp_matrices->q;
-  scale       = fc->exp_matrices->scale;
-  sn          = fc->strand_number;
-  ss          = fc->strand_start;
-  se          = fc->strand_end;
-  domains_up  = fc->domains_up;
-
-  qq = 0;
-
-  switch (fc->type) {
-    /* single sequences and cofolding hybrids */
-    case  VRNA_FC_TYPE_SINGLE:
-      S     = fc->sequence_encoding;
-      S2    = fc->sequence_encoding2;
-      sc    = fc->sc;
-      u     = j - i - 1;
-      type  = vrna_get_ptype_md(S2[j], S2[i], md);
-
-      temp = scale[2];
-
-      if (u > 0) {
-        /* add contribution for [i + 1, end(strand(i))] */
-        if (sn[i] == sn[i + 1])
-          temp *= q[iidx[i + 1] - se[sn[i]]];
-
-        /* add contribution for [start(strand(j)), j - 1] */
-        if (sn[j - 1] == sn[j])
-          temp *= q[iidx[ss[sn[j]]] - (j - 1)];
-      }
-
-      s5  = (sn[j] == sn[j - 1]) ? S[j - 1] : -1;
-      s3  = (sn[i + 1] == sn[i]) ? S[i + 1] : -1;
-
-      temp *= vrna_exp_E_ext_stem(type, s5, s3, pf_params);
-
-      qq += temp;
-
-      /* add soft constraints */
-      if (sc) {
-        if (sc->exp_energy_up)
-          qq *= sc->exp_energy_up[i + 1][u];
-
-        if (sc->exp_energy_bp)
-          qq *= sc->exp_energy_bp[jidx[j] + i];
-
-        if (sc->exp_f)
-          qq *= sc->exp_f(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-      }
-
-      if (domains_up && domains_up->exp_energy_cb) {
-        /* we always consider both, bound and unbound state */
-        qq += qq * domains_up->exp_energy_cb(fc,
-                                             i + 1, j - 1,
-                                             VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
-                                             domains_up->data);
-      }
-
-      break;
-
-    /* nothing */
-    default:
-      break;
-  }
-
-  return qq;
 }
 
 
