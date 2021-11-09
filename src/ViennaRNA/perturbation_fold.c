@@ -210,7 +210,7 @@ pairing_probabilities_from_sampling(vrna_fold_compound_t  *vc,
                                     unsigned int          options)
 {
   char    **samples, **ptr;
-  int     length, i, j, s;
+  int     length, i, j;
   double  mfe;
 
   length = vc->length;
