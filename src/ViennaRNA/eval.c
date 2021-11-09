@@ -296,7 +296,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
                     int                   verbosity_level)
 {
   /* compute energy of a single loop closed by base pair (i,j) */
-  unsigned int  *sn, *so, *ss;
+  unsigned int  *sn;
   int           j, type, p, q, energy;
   short         *s;
   vrna_param_t  *P;
@@ -306,8 +306,6 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
   if (pt && vc) {
     P   = vc->params;
     sn  = vc->strand_number;
-    so  = vc->strand_order;
-    ss  = vc->strand_start;
     s   = vc->sequence_encoding2;
 
     vrna_sc_prepare(vc, VRNA_OPTION_MFE);
@@ -394,18 +392,12 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
                   int                   m2)
 {
   /*compute change in energy given by move (m1,m2)*/
-  unsigned int  *sn, *so, *ss;
   int           en_post, en_pre, i, j, k, l, len;
-  vrna_param_t  *P;
 
   len = vc->length;
-  sn  = vc->strand_number;
-  so  = vc->strand_order;
-  ss  = vc->strand_start;
-  P   = vc->params;
+  k   = (m1 > 0) ? m1 : -m1;
+  l   = (m2 > 0) ? m2 : -m2;
 
-  k = (m1 > 0) ? m1 : -m1;
-  l = (m2 > 0) ? m2 : -m2;
   /* first find the enclosing pair i<k<l<j */
   for (j = l + 1; j <= len; j++) {
     if (pt[j] <= 0)
@@ -624,11 +616,7 @@ eval_pt(vrna_fold_compound_t  *vc,
         vrna_cstr_t           output_stream,
         int                   verbosity_level)
 {
-  unsigned int  *sn;
-  int           i, length, ee, energy;
-
-  length  = vc->length;
-  sn      = vc->strand_number;
+  int ee, energy;
 
   if (vc->params->model_details.gquad)
     vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\n"
@@ -691,9 +679,9 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                      const short          *pt)
 {
   short         *s, *s1, s5, s3, **S, **S5, **S3;
-  unsigned int  a, n, u, tt, *so, *sn, *ss, *se, sss, strand, last_strand, i, j, last_i,
+  unsigned int  a, n, u, tt, *so, *sn, *ss, sss, strand, last_strand, i, j, last_i,
                 start, n_seq, **a2s, strand_start, strand_end;
-  int           energy, dangle_model, bonus, ee, e, e_mm3_occupied, e_mm3_available;
+  int           energy, dangle_model, bonus, e, e_mm3_occupied, e_mm3_available;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_sc_t     *sc, **scs;
@@ -709,7 +697,6 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
   so            = fc->strand_order;
   sn            = fc->strand_number;
   ss            = fc->strand_start;
-  se            = fc->strand_end;
   P             = fc->params;
   md            = &(P->model_details);
   sc            = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sc : NULL;
@@ -717,12 +704,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   energy        = 0;
 
+  strand_start  = strand_end = 0;
+
   /*
       if begin == 0, or there exists only a single strand,
       we evaluiate the entire external loop
   */
   if ((begin == 0) || (fc->strands < 2)) {
-    strand_start  = 0;
     strand_end    = fc->strands - 1;
   } else {
     /*
@@ -1008,14 +996,13 @@ energy_of_ext_loop_components(vrna_fold_compound_t *fc,
                                vrna_cstr_t          output_stream,
                                int                  verbosity_level)
 {
-  unsigned int last_s, s, i, n, a, *so, *sn, *ss, *se;
+  unsigned int last_s, s, i, n, a, *so, *sn, *ss;
   int           energy  = 0;
 
   n       = fc->length;
   so      = fc->strand_order;
   sn      = fc->strand_number;
   ss      = fc->strand_start;
-  se      = fc->strand_end;
   energy  = 0;
 
   /* start scanning for enclosing pair from each strand start site in 5'->3' direction */
@@ -1536,7 +1523,7 @@ stack_energy(vrna_fold_compound_t *vc,
              int                  verbosity_level)
 {
   /* recursively calculate energy of substructure enclosed by (i,j) */
-  unsigned int  *sn, *so, *ss;
+  unsigned int  *sn;
   int           ee, energy, j, p, q;
   char          *string;
   short         *s;
@@ -1544,8 +1531,6 @@ stack_energy(vrna_fold_compound_t *vc,
   vrna_md_t     *md;
 
   sn      = vc->strand_number;
-  so      = vc->strand_order;
-  ss      = vc->strand_start;
   s       = vc->sequence_encoding2;
   P       = vc->params;
   md      = &(P->model_details);
@@ -2521,6 +2506,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *vc,
 }
 
 
+#ifndef MULTISTRAND_EVAL
 PRIVATE int
 cut_in_loop(int           i,
             const short   *pt,
@@ -2539,7 +2525,7 @@ cut_in_loop(int           i,
   } while ((p != j) && (sn[i] == sn[p]));
   return sn[i] == sn[p] ? 0 : p;
 }
-
+#endif
 
 /* below are the consensus structure evaluation functions */
 
