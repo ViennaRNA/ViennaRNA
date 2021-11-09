@@ -194,7 +194,7 @@ vrna_pscore(vrna_fold_compound_t  *fc,
 {
   char          **AS;
   short         **S;
-  unsigned int  k, l, n, tmp, u, s, n_seq;
+  unsigned int  n, tmp, u, s, n_seq;
   int           turn, max_span;
   vrna_md_t     *md;
 
@@ -224,7 +224,6 @@ vrna_pscore(vrna_fold_compound_t  *fc,
 
     if ((u > turn) &&
         (u + 2) <= max_span) {
-      double  score;
       unsigned int pfreq[8] = {
         0, 0, 0, 0, 0, 0, 0, 0
       };
