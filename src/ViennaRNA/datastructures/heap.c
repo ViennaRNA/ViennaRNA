@@ -316,7 +316,7 @@ PRIVATE INLINE void
 heapify_down(struct vrna_heap_s *h,
              size_t             pos)
 {
-  void    *child_v, *child_v2, *v;
+  void    *child_v, *v;
   size_t  last_pos, child_pos, child_pos2;
 
   last_pos = h->num_entries;
