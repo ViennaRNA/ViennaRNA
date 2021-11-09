@@ -1100,7 +1100,7 @@ cov_score(vrna_fold_compound_t  *fc,
 {
   char **AS;
   short **S;
-  int n_seq, k, l, s, type;
+  int n_seq, s, type;
   vrna_md_t *md;
   unsigned int pfreq[8] = {
     0, 0, 0, 0, 0, 0, 0, 0
