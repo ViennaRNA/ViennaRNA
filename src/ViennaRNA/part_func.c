@@ -82,10 +82,8 @@ PUBLIC FLT_OR_DBL
 vrna_pf(vrna_fold_compound_t  *fc,
         char                  *structure)
 {
-  unsigned int      *so, *ss, *se;
   int               n;
   FLT_OR_DBL        Q, dG;
-  char              *sequence;
   vrna_md_t         *md;
   vrna_exp_param_t  *params;
   vrna_mx_pf_t      *matrices;
@@ -100,12 +98,8 @@ vrna_pf(vrna_fold_compound_t  *fc,
     }
 
     n         = fc->length;
-    sequence  = fc->sequence;
     params    = fc->exp_params;
     matrices  = fc->exp_matrices;
-    so        = fc->strand_order;
-    ss        = fc->strand_start,
-    se        = fc->strand_end;
     md        = &(params->model_details);
 
 #ifdef _OPENMP
