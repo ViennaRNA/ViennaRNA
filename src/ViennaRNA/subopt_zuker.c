@@ -104,7 +104,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
 {
   unsigned char           **todo;
   char                    *s;
-  short                   *S, *S1, s5, s3;
+  short                   *S, *S1;
   unsigned int            i, j, k, l, n, min_i, turn, type, *sn, u1, u2, u,
                           num_pairs, num_struct;
   int                     e, tmp, ppp, ij, kl, *c, *outside_c, *f5, *f3, *fML,
