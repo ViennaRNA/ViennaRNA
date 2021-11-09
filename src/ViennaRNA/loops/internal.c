@@ -147,8 +147,8 @@ eval_int_loop(vrna_fold_compound_t  *fc,
               int                   k,
               int                   l)
 {
-  unsigned int      *sn, *ss, n_seq, s, **a2s;
-  int               e, *rtype, type, type2, with_ud;
+  unsigned int      *sn, n_seq, s, **a2s;
+  int               e, type, type2, with_ud;
   short             *S, *S2, **SS, **S5, **S3;
   vrna_param_t      *P;
   vrna_md_t         *md;
@@ -159,8 +159,6 @@ eval_int_loop(vrna_fold_compound_t  *fc,
   P           = fc->params;
   md          = &(P->model_details);
   sn          = fc->strand_number;
-  ss          = fc->strand_start;
-  rtype       = &(md->rtype[0]);
   S           = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
   S2          = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
   SS          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
@@ -370,7 +368,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   unsigned char         sliding_window, hc_decompose, *hc_mx, **hc_mx_local;
   char                  *ptype, **ptype_local;
   short                 *S, **SS, **S5, **S3;
-  unsigned int          *sn, *ss, **a2s, n_seq, s, n;
+  unsigned int          *sn, **a2s, n_seq, s, n;
   int                   e, eee, *idx, ij, *c, *ggg, *rtype, with_ud, with_gquad, noclose,
                         *hc_up, **c_local, **ggg_local;
   vrna_param_t          *P;
@@ -388,7 +386,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   n               = fc->length;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   sn              = fc->strand_number;
-  ss              = fc->strand_start;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   idx             = fc->jindx;
   ij              = (sliding_window) ? 0 : idx[j] + i;
@@ -936,8 +933,8 @@ E_stack(vrna_fold_compound_t  *fc,
   unsigned char         sliding_window, hc_decompose_ij, hc_decompose_pq,
                         *hc_mx, **hc_mx_local, eval_loop;
   char                  *ptype, **ptype_local;
-  short                 *S, **SS;
-  unsigned int          n, *sn, *ss, type, type_2;
+  short                 **SS;
+  unsigned int          n, *sn, type, type_2;
   int                   e, ij, pq, p, q, s, n_seq, *rtype, *indx;
   vrna_param_t          *P;
   vrna_md_t             *md;
@@ -952,8 +949,6 @@ E_stack(vrna_fold_compound_t  *fc,
   q               = j - 1;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   sn              = fc->strand_number;
-  ss              = fc->strand_start;
-  S               = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : NULL;
   SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
   ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ?
                     (sliding_window ? NULL : fc->ptype) :

@@ -98,7 +98,7 @@ BT_stack(vrna_fold_compound_t *fc,
   unsigned char         sliding_window, eval_loop, hc_decompose_ij, hc_decompose_pq;
   char                  *ptype, **ptype_local;
   short                 **SS;
-  unsigned int          n, n_seq, s, *sn, *ss, type, type_2;
+  unsigned int          n, n_seq, s, *sn, type, type_2;
   int                   ret, eee, ij, p, q, *idx, *my_c, **c_local, *rtype;
   vrna_param_t          *P;
   vrna_md_t             *md;
@@ -111,7 +111,6 @@ BT_stack(vrna_fold_compound_t *fc,
   n               = fc->length;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   sn              = fc->strand_number;
-  ss              = fc->strand_start;
   SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
   ptype           = (sliding_window) ? NULL : fc->ptype;
   ptype_local     = (sliding_window) ? fc->ptype_local : NULL;
