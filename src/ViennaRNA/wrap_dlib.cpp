@@ -118,7 +118,7 @@ h_derivative(const column_vector& L,
              size_t               strands,
              size_t               complexes)
 {
-  double        gg, *K, *maxK;
+  double        *K, *maxK;
   column_vector g(strands);
 
   K     = (double *)vrna_alloc(sizeof(double) * complexes);
@@ -167,12 +167,11 @@ h_derivative(const column_vector& L,
 PRIVATE matrix<double>
 h_hessian(const column_vector&  L,
           const double          *eq_constants,
-          const double          **delta,
           const unsigned int    **A,
           size_t                strands,
           size_t                complexes)
 {
-  double                  hh, *K, **xs;
+  double                  *K, **xs;
 
   PRIVATE matrix<double>  H(strands, strands);
 
@@ -239,7 +238,6 @@ typedef matrix<double> general_matrix;
 
 const double *eq_constants;
 const double *concentration_strands_tot;
-const double **delta;
 const unsigned int **A;
 size_t strands;
 size_t complexes;
@@ -255,14 +253,12 @@ void
 init(const double       *eq_constants,
      const double       *concentration_strands_tot,
      const unsigned int **A,
-     const double       **delta,
      size_t             strands,
      size_t             complexes)
 {
   this->eq_constants              = eq_constants;
   this->concentration_strands_tot = concentration_strands_tot;
   this->A                         = A;
-  this->delta                     = delta;
   this->strands                   = strands;
   this->complexes                 = complexes;
 }
@@ -274,7 +270,7 @@ get_derivative_and_hessian(const column_vector& x,
                            general_matrix&      hess) const
 {
   der   = h_derivative(x, eq_constants, concentration_strands_tot, A, strands, complexes);
-  hess  = h_hessian(x, eq_constants, delta, A, strands, complexes);
+  hess  = h_hessian(x, eq_constants, A, strands, complexes);
 }
 };
 
@@ -307,12 +303,9 @@ conc_complexes(const column_vector& L,
                size_t               strands,
                size_t               complexes)
 {
-  double *c, *c_free;
+  double *c;
 
-  c       = (double *)vrna_alloc(sizeof(double) * complexes);
-#if 1
-//  for (size_t a = 0; a < strands; a++)
-//    printf("L[%u] = %g\n", a, L(a));
+  c = (double *)vrna_alloc(sizeof(double) * complexes);
 
   for (size_t k = 0; k < complexes; k++) {
     c[k] = log(eq_const[k]);
@@ -322,18 +315,6 @@ conc_complexes(const column_vector& L,
 
     c[k] = exp(c[k]);
   }
-#else
-  c_free  = conc_single_strands(L, strands);
-
-  for (size_t k = 0; k < complexes; k++) {
-    c[k] = eq_const[k];
-
-    for (size_t a = 0; a < strands; a++)
-      c[k] *= pow(c_free[a], (double)A[a][k]);
-  }
-
-  free(c_free);
-#endif
 
   return c;
 }
@@ -349,14 +330,12 @@ vrna_equilibrium_conc(const double        *eq_constants,
   double        *r = NULL;
 
   column_vector starting_point;
-  double        **delta;
 
   h_model       h;
 
   h.init(eq_constants,
          concentration_strands,
          A,
-         (const double **)delta,
          num_strands,
          num_complexes);
 
