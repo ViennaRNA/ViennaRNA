@@ -42,7 +42,7 @@ libRNA_la_SOURCES =
 libRNA_la_LIBADD = libRNA_conv.la
 libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS) $(PTHREAD_LIBS)
 
-libRNA_concentrations_la_CPPFLAGS = $(DLIB_CPPFLAGS)
+libRNA_concentrations_la_CPPFLAGS = $(AM_CPPFLAGS) $(DLIB_CPPFLAGS)
 
 libRNA_conv_la_LIBADD = \
     libRNA_concentrations.la \
