@@ -1133,7 +1133,6 @@ contrib_ext_pair(vrna_fold_compound_t *fc,
   FLT_OR_DBL            contribution;
   vrna_exp_param_t      *pf_params;
   vrna_sc_t             *sc;
-  struct sc_ext_exp_dat *sc_dat;
 
   n         = fc->length;
   pf_params = fc->exp_params;
@@ -1142,7 +1141,6 @@ contrib_ext_pair(vrna_fold_compound_t *fc,
   ptype     = fc->ptype;
   jindx     = fc->jindx;
   sc        = fc->sc;
-  sc_dat    = &(constraints->sc_wrapper_ext);
 
   type  = vrna_get_ptype(jindx[j] + i, ptype);
   s5    = ((i > 1) && (sn[i] == sn[i - 1])) ? S1[i - 1] : -1;
@@ -1173,7 +1171,6 @@ contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
   vrna_sc_t             **scs;
-  struct sc_ext_exp_dat *sc_dat;
 
   n         = fc->length;
   n_seq     = fc->n_seq;
@@ -1186,7 +1183,6 @@ contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
   a2s       = fc->a2s;
   pscore    = fc->pscore;           /* precomputed array of pair types */
   scs       = fc->scs;
-  sc_dat    = &(constraints->sc_wrapper_ext);
   kTn       = pf_params->kT / 10.;  /* kT in cal/mol  */
 
   contribution = exp(pscore[jindx[j] + i] / kTn);
