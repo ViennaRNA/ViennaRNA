@@ -113,24 +113,8 @@ static void
 process_record(struct record_data *record);
 
 
-PRIVATE vrna_dimer_pf_t
-do_partfunc(char            *string,
-            int             length,
-            int             Switch,
-            plist           **tpr,
-            plist           **mf,
-            double          kT,
-            struct options  *opt);
-
-
 PRIVATE double *
 read_concentrations(FILE *fp, size_t num_strands);
-
-
-PRIVATE void
-print_concentrations(vrna_cstr_t        stream,
-                     vrna_dimer_conc_t  *result,
-                     double             *startconc);
 
 
 static int
@@ -723,7 +707,8 @@ process_record(struct record_data *record)
   }
 
   {
-    char *pstruct, *tmp_struct = strdup(mfe_structure);
+    char *pstruct     = NULL;
+    char *tmp_struct  = strdup(mfe_structure);
 
     if (vc->strands == 1) {
       pstruct = tmp_struct;
@@ -751,7 +736,7 @@ process_record(struct record_data *record)
 
   /* compute partition function */
   if (opt->pf) {
-    char              *pairing_propensity;
+    char *pairing_propensity;
 
     prAB                = NULL;
     pairing_propensity  = (char *)vrna_alloc(sizeof(char) * (n + 1));
@@ -771,11 +756,11 @@ process_record(struct record_data *record)
                              vc->exp_params->pf_scale);
 
     /* compute partition function */
-    FLT_OR_DBL dG, dG_AA, dG_BB;
+    FLT_OR_DBL dG;
     dG = vrna_pf(vc, pairing_propensity);
 
     if (opt->md.compute_bpp) {
-      char *costruc, *filename_dot, *comment;
+      char *filename_dot, *comment, *costruc = NULL;
       prAB = vrna_plist_from_probs(vc, opt->bppmThreshold);
 
       filename_dot = get_filename(record->SEQ_ID, "dp.ps", "dot.ps", opt);
@@ -793,7 +778,7 @@ process_record(struct record_data *record)
       free(comment);
       free(filename_dot);
 
-      char *pstruct, *tmp_struct = strdup(pairing_propensity);
+      char *tmp_struct = strdup(pairing_propensity);
 
       if (vc->strands == 1) {
         costruc = tmp_struct;
@@ -855,7 +840,7 @@ process_record(struct record_data *record)
         char *verbose_line = NULL;
 
         if (opt->verbose)
-          fprintf(stderr, "Processing complexes of size %u\n", k);
+          fprintf(stderr, "Processing complexes of size %lu\n", k);
 
         for (size_t c_cnt = 0; c_cnt < num_complexes; c_cnt++) {
           if (opt->verbose)
@@ -903,7 +888,7 @@ process_record(struct record_data *record)
             char *current_sequence = NULL;
 
             if (opt->verbose) {
-              fprintf(stderr, "\r%s, permutation %u/%u                    ",
+              fprintf(stderr, "\r%s, permutation %lu/%lu                    ",
                     verbose_line,
                     i+1, num_perm);
               fflush(stderr);
@@ -1447,81 +1432,6 @@ get_filename(const char     *id,
 }
 
 
-PRIVATE vrna_dimer_pf_t
-do_partfunc(char            *string,
-            int             length,
-            int             Switch,
-            plist           **tpr,
-            plist           **mfpl,
-            double          kT,
-            struct options  *opt)
-{
-  /*compute mfe and partition function of dimer or monomer*/
-  char                  *Newstring;
-  char                  *tempstruc;
-  double                min_en;
-  vrna_md_t             *md;
-  vrna_dimer_pf_t       X;
-  vrna_fold_compound_t  *vc;
-
-  md = &(opt->md);
-
-  switch (Switch) {
-    case 1:   /* monomer */
-      tempstruc = (char *)vrna_alloc((unsigned)length + 1);
-      vc        = vrna_fold_compound(string,
-                                     md,
-                                     VRNA_OPTION_MFE | VRNA_OPTION_PF);
-      min_en  = vrna_mfe(vc, tempstruc);
-      *mfpl   = vrna_plist(tempstruc, 0.95);
-      vrna_mx_mfe_free(vc);
-
-      vrna_exp_params_rescale(vc, &min_en);
-
-      X = vrna_pf_dimer(vc, NULL);
-      if (md->compute_bpp)
-        *tpr = vrna_plist_from_probs(vc, opt->bppmThreshold);
-
-      vrna_fold_compound_free(vc);
-      free(tempstruc);
-      break;
-
-    case 2:   /* dimer */
-      tempstruc = (char *)vrna_alloc((unsigned)length * 2 + 2);
-      Newstring = (char *)vrna_alloc(sizeof(char) * (length * 2 + 2));
-      strcat(Newstring, string);
-      strcat(Newstring, "&");
-      strcat(Newstring, string);
-
-      vc = vrna_fold_compound(Newstring,
-                              md,
-                              VRNA_OPTION_MFE | VRNA_OPTION_PF | VRNA_OPTION_HYBRID);
-
-      min_en  = vrna_mfe_dimer(vc, tempstruc);
-      *mfpl   = vrna_plist(tempstruc, 0.95);
-      vrna_mx_mfe_free(vc);
-
-      vrna_exp_params_rescale(vc, &min_en);
-
-      X = vrna_pf_dimer(vc, NULL);
-      if (md->compute_bpp)
-        *tpr = vrna_plist_from_probs(vc, opt->bppmThreshold);
-
-      vrna_fold_compound_free(vc);
-
-      free(Newstring);
-      free(tempstruc);
-      break;
-
-    default:
-      printf("Error in get_partfunc\n, computing neither mono- nor dimere!\n");
-      exit(42);
-  }
-
-  return X;
-}
-
-
 void
 postscript_layout(vrna_fold_compound_t  *fc,
                   const char            *orig_sequence,
@@ -1566,40 +1476,12 @@ postscript_layout(vrna_fold_compound_t  *fc,
 }
 
 
-PRIVATE void
-print_concentrations(vrna_cstr_t        stream,
-                     vrna_dimer_conc_t  *result,
-                     double             *startconc)
-{
-  /* compute and print concentrations out of free energies, calls get_concentrations */
-  int i, n;
-
-  vrna_cstr_printf_thead(stream,
-                         "Initial concentrations\t\trelative Equilibrium concentrations\n"
-                         "A\t\tB\t\tAB\t\tAA\t\tBB\t\tA\t\tB");
-
-  for (n = 0; (startconc[2 * n] > 0) || (startconc[2 * n + 1] > 0); n++); /* count */
-  for (i = 0; i < n; i++) {
-    double tot = result[i].Ac_start + result[i].Bc_start;
-    vrna_cstr_printf_tbody(stream,
-                           "%-10g\t%-10g\t%.5f \t%.5f \t%.5f \t%.5f \t%.5f",
-                           result[i].Ac_start,
-                           result[i].Bc_start,
-                           result[i].ABc / tot,
-                           result[i].AAc / tot,
-                           result[i].BBc / tot,
-                           result[i].Ac / tot,
-                           result[i].Bc / tot);
-  }
-}
-
-
 PRIVATE double *
 read_concentrations(FILE *fp, size_t num_strands)
 {
   /* reads concentrations, returns list of double, -1. marks end */
-  char    *line, *format;
-  double  *startc, *conc_line;
+  char    *line;
+  double  *startc;
   int     i = 0, n = 2;
 
   startc = (double *)vrna_alloc((num_strands * n + 1) * sizeof(double));
