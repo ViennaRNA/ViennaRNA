@@ -92,7 +92,7 @@ main(int  argc,
                           *cstruc2, *cstruc_target, *cstruc_combined, *cmdl_parameters, *orig_s1, *orig_s2,
                           *orig_target;
   int                     i, j, length1, length2, length_target, sym, istty,
-                          rotated, noconv, max_u, **unpaired_values, ulength_num;
+                          noconv, max_u, **unpaired_values, ulength_num;
   double                  min_en, sfact;
 
   /* variables for output */
@@ -121,7 +121,6 @@ main(int  argc,
   sfact           = 1.07;
   dangles         = 2;
   do_backtrack    = 1;
-  rotated         = 0;
   input_string    = s1 = s2 = s3 = s_target = cstruc1 = cstruc2 = cstruc_target = cstruc_combined = NULL;
   length1         = length2 = length_target = 0;
   inter_out       = NULL;
@@ -403,7 +402,6 @@ main(int  argc,
    #############################################
    */
   do {
-    rotated   = 0;
     cut_point = -1;
     fname1[0] = '\0';
     fname2[0] = '\0';
@@ -579,7 +577,6 @@ main(int  argc,
     /* rotate input sequences if upmode>=2 to ensure first sequence is the longer one */
     if (up_mode & (RNA_UP_MODE_2 | RNA_UP_MODE_3)) {
       if (length1 < length2) {
-        rotated = 1;
         /* rotate the sequences such that the longer is the first */
         int   l = length2;
         length2 = length1;
