@@ -535,7 +535,7 @@ set_sequence(vrna_seq_t   *obj,
     obj->encoding5[1] = obj->encoding3[obj->length] = 0;
   }
 
-  for (size_t i = 1, p = 0; i < obj->length; i++) {
+  for (size_t i = 1; i < obj->length; i++) {
     if (obj->encoding[i] == 0)
       obj->encoding5[i + 1] = obj->encoding5[i];
     else
