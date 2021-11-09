@@ -123,7 +123,7 @@ PUBLIC float
 vrna_mfe_dimer(vrna_fold_compound_t *vc,
                char                 *structure)
 {
-  char          *s1, *s2, *ss1, *ss2;
+  char          *s2, *ss1, *ss2;
   unsigned int  l1, l2;
   float         mfe, mfe1, mfe2;
 
@@ -136,7 +136,6 @@ vrna_mfe_dimer(vrna_fold_compound_t *vc,
   if (vc->strands > 1) {
     l1 = vc->nucleotides[0].length;
     l2 = vc->nucleotides[1].length;
-    s1 = vc->nucleotides[0].string;
     s2 = vc->nucleotides[1].string;
     ss1 = (char *)vrna_alloc(sizeof(char) * (l1 + 1));
     ss2 = (char *)vrna_alloc(sizeof(char) * (l2 + 1));
