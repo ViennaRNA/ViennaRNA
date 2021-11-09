@@ -448,7 +448,6 @@ vrna_path_direct_ub(vrna_fold_compound_t        *fc,
                     int                         maxE,
                     struct vrna_path_options_s  *options)
 {
-  int                         E, d;
   struct vrna_path_options_s  *o;
   vrna_path_t                 *route = NULL;
 
