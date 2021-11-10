@@ -777,6 +777,6 @@ covscore(const int  *types,
 
   /* counter examples score -1, gap-gap scores -0.25   */
   pscore = cv_fact * ((UNIT * score) / n_seq -
-           nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
+                      nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
   return pscore;
 }
