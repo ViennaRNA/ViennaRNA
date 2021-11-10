@@ -16,8 +16,8 @@
 #include "ViennaRNA/utils/svm.h"
 
 
-#include "ViennaRNA/params/svm_model_avg.inc"  /* defines avg_model_string */
-#include "ViennaRNA/params/svm_model_sd.inc"   /* defines sd_model_string */
+#include "ViennaRNA/params/svm_model_avg.inc"   /* defines avg_model_string */
+#include "ViennaRNA/params/svm_model_sd.inc"    /* defines sd_model_string */
 
 
 PRIVATE struct svm_model  *avg_model;
@@ -48,6 +48,7 @@ get_z(char    *sequence,
   short         *S      = encode_sequence(sequence, 0);
   unsigned int  length  = strlen(sequence);
   int           *AUGC   = get_seq_composition(S, 1, length, length);
+
   avg_model           = svm_load_model_string(avg_model_string);
   sd_model            = svm_load_model_string(sd_model_string);
   average_free_energy = avg_regression(AUGC[0],
