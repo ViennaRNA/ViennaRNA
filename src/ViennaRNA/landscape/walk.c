@@ -181,9 +181,11 @@ isLexicographicallySmaller(short        *ptStructure,
   /* ...string comparison for shifts and other moves */
   short *s_m  = vrna_ptable_copy(ptStructure);
   short *s_n  = vrna_ptable_copy(ptStructure);
+
   vrna_move_apply(s_m, m);
   vrna_move_apply(s_n, n);
   bool  isSmaller = false;
+
   for (int i = 1; i < s_m[0]; i++) {
     if (s_m[i] != s_n[i]) {
       char  c_m = '.';
