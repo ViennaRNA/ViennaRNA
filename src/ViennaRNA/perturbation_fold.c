@@ -118,6 +118,7 @@ evaluate_perturbation_vector_score(vrna_fold_compound_t *vc,
 
   /* get new (constrained) MFE to scale pf computations properly */
   double mfe = (double)vrna_mfe(vc, NULL);
+
   vrna_exp_params_rescale(vc, &mfe);
 
   vrna_pf(vc, NULL);
@@ -159,6 +160,7 @@ pairing_probabilities_from_restricted_pf(vrna_fold_compound_t *vc,
 
   /* get new (constrained) MFE to scale pf computations properly */
   double mfe = (double)vrna_mfe(vc, NULL);
+
   vrna_exp_params_rescale(vc, &mfe);
 
   vrna_pf(vc, NULL);
