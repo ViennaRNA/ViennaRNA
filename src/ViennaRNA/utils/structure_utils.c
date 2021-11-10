@@ -542,12 +542,14 @@ PUBLIC int
 vrna_bp_distance_pt(const short *pt1,
                     const short *pt2)
 {
-  /* dist = {number of base pairs in one structure but not in the other} */
-  /* same as edit distance with pair_open pair_close as move set */
+  /*
+   * dist = {number of base pairs in one structure but not in the other}
+   * same as edit distance with pair_open pair_close as move set
+   */
   int   dist;
   short i, l;
 
-  dist  = 0;
+  dist = 0;
 
   if (pt1 && pt2) {
     l = (pt1[0] < pt2[0]) ? pt1[0] : pt2[0]; /* minimum of the two lengths */
@@ -573,8 +575,8 @@ vrna_bp_distance(const char *str1,
   int   dist = 0;
   short *pt1, *pt2;
 
-  pt1    = vrna_ptable(str1);
-  pt2    = vrna_ptable(str2);
+  pt1 = vrna_ptable(str1);
+  pt2 = vrna_ptable(str2);
 
   dist = vrna_bp_distance_pt(pt1, pt2);
 
@@ -704,6 +706,7 @@ vrna_refBPdist_matrix(const short   *pt1,
   size  = ((n + 1) * (n + 2)) / 2;
   array = (unsigned int *)vrna_alloc(sizeof(unsigned int) * size);
   int           *iindx = vrna_idx_row_wise(n);
+
   for (i = n - turn - 1; i >= 1; i--) {
     d = 0;
     for (j = i + turn + 1; j <= n; j++) {
@@ -987,7 +990,7 @@ vrna_plist_append(vrna_ep_t       **target,
 
     if (*target) {
       memcpy(*target + size1, list, sizeof(vrna_ep_t) * size2);
-      (*target)[size1 + size2].i = (*target)[size1 + size2].j = 0;
+      (*target)[size1 + size2].i    = (*target)[size1 + size2].j = 0;
       (*target)[size1 + size2].type = 0;
       return 1;
     }
@@ -1162,8 +1165,8 @@ vrna_abstract_shapes(const char   *structure,
 
 
 PUBLIC char *
-vrna_abstract_shapes_pt(const short  *pt,
-                        unsigned int level)
+vrna_abstract_shapes_pt(const short   *pt,
+                        unsigned int  level)
 {
   if (pt) {
     if (level > 5)
@@ -1186,7 +1189,7 @@ shrep_insert_after(struct shrep *target,
                    char         character)
 {
   struct shrep *entry, *ptr;
-  
+
   entry             = (struct shrep *)vrna_alloc(sizeof(struct shrep));
   entry->character  = character;
   entry->pred       = NULL;
@@ -1207,7 +1210,7 @@ shrep_insert_before(struct shrep  *target,
                     char          character)
 {
   struct shrep *entry, *ptr;
-  
+
   entry             = (struct shrep *)vrna_alloc(sizeof(struct shrep));
   entry->character  = character;
   entry->pred       = NULL;
@@ -1238,9 +1241,9 @@ shrep_concat(struct shrep **target,
   if (ptr_s)
     for (; ptr_s->pred; ptr_s = ptr_s->pred);
 
-  if (!ptr_p)
+  if (!ptr_p) {
     *target = ptr_s;
-  else if (ptr_s) {
+  } else if (ptr_s) {
     ptr_p->succ = ptr_s;
     ptr_s->pred = ptr_p;
   }
@@ -1255,8 +1258,8 @@ db2shapes(const char    *structure,
   char          *SHAPE;
   short         *pt;
 
-  n     = strlen(structure);
-  pt    = vrna_ptable(structure);
+  n   = strlen(structure);
+  pt  = vrna_ptable(structure);
 
   SHAPE = db2shapes_pt(pt, n, level);
 
@@ -1286,16 +1289,16 @@ db2shapes_pt(const short  *pt,
     for (; ptr->pred; ptr = ptr->pred);
 
     for (n = 0; ptr; n++) {
-      SHAPE[n] = ptr->character;
-      ptr2 = ptr;
-      ptr = ptr->succ;
+      SHAPE[n]  = ptr->character;
+      ptr2      = ptr;
+      ptr       = ptr->succ;
       free(ptr2);
     }
 
     free(ptr);
 
-    SHAPE = vrna_realloc(SHAPE, sizeof(char) * (n + 1));
-    SHAPE[n] = '\0';
+    SHAPE     = vrna_realloc(SHAPE, sizeof(char) * (n + 1));
+    SHAPE[n]  = '\0';
   }
 
   return SHAPE;
@@ -1312,7 +1315,7 @@ get_shrep(const short   *pt,
   unsigned int  components, i, k, l, ext, u5, u3, cnt;
   unsigned char no_stack, bulge;
 
-  shape_string  = NULL;
+  shape_string = NULL;
 
   /* find out if there is more than one component */
   for (i = start, components = 0; i <= end; i++) {
@@ -1333,26 +1336,29 @@ get_shrep(const short   *pt,
   }
 
   for (; start <= end; start++) {
-    if (start < pt[start]) { /* we have base pair (start, pt[start]) */
+    if (start < pt[start]) {
+      /* we have base pair (start, pt[start]) */
       substring = sub5 = sub3 = NULL;
       k         = start + 1;
       l         = pt[start] - 1;
 
       while (1) {
-        u5 = 0;
-        u3 = 0;
+        u5  = 0;
+        u3  = 0;
 
-        for(; pt[k] == 0; k++, u5++); /* skip unpaired 5' side */
-        for(; pt[l] == 0; l--, u3++); /* skip unpaired 3' side */
+        for (; pt[k] == 0; k++, u5++);  /* skip unpaired 5' side */
+        for (; pt[l] == 0; l--, u3++);  /* skip unpaired 3' side */
 
-        if (k >= l) { /* hairpin loop */
+        if (k >= l) {
+          /* hairpin loop */
           if (level == 0)
             for (cnt = 0; cnt < u5; cnt++)
               substring = shrep_insert_after(substring, SHAPES_UP);
 
           break;
         } else {
-          if(pt[k] != l){ /* multi branch loop or external loop */
+          if (pt[k] != l) {
+            /* multi branch loop or external loop */
             substring = get_shrep(pt, k, l, level);
             if (level == 1) {
               if (u5)
@@ -1377,16 +1383,18 @@ get_shrep(const short   *pt,
             switch (level) {
               case 4:
                 if (bulge) {
-                  sub5 = shrep_insert_after(sub5, SHAPES_OPEN);
-                  sub3 = shrep_insert_before(sub3, SHAPES_CLOSE);
+                  sub5  = shrep_insert_after(sub5, SHAPES_OPEN);
+                  sub3  = shrep_insert_before(sub3, SHAPES_CLOSE);
                 }
+
                 break;
 
               case 3:
                 if (no_stack) {
-                  sub5 = shrep_insert_after(sub5, SHAPES_OPEN);
-                  sub3 = shrep_insert_before(sub3, SHAPES_CLOSE);
+                  sub5  = shrep_insert_after(sub5, SHAPES_OPEN);
+                  sub3  = shrep_insert_before(sub3, SHAPES_CLOSE);
                 }
+
                 break;
 
               case 2: /* fall through */
@@ -1398,9 +1406,10 @@ get_shrep(const short   *pt,
                   if (u3)
                     sub3 = shrep_insert_before(sub3, SHAPES_UP);
 
-                  sub5 = shrep_insert_after(sub5, SHAPES_OPEN);
-                  sub3 = shrep_insert_before(sub3, SHAPES_CLOSE);
+                  sub5  = shrep_insert_after(sub5, SHAPES_OPEN);
+                  sub3  = shrep_insert_before(sub3, SHAPES_CLOSE);
                 }
+
                 break;
 
               case 0:
@@ -1410,8 +1419,8 @@ get_shrep(const short   *pt,
                 for (unsigned int cnt = 0; cnt < u3; cnt++)
                   sub3 = shrep_insert_before(sub3, SHAPES_UP);
 
-                sub5 = shrep_insert_after(sub5, SHAPES_OPEN);
-                sub3 = shrep_insert_before(sub3, SHAPES_CLOSE);
+                sub5  = shrep_insert_after(sub5, SHAPES_OPEN);
+                sub3  = shrep_insert_before(sub3, SHAPES_CLOSE);
                 break;
 
               default:
@@ -1437,7 +1446,7 @@ get_shrep(const short   *pt,
       } else if ((level == 1) ||
                  ((components < 2) && (ext == 0))) {
         shape_string = shrep_insert_after(shape_string, SHAPES_UP);
-        for(; (start <= end) && (pt[start] == 0); start++);
+        for (; (start <= end) && (pt[start] == 0); start++);
         start--;
       }
     }
@@ -1804,9 +1813,11 @@ assign_elements_pair(short  *pt,
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 
 
 PUBLIC char *
