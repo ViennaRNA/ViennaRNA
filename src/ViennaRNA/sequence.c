@@ -349,12 +349,12 @@ vrna_sequence_remove_all(vrna_fold_compound_t *fc)
     free(fc->strand_start);
     free(fc->strand_end);
 
-    fc->strands       = 0;
-    fc->strand_number = NULL;
-    fc->strand_order  = NULL;
-    fc->strand_order_uniq  = NULL;
-    fc->strand_start  = NULL;
-    fc->strand_end    = NULL;
+    fc->strands           = 0;
+    fc->strand_number     = NULL;
+    fc->strand_order      = NULL;
+    fc->strand_order_uniq = NULL;
+    fc->strand_start      = NULL;
+    fc->strand_end        = NULL;
   }
 }
 
@@ -371,18 +371,20 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
     free(fc->strand_start);
     free(fc->strand_end);
 
-    fc->strand_order  = NULL;
-    fc->strand_order_uniq  = NULL;
-    fc->strand_start  = NULL;
-    fc->strand_end    = NULL;
+    fc->strand_order      = NULL;
+    fc->strand_order_uniq = NULL;
+    fc->strand_start      = NULL;
+    fc->strand_end        = NULL;
 
     fc->strand_number = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->length + 2));
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
         /* 1. store initial strand order */
-        fc->strand_order_uniq = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
-        fc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
+        fc->strand_order_uniq =
+          (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
+        fc->strand_order =
+          (unsigned int *)vrna_alloc(sizeof(unsigned int) * (fc->strands + 1));
         for (cnt = 0; cnt < fc->strands; cnt++)
           fc->strand_order[cnt] = cnt;
 
@@ -418,7 +420,7 @@ vrna_sequence_prepare(vrna_fold_compound_t *fc)
 
         /* 1. store initial strand order */
         fc->strand_order_uniq = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
-        fc->strand_order = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
+        fc->strand_order      = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
 
         /* 2. mark start and end positions of sequences */
         fc->strand_start    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 2);
