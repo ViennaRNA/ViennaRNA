@@ -24,7 +24,8 @@
 #include "RNAaliduplex_cmdl.h"
 
 
-PRIVATE void  print_struc(duplexT const *dup);
+PRIVATE void
+print_struc(duplexT const *dup);
 
 
 #define MAX_NUM_NAMES    500
@@ -66,7 +67,8 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
   }
@@ -137,7 +139,7 @@ main(int  argc,
 
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
