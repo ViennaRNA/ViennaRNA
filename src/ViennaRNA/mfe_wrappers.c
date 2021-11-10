@@ -130,19 +130,21 @@ vrna_mfe_dimer(vrna_fold_compound_t *vc,
   mfe = vrna_mfe(vc, structure);
 
   /*
-      for backward compatibility reasons, we alson need
-      to see whether the unconnected structure is better
-  */
+   *  for backward compatibility reasons, we alson need
+   *  to see whether the unconnected structure is better
+   */
   if (vc->strands > 1) {
-    l1 = vc->nucleotides[0].length;
-    l2 = vc->nucleotides[1].length;
-    s2 = vc->nucleotides[1].string;
+    l1  = vc->nucleotides[0].length;
+    l2  = vc->nucleotides[1].length;
+    s2  = vc->nucleotides[1].string;
     ss1 = (char *)vrna_alloc(sizeof(char) * (l1 + 1));
     ss2 = (char *)vrna_alloc(sizeof(char) * (l2 + 1));
 
     mfe1 = vrna_backtrack5(vc, l1, ss1);
 
-    vrna_fold_compound_t *fc2 = vrna_fold_compound(s2, &(vc->params->model_details), VRNA_OPTION_DEFAULT);
+    vrna_fold_compound_t *fc2 = vrna_fold_compound(s2,
+                                                   &(vc->params->model_details),
+                                                   VRNA_OPTION_DEFAULT);
 
     mfe2 = vrna_mfe(fc2, ss2);
 
