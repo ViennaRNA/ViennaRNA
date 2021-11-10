@@ -298,6 +298,7 @@ duplexfold_XS(const char  *s1,
 
   struc = NULL;
   duplexT   mfe;
+
   n3  = (int)strlen(s1);
   n4  = (int)strlen(s2);
 
@@ -320,6 +321,7 @@ duplexfold_XS(const char  *s1,
       c[i][j] = INF;
   encode_seqs(s1, s2);
   int type, type2, type3, E, k, l;
+
   i     = n3 - i_flag;
   j     = 1 + j_flag;
   type  = pair[S1[i]][S2[j]];
@@ -338,19 +340,22 @@ duplexfold_XS(const char  *s1,
    **/
 
 
-  c[i][j] += vrna_E_ext_stem(rtype[type], (j_flag ? SS2[j - 1] : -1), (i_flag ? SS1[i + 1] : -1), P);
+  c[i][j] +=
+    vrna_E_ext_stem(rtype[type], (j_flag ? SS2[j - 1] : -1), (i_flag ? SS1[i + 1] : -1), P);
 
-  /*   if(j_flag ==0 && i_flag==0){ */
-  /*     c[i][j] += vrna_E_ext_stem(rtype[type], -1 , -1 , P); */
-  /*   }else if(j_flag ==0 && i_flag==1){ */
-  /*     c[i][j] += vrna_E_ext_stem(rtype[type], -1 , SS1[i+1], P); */
-  /*   }else if(j_flag ==1 && i_flag==0){ */
-  /*     c[i][j] += vrna_E_ext_stem(rtype[type], SS2[j-1] , -1, P); */
-  /*   }else { */
-  /*     c[i][j] += vrna_E_ext_stem(rtype[type], SS2[j-1] , SS1[i+1], P); */
-  /*   } */
-  /*  Just in case we have only one bp, we initialize ... */
-  /*  k_min, l_min and Emin */
+  /*
+   *   if(j_flag ==0 && i_flag==0){
+   *     c[i][j] += vrna_E_ext_stem(rtype[type], -1 , -1 , P);
+   *   }else if(j_flag ==0 && i_flag==1){
+   *     c[i][j] += vrna_E_ext_stem(rtype[type], -1 , SS1[i+1], P);
+   *   }else if(j_flag ==1 && i_flag==0){
+   *     c[i][j] += vrna_E_ext_stem(rtype[type], SS2[j-1] , -1, P);
+   *   }else {
+   *     c[i][j] += vrna_E_ext_stem(rtype[type], SS2[j-1] , SS1[i+1], P);
+   *   }
+   *  Just in case we have only one bp, we initialize ...
+   *  k_min, l_min and Emin
+   */
   k_min = i;
   l_min = j;
   Emin  = c[i][j];
@@ -424,6 +429,7 @@ duplexfold_XS(const char  *s1,
   *** find best dangles combination
   **/
   int dx_5, dx_3, dy_5, dy_3, dGx, dGy, bonus_x;
+
   dx_5    = 0;
   dx_3    = 0;
   dy_5    = 0;
@@ -431,9 +437,11 @@ duplexfold_XS(const char  *s1,
   dGx     = 0;
   dGy     = 0;
   bonus_x = 0;
-  /* x--------x */
-  /*  |||||||| */
-  /* x--------x */
+  /*
+   * x--------x
+   *  ||||||||
+   * x--------x
+   */
   dGx     = access_s1[i - k_min + 1][i_pos];
   dx_3    = 0;
   dx_5    = 0;
@@ -536,8 +544,10 @@ backtrack_XS(int        i,
         break;
     }
   }
-  /* if (i<n3)  i++; */
-  /* if (j>1)   j--; */
+  /*
+   * if (i<n3)  i++;
+   * if (j>1)   j--;
+   */
   struc = (char *)vrna_alloc(i - i0 + 1 + j0 - j + 1 + 2);
   for (k = MAX2(i0, 1); k <= i; k++)
     if (!st1[k - 1])
@@ -923,7 +933,8 @@ fduplexfold_XS(const char *s1,
        * remove this line printf("%d\t",c[i][j]);
        */
       temp        = min_colonne;
-      min_colonne = MIN2(c[i][j] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P), min_colonne);
+      min_colonne = MIN2(c[i][j] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P),
+                         min_colonne);
       if (temp > min_colonne)
         min_j_colonne = j;
 
@@ -971,6 +982,7 @@ fduplexfold_XS(const char *s1,
   i_min = max_pos;
   j_min = max_pos_j;
   int dGe, dGeplex, dGx, dGy;
+
   dGe = dGeplex = dGx = dGy = 0;
   /* printf("MAX fduplexfold_XS %d\n",Emin); */
   struc = fbacktrack_XS(i_min,
@@ -990,11 +1002,13 @@ fduplexfold_XS(const char *s1,
 
   l1 = strchr(struc, '&') - struc;
   int size;
+
   size = strlen(struc) - 1;
   int lengthx;
   int endx;
   int lengthy;
   int endy;
+
   lengthx = l1;
   lengthx -= (struc[0] == '.' ? 1 : 0);
   lengthx -= (struc[l1 - 1] == '.' ? 1 : 0);
@@ -1075,6 +1089,7 @@ fbacktrack_XS(int       i,
   i0  = MIN2(i + 1, n3 - 10);
   j0  = MAX2(j - 1, 11);
   int state;
+
   state = 1; /* we start backtracking from a a pair , i.e. c-matrix */
   /* state 1 -> base pair, c
    * state 2 -> interior loop, in
@@ -2278,10 +2293,13 @@ Lduplexfold_XS(const char *s1,
       *** P->dangle3[rtype[type]][SS1[i+1]]+
       *** P->dangle5[rtype[type]][SS2[j-1]],
       **/
-      /* remove this line printf("LCI %d:%d %d\t",i,j,SA[LCI(idx,j,n2)]); */
-      /* remove this line printf("LI %d:%d %d\t",i,j, SA[LINI(idx,j,n2)]); */
-      min_colonne = MIN2(SA[LCI(idx, j, n2)] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P),
-                         min_colonne);
+      /*
+       * remove this line printf("LCI %d:%d %d\t",i,j,SA[LCI(idx,j,n2)]);
+       * remove this line printf("LI %d:%d %d\t",i,j, SA[LINI(idx,j,n2)]);
+       */
+      min_colonne =
+        MIN2(SA[LCI(idx, j, n2)] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P),
+             min_colonne);
 
       if (temp > min_colonne)
         min_j_colonne = j;
@@ -2717,6 +2735,7 @@ duplexfold(const char *s1,
 
   l1 = strchr(struc, '&') - struc;
   int size;
+
   size          = strlen(struc) - 1;
   Emin          -= size * (extension_cost);
   mfe.i         = i_min;
@@ -2850,12 +2869,14 @@ fduplexfold(const char  *s1,
 
   n3  = (int)strlen(s1);
   n4  = (int)strlen(s2);
-  /* delta_check is the minimal distance allowed for two hits to be accepted */
-  /* if both hits are closer, reject the smaller ( in term of position)  hits  */
-  /* i want to implement a function that, given a position in a long sequence and a small sequence, */
-  /* duplexfold them at this position and report the result at the command line */
-  /* for this i first need to rewrite backtrack in order to remove the printf functio */
-  /* END OF DEFINITION FOR NEEDED SUBOPT DATA  */
+  /*
+   * delta_check is the minimal distance allowed for two hits to be accepted
+   * if both hits are closer, reject the smaller ( in term of position)  hits
+   * i want to implement a function that, given a position in a long sequence and a small sequence,
+   * duplexfold them at this position and report the result at the command line
+   * for this i first need to rewrite backtrack in order to remove the printf functio
+   * END OF DEFINITION FOR NEEDED SUBOPT DATA
+   */
   set_model_details(&md);
   if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
     update_fold_params();
@@ -2881,9 +2902,11 @@ fduplexfold(const char  *s1,
     inx[i]  = (int *)vrna_alloc(sizeof(int) * (n4 + 1));
     iny[i]  = (int *)vrna_alloc(sizeof(int) * (n4 + 1));
   }
-  /*-------------------------------------------------------------------------*/
-  /*end of array initialisation----------------------------------*/
-  /*maybe int *** would be better*/
+  /*
+   * -------------------------------------------------------------------------
+   * end of array initialisation----------------------------------
+   *maybe int *** would be better
+   */
   encode_seqs(s1, s2);
   /* ------------------------------------------matrix initialisierung */
   for (i = 0; i < n3; i++) {
@@ -3068,7 +3091,7 @@ fduplexfold(const char  *s1,
       c[i][j]     = MIN2(by[i - 1][j + 2] + 2 * extension_cost + bext + bAU, c[i][j]);
       temp        = min_colonne;
       min_colonne = MIN2(c[i][j] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1],
-                                             P) + 2 * extension_cost,
+                                                   P) + 2 * extension_cost,
                          min_colonne);
       if (temp > min_colonne)
         min_j_colonne = j;
@@ -3087,6 +3110,7 @@ fduplexfold(const char  *s1,
   i_min = max_pos;
   j_min = max_pos_j;
   int dGe;
+
   dGe   = 0;
   struc = fbacktrack(i_min, j_min, extension_cost, il_a, il_b, b_a, b_b, &dGe);
   if (i_min < n3 - 10)
@@ -3097,6 +3121,7 @@ fduplexfold(const char  *s1,
 
   l1 = strchr(struc, '&') - struc;
   int size;
+
   size                  = strlen(struc) - 1;
   Emin                  -= size * (extension_cost);
   mfe.i                 = i_min;
@@ -3151,6 +3176,7 @@ fbacktrack(int        i,
   i0  = MIN2(i + 1, n3 - 10);
   j0  = MAX2(j - 1, 11);
   int state;
+
   state = 1; /* we start backtracking from a a pair , i.e. c-matrix */
   /* state 1 -> base pair, c
    * state 2 -> interior loop, in
@@ -4045,7 +4071,7 @@ Lduplexfold(const char  *s1,
       temp = min_colonne;
 
       min_colonne = MIN2(SA[LCI(idx, j, n2)] + vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1],
-                                                         P) + 2 * extension_cost,
+                                                               P) + 2 * extension_cost,
                          min_colonne);
       if (temp > min_colonne)
         min_j_colonne = j;
