@@ -42,7 +42,7 @@
 
 #include "ViennaRNA/color_output.inc"
 
-#define   ADD_OR_INF(a,b)     (((a) != INF) && ((b) != INF) ?  (a) + (b) : INF)
+#define   ADD_OR_INF(a, b)     (((a) != INF) && ((b) != INF) ?  (a) + (b) : INF)
 #define   MULTISTRAND_EVAL
 
 /*
@@ -81,6 +81,8 @@ PRIVATE int
 cut_in_loop(int           i,
             const short   *pt,
             unsigned int  *sn);
+
+
 #endif
 
 PRIVATE int
@@ -152,25 +154,31 @@ PRIVATE int
 energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                      unsigned int         begin,
                      const short          *pt);
+
+
 #else
 PRIVATE int
 energy_of_extLoop_pt(vrna_fold_compound_t *vc,
                      int                  i,
                      const short          *pt);
+
+
 #endif
 
 
 PRIVATE int
-energy_of_ext_loop_components(vrna_fold_compound_t *fc,
-                              const short          *pt,
-                               vrna_cstr_t          output_stream,
-                               int                  verbosity_level);
+energy_of_ext_loop_components(vrna_fold_compound_t  *fc,
+                              const short           *pt,
+                              vrna_cstr_t           output_stream,
+                              int                   verbosity_level);
+
 
 PRIVATE int
 first_pair_after_last_nick(unsigned int i,
                            unsigned int j,
                            const short  *pt,
                            unsigned int *sn);
+
 
 /*
  #################################
@@ -343,9 +351,9 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *vc,
     /* check, whether this is a base pair enclosing an external loop, i.e. strand-nick in loop */
     unsigned int begin;
     if ((vc->strands > 1) &&
-        ((begin = first_pair_after_last_nick(p, q, pt, sn)) != 0)) {
+        ((begin = first_pair_after_last_nick(p, q, pt, sn)) != 0))
       return energy_of_extLoop_pt(vc, begin, pt);
-    }
+
 #endif
 
     if (p > q) {
@@ -392,7 +400,7 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
                   int                   m2)
 {
   /*compute change in energy given by move (m1,m2)*/
-  int           en_post, en_pre, i, j, k, l, len;
+  int en_post, en_pre, i, j, k, l, len;
 
   len = vc->length;
   k   = (m1 > 0) ? m1 : -m1;
@@ -462,6 +470,7 @@ vrna_eval_move_pt(vrna_fold_compound_t  *vc,
     if (c == 0) /* Must have been a delete move */
       return en_post - en_pre + P->DuplexInit;
   }
+
 #endif
 
   return en_post - en_pre;
@@ -659,13 +668,15 @@ eval_pt(vrna_fold_compound_t  *vc,
     i       = pt[i];
   }
 
-  if (energy != INF)
+  if (energy != INF) {
     for (i = 1; sn[i] != sn[length]; i++) {
       if (sn[i] != sn[pt[i]]) {
         energy += vc->params->DuplexInit;
         break;
       }
     }
+  }
+
 #endif
 
   return energy;
@@ -704,19 +715,19 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   energy        = 0;
 
-  strand_start  = strand_end = 0;
+  strand_start = strand_end = 0;
 
   /*
-      if begin == 0, or there exists only a single strand,
-      we evaluiate the entire external loop
-  */
+   *  if begin == 0, or there exists only a single strand,
+   *  we evaluiate the entire external loop
+   */
   if ((begin == 0) || (fc->strands < 2)) {
-    strand_end    = fc->strands - 1;
+    strand_end = fc->strands - 1;
   } else {
     /*
-        otherwise, we either evaluate an unconnected strand or the
-        external loop part that connects the current strand (sn[begin])
-    */
+     *  otherwise, we either evaluate an unconnected strand or the
+     *  external loop part that connects the current strand (sn[begin])
+     */
     for (a = strand_start; a < fc->strands; a++)
       if (so[a] == sn[begin]) {
         strand_start = strand_end = a;
@@ -739,10 +750,10 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
         /* add energy of previous unpaired region */
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
-            if (sc) {
+            if (sc)
               if (sc->energy_up)
                 bonus += sc->energy_up[last_i][i - last_i];
-            }
+
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
@@ -750,25 +761,29 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
               for (sss = 0; sss < n_seq; sss++) {
                 if (scs[sss]) {
                   if (scs[sss]->energy_up) {
-                    u = a2s[sss][i] - a2s[sss][last_i];
+                    u     = a2s[sss][i] - a2s[sss][last_i];
                     bonus += scs[sss]->energy_up[a2s[sss][last_i]][u];
                   }
                 }
               }
             }
+
             break;
         }
         break;
       }
 
-      if ((pt[i] != 0) && (pt[i] > i)) { /* pairs down-stream */
-        /* add energy of previous unpaired region */
+      if ((pt[i] != 0) && (pt[i] > i)) {
+        /*
+         * pairs down-stream
+         * add energy of previous unpaired region
+         */
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
-            if (sc) {
+            if (sc)
               if (sc->energy_up)
                 bonus += sc->energy_up[last_i][i - last_i];
-            }
+
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
@@ -776,12 +791,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
               for (sss = 0; sss < n_seq; sss++) {
                 if (scs[sss]) {
                   if (scs[sss]->energy_up) {
-                    u = a2s[sss][i] - a2s[sss][last_i];
+                    u     = a2s[sss][i] - a2s[sss][last_i];
                     bonus += scs[sss]->energy_up[a2s[sss][last_i]][u];
                   }
                 }
               }
             }
+
             break;
         }
 
@@ -798,14 +814,14 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                 break;
 
               case 2:
-                s5 = ((sn[i - 1] == sn[i]) && (i > 1)) ? s1[i - 1] : -1;
-                s3 = ((sn[j] == sn[j + 1]) && (j < n)) ? s1[j + 1] : -1;
-                e += vrna_E_ext_stem(tt, s5, s3, P);
+                s5  = ((sn[i - 1] == sn[i]) && (i > 1)) ? s1[i - 1] : -1;
+                s3  = ((sn[j] == sn[j + 1]) && (j < n)) ? s1[j + 1] : -1;
+                e   += vrna_E_ext_stem(tt, s5, s3, P);
                 break;
 
               default:
-                s5 = ((sn[i - 1] == sn[i]) && (i > 1) && (!pt[i - 1])) ? s1[i - 1] : -1;
-                s3 = ((sn[j] == sn[j + 1]) && (j < n) && (!pt[j + 1])) ? s1[j + 1] : -1;
+                s5  = ((sn[i - 1] == sn[i]) && (i > 1) && (!pt[i - 1])) ? s1[i - 1] : -1;
+                s3  = ((sn[j] == sn[j + 1]) && (j < n) && (!pt[j + 1])) ? s1[j + 1] : -1;
 
                 if ((last_i + 1 < i) || ((last_i == start) && (last_i < i))) {
                   e_mm3_available = MIN2(e_mm3_available, e_mm3_occupied);
@@ -813,12 +829,12 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                 }
 
                 e = MIN2(
-                    e_mm3_occupied + vrna_E_ext_stem(tt, -1, s3, P),
-                    e_mm3_available + vrna_E_ext_stem(tt, s5, s3, P)
+                  e_mm3_occupied + vrna_E_ext_stem(tt, -1, s3, P),
+                  e_mm3_available + vrna_E_ext_stem(tt, s5, s3, P)
                   );
                 e_mm3_available = MIN2(
-                    e_mm3_occupied + vrna_E_ext_stem(tt, -1, -1, P),
-                    e_mm3_available + vrna_E_ext_stem(tt, s5, -1, P)
+                  e_mm3_occupied + vrna_E_ext_stem(tt, -1, -1, P),
+                  e_mm3_available + vrna_E_ext_stem(tt, s5, -1, P)
                   );
                 e_mm3_occupied = e;
                 break;
@@ -835,9 +851,9 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                   break;
 
                 case 2:
-                  s5 = ((sn[i - 1] == sn[i]) && (a2s[sss][i] > 1)) ? S5[sss][i] : -1;
-                  s3 = ((sn[j] == sn[j + 1]) && (a2s[sss][j] < a2s[sss][n])) ? S3[sss][j] : -1;
-                  e += vrna_E_ext_stem(tt, s5, s3, P);
+                  s5  = ((sn[i - 1] == sn[i]) && (a2s[sss][i] > 1)) ? S5[sss][i] : -1;
+                  s3  = ((sn[j] == sn[j + 1]) && (a2s[sss][j] < a2s[sss][n])) ? S3[sss][j] : -1;
+                  e   += vrna_E_ext_stem(tt, s5, s3, P);
                   break;
 
                 default:
@@ -848,17 +864,20 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
             break;
         }
 
-        i           = j;     /* skip the branch we'ce just evaluated */
-        last_i      = i + 1; /* update last unpaired nt */
-        last_strand = sn[i]; /* update current strand number */
-      } else if (pt[i] != 0) { /* found 3' end of enclosing pair */
-        /* add energy of previous unpaired region */
+        i           = j;      /* skip the branch we'ce just evaluated */
+        last_i      = i + 1;  /* update last unpaired nt */
+        last_strand = sn[i];  /* update current strand number */
+      } else if (pt[i] != 0) {
+        /*
+         * found 3' end of enclosing pair
+         * add energy of previous unpaired region
+         */
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
-            if (sc) {
+            if (sc)
               if (sc->energy_up)
                 bonus += sc->energy_up[last_i][i - last_i];
-            }
+
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
@@ -866,12 +885,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
               for (sss = 0; sss < n_seq; sss++) {
                 if (scs[sss]) {
                   if (scs[sss]->energy_up) {
-                    u = a2s[sss][i] - a2s[sss][last_i];
+                    u     = a2s[sss][i] - a2s[sss][last_i];
                     bonus += scs[sss]->energy_up[a2s[sss][last_i]][u];
                   }
                 }
               }
             }
+
             break;
         }
 
@@ -889,14 +909,14 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                 break;
 
               case 2:
-                s5 = (sn[j - 1] == sn[j]) ? s1[j - 1] : -1;
-                s3 = (sn[i] == sn[i + 1]) ? s1[i + 1] : -1;
-                e += vrna_E_ext_stem(tt, s5, s3, P);
+                s5  = (sn[j - 1] == sn[j]) ? s1[j - 1] : -1;
+                s3  = (sn[i] == sn[i + 1]) ? s1[i + 1] : -1;
+                e   += vrna_E_ext_stem(tt, s5, s3, P);
                 break;
 
               default:
-                s5 = ((sn[j - 1] == sn[j]) && (!pt[j - 1])) ? s1[j - 1] : -1;
-                s3 = ((sn[i] == sn[i + 1]) && (!pt[i + 1])) ? s1[i + 1] : -1;
+                s5  = ((sn[j - 1] == sn[j]) && (!pt[j - 1])) ? s1[j - 1] : -1;
+                s3  = ((sn[i] == sn[i + 1]) && (!pt[i + 1])) ? s1[i + 1] : -1;
 
                 if ((last_i + 1 < j) || ((last_i == start) && (last_i < j))) {
                   e_mm3_available = MIN2(e_mm3_available, e_mm3_occupied);
@@ -904,12 +924,12 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                 }
 
                 e = MIN2(
-                    e_mm3_occupied + vrna_E_ext_stem(tt, -1, s3, P),
-                    e_mm3_available + vrna_E_ext_stem(tt, s5, s3, P)
+                  e_mm3_occupied + vrna_E_ext_stem(tt, -1, s3, P),
+                  e_mm3_available + vrna_E_ext_stem(tt, s5, s3, P)
                   );
                 e_mm3_available = MIN2(
-                    e_mm3_occupied + vrna_E_ext_stem(tt, -1, -1, P),
-                    e_mm3_available + vrna_E_ext_stem(tt, s5, -1, P)
+                  e_mm3_occupied + vrna_E_ext_stem(tt, -1, -1, P),
+                  e_mm3_available + vrna_E_ext_stem(tt, s5, -1, P)
                   );
                 e_mm3_occupied = e;
                 break;
@@ -926,9 +946,9 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                   break;
 
                 case 2:
-                  s5 = (sn[j - 1] == sn[j]) ? S5[sss][j] : -1;
-                  s3 = (sn[i] == sn[i + 1]) ? S3[sss][i] : -1;
-                  e += vrna_E_ext_stem(tt, s5, s3, P);
+                  s5  = (sn[j - 1] == sn[j]) ? S5[sss][j] : -1;
+                  s3  = (sn[i] == sn[i + 1]) ? S3[sss][i] : -1;
+                  e   += vrna_E_ext_stem(tt, s5, s3, P);
                   break;
 
                 default:
@@ -942,7 +962,7 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
         /* add duplex initiation penalty */
         if (dangle_model % 2) {
           e_mm3_available += P->DuplexInit * n_seq;
-          e_mm3_occupied += P->DuplexInit * n_seq;
+          e_mm3_occupied  += P->DuplexInit * n_seq;
         } else {
           e += fc->params->DuplexInit * n_seq;
         }
@@ -950,14 +970,17 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
         /* update index variables */
         last_i      = i + 1;
         last_strand = sn[i];
-      } else if (i == n) { /* end of outer-most external loop */
-        /* add energy of unpaired region */
+      } else if (i == n) {
+        /*
+         * end of outer-most external loop
+         * add energy of unpaired region
+         */
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
-            if (sc) {
+            if (sc)
               if (sc->energy_up)
                 bonus += sc->energy_up[last_i][i - last_i + 1];
-            }
+
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
@@ -965,21 +988,22 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
               for (sss = 0; sss < n_seq; sss++) {
                 if (scs[sss]) {
                   if (scs[sss]->energy_up) {
-                    u = a2s[sss][i + 1] - a2s[sss][last_i];
+                    u     = a2s[sss][i + 1] - a2s[sss][last_i];
                     bonus += scs[sss]->energy_up[a2s[sss][last_i]][u];
                   }
                 }
               }
             }
+
             break;
         }
       }
+
       i++;
     }
 
-    if (dangle_model % 2) {
+    if (dangle_model % 2)
       e = MIN2(e_mm3_available, e_mm3_occupied);
-    }
 
     e += bonus;
 
@@ -991,13 +1015,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-energy_of_ext_loop_components(vrna_fold_compound_t *fc,
-                              const short          *pt,
-                               vrna_cstr_t          output_stream,
-                               int                  verbosity_level)
+energy_of_ext_loop_components(vrna_fold_compound_t  *fc,
+                              const short           *pt,
+                              vrna_cstr_t           output_stream,
+                              int                   verbosity_level)
 {
-  unsigned int last_s, s, i, n, a, *so, *sn, *ss;
-  int           energy  = 0;
+  unsigned int  last_s, s, i, n, a, *so, *sn, *ss;
+  int           energy = 0;
 
   n       = fc->length;
   so      = fc->strand_order;
@@ -1015,14 +1039,20 @@ energy_of_ext_loop_components(vrna_fold_compound_t *fc,
         break;
 
       if (pt[i] != 0) {
-        if (pt[i] > i) { /* pairs down-stream */
-          /* add energy of enclosed substem */
-          energy += stack_energy(fc, i, pt, output_stream, verbosity_level);
+        if (pt[i] > i) {
+          /*
+           * pairs down-stream
+           * add energy of enclosed substem
+           */
+          energy  += stack_energy(fc, i, pt, output_stream, verbosity_level);
           i       = (unsigned int)pt[i];
           last_s  = sn[i]; /* update current strand number */
-        } else { /* found 3' end of enclosing pair */
-          /* update index variables */
-          i = (unsigned int)pt[i];
+        } else {
+          /*
+           * found 3' end of enclosing pair
+           * update index variables
+           */
+          i       = (unsigned int)pt[i];
           last_s  = sn[i];
         }
       }
@@ -1033,6 +1063,8 @@ energy_of_ext_loop_components(vrna_fold_compound_t *fc,
 
   return energy;
 }
+
+
 #endif
 
 
@@ -1476,21 +1508,23 @@ eval_hp_loop_fake(vrna_fold_compound_t  *fc,
 
   return e;
 }
+
+
 #endif
 
 #ifdef MULTISTRAND_EVAL
 /*
-  returns first base pairing partner
-  after the last strand nick in the loop
-  enclosed by (i,j).
-*/
+ * returns first base pairing partner
+ * after the last strand nick in the loop
+ * enclosed by (i,j).
+ */
 PRIVATE int
 first_pair_after_last_nick(unsigned int i,
-                unsigned int j,
-                const short  *pt,
-                unsigned int *sn)
+                           unsigned int j,
+                           const short  *pt,
+                           unsigned int *sn)
 {
-  unsigned int  p, r, first_strand, last_strand;
+  unsigned int p, r, first_strand, last_strand;
 
   first_strand  = sn[i];
   last_strand   = sn[j];
@@ -1512,6 +1546,8 @@ first_pair_after_last_nick(unsigned int i,
 
   return (last_strand == first_strand) ? 0 : p;
 }
+
+
 #endif
 
 
@@ -1597,6 +1633,7 @@ stack_energy(vrna_fold_compound_t *vc,
     } else {
       return energy;
     }
+
 #else
     ee = 0;
     if (vc->type == VRNA_FC_TYPE_SINGLE) {
@@ -1649,12 +1686,12 @@ stack_energy(vrna_fold_compound_t *vc,
     }
 
 #else
-    if (sn[j] != sn[i]) {
+    if (sn[j] != sn[i])
       ee = eval_hp_loop_fake(vc, i, j);
-    } else {
-      ee      = vrna_eval_hp_loop(vc, i, j);
-    }
-    energy  = ADD_OR_INF(energy, ee);
+    else
+      ee = vrna_eval_hp_loop(vc, i, j);
+
+    energy = ADD_OR_INF(energy, ee);
 
     if (verbosity_level > 0) {
       vrna_cstr_print_eval_hp_loop(output_stream,
@@ -1664,6 +1701,7 @@ stack_energy(vrna_fold_compound_t *vc,
                                    (int)ee / (int)vc->n_seq :
                                    ee);
     }
+
 #endif
 
     return energy;
@@ -1690,14 +1728,16 @@ stack_energy(vrna_fold_compound_t *vc,
                                    (int)ee / (int)vc->n_seq :
                                    ee);
     }
+
     energy += ee;
   } else {
     return energy;
   }
+
 #else
   while (p < j) {
     /* add up the contributions of the substructures of the ML */
-    ee = stack_energy(vc, p, pt, output_stream, verbosity_level);
+    ee      = stack_energy(vc, p, pt, output_stream, verbosity_level);
     energy  = ADD_OR_INF(energy, ee);
     p       = pt[p];
     /* search for next base pair in multiloop */
@@ -1729,6 +1769,7 @@ stack_energy(vrna_fold_compound_t *vc,
                                  (int)ee / (int)vc->n_seq :
                                  ee);
   }
+
 #endif
 
   return energy;
@@ -1947,6 +1988,8 @@ energy_of_extLoop_pt(vrna_fold_compound_t *vc,
 
   return energy + bonus;
 }
+
+
 #endif
 
 
@@ -2525,6 +2568,8 @@ cut_in_loop(int           i,
   } while ((p != j) && (sn[i] == sn[p]));
   return sn[i] == sn[p] ? 0 : p;
 }
+
+
 #endif
 
 /* below are the consensus structure evaluation functions */
