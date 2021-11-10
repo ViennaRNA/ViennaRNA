@@ -176,10 +176,10 @@ vrna_centroid(vrna_fold_compound_t  *vc,
             get_gquad_pattern_pf(S, i, j, pf_params, &L, l);
             for (k = 0; k < L; k++) {
               centroid[i + k - 1] \
-                            = centroid[i + k + L + l[0] - 1] \
-                            = centroid[i + k + 2 * L + l[0] + l[1] - 1] \
-                            = centroid[i + k + 3 * L + l[0] + l[1] + l[2] - 1] \
-                            = '+';
+                      = centroid[i + k + L + l[0] - 1] \
+                      = centroid[i + k + 2 * L + l[0] + l[1] - 1] \
+                      = centroid[i + k + 3 * L + l[0] + l[1] + l[2] - 1] \
+                      = '+';
             }
             /* skip everything within the gquad */
             i     = j;
@@ -203,9 +203,11 @@ vrna_centroid(vrna_fold_compound_t  *vc,
 }
 
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 
 
 /* this function is a threadsafe replacement for centroid() */
