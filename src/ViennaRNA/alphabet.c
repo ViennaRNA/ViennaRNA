@@ -58,8 +58,9 @@ PRIVATE const char Law_and_Order[] = "_ACGUTXKI";
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE char *wrap_get_ptypes(const short *S,
-                              vrna_md_t   *md);                 /* provides backward compatibility for old ptypes array in pf computations */
+PRIVATE char *
+wrap_get_ptypes(const short *S,
+                vrna_md_t   *md);                               /* provides backward compatibility for old ptypes array in pf computations */
 
 
 /*
@@ -520,9 +521,11 @@ wrap_get_ptypes(const short *S,
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 
 PUBLIC char *
 get_ptypes(const short  *S,
