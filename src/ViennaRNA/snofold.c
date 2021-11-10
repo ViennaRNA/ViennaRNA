@@ -152,12 +152,16 @@ PRIVATE int           *BP = NULL; /* contains the structure constrainsts: BP[i]
 static sect   sector[MAXSECTORS]; /* stack of partial structures for backtracking */
 
 PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-/* needed by cofold/eval */
-/* PRIVATE int cut_in_loop(int i); */
-/* PRIVATE int min_hairpin = TURN; */
+/*
+ * needed by cofold/eval
+ * PRIVATE int cut_in_loop(int i);
+ * PRIVATE int min_hairpin = TURN;
+ */
 
-/* some definitions to take circfold into account...        */
-/* PRIVATE int   *fM2 = NULL;*/        /* fM2 = multiloop region with exactly two stems, extending to 3' end        */
+/*
+ * some definitions to take circfold into account...
+ * PRIVATE int   *fM2 = NULL;*/        /* fM2 = multiloop region with exactly two stems, extending to 3' end
+ */
 PUBLIC int Fc, FcH, FcI, FcM;          /* parts of the exterior loop energies                        */
 /*--------------------------------------------------------------------------*/
 
@@ -260,6 +264,7 @@ snofree_arrays(const int length)
   free(ptype);
   free(mLoop);
   int i;
+
   for (i = length; i > -1; i--) {
     while (foldlist[i] != NULL) {
       folden *n = foldlist[i];
@@ -300,6 +305,7 @@ alisnofree_arrays(const int length)
   free(mLoop);
   free(pscore);
   int i;
+
   for (i = length - 1; i > -1; i--) {
     while (foldlist[i] != NULL) {
       folden *n = foldlist[i];
@@ -338,12 +344,14 @@ snoexport_fold_arrays(int     **indx_p,
 }
 
 
-/* void alisnoexport_fold_arrays(int **indx_p, int **mLoop_p, int **cLoop, folden ***fold_p, int **pscores) { */
-/*   /\* make the DP arrays available to routines such as subopt() *\/ */
-/*   *indx_p = indx; *mLoop_p = mLoop; */
-/*   *cLoop = c; *fold_p = foldlist; */
-/*   *pscores=pscore; */
-/* } */
+/*
+ * void alisnoexport_fold_arrays(int **indx_p, int **mLoop_p, int **cLoop, folden ***fold_p, int **pscores) {
+ *   /\* make the DP arrays available to routines such as subopt() *\/
+ *   *indx_p = indx; *mLoop_p = mLoop;
+ *   *cLoop = c; *fold_p = foldlist;
+ *   *pscores=pscore;
+ * }
+ */
 
 /*--------------------------------------------------------------------------*/
 
@@ -397,9 +405,11 @@ make_pscores(int                n,
              int                n_seq,
              const char         *structure)
 {
-  /* calculate co-variance bonus for each pair depending on  */
-  /* compensatory/consistent mutations and incompatible seqs */
-  /* should be 0 for conserved pairs, >0 for good pairs      */
+  /*
+   * calculate co-variance bonus for each pair depending on
+   * compensatory/consistent mutations and incompatible seqs
+   * should be 0 for conserved pairs, >0 for good pairs
+   */
 #define NONE -10000                         /* score for forbidden pairs */
   int i, j, k, l, s, score;
   int dm[7][7] = { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */
@@ -437,8 +447,10 @@ make_pscores(int                n,
 
       for (k = 1, score = 0; k <= 6; k++) /* ignore pairtype 7 (gap-gap) */
         for (l = k + 1; l <= 6; l++)
-          /* scores for replacements between pairtypes    */
-          /* consistent or compensatory mutations score 1 or 2  */
+          /*
+           * scores for replacements between pairtypes
+           * consistent or compensatory mutations score 1 or 2
+           */
           score += pfreq[k] * pfreq[l] * dm[k][l];
       /* counter examples score -1, gap-gap scores -0.25   */
       pscore[indx[j] + i] = cv_fact *
@@ -552,7 +564,7 @@ alisnofold(const char **strings,
   if (fabs(P->temperature - temperature) > 1e-6)
     snoupdate_fold_params();
 
-  for (s = 0; strings[s] != NULL; s++) ;
+  for (s = 0; strings[s] != NULL; s++);
   n_seq = s;
   Sali  = (short **)vrna_alloc(n_seq * sizeof(short *));
   for (s = 0; s < n_seq; s++) {
@@ -567,8 +579,10 @@ alisnofold(const char **strings,
   for (s = 0; s < n_seq; s++)
     free(Sali[s]);
   free(Sali);
-  /* free(structure); */
-  /*  free(S)*/;
+  /*
+   * free(structure);
+   *  free(S)
+   */          ;
   free(S1);                /* free(BP); */
   return (float)energy / 100.;
 }
@@ -589,14 +603,16 @@ alifill_arrays(const char **strings,
   int bonus, n_seq, s;
 
 
-  for (n_seq = 0; strings[n_seq] != NULL; n_seq++) ;
+  for (n_seq = 0; strings[n_seq] != NULL; n_seq++);
   type    = (int *)vrna_alloc(n_seq * sizeof(int));
   length  = strlen(strings[0]);
   bonus   = 0;
   /*   max_separation = (int) ((1.-LOCALITY)*(double)(length-2));*/ /* not in use */
 
-  /* for (i=(j>TURN?(j-TURN):1); i<j; i++) { */
-  /* } */
+  /*
+   * for (i=(j>TURN?(j-TURN):1); i<j; i++) {
+   * }
+   */
   for (i = (length) - TURN - 1; i >= 1; i--) {
     /* i,j in [1..length] */
     for (j = i + TURN + 1; j <= length; j++) {
@@ -662,8 +678,10 @@ alifill_arrays(const char **strings,
         c[ij] = INF;
       }
 
-      /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
+      /*
+       * done with c[i,j], now compute fML[i,j]
+       * free ends ? -----------------------------------------
+       */
     }
 
     {
@@ -737,7 +755,7 @@ alibacktrack(const char **strings,
   int b = 0, cov_en = 0;
 
   length = strlen(strings[0]);
-  for (n_seq = 0; strings[n_seq] != NULL; n_seq++) ;
+  for (n_seq = 0; strings[n_seq] != NULL; n_seq++);
   type = (int *)vrna_alloc(n_seq * sizeof(int));
   if (s == 0) {
     sector[++s].i = 1;
@@ -839,23 +857,27 @@ repeat1:
 
     /* end of repeat: --------------------------------------------------*/
 
-    /* (i.j) must close a multi-loop */
-    /* tt = rtype[type]; */
-    /*     mm = bonus+P->MLclosing+P->MLintern[tt]; */
-    /*     d5 = P->dangle5[tt][S1[j-1]]; */
-    /*     d3 = P->dangle3[tt][S1[i+1]]; */
+    /*
+     * (i.j) must close a multi-loop
+     * tt = rtype[type];
+     *     mm = bonus+P->MLclosing+P->MLintern[tt];
+     *     d5 = P->dangle5[tt][S1[j-1]];
+     *     d3 = P->dangle3[tt][S1[i+1]];
+     */
     i1                = i + 1;
     j1                = j - 1;
     sector[s + 1].ml  = sector[s + 2].ml = 1;
 
-    /*      if (k<=j-3-TURN) { /\\* found the decomposition *\\/ *\/ */
-    /*       sector[++s].i = i1; */
-    /*       sector[s].j   = k; */
-    /*       sector[++s].i = k+1; */
-    /*       sector[s].j   = j1; */
-    /*     } /\* else { *\/ */
-    /*       vrna_message_error("backtracking failed in repeat"); */
-    /*     } */
+    /*
+     *      if (k<=j-3-TURN) { /\\* found the decomposition *\\/ *\/
+     *       sector[++s].i = i1;
+     *       sector[s].j   = k;
+     *       sector[++s].i = k+1;
+     *       sector[s].j   = j1;
+     *     } /\* else { *\/
+     *       vrna_message_error("backtracking failed in repeat");
+     *     }
+     */
   }
   base_pair[0].i = b;    /* save the total number of base pairs */
   free(type);
@@ -885,8 +907,10 @@ fill_arrays(const char  *string,
 
 
   for (i = length - TURN - 1; i >= 1; i--) {
-    /* i,j in [1..length] */
-    /* printf("i=%d\t",i);  */
+    /*
+     * i,j in [1..length]
+     * printf("i=%d\t",i);
+     */
     for (j = i + TURN + 1; j <= length; j++) {
       /*         printf("j=%d,",j); */
       int p, q, ij;
@@ -967,8 +991,10 @@ fill_arrays(const char  *string,
         c[ij] = INF;
       }
 
-      /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
+      /*
+       * done with c[i,j], now compute fML[i,j]
+       * free ends ? -----------------------------------------
+       */
     }
 
     {
@@ -999,6 +1025,7 @@ fill_arrays(const char  *string,
   }
   folden  *head; /* we save the stem loop information in a list like structure */
   folden  *head_XS;
+
   for (i = length - TURN - 1; i >= 1; i--) {
     /* i,j in [1..length] */
     int max_k, min_k;
@@ -1012,13 +1039,15 @@ fill_arrays(const char  *string,
       for (a = 0; a < MISMATCH; a++) {
         for (b = 0; b < MISMATCH; b++) {
           mLoop[ij] = MIN2(mLoop[ij], c[indx[j - a] + i + b]);
-          /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i]); */
-          /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j]+i+1]); */
-          /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-1]+i+1]); */
-          /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i+1]); */
-          /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j]+i+2]); */
-          /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-1]+i+2]); */
-          /* #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i+2]); */
+          /*
+           * #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i]);
+           * #mLoop[ij]=MIN2(mLoop[ij], c[indx[j]+i+1]);
+           * #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-1]+i+1]);
+           * #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i+1]);
+           * #mLoop[ij]=MIN2(mLoop[ij], c[indx[j]+i+2]);
+           * #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-1]+i+2]);
+           * #mLoop[ij]=MIN2(mLoop[ij], c[indx[j-2]+i+2]);
+           */
         }
       }
       min_c = MIN2(mLoop[ij], min_c);
@@ -1042,32 +1071,36 @@ fill_arrays(const char  *string,
       }
     }
   }
-  /*   int count=0; */
-  /*    for(i=0; i< length; i++){  */
-  /*      folden *temp;  */
-  /*      temp = foldlist[i];  */
-  /*      while(temp->next){  */
-  /*        count++; */
-  /*        printf("count %d: i%d j%d energy %d \n", count, i, temp->k, temp->energy);  */
-  /*        temp=temp->next;  */
-  /*      }      */
-  /*    }  */
-  /*    printf("Count %d \n", count); */
-  /*    count=0; */
-  /*    for(i=length-1; i>=0; i--){  */
-  /*      folden *temp;  */
-  /*      temp = foldlist_XS[i];  */
-  /*      while(temp->next){  */
-  /*        count++; */
-  /*        printf("count %d: i%d j%d energy %d \n", count, temp->k,i, temp->energy);  */
-  /*        temp=temp->next;  */
-  /*      }      */
-  /*    }  */
-  /*    printf("Count %d \n", count); */
-  /*    return mLoop[indx[length]+1]; */ /* mLoop; */
+  /*
+   *   int count=0;
+   *    for(i=0; i< length; i++){
+   *      folden *temp;
+   *      temp = foldlist[i];
+   *      while(temp->next){
+   *        count++;
+   *        printf("count %d: i%d j%d energy %d \n", count, i, temp->k, temp->energy);
+   *        temp=temp->next;
+   *      }
+   *    }
+   *    printf("Count %d \n", count);
+   *    count=0;
+   *    for(i=length-1; i>=0; i--){
+   *      folden *temp;
+   *      temp = foldlist_XS[i];
+   *      while(temp->next){
+   *        count++;
+   *        printf("count %d: i%d j%d energy %d \n", count, temp->k,i, temp->energy);
+   *        temp=temp->next;
+   *      }
+   *    }
+   *    printf("Count %d \n", count);
+   *    return mLoop[indx[length]+1]; */ /* mLoop;
+   */
   return min_c;
-  /* printf("\nmin_array = %d\n", min_c); */
-  /* return f5[length]; */
+  /*
+   * printf("\nmin_array = %d\n", min_c);
+   * return f5[length];
+   */
 }
 
 
@@ -1187,24 +1220,28 @@ repeat1:
 
     /* end of repeat: --------------------------------------------------*/
 
-    /* (i.j) must close a multi-loop */
-    /*     tt = rtype[type]; */
-    /*     mm = bonus+P->MLclosing+P->MLintern[tt]; */
-    /*     d5 = P->dangle5[tt][S1[j-1]]; */
-    /*     d3 = P->dangle3[tt][S1[i+1]]; */
+    /*
+     * (i.j) must close a multi-loop
+     *     tt = rtype[type];
+     *     mm = bonus+P->MLclosing+P->MLintern[tt];
+     *     d5 = P->dangle5[tt][S1[j-1]];
+     *     d3 = P->dangle3[tt][S1[i+1]];
+     */
     i1                = i + 1;
     j1                = j - 1;
     sector[s + 1].ml  = sector[s + 2].ml = 1;
 
-    /*      if (k<=j-3-TURN) { */ /* found the decomposition */
-    /*       sector[++s].i = i1; */
-    /*       sector[s].j   = k; */
-    /*       sector[++s].i = k+1; */
-    /*       sector[s].j   = j1; */
-    /*     } else { */
-    /*         vrna_message_error("backtracking failed in repeat"); */
-    /*     } */
-    /*  */
+    /*
+     *      if (k<=j-3-TURN) { */ /* found the decomposition
+     *       sector[++s].i = i1;
+     *       sector[s].j   = k;
+     *       sector[++s].i = k+1;
+     *       sector[s].j   = j1;
+     *     } else {
+     *         vrna_message_error("backtracking failed in repeat");
+     *     }
+     *
+     */
   }
 
   base_pair[0].i = b;    /* save the total number of base pairs */
@@ -1241,7 +1278,7 @@ alisnobacktrack_fold_from_pair(const char **strings,
   int   n_seq, s, length;
 
   length = (int)strlen(strings[0]);
-  for (s = 0; strings[s] != NULL; s++) ;
+  for (s = 0; strings[s] != NULL; s++);
   n_seq           = s;
   sector[1].i     = i;
   sector[1].j     = j;
@@ -1316,8 +1353,10 @@ aliencode_seq(const char *sequence)
   for (i = 1; i <= l; i++)
     Stemp[i] = (short)encode_char(toupper(sequence[i - 1]));
 
-  /* for circular folding add first base at position n+1 */
-  /* Stemp[l+1] = Stemp[1]; */
+  /*
+   * for circular folding add first base at position n+1
+   * Stemp[l+1] = Stemp[1];
+   */
 
   return Stemp;
 }
