@@ -133,7 +133,7 @@ main(int  argc,
 
   if (args_info.paramFile_given) {
     if (!strcmp(args_info.paramFile_arg, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(args_info.paramFile_arg, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
@@ -146,7 +146,8 @@ main(int  argc,
 
   if (args_info.dangles_given) {
     if (args_info.dangles_given > 3)
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = args_info.dangles_arg;
   }
@@ -175,12 +176,19 @@ main(int  argc,
     struct {
       int algorithm;
       int arg;
-    } mapper[] = { { VRNA_MINIMIZER_CONJUGATE_FR,     minimizer_arg_conjugate_fr     },
-                   { VRNA_MINIMIZER_CONJUGATE_PR,     minimizer_arg_conjugate_pr     },
-                   { VRNA_MINIMIZER_VECTOR_BFGS,      minimizer_arg_vector_bfgs      },
-                   { VRNA_MINIMIZER_VECTOR_BFGS2,     minimizer_arg_vector_bfgs2     },
-                   { VRNA_MINIMIZER_STEEPEST_DESCENT, minimizer_arg_steepest_descent },
-                   { 0,                               0                              } };
+    } mapper[] =
+    {              { VRNA_MINIMIZER_CONJUGATE_FR,
+                     minimizer_arg_conjugate_fr                                                                 },
+                   { VRNA_MINIMIZER_CONJUGATE_PR,
+                     minimizer_arg_conjugate_pr                                                                                                },
+                   { VRNA_MINIMIZER_VECTOR_BFGS,
+                     minimizer_arg_vector_bfgs                                                                                                                               },
+                   { VRNA_MINIMIZER_VECTOR_BFGS2,
+                     minimizer_arg_vector_bfgs2                                                                                                                                                            },
+                   { VRNA_MINIMIZER_STEEPEST_DESCENT,
+                     minimizer_arg_steepest_descent                                                                                                                                                                                      },
+                   { 0,
+                     0                                                                                                                                                                                                                   } };
     for (i = 0; mapper[i].algorithm; ++i)
       if (args_info.minimizer_arg == mapper[i].arg) {
         algorithm = mapper[i].algorithm;
