@@ -39,112 +39,128 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE void  crosslink(TwoDpfold_vars *vars);
+PRIVATE void
+crosslink(TwoDpfold_vars *vars);
 
 
-PRIVATE void  pf2D_linear(vrna_fold_compound_t *vc);
+PRIVATE void
+pf2D_linear(vrna_fold_compound_t *vc);
 
 
-PRIVATE void  pf2D_circ(vrna_fold_compound_t *vc);
+PRIVATE void
+pf2D_circ(vrna_fold_compound_t *vc);
 
 
-PRIVATE char *pbacktrack_circ(vrna_fold_compound_t  *vc,
-                              int                   d1,
-                              int                   d2);
+PRIVATE char *
+pbacktrack_circ(vrna_fold_compound_t  *vc,
+                int                   d1,
+                int                   d2);
 
 
-PRIVATE void  backtrack(vrna_fold_compound_t  *vc,
-                        char                  *pstruc,
-                        int                   d1,
-                        int                   d2,
-                        unsigned int          i,
-                        unsigned int          j);
+PRIVATE void
+backtrack(vrna_fold_compound_t  *vc,
+          char                  *pstruc,
+          int                   d1,
+          int                   d2,
+          unsigned int          i,
+          unsigned int          j);
 
 
-PRIVATE void  backtrack_qm(vrna_fold_compound_t *vc,
-                           char                 *pstruc,
-                           int                  d1,
-                           int                  d2,
-                           unsigned int         i,
-                           unsigned int         j);
+PRIVATE void
+backtrack_qm(vrna_fold_compound_t *vc,
+             char                 *pstruc,
+             int                  d1,
+             int                  d2,
+             unsigned int         i,
+             unsigned int         j);
 
 
-PRIVATE void  backtrack_qm1(vrna_fold_compound_t  *vc,
-                            char                  *pstruc,
-                            int                   d1,
-                            int                   d2,
-                            unsigned int          i,
-                            unsigned int          j);
+PRIVATE void
+backtrack_qm1(vrna_fold_compound_t  *vc,
+              char                  *pstruc,
+              int                   d1,
+              int                   d2,
+              unsigned int          i,
+              unsigned int          j);
 
 
-PRIVATE void  backtrack_qm2(vrna_fold_compound_t  *vc,
-                            char                  *pstruc,
-                            int                   d1,
-                            int                   d2,
-                            unsigned int          k);
+PRIVATE void
+backtrack_qm2(vrna_fold_compound_t  *vc,
+              char                  *pstruc,
+              int                   d1,
+              int                   d2,
+              unsigned int          k);
 
 
-PRIVATE void  backtrack_qcH(vrna_fold_compound_t  *vc,
-                            char                  *pstruc,
-                            int                   d1,
-                            int                   d2);
+PRIVATE void
+backtrack_qcH(vrna_fold_compound_t  *vc,
+              char                  *pstruc,
+              int                   d1,
+              int                   d2);
 
 
-PRIVATE void  backtrack_qcI(vrna_fold_compound_t  *vc,
-                            char                  *pstruc,
-                            int                   d1,
-                            int                   d2);
+PRIVATE void
+backtrack_qcI(vrna_fold_compound_t  *vc,
+              char                  *pstruc,
+              int                   d1,
+              int                   d2);
 
 
-PRIVATE void  backtrack_qcM(vrna_fold_compound_t  *vc,
-                            char                  *pstruc,
-                            int                   d1,
-                            int                   d2);
+PRIVATE void
+backtrack_qcM(vrna_fold_compound_t  *vc,
+              char                  *pstruc,
+              int                   d1,
+              int                   d2);
 
 
-PRIVATE void  adjustArrayBoundaries(FLT_OR_DBL  ***array,
-                                    int         *k_min,
-                                    int         *k_max,
-                                    int         **l_min,
-                                    int         **l_max,
-                                    int         k_min_real,
-                                    int         k_max_real,
-                                    int         *l_min_real,
-                                    int         *l_max_real);
+PRIVATE void
+adjustArrayBoundaries(FLT_OR_DBL  ***array,
+                      int         *k_min,
+                      int         *k_max,
+                      int         **l_min,
+                      int         **l_max,
+                      int         k_min_real,
+                      int         k_max_real,
+                      int         *l_min_real,
+                      int         *l_max_real);
 
 
-INLINE PRIVATE void  preparePosteriorBoundaries(int size,
-                                                int shift,
-                                                int *min_k,
-                                                int *max_k,
-                                                int **min_l,
-                                                int **max_l);
+INLINE PRIVATE void
+preparePosteriorBoundaries(int  size,
+                           int  shift,
+                           int  *min_k,
+                           int  *max_k,
+                           int  **min_l,
+                           int  **max_l);
 
 
-INLINE PRIVATE void  updatePosteriorBoundaries(int  d1,
-                                               int  d2,
-                                               int  *min_k,
-                                               int  *max_k,
-                                               int  **min_l,
-                                               int  **max_l);
+INLINE PRIVATE void
+updatePosteriorBoundaries(int d1,
+                          int d2,
+                          int *min_k,
+                          int *max_k,
+                          int **min_l,
+                          int **max_l);
 
 
-INLINE PRIVATE void  prepareBoundaries(int  min_k_pre,
-                                       int  max_k_pre,
-                                       int  min_l_pre,
-                                       int  max_l_pre,
-                                       int  bpdist,
-                                       int  *min_k,
-                                       int  *max_k,
-                                       int  **min_l,
-                                       int  **max_l);
+INLINE PRIVATE void
+prepareBoundaries(int min_k_pre,
+                  int max_k_pre,
+                  int min_l_pre,
+                  int max_l_pre,
+                  int bpdist,
+                  int *min_k,
+                  int *max_k,
+                  int **min_l,
+                  int **max_l);
 
 
-INLINE PRIVATE void  prepareArray(FLT_OR_DBL  ***array,
-                                  int         min_k,
-                                  int         max_k,
-                                  int         *min_l,
-                                  int         *max_l);
+INLINE PRIVATE void
+prepareArray(FLT_OR_DBL ***array,
+             int        min_k,
+             int        max_k,
+             int        *min_l,
+             int        *max_l);
 
 
 /*
@@ -189,7 +205,9 @@ vrna_pf_TwoD(vrna_fold_compound_t *vc,
   vc->maxD1 = maxD1;
   vc->maxD2 = maxD2;
 
-  output = (vrna_sol_TwoD_pf_t *)vrna_alloc((((maxD1 + 1) * (maxD2 + 2)) / 2 + 2) * sizeof(vrna_sol_TwoD_pf_t));
+  output =
+    (vrna_sol_TwoD_pf_t *)vrna_alloc(
+      (((maxD1 + 1) * (maxD2 + 2)) / 2 + 2) * sizeof(vrna_sol_TwoD_pf_t));
 
   pf2D_linear(vc);
   if (md->circ)
@@ -290,9 +308,11 @@ TwoDpfold(TwoDpfold_vars  *vars,
   output = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (maxD1 + 1));
   pf2D_linear(vars);
   int ndx = vars->my_iindx[1] - vars->seq_length;
+
   for (cnt1 = vars->k_min_values[ndx]; cnt1 <= MIN2(vars->k_max_values[ndx], vars->maxD1); cnt1++) {
     output[cnt1] = (FLT_OR_DBL *)vrna_alloc((vars->maxD2 + 1) * sizeof(FLT_OR_DBL));
-    for (cnt2 = vars->l_min_values[ndx][cnt1]; cnt2 <= MIN2(vars->l_max_values[ndx][cnt1], vars->maxD2); cnt2 += 2)
+    for (cnt2 = vars->l_min_values[ndx][cnt1];
+         cnt2 <= MIN2(vars->l_max_values[ndx][cnt1], vars->maxD2); cnt2 += 2)
       output[cnt1][cnt2] = vars->Q[ndx][cnt1][cnt2 / 2];
   }
   return output;
@@ -352,7 +372,8 @@ TwoDpfold_circ(TwoDpfold_vars *vars,
 
   for (cnt1 = vars->k_min_values_qc; cnt1 <= MIN2(vars->k_max_values_qc, vars->maxD1); cnt1++) {
     output[cnt1] = (FLT_OR_DBL *)vrna_alloc((vars->maxD2 + 1) * sizeof(FLT_OR_DBL));
-    for (cnt2 = vars->l_min_values_qc[cnt1]; cnt2 <= MIN2(vars->l_max_values_qc[cnt1], vars->maxD2); cnt2 += 2)
+    for (cnt2 = vars->l_min_values_qc[cnt1]; cnt2 <= MIN2(vars->l_max_values_qc[cnt1], vars->maxD2);
+         cnt2 += 2)
       output[cnt1][cnt2] = vars->Q_c[cnt1][cnt2 / 2];
   }
   return output;
@@ -492,7 +513,12 @@ pf2D_linear(vrna_fold_compound_t *vc)
         if (!no_close) {
           if ((da >= 0) && (db >= 0)) {
             if (((unsigned int)da <= maxD1) && ((unsigned int)db <= maxD2)) {
-              matrices->Q_B[ij][da][db / 2] = exp_E_Hairpin(dij, type, S1[i + 1], S1[j - 1], sequence + i - 1, pf_params) * scale[dij + 2];
+              matrices->Q_B[ij][da][db / 2] = exp_E_Hairpin(dij,
+                                                            type,
+                                                            S1[i + 1],
+                                                            S1[j - 1],
+                                                            sequence + i - 1,
+                                                            pf_params) * scale[dij + 2];
               if (update_b) {
                 updatePosteriorBoundaries(da,
                                           db,
@@ -503,7 +529,12 @@ pf2D_linear(vrna_fold_compound_t *vc)
                                           );
               }
             } else {
-              matrices->Q_B_rem[ij] = exp_E_Hairpin(dij, type, S1[i + 1], S1[j - 1], sequence + i - 1, pf_params) * scale[dij + 2];
+              matrices->Q_B_rem[ij] = exp_E_Hairpin(dij,
+                                                    type,
+                                                    S1[i + 1],
+                                                    S1[j - 1],
+                                                    sequence + i - 1,
+                                                    pf_params) * scale[dij + 2];
             }
           }
         }
@@ -527,7 +558,9 @@ pf2D_linear(vrna_fold_compound_t *vc)
               continue;
 
             type_2  = rtype[type_2];
-            aux_en  = exp_E_IntLoop(k - i - 1, j - l - 1, type, type_2, S1[i + 1], S1[j - 1], S1[k - 1], S1[l + 1], pf_params) * scale[k - i + j - l];
+            aux_en  =
+              exp_E_IntLoop(k - i - 1, j - l - 1, type, type_2, S1[i + 1], S1[j - 1], S1[k - 1],
+                            S1[l + 1], pf_params) * scale[k - i + j - l];
 
             /* get distance to reference if closing the interior loop
              *  d2 = dbp(S_{i,j}, S_{k,l} + {i,j})
@@ -548,7 +581,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
                    cnt2 <= matrices->l_max_Q_B[kl][cnt1];
                    cnt2 += 2) {
                 if (((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)) {
-                  matrices->Q_B[ij][cnt1 + da][(cnt2 + db) / 2] += matrices->Q_B[kl][cnt1][cnt2 / 2] * aux_en;
+                  matrices->Q_B[ij][cnt1 + da][(cnt2 + db) /
+                                               2] += matrices->Q_B[kl][cnt1][cnt2 / 2] * aux_en;
                   if (update_b) {
                     updatePosteriorBoundaries(da + cnt1,
                                               db + cnt2,
@@ -569,7 +603,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
         if (!no_close) {
           for (u = i + turn + 2; u < j - turn - 2; u++) {
             tt    = rtype[type];
-            temp2 = pf_params->expMLclosing * exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params) * scale[2];
+            temp2 = pf_params->expMLclosing *
+                    exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params) * scale[2];
 
             if (matrices->Q_M_rem[my_iindx[i + 1] - u]) {
               if (matrices->Q_M1[jindx[j - 1] + u + 1]) {
@@ -579,11 +614,14 @@ pf2D_linear(vrna_fold_compound_t *vc)
                   for (cnt2 = matrices->l_min_Q_M1[jindx[j - 1] + u + 1][cnt1];
                        cnt2 <= matrices->l_max_Q_M1[jindx[j - 1] + u + 1][cnt1];
                        cnt2 += 2)
-                    matrices->Q_B_rem[ij] += matrices->Q_M_rem[my_iindx[i + 1] - u] * matrices->Q_M1[jindx[j - 1] + u + 1][cnt1][cnt2 / 2] * temp2;
+                    matrices->Q_B_rem[ij] += matrices->Q_M_rem[my_iindx[i + 1] - u] *
+                                             matrices->Q_M1[jindx[j - 1] + u + 1][cnt1][cnt2 / 2] *
+                                             temp2;
               }
 
               if (matrices->Q_M1_rem[jindx[j - 1] + u + 1])
-                matrices->Q_B_rem[ij] += matrices->Q_M_rem[my_iindx[i + 1] - u] * matrices->Q_M1_rem[jindx[j - 1] + u + 1] * temp2;
+                matrices->Q_B_rem[ij] += matrices->Q_M_rem[my_iindx[i + 1] - u] *
+                                         matrices->Q_M1_rem[jindx[j - 1] + u + 1] * temp2;
             }
 
             if (matrices->Q_M1_rem[jindx[j - 1] + u + 1]) {
@@ -594,15 +632,18 @@ pf2D_linear(vrna_fold_compound_t *vc)
                   for (cnt2 = matrices->l_min_Q_M[my_iindx[i + 1] - u][cnt1];
                        cnt2 <= matrices->l_max_Q_M[my_iindx[i + 1] - u][cnt1];
                        cnt2 += 2)
-                    matrices->Q_B_rem[ij] += matrices->Q_M[my_iindx[i + 1] - u][cnt1][cnt2 / 2] * matrices->Q_M1_rem[jindx[j - 1] + u + 1] * temp2;
+                    matrices->Q_B_rem[ij] += matrices->Q_M[my_iindx[i + 1] - u][cnt1][cnt2 / 2] *
+                                             matrices->Q_M1_rem[jindx[j - 1] + u + 1] * temp2;
               }
             }
 
             /* get distance to reference if closing the multiloop
              *  dist3 = dbp(S_{i,j}, {i,j} + S_{i+1,u} + S_{u+1,j-1})
              */
-            da  = base_da + referenceBPs1[ij] - referenceBPs1[my_iindx[i + 1] - u] - referenceBPs1[my_iindx[u + 1] - j + 1];
-            db  = base_db + referenceBPs2[ij] - referenceBPs2[my_iindx[i + 1] - u] - referenceBPs2[my_iindx[u + 1] - j + 1];
+            da = base_da + referenceBPs1[ij] - referenceBPs1[my_iindx[i + 1] - u] -
+                 referenceBPs1[my_iindx[u + 1] - j + 1];
+            db = base_db + referenceBPs2[ij] - referenceBPs2[my_iindx[i + 1] - u] -
+                 referenceBPs2[my_iindx[u + 1] - j + 1];
 
             if (!matrices->Q_M[my_iindx[i + 1] - u])
               continue;
@@ -623,9 +664,13 @@ pf2D_linear(vrna_fold_compound_t *vc)
                        cnt4 <= matrices->l_max_Q_M1[jindx[j - 1] + u + 1][cnt3];
                        cnt4 += 2) {
                     if (((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)) {
-                      matrices->Q_B[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db) / 2] += matrices->Q_M[my_iindx[i + 1] - u][cnt1][cnt2 / 2]
-                                                                                     * matrices->Q_M1[jindx[j - 1] + u + 1][cnt3][cnt4 / 2]
-                                                                                     * temp2;
+                      matrices->Q_B[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db) /
+                                                          2] +=
+                        matrices->Q_M[my_iindx[i + 1] - u][cnt1][cnt2 / 2]
+                        * matrices->
+                        Q_M1[jindx[j - 1] + u +
+                             1][cnt3][cnt4 / 2]
+                        * temp2;
                       if (update_b) {
                         updatePosteriorBoundaries(cnt1 + cnt3 + da,
                                                   cnt2 + cnt4 + db,
@@ -637,7 +682,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
                       }
                     } else {
                       matrices->Q_B_rem[ij] += matrices->Q_M[my_iindx[i + 1] - u][cnt1][cnt2 / 2]
-                                               * matrices->Q_M1[jindx[j - 1] + u + 1][cnt3][cnt4 / 2]
+                                               * matrices->Q_M1[jindx[j - 1] + u + 1][cnt3][cnt4 /
+                                                                                            2]
                                                * temp2;
                     }
                   }
@@ -716,7 +762,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
                           &matrices->l_min_Q_M1[jindx[j] + i],
                           &matrices->l_max_Q_M1[jindx[j] + i]
                           );
-        preparePosteriorBoundaries(matrices->k_max_Q_M1[jindx[j] + i] - matrices->k_min_Q_M1[jindx[j] + i] + 1,
+        preparePosteriorBoundaries(matrices->k_max_Q_M1[jindx[j] + i] -
+                                   matrices->k_min_Q_M1[jindx[j] + i] + 1,
                                    matrices->k_min_Q_M1[jindx[j] + i],
                                    &k_min_post_m1,
                                    &k_max_post_m1,
@@ -747,7 +794,9 @@ pf2D_linear(vrna_fold_compound_t *vc)
                cnt2 <= matrices->l_max_Q_M[ij + 1][cnt1];
                cnt2 += 2) {
             if (((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)) {
-              matrices->Q_M[ij][cnt1 + da][(cnt2 + db) / 2] += matrices->Q_M[ij + 1][cnt1][cnt2 / 2] * pf_params->expMLbase * scale[1];
+              matrices->Q_M[ij][cnt1 + da][(cnt2 + db) /
+                                           2] += matrices->Q_M[ij + 1][cnt1][cnt2 / 2] *
+                                                 pf_params->expMLbase * scale[1];
               if (update_m) {
                 updatePosteriorBoundaries(cnt1 + da,
                                           cnt2 + db,
@@ -758,14 +807,16 @@ pf2D_linear(vrna_fold_compound_t *vc)
                                           );
               }
             } else {
-              matrices->Q_M_rem[ij] += matrices->Q_M[ij + 1][cnt1][cnt2 / 2] * pf_params->expMLbase * scale[1];
+              matrices->Q_M_rem[ij] += matrices->Q_M[ij + 1][cnt1][cnt2 / 2] *
+                                       pf_params->expMLbase * scale[1];
             }
           }
         }
       }
 
       if (matrices->Q_M1_rem[jindx[j - 1] + i])
-        matrices->Q_M1_rem[jindx[j] + i] += matrices->Q_M1_rem[jindx[j - 1] + i] * pf_params->expMLbase * scale[1];
+        matrices->Q_M1_rem[jindx[j] + i] += matrices->Q_M1_rem[jindx[j - 1] + i] *
+                                            pf_params->expMLbase * scale[1];
 
       if (matrices->Q_M1[jindx[j - 1] + i]) {
         for (cnt1 = matrices->k_min_Q_M1[jindx[j - 1] + i];
@@ -775,7 +826,10 @@ pf2D_linear(vrna_fold_compound_t *vc)
                cnt2 <= matrices->l_max_Q_M1[jindx[j - 1] + i][cnt1];
                cnt2 += 2) {
             if (((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)) {
-              matrices->Q_M1[jindx[j] + i][cnt1 + da][(cnt2 + db) / 2] += matrices->Q_M1[jindx[j - 1] + i][cnt1][cnt2 / 2] * pf_params->expMLbase * scale[1];
+              matrices->Q_M1[jindx[j] + i][cnt1 + da][(cnt2 + db) /
+                                                      2] +=
+                matrices->Q_M1[jindx[j - 1] + i][cnt1][cnt2 / 2] * pf_params->expMLbase *
+                scale[1];
               if (update_m1) {
                 updatePosteriorBoundaries(cnt1 + da,
                                           cnt2 + db,
@@ -786,14 +840,18 @@ pf2D_linear(vrna_fold_compound_t *vc)
                                           );
               }
             } else {
-              matrices->Q_M1_rem[jindx[j] + i] += matrices->Q_M1[jindx[j - 1] + i][cnt1][cnt2 / 2] * pf_params->expMLbase * scale[1];
+              matrices->Q_M1_rem[jindx[j] + i] += matrices->Q_M1[jindx[j - 1] + i][cnt1][cnt2 / 2] *
+                                                  pf_params->expMLbase * scale[1];
             }
           }
       }
 
       /* j pairs with i */
       if ((!no_close) && type) {
-        FLT_OR_DBL aux_en = exp_E_MLstem(type, (i > 1) || circ ? S1[i - 1] : -1, (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
+        FLT_OR_DBL aux_en = exp_E_MLstem(type,
+                                         (i > 1) || circ ? S1[i - 1] : -1,
+                                         (j < seq_length) || circ ? S1[j + 1] : -1,
+                                         pf_params);
 
         if (matrices->Q_B_rem[ij]) {
           matrices->Q_M_rem[ij]             += matrices->Q_B_rem[ij] * aux_en;
@@ -818,7 +876,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
                                           );
               }
 
-              matrices->Q_M1[jindx[j] + i][cnt1][cnt2 / 2] += matrices->Q_B[ij][cnt1][cnt2 / 2] * aux_en;
+              matrices->Q_M1[jindx[j] + i][cnt1][cnt2 / 2] += matrices->Q_B[ij][cnt1][cnt2 / 2] *
+                                                              aux_en;
               if (update_m1) {
                 updatePosteriorBoundaries(cnt1,
                                           cnt2,
@@ -839,7 +898,9 @@ pf2D_linear(vrna_fold_compound_t *vc)
         temp2 = exp_E_MLstem(tt, S1[k - 1], (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
 
         if (matrices->Q_B_rem[my_iindx[k] - j]) {
-          matrices->Q_M_rem[ij] += matrices->Q_B_rem[my_iindx[k] - j] * pow(pf_params->expMLbase, (double)(k - i)) * scale[k - i] * temp2;
+          matrices->Q_M_rem[ij] += matrices->Q_B_rem[my_iindx[k] - j] *
+                                   pow(pf_params->expMLbase,
+                                       (double)(k - i)) * scale[k - i] * temp2;
           if (matrices->Q_M[ii - k + 1]) {
             for (cnt1 = matrices->k_min_Q_M[ii - k + 1];
                  cnt1 <= matrices->k_max_Q_M[ii - k + 1];
@@ -847,11 +908,13 @@ pf2D_linear(vrna_fold_compound_t *vc)
               for (cnt2 = matrices->l_min_Q_M[ii - k + 1][cnt1];
                    cnt2 <= matrices->l_max_Q_M[ii - k + 1][cnt1];
                    cnt2 += 2)
-                matrices->Q_M_rem[ij] += matrices->Q_M[ii - k + 1][cnt1][cnt2 / 2] * matrices->Q_B_rem[my_iindx[k] - j] * temp2;
+                matrices->Q_M_rem[ij] += matrices->Q_M[ii - k + 1][cnt1][cnt2 / 2] *
+                                         matrices->Q_B_rem[my_iindx[k] - j] * temp2;
           }
 
           if (matrices->Q_M_rem[ii - k + 1])
-            matrices->Q_M_rem[ij] += matrices->Q_M_rem[ii - k + 1] * matrices->Q_B_rem[my_iindx[k] - j] * temp2;
+            matrices->Q_M_rem[ij] += matrices->Q_M_rem[ii - k + 1] *
+                                     matrices->Q_B_rem[my_iindx[k] - j] * temp2;
         }
 
         if (matrices->Q_M_rem[ii - k + 1]) {
@@ -862,7 +925,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
               for (cnt2 = matrices->l_min_Q_B[my_iindx[k] - j][cnt1];
                    cnt2 <= matrices->l_max_Q_B[my_iindx[k] - j][cnt1];
                    cnt2 += 2)
-                matrices->Q_M_rem[ij] += matrices->Q_M_rem[my_iindx[k] - j] * matrices->Q_B[my_iindx[k] - j][cnt1][cnt2 / 2] * temp2;
+                matrices->Q_M_rem[ij] += matrices->Q_M_rem[my_iindx[k] - j] *
+                                         matrices->Q_B[my_iindx[k] - j][cnt1][cnt2 / 2] * temp2;
           }
         }
 
@@ -886,7 +950,10 @@ pf2D_linear(vrna_fold_compound_t *vc)
                cnt2 <= matrices->l_max_Q_B[my_iindx[k] - j][cnt1];
                cnt2 += 2) {
             if (((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)) {
-              matrices->Q_M[ij][cnt1 + da][(cnt2 + db) / 2] += matrices->Q_B[my_iindx[k] - j][cnt1][cnt2 / 2] * pow(pf_params->expMLbase, (double)(k - i)) * scale[k - i] * temp2;
+              matrices->Q_M[ij][cnt1 + da][(cnt2 + db) /
+                                           2] += matrices->Q_B[my_iindx[k] - j][cnt1][cnt2 / 2] *
+                                                 pow(pf_params->expMLbase,
+                                                     (double)(k - i)) * scale[k - i] * temp2;
               if (update_m) {
                 updatePosteriorBoundaries(cnt1 + da,
                                           cnt2 + db,
@@ -897,7 +964,9 @@ pf2D_linear(vrna_fold_compound_t *vc)
                                           );
               }
             } else {
-              matrices->Q_M_rem[ij] += matrices->Q_B[my_iindx[k] - j][cnt1][cnt2 / 2] * pow(pf_params->expMLbase, (double)(k - i)) * scale[k - i] * temp2;
+              matrices->Q_M_rem[ij] += matrices->Q_B[my_iindx[k] - j][cnt1][cnt2 / 2] * pow(
+                pf_params->expMLbase,
+                (double)(k - i)) * scale[k - i] * temp2;
             }
           }
 
@@ -920,7 +989,11 @@ pf2D_linear(vrna_fold_compound_t *vc)
                    cnt4 <= matrices->l_max_Q_B[my_iindx[k] - j][cnt3];
                    cnt4 += 2) {
                 if (((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)) {
-                  matrices->Q_M[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db) / 2] += matrices->Q_M[ii - k + 1][cnt1][cnt2 / 2] * matrices->Q_B[my_iindx[k] - j][cnt3][cnt4 / 2] * temp2;
+                  matrices->Q_M[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db) /
+                                                      2] +=
+                    matrices->Q_M[ii - k + 1][cnt1][cnt2 / 2] *
+                    matrices->Q_B[my_iindx[k] -
+                                  j][cnt3][cnt4 / 2] * temp2;
                   if (update_m) {
                     updatePosteriorBoundaries(cnt1 + cnt3 + da,
                                               cnt2 + cnt4 + db,
@@ -931,7 +1004,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
                                               );
                   }
                 } else {
-                  matrices->Q_M_rem[ij] += matrices->Q_M[ii - k + 1][cnt1][cnt2 / 2] * matrices->Q_B[my_iindx[k] - j][cnt3][cnt4 / 2] * temp2;
+                  matrices->Q_M_rem[ij] += matrices->Q_M[ii - k + 1][cnt1][cnt2 / 2] *
+                                           matrices->Q_B[my_iindx[k] - j][cnt3][cnt4 / 2] * temp2;
                 }
               }
       }
@@ -999,7 +1073,10 @@ pf2D_linear(vrna_fold_compound_t *vc)
       }
 
       if (type) {
-        aux_en = vrna_exp_E_ext_stem(type, (i > 1) || circ ? S1[i - 1] : -1, (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
+        aux_en = vrna_exp_E_ext_stem(type,
+                                     (i > 1) || circ ? S1[i - 1] : -1,
+                                     (j < seq_length) || circ ? S1[j + 1] : -1,
+                                     pf_params);
 
         if (matrices->Q_B_rem[ij])
           matrices->Q_rem[ij] += matrices->Q_B_rem[ij] * aux_en;
@@ -1042,7 +1119,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
                cnt2 <= matrices->l_max_Q[ij + 1][cnt1];
                cnt2 += 2) {
             if (((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)) {
-              matrices->Q[ij][cnt1 + da][(cnt2 + db) / 2] += matrices->Q[ij + 1][cnt1][cnt2 / 2] * scale[1];
+              matrices->Q[ij][cnt1 + da][(cnt2 + db) / 2] += matrices->Q[ij + 1][cnt1][cnt2 / 2] *
+                                                             scale[1];
               if (update_q) {
                 updatePosteriorBoundaries(cnt1 + da,
                                           cnt2 + db,
@@ -1060,7 +1138,10 @@ pf2D_linear(vrna_fold_compound_t *vc)
 
       for (k = j - turn - 1; k > i; k--) {
         tt    = ptype[jindx[j] + k];
-        temp2 = vrna_exp_E_ext_stem(tt, S1[k - 1], (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
+        temp2 = vrna_exp_E_ext_stem(tt,
+                                    S1[k - 1],
+                                    (j < seq_length) || circ ? S1[j + 1] : -1,
+                                    pf_params);
 
         if (matrices->Q_rem[my_iindx[i] - k + 1]) {
           if (matrices->Q_B[my_iindx[k] - j]) {
@@ -1070,11 +1151,13 @@ pf2D_linear(vrna_fold_compound_t *vc)
               for (cnt2 = matrices->l_min_Q_B[my_iindx[k] - j][cnt1];
                    cnt2 <= matrices->l_max_Q_B[my_iindx[k] - j][cnt1];
                    cnt2 += 2)
-                matrices->Q_rem[ij] += matrices->Q_rem[my_iindx[i] - k + 1] * matrices->Q_B[my_iindx[k] - j][cnt1][cnt2 / 2] * temp2;
+                matrices->Q_rem[ij] += matrices->Q_rem[my_iindx[i] - k + 1] *
+                                       matrices->Q_B[my_iindx[k] - j][cnt1][cnt2 / 2] * temp2;
           }
 
           if (matrices->Q_B_rem[my_iindx[k] - j])
-            matrices->Q_rem[ij] += matrices->Q_rem[my_iindx[i] - k + 1] * matrices->Q_B_rem[my_iindx[k] - j] * temp2;
+            matrices->Q_rem[ij] += matrices->Q_rem[my_iindx[i] - k + 1] *
+                                   matrices->Q_B_rem[my_iindx[k] - j] * temp2;
         }
 
         if (matrices->Q_B_rem[my_iindx[k] - j]) {
@@ -1085,15 +1168,18 @@ pf2D_linear(vrna_fold_compound_t *vc)
               for (cnt2 = matrices->l_min_Q[my_iindx[i] - k + 1][cnt1];
                    cnt2 <= matrices->l_max_Q[my_iindx[i] - k + 1][cnt1];
                    cnt2 += 2)
-                matrices->Q_rem[ij] += matrices->Q[my_iindx[i] - k + 1][cnt1][cnt2 / 2] * matrices->Q_B_rem[my_iindx[k] - j] * temp2;
+                matrices->Q_rem[ij] += matrices->Q[my_iindx[i] - k + 1][cnt1][cnt2 / 2] *
+                                       matrices->Q_B_rem[my_iindx[k] - j] * temp2;
           }
         }
 
         /* da = dbp{T1_{i,j}, T1_{k,j}
          *  db = dbp{T2_{i,j}, T2_{k,j}}
          */
-        da  = referenceBPs1[ij] - referenceBPs1[my_iindx[k] - j] - referenceBPs1[my_iindx[i] - k + 1];
-        db  = referenceBPs2[ij] - referenceBPs2[my_iindx[k] - j] - referenceBPs2[my_iindx[i] - k + 1];
+        da = referenceBPs1[ij] - referenceBPs1[my_iindx[k] - j] -
+             referenceBPs1[my_iindx[i] - k + 1];
+        db = referenceBPs2[ij] - referenceBPs2[my_iindx[k] - j] -
+             referenceBPs2[my_iindx[i] - k + 1];
 
 
         if (!matrices->Q[my_iindx[i] - k + 1])
@@ -1115,7 +1201,11 @@ pf2D_linear(vrna_fold_compound_t *vc)
                    cnt4 <= matrices->l_max_Q_B[my_iindx[k] - j][cnt3];
                    cnt4 += 2) {
                 if (((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)) {
-                  matrices->Q[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db) / 2] += matrices->Q[my_iindx[i] - k + 1][cnt1][cnt2 / 2] * matrices->Q_B[my_iindx[k] - j][cnt3][cnt4 / 2] * temp2;
+                  matrices->Q[ij][cnt1 + cnt3 + da][(cnt2 + cnt4 + db) /
+                                                    2] +=
+                    matrices->Q[my_iindx[i] - k + 1][cnt1][cnt2 / 2] *
+                    matrices->Q_B[my_iindx[k] -
+                                  j][cnt3][cnt4 / 2] * temp2;
                   if (update_q) {
                     updatePosteriorBoundaries(cnt1 + cnt3 + da,
                                               cnt2 + cnt4 + db,
@@ -1126,7 +1216,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
                                               );
                   }
                 } else {
-                  matrices->Q_rem[ij] += matrices->Q[my_iindx[i] - k + 1][cnt1][cnt2 / 2] * matrices->Q_B[my_iindx[k] - j][cnt3][cnt4 / 2] * temp2;
+                  matrices->Q_rem[ij] += matrices->Q[my_iindx[i] - k + 1][cnt1][cnt2 / 2] *
+                                         matrices->Q_B[my_iindx[k] - j][cnt3][cnt4 / 2] * temp2;
                 }
               }
       }
@@ -1154,7 +1245,8 @@ pf2D_linear(vrna_fold_compound_t *vc)
           if (matrices->Q[ij][cnt1][cnt2 / 2] > Qmax) {
             Qmax = matrices->Q[ij][cnt1][cnt2 / 2];
             if (Qmax > max_real / 10.)
-              vrna_message_warning("Q close to overflow: %u %u %g\n", i, j, matrices->Q[ij][cnt1][cnt2 / 2]);
+              vrna_message_warning("Q close to overflow: %u %u %g\n", i, j,
+                                   matrices->Q[ij][cnt1][cnt2 / 2]);
           }
 
           if (matrices->Q[ij][cnt1][cnt2 / 2] >= max_real)
@@ -1168,14 +1260,17 @@ pf2D_linear(vrna_fold_compound_t *vc)
 }
 
 
-/* calculate partition function for circular case */
-/* NOTE: this is the postprocessing step ONLY     */
-/* You have to call pf2D_linear first to calculate  */
-/* complete circular case!!!                      */
+/*
+ * calculate partition function for circular case
+ * NOTE: this is the postprocessing step ONLY
+ * You have to call pf2D_linear first to calculate
+ * complete circular case!!!
+ */
 PRIVATE void
 pf2D_circ(vrna_fold_compound_t *vc)
 {
-  unsigned int      d, p, q, pq, k, l, kl, u, da, db, seq_length, maxD1, maxD2, base_d1, base_d2, *mm1, *mm2, *bpdist;
+  unsigned int      d, p, q, pq, k, l, kl, u, da, db, seq_length, maxD1, maxD2, base_d1, base_d2,
+                    *mm1, *mm2, *bpdist;
   int               *my_iindx, *jindx, type, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   short             *S1;
   unsigned int      *referenceBPs1, *referenceBPs2;
@@ -1293,7 +1388,8 @@ pf2D_circ(vrna_fold_compound_t *vc)
             for (cnt2 = l_min_Q_M1[jindx[seq_length] + l + 1][cnt1];
                  cnt2 <= l_max_Q_M1[jindx[seq_length] + l + 1][cnt1];
                  cnt2 += 2)
-              matrices->Q_M2_rem[k] += Q_M1_rem[jindx[l] + k] * Q_M1[jindx[seq_length] + l + 1][cnt1][cnt2 / 2];
+              matrices->Q_M2_rem[k] += Q_M1_rem[jindx[l] + k] *
+                                       Q_M1[jindx[seq_length] + l + 1][cnt1][cnt2 / 2];
         }
 
         if (Q_M1_rem[jindx[seq_length] + l + 1])
@@ -1308,19 +1404,28 @@ pf2D_circ(vrna_fold_compound_t *vc)
             for (cnt2 = l_min_Q_M1[jindx[l] + k][cnt1];
                  cnt2 <= l_max_Q_M1[jindx[l] + k][cnt1];
                  cnt2 += 2)
-              matrices->Q_M2_rem[k] += Q_M1[jindx[l] + k][cnt1][cnt2 / 2] * Q_M1_rem[jindx[seq_length] + l + 1];
+              matrices->Q_M2_rem[k] += Q_M1[jindx[l] + k][cnt1][cnt2 / 2] *
+                                       Q_M1_rem[jindx[seq_length] + l + 1];
         }
       }
 
       if (matrices->Q_M1[jindx[l] + k] && matrices->Q_M1[jindx[seq_length] + l + 1]) {
-        da  = referenceBPs1[my_iindx[k] - seq_length] - referenceBPs1[my_iindx[k] - l] - referenceBPs1[my_iindx[l + 1] - seq_length];
-        db  = referenceBPs2[my_iindx[k] - seq_length] - referenceBPs2[my_iindx[k] - l] - referenceBPs2[my_iindx[l + 1] - seq_length];
+        da = referenceBPs1[my_iindx[k] - seq_length] - referenceBPs1[my_iindx[k] - l] -
+             referenceBPs1[my_iindx[l + 1] - seq_length];
+        db = referenceBPs2[my_iindx[k] - seq_length] - referenceBPs2[my_iindx[k] - l] -
+             referenceBPs2[my_iindx[l + 1] - seq_length];
         for (cnt1 = k_min_Q_M1[jindx[l] + k]; cnt1 <= k_max_Q_M1[jindx[l] + k]; cnt1++)
-          for (cnt2 = l_min_Q_M1[jindx[l] + k][cnt1]; cnt2 <= l_max_Q_M1[jindx[l] + k][cnt1]; cnt2 += 2) {
-            for (cnt3 = k_min_Q_M1[jindx[seq_length] + l + 1]; cnt3 <= k_max_Q_M1[jindx[seq_length] + l + 1]; cnt3++)
-              for (cnt4 = l_min_Q_M1[jindx[seq_length] + l + 1][cnt3]; cnt4 <= l_max_Q_M1[jindx[seq_length] + l + 1][cnt3]; cnt4 += 2) {
+          for (cnt2 = l_min_Q_M1[jindx[l] + k][cnt1]; cnt2 <= l_max_Q_M1[jindx[l] + k][cnt1];
+               cnt2 += 2) {
+            for (cnt3 = k_min_Q_M1[jindx[seq_length] + l + 1];
+                 cnt3 <= k_max_Q_M1[jindx[seq_length] + l + 1]; cnt3++)
+              for (cnt4 = l_min_Q_M1[jindx[seq_length] + l + 1][cnt3];
+                   cnt4 <= l_max_Q_M1[jindx[seq_length] + l + 1][cnt3]; cnt4 += 2) {
                 if (((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)) {
-                  matrices->Q_M2[k][cnt1 + cnt3 + da][(cnt2 + cnt4 + db) / 2] += Q_M1[jindx[l] + k][cnt1][cnt2 / 2] * Q_M1[jindx[seq_length] + l + 1][cnt3][cnt4 / 2];
+                  matrices->Q_M2[k][cnt1 + cnt3 + da][(cnt2 + cnt4 + db) /
+                                                      2] += Q_M1[jindx[l] + k][cnt1][cnt2 / 2] *
+                                                            Q_M1[jindx[seq_length] + l +
+                                                                 1][cnt3][cnt4 / 2];
                   if (update_m2) {
                     updatePosteriorBoundaries(cnt1 + cnt3 + da,
                                               cnt2 + cnt4 + db,
@@ -1331,7 +1436,8 @@ pf2D_circ(vrna_fold_compound_t *vc)
                                               );
                   }
                 } else {
-                  matrices->Q_M2_rem[k] += Q_M1[jindx[l] + k][cnt1][cnt2 / 2] * Q_M1[jindx[seq_length] + l + 1][cnt3][cnt4 / 2];
+                  matrices->Q_M2_rem[k] += Q_M1[jindx[l] + k][cnt1][cnt2 / 2] *
+                                           Q_M1[jindx[seq_length] + l + 1][cnt3][cnt4 / 2];
                 }
               }
           }
@@ -1355,14 +1461,16 @@ pf2D_circ(vrna_fold_compound_t *vc)
   base_d2 = referenceBPs2[my_iindx[1] - seq_length];
 
   int min_k, max_k, max_l, min_l;
-  int min_k_real, max_k_real, min_k_real_qcH, max_k_real_qcH, min_k_real_qcI, max_k_real_qcI, min_k_real_qcM, max_k_real_qcM;
-  int *min_l_real, *max_l_real, *min_l_real_qcH, *max_l_real_qcH, *min_l_real_qcI, *max_l_real_qcI, *min_l_real_qcM, *max_l_real_qcM;
+  int min_k_real, max_k_real, min_k_real_qcH, max_k_real_qcH, min_k_real_qcI, max_k_real_qcI,
+      min_k_real_qcM, max_k_real_qcM;
+  int *min_l_real, *max_l_real, *min_l_real_qcH, *max_l_real_qcH, *min_l_real_qcI, *max_l_real_qcI,
+      *min_l_real_qcM, *max_l_real_qcM;
   int update_c, update_cH, update_cI, update_cM;
 
-  max_l_real_qcM = min_l_real_qcM = NULL;
-  max_l_real_qcI = min_l_real_qcI = NULL;
-  max_l_real_qcH = min_l_real_qcH = NULL;
-  max_l_real = min_l_real = NULL;
+  max_l_real_qcM  = min_l_real_qcM = NULL;
+  max_l_real_qcI  = min_l_real_qcI = NULL;
+  max_l_real_qcH  = min_l_real_qcH = NULL;
+  max_l_real      = min_l_real = NULL;
 
   update_c = update_cH = update_cI = update_cM = 0;
 
@@ -1573,8 +1681,10 @@ pf2D_circ(vrna_fold_compound_t *vc)
           }
       }
 
-      /* 2. exterior interior loops, i "define" the (k,l) pair as "outer pair"  */
-      /* so "outer type" is rtype[type[k,l]] and inner type is type[p,q]        */
+      /*
+       * 2. exterior interior loops, i "define" the (k,l) pair as "outer pair"
+       * so "outer type" is rtype[type[k,l]] and inner type is type[p,q]
+       */
       if (Q_B_rem[pq]) {
         for (k = q + 1; k < seq_length; k++) {
           unsigned int ln1, lstart, ln_pre;
@@ -1600,7 +1710,16 @@ pf2D_circ(vrna_fold_compound_t *vc)
             if (!type2)
               continue;
 
-            qot = exp_E_IntLoop(ln2, ln1, rtype[type2], type, S1[l + 1], S1[k - 1], S1[p - 1], S1[q + 1], pf_params) * scale[ln1 + ln2];
+            qot =
+              exp_E_IntLoop(ln2,
+                            ln1,
+                            rtype[type2],
+                            type,
+                            S1[l + 1],
+                            S1[k - 1],
+                            S1[p - 1],
+                            S1[q + 1],
+                            pf_params) * scale[ln1 + ln2];
 
             if (Q_B_rem[kl])
               matrices->Q_cI_rem += Q_B_rem[pq] * Q_B_rem[kl] * qot;
@@ -1643,7 +1762,16 @@ pf2D_circ(vrna_fold_compound_t *vc)
             if (!type2)
               continue;
 
-            qot = exp_E_IntLoop(ln2, ln1, rtype[type2], type, S1[l + 1], S1[k - 1], S1[p - 1], S1[q + 1], pf_params) * scale[ln1 + ln2];
+            qot =
+              exp_E_IntLoop(ln2,
+                            ln1,
+                            rtype[type2],
+                            type,
+                            S1[l + 1],
+                            S1[k - 1],
+                            S1[p - 1],
+                            S1[q + 1],
+                            pf_params) * scale[ln1 + ln2];
 
             if (Q_B_rem[kl]) {
               for (cnt1 = k_min_Q_B[pq];
@@ -1670,7 +1798,9 @@ pf2D_circ(vrna_fold_compound_t *vc)
                 for (cnt3 = k_min_Q_B[kl]; cnt3 <= k_max_Q_B[kl]; cnt3++)
                   for (cnt4 = l_min_Q_B[kl][cnt3]; cnt4 <= l_max_Q_B[kl][cnt3]; cnt4 += 2) {
                     if (((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)) {
-                      matrices->Q_cI[cnt1 + cnt3 + da][(cnt2 + cnt4 + db) / 2] += Q_B[pq][cnt1][cnt2 / 2] * Q_B[kl][cnt3][cnt4 / 2] * qot;
+                      matrices->Q_cI[cnt1 + cnt3 + da][(cnt2 + cnt4 + db) /
+                                                       2] += Q_B[pq][cnt1][cnt2 / 2] *
+                                                             Q_B[kl][cnt3][cnt4 / 2] * qot;
                       if (update_cI) {
                         updatePosteriorBoundaries(cnt1 + cnt3 + da,
                                                   cnt2 + cnt4 + db,
@@ -1729,11 +1859,14 @@ pf2D_circ(vrna_fold_compound_t *vc)
             for (cnt2 = matrices->l_min_Q_M2[k + 1][cnt1];
                  cnt2 <= matrices->l_max_Q_M2[k + 1][cnt1];
                  cnt2 += 2)
-              matrices->Q_cM_rem += Q_M_rem[my_iindx[1] - k] * matrices->Q_M2[k + 1][cnt1][cnt2 / 2] * pf_params->expMLclosing;
+              matrices->Q_cM_rem += Q_M_rem[my_iindx[1] - k] *
+                                    matrices->Q_M2[k + 1][cnt1][cnt2 / 2] * pf_params->expMLclosing;
+
         }
 
         if (matrices->Q_M2_rem[k + 1])
-          matrices->Q_cM_rem += Q_M_rem[my_iindx[1] - k] * matrices->Q_M2_rem[k + 1] * pf_params->expMLclosing;
+          matrices->Q_cM_rem += Q_M_rem[my_iindx[1] - k] * matrices->Q_M2_rem[k + 1] *
+                                pf_params->expMLclosing;
       }
 
       if (matrices->Q_M2_rem[k + 1]) {
@@ -1744,7 +1877,8 @@ pf2D_circ(vrna_fold_compound_t *vc)
             for (cnt2 = l_min_Q_M[my_iindx[1] - k][cnt1];
                  cnt2 <= l_max_Q_M[my_iindx[1] - k][cnt1];
                  cnt2 += 2)
-              matrices->Q_cM_rem += Q_M[my_iindx[1] - k][cnt1][cnt2 / 2] * matrices->Q_M2_rem[k + 1] * pf_params->expMLclosing;
+              matrices->Q_cM_rem += Q_M[my_iindx[1] - k][cnt1][cnt2 / 2] *
+                                    matrices->Q_M2_rem[k + 1] * pf_params->expMLclosing;
         }
       }
 
@@ -1756,11 +1890,16 @@ pf2D_circ(vrna_fold_compound_t *vc)
       db  = base_d2 - referenceBPs2[my_iindx[1] - k] - referenceBPs2[my_iindx[k + 1] - seq_length];
       if (Q_M[my_iindx[1] - k] && matrices->Q_M2[k + 1]) {
         for (cnt1 = k_min_Q_M[my_iindx[1] - k]; cnt1 <= k_max_Q_M[my_iindx[1] - k]; cnt1++)
-          for (cnt2 = l_min_Q_M[my_iindx[1] - k][cnt1]; cnt2 <= l_max_Q_M[my_iindx[1] - k][cnt1]; cnt2 += 2)
+          for (cnt2 = l_min_Q_M[my_iindx[1] - k][cnt1]; cnt2 <= l_max_Q_M[my_iindx[1] - k][cnt1];
+               cnt2 += 2)
             for (cnt3 = matrices->k_min_Q_M2[k + 1]; cnt3 <= matrices->k_max_Q_M2[k + 1]; cnt3++)
-              for (cnt4 = matrices->l_min_Q_M2[k + 1][cnt3]; cnt4 <= matrices->l_max_Q_M2[k + 1][cnt3]; cnt4 += 2) {
+              for (cnt4 = matrices->l_min_Q_M2[k + 1][cnt3];
+                   cnt4 <= matrices->l_max_Q_M2[k + 1][cnt3]; cnt4 += 2) {
                 if (((cnt1 + cnt3 + da) <= maxD1) && ((cnt2 + cnt4 + db) <= maxD2)) {
-                  matrices->Q_cM[cnt1 + cnt3 + da][(cnt2 + cnt4 + db) / 2] += Q_M[my_iindx[1] - k][cnt1][cnt2 / 2] * matrices->Q_M2[k + 1][cnt3][cnt4 / 2] * pf_params->expMLclosing;
+                  matrices->Q_cM[cnt1 + cnt3 + da][(cnt2 + cnt4 + db) /
+                                                   2] += Q_M[my_iindx[1] - k][cnt1][cnt2 / 2] *
+                                                         matrices->Q_M2[k + 1][cnt3][cnt4 / 2] *
+                                                         pf_params->expMLclosing;
                   if (update_cM) {
                     updatePosteriorBoundaries(cnt1 + cnt3 + da,
                                               cnt2 + cnt4 + db,
@@ -1771,7 +1910,9 @@ pf2D_circ(vrna_fold_compound_t *vc)
                                               );
                   }
                 } else {
-                  matrices->Q_cM_rem += Q_M[my_iindx[1] - k][cnt1][cnt2 / 2] * matrices->Q_M2[k + 1][cnt3][cnt4 / 2] * pf_params->expMLclosing;
+                  matrices->Q_cM_rem += Q_M[my_iindx[1] - k][cnt1][cnt2 / 2] *
+                                        matrices->Q_M2[k + 1][cnt3][cnt4 / 2] *
+                                        pf_params->expMLclosing;
                 }
               }
       }
@@ -1846,8 +1987,10 @@ pf2D_circ(vrna_fold_compound_t *vc)
   matrices->Q_c_rem = matrices->Q_cH_rem + matrices->Q_cI_rem + matrices->Q_cM_rem;
 
   /* add the case were structure is unfolded chain */
-  if ((referenceBPs1[my_iindx[1] - seq_length] <= maxD1) && (referenceBPs2[my_iindx[1] - seq_length] <= maxD2)) {
-    matrices->Q_c[referenceBPs1[my_iindx[1] - seq_length]][referenceBPs2[my_iindx[1] - seq_length] / 2] += 1.0 * scale[seq_length];
+  if ((referenceBPs1[my_iindx[1] - seq_length] <= maxD1) &&
+      (referenceBPs2[my_iindx[1] - seq_length] <= maxD2)) {
+    matrices->Q_c[referenceBPs1[my_iindx[1] - seq_length]][referenceBPs2[my_iindx[1] - seq_length] /
+                                                           2] += 1.0 * scale[seq_length];
     if (update_c) {
       updatePosteriorBoundaries(referenceBPs1[my_iindx[1] - seq_length],
                                 referenceBPs2[my_iindx[1] - seq_length],
@@ -1941,13 +2084,15 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
 
   if (md->circ) {
     if (n != length)
-      vrna_message_error("vrna_pbacktrack_TwoD@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
+      vrna_message_error(
+        "vrna_pbacktrack_TwoD@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
 
     return pbacktrack_circ(vc, d1, d2);
   }
 
   if (length > n)
-    vrna_message_error("vrna_pbacktrack_TwoD@2Dpfold.c: requested transcript length exceeds sequence length!");
+    vrna_message_error(
+      "vrna_pbacktrack_TwoD@2Dpfold.c: requested transcript length exceeds sequence length!");
 
 #if 0
   if (d1 > maxD1)
@@ -2090,7 +2235,8 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
                        cnt4 <= l_max_Q[my_iindx[j + 1] - length][cnt3];
                        cnt4 += 2)
                     if (((cnt1 + cnt3 + da) > maxD1) || ((cnt2 + cnt4 + db) > maxD2)) {
-                      qt += qkl * Q_B[ij][cnt1][cnt2 / 2] * Q[my_iindx[j + 1] - length][cnt3][cnt4 / 2];
+                      qt += qkl * Q_B[ij][cnt1][cnt2 / 2] *
+                            Q[my_iindx[j + 1] - length][cnt3][cnt4 / 2];
                       if (qt >= r)
                         goto pbacktrack_ext_loop_early_escape_rem;
                     }
@@ -2103,7 +2249,10 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
       ij    = my_iindx[i] - j;
       type  = ptype[jindx[j] + i];
       if (type) {
-        double qkl = vrna_exp_E_ext_stem(type, (i > 1) ? S1[i - 1] : -1, (j < n) ? S1[j + 1] : -1, pf_params);
+        double qkl = vrna_exp_E_ext_stem(type,
+                                         (i > 1) ? S1[i - 1] : -1,
+                                         (j < n) ? S1[j + 1] : -1,
+                                         pf_params);
         if (Q_B_rem[ij] != 0.) {
           qt += qkl * Q_B_rem[ij];
           if (qt >= r)
@@ -2208,7 +2357,8 @@ pbacktrack_ext_loop_early_escape_rem:
                     && (d1 - da - cnt1 <= k_max_Q[my_iindx[j + 1] - length])) {
                   if ((d2 - db - cnt2 >= l_min_Q[my_iindx[j + 1] - length][d1 - da - cnt1])
                       && (d2 - db - cnt2 <= l_max_Q[my_iindx[j + 1] - length][d1 - da - cnt1])) {
-                    qt += qkl * Q_B[ij][cnt1][cnt2 / 2] * Q[my_iindx[j + 1] - length][d1 - da - cnt1][(d2 - db - cnt2) / 2];
+                    qt += qkl * Q_B[ij][cnt1][cnt2 / 2] *
+                          Q[my_iindx[j + 1] - length][d1 - da - cnt1][(d2 - db - cnt2) / 2];
                     if (qt >= r)
                       goto pbacktrack_ext_loop_early_escape;
                   }
@@ -2223,7 +2373,10 @@ pbacktrack_ext_loop_early_escape_rem:
       if (type) {
         double qkl = 1.0;
 
-        qkl *= vrna_exp_E_ext_stem(type, (i > 1) ? S1[i - 1] : -1, (j < n) ? S1[j + 1] : -1, pf_params);
+        qkl *= vrna_exp_E_ext_stem(type,
+                                   (i > 1) ? S1[i - 1] : -1,
+                                   (j < n) ? S1[j + 1] : -1,
+                                   pf_params);
 
         da  = referenceBPs1[sn] - referenceBPs1[ij];
         db  = referenceBPs2[sn] - referenceBPs2[ij];
@@ -2323,6 +2476,7 @@ pbacktrack_circ(vrna_fold_compound_t  *vc,
 
   /* check whether the chosen neighborhood exists at all */
   int dumb = 1;
+
   if ((d1 == -1) && (Q_c_rem != 0.)) {
     dumb = 0;
   } else {
@@ -2377,7 +2531,8 @@ pbacktrack_circ(vrna_fold_compound_t  *vc,
       goto pbacktrack_circ_escape;
     }
 
-    vrna_message_error("pbacktrack_circ@2Dpfold.c: backtracking failed in exterior loop! Exiting cheerless...");
+    vrna_message_error(
+      "pbacktrack_circ@2Dpfold.c: backtracking failed in exterior loop! Exiting cheerless...");
   }
   /* normal backtracking */
   else {
@@ -3089,7 +3244,7 @@ backtrack_qm2(vrna_fold_compound_t  *vc,
              *Q_M2_rem, *Q_M1_rem;
   vrna_mx_pf_t *matrices;
 
-  matrices  = vc->exp_matrices;
+  matrices      = vc->exp_matrices;
   n             = vc->length;
   my_iindx      = vc->iindx;
   jindx         = vc->jindx;
@@ -3336,7 +3491,9 @@ backtrack(vrna_fold_compound_t  *vc,
       /* hairpin ? */
       if ((da > maxD1) || (db > maxD2))
         if (!(((type == 3) || (type == 4)) && no_closingGU))
-          qbt1 = exp_E_Hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1, pf_params) * scale[u + 2];
+          qbt1 =
+            exp_E_Hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1,
+                          pf_params) * scale[u + 2];
 
       if (qbt1 >= r)
         return;            /* found the hairpin we're done */
@@ -3359,7 +3516,16 @@ backtrack(vrna_fold_compound_t  *vc,
             da      = base_d1 + referenceBPs1[my_iindx[i] - j] - referenceBPs1[my_iindx[k] - l];
             db      = base_d2 + referenceBPs2[my_iindx[i] - j] - referenceBPs2[my_iindx[k] - l];
             type_2  = rtype[type_2];
-            FLT_OR_DBL tmp_en = exp_E_IntLoop(u1, j - l - 1, type, type_2, S1[i + 1], S1[j - 1], S1[k - 1], S1[l + 1], pf_params) * scale[u1 + j - l + 1];
+            FLT_OR_DBL tmp_en =
+              exp_E_IntLoop(u1,
+                            j - l - 1,
+                            type,
+                            type_2,
+                            S1[i + 1],
+                            S1[j - 1],
+                            S1[k - 1],
+                            S1[l + 1],
+                            pf_params) * scale[u1 + j - l + 1];
 
             if (Q_B_rem[my_iindx[k] - l] != 0.) {
               qbt1 += Q_B_rem[my_iindx[k] - l] * tmp_en;
@@ -3411,7 +3577,9 @@ backtrack_int_early_escape_rem:
       /*hairpin contribution*/
       if ((da == d1) && (db == d2))
         if (!(((type == 3) || (type == 4)) && no_closingGU))
-          qbt1 = exp_E_Hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1, pf_params) * scale[u + 2];
+          qbt1 =
+            exp_E_Hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1,
+                          pf_params) * scale[u + 2];
 
       if (qbt1 >= r)
         return;            /* found the hairpin we're done */
@@ -3432,10 +3600,21 @@ backtrack_int_early_escape_rem:
             da      = base_d1 + referenceBPs1[my_iindx[i] - j] - referenceBPs1[my_iindx[k] - l];
             db      = base_d2 + referenceBPs2[my_iindx[i] - j] - referenceBPs2[my_iindx[k] - l];
             type_2  = rtype[type_2];
-            FLT_OR_DBL tmp_en = exp_E_IntLoop(u1, j - l - 1, type, type_2, S1[i + 1], S1[j - 1], S1[k - 1], S1[l + 1], pf_params) * scale[u1 + j - l + 1];
+            FLT_OR_DBL tmp_en =
+              exp_E_IntLoop(u1,
+                            j - l - 1,
+                            type,
+                            type_2,
+                            S1[i + 1],
+                            S1[j - 1],
+                            S1[k - 1],
+                            S1[l + 1],
+                            pf_params) * scale[u1 + j - l + 1];
             if (d1 >= da && d2 >= db) {
-              if ((d1 - da >= k_min_Q_B[my_iindx[k] - l]) && (d1 - da <= k_max_Q_B[my_iindx[k] - l])) {
-                if ((d2 - db >= l_min_Q_B[my_iindx[k] - l][d1 - da]) && (d2 - db <= l_max_Q_B[my_iindx[k] - l][d1 - da])) {
+              if ((d1 - da >= k_min_Q_B[my_iindx[k] - l]) &&
+                  (d1 - da <= k_max_Q_B[my_iindx[k] - l])) {
+                if ((d2 - db >= l_min_Q_B[my_iindx[k] - l][d1 - da]) &&
+                    (d2 - db <= l_max_Q_B[my_iindx[k] - l][d1 - da])) {
                   cnt1  = d1 - da;
                   cnt2  = d2 - db;
                   qbt1  += Q_B[my_iindx[k] - l][cnt1][cnt2 / 2] * tmp_en;
@@ -3609,10 +3788,13 @@ backtrack_int_early_escape:
         /* collect all contributing energies */
         if (d1 >= da && d2 >= db && Q_M[ii - k + 1] && Q_M1[jj + k]) {
           for (cnt1 = k_min_Q_M[ii - k + 1]; cnt1 <= MIN2(k_max_Q_M[ii - k + 1], d1 - da); cnt1++)
-            for (cnt2 = l_min_Q_M[ii - k + 1][cnt1]; cnt2 <= MIN2(l_max_Q_M[ii - k + 1][cnt1], d2 - db); cnt2 += 2)
+            for (cnt2 = l_min_Q_M[ii - k + 1][cnt1];
+                 cnt2 <= MIN2(l_max_Q_M[ii - k + 1][cnt1], d2 - db); cnt2 += 2)
               if ((d1 - cnt1 - da >= k_min_Q_M1[jj + k]) && (d1 - cnt1 - da <= k_max_Q_M1[jj + k]))
-                if ((d2 - cnt2 - db >= l_min_Q_M1[jj + k][d1 - da - cnt1]) && (d2 - cnt2 - db <= l_max_Q_M1[jj + k][d1 - cnt1 - da]))
-                  qt += Q_M[ii - k + 1][cnt1][cnt2 / 2] * Q_M1[jj + k][d1 - da - cnt1][(d2 - db - cnt2) / 2];
+                if ((d2 - cnt2 - db >= l_min_Q_M1[jj + k][d1 - da - cnt1]) &&
+                    (d2 - cnt2 - db <= l_max_Q_M1[jj + k][d1 - cnt1 - da]))
+                  qt += Q_M[ii - k + 1][cnt1][cnt2 / 2] *
+                        Q_M1[jj + k][d1 - da - cnt1][(d2 - db - cnt2) / 2];
         }
       }
       r = vrna_urn() * qt;
@@ -3623,9 +3805,12 @@ backtrack_int_early_escape:
         /* collect all contributing energies */
         if (d1 >= da && d2 >= db && Q_M[ii - k + 1] && Q_M1[jj + k]) {
           for (cnt1 = k_min_Q_M[ii - k + 1]; cnt1 <= MIN2(k_max_Q_M[ii - k + 1], d1 - da); cnt1++)
-            for (cnt2 = l_min_Q_M[ii - k + 1][cnt1]; cnt2 <= MIN2(l_max_Q_M[ii - k + 1][cnt1], d2 - db); cnt2 += 2)
-              if ((d1 - cnt1 - da >= k_min_Q_M1[jj + k]) && (d1 - cnt1 - da <= k_max_Q_M1[jj + k])) {
-                if ((d2 - cnt2 - db >= l_min_Q_M1[jj + k][d1 - da - cnt1]) && (d2 - cnt2 - db <= l_max_Q_M1[jj + k][d1 - cnt1 - da])) {
+            for (cnt2 = l_min_Q_M[ii - k + 1][cnt1];
+                 cnt2 <= MIN2(l_max_Q_M[ii - k + 1][cnt1], d2 - db); cnt2 += 2)
+              if ((d1 - cnt1 - da >= k_min_Q_M1[jj + k]) &&
+                  (d1 - cnt1 - da <= k_max_Q_M1[jj + k])) {
+                if ((d2 - cnt2 - db >= l_min_Q_M1[jj + k][d1 - da - cnt1]) &&
+                    (d2 - cnt2 - db <= l_max_Q_M1[jj + k][d1 - cnt1 - da])) {
                   cnt3  = d1 - da - cnt1;
                   cnt4  = d2 - db - cnt2;
                   qt    += Q_M[ii - k + 1][cnt1][cnt2 / 2] * Q_M1[jj + k][cnt3][cnt4 / 2];
@@ -3704,8 +3889,8 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
   unsigned int ii, l;
   int type;
 
-  r = 0.;
-  cnt1 = cnt2 = -1;
+  r     = 0.;
+  cnt1  = cnt2 = -1;
 
   /* find qm1 contribution */
   if (d1 == -1) {
@@ -3723,7 +3908,9 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
   for (qt = 0., l = i + turn + 1; l <= j; l++) {
     type = ptype[jindx[l] + i];
     if (type) {
-      FLT_OR_DBL tmp = exp_E_MLstem(type, S1[i - 1], S1[l + 1], pf_params) * pow(pf_params->expMLbase, j - l) * scale[j - l];
+      FLT_OR_DBL tmp = exp_E_MLstem(type, S1[i - 1], S1[l + 1], pf_params) * pow(
+        pf_params->expMLbase,
+        j - l) * scale[j - l];
       /* compute the introduced distance to reference structures */
       da    = referenceBPs1[my_iindx[i] - j] - referenceBPs1[my_iindx[i] - l];
       db    = referenceBPs2[my_iindx[i] - j] - referenceBPs2[my_iindx[i] - l];
@@ -3752,7 +3939,8 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
         /* get energy contributions */
         if (d1 >= da && d2 >= db) {
           if ((d1 - da >= k_min_Q_B[ii - l]) && (d1 - da <= k_max_Q_B[ii - l])) {
-            if ((d2 - db >= l_min_Q_B[ii - l][d1 - da]) && (d2 - db <= l_max_Q_B[ii - l][d1 - da])) {
+            if ((d2 - db >= l_min_Q_B[ii - l][d1 - da]) &&
+                (d2 - db <= l_max_Q_B[ii - l][d1 - da])) {
               cnt1  = d1 - da;
               cnt2  = d2 - db;
               qt    += Q_B[ii - l][cnt1][cnt2 / 2] * tmp;
@@ -3822,8 +4010,8 @@ backtrack_qm(vrna_fold_compound_t *vc,
   double qmt = 0;
   unsigned int k;
 
-  cnt1 = cnt2 = cnt3 = cnt4 = -1;
-  r = 0.;
+  cnt1  = cnt2 = cnt3 = cnt4 = -1;
+  r     = 0.;
 
   while (j > i) {
     /* now backtrack  [i ... j] in qm[] */
@@ -3939,7 +4127,8 @@ backtrack_qm(vrna_fold_compound_t *vc,
                    cnt4 <= l_max_Q_M1[jindx[j] + k][cnt3];
                    cnt4 += 2)
                 if (((cnt1 + cnt3 + da) > maxD1) || ((cnt2 + cnt4 + db) > maxD2)) {
-                  qmt += Q_M[my_iindx[i] - k + 1][cnt1][cnt2 / 2] * Q_M1[jindx[j] + k][cnt3][cnt4 / 2];
+                  qmt += Q_M[my_iindx[i] - k + 1][cnt1][cnt2 / 2] *
+                         Q_M1[jindx[j] + k][cnt3][cnt4 / 2];
                   if (qmt >= r)
                     goto backtrack_qm_early_escape;
                 }
@@ -3967,7 +4156,8 @@ backtrack_qm(vrna_fold_compound_t *vc,
           /* collect unpaired + qm1 contributions */
           if (d1 >= da2 && d2 >= db2) {
             if ((d1 - da2 >= k_min_Q_M1[jindx[j] + k]) && (d1 - da2 <= k_max_Q_M1[jindx[j] + k])) {
-              if ((d2 - db2 >= l_min_Q_M1[jindx[j] + k][d1 - da2]) && (d2 - db2 <= l_max_Q_M1[jindx[j] + k][d1 - da2])) {
+              if ((d2 - db2 >= l_min_Q_M1[jindx[j] + k][d1 - da2]) &&
+                  (d2 - db2 <= l_max_Q_M1[jindx[j] + k][d1 - da2])) {
                 cnt3  = d1 - da2;
                 cnt4  = d2 - db2;
                 qmt   += Q_M1[jindx[j] + k][cnt3][cnt4 / 2] * tmp;
@@ -3981,13 +4171,18 @@ backtrack_qm(vrna_fold_compound_t *vc,
 
           /* collect qm + qm1 contributions */
           if (d1 >= da && d2 >= db && Q_M[my_iindx[i] - k + 1] && Q_M1[jindx[j] + k]) {
-            for (cnt1 = k_min_Q_M[my_iindx[i] - k + 1]; cnt1 <= MIN2(k_max_Q_M[my_iindx[i] - k + 1], d1 - da); cnt1++)
-              for (cnt2 = l_min_Q_M[my_iindx[i] - k + 1][cnt1]; cnt2 <= MIN2(l_max_Q_M[my_iindx[i] - k + 1][cnt1], d2 - db); cnt2 += 2)
-                if ((d1 - da - cnt1 >= k_min_Q_M1[jindx[j] + k]) && (d1 - da - cnt1 <= k_max_Q_M1[jindx[j] + k])) {
-                  if ((d2 - db - cnt2 >= l_min_Q_M1[jindx[j] + k][d1 - da - cnt1]) && (d2 - db - cnt2 <= l_max_Q_M1[jindx[j] + k][d1 - da - cnt1])) {
+            for (cnt1 = k_min_Q_M[my_iindx[i] - k + 1];
+                 cnt1 <= MIN2(k_max_Q_M[my_iindx[i] - k + 1], d1 - da); cnt1++)
+              for (cnt2 = l_min_Q_M[my_iindx[i] - k + 1][cnt1];
+                   cnt2 <= MIN2(l_max_Q_M[my_iindx[i] - k + 1][cnt1], d2 - db); cnt2 += 2)
+                if ((d1 - da - cnt1 >= k_min_Q_M1[jindx[j] + k]) &&
+                    (d1 - da - cnt1 <= k_max_Q_M1[jindx[j] + k])) {
+                  if ((d2 - db - cnt2 >= l_min_Q_M1[jindx[j] + k][d1 - da - cnt1]) &&
+                      (d2 - db - cnt2 <= l_max_Q_M1[jindx[j] + k][d1 - da - cnt1])) {
                     cnt3  = d1 - da - cnt1;
                     cnt4  = d2 - db - cnt2;
-                    qmt   += Q_M[my_iindx[i] - k + 1][cnt1][cnt2 / 2] * Q_M1[jindx[j] + k][cnt3][cnt4 / 2];
+                    qmt   += Q_M[my_iindx[i] - k + 1][cnt1][cnt2 / 2] *
+                             Q_M1[jindx[j] + k][cnt3][cnt4 / 2];
                     if (qmt >= r)
                       goto backtrack_qm_early_escape;
                   }
@@ -4056,7 +4251,9 @@ adjustArrayBoundaries(FLT_OR_DBL  ***array,
     }
     /* move data to front and thereby eliminating unused memory in front of actual data */
     if (k_diff_pre > 0) {
-      memmove((FLT_OR_DBL **)(*array), ((FLT_OR_DBL **)(*array)) + k_diff_pre, sizeof(FLT_OR_DBL *) * mem_size);
+      memmove((FLT_OR_DBL **)(*array),
+              ((FLT_OR_DBL **)(*array)) + k_diff_pre,
+              sizeof(FLT_OR_DBL *) * mem_size);
       memmove((int *)(*l_min), ((int *)(*l_min)) + k_diff_pre, sizeof(int) * mem_size);
       memmove((int *)(*l_max), ((int *)(*l_max)) + k_diff_pre, sizeof(int) * mem_size);
     }
@@ -4086,7 +4283,8 @@ adjustArrayBoundaries(FLT_OR_DBL  ***array,
         /* eliminate unused memory in front of actual data */
         unsigned int start = (l_min_post[cnt1] - (*l_min)[cnt1]) / 2 + shift;
         if (start > 0)
-          memmove((FLT_OR_DBL *)((*array)[cnt1]), (FLT_OR_DBL *)((*array)[cnt1]) + start, sizeof(FLT_OR_DBL) * mem_size);
+          memmove((FLT_OR_DBL *)((*array)[cnt1]), (FLT_OR_DBL *)((*array)[cnt1]) + start,
+                  sizeof(FLT_OR_DBL) * mem_size);
 
         (*array)[cnt1] = (FLT_OR_DBL *)realloc((*array)[cnt1], sizeof(FLT_OR_DBL) * mem_size);
 
