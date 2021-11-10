@@ -875,6 +875,7 @@ generateShiftsThatWereNotPossibleBeforeThisShiftMove(const vrna_fold_compound_t 
 
   vrna_move_t   *allNewShifts = vrna_alloc(sizeof(vrna_move_t) * (vc->length * vc->length));
   int           count         = 0;
+
   /* moves from all pairs inside the freed interval with previous paired position. */
   if (previousPairedPosition == freedInterval.pos_5) {
     shift_bpins_to_i_from_right(vc,
@@ -1214,9 +1215,10 @@ buildNeighborsForDeletionMove(const vrna_fold_compound_t  *vc,
       newCount++;
     }
   }
-  short       *currentStructure = vrna_ptable_copy(prev_pt);
-  int         leftPosition      = MIN2(abs(curr_move->pos_3), abs(curr_move->pos_5));
-  int         rightPosition     = MAX2(abs(curr_move->pos_3), abs(curr_move->pos_5));
+  short *currentStructure = vrna_ptable_copy(prev_pt);
+  int   leftPosition      = MIN2(abs(curr_move->pos_3), abs(curr_move->pos_5));
+  int   rightPosition     = MAX2(abs(curr_move->pos_3), abs(curr_move->pos_5));
+
   currentStructure[leftPosition]  = 0;
   currentStructure[rightPosition] = 0;
 
@@ -1243,6 +1245,7 @@ buildNeighborsForDeletionMove(const vrna_fold_compound_t  *vc,
   }
 
   int totalSize = newCount + lengthCrossingShifts + lengthInserts;
+
   newMoves = vrna_realloc(newMoves, sizeof(vrna_move_t) * (totalSize + 1));
 
   if (lengthInserts > 0) {
@@ -1361,6 +1364,7 @@ buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
 
   /* copy filtered previous moves */
   int previousPairedPosition = prev_pt[currentPositivePosition];
+
   for (int i = 0; i < length; i++) {
     const vrna_move_t *pm     = &prev_neighbors[i];
     bool              isShift = (pm->pos_5 > 0 && pm->pos_3 < 0) ||
@@ -1402,12 +1406,14 @@ buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
 
   /* insert current move as deletion */
   vrna_move_t nm = vrna_move_init(-abs(curr_move->pos_5), -abs(curr_move->pos_3));
+
   newMoves[newCount++] = nm;
 
   /* insert back shift */
   int         left      = MIN2(currentPositivePosition, previousPairedPosition);
   int         right     = MAX2(currentPositivePosition, previousPairedPosition);
   vrna_move_t backShift = vrna_move_init(left, right);
+
   if (previousPairedPosition == backShift.pos_5)
     backShift.pos_5 = -backShift.pos_5;
   else
@@ -1454,6 +1460,7 @@ buildNeighborsForShiftMove(const vrna_fold_compound_t *vc,
                                                          &length_newFreedIntervalMoves);
 
   int expectedSize = newCount + length_newFreedIntervalMoves;
+
   if (expectedSize >= allocatedSize) {
     allocatedSize = expectedSize + 1;
     newMoves      = vrna_realloc(newMoves, sizeof(vrna_move_t) * (allocatedSize));
