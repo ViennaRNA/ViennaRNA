@@ -297,7 +297,7 @@ sort(int  n,
 
   l   = (n >> 1) + 1;
   ir  = n;
-  for (;; ) {
+  for (;;) {
     if (l > 1) {
       rra = ra[--l];
     } else {
@@ -632,11 +632,11 @@ start:
       }
     }
   }
-  for (; i1 >= li; ) {
+  for (; i1 >= li;) {
     alignment[0][i1]  = 0;
     i1                = (i1 == li ? 0 : i1 - 1);
   }
-  for (; j1 >= lj; ) {
+  for (; j1 >= lj;) {
     alignment[1][j1]  = 0;
     j1                = (j1 == lj ? 0 : j1 - 1);
   }
