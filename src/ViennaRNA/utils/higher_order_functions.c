@@ -20,9 +20,10 @@ typedef int (proto_fun_zip_reduce)(const int  *a,
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-static int zip_add_min_dispatcher(const int *a,
-                                  const int *b,
-                                  int       size);
+static int
+zip_add_min_dispatcher(const int  *a,
+                       const int  *b,
+                       int        size);
 
 
 static int
