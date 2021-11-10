@@ -246,7 +246,7 @@ get_BM_BCT(const char *needle,
     margin  = (cyclic) ? 0 : needle_size; \
     max     = bad_chars[0]; \
     /* pop first element since the Bad Character Table starts at position 1 */ \
-    bad_chars ++; \
+    bad_chars++; \
     /* main loop - go through haystack */ \
     while (shift + margin < haystack_size) { \
       /* \
@@ -255,9 +255,9 @@ get_BM_BCT(const char *needle,
        */\
       for (i = needle_size - 1; \
            haystack[(shift + i) % haystack_size] == needle[i]; \
-           i --) { \
+           i--) { \
         if (i == 0) \
-          return haystack + shift; \
+        return haystack + shift; \
       } \
       val = haystack[(shift + needle_size - 1) % haystack_size]; \
       if (val > max) { \
