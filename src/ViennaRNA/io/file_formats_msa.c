@@ -532,9 +532,10 @@ parse_stockholm_alignment(FILE  *fp,
     *structure = NULL;
 
   int inrecord = 0;
+
   while ((line = vrna_read_line(fp))) {
     if (strstr(line, "STOCKHOLM 1.0")) {
-      inrecord    = 1;
+      inrecord = 1;
       free(line);
       break;
     }
@@ -587,8 +588,8 @@ parse_stockholm_alignment(FILE  *fp,
               char *ss = (char *)vrna_alloc(sizeof(char) * n);
               if (sscanf(line, "#=GC SS_cons %s", ss) == 1) {
                 /* always append consensus structure */
-                unsigned int prev_len = (*structure) ? strlen(*structure) : 0;
-                unsigned int ss_len   = strlen(ss);
+                unsigned int  prev_len  = (*structure) ? strlen(*structure) : 0;
+                unsigned int  ss_len    = strlen(ss);
                 *structure = (char *)vrna_realloc(*structure,
                                                   sizeof(char) *
                                                   (prev_len + ss_len + 1));
@@ -637,8 +638,9 @@ parse_stockholm_alignment(FILE  *fp,
                 free(tmp_seq);
                 return 0;
               }
-              unsigned int tmp_seq_len = strlen(tmp_seq);
-              unsigned int current_len = strlen((*aln)[seq_current]);
+
+              unsigned int  tmp_seq_len = strlen(tmp_seq);
+              unsigned int  current_len = strlen((*aln)[seq_current]);
 
               (*aln)[seq_current] = (char *)vrna_realloc((*aln)[seq_current],
                                                          current_len +
@@ -738,8 +740,8 @@ write_stockholm_alignment(FILE          *fp,
 
       /* output reference sequence */
       char *cons = (options & VRNA_FILE_FORMAT_MSA_MIS) ?
-                    vrna_aln_consensus_mis(aln, NULL) :
-                    vrna_aln_consensus_sequence(aln, NULL);
+                   vrna_aln_consensus_mis(aln, NULL) :
+                   vrna_aln_consensus_sequence(aln, NULL);
       fprintf(fp, "%-*s  %s\n", longest_name, "#=GC RF", cons);
       free(cons);
 
@@ -885,8 +887,8 @@ parse_clustal_alignment(FILE  *clust,
           return 0;
         }
 
-        unsigned int current_len = strlen((*aln)[nn]);
-        unsigned int seq_len     = strlen(seq);
+        unsigned int  current_len = strlen((*aln)[nn]);
+        unsigned int  seq_len     = strlen(seq);
 
         (*aln)[nn] = (char *)vrna_realloc((*aln)[nn],
                                           current_len +
@@ -931,7 +933,7 @@ parse_maf_alignment(FILE  *fp,
   char  *line = NULL, *tmp_name, *tmp_sequence, strand;
   int   n, seq_num, start, length, src_length;
 
-  seq_num     = 0;
+  seq_num = 0;
 
   if (!fp) {
     if (verbosity >= 0)
@@ -949,6 +951,7 @@ parse_maf_alignment(FILE  *fp,
   }
 
   int inrecord = 0;
+
   while ((line = vrna_read_line(fp))) {
     if (*line == 'a') {
       if ((line[1] == '\0') || isspace(line[1])) {
