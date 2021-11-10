@@ -397,6 +397,7 @@ vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
   vrna_basepair_t *pairs      = scanForPairs(ldata->struct_motif_5,
                                              ldata->struct_motif_3,
                                              &pair_count);
+
   if ((pair_count > 0) && (pairs == NULL)) {
     /* error while parsing structure motif */
     vrna_message_warning(
@@ -722,8 +723,10 @@ next_k:
           continue;
         }
       } else {
-        /* hairpin loop motif */
-        /* store it */
+        /*
+         * hairpin loop motif
+         * store it
+         */
         pos[cnt].i    = i + 1;
         pos[cnt].j    = j;
         pos[cnt].k    = 0;
