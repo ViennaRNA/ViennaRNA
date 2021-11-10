@@ -179,7 +179,7 @@ nullify(vrna_sc_t *sc);
 PUBLIC void
 vrna_sc_init(vrna_fold_compound_t *fc)
 {
-  unsigned int  s, n, N;
+  unsigned int s, n, N;
 
   if (fc) {
     vrna_sc_remove(fc);
@@ -207,7 +207,7 @@ vrna_sc_init(vrna_fold_compound_t *fc)
 PUBLIC void
 vrna_sc_init_window(vrna_fold_compound_t *fc)
 {
-  unsigned int  s, n, N;
+  unsigned int s, n, N;
 
   if (fc) {
     vrna_sc_remove(fc);
@@ -623,7 +623,7 @@ vrna_sc_add_data_comparative(vrna_fold_compound_t       *fc,
 
     if (data)
       for (s = 0; s < fc->n_seq; s++)
-        fc->scs[s]->data      = data[s];
+        fc->scs[s]->data = data[s];
 
     if (free_data)
       for (s = 0; s < fc->n_seq; s++)
@@ -983,7 +983,7 @@ sc_add_bp(vrna_fold_compound_t  *fc,
           FLT_OR_DBL            energy,
           unsigned int          options)
 {
-  vrna_sc_t     *sc;
+  vrna_sc_t *sc;
 
   if ((options & VRNA_OPTION_WINDOW) && (!fc->sc))
     vrna_sc_init_window(fc);
@@ -1188,8 +1188,8 @@ prepare_sc_up_mfe(vrna_fold_compound_t  *fc,
                 sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
 
 
-              sc->energy_up[0]     = (int *)vrna_realloc(sc->energy_up[0], sizeof(int));
-              sc->energy_up[n + 1] = (int *)vrna_realloc(sc->energy_up[n + 1], sizeof(int));
+              sc->energy_up[0]      = (int *)vrna_realloc(sc->energy_up[0], sizeof(int));
+              sc->energy_up[n + 1]  = (int *)vrna_realloc(sc->energy_up[n + 1], sizeof(int));
 
               /* now add soft constraints as stored in container for unpaired sc */
               for (i = 1; i <= n; i++)
@@ -1252,8 +1252,10 @@ prepare_sc_up_pf(vrna_fold_compound_t *fc,
                   (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[i],
                                              sizeof(FLT_OR_DBL) * (n - i + 2));
 
-              sc->exp_energy_up[0]     = (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[0], sizeof(FLT_OR_DBL));
-              sc->exp_energy_up[n + 1] = (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[n + 1], sizeof(FLT_OR_DBL));
+              sc->exp_energy_up[0] =
+                (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[0], sizeof(FLT_OR_DBL));
+              sc->exp_energy_up[n + 1] = (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[n + 1],
+                                                                    sizeof(FLT_OR_DBL));
 
               for (i = 1; i <= n; i++)
                 populate_sc_up_pf(fc, i, (n - i + 1));
@@ -1413,7 +1415,7 @@ prepare_sc_stack_pf(vrna_fold_compound_t *fc)
 PRIVATE vrna_sc_t *
 init_sc_default(unsigned int n)
 {
-  vrna_sc_t  *sc, init = {
+  vrna_sc_t *sc, init = {
     .type = VRNA_SC_DEFAULT
   };
 
@@ -1432,7 +1434,7 @@ init_sc_default(unsigned int n)
 PRIVATE vrna_sc_t *
 init_sc_window(unsigned int n)
 {
-  vrna_sc_t  *sc, init = {
+  vrna_sc_t *sc, init = {
     .type = VRNA_SC_WINDOW
   };
 
@@ -1455,20 +1457,20 @@ nullify(vrna_sc_t *sc)
     sc->state             = STATE_CLEAN;
     sc->up_storage        = NULL;
     sc->bp_storage        = NULL;
-    sc->energy_up           = NULL;
+    sc->energy_up         = NULL;
     sc->energy_stack      = NULL;
-    sc->exp_energy_stack    = NULL;
+    sc->exp_energy_stack  = NULL;
     sc->exp_energy_up     = NULL;
 
-    sc->f                   = NULL;
-    sc->exp_f               = NULL;
-    sc->data                = NULL;
-    sc->free_data           = NULL;
+    sc->f         = NULL;
+    sc->exp_f     = NULL;
+    sc->data      = NULL;
+    sc->free_data = NULL;
 
     switch (sc->type) {
       case VRNA_SC_DEFAULT:
-        sc->energy_bp         = NULL;
-        sc->exp_energy_bp     = NULL;
+        sc->energy_bp     = NULL;
+        sc->exp_energy_bp = NULL;
         break;
 
       case VRNA_SC_WINDOW:
