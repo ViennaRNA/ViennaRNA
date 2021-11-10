@@ -91,23 +91,26 @@ int             fold_constrained  = 0;    /* fold with constraints */
 
 #define   BP_ALIAS_DEFAULT      { 0, 1, 2, 3, 4, 3, 2, 0 }
 
-#define   BP_ENCODING_DEFAULT   /*  _  A  C  G  U  X  K  I */ \
-                                { { 0, 0, 0, 0, 0, 0, 0, 0 }, \
-                                  { 0, 0, 0, 0, 5, 0, 0, 5 }, \
-                                  { 0, 0, 0, 1, 0, 0, 0, 0 }, \
-                                  { 0, 0, 2, 0, 3, 0, 0, 0 }, \
-                                  { 0, 6, 0, 4, 0, 0, 0, 6 }, \
-                                  { 0, 0, 0, 0, 0, 0, 2, 0 }, \
-                                  { 0, 0, 0, 0, 0, 1, 0, 0 }, \
-                                  { 0, 6, 0, 0, 5, 0, 0, 0 } }
+#define   BP_ENCODING_DEFAULT \
+  /*  _  A  C  G  U  X  K  I */ \
+  { { 0, 0, 0, 0, 0, 0, 0, 0 }, \
+    { 0, 0, 0, 0, 5, 0, 0, 5 }, \
+    { 0, 0, 0, 1, 0, 0, 0, 0 }, \
+    { 0, 0, 2, 0, 3, 0, 0, 0 }, \
+    { 0, 6, 0, 4, 0, 0, 0, 6 }, \
+    { 0, 0, 0, 0, 0, 0, 2, 0 }, \
+    { 0, 0, 0, 0, 0, 1, 0, 0 }, \
+    { 0, 6, 0, 0, 5, 0, 0, 0 } }
 
-#define   DM_DEFAULT    { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */ \
-                          { 0, 0, 2, 2, 1, 2, 2 } /* CG */, \
-                          { 0, 2, 0, 1, 2, 2, 2 } /* GC */, \
-                          { 0, 2, 1, 0, 2, 1, 2 } /* GU */, \
-                          { 0, 1, 2, 2, 0, 2, 1 } /* UG */, \
-                          { 0, 2, 2, 1, 2, 0, 2 } /* AU */, \
-                          { 0, 2, 2, 2, 1, 2, 0 } /* UA */ }
+#define   DM_DEFAULT \
+  { { 0, 0, 0, 0, 0, 0, 0 }, /* hamming distance between pairs */ \
+    { 0, 0, 2, 2, 1, 2, 2 } /* CG */, \
+    { 0, 2, 0, 1, 2, 2, 2 } /* GC */, \
+    { 0, 2, 1, 0, 2, 1, 2 } /* GU */, \
+    { 0, 1, 2, 2, 0, 2, 1 } /* UG */, \
+    { 0, 2, 2, 1, 2, 0, 2 } /* AU */, \
+    { 0, 2, 2, 2, 1, 2, 0 } /* UA */ }
+
 
 PRIVATE int
 BP_pair[NBASES][NBASES] = BP_ENCODING_DEFAULT;
@@ -115,7 +118,6 @@ BP_pair[NBASES][NBASES] = BP_ENCODING_DEFAULT;
 
 PRIVATE const float
 dm_default[7][7] = DM_DEFAULT;
-
 
 
 PRIVATE vrna_md_t defaults = {
@@ -978,9 +980,11 @@ prepare_default_pairs(vrna_md_t *md)
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 
 PUBLIC void
 set_model_details(vrna_md_t *md)
