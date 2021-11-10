@@ -163,6 +163,7 @@ vrna_cstr_vprintf(struct vrna_cstr_s  *buf,
     return -1;
 
   va_list copy;
+
   va_copy(copy, args);
 
   r           = -1;
