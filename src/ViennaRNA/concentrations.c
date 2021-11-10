@@ -190,7 +190,7 @@ vrna_equilibrium_constants(const double       *dG_complexes,
 {
   double *K, tmp;
 
-  K   = (double *)vrna_alloc(sizeof(double) * complexes);
+  K = (double *)vrna_alloc(sizeof(double) * complexes);
 
   for (size_t k = 0; k < complexes; k++) {
     tmp = 0;
