@@ -629,6 +629,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
       with_zscore     = 0;
       report_subsumed = 0;
     }
+
 #endif
 
     if (md->ribo) {
@@ -1726,7 +1727,7 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
             break;
 
           lines[num_lines++] = ftell(f);
-        } while(1);
+        } while (1);
 
         /* do the actual parsing of the data */
         if (num_lines > 0) {
@@ -1910,7 +1911,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     /* finally, check for auxiliary grammar rule(s) */
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_c)) {
       energy  = fc->aux_grammar->cb_aux_c(fc, i, j, fc->aux_grammar->data);
-      e   = MIN2(e, energy);
+      e       = MIN2(e, energy);
     }
 
     if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
