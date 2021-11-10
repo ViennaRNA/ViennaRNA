@@ -305,7 +305,7 @@ main(int  argc,
    */
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
@@ -863,13 +863,15 @@ putoutphakim_u(vrna_fold_compound_t *fc,
   for (k = 1; k <= length; k++) {
     fprintf(fp, "%d\t", k);
     p0  = pU[k][1];
-    f0  = (int)-RT *log(p0) / 10;
+    f0  = (int)-RT *
+          log(p0) / 10;
 
 
     fprintf(fp, "%d\t", f0);
     if (k > 1) {
       pdep  = pU[k][2] / pU[k - 1][1];
-      fdep  = (int)-RT *log(pdep) / 10;
+      fdep  = (int)-RT *
+              log(pdep) / 10;
 
 
       fprintf(fp, "%d\t", fdep);
@@ -879,7 +881,8 @@ putoutphakim_u(vrna_fold_compound_t *fc,
 
     if (k < length) {
       pdep  = pU[k + 1][2] / pU[k + 1][1];
-      fdep  = (int)-RT *log(pdep) / 10;
+      fdep  = (int)-RT *
+              log(pdep) / 10;
 
 
       fprintf(fp, "%d\t", fdep);
