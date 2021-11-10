@@ -143,7 +143,9 @@ main(int  argc,
 
   if (ifileName == NULL)
     if (!(silent || (options & VRNA_CONVERT_OUTPUT_DUMP)))
-      fprintf(stdout, "Enter parameters:\n(Indicate last line of input parameters by typing \"# END\" or EOF\n\n");
+      fprintf(stdout,
+              "Enter parameters:\n(Indicate last line of input parameters by typing \"# END\" or EOF\n\n");
+
 
   convert_parameter_file(ifileName, ofileName, options);
 
