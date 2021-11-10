@@ -227,9 +227,11 @@ wrap_co_pf_fold(char              *sequence,
  */
 
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 
 PUBLIC vrna_dimer_pf_t
 co_pf_fold(char *sequence,
