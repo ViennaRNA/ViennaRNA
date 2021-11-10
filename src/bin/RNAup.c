@@ -39,40 +39,47 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define EQUAL(A, B) (fabs((A)-(B)) < 1000 * DBL_EPSILON)
 
-PRIVATE void    tokenize(char *line,
-                         char **seq1,
-                         char **seq2);
+PRIVATE void
+tokenize(char *line,
+         char **seq1,
+         char **seq2);
 
 
-PRIVATE void    seperate_bp(char  **inter,
-                            int   len1,
-                            char  **intra_l,
-                            char  **intra_s);
+PRIVATE void
+seperate_bp(char  **inter,
+            int   len1,
+            char  **intra_l,
+            char  **intra_s);
 
 
-PRIVATE void    print_interaction(interact    *Int,
-                                  char        *s1,
-                                  char        *s2,
-                                  pu_contrib  *p_c,
-                                  pu_contrib  *p_c2,
-                                  int         w,
-                                  int         incr3,
-                                  int         incr5);
+PRIVATE void
+print_interaction(interact    *Int,
+                  char        *s1,
+                  char        *s2,
+                  pu_contrib  *p_c,
+                  pu_contrib  *p_c2,
+                  int         w,
+                  int         incr3,
+                  int         incr5);
 
 
-PRIVATE void    print_unstru(pu_contrib *p_c,
-                             int        w);
+PRIVATE void
+print_unstru(pu_contrib *p_c,
+             int        w);
 
 
-PRIVATE int     compare_unpaired_values(const void  *p1,
-                                        const void  *p2);
+PRIVATE int
+compare_unpaired_values(const void  *p1,
+                        const void  *p2);
 
 
-PRIVATE int     move_useless_unpaired_values(const void *p1,
-                                             const void *p2);
+PRIVATE int
+move_useless_unpaired_values(const void *p1,
+                             const void *p2);
 
 
-PRIVATE void    adjustUnpairedValues(int ***unpaired_values); /* this function sorts and cleans up the unpaired values given at command line */
+PRIVATE void
+adjustUnpairedValues(int ***unpaired_values);                 /* this function sorts and cleans up the unpaired values given at command line */
 
 
 /* defaults for -u and -w */
@@ -87,25 +94,28 @@ main(int  argc,
   struct RNAup_args_info  args_info;
   unsigned int            input_type, up_mode;
   char                    my_contrib[10], *up_out, *name, fname1[FILENAME_MAX_LENGTH],
-                          fname2[FILENAME_MAX_LENGTH], fname_target[FILENAME_MAX_LENGTH], *ParamFile,
-                          *ns_bases, *c, *structure, *head, *input_string, *s1, *s2, *s3, *s_target, *cstruc1,
-                          *cstruc2, *cstruc_target, *cstruc_combined, *cmdl_parameters, *orig_s1, *orig_s2,
+                          fname2[FILENAME_MAX_LENGTH], fname_target[FILENAME_MAX_LENGTH],
+                          *ParamFile,
+                          *ns_bases, *c, *structure, *head, *input_string, *s1, *s2, *s3, *s_target,
+                          *cstruc1,
+                          *cstruc2, *cstruc_target, *cstruc_combined, *cmdl_parameters, *orig_s1,
+                          *orig_s2,
                           *orig_target;
-  int                     i, j, length1, length2, length_target, sym, istty,
-                          noconv, max_u, **unpaired_values, ulength_num;
-  double                  min_en, sfact;
+  int         i, j, length1, length2, length_target, sym, istty,
+              noconv, max_u, **unpaired_values, ulength_num;
+  double      min_en, sfact;
 
   /* variables for output */
-  pu_contrib              *unstr_out, *unstr_short, *unstr_target, *contrib1, *contrib2;
-  interact                *inter_out;
+  pu_contrib  *unstr_out, *unstr_short, *unstr_target, *contrib1, *contrib2;
+  interact    *inter_out;
   /* pu_out *longer; */
 
   /* commandline parameters */
-  int                     w       = 25; /* length of region of interaction */
-  int                     incr3   = 0;  /* add x unpaired bases after 3'end of short RNA*/
-  int                     incr5   = 0;  /* add x unpaired bases after 5'end of short RNA*/
-  int                     header  = 1;  /* print header in output file */
-  int                     output  = 1;  /* create output  file */
+  int         w       = 25;             /* length of region of interaction */
+  int         incr3   = 0;              /* add x unpaired bases after 3'end of short RNA*/
+  int         incr5   = 0;              /* add x unpaired bases after 5'end of short RNA*/
+  int         header  = 1;              /* print header in output file */
+  int         output  = 1;              /* create output  file */
 
   /* more default settings for RNAup */
   up_mode       = RNA_UP_MODE_1; /* default RNAup mode, single sequence unpaired probabilities */
@@ -115,13 +125,14 @@ main(int  argc,
   default_u = 4;
 
   /* early initializing */
-  noconv          = 0;
-  max_u           = 0;
-  ulength_num     = 0;      /* number of ulength values given on commandline */
-  sfact           = 1.07;
-  dangles         = 2;
-  do_backtrack    = 1;
-  input_string    = s1 = s2 = s3 = s_target = cstruc1 = cstruc2 = cstruc_target = cstruc_combined = NULL;
+  noconv        = 0;
+  max_u         = 0;
+  ulength_num   = 0;        /* number of ulength values given on commandline */
+  sfact         = 1.07;
+  dangles       = 2;
+  do_backtrack  = 1;
+  input_string  = s1 = s2 = s3 = s_target = cstruc1 = cstruc2 = cstruc_target = cstruc_combined =
+    NULL;
   length1         = length2 = length_target = 0;
   inter_out       = NULL;
   unstr_out       = unstr_short = unstr_target = contrib1 = contrib2 = NULL;
@@ -171,7 +182,8 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
 
@@ -290,6 +302,7 @@ main(int  argc,
 
   /* set length(s) of unpaired (unstructured) region(s) */
   int min, max, tmp;
+
   i = (args_info.ulength_given == 0) ? 1 : args_info.ulength_given;
 
   /* here's the very new way of treating multiple ulength values/ranges */
@@ -358,7 +371,7 @@ main(int  argc,
 
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
@@ -388,7 +401,8 @@ main(int  argc,
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
   if ((fold_constrained) && (istty)) {
-    vrna_message_constraint_options(VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_RND_BRACK);
+    vrna_message_constraint_options(
+      VRNA_CONSTRAINT_DB_DOT | VRNA_CONSTRAINT_DB_X | VRNA_CONSTRAINT_DB_RND_BRACK);
     printf("constraints for intramolecular folding only:\n");
     vrna_message_constraint_options(VRNA_CONSTRAINT_NO_HEADER | VRNA_CONSTRAINT_DB_ANG_BRACK);
     printf("constraints for cofolding (intermolecular folding) only:\n");
@@ -416,10 +430,13 @@ main(int  argc,
           vrna_message_input_seq_simple();
           break;
         case RNA_UP_MODE_2:   /* pairwise interaction mode, former -Xp mode */
-          vrna_message_input_seq("Use either '&' to connect the 2 sequences or give each sequence on an extra line.");
+          vrna_message_input_seq(
+            "Use either '&' to connect the 2 sequences or give each sequence on an extra line.");
           break;
-        case RNA_UP_MODE_3:   /* consecutive multi interaction mode ;) first sequence pairs with all following, former -Xf mode */
-                              /* either we wait for the first two sequences */
+        case RNA_UP_MODE_3:   /*
+                               * consecutive multi interaction mode ;) first sequence pairs with all following, former -Xf mode
+                               * either we wait for the first two sequences
+                               */
           if (s_target == NULL)
             vrna_message_input_seq("Give each sequence on an extra line. "
                                    "The first seq. is stored, every other seq. is compared to the first one.");
@@ -443,9 +460,9 @@ main(int  argc,
 
     /* break on any error, EOF or quit request */
     if (input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR))
-      break;                            /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
+      break;                              /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
     else
-      tokenize(input_string, &s1, &s2); /* this also frees the input_string */
+      tokenize(input_string, &s1, &s2);   /* this also frees the input_string */
 
     length1 = (int)strlen(s1);
     length2 = (s2) ? (int)strlen(s2) : 0;
@@ -454,7 +471,8 @@ main(int  argc,
 
     /* check if we have to change the mode we are operating in */
     if ((cut_point != -1) && (up_mode & RNA_UP_MODE_1)) {
-      vrna_message_warning("Two concatenated sequences given, switching to pairwise interaction mode!");
+      vrna_message_warning(
+        "Two concatenated sequences given, switching to pairwise interaction mode!");
       up_mode = RNA_UP_MODE_2;
     }
 
@@ -493,12 +511,13 @@ main(int  argc,
       }
       /* break on any error, EOF or quit request */
       if (input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR))
-        break;                            /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
+        break;                              /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
       else
-        tokenize(input_string, &s2, &s3); /* this also frees the input_string */
+        tokenize(input_string, &s2, &s3);   /* this also frees the input_string */
 
       if (cut_point != -1)
-        vrna_message_error("Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
+        vrna_message_error(
+          "Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
 
       length2 = (int)strlen(s2);
     }
@@ -536,7 +555,8 @@ main(int  argc,
 
       /* now that we've got the constraining structure(s) check if the input was valid */
       if (old_cut != cut_point)
-        vrna_message_error("RNAup -C: mixed single/dual sequence or constraint strings or different cut points");
+        vrna_message_error(
+          "RNAup -C: mixed single/dual sequence or constraint strings or different cut points");
 
       read_again = 0;
 
@@ -557,7 +577,8 @@ main(int  argc,
           vrna_message_error("constraints missing");
 
         if (cut_point != -1)
-          vrna_message_error("Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
+          vrna_message_error(
+            "Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
       }
 
       /* check length(s) of input sequence(s) and constraint(s) */
@@ -652,7 +673,8 @@ main(int  argc,
     if (!(up_mode & RNA_UP_MODE_1))
       vrna_strcat_printf(&up_out, "_w%d", w);
 
-    structure = (char *)vrna_alloc(sizeof(char) * (MAX2(length_target, MAX2(length1, length2)) + 1));
+    structure =
+      (char *)vrna_alloc(sizeof(char) * (MAX2(length_target, MAX2(length1, length2)) + 1));
 
 
     /* begin actual computations */
@@ -692,7 +714,7 @@ main(int  argc,
     if (cstruc1 != NULL)
       strncpy(structure, cstruc1, length1 + 1);
 
-    (void) pf_fold(s1, structure);
+    (void)pf_fold(s1, structure);
     unstr_out = pf_unstru(s1, wplus);
     free_pf_arrays();
 
@@ -720,7 +742,8 @@ main(int  argc,
           while (++j <= unpaired_values[i][1]);
         }
         if (output && header)
-          head = vrna_strdup_printf("# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1);
+          head =
+            vrna_strdup_printf("# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1);
 
         contrib1 = unstr_out;
         break;
@@ -728,7 +751,14 @@ main(int  argc,
         inter_out = pf_interact(s1, s2, unstr_out, NULL, w, cstruc_combined, incr3, incr5);
         print_interaction(inter_out, orig_s1, orig_s2, unstr_out, NULL, w, incr3, incr5);
         if (output && header)
-          head = vrna_strdup_printf("# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length1, fname1, orig_s1, length2, fname2, orig_s2);
+          head = vrna_strdup_printf("# %s\n# %d %s\n# %s\n# %d %s\n# %s",
+                                    cmdl_parameters,
+                                    length1,
+                                    fname1,
+                                    orig_s1,
+                                    length2,
+                                    fname2,
+                                    orig_s2);
 
         contrib1 = unstr_out;
         break;
@@ -752,26 +782,61 @@ main(int  argc,
           if (cstruc_target != NULL)
             strncpy(structure, cstruc_target, length_target + 1);
 
-          (void) pf_fold(s_target, structure);
-          unstr_target  = pf_unstru(s_target, wplus);
+          (void)pf_fold(s_target, structure);
+          unstr_target = pf_unstru(s_target, wplus);
           free_pf_arrays();                     /* for arrays for pf_fold(...) */
         }
 
         /* check if target sequence is actually longer than query, if not rotate both sequences */
         if (length_target < length1) {
-          inter_out = pf_interact(s1, s_target, unstr_out, unstr_target, w, cstruc_combined, incr3, incr5);
-          print_interaction(inter_out, orig_s1, orig_target, unstr_out, unstr_target, w, incr3, incr5);
+          inter_out = pf_interact(s1,
+                                  s_target,
+                                  unstr_out,
+                                  unstr_target,
+                                  w,
+                                  cstruc_combined,
+                                  incr3,
+                                  incr5);
+          print_interaction(inter_out,
+                            orig_s1,
+                            orig_target,
+                            unstr_out,
+                            unstr_target,
+                            w,
+                            incr3,
+                            incr5);
           contrib1  = unstr_out;
           contrib2  = unstr_target;
         } else {
-          inter_out = pf_interact(s_target, s1, unstr_target, unstr_out, w, cstruc_combined, incr3, incr5);
-          print_interaction(inter_out, orig_target, orig_s1, unstr_target, unstr_out, w, incr3, incr5);
+          inter_out = pf_interact(s_target,
+                                  s1,
+                                  unstr_target,
+                                  unstr_out,
+                                  w,
+                                  cstruc_combined,
+                                  incr3,
+                                  incr5);
+          print_interaction(inter_out,
+                            orig_target,
+                            orig_s1,
+                            unstr_target,
+                            unstr_out,
+                            w,
+                            incr3,
+                            incr5);
           contrib1  = unstr_target;
           contrib2  = unstr_out;
         }
 
         if (output && header)
-          head = vrna_strdup_printf("# %s\n# %d %s\n# %s\n# %d %s\n# %s", cmdl_parameters, length_target, fname_target, orig_target, length1, fname1, orig_s1);
+          head = vrna_strdup_printf("# %s\n# %d %s\n# %s\n# %d %s\n# %s",
+                                    cmdl_parameters,
+                                    length_target,
+                                    fname_target,
+                                    orig_target,
+                                    length1,
+                                    fname1,
+                                    orig_s1);
 
         break;
     }
@@ -876,10 +941,12 @@ adjustUnpairedValues(int ***unpaired_values)
     return;
 
   /* sort the ranges array */
-  qsort(&((*unpaired_values)[1]), (*unpaired_values)[0][0], sizeof(int **), compare_unpaired_values);
+  qsort(&((*unpaired_values)[1]), (*unpaired_values)[0][0], sizeof(int **),
+        compare_unpaired_values);
 
-  last_max    = (*unpaired_values)[1][1] != -1 ? (*unpaired_values)[1][1] : (*unpaired_values)[1][0];
-  real_count  = 1;
+  last_max = (*unpaired_values)[1][1] !=
+             -1 ? (*unpaired_values)[1][1] : (*unpaired_values)[1][0];
+  real_count = 1;
   for (i = 2; i <= (*unpaired_values)[0][0]; i++) {
     if ((*unpaired_values)[i][1] == -1) {
       /* we just have a single value */
@@ -910,7 +977,10 @@ adjustUnpairedValues(int ***unpaired_values)
   }
 
   /* sort entries again to get rid of useless ones */
-  qsort(&((*unpaired_values)[1]), (*unpaired_values)[0][0], sizeof(int **), move_useless_unpaired_values);
+  qsort(&((*unpaired_values)[1]),
+        (*unpaired_values)[0][0],
+        sizeof(int **),
+        move_useless_unpaired_values);
 
   /* free memory we dont need anymore */
   for (i = real_count + 1; i <= (*unpaired_values)[0][0]; i++)
@@ -919,7 +989,8 @@ adjustUnpairedValues(int ***unpaired_values)
 
   (*unpaired_values)[0][0] = real_count;
   /* sort the array again */
-  qsort(&((*unpaired_values)[1]), (*unpaired_values)[0][0], sizeof(int **), compare_unpaired_values);
+  qsort(&((*unpaired_values)[1]), (*unpaired_values)[0][0], sizeof(int **),
+        compare_unpaired_values);
 }
 
 
@@ -1042,8 +1113,9 @@ seperate_bp(char  **inter,
   pt = vrna_ptable(pt_inter);
 
   /* intramolecular structure in longer (_l) and shorter (_s) seq */
-  (*intra_l)                              = (char *)vrna_alloc(sizeof(char) * (len1 + 1));
-  (*intra_s)                              = (char *)vrna_alloc(sizeof(char) * (strlen((*inter)) - len1 + 2));
+  (*intra_l)  = (char *)vrna_alloc(sizeof(char) * (len1 + 1));
+  (*intra_s)  =
+    (char *)vrna_alloc(sizeof(char) * (strlen((*inter)) - len1 + 2));
   (*intra_l)[len1]                        = '\0';
   (*intra_s)[strlen((*inter)) - len1 + 1] = '\0';
   /* now seperate intermolecular from intramolecular bp */
@@ -1072,8 +1144,10 @@ seperate_bp(char  **inter,
           temp_inter[i - 1] = '.';
         }
       } else {
-        /* i>=cut_point */
-        /* intermolekular bp */
+        /*
+         * i>=cut_point
+         * intermolekular bp
+         */
         if (pt[i] < cut_point) {
           temp_inter[i - 1] = (*inter)[i - 1];
           /* (*intra_s)[i-1] = '.'; */
@@ -1172,7 +1246,8 @@ print_interaction(interact    *Int,
   end5  = MAX(1, Int->k - incr5);
   end3  = MIN(MIN(l_l - 1 + incr3, w + incr3 + incr5), len1);
   p_c_S = p_c->H[end5][end3] + p_c->I[end5][end3] + p_c->M[end5][end3] + p_c->E[end5][end3];
-  Gul   = -RT *log(p_c_S);
+  Gul   = -RT *
+          log(p_c_S);
 
 
   if (p_c2 == NULL) {
@@ -1187,7 +1262,8 @@ print_interaction(interact    *Int,
             p_c2->I[Int->j][(Int->l) - (Int->j)] +
             p_c2->M[Int->j][(Int->l) - (Int->j)] +
             p_c2->E[Int->j][(Int->l) - (Int->j)];
-    Gus = -RT *log(p_c_S);
+    Gus = -RT *
+          log(p_c_S);
 
 
     G_sum = Gi_min + Gul + Gus;
@@ -1204,7 +1280,8 @@ print_interaction(interact    *Int,
   }
 
   if (nix_up)
-    vrna_message_warning("RNAduplex structure doesn't match any structure of RNAup structure ensemble");
+    vrna_message_warning(
+      "RNAduplex structure doesn't match any structure of RNAup structure ensemble");
 
   free(i_long);
   free(i_short);
@@ -1230,7 +1307,8 @@ print_unstru(pu_contrib *p_c,
         double blubb;
         if ((j - i + 1) == w && i + w - 1 <= len) {
           blubb = p_c->H[i][j - i] + p_c->I[i][j - i] + p_c->M[i][j - i] + p_c->E[i][j - i];
-          dG_u  = -RT *log(blubb);
+          dG_u  = -RT *
+                  log(blubb);
 
 
           if (dG_u < min_gu) {
