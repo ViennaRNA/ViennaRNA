@@ -116,7 +116,9 @@ struct ligands_up_data_default {
   unsigned int            *outside_mb_count;
   struct default_outside  **outside_mb;
 
-  FLT_OR_DBL(*default_cb[32])(int, int, struct ligands_up_data_default *);
+  FLT_OR_DBL              (*default_cb[32])(int,
+                                            int,
+                                            struct ligands_up_data_default *);
   FLT_OR_DBL              *exp_e_mx[32];
 };
 
@@ -790,7 +792,7 @@ ud_get_motifs_MFE(vrna_fold_compound_t    *fc,
     int             *mx;
     vrna_ud_motif_t **ptr, *ptr2, ***alternatives;
 
-    alternatives  = (vrna_ud_motif_t ***)vrna_alloc(sizeof(vrna_ud_motif_t **) * segments_num);
+    alternatives  = (vrna_ud_motif_t ***)vrna_alloc(sizeof(vrna_ud_motif_t * *) * segments_num);
     alt_cnt       = 0;
 
     /* collect optimal configurations for each segment */
@@ -1170,7 +1172,7 @@ backtrack_MFE_matrix(vrna_fold_compound_t *fc,
   motif_size  = 10;
   motif_list  = (vrna_ud_motif_t *)vrna_alloc(sizeof(vrna_ud_motif_t) * (motif_size + 1));
 
-  for (d = to - from + 1, i = from; i < to; ) {
+  for (d = to - from + 1, i = from; i < to;) {
     e   = mx[i];
     ee  = mx[i + 1];
 
@@ -1501,7 +1503,7 @@ backtrack_MEA_matrix(vrna_fold_compound_t *fc,
   motif_size  = 10;
   motif_list  = (vrna_ud_motif_t *)vrna_alloc(sizeof(vrna_ud_motif_t) * (motif_size + 1));
 
-  for (d = to - from + 1, i = from; i <= to; ) {
+  for (d = to - from + 1, i = from; i <= to;) {
     prec  = FLT_EPSILON * mx[i];
     mea   = mx[i];
     p     = pu[i];
@@ -1935,6 +1937,7 @@ prepare_matrices(vrna_fold_compound_t           *vc,
     VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP
   };
   int           **m[4], *mx;
+
   m[0]  = &data->energies_ext;
   m[1]  = &data->energies_hp;
   m[2]  = &data->energies_int;
@@ -1991,6 +1994,7 @@ prepare_exp_matrices(vrna_fold_compound_t           *vc,
     VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP
   };
   FLT_OR_DBL    **m[4], *mx;
+
   m[0]  = &data->exp_energies_ext;
   m[1]  = &data->exp_energies_hp;
   m[2]  = &data->exp_energies_int;
