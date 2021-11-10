@@ -974,7 +974,7 @@ process_record(struct record_data *record)
         char  *filename_dotplot;
         plist *pl1, *pl2;
 
-        filename_dotplot    = NULL;
+        filename_dotplot = NULL;
 
         /* generate initial element probability lists for dot-plot */
         pl1 = vrna_plist_from_probs(vc, opt->bppmThreshold);
@@ -1150,6 +1150,7 @@ compute_MEA(vrna_fold_compound_t  *fc,
 
   fc->exp_params->model_details.gquad = 0;
   plist *pl = vrna_plist_from_probs(fc, 1e-4 / (1 + MEAgamma));
+
   fc->exp_params->model_details.gquad = gq;
 
   structure = vrna_MEA(fc, MEAgamma, &mea);
