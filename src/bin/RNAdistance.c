@@ -30,21 +30,26 @@
 #define PUBLIC
 #define PRIVATE     static
 
-PRIVATE void command_line(int   argc,
-                          char  *argv[]);
+PRIVATE void
+command_line(int  argc,
+             char *argv[]);
 
 
-PRIVATE int parse_input(char *line);
+PRIVATE int
+parse_input(char *line);
 
 
-PRIVATE int check_tree(char *line,
-                       char alpha[]);
+PRIVATE int
+check_tree(char *line,
+           char alpha[]);
 
 
-PRIVATE int check_brackets(char *line);
+PRIVATE int
+check_brackets(char *line);
 
 
-PRIVATE void print_aligned_lines(FILE *somewhere);
+PRIVATE void
+print_aligned_lines(FILE *somewhere);
 
 
 PRIVATE char  ruler[] = "....,....1....,....2....,....3....,....4"
