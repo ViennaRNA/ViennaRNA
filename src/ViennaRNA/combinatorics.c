@@ -54,53 +54,60 @@ struct necklace_content {
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE struct  perm_list *perm_list_insert(struct perm_list  *before,
-                                            int               value);
+PRIVATE struct  perm_list *
+perm_list_insert(struct perm_list *before,
+                 int              value);
 
 
-PRIVATE struct  perm_list *perm_list_remove_val(struct perm_list  *head,
-                                                int               value);
+PRIVATE struct  perm_list *
+perm_list_remove_val(struct perm_list *head,
+                     int              value);
 
 
-PRIVATE struct  perm_list *perm_list_head(struct perm_list *entry);
-
-
-PRIVATE void    perm_list_destroy(struct perm_list *entry);
-
-
-PRIVATE int     cmpfunc(const void  *a,
-                        const void  *b);
-
-
-PRIVATE void    sawada_fast_finish_perm(struct necklace_content *content,
-                                        unsigned int            ***results,
-                                        unsigned int            *result_count,
-                                        unsigned int            *result_size,
-                                        unsigned int            n);
-
-
-PRIVATE void    sawada_fast(unsigned int            t,
-                            unsigned int            p,
-                            unsigned int            s,
-                            struct necklace_content *content,
-                            unsigned int            k,
-                            unsigned int            *r,
-                            struct perm_list        *a,
-                            unsigned int            n,
-                            unsigned int            ***results,
-                            unsigned int            *result_count,
-                            unsigned int            *result_size);
+PRIVATE struct  perm_list *
+perm_list_head(struct perm_list *entry);
 
 
 PRIVATE void
-n_choose_k( unsigned int  *current,
-            size_t        start,
-            size_t        end,
-            size_t        selected,
-            size_t        k,
-            unsigned int  ***output,
-            size_t        *output_size,
-            size_t        *cnt);
+perm_list_destroy(struct perm_list *entry);
+
+
+PRIVATE int
+cmpfunc(const void  *a,
+        const void  *b);
+
+
+PRIVATE void
+sawada_fast_finish_perm(struct necklace_content *content,
+                        unsigned int            ***results,
+                        unsigned int            *result_count,
+                        unsigned int            *result_size,
+                        unsigned int            n);
+
+
+PRIVATE void
+sawada_fast(unsigned int            t,
+            unsigned int            p,
+            unsigned int            s,
+            struct necklace_content *content,
+            unsigned int            k,
+            unsigned int            *r,
+            struct perm_list        *a,
+            unsigned int            n,
+            unsigned int            ***results,
+            unsigned int            *result_count,
+            unsigned int            *result_size);
+
+
+PRIVATE void
+n_choose_k(unsigned int *current,
+           size_t       start,
+           size_t       end,
+           size_t       selected,
+           size_t       k,
+           unsigned int ***output,
+           size_t       *output_size,
+           size_t       *cnt);
 
 
 PRIVATE INLINE unsigned int
@@ -518,20 +525,20 @@ vrna_rotational_symmetry_db_pos(vrna_fold_compound_t  *fc,
 
 
 PUBLIC unsigned int **
-vrna_n_multichoose_k(size_t  n,
-                     size_t  k)
+vrna_n_multichoose_k(size_t n,
+                     size_t k)
 {
   size_t        result_size = 2;
-  unsigned int  **result = NULL;
-  unsigned int  *current = (unsigned int *)vrna_alloc(sizeof(unsigned int) * k);
+  unsigned int  **result    = NULL;
+  unsigned int  *current    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * k);
 
   result = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * result_size);
 
   /* We want to enumerate n multichoose k for total strand number n and
-     interacting strands k. For that purpose, we enumerate n + k - 1 choose k
-     and decrease each index position i by i to obtain n multichoose k
-  */
-  size_t  counter = 0;
+   * interacting strands k. For that purpose, we enumerate n + k - 1 choose k
+   * and decrease each index position i by i to obtain n multichoose k
+   */
+  size_t counter = 0;
 
   n_choose_k(current, 0, n + k - 2, 0, k, &result, &result_size, &counter);
 
@@ -563,6 +570,7 @@ vrna_boustrophedon_pos(size_t start,
   return 0;
 }
 
+
 PUBLIC unsigned int *
 vrna_boustrophedon(size_t start,
                    size_t end)
@@ -572,11 +580,11 @@ vrna_boustrophedon(size_t start,
   seq = NULL;
 
   if (end >= start) {
-    seq = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (end - start + 2));
-    seq[0] = end - start + 1;
+    seq     = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (end - start + 2));
+    seq[0]  = end - start + 1;
 
     for (pos = 1; pos <= end - start + 1; pos++)
-      seq[pos]  = boustrophedon_at(start, end, pos);
+      seq[pos] = boustrophedon_at(start, end, pos);
   }
 
   return seq;
@@ -791,19 +799,20 @@ sawada_fast(unsigned int            t,
 
 
 PRIVATE void
-n_choose_k( unsigned int  *current,
-            size_t        start,
-            size_t        end,
-            size_t        selected,
-            size_t        k,
-            unsigned int  ***output,
-            size_t        *output_size,
-            size_t        *cnt)
+n_choose_k(unsigned int *current,
+           size_t       start,
+           size_t       end,
+           size_t       selected,
+           size_t       k,
+           unsigned int ***output,
+           size_t       *output_size,
+           size_t       *cnt)
 {
   if (selected == k) {
     if (*output_size == *cnt) {
-      *output_size *= 2;
-      *output = (unsigned int **)vrna_realloc(*output, sizeof(unsigned int *) * (*output_size));
+      *output_size  *= 2;
+      *output       =
+        (unsigned int **)vrna_realloc(*output, sizeof(unsigned int *) * (*output_size));
     }
 
     (*output)[(*cnt)] = (unsigned int *)vrna_alloc(sizeof(unsigned int) * k);
@@ -815,7 +824,7 @@ n_choose_k( unsigned int  *current,
     return;
   }
 
-  for (size_t i = start; i <= end && end - i + 1 >= k - selected; i++){
+  for (size_t i = start; i <= end && end - i + 1 >= k - selected; i++) {
     current[selected] = (unsigned int)i;
     n_choose_k(current, i + 1, end, selected + 1, k, output, output_size, cnt);
   }
