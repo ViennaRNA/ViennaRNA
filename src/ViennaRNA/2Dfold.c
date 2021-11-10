@@ -43,109 +43,124 @@ int compute_2Dfold_F3 = 0;
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE void  mfe_linear(vrna_fold_compound_t *vc);
+PRIVATE void
+mfe_linear(vrna_fold_compound_t *vc);
 
 
-PRIVATE void  mfe_circ(vrna_fold_compound_t *vc);
+PRIVATE void
+mfe_circ(vrna_fold_compound_t *vc);
 
 
-PUBLIC void  update_TwoDfold_params(TwoDfold_vars *vars);
+PUBLIC void
+update_TwoDfold_params(TwoDfold_vars *vars);
 
 
-PRIVATE void  backtrack_f5(unsigned int         j,
-                           int                  k,
-                           int                  l,
-                           char                 *structure,
-                           vrna_fold_compound_t *vc);
+PRIVATE void
+backtrack_f5(unsigned int         j,
+             int                  k,
+             int                  l,
+             char                 *structure,
+             vrna_fold_compound_t *vc);
 
 
-PRIVATE void  backtrack_c(unsigned int          i,
-                          unsigned int          j,
-                          int                   k,
-                          int                   l,
-                          char                  *structure,
-                          vrna_fold_compound_t  *vc);
+PRIVATE void
+backtrack_c(unsigned int          i,
+            unsigned int          j,
+            int                   k,
+            int                   l,
+            char                  *structure,
+            vrna_fold_compound_t  *vc);
 
 
-PRIVATE void  backtrack_m(unsigned int          i,
-                          unsigned int          j,
-                          int                   k,
-                          int                   l,
-                          char                  *structure,
-                          vrna_fold_compound_t  *vc);
+PRIVATE void
+backtrack_m(unsigned int          i,
+            unsigned int          j,
+            int                   k,
+            int                   l,
+            char                  *structure,
+            vrna_fold_compound_t  *vc);
 
 
-PRIVATE void  backtrack_m1(unsigned int         i,
-                           unsigned int         j,
-                           int                  k,
-                           int                  l,
-                           char                 *structure,
-                           vrna_fold_compound_t *vc);
+PRIVATE void
+backtrack_m1(unsigned int         i,
+             unsigned int         j,
+             int                  k,
+             int                  l,
+             char                 *structure,
+             vrna_fold_compound_t *vc);
 
 
-PRIVATE void  backtrack_fc(int                  k,
-                           int                  l,
-                           char                 *structure,
-                           vrna_fold_compound_t *vc);
+PRIVATE void
+backtrack_fc(int                  k,
+             int                  l,
+             char                 *structure,
+             vrna_fold_compound_t *vc);
 
 
-PRIVATE void  backtrack_m2(unsigned int         i,
-                           int                  k,
-                           int                  l,
-                           char                 *structure,
-                           vrna_fold_compound_t *vc);
+PRIVATE void
+backtrack_m2(unsigned int         i,
+             int                  k,
+             int                  l,
+             char                 *structure,
+             vrna_fold_compound_t *vc);
 
 
-PRIVATE void  adjustArrayBoundaries(int ***array,
-                                    int *k_min,
-                                    int *k_max,
-                                    int **l_min,
-                                    int **l_max,
-                                    int k_min_real,
-                                    int k_max_real,
-                                    int *l_min_real,
-                                    int *l_max_real);
+PRIVATE void
+adjustArrayBoundaries(int ***array,
+                      int *k_min,
+                      int *k_max,
+                      int **l_min,
+                      int **l_max,
+                      int k_min_real,
+                      int k_max_real,
+                      int *l_min_real,
+                      int *l_max_real);
 
 
-INLINE PRIVATE void  preparePosteriorBoundaries(int size,
-                                                int shift,
-                                                int *min_k,
-                                                int *max_k,
-                                                int **min_l,
-                                                int **max_l);
+INLINE PRIVATE void
+preparePosteriorBoundaries(int  size,
+                           int  shift,
+                           int  *min_k,
+                           int  *max_k,
+                           int  **min_l,
+                           int  **max_l);
 
 
-INLINE PRIVATE void  updatePosteriorBoundaries(int  d1,
-                                               int  d2,
-                                               int  *min_k,
-                                               int  *max_k,
-                                               int  **min_l,
-                                               int  **max_l);
+INLINE PRIVATE void
+updatePosteriorBoundaries(int d1,
+                          int d2,
+                          int *min_k,
+                          int *max_k,
+                          int **min_l,
+                          int **max_l);
 
 
-INLINE PRIVATE void  prepareBoundaries(int  min_k_pre,
-                                       int  max_k_pre,
-                                       int  min_l_pre,
-                                       int  max_l_pre,
-                                       int  bpdist,
-                                       int  *min_k,
-                                       int  *max_k,
-                                       int  **min_l,
-                                       int  **max_l);
+INLINE PRIVATE void
+prepareBoundaries(int min_k_pre,
+                  int max_k_pre,
+                  int min_l_pre,
+                  int max_l_pre,
+                  int bpdist,
+                  int *min_k,
+                  int *max_k,
+                  int **min_l,
+                  int **max_l);
 
 
-INLINE PRIVATE void  prepareArray(int ***array,
-                                  int min_k,
-                                  int max_k,
-                                  int *min_l,
-                                  int *max_l);
+INLINE PRIVATE void
+prepareArray(int  ***array,
+             int  min_k,
+             int  max_k,
+             int  *min_l,
+             int  *max_l);
 
 
-INLINE PRIVATE void  prepareArray2(unsigned long  ***array,
-                                   int            min_k,
-                                   int            max_k,
-                                   int            *min_l,
-                                   int            *max_l);
+INLINE PRIVATE void
+prepareArray2(unsigned long ***array,
+              int           min_k,
+              int           max_k,
+              int           *min_l,
+              int           *max_l);
 
 
 /*
@@ -235,13 +250,19 @@ TwoDfold(TwoDfold_vars  *vars,
       for (d2 = ((vars->circ) ? vars->l_min_values_fc[d1] : vars->l_min_values_f[length][d1]);
            d2 <= ((vars->circ) ? vars->l_max_values_fc[d1] : vars->l_max_values_f[length][d1]);
            d2 += 2) {
-        output[d1][d2].en = (float)((vars->circ) ? vars->E_Fc[d1][d2 / 2] : vars->E_F5[length][d1][d2 / 2]) / (float)100.;
+        output[d1][d2].en =
+          (float)((vars->circ) ? vars->E_Fc[d1][d2 / 2] : vars->E_F5[length][d1][d2 / 2]) /
+          (float)100.;
         if (vars->do_backtrack && (output[d1][d2].en != (float)INF / (float)100.)) {
           char *mfe_structure = (char *)vrna_alloc(length + 1);
           for (i = 0; i < length; i++)
             mfe_structure[i] = '.';
           mfe_structure[i] = '\0';
-          (vars->circ) ? backtrack_fc(d1, d2, mfe_structure, vars) : backtrack_f5(length, d1, d2, mfe_structure, vars);
+          (vars->circ) ? backtrack_fc(d1, d2, mfe_structure, vars) : backtrack_f5(length,
+                                                                                  d1,
+                                                                                  d2,
+                                                                                  mfe_structure,
+                                                                                  vars);
           output[d1][d2].s = mfe_structure;
         }
       }
@@ -291,7 +312,8 @@ vrna_mfe_TwoD(vrna_fold_compound_t  *vars,
 
   vars->maxD1 = maxD1;
   vars->maxD2 = maxD2;
-  output      = (vrna_sol_TwoD_t *)vrna_alloc((((vars->maxD1 + 1) * (vars->maxD2 + 2)) / 2 + 2) * sizeof(vrna_sol_TwoD_t));
+  output      = (vrna_sol_TwoD_t *)vrna_alloc(
+    (((vars->maxD1 + 1) * (vars->maxD2 + 2)) / 2 + 2) * sizeof(vrna_sol_TwoD_t));
 
   mfe_linear(vars);
   if (md->circ)
@@ -317,7 +339,11 @@ vrna_mfe_TwoD(vrna_fold_compound_t  *vars,
           for (i = 0; i < length; i++)
             mfe_structure[i] = '.';
           mfe_structure[i] = '\0';
-          (md->circ) ? backtrack_fc((int)d1, (int)d2, mfe_structure, vars) : backtrack_f5(length, (int)d1, (int)d2, mfe_structure, vars);
+          (md->circ) ? backtrack_fc((int)d1, (int)d2, mfe_structure, vars) : backtrack_f5(length,
+                                                                                          (int)d1,
+                                                                                          (int)d2,
+                                                                                          mfe_structure,
+                                                                                          vars);
           output[counter].s = mfe_structure;
         } else {
           output[counter].s = NULL;
@@ -339,7 +365,11 @@ vrna_mfe_TwoD(vrna_fold_compound_t  *vars,
       for (i = 0; i < length; i++)
         mfe_structure[i] = '.';
       mfe_structure[i] = '\0';
-      (md->circ) ? backtrack_fc(-1, -1, mfe_structure, vars) : backtrack_f5(length, -1, -1, mfe_structure, vars);
+      (md->circ) ? backtrack_fc(-1, -1, mfe_structure, vars) : backtrack_f5(length,
+                                                                            -1,
+                                                                            -1,
+                                                                            mfe_structure,
+                                                                            vars);
       output[counter].s = mfe_structure;
     } else {
       output[counter].s = NULL;
@@ -382,8 +412,10 @@ vrna_backtrack5_TwoD(vrna_fold_compound_t *vc,
 PRIVATE void
 mfe_linear(vrna_fold_compound_t *vc)
 {
-  unsigned int  d, i, j, ij, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1, *referenceBPs2, *mm1, *mm2, *bpdist;
-  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en, *my_iindx, *jindx, circ, *rtype, turn;
+  unsigned int  d, i, j, ij, maxD1, maxD2, seq_length, dia, dib, dja, djb, *referenceBPs1,
+                *referenceBPs2, *mm1, *mm2, *bpdist;
+  int           cnt1, cnt2, cnt3, cnt4, d1, d2, energy, dangles, temp2, type, additional_en,
+                *my_iindx, *jindx, circ, *rtype, turn;
   short         *S1, *reference_pt1, *reference_pt2;
   char          *sequence, *ptype;
   vrna_param_t  *P;
@@ -417,7 +449,8 @@ mfe_linear(vrna_fold_compound_t *vc)
   for (d = turn + 2; d <= seq_length; d++) {
     /* i,j in [1..length] */
 #ifdef _OPENMP
-#pragma omp parallel for private(additional_en, j, energy, temp2, i, ij, dia,dib,dja,djb,cnt1,cnt2,cnt3,cnt4, d1, d2)
+#pragma \
+    omp parallel for private(additional_en, j, energy, temp2, i, ij, dia,dib,dja,djb,cnt1,cnt2,cnt3,cnt4, d1, d2)
 #endif
     for (j = d; j <= seq_length; j++) {
       unsigned int  p, q, pq, u, maxp, dij;
@@ -491,7 +524,12 @@ mfe_linear(vrna_fold_compound_t *vc)
         /* d1 and d2 are the distancies to both references introduced by closing a hairpin structure at (i,j) */
         if ((d1 >= 0) && (d2 >= 0)) {
           if (((unsigned int)d1 <= maxD1) && ((unsigned int)d2 <= maxD2)) {
-            matrices->E_C[ij][d1][d2 / 2] = (no_close) ? FORBIDDEN : E_Hairpin(dij, type, S1[i + 1], S1[j - 1], sequence + i - 1, P);
+            matrices->E_C[ij][d1][d2 / 2] = (no_close) ? FORBIDDEN : E_Hairpin(dij,
+                                                                               type,
+                                                                               S1[i + 1],
+                                                                               S1[j - 1],
+                                                                               sequence + i - 1,
+                                                                               P);
             updatePosteriorBoundaries(d1,
                                       d2,
                                       &real_min_k,
@@ -503,7 +541,9 @@ mfe_linear(vrna_fold_compound_t *vc)
             matrices->N_C[ij][d1][d2 / 2] = 1;
 #endif
           } else {
-            matrices->E_C_rem[ij] = (no_close) ? FORBIDDEN : E_Hairpin(dij, type, S1[i + 1], S1[j - 1], sequence + i - 1, P);
+            matrices->E_C_rem[ij] =
+              (no_close) ? FORBIDDEN : E_Hairpin(dij, type, S1[i + 1], S1[j - 1], sequence + i - 1,
+                                                 P);
           }
         }
 
@@ -538,16 +578,28 @@ mfe_linear(vrna_fold_compound_t *vc)
 
             /* continue unless stack */
 
-            energy = E_IntLoop(p - i - 1, j - q - 1, type, type_2, S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1], P);
+            energy = E_IntLoop(p - i - 1,
+                               j - q - 1,
+                               type,
+                               type_2,
+                               S1[i + 1],
+                               S1[j - 1],
+                               S1[p - 1],
+                               S1[q + 1],
+                               P);
 
             if (matrices->E_C[pq] != NULL) {
               for (cnt1 = matrices->k_min_C[pq]; cnt1 <= matrices->k_max_C[pq]; cnt1++) {
-                for (cnt2 = matrices->l_min_C[pq][cnt1]; cnt2 <= matrices->l_max_C[pq][cnt1]; cnt2 += 2) {
+                for (cnt2 = matrices->l_min_C[pq][cnt1]; cnt2 <= matrices->l_max_C[pq][cnt1];
+                     cnt2 += 2) {
                   if (matrices->E_C[pq][cnt1][cnt2 / 2] != INF) {
                     if (((cnt1 + d1) <= maxD1) && ((cnt2 + d2) <= maxD2)) {
-                      matrices->E_C[ij][cnt1 + d1][(cnt2 + d2) / 2] = MIN2(matrices->E_C[ij][cnt1 + d1][(cnt2 + d2) / 2],
-                                                                           matrices->E_C[pq][cnt1][cnt2 / 2] + energy
-                                                                           );
+                      matrices->E_C[ij][cnt1 + d1][(cnt2 + d2) /
+                                                   2] =
+                        MIN2(matrices->E_C[ij][cnt1 + d1][(cnt2 + d2) / 2],
+                             matrices->E_C[pq][cnt1][
+                               cnt2 / 2] + energy
+                             );
                       updatePosteriorBoundaries(cnt1 + d1,
                                                 cnt2 + d2,
                                                 &real_min_k,
@@ -556,12 +608,14 @@ mfe_linear(vrna_fold_compound_t *vc)
                                                 &max_l_real
                                                 );
 #ifdef COUNT_STATES
-                      matrices->N_C[ij][cnt1 + d1][(cnt2 + d2) / 2] += matrices->N_C[pq][cnt1][cnt2 / 2];
+                      matrices->N_C[ij][cnt1 + d1][(cnt2 + d2) /
+                                                   2] += matrices->N_C[pq][cnt1][cnt2 / 2];
 #endif
                     }
                     /* collect all cases where d1+cnt1 or d2+cnt2 exceeds maxD1, maxD2, respectively */
                     else {
-                      matrices->E_C_rem[ij] = MIN2(matrices->E_C_rem[ij], matrices->E_C[pq][cnt1][cnt2 / 2] + energy);
+                      matrices->E_C_rem[ij] =
+                        MIN2(matrices->E_C_rem[ij], matrices->E_C[pq][cnt1][cnt2 / 2] + energy);
                     }
                   }
                 }
@@ -653,13 +707,17 @@ mfe_linear(vrna_fold_compound_t *vc)
                   for (cnt4 = matrices->l_min_M1[u1j1][cnt3];
                        cnt4 <= matrices->l_max_M1[u1j1][cnt3];
                        cnt4 += 2) {
-                    if ((matrices->E_M[i1u][cnt1][cnt2 / 2] != INF) && (matrices->E_M1[u1j1][cnt3][cnt4 / 2] != INF)) {
+                    if ((matrices->E_M[i1u][cnt1][cnt2 / 2] != INF) &&
+                        (matrices->E_M1[u1j1][cnt3][cnt4 / 2] != INF)) {
                       if (((cnt1 + cnt3 + d1) <= maxD1) && ((cnt2 + cnt4 + d2) <= maxD2)) {
-                        matrices->E_C[ij][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2] = MIN2(matrices->E_C[ij][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2],
-                                                                                           matrices->E_M[i1u][cnt1][cnt2 / 2]
-                                                                                           + matrices->E_M1[u1j1][cnt3][cnt4 / 2]
-                                                                                           + temp2
-                                                                                           );
+                        matrices->E_C[ij][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2] = MIN2(
+                          matrices->E_C[ij][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2],
+                          matrices->E_M[
+                            i1u][cnt1][cnt2 / 2]
+                          + matrices->E_M1[
+                            u1j1][cnt3][cnt4 / 2]
+                          + temp2
+                          );
                         updatePosteriorBoundaries(cnt1 + cnt3 + d1,
                                                   cnt2 + cnt4 + d2,
                                                   &real_min_k,
@@ -668,7 +726,11 @@ mfe_linear(vrna_fold_compound_t *vc)
                                                   &max_l_real
                                                   );
 #ifdef COUNT_STATES
-                        matrices->N_C[ij][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2] += matrices->N_M[i1u][cnt1][cnt2 / 2] * matrices->N_M1[u1j1][cnt3][cnt4 / 2];
+                        matrices->N_C[ij][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) /
+                                                            2] +=
+                          matrices->N_M[i1u][cnt1][cnt2 / 2] *
+                          matrices->N_M1[u1j1][cnt3][cnt4 /
+                                                     2];
 #endif
                       }
                       /* collect all cases where d1+cnt1+cnt3 or d2+cnt2+cnt4 exceeds maxD1, maxD2, respectively */
@@ -700,8 +762,10 @@ mfe_linear(vrna_fold_compound_t *vc)
 #endif
       } /* end >> if (pair) << */
 
-      /* done with c[i,j], now compute fML[i,j] */
-      /* free ends ? -----------------------------------------*/
+      /*
+       * done with c[i,j], now compute fML[i,j]
+       * free ends ? -----------------------------------------
+       */
 
 
       dia = referenceBPs1[ij] - referenceBPs1[my_iindx[i + 1] - j];
@@ -710,7 +774,11 @@ mfe_linear(vrna_fold_compound_t *vc)
       djb = referenceBPs2[ij] - referenceBPs2[ij + 1];
 
       if (dangles == 2)
-        temp2 = E_MLstem(type, ((i > 1) || circ) ? S1[i - 1] : -1, ((j < seq_length) || circ) ? S1[j + 1] : -1, P);
+        temp2 =
+          E_MLstem(type,
+                   ((i > 1) || circ) ? S1[i - 1] : -1,
+                   ((j < seq_length) || circ) ? S1[j + 1] : -1,
+                   P);
       else
         temp2 = E_MLstem(type, -1, -1, P);
 
@@ -787,8 +855,10 @@ mfe_linear(vrna_fold_compound_t *vc)
                     );
 #endif
 
-      /* now to the actual computations... */
-      /* 1st E_M[ij] = E_M1[ij] = E_C[ij] + b */
+      /*
+       * now to the actual computations...
+       * 1st E_M[ij] = E_M1[ij] = E_C[ij] + b
+       */
       if (matrices->E_C_rem[ij] != INF)
         matrices->E_M_rem[ij] = matrices->E_M1_rem[ij] = temp2 + matrices->E_C_rem[ij];
 
@@ -796,7 +866,10 @@ mfe_linear(vrna_fold_compound_t *vc)
         for (cnt1 = matrices->k_min_C[ij]; cnt1 <= matrices->k_max_C[ij]; cnt1++) {
           for (cnt2 = matrices->l_min_C[ij][cnt1]; cnt2 <= matrices->l_max_C[ij][cnt1]; cnt2 += 2) {
             if (matrices->E_C[ij][cnt1][cnt2 / 2] != INF) {
-              matrices->E_M[ij][cnt1][cnt2 / 2] = matrices->E_M1[ij][cnt1][cnt2 / 2] = temp2 + matrices->E_C[ij][cnt1][cnt2 / 2];
+              matrices->E_M[ij][cnt1][cnt2 / 2] = matrices->E_M1[ij][cnt1][cnt2 / 2] = temp2 +
+                                                                                       matrices->E_C
+                                                                                       [ij][cnt1][
+                cnt2 / 2];
               updatePosteriorBoundaries(cnt1,
                                         cnt2,
                                         &min_k_real_m,
@@ -812,7 +885,9 @@ mfe_linear(vrna_fold_compound_t *vc)
                                         &max_l_real_m1
                                         );
 #ifdef COUNT_STATES
-              matrices->N_M[ij][cnt1][cnt2 / 2] = matrices->N_M1[ij][cnt1][cnt2 / 2] = matrices->N_C[ij][cnt1][cnt2 / 2];
+              matrices->N_M[ij][cnt1][cnt2 /
+                                      2]            =
+                matrices->N_M1[ij][cnt1][cnt2 / 2]  = matrices->N_C[ij][cnt1][cnt2 / 2];
 #endif
             }
           }
@@ -835,9 +910,11 @@ mfe_linear(vrna_fold_compound_t *vc)
                cnt2 += 2) {
             if (matrices->E_M[my_iindx[i + 1] - j][cnt1][cnt2 / 2] != INF) {
               if (((cnt1 + dia) <= maxD1) && ((cnt2 + dib) <= maxD2)) {
-                matrices->E_M[ij][cnt1 + dia][(cnt2 + dib) / 2] = MIN2(matrices->E_M[ij][cnt1 + dia][(cnt2 + dib) / 2],
-                                                                       matrices->E_M[my_iindx[i + 1] - j][cnt1][cnt2 / 2] + P->MLbase
-                                                                       );
+                matrices->E_M[ij][cnt1 + dia][(cnt2 + dib) / 2] = MIN2(
+                  matrices->E_M[ij][cnt1 + dia][(cnt2 + dib) / 2],
+                  matrices->E_M[my_iindx[i +
+                                         1] - j][cnt1][cnt2 / 2] + P->MLbase
+                  );
                 updatePosteriorBoundaries(cnt1 + dia,
                                           cnt2 + dib,
                                           &min_k_real_m,
@@ -846,7 +923,9 @@ mfe_linear(vrna_fold_compound_t *vc)
                                           &max_l_real_m
                                           );
 #ifdef COUNT_STATES
-                matrices->N_M[ij][cnt1 + dia][(cnt2 + dib) / 2] += matrices->N_M[my_iindx[i + 1] - j][cnt1][cnt2 / 2];
+                matrices->N_M[ij][cnt1 + dia][(cnt2 + dib) /
+                                              2] +=
+                  matrices->N_M[my_iindx[i + 1] - j][cnt1][cnt2 / 2];
 #endif
               }
               /* collect all cases where dia+cnt1 or dib+cnt2 exceeds maxD1, maxD2, respectively */
@@ -876,9 +955,11 @@ mfe_linear(vrna_fold_compound_t *vc)
                cnt2 += 2) {
             if (matrices->E_M[ij + 1][cnt1][cnt2 / 2] != INF) {
               if (((cnt1 + dja) <= maxD1) && ((cnt2 + djb) <= maxD2)) {
-                matrices->E_M[ij][cnt1 + dja][(cnt2 + djb) / 2] = MIN2(matrices->E_M[ij][cnt1 + dja][(cnt2 + djb) / 2],
-                                                                       matrices->E_M[ij + 1][cnt1][cnt2 / 2] + P->MLbase
-                                                                       );
+                matrices->E_M[ij][cnt1 + dja][(cnt2 + djb) / 2] = MIN2(
+                  matrices->E_M[ij][cnt1 + dja][(cnt2 + djb) / 2],
+                  matrices->E_M[ij +
+                                1][cnt1][cnt2 / 2] + P->MLbase
+                  );
                 updatePosteriorBoundaries(cnt1 + dja,
                                           cnt2 + djb,
                                           &min_k_real_m,
@@ -887,7 +968,8 @@ mfe_linear(vrna_fold_compound_t *vc)
                                           &max_l_real_m
                                           );
 #ifdef COUNT_STATES
-                matrices->N_M[ij][cnt1 + dja][(cnt2 + djb) / 2] += matrices->N_M[ij + 1][cnt1][cnt2 / 2];
+                matrices->N_M[ij][cnt1 + dja][(cnt2 + djb) /
+                                              2] += matrices->N_M[ij + 1][cnt1][cnt2 / 2];
 #endif
               }
               /* collect all cases where dja+cnt1 or djb+cnt2 exceeds maxD1, maxD2, respectively */
@@ -917,9 +999,12 @@ mfe_linear(vrna_fold_compound_t *vc)
                cnt2 += 2) {
             if (matrices->E_M1[ij + 1][cnt1][cnt2 / 2] != INF) {
               if (((cnt1 + dja) <= maxD1) && ((cnt2 + djb) <= maxD2)) {
-                matrices->E_M1[ij][cnt1 + dja][(cnt2 + djb) / 2] = MIN2(matrices->E_M1[ij][cnt1 + dja][(cnt2 + djb) / 2],
-                                                                        matrices->E_M1[ij + 1][cnt1][cnt2 / 2] + P->MLbase
-                                                                        );
+                matrices->E_M1[ij][cnt1 + dja][(cnt2 + djb) /
+                                               2] =
+                  MIN2(matrices->E_M1[ij][cnt1 + dja][(cnt2 + djb) / 2],
+                       matrices->E_M1[ij +
+                                      1][cnt1][cnt2 / 2] + P->MLbase
+                       );
                 updatePosteriorBoundaries(cnt1 + dja,
                                           cnt2 + djb,
                                           &min_k_real_m1,
@@ -928,7 +1013,8 @@ mfe_linear(vrna_fold_compound_t *vc)
                                           &max_l_real_m1
                                           );
 #ifdef COUNT_STATES
-                matrices->N_M1[ij][cnt1 + dja][(cnt2 + djb) / 2] += matrices->N_M1[ij + 1][cnt1][cnt2 / 2];
+                matrices->N_M1[ij][cnt1 + dja][(cnt2 + djb) /
+                                               2] += matrices->N_M1[ij + 1][cnt1][cnt2 / 2];
 #endif
               }
               /* collect all cases where dja+cnt1 or djb+cnt2 exceeds maxD1, maxD2, respectively */
@@ -955,14 +1041,16 @@ mfe_linear(vrna_fold_compound_t *vc)
                    cnt4 += 2) {
                 if (matrices->E_M[my_iindx[u + 1] - j][cnt3][cnt4 / 2] != INF) {
                   matrices->E_M_rem[ij] = MIN2(matrices->E_M_rem[ij],
-                                               matrices->E_M_rem[my_iindx[i] - u] + matrices->E_M[my_iindx[u + 1] - j][cnt3][cnt4 / 2]
+                                               matrices->E_M_rem[my_iindx[i] - u] +
+                                               matrices->E_M[my_iindx[u + 1] - j][cnt3][cnt4 / 2]
                                                );
                 }
               }
             }
             if (matrices->E_M_rem[my_iindx[u + 1] - j] != INF) {
               matrices->E_M_rem[ij] = MIN2(matrices->E_M_rem[ij],
-                                           matrices->E_M_rem[my_iindx[i] - u] + matrices->E_M_rem[my_iindx[u + 1] - j]
+                                           matrices->E_M_rem[my_iindx[i] - u] +
+                                           matrices->E_M_rem[my_iindx[u + 1] - j]
                                            );
             }
           }
@@ -976,7 +1064,8 @@ mfe_linear(vrna_fold_compound_t *vc)
                    cnt2 += 2) {
                 if (matrices->E_M[my_iindx[i] - u][cnt1][cnt2 / 2] != INF) {
                   matrices->E_M_rem[ij] = MIN2(matrices->E_M_rem[ij],
-                                               matrices->E_M[my_iindx[i] - u][cnt1][cnt2 / 2] + matrices->E_M_rem[my_iindx[u + 1] - j]
+                                               matrices->E_M[my_iindx[i] - u][cnt1][cnt2 / 2] +
+                                               matrices->E_M_rem[my_iindx[u + 1] - j]
                                                );
                 }
               }
@@ -989,8 +1078,10 @@ mfe_linear(vrna_fold_compound_t *vc)
           if (!matrices->E_M[my_iindx[u + 1] - j])
             continue;
 
-          dia = referenceBPs1[ij] - referenceBPs1[my_iindx[i] - u] - referenceBPs1[my_iindx[u + 1] - j];
-          dib = referenceBPs2[ij] - referenceBPs2[my_iindx[i] - u] - referenceBPs2[my_iindx[u + 1] - j];
+          dia = referenceBPs1[ij] - referenceBPs1[my_iindx[i] - u] -
+                referenceBPs1[my_iindx[u + 1] - j];
+          dib = referenceBPs2[ij] - referenceBPs2[my_iindx[i] - u] -
+                referenceBPs2[my_iindx[u + 1] - j];
 
           for (cnt1 = matrices->k_min_M[my_iindx[i] - u];
                cnt1 <= matrices->k_max_M[my_iindx[i] - u];
@@ -1004,12 +1095,16 @@ mfe_linear(vrna_fold_compound_t *vc)
                 for (cnt4 = matrices->l_min_M[my_iindx[u + 1] - j][cnt3];
                      cnt4 <= matrices->l_max_M[my_iindx[u + 1] - j][cnt3];
                      cnt4 += 2) {
-                  if ((matrices->E_M[my_iindx[i] - u][cnt1][cnt2 / 2] != INF) && (matrices->E_M[my_iindx[u + 1] - j][cnt3][cnt4 / 2] != INF)) {
+                  if ((matrices->E_M[my_iindx[i] - u][cnt1][cnt2 / 2] != INF) &&
+                      (matrices->E_M[my_iindx[u + 1] - j][cnt3][cnt4 / 2] != INF)) {
                     if (((cnt1 + cnt3 + dia) <= maxD1) && ((cnt2 + cnt4 + dib) <= maxD2)) {
-                      matrices->E_M[ij][cnt1 + cnt3 + dia][(cnt2 + cnt4 + dib) / 2] = MIN2(matrices->E_M[ij][cnt1 + cnt3 + dia][(cnt2 + cnt4 + dib) / 2],
-                                                                                           matrices->E_M[my_iindx[i] - u][cnt1][cnt2 / 2]
-                                                                                           + matrices->E_M[my_iindx[u + 1] - j][cnt3][cnt4 / 2]
-                                                                                           );
+                      matrices->E_M[ij][cnt1 + cnt3 + dia][(cnt2 + cnt4 + dib) / 2] = MIN2(
+                        matrices->E_M[ij][cnt1 + cnt3 + dia][(cnt2 + cnt4 + dib) / 2],
+                        matrices->E_M[
+                          my_iindx[i] - u][cnt1][cnt2 / 2]
+                        + matrices->E_M[
+                          my_iindx[u + 1] - j][cnt3][cnt4 / 2]
+                        );
                       updatePosteriorBoundaries(cnt1 + cnt3 + dia,
                                                 cnt2 + cnt4 + dib,
                                                 &min_k_real_m,
@@ -1018,13 +1113,18 @@ mfe_linear(vrna_fold_compound_t *vc)
                                                 &max_l_real_m
                                                 );
 #ifdef COUNT_STATES
-                      matrices->N_M[ij][cnt1 + cnt3 + dia][(cnt2 + cnt4 + dib) / 2] += matrices->N_M[my_iindx[i] - u][cnt1][cnt2 / 2] * matrices->N_M1[my_iindx[u + 1] - j][cnt3][cnt4 / 2];
+                      matrices->N_M[ij][cnt1 + cnt3 + dia][(cnt2 + cnt4 + dib) /
+                                                           2] +=
+                        matrices->N_M[my_iindx[i] - u][cnt1][cnt2 / 2] *
+                        matrices->N_M1[my_iindx[u + 1] -
+                                       j][cnt3][cnt4 / 2];
 #endif
                     }
                     /* collect all cases where dia+cnt1+cnt3 or dib+cnt2+cnt4 exceeds maxD1, maxD2, respectively */
                     else {
                       matrices->E_M_rem[ij] = MIN2(matrices->E_M_rem[ij],
-                                                   matrices->E_M[my_iindx[i] - u][cnt1][cnt2 / 2] + matrices->E_M[my_iindx[u + 1] - j][cnt3][cnt4 / 2]
+                                                   matrices->E_M[my_iindx[i] - u][cnt1][cnt2 / 2] +
+                                                   matrices->E_M[my_iindx[u + 1] - j][cnt3][cnt4 / 2]
                                                    );
                     }
                   }
@@ -1145,11 +1245,13 @@ mfe_linear(vrna_fold_compound_t *vc)
     /* j-1 is unpaired ... */
     matrices->E_F5_rem[j] = matrices->E_F5_rem[j - 1];
     for (cnt1 = matrices->k_min_F5[j - 1]; cnt1 <= matrices->k_max_F5[j - 1]; cnt1++) {
-      for (cnt2 = matrices->l_min_F5[j - 1][cnt1]; cnt2 <= matrices->l_max_F5[j - 1][cnt1]; cnt2 += 2) {
+      for (cnt2 = matrices->l_min_F5[j - 1][cnt1]; cnt2 <= matrices->l_max_F5[j - 1][cnt1];
+           cnt2 += 2) {
         if (((cnt1 + da) <= maxD1) && ((cnt2 + db) <= maxD2)) {
-          matrices->E_F5[j][cnt1 + da][(cnt2 + db) / 2] = MIN2(matrices->E_F5[j][cnt1 + da][(cnt2 + db) / 2],
-                                                               matrices->E_F5[j - 1][cnt1][cnt2 / 2]
-                                                               );
+          matrices->E_F5[j][cnt1 + da][(cnt2 + db) /
+                                       2] = MIN2(matrices->E_F5[j][cnt1 + da][(cnt2 + db) / 2],
+                                                 matrices->E_F5[j - 1][cnt1][cnt2 / 2]
+                                                 );
           updatePosteriorBoundaries(cnt1 + da,
                                     cnt2 + db,
                                     &min_k_real,
@@ -1163,17 +1265,21 @@ mfe_linear(vrna_fold_compound_t *vc)
         }
         /* collect all cases where da+cnt1 or db+cnt2 exceeds maxD1, maxD2, respectively */
         else {
-          matrices->E_F5_rem[j] = MIN2(matrices->E_F5_rem[j], matrices->E_F5[j - 1][cnt1][cnt2 / 2]);
+          matrices->E_F5_rem[j] =
+            MIN2(matrices->E_F5_rem[j], matrices->E_F5[j - 1][cnt1][cnt2 / 2]);
         }
       }
     }
     /* j pairs with 1 */
     if (matrices->E_C_rem[my_iindx[1] - j] != INF)
-      matrices->E_F5_rem[j] = MIN2(matrices->E_F5_rem[j], matrices->E_C_rem[my_iindx[1] - j] + additional_en);
+      matrices->E_F5_rem[j] = MIN2(matrices->E_F5_rem[j],
+                                   matrices->E_C_rem[my_iindx[1] - j] + additional_en);
 
     if (matrices->E_C[my_iindx[1] - j]) {
-      for (cnt1 = matrices->k_min_C[my_iindx[1] - j]; cnt1 <= matrices->k_max_C[my_iindx[1] - j]; cnt1++)
-        for (cnt2 = matrices->l_min_C[my_iindx[1] - j][cnt1]; cnt2 <= matrices->l_max_C[my_iindx[1] - j][cnt1]; cnt2 += 2) {
+      for (cnt1 = matrices->k_min_C[my_iindx[1] - j]; cnt1 <= matrices->k_max_C[my_iindx[1] - j];
+           cnt1++)
+        for (cnt2 = matrices->l_min_C[my_iindx[1] - j][cnt1];
+             cnt2 <= matrices->l_max_C[my_iindx[1] - j][cnt1]; cnt2 += 2) {
           if (matrices->E_C[my_iindx[1] - j][cnt1][cnt2 / 2] != INF) {
             matrices->E_F5[j][cnt1][cnt2 / 2] = MIN2(matrices->E_F5[j][cnt1][cnt2 / 2],
                                                      matrices->E_C[my_iindx[1] - j][cnt1][cnt2 / 2] + additional_en
@@ -1204,10 +1310,12 @@ mfe_linear(vrna_fold_compound_t *vc)
 
         if (matrices->E_C_rem[ij] != INF) {
           for (cnt3 = matrices->k_min_F5[i - 1]; cnt3 <= matrices->k_max_F5[i - 1]; cnt3++)
-            for (cnt4 = matrices->l_min_F5[i - 1][cnt3]; cnt4 <= matrices->l_max_F5[i - 1][cnt3]; cnt4 += 2) {
+            for (cnt4 = matrices->l_min_F5[i - 1][cnt3]; cnt4 <= matrices->l_max_F5[i - 1][cnt3];
+                 cnt4 += 2) {
               if (matrices->E_F5[i - 1][cnt3][cnt4 / 2] != INF) {
                 matrices->E_F5_rem[j] = MIN2(matrices->E_F5_rem[j],
-                                             matrices->E_F5[i - 1][cnt3][cnt4 / 2] + matrices->E_C_rem[ij] + additional_en
+                                             matrices->E_F5[i - 1][cnt3][cnt4 / 2] +
+                                             matrices->E_C_rem[ij] + additional_en
                                              );
               }
             }
@@ -1223,7 +1331,8 @@ mfe_linear(vrna_fold_compound_t *vc)
             for (cnt2 = matrices->l_min_C[ij][cnt1]; cnt2 <= matrices->l_max_C[ij][cnt1]; cnt2 += 2)
               if (matrices->E_C[ij][cnt1][cnt2 / 2] != INF) {
                 matrices->E_F5_rem[j] = MIN2(matrices->E_F5_rem[j],
-                                             matrices->E_F5_rem[i - 1] + matrices->E_C[ij][cnt1][cnt2 / 2] + additional_en
+                                             matrices->E_F5_rem[i - 1] +
+                                             matrices->E_C[ij][cnt1][cnt2 / 2] + additional_en
                                              );
               }
         }
@@ -1231,18 +1340,24 @@ mfe_linear(vrna_fold_compound_t *vc)
         if (!matrices->E_C[ij])
           continue;
 
-        unsigned int  d1a = referenceBPs1[my_iindx[1] - j] - referenceBPs1[ij] - referenceBPs1[my_iindx[1] - i + 1];
-        unsigned int  d1b = referenceBPs2[my_iindx[1] - j] - referenceBPs2[ij] - referenceBPs2[my_iindx[1] - i + 1];
+        unsigned int  d1a = referenceBPs1[my_iindx[1] - j] - referenceBPs1[ij] -
+                            referenceBPs1[my_iindx[1] - i + 1];
+        unsigned int  d1b = referenceBPs2[my_iindx[1] - j] - referenceBPs2[ij] -
+                            referenceBPs2[my_iindx[1] - i + 1];
 
         for (cnt1 = matrices->k_min_C[ij]; cnt1 <= matrices->k_max_C[ij]; cnt1++)
           for (cnt2 = matrices->l_min_C[ij][cnt1]; cnt2 <= matrices->l_max_C[ij][cnt1]; cnt2 += 2)
             for (cnt3 = matrices->k_min_F5[i - 1]; cnt3 <= matrices->k_max_F5[i - 1]; cnt3++)
-              for (cnt4 = matrices->l_min_F5[i - 1][cnt3]; cnt4 <= matrices->l_max_F5[i - 1][cnt3]; cnt4 += 2) {
-                if (matrices->E_F5[i - 1][cnt3][cnt4 / 2] != INF && matrices->E_C[ij][cnt1][cnt2 / 2] != INF) {
+              for (cnt4 = matrices->l_min_F5[i - 1][cnt3]; cnt4 <= matrices->l_max_F5[i - 1][cnt3];
+                   cnt4 += 2) {
+                if (matrices->E_F5[i - 1][cnt3][cnt4 / 2] != INF &&
+                    matrices->E_C[ij][cnt1][cnt2 / 2] != INF) {
                   if (((cnt1 + cnt3 + d1a) <= maxD1) && ((cnt2 + cnt4 + d1b) <= maxD2)) {
-                    matrices->E_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2] = MIN2(matrices->E_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2],
-                                                                                         matrices->E_F5[i - 1][cnt3][cnt4 / 2] + matrices->E_C[ij][cnt1][cnt2 / 2] + additional_en
-                                                                                         );
+                    matrices->E_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2] = MIN2(
+                      matrices->E_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2],
+                      matrices->E_F5[
+                        i - 1][cnt3][cnt4 / 2] + matrices->E_C[ij][cnt1][cnt2 / 2] + additional_en
+                      );
                     updatePosteriorBoundaries(cnt1 + cnt3 + d1a,
                                               cnt2 + cnt4 + d1b,
                                               &min_k_real,
@@ -1251,13 +1366,16 @@ mfe_linear(vrna_fold_compound_t *vc)
                                               &max_l_real
                                               );
 #ifdef COUNT_STATES
-                    matrices->N_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2] += matrices->N_F5[i - 1][cnt3][cnt4 / 2] * matrices->N_C[ij][cnt1][cnt2 / 2];
+                    matrices->N_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) /
+                                                         2] +=
+                      matrices->N_F5[i - 1][cnt3][cnt4 / 2] * matrices->N_C[ij][cnt1][cnt2 / 2];
 #endif
                   }
                   /* collect all cases where d1a+cnt1+cnt3 or d1b+cnt2+cnt4 exceeds maxD1, maxD2, respectively */
                   else {
                     matrices->E_F5_rem[j] = MIN2(matrices->E_F5_rem[j],
-                                                 matrices->E_F5[i - 1][cnt3][cnt4 / 2] + matrices->E_C[ij][cnt1][cnt2 / 2] + additional_en
+                                                 matrices->E_F5[i - 1][cnt3][cnt4 / 2] +
+                                                 matrices->E_C[ij][cnt1][cnt2 / 2] + additional_en
                                                  );
                   }
                 }
@@ -1292,8 +1410,10 @@ mfe_linear(vrna_fold_compound_t *vc)
     }
     /* begin calculations */
     for (j = seq_length - turn - 2; j >= 1; j--) {
-      unsigned int  da  = referenceBPs1[my_iindx[j] - seq_length] - referenceBPs1[my_iindx[j + 1] - seq_length];
-      unsigned int  db  = referenceBPs2[my_iindx[j] - seq_length] - referenceBPs2[my_iindx[j + 1] - seq_length];
+      unsigned int  da = referenceBPs1[my_iindx[j] - seq_length] -
+                         referenceBPs1[my_iindx[j + 1] - seq_length];
+      unsigned int  db = referenceBPs2[my_iindx[j] - seq_length] -
+                         referenceBPs2[my_iindx[j + 1] - seq_length];
 
       type          = ptype[jindx[seq_length] + j];
       additional_en = 0;
@@ -1341,10 +1461,12 @@ mfe_linear(vrna_fold_compound_t *vc)
 
       /* j is unpaired ... */
       for (cnt1 = matrices->k_min_F3[j + 1]; cnt1 <= matrices->k_max_F3[j + 1]; cnt1++) {
-        for (cnt2 = matrices->l_min_F3[j + 1][cnt1]; cnt2 <= matrices->l_max_F3[j + 1][cnt1]; cnt2 += 2) {
-          matrices->E_F3[j][cnt1 + da][(cnt2 + db) / 2] = MIN2(matrices->E_F3[j][cnt1 + da][(cnt2 + db) / 2],
-                                                               matrices->E_F3[j + 1][cnt1][cnt2 / 2]
-                                                               );
+        for (cnt2 = matrices->l_min_F3[j + 1][cnt1]; cnt2 <= matrices->l_max_F3[j + 1][cnt1];
+             cnt2 += 2) {
+          matrices->E_F3[j][cnt1 + da][(cnt2 + db) /
+                                       2] = MIN2(matrices->E_F3[j][cnt1 + da][(cnt2 + db) / 2],
+                                                 matrices->E_F3[j + 1][cnt1][cnt2 / 2]
+                                                 );
           updatePosteriorBoundaries(cnt1 + da,
                                     cnt2 + db,
                                     &min_k_real,
@@ -1356,11 +1478,14 @@ mfe_linear(vrna_fold_compound_t *vc)
       }
       /* j pairs with n */
       if (matrices->E_C[my_iindx[j] - seq_length]) {
-        for (cnt1 = matrices->k_min_C[my_iindx[j] - seq_length]; cnt1 <= matrices->k_max_C[my_iindx[j] - seq_length]; cnt1++)
-          for (cnt2 = matrices->l_min_C[my_iindx[j] - seq_length][cnt1]; cnt2 <= matrices->l_max_C[my_iindx[j] - seq_length][cnt1]; cnt2 += 2) {
+        for (cnt1 = matrices->k_min_C[my_iindx[j] - seq_length];
+             cnt1 <= matrices->k_max_C[my_iindx[j] - seq_length]; cnt1++)
+          for (cnt2 = matrices->l_min_C[my_iindx[j] - seq_length][cnt1];
+               cnt2 <= matrices->l_max_C[my_iindx[j] - seq_length][cnt1]; cnt2 += 2) {
             if (matrices->E_C[my_iindx[j] - seq_length][cnt1][cnt2 / 2] != INF) {
               matrices->E_F3[j][cnt1][cnt2 / 2] = MIN2(matrices->E_F3[j][cnt1][cnt2 / 2],
-                                                       matrices->E_C[my_iindx[j] - seq_length][cnt1][cnt2 / 2] + additional_en
+                                                       matrices->E_C[my_iindx[j] -
+                                                                     seq_length][cnt1][cnt2 / 2] + additional_en
                                                        );
               updatePosteriorBoundaries(cnt1,
                                         cnt2,
@@ -1381,8 +1506,10 @@ mfe_linear(vrna_fold_compound_t *vc)
 
         type = ptype[jindx[j] + i];
         if (type) {
-          unsigned int  d1a = referenceBPs1[my_iindx[1] - j] - referenceBPs1[ij] - referenceBPs1[my_iindx[1] - i + 1];
-          unsigned int  d1b = referenceBPs2[my_iindx[1] - j] - referenceBPs2[ij] - referenceBPs2[my_iindx[1] - i + 1];
+          unsigned int  d1a = referenceBPs1[my_iindx[1] - j] - referenceBPs1[ij] -
+                              referenceBPs1[my_iindx[1] - i + 1];
+          unsigned int  d1b = referenceBPs2[my_iindx[1] - j] - referenceBPs2[ij] -
+                              referenceBPs2[my_iindx[1] - i + 1];
 
           if (dangles == 2)
             additional_en = vrna_E_ext_stem(type, S1[i - 1], j < seq_length ? S1[j + 1] : -1, P);
@@ -1392,11 +1519,16 @@ mfe_linear(vrna_fold_compound_t *vc)
           for (cnt1 = matrices->k_min_C[ij]; cnt1 <= matrices->k_max_C[ij]; cnt1++)
             for (cnt2 = matrices->l_min_C[ij][cnt1]; cnt2 <= matrices->l_max_C[ij][cnt1]; cnt2 += 2)
               for (cnt3 = matrices->k_min_F5[i - 1]; cnt3 <= matrices->k_max_F5[i - 1]; cnt3++)
-                for (cnt4 = matrices->l_min_F5[i - 1][cnt3]; cnt4 <= matrices->l_max_F5[i - 1][cnt3]; cnt4 += 2) {
-                  if (matrices->E_F5[i - 1][cnt3][cnt4 / 2] != INF && matrices->E_C[ij][cnt1][cnt2 / 2] != INF) {
-                    matrices->E_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2] = MIN2(matrices->E_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2],
-                                                                                         matrices->E_F5[i - 1][cnt3][cnt4 / 2] + matrices->E_C[ij][cnt1][cnt2 / 2] + additional_en
-                                                                                         );
+                for (cnt4 =
+                       matrices->l_min_F5[i - 1][cnt3]; cnt4 <= matrices->l_max_F5[i - 1][cnt3];
+                     cnt4 += 2) {
+                  if (matrices->E_F5[i - 1][cnt3][cnt4 / 2] != INF &&
+                      matrices->E_C[ij][cnt1][cnt2 / 2] != INF) {
+                    matrices->E_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2] = MIN2(
+                      matrices->E_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2],
+                      matrices->E_F5[
+                        i - 1][cnt3][cnt4 / 2] + matrices->E_C[ij][cnt1][cnt2 / 2] + additional_en
+                      );
                     updatePosteriorBoundaries(cnt1 + cnt3 + d1a,
                                               cnt2 + cnt4 + d1b,
                                               &min_k_real,
@@ -1405,7 +1537,9 @@ mfe_linear(vrna_fold_compound_t *vc)
                                               &max_l_real
                                               );
 #ifdef COUNT_STATES
-                    matrices->N_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) / 2] += matrices->N_F5[i - 1][cnt3][cnt4 / 2] * matrices->N_C[ij][cnt1][cnt2 / 2];
+                    matrices->N_F5[j][cnt1 + cnt3 + d1a][(cnt2 + cnt4 + d1b) /
+                                                         2] +=
+                      matrices->N_F5[i - 1][cnt3][cnt4 / 2] * matrices->N_C[ij][cnt1][cnt2 / 2];
 #endif
                   }
                 }
@@ -1550,8 +1684,10 @@ backtrack_f5(unsigned int         j,
     ij    = my_iindx[i] - j;
     type  = ptype[jindx[j] + i];
     if (type) {
-      unsigned int  d1a = referenceBPs1[my_iindx[1] - j] - referenceBPs1[ij] - referenceBPs1[my_iindx[1] - i + 1];
-      unsigned int  d1b = referenceBPs2[my_iindx[1] - j] - referenceBPs2[ij] - referenceBPs2[my_iindx[1] - i + 1];
+      unsigned int  d1a = referenceBPs1[my_iindx[1] - j] - referenceBPs1[ij] -
+                          referenceBPs1[my_iindx[1] - i + 1];
+      unsigned int  d1b = referenceBPs2[my_iindx[1] - j] - referenceBPs2[ij] -
+                          referenceBPs2[my_iindx[1] - i + 1];
 
       if (dangles == 2)
         energy = vrna_E_ext_stem(type, S1[i - 1], j < seq_length ? S1[j + 1] : -1, P);
@@ -1609,7 +1745,8 @@ backtrack_f5(unsigned int         j,
                    cnt4 <= l_max_C[ij][cnt3];
                    cnt4 += 2) {
                 if (((cnt1 + cnt3 + d1a) > maxD1) || ((cnt2 + cnt4 + d1b) > maxD2)) {
-                  if (E_F5_rem[j] == (E_F5[i - 1][cnt1][cnt2 / 2] + E_C[ij][cnt3][cnt4 / 2] + energy)) {
+                  if (E_F5_rem[j] ==
+                      (E_F5[i - 1][cnt1][cnt2 / 2] + E_C[ij][cnt3][cnt4 / 2] + energy)) {
                     backtrack_f5(i - 1, cnt1, cnt2, structure, vc);
                     backtrack_c(i, j, cnt3, cnt4, structure, vc);
                     return;
@@ -1626,7 +1763,8 @@ backtrack_f5(unsigned int         j,
             if ((k_c >= k_min_C[ij]) && (k_c <= k_max_C[ij])) {
               int l_c = l - d1b - cnt2;
               if ((l_c >= l_min_C[ij][k_c]) && (l_c <= l_max_C[ij][k_c])) {
-                if (E_F5[j][k][l / 2] == (E_F5[i - 1][cnt1][cnt2 / 2] + E_C[ij][k_c][l_c / 2] + energy)) {
+                if (E_F5[j][k][l / 2] ==
+                    (E_F5[i - 1][cnt1][cnt2 / 2] + E_C[ij][k_c][l_c / 2] + energy)) {
                   backtrack_f5(i - 1, cnt1, cnt2, structure, vc);
                   backtrack_c(i, j, k_c, l_c, structure, vc);
                   return;
@@ -1651,7 +1789,8 @@ backtrack_c(unsigned int          i,
             vrna_fold_compound_t  *vc)
 {
   unsigned int  p, q, pq, ij, maxp, maxD1, maxD2;
-  int           *my_iindx, *jindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1, d2, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
+  int           *my_iindx, *jindx, type, type_2, energy, no_close, dangles, base_d1, base_d2, d1,
+                d2, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   int           **l_min_C, **l_max_C, **l_min_M, **l_max_M, **l_min_M1, **l_max_M1;
   int           *k_min_C, *k_max_C, *k_min_M, *k_max_M, *k_min_M1, *k_max_M1;
   int           ***E_C, ***E_M, ***E_M1, *E_C_rem, *E_M_rem, *E_M1_rem;
@@ -1748,7 +1887,9 @@ backtrack_c(unsigned int          i,
       d1  = base_d1 - referenceBPs1[pq];
       d2  = base_d2 - referenceBPs2[pq];
 
-      energy = E_IntLoop(p - i - 1, j - q - 1, type, type_2, S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1], P);
+      energy =
+        E_IntLoop(p - i - 1, j - q - 1, type, type_2, S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1],
+                  P);
 
 
       if (k == -1) {
@@ -1918,7 +2059,9 @@ backtrack_c(unsigned int          i,
                   && ((k - d1 - cnt1) <= k_max_M1[u1j1])) {
                 if (((l - d2 - cnt2) >= l_min_M1[u1j1][k - d1 - cnt1])
                     && ((l - d2 - cnt2) <= l_max_M1[u1j1][k - d1 - cnt1])) {
-                  if (e == (energy + E_M[i1u][cnt1][cnt2 / 2] + E_M1[u1j1][k - d1 - cnt1][(l - d2 - cnt2) / 2])) {
+                  if (e ==
+                      (energy + E_M[i1u][cnt1][cnt2 / 2] +
+                       E_M1[u1j1][k - d1 - cnt1][(l - d2 - cnt2) / 2])) {
                     backtrack_m(i + 1, u, cnt1, cnt2, structure, vc);
                     backtrack_m1(u + 1, j - 1, k - d1 - cnt1, l - d2 - cnt2, structure, vc);
                     return;
@@ -2046,7 +2189,11 @@ backtrack_m(unsigned int          i,
     if (E_C_rem[ij] != INF) {
       type = ptype[jindx[j] + i];
       if (dangles == 2)
-        energy = E_MLstem(type, ((i > 1) || circ) ? S1[i - 1] : -1, ((j < seq_length) || circ) ? S1[j + 1] : -1, P);
+        energy =
+          E_MLstem(type,
+                   ((i > 1) || circ) ? S1[i - 1] : -1,
+                   ((j < seq_length) || circ) ? S1[j + 1] : -1,
+                   P);
       else
         energy = E_MLstem(type, -1, -1, P);
 
@@ -2145,7 +2292,8 @@ backtrack_m(unsigned int          i,
     /* new_fML = ML(i+1,j)+c */
     if (d1 <= k && d2 <= l) {
       if ((k - d1 >= k_min_M[my_iindx[i + 1] - j]) && (k - d1 <= k_max_M[my_iindx[i + 1] - j])) {
-        if ((l - d2 >= l_min_M[my_iindx[i + 1] - j][k - d1]) && (l - d2 <= l_max_M[my_iindx[i + 1] - j][k - d1])) {
+        if ((l - d2 >= l_min_M[my_iindx[i + 1] - j][k - d1]) &&
+            (l - d2 <= l_max_M[my_iindx[i + 1] - j][k - d1])) {
           if (E_M[my_iindx[i + 1] - j][k - d1][(l - d2) / 2] + P->MLbase == e) {
             backtrack_m(i + 1, j, k - d1, l - d2, structure, vc);
             return;
@@ -2176,7 +2324,11 @@ backtrack_m(unsigned int          i,
       type = ptype[jindx[j] + i];
 
       if (dangles == 2)
-        energy = E_MLstem(type, ((i > 1) || circ) ? S1[i - 1] : -1, ((j < seq_length) || circ) ? S1[j + 1] : -1, P);
+        energy =
+          E_MLstem(type,
+                   ((i > 1) || circ) ? S1[i - 1] : -1,
+                   ((j < seq_length) || circ) ? S1[j + 1] : -1,
+                   P);
       else
         energy = E_MLstem(type, -1, -1, P);
 
@@ -2210,11 +2362,16 @@ backtrack_m(unsigned int          i,
         energy = E_MLstem(type, -1, -1, P);
 
       if (d1 <= k && d2 <= l) {
-        for (cnt1 = k_min_M[my_iindx[i] - u]; cnt1 <= MIN2(k - d1, k_max_M[my_iindx[i] - u]); cnt1++)
-          for (cnt2 = l_min_M[my_iindx[i] - u][cnt1]; cnt2 <= MIN2(l - d2, l_max_M[my_iindx[i] - u][cnt1]); cnt2 += 2)
-            if ((k - d1 - cnt1 >= k_min_C[my_iindx[u + 1] - j]) && (k - d1 - cnt1 <= k_max_C[my_iindx[u + 1] - j])) {
-              if ((l - d2 - cnt2 >= l_min_C[my_iindx[u + 1] - j][k - d1 - cnt1]) && (l - d2 - cnt2 <= l_max_C[my_iindx[u + 1] - j][k - d1 - cnt1])) {
-                if (E_M[my_iindx[i] - u][cnt1][cnt2 / 2] + E_C[my_iindx[u + 1] - j][k - d1 - cnt1][(l - d2 - cnt2) / 2] + energy == e) {
+        for (cnt1 = k_min_M[my_iindx[i] - u]; cnt1 <= MIN2(k - d1, k_max_M[my_iindx[i] - u]);
+             cnt1++)
+          for (cnt2 = l_min_M[my_iindx[i] - u][cnt1];
+               cnt2 <= MIN2(l - d2, l_max_M[my_iindx[i] - u][cnt1]); cnt2 += 2)
+            if ((k - d1 - cnt1 >= k_min_C[my_iindx[u + 1] - j]) &&
+                (k - d1 - cnt1 <= k_max_C[my_iindx[u + 1] - j])) {
+              if ((l - d2 - cnt2 >= l_min_C[my_iindx[u + 1] - j][k - d1 - cnt1]) &&
+                  (l - d2 - cnt2 <= l_max_C[my_iindx[u + 1] - j][k - d1 - cnt1])) {
+                if (E_M[my_iindx[i] - u][cnt1][cnt2 / 2] +
+                    E_C[my_iindx[u + 1] - j][k - d1 - cnt1][(l - d2 - cnt2) / 2] + energy == e) {
                   backtrack_m(i, u, cnt1, cnt2, structure, vc);
                   backtrack_c(u + 1, j, k - d1 - cnt1, l - d2 - cnt2, structure, vc);
                   return;
@@ -2286,7 +2443,10 @@ backtrack_m1(unsigned int         i,
   d2    = referenceBPs2[ij] - referenceBPs2[ij + 1];
 
   if (dangles == 2)
-    energy = E_MLstem(type, (i > 1) || circ ? S1[i - 1] : -1, (j < seq_length) || circ ? S1[j + 1] : -1, P);
+    energy = E_MLstem(type,
+                      (i > 1) || circ ? S1[i - 1] : -1,
+                      (j < seq_length) || circ ? S1[j + 1] : -1,
+                      P);
   else
     energy = E_MLstem(type, -1, -1, P);
 
@@ -2437,7 +2597,8 @@ backtrack_fc(int                  k,
   if (k == -1) {
     /* check if mfe might be open chain */
     if (E_Fc_rem == 0)
-      if ((referenceBPs1[my_iindx[1] - seq_length] > maxD1) || (referenceBPs2[my_iindx[1] - seq_length] > maxD2))
+      if ((referenceBPs1[my_iindx[1] - seq_length] > maxD1) ||
+          (referenceBPs2[my_iindx[1] - seq_length] > maxD2))
         return;
 
     /* check for hairpin configurations */
@@ -2533,7 +2694,8 @@ backtrack_fc(int                  k,
               if (u1 + u2 > MAXLOOP)
                 continue;
 
-              energy = E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
+              energy =
+                E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
               if (E_C_rem[ij] != INF) {
                 if (E_C[pq]) {
                   for (cnt1 = k_min_C[pq];
@@ -2599,7 +2761,8 @@ backtrack_fc(int                  k,
                          cnt4 <= l_max_C[pq][cnt3];
                          cnt4 += 2)
                       if (((cnt1 + cnt3 + d1) > maxD1) || ((cnt2 + cnt4 + d2) > maxD2)) {
-                        if (E_Fc_rem == (E_C[ij][cnt1][cnt2 / 2] + E_C[pq][cnt3][cnt4 / 2] + energy)) {
+                        if (E_Fc_rem ==
+                            (E_C[ij][cnt1][cnt2 / 2] + E_C[pq][cnt3][cnt4 / 2] + energy)) {
                           backtrack_c(i, j, cnt1, cnt2, structure, vc);
                           backtrack_c(p, q, cnt3, cnt4, structure, vc);
                           return;
@@ -2626,7 +2789,8 @@ backtrack_fc(int                  k,
                 for (cnt2 = l_min_M2[i + 1][cnt1];
                      cnt2 <= l_max_M2[i + 1][cnt1];
                      cnt2 += 2)
-                  if (E_Fc_rem == (E_M_rem[my_iindx[1] - i] + E_M2[i + 1][cnt1][cnt2 / 2] + P->MLclosing)) {
+                  if (E_Fc_rem ==
+                      (E_M_rem[my_iindx[1] - i] + E_M2[i + 1][cnt1][cnt2 / 2] + P->MLclosing)) {
                     backtrack_m(1, i, -1, -1, structure, vc);
                     backtrack_m2(i + 1, cnt1, cnt2, structure, vc);
                     return;
@@ -2650,7 +2814,8 @@ backtrack_fc(int                  k,
                 for (cnt2 = l_min_M[my_iindx[1] - i][cnt1];
                      cnt2 <= l_max_M[my_iindx[1] - i][cnt1];
                      cnt2 += 2)
-                  if (E_Fc_rem == (E_M[my_iindx[1] - i][cnt1][cnt2 / 2] + E_M2_rem[i + 1] + P->MLclosing)) {
+                  if (E_Fc_rem ==
+                      (E_M[my_iindx[1] - i][cnt1][cnt2 / 2] + E_M2_rem[i + 1] + P->MLclosing)) {
                     backtrack_m(1, i, cnt1, cnt2, structure, vc);
                     backtrack_m2(i + 1, -1, -1, structure, vc);
                     return;
@@ -2664,8 +2829,10 @@ backtrack_fc(int                  k,
           if (!(E_M2[i + 1]))
             continue;
 
-          d1  = base_d1 - referenceBPs1[my_iindx[1] - i] - referenceBPs1[my_iindx[i + 1] - seq_length];
-          d2  = base_d2 - referenceBPs2[my_iindx[1] - i] - referenceBPs2[my_iindx[i + 1] - seq_length];
+          d1 = base_d1 - referenceBPs1[my_iindx[1] - i] -
+               referenceBPs1[my_iindx[i + 1] - seq_length];
+          d2 = base_d2 - referenceBPs2[my_iindx[1] - i] -
+               referenceBPs2[my_iindx[i + 1] - seq_length];
           for (cnt1 = k_min_M[my_iindx[1] - i];
                cnt1 <= k_max_M[my_iindx[1] - i];
                cnt1++)
@@ -2679,7 +2846,9 @@ backtrack_fc(int                  k,
                      cnt4 <= l_max_M2[i + 1][cnt3];
                      cnt4 += 2)
                   if (((cnt1 + cnt3 + d1) > maxD1) || ((cnt2 + cnt4 + d2) > maxD2)) {
-                    if (E_Fc_rem == (E_M[my_iindx[1] - i][cnt1][cnt2 / 2] + E_M2[i + 1][cnt3][cnt4 / 2] + P->MLclosing)) {
+                    if (E_Fc_rem ==
+                        (E_M[my_iindx[1] - i][cnt1][cnt2 / 2] + E_M2[i + 1][cnt3][cnt4 / 2] +
+                         P->MLclosing)) {
                       backtrack_m(1, i, cnt1, cnt2, structure, vc);
                       backtrack_m2(i + 1, cnt3, cnt4, structure, vc);
                       return;
@@ -2691,7 +2860,8 @@ backtrack_fc(int                  k,
   } else {
     /* open chain ? */
     if (E_Fc[k][l / 2] == 0)
-      if ((k == referenceBPs1[my_iindx[1] - seq_length]) && (l == referenceBPs2[my_iindx[1] - seq_length]))
+      if ((k == referenceBPs1[my_iindx[1] - seq_length]) &&
+          (l == referenceBPs2[my_iindx[1] - seq_length]))
         return;
 
     if ((k >= k_min_FcH) && (k <= k_max_FcH)) {
@@ -2800,13 +2970,18 @@ backtrack_fc(int                  k,
                    */
                   d1      = base_d1 - referenceBPs1[ij] - referenceBPs1[pq];
                   d2      = base_d2 - referenceBPs2[ij] - referenceBPs2[pq];
-                  energy  = E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
+                  energy  =
+                    E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
                   if ((k >= d1) && (l >= d2)) {
                     for (cnt1 = k_min_C[ij]; cnt1 <= MIN2(k_max_C[ij], k - d1); cnt1++)
-                      for (cnt2 = l_min_C[ij][cnt1]; cnt2 <= MIN2(l_max_C[ij][cnt1], l - d2); cnt2 += 2)
+                      for (cnt2 = l_min_C[ij][cnt1]; cnt2 <= MIN2(l_max_C[ij][cnt1], l - d2);
+                           cnt2 += 2)
                         if ((k - d1 - cnt1 >= k_min_C[pq]) && (k - d1 - cnt1 <= k_max_C[pq])) {
-                          if ((l - d2 - cnt2 >= l_min_C[pq][k - d1 - cnt1]) && (l - d2 - cnt2 <= l_max_C[pq][k - d1 - cnt1])) {
-                            if ((E_C[ij][cnt1][cnt2 / 2] + E_C[pq][k - d1 - cnt1][(l - d2 - cnt2) / 2] + energy) == E_Fc[k][l / 2]) {
+                          if ((l - d2 - cnt2 >= l_min_C[pq][k - d1 - cnt1]) &&
+                              (l - d2 - cnt2 <= l_max_C[pq][k - d1 - cnt1])) {
+                            if ((E_C[ij][cnt1][cnt2 / 2] +
+                                 E_C[pq][k - d1 - cnt1][(l - d2 - cnt2) / 2] + energy) ==
+                                E_Fc[k][l / 2]) {
                               backtrack_c(i, j, cnt1, cnt2, structure, vc);
                               backtrack_c(p, q, k - d1 - cnt1, l - d2 - cnt2, structure, vc);
                               return;
@@ -2836,14 +3011,22 @@ backtrack_fc(int                  k,
               if (!E_M2[i + 1])
                 continue;
 
-              d1  = base_d1 - referenceBPs1[my_iindx[1] - i] - referenceBPs1[my_iindx[i + 1] - seq_length];
-              d2  = base_d2 - referenceBPs2[my_iindx[1] - i] - referenceBPs2[my_iindx[i + 1] - seq_length];
+              d1 = base_d1 - referenceBPs1[my_iindx[1] - i] -
+                   referenceBPs1[my_iindx[i + 1] - seq_length];
+              d2 = base_d2 - referenceBPs2[my_iindx[1] - i] -
+                   referenceBPs2[my_iindx[i + 1] - seq_length];
               if ((k >= d1) && (l >= d2)) {
-                for (cnt1 = k_min_M[my_iindx[1] - i]; cnt1 <= MIN2(k_max_M[my_iindx[1] - i], k - d1); cnt1++)
-                  for (cnt2 = l_min_M[my_iindx[1] - i][cnt1]; cnt2 <= MIN2(l_max_M[my_iindx[1] - i][cnt1], l - d2); cnt2 += 2)
+                for (cnt1 =
+                       k_min_M[my_iindx[1] - i]; cnt1 <= MIN2(k_max_M[my_iindx[1] - i], k - d1);
+                     cnt1++)
+                  for (cnt2 = l_min_M[my_iindx[1] - i][cnt1];
+                       cnt2 <= MIN2(l_max_M[my_iindx[1] - i][cnt1], l - d2); cnt2 += 2)
                     if ((k - d1 - cnt1 >= k_min_M2[i + 1]) && (k - d1 - cnt1 <= k_max_M2[i + 1])) {
-                      if ((l - d2 - cnt2 >= l_min_M2[i + 1][k - d1 - cnt1]) && (l - d2 - cnt2 <= l_max_M2[i + 1][k - d1 - cnt1])) {
-                        if ((E_M[my_iindx[1] - i][cnt1][cnt2 / 2] + E_M2[i + 1][k - d1 - cnt1][(l - d2 - cnt2) / 2] + P->MLclosing) == E_FcM[k][l / 2]) {
+                      if ((l - d2 - cnt2 >= l_min_M2[i + 1][k - d1 - cnt1]) &&
+                          (l - d2 - cnt2 <= l_max_M2[i + 1][k - d1 - cnt1])) {
+                        if ((E_M[my_iindx[1] - i][cnt1][cnt2 / 2] +
+                             E_M2[i + 1][k - d1 - cnt1][(l - d2 - cnt2) / 2] + P->MLclosing) ==
+                            E_FcM[k][l / 2]) {
                           backtrack_m(1, i, cnt1, cnt2, structure, vc);
                           backtrack_m2(i + 1, k - d1 - cnt1, l - d2 - cnt2, structure, vc);
                           return;
@@ -2951,15 +3134,21 @@ backtrack_m2(unsigned int         i,
       if (!E_M1[my_iindx[j + 1] - n])
         continue;
 
-      d1  = referenceBPs1[my_iindx[i] - n] - referenceBPs1[my_iindx[i] - j] - referenceBPs1[my_iindx[j + 1] - n];
-      d2  = referenceBPs2[my_iindx[i] - n] - referenceBPs2[my_iindx[i] - j] - referenceBPs2[my_iindx[j + 1] - n];
+      d1 = referenceBPs1[my_iindx[i] - n] - referenceBPs1[my_iindx[i] - j] -
+           referenceBPs1[my_iindx[j + 1] - n];
+      d2 = referenceBPs2[my_iindx[i] - n] - referenceBPs2[my_iindx[i] - j] -
+           referenceBPs2[my_iindx[j + 1] - n];
 
       for (cnt1 = k_min_M1[my_iindx[i] - j]; cnt1 <= k_max_M1[my_iindx[i] - j]; cnt1++)
-        for (cnt2 = l_min_M1[my_iindx[i] - j][cnt1]; cnt2 <= l_max_M1[my_iindx[i] - j][cnt1]; cnt2 += 2) {
+        for (cnt2 = l_min_M1[my_iindx[i] - j][cnt1]; cnt2 <= l_max_M1[my_iindx[i] - j][cnt1];
+             cnt2 += 2) {
           for (cnt3 = k_min_M1[my_iindx[j + 1] - n]; cnt3 <= k_max_M1[my_iindx[j + 1] - n]; cnt3++)
-            for (cnt4 = l_min_M1[my_iindx[j + 1] - n][cnt3]; cnt4 <= l_max_M1[my_iindx[j + 1] - n][cnt3]; cnt4 += 2) {
+            for (cnt4 = l_min_M1[my_iindx[j + 1] - n][cnt3];
+                 cnt4 <= l_max_M1[my_iindx[j + 1] - n][cnt3]; cnt4 += 2) {
               if (((cnt1 + cnt3 + d1) > maxD1) || ((cnt2 + cnt4 + d2) > maxD2)) {
-                if (e == E_M1[my_iindx[i] - j][cnt1][cnt2 / 2] + E_M1[my_iindx[j + 1] - n][cnt3][cnt4 / 2]) {
+                if (e ==
+                    E_M1[my_iindx[i] - j][cnt1][cnt2 / 2] +
+                    E_M1[my_iindx[j + 1] - n][cnt3][cnt4 / 2]) {
                   backtrack_m1(i, j, cnt1, cnt2, structure, vc);
                   backtrack_m1(j + 1, n, cnt3, cnt4, structure, vc);
                   return;
@@ -2984,8 +3173,10 @@ backtrack_m2(unsigned int         i,
       for (cnt1 = k_min_M1[ij]; cnt1 <= MIN2(k_max_M1[ij], k - d1); cnt1++)
         for (cnt2 = l_min_M1[ij][cnt1]; cnt2 <= MIN2(l_max_M1[ij][cnt1], l - d2); cnt2 += 2)
           if ((k - d1 - cnt1 >= k_min_M1[j3]) && (k - d1 - cnt1 <= k_max_M1[j3])) {
-            if ((l - d2 - cnt2 >= l_min_M1[j3][k - d1 - cnt1]) && (l - d2 - cnt2 <= l_max_M1[j3][k - d1 - cnt1])) {
-              if (E_M1[ij][cnt1][cnt2 / 2] + E_M1[j3][k - d1 - cnt1][(l - d2 - cnt2) / 2] == E_M2[i][k][l / 2]) {
+            if ((l - d2 - cnt2 >= l_min_M1[j3][k - d1 - cnt1]) &&
+                (l - d2 - cnt2 <= l_max_M1[j3][k - d1 - cnt1])) {
+              if (E_M1[ij][cnt1][cnt2 / 2] + E_M1[j3][k - d1 - cnt1][(l - d2 - cnt2) / 2] ==
+                  E_M2[i][k][l / 2]) {
                 backtrack_m1(i, j, cnt1, cnt2, structure, vc);
                 backtrack_m1(j + 1, n, k - d1 - cnt1, l - d2 - cnt2, structure, vc);
                 return;
@@ -3002,7 +3193,8 @@ backtrack_m2(unsigned int         i,
 PRIVATE void
 mfe_circ(vrna_fold_compound_t *vc)
 {
-  unsigned int  d, i, j, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1, base_d2, *mm1, *mm2, *bpdist;
+  unsigned int  d, i, j, maxD1, maxD2, seq_length, *referenceBPs1, *referenceBPs2, d1, d2, base_d1,
+                base_d2, *mm1, *mm2, *bpdist;
   int           *my_iindx, *jindx, energy, cnt1, cnt2, cnt3, cnt4, *rtype, turn;
   short         *S1;
   char          *sequence, *ptype;
@@ -3106,12 +3298,15 @@ mfe_circ(vrna_fold_compound_t *vc)
                  cnt2 <= l_max_M1[my_iindx[j + 1] - seq_length][cnt1];
                  cnt2++)
               matrices->E_M2_rem[i] = MIN2(matrices->E_M2_rem[i],
-                                           E_M1_rem[my_iindx[i] - j] + E_M1[my_iindx[j + 1] - seq_length][cnt1][cnt2 / 2]
+                                           E_M1_rem[my_iindx[i] - j] +
+                                           E_M1[my_iindx[j + 1] - seq_length][cnt1][cnt2 / 2]
                                            );
         }
 
         if (E_M1_rem[my_iindx[j + 1] - seq_length] != INF)
-          matrices->E_M2_rem[i] = MIN2(matrices->E_M2_rem[i], E_M1_rem[my_iindx[i] - j] + E_M1_rem[my_iindx[j + 1] - seq_length]);
+          matrices->E_M2_rem[i] =
+            MIN2(matrices->E_M2_rem[i],
+                 E_M1_rem[my_iindx[i] - j] + E_M1_rem[my_iindx[j + 1] - seq_length]);
       }
 
       if (E_M1_rem[my_iindx[j + 1] - seq_length] != INF) {
@@ -3123,7 +3318,8 @@ mfe_circ(vrna_fold_compound_t *vc)
                  cnt2 <= l_max_M1[my_iindx[i] - j][cnt1];
                  cnt2 += 2)
               matrices->E_M2_rem[i] = MIN2(matrices->E_M2_rem[i],
-                                           E_M1[my_iindx[i] - j][cnt1][cnt2 / 2] + E_M1_rem[my_iindx[j + 1] - seq_length]
+                                           E_M1[my_iindx[i] - j][cnt1][cnt2 / 2] +
+                                           E_M1_rem[my_iindx[j + 1] - seq_length]
                                            );
         }
       }
@@ -3134,17 +3330,24 @@ mfe_circ(vrna_fold_compound_t *vc)
       if (!E_M1[my_iindx[j + 1] - seq_length])
         continue;
 
-      d1  = referenceBPs1[my_iindx[i] - seq_length] - referenceBPs1[my_iindx[i] - j] - referenceBPs1[my_iindx[j + 1] - seq_length];
-      d2  = referenceBPs2[my_iindx[i] - seq_length] - referenceBPs2[my_iindx[i] - j] - referenceBPs2[my_iindx[j + 1] - seq_length];
+      d1 = referenceBPs1[my_iindx[i] - seq_length] - referenceBPs1[my_iindx[i] - j] -
+           referenceBPs1[my_iindx[j + 1] - seq_length];
+      d2 = referenceBPs2[my_iindx[i] - seq_length] - referenceBPs2[my_iindx[i] - j] -
+           referenceBPs2[my_iindx[j + 1] - seq_length];
 
       for (cnt1 = k_min_M1[my_iindx[i] - j]; cnt1 <= k_max_M1[my_iindx[i] - j]; cnt1++)
-        for (cnt2 = l_min_M1[my_iindx[i] - j][cnt1]; cnt2 <= l_max_M1[my_iindx[i] - j][cnt1]; cnt2 += 2) {
-          for (cnt3 = k_min_M1[my_iindx[j + 1] - seq_length]; cnt3 <= k_max_M1[my_iindx[j + 1] - seq_length]; cnt3++)
-            for (cnt4 = l_min_M1[my_iindx[j + 1] - seq_length][cnt3]; cnt4 <= l_max_M1[my_iindx[j + 1] - seq_length][cnt3]; cnt4 += 2) {
+        for (cnt2 = l_min_M1[my_iindx[i] - j][cnt1]; cnt2 <= l_max_M1[my_iindx[i] - j][cnt1];
+             cnt2 += 2) {
+          for (cnt3 = k_min_M1[my_iindx[j + 1] - seq_length];
+               cnt3 <= k_max_M1[my_iindx[j + 1] - seq_length]; cnt3++)
+            for (cnt4 = l_min_M1[my_iindx[j + 1] - seq_length][cnt3];
+                 cnt4 <= l_max_M1[my_iindx[j + 1] - seq_length][cnt3]; cnt4 += 2) {
               if (((cnt1 + cnt3 + d1) <= maxD1) && ((cnt2 + cnt4 + d2) <= maxD2)) {
-                matrices->E_M2[i][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2] = MIN2(matrices->E_M2[i][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2],
-                                                                                   E_M1[my_iindx[i] - j][cnt1][cnt2 / 2] + E_M1[my_iindx[j + 1] - seq_length][cnt3][cnt4 / 2]
-                                                                                   );
+                matrices->E_M2[i][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2] = MIN2(
+                  matrices->E_M2[i][cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2],
+                  E_M1[my_iindx[i]
+                       - j][cnt1][cnt2 / 2] + E_M1[my_iindx[j + 1] - seq_length][cnt3][cnt4 / 2]
+                  );
                 updatePosteriorBoundaries(cnt1 + cnt3 + d1,
                                           cnt2 + cnt4 + d2,
                                           &min_k_real,
@@ -3154,7 +3357,8 @@ mfe_circ(vrna_fold_compound_t *vc)
                                           );
               } else {
                 matrices->E_M2_rem[i] = MIN2(matrices->E_M2_rem[i],
-                                             E_M1[my_iindx[i] - j][cnt1][cnt2 / 2] + E_M1[my_iindx[j + 1] - seq_length][cnt3][cnt4 / 2]
+                                             E_M1[my_iindx[i] - j][cnt1][cnt2 / 2] +
+                                             E_M1[my_iindx[j + 1] - seq_length][cnt3][cnt4 / 2]
                                              );
               }
             }
@@ -3180,14 +3384,16 @@ mfe_circ(vrna_fold_compound_t *vc)
   /* guess memory requirements for E_FcH, E_FcI and E_FcM */
 
   int min_k, max_k, max_l, min_l;
-  int min_k_real, max_k_real, min_k_real_fcH, max_k_real_fcH, min_k_real_fcI, max_k_real_fcI, min_k_real_fcM, max_k_real_fcM;
-  int *min_l_real, *max_l_real, *min_l_real_fcH, *max_l_real_fcH, *min_l_real_fcI, *max_l_real_fcI, *min_l_real_fcM, *max_l_real_fcM;
+  int min_k_real, max_k_real, min_k_real_fcH, max_k_real_fcH, min_k_real_fcI, max_k_real_fcI,
+      min_k_real_fcM, max_k_real_fcM;
+  int *min_l_real, *max_l_real, *min_l_real_fcH, *max_l_real_fcH, *min_l_real_fcI, *max_l_real_fcI,
+      *min_l_real_fcM, *max_l_real_fcM;
 
-  max_l_real_fcM = min_l_real_fcM = NULL;
-  max_l_real_fcI = min_l_real_fcI = NULL;
-  max_l_real_fcH = min_l_real_fcH = NULL;
-  max_l_real = min_l_real = NULL;
-  min_k = min_l = 0;
+  max_l_real_fcM  = min_l_real_fcM = NULL;
+  max_l_real_fcI  = min_l_real_fcI = NULL;
+  max_l_real_fcH  = min_l_real_fcH = NULL;
+  max_l_real      = min_l_real = NULL;
+  min_k           = min_l = 0;
 
   max_k = mm1[my_iindx[1] - seq_length] + referenceBPs1[my_iindx[1] - seq_length];
   max_l = mm2[my_iindx[1] - seq_length] + referenceBPs2[my_iindx[1] - seq_length];
@@ -3381,9 +3587,10 @@ mfe_circ(vrna_fold_compound_t *vc)
       for (cnt1 = k_min_C[ij]; cnt1 <= k_max_C[ij]; cnt1++)
         for (cnt2 = l_min_C[ij][cnt1]; cnt2 <= l_max_C[ij][cnt1]; cnt2 += 2) {
           if (((cnt1 + d1) <= maxD1) && ((cnt2 + d2) <= maxD2)) {
-            matrices->E_FcH[cnt1 + d1][(cnt2 + d2) / 2] = MIN2(matrices->E_FcH[cnt1 + d1][(cnt2 + d2) / 2],
-                                                               energy + E_C[ij][cnt1][cnt2 / 2]
-                                                               );
+            matrices->E_FcH[cnt1 + d1][(cnt2 + d2) /
+                                       2] = MIN2(matrices->E_FcH[cnt1 + d1][(cnt2 + d2) / 2],
+                                                 energy + E_C[ij][cnt1][cnt2 / 2]
+                                                 );
             updatePosteriorBoundaries(cnt1 + d1,
                                       cnt2 + d2,
                                       &min_k_real_fcH,
@@ -3465,7 +3672,8 @@ mfe_circ(vrna_fold_compound_t *vc)
              */
             d1      = base_d1 - referenceBPs1[ij] - referenceBPs1[pq];
             d2      = base_d2 - referenceBPs2[ij] - referenceBPs2[pq];
-            energy  = E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
+            energy  =
+              E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
 
             if (E_C_rem[pq] != INF)
               matrices->E_FcI_rem = MIN2(matrices->E_FcI_rem, E_C_rem[ij] + E_C_rem[pq] + energy);
@@ -3477,7 +3685,8 @@ mfe_circ(vrna_fold_compound_t *vc)
                 for (cnt2 = l_min_C[pq][cnt1];
                      cnt2 <= l_max_C[pq][cnt1];
                      cnt2 += 2)
-                  matrices->E_FcI_rem = MIN2(matrices->E_FcI_rem, E_C_rem[ij] + E_C[pq][cnt1][cnt2 / 2] + energy);
+                  matrices->E_FcI_rem =
+                    MIN2(matrices->E_FcI_rem, E_C_rem[ij] + E_C[pq][cnt1][cnt2 / 2] + energy);
             }
           }
         }
@@ -3512,7 +3721,8 @@ mfe_circ(vrna_fold_compound_t *vc)
              */
             d1      = base_d1 - referenceBPs1[ij] - referenceBPs1[pq];
             d2      = base_d2 - referenceBPs2[ij] - referenceBPs2[pq];
-            energy  = E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
+            energy  =
+              E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
             if (E_C_rem[pq] != INF) {
               for (cnt1 = k_min_C[ij];
                    cnt1 <= k_max_C[ij];
@@ -3520,7 +3730,8 @@ mfe_circ(vrna_fold_compound_t *vc)
                 for (cnt2 = l_min_C[ij][cnt1];
                      cnt2 <= l_max_C[ij][cnt1];
                      cnt2 += 2)
-                  matrices->E_FcI_rem = MIN2(matrices->E_FcI_rem, E_C[ij][cnt1][cnt2 / 2] + E_C_rem[pq] + energy);
+                  matrices->E_FcI_rem =
+                    MIN2(matrices->E_FcI_rem, E_C[ij][cnt1][cnt2 / 2] + E_C_rem[pq] + energy);
             }
 
             if (E_C[pq]) {
@@ -3599,11 +3810,15 @@ mfe_circ(vrna_fold_compound_t *vc)
             for (cnt2 = matrices->l_min_M2[i + 1][cnt1];
                  cnt2 <= matrices->l_max_M2[i + 1][cnt1];
                  cnt2 += 2)
-              matrices->E_FcM_rem = MIN2(matrices->E_FcM_rem, E_M_rem[my_iindx[1] - i] + matrices->E_M2[i + 1][cnt1][cnt2 / 2] + P->MLclosing);
+              matrices->E_FcM_rem = MIN2(matrices->E_FcM_rem,
+                                         E_M_rem[my_iindx[1] - i] +
+                                         matrices->E_M2[i + 1][cnt1][cnt2 / 2] + P->MLclosing);
         }
 
         if (matrices->E_M2_rem[i + 1] != INF)
-          matrices->E_FcM_rem = MIN2(matrices->E_FcM_rem, E_M_rem[my_iindx[1] - i] + matrices->E_M2_rem[i + 1] + P->MLclosing);
+          matrices->E_FcM_rem = MIN2(matrices->E_FcM_rem,
+                                     E_M_rem[my_iindx[1] - i] + matrices->E_M2_rem[i + 1] +
+                                     P->MLclosing);
       }
 
       if (matrices->E_M2_rem[i + 1] != INF) {
@@ -3614,7 +3829,9 @@ mfe_circ(vrna_fold_compound_t *vc)
             for (cnt2 = l_min_M[my_iindx[1] - i][cnt1];
                  cnt2 <= l_max_M[my_iindx[1] - i][cnt1];
                  cnt2 += 2)
-              matrices->E_FcM_rem = MIN2(matrices->E_FcM_rem, E_M[my_iindx[1] - i][cnt1][cnt2 / 2] + matrices->E_M2_rem[i + 1] + P->MLclosing);
+              matrices->E_FcM_rem = MIN2(matrices->E_FcM_rem,
+                                         E_M[my_iindx[1] - i][cnt1][cnt2 / 2] +
+                                         matrices->E_M2_rem[i + 1] + P->MLclosing);
         }
       }
 
@@ -3625,9 +3842,11 @@ mfe_circ(vrna_fold_compound_t *vc)
         continue;
 
       for (cnt1 = k_min_M[my_iindx[1] - i]; cnt1 <= k_max_M[my_iindx[1] - i]; cnt1++)
-        for (cnt2 = l_min_M[my_iindx[1] - i][cnt1]; cnt2 <= l_max_M[my_iindx[1] - i][cnt1]; cnt2 += 2)
+        for (cnt2 = l_min_M[my_iindx[1] - i][cnt1]; cnt2 <= l_max_M[my_iindx[1] - i][cnt1];
+             cnt2 += 2)
           for (cnt3 = matrices->k_min_M2[i + 1]; cnt3 <= matrices->k_max_M2[i + 1]; cnt3++)
-            for (cnt4 = matrices->l_min_M2[i + 1][cnt3]; cnt4 <= matrices->l_max_M2[i + 1][cnt3]; cnt4 += 2) {
+            for (cnt4 = matrices->l_min_M2[i + 1][cnt3]; cnt4 <= matrices->l_max_M2[i + 1][cnt3];
+                 cnt4 += 2) {
               if (((cnt1 + cnt3 + d1) <= maxD1) && ((cnt2 + cnt4 + d2) <= maxD2)) {
                 matrices->E_FcM[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2] = MIN2(
                   matrices->E_FcM[cnt1 + cnt3 + d1][(cnt2 + cnt4 + d2) / 2],
@@ -3675,7 +3894,8 @@ mfe_circ(vrna_fold_compound_t *vc)
   matrices->E_Fc_rem  = MIN2(matrices->E_FcH_rem, matrices->E_FcI_rem);
   matrices->E_Fc_rem  = MIN2(matrices->E_Fc_rem, matrices->E_FcM_rem);
   /* add the case were structure is unfolded chain */
-  if ((referenceBPs1[my_iindx[1] - seq_length] > maxD1) || (referenceBPs2[my_iindx[1] - seq_length] > maxD2))
+  if ((referenceBPs1[my_iindx[1] - seq_length] > maxD1) ||
+      (referenceBPs2[my_iindx[1] - seq_length] > maxD2))
     matrices->E_Fc_rem = MIN2(matrices->E_Fc_rem, 0);
 
   /* compute all E_Fc */
@@ -3719,8 +3939,11 @@ mfe_circ(vrna_fold_compound_t *vc)
                                 );
     }
   /* add the case were structure is unfolded chain */
-  matrices->E_Fc[referenceBPs1[my_iindx[1] - seq_length]][referenceBPs2[my_iindx[1] - seq_length] / 2] = MIN2(matrices->E_Fc[referenceBPs1[my_iindx[1] - seq_length]][referenceBPs2[my_iindx[1] - seq_length] / 2],
-                                                                                                              0);
+  matrices->E_Fc[referenceBPs1[my_iindx[1] - seq_length]][referenceBPs2[my_iindx[1] - seq_length] /
+                                                          2] =
+    MIN2(matrices->E_Fc[referenceBPs1[my_iindx[1] - seq_length]][referenceBPs2[my_iindx[1] -
+                                                                               seq_length] / 2],
+         0);
   updatePosteriorBoundaries(referenceBPs1[my_iindx[1] - seq_length],
                             referenceBPs2[my_iindx[1] - seq_length],
                             &min_k_real,
