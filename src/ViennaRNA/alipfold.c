@@ -103,7 +103,7 @@ wrap_alipf_fold(const char        **sequences,
   if (sequences == NULL)
     return 0.;
 
-  for (n_seq = 0; sequences[n_seq]; n_seq++) ; /* count the sequences */
+  for (n_seq = 0; sequences[n_seq]; n_seq++);  /* count the sequences */
 
   vc = NULL;
 
@@ -182,9 +182,11 @@ wrap_alipf_fold(const char        **sequences,
 }
 
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 
 PUBLIC float
 alipf_fold(const char **sequences,
@@ -271,8 +273,10 @@ alipbacktrack(double *prob)
 }
 
 
-/*-------------------------------------------------------------------------*/
-/* make arrays used for alipf_fold available to other routines */
+/*
+ * -------------------------------------------------------------------------
+ * make arrays used for alipf_fold available to other routines
+ */
 PUBLIC int
 get_alipf_arrays(short          ***S_p,
                  short          ***S5_p,
@@ -317,5 +321,6 @@ free_alipf_arrays(void)
     iindx                     = NULL;
   }
 }
+
 
 #endif
