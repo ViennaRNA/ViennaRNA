@@ -44,7 +44,8 @@ main(int  argc,
   char                              *string, *input_string, *orig_sequence;
   char                              *mfe_structure, *structure1, *structure2, *reference_struc1,
                                     *reference_struc2, *ParamFile;
-  int                               i, length, l, pf, istty, noconv, circ, maxDistance1, maxDistance2,
+  int                               i, length, l, pf, istty, noconv, circ, maxDistance1,
+                                    maxDistance2,
                                     do_backtrack, stBT, nstBT;
   double                            min_en;
   vrna_md_t                         md;
@@ -107,7 +108,8 @@ main(int  argc,
   /* dangle options */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+      vrna_message_warning(
+        "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
   }
@@ -170,7 +172,7 @@ main(int  argc,
    */
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
@@ -184,7 +186,8 @@ main(int  argc,
    */
   do {
     if (istty)
-      vrna_message_input_seq("Input strings\n1st line: sequence (upper or lower case)\n2nd + 3rd line: reference structures (dot bracket notation)\n@ to quit\n");
+      vrna_message_input_seq(
+        "Input strings\n1st line: sequence (upper or lower case)\n2nd + 3rd line: reference structures (dot bracket notation)\n@ to quit\n");
 
     char *rec_id = NULL;
 
@@ -274,8 +277,13 @@ main(int  argc,
     vrna_fold_compound_free(vc_global);
 
     /* get all variables need for the folding process (some memory will be preallocated here too) */
-    vrna_fold_compound_t  *vc     = vrna_fold_compound_TwoD(string, structure1, structure2, &md, VRNA_OPTION_MFE | (pf ? VRNA_OPTION_PF : 0));
-    vrna_sol_TwoD_t       *mfe_s  = vrna_mfe_TwoD(vc, maxDistance1, maxDistance2);
+    vrna_fold_compound_t *vc = vrna_fold_compound_TwoD(string,
+                                                       structure1,
+                                                       structure2,
+                                                       &md,
+                                                       VRNA_OPTION_MFE |
+                                                       (pf ? VRNA_OPTION_PF : 0));
+    vrna_sol_TwoD_t *mfe_s = vrna_mfe_TwoD(vc, maxDistance1, maxDistance2);
 
     if (!pf) {
 #ifdef COUNT_STATES
@@ -329,16 +337,20 @@ main(int  argc,
       for (i = 0; pf_s[i].k != INF; i++)
         Q += pf_s[i].q;
 
-      double fee = (-log(Q) - length * log(vc->exp_params->pf_scale)) * (vc->exp_params->kT / 1000.);
+      double fee = (-log(Q) - length * log(vc->exp_params->pf_scale)) *
+                   (vc->exp_params->kT / 1000.);
 
       if (!stBT) {
         char *msg = NULL;
         msg = vrna_strdup_printf("free energy of ensemble = %6.2f kcal/mol", fee);
         print_structure(stdout, NULL, msg);
         free(msg);
-        print_table(stdout, "k\tl\tP(neighborhood)\tP(MFE in neighborhood)\tP(MFE in ensemble)\tMFE\tE_gibbs\tMFE-structure", NULL);
+        print_table(stdout,
+                    "k\tl\tP(neighborhood)\tP(MFE in neighborhood)\tP(MFE in ensemble)\tMFE\tE_gibbs\tMFE-structure",
+                    NULL);
         for (i = 0; pf_s[i].k != INF; i++) {
-          float free_energy = (-log((float)pf_s[i].q) - length * log(vc->exp_params->pf_scale)) * (vc->exp_params->kT / 1000.);
+          float free_energy = (-log((float)pf_s[i].q) - length * log(vc->exp_params->pf_scale)) *
+                              (vc->exp_params->kT / 1000.);
           if ((pf_s[i].k != mfe_s[i].k) || (pf_s[i].l != mfe_s[i].l))
             vrna_message_error("This should never happen!");
 
@@ -346,7 +358,8 @@ main(int  argc,
                                             pf_s[i].k,
                                             pf_s[i].l,
                                             (float)(pf_s[i].q) / (float)Q,
-                                            exp((free_energy - mfe_s[i].en) / (vc->exp_params->kT / 1000.)),
+                                            exp((free_energy - mfe_s[i].en) /
+                                                (vc->exp_params->kT / 1000.)),
                                             exp((fee - mfe_s[i].en) / (vc->exp_params->kT / 1000.)),
                                             mfe_s[i].en,
                                             free_energy,
@@ -365,7 +378,8 @@ main(int  argc,
             l = tmp->l;
             for (i = 0; i < nstBT; i++) {
               char  *s      = vrna_pbacktrack_TwoD(vc, k, l);
-              char  *tline  = vrna_strdup_printf("%d\t%d\t%6.2f\t%s", k, l, vrna_eval_structure(vc, s), s);
+              char  *tline  =
+                vrna_strdup_printf("%d\t%d\t%6.2f\t%s", k, l, vrna_eval_structure(vc, s), s);
               print_table(stdout, NULL, tline);
               free(tline);
               free(s);
@@ -375,7 +389,11 @@ main(int  argc,
           for (i = 0; pf_s[i].k != INF; i++) {
             for (l = 0; l < nstBT; l++) {
               char  *s      = vrna_pbacktrack_TwoD(vc, pf_s[i].k, pf_s[i].l);
-              char  *tline  = vrna_strdup_printf("%d\t%d\t%6.2f\t%s", pf_s[i].k, pf_s[i].l, vrna_eval_structure(vc, s), s);
+              char  *tline  = vrna_strdup_printf("%d\t%d\t%6.2f\t%s",
+                                                 pf_s[i].k,
+                                                 pf_s[i].l,
+                                                 vrna_eval_structure(vc, s),
+                                                 s);
               print_table(stdout, NULL, tline);
               free(tline);
               free(s);
