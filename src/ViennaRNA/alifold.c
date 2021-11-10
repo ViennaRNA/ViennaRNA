@@ -87,9 +87,11 @@ wrap_alifold(const char   **strings,
  #################################
  */
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 
 PRIVATE float
 wrap_alifold(const char   **strings,
