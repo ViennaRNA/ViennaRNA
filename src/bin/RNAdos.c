@@ -128,6 +128,7 @@ free_hashtable_list(hashtable_list *ht_list)
   free(ht_list->list_energy_count_pairs);
 
   int i = 0;
+
   for (; i < ht_list->length; i++)
     free(ht_list->list_key_value_pairs[i]);
 
@@ -190,6 +191,7 @@ lookup_count_from_energy(hashtable_list *htl,
 
   to_check.key = energy;
   key_value *lookup_result;
+
   lookup_result = vrna_ht_get(htl->ht_energy_index, (void *)&to_check);
   if (lookup_result == NULL) {
     //value is not in list.
@@ -402,6 +404,7 @@ compute_density_of_states(vrna_fold_compound_t  *fc,
     (hashtable_list *)vrna_alloc(sizeof(hashtable_list) * ((length + 1) * (length + 1)));
 
   struct dp_counts_per_energy count_matrix_pt;
+
   count_matrix_pt.n_ij_e    = n_ij_e;
   count_matrix_pt.n_ij_A_e  = n_ij_A_e;
   count_matrix_pt.n_ij_M_e  = n_ij_M_e;
@@ -409,6 +412,7 @@ compute_density_of_states(vrna_fold_compound_t  *fc,
 
   /* compute mfe and search the matrices for the minimal energy contribution */
   int min_energy = (int)round(vrna_mfe(fc, NULL) * 100.0);
+
   if (verbose)
     printf("min_energy (global): %d \n", min_energy);
 
@@ -435,6 +439,7 @@ compute_density_of_states(vrna_fold_compound_t  *fc,
   vrna_mx_mfe_free(fc);
 
   int max_energy = max_energy_input;
+
   /* compute max_energy */
   if (min_energy < 0)
     /* increase internal energy threshold in order to count
@@ -445,6 +450,7 @@ compute_density_of_states(vrna_fold_compound_t  *fc,
   int step_energy   = 1;          // 1 decakal. (smallest unit of energy computations)
   int range         = max_energy - min_energy;
   int energy_length = range + 1;  // ceil (range / (float) step_energy) + 1;
+
   if (verbose) {
     printf("min_energy: %d \n", min_energy);
     printf("max_energy: %d %d\n", max_energy, min_energy + (step_energy * (energy_length - 1)));
@@ -459,6 +465,7 @@ compute_density_of_states(vrna_fold_compound_t  *fc,
   //for (i = length - turn - 1; i >= 1; i--) {
   // for (j = i + turn + 1; j <= length; j++) {
   int d;
+
   for (d = turn + 2; d <= length; d++) {
     /* i,j in [1..length] */
 #ifdef _OPENMP
@@ -726,6 +733,7 @@ read_sequence_from_stdin()
     return "";
 
   char *result_sequence = NULL;
+
   if (rec_type & VRNA_INPUT_SEQUENCE)
     result_sequence = rec_sequence;
 
@@ -762,6 +770,7 @@ main(int  argc,
     exit(1);
 
   char *rnaSequence = NULL;
+
   if (!args_info.sequence_given) {
     rnaSequence = read_sequence_from_stdin();
     if (rnaSequence == NULL) {
@@ -811,7 +820,7 @@ main(int  argc,
 
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
