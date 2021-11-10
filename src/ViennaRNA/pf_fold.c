@@ -12,9 +12,11 @@
 #include "config.h"
 #endif
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -83,13 +85,12 @@ wrap_mean_bp_distance(FLT_OR_DBL  *p,
                       int         *index,
                       int         turn);
 
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-
-
 PRIVATE double
 wrap_mean_bp_distance(FLT_OR_DBL  *p,
                       int         length,
@@ -227,8 +228,8 @@ PUBLIC double
 get_subseq_F(int  i,
              int  j)
 {
-  if (backward_compat_compound)
-    if (backward_compat_compound->exp_matrices)
+  if (backward_compat_compound) {
+    if (backward_compat_compound->exp_matrices) {
       if (backward_compat_compound->exp_matrices->q) {
         int               *my_iindx   = backward_compat_compound->iindx;
         vrna_exp_param_t  *pf_params  = backward_compat_compound->exp_params;
@@ -236,6 +237,8 @@ get_subseq_F(int  i,
         return (-log(q[my_iindx[i] - j]) - (j - i + 1) * log(pf_params->pf_scale)) * pf_params->kT /
                1000.0;
       }
+    }
+  }
 
   vrna_message_warning("get_subseq_F: "
                        "call pf_fold() to fill q[] array before calling get_subseq_F()");
@@ -416,8 +419,10 @@ export_bppm(void)
 }
 
 
-/*-------------------------------------------------------------------------*/
-/* make arrays used for pf_fold available to other routines */
+/*
+ * -------------------------------------------------------------------------
+ * make arrays used for pf_fold available to other routines
+ */
 PUBLIC int
 get_pf_arrays(short       **S_p,
               short       **S1_p,
@@ -428,7 +433,7 @@ get_pf_arrays(short       **S_p,
               FLT_OR_DBL  **qln_p)
 {
   if (backward_compat_compound) {
-    if (backward_compat_compound->exp_matrices)
+    if (backward_compat_compound->exp_matrices) {
       if (backward_compat_compound->exp_matrices->qb) {
         *S_p      = backward_compat_compound->sequence_encoding2;
         *S1_p     = backward_compat_compound->sequence_encoding;
@@ -439,6 +444,7 @@ get_pf_arrays(short       **S_p,
         *qln_p    = backward_compat_compound->exp_matrices->qln;
         return 1;
       }
+    }
   }
 
   return 0;
