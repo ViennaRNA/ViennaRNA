@@ -39,9 +39,10 @@ int
 PlexHit_cmp_energy(const void *c1,
                    const void *c2);
 
+
 int
-PlexHit_cmp_active_energy(const void *c1,
-                          const void *c2);
+PlexHit_cmp_active_energy(const void  *c1,
+                          const void  *c2);
 
 
 /*--------------------------------------------------------------------------*/
@@ -214,7 +215,7 @@ main(int  argc,
        # do Plex computations
        ########################################################
        */
-      int **access = vrna_pk_plex_accessibility(s1, unpaired, cutoff);
+      int                   **access = vrna_pk_plex_accessibility(s1, unpaired, cutoff);
 
       if (verbose)
         printf("EnergyCutoff = %f\n", pk_penalty);
@@ -236,20 +237,20 @@ main(int  argc,
 
       /* and print the results to stdout */
       for (hit_ptr = hits; hit_ptr->structure; hit_ptr++) {
-          if (verbose) {
-            printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
-                    hit_ptr->structure,
-                    hit_ptr->start_5,
-                    hit_ptr->end_5,
-                    hit_ptr->start_3,
-                    hit_ptr->end_3,
-                    hit_ptr->energy,
-                    hit_ptr->energy - hit_ptr->dGint - hit_ptr->dGpk,
-                    hit_ptr->dGint,
-                    hit_ptr->dGpk);
-          } else {
-            printf("%s (%6.2f)\n", hit_ptr->structure, hit_ptr->energy);
-          }
+        if (verbose) {
+          printf("%s %3d,%-3d : %3d,%-3d (%5.2f = %5.2f + %5.2f + %5.2f)\n",
+                 hit_ptr->structure,
+                 hit_ptr->start_5,
+                 hit_ptr->end_5,
+                 hit_ptr->start_3,
+                 hit_ptr->end_3,
+                 hit_ptr->energy,
+                 hit_ptr->energy - hit_ptr->dGint - hit_ptr->dGpk,
+                 hit_ptr->dGint,
+                 hit_ptr->dGpk);
+        } else {
+          printf("%s (%6.2f)\n", hit_ptr->structure, hit_ptr->energy);
+        }
       }
 
       /*
@@ -260,7 +261,8 @@ main(int  argc,
 
       /* make an EPS layout file for the MFE structure, i.e. first in the list */
       hit_ptr = hits;
-      if (hit_ptr->start_5 > 0) { /* true hit with PK */
+      if (hit_ptr->start_5 > 0) {
+        /* true hit with PK */
         annotation = vrna_strdup_printf("%u %u 13 1 0 0 omark\n"
                                         "%u %u 13 1 0 0 omark\n"
                                         "0 0 2 setrgbcolor\n"
@@ -277,7 +279,8 @@ main(int  argc,
         vrna_file_PS_rnaplot_a(s1, hit_ptr->structure, fname, annotation, "", &md);
         free(annotation);
         annotation = NULL;
-      } else { /* no PK hit found, let's plot the MFE structure instead */
+      } else {
+        /* no PK hit found, let's plot the MFE structure instead */
         vrna_file_PS_rnaplot_a(s1, hit_ptr->structure, fname, NULL, "", &md);
       }
 
@@ -342,9 +345,10 @@ PlexHit_cmp_energy(const void *c1,
   return 0;
 }
 
+
 int
-PlexHit_cmp_active_energy(const void *c1,
-                          const void *c2)
+PlexHit_cmp_active_energy(const void  *c1,
+                          const void  *c2)
 {
   dupVar  *p1 = (dupVar *)c1;
   dupVar  *p2 = (dupVar *)c2;
