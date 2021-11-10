@@ -1125,14 +1125,14 @@ contrib_ext_pair(vrna_fold_compound_t *fc,
                  unsigned int         j,
                  constraints_helper   *constraints)
 {
-  unsigned char         type;
-  char                  *ptype;
-  short                 *S1, s5, s3;
-  unsigned int          *sn, n;
-  int                   *jindx;
-  FLT_OR_DBL            contribution;
-  vrna_exp_param_t      *pf_params;
-  vrna_sc_t             *sc;
+  unsigned char     type;
+  char              *ptype;
+  short             *S1, s5, s3;
+  unsigned int      *sn, n;
+  int               *jindx;
+  FLT_OR_DBL        contribution;
+  vrna_exp_param_t  *pf_params;
+  vrna_sc_t         *sc;
 
   n         = fc->length;
   pf_params = fc->exp_params;
@@ -1162,15 +1162,15 @@ contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
                              unsigned int         j,
                              constraints_helper   *constraints)
 {
-  unsigned char         type;
-  short                 **S, **S5, **S3, s5, s3;
-  unsigned int          **a2s, n, s, n_seq;
-  int                   *jindx, *pscore;
-  FLT_OR_DBL            contribution;
-  double                kTn;
-  vrna_exp_param_t      *pf_params;
-  vrna_md_t             *md;
-  vrna_sc_t             **scs;
+  unsigned char     type;
+  short             **S, **S5, **S3, s5, s3;
+  unsigned int      **a2s, n, s, n_seq;
+  int               *jindx, *pscore;
+  FLT_OR_DBL        contribution;
+  double            kTn;
+  vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
+  vrna_sc_t         **scs;
 
   n         = fc->length;
   n_seq     = fc->n_seq;
