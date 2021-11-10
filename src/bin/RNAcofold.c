@@ -910,7 +910,6 @@ process_record(struct record_data *record)
                   o_stream->data);
     }
 
-
     if (opt->csv_output) {
       vrna_cstr_printf(o_stream->data,
                        "%c"
@@ -939,21 +938,21 @@ process_record(struct record_data *record)
       }
 
 #if 1
-      Alength = vc->nucleotides[0].length;    /* length of first molecule */
-      Blength = vc->nucleotides[1].length;    /* length of 2nd molecule   */
+      Alength       = vc->nucleotides[0].length;                        /* length of first molecule */
+      Blength       = vc->nucleotides[1].length;                        /* length of 2nd molecule   */
       orig_Astring  = (char *)vrna_alloc(sizeof(char) * (Alength + 1)); /*Sequence of first molecule*/
       orig_Bstring  = (char *)vrna_alloc(sizeof(char) * (Blength + 1)); /*Sequence of second molecule*/
       strncat(orig_Astring, record->sequence, Alength);
       strncat(orig_Bstring, record->sequence + Alength + 1, Blength);
 
-      char *seq_AA = vrna_strdup_printf("%s&%s",
-                                        vc->nucleotides[0].string,
-                                        vc->nucleotides[0].string);
+      char                  *seq_AA = vrna_strdup_printf("%s&%s",
+                                                         vc->nucleotides[0].string,
+                                                         vc->nucleotides[0].string);
 
-      char  *ss_AA  = (char *)vrna_alloc(sizeof(char) * (2 * Alength + 1));
-      vrna_fold_compound_t  *fc_AA = vrna_fold_compound(seq_AA, &(opt->md), VRNA_OPTION_DEFAULT);
+      char                  *ss_AA  = (char *)vrna_alloc(sizeof(char) * (2 * Alength + 1));
+      vrna_fold_compound_t  *fc_AA  = vrna_fold_compound(seq_AA, &(opt->md), VRNA_OPTION_DEFAULT);
 
-      double mfe_AA = vrna_mfe(fc_AA, ss_AA);
+      double                mfe_AA = vrna_mfe(fc_AA, ss_AA);
       vrna_mx_mfe_free(fc_AA);
 
       vrna_exp_params_rescale(fc_AA, &mfe_AA);
@@ -967,14 +966,14 @@ process_record(struct record_data *record)
       free(ss_AA);
       vrna_fold_compound_free(fc_AA);
 
-      char *seq_BB = vrna_strdup_printf("%s&%s",
-                                        vc->nucleotides[1].string,
-                                        vc->nucleotides[1].string);
+      char                  *seq_BB = vrna_strdup_printf("%s&%s",
+                                                         vc->nucleotides[1].string,
+                                                         vc->nucleotides[1].string);
 
-      char  *ss_BB  = (char *)vrna_alloc(sizeof(char) * (2 * Blength + 1));
-      vrna_fold_compound_t  *fc_BB = vrna_fold_compound(seq_BB, &(opt->md), VRNA_OPTION_DEFAULT);
+      char                  *ss_BB  = (char *)vrna_alloc(sizeof(char) * (2 * Blength + 1));
+      vrna_fold_compound_t  *fc_BB  = vrna_fold_compound(seq_BB, &(opt->md), VRNA_OPTION_DEFAULT);
 
-      double mfe_BB = vrna_mfe(fc_BB, ss_BB);
+      double                mfe_BB = vrna_mfe(fc_BB, ss_BB);
       vrna_mx_mfe_free(fc_BB);
 
       vrna_exp_params_rescale(fc_BB, &mfe_BB);
