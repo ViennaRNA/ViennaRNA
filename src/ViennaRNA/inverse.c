@@ -373,7 +373,7 @@ make_ptable(const char  *structure,
     dist                = adaptive_walk(wstring, wstruct); \
     strncpy(string + i, wstring, j - i + 1); \
     if ((dist > 0) && (give_up)) \
-      goto adios; \
+    goto adios; \
   }
 
 
@@ -418,7 +418,7 @@ inverse_fold(char *start,
       j++;
     }
     i = j;
-    while ((i > 0) && structure[--i] != '(') ;
+    while ((i > 0) && structure[--i] != '(');
     if (structure[i] == '.')   /* no pair found -> open chain */
       WALK(0, len - 1);
 
@@ -430,8 +430,8 @@ inverse_fold(char *start,
     while (pt[j] == i) {
       backtrack_type = 'C';
       if (aux[i] != '[') {
-        while (aux[--i] != '[') ;
-        while (aux[++j] != ']') ;
+        while (aux[--i] != '[');
+        while (aux[++j] != ']');
         /* WALK(i,j); */
       }
 
@@ -439,7 +439,7 @@ inverse_fold(char *start,
       o--;
       jj = j;
       i--;
-      while (aux[++j] == '.') ;
+      while (aux[++j] == '.');
       while ((i >= 0) && (aux[i] == '.'))
         i--;
       if (pt[j] != i) {
