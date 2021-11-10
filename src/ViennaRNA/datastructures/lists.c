@@ -1,27 +1,27 @@
 /*
-  $Log: list.c,v $
-  Revision 1.5  2003/07/14 13:36:58  ivo
-  use vrna_alloc() instead of malloc
-
-  Revision 1.4  2000/10/10 08:53:52  ivo
-  include dmalloc.h header if DMALLOC defined
-
-  Revision 1.4  2000/10/10 08:04:34  ivo
-  include dmalloc header id DMALLOC defined
-
-  Revision 1.3  1998/03/30 14:24:51  ivo
-  use RNA package utils.h
-
-  Revision 1.2  1997/10/09  19:01:50  steve
-  *** empty log message ***
-
-  Revision 1.1  1997/08/04 21:05:32  walter
-  Initial revision
-
-*/
+ * $Log: list.c,v $
+ * Revision 1.5  2003/07/14 13:36:58  ivo
+ * use vrna_alloc() instead of malloc
+ *
+ * Revision 1.4  2000/10/10 08:53:52  ivo
+ * include dmalloc.h header if DMALLOC defined
+ *
+ * Revision 1.4  2000/10/10 08:04:34  ivo
+ * include dmalloc header id DMALLOC defined
+ *
+ * Revision 1.3  1998/03/30 14:24:51  ivo
+ * use RNA package utils.h
+ *
+ * Revision 1.2  1997/10/09  19:01:50  steve
+ *** empty log message ***
+ ***
+ ***Revision 1.1  1997/08/04 21:05:32  walter
+ ***Initial revision
+ ***
+ */
 /*
-   (C) 1991 Kendall Bennett.
-*/
+ * (C) 1991 Kendall Bennett.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -34,7 +34,7 @@
 
 #define PUBLIC
 PUBLIC void *
-lst_newnode (int size)
+lst_newnode(int size)
 /****************************************************************************
 *
 * Function:	lst_newnode
@@ -50,13 +50,14 @@ lst_newnode (int size)
 {
   LST_BUCKET *node;
 
-  node = (LST_BUCKET *) vrna_alloc(size + sizeof (LST_BUCKET));
+  node = (LST_BUCKET *)vrna_alloc(size + sizeof(LST_BUCKET));
 
-  return LST_USERSPACE (node);	/* Return pointer to user space */
+  return LST_USERSPACE(node);   /* Return pointer to user space */
 }
 
+
 PUBLIC void
-lst_freenode (void *node)
+lst_freenode(void *node)
 /****************************************************************************
 *
 * Function:	lst_freenode
@@ -66,11 +67,12 @@ lst_freenode (void *node)
 *
 ****************************************************************************/
 {
-  free (LST_HEADER (node));
+  free(LST_HEADER(node));
 }
 
+
 PUBLIC LIST *
-lst_init (void)
+lst_init(void)
 /****************************************************************************
 *
 * Function:	lst_init
@@ -82,19 +84,20 @@ lst_init (void)
 {
   LIST *l;
 
-  if ((l = (LIST *) vrna_alloc(sizeof (LIST))) != NULL)
-    {
-      l->count = 0;
-      l->head = &(l->hz[0]);
-      l->z = &(l->hz[1]);
-      l->head->next = l->z->next = l->z;
-    }
+  if ((l = (LIST *)vrna_alloc(sizeof(LIST))) != NULL) {
+    l->count      = 0;
+    l->head       = &(l->hz[0]);
+    l->z          = &(l->hz[1]);
+    l->head->next = l->z->next = l->z;
+  }
 
   return l;
 }
 
+
 PUBLIC void
-lst_kill (LIST * l, void (*freeNode) (void *node))
+lst_kill(LIST   *l,
+         void ( *freeNode ) (void *node))
 /****************************************************************************
 *
 * Function:	lst_kill
@@ -117,17 +120,20 @@ lst_kill (LIST * l, void (*freeNode) (void *node))
   LST_BUCKET *n, *p;
 
   n = l->head->next;
-  while (n != l->z)
-    {				/* Free all nodes in list  */
-      p = n;
-      n = n->next;
-      (*freeNode) (LST_USERSPACE (p));
-    }
-  free (l);			/* Free the list itself    */
+  while (n != l->z) {
+    /* Free all nodes in list  */
+    p = n;
+    n = n->next;
+    (*freeNode)(LST_USERSPACE(p));
+  }
+  free(l);      /* Free the list itself    */
 }
 
+
 PUBLIC void
-lst_insertafter (LIST * l, void *node, void *after)
+lst_insertafter(LIST  *l,
+                void  *node,
+                void  *after)
 /****************************************************************************
 *
 * Function:	lst_insertafter
@@ -143,15 +149,17 @@ lst_insertafter (LIST * l, void *node, void *after)
 *
 ****************************************************************************/
 {
-  LST_BUCKET *n = LST_HEADER (node), *a = LST_HEADER (after);
+  LST_BUCKET *n = LST_HEADER(node), *a = LST_HEADER(after);
 
   n->next = a->next;
   a->next = n;
   l->count++;
 }
 
+
 PUBLIC void *
-lst_deletenext (LIST * l, void *node)
+lst_deletenext(LIST *l,
+               void *node)
 /****************************************************************************
 *
 * Function:	lst_deletenext
@@ -163,16 +171,17 @@ lst_deletenext (LIST * l, void *node)
 *
 ****************************************************************************/
 {
-  LST_BUCKET *n = LST_HEADER (node);
+  LST_BUCKET *n = LST_HEADER(node);
 
-  node = LST_USERSPACE (n->next);
+  node    = LST_USERSPACE(n->next);
   n->next = n->next->next;
   l->count--;
   return node;
 }
 
+
 PUBLIC void *
-lst_first (LIST * l)
+lst_first(LIST *l)
 /****************************************************************************
 *
 * Function:	lst_first
@@ -187,11 +196,12 @@ lst_first (LIST * l)
   LST_BUCKET *n;
 
   n = l->head->next;
-  return (n == l->z ? NULL : LST_USERSPACE (n));
+  return n == l->z ? NULL : LST_USERSPACE(n);
 }
 
+
 PUBLIC void *
-lst_next (void *prev)
+lst_next(void *prev)
 /****************************************************************************
 *
 * Function:	lst_next
@@ -211,19 +221,23 @@ lst_next (void *prev)
 *
 ****************************************************************************/
 {
-  LST_BUCKET *n = LST_HEADER (prev);
+  LST_BUCKET *n = LST_HEADER(prev);
 
   n = n->next;
-  return (n == n->next ? NULL : LST_USERSPACE (n));
+  return n == n->next ? NULL : LST_USERSPACE(n);
 }
+
 
 /* Static globals required by merge()   */
 
 static LST_BUCKET *z;
-static int (*cmp) (void *, void *);
+static int        (*cmp) (void *,
+                          void *);
 
 static LST_BUCKET *
-merge (LST_BUCKET * a, LST_BUCKET * b, LST_BUCKET ** end)
+merge(LST_BUCKET  *a,
+      LST_BUCKET  *b,
+      LST_BUCKET  **end)
 /****************************************************************************
 *
 * Function:	merge
@@ -240,21 +254,18 @@ merge (LST_BUCKET * a, LST_BUCKET * b, LST_BUCKET ** end)
   /* Go through the lists, merging them together in sorted order  */
 
   c = z;
-  while (a != z && b != z)
-    {
-      if ((*cmp) (LST_USERSPACE (a), LST_USERSPACE (b)) <= 0)
-	{
-	  c->next = a;
-	  c = a;
-	  a = a->next;
-	}
-      else
-	{
-	  c->next = b;
-	  c = b;
-	  b = b->next;
-	}
-    };
+  while (a != z && b != z) {
+    if ((*cmp)(LST_USERSPACE(a), LST_USERSPACE(b)) <= 0) {
+      c->next = a;
+      c       = a;
+      a       = a->next;
+    } else {
+      c->next = b;
+      c       = b;
+      b       = b->next;
+    }
+  }
+  ;
 
   /* If one of the lists is not exhausted, then re-attach it to the end
    * of the newly merged list
@@ -262,6 +273,7 @@ merge (LST_BUCKET * a, LST_BUCKET * b, LST_BUCKET ** end)
 
   if (a != z)
     c->next = a;
+
   if (b != z)
     c->next = b;
 
@@ -275,13 +287,15 @@ merge (LST_BUCKET * a, LST_BUCKET * b, LST_BUCKET ** end)
    * itself
    */
 
-  c = z->next;
+  c       = z->next;
   z->next = z;
   return c;
 }
 
+
 PUBLIC void
-lst_mergesort (LIST * l, int (*cmp_func) (void *, void *))
+lst_mergesort(LIST *l,
+              int ( *cmp_func ) (void *, void *))
 /****************************************************************************
 *
 * Function:	lst_mergesort
@@ -295,117 +309,118 @@ lst_mergesort (LIST * l, int (*cmp_func) (void *, void *))
 *
 ****************************************************************************/
 {
-  int i, N;
-  LST_BUCKET *a, *b;		/* Pointers to sublists to merge                */
-  LST_BUCKET *c;		/* Pointer to end of sorted sublists            */
-  LST_BUCKET *head;		/* Pointer to dummy head node for list          */
-  LST_BUCKET *todo;		/* Pointer to sublists yet to be sorted         */
-  LST_BUCKET *t;		/* Temporary                                                            */
+  int         i, N;
+  LST_BUCKET  *a, *b; /* Pointers to sublists to merge                */
+  LST_BUCKET  *c;     /* Pointer to end of sorted sublists            */
+  LST_BUCKET  *head;  /* Pointer to dummy head node for list          */
+  LST_BUCKET  *todo;  /* Pointer to sublists yet to be sorted         */
+  LST_BUCKET  *t;     /* Temporary                                                            */
 
   /* Set up globals required by merge() and pointer to head       */
 
-  z = l->z;
-  cmp = cmp_func;
-  head = l->head;
+  z     = l->z;
+  cmp   = cmp_func;
+  head  = l->head;
 
-  for (N = 1, a = z; a != head->next; N = N + N)
-    {
-      todo = head->next;
-      c = head;
-      while (todo != z)
-	{
+  for (N = 1, a = z; a != head->next; N = N + N) {
+    todo  = head->next;
+    c     = head;
+    while (todo != z) {
+      /* Build first sublist to be merged, and splice from main list
+       */
 
-	  /* Build first sublist to be merged, and splice from main list
-	   */
+      a = t = todo;
+      for (i = 1; i < N; i++)
+        t = t->next;
+      b       = t->next;
+      t->next = z;
+      t       = b;
 
-	  a = t = todo;
-	  for (i = 1; i < N; i++)
-	    t = t->next;
-	  b = t->next;
-	  t->next = z;
-	  t = b;
+      /* Build second sublist to be merged and splice from main list
+       */
 
-	  /* Build second sublist to be merged and splice from main list
-	   */
+      for (i = 1; i < N; i++)
+        t = t->next;
+      todo    = t->next;
+      t->next = z;
 
-	  for (i = 1; i < N; i++)
-	    t = t->next;
-	  todo = t->next;
-	  t->next = z;
+      /* Merge the two sublists created, and set 'c' to point to the
+       * end of the newly merged sublists.
+       */
 
-	  /* Merge the two sublists created, and set 'c' to point to the
-	   * end of the newly merged sublists.
-	   */
-
-	  c->next = merge (a, b, &t);
-	  c = t;
-	}
+      c->next = merge(a, b, &t);
+      c       = t;
     }
+  }
 }
+
 
 #ifdef LIST_TEST
 
-/*---------------------------------------------------------------*/
-/*---------------------------------------------------------------*/
+/*
+ * ---------------------------------------------------------------
+ *---------------------------------------------------------------
+ */
 
 /* Simple program to test the list routines */
 
-typedef struct
-{
-  char name[40];
-  int age;
+typedef struct {
+  char  name[40];
+  int   age;
 }
 REC;
 
 /*---------------------------------------------------------------*/
 
 int
-my_cmp (REC * r1, REC * r2)
+my_cmp(REC  *r1,
+       REC  *r2)
 {
-  return strcmp (r1->name, r2->name);
+  return strcmp(r1->name, r2->name);
 }
+
 
 /*---------------------------------------------------------------*/
 
 void
-main (void)
+main(void)
 {
-  LIST *list;
-  int done = 0;
-  REC *rec;
-  char line[80];
+  LIST  *list;
+  int   done = 0;
+  REC   *rec;
+  char  line[80];
 
-  list = lst_init ();
+  list = lst_init();
 
-  printf ("Type a list of names and ages. Empty line quits\n\n");
+  printf("Type a list of names and ages. Empty line quits\n\n");
 
-  while (!done)
-    {
-      rec = lst_newnode (sizeof (REC));
-      gets (line);
-      if ((done = (line[0] == '\0')) != 1)
-	{
-	  strcpy (rec->name, line);
-	  gets (line);
-	  rec->age = atoi (line);
-	  lst_insertafter (list, rec, LST_HEAD (list));
-	}
-    };
+  while (!done) {
+    rec = lst_newnode(sizeof(REC));
+    gets(line);
+    if ((done = (line[0] == '\0')) != 1) {
+      strcpy(rec->name, line);
+      gets(line);
+      rec->age = atoi(line);
+      lst_insertafter(list, rec, LST_HEAD(list));
+    }
+  }
+  ;
 
-  printf ("\nThe list you typed in was:\n\n");
+  printf("\nThe list you typed in was:\n\n");
 
-  for (rec = lst_first (list); rec; rec = lst_next (rec))
-    printf ("Name: %s, Age: %d\n", rec->name, rec->age);
+  for (rec = lst_first(list); rec; rec = lst_next(rec))
+    printf("Name: %s, Age: %d\n", rec->name, rec->age);
 
-  printf ("\nSorting the list...\n\n");
+  printf("\nSorting the list...\n\n");
 
-  lst_mergesort (list, my_cmp);
+  lst_mergesort(list, my_cmp);
 
-  for (rec = lst_first (list); rec; rec = lst_next (rec))
-    printf ("Name: %s, Age: %d\n", rec->name, rec->age);
+  for (rec = lst_first(list); rec; rec = lst_next(rec))
+    printf("Name: %s, Age: %d\n", rec->name, rec->age);
 
-  lst_kill (list, lst_freenode);
+  lst_kill(list, lst_freenode);
 }
+
 
 /*---------------------------------------------------------------*/
 
