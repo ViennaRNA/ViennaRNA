@@ -60,98 +60,113 @@ EndTimer(clock_t begin)
 /* --------------------end include timer */
 extern int subopt_sorted;
 /* static int print_struc(duplexT const *dup); */
-static int **average_accessibility_target(char      **names,
-                                          char      **ALN,
-                                          int       number,
-                                          char      *access,
-                                          double    verhaeltnis,
-                                          const int alignment_length,
-                                          int       binaries,
-                                          int       fast);
+static int **
+average_accessibility_target(char       **names,
+                             char       **ALN,
+                             int        number,
+                             char       *access,
+                             double     verhaeltnis,
+                             const int  alignment_length,
+                             int        binaries,
+                             int        fast);
 
 
 /* static int ** average_accessibility_query(char **names, char **ALN, int number, char *access, double verhaeltnis); */
-static int get_max_u(const char *s,
-                     char       delim);
+static int
+get_max_u(const char  *s,
+          char        delim);
 
 
-static int **read_plfold_i(char       *fname,
-                           const int  beg,
-                           const int  end,
-                           double     verhaeltnis,
-                           const int  length,
-                           int        fast);
+static int **
+read_plfold_i(char      *fname,
+              const int beg,
+              const int end,
+              double    verhaeltnis,
+              const int length,
+              int       fast);
 
 
 /**
  * Compute the conditional per nucleotide directly
  */
 /* static int ** read_plfold_j(char *fname, const int beg, const int end,double verhaeltnis); */
-static int **read_plfold_i_bin(char       *fname,
-                               const int  beg,
-                               const int  end,
-                               double     verhaeltnis,
-                               const int  length,
-                               int        fast);
+static int **
+read_plfold_i_bin(char      *fname,
+                  const int beg,
+                  const int end,
+                  double    verhaeltnis,
+                  const int length,
+                  int       fast);
 
 
 /* Compute and pass opening energies in case of f=2*/
-static int get_sequence_length_from_alignment(char *sequence);
+static int
+get_sequence_length_from_alignment(char *sequence);
 
 
-/* take as argument a list of hit from an alignment interaction */
-/* Accessibility can currently not be provided */
-static void aliprint_struct(FILE      *Result,  /* result file */
-                            FILE      *Target,  /* target alignment */
-                            FILE      *Query,
-                            const int WindowsLength);
+/*
+ * take as argument a list of hit from an alignment interaction
+ * Accessibility can currently not be provided
+ */
+static void
+aliprint_struct(FILE      *Result,              /* result file */
+                FILE      *Target,              /* target alignment */
+                FILE      *Query,
+                const int WindowsLength);
 
 
-static void linear_fit(int  *a,
-                       int  *b,
-                       int  *c,
-                       int  *d);                        /* get linear fits for Iopn, Iextension, Bopn, Bextension, I^1open and I^1extension */
+static void
+linear_fit(int  *a,
+           int  *b,
+           int  *c,
+           int  *d);                                    /* get linear fits for Iopn, Iextension, Bopn, Bextension, I^1open and I^1extension */
 
 
 /**
  * Compute Tm based on silvana's parameters (1999)
  */
-double probcompute_silvana_98(char    *s1,
-                              double  k_concentration,
-                              double  tris_concentration,
-                              double  mg_concentration,
-                              double  na_concentration,
-                              double  probe_concentration);
+double
+probcompute_silvana_98(char   *s1,
+                       double k_concentration,
+                       double tris_concentration,
+                       double mg_concentration,
+                       double na_concentration,
+                       double probe_concentration);
 
 
-double probcompute_silvana_04(char    *s1,
-                              double  k_concentration,
-                              double  tris_concentration,
-                              double  mg_concentration,
-                              double  na_concentration,
-                              double  probe_concentration);
+double
+probcompute_silvana_04(char   *s1,
+                       double k_concentration,
+                       double tris_concentration,
+                       double mg_concentration,
+                       double na_concentration,
+                       double probe_concentration);
 
 
-double     probcompute_xia_98(char    *s1,
-                              double  na_concentration,
-                              double  probe_concentration);
+double
+probcompute_xia_98(char   *s1,
+                   double na_concentration,
+                   double probe_concentration);
 
 
-double     probcompute_sug_95(char    *s1,
-                              double  na_concentration,
-                              double  probe_concentration);
+double
+probcompute_sug_95(char   *s1,
+                   double na_concentration,
+                   double probe_concentration);
 
 
-double probcompute_newparameters(char   *s1,
-                                 double k_concentration,
-                                 double tris_concentration,
-                                 double mg_concentration,
-                                 double na_concentration,
-                                 double probe_concentration);
+double
+probcompute_newparameters(char    *s1,
+                          double  k_concentration,
+                          double  tris_concentration,
+                          double  mg_concentration,
+                          double  na_concentration,
+                          double  probe_concentration);
 
 
 /*@unused@*/
-static int convert_plfold_i(char *fname);/* convert test accessibility into bin accessibility. */
+static int
+convert_plfold_i(char *fname);           /* convert test accessibility into bin accessibility. */
 
 
 static char scale[] = "....,....1....,....2....,....3....,....4"
@@ -166,21 +181,23 @@ main(int  argc,
   struct        RNAplex_args_info args_info;
 
 #define MAX_NUM_NAMES    500
-  char                            *temp1[MAX_NUM_NAMES], *temp2[MAX_NUM_NAMES], *AS1[MAX_NUM_NAMES], *AS2[MAX_NUM_NAMES], *names1[MAX_NUM_NAMES], *names2[MAX_NUM_NAMES];
-  char                            *s1     = NULL, *s2 = NULL, *line, *cstruc = NULL, *structure = NULL;
+  char                            *temp1[MAX_NUM_NAMES], *temp2[MAX_NUM_NAMES], *AS1[MAX_NUM_NAMES],
+                                  *AS2[MAX_NUM_NAMES], *names1[MAX_NUM_NAMES],
+                                  *names2[MAX_NUM_NAMES];
+  char                            *s1 = NULL, *s2 = NULL, *line, *cstruc = NULL, *structure = NULL;
   char                            *line_q = NULL, *line_t = NULL;
   char                            *tname  = NULL;
   char                            *qname  = NULL;
   char                            *access = NULL;
   char                            fname[FILENAME_MAX_LENGTH];
-  char                            *ParamFile  = NULL;
-  char                            *ns_bases   = NULL, *c;
+  char                            *ParamFile = NULL;
+  char                            *ns_bases = NULL, *c;
 
   FILE                            *Result = NULL; /* file containing the results */
-  FILE                            *mRNA   = NULL, *sRNA = NULL;
+  FILE                            *mRNA = NULL, *sRNA = NULL;
 
-  char                            *Resultfile       = NULL;
-  int                             fold_constrained  = 0;
+  char                            *Resultfile = NULL;
+  int                             fold_constrained = 0;
   int                             i, l, sym;
 
   /* double kT, sfact=1.07; */
@@ -293,7 +310,7 @@ main(int  argc,
   /*Probe mode Salt concentration*/
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
@@ -334,7 +351,8 @@ main(int  argc,
    */
   if (probe_mode) {
     if (qname || tname) {
-      vrna_message_error("No query/target file allowed in Tm probe mode\nPlease pipe your input into RNAplex\n");
+      vrna_message_error(
+        "No query/target file allowed in Tm probe mode\nPlease pipe your input into RNAplex\n");
       /* get sequence */
     } else {
       /* fix temperature to 37C */
@@ -353,8 +371,19 @@ main(int  argc,
       }
 
       /*Initialize parameter */
-      printf("Concentration K:%3.3f TNP:%3.3f Mg:%3.3f Na:%3.3f probe:%3.3f\n\n", k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
-      printf("%100s %7s %7s %7s %7s %7s\n", "sequence", "DDSL98", "DDSL04", "DRSU95", "RRXI98", "CURRENT");
+      printf("Concentration K:%3.3f TNP:%3.3f Mg:%3.3f Na:%3.3f probe:%3.3f\n\n",
+             k_concentration,
+             tris_concentration,
+             mg_concentration,
+             na_concentration,
+             probe_concentration);
+      printf("%100s %7s %7s %7s %7s %7s\n",
+             "sequence",
+             "DDSL98",
+             "DDSL04",
+             "DRSU95",
+             "RRXI98",
+             "CURRENT");
       do {
         istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
         if ((line = vrna_read_line(stdin)) == NULL)
@@ -382,15 +411,30 @@ main(int  argc,
         strcpy(s1, line);
         /*compute duplex/entropy energy for the reverse complement*/;
         double Tm;
-        Tm = probcompute_silvana_98(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+        Tm = probcompute_silvana_98(line,
+                                    k_concentration,
+                                    tris_concentration,
+                                    mg_concentration,
+                                    na_concentration,
+                                    probe_concentration);
         printf("%100s  %*.2f ", s1, 6, Tm);
-        Tm = probcompute_silvana_04(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+        Tm = probcompute_silvana_04(line,
+                                    k_concentration,
+                                    tris_concentration,
+                                    mg_concentration,
+                                    na_concentration,
+                                    probe_concentration);
         printf("%*.2f  ", 6, Tm);
         Tm = probcompute_sug_95(line, na_concentration, probe_concentration);
         printf("%*.2f  ", 6, Tm);
         Tm = probcompute_xia_98(line, na_concentration, probe_concentration);
         printf("%*.2f  ", 6, Tm);
-        Tm = probcompute_newparameters(line, k_concentration, tris_concentration, mg_concentration, na_concentration, probe_concentration);
+        Tm = probcompute_newparameters(line,
+                                       k_concentration,
+                                       tris_concentration,
+                                       mg_concentration,
+                                       na_concentration,
+                                       probe_concentration);
         printf("%*.2f\n", 6, Tm);
       } while (1);
     }
@@ -422,7 +466,8 @@ main(int  argc,
              * Check if the files we are looking ends in openen and not openen_bin,
              * in order to avoid that RNAplex converts bin-file to bin-file
              */
-            while (name[strPos + PatternPos] == pattern[PatternPos] && pattern[PatternPos] != '\0' && name[strPos + PatternPos] != '\0')
+            while (name[strPos + PatternPos] == pattern[PatternPos] &&
+                   pattern[PatternPos] != '\0' && name[strPos + PatternPos] != '\0')
               PatternPos++;
             if (name[strPos + PatternPos] == '\0' && pattern[PatternPos] == '\0')
               /**
@@ -629,7 +674,8 @@ main(int  argc,
           }
 
           if (access_s1 == NULL) {
-            printf("Accessibility file %s not found or corrupt, look at next target RNA\n", file_s1);
+            printf("Accessibility file %s not found or corrupt, look at next target RNA\n",
+                   file_s1);
             free(file_s1);
             free(s1);
             free(id_s1);
@@ -699,7 +745,8 @@ main(int  argc,
               access_s2 = read_plfold_i(file_s2, 1, s2_len, verhaeltnis, alignment_length, fast);
             } else {
               strcat(file_s2, "_bin");
-              access_s2 = read_plfold_i_bin(file_s2, 1, s2_len, verhaeltnis, alignment_length, fast);
+              access_s2 =
+                read_plfold_i_bin(file_s2, 1, s2_len, verhaeltnis, alignment_length, fast);
             }
 
             if (access_s2 == NULL) {
@@ -712,10 +759,21 @@ main(int  argc,
             }
 
             printf(">%s\n>%s\n", id_s1, id_s2);
-            double  begin = BeginTimer();
-            Lduplexfold_XS(s1, s2, (const int **)access_s1, (const int **)access_s2, delta, alignment_length, deltaz, fast, il_a, il_b, b_a, b_b);
-            float   elapTicks;
-            float   elapMilli;
+            double begin = BeginTimer();
+            Lduplexfold_XS(s1,
+                           s2,
+                           (const int **)access_s1,
+                           (const int **)access_s2,
+                           delta,
+                           alignment_length,
+                           deltaz,
+                           fast,
+                           il_a,
+                           il_b,
+                           b_a,
+                           b_b);
+            float elapTicks;
+            float elapMilli;
             elapTicks = (EndTimer(begin) - begin);
             elapMilli = elapTicks / 1000;
             /*             printf("Millisecond %.2f\n",elapMilli); */
@@ -858,13 +916,25 @@ main(int  argc,
             }
             printf(">%s\n>%s\n", id_s1, id_s2);
             /*             double begin = BeginTimer(); */
-            Lduplexfold(s1, s2, delta, extension_cost, alignment_length, deltaz, fast, il_a, il_b, b_a, b_b);
-            /* float elapTicks; */
-            /* float elapMilli; */
-            /* elapTicks = (EndTimer(begin) - begin); */
-            /* elapMilli = elapTicks/1000; */
-            /* printf("Millisecond %.2f\n",elapMilli); */
-            /* printf("\n"); */
+            Lduplexfold(s1,
+                        s2,
+                        delta,
+                        extension_cost,
+                        alignment_length,
+                        deltaz,
+                        fast,
+                        il_a,
+                        il_b,
+                        b_a,
+                        b_b);
+            /*
+             * float elapTicks;
+             * float elapMilli;
+             * elapTicks = (EndTimer(begin) - begin);
+             * elapMilli = elapTicks/1000;
+             * printf("Millisecond %.2f\n",elapMilli);
+             * printf("\n");
+             */
             free(id_s2);
             id_s2 = NULL;
             free(s2);
@@ -1036,7 +1106,8 @@ main(int  argc,
             int   a = strchr(structure, '|') - structure;
             int   b = strrchr(structure, '|') - structure;
             if (alignment_length < b - a + 1)
-              vrna_message_error("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+              vrna_message_error(
+                "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
 
             int   **access_s2;
             char  *file_s2;
@@ -1049,7 +1120,8 @@ main(int  argc,
               access_s2 = read_plfold_i(file_s2, 1, s2_len, verhaeltnis, alignment_length, fast);
             } else {
               strcat(file_s2, "_bin");
-              access_s2 = read_plfold_i_bin(file_s2, 1, s2_len, verhaeltnis, alignment_length, fast);
+              access_s2 =
+                read_plfold_i_bin(file_s2, 1, s2_len, verhaeltnis, alignment_length, fast);
             }
 
             if (access_s2 == NULL) {
@@ -1061,7 +1133,19 @@ main(int  argc,
             }
 
             printf(">%s\n>%s\n", id_s1, id_s2);
-            Lduplexfold_CXS(s1, s2, (const int **)access_s1, (const int **)access_s2, delta, alignment_length, deltaz, fast, structure, il_a, il_b, b_a, b_b);/* , target_dead, query_dead); */
+            Lduplexfold_CXS(s1,
+                            s2,
+                            (const int **)access_s1,
+                            (const int **)access_s2,
+                            delta,
+                            alignment_length,
+                            deltaz,
+                            fast,
+                            structure,
+                            il_a,
+                            il_b,
+                            b_a,
+                            b_b);                                                                                                                             /* , target_dead, query_dead); */
             free(id_s2);
             free(file_s2);
             free(s2);
@@ -1127,8 +1211,10 @@ main(int  argc,
             if ((line_t = vrna_read_line(mRNA)) == NULL)
               break;
           }
-          /*append N's to the sequence in order to avoid boundary checking*/
-          /* if ((line_t ==NULL) || (strcmp(line_t, "@") == 0)) break; */
+          /*
+           * append N's to the sequence in order to avoid boundary checking
+           * if ((line_t ==NULL) || (strcmp(line_t, "@") == 0)) break;
+           */
           if ((line_t == NULL) || (strcmp(line_t, "@") == 0)) {
             if (id_s1) {
               free(id_s1);
@@ -1215,16 +1301,28 @@ main(int  argc,
               vrna_message_warning("constraints missing");
             }
 
-            int     a = strchr(structure, '|') - structure;
-            int     b = strrchr(structure, '|') - structure;
+            int a = strchr(structure, '|') - structure;
+            int b = strrchr(structure, '|') - structure;
             if (alignment_length < b - a + 1)
-              vrna_message_error("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+              vrna_message_error(
+                "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
 
             printf(">%s\n>%s\n", id_s1, id_s2);
-            double  begin = BeginTimer();
-            Lduplexfold_C(s1, s2, delta, extension_cost, alignment_length, deltaz, fast, structure, il_a, il_b, b_a, b_b);
-            float   elapTicks;
-            float   elapMilli;
+            double begin = BeginTimer();
+            Lduplexfold_C(s1,
+                          s2,
+                          delta,
+                          extension_cost,
+                          alignment_length,
+                          deltaz,
+                          fast,
+                          structure,
+                          il_a,
+                          il_b,
+                          b_a,
+                          b_b);
+            float elapTicks;
+            float elapMilli;
             elapTicks = EndTimer(begin);
             elapMilli = elapTicks / 1000;
             /*             printf("Millisecond %.2f\n",elapMilli); */
@@ -1252,8 +1350,10 @@ main(int  argc,
     }
 
     do {
-      /* main loop: continue until end of file */
-      /* duplexT mfe, *subopt         */
+      /*
+       * main loop: continue until end of file
+       * duplexT mfe, *subopt
+       */
       char *id_s1 = NULL, *id_s2 = NULL;
       if (istty) {
         printf("\nInput two sequences (one line each); @ to quit\n");
@@ -1359,14 +1459,36 @@ main(int  argc,
 
       if (access == NULL) {
         if (!fold_constrained) {
-          Lduplexfold(s1, s2, delta, extension_cost, alignment_length, deltaz, fast, il_a, il_b, b_a, b_b);
+          Lduplexfold(s1,
+                      s2,
+                      delta,
+                      extension_cost,
+                      alignment_length,
+                      deltaz,
+                      fast,
+                      il_a,
+                      il_b,
+                      b_a,
+                      b_b);
         } else {
           int a = strchr(structure, '|') - structure;
           int b = strrchr(structure, '|') - structure;
           if (alignment_length < b - a + 1)
-            vrna_message_error("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+            vrna_message_error(
+              "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
 
-          Lduplexfold_C(s1, s2, delta, extension_cost, alignment_length, deltaz, fast, structure, il_a, il_b, b_a, b_b);
+          Lduplexfold_C(s1,
+                        s2,
+                        delta,
+                        extension_cost,
+                        alignment_length,
+                        deltaz,
+                        fast,
+                        structure,
+                        il_a,
+                        il_b,
+                        b_a,
+                        b_b);
         }
       } else {
         int   **access_s1, **access_s2;
@@ -1375,7 +1497,8 @@ main(int  argc,
         s1_len  = strlen(s1);
         s2_len  = strlen(s2);
         if (!(id_s1 && id_s2))
-          vrna_message_error("The fasta files has no header information..., cant fetch accessibility file\n");
+          vrna_message_error(
+            "The fasta files has no header information..., cant fetch accessibility file\n");
 
         file_s1 = (char *)vrna_alloc(sizeof(char) * (strlen(id_s1) + strlen(access) + 20));
         file_s2 = (char *)vrna_alloc(sizeof(char) * (strlen(id_s2) + strlen(access) + 20));
@@ -1423,14 +1546,38 @@ main(int  argc,
         }
 
         if (!fold_constrained) {
-          Lduplexfold_XS(s1, s2, (const int **)access_s1, (const int **)access_s2, delta, alignment_length, deltaz, fast, il_a, il_b, b_a, b_b);/* , target_dead, query_dead); */
+          Lduplexfold_XS(s1,
+                         s2,
+                         (const int **)access_s1,
+                         (const int **)access_s2,
+                         delta,
+                         alignment_length,
+                         deltaz,
+                         fast,
+                         il_a,
+                         il_b,
+                         b_a,
+                         b_b);                                                                                                                  /* , target_dead, query_dead); */
         } else {
           int a = strchr(structure, '|') - structure;
           int b = strrchr(structure, '|') - structure;
           if (alignment_length < b - a + 1)
-            vrna_message_error("Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+            vrna_message_error(
+              "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
 
-          Lduplexfold_CXS(s1, s2, (const int **)access_s1, (const int **)access_s2, delta, alignment_length, deltaz, fast, structure, il_a, il_b, b_a, b_b);/* , target_dead, query_dead); */
+          Lduplexfold_CXS(s1,
+                          s2,
+                          (const int **)access_s1,
+                          (const int **)access_s2,
+                          delta,
+                          alignment_length,
+                          deltaz,
+                          fast,
+                          structure,
+                          il_a,
+                          il_b,
+                          b_a,
+                          b_b);                                                                                                                             /* , target_dead, query_dead); */
         }
 
         i = access_s1[0][0];
@@ -1515,11 +1662,35 @@ main(int  argc,
 
 
     if (access == NULL) {
-      aliLduplexfold((const char **)AS1, (const char **)AS2, n_seq * delta, extension_cost, alignment_length, deltaz, fast, il_a, il_b, b_a, b_b);
+      aliLduplexfold((const char **)AS1,
+                     (const char **)AS2,
+                     n_seq * delta,
+                     extension_cost,
+                     alignment_length,
+                     deltaz,
+                     fast,
+                     il_a,
+                     il_b,
+                     b_a,
+                     b_b);
     } else {
       int **target_access = NULL, **query_access = NULL;
-      target_access = average_accessibility_target(names1, AS1, n_seq, access, verhaeltnis, alignment_length, binaries, fast); /* get averaged accessibility for alignments */
-      query_access  = average_accessibility_target(names2, AS2, n_seq, access, verhaeltnis, alignment_length, binaries, fast);
+      target_access = average_accessibility_target(names1,
+                                                   AS1,
+                                                   n_seq,
+                                                   access,
+                                                   verhaeltnis,
+                                                   alignment_length,
+                                                   binaries,
+                                                   fast);                                                                      /* get averaged accessibility for alignments */
+      query_access = average_accessibility_target(names2,
+                                                  AS2,
+                                                  n_seq,
+                                                  access,
+                                                  verhaeltnis,
+                                                  alignment_length,
+                                                  binaries,
+                                                  fast);
       if (!(target_access && query_access)) {
         for (i = 0; AS1[i]; i++) {
           free(AS1[i]);
@@ -1531,7 +1702,18 @@ main(int  argc,
         return 0;
       }
 
-      aliLduplexfold_XS((const char **)AS1, (const char **)AS2, (const int **)target_access, (const int **)query_access, n_seq * delta, alignment_length, deltaz, fast, il_a, il_b, b_a, b_b);
+      aliLduplexfold_XS((const char **)AS1,
+                        (const char **)AS2,
+                        (const int **)target_access,
+                        (const int **)query_access,
+                        n_seq * delta,
+                        alignment_length,
+                        deltaz,
+                        fast,
+                        il_a,
+                        il_b,
+                        b_a,
+                        b_b);
       if (!(target_access == NULL)) {
         i = target_access[0][0];
         while (--i > -1)
@@ -1615,15 +1797,18 @@ read_plfold_i(char      *fname,
   int   i, j;
   int   **access;
   int   offset, temp;
+
   temp    = 0;
   offset  = 0;
   int   seq_pos;
   int   beg_r, end_r;
+
   beg_r = beg;
   end_r = end;
   char  tmp[2048] = {
     0x0
   };
+
   /* char *ptr; */
   if (fgets(tmp, sizeof(tmp), in) == 0)
     perror("Empty File");
@@ -1639,10 +1824,15 @@ read_plfold_i(char      *fname,
   }
 
   int dim_x;
+
   dim_x = get_max_u(tmp, '\t');
   if (length > dim_x && fast == 0) {
-    printf("Interaction length %d is larger than the length of the largest region %d \nfor which the opening energy was computed (-u parameter of RNAplfold)\n", length, dim_x);
-    printf("Please recompute your profiles with a larger -u or set -l to a smaller interaction length\n");
+    printf(
+      "Interaction length %d is larger than the length of the largest region %d \nfor which the opening energy was computed (-u parameter of RNAplfold)\n",
+      length,
+      dim_x);
+    printf(
+      "Please recompute your profiles with a larger -u or set -l to a smaller interaction length\n");
     return NULL;
   }
 
@@ -1656,8 +1846,10 @@ read_plfold_i(char      *fname,
   while (fgets(tmp, sizeof(tmp), in) != 0 && --end_r > 10) {
     /* read a record, before we have --end_r > 10*/
     float n;
-    /* int i; */
-    /* int u; */
+    /*
+     * int i;
+     * int u;
+     */
     beg_r--;
     if (beg_r < 1) {
       if (sscanf(tmp, "%d\t%n", &seq_pos, &temp) == 1) {
@@ -1676,7 +1868,9 @@ read_plfold_i(char      *fname,
     }
   }
   if (end_r > 20) {
-    printf("Accessibility files contains %d less entries than expected based on the sequence length\n", end_r - 20);
+    printf(
+      "Accessibility files contains %d less entries than expected based on the sequence length\n",
+      end_r - 20);
     printf("Please recompute your profiles so that profile length and sequence length match\n");
     return NULL;
   }
@@ -1684,6 +1878,7 @@ read_plfold_i(char      *fname,
   fclose(in);
   float elapTicks;
   float elapMilli;
+
   elapTicks = (EndTimer(begin) - begin);
   elapMilli = elapTicks / 1000;
   return access;
@@ -1704,6 +1899,7 @@ convert_plfold_i(char *fname)
   char tmp[2048] = {
     0x0
   };
+
   if (fgets(tmp, sizeof(tmp), in) == 0)
     perror("Empty File");
 
@@ -1718,9 +1914,11 @@ convert_plfold_i(char *fname)
   }
 
   int   u_length;
+
   u_length = get_max_u(tmp, '\t'); /* get the x dimension */
   char  c;
   int   length = 0;
+
   while ((c = fgetc(in)) != EOF)
     if (c == '\n')
       length++;
@@ -1728,11 +1926,13 @@ convert_plfold_i(char *fname)
   fclose(in);
   int   **access = read_plfold_i(fname, 1, length + 20, 1, u_length, 2);
   char  *outname;
+
   outname = (char *)vrna_alloc((strlen(fname) + 5) * sizeof(char));
   strcpy(outname, fname);
   strcat(outname, "_bin");
   FILE  *fp = fopen(outname, "wb");
   int   p[1];
+
   p[0] = 1000000;
   for (i = 0; i < u_length + 2; i++) {
     fwrite(access[i], sizeof(int), length + 20, fp);
@@ -1766,6 +1966,7 @@ read_plfold_i_bin(char      *fname,
   }
 
   int *first_line;
+
   first_line = (int *)vrna_alloc(sizeof(int) * (end - beg + 1));              /* check length of the line LOOK at read_plfold_i */
   if (!fread(first_line, sizeof(int), (end - beg) + 1, fp)) {
     vrna_message_warning("Problem reading size of profile from '%s'", fname); /* get the value of the u option */
@@ -1773,26 +1974,35 @@ read_plfold_i_bin(char      *fname,
   }
 
   int lim_x;
+
   lim_x     = first_line[0];
   seqlength = first_line[1];                                  /* length of the sequence RNAplfold was ran on. */
   if (length > lim_x && fast == 0) {
-    printf("Interaction length %d is larger than the length of the largest region %d \nfor which the opening energy was computed (-u parameter of RNAplfold)\n", length, lim_x);
-    printf("Please recompute your profiles with a larger -u or set -l to a smaller interaction length\n");
+    printf(
+      "Interaction length %d is larger than the length of the largest region %d \nfor which the opening energy was computed (-u parameter of RNAplfold)\n",
+      length,
+      lim_x);
+    printf(
+      "Please recompute your profiles with a larger -u or set -l to a smaller interaction length\n");
     return NULL;
   }
 
   fseek(fp, 0, SEEK_SET);                                   /* set pointer to the begining of the file */
   int       **access;                                       /* here we store the access  values */
+
   access = (int **)vrna_alloc(sizeof(int *) * (lim_x + 1)); /* !!!! lim_x+1 -> lim_x+2 */
   int       count;
   long int  position;
+
   for (count = 0; count < lim_x + 1; count++) {
     /* read file */
     access[count] = (int *)vrna_alloc(sizeof(int) * (end - beg + 1)); /* declare array length */
-    /* now we should be sure to read the right position */
-    /* we first need a seek to the right position */
-    /* 0->9 line begin, + begin  */
-    /* here we need information about the total line length..., we can get this if this is saved by RNAplfold... */
+    /*
+     * now we should be sure to read the right position
+     * we first need a seek to the right position
+     * 0->9 line begin, + begin
+     * here we need information about the total line length..., we can get this if this is saved by RNAplfold...
+     */
     position = ftell(fp);
     fseek(fp, (beg - 1) * sizeof(int), SEEK_CUR);                 /* go to the desired position, note the 10 offset */
     position = ftell(fp);
@@ -1809,6 +2019,7 @@ read_plfold_i_bin(char      *fname,
   fclose(fp);         /* close file */
   float elapTicks;
   float elapMilli;
+
   free(first_line);
   elapTicks = (EndTimer(begin) - begin);
   elapMilli = elapTicks / 1000;
@@ -1857,23 +2068,30 @@ average_accessibility_target(char       **names,
     index[i] = 1;
   master_access = (int ***)vrna_alloc(sizeof(int **) * number);
   int   dim_x; /* contains the minimal of the maximum u length for all sequences of the alignment */
+
   dim_x = INF;
   int   u;
   int   location_flag; /* location flag checks if all line contains a location flag or not */
-  /* if some line contains location information and other not, return a warning but keep going; */
-  /* The location flag will be set to TRUE if the following pattern is found */
-  /*  sequence-name/[0-9]+-[0-9]+  */
-  /*  |----NAME----||BEG|  |END| */
+  /*
+   * if some line contains location information and other not, return a warning but keep going;
+   * The location flag will be set to TRUE if the following pattern is found
+   *  sequence-name/[0-9]+-[0-9]+
+   *  |----NAME----||BEG|  |END|
+   */
   char  bla[255];
+
   if (sscanf(names[0], "%255[^/]/%lld-%lld", bla, &begin, &end) == 3) /* initialize location_flag; */
     location_flag = 1;
   else
     location_flag = 0;
 
   char *file_s1 = NULL;
+
   for (i = 0; i < number; i++) {
-    /*  be careful!!!! Name should contain all characters from begin till the "/" character */
-    /* char *s1; */
+    /*
+     *  be careful!!!! Name should contain all characters from begin till the "/" character
+     * char *s1;
+     */
     file_s1 = (char *)vrna_alloc(sizeof(char) * (strlen(names[i]) + strlen(access) + 20));
     begin   = 1;
     int sequence_length = get_sequence_length_from_alignment(ALN[i]);
@@ -1881,7 +2099,12 @@ average_accessibility_target(char       **names,
     if (sscanf(names[i], "%255[^/]/%lld-%lld", bla, &begin, &end) == 3) {
       /* if subsequence and range do not have the same length, stop RNAplex. */
       if (end - begin + 1 != sequence_length - 20) {
-        printf("Your range %lld %lld in sequence %s does not correspond to the sequence length %d\n", begin, end, names[i], sequence_length - 20);
+        printf(
+          "Your range %lld %lld in sequence %s does not correspond to the sequence length %d\n",
+          begin,
+          end,
+          names[i],
+          sequence_length - 20);
         printf("Please check your input alignments and rerun RNAplex");
         int a = 0;
         if (master_access != NULL) {
@@ -1917,7 +2140,8 @@ average_accessibility_target(char       **names,
         vrna_message_warning("\n!! Line %d in your target alignment does not contain location information\n"
                              "while line %d in your target alignment did. PLEASE CHECK your alignments!!\n"
                              "RNAplex will continue the target search.",
-                             i + 1, i);
+                             i + 1,
+                             i);
       }
 
       location_flag = 0;
@@ -1931,7 +2155,8 @@ average_accessibility_target(char       **names,
       master_access[i] = read_plfold_i(file_s1, begin, end, verhaeltnis, alignment_length, fast); /* read */
     } else {
       strcat(file_s1, "_bin");
-      master_access[i] = read_plfold_i_bin(file_s1, begin, end, verhaeltnis, alignment_length, fast); /* read */
+      master_access[i] =
+        read_plfold_i_bin(file_s1, begin, end, verhaeltnis, alignment_length, fast);                  /* read */
     }
 
     free(file_s1);
@@ -2023,6 +2248,7 @@ aliprint_struct(FILE      *Result,        /* result file */
    * Here we get the length of the target and query alignments. Important for initiliazing the necessary arrays
    */
   int target_alignment_length, query_alignment_length;
+
   target_alignment_length = strlen(AS1[0]);
   query_alignment_length  = strlen(AS2[0]);
 
@@ -2044,7 +2270,11 @@ aliprint_struct(FILE      *Result,        /* result file */
     /**
      * If we have a line in the result file that looks like a result line, then parse it
      */
-    if (strchr(result, '(') && strchr(result, '&') && strchr(result, '(') && strchr(result, ',') && strchr(result, ':') && strchr(result, '-')) {
+    if (strchr(result,
+               '(') &&
+        strchr(result,
+               '&') &&
+        strchr(result, '(') && strchr(result, ',') && strchr(result, ':') && strchr(result, '-')) {
       char  *structure, *pos;
       /**
        * tbegin,tend,qbegin,qend store the duplex boundaries
@@ -2101,10 +2331,12 @@ aliprint_struct(FILE      *Result,        /* result file */
         target[s] = (char *)vrna_alloc((send - sbegin + 2) * sizeof(char));
         strncpy(target[s], (AS1[s] + sbegin - 1), (send - sbegin + 1));
         target[s][send - sbegin + 1]  = '\0';
-        query[s]                      = (char *)vrna_alloc((query_alignment_length + 1) * sizeof(char));
+        query[s]                      =
+          (char *)vrna_alloc((query_alignment_length + 1) * sizeof(char));
         strcpy(query[s], AS2[s]);
         query[s][query_alignment_length]  = '\0';
-        join[s]                           = (char *)vrna_alloc((query_alignment_length + (send - sbegin) + 3) * sizeof(char));
+        join[s]                           =
+          (char *)vrna_alloc((query_alignment_length + (send - sbegin) + 3) * sizeof(char));
         strncpy(join[s], (AS1[s] + sbegin - 1), (send - sbegin + 1));
         strcat(join[s], "&");
         strcat(join[s], AS2[s]);
@@ -2121,7 +2353,8 @@ aliprint_struct(FILE      *Result,        /* result file */
       char  *joint_structure;
       target_constraint = (char *)vrna_alloc((unsigned)(send - sbegin + 2));
       query_constraint  = (char *)vrna_alloc((unsigned)(query_alignment_length + 1));
-      joint_structure   = (char *)vrna_alloc((unsigned)(send - sbegin + 3 + query_alignment_length));
+      joint_structure   =
+        (char *)vrna_alloc((unsigned)(send - sbegin + 3 + query_alignment_length));
       for (i = 0; i < strlen(target[0]); i++) {
         if (i > tbegin - sbegin - 1 && i < tend - sbegin + 1)
           target_constraint[i] = 'x';
@@ -2176,7 +2409,8 @@ aliprint_struct(FILE      *Result,        /* result file */
       char  *string;
       temp_target = consensus((const char **)target);
       temp_query  = consensus((const char **)query);
-      string      = (char *)vrna_alloc((strlen(temp_target) + strlen(temp_query) + 1) * sizeof(char));
+      string      =
+        (char *)vrna_alloc((strlen(temp_target) + strlen(temp_query) + 1) * sizeof(char));
       strcpy(string, temp_target);
       free(temp_target);
       strcat(string, temp_query);
@@ -2222,7 +2456,8 @@ aliprint_struct(FILE      *Result,        /* result file */
        */
 
       char *joint_structure_parenthesis;
-      joint_structure_parenthesis = (char *)vrna_alloc((strlen(joint_structure) + 1) * sizeof(char));
+      joint_structure_parenthesis =
+        (char *)vrna_alloc((strlen(joint_structure) + 1) * sizeof(char));
       strcpy(joint_structure_parenthesis, joint_structure);
       for (i = 0; i < strlen(joint_structure); i++) {
         if ((joint_structure[i] == '[') || (joint_structure[i] == '<'))
@@ -2283,7 +2518,8 @@ get_sequence_length_from_alignment(char *sequence)
   int counter = 0;
 
   while (!(*sequence == '\0')) {
-    if (*sequence == 'A' || *sequence == 'T' || *sequence == 'C' || *sequence == 'G' || *sequence == 'U' || *sequence == 'N')
+    if (*sequence == 'A' || *sequence == 'T' || *sequence == 'C' || *sequence == 'G' ||
+        *sequence == 'U' || *sequence == 'N')
       counter++;
 
     sequence++;
@@ -2315,14 +2551,19 @@ linear_fit(int  *il_a,
   };
   int     internal_loop_y[25];
   int     i;
+
   for (i = 0; i < 25; i++) /* initialize the y-value for internal loops */
     internal_loop_y[i] = P->internal_loop[internal_loop_x[i]];
   int     sumx, sumy, sumxx, sumxy;
+
   sumx = sumy = sumxx = sumxy = 0;
   double  til_a, til_b;
   int     n = 25; /* only take data points till int_loop size <=20;  */
-                  /* no measurement exists for larger loop &&  */
-                  /* such large loop are not expected in RNA-RNA interactions. */
+
+  /*
+   * no measurement exists for larger loop &&
+   * such large loop are not expected in RNA-RNA interactions.
+   */
   for (i = 0; i < n; i++) {
     sumx  += internal_loop_x[i];
     sumy  += internal_loop_y[i];
@@ -2347,10 +2588,12 @@ linear_fit(int  *il_a,
     2, 3, 4, 5, 6
   };
   int     bulge_loop_y[5];
+
   for (i = 0; i < n; i++)
     bulge_loop_y[i] = P->bulge[bulge_loop_x[i]];
   sumx = sumy = sumxx = sumxy = 0;
   double  tb_a, tb_b;
+
   for (i = 0; i < n; i++) {
     sumx  += bulge_loop_x[i];
     sumy  += bulge_loop_y[i];
@@ -2377,25 +2620,25 @@ probcompute_silvana_98(char   *s1,
                        double na_concentration,
                        double probe_concentration)
 {
-  double  d_a               = 3.92 / 100000.0;  /*Parameters from the article of Owczarzy*/
-  double  d_b               = 9.11 / 1000000;   /*Parameters from the article of Owczarzy*/
-  double  d_c               = 6.26 / 100000;    /*Parameters from the article of Owczarzy*/
-  double  d_d               = 1.42 / 100000;    /*Parameters from the article of Owczarzy*/
-  double  d_e               = 4.82 / 10000;     /*Parameters from the article of Owczarzy*/
-  double  d_f               = 5.25 / 10000;     /*Parameters from the article of Owczarzy*/
-  double  d_g               = 8.31 / 100000;    /*Parameters from the article of Owczarzy*/
+  double  d_a = 3.92 / 100000.0;                /*Parameters from the article of Owczarzy*/
+  double  d_b = 9.11 / 1000000;                 /*Parameters from the article of Owczarzy*/
+  double  d_c = 6.26 / 100000;                  /*Parameters from the article of Owczarzy*/
+  double  d_d = 1.42 / 100000;                  /*Parameters from the article of Owczarzy*/
+  double  d_e = 4.82 / 10000;                   /*Parameters from the article of Owczarzy*/
+  double  d_f = 5.25 / 10000;                   /*Parameters from the article of Owczarzy*/
+  double  d_g = 8.31 / 100000;                  /*Parameters from the article of Owczarzy*/
   double  d_magn_corr_value = 0;
-  double  d_fgc             = 0;
+  double  d_fgc = 0;
   double  dH, dS;
 
   dS  = 0;
   dH  = 0;
   double  salt_correction;
   double  enthalpy[4][4] =
-  { { -7.9, -8.4,  -7.8,  -7.2 },
-    { -8.5, -8.0,  -10.6, -7.8 },
-    { -8.2, -10.6, -8.0,  -8.4 },
-    { -7.2, -8.2,  -8.5,  -7.9 } };
+  { { -7.9, -8.4,  -7.8,   -7.2    },
+    { -8.5, -8.0,  -10.6,  -7.8    },
+    { -8.2, -10.6, -8.0,   -8.4    },
+    { -7.2, -8.2,  -8.5,   -7.9    } };
   double  entropy[4][4] = { {
                               -22.2, -22.4, -21.0, -20.4
                             },
@@ -2403,6 +2646,7 @@ probcompute_silvana_98(char   *s1,
                             { -22.2, -27.2, -19.9, -22.4 },
                             { -21.3, -22.2, -22.7, -22.2 } };
   int     posst;
+
   posst = 0;
   int     converted = encode_char(toupper(s1[posst])) - 1;
   int     seqlen    = strlen(s1);
@@ -2457,18 +2701,27 @@ probcompute_silvana_98(char   *s1,
         (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
     } else {
       if (d_ratio_ions < 0.22) {
-        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1 / 100000 * log(single_charged) + 9.40 * 1 / 1000000 * pow(log(single_charged), 2);
+        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1 / 100000 * log(single_charged) + 9.40 * 1 /
+                            1000000 * pow(log(single_charged), 2);
       } else {
         if (d_ratio_ions < 6) {
           d_a = 3.92 / 100000 * (0.843 - 0.352 * sqrt(single_charged) * log(single_charged));
-          d_d = 1.42 / 100000 * (1.279 - 4.03 / 1000 * log(single_charged) - 8.03 / 1000 * pow(log(single_charged), 2));
-          d_g = 8.31 / 100000 * (0.486 - 0.258 * log(single_charged) + 5.25 / 1000 * pow(log(single_charged), 3));
+          d_d = 1.42 / 100000 *
+                (1.279 - 4.03 / 1000 * log(single_charged) - 8.03 / 1000 *
+                 pow(log(single_charged), 2));
+          d_g = 8.31 / 100000 *
+                (0.486 - 0.258 * log(single_charged) + 5.25 / 1000 * pow(log(single_charged), 3));
 
           d_magn_corr_value = d_a - d_b * log
                                 (mg_concentration) + d_fgc *
-                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) * (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
+                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) *
+                              (-d_e + d_f * log(mg_concentration) + d_g *
+                               pow(log(mg_concentration), 2));
         } else {
-          d_magn_corr_value = d_a - d_b * log(mg_concentration) + d_fgc * (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) * (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
+          d_magn_corr_value = d_a - d_b * log(mg_concentration) + d_fgc *
+                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) *
+                              (-d_e + d_f * log(mg_concentration) + d_g *
+                               pow(log(mg_concentration), 2));
         }
       }
     }
@@ -2488,25 +2741,25 @@ probcompute_silvana_04(char   *s1,
                        double na_concentration,
                        double probe_concentration)
 {
-  double  d_a               = 3.92 / 100000.0;  /*Parameters from the article of Owczarzy*/
-  double  d_b               = 9.11 / 1000000;   /*Parameters from the article of Owczarzy*/
-  double  d_c               = 6.26 / 100000;    /*Parameters from the article of Owczarzy*/
-  double  d_d               = 1.42 / 100000;    /*Parameters from the article of Owczarzy*/
-  double  d_e               = 4.82 / 10000;     /*Parameters from the article of Owczarzy*/
-  double  d_f               = 5.25 / 10000;     /*Parameters from the article of Owczarzy*/
-  double  d_g               = 8.31 / 100000;    /*Parameters from the article of Owczarzy*/
+  double  d_a = 3.92 / 100000.0;                /*Parameters from the article of Owczarzy*/
+  double  d_b = 9.11 / 1000000;                 /*Parameters from the article of Owczarzy*/
+  double  d_c = 6.26 / 100000;                  /*Parameters from the article of Owczarzy*/
+  double  d_d = 1.42 / 100000;                  /*Parameters from the article of Owczarzy*/
+  double  d_e = 4.82 / 10000;                   /*Parameters from the article of Owczarzy*/
+  double  d_f = 5.25 / 10000;                   /*Parameters from the article of Owczarzy*/
+  double  d_g = 8.31 / 100000;                  /*Parameters from the article of Owczarzy*/
   double  d_magn_corr_value = 0;
-  double  d_fgc             = 0;
+  double  d_fgc = 0;
   double  dH, dS;
 
   dS  = 0;
   dH  = 0;
   double  salt_correction;
   double  enthalpy[4][4] =
-  { { -7.6, -8.4, -7.8,  -7.2 },
-    { -8.5, -8.0, -10.6, -7.8 },
-    { -8.2, -9.8, -8.0,  -8.4 },
-    { -7.2, -8.2, -8.5,  -7.6 } };
+  { { -7.6, -8.4, -7.8,  -7.2   },
+    { -8.5, -8.0, -10.6, -7.8   },
+    { -8.2, -9.8, -8.0,  -8.4   },
+    { -7.2, -8.2, -8.5,  -7.6   } };
   double  entropy[4][4] = { {
                               -21.3, -22.4, -21.0, -20.4
                             },
@@ -2514,6 +2767,7 @@ probcompute_silvana_04(char   *s1,
                             { -22.2, -24.4, -19.9, -22.4 },
                             { -21.3, -22.2, -22.7, -21.3 } };
   int     posst;
+
   posst = 0;
   int     converted = encode_char(toupper(s1[posst])) - 1;
   int     seqlen    = strlen(s1);
@@ -2568,18 +2822,27 @@ probcompute_silvana_04(char   *s1,
         (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
     } else {
       if (d_ratio_ions < 0.22) {
-        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1 / 100000 * log(single_charged) + 9.40 * 1 / 1000000 * pow(log(single_charged), 2);
+        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1 / 100000 * log(single_charged) + 9.40 * 1 /
+                            1000000 * pow(log(single_charged), 2);
       } else {
         if (d_ratio_ions < 6) {
           d_a = 3.92 / 100000 * (0.843 - 0.352 * sqrt(single_charged) * log(single_charged));
-          d_d = 1.42 / 100000 * (1.279 - 4.03 / 1000 * log(single_charged) - 8.03 / 1000 * pow(log(single_charged), 2));
-          d_g = 8.31 / 100000 * (0.486 - 0.258 * log(single_charged) + 5.25 / 1000 * pow(log(single_charged), 3));
+          d_d = 1.42 / 100000 *
+                (1.279 - 4.03 / 1000 * log(single_charged) - 8.03 / 1000 *
+                 pow(log(single_charged), 2));
+          d_g = 8.31 / 100000 *
+                (0.486 - 0.258 * log(single_charged) + 5.25 / 1000 * pow(log(single_charged), 3));
 
           d_magn_corr_value = d_a - d_b * log
                                 (mg_concentration) + d_fgc *
-                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) * (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
+                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) *
+                              (-d_e + d_f * log(mg_concentration) + d_g *
+                               pow(log(mg_concentration), 2));
         } else {
-          d_magn_corr_value = d_a - d_b * log(mg_concentration) + d_fgc * (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) * (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
+          d_magn_corr_value = d_a - d_b * log(mg_concentration) + d_fgc *
+                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) *
+                              (-d_e + d_f * log(mg_concentration) + d_g *
+                               pow(log(mg_concentration), 2));
         }
       }
     }
@@ -2602,16 +2865,17 @@ probcompute_xia_98(char   *s1,
   dH  = 0;
   double  salt_correction;
   double  enthalpy[4][4] =
-  { { -6.820,  -11.400, -10.480, -9.380  },
-    { -10.440, -13.390, -10.640, -10.480 },
-    { -12.440, -14.880, -13.390, -11.400 },
-    { -7.690,  -12.440, -10.440, -6.820  } };
+  { { -6.820,  -11.400,  -10.480,  -9.380  },
+    { -10.440, -13.390,  -10.640,  -10.480 },
+    { -12.440, -14.880,  -13.390,  -11.400 },
+    { -7.690,  -12.440,  -10.440,  -6.820  } };
   double  entropy[4][4] =
   { { -19.0, -29.5, -27.1, -26.7 },
     { -26.9, -32.7, -26.7, -27.1 },
     { -32.5, -36.9, -32.7, -29.5 },
     { -20.5, -32.5, -26.9, -19.0 }, };
   int     posst;
+
   posst = 0;
   int     converted = encode_char(toupper(s1[posst])) - 1;
   int     seqlen    = strlen(s1);
@@ -2662,23 +2926,26 @@ probcompute_sug_95(char   *s1,
   dH  = 0;
   double  salt_correction;
   double  enthalpy[4][4] =
-  { { -11.500, -7.800,  -7.000,  -8.300 },
-    { -10.400, -12.800, -16.300, -9.100 },
-    { -8.600,  -8.000,  -9.300,  -5.900 },
-    { -7.800,  -5.500,  -9.000,  -7.800 } };
+  { { -11.500, -7.800,  -7.000,  -8.300   },
+    { -10.400, -12.800, -16.300, -9.100   },
+    { -8.600,  -8.000,  -9.300,  -5.900   },
+    { -7.800,  -5.500,  -9.000,  -7.800   } };
   double  entropy[4][4] =
   { { -36.4, -21.6, -19.7, -23.9 },
     { -28.4, -31.9, -47.1, -23.5 },
     { -22.9, -17.1, -23.2, -12.3 },
     { -23.2, -13.5, -26.1, -21.9 } };
   int     posst;
+
   posst = 0;
   int     converted = encode_char(toupper(s1[posst])) - 1;
   int     seqlen    = strlen(s1);
   double  Tm;
 
-  /*  salt entropy correction von Ahsen 1999 */
-  /* terminal correction */
+  /*
+   *  salt entropy correction von Ahsen 1999
+   * terminal correction
+   */
   if (s1[0] == 'G' || s1[0] == 'C') {
     dH  += 0.95;
     dS  += -1.95;
@@ -2721,9 +2988,11 @@ probcompute_newparameters(char    *s1,
                           double  na_concentration,
                           double  probe_concentration)
 {
-  /* ////////////////////////////////////////// */
-  /* Folding Init */
-  /* //////////////////////////////////////////   */
+  /*
+   * //////////////////////////////////////////
+   * Folding Init
+   * //////////////////////////////////////////
+   */
   vrna_md_t     md;
   vrna_param_t  *P = NULL;
 
@@ -2735,9 +3004,11 @@ probcompute_newparameters(char    *s1,
     make_pair_matrix();
   }
 
-  /* ///////////////////////////////////////// */
-  /* Salt Variable Declaration */
-  /* ///////////////////////////////////////// */
+  /*
+   * /////////////////////////////////////////
+   * Salt Variable Declaration
+   * /////////////////////////////////////////
+   */
 
   double  d_temp;             /* melting temperature */
   double  d_temp_na;          /*melting temperature in 1M na+ */
@@ -2755,28 +3026,36 @@ probcompute_newparameters(char    *s1,
   double  d_f                 = 5.25 / 10000;     /*Parameters from the article of Owczarzy*/
   double  d_g                 = 8.31 / 100000;    /*Parameters from the article of Owczarzy*/
 
-  /* ////////////////////////////////////// */
-  /* Sequence Variable Declaration */
-  /* ////////////////////////////////////// */
+  /*
+   * //////////////////////////////////////
+   * Sequence Variable Declaration
+   * //////////////////////////////////////
+   */
 
   int seqlen = strlen(s1);
   int posst;
+
   posst = 0;
   int converted     = encode_char(toupper(s1[posst]));
   int revconverted  = abs(5 - converted);
 
-  /* ////////////////////////////////////// */
-  /* Energy Variable Declaration */
-  /* ////////////////////////////////////// */
+  /*
+   * //////////////////////////////////////
+   * Energy Variable Declaration
+   * //////////////////////////////////////
+   */
 
   double dT, dG, dS, dH;
+
   dS  = 0;
   dT  = 0;
   dH  = 0;
 
-  /* ////////////////////////////////////// */
-  /* Computation */
-  /* ////////////////////////////////////// */
+  /*
+   * //////////////////////////////////////
+   * Computation
+   * //////////////////////////////////////
+   */
 
 
   /* GC-Content */
@@ -2789,6 +3068,7 @@ probcompute_newparameters(char    *s1,
 
   /* dH dG dS */
   int type = pair[converted][revconverted];
+
   /* Add twice the duplex penalty */
   dG  = 2 * P->DuplexInit;
   dH  = 2 * DuplexInitdH;
@@ -2803,9 +3083,10 @@ probcompute_newparameters(char    *s1,
     int nextconverted     = encode_char(toupper(s1[posst]));
     int nextrevconverted  = abs(5 - nextconverted);
     int nexttype          = pair[nextconverted][nextrevconverted];
-    dG            += stack37[rtype[type]][nexttype];
-    dH            += stackdH[rtype[type]][nexttype];
-    dS            += (stackdH[rtype[type]][nexttype] - stack37[rtype[type]][nexttype]) / (37 + K0) * 10;
+    dG  += stack37[rtype[type]][nexttype];
+    dH  += stackdH[rtype[type]][nexttype];
+    dS  += (stackdH[rtype[type]][nexttype] - stack37[rtype[type]][nexttype]) / (37 + K0) *
+           10;
     converted     = nextconverted;
     revconverted  = nextrevconverted;
     type          = nexttype;
@@ -2836,18 +3117,27 @@ probcompute_newparameters(char    *s1,
         (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
     } else {
       if (d_ratio_ions < 0.22) {
-        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1 / 100000 * log(single_charged) + 9.40 * 1 / 1000000 * pow(log(single_charged), 2);
+        d_magn_corr_value = (4.29 * d_fgc - 3.95) * 1 / 100000 * log(single_charged) + 9.40 * 1 /
+                            1000000 * pow(log(single_charged), 2);
       } else {
         if (d_ratio_ions < 6) {
           d_a = 3.92 / 100000 * (0.843 - 0.352 * sqrt(single_charged) * log(single_charged));
-          d_d = 1.42 / 100000 * (1.279 - 4.03 / 1000 * log(single_charged) - 8.03 / 1000 * pow(log(single_charged), 2));
-          d_g = 8.31 / 100000 * (0.486 - 0.258 * log(single_charged) + 5.25 / 1000 * pow(log(single_charged), 3));
+          d_d = 1.42 / 100000 *
+                (1.279 - 4.03 / 1000 * log(single_charged) - 8.03 / 1000 *
+                 pow(log(single_charged), 2));
+          d_g = 8.31 / 100000 *
+                (0.486 - 0.258 * log(single_charged) + 5.25 / 1000 * pow(log(single_charged), 3));
 
           d_magn_corr_value = d_a - d_b * log
                                 (mg_concentration) + d_fgc *
-                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) * (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
+                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) *
+                              (-d_e + d_f * log(mg_concentration) + d_g *
+                               pow(log(mg_concentration), 2));
         } else {
-          d_magn_corr_value = d_a - d_b * log(mg_concentration) + d_fgc * (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) * (-d_e + d_f * log(mg_concentration) + d_g * pow(log(mg_concentration), 2));
+          d_magn_corr_value = d_a - d_b * log(mg_concentration) + d_fgc *
+                              (d_c + d_d * log(mg_concentration)) + 1 / (2 * ((double)seqlen - 1)) *
+                              (-d_e + d_f * log(mg_concentration) + d_g *
+                               pow(log(mg_concentration), 2));
         }
       }
     }
