@@ -107,7 +107,8 @@ check_symmetry(void);
 
 
 PRIVATE enum
-parset_184 gettype_184(char ident[]);
+parset_184
+gettype_184(char ident[]);
 
 
 PRIVATE char *
@@ -689,8 +690,10 @@ rd_Tri_loop(FILE *fp)
 PRIVATE void
 ignore_comment(char *line)
 {
-  /* excise C style comments */
-  /* only one comment per line, no multiline comments */
+  /*
+   * excise C style comments
+   * only one comment per line, no multiline comments
+   */
   char *cp1, *cp2;
 
   if ((cp1 = strstr(line, "/*"))) {
