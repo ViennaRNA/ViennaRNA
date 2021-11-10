@@ -606,7 +606,7 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
 #ifdef CHECK_ENERGY
       structure_energy = vrna_eval_structure(fc, structure);
 
-      if (!logML)
+      if (!logML) {
         if ((double)(state->partial_energy / 100.) != structure_energy) {
           vrna_message_error("%s %6.2f %6.2f",
                              structure,
@@ -614,6 +614,7 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
                              structure_energy);
           exit(1);
         }
+      }
 
 #endif
       if (logML || (dangle_model == 1) || (dangle_model == 3)) /* recalc energy */
