@@ -324,8 +324,8 @@ vrna_fold_compound_comparative2(const char                **sequences,
   fc = init_fc_comparative();
 
   if (fc) {
-    fc->n_seq     = n_seq;
-    fc->length    = length;
+    fc->n_seq   = n_seq;
+    fc->length  = length;
 
     /* get a copy of the model details */
     if (md_p)
@@ -338,13 +338,13 @@ vrna_fold_compound_comparative2(const char                **sequences,
 
     sanitize_bp_span(fc, options);
 
-    vrna_msa_add( fc,
-                  sequences,
-                  names,
-                  orientation,
-                  start,
-                  genome_size,
-                  VRNA_SEQUENCE_RNA);
+    vrna_msa_add(fc,
+                 sequences,
+                 names,
+                 orientation,
+                 start,
+                 genome_size,
+                 VRNA_SEQUENCE_RNA);
 
     fc->sequences = vrna_alloc(sizeof(char *) * (fc->n_seq + 1));
     for (s = 0; sequences[s]; s++)
@@ -435,7 +435,7 @@ vrna_fold_compound_TwoD(const char    *sequence,
     return NULL;
   }
 
-  fc            = init_fc_single();
+  fc = init_fc_single();
   if (fc) {
     fc->length    = length;
     fc->sequence  = strdup(sequence);
@@ -534,7 +534,7 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:     /* get pre-computed Boltzmann factors if not present*/
-        if (fc->domains_up)                            /* turn on unique ML decomposition with qm1 array */
+        if (fc->domains_up)         /* turn on unique ML decomposition with qm1 array */
           fc->exp_params->model_details.uniq_ML = 1;
 
         break;
@@ -769,7 +769,7 @@ make_pscores(vrna_fold_compound_t *fc)
         continue;
       }
 
-      unsigned int     pfreq[8] = {
+      unsigned int pfreq[8] = {
         0, 0, 0, 0, 0, 0, 0, 0
       };
 
@@ -865,16 +865,16 @@ PRIVATE INLINE void
 nullify(vrna_fold_compound_t *fc)
 {
   if (fc) {
-    fc->length        = 0;
-    fc->strands       = 0;
-    fc->cutpoint      = -1;
-    fc->strand_number = NULL;
-    fc->strand_order  = NULL;
-    fc->strand_order_uniq  = NULL;
-    fc->strand_start  = NULL;
-    fc->strand_end    = NULL;
-    fc->nucleotides   = NULL;
-    fc->alignment     = NULL;
+    fc->length            = 0;
+    fc->strands           = 0;
+    fc->cutpoint          = -1;
+    fc->strand_number     = NULL;
+    fc->strand_order      = NULL;
+    fc->strand_order_uniq = NULL;
+    fc->strand_start      = NULL;
+    fc->strand_end        = NULL;
+    fc->nucleotides       = NULL;
+    fc->alignment         = NULL;
 
     fc->hc            = NULL;
     fc->matrices      = NULL;
