@@ -319,11 +319,11 @@ vrna_pbacktrack_sub(vrna_fold_compound_t  *fc,
 
 
 PUBLIC char **
-vrna_pbacktrack_sub_num(vrna_fold_compound_t *fc,
-                        unsigned int         num_samples,
-                        unsigned int         start,
-                        unsigned int         end,
-                        unsigned int         options)
+vrna_pbacktrack_sub_num(vrna_fold_compound_t  *fc,
+                        unsigned int          num_samples,
+                        unsigned int          start,
+                        unsigned int          end,
+                        unsigned int          options)
 {
   unsigned int          i;
   struct structure_list data;
@@ -354,13 +354,13 @@ vrna_pbacktrack_sub_num(vrna_fold_compound_t *fc,
 
 
 PUBLIC unsigned int
-vrna_pbacktrack_sub_cb(vrna_fold_compound_t              *fc,
-                       unsigned int                      num_samples,
-                       unsigned int                      start,
-                       unsigned int                      end,
-                       vrna_boltzmann_sampling_callback  *bs_cb,
-                       void                              *data,
-                       unsigned int                      options)
+vrna_pbacktrack_sub_cb(vrna_fold_compound_t             *fc,
+                       unsigned int                     num_samples,
+                       unsigned int                     start,
+                       unsigned int                     end,
+                       vrna_boltzmann_sampling_callback *bs_cb,
+                       void                             *data,
+                       unsigned int                     options)
 {
   unsigned int          i;
   vrna_pbacktrack_mem_t nr_mem = NULL;
@@ -381,12 +381,12 @@ vrna_pbacktrack_sub_cb(vrna_fold_compound_t              *fc,
 
 
 PUBLIC char **
-vrna_pbacktrack_sub_resume(vrna_fold_compound_t  *vc,
-                           unsigned int          num_samples,
-                           unsigned int          start,
-                           unsigned int          end,
-                           vrna_pbacktrack_mem_t *nr_mem,
-                           unsigned int          options)
+vrna_pbacktrack_sub_resume(vrna_fold_compound_t   *vc,
+                           unsigned int           num_samples,
+                           unsigned int           start,
+                           unsigned int           end,
+                           vrna_pbacktrack_mem_t  *nr_mem,
+                           unsigned int           options)
 {
   unsigned int          i;
   struct structure_list data;
@@ -419,8 +419,6 @@ vrna_pbacktrack_sub_resume(vrna_fold_compound_t  *vc,
 
   return NULL;
 }
-
-
 
 
 /*
