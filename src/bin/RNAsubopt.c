@@ -38,8 +38,9 @@
 
 #include "ViennaRNA/color_output.inc"
 
-PRIVATE void putoutzuker(FILE                   *output,
-                         vrna_subopt_solution_t *zukersolution);
+PRIVATE void
+putoutzuker(FILE                    *output,
+            vrna_subopt_solution_t  *zukersolution);
 
 
 struct nr_en_data {
@@ -439,7 +440,8 @@ main(int  argc,
                               VRNA_PBACKTRACK_DEFAULT;
 
       if (vc->cutpoint != -1)
-        vrna_message_error("Boltzmann sampling for multiple interacting sequences not implemented (yet)!");
+        vrna_message_error(
+          "Boltzmann sampling for multiple interacting sequences not implemented (yet)!");
 
       print_fasta_header(output, rec_id);
 
