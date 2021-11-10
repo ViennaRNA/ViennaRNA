@@ -55,55 +55,67 @@ typedef void *(command_parser_function)(const char *line);
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE struct vrna_command_s parse_command(const char    *line,
-                                            int           line_number,
-                                            const char    *filename,
-                                            unsigned int  options);
+PRIVATE struct vrna_command_s
+parse_command(const char    *line,
+              int           line_number,
+              const char    *filename,
+              unsigned int  options);
 
 
-PRIVATE void *parse_ud_command(const char *line);
+PRIVATE void *
+parse_ud_command(const char *line);
 
 
-PRIVATE void *parse_constraint_force(const char *line);
+PRIVATE void *
+parse_constraint_force(const char *line);
 
 
-PRIVATE void *parse_constraint_prohibit(const char *line);
+PRIVATE void *
+parse_constraint_prohibit(const char *line);
 
 
-PRIVATE void *parse_constraint_con(const char *line);
+PRIVATE void *
+parse_constraint_con(const char *line);
 
 
-PRIVATE void *parse_constraint_allow(const char *line);
+PRIVATE void *
+parse_constraint_allow(const char *line);
 
 
-PRIVATE void *parse_constraint_energy(const char *line);
+PRIVATE void *
+parse_constraint_energy(const char *line);
 
 
-PRIVATE void *parse_constraint(const char *line,
-                               char       command);
+PRIVATE void *
+parse_constraint(const char *line,
+                 char       command);
 
 
-PRIVATE int parse_constraints_line(const char     *line,
-                                   char           command,
-                                   int            *i,
-                                   int            *j,
-                                   int            *k,
-                                   int            *l,
-                                   unsigned char  *loop,
-                                   char           *orientation,
-                                   float          *e);
+PRIVATE int
+parse_constraints_line(const char     *line,
+                       char           command,
+                       int            *i,
+                       int            *j,
+                       int            *k,
+                       int            *l,
+                       unsigned char  *loop,
+                       char           *orientation,
+                       float          *e);
 
 
-PRIVATE int apply_hard_constraint(vrna_fold_compound_t  *vc,
-                                  void                  *constraint);
+PRIVATE int
+apply_hard_constraint(vrna_fold_compound_t  *vc,
+                      void                  *constraint);
 
 
-PRIVATE int apply_soft_constraint(vrna_fold_compound_t  *vc,
-                                  void                  *constraint);
+PRIVATE int
+apply_soft_constraint(vrna_fold_compound_t  *vc,
+                      void                  *constraint);
 
 
-PRIVATE int apply_ud(vrna_fold_compound_t *vc,
-                     void                 *data);
+PRIVATE int
+apply_ud(vrna_fold_compound_t *vc,
+         void                 *data);
 
 
 /*
@@ -125,13 +137,13 @@ typedef struct {
 /* set of known parsable commands */
 parsable known_commands[NUM_COMMANDS] = {
   /* cmd , type , parser */
-  { "UD", VRNA_CMD_UD, parse_ud_command          },   /* unstructured domain */
-  { "SD", VRNA_CMD_SD, NULL                      },   /* structured domain */
-  { "P",  VRNA_CMD_HC, parse_constraint_prohibit },   /* prohibit base pairing */
-  { "F",  VRNA_CMD_HC, parse_constraint_force    },   /* force base pairing */
-  { "C",  VRNA_CMD_HC, parse_constraint_con      },   /* remove conflicting pairs/force nucleotide in loop context */
-  { "A",  VRNA_CMD_HC, parse_constraint_allow    },   /* allow (non-canonical) pairs */
-  { "E",  VRNA_CMD_SC, parse_constraint_energy   }  /* soft constraint */
+  { "UD", VRNA_CMD_UD,  parse_ud_command          },  /* unstructured domain */
+  { "SD", VRNA_CMD_SD,  NULL                      },  /* structured domain */
+  { "P",  VRNA_CMD_HC,  parse_constraint_prohibit },  /* prohibit base pairing */
+  { "F",  VRNA_CMD_HC,  parse_constraint_force    },  /* force base pairing */
+  { "C",  VRNA_CMD_HC,  parse_constraint_con      },  /* remove conflicting pairs/force nucleotide in loop context */
+  { "A",  VRNA_CMD_HC,  parse_constraint_allow    },  /* allow (non-canonical) pairs */
+  { "E",  VRNA_CMD_SC,  parse_constraint_energy   } /* soft constraint */
 };
 
 typedef struct {
@@ -396,8 +408,10 @@ apply_hard_constraint(vrna_fold_compound_t  *vc,
       for (cnt2 = k; cnt2 <= l; cnt2++)
         for (cnt3 = h; cnt3 != 0; cnt3--) {
           if (cnt2 == 0) {
-            /* enforce unpairedness of nucleotide */
-            /* just store this constraint, we'll apply it later */
+            /*
+             * enforce unpairedness of nucleotide
+             * just store this constraint, we'll apply it later
+             */
             hc_up[num_hc_up].position = cnt1 + (cnt3 - 1);
             hc_up[num_hc_up].options  = t;
             num_hc_up++;
@@ -412,7 +426,8 @@ apply_hard_constraint(vrna_fold_compound_t  *vc,
             if (orientation != '\0')
               d = (orientation == 'U') ? -1 : 1;
 
-            vrna_hc_add_bp_nonspecific(vc, cnt1 + (cnt3 - 1), d, t | VRNA_CONSTRAINT_CONTEXT_ENFORCE);
+            vrna_hc_add_bp_nonspecific(vc, cnt1 + (cnt3 - 1), d,
+                                       t | VRNA_CONSTRAINT_CONTEXT_ENFORCE);
           } else {
             /* enforce / prohibit base pair */
             vrna_hc_add_bp(vc, cnt1 + (cnt3 - 1), cnt2 - (cnt3 - 1), t);
@@ -712,8 +727,10 @@ parse_constraint(const char *line,
             break;
         }
       } else {
-        /* base pair constraint */
-        /* set correct loop type context */
+        /*
+         * base pair constraint
+         * set correct loop type context
+         */
         switch (command) {
           case 'P':
             loop  = ~loop;                              /* prohibit */
