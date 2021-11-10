@@ -56,7 +56,8 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE int is_absolute_path(const char *p);
+PRIVATE int
+is_absolute_path(const char *p);
 
 
 /*
@@ -98,12 +99,13 @@ vrna_read_line(FILE *fp)
       size  = (int)((l + 1) * 1.2);
       line  = (char *)vrna_realloc(line, size * sizeof(char));
     }
+
     memcpy(line + len,
            s,
            sizeof(char) * l2);
 
     line[l] = '\0';
-    len = l;
+    len     = l;
   } while (cp == NULL);
 
   return line;
