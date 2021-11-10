@@ -206,5 +206,3 @@ vrna_pfl_fold_up_cb(const char                  *sequence,
 
   return r;
 }
-
-
