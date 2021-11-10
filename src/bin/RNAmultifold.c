@@ -114,7 +114,8 @@ process_record(struct record_data *record);
 
 
 PRIVATE double *
-read_concentrations(FILE *fp, size_t num_strands);
+read_concentrations(FILE    *fp,
+                    size_t  num_strands);
 
 
 static int
@@ -162,8 +163,8 @@ init_default_options(struct options *opt)
   opt->filename_full  = 0;
   opt->filename_delim = NULL;
   opt->pf             = 0;
-  opt->doT            = 0; /* compute dimer free energies etc. */
-  opt->doC            = 0; /* compute concentrations */
+  opt->doT            = 0;  /* compute dimer free energies etc. */
+  opt->doC            = 0;  /* compute concentrations */
   opt->noPS           = 0;
   opt->noconv         = 0;
   opt->centroid       = 0;  /* off by default due to historical reasons */
@@ -175,8 +176,8 @@ init_default_options(struct options *opt)
   opt->id_control     = NULL;
   set_model_details(&(opt->md));
 
-  opt->doC                = 0; /* toggle to compute concentrations */
-  opt->concentration_file = NULL;
+  opt->doC                    = 0; /* toggle to compute concentrations */
+  opt->concentration_file     = NULL;
   opt->concentration_absolute = 0;
 
   opt->constraint_file      = NULL;
@@ -201,8 +202,8 @@ init_default_options(struct options *opt)
 
 
 static char **
-collect_unnamed_options(struct RNAmultifold_args_info  *ggostruct,
-                        int                         *num_files)
+collect_unnamed_options(struct RNAmultifold_args_info *ggostruct,
+                        int                           *num_files)
 {
   char  **input_files = NULL;
   int   i;
@@ -241,10 +242,10 @@ int
 main(int  argc,
      char *argv[])
 {
-  struct  RNAmultifold_args_info args_info;
-  char                        **input_files;
-  int                         num_input;
-  struct  options             opt;
+  struct  RNAmultifold_args_info  args_info;
+  char                            **input_files;
+  int                             num_input;
+  struct  options                 opt;
 
   num_input = 0;
 
@@ -585,6 +586,7 @@ process_record(struct record_data *record)
   vrna_fold_compound_t *vc = vrna_fold_compound(sequence,
                                                 &(opt->md),
                                                 VRNA_OPTION_DEFAULT);
+
   n = vc->length;
 
   /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
@@ -707,8 +709,8 @@ process_record(struct record_data *record)
   }
 
   {
-    char *pstruct     = NULL;
-    char *tmp_struct  = strdup(mfe_structure);
+    char  *pstruct    = NULL;
+    char  *tmp_struct = strdup(mfe_structure);
 
     if (vc->strands == 1) {
       pstruct = tmp_struct;
@@ -766,7 +768,7 @@ process_record(struct record_data *record)
       filename_dot = get_filename(record->SEQ_ID, "dp.ps", "dot.ps", opt);
 
       /*AB dot_plot*/
-      comment   = vrna_strdup_printf("Heterodimer AB FreeEnergy= %.9f", dG);
+      comment = vrna_strdup_printf("Heterodimer AB FreeEnergy= %.9f", dG);
       THREADSAFE_FILE_OUTPUT(
         (void)vrna_plot_dp_PS_list(record->sequence,
                                    vc->cutpoint,
@@ -808,7 +810,6 @@ process_record(struct record_data *record)
                     opt->MEAgamma,
                     o_stream->data);
       }
-
     } else {
       vrna_cstr_printf_structure(o_stream->data,
                                  NULL,
@@ -818,16 +819,18 @@ process_record(struct record_data *record)
 
     if (opt->doT) {
       /* generate all complexes */
-      size_t  max_interacting_strands = vc->strands;
+      size_t        max_interacting_strands = vc->strands;
 
-      unsigned int ***complexes     = (unsigned int ***)vrna_alloc(sizeof(unsigned int **) * max_interacting_strands);
-      double        **dG_complexes  = (double **)vrna_alloc(sizeof(double *) * max_interacting_strands);
+      unsigned int  ***complexes = (unsigned int ***)vrna_alloc(
+        sizeof(unsigned int **) * max_interacting_strands);
+      double        **dG_complexes = (double **)vrna_alloc(
+        sizeof(double *) * max_interacting_strands);
 
-      complexes -= 1;
-      dG_complexes -= 1;
+      complexes     -= 1;
+      dG_complexes  -= 1;
 
       for (size_t k = 1; k <= max_interacting_strands; k++) {
-        size_t  num_complexes = 0;
+        size_t num_complexes = 0;
 
         /* enumerate all complexes of current size */
         complexes[k] = vrna_n_multichoose_k(vc->strands, k);
@@ -843,32 +846,37 @@ process_record(struct record_data *record)
           fprintf(stderr, "Processing complexes of size %lu\n", k);
 
         for (size_t c_cnt = 0; c_cnt < num_complexes; c_cnt++) {
-          if (opt->verbose)
+          if (opt->verbose) {
             vrna_strcat_printf(&verbose_line,
                                "Complex %u/%u (size %d) ",
                                c_cnt + 1,
                                num_complexes, k);
+          }
 
           /* Now, enumerate all non-cyclic permutations for current complex */
 
           /* first, compose a list of species counts */
-          unsigned int *species = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (k + 1));
-          unsigned int *species_count = (unsigned int *)vrna_alloc(sizeof(unsigned int) * vc->strands);
-          unsigned int *mapping       = (unsigned int *)vrna_alloc(sizeof(unsigned int) * vc->strands);
-          size_t known_species = 0;
+          unsigned int  *species =
+            (unsigned int *)vrna_alloc(sizeof(unsigned int) * (k + 1));
+          unsigned int  *species_count = (unsigned int *)vrna_alloc(
+            sizeof(unsigned int) * vc->strands);
+          unsigned int  *mapping = (unsigned int *)vrna_alloc(
+            sizeof(unsigned int) * vc->strands);
+          size_t        known_species = 0;
           for (size_t kk = 0; kk < k; kk++)
             species_count[complexes[k][c_cnt][kk]]++;
 
           for (size_t kk = 0; kk < vc->strands; kk++) {
             if (species_count[kk] > 0) {
-              mapping[known_species] = kk;
-              species[known_species] = species_count[kk];
+              mapping[known_species]  = kk;
+              species[known_species]  = species_count[kk];
 
-              if (opt->verbose)
+              if (opt->verbose) {
                 vrna_strcat_printf(&verbose_line,
                                    ", %u x %c",
                                    species_count[kk],
                                    kk < 26 ? kk + 'A' : kk + 'a');
+              }
 
               known_species++;
             }
@@ -876,10 +884,10 @@ process_record(struct record_data *record)
           species[known_species] = 0;
 
           /* enumerate all non-cyclic permutations of current complex */
-          unsigned int **permutations = vrna_enumerate_necklaces(species);
+          unsigned int  **permutations = vrna_enumerate_necklaces(species);
 
-          double dG_current = 0.;
-          size_t  num_perm = 0;
+          double        dG_current  = 0.;
+          size_t        num_perm    = 0;
 
           if (opt->verbose)
             for (; permutations[num_perm]; num_perm++);
@@ -889,8 +897,8 @@ process_record(struct record_data *record)
 
             if (opt->verbose) {
               fprintf(stderr, "\r%s, permutation %lu/%lu                    ",
-                    verbose_line,
-                    i+1, num_perm);
+                      verbose_line,
+                      i + 1, num_perm);
               fflush(stderr);
             }
 
@@ -905,17 +913,19 @@ process_record(struct record_data *record)
             }
 
             /* for now, do not compute base pair probs */
-            int bpp_comp = opt->md.compute_bpp;
+            int                   bpp_comp = opt->md.compute_bpp;
             opt->md.compute_bpp = 0;
 
             /* compute MFE and PF for current permutation */
-            vrna_fold_compound_t  *fc_current = vrna_fold_compound(current_sequence, &(opt->md), VRNA_OPTION_DEFAULT);
+            vrna_fold_compound_t  *fc_current = vrna_fold_compound(current_sequence,
+                                                                   &(opt->md),
+                                                                   VRNA_OPTION_DEFAULT);
 
-            double mfe_current = vrna_mfe(fc_current, NULL);
+            double                mfe_current = vrna_mfe(fc_current, NULL);
 
             vrna_exp_params_rescale(fc_current, &mfe_current);
 
-            double F = vrna_pf(fc_current, NULL);
+            double                F = vrna_pf(fc_current, NULL);
 
             /* store, or add up contribution from current permutation */
             dG_current = (i == 0) ? F : vrna_pf_add(dG_current, F, kT);
@@ -940,9 +950,8 @@ process_record(struct record_data *record)
             verbose_line = NULL;
           }
         }
-        if (opt->verbose) {
+        if (opt->verbose)
           fprintf(stderr, "\n");
-        }
       }
 
       vrna_cstr_printf_comment(o_stream->data, "Free Energies:");
@@ -952,12 +961,13 @@ process_record(struct record_data *record)
       char  *complex_string       = NULL;
       char  *dG_string            = NULL;
       char  *dG_string_monomers   = NULL;
-      char  *curr_complex_string  = (char *)vrna_alloc(sizeof(char) * (max_interacting_strands + 1));
+      char  *curr_complex_string  =
+        (char *)vrna_alloc(sizeof(char) * (max_interacting_strands + 1));
       for (size_t i = max_interacting_strands; i > 1; i--) {
         for (size_t j = 0; complexes[i][j] != NULL; j++) {
           for (size_t k = 0; k < i; k++) {
-            curr_complex_string[k] = complexes[i][j][k];
-            curr_complex_string[k] += (curr_complex_string[k] > 25) ? 'a' : 'A';
+            curr_complex_string[k]  = complexes[i][j][k];
+            curr_complex_string[k]  += (curr_complex_string[k] > 25) ? 'a' : 'A';
           }
           curr_complex_string[i] = '\0';
           if ((i == max_interacting_strands) && (j == 0)) {
@@ -971,9 +981,9 @@ process_record(struct record_data *record)
       }
 
       for (size_t j = 0; complexes[1][j] != NULL; j++) {
-        curr_complex_string[0] = complexes[1][j][0];
-        curr_complex_string[0] += (curr_complex_string[0] > 25) ? 'a' : 'A';
-        curr_complex_string[1] = '\0';
+        curr_complex_string[0]  = complexes[1][j][0];
+        curr_complex_string[0]  += (curr_complex_string[0] > 25) ? 'a' : 'A';
+        curr_complex_string[1]  = '\0';
         if (j == 0) {
           vrna_strcat_printf(&monomer_string, "%s", curr_complex_string);
           vrna_strcat_printf(&dG_string_monomers, "%6f", dG_complexes[1][j]);
@@ -996,21 +1006,21 @@ process_record(struct record_data *record)
 
       /* concentration computations */
       if (opt->doC) {
-        size_t num_strands = vc->strands;
+        size_t  num_strands = vc->strands;
 
         /* count number of true complexes */
-        size_t num_true_complexes = 0;
+        size_t  num_true_complexes = 0;
         for (size_t s = max_interacting_strands; s > 1; s--)
           for (size_t i = 0; complexes[s][i] != NULL; i++)
             num_true_complexes++;
 
         /* create complex-strand association matrix */
-        unsigned int **A = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * num_strands);
+        unsigned int  **A = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * num_strands);
         for (size_t a = 0; a < num_strands; a++)
           A[a] = (unsigned int *)vrna_alloc(sizeof(unsigned int) * num_true_complexes);
 
         /* fill complex-strand association matrix */
-        size_t curr_complex = 0;
+        size_t        curr_complex = 0;
         for (size_t s = max_interacting_strands; s > 1; s--)
           for (size_t i = 0; complexes[s][i] != NULL; i++) {
             for (size_t j = 0; j < s; j++)
@@ -1020,9 +1030,9 @@ process_record(struct record_data *record)
           }
 
         /* create F_complexes and F_monomer arrays to compute equilibrium constants K */
-        double *equilibrium_constants_complexes;
-        double *F_monomers   = (double *)vrna_alloc(sizeof(double) * num_strands);
-        double *F_complexes  = (double *)vrna_alloc(sizeof(double) * num_true_complexes);
+        double  *equilibrium_constants_complexes;
+        double  *F_monomers   = (double *)vrna_alloc(sizeof(double) * num_strands);
+        double  *F_complexes  = (double *)vrna_alloc(sizeof(double) * num_true_complexes);
 
         for (size_t s = 0; s < num_strands; s++)
           F_monomers[s] = dG_complexes[1][s];
@@ -1036,10 +1046,10 @@ process_record(struct record_data *record)
 
         equilibrium_constants_complexes = vrna_equilibrium_constants((const double *)F_complexes,
                                                                      (const double *)F_monomers,
-                                                                      (const unsigned int **)A,
-                                                                      kT,
-                                                                      num_strands,
-                                                                      num_true_complexes);
+                                                                     (const unsigned int **)A,
+                                                                     kT,
+                                                                     num_strands,
+                                                                     num_true_complexes);
 
 #if DEBUG
         for (size_t i = 0; i < num_true_complexes; i++)
@@ -1051,11 +1061,11 @@ process_record(struct record_data *record)
         for (; concentrations[(num_conc * num_strands)] != 0.; num_conc++);
 
         vrna_cstr_printf_thead(o_stream->data,
-                             "Initial concentrations\t\trelative Equilibrium concentrations\n"
-                             "%s\t\t%s", monomer_string, complex_string);
+                               "Initial concentrations\t\trelative Equilibrium concentrations\n"
+                               "%s\t\t%s", monomer_string, complex_string);
 
-        double *cc = (double *)vrna_alloc(sizeof(double) * num_strands);
-        double *conc_complexes;
+        double  *cc = (double *)vrna_alloc(sizeof(double) * num_strands);
+        double  *conc_complexes;
 
         for (size_t c_i = 0; c_i < num_conc; c_i++) {
           char    *line = NULL;
@@ -1123,21 +1133,21 @@ process_record(struct record_data *record)
         free(dG_complexes[k]);
       }
 
-      complexes += 1;
-      dG_complexes += 1;
+      complexes     += 1;
+      dG_complexes  += 1;
       free(complexes);
       free(dG_complexes);
 #if 0
       /* AA */
-      char *seq_AA = vrna_strdup_printf("%s&%s",
-                                        vc->nucleotides[0].string,
-                                        vc->nucleotides[0].string);
+      char                  *seq_AA = vrna_strdup_printf("%s&%s",
+                                                         vc->nucleotides[0].string,
+                                                         vc->nucleotides[0].string);
 
-      int bpp_comp = opt->md.compute_bpp;
+      int                   bpp_comp = opt->md.compute_bpp;
       opt->md.compute_bpp = 0;
       vrna_fold_compound_t  *fc_AA = vrna_fold_compound(seq_AA, &(opt->md), VRNA_OPTION_DEFAULT);
 
-      double mfe_AA = vrna_mfe(fc_AA, NULL);
+      double                mfe_AA = vrna_mfe(fc_AA, NULL);
 
       vrna_exp_params_rescale(fc_AA, &mfe_AA);
 
@@ -1147,13 +1157,13 @@ process_record(struct record_data *record)
       vrna_fold_compound_free(fc_AA);
 
       /* BB */
-      char *seq_BB = vrna_strdup_printf("%s&%s",
-                                        vc->nucleotides[1].string,
-                                        vc->nucleotides[1].string);
+      char                  *seq_BB = vrna_strdup_printf("%s&%s",
+                                                         vc->nucleotides[1].string,
+                                                         vc->nucleotides[1].string);
 
       vrna_fold_compound_t  *fc_BB = vrna_fold_compound(seq_BB, &(opt->md), VRNA_OPTION_DEFAULT);
 
-      double mfe_BB = vrna_mfe(fc_BB, NULL);
+      double                mfe_BB = vrna_mfe(fc_BB, NULL);
 
       vrna_exp_params_rescale(fc_BB, &mfe_BB);
 
@@ -1180,9 +1190,9 @@ process_record(struct record_data *record)
         double *conc_complexes, *conc_monomers;
 
         /*
-          construct association matrix A(a,k) that for each complex
-          k stores the number of strands a the complex is composed of
-        */
+         * construct association matrix A(a,k) that for each complex
+         * k stores the number of strands a the complex is composed of
+         */
         unsigned int **A = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * vc->strands);
         for (size_t a = 0; a < vc->strands; a++)
           A[a] = (unsigned int *)vrna_alloc(sizeof(unsigned int) * 3);
@@ -1195,30 +1205,30 @@ process_record(struct record_data *record)
         A[1][1] = 0;  /* 0x strand 1 in complex 1, aka. AA */
         A[1][2] = 2;  /* 2x strand 1 in complex 2, aka. BB */
 
-        double  *dG_complexes, *dG_strands, *equilibrium_constants_complex;
+        double *dG_complexes, *dG_strands, *equilibrium_constants_complex;
 
-        dG_complexes = (double *)vrna_alloc(sizeof(double) * 3);
-        dG_strands    = (double *)vrna_alloc(sizeof(double) * 2);
+        dG_complexes    = (double *)vrna_alloc(sizeof(double) * 3);
+        dG_strands      = (double *)vrna_alloc(sizeof(double) * 2);
         dG_complexes[0] = dG;
         dG_complexes[1] = dG_AA;
         dG_complexes[2] = dG_BB;
-        dG_strands[0] = F_monomers[0];
-        dG_strands[1] = F_monomers[1];
+        dG_strands[0]   = F_monomers[0];
+        dG_strands[1]   = F_monomers[1];
 
         equilibrium_constants_complex = vrna_equilibrium_constants((const double *)dG_complexes,
-                                                                  (const double *)dG_strands,
-                                                                  (const unsigned int **)A,
-                                                                  kT,
-                                                                  2,
-                                                                  3);
+                                                                   (const double *)dG_strands,
+                                                                   (const unsigned int **)A,
+                                                                   kT,
+                                                                   2,
+                                                                   3);
 
         /* count number of concentration computations */
         size_t num_conc = 0;
         for (; concentrations[(num_conc * vc->strands)] != 0.; num_conc++);
 
         vrna_cstr_printf_thead(o_stream->data,
-                             "Initial concentrations\t\trelative Equilibrium concentrations\n"
-                             "A\t\tB\t\tAB\t\tAA\t\tBB\t\tA\t\tB");
+                               "Initial concentrations\t\trelative Equilibrium concentrations\n"
+                               "A\t\tB\t\tAB\t\tAA\t\tBB\t\tA\t\tB");
 
         double *cc = (double *)vrna_alloc(sizeof(double) * 2);
 
@@ -1226,10 +1236,10 @@ process_record(struct record_data *record)
           cc[0] = concentrations[(c_i * vc->strands)];
           cc[1] = concentrations[(c_i * vc->strands) + 1];
 
-          double c_start_A = cc[0];
-          double c_start_B = cc[1];
+          double  c_start_A = cc[0];
+          double  c_start_B = cc[1];
 
-          double tot = c_start_A + c_start_B;
+          double  tot = c_start_A + c_start_B;
 
           conc_complexes = vrna_equilibrium_conc(equilibrium_constants_complex,
                                                  cc,
@@ -1252,13 +1262,10 @@ process_record(struct record_data *record)
 
       free(F_monomers);
 #endif
-
     }
 
-   free(prAB);
-   free(pairing_propensity);
-
-    
+    free(prAB);
+    free(pairing_propensity);
   }   /*end if(pf)*/
 
   if (opt->output_queue)
@@ -1477,7 +1484,8 @@ postscript_layout(vrna_fold_compound_t  *fc,
 
 
 PRIVATE double *
-read_concentrations(FILE *fp, size_t num_strands)
+read_concentrations(FILE    *fp,
+                    size_t  num_strands)
 {
   /* reads concentrations, returns list of double, -1. marks end */
   char    *line;
@@ -1493,10 +1501,10 @@ read_concentrations(FILE *fp, size_t num_strands)
       startc  = (double *)vrna_realloc(startc, (num_strands * n + 1) * sizeof(double));
     }
 
-    char **tok = vrna_strsplit(line, "\t");
+    char    **tok = vrna_strsplit(line, "\t");
 
-    size_t s = 0;
-    double concentration;
+    size_t  s = 0;
+    double  concentration;
     for (char **ptr = tok; *ptr; ptr++, s++) {
       c = sscanf(*ptr, "%lf", &concentration);
       if (c)
@@ -1511,7 +1519,10 @@ read_concentrations(FILE *fp, size_t num_strands)
     if (s == num_strands)
       i++;
     else
-      vrna_message_warning("Failed to parse all concentrations (%u) from line %d:\n%s\n", num_strands, i, line);
+      vrna_message_warning("Failed to parse all concentrations (%u) from line %d:\n%s\n",
+                           num_strands,
+                           i,
+                           line);
 
     free(line);
   }
