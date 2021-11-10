@@ -110,8 +110,8 @@ void
 process_gquad_enumeration(int *gg,
                           int i,
                           int j,
-                          void (*f)(int, int, int *,
-                                    void *, void *, void *, void *),
+                          void ( *f )(int, int, int *,
+                                      void *, void *, void *, void *),
                           void *data,
                           void *P,
                           void *aux1,
@@ -143,13 +143,14 @@ gquad_mfe_pos(int   i,
               void  *lmfe);
 
 
-PRIVATE void gquad_mfe_ali_pos(int  i,
-                               int  L,
-                               int  *l,
-                               void *data,
-                               void *helper,
-                               void *Lmfe,
-                               void *lmfe);
+PRIVATE void
+gquad_mfe_ali_pos(int   i,
+                  int   L,
+                  int   *l,
+                  void  *data,
+                  void  *helper,
+                  void  *Lmfe,
+                  void  *lmfe);
 
 
 PRIVATE
@@ -340,13 +341,14 @@ create_aliL_matrix(int          start,
                    vrna_param_t *P);
 
 
-PRIVATE void gquad_mfe_ali_pos(int  i,
-                               int  L,
-                               int  *l,
-                               void *data,
-                               void *P,
-                               void *Lmfe,
-                               void *lmfe);
+PRIVATE void
+gquad_mfe_ali_pos(int   i,
+                  int   L,
+                  int   *l,
+                  void  *data,
+                  void  *P,
+                  void  *Lmfe,
+                  void  *lmfe);
 
 
 /*
@@ -617,7 +619,7 @@ get_gquad_pf_matrix_comparative(unsigned int      n,
 
 
 PUBLIC int *
-get_gquad_ali_matrix(unsigned int  n,
+get_gquad_ali_matrix(unsigned int n,
                      short        *S_cons,
                      short        **S,
                      unsigned int **a2s,
@@ -1828,8 +1830,8 @@ void
 process_gquad_enumeration(int *gg,
                           int i,
                           int j,
-                          void (*f)(int, int, int *,
-                                    void *, void *, void *, void *),
+                          void ( *f )(int, int, int *,
+                                      void *, void *, void *, void *),
                           void *data,
                           void *P,
                           void *aux1,
