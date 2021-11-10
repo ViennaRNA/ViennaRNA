@@ -32,14 +32,16 @@
 #define MAXSEQ      1000
 
 
-static double gapo    = 1.5, gape = 0.666, seqw = 0.5;
+static double gapo = 1.5, gape = 0.666, seqw = 0.5;
 static int    endgaps = 0;
 
-PRIVATE void command_line(int   argc,
-                          char  *argv[]);
+PRIVATE void
+command_line(int  argc,
+             char *argv[]);
 
 
-PRIVATE void print_aligned_lines(FILE *somewhere);
+PRIVATE void
+print_aligned_lines(FILE *somewhere);
 
 
 PRIVATE char  task;
@@ -274,8 +276,8 @@ command_line(int  argc,
              char *argv[])
 {
   int                       i, sym;
-  char                      *ns_bases   = NULL, *c;
-  char                      *ParamFile  = NULL;
+  char                      *ns_bases = NULL, *c;
+  char                      *ParamFile = NULL;
   struct  RNApaln_args_info args_info;
 
   task = 'p';
@@ -379,7 +381,7 @@ command_line(int  argc,
 
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
