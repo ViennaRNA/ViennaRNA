@@ -74,13 +74,17 @@ PRIVATE void
 update_dfold_params(void);
 
 
-/* PRIVATE int   compare(const void *sub1, const void *sub2); */
-/* PRIVATE int   compare_XS(const void *sub1, const void *sub2); */
-/* PRIVATE duplexT* backtrack(int threshold, const int extension_cost); */
-/* static void  print_struct(duplexT const *dup); */
+/*
+ * PRIVATE int   compare(const void *sub1, const void *sub2);
+ * PRIVATE int   compare_XS(const void *sub1, const void *sub2);
+ * PRIVATE duplexT* backtrack(int threshold, const int extension_cost);
+ * static void  print_struct(duplexT const *dup);
+ */
 
-/* PRIVATE int   print_struct(duplexT const *dup); */
-/* PRIVATE int   get_rescaled_energy(duplexT const *dup); */
+/*
+ * PRIVATE int   print_struct(duplexT const *dup);
+ * PRIVATE int   get_rescaled_energy(duplexT const *dup);
+ */
 
 PRIVATE char *
 backtrack_C(int         i,
@@ -222,14 +226,17 @@ duplexfold_CXS(const char *s1,
   duplexT   mfe;
   vrna_md_t md;
   int       bonus = -10000;
+
   n3  = (int)strlen(s1);
   n4  = (int)strlen(s2);
 
   int       *previous_const;
+
   previous_const    = (int *)vrna_alloc(sizeof(int) * (n4 + 1));
   j                 = 0;
   previous_const[j] = 1;
   int       prev_temp = 1;
+
   while (j++ < n4) {
     if (structure[j - 1] == '|') {
       previous_const[j] = prev_temp;
@@ -258,6 +265,7 @@ duplexfold_CXS(const char *s1,
       c[i][j] = INF;
   encode_seqs(s1, s2);
   int type, type2, type3, E, k, l;
+
   i     = n3 - 1;
   j     = 2;
   type  = pair[S1[i]][S2[j]];
@@ -343,9 +351,12 @@ duplexfold_CXS(const char *s1,
     struc = backtrack_CXS(k_min, l_min, access_s1, access_s2, structure, &Emin);
   }
 
-  /* lets take care of the dangles */
-  /* find best combination  */
+  /*
+   * lets take care of the dangles
+   * find best combination
+   */
   int dx_5, dx_3, dy_5, dy_3, dGx, dGy, bonus_x;
+
   dx_5    = 0;
   dx_3    = 0;
   dy_5    = 0;
@@ -397,8 +408,10 @@ backtrack_CXS(int         i,
 
   previous_const = (int *)vrna_alloc(sizeof(int) * (n4 + 1));
   int   j_temp = 0;
+
   previous_const[j_temp] = 1;
   int   prev_temp = 1;
+
   while (j_temp++ < n4) {
     if (structure[j_temp - 1] == '|') {
       previous_const[j_temp]  = prev_temp;
@@ -470,8 +483,10 @@ backtrack_CXS(int         i,
       }
     }
   }
-  /* if (i<n3)  i++; */
-  /* if (j>1)   j--; */
+  /*
+   * if (i<n3)  i++;
+   * if (j>1)   j--;
+   */
   struc = (char *)vrna_alloc(i - i0 + 1 + j0 - j + 1 + 2);
   for (k = MAX2(i0, 1); k <= i; k++)
     if (!st1[k - 1])
@@ -533,6 +548,7 @@ Lduplexfold_CXS(const char  *s1,
   }
   int *position; /* contains the position of the hits with energy > E */
   int *position_j;
+
   n1          = (int)strlen(s1);
   n2          = (int)strlen(s2);
   position    = (int *)vrna_alloc((delta + n1 + 3 + delta) * sizeof(int));
@@ -647,9 +663,11 @@ Lduplexfold_CXS(const char  *s1,
         lc[idx][j] += P->dangle5[type][SS1[i - 1]];
 
       lc[idx][j] += (type > 2 ? P->TerminalAU : 0);
-      /* type > 2 -> no GC or CG pair */
-      /* ------------------------------------------------------------------update c  matrix  */
-      /*  Be careful, no lc may come from a region where a "|" is in a loop, avoided in lin = lby = INF ... jedoch fuer klein loops muss man aufpassen .. */
+      /*
+       * type > 2 -> no GC or CG pair
+       * ------------------------------------------------------------------update c  matrix
+       *  Be careful, no lc may come from a region where a "|" is in a loop, avoided in lin = lby = INF ... jedoch fuer klein loops muss man aufpassen ..
+       */
       if ((type2 = pair[S1[i - 1]][S2[j + 1]])) {
         lc[idx][j] =
           MIN2(lc[idx_1][j + 1] +
@@ -767,8 +785,10 @@ Lduplexfold_CXS(const char  *s1,
       if (temp > min_colonne)
         min_j_colonne = j;
 
-      /* } */
-      /* ---------------------------------------------------------------------end update */
+      /*
+       * }
+       * ---------------------------------------------------------------------end update
+       */
     }
     if (max >= min_colonne) {
       max       = min_colonne;
@@ -887,10 +907,12 @@ find_max_CXS(const int  *position,
         pos -= temp_min;                      /* position on i */
         int max_pos_j;
         max_pos_j = position_j[pos + delta];  /* position on j */
-        /* int begin_t=MAX2(9, pos-alignment_length); */
-        /* int end_t  =MIN2(n1-10, pos); */
-        /* int begin_q=MAX2(9, max_pos_j-2); */
-        /* int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2); */
+        /*
+         * int begin_t=MAX2(9, pos-alignment_length);
+         * int end_t  =MIN2(n1-10, pos);
+         * int begin_q=MAX2(9, max_pos_j-2);
+         * int end_q  =MIN2(n2-10, max_pos_j+alignment_length-2);
+         */
         int   begin_t           = MAX2(9, pos - alignment_length);
         int   end_t             = pos;
         int   begin_q           = max_pos_j - 2;
@@ -1013,6 +1035,7 @@ duplexfold_C(const char *s1,
   j                     = n4 + 1;
   previous_const[j - 1] = n4;
   int prev_temp = n4;
+
   while (--j) {
     if (structure[j - 1] == '|') {
       previous_const[j - 1] = prev_temp;
@@ -1086,6 +1109,7 @@ duplexfold_C(const char *s1,
 
   l1 = strchr(struc, '&') - struc;
   int size;
+
   size          = strlen(struc) - 1;
   Emin          -= size * (extension_cost);
   mfe.i         = i_min;
@@ -1123,8 +1147,10 @@ backtrack_C(int         i,
 
   previous_const = (int *)vrna_alloc(sizeof(int) * (n4 + 1)); /* encodes the position of the constraints */
   int   j_temp = n4 + 1;
+
   previous_const[j_temp - 1] = n4;
   int   prev_temp = n4;
+
   while (--j_temp) {
     if (structure[j_temp - 1] == '|') {
       previous_const[j_temp - 1]  = prev_temp;
@@ -1257,23 +1283,32 @@ Lduplexfold_C(const char  *s1,
 
     i++;
   }
-  /* FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1 */
-  /* int nsubopt=10;  */ /* total number of subopt */
+  /*
+   * FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1
+   * int nsubopt=10;  */ /* total number of subopt
+   */
   int *position; /* contains the position of the hits with energy > E */
   int *position_j;
-  /*   int const5end; */ /* position of the 5'most constraint. Only interaction reaching this position are taken into account. */
-  /* const5end = strchr(structure,'|') - structure; */
-  /* const5end++; */
+
+  /*
+   *   int const5end; */ /* position of the 5'most constraint. Only interaction reaching this position are taken into account.
+   * const5end = strchr(structure,'|') - structure;
+   * const5end++;
+   */
   n1  = (int)strlen(s1);
   n2  = (int)strlen(s2);
-  /* delta_check is the minimal distance allowed for two hits to be accepted */
-  /* if both hits are closer, reject the smaller ( in term of position)  hits  */
+  /*
+   * delta_check is the minimal distance allowed for two hits to be accepted
+   * if both hits are closer, reject the smaller ( in term of position)  hits
+   */
   position    = (int *)vrna_alloc((delta + n1 + 3 + delta) * sizeof(int));
   position_j  = (int *)vrna_alloc((delta + n1 + 3 + delta) * sizeof(int));
-  /* i want to implement a function that, given a position in a long sequence and a small sequence, */
-  /* duplexfold them at this position and report the result at the command line */
-  /* for this i first need to rewrite backtrack in order to remove the printf functio */
-  /* END OF DEFINITION FOR NEEDED SUBOPT DATA  */
+  /*
+   * i want to implement a function that, given a position in a long sequence and a small sequence,
+   * duplexfold them at this position and report the result at the command line
+   * for this i first need to rewrite backtrack in order to remove the printf functio
+   * END OF DEFINITION FOR NEEDED SUBOPT DATA
+   */
 
   if ((!P) || (fabs(P->temperature - temperature) > 1e-6))
     update_dfold_params();
@@ -1350,9 +1385,11 @@ Lduplexfold_C(const char  *s1,
         lc[idx][j] += P->dangle5[type][SS1[i - 1]] + extension_cost;
 
       lc[idx][j] += (type > 2 ? P->TerminalAU : 0);
-      /* type > 2 -> no GC or CG pair */
-      /* ------------------------------------------------------------------update c  matrix  */
-      /*  Be careful, no lc may come from a region where a "|" is in a loop, avoided in lin = lby = INF ... jedoch fuer klein loops muss man aufpassen .. */
+      /*
+       * type > 2 -> no GC or CG pair
+       * ------------------------------------------------------------------update c  matrix
+       *  Be careful, no lc may come from a region where a "|" is in a loop, avoided in lin = lby = INF ... jedoch fuer klein loops muss man aufpassen ..
+       */
       type2       = pair[S1[i - 1]][S2[j + 1]];
       lc[idx][j]  =
         MIN2(lc[idx_1][j + 1] +
