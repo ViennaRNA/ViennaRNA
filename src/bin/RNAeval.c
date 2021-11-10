@@ -360,7 +360,6 @@ main(int  argc,
   }
 
   UNINIT_PARALLELIZATION
-
   /*
    ################################################
    # post processing
@@ -673,7 +672,12 @@ process_record(struct record_data *record)
       switch (vc->type) {
         case VRNA_FC_TYPE_SINGLE:
           if (vc->nucleotides[a].length != l)
-            vrna_message_error("Structure and sequence part of strand %u differ in length (%u vs. %u)", a, l, vc->nucleotides[a].length);
+            vrna_message_error(
+              "Structure and sequence part of strand %u differ in length (%u vs. %u)",
+              a,
+              l,
+              vc->nucleotides[a].length);
+
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
@@ -691,9 +695,11 @@ process_record(struct record_data *record)
       vrna_message_warning("cut_point = %d cut = %d", vc->cutpoint, cp);
       vrna_message_error("Sequence and Structure have different cut points.");
     }
+
     n = (int)strlen(structure);
     if (n != vc->length)
       vrna_message_error("structure and sequence differ in length!");
+
 #endif
 
     free(tmp);
@@ -722,6 +728,7 @@ process_record(struct record_data *record)
           break;
       }
     }
+
 #else
     if (vc->cutpoint == -1) {
       vrna_message_info(stdout, "length = %d", n);
@@ -731,6 +738,7 @@ process_record(struct record_data *record)
                         vc->cutpoint - 1,
                         n - vc->cutpoint + 1);
     }
+
 #endif
   }
 
