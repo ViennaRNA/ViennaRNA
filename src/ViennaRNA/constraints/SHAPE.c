@@ -50,9 +50,9 @@ sc_parse_parameters(const char  *string,
 
 
 PRIVATE FLT_OR_DBL
-conversion_deigan(double reactivity,
-                  double m,
-                  double b);
+conversion_deigan(double  reactivity,
+                  double  m,
+                  double  b);
 
 
 /*
@@ -185,10 +185,10 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
 
   if (*shape_conversion == 'M') {
     double  max;
-    double  map_info[4][2] = { { 0.25, 0.35 },
-                               { 0.30, 0.55 },
-                               { 0.70, 0.85 },
-                               { 0,    1    } };
+    double  map_info[4][2] = { { 0.25, 0.35    },
+                               { 0.30, 0.55    },
+                               { 0.70, 0.85    },
+                               { 0,    1       } };
 
     max = values[1];
     for (i = 2; i <= length; ++i)
@@ -455,21 +455,20 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         contributions[ss] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
         for (gaps = 0, i = 1; i <= vc->length; i++) {
           is_gap  = (vc->sequences[ss][i - 1] == '-') ? 1 : 0;
-          energy  = ((i - gaps > 0) && !(is_gap)) ? conversion_deigan(reactivities[i - gaps], m, b) * weight : 0.;
-          
-          if (vc->params->model_details.oldAliEn) {
+          energy  =
+            ((i - gaps > 0) && !(is_gap)) ? conversion_deigan(reactivities[i - gaps], m,
+                                                              b) * weight : 0.;
+
+          if (vc->params->model_details.oldAliEn)
             contributions[ss][i] = energy;
-          } else if (!is_gap) {
+          else if (!is_gap)
             contributions[ss][a2s[ss][i]] = energy;
-          }
 
           gaps += is_gap;
         }
 
         free(reactivities);
       }
-
-
     }
 
     ret = vrna_sc_set_stack_comparative(vc, (const FLT_OR_DBL **)contributions, options);
@@ -478,7 +477,6 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
       free(contributions[s]);
 
     free(contributions);
-
   }
 
   return ret;
@@ -577,10 +575,9 @@ sc_parse_parameters(const char  *string,
 
 
 PRIVATE FLT_OR_DBL
-conversion_deigan(double reactivity,
-                  double m,
-                  double b)
+conversion_deigan(double  reactivity,
+                  double  m,
+                  double  b)
 {
   return reactivity < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivity + 1) + b);
 }
-
