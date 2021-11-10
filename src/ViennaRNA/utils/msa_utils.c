@@ -200,14 +200,13 @@ vrna_pscore(vrna_fold_compound_t  *fc,
 
   if (i > j) {
     tmp = i;
-    i = j;
-    j = tmp;
+    i   = j;
+    j   = tmp;
   }
 
   if ((fc) &&
       (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
       (fc->length >= j)) {
-
     n         = fc->length;
     n_seq     = fc->n_seq;
     u         = j - i - 1;
@@ -220,7 +219,6 @@ vrna_pscore(vrna_fold_compound_t  *fc,
     if ((max_span < turn + 2) ||
         (max_span > (int)n))
       max_span = (int)n;
-
 
     if ((u > turn) &&
         (u + 2) <= max_span) {
@@ -261,15 +259,15 @@ vrna_pscore_freq(vrna_fold_compound_t *fc,
       (frequencies)) {
     unsigned int  k, l, n_seq;
     double        score;
-    vrna_md_t     *md;    
+    vrna_md_t     *md;
 
     n_seq = fc->n_seq;
     md    = &(fc->params->model_details);
 
     /*
-        assume first (0) and last (pairs + 1) frequency to reflect
-        counter-examples and gap-pairs, respectively
-    */
+     *  assume first (0) and last (pairs + 1) frequency to reflect
+     *  counter-examples and gap-pairs, respectively
+     */
     if (2 * frequencies[0] +
         frequencies[pairs + 1] < n_seq) {
       score = 0.;
@@ -283,13 +281,13 @@ vrna_pscore_freq(vrna_fold_compound_t *fc,
 
       /* counter examples score -1, gap-gap scores -0.25   */
       return md->cv_fact * ((UNIT * score) / n_seq -
-             md->nc_fact * UNIT * (frequencies[0] + frequencies[pairs + 1] * 0.25));
-    
+                            md->nc_fact * UNIT * (frequencies[0] + frequencies[pairs + 1] * 0.25));
     }
   }
 
   return NONE;
 }
+
 
 PUBLIC int *
 vrna_aln_pscore(const char  **alignment,
@@ -393,7 +391,7 @@ vrna_aln_pscore(const char  **alignment,
             score += pfreq[k] * pfreq[l] * dm[k][l];
         /* counter examples score -1, gap-gap scores -0.25   */
         pscore[indx[j] + i] = md->cv_fact * ((UNIT * score) / n_seq -
-                              md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
+                                             md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
 
         if ((j - i + 1) > max_span)
           pscore[indx[j] + i] = NONE;
