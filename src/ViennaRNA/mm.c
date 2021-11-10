@@ -119,9 +119,10 @@ vrna_maximum_matching_simple(const char *sequence)
 PUBLIC unsigned int
 maximumMatching(const char *string)
 {
-  unsigned int max;
+  unsigned int          max;
 
   vrna_fold_compound_t  *fc = vrna_fold_compound(string, NULL, VRNA_OPTION_DEFAULT);
+
   max = (unsigned int)vrna_maximum_matching(fc);
   vrna_fold_compound_free(fc);
 
