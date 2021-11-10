@@ -291,7 +291,13 @@ aliduplexfold(const char  *s1[],
     }
   }
   struc =
-    alibacktrack(n3, n4, i_min, j_min, (const short int **)S1, (const short int **)S2, extension_cost);
+    alibacktrack(n3,
+                 n4,
+                 i_min,
+                 j_min,
+                 (const short int **)S1,
+                 (const short int **)S2,
+                 extension_cost);
   if (i_min < n3)
     i_min++;
 
@@ -299,6 +305,7 @@ aliduplexfold(const char  *s1[],
     j_min--;
 
   int size;
+
   size          = strlen(struc) - 1;
   Emin          -= size * n_seq * extension_cost;
   mfe.i         = i_min;
@@ -837,6 +844,7 @@ alifind_max(const int   *position,
 
   for (n_seq = 0; s1[n_seq] != NULL; n_seq++);
   int pos = n1 - 9;
+
   if (fast == 1) {
     while (10 < pos--) {
       int temp_min = 0;
@@ -994,6 +1002,7 @@ aliduplexfold_XS(const char *s1[],
   duplexT   mfe;
   vrna_md_t md;
   int       n_seq;
+
   n3  = (int)strlen(s1[0]);
   n4  = (int)strlen(s2[0]);
   for (s = 0; s1[s] != NULL; s++);
@@ -1032,6 +1041,7 @@ aliduplexfold_XS(const char *s1[],
   type  = (int *)vrna_alloc(n_seq * sizeof(int));
   type2 = (int *)vrna_alloc(n_seq * sizeof(int));
   int type3, E, k, l;
+
   i = n3 - i_flag;
   j = 1 + j_flag;
   for (s = 0; s < n_seq; s++)
@@ -1126,6 +1136,7 @@ aliduplexfold_XS(const char *s1[],
   }
 
   int dx_5, dx_3, dy_5, dy_3, dGx, dGy;
+
   dx_5          = 0;
   dx_3          = 0;
   dy_5          = 0;
@@ -1358,6 +1369,7 @@ aliLduplexfold_XS(const char  *s1[],
   i         = 10;
   i_length  = n1 - 9;
   int di1, di2, di3, di4; /* contains accessibility penalty */
+
   while (i < i_length) {
     int idx   = i % 5;
     int idx_1 = (i - 1) % 5;
@@ -1683,6 +1695,7 @@ alifind_max_XS(const int  *position,
 
   for (n_seq = 0; s1[n_seq] != NULL; n_seq++);
   int pos = n1 - 9;
+
   if (fast == 1) {
     while (10 < pos--) {
       int temp_min = 0;
@@ -1888,7 +1901,7 @@ covscore(const int  *types,
 
   /* counter examples score -1, gap-gap scores -0.25   */
   pscore = cv_fact * ((UNIT * score) / n_seq -
-           nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
+                      nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
 
   return pscore;
 }
