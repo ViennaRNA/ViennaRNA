@@ -77,28 +77,28 @@ main(int  argc,
   vrna_cmd_t                  commands;
   dataset_id                  id_control;
 
-  ParamFile     = ns_bases = NULL;
-  do_backtrack  = 1;
-  noconv        = 0;
-  backtrack     = 0;
-  dangles       = 2;
-  maxdist       = 150;
-  zsc           = 0;
-  zsc_pre       = 0;
-  zsc_subsumed  = 0;
-  min_z         = -2.0;
-  gquad         = 0;
-  rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = orig_sequence = NULL;
-  rec_rest      = NULL;
-  outfile       = NULL;
-  infile        = NULL;
-  input         = NULL;
-  output        = NULL;
-  tofile        = 0;
-  filename_full = 0;
-  command_file  = NULL;
-  commands      = NULL;
+  ParamFile       = ns_bases = NULL;
+  do_backtrack    = 1;
+  noconv          = 0;
+  backtrack       = 0;
+  dangles         = 2;
+  maxdist         = 150;
+  zsc             = 0;
+  zsc_pre         = 0;
+  zsc_subsumed    = 0;
+  min_z           = -2.0;
+  gquad           = 0;
+  rec_type        = read_opt = 0;
+  rec_id          = rec_sequence = orig_sequence = NULL;
+  rec_rest        = NULL;
+  outfile         = NULL;
+  infile          = NULL;
+  input           = NULL;
+  output          = NULL;
+  tofile          = 0;
+  filename_full   = 0;
+  command_file    = NULL;
+  commands        = NULL;
   file_pos_start  = -1;
 
   /* apply default model details */
@@ -188,6 +188,7 @@ main(int  argc,
 
     if (args_info.zscore_report_subsumed_given)
       zsc_subsumed = 1;
+
 #else
     vrna_message_error("\'z\' option is available only if compiled with SVM support!");
 #endif
@@ -259,7 +260,7 @@ main(int  argc,
 
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
@@ -383,6 +384,7 @@ main(int  argc,
 
       vrna_zsc_filter_init(vc, min_z, zsc_options);
     }
+
 #endif
 
     hit_data data;
@@ -399,8 +401,8 @@ main(int  argc,
 #endif
     fprintf(output, "%s\n", orig_sequence);
 
-    char *msg = NULL;
-    char *mfe_structure = NULL;
+    char  *msg            = NULL;
+    char  *mfe_structure  = NULL;
 
     if (output)
       (void)fflush(output);
