@@ -30,12 +30,14 @@
 #define MAXLENGTH  10000
 #define MAXSEQ      1000
 
-PRIVATE void command_line(int       argc,
-                          char      *argv[],
-                          vrna_md_t *md);
+PRIVATE void
+command_line(int        argc,
+             char       *argv[],
+             vrna_md_t  *md);
 
 
-PRIVATE void print_aligned_lines(FILE *somewhere);
+PRIVATE void
+print_aligned_lines(FILE *somewhere);
 
 
 PRIVATE char  task;
@@ -351,7 +353,7 @@ command_line(int        argc,
   /* do some preparations */
   if (ParamFile != NULL) {
     if (!strcmp(ParamFile, "DNA"))
-        vrna_params_load_DNA_Mathews2004();
+      vrna_params_load_DNA_Mathews2004();
     else
       vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
   }
