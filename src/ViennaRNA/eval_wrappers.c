@@ -45,8 +45,8 @@
  */
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-PUBLIC int  cut_point = -1; /* set to first pos of second seq for cofolding */
-PUBLIC int  eos_debug = 0;  /* verbose info from energy_of_struct */
+PUBLIC int cut_point = -1;  /* set to first pos of second seq for cofolding */
+PUBLIC int eos_debug = 0;   /* verbose info from energy_of_struct */
 
 /*
  #################################
