@@ -227,6 +227,7 @@ static const unsigned char parameter_set_$parfile_name[[]] = {
 
 
 AC_DEFUN([RNA_CHECK_DLIB], [
+  AX_CXX_COMPILE_STDCXX(11, noext, mandatory)
   DLIB_VERSION=19.22
   DLIB_DIR="dlib-${DLIB_VERSION}"
   DLIB_PATH="${srcdir}/src/${DLIB_DIR}"
