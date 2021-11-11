@@ -6,7 +6,7 @@ echo 1..17 # Number of tests to be executed.
 
 RETURN=0
 
-function failed {
+failed () {
     RETURN=1
     if [ "x$1" != "x" ]
     then
@@ -16,7 +16,7 @@ function failed {
     fi
 }
 
-function passed {
+passed () {
     if [ "x$1" != "x" ]
     then
         echo "ok - $1"
@@ -28,9 +28,7 @@ function passed {
 
 # simple version test
 testname="correct version number"
-rnaalifold_version=$(RNAalifold --version)
-rnaalifold_version=${rnaalifold_version/$CURRENT_VERSION/LATEST}
-if [ "x${rnaalifold_version}" != "xRNAalifold LATEST" ] ; then failed "$testname"; else passed "$testname"; fi
+if [ "x$(RNAalifold --version)" != "xRNAalifold $CURRENT_VERSION" ] ; then failed "$testname"; else passed "$testname"; fi
 
 # Test dangle models (d0, d2)
 for dangles in 0 2

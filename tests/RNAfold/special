@@ -6,7 +6,7 @@ echo 1..21 # Number of tests to be executed.
 
 RETURN=0
 
-function failed {
+failed () {
     RETURN=1
     if [ "x$1" != "x" ]
     then
@@ -16,7 +16,7 @@ function failed {
     fi
 }
 
-function passed {
+passed () {
     if [ "x$1" != "x" ]
     then
         echo "ok - $1"
