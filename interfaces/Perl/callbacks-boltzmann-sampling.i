@@ -125,6 +125,30 @@ perl_wrap_bs_cb(const char *stucture, void *data){
     return i;
   }
 
+  unsigned int
+  pbacktrack_sub(unsigned int num_samples,
+                 unsigned int start,
+                 unsigned int end,
+                 SV           *PerlFunc,
+                 SV           *PerlData  = NULL,
+                 unsigned int options    = VRNA_PBACKTRACK_DEFAULT)
+  {
+    unsigned int i;
+    perl_bs_callback_t *cb = bind_bs_callback(PerlFunc, PerlData);
+
+    i = vrna_pbacktrack_sub_cb($self,
+                               num_samples,
+                               start,
+                               end,
+                               &perl_wrap_bs_cb,
+                               (void *)cb,
+                               options);
+
+    free(cb);
+
+    return i;
+  }
+
   %apply vrna_pbacktrack_mem_t *INOUT { vrna_pbacktrack_mem_t *nr_memory };
 
   unsigned int
@@ -167,6 +191,32 @@ perl_wrap_bs_cb(const char *stucture, void *data){
                                    (void *)cb,
                                    nr_memory,
                                    options);
+
+    free(cb);
+
+    return i;
+  }
+
+  unsigned int
+  pbacktrack_sub(unsigned int           num_samples,
+                 unsigned int           start,
+                 unsigned int           end,
+                 SV                     *PerlFunc,
+                 SV                     *PerlData,
+                 vrna_pbacktrack_mem_t  *nr_memory,
+                 unsigned int           options = VRNA_PBACKTRACK_DEFAULT)
+  {
+    unsigned int i;
+    perl_bs_callback_t *cb = bind_bs_callback(PerlFunc, PerlData);
+
+    i = vrna_pbacktrack_sub_resume_cb($self,
+                                      num_samples,
+                                      start,
+                                      end,
+                                      &perl_wrap_bs_cb,
+                                      (void *)cb,
+                                      nr_memory,
+                                      options);
 
     free(cb);
 
