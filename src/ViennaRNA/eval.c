@@ -105,6 +105,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                       int                   j,
                       const char            *structure,
                       const short           *pt,
+                      const int             *loop_idx,
                       vrna_cstr_t           output_stream,
                       int                   verbosity_level);
 
@@ -127,17 +128,6 @@ PRIVATE int
 stack_energy_covar_pt(vrna_fold_compound_t  *vc,
                       int                   i,
                       const short           *ptable);
-
-
-PRIVATE int
-en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
-                          int                   i,
-                          int                   j,
-                          const char            *structure,
-                          const short           *pt,
-                          const int             *loop_idx,
-                          vrna_cstr_t           output_stream,
-                          int                   verbosity_level);
 
 
 PRIVATE int
@@ -558,62 +548,41 @@ wrap_eval_structure(vrna_fold_compound_t  *vc,
                     vrna_cstr_t           output_stream,
                     int                   verbosity)
 {
-  int   res, gq, L, l[3];
-  float energy;
+  unsigned int  n_seq;
+  int           res, gq, *loop_idx, L, l[3];
+  float         energy;
+  vrna_md_t     *md;
 
-  energy                          = (float)INF / 100.;
-  gq                              = vc->params->model_details.gquad;
-  vc->params->model_details.gquad = 0;
+  energy    = (float)INF / 100.;
+  n_seq     = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
+  md        = &(vc->params->model_details);
+  gq        = md->gquad;
+  md->gquad = 0;
 
-  switch (vc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      if (vc->params->model_details.circ)
-        res = eval_circ_pt(vc, pt, output_stream, verbosity);
-      else
-        res = eval_pt(vc, pt, output_stream, verbosity);
+  if (md->circ)
+    res = eval_circ_pt(vc, pt, output_stream, verbosity);
+  else
+    res = eval_pt(vc, pt, output_stream, verbosity);
 
-      vc->params->model_details.gquad = gq;
+  md->gquad = gq;
 
-      if (gq && (parse_gquad(structure, &L, l) > 0)) {
-        if (verbosity > 0)
-          vrna_cstr_print_eval_sd_corr(output_stream);
+  if (gq && (parse_gquad(structure, &L, l) > 0)) {
+    if (verbosity > 0)
+      vrna_cstr_print_eval_sd_corr(output_stream);
 
-        res += en_corr_of_loop_gquad(vc, 1, vc->length, structure, pt, output_stream, verbosity);
-      }
-
-      energy = (float)res / 100.;
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      if (vc->params->model_details.circ)
-        res = eval_circ_pt(vc, pt, output_stream, verbosity);
-      else
-        res = eval_pt(vc, pt, output_stream, verbosity);
-
-      vc->params->model_details.gquad = gq;
-
-      if (gq && (parse_gquad(structure, &L, l) > 0)) {
-        if (verbosity > 0)
-          vrna_cstr_print_eval_sd_corr(output_stream);
-
-        int *loop_idx = vrna_loopidx_from_ptable(pt);
-        res += en_corr_of_loop_gquad_ali(vc,
-                                         1,
-                                         vc->length,
-                                         structure,
-                                         pt,
-                                         (const int *)loop_idx,
-                                         output_stream,
-                                         verbosity);
-        free(loop_idx);
-      }
-
-      energy = (float)res / (100. * (float)vc->n_seq);
-      break;
-
-    default:                      /* do nothing */
-      break;
+    loop_idx = vrna_loopidx_from_ptable(pt);
+    res += en_corr_of_loop_gquad(vc,
+                                 1,
+                                 vc->length,
+                                 structure,
+                                 pt,
+                                 (const int *)loop_idx,
+                                 output_stream,
+                                 verbosity);
+    free(loop_idx);
   }
+
+  energy = (float)res / (100. * (float)n_seq);
 
   return energy;
 }
@@ -1184,23 +1153,29 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                       int                   j,
                       const char            *structure,
                       const short           *pt,
+                      const int             *loop_idx,
                       vrna_cstr_t           output_stream,
                       int                   verbosity_level)
 {
   char          *sequence;
-  int           pos, tmp_e, energy, p, q, r, s, u, type, type2, L, l[3], *rtype, *loop_idx;
-  int           num_elem, num_g, elem_i, elem_j, up_mis;
-  short         *s1, *s2;
+  unsigned int  cnt, n_seq;
+  int           pos, tmp_e, energy, p, q, r, s, u, type, type2,
+                L, l[3], num_elem, num_g, elem_i, elem_j,
+                up_mis, gq_en[2], dangle_model;
+  short         *s1, *s2, **S, **S5, **S3;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
-  sequence  = vc->sequence;
-  loop_idx  = vrna_loopidx_from_ptable(pt);
+  n_seq     = (vc->type == VRNA_FC_TYPE_SINGLE) ? 1 : vc->n_seq;
+  sequence  = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence : vc->cons_seq;
   s1        = vc->sequence_encoding;
   s2        = vc->sequence_encoding2;
+  S           = vc->S;
+  S5          = vc->S5;
+  S3          = vc->S3;
   P         = vc->params;
   md        = &(P->model_details);
-  rtype     = &(md->rtype[0]);
+  dangle_model  = md->dangles;
 
   energy  = 0;
   q       = i;
@@ -1212,10 +1187,22 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
       break;
 
     /* we've found the first g-quadruplex at position [p,q] */
-    tmp_e   = E_gquad(L, l, P);
+    if (vc->type == VRNA_FC_TYPE_SINGLE)
+      tmp_e   = E_gquad(L, l, P);
+    else {
+      E_gquad_ali_en(p, L, l, (const short **)S, vc->a2s, n_seq, P, gq_en);
+      tmp_e   = gq_en[0];
+    }
+
     energy  += tmp_e;
-    if (verbosity_level > 0)
-      vrna_cstr_print_eval_gquad(output_stream, p, L, l, tmp_e);
+
+    if (verbosity_level > 0) {
+      vrna_cstr_print_eval_gquad(output_stream,
+                                 p,
+                                 L,
+                                 l,
+                                 (int)tmp_e / (int)n_seq);
+    }
 
     /* check if it's enclosed in a base pair */
     if (loop_idx[p] == 0) {
@@ -1271,10 +1258,20 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
           /* found another gquad */
           pos = parse_gquad(structure + u - 1, &L, l);
           if (pos > 0) {
-            tmp_e = E_gquad(L, l, P);
+            if (vc->type == VRNA_FC_TYPE_SINGLE) {
+              tmp_e = E_gquad(L, l, P);
+            } else {
+              E_gquad_ali_en(u, L, l, (const short **)S, vc->a2s, n_seq, P, gq_en);
+              tmp_e   = gq_en[0];
+            }
 
-            if (verbosity_level > 0)
-              vrna_cstr_print_eval_gquad(output_stream, pos, L, l, tmp_e);
+            if (verbosity_level > 0) {
+              vrna_cstr_print_eval_gquad(output_stream,
+                                         pos,
+                                         L,
+                                         l,
+                                         (int)tmp_e / (int)n_seq);
+            }
 
             energy  += tmp_e;
             up_mis  += pos;
@@ -1291,6 +1288,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                                            pt[u],
                                            structure,
                                            pt,
+                                           loop_idx,
                                            output_stream,
                                            verbosity_level);
           u = pt[u] + 1;
@@ -1298,7 +1296,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
       }
 
       /* here, u == s */
-      int e_minus, e_plus;
+      int e_minus, e_plus, e_temp;
 
       e_plus = e_minus = 0;
 
@@ -1307,27 +1305,40 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
         /* g-quad was misinterpreted as hairpin closed by (r,s) */
         case 0:
           e_minus = vrna_eval_hp_loop(vc, r, s);
+
           if (verbosity_level > 0) {
             vrna_cstr_print_eval_hp_loop_revert(output_stream,
                                                 r,
                                                 s,
                                                 sequence[r - 1],
                                                 sequence[s - 1],
-                                                e_minus);
+                                                (int)e_minus / (int)n_seq);
           }
-
-          type = md->pair[s2[r]][s2[s]];
 
           /* if we consider the G-Quadruplex, we have */
           if (num_g == 1) {
             /* a) an interior loop like structure */
-            if (dangles == 2)
-              e_plus += P->mismatchI[type][s1[r + 1]][s1[s - 1]];
+            if (vc->type == VRNA_FC_TYPE_SINGLE) {
+              type = md->pair[s2[r]][s2[s]];
+              if (dangle_model == 2)
+                e_plus += P->mismatchI[type][s1[r + 1]][s1[s - 1]];
 
-            if (type > 2)
-              e_plus += P->TerminalAU;
+              if (type > 2)
+                e_plus += P->TerminalAU;
+            } else {
+              for (cnt = 0; cnt < n_seq; cnt++) {
+                type = vrna_get_ptype_md(S[cnt][r], S[cnt][s], md);
 
-            e_plus += P->internal_loop[s - r - 1 - up_mis];
+                if (dangle_model == 2)
+                  e_plus += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
+
+                if (type > 2)
+                  e_plus += P->TerminalAU;
+              }
+            }
+
+            e_plus += n_seq * P->internal_loop[s - r - 1 - up_mis];
+
             if (verbosity_level > 0) {
               vrna_cstr_print_eval_int_loop(output_stream,
                                             r,
@@ -1338,14 +1349,25 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                                             q,
                                             sequence[p - 1],
                                             sequence[q - 1],
-                                            e_plus);
+                                            (int)e_plus / (int)n_seq);
             }
           } else {
             /* or b) a multibranch loop like structure */
-            e_plus = P->MLclosing
-                     + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
-                     + num_g * E_MLstem(0, -1, -1, P)
-                     + (s - r - 1 - up_mis) * P->MLbase;
+            e_temp = num_g * E_MLstem(0, -1, -1, P) +
+                     P->MLclosing +
+                     (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
+
+            e_plus = n_seq * e_temp;
+
+            if (vc->type == VRNA_FC_TYPE_SINGLE) {
+              type = md->pair[s2[s]][s2[r]];
+              e_plus += E_MLstem(type, s1[s - 1], s1[r + 1], P);
+            } else {
+              for (cnt = 0; cnt < n_seq; cnt++) {
+                type = vrna_get_ptype_md(S[cnt][s], S[cnt][r], md);
+                e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
+              }
+            }
 
             if (verbosity_level > 0) {
               vrna_cstr_print_eval_mb_loop(output_stream,
@@ -1353,7 +1375,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                                            s,
                                            sequence[r - 1],
                                            sequence[s - 1],
-                                           e_plus);
+                                           (int)e_plus / (int)n_seq);
             }
           }
 
@@ -1362,17 +1384,27 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
 
         /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
         case 1:
-          type    = md->pair[s2[r]][s2[s]];
-          type2   = md->pair[s2[elem_i]][s2[elem_j]];
-          e_plus  = P->MLclosing
-                    + E_MLstem(rtype[type], s1[s - 1], s1[r + 1], P)
-                    + (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase
-                    + E_MLstem(type2, s1[elem_i - 1], s1[elem_j + 1], P);
+          e_temp = num_g * E_MLstem(0, -1, -1, P) +
+                   P->MLclosing +
+                   (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
+          e_plus = n_seq * e_temp;
 
-          e_plus += num_g * E_MLstem(0, -1, -1, P);
+          if (vc->type == VRNA_FC_TYPE_SINGLE) {
+            type    = md->pair[s2[s]][s2[r]];
+            type2   = md->pair[s2[elem_i]][s2[elem_j]];
+            e_plus  += E_MLstem(type, s1[s - 1], s1[r + 1], P) +
+                       E_MLstem(type2, s1[elem_i - 1], s1[elem_j + 1], P);
+
+          } else {
+            for (cnt = 0; cnt < n_seq; cnt++) {
+              type = vrna_get_ptype_md(S[cnt][s], S[cnt][r], md);
+              type2 = vrna_get_ptype_md(S[cnt][elem_i], S[cnt][elem_j], md);
+              e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P) +
+                        E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
+            }
+          }
 
           e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
-
           energy += e_plus - e_minus;
 
           if (verbosity_level > 0) {
@@ -1385,21 +1417,22 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                                                  elem_j,
                                                  sequence[elem_i - 1],
                                                  sequence[elem_j - 1],
-                                                 e_minus);
+                                                 (int)e_minus / (int)n_seq);
+
             vrna_cstr_print_eval_mb_loop(output_stream,
                                          r,
                                          s,
                                          sequence[r - 1],
                                          sequence[s - 1],
-                                         e_plus);
+                                         (int)e_plus / (int)n_seq);
           }
 
           break;
 
         /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
         default:
-          e_minus = (up_mis) * P->MLbase;
-          e_plus  = num_g * E_MLstem(0, -1, -1, P);
+          e_minus = (up_mis) * P->MLbase * n_seq;
+          e_plus  = num_g * E_MLstem(0, -1, -1, P) * n_seq;
           energy  += e_plus - e_minus;
 
           if (verbosity_level > 0) {
@@ -1408,13 +1441,14 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
                                                 s,
                                                 sequence[r - 1],
                                                 sequence[s - 1],
-                                                e_minus);
+                                                (int)e_minus / (int)n_seq);
+
             vrna_cstr_print_eval_mb_loop(output_stream,
                                          r,
                                          s,
                                          sequence[r - 1],
                                          sequence[s - 1],
-                                         e_plus);
+                                         (int)e_plus / (int)n_seq);
           }
 
           break;
@@ -1424,7 +1458,6 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *vc,
     }
   }
 
-  free(loop_idx);
   return energy;
 }
 
@@ -2591,287 +2624,6 @@ covar_energy_of_struct_pt(vrna_fold_compound_t  *vc,
   }
 
   return e;
-}
-
-
-PRIVATE int
-en_corr_of_loop_gquad_ali(vrna_fold_compound_t  *vc,
-                          int                   i,
-                          int                   j,
-                          const char            *structure,
-                          const short           *pt,
-                          const int             *loop_idx,
-                          vrna_cstr_t           output_stream,
-                          int                   verbosity_level)
-{
-  int           pos, cnt, tmp_e, energy, p, q, r, s, u, type, gq_en[2];
-  int           num_elem, num_g, elem_i, elem_j, up_mis;
-  int           L, l[3];
-
-  char          *sequence     = vc->cons_seq;
-  short         **S           = vc->S;
-  short         **S5          = vc->S5;
-  short         **S3          = vc->S3;
-  vrna_param_t  *P            = vc->params;
-  vrna_md_t     *md           = &(P->model_details);
-  int           n_seq         = vc->n_seq;
-  int           dangle_model  = md->dangles;
-
-  energy  = 0;
-  q       = i;
-  while ((pos = parse_gquad(structure + q - 1, &L, l)) > 0) {
-    q += pos - 1;
-    p = q - 4 * L - l[0] - l[1] - l[2] + 1;
-    if (q > j)
-      break;
-
-    /* we've found the first g-quadruplex at position [p,q] */
-    E_gquad_ali_en(p, L, l, (const short **)S, vc->a2s, n_seq, P, gq_en);
-    tmp_e   = gq_en[0];
-    energy  += tmp_e;
-
-    if (verbosity_level > 0) {
-      vrna_cstr_print_eval_gquad(output_stream,
-                                 p,
-                                 L,
-                                 l,
-                                 (int)tmp_e / (int)n_seq);
-    }
-
-    /* check if it's enclosed in a base pair */
-    if (loop_idx[p] == 0) {
-      q++;
-      continue;                          /* g-quad in exterior loop */
-    } else {
-      /*  find its enclosing pair */
-      num_elem  = 0;
-      num_g     = 1;
-      r         = p - 1;
-      up_mis    = q - p + 1;
-
-      /* seek for first pairing base located 5' of the g-quad */
-      for (r = p - 1; !pt[r] && (r >= i); r--);
-
-      if (r < pt[r]) {
-        /* found the enclosing pair */
-        s = pt[r];
-      } else {
-        num_elem++;
-        elem_i  = pt[r];
-        elem_j  = r;
-        r       = pt[r] - 1;
-        /* seek for next pairing base 5' of r */
-        for (; !pt[r] && (r >= i); r--);
-
-        if (r < pt[r]) {
-          /* found the enclosing pair */
-          s = pt[r];
-        } else {
-          /* hop over stems and unpaired nucleotides */
-          while ((r > pt[r]) && (r >= i)) {
-            if (pt[r]) {
-              r = pt[r];
-              num_elem++;
-            }
-
-            r--;
-          }
-
-          s = pt[r]; /* found the enclosing pair */
-        }
-      }
-
-      /* now we have the enclosing pair (r,s) */
-
-      u = q + 1;
-      /* we know everything about the 5' part of this loop so check the 3' part */
-      while (u < s) {
-        if (structure[u - 1] == '.') {
-          u++;
-        } else if (structure[u - 1] == '+') {
-          /* found another gquad */
-          pos = parse_gquad(structure + u - 1, &L, l);
-          if (pos > 0) {
-            E_gquad_ali_en(u, L, l, (const short **)S, vc->a2s, n_seq, P, gq_en);
-
-            if (verbosity_level > 0) {
-              vrna_cstr_print_eval_gquad(output_stream,
-                                         pos,
-                                         L,
-                                         l,
-                                         (int)tmp_e / (int)n_seq);
-            }
-
-            tmp_e   = gq_en[0];
-            energy  += tmp_e;
-            up_mis  += pos;
-            u       += pos;
-            num_g++;
-          }
-        } else {
-          /* we must have found a stem */
-          num_elem++;
-          elem_i  = u;
-          elem_j  = pt[u];
-          energy  += en_corr_of_loop_gquad_ali(vc,
-                                               u,
-                                               pt[u],
-                                               structure,
-                                               pt,
-                                               loop_idx,
-                                               output_stream,
-                                               verbosity_level);
-          u = pt[u] + 1;
-        }
-      }
-
-      /* here, u == s */
-      int e_minus, e_plus, e_temp;
-
-      e_plus = e_minus = 0;
-
-      /* we are done since we've found no other 3' structure element */
-      switch (num_elem) {
-        /* g-quad was misinterpreted as hairpin closed by (r,s) */
-        case 0:
-          e_minus = vrna_eval_hp_loop(vc, r, s);
-
-          if (verbosity_level > 0) {
-            vrna_cstr_print_eval_hp_loop_revert(output_stream,
-                                                r,
-                                                s,
-                                                sequence[r - 1],
-                                                sequence[s - 1],
-                                                (int)e_minus / (int)n_seq);
-          }
-
-          /* if we consider the G-Quadruplex, we have */
-          if (num_g == 1) {
-            /* a) an interior loop like structure */
-            for (cnt = 0; cnt < n_seq; cnt++) {
-              type = vrna_get_ptype_md(S[cnt][r], S[cnt][s], md);
-
-              if (dangle_model == 2)
-                e_plus += P->mismatchI[type][S3[cnt][r]][S5[cnt][s]];
-
-              if (type > 2)
-                e_plus += P->TerminalAU;
-            }
-
-            e_plus += n_seq * P->internal_loop[s - r - 1 - up_mis];
-
-            if (verbosity_level > 0) {
-              vrna_cstr_print_eval_int_loop(output_stream,
-                                            r,
-                                            s,
-                                            sequence[r - 1],
-                                            sequence[s - 1],
-                                            p,
-                                            q,
-                                            sequence[p - 1],
-                                            sequence[q - 1],
-                                            (int)e_plus / (int)n_seq);
-            }
-          } else {
-            /* or b) a multibranch loop like structure */
-            for (cnt = 0; cnt < n_seq; cnt++) {
-              type = vrna_get_ptype_md(S[cnt][s], S[cnt][r], md);
-
-              e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
-            }
-
-            e_temp = num_g * E_MLstem(0, -1, -1, P) +
-                     P->MLclosing +
-                     (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
-
-            e_plus += n_seq * e_temp;
-
-            if (verbosity_level > 0) {
-              vrna_cstr_print_eval_mb_loop(output_stream,
-                                           r,
-                                           s,
-                                           sequence[r - 1],
-                                           sequence[s - 1],
-                                           (int)e_plus / (int)n_seq);
-            }
-          }
-
-          energy += e_plus - e_minus;
-          break;
-
-        /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
-        case 1:
-          e_minus = vrna_eval_int_loop(vc, r, s, elem_i, elem_j);
-
-          for (cnt = 0; cnt < n_seq; cnt++) {
-            type = vrna_get_ptype_md(S[cnt][s], S[cnt][r], md);
-
-            e_plus += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
-
-            type = vrna_get_ptype_md(S[cnt][elem_i], S[cnt][elem_j], md);
-
-            e_plus += E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
-          }
-
-          e_temp = num_g * E_MLstem(0, -1, -1, P) +
-                   P->MLclosing +
-                   (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
-
-          e_plus += n_seq * e_temp;
-
-          energy += e_plus - e_minus;
-
-          if (verbosity_level > 0) {
-            vrna_cstr_print_eval_int_loop_revert(output_stream,
-                                                 r,
-                                                 s,
-                                                 sequence[r - 1],
-                                                 sequence[j - 1],
-                                                 elem_i,
-                                                 elem_j,
-                                                 sequence[elem_i - 1],
-                                                 sequence[elem_j - 1],
-                                                 (int)e_minus / (int)n_seq);
-
-            vrna_cstr_print_eval_mb_loop(output_stream,
-                                         r,
-                                         s,
-                                         sequence[r - 1],
-                                         sequence[s - 1],
-                                         (int)e_plus / (int)n_seq);
-          }
-
-          break;
-        /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
-        default:
-          e_minus = (up_mis) * P->MLbase * n_seq;
-          e_plus  = num_g * E_MLstem(0, -1, -1, P) * n_seq;
-          energy  += e_plus - e_minus;
-
-          if (verbosity_level > 0) {
-            vrna_cstr_print_eval_mb_loop_revert(output_stream,
-                                                r,
-                                                s,
-                                                sequence[r - 1],
-                                                sequence[s - 1],
-                                                (int)e_minus / (int)n_seq);
-
-            vrna_cstr_print_eval_mb_loop(output_stream,
-                                         r,
-                                         s,
-                                         sequence[r - 1],
-                                         sequence[s - 1],
-                                         (int)e_plus / (int)n_seq);
-          }
-
-          break;
-      }
-
-      q = s + 1;
-    }
-  }
-
-  return energy;
 }
 
 
