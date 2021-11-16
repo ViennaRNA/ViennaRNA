@@ -327,6 +327,7 @@ endif
 
 libRNA_eval_la_SOURCES = \
     eval.c \
+    eval_covariance.c \
     eval_wrappers.c
 
 
