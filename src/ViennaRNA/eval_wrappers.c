@@ -76,6 +76,8 @@ recycle_last_call(const char    *string,
                   vrna_param_t  *P);
 
 
+#endif
+
 PRIVATE INLINE float
 eval_structure_simple_v(const char  *string,
                         const char  *structure,
@@ -94,8 +96,6 @@ eval_consensus_structure_simple_v(const char  **alignment,
                                   FILE        *file);
 
 
-#endif
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -105,7 +105,10 @@ PUBLIC float
 vrna_eval_structure(vrna_fold_compound_t  *fc,
                     const char            *structure)
 {
-  return vrna_eval_structure_v(fc, structure, VRNA_VERBOSITY_QUIET, NULL);
+  return vrna_eval_structure_v(fc,
+                               structure,
+                               VRNA_VERBOSITY_QUIET,
+                               NULL);
 }
 
 
@@ -114,7 +117,10 @@ vrna_eval_structure_verbose(vrna_fold_compound_t  *fc,
                             const char            *structure,
                             FILE                  *file)
 {
-  return vrna_eval_structure_v(fc, structure, VRNA_VERBOSITY_DEFAULT, file);
+  return vrna_eval_structure_v(fc,
+                               structure,
+                               VRNA_VERBOSITY_DEFAULT,
+                               file);
 }
 
 
@@ -122,7 +128,12 @@ PUBLIC float
 vrna_eval_structure_simple(const char *string,
                            const char *structure)
 {
-  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, 0, 0, NULL);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 VRNA_VERBOSITY_QUIET,
+                                 0,
+                                 0,
+                                 NULL);
 }
 
 
@@ -130,7 +141,12 @@ PUBLIC float
 vrna_eval_consensus_structure_simple(const char **alignment,
                                      const char *structure)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, 0, 0, NULL);
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           VRNA_VERBOSITY_QUIET,
+                                           0,
+                                           0,
+                                           NULL);
 }
 
 
@@ -138,7 +154,12 @@ PUBLIC float
 vrna_eval_gquad_structure(const char  *string,
                           const char  *structure)
 {
-  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, 1, 0, NULL);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 VRNA_VERBOSITY_QUIET,
+                                 1,
+                                 0,
+                                 NULL);
 }
 
 
@@ -146,7 +167,12 @@ PUBLIC float
 vrna_eval_gquad_consensus_structure(const char  **alignment,
                                     const char  *structure)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, 1, 0, NULL);
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           VRNA_VERBOSITY_QUIET,
+                                           1,
+                                           0,
+                                           NULL);
 }
 
 
@@ -154,7 +180,12 @@ PUBLIC float
 vrna_eval_circ_structure(const char *string,
                          const char *structure)
 {
-  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, 0, 1, NULL);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 VRNA_VERBOSITY_QUIET,
+                                 0,
+                                 1,
+                                 NULL);
 }
 
 
@@ -162,7 +193,12 @@ PUBLIC float
 vrna_eval_circ_consensus_structure(const char **alignment,
                                    const char *structure)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, 0, 1, NULL);
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           VRNA_VERBOSITY_QUIET,
+                                           0,
+                                           1,
+                                           NULL);
 }
 
 
@@ -170,7 +206,12 @@ PUBLIC float
 vrna_eval_circ_gquad_structure(const char *string,
                                const char *structure)
 {
-  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_QUIET, 1, 1, NULL);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 VRNA_VERBOSITY_QUIET,
+                                 1,
+                                 1,
+                                 NULL);
 }
 
 
@@ -178,7 +219,12 @@ PUBLIC float
 vrna_eval_circ_gquad_consensus_structure(const char **alignment,
                                          const char *structure)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_QUIET, 1, 1, NULL);
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           VRNA_VERBOSITY_QUIET,
+                                           1,
+                                           1,
+                                           NULL);
 }
 
 
@@ -187,7 +233,12 @@ vrna_eval_structure_simple_verbose(const char *string,
                                    const char *structure,
                                    FILE       *file)
 {
-  return eval_structure_simple_v(string, structure, VRNA_VERBOSITY_DEFAULT, 0, 0, file);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 VRNA_VERBOSITY_DEFAULT,
+                                 0,
+                                 0,
+                                 file);
 }
 
 
@@ -196,7 +247,11 @@ vrna_eval_consensus_structure_simple_verbose(const char **alignment,
                                              const char *structure,
                                              FILE       *file)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, VRNA_VERBOSITY_DEFAULT, 0, 0,
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           VRNA_VERBOSITY_DEFAULT,
+                                           0,
+                                           0,
                                            file);
 }
 
@@ -207,7 +262,12 @@ vrna_eval_structure_simple_v(const char *string,
                              int        verbosity_level,
                              FILE       *file)
 {
-  return eval_structure_simple_v(string, structure, verbosity_level, 0, 0, file);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 verbosity_level,
+                                 0,
+                                 0,
+                                 file);
 }
 
 
@@ -217,7 +277,12 @@ vrna_eval_consensus_structure_simple_v(const char **alignment,
                                        int        verbosity_level,
                                        FILE       *file)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, verbosity_level, 0, 0, file);
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           verbosity_level,
+                                           0,
+                                           0,
+                                           file);
 }
 
 
@@ -227,7 +292,12 @@ vrna_eval_circ_structure_v(const char *string,
                            int        verbosity_level,
                            FILE       *file)
 {
-  return eval_structure_simple_v(string, structure, verbosity_level, 0, 1, file);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 verbosity_level,
+                                 0,
+                                 1,
+                                 file);
 }
 
 
@@ -237,7 +307,12 @@ vrna_eval_circ_consensus_structure_v(const char **alignment,
                                      int        verbosity_level,
                                      FILE       *file)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, verbosity_level, 0, 1, file);
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           verbosity_level,
+                                           0,
+                                           1,
+                                           file);
 }
 
 
@@ -247,7 +322,12 @@ vrna_eval_gquad_structure_v(const char  *string,
                             int         verbosity_level,
                             FILE        *file)
 {
-  return eval_structure_simple_v(string, structure, verbosity_level, 1, 0, file);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 verbosity_level,
+                                 1,
+                                 0,
+                                 file);
 }
 
 
@@ -257,7 +337,12 @@ vrna_eval_gquad_consensus_structure_v(const char  **alignment,
                                       int         verbosity_level,
                                       FILE        *file)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, verbosity_level, 1, 0, file);
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           verbosity_level,
+                                           1,
+                                           0,
+                                           file);
 }
 
 
@@ -267,7 +352,12 @@ vrna_eval_circ_gquad_structure_v(const char *string,
                                  int        verbosity_level,
                                  FILE       *file)
 {
-  return eval_structure_simple_v(string, structure, verbosity_level, 1, 1, file);
+  return eval_structure_simple_v(string,
+                                 structure,
+                                 verbosity_level,
+                                 1,
+                                 1,
+                                 file);
 }
 
 
@@ -277,7 +367,12 @@ vrna_eval_circ_gquad_consensus_structure_v(const char **alignment,
                                            int        verbosity_level,
                                            FILE       *file)
 {
-  return eval_consensus_structure_simple_v(alignment, structure, verbosity_level, 1, 1, file);
+  return eval_consensus_structure_simple_v(alignment,
+                                           structure,
+                                           verbosity_level,
+                                           1,
+                                           1,
+                                           file);
 }
 
 
@@ -285,7 +380,10 @@ PUBLIC int
 vrna_eval_structure_pt(vrna_fold_compound_t *fc,
                        const short          *pt)
 {
-  return vrna_eval_structure_pt_v(fc, pt, VRNA_VERBOSITY_QUIET, NULL);
+  return vrna_eval_structure_pt_v(fc,
+                                  pt,
+                                  VRNA_VERBOSITY_QUIET,
+                                  NULL);
 }
 
 
@@ -294,7 +392,10 @@ vrna_eval_structure_pt_verbose(vrna_fold_compound_t *fc,
                                const short          *pt,
                                FILE                 *file)
 {
-  return vrna_eval_structure_pt_v(fc, pt, VRNA_VERBOSITY_DEFAULT, file);
+  return vrna_eval_structure_pt_v(fc,
+                                  pt,
+                                  VRNA_VERBOSITY_DEFAULT,
+                                  file);
 }
 
 
@@ -302,7 +403,10 @@ PUBLIC int
 vrna_eval_structure_pt_simple(const char  *string,
                               const short *pt)
 {
-  return vrna_eval_structure_pt_simple_v(string, pt, VRNA_VERBOSITY_QUIET, NULL);
+  return vrna_eval_structure_pt_simple_v(string,
+                                         pt,
+                                         VRNA_VERBOSITY_QUIET,
+                                         NULL);
 }
 
 
@@ -310,7 +414,10 @@ PUBLIC int
 vrna_eval_consensus_structure_pt_simple(const char  **alignment,
                                         const short *pt)
 {
-  return vrna_eval_consensus_structure_pt_simple_v(alignment, pt, VRNA_VERBOSITY_QUIET, NULL);
+  return vrna_eval_consensus_structure_pt_simple_v(alignment,
+                                                   pt,
+                                                   VRNA_VERBOSITY_QUIET,
+                                                   NULL);
 }
 
 
@@ -319,7 +426,10 @@ vrna_eval_structure_pt_simple_verbose(const char  *string,
                                       const short *pt,
                                       FILE        *file)
 {
-  return vrna_eval_structure_pt_simple_v(string, pt, VRNA_VERBOSITY_DEFAULT, file);
+  return vrna_eval_structure_pt_simple_v(string,
+                                         pt,
+                                         VRNA_VERBOSITY_DEFAULT,
+                                         file);
 }
 
 
@@ -328,7 +438,10 @@ vrna_eval_consensus_structure_pt_simple_verbose(const char  **alignment,
                                                 const short *pt,
                                                 FILE        *file)
 {
-  return vrna_eval_consensus_structure_pt_simple_v(alignment, pt, VRNA_VERBOSITY_DEFAULT, file);
+  return vrna_eval_consensus_structure_pt_simple_v(alignment,
+                                                   pt,
+                                                   VRNA_VERBOSITY_DEFAULT,
+                                                   file);
 }
 
 
@@ -339,15 +452,21 @@ vrna_eval_structure_pt_simple_v(const char  *string,
                                 FILE        *file)
 {
   int                   e;
+  vrna_fold_compound_t  *fc;
 
-  /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *fc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
+  e = INF;
 
-  /* evaluate structure */
-  e = vrna_eval_structure_pt_v(fc, pt, verbosity_level, file);
+  if ((string) &&
+      (pt)) {
+    /* create fold_compound with default parameters and without DP matrices */
+    fc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
 
-  /* free fold_compound */
-  vrna_fold_compound_free(fc);
+    /* evaluate structure */
+    e = vrna_eval_structure_pt_v(fc, pt, verbosity_level, file);
+
+    /* free fold_compound */
+    vrna_fold_compound_free(fc);
+  }
 
   return e;
 }
@@ -360,15 +479,21 @@ vrna_eval_consensus_structure_pt_simple_v(const char  **alignment,
                                           FILE        *file)
 {
   int                   e;
+  vrna_fold_compound_t  *fc;
 
-  /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *fc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_DEFAULT);
+  e = INF;
 
-  /* evaluate structure */
-  e = vrna_eval_structure_pt_v(fc, pt, verbosity_level, file);
+  if ((alignment) &&
+      (pt)) {
+    /* create fold_compound with default parameters and without DP matrices */
+    fc = vrna_fold_compound_comparative(alignment, NULL, VRNA_OPTION_DEFAULT);
 
-  /* free fold_compound */
-  vrna_fold_compound_free(fc);
+    /* evaluate structure */
+    e = vrna_eval_structure_pt_v(fc, pt, verbosity_level, file);
+
+    /* free fold_compound */
+    vrna_fold_compound_free(fc);
+  }
 
   return e;
 }
@@ -381,15 +506,21 @@ vrna_eval_move_pt_simple(const char *string,
                          int        m2)
 {
   int                   e;
+  vrna_fold_compound_t  *fc;
 
-  /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t  *fc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
+  e = INF;
 
-  /* evaluate structure */
-  e = vrna_eval_move_pt(fc, pt, m1, m2);
+  if ((string) &&
+      (pt)) {
+    /* create fold_compound with default parameters and without DP matrices */
+    fc = vrna_fold_compound(string, NULL, VRNA_OPTION_EVAL_ONLY);
 
-  /* free fold_compound */
-  vrna_fold_compound_free(fc);
+    /* evaluate structure */
+    e = vrna_eval_move_pt(fc, pt, m1, m2);
+
+    /* free fold_compound */
+    vrna_fold_compound_free(fc);
+  }
 
   return e;
 }
@@ -400,35 +531,47 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *fc,
                         vrna_move_t           *m,
                         short                 *structure)
 {
-  if ((m->pos_5 < 0 && m->pos_3 > 0) || (m->pos_5 > 0 && m->pos_3 < 0)) {
-    /* split shift move */
-    int         unchangedPosition = m->pos_5 > 0 ? m->pos_5 : m->pos_3;
-    int         insertedPosition  = m->pos_5 < 0 ? -m->pos_5 : -m->pos_3;
-    int         d1                = -structure[unchangedPosition];
-    int         d2                = -unchangedPosition;
-    vrna_move_t deletion;
-    if (d1 < d2)
-      deletion = vrna_move_init(d2, d1);
-    else
-      deletion = vrna_move_init(d1, d2);
+  short       *tmpS;
+  int         e, unchangedPosition, insertedPosition, d1, d2, i1, i2;
+  vrna_move_t deletion, insertion;
 
-    int         i1  = unchangedPosition;
-    int         i2  = insertedPosition;
-    vrna_move_t insertion;
-    if (i1 > i2)
-      insertion = vrna_move_init(i2, i1);
-    else
-      insertion = vrna_move_init(i1, i2);
+  e = INF;
 
-    int   energy  = vrna_eval_move_pt(fc, structure, deletion.pos_5, deletion.pos_3);
-    short *tmpS   = vrna_ptable_copy(structure);
-    vrna_move_apply(tmpS, &deletion);
-    energy += vrna_eval_move_pt(fc, tmpS, insertion.pos_5, insertion.pos_3);
-    free(tmpS);
-    return energy;
-  } else {
-    return vrna_eval_move_pt(fc, structure, m->pos_5, m->pos_3);
+  if ((fc) &&
+      (m) &&
+      (structure)) {
+    if ((m->pos_5 < 0 && m->pos_3 > 0) ||
+        (m->pos_5 > 0 && m->pos_3 < 0)) {
+      /* split shift move */
+      unchangedPosition = m->pos_5 > 0 ? m->pos_5 : m->pos_3;
+      insertedPosition  = m->pos_5 < 0 ? -m->pos_5 : -m->pos_3;
+      d1                = -structure[unchangedPosition];
+      d2                = -unchangedPosition;
+
+      if (d1 < d2)
+        deletion = vrna_move_init(d2, d1);
+      else
+        deletion = vrna_move_init(d1, d2);
+
+      i1  = unchangedPosition;
+      i2  = insertedPosition;
+
+      if (i1 > i2)
+        insertion = vrna_move_init(i2, i1);
+      else
+        insertion = vrna_move_init(i1, i2);
+
+      e     = vrna_eval_move_pt(fc, structure, deletion.pos_5, deletion.pos_3);
+      tmpS  = vrna_ptable_copy(structure);
+      vrna_move_apply(tmpS, &deletion);
+      e += vrna_eval_move_pt(fc, tmpS, insertion.pos_5, insertion.pos_3);
+      free(tmpS);
+    } else {
+      e = vrna_eval_move_pt(fc, structure, m->pos_5, m->pos_3);
+    }
   }
+
+  return e;
 }
 
 
@@ -441,18 +584,21 @@ vrna_eval_move(vrna_fold_compound_t *fc,
   short *pt;
   int   en;
 
-  if (strlen(structure) != fc->length) {
-    vrna_message_warning("vrna_eval_move: "
-                         "sequence and structure have unequal length (%d vs. %d)",
-                         fc->length,
-                         strlen(structure));
-    return (float)(INF / 100.);
+  en = INF;
+
+  if ((fc) &&
+      (structure)) {
+    if (strlen(structure) == fc->length) {
+      pt  = vrna_ptable(structure);
+      en  = vrna_eval_move_pt(fc, pt, m1, m2);
+      free(pt);
+    } else {
+      vrna_message_warning("vrna_eval_move: "
+                           "sequence and structure have unequal length (%d vs. %d)",
+                           fc->length,
+                           strlen(structure));
+    }
   }
-
-  pt  = vrna_ptable(structure);
-  en  = vrna_eval_move_pt(fc, pt, m1, m2);
-
-  free(pt);
 
   return (float)en / 100.;
 }
@@ -467,6 +613,11 @@ vrna_eval_loop_pt(vrna_fold_compound_t  *fc,
 }
 
 
+/*
+ #################################
+ # STATIC helper functions below #
+ #################################
+ */
 PRIVATE INLINE float
 eval_structure_simple_v(const char  *string,
                         const char  *structure,
@@ -475,10 +626,11 @@ eval_structure_simple_v(const char  *string,
                         int         circular,
                         FILE        *file)
 {
-  char      *str;
-  int       cp;
-  float     e;
-  vrna_md_t md;
+  char                  *str;
+  int                   cp;
+  float                 e;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             md;
 
   vrna_md_set_default(&md);
 
@@ -486,7 +638,7 @@ eval_structure_simple_v(const char  *string,
   md.gquad  = gquad;
 
   /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t *fc = vrna_fold_compound(string, &md, VRNA_OPTION_DEFAULT);
+  fc = vrna_fold_compound(string, &md, VRNA_OPTION_DEFAULT);
 
   /* splice-out '&' strand break identifier, if present in structure */
   str = vrna_cut_point_remove(structure, &cp);
@@ -510,10 +662,11 @@ eval_consensus_structure_simple_v(const char  **alignment,
                                   int         circular,
                                   FILE        *file)
 {
-  char      *str;
-  int       cp;
-  float     e;
-  vrna_md_t md;
+  char                  *str;
+  int                   cp;
+  float                 e;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             md;
 
   vrna_md_set_default(&md);
 
@@ -521,7 +674,7 @@ eval_consensus_structure_simple_v(const char  **alignment,
   md.gquad  = gquad;
 
   /* create fold_compound with default parameters and without DP matrices */
-  vrna_fold_compound_t *fc = vrna_fold_compound_comparative(alignment, &md, VRNA_OPTION_DEFAULT);
+  fc = vrna_fold_compound_comparative(alignment, &md, VRNA_OPTION_DEFAULT);
 
   /* splice-out '&' strand break identifier, if present in structure */
   str = vrna_cut_point_remove(structure, &cp);
@@ -606,12 +759,17 @@ energy_of_struct(const char *string,
   float                 en;
   vrna_fold_compound_t  *fc;
 
-  fc = recycle_last_call(string, NULL);
+  en = (float)INF / 100.;
 
-  if (eos_debug > 0)
-    en = vrna_eval_structure_verbose(fc, structure, NULL);
-  else
-    en = vrna_eval_structure(fc, structure);
+  if ((string) &&
+      (structure)) {
+    fc = recycle_last_call(string, NULL);
+
+    if (eos_debug > 0)
+      en = vrna_eval_structure_verbose(fc, structure, NULL);
+    else
+      en = vrna_eval_structure(fc, structure);
+  }
 
   return en;
 }
@@ -626,22 +784,22 @@ energy_of_struct_pt(const char  *string,
   int                   en;
   vrna_fold_compound_t  *fc;
 
-  if (pt && string) {
-    if (pt[0] != (short)strlen(string)) {
+  en = INF;
+
+  if ((string) &&
+      (pt)) {
+    if (pt[0] == (short)strlen(string)) {
+      fc  = recycle_last_call(string, NULL);
+      en  = vrna_eval_structure_pt_v(fc, pt, eos_debug, NULL);
+    } else {
       vrna_message_warning("energy_of_struct_pt: "
                            "string and structure have unequal length (%d vs. %d)",
                            strlen(string),
                            pt[0]);
-      return INF;
     }
-
-    fc  = recycle_last_call(string, NULL);
-    en  = vrna_eval_structure_pt_v(fc, pt, eos_debug, NULL);
-
-    return en;
-  } else {
-    return INF;
   }
+
+  return en;
 }
 
 
@@ -651,15 +809,21 @@ energy_of_circ_struct(const char  *string,
 {
   float                 en;
   vrna_fold_compound_t  *fc;
+  vrna_md_t             *md;
 
-  fc = recycle_last_call(string, NULL);
+  en = (float)INF / 100.;
 
-  fc->params->model_details.circ = 1;
+  if ((string) &&
+      (structure)) {
+    fc        = recycle_last_call(string, NULL);
+    md        = &(fc->params->model_details);
+    md->circ  = 1;
 
-  if (eos_debug > 0)
-    en = vrna_eval_structure_verbose(fc, structure, NULL);
-  else
-    en = vrna_eval_structure(fc, structure);
+    if (eos_debug > 0)
+      en = vrna_eval_structure_verbose(fc, structure, NULL);
+    else
+      en = vrna_eval_structure(fc, structure);
+  }
 
   return en;
 }
@@ -670,11 +834,18 @@ energy_of_structure(const char  *string,
                     const char  *structure,
                     int         verbosity_level)
 {
-  vrna_fold_compound_t *fc;
+  float                 en;
+  vrna_fold_compound_t  *fc;
 
-  fc = recycle_last_call(string, NULL);
+  en = (float)INF / 100.;
 
-  return vrna_eval_structure_v(fc, structure, verbosity_level, NULL);
+  if ((string) &&
+      (structure)) {
+    fc  = recycle_last_call(string, NULL);
+    en  = vrna_eval_structure_v(fc, structure, verbosity_level, NULL);
+  }
+
+  return en;
 }
 
 
@@ -684,11 +855,18 @@ energy_of_struct_par(const char   *string,
                      vrna_param_t *parameters,
                      int          verbosity_level)
 {
-  vrna_fold_compound_t *fc;
+  float                 en;
+  vrna_fold_compound_t  *fc;
 
-  fc = recycle_last_call(string, parameters);
+  en = (float)INF / 100.;
 
-  return vrna_eval_structure_v(fc, structure, verbosity_level, NULL);
+  if ((string) &&
+      (structure)) {
+    fc  = recycle_last_call(string, parameters);
+    en  = vrna_eval_structure_v(fc, structure, verbosity_level, NULL);
+  }
+
+  return en;
 }
 
 
@@ -697,13 +875,24 @@ energy_of_gquad_structure(const char  *string,
                           const char  *structure,
                           int         verbosity_level)
 {
-  vrna_fold_compound_t *fc;
+  float                 en;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             *md;
 
-  fc = recycle_last_call(string, NULL);
+  en = (float)INF / 100.;
 
-  fc->params->model_details.gquad = 1;
+  if ((string) &&
+      (structure)) {
+    fc        = recycle_last_call(string, NULL);
+    md        = &(fc->params->model_details);
+    md->gquad = 1;
+    en        = vrna_eval_structure_v(fc,
+                                      structure,
+                                      verbosity_level,
+                                      NULL);
+  }
 
-  return vrna_eval_structure_v(fc, structure, verbosity_level, NULL);
+  return en;
 }
 
 
@@ -713,13 +902,24 @@ energy_of_gquad_struct_par(const char   *string,
                            vrna_param_t *parameters,
                            int          verbosity_level)
 {
-  vrna_fold_compound_t *fc;
+  float                 en;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             *md;
 
-  fc = recycle_last_call(string, parameters);
+  en = (float)INF / 100.;
 
-  fc->params->model_details.gquad = 1;
+  if ((string) &&
+      (structure)) {
+    fc        = recycle_last_call(string, parameters);
+    md        = &(fc->params->model_details);
+    md->gquad = 1;
+    en        = vrna_eval_structure_v(fc,
+                                      structure,
+                                      verbosity_level,
+                                      NULL);
+  }
 
-  return vrna_eval_structure_v(fc, structure, verbosity_level, NULL);
+  return en;
 }
 
 
@@ -733,22 +933,22 @@ energy_of_structure_pt(const char *string,
   int                   en;
   vrna_fold_compound_t  *fc;
 
-  if (pt && string) {
-    if (pt[0] != (short)strlen(string)) {
+  en = INF;
+
+  if ((string) &&
+      (pt)) {
+    if (pt[0] == (short)strlen(string)) {
+      fc  = recycle_last_call(string, NULL);
+      en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
+    } else {
       vrna_message_warning("energy_of_structure_pt: "
                            "string and structure have unequal length (%d vs. %d)",
                            strlen(string),
                            pt[0]);
-      return INF;
     }
-
-    fc  = recycle_last_call(string, NULL);
-    en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
-
-    return en;
-  } else {
-    return INF;
   }
+
+  return en;
 }
 
 
@@ -763,22 +963,22 @@ energy_of_struct_pt_par(const char    *string,
   int                   en;
   vrna_fold_compound_t  *fc;
 
-  if (pt && string) {
-    if (pt[0] != (short)strlen(string)) {
+  en = INF;
+
+  if ((string) &&
+      (pt)) {
+    if (pt[0] == (short)strlen(string)) {
+      fc  = recycle_last_call(string, parameters);
+      en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
+    } else {
       vrna_message_warning("energy_of_struct_pt_par: "
                            "string and structure have unequal length (%d vs. %d)",
                            strlen(string),
                            pt[0]);
-      return INF;
     }
-
-    fc  = recycle_last_call(string, parameters);
-    en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
-
-    return en;
-  } else {
-    return INF;
   }
+
+  return en;
 }
 
 
@@ -787,13 +987,24 @@ energy_of_circ_structure(const char *string,
                          const char *structure,
                          int        verbosity_level)
 {
-  vrna_fold_compound_t *fc;
+  float                 en;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             *md;
 
-  fc = recycle_last_call(string, NULL);
+  en = (float)INF / 100.;
 
-  fc->params->model_details.circ = 1;
+  if ((string) &&
+      (structure)) {
+    fc        = recycle_last_call(string, NULL);
+    md        = &(fc->params->model_details);
+    md->circ  = 1;
+    en        = vrna_eval_structure_v(fc,
+                                      structure,
+                                      verbosity_level,
+                                      NULL);
+  }
 
-  return vrna_eval_structure_v(fc, structure, verbosity_level, NULL);
+  return en;
 }
 
 
@@ -803,13 +1014,24 @@ energy_of_circ_struct_par(const char    *string,
                           vrna_param_t  *parameters,
                           int           verbosity_level)
 {
-  vrna_fold_compound_t *fc;
+  float                 en;
+  vrna_fold_compound_t  *fc;
+  vrna_md_t             *md;
 
-  fc = recycle_last_call(string, parameters);
+  en = (float)INF / 100.;
 
-  fc->params->model_details.circ = 1;
+  if ((string) &&
+      (structure)) {
+    fc        = recycle_last_call(string, parameters);
+    md        = &(fc->params->model_details);
+    md->circ  = 1;
+    en        = vrna_eval_structure_v(fc,
+                                      structure,
+                                      verbosity_level,
+                                      NULL);
+  }
 
-  return vrna_eval_structure_v(fc, structure, verbosity_level, NULL);
+  return en;
 }
 
 
@@ -819,23 +1041,28 @@ loop_energy(short *pt,
             short *s1,
             int   i)
 {
-  int                   en, u;
   char                  *seq;
+  int                   en, u;
   vrna_md_t             md;
   vrna_fold_compound_t  *fc;
 
-  set_model_details(&md);
+  en = INF;
 
-  /* convert encoded sequence back to actual string */
-  seq = (char *)vrna_alloc(sizeof(char) * (s[0] + 1));
-  for (u = 1; u <= s[0]; u++)
-    seq[u - 1] = vrna_nucleotide_decode(s[u], &md);
-  seq[u - 1] = '\0';
+  if ((pt) &&
+      (s)) {
+    set_model_details(&md);
 
-  fc  = recycle_last_call(seq, NULL);
-  en  = vrna_eval_loop_pt_v(fc, i, pt, eos_debug);
+    /* convert encoded sequence back to actual string */
+    seq = (char *)vrna_alloc(sizeof(char) * (s[0] + 1));
+    for (u = 1; u <= s[0]; u++)
+      seq[u - 1] = vrna_nucleotide_decode(s[u], &md);
+    seq[u - 1] = '\0';
 
-  free(seq);
+    fc  = recycle_last_call(seq, NULL);
+    en  = vrna_eval_loop_pt_v(fc, i, pt, eos_debug);
+
+    free(seq);
+  }
 
   return en;
 }
@@ -850,8 +1077,13 @@ energy_of_move(const char *string,
   float                 en;
   vrna_fold_compound_t  *fc;
 
-  fc  = recycle_last_call(string, NULL);
-  en  = vrna_eval_move(fc, structure, m1, m2);
+  en = (float)INF / 100.;
+
+  if ((string) &&
+      (structure)) {
+    fc  = recycle_last_call(string, NULL);
+    en  = vrna_eval_move(fc, structure, m1, m2);
+  }
 
   return en;
 }
@@ -869,18 +1101,23 @@ energy_of_move_pt(short *pt,
   vrna_md_t             md;
   vrna_fold_compound_t  *fc;
 
-  set_model_details(&md);
+  en = INF;
 
-  /* convert encoded sequence back to actual string */
-  seq = (char *)vrna_alloc(sizeof(char) * (s[0] + 1));
-  for (u = 1; u <= s[0]; u++)
-    seq[u - 1] = vrna_nucleotide_decode(s[u], &md);
-  seq[u - 1] = '\0';
+  if ((pt) &&
+      (s)) {
+    set_model_details(&md);
 
-  fc  = recycle_last_call(seq, NULL);
-  en  = vrna_eval_move_pt(fc, pt, m1, m2);
+    /* convert encoded sequence back to actual string */
+    seq = (char *)vrna_alloc(sizeof(char) * (s[0] + 1));
+    for (u = 1; u <= s[0]; u++)
+      seq[u - 1] = vrna_nucleotide_decode(s[u], &md);
+    seq[u - 1] = '\0';
 
-  free(seq);
+    fc  = recycle_last_call(seq, NULL);
+    en  = vrna_eval_move_pt(fc, pt, m1, m2);
+
+    free(seq);
+  }
 
   return en;
 }
