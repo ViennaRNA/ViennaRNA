@@ -34,6 +34,18 @@ PRIVATE void
 free_sequence_data(vrna_seq_t *obj);
 
 
+PRIVATE void
+update_strand_positions(vrna_fold_compound_t *fc);
+
+
+PRIVATE void
+update_sequence(vrna_fold_compound_t *fc);
+
+
+PRIVATE void
+update_encodings(vrna_fold_compound_t *fc);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -55,6 +67,103 @@ vrna_sequence(const char    *string,
 
 
 PUBLIC int
+vrna_sequences_add(vrna_fold_compound_t *fc,
+                   const char           **sequences,
+                   const unsigned int   *order,
+                   unsigned int         options)
+{
+  if ((fc) &&
+      (sequences)) {
+    size_t        s, s_new;
+    unsigned int  strands_old, n_new;
+    vrna_md_t     *md;
+
+    md            = &(fc->params->model_details);
+    strands_old   = fc->strands;
+
+    /* count the number of sequences to add */
+    for (s_new = 0; sequences[s_new]; s_new++);
+
+    /* append sequences to storage container */
+    fc->nucleotides = (vrna_seq_t *)vrna_realloc(fc->nucleotides,
+                                                 sizeof(vrna_seq_t) *
+                                                 (strands_old + s_new));
+    for (s = 0, n_new = 0; s < s_new; s++) {
+      set_sequence(&(fc->nucleotides[strands_old + s]),
+                   sequences[s],
+                   NULL,
+                   md,
+                   options);
+      n_new += fc->nucleotides[strands_old + s].length;
+    }
+
+    /* adjust strands counter */
+    fc->strands += s_new;
+
+    /* adjust total length of concatenated sequences */
+    fc->length += n_new;
+
+    /* adjust sequence order */
+    fc->strand_order = (unsigned int *)vrna_realloc(fc->strand_order,
+                                                    sizeof(unsigned int) *
+                                                    (fc->strands + 1));
+    if (order) {
+      memcpy(fc->strand_order + strands_old + 1,
+             order,
+             sizeof(unsigned int) * s_new);
+    } else {
+      /* default order is same as input order */
+      for (s = 0; s < s_new; s++)
+        fc->strand_order[strands_old + s + 1] = s;
+    }
+
+    for (s = 0; s < s_new; s++)
+      fc->strand_order[strands_old + s + 1] += strands_old;
+
+    /* adjust strand positions */
+    fc->strand_start = (unsigned int *)vrna_realloc(fc->strand_start,
+                                                    sizeof(unsigned int) *
+                                                    (fc->strands + 1));
+    fc->strand_end   = (unsigned int *)vrna_realloc(fc->strand_end,
+                                                    sizeof(unsigned int) *
+                                                    (fc->strands + 1));
+    fc->strand_number = (unsigned int *)vrna_realloc(fc->strand_number,
+                                                     sizeof(unsigned int) *
+                                                     (fc->length + 2));
+
+    update_strand_positions(fc);
+
+    /* adjust sequence array */
+    fc->sequence  = (char *)vrna_realloc(fc->sequence,
+                                         sizeof(char) *
+                                         (fc->length + 1));
+
+    update_sequence(fc);
+    fc->sequence[fc->length] = '\0';
+
+    /* adjust encodings arrays */
+    fc->sequence_encoding = (short *)vrna_realloc(fc->sequence_encoding,
+                                                  sizeof(short) *
+                                                  (fc->length + 2));
+    fc->sequence_encoding2 = (short *)vrna_realloc(fc->sequence_encoding2,
+                                                  sizeof(short) *
+                                                  (fc->length + 2));
+    fc->encoding5 = (short *)vrna_realloc(fc->encoding5,
+                                          sizeof(short) *
+                                          (fc->length + 2));
+    fc->encoding3 = (short *)vrna_realloc(fc->encoding3,
+                                          sizeof(short) *
+                                          (fc->length + 2));
+
+    update_encodings(fc);
+
+  }
+
+  return 0;
+}
+
+
+PUBLIC int
 vrna_sequence_add(vrna_fold_compound_t  *vc,
                   const char            *string,
                   unsigned int          options)
@@ -62,7 +171,9 @@ vrna_sequence_add(vrna_fold_compound_t  *vc,
   unsigned int  add_length;
   int           ret = 0;
 
-  if ((vc) && (vc->type == VRNA_FC_TYPE_SINGLE) && (string)) {
+  if ((vc) &&
+      (vc->type == VRNA_FC_TYPE_SINGLE) &&
+      (string)) {
     add_length = strlen(string);
 
     /* add the sequence to the nucleotides container */
@@ -438,62 +549,94 @@ PUBLIC int
 vrna_sequence_order_update(vrna_fold_compound_t *fc,
                            const unsigned int   *order)
 {
-  if ((fc) && (order)) {
-    /* first assign new order to strand_oder array */
+  if ((fc) &&
+      (order)) {
+    /* assign new order to strand_order arrays */
     memcpy(fc->strand_order_uniq, order, sizeof(unsigned int) * fc->strands);
     memcpy(fc->strand_order, order, sizeof(unsigned int) * fc->strands);
 
-    /* now, update strand_start/end positions and strand_number association */
-    fc->strand_start[order[0]]  = 1;
-    fc->strand_end[order[0]]    = fc->strand_start[order[0]] + fc->nucleotides[order[0]].length - 1;
-
-    for (size_t j = fc->strand_start[order[0]]; j <= fc->strand_end[order[0]]; j++)
-      fc->strand_number[j] = order[0];
-
-    for (size_t i = 1; i < fc->strands; i++) {
-      fc->strand_start[order[i]]  = fc->strand_end[order[i - 1]] + 1;
-      fc->strand_end[order[i]]    = fc->strand_start[order[i]] + fc->nucleotides[order[i]].length -
-                                    1;
-
-      for (size_t j = fc->strand_start[order[i]]; j <= fc->strand_end[order[i]]; j++)
-        fc->strand_number[j] = order[i];
-    }
-
-    /* also set pos. 0 and n + 1 for convenience reasons */
-    fc->strand_number[0]              = fc->strand_number[1];
-    fc->strand_number[fc->length + 1] = fc->strand_number[fc->length];
-
-    /* update the global concatenated sequence string */
-    for (size_t i = 0; i < fc->strands; i++)
-      memcpy(fc->sequence + fc->strand_start[order[i]] - 1,
-             fc->nucleotides[order[i]].string,
-             sizeof(char) * fc->nucleotides[order[i]].length);
-
-    /* finally, update global sequence encoding(s) for new order */
-    for (size_t i = 0; i < fc->strands; i++)
-      memcpy(fc->sequence_encoding + fc->strand_start[order[i]],
-             fc->nucleotides[order[i]].encoding + 1,
-             sizeof(short) * fc->nucleotides[order[i]].length);
-
-    fc->sequence_encoding[0]              = fc->sequence_encoding[fc->length];
-    fc->sequence_encoding[fc->length + 1] = fc->sequence_encoding[1];
-
-    for (size_t i = 0; i < fc->strands; i++) {
-      short *enc = vrna_seq_encode_simple(fc->nucleotides[order[i]].string,
-                                          &(fc->params->model_details));
-      memcpy(fc->sequence_encoding2 + fc->strand_start[order[i]],
-             enc + 1,
-             sizeof(short) * fc->nucleotides[order[i]].length);
-      free(enc);
-    }
-
-    fc->sequence_encoding2[0]               = (short)fc->length;
-    fc->sequence_encoding2[fc->length + 1]  = fc->sequence_encoding2[1];
+    update_strand_positions(fc);
+    update_sequence(fc);
+    update_encodings(fc);
 
     return 1;
   }
 
   return 0;
+}
+
+
+PRIVATE void
+update_strand_positions(vrna_fold_compound_t *fc)
+{
+  unsigned int *order = fc->strand_order;
+
+  /* now, update strand_start/end positions and strand_number association */
+  fc->strand_start[order[0]]  = 1;
+  fc->strand_end[order[0]]    = fc->strand_start[order[0]] +
+                                fc->nucleotides[order[0]].length -
+                                1;
+
+  for (size_t j = fc->strand_start[order[0]]; j <= fc->strand_end[order[0]]; j++)
+    fc->strand_number[j] = order[0];
+
+  for (size_t i = 1; i < fc->strands; i++) {
+    fc->strand_start[order[i]]  = fc->strand_end[order[i - 1]] +
+                                  1;
+    fc->strand_end[order[i]]    = fc->strand_start[order[i]] +
+                                  fc->nucleotides[order[i]].length -
+                                  1;
+
+    for (size_t j = fc->strand_start[order[i]]; j <= fc->strand_end[order[i]]; j++)
+      fc->strand_number[j] = order[i];
+  }
+
+  /* also set pos. 0 and n + 1 for convenience reasons */
+  fc->strand_number[0]              = fc->strand_number[1];
+  fc->strand_number[fc->length + 1] = fc->strand_number[fc->length];
+}
+
+PRIVATE void
+update_sequence(vrna_fold_compound_t *fc)
+{
+  unsigned int *order = fc->strand_order;
+
+  /* update the global concatenated sequence string */
+  for (size_t i = 0; i < fc->strands; i++)
+    memcpy(fc->sequence + fc->strand_start[order[i]] - 1,
+           fc->nucleotides[order[i]].string,
+           sizeof(char) * fc->nucleotides[order[i]].length);
+}
+
+
+PRIVATE void
+update_encodings(vrna_fold_compound_t *fc)
+{
+  unsigned int *order = fc->strand_order;
+
+  /* Update global sequence encoding(s) for current strand order */
+  for (size_t i = 0; i < fc->strands; i++)
+    memcpy(fc->sequence_encoding + fc->strand_start[order[i]],
+           fc->nucleotides[order[i]].encoding + 1,
+           sizeof(short) * fc->nucleotides[order[i]].length);
+
+  fc->sequence_encoding[0]              = fc->sequence_encoding[fc->length];
+  fc->sequence_encoding[fc->length + 1] = fc->sequence_encoding[1];
+
+  for (size_t i = 0; i < fc->strands; i++) {
+    short *enc = vrna_seq_encode_simple(fc->nucleotides[order[i]].string,
+                                        &(fc->params->model_details));
+    memcpy(fc->sequence_encoding2 + fc->strand_start[order[i]],
+           enc + 1,
+           sizeof(short) * fc->nucleotides[order[i]].length);
+    free(enc);
+  }
+
+  fc->sequence_encoding2[0]               = (short)fc->length;
+  fc->sequence_encoding2[fc->length + 1]  = fc->sequence_encoding2[1];
+
+  /* Update 5' and 3' neighbor encodings for current strand order */
+
 }
 
 
