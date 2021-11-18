@@ -1,6 +1,18 @@
 #ifndef VIENNA_RNA_PACKAGE_FOLD_COMPOUND_H
 #define VIENNA_RNA_PACKAGE_FOLD_COMPOUND_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     fold_compound.h
  *  @ingroup  fold_compound
@@ -147,10 +159,13 @@ struct vrna_fc_s {
                                      *      attributes to use within this data structure.
                                      */
   unsigned int      length;         /**<  @brief  The length of the sequence (or sequence alignment) */
-  int               cutpoint;       /**<  @brief  The position of the (cofold) cutpoint within the provided sequence.
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+  DEPRECATED(int cutpoint,
+             "Use strand_* members instead");
+                                    /**<  @brief  The position of the (cofold) cutpoint within the provided sequence.
                                      * If there is no cutpoint, this field will be set to -1
                                      */
-
+#endif
   unsigned int      *strand_number; /**<  @brief  The strand number a particular nucleotide is associated with */
   unsigned int      *strand_order;  /**<  @brief  The strand order, i.e. permutation of current concatenated sequence */
   unsigned int      *strand_order_uniq; /**<  @brief  The strand order array where identical sequences have the same ID */
@@ -228,7 +243,12 @@ struct vrna_fc_s {
                                          *    @see    vrna_sequence_encode()
                                          *    @warning   Only available if @verbatim type==VRNA_FC_TYPE_SINGLE @endverbatim
                                          */
-  short *sequence_encoding2;
+      short *encoding5;
+      short *encoding3;
+
+      short *sequence_encoding2;
+
+
       char *ptype;                      /**<  @brief  Pair type array
                                          *
                                          *    Contains the numerical encoding of the pair type for each pair (i,j) used

@@ -645,18 +645,22 @@ set_fold_compound(vrna_fold_compound_t  *fc,
       free(sequences);
       free(sequence);
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
       if (fc->strands > 1) {
         fc->cutpoint = fc->nucleotides[0].length + 1;
 
         if (md_p->min_loop_size == TURN)
           md_p->min_loop_size = 0;                              /* is it safe to set this here? */
       }
+#endif
 
       if (!(options & VRNA_OPTION_EVAL_ONLY)) {
         fc->ptype = (aux & WITH_PTYPE) ? vrna_ptypes(fc->sequence_encoding2, md_p) : NULL;
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
         /* backward compatibility ptypes */
         fc->ptype_pf_compat =
           (aux & WITH_PTYPE_COMPAT) ? get_ptypes(fc->sequence_encoding2, md_p, 1) : NULL;
+#endif
       }
 
       break;
@@ -896,6 +900,8 @@ nullify(vrna_fold_compound_t *fc)
       case VRNA_FC_TYPE_SINGLE:
         fc->sequence            = NULL;
         fc->sequence_encoding   = NULL;
+        fc->encoding5           = NULL;
+        fc->encoding3           = NULL;
         fc->sequence_encoding2  = NULL;
         fc->ptype               = NULL;
         fc->ptype_pf_compat     = NULL;
