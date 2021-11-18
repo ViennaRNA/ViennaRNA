@@ -1256,7 +1256,7 @@ scan_mb(vrna_fold_compound_t  *fc,
   short                     *S1, s5, s3;
   unsigned int              *sn, *so;
   int                       k, type, dangle_model, element_energy, best_energy, *c, *fML,
-                            *ggg, *indx, with_gquad, turn, stopp, k1j;
+                            *ggg, *indx, with_gquad, stopp, k1j;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_mb_def_dat      *hc_dat;
@@ -1277,7 +1277,6 @@ scan_mb(vrna_fold_compound_t  *fc,
 
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
-  turn          = md->min_loop_size;
 
   c   = fc->matrices->c;
   fML = fc->matrices->fML;
@@ -1292,7 +1291,7 @@ scan_mb(vrna_fold_compound_t  *fc,
 
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
-  if ((j < i + turn + 1) &&
+  if ((j < i + 1) &&
       (sn[i] == so[j])) {
     if (env->nopush) {
       push_back(env->Stack, state);
@@ -1304,7 +1303,7 @@ scan_mb(vrna_fold_compound_t  *fc,
 
   if ((sn[i - 1] == sn[i]) && (sn[j] == sn[j + 1])) {
     /*backtrack in FML only if multiloop is possible*/
-    for (k = i + turn + 1; k <= j - 1 - turn; k++) {
+    for (k = i + 1; k <= j - 1; k++) {
       /* Multiloop decomposition if i,j contains more than 1 stack */
 
       if ((with_gquad) &&
@@ -1375,7 +1374,7 @@ scan_mb(vrna_fold_compound_t  *fc,
     }
   }
 
-  stopp = j - 1 - turn;
+  stopp = j - 1;
 
   int up = 1;
 
@@ -1458,7 +1457,7 @@ scan_m1(vrna_fold_compound_t  *fc,
   short                     *S1;
   unsigned int              *sn, *so;
   int                       fi, cij, ij, type, dangle_model, element_energy, best_energy,
-                            *c, *fML, *fM1, *ggg, length, *indx, circular, with_gquad, turn;
+                            *c, *fML, *fM1, *ggg, length, *indx, circular, with_gquad;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_mb_def_dat      *hc_dat;
@@ -1479,7 +1478,6 @@ scan_m1(vrna_fold_compound_t  *fc,
   dangle_model  = md->dangles;
   circular      = md->circ;
   with_gquad    = md->gquad;
-  turn          = md->min_loop_size;
 
   c   = fc->matrices->c;
   fML = fc->matrices->fML;
@@ -1495,7 +1493,7 @@ scan_m1(vrna_fold_compound_t  *fc,
 
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
-  if ((j < i + turn + 1) &&
+  if ((j < i + 1) &&
       (sn[i] == so[j])) {
     if (env->nopush) {
       push_back(env->Stack, state);
@@ -1596,15 +1594,14 @@ scan_pair(vrna_fold_compound_t  *fc,
           subopt_env            *env,
           constraint_helpers    *constraints_dat)
 {
-  unsigned int  *sn, turn, noLP;
+  unsigned int  *sn, noLP;
   int           best_energy;
 
   sn          = fc->strand_number;
-  turn        = fc->params->model_details.min_loop_size;
   noLP        = fc->params->model_details.noLP;
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
-  if ((j < i + turn + 1) &&
+  if ((j < i + 1) &&
       (sn[i] == sn[j])) {
     if (env->nopush) {
       push_back(env->Stack, state);
@@ -1644,7 +1641,7 @@ scan_ext(vrna_fold_compound_t *fc,
   short                     *S1, s5, s3;
   unsigned int              *sn, *so;
   int                       k, type, dangle_model, element_energy, best_energy, *f5, *c, *ggg,
-                            length, *indx, circular, with_gquad, turn, kj, tmp_en;
+                            length, *indx, circular, with_gquad, kj, tmp_en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_ext_def_dat     *hc_dat;
@@ -1668,7 +1665,6 @@ scan_ext(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   circular      = md->circ;
   with_gquad    = md->gquad;
-  turn          = md->min_loop_size;
 
   f5  = fc->matrices->f5;
   c   = fc->matrices->c;
@@ -1692,7 +1688,7 @@ scan_ext(vrna_fold_compound_t *fc,
   if (i > 1)
     vrna_message_error("Error while backtracking!");
 
-  if ((j < i + turn + 1) &&
+  if ((j < i + 1) &&
       (sn[i] == so[j])) {
     /*
      * minimal structure element
@@ -1720,7 +1716,7 @@ scan_ext(vrna_fold_compound_t *fc,
       fork_state(i, j - 1, state, tmp_en, 0, env);
   }
 
-  for (k = j - turn - 1; k > 1; k--) {
+  for (k = j - 1; k > 1; k--) {
     kj = indx[j] + k;
 
     if ((with_gquad) &&
@@ -2148,7 +2144,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
   short                     *S1, s5, s3;
   unsigned int              k, type, *sn, *se, end;
   int                       dangle_model, element_energy, best_energy, *c, *ggg, **fms5,
-                            *indx, with_gquad, turn;
+                            *indx, with_gquad;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_ext_def_dat     *hc_dat;
@@ -2170,7 +2166,6 @@ scan_fms5(vrna_fold_compound_t  *fc,
 
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
-  turn          = md->min_loop_size;
 
   c     = fc->matrices->c;
   ggg   = fc->matrices->ggg;
@@ -2188,7 +2183,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
   end = se[strand];
 
   /* no more pairs if too close to strand boundary ? */
-  if (i + turn + 1 > se[strand]) {
+  if (i + 1 > se[strand]) {
     state->partial_energy += fms5[strand][i];
 
     if (env->nopush) {
@@ -2268,7 +2263,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
     }
   }
 
-  for (k = i + turn + 1; k < end; k++) {
+  for (k = i + 1; k < end; k++) {
     if ((with_gquad) &&
         (fms5[strand][k + 1] != INF) &&
         (ggg[indx[k] + i] != INF)) {
@@ -2353,7 +2348,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
   short                     *S1, s5, s3;
   unsigned int              *sn, *ss, start, k, type;
   int                       dangle_model, element_energy, best_energy, *c, *ggg, **fms3, length,
-                            *indx, with_gquad, turn;
+                            *indx, with_gquad;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_ext_def_dat     *hc_dat;
@@ -2375,7 +2370,6 @@ scan_fms3(vrna_fold_compound_t  *fc,
 
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
-  turn          = md->min_loop_size;
 
   c     = fc->matrices->c;
   ggg   = fc->matrices->ggg;
@@ -2393,7 +2387,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
   /* no more pairs if too close to strand boundary ? */
-  if (i < ss[strand] + turn + 1) {
+  if (i < ss[strand] + 1) {
     state->partial_energy += fms3[strand][i];
 
     if (env->nopush) {
@@ -2469,7 +2463,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
     }
   }
 
-  for (k = start; k < i - turn; k++) {
+  for (k = start; k < i; k++) {
     if ((with_gquad) &&
         (fms3[strand][k] != INF) &&
         (ggg[indx[i] + k + 1] != INF)) {
@@ -2657,7 +2651,7 @@ repeat(vrna_fold_compound_t *fc,
   unsigned int              n, *sn, *se, nick;
   int                       ij, k, p, q, energy, new, mm, no_close, type, type_2, element_energy,
                             *c, *fML, *fM1, *ggg, **fms5, **fms3, rt, *indx, *rtype, noGUclosure,
-                            noLP, with_gquad, dangle_model, turn, minq, eee, aux_eee, cnt, *ps, *qs,
+                            noLP, with_gquad, dangle_model, minq, eee, aux_eee, cnt, *ps, *qs,
                             *en, tmp_en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -2690,7 +2684,6 @@ repeat(vrna_fold_compound_t *fc,
   noLP          = md->noLP;
   with_gquad    = md->gquad;
   dangle_model  = md->dangles;
-  turn          = md->min_loop_size;
 
   c     = fc->matrices->c;
   fML   = fc->matrices->fML;
@@ -2724,7 +2717,7 @@ repeat(vrna_fold_compound_t *fc,
   no_close = (((type == 3) || (type == 4)) && noGUclosure);
 
   if ((noLP) &&
-      (i + turn + 2 < j)) {
+      (i + 2 < j)) {
     /* always consider the structure with additional stack */
     if (evaluate_int(i, j, i + 1, j - 1, hc_dat_int)) {
       type_2  = rtype[vrna_get_ptype(indx[j - 1] + i + 1, ptype)];
@@ -2757,10 +2750,10 @@ repeat(vrna_fold_compound_t *fc,
   best_energy += temp_energy; /* energy from unpushed interval */
 
   if (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    for (p = i + 1; p <= MIN2(j - 2 - turn, i + MAXLOOP + 1); p++) {
+    for (p = i + 1; p <= MIN2(j - 2, i + MAXLOOP + 1); p++) {
       minq = j - i + p - MAXLOOP - 2;
-      if (minq < p + 1 + turn)
-        minq = p + 1 + turn;
+      if (minq < p + 1)
+        minq = p + 1;
 
       if (hc->up_int[i + 1] < (p - i - 1))
         break;
@@ -2926,7 +2919,7 @@ repeat(vrna_fold_compound_t *fc,
       element_energy += sc_mb_pair(i, j, sc_dat_mb);
 
     /* multiloop decomposition */
-    for (k = i + turn + 2; k <= j - turn - 2; k++) {
+    for (k = i + 2; k <= j - 2; k++) {
       if (evaluate_mb(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc_dat_mb)) {
         eee = fML[indx[k - 1] + i + 1];
 
