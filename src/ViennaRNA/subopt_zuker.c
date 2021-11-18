@@ -105,7 +105,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
   unsigned char           **todo;
   char                    *s;
   short                   *S, *S1;
-  unsigned int            i, j, k, l, n, min_i, turn, type, *sn, u1, u2, u,
+  unsigned int            i, j, k, l, n, min_i, type, *sn, u1, u2, u,
                           num_pairs, num_struct;
   int                     e, tmp, ppp, ij, kl, *c, *outside_c, *f5, *f3, *fML,
                           *idx, dangle_model;
@@ -129,7 +129,6 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
     S1            = fc->sequence_encoding;
     P             = fc->params;
     md            = &(P->model_details);
-    turn          = md->min_loop_size;
     dangle_model  = md->dangles;
     idx           = fc->jindx;
     f5            = fc->matrices->f5;
@@ -152,7 +151,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
     }
 
     /* backtrack all structures with pairs (k, n) 1 < k < n */
-    for (k = n - turn - 1; k > 1; k--) {
+    for (k = n - 1; k > 1; k--) {
       if (hc->mx[n * n + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         kl = idx[n] + k;
         if ((sn[k - 1] == sn[k]) &&
@@ -180,7 +179,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
     }
 
     /* backtrack all structures with pairs (1, k) 1 < k < n */
-    for (k = n - 1; k > turn + 1; k--) {
+    for (k = n - 1; k > 1; k--) {
       if (hc->mx[n + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         kl = idx[k] + 1;
         if ((sn[k] == sn[k + 1]) &&
@@ -211,10 +210,10 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
      *  now, for all the possibilities where (k,l) may be enclosed by
      *  at least one other pair
      */
-    for (l = n - 1; l > turn + 1; l--) {
+    for (l = n - 1; l > 1; l--) {
       prepare_ml_helper(fc, l, aux_mx);
 
-      for (k = 2; k < l - turn; k++) {
+      for (k = 2; k < l; k++) {
         int e_ext, e_int, e_mb;
 
         type  = vrna_get_ptype_md(S[k], S[l], md);
@@ -319,7 +318,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
               }
 
               /* somewhere in the middle */
-              if ((i + turn + 2 < k) &&
+              if ((i + 2 < k) &&
                   (fML[idx[k - 1] + i + 1] != INF) &&
                   (sn[i] == sn[i + 1])) {
                 ppp = fML[idx[k - 1] + i + 1] +
@@ -335,7 +334,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
             }
 
             /* right-most */
-            if ((i + turn + 2 < k) &&
+            if ((i + 2 < k) &&
                 (aux_mb_up[i] != INF) &&
                 (fML[idx[k - 1] + i + 1] != INF) &&
                 (sn[i] == sn[i + 1])) {
@@ -369,9 +368,9 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
     num_pairs   = 0;  /* number of pairs to process */
     num_struct  = 0;  /* number of Zuker suboptimal structures */
 
-    for (l = n; l > turn + 1; l--) {
+    for (l = n; l > 1; l--) {
       int idxj = idx[l];
-      for (k = 1; k < l - turn; k++) {
+      for (k = 1; k < l; k++) {
         if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS) {
           pairlist[num_pairs].i     = k;
           pairlist[num_pairs].j     = l;
@@ -477,7 +476,7 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
                   zuker_aux_mx          *aux_mx)
 {
   short         *S, *S1;
-  unsigned int  i, j, n, type, turn, *sn;
+  unsigned int  i, j, n, type, *sn;
   int           e, *idx, *fML, *outside_c, *aux_mb,
                 *aux_mb_up, *aux_mb_up1, dangle_model;
   vrna_param_t  *P;
@@ -492,7 +491,6 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
   idx           = fc->jindx;
   P             = fc->params;
   md            = &(P->model_details);
-  turn          = md->min_loop_size;
   dangle_model  = md->dangles;
   hc            = fc->hc;
   sc            = fc->sc;
@@ -508,11 +506,11 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
     aux_mb_up[i]  = INF;
   }
 
-  if ((l > turn + 2) &&
+  if ((l > 2) &&
       (sn[l] == sn[l + 1])) {
-    for (j = l + turn + 1; j <= n; j++) {
+    for (j = l + 1; j <= n; j++) {
       if (sn[j] == sn[j - 1]) {
-        for (i = l - turn - 2; i > 0; i--) {
+        for (i = l - 2; i > 0; i--) {
           if ((hc->mx[j * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
               (sn[i] == sn[i + 1]) &&
               (outside_c[idx[j] + i] != INF) &&
@@ -550,7 +548,7 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
      */
     if ((hc->up_ml[l + 1]) &&
         (sn[l] == sn[l + 1])) {
-      for (i = l - turn - 2; i > 0; i--) {
+      for (i = l - 2; i > 0; i--) {
         if (aux_mb_up1[i] != INF) {
           e = aux_mb_up1[i] +
               P->MLbase;
@@ -568,7 +566,7 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
       }
     }
 
-    for (i = l - turn - 2; i > 0; i--) {
+    for (i = l - 2; i > 0; i--) {
       if ((hc->mx[(l + 1) * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
           (sn[i] == sn[i + 1])) {
         type  = vrna_get_ptype_md(S[l + 1], S[i], md);
@@ -620,7 +618,7 @@ PRIVATE int *
 compute_f3(vrna_fold_compound_t *fc)
 {
   short         *S, *S1;
-  unsigned int  j, min_j, k, n, u, jk, turn, *sn, type;
+  unsigned int  j, k, n, jk, *sn, type;
   int           e, *c, *f3, *idx, dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -633,7 +631,6 @@ compute_f3(vrna_fold_compound_t *fc)
   sn            = fc->strand_number;
   P             = fc->params;
   md            = &(P->model_details);
-  turn          = md->min_loop_size;
   dangle_model  = md->dangles;
   idx           = fc->jindx;
   c             = fc->matrices->c;
@@ -644,10 +641,8 @@ compute_f3(vrna_fold_compound_t *fc)
   f3 = (int *)vrna_alloc(sizeof(int) * (n + 2));
 
   f3[n + 1] = 0;
+  f3[n]     = INF;
 
-  min_j = (n > turn) ? n - turn : 1;
-
-  f3[n] = INF;
   if ((hc->up_ext[n]) &&
       (sn[n - 1] == sn[n])) {
     f3[n] = 0;
@@ -660,25 +655,7 @@ compute_f3(vrna_fold_compound_t *fc)
     }
   }
 
-  for (j = n - 1; j >= min_j; j--) {
-    f3[j] = INF;
-    u     = n - j + 1;
-
-    if ((hc->up_ext[j] >= u) &&
-        (sn[j] == sn[j + 1])) {
-      f3[j] = 0;
-
-      if (sc) {
-        if (sc->energy_up)
-          f3[j] += sc->energy_up[j][1];
-
-        if (sc->f)
-          f3[j] += sc->f(j, n, j + 1, n, VRNA_DECOMP_EXT_EXT, sc->data);
-      }
-    }
-  }
-
-  for (j = min_j - 1; j > turn; j--) {
+  for (j = n - 1; j >= 1; j--) {
     /* 1st case, j is unpaired */
     if ((hc->up_ext[j]) &&
         (sn[j] == sn[j + 1])) {
@@ -696,7 +673,7 @@ compute_f3(vrna_fold_compound_t *fc)
     }
 
     /* 2nd case, j forms pair (j,k) with j < k < n */
-    for (k = j + turn + 1; k < n; k++) {
+    for (k = j + 1; k < n; k++) {
       if (hc->mx[j * n + k] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
         jk = idx[k] + j;
         if ((c[jk] != INF) &&
@@ -760,7 +737,7 @@ backtrack(vrna_fold_compound_t  *fc,
           vrna_bp_stack_t       *bp)
 {
   short         *S, *S1, s5, s3;
-  unsigned int  n, i, j, b, type, u1, u2, max_j, min_i, turn, prev_l, prev_k,
+  unsigned int  n, i, j, b, type, u1, u2, max_j, min_i, prev_l, prev_k,
                 *sn;
   int           e, tmp, en, *f5, *idx, kl, ij, s, *outside_c,
                 *f3, *fML, **aux_mb, **aux_mb_up, dangle_model, *mb, *mb_up;
@@ -777,7 +754,6 @@ backtrack(vrna_fold_compound_t  *fc,
   idx           = fc->jindx;
   P             = fc->params;
   md            = &(P->model_details);
-  turn          = md->min_loop_size;
   dangle_model  = md->dangles;
   f5            = fc->matrices->f5;
   hc            = fc->hc;
@@ -855,8 +831,8 @@ backtrack_outside:
     prev_l  = l;
     min_i   = 1;
 
-    if (k > turn + 1)
-      min_i = k - turn - 1;
+    if (k > 1)
+      min_i = k - 1;
 
     u1 = 0;
 
@@ -1092,7 +1068,7 @@ backtrack_mb(vrna_fold_compound_t *fc,
              zuker_aux_mx         *aux_mx)
 {
   short         *S, *S1;
-  unsigned int  j, n, turn, type, *sn;
+  unsigned int  j, n, type, *sn;
   int           e, en, *outside_c, *idx, *fML, dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -1108,13 +1084,12 @@ backtrack_mb(vrna_fold_compound_t *fc,
   outside_c     = aux_mx->outside_c;
   P             = fc->params;
   md            = &(P->model_details);
-  turn          = md->min_loop_size;
   dangle_model  = md->dangles;
   hc            = fc->hc;
   sc            = fc->sc;
   e             = aux_mx->mb[*l][i];
 
-  for (j = *l + turn + 3; j <= n; j++) {
+  for (j = *l + 3; j <= n; j++) {
     if ((hc->mx[i * n + j] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
         (outside_c[idx[j] + i] != INF) &&
         (fML[idx[j - 1] + *l + 1] != INF) &&
@@ -1230,7 +1205,7 @@ backtrack_f3(vrna_fold_compound_t *fc,
              int                  *f3)
 {
   short         *S, *S1, s5, s3;
-  unsigned int  ii, n, u, *sn, turn, type;
+  unsigned int  ii, n, u, *sn, type;
   int           en, fij, fi, dangle_model, *idx, *c;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -1246,7 +1221,6 @@ backtrack_f3(vrna_fold_compound_t *fc,
   P             = fc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
-  turn          = md->min_loop_size;
   hc            = fc->hc;
   sc            = fc->sc;
 
@@ -1275,7 +1249,7 @@ backtrack_f3(vrna_fold_compound_t *fc,
   } while (fij == fi);
   ii--;
 
-  if (ii + turn - 1 > n) {
+  if (ii >= n) {
     /* no more pairs */
     *k = *i = *j = 0;
     return 1;
@@ -1284,7 +1258,7 @@ backtrack_f3(vrna_fold_compound_t *fc,
   /* ii is paired, find pairing partner */
   switch (dangle_model) {
     case 0:
-      for (u = ii + turn + 1; u <= n; u++) {
+      for (u = ii + 1; u <= n; u++) {
         if ((sn[u] == sn[u + 1]) &&
             (hc->mx[ii * n + u] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) {
           type  = vrna_get_ptype_md(S[ii], S[u], md);
@@ -1305,7 +1279,7 @@ backtrack_f3(vrna_fold_compound_t *fc,
       break;
 
     case 2:
-      for (u = ii + turn + 1; u <= n; u++) {
+      for (u = ii + 1; u <= n; u++) {
         if ((sn[u] == sn[u + 1]) &&
             (hc->mx[ii * n + u] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)) {
           type  = vrna_get_ptype_md(S[ii], S[u], md);
