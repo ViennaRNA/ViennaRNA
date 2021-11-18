@@ -300,8 +300,7 @@ vrna_pf_add(FLT_OR_DBL  dG1,
 PRIVATE int
 fill_arrays(vrna_fold_compound_t *fc)
 {
-  int                 n, i, j, k, ij, d, *my_iindx, *jindx, with_gquad, turn,
-                      with_ud;
+  int                 n, i, j, k, ij, *my_iindx, *jindx, with_gquad, with_ud;
   FLT_OR_DBL          temp, Qmax, *q, *qb, *qm, *qm1, *q1k, *qln;
   double              max_real;
   vrna_ud_t           *domains_up;
@@ -325,7 +324,6 @@ fill_arrays(vrna_fold_compound_t *fc)
   qln         = matrices->qln;
   md          = &(pf_params->model_details);
   with_gquad  = md->gquad;
-  turn        = md->min_loop_size;
 
   with_ud = (domains_up && domains_up->exp_energy_cb && (!(fc->type == VRNA_FC_TYPE_COMPARATIVE)));
   Qmax    = 0;
@@ -365,15 +363,13 @@ fill_arrays(vrna_fold_compound_t *fc)
 
   /*array initialization ; qb,qm,q
    * qb,qm,q (i,j) are stored as ((n+1-i)*(n-i) div 2 + n+1-j */
-  for (d = 0; d <= turn; d++)
-    for (i = 1; i <= n - d; i++) {
-      j       = i + d;
-      ij      = my_iindx[i] - j;
-      qb[ij]  = 0.0;
-    }
+  for (i = 1; i <= n; i++) {
+    ij      = my_iindx[i] - i;
+    qb[ij]  = 0.0;
+  }
 
-  for (j = turn + 2; j <= n; j++) {
-    for (i = j - turn - 1; i >= 1; i--) {
+  for (j = 2; j <= n; j++) {
+    for (i = j - 1; i >= 1; i--) {
       ij = my_iindx[i] - j;
 
       qb[ij] = decompose_pair(fc, i, j, aux_mx_ml);
