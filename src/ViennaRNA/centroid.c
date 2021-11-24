@@ -108,7 +108,7 @@ vrna_centroid_from_probs(int        length,
   for (i = 0; i < length; i++)
     centroid[i] = '.';
   for (i = 1; i <= length; i++)
-    for (j = i + TURN + 1; j <= length; j++) {
+    for (j = i + 1; j <= length; j++) {
       if ((p = probs[index[i] - j]) > 0.5) {
         centroid[i - 1] = '(';
         centroid[j - 1] = ')';
@@ -133,7 +133,7 @@ PUBLIC char *
 vrna_centroid(vrna_fold_compound_t  *vc,
               double                *dist)
 {
-  int               i, j, k, length, turn;
+  int               i, j, k, length;
   FLT_OR_DBL        p;
   char              *centroid;
   short             *S;
@@ -160,14 +160,13 @@ vrna_centroid(vrna_fold_compound_t  *vc,
 
   matrices  = vc->exp_matrices;
   probs     = matrices->probs;
-  turn      = pf_params->model_details.min_loop_size;
 
   *dist     = 0.;
   centroid  = (char *)vrna_alloc((length + 1) * sizeof(char));
   for (i = 0; i < length; i++)
     centroid[i] = '.';
   for (i = 1; i <= length; i++)
-    for (j = i + turn + 1; j <= length; j++) {
+    for (j = i + 1; j <= length; j++) {
       if ((p = probs[my_iindx[i] - j]) > 0.5) {
         if (pf_params->model_details.gquad) {
           /* check for presence of gquadruplex */
@@ -183,7 +182,7 @@ vrna_centroid(vrna_fold_compound_t  *vc,
             }
             /* skip everything within the gquad */
             i     = j;
-            j     = j + turn + 1;
+            j     = j + 1;
             *dist += (1 - p); /* right? */
             break;
           }
