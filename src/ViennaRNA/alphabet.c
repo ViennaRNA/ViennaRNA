@@ -169,9 +169,19 @@ vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
           fc->ptype_local =
             (char **)vrna_realloc(fc->ptype_local, sizeof(char *) * (fc->length + 1));
         } else {
-          if (!fc->ptype)
-            fc->ptype = vrna_ptypes(fc->sequence_encoding2,
-                                    &(fc->params->model_details));
+          if (!fc->ptype) {
+            /* temporary hack for multi-strand case */
+            if (fc->strands > 1) {
+              int min_loop_size = fc->params->model_details.min_loop_size;
+              fc->params->model_details.min_loop_size = 0;
+              fc->ptype = vrna_ptypes(fc->sequence_encoding2,
+                                      &(fc->params->model_details));
+              fc->params->model_details.min_loop_size = min_loop_size;
+            } else {
+              fc->ptype = vrna_ptypes(fc->sequence_encoding2,
+                                      &(fc->params->model_details));
+            }
+          }
         }
 
         break;
@@ -191,9 +201,18 @@ vrna_ptypes_prepare(vrna_fold_compound_t  *fc,
           fc->ptype_local =
             (char **)vrna_realloc(fc->ptype_local, sizeof(char *) * (fc->length + 1));
         } else {
-          if (!fc->ptype)
-            fc->ptype = vrna_ptypes(fc->sequence_encoding2, &(fc->exp_params->model_details));
-
+          if (!fc->ptype) {
+            /* temporary hack for multi-strand case */
+            if (fc->strands > 1) {
+              int min_loop_size = fc->exp_params->model_details.min_loop_size;
+              fc->exp_params->model_details.min_loop_size = 0;
+              fc->ptype = vrna_ptypes(fc->sequence_encoding2,
+                                      &(fc->exp_params->model_details));
+              fc->exp_params->model_details.min_loop_size = min_loop_size;
+            } else {
+              fc->ptype = vrna_ptypes(fc->sequence_encoding2, &(fc->exp_params->model_details));
+            }
+          }
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
           /* backward compatibility ptypes */
           if (!fc->ptype_pf_compat)

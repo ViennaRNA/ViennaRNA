@@ -649,13 +649,24 @@ set_fold_compound(vrna_fold_compound_t  *fc,
       if (fc->strands > 1) {
         fc->cutpoint = fc->nucleotides[0].length + 1;
 
+#if 0
         if (md_p->min_loop_size == TURN)
           md_p->min_loop_size = 0;                              /* is it safe to set this here? */
+#endif
       }
+
 #endif
 
       if (!(options & VRNA_OPTION_EVAL_ONLY)) {
-        fc->ptype = (aux & WITH_PTYPE) ? vrna_ptypes(fc->sequence_encoding2, md_p) : NULL;
+        /* temporary hack for multi-strand case */
+        if (fc->strands > 1) {
+          int min_loop_size = md_p->min_loop_size;
+          md_p->min_loop_size = 0;
+          fc->ptype = (aux & WITH_PTYPE) ? vrna_ptypes(fc->sequence_encoding2, md_p) : NULL;
+          md_p->min_loop_size = min_loop_size;
+        } else {
+          fc->ptype = (aux & WITH_PTYPE) ? vrna_ptypes(fc->sequence_encoding2, md_p) : NULL;
+        }
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
         /* backward compatibility ptypes */
         fc->ptype_pf_compat =
