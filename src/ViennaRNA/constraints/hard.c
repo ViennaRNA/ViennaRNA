@@ -1091,7 +1091,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
     /* the sliding window moves from 3' to 5' side */
 
     /* apply default constraints first */
-    for (k = turn + 1; k < max_span; k++) {
+    for (k = 1; k < max_span; k++) {
       j = i + k;
       if (j > n)
         break;
@@ -1114,11 +1114,11 @@ populate_hc_bp(vrna_fold_compound_t *fc,
 
             /* remove downstream pairs if necessary */
             if (hc->depot->up[strand][actual_i].direction < 0) {
-              for (k = i + turn + 1; k < MIN2(i + max_span, n + 1); k++)
+              for (k = i + 1; k < MIN2(i + max_span, n + 1); k++)
                 hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
             } else {
               /* enforce the base pair type */
-              for (k = i + turn + 1; k < MIN2(i + max_span, n + 1); k++)
+              for (k = i + 1; k < MIN2(i + max_span, n + 1); k++)
                 hc->matrix_local[i][k - i] &= constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
             }
           } else {
@@ -1127,14 +1127,14 @@ populate_hc_bp(vrna_fold_compound_t *fc,
             if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
               if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
                 /* do not allow i to be paired with any other nucleotide */
-                for (k = i + turn + 1; k < MIN2(i + max_span, n + 1); k++)
+                for (k = i + 1; k < MIN2(i + max_span, n + 1); k++)
                   hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
               }
             } else {
               type = constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
               if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
                 /* only allow i to be paired for particular types */
-                for (k = i + turn + 1; k < MIN2(i + max_span, n + 1); k++)
+                for (k = i + 1; k < MIN2(i + max_span, n + 1); k++)
                   hc->matrix_local[i][k - i] &= ~type;
               }
             }
@@ -1205,7 +1205,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
               /* remove other base pairs violating the constraint */
               if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
                 /* remove base pairs (i, k) with k != j */
-                for (k = i + turn + 1; k < j; k++)
+                for (k = i + 1; k < j; k++)
                   hc->matrix_local[i][k - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
 
                 for (k = j + 1; k < MIN2(i + max_span, n + 1); k++)
@@ -1216,7 +1216,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
 
               if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
                 /* this base pairs upstream, so remove all downstream pairing partners */
-                for (k = turn + 1; k < max_span; k++) {
+                for (k = 1; k < max_span; k++) {
                   j = i + k;
                   if (j > n)
                     break;
@@ -1276,14 +1276,14 @@ populate_hc_bp(vrna_fold_compound_t *fc,
     sj        = strand;
     actual_j  = actual_i;
 
-    if ((j <= n) && (j > turn)) {
+    if ((j <= n) && (j > 0)) {
       unsigned int start_i, min_i;
 
       start_i = (j > max_span) ? j - max_span + 1 : 1;
       min_i   = (j > maxdist) ? j - maxdist + 1 : 1;
 
       /* apply default constraints first */
-      for (i = start_i; i < j - turn; i++)
+      for (i = start_i; i < j; i++)
         hc->matrix_local[i][j - i] = default_pair_constraint(fc, i, j);
 
       /* next are user-defined constraints */
@@ -1304,11 +1304,11 @@ populate_hc_bp(vrna_fold_compound_t *fc,
                  * j is only allowed to pair downstream
                  * remove all base pairs (i, j) with j - maxdist < i < j
                  */
-                for (i = start_i; i < j - turn; i++)
+                for (i = start_i; i < j; i++)
                   hc->matrix_local[i][j - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
               } else {
                 /* enforce the base pair type */
-                for (i = start_i; i < j - turn; i++)
+                for (i = start_i; i < j; i++)
                   hc->matrix_local[i][j - i] &= constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
               }
             } else {
@@ -1317,14 +1317,14 @@ populate_hc_bp(vrna_fold_compound_t *fc,
               if (constraint & VRNA_CONSTRAINT_CONTEXT_ENFORCE) {
                 if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
                   /* do not allow j to be paired with any other nucleotide */
-                  for (i = start_i; i < j - turn; i++)
+                  for (i = start_i; i < j; i++)
                     hc->matrix_local[i][j - i] = VRNA_CONSTRAINT_CONTEXT_NONE;
                 }
               } else {
                 type = constraint & VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
                 if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
                   /* only allow j to be paired for particular types */
-                  for (i = start_i; i < j - turn; i++)
+                  for (i = start_i; i < j; i++)
                     hc->matrix_local[i][j - i] &= ~type;
                 }
               }
@@ -1394,7 +1394,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
                   for (k = start_i; k < i; k++)
                     hc->matrix_local[k][j - k] = VRNA_CONSTRAINT_CONTEXT_NONE;
 
-                  for (k = i + 1; k < j - turn; k++)
+                  for (k = i + 1; k < j; k++)
                     hc->matrix_local[k][j - k] = VRNA_CONSTRAINT_CONTEXT_NONE;
                 }
               } else {
@@ -1402,7 +1402,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
 
                 if (!(constraint & VRNA_CONSTRAINT_CONTEXT_NO_REMOVE)) {
                   /* this base pair pairs downstream, so remove all upstream pairing partners */
-                  for (k = start_i; k < j - turn; k++)
+                  for (k = start_i; k < j; k++)
                     hc->matrix_local[k][j - k] = VRNA_CONSTRAINT_CONTEXT_NONE;
                 }
               }
