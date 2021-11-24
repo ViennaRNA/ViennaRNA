@@ -867,17 +867,16 @@ populate_sc_bp_mfe(vrna_fold_compound_t *fc,
                    unsigned int         i,
                    unsigned int         maxdist)
 {
-  unsigned int  j, k, turn, n;
+  unsigned int  j, k, n;
   int           e, *idx;
   vrna_sc_t     *sc;
 
   n     = fc->length;
-  turn  = fc->params->model_details.min_loop_size;
   sc    = fc->sc;
   idx   = fc->jindx;
 
   if (sc->bp_storage[i]) {
-    for (k = turn + 1; k < maxdist; k++) {
+    for (k = 1; k < maxdist; k++) {
       j = i + k;
 
       if (j > n)
@@ -896,7 +895,7 @@ populate_sc_bp_mfe(vrna_fold_compound_t *fc,
       }
     }
   } else {
-    for (k = turn + 1; k < maxdist; k++) {
+    for (k = 1; k < maxdist; k++) {
       j = i + k;
       if (j > n)
         break;
@@ -920,7 +919,7 @@ populate_sc_bp_pf(vrna_fold_compound_t  *fc,
                   unsigned int          i,
                   unsigned int          maxdist)
 {
-  unsigned int      j, k, turn, n;
+  unsigned int      j, k, n;
   int               e, *idx;
   FLT_OR_DBL        q;
   double            GT, kT;
@@ -930,12 +929,11 @@ populate_sc_bp_pf(vrna_fold_compound_t  *fc,
   n           = fc->length;
   exp_params  = fc->exp_params;
   kT          = exp_params->kT;
-  turn        = exp_params->model_details.min_loop_size;
   sc          = fc->sc;
   idx         = fc->jindx;
 
   if (sc->bp_storage[i]) {
-    for (k = turn + 1; k < maxdist; k++) {
+    for (k = 1; k < maxdist; k++) {
       j = i + k;
 
       if (j > n)
@@ -957,7 +955,7 @@ populate_sc_bp_pf(vrna_fold_compound_t  *fc,
       }
     }
   } else {
-    for (k = turn + 1; k < maxdist; k++) {
+    for (k = 1; k < maxdist; k++) {
       j = i + k;
       if (j > n)
         break;
