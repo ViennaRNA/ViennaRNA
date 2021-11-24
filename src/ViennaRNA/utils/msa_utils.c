@@ -132,7 +132,6 @@ vrna_aln_pinfo(vrna_fold_compound_t *vc,
   int           *my_iindx = vc->iindx;
   FLT_OR_DBL    *probs    = vc->exp_matrices->probs;
   vrna_md_t     *md       = &(vc->exp_params->model_details);
-  int           turn      = md->min_loop_size;
 
   max_p = 64;
   pi    = vrna_alloc(max_p * sizeof(vrna_pinfo_t));
@@ -141,7 +140,7 @@ vrna_aln_pinfo(vrna_fold_compound_t *vc,
     ptable = vrna_ptable(structure);
 
   for (i = 1; i < n; i++)
-    for (j = i + turn + 1; j <= n; j++) {
+    for (j = i + 1; j <= n; j++) {
       if ((p = probs[my_iindx[i] - j]) >= threshold) {
         duck[i] -= p * log(p);
         duck[j] -= p * log(p);
@@ -195,7 +194,7 @@ vrna_pscore(vrna_fold_compound_t  *fc,
   char          **AS;
   short         **S;
   unsigned int  n, tmp, u, s, n_seq;
-  int           turn, max_span;
+  int           max_span;
   vrna_md_t     *md;
 
   if (i > j) {
@@ -211,17 +210,15 @@ vrna_pscore(vrna_fold_compound_t  *fc,
     n_seq     = fc->n_seq;
     u         = j - i - 1;
     md        = &(fc->params->model_details);
-    turn      = md->min_loop_size;
     max_span  = md->max_bp_span;
     AS        = fc->sequences;
     S         = fc->S;
 
-    if ((max_span < turn + 2) ||
+    if ((max_span < 2) ||
         (max_span > (int)n))
       max_span = (int)n;
 
-    if ((u > turn) &&
-        (u + 2) <= max_span) {
+    if ((u + 2) <= max_span) {
       unsigned int pfreq[8] = {
         0, 0, 0, 0, 0, 0, 0, 0
       };
@@ -300,7 +297,7 @@ vrna_aln_pscore(const char  **alignment,
    */
 
 
-  int       i, j, k, l, s, n, n_seq, *indx, turn, max_span;
+  int       i, j, k, l, s, n, n_seq, *indx, max_span;
   float     **dm;
   vrna_md_t md_default;
   int       *pscore;
@@ -336,8 +333,6 @@ vrna_aln_pscore(const char  **alignment,
 
     indx = vrna_idx_col_wise(n);
 
-    turn = md->min_loop_size;
-
     pscore = (int *)vrna_alloc(sizeof(int) * ((n + 1) * (n + 2) / 2 + 2));
 
     if (md->ribo) {
@@ -356,17 +351,21 @@ vrna_aln_pscore(const char  **alignment,
     }
 
     max_span = md->max_bp_span;
-    if ((max_span < turn + 2) || (max_span > n))
+    if ((max_span < 2) || (max_span > n))
       max_span = n;
 
     for (i = 1; i < n; i++) {
-      for (j = i + 1; (j < i + turn + 1) && (j <= n); j++)
-        pscore[indx[j] + i] = NONE;
-      for (j = i + turn + 1; j <= n; j++) {
+      for (j = i + 1; j <= n; j++) {
         int     pfreq[8] = {
           0, 0, 0, 0, 0, 0, 0, 0
         };
         double  score;
+
+        if ((j - i + 1) > max_span) {
+          pscore[indx[j] + i] = NONE;
+          continue;
+        }
+
         for (s = 0; s < n_seq; s++) {
           int type;
           if (S[s][i] == 0 && S[s][j] == 0) {
@@ -392,19 +391,16 @@ vrna_aln_pscore(const char  **alignment,
         /* counter examples score -1, gap-gap scores -0.25   */
         pscore[indx[j] + i] = md->cv_fact * ((UNIT * score) / n_seq -
                                              md->nc_fact * UNIT * (pfreq[0] + pfreq[7] * 0.25));
-
-        if ((j - i + 1) > max_span)
-          pscore[indx[j] + i] = NONE;
       }
     }
 
     if (md->noLP) {
       /* remove unwanted pairs */
-      for (k = 1; k < n - turn - 1; k++)
+      for (k = 1; k < n - 1; k++)
         for (l = 1; l <= 2; l++) {
           int type, ntype = 0, otype = 0;
           i     = k;
-          j     = i + turn + l;
+          j     = i + l;
           type  = pscore[indx[j] + i];
           while ((i >= 1) && (j <= n)) {
             if ((i > 1) && (j < n))
