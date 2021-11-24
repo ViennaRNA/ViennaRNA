@@ -758,10 +758,10 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
   /* start recursions */
-  for (j = turn + 2; j <= n + winSize; j++) {
+  for (j = 2; j <= n + winSize; j++) {
     if (j <= n) {
       vrna_exp_E_ext_fast_update(vc, j, aux_mx_el);
-      for (i = j - turn - 1; i >= MAX2(1, (j - winSize + 1)); i--) {
+      for (i = j - 1; i >= MAX2(1, (j - winSize + 1)); i--) {
         hc_decompose  = hc->matrix_local[i][j - i];
         qbt1          = 0.;
 
@@ -879,7 +879,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
             FLT_OR_DBL *stack_probs = compute_stack_probabilities(vc, start);
             stack_probs -= start + 1;
             cb(stack_probs,
-               MIN2(n - start + turn, pairSize),
+               MIN2(n - start, pairSize),
                start,
                winSize,
                VRNA_PROBS_WINDOW_STACKP,
@@ -917,7 +917,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         FLT_OR_DBL *stack_probs = compute_stack_probabilities(vc, start);
         stack_probs -= start + 1;
         cb(stack_probs,
-           MIN2(n - start + turn, pairSize),
+           MIN2(n - start, pairSize),
            start,
            winSize,
            VRNA_PROBS_WINDOW_STACKP,
@@ -1028,7 +1028,7 @@ compute_probs(vrna_fold_compound_t        *vc,
 {
   char              **ptype;
   short             *S1;
-  int               start_i, i, k, l, n, m, winSize, turn, type, type_2, tt, *rtype;
+  int               start_i, i, k, l, n, m, winSize, type, type_2, tt, *rtype;
   FLT_OR_DBL        *prml, *prm_l, *prm_l1, **pR, **QI5, **qmb, **q2l, **qb, **q, **qm,
                     *scale, *expMLbase, expMLclosing, temp, prm_MLb, prmt1, prmt, *tmp,
                     Qmax;
@@ -1052,7 +1052,6 @@ compute_probs(vrna_fold_compound_t        *vc,
   ptype         = vc->ptype_local;
   pf_params     = vc->exp_params;
   md            = &(pf_params->model_details);
-  turn          = md->min_loop_size;
   rtype         = &(md->rtype[0]);
   expMLclosing  = pf_params->expMLclosing;
   scale         = vc->exp_matrices->scale;
@@ -1095,7 +1094,7 @@ compute_probs(vrna_fold_compound_t        *vc,
   k         = j - winSize;
   prm_l1[k] = 0;
 
-  for (l = k + turn + 1; l <= MIN2(n, k + winSize - 1); l++) {
+  for (l = k + 1; l <= MIN2(n, k + winSize - 1); l++) {
     int a;
     pR[k][l]  = 0; /* set zero at start */
     type      = vrna_get_ptype_window(k, l + k, ptype);
@@ -1199,7 +1198,7 @@ compute_probs(vrna_fold_compound_t        *vc,
   prm_MLb = 0.;
   if (k > 1) {
     /* sonst nix! */
-    for (l = MIN2(n - 1, k + winSize - 2); l >= k + turn + 1; l--) {
+    for (l = MIN2(n - 1, k + winSize - 2); l >= k + 1; l--) {
       FLT_OR_DBL ppp;
 
       /* opposite direction */
@@ -1331,18 +1330,17 @@ PRIVATE void
 probability_correction(vrna_fold_compound_t *vc,
                        int                  i)
 {
-  int         j, howoften, pairdist, turn, n, winSize;
+  int         j, howoften, pairdist, n, winSize;
   FLT_OR_DBL  **qb, **pR;
 
   n         = vc->length;
   winSize   = vc->window_size;
-  turn      = vc->exp_params->model_details.min_loop_size;
   howoften  = 0; /* how many samples do we have for this pair */
 
   qb  = vc->exp_matrices->qb_local;
   pR  = vc->exp_matrices->pR;
 
-  for (j = i + turn; j < MIN2(i + winSize, n + 1); j++) {
+  for (j = i; j < MIN2(i + winSize, n + 1); j++) {
     pairdist = (j - i + 1);
     /* 4cases */
     howoften  = MIN2(winSize - pairdist + 1, i);  /* pairdist,start */
@@ -1449,7 +1447,7 @@ compute_stack_probabilities(vrna_fold_compound_t  *vc,
   /* compute dependent pair probabilities */
   char              **ptype;
   short             *S1;
-  int               j, max_j, *rtype, turn, pairsize, length, type, type_2;
+  int               j, max_j, *rtype, pairsize, length, type, type_2;
   FLT_OR_DBL        **qb, *scale, *probs;
   double            tmp;
   vrna_exp_param_t  *pf_params;
@@ -1461,14 +1459,13 @@ compute_stack_probabilities(vrna_fold_compound_t  *vc,
   qb        = vc->exp_matrices->qb_local;
   scale     = vc->exp_matrices->scale;
   rtype     = &(pf_params->model_details.rtype[0]);
-  turn      = pf_params->model_details.min_loop_size;
   pairsize  = pf_params->model_details.max_bp_span;
 
   max_j = MIN2(start + pairsize, length) - 1;
 
   probs = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (max_j - start + 1));
 
-  for (j = start + turn + 1; j <= max_j; j++) {
+  for (j = start + 1; j <= max_j; j++) {
     if ((qb[start][j] * qb[start - 1][(j + 1)]) > 10e-200) {
       type    = vrna_get_ptype_window(start - 1, j + 1 + start - 1, ptype);
       type_2  = rtype[vrna_get_ptype_window(start, j + start, ptype)];
