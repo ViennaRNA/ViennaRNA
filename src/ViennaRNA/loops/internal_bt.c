@@ -215,7 +215,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
   unsigned char         eval_loop;
   short                 *S2, **SS;
   unsigned int          n, n_seq, s, *sn, type, *tt;
-  int                   ij, p, q, minq, turn, *idx, no_close, energy, *my_c,
+  int                   ij, p, q, minq, *idx, no_close, energy, *my_c,
                         **c_local, ret;
   vrna_param_t          *P;
   vrna_md_t             *md;
@@ -236,7 +236,6 @@ BT_int_loop(vrna_fold_compound_t  *fc,
   hc              = fc->hc;
   my_c            = (sliding_window) ? NULL : fc->matrices->c;
   c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
-  turn            = md->min_loop_size;
   ij              = (sliding_window) ? 0 : idx[*j] + *i;
   tt              = NULL;
   evaluate        = prepare_hc_int_def(fc, &hc_dat_local);
@@ -244,10 +243,10 @@ BT_int_loop(vrna_fold_compound_t  *fc,
   hc_decompose_ij = (sliding_window) ? hc->matrix_local[*i][*j - *i] : hc->mx[n * (*i) + (*j)];
 
   if (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    for (p = *i + 1; p <= MIN2(*j - 2 - turn, *i + MAXLOOP + 1); p++) {
+    for (p = *i + 1; p <= MIN2(*j - 2, *i + MAXLOOP + 1); p++) {
       minq = *j - *i + p - MAXLOOP - 2;
-      if (minq < p + 1 + turn)
-        minq = p + 1 + turn;
+      if (minq < p + 1)
+        minq = p + 1;
 
       if (hc->up_int[*i + 1] < (p - *i - 1))
         break;

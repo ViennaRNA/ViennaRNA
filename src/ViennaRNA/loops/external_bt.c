@@ -176,7 +176,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
   short                     mm5, mm3, *S1;
   unsigned int              *sn, type;
   int                       length, fij, fi, jj, u, en, e, *my_f5, *my_c, *my_ggg, *idx,
-                            dangle_model, turn, with_gquad, cnt, ii, with_ud;
+                            dangle_model, with_gquad, cnt, ii, with_ud;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
@@ -197,7 +197,6 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
   ptype         = fc->ptype;
   S1            = fc->sequence_encoding;
   dangle_model  = md->dangles;
-  turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
@@ -295,7 +294,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
     jj++;
   }
 
-  if (jj < turn + 2) {
+  if (jj < 2) {
     /* no more pairs */
     *i  = *j = -1;
     *k  = 0;
@@ -305,7 +304,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
   /* must have found a decomposition */
   switch (dangle_model) {
     case 0:   /* j is paired. Find pairing partner */
-      for (u = jj - turn - 1; u >= 1; u--) {
+      for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
@@ -341,7 +340,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
 
     case 2:
       mm3 = ((jj < length) && (sn[jj + 1] == sn[jj])) ? S1[jj + 1] : -1;
-      for (u = jj - turn - 1; u >= 1; u--) {
+      for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
@@ -438,7 +437,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
         }
       }
 
-      for (u = jj - turn - 1; u > 1; u--) {
+      for (u = jj - 1; u > 1; u--) {
         if (with_gquad) {
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
@@ -575,7 +574,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   short                     **S, **S5, **S3;
   unsigned int              tt;
   int                       fij, fi, jj, u, en, *my_f5, *my_c, *my_ggg, *idx,
-                            dangle_model, turn, with_gquad, n_seq, ss, mm5, mm3;
+                            dangle_model, with_gquad, n_seq, ss, mm5, mm3;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
@@ -596,7 +595,6 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   my_ggg        = fc->matrices->ggg;
   idx           = fc->jindx;
   dangle_model  = md->dangles;
-  turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
 
@@ -627,7 +625,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   } while (fij == fi);
   jj++;
 
-  if (jj < turn + 2) {
+  if (jj < 2) {
     /* no more pairs */
     *i  = *j = -1;
     *k  = 0;
@@ -637,7 +635,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   /* must have found a decomposition */
   switch (dangle_model) {
     case 0:   /* j is paired. Find pairing partner */
-      for (u = jj - turn - 1; u >= 1; u--) {
+      for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
@@ -674,7 +672,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
       break;
 
     case 2:
-      for (u = jj - turn - 1; u >= 1; u--) {
+      for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
@@ -730,7 +728,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
   short                     mm5, mm3, *S1;
   unsigned int              type;
   int                       length, fij, fj, ii, u, *f3, **c, **ggg,
-                            dangle_model, turn, with_gquad, en;
+                            dangle_model, with_gquad, en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
@@ -747,7 +745,6 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
   ptype         = fc->ptype_local;
   S1            = fc->sequence_encoding;
   dangle_model  = md->dangles;
-  turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   evaluate      = prepare_hc_ext_def_window(fc, &hc_dat_local);
 
@@ -774,7 +771,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
   } while (fij == fj);
   ii--;
 
-  if (ii > maxdist - turn + 1) {
+  if (ii >= maxdist) {
     /* no more pairs */
     *i  = *j = -1;
     *k  = 0;
@@ -788,7 +785,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
   switch (dangle_model) {
     /* no dangles */
     case 0:
-      for (u = maxdist; u > ii + turn; u--) {
+      for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
@@ -822,7 +819,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
     /* dangles on both sides */
     case 2:
       mm5 = (ii > 1) ? S1[ii - 1] : -1;
-      for (u = maxdist; u > ii + turn; u--) {
+      for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
@@ -856,7 +853,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
 
     default:
       mm5 = S1[ii];
-      for (u = maxdist; u > ii + turn; u--) {
+      for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
@@ -1038,7 +1035,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
   short                     **S, **S5, **S3;
   unsigned int              type, ss, n_seq, **a2s;
   int                       n, fij, cc, fj, ii, u, *f3, **c, **ggg,
-                            dangle_model, turn, with_gquad;
+                            dangle_model, with_gquad;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
@@ -1058,7 +1055,6 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
   c             = fc->matrices->c_local;
   ggg           = fc->matrices->ggg_local;
   dangle_model  = md->dangles;
-  turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   evaluate      = prepare_hc_ext_def_window(fc, &hc_dat_local);
 
@@ -1088,7 +1084,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
   } while (fij == fj);
   ii--;
 
-  if (ii > maxdist - turn + 1) {
+  if (ii >= maxdist) {
     /* no more pairs */
     *i  = *j = -1;
     *k  = 0;
@@ -1102,7 +1098,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
   switch (dangle_model) {
     /* no dangles */
     case 0:
-      for (u = maxdist; u > ii + turn; u--) {
+      for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
@@ -1132,7 +1128,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
 
     /* dangles on both sides */
     case 2:
-      for (u = maxdist; u > ii + turn; u--) {
+      for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
@@ -1181,7 +1177,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     char                      **ptype;
     short                     *S1;
     unsigned int              type;
-    int                       traced2, length, turn, dangle_model, with_gquad, maxdist, cc,
+    int                       traced2, length, dangle_model, with_gquad, maxdist, cc,
                               **c, **ggg, *f3, fij, ii;
     vrna_param_t              *P;
     vrna_md_t                 *md;
@@ -1202,7 +1198,6 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     sc            = fc->sc;
     P             = fc->params;
     md            = &(P->model_details);
-    turn          = md->min_loop_size;
     dangle_model  = md->dangles;
     with_gquad    = md->gquad;
     maxdist       = MIN2(fc->window_size, maxj);
@@ -1237,7 +1232,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     /* get pairing partner j */
     switch (dangle_model) {
       case 0:
-        for (j = start + turn; j <= ii + maxdist; j++) {
+        for (j = start + 1; j <= ii + maxdist; j++) {
           if (evaluate(start, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
 #ifdef VRNA_WITH_SVM
             if ((zsc_pre_filter) &&
@@ -1271,7 +1266,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
         break;
 
       case 2:
-        for (j = start + turn; j <= ii + maxdist; j++) {
+        for (j = start + 1; j <= ii + maxdist; j++) {
           if (evaluate(start, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
 #ifdef VRNA_WITH_SVM
             if ((zsc_pre_filter) &&
@@ -1308,7 +1303,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
         break;
 
       default:
-        for (j = start + turn; j <= ii + maxdist; j++) {
+        for (j = start + 1; j <= ii + maxdist; j++) {
           if (evaluate(start, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
             type = vrna_get_ptype_window(start, j, ptype);
 
@@ -1426,7 +1421,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
   if (fc) {
     short                     **S, **S5, **S3;
     unsigned int              tt, s, n_seq, **a2s;
-    int                       traced2, length, turn, dangle_model, with_gquad, maxdist, cc, **c,
+    int                       traced2, length, dangle_model, with_gquad, maxdist, cc, **c,
                               **ggg, *f3, fij;
     vrna_param_t              *P;
     vrna_md_t                 *md;
@@ -1446,7 +1441,6 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
     scs           = fc->scs;
     P             = fc->params;
     md            = &(P->model_details);
-    turn          = md->min_loop_size;
     dangle_model  = md->dangles;
     with_gquad    = md->gquad;
     maxdist       = MIN2(fc->window_size, maxj);
@@ -1482,7 +1476,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
     /* get pairing partner j */
     switch (dangle_model) {
       case 0:
-        for (j = start + turn; j <= MIN2(start + maxdist, length - 1); j++) {
+        for (j = start + 1; j <= MIN2(start + maxdist, length - 1); j++) {
           if (evaluate(start, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
             cc = c[start][j - start] +
                  f3[j + 1];
@@ -1552,7 +1546,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
         break;
 
       case 2:
-        for (j = start + turn; j <= MIN2(start + maxdist, length - 1); j++) {
+        for (j = start + 1; j <= MIN2(start + maxdist, length - 1); j++) {
           if (evaluate(start, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, &hc_dat_local)) {
             cc = c[start][j - start] +
                  f3[j + 1];

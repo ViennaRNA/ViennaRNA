@@ -226,7 +226,7 @@ PUBLIC int
 vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
 {
   if (fc) {
-    int                       en, j, length, *f5, dangle_model, with_gquad, turn;
+    int                       en, j, length, *f5, dangle_model, with_gquad;
     vrna_param_t              *P;
     vrna_callback_hc_evaluate *evaluate;
     struct hc_ext_def_dat     hc_dat_local;
@@ -238,21 +238,17 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
     P             = fc->params;
     dangle_model  = P->model_details.dangles;
     with_gquad    = P->model_details.gquad;
-    turn          = P->model_details.min_loop_size;
     grammar       = fc->aux_grammar;
     evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
 
     init_sc_f5(fc, &sc_wrapper);
 
     f5[0] = 0;
-    for (j = 1; j <= turn + 1; j++)
-      f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
+    f5[1] = reduce_f5_up(fc, 1, evaluate, &hc_dat_local, &sc_wrapper);
 
     if ((grammar) && (grammar->cb_aux_f)) {
-      for (j = 1; j <= turn + 1; j++) {
-        en    = grammar->cb_aux_f(fc, 1, j, grammar->data);
-        f5[j] = MIN2(f5[j], en);
-      }
+      en    = grammar->cb_aux_f(fc, 1, 1, grammar->data);
+      f5[1] = MIN2(f5[1], en);
     }
 
     /*
@@ -261,7 +257,7 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
      */
     switch (dangle_model) {
       case 2:
-        for (j = turn + 2; j <= length; j++) {
+        for (j = 2; j <= length; j++) {
           /* extend previous solution(s) by adding an unpaired region */
           f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
 
@@ -282,7 +278,7 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
         break;
 
       case 0:
-        for (j = turn + 2; j <= length; j++) {
+        for (j = 2; j <= length; j++) {
           /* extend previous solution(s) by adding an unpaired region */
           f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
 
@@ -303,7 +299,7 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
         break;
 
       default:
-        for (j = turn + 2; j <= length; j++) {
+        for (j = 2; j <= length; j++) {
           /* extend previous solution(s) by adding an unpaired region */
           f5[j] = reduce_f5_up(fc, j, evaluate, &hc_dat_local, &sc_wrapper);
 
@@ -872,7 +868,7 @@ get_stem_contributions_d0(vrna_fold_compound_t      *fc,
   char          *ptype;
   short         **S;
   unsigned int  s, n_seq, type;
-  int           i, ij, *indx, turn, *c, *stems;
+  int           i, ij, *indx, *c, *stems;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
@@ -885,8 +881,7 @@ get_stem_contributions_d0(vrna_fold_compound_t      *fc,
   md    = &(P->model_details);
   indx  = fc->jindx;
   c     = fc->matrices->c;
-  turn  = md->min_loop_size;
-  ij    = indx[j] + j - turn - 1;
+  ij    = indx[j] + j - 1;
   ptype = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->ptype : NULL;
   n_seq = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   S     = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
@@ -896,7 +891,7 @@ get_stem_contributions_d0(vrna_fold_compound_t      *fc,
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
-      for (i = j - turn - 1; i > 1; i--, ij--) {
+      for (i = j - 1; i > 1; i--, ij--) {
         stems[i] = INF;
 
         if ((c[ij] != INF) &&
@@ -909,7 +904,7 @@ get_stem_contributions_d0(vrna_fold_compound_t      *fc,
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      for (i = j - turn - 1; i > 1; i--, ij--) {
+      for (i = j - 1; i > 1; i--, ij--) {
         stems[i] = INF;
         if ((c[ij] != INF) &&
             (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
@@ -925,7 +920,7 @@ get_stem_contributions_d0(vrna_fold_compound_t      *fc,
   }
 
   if (sc_spl_stem)
-    for (i = j - turn - 1; i > 1; i--)
+    for (i = j - 1; i > 1; i--)
       if (stems[i] != INF)
         stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
@@ -968,7 +963,7 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
   char            **ptype;
   short           **S, *si;
   unsigned int    s, n_seq, type, length;
-  int             energy, j, max_j, turn, *c, *stems, maxdist;
+  int             energy, j, max_j, *c, *stems, maxdist;
   vrna_param_t    *P;
   vrna_md_t       *md;
 
@@ -986,7 +981,6 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
   md      = &(P->model_details);
   c       = fc->matrices->c_local[i];
   c       -= i;
-  turn    = md->min_loop_size;
   si      = NULL;
   ptype   = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->ptype_local : NULL;
   n_seq   = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -1020,7 +1014,7 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j] != INF) &&
             (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
@@ -1033,7 +1027,7 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
       if (zsc_pre_filter) {
-        for (j = i + turn + 1; j <= max_j; j++) {
+        for (j = i + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
             zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
             if (zsc_data->current_z[j] > zsc_data->min_z)
@@ -1052,7 +1046,7 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
       for (s = 0; s < n_seq; s++)
         si[s] = S[s][i];
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j] != INF) &&
             (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
@@ -1069,7 +1063,7 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t       *fc,
 
 
   if (sc_spl_stem)
-    for (j = i + turn + 1; j <= max_j; j++)
+    for (j = i + 1; j <= max_j; j++)
       if (stems[j] != INF)
         stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
@@ -1139,7 +1133,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
   char          *ptype;
   short         *S, sj1, *si1, **SS, **S5, **S3, *s3j, *sj;
   unsigned int  s, n_seq, **a2s, type, *sn;
-  int           n, i, ij, *indx, turn, *c, *stems, mm5;
+  int           n, i, ij, *indx, *c, *stems, mm5;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
@@ -1154,8 +1148,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
   md    = &(P->model_details);
   indx  = fc->jindx;
   c     = fc->matrices->c;
-  turn  = md->min_loop_size;
-  ij    = indx[j] + j - turn - 1;
+  ij    = indx[j] + j - 1;
 
   sc_spl_stem = sc_wrapper->decomp_stem5;
   sc_red_stem = sc_wrapper->red_stem5;
@@ -1164,10 +1157,10 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
     case VRNA_FC_TYPE_SINGLE:
       S     = fc->sequence_encoding;
       ptype = fc->ptype;
-      si1   = S + j - turn - 2;
+      si1   = S + j - 2;
       sj1   = ((j < n) && (sn[j] == sn[j + 1])) ? S[j + 1] : -1;
 
-      for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
+      for (i = j - 1; i > 1; i--, ij--, si1--) {
         stems[i] = INF;
         if ((c[ij] != INF) &&
             (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
@@ -1178,7 +1171,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
       }
 
       if (sc_spl_stem)
-        for (i = j - turn - 1; i > 1; i--)
+        for (i = j - 1; i > 1; i--)
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
@@ -1211,7 +1204,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
         sj[s]   = SS[s][j];
       }
 
-      for (i = j - turn - 1; i > 1; i--, ij--) {
+      for (i = j - 1; i > 1; i--, ij--) {
         stems[i] = INF;
         if ((c[ij] != INF) &&
             (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
@@ -1225,7 +1218,7 @@ get_stem_contributions_d2(vrna_fold_compound_t      *fc,
       }
 
       if (sc_spl_stem)
-        for (i = j - turn - 1; i > 1; i--)
+        for (i = j - 1; i > 1; i--)
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
@@ -1264,7 +1257,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
   char            **ptype;
   short           **S, **S5, **S3, *S1, si1, sj1, *s5i1, *si;
   unsigned int    s, n_seq, type, length, **a2s;
-  int             energy, j, max_j, turn, *c, *stems, maxdist;
+  int             energy, j, max_j, *c, *stems, maxdist;
   vrna_param_t    *P;
   vrna_md_t       *md;
 
@@ -1282,7 +1275,6 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
   md      = &(P->model_details);
   c       = fc->matrices->c_local[i];
   c       -= i;
-  turn    = md->min_loop_size;
 #ifdef VRNA_WITH_SVM
   zsc_data        = fc->zscore_data;
   zsc_pre_filter  = ((zsc_data) &&
@@ -1316,7 +1308,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
       si1   = (i > 1) ? S1[i - 1] : -1;
       max_j = MIN2((int)length - 1, i + maxdist);
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j] != INF) &&
             (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
@@ -1330,7 +1322,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
       if (zsc_pre_filter) {
-        for (j = i + turn + 1; j <= max_j; j++) {
+        for (j = i + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
             zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
             if (zsc_data->current_z[j] > zsc_data->min_z)
@@ -1342,7 +1334,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
 #endif
 
       if (sc_spl_stem)
-        for (j = i + turn + 1; j <= max_j; j++)
+        for (j = i + 1; j <= max_j; j++)
           if (stems[j] != INF)
             stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
@@ -1389,7 +1381,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
         si[s]   = S[s][i];
       }
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j] != INF) &&
             (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
@@ -1404,7 +1396,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t       *fc,
       }
 
       if (sc_spl_stem)
-        for (j = i + turn + 1; j <= max_j; j++)
+        for (j = i + 1; j <= max_j; j++)
           if (stems[j] != INF)
             stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
@@ -1446,7 +1438,7 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
   char          *ptype;
   short         *S, *si1, **SS, **S5, *sj;
   unsigned int  s, n_seq, **a2s, type;
-  int           i, ij, *indx, turn, *c, *stems, mm5;
+  int           i, ij, *indx, *c, *stems, mm5;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
@@ -1459,8 +1451,7 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
   md    = &(P->model_details);
   indx  = fc->jindx;
   c     = fc->matrices->c;
-  turn  = md->min_loop_size;
-  ij    = indx[j] + j - turn;
+  ij    = indx[j] + j;
 
   sc_spl_stem = sc_wrapper->decomp_stem5;
   sc_red_stem = sc_wrapper->red_stem5;
@@ -1469,9 +1460,9 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
     case VRNA_FC_TYPE_SINGLE:
       S     = fc->sequence_encoding;
       ptype = fc->ptype;
-      si1   = S + j - turn - 1;
+      si1   = S + j - 1;
 
-      for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
+      for (i = j - 1; i > 1; i--, ij--, si1--) {
         stems[i] = INF;
         if ((c[ij] != INF) &&
             (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
@@ -1482,12 +1473,12 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
       }
 
       if (sc_spl_stem)
-        for (i = j - turn - 1; i > 1; i--)
+        for (i = j - 1; i > 1; i--)
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
       stems[1]  = INF;
-      if (2 + turn < j) {
+      if (2 < j) {
         ij        = indx[j] + 2;
 
         if ((c[ij] != INF) && (evaluate(1, j, 2, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -1511,7 +1502,7 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
       for (s = 0; s < n_seq; s++)
         sj[s] = SS[s][j];
 
-      for (i = j - turn - 1; i > 1; i--, ij--) {
+      for (i = j - 1; i > 1; i--, ij--) {
         stems[i] = INF;
         if ((c[ij] != INF) &&
             (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat_local))) {
@@ -1525,13 +1516,13 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
       }
 
       if (sc_spl_stem)
-        for (i = j - turn - 1; i > 1; i--)
+        for (i = j - 1; i > 1; i--)
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
       stems[1]  = INF;
 
-      if (2 + turn < j) {
+      if (2 < j) {
         ij        = indx[j] + 2;
 
         if ((c[ij] != INF) && (evaluate(1, j, 2, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -1565,7 +1556,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
   char            **ptype;
   short           *S1, **S, **S3, sj1, *si;
   unsigned int    s, n_seq, **a2s, type;
-  int             energy, j, max_j, turn, *c, *stems, length, maxdist;
+  int             energy, j, max_j, *c, *stems, length, maxdist;
   vrna_param_t    *P;
   vrna_md_t       *md;
 
@@ -1583,7 +1574,6 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
   md      = &(P->model_details);
   c       = fc->matrices->c_local[i];
   c       -= i;
-  turn    = md->min_loop_size;
 #ifdef VRNA_WITH_SVM
   zsc_data        = fc->zscore_data;
   zsc_pre_filter  = ((zsc_data) &&
@@ -1616,7 +1606,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
       ptype = fc->ptype_local;
       max_j = MIN2(length - 1, i + maxdist + 1);
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j - 1] != INF) &&
             (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
@@ -1629,7 +1619,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
       if (zsc_pre_filter) {
-        for (j = i + turn + 1; j <= max_j; j++) {
+        for (j = i + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
             zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
             if (zsc_data->current_z[j] > zsc_data->min_z)
@@ -1641,7 +1631,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
 #endif
 
       if (sc_spl_stem)
-        for (j = i + turn + 1; j <= max_j; j++)
+        for (j = i + 1; j <= max_j; j++)
           if (stems[j] != INF)
             stems[j] += sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
 
@@ -1683,7 +1673,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
       for (s = 0; s < n_seq; s++)
         si[s] = S[s][i];
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j - 1] != INF) &&
             (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat_local))) {
@@ -1698,7 +1688,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
       }
 
       if (sc_spl_stem)
-        for (j = i + turn + 1; j <= max_j; j++)
+        for (j = i + 1; j <= max_j; j++)
           if (stems[j] != INF)
             stems[j] += sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
 
@@ -1740,7 +1730,7 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
   char          *ptype;
   short         *S, sj1, **SS, **S3, *s3j1, *ssj1;
   unsigned int  n, s, n_seq, **a2s, type;
-  int           i, ij, *indx, turn, *c, *stems;
+  int           i, ij, *indx, *c, *stems;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
@@ -1754,8 +1744,7 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
   md    = &(P->model_details);
   indx  = fc->jindx;
   c     = fc->matrices->c;
-  turn  = P->model_details.min_loop_size;
-  ij    = indx[j - 1] + j - turn - 1;
+  ij    = indx[j - 1] + j - 1;
 
   sc_spl_stem = sc_wrapper->decomp_stem51;
   sc_red_stem = sc_wrapper->red_stem5;
@@ -1766,9 +1755,9 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
       ptype = fc->ptype;
       sj1   = S[j];
 
-      for (i = j - turn - 1; i > 1; i--, ij--) {
+      for (i = j - 1; i > 1; i--, ij--) {
         stems[i] = INF;
-        if ((i + turn + 1 < j) &&
+        if ((i + 1 < j) &&
             (c[ij] != INF) &&
             (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
           type      = vrna_get_ptype(ij, ptype);
@@ -1778,13 +1767,13 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
       }
 
       if (sc_spl_stem)
-        for (i = j - turn - 1; i > 1; i--)
+        for (i = j - 1; i > 1; i--)
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
       stems[1]  = INF;
 
-      if (1 + turn + 1 < j) {
+      if (1 + 1 < j) {
         ij        = indx[j - 1] + 1;
 
         if ((c[ij] != INF) && (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -1813,9 +1802,9 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
         ssj1[s] = SS[s][j - 1];
       }
 
-      for (i = j - turn - 1; i > 1; i--, ij--) {
+      for (i = j - 1; i > 1; i--, ij--) {
         stems[i] = INF;
-        if ((i + turn + 1 < j) &&
+        if ((i + 1 < j) &&
             (c[ij] != INF) &&
             (evaluate(1, j, i - 1, i, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
           stems[i] = c[ij];
@@ -1827,13 +1816,13 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t       *fc,
       }
 
       if (sc_spl_stem)
-        for (i = j - turn - 1; i > 1; i--)
+        for (i = j - 1; i > 1; i--)
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
       stems[1]  = INF;
 
-      if (1 + turn + 1 < j) {
+      if (1 + 1 < j) {
         ij        = indx[j - 1] + 1;
 
         if ((c[ij] != INF) && (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -1869,7 +1858,7 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
   char            **ptype;
   short           *S1, **S, **S5, *s5i1, si, *si1;
   unsigned int    s, n_seq, **a2s, type;
-  int             energy, j, max_j, turn, *c, *stems, length, maxdist;
+  int             energy, j, max_j, *c, *stems, length, maxdist;
   vrna_param_t    *P;
   vrna_md_t       *md;
 
@@ -1887,7 +1876,6 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
   md      = &(P->model_details);
   c       = fc->matrices->c_local[i + 1];
   c       -= i + 1;
-  turn    = P->model_details.min_loop_size;
 #ifdef VRNA_WITH_SVM
   zsc_data        = fc->zscore_data;
   zsc_pre_filter  = ((zsc_data) &&
@@ -1921,7 +1909,7 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
       si    = S1[i];
       max_j = MIN2(length - 1, i + maxdist + 1);
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j] != INF) &&
             (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
@@ -1934,7 +1922,7 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
       if (zsc_pre_filter) {
-        for (j = i + turn + 1; j <= max_j; j++) {
+        for (j = i + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
             zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
             if (zsc_data->current_z[j] > zsc_data->min_z)
@@ -1946,7 +1934,7 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
 #endif
 
       if (sc_spl_stem)
-        for (j = i + turn + 1; j <= max_j; j++)
+        for (j = i + 1; j <= max_j; j++)
           if (stems[j] != INF)
             stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
@@ -1994,7 +1982,7 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
         si1[s]  = S[s][i + 1];
       }
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j] != INF) &&
             (evaluate(i, length, j, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
@@ -2008,7 +1996,7 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
       }
 
       if (sc_spl_stem)
-        for (j = i + turn + 1; j <= max_j; j++)
+        for (j = i + 1; j <= max_j; j++)
           if (stems[j] != INF)
             stems[j] += sc_spl_stem(i, j, j + 1, sc_wrapper);
 
@@ -2051,7 +2039,7 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
   char          *ptype;
   short         *S, *si1, sj1, **SS, **S5, **S3, *s3j1, *ssj1;
   unsigned int  n, s, n_seq, **a2s, type;
-  int           i, ij, *indx, turn, *c, *stems;
+  int           i, ij, *indx, *c, *stems;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
@@ -2065,8 +2053,7 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
   md    = &(P->model_details);
   indx  = fc->jindx;
   c     = fc->matrices->c;
-  turn  = md->min_loop_size;
-  ij    = indx[j - 1] + j - turn;
+  ij    = indx[j - 1] + j;
 
   sc_spl_stem = sc_wrapper->decomp_stem51;
   sc_red_stem = sc_wrapper->red_stem5;
@@ -2076,11 +2063,11 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
       S     = fc->sequence_encoding;
       ptype = fc->ptype;
       sj1   = S[j];
-      si1   = S + j - turn - 1;
+      si1   = S + j - 1;
 
-      for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
+      for (i = j - 1; i > 1; i--, ij--, si1--) {
         stems[i] = INF;
-        if ((i + turn + 2 < j) &&
+        if ((i + 2 < j) &&
             (c[ij] != INF) &&
             (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
           type      = vrna_get_ptype(ij, ptype);
@@ -2090,13 +2077,13 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
       }
 
       if (sc_spl_stem)
-        for (i = j - turn - 1; i > 1; i--)
+        for (i = j - 1; i > 1; i--)
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
       stems[1]  = INF;
 
-      if (2 + turn + 1 < j) {
+      if (2 + 1 < j) {
         ij        = indx[j - 1] + 2;
 
         if ((c[ij] != INF) && (evaluate(1, j, 2, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -2126,9 +2113,9 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
         ssj1[s] = SS[s][j - 1];
       }
 
-      for (i = j - turn - 1; i > 1; i--, ij--, si1--) {
+      for (i = j - 1; i > 1; i--, ij--, si1--) {
         stems[i] = INF;
-        if ((i + turn + 1 < j) &&
+        if ((i + 1 < j) &&
             (c[ij] != INF) &&
             (evaluate(1, j, i - 1, i + 1, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local))) {
           stems[i] = c[ij];
@@ -2140,12 +2127,12 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
       }
 
       if (sc_spl_stem)
-        for (i = j - turn - 1; i > 1; i--)
+        for (i = j - 1; i > 1; i--)
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
       stems[1]  = INF;
-      if (2 + turn + 1 < j) {
+      if (2 + 1 < j) {
         ij        = indx[j - 1] + 2;
 
         if ((c[ij] != INF) && (evaluate(1, j, 2, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -2180,7 +2167,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
   char            **ptype;
   short           *S1, **S, **S5, **S3, *s5i1, si1, sj1, *ssi1;
   unsigned int    s, n_seq, **a2s, type;
-  int             energy, j, max_j, turn, *c, *stems, length, maxdist;
+  int             energy, j, max_j, *c, *stems, length, maxdist;
   vrna_param_t    *P;
   vrna_md_t       *md;
 
@@ -2198,7 +2185,6 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
   md      = &(P->model_details);
   c       = fc->matrices->c_local[i + 1];
   c       -= i + 1;
-  turn    = md->min_loop_size;
 #ifdef VRNA_WITH_SVM
   zsc_data        = fc->zscore_data;
   zsc_pre_filter  = ((zsc_data) &&
@@ -2232,7 +2218,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
       si1   = S1[i];
       max_j = MIN2(length - 1, i + maxdist + 1);
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j - 1] != INF) &&
             (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
@@ -2245,7 +2231,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
 #ifdef VRNA_WITH_SVM
       /* if necessary, remove those stems where the z-score threshold is not satisfied */
       if (zsc_pre_filter) {
-        for (j = i + turn + 1; j <= max_j; j++) {
+        for (j = i + 1; j <= max_j; j++) {
           if (stems[j] != INF) {
             zsc_data->current_z[j] = vrna_zsc_compute(fc, i, j, stems[j]);
             if (zsc_data->current_z[j] > zsc_data->min_z)
@@ -2257,7 +2243,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
 #endif
 
       if (sc_spl_stem)
-        for (j = i + turn + 1; j <= max_j; j++)
+        for (j = i + 1; j <= max_j; j++)
           if (stems[j] != INF)
             stems[j] += sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
 
@@ -2303,7 +2289,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
         ssi1[s] = S[s][i + 1];
       }
 
-      for (j = i + turn + 1; j <= max_j; j++) {
+      for (j = i + 1; j <= max_j; j++) {
         stems[j] = INF;
         if ((c[j - 1] != INF) &&
             (evaluate(i, length, j - 1, j + 1, VRNA_DECOMP_EXT_STEM_EXT1, hc_dat_local))) {
@@ -2318,7 +2304,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t      *fc,
       }
 
       if (sc_spl_stem)
-        for (j = i + turn + 1; j <= max_j; j++)
+        for (j = i + 1; j <= max_j; j++)
           if (stems[j] != INF)
             stems[j] += sc_spl_stem(i, j - 1, j + 1, sc_wrapper);
 
@@ -2357,16 +2343,15 @@ add_f5_gquad(vrna_fold_compound_t       *fc,
              struct hc_ext_def_dat      *hc_dat_local,
              struct sc_f5_dat           *sc_wrapper)
 {
-  int e, i, ij, *indx, turn, *f5, *ggg;
+  int e, i, ij, *indx, *f5, *ggg;
 
   indx  = fc->jindx;
   f5    = fc->matrices->f5;
   ggg   = fc->matrices->ggg;
-  turn  = fc->params->model_details.min_loop_size;
-  ij    = indx[j] + j - turn - 1;
+  ij    = indx[j] + j - 1;
   e     = INF;
 
-  for (i = j - turn - 1; i > 1; i--, ij--)
+  for (i = j - 1; i > 1; i--, ij--)
     if ((f5[i - 1] != INF) && (ggg[ij] != INF))
       e = MIN2(e, f5[i - 1] + ggg[ij]);
 
@@ -2384,16 +2369,15 @@ add_f3_gquad(vrna_fold_compound_t       *fc,
              struct hc_ext_def_dat      *hc_dat_local,
              struct sc_f3_dat           *sc_wrapper)
 {
-  int e, j, length, turn, *f3, *ggg, maxdist;
+  int e, j, length, *f3, *ggg, maxdist;
 
   length  = (int)fc->length;
   maxdist = fc->window_size;
   f3      = fc->matrices->f3_local;
   ggg     = fc->matrices->ggg_local[i];
-  turn    = fc->params->model_details.min_loop_size;
   e       = INF;
 
-  for (j = i + turn + 1; (j < length) && (j <= i + maxdist); j++)
+  for (j = i + 1; (j < length) && (j <= i + maxdist); j++)
     if ((f3[j + 1] != INF) && (ggg[j - i] != INF))
       e = MIN2(e, f3[j + 1] + ggg[j - i]);
 
@@ -2409,13 +2393,12 @@ decompose_f5_ext_stem(vrna_fold_compound_t  *fc,
                       int                   j,
                       int                   *stems)
 {
-  int e, *f5, turn;
+  int e, *f5;
 
   f5    = fc->matrices->f5;
-  turn  = fc->params->model_details.min_loop_size;
   e     = INF;
 
-  const int count = j - turn;
+  const int count = j;
 
   e = vrna_fun_zip_add_min(f5 + 1, stems + 2, count - 2);
 
@@ -2429,15 +2412,14 @@ decompose_f3_ext_stem(vrna_fold_compound_t  *fc,
                       int                   max_j,
                       int                   *stems)
 {
-  int e, *f3, turn, count;
+  int e, *f3, count;
 
   f3    = fc->matrices->f3_local;
-  turn  = fc->params->model_details.min_loop_size;
-  count = max_j - i - turn;
+  count = max_j - i;
   e     = INF;
 
   /* modular decomposition */
-  e = vrna_fun_zip_add_min(stems + i + turn + 1, f3 + i + turn + 2, count);
+  e = vrna_fun_zip_add_min(stems + i + 1, f3 + i + 2, count);
 
   return e;
 }

@@ -721,7 +721,7 @@ E_mb_loop_stack(vrna_fold_compound_t  *fc,
   char                      *ptype, **ptype_local;
   short                     **SS;
   unsigned int              n_seq, s, *tt, sliding_window;
-  int                       *c, *fML, e, decomp, en, i1k, k1j1, ij, k, *indx, turn,
+  int                       *c, *fML, e, decomp, en, i1k, k1j1, ij, k, *indx,
                             type, type_2, *rtype, **c_local, **fML_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -736,7 +736,6 @@ E_mb_loop_stack(vrna_fold_compound_t  *fc,
   indx        = fc->jindx;
   P           = fc->params;
   md          = &(P->model_details);
-  turn        = md->min_loop_size;
   c           = (sliding_window) ? NULL : fc->matrices->c;
   fML         = (sliding_window) ? NULL : fc->matrices->fML;
   c_local     = (sliding_window) ? fc->matrices->c_local : NULL;
@@ -767,7 +766,7 @@ E_mb_loop_stack(vrna_fold_compound_t  *fc,
   if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
     decomp = INF;
     if (sliding_window) {
-      for (k = i + 2 + turn; k < j - 2 - turn; k++) {
+      for (k = i + 2; k < j - 2; k++) {
         if (evaluate(i, j, i + 1, k, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
           en = c_local[i + 1][k - i - 1] +
                fML_local[k + 1][j - 1 - k - 1];
@@ -819,8 +818,8 @@ E_mb_loop_stack(vrna_fold_compound_t  *fc,
         }
       }
     } else {
-      k1j1 = indx[j - 1] + i + 2 + turn + 1;
-      for (k = i + 2 + turn; k < j - 2 - turn; k++, k1j1++) {
+      k1j1 = indx[j - 1] + i + 2 + 1;
+      for (k = i + 2; k < j - 2; k++, k1j1++) {
         i1k = indx[k] + i + 1;
 
         if (evaluate(i, j, i + 1, k, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
@@ -1138,7 +1137,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   short                     *S, **SS, **S5, **S3;
   unsigned int              *sn, *se, n_seq, s;
   int                       k, en, decomp, mm5, mm3, type_2, k1j, length, *indx,
-                            *c, *fm, ij, dangle_model, turn, type, *rtype, circular, e, u,
+                            *c, *fm, ij, dangle_model, type, *rtype, circular, e, u,
                             cnt, with_ud, sliding_window, **c_local, **fm_local;
   vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
@@ -1173,7 +1172,6 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   md            = &(P->model_details);
   ij            = (sliding_window) ? 0 : indx[j] + i;
   dangle_model  = md->dangles;
-  turn          = md->min_loop_size;
   rtype         = &(md->rtype[0]);
   circular      = md->circ;
   domains_up    = fc->domains_up;
@@ -1194,7 +1192,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
    *  and all other variants which are needed for odd
    *  dangle models
    */
-  if ((i + turn + 1 < j) &&
+  if ((i + 1 < j) &&
       (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, &hc_dat_local))) {
     en = (sliding_window) ? fm_local[i + 1][j - i - 1] : fm[ij + 1];
     if (en != INF) {
@@ -1249,7 +1247,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
         mm3 = S[j];
     }
 
-    if ((i + turn + 1 < j) &&
+    if ((i + 1 < j) &&
         (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_STEM, &hc_dat_local))) {
       en = (sliding_window) ? c_local[i + 1][j - (i + 1)] : c[ij + 1];
       if (en != INF) {
@@ -1280,7 +1278,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       }
     }
 
-    if ((i + turn + 1 < j) &&
+    if ((i + 1 < j) &&
         (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_STEM, &hc_dat_local))) {
       en = (sliding_window) ? c_local[i][j - 1 - i] : c[indx[j - 1] + i];
       if (en != INF) {
@@ -1312,7 +1310,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       }
     }
 
-    if ((i + turn + 2 < j) &&
+    if ((i + 2 < j) &&
         (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_ML_STEM, &hc_dat_local))) {
       en = (sliding_window) ? c_local[i + 1][j - 1 - (i + 1)] : c[indx[j - 1] + i + 1];
       if (en != INF) {
@@ -1359,11 +1357,11 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
     fmi_tmp -= i;
 
     /* copy data */
-    for (k = i + 1 + turn; k <= j - 2 - turn; k++)
+    for (k = i + 1; k <= j - 2; k++)
       fmi_tmp[k] = fmi[k];
 
     /* mask unavailable decompositions */
-    for (k = i + 1 + turn; k <= j - 2 - turn; k++)
+    for (k = i + 1; k <= j - 2; k++)
       if (!hc->f(i, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
         fmi_tmp[k] = INF;
   }
@@ -1374,18 +1372,18 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       fmi_tmp -= i;
 
       /* copy data */
-      for (k = i + 1 + turn; k <= j - 2 - turn; k++)
+      for (k = i + 1; k <= j - 2; k++)
         fmi_tmp[k] = fmi[k];
     }
 
-    for (k = i + 1 + turn; k <= j - 2 - turn; k++)
+    for (k = i + 1; k <= j - 2; k++)
       if (fmi_tmp[k] != INF)
         fmi_tmp[k] += sc_wrapper.decomp_ml(i, j, k, k + 1, &sc_wrapper);
   }
 
   /* modular decomposition -------------------------------*/
   if (sliding_window) {
-    for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++) {
+    for (decomp = INF, k = i + 1; k <= j - 2; k++) {
       if ((fmi_tmp[k] != INF) && (fm_local[k + 1][j - (k + 1)] != INF)) {
         en      = fmi_tmp[k] + fm_local[k + 1][j - (k + 1)];
         decomp  = MIN2(decomp, en);
@@ -1393,7 +1391,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
     }
   } else {
     decomp  = INF;
-    k       = i + turn + 1;
+    k       = i + 1;
     if (k >= j)
       k = j - 1;
 
@@ -1406,8 +1404,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
      */
     while (1) {
       int last_nt = se[sn[k]];  /* go to last nucleotide of current strand */
-      if (last_nt > j - turn - 2)
-        last_nt = j - turn - 2;     /* at most go to last possible decomposition split before reaching j */
+      if (last_nt > j - 2)
+        last_nt = j - 2;     /* at most go to last possible decomposition split before reaching j */
 
       if (last_nt < i)
         last_nt = i; /* do not start before i */
@@ -1421,7 +1419,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       k   += count + 1;
       k1j += count + 1;
 
-      if (k > j - turn - 2)
+      if (k > j - 2)
         break;
     }
   }
@@ -1442,7 +1440,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
     /* additional ML decomposition as two coaxially stacked helices */
     if (sliding_window) {
       /* additional ML decomposition as two coaxially stacked helices */
-      for (decomp = INF, k = i + 1 + turn; k <= j - 2 - turn; k++) {
+      for (decomp = INF, k = i + 1; k <= j - 2; k++) {
         if (evaluate(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
           type    = rtype[vrna_get_ptype_window(i, k, ptype_local)];
           type_2  = rtype[vrna_get_ptype_window(k + 1, j, ptype_local)];
@@ -1460,9 +1458,9 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
       }
     } else {
       int ik;
-      k1j     = indx[j] + i + turn + 2;
+      k1j     = indx[j] + i + 2;
       decomp  = INF;
-      k       = i + turn + 1;
+      k       = i + 1;
       if (k >= j)
         k = j - 1;
 
@@ -1473,8 +1471,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
        */
       while (1) {
         int last_nt = se[sn[k - 1]];  /* go to last nucleotide of current strand */
-        if (last_nt > j - turn - 2)
-          last_nt = j - turn - 2;     /* at most go to last possible decomposition split before reaching j */
+        if (last_nt > j - 2)
+          last_nt = j - 2;     /* at most go to last possible decomposition split before reaching j */
 
         if (last_nt < i)
           last_nt = i; /* do not start before i */
@@ -1516,7 +1514,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
         k++;
         k1j++;
 
-        if (k > j - turn - 2)
+        if (k > j - 2)
           break;
       }
     }

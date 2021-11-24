@@ -415,10 +415,9 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 
   if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     unsigned int  type, type2, has_nick, *tt;
-    int           k, l, kl, last_k, first_l, u1, u2, turn, noGUclosure;
+    int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
 
     has_nick    = sn[i] != sn[j] ? 1 : 0;
-    turn        = md->min_loop_size;
     noGUclosure = md->noGUclosure;
     tt          = NULL;
     type        = 0;
@@ -499,7 +498,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
       /* handle bulges in 5' side */
       l = j - 1;
       if (l > i + 2) {
-        last_k = l - turn - 1;
+        last_k = l - 1;
 
         if (last_k > i + 1 + MAXLOOP)
           last_k = i + 1 + MAXLOOP;
@@ -587,7 +586,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
       /* handle bulges in 3' side */
       k = i + 1;
       if (k < j - 2) {
-        first_l = k + turn + 1;
+        first_l = k + 1;
         if (first_l < j - 1 - MAXLOOP)
           first_l = j - 1 - MAXLOOP;
 
@@ -669,7 +668,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
       }
 
       /* last but not least, all other internal loops */
-      first_l = i + 2 + turn + 1;
+      first_l = i + 2 + 1;
       if (first_l < j - 1 - MAXLOOP)
         first_l = j - 1 - MAXLOOP;
 
@@ -678,7 +677,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
         if (u2 > hc_up[l + 1])
           break;
 
-        last_k = l - turn - 1;
+        last_k = l - 1;
 
         if (last_k > i + 1 + MAXLOOP - u2)
           last_k = i + 1 + MAXLOOP - u2;
@@ -842,7 +841,7 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
                     int                   *iq)
 {
   int                   q, p, e, s, u1, u2, qmin, energy,
-                        n, *indx, *hc_up, *c, turn, n_seq;
+                        n, *indx, *hc_up, *c, n_seq;
   unsigned char         *hc, eval_loop;
   unsigned int          *tt;
   short                 **SS;
@@ -860,7 +859,6 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
   hc_up = fc->hc->up_int;
   P     = fc->params;
   md    = &(P->model_details);
-  turn  = md->min_loop_size;
   tt    = NULL;
 
   e = INF;
@@ -886,8 +884,8 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
         break;
 
       qmin = u1 + i - 1 + n - MAXLOOP;
-      if (qmin < p + turn + 1)
-        qmin = p + turn + 1;
+      if (qmin < p + 1)
+        qmin = p + 1;
 
       for (q = n; q >= qmin; q--) {
         u2 = i - 1 + n - q;

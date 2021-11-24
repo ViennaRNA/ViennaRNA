@@ -289,7 +289,7 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
                            int                        j,
                            struct vrna_mx_pf_aux_el_s *aux_mx)
 {
-  int                       k, turn;
+  int                       k;
   FLT_OR_DBL                **q;
   vrna_callback_hc_evaluate *evaluate;
   struct hc_ext_def_dat     hc_dat_local;
@@ -301,13 +301,12 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
    *  j just before any contributions for [i,j] will be computed
    */
   if ((fc) && (fc->hc->type == VRNA_HC_WINDOW)) {
-    turn      = fc->exp_params->model_details.min_loop_size;
     q         = fc->exp_matrices->q_local;
     evaluate  = prepare_hc_ext_def_window(fc, &hc_dat_local);
     init_sc_ext_exp(fc, &sc_wrapper);
 
 
-    for (k = j; k >= MAX2(1, j - turn); k--)
+    for (k = j; k >= MAX2(1, j); k--)
       q[k][j] = reduce_ext_up_fast(fc, k, j, aux_mx, evaluate, &hc_dat_local, &sc_wrapper);
   }
 }

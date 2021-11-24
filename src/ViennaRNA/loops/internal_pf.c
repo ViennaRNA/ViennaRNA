@@ -161,9 +161,8 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     unsigned int  type, type2, *tt;
-    int           k, l, kl, last_k, first_l, u1, u2, turn, noGUclosure;
+    int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
 
-    turn        = md->min_loop_size;
     noGUclosure = md->noGUclosure;
     tt          = NULL;
     type        = 0;
@@ -240,7 +239,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
       /* handle bulges in 5' side */
       l = j - 1;
       if ((l > i + 2) && (sn[j] == sn[l])) {
-        last_k = l - turn - 1;
+        last_k = l - 1;
 
         if (last_k > i + 1 + MAXLOOP)
           last_k = i + 1 + MAXLOOP;
@@ -325,7 +324,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
       /* handle bulges in 3' side */
       k = i + 1;
       if ((k < j - 2) && (sn[i] == sn[k])) {
-        first_l = k + turn + 1;
+        first_l = k + 1;
         if (first_l < j - 1 - MAXLOOP)
           first_l = j - 1 - MAXLOOP;
 
@@ -405,7 +404,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
       }
 
       /* last but not least, all other internal loops */
-      last_k = j - turn - 3;
+      last_k = j - 3;
 
       if (last_k > i + MAXLOOP + 1)
         last_k = i + MAXLOOP + 1;
@@ -419,7 +418,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
       u1 = 1;
 
       for (k = i + 2; k <= last_k; k++, u1++) {
-        first_l = k + turn + 1;
+        first_l = k + 1;
 
         if (first_l < j - 1 - MAXLOOP + u1)
           first_l = j - 1 - MAXLOOP + u1;
@@ -566,7 +565,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   short                 *S, *S2, **SS, **S5, **S3;
   unsigned int          *tt, n_seq, s, **a2s, type, type2;
   int                   k, l, u1, u2, u3, qmin, with_ud,
-                        n, *my_iindx, *hc_up, turn,
+                        n, *my_iindx, *hc_up,
                         u1_local, u2_local, u3_local;
   FLT_OR_DBL            q, q_temp, *qb, *scale;
   vrna_exp_param_t      *pf_params;
@@ -591,7 +590,6 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   hc_up       = fc->hc->up_int;
   pf_params   = fc->exp_params;
   md          = &(pf_params->model_details);
-  turn        = md->min_loop_size;
   type        = 0;
   tt          = NULL;
   domains_up  = fc->domains_up;
@@ -624,8 +622,8 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
         break;
 
       qmin = u2 + i - 1 + n - MAXLOOP;
-      if (qmin < k + turn + 1)
-        qmin = k + turn + 1;
+      if (qmin < k + 1)
+        qmin = k + 1;
 
       for (l = n; l >= qmin; l--) {
         u1  = i - 1;

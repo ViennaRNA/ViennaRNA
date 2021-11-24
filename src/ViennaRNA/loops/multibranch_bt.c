@@ -115,7 +115,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   short                     *S1, **SS, **S5, **S3;
   unsigned int              n_seq, s;
   int                       ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg,
-                            turn, *idx, with_gquad, dangle_model, *rtype, kk, cnt,
+                            *idx, with_gquad, dangle_model, *rtype, kk, cnt,
                             with_ud, type, type_2, en2, **c_local, **fML_local, **ggg_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -145,8 +145,6 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   fML_local = (sliding_window) ? fc->matrices->fML_local : NULL;
   ggg_local = (sliding_window) ? fc->matrices->ggg_local : NULL;
 
-
-  turn          = md->min_loop_size;
   with_gquad    = md->gquad;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   dangle_model  = md->dangles;
@@ -305,7 +303,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
     } while (fij == fi);
     ii--;
 
-    if (jj < ii + turn + 1) /* no more pairs */
+    if (jj <= ii) /* no more pairs */
       return 0;
   }
 
@@ -532,7 +530,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   }
 
   /* 2. Test for possible split point */
-  for (u = ii + 1 + turn; u <= jj - 2 - turn; u++) {
+  for (u = ii + 1; u <= jj - 2; u++) {
     if (evaluate(ii, jj, u, u + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
       if (sliding_window)
         en = fML_local[ii][u - ii] +
@@ -557,8 +555,8 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   /* 3. last chance! Maybe coax stack */
   if (dangle_model == 3) {
     int ik, k1j;
-    k1j = (sliding_window) ? 0 : idx[jj] + ii + turn + 2;
-    for (u = ii + 1 + turn; u <= jj - 2 - turn; u++, k1j++) {
+    k1j = (sliding_window) ? 0 : idx[jj] + ii + 2;
+    for (u = ii + 1; u <= jj - 2; u++, k1j++) {
       ik = (sliding_window) ? 0 : idx[u] + ii;
       if (evaluate(ii, u, u + 1, jj, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
         en = 2 * P->MLintern[1] *
@@ -622,7 +620,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
   char                      *ptype, **ptype_local;
   short                     s5, s3, *S1, **SS, **S5, **S3;
   unsigned int              *sn, n_seq, s, *tt;
-  int                       ij, p, q, r, e, tmp_en, *idx, turn, dangle_model,
+  int                       ij, p, q, r, e, tmp_en, *idx, dangle_model,
                             *my_c, *my_fML, *rtype, type, type_2, **c_local, **fML_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
@@ -645,7 +643,6 @@ BT_mb_loop(vrna_fold_compound_t *fc,
   my_fML          = (sliding_window) ? NULL : fc->matrices->fML;
   c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
   fML_local       = (sliding_window) ? fc->matrices->fML_local : NULL;
-  turn            = md->min_loop_size;
   ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : fc->ptype) : NULL;
   ptype_local     = (sliding_window) ? fc->ptype_local : NULL;
   rtype           = &(md->rtype[0]);
@@ -663,7 +660,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
   p = *i + 1;
   q = *j - 1;
 
-  r = q - turn - 1;
+  r = q - 1;
 
   *component1 = *component2 = 1;  /* both components are MB loop parts by default */
 
@@ -714,7 +711,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
     if (sc_wrapper.pair)
       e -= sc_wrapper.pair(*i, *j, &sc_wrapper);
 
-    for (r = *i + 2 + turn; r < *j - 2 - turn; ++r) {
+    for (r = *i + 2; r < *j - 2; ++r) {
       if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
         if (sliding_window)
           tmp_en = fML_local[p][r - p] +
@@ -753,7 +750,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
           break;
       }
 
-      for (r = p + turn + 1; r < q - turn - 1; ++r) {
+      for (r = p + 1; r < q - 1; ++r) {
         if (evaluate(p + 1, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
           if (sliding_window)
             tmp_en = fML_local[p + 1][r - (p + 1)] +
@@ -792,7 +789,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
           break;
       }
 
-      for (r = p + turn + 1; r < q - turn - 1; ++r) {
+      for (r = p + 1; r < q - 1; ++r) {
         if (evaluate(p, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
           if (sliding_window)
             tmp_en = fML_local[p][r - p] +
@@ -833,7 +830,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
           break;
       }
 
-      for (r = p + turn + 1; r < q - turn - 1; ++r) {
+      for (r = p + 1; r < q - 1; ++r) {
         if (evaluate(p + 1, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
           if (sliding_window)
             tmp_en = fML_local[p + 1][r - (p + 1)] +
@@ -869,7 +866,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
       if (fc->type == VRNA_FC_TYPE_SINGLE)
         type = rtype[type];
 
-      for (r = p + turn + 1; r < q - turn - 1; ++r) {
+      for (r = p + 1; r < q - 1; ++r) {
         if (evaluate(*i, *j, p, r, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
           if (sliding_window)
             tmp_en = c_local[p][r - p] +
@@ -947,7 +944,7 @@ odd_dangles_exit:
     free(tt);
   }
 
-  if (r <= *j - turn - 3) {
+  if (r <= *j - 3) {
     *i  = p;
     *k  = r;
     *j  = q;
