@@ -353,25 +353,75 @@ vrna_db_pk_remove(const char    *structure,
 
 
 PUBLIC char *
-vrna_db_from_ptable(short *pt)
+vrna_db_from_ptable(const short *ptable)
 {
-  unsigned int  n;
-  int           i;
-  char          *dotbracket = NULL;
+  char          *dotbracket           = NULL;
+  const char    *bracket_open_avail   = "([{<ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const char    *bracket_close_avail  = ")]}>abcdefghijklmnopqrstuvwxyz";
+  short         *pt;
+  unsigned int  n, i, stack_cnt, *stack, bracket_count, recheck;
 
-  if (pt) {
-    n = (unsigned int)pt[0];
+  if (ptable) {
+    n = (unsigned int)ptable[0];
     if (n > 0) {
+      pt = (short *)vrna_alloc(sizeof(short) * (n + 1));
+      pt = memcpy(pt, ptable, sizeof(short) * (n + 1));
+
+      /* check for validity, i.e. both pairing positions must specify pairing partner */
+      for (i = 1; i <= n; i++) {
+        if (((unsigned int)pt[i] > i) &&
+            ((unsigned int)pt[pt[i]] != i))
+          return NULL;
+      }
+
+      /* prepare everything */
       dotbracket = (char *)vrna_alloc((n + 1) * sizeof(char));
       memset(dotbracket, '.', n);
 
-      for (i = 1; i <= n; i++) {
-        if (pt[i] > i) {
-          dotbracket[i - 1]     = '(';
-          dotbracket[pt[i] - 1] = ')';
+      bracket_count = 0;
+      recheck       = 1;
+      stack         = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 1));
+      stack_cnt     = 0;
+
+      while (recheck) {
+        recheck = 0;
+
+        for (i = 1; i <= n; i++) {
+          if (pt[i] > i) {
+            /* check for clash */
+            if ((stack_cnt > 0) &&
+                (pt[i] > stack[stack_cnt - 1])) {
+              recheck = 1;
+              continue;
+            } else {
+              stack[stack_cnt++] = pt[i];
+              dotbracket[i - 1] = bracket_open_avail[bracket_count];
+              dotbracket[pt[i] - 1] = bracket_close_avail[bracket_count];
+            }
+          } else if (pt[i] != 0) {
+            if (stack_cnt == 0)
+              continue;
+
+            if (i == stack[stack_cnt - 1]) {
+              /* remove pair from pair table */
+              pt[i] = pt[pt[i]] = 0;
+              stack_cnt--;
+            }
+          }
+        }
+
+        stack_cnt = 0;
+        bracket_count++;
+
+        if (bracket_count >= 30) {
+          vrna_message_warning("Not enough bracket types available in vrna_db_from_ptable()! Skipping remaining base pairs!");
+          break;
         }
       }
+
       dotbracket[i - 1] = '\0';
+      free(stack);
+      free(pt);
     }
   }
 

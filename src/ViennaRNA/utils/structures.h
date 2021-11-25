@@ -219,11 +219,22 @@ vrna_db_flatten_to(char         *string,
 /**
  *  @brief Convert a pair table into dot-parenthesis notation
  *
+ *  This function also converts pair table formatted structures that contain
+ *  pseudoknots. Non-nested base pairs result in additional pairs of
+ *  parenthesis and brackets within the resulting dot-parenthesis string.
+ *  The following pairs are awailable: (), []. {}. <>, as well as pairs of
+ *  matching upper-/lower-case characters from the alphabet A-Z.
+ *
+ *  @note In cases where the level of non-nested base pairs exceeds the
+ *  maximum number of 30 different base pair indicators (4 parenthesis/brackets,
+ *  26 matching characters), a warning is printed and the remaining base pairs
+ *  are left out from the conversion.
+ *
  *  @param pt The pair table to be copied
  *  @return   A char pointer to the dot-bracket string
  */
 char *
-vrna_db_from_ptable(short *pt);
+vrna_db_from_ptable(const short *pt);
 
 
 /**
