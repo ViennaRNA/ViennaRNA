@@ -111,6 +111,7 @@ def __repr__(self):
 
 %newobject my_unpack_structure;
 %newobject my_pack_structure;
+%newobject my_db_from_ptable;
 %newobject vrna_db_unpack;
 %newobject vrna_db_pack;
 %newobject vrna_db_to_element_string;
