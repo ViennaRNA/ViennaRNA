@@ -1,4 +1,4 @@
-# RNA_ENABLE_TUTORIAL(PROJECT_NAME, [documentation-output-directory])
+# RNA_ENABLE_CLA(PROJECT_NAME, [documentation-output-directory])
 #
 #
 AC_DEFUN([RNA_ENABLE_CLA],[
@@ -19,7 +19,7 @@ RNA_ADD_PACKAGE([cla],
 
 
 # setup everything in order to generate the doxygen configfile
-RNA_PACKAGE_IF_ENABLED([tutorial],[
+RNA_PACKAGE_IF_ENABLED([cla],[
 
   AC_SUBST([CLA_I_PROJECT_NAME], [ViennaRNA-CLA-Individual])
   AC_SUBST([CLA_E_PROJECT_NAME], [ViennaRNA-CLA-Entity])
@@ -57,7 +57,7 @@ RNA_PACKAGE_IF_ENABLED([tutorial],[
     fi
   ])
 
-  ## disable tutorial in case PDF is disabled
+  ## disable CLA in case PDF is disabled
   AS_IF([ test "x$with_cla_pdf" == "xno" ], [ with_cla=no ])
 ])
 
