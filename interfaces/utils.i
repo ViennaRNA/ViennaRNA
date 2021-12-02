@@ -101,6 +101,42 @@ encode_seq(char *sequence)
 }
 %}
 short *encode_seq(char *sequence);
+
+%rename (strtrim) my_strtrim;
+%cstring_mutable(char *seq_mutable);
+
+%{
+  unsigned int
+  my_strtrim(char          *seq_mutable,
+             const char    *delimiters  = NULL,
+             unsigned int  keep         = 0,
+             unsigned int  options      = VRNA_TRIM_DEFAULT)
+  {
+    return  vrna_strtrim(seq_mutable,
+                         delimiters,
+                         keep,
+                         options);
+  }
+%}
+
+#ifdef SWIGPYTHON
+%feature("autodoc")my_strtrim;
+%feature("kwargs")my_strtrim;
+#endif
+
+unsigned int
+my_strtrim(char          *seq_mutable,
+           const char    *delimiters  = NULL,
+           unsigned int  keep         = 0,
+           unsigned int  options      = VRNA_TRIM_DEFAULT);
+
+
+%constant unsigned int TRIM_LEADING     = VRNA_TRIM_LEADING;
+%constant unsigned int TRIM_TRAILING    = VRNA_TRIM_TRAILING;
+%constant unsigned int TRIM_IN_BETWEEN  = VRNA_TRIM_IN_BETWEEN;
+%constant unsigned int TRIM_DEFAULT     = VRNA_TRIM_DEFAULT;
+%constant unsigned int TRIM_ALL         = VRNA_TRIM_ALL;
+
 %include  <ViennaRNA/utils/strings.h>
 
 /**********************************************/

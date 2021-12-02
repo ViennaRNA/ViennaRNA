@@ -61,6 +61,7 @@ DOXYGEN_DOCUMENTATION = \
     plotting.dox \
     sequence.dox \
     subopt.dox \
+    utils.dox \
     walk.dox
 
 EXTRA_DIST = \

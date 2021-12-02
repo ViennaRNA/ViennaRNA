@@ -1,0 +1,14 @@
+/**
+
+@fn unsigned int vrna_strtrim(char *string, const char *delimiters, unsigned int keep, unsigned int options)
+@scripting
+@parblock
+Since many scripting languages treat strings as immutable objects, this function does not
+modify the input string directly. Instead, it returns the modified string as second return
+value, together with the number of removed delimiters.
+
+The scripting language interface provides an overloaded version of this function, with
+default parameters @p delimiters=NULL, @p keep=0, and @p options=#VRNA_TRIM_DEFAULT.
+@endparblock
+
+*/

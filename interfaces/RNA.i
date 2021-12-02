@@ -104,6 +104,8 @@ extern "C" {
 
 %}
 //
+%include cstring.i
+
 %include carrays.i
 %array_functions(int, intP);
 %array_class(int, intArray);
