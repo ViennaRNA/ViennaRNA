@@ -410,6 +410,123 @@ vrna_cut_point_remove(const char  *string,
 }
 
 
+PUBLIC unsigned int
+vrna_strtrim(char          *string,
+             const char    *delimiters,
+             unsigned int  keep,
+             unsigned int  options)
+{
+  char          delim_ws[7] = {9, 10, 11, 12, 13, 32, 0};
+  const char    *delim, *ptrd;
+  char          *str_end, *ptr, *ptr_out, *ptr_start, *ptr_end;
+  unsigned int  ret, hits;
+
+  ret = 0;
+
+  if (string) {
+    if ((delimiters) &&
+        (*delimiters))
+      delim = delimiters;
+    else
+      delim = &(delim_ws[0]);
+
+    /* find first non-delimiter position */
+    for (ptr_start = string; *ptr_start != '\0'; ptr_start++) {
+      /* check whether we've found a delimiter */
+      for (ptrd = delim; *ptrd != '\0'; ptrd++)
+        if (*ptrd == *ptr_start)
+          break;
+
+      /* abort if we didn't find any of the delimiter characters */
+      if (*ptrd == '\0')
+        break;
+    }
+
+    /* find last non-delimiter position */
+    for (ptr_end = ptr = ptr_start; *ptr != '\0'; ptr++) {
+      for (ptrd = delim; *ptrd != '\0'; ptrd++)
+        if (*ptrd == *ptr)
+          break;
+
+      if (*ptrd == '\0')
+        ptr_end = ptr;
+    }
+
+    ptr_end++;
+
+    str_end = ptr;
+
+    if (options & VRNA_TRIM_LEADING) {
+      ptr = ptr_start -
+            sizeof(char) * keep;
+
+      if (ptr < string)
+        ptr = string;
+
+      /* adjust start and end pointer positions */
+      ptr_start -= ptr - string;
+      ptr_end   -= ptr - string;
+
+      /* actually remove leading delimiters */
+      for (ptr_out = string; *ptr != '\0'; ptr++)
+        *(ptr_out++) = *ptr;
+
+      *ptr_out = '\0';
+    }
+
+    if (options & VRNA_TRIM_IN_BETWEEN) {
+      hits    = 0;
+
+      /* remove in-between delimiters */
+      for (ptr_out = ptr = ptr_start; ptr < ptr_end; ptr++) {
+        for (ptrd = delim; *ptrd != '\0'; ptrd++)
+          if (*ptrd == *ptr)
+            break;
+
+        /* did we find a delimiter? */
+        if (*ptrd != '\0') {
+          if (hits++ < keep) {
+            *ptr_out = *ptr;
+            ptr_out++;
+          }
+        } else {
+          hits = 0;
+          *ptr_out = *ptr;
+          ptr_out++;
+        }
+      }
+
+      /* adjust end pointer position */
+      ptr_end -= ptr - ptr_out;
+
+      /* shift trailing part to correct position */
+      for (; *ptr != '\0'; ptr++)
+        *(ptr_out++) = *ptr;
+
+      *ptr_out = '\0';
+    }
+
+    if (options & VRNA_TRIM_TRAILING) {
+      hits = 0;
+
+      /* seek to end */
+      for (ptr_out = ptr = ptr_end; *ptr != '\0'; ptr++) {
+        if (hits++ < keep) {
+          *ptr_out = *ptr;
+          ptr_out++;
+        }
+      }
+
+      *ptr_out = '\0';
+    }
+
+    return (str_end - ptr_out) / sizeof(char);
+  }
+
+  return ret;
+}
+
+
 PUBLIC char **
 vrna_strsplit(const char  *string,
               const char  *delimiter)
