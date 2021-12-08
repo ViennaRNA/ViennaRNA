@@ -107,3 +107,14 @@ for i in range(0, iterations):
 
 for s in ss:
     print("{}".format(s))
+
+# 13. backtrace a single substructure from the sequence interval [10:50]
+print("{}".format(fc.pbacktrack_sub(10, 50)))
+
+# 14. backtrace multiple substructures from the sequence interval [10:50]
+for s in fc.pbacktrack_sub(100, 10, 50):
+    print("{}".format(s))
+
+# 15. backtrace multiple substructures from the sequence interval [10:50] non-redundantly
+for s in fc.pbacktrack_sub(100, 10, 50, RNA.PBACKTRACK_NON_REDUNDANT):
+    print("{}".format(s))
