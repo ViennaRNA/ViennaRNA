@@ -212,12 +212,12 @@ vrna_pbacktrack_sub_resume_cb(vrna_fold_compound_t              *fc,
   if (fc) {
     vrna_mx_pf_t *matrices = fc->exp_matrices;
 
-    if (end > fc->length) {
+    if (start == 0) {
+      vrna_message_warning("vrna_pbacktrack*(): interval start coordinate must be at least 1");
+    } else if (end > fc->length) {
       vrna_message_warning("vrna_pbacktrack*(): interval end coordinate exceeds sequence length");
-    } else if (end == 0) {
-      vrna_message_warning("vrna_pbacktrack*(): interval end coordinate too small");
     } else if (end < start) {
-      vrna_message_warning("vrna_pbacktrack*(): interval start < end");
+      vrna_message_warning("vrna_pbacktrack*(): interval end < start");
     } else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) ||
                (!fc->exp_params)) {
       vrna_message_warning("vrna_pbacktrack*(): %s", info_call_pf);
