@@ -61,7 +61,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #ifndef HAVE_STRDUP
-char *strdup(const char *s);
+char *
+strdup(const char *s);
 
 
 #endif
@@ -170,6 +171,12 @@ vrna_strcat_vprintf(char        **dest,
 #define VRNA_TRIM_IN_BETWEEN    4U
 
 /**
+ *  @brief  Replace remaining characters after trimming with the first delimiter in list
+ *  @see  vrna_strtrim()
+ */
+#define VRNA_TRIM_SUBST_BY_FIRST  8U
+
+/**
  *  @brief Default settings for trimming, i.e. trim leading and trailing
  *  @see vrna_strtrim()
  */
@@ -215,10 +222,11 @@ vrna_strcat_vprintf(char        **dest,
  *  @note The delimiter always consists of a single character from the
  *  set of characters provided. In case of alternative delimiters and non-null
  *  @p keep parameter, the first @p keep delimiters are preserved within the
- *  string.
+ *  string. Use #VRNA_TRIM_SUBST_BY_FIRST to substitute all remaining
+ *  delimiting characters with the first from the @p delimiters list.
  *
  *  @see  VRNA_TRIM_LEADING, VRNA_TRIM_TRAILING, VRNA_TRIM_IN_BETWEEN,
- *        VRNA_TRIM_DEFAULT, VRNA_TRIM_ALL
+ *        VRNA_TRIM_SUBST_BY_FIRST, VRNA_TRIM_DEFAULT, VRNA_TRIM_ALL
  *
  *  @param  string      The '\0'-terminated input string to trim
  *  @param  delimiters  The delimiter characters as 0-terminated char array (or @em NULL)
@@ -227,10 +235,10 @@ vrna_strcat_vprintf(char        **dest,
  *  @return             The number of delimiters removed from the string
  */
 unsigned int
-vrna_strtrim(char          *string,
-             const char    *delimiters,
-             unsigned int  keep,
-             unsigned int  options);
+vrna_strtrim(char         *string,
+             const char   *delimiters,
+             unsigned int keep,
+             unsigned int options);
 
 
 /**
@@ -287,6 +295,7 @@ vrna_strsplit(const char  *string,
 char *
 vrna_strjoin(const char **strings,
              const char *delimiter);
+
 
 /**
  *  @brief Create a random string using characters from a specified symbol set
@@ -441,21 +450,25 @@ vrna_cut_point_remove(const char  *string,
  *  @brief Convert an input sequence to uppercase
  *  @deprecated   Use vrna_seq_toupper() instead!
  */
-DEPRECATED(void  str_uppercase(char *sequence), "Use vrna_seq_toupper() instead");
+DEPRECATED(void
+           str_uppercase(char *sequence),
+           "Use vrna_seq_toupper() instead");
 
 /**
  *  @brief Convert a DNA input sequence to RNA alphabet
  *
  *  @deprecated Use vrna_seq_toRNA() instead!
  */
-DEPRECATED(void str_DNA2RNA(char *sequence), "Use vrna_seq_toRNA() instead");
+DEPRECATED(void
+           str_DNA2RNA(char *sequence),
+           "Use vrna_seq_toRNA() instead");
 
 /**
  *  @brief Create a random string using characters from a specified symbol set
  *
  *  @deprecated Use vrna_random_string() instead!
  */
-DEPRECATED(char *random_string(int        l,
+DEPRECATED(char *random_string(int l,
                                const char symbols[]),
            "Use vrna_random_string() instead");
 
@@ -464,8 +477,9 @@ DEPRECATED(char *random_string(int        l,
  *
  *  @deprecated Use vrna_hamming_distance() instead!
  */
-DEPRECATED(int hamming(const char *s1,
-                       const char *s2),
+DEPRECATED(int
+           hamming(const char *s1,
+                   const char *s2),
            "Use vrna_hamming_distance() instead");
 
 /**
@@ -473,9 +487,10 @@ DEPRECATED(int hamming(const char *s1,
  *
  *  @deprecated Use vrna_hamming_distance_bound() instead!
  */
-DEPRECATED(int hamming_bound(const char *s1,
-                             const char *s2,
-                             int        n),
+DEPRECATED(int
+           hamming_bound(const char *s1,
+                         const char *s2,
+                         int        n),
            "Use vrna_hamming_distance_bound() instead");
 
 #endif

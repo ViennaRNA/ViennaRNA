@@ -385,14 +385,14 @@ PUBLIC char *
 vrna_cut_point_remove(const char  *string,
                       int         *cp)
 {
-  char *pos, *copy = NULL;
-  unsigned int len;
+  char          *pos, *copy = NULL;
+  unsigned int  len;
 
   *cp = -1;
 
   if (string) {
-    len = strlen(string);
-    copy = strdup(string);
+    len   = strlen(string);
+    copy  = strdup(string);
     if ((pos = strchr(copy, '&'))) {
       *cp = (int)(pos - copy) + 1;
       if (*cp >= len)
@@ -411,12 +411,14 @@ vrna_cut_point_remove(const char  *string,
 
 
 PUBLIC unsigned int
-vrna_strtrim(char          *string,
-             const char    *delimiters,
-             unsigned int  keep,
-             unsigned int  options)
+vrna_strtrim(char         *string,
+             const char   *delimiters,
+             unsigned int keep,
+             unsigned int options)
 {
-  char          delim_ws[7] = {9, 10, 11, 12, 13, 32, 0};
+  char          delim_ws[7] = {
+    32, 9, 10, 11, 12, 13, 0
+  };
   const char    *delim, *ptrd;
   char          *str_end, *ptr, *ptr_out, *ptr_start, *ptr_end;
   unsigned int  ret, hits;
@@ -468,14 +470,20 @@ vrna_strtrim(char          *string,
       ptr_end   -= ptr - string;
 
       /* actually remove leading delimiters */
-      for (ptr_out = string; *ptr != '\0'; ptr++)
+      for (ptr_out = string; ptr < ptr_start; ptr++)
+        if (options & VRNA_TRIM_SUBST_BY_FIRST)
+          *(ptr_out++) = delim[0];
+        else
+          *(ptr_out++) = *ptr;
+
+      for (; *ptr != '\0'; ptr++)
         *(ptr_out++) = *ptr;
 
       *ptr_out = '\0';
     }
 
     if (options & VRNA_TRIM_IN_BETWEEN) {
-      hits    = 0;
+      hits = 0;
 
       /* remove in-between delimiters */
       for (ptr_out = ptr = ptr_start; ptr < ptr_end; ptr++) {
@@ -486,12 +494,16 @@ vrna_strtrim(char          *string,
         /* did we find a delimiter? */
         if (*ptrd != '\0') {
           if (hits++ < keep) {
-            *ptr_out = *ptr;
+            if (options & VRNA_TRIM_SUBST_BY_FIRST)
+              *ptr_out = delim[0];
+            else
+              *ptr_out = *ptr;
+
             ptr_out++;
           }
         } else {
-          hits = 0;
-          *ptr_out = *ptr;
+          hits      = 0;
+          *ptr_out  = *ptr;
           ptr_out++;
         }
       }
@@ -512,7 +524,11 @@ vrna_strtrim(char          *string,
       /* seek to end */
       for (ptr_out = ptr = ptr_end; *ptr != '\0'; ptr++) {
         if (hits++ < keep) {
-          *ptr_out = *ptr;
+          if (options & VRNA_TRIM_SUBST_BY_FIRST)
+            *ptr_out = delim[0];
+          else
+            *ptr_out = *ptr;
+
           ptr_out++;
         }
       }
@@ -583,8 +599,8 @@ PUBLIC char *
 vrna_strjoin(const char **strings,
              const char *delimiter)
 {
-  char        *s = NULL;
-  size_t      n, offset, *lengths, mem_strings, total_length;
+  char    *s = NULL;
+  size_t  n, offset, *lengths, mem_strings, total_length;
 
   if (strings) {
     total_length  = 0;
@@ -683,6 +699,7 @@ vrna_strsplice(const char   *string,
 
 #endif
 
+
 PUBLIC char *
 vrna_seq_ungapped(const char *seq)
 {
@@ -714,9 +731,11 @@ vrna_seq_ungapped(const char *seq)
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-/*###########################################*/
-/*# deprecated functions below              #*/
-/*###########################################*/
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ * ###########################################
+ */
 
 PUBLIC void
 str_uppercase(char *sequence)
