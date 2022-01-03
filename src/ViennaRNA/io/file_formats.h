@@ -239,6 +239,16 @@ vrna_file_SHAPE_read(const char *file_name,
                      char       *sequence,
                      double     *values);
 
+#define VRNA_INPUT_VERBOSE  16384U
+
+
+int
+vrna_file_connect_read_record(FILE          *fp,
+                              char          **id,
+                              char          **sequence,
+                              char          **structure,
+                              char          **remainder,
+                              unsigned int  options);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

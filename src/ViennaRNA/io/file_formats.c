@@ -20,6 +20,7 @@
 
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/constraints/hard.h"
 #if VRNA_WITH_JSON_SUPPORT
@@ -27,12 +28,30 @@
 #endif
 #include "ViennaRNA/io/file_formats.h"
 
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+
 #define DEBUG
 /*
  #################################
  # PRIVATE VARIABLES             #
  #################################
  */
+
+typedef struct {
+  unsigned int  effective_length;
+  unsigned int  length;
+  char          *id;
+  char          *sequence;
+  unsigned int  sequence_pos;
+  short         *pt;
+  unsigned int  strands;
+  unsigned int  *actual_pos;
+} ct_data;
+
 
 PRIVATE char          *inbuf  = NULL;
 PRIVATE char          *inbuf2 = NULL;
@@ -53,6 +72,32 @@ read_multiple_input_lines(char          **string,
 PRIVATE void
 elim_trailing_ws(char *string);
 
+
+PRIVATE INLINE ct_data *
+init_ct_data(unsigned int n);
+
+
+PRIVATE INLINE void
+resize_ct_data(ct_data      *dat,
+               unsigned int n);
+
+
+PRIVATE INLINE int
+finalize_ct_data(ct_data *dat);
+
+
+PRIVATE INLINE ct_data*
+process_ct_header(unsigned int  n,
+                  size_t        num_tok,
+                  const char    **tok);
+
+PRIVATE INLINE int
+process_ct_nt_line(ct_data       *data,
+                   unsigned int  i,
+                   char          nucleotide,
+                   unsigned int  predecessor,
+                   unsigned int  j,
+                   unsigned int  actual_i);
 
 /*
  #################################
@@ -666,6 +711,348 @@ vrna_file_SHAPE_read(const char *file_name,
   }
 
   return 1;
+}
+
+
+PUBLIC int
+vrna_file_connect_read_record(FILE          *fp,
+                              char          **id,
+                              char          **sequence,
+                              char          **structure,
+                              char          **remainder,
+                              unsigned int  options)
+{
+  char          c, *line, *end, tok2, **tok, **ptr;
+  size_t        num_tok;
+  int           is_nt_line, is_header;
+  long          tok1, tok3, tok4, tok5, tok6;
+  ct_data       *ct_entry = NULL;
+
+  if (!fp) {
+    if (options & VRNA_INPUT_VERBOSE)
+      vrna_message_warning("vrna_file_connect_read_record@file_formats.c: "
+                           "Can't read from file pointer while parsing connectivity table formatted sequence input!");
+    return -1;
+  }
+
+  if (id)
+    *id = NULL;
+
+  if (sequence)
+    *sequence = NULL;
+
+  if (structure)
+    *structure = NULL;
+
+  if ((remainder) &&
+      (*remainder)) {
+    line        = *remainder;
+    *remainder  = NULL;
+  } else {
+    line = vrna_read_line(fp);
+  }
+
+  if (!line)
+    return 0;
+
+  do {
+    /* trim leading and trailing white spaces */
+    vrna_strtrim(line, NULL, 0, VRNA_TRIM_DEFAULT);
+
+    /* reduce all consecutive whitespaces to a single space */
+    vrna_strtrim(line, NULL, 1, VRNA_TRIM_IN_BETWEEN | VRNA_TRIM_SUBST_BY_FIRST);
+
+    /*
+        For now, we do not extract any information from the comments
+        in the file, so lets skip empty and comment lines all together
+    */
+    c = *line;
+
+    if ((c == '\0') ||
+        (c == '*') ||
+        (c == '>') ||
+        (c == '#') ||
+        (c == ';')) {
+      free(line);
+      continue;
+    }
+
+    /* if this is a non-comment and non-empty line, tokenize it */
+    tok = vrna_strsplit(line, " ");
+
+    /* count number of tokens */
+    for (num_tok = 0; tok[num_tok]; num_tok++);
+
+
+    /*
+        First, use some heuristic to judge what kind of
+        line we are currently faced with. We will distinguish
+        two types of data: headers and nucleotide information
+    */
+    is_nt_line = is_header = 0;
+
+    /*
+        1st, if we have more than 5 whitespace separated blocks, this
+        seems like a nucleotide information line. Check, if this guess
+        is valid
+    */
+    if (num_tok > 5) {
+      tok2 = tok[1][0];
+
+      /* check 1st token, i.e. nt position within segment */
+      tok1 = strtol(tok[0], &end, 10);
+      if (tok[0] != end) {
+        /* check 3rd token, i.e. 5' connecting base */
+        tok3 = strtol(tok[2], &end, 10);
+        if (tok[2] != end) {
+          /* check 4th token, i.e. 3' connecting base */
+          tok4 = strtol(tok[3], &end, 10);
+          if (tok[3] != end) {
+            /* check 5th token, i.e. pairing partner */
+            tok5 = strtol(tok[4], &end, 10);
+            if (tok[4] != end) {
+              /* check 6th token, i.e. historical numbering */
+              tok6 = strtol(tok[5], &end, 10);
+              if (tok[6] != end)
+                is_nt_line = 1;
+            }
+          }
+        }
+      }
+    }
+
+    /* 2nd, we might have read a header line */
+    if ((!is_nt_line) &&
+        (num_tok > 0)) {
+      tok1 = strtol(tok[0], &end, 10);
+      if (tok[0] != end) {
+        /* first token is a number, should be sequence length */
+        is_header = 1;
+      }
+    }
+
+    /* now, do something with our guess and extract the data */
+    if (is_header) {
+      /* return result and save header for next round if we already have a complete data set */
+      if (ct_entry) {
+        if ((finalize_ct_data(ct_entry) != 0) &&
+            (options & VRNA_INPUT_VERBOSE))
+          vrna_message_warning("vrna_file_connect_read_record@file_formats.c: "
+                               "Malformed input file! Sequence length stated: %u, actual length: %u\n",
+                               ct_entry->length,
+                               ct_entry->effective_length);
+
+        *id         = ct_entry->id;
+        *sequence   = ct_entry->sequence;
+        *structure  = vrna_db_from_ptable(ct_entry->pt);
+        *remainder  = line;
+
+        free(ct_entry->pt);
+        free(ct_entry->actual_pos);
+        free(ct_entry);
+
+        for (ptr = tok; *ptr; ptr++)
+          free(*ptr);
+        free(tok);
+
+        return 1;
+      }
+
+      ct_entry = process_ct_header((unsigned int)tok1, num_tok, (const char **)tok);
+    } else if ((is_nt_line) &&
+               (ct_entry)) {
+      /* this is a nucleotide information line, so let's extract the relevant data */
+      if (!process_ct_nt_line(ct_entry, tok1, tok2, tok3, tok5, tok6))
+        printf("Something went wrong with storing nucleotide information\n");
+    } else if (options & VRNA_INPUT_VERBOSE) {
+      vrna_message_warning("vrna_file_connect_read_record@file_formats.c: "
+                           "Unusal line in input:\n%s\n", line);
+    }
+
+    free(line);
+    for (ptr = tok; *ptr; ptr++)
+      free(*ptr);
+    free(tok);
+  } while ((line = vrna_read_line(fp)));
+
+  /* end of file */
+  if (ct_entry) {
+    if ((finalize_ct_data(ct_entry) != 0) &&
+        (options & VRNA_INPUT_VERBOSE))
+      vrna_message_warning("vrna_file_connect_read_record@file_formats.c: "
+                           "Malformed input file! Sequence length stated: %u, actual length: %u\n",
+                           ct_entry->length,
+                           ct_entry->effective_length);
+
+    *id         = ct_entry->id;
+    *sequence   = ct_entry->sequence;
+    *structure  = vrna_db_from_ptable(ct_entry->pt);
+    *remainder  = NULL;
+
+    free(ct_entry->pt);
+    free(ct_entry->actual_pos);
+    free(ct_entry);
+
+    return 1;
+  }
+
+  return 0;
+}
+
+
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
+
+PRIVATE INLINE ct_data *
+init_ct_data(unsigned int n)
+{
+  ct_data *dat      = (ct_data *)vrna_alloc(sizeof(ct_data));
+
+  dat->length           = n;
+  dat->effective_length = n;
+  dat->strands          = 1;
+  dat->sequence         = (char *)vrna_alloc(sizeof(char) * (2 * n + 1));
+  dat->sequence_pos     = 0;
+  dat->pt               = (short *)vrna_alloc(sizeof(short) * (n + 1));
+  dat->actual_pos       = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 1));
+  dat->pt[0]            = (short )n;
+  dat->id               = NULL;
+
+  return dat;
+}
+
+
+PRIVATE INLINE void
+resize_ct_data(ct_data      *dat,
+               unsigned int n)
+{
+  dat->effective_length = n;
+  dat->sequence         = (char *)vrna_realloc(dat->sequence, sizeof(char) * (2 * n + 1));
+  dat->pt               = (short *)vrna_realloc(dat->pt, sizeof(short) * (n + 1));
+  dat->actual_pos       = (unsigned int *)vrna_realloc(dat->actual_pos, sizeof(unsigned int) * (n + 1));
+}
+
+
+PRIVATE INLINE int
+finalize_ct_data(ct_data *dat)
+{
+  dat->sequence[dat->sequence_pos] = '\0';
+  if (strlen(dat->sequence) < dat->effective_length) {
+    memset(dat->sequence, 'N', sizeof(char) * (dat->effective_length - strlen(dat->sequence)));
+    dat->sequence[dat->effective_length] = '\0';
+  }
+  dat->pt[0] = (short)dat->effective_length;
+
+  if (dat->length != dat->effective_length)
+    return 1;
+
+  return 0;
+}
+
+
+PRIVATE INLINE ct_data*
+process_ct_header(unsigned int  n,
+                  size_t        num_tok,
+                  const char    **tok)
+{
+  char    *ptr;
+  size_t  id_pos;
+  float   energy;
+  ct_data *dat = init_ct_data(n);
+
+  if (num_tok > 1) {
+    id_pos = 1;
+
+    /* find out where the sequence id actually starts */
+    /* sometimes it is preceeded by an ENERGY = x.y entry
+     * denoting the free energy of the structure encoded in
+     * the connectivity data.
+     */
+    ptr = strdup(tok[1]);
+    vrna_seq_toupper(ptr);
+
+    if (sscanf(ptr, "ENERGY = %f", &energy) == 1) {
+      id_pos++;
+    } else if (num_tok > 2) {
+      free(ptr);
+      ptr = vrna_strdup_printf("%s %s",
+                               tok[1],
+                               tok[2]);
+      vrna_seq_toupper(ptr);
+
+      if (sscanf(ptr, "ENERGY = %f", &energy) == 1) {
+        id_pos += 2;
+      } else if (num_tok > 3) {
+        free(ptr);
+        ptr = vrna_strdup_printf("%s %s %s",
+                                 tok[1],
+                                 tok[2],
+                                 tok[3]);
+        vrna_seq_toupper(ptr);
+
+        if (sscanf(ptr, "ENERGY = %f", &energy) == 1) {
+          id_pos += 3;
+        }
+
+        free(ptr);
+      }
+    }
+
+    /*
+        we've also seen .ct files that only contain the
+        ENERGY keyword, without any further values, so
+        let's also skip this keyword if necessary
+    */
+    if ((id_pos == 1) &&
+        (strcasestr(ptr, "ENERGY") == ptr)) {
+      id_pos++;
+    }
+
+    /*
+        finally, if there is anything left that might be a
+        sequence identifier, keep it
+    */
+    if (id_pos < num_tok)
+      dat->id = vrna_strjoin((const char **)(tok + id_pos), " ");
+  }
+
+  return dat;
+}
+
+
+PRIVATE INLINE int
+process_ct_nt_line(ct_data       *data,
+                   unsigned int  i,
+                   char          nucleotide,
+                   unsigned int  predecessor,
+                   unsigned int  j,
+                   unsigned int  actual_i)
+{
+  /* check for malformed input line */
+  unsigned int  max = i;
+  max = MAX2(max, j);
+
+  if (max > data->effective_length)
+    resize_ct_data(data, max);
+
+  if (i <= data->effective_length) {
+    if ((i > 1) &&
+        (predecessor == 0)) {
+      data->strands++;
+      data->sequence[data->sequence_pos++] = '&';
+    }
+
+    data->pt[i]                           = j;
+    data->sequence[data->sequence_pos++]  = nucleotide;
+    data->actual_pos[i]                   = actual_i;
+
+    return 1;
+  }
+
+  return 0;
 }
 
 
