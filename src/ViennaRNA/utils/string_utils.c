@@ -608,13 +608,13 @@ vrna_strjoin(const char **strings,
     lengths       = (size_t *)vrna_alloc(sizeof(size_t) * mem_strings);
 
     for (n = 0; strings[n]; n++) {
-      lengths[n]    = strlen(strings[n]);
-      total_length += lengths[n];
-
       if (n == mem_strings) {
         mem_strings += 32;
         lengths      = (size_t *)vrna_realloc(lengths, sizeof(size_t) * mem_strings);
       }
+
+      lengths[n]    = strlen(strings[n]);
+      total_length += lengths[n];
     }
 
     if ((delimiter) && (*delimiter))
