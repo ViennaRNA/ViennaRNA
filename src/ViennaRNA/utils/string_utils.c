@@ -456,7 +456,7 @@ vrna_strtrim(char         *string,
 
     ptr_end++;
 
-    str_end = ptr;
+    str_end = ptr_out = ptr;
 
     if (options & VRNA_TRIM_LEADING) {
       ptr = ptr_start -
