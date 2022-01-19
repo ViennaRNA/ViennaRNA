@@ -31,18 +31,18 @@ process_input(FILE        *fp,
 static void
 remove_noncanonical_bases(char *sequence)
 {
-  if (sequence)
+  if (sequence) {
     for (char *ptr = sequence; *ptr; ptr++) {
       switch (*ptr) {
-        case  'A': /* fall through */
-        case  'a': /* fall through */
-        case  'C': /* fall through */
-        case  'c': /* fall through */
-        case  'G': /* fall through */
-        case  'g': /* fall through */
-        case  'U': /* fall through */
-        case  'u': /* fall through */
-        case  'T': /* fall through */
+        case  'A':  /* fall through */
+        case  'a':  /* fall through */
+        case  'C':  /* fall through */
+        case  'c':  /* fall through */
+        case  'G':  /* fall through */
+        case  'g':  /* fall through */
+        case  'U':  /* fall through */
+        case  'u':  /* fall through */
+        case  'T':  /* fall through */
         case  't':
           break;
         default:
@@ -50,7 +50,9 @@ remove_noncanonical_bases(char *sequence)
           break;
       }
     }
+  }
 }
+
 
 int
 main(int  argc,
@@ -130,12 +132,15 @@ main(int  argc,
   return EXIT_SUCCESS;
 }
 
+
 int
 process_input(FILE        *fp,
               const char  *filename,
               parameters  *opt)
 {
   char          *id, *sequence, *structure, *ss, *remainder;
+  short         *pt_pk, *pt;
+  size_t        bp_pk, bp;
   unsigned int  parse_options;
 
   parse_options = 0;
@@ -146,8 +151,35 @@ process_input(FILE        *fp,
 
   while (vrna_file_connect_read_record(fp, &id, &sequence, &structure, &remainder, parse_options)) {
     if (opt->no_pk) {
-      ss = vrna_db_pk_remove((const char *)structure, VRNA_BRACKETS_ANY);
-      free(structure);
+      if (structure) {
+        pt_pk = vrna_ptable_from_string(structure, VRNA_BRACKETS_ANY);
+        pt    = vrna_pt_pk_remove(pt_pk, 0);
+        ss    = vrna_db_from_ptable(pt);
+
+        if (opt->verbose) {
+          bp_pk = 0;
+          bp    = 0;
+
+          for (size_t i = 1; i <= pt_pk[0]; i++) {
+            if (pt_pk[i] > i)
+              bp_pk++;
+
+            if (pt[i] > i)
+              bp++;
+          }
+
+          vrna_message_info(stderr,
+                            "Removed %u of %u base pairs to make structure pseudo-knot free",
+                            bp_pk - bp,
+                            bp_pk);
+        }
+
+        free(pt_pk);
+        free(pt);
+        free(structure);
+      } else {
+        ss = NULL;
+      }
     } else {
       ss = structure;
     }
