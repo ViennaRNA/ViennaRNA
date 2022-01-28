@@ -198,8 +198,10 @@ handleLoop(short              i,
       baseInformation[i + 1].angle  = -direction * alpha * 2;
       baseInformation[i].baseType   = TYPE_BULGE;
       i++;
-
-      baseInformation[i + 1].angle            = direction * alpha;
+      if ((i + 1) <= pair_table[0])
+      {	
+      	baseInformation[i + 1].angle            = direction * alpha;
+      }
       baseInformation[i].baseType             = TYPE_BULGE;
       baseInformation[pair_table[i]].baseType = TYPE_BULGE;
 
@@ -228,8 +230,11 @@ handleLoop(short              i,
       baseInformation[i + 1].angle  = -direction * alpha * 2;
       baseInformation[i].baseType   = TYPE_BULGE;
       i++;
-
-      baseInformation[i + 1].angle  = direction * alpha;
+      
+      if ((i + 1) <= pair_table[0])
+      {	
+      	baseInformation[i + 1].angle  = direction * alpha;
+      }
       baseInformation[i].baseType   = TYPE_BULGE;
     }
   } else {
