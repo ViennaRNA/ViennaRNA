@@ -23,7 +23,9 @@ PRIVATE INLINE double
 get_zscore(vrna_fold_compound_t *fc,
            int                  i,
            int                  j,
-           int                  e);
+           int                  e,
+           double               *avg,
+           double               *sd);
 
 
 PUBLIC int
@@ -146,7 +148,24 @@ vrna_zsc_compute(vrna_fold_compound_t *fc,
   if ((fc) &&
       (fc->zscore_data) &&
       (fc->zscore_data->filter_on))
-    return get_zscore(fc, i, j, e);
+    return get_zscore(fc, i, j, e, NULL, NULL);
+
+  return (double)INF;
+}
+
+
+PUBLIC double
+vrna_zsc_compute_raw(vrna_fold_compound_t *fc,
+                     unsigned int         i,
+                     unsigned int         j,
+                     int                  e,
+                     double               *avg,
+                     double               *sd)
+{
+  if ((fc) &&
+      (fc->zscore_data) &&
+      (fc->zscore_data->filter_on))
+    return get_zscore(fc, i, j, e, avg, sd);
 
   return (double)INF;
 }
@@ -156,7 +175,9 @@ PRIVATE INLINE double
 get_zscore(vrna_fold_compound_t *fc,
            int                  i,
            int                  j,
-           int                  e)
+           int                  e,
+           double               *avg,
+           double               *sd)
 {
   short           *S;
   int             info_avg, start, end, dangle_model, length;
@@ -170,6 +191,12 @@ get_zscore(vrna_fold_compound_t *fc,
   dangle_model  = fc->params->model_details.dangles;
   z             = (double)INF;
   d             = fc->zscore_data;
+
+  if (avg)
+    *avg = (double)INF;
+
+  if (sd)
+    *sd = (double)INF;
 
   start = (dangle_model) ? MAX2(1, i - 1) : i;
   end   = (dangle_model) ? MIN2(length, j + 1) : j;
@@ -192,6 +219,11 @@ get_zscore(vrna_fold_compound_t *fc,
     if (difference - (d->min_z * min_sd) <= 0.0001) {
       sd_free_energy  = sd_regression(AUGC[0], AUGC[1], AUGC[2], AUGC[3], AUGC[4], d->sd_model);
       z               = difference / sd_free_energy;
+      if (avg)
+        *avg = average_free_energy;
+
+      if (sd)
+        *sd = sd_free_energy;
     }
   }
 

@@ -3,6 +3,8 @@
 /* prediction                                 */
 /**********************************************/
 
+
+
 %extend vrna_fold_compound_t {
 
 #ifdef SWIGPYTHON
@@ -17,6 +19,8 @@
   }
 
 #ifdef VRNA_WITH_SVM
+  %apply  double *OUTPUT { double *avg, double *sd };
+
   float
   mfe_window_zscore(double  min_z,
                     FILE    *nullfile = NULL)
@@ -64,8 +68,21 @@
     return vrna_zsc_compute($self, i, j, e);
   }
 
+  double
+  zsc_compute_raw(unsigned int  i,
+                  unsigned int  j,
+                  int           e,
+                  double        *avg,
+                  double        *sd)
+  {
+    return vrna_zsc_compute_raw($self, i, j, e,avg, sd);
+  }
+
+%clear  double  *avg;
+%clear  double  *sd;
 #endif
 }
+
 
 %ignore Lfoldz;
 %ignore Lfold;

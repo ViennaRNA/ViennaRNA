@@ -41,4 +41,13 @@ vrna_zsc_compute(vrna_fold_compound_t *fc,
                  int                  e);
 
 
+double
+vrna_zsc_compute_raw(vrna_fold_compound_t *fc,
+                     unsigned int         i,
+                     unsigned int         j,
+                     int                  e,
+                     double               *avg,
+                     double               *sd);
+
+
 #endif
