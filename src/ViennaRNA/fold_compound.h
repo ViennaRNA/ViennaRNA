@@ -74,7 +74,6 @@ typedef void (vrna_callback_free_auxdata)(void *data);
  *
  *  @param status   The status indicator
  *  @param data     The data structure that was assigned with vrna_fold_compound_add_auxdata()
- *  @param status   The status indicator
  */
 typedef void (vrna_callback_recursion_status)(unsigned char status,
                                               void          *data);
@@ -172,9 +171,9 @@ struct vrna_fc_s {
   unsigned int      *strand_start;  /**<  @brief  The start position of a particular strand within the current concatenated sequence */
   unsigned int      *strand_end;    /**<  @brief  The end (last) position of a particular strand within the current concatenated sequence */
 
-  unsigned int      strands;
-  vrna_seq_t        *nucleotides;
-  vrna_msa_t        *alignment;
+  unsigned int      strands;        /**<  @brief  Number of interacting strands */
+  vrna_seq_t        *nucleotides;   /**<  @brief  Set of nucleotide sequences */
+  vrna_msa_t        *alignment;     /**<  @brief  Set of alignments */
 
   vrna_hc_t         *hc;            /**<  @brief  The hard constraints data structure used for structure prediction */
 
@@ -220,7 +219,7 @@ struct vrna_fc_s {
   vrna_ud_t     *domains_up;                /**<  @brief  Additional unstructured domains */
 
   /* auxiliary (user-defined) extension to the folding grammar */
-  vrna_gr_aux_t *aux_grammar;
+  vrna_gr_aux_t *aux_grammar;               /**<  @brief  Additional decomposition grammar rules */
 
   /**
    *  @}
@@ -359,7 +358,7 @@ struct {
   int   window_size;              /**<  @brief  window size for local folding sliding window approach */
   char  **ptype_local;            /**<  @brief  Pair type array (for local folding) */
 #ifdef VRNA_WITH_SVM
-  vrna_zsc_dat_t  zscore_data;
+  vrna_zsc_dat_t  zscore_data;    /**<  @brief  Data structure with settings for z-score computations */
 #endif
 
   /**
