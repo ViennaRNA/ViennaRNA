@@ -1,48 +1,48 @@
 /**
 
-@fn float vrna_eval_structure(vrna_fold_compound_t *vc, const char *structure)
+@fn float vrna_eval_structure(vrna_fold_compound_t *fc, const char *structure)
 @scripting
 @parblock
 This function is attached as method @b eval_structure() to objects of type @em fold_compound
 @endparblock
 
-@fn int vrna_eval_structure_pt( vrna_fold_compound_t *vc, const short *pt)
+@fn int vrna_eval_structure_pt( vrna_fold_compound_t *fc, const short *pt)
 @scripting
 @parblock
 This function is attached as method @b eval_structure_pt() to objects of type @em fold_compound
 @endparblock
 
-@fn float vrna_eval_structure_verbose(vrna_fold_compound_t *vc, const char *structure, FILE *file)
+@fn float vrna_eval_structure_verbose(vrna_fold_compound_t *fc, const char *structure, FILE *file)
 @scripting
 @parblock
 This function is attached as method @b eval_structure_verbose() to objects of type @em fold_compound
 @endparblock
 
-@fn int vrna_eval_structure_pt_verbose( vrna_fold_compound_t *vc, const short *pt, FILE *file)
+@fn int vrna_eval_structure_pt_verbose( vrna_fold_compound_t *fc, const short *pt, FILE *file)
 @scripting
 @parblock
 This function is attached as method @b eval_structure_pt_verbose() to objects of type @em fold_compound
 @endparblock
 
-@fn float vrna_eval_covar_structure(vrna_fold_compound_t *vc, const char *structure)
+@fn float vrna_eval_covar_structure(vrna_fold_compound_t *fc, const char *structure)
 @scripting
 @parblock
 This function is attached as method @b eval_covar_structure() to objects of type @em fold_compound
 @endparblock
 
-@fn int vrna_eval_loop_pt(vrna_fold_compound_t *vc, int i, const short *pt)
+@fn int vrna_eval_loop_pt(vrna_fold_compound_t *fc, int i, const short *pt)
 @scripting
 @parblock
 This function is attached as method @b eval_loop_pt() to objects of type @em fold_compound
 @endparblock
 
-@fn float vrna_eval_move( vrna_fold_compound_t *vc, const char *structure, int m1, int m2)
+@fn float vrna_eval_move( vrna_fold_compound_t *fc, const char *structure, int m1, int m2)
 @scripting
 @parblock
 This function is attached as method @b eval_move() to objects of type @em fold_compound
 @endparblock
 
-@fn int vrna_eval_move_pt(vrna_fold_compound_t *vc, short *pt, int m1, int m2)
+@fn int vrna_eval_move_pt(vrna_fold_compound_t *fc, short *pt, int m1, int m2)
 @scripting
 @parblock
 This function is attached as method @b eval_move_pt() to objects of type @em fold_compound
@@ -54,7 +54,7 @@ This function is attached as method @b eval_move_pt() to objects of type @em fol
 This function is attached as method @b eval_hp_loop() to objects of type @em fold_compound
 @endparblock
 
-@fn int vrna_eval_int_loop( vrna_fold_compound_t *vc, int i, int j, int k, int l)
+@fn int vrna_eval_int_loop( vrna_fold_compound_t *fc, int i, int j, int k, int l)
 @scripting
 @parblock
 This function is attached as method @b eval_int_loop() to objects of type @em fold_compound
@@ -226,13 +226,13 @@ consensus structure as second argument
 This function is not available. Use vrna_eval_structure_pt_v() instead!
 @endparblock
 
-@fn int vrna_eval_consensus_structure_pt_verbose(const char **alignment, const short *pt, FILE *file)
+@fn int vrna_eval_consensus_structure_pt_simple_verbose(const char **alignment, const short *pt, FILE *file)
 @scripting
 @parblock
 This function is not available. Use vrna_eval_consensus_structure_pt_v() instead!
 @endparblock
 
-@fn int vrna_eval_consensus_structure_pt_v(const char **alignment, const short *pt, int verbosity_level, FILE *file)
+@fn int vrna_eval_consensus_structure_pt_simple_v(const char **alignment, const short *pt, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_structure_pt_simple().
