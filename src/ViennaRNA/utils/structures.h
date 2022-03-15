@@ -334,12 +334,12 @@ vrna_ptable(const char *structure);
  *       #VRNA_BRACKETS_RND, #VRNA_BRACKETS_ANG, #VRNA_BRACKETS_CLY, #VRNA_BRACKETS_SQR,
  *       VRNA_BRACKETS_ALPHA, #VRNA_BRACKETS_DEFAULT, #VRNA_BRACKETS_ANY
  *
- *  @param  string    Secondary structure in @ref dot-bracket-ext-notation
+ *  @param  structure Secondary structure in @ref dot-bracket-ext-notation
  *  @param  options   A bitmask to specify which brackets are recognized during conversion to pair table
  *  @return           A pointer to a new pair table of the provided secondary structure
  */
 short *
-vrna_ptable_from_string(const char    *string,
+vrna_ptable_from_string(const char    *structure,
                         unsigned int  options);
 
 
