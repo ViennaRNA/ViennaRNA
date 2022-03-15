@@ -157,7 +157,6 @@ DEPRECATED(void   unexpand_aligned_F(char *align[2]),
  *  #loop_size, #loop_degree, #helix_size, #loops, #pairs, #unpaired
  *
  *  @param structure
- *  @return
  */
 DEPRECATED(void   parse_structure(const char *structure),
            "");  /* make structure statistics */
