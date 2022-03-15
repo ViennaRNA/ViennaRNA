@@ -47,9 +47,9 @@ struct vrna_mx_mfe_s {
   /** @name Common fields for MFE matrices
    *  @{
    */
-  const vrna_mx_type_e  type;
-  unsigned int          length; /**<  @brief  Length of the sequence, therefore an indicator of the size of the DP matrices */
-  unsigned int          strands;
+  const vrna_mx_type_e  type;     /**< Type of the DP matrices */
+  unsigned int          length;   /**<  @brief  Length of the sequence, therefore an indicator of the size of the DP matrices */
+  unsigned int          strands;  /**< Number of strands */
   /**
    *  @}
    */
@@ -67,16 +67,16 @@ struct vrna_mx_mfe_s {
   int *c;           /**<  @brief  Energy array, given that i-j pair */
   int *f5;          /**<  @brief  Energy of 5' end */
   int *f3;          /**<  @brief  Energy of 3' end */
-  int **fms5;
-  int **fms3;
+  int **fms5;       /**<  @brief  Energy for connected interstrand configurations */
+  int **fms3;       /**<  @brief  nergy for connected interstrand configurations */
   int *fML;         /**<  @brief  Multi-loop auxiliary energy array */
   int *fM1;         /**<  @brief  Second ML array, only for unique multibrnach loop decomposition */
   int *fM2;         /**<  @brief  Energy for a multibranch loop region with exactly two stems, extending to 3' end */
   int *ggg;         /**<  @brief  Energies of g-quadruplexes */
   int Fc;           /**<  @brief  Minimum Free Energy of entire circular RNA */
-  int FcH;
-  int FcI;
-  int FcM;
+  int FcH;          /**<  @brief  Minimum Free Energy of hairpin loop cases in circular RNA */
+  int FcI;          /**<  @brief  Minimum Free Energy of internal loop cases in circular RNA */
+  int FcM;          /**<  @brief  Minimum Free Energy of multibranch loop cases in circular RNA */
   /**
    * @}
    */
@@ -207,10 +207,10 @@ struct vrna_mx_pf_s {
   /** @name Common fields for DP matrices
    *  @{
    */
-  const vrna_mx_type_e  type;
-  unsigned int          length;
-  FLT_OR_DBL            *scale;
-  FLT_OR_DBL            *expMLbase;
+  const vrna_mx_type_e  type;       /**< Type of the DP matrices */
+  unsigned int          length;     /**< Size of the DP matrices (i.e. sequence length) */
+  FLT_OR_DBL            *scale;     /**< Boltzmann factor scaling */
+  FLT_OR_DBL            *expMLbase; /**< Boltzmann factors for unpaired bases in multibranch loop */
 
   /**
    *  @}
