@@ -10,23 +10,12 @@
 /**
  *  @addtogroup constraints_ligand
  *
+ *  @{
  *  @brief  Ligand binding to specific hairpin/interior loop like motifs using the @ref soft_constraints feature
- *
- *  Here is an example that adds a theophylline binding motif. Free energy
- *  contribution is derived from @f$k_d = 0.32 \mu mol / l @f$, taken from
- *  Jenison et al. 1994
- *
- *  @image html   theo_aptamer.svg
- *  @image latex  theo_aptamer.eps
- *
- *  @code{.c}
-vrna_sc_add_hi_motif(vc,
-                   "GAUACCAG&CCCUUGGCAGC",
-                   "(...((((&)...)))...)",
-                   -9.22, VRNA_OPTION_DEFAULT); @endcode
  */
 
 
+/** @brief Type definition for soft constraint motif */
 typedef struct vrna_sc_motif_s vrna_sc_motif_t;
 
 #include <ViennaRNA/datastructures/basic.h>
@@ -44,9 +33,22 @@ struct vrna_sc_motif_s {
 /**
  *  @brief  Add soft constraints for hairpin or interior loop binding motif
  *
- *  @ingroup  constraints_ligand
+ *  Here is an example that adds a theophylline binding motif. Free energy
+ *  contribution is derived from @f$k_d = 0.1 \mu M@f$, taken from
+ *  Jenison et al. 1994. At @f$1M@f$ concentration the corresponding binding
+ *  free energy amounts to @f$-9.93~kcal/mol@f$.
  *
- *  @param  vc        The #vrna_fold_compound_t the motif is applied to
+ *  @image html   theo_aptamer.svg
+ *  @image latex  theo_aptamer.eps
+ *
+ *  @code{.c}
+ * vrna_sc_add_hi_motif(fc,
+ *                      "GAUACCAG&CCCUUGGCAGC",
+ *                      "(...((((&)...)))...)",
+ *                      -9.93, VRNA_OPTION_DEFAULT);
+ * @endcode
+ *
+ *  @param  fc        The #vrna_fold_compound_t the motif is applied to
  *  @param  seq       The sequence motif (may be interspaced by '&' character
  *  @param  structure The structure motif (may be interspaced by '&' character
  *  @param  energy    The free energy of the motif (e.g. binding free energy)
@@ -55,7 +57,7 @@ struct vrna_sc_motif_s {
  *
  */
 int
-vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
+vrna_sc_add_hi_motif(vrna_fold_compound_t *fc,
                      const char           *seq,
                      const char           *structure,
                      FLT_OR_DBL           energy,
@@ -63,12 +65,15 @@ vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
 
 
 vrna_sc_motif_t *
-vrna_sc_ligand_detect_motifs(vrna_fold_compound_t *vc,
+vrna_sc_ligand_detect_motifs(vrna_fold_compound_t *fc,
                              const char           *structure);
 
 
 vrna_sc_motif_t *
-vrna_sc_ligand_get_all_motifs(vrna_fold_compound_t *vc);
+vrna_sc_ligand_get_all_motifs(vrna_fold_compound_t *fc);
 
+/**
+ * @}
+ */
 
 #endif
