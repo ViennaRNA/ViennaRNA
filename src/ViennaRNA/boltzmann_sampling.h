@@ -54,7 +54,7 @@
  * @param structure The secondary structure in dot-bracket notation
  * @param data      Some arbitrary, auxiliary data address as provided to the calling function
  */
-typedef void (vrna_boltzmann_sampling_callback)(const char  *stucture,
+typedef void (vrna_boltzmann_sampling_callback)(const char  *structure,
                                                 void        *data);
 
 /**
