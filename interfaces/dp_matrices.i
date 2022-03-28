@@ -19,17 +19,17 @@ typedef struct {
 
 %extend vrna_mx_mfe_t {
   /* expose DP matrices */
-  var_array_lin_int_t *const  f5;
-  var_array_lin_int_t *const  f3;
-  var_array_tri_int_t *const  c;
-  var_array_tri_int_t *const  fML;
-  var_array_tri_int_t *const  fM1;
-  var_array_tri_int_t *const  fM2;
-  var_array_tri_int_t *const  ggg;
-  const int                   Fc;
-  const int                   FcH;
-  const int                   FcI;
-  const int                   FcM;
+  var_array<int> *const f5;
+  var_array<int> *const f3;
+  var_array<int> *const c;
+  var_array<int> *const fML;
+  var_array<int> *const fM1;
+  var_array<int> *const fM2;
+  var_array<int> *const ggg;
+  const int             Fc;
+  const int             FcH;
+  const int             FcI;
+  const int             FcM;
 
   vrna_mx_mfe_t() { return NULL; }
   ~vrna_mx_mfe_t() {}
@@ -37,67 +37,67 @@ typedef struct {
 
 
 %{
-  var_array_lin_int_t *
+  var_array<int> *
   vrna_mx_mfe_t_f5_get(vrna_mx_mfe_t *mx)
   {
     return var_array_lin_int_new(mx->length, mx->f5);
   }
 
-  var_array_lin_int_t *
+  var_array<int> *
   vrna_mx_mfe_t_f3_get(vrna_mx_mfe_t *mx)
   {
     return var_array_lin_int_new(mx->length, mx->f3);
   }
 
-  var_array_tri_int_t *
+  var_array<int> *
   vrna_mx_mfe_t_c_get(vrna_mx_mfe_t *mx)
   {
     return var_array_tri_int_new(mx->length, mx->c);
   }
 
-  var_array_tri_int_t *
+  var_array<int> *
   vrna_mx_mfe_t_fML_get(vrna_mx_mfe_t *mx)
   {
     return var_array_tri_int_new(mx->length, mx->fML);
   }
 
-  var_array_tri_int_t *
+  var_array<int> *
   vrna_mx_mfe_t_fM1_get(vrna_mx_mfe_t *mx)
   {
     return var_array_tri_int_new(mx->length, mx->fM1);
   }
 
-  var_array_tri_int_t *
+  var_array<int> *
   vrna_mx_mfe_t_ggg_get(vrna_mx_mfe_t *mx)
   {
     return var_array_tri_int_new(mx->length, mx->ggg);
   }
 
-  var_array_lin_int_t *
+  var_array<int> *
   vrna_mx_mfe_t_fM2_get(vrna_mx_mfe_t *mx)
   {
     return var_array_lin_int_new(mx->length, mx->fM2);
   }
 
-  const int 
+  const int
   vrna_mx_mfe_t_Fc_get(vrna_mx_mfe_t *mx)
   {
     return mx->Fc;
   }
 
-  const int 
+  const int
   vrna_mx_mfe_t_FcH_get(vrna_mx_mfe_t *mx)
   {
     return mx->FcH;
   }
 
-  const int 
+  const int
   vrna_mx_mfe_t_FcI_get(vrna_mx_mfe_t *mx)
   {
     return mx->FcI;
   }
 
-  const int 
+  const int
   vrna_mx_mfe_t_FcM_get(vrna_mx_mfe_t *mx)
   {
     return mx->FcM;
@@ -121,21 +121,21 @@ typedef struct {
 
 %extend vrna_mx_pf_t {
   /* expose DP matrices */
-  var_array_lin_dbl_t *const          scale;
-  var_array_lin_dbl_t *const          expMLbase;
-  var_array_tri_dbl_rowwise_t *const  q;
-  var_array_tri_dbl_rowwise_t *const  qb;
-  var_array_tri_dbl_rowwise_t *const  qm;
-  var_array_tri_dbl_colwise_t *const  qm1;
-  var_array_tri_dbl_rowwise_t *const  probs;
-  var_array_lin_dbl_t *const          q1k;
-  var_array_lin_dbl_t *const          qln;
-  var_array_tri_dbl_rowwise_t *const  G;
-  const FLT_OR_DBL                    qo;
-  var_array_lin_dbl_t *const          qm2;
-  const FLT_OR_DBL                    qho;
-  const FLT_OR_DBL                    qio;
-  const FLT_OR_DBL                    qmo;
+  var_array<FLT_OR_DBL> *const  scale;
+  var_array<FLT_OR_DBL> *const  expMLbase;
+  var_array<FLT_OR_DBL> *const  q;
+  var_array<FLT_OR_DBL> *const  qb;
+  var_array<FLT_OR_DBL> *const  qm;
+  var_array<FLT_OR_DBL> *const  qm1;
+  var_array<FLT_OR_DBL> *const  probs;
+  var_array<FLT_OR_DBL> *const  q1k;
+  var_array<FLT_OR_DBL> *const  qln;
+  var_array<FLT_OR_DBL> *const  G;
+  const FLT_OR_DBL              qo;
+  var_array<FLT_OR_DBL> *const  qm2;
+  const FLT_OR_DBL              qho;
+  const FLT_OR_DBL              qio;
+  const FLT_OR_DBL              qmo;
 
   vrna_mx_pf_t() { return NULL; }
   ~vrna_mx_pf_t() {}
@@ -143,67 +143,67 @@ typedef struct {
 
 
 %{
-  var_array_lin_dbl_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_scale_get(vrna_mx_pf_t *mx)
   {
     return var_array_lin_dbl_new(mx->length, mx->scale);
   }
 
-  var_array_lin_dbl_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_expMLbase_get(vrna_mx_pf_t *mx)
   {
     return var_array_lin_dbl_new(mx->length, mx->expMLbase);
   }
 
-  var_array_tri_dbl_colwise_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qm1_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_colwise_new(mx->length, mx->qm1);
+    return var_array_tri_dbl_new(mx->length, mx->qm1);
   }
 
-  var_array_tri_dbl_rowwise_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_q_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_rowwise_new(mx->length, mx->q);
+    return var_array_tri_dbl_new(mx->length, mx->q);
   }
 
-  var_array_tri_dbl_rowwise_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qb_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_rowwise_new(mx->length, mx->qb);
+    return var_array_tri_dbl_new(mx->length, mx->qb);
   }
 
-  var_array_tri_dbl_rowwise_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qm_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_rowwise_new(mx->length, mx->qm);
+    return var_array_tri_dbl_new(mx->length, mx->qm);
   }
 
-  var_array_tri_dbl_rowwise_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_G_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_rowwise_new(mx->length, mx->G);
+    return var_array_tri_dbl_new(mx->length, mx->G);
   }
 
-  var_array_tri_dbl_rowwise_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_probs_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_rowwise_new(mx->length, mx->probs);
+    return var_array_tri_dbl_new(mx->length, mx->probs);
   }
 
-  var_array_lin_dbl_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_q1k_get(vrna_mx_pf_t *mx)
   {
     return var_array_lin_dbl_new(mx->length, mx->q1k);
   }
 
-  var_array_lin_dbl_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qln_get(vrna_mx_pf_t *mx)
   {
     return var_array_lin_dbl_new(mx->length, mx->qln);
   }
 
-  var_array_lin_dbl_t *
+  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qm2_get(vrna_mx_pf_t *mx)
   {
     return var_array_lin_dbl_new(mx->length, mx->qm2);

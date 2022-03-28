@@ -2,115 +2,78 @@
 /* BEGIN interface variable length arrays     */
 /**********************************************/
 
-%nodefaultctor var_array_tri_int_t;
-%nodefaultctor var_array_lin_int_t;
-%nodefaultctor var_array_tri_dbl_colwise_t;
-%nodefaultctor var_array_tri_dbl_rowwise_t;
-%nodefaultctor var_array_lin_dbl_t;
-
 %{
-/* (upper) triangular matrix of type int */
-typedef struct {
-  size_t length;
-  int    *data;
-} var_array_tri_int_t;
+#define VAR_ARRAY_LINEAR    0U
+#define VAR_ARRAY_TRI       1U
 
-/* linear array of type int */
-typedef struct {
-  size_t length;
-  int    *data;
-} var_array_lin_int_t;
-
-/* upper triangular matrix of type FLT_OR_DBL (access column wise) */
-typedef struct {
+template <typename T>
+struct var_array {
   size_t      length;
-  FLT_OR_DBL  *data;
-} var_array_tri_dbl_colwise_t;
-
-/* upper triangular matrix of type FLT_OR_DBL (access row wise) */
-typedef struct {
-  size_t      length;
-  FLT_OR_DBL  *data;
-} var_array_tri_dbl_rowwise_t;
-
-/* linear array of type FLT_OR_DBL */
-typedef struct {
-  size_t      length;
-  FLT_OR_DBL  *data;
-} var_array_lin_dbl_t;
+  T           *data;
+  unsigned int type;
+};
 
 /****************/
 /* Constructors */
 /****************/
-inline var_array_lin_int_t *
+inline var_array<int> *
 var_array_lin_int_new(size_t  length,
                       int     *data)
 {
   if ((length) &&
       (data)) {
-    var_array_lin_int_t *a = (var_array_lin_int_t *)vrna_alloc(sizeof(var_array_lin_int_t));
+    var_array<int> *a = (var_array<int> *)vrna_alloc(sizeof(var_array<int>));
     a->length = length;
     a->data   = data;
+    a->type   = VAR_ARRAY_LINEAR;
     return a;
   }
 
   return NULL;
 }
 
-inline var_array_tri_int_t *
+inline var_array<int> *
 var_array_tri_int_new(size_t  length,
                       int     *data)
 {
   if ((length) &&
       (data)) {
-    var_array_tri_int_t *a = (var_array_tri_int_t *)vrna_alloc(sizeof(var_array_tri_int_t));
+    var_array<int> *a = (var_array<int> *)vrna_alloc(sizeof(var_array<int>));
     a->length = length;
     a->data   = data;
+    a->type   = VAR_ARRAY_TRI;
     return a;
   }
 
   return NULL;
 }
 
-inline var_array_lin_dbl_t *
+inline var_array<FLT_OR_DBL> *
 var_array_lin_dbl_new(size_t      length,
                       FLT_OR_DBL  *data)
 {
   if ((length) &&
       (data)) {
-    var_array_lin_dbl_t *a = (var_array_lin_dbl_t *)vrna_alloc(sizeof(var_array_lin_dbl_t));
+    var_array<FLT_OR_DBL> *a = (var_array<FLT_OR_DBL> *)vrna_alloc(sizeof(var_array<FLT_OR_DBL>));
     a->length = length;
     a->data   = data;
+    a->type   = VAR_ARRAY_LINEAR;
     return a;
   }
 
   return NULL;
 }
 
-inline var_array_tri_dbl_colwise_t *
-var_array_tri_dbl_colwise_new(size_t      length,
-                              FLT_OR_DBL  *data)
+inline var_array<FLT_OR_DBL> *
+var_array_tri_dbl_new(size_t      length,
+                      FLT_OR_DBL  *data)
 {
   if ((length) &&
       (data)) {
-    var_array_tri_dbl_colwise_t *a = (var_array_tri_dbl_colwise_t *)vrna_alloc(sizeof(var_array_tri_dbl_colwise_t));
+    var_array<FLT_OR_DBL> *a = (var_array<FLT_OR_DBL> *)vrna_alloc(sizeof(var_array<FLT_OR_DBL>));
     a->length = length;
     a->data   = data;
-    return a;
-  }
-
-  return NULL;
-}
-
-inline var_array_tri_dbl_rowwise_t *
-var_array_tri_dbl_rowwise_new(size_t      length,
-                              FLT_OR_DBL  *data)
-{
-  if ((length) &&
-      (data)) {
-    var_array_tri_dbl_rowwise_t *a = (var_array_tri_dbl_rowwise_t *)vrna_alloc(sizeof(var_array_tri_dbl_rowwise_t));
-    a->length = length;
-    a->data   = data;
+    a->type   = VAR_ARRAY_TRI;
     return a;
   }
 
@@ -119,122 +82,47 @@ var_array_tri_dbl_rowwise_new(size_t      length,
 
 %}
 
-typedef struct {} var_array_tri_int_t;
-typedef struct {} var_array_lin_int_t;
-typedef struct {} var_array_tri_dbl_colwise_t;
-typedef struct {} var_array_tri_dbl_rowwise_t;
-typedef struct {} var_array_lin_dbl_t;
+template <typename T>
+struct var_array {};
 
 /***************************************/
 /* Extensions for [] operator access   */
 /***************************************/
-
-%extend var_array_tri_int_t {
-  var_array_tri_int_t(size_t length, int *data)
-  {
-    var_array_tri_int_t *a = (var_array_tri_int_t *)vrna_alloc(sizeof(var_array_tri_int_t));
-    a->length = length;
-    a->data   = data;
-    return a;
-  }
-
+%extend var_array {
   size_t __len__() const {
-    return ($self->length * ($self->length - 1)) / 2 + self->length + 1;
+    switch($self->type) {
+      case VAR_ARRAY_LINEAR:
+        return $self->length + 1;
+
+      case VAR_ARRAY_TRI:
+        return ($self->length * ($self->length - 1)) / 2 + self->length + 1;
+
+      default:
+        return 0;
+    }
   }
 
-  const int __getitem__(int i) const throw(std::out_of_range) {
-    if ((i < 0) ||
-        (i > ($self->length * ($self->length - 1)) / 2 + self->length))
-      throw std::out_of_range("out of bounds access");
+  const T __getitem__(int i) const throw(std::out_of_range) {
+    switch ($self->type) {
+      case VAR_ARRAY_LINEAR:
+        if ((i < 0) ||
+            (i > $self->length))
+          throw std::out_of_range("out of bounds access");
+        break;
+
+      case VAR_ARRAY_TRI:
+        if ((i < 0) ||
+            (i > ($self->length * ($self->length - 1)) / 2 + self->length))
+          throw std::out_of_range("out of bounds access");
+        break;
+
+      default:
+        break;
+    }
 
     return $self->data[i];
   }
 };
 
-%extend var_array_lin_int_t {
-  var_array_lin_int_t(size_t length, int *data)
-  {
-    var_array_lin_int_t *a = (var_array_lin_int_t *)vrna_alloc(sizeof(var_array_lin_int_t));
-    a->length = length;
-    a->data   = data;
-    return a;
-  }
-
-  size_t __len__() const {
-    return $self->length + 1;
-  }
-
-  const int __getitem__(int i) const throw(std::out_of_range) {
-    if ((i < 0) ||
-        (i > $self->length))
-      throw std::out_of_range("out of bounds access");
-
-    return $self->data[i];
-  }
-};
-
-%extend var_array_tri_dbl_colwise_t {
-  var_array_tri_dbl_colwise_t(size_t length, FLT_OR_DBL *data)
-  {
-    var_array_tri_dbl_colwise_t *a = (var_array_tri_dbl_colwise_t *)vrna_alloc(sizeof(var_array_tri_dbl_colwise_t));
-    a->length = length;
-    a->data   = data;
-    return a;
-  }
-
-  size_t __len__() const {
-    return ($self->length * ($self->length - 1)) / 2 + self->length + 1;
-  }
-
-  const FLT_OR_DBL __getitem__(int i) const throw(std::out_of_range) {
-    if ((i < 0) ||
-        (i > ($self->length * ($self->length - 1)) / 2 + self->length))
-      throw std::out_of_range("out of bounds access");
-
-    return $self->data[i];
-  }
-};
-
-%extend var_array_tri_dbl_rowwise_t {
-  var_array_tri_dbl_rowwise_t(size_t length, FLT_OR_DBL *data)
-  {
-    var_array_tri_dbl_rowwise_t *a = (var_array_tri_dbl_rowwise_t *)vrna_alloc(sizeof(var_array_tri_dbl_rowwise_t));
-    a->length = length;
-    a->data   = data;
-    return a;
-  }
-
-  size_t __len__() const {
-    return ($self->length * ($self->length - 1)) / 2 + self->length + 1;
-  }
-
-  const FLT_OR_DBL __getitem__(int i) const throw(std::out_of_range) {
-    if ((i < 0) ||
-        (i > ($self->length * ($self->length - 1)) / 2 + self->length))
-      throw std::out_of_range("out of bounds access");
-
-    return $self->data[i];
-  }
-};
-
-%extend var_array_lin_dbl_t {
-  var_array_lin_dbl_t(size_t length, FLT_OR_DBL *data)
-  {
-    var_array_lin_dbl_t *a = (var_array_lin_dbl_t *)vrna_alloc(sizeof(var_array_lin_dbl_t));
-    a->length = length;
-    a->data   = data;
-    return a;
-  }
-
-  size_t __len__() const {
-    return $self->length + 1;
-  }
-
-  const FLT_OR_DBL __getitem__(int i) const throw(std::out_of_range) {
-    if ((i < 0) ||
-        (i > $self->length))
-      throw std::out_of_range("out of bounds access");
-
-    return $self->data[i];
-  }
-};
+%template (varArrayInt) var_array<int>;
+%template (varArrayFLTorDBL) var_array<FLT_OR_DBL>;
