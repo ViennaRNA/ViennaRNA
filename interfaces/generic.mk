@@ -20,6 +20,7 @@ SWIG_misc_src = \
   $(srcdir)/../constraints_SHAPE.i \
   $(srcdir)/../constraints_ligand.i \
   $(srcdir)/../data_structures.i \
+  $(srcdir)/../dp_matrices.i \
   $(srcdir)/../duplex.i \
   $(srcdir)/../eval.i \
   $(srcdir)/../file_formats.i \
@@ -41,6 +42,7 @@ SWIG_misc_src = \
   $(srcdir)/../subopt.i \
   $(srcdir)/../structure_utils.i \
   $(srcdir)/../utils.i \
+  $(srcdir)/../var_arrays.i \
   $(srcdir)/../walk.i
 
 SWIG_module_name = RNA

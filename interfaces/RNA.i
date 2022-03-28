@@ -122,6 +122,7 @@ extern "C" {
 
 /* handle exceptions */
 %include "exception.i"
+%include "std_except.i"
 
 %exception {
   try {
@@ -205,6 +206,7 @@ namespace std {
 /*############################################*/
 /* Include all relevant interface definitions */
 /*############################################*/
+%include var_arrays.i
 %include params.i
 %include model_details.i
 %include utils.i
@@ -238,6 +240,7 @@ namespace std {
 %include heat_capacity.i
 %include data_structures.i
 %include fold_compound.i
+%include dp_matrices.i
 
 
 /**********************************************/

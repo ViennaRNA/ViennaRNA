@@ -12,6 +12,7 @@ SOURCES = \
     compare.i \
     constraints.i \
     data_structures.i \
+    dp_matrices.i \
     duplex.i \
     eval.i \
     file_formats.i \
@@ -34,6 +35,7 @@ SOURCES = \
     structure_utils.i \
     subopt.i \
     utils.i \
+    var_arrays.i \
     walk.i \
     ptr2array.i \
     generic.mk
@@ -74,6 +76,7 @@ EXTRA_DIST = \
     compare.i \
     constraints.i \
     data_structures.i \
+    dp_matrices.i \
     duplex.i \
     eval.i \
     file_formats.i \
@@ -96,6 +99,7 @@ EXTRA_DIST = \
     structure_utils.i \
     subopt.i \
     utils.i \
+    var_arrays.i \
     walk.i \
     ptr2array.i \
     generic.mk \
