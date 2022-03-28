@@ -111,6 +111,29 @@
   {
     return (double)vrna_exp_E_interior_loop($self, i, j, k, l);
   }
+
+  double
+  exp_E_ext_stem(int i,
+                 int j)
+  {
+    unsigned int type;
+    int enc5, enc3;
+    enc5 = enc3 = -1;
+    
+    type = vrna_get_ptype_md($self->sequence_encoding2[i],
+                             $self->sequence_encoding2[j],
+                             &($self->params->model_details));
+
+    if (i > 1)
+      enc5 = $self->sequence_encoding[i - 1];
+    if (j < $self->length)
+      enc3 = $self->sequence_encoding[j + 1];
+
+    return (double)vrna_exp_E_ext_stem(type,
+                                       enc5,
+                                       enc3,
+                                       $self->exp_params);
+  }
 }
 
 %include  <ViennaRNA/loops/external.h>
