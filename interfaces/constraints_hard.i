@@ -2,6 +2,69 @@
 /* BEGIN interface for hard constraints       */
 /**********************************************/
 
+%rename(hc) vrna_hc_t;
+
+typedef struct {
+  const vrna_hc_type_e type;
+} vrna_hc_t;
+
+%extend vrna_hc_t {
+  const unsigned int              n;
+  var_array<unsigned char> *const mx;
+  var_array<int> *const           up_ext;
+  var_array<int> *const           up_hp;
+  var_array<int> *const           up_int;
+  var_array<int> *const           up_ml;
+};
+
+%{
+  const unsigned int
+  vrna_hc_t_n_get(vrna_hc_t *hc)
+  {
+    return hc->n;
+  }
+
+  var_array<unsigned char> *
+  vrna_hc_t_mx_get(vrna_hc_t *hc)
+  {
+    return var_array_uchar_new(hc->n,
+                               hc->mx,
+                               VAR_ARRAY_SQR | VAR_ARRAY_ONE_BASED);
+  }
+
+  var_array<int> *
+  vrna_hc_t_up_ext_get(vrna_hc_t *hc)
+  {
+    return var_array_int_new(hc->n,
+                             hc->up_ext,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+  }
+
+  var_array<int> *
+  vrna_hc_t_up_hp_get(vrna_hc_t *hc)
+  {
+    return var_array_int_new(hc->n,
+                             hc->up_hp,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+  }
+
+  var_array<int> *
+  vrna_hc_t_up_int_get(vrna_hc_t *hc)
+  {
+    return var_array_int_new(hc->n,
+                             hc->up_int,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+  }
+
+  var_array<int> *
+  vrna_hc_t_up_ml_get(vrna_hc_t *hc)
+  {
+    return var_array_int_new(hc->n,
+                             hc->up_ml,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+  }
+%}
+
 %extend vrna_fold_compound_t {
 
 #ifdef SWIGPYTHON

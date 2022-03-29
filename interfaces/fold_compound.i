@@ -42,6 +42,7 @@ typedef struct {
   vrna_exp_param_t  *const  exp_params;
   vrna_mx_mfe_t             *matrices;
   vrna_mx_pf_t              *exp_matrices;
+  vrna_hc_t                 *hc;
 } vrna_fold_compound_t;
 
 /* create object oriented interface for vrna_fold_compount_t */

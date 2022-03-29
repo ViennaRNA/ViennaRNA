@@ -5,7 +5,8 @@
 %{
 #define VAR_ARRAY_LINEAR    0U
 #define VAR_ARRAY_TRI       1U
-#define VAR_ARRAY_ONE_BASED 2U
+#define VAR_ARRAY_SQR       2U
+#define VAR_ARRAY_ONE_BASED 4U
 
 template <typename T>
 struct var_array {
@@ -17,6 +18,25 @@ struct var_array {
 /****************/
 /* Constructors */
 /****************/
+inline var_array<unsigned char> *
+var_array_uchar_new(size_t        length,
+                    unsigned char *data,
+                    unsigned int  type)
+{
+  var_array<unsigned char> *a = NULL;
+
+  if ((length) &&
+      (data)) {
+    a         = (var_array<unsigned char> *)vrna_alloc(sizeof(var_array<unsigned char>));
+    a->length = length;
+    a->data   = data;
+    a->type   = type;
+  }
+
+  return a;
+}
+
+
 inline var_array<int> *
 var_array_int_new(size_t        length,
                   int           *data,
@@ -89,6 +109,8 @@ struct var_array {};
 
     if ($self->type & VAR_ARRAY_TRI)
       n = ((n - 1) * (n - 2)) / 2 + n;
+    else if ($self->type & VAR_ARRAY_SQR)
+      n = n * n;
 
     return n;
   }
@@ -101,6 +123,8 @@ struct var_array {};
 
     if ($self->type & VAR_ARRAY_TRI)
       max_i = ((max_i - 1) * (max_i - 2)) / 2 + max_i;
+    else if ($self->type & VAR_ARRAY_SQR)
+      max_i = max_i * max_i;
 
     if ((i < 0) ||
         (i > max_i))
@@ -110,6 +134,8 @@ struct var_array {};
   }
 };
 
-%template (varArrayInt) var_array<int>;
+%template (varArrayUChar) var_array<unsigned char>;
+%template (varArrayChar) var_array<char>;
 %template (varArrayUInt) var_array<unsigned int>;
+%template (varArrayInt) var_array<int>;
 %template (varArrayFLTorDBL) var_array<FLT_OR_DBL>;
