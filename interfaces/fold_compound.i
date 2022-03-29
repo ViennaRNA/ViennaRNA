@@ -46,6 +46,12 @@ typedef struct {
 
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
+  var_array<unsigned int> *const strand_number;
+  var_array<unsigned int> *const strand_order;
+  var_array<unsigned int> *const strand_start;
+  var_array<unsigned int> *const strand_end;
+  var_array<int>          *const iindx;
+  var_array<int>          *const jindx;
 
 #ifdef SWIGPYTHON
 %feature("autodoc")vrna_fold_compound_t::vrna_fold_compound_t;
@@ -118,6 +124,56 @@ def __repr__(self):
 #endif
 }
 
+%{
+  var_array<unsigned int> *
+  vrna_fold_compound_t_strand_number_get(vrna_fold_compound_t *fc)
+  {
+    return var_array_uint_new(fc->length,
+                              fc->strand_number,
+                              VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+  }
+
+  var_array<unsigned int> *
+  vrna_fold_compound_t_strand_order_get(vrna_fold_compound_t *fc)
+  {
+    return var_array_uint_new(fc->strands,
+                              fc->strand_order,
+                              VAR_ARRAY_LINEAR);
+  }
+
+  var_array<unsigned int> *
+  vrna_fold_compound_t_strand_start_get(vrna_fold_compound_t *fc)
+  {
+    return var_array_uint_new(fc->strands,
+                              fc->strand_start,
+                              VAR_ARRAY_LINEAR);
+  }
+
+  var_array<unsigned int> *
+  vrna_fold_compound_t_strand_end_get(vrna_fold_compound_t *fc)
+  {
+    return var_array_uint_new(fc->strands,
+                              fc->strand_end,
+                              VAR_ARRAY_LINEAR);
+  }
+
+  var_array<int> *
+  vrna_fold_compound_t_iindx_get(vrna_fold_compound_t *fc)
+  {
+    return var_array_int_new(fc->length,
+                             fc->iindx,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+  }
+
+  var_array<int> *
+  vrna_fold_compound_t_jindx_get(vrna_fold_compound_t *fc)
+  {
+    return var_array_int_new(fc->length,
+                             fc->jindx,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+  }
+
+%}
 
 /*
  *  Rename all the preprocessor macros defined in data_structures.h
