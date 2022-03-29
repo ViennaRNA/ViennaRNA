@@ -5,79 +5,71 @@
 %{
 #define VAR_ARRAY_LINEAR    0U
 #define VAR_ARRAY_TRI       1U
+#define VAR_ARRAY_ONE_BASED 2U
 
 template <typename T>
 struct var_array {
-  size_t      length;
-  T           *data;
-  unsigned int type;
+  size_t        length;
+  T             *data;
+  unsigned int  type;
 };
 
 /****************/
 /* Constructors */
 /****************/
 inline var_array<int> *
-var_array_lin_int_new(size_t  length,
-                      int     *data)
+var_array_int_new(size_t        length,
+                  int           *data,
+                  unsigned int  type)
 {
+  var_array<int> *a = NULL;
+
   if ((length) &&
       (data)) {
-    var_array<int> *a = (var_array<int> *)vrna_alloc(sizeof(var_array<int>));
+    a         = (var_array<int> *)vrna_alloc(sizeof(var_array<int>));
     a->length = length;
     a->data   = data;
-    a->type   = VAR_ARRAY_LINEAR;
-    return a;
+    a->type   = type;
   }
 
-  return NULL;
+  return a;
 }
 
-inline var_array<int> *
-var_array_tri_int_new(size_t  length,
-                      int     *data)
+
+inline var_array<unsigned int> *
+var_array_uint_new(size_t       length,
+                   unsigned int *data,
+                   unsigned int type)
 {
+  var_array<unsigned int> *a = NULL;
+
   if ((length) &&
       (data)) {
-    var_array<int> *a = (var_array<int> *)vrna_alloc(sizeof(var_array<int>));
+    a         = (var_array<unsigned int> *)vrna_alloc(sizeof(var_array<unsigned int>));
     a->length = length;
     a->data   = data;
-    a->type   = VAR_ARRAY_TRI;
-    return a;
+    a->type   = type;
   }
 
-  return NULL;
-}
-
-inline var_array<FLT_OR_DBL> *
-var_array_lin_dbl_new(size_t      length,
-                      FLT_OR_DBL  *data)
-{
-  if ((length) &&
-      (data)) {
-    var_array<FLT_OR_DBL> *a = (var_array<FLT_OR_DBL> *)vrna_alloc(sizeof(var_array<FLT_OR_DBL>));
-    a->length = length;
-    a->data   = data;
-    a->type   = VAR_ARRAY_LINEAR;
-    return a;
-  }
-
-  return NULL;
+  return a;
 }
 
 inline var_array<FLT_OR_DBL> *
-var_array_tri_dbl_new(size_t      length,
-                      FLT_OR_DBL  *data)
+var_array_dbl_new(size_t        length,
+                  FLT_OR_DBL    *data,
+                  unsigned int  type)
 {
+  var_array<FLT_OR_DBL> *a = NULL;
+
   if ((length) &&
       (data)) {
-    var_array<FLT_OR_DBL> *a = (var_array<FLT_OR_DBL> *)vrna_alloc(sizeof(var_array<FLT_OR_DBL>));
+    a         = (var_array<FLT_OR_DBL> *)vrna_alloc(sizeof(var_array<FLT_OR_DBL>));
     a->length = length;
     a->data   = data;
-    a->type   = VAR_ARRAY_TRI;
-    return a;
+    a->type   = type;
   }
 
-  return NULL;
+  return a;
 }
 
 %}
@@ -90,39 +82,34 @@ struct var_array {};
 /***************************************/
 %extend var_array {
   size_t __len__() const {
-    switch($self->type) {
-      case VAR_ARRAY_LINEAR:
-        return $self->length + 1;
+    size_t n = $self->length;
 
-      case VAR_ARRAY_TRI:
-        return ($self->length * ($self->length - 1)) / 2 + self->length + 1;
+    if ($self->type & VAR_ARRAY_ONE_BASED)
+      n += 1;
 
-      default:
-        return 0;
-    }
+    if ($self->type & VAR_ARRAY_TRI)
+      n = ((n - 1) * (n - 2)) / 2 + n;
+
+    return n;
   }
 
   const T __getitem__(int i) const throw(std::out_of_range) {
-    switch ($self->type) {
-      case VAR_ARRAY_LINEAR:
-        if ((i < 0) ||
-            (i > $self->length))
-          throw std::out_of_range("out of bounds access");
-        break;
+    size_t max_i = $self->length - 1;
+    
+    if ($self->type & VAR_ARRAY_ONE_BASED)
+      max_i += 1;
 
-      case VAR_ARRAY_TRI:
-        if ((i < 0) ||
-            (i > ($self->length * ($self->length - 1)) / 2 + self->length))
-          throw std::out_of_range("out of bounds access");
-        break;
+    if ($self->type & VAR_ARRAY_TRI)
+      max_i = ((max_i - 1) * (max_i - 2)) / 2 + max_i;
 
-      default:
-        break;
-    }
+    if ((i < 0) ||
+        (i > max_i))
+      throw std::out_of_range("out of bounds access");
 
     return $self->data[i];
   }
 };
 
 %template (varArrayInt) var_array<int>;
+%template (varArrayUInt) var_array<unsigned int>;
 %template (varArrayFLTorDBL) var_array<FLT_OR_DBL>;

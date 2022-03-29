@@ -40,43 +40,57 @@ typedef struct {
   var_array<int> *
   vrna_mx_mfe_t_f5_get(vrna_mx_mfe_t *mx)
   {
-    return var_array_lin_int_new(mx->length, mx->f5);
+    return var_array_int_new(mx->length,
+                             mx->f5,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_mx_mfe_t_f3_get(vrna_mx_mfe_t *mx)
   {
-    return var_array_lin_int_new(mx->length, mx->f3);
+    return var_array_int_new(mx->length,
+                             mx->f3,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_mx_mfe_t_c_get(vrna_mx_mfe_t *mx)
   {
-    return var_array_tri_int_new(mx->length, mx->c);
+    return var_array_int_new(mx->length,
+                             mx->c,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_mx_mfe_t_fML_get(vrna_mx_mfe_t *mx)
   {
-    return var_array_tri_int_new(mx->length, mx->fML);
+    return var_array_int_new(mx->length,
+                             mx->fML,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_mx_mfe_t_fM1_get(vrna_mx_mfe_t *mx)
   {
-    return var_array_tri_int_new(mx->length, mx->fM1);
+    return var_array_int_new(mx->length,
+                             mx->fM1,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_mx_mfe_t_ggg_get(vrna_mx_mfe_t *mx)
   {
-    return var_array_tri_int_new(mx->length, mx->ggg);
+    return var_array_int_new(mx->length,
+                             mx->ggg,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_mx_mfe_t_fM2_get(vrna_mx_mfe_t *mx)
   {
-    return var_array_lin_int_new(mx->length, mx->fM2);
+    return var_array_int_new(mx->length,
+                             mx->fM2,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   const int
@@ -146,67 +160,89 @@ typedef struct {
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_scale_get(vrna_mx_pf_t *mx)
   {
-    return var_array_lin_dbl_new(mx->length, mx->scale);
+    return var_array_dbl_new(mx->length,
+                             mx->scale,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_expMLbase_get(vrna_mx_pf_t *mx)
   {
-    return var_array_lin_dbl_new(mx->length, mx->expMLbase);
+    return var_array_dbl_new(mx->length,
+                             mx->expMLbase,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qm1_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_new(mx->length, mx->qm1);
+    return var_array_dbl_new(mx->length,
+                             mx->qm1,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_q_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_new(mx->length, mx->q);
+    return var_array_dbl_new(mx->length,
+                             mx->q,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qb_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_new(mx->length, mx->qb);
+    return var_array_dbl_new(mx->length,
+                             mx->qb,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qm_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_new(mx->length, mx->qm);
+    return var_array_dbl_new(mx->length,
+                             mx->qm,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_G_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_new(mx->length, mx->G);
+    return var_array_dbl_new(mx->length,
+                             mx->G,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_probs_get(vrna_mx_pf_t *mx)
   {
-    return var_array_tri_dbl_new(mx->length, mx->probs);
+    return var_array_dbl_new(mx->length,
+                             mx->probs,
+                             VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_q1k_get(vrna_mx_pf_t *mx)
   {
-    return var_array_lin_dbl_new(mx->length, mx->q1k);
+    return var_array_dbl_new(mx->length,
+                             mx->q1k,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qln_get(vrna_mx_pf_t *mx)
   {
-    return var_array_lin_dbl_new(mx->length, mx->qln);
+    return var_array_dbl_new(mx->length,
+                             mx->qln,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_qm2_get(vrna_mx_pf_t *mx)
   {
-    return var_array_lin_dbl_new(mx->length, mx->qm2);
+    return var_array_dbl_new(mx->length,
+                             mx->qm2,
+                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   const FLT_OR_DBL
