@@ -443,6 +443,7 @@ libRNA_landscape_la_SOURCES = \
     landscape/move.c \
     landscape/findpath.c \
     landscape/neighbor.c \
+    landscape/local_neighbors.c \
     landscape/walk.c
 
 libRNA_special_const_la_SOURCES = \
