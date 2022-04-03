@@ -1,4 +1,5 @@
 RNA/
+__pycache__/
 RNA_wrap.*
 RNA.py
 version.i

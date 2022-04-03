@@ -1,2 +1,3 @@
 # ignore libsvm directory
-libsvm-3.*
+libsvm-*
+dlib-*

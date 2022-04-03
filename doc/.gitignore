@@ -1,3 +1,6 @@
+# ignore configure script generated content
+refman.include/install.dox
+
 # ignore doxygen config
 doxygen.conf
 
