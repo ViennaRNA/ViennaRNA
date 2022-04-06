@@ -28,7 +28,7 @@
 extern "C" {
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/naview.h"
+#include "ViennaRNA/plotting/layouts.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 }
@@ -929,11 +929,8 @@ void RNAProfileAlignment::squigglePlot(const std::string &filename, SquigglePlot
     if (baseprobs.size() != structure.size())
         std::cerr <<  "Error in resolving consensus structure!" << std::endl;
 
-    X = new float[structure.size()];
-    Y = new float[structure.size()];
-
     pair_table = make_pair_table(structure.c_str());
-    i = naview_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_pt((const short *)pair_table, &X, &Y, VRNA_PLOT_TYPE_DEFAULT);
     if (i!=structure.size())
         std::cerr << "strange things happening in squigglePlot ..." << std::endl;
 
@@ -1018,8 +1015,8 @@ void RNAProfileAlignment::squigglePlot(const std::string &filename, SquigglePlot
     g2_close(id);
 
     free(pair_table);
-    DELETE(X);
-    DELETE(Y);
+    free(X);
+    free(Y);
 }
 #endif
 #endif

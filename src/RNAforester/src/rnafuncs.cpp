@@ -29,6 +29,10 @@
 #include <cstdio>
 #include <assert.h>
 
+extern "C" {
+#include <ViennaRNA/plotting/layouts.h>
+}
+
 #ifdef HAVE_LIBG2
 #include <g2.h>
 #include <g2_PS.h>
@@ -207,15 +211,14 @@ void RNAFuncs::drawRNAStructure(const std::string &seq, const std::string &struc
     int id_PNG=0,id_JPG=0;
 #endif
 
-    X = new float[structure.size()];
-    Y = new float[structure.size()];
     points=new double[2*structure.size()];
     colors=new int[NUM_COLORS];
 
     assert(seq.size() == structure.size());
 
     pair_table = make_pair_table(structure.c_str());
-    i = naview_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_pt((const short *)pair_table, &X, &Y, VRNA_PLOT_TYPE_DEFAULT);
+
     if (i!=structure.size())
         std::cerr << "strange things happening in squigglePlot ..." << std::endl;
 
@@ -430,8 +433,8 @@ void RNAFuncs::drawRNAStructure(const std::string &seq, const std::string &struc
     g2_close(id);
 
     free(pair_table);
-    DELETE(X);
-    DELETE(Y);
+    free(X);
+    free(Y);
     DELETE(points);
     DELETE(colors);
 }
@@ -460,16 +463,13 @@ void RNAFuncs::drawRNAAlignment(const std::string &structure, const std::string 
     int jpg_color_black,jpg_color_red,jpg_color_blue,jpg_color_green;
 #endif
 
-    X = new float[structure.size()];
-    Y = new float[structure.size()];
-
     assert(seq1.size() == seq2.size());
     assert(seq1.size() == structure.size());
     assert(seq1.size() == altStructure.size());
 
     pair_table = make_pair_table(structure.c_str());
     alt_pair_table = make_pair_table(altStructure.c_str());
-    i = naview_xy_coordinates(pair_table, X, Y);
+    i = vrna_plot_coords_pt((const short *)pair_table, &X, &Y, VRNA_PLOT_TYPE_DEFAULT);
     if (i!=structure.size())
         std::cerr << "strange things happening in squigglePlot ..." << std::endl;
 
@@ -710,8 +710,8 @@ void RNAFuncs::drawRNAAlignment(const std::string &structure, const std::string 
 
     free(pair_table);
     free(alt_pair_table);
-    DELETE(X);
-    DELETE(Y);
+    free(X);
+    free(Y);
 }
 #endif
 #endif
@@ -725,9 +725,6 @@ void RNAFuncs::generateRNAAlignmentXML(const std::string &structure, const std::
     unsigned int basenr_x=1, basenr_y=1;
     std::string filename;
 
-    X = new float[structure.size()];
-    Y = new float[structure.size()];
-
     assert(seq1.size() == seq2.size());
     assert(seq1.size() == structure.size());
     assert(seq1.size() == altStructure.size());
@@ -735,7 +732,8 @@ void RNAFuncs::generateRNAAlignmentXML(const std::string &structure, const std::
     // calculate coordinates
     pair_table = make_pair_table(structure.c_str());
     alt_pair_table = make_pair_table(altStructure.c_str());
-    i = naview_xy_coordinates(pair_table, X, Y);
+
+    i = vrna_plot_coords_pt((const short *)pair_table, &X, &Y, VRNA_PLOT_TYPE_DEFAULT);
     if (i!=structure.size())
         std::cerr << "strange things happening in squigglePlot ..." << std::endl;
 
@@ -781,13 +779,12 @@ void RNAFuncs::generateRNAAlignmentXML(const std::string &structure, const std::
     s << "    </drawbases>" << std::endl;
     s << "  </structure>" << std::endl;
 
-    DELETE(X);
-    DELETE(Y);
-    X = new float[altStructure.size()];
-    Y = new float[altStructure.size()];
+    free(X);
+    free(Y);
 
     // y structure
-    i = naview_xy_coordinates(alt_pair_table, X, Y);
+    i = vrna_plot_coords_pt((const short *)alt_pair_table, &X, &Y, VRNA_PLOT_TYPE_DEFAULT);
+
     if (i!=structure.size())
         std::cerr << "strange things happening in squigglePlot ..." << std::endl;
 
@@ -802,8 +799,8 @@ void RNAFuncs::generateRNAAlignmentXML(const std::string &structure, const std::
 
     free(pair_table);
     free(alt_pair_table);
-    DELETE(X);
-    DELETE(Y);
+    free(X);
+    free(Y);
 }
 #endif
 
