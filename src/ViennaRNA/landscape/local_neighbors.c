@@ -1726,7 +1726,7 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t      *fc,
           j = pt[j];
         } else {
           for (i = enclosing_5 + 1; i < p; i++) {
-            if (pt[i] > i {
+            if (pt[i] > i) {
               if (is_compatible(fc, i, j))
                 cb(fc, vrna_move_init(i, -j), VRNA_NEIGHBOR_INVALID, data);
               if (is_compatible(fc, pt[i], j))
