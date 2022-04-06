@@ -6,30 +6,22 @@
   COORDINATE *
   get_xy_coordinates(const char *structure)
   {
-    int i;
-    short *table = vrna_ptable(structure);
-    short length = (short) strlen(structure);
+    int         i, ret;
+    short       length  = (short) strlen(structure);
+    COORDINATE  *coords = (COORDINATE *) vrna_alloc((length+1)*sizeof(COORDINATE));
+    float       *X, *Y;
 
-    COORDINATE *coords = (COORDINATE *) vrna_alloc((length+1)*sizeof(COORDINATE));
-    float *X = (float *) vrna_alloc((length+1)*sizeof(float));
-    float *Y = (float *) vrna_alloc((length+1)*sizeof(float));
+    ret = vrna_plot_coords(structure, &X, &Y, rna_plot_type);
 
-    switch(rna_plot_type){
-      case VRNA_PLOT_TYPE_SIMPLE:   simple_xy_coordinates(table, X, Y);
-                                    break;
-      case VRNA_PLOT_TYPE_CIRCULAR: simple_circplot_coordinates(table, X, Y);
-                                    break;
-      default:                      naview_xy_coordinates(table, X, Y);
-                                    break;
+    if (ret == (int)length) {
+      for(i=0;i<=length;i++){
+        coords[i].X = X[i];
+        coords[i].Y = Y[i];
+      }
     }
-
-    for(i=0;i<=length;i++){
-      coords[i].X = X[i];
-      coords[i].Y = Y[i];
-    }
-    free(table);
     free(X);
     free(Y);
+
     return(coords);
   }
 %}
@@ -53,7 +45,10 @@ COORDINATE *get_xy_coordinates(const char *structure);
 
 %rename (simple_xy_coordinates) my_simple_xy_coordinates;
 %rename (simple_circplot_coordinates) my_simple_circplot_coordinates;
+
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
 %rename (naview_xy_coordinates) my_naview_xy_coordinates;
+#endif
 
 %{
 #include <vector>
@@ -103,6 +98,7 @@ COORDINATE *get_xy_coordinates(const char *structure);
     return ret;
   }
 
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
   std::vector<COORDINATE>
   my_naview_xy_coordinates(std::string structure)
   {
@@ -124,23 +120,32 @@ COORDINATE *get_xy_coordinates(const char *structure);
     free(table);
     return ret;
   }
+#endif
 
 %}
 
 #ifdef SWIGPYTHON
 %feature("autodoc") my_simple_circplot_coordinates;
 %feature("kwargs") my_simple_circplot_coordinates;
+# ifdef VRNA_WITH_NAVIEW_LAYOUT
 %feature("autodoc") my_naview_xy_coordinates;
 %feature("kwargs") my_naview_xy_coordinates;
+# endif
 #endif
 
 std::vector<COORDINATE> my_simple_xy_coordinates(std::string);
 std::vector<COORDINATE> my_simple_circplot_coordinates(std::string);
+
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
 std::vector<COORDINATE> my_naview_xy_coordinates(std::string);
+#endif
 
 %ignore simple_xy_cordinates;
 %ignore simple_circplot_coordinates;
+
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
 %ignore naview_xy_coordinates;
+#endif
 
 %include <ViennaRNA/plotting/layouts.h>
 

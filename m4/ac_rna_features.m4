@@ -522,3 +522,28 @@ AC_DEFUN([RNA_ENABLE_VECTORIZE],[
 ])
 
 
+#
+# Naview layout algorithm (Bruccoleri 1988)
+#
+
+AC_DEFUN([RNA_ENABLE_NAVIEW],[
+
+  RNA_ADD_FEATURE([naview],
+                  [Naview Layout algorithm],
+                  [yes],[],[],
+                  [${srcdir}/src/ViennaRNA/plotting/naview/naview.c ${srcdir}/src/ViennaRNA/plotting/naview/naview.h ])
+
+  RNA_FEATURE_IF_ENABLED([naview],[
+    AC_DEFINE([VRNA_WITH_NAVIEW_LAYOUT], [1], [Include Naview RNA structure layout algorithm])
+    CONFIG_NAVIEW_LAYOUT="#define VRNA_WITH_NAVIEW_LAYOUT"
+    NAVIEW_DIR=plotting/naview
+    AX_APPEND_FLAG([-DVRNA_WITH_NAVIEW_LAYOUT], [RNA_CPPFLAGS])
+    AC_CONFIG_FILES([src/ViennaRNA/plotting/naview/Makefile])
+  ])
+
+  AC_SUBST(NAVIEW_DIR)
+  AC_SUBST(CONFIG_NAVIEW_LAYOUT)
+  AM_CONDITIONAL(VRNA_AM_SWITCH_NAVIEW, test "$enable_naview" != "no")
+])
+
+

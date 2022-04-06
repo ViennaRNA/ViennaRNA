@@ -77,4 +77,14 @@
  */
 @CONFIG_LTO@
 
+/*
+ * Build with Naview Layout algorithm of Bruccoleri 1988
+ *
+ * If this feature is enabled, the next line defines
+ * 'VRNA_WITH_NAVIEW_LAYOUT'
+ */
+@CONFIG_NAVIEW_LAYOUT@
+
+
+
 #endif

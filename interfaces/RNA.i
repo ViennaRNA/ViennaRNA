@@ -42,7 +42,9 @@ extern "C" {
 #include  <ViennaRNA/constraints/SHAPE.h>
 #include  <ViennaRNA/constraints/ligand.h>
 
-#include  <ViennaRNA/plotting/naview.h>
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
+#include  <ViennaRNA/plotting/naview/naview.h>
+#endif
 #include  <ViennaRNA/plotting/layouts.h>
 #include  <ViennaRNA/plotting/structures.h>
 #include  <ViennaRNA/plotting/alignments.h>

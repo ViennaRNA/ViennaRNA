@@ -21,7 +21,7 @@
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-PUBLIC int rna_plot_type = 1;   /* 0 = simple, 1 = naview, 2 = circular plot */
+PUBLIC int rna_plot_type = VRNA_PLOT_TYPE_DEFAULT;
 
 #endif
 
@@ -90,12 +90,13 @@ vrna_plot_layout_simple(const char *structure)
 }
 
 
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
 PUBLIC struct vrna_plot_layout_s *
 vrna_plot_layout_naview(const char *structure)
 {
   return vrna_plot_layout(structure, VRNA_PLOT_TYPE_NAVIEW);
 }
-
+#endif
 
 PUBLIC struct vrna_plot_layout_s *
 vrna_plot_layout_circular(const char *structure)
@@ -172,8 +173,10 @@ vrna_plot_coords_pt(const short *pt,
       case VRNA_PLOT_TYPE_SIMPLE:
         return coords_simple(pt, x, y);
 
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
       case VRNA_PLOT_TYPE_NAVIEW:
         return vrna_plot_coords_naview_pt(pt, x, y);
+#endif
 
       case VRNA_PLOT_TYPE_CIRCULAR:
         return coords_circular(pt, x, y);
@@ -183,6 +186,19 @@ vrna_plot_coords_pt(const short *pt,
 
       case VRNA_PLOT_TYPE_PUZZLER:
         return vrna_plot_coords_puzzler_pt(pt, x, y, NULL, NULL);
+
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
+      default:
+        return vrna_plot_coords_naview_pt(pt, x, y);
+#else
+      case VRNA_PLOT_TYPE_NAVIEW:
+        vrna_message_warning("Naview layout algorithm not available in this version of ViennaRNA Package");
+        break;
+
+      default:
+        return vrna_plot_coords_puzzler_pt(pt, x, y, NULL, NULL);
+#endif
+
     }
   }
 
@@ -307,31 +323,50 @@ rna_layout(const char   *structure,
                                       (vrna_plot_options_puzzler_t *)options);
       break;
 
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
     default:
       i = vrna_plot_coords_naview_pt(pt_g,
                                      &(layout->x),
                                      &(layout->y));
       break;
+#else
+    case VRNA_PLOT_TYPE_NAVIEW:
+      i = 0;
+      vrna_message_warning("Naview layout algorithm not available in this version of ViennaRNA Package");
+      break;
+
+    default:
+      i = vrna_plot_coords_puzzler_pt(pt,
+                                      &(layout->x),
+                                      &(layout->y),
+                                      &(layout->arcs),
+                                      (vrna_plot_options_puzzler_t *)options);
+      break;
+
+#endif
+
   }
 
-  if (i != n)
+  if (i != n) {
     vrna_message_warning("strange things happening in vrna_plot_layout*()...");
+    layout->bbox[0] = layout->bbox[1] = layout->bbox[2] = layout->bbox[3] = 0;
+  } else {
+    /* adjust bounding box coordinates */
+    xmin  = xmax = layout->x[0];
+    ymin  = ymax = layout->y[0];
 
-  /* adjust bounding box coordinates */
-  xmin  = xmax = layout->x[0];
-  ymin  = ymax = layout->y[0];
+    for (i = 1; i < n; i++) {
+      xmin  = layout->x[i] < xmin ? layout->x[i] : xmin;
+      xmax  = layout->x[i] > xmax ? layout->x[i] : xmax;
+      ymin  = layout->y[i] < ymin ? layout->y[i] : ymin;
+      ymax  = layout->y[i] > ymax ? layout->y[i] : ymax;
+    }
 
-  for (i = 1; i < n; i++) {
-    xmin  = layout->x[i] < xmin ? layout->x[i] : xmin;
-    xmax  = layout->x[i] > xmax ? layout->x[i] : xmax;
-    ymin  = layout->y[i] < ymin ? layout->y[i] : ymin;
-    ymax  = layout->y[i] > ymax ? layout->y[i] : ymax;
+    layout->bbox[0] = xmin;
+    layout->bbox[1] = ymin;
+    layout->bbox[2] = xmax;
+    layout->bbox[3] = ymax;
   }
-
-  layout->bbox[0] = xmin;
-  layout->bbox[1] = ymin;
-  layout->bbox[2] = xmax;
-  layout->bbox[3] = ymax;
 
   free(pt);
   free(pt_g);

@@ -37,7 +37,11 @@ typedef struct vrna_plot_layout_s vrna_plot_layout_t;
 
 
 #include <ViennaRNA/datastructures/basic.h>
-#include <ViennaRNA/plotting/naview.h>
+
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
+#include <ViennaRNA/plotting/naview/naview.h>
+#endif
+
 #include "ViennaRNA/plotting/RNApuzzler/RNAturtle.h"
 #include "ViennaRNA/plotting/RNApuzzler/RNApuzzler.h"
 
@@ -83,6 +87,12 @@ typedef struct vrna_plot_layout_s vrna_plot_layout_t;
  *
  */
 #define VRNA_PLOT_TYPE_PUZZLER  4
+
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
+# define VRNA_PLOT_TYPE_DEFAULT  VRNA_PLOT_TYPE_NAVIEW
+#else
+# define VRNA_PLOT_TYPE_DEFAULT  VRNA_PLOT_TYPE_PUZZLER
+#endif
 
 
 struct vrna_plot_layout_s {
@@ -144,6 +154,7 @@ vrna_plot_layout_t *
 vrna_plot_layout_simple(const char *structure);
 
 
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
 /**
  *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>Naview Algorithm</i> @cite bruccoleri:1988.
  *
@@ -161,7 +172,7 @@ vrna_plot_layout_simple(const char *structure);
  */
 vrna_plot_layout_t *
 vrna_plot_layout_naview(const char *structure);
-
+#endif
 
 /**
  *  @brief  Create a layout (coordinates, etc.) for a <i>circular</i> secondary structure plot

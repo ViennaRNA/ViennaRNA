@@ -5,7 +5,8 @@ AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) ${SVM_INC} -I$(top_srcdir)/src ${JSON_INC}
 AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
-SUBDIRS = static
+SUBDIRS = static @NAVIEW_DIR@
+DIST_SUBDIRS = static @NAVIEW_DIR@
 
 vrna_constraintsdir     = $(pkgincludedir)/constraints
 vrna_paramsdir          = $(pkgincludedir)/params
@@ -54,6 +55,10 @@ libRNA_conv_la_LIBADD = \
     libRNA_eval.la \
     libRNA_loops.la \
     libRNA_landscape.la
+
+if VRNA_AM_SWITCH_NAVIEW
+  libRNA_plotting_la_LIBADD = @NAVIEW_DIR@/libRNA_naview.la
+endif
 
 
 if VRNA_AM_SWITCH_SIMD_SSE41
@@ -157,7 +162,6 @@ pkginclude_HEADERS =  \
     plot_aln.h \
     plot_utils.h \
     plot_layouts.h \
-    naview.h \
     boltzmann_sampling.h \
     equilibrium_probs.h \
     constraints_ligand.h \
@@ -186,6 +190,11 @@ pkginclude_HEADERS =  \
     ${SVM_UTILS_H_OLD} \
     ${SVM_H} \
     ${JSON_H}
+
+
+if VRNA_AM_SWITCH_NAVIEW
+pkginclude_HEADERS += naview.h 
+endif
 
 if VRNA_AM_SWITCH_SVM
 pkginclude_HEADERS +=  zscore.h
@@ -227,8 +236,8 @@ vrna_plotting_HEADERS = \
     plotting/layouts.h \
     plotting/probabilities.h \
     plotting/structures.h \
-    plotting/utils.h \
-    plotting/naview.h
+    plotting/utils.h
+
 
 vrna_puzzler_HEADERS = \
     plotting/RNApuzzler/RNApuzzler.h \
@@ -377,9 +386,9 @@ libRNA_plotting_la_SOURCES = \
     plotting/probabilities.c \
     plotting/structures.c \
     plotting/plot_utils.c \
-    plotting/naview.c \
     plotting/RNApuzzler/RNApuzzler.c \
     plotting/RNApuzzler/RNAturtle.c
+
 
 libRNA_loops_la_SOURCES = \
     loops/external.c \

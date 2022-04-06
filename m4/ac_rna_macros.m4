@@ -143,7 +143,8 @@ m4_if([$3],[yes],[
 #                 feature-description,
 #                 is-default,
 #                 [action-if-no-default],
-#                 [action-if-default])
+#                 [action-if-default],
+#                 [files to check for])
 #
 # Add a feature to the ViennaRNA Package
 #
@@ -154,9 +155,9 @@ AC_DEFUN([RNA_ADD_FEATURE],[
 
 m4_if([$3],[yes],[
   AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
-            [ifelse([$6], [],
+            [ifelse([$7], [],
                 [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])], [$2])],
-                [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$6@:>@])]
+                [AS_HELP_STRING([--disable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$7@:>@])]
             )])
   AS_IF([ test "x$enable_$1" = "x" ], [ enable_$1=yes ])
 
@@ -165,12 +166,25 @@ m4_if([$3],[yes],[
   m4_if(["x$5"], ["x"],[], [ RNA_FEATURE_IF_DISABLED([$1],[$5])])
   ],[
   AC_ARG_ENABLE(m4_translit([[$1]], [_], [-]),
-            [ifelse([$6], [],
+            [ifelse([$7], [],
                 [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])], [$2])],
-                [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$6@:>@])]
+                [AS_HELP_STRING([--enable-m4_translit([$1], [_], [-])@<:@=ARG@:>@], [$2 @<:@default ARG=$7@:>@])]
             )])
   AS_IF([ (test "x$enable_$1" = "x") || (test "x$enable_$1" = "xno") ], [ enable_$1=no ])
+])
 
+# check if enabling the feature makes sense at configure-time
+# and deactivate it if not
+
+RNA_FEATURE_IF_ENABLED([$1],[
+  for i in $6; do
+    AC_RNA_TEST_FILE([$i],
+      [enable_$1=$enable_$1],
+      [enable_$1=no])
+  done
+])
+
+m4_if([$3],[yes],[
   # take action depending on configure-time user settings
   m4_if(["x$4"], ["x"],[], [ RNA_FEATURE_IF_DISABLED([$1],[$4])])
   m4_if(["x$5"], ["x"],[], [ RNA_FEATURE_IF_ENABLED([$1],[$5])])

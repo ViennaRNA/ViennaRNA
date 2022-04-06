@@ -334,24 +334,10 @@ gmlRNA(char *string,
 
   pair_table = vrna_ptable(structure);
 
-  switch (option) {
-    case 'X':
-    case 'x':
-      /* Simple XY Plot */
-      if (rna_plot_type == 0)
-        i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
-      else
-        i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
+  i = vrna_plot_coords_pt(pair_table, &X, &Y, rna_plot_type);
 
-      if (i != length)
-        vrna_message_warning("strange things happening in gmlRNA ...");
-
-      break;
-    default:
-      /* No Graphics Information */
-      X = NULL;
-      Y = NULL;
-  }
+  if (i != length)
+    vrna_message_warning("strange things happening in gmlRNA ...");
 
   fprintf(gmlfile,
           "# Vienna RNA Package %s\n"
@@ -420,10 +406,7 @@ PS_rna_plot_snoop_a(const char  *string,
   pair_table        = vrna_ptable(structure);
   pair_table_snoop  = vrna_pt_snoop_get(structure);
 
-  if (rna_plot_type == 0)
-    i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
-  else
-    i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
+  i = vrna_plot_coords_pt(pair_table, &X, &Y, rna_plot_type);
 
   if (i != length)
     vrna_message_warning("strange things happening in PS_rna_plot...");
@@ -802,9 +785,17 @@ svg_rna_plot(char *string,
     }
     break;
 
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
     default:
       i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
       break;
+#else
+    default:
+      i = vrna_plot_coords_puzzler_pt(pair_table, &X, &Y, &arccoords, NULL);
+      transformPSArcsToSVG(i, arccoords, &arccoordsSVG);                    /*  See Turtle from above. */
+      break;
+#endif
+
   }
 
   if (i != length)
@@ -946,10 +937,7 @@ ssv_rna_plot(char *string,
   pair_table  = vrna_ptable(structure);
 
   /* make coordinates */
-  if (rna_plot_type == 0)
-    i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
-  else
-    i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
+  i = vrna_plot_coords_pt(pair_table, &X, &Y, rna_plot_type);
 
   if (i != length)
     vrna_message_warning("strange things happening in ssv_rna_plot...");
@@ -1036,10 +1024,7 @@ xrna_plot(char  *string,
   pair_table  = vrna_ptable(structure);
 
   /* make coordinates */
-  if (rna_plot_type == 0)
-    i = vrna_plot_coords_simple_pt(pair_table, &X, &Y);
-  else
-    i = vrna_plot_coords_naview_pt(pair_table, &X, &Y);
+  i = vrna_plot_coords_pt(pair_table, &X, &Y, rna_plot_type);
 
   if (i != length)
     vrna_message_warning("strange things happening in xrna_plot...");
