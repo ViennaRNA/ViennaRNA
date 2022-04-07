@@ -41,6 +41,7 @@ SWIG_misc_src = \
   $(srcdir)/../sequence.i \
   $(srcdir)/../subopt.i \
   $(srcdir)/../structure_utils.i \
+  $(srcdir)/../type_checks.i \
   $(srcdir)/../utils.i \
   $(srcdir)/../var_arrays.i \
   $(srcdir)/../walk.i

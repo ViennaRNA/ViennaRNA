@@ -117,12 +117,6 @@ def __repr__(self):
 %newobject vrna_db_to_element_string;
 
 %{
-typedef var_array<short> pair_table;
-%}
-
-typedef var_array<short> pair_table;
-
-%{
 #include <vector>
   char *
   my_pack_structure(const char *s)

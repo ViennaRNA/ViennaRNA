@@ -207,6 +207,7 @@ namespace std {
 /* Include all relevant interface definitions */
 /*############################################*/
 %include var_arrays.i
+%include type_checks.i
 %include params.i
 %include model_details.i
 %include utils.i

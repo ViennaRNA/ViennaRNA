@@ -34,6 +34,7 @@ SOURCES = \
     sequence.i \
     structure_utils.i \
     subopt.i \
+    type_checks.i \
     utils.i \
     var_arrays.i \
     walk.i \
@@ -98,6 +99,7 @@ EXTRA_DIST = \
     sequence.i \
     structure_utils.i \
     subopt.i \
+    type_checks.i \
     utils.i \
     var_arrays.i \
     walk.i \
