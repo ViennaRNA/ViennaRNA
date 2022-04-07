@@ -20,6 +20,12 @@
     return vrna_eval_structure_pt($self, (const short*)&vc[0]);
   }
   
+  int
+  eval_structure_pt(var_array<short> *const pt)
+  {
+    return vrna_eval_structure_pt($self, pt->data);
+  }
+  
   /*  compute free energy for structure given in dot-bracket notation, 
       but now with different FileHandler for verbose, NULL = STDOUT */
   float
@@ -39,6 +45,13 @@
     return vrna_eval_structure_pt_verbose($self, (const short*)&vc[0], nullfile);
   }
   
+  int
+  eval_structure_pt_verbose(var_array<short> *const pt,
+                            FILE              *nullfile = NULL)
+  {
+    return vrna_eval_structure_pt_verbose($self, pt->data, nullfile);
+  }
+  
   /* compute covariance contributions for consensus structure given in dot-bracket notation */
   float
   eval_covar_structure(char *structure)
@@ -54,6 +67,13 @@
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
     return vrna_eval_loop_pt($self, i, (const short*)&vc[0]);
+  }
+
+  int
+  eval_loop_pt(int              i, 
+               var_array<short> *const pt)
+  {
+    return vrna_eval_loop_pt($self, i, pt->data);
   }
 
   /* returns the energy change by introducing a move on a given structure */
@@ -74,6 +94,14 @@
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
     return vrna_eval_move_pt($self, ((short*)&vc[0]), m1, m2);   /*attention here no const short* as argument*/
+  }
+
+  int
+  eval_move_pt(var_array<short> *const pt,
+               int              m1,
+               int              m2)
+  {
+    return vrna_eval_move_pt($self, pt->data, m1, m2);   /*attention here no const short* as argument*/
   }
 }
 
@@ -208,6 +236,15 @@
   }
 
   float
+  my_eval_structure_pt_simple(std::string       sequence,
+                              var_array<short> *const pt,
+                              int               verbosity_level = VRNA_VERBOSITY_QUIET,
+                              FILE              *nullfile = NULL)
+  {
+    return vrna_eval_structure_pt_simple_v(sequence.c_str(), pt->data, verbosity_level, nullfile);
+  }
+
+  float
   my_eval_structure_pt_simple(std::vector<std::string>  alignment,
                               std::vector<int>          pt,
                               int                       verbosity_level = VRNA_VERBOSITY_QUIET,
@@ -222,6 +259,20 @@
     transform(pt.begin(), pt.end(), back_inserter(ptv), convert_vecint2vecshort);
 
     return vrna_eval_consensus_structure_pt_simple_v((const char **)&vc[0], (const short*)&ptv[0], verbosity_level, nullfile);
+  }
+
+  float
+  my_eval_structure_pt_simple(std::vector<std::string>  alignment,
+                              var_array<short> *const   pt,
+                              int                       verbosity_level = VRNA_VERBOSITY_QUIET,
+                              FILE                      *nullfile = NULL)
+  {
+    std::vector<const char*>  vc;
+
+    std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
+    vc.push_back(NULL); /* mark end of sequences */
+
+    return vrna_eval_consensus_structure_pt_simple_v((const char **)&vc[0], pt->data, verbosity_level, nullfile);
   }
 
 %}
@@ -282,8 +333,21 @@ my_eval_structure_pt_simple(std::string sequence,
 
 
 float
+my_eval_structure_pt_simple(std::string sequence,
+                            var_array<short> *const pt,
+                            int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                            FILE        *nullfile = NULL);
+
+
+float
 my_eval_structure_pt_simple(std::vector<std::string> alignment,
                             std::vector<int> pt,
+                            int         verbosity_level = VRNA_VERBOSITY_QUIET,
+                            FILE        *nullfile = NULL);
+
+float
+my_eval_structure_pt_simple(std::vector<std::string> alignment,
+                            var_array<short> *const pt,
                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
                             FILE        *nullfile = NULL);
 
