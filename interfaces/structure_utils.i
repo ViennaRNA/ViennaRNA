@@ -145,9 +145,9 @@ typedef var_array<short> pair_table;
   }
 
   char *
-  my_db_from_ptable(pair_table *const pt)
+  my_db_from_ptable(var_array<short> const &pt)
   {
-    return vrna_db_from_ptable(pt->data);
+    return vrna_db_from_ptable(pt.data);
   }
 
   void
@@ -206,6 +206,17 @@ typedef var_array<short> pair_table;
     free(c_str);
     return SHAPE;
   }
+
+  std::string
+  abstract_shapes(var_array<short> const &pt,
+                  unsigned int     level = 5)
+  {
+    char *c_str = vrna_abstract_shapes_pt(pt.data, level);
+
+    std::string SHAPE = c_str;
+    free(c_str);
+    return SHAPE;
+  }
 %}
 
 
@@ -223,12 +234,13 @@ typedef var_array<short> pair_table;
 char        *my_pack_structure(const char *s);
 char        *my_unpack_structure(const char *packed);
 char        *my_db_from_ptable(std::vector<int> pt);
-char        *my_db_from_ptable(pair_table *const pt);
+char        *my_db_from_ptable(var_array<short> const &pt);
 void        db_flatten(char *structure, unsigned int options = VRNA_BRACKETS_DEFAULT);
 void        db_flatten(char *structure, std::string target, unsigned int options = VRNA_BRACKETS_DEFAULT);
 std::string db_from_WUSS(std::string wuss);
 std::string abstract_shapes(std::string structure, unsigned int  level = 5);
-std::string abstract_shapes(std::vector<int>, unsigned int  level = 5);
+std::string abstract_shapes(std::vector<int> pt, unsigned int  level = 5);
+std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5);
 
 
 /************************************/
@@ -298,6 +310,17 @@ std::string abstract_shapes(std::vector<int>, unsigned int  level = 5);
     return v_pt;
   }
 
+  var_array<short> *
+  my_pt_pk_remove(var_array<short> const &pt,
+                  unsigned int      options = 0)
+  {
+    short *ptable = vrna_pt_pk_remove(pt.data, options);
+
+    return var_array_short_new(ptable[0],
+                               ptable,
+                               VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
+  }
+
 %}
 
 #ifdef SWIGPYTHON
@@ -312,6 +335,7 @@ std::string abstract_shapes(std::vector<int>, unsigned int  level = 5);
 std::vector<int> my_ptable(std::string str, unsigned int options = VRNA_BRACKETS_RND);
 std::vector<int> my_ptable_pk(std::string str);
 std::vector<int> my_pt_pk_remove(std::vector<int> pt, unsigned int options = 0);
+var_array<short> *my_pt_pk_remove(var_array<short> const &pt, unsigned int options = 0);
 
 %ignore vrna_pt_pk_remove;
 
@@ -540,6 +564,13 @@ std::string tree_string_to_db(std::string structure);
 
     return v_idx;
   }
+
+  var_array<int> *
+  my_loopidx_from_ptable(var_array<short> const &pt)
+  {
+    int *idx = vrna_loopidx_from_ptable(pt.data);
+    return var_array_int_new(pt.data[0], idx, VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
+  }
 %}
 
 #ifdef SWIGPYTHON
@@ -548,6 +579,7 @@ std::string tree_string_to_db(std::string structure);
 #endif
 
 std::vector<int> my_loopidx_from_ptable(std::vector<int> pt);
+var_array<int> *my_loopidx_from_ptable(var_array<short> const &pt);
 
 
 
