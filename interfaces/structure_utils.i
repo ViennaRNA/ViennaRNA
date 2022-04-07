@@ -117,6 +117,12 @@ def __repr__(self):
 %newobject vrna_db_to_element_string;
 
 %{
+typedef var_array<short> pair_table;
+%}
+
+typedef var_array<short> pair_table;
+
+%{
 #include <vector>
   char *
   my_pack_structure(const char *s)
@@ -136,6 +142,12 @@ def __repr__(self):
     std::vector<short> vc;
     transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
     return vrna_db_from_ptable((short*)&vc[0]);
+  }
+
+  char *
+  my_db_from_ptable(pair_table *const pt)
+  {
+    return vrna_db_from_ptable(pt->data);
   }
 
   void
@@ -211,6 +223,7 @@ def __repr__(self):
 char        *my_pack_structure(const char *s);
 char        *my_unpack_structure(const char *packed);
 char        *my_db_from_ptable(std::vector<int> pt);
+char        *my_db_from_ptable(pair_table *const pt);
 void        db_flatten(char *structure, unsigned int options = VRNA_BRACKETS_DEFAULT);
 void        db_flatten(char *structure, std::string target, unsigned int options = VRNA_BRACKETS_DEFAULT);
 std::string db_from_WUSS(std::string wuss);
