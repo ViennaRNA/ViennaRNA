@@ -47,6 +47,29 @@
   }
 
   std::vector<vrna_move_t>
+  path(var_array<short> &pt,
+       unsigned int steps,
+       unsigned int options = VRNA_PATH_DEFAULT)
+  {
+    int i;
+    std::vector<vrna_move_t>  v; /* fill vector with returned vrna_move_t */
+    vrna_move_t *move_t, *ptr;
+
+    move_t = ptr = vrna_path($self, pt.data, steps, options);
+    
+    if (ptr)
+      while ((ptr->pos_5 != 0) && (ptr->pos_3 != 0)) {
+        vrna_move_t m;
+        m = vrna_move_init(ptr->pos_5, ptr->pos_3);
+        v.push_back(m);
+        ptr++;
+      }
+
+    free(move_t);
+    return v;
+  }
+
+  std::vector<vrna_move_t>
   path_gradient(std::vector<int> &pt,
                 unsigned int options = VRNA_PATH_DEFAULT)
   {
@@ -71,6 +94,28 @@
     /* copy over the values from vc to pt */
     for (i = 0, it = vc.begin(); it != vc.end(); ++it, i++)
       pt[i] = *it;
+
+    free(move_t);
+    return v;
+  }
+
+  std::vector<vrna_move_t>
+  path_gradient(var_array<short> &pt,
+                unsigned int options = VRNA_PATH_DEFAULT)
+  {
+    int i;
+    std::vector<vrna_move_t>  v; /* fill vector with returned vrna_move_t */
+    vrna_move_t *move_t, *ptr;
+
+    move_t = ptr = vrna_path_gradient($self, pt.data, options);
+
+    if (ptr)
+      while ((ptr->pos_5 != 0) && (ptr->pos_3 != 0)) {
+        vrna_move_t m;
+        m = vrna_move_init(ptr->pos_5, ptr->pos_3);
+        v.push_back(m);
+        ptr++;
+      }
 
     free(move_t);
     return v;
@@ -107,6 +152,28 @@
     return v;
   }
 
+  std::vector<vrna_move_t>
+  path_random(var_array<short> &pt,
+              unsigned int steps,
+              unsigned int options = VRNA_PATH_DEFAULT)
+  {
+    int i;
+    std::vector<vrna_move_t>  v; /* fill vector with returned vrna_move_t */
+    vrna_move_t *move_t, *ptr;
+
+    move_t = ptr = vrna_path_random($self, pt.data, steps, options);
+
+    if (ptr)
+      while ((ptr->pos_5 != 0) && (ptr->pos_3 != 0)) {
+        vrna_move_t m;
+        m = vrna_move_init(ptr->pos_5, ptr->pos_3);
+        v.push_back(m);
+        ptr++;
+      }
+
+    free(move_t);
+    return v;
+  }
 }
 
 %constant unsigned int PATH_STEEPEST_DESCENT      = VRNA_PATH_STEEPEST_DESCENT;
