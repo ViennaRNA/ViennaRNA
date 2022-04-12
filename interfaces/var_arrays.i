@@ -164,23 +164,43 @@ struct var_array {};
 
 
 %{
-  inline var_array<short> *
-  var_array_short_from_int(std::vector<int> d,
-                           unsigned int   type) {
-    var_array<short>  *a  = NULL;
-    size_t            n   = d.size();
+  /* determine length n given array_size elements of the respective
+     upper triangular square matrix. Here, we assume that the largest
+     entry in the array resides at position (n*(n-1))/2 + n. So the
+     actual size of the array is (n*(n-1))/2 + n + 1, since arrays 
+     are always 0-based
+  */
+  inline size_t
+  var_array_tri_size(size_t array_size)
+  {
+    return (size_t)floor((sqrt(8 * array_size - 7) - 1) / 2);
+  }
 
-    if (n > 0) {
-      short *sd = (short *)vrna_alloc(sizeof(short) * n);
+  /* compute number of entries in the upper-triangular n*n square
+     matrix with dimension n
+  */
+  inline size_t
+  var_array_data_size_tri(size_t n)
+  {
+    return (n * (n - 1)) / 2 + n + 1;
+  }
 
-      for (size_t i = 0; i < n; i++)
-        sd[i] = (short)d[i];
+  /* determine length n given array_size elements of the respective
+     square matrix
+  */
+  inline size_t
+  var_array_sqr_size(size_t array_size)
+  {
+    return (size_t)(sqrt(array_size - 1));
+  }
 
-      a = var_array_short_new(n, sd, type | VAR_ARRAY_OWNED);
-
-    }
-
-    return a;
+  /* compute number of entries in the n*n square
+     matrix with dimension n
+  */
+  inline size_t
+  var_array_data_size_sqr(size_t n)
+  {
+    return n * n + 1;
   }
 
 %}
@@ -198,6 +218,14 @@ struct var_array {};
       a = (var_array<T> *)vrna_alloc(sizeof(var_array<T>));
       a->data   = (T *)vrna_alloc(sizeof(T) * n);
       memcpy(a->data, &(d[0]), sizeof(T) * n);
+
+      if (type & VAR_ARRAY_TRI)
+        n = var_array_tri_size(n);
+      else if (type & VAR_ARRAY_SQR)
+        n = var_array_sqr_size(n);
+      else if ((type & VAR_ARRAY_LINEAR) &&
+               (type & VAR_ARRAY_ONE_BASED))
+        n -= 1;
 
       a->length = n;
       a->type   = type | VAR_ARRAY_OWNED;
@@ -221,19 +249,20 @@ struct var_array {};
     size_t        n = data.size();
 
     if (n > 0) {
-      a = (var_array<short> *)vrna_alloc(sizeof(var_array<short>));
-
-      a->length = n;
-
-      if (type & VAR_ARRAY_ONE_BASED)
-        a->length--;
-
-      a->data   = (short *)vrna_alloc(sizeof(short) * n);
+      short *data_s   = (short *)vrna_alloc(sizeof(short) * n);
 
       for (size_t i = 0; i < n; i++)
-        a->data[i] = (short)data[i];
+        data_s[i] = (short)data[i];
 
-      a->type   = type | VAR_ARRAY_OWNED;
+      if (type & VAR_ARRAY_TRI)
+        n = var_array_tri_size(n);
+      else if (type & VAR_ARRAY_SQR)
+        n = var_array_sqr_size(n);
+      else if ((type & VAR_ARRAY_LINEAR) &&
+               (type & VAR_ARRAY_ONE_BASED))
+        n -= 1;
+
+      a = var_array_short_new(n, data_s, type | VAR_ARRAY_OWNED);
     }
 
     return a;
@@ -252,44 +281,44 @@ struct var_array {};
       n += 1;
 
     if ($self->type & VAR_ARRAY_TRI)
-      n = ((n - 1) * (n - 2)) / 2 + n;
+      n = var_array_data_size_tri(n - 1);
     else if ($self->type & VAR_ARRAY_SQR)
-      n = n * n;
+      n = var_array_data_size_sqr(n);
 
     return n;
   }
 
   const T __getitem__(int i) const throw(std::out_of_range) {
-    size_t max_i = $self->length - 1;
-    
+    size_t max_i = $self->length;
+
     if ($self->type & VAR_ARRAY_ONE_BASED)
       max_i += 1;
 
     if ($self->type & VAR_ARRAY_TRI)
-      max_i = ((max_i - 1) * (max_i - 2)) / 2 + max_i;
+      max_i = var_array_data_size_tri(max_i - 1);
     else if ($self->type & VAR_ARRAY_SQR)
-      max_i = max_i * max_i;
+      max_i = var_array_data_size_sqr(max_i);
 
     if ((i < 0) ||
-        (i > max_i))
+        (i >= max_i))
       throw std::out_of_range("out of bounds access");
 
     return $self->data[i];
   }
 
   const T __setitem__(int i, const T d) const throw(std::out_of_range) {
-    size_t max_i = $self->length - 1;
-    
+    size_t max_i = $self->length;
+
     if ($self->type & VAR_ARRAY_ONE_BASED)
       max_i += 1;
 
     if ($self->type & VAR_ARRAY_TRI)
-      max_i = ((max_i - 1) * (max_i - 2)) / 2 + max_i;
+      max_i = var_array_data_size_tri(max_i - 1);
     else if ($self->type & VAR_ARRAY_SQR)
-      max_i = max_i * max_i;
+      max_i = var_array_data_size_sqr(max_i);
 
     if ((i < 0) ||
-        (i > max_i))
+        (i >= max_i))
       throw std::out_of_range("out of bounds access");
 
     return $self->data[i] = d;
@@ -308,9 +337,9 @@ struct var_array {};
       n += 1;
 
     if ($self->type & VAR_ARRAY_TRI)
-      n = ((n - 1) * (n - 2)) / 2 + n;
+      n = var_array_data_size_tri(n - 1);
     else if ($self->type & VAR_ARRAY_SQR)
-      n = n * n;
+      n = var_array_data_size_tri(n);
 
     std::ostringstream out;
     out << "{ data: [" << $self->data[0];
