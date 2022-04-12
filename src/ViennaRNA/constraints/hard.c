@@ -164,7 +164,7 @@ vrna_hc_init(vrna_fold_compound_t *vc)
   hc          = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
   hc->type    = VRNA_HC_DEFAULT;
   hc->n       = n;
-  hc->mx      = (unsigned char *)vrna_alloc(sizeof(unsigned char) * ((n + 1) * (n + 1)));
+  hc->mx      = (unsigned char *)vrna_alloc(sizeof(unsigned char) * ((n + 1) * (n + 1) + 1));
   hc->up_ext  = (int *)vrna_alloc(sizeof(int) * (n + 2));
   hc->up_hp   = (int *)vrna_alloc(sizeof(int) * (n + 2));
   hc->up_int  = (int *)vrna_alloc(sizeof(int) * (n + 2));
