@@ -310,9 +310,9 @@ std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5)
   {
     short *ptable = vrna_pt_pk_remove(pt.data, options);
 
-    return var_array_short_new(ptable[0],
-                               ptable,
-                               VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
+    return var_array_new(ptable[0],
+                         ptable,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
   }
 
 %}
@@ -563,7 +563,7 @@ std::string tree_string_to_db(std::string structure);
   my_loopidx_from_ptable(var_array<short> const &pt)
   {
     int *idx = vrna_loopidx_from_ptable(pt.data);
-    return var_array_int_new(pt.data[0], idx, VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
+    return var_array_new(pt.data[0], idx, VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
   }
 %}
 

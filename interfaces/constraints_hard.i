@@ -27,41 +27,41 @@ typedef struct {
   var_array<unsigned char> *
   vrna_hc_t_mx_get(vrna_hc_t *hc)
   {
-    return var_array_uchar_new(hc->n,
-                               hc->mx,
-                               VAR_ARRAY_SQR | VAR_ARRAY_ONE_BASED);
+    return var_array_new(hc->n,
+                         hc->mx,
+                         VAR_ARRAY_SQR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_hc_t_up_ext_get(vrna_hc_t *hc)
   {
-    return var_array_int_new(hc->n,
-                             hc->up_ext,
-                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+    return var_array_new(hc->n,
+                         hc->up_ext,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_hc_t_up_hp_get(vrna_hc_t *hc)
   {
-    return var_array_int_new(hc->n,
-                             hc->up_hp,
-                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+    return var_array_new(hc->n,
+                         hc->up_hp,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_hc_t_up_int_get(vrna_hc_t *hc)
   {
-    return var_array_int_new(hc->n,
-                             hc->up_int,
-                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+    return var_array_new(hc->n,
+                         hc->up_int,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_hc_t_up_ml_get(vrna_hc_t *hc)
   {
-    return var_array_int_new(hc->n,
-                             hc->up_ml,
-                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+    return var_array_new(hc->n,
+                         hc->up_ml,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 %}
 

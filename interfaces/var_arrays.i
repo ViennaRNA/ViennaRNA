@@ -39,113 +39,63 @@ var_array_type_str(var_array<T> *a)
 }
 
 
+/* determine length n given array_size elements of the respective
+   upper triangular square matrix. Here, we assume that the largest
+   entry in the array resides at position (n*(n-1))/2 + n. So the
+   actual size of the array is (n*(n-1))/2 + n + 1, since arrays 
+   are always 0-based
+*/
+inline size_t
+var_array_tri_size(size_t array_size)
+{
+  return (size_t)floor((sqrt(8 * array_size - 7) - 1) / 2);
+}
+
+
+/* compute number of entries in the upper-triangular n*n square
+   matrix with dimension n
+*/
+inline size_t
+var_array_data_size_tri(size_t n)
+{
+  return (n * (n - 1)) / 2 + n + 1;
+}
+
+
+/* determine length n given array_size elements of the respective
+   square matrix
+*/
+inline size_t
+var_array_sqr_size(size_t array_size)
+{
+  return (size_t)(sqrt(array_size - 1));
+}
+
+
+/* compute number of entries in the n*n square
+   matrix with dimension n
+*/
+inline size_t
+var_array_data_size_sqr(size_t n)
+{
+  return n * n + 1;
+}
+
+
 /****************/
 /* Constructors */
 /****************/
-inline var_array<unsigned char> *
-var_array_uchar_new(size_t        length,
-                    unsigned char *data,
-                    unsigned int  type)
+template <typename T>
+inline var_array<T> *
+var_array_new(size_t        length,
+              T             *data,
+              unsigned int  type)
 {
-  var_array<unsigned char> *a = NULL;
+  var_array<T> *a = NULL;
 
   if ((length) &&
       (data)) {
-    a         = (var_array<unsigned char> *)vrna_alloc(sizeof(var_array<unsigned char>));
-    a->length = length;
-    a->data   = data;
-    a->type   = type;
-  }
-
-  return a;
-}
-
-
-inline var_array<char> *
-var_array_uchar_new(size_t        length,
-                    char          *data,
-                    unsigned int  type)
-{
-  var_array<char> *a = NULL;
-
-  if ((length) &&
-      (data)) {
-    a         = (var_array<char> *)vrna_alloc(sizeof(var_array<char>));
-    a->length = length;
-    a->data   = data;
-    a->type   = type;
-  }
-
-  return a;
-}
-
-
-inline var_array<short> *
-var_array_short_new(size_t        length,
-                    short         *data,
-                    unsigned int  type)
-{
-  var_array<short> *a = NULL;
-
-  if ((length) &&
-      (data)) {
-    a         = (var_array<short> *)vrna_alloc(sizeof(var_array<short>));
-    a->length = length;
-    a->data   = data;
-    a->type   = type;
-  }
-
-  return a;
-}
-
-
-inline var_array<int> *
-var_array_int_new(size_t        length,
-                  int           *data,
-                  unsigned int  type)
-{
-  var_array<int> *a = NULL;
-
-  if ((length) &&
-      (data)) {
-    a         = (var_array<int> *)vrna_alloc(sizeof(var_array<int>));
-    a->length = length;
-    a->data   = data;
-    a->type   = type;
-  }
-
-  return a;
-}
-
-
-inline var_array<unsigned int> *
-var_array_uint_new(size_t       length,
-                   unsigned int *data,
-                   unsigned int type)
-{
-  var_array<unsigned int> *a = NULL;
-
-  if ((length) &&
-      (data)) {
-    a         = (var_array<unsigned int> *)vrna_alloc(sizeof(var_array<unsigned int>));
-    a->length = length;
-    a->data   = data;
-    a->type   = type;
-  }
-
-  return a;
-}
-
-inline var_array<FLT_OR_DBL> *
-var_array_dbl_new(size_t        length,
-                  FLT_OR_DBL    *data,
-                  unsigned int  type)
-{
-  var_array<FLT_OR_DBL> *a = NULL;
-
-  if ((length) &&
-      (data)) {
-    a         = (var_array<FLT_OR_DBL> *)vrna_alloc(sizeof(var_array<FLT_OR_DBL>));
+    a         = (var_array<T> *)vrna_alloc(sizeof(var_array<T>));
     a->length = length;
     a->data   = data;
     a->type   = type;
@@ -161,49 +111,6 @@ var_array_dbl_new(size_t        length,
 
 template <typename T>
 struct var_array {};
-
-
-%{
-  /* determine length n given array_size elements of the respective
-     upper triangular square matrix. Here, we assume that the largest
-     entry in the array resides at position (n*(n-1))/2 + n. So the
-     actual size of the array is (n*(n-1))/2 + n + 1, since arrays 
-     are always 0-based
-  */
-  inline size_t
-  var_array_tri_size(size_t array_size)
-  {
-    return (size_t)floor((sqrt(8 * array_size - 7) - 1) / 2);
-  }
-
-  /* compute number of entries in the upper-triangular n*n square
-     matrix with dimension n
-  */
-  inline size_t
-  var_array_data_size_tri(size_t n)
-  {
-    return (n * (n - 1)) / 2 + n + 1;
-  }
-
-  /* determine length n given array_size elements of the respective
-     square matrix
-  */
-  inline size_t
-  var_array_sqr_size(size_t array_size)
-  {
-    return (size_t)(sqrt(array_size - 1));
-  }
-
-  /* compute number of entries in the n*n square
-     matrix with dimension n
-  */
-  inline size_t
-  var_array_data_size_sqr(size_t n)
-  {
-    return n * n + 1;
-  }
-
-%}
 
 /***************************************/
 /* Constructor/Destructor              */
@@ -262,7 +169,7 @@ struct var_array {};
                (type & VAR_ARRAY_ONE_BASED))
         n -= 1;
 
-      a = var_array_short_new(n, data_s, type | VAR_ARRAY_OWNED);
+      a = var_array_new(n, data_s, type | VAR_ARRAY_OWNED);
     }
 
     return a;
@@ -363,7 +270,6 @@ def __repr__(self):
 };
 
 #endif
-
 
 
 %template (varArrayUChar) var_array<unsigned char>;

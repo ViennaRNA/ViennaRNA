@@ -129,49 +129,49 @@ def __repr__(self):
   var_array<unsigned int> *
   vrna_fold_compound_t_strand_number_get(vrna_fold_compound_t *fc)
   {
-    return var_array_uint_new(fc->length,
-                              fc->strand_number,
-                              VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+    return var_array_new(fc->length,
+                         fc->strand_number,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<unsigned int> *
   vrna_fold_compound_t_strand_order_get(vrna_fold_compound_t *fc)
   {
-    return var_array_uint_new(fc->strands,
-                              fc->strand_order,
-                              VAR_ARRAY_LINEAR);
+    return var_array_new(fc->strands,
+                         fc->strand_order,
+                         VAR_ARRAY_LINEAR);
   }
 
   var_array<unsigned int> *
   vrna_fold_compound_t_strand_start_get(vrna_fold_compound_t *fc)
   {
-    return var_array_uint_new(fc->strands,
-                              fc->strand_start,
-                              VAR_ARRAY_LINEAR);
+    return var_array_new(fc->strands,
+                         fc->strand_start,
+                         VAR_ARRAY_LINEAR);
   }
 
   var_array<unsigned int> *
   vrna_fold_compound_t_strand_end_get(vrna_fold_compound_t *fc)
   {
-    return var_array_uint_new(fc->strands,
-                              fc->strand_end,
-                              VAR_ARRAY_LINEAR);
+    return var_array_new(fc->strands,
+                         fc->strand_end,
+                         VAR_ARRAY_LINEAR);
   }
 
   var_array<int> *
   vrna_fold_compound_t_iindx_get(vrna_fold_compound_t *fc)
   {
-    return var_array_int_new(fc->length,
-                             fc->iindx,
-                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+    return var_array_new(fc->length,
+                         fc->iindx,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
   var_array<int> *
   vrna_fold_compound_t_jindx_get(vrna_fold_compound_t *fc)
   {
-    return var_array_int_new(fc->length,
-                             fc->jindx,
-                             VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+    return var_array_new(fc->length,
+                         fc->jindx,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
 %}
