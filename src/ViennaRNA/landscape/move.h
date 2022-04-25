@@ -53,6 +53,7 @@ typedef struct vrna_move_s vrna_move_t;
  */
 #define VRNA_MOVESET_DEFAULT     (VRNA_MOVESET_INSERTION | VRNA_MOVESET_DELETION)
 
+#define VRNA_MOVE_NO_APPLY       64
 
 /**
  * @brief   An atomic representation of the transition / move from one structure to its neighbor

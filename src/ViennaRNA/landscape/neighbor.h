@@ -158,7 +158,7 @@ vrna_neighbors_successive(const vrna_fold_compound_t  *fc,
  *  - A new neighbor move becomes available (#VRNA_NEIGHBOR_NEW)
  *
  *  @see  vrna_move_neighbor_diff(), #VRNA_NEIGHBOR_CHANGE, #VRNA_NEIGHBOR_INVALID, #VRNA_NEIGHBOR_NEW,
- *        #vrna_move_update_f
+ *        #vrna_move_update_f, #VRNA_MOVE_NO_APPLY
  *
  *  @param  fc        A fold compound for the RNA sequence(s) that this function operates on
  *  @param  ptable    The current structure as pair table
