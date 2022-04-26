@@ -35,7 +35,7 @@ RNA_PACKAGE_IF_ENABLED([cla],[
       _cla_pdf_failed="pdflatex command is missing!"
       cla_requirements_pdf=no
     else
-      RNA_LATEX_TEST_PACKAGES([fancyhdr lastpage xcolor hyperref geometry], [], [
+      RNA_LATEX_TEST_PACKAGES([babel fancyhdr geometry hyperref inputenc lastpage xcolor], [], [
         _cla_pdf_failed="Required LaTeX packages are missing!"
         cla_requirements_pdf=no
       ])
