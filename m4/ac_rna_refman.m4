@@ -43,7 +43,7 @@ RNA_PACKAGE_IF_ENABLED([doc],[
       doxygen=no
     else
       RNA_LATEX_TEST_PACKAGES(
-        [fixltx2e calc graphicx makeidx multicol multirow textcomp xcolor fontenc helvet courier amssymb sectsty geometry fancyhdr natbib tocloft amsmath amsfonts newunicodechar hyperref caption etoc ], [], [
+        [amsfonts amsmath array caption courier etoc fancyhdr fixltx2e fontenc geometry graphicx helvet hyperref ifthen ifxetex inputenc makeidx natbib newunicodechar sectsty textcomp tocloft wasysym], [], [
           doxygen_failed="Required LaTeX packages are missing!"
           doxygen=no
       ])
