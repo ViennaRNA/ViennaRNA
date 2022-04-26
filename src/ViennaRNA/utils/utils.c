@@ -242,16 +242,25 @@ vrna_message_vinfo(FILE       *fp,
 PUBLIC void
 vrna_init_rand(void)
 {
-  uint32_t seed = rj_mix(clock(), time(NULL), getpid());
+  vrna_init_rand_seed((unsigned int)rj_mix(clock(),
+                                           time(NULL),
+                                           getpid()));
+}
 
-  xsubi[0]  = xsubi[1] = xsubi[2] = (unsigned short)seed;  /* lower 16 bit */
-  xsubi[1]  += (unsigned short)((unsigned)seed >> 6);
-  xsubi[2]  += (unsigned short)((unsigned)seed >> 12);
-#ifndef HAVE_ERAND48
+
+PUBLIC void
+vrna_init_rand_seed(unsigned int seed)
+{
+#ifdef HAVE_ERAND48
+  uint32_t s = (uint32_t)seed;
+
+  xsubi[0]  = xsubi[1] = xsubi[2] = (unsigned short)s;  /* lower 16 bit */
+  xsubi[1]  += (unsigned short)((unsigned)s >> 6);
+  xsubi[2]  += (unsigned short)((unsigned)s >> 12);
+#else
   srand((unsigned int)seed);
 #endif
 }
-
 
 /*------------------------------------------------------------------------*/
 

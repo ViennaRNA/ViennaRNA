@@ -159,9 +159,22 @@ vrna_realloc(void     *p,
 
 /**
  *  @brief  Initialize seed for random number generator
+ *
+ *  @see  vrna_init_rand_seed(), vrna_urn()
  */
 void
 vrna_init_rand(void);
+
+
+/**
+ *  @brief  Initialize the random number generator with a pre-defined seed
+ *
+ *  @see  vrna_init_rand(), vrna_urn()
+ *
+ *  @param  seed  The seed for the random number generator
+ */
+void
+vrna_init_rand_seed(unsigned int seed);
 
 
 /**
@@ -177,7 +190,7 @@ extern unsigned short xsubi[3];
 /**
  *  @brief get a random number from [0..1]
  *
- *  @see  vrna_int_urn(), vrna_init_rand()
+ *  @see  vrna_int_urn(), vrna_init_rand(), vrna_init_rand_seed()
  *  @note Usually implemented by calling @e erand48().
  *  @return   A random number in range [0..1]
  */
