@@ -11,4 +11,9 @@ The scripting language interface provides an overloaded version of this function
 default parameters @p delimiters=NULL, @p keep=0, and @p options=#VRNA_TRIM_DEFAULT.
 @endparblock
 
+@fn void vrna_init_rand_seed(unsigned int seed)
+@scripting
+This function is available as an overloaded function @b init_rand() where the
+argument @p seed is optional.
+
 */

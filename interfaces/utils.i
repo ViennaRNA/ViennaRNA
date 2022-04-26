@@ -17,13 +17,16 @@
 %ignore nrerror;
 %ignore space;
 %ignore xrealloc;
-/*
 %ignore init_rand;
 %ignore urn;
 %ignore int_urn;
-*/
 %ignore filecopy;
 %ignore time_stamp;
+
+%rename init_rand vrna_init_rand;
+%rename init_rand vrna_init_rand_seed;
+%rename urn vrna_urn;
+%rename int_urn vrna_int_urn;
 
 
 %include  <ViennaRNA/utils/basic.h>

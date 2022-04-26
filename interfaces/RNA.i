@@ -194,6 +194,12 @@ namespace std {
 %rename("$ignore",  %$isconstant, regextarget=1) "^vrna_";
 
 
+%init %{
+  /* always initialize the random number generator when loading the module */
+  vrna_init_rand();
+%}
+
+
 // Typemaps that are independent of scripting language
 
 // This cleans up the char ** array after the function call
