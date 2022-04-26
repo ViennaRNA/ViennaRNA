@@ -21,6 +21,7 @@ RNA_CHECK_PARAMETER_FILES
 
 RNA_CHECK_DLIB
 
+RNA_CHECK_SWIG_SVM
 ])
 
 
@@ -250,4 +251,36 @@ tar -xjf src/dlib-${DLIB_VERSION}.tar.bz2 -C src/
   AC_SUBST(DLIB_CPPFLAGS, "-I\$(top_srcdir)/src/${DLIB_DIR} -DDLIB_NO_GUI_SUPPORT")
   AC_SUBST(DLIB_DIR)
 
+])
+
+##
+## Check whether the user deactivated libsvm support and still wants to
+## build scripting language interfaces. In such cases, the user is required
+## to have swig installed since the shipped swig wrappers default to libRNA
+## with libsvm support
+##
+AC_DEFUN([RNA_CHECK_SWIG_SVM], [
+  RNA_PACKAGE_IF_DISABLED([svm],[
+      AS_IF([test "x$has_swig" != "xyes"], [
+    AC_MSG_ERROR([
+=================================================
+Compilation requirements missing!
+
+You deactivated SVM support but this requires the
+scripting language interface wrappers (Perl 5, Python)
+to be re-generated!
+
+Please either install the 'swig' program to enable
+re-generation of the respective wrapper files or:
+
+a) deactivate the scripting language interfaces
+   alltogether using the '--without-swig' configure
+   option.
+b) leave SVM support enabled by omitting the
+   '--without-svm' configure option
+=================================================
+])        
+      ])
+    ])
+  ])
 ])
