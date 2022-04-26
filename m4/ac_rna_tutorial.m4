@@ -40,7 +40,7 @@ RNA_PACKAGE_IF_ENABLED([tutorial],[
       _tutorial_pdf_failed="pdflatex command is missing!"
       tutorial_requirements_pdf=no
     else
-      RNA_LATEX_TEST_PACKAGES([url color caption amssymb amsmath upquote verbatim keystroke fancyvrb hyperref graphics pgf xcolor], [], [
+      RNA_LATEX_TEST_PACKAGES([amsmath amssymb babel beamerarticle caption color fancyvrb graphics hyperref keystroke pgf upquote url verbatim xcolor], [], [
         _tutorial_pdf_failed="Required LaTeX packages are missing!"
         tutorial_requirements_pdf=no
       ])
