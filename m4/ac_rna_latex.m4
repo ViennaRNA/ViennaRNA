@@ -41,11 +41,18 @@ AC_DEFUN([RNA_LATEX_TEST_PACKAGES],[
         rm -rf .latextmp
         mkdir .latextmp
         cd .latextmp
-        echo "\\documentclass{article}" > testfile.tex
+        cat <<_LTXEOF >>testfile.tex
+\documentclass{article}
+_LTXEOF
         m4_foreach_w([latex_pkg], [$1], [
-            echo "\\usepackage{latex_pkg}" >> testfile.tex
+          cat <<_LTXEOF >>testfile.tex
+\usepackage{latex_pkg}
+_LTXEOF
         ])
-        echo "\\begin{document}\\end{document}" >> testfile.tex
+        cat <<_LTXEOF >>testfile.tex
+\begin{document}
+\end{document}
+_LTXEOF
         cat testfile.tex | $LATEX_CMD 2>&1 1>/dev/null && ac_latex_package_test_success=yes;
         cd ..
         rm -rf .latextmp
