@@ -34,16 +34,19 @@
   hide almost all attributes in vrna_fold_compound_t
   non-hidden attributes are made read-only using 'const' 
 */
+%immutable;
 typedef struct {
-  const vrna_fc_type_e      type;
-  const unsigned int        length;
-  const unsigned int        strands;
-  vrna_param_t      *const  params;
-  vrna_exp_param_t  *const  exp_params;
-  vrna_mx_mfe_t             *matrices;
-  vrna_mx_pf_t              *exp_matrices;
-  vrna_hc_t                 *hc;
+  const vrna_fc_type_e  type;
+  char                  *sequence;
+  unsigned int          length;
+  unsigned int          strands;
+  vrna_param_t          *params;
+  vrna_exp_param_t      *exp_params;
+  vrna_mx_mfe_t         *matrices;
+  vrna_mx_pf_t          *exp_matrices;
+  vrna_hc_t             *hc;
 } vrna_fold_compound_t;
+%mutable;
 
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
@@ -53,6 +56,9 @@ typedef struct {
   var_array<unsigned int> *const strand_end;
   var_array<int>          *const iindx;
   var_array<int>          *const jindx;
+
+  var_array<short>        *const sequence_encoding;
+  var_array<short>        *const sequence_encoding2;
 
 #ifdef SWIGPYTHON
 %feature("autodoc")vrna_fold_compound_t::vrna_fold_compound_t;
@@ -134,6 +140,12 @@ def __repr__(self):
                          VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
+  std::string
+  vrna_fold_compound_t_sequence_get(vrna_fold_compound_t *fc)
+  {
+    return std::string(fc->sequence);
+  }
+
   var_array<unsigned int> *
   vrna_fold_compound_t_strand_order_get(vrna_fold_compound_t *fc)
   {
@@ -169,11 +181,32 @@ def __repr__(self):
   var_array<int> *
   vrna_fold_compound_t_jindx_get(vrna_fold_compound_t *fc)
   {
-    return var_array_new(fc->length,
-                         fc->jindx,
-                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+    if (fc->type == VRNA_FC_TYPE_SINGLE)
+      return var_array_new(fc->length,
+                           fc->jindx,
+                           VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+
+    return NULL;
   }
 
+  var_array<short> *
+  vrna_fold_compound_t_sequence_encoding_get(vrna_fold_compound_t *fc)
+  {
+    if (fc->type == VRNA_FC_TYPE_SINGLE)
+      return var_array_new(fc->length + 1,
+                           fc->sequence_encoding,
+                           VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+
+    return NULL;
+  }
+
+  var_array<short> *
+  vrna_fold_compound_t_sequence_encoding2_get(vrna_fold_compound_t *fc)
+  {
+    return var_array_new(fc->length + 1,
+                         fc->sequence_encoding2,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
+  }
 %}
 
 /*
