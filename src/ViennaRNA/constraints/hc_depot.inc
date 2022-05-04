@@ -284,6 +284,8 @@ hc_depot_free(vrna_hc_t *hc)
       free(depot->bp);
     }
 
+    free(depot->bp_size);
+    free(depot->up_size);
     free(depot);
   }
   
