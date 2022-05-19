@@ -460,6 +460,12 @@ vrna_pt_pk_remove(const short   *ptable,
 
 
 /**
+ *  @brief  An unpaired base
+ */
+#define VRNA_PLIST_TYPE_UNPAIRED      6
+
+
+/**
  *  @brief  Data structure representing a single entry of an element probability list
  *          (e.g. list of pair probabilities)
  *

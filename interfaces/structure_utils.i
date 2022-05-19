@@ -741,6 +741,7 @@ double  my_dist_mountain(std::string str1, std::string str2, unsigned int p = 1)
 %constant int PLIST_TYPE_I_MOTIF  = VRNA_PLIST_TYPE_I_MOTIF;
 %constant int PLIST_TYPE_UD_MOTIF = VRNA_PLIST_TYPE_UD_MOTIF;
 %constant int PLIST_TYPE_STACK    = VRNA_PLIST_TYPE_STACK;
+%constant int PLIST_TYPE_UNPAIRED = VRNA_PLIST_TYPE_UNPAIRED;
 
 %constant unsigned int STRUCTURE_TREE_HIT            = VRNA_STRUCTURE_TREE_HIT;
 %constant unsigned int STRUCTURE_TREE_SHAPIRO_SHORT  = VRNA_STRUCTURE_TREE_SHAPIRO_SHORT;
