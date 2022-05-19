@@ -51,6 +51,11 @@ vrna_MEA(vrna_fold_compound_t *fc,
  *  The code of the MEA function also demonstrates the use of sparse dynamic
  *  programming scheme to reduce the time and memory complexity of folding.
  *
+ *  @note The unpaired probabilities @f$p^u_i = 1 - \sum_{j \neq i} p_{ij}@f$ are usually
+ *        computed from the supplied pairing probabilities @f$p_{ij}@f$ as stored in @p plist
+ *        entries of type #VRNA_PLIST_TYPE_BASEPAIR. To overwrite individual @f$p^u_o@f$
+ *        values simply add entries with type #VRNA_PLIST_TYPE_UNPAIRED
+ *
  *  @note To include G-Quadruplex support, the corresponding field in @p md must be set.
  *
  *  @ingroup  mea_fold

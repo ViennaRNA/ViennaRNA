@@ -300,7 +300,7 @@ prune_sort(vrna_ep_t    *p,
    * already sorted to be in the order we need them within the DP
    */
   unsigned int  size, i, nump = 0;
-  vrna_ep_t     *pp, *pc, *pc2;
+  vrna_ep_t     *pp, *pc;
 
   for (i = 1; i <= n; i++)
     pu[i] = 1.;
@@ -318,21 +318,26 @@ prune_sort(vrna_ep_t    *p,
 
     /* remove probabilities that i or j are enclosed by a gquad */
     for (i = 1; i <= n; i++) {
-      for (pc2 = p; pc2->i > 0; pc2++) {
-        /* skip all non-gquads */
-        if (S[pc2->i] != 3)
-          continue;
-
-        if (S[pc2->j] != 3)
-          continue;
-
-        /* remove only if i is enclosed */
-        if ((pc2->i < i) && (pc2->j > i))
-          pu[i] -= pc2->p;
+      for (pc = p; pc->i > 0; pc++) {
+        /* skip all non-gquads and remove only if i is enclosed */
+        if ((pc->type == VRNA_PLIST_TYPE_GQUAD) &&
+            (pc->i < i) &&
+            (pc->j > i))
+          pu[i] -= pc->p;
       }
     }
   }
 
+  /*
+   * check whether any unpaired probabilities should be explicitely
+   * overwritten due to input data
+   */
+  for (pc = p; pc->i > 0; pc++)
+    if (pc->type == VRNA_PLIST_TYPE_UNPAIRED)
+      for (i = pc->i; i <= pc->j; i++)
+        pu[i] = pc->p;
+
+  /* prepare pair probability entries */
   size  = n + 1;
   pp    = vrna_alloc(sizeof(vrna_ep_t) * (n + 1));
   for (pc = p; pc->i > 0; pc++) {
