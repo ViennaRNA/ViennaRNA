@@ -1627,12 +1627,13 @@ wrap_get_plist(vrna_mx_pf_t     *matrices,
 
           /* check if we've already seen this pair */
           for (k = 0; k < count; k++)
-            if (((pl)[k].i == ptr->i) && ((pl)[k].j == ptr->j))
+            if (((pl)[k].i == ptr->i) &&
+                ((pl)[k].j == ptr->j))
               break;
 
           (pl)[k].i     = ptr->i;
           (pl)[k].j     = ptr->j;
-          (pl)[k].type  = VRNA_PLIST_TYPE_GQUAD;
+          (pl)[k].type  = ptr->type;
           if (k == count) {
             (pl)[k].p = ptr->p;
             count++;
@@ -1698,7 +1699,9 @@ wrap_plist(vrna_fold_compound_t *vc,
       }
 
       /* check for presence of gquadruplex */
-      if (gquad && (S[i] == 3) && (S[j] == 3)) {
+      if ((gquad) &&
+          (S[i] == 3) &&
+          (S[j] == 3)) {
         /* add probability of a gquadruplex at position (i,j)
          * for dot_plot
          */
@@ -1718,13 +1721,14 @@ wrap_plist(vrna_fold_compound_t *vc,
 
           /* check if we've already seen this pair */
           for (k = 0; k < count; k++)
-            if (((pl)[k].i == ptr->i) && ((pl)[k].j == ptr->j) &&
-                ((pl)[k].type == VRNA_PLIST_TYPE_BASEPAIR))
+            if (((pl)[k].i == ptr->i) &&
+                ((pl)[k].j == ptr->j) &&
+                ((pl)[k].type == VRNA_PLIST_TYPE_TRIPLE))
               break;
 
           (pl)[k].i     = ptr->i;
           (pl)[k].j     = ptr->j;
-          (pl)[k].type  = VRNA_PLIST_TYPE_BASEPAIR;
+          (pl)[k].type  = ptr->type;
           if (k == count) {
             (pl)[k].p = ptr->p;
             count++;

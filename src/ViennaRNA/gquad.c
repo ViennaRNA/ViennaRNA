@@ -858,7 +858,18 @@ get_plist_gquad_from_db(const char  *structure,
   while ((ee = parse_gquad(structure + ge, &L, l)) > 0) {
     ge  += ee;
     gb  = ge - L * 4 - l[0] - l[1] - l[2] + 1;
-    /* add pseudo-base pair encloding gquad */
+
+    /* add pseudo-base pair enclosing gquad */
+    if (actual_size >= n * size - 5) {
+      n   *= 2;
+      pl  = (plist *)vrna_realloc(pl, n * size * sizeof(plist));
+    }
+
+    pl[actual_size].i       = gb;
+    pl[actual_size].j       = ge;
+    pl[actual_size].p       = pr;
+    pl[actual_size++].type  = VRNA_PLIST_TYPE_GQUAD;
+
     for (x = 0; x < L; x++) {
       if (actual_size >= n * size - 5) {
         n   *= 2;
@@ -868,22 +879,22 @@ get_plist_gquad_from_db(const char  *structure,
       pl[actual_size].i       = gb + x;
       pl[actual_size].j       = ge + x - L + 1;
       pl[actual_size].p       = pr;
-      pl[actual_size++].type  = 0;
+      pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
 
       pl[actual_size].i       = gb + x;
       pl[actual_size].j       = gb + x + l[0] + L;
       pl[actual_size].p       = pr;
-      pl[actual_size++].type  = 0;
+      pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
 
       pl[actual_size].i       = gb + x + l[0] + L;
       pl[actual_size].j       = ge + x - 2 * L - l[2] + 1;
       pl[actual_size].p       = pr;
-      pl[actual_size++].type  = 0;
+      pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
 
       pl[actual_size].i       = ge + x - 2 * L - l[2] + 1;
       pl[actual_size].j       = ge + x - L + 1;
       pl[actual_size].p       = pr;
-      pl[actual_size++].type  = 0;
+      pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
     }
   }
 
@@ -1106,9 +1117,11 @@ get_plist_gquad_from_pr_max(short             *S,
   for (i = gi; i < gj; i++) {
     for (j = i; j <= gj; j++) {
       if (tempprobs[my_index[i] - j] > 0.) {
-        pl[counter].i   = i;
-        pl[counter].j   = j;
-        pl[counter++].p = pp * tempprobs[my_index[i] - j];
+        pl[counter].i       = i;
+        pl[counter].j       = j;
+        pl[counter].p       = pp *
+                              tempprobs[my_index[i] - j];
+        pl[counter++].type  = VRNA_PLIST_TYPE_TRIPLE;
       }
     }
   }
@@ -1192,13 +1205,18 @@ vrna_get_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
     *Lmax = gq_help.L;
   }
 
-  pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] / G[my_index[gi] - gj];
+  pp = probs[my_index[gi] - gj] *
+       scale[gj - gi + 1] /
+       G[my_index[gi] - gj];
+
   for (i = gi; i < gj; i++) {
     for (j = i; j <= gj; j++) {
       if (tempprobs[my_index[i] - j] > 0.) {
-        pl[counter].i   = i;
-        pl[counter].j   = j;
-        pl[counter++].p = pp * tempprobs[my_index[i] - j];
+        pl[counter].i       = i;
+        pl[counter].j       = j;
+        pl[counter].p       = pp *
+                              tempprobs[my_index[i] - j];
+        pl[counter++].type  = VRNA_PLIST_TYPE_TRIPLE;
       }
     }
   }

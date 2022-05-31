@@ -168,7 +168,8 @@ PS_color_dot_plot(char *seq,
               pi[i].i,
               pi[i].j,
               sqrt(pi[i].p));
-    } else if (pi[i].type == VRNA_PLIST_TYPE_BASEPAIR) {
+    } else if ((pi[i].type == VRNA_PLIST_TYPE_BASEPAIR) ||
+               (pi[i].type == VRNA_PLIST_TYPE_TRIPLE)) {
       fprintf(wastl,"%1.2f %1.2f hsb %d %d %1.6f ubox\n",
              pi[i].hue, pi[i].sat, pi[i].i, pi[i].j, sqrt(pi[i].p));
 
@@ -699,7 +700,8 @@ EPS_print_bpp_data( FILE          *eps,
   if (pl)
     for (pl1 = pl; pl1->i>0; pl1++) {
       tmp = sqrt(pl1->p);
-      if(pl1->type == VRNA_PLIST_TYPE_BASEPAIR)
+      if ((pl1->type == VRNA_PLIST_TYPE_BASEPAIR) ||
+          (pl1->type == VRNA_PLIST_TYPE_TRIPLE))
           fprintf(eps,"%d %d %1.9f ubox\n", pl1->i, pl1->j, tmp);
     }
 
@@ -708,7 +710,8 @@ EPS_print_bpp_data( FILE          *eps,
   if (mf)
     for (pl1=mf; pl1->i>0; pl1++) {
       tmp = sqrt(pl1->p);
-      if(pl1->type == VRNA_PLIST_TYPE_BASEPAIR)
+      if ((pl1->type == VRNA_PLIST_TYPE_BASEPAIR) ||
+          (pl1->type == VRNA_PLIST_TYPE_TRIPLE))
         fprintf(eps,"%d %d %1.7f lbox\n", pl1->i, pl1->j, tmp);
     }
 }

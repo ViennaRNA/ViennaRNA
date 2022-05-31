@@ -466,6 +466,12 @@ vrna_pt_pk_remove(const short   *ptable,
 
 
 /**
+ *  @brief  One pair of a base triplet
+ */
+#define VRNA_PLIST_TYPE_TRIPLE        7
+
+
+/**
  *  @brief  Data structure representing a single entry of an element probability list
  *          (e.g. list of pair probabilities)
  *

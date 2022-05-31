@@ -110,7 +110,6 @@ vrna_MEA(vrna_fold_compound_t *fc,
          float                *mea)
 {
   char      *structure;
-  int       gq;
   vrna_ep_t *pl;
 
   structure = NULL;
@@ -120,13 +119,9 @@ vrna_MEA(vrna_fold_compound_t *fc,
       (fc->exp_params) &&
       (fc->exp_matrices) &&
       (fc->exp_matrices->probs)) {
-    gq = fc->exp_params->model_details.gquad;
 
     structure = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
-
-    fc->exp_params->model_details.gquad = 0;
-    pl                                  = vrna_plist_from_probs(fc, 1e-4 / (1 + gamma));
-    fc->exp_params->model_details.gquad = gq;
+    pl        = vrna_plist_from_probs(fc, 1e-4 / (1 + gamma));
 
     *mea = compute_MEA(pl,
                        fc->length,
@@ -232,7 +227,21 @@ compute_MEA(vrna_ep_t         *p,
         Mi[j] = MAX2(Mi[j], EA);
       }
       if ((unsigned int)pp->i == i && (unsigned int)pp->j == j) {
-        EA = 2 * gamma * pp->p + Mi1[j - 1];
+        EA = Mi1[j - 1];
+        switch (pp->type) {
+          case VRNA_PLIST_TYPE_GQUAD:
+            EA += (j - i + 1) * gamma * pp->p;
+            break;
+
+          case VRNA_PLIST_TYPE_BASEPAIR:
+            EA += 2 * gamma * pp->p;
+            break;
+
+          default:
+            /* do nothing */
+            break;
+        }
+
         if (Mi[j] < EA) {
           Mi[j] = EA;
           pushC(&C[j], i, EA); /* only push into C[j] list if optimal */
@@ -299,32 +308,28 @@ prune_sort(vrna_ep_t    *p,
    * 2*gamma*p_ij > p^u_i + p^u_j
    * already sorted to be in the order we need them within the DP
    */
-  unsigned int  size, i, nump = 0;
+  unsigned int  size, i, nt, nump = 0;
+  double        pug;
   vrna_ep_t     *pp, *pc;
 
   for (i = 1; i <= n; i++)
     pu[i] = 1.;
 
   for (pc = p; pc->i > 0; pc++) {
-    if (pc->type == VRNA_PLIST_TYPE_BASEPAIR) {
-      pu[pc->i] -= pc->p;
-      pu[pc->j] -= pc->p;
-    }
-  }
-
-  if (gq) {
-    if (!S)
-      vrna_message_error("no sequence information available in MEA gquad!");
-
-    /* remove probabilities that i or j are enclosed by a gquad */
-    for (i = 1; i <= n; i++) {
-      for (pc = p; pc->i > 0; pc++) {
-        /* skip all non-gquads and remove only if i is enclosed */
-        if ((pc->type == VRNA_PLIST_TYPE_GQUAD) &&
-            (pc->i < i) &&
-            (pc->j > i))
+    switch (pc->type) {
+      case VRNA_PLIST_TYPE_GQUAD:
+        for (i = pc->i; i <= pc->j; i++)
           pu[i] -= pc->p;
-      }
+        break;
+
+      case VRNA_PLIST_TYPE_BASEPAIR:
+        pu[pc->i] -= pc->p;
+        pu[pc->j] -= pc->p;
+        break;
+
+      default:
+        /* do nothing */
+        break;
     }
   }
 
@@ -344,15 +349,29 @@ prune_sort(vrna_ep_t    *p,
     if (pc->i > n)
       vrna_message_error("mismatch between vrna_ep_t and structure in MEA()");
 
-    if (pc->type == VRNA_PLIST_TYPE_BASEPAIR) {
-      if (pc->p * 2 * gamma > pu[pc->i] + pu[pc->j]) {
-        if (nump + 1 >= size) {
-          size  += size / 2 + 1;
-          pp    = vrna_realloc(pp, size * sizeof(vrna_ep_t));
-        }
+    nt  = 0;
+    pug = 0.;
 
-        pp[nump++] = *pc;
+    switch (pc->type) {
+      case VRNA_PLIST_TYPE_GQUAD:
+        nt = pc->j - pc->i + 1;
+        for (i = pc->i; i <= pc->j; i++)
+          pug += pu[i];
+        break;
+
+      case VRNA_PLIST_TYPE_BASEPAIR:
+        nt = 2;
+        pug = pu[pc->i] + pu[pc->j];
+        break;
+    }
+
+    if (pc->p * nt * gamma > pug) {
+      if (nump + 1 >= size) {
+        size  += size / 2 + 1;
+        pp    = vrna_realloc(pp, size * sizeof(vrna_ep_t));
       }
+
+      pp[nump++] = *pc;
     }
   }
   pp[nump].i = pp[nump].j = pp[nump].p = 0;
