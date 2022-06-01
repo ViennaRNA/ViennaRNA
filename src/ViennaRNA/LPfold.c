@@ -976,8 +976,8 @@ sc_contribution(vrna_fold_compound_t  *vc,
          sc->exp_energy_stack[j];
   }
 
-  if (sc->f)
-    q *= sc->f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
+  if (sc->exp_f)
+    q *= sc->exp_f(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
 
   return q;
 }
@@ -1125,6 +1125,10 @@ compute_probs(vrna_fold_compound_t        *vc,
                                       (k > 1) ? S1[k - 1] : -1,
                                       (l < n) ? S1[l + 1] : -1,
                                       pf_params);
+
+      if ((sc) &&
+          (sc->exp_f))
+        pR[k][l] *= sc->exp_f(k, l, k, l, VRNA_DECOMP_EXT_STEM, sc->data);
     }
 
     if (hc->matrix_local[k][l - k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
@@ -1212,9 +1216,13 @@ compute_probs(vrna_fold_compound_t        *vc,
                 exp_E_MLstem(tt, S1[m - 1], S1[i + 1], pf_params) *
                 qm[i + 1][k - 1];
 
-          if (sc)
+          if (sc) {
             if (sc->exp_energy_bp_local)
               ppp *= sc->exp_energy_bp_local[i][m - i];
+
+            if (sc->exp_f)
+              ppp *= sc->exp_f(i, m, i + 1, m - 1, VRNA_DECOMP_PAIR_ML, sc->data);
+          }
 
           prmt += ppp;
         }
@@ -1233,18 +1241,26 @@ compute_probs(vrna_fold_compound_t        *vc,
                              pf_params);
 
 
-        if (sc)
+        if (sc) {
           if (sc->exp_energy_bp_local)
             prmt1 *= sc->exp_energy_bp_local[k - 1][m - k + 1];
+
+          if (sc->exp_f)
+            prmt1 *= sc->exp_f(k - 1, m, k, m - 1, VRNA_DECOMP_PAIR_ML, sc->data);
+        }
       }
 
       /* k-1 is unpaired */
       if (hc->up_ml[k - 1]) {
         ppp = prm_l1[m] * expMLbase[1];
 
-        if (sc)
+        if (sc) {
           if (sc->exp_energy_up)
             ppp *= sc->exp_energy_up[k - 1][1];
+
+          if (sc->exp_f)
+            ppp *= sc->exp_f(k - 1, l, k, l, VRNA_DECOMP_ML_ML, sc->data);
+        }
 
         prm_l[m] = ppp + prmt1;
       } else {
@@ -1256,9 +1272,11 @@ compute_probs(vrna_fold_compound_t        *vc,
       if (hc->up_ml[m]) {
         ppp = prm_MLb * expMLbase[1];
 
-        if (sc)
+        if (sc) {
           if (sc->exp_energy_up)
             ppp *= sc->exp_energy_up[m][1];
+
+        }
 
         prm_MLb = ppp + prml[m];
       } else {
@@ -1287,6 +1305,11 @@ compute_probs(vrna_fold_compound_t        *vc,
                               pf_params) *
                  scale[2];
 
+          if ((sc) &&
+              (sc->exp_f)) {
+            dang *= sc->exp_f(k, l, k, l, VRNA_DECOMP_ML_STEM, sc->data);
+          }
+
           for (m = MIN2(k + winSize - 2, n); m >= l + 2; m--) {
             qmb[l][m - l - 1] += prml[m] * dang;
             q2l[l][m - l - 1] += (prml[m] - prm_l[m]) * dang;
@@ -1302,7 +1325,14 @@ compute_probs(vrna_fold_compound_t        *vc,
         temp *= exp_E_MLstem(tt,
                              (k > 1) ? S1[k - 1] : -1,
                              (l < n) ? S1[l + 1] : -1,
-                             pf_params) * scale[2];
+                             pf_params) *
+                scale[2];
+
+        if ((sc) &&
+            (sc->exp_f)) {
+          temp *= sc->exp_f(k, l, k, l, VRNA_DECOMP_ML_STEM, sc->data);
+        }
+
         pR[k][l] += temp;
       }
 
@@ -1451,6 +1481,7 @@ compute_stack_probabilities(vrna_fold_compound_t  *vc,
   FLT_OR_DBL        **qb, *scale, *probs;
   double            tmp;
   vrna_exp_param_t  *pf_params;
+  vrna_sc_t         *sc;
 
   length    = vc->length;
   S1        = vc->sequence_encoding;
@@ -1460,6 +1491,7 @@ compute_stack_probabilities(vrna_fold_compound_t  *vc,
   scale     = vc->exp_matrices->scale;
   rtype     = &(pf_params->model_details.rtype[0]);
   pairsize  = pf_params->model_details.max_bp_span;
+  sc        = vc->sc;
 
   max_j = MIN2(start + pairsize, length) - 1;
 
@@ -1481,6 +1513,19 @@ compute_stack_probabilities(vrna_fold_compound_t  *vc,
                               S1[j + 1],
                               pf_params) *
                 scale[2];
+
+      if (sc) {
+        if (sc->exp_energy_stack) {
+          tmp *= sc->exp_energy_stack[start] *
+                 sc->exp_energy_stack[j] *
+                 sc->exp_energy_stack[start - 1] *
+                 sc->exp_energy_stack[j + 1];
+        }
+
+        if (sc->exp_f)
+          tmp *= sc->exp_f(start - 1, j + 1, start, j, VRNA_DECOMP_PAIR_IL, sc->data);
+      }
+
       probs[j - start - 1] = tmp;
     }
   }
@@ -1571,8 +1616,8 @@ compute_pU(vrna_fold_compound_t       *vc,
             if (sc->exp_energy_up)
               qqq *= sc->exp_energy_up[k + 1][j3 - k - 1];
 
-            if (sc->f)
-              qqq *= sc->f(i5, j3, i5 + 1, k, VRNA_DECOMP_PAIR_ML, sc->data);
+            if (sc->exp_f)
+              qqq *= sc->exp_f(i5 + 1, j3 - 1, i5 + 1, k, VRNA_DECOMP_ML_ML, sc->data);
           }
 
           temp += qqq;
@@ -1587,8 +1632,8 @@ compute_pU(vrna_fold_compound_t       *vc,
             if (sc->exp_energy_up)
               qqq *= sc->exp_energy_up[i5 + 1][k + ulength - i5];
 
-            if (sc->f)
-              qqq *= sc->f(i5, j3, k + ulength + 1, j3, VRNA_DECOMP_PAIR_ML, sc->data);
+            if (sc->exp_f)
+              qqq *= sc->exp_f(i5 + 1, j3 - 1, k + ulength + 1, j3 - 1, VRNA_DECOMP_ML_ML, sc->data);
           }
 
           temp += qqq;
@@ -1604,8 +1649,8 @@ compute_pU(vrna_fold_compound_t       *vc,
             if (sc->exp_energy_up)
               qqq *= sc->exp_energy_up[k + 1][ulength];
 
-            if (sc->f)
-              qqq *= sc->f(i5, j3, k, k + ulength + 1, VRNA_DECOMP_PAIR_ML_OUTSIDE, sc->data);
+            if (sc->exp_f)
+              qqq *= sc->exp_f(i5 + 1, j3 - 1, k, k + ulength + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
           }
 
           temp += qqq;
@@ -1619,9 +1664,13 @@ compute_pU(vrna_fold_compound_t       *vc,
               scale[2] *
               expMLclosing;
 
-        if (sc)
+        if (sc) {
           if (sc->exp_energy_bp_local)
             qqq *= sc->exp_energy_bp_local[i5][j3 - i5];
+
+          if (sc->exp_f)
+            qqq *= sc->exp_f(i5, j3, i5 + 1, j3 - 1, VRNA_DECOMP_PAIR_ML, sc->data);
+        }
 
         temp *= qqq;
 
@@ -1745,6 +1794,9 @@ compute_pU(vrna_fold_compound_t       *vc,
 
             if (sc->exp_energy_bp)
               temp *= sc->exp_energy_bp_local[k][obp - k];
+
+            if (sc->exp_f)
+              temp *= sc->exp_f(k, obp, k + len + 1, obp - 1, VRNA_DECOMP_PAIR_ML, sc->data);
           }
 
           QBM[len]  += temp;
@@ -1769,19 +1821,27 @@ compute_pU(vrna_fold_compound_t       *vc,
       pUI[k + len][len] += pUI[k + len][len + 1] + QBI[len];
     }
     /* open chain */
-    if ((ulength >= winSize) && (k >= ulength) && (hc->up_ext[k - winSize + 1] >= winSize))
+    if ((ulength >= winSize) &&
+        (k >= ulength) &&
+        (hc->up_ext[k - winSize + 1] >= winSize))
       pUO[k][winSize] = scale[winSize] / q[k - winSize + 1][k];
   }
 
   /* open chain */
-  if ((ulength >= winSize) && (k >= ulength) && (hc->up_ext[k - winSize + 1] >= winSize)) {
-    if (sc && sc->exp_energy_up) {
-      pU[k][winSize] = scale[winSize] *
-                       sc->exp_energy_up[k][winSize] /
-                       q[k - winSize + 1][k];
-    } else {
-      pU[k][winSize] = scale[winSize] / q[k - winSize + 1][k];
+  if ((ulength >= winSize) &&
+      (k >= ulength) &&
+      (hc->up_ext[k - winSize + 1] >= winSize)) {
+    temp = scale[winSize] / q[k - winSize + 1][k];
+
+    if (sc) {
+      if (sc->exp_energy_up)
+        temp *= sc->exp_energy_up[k][winSize];
+
+      if (sc->exp_f)
+        temp *= sc->exp_f(k - winSize + 1, k, k - winSize + 1, k, VRNA_DECOMP_EXT_UP, sc->data);
     }
+
+    pU[k][winSize] = temp;
   }
 
   /*
