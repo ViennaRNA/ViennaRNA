@@ -2,9 +2,52 @@
 
 Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.0...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.1...HEAD)
 
 ## Version 2.5.x
+
+### [Version 2.5.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.0...v2.5.1) (Release date: 2022-06-02)
+
+#### Programs
+  * Refactor `ct2db` program to allow for pseudoknots in output structure
+
+#### Library
+  * API: Fix MEA computation for G-quadruplex predictions
+  * API: Fix memory leak in hard constraints container
+  * API: Fix RNApuzzler edge-case that resulted in segmentation faults
+  * API: Fix invalid memory access in `vrna_strjoin()`
+  * API: Revisit generic soft constraints for sliding-window base pair probability computations
+  * API: Enable to overwrite automatic unpaired probability determination in MEA computation
+  * API: Add `#VRNA_PLIST_TYPE_UNPAIRED` and `#VRNA_PLIST_TYPE_TRIPLE` identifiers for `vrna_ep_t`
+  * API: Add `vrna_init_rand_seed()` to initialize RNG with seed
+  * API: Add `vrna_zsc_compute_raw()` to obtain mean and sd for Z-score computation
+  * API: Add `vrna_file_connect_read_record()` function to parse connectivity table (`*.ct`) files
+  * API: Add `vrna_strtrim()` function
+  * API: Update sanity checks for input in `vrna_pbacktrack_sub*()`
+  * API: Allow for pseudo-knots in `vrna_db_from_ptable()`
+  * API: Do not use `min_loop_size = 0` for multi strand interaction prediction
+  * API: Remove unnecessary uses of `min_loop_size` at multiple locations
+  * API: Deprecate cutpoint member of vrna_fold_compound_t and prepare for 5'/3' encoding
+  * API: Refactor sequence addition/preparation for `vrna_fold_compound_t`
+  * DOC: Update documentation
+  * SWIG: Add simple dot-plot file wrapper `plot_dp_EPS()`
+  * SWIG: Add `sequence`, `sequence_encoding` and `sequence_encoding2` attributes to `fold_compound` objects
+  * SWIG: Fix RNG wrapping and initialize RNG upon module load and update associated functions
+  * SWIG: Add more access to member variable arrays for various objects used throughout the library
+  * SWIG: Add memory efficient wrapper for dynamically allocated arrays and matrices
+  * SWIG: Shadow pair table data structure for efficient interactions between C and target languages
+  * SWIG: Expose hard constraints members in `fold_compound` objects
+  * SWIG: Add `exp_E_ext_stem()` method (`vrna_exp_E_ext_stem()`) to `fold_compound` objects
+  * SWIG: Expose DP matrices within `fold_compound` objects
+  * SWIG: Fix memory leak in wrapper for `vrna_db_from_ptable()`
+
+#### Package
+  * Update dlib to version 19.23
+  * DOC: Update doxygen.conf for version 1.9.2
+  * AUTOCONF: Factor-out Naview layout algorithm to allow for deactivating the Naview layout algorithm at configure-time
+  * AUTOCONF: Make LaTeX checks more portable and update LaTeX package checks
+  * AUTOCONF: Check whether we can build the swig interface when SVM support is deactivated
+  * AUTOCONF: Fix condition check for CLA build
 
 ### [Version 2.5.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.4.18...v2.5.0) (Release date: 2021-11-08)
 
