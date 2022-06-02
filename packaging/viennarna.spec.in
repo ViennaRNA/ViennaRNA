@@ -54,6 +54,9 @@ Provides:       kinwalker
 
 BuildRequires:  python2-devel python2
 
+# work-arround, maybe removed later
+%undefine __brp_remove_la_files
+
 %if 0%{?with_python3}
 %if %{defined el7}
 BuildRequires:  python36-devel python36
