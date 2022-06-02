@@ -136,7 +136,12 @@ class GeneralTests(unittest.TestCase):
         """Reduced symbol set"""
         RNA.cvar.symbolset = "GC"
         start = RNA.random_string(len(struct1), "GC")
-        (sinv, cost) = RNA.inverse_fold(start, struct1)
+        cost = 100
+        trial = 0
+        max_tries = 100
+        while cost != 0 and trial < max_tries:
+            (sinv, cost) = RNA.inverse_fold(start, struct1)
+            trial += 1
         (ss, en) = RNA.fold(sinv)
         self.assertEqual(ss, struct1)
 
