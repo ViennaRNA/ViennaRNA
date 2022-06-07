@@ -1,18 +1,14 @@
-dist: xenial
+dist: focal
 
 compiler:
 - gcc
-- clang
 
 
 addons:
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
     packages:
     - gcc
     - g++
-    - clang
     - gengetopt
     - flex
     - help2man
@@ -20,16 +16,15 @@ addons:
     - doxygen
     - doxygen-latex
     - libperl-dev
-    - python-dev
     - python3-dev
     - graphviz
     - texlive-latex-base
     - texlive-latex-recommended
     - texlive-latex-extra
-    - latex-beamer
     - check
     - texinfo
     - diffutils
+    - xxd
 
 before_script:
 - autoreconf -i
