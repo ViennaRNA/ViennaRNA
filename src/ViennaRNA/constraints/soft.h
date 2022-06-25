@@ -68,6 +68,13 @@ typedef int (vrna_callback_sc_energy)(int           i,
                                       unsigned char d,
                                       void          *data);
 
+typedef int (vrna_sc_cb_multi)(vrna_fold_compound_t  *fc,
+                               int                   i,
+                               int                   j,
+                               int                   k,
+                               int                   l,
+                               void                  *data);
+
 /**
  * @brief Callback to retrieve pseudo energy contribution as Boltzmann Factors for soft constraint feature
  *
@@ -435,6 +442,14 @@ vrna_sc_add_data_comparative(vrna_fold_compound_t       *vc,
 int
 vrna_sc_add_f(vrna_fold_compound_t    *vc,
               vrna_callback_sc_energy *f);
+
+
+size_t
+vrna_sc_multi_cb_add(vrna_fold_compound_t       *fc,
+                     vrna_sc_cb_multi           *cb,
+                     void                       *data,
+                     vrna_callback_free_auxdata *free_data,
+                     unsigned int               decomp_type);
 
 
 int

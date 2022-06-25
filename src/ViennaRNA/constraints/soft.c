@@ -600,8 +600,14 @@ vrna_sc_add_data(vrna_fold_compound_t       *fc,
     if (!fc->sc)
       vrna_sc_init(fc);
 
-    fc->sc->data      = data;
-    fc->sc->free_data = free_data;
+    vrna_sc_t *sc = fc->sc;
+
+    if (sc->free_data)
+      sc->free_data(sc->data);
+
+    sc->data      = data;
+    sc->free_data = free_data;
+
     return 1;
   }
 
@@ -621,13 +627,20 @@ vrna_sc_add_data_comparative(vrna_fold_compound_t       *fc,
     if (!fc->scs)
       vrna_sc_init(fc);
 
+    if (free_data)
+      for (s = 0; s < fc->n_seq; s++) {
+        if (fc->scs[s]->free_data) {
+          fc->scs[s]->free_data(fc->scs[s]->data);
+          fc->scs[s]->data = NULL;
+        }
+
+        fc->scs[s]->free_data = free_data[s];
+      }
+
     if (data)
       for (s = 0; s < fc->n_seq; s++)
         fc->scs[s]->data = data[s];
 
-    if (free_data)
-      for (s = 0; s < fc->n_seq; s++)
-        fc->scs[s]->free_data = free_data[s];
 
     return 1;
   }
@@ -1478,3 +1491,4 @@ nullify(vrna_sc_t *sc)
     }
   }
 }
+
