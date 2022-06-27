@@ -355,6 +355,7 @@ libRNA_constraints_la_SOURCES = \
     constraints/soft.c \
     constraints/soft_cb_multi.c \
     constraints/sc_cb_m6A.c \
+    constraints/sc_cb_psi.c \
     constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \
