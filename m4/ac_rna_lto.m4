@@ -20,6 +20,7 @@ AC_DEFUN([RNA_ENABLE_LTO],[
   RNA_FEATURE_IF_ENABLED([lto],[
 
     ac_lto_supported=no
+    ac_lto_arg_supported=no
     ac_fat_lto_obj_supported=no
 
   # check whether the compiler accepts LTO option
@@ -27,9 +28,17 @@ AC_DEFUN([RNA_ENABLE_LTO],[
     AX_CHECK_COMPILE_FLAG([-flto], [ac_lto_supported=yes],[ac_lto_supported=no],[],[])
     AC_LANG_POP([C])
 
+    AC_LANG_PUSH([C])
+    AX_CHECK_COMPILE_FLAG([-flto=auto], [ac_lto_arg_supported=yes],[ac_lto_arg_supported=no],[],[])
+    AC_LANG_POP([C])
+
     if test "x$ac_lto_supported" != "xno" ; then
       AC_LANG_PUSH([C++])
       AX_CHECK_COMPILE_FLAG([-flto], [],[ac_lto_supported=no],[],[])
+      AC_LANG_POP([C++])
+
+      AC_LANG_PUSH([C++])
+      AX_CHECK_COMPILE_FLAG([-flto=auto], [],[ac_lto_arg_supported=no],[],[])
       AC_LANG_POP([C++])
     fi
 
@@ -44,21 +53,35 @@ AC_DEFUN([RNA_ENABLE_LTO],[
     fi
 
     ## prepare compile settings
-    AS_IF([ test "x$ac_lto_supported" != "xno" ], [
-
-      ## set compile flags
-      AS_IF([ test "x$ac_fat_lto_obj_supported" != "xno" ],[
-        LTO_CFLAGS="-flto -ffat-lto-objects"
-        LTO_CXXFLAGS="-flto -ffat-lto-objects"
-      ],[
-        LTO_CFLAGS="-flto -ffat-lto-objects"
-        LTO_CXXFLAGS="-flto"
+    AS_IF([ test "x$ac_lto_arg_supported" != "xno" ], [
+        ## set compile flags
+        AS_IF([ test "x$ac_fat_lto_obj_supported" != "xno" ],[
+          LTO_CFLAGS="-flto=auto -ffat-lto-objects"
+          LTO_CXXFLAGS="-flto=auto -ffat-lto-objects"
+        ],[
+          LTO_CFLAGS="-flto=auto -ffat-lto-objects"
+          LTO_CXXFLAGS="-flto=auto"
+        ])
+    ], [
+      AS_IF([ test "x$ac_lto_supported" != "xno" ], [
+        ## set compile flags
+        AS_IF([ test "x$ac_fat_lto_obj_supported" != "xno" ],[
+          LTO_CFLAGS="-flto -ffat-lto-objects"
+          LTO_CXXFLAGS="-flto -ffat-lto-objects"
+        ],[
+          LTO_CFLAGS="-flto -ffat-lto-objects"
+          LTO_CXXFLAGS="-flto"
+        ])
       ])
     ])
 
     ## prepare linker settings
     if test "x$ac_lto_supported" != "xno" ; then
-      LTO_LDFLAGS="-flto"
+      if test "x$ac_lto_arg_supported" != "xno" ; then
+        LTO_LDFLAGS="-flto=auto"
+      else
+        LTO_LDFLAGS="-flto"
+      fi
 
       AS_IF([ test "x$ax_cv_c_compiler_vendor" == "xclang" ],[
             ## Here we have to distinguish at least OS X, since it
