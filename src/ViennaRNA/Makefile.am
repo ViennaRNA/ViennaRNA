@@ -205,7 +205,8 @@ vrna_constraints_HEADERS = \
     constraints/ligand.h \
     constraints/SHAPE.h \
     constraints/hard.h \
-    constraints/soft.h
+    constraints/soft.h \
+    constraints/soft_special.h
 
 
 vrna_loops_HEADERS = \
@@ -353,6 +354,7 @@ libRNA_constraints_la_SOURCES = \
     constraints/hard.c \
     constraints/soft.c \
     constraints/soft_cb_multi.c \
+    constraints/sc_cb_m6A.c \
     constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \
