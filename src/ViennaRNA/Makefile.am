@@ -259,6 +259,7 @@ vrna_params_HEADERS = \
 
 
 vrna_datastructures_HEADERS = \
+    datastructures/array.h \
     datastructures/basic.h \
     datastructures/lists.h \
     datastructures/char_stream.h \
@@ -411,6 +412,7 @@ libRNA_params_la_SOURCES = \
     params/convert.c
 
 libRNA_datastructures_la_SOURCES = \
+    datastructures/array.c \
     datastructures/basic_datastructures.c \
     datastructures/lists.c \
     datastructures/char_stream.c \
