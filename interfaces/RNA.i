@@ -39,6 +39,7 @@ extern "C" {
 #include  <ViennaRNA/constraints/basic.h>
 #include  <ViennaRNA/constraints/hard.h>
 #include  <ViennaRNA/constraints/soft.h>
+#include  <ViennaRNA/constraints/soft_special.h>
 #include  <ViennaRNA/constraints/SHAPE.h>
 #include  <ViennaRNA/constraints/ligand.h>
 

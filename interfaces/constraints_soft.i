@@ -170,6 +170,24 @@
     return vrna_sc_add_stack_comparative($self, i, (const FLT_OR_DBL *)&v[0], options);
   }
 
+  void
+  sc_m6A(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_m6A($self, &modification_sites[0]);
+  }
+
+  void
+  sc_psi(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_psi($self, &modification_sites[0]);
+  }
+
+  void
+  sc_dihydrouridine(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_dihydrouridine($self, &modification_sites[0]);
+  }
 }
 
 %include  <ViennaRNA/constraints/soft.h>
+%include  <ViennaRNA/constraints/soft_special.h>
