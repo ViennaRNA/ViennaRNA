@@ -398,7 +398,7 @@ sc_m6a_mm_pf(int            i,
 
 PUBLIC void
 vrna_sc_m6A(vrna_fold_compound_t  *fc,
-            unsigned int          *modification_sites)
+            const unsigned int    *modification_sites)
 {
   if ((fc) &&
       (modification_sites)) {
@@ -410,18 +410,18 @@ vrna_sc_m6A(vrna_fold_compound_t  *fc,
         enc[modification_sites[i]] = 5;
 
     init_m6A_stacks();
-    vrna_sc_multi_cb_add(fc, &sc_m6a_hp, (void *)enc, &free, VRNA_DECOMP_PAIR_HP);
-    vrna_sc_multi_cb_add(fc, &sc_m6a_int, (void *)enc, NULL, VRNA_DECOMP_PAIR_IL);
-    vrna_sc_multi_cb_add(fc, &sc_m6a_ml, (void *)enc, NULL, VRNA_DECOMP_PAIR_ML);
-    vrna_sc_multi_cb_add(fc, &sc_m6a_stem, (void *)enc, NULL, VRNA_DECOMP_EXT_STEM);
-    vrna_sc_multi_cb_add(fc, &sc_m6a_ext_stem_ext, (void *)enc, NULL, VRNA_DECOMP_EXT_STEM_EXT);
-    vrna_sc_multi_cb_add(fc, &sc_m6a_ext_ext_stem, (void *)enc, NULL, VRNA_DECOMP_EXT_EXT_STEM);
+    vrna_sc_multi_cb_add(fc, &sc_m6a_hp, NULL, (void *)enc, &free, VRNA_DECOMP_PAIR_HP);
+    vrna_sc_multi_cb_add(fc, &sc_m6a_int, NULL, (void *)enc, NULL, VRNA_DECOMP_PAIR_IL);
+    vrna_sc_multi_cb_add(fc, &sc_m6a_ml, NULL, (void *)enc, NULL, VRNA_DECOMP_PAIR_ML);
+    vrna_sc_multi_cb_add(fc, &sc_m6a_stem, NULL, (void *)enc, NULL, VRNA_DECOMP_EXT_STEM);
+    vrna_sc_multi_cb_add(fc, &sc_m6a_ext_stem_ext, NULL, (void *)enc, NULL, VRNA_DECOMP_EXT_STEM_EXT);
+    vrna_sc_multi_cb_add(fc, &sc_m6a_ext_ext_stem, NULL, (void *)enc, NULL, VRNA_DECOMP_EXT_EXT_STEM);
     vrna_sc_multi_cb_add(fc,
-                         &sc_m6a_ext_stem_outside,
+                         &sc_m6a_ext_stem_outside, NULL,
                          (void *)enc,
                          NULL,
                          VRNA_DECOMP_EXT_STEM_OUTSIDE);
-    vrna_sc_multi_cb_add(fc, &sc_m6a_stem, (void *)enc, NULL, VRNA_DECOMP_ML_STEM);
-    vrna_sc_multi_cb_add(fc, &sc_m6a_ml_ml_stem, (void *)enc, NULL, VRNA_DECOMP_ML_ML_STEM);
+    vrna_sc_multi_cb_add(fc, &sc_m6a_stem, NULL, (void *)enc, NULL, VRNA_DECOMP_ML_STEM);
+    vrna_sc_multi_cb_add(fc, &sc_m6a_ml_ml_stem, NULL, (void *)enc, NULL, VRNA_DECOMP_ML_ML_STEM);
   }
 }

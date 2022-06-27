@@ -72,7 +72,7 @@ psi_A_stack_correction(vrna_fold_compound_t *fc,
 
 PUBLIC void
 vrna_sc_psi(vrna_fold_compound_t  *fc,
-            unsigned int          *modification_sites)
+            const unsigned int    *modification_sites)
 {
   if ((fc) &&
       (modification_sites)) {
@@ -83,6 +83,6 @@ vrna_sc_psi(vrna_fold_compound_t  *fc,
       if (modification_sites[i] <= fc->length)
         enc[modification_sites[i]] = 5;
 
-    vrna_sc_multi_cb_add(fc, &psi_A_stack_correction, (void *)enc, &free, VRNA_DECOMP_PAIR_IL);
+    vrna_sc_multi_cb_add(fc, &psi_A_stack_correction, NULL, (void *)enc, &free, VRNA_DECOMP_PAIR_IL);
   }
 }

@@ -68,12 +68,12 @@ typedef int (vrna_callback_sc_energy)(int           i,
                                       unsigned char d,
                                       void          *data);
 
-typedef int (vrna_sc_cb_multi)(vrna_fold_compound_t  *fc,
-                               int                   i,
-                               int                   j,
-                               int                   k,
-                               int                   l,
-                               void                  *data);
+typedef int (vrna_callback_sc_direct)(vrna_fold_compound_t  *fc,
+                                      int                   i,
+                                      int                   j,
+                                      int                   k,
+                                      int                   l,
+                                      void                  *data);
 
 /**
  * @brief Callback to retrieve pseudo energy contribution as Boltzmann Factors for soft constraint feature
@@ -112,6 +112,13 @@ typedef FLT_OR_DBL (vrna_callback_sc_exp_energy)(int            i,
                                                  int            k,
                                                  int            l,
                                                  unsigned char  d,
+                                                 void           *data);
+
+typedef FLT_OR_DBL (vrna_callback_sc_exp_direct)(vrna_fold_compound_t *fc,
+                                                 int            i,
+                                                 int            j,
+                                                 int            k,
+                                                 int            l,
                                                  void           *data);
 
 /**
@@ -445,11 +452,12 @@ vrna_sc_add_f(vrna_fold_compound_t    *vc,
 
 
 size_t
-vrna_sc_multi_cb_add(vrna_fold_compound_t       *fc,
-                     vrna_sc_cb_multi           *cb,
-                     void                       *data,
-                     vrna_callback_free_auxdata *free_data,
-                     unsigned int               decomp_type);
+vrna_sc_multi_cb_add(vrna_fold_compound_t         *fc,
+                     vrna_callback_sc_direct      *cb,
+                     vrna_callback_sc_exp_direct  *cb_exp,
+                     void                         *data,
+                     vrna_callback_free_auxdata   *free_data,
+                     unsigned int                 decomp_type);
 
 
 int
