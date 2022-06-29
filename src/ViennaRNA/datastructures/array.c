@@ -1,55 +1,40 @@
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/datastructures/array.h"
 
-PUBLIC void *
-vrna_array_init(size_t element_size,
-                size_t init_size)
+
+
+PUBLIC VRNA_NO_INLINE void *
+vrna__array_set_capacity(void    *array,
+                         size_t  capacity,
+                         size_t  element_size)
 {
-  void    *array;
-  size_t  size;
+  vrna_array_header_t *h = VRNA_ARRAY_HEADER(array);
 
-  size      = element_size * init_size + sizeof(struct vrna_array_header_s);
-  array     = (void *)vrna_alloc(size);
-  array     += sizeof(struct vrna_array_header_s);
-  struct vrna_array_header_s *header = VRNA_ARRAY_HEADER(array);
-  header->num           = 0;
-  header->size          = init_size;
-  header->element_size  = element_size;
+  if (capacity == h->size)
+    return array;
 
-  return array;
-}
-
-
-PUBLIC void
-vrna_array_free(void *array) {
-  if (array) {
-    array -= sizeof(struct vrna_array_header_s);
-    free(array);
-  }
-}
-
-
-PUBLIC void *
-vrna_array_grow(void    *array,
-                size_t  grow_size) {
-  size_t                      size;
-  struct vrna_array_header_s  *header;
-
-  if (array) {
-    header  = VRNA_ARRAY_HEADER(array);
-    size    = header->element_size * (header->size + grow_size) + sizeof(struct vrna_array_header_s);
-    array  -= sizeof(struct vrna_array_header_s);
-    array   = (void *)vrna_realloc(array, size);
-
-    if (array) {
-      array += sizeof(struct vrna_array_header_s);
-      header = VRNA_ARRAY_HEADER(array);
-      header->size += grow_size;
+  /* shrink array (and remove trailing elements */
+  if (capacity < h->num) {
+    if (h->size < capacity) {
+      size_t new_capacity = VRNA_ARRAY_GROW_FORMULA(h->size);
+      if (new_capacity < capacity)
+        new_capacity = capacity;
+      vrna__array_set_capacity(array, new_capacity, element_size);
     }
+    h->num = capacity;
   }
 
-  return array;
+  /* move memory to new location */
+  size_t size = sizeof(vrna_array_header_t) + element_size * capacity;
+  vrna_array_header_t *nh = (vrna_array_header_t *)vrna_alloc(size);
+  memmove(nh, h, sizeof(vrna_array_header_t) + element_size * h->num);
+  nh->num     = h->num;
+  nh->size    = capacity;
+  free(h);
+
+  return nh + 1;
 }

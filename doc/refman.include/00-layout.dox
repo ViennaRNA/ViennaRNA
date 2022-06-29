@@ -333,6 +333,9 @@ formats, and various output file formats produced by our library.
 @defgroup   heap_utils                Heaps
 @ingroup    data_structures
 
+@defgroup   array_utils               Arrays
+@ingroup    data_structures
+
 @defgroup   buffer_utils              Buffers
 @ingroup    data_structures
 

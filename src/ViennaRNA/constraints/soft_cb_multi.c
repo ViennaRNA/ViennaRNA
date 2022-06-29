@@ -21,17 +21,12 @@
  #################################
  */
 
-typedef vrna_callback_sc_direct *sc_cb_array_t;
-typedef vrna_callback_sc_exp_direct *sc_cb_exp_array_t;
-typedef void *sc_cb_data_array_t;
-typedef vrna_callback_free_auxdata *sc_cb_data_free_array_t;
-
 typedef struct {
-  sc_cb_array_t           *cbs;
-  sc_cb_exp_array_t       *cbs_exp;
-  sc_cb_data_array_t      *data;
-  sc_cb_data_array_t      *data_exp;
-  sc_cb_data_free_array_t *free_data;
+  vrna_array(vrna_callback_sc_direct *)     cbs;
+  vrna_array(vrna_callback_sc_exp_direct *) cbs_exp;
+  vrna_array(void *)                        data;
+  vrna_array(void *)                        data_exp;
+  vrna_array(vrna_callback_free_auxdata *)  free_data;
 } sc_cb_container_t;
 
 
@@ -59,26 +54,6 @@ typedef struct {
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE sc_cb_array_t *
-sc_cb_array_append(sc_cb_array_t            *container,
-                   vrna_callback_sc_direct  *callback);
-
-
-PRIVATE sc_cb_exp_array_t *
-sc_cb_exp_array_append(sc_cb_exp_array_t            *container,
-                       vrna_callback_sc_exp_direct  *callback);
-
-
-PRIVATE sc_cb_data_array_t *
-sc_cb_data_array_append(sc_cb_data_array_t  *container,
-                        void                *data);
-
-
-PRIVATE sc_cb_data_free_array_t *
-sc_cb_free_data_array_append(sc_cb_data_free_array_t    *container,
-                             vrna_callback_free_auxdata *free_data);
-
-
 PRIVATE INLINE int
 sc_collect(int            i,
            int            j,
@@ -152,30 +127,30 @@ vrna_sc_multi_cb_add(vrna_fold_compound_t         *fc,
 
     if (multi_s) {
       if (!multi_s->data[d].cbs) {
-        multi_s->data[d].cbs        = vrna_array_init(sizeof(sc_cb_array_t), 1);
-        multi_s->data[d].cbs_exp    = vrna_array_init(sizeof(sc_cb_exp_array_t), 1);
-        multi_s->data[d].data       = vrna_array_init(sizeof(void *), 1);
-        multi_s->data[d].data_exp   = vrna_array_init(sizeof(void *), 1);
-        multi_s->data[d].free_data  = vrna_array_init(sizeof(vrna_callback_free_auxdata *), 1);
+        vrna_array_init(multi_s->data[d].cbs);
+        vrna_array_init(multi_s->data[d].cbs_exp);
+        vrna_array_init(multi_s->data[d].data);
+        vrna_array_init(multi_s->data[d].data_exp);
+        vrna_array_init(multi_s->data[d].free_data);
       }
 
       data_multi            = &(multi_s->data[d]);
-      data_multi->cbs       = sc_cb_array_append(data_multi->cbs, cb);
-      data_multi->data      = sc_cb_data_array_append(data_multi->data, data);
-      data_multi->free_data = sc_cb_free_data_array_append(data_multi->free_data, free_data);
+      vrna_array_append(data_multi->cbs, cb);
+      vrna_array_append(data_multi->data, data);
+      vrna_array_append(data_multi->free_data, free_data);
 
       if (cb_exp) {
-        data_multi->cbs_exp   = sc_cb_exp_array_append(data_multi->cbs_exp, cb_exp);
-        data_multi->data_exp  = sc_cb_data_array_append(data_multi->data_exp, data);
+        vrna_array_append(data_multi->cbs_exp, cb_exp);
+        vrna_array_append(data_multi->data_exp, data);
       } else {
         sc_cb_en_wrap *wrapper = (sc_cb_en_wrap *)vrna_alloc(sizeof(sc_cb_en_wrap));
         wrapper->cb           = cb;
         wrapper->data         = data;
-        data_multi->cbs_exp   = sc_cb_exp_array_append(data_multi->cbs_exp, &cb_exp_default);
-        data_multi->data_exp  = sc_cb_data_array_append(data_multi->data_exp, wrapper);
+        vrna_array_append(data_multi->cbs_exp, &cb_exp_default);
+        vrna_array_append(data_multi->data_exp, wrapper);
       }
 
-      return VRNA_ARRAY_SIZE(data_multi->cbs);
+      return vrna_array_size(data_multi->cbs);
     }
   }
 
@@ -188,58 +163,6 @@ vrna_sc_multi_cb_add(vrna_fold_compound_t         *fc,
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
-PRIVATE sc_cb_array_t *
-sc_cb_array_append(sc_cb_array_t            *container,
-                   vrna_callback_sc_direct  *callback)
-{
-  if (VRNA_ARRAY_RESIZE_REQUIRED(container, 1))
-    container = vrna_array_grow(container, 1);
-
-  container[VRNA_ARRAY_SIZE(container)++] = callback;
-
-  return container;
-}
-
-
-PRIVATE sc_cb_exp_array_t *
-sc_cb_exp_array_append(sc_cb_exp_array_t            *container,
-                       vrna_callback_sc_exp_direct  *callback)
-{
-  if (VRNA_ARRAY_RESIZE_REQUIRED(container, 1))
-    container = vrna_array_grow(container, 1);
-
-  container[VRNA_ARRAY_SIZE(container)++] = callback;
-
-  return container;
-}
-
-
-PRIVATE sc_cb_data_array_t *
-sc_cb_data_array_append(sc_cb_data_array_t  *container,
-                        void                *data)
-{
-  if (VRNA_ARRAY_RESIZE_REQUIRED(container, 1))
-    container = vrna_array_grow(container, 1);
-
-  container[VRNA_ARRAY_SIZE(container)++] = data;
-
-  return container;
-}
-
-
-PRIVATE sc_cb_data_free_array_t *
-sc_cb_free_data_array_append(sc_cb_data_free_array_t    *container,
-                             vrna_callback_free_auxdata *free_data)
-{
-  if (VRNA_ARRAY_RESIZE_REQUIRED(container, 1))
-    container = vrna_array_grow(container, 1);
-
-  container[VRNA_ARRAY_SIZE(container)++] = free_data;
-
-  return container;
-}
-
-
 PRIVATE INLINE int
 sc_collect(int            i,
            int            j,
@@ -253,9 +176,9 @@ sc_collect(int            i,
 
   if (msc->data[d].cbs) {
     vrna_fold_compound_t  *fc     = msc->fc;
-    sc_cb_array_t         *cbs    = msc->data[d].cbs;
+    vrna_callback_sc_direct         **cbs    = msc->data[d].cbs;
     void                  **data  = msc->data[d].data;
-    size_t                stop    = VRNA_ARRAY_SIZE(cbs);
+    size_t                stop    = vrna_array_size(cbs);
 
     for (size_t c = 0; c < stop; c++)
       e += cbs[c](fc, i, j, k, l, data[c]);
@@ -278,9 +201,9 @@ sc_exp_collect(int            i,
 
   if (msc->data[d].cbs_exp) {
     vrna_fold_compound_t  *fc       = msc->fc;
-    sc_cb_exp_array_t     *cbs_exp  = msc->data[d].cbs_exp;
+    vrna_callback_sc_exp_direct     **cbs_exp  = msc->data[d].cbs_exp;
     void                  **data    = msc->data[d].data_exp;
-    size_t                stop      = VRNA_ARRAY_SIZE(cbs_exp);
+    size_t                stop      = vrna_array_size(cbs_exp);
 
     for (size_t c = 0; c < stop; c++)
       q *= cbs_exp[c](fc, i, j, k, l, data[c]);
@@ -315,21 +238,21 @@ sc_multi_free(void *data)
   for (unsigned char d = 1; d < VRNA_DECOMP_TYPES_MAX; d++) {
     if (msc->data[d].cbs) {
       /* go through all auxiliary data for current loop type callbacks and release memory if required */
-      for (size_t c = 0; c < VRNA_ARRAY_SIZE(msc->data[d].data); c++)
+      for (size_t c = 0; c < vrna_array_size(msc->data[d].data); c++)
         if (msc->data[d].free_data[c])
           msc->data[d].free_data[c](msc->data[d].data[c]);
 
       /* release wrapper memory for default partition function callbacks */
-      for (size_t c = 0; c < VRNA_ARRAY_SIZE(msc->data[d].cbs_exp); c++)
+      for (size_t c = 0; c < vrna_array_size(msc->data[d].cbs_exp); c++)
         if (msc->data[d].cbs_exp[c] == &cb_exp_default)
           free(msc->data[d].data_exp[c]);
 
       /* release memory of callback-, data-, free_data-arrays for current loop type */
-      vrna_array_free((void *)msc->data[d].cbs);
-      vrna_array_free((void *)msc->data[d].cbs_exp);
-      vrna_array_free((void *)msc->data[d].data);
-      vrna_array_free((void *)msc->data[d].data_exp);
-      vrna_array_free((void *)msc->data[d].free_data);
+      vrna_array_free(msc->data[d].cbs);
+      vrna_array_free(msc->data[d].cbs_exp);
+      vrna_array_free(msc->data[d].data);
+      vrna_array_free(msc->data[d].data_exp);
+      vrna_array_free(msc->data[d].free_data);
     }
   }
 }
