@@ -20,4 +20,8 @@ void
 vrna_sc_dihydrouridine(vrna_fold_compound_t *fc,
                        const unsigned int   *modification_sites);
 
+void
+vrna_sc_inosine(vrna_fold_compound_t  *fc,
+                const unsigned int    *modification_sites);
+
 #endif
