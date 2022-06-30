@@ -43,6 +43,19 @@
  *  my_array[1] = 42;
  *  @endcode
  *
+ *  Using the #vrna_array_append() macro, items can be safely appended and the
+ *  array will grow accordingly if required:
+ *  @code{.c}
+ *  vrna_array_append(my_array, item);
+ *  @endcode
+ *
+ *  Finally, memory occupied by an array must be released using the #vrna_array_free()
+ *  macro:
+ *
+ *  @code{.c}
+ *  vrna_array_free(my_array);
+ *  @endcode
+ *
  *  Use the #vrna_array_size() macro to get the number of items stored in an array, e.g. for
  *  looping over its elements:
  *
@@ -67,19 +80,6 @@
  *  that actually stores the number of items they contain and the capacity of
  *  elements they are able to store.  The general ideas for this implementation
  *  are taken from Ginger Bill's C Helper Library (public domain).
- *
- *  Using the #vrna_array_append() macro, items can be safely appended and the
- *  array will grow accordingly if required:
- *  @code{.c}
- *  vrna_array_append(my_array, item);
- *  @endcode
- *
- *  Finally, memory occupied by an array must be released using the #vrna_array_free()
- *  macro:
- *
- *  @code{.c}
- *  vrna_array_free(my_array);
- *  @endcode
  */
 
 
