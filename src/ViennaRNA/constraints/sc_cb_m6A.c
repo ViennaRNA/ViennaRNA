@@ -129,28 +129,24 @@ PRIVATE int hp_CG_GU6AUA      = 23;
 PRIVATE int delta_terminalAU  = -40; /*  Terminal 6U pairs are about 0.4 kcal/mol more stable than their AU counterpart */
 
 PRIVATE INLINE void
-init_m6A_stacks(void)
+init_m6A_stacks(vrna_param_t *P)
 {
-  vrna_md_t     md;
-
-  vrna_md_set_default(&md);
-  vrna_param_t  *P      = vrna_params(&md);
-  unsigned int  pair_AU = md.pair[1][4];
-  unsigned int  pair_UA = md.pair[4][1];
+  vrna_md_t *md     = &(P->model_details);
+  double    tempf   = (md->temperature + K0) / 37.;
+  unsigned int  pair_AU = md->pair[1][4];
+  unsigned int  pair_UA = md->pair[4][1];
 
   delta_terminalAU = -P->TerminalAU; /*  according to Kierzek et al. paper, we simply remove terminal AU as applied in ViennaRNA parameter set */
 
   /* compute differences to 'regular' stacking energies */
   for (size_t si = 1; si < 5; si++)
     for (size_t sj = 1; sj < 5; sj++) {
-      unsigned int tt = md.pair[si][sj];
+      unsigned int tt = md->pair[sj][si];
       if (tt) {
         stack_6U_diff[si][sj] = stack_6U[si][sj] - P->stack[pair_AU][tt];
         stack_U6_diff[si][sj] = stack_U6[si][sj] - P->stack[pair_UA][tt];
       }
     }
-
-  free(P);
 }
 
 
@@ -409,7 +405,7 @@ vrna_sc_m6A(vrna_fold_compound_t  *fc,
       if (modification_sites[i] <= fc->length)
         enc[modification_sites[i]] = 5;
 
-    init_m6A_stacks();
+    init_m6A_stacks(fc->params);
     vrna_sc_multi_cb_add(fc, &sc_m6a_hp, NULL, (void *)enc, &free, VRNA_DECOMP_PAIR_HP);
     vrna_sc_multi_cb_add(fc, &sc_m6a_int, NULL, (void *)enc, NULL, VRNA_DECOMP_PAIR_IL);
     vrna_sc_multi_cb_add(fc, &sc_m6a_ml, NULL, (void *)enc, NULL, VRNA_DECOMP_PAIR_ML);
