@@ -491,15 +491,15 @@ PRIVATE INLINE void
 free_dp_matrices(vrna_fold_compound_t *vc,
                  unsigned int         options)
 {
-  size_t        i;
+  size_t        i, n;
   char          **ptype;
-  int           n, winSize;
+  int           winSize;
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  n       = (int)vc->length;
+  n       = (size_t)vc->length;
   winSize = vc->window_size;
   mx      = vc->exp_matrices;
   pR      = mx->pR;
@@ -510,7 +510,11 @@ free_dp_matrices(vrna_fold_compound_t *vc,
   hc      = vc->hc;
   sc      = vc->sc;
 
-  for (i = MAX2(1, n - (winSize + MAXLOOP)); i <= n; i++) {
+  i = 1;
+  if (n > winSize + MAXLOOP)
+    i = n - winSize - MAXLOOP;
+
+  for (; i <= n; i++) {
     free(pR[i] + i);
     free(q[i] + i);
     free(qb[i] + i);
