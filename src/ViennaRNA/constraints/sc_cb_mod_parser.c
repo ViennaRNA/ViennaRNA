@@ -55,8 +55,8 @@ parse_terminal(JsonNode         *dom,
 
 
 PUBLIC vrna_sc_mod_param_t
-vrna_sc_mod_read_from_json_file(const char *filename,
-                                   vrna_md_t *md)
+vrna_sc_mod_read_from_jsonfile(const char *filename,
+                               vrna_md_t  *md)
 {
   char                        *ptr;
   FILE                        *param_file;

@@ -361,6 +361,7 @@ libRNA_constraints_la_SOURCES = \
     constraints/sc_cb_inosine.c \
     constraints/sc_cb_mod.c \
     constraints/sc_cb_mod_parser.c \
+    constraints/sc_cb_mod_wrappers.c \
     constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \

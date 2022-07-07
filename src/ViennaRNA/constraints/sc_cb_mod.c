@@ -252,18 +252,19 @@ free_energy_corrections(void *d);
 
 PUBLIC int
 vrna_sc_mod_json(vrna_fold_compound_t *fc,
-                 const char           *json_file,
-                 const unsigned int   *modification_sites) {
-  int                         ret;
+                 const char           *json,
+                 const unsigned int   *modification_sites)
+{
+  int                 ret;
   vrna_sc_mod_param_t params;
 
   ret = 0;
 
   if ((fc) &&
-      (json_file) &&
+      (json) &&
       (modification_sites)) {
-    params = vrna_sc_mod_read_from_json_file(json_file,
-                                                &(fc->params->model_details));
+    params = vrna_sc_mod_read_from_json(json,
+                                        &(fc->params->model_details));
 
     ret = vrna_sc_mod(fc, params, modification_sites);
 
@@ -275,9 +276,34 @@ vrna_sc_mod_json(vrna_fold_compound_t *fc,
 
 
 PUBLIC int
-vrna_sc_mod(vrna_fold_compound_t              *fc,
+vrna_sc_mod_jsonfile(vrna_fold_compound_t *fc,
+                     const char           *jsonfile,
+                     const unsigned int   *modification_sites)
+{
+  int                 ret;
+  vrna_sc_mod_param_t params;
+
+  ret = 0;
+
+  if ((fc) &&
+      (jsonfile) &&
+      (modification_sites)) {
+    params = vrna_sc_mod_read_from_jsonfile(jsonfile,
+                                            &(fc->params->model_details));
+
+    ret = vrna_sc_mod(fc, params, modification_sites);
+
+    vrna_sc_mod_parameters_free(params);
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_mod(vrna_fold_compound_t      *fc,
             const vrna_sc_mod_param_t params,
-            const unsigned int                *modification_sites)
+            const unsigned int        *modification_sites)
 {
   int ret = 0;
 
