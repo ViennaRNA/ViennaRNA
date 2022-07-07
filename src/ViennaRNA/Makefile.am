@@ -360,6 +360,7 @@ libRNA_constraints_la_SOURCES = \
     constraints/sc_cb_dihydrouridine.c \
     constraints/sc_cb_inosine.c \
     constraints/sc_cb_mod.c \
+    constraints/sc_cb_mod_parser.c \
     constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \
@@ -491,6 +492,7 @@ noinst_HEADERS  = params/intl11.h \
                   params/intl22dH.h \
                   params/1.8.4_epars.h \
                   params/1.8.4_intloops.h \
+                  constraints/sc_cb_intern.h \
                   ${RNAPUZZLER_H} \
                   list.h \
                   ${SVM_H} \

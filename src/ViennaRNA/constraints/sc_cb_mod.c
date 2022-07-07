@@ -12,6 +12,9 @@
 #include "ViennaRNA/params/default.h"
 #include "json/json.h"
 
+#include "ViennaRNA/constraints/soft_special.h"
+#include "ViennaRNA/constraints/sc_cb_intern.h"
+
 #ifndef INLINE
 # ifdef __GNUC__
 #   define INLINE inline
@@ -20,404 +23,526 @@
 # endif
 #endif
 
-#define MOD_PARAMS_STACK_dG     (1 << 0)
-#define MOD_PARAMS_STACK_dH     (1 << 1)
-#define MOD_PARAMS_MISMATCH_dG  (1 << 2)
-#define MOD_PARAMS_MISMATCH_dH  (1 << 3)
-#define MOD_PARAMS_TERMINAL_dG  (1 << 4)
-#define MOD_PARAMS_TERMINAL_dH  (1 << 5)
-#define MOD_PARAMS_DANGLES_dG   (1 << 6)
-#define MOD_PARAMS_DANGLES_dH   (1 << 7)
 
-#define DEBUG
-#define MAX_ALPHABET  (6)
-#define MAX_PAIRS     (NBPAIRS + 1 + 25)
+PRIVATE INLINE void
+init_stacks(struct vrna_sc_cb_mod_param_s   *params,
+            energy_corrections  *diffs,
+            vrna_param_t        *P);
+PRIVATE INLINE void
+init_mismatches(struct vrna_sc_cb_mod_param_s   *params,
+                energy_corrections  *diffs,
+                vrna_param_t        *P);
+PRIVATE INLINE void
+init_dangles(struct vrna_sc_cb_mod_param_s   *params,
+             energy_corrections  *diffs,
+             vrna_param_t        *P);
+PRIVATE INLINE void
+init_terminal(struct vrna_sc_cb_mod_param_s   *params,
+              energy_corrections  *diffs,
+              vrna_param_t        *P);
+PRIVATE INLINE int
+mismatch(vrna_fold_compound_t *fc,
+         unsigned int i,
+         unsigned int j,
+         energy_corrections *data);
+PRIVATE INLINE int
+terminal(unsigned int i,
+         unsigned int j,
+         energy_corrections *data);
+PRIVATE INLINE int
+sc_PAIR_HP_terminal(vrna_fold_compound_t  *fc,
+                int                   i,
+      int                   j,
+      int                   k,
+      int                   l,
+      void                  *d);
+PRIVATE INLINE int
+sc_PAIR_HP_mismatch(vrna_fold_compound_t  *fc,
+            int                   i,
+      int                   j,
+      int                   k,
+      int                   l,
+      void                  *d);
+PRIVATE int
+sc_PAIR_HP(vrna_fold_compound_t  *fc,
+      int                   i,
+      int                   j,
+      int                   k,
+      int                   l,
+      void                  *d);
+PRIVATE INLINE int
+sc_PAIR_IL_stack(vrna_fold_compound_t *fc,
+                 int  i,
+                 int  j,
+                 int  k,
+                 int  l,
+                 void *d);
+PRIVATE INLINE int
+sc_PAIR_IL_terminal(vrna_fold_compound_t *fc,
+                    int  i,
+                    int  j,
+                    int  k,
+                    int  l,
+                    void *d);
+PRIVATE INLINE int
+sc_PAIR_IL_mismatch(vrna_fold_compound_t *fc,
+                    int  i,
+                    int  j,
+                    int  k,
+                    int  l,
+                    void *d);
+PRIVATE INLINE int
+sc_PAIR_IL_mismatch_terminal(vrna_fold_compound_t *fc,
+                             int  i,
+                             int  j,
+                             int  k,
+                             int  l,
+                             void *d);
+PRIVATE INLINE int
+sc_PAIR_IL_stack_terminal(vrna_fold_compound_t *fc,
+                          int  i,
+                          int  j,
+                          int  k,
+                          int  l,
+                          void *d);
+PRIVATE INLINE int
+sc_PAIR_IL_stack_mismatch(vrna_fold_compound_t *fc,
+                          int  i,
+                          int  j,
+                          int  k,
+                          int  l,
+                          void *d);
+PRIVATE INLINE int
+sc_PAIR_IL(vrna_fold_compound_t *fc,
+               int  i,
+               int  j,
+               int  k,
+               int  l,
+               void *d);
+PRIVATE INLINE int
+sc_PAIR_ML_terminal(vrna_fold_compound_t  *fc,
+      int                   i,
+      int                   j,
+      int                   k,
+      int                   l,
+      void                  *d);
+PRIVATE INLINE int
+sc_PAIR_ML_mismatch(vrna_fold_compound_t  *fc,
+      int                   i,
+      int                   j,
+      int                   k,
+      int                   l,
+      void                  *d);
+PRIVATE INLINE int
+sc_PAIR_ML(vrna_fold_compound_t  *fc,
+      int                   i,
+      int                   j,
+      int                   k,
+      int                   l,
+      void                  *d);
+PRIVATE INLINE int
+sc_STEM_terminal(vrna_fold_compound_t  *fc,
+            int                   i,
+            int                   j,
+            int                   k,
+            int                   l,
+            void                  *d);
+PRIVATE INLINE int
+sc_STEM_mismatch(vrna_fold_compound_t  *fc,
+            int                   i,
+            int                   j,
+            int                   k,
+            int                   l,
+            void                  *d);
+PRIVATE INLINE int
+sc_STEM(vrna_fold_compound_t  *fc,
+            int                   i,
+            int                   j,
+            int                   k,
+            int                   l,
+            void                  *d);
+PRIVATE INLINE int
+sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                void                  *d);
+PRIVATE INLINE int
+sc_EXT_STEM_EXT_mismatch(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                void                  *d);
+PRIVATE INLINE int
+sc_EXT_STEM_EXT(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                void                  *d);
+PRIVATE INLINE int
+sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                void                  *d);
+PRIVATE INLINE int
+sc_EXT_EXT_STEM_mismatch(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                void                  *d);
+PRIVATE INLINE int
+sc_EXT_EXT_STEM(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   k,
+                int                   l,
+                void                  *d);
+PRIVATE INLINE int
+sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+PRIVATE INLINE int
+sc_EXT_STEM_OUTSIDE_mismatch(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+PRIVATE INLINE int
+sc_EXT_STEM_OUTSIDE(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+PRIVATE INLINE int
+sc_ML_ML_STEM_terminal(vrna_fold_compound_t  *fc,
+              int                   i,
+              int                   j,
+              int                   k,
+              int                   l,
+              void                  *d);
+PRIVATE INLINE int
+sc_ML_ML_STEM_mismatch(vrna_fold_compound_t  *fc,
+              int                   i,
+              int                   j,
+              int                   k,
+              int                   l,
+              void                  *d);
+PRIVATE INLINE int
+sc_ML_ML_STEM(vrna_fold_compound_t  *fc,
+              int                   i,
+              int                   j,
+              int                   k,
+              int                   l,
+              void                  *d);
+
+PRIVATE void
+free_energy_corrections(void *d);
 
 
-/* a container to store the data read from a json parameter file */
-typedef struct {
-  unsigned int available;
+PUBLIC void
+vrna_sc_mod_json(vrna_fold_compound_t *fc,
+                 const char           *json_file,
+                 unsigned int         *modification_sites) {
+  vrna_sc_cb_mod_parameters_t params;
 
-  char    *name;
-  char    one_letter_code;
-  char    unmodified;
-  char    pairing_partners[7];
-  unsigned int  pairing_partners_encoding[7];
-  unsigned int  unmodified_encoding;
+  if ((fc) &&
+      (json_file) &&
+      (modification_sites)) {
+    params = vrna_sc_cb_mod_read_from_json_file(json_file,
+                                                &(fc->params->model_details));
 
-  size_t  num_ptypes;
-  size_t  ptypes[MAX_ALPHABET][MAX_ALPHABET];
+    if (params) {
+      vrna_md_t *md = &(fc->params->model_details);
+      char bases[8] = "_ACGUTM";
+      bases[6] = params->one_letter_code;
 
-  int stack_dG[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
-  int stack_dH[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+      energy_corrections *diffs = (energy_corrections *)vrna_alloc(sizeof(energy_corrections));
 
-  int dangle5_dG[MAX_PAIRS][MAX_ALPHABET];
-  int dangle5_dH[MAX_PAIRS][MAX_ALPHABET];
-  int dangle3_dG[MAX_PAIRS][MAX_ALPHABET];
-  int dangle3_dH[MAX_PAIRS][MAX_ALPHABET];
+      /* copy ptypes */
+      memcpy(&(diffs->ptypes[0][0]), &(params->ptypes[0][0]), sizeof(params->ptypes));
 
-  int mismatch_dG[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
-  int mismatch_dH[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+      diffs->enc = (short *)vrna_alloc(sizeof(short) * (fc->length + 2));
+      memcpy(diffs->enc, fc->sequence_encoding, sizeof(short) * (fc->length + 1));
 
-  int terminal_dG[MAX_PAIRS];
-  int terminal_dH[MAX_PAIRS];
-} energy_parameters;
-
-/* the actual data structure passed around while evaluating */
-typedef struct {
-  short   *enc;
-  size_t  ptypes[MAX_ALPHABET][MAX_ALPHABET];
-
-  int stack_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
-
-  int dangle5_diff[MAX_PAIRS][MAX_ALPHABET];
-  int dangle3_diff[MAX_PAIRS][MAX_ALPHABET];
-
-  int mismatch_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
-
-  int terminal_diff[MAX_PAIRS];
-} energy_corrections;
-
-
-PRIVATE unsigned int
-parse_stacks(JsonNode         *dom,
-           const char       *identifier,
-           const char       *bases,
-           size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-           int              (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET])
-{
-  unsigned char num_params = 0;
-  char          *enc_ptr;
-  size_t        i;
-  unsigned int  enc[5] = { 0, 0, 0, 0, 0 };
-  JsonNode      *entry, *e;
-
-  /* go through storage and initialize */
-  for (size_t i = 0; i < MAX_PAIRS; i++)
-    for (size_t k = 0; k < MAX_ALPHABET; k++)
-      for (size_t l = 0; l < MAX_ALPHABET; l++)
-        (*storage)[i][k][l] = INF;
-
-  if ((e = json_find_member(dom, identifier)) &&
-      (e->tag == JSON_OBJECT)) {
-    json_foreach(entry, e) {
-      if ((entry->key) &&
-          (entry->tag == JSON_NUMBER) &&
-          (strlen(entry->key) == 4)) {
-        /* encode sequence */
-        for (i = 0; i < 4; i++) {
-          if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n", identifier, entry->key);
-            break;
-          }
-          enc[i] = enc_ptr - &bases[0];
-          if (enc[i] > 4)
-            enc[i]--;
+      for (size_t i = 0; modification_sites[i]; i++) {
+        unsigned int msite = modification_sites[i];
+        if (msite > fc->length) {
+          vrna_message_warning("modification site %u after sequence length (%u)",
+                               msite,
+                               fc->length);
+          continue;
         }
 
-        if (i == 4) {
-          num_params++;
+        if (fc->sequence_encoding[msite] != params->unmodified_encoding) {
+          vrna_message_warning("modification site %u lists wrong unmodified base %c (should be %c)",
+                               msite,
+                               bases[fc->sequence_encoding[msite]],
+                               params->unmodified);
+          continue;
+        }
 
-          if ((enc[0] == 5) || (enc[2] == 5))
-            (*storage)[(*ptypes)[enc[0]][enc[2]]][enc[3]][enc[1]] = (int)(entry->number_ * 100.);
-          else if ((enc[1] == 5) || (enc[3] == 5))
-            (*storage)[(*ptypes)[enc[3]][enc[1]]][enc[0]][enc[2]] = (int)(entry->number_ * 100.);
-          else
-            num_params--;
+        diffs->enc[msite] = 5;
+
+        unsigned int *sn = fc->strand_number;
+
+        /* allow for all pairing partners specified in the input */
+        for (unsigned int j = 1; j < msite; j++) {
+          if ((sn[msite] != sn[j]) ||
+              ((msite - j - 1) >= md->min_loop_size))
+            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
+              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
+              if (fc->sequence_encoding[j] == pp_enc) {
+                vrna_hc_add_bp(fc,
+                               j,
+                               msite,
+                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+              }
+            }
+        }
+        for (unsigned int j = msite + 1; j <= fc->length; j++) {
+          if ((sn[msite] != sn[j]) ||
+              ((j - msite - 1) >= md->min_loop_size))
+            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
+              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
+              if (fc->sequence_encoding[j] == pp_enc) {
+                vrna_hc_add_bp(fc,
+                               msite,
+                               j,
+                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+              }
+            }
         }
       }
+
+      init_stacks(params, diffs, fc->params);
+      init_terminal(params, diffs, fc->params);
+      init_mismatches(params, diffs, fc->params);
+      init_dangles(params, diffs, fc->params);
+
+      unsigned int available = params->available;
+
+      /* bind callbacks depending on what data is provided for this modified base */
+      if (available & MOD_PARAMS_TERMINAL_dG) {
+        if (available & MOD_PARAMS_MISMATCH_dG) {
+          vrna_sc_multi_cb_add(fc,
+                               &sc_PAIR_HP,
+                               NULL,
+                               (void *)diffs,
+                               &free_energy_corrections,
+                               VRNA_DECOMP_PAIR_HP);
+
+          vrna_sc_multi_cb_add(fc,
+                               (available & MOD_PARAMS_STACK_dG) ? &sc_PAIR_IL : sc_PAIR_IL_mismatch_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_PAIR_IL);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_PAIR_ML,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_PAIR_ML);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_STEM,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_EXT_STEM);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_EXT_STEM_EXT,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_EXT_STEM_EXT);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_EXT_EXT_STEM,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_EXT_EXT_STEM);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_EXT_STEM_OUTSIDE,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_EXT_STEM_OUTSIDE);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_STEM,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_ML_STEM);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_ML_ML_STEM,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_ML_ML_STEM);
+        } else {
+          /* no mismatch energies available */
+          vrna_sc_multi_cb_add(fc,
+                               &sc_PAIR_HP_terminal,
+                               NULL,
+                               (void *)diffs,
+                               &free_energy_corrections,
+                               VRNA_DECOMP_PAIR_HP);
+
+          vrna_sc_multi_cb_add(fc,
+                               (available & MOD_PARAMS_STACK_dG) ? &sc_PAIR_IL_stack_terminal : &sc_PAIR_IL_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_PAIR_IL);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_PAIR_ML_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_PAIR_ML);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_STEM_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_EXT_STEM);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_EXT_STEM_EXT_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_EXT_STEM_EXT);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_EXT_EXT_STEM_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_EXT_EXT_STEM);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_EXT_STEM_OUTSIDE_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_EXT_STEM_OUTSIDE);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_STEM_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_ML_STEM);
+
+          vrna_sc_multi_cb_add(fc,
+                               &sc_ML_ML_STEM_terminal,
+                               NULL,
+                               (void *)diffs,
+                               NULL,
+                               VRNA_DECOMP_ML_ML_STEM);
+        }
+      } else if (available & MOD_PARAMS_MISMATCH_dG) {
+        /* no terminalAU-like parameters available */
+        vrna_sc_multi_cb_add(fc,
+                             &sc_PAIR_HP_mismatch,
+                             NULL,
+                             (void *)diffs, &free_energy_corrections,
+                             VRNA_DECOMP_PAIR_HP);
+
+        vrna_sc_multi_cb_add(fc,
+                             (available & MOD_PARAMS_STACK_dG) ? &sc_PAIR_IL_stack_mismatch : &sc_PAIR_IL_mismatch,
+                             NULL,
+                             (void *)diffs,
+                             NULL,
+                             VRNA_DECOMP_PAIR_IL);
+
+        vrna_sc_multi_cb_add(fc,
+                             &sc_PAIR_ML_mismatch,
+                             NULL,
+                             (void *)diffs,
+                             NULL,
+                             VRNA_DECOMP_PAIR_ML);
+
+        vrna_sc_multi_cb_add(fc,
+                             &sc_STEM_mismatch,
+                             NULL,
+                             (void *)diffs,
+                             NULL,
+                             VRNA_DECOMP_EXT_STEM);
+
+        vrna_sc_multi_cb_add(fc,
+                             &sc_EXT_STEM_EXT_mismatch,
+                             NULL,
+                             (void *)diffs,
+                             NULL,
+                             VRNA_DECOMP_EXT_STEM_EXT);
+
+        vrna_sc_multi_cb_add(fc,
+                             &sc_EXT_EXT_STEM_mismatch,
+                             NULL,
+                             (void *)diffs,
+                             NULL,
+                             VRNA_DECOMP_EXT_EXT_STEM);
+
+        vrna_sc_multi_cb_add(fc,
+                             &sc_EXT_STEM_OUTSIDE_mismatch,
+                             NULL,
+                             (void *)diffs,
+                             NULL,
+                             VRNA_DECOMP_EXT_STEM_OUTSIDE);
+
+        vrna_sc_multi_cb_add(fc,
+                             &sc_STEM_mismatch,
+                             NULL,
+                             (void *)diffs,
+                             NULL,
+                             VRNA_DECOMP_ML_STEM);
+
+        vrna_sc_multi_cb_add(fc,
+                             &sc_ML_ML_STEM_mismatch,
+                             NULL,
+                             (void *)diffs,
+                             NULL,
+                             VRNA_DECOMP_ML_ML_STEM);
+      } else if (available & MOD_PARAMS_STACK_dG) {
+        /* just stacking parameters available */
+        vrna_sc_multi_cb_add(fc,
+                             &sc_PAIR_IL_stack,
+                             NULL,
+                             (void *)diffs,
+                             &free_energy_corrections,
+                             VRNA_DECOMP_PAIR_IL);
+      }
+
     }
   }
-
-  return num_params;
 }
 
-
-PRIVATE unsigned int
-parse_mismatch(JsonNode         *dom,
-               const char       *identifier,
-               const char       *bases,
-               size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-               vrna_md_t        *md,
-               int              (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET])
-{
-  unsigned char num_params = 0;
-  char          *enc_ptr;
-  size_t        i;
-  unsigned int  enc[5] = { 0, 0, 0, 0, 0 };
-  JsonNode      *entry, *e;
-
-  /* go through storage and initialize */
-  for (size_t i = 0; i < MAX_PAIRS; i++)
-    for (size_t k = 0; k < MAX_ALPHABET; k++)
-      for (size_t l = 0; l < MAX_ALPHABET; l++)
-        (*storage)[i][k][l] = INF;
-
-  if ((e = json_find_member(dom, identifier)) &&
-      (e->tag == JSON_OBJECT)) {
-    json_foreach(entry, e) {
-      if ((entry->key) &&
-          (entry->tag == JSON_NUMBER) &&
-          (strlen(entry->key) == 4)) {
-        /* encode sequence */
-        for (i = 0; i < 4; i++) {
-          if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n", identifier, entry->key);
-            break;
-          }
-          enc[i] = enc_ptr - &bases[0];
-          if (enc[i] > 4)
-            enc[i]--;
-        }
-
-        if (i == 4) {
-          num_params++;
-
-          if ((enc[0] == 5) || (enc[2] == 5))
-            (*storage)[NBPAIRS + (*ptypes)[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
-          else if ((enc[1] == 5) || (enc[3] == 5))
-            (*storage)[md->pair[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
-          else
-            num_params--;
-        }
-      }
-    }
-  }
-
-  return num_params;
-}
-
-
-PRIVATE unsigned int
-parse_dangles(JsonNode         *dom,
-              const char       *identifier,
-              const char       *bases,
-              size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-              vrna_md_t        *md,
-              int              (*storage)[MAX_PAIRS][MAX_ALPHABET])
-{
-  unsigned char num_params = 0;
-  char          *enc_ptr;
-  size_t        i;
-  unsigned int  enc[5] = { 0, 0, 0, 0, 0 };
-  JsonNode      *entry, *e;
-
-  /* go through storage and initialize */
-  for (size_t i = 0; i < MAX_PAIRS; i++)
-    for (size_t k = 0; k < MAX_ALPHABET; k++)
-      (*storage)[i][k] = INF;
-
-  if ((e = json_find_member(dom, identifier)) &&
-      (e->tag == JSON_OBJECT)) {
-    json_foreach(entry, e) {
-      if ((entry->key) &&
-          (entry->tag == JSON_NUMBER) &&
-          (strlen(entry->key) == 3)) {
-        /* encode sequence */
-        for (i = 0; i < 3; i++) {
-          if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n", identifier, entry->key);
-            break;
-          }
-          enc[i] = enc_ptr - &bases[0];
-          if (enc[i] > 4)
-            enc[i]--;
-        }
-
-        if (i == 3) {
-          num_params++;
-          if ((enc[0] == 5) || (enc[1] == 5))
-            (*storage)[NBPAIRS + (*ptypes)[enc[0]][enc[1]]][enc[2]] = (int)(entry->number_ * 100.);
-          else if (enc[2] == 5)
-            (*storage)[md->pair[enc[0]][enc[1]]][enc[2]] = (int)(entry->number_ * 100.);
-          else
-            num_params--;
-        }
-      }
-    }
-  }
-
-  return num_params;
-}
-
-
-PRIVATE unsigned int
-parse_terminal(JsonNode         *dom,
-               const char       *identifier,
-               const char       *bases,
-               size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-               int              (*storage)[MAX_PAIRS])
-{
-  unsigned char num_params = 0;
-  char          *enc_ptr;
-  size_t        i;
-  unsigned int  enc[5] = { 0, 0, 0, 0, 0 };
-  JsonNode      *entry, *e;
-
-  /* go through storage and initialize */
-  for (size_t i = 0; i < MAX_PAIRS; i++)
-    (*storage)[i] = INF;
-
-  if ((e = json_find_member(dom, identifier)) &&
-      (e->tag == JSON_OBJECT)) {
-    json_foreach(entry, e) {
-      if ((entry->key) &&
-          (entry->tag == JSON_NUMBER) &&
-          (strlen(entry->key) == 2)) {
-        /* encode sequence */
-        for (i = 0; i < 2; i++) {
-          if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n", identifier, entry->key);
-            break;
-          }
-          enc[i] = enc_ptr - &bases[0];
-          if (enc[i] > 4)
-            enc[i]--;
-        }
-
-        if (i == 2) {
-          num_params++;
-
-          if ((enc[0] == 5) || (enc[1] == 5))
-            (*storage)[(*ptypes)[enc[0]][enc[1]]] = (int)(entry->number_ * 100.);
-          else
-            num_params--;
-        }
-      }
-    }
-  }
-
-  return num_params;
-}
-
-PRIVATE energy_parameters *
-read_params_from_json_file(const char *filename, vrna_md_t *md) {
-  energy_parameters *parameters = NULL;
-
-  FILE *param_file = fopen(filename, "r");
-  if (param_file) {
-    char *ptr;
-    vrna_string_t param_content = vrna_string_make("");
-
-    while ((ptr = vrna_read_line(param_file))) {
-      param_content = vrna_string_append_cstring(param_content, ptr);
-      free(ptr);
-    };
-    fclose(param_file);
-
-    if (!json_validate(param_content)) {
-      vrna_message_warning("JSON file \"%s\" not valid\n", filename);
-      return NULL;
-    }
-
-    JsonNode *dom = json_decode(param_content);
-    char bases[8] = "_ACGUTM";
-    vrna_string_t pairing_partners = vrna_string_make("");
-
-    if (dom) {
-      JsonNode *e, *entry, *elem;
-
-      parameters = (energy_parameters *)vrna_alloc(sizeof(energy_parameters));
-
-      parameters->name  = NULL;
-      parameters->available = 0;
-      parameters->num_ptypes = 0;
-      parameters->one_letter_code = '\0';
-      parameters->pairing_partners[0] = '\0';
-      parameters->unmodified = '\0';
-
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "name")) &&
-          (e->tag == JSON_STRING)) {
-        parameters->name = strdup(e->string_);
-      }
-
-      /* use one-letter code as specified in json file */
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "one_letter_code")) &&
-          (e->tag == JSON_STRING) &&
-          (strlen(e->string_) == 1)) {
-        parameters->one_letter_code = bases[6] = toupper(e->string_[0]);
-      }
-
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "unmodified")) &&
-          (e->tag == JSON_STRING) &&
-          (strlen(e->string_) == 1) &&
-          (ptr = strchr(bases, e->string_[0]))) {
-        parameters->unmodified = toupper(e->string_[0]);
-        size_t enc = ptr - &(bases[0]);
-        if (enc > 4)
-          enc--;
-        parameters->unmodified_encoding = enc;
-      }
-
-      size_t  cnt = 0;
-
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "pairing_partners")) &&
-          (e->tag == JSON_ARRAY)) {
-        json_foreach(entry, e) {
-          if ((entry->tag == JSON_STRING) &&
-              (strlen(entry->string_) == 1) &&
-              (ptr = strchr(bases, entry->string_[0]))) {
-            pairing_partners = vrna_string_append_cstring(pairing_partners, entry->string_);
-
-            size_t enc = ptr - &(bases[0]);
-            if (enc > 4)
-              enc--;
-
-            parameters->ptypes[5][enc] = ++(parameters->num_ptypes);
-            parameters->ptypes[enc][5] = ++(parameters->num_ptypes);
-            parameters->pairing_partners[cnt]             = entry->string_[0];
-            parameters->pairing_partners_encoding[cnt++]  = enc;
-          }
-        }
-      }
-
-      parameters->pairing_partners[cnt] = '\0';
-
-      if (parse_stacks(dom, "stacking_energies", &bases[0], &(parameters->ptypes), &(parameters->stack_dG)) > 0)
-        parameters->available |= MOD_PARAMS_STACK_dG;
-
-      if (parse_stacks(dom, "stacking_enthalpies", &bases[0], &(parameters->ptypes), &(parameters->stack_dH)) > 0)
-        parameters->available |= MOD_PARAMS_STACK_dH;
-
-      if (parse_mismatch(dom, "mismatch_energies", &bases[0], &(parameters->ptypes), md, &(parameters->mismatch_dG)) > 0)
-        parameters->available |= MOD_PARAMS_MISMATCH_dG;
-
-      if (parse_mismatch(dom, "mismatch_enthalpies", &bases[0], &(parameters->ptypes), md, &(parameters->mismatch_dH)) > 0)
-        parameters->available |= MOD_PARAMS_MISMATCH_dH;
-
-      if (parse_terminal(dom, "terminal_energies", &bases[0], &(parameters->ptypes), &(parameters->terminal_dG)) > 0)
-        parameters->available |= MOD_PARAMS_TERMINAL_dG;
-
-      if (parse_terminal(dom, "terminal_enthalpies", &bases[0], &(parameters->ptypes), &(parameters->terminal_dH)) > 0)
-        parameters->available |= MOD_PARAMS_TERMINAL_dH;
-
-      if (parse_dangles(dom, "dangle5_energies", &bases[0], &(parameters->ptypes), md, &(parameters->dangle5_dG)) > 0)
-        parameters->available |= MOD_PARAMS_DANGLES_dG;
-
-      if (parse_dangles(dom, "dangle5_enthalpies", &bases[0], &(parameters->ptypes), md, &(parameters->dangle5_dH)) > 0)
-        parameters->available |= MOD_PARAMS_DANGLES_dH;
-
-      if (parse_dangles(dom, "dangle3_energies", &bases[0], &(parameters->ptypes), md, &(parameters->dangle3_dG)) > 0)
-        parameters->available |= MOD_PARAMS_DANGLES_dG;
-
-      if (parse_dangles(dom, "dangle3_enthalpies", &bases[0], &(parameters->ptypes), md, &(parameters->dangle3_dH)) > 0)
-        parameters->available |= MOD_PARAMS_DANGLES_dH;
-
-      json_delete(dom);
-    }
-    vrna_string_free(param_content);
-  }
-
-  return parameters;
-}
 
 
 PRIVATE INLINE void
-init_stacks(energy_parameters   *params,
+init_stacks(struct vrna_sc_cb_mod_param_s   *params,
             energy_corrections  *diffs,
             vrna_param_t        *P)
 {
@@ -492,7 +617,7 @@ init_stacks(energy_parameters   *params,
 }
 
 PRIVATE INLINE void
-init_mismatches(energy_parameters   *params,
+init_mismatches(struct vrna_sc_cb_mod_param_s   *params,
                 energy_corrections  *diffs,
                 vrna_param_t        *P)
 {
@@ -596,12 +721,13 @@ init_mismatches(energy_parameters   *params,
   }
 }
 
+
 PRIVATE INLINE void
-init_dangles(energy_parameters   *params,
+init_dangles(struct vrna_sc_cb_mod_param_s   *params,
              energy_corrections  *diffs,
              vrna_param_t        *P)
 {
-  unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM;
+  unsigned int  i, si, enc_unmod, enc_pp, siu, pair_MP, pair_PM;
   vrna_md_t     *md     = &(P->model_details);
   double        tempf   = (md->temperature + K0) / (37. + K0);
   char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
@@ -728,11 +854,11 @@ init_dangles(energy_parameters   *params,
 }
 
 PRIVATE INLINE void
-init_terminal(energy_parameters   *params,
+init_terminal(struct vrna_sc_cb_mod_param_s   *params,
               energy_corrections  *diffs,
               vrna_param_t        *P)
 {
-  unsigned int  i, si, sj, enc_unmod, enc_pp, tt, pair_MP, pair_PM;
+  unsigned int  i, enc_unmod, enc_pp, tt;
   vrna_md_t     *md     = &(P->model_details);
   double        tempf   = (md->temperature + K0) / (37. + K0);
   char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
@@ -1218,289 +1344,3 @@ free_energy_corrections(void *d)
 }
 
 
-PUBLIC void
-vrna_sc_mod_json(vrna_fold_compound_t *fc,
-                 const char           *json_file,
-                 unsigned int         *modification_sites) {
-
-  if ((fc) &&
-      (json_file) &&
-      (modification_sites)) {
-    energy_parameters *params = read_params_from_json_file(json_file, &(fc->params->model_details));
-
-    if (params) {
-      vrna_md_t *md = &(fc->params->model_details);
-      char bases[8] = "_ACGUTM";
-      bases[6] = params->one_letter_code;
-
-      energy_corrections *diffs = (energy_corrections *)vrna_alloc(sizeof(energy_corrections));
-
-      /* copy ptypes */
-      memcpy(&(diffs->ptypes[0][0]), &(params->ptypes[0][0]), sizeof(params->ptypes));
-
-      diffs->enc = (short *)vrna_alloc(sizeof(short) * (fc->length + 2));
-      memcpy(diffs->enc, fc->sequence_encoding, sizeof(short) * (fc->length + 1));
-
-      for (size_t i = 0; modification_sites[i]; i++) {
-        unsigned int msite = modification_sites[i];
-        if (msite > fc->length) {
-          vrna_message_warning("modification site %u after sequence length (%u)",
-                               msite,
-                               fc->length);
-          continue;
-        }
-
-        if (fc->sequence_encoding[msite] != params->unmodified_encoding) {
-          vrna_message_warning("modification site %u lists wrong unmodified base %c (should be %c)",
-                               msite,
-                               bases[fc->sequence_encoding[msite]],
-                               params->unmodified);
-          continue;
-        }
-
-        diffs->enc[msite] = 5;
-
-        unsigned int *sn = fc->strand_number;
-
-        /* allow for all pairing partners specified in the input */
-        for (unsigned int j = 1; j < msite; j++) {
-          if ((sn[msite] != sn[j]) ||
-              ((msite - j - 1) >= md->min_loop_size))
-            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
-              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
-              if (fc->sequence_encoding[j] == pp_enc) {
-                vrna_hc_add_bp(fc,
-                               j,
-                               msite,
-                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
-              }
-            }
-        }
-        for (unsigned int j = msite + 1; j <= fc->length; j++) {
-          if ((sn[msite] != sn[j]) ||
-              ((j - msite - 1) >= md->min_loop_size))
-            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
-              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
-              if (fc->sequence_encoding[j] == pp_enc) {
-                vrna_hc_add_bp(fc,
-                               msite,
-                               j,
-                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
-              }
-            }
-        }
-      }
-
-      init_stacks(params, diffs, fc->params);
-      init_terminal(params, diffs, fc->params);
-      init_mismatches(params, diffs, fc->params);
-      init_dangles(params, diffs, fc->params);
-
-      unsigned int available = params->available;
-
-      /* bind callbacks depending on what data is provided for this modified base */
-      if (available & MOD_PARAMS_TERMINAL_dG) {
-        if (available & MOD_PARAMS_MISMATCH_dG) {
-          vrna_sc_multi_cb_add(fc,
-                               &sc_PAIR_HP,
-                               NULL,
-                               (void *)diffs,
-                               &free_energy_corrections,
-                               VRNA_DECOMP_PAIR_HP);
-
-          vrna_sc_multi_cb_add(fc,
-                               (available & MOD_PARAMS_STACK_dG) ? &sc_PAIR_IL : sc_PAIR_IL_mismatch_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_PAIR_IL);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_PAIR_ML,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_PAIR_ML);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_STEM,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_EXT_STEM);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_EXT_STEM_EXT,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_EXT_STEM_EXT);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_EXT_EXT_STEM,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_EXT_EXT_STEM);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_EXT_STEM_OUTSIDE,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_EXT_STEM_OUTSIDE);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_STEM,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_ML_STEM);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_ML_ML_STEM,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_ML_ML_STEM);
-        } else {
-          /* no mismatch energies available */
-          vrna_sc_multi_cb_add(fc,
-                               &sc_PAIR_HP_terminal,
-                               NULL,
-                               (void *)diffs,
-                               &free_energy_corrections,
-                               VRNA_DECOMP_PAIR_HP);
-
-          vrna_sc_multi_cb_add(fc,
-                               (available & MOD_PARAMS_STACK_dG) ? &sc_PAIR_IL_stack_terminal : &sc_PAIR_IL_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_PAIR_IL);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_PAIR_ML_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_PAIR_ML);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_STEM_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_EXT_STEM);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_EXT_STEM_EXT_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_EXT_STEM_EXT);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_EXT_EXT_STEM_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_EXT_EXT_STEM);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_EXT_STEM_OUTSIDE_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_EXT_STEM_OUTSIDE);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_STEM_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_ML_STEM);
-
-          vrna_sc_multi_cb_add(fc,
-                               &sc_ML_ML_STEM_terminal,
-                               NULL,
-                               (void *)diffs,
-                               NULL,
-                               VRNA_DECOMP_ML_ML_STEM);
-        }
-      } else if (available & MOD_PARAMS_MISMATCH_dG) {
-        /* no terminalAU-like parameters available */
-        vrna_sc_multi_cb_add(fc,
-                             &sc_PAIR_HP_mismatch,
-                             NULL,
-                             (void *)diffs, &free_energy_corrections,
-                             VRNA_DECOMP_PAIR_HP);
-
-        vrna_sc_multi_cb_add(fc,
-                             (available & MOD_PARAMS_STACK_dG) ? &sc_PAIR_IL_stack_mismatch : &sc_PAIR_IL_mismatch,
-                             NULL,
-                             (void *)diffs,
-                             NULL,
-                             VRNA_DECOMP_PAIR_IL);
-
-        vrna_sc_multi_cb_add(fc,
-                             &sc_PAIR_ML_mismatch,
-                             NULL,
-                             (void *)diffs,
-                             NULL,
-                             VRNA_DECOMP_PAIR_ML);
-
-        vrna_sc_multi_cb_add(fc,
-                             &sc_STEM_mismatch,
-                             NULL,
-                             (void *)diffs,
-                             NULL,
-                             VRNA_DECOMP_EXT_STEM);
-
-        vrna_sc_multi_cb_add(fc,
-                             &sc_EXT_STEM_EXT_mismatch,
-                             NULL,
-                             (void *)diffs,
-                             NULL,
-                             VRNA_DECOMP_EXT_STEM_EXT);
-
-        vrna_sc_multi_cb_add(fc,
-                             &sc_EXT_EXT_STEM_mismatch,
-                             NULL,
-                             (void *)diffs,
-                             NULL,
-                             VRNA_DECOMP_EXT_EXT_STEM);
-
-        vrna_sc_multi_cb_add(fc,
-                             &sc_EXT_STEM_OUTSIDE_mismatch,
-                             NULL,
-                             (void *)diffs,
-                             NULL,
-                             VRNA_DECOMP_EXT_STEM_OUTSIDE);
-
-        vrna_sc_multi_cb_add(fc,
-                             &sc_STEM_mismatch,
-                             NULL,
-                             (void *)diffs,
-                             NULL,
-                             VRNA_DECOMP_ML_STEM);
-
-        vrna_sc_multi_cb_add(fc,
-                             &sc_ML_ML_STEM_mismatch,
-                             NULL,
-                             (void *)diffs,
-                             NULL,
-                             VRNA_DECOMP_ML_ML_STEM);
-      } else if (available & MOD_PARAMS_STACK_dG) {
-        /* just stacking parameters available */
-        vrna_sc_multi_cb_add(fc,
-                             &sc_PAIR_IL_stack,
-                             NULL,
-                             (void *)diffs,
-                             &free_energy_corrections,
-                             VRNA_DECOMP_PAIR_IL);
-      }
-
-    }
-  }
-}
