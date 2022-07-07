@@ -24,157 +24,222 @@
 #endif
 
 
+/*
+ #################################
+ # GLOBAL VARIABLES              #
+ #################################
+ */
+
+/*
+ #################################
+ # PRIVATE VARIABLES             #
+ #################################
+ */
+
+/*
+ #################################
+ # PRIVATE FUNCTION DECLARATIONS #
+ #################################
+ */
 PRIVATE INLINE void
-init_stacks(struct vrna_sc_mod_param_s   *params,
-            energy_corrections  *diffs,
-            vrna_param_t        *P);
+init_stacks(struct vrna_sc_mod_param_s  *params,
+            energy_corrections          *diffs,
+            vrna_param_t                *P);
+
+
 PRIVATE INLINE void
-init_mismatches(struct vrna_sc_mod_param_s   *params,
-                energy_corrections  *diffs,
-                vrna_param_t        *P);
+init_mismatches(struct vrna_sc_mod_param_s  *params,
+                energy_corrections          *diffs,
+                vrna_param_t                *P);
+
+
 PRIVATE INLINE void
-init_dangles(struct vrna_sc_mod_param_s   *params,
-             energy_corrections  *diffs,
-             vrna_param_t        *P);
+init_dangles(struct vrna_sc_mod_param_s *params,
+             energy_corrections         *diffs,
+             vrna_param_t               *P);
+
+
 PRIVATE INLINE void
-init_terminal(struct vrna_sc_mod_param_s   *params,
-              energy_corrections  *diffs,
-              vrna_param_t        *P);
+init_terminal(struct vrna_sc_mod_param_s  *params,
+              energy_corrections          *diffs,
+              vrna_param_t                *P);
+
+
 PRIVATE INLINE int
 mismatch(vrna_fold_compound_t *fc,
-         unsigned int i,
-         unsigned int j,
-         energy_corrections *data);
+         unsigned int         i,
+         unsigned int         j,
+         energy_corrections   *data);
+
+
 PRIVATE INLINE int
-terminal(unsigned int i,
-         unsigned int j,
+terminal(unsigned int       i,
+         unsigned int       j,
          energy_corrections *data);
+
+
 PRIVATE INLINE int
 sc_PAIR_HP_terminal(vrna_fold_compound_t  *fc,
-                int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d);
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+
+
 PRIVATE INLINE int
 sc_PAIR_HP_mismatch(vrna_fold_compound_t  *fc,
-            int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d);
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+
+
 PRIVATE int
-sc_PAIR_HP(vrna_fold_compound_t  *fc,
-      int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d);
+sc_PAIR_HP(vrna_fold_compound_t *fc,
+           int                  i,
+           int                  j,
+           int                  k,
+           int                  l,
+           void                 *d);
+
+
 PRIVATE INLINE int
 sc_PAIR_IL_stack(vrna_fold_compound_t *fc,
-                 int  i,
-                 int  j,
-                 int  k,
-                 int  l,
-                 void *d);
+                 int                  i,
+                 int                  j,
+                 int                  k,
+                 int                  l,
+                 void                 *d);
+
+
 PRIVATE INLINE int
-sc_PAIR_IL_terminal(vrna_fold_compound_t *fc,
-                    int  i,
-                    int  j,
-                    int  k,
-                    int  l,
-                    void *d);
+sc_PAIR_IL_terminal(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+
+
 PRIVATE INLINE int
-sc_PAIR_IL_mismatch(vrna_fold_compound_t *fc,
-                    int  i,
-                    int  j,
-                    int  k,
-                    int  l,
-                    void *d);
+sc_PAIR_IL_mismatch(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+
+
 PRIVATE INLINE int
 sc_PAIR_IL_mismatch_terminal(vrna_fold_compound_t *fc,
-                             int  i,
-                             int  j,
-                             int  k,
-                             int  l,
-                             void *d);
+                             int                  i,
+                             int                  j,
+                             int                  k,
+                             int                  l,
+                             void                 *d);
+
+
 PRIVATE INLINE int
-sc_PAIR_IL_stack_terminal(vrna_fold_compound_t *fc,
-                          int  i,
-                          int  j,
-                          int  k,
-                          int  l,
-                          void *d);
+sc_PAIR_IL_stack_terminal(vrna_fold_compound_t  *fc,
+                          int                   i,
+                          int                   j,
+                          int                   k,
+                          int                   l,
+                          void                  *d);
+
+
 PRIVATE INLINE int
-sc_PAIR_IL_stack_mismatch(vrna_fold_compound_t *fc,
-                          int  i,
-                          int  j,
-                          int  k,
-                          int  l,
-                          void *d);
+sc_PAIR_IL_stack_mismatch(vrna_fold_compound_t  *fc,
+                          int                   i,
+                          int                   j,
+                          int                   k,
+                          int                   l,
+                          void                  *d);
+
+
 PRIVATE INLINE int
 sc_PAIR_IL(vrna_fold_compound_t *fc,
-               int  i,
-               int  j,
-               int  k,
-               int  l,
-               void *d);
+           int                  i,
+           int                  j,
+           int                  k,
+           int                  l,
+           void                 *d);
+
+
 PRIVATE INLINE int
 sc_PAIR_ML_terminal(vrna_fold_compound_t  *fc,
-      int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d);
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+
+
 PRIVATE INLINE int
 sc_PAIR_ML_mismatch(vrna_fold_compound_t  *fc,
-      int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d);
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d);
+
+
 PRIVATE INLINE int
-sc_PAIR_ML(vrna_fold_compound_t  *fc,
-      int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d);
+sc_PAIR_ML(vrna_fold_compound_t *fc,
+           int                  i,
+           int                  j,
+           int                  k,
+           int                  l,
+           void                 *d);
+
+
 PRIVATE INLINE int
-sc_STEM_terminal(vrna_fold_compound_t  *fc,
-            int                   i,
-            int                   j,
-            int                   k,
-            int                   l,
-            void                  *d);
+sc_STEM_terminal(vrna_fold_compound_t *fc,
+                 int                  i,
+                 int                  j,
+                 int                  k,
+                 int                  l,
+                 void                 *d);
+
+
 PRIVATE INLINE int
-sc_STEM_mismatch(vrna_fold_compound_t  *fc,
-            int                   i,
-            int                   j,
-            int                   k,
-            int                   l,
-            void                  *d);
+sc_STEM_mismatch(vrna_fold_compound_t *fc,
+                 int                  i,
+                 int                  j,
+                 int                  k,
+                 int                  l,
+                 void                 *d);
+
+
 PRIVATE INLINE int
 sc_STEM(vrna_fold_compound_t  *fc,
-            int                   i,
-            int                   j,
-            int                   k,
-            int                   l,
-            void                  *d);
+        int                   i,
+        int                   j,
+        int                   k,
+        int                   l,
+        void                  *d);
+
+
 PRIVATE INLINE int
-sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *d);
+sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l,
+                         void                 *d);
+
+
 PRIVATE INLINE int
-sc_EXT_STEM_EXT_mismatch(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *d);
+sc_EXT_STEM_EXT_mismatch(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l,
+                         void                 *d);
+
+
 PRIVATE INLINE int
 sc_EXT_STEM_EXT(vrna_fold_compound_t  *fc,
                 int                   i,
@@ -182,20 +247,26 @@ sc_EXT_STEM_EXT(vrna_fold_compound_t  *fc,
                 int                   k,
                 int                   l,
                 void                  *d);
+
+
 PRIVATE INLINE int
-sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *d);
+sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l,
+                         void                 *d);
+
+
 PRIVATE INLINE int
-sc_EXT_EXT_STEM_mismatch(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *d);
+sc_EXT_EXT_STEM_mismatch(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l,
+                         void                 *d);
+
+
 PRIVATE INLINE int
 sc_EXT_EXT_STEM(vrna_fold_compound_t  *fc,
                 int                   i,
@@ -203,20 +274,26 @@ sc_EXT_EXT_STEM(vrna_fold_compound_t  *fc,
                 int                   k,
                 int                   l,
                 void                  *d);
+
+
 PRIVATE INLINE int
-sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   k,
-                    int                   l,
-                    void                  *d);
+sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t *fc,
+                             int                  i,
+                             int                  j,
+                             int                  k,
+                             int                  l,
+                             void                 *d);
+
+
 PRIVATE INLINE int
-sc_EXT_STEM_OUTSIDE_mismatch(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   k,
-                    int                   l,
-                    void                  *d);
+sc_EXT_STEM_OUTSIDE_mismatch(vrna_fold_compound_t *fc,
+                             int                  i,
+                             int                  j,
+                             int                  k,
+                             int                  l,
+                             void                 *d);
+
+
 PRIVATE INLINE int
 sc_EXT_STEM_OUTSIDE(vrna_fold_compound_t  *fc,
                     int                   i,
@@ -224,20 +301,26 @@ sc_EXT_STEM_OUTSIDE(vrna_fold_compound_t  *fc,
                     int                   k,
                     int                   l,
                     void                  *d);
+
+
 PRIVATE INLINE int
-sc_ML_ML_STEM_terminal(vrna_fold_compound_t  *fc,
-              int                   i,
-              int                   j,
-              int                   k,
-              int                   l,
-              void                  *d);
+sc_ML_ML_STEM_terminal(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  j,
+                       int                  k,
+                       int                  l,
+                       void                 *d);
+
+
 PRIVATE INLINE int
-sc_ML_ML_STEM_mismatch(vrna_fold_compound_t  *fc,
-              int                   i,
-              int                   j,
-              int                   k,
-              int                   l,
-              void                  *d);
+sc_ML_ML_STEM_mismatch(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  j,
+                       int                  k,
+                       int                  l,
+                       void                 *d);
+
+
 PRIVATE INLINE int
 sc_ML_ML_STEM(vrna_fold_compound_t  *fc,
               int                   i,
@@ -246,10 +329,16 @@ sc_ML_ML_STEM(vrna_fold_compound_t  *fc,
               int                   l,
               void                  *d);
 
+
 PRIVATE void
 free_energy_corrections(void *d);
 
 
+/*
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
 PUBLIC int
 vrna_sc_mod_json(vrna_fold_compound_t *fc,
                  const char           *json,
@@ -310,12 +399,11 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
   if ((fc) &&
       (params) &&
       (modification_sites)) {
-
-    vrna_md_t *md = &(fc->params->model_details);
-    char bases[8] = "_ACGUTM";
+    vrna_md_t           *md       = &(fc->params->model_details);
+    char                bases[8]  = "_ACGUTM";
     bases[6] = params->one_letter_code;
 
-    energy_corrections *diffs = (energy_corrections *)vrna_alloc(sizeof(energy_corrections));
+    energy_corrections  *diffs = (energy_corrections *)vrna_alloc(sizeof(energy_corrections));
 
     /* copy ptypes */
     memcpy(&(diffs->ptypes[0][0]), &(params->ptypes[0][0]), sizeof(params->ptypes));
@@ -347,7 +435,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
       /* allow for all pairing partners specified in the input */
       for (unsigned int j = 1; j < msite; j++) {
         if ((sn[msite] != sn[j]) ||
-            ((msite - j - 1) >= md->min_loop_size))
+            ((msite - j - 1) >= md->min_loop_size)) {
           for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
             unsigned int pp_enc = params->pairing_partners_encoding[cnt];
             if (fc->sequence_encoding[j] == pp_enc) {
@@ -357,10 +445,11 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
             }
           }
+        }
       }
       for (unsigned int j = msite + 1; j <= fc->length; j++) {
         if ((sn[msite] != sn[j]) ||
-            ((j - msite - 1) >= md->min_loop_size))
+            ((j - msite - 1) >= md->min_loop_size)) {
           for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
             unsigned int pp_enc = params->pairing_partners_encoding[cnt];
             if (fc->sequence_encoding[j] == pp_enc) {
@@ -370,6 +459,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
             }
           }
+        }
       }
     }
 
@@ -590,44 +680,52 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
 }
 
 
-
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
 PRIVATE INLINE void
-init_stacks(struct vrna_sc_mod_param_s   *params,
-            energy_corrections  *diffs,
-            vrna_param_t        *P)
+init_stacks(struct vrna_sc_mod_param_s  *params,
+            energy_corrections          *diffs,
+            vrna_param_t                *P)
 {
+  char          nt[MAX_ALPHABET]  = {
+    '\0', 'A', 'C', 'G', 'U', 'M'
+  };
   unsigned int  i, si, sj, enc_unmod, enc_pp, tt, pair_MP, pair_PM;
-  vrna_md_t     *md     = &(P->model_details);
-  double        tempf   = (md->temperature + K0) / (37. + K0);
-  char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
-  int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET], (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
+                (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  double        tempf;
+  vrna_md_t     *md;
 
+  md        = &(P->model_details);
+  tempf     = (md->temperature + K0) / (37. + K0);
   enc_unmod = params->unmodified_encoding;
   dG        = &(params->stack_dG);
   dH        = &(params->stack_dH);
-
-  nt[5] = params->one_letter_code;
+  nt[5]     = params->one_letter_code;
 
   if (params->available & MOD_PARAMS_STACK_dG) {
     for (i = 1; i <= params->num_ptypes; i += 2) {
-      enc_pp = params->pairing_partners_encoding[(i - 1)/ 2];
+      enc_pp = params->pairing_partners_encoding[(i - 1) / 2];
       /* pair type of unmodified version as encoded in RNAlib */
       pair_MP = md->pair[enc_unmod][enc_pp];
       pair_PM = md->pair[enc_pp][enc_unmod];
 
       if (pair_MP == 0)
         pair_MP = 7;
+
       if (pair_PM == 0)
         pair_PM = 7;
 
       for (si = 1; si < MAX_ALPHABET; si++) {
         for (sj = 1; sj < MAX_ALPHABET; sj++) {
           if (si == 5) {
-            if (sj == 5) {
+            if (sj == 5)
               tt = md->pair[enc_unmod][enc_unmod];
-            } else {
+            else
               tt = md->pair[sj][enc_unmod];
-            }
           } else if (sj == 5) {
             tt = md->pair[enc_unmod][si];
           } else {
@@ -643,9 +741,16 @@ init_stacks(struct vrna_sc_mod_param_s   *params,
             else
               e = (*dG)[i][sj][si];
 
-            diffs->stack_diff[i][sj][si]      = e - P->stack[pair_MP][tt];
+            diffs->stack_diff[i][sj][si] = e - P->stack[pair_MP][tt];
 #ifdef DEBUG
-            printf("d_stack(%c%c, %c%c) = %d = %d - %d\n", nt[5], nt[enc_pp], nt[sj], nt[si],  diffs->stack_diff[i][sj][si], e, P->stack[pair_MP][tt]);
+            printf("d_stack(%c%c, %c%c) = %d = %d - %d\n",
+                   nt[5],
+                   nt[enc_pp],
+                   nt[sj],
+                   nt[si],
+                   diffs->stack_diff[i][sj][si],
+                   e,
+                   P->stack[pair_MP][tt]);
 #endif
           }
 
@@ -655,9 +760,16 @@ init_stacks(struct vrna_sc_mod_param_s   *params,
             else
               e = (*dG)[i + 1][sj][si];
 
-            diffs->stack_diff[i + 1][sj][si]  = e - P->stack[pair_PM][tt];
+            diffs->stack_diff[i + 1][sj][si] = e - P->stack[pair_PM][tt];
 #ifdef DEBUG
-            printf("d_stack(%c%c, %c%c) = %d = %d - %d\n", nt[enc_pp], nt[5], nt[sj], nt[si], diffs->stack_diff[i + 1][sj][si], e, P->stack[pair_PM][tt]);
+            printf("d_stack(%c%c, %c%c) = %d = %d - %d\n",
+                   nt[enc_pp],
+                   nt[5],
+                   nt[sj],
+                   nt[si],
+                   diffs->stack_diff[i + 1][sj][si],
+                   e,
+                   P->stack[pair_PM][tt]);
 #endif
           }
         }
@@ -666,33 +778,41 @@ init_stacks(struct vrna_sc_mod_param_s   *params,
   }
 }
 
+
 PRIVATE INLINE void
-init_mismatches(struct vrna_sc_mod_param_s   *params,
-                energy_corrections  *diffs,
-                vrna_param_t        *P)
+init_mismatches(struct vrna_sc_mod_param_s  *params,
+                energy_corrections          *diffs,
+                vrna_param_t                *P)
 {
-  unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM;
-  vrna_md_t     *md     = &(P->model_details);
-  double        tempf   = (md->temperature + K0) / (37. + K0);
-  char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
-  int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET], (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
-
+  char          nt[MAX_ALPHABET]  = {
+    '\0', 'A', 'C', 'G', 'U', 'M'
+  };
 #ifdef DEBUG
-  char          bp[3] = {0}, *bpairs[7] = {"NN", "CG", "GC", "GU", "UG", "AU", "UA"};
+  char          bp[3] = {
+    0
+  }, *bpairs[7] = {
+    "NN", "CG", "GC", "GU", "UG", "AU", "UA"
+  };
 #endif
+  unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM;
+  int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
+                (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  double        tempf;
+  vrna_md_t     *md;
 
+  md        = &(P->model_details);
+  tempf     = (md->temperature + K0) / (37. + K0);
   enc_unmod = params->unmodified_encoding;
   dG        = &(params->mismatch_dG);
   dH        = &(params->mismatch_dH);
-
-  nt[5] = params->one_letter_code;
+  nt[5]     = params->one_letter_code;
 
   if (params->available & MOD_PARAMS_MISMATCH_dG) {
     /* process all closing pairs without modified bases */
     for (i = 1; i <= params->num_ptypes + NBPAIRS; i += 2) {
       if (i > NBPAIRS) {
         /* closing pair consists of at least one modified base */
-        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1)/ 2];
+        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
         /* pair type of unmodified version as encoded in RNAlib */
         pair_MP = md->pair[enc_unmod][enc_pp];
         pair_PM = md->pair[enc_pp][enc_unmod];
@@ -701,7 +821,6 @@ init_mismatches(struct vrna_sc_mod_param_s   *params,
         bp[0] = nt[5];
         bp[1] = nt[enc_pp];
 #endif
-
       } else {
         /* closing pair is regular base pair without modified bases */
         pair_MP = i;
@@ -714,6 +833,7 @@ init_mismatches(struct vrna_sc_mod_param_s   *params,
 
       if (pair_MP == 0)
         pair_MP = 7;
+
       if (pair_PM == 0)
         pair_PM = 7;
 
@@ -723,6 +843,7 @@ init_mismatches(struct vrna_sc_mod_param_s   *params,
             siu = enc_unmod;
           else
             siu = si;
+
           if (sj == 5)
             sju = enc_unmod;
           else
@@ -743,7 +864,14 @@ init_mismatches(struct vrna_sc_mod_param_s   *params,
              */
             diffs->mismatch_diff[i][si][sj] = e - P->mismatchM[pair_PM][sju][siu];
 #ifdef DEBUG
-            printf("d_mm(%c%c, %c, %c) = %d = %d - %d\n", bp[0], bp[1], nt[si], nt[sj],  diffs->mismatch_diff[i][si][sj], e, P->mismatchM[pair_PM][sju][siu]);
+            printf("d_mm(%c%c, %c, %c) = %d = %d - %d\n",
+                   bp[0],
+                   bp[1],
+                   nt[si],
+                   nt[sj],
+                   diffs->mismatch_diff[i][si][sj],
+                   e,
+                   P->mismatchM[pair_PM][sju][siu]);
 #endif
           }
 
@@ -760,9 +888,16 @@ init_mismatches(struct vrna_sc_mod_param_s   *params,
              * considering the unpaired bases enclosed. Thus, the pair and 5' and 3'
              * unpaired bases must be rotatated
              */
-            diffs->mismatch_diff[i + 1][si][sj]  = e - P->mismatchM[pair_MP][sju][siu];
+            diffs->mismatch_diff[i + 1][si][sj] = e - P->mismatchM[pair_MP][sju][siu];
 #ifdef DEBUG
-            printf("d_mm(%c%c, %c, %c) = %d = %d - %d\n", bp[1], bp[0], nt[si], nt[sj], diffs->mismatch_diff[i + 1][si][sj], e, P->mismatchM[pair_MP][sju][siu]);
+            printf("d_mm(%c%c, %c, %c) = %d = %d - %d\n",
+                   bp[1],
+                   bp[0],
+                   nt[si],
+                   nt[sj],
+                   diffs->mismatch_diff[i + 1][si][sj],
+                   e,
+                   P->mismatchM[pair_MP][sju][siu]);
 #endif
           }
         }
@@ -773,34 +908,41 @@ init_mismatches(struct vrna_sc_mod_param_s   *params,
 
 
 PRIVATE INLINE void
-init_dangles(struct vrna_sc_mod_param_s   *params,
-             energy_corrections  *diffs,
-             vrna_param_t        *P)
+init_dangles(struct vrna_sc_mod_param_s *params,
+             energy_corrections         *diffs,
+             vrna_param_t               *P)
 {
-  unsigned int  i, si, enc_unmod, enc_pp, siu, pair_MP, pair_PM;
-  vrna_md_t     *md     = &(P->model_details);
-  double        tempf   = (md->temperature + K0) / (37. + K0);
-  char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
-  int           e, (*dG5)[MAX_PAIRS][MAX_ALPHABET], (*dH5)[MAX_PAIRS][MAX_ALPHABET], (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
-
+  char          nt[MAX_ALPHABET]  = {
+    '\0', 'A', 'C', 'G', 'U', 'M'
+  };
 #ifdef DEBUG
-  char          bp[3] = {0}, *bpairs[7] = {"NN", "CG", "GC", "GU", "UG", "AU", "UA"};
+  char          bp[3] = {
+    0
+  }, *bpairs[7] = {
+    "NN", "CG", "GC", "GU", "UG", "AU", "UA"
+  };
 #endif
+  unsigned int  i, si, enc_unmod, enc_pp, siu, pair_MP, pair_PM;
+  int           e, (*dG5)[MAX_PAIRS][MAX_ALPHABET], (*dH5)[MAX_PAIRS][MAX_ALPHABET],
+                (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
+  double        tempf;
+  vrna_md_t     *md;
 
+  md        = &(P->model_details);
+  tempf     = (md->temperature + K0) / (37. + K0);
   enc_unmod = params->unmodified_encoding;
   dG5       = &(params->dangle5_dG);
   dH5       = &(params->dangle5_dH);
   dG3       = &(params->dangle3_dG);
   dH3       = &(params->dangle3_dH);
-
-  nt[5] = params->one_letter_code;
+  nt[5]     = params->one_letter_code;
 
   if (params->available & MOD_PARAMS_DANGLES_dG) {
     /* process all closing pairs without modified bases */
     for (i = 1; i <= params->num_ptypes + NBPAIRS; i += 2) {
       if (i > NBPAIRS) {
         /* closing pair consists of at least one modified base */
-        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1)/ 2];
+        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
         /* pair type of unmodified version as encoded in RNAlib */
         pair_MP = md->pair[enc_unmod][enc_pp];
         pair_PM = md->pair[enc_pp][enc_unmod];
@@ -809,7 +951,6 @@ init_dangles(struct vrna_sc_mod_param_s   *params,
         bp[0] = nt[5];
         bp[1] = nt[enc_pp];
 #endif
-
       } else {
         /* closing pair is regular base pair without modified bases */
         pair_MP = i;
@@ -822,6 +963,7 @@ init_dangles(struct vrna_sc_mod_param_s   *params,
 
       if (pair_MP == 0)
         pair_MP = 7;
+
       if (pair_PM == 0)
         pair_PM = 7;
 
@@ -844,7 +986,13 @@ init_dangles(struct vrna_sc_mod_param_s   *params,
            */
           diffs->dangle5_diff[i][si] = e - P->dangle5[pair_PM][siu];
 #ifdef DEBUG
-          printf("d_d5(%c%c, %c) = %d = %d - %d\n", bp[0], bp[1], nt[si],  diffs->dangle5_diff[i][si], e, P->dangle5[pair_PM][siu]);
+          printf("d_d5(%c%c, %c) = %d = %d - %d\n",
+                 bp[0],
+                 bp[1],
+                 nt[si],
+                 diffs->dangle5_diff[i][si],
+                 e,
+                 P->dangle5[pair_PM][siu]);
 #endif
         }
 
@@ -861,7 +1009,13 @@ init_dangles(struct vrna_sc_mod_param_s   *params,
            */
           diffs->dangle3_diff[i][si] = e - P->dangle3[pair_PM][siu];
 #ifdef DEBUG
-          printf("d_d3(%c%c, %c) = %d = %d - %d\n", bp[0], bp[1], nt[si],  diffs->dangle3_diff[i][si], e, P->dangle3[pair_PM][siu]);
+          printf("d_d3(%c%c, %c) = %d = %d - %d\n",
+                 bp[0],
+                 bp[1],
+                 nt[si],
+                 diffs->dangle3_diff[i][si],
+                 e,
+                 P->dangle3[pair_PM][siu]);
 #endif
         }
 
@@ -878,7 +1032,13 @@ init_dangles(struct vrna_sc_mod_param_s   *params,
            */
           diffs->dangle5_diff[i + 1][si] = e - P->dangle5[pair_MP][siu];
 #ifdef DEBUG
-          printf("d_d5(%c%c, %c) = %d = %d - %d\n", bp[1], bp[0], nt[si],  diffs->dangle5_diff[i + 1][si], e, P->dangle5[pair_MP][siu]);
+          printf("d_d5(%c%c, %c) = %d = %d - %d\n",
+                 bp[1],
+                 bp[0],
+                 nt[si],
+                 diffs->dangle5_diff[i + 1][si],
+                 e,
+                 P->dangle5[pair_MP][siu]);
 #endif
         }
 
@@ -895,7 +1055,13 @@ init_dangles(struct vrna_sc_mod_param_s   *params,
            */
           diffs->dangle3_diff[i + 1][si] = e - P->dangle3[pair_MP][siu];
 #ifdef DEBUG
-          printf("d_d3(%c%c, %c) = %d = %d - %d\n", bp[1], bp[0], nt[si],  diffs->dangle3_diff[i + 1][si], e, P->dangle3[pair_MP][siu]);
+          printf("d_d3(%c%c, %c) = %d = %d - %d\n",
+                 bp[1],
+                 bp[0],
+                 nt[si],
+                 diffs->dangle3_diff[i + 1][si],
+                 e,
+                 P->dangle3[pair_MP][siu]);
 #endif
         }
       }
@@ -903,28 +1069,32 @@ init_dangles(struct vrna_sc_mod_param_s   *params,
   }
 }
 
-PRIVATE INLINE void
-init_terminal(struct vrna_sc_mod_param_s   *params,
-              energy_corrections  *diffs,
-              vrna_param_t        *P)
-{
-  unsigned int  i, enc_unmod, enc_pp, tt;
-  vrna_md_t     *md     = &(P->model_details);
-  double        tempf   = (md->temperature + K0) / (37. + K0);
-  char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
-  int           e, (*dG)[MAX_PAIRS], (*dH)[MAX_PAIRS], Terminal_unmod;
 
+PRIVATE INLINE void
+init_terminal(struct vrna_sc_mod_param_s  *params,
+              energy_corrections          *diffs,
+              vrna_param_t                *P)
+{
+  char          nt[MAX_ALPHABET]  = {
+    '\0', 'A', 'C', 'G', 'U', 'M'
+  };
+  unsigned int  i, enc_unmod, enc_pp, tt;
+  int           e, (*dG)[MAX_PAIRS], (*dH)[MAX_PAIRS], Terminal_unmod;
+  double        tempf;
+  vrna_md_t     *md;
+
+  md        = &(P->model_details);
+  tempf     = (md->temperature + K0) / (37. + K0);
   enc_unmod = params->unmodified_encoding;
   dG        = &(params->terminal_dG);
   dH        = &(params->terminal_dH);
-
-  nt[5] = params->one_letter_code;
+  nt[5]     = params->one_letter_code;
 
   if (params->available & MOD_PARAMS_TERMINAL_dG) {
     for (i = 1; i <= params->num_ptypes; i += 2) {
-      enc_pp = params->pairing_partners_encoding[(i - 1)/ 2];
-      tt     = md->pair[enc_unmod][enc_pp];
-      Terminal_unmod = (tt > 2) ? P->TerminalAU : 0; /* terminal AU only for AU and GU pairs */
+      enc_pp          = params->pairing_partners_encoding[(i - 1) / 2];
+      tt              = md->pair[enc_unmod][enc_pp];
+      Terminal_unmod  = (tt > 2) ? P->TerminalAU : 0; /* terminal AU only for AU and GU pairs */
 
       if ((*dG)[i] != INF) {
         if (params->available & MOD_PARAMS_TERMINAL_dH)
@@ -934,7 +1104,12 @@ init_terminal(struct vrna_sc_mod_param_s   *params,
 
         diffs->terminal_diff[i] = e - Terminal_unmod;
 #ifdef DEBUG
-        printf("d_term(%c%c) = %d = %d - %d\n", nt[5], nt[enc_pp], diffs->terminal_diff[i], e, Terminal_unmod);
+        printf("d_term(%c%c) = %d = %d - %d\n",
+               nt[5],
+               nt[enc_pp],
+               diffs->terminal_diff[i],
+               e,
+               Terminal_unmod);
 #endif
       }
 
@@ -946,7 +1121,12 @@ init_terminal(struct vrna_sc_mod_param_s   *params,
 
         diffs->terminal_diff[i + 1] = e - Terminal_unmod;
 #ifdef DEBUG
-        printf("d_term(%c%c) = %d = %d - %d\n", nt[enc_pp], nt[5], diffs->terminal_diff[i + 1], e, Terminal_unmod);
+        printf("d_term(%c%c) = %d = %d - %d\n",
+               nt[enc_pp],
+               nt[5],
+               diffs->terminal_diff[i + 1],
+               e,
+               Terminal_unmod);
 #endif
       }
     }
@@ -956,13 +1136,13 @@ init_terminal(struct vrna_sc_mod_param_s   *params,
 
 PRIVATE INLINE int
 mismatch(vrna_fold_compound_t *fc,
-         unsigned int i,
-         unsigned int j,
-         energy_corrections *data)
+         unsigned int         i,
+         unsigned int         j,
+         energy_corrections   *data)
 {
-  short *enc      = data->enc;
-  unsigned int tt = data->ptypes[enc[i]][enc[j]];
-  vrna_md_t *md   = &(fc->params->model_details);
+  short         *enc  = data->enc;
+  unsigned int  tt    = data->ptypes[enc[i]][enc[j]];
+  vrna_md_t     *md   = &(fc->params->model_details);
 
   if (tt == 0)
     /* if we don't know the base pair, it must be canonical */
@@ -984,12 +1164,12 @@ mismatch(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE int
-terminal(unsigned int i,
-         unsigned int j,
+terminal(unsigned int       i,
+         unsigned int       j,
          energy_corrections *data)
 {
-  short *enc      = data->enc;
-  unsigned int tt = data->ptypes[enc[i]][enc[j]];
+  short         *enc  = data->enc;
+  unsigned int  tt    = data->ptypes[enc[i]][enc[j]];
 
   return data->terminal_diff[tt];
 }
@@ -998,38 +1178,40 @@ terminal(unsigned int i,
 /* hairpin loop correction including terminalAU terms */
 PRIVATE INLINE int
 sc_PAIR_HP_terminal(vrna_fold_compound_t  *fc,
-                int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d)
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d)
 {
   return terminal(i, j,
                   (energy_corrections *)d);
 }
 
+
 /* hairpin loop correction including mismatch terms */
 PRIVATE INLINE int
 sc_PAIR_HP_mismatch(vrna_fold_compound_t  *fc,
-            int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d)
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d)
 {
   return mismatch(fc,
                   i, j,
                   (energy_corrections *)d);
 }
 
+
 /* hairpin loop correction including mismatch and terminalAU terms */
 PRIVATE int
-sc_PAIR_HP(vrna_fold_compound_t  *fc,
-      int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d)
+sc_PAIR_HP(vrna_fold_compound_t *fc,
+           int                  i,
+           int                  j,
+           int                  k,
+           int                  l,
+           void                 *d)
 {
   return sc_PAIR_HP_mismatch(fc, i, j, k, l, d) +
          sc_PAIR_HP_terminal(fc, i, j, k, l, d);
@@ -1038,23 +1220,23 @@ sc_PAIR_HP(vrna_fold_compound_t  *fc,
 
 PRIVATE INLINE int
 sc_PAIR_IL_stack(vrna_fold_compound_t *fc,
-                 int  i,
-                 int  j,
-                 int  k,
-                 int  l,
-                 void *d)
+                 int                  i,
+                 int                  j,
+                 int                  k,
+                 int                  l,
+                 void                 *d)
 {
   if ((i + 1 == k) &&
       (l == j - 1)) {
-    energy_corrections *data = (energy_corrections *)d;
-    short *enc = data->enc;
+    energy_corrections  *data = (energy_corrections *)d;
+    short               *enc  = data->enc;
 
-    unsigned int enc_i = enc[i];
-    unsigned int enc_j = enc[j];
-    unsigned int enc_k = enc[k];
-    unsigned int enc_l = enc[l];
-    unsigned int t1 = data->ptypes[enc_i][enc_j];
-    unsigned int t2 = data->ptypes[enc_l][enc_k];
+    unsigned int        enc_i = enc[i];
+    unsigned int        enc_j = enc[j];
+    unsigned int        enc_k = enc[k];
+    unsigned int        enc_l = enc[l];
+    unsigned int        t1    = data->ptypes[enc_i][enc_j];
+    unsigned int        t2    = data->ptypes[enc_l][enc_k];
     if (t1 != 0)
       return data->stack_diff[t1][enc_l][enc_k];
     else if (t2 != 0)
@@ -1064,13 +1246,14 @@ sc_PAIR_IL_stack(vrna_fold_compound_t *fc,
   return 0;
 }
 
+
 PRIVATE INLINE int
-sc_PAIR_IL_terminal(vrna_fold_compound_t *fc,
-                    int  i,
-                    int  j,
-                    int  k,
-                    int  l,
-                    void *d)
+sc_PAIR_IL_terminal(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d)
 {
   if ((i + 1 < k) ||
       (l + 1 < j))
@@ -1080,13 +1263,14 @@ sc_PAIR_IL_terminal(vrna_fold_compound_t *fc,
   return 0;
 }
 
+
 PRIVATE INLINE int
-sc_PAIR_IL_mismatch(vrna_fold_compound_t *fc,
-                    int  i,
-                    int  j,
-                    int  k,
-                    int  l,
-                    void *d)
+sc_PAIR_IL_mismatch(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d)
 {
   if (((k - i - 1) > 2) &&
       ((j - l - 1) > 2))
@@ -1096,62 +1280,67 @@ sc_PAIR_IL_mismatch(vrna_fold_compound_t *fc,
   return 0;
 }
 
+
 PRIVATE INLINE int
 sc_PAIR_IL_mismatch_terminal(vrna_fold_compound_t *fc,
-                             int  i,
-                             int  j,
-                             int  k,
-                             int  l,
-                             void *d)
+                             int                  i,
+                             int                  j,
+                             int                  k,
+                             int                  l,
+                             void                 *d)
 {
   return sc_PAIR_IL_mismatch(fc, i, j, k, l, d) +
          sc_PAIR_IL_terminal(fc, i, j, k, l, d);
 }
 
+
 PRIVATE INLINE int
-sc_PAIR_IL_stack_terminal(vrna_fold_compound_t *fc,
-                          int  i,
-                          int  j,
-                          int  k,
-                          int  l,
-                          void *d)
+sc_PAIR_IL_stack_terminal(vrna_fold_compound_t  *fc,
+                          int                   i,
+                          int                   j,
+                          int                   k,
+                          int                   l,
+                          void                  *d)
 {
   return sc_PAIR_IL_stack(fc, i, j, k, l, d) +
          sc_PAIR_IL_terminal(fc, i, j, k, l, d);
 }
 
+
 PRIVATE INLINE int
-sc_PAIR_IL_stack_mismatch(vrna_fold_compound_t *fc,
-                          int  i,
-                          int  j,
-                          int  k,
-                          int  l,
-                          void *d)
+sc_PAIR_IL_stack_mismatch(vrna_fold_compound_t  *fc,
+                          int                   i,
+                          int                   j,
+                          int                   k,
+                          int                   l,
+                          void                  *d)
 {
   return sc_PAIR_IL_stack(fc, i, j, k, l, d) +
          sc_PAIR_IL_mismatch(fc, i, j, k, l, d);
 }
 
+
 PRIVATE INLINE int
 sc_PAIR_IL(vrna_fold_compound_t *fc,
-               int  i,
-               int  j,
-               int  k,
-               int  l,
-               void *d)
+           int                  i,
+           int                  j,
+           int                  k,
+           int                  l,
+           void                 *d)
 {
   return sc_PAIR_IL_stack(fc, i, j, k, l, d) +
          sc_PAIR_IL_mismatch(fc, i, j, k, l, d) +
          sc_PAIR_IL_terminal(fc, i, j, k, l, d);
 }
 
+
 PRIVATE INLINE int
 sc_PAIR_ML_terminal(vrna_fold_compound_t  *fc,
-      int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d)
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d)
 {
   return terminal(i, j,
                   (energy_corrections *)d);
@@ -1160,11 +1349,11 @@ sc_PAIR_ML_terminal(vrna_fold_compound_t  *fc,
 
 PRIVATE INLINE int
 sc_PAIR_ML_mismatch(vrna_fold_compound_t  *fc,
-      int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d)
+                    int                   i,
+                    int                   j,
+                    int                   k,
+                    int                   l,
+                    void                  *d)
 {
   return mismatch(fc,
                   i, j,
@@ -1173,12 +1362,12 @@ sc_PAIR_ML_mismatch(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_PAIR_ML(vrna_fold_compound_t  *fc,
-      int                   i,
-      int                   j,
-      int                   k,
-      int                   l,
-      void                  *d)
+sc_PAIR_ML(vrna_fold_compound_t *fc,
+           int                  i,
+           int                  j,
+           int                  k,
+           int                  l,
+           void                 *d)
 {
   return sc_PAIR_ML_mismatch(fc, i, j, k, l, d) +
          sc_PAIR_ML_terminal(fc, i, j, k, l, d);
@@ -1186,12 +1375,12 @@ sc_PAIR_ML(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_STEM_terminal(vrna_fold_compound_t  *fc,
-            int                   i,
-            int                   j,
-            int                   k,
-            int                   l,
-            void                  *d)
+sc_STEM_terminal(vrna_fold_compound_t *fc,
+                 int                  i,
+                 int                  j,
+                 int                  k,
+                 int                  l,
+                 void                 *d)
 {
   return terminal(l, k,
                   (energy_corrections *)d);
@@ -1199,12 +1388,12 @@ sc_STEM_terminal(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_STEM_mismatch(vrna_fold_compound_t  *fc,
-            int                   i,
-            int                   j,
-            int                   k,
-            int                   l,
-            void                  *d)
+sc_STEM_mismatch(vrna_fold_compound_t *fc,
+                 int                  i,
+                 int                  j,
+                 int                  k,
+                 int                  l,
+                 void                 *d)
 {
   return mismatch(fc,
                   l, k,
@@ -1214,11 +1403,11 @@ sc_STEM_mismatch(vrna_fold_compound_t  *fc,
 
 PRIVATE INLINE int
 sc_STEM(vrna_fold_compound_t  *fc,
-            int                   i,
-            int                   j,
-            int                   k,
-            int                   l,
-            void                  *d)
+        int                   i,
+        int                   j,
+        int                   k,
+        int                   l,
+        void                  *d)
 {
   return sc_STEM_mismatch(fc, i, j, k, l, d) +
          sc_STEM_terminal(fc, i, j, k, l, d);
@@ -1226,12 +1415,12 @@ sc_STEM(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *d)
+sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l,
+                         void                 *d)
 {
   return terminal(k, i,
                   (energy_corrections *)d);
@@ -1239,12 +1428,12 @@ sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_STEM_EXT_mismatch(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *d)
+sc_EXT_STEM_EXT_mismatch(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l,
+                         void                 *d)
 {
   return mismatch(fc,
                   k, i,
@@ -1266,12 +1455,12 @@ sc_EXT_STEM_EXT(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *d)
+sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l,
+                         void                 *d)
 {
   return terminal(j, l,
                   (energy_corrections *)d);
@@ -1279,12 +1468,12 @@ sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_EXT_STEM_mismatch(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   k,
-                int                   l,
-                void                  *d)
+sc_EXT_EXT_STEM_mismatch(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l,
+                         void                 *d)
 {
   return mismatch(fc,
                   j, l,
@@ -1306,12 +1495,12 @@ sc_EXT_EXT_STEM(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   k,
-                    int                   l,
-                    void                  *d)
+sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t *fc,
+                             int                  i,
+                             int                  j,
+                             int                  k,
+                             int                  l,
+                             void                 *d)
 {
   return terminal(l, k,
                   (energy_corrections *)d);
@@ -1319,12 +1508,12 @@ sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_STEM_OUTSIDE_mismatch(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   k,
-                    int                   l,
-                    void                  *d)
+sc_EXT_STEM_OUTSIDE_mismatch(vrna_fold_compound_t *fc,
+                             int                  i,
+                             int                  j,
+                             int                  k,
+                             int                  l,
+                             void                 *d)
 {
   return mismatch(fc,
                   l, k,
@@ -1346,12 +1535,12 @@ sc_EXT_STEM_OUTSIDE(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_ML_ML_STEM_terminal(vrna_fold_compound_t  *fc,
-              int                   i,
-              int                   j,
-              int                   k,
-              int                   l,
-              void                  *d)
+sc_ML_ML_STEM_terminal(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  j,
+                       int                  k,
+                       int                  l,
+                       void                 *d)
 {
   return terminal(j, l,
                   (energy_corrections *)d);
@@ -1359,12 +1548,12 @@ sc_ML_ML_STEM_terminal(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_ML_ML_STEM_mismatch(vrna_fold_compound_t  *fc,
-              int                   i,
-              int                   j,
-              int                   k,
-              int                   l,
-              void                  *d)
+sc_ML_ML_STEM_mismatch(vrna_fold_compound_t *fc,
+                       int                  i,
+                       int                  j,
+                       int                  k,
+                       int                  l,
+                       void                 *d)
 {
   return mismatch(fc,
                   j, l,
@@ -1389,8 +1578,7 @@ PRIVATE void
 free_energy_corrections(void *d)
 {
   energy_corrections *diff = (energy_corrections *)d;
+
   free(diff->enc);
   free(diff);
 }
-
-
