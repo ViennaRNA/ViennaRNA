@@ -132,7 +132,7 @@ PRIVATE INLINE void
 init_m6A_stacks(vrna_param_t *P)
 {
   vrna_md_t *md     = &(P->model_details);
-  double    tempf   = (md->temperature + K0) / 37.;
+  double    tempf   = (md->temperature + K0) / (37. + K0);
   unsigned int  pair_AU = md->pair[1][4];
   unsigned int  pair_UA = md->pair[4][1];
 
