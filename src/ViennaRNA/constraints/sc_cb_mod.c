@@ -30,6 +30,9 @@
 #define MOD_PARAMS_DANGLES_dH   (1 << 7)
 
 #define DEBUG
+#define MAX_ALPHABET  (6)
+#define MAX_PAIRS     (NBPAIRS + 1 + 25)
+
 
 /* a container to store the data read from a json parameter file */
 typedef struct {
@@ -43,36 +46,36 @@ typedef struct {
   unsigned int  unmodified_encoding;
 
   size_t  num_ptypes;
-  size_t  ptypes[6][6];
+  size_t  ptypes[MAX_ALPHABET][MAX_ALPHABET];
 
-  int stack_dG[32][6][6];
-  int stack_dH[32][6][6];
+  int stack_dG[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int stack_dH[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
-  int dangle5_dG[32][6];
-  int dangle5_dH[32][6];
-  int dangle3_dG[32][6];
-  int dangle3_dH[32][6];
+  int dangle5_dG[MAX_PAIRS][MAX_ALPHABET];
+  int dangle5_dH[MAX_PAIRS][MAX_ALPHABET];
+  int dangle3_dG[MAX_PAIRS][MAX_ALPHABET];
+  int dangle3_dH[MAX_PAIRS][MAX_ALPHABET];
 
-  int mismatch_dG[32][6][6];
-  int mismatch_dH[32][6][6];
+  int mismatch_dG[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int mismatch_dH[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
-  int terminal_dG[32];
-  int terminal_dH[32];
+  int terminal_dG[MAX_PAIRS];
+  int terminal_dH[MAX_PAIRS];
 } energy_parameters;
 
 /* the actual data structure passed around while evaluating */
 typedef struct {
   short   *enc;
-  size_t  ptypes[6][6];
+  size_t  ptypes[MAX_ALPHABET][MAX_ALPHABET];
 
-  int stack_diff[32][6][6];
+  int stack_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
-  int dangle5_diff[32][6];
-  int dangle3_diff[32][6];
+  int dangle5_diff[MAX_PAIRS][MAX_ALPHABET];
+  int dangle3_diff[MAX_PAIRS][MAX_ALPHABET];
 
-  int mismatch_diff[32][6][6];
+  int mismatch_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
-  int terminal_diff[32];
+  int terminal_diff[MAX_PAIRS];
 } energy_corrections;
 
 
@@ -80,8 +83,8 @@ PRIVATE unsigned int
 parse_stacks(JsonNode         *dom,
            const char       *identifier,
            const char       *bases,
-           size_t           (*ptypes)[6][6],
-           int              (*storage)[32][6][6])
+           size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+           int              (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET])
 {
   unsigned char num_params = 0;
   char          *enc_ptr;
@@ -90,9 +93,9 @@ parse_stacks(JsonNode         *dom,
   JsonNode      *entry, *e;
 
   /* go through storage and initialize */
-  for (size_t i = 0; i < 32; i++)
-    for (size_t k = 0; k < 6; k++)
-      for (size_t l = 0; l < 6; l++)
+  for (size_t i = 0; i < MAX_PAIRS; i++)
+    for (size_t k = 0; k < MAX_ALPHABET; k++)
+      for (size_t l = 0; l < MAX_ALPHABET; l++)
         (*storage)[i][k][l] = INF;
 
   if ((e = json_find_member(dom, identifier)) &&
@@ -134,9 +137,9 @@ PRIVATE unsigned int
 parse_mismatch(JsonNode         *dom,
                const char       *identifier,
                const char       *bases,
-               size_t           (*ptypes)[6][6],
+               size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
                vrna_md_t        *md,
-               int              (*storage)[32][6][6])
+               int              (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET])
 {
   unsigned char num_params = 0;
   char          *enc_ptr;
@@ -145,9 +148,9 @@ parse_mismatch(JsonNode         *dom,
   JsonNode      *entry, *e;
 
   /* go through storage and initialize */
-  for (size_t i = 0; i < 32; i++)
-    for (size_t k = 0; k < 6; k++)
-      for (size_t l = 0; l < 6; l++)
+  for (size_t i = 0; i < MAX_PAIRS; i++)
+    for (size_t k = 0; k < MAX_ALPHABET; k++)
+      for (size_t l = 0; l < MAX_ALPHABET; l++)
         (*storage)[i][k][l] = INF;
 
   if ((e = json_find_member(dom, identifier)) &&
@@ -171,7 +174,7 @@ parse_mismatch(JsonNode         *dom,
           num_params++;
 
           if ((enc[0] == 5) || (enc[2] == 5))
-            (*storage)[6 + (*ptypes)[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
+            (*storage)[NBPAIRS + (*ptypes)[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
           else if ((enc[1] == 5) || (enc[3] == 5))
             (*storage)[md->pair[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
           else
@@ -189,9 +192,9 @@ PRIVATE unsigned int
 parse_dangles(JsonNode         *dom,
               const char       *identifier,
               const char       *bases,
-              size_t           (*ptypes)[6][6],
+              size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
               vrna_md_t        *md,
-              int              (*storage)[32][6])
+              int              (*storage)[MAX_PAIRS][MAX_ALPHABET])
 {
   unsigned char num_params = 0;
   char          *enc_ptr;
@@ -200,8 +203,8 @@ parse_dangles(JsonNode         *dom,
   JsonNode      *entry, *e;
 
   /* go through storage and initialize */
-  for (size_t i = 0; i < 32; i++)
-    for (size_t k = 0; k < 6; k++)
+  for (size_t i = 0; i < MAX_PAIRS; i++)
+    for (size_t k = 0; k < MAX_ALPHABET; k++)
       (*storage)[i][k] = INF;
 
   if ((e = json_find_member(dom, identifier)) &&
@@ -224,7 +227,7 @@ parse_dangles(JsonNode         *dom,
         if (i == 3) {
           num_params++;
           if ((enc[0] == 5) || (enc[1] == 5))
-            (*storage)[6 + (*ptypes)[enc[0]][enc[1]]][enc[2]] = (int)(entry->number_ * 100.);
+            (*storage)[NBPAIRS + (*ptypes)[enc[0]][enc[1]]][enc[2]] = (int)(entry->number_ * 100.);
           else if (enc[2] == 5)
             (*storage)[md->pair[enc[0]][enc[1]]][enc[2]] = (int)(entry->number_ * 100.);
           else
@@ -242,8 +245,8 @@ PRIVATE unsigned int
 parse_terminal(JsonNode         *dom,
                const char       *identifier,
                const char       *bases,
-               size_t           (*ptypes)[6][6],
-               int              (*storage)[32])
+               size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+               int              (*storage)[MAX_PAIRS])
 {
   unsigned char num_params = 0;
   char          *enc_ptr;
@@ -252,7 +255,7 @@ parse_terminal(JsonNode         *dom,
   JsonNode      *entry, *e;
 
   /* go through storage and initialize */
-  for (size_t i = 0; i < 32; i++)
+  for (size_t i = 0; i < MAX_PAIRS; i++)
     (*storage)[i] = INF;
 
   if ((e = json_find_member(dom, identifier)) &&
@@ -421,8 +424,8 @@ init_stacks(energy_parameters   *params,
   unsigned int  i, si, sj, enc_unmod, enc_pp, tt, pair_MP, pair_PM;
   vrna_md_t     *md     = &(P->model_details);
   double        tempf   = (md->temperature + K0) / (37. + K0);
-  char          nt[6] = {'\0', 'A', 'C','G','U', 'M'};
-  int           e, (*dG)[32][6][6], (*dH)[32][6][6];
+  char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
+  int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET], (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
   enc_unmod = params->unmodified_encoding;
   dG        = &(params->stack_dG);
@@ -437,8 +440,13 @@ init_stacks(energy_parameters   *params,
       pair_MP = md->pair[enc_unmod][enc_pp];
       pair_PM = md->pair[enc_pp][enc_unmod];
 
-      for (si = 1; si < 6; si++) {
-        for (sj = 1; sj < 6; sj++) {
+      if (pair_MP == 0)
+        pair_MP = 7;
+      if (pair_PM == 0)
+        pair_PM = 7;
+
+      for (si = 1; si < MAX_ALPHABET; si++) {
+        for (sj = 1; sj < MAX_ALPHABET; sj++) {
           if (si == 5) {
             if (sj == 5) {
               tt = md->pair[enc_unmod][enc_unmod];
@@ -491,8 +499,8 @@ init_mismatches(energy_parameters   *params,
   unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM;
   vrna_md_t     *md     = &(P->model_details);
   double        tempf   = (md->temperature + K0) / (37. + K0);
-  char          nt[6] = {'\0', 'A', 'C','G','U', 'M'};
-  int           e, (*dG)[32][6][6], (*dH)[32][6][6];
+  char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
+  int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET], (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
 #ifdef DEBUG
   char          bp[3] = {0}, *bpairs[7] = {"NN", "CG", "GC", "GU", "UG", "AU", "UA"};
@@ -506,10 +514,10 @@ init_mismatches(energy_parameters   *params,
 
   if (params->available & MOD_PARAMS_MISMATCH_dG) {
     /* process all closing pairs without modified bases */
-    for (i = 1; i <= params->num_ptypes + 6; i += 2) {
-      if (i > 6) {
+    for (i = 1; i <= params->num_ptypes + NBPAIRS; i += 2) {
+      if (i > NBPAIRS) {
         /* closing pair consists of at least one modified base */
-        enc_pp = params->pairing_partners_encoding[(i - 6 - 1)/ 2];
+        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1)/ 2];
         /* pair type of unmodified version as encoded in RNAlib */
         pair_MP = md->pair[enc_unmod][enc_pp];
         pair_PM = md->pair[enc_pp][enc_unmod];
@@ -529,8 +537,13 @@ init_mismatches(energy_parameters   *params,
 #endif
       }
 
-      for (si = 1; si < 6; si++) {
-        for (sj = 1; sj < 6; sj++) {
+      if (pair_MP == 0)
+        pair_MP = 7;
+      if (pair_PM == 0)
+        pair_PM = 7;
+
+      for (si = 1; si < MAX_ALPHABET; si++) {
+        for (sj = 1; sj < MAX_ALPHABET; sj++) {
           if (si == 5)
             siu = enc_unmod;
           else
@@ -591,8 +604,8 @@ init_dangles(energy_parameters   *params,
   unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM;
   vrna_md_t     *md     = &(P->model_details);
   double        tempf   = (md->temperature + K0) / (37. + K0);
-  char          nt[6] = {'\0', 'A', 'C','G','U', 'M'};
-  int           e, (*dG5)[32][6], (*dH5)[32][6], (*dG3)[32][6], (*dH3)[32][6];
+  char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
+  int           e, (*dG5)[MAX_PAIRS][MAX_ALPHABET], (*dH5)[MAX_PAIRS][MAX_ALPHABET], (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
 
 #ifdef DEBUG
   char          bp[3] = {0}, *bpairs[7] = {"NN", "CG", "GC", "GU", "UG", "AU", "UA"};
@@ -608,10 +621,10 @@ init_dangles(energy_parameters   *params,
 
   if (params->available & MOD_PARAMS_DANGLES_dG) {
     /* process all closing pairs without modified bases */
-    for (i = 1; i <= params->num_ptypes + 6; i += 2) {
-      if (i > 6) {
+    for (i = 1; i <= params->num_ptypes + NBPAIRS; i += 2) {
+      if (i > NBPAIRS) {
         /* closing pair consists of at least one modified base */
-        enc_pp = params->pairing_partners_encoding[(i - 6 - 1)/ 2];
+        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1)/ 2];
         /* pair type of unmodified version as encoded in RNAlib */
         pair_MP = md->pair[enc_unmod][enc_pp];
         pair_PM = md->pair[enc_pp][enc_unmod];
@@ -631,7 +644,12 @@ init_dangles(energy_parameters   *params,
 #endif
       }
 
-      for (si = 1; si < 6; si++) {
+      if (pair_MP == 0)
+        pair_MP = 7;
+      if (pair_PM == 0)
+        pair_PM = 7;
+
+      for (si = 1; si < MAX_ALPHABET; si++) {
         if (si == 5)
           siu = enc_unmod;
         else
@@ -717,8 +735,8 @@ init_terminal(energy_parameters   *params,
   unsigned int  i, si, sj, enc_unmod, enc_pp, tt, pair_MP, pair_PM;
   vrna_md_t     *md     = &(P->model_details);
   double        tempf   = (md->temperature + K0) / (37. + K0);
-  char          nt[6] = {'\0', 'A', 'C','G','U', 'M'};
-  int           e, (*dG)[32], (*dH)[32], Terminal_unmod;
+  char          nt[MAX_ALPHABET] = {'\0', 'A', 'C','G','U', 'M'};
+  int           e, (*dG)[MAX_PAIRS], (*dH)[MAX_PAIRS], Terminal_unmod;
 
   enc_unmod = params->unmodified_encoding;
   dG        = &(params->terminal_dG);
@@ -771,9 +789,10 @@ mismatch(vrna_fold_compound_t *fc,
   vrna_md_t *md   = &(fc->params->model_details);
 
   if (tt == 0)
+    /* if we don't know the base pair, it must be canonical */
     tt = md->pair[enc[i]][enc[j]];
   else
-    tt += 6;
+    tt += NBPAIRS;
 
   if (j > 1) {
     if (i < fc->length)
@@ -1210,6 +1229,10 @@ vrna_sc_mod_json(vrna_fold_compound_t *fc,
     energy_parameters *params = read_params_from_json_file(json_file, &(fc->params->model_details));
 
     if (params) {
+      vrna_md_t *md = &(fc->params->model_details);
+      char bases[8] = "_ACGUTM";
+      bases[6] = params->one_letter_code;
+
       energy_corrections *diffs = (energy_corrections *)vrna_alloc(sizeof(energy_corrections));
 
       /* copy ptypes */
@@ -1218,9 +1241,55 @@ vrna_sc_mod_json(vrna_fold_compound_t *fc,
       diffs->enc = (short *)vrna_alloc(sizeof(short) * (fc->length + 2));
       memcpy(diffs->enc, fc->sequence_encoding, sizeof(short) * (fc->length + 1));
 
-      for (unsigned int i = 0; modification_sites[i]; i++)
-        if (modification_sites[i] <= fc->length)
-          diffs->enc[modification_sites[i]] = 5;
+      for (size_t i = 0; modification_sites[i]; i++) {
+        unsigned int msite = modification_sites[i];
+        if (msite > fc->length) {
+          vrna_message_warning("modification site %u after sequence length (%u)",
+                               msite,
+                               fc->length);
+          continue;
+        }
+
+        if (fc->sequence_encoding[msite] != params->unmodified_encoding) {
+          vrna_message_warning("modification site %u lists wrong unmodified base %c (should be %c)",
+                               msite,
+                               bases[fc->sequence_encoding[msite]],
+                               params->unmodified);
+          continue;
+        }
+
+        diffs->enc[msite] = 5;
+
+        unsigned int *sn = fc->strand_number;
+
+        /* allow for all pairing partners specified in the input */
+        for (unsigned int j = 1; j < msite; j++) {
+          if ((sn[msite] != sn[j]) ||
+              ((msite - j - 1) >= md->min_loop_size))
+            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
+              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
+              if (fc->sequence_encoding[j] == pp_enc) {
+                vrna_hc_add_bp(fc,
+                               j,
+                               msite,
+                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+              }
+            }
+        }
+        for (unsigned int j = msite + 1; j <= fc->length; j++) {
+          if ((sn[msite] != sn[j]) ||
+              ((j - msite - 1) >= md->min_loop_size))
+            for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
+              unsigned int pp_enc = params->pairing_partners_encoding[cnt];
+              if (fc->sequence_encoding[j] == pp_enc) {
+                vrna_hc_add_bp(fc,
+                               msite,
+                               j,
+                               VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_NO_REMOVE);
+              }
+            }
+        }
+      }
 
       init_stacks(params, diffs, fc->params);
       init_terminal(params, diffs, fc->params);
