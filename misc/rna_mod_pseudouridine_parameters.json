@@ -1,0 +1,47 @@
+{
+  "modified_base" : {
+    "name" : "Pseudouridine",
+    "sources" : [
+      {
+        "authors": "Graham A. Hudson, Richard J. Bloomingdale, and Brent M. Znosko",
+        "title" : "Thermodynamic contribution and nearest-neighbor parameters of pseudouridine-adenosine base pairs in oligoribonucleotides",
+        "journal" : "RNA 19:1474-1482",
+        "year" : 2013,
+        "doi" : "10.1261/rna.039610.113"
+      }
+    ],
+    "unmodified" : "U",
+    "pairing_partners" : [
+      "A"
+    ],
+    "one_letter_code" : "P"
+  },
+  "stacking_energies" : {
+    "APUA" :  -2.8,
+    "CPGA" : -2.77,
+    "GPCA" : -3.29,
+    "UPAA" : -1.62,
+    "PAAU" : -2.10,
+    "PCAG" : -2.49,
+    "PGAC" : -2.2,
+    "PUAA" : -2.74
+  },
+  "stacking_enthalpies" : {
+    "APUA" : -22.08,
+    "CPGA" : -16.23,
+    "GPCA" : -24.07,
+    "UPAA" : -20.81,
+    "PAAU" : -12.47,
+    "PCAG" : -17.29,
+    "PGAC" : -11.19,
+    "PUAA" : -26.94
+  },
+  "terminal_energies" : {
+    "PA" : 0.31,
+    "AP" : 0.31
+  },
+  "terminal_enthalpies" : {
+    "PA" : -2.04,
+    "AP" : -2.04
+  }
+}
