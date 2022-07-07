@@ -24,4 +24,9 @@ void
 vrna_sc_inosine(vrna_fold_compound_t  *fc,
                 const unsigned int    *modification_sites);
 
+void
+vrna_sc_mod_json(vrna_fold_compound_t *fc,
+                 const char *json_file,
+                 unsigned int *modification_sites);
+
 #endif

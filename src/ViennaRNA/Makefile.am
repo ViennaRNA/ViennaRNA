@@ -359,6 +359,7 @@ libRNA_constraints_la_SOURCES = \
     constraints/sc_cb_psi.c \
     constraints/sc_cb_dihydrouridine.c \
     constraints/sc_cb_inosine.c \
+    constraints/sc_cb_mod.c \
     constraints/ligand.c
 
 libRNA_utils_la_SOURCES = \
