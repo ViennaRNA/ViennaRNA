@@ -13,26 +13,31 @@ void
 vrna_sc_m6A(vrna_fold_compound_t  *fc,
             const unsigned int    *modification_sites);
 
+
 void
 vrna_sc_psi(vrna_fold_compound_t  *fc,
             const unsigned int    *modification_sites);
+
 
 void
 vrna_sc_dihydrouridine(vrna_fold_compound_t *fc,
                        const unsigned int   *modification_sites);
 
+
 void
 vrna_sc_inosine(vrna_fold_compound_t  *fc,
                 const unsigned int    *modification_sites);
 
+
 vrna_sc_mod_param_t
 vrna_sc_mod_read_from_jsonfile(const char *filename,
-                               vrna_md_t *md);
+                               vrna_md_t  *md);
 
 
 vrna_sc_mod_param_t
 vrna_sc_mod_read_from_json(const char *json,
-                           vrna_md_t *md);
+                           vrna_md_t  *md);
+
 
 void
 vrna_sc_mod_parameters_free(vrna_sc_mod_param_t params);
@@ -68,15 +73,17 @@ vrna_sc_mod_pseudouridine(vrna_fold_compound_t  *fc,
 
 int
 vrna_sc_mod_inosine(vrna_fold_compound_t  *fc,
-                const unsigned int    *modification_sites);
+                    const unsigned int    *modification_sites);
 
 
 int
 vrna_sc_mod_7DA(vrna_fold_compound_t  *fc,
                 const unsigned int    *modification_sites);
 
+
 int
-vrna_sc_mod_purine(vrna_fold_compound_t  *fc,
-                   const unsigned int    *modification_sites);
+vrna_sc_mod_purine(vrna_fold_compound_t *fc,
+                   const unsigned int   *modification_sites);
+
 
 #endif
