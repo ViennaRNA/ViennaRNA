@@ -1,0 +1,57 @@
+{
+  "modified_base" : {
+    "name" : "N6-methyladenosine (m6A)",
+    "sources" : [
+      {
+        "authors" : "Elzbieta Kierzek, Xiaoju Zhang, Richard M. Watson, Scott D. Kennedy, Marta Szabat, Ryszard Kierzek, and David H. Mathews",
+        "title" : "Secondary Structure Prediction for RNA Sequences Including N6-methyladenosine",
+        "journal" : "Nature Communications 13:1271",
+        "year" : 2022,
+        "doi" : "10.1038/s41467-022-28817-4"
+      }
+    ],
+    "unmodified" : "A",
+    "pairing_partners" : [
+      "U"
+    ],
+    "one_letter_code" : "6"
+  },
+  "stacking_energies" : {
+    "6CUG" :  -1.79,
+    "UC6G" :  -1.72,
+    "6GUC" :  -1.56,
+    "UG6C" :  -1.24,
+    "6UUA" :  -1.1,
+    "6AUU" :  -0.92,
+    "UU6A" :  -0.83,
+    "UA6U" :  -0.73,
+    "6UUG" :  -0.69,
+    "6UU6" :  -0.46,
+    "UG6U" :  -0.32,
+    "UU6G" :  -0.32,
+    "66UU" :  -0.21,
+    "6GUU" :  -0.03,
+    "U66U" :  1.45
+  },
+  "terminal_energies" : {
+    "6U" : 0,
+    "U6" : 0
+  },
+  "mismatch_energies" : {
+    "C6G6" : -1.8,
+    "A6U6" : -0.85,
+    "66U6" : -1.27,
+    "AGU6" : -0.76,
+    "C6GC" : -1.85,
+    "UGG6" : -1.22,
+    "U6AG" : -1.44
+  },
+  "dangle5_energies" : {
+    "UA6" : -1.04
+  },
+  "dangle3_energies" : {
+    "UA6" : -0.43,
+    "CG6" : -2.14,
+    "GC6" : -1.61
+  }
+}
