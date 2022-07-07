@@ -16,7 +16,7 @@
 
 
 /* a container to store the data read from a json parameter file */
-struct vrna_sc_cb_mod_param_s {
+struct vrna_sc_mod_param_s {
   unsigned int available;
 
   char    *name;

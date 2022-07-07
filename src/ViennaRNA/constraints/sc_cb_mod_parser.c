@@ -7,8 +7,8 @@
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/datastructures/string.h"
 #include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/constraints/soft_special.h"
 #include "json/json.h"
+#include "ViennaRNA/constraints/soft_special.h"
 
 #include "ViennaRNA/constraints/sc_cb_intern.h"
 
@@ -54,13 +54,13 @@ parse_terminal(JsonNode         *dom,
 
 
 
-PUBLIC vrna_sc_cb_mod_parameters_t
-vrna_sc_cb_mod_read_from_json_file(const char *filename,
+PUBLIC vrna_sc_mod_param_t
+vrna_sc_mod_read_from_json_file(const char *filename,
                                    vrna_md_t *md)
 {
   char                        *ptr;
   FILE                        *param_file;
-  vrna_sc_cb_mod_parameters_t params;
+  vrna_sc_mod_param_t params;
 
   params      = NULL;
   param_file  = fopen(filename, "r");
@@ -74,7 +74,7 @@ vrna_sc_cb_mod_read_from_json_file(const char *filename,
     };
     fclose(param_file);
 
-    params = vrna_sc_cb_mod_read_from_json(param_content, md);
+    params = vrna_sc_mod_read_from_json(param_content, md);
 
     if (!params)
       vrna_message_warning("JSON content could not be read from file \"%s\"",
@@ -88,12 +88,12 @@ vrna_sc_cb_mod_read_from_json_file(const char *filename,
 
 
 
-PUBLIC vrna_sc_cb_mod_parameters_t
-vrna_sc_cb_mod_read_from_json(const char *json,
+PUBLIC vrna_sc_mod_param_t
+vrna_sc_mod_read_from_json(const char *json,
                               vrna_md_t *md)
 {
   char                        *ptr, bases[8] = "_ACGUTM";
-  vrna_sc_cb_mod_parameters_t parameters = NULL;
+  vrna_sc_mod_param_t parameters = NULL;
 
   if (json) {
     if (!json_validate(json)) {
@@ -107,7 +107,7 @@ vrna_sc_cb_mod_read_from_json(const char *json,
     if (dom) {
       JsonNode *e, *entry;
 
-      parameters = (struct vrna_sc_cb_mod_param_s *)vrna_alloc(sizeof(struct vrna_sc_cb_mod_param_s));
+      parameters = (struct vrna_sc_mod_param_s *)vrna_alloc(sizeof(struct vrna_sc_mod_param_s));
 
       parameters->name  = NULL;
       parameters->available = 0;
@@ -205,6 +205,14 @@ vrna_sc_cb_mod_read_from_json(const char *json,
 }
 
 
+PUBLIC void
+vrna_sc_mod_parameters_free(vrna_sc_mod_param_t params)
+{
+  if (params) {
+    free(params->name);
+    free(params);
+  }
+}
 
 PRIVATE unsigned int
 parse_stacks(JsonNode         *dom,
