@@ -15,6 +15,8 @@
 # endif
 #endif
 
+#define DEBUG
+
 /*  Absolute stacking energy parameters for Psi-A pairs */
 /*  taken from Hudson et al. 2013 */
 PRIVATE int stacking_psi_A_37[6][6] = {
@@ -75,20 +77,38 @@ PRIVATE INLINE void
 init_psi_A_params(vrna_param_t *P)
 {
   vrna_md_t *md     = &(P->model_details);
-  double    tempf   = (md->temperature + K0) / 37.;
+  double    tempf   = (md->temperature + K0) / (37. + K0);
   unsigned int  pair_AU = md->pair[1][4];
   unsigned int  pair_UA = md->pair[4][1];
+  char nt[6] = {'\0', 'A', 'C','G','U'};
+  int e;
 
   /* according to Hudson et al. 2013, terminal psi-A is de-stabilizing by 0.31 kcal/mol */
-  delta_terminal_psi_A = ((term_psi_A_dH) - ((term_psi_A_dH) - (term_psi_A_37)) * tempf) - P->TerminalAU;
-
+  if (term_psi_A_37 != 0)
+    delta_terminal_psi_A = ((term_psi_A_dH) - ((term_psi_A_dH) - (term_psi_A_37)) * tempf) - P->TerminalAU;
+#ifdef DEBUG
+  printf("delta TerminalPsi-A, TerminalUA: %d\n", delta_terminal_psi_A);
+#endif
   /* compute differences to 'regular' stacking energies */
   for (size_t si = 1; si < 5; si++)
     for (size_t sj = 1; sj < 5; sj++) {
       unsigned int tt = md->pair[sj][si];
       if (tt) {
-        stack_psi_A_diff[si][sj] = ((stacking_psi_A_dH[si][sj]) - ((stacking_psi_A_dH[si][sj]) - (stacking_psi_A_37[si][sj])) * tempf) - P->stack[pair_UA][tt];
-        stack_A_psi_diff[si][sj] = ((stacking_A_psi_dH[si][sj]) - ((stacking_A_psi_dH[si][sj]) - (stacking_A_psi_37[si][sj])) * tempf) - P->stack[pair_AU][tt];
+        if (stacking_psi_A_37[si][sj] != 0) {
+          e = ((stacking_psi_A_dH[si][sj]) - ((stacking_psi_A_dH[si][sj]) - (stacking_psi_A_37[si][sj])) * tempf);
+          stack_psi_A_diff[si][sj] = e - P->stack[pair_UA][tt];
+#ifdef DEBUG
+          printf("d(psi_A, %c%c) = %d = %d - %d\n", nt[si], nt[sj], stack_psi_A_diff[si][sj], e, P->stack[pair_UA][tt]);
+#endif
+        }
+
+        if (stacking_A_psi_37[si][sj] != 0) {
+          e = ((stacking_A_psi_dH[si][sj]) - ((stacking_A_psi_dH[si][sj]) - (stacking_A_psi_37[si][sj])) * tempf);
+          stack_A_psi_diff[si][sj] = e - P->stack[pair_AU][tt];
+#ifdef DEBUG
+          printf("d(A_psi, %c%c) = %d = %d - %d\n", nt[si], nt[sj], stack_A_psi_diff[si][sj], e, P->stack[pair_AU][tt]);
+#endif
+        }
       }
     }
 }
