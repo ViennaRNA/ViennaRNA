@@ -1,0 +1,47 @@
+{
+  "modified_base" : {
+    "name" : "7-deaza-adenonsine (7DA)",
+    "sources" : [
+      {
+        "authors" : "Katherine E. Richardson and Brent M. Znosko",
+        "title" : "Nearest-neighbor parameters for 7-deaza-adenosine-uridine base pairs in RNA duplexes",
+        "journal" : "RNA 22:934-942",
+        "year" : 2016,
+        "doi" : "10.1261/rna.055277.115"
+      }
+    ],
+    "unmodified" : "A",
+    "pairing_partners" : [
+      "U"
+    ],
+    "one_letter_code" : "7"
+  },
+  "stacking_energies" : {
+    "A7UU" :  -0.59,
+    "C7GU" :  -1.81,
+    "G7CU" :  -1.66,
+    "U7AU" :  -1.07,
+    "7AUU" :  -0.68,
+    "7CUG" :  -2.10,
+    "7GUC" :  -1.98,
+    "7UUA" :  -1.46
+  },
+  "stacking_enthalpies" : {
+    "A7UU" :  -8.4,
+    "C7GU" :  -11.8,
+    "G7CU" :  -10.8,
+    "U7AU" :  -9.4,
+    "7AUU" :  -9.9,
+    "7CUG" :  -14.8,
+    "7GUC" :  -15.1,
+    "7UUA" :  -13.9
+  },
+  "terminal_energies" : {
+    "7U" : 0.31,
+    "U7" : 0.31
+  },
+  "terminal_enthalpies" : {
+    "7U" : 9.3,
+    "U7" : 9.3
+  }
+}
