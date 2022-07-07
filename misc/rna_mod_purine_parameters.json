@@ -1,0 +1,47 @@
+{
+  "modified_base" : {
+    "name" : "Purine (a.k.a. nebularine)",
+    "sources" : [
+      {
+        "authors" : "Elizabeth A. Jolley and Brent M. Znosko",
+        "title" : "The loss of a hydrogen bond: Thermodynamic contributions of a non-standard nucleotide",
+        "journal" : "Nucleic Acids Research, Vol. 45, No. 3 1479-1487",
+        "year" : 2017,
+        "doi" : "10.1093/nar/gkw830"
+      }
+    ],
+    "unmodified" : "A",
+    "pairing_partners" : [
+      "U"
+    ],
+    "one_letter_code" : "P"
+  },
+  "stacking_energies" : {
+    "APUU" :  0.43,
+    "CPGU" :  -0.76,
+    "GPCU" :  -1.1,
+    "UPAU" :  0.33,
+    "PAUU" :  -0.68,
+    "PCUG" :  -1.98,
+    "PGUC" :  -1.88,
+    "PUUA" :  -0.32
+  },
+  "stacking_enthalpies" : {
+    "APUU" :  -14,
+    "CPGU" :  -12.4,
+    "GPCU" :  -14.2,
+    "UPAU" :  -8.7,
+    "PAUU" :  -10.4,
+    "PCUG" :  -15.7,
+    "PGUC" :  -14.5,
+    "PUUA" :  -11.9
+  },
+  "terminal_energies" : {
+    "PU" : 0.86,
+    "UP" : 0.86
+  },
+  "terminal_enthalpies" : {
+    "PU" : 2.3,
+    "UP" : 2.3
+  }
+}
