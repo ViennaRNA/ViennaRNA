@@ -1,0 +1,80 @@
+{
+  "modified_base" : {
+    "name" : "Inosine",
+    "sources" : [
+      {
+        "authors" : "Daniel J. Wright, Jamie L. Rice, Dawn M. Yanker, and Brent M. Znosko",
+        "title" : "Nearest Neighbor Parameters for Inosine-Uridine Pairs in RNA Duplexes",
+        "journal" : "Biochemistry, 46, 4625-4634",
+        "year" : 2007,
+        "doi" : "10.1021/bi0616910"
+      },
+      {
+        "authors" : "Daniel J. Wright, Christopher R. Force and Brent M. Znosko",
+        "title" : "Stability of RNA duplexes containing inosine-cytosine pairs",
+        "journal" : "Nucleic Acids Research, Vol. 46, No. 22 12099-12108",
+        "year" : 2018,
+        "doi" : "10.1093/nar/gky907"
+      }
+    ],
+    "unmodified" : "A",
+    "pairing_partners" : [
+      "U", "C"
+    ],
+    "one_letter_code" : "I"
+  },
+  "stacking_energies" : {
+    "IUUI" : 3.58,
+    "IIUU" : 2.66,
+    "UIIU" : 2.23,
+    "IAUU" : 0.43,
+    "UIAU" : 0.37,
+    "AIUU" : -0.41,
+    "IUUA" : -0.5,
+    "CIGU" : -0.77,
+    "ICUG" : -1.03,
+    "IGUC" : -1.22,
+    "GICU" : -1.34,
+    "IGCC" : -2.23,
+    "ICCG" : -1.89,
+    "IACU" : -1.18,
+    "IUCA" : -1.02,
+    "GICC" : -2.62,
+    "CIGC" : -1.86,
+    "AIUC" : -1.57,
+    "UIAC" : -0.96
+  },
+  "stacking_enthalpies" : {
+    "IUUI" : 17.0,
+    "IIUU" : 9.53,
+    "UIIU" : 8.41,
+    "IAUU" : -8.22,
+    "UIAU" : -10.08,
+    "AIUU" : -11.68,
+    "IUUA" : -15.83,
+    "CIGU" : -11.99,
+    "ICUG" : -11.56,
+    "IGUC" : -13.38,
+    "GICU" : -9.81,
+    "IGCC" : -14.5,
+    "ICCG" : -10.6,
+    "IACU" : -15.3,
+    "IUCA" : -7.7,
+    "GICC" : -16.8,
+    "CIGC" : -12.7,
+    "AIUC" : -14.2,
+    "UIAC" : -11.8
+  },
+  "terminal_energies" : {
+    "IU" : -1.33,
+    "UI" : -1.33,
+    "IC" : -0.08,
+    "CI" : -0.08
+  },
+  "terminal_enthalpies" : {
+    "IU" : -0.08,
+    "UI" : -0.08,
+    "IC" : 2.0,
+    "CI" : 2.0
+  }
+}
