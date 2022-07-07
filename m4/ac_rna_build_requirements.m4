@@ -172,7 +172,7 @@ AC_DEFUN([RNA_CHECK_PARAMETER_FILES], [
     ## load list of energy parameter files and replace '\n' by ' '
     PARAMETER_FILES=`cat $PARAMETER_FILE_LIST | sed 's/^/misc\//' | tr '\012' ' '`
     ## create list of hex energy parameter files
-    PARAMETER_FILES_HEX=`AS_ECHO("$PARAMETER_FILES") | sed 's/\.par/\.hex/g'`
+    PARAMETER_FILES_HEX=`AS_ECHO("$PARAMETER_FILES") | sed -E 's/\.par|\.json/\.hex/g'`
 
     if test "x$XXD" = "xno"
     then
@@ -194,7 +194,7 @@ generate it from source!
     fi
 
     # prepare substitution string for
-    # templates_postscript.h file
+    # energy_parameter_sets.h file
     ENERGY_PARAMETER_CONST=""
     for parfile in $PARAMETER_FILES_HEX
     do

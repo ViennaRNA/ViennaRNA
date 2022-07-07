@@ -4,13 +4,14 @@ xxd_verbose = $(xxd_verbose_@AM_V@)
 xxd_verbose_ = $(xxd_verbose_@AM_DEFAULT_V@)
 xxd_verbose_0 = @echo "  XXD      $@";
 
-SUFFIXES = .par .ps .hex .svg
+SUFFIXES = .json .par .ps .hex .svg
 
 POSTSCRIPT_FILES = $(PS_TEMPLATE_FILES)
 SVG_FILES = $(SVG_TEMPLATE_FILES)
 ENERGY_PARAMETER_FILES = $(PARAMETER_FILES)
 
 vpath %.par = ${top_srcdir}
+vpath %.json = ${top_srcdir}
 
 ##  Note that we only (re-)build .hex files for direct inclusion into our
 ##  library if the user has the xxd tool installed. Otherwise, any changes
@@ -30,6 +31,9 @@ templates_postscript.h: $(PS_TEMPLATE_FILES_HEX)
 templates_svg.h: $(SVG_TEMPLATE_FILES_HEX)
 
 .par.hex:
+	$(xxd_verbose)$(MKDIR_P) misc && $(XXD) -i < $< > $@ && echo ',0x00' >> $@
+
+.json.hex:
 	$(xxd_verbose)$(MKDIR_P) misc && $(XXD) -i < $< > $@ && echo ',0x00' >> $@
 
 energy_parameter_sets.h: $(PARAMETER_FILES_HEX)
