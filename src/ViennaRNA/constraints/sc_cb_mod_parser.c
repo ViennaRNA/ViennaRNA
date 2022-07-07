@@ -21,45 +21,69 @@
 # endif
 #endif
 
+/*
+ #################################
+ # GLOBAL VARIABLES              #
+ #################################
+ */
+
+/*
+ #################################
+ # PRIVATE VARIABLES             #
+ #################################
+ */
+
+/*
+ #################################
+ # PRIVATE FUNCTION DECLARATIONS #
+ #################################
+ */
 
 PRIVATE unsigned int
-parse_stacks(JsonNode         *dom,
-           const char       *identifier,
-           const char       *bases,
-           size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-           int              (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET]);
+parse_stacks(JsonNode   *dom,
+             const char *identifier,
+             const char *bases,
+             size_t     (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+             int        (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET]);
+
 
 PRIVATE unsigned int
-parse_mismatch(JsonNode         *dom,
-               const char       *identifier,
-               const char       *bases,
-               size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-               vrna_md_t        *md,
-               int              (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET]);
+parse_mismatch(JsonNode   *dom,
+               const char *identifier,
+               const char *bases,
+               size_t     (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+               vrna_md_t  *md,
+               int        (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET]);
+
 
 PRIVATE unsigned int
-parse_dangles(JsonNode         *dom,
-              const char       *identifier,
-              const char       *bases,
-              size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-              vrna_md_t        *md,
-              int              (*storage)[MAX_PAIRS][MAX_ALPHABET]);
+parse_dangles(JsonNode    *dom,
+              const char  *identifier,
+              const char  *bases,
+              size_t      (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+              vrna_md_t   *md,
+              int         (*storage)[MAX_PAIRS][MAX_ALPHABET]);
+
 
 PRIVATE unsigned int
-parse_terminal(JsonNode         *dom,
-               const char       *identifier,
-               const char       *bases,
-               size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-               int              (*storage)[MAX_PAIRS]);
+parse_terminal(JsonNode   *dom,
+               const char *identifier,
+               const char *bases,
+               size_t     (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+               int        (*storage)[MAX_PAIRS]);
 
 
-
+/*
+ #################################
+ # BEGIN OF FUNCTION DEFINITIONS #
+ #################################
+ */
 PUBLIC vrna_sc_mod_param_t
 vrna_sc_mod_read_from_jsonfile(const char *filename,
                                vrna_md_t  *md)
 {
-  char                        *ptr;
-  FILE                        *param_file;
+  char                *ptr;
+  FILE                *param_file;
   vrna_sc_mod_param_t params;
 
   params      = NULL;
@@ -71,7 +95,8 @@ vrna_sc_mod_read_from_jsonfile(const char *filename,
     while ((ptr = vrna_read_line(param_file))) {
       param_content = vrna_string_append_cstring(param_content, ptr);
       free(ptr);
-    };
+    }
+
     fclose(param_file);
 
     params = vrna_sc_mod_read_from_json(param_content, md);
@@ -87,12 +112,11 @@ vrna_sc_mod_read_from_jsonfile(const char *filename,
 }
 
 
-
 PUBLIC vrna_sc_mod_param_t
 vrna_sc_mod_read_from_json(const char *json,
-                              vrna_md_t *md)
+                           vrna_md_t  *md)
 {
-  char                        *ptr, bases[8] = "_ACGUTM";
+  char                *ptr, bases[8] = "_ACGUTM";
   vrna_sc_mod_param_t parameters = NULL;
 
   if (json) {
@@ -101,34 +125,32 @@ vrna_sc_mod_read_from_json(const char *json,
       return NULL;
     }
 
-    JsonNode *dom = json_decode(json);
-    vrna_string_t pairing_partners = vrna_string_make("");
+    JsonNode      *dom              = json_decode(json);
+    vrna_string_t pairing_partners  = vrna_string_make("");
 
     if (dom) {
       JsonNode *e, *entry;
 
       parameters = (struct vrna_sc_mod_param_s *)vrna_alloc(sizeof(struct vrna_sc_mod_param_s));
 
-      parameters->name  = NULL;
-      parameters->available = 0;
-      parameters->num_ptypes = 0;
-      parameters->one_letter_code = '\0';
+      parameters->name                = NULL;
+      parameters->available           = 0;
+      parameters->num_ptypes          = 0;
+      parameters->one_letter_code     = '\0';
       parameters->pairing_partners[0] = '\0';
-      parameters->unmodified = '\0';
+      parameters->unmodified          = '\0';
 
       if ((e = json_find_member(dom, "modified_base")) &&
           (e = json_find_member(e, "name")) &&
-          (e->tag == JSON_STRING)) {
+          (e->tag == JSON_STRING))
         parameters->name = strdup(e->string_);
-      }
 
       /* use one-letter code as specified in json file */
       if ((e = json_find_member(dom, "modified_base")) &&
           (e = json_find_member(e, "one_letter_code")) &&
           (e->tag == JSON_STRING) &&
-          (strlen(e->string_) == 1)) {
+          (strlen(e->string_) == 1))
         parameters->one_letter_code = bases[6] = toupper(e->string_[0]);
-      }
 
       if ((e = json_find_member(dom, "modified_base")) &&
           (e = json_find_member(e, "unmodified")) &&
@@ -139,10 +161,11 @@ vrna_sc_mod_read_from_json(const char *json,
         size_t enc = ptr - &(bases[0]);
         if (enc > 4)
           enc--;
+
         parameters->unmodified_encoding = enc;
       }
 
-      size_t  cnt = 0;
+      size_t cnt = 0;
 
       if ((e = json_find_member(dom, "modified_base")) &&
           (e = json_find_member(e, "pairing_partners")) &&
@@ -157,8 +180,8 @@ vrna_sc_mod_read_from_json(const char *json,
             if (enc > 4)
               enc--;
 
-            parameters->ptypes[5][enc] = ++(parameters->num_ptypes);
-            parameters->ptypes[enc][5] = ++(parameters->num_ptypes);
+            parameters->ptypes[5][enc]                    = ++(parameters->num_ptypes);
+            parameters->ptypes[enc][5]                    = ++(parameters->num_ptypes);
             parameters->pairing_partners[cnt]             = entry->string_[0];
             parameters->pairing_partners_encoding[cnt++]  = enc;
           }
@@ -167,34 +190,44 @@ vrna_sc_mod_read_from_json(const char *json,
 
       parameters->pairing_partners[cnt] = '\0';
 
-      if (parse_stacks(dom, "stacking_energies", &bases[0], &(parameters->ptypes), &(parameters->stack_dG)) > 0)
+      if (parse_stacks(dom, "stacking_energies", &bases[0], &(parameters->ptypes),
+                       &(parameters->stack_dG)) > 0)
         parameters->available |= MOD_PARAMS_STACK_dG;
 
-      if (parse_stacks(dom, "stacking_enthalpies", &bases[0], &(parameters->ptypes), &(parameters->stack_dH)) > 0)
+      if (parse_stacks(dom, "stacking_enthalpies", &bases[0], &(parameters->ptypes),
+                       &(parameters->stack_dH)) > 0)
         parameters->available |= MOD_PARAMS_STACK_dH;
 
-      if (parse_mismatch(dom, "mismatch_energies", &bases[0], &(parameters->ptypes), md, &(parameters->mismatch_dG)) > 0)
+      if (parse_mismatch(dom, "mismatch_energies", &bases[0], &(parameters->ptypes), md,
+                         &(parameters->mismatch_dG)) > 0)
         parameters->available |= MOD_PARAMS_MISMATCH_dG;
 
-      if (parse_mismatch(dom, "mismatch_enthalpies", &bases[0], &(parameters->ptypes), md, &(parameters->mismatch_dH)) > 0)
+      if (parse_mismatch(dom, "mismatch_enthalpies", &bases[0], &(parameters->ptypes), md,
+                         &(parameters->mismatch_dH)) > 0)
         parameters->available |= MOD_PARAMS_MISMATCH_dH;
 
-      if (parse_terminal(dom, "terminal_energies", &bases[0], &(parameters->ptypes), &(parameters->terminal_dG)) > 0)
+      if (parse_terminal(dom, "terminal_energies", &bases[0], &(parameters->ptypes),
+                         &(parameters->terminal_dG)) > 0)
         parameters->available |= MOD_PARAMS_TERMINAL_dG;
 
-      if (parse_terminal(dom, "terminal_enthalpies", &bases[0], &(parameters->ptypes), &(parameters->terminal_dH)) > 0)
+      if (parse_terminal(dom, "terminal_enthalpies", &bases[0], &(parameters->ptypes),
+                         &(parameters->terminal_dH)) > 0)
         parameters->available |= MOD_PARAMS_TERMINAL_dH;
 
-      if (parse_dangles(dom, "dangle5_energies", &bases[0], &(parameters->ptypes), md, &(parameters->dangle5_dG)) > 0)
+      if (parse_dangles(dom, "dangle5_energies", &bases[0], &(parameters->ptypes), md,
+                        &(parameters->dangle5_dG)) > 0)
         parameters->available |= MOD_PARAMS_DANGLES_dG;
 
-      if (parse_dangles(dom, "dangle5_enthalpies", &bases[0], &(parameters->ptypes), md, &(parameters->dangle5_dH)) > 0)
+      if (parse_dangles(dom, "dangle5_enthalpies", &bases[0], &(parameters->ptypes), md,
+                        &(parameters->dangle5_dH)) > 0)
         parameters->available |= MOD_PARAMS_DANGLES_dH;
 
-      if (parse_dangles(dom, "dangle3_energies", &bases[0], &(parameters->ptypes), md, &(parameters->dangle3_dG)) > 0)
+      if (parse_dangles(dom, "dangle3_energies", &bases[0], &(parameters->ptypes), md,
+                        &(parameters->dangle3_dG)) > 0)
         parameters->available |= MOD_PARAMS_DANGLES_dG;
 
-      if (parse_dangles(dom, "dangle3_enthalpies", &bases[0], &(parameters->ptypes), md, &(parameters->dangle3_dH)) > 0)
+      if (parse_dangles(dom, "dangle3_enthalpies", &bases[0], &(parameters->ptypes), md,
+                        &(parameters->dangle3_dH)) > 0)
         parameters->available |= MOD_PARAMS_DANGLES_dH;
 
       json_delete(dom);
@@ -214,17 +247,25 @@ vrna_sc_mod_parameters_free(vrna_sc_mod_param_t params)
   }
 }
 
+
+/*
+ #####################################
+ # BEGIN OF STATIC HELPER FUNCTIONS  #
+ #####################################
+ */
 PRIVATE unsigned int
-parse_stacks(JsonNode         *dom,
-           const char       *identifier,
-           const char       *bases,
-           size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-           int              (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET])
+parse_stacks(JsonNode   *dom,
+             const char *identifier,
+             const char *bases,
+             size_t     (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+             int        (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET])
 {
   unsigned char num_params = 0;
   char          *enc_ptr;
   size_t        i;
-  unsigned int  enc[5] = { 0, 0, 0, 0, 0 };
+  unsigned int  enc[5] = {
+    0, 0, 0, 0, 0
+  };
   JsonNode      *entry, *e;
 
   /* go through storage and initialize */
@@ -242,9 +283,12 @@ parse_stacks(JsonNode         *dom,
         /* encode sequence */
         for (i = 0; i < 4; i++) {
           if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n", identifier, entry->key);
+            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n",
+                                 identifier,
+                                 entry->key);
             break;
           }
+
           enc[i] = enc_ptr - &bases[0];
           if (enc[i] > 4)
             enc[i]--;
@@ -269,17 +313,19 @@ parse_stacks(JsonNode         *dom,
 
 
 PRIVATE unsigned int
-parse_mismatch(JsonNode         *dom,
-               const char       *identifier,
-               const char       *bases,
-               size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-               vrna_md_t        *md,
-               int              (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET])
+parse_mismatch(JsonNode   *dom,
+               const char *identifier,
+               const char *bases,
+               size_t     (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+               vrna_md_t  *md,
+               int        (*storage)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET])
 {
   unsigned char num_params = 0;
   char          *enc_ptr;
   size_t        i;
-  unsigned int  enc[5] = { 0, 0, 0, 0, 0 };
+  unsigned int  enc[5] = {
+    0, 0, 0, 0, 0
+  };
   JsonNode      *entry, *e;
 
   /* go through storage and initialize */
@@ -297,9 +343,12 @@ parse_mismatch(JsonNode         *dom,
         /* encode sequence */
         for (i = 0; i < 4; i++) {
           if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n", identifier, entry->key);
+            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n",
+                                 identifier,
+                                 entry->key);
             break;
           }
+
           enc[i] = enc_ptr - &bases[0];
           if (enc[i] > 4)
             enc[i]--;
@@ -324,17 +373,19 @@ parse_mismatch(JsonNode         *dom,
 
 
 PRIVATE unsigned int
-parse_dangles(JsonNode         *dom,
-              const char       *identifier,
-              const char       *bases,
-              size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-              vrna_md_t        *md,
-              int              (*storage)[MAX_PAIRS][MAX_ALPHABET])
+parse_dangles(JsonNode    *dom,
+              const char  *identifier,
+              const char  *bases,
+              size_t      (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+              vrna_md_t   *md,
+              int         (*storage)[MAX_PAIRS][MAX_ALPHABET])
 {
   unsigned char num_params = 0;
   char          *enc_ptr;
   size_t        i;
-  unsigned int  enc[5] = { 0, 0, 0, 0, 0 };
+  unsigned int  enc[5] = {
+    0, 0, 0, 0, 0
+  };
   JsonNode      *entry, *e;
 
   /* go through storage and initialize */
@@ -351,9 +402,12 @@ parse_dangles(JsonNode         *dom,
         /* encode sequence */
         for (i = 0; i < 3; i++) {
           if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n", identifier, entry->key);
+            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n",
+                                 identifier,
+                                 entry->key);
             break;
           }
+
           enc[i] = enc_ptr - &bases[0];
           if (enc[i] > 4)
             enc[i]--;
@@ -377,16 +431,18 @@ parse_dangles(JsonNode         *dom,
 
 
 PRIVATE unsigned int
-parse_terminal(JsonNode         *dom,
-               const char       *identifier,
-               const char       *bases,
-               size_t           (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
-               int              (*storage)[MAX_PAIRS])
+parse_terminal(JsonNode   *dom,
+               const char *identifier,
+               const char *bases,
+               size_t     (*ptypes)[MAX_ALPHABET][MAX_ALPHABET],
+               int        (*storage)[MAX_PAIRS])
 {
   unsigned char num_params = 0;
   char          *enc_ptr;
   size_t        i;
-  unsigned int  enc[5] = { 0, 0, 0, 0, 0 };
+  unsigned int  enc[5] = {
+    0, 0, 0, 0, 0
+  };
   JsonNode      *entry, *e;
 
   /* go through storage and initialize */
@@ -402,9 +458,12 @@ parse_terminal(JsonNode         *dom,
         /* encode sequence */
         for (i = 0; i < 2; i++) {
           if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n", identifier, entry->key);
+            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n",
+                                 identifier,
+                                 entry->key);
             break;
           }
+
           enc[i] = enc_ptr - &bases[0];
           if (enc[i] > 4)
             enc[i]--;
@@ -424,4 +483,3 @@ parse_terminal(JsonNode         *dom,
 
   return num_params;
 }
-
