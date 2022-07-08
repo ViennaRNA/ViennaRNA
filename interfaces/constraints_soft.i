@@ -193,6 +193,50 @@
     modification_sites.push_back(0); /* end marker for C-implementation */
     return vrna_sc_inosine($self, &modification_sites[0]);
   }
+
+  int
+  sc_mod_json(std::string json,
+              std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_json($self, json.c_str(), &modification_sites[0]);
+  }
+
+  int
+  sc_mod_jsonfile(std::string jsonfile,
+                  std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_json($self, jsonfile.c_str(), &modification_sites[0]);
+  }
+
+  int
+  sc_mod_m6A(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_m6A($self, &modification_sites[0]);
+  }
+
+  int
+  sc_mod_pseudouridine(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_pseudouridine($self, &modification_sites[0]);
+  }
+
+  int
+  sc_mod_inosine(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_inosine($self, &modification_sites[0]);
+  }
+
+  int
+  sc_mod_7DA(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_7DA($self, &modification_sites[0]);
+  }
+
+  int
+  sc_mod_purine(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_purine($self, &modification_sites[0]);
+  }
 }
 
 %include  <ViennaRNA/constraints/soft.h>
