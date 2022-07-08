@@ -114,9 +114,10 @@ vrna_sc_mod_read_from_jsonfile(const char *filename,
 
 PUBLIC vrna_sc_mod_param_t
 vrna_sc_mod_read_from_json(const char *json,
-                           vrna_md_t  *md)
+                           vrna_md_t  *md_p)
 {
   char                *ptr, bases[8] = "_ACGUTM";
+  vrna_md_t           *md, md_default;
   vrna_sc_mod_param_t parameters = NULL;
 
   if (json) {
@@ -127,6 +128,12 @@ vrna_sc_mod_read_from_json(const char *json,
 
     JsonNode      *dom              = json_decode(json);
     vrna_string_t pairing_partners  = vrna_string_make("");
+    if (md_p) {
+      md = md_p;
+    } else {
+      vrna_md_set_default(&md_default);
+      md = &md_default;
+    }
 
     if (dom) {
       JsonNode *e, *entry;
