@@ -170,12 +170,6 @@
     return vrna_sc_add_stack_comparative($self, i, (const FLT_OR_DBL *)&v[0], options);
   }
 
-  void
-  sc_dihydrouridine(std::vector<unsigned int> modification_sites) {
-    modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_dihydrouridine($self, &modification_sites[0]);
-  }
-
   int
   sc_mod_json(std::string json,
               std::vector<unsigned int> modification_sites) {
@@ -219,6 +213,13 @@
     modification_sites.push_back(0); /* end marker for C-implementation */
     return vrna_sc_mod_purine($self, &modification_sites[0]);
   }
+
+  int
+  sc_mod_dihydrouridine(std::vector<unsigned int> modification_sites) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_dihydrouridine($self, &modification_sites[0]);
+  }
+
 }
 
 %include  <ViennaRNA/constraints/soft.h>

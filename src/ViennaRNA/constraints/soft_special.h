@@ -10,11 +10,6 @@
 typedef struct vrna_sc_mod_param_s *vrna_sc_mod_param_t;
 
 
-void
-vrna_sc_dihydrouridine(vrna_fold_compound_t *fc,
-                       const unsigned int   *modification_sites);
-
-
 vrna_sc_mod_param_t
 vrna_sc_mod_read_from_jsonfile(const char *filename,
                                vrna_md_t  *md);
@@ -70,6 +65,11 @@ vrna_sc_mod_7DA(vrna_fold_compound_t  *fc,
 int
 vrna_sc_mod_purine(vrna_fold_compound_t *fc,
                    const unsigned int   *modification_sites);
+
+
+int
+vrna_sc_mod_dihydrouridine(vrna_fold_compound_t *fc,
+                           const unsigned int   *modification_sites);
 
 
 #endif

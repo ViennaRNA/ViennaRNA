@@ -38,9 +38,9 @@ D_stack_correction(vrna_fold_compound_t *fc,
   return 0; /* return 0 by default */
 }
 
-PUBLIC void
-vrna_sc_dihydrouridine(vrna_fold_compound_t *fc,
-                       const unsigned int   *modification_sites)
+PUBLIC int
+vrna_sc_mod_dihydrouridine(vrna_fold_compound_t *fc,
+                           const unsigned int   *modification_sites)
 {
   if ((fc) &&
       (modification_sites)) {
@@ -51,6 +51,8 @@ vrna_sc_dihydrouridine(vrna_fold_compound_t *fc,
       if (modification_sites[i] <= fc->length)
         enc[modification_sites[i]] = 5;
 
-    vrna_sc_multi_cb_add(fc, &D_stack_correction, NULL, (void *)enc, &free, VRNA_DECOMP_PAIR_IL);
+    return vrna_sc_multi_cb_add(fc, &D_stack_correction, NULL, (void *)enc, &free, VRNA_DECOMP_PAIR_IL);
   }
+
+  return 0;
 }
