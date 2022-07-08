@@ -10,7 +10,9 @@
 #define MOD_PARAMS_DANGLES_dG   (1 << 6)
 #define MOD_PARAMS_DANGLES_dH   (1 << 7)
 
+/*
 #define DEBUG
+*/
 #define MAX_ALPHABET  (6)
 #define MAX_PAIRS     (NBPAIRS + 1 + 25)
 
