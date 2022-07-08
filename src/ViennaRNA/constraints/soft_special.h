@@ -15,11 +15,6 @@ vrna_sc_m6A(vrna_fold_compound_t  *fc,
 
 
 void
-vrna_sc_psi(vrna_fold_compound_t  *fc,
-            const unsigned int    *modification_sites);
-
-
-void
 vrna_sc_dihydrouridine(vrna_fold_compound_t *fc,
                        const unsigned int   *modification_sites);
 
