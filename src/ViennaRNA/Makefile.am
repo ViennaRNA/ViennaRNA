@@ -355,7 +355,6 @@ libRNA_constraints_la_SOURCES = \
     constraints/hard.c \
     constraints/soft.c \
     constraints/soft_cb_multi.c \
-    constraints/sc_cb_m6A.c \
     constraints/sc_cb_dihydrouridine.c \
     constraints/sc_cb_mod.c \
     constraints/sc_cb_mod_parser.c \

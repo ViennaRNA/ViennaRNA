@@ -9,10 +9,6 @@
 
 typedef struct vrna_sc_mod_param_s *vrna_sc_mod_param_t;
 
-void
-vrna_sc_m6A(vrna_fold_compound_t  *fc,
-            const unsigned int    *modification_sites);
-
 
 void
 vrna_sc_dihydrouridine(vrna_fold_compound_t *fc,

@@ -171,12 +171,6 @@
   }
 
   void
-  sc_m6A(std::vector<unsigned int> modification_sites) {
-    modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_m6A($self, &modification_sites[0]);
-  }
-
-  void
   sc_dihydrouridine(std::vector<unsigned int> modification_sites) {
     modification_sites.push_back(0); /* end marker for C-implementation */
     return vrna_sc_dihydrouridine($self, &modification_sites[0]);
