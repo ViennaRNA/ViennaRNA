@@ -24,11 +24,6 @@ vrna_sc_dihydrouridine(vrna_fold_compound_t *fc,
                        const unsigned int   *modification_sites);
 
 
-void
-vrna_sc_inosine(vrna_fold_compound_t  *fc,
-                const unsigned int    *modification_sites);
-
-
 vrna_sc_mod_param_t
 vrna_sc_mod_read_from_jsonfile(const char *filename,
                                vrna_md_t  *md);
