@@ -11,7 +11,8 @@ energy_parameter_files = \
     rna_mod_inosine_parameters.json \
     rna_mod_m6A_parameters.json \
     rna_mod_pseudouridine_parameters.json \
-    rna_mod_purine_parameters.json
+    rna_mod_purine_parameters.json \
+    rna_mod_template_parameters.json
 
 
 pkgdata_DATA = \

@@ -230,4 +230,73 @@ Below are resulting general cases that are considered @em valid constraints:
     The above example applies a binding free energy of @f$ -5 kcal/mol @f$ for a motif AAA
     that may be present in all loop types.
 
+@section      energy-parameter-formats   File Formats for Energy Parameters
+
+@subsection   modified-bases-params   JSON Parameter Files for Modified Bases
+
+The functions vrna_sc_mod(), vrna_sc_mod_json() and alike implement an energy
+correction framework to account for modified bases in the secondary structure
+predictions. To supply these functions with the energy parameters and general
+specifications of the base modification, the following JSON data format may be
+used:
+
+JSON data must consist of a header section @b modified_bases. This header
+is an object with the mandatory keys:
+- @b name specifying a name of the modified base
+- @b unmodified that consists of a single upper-case letter of the unmodified
+  version of this base,
+- the @b one_letter_code key to specify which letter is used for the modified
+  bases in the subsequent energy parameters, and
+- an array of @b pairing_partners.
+
+The latter must be uppercase characters. An optional @b sources key may contain
+an array of related publications, e.g. those the parameters have been derived from.
+
+Next to the header may follow additional keys to specify the actual energy
+contributions of the modified base in various loop contexts. All energy
+contributions must be specified in free energies @f$\Delta G@f$ in units of
+@f$ kcal \cdot mol^{-1}@f$. To allow for rescaling of the free energies
+at temperatures that differ from the default (@f$37^\circ C@f$), enthalpy
+parameters @f$\Delta H@f$ may be specified as well. Those, however are
+optional. The keys for free energy (at @f$37^\circ C@f$) and enthalpy
+parameters have the suffixes @b _energies and @b _enthalpies, respectively.
+
+The parser and underlying framework currently supports the following
+loop contexts:
+- base pair stacks (via the @b stacking key prefix).<br>
+  This key must point to an object with one key value pair for each
+  stacking interaction data is provided for. Here, the key consists
+  of four upper-case characters denoting the interacting bases, where
+  the the first two represent one strand in 5' to 3' direction and the
+  last two the opposite strand in 3' to 5' direction. The values
+  are energies in @f$ kcal \cdot mol^{-1}@f$.
+- terminal mismatches (via the @b mismatch key prefix)<br>
+  This key points to an object with key value pairs for each mismatch
+  energy parameter that is available. Keys are 4 characters long
+  nucleotide one-letter codes as used in base pair stacks above.
+  The second and fourth character denote the two unpaired mismatching
+  bases, while the other two represent the closing base pair.
+- dangling ends (via the @b dangle5 and @b dangle3 key prefixes)<br>
+  The object behind these keys, again, consists of key value pairs
+  for each dangling end energy parameter. Keys are 3 characters long
+  where the first two represent the two nucleotides that form the
+  base pair, and the third is the unpaired base that either stacks
+  on the 3' or 5' end of the enclosed part of the base pair.
+- terminal pairs (via the @b terminal key prefix)<br>
+  Terminal base pairs, such as AU or GU, sometimes receive an
+  additional energy penalty. The object behind this key may
+  list energy parameters to apply whenever particular base
+  pairs occur at the end of a helix. Each of those parameters
+  is specified as key value pair, where the key consists of
+  two upper-case characters denoting the terminal base pair.
+
+Below is a JSON template specifying most of the possible input
+parameters. Actual energy parameter files can be found in the
+source code tarball within the @b misc/ subdirectory.
+
+@examplefileModParam{rna_mod_template_parameters.json}
+
+An actual example of real-world data may look like
+@examplefileModParam{rna_mod_pseudouridine_parameters.json}
+
 */

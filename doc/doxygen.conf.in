@@ -257,7 +257,8 @@ ALIASES                = "scripting=\xrefitem wrappers \"SWIG Wrapper Notes\" \"
                          "callback=\xrefitem callbacks \"Notes on Callback Functions\" \"Notes on Callback Functions\"" \
                          "examplefileC{1}=\include \1 \see <tt>examples/\1</tt> in the source code tarball" \
                          "examplefilePerl{1}=\include \1 \see <tt>examples/Perl/\1</tt> in the source code tarball" \
-                         "examplefilePython{1}=\include \1 \see <tt>examples/Python/\1</tt> in the source code tarball"
+                         "examplefilePython{1}=\include \1 \see <tt>examples/Python/\1</tt> in the source code tarball" \
+                         "examplefileModParam{1}=\include \1 \see <tt>misc/\1</tt> in the source code tarball"
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For
@@ -966,6 +967,7 @@ EXAMPLE_PATH           = @top_srcdir@/examples \
                          @top_srcdir@/examples/files \
                          @top_srcdir@/src/bin \
                          @top_srcdir@/src/ViennaRNA \
+                         @top_srcdir@/misc \
                          @top_srcdir@/
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the

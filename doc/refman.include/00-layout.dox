@@ -220,6 +220,9 @@ formats, and various output file formats produced by our library.
 @defgroup   gquads                    G-Quadruplexes
 @ingroup    paired_modules
 
+@defgroup   modified_bases            Post-transcriptional Modifications
+@brief                                Support of modified bases in secondary structure prediction
+
 @defgroup   utils                     Utilities
 
 @defgroup   eval_loops_ext            Exterior Loops
