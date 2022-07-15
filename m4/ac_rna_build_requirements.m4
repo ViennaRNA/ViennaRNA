@@ -261,7 +261,7 @@ tar -xjf src/dlib-${DLIB_VERSION}.tar.bz2 -C src/
 ##
 AC_DEFUN([RNA_CHECK_SWIG_SVM], [
   RNA_PACKAGE_IF_DISABLED([svm],[
-      AS_IF([test "x$has_swig" != "xyes"], [
+      AS_IF([test "x$with_swig" == "xyes" && test "x$has_swig" != "xyes"], [
     AC_MSG_ERROR([
 =================================================
 Compilation requirements missing!
