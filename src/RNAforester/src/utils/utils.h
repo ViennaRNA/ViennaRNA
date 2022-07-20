@@ -6,6 +6,7 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
+#if 0
 
     int   naview_xy_coordinates(short *pair_table, float *X, float *Y);
     void  *space(unsigned size);           /* allocate space safely */
@@ -19,8 +20,10 @@ extern "C" {
     void   filecopy(FILE *from, FILE *to); /* inefficient `cp' */
     /*@observer@*/
     char  *time_stamp(void);               /* current date in a string */
+#endif
     char  *randostring_(int l, const char symbols[]);
     /* random string of length l using characters from symbols[] */
+#if 0
     int    hamming(const char *s1, const char *s2);
     /* calculate hamming distance */
     char  *get_line(FILE *fp); /* read one (arbitrary length) line from fp */
@@ -37,6 +40,7 @@ extern "C" {
     int bp_distance(const char *str1, const char *str2);
     /* dist = {number of base pairs in one structure but not in the other}
        same as edit distance with open-pair close-pair as move-set */
+#endif
 
 #if defined(__cplusplus)
 }

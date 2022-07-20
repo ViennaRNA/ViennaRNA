@@ -16,7 +16,7 @@ public:
     }
 
     ~Matrix() {
-        delete mtrx_;
+        delete[] mtrx_;
     }
 
     inline const long xDim() const {

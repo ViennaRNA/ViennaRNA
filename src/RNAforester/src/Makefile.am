@@ -2,20 +2,25 @@
 
 AUTOMAKE_OPTIONS = subdir-objects
 
-bin_PROGRAMS = RNAforester 
 
 # C++ preprocesspr flags 
-AM_CPPFLAGS = -I${includedir}\
+AM_CPPFLAGS = $(VRNA_CFLAGS) \
+              -I${includedir}\
 							-I${srcdir}/anchors\
 							-I${srcdir}/frontend\
 							-I${srcdir}/TED\
 							-I${srcdir}/utils\
 							-I${srcdir}/wmatch
+
 # C++ compiler flags 
 AM_CXXFLAGS = -Wall -std=c++98 #-fmudflap -funwind-tables 
+
 # C++ linker flags
 #AM_LDFLAGS = -lmudflap
 
+bin_PROGRAMS = RNAforester 
+
+LDADD = $(VRNA_LIBS)
 
 BUILT_SOURCES = anchors/shape.hpp anchors/shape.cpp
 AM_YFLAGS = -d

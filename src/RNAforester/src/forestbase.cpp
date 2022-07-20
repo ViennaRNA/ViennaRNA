@@ -164,7 +164,7 @@ ForestBase::size_type ForestBase::maxDepth() const {
         h=rb(h);
     } while (h);
 
-    delete maxDepth;
+    delete[] maxDepth;
     return m;
 }
 

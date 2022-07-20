@@ -12,7 +12,7 @@
 #include "debug.h"
 #include "misc.h"
 #include "rnafuncs.h"
-#include "utils.h"
+#include "utils/utils.h"
 #include "rna_profile_alignment.h"
 
 //#ifndef HAVE_LIBRNA
@@ -30,6 +30,8 @@
 #include <assert.h>
 
 extern "C" {
+#include <ViennaRNA/utils/basic.h>
+#include <ViennaRNA/utils/structures.h>
 #include <ViennaRNA/plotting/layouts.h>
 }
 
@@ -435,8 +437,8 @@ void RNAFuncs::drawRNAStructure(const std::string &seq, const std::string &struc
     free(pair_table);
     free(X);
     free(Y);
-    DELETE(points);
-    DELETE(colors);
+    delete[] points;
+    delete[] colors;
 }
 #endif
 #endif

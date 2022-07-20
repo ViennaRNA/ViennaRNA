@@ -8,7 +8,7 @@
 #include "misc.h"
 #include "rna_alignment.h"
 #include "rnafuncs.h"
-#include "utils.h"
+#include "utils/utils.h"
 
 /* ****************************************** */
 /*            Private functions               */
