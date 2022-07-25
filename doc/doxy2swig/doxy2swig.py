@@ -51,7 +51,7 @@ import textwrap
 import sys
 import os.path
 import optparse
-
+import csv
 
 def my_open_read(source):
     if hasattr(source, "read"):
@@ -111,7 +111,8 @@ class Doxy2SWIG:
                  with_attribute_list = False,
                  with_overloaded_functions = False,
                  textwidth = 80,
-                 quiet = False):
+                 quiet = False,
+                 object_binding = None):
         """Initialize the instance given a source object.  `src` can
         be a file or filename.  If you do not want to include function
         definitions from doxygen then set
@@ -128,6 +129,7 @@ class Doxy2SWIG:
         self.with_overloaded_functions = with_overloaded_functions
         self.textwidth = textwidth
         self.quiet = quiet
+        self.object_binding = object_binding
 
         # state:
         self.indent = 0
@@ -334,7 +336,13 @@ class Doxy2SWIG:
 
     def get_function_signature(self, node):
         """Returns the function signature string for memberdef nodes."""
+        omit_param = None
         name = self.extract_text(self.get_specific_subnodes(node, 'name'))
+
+        if name in self.object_binding:
+            omit_param = self.object_binding[name]['self_arg_name']
+            name = self.object_binding[name]['method']
+
         if self.with_type_info:
             argsstring = self.extract_text(self.get_specific_subnodes(node, 'argsstring'))
         else:
@@ -344,6 +352,9 @@ class Doxy2SWIG:
                 declname = self.extract_text(self.get_specific_subnodes(n_param, 'declname'))
                 if not declname:
                     declname = 'arg' + str(param_id)
+                if declname == omit_param:
+                    declname = 'self'
+
                 defval = self.extract_text(self.get_specific_subnodes(n_param, 'defval'))
                 if defval:
                     defval = '=' + defval
@@ -435,6 +446,11 @@ class Doxy2SWIG:
     def handle_typical_memberdefs_no_overload(self, signature, memberdef_nodes):
         """Produce standard documentation for memberdef_nodes."""
         for n in memberdef_nodes:
+            if signature in self.object_binding:
+                signature = self.object_binding[signature]['class'] + \
+                            "::" + \
+                            self.object_binding[signature]['method']
+
             self.add_text(['\n', '%feature("docstring") ', signature, ' "', '\n'])
             if self.with_function_signature:
                 self.add_line_with_subsequent_indent(self.get_function_signature(n))
@@ -450,7 +466,6 @@ class Doxy2SWIG:
         if len(memberdef_nodes) == 1 or not self.with_overloaded_functions:
             self.handle_typical_memberdefs_no_overload(signature, memberdef_nodes)
             return
-
         self.add_text(['\n', '%feature("docstring") ', signature, ' "', '\n'])
         if self.with_function_signature:
             for n in memberdef_nodes:
@@ -591,6 +606,12 @@ class Doxy2SWIG:
 
 # MARK: Parameter list tag handlers
     def do_parameterlist(self, node):
+        name = None
+        if node.parentNode and \
+           node.parentNode.parentNode and \
+           node.parentNode.parentNode.parentNode:
+            name = self.extract_text(self.get_specific_subnodes(node.parentNode.parentNode.parentNode, 'name'))
+
         self.start_new_paragraph()
         text = 'unknown'
         for key, val in node.attributes.items():
@@ -604,6 +625,11 @@ class Doxy2SWIG:
                 else:
                     text = val
                 break
+
+        if name in self.object_binding:
+            print(name, text)
+#            return
+
         if self.indent == 0:
             self.add_text([text, '\n', len(text) * '-', '\n'])
         else:
@@ -611,17 +637,29 @@ class Doxy2SWIG:
         self.subnode_parse(node)
 
     def do_parameteritem(self, node):
-        self.subnode_parse(node, pieces=['* ', ''])
+        member_root = node.parentNode
+        for i in range(3):
+            member_root = member_root.parentNode
+        name = self.extract_text(self.get_specific_subnodes(member_root, 'name'))
+        if name in self.object_binding:
+            param_name = self.get_specific_subnodes(node, 'parametername', 2)
+            try:
+                if param_name[0].firstChild.data == self.object_binding[name]['self_arg_name']:
+                    return
+            except:
+                name = 'bla'
+
+        self.subnode_parse(node, pieces=[''])
 
     def do_parameternamelist(self, node):
         self.subnode_parse(node)
         self.add_text([' :', '  \n'])
     
     def do_parametername(self, node):
-        if self.pieces != [] and self.pieces != ['* ', '']:
+        if self.pieces != [] and self.pieces != ['']:
             self.add_text(', ')
         data = self.extract_text(node)
-        self.add_text(['`', data, '`'])
+        self.add_text([data])
 
     def do_parameterdescription(self, node):
         self.subnode_parse(node, pieces=[''], indent=4)
@@ -781,7 +819,8 @@ class Doxy2SWIG:
                           with_attribute_list = self.with_attribute_list,
                           with_overloaded_functions = self.with_overloaded_functions,
                           textwidth = self.textwidth,
-                          quiet = self.quiet)
+                          quiet = self.quiet,
+                          object_binding = self.object_binding)
             p.generate()
             self.pieces.extend(p.pieces)
 
@@ -824,11 +863,28 @@ def main():
                       default=False,
                       dest='q',
                       help='be quiet and minimize output')
-    
+    parser.add_option("-b", '--object-binding',
+                      type = "string",
+                      action = 'store',
+                      dest = 'b',
+                      default = None,
+                      help = 'load file that specifies which functions are bound as method to which objects')
+
     options, args = parser.parse_args()
     if len(args) != 2:
         parser.error("no input and output specified")
-    
+
+    object_binding = None
+    if options.b:
+        with open(options.b, "r", newline = '') as f:
+            object_binding = {}
+            data = csv.reader(f, delimiter = ",")
+            header = next(data, None)
+            for row in data:
+                object_binding[row[0]] = {'method': row[1],
+                                          'class': row[2],
+                                          'self_arg_name': row[3]}
+    print(object_binding)
     p = Doxy2SWIG(args[0],
                   with_function_signature = options.f,
                   with_type_info = options.t,
@@ -836,7 +892,8 @@ def main():
                   with_attribute_list = options.a,
                   with_overloaded_functions = options.o,
                   textwidth = options.w,
-                  quiet = options.q)
+                  quiet = options.q,
+                  object_binding = object_binding)
     p.generate()
     p.write(args[1])
 
