@@ -354,11 +354,11 @@ vrna_exp_params_rescale(vrna_fold_compound_t  *vc,
  *
  *  @see vrna_exp_params_reset(), vrna_params_subs()
  *  @param  vc    The fold compound data structure
- *  @param  md_p  A pointer to the new model details (or NULL for reset to defaults)
+ *  @param  md    A pointer to the new model details (or NULL for reset to defaults)
  */
 void
 vrna_params_reset(vrna_fold_compound_t  *vc,
-                  vrna_md_t             *md_p);
+                  vrna_md_t             *md);
 
 
 /**
@@ -373,11 +373,11 @@ vrna_params_reset(vrna_fold_compound_t  *vc,
  *
  *  @see vrna_params_reset(), vrna_exp_params_subst(), vrna_exp_params_rescale()
  *  @param  vc    The fold compound data structure
- *  @param  md_p  A pointer to the new model details (or NULL for reset to defaults)
+ *  @param  md    A pointer to the new model details (or NULL for reset to defaults)
  */
 void
 vrna_exp_params_reset(vrna_fold_compound_t  *vc,
-                      vrna_md_t             *md_p);
+                      vrna_md_t             *md);
 
 
 void

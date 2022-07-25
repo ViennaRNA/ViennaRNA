@@ -32,7 +32,7 @@ all subsequent calls to scale the partition function accordingly.
 @endparblock
 
 
-@fn void vrna_params_reset(vrna_fold_compound_t *vc, vrna_md_t *md_p)
+@fn void vrna_params_reset(vrna_fold_compound_t *vc, vrna_md_t *md)
 @scripting
 @parblock
 This function is attached to #vrna_fc_s objects as overloaded @b params_reset() method.
@@ -44,7 +44,7 @@ within the #vrna_md_s object.
 @endparblock
 
 
-@fn vrna_exp_params_reset(vrna_fold_compound_t *vc, vrna_md_t *md_p)
+@fn vrna_exp_params_reset(vrna_fold_compound_t *vc, vrna_md_t *md)
 @scripting
 @parblock
 This function is attached to #vrna_fc_s objects as overloaded @b exp_params_reset() method.
