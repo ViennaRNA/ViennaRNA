@@ -112,7 +112,7 @@ class Doxy2SWIG:
                  with_overloaded_functions = False,
                  textwidth = 80,
                  quiet = False,
-                 object_binding = None):
+                 object_binding = dict()):
         """Initialize the instance given a source object.  `src` can
         be a file or filename.  If you do not want to include function
         definitions from doxygen then set
@@ -882,10 +882,9 @@ def main():
     if len(args) != 2:
         parser.error("no input and output specified")
 
-    object_binding = None
+    object_binding = dict()
     if options.b:
         with open(options.b, "r", newline = '') as f:
-            object_binding = {}
             data = csv.reader(f, delimiter = ",")
             header = next(data, None)
             for row in data:
