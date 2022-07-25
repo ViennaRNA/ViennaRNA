@@ -604,6 +604,12 @@ class Doxy2SWIG:
             item = str(self.listitem) + ' '
         self.subnode_parse(node, item, indent=4)
 
+    def do_xrefsect(self, node):
+        title = self.extract_text(self.get_specific_subnodes(node, 'xreftitle'))
+        self.add_text(['\n', title, '\n', len(title) * '-'])
+        for nn in self.get_specific_subnodes(node, 'xrefdescription'):
+            self.subnode_parse(nn)
+
 # MARK: Parameter list tag handlers
     def do_parameterlist(self, node):
         name = None
