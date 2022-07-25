@@ -670,6 +670,8 @@ class Doxy2SWIG:
         if kind in ('date', 'rcs', 'version'):
             return
         self.start_new_paragraph()
+        if kind == 'note':
+            self.subnode_parse(node, pieces=['Notes', '\n', len('Notes') * '-','\n', ''], indent=0)
         if kind == 'warning':
             self.subnode_parse(node, pieces=['**Warning**: ',''], indent=4)
         elif kind == 'see':
