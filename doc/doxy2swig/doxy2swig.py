@@ -659,7 +659,22 @@ class Doxy2SWIG:
 
     def do_parameternamelist(self, node):
         self.subnode_parse(node)
-        self.add_text([' :', '  \n'])
+
+        # try identifying the type of the parameter
+        ptype = ""
+        if self.with_type_info:
+            try:
+                pname = self.extract_text(self.get_specific_subnodes(node, 'parametername')[0])
+                for p in self.get_specific_subnodes(node.parentNode.parentNode.parentNode.parentNode.parentNode, 'param'):
+                    ppname = self.extract_text(self.get_specific_subnodes(p, 'declname'))
+                    pptype = self.extract_text(self.get_specific_subnodes(p, 'type'))
+                    if pname == ppname:
+                        ptype = pptype
+                        break
+            except:
+                ptype = ""
+
+        self.add_text([' : ', ptype, '\n'])
     
     def do_parametername(self, node):
         if self.pieces != [] and self.pieces != ['']:
