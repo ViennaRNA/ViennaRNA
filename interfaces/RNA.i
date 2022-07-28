@@ -215,6 +215,10 @@ namespace std {
 /*############################################*/
 /* Include all relevant interface definitions */
 /*############################################*/
+#ifdef SWIGPYTHON
+%include documentation.i
+#endif
+
 %include var_arrays.i
 %include type_checks.i
 %include params.i

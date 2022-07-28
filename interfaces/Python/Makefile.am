@@ -32,7 +32,8 @@ _RNA_la_SOURCES = $(INTERFACE_FILES) \
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(SWIG_module_name).py \
-  $(LANG_SPECIFIC_INTERFACE_FILES)
+  $(LANG_SPECIFIC_INTERFACE_FILES) \
+  documentation.i
 
 _RNA_la_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 _RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS) -Wno-unused-label -Wno-unused-variable
@@ -64,7 +65,16 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
 
 if HAS_SWIG
 
-$(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
+documentation.i: $(srcdir)/../classify.txt
+	test -d $(top_builddir)/doc/xml || $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml
+	$(PYTHON3) $(top_srcdir)/doc/doxy2swig/doxy2swig.py \
+      -b $(srcdir)/../classify.txt \
+      -t \
+      $(top_builddir)/doc/xml/index.xml \
+      documentation.i
+
+
+$(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES) documentation.i
 	$(swig_verbose)$(SWIG) \
                   -I$(top_srcdir)/src \
                   -I$(srcdir) \
