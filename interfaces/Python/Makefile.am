@@ -70,6 +70,8 @@ documentation.i: $(srcdir)/../classify.txt
 	$(PYTHON3) $(top_srcdir)/doc/doxy2swig/doxy2swig.py \
       -b $(srcdir)/../classify.txt \
       -t \
+      -a \
+      -c \
       $(top_builddir)/doc/xml/index.xml \
       documentation.i
 
