@@ -45,7 +45,7 @@ the last argument @p options is optional with default value `options = VRNA_PBAC
 See also @ref examples_python_pbacktrack "Python Examples - Boltzmann Sampling"
 @endparblock
 
-@fn unsigned int vrna_pbacktrack5_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int length, vrna_boltzmann_sampling_callback *cb, void *data, unsigned int options)
+@fn unsigned int vrna_pbacktrack5_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int length, vrna_bs_result_f cb, void *data, unsigned int options)
 @scripting
 @parblock
 This function is attached as overloaded method @b pbacktrack5() to objects of type @em fold_compound where
@@ -53,7 +53,7 @@ the last argument @p options is optional with default value `options = VRNA_PBAC
 See also @ref examples_python_pbacktrack "Python Examples - Boltzmann Sampling"
 @endparblock
 
-@fn unsigned int vrna_pbacktrack_cb(vrna_fold_compound_t *fc, unsigned int num_samples, vrna_boltzmann_sampling_callback *cb, void *data, unsigned int options)
+@fn unsigned int vrna_pbacktrack_cb(vrna_fold_compound_t *fc, unsigned int num_samples, vrna_bs_result_f cb, void *data, unsigned int options)
 @scripting
 @parblock
 This function is attached as overloaded method @b pbacktrack() to objects of type @em fold_compound where
@@ -61,7 +61,7 @@ the last argument @p options is optional with default value `options = VRNA_PBAC
 See also @ref examples_python_pbacktrack "Python Examples - Boltzmann Sampling"
 @endparblock
 
-@fn unsigned int vrna_pbacktrack_sub_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int start, unsigned int end, vrna_boltzmann_sampling_callback *cb, void *data, unsigned int options)
+@fn unsigned int vrna_pbacktrack_sub_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int start, unsigned int end, vrna_bs_result_f cb, void *data, unsigned int options)
 @scripting
 @parblock
 This function is attached as overloaded method @b pbacktrack() to objects of type @em fold_compound where
@@ -96,7 +96,7 @@ first element.
 See also @ref examples_python_pbacktrack "Python Examples - Boltzmann Sampling"
 @endparblock
 
-@fn unsigned int vrna_pbacktrack5_resume_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int length, vrna_boltzmann_sampling_callback *cb, void *data, vrna_pbacktrack_mem_t *nr_mem, unsigned int options)
+@fn unsigned int vrna_pbacktrack5_resume_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int length, vrna_bs_result_f cb, void *data, vrna_pbacktrack_mem_t *nr_mem, unsigned int options)
 @scripting
 @parblock
 This function is attached as overloaded method @b pbacktrack5() to objects of type @em fold_compound.
@@ -105,7 +105,7 @@ first element.
 See also @ref examples_python_pbacktrack "Python Examples - Boltzmann Sampling"
 @endparblock
 
-@fn unsigned int vrna_pbacktrack_resume_cb(vrna_fold_compound_t *fc, unsigned int num_samples, vrna_boltzmann_sampling_callback *cb, void *data, vrna_pbacktrack_mem_t *nr_mem, unsigned int options)
+@fn unsigned int vrna_pbacktrack_resume_cb(vrna_fold_compound_t *fc, unsigned int num_samples, vrna_bs_result_f cb, void *data, vrna_pbacktrack_mem_t *nr_mem, unsigned int options)
 @scripting
 @parblock
 This function is attached as overloaded method @b pbacktrack() to objects of type @em fold_compound.
@@ -114,7 +114,7 @@ first element.
 See also @ref examples_python_pbacktrack "Python Examples - Boltzmann Sampling"
 @endparblock
 
-@fn unsigned int vrna_pbacktrack_sub_resume_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int start, unsigned int end, vrna_boltzmann_sampling_callback *cb, void *data, vrna_pbacktrack_mem_t *nr_mem, unsigned int options)
+@fn unsigned int vrna_pbacktrack_sub_resume_cb(vrna_fold_compound_t *fc, unsigned int num_samples, unsigned int start, unsigned int end, vrna_bs_result_f cb, void *data, vrna_pbacktrack_mem_t *nr_mem, unsigned int options)
 @scripting
 @parblock
 This function is attached as overloaded method @b pbacktrack() to objects of type @em fold_compound.

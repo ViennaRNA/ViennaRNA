@@ -577,7 +577,7 @@ vrna_ud_remove(vrna_fold_compound_t *vc)
 PUBLIC void
 vrna_ud_set_data(vrna_fold_compound_t       *vc,
                  void                       *data,
-                 vrna_callback_free_auxdata *free_cb)
+                 vrna_auxdata_free_f free_cb)
 {
   if (vc) {
     /* init if not already present */
@@ -597,8 +597,8 @@ vrna_ud_set_data(vrna_fold_compound_t       *vc,
 
 PUBLIC void
 vrna_ud_set_prod_rule_cb(vrna_fold_compound_t         *vc,
-                         vrna_callback_ud_production  *pre_cb,
-                         vrna_callback_ud_energy      *e_cb)
+                         vrna_ud_production_f  pre_cb,
+                         vrna_ud_f      e_cb)
 {
   if (vc) {
     /* init if not already present */
@@ -614,8 +614,8 @@ vrna_ud_set_prod_rule_cb(vrna_fold_compound_t         *vc,
 
 PUBLIC void
 vrna_ud_set_exp_prod_rule_cb(vrna_fold_compound_t             *vc,
-                             vrna_callback_ud_exp_production  *pre_cb,
-                             vrna_callback_ud_exp_energy      *exp_e_cb)
+                             vrna_ud_exp_production_f  pre_cb,
+                             vrna_ud_exp_f      exp_e_cb)
 {
   if (vc) {
     /* init if not already present */
@@ -631,8 +631,8 @@ vrna_ud_set_exp_prod_rule_cb(vrna_fold_compound_t             *vc,
 
 PUBLIC void
 vrna_ud_set_prob_cb(vrna_fold_compound_t        *vc,
-                    vrna_callback_ud_probs_add  *setter,
-                    vrna_callback_ud_probs_get  *getter)
+                    vrna_ud_add_probs_f  setter,
+                    vrna_ud_get_probs_f  getter)
 {
   if (vc) {
     /* init if not already present */

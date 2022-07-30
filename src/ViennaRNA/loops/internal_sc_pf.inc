@@ -1,6 +1,6 @@
 struct sc_int_exp_dat;
 
-typedef FLT_OR_DBL (sc_int_exp_cb)(int                    i,
+typedef FLT_OR_DBL (*sc_int_exp_cb)(int                    i,
                                    int                    j,
                                    int                    k,
                                    int                    l,
@@ -21,14 +21,14 @@ struct sc_int_exp_dat {
   FLT_OR_DBL                  *stack;
   FLT_OR_DBL                  **stack_comparative;
 
-  vrna_callback_sc_exp_energy *user_cb;
+  vrna_sc_exp_f user_cb;
   void                        *user_data;
 
-  vrna_callback_sc_exp_energy **user_cb_comparative;
+  vrna_sc_exp_f *user_cb_comparative;
   void                        **user_data_comparative;
 
-  sc_int_exp_cb               *pair;
-  sc_int_exp_cb               *pair_ext;
+  sc_int_exp_cb               pair;
+  sc_int_exp_cb               pair_ext;
 };
 
 
@@ -1101,8 +1101,8 @@ init_sc_int_exp(vrna_fold_compound_t  *fc,
           sizeof(FLT_OR_DBL *) *
           fc->n_seq);
 
-        sc_wrapper->user_cb_comparative = (vrna_callback_sc_exp_energy **)vrna_alloc(
-          sizeof(vrna_callback_sc_exp_energy *) *
+        sc_wrapper->user_cb_comparative = (vrna_sc_exp_f *)vrna_alloc(
+          sizeof(vrna_sc_exp_f) *
           fc->n_seq);
 
         sc_wrapper->user_data_comparative = (void **)vrna_alloc(

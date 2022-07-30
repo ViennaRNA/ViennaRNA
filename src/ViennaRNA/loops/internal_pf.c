@@ -116,7 +116,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
-  eval_hc               *evaluate;
+  eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
   struct sc_int_exp_dat sc_wrapper;
 
@@ -571,7 +571,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
-  eval_hc               *evaluate;
+  eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
   struct sc_int_exp_dat sc_wrapper;
 
@@ -743,7 +743,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
-  eval_hc               *evaluate;
+  eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
   struct sc_int_exp_dat sc_wrapper;
 

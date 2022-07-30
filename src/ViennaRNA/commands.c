@@ -48,7 +48,7 @@ struct vrna_command_s {
   void            *data;
 };
 
-typedef void *(command_parser_function)(const char *line);
+typedef void *(*command_parser_f)(const char *line);
 
 /*
  #################################
@@ -125,9 +125,9 @@ apply_ud(vrna_fold_compound_t *vc,
  */
 
 typedef struct {
-  char                    cmd[3];
-  vrna_command_e          type;
-  command_parser_function *parser;
+  char              cmd[3];
+  vrna_command_e    type;
+  command_parser_f  parser;
 } parsable;
 
 

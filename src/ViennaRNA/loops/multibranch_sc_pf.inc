@@ -1,11 +1,11 @@
 struct sc_mb_exp_dat;
 
-typedef FLT_OR_DBL (sc_mb_exp_pair_cb)(int                  i,
+typedef FLT_OR_DBL (*sc_mb_exp_pair_cb)(int                  i,
                                        int                  j,
                                        struct sc_mb_exp_dat *data);
 
 
-typedef FLT_OR_DBL (sc_mb_exp_red_cb)(int                   i,
+typedef FLT_OR_DBL (*sc_mb_exp_red_cb)(int                   i,
                                       int                   j,
                                       int                   k,
                                       int                   l,
@@ -26,16 +26,16 @@ struct sc_mb_exp_dat {
   FLT_OR_DBL                  **bp_local;
   FLT_OR_DBL                  ***bp_local_comparative;
 
-  sc_mb_exp_pair_cb           *pair;
-  sc_mb_exp_pair_cb           *pair_ext;
-  sc_mb_exp_red_cb            *red_stem;
-  sc_mb_exp_red_cb            *red_ml;
-  sc_mb_exp_red_cb            *decomp_ml;
+  sc_mb_exp_pair_cb           pair;
+  sc_mb_exp_pair_cb           pair_ext;
+  sc_mb_exp_red_cb            red_stem;
+  sc_mb_exp_red_cb            red_ml;
+  sc_mb_exp_red_cb            decomp_ml;
 
-  vrna_callback_sc_exp_energy *user_cb;
+  vrna_sc_exp_f user_cb;
   void                        *user_data;
 
-  vrna_callback_sc_exp_energy **user_cb_comparative;
+  vrna_sc_exp_f *user_cb_comparative;
   void                        **user_data_comparative;
 };
 
@@ -531,8 +531,8 @@ init_sc_mb_exp(vrna_fold_compound_t *fc,
           sizeof(FLT_OR_DBL * *) *
           fc->n_seq);
 
-        sc_wrapper->user_cb_comparative = (vrna_callback_sc_exp_energy **)vrna_alloc(
-          sizeof(vrna_callback_sc_exp_energy *) *
+        sc_wrapper->user_cb_comparative = (vrna_sc_exp_f *)vrna_alloc(
+          sizeof(vrna_sc_exp_f) *
           fc->n_seq);
 
         sc_wrapper->user_data_comparative = (void **)vrna_alloc(

@@ -73,7 +73,7 @@ DEPRECATED(float aliLfold(const char  **AS,
  */
 DEPRECATED(float aliLfold_cb(const char               **AS,
                              int                      maxdist,
-                             vrna_mfe_window_callback *cb,
+                             vrna_mfe_window_f cb,
                              void                     *data),
            "Use vrna_aliLfold() or vrna_aliLfold_cb() instead");
 

@@ -65,14 +65,14 @@ typedef struct {
 } helper_arrays;
 
 /* soft constraint contributions function (interior-loops) */
-typedef FLT_OR_DBL (sc_int)(vrna_fold_compound_t *,
+typedef FLT_OR_DBL (*sc_int)(vrna_fold_compound_t *,
                             int,
                             int,
                             int,
                             int);
 
 /* QI5 contribution function for unpaired probability computations */
-typedef void (add_QI5)(FLT_OR_DBL **,
+typedef void (*add_QI5)(FLT_OR_DBL **,
                        int,
                        int,
                        FLT_OR_DBL,
@@ -126,7 +126,7 @@ compute_probs(vrna_fold_compound_t        *vc,
               int                         j,
               helper_arrays               *aux_arrays,
               int                         ulength,
-              vrna_probs_window_callback  *cb,
+              vrna_probs_window_f  cb,
               void                        *data,
               unsigned int                options,
               int                         *ov);
@@ -156,7 +156,7 @@ compute_pU(vrna_fold_compound_t       *vc,
            int                        k,
            int                        ulength,
            helper_arrays              *aux_arrays,
-           vrna_probs_window_callback *cb,
+           vrna_probs_window_f cb,
            void                       *data,
            unsigned int               options);
 
@@ -171,7 +171,7 @@ return_pU(int                         size,
           int                         i,
           int                         max_size,
           helper_arrays               *aux_arrays,
-          vrna_probs_window_callback  *cb,
+          vrna_probs_window_f  cb,
           void                        *data,
           unsigned int                options);
 
@@ -405,7 +405,7 @@ return_pU(int                         size,
           int                         i,
           int                         max_size,
           helper_arrays               *aux_arrays,
-          vrna_probs_window_callback  *cb,
+          vrna_probs_window_f  cb,
           void                        *data,
           unsigned int                options)
 {
@@ -676,7 +676,7 @@ PUBLIC int
 vrna_probs_window(vrna_fold_compound_t        *vc,
                   int                         ulength,
                   unsigned int                options,
-                  vrna_probs_window_callback  *cb,
+                  vrna_probs_window_f  cb,
                   void                        *data)
 {
   unsigned char       hc_decompose;
@@ -1025,7 +1025,7 @@ compute_probs(vrna_fold_compound_t        *vc,
               int                         j,
               helper_arrays               *aux_arrays,
               int                         ulength,
-              vrna_probs_window_callback  *cb,
+              vrna_probs_window_f  cb,
               void                        *data,
               unsigned int                options,
               int                         *ov)
@@ -1041,8 +1041,8 @@ compute_probs(vrna_fold_compound_t        *vc,
   vrna_md_t         *md;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc;
-  sc_int            *sc_int_f;
-  add_QI5           *add_QI5_f;
+  sc_int            sc_int_f;
+  add_QI5           add_QI5_f;
 
   max_real = (sizeof(FLT_OR_DBL) == sizeof(float)) ? FLT_MAX : DBL_MAX;
 
@@ -1545,7 +1545,7 @@ compute_pU(vrna_fold_compound_t       *vc,
            int                        k,
            int                        ulength,
            helper_arrays              *aux_arrays,
-           vrna_probs_window_callback *cb,
+           vrna_probs_window_f cb,
            void                       *data,
            unsigned int               options)
 {

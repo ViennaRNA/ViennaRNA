@@ -69,16 +69,16 @@ typedef struct {
 
 typedef struct {
   struct hc_ext_def_dat     hc_dat_ext;
-  vrna_callback_hc_evaluate *hc_eval_ext;
+  vrna_hc_eval_f hc_eval_ext;
 
   struct hc_hp_def_dat      hc_dat_hp;
-  vrna_callback_hc_evaluate *hc_eval_hp;
+  vrna_hc_eval_f hc_eval_hp;
 
   struct hc_int_def_dat     hc_dat_int;
-  eval_hc                   *hc_eval_int;
+  eval_hc                   hc_eval_int;
 
   struct hc_mb_def_dat      hc_dat_mb;
-  vrna_callback_hc_evaluate *hc_eval_mb;
+  vrna_hc_eval_f hc_eval_mb;
 
   struct sc_ext_exp_dat     sc_wrapper_ext;
   struct sc_hp_exp_dat      sc_wrapper_hp;
@@ -1072,7 +1072,7 @@ compute_bpp_external(vrna_fold_compound_t *fc,
   FLT_OR_DBL                *probs, *q1k, *qln, *qb;
   vrna_mx_pf_t              *matrices;
   struct hc_ext_def_dat     *hc_dat;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
 
   FLT_OR_DBL                (*contrib_f)(vrna_fold_compound_t *,
                                          unsigned int,
@@ -1217,7 +1217,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
   vrna_sc_t             *sc;
   vrna_ud_t             *domains_up;
   struct hc_int_def_dat *hc_dat_local;
-  eval_hc               *hc_eval;
+  eval_hc               hc_eval;
   struct sc_int_exp_dat *sc_wrapper_int;
 
   hc_dat_local    = &(constraints->hc_dat_int);
@@ -1379,7 +1379,7 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
-  eval_hc               *hc_eval;
+  eval_hc               hc_eval;
   struct hc_int_def_dat *hc_dat_local;
   struct sc_int_exp_dat *sc_wrapper_int;
 
@@ -1508,7 +1508,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
   struct hc_mb_def_dat      *hc_dat;
-  vrna_callback_hc_evaluate *hc_eval;
+  vrna_hc_eval_f hc_eval;
   struct sc_mb_exp_dat      *sc_wrapper;
 
 
@@ -3683,7 +3683,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
   vrna_mx_pf_t              *matrices;
   vrna_md_t                 *md;
   struct hc_mb_def_dat      *hc_dat_mb;
-  vrna_callback_hc_evaluate *hc_eval_mb;
+  vrna_hc_eval_f hc_eval_mb;
   struct sc_int_exp_dat     *sc_dat_int;
   struct sc_mb_exp_dat      *sc_dat_mb;
 

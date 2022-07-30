@@ -118,7 +118,7 @@ aliLfold(const char *AS[],
 PUBLIC float
 aliLfold_cb(const char                **AS,
             int                       maxdist,
-            vrna_mfe_window_callback  *cb,
+            vrna_mfe_window_f  cb,
             void                      *data)
 {
   float                 en;

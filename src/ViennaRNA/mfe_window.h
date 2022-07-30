@@ -8,6 +8,21 @@
 #include <ViennaRNA/zscore.h>
 #endif
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *
  *  @file mfe_window.h
@@ -61,20 +76,36 @@
  *  @param en is the free energy of the structure hit in kcal/mol
  *  @param data is some arbitrary data pointer passed through by the function executing the callback
  */
-typedef void (vrna_mfe_window_callback)(int         start,
+typedef void (*vrna_mfe_window_f)(int         start,
                                         int         end,
                                         const char  *structure,
                                         float       en,
                                         void        *data);
 
+DEPRECATED(typedef void (vrna_mfe_window_callback)(int         start,
+                                        int         end,
+                                        const char  *structure,
+                                        float       en,
+                                        void        *data),
+           "Use vrna_mfe_window_f instead!");
+
+
 
 #ifdef VRNA_WITH_SVM
-typedef void (vrna_mfe_window_zscore_callback)(int        start,
+typedef void (*vrna_mfe_window_zscore_f)(int        start,
                                                int        end,
                                                const char *structure,
                                                float      en,
                                                float      zscore,
                                                void       *data);
+
+DEPRECATED(typedef void (vrna_mfe_window_zscore_callback)(int        start,
+                                               int        end,
+                                               const char *structure,
+                                               float      en,
+                                               float      zscore,
+                                               void       *data),
+           "Use vrna_mfe_window_zscore_f instead!");
 #endif
 
 /**
@@ -114,7 +145,7 @@ vrna_mfe_window(vrna_fold_compound_t  *vc,
 
 float
 vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
-                   vrna_mfe_window_callback *cb,
+                   vrna_mfe_window_f cb,
                    void                     *data);
 
 
@@ -153,7 +184,7 @@ vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
 float
 vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
                           double                          min_z,
-                          vrna_mfe_window_zscore_callback *cb,
+                          vrna_mfe_window_zscore_f cb,
                           void                            *data);
 
 
@@ -196,7 +227,7 @@ vrna_Lfold(const char *string,
 float
 vrna_Lfold_cb(const char                *string,
               int                       window_size,
-              vrna_mfe_window_callback  *cb,
+              vrna_mfe_window_f  cb,
               void                      *data);
 
 
@@ -236,7 +267,7 @@ float
 vrna_Lfoldz_cb(const char                       *string,
                int                              window_size,
                double                           min_z,
-               vrna_mfe_window_zscore_callback  *cb,
+               vrna_mfe_window_zscore_f  cb,
                void                             *data);
 
 
@@ -249,7 +280,7 @@ float vrna_aliLfold(const char  **alignment,
 
 float vrna_aliLfold_cb(const char               **alignment,
                        int                      maxdist,
-                       vrna_mfe_window_callback *cb,
+                       vrna_mfe_window_f cb,
                        void                     *data);
 
 

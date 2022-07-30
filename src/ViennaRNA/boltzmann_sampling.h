@@ -1,6 +1,21 @@
 #ifndef VIENNA_RNA_PACKAGE_BOLTZMANN_SAMPLING_H
 #define VIENNA_RNA_PACKAGE_BOLTZMANN_SAMPLING_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file boltzmann_sampling.h
  *  @ingroup subopt_and_representatives
@@ -54,8 +69,13 @@
  * @param structure The secondary structure in dot-bracket notation
  * @param data      Some arbitrary, auxiliary data address as provided to the calling function
  */
-typedef void (vrna_boltzmann_sampling_callback)(const char  *structure,
+typedef void (*vrna_bs_result_f)(const char  *structure,
                                                 void        *data);
+
+DEPRECATED(typedef void (vrna_boltzmann_sampling_callback)(const char  *structure,
+                                                void        *data),
+           "Use vrna_bs_result_f instead!");
+
 
 /**
  *  @brief  Boltzmann sampling memory data structure
@@ -214,7 +234,7 @@ unsigned int
 vrna_pbacktrack5_cb(vrna_fold_compound_t              *fc,
                     unsigned int                      num_samples,
                     unsigned int                      length,
-                    vrna_boltzmann_sampling_callback  *cb,
+                    vrna_bs_result_f  cb,
                     void                              *data,
                     unsigned int                      options);
 
@@ -382,7 +402,7 @@ unsigned int
 vrna_pbacktrack5_resume_cb(vrna_fold_compound_t             *fc,
                            unsigned int                     num_samples,
                            unsigned int                     length,
-                           vrna_boltzmann_sampling_callback *cb,
+                           vrna_bs_result_f cb,
                            void                             *data,
                            vrna_pbacktrack_mem_t            *nr_mem,
                            unsigned int                     options);
@@ -517,7 +537,7 @@ vrna_pbacktrack_num(vrna_fold_compound_t  *fc,
 unsigned int
 vrna_pbacktrack_cb(vrna_fold_compound_t             *fc,
                    unsigned int                     num_samples,
-                   vrna_boltzmann_sampling_callback *cb,
+                   vrna_bs_result_f cb,
                    void                             *data,
                    unsigned int                     options);
 
@@ -675,7 +695,7 @@ vrna_pbacktrack_resume(vrna_fold_compound_t   *fc,
 unsigned int
 vrna_pbacktrack_resume_cb(vrna_fold_compound_t              *fc,
                           unsigned int                      num_samples,
-                          vrna_boltzmann_sampling_callback  *cb,
+                          vrna_bs_result_f  cb,
                           void                              *data,
                           vrna_pbacktrack_mem_t             *nr_mem,
                           unsigned int                      options);
@@ -833,7 +853,7 @@ vrna_pbacktrack_sub_cb(vrna_fold_compound_t              *fc,
                        unsigned int                      num_samples,
                        unsigned int                      start,
                        unsigned int                      end,
-                       vrna_boltzmann_sampling_callback  *cb,
+                       vrna_bs_result_f  cb,
                        void                              *data,
                        unsigned int                      options);
 
@@ -1005,7 +1025,7 @@ vrna_pbacktrack_sub_resume_cb(vrna_fold_compound_t             *fc,
                               unsigned int                     num_samples,
                               unsigned int                     start,
                               unsigned int                     end,
-                              vrna_boltzmann_sampling_callback *bs_cb,
+                              vrna_bs_result_f cb,
                               void                             *data,
                               vrna_pbacktrack_mem_t            *nr_mem,
                               unsigned int                     options);

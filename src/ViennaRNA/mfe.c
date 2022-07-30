@@ -57,7 +57,7 @@ struct aux_arrays {
 #include "ViennaRNA/loops/external_hc.inc"
 
 struct ms_helpers {
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
 };
 
@@ -1671,7 +1671,7 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
   int                       e, tmp, **fms5, *c, *idx, n, end, dangle_model, base;
   vrna_param_t              *params;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
 
   n             = fc->length;
@@ -1849,7 +1849,7 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
   int                       *c, **fms3, base, e, tmp, j, k, start, n, *idx, dangle_model;
   vrna_param_t              *params;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
 
   n             = fc->length;
@@ -2025,7 +2025,7 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
   int                       start, contribution, **fms5, **fms3, base, tmp, tmp2, dangle_model;
   vrna_param_t              *params;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
 
   contribution  = INF;
@@ -2272,7 +2272,7 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
   int                       start, base, tmp, dangle_model;
   vrna_param_t              *params;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
 
   if (fc) {
@@ -2544,7 +2544,7 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
   int                       u, *idx, end, *c, **fms5, base, tmp, dangle_model;
   vrna_param_t              *params;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
 
   S1            = fc->sequence_encoding;
@@ -2731,7 +2731,7 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
   int                       u, *idx, start, n, *c, **fms3, base, dangle_model;
   vrna_param_t              *params;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
 
   n             = fc->length;

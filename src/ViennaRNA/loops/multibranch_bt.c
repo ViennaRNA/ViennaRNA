@@ -120,7 +120,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_dat          sc_wrapper;
 
@@ -624,7 +624,7 @@ BT_mb_loop(vrna_fold_compound_t *fc,
                             *my_c, *my_fML, *rtype, type, type_2, **c_local, **fML_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_dat          sc_wrapper;
 

@@ -62,7 +62,7 @@ extend_fm_3p(int                        i,
              int                        j,
              int                        *fm,
              vrna_fold_compound_t       *fc,
-             vrna_callback_hc_evaluate  *evaluate,
+             vrna_hc_eval_f  evaluate,
              struct hc_mb_def_dat       *hc_data,
              struct sc_mb_dat           *sc_wrapper);
 
@@ -78,7 +78,7 @@ ml_pair5(vrna_fold_compound_t       *fc,
          int                        i,
          int                        j,
          int                        *dmli2,
-         vrna_callback_hc_evaluate  *evaluate,
+         vrna_hc_eval_f  evaluate,
          struct hc_mb_def_dat       *hc_wrapper,
          struct sc_mb_dat           *sc_wrapper);
 
@@ -88,7 +88,7 @@ ml_pair3(vrna_fold_compound_t       *fc,
          int                        i,
          int                        j,
          int                        *dmli1,
-         vrna_callback_hc_evaluate  *evaluate,
+         vrna_hc_eval_f  evaluate,
          struct hc_mb_def_dat       *hc_wrapper,
          struct sc_mb_dat           *sc_wrapper);
 
@@ -99,7 +99,7 @@ ml_pair53(vrna_fold_compound_t      *fc,
           int                       j,
           int                       *dmli1,
           int                       *dmli2,
-          vrna_callback_hc_evaluate *evaluate,
+          vrna_hc_eval_f evaluate,
           struct hc_mb_def_dat      *hc_wrapper,
           struct sc_mb_dat          *sc_wrapper);
 
@@ -167,7 +167,7 @@ E_ml_rightmost_stem(int                   i,
   if ((fc) && (fc->matrices) && (fc->matrices->fM1)) {
     struct hc_mb_def_dat      hc_dat_local;
     struct sc_mb_dat          sc_wrapper;
-    vrna_callback_hc_evaluate *evaluate;
+    vrna_hc_eval_f evaluate;
 
     evaluate = prepare_hc_mb_def(fc, &hc_dat_local);
     init_sc_mb(fc, &sc_wrapper);
@@ -196,7 +196,7 @@ ml_pair_d0(vrna_fold_compound_t       *fc,
            int                        i,
            int                        j,
            int                        *dmli1,
-           vrna_callback_hc_evaluate  *evaluate,
+           vrna_hc_eval_f  evaluate,
            struct hc_mb_def_dat       *hc_wrapper,
            struct sc_mb_dat           *sc_wrapper)
 {
@@ -254,7 +254,7 @@ ml_pair_d1(vrna_fold_compound_t       *fc,
            int                        j,
            int                        *dmli1,
            int                        *dmli2,
-           vrna_callback_hc_evaluate  *evaluate,
+           vrna_hc_eval_f  evaluate,
            struct hc_mb_def_dat       *hc_wrapper,
            struct sc_mb_dat           *sc_wrapper)
 {
@@ -284,7 +284,7 @@ ml_pair_d2(vrna_fold_compound_t       *fc,
            int                        i,
            int                        j,
            int                        *dmli1,
-           vrna_callback_hc_evaluate  *evaluate,
+           vrna_hc_eval_f  evaluate,
            struct hc_mb_def_dat       *hc_wrapper,
            struct sc_mb_dat           *sc_wrapper)
 {
@@ -350,7 +350,7 @@ ml_pair5(vrna_fold_compound_t       *fc,
          int                        i,
          int                        j,
          int                        *dmli2,
-         vrna_callback_hc_evaluate  *evaluate,
+         vrna_hc_eval_f  evaluate,
          struct hc_mb_def_dat       *hc_wrapper,
          struct sc_mb_dat           *sc_wrapper)
 {
@@ -416,7 +416,7 @@ ml_pair3(vrna_fold_compound_t       *fc,
          int                        i,
          int                        j,
          int                        *dmli1,
-         vrna_callback_hc_evaluate  *evaluate,
+         vrna_hc_eval_f  evaluate,
          struct hc_mb_def_dat       *hc_wrapper,
          struct sc_mb_dat           *sc_wrapper)
 {
@@ -483,7 +483,7 @@ ml_pair53(vrna_fold_compound_t      *fc,
           int                       j,
           int                       *dmli1,
           int                       *dmli2,
-          vrna_callback_hc_evaluate *evaluate,
+          vrna_hc_eval_f evaluate,
           struct hc_mb_def_dat      *hc_wrapper,
           struct sc_mb_dat          *sc_wrapper)
 {
@@ -557,7 +557,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
   int                       decomp, en, e, *fC, dangle_model, tt, noGUclosure;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
 
   S             = fc->sequence_encoding;
@@ -657,7 +657,7 @@ E_mb_loop_fast(vrna_fold_compound_t *fc,
   int                       decomp, e, dangle_model;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_dat          sc_wrapper;
 
@@ -725,7 +725,7 @@ E_mb_loop_stack(vrna_fold_compound_t  *fc,
                             type, type_2, *rtype, **c_local, **fML_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_dat          sc_wrapper;
 
@@ -904,7 +904,7 @@ extend_fm_3p(int                        i,
              int                        j,
              int                        *fm,
              vrna_fold_compound_t       *fc,
-             vrna_callback_hc_evaluate  *evaluate,
+             vrna_hc_eval_f  evaluate,
              struct hc_mb_def_dat       *hc_dat_local,
              struct sc_mb_dat           *sc_wrapper)
 {
@@ -1144,7 +1144,7 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_dat          sc_wrapper;
 

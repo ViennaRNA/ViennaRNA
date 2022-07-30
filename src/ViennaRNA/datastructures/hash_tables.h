@@ -3,6 +3,21 @@
 
 /* Taken from the barriers tool and modified by GE. */
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file ViennaRNA/datastructures/hash_tables.h
  *  @ingroup  hash_table_utils
@@ -42,8 +57,13 @@ typedef struct vrna_hash_table_s *vrna_hash_table_t;
  *  @param  y   A hash table entry
  *  @return     -1 if x is smaller, +1 if x is larger than y. 0 if @f$x == y @f$
  */
-typedef int (vrna_callback_ht_compare_entries)(void *x,
+typedef int (*vrna_ht_cmp_f)(void *x,
                                                void *y);
+
+DEPRECATED(typedef int (vrna_callback_ht_compare_entries)(void *x,
+                                               void *y),
+           "Use vrna_ht_cmp_f instead!");
+
 
 
 /**
@@ -53,8 +73,12 @@ typedef int (vrna_callback_ht_compare_entries)(void *x,
  *  @param  hashtable_size  The size of the hash table
  *  @return                 The hash table key for entry @p x
  */
-typedef unsigned int (vrna_callback_ht_hash_function)(void          *x,
+typedef unsigned int (*vrna_ht_hashfunc_f)(void          *x,
                                                       unsigned long hashtable_size);
+
+DEPRECATED(typedef unsigned int (vrna_callback_ht_hash_function)(void          *x,
+                                                      unsigned long hashtable_size),
+          "Use vrna_ht_hashfunc_f instead!");
 
 
 /**
@@ -63,7 +87,10 @@ typedef unsigned int (vrna_callback_ht_hash_function)(void          *x,
  *  @param  x   A hash table entry
  *  @return     0 on success
  */
-typedef int (vrna_callback_ht_free_entry)(void *x);
+typedef int (*vrna_ht_free_f)(void *x);
+
+DEPRECATED(typedef int (vrna_callback_ht_free_entry)(void *x),
+           "Use vrna_ht_free_f instead!");
 
 
 /**
@@ -93,9 +120,9 @@ typedef int (vrna_callback_ht_free_entry)(void *x);
  */
 vrna_hash_table_t
 vrna_ht_init(unsigned int                     b,
-             vrna_callback_ht_compare_entries *compare_function,
-             vrna_callback_ht_hash_function   *hash_function,
-             vrna_callback_ht_free_entry      *free_hash_entry);
+             vrna_ht_cmp_f compare_function,
+             vrna_ht_hashfunc_f   hash_function,
+             vrna_ht_free_f      free_hash_entry);
 
 
 /**
@@ -178,7 +205,7 @@ vrna_ht_remove(vrna_hash_table_t  ht,
  *
  *  This function removes all entries from the hash table and
  *  automatically free's the memory occupied by each entry using
- *  the bound #vrna_callback_ht_free_entry() function.
+ *  the bound #vrna_ht_free_f() function.
  *
  *  @see vrna_ht_free(), vrna_ht_init()
  *
@@ -192,7 +219,7 @@ vrna_ht_clear(vrna_hash_table_t ht);
  *  @brief  Free all memory occupied by the hash table
  *
  *  This function removes all entries from the hash table
- *  by calling the #vrna_callback_ht_free_entry() function for each
+ *  by calling the #vrna_ht_free_f() function for each
  *  entry. Finally, the memory occupied by the hash table itself
  *  is free'd as well.
  *

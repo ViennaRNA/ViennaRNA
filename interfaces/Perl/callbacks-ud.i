@@ -21,12 +21,81 @@ typedef struct {
   SV  *prob_get;
 } perl5_ud_callback_t;
 
-static vrna_callback_ud_production      perl5_wrap_ud_prod_rule;
-static vrna_callback_ud_exp_production  perl5_wrap_ud_exp_prod_rule;
-static vrna_callback_ud_energy          perl5_wrap_ud_energy;
-static vrna_callback_ud_exp_energy      perl5_wrap_ud_exp_energy;
-static vrna_callback_ud_probs_add       perl5_wrap_ud_prob_add;
-static vrna_callback_ud_probs_get       perl5_wrap_ud_prob_get;
+
+static perl5_ud_callback_t *
+new_perl_ud_cb(void);
+
+static void
+delete_perl_ud_callback(void * data);
+
+
+static void
+ud_set_data(vrna_fold_compound_t *vc,
+            SV *data,
+            SV *PerlFunc);
+
+
+static void
+ud_set_prod_rule_cb(vrna_fold_compound_t *vc,
+                    SV *prod_cb,
+                    SV *eval_cb);
+
+
+static void
+ud_set_exp_prod_rule_cb(vrna_fold_compound_t *vc,
+                        SV *prod_cb,
+                        SV *eval_cb);
+
+
+static void
+ud_set_prob_cb( vrna_fold_compound_t *vc,
+                SV *setter,
+                SV *getter);
+
+
+static void
+perl5_wrap_ud_prod_rule(vrna_fold_compound_t *vc,
+                        void *data);
+
+
+static void
+perl5_wrap_ud_exp_prod_rule(vrna_fold_compound_t *vc,
+                            void *data);
+
+
+static int
+perl5_wrap_ud_energy( vrna_fold_compound_t *vc,
+                      int i,
+                      int j,
+                      unsigned int looptype,
+                      void *data);
+
+
+static FLT_OR_DBL
+perl5_wrap_ud_exp_energy( vrna_fold_compound_t *vc,
+                          int i,
+                          int j,
+                          unsigned int looptype,
+                          void *data);
+
+
+static void
+perl5_wrap_ud_prob_add( vrna_fold_compound_t *vc,
+                        int i,
+                        int j,
+                        unsigned int looptype,
+                        FLT_OR_DBL prob,
+                        void *data);
+
+
+static FLT_OR_DBL
+perl5_wrap_ud_prob_get( vrna_fold_compound_t *vc,
+                        int i,
+                        int j,
+                        unsigned int looptype,
+                        int motif,
+                        void *data);
+
 
 static perl5_ud_callback_t *
 new_perl_ud_cb(void){

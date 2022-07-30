@@ -375,7 +375,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
   struct hc_int_def_dat hc_dat_local;
-  eval_hc               *evaluate;
+  eval_hc               evaluate;
   struct sc_int_dat     sc_wrapper;
 
   evaluate = prepare_hc_int_def(fc, &hc_dat_local);
@@ -847,7 +847,7 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
   short                 **SS;
   vrna_md_t             *md;
   vrna_param_t          *P;
-  eval_hc               *evaluate;
+  eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
 
   n     = fc->length;
@@ -936,7 +936,7 @@ E_stack(vrna_fold_compound_t  *fc,
   int                   e, ij, pq, p, q, s, n_seq, *rtype, *indx;
   vrna_param_t          *P;
   vrna_md_t             *md;
-  eval_hc               *evaluate;
+  eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
   struct sc_int_dat     sc_wrapper;
 

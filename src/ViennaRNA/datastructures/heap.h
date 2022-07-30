@@ -1,6 +1,21 @@
 #ifndef VIENNA_RNA_PACKAGE_HEAP_H
 #define VIENNA_RNA_PACKAGE_HEAP_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     ViennaRNA/datastructures/heap.h
  *  @ingroup  heap_utils
@@ -41,9 +56,14 @@ typedef struct vrna_heap_s *vrna_heap_t;
  *  @param  data  An arbitrary data pointer passed through from the heap implementation
  *  @return       A value less than zero if @p a < @p b, a value greater than zero if @p a > @p b, and 0 otherwise
  */
-typedef int (vrna_callback_heap_cmp)(const void *a,
+typedef int (*vrna_heap_cmp_f)(const void *a,
                                      const void *b,
                                      void       *data);
+
+DEPRECATED(typedef int (vrna_callback_heap_cmp)(const void *a,
+                                     const void *b,
+                                     void       *data),
+           "Use vrna_heap_cmp_f instead!");
 
 
 /**
@@ -53,8 +73,12 @@ typedef int (vrna_callback_heap_cmp)(const void *a,
  *  @param  data  An arbitrary data pointer passed through from the heap implementation
  *  @return       The position of the element @p a within the heap, or 0 if it is not in the heap
  */
-typedef size_t (vrna_callback_heap_get_pos)(const void  *a,
+typedef size_t (*vrna_heap_get_pos_f)(const void  *a,
                                             void        *data);
+
+DEPRECATED(typedef size_t (vrna_callback_heap_get_pos)(const void  *a,
+                                            void        *data),
+           "Use vrna_heap_get_pos_f instead!");
 
 
 /**
@@ -64,9 +88,14 @@ typedef size_t (vrna_callback_heap_get_pos)(const void  *a,
  *  @param  pos   The current position of @p a within the heap, or 0 if a was deleted
  *  @param  data  An arbitrary data pointer passed through from the heap implementation
  */
-typedef void (vrna_callback_heap_set_pos)(const void  *a,
+typedef void (*vrna_heap_set_pos_f)(const void  *a,
                                           size_t      pos,
                                           void        *data);
+
+DEPRECATED(typedef void (vrna_callback_heap_set_pos)(const void  *a,
+                                          size_t      pos,
+                                          void        *data),
+           "USe vrna_heap_set_pos_f instead!");
 
 
 /**
@@ -92,8 +121,8 @@ typedef void (vrna_callback_heap_set_pos)(const void  *a,
  *            operations vrna_heap_update() and vrna_heap_remove() won't work.
  *
  *  @see  vrna_heap_free(), vrna_heap_insert(), vrna_heap_pop(), vrna_heap_top(),
- *        vrna_heap_remove(), vrna_heap_update(), #vrna_heap_t, #vrna_callback_heap_cmp,
- *        #vrna_callback_heap_get_pos, #vrna_callback_heap_set_pos
+ *        vrna_heap_remove(), vrna_heap_update(), #vrna_heap_t, #vrna_heap_cmp_f,
+ *        #vrna_heap_get_pos_f, #vrna_heap_set_pos_f
  *
  *  @param  n             The initial size of the heap, i.e. the number of elements to store
  *  @param  cmp           The address of a compare function that will be used to fullfill the partial order requirement
@@ -104,9 +133,9 @@ typedef void (vrna_callback_heap_set_pos)(const void  *a,
  */
 vrna_heap_t
 vrna_heap_init(size_t                     n,
-               vrna_callback_heap_cmp     *cmp,
-               vrna_callback_heap_get_pos *get_entry_pos,
-               vrna_callback_heap_set_pos *set_entry_pos,
+               vrna_heap_cmp_f     cmp,
+               vrna_heap_get_pos_f get_entry_pos,
+               vrna_heap_set_pos_f set_entry_pos,
                void                       *data);
 
 
@@ -176,7 +205,7 @@ vrna_heap_top(vrna_heap_t h);
 /**
  *  @brief  Remove an arbitrary element within the heap
  *
- *  @see    vrna_heap_init(), #vrna_callback_heap_get_pos, #vrna_callback_heap_set_pos,
+ *  @see    vrna_heap_init(), #vrna_heap_get_pos_f, #vrna_heap_set_pos_f,
  *          vrna_heap_pop(), vrna_heap_free()
  *
  *  @warning  This function won't work if the heap was not properly initialized with
@@ -200,7 +229,7 @@ vrna_heap_remove(vrna_heap_t  h,
  *  @warning  This function won't work if the heap was not properly initialized with
  *            callback functions for fast reverse-index mapping!
  *
- *  @see    vrna_heap_init(), #vrna_callback_heap_get_pos, #vrna_callback_heap_set_pos
+ *  @see    vrna_heap_init(), #vrna_heap_get_pos_f, #vrna_heap_set_pos_f
  *          vrna_heap_pop(), vrna_heap_remove(), vrna_heap_free()
  *
  *  @param  h   The heap data structure

@@ -151,7 +151,7 @@ PUBLIC int
 vrna_pfl_fold_cb(const char                 *sequence,
                  int                        window_size,
                  int                        max_bp_span,
-                 vrna_probs_window_callback *cb,
+                 vrna_probs_window_f cb,
                  void                       *data)
 {
   unsigned int          options;
@@ -182,7 +182,7 @@ vrna_pfl_fold_up_cb(const char                  *sequence,
                     int                         ulength,
                     int                         window_size,
                     int                         max_bp_span,
-                    vrna_probs_window_callback  *cb,
+                    vrna_probs_window_f  cb,
                     void                        *data)
 {
   unsigned int          options;

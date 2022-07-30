@@ -28,7 +28,7 @@ struct vrna_ordered_stream_s {
   unsigned int                size;       /* available memory size for 'data' and 'provided' */
   unsigned int                shift;      /* pointer offset for 'data' and 'provided' */
 
-  vrna_callback_stream_output *output;    /* callback to execute if consecutive elements from head are available */
+  vrna_stream_output_f output;    /* callback to execute if consecutive elements from head are available */
   void                        **data;     /* actual data passed to the callback */
   unsigned char               *provided;  /* for simplicity we use unsigned char instead of single bits per element */
   void                        *auxdata;   /* auxiliary data passed to the callback */
@@ -63,7 +63,7 @@ flush_output(struct vrna_ordered_stream_s *queue)
 
 
 PUBLIC struct vrna_ordered_stream_s *
-vrna_ostream_init(vrna_callback_stream_output *output,
+vrna_ostream_init(vrna_stream_output_f output,
                   void                        *auxdata)
 {
   struct vrna_ordered_stream_s *queue;

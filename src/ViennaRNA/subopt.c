@@ -58,16 +58,16 @@
 
 typedef struct {
   struct hc_ext_def_dat     hc_dat_ext;
-  vrna_callback_hc_evaluate *hc_eval_ext;
+  vrna_hc_eval_f hc_eval_ext;
 
   struct hc_hp_def_dat      hc_dat_hp;
-  vrna_callback_hc_evaluate *hc_eval_hp;
+  vrna_hc_eval_f hc_eval_hp;
 
   struct hc_int_def_dat     hc_dat_int;
-  eval_hc                   *hc_eval_int;
+  eval_hc                   hc_eval_int;
 
   struct hc_mb_def_dat      hc_dat_mb;
-  vrna_callback_hc_evaluate *hc_eval_mb;
+  vrna_hc_eval_f hc_eval_mb;
 
   struct sc_f5_dat          sc_dat_ext;
   struct sc_hp_dat          sc_dat_hp;
@@ -401,7 +401,7 @@ vrna_subopt(vrna_fold_compound_t  *fc,
             FILE                  *fp)
 {
   struct old_subopt_dat data;
-  vrna_subopt_callback  *cb;
+  vrna_subopt_result_f  cb;
 
   data.SolutionList = NULL;
   data.max_sol      = 128;
@@ -479,7 +479,7 @@ vrna_subopt(vrna_fold_compound_t  *fc,
 PUBLIC void
 vrna_subopt_cb(vrna_fold_compound_t *fc,
                int                  delta,
-               vrna_subopt_callback *cb,
+               vrna_subopt_result_f cb,
                void                 *data)
 {
   subopt_env          *env;
@@ -1260,10 +1260,10 @@ scan_mb(vrna_fold_compound_t  *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_mb_def_dat      *hc_dat;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct sc_mb_dat          *sc_dat;
-  sc_mb_red_cb              *sc_red_stem;
-  sc_mb_red_cb              *sc_decomp_ml;
+  sc_mb_red_cb              sc_red_stem;
+  sc_mb_red_cb              sc_decomp_ml;
 
   STATE                     *temp_state;
 
@@ -1461,10 +1461,10 @@ scan_m1(vrna_fold_compound_t  *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_mb_def_dat      *hc_dat;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct sc_mb_dat          *sc_dat;
-  sc_mb_red_cb              *sc_red_stem;
-  sc_mb_red_cb              *sc_red_ml;
+  sc_mb_red_cb              sc_red_stem;
+  sc_mb_red_cb              sc_red_ml;
 
   length  = fc->length;
   sn      = fc->strand_number;
@@ -1645,11 +1645,11 @@ scan_ext(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_ext_def_dat     *hc_dat;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct sc_f5_dat          *sc_dat;
-  sc_f5_cb                  *sc_red_ext;
-  sc_f5_cb                  *sc_red_stem;
-  sc_f5_cb                  *sc_decomp_stem;
+  sc_f5_cb                  sc_red_ext;
+  sc_f5_cb                  sc_red_stem;
+  sc_f5_cb                  sc_decomp_stem;
 
   STATE                     *temp_state;
 
@@ -1867,14 +1867,14 @@ scan_circular(vrna_fold_compound_t  *fc,
   struct hc_ext_def_dat     *hc_dat_ext;
   struct hc_int_def_dat     *hc_dat_int;
   struct hc_mb_def_dat      *hc_dat_mb;
-  vrna_callback_hc_evaluate *evaluate_ext;
-  eval_hc                   *evaluate_int;
-  vrna_callback_hc_evaluate *evaluate_mb;
+  vrna_hc_eval_f evaluate_ext;
+  eval_hc                   evaluate_int;
+  vrna_hc_eval_f evaluate_mb;
 
   struct sc_int_dat         *sc_dat_int;
   struct sc_mb_dat          *sc_dat_mb;
-  sc_int_cb                 *sc_int_pair_ext;
-  sc_mb_red_cb              *sc_mb_decomp_ml;
+  sc_int_cb                 sc_int_pair_ext;
+  sc_mb_red_cb              sc_mb_decomp_ml;
 
   STATE                     *new_state;
   INTERVAL                  *new_interval;
@@ -2148,11 +2148,11 @@ scan_fms5(vrna_fold_compound_t  *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_ext_def_dat     *hc_dat;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct sc_f5_dat          *sc_dat;
-  sc_ext_red_cb             *sc_red_ext;
-  sc_ext_red_cb             *sc_red_stem;
-  sc_ext_red_cb             *sc_decomp;
+  sc_ext_red_cb             sc_red_ext;
+  sc_ext_red_cb             sc_red_stem;
+  sc_ext_red_cb             sc_decomp;
 
   STATE                     *temp_state;
 
@@ -2352,11 +2352,11 @@ scan_fms3(vrna_fold_compound_t  *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   struct hc_ext_def_dat     *hc_dat;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct sc_f5_dat          *sc_dat;
-  sc_ext_red_cb             *sc_red_ext;
-  sc_ext_red_cb             *sc_red_stem;
-  sc_ext_red_cb             *sc_decomp;
+  sc_ext_red_cb             sc_red_ext;
+  sc_ext_red_cb             sc_red_stem;
+  sc_ext_red_cb             sc_decomp;
   STATE                     *temp_state;
 
   length  = fc->length;
@@ -2659,15 +2659,15 @@ repeat(vrna_fold_compound_t *fc,
   struct hc_int_def_dat     *hc_dat_int;
   struct hc_ext_def_dat     *hc_dat_ext;
   struct hc_mb_def_dat      *hc_dat_mb;
-  eval_hc                   *evaluate_int;
-  vrna_callback_hc_evaluate *evaluate_ext;
-  vrna_callback_hc_evaluate *evaluate_mb;
+  eval_hc                   evaluate_int;
+  vrna_hc_eval_f evaluate_ext;
+  vrna_hc_eval_f evaluate_mb;
 
   struct sc_int_dat         *sc_dat_int;
   struct sc_mb_dat          *sc_dat_mb;
-  sc_int_cb                 *sc_int_pair;
-  sc_mb_pair_cb             *sc_mb_pair;
-  sc_mb_red_cb              *sc_mb_decomp_ml;
+  sc_int_cb                 sc_int_pair;
+  sc_mb_pair_cb             sc_mb_pair;
+  sc_mb_red_cb              sc_mb_decomp_ml;
   STATE                     *new_state;
 
   n     = fc->length;

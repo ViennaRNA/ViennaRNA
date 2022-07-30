@@ -98,7 +98,7 @@ vrna_heat_capacity_cb(vrna_fold_compound_t        *fc,
                       float                       T_max,
                       float                       h,
                       unsigned int                m,
-                      vrna_heat_capacity_callback *cb,
+                      vrna_heat_capacity_f cb,
                       void                        *data)
 {
   unsigned int  i, n;

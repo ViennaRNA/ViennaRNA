@@ -122,7 +122,7 @@ PUBLIC unsigned int
 vrna_pbacktrack5_cb(vrna_fold_compound_t              *fc,
                     unsigned int                      num_samples,
                     unsigned int                      length,
-                    vrna_boltzmann_sampling_callback  *bs_cb,
+                    vrna_bs_result_f  bs_cb,
                     void                              *data,
                     unsigned int                      options)
 {
@@ -186,7 +186,7 @@ PUBLIC unsigned int
 vrna_pbacktrack5_resume_cb(vrna_fold_compound_t             *fc,
                            unsigned int                     num_samples,
                            unsigned int                     end,
-                           vrna_boltzmann_sampling_callback *bs_cb,
+                           vrna_bs_result_f bs_cb,
                            void                             *data,
                            vrna_pbacktrack_mem_t            *nr_mem,
                            unsigned int                     options)
@@ -236,7 +236,7 @@ vrna_pbacktrack_num(vrna_fold_compound_t  *fc,
 PUBLIC unsigned int
 vrna_pbacktrack_cb(vrna_fold_compound_t             *fc,
                    unsigned int                     num_samples,
-                   vrna_boltzmann_sampling_callback *bs_cb,
+                   vrna_bs_result_f bs_cb,
                    void                             *data,
                    unsigned int                     options)
 {
@@ -274,7 +274,7 @@ vrna_pbacktrack_resume(vrna_fold_compound_t   *fc,
 PUBLIC unsigned int
 vrna_pbacktrack_resume_cb(vrna_fold_compound_t              *fc,
                           unsigned int                      num_samples,
-                          vrna_boltzmann_sampling_callback  *bs_cb,
+                          vrna_bs_result_f  bs_cb,
                           void                              *data,
                           vrna_pbacktrack_mem_t             *nr_mem,
                           unsigned int                      options)
@@ -358,7 +358,7 @@ vrna_pbacktrack_sub_cb(vrna_fold_compound_t             *fc,
                        unsigned int                     num_samples,
                        unsigned int                     start,
                        unsigned int                     end,
-                       vrna_boltzmann_sampling_callback *bs_cb,
+                       vrna_bs_result_f bs_cb,
                        void                             *data,
                        unsigned int                     options)
 {

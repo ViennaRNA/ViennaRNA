@@ -1,10 +1,10 @@
 struct sc_mb_dat;
 
-typedef int (sc_mb_pair_cb)(int               i,
+typedef int (*sc_mb_pair_cb)(int               i,
                             int               j,
                             struct sc_mb_dat  *data);
 
-typedef int (sc_mb_red_cb)(int              i,
+typedef int (*sc_mb_red_cb)(int              i,
                            int              j,
                            int              k,
                            int              l,
@@ -24,22 +24,22 @@ struct sc_mb_dat {
   int                     *stack; /* stack constraints (per nucleotide) */
   int                     **stack_comparative;
 
-  sc_mb_pair_cb           *pair;
-  sc_mb_pair_cb           *pair5;
-  sc_mb_pair_cb           *pair3;
-  sc_mb_pair_cb           *pair53;
+  sc_mb_pair_cb           pair;
+  sc_mb_pair_cb           pair5;
+  sc_mb_pair_cb           pair3;
+  sc_mb_pair_cb           pair53;
 
-  sc_mb_red_cb            *red_stem;
-  sc_mb_red_cb            *red_ml;
+  sc_mb_red_cb            red_stem;
+  sc_mb_red_cb            red_ml;
 
-  sc_mb_red_cb            *decomp_ml;
-  sc_mb_red_cb            *coaxial_cls;
-  sc_mb_red_cb            *coaxial_enc;
+  sc_mb_red_cb            decomp_ml;
+  sc_mb_red_cb            coaxial_cls;
+  sc_mb_red_cb            coaxial_enc;
 
-  vrna_callback_sc_energy *user_cb;
+  vrna_sc_f user_cb;
   void                    *user_data;
 
-  vrna_callback_sc_energy **user_cb_comparative;
+  vrna_sc_f *user_cb_comparative;
   void                    **user_data_comparative;
 };
 
@@ -1311,8 +1311,8 @@ init_sc_mb(vrna_fold_compound_t *fc,
         sc_wrapper->stack_comparative = (int **)vrna_alloc(
           sizeof(int *) *
           fc->n_seq);
-        sc_wrapper->user_cb_comparative = (vrna_callback_sc_energy **)vrna_alloc(
-          sizeof(vrna_callback_sc_energy *) *
+        sc_wrapper->user_cb_comparative = (vrna_sc_f *)vrna_alloc(
+          sizeof(vrna_sc_f) *
           fc->n_seq);
         sc_wrapper->user_data_comparative = (void **)vrna_alloc(
           sizeof(void *) *

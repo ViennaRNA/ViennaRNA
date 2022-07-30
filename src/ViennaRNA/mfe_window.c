@@ -99,9 +99,9 @@ backtrack(vrna_fold_compound_t  *vc,
 PRIVATE int
 fill_arrays(vrna_fold_compound_t            *vc,
             int                             *underflow,
-            vrna_mfe_window_callback        *cb,
+            vrna_mfe_window_f        cb,
 #ifdef VRNA_WITH_SVM
-            vrna_mfe_window_zscore_callback *cb_z,
+            vrna_mfe_window_zscore_f cb_z,
 #endif
             void                            *data);
 
@@ -220,7 +220,7 @@ vrna_mfe_window(vrna_fold_compound_t  *vc,
 
 PUBLIC float
 vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
-                   vrna_mfe_window_callback *cb,
+                   vrna_mfe_window_f cb,
                    void                     *data)
 {
   int   energy, underflow, n_seq;
@@ -268,7 +268,7 @@ vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
 PUBLIC float
 vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
                           double                          min_z,
-                          vrna_mfe_window_zscore_callback *cb_z,
+                          vrna_mfe_window_zscore_f cb_z,
                           void                            *data)
 {
   int   energy, underflow;
@@ -575,9 +575,9 @@ rotate_constraints(vrna_fold_compound_t *fc,
 PRIVATE int
 fill_arrays(vrna_fold_compound_t            *vc,
             int                             *underflow,
-            vrna_mfe_window_callback        *cb,
+            vrna_mfe_window_f        cb,
 #ifdef VRNA_WITH_SVM
-            vrna_mfe_window_zscore_callback *cb_z,
+            vrna_mfe_window_zscore_f cb_z,
 #endif
             void                            *data)
 {

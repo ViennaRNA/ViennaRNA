@@ -3,7 +3,7 @@
  *  partition function version of interior loop evaluation
  */
 
-typedef unsigned char (eval_hc)(int   i,
+typedef unsigned char (*eval_hc)(int   i,
                                 int   j,
                                 int   k,
                                 int   l,
@@ -17,7 +17,7 @@ struct hc_int_def_dat {
   int                       *up;
 
   void                      *hc_dat;
-  vrna_callback_hc_evaluate *hc_f;
+  vrna_hc_eval_f hc_f;
 };
 
 
@@ -54,7 +54,7 @@ ubf_eval_int_loop_comparative(int           col_i,
                               vrna_sc_t     *sc);
 
 
-PRIVATE INLINE eval_hc *
+PRIVATE INLINE eval_hc
 prepare_hc_int_def(vrna_fold_compound_t   *fc,
                    struct hc_int_def_dat  *dat);
 
@@ -110,7 +110,7 @@ hc_int_cb_def_user(int  i,
 }
 
 
-PRIVATE INLINE eval_hc *
+PRIVATE INLINE eval_hc
 prepare_hc_int_def(vrna_fold_compound_t   *fc,
                    struct hc_int_def_dat  *dat)
 {

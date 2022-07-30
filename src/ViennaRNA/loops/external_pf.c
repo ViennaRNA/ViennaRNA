@@ -50,7 +50,7 @@ reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     int                         i,
                     int                         j,
                     struct vrna_mx_pf_aux_el_s  *aux_mx,
-                    vrna_callback_hc_evaluate   *evaluate,
+                    vrna_hc_eval_f   evaluate,
                     struct hc_ext_def_dat       *hc_dat_local,
                     struct sc_ext_exp_dat       *sc_wrapper);
 
@@ -60,7 +60,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      int                        i,
                      int                        j,
                      struct vrna_mx_pf_aux_el_s *aux_mx,
-                     vrna_callback_hc_evaluate  *evaluate,
+                     vrna_hc_eval_f  evaluate,
                      struct hc_ext_def_dat      *hc_dat_local,
                      struct sc_ext_exp_dat      *sc_wrapper);
 
@@ -70,7 +70,7 @@ reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    int                        i,
                    int                        j,
                    struct vrna_mx_pf_aux_el_s *aux_mx,
-                   vrna_callback_hc_evaluate  *evaluate,
+                   vrna_hc_eval_f  evaluate,
                    struct hc_ext_def_dat      *hc_dat_local,
                    struct sc_ext_exp_dat      *sc_wrapper);
 
@@ -80,7 +80,7 @@ split_ext_fast(vrna_fold_compound_t       *fc,
                int                        i,
                int                        j,
                struct vrna_mx_pf_aux_el_s *aux_mx,
-               vrna_callback_hc_evaluate  *evaluate,
+               vrna_hc_eval_f  evaluate,
                struct hc_ext_def_dat      *hc_dat_local,
                struct sc_ext_exp_dat      *sc_wrapper);
 
@@ -128,7 +128,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc)
     unsigned int              u;
     int                       i, j, max_j, d, n, turn, ij, *iidx, with_ud;
     FLT_OR_DBL                *q, **q_local;
-    vrna_callback_hc_evaluate *evaluate;
+    vrna_hc_eval_f evaluate;
     struct hc_ext_def_dat     hc_dat_local;
     struct sc_ext_exp_dat     sc_wrapper;
     vrna_ud_t                 *domains_up;
@@ -291,7 +291,7 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
 {
   int                       k;
   FLT_OR_DBL                **q;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
   struct sc_ext_exp_dat     sc_wrapper;
 
@@ -317,14 +317,14 @@ reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     int                         i,
                     int                         j,
                     struct vrna_mx_pf_aux_el_s  *aux_mx,
-                    vrna_callback_hc_evaluate   *evaluate,
+                    vrna_hc_eval_f   evaluate,
                     struct hc_ext_def_dat       *hc_dat_local,
                     struct sc_ext_exp_dat       *sc_wrapper)
 {
   int           u;
   FLT_OR_DBL    q_temp, q_temp2, q, *qq1, **qqu, *scale;
   vrna_ud_t     *domains_up;
-  sc_ext_exp_cb *sc_red_ext;
+  sc_ext_exp_cb sc_red_ext;
 
   domains_up  = fc->domains_up;
   qq1         = aux_mx->qq1;
@@ -375,7 +375,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
                      int                        i,
                      int                        j,
                      struct vrna_mx_pf_aux_el_s *aux_mx,
-                     vrna_callback_hc_evaluate  *evaluate,
+                     vrna_hc_eval_f  evaluate,
                      struct hc_ext_def_dat      *hc_dat_local,
                      struct sc_ext_exp_dat      *sc_wrapper)
 {
@@ -385,7 +385,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
   FLT_OR_DBL        qbt, q_temp, qb;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
-  sc_ext_exp_cb     *sc_red_stem;
+  sc_ext_exp_cb     sc_red_stem;
 
   sc_red_stem = sc_wrapper->red_stem;
   n           = fc->length;
@@ -444,14 +444,14 @@ reduce_ext_up_fast(vrna_fold_compound_t       *fc,
                    int                        i,
                    int                        j,
                    struct vrna_mx_pf_aux_el_s *aux_mx,
-                   vrna_callback_hc_evaluate  *evaluate,
+                   vrna_hc_eval_f  evaluate,
                    struct hc_ext_def_dat      *hc_dat_local,
                    struct sc_ext_exp_dat      *sc_wrapper)
 {
   int               u;
   FLT_OR_DBL        qbt, q_temp, *scale;
   vrna_ud_t         *domains_up;
-  sc_ext_exp_red_up *sc_red_up;
+  sc_ext_exp_red_up sc_red_up;
 
   sc_red_up = sc_wrapper->red_up;
 
@@ -486,13 +486,13 @@ split_ext_fast(vrna_fold_compound_t       *fc,
                int                        i,
                int                        j,
                struct vrna_mx_pf_aux_el_s *aux_mx,
-               vrna_callback_hc_evaluate  *evaluate,
+               vrna_hc_eval_f  evaluate,
                struct hc_ext_def_dat      *hc_dat_local,
                struct sc_ext_exp_dat      *sc_wrapper)
 {
   int               *idx, k, ij1;
   FLT_OR_DBL        qbt, *q, *qq, *qqq;
-  sc_ext_exp_split  *sc_split;
+  sc_ext_exp_split  sc_split;
 
   sc_split = sc_wrapper->split;
 
@@ -590,7 +590,7 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   vrna_md_t                 *md;
   vrna_exp_param_t          *pf_params;
   vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
   struct sc_ext_exp_dat     sc_wrapper;
 

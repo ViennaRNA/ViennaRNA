@@ -53,7 +53,7 @@ mf_rule_pair(vrna_fold_compound_t *fc,
   FLT_OR_DBL                contribution, *q, *scale, qbase, tmp, tmp2;
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
 
   contribution  = 0;

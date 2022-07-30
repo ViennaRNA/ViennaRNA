@@ -247,7 +247,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   vrna_hc_t                 *hc;
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_exp_dat      sc_wrapper;
 
@@ -394,7 +394,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   vrna_exp_param_t          *pf_params;
   vrna_ud_t                 *domains_up;
   vrna_hc_t                 *hc;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_exp_dat      sc_wrapper;
 

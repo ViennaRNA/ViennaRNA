@@ -135,7 +135,7 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
                 unsigned int                      start,
                 unsigned int                      end,
                 unsigned int                      num_samples,
-                vrna_boltzmann_sampling_callback  *bs_cb,
+                vrna_bs_result_f  bs_cb,
                 void                              *data,
                 struct vrna_pbacktrack_memory_s   *nr_mem);
 
@@ -188,7 +188,7 @@ backtrack_qm2(int                   u,
 PRIVATE unsigned int
 pbacktrack_circ(vrna_fold_compound_t              *fc,
                 unsigned int                      num_samples,
-                vrna_boltzmann_sampling_callback  *bs_cb,
+                vrna_bs_result_f  bs_cb,
                 void                              *data);
 
 
@@ -202,7 +202,7 @@ vrna_pbacktrack_sub_resume_cb(vrna_fold_compound_t              *fc,
                               unsigned int                      num_samples,
                               unsigned int                      start,
                               unsigned int                      end,
-                              vrna_boltzmann_sampling_callback  *bs_cb,
+                              vrna_bs_result_f  bs_cb,
                               void                              *data,
                               vrna_pbacktrack_mem_t             *nr_mem,
                               unsigned int                      options)
@@ -347,7 +347,7 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
                 unsigned int                      start,
                 unsigned int                      end,
                 unsigned int                      num_samples,
-                vrna_boltzmann_sampling_callback  *bs_cb,
+                vrna_bs_result_f  bs_cb,
                 void                              *data,
                 struct vrna_pbacktrack_memory_s   *nr_mem)
 {
@@ -1512,7 +1512,7 @@ backtrack(int                             i,
 PRIVATE unsigned int
 pbacktrack_circ(vrna_fold_compound_t              *vc,
                 unsigned int                      num_samples,
-                vrna_boltzmann_sampling_callback  *bs_cb,
+                vrna_bs_result_f  bs_cb,
                 void                              *data)
 {
   unsigned char         *hc_mx, eval_loop;

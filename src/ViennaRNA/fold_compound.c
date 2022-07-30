@@ -485,7 +485,7 @@ vrna_fold_compound_TwoD(const char    *sequence,
 PUBLIC void
 vrna_fold_compound_add_auxdata(vrna_fold_compound_t       *fc,
                                void                       *data,
-                               vrna_callback_free_auxdata *f)
+                               vrna_auxdata_free_f f)
 {
   if (fc && data) {
     if (fc->free_auxdata) /* free pre-existing auxdata */
@@ -499,7 +499,7 @@ vrna_fold_compound_add_auxdata(vrna_fold_compound_t       *fc,
 
 PUBLIC void
 vrna_fold_compound_add_callback(vrna_fold_compound_t            *fc,
-                                vrna_callback_recursion_status  *f)
+                                vrna_recursion_status_f  f)
 {
   if (fc && f)
     fc->stat_cb = f;

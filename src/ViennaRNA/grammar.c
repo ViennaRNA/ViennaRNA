@@ -15,7 +15,7 @@ add_aux_grammar(vrna_fold_compound_t *fc);
 
 PUBLIC int
 vrna_gr_set_aux_f(vrna_fold_compound_t  *fc,
-                  vrna_callback_gr_rule *cb)
+                  vrna_grammar_rule_f cb)
 {
   int ret = 0;
 
@@ -34,7 +34,7 @@ vrna_gr_set_aux_f(vrna_fold_compound_t  *fc,
 
 PUBLIC int
 vrna_gr_set_aux_exp_f(vrna_fold_compound_t      *fc,
-                      vrna_callback_gr_rule_exp *cb)
+                      vrna_grammar_rule_f_exp cb)
 {
   int ret = 0;
 
@@ -53,7 +53,7 @@ vrna_gr_set_aux_exp_f(vrna_fold_compound_t      *fc,
 
 PUBLIC int
 vrna_gr_set_aux_c(vrna_fold_compound_t  *fc,
-                  vrna_callback_gr_rule *cb)
+                  vrna_grammar_rule_f cb)
 {
   int ret = 0;
 
@@ -72,7 +72,7 @@ vrna_gr_set_aux_c(vrna_fold_compound_t  *fc,
 
 PUBLIC int
 vrna_gr_set_aux_exp_c(vrna_fold_compound_t      *fc,
-                      vrna_callback_gr_rule_exp *cb)
+                      vrna_grammar_rule_f_exp cb)
 {
   int ret = 0;
 
@@ -91,7 +91,7 @@ vrna_gr_set_aux_exp_c(vrna_fold_compound_t      *fc,
 
 PUBLIC int
 vrna_gr_set_aux_m(vrna_fold_compound_t  *fc,
-                  vrna_callback_gr_rule *cb)
+                  vrna_grammar_rule_f cb)
 {
   int ret = 0;
 
@@ -110,7 +110,7 @@ vrna_gr_set_aux_m(vrna_fold_compound_t  *fc,
 
 PUBLIC int
 vrna_gr_set_aux_exp_m(vrna_fold_compound_t      *fc,
-                      vrna_callback_gr_rule_exp *cb)
+                      vrna_grammar_rule_f_exp cb)
 {
   int ret = 0;
 
@@ -129,7 +129,7 @@ vrna_gr_set_aux_exp_m(vrna_fold_compound_t      *fc,
 
 PUBLIC int
 vrna_gr_set_aux_m1(vrna_fold_compound_t   *fc,
-                   vrna_callback_gr_rule  *cb)
+                   vrna_grammar_rule_f  cb)
 {
   int ret = 0;
 
@@ -148,7 +148,7 @@ vrna_gr_set_aux_m1(vrna_fold_compound_t   *fc,
 
 PUBLIC int
 vrna_gr_set_aux_exp_m1(vrna_fold_compound_t       *fc,
-                       vrna_callback_gr_rule_exp  *cb)
+                       vrna_grammar_rule_f_exp  cb)
 {
   int ret = 0;
 
@@ -167,7 +167,7 @@ vrna_gr_set_aux_exp_m1(vrna_fold_compound_t       *fc,
 
 PUBLIC int
 vrna_gr_set_aux(vrna_fold_compound_t      *fc,
-                vrna_callback_gr_rule_aux *cb)
+                vrna_grammar_rule_f_aux cb)
 {
   int ret = 0;
 
@@ -186,7 +186,7 @@ vrna_gr_set_aux(vrna_fold_compound_t      *fc,
 
 PUBLIC int
 vrna_gr_set_aux_exp(vrna_fold_compound_t          *fc,
-                    vrna_callback_gr_rule_aux_exp *cb)
+                    vrna_grammar_rule_f_aux_exp cb)
 {
   int ret = 0;
 
@@ -206,7 +206,7 @@ vrna_gr_set_aux_exp(vrna_fold_compound_t          *fc,
 PUBLIC int
 vrna_gr_set_data(vrna_fold_compound_t       *fc,
                  void                       *data,
-                 vrna_callback_gr_free_data *free_data)
+                 vrna_grammar_data_free_f free_data)
 {
   int ret = 0;
 
@@ -226,7 +226,7 @@ vrna_gr_set_data(vrna_fold_compound_t       *fc,
 
 PUBLIC int
 vrna_gr_set_cond(vrna_fold_compound_t   *fc,
-                 vrna_callback_gr_cond  *cb)
+                 vrna_grammar_cond_f  cb)
 {
   int ret = 0;
 

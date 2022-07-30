@@ -65,28 +65,28 @@ In both variants, the @p options argument is optional can may be omitted.
 @endparblock
 
 
-@fn int vrna_sc_add_data(vrna_fold_compound_t *vc, void *data, vrna_callback_free_auxdata *free_data)
+@fn int vrna_sc_add_data(vrna_fold_compound_t *vc, void *data, vrna_auxdata_free_f free_data)
 @scripting
 @parblock
 This function is attached as method @b sc_add_data() to objects of type @em fold_compound
 @endparblock
 
 
-@fn int vrna_sc_add_f( vrna_fold_compound_t *vc, vrna_callback_sc_energy *f)
+@fn int vrna_sc_add_f( vrna_fold_compound_t *vc, vrna_sc_f f)
 @scripting
 @parblock
 This function is attached as method @b sc_add_f() to objects of type @em fold_compound
 @endparblock
 
 
-@fn int vrna_sc_add_bt(vrna_fold_compound_t *vc, vrna_callback_sc_backtrack *f)
+@fn int vrna_sc_add_bt(vrna_fold_compound_t *vc, vrna_sc_bt_f f)
 @scripting
 @parblock
 This function is attached as method @b sc_add_bt() to objects of type @em fold_compound
 @endparblock
 
 
-@fn int vrna_sc_add_exp_f( vrna_fold_compound_t *vc, vrna_callback_sc_exp_energy *exp_f)
+@fn int vrna_sc_add_exp_f( vrna_fold_compound_t *vc, vrna_sc_exp_f exp_f)
 @scripting
 @parblock
 This function is attached as method @b sc_add_exp_f() to objects of type @em fold_compound

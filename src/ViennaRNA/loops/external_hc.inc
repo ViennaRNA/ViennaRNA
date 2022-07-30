@@ -10,7 +10,7 @@ struct hc_ext_def_dat {
   unsigned int              *sn;
   int                       *hc_up;
   void                      *hc_dat;
-  vrna_callback_hc_evaluate *hc_f;
+  vrna_hc_eval_f hc_f;
 };
 
 PRIVATE unsigned char
@@ -67,12 +67,12 @@ hc_ext_cb_def_user_window(int           i,
                           void          *data);
 
 
-PRIVATE INLINE vrna_callback_hc_evaluate *
+PRIVATE INLINE vrna_hc_eval_f
 prepare_hc_ext_def(vrna_fold_compound_t   *fc,
                    struct hc_ext_def_dat  *dat);
 
 
-PRIVATE INLINE vrna_callback_hc_evaluate *
+PRIVATE INLINE vrna_hc_eval_f
 prepare_hc_ext_def_window(vrna_fold_compound_t  *fc,
                           struct hc_ext_def_dat *dat);
 
@@ -487,7 +487,7 @@ hc_ext_cb_def_user_window(int           i,
 }
 
 
-PRIVATE INLINE vrna_callback_hc_evaluate *
+PRIVATE INLINE vrna_hc_eval_f
 prepare_hc_ext_def(vrna_fold_compound_t   *fc,
                    struct hc_ext_def_dat  *dat)
 {
@@ -506,7 +506,7 @@ prepare_hc_ext_def(vrna_fold_compound_t   *fc,
 }
 
 
-PRIVATE INLINE vrna_callback_hc_evaluate *
+PRIVATE INLINE vrna_hc_eval_f
 prepare_hc_ext_def_window(vrna_fold_compound_t  *fc,
                           struct hc_ext_def_dat *dat)
 {

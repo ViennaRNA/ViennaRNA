@@ -593,7 +593,7 @@ vrna_sc_add_stack_comparative(vrna_fold_compound_t  *fc,
 PUBLIC int
 vrna_sc_add_data(vrna_fold_compound_t       *fc,
                  void                       *data,
-                 vrna_callback_free_auxdata *free_data)
+                 vrna_auxdata_free_f free_data)
 {
   if ((fc) &&
       (fc->type == VRNA_FC_TYPE_SINGLE)) {
@@ -618,7 +618,7 @@ vrna_sc_add_data(vrna_fold_compound_t       *fc,
 PUBLIC int
 vrna_sc_add_data_comparative(vrna_fold_compound_t       *fc,
                              void                       **data,
-                             vrna_callback_free_auxdata **free_data)
+                             vrna_auxdata_free_f *free_data)
 {
   unsigned int s;
 
@@ -651,7 +651,7 @@ vrna_sc_add_data_comparative(vrna_fold_compound_t       *fc,
 
 PUBLIC int
 vrna_sc_add_f(vrna_fold_compound_t    *fc,
-              vrna_callback_sc_energy *f)
+              vrna_sc_f f)
 {
   if ((fc) &&
       (f) &&
@@ -669,7 +669,7 @@ vrna_sc_add_f(vrna_fold_compound_t    *fc,
 
 PUBLIC int
 vrna_sc_add_f_comparative(vrna_fold_compound_t    *fc,
-                          vrna_callback_sc_energy **f)
+                          vrna_sc_f *f)
 {
   unsigned int s;
 
@@ -691,7 +691,7 @@ vrna_sc_add_f_comparative(vrna_fold_compound_t    *fc,
 
 PUBLIC int
 vrna_sc_add_bt(vrna_fold_compound_t       *fc,
-               vrna_callback_sc_backtrack *f)
+               vrna_sc_bt_f f)
 {
   if ((fc) &&
       (f) &&
@@ -709,7 +709,7 @@ vrna_sc_add_bt(vrna_fold_compound_t       *fc,
 
 PUBLIC int
 vrna_sc_add_exp_f(vrna_fold_compound_t        *fc,
-                  vrna_callback_sc_exp_energy *exp_f)
+                  vrna_sc_exp_f exp_f)
 {
   if ((fc) &&
       (exp_f) &&
@@ -727,7 +727,7 @@ vrna_sc_add_exp_f(vrna_fold_compound_t        *fc,
 
 PUBLIC int
 vrna_sc_add_exp_f_comparative(vrna_fold_compound_t        *fc,
-                              vrna_callback_sc_exp_energy **exp_f)
+                              vrna_sc_exp_f *exp_f)
 {
   unsigned int s;
 

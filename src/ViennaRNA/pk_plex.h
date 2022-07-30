@@ -1,6 +1,21 @@
 #ifndef VIENNA_RNA_PACKAGE_PK_PLEX_H
 #define VIENNA_RNA_PACKAGE_PK_PLEX_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file pk_plex.h
  *  @ingroup  pseudoknots
@@ -42,18 +57,27 @@
  *  @param  data      An arbitrary data structure passed from the calling function
  *  @return           The energy (penalty) of the resulting pseudoknot
  */
-typedef int (vrna_callback_pk_plex_score)(const short *pt,
+typedef int (*vrna_pk_plex_score_f)(const short *pt,
                                           int         start_5,
                                           int         end_5,
                                           int         start_3,
                                           int         end_3,
                                           void        *data);
 
+DEPRECATED(typedef int (vrna_callback_pk_plex_score)(const short *pt,
+                                          int         start_5,
+                                          int         end_5,
+                                          int         start_3,
+                                          int         end_3,
+                                          void        *data),
+          "Use vrna_pk_plex_score_f instead!");
+
+
 /**
  *  @brief  RNA PKplex options object
  *
  *  @see  vrna_pk_plex_opt_defaults(), vrna_pk_plex_opt(), vrna_pk_plex_opt_fun(),
- *        vrna_pk_plex(), #vrna_callback_pk_plex_score
+ *        vrna_pk_plex(), #vrna_pk_plex_score_f
  */
 typedef struct vrna_pk_plex_option_s *vrna_pk_plex_opt_t;
 
@@ -101,7 +125,7 @@ struct vrna_pk_plex_result_s {
  *  or suboptimal structures within an energy band around the MFE. The PK loop is
  *  internally scored by a scoring function that in the simplest cases assigns a
  *  constant value for each PK loop. More complicated scoring functions can be
- *  passed as well, see #vrna_callback_pk_plex_score and vrna_pk_plex_opt_fun().
+ *  passed as well, see #vrna_pk_plex_score_f and vrna_pk_plex_opt_fun().
  *
  *  The function returns @em NULL on any error. Otherwise, a list of structures
  *  and interaction coordinates with corresponding energy contributions is returned.
@@ -165,7 +189,7 @@ vrna_pk_plex_opt(unsigned int delta,
 /**
  *  @brief  Simple options for PKplex algorithm
  *
- *  @see vrna_pk_plex(), vrna_pk_plex_opt_defaults(), vrna_pk_plex_opt(), #vrna_callback_pk_plex_score
+ *  @see vrna_pk_plex(), vrna_pk_plex_opt_defaults(), vrna_pk_plex_opt(), #vrna_pk_plex_score_f
  *
  *  @param  delta                   Size of energy band around MFE for suboptimal results in dekacal/mol
  *  @param  max_interaction_length  Maximum length of interaction
@@ -176,7 +200,7 @@ vrna_pk_plex_opt(unsigned int delta,
 vrna_pk_plex_opt_t
 vrna_pk_plex_opt_fun(unsigned int                 delta,
                      unsigned int                 max_interaction_length,
-                     vrna_callback_pk_plex_score  *scoring_function,
+                     vrna_pk_plex_score_f  scoring_function,
                      void                         *scoring_data);
 
 

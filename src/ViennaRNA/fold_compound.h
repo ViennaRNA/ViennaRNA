@@ -55,7 +55,10 @@ typedef struct vrna_fc_s vrna_fold_compound_t;
  *
  *  @param data    The data that needs to be free'd
  */
-typedef void (vrna_callback_free_auxdata)(void *data);
+typedef void (*vrna_auxdata_free_f)(void *data);
+
+DEPRECATED(typedef void (vrna_callback_free_auxdata)(void *data),
+           "Use vrna_auxdata_free_f instead!");
 
 /**
  *  @brief Callback to perform specific user-defined actions before, or after recursive computations
@@ -75,13 +78,18 @@ typedef void (vrna_callback_free_auxdata)(void *data);
  *  @param status   The status indicator
  *  @param data     The data structure that was assigned with vrna_fold_compound_add_auxdata()
  */
-typedef void (vrna_callback_recursion_status)(unsigned char status,
+typedef void (*vrna_recursion_status_f)(unsigned char status,
                                               void          *data);
+
+DEPRECATED(typedef void (vrna_callback_recursion_status)(unsigned char status,
+                                              void          *data),
+           "Use vrna_recursion_status_f instead!");
+
 
 /**
  *  @brief  Status message indicating that MFE computations are about to begin
  *
- *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_mfe(), vrna_fold(), vrna_circfold(),
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_recursion_status_f(), vrna_mfe(), vrna_fold(), vrna_circfold(),
  *        vrna_alifold(), vrna_circalifold(), vrna_cofold()
  */
 #define VRNA_STATUS_MFE_PRE     (unsigned char)1
@@ -89,7 +97,7 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 /**
  *  @brief  Status message indicating that MFE computations are finished
  *
- *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_mfe(), vrna_fold(), vrna_circfold(),
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_recursion_status_f(), vrna_mfe(), vrna_fold(), vrna_circfold(),
  *        vrna_alifold(), vrna_circalifold(), vrna_cofold()
  */
 #define VRNA_STATUS_MFE_POST    (unsigned char)2
@@ -97,14 +105,14 @@ typedef void (vrna_callback_recursion_status)(unsigned char status,
 /**
  *  @brief  Status message indicating that Partition function computations are about to begin
  *
- *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_pf()
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_recursion_status_f(), vrna_pf()
  */
 #define VRNA_STATUS_PF_PRE      (unsigned char)3
 
 /**
  *  @brief  Status message indicating that Partition function computations are finished
  *
- *  @see  #vrna_fold_compound_t.stat_cb, vrna_callback_recursion_status(), vrna_pf()
+ *  @see  #vrna_fold_compound_t.stat_cb, vrna_recursion_status_f(), vrna_pf()
  */
 #define VRNA_STATUS_PF_POST     (unsigned char)4
 
@@ -192,17 +200,17 @@ struct vrna_fc_s {
    *  @name User-defined data fields
    *  @{
    */
-  vrna_callback_recursion_status  *stat_cb;       /**<  @brief  Recursion status callback (usually called just before, and
+  vrna_recursion_status_f   stat_cb;       /**<  @brief  Recursion status callback (usually called just before, and
                                                    *            after recursive computations in the library
-                                                   *    @see    vrna_callback_recursion_status(), vrna_fold_compound_add_callback()
+                                                   *    @see    vrna_recursion_status_f(), vrna_fold_compound_add_callback()
                                                    */
 
   void                            *auxdata;       /**<  @brief  A pointer to auxiliary, user-defined data
                                                    *    @see vrna_fold_compound_add_auxdata(), #vrna_fold_compound_t.free_auxdata
                                                    */
 
-  vrna_callback_free_auxdata      *free_auxdata;  /**<  @brief A callback to free auxiliary user data whenever the fold_compound itself is free'd
-                                                   *    @see  #vrna_fold_compound_t.auxdata, vrna_callback_free_auxdata()
+  vrna_auxdata_free_f       free_auxdata;  /**<  @brief A callback to free auxiliary user data whenever the fold_compound itself is free'd
+                                                   *    @see  #vrna_fold_compound_t.auxdata, vrna_auxdata_free_f()
                                                    */
 
   /**
@@ -535,15 +543,15 @@ vrna_fold_compound_free(vrna_fold_compound_t *fc);
  *  @brief  Add auxiliary data to the #vrna_fold_compound_t
  *
  *  This function allows one to bind arbitrary data to a #vrna_fold_compound_t which may later on be used
- *  by one of the callback functions, e.g. vrna_callback_recursion_status(). To allow for proper cleanup
+ *  by one of the callback functions, e.g. vrna_recursion_status_f(). To allow for proper cleanup
  *  of the memory occupied by this auxiliary data, the user may also provide a pointer to a cleanup function
  *  that free's the corresponding memory. This function will be called automatically when the #vrna_fold_compound_t
  *  is free'd with vrna_fold_compound_free().
  *
- *  @note Before attaching the arbitrary data pointer, this function will call the vrna_callback_free_auxdata()
+ *  @note Before attaching the arbitrary data pointer, this function will call the vrna_auxdata_free_f()
  *        on any pre-existing data that is already attached.
  *
- *  @see vrna_callback_free_auxdata()
+ *  @see vrna_auxdata_free_f()
  *  @param  fc    The fold_compound the arbitrary data pointer should be associated with
  *  @param  data  A pointer to an arbitrary data structure
  *  @param  f     A pointer to function that free's memory occupied by the arbitrary data (May be NULL)
@@ -551,7 +559,7 @@ vrna_fold_compound_free(vrna_fold_compound_t *fc);
 void
 vrna_fold_compound_add_auxdata(vrna_fold_compound_t       *fc,
                                void                       *data,
-                               vrna_callback_free_auxdata *f);
+                               vrna_auxdata_free_f f);
 
 
 /**
@@ -563,7 +571,7 @@ vrna_fold_compound_add_auxdata(vrna_fold_compound_t       *fc,
  *  #vrna_fold_compound_t, and a status message. Hence, it has complete access to all variables that
  *  incluence the recursive computations.
  *
- *  @see  vrna_callback_recursion_status(), #vrna_fold_compound_t,
+ *  @see  vrna_recursion_status_f(), #vrna_fold_compound_t,
  *        #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
  *
  *  @param  fc    The fold_compound the callback function should be attached to
@@ -571,7 +579,7 @@ vrna_fold_compound_add_auxdata(vrna_fold_compound_t       *fc,
  */
 void
 vrna_fold_compound_add_callback(vrna_fold_compound_t            *fc,
-                                vrna_callback_recursion_status  *f);
+                                vrna_recursion_status_f  f);
 
 
 /**

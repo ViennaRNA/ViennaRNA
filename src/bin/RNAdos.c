@@ -74,9 +74,9 @@ free_hash_entry_dos(void *hash_entry)
 static vrna_hash_table_t
 create_hashtable(int hashbits)
 {
-  vrna_callback_ht_free_entry       *my_free          = free_hash_entry_dos;
-  vrna_callback_ht_compare_entries  *my_comparison    = hash_comparison_dos;
-  vrna_callback_ht_hash_function    *my_hash_function = hash_function_dos;
+  vrna_ht_free_f       my_free          = free_hash_entry_dos;
+  vrna_ht_cmp_f  my_comparison    = hash_comparison_dos;
+  vrna_ht_hashfunc_f    my_hash_function = hash_function_dos;
   vrna_hash_table_t                 ht                = vrna_ht_init(hashbits,
                                                                      my_comparison,
                                                                      my_hash_function,

@@ -5,6 +5,21 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *
  *  @file heat_capacity.h
@@ -35,9 +50,14 @@
  *  @param heat_capacity  The heat capacity in Kcal/(Mol * K)
  *  @param data           Some arbitrary data pointer passed through by the function executing the callback
  */
-typedef void (vrna_heat_capacity_callback)(float  temp,
+typedef void (*vrna_heat_capacity_f)(float  temp,
                                            float  heat_capacity,
                                            void   *data);
+
+DEPRECATED(typedef void (vrna_heat_capacity_callback)(float  temp,
+                                           float  heat_capacity,
+                                           void   *data),
+           "Use vrna_heat_capacity_f instead!");
 
 
 /**
@@ -114,7 +134,7 @@ vrna_heat_capacity(vrna_fold_compound_t *fc,
  *  to @f$ 2 \cdot mpoints + 1 @f$ data points to calculate 2nd derivatives. Increasing this
  *  parameter produces a smoother curve.
  *
- *  @see  vrna_heat_capacity(), vrna_heat_capacity_callback
+ *  @see  vrna_heat_capacity(), vrna_heat_capacity_f
  *
  *  @param  fc            The #vrna_fold_compound_t with the RNA sequence to analyze
  *  @param  T_min         Lowest temperature in &deg;C
@@ -131,7 +151,7 @@ vrna_heat_capacity_cb(vrna_fold_compound_t        *fc,
                       float                       T_max,
                       float                       T_increment,
                       unsigned int                mpoints,
-                      vrna_heat_capacity_callback *cb,
+                      vrna_heat_capacity_f cb,
                       void                        *data);
 
 

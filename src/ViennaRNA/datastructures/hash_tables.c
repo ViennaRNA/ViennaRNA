@@ -16,9 +16,9 @@ struct vrna_hash_table_s {
   /* must be power of 2^hash_bits -1 (example: HASHSIZE 67108864 -1 = 2^26 -1 )*/
   void                              **Hash_table;
   unsigned long                     Collisions;
-  vrna_callback_ht_compare_entries  *Compare_function;
-  vrna_callback_ht_hash_function    *Hash_function;
-  vrna_callback_ht_free_entry       *Free_hash_entry;
+  vrna_ht_cmp_f  Compare_function;
+  vrna_ht_hashfunc_f    Hash_function;
+  vrna_ht_free_f       Free_hash_entry;
 };
 
 
@@ -32,9 +32,9 @@ typedef struct vrna_hash_entry_list_s {
 
 PUBLIC struct vrna_hash_table_s *
 vrna_ht_init(unsigned int                     hash_bits,
-             vrna_callback_ht_compare_entries *compare_function,
-             vrna_callback_ht_hash_function   *hash_function,
-             vrna_callback_ht_free_entry      *free_hash_entry)
+             vrna_ht_cmp_f compare_function,
+             vrna_ht_hashfunc_f   hash_function,
+             vrna_ht_free_f      free_hash_entry)
 {
   struct vrna_hash_table_s *ht = NULL;
 

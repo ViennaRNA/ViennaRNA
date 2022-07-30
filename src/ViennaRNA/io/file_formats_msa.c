@@ -31,13 +31,13 @@
  #################################
  */
 
-typedef int (aln_parser_function)(FILE  *fp,
+typedef int (*aln_parser_f)(FILE  *fp,
                                   char  ***names,
                                   char  ***aln,
                                   char  **id,
                                   char  **structure,
                                   int   verbosity);
-typedef int (aln_writer_function)(FILE          *fp,
+typedef int (*aln_writer_f)(FILE          *fp,
                                   const char    **names,
                                   const char    **aln,
                                   const char    *id,
@@ -48,25 +48,57 @@ typedef int (aln_writer_function)(FILE          *fp,
 
 typedef struct {
   unsigned int        code;
-  aln_parser_function *parser;
+  aln_parser_f        parser;
   const char          *name;
 } parsable;
 
 typedef struct {
   unsigned int        code;
-  aln_writer_function *writer;
+  aln_writer_f writer;
   const char          *name;
 } writable;
 
-PRIVATE aln_parser_function parse_aln_stockholm;
+PRIVATE int
+parse_aln_stockholm(FILE  *fp,
+                    char  ***names,
+                    char  ***aln,
+                    char  **id,
+                    char  **structure,
+                    int   verbosity);
 
-PRIVATE aln_parser_function parse_aln_clustal;
+PRIVATE int
+parse_aln_clustal(FILE  *fp,
+                    char  ***names,
+                    char  ***aln,
+                    char  **id,
+                    char  **structure,
+                    int   verbosity);
 
-PRIVATE aln_parser_function parse_aln_fasta;
+PRIVATE int
+parse_aln_fasta(FILE  *fp,
+                    char  ***names,
+                    char  ***aln,
+                    char  **id,
+                    char  **structure,
+                    int   verbosity);
 
-PRIVATE aln_parser_function parse_aln_maf;
+PRIVATE int
+parse_aln_maf(FILE  *fp,
+                    char  ***names,
+                    char  ***aln,
+                    char  **id,
+                    char  **structure,
+                    int   verbosity);
 
-PRIVATE aln_writer_function write_aln_stockholm;
+PRIVATE int
+write_aln_stockholm(FILE          *fp,
+                    const char    **names,
+                    const char    **aln,
+                    const char    *id,
+                    const char    *structure,
+                    const char    *source,
+                    unsigned int  options,
+                    int           verbosity);
 
 PRIVATE int
 parse_fasta_alignment(FILE  *fp,
@@ -323,9 +355,9 @@ vrna_file_msa_read_record(FILE          *fp,
                           char          **structure,
                           unsigned int  options)
 {
-  const char          *parser_name;
-  int                 i, r, seq_num, verb_level;
-  aln_parser_function *parser;
+  const char    *parser_name;
+  int           i, r, seq_num, verb_level;
+  aln_parser_f  parser;
 
   verb_level  = 1; /* we default to be very verbose */
   seq_num     = 0;
@@ -418,10 +450,10 @@ vrna_file_msa_write(const char    *filename,
 
   if (filename && names && aln) {
     /* we require at least a filename, the sequence identifiers (names), and the alignment */
-    FILE                *fp;
-    int                 i, r, seq_num;
-    const char          *writer_name;
-    aln_writer_function *writer;
+    FILE          *fp;
+    int           i, r, seq_num;
+    const char    *writer_name;
+    aln_writer_f  writer;
 
     r           = 0;
     seq_num     = 0;

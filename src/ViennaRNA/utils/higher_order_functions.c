@@ -10,9 +10,9 @@
 #include "ViennaRNA/utils/cpu.h"
 
 
-typedef int (proto_fun_zip_reduce)(const int  *a,
-                                   const int  *b,
-                                   int        size);
+typedef int (*proto_fun_zip_reduce)(const int  *a,
+                                    const int  *b,
+                                    int        size);
 
 
 /*
@@ -51,7 +51,7 @@ vrna_fun_zip_add_min_sse41(const int  *e1,
 #endif
 
 
-static proto_fun_zip_reduce *fun_zip_add_min = &zip_add_min_dispatcher;
+static proto_fun_zip_reduce fun_zip_add_min = &zip_add_min_dispatcher;
 
 
 /*

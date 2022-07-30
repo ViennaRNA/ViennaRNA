@@ -20,9 +20,9 @@ struct vrna_heap_s {
   size_t                      mem_entries;    /* memory allocated for the entries */
   void                        **entries;      /* the array of entries */
 
-  vrna_callback_heap_cmp      *cmp;           /* the compare function */
-  vrna_callback_heap_get_pos  *get_entry_pos; /* position look-up function */
-  vrna_callback_heap_set_pos  *set_entry_pos; /* position store function */
+  vrna_heap_cmp_f      cmp;           /* the compare function */
+  vrna_heap_get_pos_f  get_entry_pos; /* position look-up function */
+  vrna_heap_set_pos_f  set_entry_pos; /* position store function */
 
   void                        *data;          /* arbitrary user-data pointer */
 };
@@ -68,9 +68,9 @@ heapify_down(struct vrna_heap_s *h,
  */
 PUBLIC struct vrna_heap_s *
 vrna_heap_init(size_t                     n,
-               vrna_callback_heap_cmp     *cmp,
-               vrna_callback_heap_get_pos *get_entry_pos,
-               vrna_callback_heap_set_pos *set_entry_pos,
+               vrna_heap_cmp_f     cmp,
+               vrna_heap_get_pos_f get_entry_pos,
+               vrna_heap_set_pos_f set_entry_pos,
                void                       *data)
 {
   struct vrna_heap_s *h = NULL;

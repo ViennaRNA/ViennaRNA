@@ -181,7 +181,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
   vrna_ud_t                 *domains_up;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f  evaluate;
   struct hc_ext_def_dat     hc_dat_local;
 
   length        = fc->length;
@@ -578,7 +578,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
 
   n_seq         = fc->n_seq;
@@ -732,7 +732,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
 
   length        = fc->length;
@@ -1039,7 +1039,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
 
   n             = fc->length;
@@ -1182,7 +1182,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     vrna_param_t              *P;
     vrna_md_t                 *md;
     vrna_sc_t                 *sc;
-    vrna_callback_hc_evaluate *evaluate;
+    vrna_hc_eval_f evaluate;
     struct hc_ext_def_dat     hc_dat_local;
 #ifdef VRNA_WITH_SVM
     int                       zsc_pre_filter;
@@ -1426,7 +1426,7 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
     vrna_param_t              *P;
     vrna_md_t                 *md;
     vrna_sc_t                 **scs;
-    vrna_callback_hc_evaluate *evaluate;
+    vrna_hc_eval_f evaluate;
     struct hc_ext_def_dat     hc_dat_local;
 
     length        = fc->length;

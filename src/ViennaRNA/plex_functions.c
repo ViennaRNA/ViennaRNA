@@ -46,7 +46,7 @@ struct vrna_pk_plex_option_s {
   unsigned int                delta;
   unsigned int                max_interaction_length;
   int                         min_penalty;
-  vrna_callback_pk_plex_score *scoring_function;
+  vrna_pk_plex_score_f scoring_function;
   void                        *scoring_data;
 };
 
@@ -84,7 +84,7 @@ PRIVATE vrna_heap_t
 duplexfold_XS(vrna_fold_compound_t        *fc,
               const int                   **access_s1,
               const int                   max_interaction_length,
-              vrna_callback_pk_plex_score *scoring_function,
+              vrna_pk_plex_score_f scoring_function,
               void                        *scoring_data);
 
 
@@ -144,7 +144,7 @@ vrna_pk_plex_opt(unsigned int delta,
 PUBLIC vrna_pk_plex_opt_t
 vrna_pk_plex_opt_fun(unsigned int                 delta,
                      unsigned int                 max_interaction_length,
-                     vrna_callback_pk_plex_score  *scoring_function,
+                     vrna_pk_plex_score_f  scoring_function,
                      void                         *scoring_data)
 {
   vrna_pk_plex_opt_t opt = NULL;
@@ -521,7 +521,7 @@ PRIVATE vrna_heap_t
 duplexfold_XS(vrna_fold_compound_t        *fc,
               const int                   **access_s1,
               const int                   max_interaction_length,
-              vrna_callback_pk_plex_score *scoring_function,
+              vrna_pk_plex_score_f scoring_function,
               void                        *scoring_data)
 {
   char                      *struc;
@@ -537,7 +537,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
   vrna_heap_t               storage;
   vrna_pk_plex_t            *entry;
 
-  vrna_callback_hc_evaluate *evaluate_ext;
+  vrna_hc_eval_f evaluate_ext;
   struct hc_ext_def_dat     hc_dat_local;
 
   struc   = NULL;

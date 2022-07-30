@@ -75,12 +75,21 @@ typedef struct vrna_hc_depot_s  vrna_hc_depot_t;
  * @param data      Auxiliary data
  * @return          A non-zero value if the decomposition is valid, 0 otherwise
  */
-typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
+typedef unsigned char (*vrna_hc_eval_f)(int           i,
                                                   int           j,
                                                   int           k,
                                                   int           l,
                                                   unsigned char d,
                                                   void          *data);
+
+DEPRECATED(typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
+                                                  int           j,
+                                                  int           k,
+                                                  int           l,
+                                                  unsigned char d,
+                                                  void          *data),
+           "Use vrna_hc_eval_f instead!");
+
 
 /**
  *  @brief  do not print the header information line
@@ -400,7 +409,7 @@ struct vrna_hc_s {
                                            *            unpaired nucleotides in a multi branched loop
                                            */
 
-  vrna_callback_hc_evaluate   *f;         /**<  @brief  A function pointer that returns whether or
+  vrna_hc_eval_f   f;          /**<  @brief  A function pointer that returns whether or
                                            *            not a certain decomposition may be evaluated
                                            */
 
@@ -409,7 +418,7 @@ struct vrna_hc_s {
                                            *            generic hard constraint function
                                            */
 
-  vrna_callback_free_auxdata  *free_data; /**<  @brief  A pointer to a function to free memory
+  vrna_auxdata_free_f  free_data;  /**<  @brief  A pointer to a function to free memory
                                            *            occupied by auxiliary data
                                            *
                                            *    The function this pointer is pointing to will be
@@ -616,7 +625,7 @@ void vrna_hc_free(vrna_hc_t *hc);
  *          feature
  */
 void vrna_hc_add_f(vrna_fold_compound_t       *vc,
-                   vrna_callback_hc_evaluate  *f);
+                   vrna_hc_eval_f  f);
 
 
 /**
@@ -632,7 +641,7 @@ void vrna_hc_add_f(vrna_fold_compound_t       *vc,
  */
 void vrna_hc_add_data(vrna_fold_compound_t        *vc,
                       void                        *data,
-                      vrna_callback_free_auxdata  *f);
+                      vrna_auxdata_free_f  f);
 
 
 /**

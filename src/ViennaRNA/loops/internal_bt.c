@@ -103,7 +103,7 @@ BT_stack(vrna_fold_compound_t *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
-  eval_hc               *evaluate;
+  eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
   struct sc_int_dat     sc_wrapper;
 
@@ -220,7 +220,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
-  eval_hc               *evaluate;
+  eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
 
   ret             = 0;

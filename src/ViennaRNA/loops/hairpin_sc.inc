@@ -1,6 +1,6 @@
 struct sc_hp_dat;
 
-typedef int (sc_hp_cb)(int              i,
+typedef int (*sc_hp_cb)(int              i,
                        int              j,
                        struct sc_hp_dat *data);
 
@@ -18,14 +18,14 @@ struct sc_hp_dat {
   int                     **bp_local;
   int                     ***bp_local_comparative;
 
-  vrna_callback_sc_energy *user_cb;
+  vrna_sc_f user_cb;
   void                    *user_data;
 
-  vrna_callback_sc_energy **user_cb_comparative;
+  vrna_sc_f *user_cb_comparative;
   void                    **user_data_comparative;
 
-  sc_hp_cb                *pair;
-  sc_hp_cb                *pair_ext;
+  sc_hp_cb                pair;
+  sc_hp_cb                pair_ext;
 };
 
 
@@ -515,8 +515,8 @@ init_sc_hp(vrna_fold_compound_t *fc,
           sizeof(int **) *
           fc->n_seq);
 
-        sc_wrapper->user_cb_comparative = (vrna_callback_sc_energy **)vrna_alloc(
-          sizeof(vrna_callback_sc_energy *) *
+        sc_wrapper->user_cb_comparative = (vrna_sc_f *)vrna_alloc(
+          sizeof(vrna_sc_f) *
           fc->n_seq);
 
         sc_wrapper->user_data_comparative = (void **)vrna_alloc(

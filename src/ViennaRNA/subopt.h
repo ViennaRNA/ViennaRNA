@@ -45,9 +45,14 @@ typedef struct vrna_subopt_sol_s vrna_subopt_solution_t;
  * @param energy    The free energy of the secondary structure in kcal/mol
  * @param data      Some arbitrary, auxiliary data address as passed to vrna_subopt_cb()
  */
-typedef void (vrna_subopt_callback)(const char  *stucture,
+typedef void (*vrna_subopt_result_f)(const char  *stucture,
                                     float       energy,
                                     void        *data);
+
+DEPRECATED(typedef void (vrna_subopt_callback)(const char  *stucture,
+                                    float       energy,
+                                    void        *data),
+          "Use vrna_subopt_result_f instead!");
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -155,7 +160,7 @@ vrna_subopt(vrna_fold_compound_t  *fc,
  * vrna_fold_compound_t *vc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
  *        @endcode
  *
- *  @see vrna_subopt_callback, vrna_subopt(), vrna_subopt_zuker()
+ *  @see vrna_subopt_result_f, vrna_subopt(), vrna_subopt_zuker()
  *  @param  fc      fold compount with the sequence data
  *  @param  delta   Energy band arround the MFE in 10cal/mol, i.e. deka-calories
  *  @param  cb      Pointer to a callback function that handles the backtracked structure and its free energy in kcal/mol
@@ -164,7 +169,7 @@ vrna_subopt(vrna_fold_compound_t  *fc,
 void
 vrna_subopt_cb(vrna_fold_compound_t *fc,
                int                  delta,
-               vrna_subopt_callback *cb,
+               vrna_subopt_result_f cb,
                void                 *data);
 
 

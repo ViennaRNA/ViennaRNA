@@ -44,7 +44,7 @@ vrna_Lfold(const char *string,
 PUBLIC float
 vrna_Lfold_cb(const char                *string,
               int                       window_size,
-              vrna_mfe_window_callback  *cb,
+              vrna_mfe_window_f  cb,
               void                      *data)
 {
   float                 energy;
@@ -97,7 +97,7 @@ PUBLIC float
 vrna_Lfoldz_cb(const char                       *string,
                int                              window_size,
                double                           min_z,
-               vrna_mfe_window_zscore_callback  *cb,
+               vrna_mfe_window_zscore_f  cb,
                void                             *data)
 {
   float                 energy;
@@ -149,7 +149,7 @@ vrna_aliLfold(const char  **AS,
 PUBLIC float
 vrna_aliLfold_cb(const char               **AS,
                  int                      window_size,
-                 vrna_mfe_window_callback *cb,
+                 vrna_mfe_window_f cb,
                  void                     *data)
 {
   float                 energy;

@@ -19,12 +19,85 @@ typedef struct {
   PyObject  *prob_get;
 } py_ud_callback_t;
 
-static vrna_callback_ud_production      py_wrap_ud_prod_rule;
-static vrna_callback_ud_exp_production  py_wrap_ud_exp_prod_rule;
-static vrna_callback_ud_energy          py_wrap_ud_energy;
-static vrna_callback_ud_exp_energy      py_wrap_ud_exp_energy;
-static vrna_callback_ud_probs_add       py_wrap_ud_prob_add;
-static vrna_callback_ud_probs_get       py_wrap_ud_prob_get;
+
+static py_ud_callback_t *
+new_py_ud_cb(void);
+
+
+static void
+delete_py_ud_data(py_ud_callback_t *cb);
+
+
+static void
+delete_py_ud_callback(void * data);
+
+
+static void
+ud_set_pydata(vrna_fold_compound_t *vc,
+              PyObject             *data,
+              PyObject             *PyFunc);
+
+
+static void
+ud_set_prod_cb(vrna_fold_compound_t *vc,
+               PyObject             *prod_cb,
+               PyObject             *eval_cb);
+
+
+static void
+ud_set_exp_prod_cb(vrna_fold_compound_t *vc,
+                   PyObject             *prod_cb,
+                   PyObject             *eval_cb);
+
+
+static void
+ud_set_prob_cb(vrna_fold_compound_t *vc,
+               PyObject             *setter,
+               PyObject             *getter);
+
+
+static void
+py_wrap_ud_prod_rule(vrna_fold_compound_t *vc,
+                     void                 *data);
+
+
+static void
+py_wrap_ud_exp_prod_rule(vrna_fold_compound_t *vc,
+                         void                 *data);
+
+
+static int
+py_wrap_ud_energy(vrna_fold_compound_t *vc,
+                  int                  i,
+                  int                  j,
+                  unsigned int         looptype,
+                  void                 *data);
+
+
+static FLT_OR_DBL
+py_wrap_ud_exp_energy(vrna_fold_compound_t *vc,
+                      int                  i,
+                      int                  j,
+                      unsigned int         looptype,
+                      void                 *data);
+
+
+static void
+py_wrap_ud_prob_add(vrna_fold_compound_t *vc,
+                    int                  i,
+                    int                  j,
+                    unsigned int         looptype,
+                    FLT_OR_DBL           prob,
+                    void                 *data);
+
+
+static FLT_OR_DBL
+py_wrap_ud_prob_get(vrna_fold_compound_t *vc,
+                    int                  i,
+                    int                  j,
+                    unsigned int         looptype,
+                    int                  motif,
+                    void                 *data);
 
 static py_ud_callback_t *
 new_py_ud_cb(void){

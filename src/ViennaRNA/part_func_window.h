@@ -1,6 +1,21 @@
 #ifndef VIENNA_RNA_PACKAGE_PART_FUNC_WINDOW_H
 #define VIENNA_RNA_PACKAGE_PART_FUNC_WINDOW_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     part_func_window.h
  *  @ingroup  pf_fold, part_func_window
@@ -60,12 +75,21 @@
  * @param data    Auxiliary data
  */
 
-typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
+typedef void (*vrna_probs_window_f)(FLT_OR_DBL    *pr,
                                           int           pr_size,
                                           int           i,
                                           int           max,
                                           unsigned int  type,
                                           void          *data);
+
+DEPRECATED(typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
+                                          int           pr_size,
+                                          int           i,
+                                          int           max,
+                                          unsigned int  type,
+                                          void          *data),
+           "Use vrna_probs_window_f instead!");
+
 
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/utils/structures.h>
@@ -208,7 +232,7 @@ int
 vrna_probs_window(vrna_fold_compound_t        *fc,
                   int                         ulength,
                   unsigned int                options,
-                  vrna_probs_window_callback  *cb,
+                  vrna_probs_window_f  cb,
                   void                        *data);
 
 /* End basic interface */
@@ -273,7 +297,7 @@ int
 vrna_pfl_fold_cb(const char                 *sequence,
                  int                        window_size,
                  int                        max_bp_span,
-                 vrna_probs_window_callback *cb,
+                 vrna_probs_window_f cb,
                  void                       *data);
 
 
@@ -334,7 +358,7 @@ vrna_pfl_fold_up_cb(const char                  *sequence,
                     int                         ulength,
                     int                         window_size,
                     int                         max_bp_span,
-                    vrna_probs_window_callback  *cb,
+                    vrna_probs_window_f  cb,
                     void                        *data);
 
 

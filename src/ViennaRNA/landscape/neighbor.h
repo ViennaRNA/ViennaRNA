@@ -1,6 +1,21 @@
 #ifndef VIENNA_RNA_PACKAGE_NEIGHBOR_H
 #define VIENNA_RNA_PACKAGE_NEIGHBOR_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     ViennaRNA/landscape/neighbor.h
  *  @ingroup  neighbors
@@ -121,10 +136,17 @@
  *  @param  state     The state of the neighbor (move) as supplied by argument @p neighbor
  *  @param  data      Some arbitrary data pointer as passed to vrna_move_neighbor_diff_cb()
  */
-typedef void (vrna_callback_move_update)(vrna_fold_compound_t *fc,
+typedef void (*vrna_move_update_f)(vrna_fold_compound_t *fc,
                                          vrna_move_t          neighbor,
                                          unsigned int         state,
                                          void                 *data);
+
+DEPRECATED(typedef void (vrna_callback_move_update)(vrna_fold_compound_t *fc,
+                                         vrna_move_t          neighbor,
+                                         unsigned int         state,
+                                         void                 *data),
+           "Use vrna_move_update_f instead!");
+
 
 
 /**
@@ -232,7 +254,7 @@ vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
  *  - A new neighbor move becomes available (#VRNA_NEIGHBOR_NEW)
  *
  *  @see  vrna_move_neighbor_diff(), #VRNA_NEIGHBOR_CHANGE, #VRNA_NEIGHBOR_INVALID, #VRNA_NEIGHBOR_NEW,
- *        #vrna_callback_move_update
+ *        #vrna_move_update_f
  *
  *  @param  fc        A fold compound for the RNA sequence(s) that this function operates on
  *  @param  ptable    The current structure as pair table
@@ -246,7 +268,7 @@ int
 vrna_move_neighbor_diff_cb(vrna_fold_compound_t       *fc,
                            short                      *ptable,
                            vrna_move_t                move,
-                           vrna_callback_move_update  *cb,
+                           vrna_move_update_f  cb,
                            void                       *data,
                            unsigned int               options);
 

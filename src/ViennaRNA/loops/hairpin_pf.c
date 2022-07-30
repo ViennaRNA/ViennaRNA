@@ -64,7 +64,7 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
                    int                  i,
                    int                  j)
 {
-  vrna_callback_hc_evaluate *evaluate;
+  vrna_hc_eval_f evaluate;
   struct hc_hp_def_dat      hc_dat_local;
 
   if (fc->hc->type == VRNA_HC_WINDOW)

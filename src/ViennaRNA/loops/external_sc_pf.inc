@@ -3,17 +3,17 @@
  */
 struct sc_ext_exp_dat;
 
-typedef FLT_OR_DBL (sc_ext_exp_cb)(int                    i,
+typedef FLT_OR_DBL (*sc_ext_exp_cb)(int                    i,
                                    int                    j,
                                    int                    k,
                                    int                    l,
                                    struct sc_ext_exp_dat  *data);
 
-typedef FLT_OR_DBL (sc_ext_exp_red_up)(int                    i,
+typedef FLT_OR_DBL (*sc_ext_exp_red_up)(int                    i,
                                        int                    j,
                                        struct sc_ext_exp_dat  *data);
 
-typedef FLT_OR_DBL (sc_ext_exp_split)(int                   i,
+typedef FLT_OR_DBL (*sc_ext_exp_split)(int                   i,
                                       int                   j,
                                       int                   k,
                                       struct sc_ext_exp_dat *data);
@@ -21,12 +21,12 @@ typedef FLT_OR_DBL (sc_ext_exp_split)(int                   i,
 struct sc_ext_exp_dat {
   FLT_OR_DBL                  **up;
 
-  sc_ext_exp_cb               *red_ext;
-  sc_ext_exp_cb               *red_stem;
-  sc_ext_exp_red_up           *red_up;
-  sc_ext_exp_split            *split;
+  sc_ext_exp_cb               red_ext;
+  sc_ext_exp_cb               red_stem;
+  sc_ext_exp_red_up           red_up;
+  sc_ext_exp_split            split;
 
-  vrna_callback_sc_exp_energy *user_cb;
+  vrna_sc_exp_f user_cb;
   void                        *user_data;
 
   /* below attributes are for comparative structure prediction */
@@ -34,7 +34,7 @@ struct sc_ext_exp_dat {
   unsigned int                **a2s;
   FLT_OR_DBL                  ***up_comparative;
 
-  vrna_callback_sc_exp_energy **user_cb_comparative;
+  vrna_sc_exp_f *user_cb_comparative;
   void                        **user_data_comparative;
 };
 
@@ -532,8 +532,8 @@ init_sc_ext_exp(vrna_fold_compound_t  *fc,
         sc_wrapper->up_comparative = (FLT_OR_DBL ***)vrna_alloc(
           sizeof(FLT_OR_DBL * *) * fc->n_seq);
         sc_wrapper->user_cb_comparative =
-          (vrna_callback_sc_exp_energy **)vrna_alloc(
-            sizeof(vrna_callback_sc_exp_energy *) * fc->n_seq);
+          (vrna_sc_exp_f *)vrna_alloc(
+            sizeof(vrna_sc_exp_f) * fc->n_seq);
         sc_wrapper->user_data_comparative = (void **)vrna_alloc(sizeof(void *) * fc->n_seq);
 
         int provides_sc_up      = 0;

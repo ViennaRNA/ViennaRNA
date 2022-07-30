@@ -22,7 +22,7 @@ typedef enum {
 } intervalType;
 
 
-typedef void (shiftsInInterval)(const vrna_fold_compound_t *,
+typedef void (*shiftsInInterval)(const vrna_fold_compound_t *,
                                 int,
                                 int,
                                 int,
@@ -110,7 +110,7 @@ pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(
   const short                 *structure,
   vrna_move_t                 *structures,
   int                         *count,
-  shiftsInInterval            *interval_func,
+  shiftsInInterval            interval_func,
   int                         includeBorder);
 
 
@@ -123,7 +123,7 @@ pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(
   const short                 *structure,
   vrna_move_t                 *structures,
   int                         *count,
-  shiftsInInterval            *interval_func,
+  shiftsInInterval            interval_func,
   int                         includeBorder);
 
 
@@ -136,7 +136,7 @@ pairs_from_interval_into_shifts_to_interval(const vrna_fold_compound_t  *vc,
                                             const short                 *structure,
                                             vrna_move_t                 *structures,
                                             int                         *count,
-                                            shiftsInInterval            *interval_func);
+                                            shiftsInInterval            interval_func);
 
 
 PRIVATE vrna_move_t *
@@ -578,7 +578,7 @@ pairs_to_left_most_position_whithin_eclosing_loop_and_shifts_to_interval(
   const short                 *structure,
   vrna_move_t                 *structures,
   int                         *count,
-  shiftsInInterval            *interval_func,
+  shiftsInInterval            interval_func,
   int                         includeBorder)
 {
   int j = i - 1;
@@ -615,7 +615,7 @@ pairs_to_right_most_position_whithin_eclosing_loop_and_shifts_to_interval(
   const short                 *structure,
   vrna_move_t                 *structures,
   int                         *count,
-  shiftsInInterval            *interval_func,
+  shiftsInInterval            interval_func,
   int                         includeBorder)
 {
   int length  = vc->length;
@@ -656,7 +656,7 @@ pairs_from_interval_into_shifts_to_interval(const vrna_fold_compound_t  *vc,
                                             const short                 *structure,
                                             vrna_move_t                 *structures,
                                             int                         *count,
-                                            shiftsInInterval            *interval_func)
+                                            shiftsInInterval            interval_func)
 {
   int length  = i_end;
   int j       = i_start + 1;
@@ -2246,7 +2246,7 @@ PRIVATE void
 generate_local_nb(vrna_fold_compound_t      *fc,
                   const short               *pt,
                   const vrna_move_t         *move,
-                  vrna_callback_move_update *cb,
+                  vrna_move_update_f cb,
                   void                      *data,
                   unsigned int              options);
 
@@ -2255,7 +2255,7 @@ PRIVATE void
 generate_local_nb_insertion(vrna_fold_compound_t      *fc,
                             const short               *pt,
                             const vrna_move_t         *move,
-                            vrna_callback_move_update *cb,
+                            vrna_move_update_f cb,
                             void                      *data,
                             unsigned int              options);
 
@@ -2264,7 +2264,7 @@ PRIVATE void
 generate_local_nb_deletion(vrna_fold_compound_t       *fc,
                            const short                *pt,
                            const vrna_move_t          *move,
-                           vrna_callback_move_update  *cb,
+                           vrna_move_update_f  cb,
                            void                       *data,
                            unsigned int               options);
 
@@ -2273,7 +2273,7 @@ PRIVATE void
 generate_local_nb_shift(vrna_fold_compound_t      *fc,
                         const short               *pt,
                         const vrna_move_t         *move,
-                        vrna_callback_move_update *cb,
+                        vrna_move_update_f cb,
                         void                      *data,
                         unsigned int              options);
 
@@ -2282,7 +2282,7 @@ PRIVATE void
 generate_conflicts_local_nb(vrna_fold_compound_t      *fc,
                             const short               *pt,
                             const vrna_move_t         *move,
-                            vrna_callback_move_update *cb,
+                            vrna_move_update_f cb,
                             void                      *data,
                             unsigned int              options);
 
@@ -2291,7 +2291,7 @@ PRIVATE void
 generate_conflicts_local_nb_insertion(vrna_fold_compound_t      *fc,
                                       const short               *pt,
                                       const vrna_move_t         *move,
-                                      vrna_callback_move_update *cb,
+                                      vrna_move_update_f cb,
                                       void                      *data,
                                       unsigned int              options);
 
@@ -2300,7 +2300,7 @@ PRIVATE void
 generate_conflicts_local_nb_shift(vrna_fold_compound_t      *fc,
                                   const short               *pt,
                                   const vrna_move_t         *move,
-                                  vrna_callback_move_update *cb,
+                                  vrna_move_update_f cb,
                                   void                      *data,
                                   unsigned int              options);
 
@@ -2312,7 +2312,7 @@ PUBLIC int
 vrna_move_neighbor_diff_cb(vrna_fold_compound_t       *fc,
                            short                      *ptable,
                            vrna_move_t                move,
-                           vrna_callback_move_update  *cb,
+                           vrna_move_update_f  cb,
                            void                       *data,
                            unsigned int               options)
 {
@@ -2408,7 +2408,7 @@ PRIVATE void
 generate_local_nb(vrna_fold_compound_t      *fc,
                   const short               *pt,
                   const vrna_move_t         *move,
-                  vrna_callback_move_update *cb,
+                  vrna_move_update_f cb,
                   void                      *data,
                   unsigned int              options)
 {
@@ -2430,7 +2430,7 @@ PRIVATE void
 generate_conflicts_local_nb(vrna_fold_compound_t      *fc,
                             const short               *pt,
                             const vrna_move_t         *move,
-                            vrna_callback_move_update *cb,
+                            vrna_move_update_f cb,
                             void                      *data,
                             unsigned int              options)
 {
@@ -2456,7 +2456,7 @@ insertions_range_cb(vrna_fold_compound_t      *fc,
                     int                       min_loop_size,
                     int                       last_j,
                     unsigned int              status,
-                    vrna_callback_move_update *cb,
+                    vrna_move_update_f cb,
                     void                      *data)
 {
   int j;
@@ -2487,7 +2487,7 @@ insertions_range_cb2(vrna_fold_compound_t       *fc,
                      int                        min_j,
                      int                        last_j,
                      unsigned int               status,
-                     vrna_callback_move_update  *cb,
+                     vrna_move_update_f  cb,
                      void                       *data)
 {
   int j;
@@ -2508,7 +2508,7 @@ deletions_range_cb(vrna_fold_compound_t       *fc,
                    int                        first_j,
                    int                        last_j,
                    unsigned int               status,
-                   vrna_callback_move_update  *cb,
+                   vrna_move_update_f  cb,
                    void                       *data)
 {
   int j;
@@ -2526,7 +2526,7 @@ PRIVATE void
 generate_local_nb_insertion(vrna_fold_compound_t      *fc,
                             const short               *pt,
                             const vrna_move_t         *move,
-                            vrna_callback_move_update *cb,
+                            vrna_move_update_f cb,
                             void                      *data,
                             unsigned int              options)
 {
@@ -2661,7 +2661,7 @@ PRIVATE void
 generate_local_nb_deletion(vrna_fold_compound_t       *fc,
                            const short                *pt,
                            const vrna_move_t          *move,
-                           vrna_callback_move_update  *cb,
+                           vrna_move_update_f  cb,
                            void                       *data,
                            unsigned int               options)
 {
@@ -2867,7 +2867,7 @@ PRIVATE void
 generate_local_nb_shift(vrna_fold_compound_t      *fc,
                         const short               *pt,
                         const vrna_move_t         *move,
-                        vrna_callback_move_update *cb,
+                        vrna_move_update_f cb,
                         void                      *data,
                         unsigned int              options)
 {
@@ -2878,7 +2878,7 @@ PRIVATE void
 generate_conflicts_local_nb_insertion(vrna_fold_compound_t      *fc,
                                       const short               *pt,
                                       const vrna_move_t         *move,
-                                      vrna_callback_move_update *cb,
+                                      vrna_move_update_f cb,
                                       void                      *data,
                                       unsigned int              options)
 {
@@ -3015,7 +3015,7 @@ PRIVATE void
 generate_conflicts_local_nb_shift(vrna_fold_compound_t      *fc,
                                   const short               *pt,
                                   const vrna_move_t         *move,
-                                  vrna_callback_move_update *cb,
+                                  vrna_move_update_f cb,
                                   void                      *data,
                                   unsigned int              options)
 {

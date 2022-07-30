@@ -5,23 +5,23 @@
 struct sc_f5_dat;
 struct sc_f3_dat;
 
-typedef int (sc_f5_cb)(int              j,
+typedef int (*sc_f5_cb)(int              j,
                        int              k,
                        int              l,
                        struct sc_f5_dat *data);
 
 
-typedef int (sc_f3_cb)(int              j,
+typedef int (*sc_f3_cb)(int              j,
                        int              k,
                        int              l,
                        struct sc_f3_dat *data);
 
 
-typedef int (sc_ext_pair_cb)(int               i,
+typedef int (*sc_ext_pair_cb)(int               i,
                              int               j,
                              struct sc_f5_dat  *data);
 
-typedef int (sc_ext_red_cb)(int              i,
+typedef int (*sc_ext_red_cb)(int              i,
                             int              j,
                             int              k,
                             int              l,
@@ -30,17 +30,17 @@ typedef int (sc_ext_red_cb)(int              i,
 struct sc_f5_dat {
   int                     **up;
 
-  sc_f5_cb                *red_ext5;
-  sc_f5_cb                *red_stem5;
-  sc_f5_cb                *decomp_stem5;
-  sc_f5_cb                *decomp_stem51;
+  sc_f5_cb                red_ext5;
+  sc_f5_cb                red_stem5;
+  sc_f5_cb                decomp_stem5;
+  sc_f5_cb                decomp_stem51;
 
-  sc_ext_pair_cb          *pair;
-  sc_ext_red_cb           *red_ext;
-  sc_ext_red_cb           *red_stem;
-  sc_ext_red_cb           *decomp;
+  sc_ext_pair_cb          pair;
+  sc_ext_red_cb           red_ext;
+  sc_ext_red_cb           red_stem;
+  sc_ext_red_cb           decomp;
 
-  vrna_callback_sc_energy *user_cb;
+  vrna_sc_f user_cb;
   void                    *user_data;
 
   /* below attributes are for comparative structure prediction */
@@ -48,7 +48,7 @@ struct sc_f5_dat {
   unsigned int            **a2s;
   int                     ***up_comparative;
 
-  vrna_callback_sc_energy **user_cb_comparative;
+  vrna_sc_f *user_cb_comparative;
   void                    **user_data_comparative;
 };
 
@@ -58,12 +58,12 @@ struct sc_f3_dat {
 
   int                     **up;
 
-  sc_f3_cb                *red_ext;
-  sc_f3_cb                *red_stem;
-  sc_f3_cb                *decomp_stem;
-  sc_f3_cb                *decomp_stem1;
+  sc_f3_cb                red_ext;
+  sc_f3_cb                red_stem;
+  sc_f3_cb                decomp_stem;
+  sc_f3_cb                decomp_stem1;
 
-  vrna_callback_sc_energy *user_cb;
+  vrna_sc_f user_cb;
   void                    *user_data;
 
   /* below attributes are for comparative structure prediction */
@@ -71,7 +71,7 @@ struct sc_f3_dat {
   unsigned int            **a2s;
   int                     ***up_comparative;
 
-  vrna_callback_sc_energy **user_cb_comparative;
+  vrna_sc_f *user_cb_comparative;
   void                    **user_data_comparative;
 };
 
@@ -596,7 +596,7 @@ init_sc_f5(vrna_fold_compound_t *fc,
       if (scs) {
         sc_wrapper->up_comparative      = (int ***)vrna_alloc(sizeof(int **) * fc->n_seq);
         sc_wrapper->user_cb_comparative =
-          (vrna_callback_sc_energy **)vrna_alloc(sizeof(vrna_callback_sc_energy *) * fc->n_seq);
+          (vrna_sc_f *)vrna_alloc(sizeof(vrna_sc_f) * fc->n_seq);
         sc_wrapper->user_data_comparative = (void **)vrna_alloc(sizeof(void *) * fc->n_seq);
 
         int provides_sc_up      = 0;
@@ -718,7 +718,7 @@ init_sc_f3(vrna_fold_compound_t *fc,
       if (scs) {
         sc_wrapper->up_comparative      = (int ***)vrna_alloc(sizeof(int **) * fc->n_seq);
         sc_wrapper->user_cb_comparative =
-          (vrna_callback_sc_energy **)vrna_alloc(sizeof(vrna_callback_sc_energy *) * fc->n_seq);
+          (vrna_sc_f *)vrna_alloc(sizeof(vrna_sc_f) * fc->n_seq);
         sc_wrapper->user_data_comparative = (void **)vrna_alloc(sizeof(void *) * fc->n_seq);
 
         int provides_sc_up      = 0;

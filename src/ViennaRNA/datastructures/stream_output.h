@@ -1,6 +1,21 @@
 #ifndef VIENNA_RNA_PACKAGE_STREAM_OUTPUT_H
 #define VIENNA_RNA_PACKAGE_STREAM_OUTPUT_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(DEPRECATED)
+#   undef DEPRECATED
+# endif
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     ViennaRNA/datastructures/stream_output.h
  *  @ingroup  utils, buffer_utils
@@ -31,9 +46,14 @@ typedef struct vrna_ordered_stream_s *vrna_ostream_t;
  *  @param  i         The index number of the data passed to @p data
  *  @param  data      A block of data ready for processing
  */
-typedef void (vrna_callback_stream_output)(void         *auxdata,
+typedef void (*vrna_stream_output_f)(void        *auxdata,
+                                            unsigned int i,
+                                            void         *data);
+DEPRECATED(typedef void (vrna_callback_stream_output)(void         *auxdata,
                                            unsigned int i,
-                                           void         *data);
+                                           void         *data),
+           "Use vrna_stream_output_f instead!");
+
 
 /**
  *  @brief  Get an initialized ordered output stream
@@ -45,7 +65,7 @@ typedef void (vrna_callback_stream_output)(void         *auxdata,
  *  @return           An initialized ordered output stream
  */
 vrna_ostream_t
-vrna_ostream_init(vrna_callback_stream_output *output,
+vrna_ostream_init(vrna_stream_output_f output,
                   void                        *auxdata);
 
 
