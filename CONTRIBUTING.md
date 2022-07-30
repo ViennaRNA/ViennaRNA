@@ -73,7 +73,7 @@ for further information and the full CLA details.
 Thank you for your interest in contributing to the ViennaRNA Package ("We" or "Us").
 
 Before contributing, please note that we adopted a standard Contributors License
-Agreement (CLA) agreement provided by [Project Harmony](www.harmonyagreements.org),
+Agreement (CLA) agreement provided by [Project Harmony](https://www.harmonyagreements.org),
 a community-centered group focused on contributor agreements for free and open source
 software (FOSS).
 
