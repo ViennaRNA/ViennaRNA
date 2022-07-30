@@ -394,11 +394,18 @@ class Doxy2SWIG:
                        '\n', '----------'])
         for n in atr_nodes:
             name = self.extract_text(self.get_specific_subnodes(n, 'name'))
-            self.add_text(['\n* ', '`', name, '`', ' : '])
-            self.add_text(['`', self.extract_text(self.get_specific_subnodes(n, 'type')), '`'])
-            self.add_text('  \n')
-            restrict = ['briefdescription', 'detaileddescription']
-            self.subnode_parse(n, pieces=[''], indent=4, restrict=restrict)
+            if 1:
+                self.add_text(['\n', name, ' : '])
+                self.add_text([self.extract_text(self.get_specific_subnodes(n, 'type'))])
+                self.add_text('  \n')
+                restrict = ['briefdescription', 'detaileddescription']
+                self.subnode_parse(n, pieces=[''], indent=4, restrict=restrict)
+            else:
+                self.add_text(['\n* ', '`', name, '`', ' : '])
+                self.add_text(['`', self.extract_text(self.get_specific_subnodes(n, 'type')), '`'])
+                self.add_text('  \n')
+                restrict = ['briefdescription', 'detaileddescription']
+                self.subnode_parse(n, pieces=[''], indent=4, restrict=restrict)
 
     def get_memberdef_nodes_and_signatures(self, node, kind):
         """Collects the memberdef nodes and corresponding signatures that
@@ -606,7 +613,7 @@ class Doxy2SWIG:
 
     def do_xrefsect(self, node):
         title = self.extract_text(self.get_specific_subnodes(node, 'xreftitle'))
-        self.add_text(['\n', title, '\n', len(title) * '-'])
+        self.add_text(['\n**', title, ':**\n'])
         for nn in self.get_specific_subnodes(node, 'xrefdescription'):
             self.subnode_parse(nn)
 
