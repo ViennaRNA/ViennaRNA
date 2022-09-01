@@ -72,6 +72,7 @@ vrna_sc_ligand_detect_motifs(vrna_fold_compound_t *fc,
 vrna_sc_motif_t *
 vrna_sc_ligand_get_all_motifs(vrna_fold_compound_t *fc);
 
+
 /**
  * @}
  */
