@@ -11,39 +11,39 @@
 #define MOD_PARAMS_DANGLES_dH   (1 << 7)
 
 /*
-#define DEBUG
-*/
+ #define DEBUG
+ */
 #define MAX_ALPHABET  (6)
 #define MAX_PAIRS     (NBPAIRS + 1 + 25)
 
 
 /* a container to store the data read from a json parameter file */
 struct vrna_sc_mod_param_s {
-  unsigned int available;
+  unsigned int  available;
 
-  char    *name;
-  char    one_letter_code;
-  char    unmodified;
-  char    pairing_partners[7];
+  char          *name;
+  char          one_letter_code;
+  char          unmodified;
+  char          pairing_partners[7];
   unsigned int  pairing_partners_encoding[7];
   unsigned int  unmodified_encoding;
 
-  size_t  num_ptypes;
-  size_t  ptypes[MAX_ALPHABET][MAX_ALPHABET];
+  size_t        num_ptypes;
+  size_t        ptypes[MAX_ALPHABET][MAX_ALPHABET];
 
-  int stack_dG[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
-  int stack_dH[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int           stack_dG[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int           stack_dH[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
-  int dangle5_dG[MAX_PAIRS][MAX_ALPHABET];
-  int dangle5_dH[MAX_PAIRS][MAX_ALPHABET];
-  int dangle3_dG[MAX_PAIRS][MAX_ALPHABET];
-  int dangle3_dH[MAX_PAIRS][MAX_ALPHABET];
+  int           dangle5_dG[MAX_PAIRS][MAX_ALPHABET];
+  int           dangle5_dH[MAX_PAIRS][MAX_ALPHABET];
+  int           dangle3_dG[MAX_PAIRS][MAX_ALPHABET];
+  int           dangle3_dH[MAX_PAIRS][MAX_ALPHABET];
 
-  int mismatch_dG[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
-  int mismatch_dH[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int           mismatch_dG[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int           mismatch_dH[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
-  int terminal_dG[MAX_PAIRS];
-  int terminal_dH[MAX_PAIRS];
+  int           terminal_dG[MAX_PAIRS];
+  int           terminal_dH[MAX_PAIRS];
 };
 
 /* the actual data structure passed around while evaluating */
@@ -51,16 +51,15 @@ typedef struct {
   short   *enc;
   size_t  ptypes[MAX_ALPHABET][MAX_ALPHABET];
 
-  int stack_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int     stack_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
-  int dangle5_diff[MAX_PAIRS][MAX_ALPHABET];
-  int dangle3_diff[MAX_PAIRS][MAX_ALPHABET];
+  int     dangle5_diff[MAX_PAIRS][MAX_ALPHABET];
+  int     dangle3_diff[MAX_PAIRS][MAX_ALPHABET];
 
-  int mismatch_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int     mismatch_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
 
-  int terminal_diff[MAX_PAIRS];
+  int     terminal_diff[MAX_PAIRS];
 } energy_corrections;
-
 
 
 #endif

@@ -690,12 +690,12 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
             energy_corrections          *diffs,
             vrna_param_t                *P)
 {
-  char          nt[MAX_ALPHABET]  = {
+  char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
   unsigned int  i, si, sj, enc_unmod, enc_pp, tt, pair_MP, pair_PM;
   int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
-                (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
   double        tempf;
   vrna_md_t     *md;
 
@@ -784,9 +784,10 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
                 energy_corrections          *diffs,
                 vrna_param_t                *P)
 {
-  char          nt[MAX_ALPHABET]  = {
+  char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
+
 #ifdef DEBUG
   char          bp[3] = {
     0
@@ -796,7 +797,7 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
 #endif
   unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM;
   int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
-                (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
   double        tempf;
   vrna_md_t     *md;
 
@@ -912,9 +913,10 @@ init_dangles(struct vrna_sc_mod_param_s *params,
              energy_corrections         *diffs,
              vrna_param_t               *P)
 {
-  char          nt[MAX_ALPHABET]  = {
+  char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
+
 #ifdef DEBUG
   char          bp[3] = {
     0
@@ -924,7 +926,7 @@ init_dangles(struct vrna_sc_mod_param_s *params,
 #endif
   unsigned int  i, si, enc_unmod, enc_pp, siu, pair_MP, pair_PM;
   int           e, (*dG5)[MAX_PAIRS][MAX_ALPHABET], (*dH5)[MAX_PAIRS][MAX_ALPHABET],
-                (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
+  (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
   double        tempf;
   vrna_md_t     *md;
 
@@ -1075,7 +1077,7 @@ init_terminal(struct vrna_sc_mod_param_s  *params,
               energy_corrections          *diffs,
               vrna_param_t                *P)
 {
-  char          nt[MAX_ALPHABET]  = {
+  char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
   unsigned int  i, enc_unmod, enc_pp, tt;

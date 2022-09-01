@@ -365,7 +365,8 @@ parse_mismatch(JsonNode   *dom,
           num_params++;
 
           if ((enc[0] == 5) || (enc[2] == 5))
-            (*storage)[NBPAIRS + (*ptypes)[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
+            (*storage)[NBPAIRS +
+                       (*ptypes)[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
           else if ((enc[1] == 5) || (enc[3] == 5))
             (*storage)[md->pair[enc[0]][enc[2]]][enc[1]][enc[3]] = (int)(entry->number_ * 100.);
           else
