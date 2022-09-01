@@ -1,0 +1,4 @@
+Pseudoknots
+===========
+
+.. doxygengroup:: pseudoknots

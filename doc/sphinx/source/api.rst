@@ -17,9 +17,10 @@ overview of the different groups below.
    subopt_and_representatives
    cofold
    class_fold
-   inverse_fold
+   inverse
    probing_data
    ligand_binding
    paired_modules
    modified_bases
    utils
+   files

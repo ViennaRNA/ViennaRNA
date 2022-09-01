@@ -46,7 +46,7 @@ http://www.tbi.univie.ac.at/RNA
 
 .. toctree::
    :caption: API Reference
-   :maxdepth: 2
+   :maxdepth: 1
 
    api
    deprecated
@@ -61,7 +61,6 @@ http://www.tbi.univie.ac.at/RNA
 
 .. doxygenpage:: index
 
-.. doxygenfunction:: vrna_mfe
 
 Indices and tables
 ==================

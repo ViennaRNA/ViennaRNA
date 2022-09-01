@@ -1,4 +1,6 @@
 Bibliography
 ============
 
+.. doxygenpage:: citelist
+
 .. bibliography::

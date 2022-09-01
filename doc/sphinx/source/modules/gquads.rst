@@ -1,0 +1,4 @@
+G-Quadruplexes
+==============
+
+.. doxygengroup:: gquads
