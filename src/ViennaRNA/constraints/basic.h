@@ -443,9 +443,10 @@
  *                        or a pseudo dot-bracket notation of the hard constraint. May be NULL.
  *  @param  options       The option flags
  */
-void vrna_constraints_add(vrna_fold_compound_t  *vc,
-                          const char            *constraint,
-                          unsigned int          options);
+void
+vrna_constraints_add(vrna_fold_compound_t *vc,
+                     const char           *constraint,
+                     unsigned int         options);
 
 
 #endif
