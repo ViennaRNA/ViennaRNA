@@ -603,8 +603,8 @@ vrna_hc_free(vrna_hc_t *hc)
 
 
 PUBLIC void
-vrna_hc_add_f(vrna_fold_compound_t      *vc,
-              vrna_hc_eval_f f)
+vrna_hc_add_f(vrna_fold_compound_t  *vc,
+              vrna_hc_eval_f        f)
 {
   if (vc && f) {
     if (vc->type == VRNA_FC_TYPE_SINGLE) {
@@ -618,9 +618,9 @@ vrna_hc_add_f(vrna_fold_compound_t      *vc,
 
 
 PUBLIC void
-vrna_hc_add_data(vrna_fold_compound_t       *vc,
-                 void                       *data,
-                 vrna_auxdata_free_f f)
+vrna_hc_add_data(vrna_fold_compound_t *vc,
+                 void                 *data,
+                 vrna_auxdata_free_f  f)
 {
   if (vc && data) {
     if (vc->type == VRNA_FC_TYPE_SINGLE) {
@@ -2005,7 +2005,6 @@ hc_update_up_window(vrna_fold_compound_t  *vc,
  * # deprecated functions below              #
  *###########################################
  */
-
 PUBLIC void
 print_tty_constraint_full(void)
 {

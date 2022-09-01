@@ -39,7 +39,7 @@ typedef struct  vrna_hc_s vrna_hc_t;
  */
 typedef struct vrna_hc_up_s vrna_hc_up_t;
 
-typedef struct vrna_hc_depot_s  vrna_hc_depot_t;
+typedef struct vrna_hc_depot_s vrna_hc_depot_t;
 
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/constraints/basic.h>
@@ -76,18 +76,18 @@ typedef struct vrna_hc_depot_s  vrna_hc_depot_t;
  * @return          A non-zero value if the decomposition is valid, 0 otherwise
  */
 typedef unsigned char (*vrna_hc_eval_f)(int           i,
-                                                  int           j,
-                                                  int           k,
-                                                  int           l,
-                                                  unsigned char d,
-                                                  void          *data);
+                                        int           j,
+                                        int           k,
+                                        int           l,
+                                        unsigned char d,
+                                        void          *data);
 
-DEPRECATED(typedef unsigned char (vrna_callback_hc_evaluate)(int           i,
-                                                  int           j,
-                                                  int           k,
-                                                  int           l,
-                                                  unsigned char d,
-                                                  void          *data),
+DEPRECATED(typedef unsigned char (vrna_callback_hc_evaluate)(int i,
+                                                             int j,
+                                                             int k,
+                                                             int l,
+                                                             unsigned char d,
+                                                             void *data),
            "Use vrna_hc_eval_f instead!");
 
 
@@ -385,51 +385,51 @@ struct vrna_hc_s {
   union {
     struct {
 #endif
-      unsigned char *mx;
+  unsigned char *mx;
 #ifndef VRNA_DISABLE_C11_FEATURES
-    };
-    struct {
+};
+struct {
 #endif
-      unsigned char         **matrix_local;
+  unsigned char **matrix_local;
 #ifndef VRNA_DISABLE_C11_FEATURES
-    };
-  };
+};
+};
 #endif
 
-  int                         *up_ext;    /**<  @brief  A linear array that holds the number of allowed
-                                           *            unpaired nucleotides in an exterior loop
-                                           */
-  int                         *up_hp;     /**<  @brief  A linear array that holds the number of allowed
-                                           *            unpaired nucleotides in a hairpin loop
-                                           */
-  int                         *up_int;    /**<  @brief  A linear array that holds the number of allowed
-                                           *            unpaired nucleotides in an interior loop
-                                           */
-  int                         *up_ml;     /**<  @brief  A linear array that holds the number of allowed
-                                           *            unpaired nucleotides in a multi branched loop
-                                           */
+  int                 *up_ext;    /**<  @brief  A linear array that holds the number of allowed
+                                   *            unpaired nucleotides in an exterior loop
+                                   */
+  int                 *up_hp;     /**<  @brief  A linear array that holds the number of allowed
+                                   *            unpaired nucleotides in a hairpin loop
+                                   */
+  int                 *up_int;    /**<  @brief  A linear array that holds the number of allowed
+                                   *            unpaired nucleotides in an interior loop
+                                   */
+  int                 *up_ml;     /**<  @brief  A linear array that holds the number of allowed
+                                   *            unpaired nucleotides in a multi branched loop
+                                   */
 
-  vrna_hc_eval_f   f;          /**<  @brief  A function pointer that returns whether or
-                                           *            not a certain decomposition may be evaluated
-                                           */
+  vrna_hc_eval_f      f;          /**<  @brief  A function pointer that returns whether or
+                                   *            not a certain decomposition may be evaluated
+                                   */
 
-  void                        *data;      /**<  @brief  A pointer to some structure where the user
-                                           *            may store necessary data to evaluate its
-                                           *            generic hard constraint function
-                                           */
+  void                *data;      /**<  @brief  A pointer to some structure where the user
+                                   *            may store necessary data to evaluate its
+                                   *            generic hard constraint function
+                                   */
 
-  vrna_auxdata_free_f  free_data;  /**<  @brief  A pointer to a function to free memory
-                                           *            occupied by auxiliary data
-                                           *
-                                           *    The function this pointer is pointing to will be
-                                           *    called upon destruction of the #vrna_hc_s, and
-                                           *    provided with the vrna_hc_s.data pointer that
-                                           *    may hold auxiliary data. Hence, to avoid leaking
-                                           *    memory, the user may use this pointer to free
-                                           *    memory occupied by auxiliary data.
-                                           */
+  vrna_auxdata_free_f free_data;  /**<  @brief  A pointer to a function to free memory
+                                   *            occupied by auxiliary data
+                                   *
+                                   *    The function this pointer is pointing to will be
+                                   *    called upon destruction of the #vrna_hc_s, and
+                                   *    provided with the vrna_hc_s.data pointer that
+                                   *    may hold auxiliary data. Hence, to avoid leaking
+                                   *    memory, the user may use this pointer to free
+                                   *    memory occupied by auxiliary data.
+                                   */
 
-  vrna_hc_depot_t             *depot;
+  vrna_hc_depot_t *depot;
 };
 
 /**
@@ -438,8 +438,8 @@ struct vrna_hc_s {
  *  @ingroup hard_constraints
  */
 struct vrna_hc_up_s {
-  int   position;           /**<  @brief The sequence position (1-based)  */
-  int   strand;
+  int position;           /**<  @brief The sequence position (1-based)  */
+  int strand;
   unsigned char options;  /**<  @brief The hard constraint option       */
 };
 
@@ -465,7 +465,8 @@ struct vrna_hc_up_s {
  *
  *  @param option Option switch that tells which constraint help will be printed
  */
-void vrna_message_constraint_options(unsigned int option);
+void
+vrna_message_constraint_options(unsigned int option);
 
 
 /**
@@ -478,7 +479,8 @@ void vrna_message_constraint_options(unsigned int option);
  *        #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
  *        #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_INTRAMOL
  */
-void vrna_message_constraint_options_all(void);
+void
+vrna_message_constraint_options_all(void);
 
 
 /**
@@ -495,15 +497,18 @@ void vrna_message_constraint_options_all(void);
  *
  *  @param  vc  The fold compound
  */
-void vrna_hc_init(vrna_fold_compound_t *vc);
+void
+vrna_hc_init(vrna_fold_compound_t *vc);
 
 
-void vrna_hc_init_window(vrna_fold_compound_t *vc);
+void
+vrna_hc_init_window(vrna_fold_compound_t *vc);
 
 
 int
-vrna_hc_prepare(vrna_fold_compound_t *fc,
-                unsigned int         options);
+vrna_hc_prepare(vrna_fold_compound_t  *fc,
+                unsigned int          options);
+
 
 void
 vrna_hc_update(vrna_fold_compound_t *fc,
@@ -525,16 +530,18 @@ vrna_hc_update(vrna_fold_compound_t *fc,
  *  @param  i       The position that needs to stay unpaired (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
  */
-void vrna_hc_add_up(vrna_fold_compound_t  *vc,
-                    int                   i,
-                    unsigned char         option);
+void
+vrna_hc_add_up(vrna_fold_compound_t *vc,
+               int                  i,
+               unsigned char        option);
 
 
 int
-vrna_hc_add_up_strand(vrna_fold_compound_t *fc,
-                      unsigned int         i,
-                      unsigned int         strand,
-                      unsigned char        option);
+vrna_hc_add_up_strand(vrna_fold_compound_t  *fc,
+                      unsigned int          i,
+                      unsigned int          strand,
+                      unsigned char         option);
+
 
 /**
  *  @brief Apply a list of hard constraints for single nucleotides
@@ -549,9 +556,11 @@ int
 vrna_hc_add_up_batch(vrna_fold_compound_t *vc,
                      vrna_hc_up_t         *constraints);
 
+
 int
-vrna_hc_add_up_strand_batch(vrna_fold_compound_t *fc,
-                            vrna_hc_up_t         *constraints);
+vrna_hc_add_up_strand_batch(vrna_fold_compound_t  *fc,
+                            vrna_hc_up_t          *constraints);
+
 
 /**
  *  @brief  Favorize/Enforce  a certain base pair (i,j)
@@ -569,19 +578,21 @@ vrna_hc_add_up_strand_batch(vrna_fold_compound_t *fc,
  *  @param  j       The 3' located nucleotide position of the base pair (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
  */
-int vrna_hc_add_bp(vrna_fold_compound_t  *vc,
-                    int                   i,
-                    int                   j,
-                    unsigned char         option);
+int
+vrna_hc_add_bp(vrna_fold_compound_t *vc,
+               int                  i,
+               int                  j,
+               unsigned char        option);
 
 
 int
-vrna_hc_add_bp_strand(vrna_fold_compound_t *fc,
-                      unsigned int         i,
-                      unsigned int         strand_i,
-                      unsigned int         j,
-                      unsigned int         strand_j,
-                      unsigned char        option);
+vrna_hc_add_bp_strand(vrna_fold_compound_t  *fc,
+                      unsigned int          i,
+                      unsigned int          strand_i,
+                      unsigned int          j,
+                      unsigned int          strand_j,
+                      unsigned char         option);
+
 
 /**
  *  @brief  Enforce a nucleotide to be paired (upstream/downstream)
@@ -600,10 +611,11 @@ vrna_hc_add_bp_strand(vrna_fold_compound_t *fc,
  *                  @f$ d > 0 @f$: pairs downstream, @f$ d == 0 @f$: no direction)
  *  @param  option  The options flag indicating in which loop type context the pairs may appear
  */
-void vrna_hc_add_bp_nonspecific(vrna_fold_compound_t  *vc,
-                                int                   i,
-                                int                   d,
-                                unsigned char         option);
+void
+vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
+                           int                  i,
+                           int                  d,
+                           unsigned char        option);
 
 
 /**
@@ -617,15 +629,17 @@ void vrna_hc_add_bp_nonspecific(vrna_fold_compound_t  *vc,
  *  @ingroup  hard_constraints
  *
  */
-void vrna_hc_free(vrna_hc_t *hc);
+void
+vrna_hc_free(vrna_hc_t *hc);
 
 
 /**
  *  @brief  Add a function pointer pointer for the generic hard constraint
  *          feature
  */
-void vrna_hc_add_f(vrna_fold_compound_t       *vc,
-                   vrna_hc_eval_f  f);
+void
+vrna_hc_add_f(vrna_fold_compound_t  *vc,
+              vrna_hc_eval_f        f);
 
 
 /**
@@ -639,9 +653,10 @@ void vrna_hc_add_f(vrna_fold_compound_t       *vc,
  *  @param  data      A pointer to the data structure that holds required data for function 'f'
  *  @param  f         A pointer to a function that free's the memory occupied by @p data (Maybe @p NULL)
  */
-void vrna_hc_add_data(vrna_fold_compound_t        *vc,
-                      void                        *data,
-                      vrna_auxdata_free_f  f);
+void
+vrna_hc_add_data(vrna_fold_compound_t *vc,
+                 void                 *data,
+                 vrna_auxdata_free_f  f);
 
 
 /**
@@ -677,8 +692,9 @@ vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
  *  @deprecated Use vrna_message_constraints() instead!
  *  @param option Option switch that tells which constraint help will be printed
  */
-DEPRECATED(void print_tty_constraint(unsigned int option),
-          "Use vrna_message_constraint_options() instead");
+DEPRECATED(void
+           print_tty_constraint(unsigned int option),
+           "Use vrna_message_constraint_options() instead");
 
 /**
  *  @brief Print structure constraint characters to stdout
@@ -686,8 +702,9 @@ DEPRECATED(void print_tty_constraint(unsigned int option),
  *
  *  @deprecated Use vrna_message_constraint_options_all() instead!
  */
-DEPRECATED(void print_tty_constraint_full(void),
-          "Use vrna_message_constraint_options_all() instead");
+DEPRECATED(void
+           print_tty_constraint_full(void),
+           "Use vrna_message_constraint_options_all() instead");
 
 /**
  *  @brief Insert constraining pair types according to constraint structure string
@@ -701,13 +718,14 @@ DEPRECATED(void print_tty_constraint_full(void),
  *  @param min_loop_size  The minimal loop size (usually #TURN )
  *  @param idx_type       Define the access type for base pair type array (0 = indx, 1 = iindx)
  */
-DEPRECATED(void constrain_ptypes(const char   *constraint,
-                                 unsigned int length,
-                                 char         *ptype,
-                                 int          *BP,
-                                 int          min_loop_size,
-                                 unsigned int idx_type),
-          "Use the new API and the hard constraint framework instead");
+DEPRECATED(void
+           constrain_ptypes(const char    *constraint,
+                            unsigned int  length,
+                            char          *ptype,
+                            int           *BP,
+                            int           min_loop_size,
+                            unsigned int  idx_type),
+           "Use the new API and the hard constraint framework instead");
 
 #endif
 
