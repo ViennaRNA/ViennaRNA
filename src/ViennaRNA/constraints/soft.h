@@ -61,28 +61,28 @@ typedef struct  vrna_sc_s vrna_sc_t;
  * @param data      Auxiliary data
  * @return          Pseudo energy contribution in deka-kalories per mol
  */
-typedef int (*vrna_sc_f)(int           i,
-                                      int           j,
-                                      int           k,
-                                      int           l,
-                                      unsigned char d,
-                                      void          *data);
+typedef int (*vrna_sc_f)(int            i,
+                         int            j,
+                         int            k,
+                         int            l,
+                         unsigned char  d,
+                         void           *data);
 
-DEPRECATED(typedef int (vrna_callback_sc_energy)(int           i,
-                                      int           j,
-                                      int           k,
-                                      int           l,
-                                      unsigned char d,
-                                      void          *data),
-          "Use vrna_sc_f instead!");
+DEPRECATED(typedef int (vrna_callback_sc_energy)(int i,
+                                                 int j,
+                                                 int k,
+                                                 int l,
+                                                 unsigned char d,
+                                                 void *data),
+           "Use vrna_sc_f instead!");
 
 
 typedef int (*vrna_sc_direct_f)(vrna_fold_compound_t  *fc,
-                                      int                   i,
-                                      int                   j,
-                                      int                   k,
-                                      int                   l,
-                                      void                  *data);
+                                int                   i,
+                                int                   j,
+                                int                   k,
+                                int                   l,
+                                void                  *data);
 
 /**
  * @brief Callback to retrieve pseudo energy contribution as Boltzmann Factors for soft constraint feature
@@ -116,28 +116,28 @@ typedef int (*vrna_sc_direct_f)(vrna_fold_compound_t  *fc,
  * @param data      Auxiliary data
  * @return          Pseudo energy contribution in deka-kalories per mol
  */
-typedef FLT_OR_DBL (*vrna_sc_exp_f)(int            i,
-                                                 int            j,
-                                                 int            k,
-                                                 int            l,
-                                                 unsigned char  d,
-                                                 void           *data);
+typedef FLT_OR_DBL (*vrna_sc_exp_f)(int           i,
+                                    int           j,
+                                    int           k,
+                                    int           l,
+                                    unsigned char d,
+                                    void          *data);
 
-DEPRECATED(typedef FLT_OR_DBL (vrna_callback_sc_exp_energy)(int            i,
-                                                 int            j,
-                                                 int            k,
-                                                 int            l,
-                                                 unsigned char  d,
-                                                 void           *data),
+DEPRECATED(typedef FLT_OR_DBL (vrna_callback_sc_exp_energy)(int i,
+                                                            int j,
+                                                            int k,
+                                                            int l,
+                                                            unsigned char d,
+                                                            void *data),
            "Use vrna_sc_exp_f instead!");
 
 
 typedef FLT_OR_DBL (*vrna_sc_exp_direct_f)(vrna_fold_compound_t *fc,
-                                                 int            i,
-                                                 int            j,
-                                                 int            k,
-                                                 int            l,
-                                                 void           *data);
+                                           int                  i,
+                                           int                  j,
+                                           int                  k,
+                                           int                  l,
+                                           void                 *data);
 
 /**
  * @brief Callback to retrieve auxiliary base pairs for soft constraint feature
@@ -165,20 +165,20 @@ typedef FLT_OR_DBL (*vrna_sc_exp_direct_f)(vrna_fold_compound_t *fc,
  * @param data      Auxiliary data
  * @return          List of additional base pairs
  */
-typedef vrna_basepair_t *(*vrna_sc_bt_f)(int           i,
-                                                      int           j,
-                                                      int           k,
-                                                      int           l,
-                                                      unsigned char d,
-                                                      void          *data);
+typedef vrna_basepair_t *(*vrna_sc_bt_f)(int            i,
+                                         int            j,
+                                         int            k,
+                                         int            l,
+                                         unsigned char  d,
+                                         void           *data);
 
-DEPRECATED(typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int           i,
-                                                      int           j,
-                                                      int           k,
-                                                      int           l,
-                                                      unsigned char d,
-                                                      void          *data),
-          "Use vrna_sc_bt_f instead");
+DEPRECATED(typedef vrna_basepair_t *(vrna_callback_sc_backtrack)(int i,
+                                                                 int j,
+                                                                 int k,
+                                                                 int l,
+                                                                 unsigned char d,
+                                                                 void *data),
+           "Use vrna_sc_bt_f instead");
 
 
 /**
@@ -197,9 +197,9 @@ typedef enum {
  *  @brief  A base pair constraint
  */
 typedef struct {
-  unsigned int interval_start;
-  unsigned int interval_end;
-  int          e;
+  unsigned int  interval_start;
+  unsigned int  interval_end;
+  int           e;
 } vrna_sc_bp_storage_t;
 
 
@@ -225,47 +225,47 @@ struct vrna_sc_s {
   union {
     struct {
 #endif
-      int *energy_bp;                           /**<  @brief Energy contribution for base pairs */
-      FLT_OR_DBL *exp_energy_bp;                /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
+  int *energy_bp;                               /**<  @brief Energy contribution for base pairs */
+  FLT_OR_DBL *exp_energy_bp;                    /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
-    };
-    struct {
+};
+struct {
 #endif
-      int         **energy_bp_local;                    /**<  @brief Energy contribution for base pairs (sliding window approach) */
-      FLT_OR_DBL  **exp_energy_bp_local;                /**<  @brief Boltzmann Factors of the energy contribution for base pairs (sliding window approach) */
+  int         **energy_bp_local;                        /**<  @brief Energy contribution for base pairs (sliding window approach) */
+  FLT_OR_DBL  **exp_energy_bp_local;                    /**<  @brief Boltzmann Factors of the energy contribution for base pairs (sliding window approach) */
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
-    };
-  };
+};
+};
 #endif
 
-  int                         *energy_stack;      /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
-  FLT_OR_DBL                  *exp_energy_stack;  /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+  int           *energy_stack;                    /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
+  FLT_OR_DBL    *exp_energy_stack;                /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
 
   /* generic soft contraints below */
-  vrna_sc_f      f;     /**<  @brief  A function pointer used for pseudo
-                                       *            energy contribution in MFE calculations
-                                       *    @see    vrna_sc_add_f()
-                                       */
+  vrna_sc_f     f;            /**<  @brief  A function pointer used for pseudo
+                               *            energy contribution in MFE calculations
+                               *    @see    vrna_sc_add_f()
+                               */
 
-  vrna_sc_bt_f   bt;    /**<  @brief  A function pointer used to obtain backtraced
-                                       *            base pairs in loop regions that were altered
-                                       *            by soft constrained pseudo energy contributions
-                                       *    @see    vrna_sc_add_bt()
-                                       */
+  vrna_sc_bt_f  bt;           /**<  @brief  A function pointer used to obtain backtraced
+                               *            base pairs in loop regions that were altered
+                               *            by soft constrained pseudo energy contributions
+                               *    @see    vrna_sc_add_bt()
+                               */
 
-  vrna_sc_exp_f  exp_f; /**<  @brief  A function pointer used for pseudo energy
-                                       *            contribution boltzmann factors in PF
-                                       *            calculations
-                                       *    @see    vrna_sc_add_exp_f()
-                                       */
+  vrna_sc_exp_f exp_f;        /**<  @brief  A function pointer used for pseudo energy
+                               *            contribution boltzmann factors in PF
+                               *            calculations
+                               *    @see    vrna_sc_add_exp_f()
+                               */
 
-  void                        *data;  /**<  @brief  A pointer to the data object provided for
-                                       *            for pseudo energy contribution functions of the
-                                       *            generic soft constraints feature
-                                       */
-  vrna_auxdata_free_f   free_data;
+  void                *data;  /**<  @brief  A pointer to the data object provided for
+                               *            for pseudo energy contribution functions of the
+                               *            generic soft constraints feature
+                               */
+  vrna_auxdata_free_f free_data;
 };
 
 /**
@@ -284,7 +284,8 @@ struct vrna_sc_s {
  *        vrna_sc_add_exp_f(), vrna_sc_add_pre(), vrna_sc_add_post()
  *  @param  vc  The #vrna_fold_compound_t where an empty soft constraint feature is to be added to
  */
-void vrna_sc_init(vrna_fold_compound_t *vc);
+void
+vrna_sc_init(vrna_fold_compound_t *vc);
 
 
 void
@@ -314,9 +315,9 @@ vrna_sc_update(vrna_fold_compound_t *vc,
  *  @return             Non-zero on successful application of the constraint, 0 otherwise.
  */
 int
-vrna_sc_set_bp(vrna_fold_compound_t  *vc,
-               const FLT_OR_DBL      **constraints,
-               unsigned int          options);
+vrna_sc_set_bp(vrna_fold_compound_t *vc,
+               const FLT_OR_DBL     **constraints,
+               unsigned int         options);
 
 
 /**
@@ -334,11 +335,11 @@ vrna_sc_set_bp(vrna_fold_compound_t  *vc,
  *  @return             Non-zero on successful application of the constraint, 0 otherwise.
  */
 int
-vrna_sc_add_bp(vrna_fold_compound_t  *vc,
-               int                   i,
-               int                   j,
-               FLT_OR_DBL            energy,
-               unsigned int          options);
+vrna_sc_add_bp(vrna_fold_compound_t *vc,
+               int                  i,
+               int                  j,
+               FLT_OR_DBL           energy,
+               unsigned int         options);
 
 
 /**
@@ -357,9 +358,9 @@ vrna_sc_add_bp(vrna_fold_compound_t  *vc,
  *  @return             Non-zero on successful application of the constraint, 0 otherwise.
  */
 int
-vrna_sc_set_up(vrna_fold_compound_t  *vc,
-               const FLT_OR_DBL      *constraints,
-               unsigned int          options);
+vrna_sc_set_up(vrna_fold_compound_t *vc,
+               const FLT_OR_DBL     *constraints,
+               unsigned int         options);
 
 
 /**
@@ -376,16 +377,16 @@ vrna_sc_set_up(vrna_fold_compound_t  *vc,
  *  @return             Non-zero on successful application of the constraint, 0 otherwise.
  */
 int
-vrna_sc_add_up(vrna_fold_compound_t  *vc,
-               int                   i,
-               FLT_OR_DBL            energy,
-               unsigned int          options);
+vrna_sc_add_up(vrna_fold_compound_t *vc,
+               int                  i,
+               FLT_OR_DBL           energy,
+               unsigned int         options);
 
 
 int
-vrna_sc_set_stack(vrna_fold_compound_t *vc,
-                  const FLT_OR_DBL     *constraints,
-                  unsigned int         options);
+vrna_sc_set_stack(vrna_fold_compound_t  *vc,
+                  const FLT_OR_DBL      *constraints,
+                  unsigned int          options);
 
 
 int
@@ -395,10 +396,10 @@ vrna_sc_set_stack_comparative(vrna_fold_compound_t  *fc,
 
 
 int
-vrna_sc_add_stack(vrna_fold_compound_t *vc,
-                  int                  i,
-                  FLT_OR_DBL           energy,
-                  unsigned int         options);
+vrna_sc_add_stack(vrna_fold_compound_t  *vc,
+                  int                   i,
+                  FLT_OR_DBL            energy,
+                  unsigned int          options);
 
 
 int
@@ -445,15 +446,15 @@ vrna_sc_free(vrna_sc_t *sc);
  *  @return           Non-zero on successful binding the data (and free-function), 0 otherwise
  */
 int
-vrna_sc_add_data(vrna_fold_compound_t       *vc,
-                 void                       *data,
-                 vrna_auxdata_free_f free_data);
+vrna_sc_add_data(vrna_fold_compound_t *vc,
+                 void                 *data,
+                 vrna_auxdata_free_f  free_data);
 
 
 int
-vrna_sc_add_data_comparative(vrna_fold_compound_t       *vc,
-                             void                       **data,
-                             vrna_auxdata_free_f *free_data);
+vrna_sc_add_data_comparative(vrna_fold_compound_t *vc,
+                             void                 **data,
+                             vrna_auxdata_free_f  *free_data);
 
 
 /**
@@ -473,22 +474,22 @@ vrna_sc_add_data_comparative(vrna_fold_compound_t       *vc,
  *  @return       Non-zero on successful binding the callback function, 0 otherwise
  */
 int
-vrna_sc_add_f(vrna_fold_compound_t    *vc,
-              vrna_sc_f f);
+vrna_sc_add_f(vrna_fold_compound_t  *vc,
+              vrna_sc_f             f);
 
 
 size_t
-vrna_sc_multi_cb_add(vrna_fold_compound_t         *fc,
-                     vrna_sc_direct_f      cb,
-                     vrna_sc_exp_direct_f  cb_exp,
-                     void                         *data,
-                     vrna_auxdata_free_f   free_data,
-                     unsigned int                 decomp_type);
+vrna_sc_multi_cb_add(vrna_fold_compound_t *fc,
+                     vrna_sc_direct_f     cb,
+                     vrna_sc_exp_direct_f cb_exp,
+                     void                 *data,
+                     vrna_auxdata_free_f  free_data,
+                     unsigned int         decomp_type);
 
 
 int
-vrna_sc_add_f_comparative(vrna_fold_compound_t    *vc,
-                          vrna_sc_f *f);
+vrna_sc_add_f_comparative(vrna_fold_compound_t  *vc,
+                          vrna_sc_f             *f);
 
 
 /**
@@ -510,8 +511,8 @@ vrna_sc_add_f_comparative(vrna_fold_compound_t    *vc,
  *  @return       Non-zero on successful binding the callback function, 0 otherwise
  */
 int
-vrna_sc_add_bt(vrna_fold_compound_t       *vc,
-               vrna_sc_bt_f f);
+vrna_sc_add_bt(vrna_fold_compound_t *vc,
+               vrna_sc_bt_f         f);
 
 
 /**
@@ -532,13 +533,13 @@ vrna_sc_add_bt(vrna_fold_compound_t       *vc,
  *  @return       Non-zero on successful binding the callback function, 0 otherwise
  */
 int
-vrna_sc_add_exp_f(vrna_fold_compound_t        *vc,
-                  vrna_sc_exp_f exp_f);
+vrna_sc_add_exp_f(vrna_fold_compound_t  *vc,
+                  vrna_sc_exp_f         exp_f);
 
 
 int
-vrna_sc_add_exp_f_comparative(vrna_fold_compound_t        *vc,
-                              vrna_sc_exp_f *exp_f);
+vrna_sc_add_exp_f_comparative(vrna_fold_compound_t  *vc,
+                              vrna_sc_exp_f         *exp_f);
 
 
 #endif

@@ -22,17 +22,17 @@
  */
 
 typedef struct {
-  vrna_array(vrna_sc_direct_f)     cbs;
-  vrna_array(vrna_sc_exp_direct_f) cbs_exp;
-  vrna_array(void *)                      data;
-  vrna_array(void *)                      data_exp;
-  vrna_array(vrna_auxdata_free_f)  free_data;
+  vrna_array(vrna_sc_direct_f)      cbs;
+  vrna_array(vrna_sc_exp_direct_f)  cbs_exp;
+  vrna_array(void *)                data;
+  vrna_array(void *)                data_exp;
+  vrna_array(vrna_auxdata_free_f)   free_data;
 } sc_cb_container_t;
 
 
 typedef struct {
-  vrna_sc_direct_f cb;
-  void                    *data;
+  vrna_sc_direct_f  cb;
+  void              *data;
 } sc_cb_en_wrap;
 
 
@@ -84,12 +84,12 @@ cb_exp_default(vrna_fold_compound_t *fc,
  #################################
  */
 PUBLIC size_t
-vrna_sc_multi_cb_add(vrna_fold_compound_t         *fc,
-                     vrna_sc_direct_f      cb,
-                     vrna_sc_exp_direct_f  cb_exp,
-                     void                         *data,
-                     vrna_auxdata_free_f   free_data,
-                     unsigned int                 d)
+vrna_sc_multi_cb_add(vrna_fold_compound_t *fc,
+                     vrna_sc_direct_f     cb,
+                     vrna_sc_exp_direct_f cb_exp,
+                     void                 *data,
+                     vrna_auxdata_free_f  free_data,
+                     unsigned int         d)
 {
   vrna_sc_t         *sc;
   sc_cb_container_t *data_multi;
@@ -127,7 +127,7 @@ vrna_sc_multi_cb_add(vrna_fold_compound_t         *fc,
         vrna_array_init(multi_s->data[d].free_data);
       }
 
-      data_multi            = &(multi_s->data[d]);
+      data_multi = &(multi_s->data[d]);
       vrna_array_append(data_multi->cbs, cb);
       vrna_array_append(data_multi->data, data);
       vrna_array_append(data_multi->free_data, free_data);
@@ -137,8 +137,8 @@ vrna_sc_multi_cb_add(vrna_fold_compound_t         *fc,
         vrna_array_append(data_multi->data_exp, data);
       } else {
         sc_cb_en_wrap *wrapper = (sc_cb_en_wrap *)vrna_alloc(sizeof(sc_cb_en_wrap));
-        wrapper->cb           = cb;
-        wrapper->data         = data;
+        wrapper->cb   = cb;
+        wrapper->data = data;
         vrna_array_append(data_multi->cbs_exp, &cb_exp_default);
         vrna_array_append(data_multi->data_exp, wrapper);
       }
@@ -169,7 +169,7 @@ sc_collect(int            i,
 
   if (msc->data[d].cbs) {
     vrna_fold_compound_t  *fc     = msc->fc;
-    vrna_sc_direct_f         *cbs    = msc->data[d].cbs;
+    vrna_sc_direct_f      *cbs    = msc->data[d].cbs;
     void                  **data  = msc->data[d].data;
     size_t                stop    = vrna_array_size(cbs);
 
@@ -194,7 +194,7 @@ sc_exp_collect(int            i,
 
   if (msc->data[d].cbs_exp) {
     vrna_fold_compound_t  *fc       = msc->fc;
-    vrna_sc_exp_direct_f     *cbs_exp  = msc->data[d].cbs_exp;
+    vrna_sc_exp_direct_f  *cbs_exp  = msc->data[d].cbs_exp;
     void                  **data    = msc->data[d].data_exp;
     size_t                stop      = vrna_array_size(cbs_exp);
 
