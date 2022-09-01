@@ -185,10 +185,10 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
 
   if (*shape_conversion == 'M') {
     double  max;
-    double  map_info[4][2] = { { 0.25, 0.35    },
-                               { 0.30, 0.55    },
-                               { 0.70, 0.85    },
-                               { 0,    1       } };
+    double  map_info[4][2] = { { 0.25, 0.35 },
+                               { 0.30, 0.55 },
+                               { 0.70, 0.85 },
+                               { 0,    1    } };
 
     max = values[1];
     for (i = 2; i <= length; ++i)

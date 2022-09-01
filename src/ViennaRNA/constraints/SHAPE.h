@@ -20,19 +20,24 @@
  *  secondary structure prediction can be found in @cite lorenz:2016a
  *
  */
-void vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
-                                const char *shape_file,
-                                const char *shape_method,
-                                const char *shape_conversion,
-                                int verbose,
-                                unsigned int constraint_type);
+void
+vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
+                           const char           *shape_file,
+                           const char           *shape_method,
+                           const char           *shape_conversion,
+                           int                  verbose,
+                           unsigned int         constraint_type);
 
-void vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
-                                    const char *shape_method,
-                                    const char **shape_files,
-                                    const int  *shape_file_association,
-                                    int verbose,
-                                    unsigned int constraint_type);
+
+void
+vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
+                               const char           *shape_method,
+                               const char           **shape_files,
+                               const int            *shape_file_association,
+                               int                  verbose,
+                               unsigned int         constraint_type);
+
+
 /**
  *  @brief  Add SHAPE reactivity data as soft constraints (Deigan et al. method)
  *
@@ -58,11 +63,13 @@ void vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
-                              const double *reactivities,
-                              double m,
-                              double b,
-                              unsigned int options);
+int
+vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
+                         const double         *reactivities,
+                         double               m,
+                         double               b,
+                         unsigned int         options);
+
 
 /**
  *  @brief  Add SHAPE reactivity data from files as soft constraints for consensus structure prediction (Deigan et al. method)
@@ -76,12 +83,14 @@ int vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *vc,
  *  @param  options       The options flag indicating how/where to store the soft constraints
  *  @return               1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
-                                  const char **shape_files,
-                                  const int *shape_file_association,
-                                  double m,
-                                  double b,
-                                  unsigned int options);
+int
+vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
+                             const char           **shape_files,
+                             const int            *shape_file_association,
+                             double               m,
+                             double               b,
+                             unsigned int         options);
+
 
 /**
  *  @brief  Add SHAPE reactivity data as soft constraints (Zarringhalam et al. method)
@@ -105,12 +114,14 @@ int vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *vc,
  *  @param  options           The options flag indicating how/where to store the soft constraints
  *  @return                   1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
-                                    const double *reactivities,
-                                    double b,
-                                    double default_value,
-                                    const char *shape_conversion,
-                                    unsigned int options);
+int
+vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *vc,
+                               const double         *reactivities,
+                               double               b,
+                               double               default_value,
+                               const char           *shape_conversion,
+                               unsigned int         options);
+
 
 /**
  *  @brief  Parse a character string and extract the encoded SHAPE reactivity conversion
@@ -124,10 +135,12 @@ int vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *vc,
  *  @param  param_2         A pointer to the memory location where the second parameter of the corresponding method will be stored
  *  @return                 1 on successful extraction of the method, 0 on errors
  */
-int vrna_sc_SHAPE_parse_method( const char *method_string,
-                                char *method,
-                                float *param_1,
-                                float *param_2);
+int
+vrna_sc_SHAPE_parse_method(const char *method_string,
+                           char       *method,
+                           float      *param_1,
+                           float      *param_2);
+
 
 /**
  *  @brief Convert SHAPE reactivity values to probabilities for being unpaired
@@ -143,9 +156,11 @@ int vrna_sc_SHAPE_parse_method( const char *method_string,
  *  @param length           Length of the array of SHAPE reactivities
  *  @param default_value    Result used for position with invalid/missing reactivity values
  */
-int vrna_sc_SHAPE_to_pr(const char *shape_conversion,
-                        double *values,
-                        int length,
-                        double default_value);
+int
+vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
+                    double      *values,
+                    int         length,
+                    double      default_value);
+
 
 #endif
