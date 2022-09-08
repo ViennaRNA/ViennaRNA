@@ -156,6 +156,11 @@ typedef struct vrna_md_s vrna_md_t;
 
 #define VRNA_MODEL_DEFAULT_PF_SMOOTH      1
 
+/**
+ *  @brief  Default model salt concentration
+ */
+#define VRNA_MODEL_DEFAULT_SALT           1000.
+
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -234,6 +239,7 @@ struct vrna_md_s {
   short   alias[MAXALPHA + 1];              /**<  @brief  alias of an integer nucleotide representation */
   int     pair[MAXALPHA + 1][MAXALPHA + 1]; /**<  @brief  Integer representation of a base pair */
   float   pair_dist[7][7];                  /**<  @brief  Base pair dissimilarity, a.k.a. distance matrix */
+  double  salt;                             /**<  @brief  Salt concentration */
 };
 
 
@@ -742,6 +748,21 @@ vrna_md_defaults_sfact(double factor);
 double
 vrna_md_defaults_sfact_get(void);
 
+/**
+ *  @brief Set the default sodium concentration
+ *
+ *  @param salt The sodium concentration in mM (default: 1000)
+ */
+void
+vrna_md_defaults_salt(double salt);
+
+
+/**
+ *  @brief Get the default sodium concentration
+ *  @return The default sodium concentration
+ */
+double
+vrna_md_defaults_salt_get(void);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

@@ -149,7 +149,8 @@ PRIVATE vrna_md_t defaults = {
   BP_REV_DEFAULT,
   BP_ALIAS_DEFAULT,
   BP_ENCODING_DEFAULT,
-  DM_DEFAULT
+  DM_DEFAULT,
+  VRNA_MODEL_DEFAULT_SALT
 };
 
 /*
@@ -354,6 +355,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.pf_smooth        = VRNA_MODEL_DEFAULT_PF_SMOOTH;
   defaults.sfact            = 1.07;
   defaults.nonstandards[0]  = '\0';
+  defaults.salt             = VRNA_MODEL_DEFAULT_SALT;
 
   if (md_p) {
     /* now try to apply user settings */
@@ -387,6 +389,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_betaScale(md_p->betaScale);
     vrna_md_defaults_pf_smooth(md_p->pf_smooth);
     vrna_md_defaults_sfact(md_p->sfact);
+    vrna_md_defaults_salt(md_p->salt);
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
@@ -841,6 +844,18 @@ vrna_md_defaults_sfact_get(void)
   return defaults.sfact;
 }
 
+
+PUBLIC void
+vrna_md_defaults_salt(double salt)
+{
+  defaults.salt = salt;
+}
+
+PUBLIC double
+vrna_md_defaults_salt_get(void)
+{
+  return defaults.salt;
+}
 
 PUBLIC void
 vrna_md_update(vrna_md_t *md)
