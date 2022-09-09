@@ -6,3 +6,4 @@ vrna_hc_add_up,hc_add_up,vrna_fold_compound_t,vc
 vrna_hc_add_bp_nonspecific,hc_add_bp_nonspecific,vrna_fold_compound_t,vc
 vrna_hc_add_bp,hc_add_bp,vrna_fold_compound_t,vc
 vrna_hc_add_from_db,hc_add_from_db,vrna_fold_compound_t,vc
+vrna_mfe_window,mfe_window,vrna_fold_compound_t,vc

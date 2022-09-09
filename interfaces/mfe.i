@@ -331,6 +331,7 @@
 %newobject my_circfold;
 %newobject my_circalifold;
 
+%feature("autodoc", "fold(string) -> (structure, mfe)") my_fold;
 char *my_fold(char *string, float *energy);
 char *my_fold(char *string, char *constraints, float *energy);
 char *my_alifold(std::vector<std::string> alignment, float *energy);
@@ -351,7 +352,7 @@ char *my_circalifold(std::vector<std::string> alignment, char *constraints, floa
 %extend vrna_fold_compound_t {
 
 #ifdef SWIGPYTHON
-%feature("autodoc") mfe;
+%feature("autodoc", "mfe() -> (structure, energy)") mfe;
 %feature("kwargs") mfe;
 %feature("autodoc") mfe_dimer;
 %feature("kwargs") mfe_dimer;
