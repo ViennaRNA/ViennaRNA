@@ -96,6 +96,12 @@ if VRNA_AM_SWITCH_JSON
 endif
 
 
+CEPHES_SRC  = ../cephes/kn.c \
+							../cephes/const.c \
+							../cephes/mtherr.c
+CEPHES_H    = ../cephes/mconf.h
+
+
 pkginclude_HEADERS =  \
     concentrations.h \
     wrap_dlib.h \
@@ -189,7 +195,8 @@ pkginclude_HEADERS =  \
     heat_capacity.h \
     ${SVM_UTILS_H_OLD} \
     ${SVM_H} \
-    ${JSON_H}
+    ${JSON_H} \
+    ${CEPHES_H}
 
 
 if VRNA_AM_SWITCH_NAVIEW
@@ -214,7 +221,8 @@ vrna_loops_HEADERS = \
     loops/external.h \
     loops/hairpin.h \
     loops/internal.h \
-    loops/multibranch.h
+    loops/multibranch.h \
+		loops/salt.h
 
 
 vrna_utils_HEADERS = \
@@ -331,7 +339,8 @@ libRNA_conv_la_SOURCES = \
     sequence.c \
     unstructured_domains.c \
     grammar.c \
-    heat_capacity.c
+    heat_capacity.c \
+    ${CEPHES_SRC}
 
 if VRNA_AM_SWITCH_SVM
 libRNA_conv_la_SOURCES += zscore.c
@@ -410,7 +419,8 @@ libRNA_loops_la_SOURCES = \
     loops/internal_pf.c \
     loops/multibranch.c \
     loops/multibranch_bt.c \
-    loops/multibranch_pf.c
+    loops/multibranch_pf.c \
+		loops/salt.c
 
 libRNA_params_la_SOURCES = \
     params/io.c \

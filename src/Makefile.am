@@ -4,4 +4,5 @@ EXTRA_DIST = \
   @LIBSVM_DIR@ \
   json \
   cthreadpool \
-  @DLIB_DIR@
+  @DLIB_DIR@ \
+	cephes
