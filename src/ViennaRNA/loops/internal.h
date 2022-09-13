@@ -10,6 +10,7 @@
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/constraints/hard.h>
 #include <ViennaRNA/constraints/soft.h>
+#include <ViennaRNA/loops/salt.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(DEPRECATED)
@@ -488,7 +489,17 @@ E_IntLoop(int           n1,
           vrna_param_t  *P)
 {
   /* compute energy of degree 2 loop (stack bulge or interior) */
-  int nl, ns, u, energy;
+  int nl, ns, u, energy, salt_stack_correction, salt_loop_correction;
+  double salt, T;
+  vrna_md_t *md;
+
+  md = &(P->model_details);
+  salt = md->salt;
+  T = md->temperature + K0;
+
+  salt_stack_correction = (salt==1000) ? 0 : vrna_salt_stack(salt/1000, T);
+  salt_loop_correction = 0;
+	printf("salt stack correction %d\n", salt_stack_correction);
 
   if (n1 > n2) {
     nl  = n1;
@@ -498,9 +509,10 @@ E_IntLoop(int           n1,
     ns  = n1;
   }
 
-  if (nl == 0)
-    return P->stack[type][type_2];  /* stack */
-
+  if (nl == 0) {
+    return P->stack[type][type_2] + salt_stack_correction;  /* stack */
+  }
+  /* salt_loop_correction = (salt==1000) ? 0 : vrna_salt_stack(salt/1000, T) + vrna_salt_loop(nl+ns+2, salt/1000, T); */
   if (ns == 0) {
     /* bulge */
     energy = (nl <= MAXLOOP) ? P->bulge[nl] :
@@ -515,12 +527,12 @@ E_IntLoop(int           n1,
         energy += P->TerminalAU;
     }
 
-    return energy;
+    return energy + salt_loop_correction;
   } else {
     /* interior loop */
     if (ns == 1) {
       if (nl == 1)                    /* 1x1 loop */
-        return P->int11[type][type_2][si1][sj1];
+        return P->int11[type][type_2][si1][sj1] = salt_loop_correction;
 
       if (nl == 2) {
         /* 2x1 loop */
@@ -529,7 +541,7 @@ E_IntLoop(int           n1,
         else
           energy = P->int21[type_2][type][sq1][si1][sp1];
 
-        return energy;
+        return energy + salt_loop_correction;
       } else {
         /* 1xn loop */
         energy =
@@ -538,17 +550,17 @@ E_IntLoop(int           n1,
                                                     (int)(P->lxc * log((nl + 1) / 30.)));
         energy  += MIN2(MAX_NINIO, (nl - ns) * P->ninio[2]);
         energy  += P->mismatch1nI[type][si1][sj1] + P->mismatch1nI[type_2][sq1][sp1];
-        return energy;
+        return energy + salt_loop_correction;
       }
     } else if (ns == 2) {
       if (nl == 2) {
         /* 2x2 loop */
-        return P->int22[type][type_2][si1][sp1][sq1][sj1];
+        return P->int22[type][type_2][si1][sp1][sq1][sj1] + salt_loop_correction;
       } else if (nl == 3) {
         /* 2x3 loop */
         energy  = P->internal_loop[5] + P->ninio[2];
         energy  += P->mismatch23I[type][si1][sj1] + P->mismatch23I[type_2][sq1][sp1];
-        return energy;
+        return energy + salt_loop_correction;
       }
     }
 
@@ -565,7 +577,7 @@ E_IntLoop(int           n1,
     }
   }
 
-  return energy;
+  return energy + salt_loop_correction;
 }
 
 
