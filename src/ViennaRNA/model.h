@@ -162,6 +162,12 @@ typedef struct vrna_md_s vrna_md_t;
 #define VRNA_MODEL_DEFAULT_SALT           1000.
 
 
+#define VRNA_MODEL_DEFAULT_SALTMLLOWER    6
+
+
+#define VRNA_MODEL_DEFAULT_SALTMLUPPER    24
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifndef MAXALPHA
@@ -240,6 +246,8 @@ struct vrna_md_s {
   int     pair[MAXALPHA + 1][MAXALPHA + 1]; /**<  @brief  Integer representation of a base pair */
   float   pair_dist[7][7];                  /**<  @brief  Base pair dissimilarity, a.k.a. distance matrix */
   double  salt;                             /**<  @brief  Salt concentration */
+  int     saltMLLower;
+  int     saltMLUpper;
 };
 
 
@@ -763,6 +771,18 @@ vrna_md_defaults_salt(double salt);
  */
 double
 vrna_md_defaults_salt_get(void);
+
+void
+vrna_md_defaults_saltMLLower(int lower);
+
+int
+vrna_md_defaults_saltMLLower_get(void);
+
+void
+vrna_md_defaults_saltMLUpper(int upper);
+
+int
+vrna_md_defaults_saltMLUpper_get(void);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

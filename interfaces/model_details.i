@@ -44,6 +44,8 @@ typedef struct {
   const short   alias[MAXALPHA+1];
   const int const pair[MAXALPHA+1][MAXALPHA+1];
   double  salt;
+  int saltMLLower;
+  int saltMLUpper;
 } vrna_md_t;
 
 
@@ -81,7 +83,9 @@ typedef struct {
     const double  cv_fact         = vrna_md_defaults_cv_fact_get(),
     const double  nc_fact         = vrna_md_defaults_nc_fact_get(),
     const double  sfact           = vrna_md_defaults_sfact_get(),
-    const double  salt            = vrna_md_defaults_salt_get())
+    const double  salt            = vrna_md_defaults_salt_get(),
+    const int     saltMLLower     = vrna_md_defaults_saltMLLower_get(),
+    const int     saltMLUpper     = vrna_md_defaults_saltMLUpper_get())
   {
     vrna_md_t *md       = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     md->temperature     = temperature;
@@ -109,6 +113,8 @@ typedef struct {
     md->nc_fact         = nc_fact;
     md->sfact           = sfact;
     md->salt            = salt;
+    md->saltMLLower     = saltMLLower;
+    md->saltMLUpper     = saltMLUpper;
 
     vrna_md_update(md);
 
@@ -168,6 +174,8 @@ typedef struct {
     out << ", nc_fact: " << $self->nc_fact ;
     out << ", sfact: " << $self->sfact ;
     out << ", salt: " << $self->salt ;
+    out << ", saltMLLower: " << $self->saltMLLower ;
+    out << ", saltMLUpper: " << $self->saltMLUpper ;
     out << " }";
 
     return std::string(out.str());

@@ -57,6 +57,13 @@ typedef struct {
 
   const vrna_md_t model_details;
   const char      param_file[256];
+
+  const int       SaltStack;
+  const int       SaltLoop[MAXLOOP + 1];
+  const double    SaltLoopDbl[MAXLOOP + 1];
+  const int       SaltMLbase;
+  const int       SaltMLintern;
+  const int       SaltMLclosing;
 } vrna_param_t;
 
 /* do not create default constructor */
@@ -191,6 +198,19 @@ typedef struct {
     for (size_t i = 1; i < 5; i++)
       out << ", " << $self->ninio[i];
     out << "]";
+
+    out << ", SaltStack: " << $self->SaltStack;
+    out << ", SaltLoop: [" << $self->SaltLoop[0];
+    for (size_t i = 1; i < MAXLOOP + 1; i++)
+      out << ", " << $self->SaltLoop[i];
+    out << "]";
+    out << ", SaltLoopDbl: [" << $self->SaltLoopDbl[0];
+    for (size_t i = 1; i < MAXLOOP + 1; i++)
+      out << ", " << $self->SaltLoopDbl[i];
+    out << "]";
+    out << ", SaltMLbase: " << $self->SaltMLbase;
+    out << ", SaltMLintern: " << $self->SaltMLintern;
+    out << ", SaltMLclosing: " << $self->SaltMLclosing;
 
     out << " }";
 

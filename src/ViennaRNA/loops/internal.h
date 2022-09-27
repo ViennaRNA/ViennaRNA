@@ -10,7 +10,6 @@
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/constraints/hard.h>
 #include <ViennaRNA/constraints/soft.h>
-#include <ViennaRNA/loops/salt.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(DEPRECATED)
@@ -490,16 +489,9 @@ E_IntLoop(int           n1,
 {
   /* compute energy of degree 2 loop (stack bulge or interior) */
   int nl, ns, u, energy, salt_stack_correction, salt_loop_correction;
-  double salt, T;
-  vrna_md_t *md;
 
-  md = &(P->model_details);
-  salt = md->salt;
-  T = md->temperature + K0;
-
-  salt_stack_correction = (salt==1000) ? 0 : vrna_salt_stack(salt/1000, T);
+  salt_stack_correction = P->SaltStack;
   salt_loop_correction = 0;
-	printf("salt stack correction %d\n", salt_stack_correction);
 
   if (n1 > n2) {
     nl  = n1;
@@ -512,7 +504,11 @@ E_IntLoop(int           n1,
   if (nl == 0) {
     return P->stack[type][type_2] + salt_stack_correction;  /* stack */
   }
-  /* salt_loop_correction = (salt==1000) ? 0 : vrna_salt_stack(salt/1000, T) + vrna_salt_loop(nl+ns+2, salt/1000, T); */
+
+  /* salt correction for loop */
+  if (nl+ns+2 <= MAXLOOP+1)
+    salt_loop_correction = P->SaltLoop[nl+ns+2];
+  
   if (ns == 0) {
     /* bulge */
     energy = (nl <= MAXLOOP) ? P->bulge[nl] :
@@ -532,7 +528,7 @@ E_IntLoop(int           n1,
     /* interior loop */
     if (ns == 1) {
       if (nl == 1)                    /* 1x1 loop */
-        return P->int11[type][type_2][si1][sj1] = salt_loop_correction;
+        return P->int11[type][type_2][si1][sj1] + salt_loop_correction;
 
       if (nl == 2) {
         /* 2x1 loop */
@@ -595,6 +591,8 @@ exp_E_IntLoop(int               u1,
   int     ul, us, no_close = 0;
   double  z           = 0.;
   int     noGUclosure = P->model_details.noGUclosure;
+  double  salt_stack_correction = P->expSaltStack;
+  double  salt_loop_correction = 1.;
 
   if ((noGUclosure) && ((type2 == 3) || (type2 == 4) || (type == 3) || (type == 4)))
     no_close = 1;
@@ -607,9 +605,13 @@ exp_E_IntLoop(int               u1,
     us  = u1;
   }
 
+  /* salt correction for loop */
+  if (ul+us+2 <= MAXLOOP+1)
+    salt_loop_correction = P->expSaltLoop[ul+us+2];
+
   if (ul == 0) {
     /* stack */
-    z = P->expstack[type][type2];
+    z = P->expstack[type][type2] * salt_stack_correction;
   } else if (!no_close) {
     if (us == 0) {
       /* bulge */
@@ -624,39 +626,39 @@ exp_E_IntLoop(int               u1,
           z *= P->expTermAU;
       }
 
-      return (FLT_OR_DBL)z;
+      return (FLT_OR_DBL)(z * salt_loop_correction);
     } else if (us == 1) {
       if (ul == 1)                     /* 1x1 loop */
-        return (FLT_OR_DBL)(P->expint11[type][type2][si1][sj1]);
+        return (FLT_OR_DBL)(P->expint11[type][type2][si1][sj1] * salt_loop_correction);
 
       if (ul == 2) {
         /* 2x1 loop */
         if (u1 == 1)
-          return (FLT_OR_DBL)(P->expint21[type][type2][si1][sq1][sj1]);
+          return (FLT_OR_DBL)(P->expint21[type][type2][si1][sq1][sj1] * salt_loop_correction);
         else
-          return (FLT_OR_DBL)(P->expint21[type2][type][sq1][si1][sp1]);
+          return (FLT_OR_DBL)(P->expint21[type2][type][sq1][si1][sp1] * salt_loop_correction);
       } else {
         /* 1xn loop */
         z = P->expinternal[ul + us] * P->expmismatch1nI[type][si1][sj1] *
             P->expmismatch1nI[type2][sq1][sp1];
-        return (FLT_OR_DBL)(z * P->expninio[2][ul - us]);
+        return (FLT_OR_DBL)(z * P->expninio[2][ul - us] * salt_loop_correction);
       }
     } else if (us == 2) {
       if (ul == 2) {
         /* 2x2 loop */
-        return (FLT_OR_DBL)(P->expint22[type][type2][si1][sp1][sq1][sj1]);
+        return (FLT_OR_DBL)(P->expint22[type][type2][si1][sp1][sq1][sj1] * salt_loop_correction);
       } else if (ul == 3) {
         /* 2x3 loop */
         z = P->expinternal[5] * P->expmismatch23I[type][si1][sj1] *
             P->expmismatch23I[type2][sq1][sp1];
-        return (FLT_OR_DBL)(z * P->expninio[2][1]);
+        return (FLT_OR_DBL)(z * P->expninio[2][1] * salt_loop_correction);
       }
     }
 
     /* generic interior loop (no else here!)*/
     z = P->expinternal[ul + us] * P->expmismatchI[type][si1][sj1] *
         P->expmismatchI[type2][sq1][sp1];
-    return (FLT_OR_DBL)(z * P->expninio[2][ul - us]);
+    return (FLT_OR_DBL)(z * P->expninio[2][ul - us] * salt_loop_correction);
   }
 
   return (FLT_OR_DBL)z;

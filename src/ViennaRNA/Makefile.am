@@ -98,7 +98,8 @@ endif
 
 CEPHES_SRC  = ../cephes/kn.c \
 							../cephes/const.c \
-							../cephes/mtherr.c
+							../cephes/mtherr.c \
+							../cephes/expn.c
 CEPHES_H    = ../cephes/mconf.h
 
 
@@ -505,7 +506,8 @@ noinst_HEADERS  = params/intl11.h \
                   list.h \
                   ${SVM_H} \
                   ${JSON_H} \
-                  special_const.h
+                  special_const.h \
+									${CEPHES_H}
 
 nodist_pkginclude_HEADERS = vrna_config.h
 

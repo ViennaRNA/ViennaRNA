@@ -7,7 +7,6 @@
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
-#include <ViennaRNA/loops/salt.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(DEPRECATED)
@@ -155,14 +154,11 @@ E_Hairpin(int           size,
           vrna_param_t  *P)
 {
   int energy, salt_correction;
-  double salt, T;
-  vrna_md_t *md;
 
-  md = &(P->model_details);
-  salt = md->salt;
-  T = md->temperature;
   salt_correction = 0;
-  /* salt_correction = (salt==1000) ? 0 : vrna_salt_stack(salt/1000, T) + vrna_salt_loop(size+1, salt/1000, T); */
+
+  if (size<=MAXLOOP)
+    salt_correction = P->SaltLoop[size+1];
 
   if (size <= 30)
     energy = P->hairpin[size];
@@ -247,14 +243,20 @@ exp_E_Hairpin(int               u,
               const char        *string,
               vrna_exp_param_t  *P)
 {
-  double q, kT;
+  double q, kT, salt_correction;
 
   kT = P->kT;   /* kT in cal/mol  */
+  salt_correction = 1.;
+
+  if (u<=MAXLOOP)
+    salt_correction = P->expSaltLoop[u+1];
 
   if (u <= 30)
     q = P->exphairpin[u];
   else
     q = P->exphairpin[30] * exp(-(P->lxc * log(u / 30.)) * 10. / kT);
+
+  q *= salt_correction;
 
   if (u < 3)
     return (FLT_OR_DBL)q;         /* should only be the case when folding alignments */
@@ -268,7 +270,7 @@ exp_E_Hairpin(int               u,
       tl[6] = '\0';
       if ((ts = strstr(P->Tetraloops, tl))) {
         if (type != 7)
-          return (FLT_OR_DBL)(P->exptetra[(ts - P->Tetraloops) / 7]);
+          return (FLT_OR_DBL)(P->exptetra[(ts - P->Tetraloops) / 7] * salt_correction);
         else
           q *= P->exptetra[(ts - P->Tetraloops) / 7];
       }
@@ -279,7 +281,7 @@ exp_E_Hairpin(int               u,
       memcpy(tl, string, sizeof(char) * 8);
       tl[8] = '\0';
       if ((ts = strstr(P->Hexaloops, tl)))
-        return (FLT_OR_DBL)(P->exphex[(ts - P->Hexaloops) / 9]);
+        return (FLT_OR_DBL)(P->exphex[(ts - P->Hexaloops) / 9] * salt_correction);
     } else if (u == 3) {
       char tl[6] = {
         0
@@ -287,7 +289,7 @@ exp_E_Hairpin(int               u,
       memcpy(tl, string, sizeof(char) * 5);
       tl[5] = '\0';
       if ((ts = strstr(P->Triloops, tl)))
-        return (FLT_OR_DBL)(P->exptri[(ts - P->Triloops) / 6]);
+        return (FLT_OR_DBL)(P->exptri[(ts - P->Triloops) / 6] * salt_correction);
 
       if (type > 2)
         return (FLT_OR_DBL)(q * P->expTermAU);
