@@ -150,11 +150,15 @@ double my_pf_add(double dG1, double dG2, double kT = 0);
   double
   ensemble_defect(std::vector<int> pair_table)
   {
-    double ed;
-
     std::vector<short> pt_v_short;
     transform(pair_table.begin(), pair_table.end(), back_inserter(pt_v_short), convert_vecint2vecshort);
     return vrna_ensemble_defect_pt($self, (short*)&pt_v_short[0]);
+  }
+
+  double
+  ensemble_defect(var_array<short> const &pt)
+  {
+    return vrna_ensemble_defect_pt($self, pt.data);
   }
 
   std::vector<double>

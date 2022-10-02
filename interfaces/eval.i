@@ -21,9 +21,9 @@
   }
   
   int
-  eval_structure_pt(var_array<short> *const pt)
+  eval_structure_pt(var_array<short> const &pt)
   {
-    return vrna_eval_structure_pt($self, pt->data);
+    return vrna_eval_structure_pt($self, pt.data);
   }
   
   /*  compute free energy for structure given in dot-bracket notation, 
@@ -46,10 +46,10 @@
   }
   
   int
-  eval_structure_pt_verbose(var_array<short> *const pt,
-                            FILE              *nullfile = NULL)
+  eval_structure_pt_verbose(var_array<short> const &pt,
+                            FILE             *nullfile = NULL)
   {
-    return vrna_eval_structure_pt_verbose($self, pt->data, nullfile);
+    return vrna_eval_structure_pt_verbose($self, pt.data, nullfile);
   }
   
   /* compute covariance contributions for consensus structure given in dot-bracket notation */
@@ -71,9 +71,9 @@
 
   int
   eval_loop_pt(int              i, 
-               var_array<short> *const pt)
+               var_array<short> const &pt)
   {
-    return vrna_eval_loop_pt($self, i, pt->data);
+    return vrna_eval_loop_pt($self, i, pt.data);
   }
 
   /* returns the energy change by introducing a move on a given structure */
@@ -97,11 +97,11 @@
   }
 
   int
-  eval_move_pt(var_array<short> *const pt,
+  eval_move_pt(var_array<short> const &pt,
                int              m1,
                int              m2)
   {
-    return vrna_eval_move_pt($self, pt->data, m1, m2);   /*attention here no const short* as argument*/
+    return vrna_eval_move_pt($self, pt.data, m1, m2);   /*attention here no const short* as argument*/
   }
 }
 
@@ -237,11 +237,11 @@
 
   float
   my_eval_structure_pt_simple(std::string       sequence,
-                              var_array<short> *const pt,
+                              var_array<short> const &pt,
                               int               verbosity_level = VRNA_VERBOSITY_QUIET,
                               FILE              *nullfile = NULL)
   {
-    return vrna_eval_structure_pt_simple_v(sequence.c_str(), pt->data, verbosity_level, nullfile);
+    return vrna_eval_structure_pt_simple_v(sequence.c_str(), pt.data, verbosity_level, nullfile);
   }
 
   float
@@ -263,7 +263,7 @@
 
   float
   my_eval_structure_pt_simple(std::vector<std::string>  alignment,
-                              var_array<short> *const   pt,
+                              var_array<short> const   &pt,
                               int                       verbosity_level = VRNA_VERBOSITY_QUIET,
                               FILE                      *nullfile = NULL)
   {
@@ -272,7 +272,7 @@
     std::transform(alignment.begin(), alignment.end(), std::back_inserter(vc), convert_vecstring2veccharcp);
     vc.push_back(NULL); /* mark end of sequences */
 
-    return vrna_eval_consensus_structure_pt_simple_v((const char **)&vc[0], pt->data, verbosity_level, nullfile);
+    return vrna_eval_consensus_structure_pt_simple_v((const char **)&vc[0], pt.data, verbosity_level, nullfile);
   }
 
 %}
@@ -334,7 +334,7 @@ my_eval_structure_pt_simple(std::string sequence,
 
 float
 my_eval_structure_pt_simple(std::string sequence,
-                            var_array<short> *const pt,
+                            var_array<short> const &pt,
                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
                             FILE        *nullfile = NULL);
 
@@ -347,7 +347,7 @@ my_eval_structure_pt_simple(std::vector<std::string> alignment,
 
 float
 my_eval_structure_pt_simple(std::vector<std::string> alignment,
-                            var_array<short> *const pt,
+                            var_array<short> const &pt,
                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
                             FILE        *nullfile = NULL);
 

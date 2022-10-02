@@ -688,6 +688,29 @@ def __repr__(self):
 
     return hx_v;
   }
+
+  std::vector<vrna_hx_t>
+  my_hx_from_ptable(var_array<short> const &pt)
+  {
+    std::vector<vrna_hx_t>  hx_v;
+    vrna_hx_t               *ptr, *hxlist;
+
+    hxlist = vrna_hx_from_ptable(pt.data);
+
+    for (ptr = hxlist; ptr->start && ptr->end; ptr++) {
+      vrna_hx_t hx;
+      hx.start  = ptr->start;
+      hx.end    = ptr->end;
+      hx.length = ptr->length;
+      hx.up5    = ptr->up5;
+      hx.up3    = ptr->up3;
+      hx_v.push_back(hx);
+    }
+
+    free(hxlist);
+
+    return hx_v;
+  }
 %}
 
 #ifdef SWIGPYTHON
@@ -696,6 +719,7 @@ def __repr__(self):
 #endif
 
 std::vector<vrna_hx_t> my_hx_from_ptable(std::vector<int> pt);
+std::vector<vrna_hx_t> my_hx_from_ptable(var_array<short> const &pt);
 
 /************************************/
 /*  Distance measures               */
@@ -736,6 +760,13 @@ std::vector<vrna_hx_t> my_hx_from_ptable(std::vector<int> pt);
     return vrna_bp_distance_pt((short*)&pt1_v_short[0], (short*)&pt2_v_short[0]);
   }
 
+  int
+  my_bp_distance(var_array<short> const &pt1,
+                 var_array<short> const &pt2)
+  {
+    return vrna_bp_distance_pt(pt1.data, pt2.data);
+  }
+
   double
   my_dist_mountain( std::string   str1,
                     std::string   str2,
@@ -752,6 +783,7 @@ std::vector<vrna_hx_t> my_hx_from_ptable(std::vector<int> pt);
 
 int     my_bp_distance(std::string str1, std::string str2, unsigned int options = VRNA_BRACKETS_RND);
 int     my_bp_distance(std::vector<int> pt1, std::vector<int> pt2);
+int     my_bp_distance(var_array<short> const &pt1, var_array<short> const &pt2);
 double  my_dist_mountain(std::string str1, std::string str2, unsigned int p = 1);
 
 /************************************/

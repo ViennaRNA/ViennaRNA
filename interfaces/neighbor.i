@@ -10,16 +10,13 @@
 #endif
 
   std::vector<vrna_move_t>
-  neighbors(std::vector<int>  pt,
+  neighbors(var_array<short> &pt,
             unsigned int      options = VRNA_MOVESET_DEFAULT)
   {
     std::vector<vrna_move_t>  v; /* fill vector with returned vrna_move_t */
     vrna_move_t *move_t, *ptr;
-    std::vector<short> vc;
 
-    transform(pt.begin(), pt.end(), back_inserter(vc), convert_vecint2vecshort);
-
-    move_t = ptr = vrna_neighbors($self, (short*)&vc[0], options);
+    move_t = ptr = vrna_neighbors($self, pt.data, options);
 
     if (ptr)
       while ((ptr->pos_5 != 0) && (ptr->pos_3 != 0)) {
