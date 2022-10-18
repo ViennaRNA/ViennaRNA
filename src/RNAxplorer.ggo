@@ -1,0 +1,286 @@
+# Name of your program
+package "RNAxplorer" # don't use package if you're using automake
+
+purpose "The RNAxplorer is a multitool, that offers different sampling and clustering methods to explore RNA energy landscapes."
+
+#usage "RNAxplorer [options]\n"
+version "0.9"   # don't use version if you're using automake
+
+
+# command line options passed to gengetopt
+args "--file-name=RNAxplorer_cmdl --include-getopt --default-optional --func-name=RNAxplorer_cmdline_parser --arg-struct-name=RNAxplorer_args_info"
+
+
+description "The RNAxplorer is a multitool, that offers different methods to explore RNA\
+ energy landscapes. In default mode (or with -M RSH option) it takes an RNA sequence as\
+ input (either stdin or --sequence parameter) and outputs sampled secondary RNA structures.\
+ The repellant sampling heuristic iteratively penalizes base pairs of local minima of\
+ structures that have been seen too often. This results in a diverse sample set with the most\
+ important low free energy structures.\n\
+ Another important sampling method (-M RS option) is based on reference structures (--struc1\
+ and --struc2). This method produces structures in the vicinity of these two reference\
+ structures. Arbitrary many references can be added if a fasta file is used as input\
+ (via stdin).\n\
+ Often the output of sampling methods has to be coarse grained by local minima that are defined\
+ by a gradient walk. A parallelized gradient descent procedure can be used to retrieve\
+ local minima (-M RL option) of sampled structures (input via stdin)."
+
+
+# Options
+section "General Options"
+sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
+
+option  "verbose" v
+"Be verbose\n"
+flag
+off
+
+
+section "Repulsive Sampling Options"
+option "sequence" -
+"Input sequence"
+string
+default=""
+optional
+
+option "penalize-structures" -
+"Penalize structures instead of base pairs of local minima, that occure too often."
+flag
+off
+
+option "struc1" -
+"Input structure 1"
+string
+default=""
+optional
+
+option "struc2" -
+"Input structure 2"
+string
+default=""
+optional
+
+option "granularity" -
+"Granularity, i.e. number of samples after which distortion checks are performed"
+int
+default="100"
+optional
+
+
+option "num-samples" n
+"Number of samples in total. The number of samples per iteration is n/g."
+int
+default="100000"
+optional
+
+
+option "exploration-factor" f
+"Exploration factor"
+float
+default="1"
+optional
+
+
+option "min-exploration-percent" -
+"Minimum exploration percentage before adding new repelled structures"
+float
+default="1"
+optional
+
+
+option "cluster" -
+"Cluster resulting local minima to reduce effective size"
+flag
+off
+
+option "lmin-file" -
+"Output filename for local minima"
+string
+default=""
+optional
+
+option "TwoD-file" -
+"Output filename for pseudo-2D file"
+string
+default=""
+optional
+
+option "nonred" -
+"Do sampling with non-redundant pbacktrack"
+flag
+off
+
+option "nonred-file" -
+"Input filename for nonredundant samples"
+string
+default=""
+optional
+
+option "explore-two-neighborhood" 2
+"Explore 2-Neighborhood of local minima, i.e. eliminate shallow minima"
+flag
+off
+
+option "post-filter-two" -
+"Post processing Filter local minima according to 2-Neighborhood, i.e. eliminate shallow minima"
+flag
+off
+
+option "ediff-penalty" -
+"Use energy difference instead of kT for penalty"
+flag
+off
+
+option "mu" -
+"proportion factor used to decide whether sampling round was sufficient"
+float
+default="0.1"
+optional
+
+
+
+section "Algorithms"
+sectiondesc="Select additional algorithms which should be included in the calculations.\
+ Default is the repellant sampling heuristic. Display more options with --detailed-help.\n\n"
+option "method" M
+"Set the method used to obtain meshpoint structures for the bisection algorithm\n"
+details="Available options are:\n GW        Gradient Walk             (default)\n\
+ MC        Monte Carlo walk\n\
+ MC-SA     Monte Carlo Walk\n             with simulated Annealing\n\
+ DB-MFE    Distance based MFE structure\n             meshpoints\n\
+ TRATES    Transition rate computation\n
+ SM        Stochastic sampling method with 2D mapping (activate distortion with -e\"N\").\n
+ RS        Repellant or Attraction sampling\n
+ RSH       Repellant sampling heuristic\n
+ RL        Retrieve local minima. Standard input should be a sequence and a set of secondary structures (one per line).\n\\n"
+string
+typestr="<method>"
+optional
+default="RSH"
+
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors\n"
+details="The argument provided with this option enables to scale the thermodynamic temperature\
+ used in the Boltzmann factors independently from the temperature used to scale the individual\
+ energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
+ where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
+ absolute temperature.\n\n"
+double
+default="1."
+optional
+hidden
+
+option "extended_opt" e
+"Some extended options:\n\
+N    normal distortion (no shift)\n\
+B    alter both potentials at once\n\
+R    relax potential instead of increasing it\n\
+S    shift potential to other structure\n\
+F    shift to first structure\n\
+V    verbose\n\n"
+string
+default=""
+optional
+
+option  "iterations"  i
+"Set the number of iterations/simulations\n\n"
+int
+default="1"
+optional
+
+option  "maxKeep"     m
+"maxKeep for direct path search\n\n"
+int
+default="10"
+optional
+
+option  "maxStore"    s
+"amount of best solutions to hold per iteration\n\n"
+int
+default="10"
+optional
+
+option  "remember"    r
+"Set the number of structure states to remember in a TABU list\n\n"
+int
+default="10"
+optional
+
+option  "circ"    c
+"Assume a circular (instead of linear) RNA molecule.\n"
+flag
+off
+
+option  "cooling-rate"  -
+"Cooling factor used for simulated annealing\n\n"
+float
+default="0.9998"
+optional
+
+option  "tstart"  -
+"start temperature in deg. Celcius\n\n"
+float
+default="37.0"
+optional
+
+option  "tstop" -
+"stop temperature in deg. Celcius\n\n"
+float
+default="0.0"
+optional
+
+option  "penalizeBackWalks" -
+"Add a penalty for backward moves, i.e. moves along states already visited\n\n"
+flag
+off
+
+option  "basinStructure"  -
+"just perform a gradient walk starting from a given structure\n\n"
+flag
+off
+
+
+option  "maxD" D
+"Maximum base pair distance between meshpoints and references\n\n"
+int
+default="5"
+optional
+
+option  "maxD1"  -
+"Maximum base pair distance between meshpoints and reference structure 1\n\n"
+int
+default="5"
+optional
+
+option  "maxD2"  -
+"Maximum base pair distance between meshpoints and reference structure 2\n\n"
+int
+default="5"
+optional
+
+
+section "Model Details`"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+double
+optional
+
+option "p0"                 - 
+"Set the percentage of the references distortion value <int> to <double>\nCan be given for all reference indices\n(NOTE: the value <double> should be between 0 and 1)\n(example: \"--p0 2=0.5\" - distortion value of sequence 2 will be multiplied with 0.5 before sampling.)" 
+string no multiple
+
+
+section "Gradient walker options`"
+
+option  "shift_moves"  -
+"Use shift moves for gradient walks.\n\n"
+flag
+off
+
+option  "parameter_file"  P
+"Use the given parameter file for gradient walks.\n\n"
+string
+optional
+
+

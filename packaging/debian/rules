@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+
+PACKAGE = $(shell dh_listpackages)
+# for more than one package use: PACKAGE = $(firstword $(shell dh_listpackages))
+TMP     = $(CURDIR)/debian/$(PACKAGE)
+
+
+%:
+	dh $@ --parallel
+
+override_dh_auto_configure:
+	dh_auto_configure --
+

@@ -1,0 +1,9 @@
+# ignore libtool generated files
+.libs
+*.lo
+*.la
+
+# ignore other auto-generated files
+*_cmdl.[c,h]
+*.o
+RNAxplorer
