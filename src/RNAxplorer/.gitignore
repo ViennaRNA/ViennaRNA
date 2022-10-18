@@ -1,0 +1,38 @@
+# ignore autotools managed files
+.deps
+*.in
+Makefile
+
+stamp-h1
+missing
+compile
+config.h*
+config.log
+config.status
+config
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
+aclocal.m4
+autom4te.cache
+
+# libtool files
+m4/libtool.m4
+m4/ltoptions.m4
+m4/ltsugar.m4
+m4/ltversion.m4
+m4/lt~obsolete.m4
+*.la
+*.lo
+.libs
+
+# object files
+*.o
+
+# compiled python code
+*.pyc
+
+# distribution tarball
+RNAxplorer-*.tar.gz

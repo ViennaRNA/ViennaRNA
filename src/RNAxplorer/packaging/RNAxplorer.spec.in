@@ -1,0 +1,95 @@
+# RNAxplorer.spec
+
+%{!?_pkgdocdir: %global _pkgdocdir %%{_docdir}/%{name}}
+
+Name:           RNAxplorer
+Version:        @PACKAGE_VERSION@
+Release:        1%{?dist}
+Summary:        Sample RNA secondary structures and explore the RNA energy landscape.
+
+Vendor:         Gregor Entzian <entzian@tbi.univie.ac.at>
+#Packager:       Gregor Entzian <entzian@tbi.univie.ac.at>
+
+Group:          -
+License:        GPLv3
+URL:            https://github.com/ViennaRNA/RNAxplorer
+Source0:        RNAxplorer_%{version}.tar.gz
+BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  libtool
+BuildRequires:  rpm-devel
+
+BuildRequires:  pkg-config gcc gcc-c++ lapack-devel swig gengetopt mpfr-devel help2man
+%if 0%{?suse_version}
+BuildRequires:  viennarna-devel gsl-devel
+BuildRequires:  gcc-fortran lapacke-devel
+BuildRequires:  python3-devel python3
+#BuildRequires:  mpfr-devel
+%else
+BuildRequires:  viennarna-devel (>=2.4.14) liblapacke-dev python3 python3-dev libgsl-dev libmpfr-dev gfortran
+%endif
+
+%{!?__python3: %global __python3 /usr/bin/python3}
+%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%global python3_modext %(%{__python3} -c "from distutils.sysconfig import get_config_vars; print(get_config_vars('SO')[[0]])")
+%global __provides_exclude_from ^%{python3_sitearch}/.*\\.so$
+
+%description
+Sample RNA secondary structures and explore the RNA energy landscape
+
+Requires: glibc lapack libgfortran
+%if 0%{?suse_version}
+Requires:  viennarna
+%else
+Requires: viennarna (>=2.4.14)
+%endif
+
+%if 0%{?suse_version}
+Requires:       libmpfr4
+%else
+Requires:       mpfr
+%endif
+
+%package -n python3-rnaxplorer
+Summary:  Python 3 bindings for RNAxplorerlib
+Group:    Development/Libraries/Python
+Requires: %{name} = %{version}-%{release}
+Requires: python3
+
+%description -n python3-rnaxplorer
+Python 3 bindings for RNAxplorerlib
+
+%prep
+%setup -n RNAxplorer-%{version} -q
+
+%build
+%configure --prefix=%{_prefix} --docdir=%{_pkgdocdir} --mandir=%{_mandir}
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+%{__make} install DESTDIR=$RPM_BUILD_ROOT
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root,-)
+%{_bindir}/*
+%{_datadir}/RNAxplorer/
+%doc README.md
+%{_mandir}/*/*
+
+%files -n python3-rnaxplorer
+%defattr(-,root,root,-)
+%if 0%{?suse_version}
+%{python_sitearch}/RNAxplorer/__init__.py
+%{python_sitearch}/_RNAxplorer.cpython-%{python3_version_nodots}*.so
+%else
+%{python_sitearch}/RNAxplorer/__init__.py
+%{python3_sitearch}/_RNAxplorer.cpython-%{python3_version_nodots}*.so
+%endif
