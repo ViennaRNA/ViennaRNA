@@ -109,6 +109,7 @@ RNA_ENABLE_PKG_FORESTER
 RNA_ENABLE_PKG_CLUSTER
 RNA_ENABLE_PKG_KINWALKER
 RNA_ENABLE_PKG_RNALOCMIN
+RNA_ENABLE_PKG_RNAXPLORER
 
 ##--------------------##
 ## Prepare Version    ##
@@ -218,6 +219,7 @@ m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
             [cluster],
             [rnalocmin],
             [kinwalker],
+            [rnaxplorer],
             [svm],
             [gsl],
             [json],
@@ -290,6 +292,7 @@ Sub Packages
   * Analyse{Dists,Seqs}       : ${result_cluster}
   * RNAlocmin                 : ${result_rnalocmin}
   * Kinwalker                 : ${result_kinwalker}
+  * RNAxplorer                : ${result_rnaxplorer}
 
 Extra Libraries
 ---------------

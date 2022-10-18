@@ -87,3 +87,20 @@ AC_DEFUN([RNA_ENABLE_PKG_RNALOCMIN],[
 ])
 
 
+#
+# RNAxplorer subpackage
+#
+AC_DEFUN([RNA_ENABLE_PKG_RNAXPLORER],[
+  RNA_ADD_PACKAGE([rnaxplorer],
+                  [RNAxplorer program and scripting language bindings],
+                  [yes],[],[],
+                  [${srcdir}/src/RNAxplorer/Makefile.am])
+
+  RNA_PACKAGE_IF_ENABLED([rnaxplorer],[
+    AC_CONFIG_SUBDIRS([src/RNAxplorer])
+  ])
+
+  AM_CONDITIONAL(MAKE_RNAXPLORER, test "x$with_rnaxplorer" != "xno")
+])
+
+
