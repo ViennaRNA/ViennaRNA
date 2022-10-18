@@ -123,14 +123,21 @@ num_proc_cores(int  *num_cores,
 int
 max_user_threads(void)
 {
-  int threadm = -1;
+  int threadm, proc_cores, proc_cores_conf;
 
 #if defined(_WIN32)
   /* currently not implmeneted, so let's limit to some arbitrary value */
   threadm = 128;
 #else
   threadm = (int)sysconf(_SC_CHILD_MAX);
+  /*
+   *  work-around errors in sysconf query by allowing for at least
+   *  as many threads as CPU cores are configured
+   */
+  if ((threadm < 1) &&
+      (num_proc_cores(&proc_cores, &proc_cores_conf)))
+    threadm = proc_cores_conf;
 #endif
 
-  return threadm;
+  return (threadm > 0) ? threadm : 1;
 }
