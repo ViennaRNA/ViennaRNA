@@ -148,7 +148,6 @@ sub readClustal{
   my @out=();
   my (%order, $order, %alignments);
   while(<>) {
-        last if eof;
         next if ( /^\s+$/ );
         my ($seqname, $aln_line) = ('', '');
         if( /^\s*(\S+)\s*\/\s*(\d+)-(\d+)\s+(\S+)\s*$/ ) {
@@ -158,11 +157,13 @@ sub readClustal{
           ($seqname,$aln_line) = ($1,$2);
         } else {
           next;
-  }
+        }
         if( !exists $order{$seqname} ) {
           $order{$seqname} = $order++;
         }
         $alignments{$seqname} .= $aln_line;
+
+        last if eof;
   }
 
   foreach my $name ( sort { $order{$a} <=> $order{$b} } keys %alignments ) {
