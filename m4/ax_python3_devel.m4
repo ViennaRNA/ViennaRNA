@@ -8,11 +8,11 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
     AC_ARG_VAR(PYTHON3, [Path to Python3 interpreter (e.g.: /usr/bin/python3)])
 
     if test "${PYTHON3}" != "no" ; then
-      if $PYTHON3 -c 'import distutils.sysconfig' 2> /dev/null
+      if $PYTHON3 -c 'import sysconfig' 2> /dev/null
       then
         AC_MSG_CHECKING([for Python3 include path])
-        PYTHON3_INC=`$PYTHON3 -c "import distutils.sysconfig; \
-            print(distutils.sysconfig.get_python_inc())"`
+        PYTHON3_INC=`$PYTHON3 -c "import sysconfig; \
+            print(sysconfig.get_path('include'))"`
         AC_SUBST(PYTHON3_INC)
         AC_MSG_RESULT([$PYTHON3_INC])
 
@@ -37,16 +37,16 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
           AC_MSG_RESULT([$PYTHON3_LDFLAGS])
 
           AC_MSG_CHECKING([for Python3 extension linker])
-          PYTHON3_LD=`$PYTHON3 -c "import distutils.sysconfig; \
-                  print(distutils.sysconfig.get_config_var('LDSHARED'))"`
+          PYTHON3_LD=`$PYTHON3 -c "import sysconfig; \
+                  print(sysconfig.get_config_var('LDSHARED'))"`
           AC_SUBST(PYTHON3_LD)
           AC_MSG_RESULT([$PYTHON3_LD])
 
           AC_MSG_CHECKING([for directory to install Python3 scripts in])
           if test -z "$PYTHON3_DIR" ; then
             # the string concatenation below is just a trick to prevent substitution
-            PYTHON3_DIR=`$PYTHON3 -c "import distutils.sysconfig; \
-                  print(distutils.sysconfig.get_python_lib(0,0,prefix='$' '{prefix}'))"`
+            PYTHON3_DIR=`$PYTHON3 -c "import sysconfig; \
+                  print(sysconfig.get_path('purelib', vars={'base':'$' '{prefix}'}))"`
           fi
           AC_SUBST(python3dir, $PYTHON3_DIR)
           AC_MSG_RESULT([$PYTHON3_DIR])
@@ -54,8 +54,8 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
 
           AC_MSG_CHECKING([for directory to install architecture dependent python3 things in])
           if test -z "$PYTHON3_EXECDIR" ; then
-            PYTHON3_EXECDIR=`$PYTHON3 -c "import distutils.sysconfig; \
-                  print(distutils.sysconfig.get_python_lib(1,0,prefix='$' '{exec_prefix}'))"`
+            PYTHON3_EXECDIR=`$PYTHON3 -c "import sysconfig; \
+                  print(sysconfig.get_path('platlib', vars={'platbase':'$' '{exec_prefix}'}))"`
           fi
           AC_SUBST(py3execdir, $PYTHON3_EXECDIR)
           AC_MSG_RESULT([$PYTHON3_EXECDIR])
@@ -63,8 +63,8 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
 
           AC_MSG_CHECKING([for Python3 module extension])
           dnl Usually ".so", but for example, Mac OS X uses ".dylib".
-          PYTHON3_SO=`$PYTHON3 -c "import distutils.sysconfig; \
-                  print(distutils.sysconfig.get_config_vars('SO')[[0]])"`
+          PYTHON3_SO=`$PYTHON3 -c "import sysconfig; \
+                  print(sysconfig.get_config_var('EXT_SUFFIX'))"`
           AC_SUBST(PYTHON3_SO)
           AC_MSG_RESULT([$PYTHON3_SO])
 
@@ -94,10 +94,10 @@ You probably need to install python-dev, python-devel, or something similar.
       else
         AC_MSG_WARN([
 **********************************************************************
-Failed to import distutils.sysconfig!
+Failed to import sysconfig!
 **********************************************************************
 ])
-          python3_enabled_but_failed="Can't import distutils.sysconfig"
+          python3_enabled_but_failed="Can't import sysconfig"
       fi
     else
       python3_enabled_but_failed="python3 executable missing"
