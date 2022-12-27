@@ -64,7 +64,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
           AC_MSG_CHECKING([for Python3 module extension])
           dnl Usually ".so", but for example, Mac OS X uses ".dylib".
           PYTHON3_SO=`$PYTHON3 -c "import distutils.sysconfig; \
-                  print(distutils.sysconfig.get_config_vars('EXT_SUFFIX')[[0]])"`
+                  print(distutils.sysconfig.get_config_vars('SO')[[0]])"`
           AC_SUBST(PYTHON3_SO)
           AC_MSG_RESULT([$PYTHON3_SO])
 
