@@ -653,7 +653,7 @@ perl5_wrap_ud_prob_get( vrna_fold_compound_t *vc,
   SV *func;
   perl5_ud_callback_t *cb = (perl5_ud_callback_t *)data;
 
-  func  = cb->prob_add;
+  func  = cb->prob_get;
   ret   = 0.;
 
   if(SvOK(func)){
@@ -667,6 +667,10 @@ perl5_wrap_ud_prob_get( vrna_fold_compound_t *vc,
     SAVETMPS;
     PUSHMARK(SP);
 
+    SV *pSVfc = SWIG_NewPointerObj(SWIG_as_voidptr(vc),
+                                   SWIGTYPE_p_vrna_fold_compound_t,
+                                   0 | 0);
+    XPUSHs(pSVfc);
     SV* pSVi = sv_newmortal();
     sv_setiv(pSVi, (IV)i);
     XPUSHs(pSVi);
