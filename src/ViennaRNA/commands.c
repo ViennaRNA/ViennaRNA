@@ -290,6 +290,7 @@ vrna_file_commands_read(const char    *filename,
 
   /* cleanup */
   free(line);
+  fclose(fp);
 
   return output;
 }
