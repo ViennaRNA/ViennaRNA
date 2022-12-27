@@ -140,7 +140,6 @@ extern "C" {
 %include "std_vector.i";
 %include "std_string.i";
 
-
 namespace std {
   %template(DoublePair) std::pair<double,double>;
   %template(IntVector) std::vector<int>;

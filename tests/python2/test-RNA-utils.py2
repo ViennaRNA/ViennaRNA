@@ -16,8 +16,8 @@ struct2       = "(..............)"
 class GeneralTests(unittest.TestCase):
     def test_pairtable(self):
         """Create pair table"""
-        pairTable = RNA.ptable(struct1)
-        correctPairTable = (16, 16, 15, 14, 0, 13, 12, 11, 0, 0, 0, 7, 6, 5, 3, 2, 1)
+        pairTable = list(RNA.ptable(struct1))
+        correctPairTable = [16, 16, 15, 14, 0, 13, 12, 11, 0, 0, 0, 7, 6, 5, 3, 2, 1]
         self.assertEqual(pairTable,correctPairTable)
 
         pairTable_pk = RNA.ptable_pk(struct1pk)

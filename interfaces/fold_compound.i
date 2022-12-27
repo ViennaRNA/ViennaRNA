@@ -11,6 +11,9 @@
 %include callbacks-mfe-window.i
 %include callbacks-pf-window.i
 %include callbacks-melting.i
+#ifdef SWIGPYTHON
+%include callbacks-landscape.i
+#endif
 
 /* start constructing a sane interface to vrna_fold_compound_t */
 

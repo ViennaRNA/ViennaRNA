@@ -265,12 +265,12 @@ vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
  *  @return           Non-zero on success, 0 otherwise
  */
 int
-vrna_move_neighbor_diff_cb(vrna_fold_compound_t       *fc,
-                           short                      *ptable,
-                           vrna_move_t                move,
-                           vrna_move_update_f  cb,
-                           void                       *data,
-                           unsigned int               options);
+vrna_move_neighbor_diff_cb(vrna_fold_compound_t *fc,
+                           short                *ptable,
+                           vrna_move_t          move,
+                           vrna_move_update_f   cb,
+                           void                 *data,
+                           unsigned int         options);
 
 
 /**
