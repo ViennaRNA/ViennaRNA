@@ -1,0 +1,5 @@
+# swig generated file(s)
+RNAxplorer/
+RNAxplorer_wrap.cpp
+RNAxplorer.py
+*.so

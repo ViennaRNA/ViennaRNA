@@ -1,0 +1,29 @@
+Source: rnaxplorer
+Maintainer: Gregor Entzian <entzian@tbi.univie.ac.at>
+Uploaders: Gregor Entzian <entzian@tbi.univie.ac.at>
+Section: science
+Priority: optional
+Standards-Version: 3.9.8
+Build-Depends: debhelper (>= 9.0), autoconf, automake, make, libtool, pkg-config, liblapacke-dev, gfortran, python3-all, python3-all-dev, swig, gengetopt, viennarna-dev (>=2.4.14), libgsl0-dev | libgsl-dev, libmpfr-dev
+# libgsl-dev, libmpfr-dev needed by viennarna-dev
+
+Package: rnaxplorer
+Provides: rnaxplorer
+Conflicts: rnaxplorer
+Recommends: python-rnaxplorer
+Section: science
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, viennarna-dev (>=2.4.14)
+Description: Sample RNA secondary structures and explore the RNA energy landscape.
+ RNAxplorer takes an RNA sequence as input and samples secondary structures that
+ represent the most important structures of the RNA conformation space and thus
+ are well suited to compute RNA folding kinetics.
+
+Package: python3-rnaxplorer
+Section: python
+Architecture: any
+Conflicts: python3-rnaxplorer
+Depends: ${python3:Depends}, ${misc:Depends}, ${shlibs:Depends}, python3
+Description: Python 3 bindings to RNAxplorerlib
+ The RNAxplorer class to access RNAxplorerlib C-library functions from
+ within Python 3 scripts

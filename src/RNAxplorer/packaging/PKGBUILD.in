@@ -1,0 +1,43 @@
+# Maintainer: Gregor Entzian <entzian at tbi dot univie dot ac dot at>
+# Packager: Gregor Entzian <entzian at tbi dot univie dot ac dot at>
+
+pkgbase=RNAxplorer
+pkgname=('RNAxplorer' 'python3-rnaxplorer')
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc="Sample RNA secondary structures and explore the RNA energy landscape."
+arch=('x86_64' 'i686')
+license=('GPLv2')
+url="@PACKAGE_URL@"
+groups=('RNAxplorer')
+makedepends=( 'gcc-fortran' 'blas' 'lapack' 'lapacke' 'gcc' 'gengetopt' 'viennarna' 'python3' 'swig')
+source=(RNAxplorer_${pkgver}.tar.gz)
+
+#create this sum with the command "sha256sum RNAxplorer-${pkgver}.tar.gz" before each build of the package
+sha256sums=('d47a7ab0cee6647201943803930e3e9fb5885daa0c925fc5960ed8255fa29147')
+
+build() {
+  cd "${srcdir}/RNAxplorer-${pkgver}"
+  ./configure
+  make
+}
+
+package_RNAxplorer() {
+  depends=( 'viennarna' )
+  provides=("RNAxplorer=${pkgver}")
+
+  # install RNAxplorer
+  cd "${srcdir}/RNAxplorer-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+
+  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+
+package_python3-rnaxplorer() {
+  depends=('python3' RNAxplorer="${pkgver}")
+  cd "${srcdir}/RNAxplorer-${pkgver}"
+  cd interfaces/Python
+  make DESTDIR="${pkgdir}" install || return 1
+}
+
+
