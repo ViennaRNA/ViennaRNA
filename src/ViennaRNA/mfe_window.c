@@ -285,7 +285,10 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
     return (float)(INF / 100.);
   }
 
-  vrna_zsc_filter_update(vc, min_z, VRNA_ZSCORE_OPTIONS_NONE);
+  if (!vc->zscore_data)
+    vrna_zsc_filter_init(vc, min_z, VRNA_ZSCORE_SETTINGS_DEFAULT);
+  else
+    vrna_zsc_filter_update(vc, min_z, VRNA_ZSCORE_OPTIONS_NONE);
 
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
