@@ -1065,6 +1065,9 @@ set_model_details(vrna_md_t *md)
     md->betaScale       = VRNA_MODEL_DEFAULT_BETA_SCALE;
     md->pf_smooth       = VRNA_MODEL_DEFAULT_PF_SMOOTH;
     md->sfact           = 1.07;
+    md->salt            = VRNA_MODEL_DEFAULT_SALT;
+    md->saltMLLower     = VRNA_MODEL_DEFAULT_SALTMLLOWER;
+    md->saltMLUpper     = VRNA_MODEL_DEFAULT_SALTMLUPPER;
 
     if (nonstandards)
       copy_nonstandards(md, nonstandards);
