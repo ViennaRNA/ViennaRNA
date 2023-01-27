@@ -168,6 +168,12 @@ typedef struct vrna_md_s vrna_md_t;
 #define VRNA_MODEL_DEFAULT_SALTMLUPPER    24
 
 
+#define VRNA_MODEL_DEFAULT_SALTDPXINIT 1
+
+
+#define VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE 0
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifndef MAXALPHA
@@ -248,6 +254,8 @@ struct vrna_md_s {
   double  salt;                             /**<  @brief  Salt concentration */
   int     saltMLLower;
   int     saltMLUpper;
+  int     saltDPXInit;
+  int     saltDPXInitV;
 };
 
 
@@ -783,6 +791,18 @@ vrna_md_defaults_saltMLUpper(int upper);
 
 int
 vrna_md_defaults_saltMLUpper_get(void);
+
+void
+vrna_md_defaults_saltDPXInit(int flag);
+
+int
+vrna_md_defaults_saltDPXInit_get(void);
+
+void
+vrna_md_defaults_saltDPXInitV(int value);
+
+int
+vrna_md_defaults_saltDPXInitV_get(void);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

@@ -152,7 +152,9 @@ PRIVATE vrna_md_t defaults = {
   DM_DEFAULT,
   VRNA_MODEL_DEFAULT_SALT,
   VRNA_MODEL_DEFAULT_SALTMLLOWER,
-  VRNA_MODEL_DEFAULT_SALTMLUPPER
+  VRNA_MODEL_DEFAULT_SALTMLUPPER,
+  VRNA_MODEL_DEFAULT_SALTDPXINIT,
+  VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE
 };
 
 /*
@@ -360,6 +362,8 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.salt             = VRNA_MODEL_DEFAULT_SALT;
   defaults.saltMLLower      = VRNA_MODEL_DEFAULT_SALTMLLOWER;
   defaults.saltMLUpper      = VRNA_MODEL_DEFAULT_SALTMLUPPER;
+  defaults.saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
+  defaults.saltDPXInitV     = VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE;
 
   if (md_p) {
     /* now try to apply user settings */
@@ -396,6 +400,8 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_salt(md_p->salt);
     vrna_md_defaults_saltMLLower(md_p->saltMLLower);
     vrna_md_defaults_saltMLUpper(md_p->saltMLUpper);
+    vrna_md_defaults_saltDPXInit(md_p->saltDPXInit);
+    vrna_md_defaults_saltDPXInitV(md_p->saltDPXInitV);
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
@@ -891,6 +897,32 @@ vrna_md_defaults_saltMLUpper_get(void)
 
 
 PUBLIC void
+vrna_md_defaults_saltDPXInit(int flag)
+{
+  defaults.saltDPXInit = flag;
+}
+
+PUBLIC int 
+vrna_md_defaults_saltDPXInit_get(void)
+{
+  return defaults.saltDPXInit;
+}
+
+
+PUBLIC void
+vrna_md_defaults_saltDPXInitV(int value)
+{
+  defaults.saltDPXInitV = value;
+}
+
+PUBLIC int 
+vrna_md_defaults_saltDPXInitV_get(void)
+{
+  return defaults.saltDPXInitV;
+}
+
+
+PUBLIC void
 vrna_md_update(vrna_md_t *md)
 {
   if (md)
@@ -1068,6 +1100,8 @@ set_model_details(vrna_md_t *md)
     md->salt            = VRNA_MODEL_DEFAULT_SALT;
     md->saltMLLower     = VRNA_MODEL_DEFAULT_SALTMLLOWER;
     md->saltMLUpper     = VRNA_MODEL_DEFAULT_SALTMLUPPER;
+    md->saltDPXInit     = VRNA_MODEL_DEFAULT_SALTDPXINIT;
+    md->saltDPXInitV    = VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE;
 
     if (nonstandards)
       copy_nonstandards(md, nonstandards);

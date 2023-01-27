@@ -22,6 +22,8 @@
 #define Backbone_length     6.4
 #define Eular_const         0.58
 
+#define roundint(x) ((int) (x + 0.5 - (x<0)))
+
 
 extern double kn(int, double);
 extern double expn(int, double);
@@ -134,7 +136,7 @@ vrna_salt_stack(double rho, double T)
 	kn_ref = kn(0, Rods_dist*kappa_ref);
 	correction = 100*pairing_salt_const(rho, T)*(kn(0, Rods_dist*kappa(rho, T)) - kn_ref);
 	/* printf("stack correction %lf\n", correction); */
-	return (int) (correction + 0.5 - (correction<0)); /* round salt correction*/
+	return roundint(correction);
 }
 
 /* Adapted from https://stackoverflow.com/a/19040841 */
@@ -167,7 +169,25 @@ vrna_salt_ml(double saltLoop[], int lower, int upper, int* m, int* b)
 	/* printf("Double m %lf\n", dm); */
 	/* printf("Double b %lf\n", db); */
 
-	*m = (int) (dm + 0.5 - (dm<0));
-	*b = (int) (db + 0.5 - (db<0));
+	*m = roundint(dm);
+	*b = roundint(db);
 	
+}
+
+
+/* Function to compute the salt correction for duplex initialization */
+/* Fitted from 18 duplexes data (Chen & Znosko, 2013) */
+PUBLIC int
+vrna_salt_duplex_init(double salt)
+{
+	int c;
+	double a, b, x, penalty;
+
+	c = 140;
+	a = 0.0651;
+	b = 0.9326;
+	x = log10(salt);
+
+	penalty = -exp(a*x*x+b*x+log(c)) + c;
+	return roundint(penalty);
 }

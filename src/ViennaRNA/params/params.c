@@ -578,6 +578,13 @@ get_scaled_params(vrna_md_t *md)
   for (i = 0; i <= NBPAIRS; i++)
     params->MLintern[i] += params->SaltMLbase;
 
+  params->SaltDPXInitV = 0;
+  if (md->saltDPXInitV)
+    params->SaltDPXInitV = md->saltDPXInitV;
+  else if (md->saltDPXInit)
+    params->SaltDPXInitV = vrna_salt_duplex_init(salt/1000);
+  params->DuplexInit += params->SaltDPXInitV;
+
   params->id = ++id;
   return params;
 }
@@ -787,6 +794,18 @@ get_scaled_exp_params(vrna_md_t *md,
   pf->expMLbase *= exp(- pf->SaltMLbase * 10. / kT);
   for (i = 0; i <= NBPAIRS; i++)
     pf->expMLintern[i] *= exp(- pf->SaltMLbase * 10. / kT);
+
+
+  pf->SaltDPXInitV = 0;
+  if (salt!=1000)
+  {
+    if (md->saltDPXInitV)
+      pf->SaltDPXInitV = md->saltDPXInitV;
+    else if (md->saltDPXInit)
+      pf->SaltDPXInitV = vrna_salt_duplex_init(salt/1000);
+  }
+  pf->expDuplexInit *= exp(- pf->SaltDPXInitV*10. / kT);
+
 
   return pf;
 }
