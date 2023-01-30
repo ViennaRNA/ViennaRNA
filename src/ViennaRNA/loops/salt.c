@@ -78,7 +78,7 @@ tau_ss(double T)
 
 
 PRIVATE INLINE double
-pairing_salt_const(double rho, double T)
+pairing_salt_const(double T)
 {
   return 2*Gaz_const_kcal*T*bjerrum_length(T)*Helical_Rise*tau_ds(T)*tau_ds(T);
 };
@@ -109,13 +109,13 @@ loop_salt_aux(double kmlss, int m, double T)
 };
 
 PUBLIC double
-vrna_salt_loop(int m, double rho, double T)
+vrna_salt_loop(int m, double rho, double T, double standard)
 {
 	if (m == 0)
 		return 0;
 	double correction, kmlss, kmlss_ref;
 	
-	kmlss_ref = kappa(1., T) * m * Backbone_length;
+	kmlss_ref = kappa(standard, T) * m * Backbone_length;
 	kmlss = kappa(rho, T) * m * Backbone_length;
 
 	correction = loop_salt_aux(kmlss, m, T) - loop_salt_aux(kmlss_ref, m, T);
@@ -125,16 +125,16 @@ vrna_salt_loop(int m, double rho, double T)
 };
 
 PUBLIC int
-vrna_salt_stack(double rho, double T)
+vrna_salt_stack(double rho, double T, double standard)
 {
 	double correction, kn_ref, kappa_ref;
 	
 	/* printf("Stack salt temperature %lf\n", T); */ 
 	/* printf("Stack salt concentration %lf\n", rho); */ 
 
-	kappa_ref = kappa(1., T);
+	kappa_ref = kappa(standard, T);
 	kn_ref = kn(0, Rods_dist*kappa_ref);
-	correction = 100*pairing_salt_const(rho, T)*(kn(0, Rods_dist*kappa(rho, T)) - kn_ref);
+	correction = 100*pairing_salt_const(T)*(kn(0, Rods_dist*kappa(rho, T)) - kn_ref);
 	/* printf("stack correction %lf\n", correction); */
 	return roundint(correction);
 }
@@ -178,16 +178,30 @@ vrna_salt_ml(double saltLoop[], int lower, int upper, int* m, int* b)
 /* Function to compute the salt correction for duplex initialization */
 /* Fitted from 18 duplexes data (Chen & Znosko, 2013) */
 PUBLIC int
-vrna_salt_duplex_init(double salt)
+vrna_salt_duplex_init(double salt, double standard)
 {
-	int c;
-	double a, b, x, penalty;
+	int cst;
+	double a, b, c, d, x, penalty;
 
-	c = 140;
-	a = 0.0651;
-	b = 0.9326;
+	cst = 150;
+	/* For 1M */
+	if (standard == 1)
+	{
+		a = 0.0836;
+		b = 0.8470;
+		c = log(cst);
+		d = 0;
+	}
+	else if (standard == 1.021)
+	{
+		a = -0.9927;
+		b = 0.1334;
+		c = 4.993;
+		d = 2.4564; /* Make sure correction is null at 1.021M */
+	}
+
 	x = log10(salt);
 
-	penalty = -exp(a*x*x+b*x+log(c)) + c;
+	penalty = -exp(a*x*x+b*x+c) + cst - d;
 	return roundint(penalty);
 }

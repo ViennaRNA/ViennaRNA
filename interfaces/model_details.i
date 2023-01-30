@@ -44,6 +44,7 @@ typedef struct {
   const short   alias[MAXALPHA+1];
   const int const pair[MAXALPHA+1][MAXALPHA+1];
   double  salt;
+  double  saltStandard;
   int saltMLLower;
   int saltMLUpper;
   int saltDPXInit;
@@ -86,6 +87,7 @@ typedef struct {
     const double  nc_fact         = vrna_md_defaults_nc_fact_get(),
     const double  sfact           = vrna_md_defaults_sfact_get(),
     const double  salt            = vrna_md_defaults_salt_get(),
+    const double  saltStandard    = vrna_md_defaults_saltStandard_get(),
     const int     saltMLLower     = vrna_md_defaults_saltMLLower_get(),
     const int     saltMLUpper     = vrna_md_defaults_saltMLUpper_get(),
     const int     saltDPXInit     = vrna_md_defaults_saltDPXInit_get(),
@@ -117,6 +119,7 @@ typedef struct {
     md->nc_fact         = nc_fact;
     md->sfact           = sfact;
     md->salt            = salt;
+    md->saltStandard    = saltStandard;
     md->saltMLLower     = saltMLLower;
     md->saltMLUpper     = saltMLUpper;
     md->saltDPXInit     = saltDPXInit;
@@ -180,6 +183,7 @@ typedef struct {
     out << ", nc_fact: " << $self->nc_fact ;
     out << ", sfact: " << $self->sfact ;
     out << ", salt: " << $self->salt ;
+    out << ", saltStandard: " << $self->saltStandard ;
     out << ", saltMLLower: " << $self->saltMLLower ;
     out << ", saltMLUpper: " << $self->saltMLUpper ;
     out << ", saltDPXInit: " << $self->saltDPXInit ;

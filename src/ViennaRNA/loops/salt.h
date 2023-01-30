@@ -13,15 +13,15 @@
 
 
 double
-vrna_salt_loop(int m, double salt, double T);
+vrna_salt_loop(int m, double salt, double T, double standard);
 
 int
-vrna_salt_stack(double salt, double T);
+vrna_salt_stack(double salt, double T, double standard);
 
 void
 vrna_salt_ml(double saltLoop[], int lower, int upper, int *m, int *b);
 
 int
-vrna_salt_duplex_init(double salt);
+vrna_salt_duplex_init(double salt, double standard);
 
 #endif
