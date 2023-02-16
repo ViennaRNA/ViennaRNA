@@ -18,7 +18,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/salt.h"
+#include "ViennaRNA/params/salt.h"
 
 /**
  *** \file ViennaRNA/params/basic.c

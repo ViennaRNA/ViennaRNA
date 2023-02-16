@@ -222,8 +222,7 @@ vrna_loops_HEADERS = \
     loops/external.h \
     loops/hairpin.h \
     loops/internal.h \
-    loops/multibranch.h \
-		loops/salt.h
+    loops/multibranch.h
 
 
 vrna_utils_HEADERS = \
@@ -265,7 +264,8 @@ vrna_params_HEADERS = \
     params/constants.h \
     params/basic.h \
     params/io.h \
-    params/convert.h
+    params/convert.h \
+		params/salt.h
 
 
 vrna_datastructures_HEADERS = \
@@ -420,14 +420,14 @@ libRNA_loops_la_SOURCES = \
     loops/internal_pf.c \
     loops/multibranch.c \
     loops/multibranch_bt.c \
-    loops/multibranch_pf.c \
-		loops/salt.c
+    loops/multibranch_pf.c
 
 libRNA_params_la_SOURCES = \
     params/io.c \
     params/default.c \
     params/params.c \
-    params/convert.c
+    params/convert.c \
+		params/salt.c
 
 libRNA_datastructures_la_SOURCES = \
     datastructures/array.c \

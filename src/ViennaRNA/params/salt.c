@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/loops/salt.h"
+#include "ViennaRNA/params/salt.h"
 
 #ifdef __GNUC__
 # define INLINE inline
