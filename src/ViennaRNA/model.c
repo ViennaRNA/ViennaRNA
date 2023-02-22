@@ -151,7 +151,6 @@ PRIVATE vrna_md_t defaults = {
   BP_ENCODING_DEFAULT,
   DM_DEFAULT,
   VRNA_MODEL_DEFAULT_SALT,
-  VRNA_MODEL_DEFAULT_SALT,
   VRNA_MODEL_DEFAULT_SALTMLLOWER,
   VRNA_MODEL_DEFAULT_SALTMLUPPER,
   VRNA_MODEL_DEFAULT_SALTDPXINIT,
@@ -361,7 +360,6 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.sfact            = 1.07;
   defaults.nonstandards[0]  = '\0';
   defaults.salt             = VRNA_MODEL_DEFAULT_SALT;
-  defaults.saltStandard     = VRNA_MODEL_DEFAULT_SALT;
   defaults.saltMLLower      = VRNA_MODEL_DEFAULT_SALTMLLOWER;
   defaults.saltMLUpper      = VRNA_MODEL_DEFAULT_SALTMLUPPER;
   defaults.saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
@@ -400,7 +398,6 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_pf_smooth(md_p->pf_smooth);
     vrna_md_defaults_sfact(md_p->sfact);
     vrna_md_defaults_salt(md_p->salt);
-    vrna_md_defaults_saltStandard(md_p->saltStandard);
     vrna_md_defaults_saltMLLower(md_p->saltMLLower);
     vrna_md_defaults_saltMLUpper(md_p->saltMLUpper);
     vrna_md_defaults_saltDPXInit(md_p->saltDPXInit);
@@ -874,20 +871,6 @@ vrna_md_defaults_salt_get(void)
 
 
 PUBLIC void
-vrna_md_defaults_saltStandard(double salt)
-{
-  defaults.saltStandard = salt;
-}
-
-
-PUBLIC double
-vrna_md_defaults_saltStandard_get(void)
-{
-  return defaults.saltStandard;
-}
-
-
-PUBLIC void
 vrna_md_defaults_saltMLLower(int lower)
 {
   defaults.saltMLLower = lower;
@@ -1115,7 +1098,6 @@ set_model_details(vrna_md_t *md)
     md->pf_smooth       = VRNA_MODEL_DEFAULT_PF_SMOOTH;
     md->sfact           = 1.07;
     md->salt            = VRNA_MODEL_DEFAULT_SALT;
-    md->saltStandard    = VRNA_MODEL_DEFAULT_SALT;
     md->saltMLLower     = VRNA_MODEL_DEFAULT_SALTMLLOWER;
     md->saltMLUpper     = VRNA_MODEL_DEFAULT_SALTMLUPPER;
     md->saltDPXInit     = VRNA_MODEL_DEFAULT_SALTDPXINIT;

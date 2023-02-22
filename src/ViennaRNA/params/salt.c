@@ -118,33 +118,28 @@ loop_salt_aux(double kmlss, int m, double T)
 };
 
 PUBLIC double
-vrna_salt_loop(int m, double rho, double T, double standard)
+vrna_salt_loop(int m, double rho, double T)
 {
 	if (m == 0)
 		return 0;
 	double correction, kmlss, kmlss_ref;
 	
-	kmlss_ref = kappa(standard, T) * m * Backbone_length;
+	kmlss_ref = kappa(VRNA_MODEL_DEFAULT_SALT, T) * m * Backbone_length;
 	kmlss = kappa(rho, T) * m * Backbone_length;
 
 	correction = loop_salt_aux(kmlss, m, T) - loop_salt_aux(kmlss_ref, m, T);
 
 	return correction;
-	/* return (int) (correction + 0.5 - (correction<0)); */
 };
 
 PUBLIC int
-vrna_salt_stack(double rho, double T, double standard)
+vrna_salt_stack(double rho, double T)
 {
 	double correction, kn_ref, kappa_ref;
 	
-	/* printf("Stack salt temperature %lf\n", T); */ 
-	/* printf("Stack salt concentration %lf\n", rho); */ 
-
-	kappa_ref = kappa(standard, T);
+	kappa_ref = kappa(VRNA_MODEL_DEFAULT_SALT, T);
 	kn_ref = kn(0, Rods_dist*kappa_ref);
 	correction = 100*pairing_salt_const(T)*(kn(0, Rods_dist*kappa(rho, T)) - kn_ref);
-	/* printf("stack correction %lf\n", correction); */
 	return roundint(correction);
 }
 
@@ -175,9 +170,6 @@ vrna_salt_ml(double saltLoop[], int lower, int upper, int* m, int* b)
 	dm = ((upper-lower+1) * sumxy  -  sumx * sumy) / denom;
 	db = (sumy * sumxx  -  sumx * sumxy) / denom;
 
-	/* printf("Double m %lf\n", dm); */
-	/* printf("Double b %lf\n", db); */
-
 	*m = roundint(dm);
 	*b = roundint(db);
 	
@@ -187,27 +179,16 @@ vrna_salt_ml(double saltLoop[], int lower, int upper, int* m, int* b)
 /* Function to compute the salt correction for duplex initialization */
 /* Fitted from 18 duplexes data (Chen & Znosko, 2013) */
 PUBLIC int
-vrna_salt_duplex_init(double salt, double standard)
+vrna_salt_duplex_init(double salt)
 {
 	int cst;
 	double a, b, c, d, x, penalty;
 
 	cst = 160;
-	/* For 1M */
-	if (standard == 1)
-	{
-		a = 0.0836;
-		b = 0.8470;
-		c = log(cst);
-		d = 0;
-	}
-	else if (standard == 1.021)
-	{
-		a = -1.321;
-		b = -0.13;
-		c = 5.044;
-		d = 5.109; /* Make sure correction is null at 1.021M */
-	}
+  a = -1.321;
+	b = -0.13;
+	c = 5.044;
+	d = 5.109; /* Make sure correction is null at 1.021M */
 
 	x = log10(salt);
 

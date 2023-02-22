@@ -252,7 +252,6 @@ struct vrna_md_s {
   int     pair[MAXALPHA + 1][MAXALPHA + 1]; /**<  @brief  Integer representation of a base pair */
   float   pair_dist[7][7];                  /**<  @brief  Base pair dissimilarity, a.k.a. distance matrix */
   double  salt;                             /**<  @brief  Salt concentration */
-  double  saltStandard;
   int     saltMLLower;
   int     saltMLUpper;
   int     saltDPXInit;
@@ -780,14 +779,6 @@ vrna_md_defaults_salt(double salt);
  */
 double
 vrna_md_defaults_salt_get(void);
-
-
-void
-vrna_md_defaults_saltStandard(double salt);
-
-
-double
-vrna_md_defaults_saltStandard_get(void);
 
 void
 vrna_md_defaults_saltMLLower(int lower);
