@@ -30,9 +30,18 @@ extern double expn(int, double);
 
 
 PRIVATE INLINE double
+epsilonr(double T)
+{
+	return 5321/T + 233.76 - 0.9297*T + 1.417*T*T/1000 - 0.8292*T*T*T/1000000;
+}
+
+
+PRIVATE INLINE double
 bjerrum_length(double T)
 {
-  return 2088.762/T;
+  /* return 2088.762/T; */
+  /* return 2089.6/T; */
+	return 167100.052/(T*epsilonr(T));
 };
 
 
@@ -46,14 +55,14 @@ ionic_strength(double rho)
 PRIVATE INLINE double
 kappa_inv(double rho, double T)
 {
-  return 8.1285/(sqrt(bjerrum_length(T)*ionic_strength(rho)));
+  return 8.1284/(sqrt(bjerrum_length(T)*ionic_strength(rho)));
 };
 
 
 PRIVATE INLINE double
 kappa(double rho, double T)
 {
-  return sqrt(bjerrum_length(T)*ionic_strength(rho))/8.1285;
+  return sqrt(bjerrum_length(T)*ionic_strength(rho))/8.1284;
 };
 
 
@@ -183,7 +192,7 @@ vrna_salt_duplex_init(double salt, double standard)
 	int cst;
 	double a, b, c, d, x, penalty;
 
-	cst = 150;
+	cst = 160;
 	/* For 1M */
 	if (standard == 1)
 	{
@@ -194,10 +203,10 @@ vrna_salt_duplex_init(double salt, double standard)
 	}
 	else if (standard == 1.021)
 	{
-		a = -0.9927;
-		b = 0.1334;
-		c = 4.993;
-		d = 2.4564; /* Make sure correction is null at 1.021M */
+		a = -1.321;
+		b = -0.13;
+		c = 5.044;
+		d = 5.109; /* Make sure correction is null at 1.021M */
 	}
 
 	x = log10(salt);
