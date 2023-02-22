@@ -133,6 +133,17 @@ vrna_salt_loop(int m, double rho, double T)
 };
 
 PUBLIC int
+vrna_salt_loop_int(int m, double rho, double T)
+{
+	double correction;
+
+	correction = vrna_salt_loop(m, rho, T);
+	return roundint(correction);
+}
+
+
+
+PUBLIC int
 vrna_salt_stack(double rho, double T)
 {
 	double correction, kn_ref, kappa_ref;

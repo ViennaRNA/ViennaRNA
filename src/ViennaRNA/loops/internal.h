@@ -10,6 +10,7 @@
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/constraints/hard.h>
 #include <ViennaRNA/constraints/soft.h>
+#include <ViennaRNA/params/salt.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(DEPRECATED)
@@ -488,7 +489,7 @@ E_IntLoop(int           n1,
           vrna_param_t  *P)
 {
   /* compute energy of degree 2 loop (stack bulge or interior) */
-  int nl, ns, u, energy, salt_stack_correction, salt_loop_correction;
+  int nl, ns, u, energy, salt_stack_correction, salt_loop_correction, backbones;
 
   salt_stack_correction = P->SaltStack;
   salt_loop_correction = 0;
@@ -504,10 +505,15 @@ E_IntLoop(int           n1,
   if (nl == 0) {
     return P->stack[type][type_2] + salt_stack_correction;  /* stack */
   }
+  
+  backbones = nl+ns+2;
 
   /* salt correction for loop */
-  if (nl+ns+2 <= MAXLOOP+1)
-    salt_loop_correction = P->SaltLoop[nl+ns+2];
+  if (backbones <= MAXLOOP+1)
+    salt_loop_correction = P->SaltLoop[backbones];
+  else
+    salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+
   
   if (ns == 0) {
     /* bulge */
@@ -591,6 +597,7 @@ exp_E_IntLoop(int               u1,
   int     ul, us, no_close = 0;
   double  z           = 0.;
   int     noGUclosure = P->model_details.noGUclosure;
+  int     backbones;
   double  salt_stack_correction = P->expSaltStack;
   double  salt_loop_correction = 1.;
 
@@ -606,8 +613,11 @@ exp_E_IntLoop(int               u1,
   }
 
   /* salt correction for loop */
-  if (ul+us+2 <= MAXLOOP+1)
-    salt_loop_correction = P->expSaltLoop[ul+us+2];
+  backbones = ul+us+2;
+  if (backbones <= MAXLOOP+1)
+    salt_loop_correction = P->expSaltLoop[backbones];
+  else
+    salt_loop_correction = exp(-vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0) * 10. / P->kT);
 
   if (ul == 0) {
     /* stack */
@@ -681,6 +691,15 @@ E_IntLoop_Co(int          type,
              vrna_param_t *P)
 {
   int e, energy, ci, cj, cp, cq, d3, d5, d5_2, d3_2, tmm, tmm_2;
+  int salt_loop_correction, backbones;
+
+  backbones = p - i + j - q;
+  /* salt correction for loop */
+  if (backbones <= MAXLOOP+1)
+    salt_loop_correction = P->SaltLoop[backbones];
+  else
+    salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+  
 
   energy = 0;
   if (type > 2)
@@ -690,7 +709,7 @@ E_IntLoop_Co(int          type,
     energy += P->TerminalAU;
 
   if (!dangles)
-    return energy;
+    return energy + salt_loop_correction;
 
   ci  = ON_SAME_STRAND(i, i + 1, cutpoint);
   cj  = ON_SAME_STRAND(j - 1, j, cutpoint);
@@ -706,7 +725,7 @@ E_IntLoop_Co(int          type,
   tmm_2 = (cp && cq) ? P->mismatchExt[type_2][sp1][sq1] : d5_2 + d3_2;
 
   if (dangles == 2)
-    return energy + tmm + tmm_2;
+    return energy + tmm + tmm_2 + salt_loop_correction;
 
   /* now we may have non-double dangles only */
   if (p - i > 2) {
@@ -768,7 +787,7 @@ E_IntLoop_Co(int          type,
     }
   }
 
-  return energy;
+  return energy + salt_loop_correction;
 }
 
 

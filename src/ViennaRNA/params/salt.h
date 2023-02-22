@@ -16,6 +16,9 @@ double
 vrna_salt_loop(int m, double salt, double T);
 
 int
+vrna_salt_loop_int(int m, double salt, double T);
+
+int
 vrna_salt_stack(double salt, double T);
 
 void
