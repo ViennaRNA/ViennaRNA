@@ -197,6 +197,11 @@ option  "gquad" g
 flag
 off
 
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
 option  "logML" -
 "Recalculate energies of structures using a logarithmic energy function for multi-loops before output.\n"
 details="This option does not effect structure generation, only the energies that are printed out.\

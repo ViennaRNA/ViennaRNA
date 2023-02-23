@@ -442,6 +442,11 @@ option  "noClosingGU" -
 flag
 off
 
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
 option  "cfactor"         -
 "Set the weight of the covariance term in the energy function\n\n"
 default="1.0"
