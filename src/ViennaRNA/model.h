@@ -957,6 +957,13 @@ extern double nc_fact;
 /** @brief if nonzero use logarithmic ML energy in energy_of_struct  */
 extern int    logML;
 
+/** @brief Set salt concentration */
+extern double salt;
+
+extern int saltDPXInit;
+
+extern int saltDPXInitV;
+
 /* END deprecated global variables: */
 
 /**

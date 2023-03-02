@@ -79,6 +79,10 @@ FLT_OR_DBL      *pr               = NULL; /* base pairing prob. matrix */
 int             *iindx            = NULL; /* pr[i,j] -> pr[iindx[i]-j] */
 int             fold_constrained  = 0;    /* fold with constraints */
 
+double          salt             = VRNA_MODEL_DEFAULT_SALT;
+int             saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
+int             saltDPXInitV     = VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE;
+
 #endif
 
 /*
@@ -1097,11 +1101,11 @@ set_model_details(vrna_md_t *md)
     md->betaScale       = VRNA_MODEL_DEFAULT_BETA_SCALE;
     md->pf_smooth       = VRNA_MODEL_DEFAULT_PF_SMOOTH;
     md->sfact           = 1.07;
-    md->salt            = VRNA_MODEL_DEFAULT_SALT;
+    md->salt            = salt;
     md->saltMLLower     = VRNA_MODEL_DEFAULT_SALTMLLOWER;
     md->saltMLUpper     = VRNA_MODEL_DEFAULT_SALTMLUPPER;
-    md->saltDPXInit     = VRNA_MODEL_DEFAULT_SALTDPXINIT;
-    md->saltDPXInitV    = VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE;
+    md->saltDPXInit     = saltDPXInit;
+    md->saltDPXInitV    = saltDPXInitV;
 
     if (nonstandards)
       copy_nonstandards(md, nonstandards);
