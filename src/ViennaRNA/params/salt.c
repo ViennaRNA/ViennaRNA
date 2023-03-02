@@ -190,20 +190,17 @@ vrna_salt_ml(double saltLoop[], int lower, int upper, int* m, int* b)
 /* Function to compute the salt correction for duplex initialization */
 /* Fitted from 18 duplexes data (Chen & Znosko, 2013) */
 PUBLIC int
-vrna_salt_duplex_init(double salt, int flag)
+vrna_salt_duplex_init(double salt)
 {
 	double a, x, penalty;
 
 	x = log10(salt/VRNA_MODEL_DEFAULT_SALT);
-
-	if (flag==2) {
-		a = -1.25480589;
-		double b = -0.05306256;
-		int c = 160;
-		penalty = -exp(a*x*x+b*x+log(c)) + c;
-	} else {
-  	a = -100.14040781;
-		penalty = a*x;
-	}
+		/* Bounded duplex init correction */
+		/* a = -1.25480589; */
+		/* double b = -0.05306256; */
+		/* int c = 160; */
+		/* penalty = -exp(a*x*x+b*x+log(c)) + c; */
+  a = -100.14040781;
+	penalty = a*x;
 	return roundint(penalty);
 }

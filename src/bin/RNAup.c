@@ -219,17 +219,10 @@ main(int  argc,
       vrna_strcat_printf(&cmdl_parameters, "-salt %f ", salt);
   }
 
-  /* Used in duplexfold */
-  if (args_info.nosaltInit_given) {
-    saltDPXInit = 0;
+  if (args_info.saltInit_given) {
+    saltDPXInit = (int)(args_info.saltInit_arg * 100);
     if (header)
-      vrna_strcat_printf(&cmdl_parameters, "--nosaltInit ");
-  }
-
-  if (args_info.saltInitValue_given) {
-    saltDPXInitV = (int)(args_info.saltInitValue_arg * 100);
-    if (header)
-      vrna_strcat_printf(&cmdl_parameters, "--saltInitValue %f ", args_info.saltInitValue_arg);
+      vrna_strcat_printf(&cmdl_parameters, "--saltInit %f ", args_info.saltInit_arg);
   }
 
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */

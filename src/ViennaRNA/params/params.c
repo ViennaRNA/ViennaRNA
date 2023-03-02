@@ -579,15 +579,15 @@ get_scaled_params(vrna_md_t *md)
   for (i = 0; i <= NBPAIRS; i++)
     params->MLintern[i] += params->SaltMLbase;
 
-  params->SaltDPXInitV = 0;
+  params->SaltDPXInit = 0;
   if (salt != saltStandard)
   {
-    if (md->saltDPXInitV)
-      params->SaltDPXInitV = md->saltDPXInitV;
+    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
+      params->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
-      params->SaltDPXInitV = vrna_salt_duplex_init(salt, md->saltDPXInit);
+      params->SaltDPXInit = vrna_salt_duplex_init(salt);
   }
-  params->DuplexInit += params->SaltDPXInitV;
+  params->DuplexInit += params->SaltDPXInit;
 
   params->id = ++id;
   return params;
@@ -801,15 +801,15 @@ get_scaled_exp_params(vrna_md_t *md,
     pf->expMLintern[i] *= exp(- pf->SaltMLbase * 10. / kT);
 
 
-  pf->SaltDPXInitV = 0;
+  pf->SaltDPXInit = 0;
   if (salt!=saltStandard)
   {
-    if (md->saltDPXInitV)
-      pf->SaltDPXInitV = md->saltDPXInitV;
+    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
+      pf->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
-      pf->SaltDPXInitV = vrna_salt_duplex_init(salt, md->saltDPXInit);
+      pf->SaltDPXInit = vrna_salt_duplex_init(salt);
   }
-  pf->expDuplexInit *= exp(- pf->SaltDPXInitV*10. / kT);
+  pf->expDuplexInit *= exp(- pf->SaltDPXInit*10. / kT);
 
 
   return pf;
@@ -1032,15 +1032,15 @@ get_exp_params_ali(vrna_md_t    *md,
     pf->expMLintern[i] *= exp(- pf->SaltMLbase * 10. / kTn);
 
 
-  pf->SaltDPXInitV = 0;
+  pf->SaltDPXInit = 0;
   if (salt!=saltStandard)
   {
-    if (md->saltDPXInitV)
-      pf->SaltDPXInitV = md->saltDPXInitV;
+    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
+      pf->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
-      pf->SaltDPXInitV = vrna_salt_duplex_init(salt, md->saltDPXInit);
+      pf->SaltDPXInit = vrna_salt_duplex_init(salt);
   }
-  pf->expDuplexInit *= exp(- pf->SaltDPXInitV*10. / kTn);
+  pf->expDuplexInit *= exp(- pf->SaltDPXInit*10. / kTn);
 
 
   return pf;

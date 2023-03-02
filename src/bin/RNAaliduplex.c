@@ -88,11 +88,8 @@ main(int  argc,
   if (args_info.salt_given)
     salt = args_info.salt_arg;
 
-  if (args_info.nosaltInit_given)
-    saltDPXInit = 0;
-
-  if (args_info.saltInitValue_given)
-    saltDPXInitV = (int)(args_info.saltInitValue_arg * 100);
+  if (args_info.saltInit_given)
+    saltDPXInit = (int)(args_info.saltInit_arg * 100);
 
   /* take another energy parameter set */
   if (args_info.paramFile_given)

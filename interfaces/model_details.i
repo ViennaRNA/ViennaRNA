@@ -47,7 +47,6 @@ typedef struct {
   int saltMLLower;
   int saltMLUpper;
   int saltDPXInit;
-  int saltDPXInitV;
 } vrna_md_t;
 
 
@@ -88,8 +87,7 @@ typedef struct {
     const double  salt            = vrna_md_defaults_salt_get(),
     const int     saltMLLower     = vrna_md_defaults_saltMLLower_get(),
     const int     saltMLUpper     = vrna_md_defaults_saltMLUpper_get(),
-    const int     saltDPXInit     = vrna_md_defaults_saltDPXInit_get(),
-    const int     saltDPXInitV    = vrna_md_defaults_saltDPXInitV_get())
+    const int     saltDPXInit     = vrna_md_defaults_saltDPXInit_get())
   {
     vrna_md_t *md       = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     md->temperature     = temperature;
@@ -120,7 +118,6 @@ typedef struct {
     md->saltMLLower     = saltMLLower;
     md->saltMLUpper     = saltMLUpper;
     md->saltDPXInit     = saltDPXInit;
-    md->saltDPXInitV    = saltDPXInitV;
 
     vrna_md_update(md);
 
@@ -183,7 +180,6 @@ typedef struct {
     out << ", saltMLLower: " << $self->saltMLLower ;
     out << ", saltMLUpper: " << $self->saltMLUpper ;
     out << ", saltDPXInit: " << $self->saltDPXInit ;
-    out << ", saltDPXInitV: " << $self->saltDPXInitV ;
     out << " }";
 
     return std::string(out.str());

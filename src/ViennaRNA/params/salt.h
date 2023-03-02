@@ -25,6 +25,6 @@ void
 vrna_salt_ml(double saltLoop[], int lower, int upper, int *m, int *b);
 
 int
-vrna_salt_duplex_init(double salt, int flag);
+vrna_salt_duplex_init(double salt);
 
 #endif

@@ -81,7 +81,6 @@ int             fold_constrained  = 0;    /* fold with constraints */
 
 double          salt             = VRNA_MODEL_DEFAULT_SALT;
 int             saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
-int             saltDPXInitV     = VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE;
 
 #endif
 
@@ -158,7 +157,6 @@ PRIVATE vrna_md_t defaults = {
   VRNA_MODEL_DEFAULT_SALTMLLOWER,
   VRNA_MODEL_DEFAULT_SALTMLUPPER,
   VRNA_MODEL_DEFAULT_SALTDPXINIT,
-  VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE
 };
 
 /*
@@ -367,7 +365,6 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.saltMLLower      = VRNA_MODEL_DEFAULT_SALTMLLOWER;
   defaults.saltMLUpper      = VRNA_MODEL_DEFAULT_SALTMLUPPER;
   defaults.saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
-  defaults.saltDPXInitV     = VRNA_MODEL_DEFAULT_SALTDPXINIT_VALUE;
 
   if (md_p) {
     /* now try to apply user settings */
@@ -405,7 +402,6 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_saltMLLower(md_p->saltMLLower);
     vrna_md_defaults_saltMLUpper(md_p->saltMLUpper);
     vrna_md_defaults_saltDPXInit(md_p->saltDPXInit);
-    vrna_md_defaults_saltDPXInitV(md_p->saltDPXInitV);
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
@@ -901,9 +897,9 @@ vrna_md_defaults_saltMLUpper_get(void)
 
 
 PUBLIC void
-vrna_md_defaults_saltDPXInit(int flag)
+vrna_md_defaults_saltDPXInit(int value)
 {
-  defaults.saltDPXInit = flag;
+  defaults.saltDPXInit = value;
 }
 
 PUBLIC int 
@@ -911,20 +907,6 @@ vrna_md_defaults_saltDPXInit_get(void)
 {
   return defaults.saltDPXInit;
 }
-
-
-PUBLIC void
-vrna_md_defaults_saltDPXInitV(int value)
-{
-  defaults.saltDPXInitV = value;
-}
-
-PUBLIC int 
-vrna_md_defaults_saltDPXInitV_get(void)
-{
-  return defaults.saltDPXInitV;
-}
-
 
 PUBLIC void
 vrna_md_update(vrna_md_t *md)
@@ -1105,7 +1087,6 @@ set_model_details(vrna_md_t *md)
     md->saltMLLower     = VRNA_MODEL_DEFAULT_SALTMLLOWER;
     md->saltMLUpper     = VRNA_MODEL_DEFAULT_SALTMLUPPER;
     md->saltDPXInit     = saltDPXInit;
-    md->saltDPXInitV    = saltDPXInitV;
 
     if (nonstandards)
       copy_nonstandards(md, nonstandards);

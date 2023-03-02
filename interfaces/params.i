@@ -64,7 +64,7 @@ typedef struct {
   const int       SaltMLbase;
   const int       SaltMLintern;
   const int       SaltMLclosing;
-  const int       SaltDPXInitV;
+  const int       SaltDPXInit;
 } vrna_param_t;
 
 /* do not create default constructor */
@@ -212,7 +212,7 @@ typedef struct {
     out << ", SaltMLbase: " << $self->SaltMLbase;
     out << ", SaltMLintern: " << $self->SaltMLintern;
     out << ", SaltMLclosing: " << $self->SaltMLclosing;
-    out << ", SaltDPXInitV: " << $self->SaltDPXInitV;
+    out << ", SaltDPXInit: " << $self->SaltDPXInit;
 
     out << " }";
 

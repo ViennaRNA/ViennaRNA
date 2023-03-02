@@ -101,7 +101,7 @@ struct vrna_param_s {
   int       SaltMLbase;
   int       SaltMLintern;
   int       SaltMLclosing;
-  int       SaltDPXInitV;
+  int       SaltDPXInit;
 };
 
 /**
@@ -167,7 +167,7 @@ struct vrna_exp_param_s {
   int       SaltMLbase;
   int       SaltMLintern;
   int       SaltMLclosing;
-  int       SaltDPXInitV;
+  int       SaltDPXInit;
 };
 
 
