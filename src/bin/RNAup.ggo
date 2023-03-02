@@ -179,6 +179,7 @@ option  "saltInit" -
 "Provide salt correction for duplex initialization (in kcal/mol).\n\n"
 double
 optional
+hidden
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set."

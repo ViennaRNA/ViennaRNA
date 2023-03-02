@@ -90,6 +90,7 @@ option  "saltInit" -
 "Provide salt correction for duplex initialization (in kcal/mol).\n\n"
 double
 optional
+hidden
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
