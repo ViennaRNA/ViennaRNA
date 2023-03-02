@@ -85,6 +85,15 @@ main(int  argc,
   if (args_info.noClosingGU_given)
     no_closingGU = 1;
 
+  if (args_info.salt_given)
+    salt = args_info.salt_arg;
+
+  if (args_info.nosaltInit_given)
+    saltDPXInit = 0;
+
+  if (args_info.saltInitValue_given)
+    saltDPXInitV = (int)(args_info.saltInitValue_arg * 100);
+
   /* take another energy parameter set */
   if (args_info.paramFile_given)
     ParamFile = strdup(args_info.paramFile_arg);

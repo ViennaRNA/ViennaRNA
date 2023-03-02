@@ -794,6 +794,9 @@ main(int  argc,
       md.dangles = dangles = args_info.dangles_arg;
   }
 
+  if (args_info.salt_given)
+    md.salt = args_info.salt_arg;
+
   if (args_info.verbose_given)
     verbose = 1;
 

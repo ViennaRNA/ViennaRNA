@@ -48,6 +48,11 @@ option  "noClosingGU" -
 flag
 off
 
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
 option  "noconv"  -
 "Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
 flag
