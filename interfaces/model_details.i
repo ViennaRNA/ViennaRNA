@@ -243,6 +243,8 @@ extern int    ribo;
 extern double cv_fact;
 extern double nc_fact;
 extern double sfact;
+extern double salt;
+extern int saltDPXInit;
 
 %include <ViennaRNA/model.h>
 

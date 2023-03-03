@@ -59,8 +59,8 @@ typedef struct {
   const char      param_file[256];
 
   const int       SaltStack;
-  const int       SaltLoop[MAXLOOP + 1];
-  const double    SaltLoopDbl[MAXLOOP + 1];
+  const int       SaltLoop[MAXLOOP + 2];
+  const double    SaltLoopDbl[MAXLOOP + 2];
   const int       SaltMLbase;
   const int       SaltMLintern;
   const int       SaltMLclosing;
@@ -116,6 +116,14 @@ typedef struct {
 
   const vrna_md_t model_details;
   const char      param_file[256];
+
+  const double    expSaltStack;
+  const double    expSaltLoop[MAXLOOP + 2];
+  const double    SaltLoopDbl[MAXLOOP + 2];
+  const int       SaltMLbase;
+  const int       SaltMLintern;
+  const int       SaltMLclosing;
+  const int       SaltDPXInit;
 } vrna_exp_param_t;
 
 /* make a nice object oriented interface to vrna_param_t */

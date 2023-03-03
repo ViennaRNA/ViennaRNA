@@ -157,17 +157,26 @@ typedef struct vrna_md_s vrna_md_t;
 #define VRNA_MODEL_DEFAULT_PF_SMOOTH      1
 
 /**
- *  @brief  Default model salt concentration
+ *  @brief  Default model salt concentration (M)
  */
 #define VRNA_MODEL_DEFAULT_SALT           1.021
 
 
+/**
+ *  @brief  Default model lower bound of multiloop size for salt correction fiting
+ */
 #define VRNA_MODEL_DEFAULT_SALTMLLOWER    6
 
 
+/**
+ *  @brief  Default model upper bound of multiloop size for salt correction fiting
+ */
 #define VRNA_MODEL_DEFAULT_SALTMLUPPER    24
 
 
+/**
+ *  @brief  Default model value to turn off user-provided salt correction for duplex initializtion
+ */
 #define VRNA_MODEL_DEFAULT_SALTDPXINIT 99999
 
 
@@ -248,10 +257,13 @@ struct vrna_md_s {
   short   alias[MAXALPHA + 1];              /**<  @brief  alias of an integer nucleotide representation */
   int     pair[MAXALPHA + 1][MAXALPHA + 1]; /**<  @brief  Integer representation of a base pair */
   float   pair_dist[7][7];                  /**<  @brief  Base pair dissimilarity, a.k.a. distance matrix */
-  double  salt;                             /**<  @brief  Salt concentration */
-  int     saltMLLower;
-  int     saltMLUpper;
-  int     saltDPXInit;
+  double  salt;                             /**<  @brief  Salt (monovalent) concentration (M) in buffer */
+  int     saltMLLower;                      /**<  @brief  Lower bound of multiloop size to use in loop salt correction linear fitting */
+  int     saltMLUpper;                      /**<  @brief  Upper bound of multiloop size to use in loop salt correction linear fitting */
+  int     saltDPXInit;                      /**<  @brief  User-provided salt correction for duplex initialization (in dcal/mol).
+                                             *    If set to 99999 the default salt correction is used.
+                                             *    If set to 0 there is no salt correction for duplex initialization.
+                                             */    
 };
 
 
@@ -760,37 +772,74 @@ vrna_md_defaults_sfact(double factor);
 double
 vrna_md_defaults_sfact_get(void);
 
+
 /**
- *  @brief Set the default sodium concentration
+ *  @brief Set the default salt concentration
  *
- *  @param salt The sodium concentration in mM (default: 1021)
+ *  @param salt The sodium concentration in M (default: 1.021)
  */
 void
 vrna_md_defaults_salt(double salt);
 
 
 /**
- *  @brief Get the default sodium concentration
- *  @return The default sodium concentration
+ *  @brief Get the default salt concentration
+ *  @return The default salt concentration
  */
 double
 vrna_md_defaults_salt_get(void);
 
+
+/**
+ *  @brief Set the default multiloop size lower bound for loop salt correciton linear fitting
+ *
+ *  @param lower Size lower bound (number of backbone in loop)
+ */
 void
 vrna_md_defaults_saltMLLower(int lower);
 
+
+/**
+ *  @brief Get the default multiloop size lower bound for loop salt correciton linear fitting
+ *  @return The default lower bound
+ */
 int
 vrna_md_defaults_saltMLLower_get(void);
 
+
+/**
+ *  @brief Set the default multiloop size upper bound for loop salt correciton linear fitting
+ *
+ *  @param upper Size Upper bound (number of backbone in loop)
+ */
 void
 vrna_md_defaults_saltMLUpper(int upper);
 
+
+/**
+ *  @brief Get the default multiloop size upper bound for loop salt correciton linear fitting
+ *  @return The default upper bound
+ */
 int
 vrna_md_defaults_saltMLUpper_get(void);
 
+
+/**
+ *  @brief Set user-provided salt correciton for duplex initialization
+ *  If value is 99999 the default value from fitting is used
+ *
+ *  @param value The value of salt correction for duplex initialization (in dcal/mol)
+ */
 void
 vrna_md_defaults_saltDPXInit(int value);
 
+
+/**
+ *  @brief Get user-provided salt correciton for duplex initialization
+ *  If value is 99999 the default value from fitting is used
+ *
+ *  @return The user-provided salt correction for duplex initialization
+ */
 int
 vrna_md_defaults_saltDPXInit_get(void);
 
@@ -947,9 +996,10 @@ extern double nc_fact;
 /** @brief if nonzero use logarithmic ML energy in energy_of_struct  */
 extern int    logML;
 
-/** @brief Set salt concentration */
+/** @brief salt concentration */
 extern double salt;
 
+/** @brief Salt correction for duplex initialization */
 extern int saltDPXInit;
 
 

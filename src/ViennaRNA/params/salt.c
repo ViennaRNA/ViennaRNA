@@ -28,7 +28,7 @@
 extern double kn(int, double);
 extern double expn(int, double);
 
-
+/* Temperature-dependent epsilonr */
 PRIVATE INLINE double
 epsilonr(double T)
 {
@@ -39,8 +39,6 @@ epsilonr(double T)
 PRIVATE INLINE double
 bjerrum_length(double T)
 {
-  /* return 2088.762/T; */
-  /* return 2089.6/T; */
 	return 167100.052/(T*epsilonr(T));
 };
 
@@ -107,37 +105,37 @@ approx_hyper(double y)
 
 
 PRIVATE double
-loop_salt_aux(double kmlss, int m, double T)
+loop_salt_aux(double kmlss, int L, double T)
 {
 	double a, b;
 
-	a =  Gaz_const_kcal * T * bjerrum_length(T) * m * Backbone_length * tau_ss(T) * tau_ss(T);
+	a =  Gaz_const_kcal * T * bjerrum_length(T) * L * Backbone_length * tau_ss(T) * tau_ss(T);
 	b = log(kmlss) - log(PI/2) + Eular_const + approx_hyper(kmlss) + 1/kmlss * (1 - exp(-kmlss) + kmlss*expn(1, kmlss));
 
 	return a*b*100;
 };
 
 PUBLIC double
-vrna_salt_loop(int m, double rho, double T)
+vrna_salt_loop(int L, double rho, double T)
 {
-	if (m == 0)
+	if (L == 0)
 		return 0;
 	double correction, kmlss, kmlss_ref;
 	
-	kmlss_ref = kappa(VRNA_MODEL_DEFAULT_SALT, T) * m * Backbone_length;
-	kmlss = kappa(rho, T) * m * Backbone_length;
+	kmlss_ref = kappa(VRNA_MODEL_DEFAULT_SALT, T) * L * Backbone_length;
+	kmlss = kappa(rho, T) * L * Backbone_length;
 
-	correction = loop_salt_aux(kmlss, m, T) - loop_salt_aux(kmlss_ref, m, T);
+	correction = loop_salt_aux(kmlss, L, T) - loop_salt_aux(kmlss_ref, L, T);
 
 	return correction;
 };
 
 PUBLIC int
-vrna_salt_loop_int(int m, double rho, double T)
+vrna_salt_loop_int(int L, double rho, double T)
 {
 	double correction;
 
-	correction = vrna_salt_loop(m, rho, T);
+	correction = vrna_salt_loop(L, rho, T);
 	return roundint(correction);
 }
 
@@ -195,7 +193,7 @@ vrna_salt_duplex_init(double salt)
 	double a, x, penalty;
 
 	x = log10(salt/VRNA_MODEL_DEFAULT_SALT);
-		/* Bounded duplex init correction */
+		/* Converged duplex init correction */
 		/* a = -1.25480589; */
 		/* double b = -0.05306256; */
 		/* int c = 160; */
