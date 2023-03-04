@@ -111,13 +111,13 @@ foreach my $hit (@data) {
     if (($hit->{'start'} <= 101) && ($hit->{'end'} >= 110)) {
         # must contain base pair (101,110)
         my $pt = RNA::ptable($hit->{'structure'});
-        $everythingFine = 0 if $pt->[101 - $hit->{'start'} + 1] != (110 - $hit->{'start'} + 1);
+        $everythingFine = 0 if $pt->__getitem__(101 - $hit->{'start'} + 1) != (110 - $hit->{'start'} + 1);
     }
     if (($hit->{'start'} == 1) && ($hit->{'end'} >= 10)) {
         # must contain base pair (101,110)
         # must contain base pair (101,110)
         my $pt = RNA::ptable($hit->{'structure'});
-        $everythingFine = 0 if $pt->[1] != 10;
+        $everythingFine = 0 if $pt->__getitem__(1) != 10;
     }
 }
 
