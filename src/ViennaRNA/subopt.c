@@ -2609,10 +2609,10 @@ repeat_gquad(vrna_fold_compound_t *fc,
 
       for (cnt = 0; L[cnt] != -1; cnt++) {
         new_state = copy_state(state);
-
         make_gquad(i, L[cnt], &(l[3 * cnt]), new_state);
         new_state->partial_energy += part_energy;
-        new_state->partial_energy += element_energy;
+        /* re-compute energies */
+        new_state->partial_energy += E_gquad(L[cnt], &(l[3*cnt]), P);
         /* new_state->best_energy =
          * hairpin[unpaired] + element_energy + best_energy; */
         push(env->Stack, new_state);
