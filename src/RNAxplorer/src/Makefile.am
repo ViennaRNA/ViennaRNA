@@ -28,20 +28,38 @@ bin_PROGRAMS = RNAxplorer
 
 SUFFIXES = _cmdl.c _cmdl.h .ggo
 
-GENGETOPT_CMDL =  RNAxplorer_cmdl.c RNAxplorer_cmdl.h
-GENGETOPT_FILES =  RNAxplorer.ggo
+RNAxplorer_LDADD = \
+    libRNAxplorer_conv.la \
+    $(RNALIB_LIBS)
 
-EXTRA_DIST =  ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
+GENGETOPT_CMDL = \
+    RNAxplorer_cmdl.c RNAxplorer_cmdl.h
 
-# remove all generated content
-maintainer-clean-local:
-	rm -rf $(GENGETOPT_CMDL)
+GENGETOPT_FILES = \
+    RNAxplorer.ggo
+
+EXTRA_DIST = \
+    ${GENGETOPT_FILES} \
+    ${GENGETOPT_CMDL}
 
 # how we make the commandline interface parser
 .ggo_cmdl.c:
 	$(AM_V_GEN)gengetopt -i $<
 
 _cmdl.c_cmdl.h :
+## Recover from the removal of $@
+	@if test -f $@; then : touch $@ ; else \
+          rm -f $< ; \
+          $(MAKE) $(AM_MAKEFLAGS) $< ; \
+        fi
 
-RNAxplorer_SOURCES = ${GENGETOPT_CMDL} RNAxplorer.c RNAxplorer.h
-RNAxplorer_LDADD = libRNAxplorer_conv.la $(RNALIB_LIBS)
+
+# remove all generated man pages
+maintainer-clean-local:
+	rm -rf $(GENGETOPT_CMDL)
+
+
+RNAxplorer_SOURCES = \
+    ${GENGETOPT_CMDL} \
+    RNAxplorer.c
+
