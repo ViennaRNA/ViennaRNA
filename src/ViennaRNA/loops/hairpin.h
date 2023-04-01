@@ -158,10 +158,12 @@ E_Hairpin(int           size,
 
   salt_correction = 0;
 
-  if (size<=MAXLOOP)
-    salt_correction = P->SaltLoop[size+1];
-  else
-    salt_correction = vrna_salt_loop_int(size+1, P->model_details.salt, P->temperature+K0);
+  if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+    if (size<=MAXLOOP)
+      salt_correction = P->SaltLoop[size+1];
+    else
+      salt_correction = vrna_salt_loop_int(size+1, P->model_details.salt, P->temperature+K0);
+  }
 
   if (size <= 30)
     energy = P->hairpin[size];
@@ -251,10 +253,12 @@ exp_E_Hairpin(int               u,
   kT = P->kT;   /* kT in cal/mol  */
   salt_correction = 1.;
 
-  if (u<=MAXLOOP)
-    salt_correction = P->expSaltLoop[u+1];
-  else
-    salt_correction = exp(-vrna_salt_loop_int(u+1, P->model_details.salt, P->temperature+K0) * 10. / kT);
+  if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+    if (u<=MAXLOOP)
+      salt_correction = P->expSaltLoop[u+1];
+    else
+      salt_correction = exp(-vrna_salt_loop_int(u+1, P->model_details.salt, P->temperature+K0) * 10. / kT);
+  }
 
   if (u <= 30)
     q = P->exphairpin[u];

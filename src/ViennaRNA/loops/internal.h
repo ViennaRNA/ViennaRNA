@@ -508,13 +508,14 @@ E_IntLoop(int           n1,
   
   backbones = nl+ns+2;
 
-  /* salt correction for loop */
-  if (backbones <= MAXLOOP+1)
-    salt_loop_correction = P->SaltLoop[backbones];
-  else
-    salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+  if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+    /* salt correction for loop */
+    if (backbones <= MAXLOOP+1)
+      salt_loop_correction = P->SaltLoop[backbones];
+    else
+      salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+  }
 
-  
   if (ns == 0) {
     /* bulge */
     energy = (nl <= MAXLOOP) ? P->bulge[nl] :
@@ -614,10 +615,13 @@ exp_E_IntLoop(int               u1,
 
   /* salt correction for loop */
   backbones = ul+us+2;
-  if (backbones <= MAXLOOP+1)
-    salt_loop_correction = P->expSaltLoop[backbones];
-  else
-    salt_loop_correction = exp(-vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0) * 10. / P->kT);
+
+  if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+    if (backbones <= MAXLOOP+1)
+      salt_loop_correction = P->expSaltLoop[backbones];
+    else
+      salt_loop_correction = exp(-vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0) * 10. / P->kT);
+  }
 
   if (ul == 0) {
     /* stack */
@@ -693,13 +697,16 @@ E_IntLoop_Co(int          type,
   int e, energy, ci, cj, cp, cq, d3, d5, d5_2, d3_2, tmm, tmm_2;
   int salt_loop_correction, backbones;
 
+  salt_loop_correction = 0;
+
   backbones = p - i + j - q;
   /* salt correction for loop */
-  if (backbones <= MAXLOOP+1)
-    salt_loop_correction = P->SaltLoop[backbones];
-  else
-    salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
-  
+  if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+    if (backbones <= MAXLOOP+1)
+      salt_loop_correction = P->SaltLoop[backbones];
+    else
+      salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+  }
 
   energy = 0;
   if (type > 2)
