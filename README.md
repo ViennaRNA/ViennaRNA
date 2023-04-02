@@ -104,7 +104,7 @@ script:
    program `RNALfold`:
 ```
 cd src
-tar -xzf libsvm-3.25.tar.gz
+tar -xzf libsvm-3.31.tar.gz
 cd ..
 ```
 
@@ -112,7 +112,7 @@ cd ..
    program `RNAmultifold`:
 ```
 cd src
-tar -xjf dlib-19.23.tar.bz2
+tar -xjf dlib-19.24.tar.bz2
 cd ..
 ```
 
@@ -121,7 +121,7 @@ cd ..
    following packages need to be installed:
     - `gengetopt` (to generate command line parameter parsers)
     - `help2man` (to generate the man pages) 
-    - `flex` and `flex-devel` (to generate sources for RNAforester)
+    - `yacc`, `flex` and `flex-devel` (to generate sources for RNAforester)
     - `vim-common` (for the `xxd` program)
     - `swig` (to generate the scripting language interfaces)
 
