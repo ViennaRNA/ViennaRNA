@@ -79,10 +79,6 @@ struct options {
   char            *shape_method;
   char            *shape_conversion;
 
-  int             csv_output;
-  int             csv_header;
-  char            csv_output_delim;
-
   int             jobs;
   int             keep_order;
   unsigned int    next_record_number;
@@ -122,11 +118,6 @@ static int
 process_input(FILE            *input_stream,
               const char      *input_filename,
               struct options  *opt);
-
-
-static void
-write_csv_header(FILE           *stream,
-                 struct options *opt);
 
 
 void
@@ -189,10 +180,6 @@ init_default_options(struct options *opt)
   opt->shape_file       = NULL;
   opt->shape_method     = NULL;
   opt->shape_conversion = NULL;
-
-  opt->csv_output       = 0;    /* flag indicating whether we produce one-line outputs, a.k.a. CSV */
-  opt->csv_header       = 1;    /* print header for one-line output */
-  opt->csv_output_delim = ',';  /* delimiting character for one-line output */
 
   opt->jobs               = 1;
   opt->keep_order         = 1;
@@ -373,9 +360,6 @@ main(int  argc,
   if (opt.pf && opt.md.gquad)
     vrna_message_error(
       "G-Quadruplex support is currently not available for partition function computations");
-
-  if ((opt.csv_output) && (opt.csv_header))
-    write_csv_header(stdout, &opt);
 
   if ((opt.verbose) && (opt.jobs > 1))
     vrna_message_info(stderr, "Preparing %d parallel computation slots", opt.jobs);
@@ -1290,88 +1274,6 @@ process_record(struct record_data *record)
   vrna_fold_compound_free(vc);
 
   free(record);
-}
-
-
-static void
-write_csv_header(FILE           *output,
-                 struct options *opt)
-{
-  vrna_cstr_t stream = vrna_cstr(100, output);
-
-  /* compose header line for CSV output */
-  if (opt->pf) {
-    if (opt->md.compute_bpp) {
-      if (opt->doT) {
-        vrna_cstr_printf(stream,
-                         "seq_num%c"
-                         "seq_id%c"
-                         "seq%c"
-                         "mfe_struct%c"
-                         "mfe%c"
-                         "bpp_string%c"
-                         "ensemble_energy%c"
-                         "AB%c"
-                         "AA%c"
-                         "BB%c"
-                         "A%c"
-                         "B\n",
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim);
-      } else {
-        vrna_cstr_printf(stream,
-                         "seq_num%c"
-                         "seq_id%c"
-                         "seq%c"
-                         "mfe_struct%c"
-                         "mfe%c",
-                         "bpp_string%c"
-                         "ensemble_energy\n",
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim);
-      }
-    } else {
-      vrna_cstr_printf(stream,
-                       "seq_num%c"
-                       "seq_id%c"
-                       "seq%c"
-                       "mfe_struct%c"
-                       "mfe%c",
-                       "ensemble_energy\n",
-                       opt->csv_output_delim,
-                       opt->csv_output_delim,
-                       opt->csv_output_delim,
-                       opt->csv_output_delim,
-                       opt->csv_output_delim);
-    }
-  } else {
-    vrna_cstr_printf(stream,
-                     "seq_num%c"
-                     "seq_id%c"
-                     "seq%c"
-                     "mfe_struct%c"
-                     "mfe\n",
-                     opt->csv_output_delim,
-                     opt->csv_output_delim,
-                     opt->csv_output_delim,
-                     opt->csv_output_delim);
-  }
-
-  vrna_cstr_fflush(stream);
-  vrna_cstr_close(stream);
 }
 
 
