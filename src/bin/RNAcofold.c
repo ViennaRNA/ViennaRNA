@@ -1232,76 +1232,49 @@ write_csv_header(FILE           *output,
 {
   vrna_cstr_t stream = vrna_cstr(100, output);
 
+  vrna_cstr_printf(stream,
+                   "seq_num%c"
+                   "seq_id%c"
+                   "seq%c"
+                   "mfe_struct%c"
+                   "mfe",
+                   opt->csv_output_delim,
+                   opt->csv_output_delim,
+                   opt->csv_output_delim,
+                   opt->csv_output_delim);
+
   /* compose header line for CSV output */
   if (opt->pf) {
     if (opt->md.compute_bpp) {
-      if (opt->doT) {
-        vrna_cstr_printf(stream,
-                         "seq_num%c"
-                         "seq_id%c"
-                         "seq%c"
-                         "mfe_struct%c"
-                         "mfe%c"
-                         "bpp_string%c"
-                         "ensemble_energy%c"
-                         "AB%c"
-                         "AA%c"
-                         "BB%c"
-                         "A%c"
-                         "B\n",
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim);
-      } else {
-        vrna_cstr_printf(stream,
-                         "seq_num%c"
-                         "seq_id%c"
-                         "seq%c"
-                         "mfe_struct%c"
-                         "mfe%c",
-                         "bpp_string%c"
-                         "ensemble_energy\n",
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim,
-                         opt->csv_output_delim);
-      }
-    } else {
       vrna_cstr_printf(stream,
-                       "seq_num%c"
-                       "seq_id%c"
-                       "seq%c"
-                       "mfe_struct%c"
-                       "mfe%c",
-                       "ensemble_energy\n",
+                       "%cbpp_string",
+                       opt->csv_output_delim);
+    }
+
+    vrna_cstr_printf(stream,
+                     "%censemble_energy%c"
+                     "prob_mfe%c"
+                     "dG_binding",
+                     opt->csv_output_delim,
+                     opt->csv_output_delim,
+                     opt->csv_output_delim);
+
+    if (opt->doT) {
+      vrna_cstr_printf(stream,
+                       "%cAB%c"
+                       "AA%c"
+                       "BB%c"
+                       "A%c"
+                       "B",
                        opt->csv_output_delim,
                        opt->csv_output_delim,
                        opt->csv_output_delim,
                        opt->csv_output_delim,
                        opt->csv_output_delim);
     }
-  } else {
-    vrna_cstr_printf(stream,
-                     "seq_num%c"
-                     "seq_id%c"
-                     "seq%c"
-                     "mfe_struct%c"
-                     "mfe\n",
-                     opt->csv_output_delim,
-                     opt->csv_output_delim,
-                     opt->csv_output_delim,
-                     opt->csv_output_delim);
   }
+
+  vrna_cstr_printf(stream, "\n");
 
   vrna_cstr_fflush(stream);
   vrna_cstr_close(stream);
