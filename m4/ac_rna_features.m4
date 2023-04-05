@@ -70,11 +70,49 @@ AC_DEFUN([RNA_ENABLE_GSL],[
       with_gsl="no"
     fi
   ])
+
   RNA_PACKAGE_IF_ENABLED([gsl],[
-    AC_DEFINE([VRNA_WITH_GSL], [1], [Use GNU Scientific Library])
-    GSL_LIBS="-lgsl -lgslcblas"
-    CONFIG_GSL="#define VRNA_WITH_GSL"
+    ## Check for gsl/gsl_multimin.h header first
+    AC_CHECK_HEADER([gsl/gsl_multimin.h], [
+      ## now, check if we can compile a program
+      AC_MSG_CHECKING([whether we can compile and link programs with gsl support])
+      ac_save_LIBS="$LIBS"
+      LIBS="$ac_save_LIBS -lgsl -lgslcblas"
+
+      AC_LANG_PUSH([C])
+
+      AC_COMPILE_IFELSE([
+        AC_LANG_PROGRAM(
+          [[#include <stdio.h>
+            #include <gsl/gsl_sf_bessel.h>
+          ]],
+          [[
+            double x = 5.0;
+            double y = gsl_sf_bessel_J0 (x);
+            printf ("J0(%g) = %.18e\n", x, y);
+            return 0;
+          ]])
+      ],[
+        AC_DEFINE([VRNA_WITH_GSL], [1], [Use GNU Scientific Library])
+        GSL_LIBS="-lgsl -lgslcblas"
+        CONFIG_GSL="#define VRNA_WITH_GSL"
+      ],[
+        with_gsl=no
+      ])
+      AC_LANG_POP([C])
+      LIBS="$ac_save_LIBS"
+      AC_MSG_RESULT([$with_gsl])
+    ], [
+      AC_MSG_WARN([
+==========================
+Failed to find gsl/gsl_multimin.h!
+
+You probably need to install the gsl-devel package or similar
+==========================
+    ])
+    with_gsl=no])
   ])
+
 
   AC_SUBST([GSL_LIBS])
   AC_SUBST([CONFIG_GSL])
