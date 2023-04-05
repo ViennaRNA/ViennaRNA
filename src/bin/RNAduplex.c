@@ -85,6 +85,12 @@ main(int  argc,
   if (args_info.noClosingGU_given)
     no_closingGU = 1;
 
+  if (args_info.salt_given)
+    salt = args_info.salt_arg;
+
+  if (args_info.saltInit_given)
+    saltDPXInit = (int)(args_info.saltInit_arg * 100);
+
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
     noconv = 1;

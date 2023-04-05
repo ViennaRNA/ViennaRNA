@@ -314,6 +314,10 @@ command_line(int        argc,
   if (args_info.noClosingGU_given)
     md->noGUclosure = no_closingGU = 1;
 
+  /* set salt concentration */
+  if (args_info.salt_given)
+    md->salt = args_info.salt_arg;
+
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given)
     noconv = 1;

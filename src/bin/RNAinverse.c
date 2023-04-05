@@ -90,6 +90,9 @@ main(int  argc,
   if (args_info.noClosingGU_given)
     no_closingGU = 1;
 
+  if (args_info.salt_given)
+    salt = args_info.salt_arg;
+
   /* set energy model */
   if (args_info.energyModel_given)
     energy_set = args_info.energyModel_arg;

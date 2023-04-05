@@ -7,6 +7,7 @@
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
+#include <ViennaRNA/params/salt.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(DEPRECATED)
@@ -153,12 +154,21 @@ E_Hairpin(int           size,
           const char    *string,
           vrna_param_t  *P)
 {
-  int energy;
+  int energy, salt_correction;
+
+  salt_correction = 0;
+
+  if (size<=MAXLOOP)
+    salt_correction = P->SaltLoop[size+1];
+  else
+    salt_correction = vrna_salt_loop_int(size+1, P->model_details.salt, P->temperature+K0);
 
   if (size <= 30)
     energy = P->hairpin[size];
   else
     energy = P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
+  
+  energy += salt_correction;
 
   if (size < 3)
     return energy;            /* should only be the case when folding alignments */
@@ -172,7 +182,7 @@ E_Hairpin(int           size,
       memcpy(tl, string, sizeof(char) * 6);
       tl[6] = '\0';
       if ((ts = strstr(P->Tetraloops, tl)))
-        return P->Tetraloop_E[(ts - P->Tetraloops) / 7];
+        return P->Tetraloop_E[(ts - P->Tetraloops) / 7] + salt_correction;
     } else if (size == 6) {
       char tl[9] = {
         0
@@ -180,7 +190,7 @@ E_Hairpin(int           size,
       memcpy(tl, string, sizeof(char) * 8);
       tl[8] = '\0';
       if ((ts = strstr(P->Hexaloops, tl)))
-        return P->Hexaloop_E[(ts - P->Hexaloops) / 9];
+        return P->Hexaloop_E[(ts - P->Hexaloops) / 9] + salt_correction;
     } else if (size == 3) {
       char tl[6] = {
         0
@@ -188,7 +198,7 @@ E_Hairpin(int           size,
       memcpy(tl, string, sizeof(char) * 5);
       tl[5] = '\0';
       if ((ts = strstr(P->Triloops, tl)))
-        return P->Triloop_E[(ts - P->Triloops) / 6];
+        return P->Triloop_E[(ts - P->Triloops) / 6] + salt_correction;
 
       return energy + (type > 2 ? P->TerminalAU : 0);
     }
@@ -236,14 +246,22 @@ exp_E_Hairpin(int               u,
               const char        *string,
               vrna_exp_param_t  *P)
 {
-  double q, kT;
+  double q, kT, salt_correction;
 
   kT = P->kT;   /* kT in cal/mol  */
+  salt_correction = 1.;
+
+  if (u<=MAXLOOP)
+    salt_correction = P->expSaltLoop[u+1];
+  else
+    salt_correction = exp(-vrna_salt_loop_int(u+1, P->model_details.salt, P->temperature+K0) * 10. / kT);
 
   if (u <= 30)
     q = P->exphairpin[u];
   else
     q = P->exphairpin[30] * exp(-(P->lxc * log(u / 30.)) * 10. / kT);
+
+  q *= salt_correction;
 
   if (u < 3)
     return (FLT_OR_DBL)q;         /* should only be the case when folding alignments */
@@ -257,7 +275,7 @@ exp_E_Hairpin(int               u,
       tl[6] = '\0';
       if ((ts = strstr(P->Tetraloops, tl))) {
         if (type != 7)
-          return (FLT_OR_DBL)(P->exptetra[(ts - P->Tetraloops) / 7]);
+          return (FLT_OR_DBL)(P->exptetra[(ts - P->Tetraloops) / 7] * salt_correction);
         else
           q *= P->exptetra[(ts - P->Tetraloops) / 7];
       }
@@ -268,7 +286,7 @@ exp_E_Hairpin(int               u,
       memcpy(tl, string, sizeof(char) * 8);
       tl[8] = '\0';
       if ((ts = strstr(P->Hexaloops, tl)))
-        return (FLT_OR_DBL)(P->exphex[(ts - P->Hexaloops) / 9]);
+        return (FLT_OR_DBL)(P->exphex[(ts - P->Hexaloops) / 9] * salt_correction);
     } else if (u == 3) {
       char tl[6] = {
         0
@@ -276,7 +294,7 @@ exp_E_Hairpin(int               u,
       memcpy(tl, string, sizeof(char) * 5);
       tl[5] = '\0';
       if ((ts = strstr(P->Triloops, tl)))
-        return (FLT_OR_DBL)(P->exptri[(ts - P->Triloops) / 6]);
+        return (FLT_OR_DBL)(P->exptri[(ts - P->Triloops) / 6] * salt_correction);
 
       if (type > 2)
         return (FLT_OR_DBL)(q * P->expTermAU);

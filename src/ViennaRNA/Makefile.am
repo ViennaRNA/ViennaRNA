@@ -96,6 +96,13 @@ if VRNA_AM_SWITCH_JSON
 endif
 
 
+CEPHES_SRC  = ../cephes/kn.c \
+							../cephes/const.c \
+							../cephes/mtherr.c \
+							../cephes/expn.c
+CEPHES_H    = ../cephes/mconf.h
+
+
 pkginclude_HEADERS =  \
     concentrations.h \
     wrap_dlib.h \
@@ -189,7 +196,8 @@ pkginclude_HEADERS =  \
     heat_capacity.h \
     ${SVM_UTILS_H_OLD} \
     ${SVM_H} \
-    ${JSON_H}
+    ${JSON_H} \
+    ${CEPHES_H}
 
 
 if VRNA_AM_SWITCH_NAVIEW
@@ -256,7 +264,8 @@ vrna_params_HEADERS = \
     params/constants.h \
     params/basic.h \
     params/io.h \
-    params/convert.h
+    params/convert.h \
+		params/salt.h
 
 
 vrna_datastructures_HEADERS = \
@@ -331,7 +340,8 @@ libRNA_conv_la_SOURCES = \
     sequence.c \
     unstructured_domains.c \
     grammar.c \
-    heat_capacity.c
+    heat_capacity.c \
+    ${CEPHES_SRC}
 
 if VRNA_AM_SWITCH_SVM
 libRNA_conv_la_SOURCES += zscore.c
@@ -416,7 +426,8 @@ libRNA_params_la_SOURCES = \
     params/io.c \
     params/default.c \
     params/params.c \
-    params/convert.c
+    params/convert.c \
+		params/salt.c
 
 libRNA_datastructures_la_SOURCES = \
     datastructures/array.c \
@@ -495,7 +506,8 @@ noinst_HEADERS  = params/intl11.h \
                   list.h \
                   ${SVM_H} \
                   ${JSON_H} \
-                  special_const.h
+                  special_const.h \
+									${CEPHES_H}
 
 nodist_pkginclude_HEADERS = vrna_config.h
 

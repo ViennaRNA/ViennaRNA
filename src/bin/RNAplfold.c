@@ -217,6 +217,9 @@ main(int  argc,
   if (args_info.noGU_given)
     md.noGU = noGU = 1;
 
+  if (args_info.salt_given)
+    md.salt = args_info.salt_arg;
+
   /* do not allow weak closing pairs (AU,GU) */
   if (args_info.noClosingGU_given)
     md.noGUclosure = no_closingGU = 1;

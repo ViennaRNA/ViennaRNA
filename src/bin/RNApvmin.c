@@ -158,6 +158,9 @@ main(int  argc,
   if (args_info.noGU_given)
     md.noGU = 1;
 
+  if (args_info.salt_given)
+    salt = args_info.salt_arg;
+
   if (args_info.noClosingGU_given)
     md.noGUclosure = 1;
 

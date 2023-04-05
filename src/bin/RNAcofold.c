@@ -318,6 +318,10 @@ main(int  argc,
     opt.concentration_file  = strdup(args_info.concfile_arg);
     opt.doC                 = opt.doT = opt.pf = 1;
   }
+  
+  /* Salt duplex init */
+  if (args_info.saltInit_given)
+    opt.md.saltDPXInit = args_info.saltInit_arg;
 
   /* partition function settings */
   if (args_info.partfunc_given) {

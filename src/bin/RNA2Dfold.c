@@ -135,6 +135,10 @@ main(int  argc,
   if (args_info.noClosingGU_given)
     md.noGUclosure = no_closingGU = 1;
 
+  /* set salt concentration */
+  if (args_info.salt_given)
+    md.salt = args_info.salt_arg;
+
   /* pf scaling factor */
   if (args_info.pfScale_given)
     md.sfact = args_info.pfScale_arg;

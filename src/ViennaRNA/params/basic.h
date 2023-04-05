@@ -95,6 +95,13 @@ struct vrna_param_s {
 
   vrna_md_t model_details;    /**<  @brief  Model details to be used in the recursions */
   char      param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
+  int       SaltStack;
+  int       SaltLoop[MAXLOOP + 2];
+  double    SaltLoopDbl[MAXLOOP + 2];
+  int       SaltMLbase;
+  int       SaltMLintern;
+  int       SaltMLclosing;
+  int       SaltDPXInit;
 };
 
 /**
@@ -153,6 +160,14 @@ struct vrna_exp_param_s {
 
   vrna_md_t model_details;    /**<  @brief  Model details to be used in the recursions */
   char      param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
+
+  double    expSaltStack;
+  double    expSaltLoop[MAXLOOP + 2];
+  double    SaltLoopDbl[MAXLOOP + 2];
+  int       SaltMLbase;
+  int       SaltMLintern;
+  int       SaltMLclosing;
+  int       SaltDPXInit;
 };
 
 

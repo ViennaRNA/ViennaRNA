@@ -212,6 +212,19 @@ main(int  argc,
       vrna_strcat_printf(&cmdl_parameters, "--noClosingGU ");
   }
 
+  /* Set salt concentration related parameters */
+  if (args_info.salt_given) {
+    salt = args_info.salt_arg;
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "-salt %f ", salt);
+  }
+
+  if (args_info.saltInit_given) {
+    saltDPXInit = (int)(args_info.saltInit_arg * 100);
+    if (header)
+      vrna_strcat_printf(&cmdl_parameters, "--saltInit %f ", args_info.saltInit_arg);
+  }
+
   /* do not convert DNA nucleotide "T" to appropriate RNA "U" */
   if (args_info.noconv_given) {
     noconv = 1;

@@ -133,6 +133,13 @@
     } \
   })
 
+/* For salt correction */
+#define ggo_get_salt(ggostruct, dest) ({ \
+    if (ggostruct.salt_given) \
+      dest = ggostruct.salt_arg; \
+  })
+
+
 
 /*
  *  The following macro automatically sets a basic set of
@@ -140,6 +147,7 @@
  *  - dangles
  *  - special_hp
  *  - gquad
+ *  - salt
  *  - energy_set
  *  - ns_bases
  *  - parameter file
@@ -151,6 +159,8 @@
     ggo_get_special_hp(ggostruct, md.special_hp); \
     /* gquadruplex support */ \
     ggo_get_gquad(ggostruct, md.gquad); \
+    /* salt correction support */ \
+    ggo_get_salt(ggostruct, md.salt); \
     /* set energy model */ \
     ggo_get_energyModel(ggostruct, md.energy_set); \
     /* Allow other pairs in addition to the usual AU,GC,and GU pairs */ \

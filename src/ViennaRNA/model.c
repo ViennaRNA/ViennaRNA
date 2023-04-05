@@ -79,6 +79,9 @@ FLT_OR_DBL      *pr               = NULL; /* base pairing prob. matrix */
 int             *iindx            = NULL; /* pr[i,j] -> pr[iindx[i]-j] */
 int             fold_constrained  = 0;    /* fold with constraints */
 
+double          salt             = VRNA_MODEL_DEFAULT_SALT;
+int             saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
+
 #endif
 
 /*
@@ -149,7 +152,11 @@ PRIVATE vrna_md_t defaults = {
   BP_REV_DEFAULT,
   BP_ALIAS_DEFAULT,
   BP_ENCODING_DEFAULT,
-  DM_DEFAULT
+  DM_DEFAULT,
+  VRNA_MODEL_DEFAULT_SALT,
+  VRNA_MODEL_DEFAULT_SALTMLLOWER,
+  VRNA_MODEL_DEFAULT_SALTMLUPPER,
+  VRNA_MODEL_DEFAULT_SALTDPXINIT,
 };
 
 /*
@@ -354,6 +361,10 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.pf_smooth        = VRNA_MODEL_DEFAULT_PF_SMOOTH;
   defaults.sfact            = 1.07;
   defaults.nonstandards[0]  = '\0';
+  defaults.salt             = VRNA_MODEL_DEFAULT_SALT;
+  defaults.saltMLLower      = VRNA_MODEL_DEFAULT_SALTMLLOWER;
+  defaults.saltMLUpper      = VRNA_MODEL_DEFAULT_SALTMLUPPER;
+  defaults.saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
 
   if (md_p) {
     /* now try to apply user settings */
@@ -387,6 +398,10 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_betaScale(md_p->betaScale);
     vrna_md_defaults_pf_smooth(md_p->pf_smooth);
     vrna_md_defaults_sfact(md_p->sfact);
+    vrna_md_defaults_salt(md_p->salt);
+    vrna_md_defaults_saltMLLower(md_p->saltMLLower);
+    vrna_md_defaults_saltMLUpper(md_p->saltMLUpper);
+    vrna_md_defaults_saltDPXInit(md_p->saltDPXInit);
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
@@ -843,6 +858,57 @@ vrna_md_defaults_sfact_get(void)
 
 
 PUBLIC void
+vrna_md_defaults_salt(double salt)
+{
+  defaults.salt = salt;
+}
+
+PUBLIC double
+vrna_md_defaults_salt_get(void)
+{
+  return defaults.salt;
+}
+
+
+PUBLIC void
+vrna_md_defaults_saltMLLower(int lower)
+{
+  defaults.saltMLLower = lower;
+}
+
+PUBLIC int 
+vrna_md_defaults_saltMLLower_get(void)
+{
+  return defaults.saltMLLower;
+}
+
+
+PUBLIC void
+vrna_md_defaults_saltMLUpper(int upper)
+{
+  defaults.saltMLUpper = upper;
+}
+
+PUBLIC int 
+vrna_md_defaults_saltMLUpper_get(void)
+{
+  return defaults.saltMLUpper;
+}
+
+
+PUBLIC void
+vrna_md_defaults_saltDPXInit(int value)
+{
+  defaults.saltDPXInit = value;
+}
+
+PUBLIC int 
+vrna_md_defaults_saltDPXInit_get(void)
+{
+  return defaults.saltDPXInit;
+}
+
+PUBLIC void
 vrna_md_update(vrna_md_t *md)
 {
   if (md)
@@ -1017,6 +1083,10 @@ set_model_details(vrna_md_t *md)
     md->betaScale       = VRNA_MODEL_DEFAULT_BETA_SCALE;
     md->pf_smooth       = VRNA_MODEL_DEFAULT_PF_SMOOTH;
     md->sfact           = 1.07;
+    md->salt            = salt;
+    md->saltMLLower     = VRNA_MODEL_DEFAULT_SALTMLLOWER;
+    md->saltMLUpper     = VRNA_MODEL_DEFAULT_SALTMLUPPER;
+    md->saltDPXInit     = saltDPXInit;
 
     if (nonstandards)
       copy_nonstandards(md, nonstandards);

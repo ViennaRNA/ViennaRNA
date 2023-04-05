@@ -57,6 +57,14 @@ typedef struct {
 
   const vrna_md_t model_details;
   const char      param_file[256];
+
+  const int       SaltStack;
+  const int       SaltLoop[MAXLOOP + 2];
+  const double    SaltLoopDbl[MAXLOOP + 2];
+  const int       SaltMLbase;
+  const int       SaltMLintern;
+  const int       SaltMLclosing;
+  const int       SaltDPXInit;
 } vrna_param_t;
 
 /* do not create default constructor */
@@ -108,6 +116,14 @@ typedef struct {
 
   const vrna_md_t model_details;
   const char      param_file[256];
+
+  const double    expSaltStack;
+  const double    expSaltLoop[MAXLOOP + 2];
+  const double    SaltLoopDbl[MAXLOOP + 2];
+  const int       SaltMLbase;
+  const int       SaltMLintern;
+  const int       SaltMLclosing;
+  const int       SaltDPXInit;
 } vrna_exp_param_t;
 
 /* make a nice object oriented interface to vrna_param_t */
@@ -191,6 +207,20 @@ typedef struct {
     for (size_t i = 1; i < 5; i++)
       out << ", " << $self->ninio[i];
     out << "]";
+
+    out << ", SaltStack: " << $self->SaltStack;
+    out << ", SaltLoop: [" << $self->SaltLoop[0];
+    for (size_t i = 1; i < MAXLOOP + 1; i++)
+      out << ", " << $self->SaltLoop[i];
+    out << "]";
+    out << ", SaltLoopDbl: [" << $self->SaltLoopDbl[0];
+    for (size_t i = 1; i < MAXLOOP + 1; i++)
+      out << ", " << $self->SaltLoopDbl[i];
+    out << "]";
+    out << ", SaltMLbase: " << $self->SaltMLbase;
+    out << ", SaltMLintern: " << $self->SaltMLintern;
+    out << ", SaltMLclosing: " << $self->SaltMLclosing;
+    out << ", SaltDPXInit: " << $self->SaltDPXInit;
 
     out << " }";
 

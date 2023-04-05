@@ -92,6 +92,16 @@ default="0"
 int
 optional
 
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+option  "saltInit" -
+"Provide salt correction for duplex initialization (in kcal/mol).\n\n"
+double
+optional
+hidden
 option "probe-mode" p
 "Compute Tm for probes"
 details="Use this option if you want to compute the melting temperature of your probes\n\n"
@@ -109,25 +119,28 @@ option "na-concentration" N
 double
 default="1.0"
 optional
+hidden
 
 option "mg-concentration" M
 "Set the Mg2+ concentration for the Tm computation\n\n"
 double
 default="1.0"
 optional
+hidden
 
 option "k-concentration" K
 "Set the K+ concentration for the Tm computation\n\n"
 double
 default="1.0"
 optional
+hidden
 
 option "tris-concentration" U
 "Set the tris+ concentration for the Tm computation\n\n"
 double
 default="1.0"
 optional
-
+hidden
 
 
 

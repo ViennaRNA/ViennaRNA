@@ -10,6 +10,7 @@
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/constraints/hard.h>
 #include <ViennaRNA/constraints/soft.h>
+#include <ViennaRNA/params/salt.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(DEPRECATED)
@@ -488,7 +489,10 @@ E_IntLoop(int           n1,
           vrna_param_t  *P)
 {
   /* compute energy of degree 2 loop (stack bulge or interior) */
-  int nl, ns, u, energy;
+  int nl, ns, u, energy, salt_stack_correction, salt_loop_correction, backbones;
+
+  salt_stack_correction = P->SaltStack;
+  salt_loop_correction = 0;
 
   if (n1 > n2) {
     nl  = n1;
@@ -498,9 +502,19 @@ E_IntLoop(int           n1,
     ns  = n1;
   }
 
-  if (nl == 0)
-    return P->stack[type][type_2];  /* stack */
+  if (nl == 0) {
+    return P->stack[type][type_2] + salt_stack_correction;  /* stack */
+  }
+  
+  backbones = nl+ns+2;
 
+  /* salt correction for loop */
+  if (backbones <= MAXLOOP+1)
+    salt_loop_correction = P->SaltLoop[backbones];
+  else
+    salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+
+  
   if (ns == 0) {
     /* bulge */
     energy = (nl <= MAXLOOP) ? P->bulge[nl] :
@@ -515,12 +529,12 @@ E_IntLoop(int           n1,
         energy += P->TerminalAU;
     }
 
-    return energy;
+    return energy + salt_loop_correction;
   } else {
     /* interior loop */
     if (ns == 1) {
       if (nl == 1)                    /* 1x1 loop */
-        return P->int11[type][type_2][si1][sj1];
+        return P->int11[type][type_2][si1][sj1] + salt_loop_correction;
 
       if (nl == 2) {
         /* 2x1 loop */
@@ -529,7 +543,7 @@ E_IntLoop(int           n1,
         else
           energy = P->int21[type_2][type][sq1][si1][sp1];
 
-        return energy;
+        return energy + salt_loop_correction;
       } else {
         /* 1xn loop */
         energy =
@@ -538,17 +552,17 @@ E_IntLoop(int           n1,
                                                     (int)(P->lxc * log((nl + 1) / 30.)));
         energy  += MIN2(MAX_NINIO, (nl - ns) * P->ninio[2]);
         energy  += P->mismatch1nI[type][si1][sj1] + P->mismatch1nI[type_2][sq1][sp1];
-        return energy;
+        return energy + salt_loop_correction;
       }
     } else if (ns == 2) {
       if (nl == 2) {
         /* 2x2 loop */
-        return P->int22[type][type_2][si1][sp1][sq1][sj1];
+        return P->int22[type][type_2][si1][sp1][sq1][sj1] + salt_loop_correction;
       } else if (nl == 3) {
         /* 2x3 loop */
         energy  = P->internal_loop[5] + P->ninio[2];
         energy  += P->mismatch23I[type][si1][sj1] + P->mismatch23I[type_2][sq1][sp1];
-        return energy;
+        return energy + salt_loop_correction;
       }
     }
 
@@ -565,7 +579,7 @@ E_IntLoop(int           n1,
     }
   }
 
-  return energy;
+  return energy + salt_loop_correction;
 }
 
 
@@ -583,6 +597,9 @@ exp_E_IntLoop(int               u1,
   int     ul, us, no_close = 0;
   double  z           = 0.;
   int     noGUclosure = P->model_details.noGUclosure;
+  int     backbones;
+  double  salt_stack_correction = P->expSaltStack;
+  double  salt_loop_correction = 1.;
 
   if ((noGUclosure) && ((type2 == 3) || (type2 == 4) || (type == 3) || (type == 4)))
     no_close = 1;
@@ -595,9 +612,16 @@ exp_E_IntLoop(int               u1,
     us  = u1;
   }
 
+  /* salt correction for loop */
+  backbones = ul+us+2;
+  if (backbones <= MAXLOOP+1)
+    salt_loop_correction = P->expSaltLoop[backbones];
+  else
+    salt_loop_correction = exp(-vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0) * 10. / P->kT);
+
   if (ul == 0) {
     /* stack */
-    z = P->expstack[type][type2];
+    z = P->expstack[type][type2] * salt_stack_correction;
   } else if (!no_close) {
     if (us == 0) {
       /* bulge */
@@ -612,39 +636,39 @@ exp_E_IntLoop(int               u1,
           z *= P->expTermAU;
       }
 
-      return (FLT_OR_DBL)z;
+      return (FLT_OR_DBL)(z * salt_loop_correction);
     } else if (us == 1) {
       if (ul == 1)                     /* 1x1 loop */
-        return (FLT_OR_DBL)(P->expint11[type][type2][si1][sj1]);
+        return (FLT_OR_DBL)(P->expint11[type][type2][si1][sj1] * salt_loop_correction);
 
       if (ul == 2) {
         /* 2x1 loop */
         if (u1 == 1)
-          return (FLT_OR_DBL)(P->expint21[type][type2][si1][sq1][sj1]);
+          return (FLT_OR_DBL)(P->expint21[type][type2][si1][sq1][sj1] * salt_loop_correction);
         else
-          return (FLT_OR_DBL)(P->expint21[type2][type][sq1][si1][sp1]);
+          return (FLT_OR_DBL)(P->expint21[type2][type][sq1][si1][sp1] * salt_loop_correction);
       } else {
         /* 1xn loop */
         z = P->expinternal[ul + us] * P->expmismatch1nI[type][si1][sj1] *
             P->expmismatch1nI[type2][sq1][sp1];
-        return (FLT_OR_DBL)(z * P->expninio[2][ul - us]);
+        return (FLT_OR_DBL)(z * P->expninio[2][ul - us] * salt_loop_correction);
       }
     } else if (us == 2) {
       if (ul == 2) {
         /* 2x2 loop */
-        return (FLT_OR_DBL)(P->expint22[type][type2][si1][sp1][sq1][sj1]);
+        return (FLT_OR_DBL)(P->expint22[type][type2][si1][sp1][sq1][sj1] * salt_loop_correction);
       } else if (ul == 3) {
         /* 2x3 loop */
         z = P->expinternal[5] * P->expmismatch23I[type][si1][sj1] *
             P->expmismatch23I[type2][sq1][sp1];
-        return (FLT_OR_DBL)(z * P->expninio[2][1]);
+        return (FLT_OR_DBL)(z * P->expninio[2][1] * salt_loop_correction);
       }
     }
 
     /* generic interior loop (no else here!)*/
     z = P->expinternal[ul + us] * P->expmismatchI[type][si1][sj1] *
         P->expmismatchI[type2][sq1][sp1];
-    return (FLT_OR_DBL)(z * P->expninio[2][ul - us]);
+    return (FLT_OR_DBL)(z * P->expninio[2][ul - us] * salt_loop_correction);
   }
 
   return (FLT_OR_DBL)z;
@@ -667,6 +691,15 @@ E_IntLoop_Co(int          type,
              vrna_param_t *P)
 {
   int e, energy, ci, cj, cp, cq, d3, d5, d5_2, d3_2, tmm, tmm_2;
+  int salt_loop_correction, backbones;
+
+  backbones = p - i + j - q;
+  /* salt correction for loop */
+  if (backbones <= MAXLOOP+1)
+    salt_loop_correction = P->SaltLoop[backbones];
+  else
+    salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+  
 
   energy = 0;
   if (type > 2)
@@ -676,7 +709,7 @@ E_IntLoop_Co(int          type,
     energy += P->TerminalAU;
 
   if (!dangles)
-    return energy;
+    return energy + salt_loop_correction;
 
   ci  = ON_SAME_STRAND(i, i + 1, cutpoint);
   cj  = ON_SAME_STRAND(j - 1, j, cutpoint);
@@ -692,7 +725,7 @@ E_IntLoop_Co(int          type,
   tmm_2 = (cp && cq) ? P->mismatchExt[type_2][sp1][sq1] : d5_2 + d3_2;
 
   if (dangles == 2)
-    return energy + tmm + tmm_2;
+    return energy + tmm + tmm_2 + salt_loop_correction;
 
   /* now we may have non-double dangles only */
   if (p - i > 2) {
@@ -754,7 +787,7 @@ E_IntLoop_Co(int          type,
     }
   }
 
-  return energy;
+  return energy + salt_loop_correction;
 }
 
 
