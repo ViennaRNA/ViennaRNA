@@ -41,16 +41,15 @@
  *  @param  data      Some arbitrary data pointer as passed to vrna_move_neighbor_diff_cb()
  */
 typedef void (*vrna_move_update_f)(vrna_fold_compound_t *fc,
-                                         vrna_move_t          neighbor,
-                                         unsigned int         state,
-                                         void                 *data);
+                                   vrna_move_t          neighbor,
+                                   unsigned int         state,
+                                   void                 *data);
 
 DEPRECATED(typedef void (vrna_callback_move_update)(vrna_fold_compound_t *fc,
-                                         vrna_move_t          neighbor,
-                                         unsigned int         state,
-                                         void                 *data),
+                                                    vrna_move_t neighbor,
+                                                    unsigned int state,
+                                                    void *data),
            "Use vrna_move_update_f instead!");
-
 
 
 /**

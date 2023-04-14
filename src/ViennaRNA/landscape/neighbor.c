@@ -23,12 +23,12 @@ typedef enum {
 
 
 typedef void (*shiftsInInterval)(const vrna_fold_compound_t *,
-                                int,
-                                int,
-                                int,
-                                const short *,
-                                vrna_move_t *,
-                                int *);
+                                 int,
+                                 int,
+                                 int,
+                                 const short *,
+                                 vrna_move_t *,
+                                 int *);
 
 PRIVATE bool
 is_compatible(const vrna_fold_compound_t  *vc,
@@ -2232,5 +2232,3 @@ vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
 
   return newMoves;
 }
-
-
