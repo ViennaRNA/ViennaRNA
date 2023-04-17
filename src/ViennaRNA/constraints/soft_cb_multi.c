@@ -225,27 +225,31 @@ cb_exp_default(vrna_fold_compound_t *fc,
 PRIVATE void
 sc_multi_free(void *data)
 {
-  sc_multi_s *msc = (sc_multi_s *)data;
+  if (data) {
+    sc_multi_s *msc = (sc_multi_s *)data;
 
-  /* go through all distinguished loop types */
-  for (unsigned char d = 1; d < VRNA_DECOMP_TYPES_MAX; d++) {
-    if (msc->data[d].cbs) {
-      /* go through all auxiliary data for current loop type callbacks and release memory if required */
-      for (size_t c = 0; c < vrna_array_size(msc->data[d].data); c++)
-        if (msc->data[d].free_data[c])
-          msc->data[d].free_data[c](msc->data[d].data[c]);
+    /* go through all distinguished loop types */
+    for (unsigned char d = 1; d < VRNA_DECOMP_TYPES_MAX; d++) {
+      if (msc->data[d].cbs) {
+        /* go through all auxiliary data for current loop type callbacks and release memory if required */
+        for (size_t c = 0; c < vrna_array_size(msc->data[d].data); c++)
+          if (msc->data[d].free_data[c])
+            msc->data[d].free_data[c](msc->data[d].data[c]);
 
-      /* release wrapper memory for default partition function callbacks */
-      for (size_t c = 0; c < vrna_array_size(msc->data[d].cbs_exp); c++)
-        if (msc->data[d].cbs_exp[c] == &cb_exp_default)
-          free(msc->data[d].data_exp[c]);
+        /* release wrapper memory for default partition function callbacks */
+        for (size_t c = 0; c < vrna_array_size(msc->data[d].cbs_exp); c++)
+          if (msc->data[d].cbs_exp[c] == &cb_exp_default)
+            free(msc->data[d].data_exp[c]);
 
-      /* release memory of callback-, data-, free_data-arrays for current loop type */
-      vrna_array_free(msc->data[d].cbs);
-      vrna_array_free(msc->data[d].cbs_exp);
-      vrna_array_free(msc->data[d].data);
-      vrna_array_free(msc->data[d].data_exp);
-      vrna_array_free(msc->data[d].free_data);
+        /* release memory of callback-, data-, free_data-arrays for current loop type */
+        vrna_array_free(msc->data[d].cbs);
+        vrna_array_free(msc->data[d].cbs_exp);
+        vrna_array_free(msc->data[d].data);
+        vrna_array_free(msc->data[d].data_exp);
+        vrna_array_free(msc->data[d].free_data);
+      }
     }
+
+    free(msc);
   }
 }
