@@ -127,7 +127,6 @@ vrna_sc_mod_read_from_json(const char *json,
     }
 
     JsonNode      *dom              = json_decode(json);
-    vrna_string_t pairing_partners  = vrna_string_make("");
     if (md_p) {
       md = md_p;
     } else {
@@ -181,8 +180,6 @@ vrna_sc_mod_read_from_json(const char *json,
           if ((entry->tag == JSON_STRING) &&
               (strlen(entry->string_) == 1) &&
               (ptr = strchr(bases, entry->string_[0]))) {
-            pairing_partners = vrna_string_append_cstring(pairing_partners, entry->string_);
-
             size_t enc = ptr - &(bases[0]);
             if (enc > 4)
               enc--;
