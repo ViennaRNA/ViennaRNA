@@ -20,27 +20,24 @@ description "Compute locally stable RNA secondary structure with a maximal base 
 
 # Options
 
-section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
-
 option  "verbose" v
-"Be verbose\n\n"
+"Be verbose.\n\n"
 flag
 off
 
-option  "span"  L
-"Set the maximum distance between any two pairing nucleotides.\n"
-details="This option specifies the window length L and therefore the upper limit for the\
- distance between the bases i and j of any pair (i, j), i.e. (j - i + 1) <= L.\n\n"
-int
-default="150"
+
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
+
+
+option  "infile"  i
+"Read a file instead of reading from stdin\n"
+details="The default behavior of RNALfold is to read input from stdin. Using this parameter\
+ the user can specify an input file name where data is read from.\n\n"
+string
+typestr="<filename>"
 optional
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
-flag
-off
-hidden
 
 option  "outfile" o
 "Print output to file instead of stdout\n"
@@ -63,13 +60,13 @@ typestr="<filename>"
 argoptional
 optional
 
-option  "infile"  i
-"Read a file instead of reading from stdin\n"
-details="The default behavior of RNALfold is to read input from stdin. Using this parameter\
- the user can specify an input file name where data is read from.\n\n"
-string
-typestr="<filename>"
-optional
+
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+flag
+off
+hidden
+
 
 option  "auto-id"  -
 "Automatically generate an ID for each sequence.\n"
@@ -81,6 +78,7 @@ details="The default mode of RNALfold is to automatically determine an ID from t
  the input has none.\n\n"
 flag
 off
+
 
 option  "id-prefix" -
 "Set prefix for automatically generated IDs\n"
@@ -94,6 +92,7 @@ default="sequence"
 optional
 hidden
 
+
 option  "id-delim" -
 "Change prefix delimiter for automatically generated ids.\n"
 details="This parameter can be used to change the default delimiter \"_\" between
@@ -104,6 +103,7 @@ default="_"
 optional
 dependon="auto-id"
 hidden
+
 
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
@@ -116,6 +116,7 @@ default="4"
 optional
 hidden
 
+
 option  "id-start"  -
 "Specify the first number in automatically generated alignment IDs.\n"
 details="When sequence IDs are automatically generated, they receive an increasing number,\
@@ -127,8 +128,9 @@ default="1"
 optional
 hidden
 
+
 option  "filename-delim" -
-"Change the delimiting character that is used for sanitized filenames\n\n"
+"Change the delimiting character that is used for sanitized filenames.\n"
 details="This parameter can be used to change the delimiting character used while\
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
@@ -143,8 +145,9 @@ default="ID-delimiter"
 optional
 hidden
 
+
 option  "filename-full" -
-"Use full FASTA header to create filenames\n\n"
+"Use full FASTA header to create filenames.\n"
 details="This parameter can be used to deactivate the default behavior of limiting\
  output filenames to the first word of the sequence ID. Consider the following example:\
  An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
@@ -157,23 +160,23 @@ flag
 off
 hidden
 
-option  "commands"   -
-"Read additional commands from file\n"
-details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
- loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
- domains.\n\n"
-string
-typestr="<filename>"
-optional
-hidden
-
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
 
+
+option  "span"  L
+"Set the maximum distance between any two pairing nucleotides.\n"
+details="This option specifies the window length L and therefore the upper limit for the\
+ distance between the bases i and j of any pair (i, j), i.e. (j - i + 1) <= L.\n\n"
+int
+default="150"
+optional
+
+
 option  "zscore"  z
-"Limit the output to predictions with a Z-score below a threshold\n"
+"Limit the output to predictions with a Z-score below a threshold.\n"
 details="This option activates z-score regression using a trained SVM. Any predicted structure that\
  exceeds the specified threshold will be ommited from the output.\nSince the Z-score threshold is\
  given as a negative number, it must immediately preceed the short option to not be mistaken as\
@@ -183,8 +186,9 @@ default="-2"
 argoptional
 optional
 
+
 option  "zscore-pre-filter"  -
-"Apply the z-score filtering in the forward recursions\n"
+"Apply the z-score filtering in the forward recursions.\n"
 details="The default mode of z-score filtering considers the entire structure space to\
  decide whether or not a locally optimal structure at any position i is reported or not.\
  When using this post-filtering step, however, alternative locally optimal structures
@@ -198,8 +202,9 @@ flag
 dependon="zscore"
 off
 
+
 option  "zscore-report-subsumed"  -
-"Report subsumed structures if their z-score is less than that of the enclosing structure\n"
+"Report subsumed structures if their z-score is less than that of the enclosing structure.\n"
 details="In default mode, RNALfold only reports locally optimal structures if they\
  are no constituents of another, larger structure with less free energy. In z-score mode,\
  however, such a larger structure may have a higher z-score, thus may be less informative\
@@ -208,6 +213,7 @@ details="In default mode, RNALfold only reports locally optimal structures if th
 flag
 dependon="zscore"
 off
+
 
 option  "backtrack-global"   b
 "Backtrack a global MFE structure.\n"
@@ -225,10 +231,16 @@ details="Instead of just reporting the locally stable secondary structure\
 flag
 off
 
+
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
 flag
 off
+
+
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
 
 option  "shape" -
 "Use SHAPE reactivity data to guide structure predictions.\n\n"
@@ -236,101 +248,67 @@ string
 typestr="<filename>"
 optional
 
+
 option  "shapeMethod" -
-"Include SHAPE reactivity data according to a particular method.\n"
+"Select SHAPE reactivity data incorporation strategy.\n"
 details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n\n\
-'D': Convert by using a linear equation according to Deigan et al 2009. \
-The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
-This method is recognized by a capital 'D' in the provided parameter, i.e.: \
---shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
-non-default value if necessary, otherwise m=1.8 and b=-0.6. \
-To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
-parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
-parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n\
-'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
-SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
-Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
-The magnitude of the penalties can affected by adjusting the factor beta \
-(e.g. --shapeMethod=\"Zb0.8\").\n\n\
-'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n\n"
+ 'D': Convert by using a linear equation according to Deigan et al 2009. Derived pseudo energy terms\
+ will be applied for every nucleotide involved in a stacked pair. This method is recognized by a capital\
+ 'D' in the provided parameter, i.e.: --shapeMethod=\"D\" is the default setting. The slope 'm' and the\
+ intercept 'b' can be set to a non-default value if necessary, otherwise m=1.8 and b=-0.6. To alter these\
+ parameters, e.g. m=1.9 and b=-0.7, use a parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You\
+ may also provide only one of the two parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n\
+ 'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012.\
+ SHAPE reactivities will be converted to pairing probabilities by using linear mapping.\
+ Aberration from the observed pairing probabilities will be penalized during the folding recursion.\
+ The magnitude of the penalties can affected by adjusting the factor beta\
+ (e.g. --shapeMethod=\"Zb0.8\").\n\n\
+ 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
+ Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
-typestr="D/Z/W"
+typestr="D|Z|W"
 dependon="shape"
 default="D"
 optional
 hidden
 
+
 option  "shapeConversion" -
-"Convert SHAPE reactivity according to a particular model.\n"
-details="This method allows one to specify the method or model used to convert SHAPE reactivities to pairing\
- (or unpaired) probabilities when using the SHAPE approach of Zarringhalam et al. 2012. The following single\
- letter types are recognized:\n\n\
-'M': Use linear mapping according to Zarringhalam et al. 2012.\n\n\
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")\n\n\
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values\n\n\
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)\n\n\
+"Select method for SHAPE reactivity conversion.\n"
+details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
+The following methods can be used to convert SHAPE reactivities into probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
 'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
-typestr="type"
+typestr="M|C|S|L|O"
 default="O"
 optional
 hidden
 
 
-section "Model Details"
-sectiondesc="You may tweak the energy model and pairing rules additionally using the following parameters\n\n"
+option  "commands"   -
+"Read additional commands from file\n"
+details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
+ loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
+ domains.\n\n"
+string
+typestr="<filename>"
+optional
+hidden
+
+
+section "Energy Parameters"
+sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
+
 
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 optional
 
-option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n\n"
-flag
-off
-hidden
-
-option  "dangles" d
-"Change the dangling end model\n"
-details="This option allows one to change the model \"dangling end\" energy contributions, i.e. those\
- additional contributions from bases adjacent to helices in free ends and multi-loops\nWith -d1 only\
- unpaired bases can participate in at most one dangling end. With -d2 this check is ignored, dangling\
- energies will be added for the bases adjacent to a helix on both sides in any case; this is the default\
- for mfe and partition function folding (-p).\nThe option -d0 ignores dangling ends altogether (mostly \
- for debugging).\nWith -d3 mfe folding will allow coaxial stacking of adjacent helices in multi-loops.\
- At the moment the implementation will not allow coaxial stacking of the two interior pairs in a loop\
- of degree 3 and works only for mfe folding.\n\nNote that with -d1 and -d3 only the MFE computations\
- will be using this setting while partition function uses -d2 setting, i.e. dangling ends will be treated\
- differently.\n\n"
-int
-default="2"
-optional
-
-option  "noLP"  -
-"Produce structures without lonely pairs (helices of length 1).\n"
-details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n\n"
-flag
-off
-
-option  "noGU"  -
-"Do not allow GU pairs\n\n"
-flag
-off
-hidden
-
-option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
-flag
-off
-hidden
-
-option  "salt" -
-"Set salt concentration in molar (M). Default is 1.021M.\n\n"
-double
-optional
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
@@ -340,6 +318,88 @@ details="Different sets of energy parameters for RNA and DNA should accompany yo
 string
 typestr="paramfile"
 optional
+
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
+details="Mostly for testing.\n\n"
+flag
+off
+hidden
+
+
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+
+option  "modifications" m
+"Allow for modified bases within the RNA sequence string.\n"
+details="Treat modified bases within the RNA sequence differently, i.e. use corresponding\
+ energy corrections and/or pairing partner rules if available. For that, the modified bases\
+ in the input sequence must be marked by their corresponding one-letter code. If no additional\
+ arguments are supplied, all available corrections are performed. Otherwise, the user may\
+ limit the modifications to a particular subset of modifications, resp. one-letter codes,\
+ e.g. -mP6 will only correct for pseudouridine and m6A bases.\n\
+ Currently supported one-letter codes and energy corrections are:\n\n\
+ \"7\": 7-deaza-adenonsine (7DA)\n\n\
+ \"I\": Inosine\n\n\
+ \"6\": N6-methyladenosine (m6A)\n\n\
+ \"P\": Pseudouridine\n\n\
+ \"9\": Purine (a.k.a. nebularine)\n\n\
+ \"D\": Dihydrouridine\n\n"
+string
+argoptional
+default="7I6P9D"
+
+
+option  "mod-file"  -
+"Use additional modified base data from JSON file.\n\n"
+string
+multiple
+optional
+
+
+section "Model Details"
+sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
+
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
+ check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
+ any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
+ dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
+ of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
+ of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
+ -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
+ -d2 setting, i.e. dangling ends will be treated differently.\n\n"
+int
+default="2"
+optional
+
+
+option  "noLP"  -
+"Produce structures without lonely pairs (helices of length 1).\n"
+details="For partition function folding this only disallows pairs that can only occur isolated. Other\
+ pairs may still occasionally occur as helices of length 1.\n\n"
+flag
+off
+
+
+option  "noGU"  -
+"Do not allow GU pairs\n\n"
+flag
+off
+hidden
+
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices\n\n"
+flag
+off
+hidden
 
 
 option  "nsp" -
@@ -352,12 +412,16 @@ string
 optional
 hidden
 
+
 option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+"Set energy model.\n"
+details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
  A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden
+
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"
