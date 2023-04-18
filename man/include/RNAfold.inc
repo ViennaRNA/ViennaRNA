@@ -294,6 +294,44 @@ and the base pair probability dot-plot is extended to include the probability th
 a particular nucleotide is bound by the ligand.
 
 
+[>EXAMPLES]
+.SH "POST-TRANSCRIPTIONAL MODIFICATION EXAMPLES"
+
+Many RNA molecules harbor (post-transcriptional) modifications. These modified base
+often change the pairing behavior or energy contribution for the loops they are part of.
+To accommodate for that effect (to a certain degree) one may use additional correcting
+energy parameters for loops with the respective modified bases. In literature, a few
+stacking- and some terminal mismatch energies can be found. Some of them are already provided
+within the ViennaRNA Package. The --modification and --mod-file command line parameters can be
+used to apply these parameters in the predictions. While the former allows one to select a
+subset of implemented modified base corrections, the latter enables the prediction programs
+to read energy parameters for modified bases from a user-provided JSON file.
+
+Consider, for instance, the following tRNA sequence with dihydrouridines and pseudouridines
+annotated by their respective one-letter codes D and P:
+
+.nf
+.ft CW
+  $ cat tRNAphe.fa
+  >tRNAphe
+  GCCGAAAUAGCUCAGDDGGGAGAGCGPPAGACUGAAGAPCUAAAGGDCCCUGGUPCGAUCCCGGGUUUCGGCACCA
+.ft
+.fi
+
+Now, a prediction that includes support for the destabilizing effect of D and the stabilizing
+effects of P within base pair stacks can be done as follows:
+
+.nf
+.ft CW
+  $ RNAfold --modifications=DP < tRNAphe.fa
+  >tRNAphe
+  GCCGAAAUAGCUCAGDDGGGAGAGCGPPAGACUGAAGAPCUAAAGGDCCCUGGUPCGAUCCCGGGUUUCGGCACCA
+  (((((((..((((........)))).(((((.......)))))....(((.((......)).)))))))))).... (-23.37)
+.ft
+.fi
+
+
+
 [>REFERENCES]
 
 M. Zuker, P. Stiegler (1981),
