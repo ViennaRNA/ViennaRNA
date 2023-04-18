@@ -319,3 +319,29 @@
     else \
       constraint_batch = 0; \
   })
+
+
+#define ggo_get_modified_base_settings(ggostruct, \
+                                       mod_dihydrouridine, \
+                                       mod_params, \
+                                       md)  ({ \
+  size_t        num_mod_params  = 0; \
+  unsigned int  special_bases   = 0; \
+  if (ggostruct.modifications_given) { \
+    mod_params = mod_params_collect_from_string(ggostruct.modifications_arg, \
+                                                &num_mod_params, \
+                                                mod_params, \
+                                                md, \
+                                                &special_bases); \
+    if (special_bases & SPECIAL_BASES_DIHYDROURIDINE) \
+      mod_dihydrouridine = 1; \
+  } \
+  if (ggostruct.mod_file_given) { \
+    mod_params = mod_params_collect_from_files((const char **)ggostruct.mod_file_arg,\
+                                               ggostruct.mod_file_given, \
+                                               &num_mod_params,\
+                                               mod_params,\
+                                               md);\
+  } \
+})
+

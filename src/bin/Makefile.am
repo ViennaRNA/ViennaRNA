@@ -16,6 +16,7 @@ endif
 noinst_LTLIBRARIES =  libhelpers.la
 
 libhelpers_la_SOURCES = input_id_helpers.c \
+                        modified_bases_helpers.c \
                         parallel_helpers.c
 
 libhelpers_la_LDFLAGS = \
@@ -39,8 +40,8 @@ bin_PROGRAMS = \
         RNAmultifold
 
 LDADD = \
-        $(top_builddir)/src/ViennaRNA/libRNA_conv.la \
-        libhelpers.la
+        libhelpers.la \
+        $(top_builddir)/src/ViennaRNA/libRNA_conv.la
 
 if VRNA_AM_SWITCH_MPFR
 LDADD += $(MPFR_LIBS)
@@ -49,6 +50,7 @@ endif
 noinst_HEADERS = \
         gengetopt_helper.h \
         input_id_helpers.h \
+        modified_bases_helpers.h \
         parallel_helpers.h \
         $(top_srcdir)/src/cthreadpool/thpool.h
 
