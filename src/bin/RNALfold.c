@@ -27,9 +27,12 @@
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
 #include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/constraints/soft_special.h"
+
 #include "RNALfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
+#include "modified_bases_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -65,6 +68,7 @@ main(int  argc,
 {
   FILE                        *input, *output;
   struct  RNALfold_args_info  args_info;
+  unsigned char               mod_dihydrouridine;
   char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
                               *command_file, *orig_sequence, *infile, *outfile, *filename_delim,
                               *shape_file, *shape_method, *shape_conversion;
@@ -76,30 +80,34 @@ main(int  argc,
   vrna_md_t                   md;
   vrna_cmd_t                  commands;
   dataset_id                  id_control;
+  vrna_sc_mod_param_t         *mod_params;
 
-  ParamFile       = ns_bases = NULL;
-  do_backtrack    = 1;
-  noconv          = 0;
-  backtrack       = 0;
-  dangles         = 2;
-  maxdist         = 150;
-  zsc             = 0;
-  zsc_pre         = 0;
-  zsc_subsumed    = 0;
-  min_z           = -2.0;
-  gquad           = 0;
-  rec_type        = read_opt = 0;
-  rec_id          = rec_sequence = orig_sequence = NULL;
-  rec_rest        = NULL;
-  outfile         = NULL;
-  infile          = NULL;
-  input           = NULL;
-  output          = NULL;
-  tofile          = 0;
-  filename_full   = 0;
-  command_file    = NULL;
-  commands        = NULL;
-  file_pos_start  = -1;
+  ParamFile           = ns_bases = NULL;
+  do_backtrack        = 1;
+  noconv              = 0;
+  backtrack           = 0;
+  dangles             = 2;
+  maxdist             = 150;
+  zsc                 = 0;
+  zsc_pre             = 0;
+  zsc_subsumed        = 0;
+  min_z               = -2.0;
+  gquad               = 0;
+  rec_type            = read_opt = 0;
+  rec_id              = rec_sequence = orig_sequence = NULL;
+  rec_rest            = NULL;
+  outfile             = NULL;
+  infile              = NULL;
+  input               = NULL;
+  output              = NULL;
+  tofile              = 0;
+  filename_full       = 0;
+  command_file        = NULL;
+  commands            = NULL;
+  file_pos_start      = -1;
+  verbose             = 0;
+  mod_dihydrouridine  = 0;
+  mod_params          = NULL;
 
   /* apply default model details */
   vrna_md_set_default(&md);
@@ -243,6 +251,11 @@ main(int  argc,
     exit(EXIT_FAILURE);
   }
 
+  ggo_get_modified_base_settings(args_info,
+                                 mod_dihydrouridine,
+                                 mod_params,
+                                 &(md));
+
   /* free allocated memory of command line data structure */
   RNALfold_cmdline_parser_free(&args_info);
 
@@ -295,9 +308,11 @@ main(int  argc,
      # init everything according to the data we've read
      ########################################################
      */
-    char  *SEQ_ID       = NULL;
-    char  *v_file_name  = NULL;
-    char  *tmp_string   = NULL;
+    size_t  **mod_positions, mod_param_sets;
+    char    *SEQ_ID       = NULL;
+    char    *v_file_name  = NULL;
+    char    *tmp_string   = NULL;
+
     /*
      ########################################################
      # init everything according to the data we've read
@@ -341,12 +356,19 @@ main(int  argc,
 
     length = (int)strlen(rec_sequence);
 
+    mod_positions = mod_positions_seq_prepare(rec_sequence,
+                                              mod_dihydrouridine,
+                                              mod_params,
+                                              verbose,
+                                              &mod_param_sets);
+
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
       vrna_seq_toRNA(rec_sequence);
 
     /* store case-unmodified sequence */
     orig_sequence = strdup(rec_sequence);
+
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
@@ -375,6 +397,13 @@ main(int  argc,
                                  verbose,
                                  VRNA_OPTION_WINDOW);
     }
+
+    /* apply modified base support if requested */
+    mod_bases_apply(vc,
+                    mod_param_sets,
+                    mod_positions,
+                    mod_dihydrouridine,
+                    mod_params);
 
 #ifdef VRNA_WITH_SVM
     if (zsc) {
@@ -462,6 +491,13 @@ main(int  argc,
   free(filename_delim);
   free(command_file);
   vrna_commands_free(commands);
+
+  if (mod_params) {
+    for (vrna_sc_mod_param_t *ptr = mod_params; *ptr != NULL; ptr++)
+      vrna_sc_mod_parameters_free(*ptr);
+
+    free(mod_params);
+  }
 
   free_id_data(id_control);
 

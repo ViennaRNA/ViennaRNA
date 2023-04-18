@@ -87,7 +87,7 @@ details="If this parameter is set, each sequence will be prefixed with the\
  scheme: \"prefix_xxxx.lfold\" where xxxx is the sequence number. Note:\
  Setting this parameter implies --auto-id.\n\n"
 string
-typestr="prefix"
+typestr="STRING"
 default="sequence"
 optional
 hidden
@@ -98,7 +98,7 @@ option  "id-delim" -
 details="This parameter can be used to change the default delimiter \"_\" between
  the prefix string and the increasing number for automatically generated IDs\n\n"
 string
-typestr="delimiter"
+typestr="CHAR"
 default="_"
 optional
 dependon="auto-id"
@@ -140,7 +140,7 @@ details="This parameter can be used to change the delimiting character used whil
  backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
  pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
 string
-typestr="delimiter"
+typestr="CHAR"
 default="ID-delimiter"
 optional
 hidden
@@ -266,7 +266,7 @@ details="The following methods can be used to convert SHAPE reactivities into ps
  'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
  Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
-typestr="D|Z|W"
+typestr="[D|Z|W] + [optional parameters]"
 dependon="shape"
 default="D"
 optional
@@ -276,14 +276,14 @@ hidden
 option  "shapeConversion" -
 "Select method for SHAPE reactivity conversion.\n"
 details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
-The following methods can be used to convert SHAPE reactivities into probability for a certain nucleotide to be unpaired.\n
+The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
 'M': Use linear mapping according to Zarringhalam et al.
 'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
 'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
 'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
 'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
-typestr="M|C|S|L|O"
+typestr="M|C|S|L|O  + [optional parameters]"
 default="O"
 optional
 hidden
