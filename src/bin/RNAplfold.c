@@ -26,12 +26,15 @@
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
+
 #include "RNAplfold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
+#include "modified_bases_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -139,6 +142,7 @@ main(int  argc,
 {
   FILE                        *pUfp;
   struct RNAplfold_args_info  args_info;
+  unsigned char               mod_dihydrouridine;
   char                        *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id,
                               **rec_rest, *orig_sequence, *filename_delim, *command_file,
                               *shape_file, *shape_method, *shape_conversion;
@@ -151,25 +155,28 @@ main(int  argc,
   vrna_md_t                   md;
   vrna_cmd_t                  commands;
   dataset_id                  id_control;
+  vrna_sc_mod_param_t         *mod_params;
 
-  pUfp          = NULL;
-  dangles       = 2;
-  cutoff        = 0.01;
-  winsize       = 70;
-  pairdist      = 0;
-  unpaired      = 0;
-  simply_putout = plexoutput = openenergies = noconv = 0;
-  binaries      = 0;
-  tempwin       = temppair = tempunpaired = 0;
-  structure     = ParamFile = ns_bases = NULL;
-  rec_type      = read_opt = 0;
-  rec_id        = rec_sequence = orig_sequence = NULL;
-  rec_rest      = NULL;
-  pf_parameters = NULL;
-  filename_full = 0;
-  command_file  = NULL;
-  commands      = NULL;
-  verbose       = 0;
+  pUfp                = NULL;
+  dangles             = 2;
+  cutoff              = 0.01;
+  winsize             = 70;
+  pairdist            = 0;
+  unpaired            = 0;
+  simply_putout       = plexoutput = openenergies = noconv = 0;
+  binaries            = 0;
+  tempwin             = temppair = tempunpaired = 0;
+  structure           = ParamFile = ns_bases = NULL;
+  rec_type            = read_opt = 0;
+  rec_id              = rec_sequence = orig_sequence = NULL;
+  rec_rest            = NULL;
+  pf_parameters       = NULL;
+  filename_full       = 0;
+  command_file        = NULL;
+  commands            = NULL;
+  verbose             = 0;
+  mod_dihydrouridine  = 0;
+  mod_params          = NULL;
 
   set_model_details(&md);
 
@@ -298,6 +305,11 @@ main(int  argc,
   if (args_info.commands_given)
     command_file = strdup(args_info.commands_arg);
 
+  ggo_get_modified_base_settings(args_info,
+                                 mod_dihydrouridine,
+                                 mod_params,
+                                 &(md));
+
   /* free allocated memory of command line data structure */
   RNAplfold_cmdline_parser_free(&args_info);
 
@@ -353,7 +365,9 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, NULL, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
-    char *SEQ_ID = NULL;
+    size_t  **mod_positions, mod_param_sets;
+    char    *SEQ_ID = NULL;
+
     /*
      ########################################################
      # init everything according to the data we've read
@@ -368,6 +382,13 @@ main(int  argc,
 
     length    = (int)strlen(rec_sequence);
     structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
+
+
+    mod_positions = mod_positions_seq_prepare(rec_sequence,
+                                              mod_dihydrouridine,
+                                              mod_params,
+                                              verbose,
+                                              &mod_param_sets);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
     if (!noconv)
@@ -501,6 +522,13 @@ main(int  argc,
 
       if (commands)
         vrna_commands_apply(fc, commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+
+      /* apply modified base support if requested */
+      mod_bases_apply(fc,
+                      mod_param_sets,
+                      mod_positions,
+                      mod_dihydrouridine,
+                      mod_params);
 
       pf_parameters = vrna_exp_params(&md);
 
@@ -643,6 +671,13 @@ rnaplfold_exit:
   free(shape_method);
   free(shape_conversion);
   vrna_commands_free(commands);
+
+  if (mod_params) {
+    for (vrna_sc_mod_param_t *ptr = mod_params; *ptr != NULL; ptr++)
+      vrna_sc_mod_parameters_free(*ptr);
+
+    free(mod_params);
+  }
 
   free_id_data(id_control);
 
