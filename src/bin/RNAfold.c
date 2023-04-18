@@ -39,6 +39,9 @@
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/SHAPE.h"
 #include "ViennaRNA/constraints/ligand.h"
+#include "ViennaRNA/constraints/soft_special.h"
+#include "ViennaRNA/constraints/sc_cb_intern.h"
+#include "ViennaRNA/static/energy_parameter_sets.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/io/file_formats.h"
@@ -81,6 +84,9 @@ struct options {
   char            *shape_file;
   char            *shape_method;
   char            *shape_conversion;
+
+  unsigned char       mod_dihydrouridine;
+  vrna_sc_mod_param_t *mod_params;
 
   int             jobs;
   int             tofile;
@@ -384,6 +390,9 @@ init_default_options(struct options *opt)
   opt->shape_method     = NULL;
   opt->shape_conversion = NULL;
 
+  opt->mod_dihydrouridine = 0;
+  opt->mod_params         = NULL;
+
   opt->jobs               = 1;
   opt->tofile             = 0;
   opt->output_file        = NULL;
@@ -400,10 +409,12 @@ main(int  argc,
 {
   struct  RNAfold_args_info args_info;
   char                      **input_files;
+  size_t                    num_mod_params;
   int                       num_input;
   struct  options           opt;
 
-  num_input = 0;
+  num_input       = 0;
+  num_mod_params  = 0;
 
   init_default_options(&opt);
 
@@ -498,6 +509,55 @@ main(int  argc,
 
   if (args_info.commands_given)
     opt.cmds = vrna_file_commands_read(args_info.commands_arg, VRNA_CMD_PARSE_DEFAULTS);
+
+  if (args_info.modifications_given) {
+    opt.mod_params = vrna_alloc(sizeof(vrna_sc_mod_param_t) * (strlen(args_info.modifications_arg) + 1));
+
+    /* go through list of one-letter codes and load corresponding parameters */
+    for (char *ptr = args_info.modifications_arg; *ptr != '\0'; ptr++)
+      switch(*ptr) {
+        case '7':
+          opt.mod_params[num_mod_params++] = vrna_sc_mod_read_from_json((const char *)parameter_set_rna_mod_7DA_parameters, &(opt.md));
+          break;
+
+        case 'I':
+          opt.mod_params[num_mod_params++] = vrna_sc_mod_read_from_json((const char *)parameter_set_rna_mod_inosine_parameters, &(opt.md));
+          break;
+        
+        case '6':
+          opt.mod_params[num_mod_params++] = vrna_sc_mod_read_from_json((const char *)parameter_set_rna_mod_m6A_parameters, &(opt.md));
+          break;
+        
+        case 'P':
+          opt.mod_params[num_mod_params++] = vrna_sc_mod_read_from_json((const char *)parameter_set_rna_mod_pseudouridine_parameters, &(opt.md));
+          break;
+        
+        case '9':
+          opt.mod_params[num_mod_params++] = vrna_sc_mod_read_from_json((const char *)parameter_set_rna_mod_purine_parameters, &(opt.md));
+          break;
+        
+        case 'D':
+          opt.mod_dihydrouridine = 1;
+          break;
+        
+        default:
+          break;
+      }
+
+    opt.mod_params[num_mod_params] = NULL;
+  }
+
+  if (args_info.mod_file_given) {
+    size_t shift    = num_mod_params;
+    num_mod_params += args_info.mod_file_given;
+    opt.mod_params  = vrna_realloc(opt.mod_params, sizeof(vrna_sc_mod_param_t) * (num_mod_params + 1));
+
+    for (size_t i = 0; i < args_info.mod_file_given; i++)
+      opt.mod_params[shift + i] = vrna_sc_mod_read_from_jsonfile(args_info.mod_file_arg[i], &(opt.md));
+
+    opt.mod_params[num_mod_params] = NULL;
+  }
+
 
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
@@ -626,6 +686,13 @@ main(int  argc,
   free(opt.shape_conversion);
   free(opt.filename_delim);
   vrna_commands_free(opt.cmds);
+
+  if (opt.mod_params) {
+    for (vrna_sc_mod_param_t *ptr = opt.mod_params; *ptr != NULL; ptr++)
+      vrna_sc_mod_parameters_free(*ptr);
+
+    free(opt.mod_params);
+  }
 
   free_id_data(opt.id_control);
 
@@ -811,10 +878,49 @@ process_record(struct record_data *record)
   double                min_en, energy;
   vrna_fold_compound_t  *vc;
   struct output_stream  *o_stream;
+  size_t                **mod_positions;
+  size_t                mod_param_sets;
 
   opt = record->options;
 
   rec_sequence = strdup(record->sequence);
+
+  mod_positions   = NULL;
+  mod_param_sets  = 0;
+
+  if (opt->mod_dihydrouridine)
+    mod_param_sets++;
+
+  if (opt->mod_params)
+    for (size_t i = 0; opt->mod_params[i] != NULL; i++)
+      mod_param_sets++;
+
+  if (mod_param_sets > 0)
+    mod_positions = vrna_alloc(sizeof(size_t) * mod_param_sets);
+
+  /* replace modified base one-letter code with unmodified base for internal use */
+  if (opt->mod_dihydrouridine) {
+    mod_positions[0] = vrna_strchr(rec_sequence, (int)'D', 0);
+    if (mod_positions[0])
+      for (size_t i = 1; i <= mod_positions[0][0]; i++) {
+        printf("replacing pos %d (%c) with %c\n", mod_positions[0][i], 'D', 'U');
+        rec_sequence[mod_positions[0][i] - 1] = 'U';
+      }
+  }
+
+  if (opt->mod_params) {
+    size_t i = (opt->mod_dihydrouridine) ? 1 : 0;
+    for (vrna_sc_mod_param_t *ptr = opt->mod_params; *ptr != NULL; ptr++, i++) {
+      mod_positions[i] = vrna_strchr(rec_sequence, (int)(*ptr)->one_letter_code, 0);
+      if (mod_positions[i])
+        for (size_t j = 1; j <= mod_positions[i][0]; j++) {
+          printf("replacing pos %d (%c) with %c\n", mod_positions[i][j], (*ptr)->one_letter_code, (*ptr)->unmodified);
+          rec_sequence[mod_positions[i][j] - 1] = (*ptr)->unmodified;
+        }
+    }
+  }
+
+  printf("%s\n%s\n", record->sequence, rec_sequence);
 
   /* convert DNA alphabet to RNA if not explicitely switched off */
   if (!opt->noconv) {
@@ -881,6 +987,50 @@ process_record(struct record_data *record)
     vrna_commands_apply(vc,
                         opt->cmds,
                         VRNA_CMD_PARSE_DEFAULTS);
+
+  /* apply modified base support if requested */
+  if (mod_param_sets > 0) {
+    size_t        i, j;
+    unsigned int  *modification_sites;
+
+    i                   = 0;
+    modification_sites  = vrna_alloc(sizeof(unsigned int) * (vc->length + 1));
+
+    if (opt->mod_dihydrouridine) {
+      if (mod_positions[i][0] > 0) {
+        for (j = 1; j <= mod_positions[i][0]; j++)
+          modification_sites[j - 1] = mod_positions[i][j];
+
+        modification_sites[j - 1] = 0;
+
+        vrna_sc_mod_dihydrouridine(vc, modification_sites);
+      }
+
+      free(mod_positions[i]);
+      mod_positions[i] = NULL;
+
+      i++;
+    }
+
+    if (opt->mod_params) {
+      for (vrna_sc_mod_param_t *ptr = opt->mod_params; *ptr != NULL; ptr++, i++) {
+        if (mod_positions[i][0] > 0) {
+          for (j = 1; j <= mod_positions[i][0]; j++)
+            modification_sites[j - 1] = mod_positions[i][j];
+
+          modification_sites[j - 1] = 0;
+          vrna_sc_mod(vc, *ptr, modification_sites);
+        }
+
+        free(mod_positions[i]);
+        mod_positions[i] = NULL;
+
+      }
+    }
+
+    free(modification_sites);
+    free(mod_positions);
+  }
 
   /*
    ########################################################

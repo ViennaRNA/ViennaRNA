@@ -302,9 +302,9 @@ default="D"
 optional
 
 option  "shapeConversion" -
-"Select method to convert SHAPE reactivities to pairing probabilities.\n"
+"Select method for SHAPE reactivity conversion.\n"
 details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
-The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+The following methods can be used to convert SHAPE reactivities into probability for a certain nucleotide to be unpaired.\n
 'M': Use linear mapping according to Zarringhalam et al.
 'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
 'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
@@ -367,6 +367,29 @@ default="1"
 argoptional
 optional
 
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors\n"
+details="The argument provided with this option enables to scale the thermodynamic temperature\
+ used in the Boltzmann factors independently from the temperature used to scale the individual\
+ energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
+ where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
+ absolute temperature.\n\n"
+double
+default="1."
+optional
+dependon="partfunc"
+hidden
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+double
+typestr="scaling factor"
+optional
+hidden
+
 option  "MEA"   -
 "Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
  pair probabilities: each base pair (i,j) gets a score 2*gamma*p_ij and the score of an unpaired base is\
@@ -380,16 +403,6 @@ typestr="gamma"
 default="1."
 argoptional
 optional
-
-option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
- overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
-double
-typestr="scaling factor"
-optional
-hidden
 
 option  "circ"    c
 "Assume a circular (instead of linear) RNA molecule.\n\n"
@@ -422,11 +435,20 @@ flag
 off
 
 
-section "Model Details"
+section "Energy Parameters"
 
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
+optional
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n\n"
+string
+typestr="paramfile"
 optional
 
 option  "noTetra" 4
@@ -434,6 +456,39 @@ option  "noTetra" 4
 details="Mostly for testing.\n\n"
 flag
 off
+
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+option  "modifications" m
+"Allow for modified bases within the RNA sequence string.\n"
+details="Treat modified bases within the RNA sequence differently, i.e. use corresponding\
+ energy corrections and/or pairing partner rules if available. For that, the modified bases\
+ in the input sequence must be marked by their corresponding one-letter code. If no additional\
+ arguments are supplied, all available corrections are performed. Otherwise, the user may\
+ limit the modifications to a particular subset of modifications, resp. one-letter codes,\
+ e.g. -m P6 will only correct for pseudouridine and m6A bases.\n\
+ Currently supported one-letter codes and energy corrections are:\n\n\
+ \"7\": 7-deaza-adenonsine (7DA)\n\n\
+ \"I\": Inosine\n\n\
+ \"6\": N6-methyladenosine (m6A)\n\n\
+ \"P\": Pseudouridine\n\n\
+ \"9\": Purine (a.k.a. nebularine)\n\n\
+ \"D\": Dihydrouridine\n\n"
+string
+argoptional
+default="7I6P9D"
+
+option  "mod-file"  -
+"Use additional modified base data from JSON file.\n\n"
+string
+multiple
+optional
+
+
+section "Model Details"
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
@@ -466,20 +521,6 @@ option  "noClosingGU" -
 flag
 off
 
-option  "salt" -
-"Set salt concentration in molar (M). Default is 1.021M.\n\n"
-double
-optional
-
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
-string
-typestr="paramfile"
-optional
-
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
@@ -495,19 +536,6 @@ option  "energyModel" e
  A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
-hidden
-
-option  "betaScale" -
-"Set the scaling of the Boltzmann factors\n"
-details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the Boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
- where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
- absolute temperature.\n\n"
-double
-default="1."
-optional
-dependon="partfunc"
 hidden
 
 
