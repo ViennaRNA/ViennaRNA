@@ -729,6 +729,50 @@ vrna_seq_ungapped(const char *seq)
 }
 
 
+PUBLIC size_t *
+vrna_strchr(const char  *str,
+            int          c,
+            size_t       n)
+{
+  size_t  str_len, pos_num, *positions  = NULL;
+  char    *ptr, *ptr2;
+
+  if (str) {
+    str_len   = strlen(str);
+    pos_num   = 0;
+    positions = vrna_alloc(sizeof(size_t) * (str_len + 1));
+    ptr       = NULL;
+
+    if (n == 0)
+      n = str_len;
+
+    /* find first occurence */
+    ptr = strchr(str, (int)c);
+
+    if (ptr != NULL) {
+      positions[++pos_num] = ptr - str + 1;
+      ptr2 = ptr + 1;
+
+      /* find further occurrences */
+      do {
+        ptr = strchr((const char*)ptr2, (int)c);
+        if (ptr) {
+          positions[++pos_num] = ptr - str + 1;
+          ptr2 = ptr + 1;
+        }
+      } while ((*ptr2) &&
+               (ptr != NULL) &&
+               (pos_num <= n));
+    }
+
+    positions[0] = pos_num;
+
+    positions = vrna_realloc(positions, sizeof(size_t) * (pos_num + 1));
+  }
+
+  return positions;
+}
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*

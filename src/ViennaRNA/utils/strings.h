@@ -440,6 +440,21 @@ vrna_cut_point_remove(const char  *string,
                       int         *cp);
 
 
+
+/**
+ *  @brief  Find (all) occurrences of a character within a string
+ *
+ *  @brief  string  The C string to be scanned
+ *  @brief  c       The character to be searched for
+ *  @brief  n       The maximum number of occurences to search for (or 0 for all occurrences)
+ *  @return         An 1-based array of positions(0-based) or @b NULL on error. Position 0 specifies the number of occurrences found.
+ */
+size_t *
+vrna_strchr(const char  *string,
+            int          c,
+            size_t       n);
+
+
 /**
  *  @}
  */
