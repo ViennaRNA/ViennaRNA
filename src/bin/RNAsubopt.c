@@ -29,12 +29,15 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
+
 #include "RNAsubopt_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
+#include "modified_bases_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
 
@@ -67,6 +70,7 @@ main(int  argc,
 {
   FILE                                *input, *output;
   struct          RNAsubopt_args_info args_info;
+  unsigned char                       mod_dihydrouridine;
   char                                *rec_sequence, *rec_id,
                                       **rec_rest, *orig_sequence, *constraints_file, *cstruc,
                                       *structure, *shape_file, *shape_method, *shape_conversion,
@@ -79,24 +83,27 @@ main(int  argc,
   vrna_md_t                           md;
   dataset_id                          id_control;
   vrna_cmd_t                          commands;
+  vrna_sc_mod_param_t                 *mod_params;
 
-  do_backtrack    = 1;
-  delta           = 100;
-  deltap          = n_back = noconv = dos = zuker = 0;
-  rec_type        = read_opt = 0;
-  rec_id          = rec_sequence = orig_sequence = NULL;
-  rec_rest        = NULL;
-  cstruc          = structure = NULL;
-  verbose         = 0;
-  st_back_en      = 0;
-  infile          = NULL;
-  outfile         = NULL;
-  output          = NULL;
-  tofile          = 0;
-  filename_full   = 0;
-  canonicalBPonly = 0;
-  commands        = NULL;
-  nonRedundant    = 0;
+  do_backtrack        = 1;
+  delta               = 100;
+  deltap              = n_back = noconv = dos = zuker = 0;
+  rec_type            = read_opt = 0;
+  rec_id              = rec_sequence = orig_sequence = NULL;
+  rec_rest            = NULL;
+  cstruc              = structure = NULL;
+  verbose             = 0;
+  st_back_en          = 0;
+  infile              = NULL;
+  outfile             = NULL;
+  output              = NULL;
+  tofile              = 0;
+  filename_full       = 0;
+  canonicalBPonly     = 0;
+  commands            = NULL;
+  nonRedundant        = 0;
+  mod_dihydrouridine  = 0;
+  mod_params          = NULL;
 
   set_model_details(&md);
 
@@ -248,6 +255,11 @@ main(int  argc,
     commands = vrna_file_commands_read(args_info.commands_arg,
                                        VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
+  ggo_get_modified_base_settings(args_info,
+                                 mod_dihydrouridine,
+                                 mod_params,
+                                 &(md));
+
   /* free allocated memory of command line data structure */
   RNAsubopt_cmdline_parser_free(&args_info);
 
@@ -297,10 +309,11 @@ main(int  argc,
   while (
     !((rec_type = vrna_file_fasta_read_record(&rec_id, &rec_sequence, &rec_rest, input, read_opt))
       & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))) {
-    char  *SEQ_ID         = NULL;
-    char  *v_file_name    = NULL;
-    char  *tmp_string     = NULL;
-    int   maybe_multiline = 0;
+    size_t  **mod_positions, mod_param_sets;
+    char    *SEQ_ID         = NULL;
+    char    *v_file_name    = NULL;
+    char    *tmp_string     = NULL;
+    int     maybe_multiline = 0;
 
     /*
      ########################################################
@@ -346,6 +359,13 @@ main(int  argc,
 
     /* store case-unmodified sequence */
     orig_sequence = strdup(rec_sequence);
+
+    mod_positions = mod_positions_seq_prepare(rec_sequence,
+                                              mod_dihydrouridine,
+                                              mod_params,
+                                              verbose,
+                                              &mod_param_sets);
+
     /* convert sequence to uppercase letters only */
     vrna_seq_toupper(rec_sequence);
 
@@ -408,6 +428,13 @@ main(int  argc,
                           commands,
                           VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
+    /* apply modified base support if requested */
+    mod_bases_apply(vc,
+                    mod_param_sets,
+                    mod_positions,
+                    mod_dihydrouridine,
+                    mod_params);
+
     if (istty) {
       if (cut_point == -1) {
         vrna_message_info(stdout, "length = %d", length);
@@ -445,7 +472,7 @@ main(int  argc,
 
       print_fasta_header(output, rec_id);
 
-      fprintf(output, "%s\n", rec_sequence);
+      fprintf(output, "%s\n", orig_sequence);
 
       mfe = vrna_mfe(vc, structure);
       /* rescale Boltzmann factors according to predicted MFE */
@@ -507,7 +534,7 @@ main(int  argc,
       int                     i;
       print_fasta_header(output, rec_id);
 
-      fprintf(output, "%s\n", rec_sequence);
+      fprintf(output, "%s\n", orig_sequence);
 
       zr = vrna_subopt_zuker(vc);
 
@@ -575,6 +602,13 @@ main(int  argc,
   free(shape_conversion);
   free(filename_delim);
   vrna_commands_free(commands);
+
+  if (mod_params) {
+    for (vrna_sc_mod_param_t *ptr = mod_params; *ptr != NULL; ptr++)
+      vrna_sc_mod_parameters_free(*ptr);
+
+    free(mod_params);
+  }
 
   free_id_data(id_control);
 
