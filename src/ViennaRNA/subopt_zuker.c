@@ -508,7 +508,7 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
 
   if ((l > 2) &&
       (sn[l] == sn[l + 1])) {
-    for (j = l + 1; j <= n; j++) {
+    for (j = l + 3; j <= n; j++) {
       if (sn[j] == sn[j - 1]) {
         for (i = l - 2; i > 0; i--) {
           if ((hc->mx[j * n + i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) &&
@@ -916,7 +916,7 @@ backtrack_outside:
 
               goto backtrack_outside;
             } else {
-              vrna_message_warning("backtracking failed for mb[%d] 1", i);
+              vrna_message_warning("backtracking failed for mb[%d] 2", i);
             }
 
             break;
@@ -978,7 +978,7 @@ backtrack_outside:
 
             goto backtrack_outside;
           } else {
-            vrna_message_warning("backtrackign failed for mb_up[%d]\n", i);
+            vrna_message_warning("backtracking failed for mb_up[%d]\n", i);
           }
 
           break;
