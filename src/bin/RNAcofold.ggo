@@ -29,13 +29,47 @@ description "The program works much like RNAfold, but allows one to specify two 
  condition is encountered.\n\n"
 
 # Options
-section "General Options"
-sectiondesc="Command line options which alter the general behavior of this program\n\n"
 
 option  "verbose" v
 "Be verbose.\n\n"
 flag
 off
+
+
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
+
+
+option  "output-format" -
+"Change the default output format.\n"
+details="The following output formats are currently supported:\n ViennaRNA format (V),\
+ Delimiter-separated format (D) also known as CSV format.\n\n"
+string
+typestr="format-character"
+default="V"
+optional
+hidden
+
+
+option  "csv-delim" -
+"Change the delimiting character for Delimiter-separated output format, such as CSV.\n"
+details="Delimiter-separated output defaults to comma separated values (CSV), i.e.\
+ all data in one data set is delimited by a comma character. This option allows one to\
+ change the delimiting character to something else. Note, to switch to tab-separated\
+ data, use $'\\t' as delimiting character.\n\n"
+string
+typestr="delimiter"
+default=","
+optional
+hidden
+
+
+option  "csv-noheader" -
+"Do not print header for Delimiter-separated output, such as CSV\n\n"
+flag
+off
+hidden
+
 
 option  "jobs"  j
 "Split batch input into jobs and start processing in parallel using multiple threads. A value of 0\
@@ -69,15 +103,11 @@ dependon="jobs"
 hidden
 
 
-option  "noPS"  -
-"Do not produce postscript drawing of the mfe structure.\n\n"
+option  "noconv"  -
+"Do not automatically substitute nucleotide \"T\" with \"U\".\n\n"
 flag
 off
 
-option  "noconv"  -
-"Do not automatically substitute nucleotide \"T\" with \"U\"\n\n"
-flag
-off
 
 option  "auto-id"  -
 "Automatically generate an ID for each sequence.\n"
@@ -90,27 +120,30 @@ details="The default mode of RNAcofold is to automatically determine an ID from 
 flag
 off
 
+
 option  "id-prefix" -
-"Prefix for automatically generated IDs (as used in output file names)\n\n"
+"Prefix for automatically generated IDs (as used in output file names).\n"
 details="If this parameter is set, each sequence will be prefixed with the\
  provided string. Hence, the output files will obey the following naming\
  scheme: \"prefix_xxxx_ss.ps\" (secondary structure plot), \"prefix_xxxx_dp.ps\"\
  (dot-plot), \"prefix_xxxx_dp2.ps\" (stack probabilities), etc. where xxxx\
  is the sequence number. Note: Setting this parameter implies --auto-id.\n\n"
 string
-typestr="prefix"
+typestr="STRING"
 default="sequence"
 optional
 
+
 option  "id-delim" -
-"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names).\n"
 details="This parameter can be used to change the default delimiter \"_\" between
  the prefix string and the increasing number for automatically generated ID.\n\n"
 string
-typestr="delimiter"
+typestr="CHAR"
 default="_"
 optional
 hidden
+
 
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
@@ -123,6 +156,7 @@ default="4"
 optional
 hidden
 
+
 option  "id-start"  -
 "Specify the first number in automatically generated alignment IDs.\n"
 details="When sequence IDs are automatically generated, they receive an increasing number,\
@@ -134,8 +168,9 @@ default="1"
 optional
 hidden
 
+
 option  "filename-delim" -
-"Change the delimiting character that is used for sanitized filenames\n\n"
+"Change the delimiting character used in sanitized filenames.\n"
 details="This parameter can be used to change the delimiting character used while\
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
@@ -145,13 +180,14 @@ details="This parameter can be used to change the delimiting character used whil
  backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
  pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
 string
-typestr="delimiter"
+typestr="CHAR"
 default="ID-delimiter"
 optional
 hidden
 
+
 option  "filename-full" -
-"Use full FASTA header to create filenames\n\n"
+"Use full FASTA header to create filenames.\n"
 details="This parameter can be used to deactivate the default behavior of limiting\
  output filenames to the first word of the sequence ID. Consider the following example:\
  An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
@@ -165,142 +201,11 @@ flag
 off
 hidden
 
-option  "output-format" -
-"Change the default output format\n\n"
-details="The following output formats are currently supported:\n ViennaRNA format (V),\
- Delimiter-separated format (D) also known as CSV format.\n\n"
-string
-typestr="format-character"
-default="V"
-optional
-hidden
-
-
-option  "csv-delim" -
-"Change the delimiting character for Delimiter-separated output format, such as CSV\n\n"
-details="Delimiter-separated output defaults to comma separated values (CSV), i.e.\
- all data in one data set is delimited by a comma character. This option allows one to\
- change the delimiting character to something else. Note, to switch to tab-separated\
- data, use $'\\t' as delimiting character.\n\n"
-string
-typestr="delimiter"
-default=","
-optional
-hidden
-
-
-option  "csv-noheader" -
-"Do not print header for Delimiter-separated output, such as CSV\n\n"
-flag
-off
-hidden
-
-
-# Options
-section "Structure Constraints"
-sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
-
-option  "maxBPspan" -
-"Set the maximum base pair span\n\n"
-int
-default="-1"
-optional
-
-option  "constraint"  C
-"Calculate structures subject to constraints.\n"
-details="The program reads first the\
- sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
- for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
- a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
- exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
- sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n\n"
-string
-typestr="<filename>"
-default = ""
-argoptional
-
-option  "batch"   -
-"Use constraints for multiple sequences.\n"
-details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
- RNAcofold will stop its computation and quit after the first input sequence was processed. Using this\
- switch, RNAcofold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
-flag
-off
-dependon="constraint"
-
-option  "canonicalBPonly" -
-"Remove non-canonical base pairs from the structure constraint\n\n"
-flag
-off
-dependon="constraint"
-
-option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
-flag
-off
-dependon="constraint"
-
-option  "shape" -
-"Use SHAPE reactivity data to guide structure predictions\n\n"
-string
-typestr="<filename>"
-optional
-
-option  "shapeMethod" -
-"Select method to incorporate SHAPE reactivity data.\n"
-details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
-'D': Convert by using a linear equation according to Deigan et al 2009. \
-The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
-This method is recognized by a capital 'D' in the provided parameter, i.e.: \
---shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
-non-default value if necessary, otherwise m=1.8 and b=-0.6. \
-To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
-parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
-parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
-
-'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
-SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
-Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
-The magnitude of the penalties can affected by adjusting the factor beta \
-(e.g. --shapeMethod=\"Zb0.8\").
-
-'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n\n"
-string
-typestr="[D/Z/W] + [optional parameters]"
-dependon="shape"
-default="D"
-optional
-
-option  "shapeConversion" -
-"Select method to convert SHAPE reactivities to pairing probabilities.\n"
-details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
-The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
-'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
-string
-typestr="M/C/S/L/O  + [optional parameters]"
-default="O"
-optional
-
-option  "commands"   -
-"Read additional commands from file\n"
-details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
- loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
- domains.\n\n"
-string
-typestr="<filename>"
-optional
-hidden
-
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
+
 
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix in\
@@ -321,6 +226,7 @@ default="1"
 argoptional
 optional
 
+
 option "all_pf" a
 "Compute the partition function and free energies not only of the hetero-dimer consisting\
  of the two input sequences (the \"AB dimer\"), but also of the homo-dimers AA and BB as\
@@ -337,6 +243,29 @@ argoptional
 optional
 
 
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors.\n"
+details="The argument provided with this option enables to scale the thermodynamic temperature\
+ used in the Boltzmann factors independently from the temperature used to scale the individual\
+ energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
+ where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
+ absolute temperature.\n\n"
+double
+default="1."
+optional
+hidden
+
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+double
+optional
+hidden
+
+
 option  "concentrations"  c
 "In addition to everything listed under the -a option, read in initial monomer concentrations\
  and compute the expected equilibrium concentrations of the 5 possible species (AB, AA, BB, A, B).\n"
@@ -346,13 +275,15 @@ details="Start concentrations are read from stdin (unless the -f option is used)
 flag
 off
 
+
 option  "concfile"  f
-"Specify a file with initial concentrations for the two sequences."
+"Specify a file with initial concentrations for the two sequences.\n"
 details="The table consits of arbitrary many lines with just two numbers (the concentration of\
  sequence A and B). This option will automatically toggle the -c (and thus -a and -p) options (see above).\n\n"
 string
 typestr="filename"
 optional
+
 
 option  "centroid"  -
 "Compute the centroid structure.\n"
@@ -363,6 +294,7 @@ details="Additionally to the MFE structure, compute the centroid representative 
  reasons, the centroid structure output is deactivated by default.\n\n"
 flag
 off
+
 
 option  "MEA"   -
 "Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
@@ -378,15 +310,6 @@ default="1."
 argoptional
 optional
 
-option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
- overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
-double
-typestr="scaling factor"
-optional
-hidden
 
 option  "bppmThreshold" -
 "Set the threshold for base pair probabilities included in the postscript output\n"
@@ -399,23 +322,190 @@ optional
 default="1e-5"
 hidden
 
+
 option  "gquad" g
 "Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
 flag
 off
 
-section "Model Details"
+
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
+option  "maxBPspan" -
+"Set the maximum base pair span\n\n"
+int
+default="-1"
+optional
+
+
+option  "constraint"  C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
+ for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
+ a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
+ exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type \"|\".\n\n"
+string
+typestr="<filename>"
+default = ""
+argoptional
+
+
+option  "batch"   -
+"Use constraints for multiple sequences.\n"
+details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
+ RNAcofold will stop its computation and quit after the first input sequence was processed. Using this\
+ switch, RNAcofold processes multiple input sequences and applies the same provided constraints to each of them.\n\n"
+flag
+off
+dependon="constraint"
+
+
+option  "canonicalBPonly" -
+"Remove non-canonical base pairs from the structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
+
+option  "enforceConstraint" -
+"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
+flag
+off
+dependon="constraint"
+
+
+option  "shape" -
+"Use SHAPE reactivity data to guide structure predictions.\n\n"
+string
+typestr="<filename>"
+optional
+
+
+option  "shapeMethod" -
+"Select SHAPE reactivity data incorporation strategy.\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n\n\
+ 'D': Convert by using a linear equation according to Deigan et al 2009. Derived pseudo energy terms\
+ will be applied for every nucleotide involved in a stacked pair. This method is recognized by a capital\
+ 'D' in the provided parameter, i.e.: --shapeMethod=\"D\" is the default setting. The slope 'm' and the\
+ intercept 'b' can be set to a non-default value if necessary, otherwise m=1.8 and b=-0.6. To alter these\
+ parameters, e.g. m=1.9 and b=-0.7, use a parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You\
+ may also provide only one of the two parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n\
+ 'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012.\
+ SHAPE reactivities will be converted to pairing probabilities by using linear mapping.\
+ Aberration from the observed pairing probabilities will be penalized during the folding recursion.\
+ The magnitude of the penalties can affected by adjusting the factor beta\
+ (e.g. --shapeMethod=\"Zb0.8\").\n\n\
+ 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
+ Perturbation vectors can be calculated by using RNApvmin.\n\n"
+string
+typestr="[D|Z|W] + [optional parameters]"
+dependon="shape"
+default="D"
+optional
+hidden
+
+
+option  "shapeConversion" -
+"Select method for SHAPE reactivity conversion.\n"
+details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
+The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
+string
+typestr="M|C|S|L|O  + [optional parameters]"
+default="O"
+optional
+
+
+option  "commands"   -
+"Read additional commands from file\n"
+details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
+ loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
+ domains.\n\n"
+string
+typestr="<filename>"
+optional
+hidden
+
+
+section "Energy Parameters"
+sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
+
 
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
+default="37.0"
 optional
 
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n\n"
+string
+typestr="paramfile"
+optional
+
+
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
 details="Mostly for testing.\n\n"
 flag
 off
+hidden
+
+
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+
+option  "saltInit" -
+"Provide salt correction for duplex initialization (in kcal/mol).\n\n"
+double
+optional
+hidden
+
+
+option  "modifications" m
+"Allow for modified bases within the RNA sequence string.\n"
+details="Treat modified bases within the RNA sequence differently, i.e. use corresponding\
+ energy corrections and/or pairing partner rules if available. For that, the modified bases\
+ in the input sequence must be marked by their corresponding one-letter code. If no additional\
+ arguments are supplied, all available corrections are performed. Otherwise, the user may\
+ limit the modifications to a particular subset of modifications, resp. one-letter codes,\
+ e.g. -mP6 will only correct for pseudouridine and m6A bases.\n\
+ Currently supported one-letter codes and energy corrections are:\n\n\
+ \"7\": 7-deaza-adenonsine (7DA)\n\n\
+ \"I\": Inosine\n\n\
+ \"6\": N6-methyladenosine (m6A)\n\n\
+ \"P\": Pseudouridine\n\n\
+ \"9\": Purine (a.k.a. nebularine)\n\n\
+ \"D\": Dihydrouridine\n\n"
+string
+argoptional
+default="7I6P9D"
+
+
+option  "mod-file"  -
+"Use additional modified base data from JSON file.\n\n"
+string
+multiple
+optional
+
+
+section "Model Details"
+sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
+
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
@@ -431,6 +521,7 @@ int
 default="2"
 optional
 
+
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
@@ -438,35 +529,20 @@ details="For partition function folding this only disallows pairs that can only 
 flag
 off
 
+
 option  "noGU"  -
 "Do not allow GU pairs\n\n"
 flag
 off
+hidden
+
 
 option  "noClosingGU" -
 "Do not allow GU pairs at the end of helices\n\n"
 flag
 off
-
-option  "salt" -
-"Set salt concentration in molar (M). Default is 1.021M.\n\n"
-double
-optional
-
-option  "saltInit" -
-"Provide salt correction for duplex initialization (in kcal/mol).\n\n"
-double
-optional
 hidden
 
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
-string
-typestr="paramfile"
-optional
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
@@ -478,24 +554,26 @@ string
 optional
 hidden
 
+
 option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+"Set energy model.\n"
+details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
  A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden
 
-option  "betaScale" -
-"Set the scaling of the Boltzmann factors\n"
-details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the Boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
- where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
- absolute temperature.\n\n"
-double
-default="1."
-optional
-hidden
+
+section "Plotting"
+sectiondesc="Command line options for changing the default behavior of structure layout and pairing probability plots\n\n"
+
+
+option  "noPS"  -
+"Do not produce postscript drawing of the mfe structure.\n\n"
+flag
+off
+
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"

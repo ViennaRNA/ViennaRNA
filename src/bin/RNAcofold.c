@@ -23,6 +23,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/cofold.h"
@@ -41,6 +42,7 @@
 #include "RNAcofold_cmdl.h"
 #include "gengetopt_helper.h"
 #include "input_id_helpers.h"
+#include "modified_bases_helpers.h"
 #include "ViennaRNA/color_output.inc"
 #include "parallel_helpers.h"
 
@@ -74,6 +76,9 @@ struct options {
   char            *shape_file;
   char            *shape_method;
   char            *shape_conversion;
+
+  unsigned char       mod_dihydrouridine;
+  vrna_sc_mod_param_t *mod_params;
 
   int             csv_output;
   int             csv_header;
@@ -198,6 +203,9 @@ init_default_options(struct options *opt)
   opt->shape_file       = NULL;
   opt->shape_method     = NULL;
   opt->shape_conversion = NULL;
+
+  opt->mod_dihydrouridine = 0;
+  opt->mod_params         = NULL;
 
   opt->csv_output       = 0;    /* flag indicating whether we produce one-line outputs, a.k.a. CSV */
   opt->csv_header       = 1;    /* print header for one-line output */
@@ -369,6 +377,11 @@ main(int  argc,
     opt.commands = vrna_file_commands_read(args_info.commands_arg,
                                            VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
+  ggo_get_modified_base_settings(args_info,
+                                 opt.mod_dihydrouridine,
+                                 opt.mod_params,
+                                 &(opt.md));
+
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
     opt.filename_delim = strdup(args_info.filename_delim_arg);
@@ -521,6 +534,13 @@ main(int  argc,
   vrna_commands_free(opt.commands);
   free(opt.concentration_file);
 
+  if (opt.mod_params) {
+    for (vrna_sc_mod_param_t *ptr = opt.mod_params; *ptr != NULL; ptr++)
+      vrna_sc_mod_parameters_free(*ptr);
+
+    free(opt.mod_params);
+  }
+
   free_id_data(opt.id_control);
 
   return EXIT_SUCCESS;
@@ -649,6 +669,8 @@ process_record(struct record_data *record)
   vrna_ep_t             *prAB, *prAA, *prBB, *prA, *prB, *mfAB, *mfAA, *mfBB, *mfA, *mfB;
   struct options        *opt;
   struct output_stream  *o_stream;
+  size_t                **mod_positions;
+  size_t                mod_param_sets;
 
   mfAB            = mfAA = mfBB = mfA = mfB = NULL;
   prAB            = prAA = prBB = prA = prB = NULL;
@@ -657,6 +679,12 @@ process_record(struct record_data *record)
   o_stream        = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
   sequence        = strdup(record->sequence);
   rec_rest        = record->rest;
+
+  mod_positions   = mod_positions_seq_prepare(sequence,
+                                              opt->mod_dihydrouridine,
+                                              opt->mod_params,
+                                              opt->verbose,
+                                              &mod_param_sets);
 
   /* convert DNA alphabet to RNA if not explicitely switched off */
   if (!opt->noconv) {
@@ -762,6 +790,13 @@ process_record(struct record_data *record)
 
   if (opt->commands)
     vrna_commands_apply(vc, opt->commands, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
+
+  /* apply modified base support if requested */
+  mod_bases_apply(vc,
+                  mod_param_sets,
+                  mod_positions,
+                  opt->mod_dihydrouridine,
+                  opt->mod_params);
 
   if (opt->doC) {
     if (opt->concentration_file) {
