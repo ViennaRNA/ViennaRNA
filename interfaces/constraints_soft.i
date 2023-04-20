@@ -114,20 +114,11 @@ vrna_sc_mod_param_t my_sc_mod_read_from_json(std::string json, vrna_md_t *md = N
   sc_add_bp(std::vector<std::vector<double> > constraints,
             unsigned int                      options = VRNA_OPTION_DEFAULT)
   {
-    std::vector<std::vector<double> >::iterator it;
-    std::vector<double>::iterator it2;
-    int i, j, ret;
-
-    i = 1;
-    ret = 1;
-    it = constraints.begin();
-    for(it++; it != constraints.end(); it++, i++){
-      it2 = (*it).begin();
-      j   = 1;
-      for(it2++; it2 != (*it).end(); it2++, j++){
-        ret &= (vrna_sc_add_bp($self, i, j, *it2, options)) ? 1 : 0;
-      }
-    }
+    int ret = 1;
+    for (size_t i = 1; i < constraints.size(); i++)
+      for (size_t j = i + 1; j <= constraints[i].size(); j++)
+        if (constraints[i][j] != 0)
+          ret &= (vrna_sc_add_bp($self, i, j, constraints[i][j], options)) ? 1 : 0;
 
     return ret;
   }
