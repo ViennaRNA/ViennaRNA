@@ -845,6 +845,11 @@ backtrack_outside:
         break;
     }
 
+    if (sc) {
+      if (sc->f)
+        tmp += sc->f(k, l, k, l, VRNA_DECOMP_ML_STEM, sc->data);
+    }
+
     for (i = k - 1; i >= min_i; i--, u1++) {
       if (mb[i] == INF)
         continue;
