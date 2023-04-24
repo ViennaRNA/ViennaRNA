@@ -248,7 +248,24 @@ std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5)
 %{
 #include <vector>
 
-#if 0
+#ifdef SWIGPYTHON
+  var_array<short int> *
+  my_ptable(std::string   str,
+            unsigned int  options = VRNA_BRACKETS_RND)
+  {
+    short int       *pt;
+    int             i;
+    var_array<short int>  *v_pt;
+
+    pt = vrna_ptable_from_string(str.c_str(), options);
+    v_pt = var_array_new(str.size(),
+                         pt,
+                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
+
+    return v_pt;
+  }
+
+#else
   std::vector<int>
   my_ptable(std::string   str,
             unsigned int  options = VRNA_BRACKETS_RND)
@@ -266,22 +283,6 @@ std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5)
     return v_pt;
   }
 #endif
-
-  var_array<short int> *
-  my_ptable(std::string   str,
-            unsigned int  options = VRNA_BRACKETS_RND)
-  {
-    short int       *pt;
-    int             i;
-    var_array<short int>  *v_pt;
-
-    pt = vrna_ptable_from_string(str.c_str(), options);
-    v_pt = var_array_new(str.size(),
-                         pt,
-                         VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED | VAR_ARRAY_OWNED);
-
-    return v_pt;
-  }
 
   std::vector<int>
   my_ptable_pk(std::string str)
@@ -344,10 +345,11 @@ std::string abstract_shapes(var_array<short> const &pt, unsigned int  level = 5)
 %feature("kwargs") my_pt_pk_remove;
 #endif
 
-#if 0
+#ifdef SWIGPYTHON
+var_array<short int> * my_ptable(std::string   str, unsigned int  options = VRNA_BRACKETS_RND);
+#else
 std::vector<int> my_ptable(std::string str, unsigned int options = VRNA_BRACKETS_RND);
 #endif
-var_array<short int> * my_ptable(std::string   str, unsigned int  options = VRNA_BRACKETS_RND);
 
 std::vector<int> my_ptable_pk(std::string str);
 std::vector<int> my_pt_pk_remove(std::vector<int> pt, unsigned int options = 0);
