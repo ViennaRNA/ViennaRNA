@@ -25,7 +25,7 @@ _RNAxplorer_la_LIBADD = \
     $(LDADD) \
     $(top_builddir)/src/libRNAxplorer_conv.la
 
-_RNAxplorer_la_LDFLAGS  = $(RNALIB_LIBS) \
+_RNAxplorer_la_LDFLAGS  = $(VRNA_LIBS) \
                           -avoid-version \
                           -module \
                           -shared \

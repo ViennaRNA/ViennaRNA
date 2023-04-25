@@ -108,13 +108,14 @@ AS_IF([test "$PKG_CONFIG_AVAILABLE" = "true"],[
         export PKG_CONFIG_PATH="$with_vrna/lib/pkgconfig:$PKG_CONFIG_PATH"
     fi
     #Search for the RNAlib2 and set variables for Makefiles if found.  _CFLAGS and _LIBS can be overriden with the modue Name from PKG_CHECK_MODULES
-    PKG_CHECK_MODULES([RNALIB], [RNAlib2 >= $VRNA_Version],
-                  [ AC_SUBST([RNALIB_CFLAGS])
-                    AC_SUBST([RNALIB_LIBS])
+    PKG_CHECK_MODULES([VRNA], [RNAlib2 >= $VRNA_Version],
+                  [ AC_SUBST([VRNA_CFLAGS])
+                    AC_SUBST([VRNA_LIBS])
                     VRNALIB_OK=true
                   ],
                   [VRNALIB_OK=false])
 ])
+
 dnl if pkg-config is not available or something else went wrong with pkg-config,
 dnl then guess the configuration
 dnl
@@ -130,11 +131,11 @@ AS_IF([test "$VRNALIB_OK" != "true" -a "$PKG_CONFIG_AVAILABLE" != "true" ],
   else
     vrna_prefix="$with_vrna"
   fi
-  RNALIB_LIBS="-L$vrna_prefix/lib -lRNA"
+  VRNA_LIBS="-L$vrna_prefix/lib -lRNA"
   dnl if libgomp is available, then add it to VRNA_LIBS; otherwise,
   dnl assume (optimistically) that libRNA works without libgomp
   dnl AC_CHECK_LIB([gomp],[main],[VRNA_LIBS="$VRNA_LIBS -lgomp"])
-  RNALIB_CFLAGS="-I$vrna_prefix/include"
+  VRNA_CFLAGS="-I$vrna_prefix/include"
   AC_MSG_NOTICE([Guessing of ViennaRNA flags may be avoided by installing pkg-config.])
   AC_CHECK_LIB([RNA],[vrna_fold],[VRNALIB_OK=true],[VRNALIB_OK=false])
 ])
@@ -151,7 +152,7 @@ AS_IF([test "$VRNALIB_OK" != "true"],
 ])
 
 # add vrna to libs
-LIBS="$RNALIB_LIBS $LIBS"
+LIBS="$VRNA_LIBS $LIBS"
 
 
 

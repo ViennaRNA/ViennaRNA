@@ -1,5 +1,5 @@
 
-AM_CPPFLAGS = $(CFLAGS) $(RNALIB_CFLAGS) 
+AM_CPPFLAGS = $(CFLAGS) $(VRNA_CFLAGS) 
 
 # convenience library
 noinst_LTLIBRARIES = libRNAxplorer_conv.la
@@ -30,7 +30,7 @@ SUFFIXES = _cmdl.c _cmdl.h .ggo
 
 RNAxplorer_LDADD = \
     libRNAxplorer_conv.la \
-    $(RNALIB_LIBS)
+    $(VRNA_LIBS)
 
 GENGETOPT_CMDL = \
     RNAxplorer_cmdl.c RNAxplorer_cmdl.h
