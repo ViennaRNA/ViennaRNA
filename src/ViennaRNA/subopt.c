@@ -342,6 +342,7 @@ compare_en(const void *a,
 PRIVATE void
 make_output(vrna_subopt_solution_t  *SL,
             int                     cp,
+            int                     compressed,
             FILE                    *fp);
 
 
@@ -433,8 +434,12 @@ vrna_subopt(vrna_fold_compound_t  *fc,
 
     cb = old_subopt_store;
 
-    if (fp)
-      cb = (sorted) ? old_subopt_store_compressed : old_subopt_print;
+    if (fp) {
+      if (!sorted)
+        cb = old_subopt_print;
+      else if (!(fc->params->model_details.gquad))
+        cb = old_subopt_store_compressed;
+    }
 
     /* call subopt() */
     vrna_subopt_cb(fc, delta, cb, (void *)&data);
@@ -459,7 +464,10 @@ vrna_subopt(vrna_fold_compound_t  *fc,
       }
 
       if (fp)
-        make_output(data.SolutionList, fc->cutpoint, fp);
+        make_output(data.SolutionList,
+                    fc->cutpoint,
+                    !(fc->params->model_details.gquad),
+                    fp);
     }
 
     if (fp) {
@@ -984,13 +992,14 @@ compare_en(const void *a,
 PRIVATE void
 make_output(vrna_subopt_solution_t  *SL,
             int                     cp,
+            int                     compressed,
             FILE                    *fp)                  /* prints stuff */
 {
   vrna_subopt_solution_t *sol;
 
   for (sol = SL; sol->structure != NULL; sol++) {
     char  *e_string = vrna_strdup_printf(" %6.2f", sol->energy);
-    char  *ss       = vrna_db_unpack(sol->structure);
+    char  *ss       = (compressed) ? vrna_db_unpack(sol->structure) : strdup(sol->structure);
     char  *s        = vrna_cut_point_insert(ss, cp);
     print_structure(fp, s, e_string);
     free(s);
