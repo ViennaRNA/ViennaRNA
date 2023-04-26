@@ -1,5 +1,7 @@
 function,class,object_argnum
 vrna_params_reset,params_reset,vrna_fold_compound_t,vc
+vrna_params_subst,params_subst,vrna_fold_compound_t,vc
+vrna_params_rescale,params_rescale,vrna_fold_compound_t,vc
 vrna_mfe,mfe,vrna_fold_compound_t,vc
 vrna_hc_init,hc_init,vrna_fold_compound_t,vc
 vrna_hc_add_up,hc_add_up,vrna_fold_compound_t,vc
@@ -7,3 +9,13 @@ vrna_hc_add_bp_nonspecific,hc_add_bp_nonspecific,vrna_fold_compound_t,vc
 vrna_hc_add_bp,hc_add_bp,vrna_fold_compound_t,vc
 vrna_hc_add_from_db,hc_add_from_db,vrna_fold_compound_t,vc
 vrna_mfe_window,mfe_window,vrna_fold_compound_t,vc
+vrna_params_subst,params_subst,vrna_fold_compound_t,vc
+vrna_sc_mod_json,sc_mod_json,vrna_fold_compound_t,fc
+vrna_sc_mod_jsonfile,sc_mod_jsonfile,vrna_fold_compound_t,fc
+vrna_sc_mod,sc_mod,vrna_fold_compound_t,fc
+vrna_sc_mod_m6A,sc_mod_m6A,vrna_fold_compound_t,fc
+vrna_sc_mod_pseudouridine,sc_mod_pseudouridine,vrna_fold_compound_t,fc
+vrna_sc_mod_inosine,sc_mod_inosine,vrna_fold_compound_t,fc
+vrna_sc_mod_7DA,sc_mod_7DA,vrna_fold_compound_t,fc
+vrna_sc_mod_purine,sc_mod_purine,vrna_fold_compound_t,fc
+vrna_sc_mod_dihydrouridine,sc_mod_dihydrouridine,vrna_fold_compound_t,fc
