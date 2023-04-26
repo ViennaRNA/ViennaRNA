@@ -51,6 +51,7 @@ import textwrap
 import sys
 import os.path
 import optparse
+import io
 import csv
 
 def my_open_read(source):
@@ -906,7 +907,7 @@ def main():
 
     object_binding = dict()
     if options.b:
-        with open(options.b, "r", newline = '') as f:
+        with io.open(options.b, "r", newline = '') as f:
             data = csv.reader(f, delimiter = ",")
             header = next(data, None)
             for row in data:
