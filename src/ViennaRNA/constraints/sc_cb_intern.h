@@ -24,9 +24,11 @@ struct vrna_sc_mod_param_s {
   char          *name;
   char          one_letter_code;
   char          unmodified;
+  char          fallback;
   char          pairing_partners[7];
   unsigned int  pairing_partners_encoding[7];
   unsigned int  unmodified_encoding;
+  unsigned int  fallback_encoding;
 
   size_t        num_ptypes;
   size_t        ptypes[MAX_ALPHABET][MAX_ALPHABET];

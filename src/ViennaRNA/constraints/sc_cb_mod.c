@@ -420,11 +420,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
         continue;
       }
 
-      if (fc->sequence_encoding[msite] != params->unmodified_encoding) {
-        vrna_message_warning("modification site %u lists wrong unmodified base %c (should be %c)",
-                             msite,
-                             bases[fc->sequence_encoding[msite]],
-                             params->unmodified);
+      if ((fc->sequence_encoding[msite] != params->unmodified_encoding) &&
+          (fc->sequence_encoding[msite] != params->fallback_encoding)) {
+        vrna_message_warning(
+          "modification site %u lists wrong unmodified base %c (should be %c or %c)",
+          msite,
+          bases[fc->sequence_encoding[msite]],
+          params->unmodified,
+          params->fallback);
         continue;
       }
 

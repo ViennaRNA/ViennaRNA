@@ -126,7 +126,7 @@ vrna_sc_mod_read_from_json(const char *json,
       return NULL;
     }
 
-    JsonNode      *dom              = json_decode(json);
+    JsonNode *dom = json_decode(json);
     if (md_p) {
       md = md_p;
     } else {
@@ -169,6 +169,19 @@ vrna_sc_mod_read_from_json(const char *json,
           enc--;
 
         parameters->unmodified_encoding = enc;
+      }
+
+      if ((e = json_find_member(dom, "modified_base")) &&
+          (e = json_find_member(e, "fallback")) &&
+          (e->tag == JSON_STRING) &&
+          (strlen(e->string_) == 1) &&
+          (ptr = strchr(bases, e->string_[0]))) {
+        parameters->fallback = toupper(e->string_[0]);
+        size_t enc = ptr - &(bases[0]);
+        if (enc > 4)
+          enc--;
+
+        parameters->fallback_encoding = enc;
       }
 
       size_t cnt = 0;

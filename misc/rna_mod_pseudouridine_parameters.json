@@ -14,7 +14,8 @@
     "pairing_partners" : [
       "A"
     ],
-    "one_letter_code" : "P"
+    "one_letter_code" : "P",
+    "fallback" : "U"
   },
   "stacking_energies" : {
     "APUA" :  -2.8,

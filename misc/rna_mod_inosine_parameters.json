@@ -21,7 +21,8 @@
     "pairing_partners" : [
       "U", "C"
     ],
-    "one_letter_code" : "I"
+    "one_letter_code" : "I",
+    "fallback": "G"
   },
   "stacking_energies" : {
     "IUUI" : 3.58,

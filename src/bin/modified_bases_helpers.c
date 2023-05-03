@@ -33,7 +33,7 @@ mod_positions_seq_prepare(char                *sequence,
     if (*param_set_num > 0)
       mod_positions = vrna_alloc(sizeof(size_t) * *param_set_num);
 
-    /* replace modified base one-letter code with unmodified base for internal use */
+    /* replace modified base one-letter code with fallback base for internal use */
     if (mod_dihydrouridine) {
       mod_positions[0] = vrna_strchr(sequence, (int)'D', 0);
       if (mod_positions[0])
@@ -56,7 +56,7 @@ mod_positions_seq_prepare(char                *sequence,
                      (*ptr)->one_letter_code,
                      mod_positions[i][j]);
 
-            sequence[mod_positions[i][j] - 1] = (*ptr)->unmodified;
+            sequence[mod_positions[i][j] - 1] = (*ptr)->fallback;
           }
       }
     }
