@@ -51,7 +51,7 @@ main(int  argc,
   dangles       = 2;
   do_backtrack  = 0;
   pf            = 0;
-  mfe           = 1;
+  mfe           = 0;
   repeat        = 0;
   input_type    = 0;
   input_string  = ns_bases = NULL;
@@ -125,6 +125,8 @@ main(int  argc,
       if ((*args_info.function_arg == 'p') || (*(args_info.function_arg + 1) == 'p'))
         pf = 1;
     }
+  } else {
+    mfe = 1;
   }
 
   /* set repeat */
