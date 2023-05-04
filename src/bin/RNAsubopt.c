@@ -528,7 +528,7 @@ main(int  argc,
     else {
       vrna_subopt_solution_t  *zr;
 
-      if (vc->cutpoint != -1)
+      if (vc->strands > 1)
         vrna_message_error("Sorry, zuker subopts not yet implemented for cofold");
 
       int                     i;

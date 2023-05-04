@@ -104,7 +104,8 @@ struct old_subopt_dat {
   unsigned long           n_sol;
   vrna_subopt_solution_t  *SolutionList;
   FILE                    *fp;
-  int                     cp;
+  unsigned int            strands;
+  unsigned int            *strand_start;
 };
 
 /*
@@ -341,7 +342,8 @@ compare_en(const void *a,
 
 PRIVATE void
 make_output(vrna_subopt_solution_t  *SL,
-            int                     cp,
+            unsigned int            strands,
+            const unsigned int      *strand_start,
             int                     compressed,
             FILE                    *fp);
 
@@ -408,7 +410,8 @@ vrna_subopt(vrna_fold_compound_t  *fc,
   data.max_sol      = 128;
   data.n_sol        = 0;
   data.fp           = fp;
-  data.cp           = fc->cutpoint;
+  data.strands      = fc->strands;
+  data.strand_start = fc->strand_start;
 
   if (fc) {
     /* SolutionList stores the suboptimal structures found */
@@ -422,8 +425,18 @@ vrna_subopt(vrna_fold_compound_t  *fc,
       float min_en;
       char  *SeQ, *energies = NULL;
       min_en = vrna_mfe(fc, NULL);
+      char  *tmp_seq = strdup(fc->sequence);
 
-      SeQ       = vrna_cut_point_insert(fc->sequence, fc->cutpoint);
+      if (fc->strands == 1) {
+        SeQ = tmp_seq;
+      } else {
+        for (unsigned int i = 1; i < fc->strands; i++) {
+          SeQ = vrna_cut_point_insert(tmp_seq, (int)fc->strand_start[i] + (i - 1));
+          free(tmp_seq);
+          tmp_seq = SeQ;
+        }
+      }
+
       energies  = vrna_strdup_printf(" %6.2f %6.2f", min_en, (float)delta / 100.);
       print_structure(fp, SeQ, energies);
       free(SeQ);
@@ -465,7 +478,8 @@ vrna_subopt(vrna_fold_compound_t  *fc,
 
       if (fp)
         make_output(data.SolutionList,
-                    fc->cutpoint,
+                    fc->strands,
+                    fc->strand_start,
                     !(fc->params->model_details.gquad),
                     fp);
     }
@@ -633,10 +647,22 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
         e = MAXDOS;
 
       density_of_states[e]++;
+
       if (structure_energy <= eprint) {
-        char *outstruct = vrna_cut_point_insert(structure, (fc->strands > 1) ? ss[so[1]] : -1);
-        cb((const char *)outstruct, structure_energy, data);
-        free(outstruct);
+        char  *outstruct = NULL;
+        char  *tmp_struct = strdup(structure);
+
+        if (fc->strands == 1) {
+          outstruct = tmp_struct;
+        } else {
+          for (unsigned int i = 1; i < fc->strands; i++) {
+            outstruct = vrna_cut_point_insert(tmp_struct, (int)fc->strand_start[i] + (i - 1));
+            free(tmp_struct);
+            tmp_struct = outstruct;
+          }
+        }
+        cb((const char *)tmp_struct, structure_energy, data);
+        free(tmp_struct);
       }
 
       free(structure);
@@ -991,7 +1017,8 @@ compare_en(const void *a,
 
 PRIVATE void
 make_output(vrna_subopt_solution_t  *SL,
-            int                     cp,
+            unsigned int            strands,
+            const unsigned int      *strand_start,
             int                     compressed,
             FILE                    *fp)                  /* prints stuff */
 {
@@ -1000,10 +1027,18 @@ make_output(vrna_subopt_solution_t  *SL,
   for (sol = SL; sol->structure != NULL; sol++) {
     char  *e_string = vrna_strdup_printf(" %6.2f", sol->energy);
     char  *ss       = (compressed) ? vrna_db_unpack(sol->structure) : strdup(sol->structure);
-    char  *s        = vrna_cut_point_insert(ss, cp);
+    char  *s        = ss;
+
+    if (strands > 1) {
+      for (unsigned int i = 1; i < strands; i++) {
+        s = vrna_cut_point_insert(ss, (int)strand_start[i] + (i - 1));
+        free(ss);
+        ss = s;
+      }
+    }
+
     print_structure(fp, s, e_string);
     free(s);
-    free(ss);
     free(e_string);
   }
 }
@@ -3059,9 +3094,14 @@ old_subopt_store_compressed(const char  *structure,
 
   if (structure) {
     d->SolutionList[d->n_sol].energy = energy;
-    if (d->cp > 0) {
-      int   cp  = d->cp;
-      char  *s  = vrna_cut_point_remove(structure, &cp);
+    if (d->strands > 1) {
+      char **tok  = vrna_strsplit(structure, NULL);
+      char *s     = vrna_strjoin((const char **)tok, NULL);
+
+      for (char **ptr = tok; *ptr!= NULL; ptr++)
+        free(*ptr);
+      free(tok);
+
       d->SolutionList[d->n_sol++].structure = vrna_db_pack(s);
       free(s);
     } else {
