@@ -38,7 +38,7 @@ details="If repeats is negative search until --repeats exact solutions are found
  default value is used.\n\n"
 int
 argoptional
-default="100"
+default="1"
 optional
 
 option  "alphabet"    a
