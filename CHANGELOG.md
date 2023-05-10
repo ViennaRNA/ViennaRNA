@@ -4,6 +4,63 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.1...HEAD)
 
+## Version 2.6.x
+
+### Version 2.6.0
+
+### Programs
+  * Add modified base input support to `RNAfold`
+  * Add modified base input support to `RNAplfold`
+  * Add modified base input support to `RNALfold`
+  * Add modified base input support to `RNAcofold`
+  * Add modified base input support to `RNAsubopt`
+  * Fix missing strand separators in `RNAsubopt` when applied to multiple interacting sequences
+  * Fix sorted output in `RNAsubopt` with `--gquad` option
+  * Allow for only `-Fp` in `RNAinverse` instead of always activating `-Fm`
+  * Fix default value of `RNAinverse -R` option in manpage
+  * Restructure `--*help` output and man pages for `RNAfold`, `RNALfold` and `RNAplfold`
+  * Allow for cation concentration (Na+) changes in most executable programs (default 1.021M)
+  * Allow for at least as many threads as CPUs are configured if maximum thread number detection fails
+  * Fix alignment input parsing in `refold.pl`
+  * Add `RNAxplorer` program to the distribution
+
+#### Library
+  * API: Extend `model_details` to allow for salt concentration changes
+  * API: Add functions for salt concentration change derived energy corrections in `ViennaRNA/params/salt.h`
+  * API: Add arbitrary modified base support (`vrna_sc_mod()`) via soft constraints mechanism and JSON input data
+  * API: Add Pseuoduridine-A parameters via soft constraints callback
+  * API: Add Dihydrouridine adjustments via soft constraints callback
+  * API: Add inosine-U and inosine-C parameters via soft constraints callback
+  * API: Add m6A parameters via soft constraints callback mechanism
+  * API: Add 7DA modification support via soft constraints
+  * API: Add Purine (nebularine) modification support
+  * API: Add new soft constraints multi-callback dispatcher
+  * API: Add dynamic array data structure utilities
+  * API: Add string data structure utilities
+  * API: Add `vrna_strchr()` function
+  * API: Fix potential problems in free_dp_matrices() of LPfold.c
+  * API: Fix z-score initialization in `vrna_Lfoldz()` amd `vrna_mfe_window_zscore_cb()`
+  * API: Fix file close issue in `vrna_file_commands_read()`
+  * API: Fix backtracking issue in Zuker subopt
+  * API: Fix missing soft constraints callback execution in Zuker subopt
+  * API: Fix enumeration of G-quadruplexes in `vrna_subopt()` and `vrna_subopt_cb()`
+  * API: Refactor function typdefs to make them actual function pointer typedefs
+  * SWIG: Fix Python 3 wrapper suffix issue
+  * SWIG: Fix Perl 5 wrapper for `vrna_ud_prob_get()`
+  * SWIG: Only accept upper triangular part of matrix input in fc.sc_bp_add()
+  * SWIG: Use var_array instead of tuples for Python RNA.ptable()
+  * SWIG: Add Python wrapper for `vrna_move_neighbor_diff()`
+
+#### Package
+  * Update `libsvm` to version 3.31
+  * Update `dlib` to version 19.24
+  * Adapt Debian dependencies
+  * Fix compilation issues with RNAforester
+  * AUTOCONF: Fix requirement checks when SVM support is deactivated and swig is missing
+  * AUTOMAKE: Add `auto` parameters for `-flto` compile/link flags
+  * AUTOCONF: Require C++17 due to dependencies to compile `DLIB`
+
+
 ## Version 2.5.x
 
 ### [Version 2.5.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.0...v2.5.1) (Release date: 2022-06-02)
