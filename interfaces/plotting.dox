@@ -11,9 +11,17 @@ arguments may be omitted, indicating the default of @p start = @em 0, @p end = @
 
 @fn int vrna_file_PS_aln_slice(const char *filename, const char **seqs, const char **names, const char *structure, unsigned int start, unsigned int end, int offset, unsigned int columns)
 @scripting
+@parblock
 This function is available as overloaded function @p file_PS_aln() where the last four parameter may be omitted,
 indicating @p start = @em 0, @p end = @em 0, @p offset = @em 0, and @p columns = @em 60.
+@endparblock
+
+
+@fn int vrna_plot_dp_EPS(const char *filename, const char *sequence, vrna_ep_t *upper, vrna_ep_t *lower, vrna_dotplot_auxdata_t *auxdata, unsigned int options)
+@scripting
 @parblock
+This function is available as overloaded function @p plot_dp_EPS() where the last three
+parameters may be omitted. The default values for these parameters are @p lower = NULL, @p auxdata = NULL, @p options = #VRNA_PLOT_PROBABILITIES_DEFAULT
 @endparblock
 
 */

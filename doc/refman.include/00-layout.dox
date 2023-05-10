@@ -306,6 +306,9 @@ formats, and various output file formats produced by our library.
 @defgroup   annotation_utils          Annotation
 @ingroup    plotting_utils
 
+@defgroup   plot_probabilities        Probabilities
+@ingroup    plotting_utils
+
 @defgroup   alignment_plots           Alignment Plots
 @ingroup    plotting_utils
 
