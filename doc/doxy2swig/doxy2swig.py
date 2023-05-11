@@ -113,7 +113,11 @@ class Doxy2SWIG:
                  with_overloaded_functions = False,
                  textwidth = 80,
                  quiet = False,
-                 object_binding = dict()):
+                 object_binding = dict(),
+                 prefixes = None,
+                 prefix_name = "",
+                 suffixes = None,
+                 constructor_suffixes = None):
         """Initialize the instance given a source object.  `src` can
         be a file or filename.  If you do not want to include function
         definitions from doxygen then set
@@ -131,6 +135,10 @@ class Doxy2SWIG:
         self.textwidth = textwidth
         self.quiet = quiet
         self.object_binding = object_binding
+        self.prefixes = [] if not prefixes else prefixes
+        self.constructor_suffixes = [] if not constructor_suffixes else constructor_suffixes
+        self.prefix_name = prefix_name
+        self.suffixes = [] if not suffixes else suffixes
 
         # state:
         self.indent = 0
@@ -195,6 +203,27 @@ class Doxy2SWIG:
         txt = txt.replace('"', r'\"')
         # ignore pure whitespace
         m = self.space_re.match(txt)
+        # remove 'vrna_' prefixes
+        # kind = node.attributes #['kind'].value
+        #print("type" + str(node.nodeType) + " " + str(node.ELEMENT_NODE))
+        #if node.attributes:
+        #    print("kind: " + kind)
+        #print("parsing text:"  + txt)
+        #if len(self.prefixes) > 0:
+        #    print("known prefixes: " + "\t".join([p for p in self.prefixes]))
+        #    print("prefix name: " + self.prefix_name)
+        #    prefix = r''
+        #    if self.prefix_name != "":
+        #        prefix += self.prefix_name + r'.'
+        #    for p in self.prefixes:
+        #        txt = txt.replace(p, prefix)
+        #if len(self.suffixes) > 0:
+        #    print("known suffixes: " + "\t".join([s for s in self.suffixes]))
+        #    # remove suffixes
+        #    for s in self.suffixes:
+        #        txt = re.sub(re.escape(s) + r'\b', r'', txt)
+        #print("becomes:"  + txt)
+
         if not (m and len(m.group()) == len(txt)):
             self.add_text(txt)
 
@@ -577,6 +606,32 @@ class Doxy2SWIG:
                 wrapped_para[-1] = wrapped_para[-1][:-1] + '  \n'
             if dont_end_paragraph:
                 wrapped_para.append('')
+
+        # print("parsing text:"  + " ".join([w for w in wrapped_para]))
+        for i in range(len(wrapped_para)):
+            if len(self.prefixes) > 0:
+                #print("known prefixes: " + "\t".join([p for p in self.prefixes]))
+                #print("prefix name: " + self.prefix_name)
+                prefix = r''
+                if self.prefix_name != "":
+                    prefix += self.prefix_name + r'.'
+                for p in self.prefixes:
+                    wrapped_para[i] = wrapped_para[i].replace(p, prefix)
+            if len(self.suffixes) > 0:
+                #print("known suffixes: " + "\t".join([s for s in self.suffixes]))
+                # remove suffixes
+                # print("known constructor suffixes: " + "\t".join([s for s in self.constructor_suffixes]))
+                for s in self.suffixes:
+                    if s in self.constructor_suffixes:
+                        repl = r'()'
+                    else:
+                        repl = r''
+
+                    wrapped_para[i] = re.sub(re.escape(s) + r'\b', repl, wrapped_para[i])
+
+        # print("becomes:"  + " ".join([w for w in wrapped_para]))
+
+
         pieces.extend(wrapped_para)
         self.pieces = pieces
 
@@ -640,8 +695,8 @@ class Doxy2SWIG:
                     text = val
                 break
 
-        if name in self.object_binding:
-            print(name, text)
+#        if name in self.object_binding:
+#            print(name, text)
 #            return
 
         if self.indent == 0:
@@ -851,7 +906,11 @@ class Doxy2SWIG:
                           with_overloaded_functions = self.with_overloaded_functions,
                           textwidth = self.textwidth,
                           quiet = self.quiet,
-                          object_binding = self.object_binding)
+                          object_binding = self.object_binding,
+                          prefixes = self.prefixes,
+                          prefix_name = self.prefix_name,
+                          suffixes = self.suffixes,
+                          constructor_suffixes = self.constructor_suffixes)
             p.generate()
             self.pieces.extend(p.pieces)
 
@@ -901,11 +960,39 @@ def main():
                       default = None,
                       help = 'load file that specifies which functions are bound as method to which objects')
 
+    parser.add_option("-p", '--prefix',
+                      type = "string",
+                      action = 'append',
+                      dest = 'p',
+                      default = None,
+                      help = 'Prefixes to remove or substitute')
+
+    parser.add_option('--prefix-name',
+                      type = "string",
+                      action = 'store',
+                      dest = 'prefix_name',
+                      default = None,
+                      help = 'Prefix name')
+
+    parser.add_option("-s", '--suffix',
+                      type = "string",
+                      action = 'append',
+                      dest = 's',
+                      default = None,
+                      help = 'Suffixes to remove')
+
+    parser.add_option('--constructor-suffix',
+                      type = "string",
+                      action = 'append',
+                      dest = 'cs',
+                      default = None,
+                      help = 'Constructor suffixes')
+
     options, args = parser.parse_args()
     if len(args) != 2:
         parser.error("no input and output specified")
 
-    object_binding = dict()
+    object_binding  = dict()
     if options.b:
         with io.open(options.b, "r", newline = '') as f:
             data = csv.reader(f, delimiter = ",")
@@ -914,7 +1001,7 @@ def main():
                 object_binding[row[0]] = {'method': row[1],
                                           'class': row[2],
                                           'self_arg_name': row[3]}
-    print(object_binding)
+
     p = Doxy2SWIG(args[0],
                   with_function_signature = options.f,
                   with_type_info = options.t,
@@ -923,7 +1010,11 @@ def main():
                   with_overloaded_functions = options.o,
                   textwidth = options.w,
                   quiet = options.q,
-                  object_binding = object_binding)
+                  object_binding = object_binding,
+                  prefixes = options.p,
+                  prefix_name = options.prefix_name,
+                  suffixes = options.s,
+                  constructor_suffixes = options.cs)
     p.generate()
     p.write(args[1])
 

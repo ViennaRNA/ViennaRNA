@@ -69,6 +69,15 @@ documentation.i: $(srcdir)/../classify.txt
 	test -d $(top_builddir)/doc/xml || $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml
 	$(PYTHON3) $(top_srcdir)/doc/doxy2swig/doxy2swig.py \
       -b $(srcdir)/../classify.txt \
+      -p "vrna_" \
+      -p "VRNA_" \
+      --prefix-name="RNA" \
+      -s "_t" \
+      -s "_s" \
+      -s "_e" \
+      -s "_f" \
+      --constructor-suffix="_t" \
+      --constructor-suffix="_s" \
       -t \
       -a \
       -c \
