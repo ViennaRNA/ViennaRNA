@@ -418,6 +418,7 @@ get_scaled_params(vrna_md_t *md)
   params->temperature   = md->temperature;
   tempf                 = ((params->temperature + K0) / Tmeasure);
 
+  params->HelicalRise           = vrna_helical_rise;
   params->ninio[2]              = RESCALE_dG(ninio37, niniodH, tempf);
   params->lxc                   = lxc37 * tempf;
   params->TripleC               = RESCALE_dG(TripleC37, TripleCdH, tempf);
@@ -567,7 +568,7 @@ get_scaled_params(vrna_md_t *md)
   strncpy(params->Hexaloops, Hexaloops, 361);
 
   /* Salt correction for stack and multiloop */
-  params->SaltStack = (salt==saltStandard) ? 0 : vrna_salt_stack(salt, saltT);
+  params->SaltStack = (salt==saltStandard) ? 0 : vrna_salt_stack(salt, saltT, params->HelicalRise);
   if (salt == saltStandard)
     params->SaltMLbase = params->SaltMLclosing = 0;
   else
@@ -621,6 +622,7 @@ get_scaled_exp_params(vrna_md_t *md,
   salt = md->salt;
   saltStandard = VRNA_MODEL_DEFAULT_SALT;
 
+  pf->HelicalRise           = vrna_helical_rise;
   pf->lxc                   = lxc37 * TT;
   pf->expDuplexInit         = RESCALE_BF(DuplexInit37, DuplexInitdH, TT, kT);
   pf->expTermAU             = RESCALE_BF(TerminalAU37, TerminalAUdH, TT, kT);
@@ -806,7 +808,7 @@ get_scaled_exp_params(vrna_md_t *md,
   if (salt==saltStandard) {
     pf->expSaltStack = 1.;
   } else {
-    pf->expSaltStack = exp(- vrna_salt_stack(salt, saltT) * 10. / kT);
+    pf->expSaltStack = exp(- vrna_salt_stack(salt, saltT, pf->HelicalRise) * 10. / kT);
     vrna_salt_ml(pf->SaltLoopDbl, md->saltMLLower, md->saltMLUpper, &pf->SaltMLbase, &pf->SaltMLclosing);
 
     if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
@@ -851,6 +853,7 @@ get_exp_params_ali(vrna_md_t    *md,
   salt = md->salt;
   saltStandard = VRNA_MODEL_DEFAULT_SALT;
 
+  pf->HelicalRise           = vrna_helical_rise;
   pf->lxc                   = lxc37 * TT;
   pf->expDuplexInit         = RESCALE_BF(DuplexInit37, DuplexInitdH, TT, kTn);
   pf->expTermAU             = RESCALE_BF(TerminalAU37, TerminalAUdH, TT, kTn);
@@ -1051,7 +1054,7 @@ get_exp_params_ali(vrna_md_t    *md,
   if (salt==saltStandard) {
     pf->expSaltStack = 1.;
   } else {
-    pf->expSaltStack = exp(- vrna_salt_stack(salt, saltT) * 10. / kTn);
+    pf->expSaltStack = exp(- vrna_salt_stack(salt, saltT, pf->HelicalRise) * 10. / kTn);
 
     vrna_salt_ml(pf->SaltLoopDbl, md->saltMLLower, md->saltMLUpper, &pf->SaltMLbase, &pf->SaltMLclosing);
 

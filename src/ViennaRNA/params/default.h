@@ -97,4 +97,6 @@ extern int GQuadLayerMismatchMax; /* maximum number of mismatching sequences in 
 
 extern double Tmeasure;       /* temperature of param measurements */
 
+extern double vrna_helical_rise;
+
 #endif

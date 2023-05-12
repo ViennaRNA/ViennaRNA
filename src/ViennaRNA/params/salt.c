@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/params/salt.h"
 
 #ifdef __GNUC__
@@ -16,9 +17,6 @@
 
 #define Rods_dist 20.
 #define PI 3.141592653589793
-#define Helical_Rise        3.4
-#define Helical_Rise_inv    0.2941
-#define Gaz_const_kcal      0.001987
 #define Backbone_length     6.4
 #define Eular_const         0.58
 
@@ -65,12 +63,13 @@ kappa(double rho, double T)
 
 
 PRIVATE INLINE double
-tau_ds(double T)
+tau_ds(double T, double Helical_Rise)
 {
-  double bjerrum_length_inv;
+  double bjerrum_length_inv, helical_rise_inv;
 
-  bjerrum_length_inv = 1/bjerrum_length(T);
-  return MIN2(Helical_Rise_inv, bjerrum_length_inv);
+  bjerrum_length_inv = 1. / bjerrum_length(T);
+  helical_rise_inv = 1. / Helical_Rise;
+  return MIN2(helical_rise_inv, bjerrum_length_inv);
 };
 
 
@@ -85,9 +84,9 @@ tau_ss(double T)
 
 
 PRIVATE INLINE double
-pairing_salt_const(double T)
+pairing_salt_const(double T, double Helical_Rise)
 {
-  return 2*Gaz_const_kcal*T*bjerrum_length(T)*Helical_Rise*tau_ds(T)*tau_ds(T);
+  return 2*(GASCONST / 1000.)*T*bjerrum_length(T)*Helical_Rise*tau_ds(T, Helical_Rise)*tau_ds(T, Helical_Rise);
 };
 
 
@@ -109,7 +108,7 @@ loop_salt_aux(double kmlss, int L, double T)
 {
 	double a, b;
 
-	a =  Gaz_const_kcal * T * bjerrum_length(T) * L * Backbone_length * tau_ss(T) * tau_ss(T);
+	a =  (GASCONST / 1000.) * T * bjerrum_length(T) * L * Backbone_length * tau_ss(T) * tau_ss(T);
 	b = log(kmlss) - log(PI/2) + Eular_const + approx_hyper(kmlss) + 1/kmlss * (1 - exp(-kmlss) + kmlss*expn(1, kmlss));
 
 	return a*b*100;
@@ -142,13 +141,13 @@ vrna_salt_loop_int(int L, double rho, double T)
 
 
 PUBLIC int
-vrna_salt_stack(double rho, double T)
+vrna_salt_stack(double rho, double T, double hrise)
 {
 	double correction, kn_ref, kappa_ref;
 	
 	kappa_ref = kappa(VRNA_MODEL_DEFAULT_SALT, T);
 	kn_ref = kn(0, Rods_dist*kappa_ref);
-	correction = 100*pairing_salt_const(T)*(kn(0, Rods_dist*kappa(rho, T)) - kn_ref);
+	correction = 100*pairing_salt_const(T, hrise)*(kn(0, Rods_dist*kappa(rho, T)) - kn_ref);
 	return roundint(correction);
 }
 

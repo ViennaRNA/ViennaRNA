@@ -59,13 +59,14 @@ vrna_salt_loop_int(int L, double salt, double T);
 /**
  *  @brief Get salt correction for a stack at a given salt concentration and temperature
  *
- *  @param salt  salt concentration (M)
- *  @param T     absolute temperature (K)
+ *  @param salt   salt concentration (M)
+ *  @param T      absolute temperature (K)
+ *  @param hrise  Helical Rise (typically 2.8 for RNA, 3.4 for DNA)
  *  
  *  @return      Rounded salt correction for stack in dcal/mol
  */
 int
-vrna_salt_stack(double salt, double T);
+vrna_salt_stack(double salt, double T, double hrise);
 
 
 /**

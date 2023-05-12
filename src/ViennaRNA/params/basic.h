@@ -102,6 +102,7 @@ struct vrna_param_s {
   int       SaltMLintern;
   int       SaltMLclosing;
   int       SaltDPXInit;
+  double    HelicalRise;
 };
 
 /**
@@ -168,6 +169,7 @@ struct vrna_exp_param_s {
   int       SaltMLintern;
   int       SaltMLclosing;
   int       SaltDPXInit;
+  double    HelicalRise;
 };
 
 
