@@ -158,6 +158,61 @@ my_file_RNAstrand_db_read_record(FILE         *fp,
 %clear std::string *name, std::string *sequence, std::string *structure, std::string *source, std::string *fname, std::string *id;
 
 
+%rename (file_connect_read_record) my_file_connect_read_record;
+
+%{
+  int
+  my_file_connect_read_record(FILE         *fp,
+                              std::string  *id,
+                              std::string  *sequence,
+                              std::string  *structure,
+                              std::string  *remainder,
+                              unsigned int options = 0)
+  {
+    char *c_sequence, *c_structure, *c_id, *c_remainder;
+
+    c_remainder = (remainder->size() > 0) ? strdup(remainder->c_str()) : NULL;
+
+    int r = vrna_file_connect_read_record(fp,
+                                          &c_id,
+                                          &c_sequence,
+                                          &c_structure,
+                                          &c_remainder,
+                                          options);
+
+    if (r) {
+      *id        = (c_id) ? c_id : "";
+      *sequence  = (c_sequence) ? c_sequence : "";
+      *structure = (c_structure) ? c_structure : "";
+      *remainder = (c_remainder) ? std::string(c_remainder) : "";
+
+      free(c_id);
+      free(c_sequence);
+      free(c_structure);
+      free(c_remainder);
+    }
+
+    return r;
+  }
+
+%}
+
+
+%apply std::string              *OUTPUT { std::string *id, std::string *sequence, std::string *structure };
+%apply std::string              *INOUT { std::string *remainder };
+
+int
+  int
+  my_file_connect_read_record(FILE         *fp,
+                              std::string  *id,
+                              std::string  *sequence,
+                              std::string  *structure,
+                              std::string  *remainder,
+                              unsigned int options = 0);
+
+%clear std::string *remainder, std::string *sequence, std::string *structure, std::string *id;
+
+
 %include <ViennaRNA/io/file_formats.h>
 
 /**********************************************/
