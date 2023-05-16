@@ -403,6 +403,14 @@ my_params_load_from_string(std::string parameters,
 
 %include <ViennaRNA/params/io.h>
 
+%rename(salt_loop)        vrna_salt_loop;
+%rename(salt_loop_int)    vrna_salt_loop_int;
+%rename(salt_stack)       vrna_salt_stack;
+%rename(salt_ml)          vrna_salt_ml;
+%rename(salt_duplex_init) vrna_salt_duplex_init;
+
+%include <ViennaRNA/params/salt.h>
+
 /**********************************************/
 /* BEGIN interface for energy constants       */
 /**********************************************/
@@ -410,6 +418,10 @@ my_params_load_from_string(std::string parameters,
 %immutable;
 
 %include  <ViennaRNA/params/constants.h>
+
+%rename(helical_rise)     vrna_helical_rise;
+%rename(helical_rise_RNA) vrna_helical_rise_RNA;
+%rename(helical_rise_DNA) vrna_helical_rise_DNA;
 
 %include  <ViennaRNA/params/default.h>
 
