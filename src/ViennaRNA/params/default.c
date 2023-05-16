@@ -60,6 +60,8 @@
 PUBLIC double Tmeasure = 37+K0;  /* temperature of param measurements */
 
 PUBLIC double vrna_helical_rise = 2.8;
+PUBLIC double vrna_helical_rise_RNA = 2.8;
+PUBLIC double vrna_helical_rise_DNA = 3.4;
 
 /* PUBLIC double lxc37=107.9; */
 PUBLIC double lxc37=107.856;
