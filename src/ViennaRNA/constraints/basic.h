@@ -423,7 +423,7 @@
  *  @ingroup  constraints
  *
  *  The following is an example for adding hard constraints given in
- *  pseudo dot-bracket notation. Here, @p vc is the #vrna_fold_compound_t object,
+ *  pseudo dot-bracket notation. Here, @p fc is the #vrna_fold_compound_t object,
  *  @p structure is a char array with the hard constraint in dot-bracket notation,
  *  and @p enforceConstraints is a flag indicating whether or not constraints for
  *  base pairs should be enforced instead of just doing a removal of base pair that
@@ -438,13 +438,13 @@
  *  @see  vrna_hc_add_from_db(), vrna_hc_add_up(), vrna_hc_add_up_batch()
  *        vrna_hc_add_bp_unspecific(), vrna_hc_add_bp()
  *
- *  @param  vc            The fold compound
+ *  @param  fc            The fold compound
  *  @param  constraint    A string with either the filename of the constraint definitions
  *                        or a pseudo dot-bracket notation of the hard constraint. May be NULL.
  *  @param  options       The option flags
  */
 void
-vrna_constraints_add(vrna_fold_compound_t *vc,
+vrna_constraints_add(vrna_fold_compound_t *fc,
                      const char           *constraint,
                      unsigned int         options);
 

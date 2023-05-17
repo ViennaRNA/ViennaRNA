@@ -69,13 +69,13 @@ typedef struct vrna_sol_TwoD_pf_t {
  * @see vrna_fold_compound_TwoD(), vrna_fold_compound_free(), #vrna_fold_compound
  *      #vrna_sol_TwoD_pf_t
  *
- * @param vc            The datastructure containing all necessary folding attributes and matrices
+ * @param fc            The datastructure containing all necessary folding attributes and matrices
  * @param maxDistance1  The maximum basepair distance to reference1 (may be -1)
  * @param maxDistance2  The maximum basepair distance to reference2 (may be -1)
  * @returns             A list of partition funtions for the corresponding distance classes
  */
 vrna_sol_TwoD_pf_t *
-vrna_pf_TwoD(vrna_fold_compound_t *vc,
+vrna_pf_TwoD(vrna_fold_compound_t *fc,
              int                  maxDistance1,
              int                  maxDistance2);
 
@@ -100,13 +100,13 @@ vrna_pf_TwoD(vrna_fold_compound_t *vc,
  *
  *  @see      vrna_pf_TwoD()
  *
- *  @param[inout]  vc The #vrna_fold_compound_t datastructure containing all necessary folding attributes and matrices
+ *  @param[inout]  fc The #vrna_fold_compound_t datastructure containing all necessary folding attributes and matrices
  *  @param[in]  d1    The distance to reference1 (may be -1)
  *  @param[in]  d2    The distance to reference2
  *  @returns    A sampled secondary structure in dot-bracket notation
  */
 char *
-vrna_pbacktrack_TwoD(vrna_fold_compound_t *vc,
+vrna_pbacktrack_TwoD(vrna_fold_compound_t *fc,
                      int                  d1,
                      int                  d2);
 
@@ -124,14 +124,14 @@ vrna_pbacktrack_TwoD(vrna_fold_compound_t *vc,
  *
  * @see       vrna_pbacktrack_TwoD(), vrna_pf_TwoD()
  *
- *  @param[inout] vc    The #vrna_fold_compound_t datastructure containing all necessary folding attributes and matrices
+ *  @param[inout] fc    The #vrna_fold_compound_t datastructure containing all necessary folding attributes and matrices
  *  @param[in]  d1      The distance to reference1 (may be -1)
  *  @param[in]  d2      The distance to reference2
  *  @param[in]  length  The length of the structure beginning from the 5' end
  *  @returns            A sampled secondary structure in dot-bracket notation
  */
 char *
-vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
+vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *fc,
                       int                   d1,
                       int                   d2,
                       unsigned int          length);

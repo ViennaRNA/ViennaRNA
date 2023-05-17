@@ -201,13 +201,13 @@ vrna_loopidx_update(int               *loopidx,
  * @see vrna_neighbors_successive(), vrna_move_apply(),
  * #VRNA_MOVESET_INSERTION, #VRNA_MOVESET_DELETION, #VRNA_MOVESET_SHIFT, #VRNA_MOVESET_DEFAULT
  *
- * @param[in] vc        A vrna_fold_compound_t containing the energy parameters and model details
+ * @param[in] fc        A vrna_fold_compound_t containing the energy parameters and model details
  * @param[in] pt        The pair table representation of the structure
  * @param     options   Options to modify the behavior of this function, e.g. available move set
  * @return              Neighbors as a list of moves / transitions (the last element in the list has both of its fields set to 0)
  */
 vrna_move_t *
-vrna_neighbors(vrna_fold_compound_t *vc,
+vrna_neighbors(vrna_fold_compound_t *fc,
                const short          *pt,
                unsigned int         options);
 
@@ -224,7 +224,7 @@ vrna_neighbors(vrna_fold_compound_t *vc,
  * @see vrna_neighbors(), vrna_move_apply(),
  * #VRNA_MOVESET_INSERTION, #VRNA_MOVESET_DELETION, #VRNA_MOVESET_SHIFT, #VRNA_MOVESET_DEFAULT
  *
- * @param[in]   vc                  A vrna_fold_compound_t containing the energy parameters and model details
+ * @param[in]   fc                  A vrna_fold_compound_t containing the energy parameters and model details
  * @param[in]   curr_move           The move that was/will be applied to @p prev_pt
  * @param[in]   prev_pt             A pair table representation of the structure before @p curr_move is/was applied
  * @param[in]   prev_neighbors      The list of neighbors of @p prev_pt
@@ -234,7 +234,7 @@ vrna_neighbors(vrna_fold_compound_t *vc,
  * @return                          Neighbors as a list of moves / transitions (the last element in the list has both of its fields set to 0)
  */
 vrna_move_t *
-vrna_neighbors_successive(const vrna_fold_compound_t  *vc,
+vrna_neighbors_successive(const vrna_fold_compound_t  *fc,
                           const vrna_move_t           *curr_move,
                           const short                 *prev_pt,
                           const vrna_move_t           *prev_neighbors,

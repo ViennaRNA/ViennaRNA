@@ -380,7 +380,7 @@ struct {
  *  vrna_mx_pf_free(), vrna_mx_mfe_free(), #vrna_mx_type_e,
  *  #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_HYBRID, #VRNA_OPTION_EVAL_ONLY
  *
- *  @param  vc      The #vrna_fold_compound_t that holds pointers to the DP matrices
+ *  @param  fc      The #vrna_fold_compound_t that holds pointers to the DP matrices
  *  @param  type    The type of DP matrices requested
  *  @param  options Option flags that specify the kind of DP matrices, such
  *                  as MFE or PF arrays, and auxiliary requirements
@@ -388,25 +388,25 @@ struct {
  *                  0 otherwise
  */
 int
-vrna_mx_add(vrna_fold_compound_t  *vc,
+vrna_mx_add(vrna_fold_compound_t  *fc,
             vrna_mx_type_e        type,
             unsigned int          options);
 
 
 int
-vrna_mx_mfe_add(vrna_fold_compound_t  *vc,
+vrna_mx_mfe_add(vrna_fold_compound_t  *fc,
                 vrna_mx_type_e        mx_type,
                 unsigned int          options);
 
 
 int
-vrna_mx_pf_add(vrna_fold_compound_t *vc,
+vrna_mx_pf_add(vrna_fold_compound_t *fc,
                vrna_mx_type_e       mx_type,
                unsigned int         options);
 
 
 int
-vrna_mx_prepare(vrna_fold_compound_t  *vc,
+vrna_mx_prepare(vrna_fold_compound_t  *fc,
                 unsigned int          options);
 
 
@@ -415,10 +415,10 @@ vrna_mx_prepare(vrna_fold_compound_t  *vc,
  *
  *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(), vrna_mx_pf_free()
  *
- *  @param  vc  The #vrna_fold_compound_t storing the MFE DP matrices that are to be erased from memory
+ *  @param  fc  The #vrna_fold_compound_t storing the MFE DP matrices that are to be erased from memory
  */
 void
-vrna_mx_mfe_free(vrna_fold_compound_t *vc);
+vrna_mx_mfe_free(vrna_fold_compound_t *fc);
 
 
 /**
@@ -426,10 +426,10 @@ vrna_mx_mfe_free(vrna_fold_compound_t *vc);
  *
  *  @see vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(), vrna_mx_mfe_free()
  *
- *  @param  vc  The #vrna_fold_compound_t storing the PF DP matrices that are to be erased from memory
+ *  @param  fc  The #vrna_fold_compound_t storing the PF DP matrices that are to be erased from memory
  */
 void
-vrna_mx_pf_free(vrna_fold_compound_t *vc);
+vrna_mx_pf_free(vrna_fold_compound_t *fc);
 
 
 /**

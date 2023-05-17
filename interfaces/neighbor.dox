@@ -1,6 +1,6 @@
 /**
 
-@fn vrna_move_t *vrna_neighbors(vrna_fold_compound_t *vc, const short *pt, unsigned int options)
+@fn vrna_move_t *vrna_neighbors(vrna_fold_compound_t *fc, const short *pt, unsigned int options)
 @scripting
 @parblock
 This function is attached as an overloaded method @em neighbors() to objects of type @em fold_compound.

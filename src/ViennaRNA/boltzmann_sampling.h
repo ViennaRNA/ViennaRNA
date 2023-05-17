@@ -314,7 +314,7 @@ vrna_pbacktrack5_cb(vrna_fold_compound_t              *fc,
  *  @return               A set of secondary structure samples in dot-bracket notation terminated by NULL (or NULL on error)
  */
 char **
-vrna_pbacktrack5_resume(vrna_fold_compound_t  *vc,
+vrna_pbacktrack5_resume(vrna_fold_compound_t  *fc,
                         unsigned int          num_samples,
                         unsigned int          length,
                         vrna_pbacktrack_mem_t *nr_mem,
@@ -934,7 +934,7 @@ vrna_pbacktrack_sub_cb(vrna_fold_compound_t              *fc,
  *  @return               A set of secondary structure samples in dot-bracket notation terminated by NULL (or NULL on error)
  */
 char **
-vrna_pbacktrack_sub_resume(vrna_fold_compound_t  *vc,
+vrna_pbacktrack_sub_resume(vrna_fold_compound_t  *fc,
                            unsigned int          num_samples,
                            unsigned int          start,
                            unsigned int          end,

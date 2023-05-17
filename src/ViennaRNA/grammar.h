@@ -15,25 +15,25 @@
 
 #include <ViennaRNA/fold_compound.h>
 
-typedef int (*vrna_grammar_rule_f)(vrna_fold_compound_t  *vc,
+typedef int (*vrna_grammar_rule_f)(vrna_fold_compound_t  *fc,
                                     int                   i,
                                     int                   j,
                                     void                  *data);
 
 
-typedef void (*vrna_grammar_rule_f_aux)(vrna_fold_compound_t  *vc,
+typedef void (*vrna_grammar_rule_f_aux)(vrna_fold_compound_t  *fc,
                                     int                   i,
                                     int                   j,
                                     void                  *data);
 
 
-typedef FLT_OR_DBL (*vrna_grammar_rule_f_exp)(vrna_fold_compound_t *vc,
+typedef FLT_OR_DBL (*vrna_grammar_rule_f_exp)(vrna_fold_compound_t *fc,
                                                int                  i,
                                                int                  j,
                                                void                 *data);
 
 
-typedef void (*vrna_grammar_rule_f_aux_exp)(vrna_fold_compound_t *vc,
+typedef void (*vrna_grammar_rule_f_aux_exp)(vrna_fold_compound_t *fc,
                                                int                  i,
                                                int                  j,
                                                void                 *data);

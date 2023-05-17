@@ -65,13 +65,13 @@
  *          #VRNA_PATH_STEEPEST_DESCENT, #VRNA_PATH_RANDOM, #VRNA_MOVESET_DEFAULT, #VRNA_MOVESET_SHIFT,
  *          #VRNA_PATH_NO_TRANSITION_OUTPUT
  *
- *  @param[in]      vc      A vrna_fold_compound_t containing the energy parameters and model details
+ *  @param[in]      fc      A vrna_fold_compound_t containing the energy parameters and model details
  *  @param[in,out]  pt      The pair table containing the start structure. Used to update to the final structure after execution of this function
  *  @param[in]      options Options to modify the behavior of this function
  *  @return                 A list of transition moves (default), or NULL (if options & #VRNA_PATH_NO_TRANSITION_OUTPUT)
  */
 vrna_move_t *
-vrna_path(vrna_fold_compound_t  *vc,
+vrna_path(vrna_fold_compound_t  *fc,
           short                 *pt,
           unsigned int          steps,
           unsigned int          options);
@@ -93,13 +93,13 @@ vrna_path(vrna_fold_compound_t  *vc,
  *  @see    vrna_path_random(), vrna_path(), vrna_ptable(), vrna_ptable_copy(), vrna_fold_compound()
  *          #VRNA_MOVESET_DEFAULT, #VRNA_MOVESET_SHIFT, #VRNA_PATH_NO_TRANSITION_OUTPUT
  *
- *  @param[in]      vc      A vrna_fold_compound_t containing the energy parameters and model details
+ *  @param[in]      fc      A vrna_fold_compound_t containing the energy parameters and model details
  *  @param[in,out]  pt      The pair table containing the start structure. Used to update to the final structure after execution of this function
  *  @param[in]      options Options to modify the behavior of this function
  *  @return                 A list of transition moves (default), or NULL (if options & #VRNA_PATH_NO_TRANSITION_OUTPUT)
  */
 vrna_move_t *
-vrna_path_gradient(vrna_fold_compound_t *vc,
+vrna_path_gradient(vrna_fold_compound_t *fc,
                    short                *pt,
                    unsigned int         options);
 
@@ -120,14 +120,14 @@ vrna_path_gradient(vrna_fold_compound_t *vc,
  *  @see    vrna_path_gradient(), vrna_path(), vrna_ptable(), vrna_ptable_copy(), vrna_fold_compound()
  *          #VRNA_MOVESET_DEFAULT, #VRNA_MOVESET_SHIFT, #VRNA_PATH_NO_TRANSITION_OUTPUT
  *
- *  @param[in]      vc      A vrna_fold_compound_t containing the energy parameters and model details
+ *  @param[in]      fc      A vrna_fold_compound_t containing the energy parameters and model details
  *  @param[in,out]  pt      The pair table containing the start structure. Used to update to the final structure after execution of this function
  *  @param[in]      steps   The length of the path, i.e. the total number of transitions / moves
  *  @param[in]      options Options to modify the behavior of this function
  *  @return                 A list of transition moves (default), or NULL (if options & #VRNA_PATH_NO_TRANSITION_OUTPUT)
  */
 vrna_move_t *
-vrna_path_random(vrna_fold_compound_t *vc,
+vrna_path_random(vrna_fold_compound_t *fc,
                  short                *pt,
                  unsigned int         steps,
                  unsigned int         options);

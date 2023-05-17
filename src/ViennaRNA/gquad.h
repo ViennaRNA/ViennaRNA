@@ -97,7 +97,7 @@ int **get_gquad_L_matrix(short        *S,
                          vrna_param_t *P);
 
 
-void        vrna_gquad_mx_local_update(vrna_fold_compound_t *vc,
+void        vrna_gquad_mx_local_update(vrna_fold_compound_t *fc,
                                        int                  start);
 
 
@@ -242,7 +242,7 @@ INLINE PRIVATE int backtrack_GQuad_IntLoop_L(int          c,
 
 
 PRIVATE INLINE int
-vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
+vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j,
                   int                   en,
@@ -251,7 +251,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
 
 
 PRIVATE INLINE int
-vrna_BT_gquad_mfe(vrna_fold_compound_t  *vc,
+vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j,
                   vrna_bp_stack_t       *bp_stack,
@@ -265,20 +265,20 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *vc,
   int           l[3], L, a, n_seq;
   vrna_param_t  *P;
 
-  if (vc) {
-    P = vc->params;
-    switch (vc->type) {
+  if (fc) {
+    P = fc->params;
+    switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        S = vc->sequence_encoding2;
+        S = fc->sequence_encoding2;
         L = -1;
 
         get_gquad_pattern_mfe(S, i, j, P, &L, l);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        n_seq = vc->n_seq;
+        n_seq = fc->n_seq;
         L     = -1;
-        get_gquad_pattern_mfe_ali(vc->S, vc->a2s, vc->S_cons, n_seq, i, j, P, &L, l);
+        get_gquad_pattern_mfe_ali(fc->S, fc->a2s, fc->S_cons, n_seq, i, j, P, &L, l);
         break;
     }
 
@@ -305,7 +305,7 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *vc,
 
 
 PRIVATE INLINE int
-vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
+vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j,
                   int                   en,
@@ -320,18 +320,18 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
   vrna_param_t  *P;
   vrna_md_t     *md;
 
-  idx     = vc->jindx;
+  idx     = fc->jindx;
   ij      = idx[j] + i;
-  P       = vc->params;
+  P       = fc->params;
   md      = &(P->model_details);
-  ptype   = vc->ptype;
+  ptype   = fc->ptype;
   type    = (unsigned char)ptype[ij];
-  S1      = vc->sequence_encoding;
-  S       = vc->sequence_encoding2;
+  S1      = fc->sequence_encoding;
+  S       = fc->sequence_encoding2;
   dangles = md->dangles;
   si      = S1[i + 1];
   sj      = S1[j - 1];
-  ggg     = vc->matrices->ggg;
+  ggg     = fc->matrices->ggg;
   energy  = 0;
 
   if (dangles == 2)
@@ -354,7 +354,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
           continue;
 
         if (en == energy + ggg[idx[q] + p] + P->internal_loop[j - q - 1])
-          return vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count);
+          return vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count);
       }
     }
   }
@@ -380,7 +380,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
         continue;
 
       if (en == energy + ggg[idx[q] + p] + P->internal_loop[l1 + j - q - 1])
-        return vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count);
+        return vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count);
     }
   }
 
@@ -397,7 +397,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *vc,
         continue;
 
       if (en == energy + ggg[idx[q] + p] + P->internal_loop[l1])
-        return vrna_BT_gquad_mfe(vc, p, q, bp_stack, stack_count);
+        return vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count);
     }
 
   return 0;

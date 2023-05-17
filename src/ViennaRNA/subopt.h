@@ -108,14 +108,14 @@ struct vrna_subopt_sol_s {
  *
  *  @note This function requires all multibranch loop DP matrices for unique
  *        multibranch loop backtracing. Therefore, the supplied #vrna_fold_compound_t
- *        @p vc (argument 1) must be initialized with #vrna_md_t.uniq_ML = 1, for
+ *        @p fc (argument 1) must be initialized with #vrna_md_t.uniq_ML = 1, for
  *        instance like this:
  *        @code
  * vrna_md_t md;
  * vrna_md_set_default(&md);
  * md.uniq_ML = 1;
  *
- * vrna_fold_compound_t *vc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
+ * vrna_fold_compound_t *fc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
  *        @endcode
  *
  *  @see vrna_subopt_cb(), vrna_subopt_zuker()
@@ -150,14 +150,14 @@ vrna_subopt(vrna_fold_compound_t  *fc,
  *
  *  @note This function requires all multibranch loop DP matrices for unique
  *        multibranch loop backtracing. Therefore, the supplied #vrna_fold_compound_t
- *        @p vc (argument 1) must be initialized with #vrna_md_t.uniq_ML = 1, for
+ *        @p fc (argument 1) must be initialized with #vrna_md_t.uniq_ML = 1, for
  *        instance like this:
  *        @code
  * vrna_md_t md;
  * vrna_md_set_default(&md);
  * md.uniq_ML = 1;
  *
- * vrna_fold_compound_t *vc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
+ * vrna_fold_compound_t *fc=vrna_fold_compound("GGGGGGAAAAAACCCCCC", &md, VRNA_OPTION_DEFAULT);
  *        @endcode
  *
  *  @see vrna_subopt_result_f, vrna_subopt(), vrna_subopt_zuker()

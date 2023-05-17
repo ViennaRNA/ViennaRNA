@@ -139,13 +139,13 @@ struct vrna_multimer_pf_s {
  *        vrna_fold_compound_comparative(), vrna_pf_alifold(), vrna_pf_circalifold(),
  *        vrna_db_from_probs(), vrna_exp_params(), vrna_aln_pinfo()
  *
- *  @param[in,out]  vc              The fold compound data structure
+ *  @param[in,out]  fc              The fold compound data structure
  *  @param[in,out]  structure       A pointer to the character array where position-wise pairing propensity
  *                                  will be stored. (Maybe NULL)
  *  @return         The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
  */
 FLT_OR_DBL
-vrna_pf(vrna_fold_compound_t  *vc,
+vrna_pf(vrna_fold_compound_t  *fc,
         char                  *structure);
 
 
@@ -162,13 +162,13 @@ vrna_pf(vrna_fold_compound_t  *vc,
  *
  *  @see    vrna_fold_compound() for how to retrieve the necessary data structure
  *
- *  @param  vc        the fold compound data structure
+ *  @param  fc        the fold compound data structure
  *  @param  structure Will hold the structure or constraints
  *  @return           vrna_dimer_pf_t structure containing a set of energies needed for
  *                    concentration computations.
  */
 vrna_dimer_pf_t
-vrna_pf_dimer(vrna_fold_compound_t  *vc,
+vrna_pf_dimer(vrna_fold_compound_t  *fc,
               char                  *structure);
 
 

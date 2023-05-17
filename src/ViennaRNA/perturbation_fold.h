@@ -123,7 +123,7 @@ typedef void (*progress_callback)(int     iteration,
  *  @see For further details we refere to @cite washietl:2012.
  *  @ingroup perturbation
  *
- *  @param vc                 Pointer to a fold compound
+ *  @param fc                 Pointer to a fold compound
  *  @param q_prob_unpaired    Pointer to an array containing the probability to be unpaired for each nucleotide
  *  @param objective_function The type of objective function to be used (VRNA_OBJECTIVE_FUNCTION_QUADRATIC / VRNA_OBJECTIVE_FUNCTION_LINEAR)
  *  @param sigma_squared      A factor used for weighting the objective function.
@@ -136,7 +136,7 @@ typedef void (*progress_callback)(int     iteration,
  *  @param callback           A pointer to a callback function used for reporting the current minimization progress
  *
  */
-void vrna_sc_minimize_pertubation(vrna_fold_compound_t  *vc,
+void vrna_sc_minimize_pertubation(vrna_fold_compound_t  *fc,
                                   const double          *q_prob_unpaired,
                                   int                   objective_function,
                                   double                sigma_squared,

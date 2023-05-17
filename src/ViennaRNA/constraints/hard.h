@@ -495,14 +495,14 @@ vrna_message_constraint_options_all(void);
  *
  *  @see  vrna_hc_add_bp(), vrna_hc_add_bp_nonspecific(), vrna_hc_add_up()
  *
- *  @param  vc  The fold compound
+ *  @param  fc  The fold compound
  */
 void
-vrna_hc_init(vrna_fold_compound_t *vc);
+vrna_hc_init(vrna_fold_compound_t *fc);
 
 
 void
-vrna_hc_init_window(vrna_fold_compound_t *vc);
+vrna_hc_init_window(vrna_fold_compound_t *fc);
 
 
 int
@@ -526,12 +526,12 @@ vrna_hc_update(vrna_fold_compound_t *fc,
  *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP,
  *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
- *  @param  vc      The #vrna_fold_compound_t the hard constraints are associated with
+ *  @param  fc      The #vrna_fold_compound_t the hard constraints are associated with
  *  @param  i       The position that needs to stay unpaired (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
  */
 void
-vrna_hc_add_up(vrna_fold_compound_t *vc,
+vrna_hc_add_up(vrna_fold_compound_t *fc,
                int                  i,
                unsigned char        option);
 
@@ -548,12 +548,12 @@ vrna_hc_add_up_strand(vrna_fold_compound_t  *fc,
  *
  *  @ingroup  hard_constraints
  *
- *  @param  vc          The #vrna_fold_compound_t the hard constraints are associated with
+ *  @param  fc          The #vrna_fold_compound_t the hard constraints are associated with
  *  @param  constraints The list off constraints to apply, last entry must have position
  *                      attribute set to 0
  */
 int
-vrna_hc_add_up_batch(vrna_fold_compound_t *vc,
+vrna_hc_add_up_batch(vrna_fold_compound_t *fc,
                      vrna_hc_up_t         *constraints);
 
 
@@ -573,13 +573,13 @@ vrna_hc_add_up_strand_batch(vrna_fold_compound_t  *fc,
  *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
  *        #VRNA_CONSTRAINT_CONTEXT_ENFORCE, #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
- *  @param  vc      The #vrna_fold_compound_t the hard constraints are associated with
+ *  @param  fc      The #vrna_fold_compound_t the hard constraints are associated with
  *  @param  i       The 5' located nucleotide position of the base pair (1-based)
  *  @param  j       The 3' located nucleotide position of the base pair (1-based)
  *  @param  option  The options flag indicating how/where to store the hard constraints
  */
 int
-vrna_hc_add_bp(vrna_fold_compound_t *vc,
+vrna_hc_add_bp(vrna_fold_compound_t *fc,
                int                  i,
                int                  j,
                unsigned char        option);
@@ -605,14 +605,14 @@ vrna_hc_add_bp_strand(vrna_fold_compound_t  *fc,
  *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
  *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
- *  @param  vc      The #vrna_fold_compound_t the hard constraints are associated with
+ *  @param  fc      The #vrna_fold_compound_t the hard constraints are associated with
  *  @param  i       The position that needs to stay unpaired (1-based)
  *  @param  d       The direction of base pairing (@f$ d < 0 @f$: pairs upstream,
  *                  @f$ d > 0 @f$: pairs downstream, @f$ d == 0 @f$: no direction)
  *  @param  option  The options flag indicating in which loop type context the pairs may appear
  */
 void
-vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
+vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *fc,
                            int                  i,
                            int                  d,
                            unsigned char        option);
@@ -638,7 +638,7 @@ vrna_hc_free(vrna_hc_t *hc);
  *          feature
  */
 void
-vrna_hc_add_f(vrna_fold_compound_t  *vc,
+vrna_hc_add_f(vrna_fold_compound_t  *fc,
               vrna_hc_eval_f        f);
 
 
@@ -649,12 +649,12 @@ vrna_hc_add_f(vrna_fold_compound_t  *vc,
  *
  *  @see vrna_hc_add_f()
  *
- *  @param  vc        The fold compound the generic hard constraint function should be bound to
+ *  @param  fc        The fold compound the generic hard constraint function should be bound to
  *  @param  data      A pointer to the data structure that holds required data for function 'f'
  *  @param  f         A pointer to a function that free's the memory occupied by @p data (Maybe @p NULL)
  */
 void
-vrna_hc_add_data(vrna_fold_compound_t *vc,
+vrna_hc_add_data(vrna_fold_compound_t *fc,
                  void                 *data,
                  vrna_auxdata_free_f  f);
 
@@ -673,12 +673,12 @@ vrna_hc_add_data(vrna_fold_compound_t *vc,
  *        #VRNA_CONSTRAINT_DB_ANG_BRACK, #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTRAMOL,
  *        #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_GQUAD
  *
- *  @param  vc            The fold compound
+ *  @param  fc            The fold compound
  *  @param  constraint    A pseudo dot-bracket notation of the hard constraint.
  *  @param  options       The option flags
  */
 int
-vrna_hc_add_from_db(vrna_fold_compound_t  *vc,
+vrna_hc_add_from_db(vrna_fold_compound_t  *fc,
                     const char            *constraint,
                     unsigned int          options);
 

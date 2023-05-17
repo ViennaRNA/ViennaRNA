@@ -517,11 +517,11 @@ vrna_ep_t *vrna_plist(const char  *struc,
  *  entries
  *
  *  @ingroup              part_func_global
- *  @param[in]  vc        The fold compound
+ *  @param[in]  fc        The fold compound
  *  @param[in]  cut_off   The cutoff value
  *  @return               A pointer to the plist that is to be created
  */
-vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *vc,
+vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *fc,
                                  double               cut_off);
 
 

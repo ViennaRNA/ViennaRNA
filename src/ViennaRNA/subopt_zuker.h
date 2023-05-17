@@ -26,7 +26,7 @@
  *
  *  @see vrna_subopt(), zukersubopt(), zukersubopt_par()
  *
- *  @param  vc  fold compound
+ *  @param  fc  fold compound
  *  @return     List of zuker suboptimal structures
  */
 vrna_subopt_solution_t *

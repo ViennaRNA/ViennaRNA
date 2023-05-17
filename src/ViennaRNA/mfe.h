@@ -88,14 +88,14 @@
  *  @see #vrna_fold_compound_t, vrna_fold_compound(), vrna_fold(), vrna_circfold(),
  *        vrna_fold_compound_comparative(), vrna_alifold(), vrna_circalifold()
  *
- *  @param vc             fold compound
+ *  @param fc             fold compound
  *  @param structure      A pointer to the character array where the
  *                        secondary structure in dot-bracket notation will be written to (Maybe NULL)
  *
  *  @return the minimum free energy (MFE) in kcal/mol
  */
 float
-vrna_mfe(vrna_fold_compound_t *vc,
+vrna_mfe(vrna_fold_compound_t *fc,
          char                 *structure);
 
 
@@ -110,12 +110,12 @@ vrna_mfe(vrna_fold_compound_t *vc,
  *
  *  @see  vrna_mfe()
  *
- *  @param    vc  fold compound
+ *  @param    fc  fold compound
  *  @param    structure Will hold the barcket dot structure of the dimer molecule
  *  @return   minimum free energy of the structure
  */
 DEPRECATED(float
-           vrna_mfe_dimer(vrna_fold_compound_t  *vc,
+           vrna_mfe_dimer(vrna_fold_compound_t  *fc,
                           char                  *structure),
            "Use vrna_mfe() instead");
 
@@ -287,7 +287,7 @@ DEPRECATED(float
  *  @brief
  */
 int
-vrna_backtrack_from_intervals(vrna_fold_compound_t  *vc,
+vrna_backtrack_from_intervals(vrna_fold_compound_t  *fc,
                               vrna_bp_stack_t       *bp_stack,
                               sect                  bt_stack[],
                               int                   s);

@@ -78,13 +78,13 @@ vrna_file_commands_read(const char    *filename,
  *  data structure. It is the same as:
  *  @snippet commands.c Applying commands from file
  *
- *  @param    vc        The #vrna_fold_compound_t the command list will be applied to
+ *  @param    fc        The #vrna_fold_compound_t the command list will be applied to
  *  @param    filename  The filename
  *  @param    options   Options to limit the type of commands read from the file
  *  @return             The number of commands successfully applied
  */
 int
-vrna_file_commands_apply(vrna_fold_compound_t *vc,
+vrna_file_commands_apply(vrna_fold_compound_t *fc,
                          const char           *filename,
                          unsigned int         options);
 
@@ -92,13 +92,13 @@ vrna_file_commands_apply(vrna_fold_compound_t *vc,
 /**
  *  @brief Apply a list of commands to a #vrna_fold_compound_t
  *
- *  @param    vc        The #vrna_fold_compound_t the command list will be applied to
+ *  @param    fc        The #vrna_fold_compound_t the command list will be applied to
  *  @param    commands  The commands to apply
  *  @param    options   Options to limit the type of commands read from the file
  *  @return             The number of commands successfully applied
  */
 int
-vrna_commands_apply(vrna_fold_compound_t  *vc,
+vrna_commands_apply(vrna_fold_compound_t  *fc,
                     vrna_cmd_t            commands,
                     unsigned int          options);
 

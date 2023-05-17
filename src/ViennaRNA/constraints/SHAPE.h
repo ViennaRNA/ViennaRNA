@@ -21,7 +21,7 @@
  *
  */
 void
-vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
+vrna_constraints_add_SHAPE(vrna_fold_compound_t *fc,
                            const char           *shape_file,
                            const char           *shape_method,
                            const char           *shape_conversion,
@@ -30,7 +30,7 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
 
 
 void
-vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
+vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *fc,
                                const char           *shape_method,
                                const char           **shape_files,
                                const int            *shape_file_association,
@@ -56,7 +56,7 @@ vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
  *  @see  For further details, we refer to @cite deigan:2009.
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_minimize_pertubation()
  *  @ingroup SHAPE_reactivities
- *  @param  vc            The #vrna_fold_compound_t the soft constraints are associated with
+ *  @param  fc            The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  reactivities  A vector of normalized SHAPE reactivities
  *  @param  m             The slope of the conversion function
  *  @param  b             The intercept of the conversion function
@@ -64,7 +64,7 @@ vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
  *  @return               1 on successful extraction of the method, 0 on errors
  */
 int
-vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
+vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *fc,
                          const double         *reactivities,
                          double               m,
                          double               b,
@@ -75,7 +75,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
  *  @brief  Add SHAPE reactivity data from files as soft constraints for consensus structure prediction (Deigan et al. method)
  *
  *  @ingroup SHAPE_reactivities
- *  @param  vc            The #vrna_fold_compound_t the soft constraints are associated with
+ *  @param  fc            The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  shape_files   A set of filenames that contain normalized SHAPE reactivity data
  *  @param  shape_file_association  An array of integers that associate the files with sequences in the alignment
  *  @param  m             The slope of the conversion function
@@ -84,7 +84,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
  *  @return               1 on successful extraction of the method, 0 on errors
  */
 int
-vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
+vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *fc,
                              const char           **shape_files,
                              const int            *shape_file_association,
                              double               m,
@@ -106,7 +106,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
  *  @see For further details, we refer to @cite zarringhalam:2012
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_deigan(), vrna_sc_minimize_pertubation()
  *  @ingroup SHAPE_reactivities
- *  @param  vc                The #vrna_fold_compound_t the soft constraints are associated with
+ *  @param  fc                The #vrna_fold_compound_t the soft constraints are associated with
  *  @param  reactivities      A vector of normalized SHAPE reactivities
  *  @param  b                 The scaling factor @f$ \beta @f$ of the conversion function
  *  @param  default_value     The default value for a nucleotide where reactivity data is missing for
@@ -115,7 +115,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
  *  @return                   1 on successful extraction of the method, 0 on errors
  */
 int
-vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *vc,
+vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *fc,
                                const double         *reactivities,
                                double               b,
                                double               default_value,

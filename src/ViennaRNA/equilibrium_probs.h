@@ -60,7 +60,7 @@
  */
 
 int
-vrna_pairing_probs(vrna_fold_compound_t *vc,
+vrna_pairing_probs(vrna_fold_compound_t *fc,
                    char                 *structure);
 
 
@@ -95,11 +95,11 @@ vrna_mean_bp_distance_pr(int        length,
  *  <d> = \sum_{ij} p_{ij}(1-p_{ij})
  *  @f]
  *
- *  @param vc     The fold compound data structure
+ *  @param fc     The fold compound data structure
  *  @return       The mean pair distance of the structure ensemble
  */
 double
-vrna_mean_bp_distance(vrna_fold_compound_t *vc);
+vrna_mean_bp_distance(vrna_fold_compound_t *fc);
 
 
 /**
@@ -189,12 +189,12 @@ vrna_positional_entropy(vrna_fold_compound_t *fc);
  *  For each possible base pair @f$(i,j)@f$, compute the probability of a stack
  *  @f$(i,j)@f$, @f$(i+1, j-1)@f$.
  *
- *  @param  vc      The fold compound data structure with precomputed base pair probabilities
+ *  @param  fc      The fold compound data structure with precomputed base pair probabilities
  *  @param  cutoff  A cutoff value that limits the output to stacks with @f$ p > \textrm{cutoff} @f$.
  *  @return         A list of stacks with enclosing base pair @f$(i,j)@f$ and probabiltiy @f$ p @f$
  */
 vrna_ep_t *
-vrna_stack_prob(vrna_fold_compound_t  *vc,
+vrna_stack_prob(vrna_fold_compound_t  *fc,
                 double                cutoff);
 
 
@@ -271,7 +271,7 @@ vrna_pr_structure(vrna_fold_compound_t  *fc,
 
 
 double
-vrna_pr_energy(vrna_fold_compound_t *vc,
+vrna_pr_energy(vrna_fold_compound_t *fc,
                double               e);
 
 

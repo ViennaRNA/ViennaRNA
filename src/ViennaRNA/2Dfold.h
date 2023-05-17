@@ -79,14 +79,14 @@ typedef struct vrna_sol_TwoD_t {
  *  @see  vrna_fold_compound_TwoD(), vrna_fold_compound_free(), vrna_pf_TwoD()
  *        vrna_backtrack5_TwoD(), #vrna_sol_TwoD_t, #vrna_fold_compound_t
  *
- *  @param vc         The datastructure containing all precomputed folding attributes
+ *  @param fc         The datastructure containing all precomputed folding attributes
  *  @param distance1  maximum distance to reference1 (-1 means no restriction)
  *  @param distance2  maximum distance to reference2 (-1 means no restriction)
  *  @return           A list of minimum free energies (and corresponding structures)
  *                    for each distance class
  */
 vrna_sol_TwoD_t *
-vrna_mfe_TwoD(vrna_fold_compound_t  *vc,
+vrna_mfe_TwoD(vrna_fold_compound_t  *fc,
               int                   distance1,
               int                   distance2);
 
@@ -104,13 +104,13 @@ vrna_mfe_TwoD(vrna_fold_compound_t  *vc,
  *
  * @see vrna_mfe_TwoD()
  *
- * @param vc    The datastructure containing all precomputed folding attributes
+ * @param fc    The datastructure containing all precomputed folding attributes
  * @param j     The length in nucleotides beginning from the 5' end
  * @param k     distance to reference1 (may be -1)
  * @param l     distance to reference2
  */
 char *
-vrna_backtrack5_TwoD(vrna_fold_compound_t *vc,
+vrna_backtrack5_TwoD(vrna_fold_compound_t *fc,
                      int                  k,
                      int                  l,
                      unsigned int         j);

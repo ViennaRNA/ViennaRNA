@@ -1,6 +1,6 @@
 /**
 
-@fn void vrna_params_subst(vrna_fold_compound_t *vc, vrna_param_t *par)
+@fn void vrna_params_subst(vrna_fold_compound_t *fc, vrna_param_t *par)
 @scripting
 @parblock
 This function is attached to #vrna_fc_s objects as overloaded @b params_subst() method.
@@ -10,7 +10,7 @@ second parameter to vrna_params_subst(), i.e. resetting the parameters to the gl
 defaults.
 @endparblock
 
-@fn void vrna_exp_params_subst(vrna_fold_compound_t *vc, vrna_exp_param_t *params)
+@fn void vrna_exp_params_subst(vrna_fold_compound_t *fc, vrna_exp_param_t *params)
 @scripting
 @parblock
 This function is attached to #vrna_fc_s objects as overloaded @b exp_params_subst() method.
@@ -20,7 +20,7 @@ second parameter to vrna_exp_params_subst(), i.e. resetting the parameters to th
 defaults.
 @endparblock
 
-@fn void vrna_exp_params_rescale(vrna_fold_compound_t *vc, double *mfe)
+@fn void vrna_exp_params_rescale(vrna_fold_compound_t *fc, double *mfe)
 @scripting
 @parblock
 This function is attached to #vrna_fc_s objects as overloaded @b exp_params_rescale() method.
@@ -32,7 +32,7 @@ all subsequent calls to scale the partition function accordingly.
 @endparblock
 
 
-@fn void vrna_params_reset(vrna_fold_compound_t *vc, vrna_md_t *md)
+@fn void vrna_params_reset(vrna_fold_compound_t *fc, vrna_md_t *md)
 @scripting
 @parblock
 This function is attached to #vrna_fc_s objects as overloaded @b params_reset() method.
@@ -44,7 +44,7 @@ within the #vrna_md_s object.
 @endparblock
 
 
-@fn vrna_exp_params_reset(vrna_fold_compound_t *vc, vrna_md_t *md)
+@fn vrna_exp_params_reset(vrna_fold_compound_t *fc, vrna_md_t *md)
 @scripting
 @parblock
 This function is attached to #vrna_fc_s objects as overloaded @b exp_params_reset() method.

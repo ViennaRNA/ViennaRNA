@@ -135,16 +135,16 @@ DEPRECATED(typedef void (vrna_mfe_window_zscore_callback)(int        start,
  *        vrna_Lfold(), vrna_Lfoldz(),
  *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
  *
- *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
+ *  @param  fc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
  *  @param  file      The output file handle where predictions are written to (maybe NULL)
  */
 float
-vrna_mfe_window(vrna_fold_compound_t  *vc,
+vrna_mfe_window(vrna_fold_compound_t  *fc,
                 FILE                  *file);
 
 
 float
-vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
+vrna_mfe_window_cb(vrna_fold_compound_t     *fc,
                    vrna_mfe_window_f cb,
                    void                     *data);
 
@@ -171,18 +171,18 @@ vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
  *        vrna_Lfold(), vrna_Lfoldz(),
  *        #VRNA_OPTION_WINDOW, #vrna_md_t.max_bp_span, #vrna_md_t.window_size
  *
- *  @param  vc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
+ *  @param  fc        The #vrna_fold_compound_t with preallocated memory for the DP matrices
  *  @param  min_z     The minimal z-score for a predicted structure to appear in the output
  *  @param  file      The output file handle where predictions are written to (maybe NULL)
  */
 float
-vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
+vrna_mfe_window_zscore(vrna_fold_compound_t *fc,
                        double               min_z,
                        FILE                 *file);
 
 
 float
-vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
+vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *fc,
                           double                          min_z,
                           vrna_mfe_window_zscore_f cb,
                           void                            *data);

@@ -100,20 +100,20 @@ typedef struct vrna_unstructured_domain_motif_s vrna_ud_motif_t;
  *  domain, e.g. the binding free energy of some ligand.
  *  @endparblock
  *
- *  @param  vc        The current #vrna_fold_compound_t
+ *  @param  fc        The current #vrna_fold_compound_t
  *  @param  i         The start of the unstructured domain (5' end)
  *  @param  j         The end of the unstructured domain (3' end)
  *  @param  loop_type The loop context of the unstructured domain
  *  @param  data      Auxiliary data
  *  @return           The auxiliary energy contribution in deka-cal/mol
  */
-typedef int (*vrna_ud_f)(vrna_fold_compound_t  *vc,
+typedef int (*vrna_ud_f)(vrna_fold_compound_t  *fc,
                                       int                   i,
                                       int                   j,
                                       unsigned int          loop_type,
                                       void                  *data);
 
-DEPRECATED(typedef int (vrna_callback_ud_energy)(vrna_fold_compound_t  *vc,
+DEPRECATED(typedef int (vrna_callback_ud_energy)(vrna_fold_compound_t  *fc,
                                       int                   i,
                                       int                   j,
                                       unsigned int          loop_type,
@@ -131,20 +131,20 @@ DEPRECATED(typedef int (vrna_callback_ud_energy)(vrna_fold_compound_t  *vc,
  *  instead of actual free energies).
  *  @endparblock
  *
- *  @param  vc        The current #vrna_fold_compound_t
+ *  @param  fc        The current #vrna_fold_compound_t
  *  @param  i         The start of the unstructured domain (5' end)
  *  @param  j         The end of the unstructured domain (3' end)
  *  @param  loop_type The loop context of the unstructured domain
  *  @param  data      Auxiliary data
  *  @return           The auxiliary energy contribution as Boltzmann factor
  */
-typedef FLT_OR_DBL (*vrna_ud_exp_f)(vrna_fold_compound_t *vc,
+typedef FLT_OR_DBL (*vrna_ud_exp_f)(vrna_fold_compound_t *fc,
                                                  int                  i,
                                                  int                  j,
                                                  unsigned int         loop_type,
                                                  void                 *data);
 
-DEPRECATED(typedef FLT_OR_DBL (vrna_callback_ud_exp_energy)(vrna_fold_compound_t *vc,
+DEPRECATED(typedef FLT_OR_DBL (vrna_callback_ud_exp_energy)(vrna_fold_compound_t *fc,
                                                  int                  i,
                                                  int                  j,
                                                  unsigned int         loop_type,
@@ -161,10 +161,10 @@ DEPRECATED(typedef FLT_OR_DBL (vrna_callback_ud_exp_energy)(vrna_fold_compound_t
  *  The production rule for the unstructured domain grammar extension
  *  @endparblock
  */
-typedef void (*vrna_ud_production_f)(vrna_fold_compound_t *vc,
+typedef void (*vrna_ud_production_f)(vrna_fold_compound_t *fc,
                                            void                 *data);
 
-DEPRECATED(typedef void (vrna_callback_ud_production)(vrna_fold_compound_t *vc,
+DEPRECATED(typedef void (vrna_callback_ud_production)(vrna_fold_compound_t *fc,
                                            void                 *data),
           "Use vrna_ud_production_f instead!");
 
@@ -178,10 +178,10 @@ DEPRECATED(typedef void (vrna_callback_ud_production)(vrna_fold_compound_t *vc,
  *  The production rule for the unstructured domain grammar extension (Partition function variant)
  *  @endparblock
  */
-typedef void (*vrna_ud_exp_production_f)(vrna_fold_compound_t *vc,
+typedef void (*vrna_ud_exp_production_f)(vrna_fold_compound_t *fc,
                                                void                 *data);
 
-DEPRECATED(typedef void (vrna_callback_ud_exp_production)(vrna_fold_compound_t *vc,
+DEPRECATED(typedef void (vrna_callback_ud_exp_production)(vrna_fold_compound_t *fc,
                                                void                 *data),
            "Use vrna_ud_exp_production_f instead!");
 
@@ -195,14 +195,14 @@ DEPRECATED(typedef void (vrna_callback_ud_exp_production)(vrna_fold_compound_t *
  *  A callback function to store equilibrium probabilities for the unstructured domain feature
  *  @endparblock
  */
-typedef void (*vrna_ud_add_probs_f)(vrna_fold_compound_t  *vc,
+typedef void (*vrna_ud_add_probs_f)(vrna_fold_compound_t  *fc,
                                           int                   i,
                                           int                   j,
                                           unsigned int          loop_type,
                                           FLT_OR_DBL            exp_energy,
                                           void                  *data);
 
-DEPRECATED(typedef void (vrna_callback_ud_probs_add)(vrna_fold_compound_t  *vc,
+DEPRECATED(typedef void (vrna_callback_ud_probs_add)(vrna_fold_compound_t  *fc,
                                           int                   i,
                                           int                   j,
                                           unsigned int          loop_type,
@@ -219,14 +219,14 @@ DEPRECATED(typedef void (vrna_callback_ud_probs_add)(vrna_fold_compound_t  *vc,
  *  A callback function to retrieve equilibrium probabilities for the unstructured domain feature
  *  @endparblock
  */
-typedef FLT_OR_DBL (*vrna_ud_get_probs_f)(vrna_fold_compound_t  *vc,
+typedef FLT_OR_DBL (*vrna_ud_get_probs_f)(vrna_fold_compound_t  *fc,
                                                 int                   i,
                                                 int                   j,
                                                 unsigned int          loop_type,
                                                 int                   motif,
                                                 void                  *data);
 
-DEPRECATED(typedef FLT_OR_DBL (vrna_callback_ud_probs_get)(vrna_fold_compound_t  *vc,
+DEPRECATED(typedef FLT_OR_DBL (vrna_callback_ud_probs_get)(vrna_fold_compound_t  *fc,
                                                 int                   i,
                                                 int                   j,
                                                 unsigned int          loop_type,
@@ -411,14 +411,14 @@ vrna_ud_motifs_MFE(vrna_fold_compound_t *fc,
  *
  *  @ingroup domains_up
  *
- *  @param  vc          The #vrna_fold_compound_t data structure the ligand motif should be bound to
+ *  @param  fc          The #vrna_fold_compound_t data structure the ligand motif should be bound to
  *  @param  motif       The sequence motif the ligand binds to
  *  @param  motif_en    The binding free energy of the ligand in kcal/mol
  *  @param  motif_name  The name/id of the motif (may be @p NULL)
  *  @param  loop_type   The loop type the ligand binds to
  *
  */
-void  vrna_ud_add_motif(vrna_fold_compound_t  *vc,
+void  vrna_ud_add_motif(vrna_fold_compound_t  *fc,
                         const char            *motif,
                         double                motif_en,
                         const char            *motif_name,
@@ -429,19 +429,19 @@ void  vrna_ud_add_motif(vrna_fold_compound_t  *vc,
  *  @brief  Get a list of unique motif sizes that start at a certain position within the sequence
  *
  */
-int *vrna_ud_get_motif_size_at(vrna_fold_compound_t *vc,
+int *vrna_ud_get_motif_size_at(vrna_fold_compound_t *fc,
                                int                  i,
                                unsigned int         loop_type);
 
 
 int *
-vrna_ud_get_motifs_at(vrna_fold_compound_t  *vc,
+vrna_ud_get_motifs_at(vrna_fold_compound_t  *fc,
                       int                   i,
                       unsigned int          loop_type);
 
 
 vrna_ud_motif_t *
-vrna_ud_detect_motifs(vrna_fold_compound_t  *vc,
+vrna_ud_detect_motifs(vrna_fold_compound_t  *fc,
                       const char            *structure);
 
 
@@ -453,9 +453,9 @@ vrna_ud_detect_motifs(vrna_fold_compound_t  *vc,
  *
  *  @ingroup domains_up
  *
- *  @param vc The #vrna_fold_compound_t data structure the ligand motif data should be removed from
+ *  @param fc The #vrna_fold_compound_t data structure the ligand motif data should be removed from
  */
-void  vrna_ud_remove(vrna_fold_compound_t *vc);
+void  vrna_ud_remove(vrna_fold_compound_t *fc);
 
 
 /**
@@ -470,11 +470,11 @@ void  vrna_ud_remove(vrna_fold_compound_t *vc);
  *
  *  @ingroup domains_up
  *
- *  @param  vc      The #vrna_fold_compound_t data structure the auxiliary data structure should be bound to
+ *  @param  fc      The #vrna_fold_compound_t data structure the auxiliary data structure should be bound to
  *  @param  data    A pointer to the auxiliary data structure
  *  @param  free_cb A pointer to a callback function that free's memory occupied by @p data
  */
-void  vrna_ud_set_data(vrna_fold_compound_t       *vc,
+void  vrna_ud_set_data(vrna_fold_compound_t       *fc,
                        void                       *data,
                        vrna_auxdata_free_f free_cb);
 
@@ -509,11 +509,11 @@ void  vrna_ud_set_data(vrna_fold_compound_t       *vc,
  *
  *  @ingroup domains_up
  *
- *  @param  vc      The #vrna_fold_compound_t data structure the callback will be bound to
+ *  @param  fc      The #vrna_fold_compound_t data structure the callback will be bound to
  *  @param  pre_cb  A pointer to a callback function for the @p B production rule
  *  @param  e_cb    A pointer to a callback function for free energy evaluation
  */
-void vrna_ud_set_prod_rule_cb(vrna_fold_compound_t        *vc,
+void vrna_ud_set_prod_rule_cb(vrna_fold_compound_t        *fc,
                               vrna_ud_production_f pre_cb,
                               vrna_ud_f     e_cb);
 
@@ -537,17 +537,17 @@ void vrna_ud_set_prod_rule_cb(vrna_fold_compound_t        *vc,
  *
  *  @see vrna_ud_set_prod_rule_cb()
  *
- *  @param  vc        The #vrna_fold_compound_t data structure the callback will be bound to
+ *  @param  fc        The #vrna_fold_compound_t data structure the callback will be bound to
  *  @param  pre_cb    A pointer to a callback function for the @p B production rule
  *  @param  exp_e_cb  A pointer to a callback function that retrieves the partition function
  *                    for a segment @f$[i,j]@f$ that may be bound by one or more ligands.
  */
-void  vrna_ud_set_exp_prod_rule_cb(vrna_fold_compound_t             *vc,
+void  vrna_ud_set_exp_prod_rule_cb(vrna_fold_compound_t             *fc,
                                    vrna_ud_exp_production_f  pre_cb,
                                    vrna_ud_exp_f      exp_e_cb);
 
 
-void  vrna_ud_set_prob_cb(vrna_fold_compound_t        *vc,
+void  vrna_ud_set_prob_cb(vrna_fold_compound_t        *fc,
                           vrna_ud_add_probs_f  setter,
                           vrna_ud_get_probs_f  getter);
 

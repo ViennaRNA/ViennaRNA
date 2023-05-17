@@ -32,12 +32,12 @@
  *  The distance of the centroid to the ensemble is written to the memory adressed by @a dist.
  *
  *  @ingroup              centroid_fold
- *  @param[in]    vc      The fold compound data structure
+ *  @param[in]    fc      The fold compound data structure
  *  @param[out]   dist    A pointer to the distance variable where the centroid distance will be written to
  *  @return               The centroid structure of the ensemble in dot-bracket notation (@p NULL on error)
  */
 char *
-vrna_centroid(vrna_fold_compound_t  *vc,
+vrna_centroid(vrna_fold_compound_t  *fc,
               double                *dist);
 
 
