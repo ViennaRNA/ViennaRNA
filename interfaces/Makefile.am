@@ -105,5 +105,6 @@ EXTRA_DIST = \
     walk.i \
     ptr2array.i \
     generic.mk \
+    classify.csv \
     $(DOXYGEN_DOCUMENTATION)
 

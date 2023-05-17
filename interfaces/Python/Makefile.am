@@ -65,10 +65,10 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
 
 if HAS_SWIG
 
-documentation.i: $(srcdir)/../classify.txt
+documentation.i: $(srcdir)/../classify.csv
 	test -d $(top_builddir)/doc/xml || $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml
 	$(PYTHON3) $(top_srcdir)/doc/doxy2swig/doxy2swig.py \
-      -b $(srcdir)/../classify.txt \
+      -b $(srcdir)/../classify.csv \
       -p "vrna_" \
       -p "VRNA_" \
       --prefix-name="RNA" \
