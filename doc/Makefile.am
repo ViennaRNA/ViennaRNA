@@ -153,6 +153,7 @@ EXTRA_DIST =  $(pkgdata_DATA) \
               refman-html \
               html \
               latex \
+              xml \
               @REFERENCE_MANUAL_PDF_NAME@
 
 clean-local:
@@ -160,7 +161,7 @@ clean-local:
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -rf *.log *.pdf html latex doxygen.warnings refman-html
+	-rm -rf *.log *.pdf html latex xml doxygen.warnings refman-html
 
 distclean-local:
-	-rm -rf *.log *.pdf html latex doxygen.warnings refman-html
+	-rm -rf *.log *.pdf html latex xml doxygen.warnings refman-html
