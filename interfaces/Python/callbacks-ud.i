@@ -635,6 +635,8 @@ ud_set_prob_cb(vrna_fold_compound_t *vc,
                PyObject             *setter,
                PyObject             *getter);
 
+%apply  PyObject *PyFuncOrNone { PyObject *free_cb };
+
 /* now we bind the above functions as methods to the fold_compound object */
 %extend vrna_fold_compound_t {
 
@@ -649,9 +651,9 @@ ud_set_prob_cb(vrna_fold_compound_t *vc,
 
   PyObject *
   ud_set_data(PyObject *data,
-              PyObject *PyFuncOrNone = Py_None)
+              PyObject *free_cb = Py_None)
   {
-    ud_set_pydata($self, data, PyFuncOrNone);
+    ud_set_pydata($self, data, free_cb);
     Py_RETURN_NONE;
   }
 
@@ -686,19 +688,22 @@ ud_set_prob_cb(vrna_fold_compound_t *vc,
   }
 
   PyObject *
-  ud_set_prob_cb(PyObject *setter,
-                 PyObject *getter)
+  ud_set_prob_cb(PyObject *setter_cb,
+                 PyObject *getter_cb)
   {
-    if (!PyCallable_Check(setter)) {
+    if (!PyCallable_Check(setter_cb)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
       Py_RETURN_NONE;
-    } else if (!PyCallable_Check(getter)) {
+    } else if (!PyCallable_Check(getter_cb)) {
       PyErr_SetString(PyExc_TypeError, "Need a callable object!");
       Py_RETURN_NONE;
     }
-    ud_set_prob_cb($self, setter, getter);
+    ud_set_prob_cb($self, setter_cb, getter_cb);
     Py_RETURN_NONE;
   }
 }
+
+
+%clear PyObject *free_cb;
 
 #endif

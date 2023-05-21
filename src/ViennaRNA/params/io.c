@@ -1632,7 +1632,9 @@ last_parameter_file(void)
 PUBLIC void
 read_parameter_file(const char fname[])
 {
-  (void)vrna_params_load(fname, VRNA_PARAMETER_FORMAT_DEFAULT);
+  int ret = vrna_params_load(fname, VRNA_PARAMETER_FORMAT_DEFAULT);
+  if (!ret)
+    vrna_message_warning("Failed to load parameters from file \"%s\"", fname);
 }
 
 
