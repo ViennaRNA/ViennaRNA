@@ -819,7 +819,7 @@ class Doxy2SWIG:
                 self.parse(n)
 
         # now explicitely handle possibly overloaded member functions.
-        if kind in ['class', 'struct','file', 'namespace']:
+        if kind in ['class', 'struct','file', 'namespace', 'group']:
             md_nodes = self.get_memberdef_nodes_and_signatures(node, kind)
             for sig in md_nodes:
                 self.handle_typical_memberdefs(sig, md_nodes[sig])
@@ -835,7 +835,7 @@ class Doxy2SWIG:
         tmp = node.parentNode.parentNode.parentNode
         compdef = tmp.getElementsByTagName('compounddef')[0]
         cdef_kind = compdef.attributes['kind'].value
-        if cdef_kind in ('file', 'namespace', 'class', 'struct'):
+        if cdef_kind in ('file', 'namespace', 'class', 'struct', 'group'):
             # These cases are now handled by `handle_typical_memberdefs`
             return
         if prot != 'public':
