@@ -13,7 +13,8 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/callbacks-landscape.i \
   $(srcdir)/callbacks-mfe-window.i \
   $(srcdir)/callbacks-pf-window.i \
-  $(builddir)/version.i
+  $(builddir)/version.i \
+  documentation.i
 
 INTERFACE_FILES = $(SWIG_src) \
                   $(LANG_SPECIFIC_INTERFACE_FILES)
@@ -32,8 +33,7 @@ _RNA_la_SOURCES = $(INTERFACE_FILES) \
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(SWIG_module_name).py \
-  $(LANG_SPECIFIC_INTERFACE_FILES) \
-  documentation.i
+  $(LANG_SPECIFIC_INTERFACE_FILES)
 
 _RNA_la_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 _RNA_la_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS) -Wno-unused-label -Wno-unused-variable
@@ -152,8 +152,8 @@ uninstall-local:
 
 ## remove all generated content
 maintainer-clean-local:
-	-rm -f $(SWIG_wrapper) RNA.py
+	-rm -f $(SWIG_wrapper) RNA.py documentation.i version.i
 
 distclean-local:
-	-rm -f $(SWIG_wrapper) RNA.py
+	-rm -f $(SWIG_wrapper) RNA.py documentation.i version.i
 
