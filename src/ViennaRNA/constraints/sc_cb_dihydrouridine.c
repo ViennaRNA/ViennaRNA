@@ -41,23 +41,29 @@ D_stack_correction(vrna_fold_compound_t *fc,
 
 PUBLIC int
 vrna_sc_mod_dihydrouridine(vrna_fold_compound_t *fc,
-                           const unsigned int   *modification_sites)
+                           const unsigned int   *modification_sites,
+                           unsigned int         options)
 {
+  unsigned int ret = 0;
+
   if ((fc) &&
       (modification_sites)) {
     short *enc = (short *)vrna_alloc(sizeof(short) * (fc->length + 2));
     memcpy(enc, fc->sequence_encoding, sizeof(short) * (fc->length + 1));
 
     for (unsigned int i = 0; modification_sites[i]; i++)
-      if (modification_sites[i] <= fc->length)
+      if (modification_sites[i] <= fc->length) {
         enc[modification_sites[i]] = 5;
+        ret++;
+      }
 
-    return vrna_sc_multi_cb_add(fc,
-                                &D_stack_correction,
-                                NULL,
-                                (void *)enc,
-                                &free,
-                                VRNA_DECOMP_PAIR_IL);
+    if (vrna_sc_multi_cb_add(fc,
+                             &D_stack_correction,
+                             NULL,
+                             (void *)enc,
+                             &free,
+                             VRNA_DECOMP_PAIR_IL))
+      return ret;
   }
 
   return 0;

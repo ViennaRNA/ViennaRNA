@@ -88,7 +88,7 @@ mod_bases_apply(vrna_fold_compound_t  *fc,
 
         modification_sites[j - 1] = 0;
 
-        vrna_sc_mod_dihydrouridine(fc, modification_sites);
+        vrna_sc_mod_dihydrouridine(fc, modification_sites, VRNA_SC_MOD_DEFAULT);
       }
 
       free(mod_positions[i]);
@@ -104,7 +104,7 @@ mod_bases_apply(vrna_fold_compound_t  *fc,
             modification_sites[j - 1] = mod_positions[i][j];
 
           modification_sites[j - 1] = 0;
-          vrna_sc_mod(fc, *ptr, modification_sites);
+          vrna_sc_mod(fc, *ptr, modification_sites, VRNA_SC_MOD_DEFAULT);
         }
 
         free(mod_positions[i]);

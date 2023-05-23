@@ -342,7 +342,8 @@ free_energy_corrections(void *d);
 PUBLIC int
 vrna_sc_mod_json(vrna_fold_compound_t *fc,
                  const char           *json,
-                 const unsigned int   *modification_sites)
+                 const unsigned int   *modification_sites,
+                 unsigned int         options)
 {
   int                 ret;
   vrna_sc_mod_param_t params;
@@ -355,7 +356,7 @@ vrna_sc_mod_json(vrna_fold_compound_t *fc,
     params = vrna_sc_mod_read_from_json(json,
                                         &(fc->params->model_details));
 
-    ret = vrna_sc_mod(fc, params, modification_sites);
+    ret = vrna_sc_mod(fc, params, modification_sites, options);
 
     vrna_sc_mod_parameters_free(params);
   }
@@ -367,7 +368,8 @@ vrna_sc_mod_json(vrna_fold_compound_t *fc,
 PUBLIC int
 vrna_sc_mod_jsonfile(vrna_fold_compound_t *fc,
                      const char           *jsonfile,
-                     const unsigned int   *modification_sites)
+                     const unsigned int   *modification_sites,
+                     unsigned int         options)
 {
   int                 ret;
   vrna_sc_mod_param_t params;
@@ -380,7 +382,7 @@ vrna_sc_mod_jsonfile(vrna_fold_compound_t *fc,
     params = vrna_sc_mod_read_from_jsonfile(jsonfile,
                                             &(fc->params->model_details));
 
-    ret = vrna_sc_mod(fc, params, modification_sites);
+    ret = vrna_sc_mod(fc, params, modification_sites, options);
 
     vrna_sc_mod_parameters_free(params);
   }
@@ -392,7 +394,8 @@ vrna_sc_mod_jsonfile(vrna_fold_compound_t *fc,
 PUBLIC int
 vrna_sc_mod(vrna_fold_compound_t      *fc,
             const vrna_sc_mod_param_t params,
-            const unsigned int        *modification_sites)
+            const unsigned int        *modification_sites,
+            unsigned int              options)
 {
   int ret = 0;
 
@@ -414,22 +417,40 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
     for (size_t i = 0; modification_sites[i]; i++) {
       unsigned int msite = modification_sites[i];
       if (msite > fc->length) {
-        vrna_message_warning("modification site %u after sequence length (%u)",
-                             msite,
-                             fc->length);
+        if (!(options & VRNA_SC_MOD_SILENT))
+          vrna_message_warning("modification site %u after sequence length (%u)",
+                               msite,
+                               fc->length);
         continue;
       }
 
-      if ((fc->sequence_encoding[msite] != params->unmodified_encoding) &&
-          (fc->sequence_encoding[msite] != params->fallback_encoding)) {
-        vrna_message_warning(
-          "modification site %u lists wrong unmodified base %c (should be %c or %c)",
-          msite,
-          bases[fc->sequence_encoding[msite]],
-          params->unmodified,
-          params->fallback);
+      unsigned int enc      = fc->sequence_encoding[msite];
+      unsigned int unmod    = params->unmodified_encoding;
+      unsigned int fallback = params->fallback_encoding;
+      unsigned int pass     = 1;
+
+      if (options & (VRNA_SC_MOD_CHECK_UNMOD | VRNA_SC_MOD_CHECK_FALLBACK))
+        pass = 0;
+
+      if ((options & VRNA_SC_MOD_CHECK_UNMOD) && (enc == unmod))
+        pass = 1;
+      else if ((options & VRNA_SC_MOD_CHECK_FALLBACK) && (enc == fallback))
+        pass = 1;
+
+      if (!pass) {
+        if (!(options & VRNA_SC_MOD_SILENT))
+          vrna_message_warning(
+            "modification site %u lists wrong unmodified base %c (should be %c or %c)",
+            msite,
+            bases[fc->sequence_encoding[msite]],
+            params->unmodified,
+            params->fallback);
+
         continue;
       }
+
+      /* increase return value per modified base we found */
+      ret++;
 
       diffs->enc[msite] = 5;
 
@@ -675,8 +696,6 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                            &free_energy_corrections,
                            VRNA_DECOMP_PAIR_IL);
     }
-
-    ret = 1;
   }
 
   return ret;

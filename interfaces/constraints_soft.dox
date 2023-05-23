@@ -93,66 +93,66 @@ This function is attached as method @b sc_add_exp_f() to objects of type @em fol
 @endparblock
 
 
-@fn int vrna_sc_mod_json(vrna_fold_compound_t *fc, const char *json, const unsigned int *modification_sites)
+@fn int vrna_sc_mod_json(vrna_fold_compound_t *fc, const char *json, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod_json() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod_json() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 
-@fn int vrna_sc_mod_jsonfile(vrna_fold_compound_t *fc, const char *json_file, const unsigned int   *modification_sites)
+@fn int vrna_sc_mod_jsonfile(vrna_fold_compound_t *fc, const char *json_file, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod_jsonfile() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod_jsonfile() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 
-@fn int vrna_sc_mod(vrna_fold_compound_t *fc, const vrna_sc_mod_param_t params, const unsigned int *modification_sites)
+@fn int vrna_sc_mod(vrna_fold_compound_t *fc, const vrna_sc_mod_param_t params, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 
-@fn int vrna_sc_mod_m6A(vrna_fold_compound_t *fc, const unsigned int *modification_sites)
+@fn int vrna_sc_mod_m6A(vrna_fold_compound_t *fc, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod_m6A() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod_m6A() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 
-@fn int vrna_sc_mod_pseudouridine(vrna_fold_compound_t *fc, const unsigned int *modification_sites)
+@fn int vrna_sc_mod_pseudouridine(vrna_fold_compound_t *fc, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod_pseudouridine() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod_pseudouridine() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 
-@fn int vrna_sc_mod_inosine(vrna_fold_compound_t *fc, const unsigned int *modification_sites)
+@fn int vrna_sc_mod_inosine(vrna_fold_compound_t *fc, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod_inosine() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod_inosine() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 
-@fn int vrna_sc_mod_7DA(vrna_fold_compound_t *fc, const unsigned int *modification_sites)
+@fn int vrna_sc_mod_7DA(vrna_fold_compound_t *fc, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod_7DA() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod_7DA() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 
-@fn int vrna_sc_mod_purine(vrna_fold_compound_t *fc, const unsigned int *modification_sites)
+@fn int vrna_sc_mod_purine(vrna_fold_compound_t *fc, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod_purine() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod_purine() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 
-@fn int vrna_sc_mod_dihydrouridine(vrna_fold_compound_t *fc, const unsigned int *modification_sites)
+@fn int vrna_sc_mod_dihydrouridine(vrna_fold_compound_t *fc, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_mod_dihydrouridine() to objects of type @em fold_compound
+This function is attached as overloaded method @b sc_mod_dihydrouridine() to objects of type @em fold_compound with default @p options = VRNA_SC_MOD_DEFAULT
 @endparblock
 
 

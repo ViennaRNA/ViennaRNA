@@ -65,6 +65,16 @@ vrna_sc_mod_param_t my_sc_mod_read_from_json(std::string json, vrna_md_t *md = N
 %feature("kwargs") sc_set_stack;
 %feature("autodoc") sc_add_stack;
 %feature("kwargs") sc_add_stack;
+
+%feature("kwargs") sc_mod_json;
+%feature("kwargs") sc_mod_jsonfile;
+%feature("kwargs") sc_mod;
+%feature("kwargs") sc_mod_m6A;
+%feature("kwargs") sc_mod_pseudouridine;
+%feature("kwargs") sc_mod_inosine;
+%feature("kwargs") sc_mod_7DA;
+%feature("kwargs") sc_mod_purine;
+%feature("kwargs") sc_mod_dihydrouridine;
 #endif
 
   void
@@ -215,63 +225,76 @@ vrna_sc_mod_param_t my_sc_mod_read_from_json(std::string json, vrna_md_t *md = N
 
   int
   sc_mod_json(std::string json,
-              std::vector<unsigned int> modification_sites) {
+              std::vector<unsigned int> modification_sites,
+              unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod_json($self, json.c_str(), &modification_sites[0]);
+    return vrna_sc_mod_json($self, json.c_str(), &modification_sites[0], options);
   }
 
   int
   sc_mod_jsonfile(std::string jsonfile,
-                  std::vector<unsigned int> modification_sites) {
+                  std::vector<unsigned int> modification_sites,
+                  unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod_json($self, jsonfile.c_str(), &modification_sites[0]);
+    return vrna_sc_mod_json($self, jsonfile.c_str(), &modification_sites[0], options);
   }
 
   int
   sc_mod(const vrna_sc_mod_param_t params,
-         std::vector<unsigned int> modification_sites) {
+         std::vector<unsigned int> modification_sites,
+         unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod($self, params, &modification_sites[0]);
+    return vrna_sc_mod($self, params, &modification_sites[0], options);
   }
 
   int
-  sc_mod_m6A(std::vector<unsigned int> modification_sites) {
+  sc_mod_m6A(std::vector<unsigned int> modification_sites,
+             unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod_m6A($self, &modification_sites[0]);
+    return vrna_sc_mod_m6A($self, &modification_sites[0], options);
   }
 
   int
-  sc_mod_pseudouridine(std::vector<unsigned int> modification_sites) {
+  sc_mod_pseudouridine(std::vector<unsigned int> modification_sites,
+                       unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod_pseudouridine($self, &modification_sites[0]);
+    return vrna_sc_mod_pseudouridine($self, &modification_sites[0], options);
   }
 
   int
-  sc_mod_inosine(std::vector<unsigned int> modification_sites) {
+  sc_mod_inosine(std::vector<unsigned int> modification_sites,
+                 unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod_inosine($self, &modification_sites[0]);
+    return vrna_sc_mod_inosine($self, &modification_sites[0], options);
   }
 
   int
-  sc_mod_7DA(std::vector<unsigned int> modification_sites) {
+  sc_mod_7DA(std::vector<unsigned int> modification_sites,
+             unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod_7DA($self, &modification_sites[0]);
+    return vrna_sc_mod_7DA($self, &modification_sites[0], options);
   }
 
   int
-  sc_mod_purine(std::vector<unsigned int> modification_sites) {
+  sc_mod_purine(std::vector<unsigned int> modification_sites,
+                unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod_purine($self, &modification_sites[0]);
+    return vrna_sc_mod_purine($self, &modification_sites[0], options);
   }
 
   int
-  sc_mod_dihydrouridine(std::vector<unsigned int> modification_sites) {
+  sc_mod_dihydrouridine(std::vector<unsigned int> modification_sites,
+                        unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
-    return vrna_sc_mod_dihydrouridine($self, &modification_sites[0]);
+    return vrna_sc_mod_dihydrouridine($self, &modification_sites[0], options);
   }
 
 }
 
+%constant unsigned int SC_MOD_CHECK_FALLBACK  = VRNA_SC_MOD_CHECK_FALLBACK;
+%constant unsigned int SC_MOD_CHECK_UNMOD     = VRNA_SC_MOD_CHECK_UNMOD;
+%constant unsigned int SC_MOD_SILENT          = VRNA_SC_MOD_SILENT;
+%constant unsigned int SC_MOD_DEFAULT         = VRNA_SC_MOD_DEFAULT;
 
 %include  <ViennaRNA/constraints/soft.h>
 %include  <ViennaRNA/constraints/soft_special.h>
