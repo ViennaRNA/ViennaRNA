@@ -252,9 +252,8 @@ vrna_probs_window(vrna_fold_compound_t        *fc,
  *  has to take care to free() the memory occupied by the list.
  *
  *  @note This function uses default model settings! For custom model settings, we refer to
- *        the function vrna_probs_window().
- *
- *  @note In case of any computation errors, this function returns @p NULL
+ *        the function vrna_probs_window().<br>
+ *        In case of any computation errors, this function returns @p NULL
  *
  *  @see    vrna_probs_window(), vrna_pfl_fold_cb(), vrna_pfl_fold_up()
  *

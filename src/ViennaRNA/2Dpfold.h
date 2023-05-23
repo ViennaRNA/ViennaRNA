@@ -119,6 +119,7 @@ vrna_pbacktrack_TwoD(vrna_fold_compound_t *fc,
  * i.e. structures beginning from the 5' end with a specified length of the sequence, are backtracked
  *
  * @note      This function does not work (since it makes no sense) for circular RNA sequences!
+ *
  * @pre       The argument 'vars' must contain precalculated partition function matrices,
  *            i.e. a call to vrna_pf_TwoD() preceding this function is mandatory!
  *
@@ -361,6 +362,7 @@ DEPRECATED(char *
  * i.e. structures beginning from the 5' end with a specified length of the sequence, are backtracked
  *
  * @note      This function does not work (since it makes no sense) for circular RNA sequences!
+ *
  * @pre       The argument 'vars' must contain precalculated partition function matrices,
  *            i.e. a call to TwoDpfold() preceding this function is mandatory!
  *

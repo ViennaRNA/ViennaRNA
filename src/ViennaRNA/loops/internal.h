@@ -195,11 +195,12 @@ vrna_BT_int_loop(vrna_fold_compound_t *fc,
  *  and for the enclosed base pair (V,U):<BR>
  *  5'-mismatch: b_1<BR>
  *  3'-mismatch: a_n<BR>
+ *
  *  @note Base pairs are always denoted in 5'->3' direction. Thus the enclosed base pair
- *  must be 'turned arround' when evaluating the free energy of the interior-loop
- *  @see scale_parameters()
- *  @see vrna_param_t
- *  @note This function is threadsafe
+ *        must be 'turned arround' when evaluating the free energy of the interior-loop<br>
+ *        This function is threadsafe
+ *
+ *  @see scale_parameters(), vrna_param_t
  *
  *  @param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
  *  @param  n2      The size of the 'right'-loop (number of unpaired nucleotides)
@@ -226,10 +227,10 @@ PRIVATE INLINE int E_IntLoop(int          n1,
 /**
  *  <H2>Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of interior loop</H2>
  *  multiply by scale[u1+u2+2] for scaling
- *  @see get_scaled_pf_parameters()
- *  @see vrna_exp_param_t
- *  @see E_IntLoop()
+ *
  *  @note This function is threadsafe
+ *
+ *  @see get_scaled_pf_parameters(), vrna_exp_param_t, E_IntLoop()
  *
  *  @param  u1      The size of the 'left'-loop (number of unpaired nucleotides)
  *  @param  u2      The size of the 'right'-loop (number of unpaired nucleotides)

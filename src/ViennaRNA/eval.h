@@ -934,6 +934,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
  *  of a base pair, otherwise it is insertion (opening).
  *
  *  @see              vrna_eval_move_pt()
+ *
  *  @param fc         A vrna_fold_compound_t containing the energy parameters and model details
  *  @param structure  secondary structure in dot-bracket notation
  *  @param m1         first coordinate of base pair
@@ -955,6 +956,7 @@ vrna_eval_move(vrna_fold_compound_t *fc,
  *  of a base pair, otherwise it is insertion (opening).
  *
  *  @see              vrna_eval_move()
+ *
  *  @param fc         A vrna_fold_compound_t containing the energy parameters and model details
  *  @param pt         the pair table of the secondary structure
  *  @param m1         first coordinate of base pair
@@ -1232,12 +1234,13 @@ DEPRECATED(int   loop_energy(short  *ptable,
  *  Calculate the free energy of an already folded RNA
  *
  *  @note This function is not entirely threadsafe! Depending on the state of the global
- *  variable @ref eos_debug it prints energy information to stdout or not...\n
+ *        variable @ref eos_debug it prints energy information to stdout or not...\n
  *
  *  @deprecated This function is deprecated and should not be used in future programs!
  *  Use @ref energy_of_structure() instead!
  *
  *  @see              energy_of_structure, energy_of_circ_struct(), energy_of_struct_pt()
+ *
  *  @param string     RNA sequence
  *  @param structure  secondary structure in dot-bracket notation
  *  @return          the free energy of the input structure given the input sequence in kcal/mol
@@ -1250,12 +1253,13 @@ DEPRECATED(float energy_of_struct(const char  *string,
  *  Calculate the free energy of an already folded RNA
  *
  *  @note This function is not entirely threadsafe! Depending on the state of the global
- *  variable @ref eos_debug it prints energy information to stdout or not...\n
+ *        variable @ref eos_debug it prints energy information to stdout or not...\n
  *
  *  @deprecated This function is deprecated and should not be used in future programs!
  *  Use @ref energy_of_structure_pt() instead!
  *
  *  @see              make_pair_table(), energy_of_structure()
+ *
  *  @param string     RNA sequence
  *  @param ptable     the pair table of the secondary structure
  *  @param s          encoded RNA sequence
@@ -1272,12 +1276,13 @@ DEPRECATED(int energy_of_struct_pt(const char *string,
  *  Calculate the free energy of an already folded  circular RNA
  *
  *  @note This function is not entirely threadsafe! Depending on the state of the global
- *  variable @ref eos_debug it prints energy information to stdout or not...\n
+ *        variable @ref eos_debug it prints energy information to stdout or not...\n
  *
  *  @deprecated This function is deprecated and should not be used in future programs
  *  Use @ref energy_of_circ_structure() instead!
  *
  *  @see              energy_of_circ_structure(), energy_of_struct(), energy_of_struct_pt()
+ *
  *  @param string     RNA sequence
  *  @param structure  secondary structure in dot-bracket notation
  *  @return          the free energy of the input structure given the input sequence in kcal/mol

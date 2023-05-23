@@ -49,6 +49,7 @@
  *  generate options for vrna_pk_plex().
  *
  *  @see vrna_pk_plex_opt_fun(), vrna_pk_plex()
+ *
  *  @param  pt        The secondary structure (without pseudoknot) in pair table notation
  *  @param  start_5   The start coordinate of the 5' site of the pseudoknot interaction
  *  @param  end_5     The end coordinate of the 5' site of the pseudoknot interaction

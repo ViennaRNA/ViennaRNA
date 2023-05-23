@@ -145,10 +145,10 @@ typedef enum {
  *  @brief  The most basic data structure required by many functions throughout the RNAlib
  *
  *  @note   Please read the documentation of this data structure carefully! Some attributes are only available for
- *  specific types this data structure can adopt.
+ *          specific types this data structure can adopt.
  *
  *  @warning  Reading/Writing from/to attributes that are not within the scope of the current type usually result
- *  in undefined behavior!
+ *            in undefined behavior!
  *
  *  @see  #vrna_fold_compound_t.type, vrna_fold_compound(), vrna_fold_compound_comparative(), vrna_fold_compound_free(),
  *        #VRNA_FC_TYPE_SINGLE, #VRNA_FC_TYPE_COMPARATIVE

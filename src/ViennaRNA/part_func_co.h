@@ -191,6 +191,7 @@ DEPRECATED(void   init_co_pf_fold(int length),
  *  @ingroup part_func_global_deprecated
  *
  *  @see vrna_idx_row_wise()
+ *
  *  @return A pointer to the base pair probability array
  */
 DEPRECATED(FLT_OR_DBL *export_co_bppm(void),

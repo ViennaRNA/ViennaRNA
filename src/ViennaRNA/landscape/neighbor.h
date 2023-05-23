@@ -199,7 +199,7 @@ vrna_loopidx_update(int               *loopidx,
  * required to transform the current structure into the actual neighbor.
  *
  * @see vrna_neighbors_successive(), vrna_move_apply(),
- * #VRNA_MOVESET_INSERTION, #VRNA_MOVESET_DELETION, #VRNA_MOVESET_SHIFT, #VRNA_MOVESET_DEFAULT
+ *      #VRNA_MOVESET_INSERTION, #VRNA_MOVESET_DELETION, #VRNA_MOVESET_SHIFT, #VRNA_MOVESET_DEFAULT
  *
  * @param[in] fc        A vrna_fold_compound_t containing the energy parameters and model details
  * @param[in] pt        The pair table representation of the structure
@@ -222,7 +222,7 @@ vrna_neighbors(vrna_fold_compound_t *fc,
  * accessible anymore and inserts neighbors emerging after a move took place.
  *
  * @see vrna_neighbors(), vrna_move_apply(),
- * #VRNA_MOVESET_INSERTION, #VRNA_MOVESET_DELETION, #VRNA_MOVESET_SHIFT, #VRNA_MOVESET_DEFAULT
+ *      #VRNA_MOVESET_INSERTION, #VRNA_MOVESET_DELETION, #VRNA_MOVESET_SHIFT, #VRNA_MOVESET_DEFAULT
  *
  * @param[in]   fc                  A vrna_fold_compound_t containing the energy parameters and model details
  * @param[in]   curr_move           The move that was/will be applied to @p prev_pt

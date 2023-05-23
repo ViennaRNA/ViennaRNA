@@ -14,9 +14,11 @@
  *  @brief Compute a MEA (maximum expected accuracy) structure
  *
  *  The algorithm maximizes the expected accuracy
+ *
  *  @f[
  *    A(S) = \sum_{(i,j) \in S} 2 \gamma p_{ij} + \sum_{i \notin S} p^u_i
  *  @f]
+ *
  *  Higher values of @f$\gamma@f$ result in more base pairs of lower
  *  probability and thus higher sensitivity. Low values of @f$\gamma@f$ result in structures
  *  containing only highly likely pairs (high specificity).
@@ -42,9 +44,11 @@ vrna_MEA(vrna_fold_compound_t *fc,
  *  @brief Compute a MEA (maximum expected accuracy) structure from a list of probabilities
  *
  *  The algorithm maximizes the expected accuracy
+ *
  *  @f[
  *    A(S) = \sum_{(i,j) \in S} 2 \gamma p_{ij} + \sum_{i \notin S} p^u_i
  *  @f]
+ *
  *  Higher values of @f$\gamma@f$ result in more base pairs of lower
  *  probability and thus higher sensitivity. Low values of @f$\gamma@f$ result in structures
  *  containing only highly likely pairs (high specificity).
@@ -54,9 +58,8 @@ vrna_MEA(vrna_fold_compound_t *fc,
  *  @note The unpaired probabilities @f$p^u_i = 1 - \sum_{j \neq i} p_{ij}@f$ are usually
  *        computed from the supplied pairing probabilities @f$p_{ij}@f$ as stored in @p plist
  *        entries of type #VRNA_PLIST_TYPE_BASEPAIR. To overwrite individual @f$p^u_o@f$
- *        values simply add entries with type #VRNA_PLIST_TYPE_UNPAIRED
- *
- *  @note To include G-Quadruplex support, the corresponding field in @p md must be set.
+ *        values simply add entries with type #VRNA_PLIST_TYPE_UNPAIRED<br>
+ *        To include G-Quadruplex support, the corresponding field in @p md must be set.
  *
  *  @ingroup  mea_fold
  *
@@ -96,7 +99,9 @@ vrna_MEA_from_plist(vrna_ep_t   *plist,
  *  @ingroup  mea_fold
  *
  *  The algorithm maximizes the expected accuracy
+ *
  *  @f[ A(S) = \sum_{(i,j) \in S} 2 \gamma p_{ij} + \sum_{i \notin S} p^u_i @f]
+ *
  *  Higher values of @f$\gamma@f$ result in more base pairs of lower
  *  probability and thus higher sensitivity. Low values of @f$\gamma@f$ result in structures
  *  containing only highly likely pairs (high specificity).

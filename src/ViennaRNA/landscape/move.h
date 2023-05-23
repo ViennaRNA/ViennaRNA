@@ -21,29 +21,34 @@ typedef struct vrna_move_s vrna_move_t;
 
 /**
  *  @brief Option flag indicating insertion move
+ *
  *  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
  */
 #define VRNA_MOVESET_INSERTION   4
 
 /**
  *  @brief Option flag indicating deletion move
+ *
  *  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
  */
 #define VRNA_MOVESET_DELETION    8
 
 /**
  *  @brief Option flag indicating shift move
+ *
  *  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
  */
 #define VRNA_MOVESET_SHIFT       16
 /**
  *  @brief Option flag indicating moves without lonely base pairs
+ *
  *  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
  */
 #define VRNA_MOVESET_NO_LP       32
 
 /**
  *  @brief Option flag indicating default move set, i.e. insertions/deletion of a base pair
+ *
  *  @see vrna_neighbors(), vrna_neighbors_successive, vrna_path()
  */
 #define VRNA_MOVESET_DEFAULT     (VRNA_MOVESET_INSERTION | VRNA_MOVESET_DELETION)

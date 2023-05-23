@@ -53,6 +53,7 @@
  *  alifold().
  * 
  *  @deprecated Usage of this function is discouraged! Use vrna_alifold(), or vrna_mfe() instead!
+ *
  *  @see vrna_alifold(), vrna_mfe()
  *
  *  @param strings    A pointer to a NULL terminated array of character arrays
@@ -67,6 +68,7 @@ DEPRECATED(float alifold( const char **strings, char *structure),
  *  @brief Compute MFE and according structure of an alignment of sequences assuming the sequences are circular instead of linear
  * 
  *  @deprecated Usage of this function is discouraged! Use vrna_alicircfold(), and vrna_mfe() instead!
+ *
  *  @see vrna_alicircfold(), vrna_alifold(), vrna_mfe()
  * 
  *  @param strings    A pointer to a NULL terminated array of character arrays
@@ -249,12 +251,11 @@ DEPRECATED(char  *alipbacktrack(double *prob),
  *
  *  @note To obtain meaningful pointers, call alipf_fold first!
  *
- *  @see pf_alifold(), alipf_circ_fold()
+ *  @see  #vrna_fold_compound_t, vrna_fold_compound_comparative(), vrna_pf(),
+ *        pf_alifold(), alipf_circ_fold()
  *
  *  @deprecated It is discouraged to use this function! The new #vrna_fold_compound_t allows
- *  direct access to all necessary consensus structure prediction related variables!
- *
- *  @see #vrna_fold_compound_t, vrna_fold_compound_comparative(), vrna_pf()
+ *              direct access to all necessary consensus structure prediction related variables!
  *
  *  @param S_p      A pointer to the 'S' array (integer representation of nucleotides)
  *  @param S5_p     A pointer to the 'S5' array

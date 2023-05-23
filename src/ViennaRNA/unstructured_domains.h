@@ -332,6 +332,7 @@ struct vrna_unstructured_domain_motif_s {
  *  of the equiibrium ensemble.
  *
  *  @see vrna_centroid()
+ *
  *  @ingroup domains_up
  *
  *  @param  fc        The fold_compound data structure with pre-computed equilibrium probabilities and model settings
@@ -356,6 +357,7 @@ vrna_ud_motifs_centroid(vrna_fold_compound_t  *fc,
  *  of the equiibrium ensemble.
  *
  *  @see MEA()
+ *
  *  @ingroup domains_up
  *
  *  @param  fc                The fold_compound data structure with pre-computed equilibrium probabilities and model settings
@@ -382,6 +384,7 @@ vrna_ud_motifs_MEA(vrna_fold_compound_t *fc,
  *  of the equiibrium ensemble.
  *
  *  @see vrna_mfe()
+ *
  *  @ingroup domains_up
  *
  *  @param  fc        The fold_compound data structure with model settings
@@ -406,8 +409,8 @@ vrna_ud_motifs_MFE(vrna_fold_compound_t *fc,
  *  such as the exterior loop, hairpin loops, interior loops, or multibranch loops.
  *
  *  @see  #VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
- *  #VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS,
- *  vrna_ud_remove()
+ *        #VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
+ *        #VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS, vrna_ud_remove()
  *
  *  @ingroup domains_up
  *
@@ -465,8 +468,8 @@ void  vrna_ud_remove(vrna_fold_compound_t *fc);
  *  The optional callback @p free_cb will be passed the bound data structure whenever the #vrna_fold_compound_t
  *  is removed from memory to avoid memory leaks.
  *
- *  @see vrna_ud_set_prod_rule_cb(), vrna_ud_set_exp_prod_rule_cb(),
- *  vrna_ud_remove()
+ *  @see  vrna_ud_set_prod_rule_cb(), vrna_ud_set_exp_prod_rule_cb(),
+ *        vrna_ud_remove()
  *
  *  @ingroup domains_up
  *

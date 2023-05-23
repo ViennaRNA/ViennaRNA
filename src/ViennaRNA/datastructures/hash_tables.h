@@ -45,6 +45,7 @@
 
 /**
  *  @brief  A hash table object
+ *
  *  @see  vrna_ht_init(), vrna_ht_free()
  */
 typedef struct vrna_hash_table_s *vrna_hash_table_t;
@@ -52,7 +53,9 @@ typedef struct vrna_hash_table_s *vrna_hash_table_t;
 
 /**
  *  @brief  Callback function to compare two hash table entries
+ *
  *  @see    vrna_ht_init(), vrna_ht_db_comp()
+ *
  *  @param  x   A hash table entry
  *  @param  y   A hash table entry
  *  @return     -1 if x is smaller, +1 if x is larger than y. 0 if @f$x == y @f$
@@ -68,7 +71,9 @@ DEPRECATED(typedef int (vrna_callback_ht_compare_entries)(void *x,
 
 /**
  *  @brief  Callback function to generate a hash key, i.e. hash function
+ *
  *  @see    vrna_ht_init(), vrna_ht_db_hash_func()
+ *
  *  @param  x               A hash table entry
  *  @param  hashtable_size  The size of the hash table
  *  @return                 The hash table key for entry @p x
@@ -83,7 +88,9 @@ DEPRECATED(typedef unsigned int (vrna_callback_ht_hash_function)(void          *
 
 /**
  *  @brief  Callback function to free a hash table entry
+ *
  *  @see    vrna_ht_init(), vrna_ht_db_free_entry()
+ *
  *  @param  x   A hash table entry
  *  @return     0 on success
  */
@@ -109,6 +116,7 @@ DEPRECATED(typedef int (vrna_callback_ht_free_entry)(void *x),
  *
  *  arguments.
  *  @endparblock
+ *
  *  @warning  If @p hash_bits is larger than 27 you have to compile it with
  *            the flag gcc -mcmodel=large.
  *
@@ -239,6 +247,7 @@ vrna_ht_free(vrna_hash_table_t ht);
 
 /**
  *  @brief  Default hash table entry
+ *
  *  @see  vrna_ht_init(), vrna_ht_db_comp(), vrna_ht_db_hash_func(), vrna_ht_db_free_entry()
  */
 typedef struct {

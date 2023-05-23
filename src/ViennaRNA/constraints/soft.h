@@ -282,6 +282,7 @@ struct {
  *  @see  vrna_sc_set_bp(), vrna_sc_set_up(), vrna_sc_add_SHAPE_deigan(),
  *        vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_remove(), vrna_sc_add_f(),
  *        vrna_sc_add_exp_f(), vrna_sc_add_pre(), vrna_sc_add_post()
+ *
  *  @param  fc  The #vrna_fold_compound_t where an empty soft constraint feature is to be added to
  */
 void

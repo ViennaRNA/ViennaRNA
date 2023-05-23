@@ -30,22 +30,30 @@
  *  @brief      Compute various thermodynamic properties using the partition function
  *
  *  Many thermodynamic properties can be derived from the partition function
+ *
  *  @f[ Q = \sum_{s \in \omega} e^{\frac{-E(s)}{kT}}. @f]
+ *
  *  In particular, for nucleic acids in equilibrium the probabilty @f$ p(F) @f$ of
  *  a particular structural feature @f$ F @f$ follows Boltzmanns law, i.e.
+ *
  *  @f[ p(F) \propto \sum_{s \mid F \in s} e^{\frac{-E(s)}{kT}}. @f]
+ *
  *  The actual probabilities can then be obtained from the ratio of those
  *  structures containing @f$ F @f$ and @em all structures, i.e.
  *  @f[ p(F) = \frac{1}{Q} \sum_{s \mid F \in s} e^{\frac{-E(s)}{kT}}. @f]
  *
  *  Consequently, a particular secondary structure @f$ s @f$ has equilibrium
  *  probability
+ *
  *  @f[ p(s) = \frac{1}{Q} e^{\frac{-E(s)}{kT}} @f]
+ *
  *  which can be easily computed once @f$ Q @f$ and @f$ E(s) @f$ are known.
  *
  *  On the other hand, efficient dynamic programming algorithms exist to
  *  compute the equilibrium probabilities
+ *
  *  @f[ p_{ij} = \frac{1}{Q} \sum_{s \mid (i,j) \in s} e^{\frac{-E(s)}{kT}} @f]
+ *
  *  of base pairs @f$ (i,j) @f$ without the need for exhaustive enumeration
  *  of @f$ s @f$.
  *
@@ -70,7 +78,9 @@ vrna_pairing_probs(vrna_fold_compound_t *fc,
  *  @f[
  *  <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
  *  @f]
+ *
  *  this can be computed from the pair probs @f$ p_{ij} @f$ as
+ *
  *  @f[
  *  <d> = \sum_{ij} p_{ij}(1-p_{ij})
  *  @f]
@@ -90,7 +100,9 @@ vrna_mean_bp_distance_pr(int        length,
  *  @f[
  *  <d> = \sum_{a,b} p_a p_b d(S_a,S_b)
  *  @f]
+ *
  *  this can be computed from the pair probs @f$p_{ij}@f$ as
+ *
  *  @f[
  *  <d> = \sum_{ij} p_{ij}(1-p_{ij})
  *  @f]
@@ -107,9 +119,11 @@ vrna_mean_bp_distance(vrna_fold_compound_t *fc);
  *
  *  Given a target structure @f$s@f$, compute the average dissimilarity of a randomly
  *  drawn structure from the ensemble, i.e.:
+ *
  *  @f[
  *    ED(s) = 1 - \frac{1}{n} \sum_{ij, (i,j) \in s} p_{ij} - \frac{1}{n} \sum_{i}(1 - s_i)q_i
  *  @f]
+ *
  *  with sequence length @f$n@f$, the probability @f$p_{ij}@f$ of a base pair @f$(i,j)@f$,
  *  the probability @f$q_i = 1 - \sum_j p_{ij}@f$ of nucleotide @f$i@f$ being unpaired, and
  *  the indicator variable @f$s_i = 1@f$ if @f$\exists (i,j) \in s@f$, and @f$s_i = 0@f$ otherwise.
@@ -135,9 +149,11 @@ vrna_ensemble_defect_pt(vrna_fold_compound_t *fc,
  *  This is a wrapper around @b vrna_ensemble_defect_pt().
  *  Given a target structure @f$s@f$, compute the average dissimilarity of a randomly
  *  drawn structure from the ensemble, i.e.:
+ *
  *  @f[
  *    ED(s) = 1 - \frac{1}{n} \sum_{ij, (i,j) \in s} p_{ij} - \frac{1}{n} \sum_{i}(1 - s_i)q_i
  *  @f]
+ *
  *  with sequence length @f$n@f$, the probability @f$p_{ij}@f$ of a base pair @f$(i,j)@f$,
  *  the probability @f$q_i = 1 - \sum_j p_{ij}@f$ of nucleotide @f$i@f$ being unpaired, and
  *  the indicator variable @f$s_i = 1@f$ if @f$\exists (i,j) \in s@f$, and @f$s_i = 0@f$ otherwise.
@@ -162,9 +178,11 @@ vrna_ensemble_defect(vrna_fold_compound_t *fc,
  *
  *  This function computes the positional entropies from base pair probabilities
  *  as
+ *
  *  @f[
  *  S(i) = - \sum_j p_{ij} \log(p_{ij}) - q_i \log(q_i)
  *  @f]
+ *
  *  with unpaired probabilities @f$ q_i = 1 - \sum_j p_{ij} @f$.
  *
  *  Low entropy regions have little
@@ -248,13 +266,17 @@ vrna_pf_dimer_probs(double                  FAB,
  *
  *  The probability @f$p(s)@f$ of a particular secondary structure @f$s@f$ can
  *  be computed as
+ *
  *  @f[
  *    p(s) = \frac{exp(-\beta E(s)}{Z}
  *  @f]
+ *
  *  from the structures free energy @f$E(s)@f$ and the partition function
+ *
  *  @f[
  *    Z = \sum_s exp(-\beta E(s)),\quad\mathrm{with}\quad\beta = \frac{1}{RT}
  *  @f]
+ *
  *  where @f$R@f$ is the gas constant and @f$T@f$ the thermodynamic temperature.
  *
  *  @pre  The fold compound @p fc must have went through a call to vrna_pf() to

@@ -105,16 +105,18 @@ typedef struct vrna_pbacktrack_memory_s *vrna_pbacktrack_mem_t;
  *
  *  The structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -139,9 +141,11 @@ vrna_pbacktrack5(vrna_fold_compound_t *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -151,8 +155,8 @@ vrna_pbacktrack5(vrna_fold_compound_t *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -190,9 +194,11 @@ vrna_pbacktrack5_num(vrna_fold_compound_t *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -205,8 +211,8 @@ vrna_pbacktrack5_num(vrna_fold_compound_t *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -248,9 +254,11 @@ vrna_pbacktrack5_cb(vrna_fold_compound_t              *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -288,8 +296,8 @@ vrna_pbacktrack5_cb(vrna_fold_compound_t              *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -330,9 +338,11 @@ vrna_pbacktrack5_resume(vrna_fold_compound_t  *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -371,8 +381,8 @@ vrna_pbacktrack5_resume(vrna_fold_compound_t  *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -416,16 +426,18 @@ vrna_pbacktrack5_resume_cb(vrna_fold_compound_t             *fc,
  *
  *  The structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -447,9 +459,11 @@ vrna_pbacktrack(vrna_fold_compound_t *fc);
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -459,8 +473,8 @@ vrna_pbacktrack(vrna_fold_compound_t *fc);
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -495,9 +509,11 @@ vrna_pbacktrack_num(vrna_fold_compound_t  *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -510,8 +526,8 @@ vrna_pbacktrack_num(vrna_fold_compound_t  *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -550,9 +566,11 @@ vrna_pbacktrack_cb(vrna_fold_compound_t             *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -588,8 +606,8 @@ vrna_pbacktrack_cb(vrna_fold_compound_t             *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -627,9 +645,11 @@ vrna_pbacktrack_resume(vrna_fold_compound_t   *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -666,8 +686,8 @@ vrna_pbacktrack_resume(vrna_fold_compound_t   *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -718,16 +738,18 @@ vrna_pbacktrack_resume_cb(vrna_fold_compound_t              *fc,
  *  The resulting substructure @f$ s_{start,end} @f$ with free energy @f$ E(s_{start, end}) @f$ is picked from
  *  the Boltzmann distributed sub ensemble of all structures within the interval @f$ [start:end] @f$ according
  *  to its probability
+ *
  *  @f[
  *  p(s_{start,end}) = \frac{exp(-E(s_{start,end}) / kT)}{Z_{start,end}}
  *  @f]
+ *
  *  with partition function @f$ Z_{start,end} = \sum_{s_{start,end}} exp(-E(s_{start,end}) / kT) @f$,
  *  Boltzmann constant @f$ k @f$ and thermodynamic temperature @f$ T @f$.
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -754,9 +776,11 @@ vrna_pbacktrack_sub(vrna_fold_compound_t *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -766,8 +790,8 @@ vrna_pbacktrack_sub(vrna_fold_compound_t *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -807,9 +831,11 @@ vrna_pbacktrack_sub_num(vrna_fold_compound_t *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -822,8 +848,8 @@ vrna_pbacktrack_sub_num(vrna_fold_compound_t *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -867,9 +893,11 @@ vrna_pbacktrack_sub_cb(vrna_fold_compound_t              *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -907,8 +935,8 @@ vrna_pbacktrack_sub_cb(vrna_fold_compound_t              *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
@@ -951,9 +979,11 @@ vrna_pbacktrack_sub_resume(vrna_fold_compound_t  *fc,
  *
  *  Any structure @f$ s @f$ with free energy @f$ E(s) @f$ is picked from the Boltzmann distributed
  *  ensemble according to its probability
+ *
  *  @f[
  *  p(s) = \frac{exp(-E(s) / kT)}{Z}
  *  @f]
+ *
  *  with partition function @f$ Z = \sum_s exp(-E(s) / kT) @f$, Boltzmann constant @f$ k @f$ and
  *  thermodynamic temperature @f$ T @f$.
  *
@@ -992,8 +1022,8 @@ vrna_pbacktrack_sub_resume(vrna_fold_compound_t  *fc,
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
- *          with vrna_md_t.uniq_ML = 1.
- *  @pre    vrna_pf() has to be called first to fill the partition function matrices
+ *          with vrna_md_t.uniq_ML = 1.<br>
+ *          vrna_pf() has to be called first to fill the partition function matrices
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.

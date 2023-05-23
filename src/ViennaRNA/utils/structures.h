@@ -150,6 +150,7 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
  *  Useful for programs that need to keep many structures in memory.
  *
  *  @see  vrna_db_unpack()
+ *
  *  @param struc    The secondary structure in dot-bracket notation
  *  @return         The binary encoded structure
  */
@@ -164,6 +165,7 @@ vrna_db_pack(const char *struc);
  *  the familiar dot-bracket notation.
  *
  *  @see  vrna_db_pack()
+ *
  *  @param packed   The binary encoded packed secondary structure
  *  @return         The unpacked secondary structure in dot-bracket notation
  */
@@ -226,9 +228,9 @@ vrna_db_flatten_to(char         *string,
  *  matching upper-/lower-case characters from the alphabet A-Z.
  *
  *  @note In cases where the level of non-nested base pairs exceeds the
- *  maximum number of 30 different base pair indicators (4 parenthesis/brackets,
- *  26 matching characters), a warning is printed and the remaining base pairs
- *  are left out from the conversion.
+ *        maximum number of 30 different base pair indicators (4 parenthesis/brackets,
+ *        26 matching characters), a warning is printed and the remaining base pairs
+ *        are left out from the conversion.
  *
  *  @param pt The pair table to be copied
  *  @return   A char pointer to the dot-bracket string
@@ -241,6 +243,7 @@ vrna_db_from_ptable(const short *pt);
  *  @brief  Convert a list of base pairs into dot-bracket notation
  *
  *  @see vrna_plist()
+ *
  *  @param  pairs   A #vrna_ep_t containing the pairs to be included in
  *                  the dot-bracket string
  *  @param  n       The length of the structure (number of nucleotides)
@@ -476,6 +479,7 @@ vrna_pt_pk_remove(const short   *ptable,
  *          (e.g. list of pair probabilities)
  *
  *  @see vrna_plist(), vrna_plist_from_probs(), vrna_db_from_plist(),
+ *
  *  #VRNA_PLIST_TYPE_BASEPAIR, #VRNA_PLIST_TYPE_GQUAD, #VRNA_PLIST_TYPE_H_MOTIF, #VRNA_PLIST_TYPE_I_MOTIF,
  *  #VRNA_PLIST_TYPE_UD_MOTIF, #VRNA_PLIST_TYPE_STACK
  */
@@ -572,12 +576,12 @@ vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *fc,
  *    to the known structure are denoted by periods, `.`. Regions where local structural
  *    alignment was invoked, leaving regions of both target and query sequence unaligned, are indicated
  *    by tildes, `~`.
- *    @note These symbols only appear in alignments of a known (query) structure annotation to a target
+ *    These symbols only appear in alignments of a known (query) structure annotation to a target
  *    sequence of unknown structure.
  *
  *  - <b>Pseudo-knots</b><br>
  *    The WUSS notation allows for annotation of pseudo-knots using pairs of upper-case/lower-case letters.
- *    @note Our programs and library functions usually ignore pseudo-knots entirely treating them as
+ *    Our programs and library functions usually ignore pseudo-knots entirely treating them as
  *    unpaired nucleotides, if not stated otherwise.
  *
  *    Example:  `<<<_AAA___>>>aaa`

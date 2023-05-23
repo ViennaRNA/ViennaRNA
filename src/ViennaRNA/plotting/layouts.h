@@ -276,8 +276,8 @@ vrna_plot_layout_free(vrna_plot_layout_t *layout);
  *  @endcode
  *
  *  @note On success, this function allocates memory for X and Y coordinates and assigns
- *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
- *  the users responsibility to cleanup this memory after usage!
+ *        the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *        the users responsibility to cleanup this memory after usage!
  *
  *  @see  vrna_plot_coords_pt(), vrna_plot_coords_simple(), vrna_plot_coords_naview()
  *        vrna_plot_coords_circular(), vrna_plot_coords_turtle(), vrna_plot_coords_puzzler()
@@ -302,8 +302,8 @@ vrna_plot_coords(const char *structure,
  *  information as input.
  *
  *  @note On success, this function allocates memory for X and Y coordinates and assigns
- *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
- *  the users responsibility to cleanup this memory after usage!
+ *        the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *        the users responsibility to cleanup this memory after usage!
  *
  *  @see  vrna_plot_coords(), vrna_plot_coords_simple_pt(), vrna_plot_coords_naview_pt()
  *        vrna_plot_coords_circular_pt(), vrna_plot_coords_turtle_pt(), vrna_plot_coords_puzzler_pt()
@@ -342,8 +342,8 @@ vrna_plot_coords_pt(const short *pt,
  *  @endcode
  *
  *  @note On success, this function allocates memory for X and Y coordinates and assigns
- *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
- *  the users responsibility to cleanup this memory after usage!
+ *        the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *        the users responsibility to cleanup this memory after usage!
  *
  *  @see  vrna_plot_coords(), vrna_plot_coords_simple_pt(), vrna_plot_coords_circular(),
  *        vrna_plot_coords_naview(), vrna_plot_coords_turtle(), vrna_plot_coords_puzzler()
@@ -366,8 +366,8 @@ vrna_plot_coords_simple(const char  *structure,
  *  information as input.
  *
  *  @note On success, this function allocates memory for X and Y coordinates and assigns
- *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
- *  the users responsibility to cleanup this memory after usage!
+ *        the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *        the users responsibility to cleanup this memory after usage!
  *
  *  @see  vrna_plot_coords_pt(), vrna_plot_coords_simple(), vrna_plot_coords_circular_pt(),
  *        vrna_plot_coords_naview_pt(), vrna_plot_coords_turtle_pt(), vrna_plot_coords_puzzler_pt()
@@ -393,17 +393,16 @@ vrna_plot_coords_simple_pt(const short  *pt,
  *  the simplest way to do so may be to compute a radius scaling factor @f$rs@f$ in the interval @f$[0,1]@f$ that
  *  weights the proportion of base pair span to the actual length of the sequence. This scaling factor
  *  can then be used to calculate the coordinates for @f$P^t@f$, i.e.
- *  @f[
- *  P^{t}_x[i] = X[i] * rs
- *  @f]
+ *
+ *  @f[ P^{t}_x[i] = X[i] * rs @f]
+ *
  *  and
- *  @f[
- *  P^{t}_y[i] = Y[i] * rs
- *  @f].
+ *
+ *  @f[ P^{t}_y[i] = Y[i] * rs @f].
  *
  *  @note On success, this function allocates memory for X and Y coordinates and assigns
- *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
- *  the users responsibility to cleanup this memory after usage!
+ *        the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *        the users responsibility to cleanup this memory after usage!
  *
  *  @see  vrna_plot_coords(), vrna_plot_coords_circular_pt(), vrna_plot_coords_simple(),
  *        vrna_plot_coords_naview(), vrna_plot_coords_turtle(), vrna_plot_coords_puzzler()
@@ -426,8 +425,8 @@ vrna_plot_coords_circular(const char  *structure,
  *  information as input.
  *
  *  @note On success, this function allocates memory for X and Y coordinates and assigns
- *  the pointers at addressess @p x and @p y to the corresponding memory locations. It's
- *  the users responsibility to cleanup this memory after usage!
+ *        the pointers at addressess @p x and @p y to the corresponding memory locations. It's
+ *        the users responsibility to cleanup this memory after usage!
  *
  *  @see  vrna_plot_coords_pt(), vrna_plot_coords_circular(), vrna_plot_coords_simple_pt(),
  *        vrna_plot_coords_naview_pt(), vrna_plot_coords_turtle_pt(), vrna_plot_coords_puzzler_pt()
@@ -473,7 +472,7 @@ typedef struct {
  *  radial drawing taken from the @e naview program of @cite bruccoleri:1988.
  *
  *  @note To provide thread safety please do not rely on this global variable in future implementations
- *  but pass a plot type flag directly to the function that decides which layout algorithm it may use!
+ *        but pass a plot type flag directly to the function that decides which layout algorithm it may use!
  *
  *  @see #VRNA_PLOT_TYPE_SIMPLE, #VRNA_PLOT_TYPE_NAVIEW, #VRNA_PLOT_TYPE_CIRCULAR
  *
@@ -507,14 +506,14 @@ DEPRECATED(int
  *  This function calculates the coordinates of nucleotides mapped in equal distancies onto a unit circle.
  *
  *  @note In order to draw nice arcs using quadratic bezier curves that connect base pairs one may calculate
- *  a second tangential point @f$P^t@f$ in addition to the actual R<sup>2</sup> coordinates.
- *  the simplest way to do so may be to compute a radius scaling factor @f$rs@f$ in the interval @f$[0,1]@f$ that
- *  weights the proportion of base pair span to the actual length of the sequence. This scaling factor
- *  can then be used to calculate the coordinates for @f$P^t@f$, i.e. @f$ P^{t}_x[i] = X[i] * rs@f$
- *  and @f$P^{t}_y[i] = Y[i] * rs@f$.
+ *        a second tangential point @f$P^t@f$ in addition to the actual R<sup>2</sup> coordinates.
+ *        the simplest way to do so may be to compute a radius scaling factor @f$rs@f$ in the interval @f$[0,1]@f$ that
+ *        weights the proportion of base pair span to the actual length of the sequence. This scaling factor
+ *        can then be used to calculate the coordinates for @f$P^t@f$, i.e. @f$ P^{t}_x[i] = X[i] * rs@f$
+ *        and @f$P^{t}_y[i] = Y[i] * rs@f$.
  *
- *  @see make_pair_table(), rna_plot_type, simple_xy_coordinates(), naview_xy_coordinates(), vrna_file_PS_rnaplot_a(),
- *  vrna_file_PS_rnaplot, svg_rna_plot()
+ *  @see  make_pair_table(), rna_plot_type, simple_xy_coordinates(), naview_xy_coordinates(),
+ *        vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot, svg_rna_plot()
  *
  *  @deprecated   Consider switching to vrna_plot_coords_circular_pt() instead!
  *

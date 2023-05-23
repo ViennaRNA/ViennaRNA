@@ -190,8 +190,10 @@ extern unsigned short xsubi[3];
 /**
  *  @brief get a random number from [0..1]
  *
- *  @see  vrna_int_urn(), vrna_init_rand(), vrna_init_rand_seed()
  *  @note Usually implemented by calling @e erand48().
+ *
+ *  @see  vrna_int_urn(), vrna_init_rand(), vrna_init_rand_seed()
+ *
  *  @return   A random number in range [0..1]
  */
 double
@@ -202,6 +204,7 @@ vrna_urn(void);
  *  @brief Generates a pseudo random integer in a specified range
  *
  *  @see  vrna_urn(), vrna_init_rand()
+ *
  *  @param from   The first number in range
  *  @param to     The last number in range
  *  @return       A pseudo random number in range [from, to]
@@ -258,6 +261,7 @@ get_input_line(char         **string,
  *  Consult the implemented code to find out about the mapping formula ;)
  *
  *  @see vrna_idx_col_wise()
+ *
  *  @param length The length of the RNA sequence
  *  @return       The mapper array
  */
@@ -275,6 +279,7 @@ vrna_idx_row_wise(unsigned int length);
  *  Consult the implemented code to find out about the mapping formula ;)
  *
  *  @see vrna_idx_row_wise()
+ *
  *  @param length The length of the RNA sequence
  *  @return       The mapper array
  *

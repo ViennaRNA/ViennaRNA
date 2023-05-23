@@ -290,8 +290,8 @@ vrna_params_subst(vrna_fold_compound_t  *fc,
  *  Passing NULL as second argument leads to a reset of the energy parameters within
  *  fc to their default values
  *
- *  @see vrna_exp_params_reset(), vrna_exp_params_rescale(), #vrna_exp_param_t, #vrna_md_t,
- *  vrna_exp_params()
+ *  @see  vrna_exp_params_reset(), vrna_exp_params_rescale(), #vrna_exp_param_t, #vrna_md_t,
+ *        vrna_exp_params()
  *
  *  @param  fc      The fold compound data structure
  *  @param  params  A pointer to the new energy parameters
@@ -320,7 +320,7 @@ vrna_exp_params_subst(vrna_fold_compound_t  *fc,
  *  the scaling factor is recomputed according to a mean free energy of `184.3*length` cal
  *  for random sequences.
  *  @note This recomputation only takes place if the `pf_scale` attribute of the
- *  `exp_params` data structure contained in `fc` has a value below `1.0`.
+ *        `exp_params` data structure contained in `fc` has a value below `1.0`.
  *
  *  On the other hand, if the MFE for a sequence is known, it can be used to recompute
  *  a more robust scaling factor, since it represents the lowest free energy of the entire
@@ -353,6 +353,7 @@ vrna_exp_params_rescale(vrna_fold_compound_t  *fc,
  *  to be used for rescaling, or NULL if global default setting should be used.
  *
  *  @see vrna_exp_params_reset(), vrna_params_subs()
+ *
  *  @param  fc    The fold compound data structure
  *  @param  md    A pointer to the new model details (or NULL for reset to defaults)
  */
@@ -372,6 +373,7 @@ vrna_params_reset(vrna_fold_compound_t  *fc,
  *  to be used for rescaling, or NULL if global default setting should be used.
  *
  *  @see vrna_params_reset(), vrna_exp_params_subst(), vrna_exp_params_rescale()
+ *
  *  @param  fc    The fold compound data structure
  *  @param  md    A pointer to the new model details (or NULL for reset to defaults)
  */

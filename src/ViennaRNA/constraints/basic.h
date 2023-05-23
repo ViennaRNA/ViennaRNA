@@ -92,7 +92,9 @@
  *  @brief  Flag for vrna_constraints_add() to indicate that constraints are present in a text file
  *
  *  @see vrna_constraints_add()
+ *
  *  @deprecated   Use 0 instead!
+ *
  *  @ingroup  constraints
  *
  */
@@ -100,7 +102,9 @@
 
 /**
  *  @brief  Indicate generation of constraints for MFE folding
+ *
  *  @deprecated   This flag has no meaning anymore, since constraints are now always stored!
+ *
  *  @ingroup  constraints
  *
  */
@@ -411,15 +415,6 @@
  *  user has to specify, which characters are allowed to be interpreted as
  *  constraints by passing the corresponding options via the third parameter.
  *
- *  @see      vrna_hc_init(), vrna_hc_add_up(), vrna_hc_add_up_batch(), vrna_hc_add_bp(),
- *            vrna_sc_init(), vrna_sc_set_up(), vrna_sc_set_bp(),
- *            vrna_sc_add_SHAPE_deigan(),  vrna_sc_add_SHAPE_zarringhalam(),
- *            vrna_hc_free(), vrna_sc_free(),
- *            #VRNA_CONSTRAINT_DB, #VRNA_CONSTRAINT_DB_DEFAULT, #VRNA_CONSTRAINT_DB_PIPE,
- *            #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
- *            #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTRAMOL,
- *            #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_GQUAD
- *
  *  @ingroup  constraints
  *
  *  The following is an example for adding hard constraints given in
@@ -436,7 +431,14 @@
  *  @snippet RNAfold.c Adding hard constraints from file
  *
  *  @see  vrna_hc_add_from_db(), vrna_hc_add_up(), vrna_hc_add_up_batch()
- *        vrna_hc_add_bp_unspecific(), vrna_hc_add_bp()
+ *        vrna_hc_add_bp_unspecific(), vrna_hc_add_bp(),
+ *        vrna_hc_init(), vrna_sc_set_up(), vrna_sc_set_bp(),
+ *        vrna_sc_add_SHAPE_deigan(),  vrna_sc_add_SHAPE_zarringhalam(),
+ *        vrna_hc_free(), vrna_sc_free(),
+ *        #VRNA_CONSTRAINT_DB, #VRNA_CONSTRAINT_DB_DEFAULT, #VRNA_CONSTRAINT_DB_PIPE,
+ *        #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X, #VRNA_CONSTRAINT_DB_ANG_BRACK,
+ *        #VRNA_CONSTRAINT_DB_RND_BRACK, #VRNA_CONSTRAINT_DB_INTRAMOL,
+ *        #VRNA_CONSTRAINT_DB_INTERMOL, #VRNA_CONSTRAINT_DB_GQUAD
  *
  *  @param  fc            The fold compound
  *  @param  constraint    A string with either the filename of the constraint definitions

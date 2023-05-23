@@ -78,7 +78,7 @@ strdup(const char *s);
  *  not available, mimic it's behavior using @em vsnprintf.
  *
  *  @note The returned pointer of this function should always be passed to @em free() to
- *  release the allocated memory
+ *        release the allocated memory
  *
  *  @see vrna_strdup_vprintf(), vrna_strcat_printf()
  *
@@ -97,7 +97,7 @@ vrna_strdup_printf(const char *format,
  *  This function is the @em va_list version of vrna_strdup_printf()
  *
  *  @note The returned pointer of this function should always be passed to @em free() to
- *  release the allocated memory
+ *        release the allocated memory
  *
  *  @see vrna_strdup_printf(), vrna_strcat_printf(), vrna_strcat_vprintf()
  *
@@ -220,10 +220,10 @@ vrna_strcat_vprintf(char        **dest,
  *  @endcode
  *
  *  @note The delimiter always consists of a single character from the
- *  set of characters provided. In case of alternative delimiters and non-null
- *  @p keep parameter, the first @p keep delimiters are preserved within the
- *  string. Use #VRNA_TRIM_SUBST_BY_FIRST to substitute all remaining
- *  delimiting characters with the first from the @p delimiters list.
+ *        set of characters provided. In case of alternative delimiters and non-null
+ *        @p keep parameter, the first @p keep delimiters are preserved within the
+ *        string. Use #VRNA_TRIM_SUBST_BY_FIRST to substitute all remaining
+ *        delimiting characters with the first from the @p delimiters list.
  *
  *  @see  VRNA_TRIM_LEADING, VRNA_TRIM_TRAILING, VRNA_TRIM_IN_BETWEEN,
  *        VRNA_TRIM_SUBST_BY_FIRST, VRNA_TRIM_DEFAULT, VRNA_TRIM_ALL
@@ -272,14 +272,13 @@ vrna_strtrim(char         *string,
  *  and properly free's the memory occupied by the returned element array.
  *
  *  @note This function internally uses @em strtok_r() and is therefore
- *  considered to be thread-safe. Also note, that it is the users responsibility
- *  to free the memory of the array and that of the individual element strings!
- *
- *  @note In case the input string consists of consecutive delimiters, starts
- *  or ends with one or multiple delimiters, empty strings are produced in the
- *  output list, indicating the empty fields of data resulting from the split.
- *  Use vrna_strtrim() prior to a call to this function to remove any leading,
- *  trailing, or in-between empty fields.
+ *        considered to be thread-safe. Also note, that it is the users responsibility
+ *        to free the memory of the array and that of the individual element strings!<br>
+ *        In case the input string consists of consecutive delimiters, starts
+ *        or ends with one or multiple delimiters, empty strings are produced in the
+ *        output list, indicating the empty fields of data resulting from the split.
+ *        Use vrna_strtrim() prior to a call to this function to remove any leading,
+ *        trailing, or in-between empty fields.
  *
  *  @see vrna_strtrim()
  *

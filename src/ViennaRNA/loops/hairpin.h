@@ -61,7 +61,7 @@
  *  conflict, this function returns #INF.
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
+ *        #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @param fc   The #vrna_fold_compound_t that stores all relevant model settings
  *  @param i    The 5' nucleotide of the base pair (3' to evaluate the pair as exterior hairpin loop)
@@ -79,7 +79,7 @@ vrna_E_hp_loop(vrna_fold_compound_t *fc,
  *          and consider possible hard constraints
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
+ *        #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  */
 int
@@ -101,7 +101,7 @@ vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,
  *  @brief Evaluate free energy of a hairpin loop
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
+ *        #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  *  @param  fc  The #vrna_fold_compound_t for the particular energy evaluation
  *  @param  i   5'-position of the base pair
@@ -130,13 +130,15 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
  *  where X-Y marks the closing pair [e.g. a <B>(G,C)</B> pair]. The length of this loop is 6 as there are
  *  six unpaired nucleotides (a1-a6) enclosed by (X,Y). The 5' mismatching nucleotide is
  *  a1 while the 3' mismatch is a6. The nucleotide sequence of this loop is &quot;a1.a2.a3.a4.a5.a6&quot; <BR>
+ *
  *  @note The parameter sequence should contain the sequence of the loop in capital letters of the nucleic acid
- *  alphabet if the loop size is below 7. This is useful for unusually stable tri-, tetra- and hexa-loops
- *  which are treated differently (based on experimental data) if they are tabulated.
- *  @see scale_parameters()
- *  @see vrna_param_t
- *  @warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
- *  Energy evaluation may change due to updates in global variable "tetra_loop"
+ *        alphabet if the loop size is below 7. This is useful for unusually stable tri-, tetra- and hexa-loops
+ *        which are treated differently (based on experimental data) if they are tabulated.
+ *
+ *  @see scale_parameters(), vrna_param_t
+ *
+ *  @warning  Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
+ *            Energy evaluation may change due to updates in global variable "tetra_loop"
  *
  *  @param  size  The size of the loop (number of unpaired nucleotides)
  *  @param  type  The pair type of the base pair closing the hairpin
@@ -225,12 +227,12 @@ E_Hairpin(int           size,
 /**
  *  @brief Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of a hairpin loop
  *
- *  multiply by scale[u+2]
- *  @see get_scaled_pf_parameters()
- *  @see vrna_exp_param_t
- *  @see E_Hairpin()
- *  @warning Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
- *  Energy evaluation may change due to updates in global variable "tetra_loop"
+ *  @note multiply by scale[u+2]
+ *
+ *  @see get_scaled_pf_parameters(), vrna_exp_param_t, E_Hairpin()
+ *
+ *  @warning  Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
+ *            Energy evaluation may change due to updates in global variable "tetra_loop"
  *
  *  @param  u       The size of the loop (number of unpaired nucleotides)
  *  @param  type    The pair type of the base pair closing the hairpin
@@ -319,7 +321,7 @@ exp_E_Hairpin(int               u,
  *  @see vrna_E_hp_loop() for it's free energy counterpart
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
+ *        #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  */
 FLT_OR_DBL
@@ -346,7 +348,7 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
  *  @brief Backtrack a hairpin loop closed by @f$ (i,j) @f$
  *
  *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *  #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
+ *        #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
  */
 int

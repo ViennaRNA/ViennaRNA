@@ -119,6 +119,7 @@ struct vrna_subopt_sol_s {
  *        @endcode
  *
  *  @see vrna_subopt_cb(), vrna_subopt_zuker()
+ *
  *  @param  fc
  *  @param  delta
  *  @param  sorted  Sort results by energy in ascending order
@@ -161,6 +162,7 @@ vrna_subopt(vrna_fold_compound_t  *fc,
  *        @endcode
  *
  *  @see vrna_subopt_result_f, vrna_subopt(), vrna_subopt_zuker()
+ *
  *  @param  fc      fold compount with the sequence data
  *  @param  delta   Energy band arround the MFE in 10cal/mol, i.e. deka-calories
  *  @param  cb      Pointer to a callback function that handles the backtracked structure and its free energy in kcal/mol
@@ -202,6 +204,7 @@ extern int subopt_sorted;
  *
  *  @pre  Call one of the functions subopt_par(), subopt() or subopt_circ() prior accessing the contents
  *        of this array
+ *
  *  @see  subopt_par(), subopt(), subopt_circ()
  *
  */

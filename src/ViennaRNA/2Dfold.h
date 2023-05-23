@@ -27,6 +27,7 @@
  *  @brief Compute the minimum free energy (MFE) and secondary structures for a partitioning of
  *  the secondary structure space according to the base pair distance to two fixed reference structures
  *  basepair distance to two fixed reference structures
+ *
  *  @see For further details, we refer to Lorenz et al. 2009 @cite lorenz:2009
  *
  *
@@ -99,8 +100,9 @@ vrna_mfe_TwoD(vrna_fold_compound_t  *fc,
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance
  * specified in vrna_mfe_TwoD() belong to.
- * @note The argument 'vars' must contain precalculated energy values in the energy matrices,
- * i.e. a call to vrna_mfe_TwoD() preceding this function is mandatory!
+ *
+ * @note  The argument 'vars' must contain precalculated energy values in the energy matrices,
+ *        i.e. a call to vrna_mfe_TwoD() preceding this function is mandatory!
  *
  * @see vrna_mfe_TwoD()
  *
@@ -317,8 +319,9 @@ DEPRECATED(TwoDfold_solution *
  * If the argument 'k' gets a value of -1, the structure that is backtracked is assumed to
  * reside in the distance class where all structures exceeding the maximum basepair distance
  * specified in TwoDfold() belong to.
- * @note The argument 'vars' must contain precalculated energy values in the energy matrices,
- * i.e. a call to TwoDfold() preceding this function is mandatory!
+ *
+ * @note  The argument 'vars' must contain precalculated energy values in the energy matrices,
+ *        i.e. a call to TwoDfold() preceding this function is mandatory!
  *
  *  @deprecated Use the new API that relies on #vrna_fold_compound_t and the corresponding functions
  *              vrna_fold_compound_TwoD(), vrna_mfe_TwoD(), vrna_backtrack5_TwoD(), and

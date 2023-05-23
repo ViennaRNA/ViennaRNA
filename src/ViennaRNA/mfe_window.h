@@ -68,6 +68,7 @@
  *  @parblock
  *  This function will be called for each hit in a sliding window MFE prediction.
  *  @endparblock
+ *
  *  @see vrna_mfe_window()
  *
  *  @param start provides the first position of the hit (1-based, relative to entire sequence/alignment)
@@ -209,8 +210,8 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *fc,
  *  matrices are not available any more for any post-processing.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe_window(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_mfe_window(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  @see  vrna_mfe_window(), vrna_Lfoldz(), vrna_mfe_window_zscore()
  *
@@ -246,8 +247,8 @@ vrna_Lfold_cb(const char                *string,
  *  printed.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe_window(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_mfe_window(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  @see  vrna_mfe_window_zscore(), vrna_Lfold(), vrna_mfe_window()
  *

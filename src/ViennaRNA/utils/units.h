@@ -57,6 +57,7 @@ typedef enum {
  *  @brief  Convert between energy / work units
  *
  *  @see #vrna_unit_energy_e
+ *
  *  @param  energy  Input energy value
  *  @param  from    Input unit
  *  @param  to      Output unit
@@ -72,6 +73,7 @@ vrna_convert_energy(double              energy,
  *  @brief  Convert between temperature units
  *
  *  @see #vrna_unit_temperature_e
+ *
  *  @param  temp    Input temperature value
  *  @param  from    Input unit
  *  @param  to      Output unit
@@ -91,6 +93,7 @@ vrna_convert_temperature(double                   temp,
  *  RNAlib.
  *
  *  @see vrna_convert_dcal_to_kcal()
+ *
  *  @param  energy  The energy value in kcal/mol
  *  @return         The energy value in deka-cal/mol
  */
@@ -105,6 +108,7 @@ vrna_convert_kcal_to_dcal(double energy);
  *  the corresponding floating point number in kcal/mol
  *
  *  @see vrna_convert_kcal_to_dcal()
+ *
  *  @param  energy  The energy in deka-cal/mol
  *  @return         The energy in kcal/mol
  */

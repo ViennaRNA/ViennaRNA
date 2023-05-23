@@ -22,26 +22,31 @@ typedef struct vrna_command_s *vrna_cmd_t;
 
 /**
  * @brief Command parse/apply flag indicating hard constraints
+ *
  * @see   #vrna_cmd_t, vrna_file_commands_read(), vrna_file_commands_apply(), vrna_commands_apply()
  */
 #define VRNA_CMD_PARSE_HC      1U
 /**
  * @brief Command parse/apply flag indicating soft constraints
+ *
  * @see   #vrna_cmd_t, vrna_file_commands_read(), vrna_file_commands_apply(), vrna_commands_apply()
  */
 #define VRNA_CMD_PARSE_SC      2U
 /**
  * @brief Command parse/apply flag indicating unstructured domains
+ *
  * @see   #vrna_cmd_t, vrna_file_commands_read(), vrna_file_commands_apply(), vrna_commands_apply()
  */
 #define VRNA_CMD_PARSE_UD      4U
 /**
  * @brief Command parse/apply flag indicating structured domains
+ *
  * @see   #vrna_cmd_t, vrna_file_commands_read(), vrna_file_commands_apply(), vrna_commands_apply()
  */
 #define VRNA_CMD_PARSE_SD      8U
 /**
  * @brief Command parse/apply flag indicating default set of commands
+ *
  * @see   #vrna_cmd_t, vrna_file_commands_read(), vrna_file_commands_apply(), vrna_commands_apply()
  */
 #define VRNA_CMD_PARSE_DEFAULTS (VRNA_CMD_PARSE_HC \

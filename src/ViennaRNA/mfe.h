@@ -140,8 +140,8 @@ DEPRECATED(float
  *  matrices are not available any more for any post-processing, e.g. suboptimal backtracking, etc.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_mfe(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  @see vrna_circfold(), vrna_mfe()
  *
@@ -167,8 +167,8 @@ vrna_fold(const char  *sequence,
  *  recursions. See @cite hofacker:2006 for further details.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_mfe(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  @see vrna_fold(), vrna_mfe()
  *
@@ -193,8 +193,8 @@ vrna_circfold(const char  *sequence,
  *  backtracking, etc.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_mfe(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  @see vrna_circalifold(), vrna_mfe()
  *
@@ -222,8 +222,8 @@ vrna_alifold(const char **sequences,
  *  recursions. See @cite hofacker:2006 for further details.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_mfe(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  @see vrna_alifold(), vrna_mfe()
  *
@@ -247,8 +247,8 @@ vrna_circalifold(const char **sequences,
  *  backtracking, etc.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_mfe(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_mfe(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  @deprecated This function is obsolete since vrna_mfe()/vrna_fold() can handle complexes multiple
  *              sequences since v2.5.0. Use vrna_mfe()/vrna_fold() for connected component MFE instead

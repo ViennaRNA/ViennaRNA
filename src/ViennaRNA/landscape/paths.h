@@ -66,12 +66,14 @@ DEPRECATED(typedef struct vrna_path_s path_t,
 
 /**
  *  @brief  Flag to indicate producing a (re-)folding path as list of dot-bracket structures
+ *
  *  @see    #vrna_path_t, vrna_path_options_findpath(), vrna_path_direct(), vrna_path_direct_ub()
  */
 #define   VRNA_PATH_TYPE_DOT_BRACKET    1U
 
 /**
  *  @brief  Flag to indicate producing a (re-)folding path as list of transition moves
+ *
  *  @see    #vrna_path_t, vrna_path_options_findpath(), vrna_path_direct(), vrna_path_direct_ub()
  */
 #define   VRNA_PATH_TYPE_MOVES          2U
@@ -126,6 +128,7 @@ struct vrna_path_s {
  *  @brief    Release (free) memory occupied by a (re-)folding path
  *
  *  @see      vrna_path_direct(), vrna_path_direct_ub(), vrna_path_findpath(), vrna_path_findpath_ub()
+ *
  *  @param    path    The refolding path to be free'd
  */
 void
@@ -134,6 +137,7 @@ vrna_path_free(vrna_path_t *path);
 
 /**
  *  @brief  Release (free) memory occupied by an options data structure for (re-)folding path implementations
+ *
  *  @see    vrna_path_options_findpath(), vrna_path_direct(), vrna_path_direct_ub()
  *
  *  @param  options   The options data structure to be free'd

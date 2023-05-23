@@ -130,12 +130,11 @@ struct vrna_multimer_pf_s {
  *
  *  @note This function is polymorphic. It accepts #vrna_fold_compound_t of type
  *        #VRNA_FC_TYPE_SINGLE, and #VRNA_FC_TYPE_COMPARATIVE.
- *
- *  @note This function may return #INF / 100. in case of contradicting constraints
+ *        Also, this function may return #INF / 100. in case of contradicting constraints
  *        or numerical over-/underflow. In the latter case, a corresponding warning
  *        will be issued to @p stdout.
  *
- *  @see #vrna_fold_compound_t, vrna_fold_compound(), vrna_pf_fold(), vrna_pf_circfold(),
+ *  @see  #vrna_fold_compound_t, vrna_fold_compound(), vrna_pf_fold(), vrna_pf_circfold(),
  *        vrna_fold_compound_comparative(), vrna_pf_alifold(), vrna_pf_circalifold(),
  *        vrna_db_from_probs(), vrna_exp_params(), vrna_aln_pinfo()
  *
@@ -199,10 +198,10 @@ vrna_pf_add(FLT_OR_DBL  dG1,
  *  this function, the recursively filled matrices are not available any more for any post-processing.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_pf(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_pf(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
- *  @see vrna_pf_circfold(), vrna_pf(), vrna_fold_compound(), #vrna_fold_compound_t
+ *  @see  vrna_pf_circfold(), vrna_pf(), vrna_fold_compound(), #vrna_fold_compound_t
  *
  *  @param sequence   RNA sequence
  *  @param structure  A pointer to the character array where position-wise pairing propensity
@@ -226,8 +225,8 @@ vrna_pf_fold(const char *sequence,
  *  this function, the recursively filled matrices are not available any more for any post-processing.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_pf(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_pf(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  Folding of circular RNA sequences is handled as a post-processing step of the forward
  *  recursions. See @cite hofacker:2006 for further details.
@@ -256,8 +255,8 @@ vrna_pf_circfold(const char *sequence,
  *  this function, the recursively filled matrices are not available any more for any post-processing.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_pf(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_pf(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  @see vrna_pf_circalifold(), vrna_pf(), vrna_fold_compound_comparative(), #vrna_fold_compound_t
  *
@@ -283,8 +282,8 @@ vrna_pf_alifold(const char  **sequences,
  *  this function, the recursively filled matrices are not available any more for any post-processing.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
- *  you require other conditions than specified by the default model details, use vrna_pf(),
- *  and the data structure #vrna_fold_compound_t instead.
+ *        you require other conditions than specified by the default model details, use vrna_pf(),
+ *        and the data structure #vrna_fold_compound_t instead.
  *
  *  Folding of circular RNA sequences is handled as a post-processing step of the forward
  *  recursions. See @cite hofacker:2006 for further details.
@@ -353,6 +352,7 @@ vrna_pf_co_fold(const char  *seq,
  *  @ingroup  pf_fold
  *
  *  @see #FLT_OR_DBL
+ *
  *  @return  1 if single precision is used, 0 otherwise
  */
 int
@@ -406,12 +406,15 @@ extern int st_back;
  *  @note           The global array #pr is deprecated and the user who wants the calculated
  *                  base pair probabilities for further computations is advised to use the function
  *                  export_bppm()
+ *
  *  @post           After successful run the hidden folding matrices are filled with the appropriate Boltzmann factors.
  *                  Depending on whether the global variable #do_backtrack was set the base pair probabilities are already
  *                  computed and may be accessed for further usage via the export_bppm() function.
  *                  A call of free_pf_arrays() will free all memory allocated by this function.
  *                  Successive calls will first free previously allocated memory before starting the computation.
+ *
  *  @see            vrna_pf(), bppm_to_structure(), export_bppm(), vrna_exp_params(), free_pf_arrays()
+ *
  *  @param[in]      sequence        The RNA sequence input
  *  @param[in,out]  structure       A pointer to a char array where a base pair probability information can be stored in a
  *                                  pseudo-dot-bracket notation (may be NULL, too)
@@ -452,19 +455,23 @@ DEPRECATED(float
  *
  *  @note   The global array #pr is deprecated and the user who wants the calculated
  *          base pair probabilities for further computations is advised to use the function
- *          export_bppm().
- *  @note   @b OpenMP:
+ *          export_bppm().<br>
+ *          @b OpenMP:
  *          This function is not entirely threadsafe. While the recursions are working on their
  *          own copies of data the model details for the recursions are determined from the global
  *          settings just before entering the recursions. Consider using pf_fold_par() for a
  *          really threadsafe implementation.
+ *
  *  @pre    This function takes its model details from the global variables provided in @e RNAlib
+ *
  *  @post   After successful run the hidden folding matrices are filled with the appropriate Boltzmann factors.
  *          Depending on whether the global variable #do_backtrack was set the base pair probabilities are already
  *          computed and may be accessed for further usage via the export_bppm() function.
  *          A call of free_pf_arrays() will free all memory allocated by this function.
  *          Successive calls will first free previously allocated memory before starting the computation.
+ *
  *  @see    pf_fold_par(), pf_circ_fold(), bppm_to_structure(), export_bppm()
+ *
  *  @param sequence   The RNA sequence input
  *  @param structure  A pointer to a char array where a base pair probability information can be stored in a pseudo-dot-bracket notation (may be NULL, too)
  *  @return           The ensemble free energy @f$G = -RT \cdot \log(Q) @f$ in kcal/mol
@@ -481,20 +488,25 @@ DEPRECATED(float
  *
  *  @note           The global array #pr is deprecated and the user who wants the calculated
  *                  base pair probabilities for further computations is advised to use the function
- *                  export_bppm().
- *  @note           @b OpenMP:
+ *                  export_bppm().<br>
+ *                  @b OpenMP:
  *                  This function is not entirely threadsafe. While the recursions are working on their
  *                  own copies of data the model details for the recursions are determined from the global
  *                  settings just before entering the recursions. Consider using pf_fold_par() for a
  *                  really threadsafe implementation.
+ *
  *  @pre            This function takes its model details from the global variables provided in @e RNAlib
+ *
  *  @post           After successful run the hidden folding matrices are filled with the appropriate Boltzmann factors.
  *                  Depending on whether the global variable #do_backtrack was set the base pair probabilities are already
  *                  computed and may be accessed for further usage via the export_bppm() function.
  *                  A call of free_pf_arrays() will free all memory allocated by this function.
  *                  Successive calls will first free previously allocated memory before starting the computation.
+ *
  *  @see            vrna_pf()
+ *
  *  @deprecated     Use vrna_pf() instead!
+ *
  *  @param[in]      sequence   The RNA sequence input
  *  @param[in,out]  structure  A pointer to a char array where a base pair probability information can be
  *                  stored in a pseudo-dot-bracket notation (may be NULL, too)
@@ -508,8 +520,8 @@ DEPRECATED(float
 /**
  *  @brief Sample a secondary structure from the Boltzmann ensemble according its probability
  *
- *  @pre    #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()
- *  @pre    pf_fold_par() or pf_fold() have to be called first to fill the partition function matrices
+ *  @pre  #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()<br>
+ *        pf_fold_par() or pf_fold() have to be called first to fill the partition function matrices
  *
  *  @ingroup subopt_stochbt_deprecated
  *
@@ -531,8 +543,8 @@ DEPRECATED(char *pbacktrack5(char *sequence,
  *
  *  This function does the same as @ref pbacktrack() but assumes the RNA molecule to be circular
  *
- *  @pre    #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()
- *  @pre    pf_fold_par() or pf_circ_fold() have to be called first to fill the partition function matrices
+ *  @pre  #st_back has to be set to 1 before calling pf_fold() or pf_fold_par()<br>
+ *        pf_fold_par() or pf_circ_fold() have to be called first to fill the partition function matrices
  *
  *  @deprecated Use vrna_pbacktrack() instead.
  *
@@ -549,8 +561,8 @@ DEPRECATED(char *pbacktrack_circ(char *sequence), "Use vrna_pbacktrack() instead
  *  Call this function if you want to free all allocated memory associated with
  *  the partition function forward recursion.
  *  @note Successive calls of pf_fold(), pf_circ_fold() already check if they should free
- *  any memory from a previous run.
- *  @note <b>OpenMP notice:</b><br>
+ *  any memory from a previous run.<br>
+ *  <b>OpenMP notice:</b><br>
  *  This function should be called before leaving a thread in order to avoid leaking memory
  *
  *  @deprecated See vrna_fold_compound_t and its related functions for how to free memory
@@ -559,6 +571,7 @@ DEPRECATED(char *pbacktrack_circ(char *sequence), "Use vrna_pbacktrack() instead
  *  @ingroup part_func_global_deprecated
  *
  *  @post   All memory allocated by pf_fold_par(), pf_fold() or pf_circ_fold() will be free'd
+ *
  *  @see    pf_fold_par(), pf_fold(), pf_circ_fold()
  */
 DEPRECATED(void
@@ -618,7 +631,9 @@ DEPRECATED(FLT_OR_DBL * export_bppm(void),
  *  @ingroup part_func_global_deprecated
  *
  *  @pre        In order to assign meaningful pointers, you have to call pf_fold_par() or pf_fold() first!
+ *
  *  @see        pf_fold_par(), pf_fold(), pf_circ_fold()
+ *
  *  @param[out] S_p       A pointer to the 'S' array (integer representation of nucleotides)
  *  @param[out] S1_p      A pointer to the 'S1' array (2nd integer representation of nucleotides)
  *  @param[out] ptype_p   A pointer to the pair type matrix
@@ -655,6 +670,7 @@ DEPRECATED(double
  *  @ingroup part_func_global_deprecated
  *
  *  @deprecated Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead!
+ *
  *  @see vrna_mean_bp_distance(), vrna_mean_bp_distance_pr()
  *
  *  @param    length
@@ -708,6 +724,7 @@ DEPRECATED(void
 
 /**
  *  @deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
+ *
  *  @see get_centroid_struct_pl(), get_centroid_struct_pr()
  */
 DEPRECATED(char *centroid(int length,
@@ -716,6 +733,7 @@ DEPRECATED(char *centroid(int length,
 
 /**
  *  @deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
+ *
  *  @see vrna_centroid(), vrna_centroid_from_probs(), vrna_centroid_from_plist()
  */
 DEPRECATED(char *get_centroid_struct_gquad_pr(int length,

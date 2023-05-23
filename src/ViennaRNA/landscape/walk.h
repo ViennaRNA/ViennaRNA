@@ -19,24 +19,28 @@
 
 /**
  * @brief Option flag to request a steepest descent / gradient path
+ *
  * @see   vrna_path()
  */
 #define  VRNA_PATH_STEEPEST_DESCENT 128
 
 /**
  * @brief Option flag to request a random walk path
+ *
  * @see   vrna_path()
  */
 #define  VRNA_PATH_RANDOM           256
 
 /**
  * @brief Option flag to omit returning the transition path
+ *
  * @see   vrna_path(), vrna_path_gradient(), vrna_path_random()
  */
 #define  VRNA_PATH_NO_TRANSITION_OUTPUT          512
 
 /**
  * @brief Option flag to request defaults (steepest descent / default move set)
+ *
  * @see   vrna_path(), #VRNA_PATH_STEEPEST_DESCENT, #VRNA_MOVESET_DEFAULT
  */
 

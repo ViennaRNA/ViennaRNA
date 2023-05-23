@@ -27,6 +27,7 @@ typedef struct  vrna_mx_pf_s vrna_mx_pf_t;
 /**
  *  @brief  An enumerator that is used to specify the type of a polymorphic Dynamic Programming (DP)
  *  matrix data structure
+ *
  *  @see #vrna_mx_mfe_t, #vrna_mx_pf_t
  */
 typedef enum {
@@ -372,13 +373,13 @@ struct {
  *  required for RNA-RNA interaction prediction.
  *
  *  @note Usually, there is no need to call this function, since
- *  the constructors of #vrna_fold_compound_t are handling all the DP
- *  matrix memory allocation.
+ *        the constructors of #vrna_fold_compound_t are handling all the DP
+ *        matrix memory allocation.
  *
- *  @see vrna_mx_mfe_add(), vrna_mx_pf_add(), vrna_fold_compound(),
- *  vrna_fold_compound_comparative(), vrna_fold_compound_free(),
- *  vrna_mx_pf_free(), vrna_mx_mfe_free(), #vrna_mx_type_e,
- *  #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_HYBRID, #VRNA_OPTION_EVAL_ONLY
+ *  @see  vrna_mx_mfe_add(), vrna_mx_pf_add(), vrna_fold_compound(),
+ *        vrna_fold_compound_comparative(), vrna_fold_compound_free(),
+ *        vrna_mx_pf_free(), vrna_mx_mfe_free(), #vrna_mx_type_e,
+ *        #VRNA_OPTION_MFE, #VRNA_OPTION_PF, #VRNA_OPTION_HYBRID, #VRNA_OPTION_EVAL_ONLY
  *
  *  @param  fc      The #vrna_fold_compound_t that holds pointers to the DP matrices
  *  @param  type    The type of DP matrices requested

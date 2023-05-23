@@ -148,8 +148,8 @@ vrna_file_json(const char *seq,
  *  current dataset. Filling of 'rest' may be prevented by passing #VRNA_INPUT_NO_REST to the
  *  options argument.\n
  *
- *  @note This function will exit any program with an error message if no sequence could be read!
- *  @note This function is NOT threadsafe! It uses a global variable to store information about
+ *  @note This function will exit any program with an error message if no sequence could be read!<br>
+ *  This function is NOT threadsafe! It uses a global variable to store information about
  *  the next data block.
  *
  *  The main purpose of this function is to be able to easily parse blocks of data
@@ -207,6 +207,7 @@ vrna_file_fasta_read_record(char          **header,
  *
  * @pre      The argument 'lines' has to be a 2-dimensional character array as obtained
  *            by vrna_file_fasta_read_record()
+ *
  * @see vrna_file_fasta_read_record()
  *
  * @param lines   The (multiline) character array to be parsed
@@ -266,8 +267,10 @@ vrna_file_RNAstrand_db_read_record(FILE         *fp,
  *  @brief  Extract a hard constraint encoded as pseudo dot-bracket string
  *
  *  @deprecated     Use vrna_extract_record_rest_structure() instead!
+ *
  *  @pre      The argument 'lines' has to be a 2-dimensional character array as obtained
  *            by vrna_file_fasta_read_record()
+ *
  *  @see      vrna_file_fasta_read_record(), #VRNA_CONSTRAINT_DB_PIPE, #VRNA_CONSTRAINT_DB_DOT, #VRNA_CONSTRAINT_DB_X
  *            #VRNA_CONSTRAINT_DB_ANG_BRACK, #VRNA_CONSTRAINT_DB_RND_BRACK
  *

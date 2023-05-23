@@ -65,6 +65,7 @@ DEPRECATED(float
  *  See vrna_mfe_dimer() for how to use the new API
  *
  *  @note folding matrices now reside in the fold compound, and should be free'd there
+ *
  *  @see  vrna_fc_destroy(), vrna_mfe_dimer()
  *
  *  @ingroup mfe_global_deprecated

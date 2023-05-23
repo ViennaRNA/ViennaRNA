@@ -104,6 +104,7 @@ typedef void (*progress_callback)(int     iteration,
  *  pairing probabilities closer to the experimentally observed probabilities.
  *  The algorithm aims to minimize an objective function that penalizes discripancies between predicted and observed pairing probabilities and energy model adjustments,
  *  i.e. an appropriate vector of perturbation energies satisfies
+ *
  *  @f[
  *  F(\vec\epsilon) = \sum_{\mu}{ \frac{\epsilon_{\mu}^2}{\tau^2} } + \sum_{i =
  *  1}^n{ \frac{(p_i(\vec\epsilon) - q_i)^2}{\sigma^2} } \to \min.
@@ -121,6 +122,7 @@ typedef void (*progress_callback)(int     iteration,
  *  The progress of the minimization process can be tracked by implementing and passing a callback function.
  *
  *  @see For further details we refere to @cite washietl:2012.
+ *
  *  @ingroup perturbation
  *
  *  @param fc                 Pointer to a fold compound

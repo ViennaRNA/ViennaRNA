@@ -92,8 +92,8 @@ vrna_E_ml_stems_fast(vrna_fold_compound_t *fc,
 /**
  *  @brief  Auxiliary helper arrays for fast exterior loop computations
  *
- *  @see vrna_exp_E_ml_fast_init(), vrna_exp_E_ml_fast_rotate(),
- *  vrna_exp_E_ml_fast_free(), vrna_exp_E_ml_fast()
+ *  @see  vrna_exp_E_ml_fast_init(), vrna_exp_E_ml_fast_rotate(),
+ *        vrna_exp_E_ml_fast_free(), vrna_exp_E_ml_fast()
  */
 typedef struct vrna_mx_pf_aux_ml_s *vrna_mx_pf_aux_ml_t;
 
@@ -207,6 +207,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
  *  -1 to these parameters.
  *
  *  @see    E_Stem()
+ *
  *  @param  A The pair type of the stem-closing pair
  *  @param  B The 5'-mismatching nucleotide
  *  @param  C The 3'-mismatching nucleotide
@@ -240,7 +241,9 @@ E_MLstem(int          type,
 /**
  *  @def exp_E_MLstem(A,B,C,D)
  *  This is the partition function variant of @ref E_MLstem()
+ *
  *  @see E_MLstem()
+ *
  *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
 PRIVATE INLINE FLT_OR_DBL

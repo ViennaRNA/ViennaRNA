@@ -17,24 +17,28 @@
 
 /**
  *  @brief  Option flag indicating ClustalW formatted files
+ *
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_CLUSTAL      1U
 
 /**
  *  @brief Option flag indicating Stockholm 1.0 formatted files
+ *
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_STOCKHOLM    2U
 
 /**
  *  @brief Option flag indicating FASTA (Pearson) formatted files
+ *
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_FASTA        4U
 
 /**
  *  @brief Option flag indicating MAF formatted files
+ *
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_MAF          8U
@@ -51,6 +55,7 @@
 
 /**
  *  @brief Option flag indicating the set of default file formats
+ *
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record(), vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_DEFAULT      ( \
@@ -62,30 +67,35 @@
 
 /**
  *  @brief Option flag to disable validation of the alignment
+ *
  *  @see  vrna_file_msa_read(), vrna_file_msa_read_record()
  */
 #define VRNA_FILE_FORMAT_MSA_NOCHECK      4096U
 
 /**
  *  @brief Return flag of vrna_file_msa_detect_format() to indicate unknown or malformatted alignment
+ *
  *  @see vrna_file_msa_detect_format()
  */
 #define VRNA_FILE_FORMAT_MSA_UNKNOWN      8192U
 
 /**
  *  @brief Option flag indicating to append data to a multiple sequence alignment file rather than overwriting it
+ *
  *  @see vrna_file_msa_write()
  */
 #define VRNA_FILE_FORMAT_MSA_APPEND       16384U
 
 /**
  *  @brief Option flag to suppress unnecessary spam messages on <tt>stderr</tt>
+ *
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record()
  */
 #define VRNA_FILE_FORMAT_MSA_QUIET        32768U
 
 /**
  *  @brief Option flag to completely silence any warnings on <tt>stderr</tt>
+ *
  *  @see vrna_file_msa_read(), vrna_file_msa_read_record()
  */
 #define VRNA_FILE_FORMAT_MSA_SILENT       65536U
@@ -116,9 +126,8 @@
  *        a validation of the data that includes uniqueness of the sequence
  *        identifiers, and equal sequence lengths. This check can be
  *        deactivated by passing #VRNA_FILE_FORMAT_MSA_NOCHECK in the
- *        @p options parameter.
- *
- *  @note It is the users responsibility to free any memory occupied by
+ *        @p options parameter.<br>
+ *        It is the users responsibility to free any memory occupied by
  *        the output arguments @p names, @p aln, @p id, and @p structure
  *        after calling this function. The function automatically sets the
  *        latter two arguments to <tt>NULL</tt> in case no corresponding
@@ -181,9 +190,8 @@ vrna_file_msa_read(const char   *filename,
  *        a validation of the data that includes uniqueness of the sequence
  *        identifiers, and equal sequence lengths. This check can be
  *        deactivated by passing #VRNA_FILE_FORMAT_MSA_NOCHECK in the
- *        @p options parameter.
- *
- *  @note It is the users responsibility to free any memory occupied by
+ *        @p options parameter.<br>
+ *        It is the users responsibility to free any memory occupied by
  *        the output arguments @p names, @p aln, @p id, and @p structure
  *        after calling this function. The function automatically sets the
  *        latter two arguments to <tt>NULL</tt> in case no corresponding

@@ -110,8 +110,8 @@ vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
 /**
  *  @brief  Auxiliary helper arrays for fast exterior loop computations
  *
- *  @see vrna_exp_E_ext_fast_init(), vrna_exp_E_ext_fast_rotate(),
- *  vrna_exp_E_ext_fast_free(), vrna_exp_E_ext_fast()
+ *  @see  vrna_exp_E_ext_fast_init(), vrna_exp_E_ext_fast_rotate(),
+ *        vrna_exp_E_ext_fast_free(), vrna_exp_E_ext_fast()
  */
 typedef struct vrna_mx_pf_aux_el_s *vrna_mx_pf_aux_el_t;
 
@@ -249,9 +249,9 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
  *  In case the argument extLoop is 0, the returned energy contribution also includes
  *  the <I>internal-loop-penalty</I> of a multiloop stem with closing pair type.
  *
- *  @see    E_MLstem()
- *  @see    E_ExtLoop()
  *  @note   This function is threadsafe
+ *
+ *  @see    E_MLstem(), _ExtLoop()
  *
  *  @deprecated     Please use one of the functions vrna_E_ext_stem() and
  *                  E_MLstem() instead! Use the former for cases where @p extLoop != 0
@@ -285,6 +285,7 @@ DEPRECATED(int E_ExtLoop(int          type,
  *  @deprecated Use vrna_exp_E_ext_stem() instead!
  *
  *  @see E_ExtLoop()
+ *
  *  @return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
  */
 DEPRECATED(FLT_OR_DBL exp_E_ExtLoop(int               type,
@@ -297,8 +298,10 @@ DEPRECATED(FLT_OR_DBL exp_E_ExtLoop(int               type,
 /**
  *  <H2>Compute the Boltzmann weighted energy contribution of a stem branching off a loop-region</H2>
  *  This is the partition function variant of @ref E_Stem()
- *  @see E_Stem()
+ *
  *  @note This function is threadsafe
+ *
+ *  @see E_Stem()
  *
  *  @return The Boltzmann weighted energy contribution of the branch off the loop
  */

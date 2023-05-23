@@ -44,6 +44,7 @@
  *  @parblock
  *  This function will be called for each evaluated temperature in the heat capacity prediction.
  *  @endparblock
+ *
  *  @see vrna_heat_capacity_cb()
  *
  *  @param temp           The current temperature this results corresponds to in &deg;C

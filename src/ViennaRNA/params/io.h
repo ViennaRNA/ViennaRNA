@@ -29,6 +29,7 @@
 
 /**
  *  @brief  Default Energy Parameter File format
+ *
  *  @see    vrna_params_load(), vrna_params_load_from_string(),
  *          vrna_params_save()
  */
