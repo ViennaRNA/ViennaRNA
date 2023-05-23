@@ -81,6 +81,8 @@ documentation.i: $(srcdir)/../classify.csv
       -t \
       -a \
       -c \
+      -w 100 \
+      -q \
       $(top_builddir)/doc/xml/index.xml \
       documentation.i
 
