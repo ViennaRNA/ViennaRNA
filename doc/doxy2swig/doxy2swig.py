@@ -155,6 +155,9 @@ class Doxy2SWIG:
 
         self.space_re = re.compile(r'\s+')
         self.lead_spc = re.compile(r'^(%feature\S+\s+\S+\s*?)"\s+(\S)')
+        self.math_block_re = re.compile(r'\\\[(.*?)\\\]', re.MULTILINE | re.DOTALL)
+        self.math_inline_re = re.compile(r'\$(.*?)\$')
+
         self.multi = 0
         self.ignores = ['inheritancegraph', 'param', 'listofallmembers',
                         'innerclass', 'name', 'declname', 'incdepgraph',
@@ -194,35 +197,16 @@ class Doxy2SWIG:
     def parse_Text(self, node):
         txt = node.data
         if txt == ' ':
-            # this can happen when two tags follow in a text, e.g.,
-            # " ...</emph> <formaula>$..." etc.
-            # here we want to keep the space.
-            self.add_text(txt)
+        #    # this can happen when two tags follow in a text, e.g.,
+        #    # " ...</emph> <formaula>$..." etc.
+        #    # here we want to keep the space.
+        #    self.add_text(txt)
             return
         txt = txt.replace('\\', r'\\')
         txt = txt.replace('"', r'\"')
+
         # ignore pure whitespace
         m = self.space_re.match(txt)
-        # remove 'vrna_' prefixes
-        # kind = node.attributes #['kind'].value
-        #print("type" + str(node.nodeType) + " " + str(node.ELEMENT_NODE))
-        #if node.attributes:
-        #    print("kind: " + kind)
-        #print("parsing text:"  + txt)
-        #if len(self.prefixes) > 0:
-        #    print("known prefixes: " + "\t".join([p for p in self.prefixes]))
-        #    print("prefix name: " + self.prefix_name)
-        #    prefix = r''
-        #    if self.prefix_name != "":
-        #        prefix += self.prefix_name + r'.'
-        #    for p in self.prefixes:
-        #        txt = txt.replace(p, prefix)
-        #if len(self.suffixes) > 0:
-        #    print("known suffixes: " + "\t".join([s for s in self.suffixes]))
-        #    # remove suffixes
-        #    for s in self.suffixes:
-        #        txt = re.sub(re.escape(s) + r'\b', r'', txt)
-        #print("becomes:"  + txt)
 
         if not (m and len(m.group()) == len(txt)):
             self.add_text(txt)
@@ -569,6 +553,39 @@ class Doxy2SWIG:
         self.subnode_parse(node)
         self.add_text('\n')
 
+    def do_formula(self, node):
+        if len(node.childNodes) == 1:
+            f = node.childNodes[0].data
+            # check whether this is an inline formula or block formula
+            m = self.math_block_re.match(f)
+            if m:
+                ff = m.group(1)
+                # remove any trailing whitespaces
+                ff = re.sub(r'^\s+', '', ff)
+                ff = re.sub(r'\s+$', '', ff)
+                # workaround for suffix replacement in do_para()
+                ff = re.sub(r'_([a-zA-Z0-9]|\\\w+)', r'_{\1}', ff)
+                self.start_new_paragraph()
+                node.childNodes[0].data = ff
+                self.add_text('.. math::\n\n')
+                self.subnode_parse(node, indent = 2)
+                self.add_text('\n')
+                return
+
+            m = self.math_inline_re.match(f)
+            if m:
+                ff = m.group(1)
+                # remove any trailing whitespaces
+                ff = re.sub(r'^\s+', '', ff)
+                ff = re.sub(r'\s+$', '', ff)
+                # workaround for suffix replacement in do_para()
+                ff = re.sub(r'_([a-zA-Z0-9]|\\\w+)', r'_{\1}', ff)
+                node.childNodes[0].data = ff
+                self.surround_parse(node, ':math:`', '`')
+                return
+
+        self.subnode_parse(node)
+
 # MARK: Para tag handler
     def do_para(self, node):
         """This is the only place where text wrapping is automatically performed.
@@ -607,20 +624,9 @@ class Doxy2SWIG:
             if dont_end_paragraph:
                 wrapped_para.append('')
 
-        # print("parsing text:"  + " ".join([w for w in wrapped_para]))
         for i in range(len(wrapped_para)):
-            if len(self.prefixes) > 0:
-                #print("known prefixes: " + "\t".join([p for p in self.prefixes]))
-                #print("prefix name: " + self.prefix_name)
-                prefix = r''
-                if self.prefix_name != "":
-                    prefix += self.prefix_name + r'.'
-                for p in self.prefixes:
-                    wrapped_para[i] = wrapped_para[i].replace(p, prefix)
             if len(self.suffixes) > 0:
-                #print("known suffixes: " + "\t".join([s for s in self.suffixes]))
                 # remove suffixes
-                # print("known constructor suffixes: " + "\t".join([s for s in self.constructor_suffixes]))
                 for s in self.suffixes:
                     if s in self.constructor_suffixes:
                         repl = r'()'
@@ -628,9 +634,12 @@ class Doxy2SWIG:
                         repl = r''
 
                     wrapped_para[i] = re.sub(re.escape(s) + r'\b', repl, wrapped_para[i])
-
-        # print("becomes:"  + " ".join([w for w in wrapped_para]))
-
+            if len(self.prefixes) > 0:
+                prefix = r''
+                if self.prefix_name != "":
+                    prefix += self.prefix_name + r'.'
+                for p in self.prefixes:
+                    wrapped_para[i] = wrapped_para[i].replace(p, prefix)
 
         pieces.extend(wrapped_para)
         self.pieces = pieces
@@ -668,10 +677,11 @@ class Doxy2SWIG:
         self.subnode_parse(node, item, indent=4)
 
     def do_xrefsect(self, node):
+        self.start_new_paragraph()
         title = self.extract_text(self.get_specific_subnodes(node, 'xreftitle'))
         self.add_text(['\n**', title, ':**\n'])
         for nn in self.get_specific_subnodes(node, 'xrefdescription'):
-            self.subnode_parse(nn)
+            self.subnode_parse(nn, indent=0)
 
 # MARK: Parameter list tag handlers
     def do_parameterlist(self, node):
@@ -756,10 +766,17 @@ class Doxy2SWIG:
         self.start_new_paragraph()
         if kind == 'note':
             self.subnode_parse(node, pieces=['Notes', '\n', len('Notes') * '-','\n', ''], indent=0)
-        if kind == 'warning':
-            self.subnode_parse(node, pieces=['**Warning**: ',''], indent=4)
+            #self.subnode_parse(node, pieces=['**Notes**', '\n',''], indent=4)
+        elif kind == 'warning':
+            self.subnode_parse(node, pieces=['**Warning**', '\n',''], indent=4)
         elif kind == 'see':
-            self.subnode_parse(node, pieces=['See also: ',''], indent=4)
+            self.subnode_parse(node, pieces=['**See also**', '\n',''], indent=4)
+        elif kind == 'pre':
+            self.subnode_parse(node, pieces=['**Precondition**', '\n',''], indent=4)
+        elif kind == 'post':
+            self.subnode_parse(node, pieces=['**Postcondition**', '\n',''], indent=4)
+        elif kind == 'deprecated':
+            self.subnode_parse(node, pieces=['**Deprecated**', '\n',''], indent=4)
         elif kind == 'return':
             if self.indent == 0:
                 pieces = ['Returns', '\n', len('Returns') * '-', '\n', '']
