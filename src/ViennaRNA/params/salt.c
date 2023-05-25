@@ -191,13 +191,14 @@ vrna_salt_duplex_init(double salt)
 {
 	double a, x, penalty;
 
-	x = log10(salt/VRNA_MODEL_DEFAULT_SALT);
+	x = log(salt/VRNA_MODEL_DEFAULT_SALT);
 		/* Converged duplex init correction */
 		/* a = -1.25480589; */
 		/* double b = -0.05306256; */
 		/* int c = 160; */
 		/* penalty = -exp(a*x*x+b*x+log(c)) + c; */
-  a = -100.14040781;
+  /* a = -100.14040781; */
+	a = -45.3244975;
 	penalty = a*x;
 	return roundint(penalty);
 }
