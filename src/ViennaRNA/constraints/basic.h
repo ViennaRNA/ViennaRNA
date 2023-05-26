@@ -103,7 +103,7 @@
 /**
  *  @brief  Indicate generation of constraints for MFE folding
  *
- *  @deprecated   This flag has no meaning anymore, since constraints are now always stored!
+ *  @deprecated   This flag has no meaning anymore, since constraints are now always stored! (since v2.2.6)
  *
  *  @ingroup  constraints
  *

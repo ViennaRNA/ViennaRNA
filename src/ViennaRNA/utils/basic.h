@@ -470,28 +470,28 @@ DEPRECATED(void print_tty_input_seq_str(const char *s), "Use vrna_message_input_
  *
  *  Print a warning message to @e stderr
  *
- *  @deprecated Use vrna_message_warning() instead!
+ *  @deprecated Use vrna_message_warning() instead! (since v2.3.0)
  */
 DEPRECATED(void warn_user(const char message[]), "Use vrna_message_warning() instead");
 
 /**
  *  @brief Die with an error message
  *
- *  @deprecated Use vrna_message_error() instead!
+ *  @deprecated Use vrna_message_error() instead! (since v2.3.0)
  */
 DEPRECATED(void nrerror(const char message[]), "Use vrna_message_error() instead()");
 
 /**
  *  @brief Allocate space safely
  *
- *  @deprecated Use vrna_alloc() instead!
+ *  @deprecated Use vrna_alloc() instead! (since v2.2.0)
  */
 DEPRECATED(void *space(unsigned size), "Use vrna_alloc() instead");
 
 /**
  *  @brief Reallocate space safely
  *
- *  @deprecated Use vrna_realloc() instead!
+ *  @deprecated Use vrna_realloc() instead! (since v2.2.0)
  */
 DEPRECATED(void *xrealloc(void      *p,
                           unsigned  size), "Use vrna_realloc() instead");
