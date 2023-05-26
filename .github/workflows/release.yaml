@@ -1,0 +1,42 @@
+name: Version release
+
+on:
+  push:
+    branches:
+      - dev_github
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v3
+    - name: install prerequisites
+      run:  sudo apt-get -y install build-essential autoconf automake swig doxygen gengetopt help2man yacc flex libtool check liblapacke liblapacke-dev python2 python2-dev graphviz doxygen-latex
+    - name: autotools setup
+      run:  autoreconf -i
+    - name: extract dlib
+      run:  tar -xjf src/dlib-19.24.tar.bz2 -C src
+    - name: extract libsvm
+      run:  tar -xzf src/libsvm-3.31.tar.gz -C src
+    - name: configure
+      run: ./configure --with-cluster --with-kinwalker
+    - name: distcheck
+      run:  make distcheck
+    - name: make tarballs
+      run: make clean && make dist-gzip && make dist-zip
+    - name: Extract release notes
+      id: extract-release-notes
+      uses: RaumZeit/extract-release-notes@a991ec1541871118630638fe002862a023870cff
+      with:
+        header_level: 3
+        version_prefix: "Version"
+    - name: Make release
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "ViennaRNA-*.tar.gz,ViennaRNA-*.zip"
+        body: ${{ steps.extract-release-notes.outputs.release_notes }}
