@@ -1,0 +1,36 @@
+# .readthedocs.yaml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+# Required
+version: 2
+
+# Set the version of Python and other tools you might need
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.10"
+  apt_packages:
+    - autoconf
+    - automake
+    - build-essential
+    - doxygen
+    - swig
+    - libtool
+    - python3-myst-parser
+  jobs:
+    pre_build:
+      - tar -xjf src/dlib-19.24.tar.bz2 -C src/
+      - tar -xzf src/libsvm-3.31.tar.gz -C src/
+      - autoreconf -i && ./configure --without-forester --without-kinfold --without-rnalocmin --without-rnaxplorer --with-pydoc --without-cla --without-tutorial --without-doc-pdf --without-perl --without-python2 --disable-lto
+      - cd src/ViennaRNA && make -j && cd ../../
+      - cd doc && make && cd ../
+      - cd interfaces/Python && make V=1 && cd ../..
+
+python:
+  install:
+    - requirements: interfaces/Python/doc/requirements.txt
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+   configuration: interfaces/Python/doc/source/conf.py
