@@ -1,3 +1,11 @@
+sphinx_verbose = $(sphinx_verbose_@AM_V@)
+sphinx_verbose_ = $(sphinx_verbose_@AM_DEFAULT_V@)
+sphinx_verbose_0 = @echo "  SPHINX    $@";
+
+doxy2swig_verbose = $(doxy2swig_verbose_@AM_V@)
+doxy2swig_verbose_ = $(doxy2swig_verbose_@AM_DEFAULT_V@)
+doxy2swig_verbose_0 = @echo "  DOX2SWIG $@";
+
 include ../generic.mk
 
 LANG_SPECIFIC_INTERFACE_FILES = \
@@ -65,10 +73,11 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
 
 if HAS_SWIG
 
-documentation.i: $(srcdir)/../classify.csv
-	test -d $(top_builddir)/doc/xml || $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml
+documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv
+	$(doxy2swig_verbose)test -d $(top_builddir)/doc/xml || $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml && \
 	$(PYTHON3) $(top_srcdir)/doc/doxy2swig/doxy2swig.py \
       -b $(srcdir)/../classify.csv \
+      -m $(srcdir)/../typedefs.csv \
       -p "vrna_" \
       -p "VRNA_" \
       --prefix-name="RNA" \
@@ -83,6 +92,7 @@ documentation.i: $(srcdir)/../classify.csv
       -c \
       -w 100 \
       -q \
+      -d $(PACKAGE_VERSION) \
       $(top_builddir)/doc/xml/index.xml \
       documentation.i
 
@@ -106,6 +116,27 @@ $(SWIG_module_name).py: $(SWIG_wrapper)
 
 endif
 
+if WITH_PYTHON_DOC
+
+##--------------------------------------------------##
+## prepare Python documention                       ##
+##--------------------------------------------------##
+
+PYDOC_FILES_HTML = doc/build/* 
+
+##--------------------------------------------------##
+## prepare all rules in case reference manuals are  ##
+## going to be (re)generated                        ##
+##--------------------------------------------------##
+
+doc/build/index.html: ../../doc/xml/index.xml $(wildcard $(srcdir)/doc/source/*) RNA/__init__.py RNA/_RNA$(PYTHON3_SO)
+	$(sphinx_verbose)$(SPHINXBUILD) -b html doc/source doc/build >sphinx.log 2>&1
+
+
+$(PYDOC_FILES_HTML): doc/build/index.html
+
+endif WITH_PYTHON_DOC
+
 # We rename RNA.py to __init__.py so that it can be installed
 # in an "RNA" directory and be treated as a package.
 RNA/__init__.py: $(SWIG_module_name).py
@@ -127,6 +158,40 @@ RNA/_RNA$(PYTHON3_SO): _RNA.la
   ( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
   ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) RNA ) && \
   rm -f libtoolconfig.tmp
+
+
+##--------------------------------------------------##
+## Tell autoconf/automake to include the necessary  ##
+## files in the distribution archive as well as in  ##
+## the installation routine                         ##
+##--------------------------------------------------##
+html_DATA = $(PYDOC_FILES_HTML)
+
+if WITH_PYTHON_DOC
+
+vrna_htmlpydoc_inst: installdirs doc/build
+	@$(NORMAL_INSTALL)
+	test -d $(builddir)/doc/build || $(LN_S) $(srcdir)/doc/build $(builddir)/doc/build
+	{ for i in $(builddir)/doc/build/*; do cp -r "$$i" "$(DESTDIR)$(pyhtmldir)/"; done }
+	{ for i in "$(DESTDIR)$(pyhtmldir)"/*; do test -f "$$i" && chmod 644 "$$i"; done }
+	chmod 755 "$(DESTDIR)$(pyhtmldir)"
+	{ test ! -h $(builddir)/doc/build || rm -f $(builddir)/doc/build; }
+
+vrna_htmlpydoc_uninst:
+	@$(NORMAL_UNINSTALL)
+	rm -rf "$(DESTDIR)$(pyhtmldir)"
+
+else
+
+vrna_htmlpydoc_inst:
+vrna_htmlpydoc_uninst:
+
+endif
+
+
+install-htmlDATA: vrna_htmlpydoc_inst
+uninstall-htmlDATA: vrna_htmlpydoc_uninst
+
 
 CLEANFILES = \
     RNA/_RNA$(PYTHON3_SO) \
@@ -155,7 +220,7 @@ uninstall-local:
 ## remove all generated content
 maintainer-clean-local:
 	-rm -f $(SWIG_wrapper) RNA.py documentation.i version.i
+	-rm -rf doc/build
 
 distclean-local:
 	-rm -f $(SWIG_wrapper) RNA.py documentation.i version.i
-

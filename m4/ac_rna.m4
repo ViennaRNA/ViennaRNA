@@ -91,6 +91,11 @@ RNA_ENABLE_TUTORIAL([tutorial])
 RNA_ENABLE_CLA
 
 ##--------------------##
+## Enable CLA         ##
+##--------------------##
+RNA_ENABLE_PYTHON_DOC
+
+##--------------------##
 ## Enable Unit tests  ##
 ##--------------------##
 RNA_ENABLE_UNIT_TESTS
@@ -193,8 +198,15 @@ AS_IF([test "x$with_doc" != "xno"],[
     eval _pdfdir2=$(eval printf "%s" $_pdfdir)],[
     _pdfdir=""
   ])
+
+  AS_IF([test "x$with_pydoc" != "xno"],[
+    eval _pyhtmldir=$(eval printf "%s" $pyhtmldir)
+    ],[
+    _pyhtmldir="Not to be installed $pydoc_enabled_but_failed"
+    ])
   ],[
   _docdir="Not to be installed"
+  _pyhtmldir="Not to be installed $pydoc_enabled_but_failed"
 ])
 
 AS_IF([test "x$with_tutorial" != "xno"],[
@@ -230,6 +242,7 @@ m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
             [doc_html],
             [tutorial_pdf],
             [tutorial_html],
+            [pydoc],
             [cla_pdf],
             [check])
 
@@ -261,6 +274,7 @@ m4_map_args([ AC_RNA_COLOR_RESULT_SIMPLE],
             [_datadir],
             [_docdir],
             [_htmldir],
+            [_pyhtmldir],
             [_pdfdir2],
             [_perl_install],
             [_perl_arch_dir],
@@ -327,6 +341,7 @@ Documentation
 -------------
   * Reference Manual (PDF)    : ${result_doc_pdf} ${doc_pdf_failed}
   * Reference Manual (HTML)   : ${result_doc_html} ${doc_html_failed}
+  * Python Doc       (HTML)   : ${result_pydoc}
   * Tutorial (PDF)            : ${result_tutorial_pdf} ${tutorial_pdf_failed}
   * Tutorial (HTML)           : ${result_tutorial_html} ${tutorial_html_failed}
   * CLA (PDF)                 : ${result_cla_pdf} ${cla_pdf_failed}
@@ -361,6 +376,7 @@ Install Directories
   * Python 3.x Interface      : $result__python_install
       (binaries)              : $result__python_arch_dir
       (scripts)               : $result__python_lib_dir
+      (documentation)         : $result__pyhtmldir
   * Python 2.x Interface      : $result__python2_install
       (binaries)              : $result__python2_arch_dir
       (scripts)               : $result__python2_lib_dir

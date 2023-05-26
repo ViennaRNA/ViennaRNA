@@ -18,6 +18,7 @@ output will be written (the file will be clobbered).
 #
 # Original Author: Prabhu Ramachandran
 # Modified by:     Michael Thon (June 2015)
+# Modified by:     Ronny Lorenz (May 2023)
 # License: BSD style
 #
 # Thanks:
@@ -26,6 +27,8 @@ output will be written (the file will be clobbered).
 #   Sebastian Henschel:   Misc. enhancements.
 #
 # Changes:
+# May 2023 (Ronny Lorenz):
+#   - 
 # June 2015 (Michael Thon):
 #   - class documentation:
 #     -c: add constructor call signatures and a "Constructors" section
@@ -117,7 +120,9 @@ class Doxy2SWIG:
                  prefixes = None,
                  prefix_name = "",
                  suffixes = None,
-                 constructor_suffixes = None):
+                 constructor_suffixes = None,
+                 typedef_mapping = dict(),
+                 deprecated_version = None):
         """Initialize the instance given a source object.  `src` can
         be a file or filename.  If you do not want to include function
         definitions from doxygen then set
@@ -139,6 +144,8 @@ class Doxy2SWIG:
         self.constructor_suffixes = [] if not constructor_suffixes else constructor_suffixes
         self.prefix_name = prefix_name
         self.suffixes = [] if not suffixes else suffixes
+        self.typedef_mapping = typedef_mapping
+        self.deprecated_version = '2.6.0' if not deprecated_version else deprecated_version
 
         # state:
         self.indent = 0
@@ -157,6 +164,7 @@ class Doxy2SWIG:
         self.lead_spc = re.compile(r'^(%feature\S+\s+\S+\s*?)"\s+(\S)')
         self.math_block_re = re.compile(r'\\\[(.*?)\\\]', re.MULTILINE | re.DOTALL)
         self.math_inline_re = re.compile(r'\$(.*?)\$')
+        self.since_version_re = re.compile(r'\(\s*[Ss]ince\s+v?(\d+\.\d+\.\d+)\s*\)')
 
         self.multi = 0
         self.ignores = ['inheritancegraph', 'param', 'listofallmembers',
@@ -679,9 +687,20 @@ class Doxy2SWIG:
     def do_xrefsect(self, node):
         self.start_new_paragraph()
         title = self.extract_text(self.get_specific_subnodes(node, 'xreftitle'))
-        self.add_text(['\n**', title, ':**\n'])
-        for nn in self.get_specific_subnodes(node, 'xrefdescription'):
-            self.subnode_parse(nn, indent=0)
+        if title == 'Deprecated':
+            # try to find out since when its deprecated
+            since = self.deprecated_version # default
+            m = self.since_version_re.search(self.extract_text(self.get_specific_subnodes(node, 'xrefdescription')))
+            if m:
+                since = m.group(1)
+
+            self.add_text(['.. deprecated:: ', since, '\n'])
+            for nn in self.get_specific_subnodes(node, 'xrefdescription'):
+                self.subnode_parse(nn, indent=4)
+        else:
+            self.add_text([title, '\n', len(title) * '-','\n'])
+            for nn in self.get_specific_subnodes(node, 'xrefdescription'):
+                self.subnode_parse(nn, indent=0)
 
 # MARK: Parameter list tag handlers
     def do_parameterlist(self, node):
@@ -768,15 +787,13 @@ class Doxy2SWIG:
             self.subnode_parse(node, pieces=['Notes', '\n', len('Notes') * '-','\n', ''], indent=0)
             #self.subnode_parse(node, pieces=['**Notes**', '\n',''], indent=4)
         elif kind == 'warning':
-            self.subnode_parse(node, pieces=['**Warning**', '\n',''], indent=4)
+            self.subnode_parse(node, pieces=['**Warnings**', '\n',''], indent=4)
         elif kind == 'see':
-            self.subnode_parse(node, pieces=['**See also**', '\n',''], indent=4)
+            self.subnode_parse(node, pieces=['See Also', '\n', len('See Also') * '-','\n'], indent=0)
         elif kind == 'pre':
             self.subnode_parse(node, pieces=['**Precondition**', '\n',''], indent=4)
         elif kind == 'post':
             self.subnode_parse(node, pieces=['**Postcondition**', '\n',''], indent=4)
-        elif kind == 'deprecated':
-            self.subnode_parse(node, pieces=['**Deprecated**', '\n',''], indent=4)
         elif kind == 'return':
             if self.indent == 0:
                 pieces = ['Returns', '\n', len('Returns') * '-', '\n', '']
@@ -801,6 +818,11 @@ class Doxy2SWIG:
             self.add_text('\n\n')
             classdefn = self.extract_text(self.get_specific_subnodes(node, 'compoundname'))
             classname = classdefn.split('::')[-1]
+
+            # rename symbol in case we have a type -> typdef mapping
+            if classdefn in self.typedef_mapping:
+                classdefn = self.typedef_mapping[classdefn]
+
             self.add_text('%%feature("docstring") %s "\n' % classdefn)
 
             if self.with_constructor_list:
@@ -927,7 +949,9 @@ class Doxy2SWIG:
                           prefixes = self.prefixes,
                           prefix_name = self.prefix_name,
                           suffixes = self.suffixes,
-                          constructor_suffixes = self.constructor_suffixes)
+                          constructor_suffixes = self.constructor_suffixes,
+                          typedef_mapping = self.typedef_mapping,
+                          deprecated_version = self.deprecated_version)
             p.generate()
             self.pieces.extend(p.pieces)
 
@@ -1005,6 +1029,21 @@ def main():
                       default = None,
                       help = 'Constructor suffixes')
 
+    parser.add_option('-m', '--typedef-mapping',
+                      type = "string",
+                      action = 'store',
+                      dest = 'm',
+                      default = None,
+                      help = 'load file that specifies which types should be replaced by a typedef')
+
+    parser.add_option('-d', '--deprecated-version',
+                      type = "string",
+                      action = 'store',
+                      dest = 'd',
+                      default = '2.6.0',
+                      help = 'default version for deprecation warnings')
+
+
     options, args = parser.parse_args()
     if len(args) != 2:
         parser.error("no input and output specified")
@@ -1019,6 +1058,14 @@ def main():
                                           'class': row[2],
                                           'self_arg_name': row[3]}
 
+    typedef_mapping  = dict()
+    if options.m:
+        with io.open(options.m, "r", newline = '') as f:
+            data = csv.reader(f, delimiter = ",")
+            header = next(data, None)
+            for row in data:
+                typedef_mapping[row[0]] = row[1]
+
     p = Doxy2SWIG(args[0],
                   with_function_signature = options.f,
                   with_type_info = options.t,
@@ -1031,7 +1078,9 @@ def main():
                   prefixes = options.p,
                   prefix_name = options.prefix_name,
                   suffixes = options.s,
-                  constructor_suffixes = options.cs)
+                  constructor_suffixes = options.cs,
+                  typedef_mapping = typedef_mapping,
+                  deprecated_version = options.d)
     p.generate()
     p.write(args[1])
 

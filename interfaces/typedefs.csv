@@ -1,0 +1,9 @@
+type,typedef
+vrna_fc_s,vrna_fold_compound_t
+vrna_elem_prob_s,vrna_ep_t
+vrna_exp_param_s,vrna_exp_param_t
+vrna_param_s,vrna_param_t
+vrna_hc_s,vrna_hc_t
+vrna_sc_s,vrna_sc_t
+vrna_md_s,vrna_md_t
+vrna_move_s,vrna_move_t
