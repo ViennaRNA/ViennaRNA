@@ -152,7 +152,7 @@ AS_IF([test "$VRNALIB_OK" != "true"],
 ])
 
 # add vrna to libs
-LIBS="$VRNA_LIBS $LIBS"
+##LIBS="$VRNA_LIBS $LIBS"
 
 
 
