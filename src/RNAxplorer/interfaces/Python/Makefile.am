@@ -19,7 +19,11 @@ EXTRA_DIST = \
 
 _RNAxplorer_la_CFLAGS = $(RNAxplorer_CFLAGS)
 _RNAxplorer_la_CXXFLAGS = $(RNAxplorer_CXXFLAGS) -Wno-unused-label -Wno-unused-variable
-_RNAxplorer_la_CPPFLAGS = -I$(PYTHON3_INC) $(RNAxplorer_CPPFLAGS) -I$(top_srcdir)/src
+_RNAxplorer_la_CPPFLAGS = \
+    -I$(PYTHON3_INC) \
+    $(RNAxplorer_CPPFLAGS) \
+    -I$(top_srcdir)/src \
+    $(VRNA_CFLAGS)
 
 _RNAxplorer_la_LIBADD = \
     $(LDADD) \
