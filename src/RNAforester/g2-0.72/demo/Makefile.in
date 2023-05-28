@@ -86,6 +86,6 @@ g2testf: g2_test.f
 	$(F77) g2testf.f $(LDFLAGS) -o g2testf
 
 clean:
-	-rm $(DEMO) g2testf g2testf.f demo_f *~ core *.ps *.fig *.eps *.png *.jpg *.fig.bak
+	-rm -f $(DEMO) g2testf g2testf.f demo_f *~ core *.ps *.fig *.eps *.png *.jpg *.fig.bak
 
 
