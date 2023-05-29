@@ -6,9 +6,9 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.6.x
 
-### Version 2.6.0
+### [Version 2.6.0]()
 
-### Programs
+#### Programs
   * Add modified base input support to `RNAfold`
   * Add modified base input support to `RNAplfold`
   * Add modified base input support to `RNALfold`
