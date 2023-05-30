@@ -182,6 +182,7 @@ class Doxy2SWIG:
         data is stored in `self.pieces`.
 
         """
+        self.enforce_numpydoc_order(self.xmldoc)
         self.parse(self.xmldoc)
 
     def write(self, fname):
@@ -189,6 +190,49 @@ class Doxy2SWIG:
         o.write(''.join(self.pieces))
         o.write('\n')
         o.close()
+
+    def make_last_child(self, nodes):
+        for n in nodes:
+            if (len(n.parentNode.childNodes) > 1):
+                # remove node from its parent
+                for i, nn in enumerate(n.parentNode.childNodes):
+                    if n == nn:
+                        n.parentNode.childNodes.pop(i)
+                        break
+                # append node as last in parent
+                n.parentNode.childNodes.append(n)
+
+    def enforce_numpydoc_order(self, node):
+        """
+        Numpydoc wants us to order function descriptions
+        """
+        if node.nodeType == node.ELEMENT_NODE and node.tagName == "memberdef" and node.getAttribute("kind") == "function":
+            for nn in node.childNodes:
+                if nn.nodeType == nn.ELEMENT_NODE and nn.tagName == "detaileddescription":
+                    # move parameterlist to the end
+                    nnn = self.get_specific_subnodes(nn, "parameterlist", 3)
+                    self.make_last_child(nnn)
+
+                    # move return values to the end
+                    nnn = self.get_specific_subnodes(nn, "simplesect", 3, "return")
+                    self.make_last_child(nnn)
+
+                    # move warnings to the end
+                    nnn = self.get_specific_subnodes(nn, "simplesect", 3, "warning")
+                    self.make_last_child(nnn)
+
+                    # move see-also to the end
+                    nnn = self.get_specific_subnodes(nn, "simplesect", 3, "see")
+                    self.make_last_child(nnn)
+
+                    # move notes to the end
+                    nnn = self.get_specific_subnodes(nn, "simplesect", 3, "note")
+                    self.make_last_child(nnn)
+
+        else:
+            for n in node.childNodes:
+                self.enforce_numpydoc_order(n)
+
 
     def parse(self, node):
         """Parse a given node.  This function in turn calls the
@@ -284,17 +328,30 @@ class Doxy2SWIG:
         self.add_text(post_char)
     
 # MARK: Helper functions
-    def get_specific_subnodes(self, node, name, recursive=0):
+    def get_specific_subnodes(self, node, name, recursive=0, kind = None):
         """Given a node and a name, return a list of child `ELEMENT_NODEs`, that
         have a `tagName` matching the `name`. Search recursively for `recursive`
         levels.
         """
         children = [x for x in node.childNodes if x.nodeType == x.ELEMENT_NODE]
-        ret = [x for x in children if x.tagName == name]
+        if kind:
+            ret = [x for x in children if x.tagName == name and x.getAttribute("kind")  == kind]
+        else:
+            ret = [x for x in children if x.tagName == name]
         if recursive > 0:
             for x in children:
-                ret.extend(self.get_specific_subnodes(x, name, recursive-1))
+                ret.extend(self.get_specific_subnodes(x, name, recursive-1, kind))
         return ret
+
+    def get_specific_parentnode(self, node, name, recursive = 0):
+        if node.parentNode and \
+           node.parentNode.nodeType == node.ELEMENT_NODE and \
+           node.parentNode.tagName == name:
+            return node.parentNode
+        elif recursive > 1:
+            return self.get_specific_parentnode(node.parentNode, name, recursive - 1)
+        else:
+            return None
 
     def get_specific_nodes(self, node, names):
         """Given a node and a sequence of strings in `names`, return a
@@ -696,11 +753,11 @@ class Doxy2SWIG:
 
             self.add_text(['.. deprecated:: ', since, '\n'])
             for nn in self.get_specific_subnodes(node, 'xrefdescription'):
-                self.subnode_parse(nn, indent=4)
+                self.subnode_parse(nn, pieces=[''], indent=4)
         else:
-            self.add_text([title, '\n', len(title) * '-','\n'])
+            self.add_text(['**' + title + '**', '\n'])
             for nn in self.get_specific_subnodes(node, 'xrefdescription'):
-                self.subnode_parse(nn, indent=0)
+                self.subnode_parse(nn, pieces=[''], indent=4)
 
 # MARK: Parameter list tag handlers
     def do_parameterlist(self, node):
@@ -777,6 +834,7 @@ class Doxy2SWIG:
     def do_parameterdescription(self, node):
         self.subnode_parse(node, pieces=[''], indent=4)
 
+
 # MARK: Section tag handler
     def do_simplesect(self, node):
         kind = node.attributes['kind'].value
@@ -787,19 +845,33 @@ class Doxy2SWIG:
             self.subnode_parse(node, pieces=['Notes', '\n', len('Notes') * '-','\n', ''], indent=0)
             #self.subnode_parse(node, pieces=['**Notes**', '\n',''], indent=4)
         elif kind == 'warning':
-            self.subnode_parse(node, pieces=['**Warnings**', '\n',''], indent=4)
+            #self.subnode_parse(node, pieces=['**Warnings**', '\n',''], indent=4)
+            self.subnode_parse(node, pieces=['Warnings', '\n', len('Warnings') * '-','\n', ''], indent=0)
         elif kind == 'see':
-            self.subnode_parse(node, pieces=['See Also', '\n', len('See Also') * '-','\n'], indent=0)
+            self.subnode_parse(node, pieces=['See Also', '\n', len('See Also') * '-','\n', ''], indent=0)
         elif kind == 'pre':
             self.subnode_parse(node, pieces=['**Precondition**', '\n',''], indent=4)
         elif kind == 'post':
             self.subnode_parse(node, pieces=['**Postcondition**', '\n',''], indent=4)
         elif kind == 'return':
-            if self.indent == 0:
-                pieces = ['Returns', '\n', len('Returns') * '-', '\n', '']
+            pieces=[]
+            # determine return type if possible
+            p = self.get_specific_parentnode(node, "memberdef", 3)
+            if p:
+                rettype = self.extract_text(self.get_specific_subnodes(p, 'type'))
             else:
-                pieces = ['Returns:', '\n', '']
-            self.subnode_parse(node, pieces=pieces)
+                rettype = "object"
+
+            # remove any occurences pointer marker '*'
+            rettype = re.sub(r'\s*\*','', rettype)
+
+            if self.indent == 0:
+                self.add_text(['Returns', '\n', len('Returns') * '-', '\n', rettype])
+                #pieces = ['Returns', '\n', len('Returns') * '-', '\n', '']
+            else:
+                self.add_text(['Returns:', '\n', rettype])
+                #pieces = ['Returns:', '\n', '']
+            self.subnode_parse(node, pieces=pieces, indent = 4)
         else:
             self.subnode_parse(node, pieces=[kind + ': ',''], indent=4)
 
