@@ -221,4 +221,28 @@
   sv_setnv($result, (double) vrna_md_defaults_sfact_get());
 }
 
+%typemap(varin) double salt {
+  vrna_md_defaults_salt((double)SvNV($input));
+}
+
+%typemap(varout) double salt {
+  sv_setnv($result, (double) vrna_md_defaults_salt_get());
+}
+
+%typemap(varin) int saltDPXInit {
+  vrna_md_defaults_saltDPXInit(SvIV($input));
+}
+
+%typemap(varout) int saltDPXInit {
+  sv_setiv($result, (IV) vrna_md_defaults_saltDPXInit_get());
+}
+
+%typemap(varin) double saltDPXInitFact {
+  vrna_md_defaults_saltDPXInitFact((float)SvNV($input));
+}
+
+%typemap(varout) double saltDPXInitFact {
+  sv_setnv($result, (double) vrna_md_defaults_saltDPXInitFact_get());
+}
+
 #endif

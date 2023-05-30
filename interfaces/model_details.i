@@ -47,6 +47,7 @@ typedef struct {
   int saltMLLower;
   int saltMLUpper;
   int saltDPXInit;
+  float saltDPXInitFact;
 } vrna_md_t;
 
 
@@ -87,7 +88,8 @@ typedef struct {
     const double  salt            = vrna_md_defaults_salt_get(),
     const int     saltMLLower     = vrna_md_defaults_saltMLLower_get(),
     const int     saltMLUpper     = vrna_md_defaults_saltMLUpper_get(),
-    const int     saltDPXInit     = vrna_md_defaults_saltDPXInit_get())
+    const int     saltDPXInit     = vrna_md_defaults_saltDPXInit_get(),
+    const float   saltDPXInitFact = vrna_md_defaults_saltDPXInitFact_get())
   {
     vrna_md_t *md       = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     md->temperature     = temperature;
@@ -118,6 +120,7 @@ typedef struct {
     md->saltMLLower     = saltMLLower;
     md->saltMLUpper     = saltMLUpper;
     md->saltDPXInit     = saltDPXInit;
+    md->saltDPXInitFact = saltDPXInitFact;
 
     vrna_md_update(md);
 
@@ -180,6 +183,7 @@ typedef struct {
     out << ", saltMLLower: " << $self->saltMLLower ;
     out << ", saltMLUpper: " << $self->saltMLUpper ;
     out << ", saltDPXInit: " << $self->saltDPXInit ;
+    out << ", saltDPXInitFact: " << $self->saltDPXInitFact ;
     out << " }";
 
     return std::string(out.str());
@@ -244,7 +248,8 @@ extern double cv_fact;
 extern double nc_fact;
 extern double sfact;
 extern double salt;
-extern int saltDPXInit;
+extern int    saltDPXInit;
+extern double saltDPXInitFact;
 
 %include <ViennaRNA/model.h>
 

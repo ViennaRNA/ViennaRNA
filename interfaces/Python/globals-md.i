@@ -222,5 +222,29 @@
   $result = PyFloat_FromDouble(vrna_md_defaults_sfact_get());
 }
 
+%typemap(varin) double salt {
+  vrna_md_defaults_salt(PyFloat_AsDouble($input));
+}
+
+%typemap(varout) double salt {
+  $result = PyFloat_FromDouble((double)vrna_md_defaults_salt_get());
+}
+
+%typemap(varin) int saltDPXInit {
+  vrna_md_defaults_saltDPXInit((int)PyLong_AsLong($input));
+}
+
+%typemap(varout) int saltDPXInit {
+  $result = PyLong_FromLong((long)vrna_md_defaults_saltDPXInit_get());
+}
+
+%typemap(varin) double saltDPXInitFact {
+  vrna_md_defaults_saltDPXInitFact((float)PyFloat_AsDouble($input));
+}
+
+%typemap(varout) double saltDPXInitFact {
+  $result = PyFloat_FromDouble((double)vrna_md_defaults_saltDPXInitFact_get());
+}
+
 #endif
 
