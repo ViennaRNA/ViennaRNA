@@ -29,6 +29,14 @@ if WITH_REFERENCE_MANUAL_HTML
 endif WITH_REFERENCE_MANUAL_HTML
 
 ##--------------------------------------------------##
+## prepare variables in case XML reference manual   ##
+## is going to be installed                         ##
+##--------------------------------------------------##
+if WITH_REFERENCE_MANUAL_XML
+    REFERENCE_MANUAL_FILES_XML = xml/* 
+endif WITH_REFERENCE_MANUAL_XML
+
+##--------------------------------------------------##
 ## prepare variables in case PDF reference manual   ##
 ## is going to be installed                         ##
 ##--------------------------------------------------##
@@ -55,6 +63,16 @@ if WITH_REFERENCE_MANUAL_HTML
 $(REFERENCE_MANUAL_FILES_HTML): refman-html
 
 endif WITH_REFERENCE_MANUAL_HTML
+
+##--------------------------------------------------##
+## In case the XML manual should be created, here   ##
+## is the rule how to do so                         ##
+##--------------------------------------------------##
+if WITH_REFERENCE_MANUAL_XML
+
+$(REFERENCE_MANUAL_FILES_XML): refman-html
+
+endif WITH_REFERENCE_MANUAL_XML
 
 ##--------------------------------------------------##
 ## In case the PDF manual should be created, here   ##

@@ -4,6 +4,15 @@ doxy2swig_verbose_0 = @echo "  DOX2SWIG $@";
 
 include ../generic.mk
 
+if WITH_REFERENCE_MANUAL_XML
+doxy2swig_pydoc_file = documentation.i
+doxy2swig_pydoc_define = -DDOXY2SWIG
+else
+doxy2swig_pydoc_file = 
+doxy2swig_pydoc_define = 
+endif
+
+
 LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/tmaps.i \
   $(srcdir)/globals-md.i \
@@ -17,7 +26,8 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/callbacks-mfe-window.i \
   $(srcdir)/callbacks-pf-window.i \
   $(builddir)/version.i \
-  documentation.i
+  $(doxy2swig_pydoc_file)
+
 
 INTERFACE_FILES = $(SWIG_src) \
                   $(LANG_SPECIFIC_INTERFACE_FILES)
@@ -69,8 +79,10 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
 
 if HAS_SWIG
 
+if WITH_REFERENCE_MANUAL_XML
+
 documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv
-	$(doxy2swig_verbose)test -d $(top_builddir)/doc/xml || $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml && \
+	$(doxy2swig_verbose)test -d $(top_builddir)/doc/xml || ( test -d $(top_srcdir)/doc/xml && $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml ) && \
 	$(PYTHON3) $(top_srcdir)/doc/doxy2swig/doxy2swig.py \
       -b $(srcdir)/../classify.csv \
       -m $(srcdir)/../typedefs.csv \
@@ -92,12 +104,15 @@ documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv
       $(top_builddir)/doc/xml/index.xml \
       documentation.i
 
+endif WITH_REFERENCE_MANUAL_XML
 
-$(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES) documentation.i
+$(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
 	$(swig_verbose)$(SWIG) \
                   -I$(top_srcdir)/src \
                   -I$(srcdir) \
                   -I$(builddir) \
+                  -DPY3 \
+                  $(doxy2swig_pydoc_define) \
                   $(RNA_CPPFLAGS) \
                   -python \
                   -c++ \
@@ -108,7 +123,7 @@ $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES) documentation.i
 
 $(SWIG_module_name).py: $(SWIG_wrapper)
 
-endif
+endif HAS_SWIG
 
 # We rename RNA.py to __init__.py so that it can be installed
 # in an "RNA" directory and be treated as a package.

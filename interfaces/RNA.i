@@ -216,7 +216,9 @@ namespace std {
 /* Include all relevant interface definitions */
 /*############################################*/
 #ifdef SWIGPYTHON
+#ifdef DOXY2SWIG
 %include documentation.i
+#endif
 #endif
 
 %include var_arrays.i

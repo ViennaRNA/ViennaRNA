@@ -15,12 +15,16 @@ RNA_ADD_PACKAGE([doc_pdf],
 RNA_ADD_PACKAGE([doc_html],
                 [HTML RNAlib reference manual],
                 [yes])
+RNA_ADD_PACKAGE([doc_xml],
+                [XML RNAlib reference manual],
+                [yes])
 RNA_ADD_PACKAGE([doc],
                 [RNAlib reference manual],
                 [yes],
                 [ with_doc=no
                   with_doc_pdf=no
-                  with_doc_html=no],
+                  with_doc_html=no
+                  with_doc_xml=no],
                 [])
 
 
@@ -112,6 +116,7 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     AC_SUBST([DOXYGEN_HAVE_DOT],[ifelse([$dot], [no], [NO], [YES])])
     AC_SUBST([DOXYGEN_WITH_PDFLATEX], [YES])
     AC_SUBST([DOXYGEN_GENERATE_HTML], [ifelse([$with_doc_html], [no], [NO], [YES])])
+    AC_SUBST([DOXYGEN_GENERATE_XML], [ifelse([$with_doc_xml], [no], [NO], [YES])])
     AC_SUBST([DOXYGEN_GENERATE_LATEX], [ifelse([$with_doc_pdf], [no], [NO], [YES])])
 
     AC_CONFIG_FILES([${DOXYGEN_DOCDIR}/${DOXYGEN_CONF}])
@@ -133,11 +138,20 @@ RNA_PACKAGE_IF_ENABLED([doc],[
                         [with_doc_html=no
                          doc_html_failed="($doxygen_failed)"])])
 
+    RNA_PACKAGE_IF_ENABLED([doc_xml],[
+      AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/xml/index.html],
+                        [with_doc_xml=yes],
+                        [with_doc_xml=no
+                         doc_xml_failed="($doxygen_failed)"])])
+
     if test "x$with_doc_pdf" = "x$with_doc_html";
     then
-      if test "x$with_doc_pdf" = xno;
+      if test "x$with_doc_pdf" = "x$with_doc_xml";
       then
-        with_doc=no
+          if test "x$with_doc_pdf" = "xno";
+          then
+              with_doc=no
+          fi
       fi
     fi
   fi
@@ -181,5 +195,6 @@ AM_CONDITIONAL(WITH_REFERENCE_MANUAL, test "x$with_doc" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_BUILD, test "x$doxygen" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_PDF, test "x$with_doc_pdf" != xno)
 AM_CONDITIONAL(WITH_REFERENCE_MANUAL_HTML, test "x$with_doc_html" != xno)
+AM_CONDITIONAL(WITH_REFERENCE_MANUAL_XML, test "x$with_doc_xml" != xno)
 ])
 
