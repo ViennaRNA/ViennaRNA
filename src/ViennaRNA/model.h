@@ -197,7 +197,11 @@ typedef struct vrna_md_s vrna_md_t;
 /**
  *  @brief  Default model value to turn off user-provided salt correction for duplex initializtion
  */
-#define VRNA_MODEL_DEFAULT_SALTDPXINIT 99999
+#define VRNA_MODEL_DEFAULT_SALTDPXINIT    99999
+
+#define VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA    -45.325
+#define VRNA_MODEL_DEFAULT_SALTDPXINITFACT_DNA    -58.309
+
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -284,7 +288,8 @@ struct vrna_md_s {
   int     saltDPXInit;                      /**<  @brief  User-provided salt correction for duplex initialization (in dcal/mol).
                                              *    If set to 99999 the default salt correction is used.
                                              *    If set to 0 there is no salt correction for duplex initialization.
-                                             */    
+                                             */
+  float   saltDPXInitFact;                  /**<  @brief  */
 };
 
 
@@ -958,6 +963,12 @@ vrna_md_defaults_saltDPXInit(int value);
  */
 int
 vrna_md_defaults_saltDPXInit_get(void);
+
+void
+vrna_md_defaults_saltDPXInitFact(float value);
+
+float
+vrna_md_defaults_saltDPXInitFact_get(void);
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

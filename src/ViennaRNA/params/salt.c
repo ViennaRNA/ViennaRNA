@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/model.h"
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/params/salt.h"
 
@@ -187,18 +188,26 @@ vrna_salt_ml(double saltLoop[], int lower, int upper, int* m, int* b)
 /* Function to compute the salt correction for duplex initialization */
 /* Fitted from 18 duplexes data (Chen & Znosko, 2013) */
 PUBLIC int
-vrna_salt_duplex_init(double salt)
+vrna_salt_duplex_init(vrna_md_t *md_p)
 {
-	double a, x, penalty;
+  double    a, x, penalty;
+  vrna_md_t md;
 
-	x = log(salt/VRNA_MODEL_DEFAULT_SALT);
-		/* Converged duplex init correction */
-		/* a = -1.25480589; */
-		/* double b = -0.05306256; */
-		/* int c = 160; */
-		/* penalty = -exp(a*x*x+b*x+log(c)) + c; */
-  /* a = -100.14040781; */
-	a = -45.3244975;
-	penalty = a*x;
-	return roundint(penalty);
+  if (md_p == NULL) {
+    vrna_md_set_default(&md);
+    md_p = &md;
+  }
+
+  if (md_p->saltDPXInit != 99999) {
+    return md_p->saltDPXInit;
+  } else {
+    x = log(md_p->salt / VRNA_MODEL_DEFAULT_SALT);
+    /* Converged duplex init correction */
+    /* a = -1.25480589; */
+    /* double b = -0.05306256; */
+    /* int c = 160; */
+    /* penalty = -exp(a*x*x+b*x+log(c)) + c; */
+    /* a = -100.14040781; */
+    return roundint(x * md_p->saltDPXInitFact);
+  }
 }

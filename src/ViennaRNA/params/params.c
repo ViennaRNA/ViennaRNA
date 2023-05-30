@@ -586,7 +586,7 @@ get_scaled_params(vrna_md_t *md)
     if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
       params->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
-      params->SaltDPXInit = vrna_salt_duplex_init(salt);
+      params->SaltDPXInit = vrna_salt_duplex_init(md);
   }
   params->DuplexInit += params->SaltDPXInit;
 
@@ -814,7 +814,7 @@ get_scaled_exp_params(vrna_md_t *md,
     if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
       pf->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
-      pf->SaltDPXInit = vrna_salt_duplex_init(salt);
+      pf->SaltDPXInit = vrna_salt_duplex_init(md);
 
     pf->expMLclosing *= exp(- pf->SaltMLbase * 10. / kT);
     pf->expMLclosing *= exp(- pf->SaltMLclosing * 10. / kT);
@@ -1061,7 +1061,7 @@ get_exp_params_ali(vrna_md_t    *md,
     if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
       pf->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
-      pf->SaltDPXInit = vrna_salt_duplex_init(salt);
+      pf->SaltDPXInit = vrna_salt_duplex_init(md);
 
     pf->expMLclosing *= exp(- pf->SaltMLbase * 10. / kTn);
     pf->expMLclosing *= exp(- pf->SaltMLclosing * 10. / kTn);

@@ -26,6 +26,7 @@
 # define INLINE
 #endif
 
+
 /**
  *  @brief Get salt correction for a loop at a given salt concentration and temperature
  *
@@ -90,11 +91,11 @@ vrna_salt_ml(double saltLoop[], int lower, int upper, int *m, int *b);
 /**
  *  @brief Get salt correction for duplex initialization at a given salt concentration
  *
- *  @param salt  salt concentration in buffer (M)
- *  @return      Rounded correction for duplex initialization in dcal/mol
+ *  @param md   Model details data structure that specfifies salt concentration in buffer (M)
+ *  @return     Rounded correction for duplex initialization in dcal/mol
  */
 int
-vrna_salt_duplex_init(double salt);
+vrna_salt_duplex_init(vrna_md_t *md);
 
 /**
  *  @}

@@ -81,6 +81,7 @@ int             fold_constrained  = 0;    /* fold with constraints */
 
 double          salt             = VRNA_MODEL_DEFAULT_SALT;
 int             saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
+float           saltDPXInitFact  = VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA;
 
 #endif
 
@@ -157,6 +158,7 @@ PRIVATE vrna_md_t defaults = {
   VRNA_MODEL_DEFAULT_SALTMLLOWER,
   VRNA_MODEL_DEFAULT_SALTMLUPPER,
   VRNA_MODEL_DEFAULT_SALTDPXINIT,
+  VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA,
 };
 
 /*
@@ -365,6 +367,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.saltMLLower      = VRNA_MODEL_DEFAULT_SALTMLLOWER;
   defaults.saltMLUpper      = VRNA_MODEL_DEFAULT_SALTMLUPPER;
   defaults.saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
+  defaults.saltDPXInitFact  = VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA;
 
   if (md_p) {
     /* now try to apply user settings */
@@ -402,6 +405,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_saltMLLower(md_p->saltMLLower);
     vrna_md_defaults_saltMLUpper(md_p->saltMLUpper);
     vrna_md_defaults_saltDPXInit(md_p->saltDPXInit);
+    vrna_md_defaults_saltDPXInitFact(md_p->saltDPXInitFact);
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
@@ -900,12 +904,30 @@ PUBLIC void
 vrna_md_defaults_saltDPXInit(int value)
 {
   defaults.saltDPXInit = value;
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+  saltDPXInit = value;
+#endif
 }
 
 PUBLIC int 
 vrna_md_defaults_saltDPXInit_get(void)
 {
   return defaults.saltDPXInit;
+}
+
+PUBLIC void
+vrna_md_defaults_saltDPXInitFact(float value)
+{
+  defaults.saltDPXInitFact = value;
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+  saltDPXInitFact = value;
+#endif
+}
+
+PUBLIC float
+vrna_md_defaults_saltDPXInitFact_get(void)
+{
+  return defaults.saltDPXInitFact;
 }
 
 PUBLIC void
@@ -1087,6 +1109,7 @@ set_model_details(vrna_md_t *md)
     md->saltMLLower     = VRNA_MODEL_DEFAULT_SALTMLLOWER;
     md->saltMLUpper     = VRNA_MODEL_DEFAULT_SALTMLUPPER;
     md->saltDPXInit     = saltDPXInit;
+    md->saltDPXInitFact = saltDPXInitFact;
 
     if (nonstandards)
       copy_nonstandards(md, nonstandards);

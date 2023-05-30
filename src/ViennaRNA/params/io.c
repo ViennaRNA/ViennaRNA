@@ -16,6 +16,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/model.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/params/default.h"
@@ -345,6 +346,7 @@ PUBLIC int
 vrna_params_load_defaults(void)
 {
   vrna_helical_rise = vrna_helical_rise_RNA;
+  vrna_md_defaults_saltDPXInitFact(VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA);
   return vrna_params_load_RNA_Turner2004();
 }
 
@@ -353,6 +355,7 @@ PUBLIC int
 vrna_params_load_RNA_Turner2004(void)
 {
   vrna_helical_rise = vrna_helical_rise_RNA;
+  vrna_md_defaults_saltDPXInitFact(VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA);
   return vrna_params_load_from_string((const char *)parameter_set_rna_turner2004,
                                       "RNA - Turner 2004",
                                       0);
@@ -363,6 +366,7 @@ PUBLIC int
 vrna_params_load_RNA_Turner1999(void)
 {
   vrna_helical_rise = vrna_helical_rise_RNA;
+  vrna_md_defaults_saltDPXInitFact(VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA);
   return vrna_params_load_from_string((const char *)parameter_set_rna_turner1999,
                                       "RNA - Turner 1999",
                                       0);
@@ -373,6 +377,7 @@ PUBLIC int
 vrna_params_load_RNA_Andronescu2007(void)
 {
   vrna_helical_rise = vrna_helical_rise_RNA;
+  vrna_md_defaults_saltDPXInitFact(VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA);
   return vrna_params_load_from_string((const char *)parameter_set_rna_andronescu2007,
                                       "RNA - Andronescu 2007",
                                       0);
@@ -383,6 +388,7 @@ PUBLIC int
 vrna_params_load_RNA_Langdon2018(void)
 {
   vrna_helical_rise = vrna_helical_rise_RNA;
+  vrna_md_defaults_saltDPXInitFact(VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA);
   return vrna_params_load_from_string((const char *)parameter_set_rna_langdon2018,
                                       "RNA - Langdon 2018",
                                       0);
@@ -393,6 +399,7 @@ PUBLIC int
 vrna_params_load_RNA_misc_special_hairpins(void)
 {
   vrna_helical_rise = vrna_helical_rise_RNA;
+  vrna_md_defaults_saltDPXInitFact(VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA);
   return vrna_params_load_from_string((const char *)parameter_set_rna_misc_special_hairpins,
                                       "RNA - Misc. Special Hairpins",
                                       0);
@@ -403,6 +410,7 @@ PUBLIC int
 vrna_params_load_DNA_Mathews2004(void)
 {
   vrna_helical_rise = vrna_helical_rise_DNA;
+  vrna_md_defaults_saltDPXInitFact(VRNA_MODEL_DEFAULT_SALTDPXINITFACT_DNA);
   return vrna_params_load_from_string((const char *)parameter_set_dna_mathews2004,
                                       "DNA - Mathews 2004",
                                       0);
@@ -413,6 +421,7 @@ PUBLIC int
 vrna_params_load_DNA_Mathews1999(void)
 {
   vrna_helical_rise = vrna_helical_rise_DNA;
+  vrna_md_defaults_saltDPXInitFact(VRNA_MODEL_DEFAULT_SALTDPXINITFACT_DNA);
   return vrna_params_load_from_string((const char *)parameter_set_dna_mathews1999,
                                       "DNA - Mathews 1999",
                                       0);
