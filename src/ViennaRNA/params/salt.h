@@ -73,10 +73,12 @@ vrna_salt_stack(double salt, double T, double hrise);
 /**
  *  @brief Fit linear function to loop salt correction
  *
- *  For a given range of loop size (backbone number), we perform a linear fitting on loop salt correction
- *  @f$$\text{Loop correction }\approx m*L + b.$$
+ *  For a given range of loop size (backbone number), we perform a linear fitting
+ *  on loop salt correction
  *
- *  @see vrna_salt_loop
+ *  @f[ \text{Loop correction} \approx m \cdot L + b. @f]
+ *
+ *  @see vrna_salt_loop()
  *
  *  @param saltLoop  List of loop salt correction of size from 1
  *  @param lower     Define the size lower bound for fitting
