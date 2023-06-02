@@ -3,11 +3,11 @@
     "name" : "Dihydrouridine",
     "sources" : [
       {
-        "authors" : "Author 1, Author 2",
-        "title" : "RECCES simulations",
-        "journal" : "Some journal",
-        "year" : 2022,
-        "doi" : "10.0000/000000"
+        "authors" : "Yuliia Varenyk, Thomas Spicher, Ivo L. Hofacker, and Ronny Lorenz",
+        "title" : "Modified RNAs and Predictions with the ViennaRNA Package",
+        "journal" : "Bioinformatics",
+        "year" : 2023,
+        "doi" : "10.1093/bioinformatics/000000"
       }
     ],
     "unmodified" : "U",
