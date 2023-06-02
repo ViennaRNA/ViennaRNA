@@ -1,3 +1,28 @@
+Version 2.6.0
+-------------
+
+This version introduces modified nucleotides support and a physics-based model to
+correct for predictions at non-standard (monovalent) salt concentrations.
+At this time we include publically available energy parameters for inosine,
+pseudouridine, m6A, 7DA, and purine (a.k.a. nebularine). In addition, we add
+stacking parameters for dihydrouridine as predicted by Rosetta/RECESS.
+
+See the Changelog for version 2.6.0 for a complete list of new features and bugfixes.
+
+
+Version 2.5.0
+-------------
+
+The all new release of version 2.5 brings multi-strand interaction prediction! The
+new executable tool RNAmultifold is the successor of the RNA-RNA dimer interaction
+prediction tool RNAcofold and effectively lifts the restriction to just two interacting
+strands. It follows the same principle of concatenating the RNA strands that shall
+form a complex and then predicts MFE and partition function. Along with that, it can
+also compute equilibrium concentrations of the complexes formed.
+
+See the Changelog for version 2.5.0 for a complete list of additions, novel features
+and fixed bugs.
+
 
 Version 2.4.0
 -------------

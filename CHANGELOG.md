@@ -2,11 +2,11 @@
 
 Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.1...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...HEAD)
 
 ## Version 2.6.x
 
-### [Version 2.6.0]()
+### [Version 2.6.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.1...v2.6.0) (Release date: 2023-06-06)
 
 #### Programs
   * Add modified base input support to `RNAfold`
@@ -29,7 +29,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * API: Add functions for salt concentration change derived energy corrections in `ViennaRNA/params/salt.h`
   * API: Add arbitrary modified base support (`vrna_sc_mod()`) via soft constraints mechanism and JSON input data
   * API: Add Pseuoduridine-A parameters via soft constraints callback
-  * API: Add Dihydrouridine adjustments via soft constraints callback
+  * API: Add Dihydrouridine parameters via soft constraints callback
   * API: Add inosine-U and inosine-C parameters via soft constraints callback
   * API: Add m6A parameters via soft constraints callback mechanism
   * API: Add 7DA modification support via soft constraints
@@ -50,6 +50,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * SWIG: Only accept upper triangular part of matrix input in fc.sc_bp_add()
   * SWIG: Use var_array instead of tuples for Python RNA.ptable()
   * SWIG: Add Python wrapper for `vrna_move_neighbor_diff()`
+  * SWIG: Add Python docstrings generated from doxygen documentation of C-library
 
 #### Package
   * Update `libsvm` to version 3.31
