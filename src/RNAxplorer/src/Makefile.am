@@ -1,3 +1,6 @@
+ggo_verbose = $(ggo_verbose_@AM_V@)
+ggo_verbose_ = $(ggo_verbose_@AM_DEFAULT_V@)
+ggo_verbose_0 = @echo "  GGO      $@";
 
 AM_CPPFLAGS = $(CFLAGS) $(VRNA_CFLAGS) 
 
@@ -42,9 +45,13 @@ EXTRA_DIST = \
     ${GENGETOPT_FILES} \
     ${GENGETOPT_CMDL}
 
+if VRNA_AM_SWITCH_HAS_GENGETOPT
+
+## Below are the rules how to create the test suite executables
 # how we make the commandline interface parser
+## See checkmk man page for details about *.ts files
 .ggo_cmdl.c:
-	$(AM_V_GEN)gengetopt -i $<
+	$(ggo_verbose)$(GENGETOPT) -i $<
 
 _cmdl.c_cmdl.h :
 ## Recover from the removal of $@
@@ -52,6 +59,8 @@ _cmdl.c_cmdl.h :
           rm -f $< ; \
           $(MAKE) $(AM_MAKEFLAGS) $< ; \
         fi
+
+endif
 
 
 # remove all generated man pages

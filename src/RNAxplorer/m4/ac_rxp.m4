@@ -12,6 +12,23 @@ AC_DEFUN([AC_RXP_INIT],[
 AX_COMPILER_VENDOR
 AC_CANONICAL_HOST
 
+
+
+AC_ARG_VAR([GENGETOPT], [the 'gengetopt' program to generate command line argument parser of RNAxplorer])
+AC_PATH_PROG([GENGETOPT], [gengetopt], [no])
+AC_SUBST([GENGETOPT])
+AM_CONDITIONAL(VRNA_AM_SWITCH_HAS_GENGETOPT, test "x$GENGETOPT" != "xno")
+
+###############################################################################
+# help2man check
+###############################################################################
+
+AC_ARG_VAR([HELP2MAN], [the 'help2man' script to generate man pages from command line options of RNAxplorer])
+AC_PATH_PROG([HELP2MAN], [help2man], [no])
+AC_SUBST([HELP2MAN])
+AC_CONFIG_FILES([doc/Makefile doc/cmdlopt.sh],[chmod +x doc/cmdlopt.sh])
+AM_CONDITIONAL(VRNA_AM_SWITCH_BUILD_MANPAGES, test "x$HELP2MAN" != "xno" && test "x$GENGETOPT" != "xno")
+
 ##--------------------##
 ## Enable scripting   ##
 ## language interface ##
@@ -26,6 +43,7 @@ RXP_ENABLE_SWIG_INTERFACES
 
 AC_CONFIG_FILES([interfaces/Makefile])
 AC_CONFIG_FILES([Makefile src/Makefile])
+
 ])
 
 AC_DEFUN([AC_RXP_NOTICE],[

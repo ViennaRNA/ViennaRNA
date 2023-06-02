@@ -34,5 +34,9 @@ m4/lt~obsolete.m4
 # compiled python code
 *.pyc
 
+# generated files in doc/ subdirectory
+doc/cmdlopt.sh
+doc/RNAxplorer.1
+
 # distribution tarball
 RNAxplorer-*.tar.gz

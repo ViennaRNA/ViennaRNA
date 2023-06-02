@@ -168,11 +168,6 @@ dnl for Vienna RNA
 dnl     defines HAVE_STRDUP if strdup is available
 AC_CHECK_FUNCS([strdup])
 
-###############################################################################
-# help2man check
-###############################################################################
-AX_PROG_HELP2MAN([src/RNAxplorer])
-AC_CONFIG_FILES([doc/Makefile])
 AC_RXP_INIT
 
 AC_OUTPUT([packaging/RNAxplorer.spec packaging/PKGBUILD])
