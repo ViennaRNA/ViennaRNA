@@ -326,9 +326,8 @@ vrna_sc_mod_purine(vrna_fold_compound_t *fc,
  *
  *  This is a convenience wrapper to add support for dihydrouridine using the
  *  soft constraint callback mechanism. Modification sites are provided
- *  as a list of sequence positions (1-based). This implementation simply
- *  assumes that dihydrouridines favor destacking and destabilize base pair
- *  stacks by at least 1.5kcal/mol, as suggested in @cite dalluge:1996.
+ *  as a list of sequence positions (1-based). Energy parameter corrections
+ *  are derived from Rosetta/RECESS predictions.
  *
  *  @see  #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT

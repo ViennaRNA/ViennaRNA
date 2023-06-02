@@ -13,7 +13,6 @@
 
 size_t **
 mod_positions_seq_prepare(char                *sequence,
-                          unsigned char       mod_dihydrouridine,
                           vrna_sc_mod_param_t *params,
                           int                 verbose,
                           size_t              *param_set_num)
@@ -23,9 +22,6 @@ mod_positions_seq_prepare(char                *sequence,
   *param_set_num = 0;
 
   if (sequence) {
-    if (mod_dihydrouridine)
-      (*param_set_num)++;
-
     if (params)
       for (size_t i = 0; params[i] != NULL; i++)
         (*param_set_num)++;
@@ -33,20 +29,8 @@ mod_positions_seq_prepare(char                *sequence,
     if (*param_set_num > 0)
       mod_positions = vrna_alloc(sizeof(size_t) * *param_set_num);
 
-    /* replace modified base one-letter code with fallback base for internal use */
-    if (mod_dihydrouridine) {
-      mod_positions[0] = vrna_strchr(sequence, (int)'D', 0);
-      if (mod_positions[0])
-        for (size_t i = 1; i <= mod_positions[0][0]; i++) {
-          if (verbose)
-            printf("Found modified base %c at position %d\n", 'D', mod_positions[0][i]);
-
-          sequence[mod_positions[0][i] - 1] = 'U';
-        }
-    }
-
     if (params) {
-      size_t i = (mod_dihydrouridine) ? 1 : 0;
+      size_t i = 0;
       for (vrna_sc_mod_param_t *ptr = params; *ptr != NULL; ptr++, i++) {
         mod_positions[i] = vrna_strchr(sequence, (int)(*ptr)->one_letter_code, 0);
         if (mod_positions[i])
@@ -70,7 +54,6 @@ void
 mod_bases_apply(vrna_fold_compound_t  *fc,
                 size_t                param_set_num,
                 size_t                **mod_positions,
-                unsigned char         mod_dihydrouridine,
                 vrna_sc_mod_param_t   *params)
 {
   /* apply modified base support if requested */
@@ -80,22 +63,6 @@ mod_bases_apply(vrna_fold_compound_t  *fc,
 
     i                   = 0;
     modification_sites  = vrna_alloc(sizeof(unsigned int) * (fc->length + 1));
-
-    if (mod_dihydrouridine) {
-      if (mod_positions[i][0] > 0) {
-        for (j = 1; j <= mod_positions[i][0]; j++)
-          modification_sites[j - 1] = mod_positions[i][j];
-
-        modification_sites[j - 1] = 0;
-
-        vrna_sc_mod_dihydrouridine(fc, modification_sites, VRNA_SC_MOD_DEFAULT);
-      }
-
-      free(mod_positions[i]);
-      mod_positions[i] = NULL;
-
-      i++;
-    }
 
     if (params) {
       for (vrna_sc_mod_param_t *ptr = params; *ptr != NULL; ptr++, i++) {
@@ -122,8 +89,7 @@ vrna_sc_mod_param_t *
 mod_params_collect_from_string(const char           *string,
                                size_t               *num_params,
                                vrna_sc_mod_param_t  *mod_params,
-                               vrna_md_t            *md,
-                               unsigned int         *special_bases)
+                               vrna_md_t            *md)
 {
   if (string) {
     mod_params =
@@ -157,7 +123,9 @@ mod_params_collect_from_string(const char           *string,
             md);
           break;
         case 'D':
-          (*special_bases) |= SPECIAL_BASES_DIHYDROURIDINE;
+          mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
+            (const char *)parameter_set_rna_mod_dihydrouridine_parameters,
+            md);
           break;
         default:
           break;

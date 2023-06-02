@@ -68,7 +68,6 @@ main(int  argc,
 {
   FILE                        *input, *output;
   struct  RNALfold_args_info  args_info;
-  unsigned char               mod_dihydrouridine;
   char                        *ParamFile, *ns_bases, *rec_sequence, *rec_id, **rec_rest,
                               *command_file, *orig_sequence, *infile, *outfile, *filename_delim,
                               *shape_file, *shape_method, *shape_conversion;
@@ -106,7 +105,6 @@ main(int  argc,
   commands            = NULL;
   file_pos_start      = -1;
   verbose             = 0;
-  mod_dihydrouridine  = 0;
   mod_params          = NULL;
 
   /* apply default model details */
@@ -252,7 +250,6 @@ main(int  argc,
   }
 
   ggo_get_modified_base_settings(args_info,
-                                 mod_dihydrouridine,
                                  mod_params,
                                  &(md));
 
@@ -357,7 +354,6 @@ main(int  argc,
     length = (int)strlen(rec_sequence);
 
     mod_positions = mod_positions_seq_prepare(rec_sequence,
-                                              mod_dihydrouridine,
                                               mod_params,
                                               verbose,
                                               &mod_param_sets);
@@ -402,7 +398,6 @@ main(int  argc,
     mod_bases_apply(vc,
                     mod_param_sets,
                     mod_positions,
-                    mod_dihydrouridine,
                     mod_params);
 
 #ifdef VRNA_WITH_SVM

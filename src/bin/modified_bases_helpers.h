@@ -10,7 +10,6 @@
 
 size_t **
 mod_positions_seq_prepare(char                *sequence,
-                          unsigned char       mod_dihydrouridine,
                           vrna_sc_mod_param_t *params,
                           int                 verbose,
                           size_t              *param_set_num);
@@ -20,7 +19,6 @@ void
 mod_bases_apply(vrna_fold_compound_t  *fc,
                 size_t                param_set_num,
                 size_t                **mod_positions,
-                unsigned char         mod_dihydrouridine,
                 vrna_sc_mod_param_t   *params);
 
 
@@ -28,8 +26,7 @@ vrna_sc_mod_param_t *
 mod_params_collect_from_string(const char           *string,
                                size_t               *num_params,
                                vrna_sc_mod_param_t  *mod_params,
-                               vrna_md_t            *md,
-                               unsigned int         *special_bases);
+                               vrna_md_t            *md);
 
 
 vrna_sc_mod_param_t *

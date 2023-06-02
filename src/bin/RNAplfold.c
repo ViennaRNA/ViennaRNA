@@ -142,7 +142,6 @@ main(int  argc,
 {
   FILE                        *pUfp;
   struct RNAplfold_args_info  args_info;
-  unsigned char               mod_dihydrouridine;
   char                        *structure, *ParamFile, *ns_bases, *rec_sequence, *rec_id,
                               **rec_rest, *orig_sequence, *filename_delim, *command_file,
                               *shape_file, *shape_method, *shape_conversion;
@@ -175,7 +174,6 @@ main(int  argc,
   command_file        = NULL;
   commands            = NULL;
   verbose             = 0;
-  mod_dihydrouridine  = 0;
   mod_params          = NULL;
 
   set_model_details(&md);
@@ -306,7 +304,6 @@ main(int  argc,
     command_file = strdup(args_info.commands_arg);
 
   ggo_get_modified_base_settings(args_info,
-                                 mod_dihydrouridine,
                                  mod_params,
                                  &(md));
 
@@ -385,7 +382,6 @@ main(int  argc,
 
 
     mod_positions = mod_positions_seq_prepare(rec_sequence,
-                                              mod_dihydrouridine,
                                               mod_params,
                                               verbose,
                                               &mod_param_sets);
@@ -527,7 +523,6 @@ main(int  argc,
       mod_bases_apply(fc,
                       mod_param_sets,
                       mod_positions,
-                      mod_dihydrouridine,
                       mod_params);
 
       pf_parameters = vrna_exp_params(&md);

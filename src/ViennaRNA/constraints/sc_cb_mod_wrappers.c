@@ -68,3 +68,15 @@ vrna_sc_mod_purine(vrna_fold_compound_t *fc,
                           modification_sites,
                           options);
 }
+
+
+PUBLIC int
+vrna_sc_mod_dihydrouridine(vrna_fold_compound_t *fc,
+                           const unsigned int   *modification_sites,
+                           unsigned int         options)
+{
+  return vrna_sc_mod_json(fc,
+                          (const char *)parameter_set_rna_mod_dihydrouridine_parameters,
+                          modification_sites,
+                          options);
+}

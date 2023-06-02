@@ -84,7 +84,6 @@ struct options {
   char            *shape_method;
   char            *shape_conversion;
 
-  unsigned char       mod_dihydrouridine;
   vrna_sc_mod_param_t *mod_params;
 
   int             jobs;
@@ -389,7 +388,6 @@ init_default_options(struct options *opt)
   opt->shape_method     = NULL;
   opt->shape_conversion = NULL;
 
-  opt->mod_dihydrouridine = 0;
   opt->mod_params         = NULL;
 
   opt->jobs               = 1;
@@ -507,7 +505,7 @@ main(int  argc,
   if (args_info.commands_given)
     opt.cmds = vrna_file_commands_read(args_info.commands_arg, VRNA_CMD_PARSE_DEFAULTS);
 
-  ggo_get_modified_base_settings(args_info, opt.mod_dihydrouridine, opt.mod_params, &(opt.md));
+  ggo_get_modified_base_settings(args_info, opt.mod_params, &(opt.md));
 
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)
@@ -836,7 +834,6 @@ process_record(struct record_data *record)
   rec_sequence = strdup(record->sequence);
 
   mod_positions   = mod_positions_seq_prepare(rec_sequence,
-                                              opt->mod_dihydrouridine,
                                               opt->mod_params,
                                               opt->verbose,
                                               &mod_param_sets);
@@ -911,7 +908,6 @@ process_record(struct record_data *record)
   mod_bases_apply(vc,
                   mod_param_sets,
                   mod_positions,
-                  opt->mod_dihydrouridine,
                   opt->mod_params);
 
   /*

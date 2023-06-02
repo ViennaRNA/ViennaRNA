@@ -77,7 +77,6 @@ struct options {
   char            *shape_method;
   char            *shape_conversion;
 
-  unsigned char       mod_dihydrouridine;
   vrna_sc_mod_param_t *mod_params;
 
   int             csv_output;
@@ -204,7 +203,6 @@ init_default_options(struct options *opt)
   opt->shape_method     = NULL;
   opt->shape_conversion = NULL;
 
-  opt->mod_dihydrouridine = 0;
   opt->mod_params         = NULL;
 
   opt->csv_output       = 0;    /* flag indicating whether we produce one-line outputs, a.k.a. CSV */
@@ -378,7 +376,6 @@ main(int  argc,
                                            VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
 
   ggo_get_modified_base_settings(args_info,
-                                 opt.mod_dihydrouridine,
                                  opt.mod_params,
                                  &(opt.md));
 
@@ -681,7 +678,6 @@ process_record(struct record_data *record)
   rec_rest        = record->rest;
 
   mod_positions   = mod_positions_seq_prepare(sequence,
-                                              opt->mod_dihydrouridine,
                                               opt->mod_params,
                                               opt->verbose,
                                               &mod_param_sets);
@@ -795,7 +791,6 @@ process_record(struct record_data *record)
   mod_bases_apply(vc,
                   mod_param_sets,
                   mod_positions,
-                  opt->mod_dihydrouridine,
                   opt->mod_params);
 
   if (opt->doC) {
