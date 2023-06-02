@@ -3,7 +3,7 @@ name: Version release
 on:
   push:
     branches:
-      - dev_github
+      - release_v2.*
     tags:
       - 'v*.*.*'
 
@@ -24,7 +24,7 @@ jobs:
     - name: extract libsvm
       run:  tar -xzf src/libsvm-3.31.tar.gz -C src
     - name: configure
-      run: ./configure --with-cluster --with-kinwalker
+      run: ./configure --with-cluster --with-kinwalker --with-python2
     - name: distcheck
       run:  make distcheck
     - name: make tarballs
@@ -36,7 +36,9 @@ jobs:
         header_level: 3
         version_prefix: "Version"
     - name: Make release
-    - uses: ncipollo/release-action@v1
+      uses: ncipollo/release-action@v1
       with:
         artifacts: "ViennaRNA-*.tar.gz,ViennaRNA-*.zip"
         body: ${{ steps.extract-release-notes.outputs.release_notes }}
+        prerelease: true
+        name: v2.6.0-pre
