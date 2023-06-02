@@ -183,9 +183,11 @@ The ViennaRNA Package comes with scripting language interfaces for `Perl 5`,
 implemented algorithms directly without the need of calling an executable
 program. The necessary requirements are determined at configure time and
 particular languages may be deactivated automatically, if the requirements are
-not met. You may also switch-off particular languages by passing the
-`--without-perl`, `--without-python`, and/or `--without-python2` configure
-options, e.g.
+not met. Building the Python 2 interface is deactivated by default since
+Python 2 reached its end-of-life on January 1st, 2020. If for any reason you
+still want to build that interface, you may use the `--with-python2` configure
+option to turn it back on. You may also switch-off particular languages by
+passing the `--without-perl` and/or `--without-python` configure options, e.g.
 ```
 ./configure --without-perl --without-python
 ```

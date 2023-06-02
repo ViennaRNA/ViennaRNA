@@ -139,7 +139,7 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON2],[
 
   RNA_ADD_PACKAGE([python2],
                   [Python2 interface],
-                  [yes],[],[],
+                  [no],[],[],
                   [${srcdir}/interfaces/Python2/Makefile.am])
 
 
