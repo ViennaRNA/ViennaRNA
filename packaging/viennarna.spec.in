@@ -21,7 +21,7 @@ Distribution:   viennarna-package
 Group:          Productivity/Scientific/Chemistry
 License:        Free for non commercial use.
 URL:            @PACKAGE_URL@
-Source0:        http://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-%{version}.tar.gz
+Source0:        https://www.tbi.univie.ac.at/RNA/packages/source/ViennaRNA-%{version}.tar.gz
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildRequires:  autoconf
@@ -33,19 +33,23 @@ BuildRequires:  libstdc++-devel
 BuildRequires:  gcc gcc-c++ glibc-devel info
 BuildRequires:  gsl-devel
 BuildRequires:  mpfr-devel
-BuildRequires:  perl(ExtUtils::Embed)
+BuildRequires:  perl perl(ExtUtils::Embed)
 BuildRequires:  perl-Test-Simple
 
 BuildRequires:  perl(FileHandle)
 
-Requires:       perl glibc info gsl
+Requires:       perl glibc info gsl lapack
 %if 0%{?suse_version}
+BuildRequires:	gcc-fortran
+BuildRequires:  lapack-devel lapacke-devel
 %if 0%{?suse_version} >= 1500
 Requires:       libmpfr6
 %else
 Requires:       libmpfr4
 %endif
 %else
+BuildRequires:	gcc-gfortran
+BuildRequires:  lapack-devel
 Requires:       mpfr
 %endif
 
@@ -78,9 +82,9 @@ BuildRequires:  python3-devel python3
 %{!?__python3: %global __python3 /usr/bin/python3}
 %endif
 
-%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from sysconfig import get_path; print(get_path('purelib'))")}
-%{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from sysconfig import get_path; print(get_path('platlib'))")}
-%global python3_modext %(%{__python3} -c "from sysconfig import get_config_var; print(get_config_var('EXT_SUFFIX'))")
+%{!?python3_sitelib: %global python3_sitelib %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python3_sitearch: %global python3_sitearch %(%{__python3} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%global python3_modext %(%{__python3} -c "from distutils.sysconfig import get_config_vars; print(get_config_vars('SO')[[0]])")
 
 %global __provides_exclude_from ^%{python3_sitearch}/.*\\.so$
 
@@ -157,18 +161,21 @@ Python 3 bindings for ViennaRNA RNAlib.
 
 %if 0%{?suse_version}
 %configure \
+    --disable-lto \
     --with-cluster \
     --without-forester \
     --with-kinwalker \
-    --disable-lto \
+    --with-python2 \
     --docdir=%{_pkgdocdir} \
     INSTALLDIRS=vendor \
     PERL=/usr/bin/perl
 %else
 %configure \
+    --disable-lto \
     --with-cluster \
     --without-forester \
     --with-kinwalker \
+    --with-python2 \
     --docdir=%{_pkgdocdir} \
     INSTALLDIRS=vendor \
     PERL=/usr/bin/perl
@@ -176,11 +183,17 @@ Python 3 bindings for ViennaRNA RNAlib.
 
 %else
 
+%{build_cflags} -fno-lto
+%{build_cxxflags} -fno-lto
+%{build_ldflags} -fno-lto
+
 %configure \
+    --disable-lto \
     --with-cluster \
     --without-forester \
     --without-rnalocmin \
     --with-kinwalker \
+    --with-python2 \
     --docdir=%{_pkgdocdir} \
     INSTALLDIRS=vendor \
     PERL=/usr/bin/perl
@@ -255,6 +268,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/ViennaRNA/bin
 %{_datadir}/ViennaRNA/tutorial
 %{_datadir}/ViennaRNA/*.par
+%{_datadir}/ViennaRNA/*.json
 %{_datadir}/ViennaRNA/*.R
 %{_datadir}/ViennaRNA/*.gri
 %{_mandir}/man1/RNAplfold.1.gz
@@ -287,6 +301,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/RNAmultifold.1.gz
 %{_mandir}/man1/ct2db.1.gz
 %{_mandir}/man1/kinwalker.1.gz
+%{_mandir}/man1/RNAxplorer.1.gz
 %if 0%{?with_rnalocmin}
 %{_mandir}/man1/RNAlocmin.1.gz
 %endif
