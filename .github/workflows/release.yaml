@@ -2,8 +2,6 @@ name: Version release
 
 on:
   push:
-    branches:
-      - release_v2.*
     tags:
       - 'v*.*.*'
 
@@ -40,5 +38,3 @@ jobs:
       with:
         artifacts: "ViennaRNA-*.tar.gz,ViennaRNA-*.zip"
         body: ${{ steps.extract-release-notes.outputs.release_notes }}
-        prerelease: true
-        name: v2.6.0-pre
