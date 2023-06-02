@@ -4,11 +4,11 @@ Section: science
 Priority: optional
 Standards-Version: 3.9.5
 X-Python-Version: >= 2.7
-Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev | libgsl-dev, libmpfr-dev, gawk, perl, libperl-dev, python-all, python-all-dev, python3-all, python3-all-dev, dh-python, lsb-release, gengetopt, texinfo, help2man, doxygen-latex, swig, graphviz, xxd
+Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev | libgsl-dev, libmpfr-dev, gawk, perl, libperl-dev, python-all, python-all-dev, python3-all, python3-all-dev, dh-python, lsb-release, gengetopt, texinfo, help2man, doxygen-latex, swig, graphviz, xxd, gfortran, liblapack-dev, liblapacke-dev
 
 Package: viennarna
 Architecture: any
-Depends: libgomp1 (>= 4.4.5-1), libgsl0ldbl | libgsl2 | libgsl23 | libgsl25 | libgsl27, libmpfr4 | libmpfr6, ${shlibs:Depends}, ${misc:Depends}
+Depends: libgomp1 (>= 4.4.5-1), libgsl0ldbl | libgsl2 | libgsl23 | libgsl25 | libgsl27, libmpfr4 | libmpfr6, liblapack, liblapacke, ${shlibs:Depends}, ${misc:Depends}
 Replaces: vienna-rna (<< 2.2.1-2)
 Breaks: vienna-rna (<< 2.2.1-2)
 Recommends: python-rna, perl-rna
