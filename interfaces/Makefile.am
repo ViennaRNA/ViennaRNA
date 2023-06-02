@@ -106,5 +106,6 @@ EXTRA_DIST = \
     ptr2array.i \
     generic.mk \
     classify.csv \
+    typedefs.csv \
     $(DOXYGEN_DOCUMENTATION)
 
