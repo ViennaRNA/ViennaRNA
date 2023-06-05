@@ -10,7 +10,6 @@
 /**
  * @addtogroup grammar
  * @{
- *    @brief  The RNA folding grammar as implemented in RNAlib
  */
 
 #include <ViennaRNA/fold_compound.h>
@@ -141,11 +140,6 @@ vrna_gr_reset(vrna_fold_compound_t *fc);
 
 /**
  * @}
- */
-
-/**
- *  @addtogroup domains
- *  @brief This module covers simple and straight-forward extensions to the RNA folding grammar.
  */
 
 #endif
