@@ -38,19 +38,17 @@ http://www.tbi.univie.ac.at/RNA
    :maxdepth: 1
 
    getting_started
-   concepts
    io
-   data_structures
-   api_features
    examples
 
 .. toctree::
-   :caption: API Reference
+   :caption: RNAlib
    :maxdepth: 1
 
    api
    deprecated
-   datastructures
+   data_structures
+   api_features
 
 .. toctree::
    :caption: Miscellaneous

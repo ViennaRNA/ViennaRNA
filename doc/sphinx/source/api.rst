@@ -1,5 +1,6 @@
-ViennaRNA API
-=============
+=======================
+Concepts and Algorithms
+=======================
 
 Our library is grouped into several modules, each addressing different
 aspects of RNA secondary structure related problems. You can find an
