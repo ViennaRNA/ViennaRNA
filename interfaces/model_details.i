@@ -47,7 +47,9 @@ typedef struct {
   int saltMLLower;
   int saltMLUpper;
   int saltDPXInit;
-  float saltDPXInitFact;
+  float   saltDPXInitFact;
+  float   helical_rise;
+  float   backbone_length;
 } vrna_md_t;
 
 
@@ -89,7 +91,9 @@ typedef struct {
     const int     saltMLLower     = vrna_md_defaults_saltMLLower_get(),
     const int     saltMLUpper     = vrna_md_defaults_saltMLUpper_get(),
     const int     saltDPXInit     = vrna_md_defaults_saltDPXInit_get(),
-    const float   saltDPXInitFact = vrna_md_defaults_saltDPXInitFact_get())
+    const float   saltDPXInitFact = vrna_md_defaults_saltDPXInitFact_get(),
+    const float   helical_rise    = vrna_md_defaults_helical_rise_get(),
+    const float   backbone_length = vrna_md_defaults_backbone_length_get())
   {
     vrna_md_t *md       = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     md->temperature     = temperature;
@@ -121,6 +125,8 @@ typedef struct {
     md->saltMLUpper     = saltMLUpper;
     md->saltDPXInit     = saltDPXInit;
     md->saltDPXInitFact = saltDPXInitFact;
+    md->helical_rise    = helical_rise;
+    md->backbone_length = backbone_length;
 
     vrna_md_update(md);
 
@@ -184,6 +190,8 @@ typedef struct {
     out << ", saltMLUpper: " << $self->saltMLUpper ;
     out << ", saltDPXInit: " << $self->saltDPXInit ;
     out << ", saltDPXInitFact: " << $self->saltDPXInitFact ;
+    out << ", helical_rise: " << $self->helical_rise ;
+    out << ", backbone_length: " << $self->backbone_length ;
     out << " }";
 
     return std::string(out.str());
@@ -213,6 +221,10 @@ def __repr__(self):
  * functions in the library
  */
 %include globals-md.i
+
+/* these two global variables will be handled by getter/setter methods */
+%ignore helical_rise;
+%ignore backbone_length;
 
 /*
  * The list of available global variables in the scripting
@@ -250,38 +262,46 @@ extern double sfact;
 extern double salt;
 extern int    saltDPXInit;
 extern double saltDPXInitFact;
+extern double helical_rise;
+extern double backbone_length;
 
 
-%constant double  MODEL_DEFAULT_TEMPERATURE = VRNA_MODEL_DEFAULT_TEMPERATURE;
-%constant double  MODEL_DEFAULT_PF_SCALE = VRNA_MODEL_DEFAULT_PF_SCALE;
-%constant double  MODEL_DEFAULT_BETA_SCALE = VRNA_MODEL_DEFAULT_BETA_SCALE;
-%constant int     MODEL_DEFAULT_DANGLES = VRNA_MODEL_DEFAULT_DANGLES;
-%constant int     MODEL_DEFAULT_SPECIAL_HP = VRNA_MODEL_DEFAULT_SPECIAL_HP;
-%constant int     MODEL_DEFAULT_NO_LP = VRNA_MODEL_DEFAULT_NO_LP;
-%constant int     MODEL_DEFAULT_NO_GU = VRNA_MODEL_DEFAULT_NO_GU;
-%constant int     MODEL_DEFAULT_NO_GU_CLOSURE = VRNA_MODEL_DEFAULT_NO_GU_CLOSURE;
-%constant int     MODEL_DEFAULT_CIRC = VRNA_MODEL_DEFAULT_CIRC;
-%constant int     MODEL_DEFAULT_GQUAD = VRNA_MODEL_DEFAULT_GQUAD;
-%constant int     MODEL_DEFAULT_UNIQ_ML = VRNA_MODEL_DEFAULT_UNIQ_ML;
-%constant int     MODEL_DEFAULT_ENERGY_SET = VRNA_MODEL_DEFAULT_ENERGY_SET;
-%constant int     MODEL_DEFAULT_BACKTRACK = VRNA_MODEL_DEFAULT_BACKTRACK;
-%constant char    MODEL_DEFAULT_BACKTRACK_TYPE = VRNA_MODEL_DEFAULT_BACKTRACK_TYPE;
-%constant int     MODEL_DEFAULT_COMPUTE_BPP = VRNA_MODEL_DEFAULT_COMPUTE_BPP;
-%constant int     MODEL_DEFAULT_MAX_BP_SPAN = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;
-%constant int     MODEL_DEFAULT_WINDOW_SIZE = VRNA_MODEL_DEFAULT_WINDOW_SIZE;
-%constant int     MODEL_DEFAULT_LOG_ML = VRNA_MODEL_DEFAULT_LOG_ML;
-%constant int     MODEL_DEFAULT_ALI_OLD_EN = VRNA_MODEL_DEFAULT_ALI_OLD_EN;
-%constant int     MODEL_DEFAULT_ALI_RIBO = VRNA_MODEL_DEFAULT_ALI_RIBO;
-%constant double  MODEL_DEFAULT_ALI_CV_FACT = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
-%constant double  MODEL_DEFAULT_ALI_NC_FACT = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
-%constant int     MODEL_DEFAULT_PF_SMOOTH = VRNA_MODEL_DEFAULT_PF_SMOOTH;
-%constant double  MODEL_DEFAULT_SALT = VRNA_MODEL_DEFAULT_SALT;
-%constant int     MODEL_DEFAULT_SALTMLLOWER = VRNA_MODEL_DEFAULT_SALTMLLOWER;
-%constant int     MODEL_DEFAULT_SALTMLUPPER = VRNA_MODEL_DEFAULT_SALTMLUPPER;
-%constant int     MODEL_DEFAULT_SALTDPXINIT = VRNA_MODEL_DEFAULT_SALTDPXINIT;
-%constant double  MODEL_DEFAULT_SALTDPXINITFACT_RNA = VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA;
-%constant double  MODEL_DEFAULT_SALTDPXINITFACT_DNA = VRNA_MODEL_DEFAULT_SALTDPXINITFACT_DNA;
-
+%constant double  MODEL_DEFAULT_TEMPERATURE         = VRNA_MODEL_DEFAULT_TEMPERATURE;
+%constant double  MODEL_DEFAULT_PF_SCALE          = VRNA_MODEL_DEFAULT_PF_SCALE;
+%constant double  MODEL_DEFAULT_BETA_SCALE        = VRNA_MODEL_DEFAULT_BETA_SCALE;
+%constant int     MODEL_DEFAULT_DANGLES           = VRNA_MODEL_DEFAULT_DANGLES;
+%constant int     MODEL_DEFAULT_SPECIAL_HP        = VRNA_MODEL_DEFAULT_SPECIAL_HP;
+%constant int     MODEL_DEFAULT_NO_LP             = VRNA_MODEL_DEFAULT_NO_LP;
+%constant int     MODEL_DEFAULT_NO_GU             = VRNA_MODEL_DEFAULT_NO_GU;
+%constant int     MODEL_DEFAULT_NO_GU_CLOSURE     = VRNA_MODEL_DEFAULT_NO_GU_CLOSURE;
+%constant int     MODEL_DEFAULT_CIRC              = VRNA_MODEL_DEFAULT_CIRC;
+%constant int     MODEL_DEFAULT_GQUAD             = VRNA_MODEL_DEFAULT_GQUAD;
+%constant int     MODEL_DEFAULT_UNIQ_ML           = VRNA_MODEL_DEFAULT_UNIQ_ML;
+%constant int     MODEL_DEFAULT_ENERGY_SET        = VRNA_MODEL_DEFAULT_ENERGY_SET;
+%constant int     MODEL_DEFAULT_BACKTRACK         = VRNA_MODEL_DEFAULT_BACKTRACK;
+%constant char    MODEL_DEFAULT_BACKTRACK_TYPE    = VRNA_MODEL_DEFAULT_BACKTRACK_TYPE;
+%constant int     MODEL_DEFAULT_COMPUTE_BPP       = VRNA_MODEL_DEFAULT_COMPUTE_BPP;
+%constant int     MODEL_DEFAULT_MAX_BP_SPAN       = VRNA_MODEL_DEFAULT_MAX_BP_SPAN;
+%constant int     MODEL_DEFAULT_WINDOW_SIZE       = VRNA_MODEL_DEFAULT_WINDOW_SIZE;
+%constant int     MODEL_DEFAULT_LOG_ML            = VRNA_MODEL_DEFAULT_LOG_ML;
+%constant int     MODEL_DEFAULT_ALI_OLD_EN        = VRNA_MODEL_DEFAULT_ALI_OLD_EN;
+%constant int     MODEL_DEFAULT_ALI_RIBO          = VRNA_MODEL_DEFAULT_ALI_RIBO;
+%constant double  MODEL_DEFAULT_ALI_CV_FACT       = VRNA_MODEL_DEFAULT_ALI_CV_FACT;
+%constant double  MODEL_DEFAULT_ALI_NC_FACT       = VRNA_MODEL_DEFAULT_ALI_NC_FACT;
+%constant int     MODEL_DEFAULT_PF_SMOOTH         = VRNA_MODEL_DEFAULT_PF_SMOOTH;
+%constant double  MODEL_DEFAULT_SALT              = VRNA_MODEL_DEFAULT_SALT;
+%constant int     MODEL_DEFAULT_SALT_MLLOWER      = VRNA_MODEL_DEFAULT_SALT_MLLOWER;
+%constant int     MODEL_DEFAULT_SALT_MLUPPER      = VRNA_MODEL_DEFAULT_SALT_MLUPPER;
+%constant int     MODEL_DEFAULT_SALT_DPXINIT      = VRNA_MODEL_DEFAULT_SALT_DPXINIT;
+%constant double  MODEL_DEFAULT_SALT_DPXINIT_FACT = VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT;
+%constant double  MODEL_DEFAULT_HELICAL_RISE      = VRNA_MODEL_DEFAULT_HELICAL_RISE;
+%constant double  MODEL_DEFAULT_BACKBONE_LENGTH   = VRNA_MODEL_DEFAULT_BACKBONE_LENGTH;
+%constant double  MODEL_SALT_DPXINIT_FACT_RNA     = VRNA_MODEL_SALT_DPXINIT_FACT_RNA;
+%constant double  MODEL_SALT_DPXINIT_FACT_DNA     = VRNA_MODEL_SALT_DPXINIT_FACT_DNA;
+%constant double  MODEL_HELICAL_RISE_RNA          = VRNA_MODEL_HELICAL_RISE_RNA;
+%constant double  MODEL_HELICAL_RISE_DNA          = VRNA_MODEL_HELICAL_RISE_DNA;
+%constant double  MODEL_BACKBONE_LENGTH_RNA       = VRNA_MODEL_BACKBONE_LENGTH_RNA;
+%constant double  MODEL_BACKBONE_LENGTH_DNA       = VRNA_MODEL_BACKBONE_LENGTH_DNA;
 
 %include <ViennaRNA/model.h>
 

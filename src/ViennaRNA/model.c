@@ -80,8 +80,10 @@ int             *iindx            = NULL; /* pr[i,j] -> pr[iindx[i]-j] */
 int             fold_constrained  = 0;    /* fold with constraints */
 
 double          salt             = VRNA_MODEL_DEFAULT_SALT;
-int             saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
-float           saltDPXInitFact  = VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA;
+int             saltDPXInit      = VRNA_MODEL_DEFAULT_SALT_DPXINIT;
+float           saltDPXInitFact  = VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT;
+float           helical_rise     = VRNA_MODEL_DEFAULT_HELICAL_RISE;
+float           backbone_length  = VRNA_MODEL_DEFAULT_BACKBONE_LENGTH;
 
 #endif
 
@@ -155,10 +157,12 @@ PRIVATE vrna_md_t defaults = {
   BP_ENCODING_DEFAULT,
   DM_DEFAULT,
   VRNA_MODEL_DEFAULT_SALT,
-  VRNA_MODEL_DEFAULT_SALTMLLOWER,
-  VRNA_MODEL_DEFAULT_SALTMLUPPER,
-  VRNA_MODEL_DEFAULT_SALTDPXINIT,
-  VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA,
+  VRNA_MODEL_DEFAULT_SALT_MLLOWER,
+  VRNA_MODEL_DEFAULT_SALT_MLUPPER,
+  VRNA_MODEL_DEFAULT_SALT_DPXINIT,
+  VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT,
+  VRNA_MODEL_DEFAULT_HELICAL_RISE,
+  VRNA_MODEL_DEFAULT_BACKBONE_LENGTH
 };
 
 /*
@@ -364,11 +368,12 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.sfact            = 1.07;
   defaults.nonstandards[0]  = '\0';
   defaults.salt             = VRNA_MODEL_DEFAULT_SALT;
-  defaults.saltMLLower      = VRNA_MODEL_DEFAULT_SALTMLLOWER;
-  defaults.saltMLUpper      = VRNA_MODEL_DEFAULT_SALTMLUPPER;
-  defaults.saltDPXInit      = VRNA_MODEL_DEFAULT_SALTDPXINIT;
-  defaults.saltDPXInitFact  = VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA;
-
+  defaults.saltMLLower      = VRNA_MODEL_DEFAULT_SALT_MLLOWER;
+  defaults.saltMLUpper      = VRNA_MODEL_DEFAULT_SALT_MLUPPER;
+  defaults.saltDPXInit      = VRNA_MODEL_DEFAULT_SALT_DPXINIT;
+  defaults.saltDPXInitFact  = VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT;
+  defaults.helical_rise     = VRNA_MODEL_DEFAULT_HELICAL_RISE;
+  defaults.backbone_length  = VRNA_MODEL_DEFAULT_BACKBONE_LENGTH;
   if (md_p) {
     /* now try to apply user settings */
     /*
@@ -406,6 +411,8 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_saltMLUpper(md_p->saltMLUpper);
     vrna_md_defaults_saltDPXInit(md_p->saltDPXInit);
     vrna_md_defaults_saltDPXInitFact(md_p->saltDPXInitFact);
+    vrna_md_defaults_helical_rise(md_p->helical_rise);
+    vrna_md_defaults_backbone_length(md_p->backbone_length);
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
@@ -433,6 +440,10 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   cv_fact         = defaults.cv_fact;
   nc_fact         = defaults.nc_fact;
   logML           = defaults.logML;
+  salt            = defaults.salt;
+  saltDPXInit     = defaults.saltDPXInit;
+  helical_rise    = defaults.helical_rise;
+  backbone_length = defaults.backbone_length;
 #endif
 }
 
@@ -862,9 +873,12 @@ vrna_md_defaults_sfact_get(void)
 
 
 PUBLIC void
-vrna_md_defaults_salt(double salt)
+vrna_md_defaults_salt(double value)
 {
-  defaults.salt = salt;
+  defaults.salt = value;
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+  salt = value;
+#endif
 }
 
 PUBLIC double
@@ -919,15 +933,42 @@ PUBLIC void
 vrna_md_defaults_saltDPXInitFact(float value)
 {
   defaults.saltDPXInitFact = value;
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
-  saltDPXInitFact = value;
-#endif
 }
 
 PUBLIC float
 vrna_md_defaults_saltDPXInitFact_get(void)
 {
   return defaults.saltDPXInitFact;
+}
+
+PUBLIC void
+vrna_md_defaults_helical_rise(float value)
+{
+  defaults.helical_rise = value;
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+  helical_rise = value;
+#endif
+}
+
+PUBLIC float
+vrna_md_defaults_helical_rise_get(void)
+{
+  return defaults.helical_rise;
+}
+
+PUBLIC void
+vrna_md_defaults_backbone_length(float value)
+{
+  defaults.backbone_length = value;
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+  backbone_length = value;
+#endif
+}
+
+PUBLIC float
+vrna_md_defaults_backbone_length_get(void)
+{
+  return defaults.backbone_length;
 }
 
 PUBLIC void
@@ -1105,11 +1146,13 @@ set_model_details(vrna_md_t *md)
     md->betaScale       = VRNA_MODEL_DEFAULT_BETA_SCALE;
     md->pf_smooth       = VRNA_MODEL_DEFAULT_PF_SMOOTH;
     md->sfact           = 1.07;
-    md->salt            = salt;
-    md->saltMLLower     = VRNA_MODEL_DEFAULT_SALTMLLOWER;
-    md->saltMLUpper     = VRNA_MODEL_DEFAULT_SALTMLUPPER;
-    md->saltDPXInit     = saltDPXInit;
-    md->saltDPXInitFact = saltDPXInitFact;
+    md->salt            = defaults.salt;
+    md->saltMLLower     = defaults.saltMLLower;
+    md->saltMLUpper     = defaults.saltMLUpper;
+    md->saltDPXInit     = defaults.saltDPXInit;
+    md->saltDPXInitFact = defaults.saltDPXInitFact;
+    md->helical_rise    = defaults.helical_rise;
+    md->backbone_length = defaults.backbone_length;
 
     if (nonstandards)
       copy_nonstandards(md, nonstandards);

@@ -123,13 +123,18 @@
       dest = strdup(ggostruct.nsp_arg); \
   })
 
-#define ggo_get_read_paramFile(ggostruct) ({ \
+#define ggo_get_read_paramFile(ggostruct, md) ({ \
     /* take another energy parameter set */ \
     if (ggostruct.paramFile_given) { \
-      if (!strcmp(ggostruct.paramFile_arg, "DNA")) \
+      if (!strcmp(ggostruct.paramFile_arg, "DNA")) {\
         vrna_params_load_DNA_Mathews2004();\
-      else \
+        /* in case of DNA, also reset typical variables for salt correction */ \
+        md.helical_rise = VRNA_MODEL_HELICAL_RISE_DNA; \
+        md.backbone_length = VRNA_MODEL_BACKBONE_LENGTH_DNA; \
+        md.saltDPXInitFact = VRNA_MODEL_SALT_DPXINIT_FACT_DNA; \
+      } else { \
         vrna_params_load(ggostruct.paramFile_arg, VRNA_PARAMETER_FORMAT_DEFAULT); \
+      } \
     } \
   })
 
@@ -169,7 +174,7 @@
       if (ns_bases != NULL) \
         vrna_md_set_nonstandards(&md, ns_bases); \
     } \
-    ggo_get_read_paramFile(ggostruct); \
+    ggo_get_read_paramFile(ggostruct, md); \
   })
 
 

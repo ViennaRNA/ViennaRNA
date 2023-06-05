@@ -418,8 +418,6 @@ get_scaled_params(vrna_md_t *md)
   params->temperature   = md->temperature;
   tempf                 = ((params->temperature + K0) / Tmeasure);
 
-  params->HelicalRise           = vrna_helical_rise;
-  params->BackboneLen           = vrna_backbone_len;
   params->ninio[2]              = RESCALE_dG(ninio37, niniodH, tempf);
   params->lxc                   = lxc37 * tempf;
   params->TripleC               = RESCALE_dG(TripleC37, TripleCdH, tempf);
@@ -452,17 +450,17 @@ get_scaled_params(vrna_md_t *md)
                        (int)(params->lxc * log((double)(i) / 30.));
     params->internal_loop[i] = params->internal_loop[30] +
                                (int)(params->lxc * log((double)(i) / 30.));
-    params->SaltLoopDbl[i]   = (salt==saltStandard) ? 0. : vrna_salt_loop(i, salt, saltT, params->BackboneLen);
+    params->SaltLoopDbl[i]   = (salt==saltStandard) ? 0. : vrna_salt_loop(i, salt, saltT, md->backbone_length);
     params->SaltLoop[i]      = (int) (params->SaltLoopDbl[i] + 0.5 - (params->SaltLoopDbl[i]<0));
   }
 
   for (i = 0; i <= MIN2(31, MAXLOOP+1); i++) {
-    params->SaltLoopDbl[i]    = (salt==saltStandard) ? 0. : vrna_salt_loop(i, salt, saltT, params->BackboneLen);
+    params->SaltLoopDbl[i]    = (salt==saltStandard) ? 0. : vrna_salt_loop(i, salt, saltT, md->backbone_length);
     params->SaltLoop[i]       = (int) (params->SaltLoopDbl[i] + 0.5 - (params->SaltLoopDbl[i]<0));
   }
 
   for (; i <= MAXLOOP; i++) {
-    params->SaltLoopDbl[i]   = (salt==saltStandard) ? 0. : vrna_salt_loop(i, salt, saltT, params->BackboneLen);
+    params->SaltLoopDbl[i]   = (salt==saltStandard) ? 0. : vrna_salt_loop(i, salt, saltT, md->backbone_length);
     params->SaltLoop[i]      = (int) (params->SaltLoopDbl[i] + 0.5 - (params->SaltLoopDbl[i]<0));
   }
 
@@ -569,7 +567,7 @@ get_scaled_params(vrna_md_t *md)
   strncpy(params->Hexaloops, Hexaloops, 361);
 
   /* Salt correction for stack and multiloop */
-  params->SaltStack = (salt==saltStandard) ? 0 : vrna_salt_stack(salt, saltT, params->HelicalRise);
+  params->SaltStack = (salt==saltStandard) ? 0 : vrna_salt_stack(salt, saltT, md->helical_rise);
   if (salt == saltStandard)
     params->SaltMLbase = params->SaltMLclosing = 0;
   else
@@ -584,7 +582,7 @@ get_scaled_params(vrna_md_t *md)
   params->SaltDPXInit = 0;
   if (salt != saltStandard)
   {
-    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
+    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALT_DPXINIT)
       params->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
       params->SaltDPXInit = vrna_salt_duplex_init(md);
@@ -623,8 +621,6 @@ get_scaled_exp_params(vrna_md_t *md,
   salt = md->salt;
   saltStandard = VRNA_MODEL_DEFAULT_SALT;
 
-  pf->HelicalRise           = vrna_helical_rise;
-  pf->BackboneLen           = vrna_backbone_len;
   pf->lxc                   = lxc37 * TT;
   pf->expDuplexInit         = RESCALE_BF(DuplexInit37, DuplexInitdH, TT, kT);
   pf->expTermAU             = RESCALE_BF(TerminalAU37, TerminalAUdH, TT, kT);
@@ -663,13 +659,13 @@ get_scaled_exp_params(vrna_md_t *md,
     }
   } else {
     for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
-      pf->SaltLoopDbl[i]   = vrna_salt_loop(i, salt, saltT, pf->BackboneLen);
+      pf->SaltLoopDbl[i]   = vrna_salt_loop(i, salt, saltT, md->backbone_length);
       int saltLoop = (int) (pf->SaltLoopDbl[i] + 0.5 - (pf->SaltLoopDbl[i]<0));
       pf->expSaltLoop[i]   = exp(-saltLoop * 10. / kT);
     }
 
     for (i = 31; i <= MAXLOOP; i++) {
-      pf->SaltLoopDbl[i] = vrna_salt_loop(i, salt, saltT, pf->BackboneLen);
+      pf->SaltLoopDbl[i] = vrna_salt_loop(i, salt, saltT, md->backbone_length);
       int saltLoop = (int) (pf->SaltLoopDbl[i] + 0.5 - (pf->SaltLoopDbl[i]<0));
       pf->expSaltLoop[i] = exp(-saltLoop * 10. / kT);
     }
@@ -810,10 +806,10 @@ get_scaled_exp_params(vrna_md_t *md,
   if (salt==saltStandard) {
     pf->expSaltStack = 1.;
   } else {
-    pf->expSaltStack = exp(- vrna_salt_stack(salt, saltT, pf->HelicalRise) * 10. / kT);
+    pf->expSaltStack = exp(- vrna_salt_stack(salt, saltT, md->helical_rise) * 10. / kT);
     vrna_salt_ml(pf->SaltLoopDbl, md->saltMLLower, md->saltMLUpper, &pf->SaltMLbase, &pf->SaltMLclosing);
 
-    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
+    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALT_DPXINIT)
       pf->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
       pf->SaltDPXInit = vrna_salt_duplex_init(md);
@@ -855,8 +851,6 @@ get_exp_params_ali(vrna_md_t    *md,
   salt = md->salt;
   saltStandard = VRNA_MODEL_DEFAULT_SALT;
 
-  pf->HelicalRise           = vrna_helical_rise;
-  pf->BackboneLen           = vrna_backbone_len;
   pf->lxc                   = lxc37 * TT;
   pf->expDuplexInit         = RESCALE_BF(DuplexInit37, DuplexInitdH, TT, kTn);
   pf->expTermAU             = RESCALE_BF(TerminalAU37, TerminalAUdH, TT, kTn);
@@ -887,7 +881,7 @@ get_exp_params_ali(vrna_md_t    *md,
     pf->expbulge[i]     = RESCALE_BF(bulge37[i], bulgedH[i], TT, kTn);
     pf->expinternal[i]  = RESCALE_BF(internal_loop37[i], internal_loopdH[i], TT, kTn);
 
-    pf->SaltLoopDbl[i]   = (salt==saltStandard) ? 0. : vrna_salt_loop(i, salt, saltT, pf->BackboneLen);
+    pf->SaltLoopDbl[i]   = (salt==saltStandard) ? 0. : vrna_salt_loop(i, salt, saltT, md->backbone_length);
     int saltLoop = (int) (pf->SaltLoopDbl[i] + 0.5 - (pf->SaltLoopDbl[i]<0));
     pf->expSaltLoop[i]   = exp(-saltLoop * 10. / kTn);
   }
@@ -903,13 +897,13 @@ get_exp_params_ali(vrna_md_t    *md,
     }
   } else {
     for (i = 0; i <= MIN2(30, MAXLOOP); i++) {
-      pf->SaltLoopDbl[i]  = vrna_salt_loop(i, salt, saltT, pf->BackboneLen);
+      pf->SaltLoopDbl[i]  = vrna_salt_loop(i, salt, saltT, md->backbone_length);
       int saltLoop = (int) (pf->SaltLoopDbl[i] + 0.5 - (pf->SaltLoopDbl[i]<0));
       pf->expSaltLoop[i]   = exp(-saltLoop * 10. / kTn);
     }
 
     for (i = 31; i <= MAXLOOP; i++) {
-      pf->SaltLoopDbl[i] = vrna_salt_loop(i, salt, saltT, pf->BackboneLen);
+      pf->SaltLoopDbl[i] = vrna_salt_loop(i, salt, saltT, md->backbone_length);
       int saltLoop = (int) (pf->SaltLoopDbl[i] + 0.5 - (pf->SaltLoopDbl[i]<0));
       pf->expSaltLoop[i] = exp(-saltLoop * 10. / kTn);
     }
@@ -1057,11 +1051,11 @@ get_exp_params_ali(vrna_md_t    *md,
   if (salt==saltStandard) {
     pf->expSaltStack = 1.;
   } else {
-    pf->expSaltStack = exp(- vrna_salt_stack(salt, saltT, pf->HelicalRise) * 10. / kTn);
+    pf->expSaltStack = exp(- vrna_salt_stack(salt, saltT, md->helical_rise) * 10. / kTn);
 
     vrna_salt_ml(pf->SaltLoopDbl, md->saltMLLower, md->saltMLUpper, &pf->SaltMLbase, &pf->SaltMLclosing);
 
-    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALTDPXINIT)
+    if (md->saltDPXInit != VRNA_MODEL_DEFAULT_SALT_DPXINIT)
       pf->SaltDPXInit = md->saltDPXInit;
     else if (md->saltDPXInit)
       pf->SaltDPXInit = vrna_salt_duplex_init(md);

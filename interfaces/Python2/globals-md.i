@@ -246,5 +246,21 @@
   $result = PyFloat_FromDouble((double)vrna_md_defaults_saltDPXInitFact_get());
 }
 
+%typemap(varin) double helical_rise {
+  vrna_md_defaults_helical_rise((float)PyFloat_AsDouble($input));
+}
+
+%typemap(varout) double helical_rise {
+  $result = PyFloat_FromDouble((double)vrna_md_defaults_helical_rise_get());
+}
+
+%typemap(varin) double backbone_length {
+  vrna_md_defaults_backbone_length((float)PyFloat_AsDouble($input));
+}
+
+%typemap(varout) double backbone_length {
+  $result = PyFloat_FromDouble((double)vrna_md_defaults_backbone_length_get());
+}
+
 #endif
 

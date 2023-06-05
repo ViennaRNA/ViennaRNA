@@ -20,6 +20,9 @@
 #include "ViennaRNA/constraints/SHAPE.h"
 #include "ViennaRNA/perturbation_fold.h"
 #include "ViennaRNA/io/file_formats.h"
+
+#include "gengetopt_helper.h"
+
 #include "RNApvmin_cmdl.h"
 
 #ifdef _OPENMP
@@ -131,12 +134,7 @@ main(int  argc,
     vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
 #endif
 
-  if (args_info.paramFile_given) {
-    if (!strcmp(args_info.paramFile_arg, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(args_info.paramFile_arg, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
+  ggo_get_read_paramFile(args_info, md);
 
   if (args_info.temp_given)
     md.temperature = args_info.temp_arg;
@@ -159,7 +157,7 @@ main(int  argc,
     md.noGU = 1;
 
   if (args_info.salt_given)
-    salt = args_info.salt_arg;
+    md.salt = args_info.salt_arg;
 
   if (args_info.noClosingGU_given)
     md.noGUclosure = 1;

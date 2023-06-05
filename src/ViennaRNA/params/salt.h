@@ -19,12 +19,7 @@
 
 #include <math.h>
 #include "ViennaRNA/utils/basic.h"
-
-#ifdef __GNUC__
-# define INLINE inline
-#else
-# define INLINE
-#endif
+#include "ViennaRNA/model.h"
 
 
 /**

@@ -185,23 +185,41 @@ typedef struct vrna_md_s vrna_md_t;
 /**
  *  @brief  Default model lower bound of multiloop size for salt correction fiting
  */
-#define VRNA_MODEL_DEFAULT_SALTMLLOWER    6
+#define VRNA_MODEL_DEFAULT_SALT_MLLOWER    6
 
 
 /**
  *  @brief  Default model upper bound of multiloop size for salt correction fiting
  */
-#define VRNA_MODEL_DEFAULT_SALTMLUPPER    24
+#define VRNA_MODEL_DEFAULT_SALT_MLUPPER    24
 
 
 /**
  *  @brief  Default model value to turn off user-provided salt correction for duplex initializtion
  */
-#define VRNA_MODEL_DEFAULT_SALTDPXINIT    99999
+#define VRNA_MODEL_DEFAULT_SALT_DPXINIT       99999
 
-#define VRNA_MODEL_DEFAULT_SALTDPXINITFACT_RNA    -45.324
-#define VRNA_MODEL_DEFAULT_SALTDPXINITFACT_DNA    -58.389
+#define VRNA_MODEL_SALT_DPXINIT_FACT_RNA      -45.324
+#define VRNA_MODEL_SALT_DPXINIT_FACT_DNA      -58.389
 
+
+#define VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT  VRNA_MODEL_SALT_DPXINIT_FACT_RNA
+
+/* Geometric parameters for RNA and DNA */
+
+#define VRNA_MODEL_HELICAL_RISE_RNA   2.8
+#define VRNA_MODEL_HELICAL_RISE_DNA   3.4
+/**
+ *  @brief  Default helical rise
+ */
+#define VRNA_MODEL_DEFAULT_HELICAL_RISE   VRNA_MODEL_HELICAL_RISE_RNA
+
+#define VRNA_MODEL_BACKBONE_LENGTH_RNA   6.0
+#define VRNA_MODEL_BACKBONE_LENGTH_DNA   6.76
+/**
+ *  @brief  Default backbone length
+ */
+#define VRNA_MODEL_DEFAULT_BACKBONE_LENGTH   VRNA_MODEL_BACKBONE_LENGTH_RNA
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -290,6 +308,8 @@ struct vrna_md_s {
                                              *    If set to 0 there is no salt correction for duplex initialization.
                                              */
   float   saltDPXInitFact;                  /**<  @brief  */
+  float   helical_rise;                     /**<  @brief  */
+  float   backbone_length;                  /**<  @brief  */
 };
 
 
@@ -964,11 +984,30 @@ vrna_md_defaults_saltDPXInit(int value);
 int
 vrna_md_defaults_saltDPXInit_get(void);
 
+
 void
 vrna_md_defaults_saltDPXInitFact(float value);
 
+
 float
 vrna_md_defaults_saltDPXInitFact_get(void);
+
+
+void
+vrna_md_defaults_helical_rise(float value);
+
+
+float
+vrna_md_defaults_helical_rise_get(void);
+
+
+void
+vrna_md_defaults_backbone_length(float value);
+
+
+float
+vrna_md_defaults_backbone_length_get(void);
+
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -1131,6 +1170,8 @@ extern double salt;
 /** @brief Salt correction for duplex initialization */
 extern int saltDPXInit;
 
+extern float  helical_rise;
+extern float  backbone_length;
 
 /* END deprecated global variables: */
 
