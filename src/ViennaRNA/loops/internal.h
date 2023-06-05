@@ -514,7 +514,7 @@ E_IntLoop(int           n1,
     if (backbones <= MAXLOOP+1)
       salt_loop_correction = P->SaltLoop[backbones];
     else
-      salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+      salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0, P->BackboneLen);
   }
 
   if (ns == 0) {
@@ -621,7 +621,7 @@ exp_E_IntLoop(int               u1,
     if (backbones <= MAXLOOP+1)
       salt_loop_correction = P->expSaltLoop[backbones];
     else
-      salt_loop_correction = exp(-vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0) * 10. / P->kT);
+      salt_loop_correction = exp(-vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0, P->BackboneLen) * 10. / P->kT);
   }
 
   if (ul == 0) {
@@ -706,7 +706,7 @@ E_IntLoop_Co(int          type,
     if (backbones <= MAXLOOP+1)
       salt_loop_correction = P->SaltLoop[backbones];
     else
-      salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0);
+      salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0, P->BackboneLen);
   }
 
   energy = 0;

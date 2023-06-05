@@ -164,7 +164,7 @@ E_Hairpin(int           size,
     if (size<=MAXLOOP)
       salt_correction = P->SaltLoop[size+1];
     else
-      salt_correction = vrna_salt_loop_int(size+1, P->model_details.salt, P->temperature+K0);
+      salt_correction = vrna_salt_loop_int(size+1, P->model_details.salt, P->temperature+K0, P->BackboneLen);
   }
 
   if (size <= 30)
@@ -259,7 +259,7 @@ exp_E_Hairpin(int               u,
     if (u<=MAXLOOP)
       salt_correction = P->expSaltLoop[u+1];
     else
-      salt_correction = exp(-vrna_salt_loop_int(u+1, P->model_details.salt, P->temperature+K0) * 10. / kT);
+      salt_correction = exp(-vrna_salt_loop_int(u+1, P->model_details.salt, P->temperature+K0, P->BackboneLen) * 10. / kT);
   }
 
   if (u <= 30)

@@ -100,5 +100,8 @@ extern double Tmeasure;       /* temperature of param measurements */
 extern double vrna_helical_rise;
 extern double vrna_helical_rise_RNA;
 extern double vrna_helical_rise_DNA;
+extern double vrna_backbone_len;
+extern double vrna_backbone_len_RNA;
+extern double vrna_backbone_len_DNA;
 
 #endif

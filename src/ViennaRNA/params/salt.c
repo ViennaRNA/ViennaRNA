@@ -18,7 +18,7 @@
 
 #define Rods_dist 20.
 #define PI 3.141592653589793
-#define Backbone_length     6.4
+/* #define Backbone_length     6.4 */
 #define Eular_const         0.58
 
 #define roundint(x) ((int) (x + 0.5 - (x<0)))
@@ -75,12 +75,12 @@ tau_ds(double T, double Helical_Rise)
 
 
 PRIVATE INLINE double
-tau_ss(double T)
+tau_ss(double T, double backbonelen)
 {
   double bjerrum_length_inv;
 
   bjerrum_length_inv = 1/bjerrum_length(T);
-  return MIN2(1/Backbone_length, bjerrum_length_inv);
+  return MIN2(1/backbonelen, bjerrum_length_inv);
 };
 
 
@@ -105,37 +105,37 @@ approx_hyper(double y)
 
 
 PRIVATE double
-loop_salt_aux(double kmlss, int L, double T)
+loop_salt_aux(double kmlss, int L, double T, double backbonelen)
 {
 	double a, b;
 
-	a =  (GASCONST / 1000.) * T * bjerrum_length(T) * L * Backbone_length * tau_ss(T) * tau_ss(T);
+	a = (GASCONST / 1000.) * T * bjerrum_length(T) * L * backbonelen * tau_ss(T, backbonelen) * tau_ss(T, backbonelen);
 	b = log(kmlss) - log(PI/2) + Eular_const + approx_hyper(kmlss) + 1/kmlss * (1 - exp(-kmlss) + kmlss*expn(1, kmlss));
 
 	return a*b*100;
 };
 
 PUBLIC double
-vrna_salt_loop(int L, double rho, double T)
+vrna_salt_loop(int L, double rho, double T, double backbonelen)
 {
 	if (L == 0)
 		return 0;
 	double correction, kmlss, kmlss_ref;
 	
-	kmlss_ref = kappa(VRNA_MODEL_DEFAULT_SALT, T) * L * Backbone_length;
-	kmlss = kappa(rho, T) * L * Backbone_length;
+	kmlss_ref = kappa(VRNA_MODEL_DEFAULT_SALT, T) * L * backbonelen;
+	kmlss = kappa(rho, T) * L * backbonelen;
 
-	correction = loop_salt_aux(kmlss, L, T) - loop_salt_aux(kmlss_ref, L, T);
+	correction = loop_salt_aux(kmlss, L, T, backbonelen) - loop_salt_aux(kmlss_ref, L, T, backbonelen);
 
 	return correction;
 };
 
 PUBLIC int
-vrna_salt_loop_int(int L, double rho, double T)
+vrna_salt_loop_int(int L, double rho, double T, double backbonelen)
 {
 	double correction;
 
-	correction = vrna_salt_loop(L, rho, T);
+	correction = vrna_salt_loop(L, rho, T, backbonelen);
 	return roundint(correction);
 }
 

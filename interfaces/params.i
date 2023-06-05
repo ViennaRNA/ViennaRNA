@@ -422,6 +422,9 @@ my_params_load_from_string(std::string parameters,
 %rename(helical_rise)     vrna_helical_rise;
 %rename(helical_rise_RNA) vrna_helical_rise_RNA;
 %rename(helical_rise_DNA) vrna_helical_rise_DNA;
+%rename(backbone_len)     vrna_backbone_len;
+%rename(backbone_len_RNA) vrna_backbone_len_RNA;
+%rename(backbone_len_DNA) vrna_backbone_len_DNA;
 
 %include  <ViennaRNA/params/default.h>
 

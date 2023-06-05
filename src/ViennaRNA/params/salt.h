@@ -30,14 +30,15 @@
 /**
  *  @brief Get salt correction for a loop at a given salt concentration and temperature
  *
- *  @param L     backbone number in loop
- *  @param salt  salt concentration (M)
- *  @param T     absolute temperature (K)
+ *  @param L            backbone number in loop
+ *  @param salt         salt concentration (M)
+ *  @param T            absolute temperature (K)
+ *  @param backbonelen  Backbone Length, phosphate-to-phosphate distance (typically 6 for RNA, 6.76 for DNA)
  *  
  *  @return      Salt correction for loop in dcal/mol
  */
 double
-vrna_salt_loop(int L, double salt, double T);
+vrna_salt_loop(int L, double salt, double T, double backbonelen);
 
 
 /**
@@ -47,14 +48,15 @@ vrna_salt_loop(int L, double salt, double T);
  *
  *  @see vrna_salt_loop
  *
- *  @param L     backbone number in loop
- *  @param salt  salt concentration (M)
- *  @param T     absolute temperature (K)
+ *  @param L            backbone number in loop
+ *  @param salt         salt concentration (M)
+ *  @param T            absolute temperature (K)
+ *  @param backbonelen  Backbone Length, phosphate-to-phosphate distance (typically 6 for RNA, 6.76 for DNA)
  *  
  *  @return      Rounded salt correction for loop in dcal/mol
  */
 int
-vrna_salt_loop_int(int L, double salt, double T);
+vrna_salt_loop_int(int L, double salt, double T, double backbonelen);
 
 
 /**
