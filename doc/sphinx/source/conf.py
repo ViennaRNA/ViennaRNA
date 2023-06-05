@@ -78,7 +78,7 @@ breathe_domain_by_extension = {
       "c" : "c",
       "inc" : "c"
   }
-breathe_show_define_initializer = False
+breathe_show_define_initializer = True
 breathe_show_include = True
 breathe_show_decl_file_include = True
 breathe_default_members = ('members', 'undoc-members')
