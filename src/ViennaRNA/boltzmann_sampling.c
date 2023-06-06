@@ -573,6 +573,9 @@ backtrack_ext_loop(int                              start,
           reset_cursor(&memorized_node_prev, &memorized_node_cur, *current_node); /* resets cursor */
 #endif
         }
+      } else {
+        /* j must be paired, so continue by finding its pairing partner */
+        break;
       }
     }
     if (j <= start + md->min_loop_size)
@@ -621,9 +624,9 @@ backtrack_ext_loop(int                              start,
         }
 
         if ((sc_wrapper_ext->red_stem) && (i == 1))
-          q_temp *= sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
+          qkl *= sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
         else if ((sc_wrapper_ext->split) && (i > 1))
-          q_temp *= sc_wrapper_ext->split(1, j, i, sc_wrapper_ext) *
+          qkl *= sc_wrapper_ext->split(1, j, i, sc_wrapper_ext) *
                     sc_wrapper_ext->red_stem(i, j, i, j, sc_wrapper_ext);
 
         if (current_node) {
