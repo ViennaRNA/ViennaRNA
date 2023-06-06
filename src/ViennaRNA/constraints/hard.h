@@ -303,7 +303,7 @@ DEPRECATED(typedef unsigned char (vrna_callback_hc_evaluate)(int i,
 
 
 /**
- *  @brief  Constraint context flag that forbids any loop
+ *  @brief  Constraint context flag that forbids a nucleotide or base pair to appear in any loop
  */
 #define VRNA_CONSTRAINT_CONTEXT_NONE          (unsigned char)0
 
