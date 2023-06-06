@@ -129,9 +129,9 @@
       if (!strcmp(ggostruct.paramFile_arg, "DNA")) {\
         vrna_params_load_DNA_Mathews2004();\
         /* in case of DNA, also reset typical variables for salt correction */ \
-        md.helical_rise = VRNA_MODEL_HELICAL_RISE_DNA; \
-        md.backbone_length = VRNA_MODEL_BACKBONE_LENGTH_DNA; \
-        md.saltDPXInitFact = VRNA_MODEL_SALT_DPXINIT_FACT_DNA; \
+        (md).helical_rise = VRNA_MODEL_HELICAL_RISE_DNA; \
+        (md).backbone_length = VRNA_MODEL_BACKBONE_LENGTH_DNA; \
+        (md).saltDPXInitFact = VRNA_MODEL_SALT_DPXINIT_FACT_DNA; \
       } else { \
         vrna_params_load(ggostruct.paramFile_arg, VRNA_PARAMETER_FORMAT_DEFAULT); \
       } \
