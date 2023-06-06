@@ -175,8 +175,7 @@ main(int  argc,
     md.energy_set = energy_set = args_info.energyModel_arg;
 
   /* take another energy parameter set */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
+  ggo_get_read_paramFile(args_info, md);
 
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if (args_info.nsp_given)
@@ -272,12 +271,6 @@ main(int  argc,
     input = stdin;
   }
 
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
 
   if (command_file != NULL)
     commands = vrna_file_commands_read(command_file, VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);

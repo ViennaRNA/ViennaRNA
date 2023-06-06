@@ -22,6 +22,8 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+#include "gengetopt_helper.h"
 #include "RNAdos_cmdl.h"
 
 
@@ -815,18 +817,10 @@ main(int  argc,
   }
 
   /* get energy parameter file name */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
+  ggo_get_read_paramFile(args_info, md);
 
   /* free allocated memory of command line data structure */
   RNAdos_cmdline_parser_free(&args_info);
-
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
 
   if (verbose)
     printf("%s\n", rnaSequence);

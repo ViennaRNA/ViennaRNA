@@ -28,6 +28,8 @@
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/PKplex.h"
+
+#include "gengetopt_helper.h"
 #include "RNAPKplex_cmdl.h"
 
 int
@@ -113,8 +115,7 @@ main(int  argc,
     noconv = 1;
 
   /* take another energy parameter set */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
+  ggo_get_read_paramFile(args_info, md);
 
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if (args_info.nsp_given)
@@ -144,13 +145,6 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
-
   if (ns_bases != NULL)
     vrna_md_set_nonstandards(&md, ns_bases);
 

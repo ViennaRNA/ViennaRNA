@@ -24,6 +24,8 @@
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/profiledist.h"
+
+#include "gengetopt_helper.h"
 #include "RNApdist_cmdl.h"
 
 
@@ -327,8 +329,8 @@ command_line(int        argc,
     ns_bases = strdup(args_info.nsp_arg);
 
   /* take another energy parameter set */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
+  ggo_get_read_paramFile(args_info, *md);
+
 
   if (args_info.compare_given) {
     switch (args_info.compare_arg[0]) {
@@ -353,14 +355,6 @@ command_line(int        argc,
 
   /* free allocated memory of command line data structure */
   RNApdist_cmdline_parser_free(&args_info);
-
-  /* do some preparations */
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
 
   if (ns_bases != NULL)
     vrna_md_set_nonstandards(md, ns_bases);

@@ -20,6 +20,8 @@
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/2Dfold.h"
 #include "ViennaRNA/2Dpfold.h"
+
+#include "gengetopt_helper.h"
 #include "RNA2Dfold_cmdl.h"
 
 #include "ViennaRNA/color_output.inc"
@@ -124,8 +126,7 @@ main(int  argc,
 #endif
 
   /* get energy parameter file name */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
+  ggo_get_read_paramFile(args_info, md);
 
   /* do not allow GU pairs ? */
   if (args_info.noGU_given)
@@ -174,13 +175,6 @@ main(int  argc,
    # begin actual program code
    #############################################
    */
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
-
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
 
   /*
