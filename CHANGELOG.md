@@ -6,7 +6,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.6.x
 
-### [Version 2.6.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.1...v2.6.0) (Release date: 2023-06-06)
+### [Version 2.6.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.1...v2.6.0) (Release date: 2023-06-09)
 
 #### Programs
   * Add modified base input support to `RNAfold`
@@ -18,7 +18,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * Fix sorted output in `RNAsubopt` with `--gquad` option
   * Allow for only `-Fp` in `RNAinverse` instead of always activating `-Fm`
   * Fix default value of `RNAinverse -R` option in manpage
-  * Restructure `--*help` output and man pages for `RNAfold`, `RNALfold` and `RNAplfold`
+  * Restructure `--*help` output and man pages for most executable programs
   * Allow for cation concentration (Na+) changes in most executable programs (default 1.021M)
   * Allow for at least as many threads as CPUs are configured if maximum thread number detection fails
   * Fix alignment input parsing in `refold.pl`
@@ -44,6 +44,9 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * API: Fix backtracking issue in Zuker subopt
   * API: Fix missing soft constraints callback execution in Zuker subopt
   * API: Fix enumeration of G-quadruplexes in `vrna_subopt()` and `vrna_subopt_cb()`
+  * API: Fix constraints bug for exterior loop in boltzmann sampling
+  * API: Allow for enforcing 'must pair' constraint (`|`) in dot-bracket constraints strings
+  * API: Fix discrepancy between global and local folding in how hard constraints for unpaired bases and non-specific pairing are applied
   * API: Refactor function typdefs to make them actual function pointer typedefs
   * SWIG: Fix Python 3 wrapper suffix issue
   * SWIG: Fix Perl 5 wrapper for `vrna_ud_prob_get()`
@@ -60,6 +63,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
   * AUTOCONF: Fix requirement checks when SVM support is deactivated and swig is missing
   * AUTOMAKE: Add `auto` parameters for `-flto` compile/link flags
   * AUTOCONF: Require C++17 due to dependencies to compile `DLIB`
+  * AUTOCONF: Deactivate Python 2 bindings by default
 
 
 ## Version 2.5.x
