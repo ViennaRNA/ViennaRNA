@@ -21,17 +21,38 @@ description "Evaluates the free energy of a particular (consensus) secondary str
  the two strands.\n"
 
 # Options
-section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n"
-
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
-flag
-off
-
 option "verbose" v
 "Print out energy contribution of each loop in the structure.\n\n"
 flag
+off
+
+
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
+
+option  "infile"  i
+"Read a file instead of reading from stdin.\n"
+details="The default behavior of RNAeval is to read input from stdin or the file(s) that follow(s)\
+ the RNAeval command. Using this parameter the user can specify input file names where data\
+ is read from. Note, that any additional files supplied to RNAeval are still processed as well.\n\n"
+string
+typestr="<filename>"
+multiple
+optional
+
+option  "msa"   a
+"Input is multiple sequence alignment in Stockholm 1.0 format.\n"
+details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
+ instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
+ a consensus structure. Therefore, this is the only supported MSA format for now!\n\n"
+flag
+off
+
+option  "mis"             -
+"Output \"most informative sequence\" instead of simple consensus: For each column of the alignment output\
+ the set of nucleotides with frequency greater than average in IUPAC notation.\n\n"
+flag
+dependon="msa"
 off
 
 option  "jobs"  j
@@ -49,7 +70,6 @@ typestr="number"
 argoptional
 optional
 
-
 option  "unordered"  -
 "Do not try to keep output in order with input while parallel processing is in place.\n"
 details="When parallel input processing (--jobs flag) is enabled, the order in which input\
@@ -65,26 +85,10 @@ off
 dependon="jobs"
 hidden
 
-
-option  "infile"  i
-"Read a file instead of reading from stdin\n"
-details="The default behavior of RNAeval is to read input from stdin or the file(s) that follow(s)\
- the RNAeval command. Using this parameter the user can specify input file names where data\
- is read from. Note, that any additional files supplied to RNAeval are still processed as well.\n\n"
-string
-typestr="<filename>"
-multiple
-optional
-
-
-option  "msa"   a
-"Input is multiple sequence alignment in Stockholm 1.0 format\n"
-details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
- instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
- a consensus structure. Therefore, this is the only supported MSA format for now!\n\n"
+option  "noconv"  -
+"Do not automatically substitute nucleotide \"T\" with \"U\".\n\n"
 flag
 off
-
 
 option  "auto-id"  -
 "Automatically generate an ID for each sequence.\n"
@@ -98,22 +102,23 @@ flag
 off
 
 option  "id-prefix" -
-"Prefix for automatically generated IDs (as used in output file names)\n\n"
+"Prefix for automatically generated IDs (as used in output file names).\n"
 details="If this parameter is set, each sequence will be prefixed with the\
  provided string. Note: Setting this parameter implies --auto-id.\n\n"
 string
-typestr="prefix"
+typestr="STRING"
 default="sequence"
 optional
 
 option  "id-delim" -
-"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
-details="This parameter can be used to change the default delimiter \"_\" between
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names).\n"
+details="This parameter can be used to change the default delimiter \"_\" between\
  the prefix string and the increasing number for automatically generated ID.\n\n"
 string
-typestr="delimiter"
+typestr="CHAR"
 default="_"
 optional
+hidden
 
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
@@ -138,34 +143,74 @@ optional
 hidden
 
 
-section "Model Details"
+section "Algorithms"
+sectiondesc="Select additional algorithmic details which should be included in the calculations.\n\n"
+
+option  "circ"    c
+"Assume a circular (instead of linear) RNA molecule.\n\n"
+flag
+off
+
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
+flag
+off
+
+
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
+option  "shape" -
+"Use SHAPE reactivity data to guide structure predictions.\n\n"
+string
+typestr="<filename>"
+optional
+
+option  "shapeMethod" -
+"Select SHAPE reactivity data incorporation strategy.\n"
+details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n\n\
+ 'D': Convert by using a linear equation according to Deigan et al 2009. Derived pseudo energy terms\
+ will be applied for every nucleotide involved in a stacked pair. This method is recognized by a capital\
+ 'D' in the provided parameter, i.e.: --shapeMethod=\"D\" is the default setting. The slope 'm' and the\
+ intercept 'b' can be set to a non-default value if necessary, otherwise m=1.8 and b=-0.6. To alter these\
+ parameters, e.g. m=1.9 and b=-0.7, use a parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You\
+ may also provide only one of the two parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".\n\n\
+ 'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012.\
+ SHAPE reactivities will be converted to pairing probabilities by using linear mapping.\
+ Aberration from the observed pairing probabilities will be penalized during the folding recursion.\
+ The magnitude of the penalties can affected by adjusting the factor beta\
+ (e.g. --shapeMethod=\"Zb0.8\").\n\n\
+ 'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
+Perturbation vectors can be calculated by using RNApvmin.\n\n"
+string
+typestr="[D|Z|W] + [optional parameters]"
+dependon="shape"
+default="D"
+optional
+hidden
+
+option  "shapeConversion" -
+"Select method for SHAPE reactivity conversion.\n"
+details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
+The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
+'M': Use linear mapping according to Zarringhalam et al.
+'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
+'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
+'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
+string
+typestr="M|C|S|L|O  + [optional parameters]"
+default="O"
+optional
+
+
+section "Energy Parameters"
+sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
 
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
-optional
-
-option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
-flag
-off
-
-option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
- check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
- any case; this is the default for mfe and partition function folding.\nThe option -d0 ignores\
- dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
- of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
- of the two interior pairs in a loop of degree 3.\n\n"
-int
-default="2"
-optional
-
-option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
-int
+default="37.0"
 optional
 
 option  "paramFile" P
@@ -175,6 +220,34 @@ details="Different sets of energy parameters for RNA and DNA should accompany yo
  DNA parameters are loaded without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
+optional
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
+details="Mostly for testing.\n\n"
+flag
+off
+hidden
+
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+
+section "Model Details"
+sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops.\n"
+details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
+ check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
+ any case; this is the default for mfe and partition function folding.\nThe option -d0 ignores\
+ dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
+ of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
+ of the two interior pairs in a loop of degree 3.\n\n"
+int
+default="2"
 optional
 
 option  "nsp" -
@@ -187,78 +260,19 @@ string
 optional
 hidden
 
-option  "circ" c
-"Assume a circular (instead of linear) RNA molecule.\n\n"
-flag
-off
-
-option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
-flag
-off
-
-option  "salt" -
-"Set salt concentration in molar (M). Default is 1.021M.\n\n"
-double
+option  "energyModel" e
+"Set energy model.\n"
+details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
+int
 optional
+hidden
 
 option  "logML" -
 "Recalculate energies of structures using a logarithmic energy function for multi-loops before output.\n"
 details="This option does not effect structure generation, only the energies that are printed out.\
  Since logML lowers energies somewhat, some structures may be missing.\n\n"
 flag
-off
-
-option  "shape" -
-"Use SHAPE reactivity data in the folding recursions (does not work for PF yet)\n\n"
-string
-typestr="SHAPE file"
-optional
-
-option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
-details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n
-'D': Convert by using a linear equation according to Deigan et al 2009. \
-The calculated pseudo energies will be applied for every nucleotide involved in a stacked pair. \
-This method is recognized by a capital 'D' in the provided parameter, i.e.: \
---shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
-non-default value if necessary, otherwise m=1.8 and b=-0.6. \
-To alter these parameters, e.g. m=1.9 and b=-0.7, use a \
-parameter string like this: --shapeMethod=\"Dm1.9b-0.7\". You may also provide only one of the two \
-parameters like: --shapeMethod=\"Dm1.9\" or --shapeMethod=\"Db-0.7\".
-
-'Z': Convert SHAPE reactivities to pseudo energies according to Zarringhalam et al 2012. \
-SHAPE reactivities will be converted to pairing probabilities by using linear mapping. \
-Aberration from the observed pairing probabilities will be penalized during the folding recursion. \
-The magnitude of the penalties can affected by adjusting the factor beta \
-(e.g. --shapeMethod=\"Zb0.8\").
-
-'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012. \
-Perturbation vectors can be calculated by using RNApvmin.\n\n"
-string
-typestr="[D/Z/W] + [optional parameters]"
-dependon="shape"
-default="D"
-optional
-
-option  "shapeConversion" -
-"Specify the method used to convert SHAPE reactivities to pairing probabilities when using the SHAPE approach of Zarringhalam et al.\n"
-details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
-'M': Use linear mapping according to Zarringhalam et al.
-'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")
-'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values
-'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
-string
-typestr="M/C/S/L/O  + [optional parameters]"
-default="O"
-optional
-
-option  "mis"             -
-"Output \"most informative sequence\" instead of simple consensus: For each column of the alignment output\
- the set of nucleotides with frequency greater than average in IUPAC notation.\n\n"
-flag
-dependon="msa"
 off
 
 option  "cfactor"         -
@@ -296,7 +310,6 @@ flag
 dependon="msa"
 off
 
-
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"
 details="Use with caution! This value will be re-set automatically to 3.4 in case DNA\
@@ -306,7 +319,6 @@ optional
 default="2.8"
 hidden
 
-
 option  "backbone-length"  -
 "Set the average backbone length for looped regions in units of Angstrom.\n"
 details="Use with caution! This value will be re-set automatically to 6.76 in case DNA\
@@ -315,6 +327,7 @@ float
 optional
 default="6.0"
 hidden
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"

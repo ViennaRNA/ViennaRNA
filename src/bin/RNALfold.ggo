@@ -29,7 +29,6 @@ off
 section "I/O Options"
 sectiondesc="Command line options for input and output (pre-)processing\n\n"
 
-
 option  "infile"  i
 "Read a file instead of reading from stdin\n"
 details="The default behavior of RNALfold is to read input from stdin. Using this parameter\
@@ -38,9 +37,8 @@ string
 typestr="<filename>"
 optional
 
-
 option  "outfile" o
-"Print output to file instead of stdout\n"
+"Print output to file instead of stdout.\n"
 details="This option may be used to write all output to output files rather than printing\
  to stdout. The number of output files created for batch input (multiple sequences) depends\
  on three conditions: (i) In case an optional filename is given as parameter argument, a\
@@ -60,13 +58,10 @@ typestr="<filename>"
 argoptional
 optional
 
-
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+"Do not automatically substitute nucleotide \"T\" with \"U\".\n\n"
 flag
 off
-hidden
-
 
 option  "auto-id"  -
 "Automatically generate an ID for each sequence.\n"
@@ -79,9 +74,8 @@ details="The default mode of RNALfold is to automatically determine an ID from t
 flag
 off
 
-
 option  "id-prefix" -
-"Set prefix for automatically generated IDs\n"
+"Prefix for automatically generated IDs (as used in output file names).\n"
 details="If this parameter is set, each sequence will be prefixed with the\
  provided string. Hence, the output files will obey the following naming\
  scheme: \"prefix_xxxx.lfold\" where xxxx is the sequence number. Note:\
@@ -90,20 +84,16 @@ string
 typestr="STRING"
 default="sequence"
 optional
-hidden
-
 
 option  "id-delim" -
-"Change prefix delimiter for automatically generated ids.\n"
-details="This parameter can be used to change the default delimiter \"_\" between
- the prefix string and the increasing number for automatically generated IDs\n\n"
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names).\n"
+details="This parameter can be used to change the default delimiter \"_\" between\
+ the prefix string and the increasing number for automatically generated ID.\n\n"
 string
 typestr="CHAR"
 default="_"
 optional
-dependon="auto-id"
 hidden
-
 
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
@@ -116,7 +106,6 @@ default="4"
 optional
 hidden
 
-
 option  "id-start"  -
 "Specify the first number in automatically generated alignment IDs.\n"
 details="When sequence IDs are automatically generated, they receive an increasing number,\
@@ -128,9 +117,8 @@ default="1"
 optional
 hidden
 
-
 option  "filename-delim" -
-"Change the delimiting character that is used for sanitized filenames.\n"
+"Change the delimiting character used in sanitized filenames.\n"
 details="This parameter can be used to change the delimiting character used while\
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
@@ -144,7 +132,6 @@ typestr="CHAR"
 default="ID-delimiter"
 optional
 hidden
-
 
 option  "filename-full" -
 "Use full FASTA header to create filenames.\n"
@@ -165,7 +152,6 @@ section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
 
-
 option  "span"  L
 "Set the maximum distance between any two pairing nucleotides.\n"
 details="This option specifies the window length L and therefore the upper limit for the\
@@ -173,7 +159,6 @@ details="This option specifies the window length L and therefore the upper limit
 int
 default="150"
 optional
-
 
 option  "zscore"  z
 "Limit the output to predictions with a Z-score below a threshold.\n"
@@ -185,7 +170,6 @@ double
 default="-2"
 argoptional
 optional
-
 
 option  "zscore-pre-filter"  -
 "Apply the z-score filtering in the forward recursions.\n"
@@ -202,7 +186,6 @@ flag
 dependon="zscore"
 off
 
-
 option  "zscore-report-subsumed"  -
 "Report subsumed structures if their z-score is less than that of the enclosing structure.\n"
 details="In default mode, RNALfold only reports locally optimal structures if they\
@@ -213,7 +196,6 @@ details="In default mode, RNALfold only reports locally optimal structures if th
 flag
 dependon="zscore"
 off
-
 
 option  "backtrack-global"   b
 "Backtrack a global MFE structure.\n"
@@ -231,7 +213,6 @@ details="Instead of just reporting the locally stable secondary structure\
 flag
 off
 
-
 option  "gquad" g
 "Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
 flag
@@ -241,13 +222,11 @@ off
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
-
 option  "shape" -
 "Use SHAPE reactivity data to guide structure predictions.\n\n"
 string
 typestr="<filename>"
 optional
-
 
 option  "shapeMethod" -
 "Select SHAPE reactivity data incorporation strategy.\n"
@@ -272,7 +251,6 @@ default="D"
 optional
 hidden
 
-
 option  "shapeConversion" -
 "Select method for SHAPE reactivity conversion.\n"
 details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
@@ -288,7 +266,6 @@ default="O"
 optional
 hidden
 
-
 option  "commands"   -
 "Read additional commands from file\n"
 details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
@@ -303,12 +280,11 @@ hidden
 section "Energy Parameters"
 sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
 
-
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
+default="37.0"
 optional
-
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
@@ -319,7 +295,6 @@ string
 typestr="paramfile"
 optional
 
-
 option  "noTetra" 4
 "Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
 details="Mostly for testing.\n\n"
@@ -327,12 +302,10 @@ flag
 off
 hidden
 
-
 option  "salt" -
 "Set salt concentration in molar (M). Default is 1.021M.\n\n"
 double
 optional
-
 
 option  "modifications" m
 "Allow for modified bases within the RNA sequence string.\n"
@@ -353,7 +326,6 @@ string
 argoptional
 default="7I6P9D"
 
-
 option  "mod-file"  -
 "Use additional modified base data from JSON file.\n\n"
 string
@@ -364,9 +336,8 @@ optional
 section "Model Details"
 sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
 
-
 option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops.\n"
 details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
  check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
  any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
@@ -379,7 +350,6 @@ int
 default="2"
 optional
 
-
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
@@ -387,31 +357,27 @@ details="For partition function folding this only disallows pairs that can only 
 flag
 off
 
-
 option  "noGU"  -
-"Do not allow GU pairs\n\n"
+"Do not allow GU pairs.\n\n"
 flag
 off
 hidden
-
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
+"Do not allow GU pairs at the end of helices.\n\n"
 flag
 off
 hidden
-
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNALfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional
 hidden
-
 
 option  "energyModel" e
 "Set energy model.\n"
@@ -420,7 +386,6 @@ details="Rarely used option to fold sequences from the artificial ABCD... alphab
 int
 optional
 hidden
-
 
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"
@@ -431,7 +396,6 @@ optional
 default="2.8"
 hidden
 
-
 option  "backbone-length"  -
 "Set the average backbone length for looped regions in units of Angstrom.\n"
 details="Use with caution! This value will be re-set automatically to 6.76 in case DNA\
@@ -440,7 +404,6 @@ float
 optional
 default="6.0"
 hidden
-
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\

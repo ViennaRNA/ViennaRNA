@@ -6,7 +6,6 @@ usage "RNAplex [options]\n"
 # Version of your program
 #version "2.0"   # don't use version if you're using automake
 
-
 # command line options passed to gengetopt
 args "--file-name=RNAplex_cmdl --include-getopt --default-optional --func-name=RNAplex_cmdline_parser --arg-struct-name=RNAplex_args_info"
 
@@ -25,8 +24,9 @@ description "reads two RNA sequences from stdin or <filename> and\
  sequence and a long target sequence.\n"
 
 # Options
-section "Input Options"
-sectiondesc="Below are command line options which alter the general input behavior of this program\n"
+
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
 
 option "query" q
 "File containing the query sequence.\n"
@@ -59,23 +59,9 @@ details="The -b option allows one to read and process opening energy files which
 flag
 off
 
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
-string
-typestr="paramfile"
-optional
 
 section "Algorithms"
 sectiondesc="Options which alter the computing behaviour of RNAplex.\n\n"
-
-# Options
-option  "temp"  T
-"Rescale energy parameters to a temperature T. Default is 37C.\n\n"
-double
-optional
 
 option "interaction-length" l
 "Maximal length of an interaction\n"
@@ -92,16 +78,6 @@ default="0"
 int
 optional
 
-option  "salt" -
-"Set salt concentration in molar (M). Default is 1.021M.\n\n"
-double
-optional
-
-option  "saltInit" -
-"Provide salt correction for duplex initialization (in kcal/mol).\n\n"
-double
-optional
-hidden
 option "probe-mode" p
 "Compute Tm for probes"
 details="Use this option if you want to compute the melting temperature of your probes\n\n"
@@ -115,37 +91,32 @@ default="0.1"
 optional
 
 option "na-concentration" N
-"Set the Na+ concentration for the Tm computation\n\n"
+"Set the Na+ concentration for the Tm computation.\n\n"
 double
 default="1.0"
 optional
 hidden
 
 option "mg-concentration" M
-"Set the Mg2+ concentration for the Tm computation\n\n"
+"Set the Mg2+ concentration for the Tm computation.\n\n"
 double
 default="1.0"
 optional
 hidden
 
 option "k-concentration" K
-"Set the K+ concentration for the Tm computation\n\n"
+"Set the K+ concentration for the Tm computation.\n\n"
 double
 default="1.0"
 optional
 hidden
 
 option "tris-concentration" U
-"Set the tris+ concentration for the Tm computation\n\n"
+"Set the tris+ concentration for the Tm computation.\n\n"
 double
 default="1.0"
 optional
 hidden
-
-
-
-
-
 
 option "fast-folding" f
 "Speedup of the target search\n"
@@ -164,14 +135,6 @@ double
 default="1.0"
 optional
 
-option "constraint" C
-"Calculate structures subject to constraints.\n"
-details="The program reads first the\
- sequence, then a string containing constraints on the structure for the query sequence encoded with the symbols:\n. (no constraint\
- for this base)\n| (the corresponding base has to be paired)\n\n"
-flag
-off
-
 option "alignment-mode" A
 "Tells RNAplex to compute interactions based on alignments\n"
 details="If the A option is set RNAplex expects clustalw files as input for the -q and -t option.\n\n"
@@ -183,9 +146,6 @@ option "convert-to-bin" k
 details="RNAplex can be used to convert existing text formatted opening energy files into binary formatted files. In this mode RNAplex does not compute interactions.\n\n"
 flag
 off
-
-section "Output"
-sectiondesc="Options that modify the output\n\n"
 
 option "duplex-distance" z
 "Distance between target 3' ends of two consecutive duplexes\n"
@@ -204,14 +164,6 @@ double
 default="-100000"
 optional
 
-option "produce-ps" I
-"Draw an alignment annotated interaction from RNAplex\n"
-details="This option allows one to produce interaction figures in PS-format a la RNAalifold, where base-pair conservation is represented in\
- color-coded format. In this mode no interaction are computed, but the -I option indicates the location of the file containing interactions\
- between two RNA (alignments/sequence) from a previous run. If the -A option is not set a structure figure a la RNAfold with color-coded annotation of the accessibilities is returned\n\n"
-string
-optional
-
 option "WindowLength" L
 "Tells how large the region around the target site should be for redrawing the alignment interaction\n"
 details="This option allows one to specify how large the region surrounding the target site should be set when generating the alignment figure of the interaction\n\n"
@@ -219,6 +171,58 @@ int
 default="1"
 optional
 
+
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
+option "constraint" C
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence, then a string containing constraints on the structure for the query sequence encoded with the symbols:\n. (no constraint\
+ for this base)\n| (the corresponding base has to be paired)\n\n"
+flag
+off
+
+
+section "Energy Parameters"
+sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+double
+default="37.0"
+optional
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n\n"
+string
+typestr="paramfile"
+optional
+
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
+details="Mostly for testing.\n\n"
+flag
+off
+hidden
+
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+option  "saltInit" -
+"Provide salt correction for duplex initialization (in kcal/mol).\n\n"
+double
+optional
+hidden
+
+
+section "Model Details"
+sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
 
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"
@@ -229,7 +233,6 @@ optional
 default="2.8"
 hidden
 
-
 option  "backbone-length"  -
 "Set the average backbone length for looped regions in units of Angstrom.\n"
 details="Use with caution! This value will be re-set automatically to 6.76 in case DNA\
@@ -238,6 +241,18 @@ float
 optional
 default="6.0"
 hidden
+
+
+section "Plotting"
+sectiondesc="Command line options for changing the default behavior of structure layout and pairing probability plots\n\n"
+
+option "produce-ps" I
+"Draw an alignment annotated interaction from RNAplex.\n"
+details="This option allows one to produce interaction figures in PS-format a la RNAalifold, where base-pair conservation is represented in\
+ color-coded format. In this mode no interaction are computed, but the -I option indicates the location of the file containing interactions\
+ between two RNA (alignments/sequence) from a previous run. If the -A option is not set a structure figure a la RNAfold with color-coded annotation of the accessibilities is returned\n\n"
+string
+optional
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\

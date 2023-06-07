@@ -27,9 +27,6 @@ description "Read aligned RNA sequences from stdin or file.aln and calculate\
 
 # Options
 
-section "General Options"
-sectiondesc="Command line options which alter the general behavior of this program\n\n"
-
 option  "verbose" v
 "Be verbose.\n\n"
 flag
@@ -39,6 +36,28 @@ option  "quiet" q
 "Be quiet.\n"
 details="This option can be used to minimize the output of additional information\
  and non-severe warnings which otherwise might spam stdout/stderr.\n\n"
+flag
+off
+
+
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
+
+option  "input-format"  f
+"File format of the input multiple sequence alignment (MSA).\n"
+details="If this parameter is set, the input is considered to be in a particular\
+ file format. Otherwise, the program tries to determine the file format automatically,\
+ if an input file was provided in the set of parameters. In case the input MSA is provided\
+ in interactive mode, or from a terminal (TTY), the programs default is to assume\
+ CLUSTALW format.\nCurrently, the following formats are available: ClustalW (C),\
+ Stockholm 1.0 (S), FASTA/Pearson (F), and MAF (M).\n\n"
+string
+typestr="C|S|F|M"
+optional
+
+option  "mis"             -
+"Output \"most informative sequence\" instead of simple consensus: For each column of the alignment output\
+ the set of nucleotides with frequency greater than average in IUPAC notation.\n\n"
 flag
 off
 
@@ -57,7 +76,6 @@ typestr="number"
 argoptional
 optional
 
-
 option  "unordered"  -
 "Do not try to keep output in order with input while parallel processing is in place.\n"
 details="When parallel input processing (--jobs flag) is enabled, the order in which input\
@@ -74,78 +92,10 @@ hidden
 dependon="jobs"
 hidden
 
-
 option  "noconv"  -
-"Do not automatically substitute nucleotide \"T\" with \"U\"\n\n"
+"Do not automatically substitute nucleotide \"T\" with \"U\".\n\n"
 flag
 off
-
-option  "color"   -
-"Produce a colored version of the consensus structure plot \"alirna.ps\" (default b&w only)\n\n"
-flag
-off
-
-option  "aln"             -
-"Produce a colored and structure annotated alignment in PostScript format in the file \"aln.ps\" in the\
- current directory.\n\n"
-flag
-off
-
-option  "aln-EPS-cols"        -
-"Number of columns in colored EPS alignment output.\n"
-details="A value less than 1 indicates that the output should not be wrapped at all.\n\n"
-int
-default="60"
-optional
-hidden
-
-option  "aln-stk"             -
-"Create a multi-Stockholm formatted output file.\n"
-details="The default file name used for the output is \"RNAalifold_results.stk\". Users may\
- change the filename to \"prefix.stk\" by specifying the prefix as optional argument. The file\
- will be create in the current directory if it does not already exist. In case the file already\
- exists, output will be appended to it.\
- Note: Any special characters in the filename will be replaced by the filename delimiter,\
- hence there is no way to pass an entire directory path through this option yet.\
- (See also the \"--filename-delim\" parameter)\n\n"
-string
-argoptional
-typestr="prefix"
-default="RNAalifold_results"
-optional
-
-option  "layout-type"  t
-"Choose the layout algorithm. Simple radial layout if 0, or naview if 1\n\n"
-int
-default="1"
-optional
-hidden
-
-option  "noPS"  -
-"Do not produce postscript drawing of the mfe structure.\n\n"
-flag
-off
-
-option  "noDP"  -
-"Do not produce dot-plot postscript file containing base pair or stack probabilitities.\n"
-details="In combination with the -p option, this flag turns-off creation of individual\
- dot-plot files. Consequently, computed base pair probability output is omitted but centroid\
- and MEA structure prediction is still performed.\n\n"
-flag
-dependon="partfunc"
-off
-
-option  "input-format"  f
-"File format of the input multiple sequence alignment (MSA).\n"
-details="If this parameter is set, the input is considered to be in a particular\
- file format. Otherwise, the program tries to determine the file format automatically,\
- if an input file was provided in the set of parameters. In case the input MSA is provided\
- in interactive mode, or from a terminal (TTY), the programs default is to assume\
- CLUSTALW format.\nCurrently, the following formats are available: ClustalW (C),\
- Stockholm 1.0 (S), FASTA/Pearson (F), and MAF (M).\n\n"
-string
-typestr="C|S|F|M"
-optional
 
 option  "continuous-ids"   n
 "Use continuous alignment ID numbering when no alignment ID can be retrieved from input data.\n"
@@ -167,7 +117,7 @@ flag
 off
 
 option  "id-prefix" -
-"Prefix for automatically generated IDs (as used in output file names)\n\n"
+"Prefix for automatically generated IDs (as used in output file names).\n"
 details="If this parameter is set, each alignment will be prefixed with the\
  provided string. Hence, the output files will obey the following naming\
  scheme: \"prefix_xxxx_ss.ps\" (secondary structure plot), \"prefix_xxxx_dp.ps\"\
@@ -176,16 +126,16 @@ details="If this parameter is set, each alignment will be prefixed with the\
  Use this setting in conjunction with the --continuous-ids flag to assign\
  IDs beginning with the first input alignment.\n\n"
 string
-typestr="prefix"
+typestr="STRING"
 default="alignment"
 optional
 
 option  "id-delim" -
-"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)\n\n"
-details="This parameter can be used to change the default delimiter \"_\" between
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names).\n"
+details="This parameter can be used to change the default delimiter \"_\" between\
  the prefix string and the increasing number for automatically generated ID.\n\n"
 string
-typestr="delimiter"
+typestr="CHAR"
 default="_"
 optional
 hidden
@@ -213,7 +163,7 @@ optional
 hidden
 
 option  "filename-delim" -
-"Change the delimiting character that is used for sanitized filenames\n\n"
+"Change the delimiting character used in sanitized filenames.\n"
 details="This parameter can be used to change the delimiting character used while\
  sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
  delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
@@ -223,13 +173,108 @@ details="This parameter can be used to change the delimiting character used whil
  backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
  pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
 string
-typestr="delimiter"
+typestr="CHAR"
 default="ID-delimiter"
 optional
 hidden
 
 
-# Options
+section "Algorithms"
+sectiondesc="Select additional algorithms which should be included in the calculations.\n\n"
+
+option  "partfunc"  p
+"Calculate the partition function and base pairing probability matrix in\
+ addition to the mfe structure. Default is calculation of mfe structure only.\n"
+details="In addition to the MFE structure we print a coarse representation of the pair probabilities in form\
+ of a pseudo bracket notation, followed by the ensemble free energy, as well as the centroid structure derived\
+ from the pair probabilities together with its free energy and distance to the ensemble. Finally it prints the\
+ frequency of the mfe structure.\n\nAn additionally passed value to this option changes the behavior of\
+ partition function calculation:\n-p0 deactivates the calculation of the pair probabilities,\
+ saving about 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n\n"
+int
+default="1"
+argoptional
+optional
+
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors.\n"
+details="The argument provided with this option enables to scale the thermodynamic temperature\
+ used in the Boltzmann factors independently from the temperature used to scale the individual\
+ energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kTn*betaScale))\
+ where k is the Boltzmann constant, dG the free energy contribution of the state, T the\
+ absolute temperature and n the number of sequences.\n\n"
+double
+default="1."
+optional
+dependon="partfunc"
+hidden
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+double
+optional
+hidden
+
+option  "MEA"   -
+"Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
+ pair probabilities: each base pair (i,j) gets a score 2*gamma*p_ij and the score of an unpaired base is\
+ given by the probability of not forming a pair.\n"
+details="The parameter gamma tunes the importance of correctly\
+ predicted pairs versus unpaired bases. Thus, for small values of gamma the MEA structure will contain\
+ only pairs with very high probability.\nUsing --MEA implies -p for\
+ computing the pair probabilities.\n\n"
+float
+typestr="gamma"
+default="1."
+argoptional
+optional
+
+option  "sci" -
+"Compute the structure conservation index (SCI) for the MFE consensus structure of the alignment.\n\n"
+flag
+off
+
+option  "circ"    c
+"Assume a circular (instead of linear) RNA molecule.\n\n"
+flag
+off
+
+option  "bppmThreshold" -
+"Set the threshold for base pair probabilities included in the postscript output\n"
+details="By setting the threshold the base pair probabilities that are included in the\
+ output can be varied. By default only those exceeding 1e-5 in probability will be shown as squares\
+ in the dot plot. Changing the threshold to any other value allows for increase or decrease of data.\n\n"
+double
+typestr="<value>"
+optional
+default="1e-6"
+hidden
+
+option  "gquad" g
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
+flag
+off
+
+option  "stochBT"         s
+"Stochastic backtrack. Compute a certain number of random structures with a probability dependend on the\
+ partition function. See -p option in RNAsubopt.\n\n"
+int
+optional
+
+option  "stochBT_en"      -
+"same as \"-s\" but also print out the energies and probabilities of the backtraced structures.\n\n"
+int
+optional
+
+option "nonRedundant" N
+"Enable non-redundant sampling strategy.\n\n"
+flag
+off
+
+
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
@@ -263,15 +308,16 @@ details="Usually, constraints provided from input file are only applied to a sin
 flag
 off
 dependon="constraint"
+hidden
 
 option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
+"Enforce base pairs given by round brackets ( ) in structure constraint.\n\n"
 flag
 off
 dependon="constraint"
 
 option  "SS_cons"  -
-"Use consensus structures from Stockholm file (#=GF SS_cons) as constraint\n"
+"Use consensus structures from Stockholm file (#=GF SS_cons) as constraint.\n"
 details="Stockholm formatted alignment files have the possibility to store a\
  secondary structure string in one of if (\"#=GC\") column annotation meta tags.\
  The corresponding tag name is usually \"SS_cons\", a consensus secondary structure.\
@@ -283,9 +329,8 @@ details="Stockholm formatted alignment files have the possibility to store a\
 flag
 off
 
-
 option  "shape" -
-"Use SHAPE reactivity data to guide structure predictions\n"
+"Use SHAPE reactivity data to guide structure predictions.\n"
 details="Multiple shapefiles for the individual sequences in the alignment may be specified \
  as a comma separated list. An optional association of particular shape files to a specific \
  sequence in the alignment can be expressed by prepending the sequence number to the filename, \
@@ -299,7 +344,7 @@ multiple(1-)
 optional
 
 option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions.\n"
 details="Currently, the only data conversion method available is that of to Deigan et al 2009. \
  This method is the default and is recognized by a capital 'D' in the provided parameter, i.e.: \
  --shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
@@ -312,113 +357,45 @@ typestr="D[mX][bY]"
 dependon="shape"
 default="D"
 optional
-
-section "Algorithms"
-sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
- (MFE) and a structure representative are calculated in any case.\n\n"
-
-option  "partfunc"        p
-"Calculate the partition function and base pairing probability matrix in\
- addition to the mfe structure. Default is calculation of mfe structure only.\n"
-details="In addition to the MFE structure we print a coarse representation of the pair probabilities in form\
- of a pseudo bracket notation, followed by the ensemble free energy, as well as the centroid structure derived\
- from the pair probabilities together with its free energy and distance to the ensemble. Finally it prints the\
- frequency of the mfe structure.\n\nAn additionally passed value to this option changes the behavior of\
- partition function calculation:\n-p0 deactivates the calculation of the pair probabilities,\
- saving about 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n\n"
-int
-default="1"
-argoptional
-optional
-
-option  "MEA"   -
-"Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
- pair probabilities: each base pair (i,j) gets a score 2*gamma*p_ij and the score of an unpaired base is\
- given by the probability of not forming a pair.\n"
-details="The parameter gamma tunes the importance of correctly\
- predicted pairs versus unpaired bases. Thus, for small values of gamma the MEA structure will contain\
- only pairs with very high probability.\nUsing --MEA implies -p for\
- computing the pair probabilities.\n\n"
-float
-typestr="gamma"
-default="1."
-argoptional
-optional
-
-option  "mis"             -
-"Output \"most informative sequence\" instead of simple consensus: For each column of the alignment output\
- the set of nucleotides with frequency greater than average in IUPAC notation.\n\n"
-flag
-off
-
-option  "stochBT"         s
-"Stochastic backtrack. Compute a certain number of random structures with a probability dependend on the\
- partition function. See -p option in RNAsubopt.\n\n"
-int
-optional
-
-option  "stochBT_en"      -
-"same as \"-s\" but also print out the energies and probabilities of the backtraced structures.\n\n"
-int
-optional
-
-option "nonRedundant" N
-"Enable non-redundant sampling strategy.\n\n"
-flag
-off
-
-option  "pfScale" S
-"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
- overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
-double
-typestr="scaling factor"
-optional
 hidden
 
-option  "circ"    c
-"Assume a circular (instead of linear) RNA molecule.\n\n"
-flag
-off
 
-option  "bppmThreshold" -
-"Set the threshold for base pair probabilities included in the postscript output\n"
-details="By setting the threshold the base pair probabilities that are included in the\
- output can be varied. By default only those exceeding 1e-5 in probability will be shown as squares\
- in the dot plot. Changing the threshold to any other value allows for increase or decrease of data.\n\n"
-double
-typestr="<value>"
-optional
-default="1e-6"
-hidden
-
-option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
-flag
-off
-
-option  "sci" -
-"Compute the structure conservation index (SCI) for the MFE consensus structure of the alignment\n\n"
-flag
-off
-
-
-section "Model Details"
+section "Energy Parameters"
+sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
 
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
+default="37.0"
+optional
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n\n"
+string
+typestr="paramfile"
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
 details="Mostly for testing.\n\n"
 flag
 off
+hidden
+
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+
+section "Model Details"
+sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
 
 option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops.\n"
 details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides
  in any case.\nThe option -d0 ignores dangling ends altogether (mostly for debugging).\n\n"
 int
@@ -436,16 +413,13 @@ option  "noGU"  -
 "Do not allow GU pairs\n\n"
 flag
 off
+hidden
 
 option  "noClosingGU" -
 "Do not allow GU pairs at the end of helices\n\n"
 flag
 off
-
-option  "salt" -
-"Set salt concentration in molar (M). Default is 1.021M.\n\n"
-double
-optional
+hidden
 
 option  "cfactor"         -
 "Set the weight of the covariance term in the energy function\n\n"
@@ -482,15 +456,6 @@ option  "old" -
 flag
 off
 
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
-string
-typestr="paramfile"
-optional
-
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
@@ -502,25 +467,12 @@ optional
 hidden
 
 option  "energyModel" e
-"Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
+"Set energy model.\n"
+details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
  A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden
-
-option  "betaScale" -
-"Set the scaling of the Boltzmann factors\n"
-details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the Boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kTn*betaScale))\
- where k is the Boltzmann constant, dG the free energy contribution of the state, T the\
- absolute temperature and n the number of sequences.\n\n"
-double
-default="1."
-optional
-dependon="partfunc"
-hidden
-
 
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"
@@ -530,7 +482,6 @@ float
 optional
 default="2.8"
 hidden
-
 
 option  "backbone-length"  -
 "Set the average backbone length for looped regions in units of Angstrom.\n"
@@ -542,8 +493,75 @@ default="6.0"
 hidden
 
 
+section "Plotting"
+sectiondesc="Command line options for changing the default behavior of structure layout and pairing probability plots\n\n"
+
+option  "color"   -
+"Produce a colored version of the consensus structure plot \"alirna.ps\" (default b&w only)\n\n"
+flag
+off
+
+option  "aln"             -
+"Produce a colored and structure annotated alignment in PostScript format in the file \"aln.ps\" in the\
+ current directory.\n\n"
+flag
+off
+
+option  "aln-EPS-cols"        -
+"Number of columns in colored EPS alignment output.\n"
+details="A value less than 1 indicates that the output should not be wrapped at all.\n\n"
+int
+default="60"
+optional
+hidden
+
+option  "aln-stk"             -
+"Create a multi-Stockholm formatted output file.\n"
+details="The default file name used for the output is \"RNAalifold_results.stk\". Users may\
+ change the filename to \"prefix.stk\" by specifying the prefix as optional argument. The file\
+ will be create in the current directory if it does not already exist. In case the file already\
+ exists, output will be appended to it.\
+ Note: Any special characters in the filename will be replaced by the filename delimiter,\
+ hence there is no way to pass an entire directory path through this option yet.\
+ (See also the \"--filename-delim\" parameter)\n\n"
+string
+argoptional
+typestr="prefix"
+default="RNAalifold_results"
+optional
+
+option  "noPS"  -
+"Do not produce postscript drawing of the mfe structure.\n\n"
+flag
+off
+
+option  "noDP"  -
+"Do not produce dot-plot postscript file containing base pair or stack probabilitities.\n"
+details="In combination with the -p option, this flag turns-off creation of individual\
+ dot-plot files. Consequently, computed base pair probability output is omitted but centroid\
+ and MEA structure prediction is still performed.\n\n"
+flag
+dependon="partfunc"
+off
+
+option  "layout-type"  t
+"Choose the layout algorithm.\n"
+details="Select the layout algorithm that computes the nucleotide coordinates.\
+ Currently, the following algorithms are available:\n\
+ 0: simple radial layout\n\n\
+ 1: Naview layout (Bruccoleri et al. 1988)\n\n\
+ 2: circular layout\n\n\
+ 3: RNAturtle (Wiegreffe et al. 2018)\n\n\
+ 4: RNApuzzler (Wiegreffe et al. 2018)\n\n"
+int
+default="1"
+optional
+hidden
+
+
 text  "Caveats:\n\nSequences are not weighted. If possible, do not mix very similar and\
  dissimilar sequences. Duplicate sequences, for example, can distort the prediction.\n\n"
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"

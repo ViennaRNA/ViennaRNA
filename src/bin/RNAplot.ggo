@@ -25,6 +25,35 @@ description "The program reads (aligned) RNA sequences and structures in the for
  option.\nExisting files of the same name will be overwritten.\n"
 
 # Options
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
+
+option  "infile"  i
+"Read a file instead of reading from stdin."
+details="The default behavior of RNAplot is to read input from stdin or the file(s) that follow(s)\
+ the RNAplot command. Using this parameter the user can specify input file names where data\
+ is read from. Note, that any additional files supplied to RNAplot are still processed as well.\n"
+string
+typestr="<filename>"
+multiple
+optional
+
+option  "msa"   a
+"Input is multiple sequence alignment in Stockholm 1.0 format."
+details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
+ instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
+ a consensus structure. Therefore, this is the only supported MSA format for now!\n"
+flag
+off
+
+option  "mis"             -
+"Output \"most informative sequence\" instead of simple consensus"
+details="For each column of the alignment output this is the set of nucleotides with frequency\
+ greater than average in IUPAC notation.\n"
+flag
+dependon="msa"
+off
+
 option  "jobs"  j
 "Split batch input into jobs and start processing in parallel using multiple threads."
 details="Default processing of input data is performed in a serial fashion, i.e. one sequence at\
@@ -40,35 +69,120 @@ typestr="number"
 argoptional
 optional
 
-
-option  "infile"  i
-"Read a file instead of reading from stdin."
-details="The default behavior of RNAplot is to read input from stdin or the file(s) that follow(s)\
- the RNAplot command. Using this parameter the user can specify input file names where data\
- is read from. Note, that any additional files supplied to RNAplot are still processed as well.\n"
+option  "output-format"   o
+"Specify output format."
+details="Available formats are: PostScript (ps), Graph Meta Language (gml),\
+ Scalable Vector Graphics (svg), and XRNA save file (xrna). Output filenames will end in\
+ \".ps\" \".gml\" \".svg\" \".ss\", respectively.\n"
 string
-typestr="<filename>"
-multiple
+typestr="ps|gml|xrna|svg"
+default="ps"
+optional
+hidden
+
+option  "pre"   -
+"Add annotation macros to postscript file, and add the postscript code in \"string\" just\
+ before the code to draw the structure. This is an easy way to add annotation."
+string
+typestr="string"
 optional
 
+option  "post"  -
+"Same as --pre but in contrast to adding the annotation macros. E.g to mark position\
+ 15 with circle use --post \"15 cmark\"."
+string
+typestr="string"
+optional
 
-option  "msa"   a
-"Input is multiple sequence alignment in Stockholm 1.0 format."
-details="Using this flag indicates that the input is a multiple sequence alignment (MSA)\
- instead of (a) single sequence(s). Note, that only STOCKHOLM format allows one to specify\
- a consensus structure. Therefore, this is the only supported MSA format for now!\n"
+option  "auto-id"  -
+"Automatically generate an ID for each sequence.\n"
+details="The default mode of RNAfold is to automatically determine an ID from the input sequence\
+ data if the input file format allows to do that. Sequence IDs are usually given in the FASTA\
+ header of input sequences. If this flag is active, RNAfold ignores any IDs retrieved from the\
+ input and automatically generates an ID for each sequence. This ID consists of a prefix and an\
+ increasing number. This flag can also be used to add a FASTA header to the output even if\
+ the input has none.\n\n"
 flag
 off
 
+option  "id-prefix" -
+"Prefix for automatically generated IDs (as used in output file names).\n"
+details="If this parameter is set, each sequence will be prefixed with the\
+ provided string. Hence, the output files will obey the following naming\
+ scheme: \"prefix_xxxx_ss.ps\" (secondary structure plot), \"prefix_xxxx_dp.ps\"\
+ (dot-plot), \"prefix_xxxx_dp2.ps\" (stack probabilities), etc. where xxxx\
+ is the sequence number. Note: Setting this parameter implies --auto-id.\n\n"
+string
+typestr="STRING"
+default="sequence"
+optional
 
-option  "mis"             -
-"Output \"most informative sequence\" instead of simple consensus"
-details="For each column of the alignment output this is the set of nucleotides with frequency\
- greater than average in IUPAC notation.\n"
+option  "id-delim" -
+"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names).\n"
+details="This parameter can be used to change the default delimiter \"_\" between\
+ the prefix string and the increasing number for automatically generated ID.\n\n"
+string
+typestr="CHAR"
+default="_"
+optional
+hidden
+
+option  "id-digits"  -
+"Specify the number of digits of the counter in automatically generated alignment IDs.\n"
+details="When alignments IDs are automatically generated, they receive an increasing number, starting\
+ with 1. This number will always be left-padded by leading zeros, such that the number takes up a\
+ certain width. Using this parameter, the width can be specified to the users need. We allow\
+ numbers in the range [1:18]. This option implies --auto-id.\n\n"
+int
+default="4"
+optional
+hidden
+
+option  "id-start"  -
+"Specify the first number in automatically generated IDs.\n"
+details="When sequence IDs are automatically generated, they receive an increasing number,\
+ usually starting with 1. Using this parameter, the first number can be specified to the users\
+ requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
+ to ignore any IDs retrieved from the input data, i.e. it activates the --auto-id flag.\n\n"
+long
+default="1"
+optional
+hidden
+
+option  "filename-delim" -
+"Change the delimiting character used in sanitized filenames.\n"
+details="This parameter can be used to change the delimiting character used while\
+ sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
+ delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
+ the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
+ characters will be simply removed rather than substituted.\
+ Currently, we regard the following characters as illegal for use in filenames:\
+ backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
+ pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n\n"
+string
+typestr="CHAR"
+default="ID-delimiter"
+optional
+hidden
+
+option  "filename-full" -
+"Use full FASTA header to create filenames.\n"
+details="This parameter can be used to deactivate the default behavior of limiting\
+ output filenames to the first word of the sequence ID. Consider the following example:\
+ An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
+ files with the prefix \"NM_0001\" without the additional data available in the FASTA\
+ header, e.g. \"NM_0001_ss.ps\" for secondary structure plots. With this flag set, no\
+ truncation of the output filenames is done, i.e. output filenames receive the full\
+ FASTA header data as prefixes. Note, however, that invalid characters (such as whitespace)\
+ will be substituted by a delimiting character or simply removed, (see also the parameter\
+ option --filename-delim).\n\n"
 flag
-dependon="msa"
 off
+hidden
 
+
+section "Plotting"
+sectiondesc="Command line options for changing the default behavior of structure layout and pairing probability plots\n\n"
 
 option  "covar"           -
 "Annotate covariance of base pairs in consensus structure."
@@ -82,7 +196,6 @@ option  "aln"             -
 flag
 dependon="msa"
 off
-
 
 option  "aln-EPS-cols"        -
 "Number of columns in colored EPS alignment output."
@@ -132,115 +245,6 @@ hidden
 
 option  "allowFlipping"  -
 "Allow flipping of exterior loop branches to resolve exterior branch intersections."
-flag
-off
-hidden
-
-option  "output-format"   o
-"Specify output format."
-details="Available formats are: PostScript (ps), Graph Meta Language (gml),\
- Scalable Vector Graphics (svg), and XRNA save file (xrna). Output filenames will end in\
- \".ps\" \".gml\" \".svg\" \".ss\", respectively.\n"
-string
-typestr="ps|gml|xrna|svg"
-default="ps"
-optional
-hidden
-
-option  "pre"   -
-"Add annotation macros to postscript file, and add the postscript code in \"string\" just\
- before the code to draw the structure. This is an easy way to add annotation."
-string
-typestr="string"
-optional
-
-option  "post"  -
-"Same as --pre but in contrast to adding the annotation macros. E.g to mark position\
- 15 with circle use --post \"15 cmark\"."
-string
-typestr="string"
-optional
-
-option  "auto-id"  -
-"Automatically generate an ID for each sequence."
-details="The default mode of RNAfold is to automatically determine an ID from the input sequence\
- data if the input file format allows to do that. Sequence IDs are usually given in the FASTA\
- header of input sequences. If this flag is active, RNAfold ignores any IDs retrieved from the\
- input and automatically generates an ID for each sequence. This ID consists of a prefix and an\
- increasing number. This flag can also be used to add a FASTA header to the output even if\
- the input has none.\n"
-flag
-off
-
-option  "id-prefix" -
-"Prefix for automatically generated IDs (as used in output file names)."
-details="If this parameter is set, each sequence will be prefixed with the\
- provided string. Hence, the output files will obey the following naming\
- scheme: \"prefix_xxxx_ss.ps\" (secondary structure plot), \"prefix_xxxx_dp.ps\"\
- (dot-plot), \"prefix_xxxx_dp2.ps\" (stack probabilities), etc. where xxxx\
- is the sequence number. Note: Setting this parameter implies --auto-id.\n"
-string
-typestr="prefix"
-default="sequence"
-optional
-
-option  "id-delim" -
-"Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names)."
-details="This parameter can be used to change the default delimiter \"_\" between
- the prefix string and the increasing number for automatically generated ID.\n"
-string
-default="_"
-optional
-hidden
-
-option  "id-digits"  -
-"Specify the number of digits of the counter in automatically generated alignment IDs."
-details="When alignments IDs are automatically generated, they receive an increasing number, starting\
- with 1. This number will always be left-padded by leading zeros, such that the number takes up a\
- certain width. Using this parameter, the width can be specified to the users need. We allow\
- numbers in the range [1:18]. This option implies --auto-id.\n"
-int
-default="4"
-optional
-hidden
-
-option  "id-start"  -
-"Specify the first number in automatically generated alignment IDs."
-details="When sequence IDs are automatically generated, they receive an increasing number,\
- usually starting with 1. Using this parameter, the first number can be specified to the users\
- requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
- to ignore any IDs retrieved from the input data, i.e. it activates the --auto-id flag.\n"
-long
-default="1"
-optional
-hidden
-
-option  "filename-delim" -
-"Change the delimiting character that is used for sanitized filenames\n"
-details="This parameter can be used to change the delimiting character used while\
- sanitizing filenames, i.e. replacing invalid characters. Note, that the default\
- delimiter ALWAYS is the first character of the \"ID delimiter\" as supplied through\
- the --id-delim option. If the delimiter is a whitespace character or empty, invalid\
- characters will be simply removed rather than substituted.\
- Currently, we regard the following characters as illegal for use in filenames:\
- backslash '\', slash '/', question mark '?', percent sign '%', asterisk '*', colon ':',\
- pipe symbol '|', double quote '\"', triangular brackets '<' and '>'.\n"
-string
-default="ID-delimiter"
-optional
-hidden
-
-option  "filename-full" -
-"Use full FASTA header to create filenames."
-details="This parameter can be used to deactivate the default behavior of limiting\
- output filenames to the first word of the sequence ID. Consider the following example:\
- An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
- files with the prefix \"NM_0001\" without the additional data available in the FASTA\
- header, e.g. \"NM_0001_ss.ps\" for secondary structure plots. With this flag set, no\
- truncation of the output filenames is done, i.e. output filenames receive the full\
- FASTA header data as prefixes. Note, however, that invalid characters (such as whitespace)\
- will be substituted by a delimiting character or simply removed, (see also the parameter\
- option --filename-delim).\n"
 flag
 off
 hidden

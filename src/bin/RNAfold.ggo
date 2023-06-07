@@ -45,7 +45,6 @@ off
 section "I/O Options"
 sectiondesc="Command line options for input and output (pre-)processing\n\n"
 
-
 option  "infile"  i
 "Read a file instead of reading from stdin.\n"
 details="The default behavior of RNAfold is to read input from stdin or the file(s) that follow(s)\
@@ -55,7 +54,6 @@ string
 typestr="<filename>"
 multiple
 optional
-
 
 option  "outfile" o
 "Print output to file instead of stdout.\n"
@@ -75,7 +73,6 @@ typestr="<filename>"
 argoptional
 optional
 
-
 option  "jobs"  j
 "Split batch input into jobs and start processing in parallel using multiple threads. A value of 0\
  indicates to use as many parallel threads as computation cores are available.\n"
@@ -90,7 +87,6 @@ default="0"
 typestr="number"
 argoptional
 optional
-
 
 option  "unordered"  -
 "Do not try to keep output in order with input while parallel processing is in place.\n"
@@ -107,12 +103,10 @@ off
 dependon="jobs"
 hidden
 
-
 option  "noconv"  -
 "Do not automatically substitute nucleotide \"T\" with \"U\".\n\n"
 flag
 off
-
 
 option  "auto-id"  -
 "Automatically generate an ID for each sequence.\n"
@@ -124,7 +118,6 @@ details="The default mode of RNAfold is to automatically determine an ID from th
  the input has none.\n\n"
 flag
 off
-
 
 option  "id-prefix" -
 "Prefix for automatically generated IDs (as used in output file names).\n"
@@ -138,7 +131,6 @@ typestr="STRING"
 default="sequence"
 optional
 
-
 option  "id-delim" -
 "Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names).\n"
 details="This parameter can be used to change the default delimiter \"_\" between\
@@ -148,7 +140,6 @@ typestr="CHAR"
 default="_"
 optional
 hidden
-
 
 option  "id-digits"  -
 "Specify the number of digits of the counter in automatically generated alignment IDs.\n"
@@ -161,9 +152,8 @@ default="4"
 optional
 hidden
 
-
 option  "id-start"  -
-"Specify the first number in automatically generated alignment IDs.\n"
+"Specify the first number in automatically generated IDs.\n"
 details="When sequence IDs are automatically generated, they receive an increasing number,\
  usually starting with 1. Using this parameter, the first number can be specified to the users\
  requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
@@ -172,7 +162,6 @@ long
 default="1"
 optional
 hidden
-
 
 option  "filename-delim" -
 "Change the delimiting character used in sanitized filenames.\n"
@@ -189,7 +178,6 @@ typestr="CHAR"
 default="ID-delimiter"
 optional
 hidden
-
 
 option  "filename-full" -
 "Use full FASTA header to create filenames.\n"
@@ -210,7 +198,6 @@ hidden
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
  (MFE) and a structure representative are calculated in any case.\n\n"
-
 
 option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix.\n"
@@ -236,7 +223,6 @@ default="1"
 argoptional
 optional
 
-
 option  "betaScale" -
 "Set the scaling of the Boltzmann factors.\n"
 details="The argument provided with this option enables to scale the thermodynamic temperature\
@@ -250,16 +236,15 @@ optional
 dependon="partfunc"
 hidden
 
-
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
 details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
  for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
 double
+default="1.07"
 optional
 hidden
-
 
 option  "MEA"   -
 "Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
@@ -275,21 +260,18 @@ default="1."
 argoptional
 optional
 
-
 option  "circ"    c
 "Assume a circular (instead of linear) RNA molecule.\n\n"
 flag
 off
 
-
 option  "ImFeelingLucky"  -
-"Return exactly one stochastically backtracked structure\n"
+"Return exactly one stochastically backtracked structure.\n"
 details="This function computes the partition function and returns exactly one secondary structure\
  stochastically sampled from the Boltzmann equilibrium according to its probability in the ensemble\n\n"
 flag
 off
 hidden
-
 
 option  "bppmThreshold" -
 "Set the threshold for base pair probabilities included in the postscript output\n"
@@ -302,7 +284,6 @@ optional
 default="1e-5"
 hidden
 
-
 option  "gquad" g
 "Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
 flag
@@ -312,13 +293,11 @@ off
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
-
 option  "maxBPspan" -
-"Set the maximum base pair span\n\n"
+"Set the maximum base pair span.\n\n"
 int
 default="-1"
 optional
-
 
 option  "constraint"  C
 "Calculate structures subject to constraints.\n"
@@ -334,7 +313,6 @@ typestr="<filename>"
 default = ""
 argoptional
 
-
 option  "batch"   -
 "Use constraints for multiple sequences.\n"
 details="Usually, constraints provided from input file only apply to a single input sequence. Therefore,\
@@ -346,25 +324,23 @@ dependon="constraint"
 hidden
 
 option  "canonicalBPonly" -
-"Remove non-canonical base pairs from the structure constraint\n\n"
+"Remove non-canonical base pairs from the structure constraint.\n\n"
 flag
 off
 dependon="constraint"
 hidden
 
 option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint\n\n"
+"Enforce base pairs given by round brackets ( ) in structure constraint.\n\n"
 flag
 off
 dependon="constraint"
-
 
 option  "shape" -
 "Use SHAPE reactivity data to guide structure predictions.\n\n"
 string
 typestr="<filename>"
 optional
-
 
 option  "shapeMethod" -
 "Select SHAPE reactivity data incorporation strategy.\n"
@@ -389,7 +365,6 @@ default="D"
 optional
 hidden
 
-
 option  "shapeConversion" -
 "Select method for SHAPE reactivity conversion.\n"
 details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
@@ -404,7 +379,6 @@ typestr="M|C|S|L|O  + [optional parameters]"
 default="O"
 optional
 
-
 option  "motif"   -
 "Specify stabilizing effect of ligand binding to a particular sequence/structure motif.\n"
 details="Some ligands binding to RNAs require and/or induce particular sequence and structure motifs. For\
@@ -416,7 +390,6 @@ string
 typestr="SEQUENCE,STRUCTURE,ENERGY"
 optional
 hidden
-
 
 option  "commands"   -
 "Read additional commands from file\n"
@@ -432,13 +405,11 @@ hidden
 section "Energy Parameters"
 sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
 
-
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 default="37.0"
 optional
-
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
@@ -449,7 +420,6 @@ string
 typestr="paramfile"
 optional
 
-
 option  "noTetra" 4
 "Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
 details="Mostly for testing.\n\n"
@@ -457,12 +427,10 @@ flag
 off
 hidden
 
-
 option  "salt" -
 "Set salt concentration in molar (M). Default is 1.021M.\n\n"
 double
 optional
-
 
 option  "modifications" m
 "Allow for modified bases within the RNA sequence string.\n"
@@ -483,7 +451,6 @@ string
 argoptional
 default="7I6P9D"
 
-
 option  "mod-file"  -
 "Use additional modified base data from JSON file.\n\n"
 string
@@ -494,9 +461,8 @@ optional
 section "Model Details"
 sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
 
-
 option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops.\n"
 details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
  check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
  any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
@@ -509,7 +475,6 @@ int
 default="2"
 optional
 
-
 option  "noLP"  -
 "Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
@@ -517,20 +482,17 @@ details="For partition function folding this only disallows pairs that can only 
 flag
 off
 
-
 option  "noGU"  -
-"Do not allow GU pairs\n\n"
+"Do not allow GU pairs.\n\n"
 flag
 off
 hidden
-
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
+"Do not allow GU pairs at the end of helices.\n\n"
 flag
 off
 hidden
-
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
@@ -542,7 +504,6 @@ string
 optional
 hidden
 
-
 option  "energyModel" e
 "Set energy model.\n"
 details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
@@ -550,7 +511,6 @@ details="Rarely used option to fold sequences from the artificial ABCD... alphab
 int
 optional
 hidden
-
 
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"
@@ -560,7 +520,6 @@ float
 optional
 default="2.8"
 hidden
-
 
 option  "backbone-length"  -
 "Set the average backbone length for looped regions in units of Angstrom.\n"
@@ -580,7 +539,6 @@ option  "noPS"  -
 flag
 off
 
-
 option  "noDP"  -
 "Do not produce dot-plot postscript file containing base pair or stack probabilitities.\n"
 details="In combination with the -p option, this flag turns-off creation of individual\
@@ -589,7 +547,6 @@ details="In combination with the -p option, this flag turns-off creation of indi
 flag
 dependon="partfunc"
 off
-
 
 option  "layout-type"  t
 "Choose the layout algorithm.\n"
@@ -604,7 +561,6 @@ int
 default="1"
 optional
 hidden
-
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\

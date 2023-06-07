@@ -20,14 +20,17 @@ description "Converts energy parameter files from \"old\" ViennaRNAPackage 1.8.4
 
 # Options
 
-option  "output"  o
-"Specify an output file name. If argument is missing the converted energy parameters are printed to 'stdout'.\n\n"
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
+
+option  "input"  i
+"Specify an input file name. If argument is missing the energy parameter input can be supplied via 'stdin'.\n\n"
 string
 typestr="filename"
 optional
 
-option  "input"  i
-"Specify an input file name. If argument is missing the energy parameter input can be supplied via 'stdin'.\n\n"
+option  "output"  o
+"Specify an output file name. If argument is missing the converted energy parameters are printed to 'stdout'.\n\n"
 string
 typestr="filename"
 optional
@@ -118,6 +121,7 @@ option  "without-Misc"  -
 flag
 off
 hidden
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"

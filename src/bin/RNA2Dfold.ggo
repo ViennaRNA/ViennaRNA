@@ -17,26 +17,29 @@ description "The program partitions the secondary structure space into (basepair
 
 
 # Options
-section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
 
-option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
-flag
-off
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
 
 option  "numThreads"  j
 "Set the number of threads used for calculations (only available when compiled with OpenMP support)\n\n"
 int
 optional
 
+option  "noconv"  -
+"Do not automatically substitude nucleotide \"T\" with \"U\".\n\n"
+flag
+off
+
+
 section "Algorithms"
+sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
+ (MFE) and a structure representative are calculated in any case.\n\n"
 
 option  "partfunc"  p
 "calculate partition function and thus, Boltzmann probabilities and Gibbs free energy\n\n"
 flag
 off
-
 
 option  "stochBT" -
 "backtrack a certain number of Boltzmann samples from the appropriate k,l neighborhood(s)\n\n"
@@ -49,28 +52,6 @@ string
 typestr="<k>:<l>"
 multiple
 dependon="stochBT"
-
-option  "pfScale" S
-"scaling factor for pf to avoid overflows\n\n"
-double
-optional
-
-option  "noBT"  -
-"do not backtrack structures, calculate energy contributions only\n\n"
-flag
-off
-
-option  "circ"  c
-"Assume a circular (instead of linear) RNA molecule.\n\n"
-flag
-off
-
-section "Model Details"
-
-option  "temp"  T
-"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
-double
-optional
 
 option  "maxDist1"  K
 "maximum distance to first reference structure"
@@ -85,42 +66,80 @@ details="If this value is set all structures that exhibit a basepair distance gr
  be thrown into a distance class denoted by K=L=-1\n\n"
 int 
 
-option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
+ for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+double
+optional
+hidden
+
+option  "noBT"  -
+"do not backtrack structures, calculate energy contributions only\n\n"
 flag
 off
+
+option  "circ"  c
+"Assume a circular (instead of linear) RNA molecule.\n\n"
+flag
+off
+
+
+section "Energy Parameters"
+sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
+
+option  "temp"  T
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
+double
+default="37.0"
+optional
 
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\"\
- DNA parameters are loaded without the need to actually specify an input file.\n\n"
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
+optional
 
-option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides
- in any case.\nThe option -d0 ignores dangling ends altogether (mostly for debugging).\n\n"
-int
-default="2" 
-values="0","2"
-
-option  "noGU"  -
-"Do not allow GU pairs\n\n"
+option  "noTetra" 4
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
+details="Mostly for testing.\n\n"
 flag
 off
-
-option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
-flag
-off
+hidden
 
 option  "salt" -
 "Set salt concentration in molar (M). Default is 1.021M.\n\n"
 double
 optional
 
+
+section "Model Details"
+sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
+
+option  "dangles" d
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides
+ in any case.\nThe option -d0 ignores dangling ends altogether (mostly for debugging).\n\n"
+int
+default="2"
+values="0","2"
+optional
+
+option  "noGU"  -
+"Do not allow GU pairs.\n\n"
+flag
+off
+hidden
+
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices.\n\n"
+flag
+off
+hidden
 
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"
@@ -131,7 +150,6 @@ optional
 default="2.8"
 hidden
 
-
 option  "backbone-length"  -
 "Set the average backbone length for looped regions in units of Angstrom.\n"
 details="Use with caution! This value will be re-set automatically to 6.76 in case DNA\
@@ -140,6 +158,7 @@ float
 optional
 default="6.0"
 hidden
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"

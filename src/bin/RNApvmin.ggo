@@ -23,13 +23,19 @@ The minimization progress will be written to stderr. \
 Once the minimization has terminated, the obtained perturbation vector is written to stdout."
 
 # Options
-section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
+
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
 
 option  "numThreads"  j
-"Set the number of threads used for calculations."
+"Set the number of threads used for calculations.\n\n"
 int
 optional
+
+
+section "Algorithms"
+sectiondesc="Select additional algorithms which should be included in the calculations.\nThe Minimum free energy\
+ (MFE) and a structure representative are calculated in any case.\n\n"
 
 option  "shapeConversion" -
 "Specify the method used to convert SHAPE reactivities to pairing probabilities."
@@ -42,7 +48,6 @@ details="The following methods can be used to convert SHAPE reactivities into th
 string
 default="O"
 optional
-
 
 option  "tauSigmaRatio"  -
 "Ratio of the weighting factors tau and sigma."
@@ -129,9 +134,6 @@ default="1e-3"
 optional
 hidden
 
-
-section "Model Details"
-
 option  "pfScale" S
 "Set scaling factor for Boltzmann factors to prevent under/overflows."
 details="In the calculation of the pf use scale*mfe as an estimate for the ensemble\
@@ -143,20 +145,52 @@ optional
 hidden
 
 
+section "Structure Constraints"
+sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
+
+option  "maxBPspan" -
+"Set the maximum base pair span.\n\n"
+int
+default="-1"
+optional
+
+
+section "Energy Parameters"
+sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
+
 option  "temp"  T
-"Rescale energy parameters to a temperature in degrees centigrade."
+"Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
 default="37.0"
 optional
 
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n\n"
+string
+typestr="paramfile"
+optional
+
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins."
-details="Mostly for testing.\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
+details="Mostly for testing.\n\n"
 flag
 off
+hidden
+
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+
+section "Model Details"
+sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
 
 option  "dangles" d
-"Specify \"dangling end\" model for bases adjacent to helices in free ends and multi-loops."
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops.\n"
 details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
  check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
  any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
@@ -164,67 +198,47 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
  of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
  -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
- -d2 setting, i.e. dangling ends will be treated differently.\n"
+ -d2 setting, i.e. dangling ends will be treated differently.\n\n"
 int
 default="2"
 optional
 
 option  "noLP"  -
-"Produce structures without lonely pairs (helices of length 1)."
+"Produce structures without lonely pairs (helices of length 1).\n"
 details="For partition function folding this only disallows pairs that can only occur isolated. Other\
- pairs may still occasionally occur as helices of length 1.\n"
+ pairs may still occasionally occur as helices of length 1.\n\n"
 flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs."
+"Do not allow GU pairs.\n\n"
 flag
 off
+hidden
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices."
+"Do not allow GU pairs at the end of helices.\n\n"
 flag
 off
-
-option  "salt" -
-"Set salt concentration in molar (M). Default is 1.021M.\n\n"
-double
-optional
-
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set."
-details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n"
-string
-typestr="paramfile"
-optional
-
+hidden
 
 option  "nsp" -
-"Allow other pairs in addition to the usual AU,GC,and GU pairs."
+"Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
  first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
  RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
- energy.\n"
+ energy.\n\n"
 string
 optional
 hidden
 
 option  "energyModel" e
-"Set energy model."
+"Set energy model.\n"
 details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n"
+ A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
 int
 optional
 hidden
-
-option  "maxBPspan" -
-"Set the maximum base pair span."
-int
-default="-1"
-optional
-
 
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"
@@ -234,7 +248,6 @@ float
 optional
 default="2.8"
 hidden
-
 
 option  "backbone-length"  -
 "Set the average backbone length for looped regions in units of Angstrom.\n"

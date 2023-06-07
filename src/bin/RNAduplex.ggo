@@ -21,18 +21,20 @@ description "reads two RNA sequences from stdin or <filename> and computes optim
  probe sequence and a long target sequence.\n"
 
 # Options
-section "General Options"
-sectiondesc="Below are command line options which alter the general behavior of this program\n\n"
+
+section "I/O Options"
+sectiondesc="Command line options for input and output (pre-)processing\n\n"
 
 option  "sorted"  s
-"sort the printed output by free energy\n\n"
+"Sort the printed output by free energy.\n\n"
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"\n\n"
+"Do not automatically substitute nucleotide \"T\" with \"U\".\n\n"
 flag
 off
+
 
 section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\n\n"
@@ -44,20 +46,49 @@ float
 typestr="range"
 optional
 
-section "Model Details"
+
+section "Energy Parameters"
+sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
 
 option  "temp"  T
 "Rescale energy parameters to a temperature of temp C. Default is 37C.\n\n"
 double
+default="37.0"
+optional
+
+option  "paramFile" P
+"Read energy parameters from paramfile, instead of using the default parameter set.\n"
+details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
+ RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
+ DNA parameters are loaded without the need to actually specify any input file.\n\n"
+string
+typestr="paramfile"
 optional
 
 option  "noTetra" 4
-"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins. Mostly for testing.\n\n"
+"Do not include special tabulated stabilizing energies for tri-, tetra- and hexaloop hairpins.\n"
+details="Mostly for testing.\n\n"
 flag
 off
+hidden
+
+option  "salt" -
+"Set salt concentration in molar (M). Default is 1.021M.\n\n"
+double
+optional
+
+option  "saltInit" -
+"Provide salt correction for duplex initialization (in kcal/mol).\n\n"
+double
+optional
+hidden
+
+
+section "Model Details"
+sectiondesc="Tweak the energy model and pairing rules additionally using the following parameters\n\n"
 
 option  "dangles" d
-"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
+"How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops.\n"
 details="\nWith -d1 only unpaired bases can participate in at most one dangling end. With -d2 this\
  check is ignored, dangling energies will be added for the bases adjacent to a helix on both sides in\
  any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
@@ -78,34 +109,16 @@ flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n\n"
+"Do not allow GU pairs.\n\n"
 flag
 off
-
-option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
-flag
-off
-
-option  "salt" -
-"Set salt concentration in molar (M). Default is 1.021M.\n\n"
-double
-optional
-
-option  "saltInit" -
-"Provide salt correction for duplex initialization (in kcal/mol).\n\n"
-double
-optional
 hidden
 
-option  "paramFile" P
-"Read energy parameters from paramfile, instead of using the default parameter set.\n"
-details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
-string
-typestr="paramfile"
-optional
+option  "noClosingGU" -
+"Do not allow GU pairs at the end of helices.\n\n"
+flag
+off
+hidden
 
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
@@ -117,7 +130,6 @@ string
 optional
 hidden
 
-
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"
 details="Use with caution! This value will be re-set automatically to 3.4 in case DNA\
@@ -127,7 +139,6 @@ optional
 default="2.8"
 hidden
 
-
 option  "backbone-length"  -
 "Set the average backbone length for looped regions in units of Angstrom.\n"
 details="Use with caution! This value will be re-set automatically to 6.76 in case DNA\
@@ -136,6 +147,7 @@ float
 optional
 default="6.0"
 hidden
+
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
  rna@tbi.univie.ac.at.\n\n"
