@@ -29,7 +29,7 @@
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/PKplex.h"
 
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "RNAPKplex_cmdl.h"
 
 int
@@ -115,7 +115,7 @@ main(int  argc,
     noconv = 1;
 
   /* take another energy parameter set */
-  ggo_get_read_paramFile(args_info, md);
+  ggo_get_read_paramFile(args_info, &md);
 
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if (args_info.nsp_given)
@@ -136,6 +136,8 @@ main(int  argc,
   /* show suboptimal structures which are better than given value difference */
   if (args_info.subopts_given)
     subopts = args_info.subopts_arg;
+
+  ggo_geometry_settings(args_info, &md);
 
   /* free allocated memory of command line data structure */
   PKplex_cmdline_parser_free(&args_info);

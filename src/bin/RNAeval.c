@@ -37,7 +37,7 @@
 #include "ViennaRNA/color_output.inc"
 
 #include "RNAeval_cmdl.h"
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 #include "parallel_helpers.h"
 
@@ -271,6 +271,8 @@ main(int  argc,
       opt.md.ribo = 1;
     }
   }
+
+  ggo_geometry_settings(args_info, &(opt.md));
 
   if (args_info.jobs_given) {
 #if VRNA_WITH_PTHREADS

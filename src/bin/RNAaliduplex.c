@@ -21,6 +21,8 @@
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/subopt.h"
 #include "ViennaRNA/duplex.h"
+
+#include "gengetopt_helpers.h"
 #include "RNAaliduplex_cmdl.h"
 
 
@@ -133,6 +135,8 @@ main(int  argc,
     if (n_seq != n_seq2)
       vrna_message_error("unequal number of seqs in alignments");
   }
+
+  ggo_geometry_settings(args_info, NULL);
 
   /* free allocated memory of command line data structure */
   RNAaliduplex_cmdline_parser_free(&args_info);

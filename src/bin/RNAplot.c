@@ -26,7 +26,7 @@
 #include "ViennaRNA/utils/alignments.h"
 
 #include "RNAplot_cmdl.h"
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 #include "parallel_helpers.h"
 

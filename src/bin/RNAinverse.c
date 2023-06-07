@@ -22,6 +22,8 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/file_formats.h"
+
+#include "gengetopt_helpers.h"
 #include "RNAinverse_cmdl.h"
 
 #include "ViennaRNA/color_output.inc"
@@ -141,15 +143,13 @@ main(int  argc,
   if (args_info.verbose_given)
     inv_verbose = 1;
 
+  /* get energy parameter file name */
+  ggo_get_read_paramFile(args_info, NULL);
+
+  ggo_geometry_settings(args_info, NULL);
+
   /* free allocated memory of command line data structure */
   RNAinverse_cmdline_parser_free(&args_info);
-
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
 
   kT = (temperature + 273.15) * 1.98717 / 1000.0;
 

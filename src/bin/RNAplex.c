@@ -33,6 +33,8 @@
 #include "ViennaRNA/plotting/alignments.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/utils.h"
+
+#include "gengetopt_helpers.h"
 #include "RNAplex_cmdl.h"
 
 
@@ -276,10 +278,6 @@ main(int  argc,
   if (args_info.constraint_given)
     fold_constrained = 1;
 
-  /*paramFile*/
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
-
   /* Salt concentration */
   if (args_info.salt_given)
     salt = args_info.salt_arg;
@@ -314,13 +312,8 @@ main(int  argc,
   /*probe concentration*/
   probe_concentration = args_info.probe_concentration_arg;
 
-  /*Probe mode Salt concentration*/
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
+  ggo_get_read_paramFile(args_info, NULL);
+  ggo_geometry_settings(args_info, NULL);
 
   if (ns_bases != NULL) {
     nonstandards  = vrna_alloc(33);

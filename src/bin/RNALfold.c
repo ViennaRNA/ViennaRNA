@@ -30,7 +30,7 @@
 #include "ViennaRNA/constraints/soft_special.h"
 
 #include "RNALfold_cmdl.h"
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 #include "modified_bases_helpers.h"
 
@@ -175,7 +175,7 @@ main(int  argc,
     md.energy_set = energy_set = args_info.energyModel_arg;
 
   /* take another energy parameter set */
-  ggo_get_read_paramFile(args_info, md);
+  ggo_get_read_paramFile(args_info, &md);
 
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if (args_info.nsp_given)
@@ -251,6 +251,8 @@ main(int  argc,
   ggo_get_modified_base_settings(args_info,
                                  mod_params,
                                  &(md));
+
+  ggo_geometry_settings(args_info, &md);
 
   /* free allocated memory of command line data structure */
   RNALfold_cmdline_parser_free(&args_info);

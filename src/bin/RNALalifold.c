@@ -34,7 +34,7 @@
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/SHAPE.h"
 #include "RNALalifold_cmdl.h"
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 
 #include "ViennaRNA/color_output.inc"
@@ -323,6 +323,8 @@ main(int  argc,
 
   if (args_info.split_contributions_given)
     split_contributions = 1;
+
+  ggo_geometry_settings(args_info, &md);
 
   /* free allocated memory of command line data structure */
   RNALalifold_cmdline_parser_free(&args_info);

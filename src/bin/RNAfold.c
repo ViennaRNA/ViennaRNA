@@ -51,7 +51,7 @@
 #include "ViennaRNA/color_output.inc"
 
 #include "RNAfold_cmdl.h"
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 #include "modified_bases_helpers.h"
 #include "parallel_helpers.h"
@@ -506,6 +506,8 @@ main(int  argc,
     opt.cmds = vrna_file_commands_read(args_info.commands_arg, VRNA_CMD_PARSE_DEFAULTS);
 
   ggo_get_modified_base_settings(args_info, opt.mod_params, &(opt.md));
+
+  ggo_geometry_settings(args_info, &(opt.md));
 
   /* filename sanitize delimiter */
   if (args_info.filename_delim_given)

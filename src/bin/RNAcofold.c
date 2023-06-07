@@ -40,7 +40,7 @@
 #include "ViennaRNA/datastructures/stream_output.h"
 
 #include "RNAcofold_cmdl.h"
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 #include "modified_bases_helpers.h"
 #include "ViennaRNA/color_output.inc"
@@ -453,6 +453,8 @@ main(int  argc,
     if (args_info.unordered_given)
       opt.keep_order = 0;
   }
+
+  ggo_geometry_settings(args_info, &(opt.md));
 
   input_files = collect_unnamed_options(&args_info, &num_input);
 

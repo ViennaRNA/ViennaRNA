@@ -21,6 +21,8 @@
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/subopt.h"
 #include "ViennaRNA/duplex.h"
+
+#include "gengetopt_helpers.h"
 #include "RNAduplex_cmdl.h"
 
 #include "ViennaRNA/color_output.inc"
@@ -95,10 +97,6 @@ main(int  argc,
   if (args_info.noconv_given)
     noconv = 1;
 
-  /* take another energy parameter set */
-  if (args_info.paramFile_given)
-    ParamFile = strdup(args_info.paramFile_arg);
-
   /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
   if (args_info.nsp_given)
     ns_bases = strdup(args_info.nsp_arg);
@@ -111,6 +109,11 @@ main(int  argc,
   if (args_info.sorted_given)
     subopt_sorted = 1;
 
+  /* get energy parameter file name */
+  ggo_get_read_paramFile(args_info, NULL);
+
+  ggo_geometry_settings(args_info, NULL);
+
   /* free allocated memory of command line data structure */
   RNAduplex_cmdline_parser_free(&args_info);
 
@@ -119,13 +122,6 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
-
   if (ns_bases != NULL) {
     nonstandards  = vrna_alloc(33);
     c             = ns_bases;

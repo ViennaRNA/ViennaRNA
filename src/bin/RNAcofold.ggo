@@ -564,6 +564,26 @@ optional
 hidden
 
 
+option  "helical-rise"  -
+"Set the helical rise of the helix in units of Angstrom.\n"
+details="Use with caution! This value will be re-set automatically to 3.4 in case DNA\
+ parameters are loaded via -P DNA and no further value is provided.\n\n"
+float
+optional
+default="2.8"
+hidden
+
+
+option  "backbone-length"  -
+"Set the average backbone length for looped regions in units of Angstrom.\n"
+details="Use with caution! This value will be re-set automatically to 6.76 in case DNA\
+ parameters are loaded via -P DNA and no further value is provided.\n\n"
+float
+optional
+default="6.0"
+hidden
+
+
 section "Plotting"
 sectiondesc="Command line options for changing the default behavior of structure layout and pairing probability plots\n\n"
 

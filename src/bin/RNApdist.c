@@ -25,7 +25,7 @@
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/profiledist.h"
 
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "RNApdist_cmdl.h"
 
 
@@ -329,7 +329,7 @@ command_line(int        argc,
     ns_bases = strdup(args_info.nsp_arg);
 
   /* take another energy parameter set */
-  ggo_get_read_paramFile(args_info, *md);
+  ggo_get_read_paramFile(args_info, md);
 
 
   if (args_info.compare_given) {
@@ -352,6 +352,8 @@ command_line(int        argc,
 
     edit_backtrack = 1;
   }
+
+  ggo_geometry_settings(args_info, md);
 
   /* free allocated memory of command line data structure */
   RNApdist_cmdline_parser_free(&args_info);

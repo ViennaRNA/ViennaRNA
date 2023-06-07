@@ -15,7 +15,8 @@ endif
 
 noinst_LTLIBRARIES =  libhelpers.la
 
-libhelpers_la_SOURCES = input_id_helpers.c \
+libhelpers_la_SOURCES = gengetopt_helpers.c \
+                        input_id_helpers.c \
                         modified_bases_helpers.c \
                         parallel_helpers.c
 
@@ -48,7 +49,7 @@ LDADD += $(MPFR_LIBS)
 endif
 
 noinst_HEADERS = \
-        gengetopt_helper.h \
+        gengetopt_helpers.h \
         input_id_helpers.h \
         modified_bases_helpers.h \
         parallel_helpers.h \

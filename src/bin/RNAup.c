@@ -33,6 +33,8 @@
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
+
+#include "gengetopt_helpers.h"
 #include "RNAup_cmdl.h"
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -373,6 +375,9 @@ main(int  argc,
    * WARNING: after this step ulength_num may not reflect actual number of ulength values anymore */
   adjustUnpairedValues(&unpaired_values);
 
+  ggo_get_read_paramFile(args_info, NULL);
+  ggo_geometry_settings(args_info, NULL);
+
   /* free allocated memory of command line data structure */
   RNAup_cmdline_parser_free(&args_info);
 
@@ -381,13 +386,6 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-
-  if (ParamFile != NULL) {
-    if (!strcmp(ParamFile, "DNA"))
-      vrna_params_load_DNA_Mathews2004();
-    else
-      vrna_params_load(ParamFile, VRNA_PARAMETER_FORMAT_DEFAULT);
-  }
 
   if (ns_bases != NULL) {
     nonstandards  = vrna_alloc(33);

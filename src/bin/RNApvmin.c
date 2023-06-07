@@ -21,7 +21,7 @@
 #include "ViennaRNA/perturbation_fold.h"
 #include "ViennaRNA/io/file_formats.h"
 
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 
 #include "RNApvmin_cmdl.h"
 
@@ -134,7 +134,7 @@ main(int  argc,
     vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
 #endif
 
-  ggo_get_read_paramFile(args_info, md);
+  ggo_get_read_paramFile(args_info, &md);
 
   if (args_info.temp_given)
     md.temperature = args_info.temp_arg;
@@ -220,6 +220,8 @@ main(int  argc,
 
   if (args_info.nonRedundant_given)
     sample_size = -sample_size;
+
+  ggo_geometry_settings(args_info, &md);
 
   istty = isatty(fileno(stdout)) && isatty(fileno(stdin));
   if (istty) {

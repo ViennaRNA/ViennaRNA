@@ -23,7 +23,7 @@
 #include <omp.h>
 #endif
 
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "RNAdos_cmdl.h"
 
 
@@ -817,7 +817,9 @@ main(int  argc,
   }
 
   /* get energy parameter file name */
-  ggo_get_read_paramFile(args_info, md);
+  ggo_get_read_paramFile(args_info, &md);
+
+  ggo_geometry_settings(args_info, &md);
 
   /* free allocated memory of command line data structure */
   RNAdos_cmdline_parser_free(&args_info);

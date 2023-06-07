@@ -42,7 +42,7 @@
 #include "ViennaRNA/datastructures/stream_output.h"
 
 #include "RNAalifold_cmdl.h"
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 #include "parallel_helpers.h"
 
@@ -598,6 +598,8 @@ main(int  argc,
     if (args_info.unordered_given)
       opt.keep_order = 0;
   }
+
+  ggo_geometry_settings(args_info, &(opt.md));
 
   /* free allocated memory of command line data structure */
   RNAalifold_cmdline_parser_free(&args_info);

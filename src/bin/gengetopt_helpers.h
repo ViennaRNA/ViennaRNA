@@ -1,3 +1,12 @@
+#ifndef VRNA_GENGETOPT_HELPERS_H
+#define VRNA_GENGETOPT_HELPERS_H
+
+void
+set_geometry(vrna_md_t *md);
+
+void
+set_salt_DNA(vrna_md_t *md);
+
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
@@ -128,10 +137,8 @@
     if (ggostruct.paramFile_given) { \
       if (!strcmp(ggostruct.paramFile_arg, "DNA")) {\
         vrna_params_load_DNA_Mathews2004();\
-        /* in case of DNA, also reset typical variables for salt correction */ \
-        (md).helical_rise = VRNA_MODEL_HELICAL_RISE_DNA; \
-        (md).backbone_length = VRNA_MODEL_BACKBONE_LENGTH_DNA; \
-        (md).saltDPXInitFact = VRNA_MODEL_SALT_DPXINIT_FACT_DNA; \
+        if (md) /* in case of DNA, also reset typical variables for salt correction */ \
+          set_salt_DNA(md); \
       } else { \
         vrna_params_load(ggostruct.paramFile_arg, VRNA_PARAMETER_FORMAT_DEFAULT); \
       } \
@@ -144,7 +151,16 @@
       dest = ggostruct.salt_arg; \
   })
 
-
+#define ggo_geometry_settings(ggostruct, md) ({ \
+    if (ggostruct.helical_rise_given) \
+      vrna_md_defaults_helical_rise(ggostruct.helical_rise_arg); \
+    \
+    if (ggostruct.backbone_length_given) \
+      vrna_md_defaults_backbone_length(ggostruct.backbone_length_arg); \
+    \
+    if (md) \
+      set_geometry(md); \
+  })
 
 /*
  *  The following macro automatically sets a basic set of
@@ -174,7 +190,7 @@
       if (ns_bases != NULL) \
         vrna_md_set_nonstandards(&md, ns_bases); \
     } \
-    ggo_get_read_paramFile(ggostruct, md); \
+    ggo_get_read_paramFile(ggostruct, &(md)); \
   })
 
 
@@ -345,3 +361,4 @@
   } \
 })
 
+#endif

@@ -21,7 +21,7 @@
 #include "ViennaRNA/2Dfold.h"
 #include "ViennaRNA/2Dpfold.h"
 
-#include "gengetopt_helper.h"
+#include "gengetopt_helpers.h"
 #include "RNA2Dfold_cmdl.h"
 
 #include "ViennaRNA/color_output.inc"
@@ -126,7 +126,7 @@ main(int  argc,
 #endif
 
   /* get energy parameter file name */
-  ggo_get_read_paramFile(args_info, md);
+  ggo_get_read_paramFile(args_info, &md);
 
   /* do not allow GU pairs ? */
   if (args_info.noGU_given)
@@ -167,6 +167,9 @@ main(int  argc,
       }
     }
   }
+
+  ggo_geometry_settings(args_info, &md);
+
   /* free allocated memory of command line data structure */
   RNA2Dfold_cmdline_parser_free(&args_info);
 
