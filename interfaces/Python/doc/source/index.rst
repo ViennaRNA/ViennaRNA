@@ -12,6 +12,7 @@ ViennaRNA Python API documentation!
 
    readme_link
    ViennaRNA Python API <RNA>
+   python_examples
    News <news_link>
    ChangeLog  <changelog_link>
    License  <license_link>
