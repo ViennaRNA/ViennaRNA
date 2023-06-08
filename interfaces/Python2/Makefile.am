@@ -81,11 +81,12 @@ if HAS_SWIG
 
 if WITH_REFERENCE_MANUAL_XML
 
-documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv
+documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv $(srcdir)/../ignore_list.csv
 	$(doxy2swig_verbose)test -d $(top_builddir)/doc/xml || ( test -d $(top_srcdir)/doc/xml && $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml ) && \
 	$(PYTHON3) $(top_srcdir)/doc/doxy2swig/doxy2swig.py \
       -b $(srcdir)/../classify.csv \
       -m $(srcdir)/../typedefs.csv \
+      -i $(srcdir)/../ignore_list.csv \
       -p "vrna_" \
       -p "VRNA_" \
       --prefix-name="RNA" \

@@ -107,5 +107,6 @@ EXTRA_DIST = \
     generic.mk \
     classify.csv \
     typedefs.csv \
+    ignore_list.csv \
     $(DOXYGEN_DOCUMENTATION)
 
