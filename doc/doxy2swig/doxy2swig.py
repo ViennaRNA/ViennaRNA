@@ -122,6 +122,7 @@ class Doxy2SWIG:
                  suffixes = None,
                  constructor_suffixes = None,
                  typedef_mapping = dict(),
+                 ignore_list = dict(),
                  deprecated_version = None):
         """Initialize the instance given a source object.  `src` can
         be a file or filename.  If you do not want to include function
@@ -145,6 +146,7 @@ class Doxy2SWIG:
         self.prefix_name = prefix_name
         self.suffixes = [] if not suffixes else suffixes
         self.typedef_mapping = typedef_mapping
+        self.ignore_list = ignore_list
         self.deprecated_version = '2.6.0' if not deprecated_version else deprecated_version
 
         # state:
@@ -517,7 +519,7 @@ class Doxy2SWIG:
                 continue
             if n.attributes['kind'].value in ['variable', 'typedef']:
                 continue
-            if not self.get_specific_subnodes(n, 'definition'):
+            if n.attributes['kind'].value not in ['define'] and not self.get_specific_subnodes(n, 'definition'):
                 continue
             name = self.extract_text(self.get_specific_subnodes(n, 'name'))
             if name[:8] == 'operator':
@@ -533,14 +535,26 @@ class Doxy2SWIG:
         """Produce standard documentation for memberdef_nodes."""
         for n in memberdef_nodes:
             if signature in self.object_binding:
+                # prepend the class name if function is bound to object
                 signature = self.object_binding[signature]['class'] + \
                             "::" + \
                             self.object_binding[signature]['method']
-
+            elif signature in self.ignore_list:
+                # rename signature if the swig interface defines a replacement
+                if self.ignore_list[signature]['replacement']:
+                    signature = self.ignore_list[signature]['replacement']
+                else:
+                    # skip signature if it should really be ignored
+                    continue
+            elif n.attributes['kind'].value == 'define' and len(self.prefixes) > 0:
+                # automatically remove prefixes from #define cpp macros
+                prefix = r''
+                for p in self.prefixes:
+                    signature = signature.replace(p, prefix)
             self.add_text(['\n', '%feature("docstring") ', signature, ' "', '\n'])
             if self.with_function_signature:
                 self.add_line_with_subsequent_indent(self.get_function_signature(n))
-            self.subnode_parse(n, pieces=[], ignore=['definition', 'name'])
+            self.subnode_parse(n, pieces=[], ignore=['definition', 'name', 'initializer'])
             self.add_text(['";', '\n'])
 
     def handle_typical_memberdefs(self, signature, memberdef_nodes):
@@ -971,7 +985,7 @@ class Doxy2SWIG:
 # MARK: Entry tag handlers (dont print anything meaningful)
     def do_sectiondef(self, node):
         kind = node.attributes['kind'].value
-        if kind in ('public-func', 'func', 'user-defined', ''):
+        if kind in ('public-func', 'func', 'user-defined', 'define'):
             self.subnode_parse(node)
 
     def do_header(self, node):
@@ -1023,6 +1037,7 @@ class Doxy2SWIG:
                           suffixes = self.suffixes,
                           constructor_suffixes = self.constructor_suffixes,
                           typedef_mapping = self.typedef_mapping,
+                          ignore_list = self.ignore_list,
                           deprecated_version = self.deprecated_version)
             p.generate()
             self.pieces.extend(p.pieces)
@@ -1115,6 +1130,12 @@ def main():
                       default = '2.6.0',
                       help = 'default version for deprecation warnings')
 
+    parser.add_option("-i", '--ignored',
+                      type = "string",
+                      action = 'store',
+                      dest = 'i',
+                      default = None,
+                      help = 'load file that specifies which functions are ignored and possibly overwritten')
 
     options, args = parser.parse_args()
     if len(args) != 2:
@@ -1138,6 +1159,14 @@ def main():
             for row in data:
                 typedef_mapping[row[0]] = row[1]
 
+    ignore_list = dict()
+    if options.i:
+        with io.open(options.i, "r", newline = '') as f:
+            data = csv.reader(f, delimiter = ",")
+            header = next(data, None)
+            for row in data:
+                ignore_list[row[0]] = {'replacement': row[1] if row[1] != "None" else None }
+
     p = Doxy2SWIG(args[0],
                   with_function_signature = options.f,
                   with_type_info = options.t,
@@ -1152,6 +1181,7 @@ def main():
                   suffixes = options.s,
                   constructor_suffixes = options.cs,
                   typedef_mapping = typedef_mapping,
+                  ignore_list = ignore_list,
                   deprecated_version = options.d)
     p.generate()
     p.write(args[1])
