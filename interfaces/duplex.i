@@ -113,10 +113,10 @@ namespace std {
   }
 
   std::vector<duplex_list_t>
-  aliduplex_subopt(std::vector<std::string> alignment1,
-                   std::vector<std::string> alignment2,
-                   int                      delta,
-                   int                      w)
+  my_aliduplex_subopt(std::vector<std::string> alignment1,
+                      std::vector<std::string> alignment2,
+                      int                      delta,
+                      int                      w)
   {
     std::vector<duplex_list_t> ret;
     duplexT *list, *ptr;
@@ -149,8 +149,8 @@ namespace std {
 %feature("kwargs") my_duplex_subopt;
 %feature("autodoc") my_aliduplexfold;
 %feature("kwargs") my_aliduplexfold;
-%feature("autodoc") aliduplex_subopt;
-%feature("kwargs") aliduplex_subopt;
+%feature("autodoc") my_aliduplex_subopt;
+%feature("kwargs") my_aliduplex_subopt;
 #endif
 
 duplexT my_duplexfold(std::string s1, std::string s2);
@@ -160,10 +160,10 @@ std::vector<duplex_list_t> my_duplex_subopt(std::string s1, std::string s2, int 
 duplexT my_aliduplexfold(std::vector<std::string> alignment1,
                          std::vector<std::string> alignment2);
 
-std::vector<duplex_list_t>  aliduplex_subopt(std::vector<std::string> alignment1,
-                            std::vector<std::string> alignment2,
-                            int delta,
-                            int w);
+std::vector<duplex_list_t>  my_aliduplex_subopt(std::vector<std::string> alignment1,
+                                                std::vector<std::string> alignment2,
+                                                int delta,
+                                                int w);
 
 %ignore duplexfold;
 %ignore duplex_subopt;

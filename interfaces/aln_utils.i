@@ -2,17 +2,17 @@
 /* Interface for alignment utilities     */
 /*#######################################*/
 
-%rename (aln_consensus_sequence) my_consensus_sequence;
 %rename (consensus) my_consensus_sequence;
-%rename (aln_consensus_mis) my_aln_consensus_mis;
 %rename (consens_mis) my_aln_consensus_mis;
+%rename (aln_consensus_sequence) my_aln_consensus_sequence;
+%rename (aln_consensus_mis) my_aln_consensus_mis;
 
 %{
 #include <vector>
 
   std::string
-  my_consensus_sequence(std::vector<std::string>  alignment,
-                        vrna_md_t                 *md_p = NULL)
+  my_aln_consensus_sequence(std::vector<std::string>  alignment,
+                            vrna_md_t                 *md_p = NULL)
   {
     /* convert std::vector<std::string> to vector<const char *> */
     std::vector<const char*>  v;
@@ -43,14 +43,14 @@
 %}
 
 #ifdef SWIGPYTHON
-%feature("autodoc") my_consensus_sequence;
-%feature("kwargs") my_consensus_sequence;
+%feature("autodoc") my_aln_consensus_sequence;
+%feature("kwargs") my_aln_consensus_sequence;
 %feature("autodoc") my_aln_consensus_mis;
 %feature("kwargs") my_aln_consensus_mis;
 #endif
 
 std::string
-my_consensus_sequence(std::vector<std::string> alignment, vrna_md_t *md_p = NULL);
+my_aln_consensus_sequence(std::vector<std::string> alignment, vrna_md_t *md_p = NULL);
 
 std::string
 my_aln_consensus_mis(std::vector<std::string> alignment, vrna_md_t *md_p = NULL);
