@@ -856,7 +856,7 @@ class Doxy2SWIG:
             return
         self.start_new_paragraph()
         if kind == 'note':
-            self.subnode_parse(node, pieces=['Notes', '\n', len('Notes') * '-','\n', ''], indent=0)
+            self.subnode_parse(node, pieces=['Note', '\n', len('Note') * '-','\n', ''], indent=0)
             #self.subnode_parse(node, pieces=['**Notes**', '\n',''], indent=4)
         elif kind == 'warning':
             #self.subnode_parse(node, pieces=['**Warnings**', '\n',''], indent=4)
