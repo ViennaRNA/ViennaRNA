@@ -145,11 +145,11 @@ PYDOC_FILES_HTML = doc/build/*
 ## going to be (re)generated                        ##
 ##--------------------------------------------------##
 
-doc/build/index.html: $(wildcard $(srcdir)/doc/source/*) RNA/__init__.py RNA/_RNA$(PYTHON3_SO)
-	$(sphinx_verbose)$(SPHINXBUILD) -b html doc/source doc/build >sphinx.log 2>&1
+sphinx-doc: $(wildcard $(srcdir)/doc/source/*) RNA/__init__.py RNA/_RNA$(PYTHON3_SO)
+	$(sphinx_verbose)rm -f sphinx-doc && $(SPHINXBUILD) -b html doc/source doc/build >sphinx.log 2>&1 && touch sphinx-doc
 
 
-$(PYDOC_FILES_HTML): doc/build/index.html
+$(PYDOC_FILES_HTML): sphinx-doc
 
 endif WITH_PYTHON_DOC
 
@@ -185,7 +185,7 @@ html_DATA = $(PYDOC_FILES_HTML)
 
 if WITH_PYTHON_DOC
 
-vrna_htmlpydoc_inst: installdirs doc/build
+vrna_htmlpydoc_inst: installdirs sphinx-doc
 	@$(NORMAL_INSTALL)
 	test -d $(builddir)/doc/build || $(LN_S) $(srcdir)/doc/build $(builddir)/doc/build
 	{ for i in $(builddir)/doc/build/*; do cp -r "$$i" "$(DESTDIR)$(pyhtmldir)/"; done }
@@ -236,7 +236,7 @@ uninstall-local:
 ## remove all generated content
 maintainer-clean-local:
 	-rm -f $(SWIG_wrapper) RNA.py documentation.i version.i
-	-rm -rf doc/build
+	-rm -rf doc/build sphinx-doc
 
 distclean-local:
 	-rm -f $(SWIG_wrapper) RNA.py documentation.i version.i
