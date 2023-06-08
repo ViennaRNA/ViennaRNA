@@ -202,13 +202,12 @@ my_file_RNAstrand_db_read_record(FILE         *fp,
 %apply std::string              *INOUT { std::string *remainder };
 
 int
-  int
-  my_file_connect_read_record(FILE         *fp,
-                              std::string  *id,
-                              std::string  *sequence,
-                              std::string  *structure,
-                              std::string  *remainder,
-                              unsigned int options = 0);
+my_file_connect_read_record(FILE         *fp,
+                            std::string  *id,
+                            std::string  *sequence,
+                            std::string  *structure,
+                            std::string  *remainder,
+                            unsigned int options = 0);
 
 %clear std::string *remainder, std::string *sequence, std::string *structure, std::string *id;
 
