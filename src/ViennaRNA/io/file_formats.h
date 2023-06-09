@@ -136,52 +136,56 @@ vrna_file_json(const char *seq,
  *  over several lines. To disable this behavior and to assign a single line to the argument
  *  'sequence' one can pass #VRNA_INPUT_NO_SPAN in the 'options' argument.
  *  If no fasta header is read in the beginning of a data block, a sequence must not span over
- *  multiple lines!\n
+ *  multiple lines!
+ *
  *  Unless the options #VRNA_INPUT_NOSKIP_COMMENTS or #VRNA_INPUT_NOSKIP_BLANK_LINES are passed,
  *  a sequence may be interrupted by lines starting with a comment character or empty lines.\n
  *  A sequence is regarded as completely read if it was either assumed to not span over multiple
  *  lines, a secondary structure or structure constraint follows the sequence on the next line,
- *  or a new header marks the beginning of a new sequence...\n
+ *  or a new header marks the beginning of a new sequence...
+ *
  *  All lines following the sequence (this includes comments) that do not initiate a new dataset
  *  according to the above definition are available through the line-array 'rest'.
  *  Here one can usually find the structure constraint or other information belonging to the
  *  current dataset. Filling of 'rest' may be prevented by passing #VRNA_INPUT_NO_REST to the
- *  options argument.\n
- *
- *  @note This function will exit any program with an error message if no sequence could be read!<br>
- *  This function is NOT threadsafe! It uses a global variable to store information about
- *  the next data block.
+ *  options argument.
  *
  *  The main purpose of this function is to be able to easily parse blocks of data
  *  in the header of a loop where all calculations for the appropriate data is done inside the
  *  loop. The loop may be then left on certain return values, e.g.:
- *  @code
-char *id, *seq, **rest;
-int  i;
-id = seq = NULL;
-rest = NULL;
-while(!(vrna_file_fasta_read_record(&id, &seq, &rest, NULL, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
-  if(id)
-    printf("%s\n", id);
-  printf("%s\n", seq);
-  if(rest)
-    for(i=0;rest[i];i++){
-      printf("%s\n", rest[i]);
-      free(rest[i]);
-    }
-  free(rest);
-  free(seq);
-  free(id);
-}
+ *
+ *  @code{.c}
+ * char *id, *seq, **rest;
+ * int  i;
+ * id = seq = NULL;
+ * rest = NULL;
+ * while(!(vrna_file_fasta_read_record(&id, &seq, &rest, NULL, 0) & (VRNA_INPUT_ERROR | VRNA_INPUT_QUIT))){
+ *   if(id)
+ *     printf("%s\n", id);
+ *   printf("%s\n", seq);
+ *   if(rest)
+ *     for(i=0;rest[i];i++){
+ *       printf("%s\n", rest[i]);
+ *       free(rest[i]);
+ *     }
+ *   free(rest);
+ *   free(seq);
+ *   free(id);
+ * }
  *  @endcode
+ *
  *  In the example above, the while loop will be terminated when vrna_file_fasta_read_record() returns
- *  either an error, EOF, or a user initiated quit request.\n
+ *  either an error, EOF, or a user initiated quit request.
+ *
  *  As long as data is read from stdin (we are passing NULL as the file pointer), the id is
  *  printed if it is available for the current block of data. The sequence will be printed in
  *  any case and if some more lines belong to the current block of data each line will be printed
  *  as well.
  *
- *  @note Do not forget to free the memory occupied by header, sequence and rest!
+ *  @note This function will exit any program with an error message if no sequence could be read!<br>
+ *        This function is NOT threadsafe! It uses a global variable to store information about
+ *        the next data block.
+ *        Do not forget to free the memory occupied by header, sequence and rest!
  *
  *  @param  header    A pointer which will be set such that it points to the header of the record
  *  @param  sequence  A pointer which will be set such that it points to the sequence of the record
