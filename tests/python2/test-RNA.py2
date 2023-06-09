@@ -166,7 +166,7 @@ class GeneralTests(unittest.TestCase):
 
         (css, cen) = RNA.alifold(align)
         self.assertEqual(css,"(((.(((...)))..))).")
-        self.assertEqual(RNA.consens_mis(align), "SMBHBHYDRBGDVWmVKBB")
+        self.assertEqual(RNA.aln_consensus_mis(align), "SMBHBHYDRBGDVWmVKBB")
         RNA.free_alifold_arrays()
 
 

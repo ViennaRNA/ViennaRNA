@@ -185,7 +185,7 @@ undef $duplex;
 my @align = ("GCCAUCCGAGGGAAAGGUU", "GAUCGACAGCGUCU-AUCG", "CCGUCUUUAUGAGUCCGGC");
 my ($css, $cen) = RNA::alifold(\@align);
 is($css,"(((.(((...)))..))).", "Comparative MFE prediction - structure (RNA::alifold)");
-is(RNA::consens_mis(\@align), "SMBHBHYDRBGDVWmVKBB", "Comparative MFE prediction - most informative sequence (RNA::consens_mis)");
+is(RNA::aln_consensus_mis(\@align), "SMBHBHYDRBGDVWmVKBB", "Comparative MFE prediction - most informative sequence (RNA::aln_consens_mis)");
 RNA::free_alifold_arrays();
 
 # check the move_set.h functions

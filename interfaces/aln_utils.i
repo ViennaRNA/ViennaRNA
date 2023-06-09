@@ -2,8 +2,8 @@
 /* Interface for alignment utilities     */
 /*#######################################*/
 
-%rename (consensus) my_consensus_sequence;
-%rename (consens_mis) my_aln_consensus_mis;
+%rename (consensus) my_consensus_sequence2;
+%rename (consens_mis) my_aln_consensus_mis2;
 %rename (aln_consensus_sequence) my_aln_consensus_sequence;
 %rename (aln_consensus_mis) my_aln_consensus_mis;
 
@@ -40,6 +40,19 @@
     return mis;
   }
 
+  std::string
+  my_aln_consensus_sequence2(std::vector<std::string>  alignment,
+                            vrna_md_t                 *md_p = NULL)
+  {
+    return my_aln_consensus_sequence(alignment, md_p);
+  }
+
+  std::string
+  my_aln_consensus_mis2(std::vector<std::string> alignment,
+                       vrna_md_t                *md_p = NULL)
+  {
+    return my_aln_consensus_mis(alignment, md_p);
+  }
 %}
 
 #ifdef SWIGPYTHON
@@ -54,6 +67,12 @@ my_aln_consensus_sequence(std::vector<std::string> alignment, vrna_md_t *md_p = 
 
 std::string
 my_aln_consensus_mis(std::vector<std::string> alignment, vrna_md_t *md_p = NULL);
+
+std::string
+my_aln_consensus_sequence2(std::vector<std::string> alignment, vrna_md_t *md_p = NULL);
+
+std::string
+my_aln_consensus_mis2(std::vector<std::string> alignment, vrna_md_t *md_p = NULL);
 
 %ignore consensus;
 %ignore consens_mis;
