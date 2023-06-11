@@ -541,8 +541,8 @@ estimate_landscape(vrna_fold_compound_t *vc, const char *s1, const char *s2, int
 }
 
 void addStructure(gridLandscapeT *grid, char *structure) {
-	uint k = vrna_bp_distance(grid->firstReference, structure);
-	uint l = vrna_bp_distance(grid->secondReference, structure);
+	unsigned int k = vrna_bp_distance(grid->firstReference, structure);
+	unsigned int l = vrna_bp_distance(grid->secondReference, structure);
 
 	if (k <= grid->size1 && l <= grid->size2) {
 		char *newStruct = (char*) vrna_alloc(strlen(structure));
