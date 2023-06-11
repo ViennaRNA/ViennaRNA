@@ -30,6 +30,11 @@ AC_CONFIG_FILES([doc/Makefile doc/cmdlopt.sh],[chmod +x doc/cmdlopt.sh])
 AM_CONDITIONAL(VRNA_AM_SWITCH_BUILD_MANPAGES, test "x$HELP2MAN" != "xno" && test "x$GENGETOPT" != "xno")
 
 ##--------------------##
+## Enable OpenMP      ##
+##--------------------##
+RXP_ENABLE_OPENMP
+
+##--------------------##
 ## Enable scripting   ##
 ## language interface ##
 ##--------------------##
