@@ -48,7 +48,7 @@ EXTRA_DIST = \
     ${GENGETOPT_FILES} \
     ${GENGETOPT_CMDL}
 
-if VRNA_AM_SWITCH_HAS_GENGETOPT
+if RXP_AM_SWITCH_HAS_GENGETOPT
 
 ## Below are the rules how to create the test suite executables
 # how we make the commandline interface parser
