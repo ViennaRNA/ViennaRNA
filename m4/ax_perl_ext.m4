@@ -2,7 +2,7 @@
 # Modified by Ronny Lorenz <ronny@tbi.univie.ac.at>
 #
 # ===========================================================================
-#        http://www.gnu.org/software/autoconf-archive/ax_perl_ext.html
+#       https://www.gnu.org/software/autoconf-archive/ax_perl_ext.html
 # ===========================================================================
 #
 # SYNOPSIS
@@ -60,7 +60,7 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 #   THE POSSIBILITY OF SUCH DAMAGE.
 
-#serial 2
+#serial 3
 
 AC_DEFUN([AX_PERL_EXT],[
 
@@ -121,7 +121,7 @@ AC_DEFUN([AX_PERL_EXT],[
                 AC_ARG_VAR(PERL_EXT_LIB, [Directory to install perl files into])
                 AC_MSG_CHECKING([for Perl extension target directory])
                 if test -z "$PERL_EXT_LIB" ; then
-                    [PERL_EXT_LIB=`$PERL -MConfig -e 'print $Config{sitearch};'`];
+                        [PERL_EXT_LIB=`$PERL -MConfig -e 'print $Config{sitearch};'`];
                 fi
                 AC_MSG_RESULT([$PERL_EXT_LIB])
                 AC_SUBST(PERL_EXT_LIB)

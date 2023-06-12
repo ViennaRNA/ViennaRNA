@@ -18,7 +18,9 @@
 #include "ViennaRNA/neighbor.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/read_epars.h"
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 #include <unistd.h>
 
 PRIVATE void
@@ -61,8 +63,10 @@ gradient_walker(double temperature_celsius, int shift_moves, char *parameter_fil
 
 long int cpu_count = sysconf(_SC_NPROCESSORS_ONLN);
 printf("%s\n",vc->sequence);
+#ifdef _OPENMP
 #pragma omp parallel num_threads(cpu_count)
 #pragma omp for
+#endif
   for(i = 0; i < num_structures; i++){
     char *structure = structures[i];
     short *pt = vrna_ptable (structure);

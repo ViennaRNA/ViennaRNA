@@ -72,12 +72,6 @@ AC_PROG_LIBTOOL
 LT_INIT([pic-only, static])
 AC_SUBST(LIBTOOL_DEPS)
 
-dnl Check for OpenMP and prepare flags
-AC_OPENMP
-AC_SUBST(OPENMP_CFLAGS)
-CPPFLAGS="$CPPFLAGS $OPENMP_CFLAGS"
-LDFLAGS="$LDFLAGS $OPENMP_CFLAGS"
-
 dnl Vienna RNA package library path support, if not installed in standard directory/path
 VRNA_OK=true
 

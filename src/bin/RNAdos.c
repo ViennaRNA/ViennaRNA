@@ -780,7 +780,11 @@ main(int  argc,
       exit(1);
     }
   } else {
-    rnaSequence = args_info.sequence_arg;
+    rnaSequence = strdup(args_info.sequence_arg);
+    if ((rnaSequence == NULL) || (*rnaSequence == '\0')){
+      fprintf(stderr, "No RNA sequence given!");
+      exit(1);
+    }
   }
 
   /* temperature */

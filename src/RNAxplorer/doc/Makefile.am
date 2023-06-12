@@ -8,7 +8,7 @@ SUFFIXES = .1 .ggo
 
 vpath %.ggo = ../src/
 
-if VRNA_AM_SWITCH_BUILD_MANPAGES
+if RXP_AM_SWITCH_BUILD_MANPAGES
 
 .ggo.1 :
 	$(manpages_verbose)./help2manWrapper.sh \
