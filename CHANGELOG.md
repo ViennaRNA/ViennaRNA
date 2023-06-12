@@ -2,9 +2,20 @@
 
 Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.1...HEAD)
 
 ## Version 2.6.x
+
+### [Version 2.6.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...v2.6.1) (Release date: 2023-06-12)
+
+#### Programs
+  * Fix double free corruption in `RNAdos`
+  * Fix compilation issues due to use of `uint` instead of `unsigned int` for `RNAxplorer`
+  * Fix compilation issues for `RNAxplorer` when OpenMP is unavailable
+
+#### Package
+  * AUTOCONF: Update autoconf macros
+  * Update Debian-based packaging rules
 
 ### [Version 2.6.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.5.1...v2.6.0) (Release date: 2023-06-09)
 
