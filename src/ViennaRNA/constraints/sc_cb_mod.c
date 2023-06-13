@@ -716,14 +716,15 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
   unsigned int  i, si, sj, enc_unmod, enc_pp, tt, pair_MP, pair_PM;
-  int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
-  (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
+  int           e,
+                (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
+                (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
   double        tempf;
   vrna_md_t     *md;
 
   md        = &(P->model_details);
   tempf     = (md->temperature + K0) / (37. + K0);
-  enc_unmod = params->unmodified_encoding;
+  enc_unmod = params->fallback_encoding;
   dG        = &(params->stack_dG);
   dH        = &(params->stack_dH);
   nt[5]     = params->one_letter_code;
@@ -825,7 +826,7 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
 
   md        = &(P->model_details);
   tempf     = (md->temperature + K0) / (37. + K0);
-  enc_unmod = params->unmodified_encoding;
+  enc_unmod = params->fallback_encoding;
   dG        = &(params->mismatch_dG);
   dH        = &(params->mismatch_dH);
   nt[5]     = params->one_letter_code;
@@ -954,7 +955,7 @@ init_dangles(struct vrna_sc_mod_param_s *params,
 
   md        = &(P->model_details);
   tempf     = (md->temperature + K0) / (37. + K0);
-  enc_unmod = params->unmodified_encoding;
+  enc_unmod = params->fallback_encoding;
   dG5       = &(params->dangle5_dG);
   dH5       = &(params->dangle5_dH);
   dG3       = &(params->dangle3_dG);
@@ -1109,7 +1110,7 @@ init_terminal(struct vrna_sc_mod_param_s  *params,
 
   md        = &(P->model_details);
   tempf     = (md->temperature + K0) / (37. + K0);
-  enc_unmod = params->unmodified_encoding;
+  enc_unmod = params->fallback_encoding;
   dG        = &(params->terminal_dG);
   dH        = &(params->terminal_dH);
   nt[5]     = params->one_letter_code;
