@@ -2,9 +2,16 @@
 
 Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
 
+## Version 2.6.x
+
 ### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.1...HEAD)
 
-## Version 2.6.x
+#### Programs
+  * Fix preparation of input sequences for modified base support in `RNAcofold`
+
+#### Library
+  * Fix energy corrections for modified base support when unmodified base is not the same as fallback base
+
 
 ### [Version 2.6.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...v2.6.1) (Release date: 2023-06-12)
 
