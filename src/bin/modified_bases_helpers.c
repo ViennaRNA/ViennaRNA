@@ -27,23 +27,64 @@ mod_positions_seq_prepare(char                *sequence,
         (*param_set_num)++;
 
     if (*param_set_num > 0)
-      mod_positions = vrna_alloc(sizeof(size_t) * *param_set_num);
+      mod_positions = vrna_alloc(sizeof(size_t *) * *param_set_num);
 
     if (params) {
+      /* split input sequences at default delimiter '&' */
+      char **sequences = vrna_strsplit(sequence, NULL);
+
       size_t i = 0;
       for (vrna_sc_mod_param_t *ptr = params; *ptr != NULL; ptr++, i++) {
-        mod_positions[i] = vrna_strchr(sequence, (int)(*ptr)->one_letter_code, 0);
-        if (mod_positions[i])
-          for (size_t j = 1; j <= mod_positions[i][0]; j++) {
-            if (verbose)
-              printf("Found modified base %c at position %d\n",
-                     (*ptr)->one_letter_code,
-                     mod_positions[i][j]);
+        size_t strand_num = 0;
+        size_t total_length = 0;
 
-            sequence[mod_positions[i][j] - 1] = (*ptr)->fallback;
+        for (char **s = sequences; *s; s++) {
+          size_t *mpos = vrna_strchr(*s, (int)(*ptr)->one_letter_code, 0);
+
+          if (mpos) {
+            /* increase size of mod_positions */
+            size_t old_size = 0;
+            size_t new_size = mpos[0];
+
+            if (mod_positions[i]) {
+              old_size = mod_positions[i][0];
+              new_size += mod_positions[i][0];
+            }
+
+            mod_positions[i] = vrna_realloc(mod_positions[i], sizeof(size_t) * (new_size + 1));
+
+            /* update size of mod_positions */
+            mod_positions[i][0] = new_size;
+
+            /* copy-over modified positions in this strand */
+            for (size_t j = 1; j <= mpos[0]; j++) {
+              mod_positions[i][old_size + j] = mpos[j] + total_length;
+
+              /* change modified base to fallback if necessary */
+              if ((*ptr)->fallback != (*ptr)->unmodified)
+                sequence[mod_positions[i][old_size + j] - 1 + strand_num] = (*ptr)->fallback;
+
+              if (verbose)
+                printf("Found modified base %c at position %d\n",
+                       (*ptr)->one_letter_code,
+                       mod_positions[i][old_size + j]);
+
+            }
           }
+
+          total_length += strlen(*s);
+          strand_num++;
+
+          free(mpos);
+        }
       }
+
+      /* release memory of individual strands */
+      for (char **s = sequences; *s; s++)
+        free(*s);
+      free(sequences);
     }
+
   }
 
   return mod_positions;
