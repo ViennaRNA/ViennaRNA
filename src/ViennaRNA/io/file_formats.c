@@ -1201,9 +1201,11 @@ process_ct_header(unsigned int  n,
         we've also seen .ct files that only contain the
         ENERGY keyword, without any further values, so
         let's also skip this keyword if necessary
+        usage of strstr() is save here, since we converted
+        ptr to uppercase before
     */
     if ((id_pos == 1) &&
-        (strcasestr(ptr, "ENERGY") == ptr)) {
+        (strstr(ptr, "ENERGY") == ptr)) {
       id_pos++;
     }
 
