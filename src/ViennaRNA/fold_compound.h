@@ -57,6 +57,13 @@ typedef struct vrna_fc_s vrna_fold_compound_t;
  */
 typedef void (*vrna_auxdata_free_f)(void *data);
 
+
+typedef int (*vrna_auxdata_prepare_f)(vrna_fold_compound_t  *fc,
+                                      void                  *data,
+                                      unsigned int          state);
+
+
+
 /**
  *  @brief Callback to free memory allocated for auxiliary user-provided data
  *
