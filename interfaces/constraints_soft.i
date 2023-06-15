@@ -126,7 +126,7 @@ vrna_sc_mod_param_t my_sc_mod_read_from_json(std::string json, vrna_md_t *md = N
   {
     int ret = 1;
     for (size_t i = 1; i < constraints.size(); i++)
-      for (size_t j = i + 1; j <= constraints[i].size(); j++)
+      for (size_t j = i + 1; j < constraints[i].size(); j++)
         if (constraints[i][j] != 0)
           ret &= (vrna_sc_add_bp($self, i, j, constraints[i][j], options)) ? 1 : 0;
 
