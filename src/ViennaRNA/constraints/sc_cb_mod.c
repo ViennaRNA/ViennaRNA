@@ -330,6 +330,12 @@ sc_ML_ML_STEM(vrna_fold_compound_t  *fc,
               void                  *d);
 
 
+PRIVATE int
+prepare_mod_data(vrna_fold_compound_t *fc,
+                 void                 *data,
+                 unsigned int         event);
+
+
 PRIVATE void
 free_energy_corrections(void *d);
 
@@ -402,20 +408,38 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
   if ((fc) &&
       (params) &&
       (modification_sites)) {
+    unsigned int        *sn       = fc->strand_number;
+    unsigned int        *ss       = fc->strand_start;
     vrna_md_t           *md       = &(fc->params->model_details);
     char                bases[8]  = "_ACGUTM";
-    bases[6] = params->one_letter_code;
+    energy_corrections  *diffs;
 
-    energy_corrections  *diffs = (energy_corrections *)vrna_alloc(sizeof(energy_corrections));
+    bases[6]  = params->one_letter_code;
+    diffs     = (energy_corrections *)vrna_alloc(sizeof(energy_corrections));
 
     /* copy ptypes */
     memcpy(&(diffs->ptypes[0][0]), &(params->ptypes[0][0]), sizeof(params->ptypes));
 
-    diffs->enc = (short *)vrna_alloc(sizeof(short) * (fc->length + 2));
-    memcpy(diffs->enc, fc->sequence_encoding, sizeof(short) * (fc->length + 1));
+    diffs->enc = NULL;
 
+     /* store (current) number of strands and prepare per-strand modification site lists */
+    diffs->strands = fc->strands;
+    vrna_array_init_size(diffs->modification_sites, diffs->strands);
+    for (size_t i = 0; i < diffs->strands; i++) {
+      vrna_array_make(unsigned int, msites);
+      vrna_array_append(diffs->modification_sites, msites);
+    }
+
+    /* store modification sites on a per-strand basis */
     for (size_t i = 0; modification_sites[i]; i++) {
-      unsigned int msite = modification_sites[i];
+      unsigned int msite        = modification_sites[i];
+      unsigned int strand       = sn[msite];
+      unsigned int actual_msite = msite - ss[strand] + 1;
+      unsigned int enc          = fc->sequence_encoding[msite];
+      unsigned int unmod        = params->unmodified_encoding;
+      unsigned int fallback     = params->fallback_encoding;
+      unsigned int pass         = 1;
+
       if (msite > fc->length) {
         if (!(options & VRNA_SC_MOD_SILENT))
           vrna_message_warning("modification site %u after sequence length (%u)",
@@ -423,11 +447,6 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                                fc->length);
         continue;
       }
-
-      unsigned int enc      = fc->sequence_encoding[msite];
-      unsigned int unmod    = params->unmodified_encoding;
-      unsigned int fallback = params->fallback_encoding;
-      unsigned int pass     = 1;
 
       if (options & (VRNA_SC_MOD_CHECK_UNMOD | VRNA_SC_MOD_CHECK_FALLBACK))
         pass = 0;
@@ -440,21 +459,18 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
       if (!pass) {
         if (!(options & VRNA_SC_MOD_SILENT))
           vrna_message_warning(
-            "modification site %u lists wrong unmodified base %c (should be %c or %c)",
+            "modification site %u lists wrong unmodified base %c (should be %c)",
             msite,
             bases[fc->sequence_encoding[msite]],
-            params->unmodified,
             params->fallback);
 
         continue;
       }
 
+      vrna_array_append(diffs->modification_sites[strand], actual_msite);
+
       /* increase return value per modified base we found */
       ret++;
-
-      diffs->enc[msite] = 5;
-
-      unsigned int *sn = fc->strand_number;
 
       /* allow for all pairing partners specified in the input */
       for (unsigned int j = 1; j < msite; j++) {
@@ -501,6 +517,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              &sc_PAIR_HP,
                              NULL,
                              (void *)diffs,
+                             &prepare_mod_data,
                              &free_energy_corrections,
                              VRNA_DECOMP_PAIR_HP);
 
@@ -509,6 +526,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_PAIR_IL);
 
         vrna_sc_multi_cb_add(fc,
@@ -516,12 +534,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_PAIR_ML);
 
         vrna_sc_multi_cb_add(fc,
                              &sc_STEM,
                              NULL,
                              (void *)diffs,
+                             NULL,
                              NULL,
                              VRNA_DECOMP_EXT_STEM);
 
@@ -530,12 +550,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_EXT_STEM_EXT);
 
         vrna_sc_multi_cb_add(fc,
                              &sc_EXT_EXT_STEM,
                              NULL,
                              (void *)diffs,
+                             NULL,
                              NULL,
                              VRNA_DECOMP_EXT_EXT_STEM);
 
@@ -544,12 +566,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_EXT_STEM_OUTSIDE);
 
         vrna_sc_multi_cb_add(fc,
                              &sc_STEM,
                              NULL,
                              (void *)diffs,
+                             NULL,
                              NULL,
                              VRNA_DECOMP_ML_STEM);
 
@@ -558,6 +582,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_ML_ML_STEM);
       } else {
         /* no mismatch energies available */
@@ -565,6 +590,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              &sc_PAIR_HP_terminal,
                              NULL,
                              (void *)diffs,
+                             &prepare_mod_data,
                              &free_energy_corrections,
                              VRNA_DECOMP_PAIR_HP);
 
@@ -573,12 +599,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_PAIR_IL);
 
         vrna_sc_multi_cb_add(fc,
                              &sc_PAIR_ML_terminal,
                              NULL,
                              (void *)diffs,
+                             NULL,
                              NULL,
                              VRNA_DECOMP_PAIR_ML);
 
@@ -587,12 +615,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_EXT_STEM);
 
         vrna_sc_multi_cb_add(fc,
                              &sc_EXT_STEM_EXT_terminal,
                              NULL,
                              (void *)diffs,
+                             NULL,
                              NULL,
                              VRNA_DECOMP_EXT_STEM_EXT);
 
@@ -601,12 +631,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_EXT_EXT_STEM);
 
         vrna_sc_multi_cb_add(fc,
                              &sc_EXT_STEM_OUTSIDE_terminal,
                              NULL,
                              (void *)diffs,
+                             NULL,
                              NULL,
                              VRNA_DECOMP_EXT_STEM_OUTSIDE);
 
@@ -615,12 +647,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                              NULL,
                              (void *)diffs,
                              NULL,
+                             NULL,
                              VRNA_DECOMP_ML_STEM);
 
         vrna_sc_multi_cb_add(fc,
                              &sc_ML_ML_STEM_terminal,
                              NULL,
                              (void *)diffs,
+                             NULL,
                              NULL,
                              VRNA_DECOMP_ML_ML_STEM);
       }
@@ -629,13 +663,16 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
       vrna_sc_multi_cb_add(fc,
                            &sc_PAIR_HP_mismatch,
                            NULL,
-                           (void *)diffs, &free_energy_corrections,
+                           (void *)diffs,
+                           &prepare_mod_data,
+                           &free_energy_corrections,
                            VRNA_DECOMP_PAIR_HP);
 
       vrna_sc_multi_cb_add(fc,
                            (available & MOD_PARAMS_STACK_dG) ? &sc_PAIR_IL_stack_mismatch : &sc_PAIR_IL_mismatch,
                            NULL,
                            (void *)diffs,
+                           NULL,
                            NULL,
                            VRNA_DECOMP_PAIR_IL);
 
@@ -644,12 +681,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                            NULL,
                            (void *)diffs,
                            NULL,
+                           NULL,
                            VRNA_DECOMP_PAIR_ML);
 
       vrna_sc_multi_cb_add(fc,
                            &sc_STEM_mismatch,
                            NULL,
                            (void *)diffs,
+                           NULL,
                            NULL,
                            VRNA_DECOMP_EXT_STEM);
 
@@ -658,12 +697,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                            NULL,
                            (void *)diffs,
                            NULL,
+                           NULL,
                            VRNA_DECOMP_EXT_STEM_EXT);
 
       vrna_sc_multi_cb_add(fc,
                            &sc_EXT_EXT_STEM_mismatch,
                            NULL,
                            (void *)diffs,
+                           NULL,
                            NULL,
                            VRNA_DECOMP_EXT_EXT_STEM);
 
@@ -672,12 +713,14 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                            NULL,
                            (void *)diffs,
                            NULL,
+                           NULL,
                            VRNA_DECOMP_EXT_STEM_OUTSIDE);
 
       vrna_sc_multi_cb_add(fc,
                            &sc_STEM_mismatch,
                            NULL,
                            (void *)diffs,
+                           NULL,
                            NULL,
                            VRNA_DECOMP_ML_STEM);
 
@@ -686,6 +729,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                            NULL,
                            (void *)diffs,
                            NULL,
+                           NULL,
                            VRNA_DECOMP_ML_ML_STEM);
     } else if (available & MOD_PARAMS_STACK_dG) {
       /* just stacking parameters available */
@@ -693,6 +737,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
                            &sc_PAIR_IL_stack,
                            NULL,
                            (void *)diffs,
+                           &prepare_mod_data,
                            &free_energy_corrections,
                            VRNA_DECOMP_PAIR_IL);
     }
@@ -1599,10 +1644,50 @@ sc_ML_ML_STEM(vrna_fold_compound_t  *fc,
 }
 
 
+PRIVATE int
+prepare_mod_data(vrna_fold_compound_t *fc,
+                 void                 *data,
+                 unsigned int         event)
+{
+  int ret = 0;
+
+  energy_corrections *diff = (energy_corrections *)data;
+
+  free(diff->enc);
+  diff->enc = (short *)vrna_alloc(sizeof(short) * (fc->length + 2));
+
+  if (!diff->enc)
+    return 1;
+
+  memcpy(diff->enc, fc->sequence_encoding, sizeof(short) * (fc->length + 1));
+
+  /* correct for all known modification sites */
+  unsigned int *ss = fc->strand_start;
+  unsigned int *so = fc->strand_order;
+  for (unsigned int i = 0; i < fc->strands; i++) {
+    unsigned int strand = so[i];
+
+    if (strand > vrna_array_size(diff->modification_sites))
+      return 1; /* return with non-zero value to indicate error */
+
+    for (size_t j = 0; j < vrna_array_size(diff->modification_sites[strand]); j++) {
+      unsigned int k = diff->modification_sites[strand][j] + ss[strand] - 1;
+      diff->enc[k] = 5;
+    }
+  }
+
+  return ret;
+}
+
+
 PRIVATE void
 free_energy_corrections(void *d)
 {
   energy_corrections *diff = (energy_corrections *)d;
+
+  for (size_t i = 0; i < vrna_array_size(diff->modification_sites); i++)
+    vrna_array_free(diff->modification_sites[i]);
+  vrna_array_free(diff->modification_sites);
 
   free(diff->enc);
   free(diff);

@@ -60,9 +60,8 @@ mod_positions_seq_prepare(char                *sequence,
             for (size_t j = 1; j <= mpos[0]; j++) {
               mod_positions[i][old_size + j] = mpos[j] + total_length;
 
-              /* change modified base to fallback if necessary */
-              if ((*ptr)->fallback != (*ptr)->unmodified)
-                sequence[mod_positions[i][old_size + j] - 1 + strand_num] = (*ptr)->fallback;
+              /* change modified base to fallback */
+              sequence[mod_positions[i][old_size + j] - 1 + strand_num] = (*ptr)->fallback;
 
               if (verbose)
                 printf("Found modified base %c at position %d\n",

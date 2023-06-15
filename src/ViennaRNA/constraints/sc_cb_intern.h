@@ -1,6 +1,8 @@
 #ifndef VIENNA_RNA_PACKAGE_CONSTRAINTS_SOFT_INTERN_H
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_SOFT_INTERN_H
 
+#include "ViennaRNA/datastructures/array.h"
+
 #define MOD_PARAMS_STACK_dG     (1 << 0)
 #define MOD_PARAMS_STACK_dH     (1 << 1)
 #define MOD_PARAMS_MISMATCH_dG  (1 << 2)
@@ -51,6 +53,10 @@ struct vrna_sc_mod_param_s {
 /* the actual data structure passed around while evaluating */
 typedef struct {
   short   *enc;
+
+  size_t  strands;
+  vrna_array(unsigned int  *)  modification_sites;
+
   size_t  ptypes[MAX_ALPHABET][MAX_ALPHABET];
 
   int     stack_diff[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
