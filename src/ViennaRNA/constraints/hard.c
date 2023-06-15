@@ -1087,7 +1087,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
   turn      = fc->params->model_details.min_loop_size;
   hc        = fc->hc;
 
-  if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_3) {
+  if (options & VRNA_OPTION_F3) {
     /* the sliding window moves from 3' to 5' side */
 
     /* apply default constraints first */
@@ -1267,7 +1267,7 @@ populate_hc_bp(vrna_fold_compound_t *fc,
     }
 
     hc_update_up_window(fc, i, options);
-  } else if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_5) {
+  } else if (options & VRNA_OPTION_F5) {
     /* the sliding window moves from 5' to 3' side (i is 3' nucleotide) */
 
     j         = i;
@@ -1921,7 +1921,7 @@ hc_update_up_window(vrna_fold_compound_t  *vc,
   hc      = vc->hc;
   winsize = vc->window_size;
 
-  if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_5) {
+  if (options & VRNA_OPTION_F5) {
     up_ext = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) ?
              1 : 0;
     up_hp = (hc->matrix_local[i][0] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ?
@@ -1950,7 +1950,7 @@ hc_update_up_window(vrna_fold_compound_t  *vc,
   hc->up_int[i] = up_int;
   hc->up_ml[i]  = up_ml;
 
-  if (options & VRNA_CONSTRAINT_WINDOW_UPDATE_5) {
+  if (options & VRNA_OPTION_F5) {
     /* the sliding window proceeds from 5' to 3' so we update constraints 3' to 5' */
     if (up_ext > 0) {
       for (k = i - 1; k >= MAX2(1, i - winsize); k--) {

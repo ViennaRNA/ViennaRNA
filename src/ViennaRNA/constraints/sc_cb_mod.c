@@ -333,7 +333,8 @@ sc_ML_ML_STEM(vrna_fold_compound_t  *fc,
 PRIVATE int
 prepare_mod_data(vrna_fold_compound_t *fc,
                  void                 *data,
-                 unsigned int         event);
+                 unsigned int         event,
+                 void                 *event_data);
 
 
 PRIVATE void
@@ -1647,32 +1648,47 @@ sc_ML_ML_STEM(vrna_fold_compound_t  *fc,
 PRIVATE int
 prepare_mod_data(vrna_fold_compound_t *fc,
                  void                 *data,
-                 unsigned int         event)
+                 unsigned int         event,
+                 void                 *event_data)
 {
   int ret = 0;
 
   energy_corrections *diff = (energy_corrections *)data;
 
-  free(diff->enc);
-  diff->enc = (short *)vrna_alloc(sizeof(short) * (fc->length + 2));
+  /*  Update the encoding array.
+   *
+   *  In case we are about to perform sliding-window predictions, only
+   *  update the array once at the beginning of the computations
+   */
+  if ((!(event & VRNA_OPTION_WINDOW)) ||
+      ((event & VRNA_OPTION_F3) && ((*(unsigned int *)event_data) == fc->length)) ||
+      ((event & VRNA_OPTION_F5) && ((*(unsigned int *)event_data) == 1)) ||
+      (diff->enc == NULL)) {
+    unsigned int  *ss, *so, strand;
+    size_t        i, j, k;
 
-  if (!diff->enc)
-    return 1;
+    ss = fc->strand_start;
+    so = fc->strand_order;
 
-  memcpy(diff->enc, fc->sequence_encoding, sizeof(short) * (fc->length + 1));
+    free(diff->enc);
+    diff->enc = (short *)vrna_alloc(sizeof(short) * (fc->length + 2));
 
-  /* correct for all known modification sites */
-  unsigned int *ss = fc->strand_start;
-  unsigned int *so = fc->strand_order;
-  for (unsigned int i = 0; i < fc->strands; i++) {
-    unsigned int strand = so[i];
+    if (!diff->enc)
+      return 1;
 
-    if (strand > vrna_array_size(diff->modification_sites))
-      return 1; /* return with non-zero value to indicate error */
+    memcpy(diff->enc, fc->sequence_encoding, sizeof(short) * (fc->length + 1));
 
-    for (size_t j = 0; j < vrna_array_size(diff->modification_sites[strand]); j++) {
-      unsigned int k = diff->modification_sites[strand][j] + ss[strand] - 1;
-      diff->enc[k] = 5;
+    /* correct for all known modification sites */
+    for (i = 0; i < fc->strands; i++) {
+      strand = so[i];
+
+      if (strand > vrna_array_size(diff->modification_sites))
+        return 1; /* return with non-zero value to indicate error */
+
+      for (j = 0; j < vrna_array_size(diff->modification_sites[strand]); j++) {
+        k = diff->modification_sites[strand][j] + ss[strand] - 1;
+        diff->enc[k] = 5;
+      }
     }
   }
 

@@ -73,7 +73,8 @@ sc_multi_free(void *data);
 PRIVATE int
 sc_multi_prepare(vrna_fold_compound_t *fc,
                  void                 *data,
-                 unsigned int         event);
+                 unsigned int         event,
+                 void                 *event_data);
 
 
 PRIVATE INLINE FLT_OR_DBL
@@ -266,10 +267,14 @@ sc_multi_free(void *data)
 }
 
 
+/* This function simply propagates the preparation event through to
+ * all user-defined constraint callbacks
+ */
 PRIVATE int
 sc_multi_prepare(vrna_fold_compound_t *fc,
                  void                 *data,
-                 unsigned int         event)
+                 unsigned int         event,
+                 void                 *event_data)
 {
   int ret = 0;
 
@@ -281,7 +286,10 @@ sc_multi_prepare(vrna_fold_compound_t *fc,
       if (msc->data[d].cbs) {
         for (size_t c = 0; c < vrna_array_size(msc->data[d].data); c++)
           if (msc->data[d].prepare_data[c])
-            ret |= msc->data[d].prepare_data[c](fc, msc->data[d].data[c], event);
+            ret |= msc->data[d].prepare_data[c](fc,
+                                                msc->data[d].data[c],
+                                                event,
+                                                event_data);
       }
     }
   }

@@ -476,7 +476,7 @@ allocate_dp_matrices(vrna_fold_compound_t *vc,
         if (sc->exp_energy_up)
           sc->exp_energy_up[i] = (FLT_OR_DBL *)vrna_alloc((winSize + 1) * sizeof(FLT_OR_DBL));
 
-        vrna_sc_update(vc, i, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
+        vrna_sc_update(vc, i, VRNA_OPTION_PF | VRNA_OPTION_WINDOW_F5);
       }
 
       break;
@@ -653,8 +653,8 @@ init_constraints(vrna_fold_compound_t *fc,
 
   for (j = 1; j <= max_j; j++) {
     make_ptypes(fc, j);
-    vrna_hc_update(fc, j, VRNA_CONSTRAINT_WINDOW_UPDATE_5);
-    vrna_sc_update(fc, j, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
+    vrna_hc_update(fc, j, VRNA_OPTION_WINDOW_F5);
+    vrna_sc_update(fc, j, VRNA_OPTION_PF | VRNA_OPTION_WINDOW_F5);
   }
 }
 
@@ -666,8 +666,8 @@ rotate_constraints(vrna_fold_compound_t *fc,
 {
   if (j + 1 <= fc->length) {
     make_ptypes(fc, j + 1);
-    vrna_hc_update(fc, j + 1, VRNA_CONSTRAINT_WINDOW_UPDATE_5);
-    vrna_sc_update(fc, j + 1, VRNA_OPTION_PF | VRNA_OPTION_WINDOW);
+    vrna_hc_update(fc, j + 1, VRNA_OPTION_WINDOW_F5);
+    vrna_sc_update(fc, j + 1, VRNA_OPTION_PF | VRNA_OPTION_WINDOW_F5);
   }
 }
 

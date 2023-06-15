@@ -292,7 +292,7 @@ void
 vrna_sc_init(vrna_fold_compound_t *fc);
 
 
-void
+int
 vrna_sc_prepare(vrna_fold_compound_t  *fc,
                 unsigned int          options);
 
