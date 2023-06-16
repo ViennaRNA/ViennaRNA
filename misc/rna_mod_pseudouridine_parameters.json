@@ -44,5 +44,127 @@
   "terminal_enthalpies" : {
     "PA" : -2.04,
     "AP" : -2.04
+  },
+  "duplexes" : {
+    "CGAPACGGCUAUGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -9.93
+    },
+    "CGCPACGGCGAUGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -10.96
+    },
+    "CGGPACGGCCAUGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -11.71
+    },
+    "CGUPACGGCAAUGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -9.10
+    },
+    "CGAPCCGGCUAGGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -11.92
+    },
+    "CGCPCCGGCGAGGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -12.93
+    },
+    "CGGPCCGGCCAGGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -12.76
+    },
+    "CGUPCCGGCAAGGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -9.76
+    },
+    "CGAPGCGGCUACGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -11.45
+    },
+    "CGCPGCGGCGACGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -12.35
+    },
+    "CGGPGCGGCCACGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -12.59
+    },
+    "CGUPGCGGCAACGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -10.34
+    },
+    "CGAPUCGGCUAAGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -10.42
+    },
+    "CGCPUCGGCGAAGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -12.06
+    },
+    "CGGPUCGGCCAAGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -12.51
+    },
+    "CGUPUCGGCAAAGC" : {
+      "length1" : 7,
+      "length2" : 7,
+      "dG37"    : -9.51
+    },
+    "GCGCAPCGCGUA" : {
+      "length1" : 6,
+      "length2" : 6,
+      "dG37"    : -9.90
+    },
+    "GCGCCPCGCGGA" : {
+      "length1" : 6,
+      "length2" : 6,
+      "dG37"    : -10.63
+    },
+    "GCGCGPCGCGCA" : {
+      "length1" : 6,
+      "length2" : 6,
+      "dG37"    : -10.43
+    },
+    "GCGCUPCGCGAA" : {
+      "length1" : 6,
+      "length2" : 6,
+      "dG37"    : -8.55
+    },
+    "PAGCGCAUCGCG" : {
+      "length1" : 6,
+      "length2" : 6,
+      "dG37"    : -8.93
+    },
+    "PCGCGCAGCGCG" : {
+      "length1" : 6,
+      "length2" : 6,
+      "dG37"    : -9.56
+    },
+    "PGGCGCACCGCG" : {
+      "length1" : 6,
+      "length2" : 6,
+      "dG37"    : -10.30
+    },
+    "PUGCGCAACGCG" : {
+      "length1" : 6,
+      "length2" : 6,
+      "dG37"    : -9.77
+    }
   }
 }
