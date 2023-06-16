@@ -44,7 +44,8 @@ SWIG_misc_src = \
   $(srcdir)/../type_checks.i \
   $(srcdir)/../utils.i \
   $(srcdir)/../var_arrays.i \
-  $(srcdir)/../walk.i
+  $(srcdir)/../walk.i \
+  $(builddir)/../parameter_sets.i
 
 SWIG_module_name = RNA
 

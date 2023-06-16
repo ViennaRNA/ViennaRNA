@@ -1,0 +1,19 @@
+/*#######################################*/
+/* Interface for static strings          */
+/*#######################################*/
+
+#include <string>
+
+#ifdef SWIGPYTHON
+
+@SWIG_ENERGY_PARAMETER_CONST_PYTHON@
+
+#endif
+
+#ifdef SWIGPERL5
+
+@SWIG_ENERGY_PARAMETER_CONST_PERL5@
+
+#endif
+
+%include  <ViennaRNA/static/energy_parameter_sets.h>
