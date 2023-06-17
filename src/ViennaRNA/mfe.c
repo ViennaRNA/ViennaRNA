@@ -55,10 +55,12 @@ struct aux_arrays {
 };
 
 #include "ViennaRNA/loops/external_hc.inc"
+#include "ViennaRNA/loops/external_sc.inc"
 
 struct ms_helpers {
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
+  struct sc_f5_dat          sc_wrapper;
 };
 
 /*
@@ -1649,6 +1651,8 @@ get_ms_helpers(vrna_fold_compound_t *fc)
 
   dat->evaluate = prepare_hc_ext_def(fc, &(dat->hc_dat_local));
 
+  init_sc_f5(fc, &(dat->sc_wrapper));
+
   return dat;
 }
 
@@ -1657,6 +1661,8 @@ PRIVATE void
 free_ms_helpers(struct ms_helpers *ms_dat,
                 size_t            strands)
 {
+  if (strands > 1)
+    free_sc_f5(&(ms_dat->sc_wrapper));
   free(ms_dat);
 }
 
@@ -1673,6 +1679,10 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
+  struct sc_f5_dat          *sc_wrapper;
+  sc_ext_red_cb             sc_spl;
+  sc_ext_red_cb             sc_red_stem;
+  sc_ext_red_cb             sc_red_ext;
 
   n             = fc->length;
   S1            = fc->sequence_encoding;
@@ -1687,14 +1697,22 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
+  sc_wrapper    = &(ms_dat->sc_wrapper);
+  sc_spl        = sc_wrapper->decomp;
+  sc_red_stem   = sc_wrapper->red_stem;
+  sc_red_ext    = sc_wrapper->red_ext;
+
 
   for (size_t s = 0; s < fc->strands; s++) {
     e   = tmp = INF;
     end = se[s];
 
     if (i < end) {
-      if (evaluate(i, end, i + 1, end, VRNA_DECOMP_EXT_EXT, hc_dat_local))
+      if (evaluate(i, end, i + 1, end, VRNA_DECOMP_EXT_EXT, hc_dat_local)) {
         tmp = fms5[s][i + 1];
+        if ((sc_red_ext) && (tmp != INF))
+          tmp += sc_red_ext(i, end, i + 1, end, sc_wrapper);
+      }
     } else {
       tmp = 0;
     }
@@ -1724,6 +1742,11 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
               fms5[s][k + 1] +
               c[idx[k] + i];
 
+        if (sc_red_stem)
+          tmp += sc_red_stem(i, k, i, k, sc_wrapper);
+        if (sc_spl)
+          tmp += sc_spl(i, end, k, k + 1, sc_wrapper);
+
         e = MIN2(e, tmp);
       }
     }
@@ -1747,6 +1770,9 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
       tmp = base +
             c[idx[end] + i];
 
+      if (sc_red_stem)
+        tmp += sc_red_stem(i, end, i, end, sc_wrapper);
+
       e = MIN2(e, tmp);
     }
 
@@ -1764,6 +1790,11 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
                   fms5[s][k + 1] +
                   c[idx[k] + i + 1];
 
+          if (sc_red_stem)
+            tmp += sc_red_stem(i, k, i + 1, k, sc_wrapper);
+          if (sc_spl)
+            tmp += sc_spl(i, end, k, k + 1, sc_wrapper);
+
           e = MIN2(e, tmp);
         }
       }
@@ -1780,6 +1811,11 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
                   fms5[s][k + 2] +
                   c[idx[k] + i];
 
+          if (sc_red_stem)
+            tmp += sc_red_stem(i, k + 1, i, k, sc_wrapper);
+          if (sc_spl)
+            tmp += sc_spl(i, end, k + 1, k + 2, sc_wrapper);
+
           e = MIN2(e, tmp);
         }
 
@@ -1792,6 +1828,11 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
           tmp   = base +
                   fms5[s][k + 2] +
                   c[idx[k] + i + 1];
+
+          if (sc_red_stem)
+            tmp += sc_red_stem(i, k + 1, i + 1, k, sc_wrapper);
+          if (sc_spl)
+            tmp += sc_spl(i, end, k + 1, k + 2, sc_wrapper);
 
           e = MIN2(e, tmp);
         }
@@ -1808,6 +1849,9 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
         tmp   = base +
                 c[idx[end - 1] + i];
 
+        if (sc_red_stem)
+          tmp += sc_red_stem(i, end, i, end - 1, sc_wrapper);
+
         e = MIN2(e, tmp);
       }
 
@@ -1819,6 +1863,9 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
         tmp   = base +
                 c[idx[end] + i + 1];
 
+        if (sc_red_stem)
+          tmp += sc_red_stem(i, end, i + 1, end, sc_wrapper);
+
         e = MIN2(e, tmp);
       }
 
@@ -1829,6 +1876,9 @@ update_fms5_arrays(vrna_fold_compound_t *fc,
         base  = vrna_E_ext_stem(type, s5, s3, params);
         tmp   = base +
                 c[idx[end - 1] + i + 1];
+
+        if (sc_red_stem)
+          tmp += sc_red_stem(i, end, i + 1, end - 1, sc_wrapper);
 
         e = MIN2(e, tmp);
       }
@@ -1851,6 +1901,10 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
+  struct sc_f5_dat          *sc_wrapper;
+  sc_ext_red_cb             sc_spl;
+  sc_ext_red_cb             sc_red_stem;
+  sc_ext_red_cb             sc_red_ext;
 
   n             = fc->length;
   S1            = fc->sequence_encoding;
@@ -1865,6 +1919,10 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
+  sc_wrapper    = &(ms_dat->sc_wrapper);
+  sc_spl        = sc_wrapper->decomp;
+  sc_red_stem   = sc_wrapper->red_stem;
+  sc_red_ext    = sc_wrapper->red_ext;
 
   start = ss[s];
 
@@ -1874,6 +1932,10 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
     if (start < j) {
       if (evaluate(start, j, start, j - 1, VRNA_DECOMP_EXT_EXT, hc_dat_local)) {
         tmp = fms3[s][j - 1];
+
+        if (sc_red_ext)
+          tmp += sc_red_ext(start, j, start, j - 1, sc_wrapper);
+
         e   = MIN2(e, tmp);
       }
     } else {
@@ -1899,6 +1961,10 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
 
       tmp = base +
             c[idx[j] + start];
+
+      if (sc_red_stem)
+        tmp += sc_red_stem(start, j, start, j, sc_wrapper);
+
       e = MIN2(e, tmp);
     }
 
@@ -1924,6 +1990,12 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
         tmp = base +
               fms3[s][k] +
               c[idx[j] + k + 1];
+
+        if (sc_red_stem)
+          tmp += sc_red_stem(k + 1, j, k + 1, j, sc_wrapper);
+        if (sc_spl)
+          tmp += sc_spl(start, j, k, k + 1, sc_wrapper);
+
         e = MIN2(e, tmp);
       }
     }
@@ -1940,6 +2012,9 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
         tmp   = base +
                 c[idx[j - 1] + start];
 
+        if (sc_red_stem)
+          tmp += sc_red_stem(start, j, start, j - 1, sc_wrapper);
+
         e = MIN2(e, tmp);
       }
 
@@ -1951,6 +2026,9 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
         tmp   = base +
                 c[idx[j] + start + 1];
 
+        if (sc_red_stem)
+          tmp += sc_red_stem(start, j, start + 1, j, sc_wrapper);
+
         e = MIN2(e, tmp);
       }
 
@@ -1961,6 +2039,9 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
         base  = vrna_E_ext_stem(type, s5, s3, params);
         tmp   = base +
                 c[idx[j - 1] + start + 1];
+
+        if (sc_red_stem)
+          tmp += sc_red_stem(start, j, start + 1, j - 1, sc_wrapper);
 
         e = MIN2(e, tmp);
       }
@@ -1978,6 +2059,11 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
                   fms3[s][k] +
                   c[idx[j] + k + 2];
 
+          if (sc_red_stem)
+            tmp += sc_red_stem(k + 1, j, k + 2, j, sc_wrapper);
+          if (sc_spl)
+            tmp += sc_spl(start, j, k, k + 1, sc_wrapper);
+
           e = MIN2(e, tmp);
         }
 
@@ -1991,6 +2077,11 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
                   fms3[s][k] +
                   c[idx[j - 1] + k + 1];
 
+          if (sc_red_stem)
+            tmp += sc_red_stem(k + 1, j, k + 1, j - 1, sc_wrapper);
+          if (sc_spl)
+            tmp += sc_spl(start, j, k, k + 1, sc_wrapper);
+
           e = MIN2(e, tmp);
         }
 
@@ -2003,6 +2094,11 @@ update_fms3_arrays(vrna_fold_compound_t *fc,
           tmp   = base +
                   fms3[s][k] +
                   c[idx[j - 1] + k + 2];
+
+          if (sc_red_stem)
+            tmp += sc_red_stem(k + 1, j, k + 2, j - 1, sc_wrapper);
+          if (sc_spl)
+            tmp += sc_spl(start, j, k, k + 1, sc_wrapper);
 
           e = MIN2(e, tmp);
         }
@@ -2027,6 +2123,10 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
   vrna_md_t                 *md;
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
+  struct sc_f5_dat          *sc_wrapper;
+  sc_ext_red_cb             sc_spl;
+  sc_ext_red_cb             sc_red_stem;
+  sc_ext_red_cb             sc_red_ext;
 
   contribution  = INF;
   S1            = fc->sequence_encoding;
@@ -2040,6 +2140,10 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
   fms3          = fc->matrices->fms3;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
+  sc_wrapper    = &(ms_dat->sc_wrapper);
+  sc_spl        = sc_wrapper->decomp;
+  sc_red_stem   = sc_wrapper->red_stem;
+  sc_red_ext    = sc_wrapper->red_ext;
 
   if ((sn[i] != sn[j]) &&
       (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -2059,6 +2163,10 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
 
     base = vrna_E_ext_stem(type, s5, s3, params) +
            params->DuplexInit;
+
+    if (sc_red_stem)
+      base += sc_red_stem(j, i, j, i, sc_wrapper);
+
     tmp = INF;
 
     /*
@@ -2136,6 +2244,9 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
         tmp = vrna_E_ext_stem(type, s5, -1, params) +
               params->DuplexInit;
 
+        if (sc_red_stem)
+          tmp += sc_red_stem(j - 1, i, j, i, sc_wrapper);
+
         if (sn[j - 2] == sn[j]) {
           if (fms3[sn[i + 1]][j - 2] != INF) {
             tmp           += fms3[sn[i + 1]][j - 2];
@@ -2149,6 +2260,9 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
                  (sn[i] == sn[i + 1])) {
         tmp = vrna_E_ext_stem(type, -1, s3, params) +
               params->DuplexInit;
+
+        if (sc_red_stem)
+          tmp += sc_red_stem(j, i + 1, j, i, sc_wrapper);
 
         if (sn[i] == sn[i + 2]) {
           if (fms5[sn[j - 1]][i + 2] != INF) {
@@ -2164,6 +2278,9 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
         tmp   = INF;
         base  = vrna_E_ext_stem(type, s5, s3, params) +
                 params->DuplexInit;
+
+        if (sc_red_stem)
+          base += sc_red_stem(j - 1, i + 1, j, i, sc_wrapper);
 
         start = i;
         nick  = ends[sn[start]] + 1;
@@ -2195,6 +2312,9 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
         base  = vrna_E_ext_stem(type, -1, s3, params) +
                 params->DuplexInit;
 
+        if (sc_red_stem)
+          base += sc_red_stem(j, i + 1, j, i, sc_wrapper);
+
         start = i;
         nick  = ends[sn[start]] + 1;
         do {
@@ -2224,6 +2344,9 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
         tmp   = INF;
         base  = vrna_E_ext_stem(type, s5, -1, params) +
                 params->DuplexInit;
+
+        if (sc_red_stem)
+          base += sc_red_stem(j - 1, i, j, i, sc_wrapper);
 
         start = i;
         nick  = ends[sn[start]] + 1;
@@ -2274,6 +2397,10 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
   vrna_md_t                 *md;
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
+  struct sc_f5_dat          *sc_wrapper;
+  sc_ext_red_cb             sc_spl;
+  sc_ext_red_cb             sc_red_stem;
+  sc_ext_red_cb             sc_red_ext;
 
   if (fc) {
     S1            = fc->sequence_encoding;
@@ -2287,6 +2414,10 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
     fms3          = fc->matrices->fms3;
     evaluate      = ms_dat->evaluate;
     hc_dat_local  = &(ms_dat->hc_dat_local);
+    sc_wrapper    = &(ms_dat->sc_wrapper);
+    sc_spl        = sc_wrapper->decomp;
+    sc_red_stem   = sc_wrapper->red_stem;
+    sc_red_ext    = sc_wrapper->red_ext;
 
     if ((sn[*i] != sn[*j]) &&
         (evaluate(*i, *j, *i, *j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -2306,6 +2437,9 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
 
       base = vrna_E_ext_stem(type, s5, s3, params) +
              params->DuplexInit;
+
+      if (sc_red_stem)
+        base += sc_red_stem(*j, *i, *j, *i, sc_wrapper);
 
       if (sn[*i] != sn[*i + 1]) {
         if ((sn[*j - 1] != sn[*j]) &&
@@ -2387,6 +2521,9 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
           tmp = vrna_E_ext_stem(type, s5, -1, params) +
                 params->DuplexInit;
 
+          if (sc_red_stem)
+            tmp += sc_red_stem(*j - 1, *i, *j, *i, sc_wrapper);
+
           if (sn[*j - 2] == sn[*j]) {
             if (fms3[sn[*i + 1]][*j - 2] != INF) {
               tmp += fms3[sn[*i + 1]][*j - 2];
@@ -2412,6 +2549,9 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
           tmp = vrna_E_ext_stem(type, -1, s3, params) +
                 params->DuplexInit;
 
+          if (sc_red_stem)
+            tmp += sc_red_stem(*j, *i + 1, *j, *i, sc_wrapper);
+
           if (sn[*i] == sn[*i + 2]) {
             if (fms5[sn[*j - 1]][*i + 2] != INF) {
               tmp += fms5[sn[*j - 1]][*i + 2];
@@ -2436,6 +2576,9 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
           /* 1st case, i + 1 and j - 1 dangle on enclosing pair */
           base = vrna_E_ext_stem(type, s5, s3, params) +
                  params->DuplexInit;
+
+          if (sc_red_stem)
+            base += sc_red_stem(*j - 1, *i + 1, *j, *i, sc_wrapper);
 
           start = *i;
           nick  = ends[sn[start]] + 1;
@@ -2467,6 +2610,9 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
           base = vrna_E_ext_stem(type, -1, s3, params) +
                  params->DuplexInit;
 
+          if (sc_red_stem)
+            tmp += sc_red_stem(*j, *i + 1, *j, *i, sc_wrapper);
+
           start = *i;
           nick  = ends[sn[start]] + 1;
           do {
@@ -2496,6 +2642,9 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
           /* 3rd case, j - 1 may dangle on enclosing pair */
           base = vrna_E_ext_stem(type, s5, -1, params) +
                  params->DuplexInit;
+
+          if (sc_red_stem)
+            tmp += sc_red_stem(*j - 1, *i, *j, *i, sc_wrapper);
 
           start = *i;
           nick  = ends[sn[start]] + 1;
@@ -2546,6 +2695,10 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
   vrna_md_t                 *md;
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
+  struct sc_f5_dat          *sc_wrapper;
+  sc_ext_red_cb             sc_spl;
+  sc_ext_red_cb             sc_red_stem;
+  sc_ext_red_cb             sc_red_ext;
 
   S1            = fc->sequence_encoding;
   S2            = fc->sequence_encoding2;
@@ -2560,6 +2713,10 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
   fms5          = fc->matrices->fms5;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
+  sc_wrapper    = &(ms_dat->sc_wrapper);
+  sc_spl        = sc_wrapper->decomp;
+  sc_red_stem   = sc_wrapper->red_stem;
+  sc_red_ext    = sc_wrapper->red_ext;
 
   if (*i == end) {
     *i  = 0;
@@ -2569,7 +2726,12 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
   }
 
   if (evaluate(*i, end, *i + 1, end, VRNA_DECOMP_EXT_EXT, hc_dat_local)) {
-    if (fms5[strand][*i] == fms5[strand][*i + 1]) {
+    tmp = fms5[strand][*i + 1];
+
+    if (sc_red_ext)
+      tmp += sc_red_ext(*i, end, *i + 1, end, sc_wrapper);
+
+    if (fms5[strand][*i] == tmp) {
       *i  = *i + 1;
       *k  = 0;
       *l  = 0;
@@ -2592,6 +2754,9 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
     }
 
     base = vrna_E_ext_stem(type, s5, s3, params);
+
+    if (sc_red_stem)
+      base += sc_red_stem(*i, end, *i, end, sc_wrapper);
 
     if (fms5[strand][*i] == c[idx[end] + *i] + base) {
       *k  = end;
@@ -2619,6 +2784,11 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
             c[idx[u] + *i] +
             vrna_E_ext_stem(type, s5, s3, params);
 
+      if (sc_red_stem)
+        tmp += sc_red_stem(*i, u, *i, u, sc_wrapper);
+      if (sc_spl)
+        tmp += sc_spl(*i, end, u, u + 1, sc_wrapper);
+
       if (tmp == fms5[strand][*i]) {
         *k  = u;
         *l  = u + 1;
@@ -2635,6 +2805,9 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
       type  = vrna_get_ptype_md(S2[*i + 1], S2[end], md);
       base  = vrna_E_ext_stem(type, s5, -1, params);
 
+      if (sc_red_stem)
+        base += sc_red_stem(*i, end, *i + 1, end, sc_wrapper);
+
       if (fms5[strand][*i] == c[idx[end] + *i + 1] + base) {
         *i  = *i + 1;
         *k  = end;
@@ -2647,6 +2820,9 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
       type  = vrna_get_ptype_md(S2[*i], S2[end - 1], md);
       base  = vrna_E_ext_stem(type, -1, s3, params);
 
+      if (sc_red_stem)
+        base += sc_red_stem(*i, end, *i, end - 1, sc_wrapper);
+
       if (fms5[strand][*i] == c[idx[end - 1] + *i] + base) {
         *k  = end - 1;
         *l  = end;
@@ -2657,6 +2833,9 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
     if (evaluate(*i, end, *i + 1, end - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local)) {
       type  = vrna_get_ptype_md(S2[*i + 1], S2[end - 1], md);
       base  = vrna_E_ext_stem(type, s5, s3, params);
+
+      if (sc_red_stem)
+        base += sc_red_stem(*i, end, *i + 1, end - 1, sc_wrapper);
 
       if (fms5[strand][*i] == c[idx[end - 1] + *i + 1] + base) {
         *i  = *i + 1;
@@ -2672,6 +2851,11 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
         tmp   = fms5[strand][u + 1] +
                 c[idx[u] + *i + 1] +
                 vrna_E_ext_stem(type, s5, -1, params);
+
+        if (sc_red_stem)
+          tmp += sc_red_stem(*i, u, *i + 1, u, sc_wrapper);
+        if (sc_spl)
+          tmp += sc_spl(*i, end, u, u + 1, sc_wrapper);
 
         if (tmp == fms5[strand][*i]) {
           *i  = *i + 1;
@@ -2691,6 +2875,11 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
                 c[idx[u] + *i] +
                 vrna_E_ext_stem(type, -1, s3, params);
 
+        if (sc_red_stem)
+          tmp += sc_red_stem(*i, u + 1, *i, u, sc_wrapper);
+        if (sc_spl)
+          tmp += sc_spl(*i, end, u + 1, u + 2, sc_wrapper);
+
         if (tmp == fms5[strand][*i]) {
           *k  = u;
           *l  = u + 2;
@@ -2703,6 +2892,11 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
         tmp   = fms5[strand][u + 2] +
                 c[idx[u] + *i + 1] +
                 vrna_E_ext_stem(type, s5, s3, params);
+
+        if (sc_red_stem)
+          tmp += sc_red_stem(*i, u + 1, *i + 1, u, sc_wrapper);
+        if (sc_spl)
+          tmp += sc_spl(*i, end, u + 1, u + 2, sc_wrapper);
 
         if (tmp == fms5[strand][*i]) {
           *i  = *i + 1;
@@ -2733,6 +2927,10 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
   vrna_md_t                 *md;
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     *hc_dat_local;
+  struct sc_f5_dat          *sc_wrapper;
+  sc_ext_red_cb             sc_spl;
+  sc_ext_red_cb             sc_red_stem;
+  sc_ext_red_cb             sc_red_ext;
 
   n             = fc->length;
   S1            = fc->sequence_encoding;
@@ -2748,6 +2946,10 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
   fms3          = fc->matrices->fms3;
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
+  sc_wrapper    = &(ms_dat->sc_wrapper);
+  sc_spl        = sc_wrapper->decomp;
+  sc_red_stem   = sc_wrapper->red_stem;
+  sc_red_ext    = sc_wrapper->red_ext;
 
   if (*j == start) {
     *j  = 0;
@@ -2757,7 +2959,12 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
   }
 
   if (evaluate(start, *j, start, *j - 1, VRNA_DECOMP_EXT_EXT, hc_dat_local)) {
-    if (fms3[strand][*j] == fms3[strand][*j - 1]) {
+    base = fms3[strand][*j - 1];
+
+    if (sc_red_ext)
+      base += sc_red_ext(start, *j, start, *j - 1, sc_wrapper);
+
+    if (fms3[strand][*j] == base) {
       *j  = *j - 1;
       *k  = 0;
       *l  = 0;
@@ -2780,6 +2987,9 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
     }
 
     base = vrna_E_ext_stem(type, s5, s3, params);
+
+    if (sc_red_stem)
+      base += sc_red_stem(start, *j, start, *j, sc_wrapper);
 
     if (fms3[strand][*j] == c[idx[*j] + start] + base) {
       *k  = start;
@@ -2805,6 +3015,11 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
 
       base = vrna_E_ext_stem(type, s5, s3, params);
 
+      if (sc_red_stem)
+        base += sc_red_stem(u + 1, *j,u + 1, *j, sc_wrapper);
+      if (sc_spl)
+        base += sc_spl(start, *j, u, u + 1, sc_wrapper);
+
       if (fms3[strand][*j] == fms3[strand][u] + c[idx[*j] + u + 1] + base) {
         *k  = u + 1;
         *l  = u;
@@ -2822,6 +3037,9 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
 
       base = vrna_E_ext_stem(type, s5, -1, params);
 
+      if (sc_red_stem)
+        base += sc_red_stem(start, *j, start + 1, *j, sc_wrapper);
+
       if (fms3[strand][*j] == c[idx[*j] + start + 1] + base) {
         *k  = start + 1;
         *l  = start;
@@ -2832,6 +3050,9 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
     if (evaluate(start, *j, start, *j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local)) {
       type  = vrna_get_ptype_md(S2[start], S2[*j - 1], md);
       base  = vrna_E_ext_stem(type, -1, s3, params);
+
+      if (sc_red_stem)
+        base += sc_red_stem(start, *j, start, *j - 1, sc_wrapper);
 
       if (fms3[strand][*j] == c[idx[*j - 1] + start] + base) {
         *j  = *j - 1;
@@ -2844,6 +3065,9 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
     if (evaluate(start, *j, start + 1, *j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local)) {
       type  = vrna_get_ptype_md(S2[start + 1], S2[*j - 1], md);
       base  = vrna_E_ext_stem(type, s5, s3, params);
+
+      if (sc_red_stem)
+        base += sc_red_stem(start, *j, start + 1, *j - 1, sc_wrapper);
 
       if (fms3[strand][*j] == c[idx[*j - 1] + start + 1] + base) {
         *j  = *j - 1;
@@ -2860,6 +3084,11 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
         type  = vrna_get_ptype_md(S2[u + 1], S2[*j - 1], md);
         base  = vrna_E_ext_stem(type, -1, s3, params);
 
+        if (sc_red_stem)
+          base += sc_red_stem(u + 1, *j, u + 1, *j - 1, sc_wrapper);
+        if (sc_spl)
+          base += sc_spl(start, *j, u, u + 1, sc_wrapper);
+
         if (fms3[strand][*j] == fms3[strand][u] + c[idx[*j - 1] + u + 1] + base) {
           *j  = *j - 1;
           *k  = u + 1;
@@ -2872,6 +3101,11 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
         type  = vrna_get_ptype_md(S2[u + 2], S2[*j], md);
         base  = vrna_E_ext_stem(type, s5, -1, params);
 
+        if (sc_red_stem)
+          base += sc_red_stem(u + 1, *j, u + 2, *j, sc_wrapper);
+        if (sc_spl)
+          base += sc_spl(start, *j, u, u + 1, sc_wrapper);
+
         if (fms3[strand][*j] == fms3[strand][u] + c[idx[*j] + u + 2] + base) {
           *k  = u + 2;
           *l  = u;
@@ -2882,6 +3116,11 @@ BT_fms3_split(vrna_fold_compound_t  *fc,
       if (evaluate(start, *j, u, u + 2, VRNA_DECOMP_EXT_EXT_STEM1, hc_dat_local)) {
         type  = vrna_get_ptype_md(S2[u + 2], S2[*j - 1], md);
         base  = vrna_E_ext_stem(type, s5, s3, params);
+
+        if (sc_red_stem)
+          base += sc_red_stem(u + 1, *j, u + 2, *j - 1, sc_wrapper);
+        if (sc_spl)
+          base += sc_spl(start, *j, u, u + 1, sc_wrapper);
 
         if (fms3[strand][*j] == fms3[strand][u] + c[idx[*j - 1] + u + 2] + base) {
           *j  = *j - 1;
