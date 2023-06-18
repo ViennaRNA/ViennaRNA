@@ -49,122 +49,146 @@
     "CGAPACGGCUAUGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -9.93
+      "dG37"    : -9.93,
+      "dG37_p"  : -10.12
     },
     "CGCPACGGCGAUGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -10.96
+      "dG37"    : -10.96,
+      "dG37_p"  : -11.17
     },
     "CGGPACGGCCAUGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -11.71
+      "dG37"    : -11.71,
+      "dG37_p"  : -11.53
     },
     "CGUPACGGCAAUGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -9.10
+      "dG37"    : -9.10,
+      "dG37_p"  : -8.83
     },
     "CGAPCCGGCUAGGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -11.92
+      "dG37"    : -11.92,
+      "dG37_p"  : -11.53
     },
     "CGCPCCGGCGAGGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -12.93
+      "dG37"    : -12.93,
+      "dG37_p"  : -12.57
     },
     "CGGPCCGGCCAGGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -12.76
+      "dG37"    : -12.76,
+      "dG37_p"  : -12.94
     },
     "CGUPCCGGCAAGGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -9.76
+      "dG37"    : -9.76,
+      "dG37_p"  : -10.24
     },
     "CGAPGCGGCUACGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -11.45
+      "dG37"    : -11.45,
+      "dG37_p"  : -11.40
     },
     "CGCPGCGGCGACGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -12.35
+      "dG37"    : -12.35,
+      "dG37_p"  : -12.45
     },
     "CGGPGCGGCCACGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -12.59
+      "dG37"    : -12.59,
+      "dG37_p"  : -12.81
     },
     "CGUPGCGGCAACGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -10.34
+      "dG37"    : -10.34,
+      "dG37_p"  : -10.11
     },
     "CGAPUCGGCUAAGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -10.42
+      "dG37"    : -10.42,
+      "dG37_p"  : -10.86
     },
     "CGCPUCGGCGAAGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -12.06
+      "dG37"    : -12.06,
+      "dG37_p"  : -11.91
     },
     "CGGPUCGGCCAAGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -12.51
+      "dG37"    : -12.51,
+      "dG37_p"  : -12.27
     },
     "CGUPUCGGCAAAGC" : {
       "length1" : 7,
       "length2" : 7,
-      "dG37"    : -9.51
+      "dG37"    : -9.51,
+      "dG37_p"  : -9.58
     },
     "GCGCAPCGCGUA" : {
       "length1" : 6,
       "length2" : 6,
-      "dG37"    : -9.90
+      "dG37"    : -9.90,
+      "dG37_p"  : -9.71
     },
     "GCGCCPCGCGGA" : {
       "length1" : 6,
       "length2" : 6,
-      "dG37"    : -10.63
+      "dG37"    : -10.63,
+      "dG37_p"  : -10.84
     },
     "GCGCGPCGCGCA" : {
       "length1" : 6,
       "length2" : 6,
-      "dG37"    : -10.43
+      "dG37"    : -10.43,
+      "dG37_p"  : -10.46
     },
     "GCGCUPCGCGAA" : {
       "length1" : 6,
       "length2" : 6,
-      "dG37"    : -8.55
+      "dG37"    : -8.55,
+      "dG37_p"  : -8.50
     },
     "PAGCGCAUCGCG" : {
       "length1" : 6,
       "length2" : 6,
-      "dG37"    : -8.93
+      "dG37"    : -8.93,
+      "dG37_p"  : -8.99
     },
     "PCGCGCAGCGCG" : {
       "length1" : 6,
       "length2" : 6,
-      "dG37"    : -9.56
+      "dG37"    : -9.56,
+      "dG37_p"  : -9.66
     },
     "PGGCGCACCGCG" : {
       "length1" : 6,
       "length2" : 6,
-      "dG37"    : -10.30
+      "dG37"    : -10.30,
+      "dG37_p"  : -10.27
     },
     "PUGCGCAACGCG" : {
       "length1" : 6,
       "length2" : 6,
-      "dG37"    : -9.77
+      "dG37"    : -9.77,
+      "dG37_p"  : -9.65
     }
   }
 }
