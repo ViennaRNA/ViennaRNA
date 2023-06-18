@@ -14,7 +14,8 @@ import re
 locale.setlocale(locale.LC_ALL, 'C')
 
 def extract_duplex_data(duplex, data, one_letter_code, fallback):
-    e  = data['dG37']
+    # use predicted duplex stability from experimenters if available
+    e  = data['dG37_p'] if 'dG37_p' in data else data['dG37']
     s1 = duplex[:data['length1']]
     s2 = duplex[data['length1']:]
     s2 = s2[::-1]
@@ -39,8 +40,25 @@ class ModifiedBaseTests(unittest.TestCase):
             # prepare computation
             fc = RNA.fold_compound(seq)
             fc.sc_mod_pseudouridine(mpos)
-            e_diff = abs(fc.mfe()[1] - e)
-            self.assertTrue(e_diff < 0.7)
+            e_diff = e - fc.mfe()[1]
+            print(seq, mpos, e, e_diff, e - e_diff)
+            self.assertTrue(abs(e_diff) < 0.2)
+
+
+    def test_inosine_duplexes(self):
+        """Inosine duplex energies"""
+        params = json.loads(RNA.parameter_set_rna_mod_inosine_parameters)
+        duplexes = params['duplexes']
+        code     = params['modified_base']['one_letter_code']
+        fallback = params['modified_base']['fallback']
+        for k,v in duplexes.items():
+            e, seq, mpos = extract_duplex_data(k, v, code, fallback)
+            # prepare computation
+            fc = RNA.fold_compound(seq)
+            fc.sc_mod_inosine(mpos)
+            e_diff = e - fc.mfe()[1]
+            print(seq, mpos, e, e_diff, e - e_diff)
+            self.assertTrue(abs(e_diff) < 0.15)
 
 
 if __name__ == '__main__':
