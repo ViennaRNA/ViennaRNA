@@ -69,16 +69,24 @@ mathjax3_config = {
     }
 }
 napoleon_type_aliases = {
+    "PRIVATE int": "int",
+    "PRIVATE FLT_OR_DBL" : "double",
+    "unsigned int *": "list-like(unsigned int)",
+    "unsigned int **": "list-like(list-like(unsigned int))",
+    "short *": "list-like(int)",
     "char *": "string",
     "const char *": "string",
+    "float *": "list-like(double)",
+    "double *": "list-like(double)",
+    "double **": "list-like(list-like(double))",
     "vrna_fold_compound_t *" : "fold_compound",
     "vrna_param_t *" : "param",
     "vrna_exp_param_t *" : "exp_param",
     "vrna_md_t *" : "md",
     "std::string": "string",
     "FLT_OR_DBL" : "double",
-    "FLT_OR_DBL *" : "list(double)",
-    "std::vector<FLT_OR_DBL>" : "list(double)"
+    "FLT_OR_DBL *" : "list-like(double)",
+    "std::vector<FLT_OR_DBL>" : "list-like(double)"
 }
 
 # Add any paths that contain templates here, relative to this directory.
