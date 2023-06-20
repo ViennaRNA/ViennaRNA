@@ -103,6 +103,7 @@ section "Core" sec_core
   File "../src/bin/.libs/RNA2Dfold.exe"
   File "../src/bin/.libs/RNAplex.exe"
   File "../src/bin/.libs/RNAsnoop.exe"
+  File "../src/bin/.libs/RNAmultifold.exe"
 
   # create the misc directory and add files
   CreateDirectory "$INSTDIR\Misc"
@@ -111,6 +112,13 @@ section "Core" sec_core
   File /oname=Misc\rna_andronescu2007.par ../misc/rna_andronescu2007.par
   File /oname=Misc\dna_mathews2004.par ../misc/dna_mathews2004.par
   File /oname=Misc\dna_mathews1999.par ../misc/dna_mathews1999.par
+  File /oname=Misc\rna_mod_7DA_parameters.json ../misc/rna_mod_7DA_parameters.json
+  File /oname=Misc\rna_mod_dihydrouridine_parameters.json ../misc/rna_mod_dihydrouridine_parameters.json
+  File /oname=Misc\rna_mod_inosine_parameters.json ../misc/rna_mod_inosine_parameters.json
+  File /oname=Misc\rna_mod_m6A_parameters.json ../misc/rna_mod_m6A_parameters.json
+  File /oname=Misc\rna_mod_pseudouridine_parameters.json ../misc/rna_mod_pseudouridine_parameters.json
+  File /oname=Misc\rna_mod_purine_parameters.json ../misc/rna_mod_purine_parameters.json
+  File /oname=Misc\rna_mod_template_parameters.json ../misc/rna_mod_template_parameters.json
   File /oname=Misc\2Dlandscape_pf.gri ../misc/2Dlandscape_pf.gri
   File /oname=Misc\2Dlandscape_mfe.gri ../misc/2Dlandscape_mfe.gri
 
@@ -119,7 +127,7 @@ section "Core" sec_core
   File "/usr/i686-w64-mingw32/bin/libgomp-1.dll"
   File "/usr/i686-w64-mingw32/bin/libwinpthread-1.dll"
   File "/usr/i686-w64-mingw32/bin/libgcc_s_dw2-1.dll"
-  File "/usr/i686-w64-mingw32/bin/libgsl-25.dll"
+  File "/usr/i686-w64-mingw32/bin/libgsl-27.dll"
   File "/usr/i686-w64-mingw32/bin/libgslcblas-0.dll"
   File "/usr/i686-w64-mingw32/bin/libmpfr-6.dll"
   File "/usr/i686-w64-mingw32/bin/libgmp-10.dll"
@@ -207,6 +215,7 @@ section "Uninstall"
   delete $INSTDIR\RNA2Dfold.exe
   delete $INSTDIR\RNAplex.exe
   delete $INSTDIR\RNAsnoop.exe
+  delete $INSTDIR\RNAmultifold.exe
   delete $INSTDIR\Kinfold.exe
   delete $INSTDIR\RNAlocmin.exe
   delete $INSTDIR\kinwalker.exe
@@ -233,6 +242,13 @@ section "Uninstall"
   delete $INSTDIR\Misc\rna_andronescu2007.par
   delete $INSTDIR\Misc\dna_mathews2004.par
   delete $INSTDIR\Misc\dna_mathews1999.par
+  delete $INSTDIR\Misc\rna_mod_7DA_parameters.json
+  delete $INSTDIR\Misc\rna_mod_dihydrouridine_parameters.json
+  delete $INSTDIR\Misc\rna_mod_inosine_parameters.json
+  delete $INSTDIR\Misc\rna_mod_m6A_parameters.json
+  delete $INSTDIR\Misc\rna_mod_pseudouridine_parameters.json
+  delete $INSTDIR\Misc\rna_mod_purine_parameters.json
+  delete $INSTDIR\Misc\rna_mod_template_parameters.json
   delete $INSTDIR\Misc\2Dlandscape_pf.gri
   delete $INSTDIR\Misc\2Dlandscape_mfe.gri
 
@@ -241,7 +257,7 @@ section "Uninstall"
   delete $INSTDIR\libgomp-1.dll
   delete $INSTDIR\libwinpthread-1.dll
   delete $INSTDIR\libgcc_s_dw2-1.dll
-  delete $INSTDIR\libgsl-25.dll
+  delete $INSTDIR\libgsl-27.dll
   delete $INSTDIR\libgslcblas-0.dll
   delete $INSTDIR\libmpfr-6.dll
   delete $INSTDIR\libgmp-10.dll
