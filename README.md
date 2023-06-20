@@ -1,5 +1,4 @@
 [![GitHub release](https://img.shields.io/github/release/ViennaRNA/ViennaRNA.svg)](https://www.tbi.univie.ac.at/RNA/#download)
-[![Commits since last version](https://img.shields.io/github/commits-since/ViennaRNA/ViennaRNA/v2.6.0)](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...v2.6.1)
 [![Build Status](https://github.com/ViennaRNA/ViennaRNA/actions/workflows/release.yaml/badge.svg)](https://github.com/ViennaRNA/ViennaRNA/actions)
 [![Github All Releases](https://img.shields.io/github/downloads/ViennaRNA/ViennaRNA/total.svg)](https://github.com/ViennaRNA/ViennaRNA/releases)
 [![Conda](https://img.shields.io/conda/v/bioconda/viennarna.svg)](https://anaconda.org/bioconda/viennarna)
@@ -71,8 +70,8 @@ and installation process.*
 
 Usually you'll simply unpack the distribution tarball, configure and make:
 ```
-tar -zxvf ViennaRNA-2.6.1.tar.gz
-cd ViennaRNA-2.6.1
+tar -zxvf ViennaRNA-2.6.2.tar.gz
+cd ViennaRNA-2.6.2
 ./configure
 make
 sudo make install

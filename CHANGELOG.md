@@ -4,7 +4,10 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.6.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.1...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.2...HEAD)
+
+
+### [Version 2.6.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.1...v2.6.2) (Release date: 2023-06-21)
 
 #### Programs
   * Fix preparation of input sequences for modified base support in `RNAcofold`
@@ -18,7 +21,6 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 #### Package
   * TESTS: Add modified base tests on duplex data with I-C and A-Psi pairs from publications
-
 
 ### [Version 2.6.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...v2.6.1) (Release date: 2023-06-12)
 
