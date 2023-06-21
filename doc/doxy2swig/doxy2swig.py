@@ -688,6 +688,7 @@ class Doxy2SWIG:
         # Now do the text wrapping:
         width = self.textwidth - self.indent
         wrapped_para = []
+
         for line in ''.join(self.pieces).splitlines():
             keep_markdown_newline = line[-2:] == '  '
             w_line = textwrap.wrap(line, width=width, break_long_words=False)
@@ -704,21 +705,70 @@ class Doxy2SWIG:
                 wrapped_para.append('')
 
         for i in range(len(wrapped_para)):
-            if len(self.suffixes) > 0:
-                # remove suffixes
-                for s in self.suffixes:
-                    if s in self.constructor_suffixes:
-                        repl = r'()'
-                    else:
-                        repl = r''
+            # correctly translate symbols that appear in the text
+            words = re.split(r'(\s+)', wrapped_para[i])
+            for j, w in enumerate(words):
+                # remove any occurences of () for look-up
+                has_comma = False
+                has_dot = False
+                has_brackets = False
 
-                    wrapped_para[i] = re.sub(re.escape(s) + r'\b', repl, wrapped_para[i])
-            if len(self.prefixes) > 0:
-                prefix = r''
-                if self.prefix_name != "":
-                    prefix += self.prefix_name + r'.'
-                for p in self.prefixes:
-                    wrapped_para[i] = wrapped_para[i].replace(p, prefix)
+                if words[j][-1:] == ".":
+                    has_dot = True
+                    words[j] = words[j][:-1]
+
+                if words[j][-1:] == ",":
+                    has_comma = True
+                    words[j] = words[j][:-1]
+
+                if words[j][-2:] == "()":
+                    has_brackets = True
+                    words[j] = words[j][:-2]
+
+                classified = False
+                if self.object_binding and words[j] in self.object_binding:
+                    classified = True
+                    c = self.object_binding[words[j]]['class']
+                    m = self.object_binding[words[j]]['method']
+                    # replace pre- and suffixes from class name
+                    if len(self.suffixes) > 0:
+                        for s in self.suffixes:
+                            c = re.sub(re.escape(s) + r'\b', r'', c)
+
+                    if len(self.prefixes) > 0:
+                        prefix = r''
+                        if self.prefix_name != "":
+                            prefix += self.prefix_name + r'.'
+                        for p in self.prefixes:
+                            c = c.replace(p, prefix)
+
+                    words[j] = c + "." + m
+
+                if len(self.suffixes) > 0 and not classified:
+                    # remove suffixes
+                    for s in self.suffixes:
+                        if s in self.constructor_suffixes:
+                            repl = r'()'
+                        else:
+                            repl = r''
+                        words[j] = re.sub(re.escape(s) + r'\b', repl, words[j])
+
+                if len(self.prefixes) > 0 and not classified:
+                    prefix = r''
+                    if self.prefix_name != "":
+                        prefix += self.prefix_name + r'.'
+                    for p in self.prefixes:
+                        words[j] = words[j].replace(p, prefix)
+
+                if has_brackets:
+                    words[j] += "()"
+                if has_comma:
+                    words[j] += ","
+                if has_dot:
+                    words[j] += "."
+
+            wrapped_para[i] = "".join(words)
+
 
         pieces.extend(wrapped_para)
         self.pieces = pieces
@@ -877,7 +927,9 @@ class Doxy2SWIG:
                 rettype = "object"
 
             # remove any occurences pointer marker '*'
-            rettype = re.sub(r'\s*\*','', rettype)
+            # do not remove the pointer arguments, we use napoleon to replace them
+            # by more pythonic types later
+            #rettype = re.sub(r'\s*\*','', rettype)
 
             if self.indent == 0:
                 self.add_text(['Returns', '\n', len('Returns') * '-', '\n', rettype])

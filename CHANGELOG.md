@@ -2,9 +2,25 @@
 
 Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.1...HEAD)
-
 ## Version 2.6.x
+
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.2...HEAD)
+
+
+### [Version 2.6.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.1...v2.6.2) (Release date: 2023-06-21)
+
+#### Programs
+  * Fix preparation of input sequences for modified base support in `RNAcofold`
+
+#### Library
+  * Fix energy corrections for modified base support when unmodified base is not the same as fallback base, e.g. in the case of inosine
+  * Add soft constraints to multifold external loop decomposition
+  * Add soft constraints preparation stage callback
+  * SWIG: Fix `fc.sc_add_bp()` propagation of constraint values
+  * SWIG: Wrap energy parameter file strings
+
+#### Package
+  * TESTS: Add modified base tests on duplex data with I-C and A-Psi pairs from publications
 
 ### [Version 2.6.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...v2.6.1) (Release date: 2023-06-12)
 

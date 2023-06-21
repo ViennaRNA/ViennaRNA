@@ -356,7 +356,7 @@ allocate_dp_matrices(vrna_fold_compound_t *fc)
             sc->energy_up[i] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
 
         for (i = length; (i > length - maxdist - 5) && (i >= 0); i--)
-          vrna_sc_update(fc, i, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+          vrna_sc_update(fc, i, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW_F3);
       }
 
       break;
@@ -511,15 +511,15 @@ init_constraints(vrna_fold_compound_t *fc)
     case VRNA_FC_TYPE_SINGLE:
       for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
         make_ptypes(fc, i);
-        vrna_hc_update(fc, i, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
-        vrna_sc_update(fc, i, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+        vrna_hc_update(fc, i, VRNA_OPTION_WINDOW_F3);
+        vrna_sc_update(fc, i, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW_F3);
       }
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
       for (i = length; (i >= length - maxdist - 4) && (i > 0); i--) {
         make_pscores(fc, i);
-        vrna_hc_update(fc, i, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
+        vrna_hc_update(fc, i, VRNA_OPTION_WINDOW_F3);
       }
 
       /* for noLP option */
@@ -547,8 +547,8 @@ rotate_constraints(vrna_fold_compound_t *fc,
         fc->ptype_local[i + maxdist + 4]  = NULL;
         if (i > 1) {
           make_ptypes(fc, i - 1);
-          vrna_hc_update(fc, i - 1, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
-          vrna_sc_update(fc, i - 1, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW);
+          vrna_hc_update(fc, i - 1, VRNA_OPTION_WINDOW_F3);
+          vrna_sc_update(fc, i - 1, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW_F3);
         }
       }
 
@@ -562,7 +562,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
           if (i > 2)
             make_pscores(fc, i - 2);
 
-          vrna_hc_update(fc, i - 1, VRNA_CONSTRAINT_WINDOW_UPDATE_3);
+          vrna_hc_update(fc, i - 1, VRNA_OPTION_WINDOW_F3);
         } else if (i == 1) {
           free(fc->pscore_local[i - 1]);
           fc->pscore_local[i - 1]           = fc->pscore_local[i + maxdist + 4];

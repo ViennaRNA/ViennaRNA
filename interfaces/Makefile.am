@@ -39,6 +39,7 @@ SOURCES = \
     var_arrays.i \
     walk.i \
     ptr2array.i \
+    parameter_sets.i \
     generic.mk
 
 DOXYGEN_DOCUMENTATION = \

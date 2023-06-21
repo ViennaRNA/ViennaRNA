@@ -210,16 +210,40 @@ static const unsigned char parameter_set_$parfile_name[[]] = {
 #include \"$parfile\"
 };
 "
+      # create a SWIG Python output typemap for the template
+      # note [[]] will turn into [] after M4 processed everythin
+      SWIG_ENERGY_PARAMETER_CONST_PYTHON="$SWIG_ENERGY_PARAMETER_CONST_PYTHON
+%typemap(varout) const unsigned char parameter_set_$parfile_name[[]] {
+  std::string str( parameter_set_$parfile_name, parameter_set_$parfile_name + sizeof (parameter_set_$parfile_name) / sizeof (parameter_set_$parfile_name[[0]]) );
+  swig_result = PyUnicode_FromString(str.c_str());
+}
+"
+      # create a SWIG Perl 5 output typemap for the template
+      # note [[]] will turn into [] after M4 processed everythin
+      SWIG_ENERGY_PARAMETER_CONST_PERL5="$SWIG_ENERGY_PARAMETER_CONST_PERL5
+%typemap(varout) const unsigned char parameter_set_$parfile_name[[]] {
+  std::string str( parameter_set_$parfile_name, parameter_set_$parfile_name + sizeof (parameter_set_$parfile_name) / sizeof (parameter_set_$parfile_name[[0]]) );
+  sv_setpv(swig_result, str.c_str());
+}
+"
     done
+
+    SWIG_ENERGY_PARAMETER_CONST_PYTHON=`AS_ECHO("$SWIG_ENERGY_PARAMETER_CONST_PYTHON") | sed 's/swig_result/$result/g'`
+    SWIG_ENERGY_PARAMETER_CONST_PERL5=`AS_ECHO("$SWIG_ENERGY_PARAMETER_CONST_PERL5") | sed 's/swig_result/$result/g'`
 
     # Add templates_postscript.h to the files to be processed by
     # the configure script
     AC_CONFIG_FILES([src/ViennaRNA/static/energy_parameter_sets.h])
+    AC_CONFIG_FILES([interfaces/parameter_sets.i])
 
     # substitute C variable definitions
     AC_SUBST(ENERGY_PARAMETER_CONST)
+    AC_SUBST(SWIG_ENERGY_PARAMETER_CONST_PYTHON)
+    AC_SUBST(SWIG_ENERGY_PARAMETER_CONST_PERL5)
     # hack to avoid placing the multiline ENERGY_PARAMETER_CONST into any Makefile
     _AM_SUBST_NOTMAKE(ENERGY_PARAMETER_CONST)
+    _AM_SUBST_NOTMAKE(SWIG_ENERGY_PARAMETER_CONST_PYTHON)
+    _AM_SUBST_NOTMAKE(SWIG_ENERGY_PARAMETER_CONST_PERL5)
 
     # substitute file list for static/Makefile.am
     AC_SUBST(PARAMETER_FILES)

@@ -240,14 +240,16 @@ PRIVATE void
 multistrand_update_Y5(vrna_fold_compound_t  *fc,
                       int                   l,
                       FLT_OR_DBL            *Y5,
-                      FLT_OR_DBL            **Y5p);
+                      FLT_OR_DBL            **Y5p,
+                      constraints_helper    *constraints);
 
 
 PRIVATE void
 multistrand_update_Y3(vrna_fold_compound_t  *fc,
                       int                   l,
                       FLT_OR_DBL            **Y3,
-                      FLT_OR_DBL            **Y3p);
+                      FLT_OR_DBL            **Y3p,
+                      constraints_helper    *constraints);
 
 
 PRIVATE void
@@ -255,6 +257,7 @@ multistrand_contrib(vrna_fold_compound_t  *fc,
                     int                   l,
                     FLT_OR_DBL            *Y5,
                     FLT_OR_DBL            **Y3,
+                    constraints_helper    *constraints,
                     FLT_OR_DBL            *Qmax,
                     int                   *ov);
 
@@ -783,12 +786,13 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                       constraints);
 
       if (vc->strands > 1) {
-        multistrand_update_Y5(vc, l, Y5, Y5p);
-        multistrand_update_Y3(vc, l, Y3, Y3p);
+        multistrand_update_Y5(vc, l, Y5, Y5p, constraints);
+        multistrand_update_Y3(vc, l, Y3, Y3p, constraints);
         multistrand_contrib(vc,
                             l,
                             Y5,
                             Y3,
+                            constraints,
                             &Qmax,
                             &ov);
       }
@@ -2240,14 +2244,18 @@ PRIVATE void
 multistrand_update_Y5(vrna_fold_compound_t  *fc,
                       int                   l,
                       FLT_OR_DBL            *Y5,
-                      FLT_OR_DBL            **Y5p)
+                      FLT_OR_DBL            **Y5p,
+                      constraints_helper    *constraints)
 {
   short             *S, *S1;
   unsigned int      i, s, *se, *sn, type, n, end;
   int               *my_iindx;
-  FLT_OR_DBL        *probs, *q, *scale;
+  FLT_OR_DBL        *probs, *q, *scale, qtmp;
   vrna_md_t         *md;
   vrna_exp_param_t  *pf_params;
+  struct sc_ext_exp_dat   *sc_wrapper;
+  sc_ext_exp_cb           sc_red_stem;
+  sc_ext_exp_split        sc_split;
 
   n         = fc->length;
   sn        = fc->strand_number;
@@ -2260,6 +2268,9 @@ multistrand_update_Y5(vrna_fold_compound_t  *fc,
   md        = &(pf_params->model_details);
   S         = fc->sequence_encoding2;
   S1        = fc->sequence_encoding;
+  sc_wrapper  = &(constraints->sc_wrapper_ext);
+  sc_red_stem = sc_wrapper->red_stem;
+  sc_split    = sc_wrapper->split;
 
   /* compute Y5 for all strands */
   for (s = 0; s < fc->strands; s++) {
@@ -2276,45 +2287,68 @@ multistrand_update_Y5(vrna_fold_compound_t  *fc,
       Y5p[s][j] = 0.;
 
       if (probs[my_iindx[end] - j] > 0) {
-        type      = vrna_get_ptype_md(S[j], S[end], md);
-        Y5p[s][j] += probs[my_iindx[end] - j] *
-                     vrna_exp_E_ext_stem(type,
-                                         S1[j - 1],
-                                         -1,
-                                         pf_params) *
-                     scale[2];
+        type  = vrna_get_ptype_md(S[j], S[end], md);
+        qtmp  = probs[my_iindx[end] - j] *
+                vrna_exp_E_ext_stem(type,
+                                    S1[j - 1],
+                                    -1,
+                                    pf_params) *
+                scale[2];
+
+        if (sc_red_stem)
+          qtmp *= sc_red_stem(j, end, j, end, sc_wrapper);
+
+        Y5p[s][j] += qtmp;
       }
 
       for (i = 1; i < end; i++) {
         if ((probs[my_iindx[i] - j] > 0) &&
             (sn[i] == sn[i + 1])) {
-          type      = vrna_get_ptype_md(S[j], S[i], md);
-          Y5p[s][j] += probs[my_iindx[i] - j] *
-                       vrna_exp_E_ext_stem(type,
-                                           S1[j - 1],
-                                           S1[i + 1],
-                                           pf_params) *
-                       q[my_iindx[i + 1] - end] *
-                       scale[2];
+          type  = vrna_get_ptype_md(S[j], S[i], md);
+          qtmp  = probs[my_iindx[i] - j] *
+                  vrna_exp_E_ext_stem(type,
+                  S1[j - 1],
+                  S1[i + 1],
+                  pf_params) *
+                  q[my_iindx[i + 1] - end] *
+                  scale[2];
+
+          if (sc_red_stem)
+            qtmp *= sc_red_stem(j, i, j, i, sc_wrapper);
+          if (sc_split)
+            qtmp *= sc_split(i, end, i + 1, sc_wrapper);
+
+          Y5p[s][j] += qtmp;
         }
       }
 
       if ((probs[my_iindx[i] - j] > 0) &&
           (sn[i] == sn[i + 1])) {
-        type      = vrna_get_ptype_md(S[j], S[i], md);
-        Y5p[s][j] += probs[my_iindx[i] - j] *
-                     vrna_exp_E_ext_stem(type,
-                                         S1[j - 1],
-                                         S1[i + 1],
-                                         pf_params) *
-                     scale[2];
+        type  = vrna_get_ptype_md(S[j], S[i], md);
+        qtmp  = probs[my_iindx[i] - j] *
+                vrna_exp_E_ext_stem(type,
+                                    S1[j - 1],
+                                    S1[i + 1],
+                                    pf_params) *
+                scale[2];
+
+        if (sc_red_stem)
+          qtmp *= sc_red_stem(j, i, j, i, sc_wrapper);
+
+        Y5p[s][j] += qtmp;
       }
 
       /* recompute Y5[s] */
       Y5[s] += Y5p[s][l + 1];
-      for (j = l + 2; j <= n; j++)
-        Y5[s] += q[my_iindx[l + 1] - (j - 1)] *
-                 Y5p[s][j];
+      for (j = l + 2; j <= n; j++) {
+        qtmp = q[my_iindx[l + 1] - (j - 1)] *
+               Y5p[s][j];
+
+        if (sc_split)
+          qtmp *= sc_split(l + 1, j, j, sc_wrapper);
+
+        Y5[s] += qtmp;
+      }
     }
   }
 }
@@ -2324,14 +2358,18 @@ PRIVATE void
 multistrand_update_Y3(vrna_fold_compound_t  *fc,
                       int                   l,
                       FLT_OR_DBL            **Y3,
-                      FLT_OR_DBL            **Y3p)
+                      FLT_OR_DBL            **Y3p,
+                      constraints_helper    *constraints)
 {
   short             *S, *S1;
   unsigned int      i, j, k, s, n, start, type, *ss, *sn;
   int               *my_iindx;
-  FLT_OR_DBL        *q, *probs, *scale;
+  FLT_OR_DBL        *q, *probs, *scale, qtmp;
   vrna_md_t         *md;
   vrna_exp_param_t  *pf_params;
+  struct sc_ext_exp_dat   *sc_wrapper;
+  sc_ext_exp_cb           sc_red_stem;
+  sc_ext_exp_split        sc_split;
 
   n         = fc->length;
   sn        = fc->strand_number;
@@ -2344,6 +2382,9 @@ multistrand_update_Y3(vrna_fold_compound_t  *fc,
   scale     = fc->exp_matrices->scale;
   pf_params = fc->exp_params;
   md        = &(pf_params->model_details);
+  sc_wrapper  = &(constraints->sc_wrapper_ext);
+  sc_red_stem = sc_wrapper->red_stem;
+  sc_split    = sc_wrapper->split;
 
   for (s = 0; s < fc->strands; s++) {
     start = ss[s];
@@ -2353,26 +2394,38 @@ multistrand_update_Y3(vrna_fold_compound_t  *fc,
 
         if (sn[i] == sn[i + 1]) {
           if (probs[my_iindx[i] - start] > 0) {
-            type      = vrna_get_ptype_md(S[start], S[i], md);
-            Y3p[s][i] += probs[my_iindx[i] - start] *
+            type = vrna_get_ptype_md(S[start], S[i], md);
+            qtmp = probs[my_iindx[i] - start] *
                          vrna_exp_E_ext_stem(type,
                                              -1,
                                              S1[i + 1],
                                              pf_params) *
                          scale[2];
+
+            if (sc_red_stem)
+              qtmp *= sc_red_stem(start, i, start, i, sc_wrapper);
+
+            Y3p[s][i] += qtmp;
           }
 
           for (j = start + 1; j <= n; j++) {
             if ((probs[my_iindx[i] - j] > 0) &&
                 (sn[j - 1] == sn[j])) {
-              type      = vrna_get_ptype_md(S[j], S[i], md);
-              Y3p[s][i] += probs[my_iindx[i] - j] *
+              type = vrna_get_ptype_md(S[j], S[i], md);
+              qtmp = probs[my_iindx[i] - j] *
                            vrna_exp_E_ext_stem(type,
                                                S1[j - 1],
                                                S1[i + 1],
                                                pf_params) *
                            q[my_iindx[start] - (j - 1)] *
                            scale[2];
+
+              if (sc_red_stem)
+                qtmp *= sc_red_stem(j, i, j, i, sc_wrapper);
+              if (sc_split)
+                qtmp *= sc_split(start, j, j, sc_wrapper);
+
+              Y3p[s][i] += qtmp;
             }
           }
         }
@@ -2383,9 +2436,15 @@ multistrand_update_Y3(vrna_fold_compound_t  *fc,
 
         if (sn[k - 1] == sn[k]) {
           for (i = 1; i < k - 1; i++) {
-            if (sn[i] == sn[i + 1])
-              Y3[s][k] += q[my_iindx[i + 1] - (k - 1)] *
-                          Y3p[s][i];
+            if (sn[i] == sn[i + 1]) {
+              qtmp = q[my_iindx[i + 1] - (k - 1)] *
+                     Y3p[s][i];
+
+              if (sc_split)
+                qtmp *= sc_split(i, k - 1, i + 1, sc_wrapper);
+
+              Y3[s][k] += qtmp;
+            }
           }
 
           Y3[s][k] += Y3p[s][k - 1];
@@ -2401,15 +2460,19 @@ multistrand_contrib(vrna_fold_compound_t  *fc,
                     int                   l,
                     FLT_OR_DBL            *Y5,
                     FLT_OR_DBL            **Y3,
+                    constraints_helper    *constraints,
                     FLT_OR_DBL            *Qmax,
                     int                   *ov)
 {
   short             *S, *S1, s5, s3;
   unsigned int      k, s, *sn, *se, *ss, end, start, type;
   int               *my_iindx, kl;
-  FLT_OR_DBL        *q, *qb, *probs, tmp;
+  FLT_OR_DBL        *q, *qb, *probs, tmp, qtmp;
   vrna_md_t         *md;
   vrna_exp_param_t  *pf_params;
+  struct sc_ext_exp_dat   *sc_wrapper;
+  sc_ext_exp_cb           sc_red_stem;
+  sc_ext_exp_split        sc_split;
 
   sn        = fc->strand_number;
   ss        = fc->strand_start;
@@ -2422,6 +2485,9 @@ multistrand_contrib(vrna_fold_compound_t  *fc,
   q         = fc->exp_matrices->q;
   qb        = fc->exp_matrices->qb;
   probs     = fc->exp_matrices->probs;
+  sc_wrapper  = &(constraints->sc_wrapper_ext);
+  sc_red_stem = sc_wrapper->red_stem;
+  sc_split    = sc_wrapper->split;
 
   for (k = l - 1; k > 1; k--) {
     kl = my_iindx[k] - l;
@@ -2447,11 +2513,15 @@ multistrand_contrib(vrna_fold_compound_t  *fc,
       type      = vrna_get_ptype_md(S[k], S[l], md);
       s5        = (sn[k - 1] == sn[k]) ? S1[k - 1] : -1;
       s3        = (sn[l] == sn[l + 1]) ? S1[l + 1] : -1;
-      probs[kl] += tmp *
-                   vrna_exp_E_ext_stem(type,
-                                       s5,
-                                       s3,
-                                       pf_params);
+      qtmp      = vrna_exp_E_ext_stem(type,
+                                      s5,
+                                      s3,
+                                      pf_params);
+
+      if (sc_red_stem)
+        qtmp *= sc_red_stem(k, l, k, l, sc_wrapper);
+
+      probs[kl] += tmp * qtmp;
     }
   }
 }

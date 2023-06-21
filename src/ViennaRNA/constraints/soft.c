@@ -106,6 +106,11 @@ PRIVATE void
 prepare_sc_stack_pf(vrna_fold_compound_t *fc);
 
 
+PRIVATE int
+prepare_sc_user_cb(vrna_fold_compound_t *fc,
+                   unsigned int         options);
+
+
 PRIVATE INLINE void
 sc_init_up_storage(vrna_sc_t *sc);
 
@@ -232,14 +237,17 @@ vrna_sc_init_window(vrna_fold_compound_t *fc)
 }
 
 
-PUBLIC void
+PUBLIC int
 vrna_sc_prepare(vrna_fold_compound_t  *fc,
                 unsigned int          options)
 {
+  int ret = 0;
+
   if (fc) {
     if (options & VRNA_OPTION_MFE) {
       prepare_sc_up_mfe(fc, options);
       prepare_sc_bp_mfe(fc, options);
+
     }
 
     if (options & VRNA_OPTION_PF) {
@@ -247,7 +255,11 @@ vrna_sc_prepare(vrna_fold_compound_t  *fc,
       prepare_sc_bp_pf(fc, options);
       prepare_sc_stack_pf(fc);
     }
+
+    ret |= prepare_sc_user_cb(fc, options);
   }
+
+  return ret;
 }
 
 
@@ -257,6 +269,7 @@ vrna_sc_update(vrna_fold_compound_t *fc,
                unsigned int         options)
 {
   unsigned int  n, maxdist;
+  int           ret = 0;
   vrna_sc_t     *sc;
 
   if (fc) {
@@ -292,6 +305,9 @@ vrna_sc_update(vrna_fold_compound_t *fc,
               if (options & VRNA_OPTION_PF)
                 populate_sc_bp_pf(fc, i, maxdist);
             }
+
+            if ((sc->data) && (sc->prepare_data))
+              ret |= sc->prepare_data(fc, sc->data, options, (void *)&i);
 
             return 1;
           }
@@ -595,6 +611,16 @@ vrna_sc_add_data(vrna_fold_compound_t *fc,
                  void                 *data,
                  vrna_auxdata_free_f  free_data)
 {
+  return vrna_sc_add_auxdata(fc, data, NULL, free_data);
+}
+
+
+PUBLIC int
+vrna_sc_add_auxdata(vrna_fold_compound_t    *fc,
+                    void                    *data,
+                    vrna_auxdata_prepare_f  prepare_cb,
+                    vrna_auxdata_free_f     free_cb)
+{
   if ((fc) &&
       (fc->type == VRNA_FC_TYPE_SINGLE)) {
     if (!fc->sc)
@@ -605,8 +631,9 @@ vrna_sc_add_data(vrna_fold_compound_t *fc,
     if (sc->free_data)
       sc->free_data(sc->data);
 
-    sc->data      = data;
-    sc->free_data = free_data;
+    sc->data          = data;
+    sc->free_data     = free_cb;
+    sc->prepare_data  = prepare_cb;
 
     return 1;
   }
@@ -1422,6 +1449,31 @@ prepare_sc_stack_pf(vrna_fold_compound_t *fc)
 }
 
 
+PRIVATE int
+prepare_sc_user_cb(vrna_fold_compound_t *fc,
+                   unsigned int         options)
+{
+  int       ret = 0;
+  vrna_sc_t *sc;
+
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      sc = fc->sc;
+      if ((sc) &&
+          (sc->data) &&
+          (sc->prepare_data) &&
+          (sc->type == VRNA_SC_DEFAULT))
+        ret = sc->prepare_data(fc, sc->data, options, NULL);
+      break;
+
+    default:
+      break;
+  }
+
+  return ret;
+}
+
+
 PRIVATE vrna_sc_t *
 init_sc_default(unsigned int n)
 {
@@ -1472,10 +1524,11 @@ nullify(vrna_sc_t *sc)
     sc->exp_energy_stack  = NULL;
     sc->exp_energy_up     = NULL;
 
-    sc->f         = NULL;
-    sc->exp_f     = NULL;
-    sc->data      = NULL;
-    sc->free_data = NULL;
+    sc->f             = NULL;
+    sc->exp_f         = NULL;
+    sc->data          = NULL;
+    sc->prepare_data  = NULL;
+    sc->free_data     = NULL;
 
     switch (sc->type) {
       case VRNA_SC_DEFAULT:

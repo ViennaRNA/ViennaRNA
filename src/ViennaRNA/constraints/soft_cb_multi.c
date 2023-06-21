@@ -22,11 +22,12 @@
  */
 
 typedef struct {
-  vrna_array(vrna_sc_direct_f)      cbs;
-  vrna_array(vrna_sc_exp_direct_f)  cbs_exp;
-  vrna_array(void *)                data;
-  vrna_array(void *)                data_exp;
-  vrna_array(vrna_auxdata_free_f)   free_data;
+  vrna_array(vrna_sc_direct_f)        cbs;
+  vrna_array(vrna_sc_exp_direct_f)    cbs_exp;
+  vrna_array(void *)                  data;
+  vrna_array(void *)                  data_exp;
+  vrna_array(vrna_auxdata_prepare_f)  prepare_data;
+  vrna_array(vrna_auxdata_free_f)     free_data;
 } sc_cb_container_t;
 
 
@@ -69,6 +70,13 @@ PRIVATE void
 sc_multi_free(void *data);
 
 
+PRIVATE int
+sc_multi_prepare(vrna_fold_compound_t *fc,
+                 void                 *data,
+                 unsigned int         event,
+                 void                 *event_data);
+
+
 PRIVATE INLINE FLT_OR_DBL
 cb_exp_default(vrna_fold_compound_t *fc,
                int                  i,
@@ -84,12 +92,13 @@ cb_exp_default(vrna_fold_compound_t *fc,
  #################################
  */
 PUBLIC size_t
-vrna_sc_multi_cb_add(vrna_fold_compound_t *fc,
-                     vrna_sc_direct_f     cb,
-                     vrna_sc_exp_direct_f cb_exp,
-                     void                 *data,
-                     vrna_auxdata_free_f  free_data,
-                     unsigned int         d)
+vrna_sc_multi_cb_add(vrna_fold_compound_t   *fc,
+                     vrna_sc_direct_f       cb,
+                     vrna_sc_exp_direct_f   cb_exp,
+                     void                   *data,
+                     vrna_auxdata_prepare_f prepare_cb,
+                     vrna_auxdata_free_f    free_cb,
+                     unsigned int           d)
 {
   vrna_sc_t         *sc;
   sc_cb_container_t *data_multi;
@@ -111,7 +120,7 @@ vrna_sc_multi_cb_add(vrna_fold_compound_t *fc,
       memset(&(multi_s->data[0]), 0, sizeof(sc_cb_container_t) * VRNA_DECOMP_TYPES_MAX);
       multi_s->fc = fc;
 
-      vrna_sc_add_data(fc, multi_s, &sc_multi_free);
+      vrna_sc_add_auxdata(fc, multi_s, &sc_multi_prepare, &sc_multi_free);
       vrna_sc_add_f(fc, &sc_collect);
       vrna_sc_add_exp_f(fc, &sc_exp_collect);
     } else {
@@ -124,13 +133,15 @@ vrna_sc_multi_cb_add(vrna_fold_compound_t *fc,
         vrna_array_init(multi_s->data[d].cbs_exp);
         vrna_array_init(multi_s->data[d].data);
         vrna_array_init(multi_s->data[d].data_exp);
+        vrna_array_init(multi_s->data[d].prepare_data);
         vrna_array_init(multi_s->data[d].free_data);
       }
 
       data_multi = &(multi_s->data[d]);
       vrna_array_append(data_multi->cbs, cb);
       vrna_array_append(data_multi->data, data);
-      vrna_array_append(data_multi->free_data, free_data);
+      vrna_array_append(data_multi->prepare_data, prepare_cb);
+      vrna_array_append(data_multi->free_data, free_cb);
 
       if (cb_exp) {
         vrna_array_append(data_multi->cbs_exp, cb_exp);
@@ -241,15 +252,47 @@ sc_multi_free(void *data)
           if (msc->data[d].cbs_exp[c] == &cb_exp_default)
             free(msc->data[d].data_exp[c]);
 
-        /* release memory of callback-, data-, free_data-arrays for current loop type */
+        /* release memory of callback-, data-, prepare_data-, free_data-arrays for current loop type */
         vrna_array_free(msc->data[d].cbs);
         vrna_array_free(msc->data[d].cbs_exp);
         vrna_array_free(msc->data[d].data);
         vrna_array_free(msc->data[d].data_exp);
+        vrna_array_free(msc->data[d].prepare_data);
         vrna_array_free(msc->data[d].free_data);
       }
     }
 
     free(msc);
   }
+}
+
+
+/* This function simply propagates the preparation event through to
+ * all user-defined constraint callbacks
+ */
+PRIVATE int
+sc_multi_prepare(vrna_fold_compound_t *fc,
+                 void                 *data,
+                 unsigned int         event,
+                 void                 *event_data)
+{
+  int ret = 0;
+
+  if (data) {
+    sc_multi_s *msc = (sc_multi_s *)data;
+
+    /* go through all distinguished loop types */
+    for (unsigned char d = 1; d < VRNA_DECOMP_TYPES_MAX; d++) {
+      if (msc->data[d].cbs) {
+        for (size_t c = 0; c < vrna_array_size(msc->data[d].data); c++)
+          if (msc->data[d].prepare_data[c])
+            ret |= msc->data[d].prepare_data[c](fc,
+                                                msc->data[d].data[c],
+                                                event,
+                                                event_data);
+      }
+    }
+  }
+
+  return ret;
 }

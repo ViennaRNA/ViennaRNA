@@ -331,10 +331,6 @@ DEPRECATED(typedef unsigned char (vrna_callback_hc_evaluate)(int i,
                                                               VRNA_CONSTRAINT_CONTEXT_ENCLOSED_LOOPS)
 
 
-#define VRNA_CONSTRAINT_WINDOW_UPDATE_5       1U
-
-#define VRNA_CONSTRAINT_WINDOW_UPDATE_3       2U
-
 /**
  *  @brief  The hard constraints type
  *

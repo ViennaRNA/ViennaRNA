@@ -1,5 +1,4 @@
 [![GitHub release](https://img.shields.io/github/release/ViennaRNA/ViennaRNA.svg)](https://www.tbi.univie.ac.at/RNA/#download)
-[![Commits since last version](https://img.shields.io/github/commits-since/ViennaRNA/ViennaRNA/v2.6.0)](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...v2.6.1)
 [![Build Status](https://github.com/ViennaRNA/ViennaRNA/actions/workflows/release.yaml/badge.svg)](https://github.com/ViennaRNA/ViennaRNA/actions)
 [![Github All Releases](https://img.shields.io/github/downloads/ViennaRNA/ViennaRNA/total.svg)](https://github.com/ViennaRNA/ViennaRNA/releases)
 [![Conda](https://img.shields.io/conda/v/bioconda/viennarna.svg)](https://anaconda.org/bioconda/viennarna)
@@ -23,9 +22,8 @@ Amongst other things, our implementations allow you to:
 - compare two secondary structures 
 - predict interactions between multiple RNA molecules
 
-The package includes `Perl 5`, `Python 2`, and `Python 3` modules that give
-access to almost all functions of the C library from within the respective
-scripting languages.
+The package includes `Perl 5` and `Python` modules that give access to almost
+all functions of the C library from within the respective scripting languages.
 
 There is also a set of programs for analyzing sequence and distance
 data using split decomposition, statistical geometry, and cluster methods.
@@ -72,8 +70,8 @@ and installation process.*
 
 Usually you'll simply unpack the distribution tarball, configure and make:
 ```
-tar -zxvf ViennaRNA-2.6.1.tar.gz
-cd ViennaRNA-2.6.1
+tar -zxvf ViennaRNA-2.6.2.tar.gz
+cd ViennaRNA-2.6.2
 ./configure
 make
 sudo make install
@@ -124,6 +122,9 @@ cd ..
     - `yacc`, `flex` and `flex-devel` (to generate sources for RNAforester)
     - `vim-common` (for the `xxd` program)
     - `swig` (to generate the scripting language interfaces)
+    - `liblapacke` (for `RNAxplorer`)
+    - `liblapack`  (for `RNAxplorer`)
+    - A fortran compiler, e.g. `gcc-gfortran` (for `RNAxplorer`)
 
 4. Finally, run the autoconf/automake toolchain:
 ```
@@ -177,15 +178,25 @@ trees and Arhenius rates to compute various kinetic aspects. Compilation and
 installation of this program is activated by default. Use the
 `--without-rnalocmin` option to disable building and installation of RNAlocmin.
 
+#### RNAxplorer
+The `RNAxplorer` is a multitool, that offers different methods to explore RNA
+energy landscapes. In default mode it takes an RNA sequence as input and produces
+a sample of RNA secondary structures. The repellant sampling heuristic used in
+default mode iteratively penalizes base pairs of local minima of structures that
+have been seen too often. This results in a diverse sample set with the most
+important low free energy structures.
+Compilation and installation of this program is activated by default. Note, that
+this tool depends on the `LAPACK` librery. Use the `--without-rnaxplorer`
+option to disable building and installation of `RNAxplorer`.
+
 #### Scripting Interfaces
 The ViennaRNA Package comes with scripting language interfaces for `Perl 5`,
-`Python 2`, and `Python 3` (provided by `swig`), that allow one to use the
-implemented algorithms directly without the need of calling an executable
-program. The necessary requirements are determined at configure time and
-particular languages may be deactivated automatically, if the requirements are
-not met. Building the Python 2 interface is deactivated by default since
-Python 2 reached its end-of-life on January 1st, 2020. If for any reason you
-still want to build that interface, you may use the `--with-python2` configure
+`Python` (provided by `swig`), that allow one to use the implemented algorithms
+directly without the need of calling an executable program. The necessary
+requirements are determined at configure time and particular languages may be
+deactivated automatically, Building the Python 2 interface is deactivated by
+default since it reached its end-of-life on January 1st, 2020. If for any reason
+you still want to build that interface, you may use the `--with-python2` configure
 option to turn it back on. You may also switch-off particular languages by
 passing the `--without-perl` and/or `--without-python` configure options, e.g.
 ```
@@ -326,10 +337,11 @@ perldoc relplot.pl
 
 Together with this version we also distribute the programs
 
-- `kinfold`,
-- `RNAforester`,
-- `RNAlocmin`, and
-- `kinwalker`
+  * `kinfold`,
+  * `RNAforester`,
+  * `RNAlocmin`,
+  * `RNAxlorer`, and
+  * `kinwalker`
 
 See the README files in the respective sub-directories.
 
@@ -370,13 +382,23 @@ Nucleic Acids Research: 38, pp 280-282.
 For backward compatibility we also provide energy parameters from Turner et al.
 1999 in the file [rna_turner1999.par](misc/rna_turner1999.par).
 
-Additionally, a set of trained RNA energy parameters from Andronescou et al.
-2007, [rna_andronescou2007.par](misc/rna_andronescou2007.par), a set of RNA
+A set of trained RNA energy parameters from Andronescou et al. 2007,
+[rna_andronescou2007.par](misc/rna_andronescou2007.par), a set of RNA
 energy parameters obtained by graft and grow genetic programming from Langdon
 et al. 2018, [rna_langdon2018.par](misc/rna_langdon2018.par), and two sets of
 DNA parameters, [dna_mathews1999.par](misc/dna_mathews1999.par) and
-[dna_mathews2004.par](misc/dna_mathews2004.par), are included in the package as
-well.
+[dna_mathews2004.par](misc/dna_mathews2004.par), are also included.
+
+in addition, since version 2.6.0 several programs received support to predict
+structures for modified bases. The corresponding energy parameters are incomplete
+and mostly restricted to bsae pair stacking. The ViennaRNA package currently
+includes paraneter sets for
+  * [inosine](misc/rna_mod_inosine_parameters.json)
+  * [pseudouridine](misc/rna_mod_pseudouridine_parameters.json)
+  * [m6A](misc/rna_mod_m6A_parameters.json)
+  * [7DA](misc/rna_mod_7DA_parameters.json)
+  * [purine (a.k.a. nebularine)](misc/rna_mod_purine_parameters.json)
+  * [dihydrouridine](misc/rna_mod_dihydrouridine_parameters.json)
 
 ----
 

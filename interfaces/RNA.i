@@ -104,6 +104,8 @@ extern "C" {
 #include  <ViennaRNA/landscape/walk.h>
 
 #include  <ViennaRNA/mm.h>
+
+#include  <ViennaRNA/static/energy_parameter_sets.h>
 }
 
 %}
@@ -257,7 +259,7 @@ namespace std {
 %include data_structures.i
 %include fold_compound.i
 %include dp_matrices.i
-
+%include parameter_sets.i
 
 /**********************************************/
 /* BEGIN interface for data structures        */

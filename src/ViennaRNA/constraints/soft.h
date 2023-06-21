@@ -139,6 +139,7 @@ typedef FLT_OR_DBL (*vrna_sc_exp_direct_f)(vrna_fold_compound_t *fc,
                                            int                  l,
                                            void                 *data);
 
+
 /**
  * @brief Callback to retrieve auxiliary base pairs for soft constraint feature
  *
@@ -265,7 +266,9 @@ struct {
                                *            for pseudo energy contribution functions of the
                                *            generic soft constraints feature
                                */
-  vrna_auxdata_free_f free_data;
+
+  vrna_auxdata_prepare_f  prepare_data;
+  vrna_auxdata_free_f     free_data;
 };
 
 /**
@@ -289,7 +292,7 @@ void
 vrna_sc_init(vrna_fold_compound_t *fc);
 
 
-void
+int
 vrna_sc_prepare(vrna_fold_compound_t  *fc,
                 unsigned int          options);
 
@@ -453,6 +456,13 @@ vrna_sc_add_data(vrna_fold_compound_t *fc,
 
 
 int
+vrna_sc_add_auxdata(vrna_fold_compound_t    *fc,
+                    void                    *data,
+                    vrna_auxdata_prepare_f  prepare_cb,
+                    vrna_auxdata_free_f     free_cb);
+
+
+int
 vrna_sc_add_data_comparative(vrna_fold_compound_t *fc,
                              void                 **data,
                              vrna_auxdata_free_f  *free_data);
@@ -480,12 +490,13 @@ vrna_sc_add_f(vrna_fold_compound_t  *fc,
 
 
 size_t
-vrna_sc_multi_cb_add(vrna_fold_compound_t *fc,
-                     vrna_sc_direct_f     cb,
-                     vrna_sc_exp_direct_f cb_exp,
-                     void                 *data,
-                     vrna_auxdata_free_f  free_data,
-                     unsigned int         decomp_type);
+vrna_sc_multi_cb_add(vrna_fold_compound_t   *fc,
+                     vrna_sc_direct_f       cb,
+                     vrna_sc_exp_direct_f   cb_exp,
+                     void                   *data,
+                     vrna_auxdata_prepare_f prepare_cb,
+                     vrna_auxdata_free_f    free_cb,
+                     unsigned int           decomp_type);
 
 
 int
