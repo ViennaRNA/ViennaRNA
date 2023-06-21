@@ -25,6 +25,8 @@
  */
 typedef struct  vrna_sc_s vrna_sc_t;
 
+#include <stdlib.h>
+
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/constraints/basic.h>
