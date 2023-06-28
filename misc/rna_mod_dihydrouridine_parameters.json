@@ -26,5 +26,23 @@
     "DCAG" : -1.28,
     "DGAC" : -0.71,
     "DUAA" : -0.61
-  }
+  },
+  "stacking_enthalpies" : {
+    "ADUA" : -7.6,
+    "CDGA" : -9.80,
+    "GDCA" : -7.38,
+    "UDAA" : -8.07,
+    "DAAU" : -9.44,
+    "DCAG" : -10.55,
+    "DGAC" : -9.10,
+    "DUAA" : -8.57
+  },
+  "terminal_energies" : {
+    "AD" : 0.26,
+    "DA" : 0.26
+  },
+  "terminal_enthalpies" : {
+    "AD" : 0.44,
+    "DA" : 0.44
+  },
 }
