@@ -41,7 +41,9 @@ pkgpyexecdir = $(py3execdir)/RNA
 pkgpycachedir = $(pkgpyexecdir)/__pycache__
 
 pkgpyexec_LTLIBRARIES = _RNA.la
-pkgpyexec_DATA =  RNA/__init__.py
+pkgpyexec_DATA =  RNA/__init__.py \
+                  RNA/RNA.py \
+                  ViennaRNA/__init__.py
 pkgpycache_DATA = RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
                   RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@
 
@@ -145,7 +147,7 @@ PYDOC_FILES_HTML = doc/build/*
 ## going to be (re)generated                        ##
 ##--------------------------------------------------##
 
-sphinx-doc: $(wildcard $(srcdir)/doc/source/*) RNA/__init__.py RNA/_RNA$(PYTHON3_SO)
+sphinx-doc: $(wildcard $(srcdir)/doc/source/*) RNA/__init__.py RNA/RNA.py RNA/_RNA$(PYTHON3_SO)
 	$(sphinx_verbose)rm -f sphinx-doc && $(SPHINXBUILD) -b html doc/source doc/build >sphinx.log 2>&1 && touch sphinx-doc
 
 
@@ -153,25 +155,23 @@ $(PYDOC_FILES_HTML): sphinx-doc
 
 endif WITH_PYTHON_DOC
 
-# We rename RNA.py to __init__.py so that it can be installed
-# in an "RNA" directory and be treated as a package.
-RNA/__init__.py: $(SWIG_module_name).py
-	$(AM_V_GEN)( test -d RNA || $(MKDIR_P) RNA ) && \
-  cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/__init__.py
+# We copy RNA.py to RNA/RNA.py so that it becomes a module
+# in an "RNA" directory that itself serves as package.
+RNA/RNA.py: $(SWIG_module_name).py
+	$(AM_V_GEN)cp `test -f RNA.py || echo '$(srcdir)/'`RNA.py RNA/RNA.py
 
 # We "import _RNA" first so that if we fail to import the glue library
 # we don't generate a broken .pyc or .pyo.
-RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc: RNA/__init__.py RNA/_RNA$(PYTHON3_SO)
+RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc: RNA/RNA.py RNA/_RNA$(PYTHON3_SO)
 	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -c "import _RNA" ; \
   PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -c "import RNA" )
 
-RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@: RNA/__init__.py RNA/_RNA$(PYTHON3_SO)
+RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@: RNA/RNA.py RNA/_RNA$(PYTHON3_SO)
 	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -O -c "import _RNA" ; \
   PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -O -c "import RNA" )
 
 RNA/_RNA$(PYTHON3_SO): _RNA.la
-	$(AM_V_GEN)( test -d RNA || $(MKDIR_P) RNA ) && \
-  ( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
+	$(AM_V_GEN)( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
   ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) RNA ) && \
   rm -f libtoolconfig.tmp
 
@@ -211,7 +211,7 @@ uninstall-htmlDATA: vrna_htmlpydoc_uninst
 
 CLEANFILES = \
     RNA/_RNA$(PYTHON3_SO) \
-    RNA/__init__.py \
+    RNA/RNA.py \
     RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
     RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@\
     $(srcdir)/*.pyc
@@ -219,7 +219,7 @@ CLEANFILES = \
 all-local:  RNA/_RNA$(PYTHON3_SO)
 
 clean-local:
-	-rm -rf RNA
+	-rm -rf $(CLEANFILES)
 
 # Remove the .la file - RNA.la is never linked against (it's a module)
 # and Python doesn't use libltdl.  Note that the library gets installed by

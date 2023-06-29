@@ -20,3 +20,9 @@ EXTRA_DIST =  packaging/debian \
               README.md \
               CHANGELOG.md
 
+## remove all generated content
+maintainer-clean-local:
+	-rm -rf dist/ ViennaRNA.egg-info
+
+distclean-local:
+	-rm -f pyproject.toml setup.py setup.cfg

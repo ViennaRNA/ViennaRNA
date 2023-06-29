@@ -18,10 +18,20 @@ AC_DEFUN([RNA_ENABLE_SVM],[
     AC_DEFINE([VRNA_WITH_SVM], [1], [Compute z-scores for RNALfold])
     SVM_LIBS="-lstdc++"
     CONFIG_SVM="#define VRNA_WITH_SVM"
+    SETUPCFG_SW_SVM="True"
+    SETUPCFG_SVM_MACRO="svm_macro = VRNA_WITH_SVM"
+    SETUPCFG_SVM_LIBS="svm_libs  = stdc++"
+  ])
+
+  RNA_PACKAGE_IF_DISABLED([svm],[
+    SETUPCFG_SW_SVM="False"
   ])
 
   AC_SUBST(SVM_LIBS)
   AC_SUBST(CONFIG_SVM)
+  AC_SUBST(SETUPCFG_SW_SVM)
+  AC_SUBST(SETUPCFG_SVM_MACRO)
+  AC_SUBST(SETUPCFG_SVM_LIBS)
   AM_CONDITIONAL(VRNA_AM_SWITCH_SVM, test "$with_svm" != "no")
 ])
 
@@ -73,6 +83,9 @@ AC_DEFUN([RNA_ENABLE_GSL],[
         AC_DEFINE([VRNA_WITH_GSL], [1], [Use GNU Scientific Library])
         GSL_LIBS="-lgsl -lgslcblas"
         CONFIG_GSL="#define VRNA_WITH_GSL"
+        SETUPCFG_SW_GSL="True"
+        SETUPCFG_GSL_MACRO="gsl_macro = VRNA_WITH_GSL"
+        SETUPCFG_GSL_LIBS="gsl_libs  = gsl gslcblas"
       ],[
         with_gsl=no
       ])
@@ -90,9 +103,15 @@ You probably need to install the gsl-devel package or similar
     with_gsl=no])
   ])
 
+  RNA_PACKAGE_IF_DISABLED([gsl],[
+    SETUPCFG_SW_GSL="False"
+  ])
 
   AC_SUBST([GSL_LIBS])
   AC_SUBST([CONFIG_GSL])
+  AC_SUBST([SETUPCFG_SW_GSL])
+  AC_SUBST([SETUPCFG_GSL_MACRO])
+  AC_SUBST([SETUPCFG_GSL_LIBS])
   AM_CONDITIONAL(VRNA_AM_SWITCH_GSL, test "x$with_gsl" = "xyes")
 ])
 
@@ -144,6 +163,9 @@ AC_DEFUN([RNA_ENABLE_MPFR], [
           ]])
       ],[
         MPFR_LIBS="-lmpfr -lgmp"
+        SETUPCFG_SW_MPFR="True"
+        SETUPCFG_MPFR_MACRO="mpfr_macro  = VRNA_NR_SAMPLING_MPFR"
+        SETUPCFG_MPFR_LIBS="mpfr_libs   = mpfr gmp"
         AC_DEFINE([VRNA_NR_SAMPLING_MPFR], [1], [Use MPFR for non-redundant sampling data structure operations])
       ],[
         enable_mpfr=no
@@ -162,7 +184,14 @@ You probably need to install the mpfr-devel package or similar
     enable_mpfr=no])
   ])
 
+  RNA_FEATURE_IF_DISABLED([mpfr],[
+    SETUPCFG_SW_MPFR="False"
+  ])
+
   AC_SUBST(MPFR_LIBS)
+  AC_SUBST(SETUPCFG_SW_MPFR)
+  AC_SUBST(SETUPCFG_MPFR_MACRO)
+  AC_SUBST(SETUPCFG_MPFR_LIBS)
   AM_CONDITIONAL(VRNA_AM_SWITCH_MPFR, test "x$enable_mpfr" = "xyes")
 ])
 
@@ -194,11 +223,20 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
         RNA_CXXFLAGS="${RNA_CXXFLAGS} ${OPENMP_CXXFLAGS}"
         LIBGOMPFLAG="$OPENMP_CXXFLAGS"
         CONFIG_OPENMP="#define VRNA_WITH_OPENMP"
+        SETUPCFG_SW_OPENMP="True"
+        SETUPCFG_OPENMP_MACRO="openmp_macro  = VRNA_WITH_OPENMP"
+        SETUPCFG_OPENMP_FLAGS="openmp_cflags = $OPENMP_CXXFLAGS"
       fi
     ])
   ])
 
+  RNA_FEATURE_IF_DISABLED([openmp],[
+    SETUPCFG_SW_OPENMP="False"
+  ])
   AC_SUBST(CONFIG_OPENMP)
+  AC_SUBST(SETUPCFG_SW_OPENMP)
+  AC_SUBST(SETUPCFG_OPENMP_MACRO)
+  AC_SUBST(SETUPCFG_OPENMP_FLAGS)
   AC_SUBST(LIBGOMPFLAG)
   AC_SUBST(OPENMP_CFLAGS)
   AC_SUBST(OPENMP_CXXFLAGS)
@@ -514,8 +552,17 @@ Please consider using the successor option --enable-simd instead.
     CFLAGS="$ac_save_CFLAGS"
   ])
 
+  RNA_FEATURE_IF_ENABLED([simd],[
+    SETUPCFG_SW_SIMD="True"
+  ])
+
+  RNA_FEATURE_IF_DISABLED([simd],[
+    SETUPCFG_SW_SIMD="False"
+  ])
+
   AC_SUBST(SIMD_AVX512_FLAGS)
   AC_SUBST(SIMD_SSE41_FLAGS)
+  AC_SUBST(SETUPCFG_SW_SIMD)
   AM_CONDITIONAL(VRNA_AM_SWITCH_SIMD_AVX512, test "x$ac_simd_capability_avx512f" = "xyes")
   AM_CONDITIONAL(VRNA_AM_SWITCH_SIMD_SSE41, test "x$ac_simd_capability_sse41" = "xyes")
 ])
@@ -551,13 +598,21 @@ AC_DEFUN([RNA_ENABLE_NAVIEW],[
   RNA_FEATURE_IF_ENABLED([naview],[
     AC_DEFINE([VRNA_WITH_NAVIEW_LAYOUT], [1], [Include Naview RNA structure layout algorithm])
     CONFIG_NAVIEW_LAYOUT="#define VRNA_WITH_NAVIEW_LAYOUT"
+    SETUPCFG_SW_NAVIEW="True"
+    SETUPCFG_NAVIEW_MACRO="naview_macro  = VRNA_WITH_NAVIEW_LAYOUT"
     NAVIEW_DIR=plotting/naview
     AX_APPEND_FLAG([-DVRNA_WITH_NAVIEW_LAYOUT], [RNA_CPPFLAGS])
     AC_CONFIG_FILES([src/ViennaRNA/plotting/naview/Makefile])
   ])
 
+  RNA_FEATURE_IF_DISABLED([naview],[
+    SETUPCFG_SW_NAVIEW="False"
+  ])
+
   AC_SUBST(NAVIEW_DIR)
   AC_SUBST(CONFIG_NAVIEW_LAYOUT)
+  AC_SUBST(SETUPCFG_NAVIEW_MACRO)
+  AC_SUBST(SETUPCFG_SW_NAVIEW)
   AM_CONDITIONAL(VRNA_AM_SWITCH_NAVIEW, test "$enable_naview" != "no")
 ])
 

@@ -43,3 +43,7 @@ RNAlib2.pc
 # ignore all postscript files that might be generated
 *.ps
 
+# ignore python setuptools files
+pyproject.toml
+setup.py
+setup.cfg

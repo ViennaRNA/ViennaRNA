@@ -130,6 +130,8 @@ AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
     fi
 
     AC_CONFIG_FILES([interfaces/Python/Makefile interfaces/Python/version.i])
+    AC_CONFIG_FILES([interfaces/Python/RNA/__init__.py])
+    AC_CONFIG_FILES([setup.py setup.cfg pyproject.toml])
   ])
 ])
 

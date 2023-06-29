@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "@PACKAGE_NAME@"
+version = "@PACKAGE_VERSION@"
+description = "A library for the prediction and comparison of RNA secondary structures."
+readme = "README.md"
+authors = [
+  { name = "Ronny Lorenz", email = "ronny@tbi.univie.ac.at" },
+  { name = "Ivo L. Hofacker", email = "ivo@tbi.univie.ac.at" },
+]
+maintainers = [
+  { name = "Ronny Lorenz", email = "rna@tbi.univie.ac.at" },
+]
+requires-python = ">=3.7"
+
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Unix",
+    "Operating System :: MacOS :: MacOS X",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.urls]
+Homepage = "@PACKAGE_URL@"
+Documentation = "https://viennarna-python.readthedocs.io/"
+"Bug Tracker" = "https://github.com/ViennaRNA/ViennaRNA/issues"
+Changelog = "@PACKAGE_URL@/changelog.html"
+
+[tool.setuptools.package-dir]
+RNA = "interfaces/Python/RNA"
+ViennaRNA = "interfaces/Python/ViennaRNA"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q -v"
+testpaths = ["tests/python"]
