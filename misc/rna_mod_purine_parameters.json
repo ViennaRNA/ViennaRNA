@@ -15,34 +15,34 @@
       "U"
     ],
     "one_letter_code" : "9",
-    "fallback" : "A"
-  },
-  "stacking_energies" : {
-    "A9UU" :  0.43,
-    "C9GU" :  -0.76,
-    "G9CU" :  -1.1,
-    "U9AU" :  0.33,
-    "9AUU" :  -0.68,
-    "9CUG" :  -1.98,
-    "9GUC" :  -1.88,
-    "9UUA" :  -0.32
-  },
-  "stacking_enthalpies" : {
-    "A9UU" :  -14,
-    "C9GU" :  -12.4,
-    "G9CU" :  -14.2,
-    "U9AU" :  -8.7,
-    "9AUU" :  -10.4,
-    "9CUG" :  -15.7,
-    "9GUC" :  -14.5,
-    "9UUA" :  -11.9
-  },
-  "terminal_energies" : {
-    "9U" : 0.86,
-    "U9" : 0.86
-  },
-  "terminal_enthalpies" : {
-    "9U" : 2.3,
-    "U9" : 2.3
+    "fallback" : "A",
+    "stacking_energies" : {
+      "A9UU" :  0.43,
+      "C9GU" :  -0.76,
+      "G9CU" :  -1.1,
+      "U9AU" :  0.33,
+      "9AUU" :  -0.68,
+      "9CUG" :  -1.98,
+      "9GUC" :  -1.88,
+      "9UUA" :  -0.32
+    },
+    "stacking_enthalpies" : {
+      "A9UU" :  -14,
+      "C9GU" :  -12.4,
+      "G9CU" :  -14.2,
+      "U9AU" :  -8.7,
+      "9AUU" :  -10.4,
+      "9CUG" :  -15.7,
+      "9GUC" :  -14.5,
+      "9UUA" :  -11.9
+    },
+    "terminal_energies" : {
+      "9U" : 0.86,
+      "U9" : 0.86
+    },
+    "terminal_enthalpies" : {
+      "9U" : 2.3,
+      "U9" : 2.3
+    }
   }
 }

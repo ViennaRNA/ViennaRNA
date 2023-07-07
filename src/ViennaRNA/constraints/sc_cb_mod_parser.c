@@ -135,7 +135,7 @@ vrna_sc_mod_read_from_json(const char *json,
     }
 
     if (dom) {
-      JsonNode *e, *entry;
+      JsonNode *e, *entry, *mod_data;
 
       parameters = (struct vrna_sc_mod_param_s *)vrna_alloc(sizeof(struct vrna_sc_mod_param_s));
 
@@ -146,20 +146,22 @@ vrna_sc_mod_read_from_json(const char *json,
       parameters->pairing_partners[0] = '\0';
       parameters->unmodified          = '\0';
 
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "name")) &&
+      mod_data = json_find_member(dom, "modified_base");
+
+      if ((mod_data) &&
+          (e = json_find_member(mod_data, "name")) &&
           (e->tag == JSON_STRING))
         parameters->name = strdup(e->string_);
 
       /* use one-letter code as specified in json file */
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "one_letter_code")) &&
+      if ((mod_data) &&
+          (e = json_find_member(mod_data, "one_letter_code")) &&
           (e->tag == JSON_STRING) &&
           (strlen(e->string_) == 1))
         parameters->one_letter_code = bases[6] = toupper(e->string_[0]);
 
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "unmodified")) &&
+      if ((mod_data) &&
+          (e = json_find_member(mod_data, "unmodified")) &&
           (e->tag == JSON_STRING) &&
           (strlen(e->string_) == 1) &&
           (ptr = strchr(bases, e->string_[0]))) {
@@ -171,8 +173,8 @@ vrna_sc_mod_read_from_json(const char *json,
         parameters->unmodified_encoding = enc;
       }
 
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "fallback")) &&
+      if ((mod_data) &&
+          (e = json_find_member(mod_data, "fallback")) &&
           (e->tag == JSON_STRING) &&
           (strlen(e->string_) == 1) &&
           (ptr = strchr(bases, e->string_[0]))) {
@@ -186,8 +188,8 @@ vrna_sc_mod_read_from_json(const char *json,
 
       size_t cnt = 0;
 
-      if ((e = json_find_member(dom, "modified_base")) &&
-          (e = json_find_member(e, "pairing_partners")) &&
+      if ((mod_data) &&
+          (e = json_find_member(mod_data, "pairing_partners")) &&
           (e->tag == JSON_ARRAY)) {
         json_foreach(entry, e) {
           if ((entry->tag == JSON_STRING) &&
@@ -283,7 +285,7 @@ parse_stacks(JsonNode   *dom,
   unsigned int  enc[5] = {
     0, 0, 0, 0, 0
   };
-  JsonNode      *entry, *e;
+  JsonNode      *entry, *e, *mod_data;
 
   /* go through storage and initialize */
   for (size_t i = 0; i < MAX_PAIRS; i++)
@@ -291,7 +293,10 @@ parse_stacks(JsonNode   *dom,
       for (size_t l = 0; l < MAX_ALPHABET; l++)
         (*storage)[i][k][l] = INF;
 
-  if ((e = json_find_member(dom, identifier)) &&
+  if (!(mod_data = json_find_member(dom, "modified_base")))
+    mod_data = dom;
+
+  if ((e = json_find_member(mod_data, identifier)) &&
       (e->tag == JSON_OBJECT)) {
     json_foreach(entry, e) {
       if ((entry->key) &&
@@ -343,7 +348,7 @@ parse_mismatch(JsonNode   *dom,
   unsigned int  enc[5] = {
     0, 0, 0, 0, 0
   };
-  JsonNode      *entry, *e;
+  JsonNode      *entry, *e, *mod_data;
 
   /* go through storage and initialize */
   for (size_t i = 0; i < MAX_PAIRS; i++)
@@ -351,7 +356,10 @@ parse_mismatch(JsonNode   *dom,
       for (size_t l = 0; l < MAX_ALPHABET; l++)
         (*storage)[i][k][l] = INF;
 
-  if ((e = json_find_member(dom, identifier)) &&
+  if (!(mod_data = json_find_member(dom, "modified_base")))
+    mod_data = dom;
+
+  if ((e = json_find_member(mod_data, identifier)) &&
       (e->tag == JSON_OBJECT)) {
     json_foreach(entry, e) {
       if ((entry->key) &&
@@ -404,14 +412,17 @@ parse_dangles(JsonNode    *dom,
   unsigned int  enc[5] = {
     0, 0, 0, 0, 0
   };
-  JsonNode      *entry, *e;
+  JsonNode      *entry, *e, *mod_data;
 
   /* go through storage and initialize */
   for (size_t i = 0; i < MAX_PAIRS; i++)
     for (size_t k = 0; k < MAX_ALPHABET; k++)
       (*storage)[i][k] = INF;
 
-  if ((e = json_find_member(dom, identifier)) &&
+  if (!(mod_data = json_find_member(dom, "modified_base")))
+    mod_data = dom;
+
+  if ((e = json_find_member(mod_data, identifier)) &&
       (e->tag == JSON_OBJECT)) {
     json_foreach(entry, e) {
       if ((entry->key) &&
@@ -461,13 +472,16 @@ parse_terminal(JsonNode   *dom,
   unsigned int  enc[5] = {
     0, 0, 0, 0, 0
   };
-  JsonNode      *entry, *e;
+  JsonNode      *entry, *e, *mod_data;
 
   /* go through storage and initialize */
   for (size_t i = 0; i < MAX_PAIRS; i++)
     (*storage)[i] = INF;
 
-  if ((e = json_find_member(dom, identifier)) &&
+  if (!(mod_data = json_find_member(dom, "modified_base")))
+    mod_data = dom;
+
+  if ((e = json_find_member(mod_data, identifier)) &&
       (e->tag == JSON_OBJECT)) {
     json_foreach(entry, e) {
       if ((entry->key) &&

@@ -22,200 +22,200 @@
       "U", "C"
     ],
     "one_letter_code" : "I",
-    "fallback": "G"
-  },
-  "stacking_energies" : {
-    "IUUI" : 3.58,
-    "IIUU" : 2.66,
-    "UIIU" : 2.23,
-    "IAUU" : 0.43,
-    "UIAU" : 0.37,
-    "AIUU" : -0.41,
-    "IUUA" : -0.5,
-    "CIGU" : -0.77,
-    "ICUG" : -1.03,
-    "IGUC" : -1.22,
-    "GICU" : -1.34,
-    "IGCC" : -2.23,
-    "ICCG" : -1.89,
-    "IACU" : -1.18,
-    "IUCA" : -1.02,
-    "GICC" : -2.62,
-    "CIGC" : -1.86,
-    "AIUC" : -1.57,
-    "UIAC" : -0.96
-  },
-  "stacking_enthalpies" : {
-    "IUUI" : 17.0,
-    "IIUU" : 9.53,
-    "UIIU" : 8.41,
-    "IAUU" : -8.22,
-    "UIAU" : -10.08,
-    "AIUU" : -11.68,
-    "IUUA" : -15.83,
-    "CIGU" : -11.99,
-    "ICUG" : -11.56,
-    "IGUC" : -13.38,
-    "GICU" : -9.81,
-    "IGCC" : -14.5,
-    "ICCG" : -10.6,
-    "IACU" : -15.3,
-    "IUCA" : -7.7,
-    "GICC" : -16.8,
-    "CIGC" : -12.7,
-    "AIUC" : -14.2,
-    "UIAC" : -11.8
-  },
-  "terminal_energies" : {
-    "IU" : -1.33,
-    "UI" : -1.33,
-    "IC" : -0.08,
-    "CI" : -0.08
-  },
-  "terminal_enthalpies" : {
-    "IU" : -0.08,
-    "UI" : -0.08,
-    "IC" : 2.0,
-    "CI" : 2.0
-  },
-  "duplexes" : {
-    "GCAICGCCGUCGCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -10.75,
-      "dG37_p"  : -10.68
+    "fallback": "G",
+    "stacking_energies" : {
+      "IUUI" : 3.58,
+      "IIUU" : 2.66,
+      "UIIU" : 2.23,
+      "IAUU" : 0.43,
+      "UIAU" : 0.37,
+      "AIUU" : -0.41,
+      "IUUA" : -0.5,
+      "CIGU" : -0.77,
+      "ICUG" : -1.03,
+      "IGUC" : -1.22,
+      "GICU" : -1.34,
+      "IGCC" : -2.23,
+      "ICCG" : -1.89,
+      "IACU" : -1.18,
+      "IUCA" : -1.02,
+      "GICC" : -2.62,
+      "CIGC" : -1.86,
+      "AIUC" : -1.57,
+      "UIAC" : -0.96
     },
-    "GCAIGGCCGUCCCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -11.42,
-      "dG37_p"  : -11.92
+    "stacking_enthalpies" : {
+      "IUUI" : 17.0,
+      "IIUU" : 9.53,
+      "UIIU" : 8.41,
+      "IAUU" : -8.22,
+      "UIAU" : -10.08,
+      "AIUU" : -11.68,
+      "IUUA" : -15.83,
+      "CIGU" : -11.99,
+      "ICUG" : -11.56,
+      "IGUC" : -13.38,
+      "GICU" : -9.81,
+      "IGCC" : -14.5,
+      "ICCG" : -10.6,
+      "IACU" : -15.3,
+      "IUCA" : -7.7,
+      "GICC" : -16.8,
+      "CIGC" : -12.7,
+      "AIUC" : -14.2,
+      "UIAC" : -11.8
     },
-    "GCAIUGCCGUCACG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -8.71,
-      "dG37_p"  : -9.56
+    "terminal_energies" : {
+      "IU" : -1.33,
+      "UI" : -1.33,
+      "IC" : -0.08,
+      "CI" : -0.08
     },
-    "GCCIAGCCGGCUCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -11.10,
-      "dG37_p"  : -11.13
+    "terminal_enthalpies" : {
+      "IU" : -0.08,
+      "UI" : -0.08,
+      "IC" : 2.0,
+      "CI" : 2.0
     },
-    "GCCICGCCGGCGCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -12.75,
-      "dG37_p"  : -12.12
-    },
-    "GCCIGGCCGGCCCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -14.11,
-      "dG37_p"  : -13.36
-    },
-    "GCCIUGCCGGCACG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -11.11,
-      "dG37_p"  : -11.00
-    },
-    "GCGIAGCCGCCUCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -11.12,
-      "dG37_p"  : -10.99
-    },
-    "GCGICGCCGCCGCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -11.40,
-      "dG37_p"  : -11.98
-    },
-    "GCGIGGCCGCCCCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -13.75,
-      "dG37_p"  : -13.22
-    },
-    "GCGIUGCCGCCACG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -10.65,
-      "dG37_p"  : -10.86
-    },
-    "GCUIAGCCGACUCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -8.97,
-      "dG37_p"  : -9.05
-    },
-    "GCUICGCCGACGCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -10.81,
-      "dG37_p"  : -10.04
-    },
-    "GCUIGGCCGACCCG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -11.33,
-      "dG37_p"  : -11.28
-    },
-    "GCUIUGCCGACACG" : {
-      "length1" : 7,
-      "length2" : 7,
-      "dG37"    : -8.11,
-      "dG37_p"  : -8.92
-    },
-    "GCGCAICGCGUC" : {
-      "length1" : 6,
-      "length2" : 6,
-      "dG37"    : -10.14,
-      "dG37_p"  : -8.87
-    },
-    "GCGCCICGCGGC" : {
-      "length1" : 6,
-      "length2" : 6,
-      "dG37"    : -10.34,
-      "dG37_p"  : -10.31
-    },
-    "GCGCGICGCGCC" : {
-      "length1" : 6,
-      "length2" : 6,
-      "dG37"    : -10.28,
-      "dG37_p"  : -10.17
-    },
-    "GCGCUICGCGAC" : {
-      "length1" : 6,
-      "length2" : 6,
-      "dG37"    : -8.28,
-      "dG37_p"  : -8.23
-    },
-    "IAGCGCCUCGCG" : {
-      "length1" : 6,
-      "length2" : 6,
-      "dG37"    : -8.42,
-      "dG37_p"  : -8.45
-    },
-    "ICGCGCCGCGCG" : {
-      "length1" : 6,
-      "length2" : 6,
-      "dG37"    : -9.10,
-      "dG37_p"  : -9.44
-    },
-    "IGGCGCCCCGCG" : {
-      "length1" : 6,
-      "length2" : 6,
-      "dG37"    : -9.82,
-      "dG37_p"  : -10.68
-    },
-    "IUGCGCCACGCG" : {
-      "length1" : 6,
-      "length2" : 6,
-      "dG37"    : -10.07,
-      "dG37_p"  : -8.32
+    "duplexes" : {
+      "GCAICGCCGUCGCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -10.75,
+        "dG37_p"  : -10.68
+      },
+      "GCAIGGCCGUCCCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -11.42,
+        "dG37_p"  : -11.92
+      },
+      "GCAIUGCCGUCACG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -8.71,
+        "dG37_p"  : -9.56
+      },
+      "GCCIAGCCGGCUCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -11.10,
+        "dG37_p"  : -11.13
+      },
+      "GCCICGCCGGCGCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -12.75,
+        "dG37_p"  : -12.12
+      },
+      "GCCIGGCCGGCCCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -14.11,
+        "dG37_p"  : -13.36
+      },
+      "GCCIUGCCGGCACG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -11.11,
+        "dG37_p"  : -11.00
+      },
+      "GCGIAGCCGCCUCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -11.12,
+        "dG37_p"  : -10.99
+      },
+      "GCGICGCCGCCGCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -11.40,
+        "dG37_p"  : -11.98
+      },
+      "GCGIGGCCGCCCCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -13.75,
+        "dG37_p"  : -13.22
+      },
+      "GCGIUGCCGCCACG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -10.65,
+        "dG37_p"  : -10.86
+      },
+      "GCUIAGCCGACUCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -8.97,
+        "dG37_p"  : -9.05
+      },
+      "GCUICGCCGACGCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -10.81,
+        "dG37_p"  : -10.04
+      },
+      "GCUIGGCCGACCCG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -11.33,
+        "dG37_p"  : -11.28
+      },
+      "GCUIUGCCGACACG" : {
+        "length1" : 7,
+        "length2" : 7,
+        "dG37"    : -8.11,
+        "dG37_p"  : -8.92
+      },
+      "GCGCAICGCGUC" : {
+        "length1" : 6,
+        "length2" : 6,
+        "dG37"    : -10.14,
+        "dG37_p"  : -8.87
+      },
+      "GCGCCICGCGGC" : {
+        "length1" : 6,
+        "length2" : 6,
+        "dG37"    : -10.34,
+        "dG37_p"  : -10.31
+      },
+      "GCGCGICGCGCC" : {
+        "length1" : 6,
+        "length2" : 6,
+        "dG37"    : -10.28,
+        "dG37_p"  : -10.17
+      },
+      "GCGCUICGCGAC" : {
+        "length1" : 6,
+        "length2" : 6,
+        "dG37"    : -8.28,
+        "dG37_p"  : -8.23
+      },
+      "IAGCGCCUCGCG" : {
+        "length1" : 6,
+        "length2" : 6,
+        "dG37"    : -8.42,
+        "dG37_p"  : -8.45
+      },
+      "ICGCGCCGCGCG" : {
+        "length1" : 6,
+        "length2" : 6,
+        "dG37"    : -9.10,
+        "dG37_p"  : -9.44
+      },
+      "IGGCGCCCCGCG" : {
+        "length1" : 6,
+        "length2" : 6,
+        "dG37"    : -9.82,
+        "dG37_p"  : -10.68
+      },
+      "IUGCGCCACGCG" : {
+        "length1" : 6,
+        "length2" : 6,
+        "dG37"    : -10.07,
+        "dG37_p"  : -8.32
+      }
     }
   }
 }

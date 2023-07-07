@@ -15,40 +15,40 @@
       "U","A"
     ],
     "one_letter_code" : "M",
-    "fallback" : "G"
-  },
-  "stacking_energies" : {
-    "MAUU" :  -1.2,
-    "AGMC" :  -2.73
-  },
-  "stacking_enthalpies" : {
-    "MAUU" :  -11.1,
-    "AGMC" :  -9.73
-  },
-  "terminal_energies" : {
-    "MU" : 0.5,
-    "UM" : 0.5
-  },
-  "terminal_enthalpies" : {
-    "MU" : 2.0,
-    "UM" : 2.0
-  },
-  "mismatch_energies" : {
-    "CMGM" : -1.11,
-    "AGUM" : -0.73
-  },
-  "mismatch_enthalpies" : {
-    "CMGM" : -11.11,
-    "AGUM" : -7.73
-  },
-  "dangle5_energies" : {
-    "UAM" : -1.01
-  },
-  "dangle5_enthalpies" : {
-    "UAM" : -6.01
-  },
-  "dangle3_energies" : {
-    "CGM" : -2.1,
-    "GCM" : -1.3
+    "fallback" : "G",
+    "stacking_energies" : {
+      "MAUU" :  -1.2,
+      "AGMC" :  -2.73
+    },
+    "stacking_enthalpies" : {
+      "MAUU" :  -11.1,
+      "AGMC" :  -9.73
+    },
+    "terminal_energies" : {
+      "MU" : 0.5,
+      "UM" : 0.5
+    },
+    "terminal_enthalpies" : {
+      "MU" : 2.0,
+      "UM" : 2.0
+    },
+    "mismatch_energies" : {
+      "CMGM" : -1.11,
+      "AGUM" : -0.73
+    },
+    "mismatch_enthalpies" : {
+      "CMGM" : -11.11,
+      "AGUM" : -7.73
+    },
+    "dangle5_energies" : {
+      "UAM" : -1.01
+    },
+    "dangle5_enthalpies" : {
+      "UAM" : -6.01
+    },
+    "dangle3_energies" : {
+      "CGM" : -2.1,
+      "GCM" : -1.3
+    }
   }
 }

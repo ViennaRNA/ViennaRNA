@@ -15,34 +15,34 @@
       "A"
     ],
     "one_letter_code" : "D",
-    "fallback" : "U"
-  },
-  "stacking_energies" : {
-    "ADUA" : -0.62,
-    "CDGA" : -2.03,
-    "GDCA" : -1.00,
-    "UDAA" : -0.54,
-    "DAAU" : -0.49,
-    "DCAG" : -1.28,
-    "DGAC" : -0.71,
-    "DUAA" : -0.61
-  },
-  "stacking_enthalpies" : {
-    "ADUA" : -7.6,
-    "CDGA" : -9.80,
-    "GDCA" : -7.38,
-    "UDAA" : -8.07,
-    "DAAU" : -9.44,
-    "DCAG" : -10.55,
-    "DGAC" : -9.10,
-    "DUAA" : -8.57
-  },
-  "terminal_energies" : {
-    "AD" : 0.26,
-    "DA" : 0.26
-  },
-  "terminal_enthalpies" : {
-    "AD" : 0.44,
-    "DA" : 0.44
-  },
+    "fallback" : "U",
+    "stacking_energies" : {
+      "ADUA" : -0.62,
+      "CDGA" : -2.03,
+      "GDCA" : -1.00,
+      "UDAA" : -0.54,
+      "DAAU" : -0.49,
+      "DCAG" : -1.28,
+      "DGAC" : -0.71,
+      "DUAA" : -0.61
+    },
+    "stacking_enthalpies" : {
+      "ADUA" : -7.6,
+      "CDGA" : -9.80,
+      "GDCA" : -7.38,
+      "UDAA" : -8.07,
+      "DAAU" : -9.44,
+      "DCAG" : -10.55,
+      "DGAC" : -9.10,
+      "DUAA" : -8.57
+    },
+    "terminal_energies" : {
+      "AD" : 0.26,
+      "DA" : 0.26
+    },
+    "terminal_enthalpies" : {
+      "AD" : 0.44,
+      "DA" : 0.44
+    }
+  }
 }
