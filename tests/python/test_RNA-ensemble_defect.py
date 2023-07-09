@@ -1,11 +1,7 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
-
 import RNA
 import unittest
-from py_include import taprunner
 
 
 seq          = "AGGAAACCUUAAUUGGUUA"
@@ -52,4 +48,6 @@ class ensemble_defectTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())

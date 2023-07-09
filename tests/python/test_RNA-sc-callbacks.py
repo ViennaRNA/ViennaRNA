@@ -1,18 +1,13 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
 import RNA
 import unittest
-from py_include import taprunner
 
 seq1 = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCC"
 struct1 = ".(((..((.((((((((((....).)))).)).))))).)))(((....))).."
 seq2 = "GGGGAAAACCCC"
 struct2 = "((((....))))"
 struct3 = "(((((..)))))"
-
-RNA.cvar.dangles=0
 
 c = { 'what' : "theheck" }
 
@@ -123,10 +118,12 @@ class mfe_eval_functionTest(unittest.TestCase):
 
     def test_maximum_matching(self):
         """Revert MFE to MaximumMatching"""
-        mm_data = { 'fc': RNA.fold_compound(seq1),
-                    'params': RNA.param()
+        md = RNA.md(dangles=0)
+
+        mm_data = { 'fc': RNA.fold_compound(seq1, md),
+                    'params': RNA.param(md)
                   }
-        fc = RNA.fold_compound(seq1)
+        fc = RNA.fold_compound(seq1, md)
         fc.sc_add_data(mm_data, None)
         fc.sc_add_f(MaximumMatching)
         (s, mm) = fc.mfe()
@@ -134,10 +131,10 @@ class mfe_eval_functionTest(unittest.TestCase):
         self.assertEqual(s, struct1)
         self.assertTrue(-mm == 18)
 
-        mm_data = { 'fc': RNA.fold_compound(seq2),
-                    'params': RNA.param()
+        mm_data = { 'fc': RNA.fold_compound(seq2, md),
+                    'params': RNA.param(md)
                   }
-        fc = RNA.fold_compound(seq2)
+        fc = RNA.fold_compound(seq2, md)
         fc.sc_add_data(mm_data, None)
         fc.sc_add_f(MaximumMatching)
         (s, mm) = fc.mfe()
@@ -174,4 +171,6 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())

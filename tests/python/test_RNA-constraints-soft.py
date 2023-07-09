@@ -1,18 +1,13 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
 import RNA
 import unittest
-from py_include import taprunner
 
 seq_con     = "CCCAAAAGGGCCCAAAAGGG"
 short_seq   = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUA"
 seq_long    = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUC"
 str_con     = "..........(((....)))"
 str_con_def = "(((....)))(((....)))"
-
-datadir = RNApath.getDataDirPath()
 
 def mfe_window_callback(start, end, structure, energy, data=None):
     data.append({ 'structure': structure, 'start': start, 'end' : end, 'energy' : energy})
@@ -171,4 +166,6 @@ class constraintsMFEWindowTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())

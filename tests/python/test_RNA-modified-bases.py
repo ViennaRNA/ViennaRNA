@@ -1,11 +1,7 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
-
 import RNA
 import unittest
-from py_include import taprunner
 from struct import *
 import locale
 import json
@@ -62,5 +58,7 @@ class ModifiedBaseTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())
 

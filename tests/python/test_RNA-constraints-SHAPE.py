@@ -1,16 +1,11 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
 import RNA
 import unittest
-from py_include import taprunner
 
 seq_con     = "CCCAAAAGGGCCCAAAAGGG"
 str_con     = "..........(((....)))"
 str_con_def = "(((....)))(((....)))"
-
-datadir = RNApath.getDataDirPath()
 
 def getShapeDataFromFile(filepath):
     retVec = []
@@ -42,11 +37,12 @@ def getShapeSequenceFromFile(filepath):
     return lines[0]
 
 class constraintsTest(unittest.TestCase):
+    DATADIR = "tests/data"
 
     def test_sc_add_deigan(self):
         """SHAPE data Deigan et al. 2009 method - Lysine riboswitch"""
-        seq          = getShapeSequenceFromFile(datadir + "Lysine_riboswitch_T._martima.db")
-        reactivities = getShapeDataFromFile(datadir + "Lysine_riboswitch_T._martima.shape_2rows")
+        seq          = getShapeSequenceFromFile(self.DATADIR + "/Lysine_riboswitch_T._martima.db")
+        reactivities = getShapeDataFromFile(self.DATADIR + "/Lysine_riboswitch_T._martima.shape_2rows")
 
         fc=RNA.fold_compound(seq)
         print(reactivities)
@@ -59,8 +55,8 @@ class constraintsTest(unittest.TestCase):
 
     def test_sc_add_SHAPE_deigan2(self):
         """SHAPE data Deigan et al. 2009 method - TPP riboswitch"""
-        seq_ribo     = getShapeSequenceFromFile(datadir + "TPP_riboswitch_E.coli.db")
-        reactivities = getShapeDataFromFile(datadir + "TPP_riboswitch_E.coli.shape_2rows")
+        seq_ribo     = getShapeSequenceFromFile(self.DATADIR + "/TPP_riboswitch_E.coli.db")
+        reactivities = getShapeDataFromFile(self.DATADIR + "/TPP_riboswitch_E.coli.shape_2rows")
 
         fc=RNA.fold_compound(seq_ribo)
         print(reactivities)
@@ -91,9 +87,9 @@ class constraintsTest(unittest.TestCase):
 
     def test_sc_add_SHAPE_zarringhalam(self):
         """SHAPE data Zarringhalam et al 2012 method"""
-        seq_ribo     = getShapeSequenceFromFile(datadir + "TPP_riboswitch_E.coli.db")
+        seq_ribo     = getShapeSequenceFromFile(self.DATADIR + "/TPP_riboswitch_E.coli.db")
         fc           = RNA.fold_compound(seq_ribo)
-        reactivities = getShapeDataFromFile(datadir + "TPP_riboswitch_E.coli.shape_2rows")
+        reactivities = getShapeDataFromFile(self.DATADIR + "/TPP_riboswitch_E.coli.shape_2rows")
 
         ret = fc.sc_add_SHAPE_zarringhalam(reactivities, 0.5, 0.5, "O"); # these values were copied from ronnys Talk about constraints, O = default value
         (ss,mfe) = fc.mfe()
@@ -102,4 +98,7 @@ class constraintsTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
+    constraintsTest.DATADIR = RNApath.getDataDirPath()
     unittest.main(testRunner=taprunner.TAPTestRunner())

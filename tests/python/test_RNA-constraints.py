@@ -1,23 +1,19 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
 import RNA
 import unittest
-from py_include import taprunner
 
 seq_con     = "CCCAAAAGGGCCCAAAAGGG"
 str_con     = "..........(((....)))"
 str_con_def = "(((....)))(((....)))"
 seq_long    = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUC"
 
-datadir = RNApath.getDataDirPath()
-
 def mfe_window_callback(start, end, structure, energy, data=None):
     data.append({ 'structure': structure, 'start': start, 'end' : end, 'energy' : energy})
 
 
 class constraintsTest(unittest.TestCase):
+    DATADIR = "tests/data"
 
     def test_constraints_add(self):
         """Add (hard and soft) contraints from file"""
@@ -26,7 +22,7 @@ class constraintsTest(unittest.TestCase):
         #hc.txt=    "P 1 0 2"
         #str_con=    "..........(((....)))"
 
-        hc_file = datadir + "hc.txt"
+        hc_file = self.DATADIR + "/hc.txt"
         fc = RNA.fold_compound(seq_con)
         fc.constraints_add(hc_file)
         (ss,mfe) = fc.mfe()
@@ -39,7 +35,7 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual(ss,str_con_def)
 
         #sc.txt = E 3 8 1 -5
-        sc_file = datadir + "sc.txt"
+        sc_file = self.DATADIR + "/sc.txt"
         fc.sc_init()
         fc.constraints_add(sc_file)
         (ss,mfeNew) = fc.mfe()
@@ -114,4 +110,7 @@ class constraintsTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
+    constraintsTest.DATADIR = RNApath.getDataDirPath()
     unittest.main(testRunner=taprunner.TAPTestRunner())

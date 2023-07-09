@@ -1,11 +1,7 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
-
 import RNA
 import unittest
-from py_include import taprunner
 from struct import *
 import locale
 
@@ -109,7 +105,8 @@ class GeneralTests(unittest.TestCase):
              p2 = RNA.floatP_getitem(RNA.cvar.pr, ii-15)
         else:
              p2 = RNA.doubleP_getitem(RNA.cvar.pr, ii-15)
-        self.assertTrue(p1 < 0.999 and abs(p1-p2) < 1.2e-7)
+        self.assertTrue(p1 < 0.999)
+        self.assertTrue(abs(p1-p2) < 1.2e-7)
 
 
     def test_parse_structure(self):
@@ -144,6 +141,7 @@ class GeneralTests(unittest.TestCase):
             trial += 1
         (ss, en) = RNA.fold(sinv)
         self.assertEqual(ss, struct1)
+        RNA.cvar.symbolset = ""
 
 
     def test_eos_dimer(self):
@@ -290,5 +288,7 @@ class FoldCompoundTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())
 

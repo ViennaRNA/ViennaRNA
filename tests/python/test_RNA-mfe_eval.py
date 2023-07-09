@@ -1,10 +1,7 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
 import RNA
 import unittest
-from py_include import taprunner
 
 seq1          = "CGCAGGGAUACCCGCG"
 struct1       = "(((.(((...))))))"
@@ -54,7 +51,7 @@ class mfe_eval_functionTest(unittest.TestCase):
     def test_eval_structure_verbose(self):
         """Structure energy evaluation - dot-bracket string - verbose output"""
         fc = RNA.fold_compound(seq1)
-        filename= "test-RNA-mfe_eval.py.out"
+        filename= "test_RNA-mfe_eval.py.out"
         try:
             with open(filename, 'w') as f:
                 print(filename ," is opened for writing")
@@ -69,7 +66,7 @@ class mfe_eval_functionTest(unittest.TestCase):
 
     def test_eval_structure_pt_verbose(self):
         """Structure energy evaluation - pair table - verbose output"""
-        filename= "test-RNA-mfe_eval.py.out"
+        filename= "test_RNA-mfe_eval.py.out"
         try:
             with open(filename, 'w') as f:
                 print(filename, " is opened for writing")
@@ -132,4 +129,6 @@ class mfe_eval_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())

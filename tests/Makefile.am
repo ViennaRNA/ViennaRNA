@@ -143,25 +143,25 @@ PY_LOG_DRIVER    = env AM_TAP_AWK='$(AWK)' $(SHELL) \
                    $(top_srcdir)/config/tap-driver.sh
 
 # add test scripts here
-PYTHON3_TESTS = python/test-RNA-combinatorics.py \
-                python/test-RNA-constraints.py \
-                python/test-RNA-constraints-soft.py \
-                python/test-RNA-constraints-SHAPE.py \
-                python/test-RNA-constraints-special.py \
-                python/test-RNA-ensemble_defect.py \
-                python/test-RNA-file-formats.py \
-                python/test-RNA-mfe_eval.py \
-                python/test-RNA-mfe_window.py \
-                python/test-RNA-pf_window.py \
-                python/test-RNA-sc-callbacks.py \
-                python/test-RNA-subopt.py \
-                python/test-RNA-boltzmann-sampling.py \
-                python/test-RNA-utils.py \
-                python/test-RNA-modified-bases.py \
-                python/test-RNA.py
+PYTHON3_TESTS = python/test_RNA-combinatorics.py \
+                python/test_RNA-constraints.py \
+                python/test_RNA-constraints-soft.py \
+                python/test_RNA-constraints-SHAPE.py \
+                python/test_RNA-constraints-special.py \
+                python/test_RNA-ensemble_defect.py \
+                python/test_RNA-file-formats.py \
+                python/test_RNA-mfe_eval.py \
+                python/test_RNA-mfe_window.py \
+                python/test_RNA-pf_window.py \
+                python/test_RNA-sc-callbacks.py \
+                python/test_RNA-subopt.py \
+                python/test_RNA-boltzmann-sampling.py \
+                python/test_RNA-utils.py \
+                python/test_RNA-modified-bases.py \
+                python/test_RNA.py
 
 # add test script output files here
-PYTHON3_TEST_OUTPUT = test-RNA-mfe_eval.py.out
+PYTHON3_TEST_OUTPUT = test_RNA-mfe_eval.py.out
 
 endif
 

@@ -1,13 +1,9 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
-
 from operator import add
 import RNA
 import math
 import unittest
-from py_include import taprunner
 
 kT = 0.61632077549999997
 # maximum allowed difference beteen compared probabilties
@@ -16,8 +12,6 @@ allowed_diff = 1e-7
 # some sequences to work with
 shortseq = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUA"
 longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
-
-datadir = RNApath.getDataDirPath()
 
 def getShapeDataFromFile(filepath):
     retVec = []
@@ -86,6 +80,7 @@ def up_split_callback(v, v_size, i, maxsize, what, data):
 
 
 class pf_window_functionTest(unittest.TestCase):
+    DATADIR = "tests/data"
 
     def test_pfl_fold(self):
         """RNA.pfl_fold() - sanity check for base pair probabilities"""
@@ -136,8 +131,8 @@ class pf_window_functionTest(unittest.TestCase):
         benchmark_set = ["Lysine_riboswitch_T._martima", "TPP_riboswitch_E.coli" ]
 
         for b in benchmark_set:
-            seq  =  getShapeSequenceFromFile(datadir + b + ".db")
-            reactivities = getShapeDataFromFile(datadir + b + ".shape_2rows")
+            seq  =  getShapeSequenceFromFile(self.DATADIR + "/" + b + ".db")
+            reactivities = getShapeDataFromFile(self.DATADIR + "/" + b + ".shape_2rows")
             data = { 'bpp': [], 'up': []}
 
             md = RNA.md()
@@ -484,4 +479,7 @@ class pf_window_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
+    pf_window_functionTest.DATADIR = RNApath.getDataDirPath()
     unittest.main(testRunner=taprunner.TAPTestRunner())

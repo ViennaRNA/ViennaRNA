@@ -1,50 +1,45 @@
 import RNApath
 
-RNApath.addSwigInterfacePath()
-
-
 import RNA
 import unittest
-from py_include import taprunner
-
-datadir = RNApath.getDataDirPath()
 
 class file_utils_msa_Test(unittest.TestCase):
+    DATADIR = "tests/data"
 
     def test_file_msa_detect_format_stk(self):
         """Detect STOCKHOLM formatted MSA file"""
-        msa_format = RNA.file_msa_detect_format(datadir + "/rfam_seed_selected.stk")
+        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/rfam_seed_selected.stk")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_STOCKHOLM)
 
 
     def test_file_msa_detect_format_clustal(self):
         """Detect CLUSTAL formatted MSA file"""
-        msa_format = RNA.file_msa_detect_format(datadir + "/070313_ecoli_cdiff_16S_clustalw.aln")
+        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/070313_ecoli_cdiff_16S_clustalw.aln")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_CLUSTAL)
 
 
     def test_file_msa_detect_format_fasta(self):
         """Detect FASTA formatted MSA file"""
-        msa_format = RNA.file_msa_detect_format(datadir + "/070313_ecoli_cdiff_16S_fasta.aln")
+        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/070313_ecoli_cdiff_16S_fasta.aln")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_FASTA)
 
 
     def test_file_msa_detect_format_maf(self):
         """Detect MAF formatted MSA file"""
-        msa_format = RNA.file_msa_detect_format(datadir + "/test.maf")
+        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/test.maf")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_MAF)
 
 
     def test_file_msa_detect_format_unknown(self):
         """Detect unknown MSA file format"""
-        msa_format = RNA.file_msa_detect_format(datadir + "/rnafold.cmds")
+        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/rnafold.cmds")
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_UNKNOWN)
 
 
     def test_file_msa_read_stk(self):
         """Read Stockholm formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(datadir + "/rfam_seed_selected.stk",
+            RNA.file_msa_read(self.DATADIR + "/rfam_seed_selected.stk",
                               RNA.FILE_FORMAT_MSA_STOCKHOLM | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -63,7 +58,7 @@ class file_utils_msa_Test(unittest.TestCase):
     def test_file_msa_read_clustal(self):
         """Read Clustal formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(datadir + "/070313_ecoli_cdiff_16S_clustalw.aln",
+            RNA.file_msa_read(self.DATADIR + "/070313_ecoli_cdiff_16S_clustalw.aln",
                               RNA.FILE_FORMAT_MSA_CLUSTAL | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -79,7 +74,7 @@ class file_utils_msa_Test(unittest.TestCase):
     def test_file_msa_read_fasta(self):
         """Read FASTA formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(datadir + "/070313_ecoli_cdiff_16S_fasta.aln",
+            RNA.file_msa_read(self.DATADIR + "/070313_ecoli_cdiff_16S_fasta.aln",
                               RNA.FILE_FORMAT_MSA_FASTA | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -95,7 +90,7 @@ class file_utils_msa_Test(unittest.TestCase):
     def test_file_msa_read_maf(self):
         """Read MAF formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(datadir + "/test.maf",
+            RNA.file_msa_read(self.DATADIR + "/test.maf",
                               RNA.FILE_FORMAT_MSA_MAF | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -110,7 +105,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
     def test_file_msa_read_multi_stk(self):
         """Read Multiple MSAs from Stockholm file"""
-        f = open(datadir + "/rfam_seed_selected.stk", 'r')
+        f = open(self.DATADIR + "/rfam_seed_selected.stk", 'r')
         counter = 0
         while True:
             n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
@@ -134,7 +129,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
     def test_file_msa_read_multi_maf(self):
         """Read multiple MSAs from MAF file"""
-        f = open(datadir + "/test.maf", 'r')
+        f = open(self.DATADIR + "/test.maf", 'r')
         counter = 0
         while True:
             n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
@@ -158,4 +153,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    RNApath.addSwigInterfacePath()
+    from py_include import taprunner
+    file_utils_msa_Test.DATADIR = RNApath.getDataDirPath()
     unittest.main(testRunner=taprunner.TAPTestRunner())
