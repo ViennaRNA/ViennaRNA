@@ -89,11 +89,9 @@ if VRNA_AM_SWITCH_SVM
   SVM_UTILS_H_OLD = svm_utils.h
 endif
 
-if VRNA_AM_SWITCH_JSON
-  JSON_SRC    = ../json/json.c
-  JSON_H      = ../json/json.h
-  JSON_INC    = -I$(top_srcdir)/src/json
-endif
+JSON_SRC    = ../json/json.c
+JSON_H      = ../json/json.h
+JSON_INC    = -I$(top_srcdir)/src/json
 
 
 CEPHES_SRC  = ../cephes/kn.c \
@@ -506,7 +504,7 @@ noinst_HEADERS  = params/intl11.h \
                   ${SVM_H} \
                   ${JSON_H} \
                   special_const.h \
-									${CEPHES_H}
+                  ${CEPHES_H}
 
 nodist_pkginclude_HEADERS = vrna_config.h
 

@@ -27,29 +27,6 @@ AC_DEFUN([RNA_ENABLE_SVM],[
 
 
 #
-# JSON serializer/deserializer
-#
-
-AC_DEFUN([RNA_ENABLE_JSON],[
-
-  RNA_ADD_PACKAGE([json],
-                  [json in/out support],
-                  [yes],[],[],
-                  [${srcdir}/src/json/json.c ${srcdir}/src/json/json.h])
-
-  RNA_PACKAGE_IF_ENABLED([json],[
-    ## substitution for reference manual config
-    AC_SUBST([REFDOC_PREDEF_JSON], [VRNA_WITH_JSON_SUPPORT])
-    AC_DEFINE([VRNA_WITH_JSON_SUPPORT], [1], [Add JSON support for input and output functions])
-    CONFIG_JSON="#define VRNA_WITH_JSON_SUPPORT"
-  ])
-
-  AC_SUBST(CONFIG_JSON)
-  AM_CONDITIONAL(VRNA_AM_SWITCH_JSON, test "$with_json" != "no")
-])
-
-
-#
 # GSL support for RNApvmin
 #
 

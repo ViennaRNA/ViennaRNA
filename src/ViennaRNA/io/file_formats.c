@@ -18,14 +18,13 @@
 #include <math.h>
 #include <ctype.h>
 
+#include "json/json.h"
+
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/constraints/hard.h"
-#if VRNA_WITH_JSON_SUPPORT
-# include <json/json.h>
-#endif
 #include "ViennaRNA/io/file_formats.h"
 
 #ifdef __GNUC__
@@ -251,8 +250,6 @@ vrna_file_bpseq(const char  *seq,
 }
 
 
-#if VRNA_WITH_JSON_SUPPORT
-
 PUBLIC void
 vrna_file_json(const char *seq,
                const char *db,
@@ -285,8 +282,6 @@ vrna_file_json(const char *seq,
   fflush(out);
 }
 
-
-#endif
 
 PRIVATE unsigned int
 read_multiple_input_lines(char          **string,

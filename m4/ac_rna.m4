@@ -47,7 +47,6 @@ RNA_ENABLE_C11
 RNA_ENABLE_OSX
 RNA_ENABLE_LTO
 RNA_ENABLE_SVM
-RNA_ENABLE_JSON
 RNA_ENABLE_GSL
 RNA_ENABLE_OPENMP
 RNA_ENABLE_PTHREADS
@@ -234,7 +233,6 @@ m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
             [rnaxplorer],
             [svm],
             [gsl],
-            [json],
             [perl],
             [python],
             [python2],
@@ -313,7 +311,6 @@ Extra Libraries
   * Support Vector Machine    : ${result_svm}
   * GNU Scientific Library    : ${result_gsl}
   * GNU MPFR                  : ${result_mpfr}
-  * JSON                      : ${result_json}
 
 Features
 --------

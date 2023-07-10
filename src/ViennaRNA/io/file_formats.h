@@ -88,8 +88,6 @@ vrna_file_bpseq(const char  *seq,
                 FILE        *file);
 
 
-#if VRNA_WITH_JSON_SUPPORT
-
 /**
  *  @brief Print a secondary structure in jsonformat
  *
@@ -105,9 +103,6 @@ vrna_file_json(const char *seq,
                double     energy,
                const char *identifier,
                FILE       *file);
-
-
-#endif
 
 /**
  *  @brief  Tell a function that an input is assumed to span several lines

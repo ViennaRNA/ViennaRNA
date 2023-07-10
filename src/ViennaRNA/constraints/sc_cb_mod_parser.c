@@ -3,11 +3,12 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "json/json.h"
+
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/datastructures/string.h"
 #include "ViennaRNA/io/utils.h"
-#include "json/json.h"
 #include "ViennaRNA/constraints/soft_special.h"
 
 #include "ViennaRNA/constraints/sc_cb_intern.h"
