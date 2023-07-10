@@ -1,5 +1,3 @@
-import RNApath
-
 import RNA
 import unittest
 from struct import *
@@ -288,6 +286,7 @@ class FoldCompoundTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import RNApath
     RNApath.addSwigInterfacePath()
     from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())

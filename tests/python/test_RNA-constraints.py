@@ -1,5 +1,3 @@
-import RNApath
-
 import RNA
 import unittest
 
@@ -110,6 +108,7 @@ class constraintsTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import RNApath
     RNApath.addSwigInterfacePath()
     from py_include import taprunner
     constraintsTest.DATADIR = RNApath.getDataDirPath()

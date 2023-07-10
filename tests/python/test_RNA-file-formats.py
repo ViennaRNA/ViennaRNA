@@ -1,5 +1,3 @@
-import RNApath
-
 import RNA
 import unittest
 
@@ -153,6 +151,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import RNApath
     RNApath.addSwigInterfacePath()
     from py_include import taprunner
     file_utils_msa_Test.DATADIR = RNApath.getDataDirPath()

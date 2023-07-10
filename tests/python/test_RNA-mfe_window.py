@@ -1,5 +1,3 @@
-import RNApath
-
 import RNA
 import unittest
 
@@ -73,6 +71,7 @@ class mfe_window_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    import RNApath
     RNApath.addSwigInterfacePath()
     from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())
