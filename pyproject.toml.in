@@ -42,3 +42,6 @@ ViennaRNA = "interfaces/Python/ViennaRNA"
 minversion = "6.0"
 addopts = "-ra -q -v"
 testpaths = ["tests/python"]
+
+[tool.cibuildwheel.macos.environment]
+MACOSX_DEPLOYMENT_TARGET = "10.14"
