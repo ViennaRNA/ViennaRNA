@@ -39,21 +39,41 @@ See the [NEWS](NEWS) and [CHANGELOG.md](CHANGELOG.md) files for changes between 
 
 ## Table of Contents
 1. [Availability](#availability)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Executable Programs](#executable-programs)
-5. [Energy Parameters](#energy-parameters)
-6. [References](#references)
-7. [License](#license)
-8. [Contact](#contact)
+2. [Documentation](#documentation)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [Executable Programs](#executable-programs)
+6. [Energy Parameters](#energy-parameters)
+7. [References](#references)
+8. [License](#license)
+9. [Contact](#contact)
 
 ----
 
 ## Availability
 
-The most recent source code and documentation should always be available through
-the [official ViennaRNA website](https://www.tbi.univie.ac.at/RNA) and through
+The most recent source code should always be available through the
+[official ViennaRNA website](https://www.tbi.univie.ac.at/RNA) and through
 [github](https://github.com/ViennaRNA/ViennaRNA).
+
+----
+
+## Documentation
+
+Executable programs shipped with the ViennaRNA Package are documented by
+corresponding man pages, use e.g.:
+```
+man RNAfold
+```
+in a UNIX terminal to obtain the documentation for the `RNAfold` program.
+HTML translations of all man pages can be found at [our official homepage](https://www.tbi.univie.ac.at/RNA/documentation.html#programs).
+
+We maintain a reference manual describing the `RNAlib` API that is automatically
+generated with [doxygen](https://www.doxygen.nl/). The HTML version of this reference
+manual is available [here](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/).
+
+In addition, the description of the `RNAlib` Python API can be found at
+[Read the Docs](https://viennarna-python.readthedocs.io).
 
 ----
 
@@ -134,159 +154,46 @@ autoreconf -i
 After that, you can compile and install the ViennaRNA Package as if obtained
 from the distribution tarball.
 
+
+#### Binary packages
+Binary packages for several Linux-based platforms, Microsoft Windows, and
+Mac OS X are available at [our official website](https://www.tbi.univie.ac.at/RNA/#binary_packages).
+
+#### Bioconda
+Installation is also possible through [bioconda](https://bioconda.github.io/).
+After successfully setting up the bioconda channels
+```
+conda config --add channels defaults
+conda config --add channels bioconda
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+```
+you can install the [ViennaRNA Package](http://bioconda.github.io/recipes/viennarna/README.html)
+through
+```
+conda install viennarna
+```
+
 ----
 
 ## Configuration
 
-This release includes the `RNAforester`, `Kinfold`, `Kinwalker`, and `RNAlocmin`
-programs, which can also be obtained as independent packages. Running
-`./configure` in the ViennaRNA directory will configure these packages as well.
+This release includes the `RNAforester`, `Kinfold`, `Kinwalker`, `RNAlocmin`,
+and `RNAxplorer` programs, which can also be obtained as independent packages.
+Running `./configure` in the ViennaRNA directory will configure these packages
+as well.
 However, for detailed information and compile time options, see the README and
 INSTALL files in the respective subdirectories.
 
-#### Cluster Analysis
+A comprehensive description of configure options is available at our
+[reference manual](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/install.html#configuration).
 
-The programs `AnalyseSeqs` and `AnalyseDists` offer some cluster analysis tools
-(split decomposition, statistical geometry, neighbor joining, Ward's method) for
-sequences and distance data. To also build these programs add `--with-cluster`
-to your configure options.
-
-#### Kinfold
-The `kinfold` program can be used to simulate the folding dynamics of an RNA
-molecule, and is compiled by default. Use the `--without-kinfold` option to
-skip compilation and installation of Kinfold.
-
-#### RNAforester
-The `RNAforester` program is used for comparing secondary structures using tree
-alignment. Similar to Kinfold, use the `--without-forester` option to skip
-compilation and installation of RNAforester.
-
-#### Kinwalker
-The `kinwalker` algorithm performs co-transcriptional folding of RNAs, starting
-at a user specified structure (default: open chain) and ending at the minimum
-free energy structure. Compilation and installation of this program is
-deactivated by default. Use the `--with-kinwalker` option to enable building and
-installation of Kinwalker.
-
-#### RNAlocmin
-The `RNAlocmin` program is part of the `Basin Hopping Graph` Framework and reads
-secondary structures and searches for local minima by performing a gradient walk
-from each of those structures. It then outputs an energetically sorted list of
-local minima with their energies and number of hits to particular minimum, which
-corresponds to a size of a gradient basin. Additional output consists of barrier
-trees and Arhenius rates to compute various kinetic aspects. Compilation and
-installation of this program is activated by default. Use the
-`--without-rnalocmin` option to disable building and installation of RNAlocmin.
-
-#### RNAxplorer
-The `RNAxplorer` is a multitool, that offers different methods to explore RNA
-energy landscapes. In default mode it takes an RNA sequence as input and produces
-a sample of RNA secondary structures. The repellant sampling heuristic used in
-default mode iteratively penalizes base pairs of local minima of structures that
-have been seen too often. This results in a diverse sample set with the most
-important low free energy structures.
-Compilation and installation of this program is activated by default. Note, that
-this tool depends on the `LAPACK` librery. Use the `--without-rnaxplorer`
-option to disable building and installation of `RNAxplorer`.
-
-#### Scripting Interfaces
-The ViennaRNA Package comes with scripting language interfaces for `Perl 5`,
-`Python` (provided by `swig`), that allow one to use the implemented algorithms
-directly without the need of calling an executable program. The necessary
-requirements are determined at configure time and particular languages may be
-deactivated automatically, Building the Python 2 interface is deactivated by
-default since it reached its end-of-life on January 1st, 2020. If for any reason
-you still want to build that interface, you may use the `--with-python2` configure
-option to turn it back on. You may also switch-off particular languages by
-passing the `--without-perl` and/or `--without-python` configure options, e.g.
-```
-./configure --without-perl --without-python
-```
-will turn-off the `Perl 5` and `Python 3` interfaces.
-
-Disabling the entire scripting language support alltogether can be accomplished
-with the `--without-swig` switch.
-
-#### Streaming SIMD Extension support
-Our latest version contains code that implements a faster multibranch loop
-decomposition in global MFE predictions, as used e.g. in `RNAfold`. This
-implementation makes use of modern processors capability to execute particular
-instructions on multiple data simultaneously (SIMD - single instruction multiple
-data, thanks to W. B. Langdon for providing the modified code). Consequently,
-the time required to assess the minimum of all multibranch loop decompositions
-is reduced up to about one half compared to the runtime of the original
-implementation. This feature is enabled by default since version 2.4.11 and a
-dispatcher ensures that the correct implementation will be selected at runtime.
-If for any reason you want to disable this feature at compile-time use the
-following configure flag
-
-```
-./configure --disable-simd
-```
-
-#### Link Time Optimization (LTO)
-To increase the performance of our implementations, the ViennaRNA Package tries
-to make use of the Link Time Optimization (LTO) feature of modern C-compilers.
-If you are experiencing any troubles at make-time or run-time, or the configure
-script for some reason detects that your compiler supports this feature although
-it doesn't, you can deactivate it using the flag
-```
-./configure --disable-lto
-```
-
-#### OpenMP support
-To enable concurrent computation of our implementations and in some cases
-parallelization of the algorithms we make use of the OpenMP API. This interface
-is well understood by most modern compilers. However, in some cases it might be
-necessary to deactivate OpenMP support and therefore transform RNAlib into a
-C-library that is not entirely thread-safe. To do so, add the following
-configure option
-```
-./configure --disable-openmp
-```
-
-#### POSIX threads (pthread) support
-To enable concurrent computation of multiple input data in `RNAfold`,
-`RNAcofold`, `RNAalifold`, and for our implementation of the concurrent
-unordered insert, ordered output flush data structure `vrna_ostream_t` we make
-use of POSIX threads. This should be supported on all modern platforms and
-usually does not pose any problems. In case you want to compile without POSIX
-threads support for any reason, add the following configure option
-```
-./configure --disable-pthreads
-```
-
-#### SVM Z-score filter in RNALfold
-By default, `RNALfold` that comes with the ViennaRNA Package allows for z-score
-filtering of its predicted results using a support vector machine (SVM).
-However, the library we use to implement this feature (`libsvm`) is statically
-linked to our own RNAlib. If this introduces any problems for your own
-third-party programs that link against RNAlib, you can safely switch off the
-z-scoring implementation using
-```
-./configure --without-svm
-```
-
-#### GNU Scientific Library
-The new program `RNApvmin` computes a pseudo-energy pertubation vector that aims
-to minimize the discrepancy of predicted, and observed pairing probabilities.
-For that purpose it implements several methods to solve the optimization
-problem. Many of them are provided by the GNU Scientific Library, which is why
-the `RNApvmin` program, and the RNAlib C-library are required to be linked
-against `libgsl`. If this introduces any problems in your own third-party
-programs that link against RNAlib, you can turn off a larger protion of
-available minimizers in `RNApvmin` and linking against `libgsl` alltogether,
-using the switch
-```
-./configure --without-gsl
-```
-
-#### Help
-For a complete list of all `./configure` options and important environment
-variables, type
+See also
 ```
 ./configure --help
 ```
+for a complete list of all `./configure` options and important environment
+variables.
 
 ----
 
@@ -366,6 +273,7 @@ in the corresponding man-pages.*
 
 ## Energy Parameters
 
+### Default Parameters
 Since version 2.0.0 the build-in energy parameters, also available as parameter
 file [rna_turner2004.par](misc/rna_turner2004.par), are taken from:
 
@@ -379,26 +287,45 @@ Proc. Natl. Acad. Sci. USA: 101, pp 7287-7292
 for predicting stability of nucleic acid secondary structure",
 Nucleic Acids Research: 38, pp 280-282.
 
+### Deprecated Parameters
 For backward compatibility we also provide energy parameters from Turner et al.
 1999 in the file [rna_turner1999.par](misc/rna_turner1999.par).
 
+### Trained Parameters
 A set of trained RNA energy parameters from Andronescou et al. 2007,
 [rna_andronescou2007.par](misc/rna_andronescou2007.par), a set of RNA
 energy parameters obtained by graft and grow genetic programming from Langdon
-et al. 2018, [rna_langdon2018.par](misc/rna_langdon2018.par), and two sets of
-DNA parameters, [dna_mathews1999.par](misc/dna_mathews1999.par) and
-[dna_mathews2004.par](misc/dna_mathews2004.par), are also included.
+et al. 2018, [rna_langdon2018.par](misc/rna_langdon2018.par) are
+also included.
 
-in addition, since version 2.6.0 several programs received support to predict
-structures for modified bases. The corresponding energy parameters are incomplete
-and mostly restricted to bsae pair stacking. The ViennaRNA package currently
-includes paraneter sets for
+### DNA Parameters
+To predict secondary structures for DNA, we additionally include two DNA
+parameter sets:
+  * [dna_mathews1999.par](misc/dna_mathews1999.par) and
+  * [dna_mathews2004.par](misc/dna_mathews2004.par).
+
+
+### RNA Base Modifications
+Since version 2.6.0 several programs received support to predict structures
+for sequences with modified bases. The corresponding energy parameters are
+incomplete and mostly restricted to base pair stacking. The ViennaRNA package
+currently includes paraneter sets for
   * [inosine](misc/rna_mod_inosine_parameters.json)
   * [pseudouridine](misc/rna_mod_pseudouridine_parameters.json)
   * [m6A](misc/rna_mod_m6A_parameters.json)
   * [7DA](misc/rna_mod_7DA_parameters.json)
   * [purine (a.k.a. nebularine)](misc/rna_mod_purine_parameters.json)
   * [dihydrouridine](misc/rna_mod_dihydrouridine_parameters.json)
+
+### Paramers Set Availability
+Energy parameter files are mostly provided for use with our executable
+programs. All parameter sets are compiled-in to our `RNAlib` C-library.
+Thus, when building upon our library, either through C/C++ or the
+scripting language interface, these data are available through dedicated
+functions and as constant strings. See, e.g.
+[here](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/group__energy__parameters__rw.html)
+and
+[here](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/group__modified__bases.html).
 
 ----
 

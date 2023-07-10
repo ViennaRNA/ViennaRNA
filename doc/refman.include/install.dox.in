@@ -112,17 +112,21 @@ If for any reason you want to disable this feature at compile-time use the follo
 
 @subsection config_swig   Scripting Interfaces
 
-The ViennaRNA Package comes with scripting language interfaces for Perl 5, Python 3.x, and Python 2.x (provided by swig),
-that allow one to use the implemented algorithms directly without the need of calling an executable program. The interfaces
-are build by default whenever the autoconf tool-chain detects the required build tools on your system. You may, however,
-explicitly turn off particular scripting language interface support at configure-time, for instance for Perl 5 and Python 2,
-before the actual installation.
-
-Example:
+The ViennaRNA Package comes with scripting language interfaces for Perl 5,
+Python (provided by swig), that allow one to use the implemented algorithms
+directly without the need of calling an executable program. The necessary
+requirements are determined at configure time and particular languages may be
+deactivated automatically, Building the Python 2 interface is deactivated by
+default since it reached its end-of-life on January 1st, 2020. If for any reason
+you still want to build that interface, you may use the @b --with-python2 configure
+option to turn it back on. You may also switch-off particular languages by
+passing the @b --without-perl and/or @b --without-python configure options, e.g.
 
 @verbatim
-./configure --without-perl --without-python2
+./configure --without-perl --without-python
 @endverbatim
+
+will turn-off the Perl 5 and Python 3 interfaces.
 
 Disabling the scripting language support all-together can be accomplished using the following switch:
 @verbatim
@@ -171,6 +175,42 @@ and ending at the minimum free energy structure. Compilation and installation of
 
 option to enable building and installation of Kinwalker.
 
+
+@subsection config_rnalocmin RNAlocmin
+
+The RNAlocmin program is part of the Basin Hopping Graph Framework and reads
+secondary structures and searches for local minima by performing a gradient walk
+from each of those structures. It then outputs an energetically sorted list of
+local minima with their energies and number of hits to particular minimum, which
+corresponds to a size of a gradient basin. Additional output consists of barrier
+trees and Arhenius rates to compute various kinetic aspects. Compilation and
+installation of this program is activated by default. Use the
+
+@verbatim
+--without-rnalocmin
+@endverbatim
+
+option to disable building and installation of RNAlocmin.
+
+
+@subsection config_rnaxplorer RNAxplorer
+
+The RNAxplorer is a multitool, that offers different methods to explore RNA
+energy landscapes. In default mode it takes an RNA sequence as input and produces
+a sample of RNA secondary structures. The repellant sampling heuristic used in
+default mode iteratively penalizes base pairs of local minima of structures that
+have been seen too often. This results in a diverse sample set with the most
+important low free energy structures.
+Compilation and installation of this program is activated by default. Note, that
+this tool depends on the LAPACK library. Use the
+
+@verbatim
+--without-rnaxplorer
+@endverbatim
+
+option to disable building and installation of RNAxplorer.
+
+
 @subsection config_lto  Link Time Optimization (LTO)
 
 To increase the performance of our implementations, the ViennaRNA Package tries to make use of the Link Time Optimization (LTO)
@@ -214,7 +254,7 @@ add the following configure option
 
 By default, RNALfold that comes with the ViennaRNA Package allows for z-score filtering of its predicted results using a support
 vector machine (SVM). However, the library we use to implement this feature (libsvm) is statically linked to our own RNAlib. If
-this introduces any problems for your own third-party programs that link against RNAlib, you can safely switch off the z-scoring
+this introduces any problems for your own third-party programs that link against RNAlib, you can safely switch off the Z-scoring
 implementation using
 
 @verbatim
