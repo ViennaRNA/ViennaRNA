@@ -18,7 +18,8 @@ EXTRA_DIST =  packaging/debian \
               packaging/make_windows_installer.sh \
               license.txt \
               README.md \
-              CHANGELOG.md
+              CHANGELOG.md \
+              MANIFEST.in
 
 ## remove all generated content
 maintainer-clean-local:

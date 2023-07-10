@@ -39,13 +39,19 @@ INTERFACE_FILES = $(SWIG_src) \
 
 pkgpyexecdir = $(py3execdir)/RNA
 pkgpycachedir = $(pkgpyexecdir)/__pycache__
-
 pkgpyexec_LTLIBRARIES = _RNA.la
-pkgpyexec_DATA =  RNA/__init__.py \
-                  RNA/RNA.py \
-                  ViennaRNA/__init__.py
-pkgpycache_DATA = RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
-                  RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@
+pkgpyexec_DATA = \
+    RNA/__init__.py \
+    RNA/RNA.py
+pkgpycache_DATA = \
+    RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
+    RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@ \
+    RNA/__pycache__/RNA.@PYTHON3_CACHE_TAG@.pyc \
+    RNA/__pycache__/RNA.@PYTHON3_CACHE_OPT1_EXT@
+
+pkgpyvrnaexecdir = $(py3execdir)/ViennaRNA
+pkgpyvrnaexec_DATA = \
+    ViennaRNA/__init__.py
 
 _RNA_la_SOURCES = $(INTERFACE_FILES) \
                   $(SWIG_wrapper)
@@ -53,6 +59,8 @@ _RNA_la_SOURCES = $(INTERFACE_FILES) \
 EXTRA_DIST = \
   $(SWIG_wrapper) \
   $(SWIG_module_name).py \
+  RNA/RNA.py \
+  ViennaRNA/__init__.py \
   $(LANG_SPECIFIC_INTERFACE_FILES)
 
 _RNA_la_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
@@ -212,8 +220,8 @@ uninstall-htmlDATA: vrna_htmlpydoc_uninst
 CLEANFILES = \
     RNA/_RNA$(PYTHON3_SO) \
     RNA/RNA.py \
-    RNA/__pycache__/__init__.@PYTHON3_CACHE_TAG@.pyc \
-    RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@\
+    RNA/__pycache__ \
+    ViennaRNA/__pycache__ \
     $(srcdir)/*.pyc
 
 all-local:  RNA/_RNA$(PYTHON3_SO)
