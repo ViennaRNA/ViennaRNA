@@ -95,6 +95,7 @@ class GeneralTests(unittest.TestCase):
         self.assertTrue(ret<0.0001)
         RNA.cvar.cut_point=-1
         #pf_fo ld
+        RNA.cvar.do_backtrack = 1
         s,f = RNA.pf_fold(seq1)
         self.assertTrue(f < mfe)
         self.assertTrue(mfe-f < 0.8)
