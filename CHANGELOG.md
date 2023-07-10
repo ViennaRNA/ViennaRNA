@@ -6,6 +6,12 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.2...HEAD)
 
+#### Library
+  * Make JSON parser integral part of ViennaRNA library
+
+#### Package
+  * TESTS: Allow for using `pytest` to test the Python 3 interface
+
 
 ### [Version 2.6.2](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.1...v2.6.2) (Release date: 2023-06-21)
 
