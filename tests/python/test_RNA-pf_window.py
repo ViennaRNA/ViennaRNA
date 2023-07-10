@@ -1,3 +1,4 @@
+import os
 from operator import add
 import RNA
 import math
@@ -78,7 +79,7 @@ def up_split_callback(v, v_size, i, maxsize, what, data):
 
 
 class pf_window_functionTest(unittest.TestCase):
-    DATADIR = "tests/data"
+    DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
 
     def test_pfl_fold(self):
         """RNA.pfl_fold() - sanity check for base pair probabilities"""

@@ -1,3 +1,4 @@
+import os
 import RNA
 import unittest
 
@@ -35,7 +36,7 @@ def getShapeSequenceFromFile(filepath):
     return lines[0]
 
 class constraintsTest(unittest.TestCase):
-    DATADIR = "tests/data"
+    DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
 
     def test_sc_add_deigan(self):
         """SHAPE data Deigan et al. 2009 method - Lysine riboswitch"""

@@ -1,3 +1,4 @@
+import os
 import RNA
 import unittest
 from struct import *
@@ -20,10 +21,12 @@ align     = [seq1,seq2,seq3]
 
 class GeneralTests(unittest.TestCase):
     """Some general tests"""
+    VERSION = os.environ.get('VRNA_VERSION', '')
 
     def test_version(self):
         """Version number"""
-        self.assertEqual(RNA.__version__, RNApath.VERSION_NUMBER)
+        if self.VERSION != '':
+            self.assertEqual(RNA.__version__, self.VERSION)
 
 
     def test_hammingDistance(self):
@@ -40,8 +43,8 @@ class GeneralTests(unittest.TestCase):
     def test_foldASequence(self):
         """Simple MFE prediction, structure, energy"""
         # new better interface
-        (struct, mfe) = RNA.fold(seq1)
-        self.assertEqual(struct,struct1)
+        (structure, mfe) = RNA.fold(seq1)
+        self.assertEqual(structure,struct1)
         # check energy
         self.assertTrue(abs(RNA.energy_of_struct(seq1, struct1) - mfe) < 0.0001)
 
@@ -49,9 +52,9 @@ class GeneralTests(unittest.TestCase):
     def test_constrained_folding(self):
         """Simple constrained MFE folding"""
         RNA.cvar.fold_constrained = 1
-        (struct,cmfe) = RNA.fold(seq1,"....xx....xx....")
-        self.assertEqual(struct,'(((..........)))')
-        self.assertTrue(abs(RNA.energy_of_struct(seq1, struct) - cmfe) < 0.0001)
+        (structure,cmfe) = RNA.fold(seq1,"....xx....xx....")
+        self.assertEqual(structure,'(((..........)))')
+        self.assertTrue(abs(RNA.energy_of_struct(seq1, structure) - cmfe) < 0.0001)
         RNA.cvar.fold_constrained = 0
 
 
@@ -74,13 +77,13 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(costruct,'(((.(((...))))))((((((...))).)))')
         cmfe = RNA.energy_of_struct(seq1 + seq2, costruct)
         self.assertTrue(abs(comfe - cmfe) < 1e-5)
-        (x,ac,bc,fcab,cf) = RNA.co_pf_fold(seq1 + seq2, struct)
+        (x,ac,bc,fcab,cf) = RNA.co_pf_fold(seq1 + seq2)
         self.assertTrue(cf<comfe)
         self.assertTrue(comfe-cf<1.3)
 
-        (x,usel1, usel2, fcaa, usel3)= RNA.co_pf_fold(seq1 + seq1, struct)
+        (x,usel1, usel2, fcaa, usel3)= RNA.co_pf_fold(seq1 + seq1)
         RNA.cvar.cut_point = len(seq2)+1
-        (x,usel1, usel2, fcbb, usel3)= RNA.co_pf_fold(seq2 + seq2, struct)
+        (x,usel1, usel2, fcbb, usel3)= RNA.co_pf_fold(seq2 + seq2)
         (AB,AA,BB,A,B) = RNA.get_concentrations(fcab, fcaa, fcbb,ac, bc, 1e-5, 1e-5)
         AB/=2e-5
         AA/=2e-5
@@ -92,7 +95,7 @@ class GeneralTests(unittest.TestCase):
         self.assertTrue(ret<0.0001)
         RNA.cvar.cut_point=-1
         #pf_fo ld
-        s,f = RNA.pf_fold(seq1,struct)
+        s,f = RNA.pf_fold(seq1)
         self.assertTrue(f < mfe)
         self.assertTrue(mfe-f < 0.8)
 
@@ -288,6 +291,7 @@ class FoldCompoundTest(unittest.TestCase):
 if __name__ == '__main__':
     import RNApath
     RNApath.addSwigInterfacePath()
+    GeneralTests.VERSION = RNApath.VERSION_NUMBER
     from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())
 

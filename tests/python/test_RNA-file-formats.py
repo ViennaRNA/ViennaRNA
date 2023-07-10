@@ -1,8 +1,9 @@
+import os
 import RNA
 import unittest
 
 class file_utils_msa_Test(unittest.TestCase):
-    DATADIR = "tests/data"
+    DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
 
     def test_file_msa_detect_format_stk(self):
         """Detect STOCKHOLM formatted MSA file"""

@@ -1,3 +1,4 @@
+import os
 import RNA
 import unittest
 
@@ -11,7 +12,7 @@ def mfe_window_callback(start, end, structure, energy, data=None):
 
 
 class constraintsTest(unittest.TestCase):
-    DATADIR = "tests/data"
+    DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
 
     def test_constraints_add(self):
         """Add (hard and soft) contraints from file"""
