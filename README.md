@@ -86,7 +86,7 @@ source.
 *See the file [INSTALL](INSTALL) for a more detailed description of the build
 and installation process.*
 
-#### Quick Start
+### Quick Start
 
 Usually you'll simply unpack the distribution tarball, configure and make:
 ```
@@ -97,7 +97,7 @@ make
 sudo make install
 ```
 
-#### User-dir Installation
+### User-dir Installation
 If you do not have root privileges on your computer, you might want to install
 the ViennaRNA Package to a location where you actually have write access to.
 Use the `--prefix` option to set the installation prefix like so:
@@ -112,7 +112,7 @@ the home directory of user `username`.
 *Note, that the actual install destination paths are listed at the end
 of the `./configure` output.*
 
-#### Install from git repository
+### Install from git repository
 
 If you attempt to build and install from our git repository, you need to
 perform some additional steps __before__ actually running the `./configure`
@@ -155,11 +155,11 @@ After that, you can compile and install the ViennaRNA Package as if obtained
 from the distribution tarball.
 
 
-#### Binary packages
+### Binary packages
 Binary packages for several Linux-based platforms, Microsoft Windows, and
 Mac OS X are available at [our official website](https://www.tbi.univie.ac.at/RNA/#binary_packages).
 
-#### Bioconda
+### Bioconda
 Installation is also possible through [bioconda](https://bioconda.github.io/).
 After successfully setting up the bioconda channels
 ```
@@ -175,10 +175,18 @@ conda install viennarna
 ```
 
 
-#### Python interface only
-Our source tree also allows for building/installing the Python 3 interface
-separately. For that, we provide the necessary packaging files
-`pyproject.toml`, `setup.cfg`, `setup.py` and `MANIFEST.in`.
+### Python interface only
+The Python 3 interface for the ViennaRNA Package library is
+[available at PyPI](https://pypi.org/project/ViennaRNA/) and can
+be installed independently using Python's `pip`:
+```
+python -m pip install viennarna
+```
+
+#### Building a Python 3 sdist or wheel package
+Our source tree allows for building/installing the Python 3
+interface separately. For that, we provide the necessary packaging
+files `pyproject.toml`, `setup.cfg`, `setup.py` and `MANIFEST.in`.
 
 These files are created by our `autoconf` toolchain after a run
 of `./configure`. Particular default compile-time features may be
@@ -194,6 +202,7 @@ will then create a source distribution (`sdist`) and a binary
 package (`wheel`) in the `dist/` directory. These files can be
 easily installed via Python's `pip`.
 
+#### Howto prepare the Python 3 sdist/wheel build from git repository
 If you are about to create the Python interface from a fresh
 clone of our git repository, you require additional steps after
 running `./configure` as described above. In particular, some
