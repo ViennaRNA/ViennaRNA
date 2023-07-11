@@ -6,27 +6,53 @@ build-backend = "setuptools.build_meta"
 name = "@PACKAGE_NAME@"
 version = "@PACKAGE_VERSION@"
 description = "A library for the prediction and comparison of RNA secondary structures."
-readme = "README.md"
 authors = [
   { name = "Ronny Lorenz", email = "ronny@tbi.univie.ac.at" },
   { name = "Ivo L. Hofacker", email = "ivo@tbi.univie.ac.at" },
 ]
 maintainers = [
   { name = "Ronny Lorenz", email = "rna@tbi.univie.ac.at" },
+  { name = "Ayaan Hossain", email = "auh57@psu.edu" },
 ]
-requires-python = ">=3.7"
-
+requires-python = ">=3.8"
+license = {file = "COPYING"}
+keywords = [
+        'synthetic',
+        'computational',
+        'biology',
+        'genetic',
+        'DNA',
+        'RNA',
+        'secondary',
+        'structure',
+        'prediction',
+        'minimum',
+        'free',
+        'energy',
+        'centroid',
+        'subopt',
+        'mfe',
+        'ViennaRNA',
+        'dynamic',
+        'partition function',
+        'modified base',
+        'constraints',
+        'programming']
 
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: Unix",
     "Operating System :: MacOS :: MacOS X",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Education",
     "Programming Language :: Python",
+    "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
 ]
+
+dynamic = ["readme"]
 
 [project.urls]
 Homepage = "@PACKAGE_URL@"

@@ -13,6 +13,7 @@ import os
 import glob
 import sys
 import platform
+import re
 
 vrna_flags = [
     'with-svm',
@@ -57,6 +58,45 @@ vrna_simd_files = {
         'src/ViennaRNA/utils/higher_order_functions_avx512.c',
     ],
 }
+
+# readme
+THIS_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
+README_FILE = os.path.join(THIS_DIRECTORY, "README.md")
+LONG_DESCRIPTION = ""
+
+remove_sections = [
+  "Table of Contents",
+  "Executable Programs",
+  "Configuration",
+  "Energy Parameters"
+]
+
+header_pat = re.compile(r'^(\#+)\s*(.*)$')
+
+with open(README_FILE, encoding="utf-8") as readme:
+    within_section_remove = False
+    section_level = 0
+    for l in readme:
+        m = header_pat.match(l)
+        if m:
+            if within_section_remove:
+                if len(m.group(1)) <= section_level:
+                    if m.group(2) in remove_sections:
+                        section_level = len(m.group(1))
+                        continue
+                    else:
+                        within_section_remove = False
+                else:
+                    continue
+            elif m.group(2) in remove_sections:
+                section_level = len(m.group(1))
+                within_section_remove = True
+                continue
+        elif within_section_remove:
+            continue
+
+        LONG_DESCRIPTION += l
+
 
 class vrna_build_ext(build_ext):
     user_options = build_ext.user_options[:]
@@ -276,6 +316,8 @@ def vrna_ext(name = "RNA._RNA"):
 
 
 setup(
+    long_description=LONG_DESCRIPTION,
+    long_description_content_type="text/markdown",
     packages=['ViennaRNA', 'RNA'],
     ext_modules=[vrna_ext()],
     cmdclass={'build_ext': vrna_build_ext},
