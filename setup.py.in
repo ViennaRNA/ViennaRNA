@@ -12,6 +12,7 @@ except ImportError:
 import os
 import glob
 import sys
+import platform
 
 vrna_flags = [
     'with-svm',
@@ -111,6 +112,13 @@ class vrna_build_ext(build_ext):
                   "-mmacosx-version-min=10.14",
                   "-std=c++1z"]  # c++17 for dlib 19.24
 
+                # deactivate SIMD implementations for ARM builds
+                if platform.machine() == "arm64" or "arm64" in os.getenv("ARCHFLAGS", ""):
+                    self.with_simd = False
+                    # collect all SIMD specific files
+                    simd_files = [f for tmp in vrna_simd_files.values() for f in tmp]
+                    ext.sources = [s for s in ext.sources if s not in simd_files]
+
             for sw in [f.replace('with-', '') for f in vrna_flags]:
                 if getattr(self, 'with_' + sw):
                     if getattr(self, sw + '_macro', None):
@@ -129,20 +137,16 @@ class vrna_build_ext(build_ext):
         # we only do it if we are sure that a ._compile() method exists
         #
         # Idea taken from https://stackoverflow.com/a/49772928/18609162
-        #
-        # The original approach always adds all compiler flags, even when
-        # we don't want/need it for a single file. It then removes those
-        # flags on a per-file base in the new__compile() method. Let us do
-        # it the other way around and only add particular flags if a file
-        # actually demands it
-        # For now, lets keept the 'original' way for C++ flags and .c files
         if not self.compiler_is_msvc():
             original__compile = self.compiler._compile
             if self.with_simd:
+                ext.extra_compile_args.extend([f for f in vrna_simd_cflags.values()])
+
                 def new__compile(obj, src, ext, cc_args, extra_postargs, pp_opts):
                     for simd_opt, simd_flag in vrna_simd_cflags.items():
-                        if src in vrna_simd_files[simd_opt]:
-                            extra_postargs += [simd_flag]
+                        if src not in vrna_simd_files[simd_opt]:
+                            extra_postargs = [arg for arg in extra_postargs if arg != simd_flag]
+
                     # remove c++ flags for .c files
                     if src.lower().endswith('.c'):
                       extra_postargs = [arg for arg in extra_postargs if not arg.lower().startswith('-std')]

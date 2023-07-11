@@ -79,6 +79,7 @@ jobs:
           CIBW_SKIP: cp37-* pp*
           CIBW_ENVIRONMENT: VRNA_SDIST_FILE=$VRNA_SDIST_FILE
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.14 CC=clang CXX=clang++
+          CIBW_ARCHS_MACOS: x86_64 arm64
       - name: Build wheels - Windows
         if: runner.os == 'Windows'
         uses: pypa/cibuildwheel@v2.13.1
