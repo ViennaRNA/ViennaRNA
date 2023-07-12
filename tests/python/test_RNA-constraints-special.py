@@ -1,5 +1,12 @@
-import RNA
 import unittest
+
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath()
+
+import RNA
+
 
 motif_seq_theo = "GAUACCAG&CCCUUGGCAGC"
 motif_str_theo = "(...((((&)...)))...)"
@@ -32,7 +39,4 @@ class constraintsTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import RNApath
-    RNApath.addSwigInterfacePath()
-    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())

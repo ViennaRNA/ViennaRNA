@@ -1,4 +1,3 @@
-import RNA
 import unittest
 from struct import *
 import locale
@@ -6,6 +5,14 @@ import json
 import re
 
 locale.setlocale(locale.LC_ALL, 'C')
+
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath()
+
+import RNA
+
 
 def extract_duplex_data(duplex, data, one_letter_code, fallback):
     # use predicted duplex stability from experimenters if available
@@ -56,8 +63,5 @@ class ModifiedBaseTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import RNApath
-    RNApath.addSwigInterfacePath()
-    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())
 

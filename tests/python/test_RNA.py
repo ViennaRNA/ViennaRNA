@@ -1,10 +1,16 @@
 import os
-import RNA
 import unittest
 from struct import *
 import locale
 
 locale.setlocale(locale.LC_ALL, 'C')
+
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath()
+
+import RNA
 
 
 seq1      = "CGCAGGGAUACCCGCG"
@@ -290,9 +296,6 @@ class FoldCompoundTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import RNApath
-    RNApath.addSwigInterfacePath()
     GeneralTests.VERSION = RNApath.VERSION_NUMBER
-    from py_include import taprunner
     unittest.main(testRunner=taprunner.TAPTestRunner())
 

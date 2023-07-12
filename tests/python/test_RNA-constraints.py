@@ -1,6 +1,13 @@
 import os
-import RNA
 import unittest
+
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath()
+
+import RNA
+
 
 seq_con     = "CCCAAAAGGGCCCAAAAGGG"
 str_con     = "..........(((....)))"
@@ -109,8 +116,5 @@ class constraintsTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import RNApath
-    RNApath.addSwigInterfacePath()
-    from py_include import taprunner
     constraintsTest.DATADIR = RNApath.getDataDirPath()
     unittest.main(testRunner=taprunner.TAPTestRunner())

@@ -1,6 +1,13 @@
 import os
-import RNA
 import unittest
+
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath()
+
+import RNA
+
 
 class file_utils_msa_Test(unittest.TestCase):
     DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
@@ -152,8 +159,5 @@ class file_utils_msa_Test(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import RNApath
-    RNApath.addSwigInterfacePath()
-    from py_include import taprunner
     file_utils_msa_Test.DATADIR = RNApath.getDataDirPath()
     unittest.main(testRunner=taprunner.TAPTestRunner())

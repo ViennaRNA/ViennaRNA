@@ -1,8 +1,15 @@
 import os
 from operator import add
-import RNA
 import math
 import unittest
+
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath()
+
+import RNA
+
 
 kT = 0.61632077549999997
 # maximum allowed difference beteen compared probabilties
@@ -478,8 +485,5 @@ class pf_window_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    import RNApath
-    RNApath.addSwigInterfacePath()
-    from py_include import taprunner
     pf_window_functionTest.DATADIR = RNApath.getDataDirPath()
     unittest.main(testRunner=taprunner.TAPTestRunner())
