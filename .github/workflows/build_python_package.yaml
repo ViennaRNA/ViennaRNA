@@ -13,9 +13,6 @@ on:
           required: false
           default: false
           type: boolean
-  push:
-    branches:
-      - dev_pyproject
   release:
     types:
       - published
@@ -145,7 +142,7 @@ jobs:
   upload_to_pypi:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    #if: (github.event_name == 'workflow_dispatch' && inputs.publish-PyPI) || (github.event_name == 'release' && github.event.action == 'published')
+    if: (github.event_name == 'workflow_dispatch' && inputs.publish-PyPI) || (github.event_name == 'release' && github.event.action == 'published')
     steps:
       - uses: actions/download-artifact@v3
         with:
