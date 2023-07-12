@@ -33,7 +33,7 @@ The code very rarely uses static arrays, and all programs should work for
 sequences up to a length of 32,700 (if you have huge amounts of memory that
 is).
 
-See the [NEWS](NEWS) and [CHANGELOG.md](CHANGELOG.md) files for changes between versions.
+See the [NEWS][file_news] and [CHANGELOG.md][file_changelog] files for changes between versions.
 
 ----
 
@@ -53,8 +53,8 @@ See the [NEWS](NEWS) and [CHANGELOG.md](CHANGELOG.md) files for changes between 
 ## Availability
 
 The most recent source code should always be available through the
-[official ViennaRNA website](https://www.tbi.univie.ac.at/RNA) and through
-[github](https://github.com/ViennaRNA/ViennaRNA).
+[official ViennaRNA website][vrna_website] and through
+[github][vrna_github].
 
 ----
 
@@ -66,14 +66,14 @@ corresponding man pages, use e.g.:
 man RNAfold
 ```
 in a UNIX terminal to obtain the documentation for the `RNAfold` program.
-HTML translations of all man pages can be found at [our official homepage](https://www.tbi.univie.ac.at/RNA/documentation.html#programs).
+HTML translations of all man pages can be found at [our official homepage][vrna_website_manpages].
 
 We maintain a reference manual describing the `RNAlib` API that is automatically
-generated with [doxygen](https://www.doxygen.nl/). The HTML version of this reference
-manual is available [here](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/).
+generated with [doxygen][doxygen_website]. The HTML version of this reference
+manual is available [here][vrna_refman_website].
 
 In addition, the description of the `RNAlib` Python API can be found at
-[Read the Docs](https://viennarna-python.readthedocs.io).
+[Read the Docs][vrna_rtd_website].
 
 ----
 
@@ -83,7 +83,7 @@ For best portability the ViennaRNA package uses the GNU autoconf and automake
 tools. The instructions below are for installing the ViennaRNA package from
 source.
 
-*See the file [INSTALL](INSTALL) for a more detailed description of the build
+*See the file [INSTALL][file_install] for a more detailed description of the build
 and installation process.*
 
 ### Quick Start
@@ -157,10 +157,10 @@ from the distribution tarball.
 
 ### Binary packages
 Binary packages for several Linux-based platforms, Microsoft Windows, and
-Mac OS X are available at [our official website](https://www.tbi.univie.ac.at/RNA/#binary_packages).
+Mac OS X are available at [our official website][vrna_website_packages].
 
 ### Bioconda
-Installation is also possible through [bioconda](https://bioconda.github.io/).
+Installation is also possible through [bioconda][bioconda_website].
 After successfully setting up the bioconda channels
 ```
 conda config --add channels defaults
@@ -168,7 +168,7 @@ conda config --add channels bioconda
 conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
-you can install the [ViennaRNA Package](http://bioconda.github.io/recipes/viennarna/README.html)
+you can install the [viennarna bioconda package][vrna_bioconda_website]
 through
 ```
 conda install viennarna
@@ -177,7 +177,7 @@ conda install viennarna
 
 ### Python interface only
 The Python 3 interface for the ViennaRNA Package library is
-[available at PyPI](https://pypi.org/project/ViennaRNA/) and can
+[available at PyPI][vrna_pypi_website] and can
 be installed independently using Python's `pip`:
 ```
 python -m pip install viennarna
@@ -245,7 +245,7 @@ However, for detailed information and compile time options, see the README and
 INSTALL files in the respective subdirectories.
 
 A comprehensive description of configure options is available at our
-[reference manual](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/install.html#configuration).
+[reference manual][vrna_refman_config].
 
 See also
 ```
@@ -317,10 +317,10 @@ See the README files in the respective sub-directories.
 
 If you use our software package, you may want to cite the follwing publications:
 
-- [R. Lorenz et al. (2011)](https://almob.biomedcentral.com/articles/10.1186/1748-7188-6-26),
+- [R. Lorenz et al. (2011)][vrna2_paper],
 "ViennaRNA Package 2.0", Algorithms for Molecular Biology, 6:26
 
-- [I.L. Hofacker (1994)](https://link.springer.com/article/10.1007/BF00818163),
+- [I.L. Hofacker (1994)][vrna_paper],
 "Fast folding and comparison of RNA secondary structures",
 Monatshefte fuer Chemie, Volume 125, Issue 2, pp 167-188
 
@@ -334,34 +334,34 @@ in the corresponding man-pages.*
 
 ### Default Parameters
 Since version 2.0.0 the build-in energy parameters, also available as parameter
-file [rna_turner2004.par](misc/rna_turner2004.par), are taken from:
+file [rna_turner2004.par][file_param_rna2004], are taken from:
 
-- [D.H. Mathews et al. (2004)](https://doi.org/10.1073/pnas.0401799101),
+- [D.H. Mathews et al. (2004)][param2004_paper],
 "Incorporating chemical modification constraints into a dynamic programming
 algorithm for prediction of RNA secondary structure",
 Proc. Natl. Acad. Sci. USA: 101, pp 7287-7292
 
-- [D.H. Turner et al. (2009)](https://dx.doi.org/10.1093/nar/gkp892), 
+- [D.H. Turner et al. (2009)][nndb_paper], 
 "NNDB: The nearest neighbor parameter database
 for predicting stability of nucleic acid secondary structure",
 Nucleic Acids Research: 38, pp 280-282.
 
 ### Deprecated Parameters
 For backward compatibility we also provide energy parameters from Turner et al.
-1999 in the file [rna_turner1999.par](misc/rna_turner1999.par).
+1999 in the file [rna_turner1999.par][file_param_rna1999].
 
 ### Trained Parameters
 A set of trained RNA energy parameters from Andronescou et al. 2007,
-[rna_andronescou2007.par](misc/rna_andronescou2007.par), a set of RNA
+[rna_andronescou2007.par][file_param_andronescu2007], a set of RNA
 energy parameters obtained by graft and grow genetic programming from Langdon
-et al. 2018, [rna_langdon2018.par](misc/rna_langdon2018.par) are
+et al. 2018, [rna_langdon2018.par][file_param_langdon2018] are
 also included.
 
 ### DNA Parameters
 To predict secondary structures for DNA, we additionally include two DNA
 parameter sets:
-  * [dna_mathews1999.par](misc/dna_mathews1999.par) and
-  * [dna_mathews2004.par](misc/dna_mathews2004.par).
+  * [dna_mathews1999.par][file_param_dna1999] and
+  * [dna_mathews2004.par][file_param_dna2004].
 
 
 ### RNA Base Modifications
@@ -369,12 +369,12 @@ Since version 2.6.0 several programs received support to predict structures
 for sequences with modified bases. The corresponding energy parameters are
 incomplete and mostly restricted to base pair stacking. The ViennaRNA package
 currently includes paraneter sets for
-  * [inosine](misc/rna_mod_inosine_parameters.json)
-  * [pseudouridine](misc/rna_mod_pseudouridine_parameters.json)
-  * [m6A](misc/rna_mod_m6A_parameters.json)
-  * [7DA](misc/rna_mod_7DA_parameters.json)
-  * [purine (a.k.a. nebularine)](misc/rna_mod_purine_parameters.json)
-  * [dihydrouridine](misc/rna_mod_dihydrouridine_parameters.json)
+  * [inosine][file_param_inosine]
+  * [pseudouridine][file_param_pseudouridine]
+  * [m6A][file_param_m6A]
+  * [7DA][file_param_7DA]
+  * [purine (a.k.a. nebularine)][file_param_purine]
+  * [dihydrouridine][file_param_dihydrouridine]
 
 ### Paramers Set Availability
 Energy parameter files are mostly provided for use with our executable
@@ -382,15 +382,13 @@ programs. All parameter sets are compiled-in to our `RNAlib` C-library.
 Thus, when building upon our library, either through C/C++ or the
 scripting language interface, these data are available through dedicated
 functions and as constant strings. See, e.g.
-[here](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/group__energy__parameters__rw.html)
-and
-[here](https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/group__modified__bases.html).
+[here][vrna_refman_epars] and [here][vrna_refman_mod_base].
 
 ----
 
 ## License
 
-Please read the copyright notice in the file [COPYING](COPYING)!
+Please read the copyright notice in the file [COPYING][file_license]!
 
 If you're a commercial user and find these programs useful, please consider
 supporting further developments with a donation.
@@ -403,3 +401,38 @@ We need your feedback! Send your comments, suggestions, and questions to
 rna@tbi.univie.ac.at
 
 Ivo Hofacker, Spring 2006
+
+
+[file_news]: https://github.com/ViennaRNA/ViennaRNA/blob/master/NEWS
+[file_changelog]: https://github.com/ViennaRNA/ViennaRNA/blob/master/CHANGELOG.md
+[file_install]: https://github.com/ViennaRNA/ViennaRNA/blob/master/INSTALL
+[file_license]: https://github.com/ViennaRNA/ViennaRNA/blob/master/COPYING
+[file_param_rna2004]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_turner2004.par
+[file_param_rna1999]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_turner1999.par
+[file_param_dna2004]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/dna_mathews2004.par
+[file_param_dna1999]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/dna_mathews1999.par
+[file_param_andronescu2007]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_andronescou2007.par
+[file_param_langdon2018]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_langdon2018.par
+[file_param_inosine]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_inosine_parameters.json
+[file_param_pseudouridine]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_pseudouridine_parameters.json
+[file_param_m6A]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_m6A_parameters.json
+[file_param_7DA]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_7DA_parameters.json
+[file_param_purine]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_purine_parameters.json
+[file_param_dihydrouridine]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_dihydrouridine_parameters.json
+[vrna_website]: https://www.tbi.univie.ac.at/RNA
+[vrna_github]: https://github.com/ViennaRNA/ViennaRNA
+[vrna_website_manpages]: https://www.tbi.univie.ac.at/RNA/documentation.html#programs
+[vrna_website_packages]: https://www.tbi.univie.ac.at/RNA/#binary_packages
+[doxygen_website]: https://www.doxygen.nl
+[vrna_refman_website]: https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman
+[vrna_refman_epars]: https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/group__energy__parameters__rw.html
+[vrna_refman_mod_base]: https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/group__modified__bases.html
+[vrna_rtd_website]: https://viennarna-python.readthedocs.io
+[bioconda_website]: https://bioconda.github.io
+[vrna_bioconda_website]: http://bioconda.github.io/recipes/viennarna/README.html
+[vrna_pypi_website]: https://pypi.org/project/ViennaRNA
+[vrna_refman_config]: https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/install.html#configuration
+[vrna2_paper]: https://almob.biomedcentral.com/articles/10.1186/1748-7188-6-26
+[vrna_paper]: https://link.springer.com/article/10.1007/BF00818163
+[nndb_paper]: https://dx.doi.org/10.1093/nar/gkp892
+[param2004_paper]: https://doi.org/10.1073/pnas.0401799101
