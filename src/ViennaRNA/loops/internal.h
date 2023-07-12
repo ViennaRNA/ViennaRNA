@@ -530,8 +530,6 @@ E_IntLoop(int           n1,
       if (type_2 > 2)
         energy += P->TerminalAU;
     }
-
-    return energy + salt_loop_correction;
   } else {
     /* interior loop */
     if (ns == 1) {
