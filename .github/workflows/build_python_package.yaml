@@ -1,8 +1,18 @@
-name: Build Python Packages
+name: Build (and publish) Python Packages
 
 on:
   workflow_dispatch:
-  pull_request:
+      inputs:
+        publish-TestPyPI:
+          description: 'Publish packages to TestPyPI'
+          required: false
+          default: false
+          type: boolean
+        publish-PyPI:
+          description: 'Publish packages to PyPI'
+          required: false
+          default: false
+          type: boolean
   push:
     branches:
       - dev_pyproject
@@ -111,11 +121,7 @@ jobs:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment: production
-    #permissions:
-    #  id-token: write
-    #if: github.event_name == 'release' && github.event.action == 'published'
-    # or, alternatively, upload to PyPI on every tag starting with 'v' (remove on: release above to use this)
-    # if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: (github.event_name == 'workflow_dispatch' && inputs.publish-TestPyPI) || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
     steps:
       - uses: actions/download-artifact@v3
         with:
@@ -135,3 +141,26 @@ jobs:
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           repository-url: https://test.pypi.org/legacy/
+
+  upload_to_pypi:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    #if: (github.event_name == 'workflow_dispatch' && inputs.publish-PyPI) || (github.event_name == 'release' && github.event.action == 'published')
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          # unpacks default artifact into dist/
+          # if `name: artifact` is omitted, the action will create extra parent dir
+          name: artifact
+          path: dist
+
+      - uses: actions/download-artifact@v3
+        with:
+          # unpacks sdist into dist/
+          name: sdist
+          path: dist
+
+      - name: Publish package to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
