@@ -1,0 +1,55 @@
+name: Run distcheck
+
+on:
+  workflow_dispatch:
+    inputs:
+      config-flags:
+        description: 'Configure flags to prepare the source directory'
+        default: '--with-cluster --with-kinwalker --with-python2 --disable-lto'
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      config-flags:
+        description: 'Configure flags to prepare the source directory'
+        default: '--with-cluster --with-kinwalker --with-python2 --disable-lto'
+        required: false
+        type: string
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Install prerequisites
+      run:  |
+        sudo apt-get update
+        sudo apt-get -y install \
+          build-essential \
+          autoconf \
+          automake \
+          swig \
+          doxygen \
+          gengetopt \
+          help2man \
+          yacc \
+          flex \
+          libtool \
+          check \
+          liblapacke \
+          liblapacke-dev \
+          python2 \
+          python2-dev \
+          graphviz \
+          doxygen-latex
+    - name: Autotools setup
+      run:  |
+        tar -xjf src/dlib-19.24.tar.bz2 -C src
+        tar -xzf src/libsvm-3.31.tar.gz -C src
+        autoreconf -i
+    - name: Configure
+      run: ./configure ${{ inputs.config-flags }}
+    - name: distcheck
+      run:  make distcheck
