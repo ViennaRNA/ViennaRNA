@@ -40,10 +40,6 @@ Neighbor Model for RNA secondary structure prediction.
 
 @page io    I/O Formats
 
-Below, you'll find a listing of different sections that introduce the most common notations
-of sequence and structure data, specifications of bioinformatics sequence and structure file
-formats, and various output file formats produced by our library.
-
 - @subpage  rna_structure_notations       describes the different notations and representations of RNA secondary structures
 - @subpage  file_formats                  gives an overview of the file formats compatible with our library
 - @subpage  plots                         shows the different (PostScript) plotting functions for RNA secondary structures, feature probabilities, and multiple sequence alignments
