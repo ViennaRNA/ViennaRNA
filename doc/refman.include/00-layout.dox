@@ -7,7 +7,6 @@
 /**
 @page getting_started   Getting Started
 
-- @subpage  install           describes how to install and configure <tt>RNAlib</tt> for your requirements
 - @subpage  helloworld        presents some small example programs to get a first impression on how to use this library
 - @subpage  helloworld_swig   contains small examples that show how to use RNAlib even without C/C++ programming skills from within your favorite scripting language
 
@@ -20,7 +19,6 @@ be found in this library.
 Almost all of them rely on the physics based Nearest
 Neighbor Model for RNA secondary structure prediction.
 
-- @subpage  secondary_structures          gives an introduction into the different layers of abstraction for RNA structures
 - @subpage  distance_measures             introduces different metrics to allow for the comparison of secondary structures
 - @subpage  energy_evaluation             shows how the stability of a secondary structure can be quantified in terms of free energy
 - @subpage  folding_grammar               explains the basic recursive decomposition scheme that is applied in secondary structure prediction
@@ -40,8 +38,6 @@ Neighbor Model for RNA secondary structure prediction.
 
 @page io    I/O Formats
 
-- @subpage  rna_structure_notations       describes the different notations and representations of RNA secondary structures
-- @subpage  file_formats                  gives an overview of the file formats compatible with our library
 - @subpage  plots                         shows the different (PostScript) plotting functions for RNA secondary structures, feature probabilities, and multiple sequence alignments
 
 
@@ -55,7 +51,6 @@ Neighbor Model for RNA secondary structure prediction.
 @page api_features    API Features
 
 - @subpage  newAPI                        
-- @subpage  callbacks                     
 - @subpage  wrappers                      
 
 
