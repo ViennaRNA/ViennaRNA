@@ -33,6 +33,7 @@ release = '2.5.1'
 extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.todo',
+    "sphinx.ext.autosectionlabel",
     'sphinxcontrib.bibtex',
     'breathe',
     'sphinx_rtd_theme',
@@ -46,6 +47,9 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
 
 
 # -- Options for HTML output -------------------------------------------------
