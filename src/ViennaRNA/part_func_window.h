@@ -32,8 +32,6 @@
 /**
  *  @addtogroup part_func_window
  *  @{
- *  @brief  Scanning version using a sliding window approach to compute equilibrium
- *          probabilities
  */
 
 /**
@@ -74,7 +72,6 @@
  * @param type    The type of data that is provided
  * @param data    Auxiliary data
  */
-
 typedef void (*vrna_probs_window_f)(FLT_OR_DBL    *pr,
                                           int           pr_size,
                                           int           i,

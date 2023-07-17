@@ -27,38 +27,6 @@
 /**
  *  @addtogroup  thermodynamics
  *  @{
- *  @brief      Compute various thermodynamic properties using the partition function
- *
- *  Many thermodynamic properties can be derived from the partition function
- *
- *  @f[ Q = \sum_{s \in \omega} e^{\frac{-E(s)}{kT}}. @f]
- *
- *  In particular, for nucleic acids in equilibrium the probabilty @f$ p(F) @f$ of
- *  a particular structural feature @f$ F @f$ follows Boltzmanns law, i.e.
- *
- *  @f[ p(F) \propto \sum_{s \mid F \in s} e^{\frac{-E(s)}{kT}}. @f]
- *
- *  The actual probabilities can then be obtained from the ratio of those
- *  structures containing @f$ F @f$ and @em all structures, i.e.
- *  @f[ p(F) = \frac{1}{Q} \sum_{s \mid F \in s} e^{\frac{-E(s)}{kT}}. @f]
- *
- *  Consequently, a particular secondary structure @f$ s @f$ has equilibrium
- *  probability
- *
- *  @f[ p(s) = \frac{1}{Q} e^{\frac{-E(s)}{kT}} @f]
- *
- *  which can be easily computed once @f$ Q @f$ and @f$ E(s) @f$ are known.
- *
- *  On the other hand, efficient dynamic programming algorithms exist to
- *  compute the equilibrium probabilities
- *
- *  @f[ p_{ij} = \frac{1}{Q} \sum_{s \mid (i,j) \in s} e^{\frac{-E(s)}{kT}} @f]
- *
- *  of base pairs @f$ (i,j) @f$ without the need for exhaustive enumeration
- *  of @f$ s @f$.
- *
- *  This interface provides the functions for all thermodynamic property
- *  computations implemented in @em RNAlib.
  */
 
 

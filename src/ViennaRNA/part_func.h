@@ -56,40 +56,8 @@ typedef struct vrna_dimer_pf_s cofoldF;
  */
 
 /**
- *  @addtogroup pf_fold
- *  @{
- *  @brief Compute the partition function to assess various equilibrium properties
- *
- *  Similar to our @ref mfe, we provide two different flavors for partition
- *  function computations:
- *  * @ref part_func_global - to compute the partition function for a full length sequence
- *  * @ref part_func_window - to compute the partition function of each window using a sliding window approach
- *
- *  While the global partition function approach supports predictions using single sequences as
- *  well as consensus partition functions for multiple sequence alignments (MSA), we currently
- *  do not support MSA input for the local variant.
- *
- *  Comparative prediction computes an average of the free energy contributions plus an additional
- *  covariance pseudo-energy term, exactly as we do for the @ref mfe implementation.
- *
- *  Boltzmann weights for the free energy contributions of individual loops can be
- *  found in @ref eval_loops.
- *
- *  Our implementations also provide a stochastic backtracking procedure to draw
- *  @ref subopt_stochbt according to their equilibrium probabilty.
- *  @}
- */
-
-
-/**
  *  @addtogroup part_func_global
  *  @{
- *  @brief  Variations of the global partition function algorithm
- *
- *  We provide implementations of the global partition function algorithm for
- *  * Single sequences,
- *  * Multiple sequence alignments (MSA), and
- *  * RNA-RNA hybrids
  */
 
 /**
