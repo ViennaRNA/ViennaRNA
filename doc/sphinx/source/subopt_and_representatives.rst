@@ -1,6 +1,8 @@
 Suboptimals and Representative Structures
 =========================================
 
+Sample and enumerate suboptimal secondary structures from RNA sequence data.
+
 .. toctree::
    :maxdepth: 1
    :caption: Specialized Modules:

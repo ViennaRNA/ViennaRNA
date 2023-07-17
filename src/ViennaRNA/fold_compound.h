@@ -22,14 +22,6 @@
 /**
  *  @addtogroup   fold_compound   The Fold Compound
  *  @{
- *
- *  @brief  This module provides interfaces that deal with the most basic data structure used
- *          in structure predicting and energy evaluating function of the RNAlib.
- *
- *          Throughout the entire RNAlib, the #vrna_fold_compound_t, is used to group
- *          information and data that is required for structure prediction and energy evaluation.
- *          Here, you'll find interface functions to create, modify, and delete #vrna_fold_compound_t
- *          data structures.
  */
 
 /**

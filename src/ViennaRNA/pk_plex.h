@@ -25,9 +25,6 @@
 /**
  *  @addtogroup   pseudoknots
  *  @{
- *
- *  @brief Implementations to predict pseudoknotted structures
- *
  */
 
 /**

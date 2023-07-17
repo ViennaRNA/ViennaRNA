@@ -21,11 +21,6 @@
  */
 
 /**
- *  @addtogroup subopt_and_representatives
- *  @brief Sample and enumerate suboptimal secondary structures from RNA sequence data.
- */
-
-/**
  *  @brief Typename for the subopt solution list repesenting data structure #vrna_subopt_sol_s
  */
 typedef struct vrna_subopt_sol_s vrna_subopt_solution_t;

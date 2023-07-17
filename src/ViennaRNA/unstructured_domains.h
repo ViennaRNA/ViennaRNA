@@ -22,62 +22,6 @@
  *  @brief    Functions to modify unstructured domains, e.g. to incorporate ligands binding to unpaired stretches
  */
 
-/**
- *  @addtogroup domains_up
- *
- *  @brief  Add and modify unstructured domains to the RNA folding grammar
- *
- *  This module provides the tools to add and modify unstructured domains to the production rules of the RNA folding grammar.
- *  Usually this functionality is utilized for incorporating ligand binding to unpaired stretches of an RNA.
- *
- *  @bug  Although the additional production rule(s) for unstructured domains as descibed in @ref sec_domains_up
- *        are always treated as 'segments possibly bound to one or more ligands', the current implementation requires
- *        that at least one ligand is bound. The default implementation already takes care of the required changes,
- *        however, upon using callback functions other than the default ones, one has to take care of this fact.
- *        Please also note, that this behavior might change in one of the next releases, such that the decomposition
- *        schemes as shown above comply with the actual implementation.
- *
- *  A default implementation allows one to readily use this feature by simply adding sequence motifs and corresponding
- *  binding free energies with the function vrna_ud_add_motif() (see also @ref ligands_up).
- *
- *  The grammar extension is realized using a callback function that
- *  - evaluates the binding free energy of a ligand to its target sequence segment (white boxes in the figures above), or
- *  - returns the free energy of an unpaired stretch possibly bound by a ligand, stored in the additional @em U DP matrix.
- *
- *  The callback is passed the segment positions, the loop context, and which of the two above mentioned
- *  evaluations are required. A second callback implements the pre-processing step that
- *  prepares the @em U DP matrix by evaluating all possible cases of the additional production rule.
- *  Both callbacks have a default implementation in @em RNAlib, but may be over-written by a
- *  user-implementation, making it fully user-customizable.
- *
- *  For equilibrium probability computations, two additional callbacks exist. One to store/add and one to retrieve the
- *  probability of unstructured domains at particular positions. Our implementation already takes care of computing
- *  the probabilities, but users of the unstructured domain feature are required to provide a mechanism to efficiently
- *  store/add the corresponding values into some external data structure.
- */
-
-
-/**
- *  @addtogroup ligands_up
- *
- *  @brief  Add ligand binding to loop regions using the @ref domains_up feature
- *
- *  Sometime, certain ligands, like single strand binding (SSB) proteins, compete with intramolecular
- *  base pairing of the RNA. In situations, where the dissociation constant of the ligand is known and
- *  the ligand binds to a consecutive stretch of single-stranded nucleotides we can use the @ref domains_up
- *  functionality to extend the RNA folding grammar. This module provides a convenience default implementation
- *  that covers most of the application scenarios.
- *
- *  The function vrna_ud_add_motif() attaches a ligands sequence motif and corresponding binding free energy
- *  to the list of known ligand motifs within a #vrna_fold_compound_t.domains_up attribute. The first call to
- *  this function initializes the @ref domains_up feature with our default implementation. Subsequent calls of
- *  secondary structure predciction algorithms with the modified #vrna_fold_compound_t then directly include
- *  the competition of the ligand with regules base pairing. Since we utilize the unstructured domain extension,
- *  The ligand binding model can be removed again using the vrna_ud_remove() function.
- *
- */
-
-
 /** @brief Typename for the ligand binding extension data structure #vrna_unstructured_domain_s
  *  @ingroup domains_up
  */
@@ -499,16 +443,14 @@ void  vrna_ud_set_data(vrna_fold_compound_t       *fc,
  *  they specify exterior loops (@p F production rule), hairpin loops and interior loops
  *  (@p C production rule), and multibranch loops (@p M and @p M1 production rule).
  *
- *  @image html   ligands_up_callback.svg
- *  @image latex  ligands_up_callback.eps
+ *  @image xml ligands_up_callback.svg
  *
  *  The @p pre_cb callback will be executed as a pre-processing step right before the
  *  regular secondary structure rules. Usually one would use this callback to fill the
  *  dynamic programming matrices @p U and preparations of the auxiliary data structure
  *  #vrna_unstructured_domain_s.data
  *
- *  @image html   B_prod_rule.svg
- *  @image latex  B_prod_rule.eps
+ *  @image xml B_prod_rule.svg
  *
  *  @ingroup domains_up
  *
@@ -530,11 +472,9 @@ void vrna_ud_set_prod_rule_cb(vrna_fold_compound_t        *fc,
  *  matrices and/or prepare the #vrna_unstructured_domain_s.data, and (ii) provide a callback
  *  to retrieve partition functions for subsegments @f$ [i,j] @f$.
  *
- *  @image html   B_prod_rule.svg
- *  @image latex  B_prod_rule.eps
+ *  @image xml   B_prod_rule.svg
  *
- *  @image html   ligands_up_callback.svg
- *  @image latex  ligands_up_callback.eps
+ *  @image xml   ligands_up_callback.svg
  *
  *  @ingroup domains_up
  *
