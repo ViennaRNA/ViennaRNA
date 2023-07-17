@@ -48,12 +48,6 @@ Neighbor Model for RNA secondary structure prediction.
 - @subpage  model_settings                provides the means to store the different model parameters
 
 
-@page api_features    API Features
-
-- @subpage  newAPI                        
-- @subpage  wrappers                      
-
-
 @page utilities       Additional Utilities
 
 
@@ -235,6 +229,9 @@ Neighbor Model for RNA secondary structure prediction.
 @ingroup    cofold
 
 @defgroup   energy_parameters_rw      Reading/Writing Energy Parameter Sets from/to File
+@ingroup    energy_parameters
+
+@defgroup   energy_parameters_salt    Salt corrections for energy parameters
 @ingroup    energy_parameters
 
 @defgroup   energy_parameters_convert Converting Energy Parameter Files

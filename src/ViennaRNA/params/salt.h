@@ -3,18 +3,13 @@
 
 /**
  *  @file     params/salt.h
- *  @ingroup  energy_parameters
+ *  @ingroup  energy_parameters_salt
  *  @brief    Functions to compute salt correction
  */
 
 /**
- *  @addtogroup energy_parameters
+ *  @addtogroup energy_parameters_salt
  *  @{
- *
- *  @brief All relevant functions to compute salt correction at a given salt concentration and temperature.
- *
- *  The corrections for loop and stack are taken from Einert and Netz, 2011
- *  All corrections ruterned are in dcal/mol
  */
 
 #include <math.h>

@@ -31,24 +31,6 @@
 /**
  *  @addtogroup eval
  *  @{
- *
- *  @brief Functions and variables related to free energy evaluation of sequence/structure pairs.
- *
- *  Several different functions to evaluate the free energy of a particular secondary structure
- *  under a particular set of parameters and the Nearest Neighbor Energy model are available.
- *  For most of them, two different forms of representations for the secondary structure may
- *  be used:
- *  * The Dot-Bracket string
- *  * A pair table representation
- *
- *  Furthermore, the evaluation functions are divided into @p basic and @p simplified variants,
- *  where @p basic functions require the use of a #vrna_fold_compound_t data structure holding
- *  the sequence string, and model configuration (settings and parameters). The @p simplified
- *  functions, on the other hand, provide often used default model settings that may be called
- *  directly with only sequence and structure data.
- *
- *  Finally, @p verbose options exist for some functions that allow one to print the
- *  (individual) free energy contributions to some @p FILE stream.
  */
 
 
@@ -867,13 +849,6 @@ vrna_eval_consensus_structure_pt_simple_v(const char  **alignment,
  *  @{
  *  @brief  Functions to evaluate the free energy of particular types of loops
  *
- *  To assess the free energy contribution of a particular loop within a
- *  secondary structure, two variants are provided:
- *  * The @p bare free energy @f$E@f$ (usually in deka-calories, i.e. multiples of @f$10 cal/mol@f$), and
- *  * The <tt>Boltzmann weight</tt> @f$q = exp(-\beta E)@f$ of the free energy @f$E@f$
- *    (with @f$\beta = \frac{1}{RT}@f$, gas constant @f$R@f$ and temperature @f$T@f$)
- *
- *  The latter is usually required for partition function computations.
  */
 
 /**
@@ -914,17 +889,6 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
 /**
  *  @addtogroup eval_move
  *  @{
- *  @brief  Functions to evaluate the free energy change of a structure after application of
- *          (a set of) atomic moves
- *
- *  Here, atomic moves are not to be confused with moves of actual physical atoms. Instead,
- *  an atomic move is considered the smallest conformational change a secondary structure
- *  can undergo to form another, distinguishable structure. We currently support the
- *  following moves
- *  #### Atomic Moves: ####
- *  - Opening (dissociation) of a single base pair
- *  - Closing (formation) of a single base pair
- *  - Shifting one pairing partner of an existing pair to a different location
  */
 
 /**
@@ -992,11 +956,6 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *fc,
 /**
  *  @addtogroup eval_deprecated
  *  @{
- *  @brief  Deprecated Energy Evaluation functions
- *
- *  Using the functions below is discouraged as they have been marked deprecated and will be removed
- *  from the library in the (near) future!
- *
  */
 
 /**

@@ -22,8 +22,6 @@
 /**
  *  @addtogroup energy_parameters_rw
  *  @{
- *
- *  @brief  Read and Write energy parameter sets from and to files or strings
  */
 
 

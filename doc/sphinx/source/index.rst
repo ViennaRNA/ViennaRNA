@@ -46,9 +46,11 @@ http://www.tbi.univie.ac.at/RNA
    :maxdepth: 1
 
    api
-   deprecated
    data_structures
-   api_features
+   vrna_3.0
+   callbacks
+   wrappers
+   deprecated
 
 .. toctree::
    :caption: Miscellaneous

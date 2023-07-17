@@ -23,14 +23,6 @@
 /**
  *  @addtogroup kl_neighborhood_mfe
  *  @{
- *
- *  @brief Compute the minimum free energy (MFE) and secondary structures for a partitioning of
- *  the secondary structure space according to the base pair distance to two fixed reference structures
- *  basepair distance to two fixed reference structures
- *
- *  @see For further details, we refer to Lorenz et al. 2009 @cite lorenz:2009
- *
- *
  */
 
 #include <ViennaRNA/fold_compound.h>

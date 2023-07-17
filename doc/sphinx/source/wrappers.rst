@@ -1,70 +1,83 @@
-/**
+Scripting Language Interface(s)
+===============================
 
-@page  wrappers   Scripting Language interface(s)
-
-@tableofcontents
-
-@section scripting_intro Introduction
+Introduction
+------------
 
 For an easy integration into scripting languages, we provide an automatically
 generated interface to the RNAlib C-library, generated with SWIG.
 
 
-@section scripting_renaming  Function Renaming
+Function Renaming
+-----------------
 
 To provide a namespace-like separation of function symbols from our C library and
-third-party code, we use the prefix `vrna_` or `VRNA_` whenever possible. This,
+third-party code, we use the prefix ``vrna_`` or ``VRNA_`` whenever possible. This,
 however, is not necessary for the scripting language interface, as it uses the
 separate namespace or package `RNA` anyway. Consequently, symbols that appear to
-have the `vrna_` or `VRNA_` prefix in the C-library have the corresponding prefix
+have the ``vrna_`` or ``VRNA_`` prefix in the C-library have the corresponding prefix
 stripped away.
 
 For instance, the C code
-```
-mfe = vrna_fold(sequence, structure);
-```
+
+.. code:: c
+
+  mfe = vrna_fold(sequence, structure);
+
 translates to
-```
-my ($structure, $mfe) = RNA::fold($sequence)
-```
+
+.. code:: perl
+
+  my ($structure, $mfe) = RNA::fold($sequence)
+
 in the Perl 5 interface, and
-```
-structure,mfe = RNA.fold(sequence)
-```
+
+.. code:: python
+
+  structure, mfe = RNA.fold(sequence)
+
 for Python. Note, that in this example we also make use of the possibilty to
 return multiple data at once in the scripting language, while the C library function
 uses additional parameters to return multiple data.
 
 Functions that are dedicated to work on specific data structures only,
-e.g. the #vrna_fold_compound_t, are usually not exported at all. Instead,
+e.g. the :c:type:`vrna_fold_compound_t`, are usually not exported at all. Instead,
 they are attached as object methods of a corresponding class
-(see @ref scripting_oo_interface for detailed information).
+(see :ref:`wrappers:object oriented interface` for detailed information).
 
-@subsection scripting_globals Global Variables
+Global Variables
+^^^^^^^^^^^^^^^^
+
 For the Python interface(s) SWIG places global variables of the C-library
-into an additional namespace `cvar`. For instance, changing the global temperature
+into an additional namespace ``cvar``. For instance, changing the global temperature
 variable thus becomes
-```
-RNA.cvar.temperature = 25
-```
 
-@section scripting_oo_interface Object oriented Interface for Data Structures
+.. code: python
 
-For data structures, typedefs, and enumerations the `vrna_` prefixes are
-dropped as well, together with their suffixes `_s`, `_t`, and `_e`, respectively.
+  RNA.cvar.temperature = 25
+
+
+Object Oriented Interface
+-------------------------
+
+
+For data structures, typedefs, and enumerations the ``vrna_`` prefixes are
+dropped as well, together with their suffixes ``_s``, ``_t``, and ``_e``, respectively.
 Furthermore, data structures are usually transformed into classes and
 relevant functions of the C-library are attached as methods.
 
-@section scripting_examples Examples
+Examples
+--------
 
 Examples on the basic usage of the scripting language interfaces can be
-found in the @ref examples_perl5 and @ref examples_python
-section.
+found in the :doc:`/examples/examples_perl5` and :doc:`/examples/examples_python` sections.
 
-@section scripting_wrapper_notes  SWIG generated Wrapper notes
+SWIG Wrapper notes
+------------------
 
 Special notes on how functions, structures, enums, and macro definitions are
 actually wrapped, can be found below
 
+.. doxygenpage:: wrappers
+   :content-only:
 
-*/

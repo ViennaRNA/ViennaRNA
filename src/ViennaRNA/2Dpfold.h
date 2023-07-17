@@ -23,10 +23,6 @@
 /**
  *  @addtogroup kl_neighborhood_pf
  *  @{
- *
- *  @brief Compute the partition function and stochastically sample secondary structures for a partitioning of
- *  the secondary structure space according to the base pair distance to two fixed reference structures
- *
  */
 
 #include <ViennaRNA/fold_compound.h>
@@ -84,7 +80,6 @@ vrna_pf_TwoD(vrna_fold_compound_t *fc,
 
 /**
  *  @addtogroup kl_neighborhood_stochbt
- *  @brief Contains functions related to stochastic backtracking from a specified distance class
  *  @{
  */
 

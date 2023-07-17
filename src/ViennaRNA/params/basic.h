@@ -22,14 +22,6 @@
 /**
  *  @addtogroup energy_parameters
  *  @{
- *
- *  @brief All relevant functions to retrieve and copy pre-calculated energy parameter sets as well as
- *  reading/writing the energy parameter set from/to file(s).
- *
- *  This module covers all relevant functions for pre-calculation of the energy parameters
- *  necessary for the folding routines provided by RNAlib. Furthermore, the energy parameter set
- *  in the RNAlib can be easily exchanged by a user-defined one. It is also possible to write the
- *  current energy parameter set into a text file.
  */
 
 /** @brief Typename for the free energy parameter data structure #vrna_params */
