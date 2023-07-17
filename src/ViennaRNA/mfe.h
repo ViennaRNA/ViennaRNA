@@ -29,38 +29,10 @@
  *  MFE folding...
  */
 
-/**
- *  @addtogroup mfe
- *  @{
- *  @brief  Predicting the Minimum Free Energy (MFE) and a corresponding (consensus) secondary structure
- *
- *  In a nutshell we provide two different flavors for MFE prediction:
- *  * @ref mfe_global - to compute the MFE for the entire sequence
- *  * @ref mfe_window - to compute MFEs for each window using a sliding window approach
- *
- *  Each of these flavors, again, provides two implementations to either compute the MFE based on
- *  *  single RNA (DNA) sequence(s), or
- *  *  a comparative approach using multiple sequence alignments (MSA).
- *
- *  For the latter, a consensus secondary structure is predicted and our implementations compute
- *  an average of free energies for each sequence in the MSA plus an additional covariance
- *  pseudo-energy term.
- *
- *  The implementations for @ref mfe_backtracking are generally agnostic with respect to whether
- *  local or global structure prediction is in place.
- *  @}
- */
-
 
 /**
  *  @addtogroup  mfe_global
  *  @{
- *  @brief  Variations of the global Minimum Free Energy (MFE) prediction algorithm
- *
- *  We provide implementations of the global MFE prediction algorithm for
- *  * Single sequences,
- *  * Multiple sequence alignments (MSA), and
- *  * RNA-RNA hybrids
  */
 
 /**
@@ -280,7 +252,6 @@ DEPRECATED(float
 /**
  *  @addtogroup mfe_backtracking
  *  @{
- *  @brief   Backtracking related interfaces
  */
 
 /**

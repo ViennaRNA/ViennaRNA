@@ -3,8 +3,12 @@ Concepts and Algorithms
 =======================
 
 Our library is grouped into several modules, each addressing different
-aspects of RNA secondary structure related problems. You can find an
-overview of the different groups below.
+aspects of RNA secondary structure related problems. This is an overview
+of the concepts and algorithms for which implementations can be found
+in this library.
+
+Almost all of them rely on the physics based Nearest Neighbor Model
+for RNA secondary structure prediction.
 
 .. toctree::
    :maxdepth: 1

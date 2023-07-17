@@ -11,31 +11,6 @@
 - @subpage  helloworld_swig   contains small examples that show how to use RNAlib even without C/C++ programming skills from within your favorite scripting language
 
 
-@page concepts   Concepts and Algorithms
-
-This is an overview of the concepts and algorithms for which implementations can
-be found in this library.
-
-Almost all of them rely on the physics based Nearest
-Neighbor Model for RNA secondary structure prediction.
-
-- @subpage  distance_measures             introduces different metrics to allow for the comparison of secondary structures
-- @subpage  energy_evaluation             shows how the stability of a secondary structure can be quantified in terms of free energy
-- @subpage  folding_grammar               explains the basic recursive decomposition scheme that is applied in secondary structure prediction
-- @subpage  secondary_structure_landscape describes how transition paths between secondary structures span a landscape like graph
-- @subpage  mfe_algorithm                 compute the most stable conformation in thermodynamic equilibrium
-- @subpage  pf_algorithm                  enable one to apply statistical mechanics to derive equilibrium probabilities of structure features
-- @subpage  suboptimal_structures         allow for alternative description and enumeration of the structure ensemble
-- @subpage  rip                           introduces how to model the interaction between RNA molecules
-- @subpage  local_vs_global               offer insights into structuredness of long sequences and entire genomes
-- @subpage  consensus_structures          augment structure prediction with evolutionary conservation of homologous sequences
-- @subpage  classified_dp                 perform an <em>a priori</em> partitioning of the structure ensemble and compute various properties for the resulting classes.
-- @subpage  design                        constitutes the inverse problem of structure prediction
-- @subpage  structure_probing_data        can be used to guide structure prediction, for instance using SHAPE reactivity data
-- @subpage  ligand_binding                adds more complexity to structure prediction by modelling the interaction between small chemical compounds or proteins and the RNA
-- @subpage  structure_motifs              extend the abstraction of secondary structure beyond canonical base pair formation
-
-
 @page io    I/O Formats
 
 - @subpage  plots                         shows the different (PostScript) plotting functions for RNA secondary structures, feature probabilities, and multiple sequence alignments
@@ -46,17 +21,6 @@ Neighbor Model for RNA secondary structure prediction.
 - @subpage  sequence_structure_data       shows the most common types for sequence or structure data
 - @subpage  fold_compound_container       is the basic, central container for our implementations of prediction-, evaluation, and other algorithms
 - @subpage  model_settings                provides the means to store the different model parameters
-
-
-@page utilities       Additional Utilities
-
-
-@page examples  Examples
-
-- @subpage  examples_c
-- @subpage  examples_perl5
-- @subpage  examples_python
-
 */
 
 

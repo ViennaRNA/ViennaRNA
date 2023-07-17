@@ -1,11 +1,43 @@
 RNA-RNA Interaction
 ===================
 
+The function of an RNA molecule often depends on its interaction with
+other RNAs. The following routines therefore allows one to predict structures
+formed by two RNA molecules upon hybridization.
+
 .. toctree::
    :maxdepth: 1
    :caption: Specialized Modules:
 
    rip/pf
    rip/up
+
+Concatenating RNA sequences
+---------------------------
+
+One approach to co-folding two RNAs consists of concatenating the two
+sequences and keeping track of the concatenation point in all energy
+evaluations. Correspondingly, many of the cofold() and
+co_pf_fold() routines take one sequence string as argument
+and use the the global variable #cut_point to mark the concatenation
+point. Note that while the *RNAcofold* program uses the ``&`` character
+to mark the chain break in its input.
+
+RNA-RNA interaction as a Stepwise Process
+-----------------------------------------
+
+In a second approach to co-folding two RNAs, cofolding is seen as a
+stepwise process. In the first step the probability of an unpaired region
+is calculated and in a second step this probability of an unpaired region
+is  multiplied with the probability of an interaction between the two RNAs.
+This approach is implemented for the interaction between a long
+target sequence and a short ligand RNA. Function pf_unstru() calculates
+the partition function over all unpaired regions in the input
+sequence. Function pf_interact(), which calculates the
+partition function over all possible interactions between two
+sequences, needs both sequence as separate strings as input.
+
+RNA-RNA Interaction API
+-----------------------
 
 .. doxygengroup:: cofold
