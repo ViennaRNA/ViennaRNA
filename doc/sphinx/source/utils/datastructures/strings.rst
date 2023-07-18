@@ -1,0 +1,4 @@
+Strings
+=======
+
+.. doxygengroup:: strings

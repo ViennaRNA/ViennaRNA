@@ -22,7 +22,6 @@
 /**
  *  @addtogroup  file_formats
  *  @{
- *  @brief  Functions to read/write different file formats for nucleic acid sequences and secondary structures
  */
 
 #include <stdio.h>

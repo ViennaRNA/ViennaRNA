@@ -1,6 +1,9 @@
 Secondary Structure Utilities
 =============================
 
+Functions to create, parse, convert, manipulate, and compare secondary
+structure representations.
+
 .. toctree::
    :maxdepth: 1
    :caption: Specialized Modules:

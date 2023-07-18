@@ -295,7 +295,6 @@ vrna_idx_col_wise(unsigned int length);
 /**
  *  @addtogroup  message_utils
  *  @{
- *  @brief  Functions to print various kind of messages
  */
 
 /**

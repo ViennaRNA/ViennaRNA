@@ -25,8 +25,6 @@
 /**
  *  @addtogroup heap_utils
  *  @{
- *  @brief  Interface for an abstract implementation of a heap data structure
- *
  */
 
 

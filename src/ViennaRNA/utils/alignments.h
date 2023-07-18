@@ -22,7 +22,6 @@
 /**
  *  @addtogroup aln_utils
  *  @{
- *  @brief  Functions to extract features from and to manipulate multiple sequence alignments
  */
 
 /** @brief Typename for the base pair info repesenting data structure #vrna_pinfo_s */

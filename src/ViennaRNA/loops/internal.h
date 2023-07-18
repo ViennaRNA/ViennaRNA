@@ -42,7 +42,6 @@
 /**
  *  @addtogroup   eval_loops_int
  *  @{
- *  @brief  Functions to evaluate the free energy contributions for internal loops
  */
 
 

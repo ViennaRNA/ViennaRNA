@@ -21,13 +21,6 @@
  */
 
 /**
- *  @addtogroup hard_constraints
- *
- *  @brief  This module covers all functionality for hard constraints in secondary
- *          structure prediction
- */
-
-/**
  *  @brief Typename for the hard constraints data structure #vrna_hc_s
  *  @ingroup  hard_constraints
  */

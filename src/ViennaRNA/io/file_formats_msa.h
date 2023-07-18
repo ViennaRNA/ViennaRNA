@@ -12,7 +12,6 @@
 /**
  *  @addtogroup   file_formats_msa
  *  @{
- *  @brief  Functions to read/write multiple sequence alignments (MSA) in various file formats
  */
 
 /**

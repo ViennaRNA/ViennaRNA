@@ -29,7 +29,6 @@
 /**
  *  @addtogroup   eval_loops_ext
  *  @{
- *  @brief  Functions to evaluate the free energy contributions for exterior loops
  */
 
 

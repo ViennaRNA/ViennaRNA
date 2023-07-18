@@ -10,7 +10,6 @@
 /**
  *  @addtogroup  units
  *  @{
- *  @brief  Functions to convert between various physical units
  */
 
 /**

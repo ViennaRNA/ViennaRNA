@@ -22,7 +22,6 @@
 /**
  *  @addtogroup  alignment_plots
  *  @{
- *  @brief  Functions to generate Alignment plots with annotated consensus structure
  */
 
 /**

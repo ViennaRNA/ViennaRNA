@@ -22,7 +22,6 @@
 /**
  *  @addtogroup   plot_layout_utils
  *  @{
- *  @brief  Functions to compute coordinate layouts for secondary structure plots
  */
 
 

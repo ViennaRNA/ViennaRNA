@@ -10,7 +10,6 @@
 /**
  *  @addtogroup   buffer_utils
  *  @{
- *  @brief Functions that provide dynamically buffered stream-like data structures
  */
 
 #include <stdarg.h>

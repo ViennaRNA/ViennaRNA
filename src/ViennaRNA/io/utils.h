@@ -12,7 +12,6 @@
 /**
  *  @addtogroup file_utils
  *  @{
- *  @brief      Functions to parse, write, and convert various file formats and to deal with file system related issues
  */
 
 /**

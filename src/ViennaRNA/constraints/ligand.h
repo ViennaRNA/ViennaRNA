@@ -9,9 +9,7 @@
 
 /**
  *  @addtogroup constraints_ligand
- *
  *  @{
- *  @brief  Ligand binding to specific hairpin/interior loop like motifs using the @ref soft_constraints feature
  */
 
 

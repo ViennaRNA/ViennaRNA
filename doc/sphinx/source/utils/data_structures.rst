@@ -1,6 +1,9 @@
 (Abstract) Data Structures
 ==========================
 
+All datastructures and typedefs shared among the ViennaRNA Package
+can be found here.
+
 .. toctree::
    :maxdepth: 1
    :caption: Specialized Modules:

@@ -36,7 +36,6 @@
 /**
  *  @addtogroup  eval_loops_mb
  *  @{
- *  @brief  Functions to evaluate the free energy contributions for mutlibranch loops
  */
 
 

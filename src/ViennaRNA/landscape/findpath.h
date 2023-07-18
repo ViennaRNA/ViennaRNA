@@ -22,9 +22,6 @@
 /**
  *  @addtogroup   paths_direct
  *  @{
- *
- *  @brief Heuristics to explore direct, optimal (re-)folding paths between two secondary structures
- *
  */
 
 #include <ViennaRNA/fold_compound.h>

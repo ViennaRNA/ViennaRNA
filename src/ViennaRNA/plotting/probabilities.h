@@ -27,8 +27,6 @@
 /**
  *  @addtogroup   plot_probabilities
  *  @{
- *
- *  @brief  Functions related to plotting of probabilities, such as dot-plots.
  */
 
 /**

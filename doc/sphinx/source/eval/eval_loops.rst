@@ -25,11 +25,15 @@ General
 Exterior Loops
 --------------
 
+Functions to evaluate the free energy contributions for exterior (external) loops.
+
 .. doxygengroup:: eval_loops_ext
 
 
 Hairpin Loops
 -------------
+
+Functions to evaluate the free energy contributions for hairpin loops.
 
 .. doxygengroup:: eval_loops_hp
 
@@ -37,11 +41,15 @@ Hairpin Loops
 Internal Loops
 --------------
 
+Functions to evaluate the free energy contributions for internal (interior) loops.
+
 .. doxygengroup:: eval_loops_int
 
 
 Multibranch Loops
 -----------------
+
+Functions to evaluate the free energy contributions for mutlibranch loops.
 
 .. doxygengroup:: eval_loops_mb
 

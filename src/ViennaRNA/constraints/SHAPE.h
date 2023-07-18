@@ -11,14 +11,7 @@
  */
 
 /**
- *
- *  @addtogroup SHAPE_reactivities
- *  @brief Incorporate SHAPE reactivity structure probing data
- *  into the folding recursions by means of soft constraints
- *
- *  Details for our implementation to incorporate SHAPE reactivity data to guide
- *  secondary structure prediction can be found in @cite lorenz:2016a
- *
+ *  @ingroup SHAPE_reactivities
  */
 void
 vrna_constraints_add_SHAPE(vrna_fold_compound_t *fc,
@@ -29,6 +22,9 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *fc,
                            unsigned int         constraint_type);
 
 
+/**
+ *  @ingroup SHAPE_reactivities
+ */
 void
 vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *fc,
                                const char           *shape_method,

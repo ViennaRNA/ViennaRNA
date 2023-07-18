@@ -22,7 +22,6 @@
 /**
  *  @addtogroup   string_utils
  *  @{
- *  @brief  Functions to parse, convert, manipulate, create, and compare (nucleic acid sequence) strings.
  */
 
 #include <stdarg.h>

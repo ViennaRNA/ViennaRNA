@@ -118,6 +118,13 @@ Here is an example alignment in MAF format (bluntly taken from the
 .. include:: ../../../../examples/files/alignment_maf.maf
    :literal:
 
+MSA API
+^^^^^^^
+
+Functions to read/write multiple sequence alignments (MSA) in various file formats.
+
+.. doxygengroup:: file_formats_msa
+
 
 Command Files
 -------------
@@ -415,3 +422,15 @@ An actual example of real-world data may look like
 
 .. literalinclude:: ../../../../misc/rna_mod_pseudouridine_parameters.json
    :language: json
+
+
+Other file formats
+------------------
+
+Functions to read/write different file formats for nucleic acid sequences
+and secondary structures.
+
+File formats API
+^^^^^^^^^^^^^^^^
+
+.. doxygengroup:: file_formats

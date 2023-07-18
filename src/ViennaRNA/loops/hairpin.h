@@ -41,7 +41,6 @@
  *
  *  @addtogroup   eval_loops_hp
  *  @{
- *  @brief  Functions to evaluate the free energy contributions for hairpin loops
  */
 
 

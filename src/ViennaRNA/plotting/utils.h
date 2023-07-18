@@ -12,17 +12,8 @@
 #include <ViennaRNA/utils/structures.h>
 
 /**
- *  @addtogroup  plotting_utils
- *  @{
- *  @brief  Functions for Creating Secondary Structure Plots, Dot-Plots, and More
- *  @}
- */
-
-
-/**
  *  @addtogroup  annotation_utils
  *  @{
- *  @brief  Functions to generate annotations for Secondary Structure Plots, Dot-Plots, and Others
  */
 
 /**

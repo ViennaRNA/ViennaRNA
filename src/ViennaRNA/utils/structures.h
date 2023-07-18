@@ -22,7 +22,6 @@
 /**
  *  @addtogroup   struct_utils
  *  @{
- *  @brief  Functions to create, parse, convert, manipulate, and compare secondary structure representations
  */
 
 

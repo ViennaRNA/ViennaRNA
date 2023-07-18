@@ -12,3 +12,4 @@ formats, and various output file formats produced by our library.
    io/rna_structure_notations
    io/file_formats
    io/plots
+   io/utils
