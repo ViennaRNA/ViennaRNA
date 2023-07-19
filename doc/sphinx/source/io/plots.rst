@@ -2,5 +2,5 @@ Plotting
 ========
 
 .. doxygenpage:: plots
-   :content-only:
+    :no-title:
 

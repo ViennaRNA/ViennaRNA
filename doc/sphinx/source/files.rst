@@ -11,3 +11,4 @@ ViennaRNA/mfe.h
    :outline:
 
 .. doxygenpage:: annotated
+    :no-title:

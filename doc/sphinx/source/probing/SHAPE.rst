@@ -8,3 +8,4 @@ Details for our implementation to incorporate SHAPE reactivity data to guide
 secondary structure prediction can be found in :cite:t:`lorenz:2016a`.
 
 .. doxygengroup:: SHAPE_reactivities
+    :no-title:

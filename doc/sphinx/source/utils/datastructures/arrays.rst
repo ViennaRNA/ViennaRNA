@@ -64,3 +64,4 @@ to store.  The general ideas for this implementation are taken from
 Ginger Bill's C Helper Library (public domain).
 
 .. doxygengroup:: array_utils
+    :no-title:

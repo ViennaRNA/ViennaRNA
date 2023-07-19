@@ -38,8 +38,8 @@ proteins and other ligands binding to unpaired loop regions while competing
 with conventional base pairing. Another application could be that one may
 want to include the formation of self-enclosed structural modules, such as
 @em G-quadruplexes. For such applications, we provide a pair of additional domains
-that extend the regular RNA folding grammar, :ref:`domains_struc` and
-:ref:`domains_up`.
+that extend the regular RNA folding grammar, :doc:`/grammar/domains_struc` and
+:doc:`grammar/domains_up`.
 
 .. image:: gfx/GCrecursion.png
 
@@ -47,9 +47,9 @@ While unstructured domains are usually determined by a more or less precise
 sequence motif, e.g. the binding site for a protein, structured domains are
 considered self-enclosed modules with a more or less complex pairing pattern.
 Our extension with these two domains introduces two production rules to fill
-additional dynamic processing matrices @p S and @p U where we store the
-pre-computed contributions of structured domains (@p S), and unstructured
-domains (@p U).
+additional dynamic processing matrices ``S`` and ``U`` where we store the
+pre-computed contributions of structured domains (``S``), and unstructured
+domains (``U``).
 
 Structured Domains
 ------------------
@@ -146,3 +146,4 @@ be addressed separately for maximum flexibility in soft-constraints application.
 
 
 .. doxygengroup:: grammar
+    :no-title:

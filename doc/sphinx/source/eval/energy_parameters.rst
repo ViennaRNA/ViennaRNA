@@ -30,4 +30,5 @@ Energy Parameter API
 --------------------
 
 .. doxygengroup:: energy_parameters
+    :no-title:
 

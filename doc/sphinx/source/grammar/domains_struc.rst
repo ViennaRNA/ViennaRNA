@@ -10,4 +10,4 @@ Usually this functionality is utilized for incorporating self-enclosed
 structural modules that exhibit a more or less complex base pairing pattern.
 
 .. doxygengroup:: domains_struc
-
+    :no-title:

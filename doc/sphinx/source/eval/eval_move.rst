@@ -19,5 +19,6 @@ following moves
    :caption: Contents:
 
 .. doxygengroup:: eval_move
+    :no-title:
 
 

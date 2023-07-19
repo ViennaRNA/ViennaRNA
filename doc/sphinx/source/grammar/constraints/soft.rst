@@ -8,4 +8,5 @@ in the recursions by adding bonuses/penalties in form of pseudo free energies
 to certain loop configurations.
 
 .. doxygengroup:: soft_constraints
+    :no-title:
 

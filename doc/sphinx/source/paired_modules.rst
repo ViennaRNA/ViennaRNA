@@ -9,3 +9,4 @@ Structure Modules and Pseudoknots
    modules/gquads
 
 .. doxygengroup:: paired_modules
+    :no-title:

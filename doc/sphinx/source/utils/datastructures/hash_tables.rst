@@ -11,3 +11,4 @@ and a concrete implementation for pairs of secondary structure and
 corresponding free energy value.
 
 .. doxygengroup:: hash_table_utils
+    :no-title:

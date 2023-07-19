@@ -14,3 +14,4 @@ Functions for Creating Secondary Structure Plots, Dot-Plots, and more.
    plots/deprecated
 
 .. doxygengroup:: plotting_utils
+    :no-title:

@@ -61,3 +61,4 @@ Below, you find an enumeration of the individual callback functions that are ava
 in *RNAlib*:
 
 .. doxygenpage:: callbacks
+    :no-title:

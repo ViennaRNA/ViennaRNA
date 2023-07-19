@@ -83,3 +83,4 @@ General Partition Function API
 ------------------------------
 
 .. doxygengroup:: pf_fold
+    :no-title:

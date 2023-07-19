@@ -9,5 +9,4 @@ deprecated and will be removed from the library in the (near) future!
    :caption: Contents:
 
 .. doxygengroup:: eval_deprecated
-
-
+    :no-title:

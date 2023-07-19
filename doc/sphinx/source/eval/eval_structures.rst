@@ -22,5 +22,4 @@ Finally, **verbose** variants exist for some functions that allow one to print t
 (individual) free energy contributions to some ``FILE`` stream.
 
 .. doxygengroup:: eval
-
-
+    :no-title:

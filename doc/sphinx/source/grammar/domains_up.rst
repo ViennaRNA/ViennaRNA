@@ -35,4 +35,5 @@ the probabilities, but users of the unstructured domain feature are required to 
 store/add the corresponding values into some external data structure.
 
 .. doxygengroup:: domains_up
+    :no-title:
 

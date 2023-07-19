@@ -101,3 +101,4 @@ The same procedure can be applied for the other direction. This is taking all pa
 in order to look for pairs with valid positions in the intervals of the environment.
 
 .. doxygengroup:: neighbors
+    :no-title:

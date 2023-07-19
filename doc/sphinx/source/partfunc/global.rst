@@ -10,3 +10,4 @@ We provide implementations of the global partition function algorithm for
 * RNA-RNA hybrids
 
 .. doxygengroup:: part_func_global
+    :no-title:

@@ -1,5 +1,0 @@
-Data Structures
-===============
-
-.. doxygenstruct::
-   :members:

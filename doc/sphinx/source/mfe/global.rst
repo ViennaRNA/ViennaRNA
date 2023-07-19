@@ -9,4 +9,8 @@ We provide implementations of the global MFE prediction algorithm for
 * Multiple sequence alignments (MSA), and
 * RNA-RNA hybrids
 
+API Symbols
+-----------
+
 .. doxygengroup:: mfe_global
+  :no-title:

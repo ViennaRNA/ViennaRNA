@@ -41,3 +41,4 @@ RNA-RNA Interaction API
 -----------------------
 
 .. doxygengroup:: cofold
+    :no-title:

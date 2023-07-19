@@ -12,3 +12,4 @@ calculation of the free energy needed to expose a region. In the second step
 we compute the free energy of an interaction for every possible binding site.
 
 .. doxygengroup:: up_cofold
+    :no-title:

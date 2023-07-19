@@ -124,6 +124,7 @@ MSA API
 Functions to read/write multiple sequence alignments (MSA) in various file formats.
 
 .. doxygengroup:: file_formats_msa
+    :no-title:
 
 
 Command Files
@@ -434,3 +435,4 @@ File formats API
 ^^^^^^^^^^^^^^^^
 
 .. doxygengroup:: file_formats
+    :no-title:

@@ -18,3 +18,4 @@ This part of the interface is further split into the following sections:
 
 
 .. doxygengroup:: paths
+    :no-title:

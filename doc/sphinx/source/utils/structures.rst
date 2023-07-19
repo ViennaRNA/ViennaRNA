@@ -19,3 +19,4 @@ structure representations.
    struct/deprecated
 
 .. doxygengroup:: struct_utils
+    :no-title:

@@ -18,3 +18,4 @@ energy parameters supplied in JSON format
 (see :ref:`io/file_formats:energy parameters` for details).
 
 .. doxygengroup:: modified_bases
+    :no-title:

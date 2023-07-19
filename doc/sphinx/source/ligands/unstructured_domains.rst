@@ -18,3 +18,4 @@ of the ligand with regules base pairing. Since we utilize the unstructured domai
 The ligand binding model can be removed again using the :c:func:`vrna_ud_remove()` function.
 
 .. doxygengroup:: ligands_up
+    :no-title:

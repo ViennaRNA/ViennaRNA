@@ -18,3 +18,4 @@ Utilities
    utils/units
 
 .. doxygengroup:: utils
+    :no-title:

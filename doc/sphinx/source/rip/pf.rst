@@ -24,3 +24,4 @@ the equilibrium concentrations, given input concentrations of A and B, see
 e.g. Dimitrov & Zuker (2004)
 
 .. doxygengroup:: pf_cofold
+    :content-only:

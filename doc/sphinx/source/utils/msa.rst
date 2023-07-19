@@ -11,3 +11,4 @@ sequence alignments (MSA).
    msa_deprecated
 
 .. doxygengroup:: aln_utils
+    :no-title:

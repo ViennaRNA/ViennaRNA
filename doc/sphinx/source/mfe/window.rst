@@ -26,3 +26,4 @@ implementations then pass the results through the user-implemented callback as s
 the prediction for a particular window is finished.
 
 .. doxygengroup:: mfe_window
+    :no-title:

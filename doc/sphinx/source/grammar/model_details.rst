@@ -5,4 +5,4 @@ Functions and data structures to fine-tune the implemented
 secondary structure evaluation model.
 
 .. doxygengroup:: model_details
-
+    :no-title:

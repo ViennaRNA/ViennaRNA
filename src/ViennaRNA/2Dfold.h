@@ -43,7 +43,7 @@
  *
  *  @see  vrna_mfe_TwoD()
  */
-typedef struct vrna_sol_TwoD_t {
+typedef struct {
   int   k;        /**<  @brief  Distance to first reference */
   int   l;        /**<  @brief  Distance to second reference */
   float en;       /**<  @brief  Free energy in kcal/mol */
@@ -121,7 +121,7 @@ vrna_backtrack5_TwoD(vrna_fold_compound_t *fc,
  *              Use #vrna_fold_compound_t and the corresponding functions vrna_fold_compound_TwoD(),
  *              vrna_mfe_TwoD(), and vrna_fold_compound_free() instead!
  */
-typedef struct TwoDfold_vars {
+typedef struct {
   vrna_param_t          *P;           /**<  @brief  Precomputed energy parameters and model details */
   int                   do_backtrack; /**<  @brief  Flag whether to do backtracing of the structure(s) or not */
   char                  *ptype;       /**<  @brief  Precomputed array of pair types */

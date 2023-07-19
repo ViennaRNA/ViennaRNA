@@ -19,7 +19,7 @@ General
 -------
 
 .. doxygengroup:: eval_loops
-   :content-only:
+    :no-title:
 
 
 Exterior Loops
@@ -28,6 +28,7 @@ Exterior Loops
 Functions to evaluate the free energy contributions for exterior (external) loops.
 
 .. doxygengroup:: eval_loops_ext
+    :no-title:
 
 
 Hairpin Loops
@@ -36,6 +37,7 @@ Hairpin Loops
 Functions to evaluate the free energy contributions for hairpin loops.
 
 .. doxygengroup:: eval_loops_hp
+    :no-title:
 
 
 Internal Loops
@@ -44,6 +46,7 @@ Internal Loops
 Functions to evaluate the free energy contributions for internal (interior) loops.
 
 .. doxygengroup:: eval_loops_int
+    :no-title:
 
 
 Multibranch Loops
@@ -52,4 +55,5 @@ Multibranch Loops
 Functions to evaluate the free energy contributions for mutlibranch loops.
 
 .. doxygengroup:: eval_loops_mb
+    :no-title:
 

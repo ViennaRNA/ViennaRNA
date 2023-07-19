@@ -50,3 +50,4 @@ Thermodynamic Properties API
 ----------------------------
 
 .. doxygengroup:: thermodynamics
+    :no-title:

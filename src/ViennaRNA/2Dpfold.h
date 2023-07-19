@@ -42,7 +42,7 @@
  *
  *  @see  vrna_pf_TwoD()
  */
-typedef struct vrna_sol_TwoD_pf_t {
+typedef struct {
   int         k;  /**<  @brief  Distance to first reference */
   int         l;  /**<  @brief  Distance to second reference */
   FLT_OR_DBL  q;  /**<  @brief  partition function */

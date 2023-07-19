@@ -14,3 +14,4 @@ Sample and enumerate suboptimal secondary structures from RNA sequence data.
    subopt/centroid
 
 .. doxygengroup:: subopt_and_representatives
+    :no-title:

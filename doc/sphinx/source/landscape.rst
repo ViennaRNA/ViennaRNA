@@ -12,3 +12,4 @@ The RNA Secondary Structure Landscape
    landscape/paths_deprecated
 
 .. doxygengroup:: landscape
+    :no-title:

@@ -17,3 +17,4 @@ can be found here.
    datastructures/buffers
 
 .. doxygengroup:: data_structures
+    :no-title:

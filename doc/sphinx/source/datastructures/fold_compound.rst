@@ -10,3 +10,4 @@ Here, you'll find interface functions to create, modify, and delete :c:type:`vrn
 data structures.
 
 .. doxygengroup:: fold_compound
+    :no-title:

@@ -16,7 +16,7 @@ General
 -------
 
 .. doxygengroup:: kl_neighborhood
-   :content-only:
+    :no-title:
 
 
 MFE Variants
@@ -27,6 +27,7 @@ of the secondary structure space according to the base pair distance to two fixe
 reference structures basepair distance to two fixed reference structures.
 
 .. doxygengroup:: kl_neighborhood_mfe
+    :no-title:
 
 
 Partition Function Variants
@@ -38,6 +39,7 @@ a partitioning of the secondary structure space according to the base pair dista
 to two fixed reference structures.
 
 .. doxygengroup:: kl_neighborhood_pf
+    :no-title:
 
 
 Stochastic Backtracking
@@ -46,3 +48,4 @@ Stochastic Backtracking
 Functions related to stochastic backtracking from a specified distance class.
 
 .. doxygengroup:: kl_neighborhood_stochbt
+    :no-title:

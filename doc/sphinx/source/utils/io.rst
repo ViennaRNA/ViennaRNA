@@ -10,3 +10,4 @@ Files and I/O
    io/commands
 
 .. doxygengroup:: file_utils
+    :no-title:
