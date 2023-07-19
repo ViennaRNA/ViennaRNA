@@ -4,12 +4,18 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.6.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.2...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.3...HEAD)
+
+
+### [Version 2.6.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.2...v2.6.3)
 
 #### Library
   * Make JSON parser integral part of ViennaRNA library
+  * API: Move modified energy parameters into 'modified_base' object in JSON file(s)
+  * SWIG: Enable stand-alone build of Python interface (for PyPI)
 
 #### Package
+  * Add enthalpy and terminal end values for predicted stacks with dihydrouridine
   * TESTS: Allow for using `pytest` to test the Python 3 interface
 
 
@@ -27,6 +33,7 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 #### Package
   * TESTS: Add modified base tests on duplex data with I-C and A-Psi pairs from publications
+
 
 ### [Version 2.6.1](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.0...v2.6.1) (Release date: 2023-06-12)
 
