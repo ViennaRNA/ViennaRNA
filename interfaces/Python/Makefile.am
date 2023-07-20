@@ -178,6 +178,14 @@ RNA/__pycache__/__init__.@PYTHON3_CACHE_OPT1_EXT@: RNA/RNA.py RNA/_RNA$(PYTHON3_
 	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -O -c "import _RNA" ; \
   PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -O -c "import RNA" )
 
+RNA/__pycache__/RNA.@PYTHON3_CACHE_TAG@.pyc: RNA/RNA.py RNA/_RNA$(PYTHON3_SO)
+	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -c "import _RNA" ; \
+  PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -c "from RNA import RNA" )
+
+RNA/__pycache__/RNA.@PYTHON3_CACHE_OPT1_EXT@: RNA/RNA.py RNA/_RNA$(PYTHON3_SO)
+	$(AM_V_GEN)( PYTHONPATH="RNA:$$PYTHONPATH" $(PYTHON3) -O -c "import _RNA" ; \
+  PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -O -c "from RNA import RNA" )
+
 RNA/_RNA$(PYTHON3_SO): _RNA.la
 	$(AM_V_GEN)( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
   ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) RNA ) && \
