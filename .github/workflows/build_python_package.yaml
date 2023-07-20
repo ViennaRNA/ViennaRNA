@@ -14,8 +14,7 @@ on:
           default: false
           type: boolean
   release:
-    types:
-      - published
+    types: [published]
 
 jobs:
   build_sdist:
