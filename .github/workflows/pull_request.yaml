@@ -4,6 +4,6 @@ on: pull_request
 
 jobs:
   run-distcheck:
-    uses: ./.github/workflows/dist_check.yml
+    uses: ./.github/workflows/dist_check.yaml
 
 
