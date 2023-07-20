@@ -40,7 +40,7 @@ BuildRequires:  perl(FileHandle)
 
 Requires:       perl glibc info gsl lapack
 %if 0%{?suse_version}
-BuildRequires:	gcc-fortran
+BuildRequires:  gcc-fortran
 BuildRequires:  lapack-devel lapacke-devel
 %if 0%{?suse_version} >= 1500
 Requires:       libmpfr6
@@ -335,7 +335,9 @@ rm -rf $RPM_BUILD_ROOT
 %files -n python3-rna
 %defattr(-,root,root,-)
 %dir %{python3_sitearch}/RNA
+%dir %{python3_sitearch}/ViennaRNA
 %{python3_sitearch}/RNA/*
+%{python3_sitearch}/ViennaRNA/*
 %if 0%{?suse_version}
 %pycache_only %{python3_sitearch}/RNA/__pycache__
 %endif
