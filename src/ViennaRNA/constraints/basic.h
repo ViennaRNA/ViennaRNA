@@ -48,9 +48,7 @@
  *  @details This flag notifies the soft or hard constraint callback function that the current
  *  decomposition step evaluates a hairpin loop enclosed by the base pair @f$(i,j)@f$.
  *
- *  @image html   decomp_hp.svg
- *  @image latex  decomp_hp.eps
- *
+ *  @image xml   decomp_hp.svg
  */
 #define VRNA_DECOMP_PAIR_HP     (unsigned char)1
 
@@ -63,9 +61,7 @@
  *  decomposition step evaluates an interior loop enclosed by the base pair @f$(i,j)@f$,
  *  and enclosing the base pair @f$(k,l)@f$.
  *
- *  @image html   decomp_il.svg
- *  @image latex  decomp_il.eps
- *
+ *  @image xml   decomp_il.svg
  */
 #define VRNA_DECOMP_PAIR_IL     (unsigned char)2
 
@@ -78,8 +74,7 @@
  *  decomposition step evaluates a multibranch loop enclosed by the base pair @f$(i,j)@f$,
  *  and consisting of some enclosed multi loop content from k to l.
  *
- *  @image html   decomp_ml.svg
- *  @image latex  decomp_ml.eps
+ *  @image xml   decomp_ml.svg
  *
  */
 #define VRNA_DECOMP_PAIR_ML     (unsigned char)3
@@ -95,9 +90,7 @@
  *  decomposition step evaluates a multibranch loop part in the interval @f$[i:j]@f$,
  *  which will be decomposed into two multibranch loop parts @f$[i:k]@f$, and @f$[l:j]@f$.
  *
- *  @image html   decomp_ml_ml_ml.svg
- *  @image latex  decomp_ml_ml_ml.eps
- *
+ *  @image xml   decomp_ml_ml_ml.svg
  */
 #define VRNA_DECOMP_ML_ML_ML    (unsigned char)5
 
@@ -110,9 +103,7 @@
  *  decomposition step evaluates a multibranch loop part in the interval @f$[i:j]@f$,
  *  which will be considered a single stem branching off with base pair @f$(k,l)@f$.
  *
- *  @image html   decomp_ml_stem.svg
- *  @image latex  decomp_ml_stem.eps
- *
+ *  @image xml   decomp_ml_stem.svg
  */
 #define VRNA_DECOMP_ML_STEM     (unsigned char)6
 
@@ -125,9 +116,7 @@
  *  decomposition step evaluates a multibranch loop part in the interval @f$[i:j]@f$,
  *  which will be decomposed into a (usually) smaller multibranch loop part @f$[k:l]@f$.
  *
- *  @image html   decomp_ml_ml.svg
- *  @image latex  decomp_ml_ml.eps
- *
+ *  @image xml   decomp_ml_ml.svg
  */
 #define VRNA_DECOMP_ML_ML       (unsigned char)7
 
@@ -141,9 +130,7 @@
  *  which will be considered a multibranch loop part that only consists of unpaired
  *  nucleotides.
  *
- *  @image html   decomp_ml_up.svg
- *  @image latex  decomp_ml_up.eps
- *
+ *  @image xml   decomp_ml_up.svg
  */
 #define VRNA_DECOMP_ML_UP       (unsigned char)8
 
@@ -157,9 +144,7 @@
  *  which will decomposed into a multibranch loop part @f$[i:k]@f$, and a stem with
  *  enclosing base pair @f$(l,j)@f$.
  *
- *  @image html   decomp_ml_ml_stem.svg
- *  @image latex  decomp_ml_ml_stem.eps
- *
+ *  @image xml   decomp_ml_ml_stem.svg
  */
 #define VRNA_DECOMP_ML_ML_STEM (unsigned char)9
 
@@ -173,9 +158,7 @@
  *  where two stems with enclosing pairs @f$(i,k)@f$ and @f$(l,j)@f$ are coaxially stacking
  *  onto each other.
  *
- *  @image html   decomp_ml_coaxial.svg
- *  @image latex  decomp_ml_coaxial.eps
- *
+ *  @image xml   decomp_ml_coaxial.svg
  */
 #define VRNA_DECOMP_ML_COAXIAL  (unsigned char)10
 
@@ -189,9 +172,7 @@
  *  where two stems with enclosing pairs @f$(i,k)@f$ and @f$(l,j)@f$ are coaxially stacking
  *  onto each other.
  *
- *  @image html   decomp_ml_coaxial.svg
- *  @image latex  decomp_ml_coaxial.eps
- *
+ *  @image xml   decomp_ml_coaxial.svg
  */
 #define VRNA_DECOMP_ML_COAXIAL_ENC  (unsigned char)11
 
@@ -205,9 +186,7 @@
  *  decomposition step evaluates an exterior loop part in the interval @f$[i:j]@f$,
  *  which will be decomposed into a (usually) smaller exterior loop part @f$[k:l]@f$.
  *
- *  @image html   decomp_ext_ext.svg
- *  @image latex  decomp_ext_ext.eps
- *
+ *  @image xml   decomp_ext_ext.svg
  */
 #define VRNA_DECOMP_EXT_EXT     (unsigned char)12
 
@@ -221,9 +200,7 @@
  *  which will be considered as an exterior loop component consisting of only unpaired
  *  nucleotides.
  *
- *  @image html   decomp_ext_up.svg
- *  @image latex  decomp_ext_up.eps
- *
+ *  @image xml   decomp_ext_up.svg
  */
 #define VRNA_DECOMP_EXT_UP      (unsigned char)13
 
@@ -236,9 +213,7 @@
  *  decomposition step evaluates an exterior loop part in the interval @f$[i:j]@f$,
  *  which will be considered a stem with enclosing pair @f$(k,l)@f$.
  *
- *  @image html   decomp_ext_stem.svg
- *  @image latex  decomp_ext_stem.eps
- *
+ *  @image xml   decomp_ext_stem.svg
  */
 #define VRNA_DECOMP_EXT_STEM (unsigned char)14
 
@@ -251,9 +226,7 @@
  *  decomposition step evaluates an exterior loop part in the interval @f$[i:j]@f$,
  *  which will be decomposed into two exterior loop parts @f$[i:k]@f$ and @f$[l:j]@f$.
  *
- *  @image html   decomp_ext_ext_ext.svg
- *  @image latex  decomp_ext_ext_ext.eps
- *
+ *  @image xml   decomp_ext_ext_ext.svg
  */
 #define VRNA_DECOMP_EXT_EXT_EXT (unsigned char)15
 
@@ -267,9 +240,7 @@
  *  which will be decomposed into a stem branching off with base pair @f$(i,k)@f$, and
  *  an exterior loop part @f$[l:j]@f$.
  *
- *  @image html   decomp_ext_stem_ext.svg
- *  @image latex  decomp_ext_stem_ext.eps
- *
+ *  @image xml   decomp_ext_stem_ext.svg
  */
 #define VRNA_DECOMP_EXT_STEM_EXT (unsigned char)16
 
@@ -291,9 +262,7 @@
  *  which will be decomposed into an exterior loop part @f$[i:k]@f$, and a stem
  *  branching off with base pair @f$(l,j)@f$.
  *
- *  @image html   decomp_ext_ext_stem.svg
- *  @image latex  decomp_ext_ext_stem.eps
- *
+ *  @image xml   decomp_ext_ext_stem.svg
  */
 #define VRNA_DECOMP_EXT_EXT_STEM (unsigned char)18
 
@@ -308,9 +277,7 @@
  *  which will be decomposed into an exterior loop part @f$[i:k]@f$, and a stem
  *  branching off with base pair @f$(l,j-1)@f$.
  *
- *  @image html   decomp_ext_ext_stem1.svg
- *  @image latex  decomp_ext_ext_stem1.eps
- *
+ *  @image xml   decomp_ext_ext_stem1.svg
  */
 #define VRNA_DECOMP_EXT_EXT_STEM1 (unsigned char)19
 

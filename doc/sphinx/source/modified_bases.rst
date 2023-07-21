@@ -15,7 +15,7 @@ Here, we provide a simple soft constraints callback implementation to
 correct for some well known modified bases where energy parameters are
 available for. This mechanism also supports arbitrary new modified base
 energy parameters supplied in JSON format
-(see :ref:`io/file_formats:energy parameters` for details).
+(see :ref:`io/parameters:modified bases` for details).
 
 .. doxygengroup:: modified_bases
     :no-title:

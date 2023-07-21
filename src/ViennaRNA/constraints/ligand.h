@@ -36,8 +36,7 @@ struct vrna_sc_motif_s {
  *  Jenison et al. 1994. At @f$1M@f$ concentration the corresponding binding
  *  free energy amounts to @f$-9.93~kcal/mol@f$.
  *
- *  @image html   theo_aptamer.svg
- *  @image latex  theo_aptamer.eps
+ *  @image xml   theo_aptamer.svg
  *
  *  @code{.c}
  * vrna_sc_add_hi_motif(fc,

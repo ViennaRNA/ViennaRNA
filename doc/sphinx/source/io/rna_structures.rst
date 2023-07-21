@@ -52,7 +52,7 @@ WUSS notation
 -------------
 
 The Washington University Secondary Structure (WUSS) notation is frequently used for
-consensus secondary structures, e.g. in :ref:`io/file_formats:stockholm 1.0 format`
+consensus secondary structures, e.g. in :ref:`io/msa:stockholm 1.0 format`
 
 This notation allows for a fine-grained annotation of base pairs and unpaired nucleotides,
 including pseudo-knots.

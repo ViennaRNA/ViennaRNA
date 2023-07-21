@@ -47,7 +47,7 @@ need to define some additional pre-processor macros:
 
   .. admonition:: See also...
   
-    :ref:`start/install:disable c11/c++11 features` and :c:func:`vrna_C11_features()`
+    :ref:`configuration:disable c11/c++11 features` and :c:func:`vrna_C11_features()`
 
 * ``VRNA_WARN_DEPRECATED`` ... Enable warnings for using deprecated symbols.
 
@@ -58,7 +58,7 @@ need to define some additional pre-processor macros:
 
   .. admonition:: See also...
   
-    :ref:`start/install:deprecatd symbols` and :ref:`deprecated`
+    :ref:`configuration:deprecated symbols` and :doc:`deprecated`
 
 * ``USE_FLOAT_PF`` ... Use single precision floating point operations instead
   of double precision in partition function computations.
@@ -70,7 +70,7 @@ need to define some additional pre-processor macros:
 
   .. admonition:: See also...
 
-    :ref:`start/install:Single precision`
+    :ref:`configuration:Single precision`
 
 
 For instance, you might want to add the following definition(s) to your
@@ -84,8 +84,8 @@ Finally, linking against *RNAlib* is achieved by adding the following linker fla
 
 Again, the path to the library, ``/usr/lib``, may be omitted if this path is
 searched for libraries by default. The second flag tells the linker to include
-``libRNA.a``, and the remaining two flags activate :ref:`start/install:link time optimization`
-and :ref:`start/install:openmp` support, respectively.
+``libRNA.a``, and the remaining two flags activate :ref:`configuration:link time optimization`
+and :ref:`configuration:openmp` support, respectively.
 
 .. note::
 
@@ -93,7 +93,7 @@ and :ref:`start/install:openmp` support, respectively.
 
   Depending on your configure time decisions, you can drop one or both of the last flags.
 
-  In case you've compiled *RNAlib* with LTO support (See :ref:`start/install:link time
+  In case you've compiled *RNAlib* with LTO support (See :ref:`configuration:link time
   optimization`) and you are using a different compiler for your third-party project that
   links against our library, you may add the ``-fnolto`` flag to disable Link Time
   Optimization.

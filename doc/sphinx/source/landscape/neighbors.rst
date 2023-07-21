@@ -93,7 +93,7 @@ Example 3::
   ............................[__]............... // freed interval
   ....[____________].............[__________].... // intervals that can pair with the freed interval
 
-.. image:: gfx/shift_move_intervals.svg
+.. image:: /gfx/shift_move_intervals.svg
 
 Given the intervals of the environment and the freed interval, the new shift moves can be constructed quickly.
 One has to take all positions of pairs from the environment in order to create valid pairs with positions in the freed interval.

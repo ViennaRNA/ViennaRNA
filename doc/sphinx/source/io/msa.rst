@@ -58,7 +58,7 @@ Here is an example alignment in Stockholm 1.0 format:
 
 .. admonition:: See also...
 
-  :ref:`io/rna_structure_notations:wuss notation` for legal characters and
+  :ref:`io/rna_structures:wuss notation` for legal characters and
   their interpretation in the consensus secondary structure line ``SS_cons``.
 
 

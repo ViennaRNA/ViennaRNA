@@ -9,7 +9,7 @@ formats, and various output file formats produced by our library.
    :maxdepth: 1
    :caption: Contents:
 
-   io/rna_structure_notations
+   io/rna_structures
    io/msa
    io/commands
    io/parameters
