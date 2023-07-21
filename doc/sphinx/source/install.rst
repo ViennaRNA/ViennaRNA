@@ -1,0 +1,237 @@
+Installation
+============
+
+The ViennaRNA Package comes with a variety of executable programs
+and scripts as well as a C-library that provides access to our
+implemented algorithms. Moreover, the C-library is wrapped to
+scripting languages such as ``Perl 5`` and ``Python``.
+
+.. note::
+
+  For best portability the ViennaRNA package uses the GNU
+  ``autoconf`` and ``automake`` tools to prepare the compilation
+  from source code. Read the :doc:`/configuration` section
+  *before* you install our software if you intend to deviate
+  from the default setup.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+
+
+Installing from Source
+----------------------
+
+The instructions below are for installing the ViennaRNA package
+from source. However, pre-compiled binaries for various Linux
+distributions, as well as for Windows users are available at the
+`download section <https://www.tbi.univie.ac.at/RNA/#download>`_
+of the official ViennaRNA homepage.
+
+.. admonition:: See also...
+
+  :ref:`install:binary packages`, :ref:`install:using conda`, and :ref:`install:python interface only`
+
+Quick-start
+^^^^^^^^^^^
+
+Usually you'll just download the `latest source tarball <https://www.tbi.univie.ac.at/RNA/#source_code_packages>`_,
+unpack, configure and make. To do this type::
+
+  tar -zxvf ViennaRNA-2.6.3.tar.gz
+  cd ViennaRNA-2.6.3
+  ./configure
+  make
+  sudo make install
+
+
+Installing from git repository
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can also get the latest source code from `our git repository <https://github.com/ViennaRNA/ViennaRNA>`_
+hosted at https://github.com:
+
+.. code:: bash
+
+  git clone https://github.com/ViennaRNA/ViennaRNA.git
+  
+However, to proceed with the configuration and installation you need to perform
+some additional steps **before** actually running the ``./configure`` script:
+
+1. Unpack the ``libsvm`` archive to allow for SVM Z-score regression with the
+   program ``RNALfold``:
+
+.. code:: bash
+
+  tar -xzf src/libsvm-3.31.tar.gz -C src
+
+2. Unpack the ``dlib`` archive to allow for concentration dependency computations with the
+   program ``RNAmultifold``:
+
+.. code:: bash
+
+  tar -xjf src/dlib-19.24.tar.bz2 -C src
+
+3. Install the additional maintainer tools ``gengetopt``, ``help2man``, ``flex``, ``xxd``,
+   and ``swig`` if necessary. For instance, in RedHat based distributions, the following
+   packages need to be installed:
+
+    - ``gengetopt`` (to generate command line parameter parsers)
+    - ``help2man`` (to generate the man pages) 
+    - ``yacc``, ``flex`` and ``flex-devel`` (to generate sources for ``RNAforester``)
+    - ``vim-common`` (for the ``xxd`` program)
+    - ``swig`` (to generate the scripting language interfaces)
+    - ``liblapacke`` (for ``RNAxplorer``)
+    - ``liblapack``  (for ``RNAxplorer``)
+    - A ``fortran`` compiler, e.g. ``gcc-gfortran`` (for ``RNAxplorer``)
+
+4. Finally, run the ``autoconf``/``automake`` toolchain:
+
+.. code:: bash
+
+  autoreconf -i
+
+After that, you can compile and install the ViennaRNA Package as if obtained
+from the distribution tarball.
+
+Installation without root privileges
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you do not have root privileges on your computer, you might want to install the ViennaRNA
+Package to a location where you actually have write access to. To do so, you can set the
+installation prefix of the ``./configure`` script like so::
+
+  ./configure --prefix=/home/username/.local
+  make install
+
+This will install the entire ViennaRNA Package into your home's ``~/.local/`` directory that
+is commonly used for user-installed software. Just make sure that your ``PATH`` environment
+variable contains the ``$HOME/.local/bin`` directory such that our executables are looked-up
+for at the proper location.
+
+.. tip::
+
+  The ``--prefix`` can be any other directory if you want to keep your installed
+  software separate from each other. The ``make install`` command will then create the corresponding
+  ``bin/``, ``lib/``, ``share/`` directories within the directory you specified.
+
+
+MacOS X users
+^^^^^^^^^^^^^
+
+Although users will find ``/usr/bin/gcc`` and ``/usr/bin/g++`` executables in their directory
+tree, these programs are not at all what they pretend to be. Instead of including the GNU
+programs, Apple decided to install ``clang``/``llvm`` in disguise. Unfortunately, the default
+version of ``clang``/``llvm`` does not support ``OpenMP`` (yet), but only complains at a late
+stage of the build process when this support is required. Therefore, it seems necessary to
+deactivate OpenMP support, e.g.:
+
+.. code:: bash
+
+  ./configure --disable-openmp
+
+.. admonition:: See also...
+
+  :ref:`configuration:openmp`, :ref:`configuration:universal binaries`, and :ref:`faq:missing extern.h`
+
+
+Using conda
+-----------
+
+The ViennaRNA Package is also available for the ``conda`` or ``mamba`` package
+manager. The only requirement is to set up the `bioconda <https://bioconda.github.io/>`_
+channels
+
+.. code:: bash
+
+  conda config --add channels defaults
+  conda config --add channels bioconda
+  conda config --add channels conda-forge
+  conda config --set channel_priority strict
+
+and then you can easily install the
+`viennarna bioconda package <http://bioconda.github.io/recipes/viennarna/README.html>`_
+through
+
+.. code:: bash
+
+  conda install viennarna
+
+
+Binary packages
+---------------
+
+For convenience, we provide pre-compiled binary packages and
+installers for several Linux-based platforms, Microsoft Windows, and
+Mac OS X. They can be obtained from
+`our official website <https://www.tbi.univie.ac.at/RNA/#binary_packages>`_.
+
+Python interface only
+---------------------
+
+The Python 3 interface for the ViennaRNA Package library is
+`available at PyPI <https://pypi.org/project/ViennaRNA/>`_ and can
+be installed independently using Python's ``pip``::
+
+  python -m pip install viennarna
+
+Building the Python package
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Our source tree allows for building/installing the Python 3 interface
+separately. For that, we provide the necessary packaging files
+``pyproject.toml``, ``setup.cfg``, ``setup.py`` and ``MANIFEST.in``.
+They are created by our ``autoconf`` toolchain after a successful
+run of ``./configure``. Particular default compile-time features may be
+(de-)activated by setting the corresponding boolean flags in
+``setup.cfg``. Running
+
+.. code:: bash
+
+  python -m build
+
+will then create a source distribution (``sdist``) and a binary
+package (``wheel``) in the ``dist/`` directory. These files can be
+easily installed via Python's ``pip``.
+
+.. note::
+
+  If you are about to create the Python interface from a fresh
+  clone of our git repository, you require additional steps after
+  running ``./configure`` as described above. In particular, some
+  autogenerated static files that are compiled into RNAlib must
+  be generated. To do so, run
+
+  .. code:: bash
+
+    cd src/ViennaRNA/static
+    make
+    cd ../../..
+
+  Additionally, if building the reference manual is not explicitly
+  turned off, the Python interface requires docstrings to be generated.
+  They are taken from the doxygen xml output which can be created by
+
+  .. code:: bash
+
+    cd doc
+    make refman-html
+    cd ..
+
+  Finally, the swig wrapper must be build using
+
+  .. code:: bash
+
+    cd interfaces/Python
+    make RNA/RNA.py
+    cd ../..
+
+  After these steps, the Python ``sdist`` and ``wheel`` packages can
+  be build as usual.
+
+Unofficial Julia Interface
+--------------------------
+
+An unofficial interface of the ViennaRNA Package for the
+`Julia Programming Language <https://julialang.org/>`_ exists at
+`JuliaHub <https://juliahub.com/ui/Packages/ViennaRNA/lOl0n/>`_.

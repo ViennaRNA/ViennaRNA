@@ -13,3 +13,5 @@ to *Classified Dynamic Programming*.
 
    classified/kl_neighborhood
    classified/dos
+
+.. doxygengroup:: class_fold

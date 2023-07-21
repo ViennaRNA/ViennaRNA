@@ -29,9 +29,8 @@ http://www.tbi.univie.ac.at/RNA
    :caption: Installation
    :maxdepth: 1
 
-   start/install
-   changelog
-   license
+   install
+   configuration
 
 .. toctree::
    :caption: Usage:
@@ -46,17 +45,20 @@ http://www.tbi.univie.ac.at/RNA
    :maxdepth: 1
 
    api
-   data_structures
    vrna_3.0
    callbacks
    wrappers
    deprecated
+   linking
 
 .. toctree::
    :caption: Miscellaneous
 
+   faq
    contributing
+   changelog
    bibliography
+   license
 
 
 .. doxygenpage:: index

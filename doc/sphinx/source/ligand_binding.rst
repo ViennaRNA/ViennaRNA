@@ -21,3 +21,6 @@ a hairpin-like, or interior-loop like motif.
 
    ligands/unstructured_domains
    ligands/constraints
+
+
+.. doxygengroup:: ligand_binding

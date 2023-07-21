@@ -10,6 +10,7 @@ formats, and various output file formats produced by our library.
    :caption: Contents:
 
    io/rna_structure_notations
-   io/file_formats
+   io/msa
+   io/commands
+   io/parameters
    io/plots
-   io/utils

@@ -1,5 +1,5 @@
-RNA Structure Representations
-=============================
+RNA Structures
+==============
 
 Here, we describe the different notations and representations of RNA secondary structures
 used throughout our library and prediction tools.
