@@ -1,0 +1,45 @@
+dl.c.function > dd > em:first-of-type {
+    background-color: #ededee;
+    padding: 2px;
+}
+
+dl.c.type > dd > em:first-of-type {
+    background-color: #ededee;
+    padding: 2px;
+}
+
+dl.c.macro > dd > em:first-of-type {
+    background-color: #ededee;
+    padding: 2px;
+}
+
+dl.c.struct > dd > div > em:first-of-type {
+    background-color: #ededee;
+    padding: 2px;
+}
+
+dl.c.function > dd > p:first-of-type {
+    font-weight: 600;
+    font-size: 105%;
+}
+
+dl.c.type > dd > p:first-of-type {
+    font-weight: 600;
+    font-size: 105%;
+}
+
+dl.c.macro > dd > p:first-of-type {
+    font-weight: 600;
+    font-size: 105%;
+}
+
+dl.c.struct > dd > p:first-of-type {
+    font-weight: 600;
+    font-size: 105%;
+}
+
+/* add a space to fix Breathe+Sphinx rtd_theme with 
+breathe_show_define_initializer  */ 
+.sig-name::after { 
+   content: "\00a0";
+}
