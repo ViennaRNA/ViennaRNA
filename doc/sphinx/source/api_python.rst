@@ -25,6 +25,43 @@ the Python bindings to *RNAlib*, you may also install them via Pythons ``pip``:
 
   python -m pip install viennarna
 
+Usage
+-----
+
+To use our Python bindings simply ``import`` the ``RNA`` or ``ViennaRNA`` package
+like
+
+.. code:: python
+
+  import RNA
+
+or
+
+.. code:: python
+
+  import ViennaRNA
+
+The ``RNA`` module that provides access to our *RNAlib* C-library can also be imported
+directly using
+
+.. code:: python
+
+  from RNA import RNA
+
+or
+
+.. code:: python
+
+  from ViennaRNA import RNA
+
+.. note::
+
+  In previous release of the ViennaRNA Packge, only the ``RNA`` package/module has
+  been available.
+  Since version 2.6.2 we maintain the `ViennaRNA <https://pypi.org/project/ViennaRNA/>`_
+  project at https://pypi.org. The former maintainer additionally introduced the
+  ``ViennaRNA`` package which we intend to keep and extend in future releases.
+
 
 Global Variables
 ----------------
@@ -129,8 +166,29 @@ or ``tuple``. Therefore, one can usually pass a ``list`` to a function that uses
 to array in ``C``, and expect to receive a ``list`` or ``tuple`` from functions that return
 pointers to arrays.
 
-Module contents
----------------
+Energy Parameters
+-----------------
+
+Energy parameters are compiled into our library, so there is usually no necessity
+to load them from a file. All parameter files shipped with the ViennaRNA Package
+can be loaded by simply calling any of the dedicated functions:
+
+* :py:func:`RNA.params_load_RNA_Turner2004()` (default RNA parameters)
+* :py:func:`RNA.params_load_DNA_Mathews2004()` (default DNA parameters)
+* :py:func:`RNA.params_load_DNA_Mathews1999()` (old DNA parameters)
+* :py:func:`RNA.params_load_RNA_Turner1999()` (old RNA parameters)
+* :py:func:`RNA.params_load_RNA_Andronescu2007()` (trained RNA parameters)
+* :py:func:`RNA.params_load_RNA_Langdon2018()` (trained RNA parameters)
+* :py:func:`RNA.params_load_RNA_misc_special_hairpins()` (special hairpin loop parameters)
+
+
+Examples
+--------
+
+A few more Python code examples can be found :doc:`here </examples/python>`.
+
+The ``RNA`` Python module
+-------------------------
 
 .. automodule:: RNA
    :imported-members:
