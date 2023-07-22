@@ -1,7 +1,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
+/*22 Jul 2023 experiment with rnafold_all_4000/top10code/E_internal_loop.dif by hand*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -724,7 +724,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 #else
                     eee = INF;
 #endif
-                  } else {
+                  } else {/*if(u2==1)*/assert(u1 < MAXLOOP);/*if(u1==1)*/assert(u2 < MAXLOOP);
                     eee +=
                       E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
                   }
@@ -732,7 +732,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                   break;
 
                 case VRNA_FC_TYPE_COMPARATIVE:
-                  for (s = 0; s < n_seq; s++) {
+                  for (s = 0; s < n_seq; s++) {assert(0);
                     int u1_local  = a2s[s][k - 1] - a2s[s][i];
                     int u2_local  = a2s[s][j - 1] - a2s[s][l];
                     type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
