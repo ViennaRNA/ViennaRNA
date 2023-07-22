@@ -1,5 +1,5 @@
-RNAib Examples
-==============
+Examples
+========
 
 .. toctree::
    :maxdepth: 1

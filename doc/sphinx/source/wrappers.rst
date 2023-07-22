@@ -1,5 +1,5 @@
-Scripting Language Interface(s)
-===============================
+SWIG Wrappers
+=============
 
 Introduction
 ------------
@@ -74,7 +74,7 @@ Examples
 --------
 
 Examples on the basic usage of the scripting language interfaces can be
-found in the :doc:`/examples/examples_perl5` and :doc:`/examples/examples_python` sections.
+found in the :doc:`/examples/perl5` and :doc:`/examples/python` sections.
 
 SWIG Wrapper notes
 ------------------
