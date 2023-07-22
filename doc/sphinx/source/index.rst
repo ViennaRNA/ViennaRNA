@@ -48,6 +48,7 @@ http://www.tbi.univie.ac.at/RNA
    vrna_3.0
    callbacks
    wrappers
+   api_python
    deprecated
    linking
 

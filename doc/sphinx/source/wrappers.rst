@@ -5,8 +5,12 @@ Introduction
 ------------
 
 For an easy integration into scripting languages, we provide an automatically
-generated interface to the RNAlib C-library, generated with SWIG.
+generated interface to the RNAlib C-library, generated with SWIG. Currently,
+we support ``Perl 5`` and ``Python`` as target languages.
 
+.. admonition:: See also...
+
+  :doc:`/api_python`
 
 Function Renaming
 -----------------

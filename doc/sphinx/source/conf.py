@@ -13,6 +13,10 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../../../interfaces/Python/'))
 
 
 # -- Project information -----------------------------------------------------
@@ -31,6 +35,8 @@ release = '2.5.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
     'sphinx.ext.todo',
     "sphinx.ext.autosectionlabel",
@@ -40,8 +46,55 @@ extensions = [
     'myst_parser'
 ]
 
+mathjax_path = "js/mathjax/tex-chtml.js"
+mathjax3_config = {
+    'tex': {
+        'inlineMath': [['$', '$'], ['\\(', '\\)']],
+        'displayMath': [["\\[", "\\]"]]
+    }
+}
+
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = True
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = False
+napoleon_use_param = True
+napoleon_use_rtype = True
+napoleon_preprocess_types = True
+napoleon_type_aliases = None
+napoleon_attr_annotations = True
+napoleon_type_aliases = {
+    "PRIVATE int": "int",
+    "PRIVATE FLT_OR_DBL" : "double",
+    "unsigned int *": "list-like(unsigned int)",
+    "unsigned int **": "list-like(list-like(unsigned int))",
+    "short *": "list-like(int)",
+    "char *": "string",
+    "const char *": "string",
+    "float *": "list-like(double)",
+    "double *": "list-like(double)",
+    "double **": "list-like(list-like(double))",
+    "vrna_fold_compound_t *" : "fold_compound",
+    "vrna_param_t *" : "param",
+    "vrna_exp_param_t *" : "exp_param",
+    "vrna_md_t *" : "md",
+    "std::string": "string",
+    "FLT_OR_DBL" : "double",
+    "FLT_OR_DBL *" : "list-like(double)",
+    "std::vector<FLT_OR_DBL>" : "list-like(double)"
+}
+
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
+
+# The encoding of source files.
+source_encoding = "utf-8"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
