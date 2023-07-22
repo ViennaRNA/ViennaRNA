@@ -54,16 +54,13 @@ http://www.tbi.univie.ac.at/RNA
 
 .. toctree::
    :caption: Miscellaneous
+   :maxdepth: 1
 
    faq
    contributing
    changelog
    bibliography
    license
-
-
-.. doxygenpage:: index
-
 
 Indices and tables
 ==================
