@@ -1,3 +1,5 @@
+@import url("theme.css");
+
 dl.c.function > dd > em:first-of-type {
     background-color: #ededee;
     padding: 2px;
@@ -42,4 +44,20 @@ dl.c.struct > dd > p:first-of-type {
 breathe_show_define_initializer  */ 
 dt.sig.sig-object.c > span.pre::before { 
    content: "\00a0";
+}
+
+.rst-content .figure .caption {
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9em;
+    padding: 0 10px 5px;
+}
+
+.rst-content .align-center {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.rst-content .rubric {
+    font-weight: bold;
 }
