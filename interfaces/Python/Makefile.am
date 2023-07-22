@@ -8,7 +8,7 @@ doxy2swig_verbose_0 = @echo "  DOX2SWIG $@";
 
 include ../generic.mk
 
-if WITH_REFERENCE_MANUAL_XML
+if WITH_REFERENCE_MANUAL
 doxy2swig_pydoc_file = documentation.i
 doxy2swig_pydoc_define = -DDOXY2SWIG
 else
@@ -93,10 +93,10 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
 
 if HAS_SWIG
 
-if WITH_REFERENCE_MANUAL_XML
+if WITH_REFERENCE_MANUAL
 
 documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv $(srcdir)/../ignore_list.csv
-	$(doxy2swig_verbose)test -d $(top_builddir)/doc/xml || ( test -d $(top_srcdir)/doc/xml && $(LN_S) $(top_srcdir)/doc/xml $(top_builddir)/doc/xml ) && \
+	$(doxy2swig_verbose)test -d $(top_builddir)/doc/doxygen/xml || ( test -d $(top_srcdir)/doc/doxygen/xml && $(LN_S) $(top_srcdir)/doc/doxygen/xml $(top_builddir)/doc/doxygen/xml ) && \
 	$(PYTHON3) $(top_srcdir)/doc/doxy2swig/doxy2swig.py \
       -b $(srcdir)/../classify.csv \
       -m $(srcdir)/../typedefs.csv \
@@ -116,10 +116,10 @@ documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv $(srcdir)/.
       -w 100 \
       -q \
       -d $(PACKAGE_VERSION) \
-      $(top_builddir)/doc/xml/index.xml \
+      $(top_builddir)/doc/doxygen/xml/index.xml \
       documentation.i
 
-endif WITH_REFERENCE_MANUAL_XML
+endif WITH_REFERENCE_MANUAL
 
 $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
 	$(swig_verbose)$(SWIG) \

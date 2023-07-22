@@ -3,10 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-A Library for predicting and comparing RNA secondary structures
+**A Library for predicting and comparing RNA secondary structures**
 
-Introduction
-------------
+.. image:: gfx/vrna.png
+  :height: 200px
+  :align: left
 
 The core of the ViennaRNA Package (:cite:t:`lorenz:2011,hofacker:1994`)
 is formed by a collection of routines
@@ -19,11 +20,11 @@ linked to your own code.
 This document describes the library and will be primarily useful to
 programmers. However, it also contains details about the implementation
 that may be of interest to advanced users. The stand-alone programs are
-described in separate man pages. The latest version of the package
-including source code and html versions of the documentation can be found
-at
+described in separate man pages.
 
-http://www.tbi.univie.ac.at/RNA
+The latest version of the package including source code and html
+versions of the documentation can be found at
+https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
 
 .. toctree::
    :caption: Installation

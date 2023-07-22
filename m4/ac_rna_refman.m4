@@ -15,16 +15,12 @@ RNA_ADD_PACKAGE([doc_pdf],
 RNA_ADD_PACKAGE([doc_html],
                 [HTML RNAlib reference manual],
                 [yes])
-RNA_ADD_PACKAGE([doc_xml],
-                [XML RNAlib reference manual],
-                [yes])
 RNA_ADD_PACKAGE([doc],
                 [RNAlib reference manual],
                 [yes],
                 [ with_doc=no
                   with_doc_pdf=no
-                  with_doc_html=no
-                  with_doc_xml=no],
+                  with_doc_html=no],
                 [])
 
 
@@ -32,6 +28,7 @@ AC_PATH_PROG(doxygen, [doxygen],no)
 AC_PATH_PROG(dot,[dot],no)
 AC_PATH_PROG(egrep,[egrep],no)
 AC_PATH_PROG(perl,[perl],no)
+AC_CHECK_PROGS([SPHINXBUILD], [sphinx-build sphinx-build3], [no])
 
 # check whether we are able to generate the doxygen documentation
 RNA_PACKAGE_IF_ENABLED([doc],[
@@ -93,6 +90,20 @@ RNA_PACKAGE_IF_ENABLED([doc],[
   else
     doxygen_failed="doxygen command is missing!"
   fi
+
+  AS_IF([test "x$SPHINXBUILD" = xno],
+        [
+          AC_MSG_WARN(sphinx-build is required to build the reference manual)
+          sphinx_failed="(sphinx-build unavailable)"
+          with_doc=no
+        ])
+  RNA_PACKAGE_IF_DISABLED([python],
+        [
+          AC_MSG_WARN(Python module build required to build the reference manual)
+          sphinx_failed="Python module not to be build"
+          with_doc=no
+        ])
+
 ])
 
 
@@ -102,7 +113,8 @@ RNA_PACKAGE_IF_ENABLED([doc],[
 
   AC_SUBST([DOXYGEN_PROJECT_NAME], [$1-$PACKAGE_VERSION])
   AC_SUBST([DOXYGEN_SRCDIR], [$srcdir])
-  AC_SUBST([DOXYGEN_DOCDIR], [ifelse([$3], [], [doc], [$3])])
+  AC_SUBST([SPHINX_SRCDIR], [doc/source])
+  AC_SUBST([DOXYGEN_DOCDIR], [ifelse([$3], [], [doc/doxygen], [$3])])
   AC_SUBST([DOXYGEN_CONF], [ifelse([$2], [], [doxygen.conf], [$2])])
 
 
@@ -114,13 +126,11 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     AC_SUBST([DOXYGEN_CMD_BIBTEX], [$BIBTEX_CMD])
     AC_SUBST([DOXYGEN_CMD_MAKEINDEX], [$MAKEINDEX_CMD])
     AC_SUBST([DOXYGEN_HAVE_DOT],[ifelse([$dot], [no], [NO], [YES])])
-    AC_SUBST([DOXYGEN_WITH_PDFLATEX], [YES])
-    AC_SUBST([DOXYGEN_GENERATE_HTML], [ifelse([$with_doc_html], [no], [NO], [YES])])
-    AC_SUBST([DOXYGEN_GENERATE_XML], [ifelse([$with_doc_xml], [no], [NO], [YES])])
-    AC_SUBST([DOXYGEN_GENERATE_LATEX], [ifelse([$with_doc_pdf], [no], [NO], [YES])])
 
     AC_CONFIG_FILES([${DOXYGEN_DOCDIR}/${DOXYGEN_CONF}])
     AC_CONFIG_FILES([${DOXYGEN_DOCDIR}/refman.include/install.dox])
+    AC_CONFIG_FILES([${SPHINX_SRCDIR}/conf.py])
+    AC_CONFIG_FILES([${SPHINX_SRCDIR}/install.rst])
 
   else
 
@@ -138,15 +148,14 @@ RNA_PACKAGE_IF_ENABLED([doc],[
                         [with_doc_html=no
                          doc_html_failed="($doxygen_failed)"])])
 
-    RNA_PACKAGE_IF_ENABLED([doc_xml],[
-      AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/xml/index.html],
-                        [with_doc_xml=yes],
-                        [with_doc_xml=no
-                         doc_xml_failed="($doxygen_failed)"])])
+    AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/xml/index.xml],
+                      [with_doc=yes],
+                      [with_doc=no
+                       doc_failed="($doxygen_failed)"])
 
     if test "x$with_doc_pdf" = "x$with_doc_html";
     then
-      if test "x$with_doc_pdf" = "x$with_doc_xml";
+      if test "x$with_doc_pdf" = "x$with_doc";
       then
           if test "x$with_doc_pdf" = "xno";
           then

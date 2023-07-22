@@ -1,0 +1,9 @@
+# ignore configure script generated content
+
+# ignore doxygen config
+doxygen.conf
+
+# ignore doxygen output
+doxygen.warnings
+doxygen-xml
+xml

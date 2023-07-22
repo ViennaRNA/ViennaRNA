@@ -40,6 +40,6 @@ dl.c.struct > dd > p:first-of-type {
 
 /* add a space to fix Breathe+Sphinx rtd_theme with 
 breathe_show_define_initializer  */ 
-.sig-name::after { 
+dt.sig.sig-object.c > span.pre::before { 
    content: "\00a0";
 }

@@ -1,19 +1,18 @@
-doxygen_verbose = $(doxygen_verbose_@AM_V@)
-doxygen_verbose_ = $(doxygen_verbose_@AM_DEFAULT_V@)
-doxygen_verbose_0 = @echo "  DOC      $@";
+sphinx_verbose = $(sphinx_verbose_@AM_V@)
+sphinx_verbose_ = $(sphinx_verbose_@AM_DEFAULT_V@)
+sphinx_verbose_0 = @echo "  SPHINX    $@";
 
 SUBDIRS = CLA
 
 pkgdata_DATA = \
-    viennarna.bib \
-    DoxygenLayout.xml
+    viennarna.bib
 
 clean_latex = \
 { \
-  test ! -d latex \
-  ||  { cd latex \
-        && rm -f *.ps *.dvi *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl refman.pdf doxyref.log \
-        && cd .. ; \
+  test ! -d build/latex \
+  ||  { cd build/latex \
+        && rm -f *.ps *.dvi *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl viennarna.pdf sphinx.log \
+        && cd ../.. ; \
       } \
 }
 
@@ -25,16 +24,8 @@ if WITH_REFERENCE_MANUAL
 ## is going to be installed                         ##
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_HTML
-    REFERENCE_MANUAL_FILES_HTML = html/* 
+    REFERENCE_MANUAL_FILES_HTML = build/html/*
 endif WITH_REFERENCE_MANUAL_HTML
-
-##--------------------------------------------------##
-## prepare variables in case XML reference manual   ##
-## is going to be installed                         ##
-##--------------------------------------------------##
-if WITH_REFERENCE_MANUAL_XML
-    REFERENCE_MANUAL_FILES_XML = xml/* 
-endif WITH_REFERENCE_MANUAL_XML
 
 ##--------------------------------------------------##
 ## prepare variables in case PDF reference manual   ##
@@ -50,9 +41,10 @@ endif WITH_REFERENCE_MANUAL_PDF
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_BUILD
 
-refman-html: $(pkginclude_HEADERS)
-	$(doxygen_verbose)@doxygen@ @DOXYGEN_CONF@ >>doxyref.log 2>&1; \
-  touch refman-html
+refman-html: $(pkginclude_HEADERS) doxygen/doxygen-xml
+	$(sphinx_verbose)rm -f refman-html && \
+    $(SPHINXBUILD) -M html source build >sphinx.log 2>&1 && \
+    touch refman-html
 
 ##--------------------------------------------------##
 ## In case the HTML manual should be created, here  ##
@@ -65,39 +57,30 @@ $(REFERENCE_MANUAL_FILES_HTML): refman-html
 endif WITH_REFERENCE_MANUAL_HTML
 
 ##--------------------------------------------------##
-## In case the XML manual should be created, here   ##
-## is the rule how to do so                         ##
-##--------------------------------------------------##
-if WITH_REFERENCE_MANUAL_XML
-
-$(REFERENCE_MANUAL_FILES_XML): refman-html
-
-endif WITH_REFERENCE_MANUAL_XML
-
-##--------------------------------------------------##
 ## In case the PDF manual should be created, here   ##
 ## is the rule how to do so                         ##
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_PDF
 
-$(REFERENCE_MANUAL_FILES_PDF): refman-html
-	$(doxygen_verbose)$(clean_latex); \
-  cd latex; $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
-  $(DOXYGEN_CMD_MAKEINDEX) refman.idx >>doxyref.log 2>&1; \
-  $(DOXYGEN_CMD_BIBTEX) refman >>doxyref.log 2>&1; \
-  $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
-  $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
+$(REFERENCE_MANUAL_FILES_PDF): doxygen/doxygen-xml
+	$(sphinx_verbose)$(clean_latex); \
+  $(SPHINXBUILD) -M latex source build >>sphinx.log 2>&1 && \
+  cd build/latex; $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
+  $(MAKEINDEX_CMD) -s python.ist viennarna.idx >>sphinx.log 2>&1; \
+  $(BIBTEX_CMD) viennarna >>sphinx.log 2>&1; \
+  $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
+  $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
   latex_count=8 ; \
-  while egrep -s 'Rerun (LaTeX|to get cross-references right)' refman.log && [ $$latex_count -gt 0 ] ;\
+  while egrep -s 'Rerun (LaTeX|to get cross-references right)' viennarna.log && [ $$latex_count -gt 0 ] ;\
       do \
         echo "Rerunning latex...." ;\
-        $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1;\
+        $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1;\
         latex_count=`expr $$latex_count - 1` ;\
       done; \
-  $(DOXYGEN_CMD_MAKEINDEX) refman.idx >>doxyref.log 2>&1;\
-  $(DOXYGEN_CMD_LATEX) refman >>doxyref.log 2>&1; \
-  mv refman.pdf "../$(REFERENCE_MANUAL_FILES_PDF)"; \
-  cd ..; \
+  $(MAKEINDEX_CMD) -s python.ist viennarna.idx >>sphinx.log 2>&1;\
+  $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
+  mv viennarna.pdf "../../$(REFERENCE_MANUAL_FILES_PDF)"; \
+  cd ../..; \
   $(clean_latex);
 
 endif WITH_REFERENCE_MANUAL_PDF
@@ -118,15 +101,12 @@ pdf_DATA = $(REFERENCE_MANUAL_FILES_PDF)
 
 if WITH_REFERENCE_MANUAL_HTML
 
-vrna_htmlrefman_inst: installdirs html
+vrna_htmlrefman_inst: installdirs refman-html
 	@$(NORMAL_INSTALL)
-	test -d $(builddir)/html || $(LN_S) $(srcdir)/html $(builddir)/html
-	{ for i in $(builddir)/html/*; do cp -r "$$i" "$(DESTDIR)$(htmldir)/"; done }
-	{ for i in "$(DESTDIR)$(htmldir)"/*; do test -f "$$i" && chmod 644 "$$i"; done }
-	chmod 755 "$(DESTDIR)$(htmldir)"
-	{ for i in "$(DESTDIR)$(htmldir)"/search/*; do test -f "$$i" && chmod 644 "$$i"; done }
-	chmod 755 "$(DESTDIR)$(htmldir)"/search
-	{ test ! -h $(builddir)/html || rm -f $(builddir)/html; }
+	test -d $(builddir)/build/html || ($(MKDIR_P) $(builddir)/build && $(LN_S) $(srcdir)/build/html $(builddir)/build/html)
+	@for item in $$(find $(builddir)/build/html/ -type d) ; do install -m 755 $${item} -d $(DESTDIR)$(htmldir)/$${item#$(builddir)/build/html/} ; done
+	@for item in $$(find $(builddir)/build/html/ -type f) ; do install -m 644 $${item} $(DESTDIR)$(htmldir)/$${item#$(builddir)/build/html/} ; done
+	{ test ! -h $(builddir)/build/html || (rm -f $(builddir)/build/html && rm -rf $(builddir)/build) }
 
 vrna_htmlrefman_uninst:
 	@$(NORMAL_UNINSTALL)
@@ -166,12 +146,9 @@ install-pdfDATA: vrna_pdfrefman_inst
 uninstall-pdfDATA: vrna_pdfrefman_uninst
 
 EXTRA_DIST =  $(pkgdata_DATA) \
-              refman.include \
-              refman.images \
+              source \
               refman-html \
-              html \
-              latex \
-              xml \
+              build \
               @REFERENCE_MANUAL_PDF_NAME@
 
 clean-local:
@@ -179,7 +156,7 @@ clean-local:
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -rf *.log *.pdf html latex xml doxygen.warnings refman-html
+	-rm -rf *.log *.pdf build/html build/latex refman-html
 
 distclean-local:
-	-rm -rf *.log *.pdf html latex xml doxygen.warnings refman-html
+	-rm -rf *.log *.pdf build/html build/latex refman-html

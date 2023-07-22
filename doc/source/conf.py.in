@@ -16,17 +16,17 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../../../interfaces/Python/'))
+sys.path.insert(0, os.path.abspath('../../interfaces/Python/'))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'ViennaRNA'
-copyright = '1994 - 2022, Ronny Lorenz, Ivo L. Hofacker, et al.'
+project = '@PACKAGE_NAME@'
+copyright = '1994 - 2023, Ronny Lorenz, Ivo L. Hofacker, et al.'
 author = 'Ronny Lorenz, Ivo L. Hofacker, et al.'
 
 # The full version, including alpha/beta/rc tags
-release = '2.5.1'
+release = '@PACKAGE_VERSION@'
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,6 +40,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.todo',
     "sphinx.ext.autosectionlabel",
+    "sphinx.ext.imgconverter",
     'sphinxcontrib.bibtex',
     'breathe',
     'sphinx_rtd_theme',
@@ -121,21 +122,22 @@ html_css_files = [
     'css/custom.css',
 ]
 html_show_sourcelink = False
+html_title = "ViennaRNA Package - A Library for predicting and comparing RNA secondary structures"
 
 # Bibtex settings
-bibtex_bibfiles = ['../../viennarna.bib']
+bibtex_bibfiles = ['../viennarna.bib']
 bibtex_default_style = 'unsrt'
 bibtex_reference_style = 'author_year'
 
 # Breathe settings
-breathe_projects = {"ViennaRNA": "../../xml/"}
-breathe_default_project = "ViennaRNA"
+breathe_projects = {"@PACKAGE_NAME@": "../doxygen/xml/"}
+breathe_default_project = "@PACKAGE_NAME@"
 breathe_domain_by_extension = {
       "h" : "c",
       "c" : "c",
       "inc" : "c"
   }
-breathe_show_define_initializer = True
+breathe_show_define_initializer = False
 breathe_show_include = True
 breathe_show_decl_file_include = True
 breathe_default_members = ('members', 'undoc-members')

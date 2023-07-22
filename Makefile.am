@@ -9,7 +9,18 @@ AM_DISTCHECK_CONFIGURE_FLAGS = \
     --with-kinwalker \
     --disable-silent-rules
 
-SUBDIRS = src man misc doc RNA-Tutorial interfaces @subdirs@ tests examples packaging/macosx
+SUBDIRS = \
+    src \
+    man \
+    misc \
+    doc/doxygen \
+    interfaces \
+    doc \
+    RNA-Tutorial \
+    @subdirs@ \
+    tests \
+    examples \
+    packaging/macosx
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = RNAlib2.pc

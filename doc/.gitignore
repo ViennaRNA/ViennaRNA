@@ -1,13 +1,8 @@
 # ignore configure script generated content
-refman.include/install.dox
-
-# ignore doxygen config
-doxygen.conf
+source/conf.py
+source/install.rst
 
 # ignore doxygen output
-html
-latex
-doxygen.warnings
-*.tag
+build
 *.pdf
 refman-html

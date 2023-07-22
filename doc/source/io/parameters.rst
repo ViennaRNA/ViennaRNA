@@ -14,7 +14,7 @@ JSON data must consist of a header section ``modified_bases`` This header
 is an object with the mandatory keys:
 
 * ``name`` specifying a name of the modified base
-* ``unmodified` that consists of a single upper-case letter of the unmodified
+* ``unmodified`` that consists of a single upper-case letter of the unmodified
   version of this base,
 * the ``one_letter_code`` key to specify which letter is used for the modified
   bases in the subsequent energy parameters, and
@@ -72,12 +72,12 @@ Below is a JSON template specifying most of the possible input
 parameters. Actual energy parameter files can be found in the
 source code tarball within the ``misc/`` subdirectory.
 
-.. literalinclude:: ../../../../misc/rna_mod_template_parameters.json
+.. literalinclude:: ../../../misc/rna_mod_template_parameters.json
    :language: json
 
 An actual example of real-world data may look like
 
-.. literalinclude:: ../../../../misc/rna_mod_pseudouridine_parameters.json
+.. literalinclude:: ../../../misc/rna_mod_pseudouridine_parameters.json
    :language: json
 
 

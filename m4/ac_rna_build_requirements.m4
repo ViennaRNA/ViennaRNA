@@ -274,6 +274,7 @@ tar -xjf src/dlib-${DLIB_VERSION}.tar.bz2 -C src/
 
   AC_SUBST(DLIB_CPPFLAGS, "-I\$(top_srcdir)/src/${DLIB_DIR} -DDLIB_NO_GUI_SUPPORT")
   AC_SUBST(DLIB_DIR)
+  AC_SUBST(DLIB_VERSION)
 
 ])
 

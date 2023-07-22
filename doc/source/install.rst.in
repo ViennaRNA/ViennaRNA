@@ -38,8 +38,8 @@ Quick-start
 Usually you'll just download the `latest source tarball <https://www.tbi.univie.ac.at/RNA/#source_code_packages>`_,
 unpack, configure and make. To do this type::
 
-  tar -zxvf ViennaRNA-2.6.3.tar.gz
-  cd ViennaRNA-2.6.3
+  tar -zxvf @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.gz
+  cd @PACKAGE_NAME@-@PACKAGE_VERSION@
   ./configure
   make
   sudo make install
@@ -63,14 +63,14 @@ some additional steps **before** actually running the ``./configure`` script:
 
 .. code:: bash
 
-  tar -xzf src/libsvm-3.31.tar.gz -C src
+  tar -xzf src/libsvm-@SVM_VERSION@.tar.gz -C src
 
 2. Unpack the ``dlib`` archive to allow for concentration dependency computations with the
    program ``RNAmultifold``:
 
 .. code:: bash
 
-  tar -xjf src/dlib-19.24.tar.bz2 -C src
+  tar -xjf src/dlib-@DLIB_VERSION@.tar.bz2 -C src
 
 3. Install the additional maintainer tools ``gengetopt``, ``help2man``, ``flex``, ``xxd``,
    and ``swig`` if necessary. For instance, in RedHat based distributions, the following
