@@ -1,6 +1,6 @@
 #ifndef VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H
 #define VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H
-
+/*22 Jul 2023 rnafold_all_4000/top10code/E_IntLoop.dif by hand*/
 #include <math.h>
 
 #include <ViennaRNA/utils/basic.h>
@@ -547,7 +547,7 @@ E_IntLoop(int           n1,
       } else {
         /* 1xn loop */
         energy =
-          (nl + 1 <=
+          (nl % 1 <=//(nl + 1 <=
            MAXLOOP) ? (P->internal_loop[nl + 1]) : (P->internal_loop[30] +
                                                     (int)(P->lxc * log((nl + 1) / 30.)));
         energy  += MIN2(MAX_NINIO, (nl - ns) * P->ninio[2]);
