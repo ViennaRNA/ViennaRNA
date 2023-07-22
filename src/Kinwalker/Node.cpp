@@ -7,6 +7,8 @@
 #include <iostream>
 #include <iterator>
 #include <utility>
+#include <functional>
+
 #include "Node.h"
 
 #include "template_utils.c"
@@ -62,7 +64,11 @@ short *pair_table;
 
 
 
-struct BasePairConflict :public std::binary_function<std::pair<int,int>,std::pair<int,int>,bool>{
+struct BasePairConflict {
+   using first_argument_type  = std::pair<int,int>;
+   using second_argument_type = std::pair<int,int>;
+   using result_type          = bool;
+
    bool operator()(std::pair<int,int> p1,std::pair<int,int> p2) const{
      if(p1.first==p2.first && p1.second==p2.second) return false;
      if(p1.first==p2.first || p1.first==p2.second || p1.second==p2.first || p1.second==p2.second) return true;
@@ -389,7 +395,7 @@ Node::FindExtremum(){
   std::pair<double,std::string> final_structure= std::pair<double,std::string>();
   Node::transcribed_front_maximal=false;
   //return if no extrema are transcribed
-  if(find_if(extrema.begin(),extrema.end(),std::mem_fun(&Node::IsTranscribed))==extrema.end()){
+  if(find_if(extrema.begin(),extrema.end(),std::mem_fn(&Node::IsTranscribed))==extrema.end()){
     Node::transcribed_front_maximal=true;
     return false;
   }
@@ -468,7 +474,7 @@ Node::FindExtremum(){
        //1.First structure if that is suitable.
        //2.Otherwise seconds structure, if suitable, or we won't get here
        extrema[i]->AddToFront(combined_structure,barrier);
-       if(find_if(extrema.begin()+i,extrema.end(),std::mem_fun(&Node::IsTranscribed))==extrema.end()) Node::transcribed_front_maximal=true;
+       if(find_if(extrema.begin()+i,extrema.end(),std::mem_fn(&Node::IsTranscribed))==extrema.end()) Node::transcribed_front_maximal=true;
        return true;
      }
      //Everything is eligible 
@@ -767,7 +773,9 @@ bool Node::Contains(Node* n) { return ((i <= n->i) && (j >= n->j));}
   }
 
 
-  std::vector<std::pair<int,int> >::iterator it=remove_if(basepairs.begin(),basepairs.end(),std::bind2nd(BasePairConflict(),bp_to_add));
+  std::vector<std::pair<int,int> >::iterator it=std::remove_if(basepairs.begin(),basepairs.end(),[&](auto const& bp) {
+    return BasePairConflict()(bp, bp_to_add);
+  });
   basepairs.erase(it,basepairs.end());
   if(debug_pt) Cout(PrintBasePairList(basepairs)+"\n");
   if(debug_pt) Cout(PrintPairTable());
