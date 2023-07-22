@@ -112,13 +112,13 @@ Options::Options(int argc, const char **argv)
     exclude(RIBOSUMScore,BDelScore);
     exclude(LocalSimilarity,Topdown);
 
-		requires(Anchoring, Topdown);
-    requires(LocalSubopts,LocalSimilarity);
-    requires(ClusterThreshold,Multiple);
-    requires(ClusterJoinCutoff,Multiple);
+		test_dependency(Anchoring, Topdown);
+    test_dependency(LocalSubopts,LocalSimilarity);
+    test_dependency(ClusterThreshold,Multiple);
+    test_dependency(ClusterJoinCutoff,Multiple);
 #ifdef HAVE_LIBRNA
-    requires(PredictProfile,Multiple);
-    requires(PredictMinPairProb,PredictProfile);
+    test_dependency(PredictProfile,Multiple);
+    test_dependency(PredictMinPairProb,PredictProfile);
 #endif
 }
 
@@ -197,7 +197,7 @@ void Options::exclude(RNAforesterOption opt1, RNAforesterOption opt2) {
         throw IncompatibleException(options_[opt1].tag,options_[opt2].tag);
 }
 
-void Options::requires(RNAforesterOption opt1, RNAforesterOption opt2) {
+void Options::test_dependency(RNAforesterOption opt1, RNAforesterOption opt2) {
     if (has(opt1) && !has(opt2))
         throw RequiresException(options_[opt1].tag,options_[opt2].tag);
 }

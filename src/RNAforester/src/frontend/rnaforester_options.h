@@ -140,7 +140,7 @@ private:
 
     inline void setOption(RNAforesterOption,std::string tag, std::string parameter, std::string filler, std::string description, bool hidden);
     void exclude(RNAforesterOption opt1, RNAforesterOption opt2);
-    void requires(RNAforesterOption opt1, RNAforesterOption opt2);
+    void test_dependency(RNAforesterOption opt1, RNAforesterOption opt2);
 
 };
 
