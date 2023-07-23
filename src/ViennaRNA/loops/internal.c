@@ -733,6 +733,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                     eee +=
                       E_IntLoop_1xn_(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
                   }
+
                   break;
 
                 case VRNA_FC_TYPE_COMPARATIVE:
@@ -751,7 +752,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                        P);
                   }
 
-                  assert(0);//not executed by benchmark l = j - 1;//top10code 346                 break;
+                  break;
               }
 
               if (sc_wrapper.pair)
