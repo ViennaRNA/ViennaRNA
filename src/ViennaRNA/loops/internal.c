@@ -603,7 +603,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 
         for (l = j - 2; l >= first_l; l--, u2++) {
           if (u2 > hc_up[l + 1])
-            {}//top10code 214 break;
+            break; //u2 bound by MAXLOOP but hc_up[] depends on hard constraints hence decided top10code 214 unsafe
 
           kl            = (sliding_window) ? 0 : idx[l] + k;
           hc_decompose  = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[l];
