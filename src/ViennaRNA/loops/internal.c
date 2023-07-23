@@ -429,8 +429,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
       type = sliding_window ?
              vrna_get_ptype_window(i, j, ptype_local) :
              vrna_get_ptype(ij, ptype);
-    last_k = i + 1 + MAXLOOP;//top10code 66
-
+    //safe but pointless? i + 1 + MAXLOOP;//top10code 66
 
     noclose = ((noGUclosure) && (type == 3 || type == 4)) ? 1 : 0;
 
