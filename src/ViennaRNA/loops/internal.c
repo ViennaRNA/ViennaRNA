@@ -684,6 +684,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
         first_l = j - 1 - MAXLOOP;
 
       u2 = 1;
+
       for (l = j - 2; l != first_l; l--, u2++) {//top10code 282      for (l = j - 2; l >= first_l; l--, u2++) {
         if (u2 > hc_up[l + 1])
           break;
