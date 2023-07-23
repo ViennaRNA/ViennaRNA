@@ -420,7 +420,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
     unsigned int  type, type2, has_nick, *tt;
     int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
 
-    has_nick    = sn[i] != sn[j] ? 0 : 0;//top10code 56    has_nick    = sn[i] != sn[j] ? 1 : 0;
+    has_nick    = 0;//has_nick not implemented below top10code 56
     noGUclosure = md->noGUclosure; assert(noGUclosure==0);
     tt          = NULL;
     type        = 0;
@@ -429,7 +429,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
       type = sliding_window ?
              vrna_get_ptype_window(i, j, ptype_local) :
              vrna_get_ptype(ij, ptype);
-    //safe but pointless? i + 1 + MAXLOOP;//top10code 66
+    //safe but only tiny saving i + 1 + MAXLOOP;//top10code 66
 
     noclose = ((noGUclosure) && (type == 3 || type == 4)) ? 1 : 0;
 
