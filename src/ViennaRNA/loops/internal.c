@@ -421,7 +421,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
     int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
 
     has_nick    = sn[i] != sn[j] ? 0 : 0;//top10code 56    has_nick    = sn[i] != sn[j] ? 1 : 0;
-    noGUclosure = md->noGUclosure;
+    noGUclosure = md->noGUclosure; assert(noGUclosure==0);
     tt          = NULL;
     type        = 0;
 
@@ -712,6 +712,9 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 
 //top10code 317                 if ((noGUclosure) && (type2 == 3 || type2 == 4))
 //top10code                    continue;
+//might be true outside RNAfold
+                  if ((noGUclosure) && (type2 == 3 || type2 == 4))
+                    continue;
 
                   if ((has_nick) && ((sn[i] != sn[k]) || (sn[j] != sn[l]))) {
 #if 0
