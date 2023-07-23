@@ -751,7 +751,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                        P);
                   }
 
-                  l = j - 1;//top10code 346                 break;
+                  assert(0);//not executed by benchmark l = j - 1;//top10code 346                 break;
               }
 
               if (sc_wrapper.pair)
@@ -823,7 +823,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
             e = MIN2(e, eee);
             break;
         }
-	assert(0);//not executed by benchmark //top10code 422       e = MIN2(e, eee); note existing 2.6.3 changes
       }
 
       free(tt);
