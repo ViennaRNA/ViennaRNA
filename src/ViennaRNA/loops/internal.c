@@ -1,4 +1,4 @@
-/*WBL 23 Jul 2023 rnafold_all_4000/top10code/E_internal_loop.dif by hand*/
+/*WBL 23 Jul 2023 rnafold_all_4000/top10code/E_IntLoop.dif E_internal_loop.dif by hand*/
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
