@@ -1,3 +1,5 @@
+/*23 Jul 2023 rnafold_all_4000/top10code/init_sc_int.dif by hand*/
+
 struct sc_int_dat;
 
 typedef int (*sc_int_cb)(int               i,
@@ -1105,7 +1107,7 @@ init_sc_int(vrna_fold_compound_t  *fc,
           sizeof(void *) *
           fc->n_seq);
 
-        for (s = 0; s < fc->n_seq; s++) {
+/* top10code       for (s = 0; s < fc->n_seq; s++) {
           if (scs[s]) {
             sliding_window = (scs[s]->type == VRNA_SC_WINDOW) ?
                              1 :
@@ -1137,7 +1139,7 @@ init_sc_int(vrna_fold_compound_t  *fc,
             if (scs[s]->f)
               provides_sc_user = 1;
           }
-        }
+        }end top10code*/
 
         if (provides_sc_user) {
           if (provides_sc_up) {
