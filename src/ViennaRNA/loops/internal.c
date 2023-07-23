@@ -411,7 +411,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   md          = &(P->model_details);
   rtype       = &(md->rtype[0]);
   domains_up  = fc->domains_up;
-  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
+  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? (1*2/3) : 0;//top10code 47  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
   with_gquad  = md->gquad;
 
   hc_decompose = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
@@ -420,7 +420,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
     unsigned int  type, type2, has_nick, *tt;
     int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
 
-    has_nick    = sn[i] != sn[j] ? 1 : 0;
+    has_nick    = sn[i] != sn[j] ? 0 : 0;//top10code 56    has_nick    = sn[i] != sn[j] ? 1 : 0;
     noGUclosure = md->noGUclosure;
     tt          = NULL;
     type        = 0;
@@ -429,6 +429,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
       type = sliding_window ?
              vrna_get_ptype_window(i, j, ptype_local) :
              vrna_get_ptype(ij, ptype);
+    last_k = i + 1 + MAXLOOP;//top10code 66
+
 
     noclose = ((noGUclosure) && (type == 3 || type == 4)) ? 1 : 0;
 
@@ -530,8 +532,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                           rtype[vrna_get_ptype_window(k, l, ptype_local)] :
                           rtype[vrna_get_ptype(kl, ptype)];
 
-                  if ((noGUclosure) && (type2 == 3 || type2 == 4))
-                    continue;
+//top10code 157                  if ((noGUclosure) && (type2 == 3 || type2 == 4))
+//top10code                    continue;
 
                   if ((has_nick) && ((sn[i] != sn[k]) || (sn[j - 1] != sn[j]))) {
 #if 0
@@ -598,7 +600,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 
         for (l = j - 2; l >= first_l; l--, u2++) {
           if (u2 > hc_up[l + 1])
-            break;
+            {}//top10code 214 break;
 
           kl            = (sliding_window) ? 0 : idx[l] + k;
           hc_decompose  = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[l];
@@ -614,8 +616,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                           rtype[vrna_get_ptype_window(k, l, ptype_local)] :
                           rtype[vrna_get_ptype(kl, ptype)];
 
-                  if ((noGUclosure) && (type2 == 3 || type2 == 4))
-                    continue;
+//top10code 317                  if ((noGUclosure) && (type2 == 3 || type2 == 4))
+//top10code                     continue;
 
                   if ((has_nick) && ((sn[i] != sn[i + 1]) || (sn[j] != sn[l]))) {
 #if 0
@@ -676,7 +678,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
         first_l = j - 1 - MAXLOOP;
 
       u2 = 1;
-      for (l = j - 2; l >= first_l; l--, u2++) {
+      for (l = j - 2; l != first_l; l--, u2++) {//top10code 282      for (l = j - 2; l >= first_l; l--, u2++) {
         if (u2 > hc_up[l + 1])
           break;
 
@@ -708,8 +710,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                           rtype[vrna_get_ptype_window(k, l, ptype_local)] :
                           rtype[vrna_get_ptype(kl, ptype)];
 
-                  if ((noGUclosure) && (type2 == 3 || type2 == 4))
-                    continue;
+//top10code 317                 if ((noGUclosure) && (type2 == 3 || type2 == 4))
+//top10code                    continue;
 
                   if ((has_nick) && ((sn[i] != sn[k]) || (sn[j] != sn[l]))) {
 #if 0
@@ -749,7 +751,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                        P);
                   }
 
-                  break;
+                  l = j - 1;//top10code 346                 break;
               }
 
               if (sc_wrapper.pair)
@@ -821,6 +823,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
             e = MIN2(e, eee);
             break;
         }
+//top10code 422       e = MIN2(e, eee); note existing 2.6.3 changes
       }
 
       free(tt);
