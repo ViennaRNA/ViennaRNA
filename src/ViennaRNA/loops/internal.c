@@ -412,7 +412,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   md          = &(P->model_details);
   rtype       = &(md->rtype[0]);
   domains_up  = fc->domains_up;
-  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0; //top10code 47 unsafe as energy_cb might be set, perhaps via command line, and could change eee
+  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
   with_gquad  = md->gquad;
 
   hc_decompose = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
@@ -421,7 +421,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
     unsigned int  type, type2, has_nick, *tt;
     int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
 
-    has_nick    = 0; //has_nick not implemented below top10code 56
+    has_nick    = 0; //has_nick not implemented below
     noGUclosure = md->noGUclosure;
     tt          = NULL;
     type        = 0;
@@ -430,7 +430,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
       type = sliding_window ?
              vrna_get_ptype_window(i, j, ptype_local) :
              vrna_get_ptype(ij, ptype);
-    //safe but only tiny saving i + 1 + MAXLOOP;//top10code 66
 
     noclose = ((noGUclosure) && (type == 3 || type == 4)) ? 1 : 0;
 
@@ -532,9 +531,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                           rtype[vrna_get_ptype_window(k, l, ptype_local)] :
                           rtype[vrna_get_ptype(kl, ptype)];
 
-//top10code 157                  if ((noGUclosure) && (type2 == 3 || type2 == 4))
-//top10code                    continue;
-//might be true outside RNAfold
                   if ((noGUclosure) && (type2 == 3 || type2 == 4))
                     continue;
 
@@ -603,7 +599,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 
         for (l = j - 2; l >= first_l; l--, u2++) {
           if (u2 > hc_up[l + 1])
-            break; //u2 bound by MAXLOOP but hc_up[] depends on hard constraints hence decided top10code 214 unsafe
+            break;
 
           kl            = (sliding_window) ? 0 : idx[l] + k;
           hc_decompose  = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[l];
@@ -619,9 +615,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                           rtype[vrna_get_ptype_window(k, l, ptype_local)] :
                           rtype[vrna_get_ptype(kl, ptype)];
 
-//top10code 317                  if ((noGUclosure) && (type2 == 3 || type2 == 4))
-//top10code                     continue;
-//might be true outside RNAfold
                   if ((noGUclosure) && (type2 == 3 || type2 == 4))
                     continue;
 
@@ -684,7 +677,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
         first_l = j - 1 - MAXLOOP;
 
       u2 = 1;
-      for (l = j - 2; l != first_l; l--, u2++) {//top10code 282      for (l = j - 2; l >= first_l; l--, u2++) {
+      for (l = j - 2; l != first_l; l--, u2++) {
         if (u2 > hc_up[l + 1])
           break;
 
@@ -716,9 +709,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                           rtype[vrna_get_ptype_window(k, l, ptype_local)] :
                           rtype[vrna_get_ptype(kl, ptype)];
 
-//top10code 317                 if ((noGUclosure) && (type2 == 3 || type2 == 4))
-//top10code                    continue;
-//might be true outside RNAfold
                   if ((noGUclosure) && (type2 == 3 || type2 == 4))
                     continue;
 
@@ -738,7 +728,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 #else
                     eee = INF;
 #endif
-                  } else {if(u2==1) assert(u1 < MAXLOOP);if(u1==1)assert(u2 < MAXLOOP);
+                  } else {
                     eee +=
                       E_IntLoop_1xn_(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
                   }
