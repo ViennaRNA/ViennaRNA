@@ -18,6 +18,9 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/internal.h"
 
+#define E_IntLoop_1xn 1 /*pickup  version of E_IntLoop optimised for 1xn loops where n < MAXLOOP*/
+#include "ViennaRNA/loops/internal.h"
+#undef  E_IntLoop_1xn /*be tidy*/
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -726,9 +729,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 #endif
                   } else {/*if(u2==1)*/assert(u1 < MAXLOOP);/*if(u1==1)*/assert(u2 < MAXLOOP);
                     eee +=
-                      E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
+                      E_IntLoop_1xn_(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
                   }
-
                   break;
 
                 case VRNA_FC_TYPE_COMPARATIVE:
