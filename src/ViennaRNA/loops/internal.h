@@ -1,6 +1,5 @@
 /*WBL 23 Jul 2023 rnafold_all_4000/top10code/E_IntLoop.dif by hand*/
 #ifndef E_IntLoop_1xn
-#include <assert.h>
 #ifndef VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H
 #define VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H
 
@@ -558,7 +557,6 @@ E_IntLoop(
       } else {
         /* 1xn loop */
 #ifdef E_IntLoop_1xn
-        assert(nl + 1 < MAXLOOP+1);
         energy = P->internal_loop[nl + 1];
 #else
         energy =
