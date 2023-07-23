@@ -133,7 +133,7 @@ Below are resulting general cases that are considered *valid* constraints:
 
   Description:
 
-  This command enforces nucleotides to be unpaired similar to @em prohibiting nucleotides to be paired,
+  This command enforces nucleotides to be unpaired similar to *prohibiting* nucleotides to be paired,
   as described above. It too marks the corresponding nucleotides to be unpaired, however,
   the ``[WHERE]`` flag can be used to enforce specfic loop types the nucleotides must appear in.
 
@@ -158,9 +158,9 @@ Below are resulting general cases that are considered *valid* constraints:
   :math:`(i,j), \ldots, (i+(k-1), j-(k-1))`, no matter if they are *canonical*,
   or *non-canonical*. In contrast to the above ``F`` and ``W`` commands, which remove
   conflicting base pairs, the ``A`` command does not. Therefore, it may be used to
-  allow @em non-canoncial base pair interactions. Since the RNAlib does not contain
+  allow *non-canoncial* base pair interactions. Since the RNAlib does not contain
   free energy contributions :math:`E_{ij}` for non-canonical base pairs :math:`(i,j)`,
-  they are scored as the @em maximum of similar, known contributions. In terms of a
+  they are scored as the *maximum* of similar, known contributions. In terms of a
   *Nussinov* like scoring function the free energy of non-canonical base pairs is
   therefore estimated as
 
@@ -188,7 +188,7 @@ Below are resulting general cases that are considered *valid* constraints:
 
   Description:
 
-  Use this command to apply a pseudo free energy of @f$ e @f$ to the set of base pairs
+  Use this command to apply a pseudo free energy of :math:`e` to the set of base pairs
   :math:`(i,j), \ldots, (i+(k-1), j-(k-1))`. Energies are expected to be given in
   units of :math:`\text{kcal} \cdot \text{mol}^{-1}`.
 

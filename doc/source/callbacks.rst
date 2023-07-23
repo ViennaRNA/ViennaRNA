@@ -24,7 +24,7 @@ The user ...
 * ... passes a pointer to said function to our implementations
 
 In addition to the specific arguments of our callback interfaces, virtually all callbacks
-receive an additional @em pass-through-pointer as their last argument. This enables one
+receive an additional *pass-through-pointer* as their last argument. This enables one
 to ...
 
 * ... encapsulate data, and

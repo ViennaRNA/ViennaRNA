@@ -128,7 +128,6 @@ RNA_PACKAGE_IF_ENABLED([doc],[
     AC_SUBST([DOXYGEN_HAVE_DOT],[ifelse([$dot], [no], [NO], [YES])])
 
     AC_CONFIG_FILES([${DOXYGEN_DOCDIR}/${DOXYGEN_CONF}])
-    AC_CONFIG_FILES([${DOXYGEN_DOCDIR}/refman.include/install.dox])
     AC_CONFIG_FILES([${SPHINX_SRCDIR}/conf.py])
     AC_CONFIG_FILES([${SPHINX_SRCDIR}/install.rst])
 

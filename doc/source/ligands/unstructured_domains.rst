@@ -5,7 +5,7 @@ Add ligand binding to loop regions using the :doc:`/grammar/domains_up` feature.
 
 Sometime, certain ligands, like single strand binding (SSB) proteins, compete with intramolecular
 base pairing of the RNA. In situations, where the dissociation constant of the ligand is known and
-the ligand binds to a consecutive stretch of single-stranded nucleotides we can use the @ref domains_up
+the ligand binds to a consecutive stretch of single-stranded nucleotides we can use the :doc:`/grammar/domains_up`
 functionality to extend the RNA folding grammar. This module provides a convenience default implementation
 that covers most of the application scenarios.
 

@@ -1,31 +1,5 @@
 /*
 #############################################################
-# General Reference Manual Page Layout                      #
-#############################################################
-*/
-
-/**
-@page getting_started   Getting Started
-
-- @subpage  helloworld        presents some small example programs to get a first impression on how to use this library
-- @subpage  helloworld_swig   contains small examples that show how to use RNAlib even without C/C++ programming skills from within your favorite scripting language
-
-
-@page io    I/O Formats
-
-- @subpage  plots                         shows the different (PostScript) plotting functions for RNA secondary structures, feature probabilities, and multiple sequence alignments
-
-
-@page data_structures Basic Data Structures
-
-- @subpage  sequence_structure_data       shows the most common types for sequence or structure data
-- @subpage  fold_compound_container       is the basic, central container for our implementations of prediction-, evaluation, and other algorithms
-- @subpage  model_settings                provides the means to store the different model parameters
-*/
-
-
-/*
-#############################################################
 # Provide some order for the modules                        #
 #############################################################
 */
@@ -289,6 +263,9 @@
 @ingroup    data_structures
 
 @defgroup   heap_utils                Heaps
+@ingroup    data_structures
+
+@defgroup   strings                   Strings
 @ingroup    data_structures
 
 @defgroup   array_utils               Arrays

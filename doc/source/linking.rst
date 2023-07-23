@@ -16,8 +16,8 @@ and start using our fast and efficient algorithm implementations.
 
 .. admonition:: See also...
 
-  In the :ref:`examples:c` and :ref:`examples:newAPI` sections, we list a small
-  set of example code that usually is a good starting point for your application.
+  In the :doc:`/examples/c` section, we list a small set of example code that
+  usually is a good starting point for your application.
 
 Compiler and Linker flags
 ^^^^^^^^^^^^^^^^^^^^^^^^^

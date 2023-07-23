@@ -37,7 +37,7 @@ of the *regular RNA folding grammar*. For instance one would like to include
 proteins and other ligands binding to unpaired loop regions while competing
 with conventional base pairing. Another application could be that one may
 want to include the formation of self-enclosed structural modules, such as
-@em G-quadruplexes. For such applications, we provide a pair of additional domains
+*G-quadruplexes*. For such applications, we provide a pair of additional domains
 that extend the regular RNA folding grammar, :doc:`/grammar/domains_struc` and
 :doc:`grammar/domains_up`.
 
@@ -56,8 +56,8 @@ Structured Domains
 
 Usually, structured domains represent self-enclosed structural modules that
 exhibit a more or less complex base pairing pattern. This can be more or less
-well-defined 3D motifs, such as @em G-Quadruplexes, or loops with additional
-non-canonical base pair interactions, such as @em kink-turns.
+well-defined 3D motifs, such as *G-Quadruplexes*, or loops with additional
+non-canonical base pair interactions, such as *kink-turns*.
 
 .. note::
 
@@ -68,12 +68,13 @@ Unstructured Domains
 --------------------
 
 Unstructured domains appear in the production rules of the RNA folding grammar
-wherever new unpaired nucleotides are attached to a growing substructure (see also @cite lorenz:2016b):
+wherever new unpaired nucleotides are attached to a growing substructure
+(see also :cite:t:`lorenz:2016b`):
 
 .. image:: gfx/Crecursion.png
 
 The white boxes represent the stretch of RNA bound to the ligand and represented by a more or less specific
-sequence motif. The motif itself is considered unable to form base pairs. The additional production rule @em U
+sequence motif. The motif itself is considered unable to form base pairs. The additional production rule ``U``
 is used to precompute the contribution of unpaired stretches possibly bound by one or more ligands. The
 auxiliary DP matrix for this production rule is filled right before processing the other (regular) production
 rules of the RNA folding grammar.
@@ -91,10 +92,13 @@ uses callback functions to
 Implementations of these callbacks are separate for regular free energy evaluation,
 e.g. MFE prediction, and partition function applications. A data structure holding
 arbitrary data required for the callback functions can be associated to the domain
-as well. While @em RNAlib comes with a default implementation for structured and
+as well. While *RNAlib* comes with a default implementation for structured and
 unstructured domains, the system is entirely user-customizable.
 
-@see @ref domains_up, @ref domains_struc, @ref gquads, @ref ligands_up
+.. admonition:: See also...
+
+  :doc:`/grammar/domains_up`, :doc:`/grammar/domains_struc`, :doc:`/modules/gquads`,
+  :doc:`/ligands/unstructured_domains`
 
 
 Constraints on the Folding Grammar
@@ -127,21 +131,25 @@ behavior of both, single nucleotides and pairs of bases, can be constrained in e
 loop context separately. Additionally, an abstract implementation using a callback
 mechanism allows for full control of more complex hard constraints.
 
-@see @ref hard_constraints
+.. admonition:: See also...
+
+  :doc:`/grammar/constraints/hard`
 
 
 Soft Constraints API
 --------------------
 
 For the sake of memory efficiency, we do not implement a loop context aware version of
-soft constraints. The @em static soft constraints as implemented only distinguish unpaired
+soft constraints. The *static* soft constraints as implemented only distinguish unpaired
 from paired nucleotides. This is usually sufficient for most use-case scenarios.
 However, similar to hard constraints, an abstract soft constraints implementation using
 a callback mechanism exists, that allows for any soft constraint that is compatible with
 the RNA folding grammar. Thus, loop contexts and even individual derivation rules can
 be addressed separately for maximum flexibility in soft-constraints application.
 
-@see @ref soft_constraints, @ref constraints_ligand, @ref SHAPE_reactivities
+.. admonition:: See also...
+
+  :doc:`/grammar/constraints/soft`, :doc:`/ligands/constraints`, :doc:`/probing/SHAPE`
 
 
 

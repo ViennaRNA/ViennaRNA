@@ -54,5 +54,5 @@ Porting to the new API
 Examples
 --------
 
-Examples on how to use the new v3.0 API can be found in the :doc:`/examples/examples_c`
+Examples on how to use the new v3.0 API can be found in the :doc:`/examples/c`
 section.

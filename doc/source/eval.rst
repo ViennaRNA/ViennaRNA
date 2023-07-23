@@ -47,4 +47,6 @@ structure is simply the sum of free energies of its loops.
 Fine-tuning of the Evaluation Model
 -----------------------------------
 
-@see @ref model_details
+.. admonition:: See also...
+
+  :doc:`/grammar/model_details`

@@ -1,7 +1,7 @@
 Arrays
 ======
 
-Interface for an abstract implementation of an array data structure
+Interface for an abstract implementation of an array data structure.
 
 Arrays of a particular ``Type`` are defined and initialized using the following code:
 
@@ -61,7 +61,7 @@ e.g. for looping over its elements:
 Under the hood, arrays are preceded by a header that actually stores the
 number of items they contain and the capacity of elements they are able
 to store.  The general ideas for this implementation are taken from
-Ginger Bill's C Helper Library (public domain).
+`Ginger Bill's C Helper Library <https://github.com/gingerBill/gb>`_ (public domain).
 
 .. doxygengroup:: array_utils
     :no-title:

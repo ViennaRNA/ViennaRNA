@@ -71,7 +71,7 @@ well as consensus partition functions for multiple sequence alignments (MSA), we
 do not support MSA input for the local variant.
 
 Comparative prediction computes an average of the free energy contributions plus an additional
-covariance pseudo-energy term, exactly as we do for the @ref mfe implementation.
+covariance pseudo-energy term, exactly as we do for the :doc:`/mfe`.
 
 Boltzmann weights for the free energy contributions of individual loops can be
 found in :doc:`/eval/eval_loops`.

@@ -50,5 +50,5 @@ For the latter, a consensus secondary structure is predicted and our implementat
 an average of free energies for each sequence in the MSA plus an additional covariance
 pseudo-energy term.
 
-The implementations for @ref mfe_backtracking are generally agnostic with respect to whether
+The implementations for :doc:`/mfe/backtracking` are generally agnostic with respect to whether
 local or global structure prediction is in place.

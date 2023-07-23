@@ -26,7 +26,7 @@ The grammar extension is realized using a callback function that
 The callback is passed the segment positions, the loop context, and which of the two above mentioned
 evaluations are required. A second callback implements the pre-processing step that
 prepares the ``U`` DP matrix by evaluating all possible cases of the additional production rule.
-Both callbacks have a default implementation in @em RNAlib, but may be over-written by a
+Both callbacks have a default implementation in *RNAlib*, but may be over-written by a
 user-implementation, making it fully user-customizable.
 
 For equilibrium probability computations, two additional callbacks exist. One to store/add and one to retrieve the

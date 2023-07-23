@@ -4,6 +4,17 @@
 #include <stddef.h>
 #include <string.h>
 
+/**
+ *  @file     datastructures/array.h
+ *  @ingroup  data_structures, strings
+ *  @brief    A macro-based dynamic array implementation
+ */
+
+/**
+ *  @addtogroup strings
+ *  @{
+ */
+
 typedef char *vrna_string_t;
 
 /**
@@ -33,5 +44,8 @@ vrna_string_t
 vrna_string_append_cstring(vrna_string_t  str,
                            char const     *other);
 
+/**
+ * @}
+ */
 
 #endif
