@@ -61,3 +61,11 @@ dt.sig.sig-object.c > span.pre::before {
 .rst-content .rubric {
     font-weight: bold;
 }
+
+div[class^=highlight] {
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -o-border-radius: 5px;
+    -ms-border-radius: 5px;
+    border-radius: 5px;
+}

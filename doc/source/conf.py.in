@@ -106,23 +106,20 @@ exclude_patterns = []
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
 
+pygments_style = 'default'
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
 #html_logo = "gfx/vrna_logo.png"
 html_favicon = 'gfx/vrna_32.png'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-#html_theme = 'classic'
 html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
     'logo_only': False,
-    'display_version': True,
+    'display_version': False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -133,7 +130,7 @@ html_css_files = [
     'css/custom.css',
 ]
 html_show_sourcelink = False
-html_title = "ViennaRNA Package - A Library for predicting and comparing RNA secondary structures"
+html_title = "@PACKAGE_NAME@ Package"
 
 html_context = {
     "sidebar_external_links_caption": "Links",
