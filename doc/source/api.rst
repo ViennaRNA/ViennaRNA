@@ -12,7 +12,7 @@ for RNA secondary structure prediction.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
+   :caption: Modules:
 
    eval
    grammar
@@ -28,4 +28,11 @@ for RNA secondary structure prediction.
    paired_modules
    modified_bases
    utils
-   files
+
+.. toctree::
+   :maxdepth: 1
+   :caption: General Remarks:
+
+   vrna_3.0
+   callbacks
+   deprecated

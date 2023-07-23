@@ -13,4 +13,3 @@ formats, and various output file formats produced by our library.
    io/msa
    io/commands
    io/parameters
-   io/plots

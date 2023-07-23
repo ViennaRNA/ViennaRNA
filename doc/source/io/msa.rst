@@ -43,7 +43,7 @@ conservation of the respective alignment columns.
 
 Here is an example alignment in ClustalW format:
 
-.. include:: ../../../../examples/files/alignment_clustal.aln
+.. include:: ../../../examples/files/alignment_clustal.aln
    :literal:
 
 
@@ -52,7 +52,7 @@ Stockholm 1.0 format
 
 Here is an example alignment in Stockholm 1.0 format:
 
-.. include:: ../../../../examples/files/alignment_stockholm.stk
+.. include:: ../../../examples/files/alignment_stockholm.stk
    :literal:
 
 
@@ -73,7 +73,7 @@ FASTA (Pearson) format
 
 Here is an example alignment in FASTA format:
 
-.. include:: ../../../../examples/files/alignment_fasta.fa
+.. include:: ../../../examples/files/alignment_fasta.fa
    :literal:
 
 
@@ -109,5 +109,5 @@ where:
 Here is an example alignment in MAF format (bluntly taken from the
 `UCSC Genome browser website <https://genome.ucsc.edu/FAQ/FAQformat.html#format5>`_):
 
-.. include:: ../../../../examples/files/alignment_maf.maf
+.. include:: ../../../examples/files/alignment_maf.maf
    :literal:

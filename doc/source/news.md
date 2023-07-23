@@ -1,0 +1,4 @@
+# News
+
+```{include} ../../NEWS
+```
