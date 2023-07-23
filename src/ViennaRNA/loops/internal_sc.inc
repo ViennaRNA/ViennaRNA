@@ -1107,7 +1107,7 @@ init_sc_int(vrna_fold_compound_t  *fc,
           sizeof(void *) *
           fc->n_seq);
 
-/* top10code       for (s = 0; s < fc->n_seq; s++) {
+        for (s = 0; s < fc->n_seq; s++) {//not executed top10code
           if (scs[s]) {
             sliding_window = (scs[s]->type == VRNA_SC_WINDOW) ?
                              1 :
@@ -1139,7 +1139,7 @@ init_sc_int(vrna_fold_compound_t  *fc,
             if (scs[s]->f)
               provides_sc_user = 1;
           }
-        }end top10code*/
+        }//end not executed top10code
 
         if (provides_sc_user) {
           if (provides_sc_up) {
