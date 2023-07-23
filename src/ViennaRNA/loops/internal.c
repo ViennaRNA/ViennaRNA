@@ -411,7 +411,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   md          = &(P->model_details);
   rtype       = &(md->rtype[0]);
   domains_up  = fc->domains_up;
-  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? (1*2/3) : 0;//top10code 47  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0;
+  with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0; //top10code 47 unsafe as energy_cb might be set, perhaps via command line, and could change eee
+
   with_gquad  = md->gquad;
 
   hc_decompose = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
