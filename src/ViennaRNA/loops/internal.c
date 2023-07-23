@@ -823,7 +823,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
             e = MIN2(e, eee);
             break;
         }
-//top10code 422       e = MIN2(e, eee); note existing 2.6.3 changes
+	assert(0);//not executed by benchmark //top10code 422       e = MIN2(e, eee); note existing 2.6.3 changes
       }
 
       free(tt);
