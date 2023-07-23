@@ -2,6 +2,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -412,7 +413,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   rtype       = &(md->rtype[0]);
   domains_up  = fc->domains_up;
   with_ud     = ((domains_up) && (domains_up->energy_cb)) ? 1 : 0; //top10code 47 unsafe as energy_cb might be set, perhaps via command line, and could change eee
-
   with_gquad  = md->gquad;
 
   hc_decompose = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
@@ -421,8 +421,8 @@ E_internal_loop(vrna_fold_compound_t  *fc,
     unsigned int  type, type2, has_nick, *tt;
     int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
 
-    has_nick    = 0;//has_nick not implemented below top10code 56
-    noGUclosure = md->noGUclosure; assert(noGUclosure==0);
+    has_nick    = 0; //has_nick not implemented below top10code 56
+    noGUclosure = md->noGUclosure;
     tt          = NULL;
     type        = 0;
 
@@ -684,7 +684,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
         first_l = j - 1 - MAXLOOP;
 
       u2 = 1;
-
       for (l = j - 2; l != first_l; l--, u2++) {//top10code 282      for (l = j - 2; l >= first_l; l--, u2++) {
         if (u2 > hc_up[l + 1])
           break;
