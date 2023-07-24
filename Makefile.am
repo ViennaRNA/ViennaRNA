@@ -32,6 +32,28 @@ EXTRA_DIST =  packaging/debian \
               CHANGELOG.md \
               MANIFEST.in
 
+
+############################################
+# Override 'distdir' automake rule to make
+# sure that we build the reference manual
+# including the Python documentation whenever
+# we run 'make dist' and alike.
+# For that, sphinx requires a working Python
+# wrapper to RNAlib, which we need to build
+# first. After that, we clean up the source
+# tree again and continue with the regular
+# 'distdir-am' rule.
+############################################
+distdir: $(BUILT_SOURCES)
+	((test -f doc/refman-html && test -f doc/RNAlib-@VERSION@.pdf) || \
+  (cd src/ViennaRNA && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../../doc/doxygen && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../../interfaces/Python && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../../doc && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../interfaces/Python && $(MAKE) $(AM_MAKEFLAGS) clean && \
+  cd ../../src/ViennaRNA && $(MAKE) $(AM_MAKEFLAGS) clean))
+	$(MAKE) $(AM_MAKEFLAGS) distdir-am
+
 ## remove all generated content
 maintainer-clean-local:
 	-rm -rf dist/ ViennaRNA.egg-info
