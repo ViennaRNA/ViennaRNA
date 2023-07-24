@@ -148,6 +148,7 @@ uninstall-pdfDATA: vrna_pdfrefman_uninst
 EXTRA_DIST =  $(pkgdata_DATA) \
               source \
               breathe \
+              requirements.txt \
               refman-html \
               build \
               @REFERENCE_MANUAL_PDF_NAME@
@@ -157,7 +158,7 @@ clean-local:
 
 # remove all generated content
 maintainer-clean-local:
-	-rm -rf *.log *.pdf build/html build/latex refman-html
+	-rm -rf *.log *.pdf build refman-html
 
 distclean-local:
-	-rm -rf *.log *.pdf build/html build/latex refman-html
+	-rm -rf *.log *.pdf build refman-html
