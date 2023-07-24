@@ -4,20 +4,20 @@
 @scripting
 @parblock
 
-This data structure is wrapped as an object @b fold_compound with several related functions attached as methods.
+This data structure is wrapped as class @p fold_compound with several related functions attached as methods.
 
-A new @b fold_compound can be obtained by calling one of its constructors:<br>
-- @em fold_compound(seq) -- Initialize with a single sequence, or two concatenated sequences
-  separated by an ampersand character '&' (for cofolding)
-- @em fold_compound(aln) -- Initialize with a sequence alignment @em aln stored as a list
-  of sequences (with gap characters)
-.
+A new @p fold_compound can be obtained by calling one of its constructors:<br>
+- @p fold_compound(seq) - Initialize with a single sequence, or two concatenated sequences
+  separated by an ampersand character `&` (for cofolding)
+- @p fold_compound(aln) - Initialize with a sequence alignment @em aln stored as a list
+  of sequences (with gap characters).
 
 The resulting object has a list of attached methods which in most cases directly correspond to
-functions that mainly operate on the corresponding @em C data structure:<br>
-- @em type() -- Get the type of the @em fold_compound (See #vrna_fc_type_e)
-- @em length() -- Get the length of the sequence(s) or alignment stored within the @em fold_compound
-.
+functions that mainly operate on the corresponding @p C data structure:<br>
+- @p type() - Get the type of the @em fold_compound (See #vrna_fc_type_e)
+- @p length() - Get the length of the sequence(s) or alignment stored within the @p fold_compound.
 
+See, e.g.
+@rstinline:py:class:`RNA.fold_compound` in the :doc:`/api_python`@endrst.
 @endparblock
 */

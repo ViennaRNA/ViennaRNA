@@ -1,8 +1,9 @@
 Getting Started
 ===============
 
-.. doxygenpage:: getting_started
-    :no-title:
+Here, some introduction for typical application of our tools
+and library will follow!
+
 
 .. toctree::
    :maxdepth: 1

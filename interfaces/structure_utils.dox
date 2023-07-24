@@ -10,21 +10,24 @@ An overloaded version of this function exists, where an additional second
 parameter can be passed to specify the target brackets, i.e. the type of
 matching pair characters all brackets will be flattened to.
 Therefore, in the scripting language interface this function is a replacement
-for vrna_db_flatten_to().
+for vrna_db_flatten_to(). See, e.g.
+@rstinline:py:func:`RNA.db_flatten()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 
 @fn void vrna_db_flatten_to(char *string, const char target[3], unsigned int options)
 @scripting
 @parblock
-This function is available as an overloaded version of vrna_db_flatten()
+This function is available as an overloaded version of vrna_db_flatten(). See, e.g.
+@rstinline:py:func:`RNA.db_flatten()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn char *vrna_db_pk_remove(const char *structure, unsigned int options)
 @scripting
 @parblock
 This function is available as an overloaded function @p db_pk_remove() where
-the optional second parameter @p options defaults to #VRNA_BRACKETS_ANY.
+the optional second parameter @p options defaults to #VRNA_BRACKETS_ANY. See, e.g.
+@rstinline:py:func:`RNA.db_pk_remove()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn short *vrna_ptable(const char *structure)
@@ -33,7 +36,8 @@ the optional second parameter @p options defaults to #VRNA_BRACKETS_ANY.
 This functions is wrapped as overloaded function @p ptable() that takes
 an optional argument @p options to specify which type of matching brackets
 should be considered during conversion. The default set is round brackets,
-i.e. #VRNA_BRACKETS_RND.
+i.e. #VRNA_BRACKETS_RND. See, e.g.
+@rstinline:py:func:`RNA.ptable()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 
@@ -43,27 +47,31 @@ i.e. #VRNA_BRACKETS_RND.
 This functions is wrapped as overloaded function @p ptable() that takes
 an optional argument @p options to specify which type of matching brackets
 should be considered during conversion. The default set is round brackets,
-i.e. #VRNA_BRACKETS_RND.
+i.e. #VRNA_BRACKETS_RND. See, e.g.
+@rstinline:py:func:`RNA.ptable()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn char *vrna_abstract_shapes(const char *structure, unsigned int  level)
 @scripting
 @parblock
 This function is available as an overloaded function @p abstract_shapes() where
-the optional second parameter @p level defaults to 5.
+the optional second parameter @p level defaults to 5. See, e.g.
+@rstinline:py:func:`RNA.abstract_shapes()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn char *vrna_abstract_shapes_pt(const short *pt, unsigned int level)
 @scripting
 @parblock
 This function is available as an overloaded function @p abstract_shapes() where
-the optional second parameter @p level defaults to 5.
+the optional second parameter @p level defaults to 5. See, e.g.
+@rstinline:py:func:`RNA.abstract_shapes()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_bp_distance_pt(const short *pt1, const short *pt2)
 @scripting
 @parblock
-This function is available as an overloaded method @b bp_distance().
+This function is available as an overloaded method @b bp_distance(). See, e.g.
+@rstinline:py:func:`RNA.bp_distance()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_bp_distance(const char *str1, const char *str2)
@@ -74,7 +82,8 @@ Note that the SWIG wrapper takes two structure in dot-bracket notation and conve
 pair tables using vrna_ptable_from_string(). The resulting pair tables are then internally
 passed to vrna_bp_distance_pt(). To control which kind of matching brackets will be used
 during conversion, the optional argument @p options can be used. See also the description of
-vrna_ptable_from_string() for available options. (default: @b VRNA_BRACKETS_RND).
+vrna_ptable_from_string() for available options. (default: @b VRNA_BRACKETS_RND). See, e.g.
+@rstinline:py:func:`RNA.bp_distance()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn char *vrna_db_from_probs(const FLT_OR_DBL *pr, unsigned int length)
@@ -83,7 +92,8 @@ vrna_ptable_from_string() for available options. (default: @b VRNA_BRACKETS_RND)
 This function is available as parameter-less method @b db_from_probs() bound to objects
 of type @em fold_compound. Parameters @p pr and @p length are implicitely taken from
 the @em fold_compound object the method is bound to. Upon missing base pair probabilities,
-this method returns an empty string.
+this method returns an empty string. See, e.g.
+@rstinline:py:func:`RNA.db_from_probs()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

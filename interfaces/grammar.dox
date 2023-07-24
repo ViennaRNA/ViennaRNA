@@ -3,37 +3,43 @@
 @fn void  vrna_ud_add_motif(vrna_fold_compound_t *fc, const char *motif, double motif_en, unsigned int loop_type)
 @scripting
 @parblock
-This function is attached as method @b ud_add_motif() to objects of type @em fold_compound
+This function is attached as method @p ud_add_motif() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.ud_add_motif()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void  vrna_ud_remove(vrna_fold_compound_t *fc)
 @scripting
 @parblock
-This function is attached as method @b ud_remove() to objects of type @em fold_compound
+This function is attached as method @p ud_remove() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.ud_remove()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void  vrna_ud_set_data(vrna_fold_compound_t  *fc, void *data, vrna_auxdata_free_f free_cb)
 @scripting
 @parblock
-This function is attached as method @b ud_set_data() to objects of type @em fold_compound
+This function is attached as method @p ud_set_data() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.ud_set_data()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void vrna_ud_set_prod_rule_cb(vrna_fold_compound_t *fc, vrna_ud_production_f pre_cb, vrna_ud_f e_cb)
 @scripting
 @parblock
-This function is attached as method @b ud_set_prod_rule_cb() to objects of type @em fold_compound
+This function is attached as method @p ud_set_prod_rule_cb() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.ud_set_prod_rule_cb()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void vrna_ud_set_exp_prod_rule_cb(vrna_fold_compound_t *fc, vrna_ud_exp_production_f pre_cb, vrna_ud_exp_f exp_e_cb)
 @scripting
 @parblock
-This function is attached as method @b ud_set_exp_prod_rule_cb() to objects of type @em fold_compound
+This function is attached as method @p ud_set_exp_prod_rule_cb() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.ud_set_exp_prod_rule_cb()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void vrna_ud_set_prob_cb(vrna_fold_compound_t *fc, vrna_ud_add_probs_f  setter, vrna_ud_get_probs_f  getter)
 @scripting
 @parblock
-This function is attached as method @b ud_set_prob_cb() to objects of type @em fold_compound
+This function is attached as method @p ud_set_prob_cb() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.ud_set_prob_cb()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

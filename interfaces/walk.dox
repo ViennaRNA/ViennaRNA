@@ -3,22 +3,25 @@
 @fn vrna_move_t * vrna_path(vrna_fold_compound_t *fc, short *pt, unsigned int steps, unsigned int options)
 @scripting
 @parblock
-This function is attached as an overloaded method @em path() to objects of type @em fold_compound.
-The optional parameter @p options defaults to #VRNA_PATH_DEFAULT if it is omitted.
+This function is attached as an overloaded method @p path() to objects of type @p fold_compound.
+The optional parameter @p options defaults to #VRNA_PATH_DEFAULT if it is omitted. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.path()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn vrna_move_t * vrna_path_gradient(vrna_fold_compound_t *fc, short *pt, unsigned int options)
 @scripting
 @parblock
-This function is attached as an overloaded method @em path_gradient() to objects of type @em fold_compound.
-The optional parameter @p options defaults to #VRNA_PATH_DEFAULT if it is omitted.
+This function is attached as an overloaded method @p path_gradient() to objects of type @p fold_compound.
+The optional parameter @p options defaults to #VRNA_PATH_DEFAULT if it is omitted. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.path_gradient()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn vrna_move_t * vrna_path_random(vrna_fold_compound_t *fc, short *pt, unsigned int steps, unsigned int options)
 @scripting
 @parblock
-This function is attached as an overloaded method @em path_gradient() to objects of type @em fold_compound.
-The optional parameter @p options defaults to #VRNA_PATH_DEFAULT if it is omitted.
+This function is attached as an overloaded method @p path_gradient() to objects of type @p fold_compound.
+The optional parameter @p options defaults to #VRNA_PATH_DEFAULT if it is omitted. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.path_random()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

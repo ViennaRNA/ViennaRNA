@@ -3,8 +3,9 @@
 @fn vrna_move_t *vrna_neighbors(vrna_fold_compound_t *fc, const short *pt, unsigned int options)
 @scripting
 @parblock
-This function is attached as an overloaded method @em neighbors() to objects of type @em fold_compound.
-The optional parameter @p options defaults to #VRNA_MOVESET_DEFAULT if it is omitted.
+This function is attached as an overloaded method @p neighbors() to objects of type @p fold_compound.
+The optional parameter @p options defaults to #VRNA_MOVESET_DEFAULT if it is omitted. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.neighbors()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

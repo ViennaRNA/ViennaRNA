@@ -3,23 +3,27 @@
 @fn vrna_heat_capacity_t *vrna_heat_capacity(vrna_fold_compound_t *fc, float T_min, float T_max, float T_increment, unsigned int mpoints)
 @scripting
 @parblock
-This function is attached as overloaded method @b heat_capacity() to objects of type @em fold_compound.
+This function is attached as overloaded method @p heat_capacity() to objects of type
+@p fold_compound.
 If the optional function arguments @p T_min, @p T_max, @p T_increment, and @p mpoints are omitted,
-they default to 0.0, 100.0, 1.0 and 2, respectively.
+they default to 0.0, 100.0, 1.0 and 2, respectively. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.heat_capacity()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_heat_capacity_cb(vrna_fold_compound_t *fc, float T_min, float T_max, float T_increment, unsigned int mpoints, vrna_heat_capacity_f cb, void *data)
 @scripting
 @parblock
-This function is attached as method @b heat_capacity_cb() to objects of type @em fold_compound
+This function is attached as method @p heat_capacity_cb() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.heat_capacity_cb()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn vrna_heat_capacity_t *vrna_heat_capacity_simple(const char *sequence, float T_min, float T_max, float T_increment, unsigned int mpoints)
 @scripting
 @parblock
-This function is available as overloaded function @b heat_capacity().
+This function is available as overloaded function @p heat_capacity().
 If the optional function arguments @p T_min, @p T_max, @p T_increment, and @p mpoints are omitted,
-they default to 0.0, 100.0, 1.0 and 2, respectively.
+they default to 0.0, 100.0, 1.0 and 2, respectively. See, e.g.
+@rstinline:py:func:`RNA.head_capacity()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

@@ -3,19 +3,22 @@
 @fn vrna_subopt_solution_t *vrna_subopt(vrna_fold_compound_t *fc, int delta, int sorted, FILE *fp)
 @scripting
 @parblock
-This function is attached as method @b subopt() to objects of type @em fold_compound
+This function is attached as method @b subopt() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.subopt()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void vrna_subopt_cb( vrna_fold_compound_t *fc, int delta, vrna_subopt_result_f cb, void *data)
 @scripting
 @parblock
-This function is attached as method @b subopt_cb() to objects of type @em fold_compound
+This function is attached as method @b subopt_cb() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.subopt_cb()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn vrna_subopt_solution_t *vrna_subopt_zuker(vrna_fold_compound_t *fc)
 @scripting
 @parblock
-This function is attached as method @b subopt_zuker() to objects of type @em fold_compound
+This function is attached as method @b subopt_zuker() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.subopt_zuker()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

@@ -3,124 +3,140 @@
 @fn void vrna_params_subst(vrna_fold_compound_t *fc, vrna_param_t *par)
 @scripting
 @parblock
-This function is attached to #vrna_fc_s objects as overloaded @b params_subst() method.
+This function is attached to #vrna_fc_s objects as overloaded @p params_subst() method.
 
-When no parameter is passed, the resulting action is the same as passing @em NULL as
+When no parameter is passed, the resulting action is the same as passing @p NULL as
 second parameter to vrna_params_subst(), i.e. resetting the parameters to the global
-defaults.
+defaults. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.params_subst()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void vrna_exp_params_subst(vrna_fold_compound_t *fc, vrna_exp_param_t *params)
 @scripting
 @parblock
-This function is attached to #vrna_fc_s objects as overloaded @b exp_params_subst() method.
+This function is attached to #vrna_fc_s objects as overloaded @p exp_params_subst() method.
 
-When no parameter is passed, the resulting action is the same as passing @em NULL as
+When no parameter is passed, the resulting action is the same as passing @p NULL as
 second parameter to vrna_exp_params_subst(), i.e. resetting the parameters to the global
-defaults.
+defaults. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.exp_params_subst()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void vrna_exp_params_rescale(vrna_fold_compound_t *fc, double *mfe)
 @scripting
 @parblock
-This function is attached to #vrna_fc_s objects as overloaded @b exp_params_rescale() method.
+This function is attached to #vrna_fc_s objects as overloaded @p exp_params_rescale() method.
 
-When no parameter is passed to this method, the resulting action is the same as passing @em NULL as
+When no parameter is passed to this method, the resulting action is the same as passing @p NULL as
 second parameter to vrna_exp_params_rescale(), i.e. default scaling of the partition function.
-Passing an energy in kcal/mol, e.g. as retrieved by a previous call to the @em mfe() method, instructs
-all subsequent calls to scale the partition function accordingly.
+Passing an energy in kcal/mol, e.g. as retrieved by a previous call to the @p mfe() method, instructs
+all subsequent calls to scale the partition function accordingly. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.exp_params_rescale()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 
 @fn void vrna_params_reset(vrna_fold_compound_t *fc, vrna_md_t *md)
 @scripting
 @parblock
-This function is attached to #vrna_fc_s objects as overloaded @b params_reset() method.
+This function is attached to #vrna_fc_s objects as overloaded @p params_reset() method.
 
-When no parameter is passed to this method, the resulting action is the same as passing @em NULL as
+When no parameter is passed to this method, the resulting action is the same as passing @p NULL as
 second parameter to vrna_params_reset(), i.e. global default model settings are used.
 Passing an object of type #vrna_md_s resets the fold compound according to the specifications stored
-within the #vrna_md_s object.
+within the #vrna_md_s object. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.params_reset()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 
 @fn vrna_exp_params_reset(vrna_fold_compound_t *fc, vrna_md_t *md)
 @scripting
 @parblock
-This function is attached to #vrna_fc_s objects as overloaded @b exp_params_reset() method.
+This function is attached to #vrna_fc_s objects as overloaded @p exp_params_reset() method.
 
-When no parameter is passed to this method, the resulting action is the same as passing @em NULL as
+When no parameter is passed to this method, the resulting action is the same as passing @p NULL as
 second parameter to vrna_exp_params_reset(), i.e. global default model settings are used.
 Passing an object of type #vrna_md_s resets the fold compound according to the specifications stored
-within the #vrna_md_s object.
+within the #vrna_md_s object. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.exp_params_reset()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load(const char fname[], unsigned int options)
 @scripting
 @parblock
-This function is available as overloaded function @b params_load(fname="", options=#VRNA_PARAMETER_FORMAT_DEFAULT).
+This function is available as overloaded function @p params_load(fname="", options=#VRNA_PARAMETER_FORMAT_DEFAULT).
 Here, the empty filename string indicates to load default RNA parameters, i.e. this is equivalent to calling
-vrna_params_load_defaults().
+vrna_params_load_defaults(). See, e.g.
+@rstinline:py:func:`RNA.fold_compound.params_load()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_save(const char fname[], unsigned int options)
 @scripting
 @parblock
-This function is available as overloaded function @b params_save(fname, options=#VRNA_PARAMETER_FORMAT_DEFAULT).
+This function is available as overloaded function @p params_save(fname, options=#VRNA_PARAMETER_FORMAT_DEFAULT). See, e.g.
+@rstinline:py:func:`RNA.params_save()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_from_string(const char *string, const char *name, unsigned int options)
 @scripting
 @parblock
-This function is available as overloaded function @b params_load_from_string(string, name="", options=#VRNA_PARAMETER_FORMAT_DEFAULT).
+This function is available as overloaded function @p params_load_from_string(string, name="", options=#VRNA_PARAMETER_FORMAT_DEFAULT). See, e.g.
+@rstinline:py:func:`RNA.params_load_from_string()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_defaults(void)
 @scripting
 @parblock
-This function is available as overloaded function @b params_load().
+This function is available as overloaded function @p params_load(). See, e.g.
+@rstinline:py:func:`RNA.params_load()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_RNA_Turner2004(void)
 @scripting
 @parblock
-This function is available as function @b params_load_RNA_Turner2004().
+This function is available as function @p params_load_RNA_Turner2004(). See, e.g.
+@rstinline:py:func:`RNA.params_load_RNA_Turner2004()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_RNA_Turner1999(void)
 @scripting
 @parblock
-This function is available as function @b params_load_RNA_Turner1999().
+This function is available as function @p params_load_RNA_Turner1999(). See, e.g.
+@rstinline:py:func:`RNA.params_load_RNA_Turner1999()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_RNA_Andronescu2007(void)
 @scripting
 @parblock
-This function is available as function @b params_load_RNA_Andronescu2007().
+This function is available as function @p params_load_RNA_Andronescu2007(). See, e.g.
+@rstinline:py:func:`RNA.params_load_RNA_Andronescu2007()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_RNA_Langdon2018(void)
 @scripting
 @parblock
-This function is available as function @b params_load_RNA_Langdon2018().
+This function is available as function @p params_load_RNA_Langdon2018(). See, e.g.
+@rstinline:py:func:`RNA.params_load_RNA_Langdon2018()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_RNA_misc_special_hairpins(void)
 @scripting
 @parblock
-This function is available as function @b params_load_RNA_misc_special_hairpins().
+This function is available as function @p params_load_RNA_misc_special_hairpins(). See, e.g.
+@rstinline:py:func:`RNA.params_load_RNA_misc_special_hairpins()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_DNA_Mathews2004(void)
 @scripting
 @parblock
-This function is available as function @b params_load_DNA_Mathews2004().
+This function is available as function @p params_load_DNA_Mathews2004(). See, e.g.
+@rstinline:py:func:`RNA.params_load_DNA_Mathews2004()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn int vrna_params_load_DNA_Mathews1999(void)
 @scripting
 @parblock
-This function is available as function @b params_load_DNA_Mathews1999().
+This function is available as function @p params_load_DNA_Mathews1999(). See, e.g.
+@rstinline:py:func:`RNA.params_load_DNA_Mathews1999()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 

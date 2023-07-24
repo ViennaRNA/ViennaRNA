@@ -3,68 +3,78 @@
 @fn float vrna_pf(vrna_fold_compound_t *fc, char *structure)
 @scripting
 @parblock
-This function is attached as method @b pf() to objects of type @em fold_compound
+This function is attached as method @p pf() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.pf()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn vrna_dimer_pf_t vrna_pf_dimer(vrna_fold_compound_t *fc, char *structure)
 @scripting
 @parblock
-This function is attached as method @b pf_dimer() to objects of type @em fold_compound
+This function is attached as method @p pf_dimer() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.pf_dimer()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn double vrna_mean_bp_distance(vrna_fold_compound_t *fc)
 @scripting
 @parblock
-This function is attached as method @b mean_bp_distance() to objects of type @em fold_compound
+This function is attached as method @p mean_bp_distance() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.mean_bp_distance()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn double vrna_ensemble_defect_pt(vrna_fold_compound_t *fc, const short *pt)
 @scripting
 @parblock
-This function is attached as overloaded method @b ensemble_defect() to objects of type @em fold_compound.
+This function is attached as overloaded method @p ensemble_defect() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.ensemble_defect()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn double vrna_ensemble_defect(vrna_fold_compound_t *fc, const char *structure)
 @scripting
 @parblock
-This function is attached as method @b ensemble_defect() to objects of type @em fold_compound.
+This function is attached as method @p ensemble_defect() to objects of type @p fold_compound.
 Note that the SWIG wrapper takes a structure in dot-bracket notation and converts it into
 a pair table using vrna_ptable_from_string(). The resulting pair table is then internally
 passed to vrna_ensemble_defect_pt(). To control which kind of matching brackets will be used
 during conversion, the optional argument @p options can be used. See also the description of
-vrna_ptable_from_string() for available options. (default: @b VRNA_BRACKETS_RND).
+vrna_ptable_from_string() for available options. (default: @p VRNA_BRACKETS_RND). See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.ensemble_defect()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn double *vrna_positional_entropy(vrna_fold_compound_t *fc)
 @scripting
 @parblock
-This function is attached as method @b positional_entropy() to objects of type @em fold_compound
+This function is attached as method @p positional_entropy() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.positional_entropy()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn double vrna_pr_structure(vrna_fold_compound_t *fc, const char *structure)
 @scripting
 @parblock
-This function is attached as method @b pr_structure() to objects of type @em fold_compound
+This function is attached as method @p pr_structure() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.pr_structure()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn double vrna_pr_energy(vrna_fold_compound_t *fc, double e)
 @scripting
 @parblock
-This function is attached as method @b pr_energy() to objects of type @em fold_compound
+This function is attached as method @p pr_energy() to objects of type @p fold_compound. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.pr_energy()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn char *vrna_MEA(vrna_fold_compound_t *fc, double gamma, float *mea)
 @scripting
 @parblock
-This function is attached as overloaded method @b MEA(gamma = 1.) to objects of type @em fold_compound.
-Note, that it returns the MEA structure and MEA value as a tuple (MEA_structure, MEA)
+This function is attached as overloaded method @p MEA(gamma = 1.) to objects of type @p fold_compound.
+Note, that it returns the MEA structure and MEA value as a tuple (MEA_structure, MEA). See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.MEA()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn char *vrna_MEA_from_plist(vrna_ep_t *plist, const char *sequence, double gamma, vrna_md_t *md,float *mea)
 @scripting
 @parblock
-This function is available as overloaded function @b MEA_from_plist(gamma = 1., md = NULL).
-Note, that it returns the MEA structure and MEA value as a tuple (MEA_structure, MEA)
+This function is available as overloaded function @p MEA_from_plist(gamma = 1., md = NULL).
+Note, that it returns the MEA structure and MEA value as a tuple (MEA_structure, MEA). See, e.g.
+@rstinline:py:func:`RNA.MEA_from_plist()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

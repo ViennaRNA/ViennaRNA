@@ -5,7 +5,8 @@
 @parblock
 This function is available as overloaded function @p file_PS_aln() with three additional parameters @p start, @p end,
 and @p offset before the @p columns argument. Thus, it resembles the @p vrna_file_PS_aln_slice() function. The last four
-arguments may be omitted, indicating the default of @p start = @em 0, @p end = @em 0, @p offset = @em 0, and @p columns = @em 60.
+arguments may be omitted, indicating the default of @p start = @em 0, @p end = @em 0, @p offset = @em 0, and @p columns = @em 60. See, e.g.
+@rstinline:py:func:`RNA.file_PS_aln()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 
@@ -13,7 +14,8 @@ arguments may be omitted, indicating the default of @p start = @em 0, @p end = @
 @scripting
 @parblock
 This function is available as overloaded function @p file_PS_aln() where the last four parameter may be omitted,
-indicating @p start = @em 0, @p end = @em 0, @p offset = @em 0, and @p columns = @em 60.
+indicating @p start = @em 0, @p end = @em 0, @p offset = @em 0, and @p columns = @em 60. See, e.g.
+@rstinline:py:func:`RNA.file_PS_aln()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 
@@ -21,7 +23,9 @@ indicating @p start = @em 0, @p end = @em 0, @p offset = @em 0, and @p columns =
 @scripting
 @parblock
 This function is available as overloaded function @p plot_dp_EPS() where the last three
-parameters may be omitted. The default values for these parameters are @p lower = NULL, @p auxdata = NULL, @p options = #VRNA_PLOT_PROBABILITIES_DEFAULT
+parameters may be omitted. The default values for these parameters are @p lower = NULL,
+@p auxdata = NULL, @p options = #VRNA_PLOT_PROBABILITIES_DEFAULT. See, e.g.
+@rstinline:py:func:`RNA.plot_dp_EPS()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

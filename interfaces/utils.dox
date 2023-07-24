@@ -8,12 +8,14 @@ modify the input string directly. Instead, it returns the modified string as sec
 value, together with the number of removed delimiters.
 
 The scripting language interface provides an overloaded version of this function, with
-default parameters @p delimiters=NULL, @p keep=0, and @p options=#VRNA_TRIM_DEFAULT.
+default parameters @p delimiters=NULL, @p keep=0, and @p options=#VRNA_TRIM_DEFAULT. See, e.g.
+@rstinline:py:func:`RNA.strtrim()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn void vrna_init_rand_seed(unsigned int seed)
 @scripting
 This function is available as an overloaded function @b init_rand() where the
-argument @p seed is optional.
+argument @p seed is optional. See, e.g.
+@rstinline:py:func:`RNA.init_rand()` in the :doc:`/api_python`@endrst.
 
 */
