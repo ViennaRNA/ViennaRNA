@@ -40,9 +40,11 @@ typedef struct {} vrna_pbacktrack_mem_t;
 
 #ifdef SWIGPYTHON
 %feature("autodoc")vrna_fold_compound_t::pbacktrack5;
-%feature("kwargs") vrna_fold_compound::pbacktrack5;
+%feature("kwargs") vrna_fold_compound_t::pbacktrack5;
 %feature("autodoc")vrna_fold_compound_t::pbacktrack;
-%feature("kwargs") vrna_fold_compound::pbacktrack;
+%feature("kwargs") vrna_fold_compound_t::pbacktrack;
+%feature("autodoc")vrna_fold_compound_t::pbacktrack_sub;
+%feature("kwargs") vrna_fold_compound_t::pbacktrack_sub;
 #endif
 
 %extend vrna_fold_compound_t {

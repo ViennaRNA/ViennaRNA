@@ -3,19 +3,22 @@
 @fn int vrna_sc_add_SHAPE_deigan( vrna_fold_compound_t *fc, const double *reactivities, double m, double b, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_add_SHAPE_deigan() to objects of type @em fold_compound
+This function is attached as method @p sc_add_SHAPE_deigan() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_SHAPE_deigan()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_sc_add_SHAPE_deigan_ali( vrna_fold_compound_t *fc, const char **shape_files, const int *shape_file_association, double m, double b, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_add_SHAPE_deigan_ali() to objects of type @em fold_compound
+This function is attached as method @p sc_add_SHAPE_deigan_ali() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_SHAPE_deigan_ali()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_sc_add_SHAPE_zarringhalam( vrna_fold_compound_t *fc, const double *reactivities, double b, double default_value, const char *shape_conversion, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b sc_add_SHAPE_zarringhalam() to objects of type @em fold_compound
+This function is attached as method @p sc_add_SHAPE_zarringhalam() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.sc_add_SHAPE_zarringhalam()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 */

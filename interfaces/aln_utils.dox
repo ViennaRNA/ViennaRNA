@@ -3,17 +3,48 @@
 @fn float *vrna_aln_conservation_struct(const char **alignment, const char *structure, const vrna_md_t *md)
 @scripting
 @parblock
-This function is available in an overloaded form
-(e.g. @rstinline:py:func:`RNA.aln_conservation_struct()` in the :doc:`/api_python`@endrst) where the last
-parameter may be omitted, indicating @p md = `NULL`.
+This function is available as overloaded function @p aln_conservation_struct() where the last parameter
+@p md may be omitted, indicating @p md = `NULL`. See, e.g.
+@rstinline:py:func:`RNA.aln_conservation_struct()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn float *vrna_aln_conservation_col(const char **alignment, const vrna_md_t *md, unsigned int options)
 @scripting
 @parblock
-This function is available in an overloaded form
-(e.g. @rstinline:py:func:`RNA.aln_conservation_col()` in the :doc:`/api_python`@endrst) where the last two
-parameters may be omitted, indicating @p md = `NULL`, and @p options = #VRNA_MEASURE_SHANNON_ENTROPY, respectively.
+This function is available as overloaded function @p aln_conservation_col() where the last two
+parameters may be omitted, indicating @p md = `NULL`, and @p options = #VRNA_MEASURE_SHANNON_ENTROPY,
+respectively. See e.g. @rstinline:py:func:`RNA.aln_conservation_col()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn char *vrna_aln_consensus_sequence(const char **alignment, const vrna_md_t *md_p)
+@scripting
+@parblock
+This function is available as overloaded function @p aln_consensus_sequence() where the last
+parameter may be omitted, indicating @p md = `NULL`. See e.g.
+@rstinline:py:func:`RNA.aln_consensus_sequence()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn char *vrna_aln_consensus_mis(const char **alignment, const vrna_md_t *md_p)
+@scripting
+@parblock
+This function is available as overloaded function @p aln_consensus_mis() where the last
+parameter may be omitted, indicating @p md = `NULL`. See e.g.
+@rstinline:py:func:`RNA.aln_consensus_mis()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn int vrna_aln_mpi(const char **alignment)
+@scripting
+@parblock
+This function is available as function @p aln_mpi(). See e.g.
+@rstinline:py:func:`RNA.aln_mpi()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn int *vrna_aln_pscore(const char **alignment, vrna_md_t *md)
+@scripting
+@parblock
+This function is available as overloaded function @p aln_pscore() where the last
+parameter may be omitted, indicating @p md = `NULL`. See e.g.
+@rstinline:py:func:`RNA.aln_pscore()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */

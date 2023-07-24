@@ -1,15 +1,24 @@
 /**
 
+@fn vrna_cmd_t vrna_file_commands_read(const char *filename, unsigned int options)
+@scripting
+@parblock
+This function is available as global function @p file_commands_read().  See, e.g.
+@rstinline :py:func:`RNA.file_commands_read()` in the :doc:`/api_python` @endrst.
+@endparblock
+
 @fn int vrna_file_commands_apply( vrna_fold_compound_t *fc, const char *filename, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b file_commands_apply() to objects of type @em fold_compound
+This function is attached as method @p file_commands_apply() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.file_commands_apply()` in the :doc:`/api_python` @endrst.
 @endparblock
 
-@fn int vrna_commands_apply(vrna_fold_compound_t *fc, vrna_cmd_t *commands, unsigned int options)
+@fn int vrna_commands_apply(vrna_fold_compound_t *fc, vrna_cmd_t commands, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b commands_apply() to objects of type @em fold_compound
+This function is attached as method @p commands_apply() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.commands_apply()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 */

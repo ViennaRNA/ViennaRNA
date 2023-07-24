@@ -3,61 +3,71 @@
 @fn float vrna_eval_structure(vrna_fold_compound_t *fc, const char *structure)
 @scripting
 @parblock
-This function is attached as method @b eval_structure() to objects of type @em fold_compound
+This function is attached as method @p eval_structure() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_structure_pt( vrna_fold_compound_t *fc, const short *pt)
 @scripting
 @parblock
-This function is attached as method @b eval_structure_pt() to objects of type @em fold_compound
+This function is attached as method @p eval_structure_pt() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_structure_pt()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn float vrna_eval_structure_verbose(vrna_fold_compound_t *fc, const char *structure, FILE *file)
 @scripting
 @parblock
-This function is attached as method @b eval_structure_verbose() to objects of type @em fold_compound
+This function is attached as method @p eval_structure_verbose() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_structure_verbose()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_structure_pt_verbose( vrna_fold_compound_t *fc, const short *pt, FILE *file)
 @scripting
 @parblock
-This function is attached as method @b eval_structure_pt_verbose() to objects of type @em fold_compound
+This function is attached as method @p eval_structure_pt_verbose() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_structure_pt_verbose()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn float vrna_eval_covar_structure(vrna_fold_compound_t *fc, const char *structure)
 @scripting
 @parblock
-This function is attached as method @b eval_covar_structure() to objects of type @em fold_compound
+This function is attached as method @p eval_covar_structure() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_covar_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_loop_pt(vrna_fold_compound_t *fc, int i, const short *pt)
 @scripting
 @parblock
-This function is attached as method @b eval_loop_pt() to objects of type @em fold_compound
+This function is attached as method @p eval_loop_pt() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_loop_pt()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn float vrna_eval_move( vrna_fold_compound_t *fc, const char *structure, int m1, int m2)
 @scripting
 @parblock
-This function is attached as method @b eval_move() to objects of type @em fold_compound
+This function is attached as method @p eval_move() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_move()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_move_pt(vrna_fold_compound_t *fc, short *pt, int m1, int m2)
 @scripting
 @parblock
-This function is attached as method @b eval_move_pt() to objects of type @em fold_compound
+This function is attached as method @p eval_move_pt() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_move_pt()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_hp_loop(vrna_fold_compound_t *fc, int i, int j)
 @scripting
 @parblock
-This function is attached as method @b eval_hp_loop() to objects of type @em fold_compound
+This function is attached as method @p eval_hp_loop() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_hp_loop()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_int_loop( vrna_fold_compound_t *fc, int i, int j, int k, int l)
 @scripting
 @parblock
-This function is attached as method @b eval_int_loop() to objects of type @em fold_compound
+This function is attached as method @p eval_int_loop() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.eval_int_loop()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_structure_simple(const char *string, const char *structure)
@@ -65,7 +75,8 @@ This function is attached as method @b eval_int_loop() to objects of type @em fo
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_structure_simple_v()
 and, thus, allows for two additional, optional arguments, the verbosity level and a file
-handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+handle which default to #VRNA_VERBOSITY_QUIET and `NULL`, respectively.. See, e.g.
+@rstinline :py:func:`RNA.eval_structure_simple()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_circ_structure(const char *string, const char *structure)
@@ -73,7 +84,8 @@ handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_circ_structure_v()
 and, thus, allows for two additional, optional arguments, the verbosity level and a file
-handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+handle which default to #VRNA_VERBOSITY_QUIET and `NULL`, respectively.. See, e.g.
+@rstinline :py:func:`RNA.eval_circ_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_gquad_structure(const char *string, const char *structure)
@@ -81,7 +93,8 @@ handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_gquad_structure_v()
 and, thus, allows for two additional, optional arguments, the verbosity level and a file
-handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+handle which default to #VRNA_VERBOSITY_QUIET and `NULL`, respectively.. See, e.g.
+@rstinline :py:func:`RNA.eval_gquad_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_circ_gquad_structure(const char *string, const char *structure)
@@ -89,7 +102,8 @@ handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_circ_gquad_structure_v()
 and, thus, allows for two additional, optional arguments, the verbosity level and a file
-handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+handle which default to #VRNA_VERBOSITY_QUIET and `NULL`, respectively.. See, e.g.
+@rstinline :py:func:`RNA.eval_circ_gquad_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_consensus_structure_simple(const char **alignment, const char *structure)
@@ -97,7 +111,8 @@ handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @parblock
 This function is available through an overloadeded version of vrna_eval_structure_simple().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
-consensus structure as second argument
+consensus structure as second argument. See, e.g.
+@rstinline :py:func:`RNA.eval_structure_simple()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_circ_consensus_structure(const char **alignment, const char *structure)
@@ -105,7 +120,8 @@ consensus structure as second argument
 @parblock
 This function is available through an overloadeded version of vrna_eval_circ_structure().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
-consensus structure as second argument
+consensus structure as second argument. See, e.g.
+@rstinline :py:func:`RNA.eval_circ_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_gquad_consensus_structure(const char **alignment, const char *structure)
@@ -113,7 +129,8 @@ consensus structure as second argument
 @parblock
 This function is available through an overloadeded version of vrna_eval_gquad_structure().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
-consensus structure as second argument
+consensus structure as second argument. See, e.g.
+@rstinline :py:func:`RNA.eval_gquad_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_circ_gquad_consensus_structure(const char **alignment, const char *structure)
@@ -121,51 +138,44 @@ consensus structure as second argument
 @parblock
 This function is available through an overloadeded version of vrna_eval_circ_gquad_structure().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
-consensus structure as second argument
-@endparblock
-
-@fn int vrna_eval_structure_simple_verbose(const char *string, const char *structure, FILE *file)
-@scripting
-@parblock
-This function is not available. Use vrna_eval_structure_simple_v() instead!
-@endparblock
-
-@fn int vrna_eval_consensus_structure_simple_verbose(const char **alignment, const char *structure, FILE *file)
-@scripting
-@parblock
-This function is not available. Use vrna_eval_consensus_structure_simple_v() instead!
+consensus structure as second argument. See, e.g.
+@rstinline :py:func:`RNA.eval_circ_gquad_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_structure_simple_v(const char *string, const char *structure, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_structure_simple().
-The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and NULL,
-respectively.
+The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and `NULL`,
+respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_structure_simple()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_circ_structure_v(const char *string, const char *structure, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_circ_structure().
-The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and NULL,
-respectively.
+The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and `NULL`,
+respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_circ_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_gquad_structure_v(const char *string, const char *structure, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_gquad_structure().
-The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and NULL,
-respectively.
+The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and `NULL`,
+respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_gquad_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_circ_gquad_structure_v(const char *string, const char *structure, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_circ_gquad_structure().
-The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and NULL,
-respectively.
+The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and `NULL`,
+respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_circ_gquad_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_consensus_structure_simple_v(const char **alignment, const char *structure, int verbosity_level, FILE *file)
@@ -174,7 +184,8 @@ respectively.
 This function is available through an overloaded version of vrna_eval_structure_simple().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
 consensus structure as second argument. The last two arguments are optional and default
-to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+to #VRNA_VERBOSITY_QUIET and `NULL`, respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_structure_simple()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_circ_consensus_structure_v(const char **alignment, const char *structure, int verbosity_level, FILE *file)
@@ -183,7 +194,8 @@ to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 This function is available through an overloaded version of vrna_eval_circ_structure().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
 consensus structure as second argument. The last two arguments are optional and default
-to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+to #VRNA_VERBOSITY_QUIET and `NULL`, respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_circ_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_gquad_consensus_structure_v(const char **alignment, const char *structure, int verbosity_level, FILE *file)
@@ -192,7 +204,8 @@ to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 This function is available through an overloaded version of vrna_eval_gquad_structure().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
 consensus structure as second argument. The last two arguments are optional and default
-to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+to #VRNA_VERBOSITY_QUIET and `NULL`, respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_gquad_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_circ_gquad_consensus_structure_v(const char **alignment, const char *structure, int verbosity_level, FILE *file)
@@ -201,7 +214,8 @@ to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 This function is available through an overloaded version of vrna_eval_circ_gquad_structure().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
 consensus structure as second argument. The last two arguments are optional and default
-to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+to #VRNA_VERBOSITY_QUIET and `NULL`, respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_circ_gquad_structure()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_structure_pt_simple(const char *string, const short *pt)
@@ -209,7 +223,8 @@ to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @parblock
 In the target scripting language, this function serves as a wrapper for vrna_eval_structure_pt_v()
 and, thus, allows for two additional, optional arguments, the verbosity level and a file
-handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+handle which default to #VRNA_VERBOSITY_QUIET and `NULL`, respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_structure_pt_simple()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_consensus_structure_pt_simple(const char **alignment, const short *pt)
@@ -217,19 +232,8 @@ handle which default to #VRNA_VERBOSITY_QUIET and NULL, respectively.
 @parblock
 This function is available through an overloadeded version of vrna_eval_structure_pt_simple().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
-consensus structure as second argument
-@endparblock
-
-@fn int vrna_eval_structure_pt_verbose(const char *sequence, const short *pt, FILE *file)
-@scripting
-@parblock
-This function is not available. Use vrna_eval_structure_pt_v() instead!
-@endparblock
-
-@fn int vrna_eval_consensus_structure_pt_simple_verbose(const char **alignment, const short *pt, FILE *file)
-@scripting
-@parblock
-This function is not available. Use vrna_eval_consensus_structure_pt_v() instead!
+consensus structure as second argument. See, e.g.
+@rstinline :py:func:`RNA.eval_structure_pt_simple()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_consensus_structure_pt_simple_v(const char **alignment, const short *pt, int verbosity_level, FILE *file)
@@ -238,15 +242,17 @@ This function is not available. Use vrna_eval_consensus_structure_pt_v() instead
 This function is available through an overloaded version of vrna_eval_structure_pt_simple().
 Simply pass a sequence alignment as list of strings (including gaps) as first, and the
 consensus structure as second argument. The last two arguments are optional and default
-to #VRNA_VERBOSITY_QUIET and NULL, respectively.
+to #VRNA_VERBOSITY_QUIET and `NULL`, respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_structure_pt_simple()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_eval_structure_pt_v(const char *sequence, const short *pt, int verbosity_level, FILE *file)
 @scripting
 @parblock
 This function is available through an overloaded version of vrna_eval_structure_pt_simple().
-The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and NULL,
-respectively.
+The last two arguments for this function are optional and default to #VRNA_VERBOSITY_QUIET and `NULL`,
+respectively. See, e.g.
+@rstinline :py:func:`RNA.eval_structure_pt_simple()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 */

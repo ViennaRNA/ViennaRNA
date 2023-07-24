@@ -3,31 +3,36 @@
 @fn void vrna_hc_init(vrna_fold_compound_t *fc)
 @scripting
 @parblock
-This function is attached as method @b hc_init() to objects of type @em fold_compound
+This function is attached as method @p hc_init() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.hc_init()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn void vrna_hc_add_up(vrna_fold_compound_t *fc, int i, char option)
 @scripting
 @parblock
-This function is attached as method @b hc_add_up() to objects of type @em fold_compound
+This function is attached as method @p hc_add_up() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.hc_add_up()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn void vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *fc, int i, int d, char option)
 @scripting
 @parblock
-This function is attached as method @b hc_add_bp_nonspecific() to objects of type @em fold_compound
+This function is attached as method @p hc_add_bp_nonspecific() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.hc_add_bp_nonspecific()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn void vrna_hc_add_bp(vrna_fold_compound_t *fc, int i, int j, char option)
 @scripting
 @parblock
-This function is attached as method @b hc_add_bp() to objects of type @em fold_compound
+This function is attached as method @p hc_add_bp() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.hc_add_bp()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 @fn int vrna_hc_add_from_db(vrna_fold_compound_t *fc, const char *constraint, unsigned int options)
 @scripting
 @parblock
-This function is attached as method @b hc_add_from_db() to objects of type @em fold_compound
+This function is attached as method @p hc_add_from_db() to objects of type @p fold_compound. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.hc_add_from_db()` in the :doc:`/api_python` @endrst.
 @endparblock
 
 */
