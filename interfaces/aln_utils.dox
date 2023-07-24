@@ -3,14 +3,17 @@
 @fn float *vrna_aln_conservation_struct(const char **alignment, const char *structure, const vrna_md_t *md)
 @scripting
 @parblock
-This function is available in an overloaded form where the last parameter may be omitted, indicating @p md = @em NULL
+This function is available in an overloaded form
+(e.g. @rstinline:py:func:`RNA.aln_conservation_struct()` in the :doc:`/api_python`@endrst) where the last
+parameter may be omitted, indicating @p md = `NULL`.
 @endparblock
 
 @fn float *vrna_aln_conservation_col(const char **alignment, const vrna_md_t *md, unsigned int options)
 @scripting
 @parblock
-This function is available in an overloaded form where the last two parameters may be omitted,
-indicating @p md = @em NULL, and @p options = #VRNA_MEASURE_SHANNON_ENTROPY, respectively.
+This function is available in an overloaded form
+(e.g. @rstinline:py:func:`RNA.aln_conservation_col()` in the :doc:`/api_python`@endrst) where the last two
+parameters may be omitted, indicating @p md = `NULL`, and @p options = #VRNA_MEASURE_SHANNON_ENTROPY, respectively.
 @endparblock
 
 */

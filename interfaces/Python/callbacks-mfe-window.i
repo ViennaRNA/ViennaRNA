@@ -186,13 +186,13 @@ python_wrap_mfe_window_zscore_cb(int        start,
   }
 
 #ifdef VRNA_WITH_SVM
-%feature("autodoc") mfe_window_score_cb;
-%feature("kwargs") mfe_window_score_cb;
+%feature("autodoc") mfe_window_zscore_cb;
+%feature("kwargs") mfe_window_zscore_cb;
 
   float
-  mfe_window_score_cb(double   min_z,
-                      PyObject *PyFunc,
-                      PyObject *data = Py_None)
+  mfe_window_zscore_cb(double   min_z,
+                       PyObject *PyFunc,
+                       PyObject *data = Py_None)
   {
     float en;
     python_mfe_window_callback_t *cb = bind_mfe_window_callback(PyFunc, data);

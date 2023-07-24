@@ -3,26 +3,147 @@
 @fn float vrna_mfe(vrna_fold_compound_t *fc, char *structure)
 @scripting
 @parblock
-This function is attached as method @b mfe() to objects of type @em fold_compound
+This function is attached as method `mfe()` to objects of type `fold_compound`.
+The parameter @p structure is returned along with the MFE und must not be provided.
+See e.g. @rstinline:py:meth:`RNA.fold_compound.mfe()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn float vrna_mfe_dimer( vrna_fold_compound_t *fc, char *structure)
 @scripting
 @parblock
-This function is attached as method @b mfe_dimer() to objects of type @em fold_compound
-@endparblock
-
-@fn float vrna_mfe_window( vrna_fold_compound_t *fc, FILE *file)
-@scripting
-@parblock
-This function is attached as method @b mfe_window() to objects of type @em fold_compound
+This function is attached as method `mfe_dimer()` to objects of type `fold_compound`.
+The parameter @p structure is returned along with the MFE und must not be provided.
+See e.g. @rstinline:py:meth:`RNA.fold_compound.mfe_dimer()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 @fn float vrna_backtrack5(vrna_fold_compound_t *fc, unsigned int length, char *structure)
 @scripting
 @parblock
-This function is attached as overloaded method @b backtrack() to objects of type
-@em fold_compound with default parameter @p length equal to the total length of the RNA.
+This function is attached as overloaded method `backtrack()` to objects of type
+`fold_compound`. The parameter @p length defaults to the total length of the RNA
+sequence and may be omitted. The parameter @p structure is returned along with the MFE
+und must not be provided.
+See e.g. @rstinline:py:meth:`RNA.fold_compound.backtrack()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_fold(const char *sequence, char *structure)
+@scripting
+@parblock
+This function is available as function `fold()` in the global namespace.
+The parameter @p structure is returned along with the MFE und must not be provided.
+See e.g. @rstinline:py:func:`RNA.fold()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_circfold(const char *sequence, char *structure)
+@scripting
+@parblock
+This function is available as function `circfold()` in the global namespace.
+The parameter @p structure is returned along with the MFE und must not be provided.
+See e.g. @rstinline:py:func:`RNA.circfold()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_alifold(const char **sequences, char *structure)
+@scripting
+@parblock
+This function is available as function `alifold()` in the global namespace.
+The parameter @p structure is returned along with the MFE und must not be provided.
+See e.g. @rstinline:py:func:`RNA.alifold()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_circalifold(const char **sequences, char *structure)
+@scripting
+@parblock
+This function is available as function `circalifold()` in the global namespace.
+The parameter @p structure is returned along with the MFE und must not be provided.
+See e.g. @rstinline:py:func:`RNA.circalifold()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_cofold(const char *sequence, char *structure)
+@scripting
+@parblock
+This function is available as function `cofold()` in the global namespace.
+The parameter @p structure is returned along with the MFE und must not be provided.
+See e.g. @rstinline:py:func:`RNA.cofold()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_mfe_window(vrna_fold_compound_t *fc, FILE *file)
+@scripting
+@parblock
+This function is attached as overloaded method `mfe_window()` to objects of type `fold_compound`.
+The parameter @p FILE has default value of `NULL` and can be omitted.
+See e.g. @rstinline:py:meth:`RNA.fold_compound.mfe_window()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_mfe_window_cb(vrna_fold_compound_t *fc, vrna_mfe_window_f cb, void *data)
+@scripting
+@parblock
+This function is attached as overloaded method `mfe_window_cb()` to objects of type `fold_compound`.
+The parameter @p data has default value of `NULL` and can be omitted.
+See e.g. @rstinline:py:meth:`RNA.fold_compound.mfe_window_cb()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_mfe_window_zscore(vrna_fold_compound_t *fc, double min_z, FILE *file)
+@scripting
+@parblock
+This function is attached as overloaded method `mfe_window_zscore()` to objects of type `fold_compound`.
+The parameter @p FILE has default value of `NULL` and can be omitted.
+See e.g. @rstinline:py:meth:`RNA.fold_compound.mfe_window_zscore()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_mfe_window_zscore_cb(vrna_fold_compound_t *fc, double min_z, vrna_mfe_window_zscore_f cb, void *data)
+@scripting
+@parblock
+This function is attached as overloaded method `mfe_window_zscore_cb()` to objects of type `fold_compound`.
+The parameter @p data has default value of `NULL` and can be omitted.
+See e.g. @rstinline:py:meth:`RNA.fold_compound.mfe_window_zscore()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_Lfold(const char *string, int window_size, FILE *file)
+@scripting
+@parblock
+This function is available as overloaded function `Lfold()` in the global namespace.
+The parameter @p file defaults to `NULL` and may be omitted.
+See e.g. @rstinline:py:func:`RNA.Lfold()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_Lfold_cb(const char *string, int window_size, vrna_mfe_window_f cb, void *data)
+@scripting
+@parblock
+This function is available as overloaded function `Lfold_cb()` in the global namespace.
+The parameter @p data defaults to `NULL` and may be omitted.
+See e.g. @rstinline:py:func:`RNA.Lfold_cb()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_Lfoldz(const char *string, int window_size, FILE *file)
+@scripting
+@parblock
+This function is available as overloaded function `Lfold()` in the global namespace.
+The parameter @p file defaults to `NULL` and may be omitted.
+See e.g. @rstinline:py:func:`RNA.Lfold()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_Lfoldz_cb(const char *string, int window_size, double min_z, vrna_mfe_window_zscore_f cb, void *data)
+@scripting
+@parblock
+This function is available as overloaded function `Lfoldz_cb()` in the global namespace.
+The parameter @p data defaults to `NULL` and may be omitted.
+See e.g. @rstinline:py:func:`RNA.Lfoldz_cb()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_aliLfold(const char **alignment, int maxdist, FILE *fp)
+@scripting
+@parblock
+This function is available as overloaded function `aliLfold()` in the global namespace.
+The parameter @p fp defaults to `NULL` and may be omitted.
+See e.g. @rstinline:py:func:`RNA.aliLfold()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+@fn float vrna_aliLfold_cb(const char **alignment, int maxdist, vrna_mfe_window_f cb, void *data)
+@scripting
+@parblock
+This function is available as overloaded function `aliLfold_cb()` in the global namespace.
+The parameter @p data defaults to `NULL` and may be omitted.
+See e.g. @rstinline:py:func:`RNA.aliLfold_cb()` in the :doc:`/api_python`@endrst.
 @endparblock
 
 */
