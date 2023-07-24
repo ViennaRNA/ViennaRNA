@@ -259,9 +259,9 @@ ALIASES                = "scripting=\xrefitem wrappers \"SWIG Wrapper Notes\" \"
                          "examplefilePerl{1}=\include \1 \see <tt>examples/Perl/\1</tt> in the source code tarball" \
                          "examplefilePython{1}=\include \1 \see <tt>examples/Python/\1</tt> in the source code tarball" \
                          "examplefileModParam{1}=\include \1 \see <tt>misc/\1</tt> in the source code tarball" \
-ALIASES += "rst=^^\verbatim embed:rst:leading-asterisk^^"
-ALIASES += "rstinline=^^\verbatim embed:rst:inline^^"
-ALIASES += "endrst=\endverbatim"
+ALIASES += "rst=^^\xmlonly<verbatim>embed:rst:leading-asterisk^^"
+ALIASES += "rstinline=\xmlonly<verbatim>embed:rst:inline"
+ALIASES += "endrst=</verbatim>\endxmlonly"
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C sources
 # only. Doxygen will then generate output that is more tailored for C. For
