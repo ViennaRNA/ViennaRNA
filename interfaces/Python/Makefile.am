@@ -228,8 +228,8 @@ uninstall-htmlDATA: vrna_htmlpydoc_uninst
 CLEANFILES = \
     RNA/_RNA$(PYTHON3_SO) \
     RNA/RNA.py \
-    RNA/__pycache__ \
-    ViennaRNA/__pycache__ \
+    RNA/__pycache__/* \
+    ViennaRNA/__pycache__/* \
     $(srcdir)/*.pyc
 
 all-local:  RNA/_RNA$(PYTHON3_SO)
