@@ -26,7 +26,7 @@ RNA_ADD_PACKAGE([doc],
 
 AC_PATH_PROG(doxygen, [doxygen],no)
 AC_PATH_PROG(dot,[dot],no)
-AC_PATH_PROG(egrep,[egrep],no)
+AC_PATH_PROG(grep,[grep],no)
 AC_PATH_PROG(perl,[perl],no)
 AC_CHECK_PROGS([SPHINXBUILD], [sphinx-build sphinx-build3], [no])
 
@@ -66,11 +66,11 @@ RNA_PACKAGE_IF_ENABLED([doc],[
       doxygen=no
     fi
 
-    if test "x$egrep" = xno;
+    if test "x$grep" = xno;
     then
-      AC_MSG_WARN([egrep command not found on your system!])
+      AC_MSG_WARN([grep command not found on your system!])
       AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
-      doxygen_failed="egrep command is missing!"
+      doxygen_failed="grep command is missing!"
       doxygen=no
     fi
 

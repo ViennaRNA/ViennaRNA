@@ -71,7 +71,7 @@ $(REFERENCE_MANUAL_FILES_PDF): doxygen/doxygen-xml
   $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
   $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1; \
   latex_count=8 ; \
-  while egrep -s 'Rerun (LaTeX|to get cross-references right)' viennarna.log && [ $$latex_count -gt 0 ] ;\
+  while grep -E -s 'Rerun (LaTeX|to get cross-references right)' viennarna.log && [ $$latex_count -gt 0 ] ;\
       do \
         echo "Rerunning latex...." ;\
         $(LATEX_CMD) -interaction=nonstopmode viennarna >>sphinx.log 2>&1;\
@@ -147,6 +147,7 @@ uninstall-pdfDATA: vrna_pdfrefman_uninst
 
 EXTRA_DIST =  $(pkgdata_DATA) \
               source \
+              breathe \
               refman-html \
               build \
               @REFERENCE_MANUAL_PDF_NAME@
