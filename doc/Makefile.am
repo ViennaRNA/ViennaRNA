@@ -2,7 +2,7 @@ sphinx_verbose = $(sphinx_verbose_@AM_V@)
 sphinx_verbose_ = $(sphinx_verbose_@AM_DEFAULT_V@)
 sphinx_verbose_0 = @echo "  SPHINX    $@";
 
-SUBDIRS = CLA
+SUBDIRS = CLA source/man
 
 pkgdata_DATA = \
     viennarna.bib
@@ -16,6 +16,32 @@ clean_latex = \
       } \
 }
 
+REFMAN_MANPAGES = \
+    source/man/RNA2Dfold.rst \
+    source/man/RNAaliduplex.rst \
+    source/man/RNAalifold.rst \
+    source/man/RNAcofold.rst \
+    source/man/RNAdistance.rst \
+    source/man/RNAdos.rst \
+    source/man/RNAduplex.rst \
+    source/man/RNAeval.rst \
+    source/man/RNAfold.rst \
+    source/man/RNAheat.rst \
+    source/man/RNAinverse.rst \
+    source/man/RNALalifold.rst \
+    source/man/RNALfold.rst \
+    source/man/RNAmultifold.rst \
+    source/man/RNApaln.rst \
+    source/man/RNAparconv.rst \
+    source/man/RNApdist.rst \
+    source/man/RNAPKplex.rst \
+    source/man/RNAplex.rst \
+    source/man/RNAplfold.rst \
+    source/man/RNAplot.rst \
+    source/man/RNApvmin.rst \
+    source/man/RNAsnoop.rst \
+    source/man/RNAsubopt.rst \
+    source/man/RNAup.rst
 
 if WITH_REFERENCE_MANUAL
 
@@ -41,7 +67,7 @@ endif WITH_REFERENCE_MANUAL_PDF
 ##--------------------------------------------------##
 if WITH_REFERENCE_MANUAL_BUILD
 
-refman-html: $(pkginclude_HEADERS) doxygen/doxygen-xml
+refman-html: $(pkginclude_HEADERS) doxygen/doxygen-xml $(REFMAN_MANPAGES)
 	$(sphinx_verbose)rm -f refman-html && \
     $(SPHINXBUILD) -M html source build >sphinx.log 2>&1 && \
     touch refman-html

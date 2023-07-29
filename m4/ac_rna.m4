@@ -139,7 +139,7 @@ AC_CONFIG_FILES([src/Utils/Makefile src/bin/Makefile src/Makefile src/ViennaRNA/
 AC_CONFIG_FILES([src/ViennaRNA/static/Makefile])
 AC_CONFIG_FILES([man/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
-AC_CONFIG_FILES([doc/doxygen/Makefile doc/Makefile doc/CLA/Makefile RNA-Tutorial/Makefile])
+AC_CONFIG_FILES([doc/doxygen/Makefile doc/Makefile doc/source/man/Makefile doc/CLA/Makefile RNA-Tutorial/Makefile])
 AC_CONFIG_FILES([examples/Makefile])
 AC_CONFIG_FILES([packaging/viennarna.spec packaging/PKGBUILD])
 AC_CONFIG_FILES([packaging/win_installer_archlinux_i686.nsi packaging/win_installer_archlinux_x86_64.nsi])

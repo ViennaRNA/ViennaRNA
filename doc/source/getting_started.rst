@@ -9,3 +9,5 @@ and library will follow!
    :maxdepth: 1
    :caption: Contents:
 
+   programs
+   utilities

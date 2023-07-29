@@ -1,0 +1,431 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Creator: PS_dot.c,v 1.29 2004/10/01 13:05:24 ivo Exp $, ViennaRNA-1.6
+%%CreationDate: Wed Jan  5 14:55:28 2005
+%%Title: Rna secondary Structure Plot
+%%BoundingBox: 66 210 518 662
+%%DocumentFonts: Helvetica
+%%Pages: 1
+%%EndComments
+
+%Options: 
+% to switch off outline pairs of sequence comment or
+% delete the appropriate line near the end of the file
+
+%%BeginProlog
+/RNAplot 100 dict def
+RNAplot begin
+/fsize  14 def
+/outlinecolor {0.2 setgray} bind def
+/paircolor    {0.2 setgray} bind def
+/seqcolor     {0   setgray} bind def
+/cshow  { dup stringwidth pop -2 div fsize -3 div rmoveto show} bind def
+/min { 2 copy gt { exch } if pop } bind def
+/max { 2 copy lt { exch } if pop } bind def
+/drawoutline {
+  outlinecolor
+  newpath
+  coor 0 get aload pop 0.8 0 360 arc
+  coor {aload pop lineto} forall
+  stroke
+} bind def
+/drawpairs {
+  paircolor
+  0.7 setlinewidth
+  [9 3.01] 9 setdash
+  newpath
+  pairs {aload pop
+     coor exch 1 sub get aload pop moveto
+     coor exch 1 sub get aload pop lineto
+  } forall
+  stroke
+} bind def
+% draw bases
+/drawbases {
+  [] 0 setdash
+  seqcolor
+  0
+  coor {
+    aload pop moveto
+    dup sequence exch 1 getinterval cshow
+    1 add
+  } forall
+  pop
+} bind def
+
+/init {
+  /Helvetica findfont fsize scalefont setfont
+  1 setlinejoin
+  1 setlinecap
+  0.8 setlinewidth
+  72 216 translate
+  % find the coordinate range
+  /xmax -1000 def /xmin 10000 def
+  /ymax -1000 def /ymin 10000 def
+  coor {
+      aload pop
+      dup ymin lt {dup /ymin exch def} if
+      dup ymax gt {/ymax exch def} {pop} ifelse
+      dup xmin lt {dup /xmin exch def} if
+      dup xmax gt {/xmax exch def} {pop} ifelse
+  } forall
+  /size {xmax xmin sub ymax ymin sub max} bind def
+  72 6 mul size div dup scale
+  size xmin sub xmax sub 2 div size ymin sub ymax sub 2 div
+  translate
+} bind def
+end
+%%EndProlog
+RNAplot begin
+% data start here
+/sequence (\
+UCAAUAGCGGCCACAGCAGGUGUGUCACACCCGUUCCCAUUCCGAACACGGAAGUUAAGACACCUCACGUGGAUGACGGUACUGAGGUACGCGAGUCCUCGGGAAAUCAUCCUCGCUGCUAUUGUU\
+) def
+/coor [
+[313.671  42.955]
+[325.161  52.597]
+[325.161  67.597]
+[325.162  82.597]
+[325.161  97.597]
+[325.161 112.597]
+[325.161 127.597]
+[325.161 142.597]
+[325.161 157.597]
+[325.162 172.597]
+[325.161 187.597]
+[310.417 190.353]
+[296.429 195.772]
+[283.676 203.668]
+[272.591 213.773]
+[260.621 204.734]
+[248.651 195.694]
+[242.804 181.881]
+[227.918 180.037]
+[215.947 170.998]
+[203.977 161.959]
+[192.007 152.919]
+[188.284 138.388]
+[174.602 132.239]
+[161.265 139.101]
+[158.314 153.808]
+[167.973 165.285]
+[182.967 164.889]
+[194.938 173.929]
+[206.908 182.968]
+[218.878 192.008]
+[224.725 205.821]
+[239.611 207.665]
+[251.582 216.705]
+[263.552 225.744]
+[256.865 239.171]
+[252.760 253.599]
+[251.377 268.535]
+[252.761 283.471]
+[256.866 297.898]
+[243.438 304.584]
+[230.010 311.270]
+[216.583 317.956]
+[203.156 324.643]
+[188.184 323.719]
+[179.899 336.223]
+[186.585 349.651]
+[201.557 350.574]
+[209.842 338.070]
+[223.269 331.384]
+[236.697 324.697]
+[250.124 318.012]
+[263.552 311.326]
+[272.591 323.296]
+[283.676 333.401]
+[296.430 341.298]
+[310.416 346.717]
+[325.161 349.473]
+[340.161 349.473]
+[354.905 346.717]
+[368.893 341.298]
+[381.647 333.402]
+[392.731 323.297]
+[401.771 311.326]
+[408.457 297.899]
+[412.562 283.471]
+[413.945 268.535]
+[412.562 253.600]
+[408.457 239.171]
+[401.771 225.744]
+[392.731 213.774]
+[402.837 202.689]
+[412.942 191.604]
+[423.048 180.519]
+[433.154 169.434]
+[443.259 158.349]
+[457.771 162.145]
+[472.384 158.763]
+[483.752 148.976]
+[489.270 135.028]
+[487.673 120.113]
+[479.329 107.649]
+[486.488  94.467]
+[493.646  81.286]
+[500.806  68.104]
+[507.965  54.923]
+[515.124  41.742]
+[526.006  31.417]
+[519.550  17.878]
+[517.593   3.006]
+[523.336 -10.851]
+[514.205 -22.753]
+[499.333 -20.796]
+[493.591  -6.939]
+[502.722   4.962]
+[504.678  19.834]
+[501.942  34.583]
+[494.784  47.764]
+[487.624  60.945]
+[480.466  74.127]
+[473.306  87.309]
+[466.148 100.490]
+[451.149 100.276]
+[437.770 107.058]
+[429.074 119.281]
+[427.054 134.144]
+[432.173 148.243]
+[422.068 159.328]
+[411.962 170.413]
+[401.857 181.498]
+[391.752 192.583]
+[381.646 203.669]
+[368.894 195.772]
+[354.906 190.353]
+[340.161 187.597]
+[340.161 172.597]
+[340.162 157.597]
+[340.162 142.597]
+[340.161 127.597]
+[340.161 112.597]
+[340.161  97.597]
+[340.162  82.598]
+[340.162  67.597]
+[340.162  52.597]
+[351.653  42.955]
+[354.257  28.184]
+] def
+/pairs [
+[2 124]
+[3 123]
+[4 122]
+[5 121]
+[6 120]
+[7 119]
+[8 118]
+[9 117]
+[10 116]
+[11 115]
+[15 35]
+[16 34]
+[17 33]
+[19 31]
+[20 30]
+[21 29]
+[22 28]
+[40 53]
+[41 52]
+[42 51]
+[43 50]
+[44 49]
+[71 112]
+[72 111]
+[73 110]
+[74 109]
+[75 108]
+[76 107]
+[82 102]
+[83 101]
+[84 100]
+[85 99]
+[86 98]
+[87 97]
+[89 96]
+[90 95]
+] def
+
+init
+
+% switch off outline pairs or bases by removing these lines
+/drawreliability {
+  /Smax 2.4 def
+  0
+  coor {
+    aload pop
+    S 3 index get
+    invert { Smax exch sub } if
+    Smax div
+    0.9 min 1 1 sethsbcolor
+    newpath
+    fsize 2 div 0 360 arc
+    fill
+    1 add
+  } forall
+} bind def
+/colorbar { % xloc yloc colorbar -> []
+  /STR 8 string def
+  gsave
+    xmin xmax add size sub 2 div
+    ymin ymax add size sub 2 div translate
+    size dup scale
+    translate
+    0.015 dup scale
+    /tics 64 def
+    gsave
+      10 tics div 1 scale
+      invert {tics -1 0} {0 1 tics} ifelse
+      {
+          dup 0 moveto
+          0.9 tics div mul 
+          1 1 sethsbcolor
+          1 0 rlineto 0 1 rlineto -1 0 rlineto closepath fill
+      } for
+    grestore
+    0 setgray
+    -0.1 1.01 moveto (0) gsave 0.1 dup scale show grestore
+    10 1.01 moveto Smax STR cvs
+    gsave 0.1 dup scale dup stringwidth pop -2 div 0 rmoveto show grestore
+  grestore
+} bind def
+/S [
+  0.00188
+  0.17577
+  0.03965
+  0.03440
+  0.01749
+  0.00871
+  0.00065
+  0.00174
+  0.03700
+  0.03151
+  0.12182
+  0.21914
+  0.65705
+  0.70454
+  0.62586
+  1.01269
+  0.98963
+  0.63531
+  2.05593
+  2.43850
+  1.53794
+  1.64953
+  1.71293
+  1.18075
+  1.01372
+  0.97974
+  1.12434
+  1.55059
+  0.95728
+  1.02304
+  1.09126
+  0.36531
+  2.00828
+  2.02484
+  1.66564
+  1.09822
+  0.04919
+  0.08102
+  0.06794
+  0.97400
+  0.99056
+  0.98382
+  0.99276
+  1.28868
+  0.99783
+  0.99301
+  1.00661
+  1.15714
+  1.41616
+  1.23481
+  1.23070
+  0.99735
+  0.96057
+  1.72000
+  1.70638
+  0.17769
+  0.04107
+  0.09052
+  1.48717
+  1.77046
+  1.69528
+  1.48140
+  1.51459
+  1.28639
+  1.81911
+  1.20784
+  0.18882
+  0.31274
+  1.30163
+  0.77616
+  0.26845
+  0.08066
+  0.07811
+  0.08380
+  0.08762
+  0.33346
+  0.03191
+  0.06420
+  0.07014
+  0.06458
+  0.00447
+  0.05545
+  0.05542
+  0.00480
+  0.00719
+  0.00366
+  0.00443
+  0.00379
+  0.01331
+  0.01091
+  -0.00000
+  0.00230
+  0.00225
+  -0.00000
+  0.01108
+  0.01342
+  0.00441
+  0.00393
+  0.00711
+  0.00506
+  0.05887
+  0.05731
+  0.04264
+  0.03460
+  0.01765
+  0.04975
+  0.31826
+  0.07831
+  0.07209
+  0.07800
+  0.07701
+  0.23060
+  0.06259
+  0.89482
+  0.12320
+  0.02702
+  0.03455
+  0.00184
+  0.00065
+  0.00871
+  0.01739
+  0.03429
+  0.03953
+  0.17710
+  0.00021
+  0.00021
+] def
+
+/invert false def
+drawreliability
+0.1 0.1 colorbar
+drawoutline
+drawpairs
+drawbases
+% show it
+showpage
+end
+%%EOF

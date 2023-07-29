@@ -1,0 +1,75 @@
+%!PS-Adobe-2.0 EPSF-1.2
+%%Title: Mount Ali
+%%Creator: in hiding
+%%BoundingBox: 66 209 518 686
+%%Pages: 1
+%%EndComments
+/trapez {   % use as i j height prob hue sat
+  dup 0.3 mul 1 exch sub sethsbcolor
+  newpath
+  3 index 0.5 sub 2 index moveto % i-0.5 h moveto
+  dup 1 exch rlineto
+  4 2 roll exch sub 2 sub 0 rlineto
+  neg 1 exch rlineto
+  pop closepath
+  gsave fill grestore
+  0 setgray stroke
+} def
+
+/centershow {
+  gsave 1 xs div 1 ys div scale 60 rotate
+% dup stringwidth pop 2 div neg 0 rmoveto
+  show
+  grestore
+} def
+/sequence { (\
+GGUCUCUCUGGUUAGACCAGAUCUGAGCCUGGGAGCUCUCUGGCUAGCUAGGGAACCCA\
+) } def
+/len { sequence length } def
+72 216 translate
+/xs {72 6 mul len div} def /ys {72 6 mul 21.03765378 div} def xs ys scale
+0.03 setlinewidth
+/Times-Roman findfont 1.8 scalefont setfont
+0 1 len 1 sub {
+    dup
+    0.8 add -0.5 moveto
+    sequence exch 1 getinterval
+    gsave 1 21.03765378 len div scale show grestore
+} for
+
+/Times-Roman findfont 10 scalefont setfont
+0.01 setlinewidth
+len log 0.7 sub cvi 10 exch exp  % grid spacing
+gsave 0.5 0 translate
+/temp 12 string def
+0 exch len {
+   dup dup
+   0 moveto
+   21.03765378 1.03 mul lineto
+   cvi 1 1 sub add temp cvs centershow
+} for
+stroke
+grestore
+1 58 0.0000 0.6205 0.00 0.60 trapez
+2 57 0.6205 0.6206 0.00 1.00 trapez
+5 54 1.2411 0.9908 0.00 1.00 trapez
+6 53 2.2319 0.9984 0.16 0.60 trapez
+7 52 3.2303 0.9966 0.32 1.00 trapez
+8 51 4.2269 0.9998 0.16 1.00 trapez
+9 50 5.2267 0.9982 0.16 1.00 trapez
+10 49 6.2249 0.9986 0.48 1.00 trapez
+11 48 7.2235 0.9998 0.32 1.00 trapez
+12 47 8.2233 0.9988 0.32 0.60 trapez
+13 46 9.2221 0.9974 0.32 1.00 trapez
+14 45 10.2195 0.9994 0.32 1.00 trapez
+15 44 11.2189 0.9998 0.00 1.00 trapez
+17 43 12.2187 1.0000 0.00 1.00 trapez
+18 42 13.2187 0.9998 0.00 1.00 trapez
+19 41 14.2185 0.9986 0.00 1.00 trapez
+20 40 15.2171 0.9988 0.00 0.60 trapez
+21 39 16.2159 0.8998 0.32 0.60 trapez
+25 38 17.1158 0.9878 0.00 1.00 trapez
+26 37 18.1036 0.9950 0.00 1.00 trapez
+27 36 19.0986 0.9960 0.00 1.00 trapez
+28 35 20.0946 0.9430 0.00 1.00 trapez
+showpage

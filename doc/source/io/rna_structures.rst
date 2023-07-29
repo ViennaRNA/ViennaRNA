@@ -15,16 +15,39 @@ The Dot-Bracket notation as introduced already in the early times of the ViennaR
 denotes base pairs by matching pairs of parenthesis ``()`` and unpaired nucleotides by dots
 ``.``.
 
-It is the standard representation of a secondary structure in our library.
+.. note::
+
+  This is the standard representation of a secondary structure in our library.
 
 Based on that notation, more elaborate representations have been developed to
 include additional information, such as the loop context a nucleotide belongs
 to and to annotated pseudo-knots.
 
-As a simple example, consider a helix of size 4 enclosing a hairpin of size 4. In dot-bracket
-notation, this is annotated as::
+Consider the following secondary structure in dot-bracket notation:
 
-  ((((....))))
+.. code::
+
+    (((..((((...)))).)))
+
+which, drawn as a secondary structure graph, looks like:
+
+.. image:: ../gfx/bracket.png
+    :alt: secondary structure layout iamge
+    :align: center
+
+It is a stem-loop structure consisting of a an outer helix of 3 base pairs followed by
+an interior loop of size 3, a second helix of length 4, and a hairpin loop of size 3.
+
+Pseudo Dot-Bracket Notation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Base pair probabilities are sometimes summarized in *pseudo dot-bracket notation* with
+the additional symbols ``,``, ``|``, ``{``, ``}``. Here, the usual ``(``, ``)``, ``.``,
+represent bases with a strong preference (more than 2/3) to pair upstream (with a partner
+further 3'), pair down-stream, or do not pair, respectively. ``{``, ``}``, and ``,`` are
+just the weaker version of the above and ``|`` represents a base that is mostly paired
+but has pairing partners both upstream and downstream. In this case opening and closing
+brackets do not need to match.
 
 Extended Dot-Bracket Notation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

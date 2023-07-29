@@ -110,6 +110,7 @@ exclude_patterns = []
 autosectionlabel_prefix_document = True
 
 pygments_style = 'default'
+option_emphasise_placeholders = True
 
 # -- Options for HTML output -------------------------------------------------
 
