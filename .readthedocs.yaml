@@ -17,20 +17,25 @@ build:
     - doxygen
     - swig
     - libtool
+    - gengetopt
+    - help2man
     - python3-myst-parser
   jobs:
     pre_build:
       - tar -xjf src/dlib-19.24.tar.bz2 -C src/
       - tar -xzf src/libsvm-3.31.tar.gz -C src/
-      - autoreconf -i && ./configure --without-forester --without-kinfold --without-rnalocmin --without-rnaxplorer --with-pydoc --without-cla --without-tutorial --without-doc-pdf --without-perl --without-python2 --disable-lto
+      - autoreconf -i && ./configure --without-forester --without-kinfold --without-rnalocmin --without-rnaxplorer --without-cla --without-tutorial --without-perl --without-python2 --disable-lto
       - cd src/ViennaRNA && make -j && cd ../../
-      - cd doc && make && cd ../
-      - cd interfaces/Python && make V=1 && cd ../..
+      - cd doc/doxygen && make && cd ../../
+      - cd interfaces/Python && make V=1 && cd ../../
+      - cd man && make && cd ../
+      - cd doc/source/man && make && cd ../../../
+      - cd doc && make refman-html && cd ../
 
 python:
   install:
-    - requirements: interfaces/Python/doc/requirements.txt
+    - requirements: doc/requirements.txt
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
-   configuration: interfaces/Python/doc/source/conf.py
+   configuration: doc/conf.py
