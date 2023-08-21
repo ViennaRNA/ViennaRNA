@@ -4,49 +4,42 @@
 import re
 import argparse
 
+indent = 4
 
+def process_lines(filehandle):
+    comment_line_pat = re.compile(r'^.\\\"')
+    comment_inline_pat = re.compile(r'^(.*?)\\\"(.*)$')
+    section_pat = re.compile(r'^.SH\s*(.*)$')
+    subsection_pat = re.compile(r'^.SS\s*(.*)$')
+    bold_pat = [
+        re.compile(r'\\fB(.*?)\\fR'),
+        re.compile(r'\\fB(.*?)\\fP'),
+        re.compile(r'\\f3(.*?)\\fR'),
+        re.compile(r'\\f3(.*?)\\fR'),
+    ]
+    ital_pat = [
+        re.compile(r'\\fI\\,(.*?)\\/\\fR'),
+        re.compile(r'\\fI(.*?)\\fR'),
+        re.compile(r'\\fI\\,(.*?)\\/\\fP'),
+        re.compile(r'\\fI(.*?)\\fP'),
+        re.compile(r'\\f2(.*?)\\fR'),
+        re.compile(r'\\f2(.*?)\\fR'),
+    ]
 
-parser = argparse.ArgumentParser(description="Convert manpages to ReStructuredText")
-parser.add_argument("-i", "--input", type=str, help="The input man page file", required=True)
-parser.add_argument("-o", "--output", type=str, help="The output .rst file", required=True)
+    cw_pat = [
+        re.compile(r'\\f\(CW(.*?)\\fR'),
+    ]
 
-args = parser.parse_args()
+    ital_line_pat = re.compile(r'.I\s+(.*)$')
+    dblquoted_text_pat = re.compile(r'`(.*?)\'')
+    quoted_text_pat = re.compile(r'\'(.*?)\'')
+    shell_esc_pat = re.compile(r'\$\'\\e(.*?)\'')
 
-
-comment_line_pat = re.compile(r'^.\\\"')
-comment_inline_pat = re.compile(r'^(.*?)\\\"(.*)$')
-section_pat = re.compile(r'^.SH\s*(.*)$')
-subsection_pat = re.compile(r'^.SS\s*(.*)$')
-bold_pat = [
-    re.compile(r'\\fB(.*?)\\fR'),
-    re.compile(r'\\fB(.*?)\\fP'),
-    re.compile(r'\\f3(.*?)\\fR'),
-    re.compile(r'\\f3(.*?)\\fR'),
-]
-ital_pat = [
-    re.compile(r'\\fI\\,(.*?)\\/\\fR'),
-    re.compile(r'\\fI(.*?)\\fR'),
-    re.compile(r'\\fI\\,(.*?)\\/\\fP'),
-    re.compile(r'\\fI(.*?)\\fP'),
-    re.compile(r'\\f2(.*?)\\fR'),
-    re.compile(r'\\f2(.*?)\\fR'),
-]
-
-cw_pat = [
-    re.compile(r'\\f\(CW(.*?)\\fR'),
-]
-
-ital_line_pat = re.compile(r'.I\s+(.*)$')
-dblquoted_text_pat = re.compile(r'`(.*?)\'')
-quoted_text_pat = re.compile(r'\'(.*?)\'')
-
-with open(args.input, 'r') as f:
-    indent = 4
     current_indent = 0
     indent_next_line = 0
     content = []
     # go through man page line by line
-    for line in f:
+    for line in filehandle:
         line = line.strip()
 
         # reset indent whenever we encounter a command
@@ -121,6 +114,7 @@ with open(args.input, 'r') as f:
         if m:
             line = "*" + m.group(1) + "*"
 
+        line = shell_esc_pat.sub(r'##-##\1##-##', line)
         line = dblquoted_text_pat.sub(r'"\1"', line)
         line = quoted_text_pat.sub(r'``\1``', line)
 
@@ -130,11 +124,9 @@ with open(args.input, 'r') as f:
 
         content.append(' ' * current_indent + line)
 
-    # now, second phase
-    content = "\n".join(content)
+    return "\n".join(content)
 
-    #print("***********", content, "**************")
-
+def stage_2(content):
     # Process tagged paragraphs
     #
     # Here, we assume tagged paragraphs (.TP) only appear for
@@ -209,6 +201,10 @@ with open(args.input, 'r') as f:
 
     content = pat.sub(lambda m: page_title(m), content)
 
+    # undo shell escape safety replacement
+    pat = re.compile(r'##-##(.*?)##-##')
+    content = pat.sub(r"``$'\\\1'``", content)
+
     # Finally, lets re-format the synopsis
     pat = re.compile(r'synopsis\n--------\n+\.B\s+(.*?)\n(.*?)\n\n', re.I | re.MULTILINE | re.DOTALL)
 
@@ -219,6 +215,20 @@ with open(args.input, 'r') as f:
         return "Synopsis\n--------\n\n.. code:: bash\n\n    {} {}\n\n".format(prog, opt)
 
     content = pat.sub(lambda m: synopsis(m), content)
+
+    return content
+
+
+parser = argparse.ArgumentParser(description="Convert manpages to ReStructuredText")
+parser.add_argument("-i", "--input", type=str, help="The input man page file", required=True)
+parser.add_argument("-o", "--output", type=str, help="The output .rst file", required=True)
+
+args = parser.parse_args()
+
+
+with open(args.input, 'r') as f:
+    content = process_lines(f)
+    content = stage_2(content)
 
     with open(args.output, "w") as of:
         of.write(content)
