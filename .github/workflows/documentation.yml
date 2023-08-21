@@ -1,0 +1,47 @@
+name: build the documentation
+on: [push, pull_request]
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: set up python
+        uses: actions/setup-python@v1
+
+      - name: install dependencies
+        run: |
+          pip install -r requirements/development.txt
+          sudo apt-get -y update
+          sudo apt-get -y install graphviz libclang1-11 libclang-cpp11
+
+      - name: install doxygen from SF binary archives
+        env:
+          DOXYGEN_VERSION: 1.9.4
+        run: |
+          mkdir doxygen-bin-arc && cd doxygen-bin-arc
+          curl -L https://sourceforge.net/projects/doxygen/files/rel-$DOXYGEN_VERSION/doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz > doxygen.tar.gz
+          gunzip doxygen.tar.gz
+          tar xf doxygen.tar
+          cd doxygen-$DOXYGEN_VERSION
+          sudo make install
+
+      - name: build the documentation
+        run: |
+          make html
+          rm documentation/build/html/.buildinfo
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: docs build artifacts
+          path: |
+            documentation/build/html
+            examples/*/*/xml

@@ -1,0 +1,12 @@
+version: 2
+
+python:
+  version: 3
+
+sphinx:
+  builder: html
+  configuration: documentation/source/conf.py
+  fail_on_warning: false
+
+conda:
+  environment: documentation/environment.yaml
