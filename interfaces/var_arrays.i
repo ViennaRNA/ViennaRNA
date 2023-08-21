@@ -181,6 +181,20 @@ struct var_array {};
 /* Extensions for [] operator access   */
 /***************************************/
 %extend var_array {
+  size_t size() const {
+    size_t n = $self->length;
+
+    if ($self->type & VAR_ARRAY_ONE_BASED)
+      n += 1;
+
+    if ($self->type & VAR_ARRAY_TRI)
+      n = var_array_data_size_tri(n - 1);
+    else if ($self->type & VAR_ARRAY_SQR)
+      n = var_array_data_size_sqr(n);
+
+    return n;
+  }
+
   size_t __len__() const {
     size_t n = $self->length;
 
@@ -195,6 +209,28 @@ struct var_array {};
     return n;
   }
 
+  const T get(int i) const throw(std::out_of_range) {
+    size_t max_i = $self->length;
+
+    if ($self->type & VAR_ARRAY_ONE_BASED)
+      max_i += 1;
+
+    if ($self->type & VAR_ARRAY_TRI)
+      max_i = var_array_data_size_tri(max_i - 1);
+    else if ($self->type & VAR_ARRAY_SQR)
+      max_i = var_array_data_size_sqr(max_i);
+
+    /* also handle negative indices here */
+    if (((i < 0) && (-i >= max_i)) ||
+        ((i >= 0) && (i >= max_i)))
+      throw std::out_of_range("out of bounds access");
+
+    if (i < 0)
+      i = max_i + i;
+
+    return $self->data[i];
+  }
+
   const T __getitem__(int i) const throw(std::out_of_range) {
     size_t max_i = $self->length;
 
@@ -206,9 +242,13 @@ struct var_array {};
     else if ($self->type & VAR_ARRAY_SQR)
       max_i = var_array_data_size_sqr(max_i);
 
-    if ((i < 0) ||
-        (i >= max_i))
+    /* also handle negative indices here */
+    if (((i < 0) && (-i >= max_i)) ||
+        ((i >= 0) && (i >= max_i)))
       throw std::out_of_range("out of bounds access");
+
+    if (i < 0)
+      i = max_i + i;
 
     return $self->data[i];
   }
@@ -224,9 +264,13 @@ struct var_array {};
     else if ($self->type & VAR_ARRAY_SQR)
       max_i = var_array_data_size_sqr(max_i);
 
-    if ((i < 0) ||
-        (i >= max_i))
+    /* also handle negative indices here */
+    if (((i < 0) && (-i >= max_i)) ||
+        ((i >= 0) && (i >= max_i)))
       throw std::out_of_range("out of bounds access");
+
+    if (i < 0)
+      i = max_i + i;
 
     return $self->data[i] = d;
   }
@@ -234,7 +278,82 @@ struct var_array {};
 
 
 #ifdef SWIGPYTHON
+%pythoncode %{
+class var_array_Iterator:
+    def __init__(self, var_arr):
+        self.index = 0
+        self.var_arr = var_arr
+    def __iter__(self):
+        return self
+    def next(self):
+        if self.index >= self.var_arr.size():
+            raise StopIteration;
+        ret = self.var_arr.get(self.index)
+        self.index += 1
+        return ret
+    __next__ = next
+%}
+
 %extend var_array {
+  var_array<T> * __getitem__(PyObject *ob) {
+    size_t        n, real_i, max_i;
+    unsigned int  type;
+    Py_ssize_t    start, stop, step, slice_l, l;
+    var_array<T>  *a;
+
+    if (PySlice_Check(ob)) {
+      a = NULL;
+      max_i = $self->length;
+
+      if ($self->type & VAR_ARRAY_ONE_BASED)
+        max_i += 1;
+
+      if ($self->type & VAR_ARRAY_TRI)
+        max_i = var_array_data_size_tri(max_i - 1);
+      else if ($self->type & VAR_ARRAY_SQR)
+        max_i = var_array_data_size_sqr(max_i);
+
+      l = max_i;
+
+
+      if (PySlice_GetIndicesEx(ob, l, &start, &stop, &step, &slice_l) == 0) {
+        real_i  = 0;
+        type    = $self->type;
+        n       = slice_l;
+
+        if ((type & VAR_ARRAY_LINEAR) &&
+            (type & VAR_ARRAY_ONE_BASED) &&
+            (start != 0))
+          type &= ~VAR_ARRAY_ONE_BASED;
+
+        if (n > 0) {
+          a = (var_array<T> *)vrna_alloc(sizeof(var_array<T>));
+          a->data   = (T *)vrna_alloc(sizeof(T) * n);
+          /* copy slice data */
+          for (Py_ssize_t i = start; i <= stop; i += step, real_i++)
+            a->data[real_i] = $self->data[i];
+
+          if ((type & VAR_ARRAY_LINEAR) &&
+               (type & VAR_ARRAY_ONE_BASED)) {
+            n -= 1;
+            a->data[0] = n;
+          }
+
+          a->length = n;
+          a->type   = type | VAR_ARRAY_OWNED;
+        }
+      } else {
+        return NULL;
+      }
+
+    } else {
+      PyErr_SetString(PyExc_TypeError, "Expected integer or slice object");
+      return 0;
+    }
+
+    return a;
+  }
+
   std::string
   __str__()
   {
@@ -265,6 +384,10 @@ def __repr__(self):
     # that looks like a constructor argument list
     strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
     return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+
+def __iter__(self):
+    return var_array_Iterator(self)
+
 %}
 
 };
