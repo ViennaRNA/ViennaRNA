@@ -31,7 +31,7 @@ description "The program reads RNA sequences, calculates their minimum free ener
  certain operating systems and/or file systems the prefix will ALWAYS be sanitized!\
  This step substitutes any special character in the prefix by a filename delimiter. See the --filename-delim\
  option to change the delimiting character according to your requirements.\n\nThe program will continue to\
- read new sequences until a line consisting of the single character @ or an end of file (EOF) condition is\
+ read new sequences until a line consisting of the single character '@' or an end of file (EOF) condition is\
  encountered.\n\n"
 
 # Options
@@ -51,7 +51,7 @@ details="The default behavior of RNAfold is to read input from stdin or the file
  the RNAfold command. Using this parameter the user can specify input file names where data\
  is read from. Note, that any additional files supplied to RNAfold are still processed as well.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 multiple
 optional
 
@@ -69,7 +69,7 @@ details="This option may be used to write all output to output files rather than
  hence there is no way to pass an entire directory path through this option (yet).\
  (See also the \"--filename-delim\" parameter)\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 argoptional
 optional
 
@@ -183,7 +183,7 @@ option  "filename-full" -
 "Use full FASTA header to create filenames.\n"
 details="This parameter can be used to deactivate the default behavior of limiting\
  output filenames to the first word of the sequence ID. Consider the following example:\
- An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
+ An input with FASTA header '>NM_0001 Homo Sapiens some gene' usually produces output\
  files with the prefix \"NM_0001\" without the additional data available in the FASTA\
  header, e.g. \"NM_0001_ss.ps\" for secondary structure plots. With this flag set, no\
  truncation of the output filenames is done, i.e. output filenames receive the full\
@@ -203,19 +203,19 @@ option  "partfunc"  p
 "Calculate the partition function and base pairing probability matrix.\n"
 details="In addition to the MFE structure\
  we print a coarse representation of the pair probabilities in form of a pseudo bracket notation followed by\
- the ensemble free energy. This notation makes use of the letters \" . , | { } ( ) \" denoting bases that are\
+ the ensemble free energy. This notation makes use of the letters '.', ',', '|', '{', '}', '(', and ')' denoting bases that are\
  essentially unpaired, weakly paired, strongly paired without preference, weakly upstream (downstream) paired,\
  or strongly up- (down-)stream paired bases, respectively. On the next line the centroid structure as derived\
  from the pair probabilities together with its free energy and distance to the ensemble is shown. Finally it\
  prints the frequency of the mfe structure, and the\
- structural diversity (mean distance between the structures in the ensemble).\nSee the description of pf_fold()\
- and mean_bp_dist() and centroid() in the RNAlib documentation for details.\nNote that unless you also specify\
+ structural diversity (mean distance between the structures in the ensemble).\nSee the description of 'vrna_pf()'\
+ and 'mean_bp_dist()' and 'vrna_centroid()' in the RNAlib documentation for details.\nNote that unless you also specify\
  -d2 or -d0, the partition function and mfe calculations will use a slightly different energy model. See the\
  discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
  of partition function calculation:\n-p0 Calculate the partition function but not the pair probabilities,\
- saving about 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n-p2 Compute stack probabilities,\
- i.e. the probability that a pair (i,j) and the immediately interior pair (i+1,j-1) are formed simultaneously in\
- addition to pair probabilities. A second postscript dot plot called \"name_dp2.ps\", or \"dot2.ps\" (if the\
+ saving about 50% in runtime. This prints the ensemble free energy 'dG=-kT ln(Z)'.\n-p2 Compute stack probabilities,\
+ i.e. the probability that a pair '(i,j)' and the immediately interior pair '(i+1,j-1)' are formed simultaneously in\
+ addition to pair probabilities. A second postscript dot plot named \"name_dp2.ps\", or \"dot2.ps\" (if the\
  sequence does not have a name), is produced that contains pair probabilities in the upper right half and stack\
  probabilities in the lower left.\n\n"
 int
@@ -225,11 +225,10 @@ optional
 
 option  "betaScale" -
 "Set the scaling of the Boltzmann factors.\n"
-details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the Boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
- where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
- absolute temperature.\n\n"
+details="The argument provided with this option is used to scale the thermodynamic temperature\
+ in the Boltzmann factors independently from the temperature of the individual loop energy contributions.\
+ The Boltzmann factors then become 'exp(- dG/(kT*betaScale))' where 'k' is the Boltzmann constant, 'dG'\
+ the free energy contribution of the state and 'T' the absolute temperature.\n\n"
 double
 default="1."
 optional
@@ -239,21 +238,19 @@ hidden
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed for long sequences.\n\n"
 double
 default="1.07"
 optional
 hidden
 
 option  "MEA"   -
-"Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
- pair probabilities: each base pair (i,j) gets a score 2*gamma*p_ij and the score of an unpaired base is\
- given by the probability of not forming a pair.\n"
-details="The parameter gamma tunes the importance of correctly\
- predicted pairs versus unpaired bases. Thus, for small values of gamma the MEA structure will contain\
- only pairs with very high probability.\nUsing --MEA implies -p for\
- computing the pair probabilities.\n\n"
+"Compute MEA (maximum expected accuracy) structure.\n"
+details="The expected accuracy is computed from the pair probabilities: each base pair '(i,j)' receives\
+ a score '2*gamma*p_ij' and the score of an unpaired base is given by the probability of not forming\
+ a pair. The parameter gamma tunes the importance of correctly predicted pairs versus unpaired bases.\
+ Thus, for small values of gamma the MEA structure will contain only pairs with very high probability.\
+ Using --MEA implies -p for computing the pair probabilities.\n\n"
 float
 typestr="gamma"
 default="1."
@@ -274,12 +271,12 @@ off
 hidden
 
 option  "bppmThreshold" -
-"Set the threshold for base pair probabilities included in the postscript output\n"
+"Set the threshold/cutoff for base pair probabilities included in the postscript output.\n\n"
 details="By setting the threshold the base pair probabilities that are included in the\
- output can be varied. By default only those exceeding 1e-5 in probability will be shown as squares\
+ output can be varied. By default only those exceeding '1e-5' in probability will be shown as squares\
  in the dot plot. Changing the threshold to any other value allows for increase or decrease of data.\n\n"
 double
-typestr="<value>"
+typestr="cutoff"
 optional
 default="1e-5"
 hidden
@@ -302,14 +299,14 @@ optional
 option  "constraint"  C
 "Calculate structures subject to constraints.\n"
 details="The program reads first the\
- sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
- for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
- a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
- exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n\n'.' (no constraint\
+ for this base)\n\n'|' (the corresponding base has to be paired\n\n'x' (the base is unpaired)\n\n'<' (base i is paired with\
+ a base j>i)\n\n'>' (base i is paired with a base j<i)\n\nand matching brackets '(' ')' (base i pairs base j)\n\nWith the\
+ exception of '|', constraints will disallow all pairs conflicting with the constraint. This is usually\
  sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n\n"
+ folding ignores constraints of type '|'.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 default = ""
 argoptional
 
@@ -331,7 +328,7 @@ dependon="constraint"
 hidden
 
 option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint.\n\n"
+"Enforce base pairs given by round brackets '(' ')' in structure constraint.\n\n"
 flag
 off
 dependon="constraint"
@@ -339,13 +336,13 @@ dependon="constraint"
 option  "shape" -
 "Use SHAPE reactivity data to guide structure predictions.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 optional
 
 option  "shapeMethod" -
-"Select SHAPE reactivity data incorporation strategy.\n"
+"Select SHAPE reactivity data incorporation strategy.\n\n"
 details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n\n\
- 'D': Convert by using a linear equation according to Deigan et al 2009. Derived pseudo energy terms\
+ 'D': Convert by using the linear equation according to Deigan et al 2009. Derived pseudo energy terms\
  will be applied for every nucleotide involved in a stacked pair. This method is recognized by a capital\
  'D' in the provided parameter, i.e.: --shapeMethod=\"D\" is the default setting. The slope 'm' and the\
  intercept 'b' can be set to a non-default value if necessary, otherwise m=1.8 and b=-0.6. To alter these\
@@ -359,14 +356,14 @@ details="The following methods can be used to convert SHAPE reactivities into ps
  'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
  Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
-typestr="[D|Z|W] + [optional parameters]"
+typestr="method"
 dependon="shape"
 default="D"
 optional
 hidden
 
 option  "shapeConversion" -
-"Select method for SHAPE reactivity conversion.\n"
+"Select method for SHAPE reactivity conversion.\n\n"
 details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
 The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
 'M': Use linear mapping according to Zarringhalam et al.
@@ -375,12 +372,12 @@ The following methods can be used to convert SHAPE reactivities into the probabi
 'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
 'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
-typestr="M|C|S|L|O  + [optional parameters]"
+typestr="method"
 default="O"
 optional
 
 option  "motif"   -
-"Specify stabilizing effect of ligand binding to a particular sequence/structure motif.\n"
+"Specify stabilizing energy of a ligand binding to a particular sequence/structure motif.\n"
 details="Some ligands binding to RNAs require and/or induce particular sequence and structure motifs. For\
  instance they bind to an interior loop, or small hairpin loop. If for such cases a binding free energy is\
  known, the binding and therefore stabilizing effect of the ligand can be included in the folding recursions.\
@@ -397,7 +394,7 @@ details="Commands include hard and soft constraints, but also structure motifs i
  loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
  domains.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 optional
 hidden
 
@@ -414,8 +411,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -441,12 +438,12 @@ details="Treat modified bases within the RNA sequence differently, i.e. use corr
  limit the modifications to a particular subset of modifications, resp. one-letter codes,\
  e.g. -mP6 will only correct for pseudouridine and m6A bases.\n\
  Currently supported one-letter codes and energy corrections are:\n\n\
- \"7\": 7-deaza-adenonsine (7DA)\n\n\
- \"I\": Inosine\n\n\
- \"6\": N6-methyladenosine (m6A)\n\n\
- \"P\": Pseudouridine\n\n\
- \"9\": Purine (a.k.a. nebularine)\n\n\
- \"D\": Dihydrouridine\n\n"
+ '7': 7-deaza-adenonsine (7DA)\n\n\
+ 'I': Inosine\n\n\
+ '6': N6-methyladenosine (m6A)\n\n\
+ 'P': Pseudouridine\n\n\
+ '9': Purine (a.k.a. nebularine)\n\n\
+ 'D': Dihydrouridine\n\n"
 string
 argoptional
 default="7I6P9D"
@@ -497,8 +494,8 @@ hidden
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional
@@ -552,11 +549,11 @@ option  "layout-type"  t
 "Choose the layout algorithm.\n"
 details="Select the layout algorithm that computes the nucleotide coordinates.\
  Currently, the following algorithms are available:\n\
- 0: simple radial layout\n\n\
- 1: Naview layout (Bruccoleri et al. 1988)\n\n\
- 2: circular layout\n\n\
- 3: RNAturtle (Wiegreffe et al. 2018)\n\n\
- 4: RNApuzzler (Wiegreffe et al. 2018)\n\n"
+ '0': simple radial layout\n\n\
+ '1': Naview layout (Bruccoleri et al. 1988)\n\n\
+ '2': circular layout\n\n\
+ '3': RNAturtle (Wiegreffe et al. 2018)\n\n\
+ '4': RNApuzzler (Wiegreffe et al. 2018)\n\n"
 int
 default="1"
 optional

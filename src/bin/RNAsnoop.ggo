@@ -22,7 +22,7 @@ RNAcofold and RNAplex. Accessibility effects can be estimated by
 RNAsnoop if a RNAplfold accessibility profile is provided. \n
 The computed optimal and suboptimal structure are written to
 stdout, one structure per line. Each line consist
-of: The structure in dot bracket format with a \"&\" separating the
+of: The structure in dot bracket format with a '&' separating the
 two strands. The '<>' brackets represent snoRNA intramolecular
 interactions, while the '()' brackets represent intermolecular
 interactions between the snoRNA and its target.

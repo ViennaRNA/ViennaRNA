@@ -27,7 +27,7 @@ int
 optional
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\".\n\n"
+"Do not automatically substitute nucleotide \"T\" with \"U\".\n\n"
 flag
 off
 
@@ -69,9 +69,9 @@ int
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed for long sequences.\n\n"
 double
+default="1.07"
 optional
 hidden
 
@@ -80,10 +80,11 @@ option  "noBT"  -
 flag
 off
 
-option  "circ"  c
+option  "circ"    c
 "Assume a circular (instead of linear) RNA molecule.\n\n"
 flag
 off
+
 
 
 section "Energy Parameters"
@@ -98,8 +99,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -122,8 +123,8 @@ sectiondesc="Tweak the energy model and pairing rules additionally using the fol
 
 option  "dangles" d
 "How to treat \"dangling end\" energies for bases adjacent to helices in free ends and multi-loops\n"
-details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides
- in any case.\nThe option -d0 ignores dangling ends altogether (mostly for debugging).\n\n"
+details="\nWith -d2 dangling energies will be added for the bases adjacent to a helix on both sides\
+ in any case. The option -d0 ignores dangling ends altogether (mostly for debugging).\n\n"
 int
 default="2"
 values="0","2"

@@ -65,8 +65,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional

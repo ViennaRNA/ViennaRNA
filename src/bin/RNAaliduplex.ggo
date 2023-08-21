@@ -35,7 +35,7 @@ typestr="range"
 optional
 
 option  "sorted"  s
-"print output sorted by free energy.\n\n"
+"Sort output by free energy.\n\n"
 flag
 off
 
@@ -52,8 +52,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -116,8 +116,8 @@ hidden
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional

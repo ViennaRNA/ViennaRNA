@@ -49,8 +49,8 @@ details="If this parameter is set, the input is considered to be in a particular
  file format. Otherwise, the program tries to determine the file format automatically,\
  if an input file was provided in the set of parameters. In case the input MSA is provided\
  in interactive mode, or from a terminal (TTY), the programs default is to assume\
- CLUSTALW format.\nCurrently, the following formats are available: ClustalW (C),\
- Stockholm 1.0 (S), FASTA/Pearson (F), and MAF (M).\n\n"
+ CLUSTALW format.\nCurrently, the following formats are available: ClustalW ('C'),\
+ Stockholm 1.0 ('S'), FASTA/Pearson ('F'), and MAF ('M').\n\n"
 string
 typestr="C|S|F|M"
 optional
@@ -132,7 +132,7 @@ optional
 
 option  "id-delim" -
 "Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names).\n"
-details="This parameter can be used to change the default delimiter \"_\" between\
+details="This parameter can be used to change the default delimiter '_' between\
  the prefix string and the increasing number for automatically generated ID.\n\n"
 string
 typestr="CHAR"
@@ -190,7 +190,7 @@ details="In addition to the MFE structure we print a coarse representation of th
  from the pair probabilities together with its free energy and distance to the ensemble. Finally it prints the\
  frequency of the mfe structure.\n\nAn additionally passed value to this option changes the behavior of\
  partition function calculation:\n-p0 deactivates the calculation of the pair probabilities,\
- saving about 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n\n"
+ saving about 50% in runtime. This prints the ensemble free energy 'dG=-kT ln(Z)'.\n\n"
 int
 default="1"
 argoptional
@@ -198,11 +198,10 @@ optional
 
 option  "betaScale" -
 "Set the scaling of the Boltzmann factors.\n"
-details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the Boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kTn*betaScale))\
- where k is the Boltzmann constant, dG the free energy contribution of the state, T the\
- absolute temperature and n the number of sequences.\n\n"
+details="The argument provided with this option is used to scale the thermodynamic temperature\
+ in the Boltzmann factors independently from the temperature of the individual loop energy contributions.\
+ The Boltzmann factors then become 'exp(- dG/(kTn*betaScale))' where 'k' is the Boltzmann constant, 'dG'\
+ the free energy contribution of the state, 'T' the absolute temperature and 'n' the number of sequences.\n\n"
 double
 default="1."
 optional
@@ -212,20 +211,19 @@ hidden
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed for long sequences.\n\n"
 double
+default="1.07"
 optional
 hidden
 
 option  "MEA"   -
-"Calculate an MEA (maximum expected accuracy) structure, where the expected accuracy is computed from the\
- pair probabilities: each base pair (i,j) gets a score 2*gamma*p_ij and the score of an unpaired base is\
- given by the probability of not forming a pair.\n"
-details="The parameter gamma tunes the importance of correctly\
- predicted pairs versus unpaired bases. Thus, for small values of gamma the MEA structure will contain\
- only pairs with very high probability.\nUsing --MEA implies -p for\
- computing the pair probabilities.\n\n"
+"Compute MEA (maximum expected accuracy) structure.\n"
+details="The expected accuracy is computed from the pair probabilities: each base pair '(i,j)' receives\
+ a score '2*gamma*p_ij' and the score of an unpaired base is given by the probability of not forming\
+ a pair. The parameter gamma tunes the importance of correctly predicted pairs versus unpaired bases.\
+ Thus, for small values of gamma the MEA structure will contain only pairs with very high probability.\
+ Using --MEA implies -p for computing the pair probabilities.\n\n"
 float
 typestr="gamma"
 default="1."
@@ -243,12 +241,12 @@ flag
 off
 
 option  "bppmThreshold" -
-"Set the threshold for base pair probabilities included in the postscript output\n"
+"Set the threshold/cutoff for base pair probabilities included in the postscript output.\n\n"
 details="By setting the threshold the base pair probabilities that are included in the\
- output can be varied. By default only those exceeding 1e-5 in probability will be shown as squares\
+ output can be varied. By default only those exceeding '1e-6' in probability will be shown as squares\
  in the dot plot. Changing the threshold to any other value allows for increase or decrease of data.\n\n"
 double
-typestr="<value>"
+typestr="cutoff"
 optional
 default="1e-6"
 hidden
@@ -265,7 +263,7 @@ int
 optional
 
 option  "stochBT_en"      -
-"same as \"-s\" but also print out the energies and probabilities of the backtraced structures.\n\n"
+"same as -s option but also print out the energies and probabilities of the backtraced structures.\n\n"
 int
 optional
 
@@ -279,7 +277,7 @@ section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
 option  "maxBPspan" -
-"Set the maximum base pair span\n\n"
+"Set the maximum base pair span.\n\n"
 int
 default="-1"
 optional
@@ -288,14 +286,14 @@ option  "constraint"  C
 "Calculate structures subject to constraints.\nThe constraining structure will be read from 'stdin',\
  the alignment has to be given as a file name on the command line.\n"
 details="The program reads first the\
- sequence, then a string containing constraints on the structure encoded with the symbols:\n\n. (no constraint\
- for this base)\n\n| (the corresponding base has to be paired\n\nx (the base is unpaired)\n\n< (base i is paired with\
- a base j>i)\n\n> (base i is paired with a base j<i)\n\nand matching brackets ( ) (base i pairs base j)\n\nWith the\
- exception of \"|\", constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n\n'.' (no constraint\
+ for this base)\n\n'|' (the corresponding base has to be paired\n\n'x' (the base is unpaired)\n\n'<' (base i is paired with\
+ a base j>i)\n\n'>' (base i is paired with a base j<i)\n\nand matching brackets '(' ')' (base i pairs base j)\n\nWith the\
+ exception of '|', constraints will disallow all pairs conflicting with the constraint. This is usually\
  sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
- folding ignores constraints of type \"|\".\n\n"
+ folding ignores constraints of type '|'.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 default = ""
 argoptional
 
@@ -311,19 +309,19 @@ dependon="constraint"
 hidden
 
 option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint.\n\n"
+"Enforce base pairs given by round brackets '(' ')' in structure constraint.\n\n"
 flag
 off
 dependon="constraint"
 
 option  "SS_cons"  -
-"Use consensus structures from Stockholm file (#=GF SS_cons) as constraint.\n"
+"Use consensus structures from Stockholm file ('#=GF SS_cons') as constraint.\n"
 details="Stockholm formatted alignment files have the possibility to store a\
- secondary structure string in one of if (\"#=GC\") column annotation meta tags.\
- The corresponding tag name is usually \"SS_cons\", a consensus secondary structure.\
+ secondary structure string in one of if ('#=GC') column annotation meta tags.\
+ The corresponding tag name is usually 'SS_cons', a consensus secondary structure.\
  Activating this flag allows one to use this consensus secondary structure from\
  the input file as structure constraint. Currently, only the following characters are\
- interpreted:\n\n( ) [mathing parenthesis: column i pairs with column j]\n\n< >\
+ interpreted:\n\n'(' ')' [mathing parenthesis: column i pairs with column j]\n\n'<' '>'\
  [matching angular brackets: column i pairs with column j]\n\nAll other characters\
  are not interpreted (yet).\nNote: Activating this flag implies --constraint.\n\n"
 flag
@@ -372,8 +370,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -410,13 +408,13 @@ flag
 off
 
 option  "noGU"  -
-"Do not allow GU pairs\n\n"
+"Do not allow GU pairs.\n\n"
 flag
 off
 hidden
 
 option  "noClosingGU" -
-"Do not allow GU pairs at the end of helices\n\n"
+"Do not allow GU pairs at the end of helices.\n\n"
 flag
 off
 hidden
@@ -439,14 +437,16 @@ flag
 off
 
 option  "ribosum_file"    R
-"use specified Ribosum Matrix instead of normal energy model. Matrixes to use should be 6x6 matrices,\
- the order of the terms is AU, CG, GC, GU, UA, UG.\n\n"
+"use specified Ribosum Matrix instead of normal energy model.\n"
+details="Matrixes to use should be 6x6 matrices, the order of the terms is\
+ 'AU', 'CG', 'GC', 'GU', 'UA', 'UG'.\n\n"
 string
 typestr="ribosumfile"
 optional
 
 option  "ribosum_scoring" r
-"use ribosum scoring matrix. The matrix is chosen according to the minimal and maximal pairwise\
+"use ribosum scoring matrix.\n"
+details="The matrix is chosen according to the minimal and maximal pairwise\
  identities of the sequences in the file.\n\n"
 flag
 off
@@ -459,8 +459,8 @@ off
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional
@@ -548,11 +548,11 @@ option  "layout-type"  t
 "Choose the layout algorithm.\n"
 details="Select the layout algorithm that computes the nucleotide coordinates.\
  Currently, the following algorithms are available:\n\
- 0: simple radial layout\n\n\
- 1: Naview layout (Bruccoleri et al. 1988)\n\n\
- 2: circular layout\n\n\
- 3: RNAturtle (Wiegreffe et al. 2018)\n\n\
- 4: RNApuzzler (Wiegreffe et al. 2018)\n\n"
+ '0': simple radial layout\n\n\
+ '1': Naview layout (Bruccoleri et al. 1988)\n\n\
+ '2': circular layout\n\n\
+ '3': RNAturtle (Wiegreffe et al. 2018)\n\n\
+ '4': RNApuzzler (Wiegreffe et al. 2018)\n\n"
 int
 default="1"
 optional

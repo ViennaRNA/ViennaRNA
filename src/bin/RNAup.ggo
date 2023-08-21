@@ -23,17 +23,17 @@ section "I/O Options"
 sectiondesc="Command line options for input and output (pre-)processing\n\n"
 
 option  "no_output_file" o
-"Do not produce an output file."
+"Do not produce an output file.\n\n"
 flag
 off
 
 option  "no_header" -
-"Do not produce a header with the command line parameters used in the outputfile."
+"Do not produce a header with the command line parameters used in the outputfile.\n\n"
 flag
 off
 
 option  "noconv"  -
-"Do not automatically substitude nucleotide \"T\" with \"U\"."
+"Do not automatically substitute nucleotide \"T\" with \"U\".\n\n"
 flag
 off
 
@@ -42,11 +42,11 @@ section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\n\n"
 
 option  "ulength"   u
-"Specify the length of the unstructured region in the output."
+"Specify the length of the unstructured region in the output.\n"
 details="The probability of being unpaired is plotted on the right border\
  of the unpaired region. You can specify up to 20 different length values:\
  use \"-\" to specify a range of continuous values (e.g. -u 4-8) or specify\
- a list of comma separated values (e.g. -u 4,8,15).\n"
+ a list of comma separated values (e.g. -u 4,8,15).\n\n"
 string
 multiple
 typestr="length"
@@ -54,13 +54,13 @@ default="4"
 optional
 
 option "contributions"  c
-"Specify the contributions listed in the output."
+"Specify the contributions listed in the output.\n"
 details="By default only the full probability of being unpaired is plotted.\
  The -c option allows one to get the different contributions (c) to the probability\
  of being unpaired: The full probability of being unpaired (\"S\" is the sum of\
  the probability of being unpaired in the exterior loop (\"E\"), within a\
  hairpin loop (\"H\"), within an interior loop (\"I\") and within a multiloop\
- (\"M\"). Any combination of these letters may be given.\n"
+ (\"M\"). Any combination of these letters may be given.\n\n"
 string
 typestr="SHIME"
 default="S"
@@ -69,55 +69,54 @@ optional
 
 section "Calculations of RNA-RNA interactions"
 option  "window"  w
-"Set the maximal length of the region of interaction."
+"Set the maximal length of the region of interaction.\n\n"
 int
 default="25"
 optional
 
 option  "include_both"  b
-"Include the probability of unpaired regions in both (b) RNAs."
+"Include the probability of unpaired regions in both (b) RNAs.\n"
 details="By default only the probability of being unpaired in the longer RNA\
- (target) is used.\n"
+ (target) is used.\n\n"
 flag
 off
 
 option  "extend5" 5
-"Extend the region of interaction in the target to some residues on the 5' side."
+"Extend the region of interaction in the target to some residues on the 5' side.\n"
 details="The underlying assumption is that it is favorable for an interaction if\
- not only the direct region of contact is unpaired but also a few residues 5'\n"
+ not only the direct region of contact is unpaired but also a few residues 5'\n\n"
 int
 optional
 
 option  "extend3" 3
-"Extend the region of interaction in the target to some residues on the 3' side."
+"Extend the region of interaction in the target to some residues on the 3' side.\n"
 details="The underlying assumption is that it is favorable for an interaction if\
- not only the direct region of contact is unpaired but also a few residues 3'\n"
+ not only the direct region of contact is unpaired but also a few residues 3'\n\n"
 int
 optional
 
 option  "interaction_pairwise"  -
-"Activate pairwise interaction mode."
+"Activate pairwise interaction mode.\n"
 details="The first sequence interacts with the 2nd, the third with the 4th etc.\
  If activated, two interacting sequences may be given in a single line separated\
- by \"&\" or each sequence may be given on an extra line.\n"
+ by \"&\" or each sequence may be given on an extra line.\n\n"
 flag
 off
 
 option  "interaction_first" -
-"Activate interaction mode using first sequence only."
+"Activate interaction mode using first sequence only.\n"
 details="The interaction of each sequence with the first one is calculated\
  (e.g. interaction of one mRNA with many small RNAs). Each sequence has to be\
- given on an extra line\n"
+ given on an extra line\n\n"
 flag
 off
 
 option  "pfScale" S
-"Set scaling factor for Boltzmann factors to prevent under/overflows."
-details="In the calculation of the pf use scale*mfe as an estimate for the ensemble\
- free energy (used to avoid overflows). The default is 1.07, useful values\
- are 1.0 to 1.2. Occasionally needed for long sequences.\nYou can also recompile\
- the program to use double precision (see the README file).\n"
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed for long sequences.\n\n"
 double
+default="1.07"
 optional
 hidden
 
@@ -126,7 +125,7 @@ section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
 option  "constraint"  C
-"Apply structural constraint(s) during prediction."
+"Apply structural constraint(s) during prediction.\n"
 details="The program first reads the sequence(s), then a dot-bracket like string containing\
  constraints on the structure. The following symbols are recognized:\n\
  '.' ... no constraint for this base\n\n\
@@ -134,7 +133,7 @@ details="The program first reads the sequence(s), then a dot-bracket like string
  '<' ... the base pairs downstream, i.e. i is paired with j > i\n\n\
  '>' ... the base pairs upstream, i.e. i is paired with j < i\n\n\
  '()' ... base i pairs with base j\n\n\
- '|' ... the corresponding base has to be paired intermolecularily (only for interaction mode)\n"
+ '|' ... the corresponding base has to be paired intermolecularily (only for interaction mode)\n\n"
 flag
 off
 
@@ -151,8 +150,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -209,8 +208,8 @@ hidden
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional

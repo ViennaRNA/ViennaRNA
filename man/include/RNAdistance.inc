@@ -1,7 +1,7 @@
 /is not recommended./
 
 RNAdistance accepts structures in bracket format, where matching brackets
-symbolize base pairs and unpaired bases are represented by a dot ".",
+symbolize base pairs and unpaired bases are represented by a dot '.',
 or coarse grained representations where hairpins, interior loops,
 bulges, multiloops, stacks and external bases are represented by
 (H), (I), (B), (M), (S), and (E), respectively. These can be optionally
@@ -22,8 +22,8 @@ a multiloop:
 .fi
 
 The program will continue to read new structures until a line consisting
-of the single character @ or an end of file condition is encountered. Input
-lines neither containing a valid structure nor starting with > are ignored.
+of the single character '@' or an end of file condition is encountered. Input
+lines neither containing a valid structure nor starting with '>' are ignored.
 
 
 [AUTHOR]

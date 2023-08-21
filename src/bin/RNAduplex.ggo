@@ -15,7 +15,7 @@ description "reads two RNA sequences from stdin or <filename> and computes optim
  and suboptimal secondary structures for their hybridization. The calculation is simplified\
  by allowing only inter-molecular base pairs, for the general case use RNAcofold.\nThe computed\
  optimal and suboptimal structure are written to stdout, one structure per line. Each line consist\
- of: The structure in dot bracket format with a \"&\" separating the two strands. The range of the\
+ of: The structure in dot bracket format with a '&' separating the two strands. The range of the\
  structure in the two sequences in the format  \"from,to : from,to\"; the energy of duplex structure\
  in kcal/mol.\nThe format is especially useful for computing the hybrid structure between a small\
  probe sequence and a long target sequence.\n"
@@ -59,8 +59,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -123,8 +123,8 @@ hidden
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional

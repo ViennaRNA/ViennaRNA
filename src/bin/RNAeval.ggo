@@ -15,9 +15,9 @@ description "Evaluates the free energy of a particular (consensus) secondary str
  an (an alignment of) RNA molecule(s). The energy unit is kcal/mol and contains a covariance\
  pseudo-energy term for multiple sequence alignments (--msa option) and corresponding consensus\
  structures.\nThe program will continue to read new sequences and structures until a line\
- consisting of the single character \"@\" or an end of file condition is encountered.\nIf\
- the input sequence or structure contains the separator character \"&\" the program calculates\
- the energy of the co-folding of two RNA strands, where the \"&\" marks the boundary between\
+ consisting of the single character '@' or an end of file condition is encountered.\nIf\
+ the input sequence or structure contains the separator character '&' the program calculates\
+ the energy of the co-folding of two RNA strands, where the '&' marks the boundary between\
  the two strands.\n"
 
 # Options
@@ -36,7 +36,7 @@ details="The default behavior of RNAeval is to read input from stdin or the file
  the RNAeval command. Using this parameter the user can specify input file names where data\
  is read from. Note, that any additional files supplied to RNAeval are still processed as well.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 multiple
 optional
 
@@ -112,7 +112,7 @@ optional
 
 option  "id-delim" -
 "Change the delimiter between prefix and increasing number for automatically generated IDs (as used in output file names).\n"
-details="This parameter can be used to change the default delimiter \"_\" between\
+details="This parameter can be used to change the default delimiter '_' between\
  the prefix string and the increasing number for automatically generated ID.\n\n"
 string
 typestr="CHAR"
@@ -132,7 +132,7 @@ optional
 hidden
 
 option  "id-start"  -
-"Specify the first number in automatically generated alignment IDs.\n"
+"Specify the first number in automatically generated IDs.\n"
 details="When sequence IDs are automatically generated, they receive an increasing number,\
  usually starting with 1. Using this parameter, the first number can be specified to the users\
  requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
@@ -152,7 +152,7 @@ flag
 off
 
 option  "gquad" g
-"Incoorporate G-Quadruplex formation into the structure prediction algorithm\n\n"
+"Incoorporate G-Quadruplex formation into the structure prediction algorithm.\n\n"
 flag
 off
 
@@ -163,13 +163,13 @@ sectiondesc="Command line options to interact with the structure constraints fea
 option  "shape" -
 "Use SHAPE reactivity data to guide structure predictions.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 optional
 
 option  "shapeMethod" -
-"Select SHAPE reactivity data incorporation strategy.\n"
+"Select SHAPE reactivity data incorporation strategy.\n\n"
 details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n\n\
- 'D': Convert by using a linear equation according to Deigan et al 2009. Derived pseudo energy terms\
+ 'D': Convert by using the linear equation according to Deigan et al 2009. Derived pseudo energy terms\
  will be applied for every nucleotide involved in a stacked pair. This method is recognized by a capital\
  'D' in the provided parameter, i.e.: --shapeMethod=\"D\" is the default setting. The slope 'm' and the\
  intercept 'b' can be set to a non-default value if necessary, otherwise m=1.8 and b=-0.6. To alter these\
@@ -183,14 +183,14 @@ details="The following methods can be used to convert SHAPE reactivities into ps
  'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
 Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
-typestr="[D|Z|W] + [optional parameters]"
+typestr="method"
 dependon="shape"
 default="D"
 optional
 hidden
 
 option  "shapeConversion" -
-"Select method for SHAPE reactivity conversion.\n"
+"Select method for SHAPE reactivity conversion.\n\n"
 details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
 The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
 'M': Use linear mapping according to Zarringhalam et al.
@@ -199,7 +199,7 @@ The following methods can be used to convert SHAPE reactivities into the probabi
 'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
 'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
-typestr="M|C|S|L|O  + [optional parameters]"
+typestr="method"
 default="O"
 optional
 
@@ -216,8 +216,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -253,8 +253,8 @@ optional
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional
@@ -290,15 +290,17 @@ dependon="msa"
 optional
 
 option  "ribosum_file"    R
-"use specified Ribosum Matrix instead of normal energy model. Matrixes to use should be 6x6 matrices,\
- the order of the terms is AU, CG, GC, GU, UA, UG.\n\n"
+"use specified Ribosum Matrix instead of normal energy model.\n"
+details="Matrixes to use should be 6x6 matrices, the order of the terms is\
+ 'AU', 'CG', 'GC', 'GU', 'UA', 'UG'.\n\n"
 string
 typestr="ribosumfile"
 dependon="msa"
 optional
 
 option  "ribosum_scoring" r
-"use ribosum scoring matrix. The matrix is chosen according to the minimal and maximal pairwise\
+"use ribosum scoring matrix.\n"
+details="The matrix is chosen according to the minimal and maximal pairwise\
  identities of the sequences in the file.\n\n"
 flag
 dependon="msa"

@@ -33,7 +33,7 @@ option  "infile"  i
 details="The default behavior of RNAsubopt is to read input from stdin. Using this parameter\
  the user can specify an input file name where data is read from.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 optional
 
 option  "outfile" o
@@ -49,7 +49,7 @@ details="This option may be used to write all output to output files rather than
  hence there is no way to pass an entire directory path through this option yet.\
  (See also the \"--filename-delim\" parameter)\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 argoptional
 optional
 
@@ -101,7 +101,7 @@ optional
 hidden
 
 option  "id-start"  -
-"Specify the first number in automatically generated alignment IDs.\n"
+"Specify the first number in automatically generated IDs.\n"
 details="When sequence IDs are automatically generated, they receive an increasing number,\
  usually starting with 1. Using this parameter, the first number can be specified to the users\
  requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
@@ -131,7 +131,7 @@ option  "filename-full" -
 "Use full FASTA header to create filenames.\n"
 details="This parameter can be used to deactivate the default behavior of limiting\
  output filenames to the first word of the sequence ID. Consider the following example:\
- An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
+ An input with FASTA header '>NM_0001 Homo Sapiens some gene' usually produces output\
  files with the prefix \"NM_0001\" without the additional data available in the FASTA\
  header, e.g. \"NM_0001.sub\". With this flag set, no truncation of the output filenames\
  is performed, i.e. output filenames receive the full FASTA header data as prefixes. Note,\
@@ -201,11 +201,10 @@ hidden
 
 option  "betaScale" -
 "Set the scaling of the Boltzmann factors.\n"
-details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the Boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
- where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
- absolute temperature.\n\n"
+details="The argument provided with this option is used to scale the thermodynamic temperature\
+ in the Boltzmann factors independently from the temperature of the individual loop energy contributions.\
+ The Boltzmann factors then become 'exp(- dG/(kT*betaScale))' where 'k' is the Boltzmann constant, 'dG'\
+ the free energy contribution of the state and 'T' the absolute temperature.\n\n"
 double
 default="1."
 optional
@@ -220,8 +219,7 @@ off
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed for long sequences.\n\n"
 double
 default="1.07"
 optional
@@ -261,21 +259,16 @@ default="-1"
 optional
 
 option  "constraint"  C
-"Apply structural constraint(s) during prediction.\n"
-details="The program first reads the sequence(s), then a dot-bracket like string containing\
- constraints on the structure. The following symbols are recognized:\n\
- '.' ... no constraint for this base\n\n\
- 'x' ... the base is unpaired\n\n\
- '<' ... the base pairs downstream, i.e. i is paired with j > i\n\n\
- '>' ... the base pairs upstream, i.e. i is paired with j < i\n\n\
- '|' ... the corresponding base has to be paired\n\n\
- '()' ... base i pairs with base j\n\n\
- Due to historic behavior of this program, all pairing constraints will only disallow pairs\
- that conflict with the constraint. This is usually sufficient to enforce the constraint,\
- but occasionally a base may stay unpaired in spite of constraints. Use the --enforceConstraint\
- to really exclude unpaired states.\n\n"
+"Calculate structures subject to constraints.\n"
+details="The program reads first the\
+ sequence, then a string containing constraints on the structure encoded with the symbols:\n\n'.' (no constraint\
+ for this base)\n\n'|' (the corresponding base has to be paired\n\n'x' (the base is unpaired)\n\n'<' (base i is paired with\
+ a base j>i)\n\n'>' (base i is paired with a base j<i)\n\nand matching brackets '(' ')' (base i pairs base j)\n\nWith the\
+ exception of '|', constraints will disallow all pairs conflicting with the constraint. This is usually\
+ sufficient to enforce the constraint, but occasionally a base may stay unpaired in spite of constraints. PF\
+ folding ignores constraints of type '|'.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 default = ""
 argoptional
 
@@ -297,7 +290,7 @@ dependon="constraint"
 hidden
 
 option  "enforceConstraint" -
-"Enforce base pairs given by round brackets ( ) in structure constraint.\n\n"
+"Enforce base pairs given by round brackets '(' ')' in structure constraint.\n\n"
 flag
 off
 dependon="constraint"
@@ -305,13 +298,13 @@ dependon="constraint"
 option  "shape" -
 "Use SHAPE reactivity data to guide structure predictions.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 optional
 
 option  "shapeMethod" -
-"Select SHAPE reactivity data incorporation strategy.\n"
+"Select SHAPE reactivity data incorporation strategy.\n\n"
 details="The following methods can be used to convert SHAPE reactivities into pseudo energy contributions.\n\n\
- 'D': Convert by using a linear equation according to Deigan et al 2009. Derived pseudo energy terms\
+ 'D': Convert by using the linear equation according to Deigan et al 2009. Derived pseudo energy terms\
  will be applied for every nucleotide involved in a stacked pair. This method is recognized by a capital\
  'D' in the provided parameter, i.e.: --shapeMethod=\"D\" is the default setting. The slope 'm' and the\
  intercept 'b' can be set to a non-default value if necessary, otherwise m=1.8 and b=-0.6. To alter these\
@@ -325,14 +318,14 @@ details="The following methods can be used to convert SHAPE reactivities into ps
  'W': Apply a given vector of perturbation energies to unpaired nucleotides according to Washietl et al 2012.\
  Perturbation vectors can be calculated by using RNApvmin.\n\n"
 string
-typestr="[D|Z|W] + [optional parameters]"
+typestr="method"
 dependon="shape"
 default="D"
 optional
 hidden
 
 option  "shapeConversion" -
-"Select method for SHAPE reactivity conversion.\n"
+"Select method for SHAPE reactivity conversion.\n\n"
 details="This parameter is useful when dealing with the SHAPE incorporation according to Zarringhalam et al. \
 The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
 'M': Use linear mapping according to Zarringhalam et al.
@@ -341,7 +334,7 @@ The following methods can be used to convert SHAPE reactivities into the probabi
 'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)
 'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
-typestr="M|C|S|L|O  + [optional parameters]"
+typestr="method"
 default="O"
 optional
 hidden
@@ -352,7 +345,7 @@ details="Commands include hard and soft constraints, but also structure motifs i
  loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
  domains.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 optional
 hidden
 
@@ -369,8 +362,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -396,12 +389,12 @@ details="Treat modified bases within the RNA sequence differently, i.e. use corr
  limit the modifications to a particular subset of modifications, resp. one-letter codes,\
  e.g. -mP6 will only correct for pseudouridine and m6A bases.\n\
  Currently supported one-letter codes and energy corrections are:\n\n\
- \"7\": 7-deaza-adenonsine (7DA)\n\n\
- \"I\": Inosine\n\n\
- \"6\": N6-methyladenosine (m6A)\n\n\
- \"P\": Pseudouridine\n\n\
- \"9\": Purine (a.k.a. nebularine)\n\n\
- \"D\": Dihydrouridine\n\n"
+ '7': 7-deaza-adenonsine (7DA)\n\n\
+ 'I': Inosine\n\n\
+ '6': N6-methyladenosine (m6A)\n\n\
+ 'P': Pseudouridine\n\n\
+ '9': Purine (a.k.a. nebularine)\n\n\
+ 'D': Dihydrouridine\n\n"
 string
 argoptional
 default="7I6P9D"
@@ -459,8 +452,8 @@ off
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAsubopt -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional

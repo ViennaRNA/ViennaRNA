@@ -71,8 +71,8 @@ optional
 
 option  "output-format"   o
 "Specify output format."
-details="Available formats are: PostScript (ps), Graph Meta Language (gml),\
- Scalable Vector Graphics (svg), and XRNA save file (xrna). Output filenames will end in\
+details="Available formats are: PostScript ('ps'), Graph Meta Language ('gml'),\
+ Scalable Vector Graphics ('svg'), and XRNA save file ('xrna'). Output filenames will end in\
  \".ps\" \".gml\" \".svg\" \".ss\", respectively.\n"
 string
 typestr="ps|gml|xrna|svg"
@@ -89,7 +89,7 @@ optional
 
 option  "post"  -
 "Same as --pre but in contrast to adding the annotation macros. E.g to mark position\
- 15 with circle use --post \"15 cmark\"."
+ 15 with circle use --post=\"15 cmark\"."
 string
 typestr="string"
 optional
@@ -169,7 +169,7 @@ option  "filename-full" -
 "Use full FASTA header to create filenames.\n"
 details="This parameter can be used to deactivate the default behavior of limiting\
  output filenames to the first word of the sequence ID. Consider the following example:\
- An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
+ An input with FASTA header '>NM_0001 Homo Sapiens some gene' usually produces output\
  files with the prefix \"NM_0001\" without the additional data available in the FASTA\
  header, e.g. \"NM_0001_ss.ps\" for secondary structure plots. With this flag set, no\
  truncation of the output filenames is done, i.e. output filenames receive the full\
@@ -185,21 +185,21 @@ section "Plotting"
 sectiondesc="Command line options for changing the default behavior of structure layout and pairing probability plots\n\n"
 
 option  "covar"           -
-"Annotate covariance of base pairs in consensus structure."
+"Annotate covariance of base pairs in consensus structure.\n\n"
 flag
 dependon="msa"
 off
 
 option  "aln"             -
 "Produce a colored and structure annotated alignment in PostScript format in the file \"aln.ps\" in the\
- current directory."
+ current directory.\n\n"
 flag
 dependon="msa"
 off
 
 option  "aln-EPS-cols"        -
-"Number of columns in colored EPS alignment output."
-details="A value less than 1 indicates that the output should not be wrapped at all.\n"
+"Number of columns in colored EPS alignment output.\n"
+details="A value less than 1 indicates that the output should not be wrapped at all.\n\n"
 int
 default="60"
 optional
@@ -210,45 +210,45 @@ option  "layout-type"  t
 "Choose the plotting layout algorithm."
 details="Select the layout algorithm that computes the nucleotide coordinates.\
  Currently, the following algorithms are available:\n\
- 0: simple radial layout\n\n\
- 1: Naview layout (Bruccoleri et al. 1988)\n\n\
- 2: circular layout\n\n\
- 3: RNAturtle (Wiegreffe et al. 2018)\n\n\
- 4: RNApuzzler (Wiegreffe et al. 2018)\n"
+ '0': simple radial layout\n\n\
+ '1': Naview layout (Bruccoleri et al. 1988)\n\n\
+ '2': circular layout\n\n\
+ '3': RNAturtle (Wiegreffe et al. 2018)\n\n\
+ '4': RNApuzzler (Wiegreffe et al. 2018)\n"
 int
 default="1"
 optional
 
 option  "noOptimization"  -
-"Disable the drawing space optimization of RNApuzzler."
+"Disable the drawing space optimization of RNApuzzler.\n\n"
 flag
 off
 hidden
 
 option  "ignoreExteriorIntersections"  -
-"Ignore intersections with the exterior loop within the RNA-tree."
+"Ignore intersections with the exterior loop within the RNA-tree.\n\n"
 flag
 off
 hidden
 
 option  "ignoreAncestorIntersections"  -
-"Ignore ancestor intersections within the RNA-tree."
+"Ignore ancestor intersections within the RNA-tree.\n\n"
 flag
 off
 hidden
 
 option  "ignoreSiblingIntersections"  -
-"Ignore sibling intersections within the RNA-tree"
+"Ignore sibling intersections within the RNA-tree.\n\n"
 flag
 off
 hidden
 
 option  "allowFlipping"  -
-"Allow flipping of exterior loop branches to resolve exterior branch intersections."
+"Allow flipping of exterior loop branches to resolve exterior branch intersections.\n\n"
 flag
 off
 hidden
 
 
 text    "\nIf in doubt our program is right, nature is at fault.\nComments should be sent to\
- rna@tbi.univie.ac.at.\n"
+ rna@tbi.univie.ac.at.\n\n"

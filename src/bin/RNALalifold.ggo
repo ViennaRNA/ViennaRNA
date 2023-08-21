@@ -40,8 +40,8 @@ details="If this parameter is set, the input is considered to be in a particular
  file format. Otherwise, the program tries to determine the file format automatically,\
  if an input file was provided in the set of parameters. In case the input MSA is provided\
  in interactive mode, or from a terminal (TTY), the programs default is to assume\
- CLUSTALW format.\nCurrently, the following formats are available: ClustalW (C),\
- Stockholm 1.0 (S), FASTA/Pearson (F), and MAF (M).\n\n"
+ CLUSTALW format.\nCurrently, the following formats are available: ClustalW ('C'),\
+ Stockholm 1.0 ('S'), FASTA/Pearson ('F'), and MAF ('M').\n\n"
 string
 typestr="C|S|F|M"
 optional
@@ -217,7 +217,7 @@ multiple(1-)
 optional
 
 option  "shapeMethod" -
-"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions\n"
+"Specify the method how to convert SHAPE reactivity data to pseudo energy contributions.\n"
 details="Currently, the only data conversion method available is that of to Deigan et al 2009. \
  This method is the default and is recognized by a capital 'D' in the provided parameter, i.e.: \
  --shapeMethod=\"D\" is the default setting. The slope 'm' and the intercept 'b' can be set to a \
@@ -245,8 +245,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -256,6 +256,7 @@ option  "noTetra" 4
 details="Mostly for testing.\n\n"
 flag
 off
+hidden
 
 option  "salt" -
 "Set salt concentration in molar (M). Default is 1.021M.\n\n"
@@ -299,11 +300,38 @@ flag
 off
 hidden
 
+option  "cfactor"         -
+"Set the weight of the covariance term in the energy function\n\n"
+default="1.0"
+double
+optional
+
+option  "nfactor"         -
+"Set the penalty for non-compatible sequences in the covariance term of the energy function\n\n"
+default="1.0"
+double
+optional
+
+option  "ribosum_file"    R
+"use specified Ribosum Matrix instead of normal energy model.\n"
+details="Matrixes to use should be 6x6 matrices, the order of the terms is\
+ 'AU', 'CG', 'GC', 'GU', 'UA', 'UG'.\n\n"
+string
+typestr="ribosumfile"
+optional
+
+option  "ribosum_scoring" r
+"use ribosum scoring matrix.\n"
+details="The matrix is chosen according to the minimal and maximal pairwise\
+ identities of the sequences in the file.\n\n"
+flag
+off
+
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional
@@ -316,31 +344,6 @@ details="Rarely used option to fold sequences from the artificial ABCD... alphab
 int
 optional
 hidden
-
-option  "cfactor" -
-"Set the weight of the covariance term in the energy function\n\n"
-default="1.0"
-double
-optional
-
-option  "nfactor" -
-"Set the penalty for non-compatible sequences in the covariance term of the energy function\n\n"
-default="1.0"
-double
-optional
-
-option  "ribosum_file"    R
-"use specified Ribosum Matrix instead of normal energy model. Matrixes to use should be 6x6 matrices,\
- the order of the terms is AU, CG, GC, GU, UA, UG.\n\n"
-string
-typestr="ribosumfile"
-optional
-
-option  "ribosum_scoring" r
-"use ribosum scoring matrix. The matrix is chosen according to the minimal and maximal pairwise\
- identities of the sequences in the file.\n\n"
-flag
-off
 
 option  "helical-rise"  -
 "Set the helical rise of the helix in units of Angstrom.\n"

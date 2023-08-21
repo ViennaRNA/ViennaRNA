@@ -38,21 +38,21 @@ sectiondesc="Select additional algorithms which should be included in the calcul
  (MFE) and a structure representative are calculated in any case.\n\n"
 
 option  "shapeConversion" -
-"Specify the method used to convert SHAPE reactivities to pairing probabilities."
+"Specify the method used to convert SHAPE reactivities to pairing probabilities.\n"
 details="The following methods can be used to convert SHAPE reactivities into the probability for a certain nucleotide to be unpaired.\n
 'M': Use linear mapping according to Zarringhalam et al. 2012\n
 'C': Use a cutoff-approach to divide into paired and unpaired nucleotides (e.g. \"C0.25\")\n
 'S': Skip the normalizing step since the input data already represents probabilities for being unpaired rather than raw reactivity values\n
 'L': Use a linear model to convert the reactivity into a probability for being unpaired (e.g. \"Ls0.68i0.2\" to use a slope of 0.68 and an intercept of 0.2)\n
-'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n"
+'O': Use a linear model to convert the log of the reactivity into a probability for being unpaired (e.g. \"Os1.6i-2.29\" to use a slope of 1.6 and an intercept of -2.29)\n\n"
 string
 default="O"
 optional
 
 option  "tauSigmaRatio"  -
-"Ratio of the weighting factors tau and sigma."
+"Ratio of the weighting factors tau and sigma.\n"
 details="A high ratio will lead to a solution as close as possible to the experimental data, \
-while a low ratio will lead to results close to the thermodynamic prediction without guiding pseudo energies.\n"
+while a low ratio will lead to results close to the thermodynamic prediction without guiding pseudo energies.\n\n"
 double
 default="1.0"
 optional
@@ -61,85 +61,85 @@ option "objectiveFunction"  -
 "The energies of the perturbation vector and the discripancies between predicted and observed pairing probabilities contribute to the objective \
 function. This parameter defines, which function is used to process the contributions before summing them up.
 0 square
-1 absolute."
+1 absolute.\n\n"
 int
 default="0"
 optional
 
 option  "sampleSize"  -
-"The iterative minimization process requires to evaluate the gradient of the objective function."
+"The iterative minimization process requires to evaluate the gradient of the objective function.\n"
 details="A sample size of 0 leads to an analytical evaluation which scales as O(N^4). \
 Choosing a sample size >0 estimates the gradient by sampling the given number of sequences from the ensemble, \
-which is much faster.\n"
+which is much faster.\n\n"
 int
 default="1000"
 optional
 
 option "nonRedundant" N
-"Enable non-redundant sampling strategy."
+"Enable non-redundant sampling strategy.\n\n"
 flag
 off
 
 option  "intermediatePath"  -
-"Write an output file for each iteration of the minimization process."
+"Write an output file for each iteration of the minimization process.\n"
 details="Each file contains the used perturbation vector and the score \
-of the objective function. The number of the iteration will be appended to the given path.\n"
+of the objective function. The number of the iteration will be appended to the given path.\n\n"
 string
 optional
 
 option  "initialVector"  -
-"Specify the vector of initial pertubations."
+"Specify the vector of initial pertubations.\n"
 details="Defines the initial perturbation vector which will be used as starting vector for the minimization process. \
 The value 0 results in a null vector. Every other value x will be used to populate the initial vector with \
-random numbers from the interval [-x,x].\n"
+random numbers from the interval [-x,x].\n\n"
 double
 default="0"
 optional
 
 option  "minimizer"  -
-"Set the minimizing algorithm used for finding an appropriate perturbation vector."
+"Set the minimizing algorithm used for finding an appropriate perturbation vector.\n"
 details="The default option uses a custom implementation of the gradient descent algorithms while all \
 other options represent various algorithms implemented in the GNU Scientific Library. \
-When the GNU Scientific Library can not be found, only the default minimizer is available.\n"
+When the GNU Scientific Library can not be found, only the default minimizer is available.\n\n"
 enum
 values="conjugate_fr","conjugate_pr","vector_bfgs", "vector_bfgs2", "steepest_descent", "default"
 default="default"
 optional
 
 option  "initialStepSize" -
-"The initial stepsize for the minimizer methods."
+"The initial stepsize for the minimizer methods.\n\n"
 double
 default="0.01"
 optional
 hidden
 
 option  "minStepSize" -
-"The minimal stepsize for the minizimer methods."
+"The minimal stepsize for the minizimer methods.\n\n"
 double
 default="1e-15"
 optional
 hidden
 
 option  "minImprovement" -
-"The minimal improvement in the default minizimer method that has to be surpassed to considered a new result a better one."
+"The minimal improvement in the default minizimer method that has to be surpassed to considered a new result a better one.\n\n"
 double
 default="1e-3"
 optional
 hidden
 
 option  "minimizerTolerance" -
-"The tolerance to be used in the GSL minimizer methods."
+"The tolerance to be used in the GSL minimizer methods.\n\n"
 double
 default="1e-3"
 optional
 hidden
 
 option  "pfScale" S
-"Set scaling factor for Boltzmann factors to prevent under/overflows."
+"Set scaling factor for Boltzmann factors to prevent under/overflows.\n"
 details="In the calculation of the pf use scale*mfe as an estimate for the ensemble\
  free energy (used to avoid overflows). The default is 1.07, useful values\
  are 1.0 to 1.2. Occasionally needed for long sequences.\nYou can also recompile\
- the program to use double precision (see the README file).\n"
+ the program to use double precision (see the README file).\n\n"
 double
 optional
 hidden
@@ -167,8 +167,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -225,8 +225,8 @@ hidden
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAfold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional

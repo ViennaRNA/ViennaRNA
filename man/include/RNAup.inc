@@ -7,7 +7,7 @@ opening energies for all other regions are written to a file.
 
 .br
 In interaction mode the interaction between two RNAs is calculated. It is
-invoked if the input consists of two sequences concatenated with an "&",
+invoked if the input consists of two sequences concatenated with an '&',
 or if the options -X[pf] or -b are given. Unless the -b option is specified
 RNAup assumes that the longer RNA is a structured target sequence
 while the shorter one is an unstructured small RNA.

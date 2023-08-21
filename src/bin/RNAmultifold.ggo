@@ -23,7 +23,7 @@ description "The program works much like RNAfold, but allows one to specify mult
  formed by the input sequences up to a specified number of interacting sequences.\nOutput consists\
  of a PostScript \"dot plot\" file containing\
  the pair probabilities, see the RNAfold man page for details.\nThe program will continue to\
- read new sequences until a line consisting of the single character @ or an end of file\
+ read new sequences until a line consisting of the single character '@' or an end of file\
  condition is encountered.\n\n"
 
 # Options
@@ -117,7 +117,7 @@ optional
 hidden
 
 option  "id-start"  -
-"Specify the first number in automatically generated alignment IDs.\n"
+"Specify the first number in automatically generated IDs.\n"
 details="When sequence IDs are automatically generated, they receive an increasing number,\
  usually starting with 1. Using this parameter, the first number can be specified to the users\
  requirements. Note: negative numbers are not allowed.\nNote: Setting this parameter implies\
@@ -147,7 +147,7 @@ option  "filename-full" -
 "Use full FASTA header to create filenames.\n"
 details="This parameter can be used to deactivate the default behavior of limiting\
  output filenames to the first word of the sequence ID. Consider the following example:\
- An input with FASTA header \">NM_0001 Homo Sapiens some gene\" usually produces output\
+ An input with FASTA header '>NM_0001 Homo Sapiens some gene' usually produces output\
  files with the prefix \"NM_0001\" without the additional data available in the FASTA\
  header, e.g. \"NM_0001_ss.ps\" for secondary structure plots. With this flag set, no\
  truncation of the output filenames is done, i.e. output filenames receive the full\
@@ -173,7 +173,7 @@ details="In addition to the MFE structure\
  discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
  of partition function calculation:\n\n\
  In order to calculate the partition function but not the pair probabilities use the -p0 option and save about
- 50% in runtime. This prints the ensemble free energy -kT ln(Z).\n\n"
+ 50% in runtime. This prints the ensemble free energy 'dG=-kT ln(Z)'.\n\n"
 int
 default="1"
 argoptional
@@ -216,11 +216,10 @@ dependon="concentrations"
 
 option  "betaScale" -
 "Set the scaling of the Boltzmann factors.\n"
-details="The argument provided with this option enables to scale the thermodynamic temperature\
- used in the Boltzmann factors independently from the temperature used to scale the individual\
- energy contributions of the loop types. The Boltzmann factors then become exp(-dG/(kT*betaScale))\
- where k is the Boltzmann constant, dG the free energy contribution of the state and T the\
- absolute temperature.\n\n"
+details="The argument provided with this option is used to scale the thermodynamic temperature\
+ in the Boltzmann factors independently from the temperature of the individual loop energy contributions.\
+ The Boltzmann factors then become 'exp(- dG/(kT*betaScale))' where 'k' is the Boltzmann constant, 'dG'\
+ the free energy contribution of the state and 'T' the absolute temperature.\n\n"
 double
 default="1."
 optional
@@ -230,19 +229,19 @@ hidden
 option  "pfScale" S
 "In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
  overflows).\n"
-details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed\
- for long sequences.\nYou can also recompile the program to use double precision (see the README file).\n\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed for long sequences.\n\n"
 double
+default="1.07"
 optional
 hidden
 
 option  "bppmThreshold" -
-"Set the threshold for base pair probabilities included in the postscript output\n"
+"Set the threshold/cutoff for base pair probabilities included in the postscript output.\n\n"
 details="By setting the threshold the base pair probabilities that are included in the\
- output can be varied. By default only those exceeding 1e-5 in probability will be shown as squares\
+ output can be varied. By default only those exceeding '1e-5' in probability will be shown as squares\
  in the dot plot. Changing the threshold to any other value allows for increase or decrease of data.\n\n"
 double
-typestr="<value>"
+typestr="cutoff"
 optional
 default="1e-5"
 hidden
@@ -269,7 +268,7 @@ details="Commands include hard and soft constraints, but also structure motifs i
  loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
  domains.\n\n"
 string
-typestr="<filename>"
+typestr="filename"
 optional
 hidden
 
@@ -286,8 +285,8 @@ optional
 option  "paramFile" P
 "Read energy parameters from paramfile, instead of using the default parameter set.\n"
 details="Different sets of energy parameters for RNA and DNA should accompany your distribution.\nSee the\
- RNAlib documentation for details on the file format. When passing the placeholder file name \"DNA\",\
- DNA parameters are loaded without the need to actually specify any input file.\n\n"
+ RNAlib documentation for details on the file format. The placeholder file name 'DNA' can be used\
+ to load DNA parameters without the need to actually specify any input file.\n\n"
 string
 typestr="paramfile"
 optional
@@ -297,6 +296,7 @@ option  "noTetra" 4
 details="Mostly for testing.\n\n"
 flag
 off
+hidden
 
 option  "salt" -
 "Set salt concentration in molar (M). Default is 1.021M.\n\n"
@@ -343,8 +343,8 @@ hidden
 option  "nsp" -
 "Allow other pairs in addition to the usual AU,GC,and GU pairs.\n"
 details="Its argument is a comma separated list of additionally allowed pairs. If the\
- first character is a \"-\" then AB will imply that AB and BA are allowed pairs.\ne.g.\
- RNAmultifold -nsp -GA  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
+ first character is a \"-\" then AB will imply that AB and BA are allowed pairs, e.g.\
+ --nsp=\"-GA\"  will allow GA and AG pairs. Nonstandard pairs are given 0 stacking\
  energy.\n\n"
 string
 optional
