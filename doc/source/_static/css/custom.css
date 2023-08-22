@@ -69,3 +69,8 @@ div[class^=highlight] {
     -ms-border-radius: 5px;
     border-radius: 5px;
 }
+
+/* Hide "On GitHub" section from versions menu */
+div.rst-versions > div.rst-other-versions > div.injected > dl:nth-child(4) {
+    display: none;
+}
