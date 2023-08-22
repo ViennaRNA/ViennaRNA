@@ -68,9 +68,9 @@ endif WITH_REFERENCE_MANUAL_PDF
 if WITH_REFERENCE_MANUAL_BUILD
 
 refman-html: $(pkginclude_HEADERS) doxygen/doxygen-xml $(REFMAN_MANPAGES)
-	$(sphinx_verbose)rm -f refman-html && \
+	$(sphinx_verbose)(rm -f refman-html && \
     $(SPHINXBUILD) -M html source build >sphinx.log 2>&1 && \
-    touch refman-html
+    touch refman-html) || cat sphinx.log
 
 ##--------------------------------------------------##
 ## In case the HTML manual should be created, here  ##
