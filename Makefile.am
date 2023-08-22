@@ -47,8 +47,10 @@ EXTRA_DIST =  packaging/debian \
 distdir: $(BUILT_SOURCES)
 	((test -f doc/refman-html && test -f doc/RNAlib-@VERSION@.pdf) || \
   (cd src/ViennaRNA && $(MAKE) $(AM_MAKEFLAGS) && \
-  cd ../../doc/doxygen && $(MAKE) $(AM_MAKEFLAGS) && \
-  cd ../../interfaces/Python && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../../man && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../doc/doxygen && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../source/man && $(MAKE) $(AM_MAKEFLAGS) && \
+  cd ../../../interfaces/Python && $(MAKE) $(AM_MAKEFLAGS) && \
   cd ../../doc && $(MAKE) $(AM_MAKEFLAGS) && \
   cd ../interfaces/Python && $(MAKE) $(AM_MAKEFLAGS) clean && \
   cd ../../src/ViennaRNA && $(MAKE) $(AM_MAKEFLAGS) clean))
