@@ -1,7 +1,3 @@
-sphinx_verbose = $(sphinx_verbose_@AM_V@)
-sphinx_verbose_ = $(sphinx_verbose_@AM_DEFAULT_V@)
-sphinx_verbose_0 = @echo "  SPHINX    $@";
-
 doxy2swig_verbose = $(doxy2swig_verbose_@AM_V@)
 doxy2swig_verbose_ = $(doxy2swig_verbose_@AM_DEFAULT_V@)
 doxy2swig_verbose_0 = @echo "  DOX2SWIG $@";
@@ -142,26 +138,6 @@ $(SWIG_module_name).py: $(SWIG_wrapper)
 
 endif HAS_SWIG
 
-if WITH_PYTHON_DOC
-
-##--------------------------------------------------##
-## prepare Python documention                       ##
-##--------------------------------------------------##
-
-PYDOC_FILES_HTML = doc/build/* 
-
-##--------------------------------------------------##
-## prepare all rules in case reference manuals are  ##
-## going to be (re)generated                        ##
-##--------------------------------------------------##
-
-sphinx-doc: $(wildcard $(srcdir)/doc/source/*) RNA/__init__.py RNA/RNA.py RNA/_RNA$(PYTHON3_SO)
-	$(sphinx_verbose)rm -f sphinx-doc && $(SPHINXBUILD) -b html doc/source doc/build >sphinx.log 2>&1 && touch sphinx-doc
-
-
-$(PYDOC_FILES_HTML): sphinx-doc
-
-endif WITH_PYTHON_DOC
 
 # We copy RNA.py to RNA/RNA.py so that it becomes a module
 # in an "RNA" directory that itself serves as package.
@@ -192,39 +168,6 @@ RNA/_RNA$(PYTHON3_SO): _RNA.la
   rm -f libtoolconfig.tmp
 
 
-##--------------------------------------------------##
-## Tell autoconf/automake to include the necessary  ##
-## files in the distribution archive as well as in  ##
-## the installation routine                         ##
-##--------------------------------------------------##
-html_DATA = $(PYDOC_FILES_HTML)
-
-if WITH_PYTHON_DOC
-
-vrna_htmlpydoc_inst: installdirs sphinx-doc
-	@$(NORMAL_INSTALL)
-	test -d $(builddir)/doc/build || $(LN_S) $(srcdir)/doc/build $(builddir)/doc/build
-	{ for i in $(builddir)/doc/build/*; do cp -r "$$i" "$(DESTDIR)$(pyhtmldir)/"; done }
-	{ for i in "$(DESTDIR)$(pyhtmldir)"/*; do test -f "$$i" && chmod 644 "$$i"; done }
-	chmod 755 "$(DESTDIR)$(pyhtmldir)"
-	{ test ! -h $(builddir)/doc/build || rm -f $(builddir)/doc/build; }
-
-vrna_htmlpydoc_uninst:
-	@$(NORMAL_UNINSTALL)
-	rm -rf "$(DESTDIR)$(pyhtmldir)"
-
-else
-
-vrna_htmlpydoc_inst:
-vrna_htmlpydoc_uninst:
-
-endif
-
-
-install-htmlDATA: vrna_htmlpydoc_inst
-uninstall-htmlDATA: vrna_htmlpydoc_uninst
-
-
 CLEANFILES = \
     RNA/_RNA$(PYTHON3_SO) \
     RNA/RNA.py \
@@ -252,7 +195,6 @@ uninstall-local:
 ## remove all generated content
 maintainer-clean-local:
 	-rm -f $(SWIG_wrapper) RNA.py documentation.i version.i
-	-rm -rf doc/build sphinx-doc
 
 distclean-local:
 	-rm -f $(SWIG_wrapper) RNA.py documentation.i version.i
