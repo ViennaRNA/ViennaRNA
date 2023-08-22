@@ -94,6 +94,40 @@ some additional steps **before** actually running the ``./configure`` script:
 After that, you can compile and install the ViennaRNA Package as if obtained
 from the distribution tarball.
 
+
+Building the reference manual
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Our implementations are documented with extra comments that are automatically
+parsed by `doxygen <https://www.doxygen.nl/>`_. The extracted API documentation
+is then processed further by `breathe <https://breathe.readthedocs.io/>`_ and finally
+integrated into a comprehensive reference manual written in
+`ReStructuredText <https://docutils.sourceforge.io/rst.html>`_. This manual is then
+usually compiled into HTML and PDF format by `Sphinx <https://www.sphinx-doc.org/>`_.
+
+We provide pre-compiled versions of the reference manual in our distribution
+tarballs and HTML versions at https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman and
+https://viennarna.readthedocs.io. However, under certain circumstances users might
+want to compile the reference manual themselves, e.g. when :ref:`installing from git repository`.
+
+To succeed with the compilation the following tools are required:
+
+    - ``doxygen`` (to extract the API documentation)
+    - ``sphinx-build`` (to compile the manual)
+    - ``pdflatex`` (to compile a PDF version of the manual)
+
+In addition, we use the following sphinx extensions:
+
+    - ``sphinx-multiproject``
+    - ``myst-parser``
+    - ``sphinx-copybutton``
+    - ``sphinxcontrib-bibtex``
+    - ``sphinx-rtd-theme``
+
+If all the above programs and ``python`` packages are available, compilation
+of the reference manual should succeed without any further problems.
+
+
 Installation without root privileges
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
