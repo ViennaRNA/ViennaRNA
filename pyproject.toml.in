@@ -56,7 +56,7 @@ dynamic = ["readme"]
 
 [project.urls]
 Homepage = "@PACKAGE_URL@"
-Documentation = "https://viennarna-python.readthedocs.io/"
+Documentation = "https://viennarna.readthedocs.io/"
 "Bug Tracker" = "https://github.com/ViennaRNA/ViennaRNA/issues"
 Changelog = "@PACKAGE_URL@/changelog.html"
 

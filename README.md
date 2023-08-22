@@ -70,10 +70,8 @@ HTML translations of all man pages can be found at [our official homepage][vrna_
 
 We maintain a reference manual describing the `RNAlib` API that is automatically
 generated with [doxygen][doxygen_website]. The HTML version of this reference
-manual is available [here][vrna_refman_website].
-
-In addition, the description of the `RNAlib` Python API can be found at
-[Read the Docs][vrna_rtd_website].
+manual is available at [our official website][vrna_refman_website] and at
+[ReadTheDocs][vrna_rtfm].
 
 ----
 
@@ -427,7 +425,7 @@ Ivo Hofacker, Spring 2006
 [vrna_refman_website]: https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman
 [vrna_refman_epars]: https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/group__energy__parameters__rw.html
 [vrna_refman_mod_base]: https://www.tbi.univie.ac.at/RNA/ViennaRNA/refman/group__modified__bases.html
-[vrna_rtd_website]: https://viennarna-python.readthedocs.io
+[vrna_rtfm]: https://viennarna.readthedocs.io
 [bioconda_website]: https://bioconda.github.io
 [vrna_bioconda_website]: http://bioconda.github.io/recipes/viennarna/README.html
 [vrna_pypi_website]: https://pypi.org/project/ViennaRNA
