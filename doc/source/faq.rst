@@ -31,3 +31,25 @@ current setup. After that, running ``./configure`` and compilation should run fi
 .. admonition:: See also...
 
   Related question at stackoverflow: https://stackoverflow.com/q/52682304/18609162
+
+
+Linking fails with LTO error
+----------------------------
+
+By default, *RNAlib* is compiled with :ref:`configuration:link time optimization`.
+This may introduce problems upon linking a third-party program that was either compiled
+with a different compiler or compiler version. As a work-around solution, we include the
+``-fno-lto`` linker flag in the output of the :ref:`pkg-config <linking:the pkg-config tool>`.
+This tells the linker to not perform link time optimization even though LTO code is
+included in the library. Usually, this should not affect the runtime of the algorithms
+too much.
+
+However, some linkers may not support the ``-fno-lto`` flag and fail at the linker stage.
+In addition, if *RNAlib* has been compiled with ``clang``, it may not include the non-LTO
+code required for linking without LTO. To resolve this issue, you may need to deactivate
+link time optimization while building *RNAlib*.
+
+.. admonition:: See also...
+
+   :ref:`configuration:link time optimization`
+

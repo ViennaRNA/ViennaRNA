@@ -95,8 +95,13 @@ and :ref:`configuration:openmp` support, respectively.
 
   In case you've compiled *RNAlib* with LTO support (See :ref:`configuration:link time
   optimization`) and you are using a different compiler for your third-party project that
-  links against our library, you may add the ``-fnolto`` flag to disable Link Time
+  links against our library, you may add the ``-fno-lto`` flag to disable Link Time
   Optimization.
+
+.. admonition:: See also...
+
+  :ref:`faq:linking fails with lto error`
+
 
 The pkg-config tool
 ^^^^^^^^^^^^^^^^^^^
