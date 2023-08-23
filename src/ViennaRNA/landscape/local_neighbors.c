@@ -19,6 +19,13 @@
  * after application of the move.
  */
 
+PRIVATE INLINE void
+enclosing_pair(const short *pt,
+               int pair_pos_5,
+               int pair_pos_3,
+               int *enc_pos_5,
+               int *enc_pos_3);
+
 
 PRIVATE void
 generate_local_nb(vrna_fold_compound_t  *fc,
@@ -173,7 +180,11 @@ is_compatible(const vrna_fold_compound_t  *vc,
               int                         i,
               int                         j)
 {
-  return vc->params->model_details.pair[vc->sequence_encoding2[i]][vc->sequence_encoding2[j]] != 0; /* see pair_mat.h */
+  /* better use hard constraints here! */
+  if (i + vc->params->model_details.min_loop_size < j)
+    return vc->params->model_details.pair[vc->sequence_encoding2[i]][vc->sequence_encoding2[j]] != 0; /* see pair_mat.h */
+
+  return 0;
 }
 
 
@@ -190,13 +201,17 @@ vrna_move_neighbor_diff_cb(vrna_fold_compound_t *fc,
     if ((unsigned int)ptable[0] == fc->length) {
       /* save affected pair in case we loose it due to application of move later on */
       vrna_move_t affected_pair = vrna_move_init(move.pos_5, move.pos_3);
+
       if ((affected_pair.pos_5 < 0) &&
           (affected_pair.pos_3 > 0)) {
+        /* shift move, 5' position changes, 3' position stays constant */
         affected_pair.pos_5 = ptable[affected_pair.pos_3];
       } else if ((affected_pair.pos_5 > 0) &&
                  (affected_pair.pos_3 < 0)) {
+        /* shift move, 3' position changes, 5' position stays constant */
         affected_pair.pos_3 = ptable[affected_pair.pos_5];
       } else if (affected_pair.pos_5 < 0) {
+        /* deletion move */
         affected_pair.pos_5 = -affected_pair.pos_5;
         affected_pair.pos_3 = -affected_pair.pos_3;
       }
@@ -285,7 +300,7 @@ vrna_move_neighbor_diff(vrna_fold_compound_t  *fc,
   }
 
   if (invalid_moves)
-    invalid_moves = NULL;
+    *invalid_moves = NULL;
 
   return valid_neighbors;
 }
@@ -341,7 +356,7 @@ PRIVATE INLINE void
 insertions_range_cb(vrna_fold_compound_t  *fc,
                     const short           *pt,
                     int                   i,
-                    int                   min_loop_size,
+                    int                   first_j,
                     int                   last_j,
                     unsigned int          status,
                     vrna_move_update_f    cb,
@@ -349,38 +364,18 @@ insertions_range_cb(vrna_fold_compound_t  *fc,
 {
   int j;
 
-  for (j = i + 1; j < MIN2(i + min_loop_size, last_j) + 1; j++)
+  if (first_j > last_j)
+    return;
+
+  /* skip everything before first_j */
+  for (j = i + 1; j < first_j; j++)
     if (pt[j] > j)
       j = pt[j];
 
-  if ((j > last_j) || (j < i + min_loop_size + 1))
+  if (j > last_j)
     return;
 
-  while (pt[j] > j)
-    j = pt[j];
-
   for (; j <= last_j; j++) {
-    if (pt[j] > j)
-      j = pt[j]; /* hop over branching stems */
-    else if ((pt[j] == 0) && (is_compatible(fc, i, j)))
-      cb(fc, vrna_move_init(i, j), status, data);
-  }
-}
-
-
-PRIVATE INLINE void
-insertions_range_cb2(vrna_fold_compound_t *fc,
-                     const short          *pt,
-                     int                  i,
-                     int                  min_j,
-                     int                  last_j,
-                     unsigned int         status,
-                     vrna_move_update_f   cb,
-                     void                 *data)
-{
-  int j;
-
-  for (j = min_j; j <= last_j; j++) {
     if (pt[j] > j)
       j = pt[j]; /* hop over branching stems */
     else if ((pt[j] == 0) && (is_compatible(fc, i, j)))
@@ -609,7 +604,7 @@ generate_local_nb_insertion(vrna_fold_compound_t  *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            min_loop_size,
+                            i + min_loop_size,
                             move_i - 1,
                             VRNA_NEIGHBOR_CHANGE,
                             cb,
@@ -622,7 +617,7 @@ generate_local_nb_insertion(vrna_fold_compound_t  *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            move_j - i,
+                            move_j,
                             enclosing_3 - 1,
                             VRNA_NEIGHBOR_CHANGE,
                             cb,
@@ -638,7 +633,7 @@ generate_local_nb_insertion(vrna_fold_compound_t  *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            min_loop_size,
+                            i + min_loop_size,
                             move_j - 1,
                             VRNA_NEIGHBOR_CHANGE,
                             cb,
@@ -658,7 +653,7 @@ generate_local_nb_insertion(vrna_fold_compound_t  *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            min_loop_size,
+                            i + min_loop_size,
                             enclosing_3 - 1,
                             VRNA_NEIGHBOR_CHANGE,
                             cb,
@@ -929,7 +924,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            min_loop_size,
+                            i + min_loop_size,
                             move_i - 1,
                             VRNA_NEIGHBOR_CHANGE,
                             cb,
@@ -943,7 +938,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            MAX2(move_i - i, min_loop_size),
+                            MAX2(move_i, i + min_loop_size),
                             move_j - 1,
                             VRNA_NEIGHBOR_NEW,
                             cb,
@@ -957,7 +952,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            move_j - i,
+                            move_j,
                             enclosing_3 - 1,
                             VRNA_NEIGHBOR_CHANGE,
                             cb,
@@ -972,7 +967,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
     insertions_range_cb(fc,
                         pt,
                         i,
-                        min_loop_size,
+                        i + min_loop_size,
                         move_j - 1,
                         VRNA_NEIGHBOR_NEW,
                         cb,
@@ -982,7 +977,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
     insertions_range_cb(fc,
                         pt,
                         i,
-                        move_j - i,
+                        move_j,
                         enclosing_3 - 1,
                         VRNA_NEIGHBOR_NEW,
                         cb,
@@ -997,7 +992,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            min_loop_size,
+                            i + min_loop_size,
                             move_j - 1,
                             VRNA_NEIGHBOR_CHANGE,
                             cb,
@@ -1013,7 +1008,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            MAX2(move_j - i, min_loop_size),
+                            MAX2(move_j, i + min_loop_size),
                             enclosing_3 - 1,
                             VRNA_NEIGHBOR_NEW,
                             cb,
@@ -1027,7 +1022,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
     insertions_range_cb(fc,
                         pt,
                         i,
-                        min_loop_size,
+                        i + min_loop_size,
                         enclosing_3 - 1,
                         VRNA_NEIGHBOR_NEW,
                         cb,
@@ -1041,7 +1036,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            min_loop_size,
+                            i + min_loop_size,
                             enclosing_3 - 1,
                             VRNA_NEIGHBOR_CHANGE,
                             cb,
@@ -1340,6 +1335,32 @@ generate_local_nb_shift(vrna_fold_compound_t  *fc,
 }
 
 
+PRIVATE INLINE void
+enclosing_pair(const short *pt,
+               int pair_pos_5,
+               int pair_pos_3,
+               int *enc_pos_5,
+               int *enc_pos_3)
+{
+  int n = pt[0]; /* length of structure */
+
+  *enc_pos_5 = 0;
+  *enc_pos_3 = n + 1;
+
+  for (int i = pair_pos_5 - 1; i > 0; i--) {
+    if (pt[i] == 0) {
+      continue;
+    } else if (pt[i] < i) {
+      i = pt[i]; /* hop over branching stems */
+    } else if (pt[i] > i) {
+      /* found enclosing pair */
+      *enc_pos_5 = i;
+      *enc_pos_3 = pt[i];
+      break;
+    }
+  }
+}
+
 PRIVATE void
 generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
                                       const short           *pt,
@@ -1349,28 +1370,13 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
                                       unsigned int          options)
 {
   unsigned int  n = fc->length;
-  int           i, j;
-  int           enclosing_5   = 0;          /* exterior loop */
-  int           enclosing_3   = (int)n + 1; /* exterior loop */
+  int           i, j, enclosing_5, enclosing_3;
   int           min_loop_size = fc->params->model_details.min_loop_size;
   int           move_i        = move->pos_5;
   int           move_j        = move->pos_3;
 
   /* find out actual enclosing pair that delimits the loop affected by the current move */
-  for (i = move_i - 1; i > 0; i--) {
-    if (pt[i] == 0) {
-      continue;
-    } else if (pt[i] < i) {
-      i = pt[i]; /* hop over branching stems */
-    } else if (pt[i] > i) {
-      /* found enclosing pair */
-      enclosing_5 = i;
-      enclosing_3 = pt[i];
-      break;
-    }
-  }
-
-  /* no deletions are affected if the next move is an insertion */
+  enclosing_pair(pt, move_i, move_j, &enclosing_5, &enclosing_3);
 
   /*
    *  Determine all previously possible base pairs insertions
@@ -1378,30 +1384,29 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
    */
   if (options & VRNA_MOVESET_INSERTION) {
     /*
-     *  1. base pairs that start before move->pos_5 and end in
-     *  [move->pos_5, move->pos_3]
+     *  1. base pairs that start before move->pos_5 and end within
+     *  interval [move->pos_5, move->pos_3]
      */
     for (i = enclosing_5 + 1; i < move_i; i++) {
       if (pt[i] > i) {
         i = pt[i]; /* hop over branching stems */
       } else if (pt[i] == 0) {
         /* 1.1 remove neighbors that would introduce base pair (i, move_i) */
-        if ((is_compatible(fc, i, move_i)) &&
-            (move_i - i > min_loop_size))
+        if (is_compatible(fc, i, move_i))
           cb(fc, vrna_move_init(i, move_i), VRNA_NEIGHBOR_INVALID, data);
 
         /*
          * 1.2 remove neighbors that would introduce base pair (i, k)
          * with move_i < k < move_j
          */
-        insertions_range_cb2(fc,
-                             pt,
-                             i,
-                             MAX2(move_i, i + min_loop_size) + 1,
-                             move_j - 1,
-                             VRNA_NEIGHBOR_INVALID,
-                             cb,
-                             data);
+        insertions_range_cb(fc,
+                            pt,
+                            i,
+                            move_i + 1,
+                            move_j - 1,
+                            VRNA_NEIGHBOR_INVALID,
+                            cb,
+                            data);
 
         /* 1.3 remove neighbors that would introduce base pair (i, move_j) */
         if (is_compatible(fc, i, move_j))
@@ -1409,15 +1414,14 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
       }
     }
 
-    i = move_i;
-
     /*
-     *  2. base pairs that start at move->pos_5 and end within interval (move_i, move_j)
+     *  2. base pairs that start at move->pos_5 and end within interval
+     *  [move->pos_5, move->pos_3]
      */
     insertions_range_cb(fc,
                         pt,
-                        i,
-                        min_loop_size,
+                        move_i,
+                        move_i + 1,
                         move_j - 1,
                         VRNA_NEIGHBOR_INVALID,
                         cb,
@@ -1427,14 +1431,14 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
      *  2.1 neighbors that would introduce base pairs (move_i, k)
      *  with move_j < k < enclosing_3
      */
-    insertions_range_cb2(fc,
-                         pt,
-                         i,
-                         move_j + 1,
-                         enclosing_3 - 1,
-                         VRNA_NEIGHBOR_INVALID,
-                         cb,
-                         data);
+    insertions_range_cb(fc,
+                        pt,
+                        move_i,
+                        move_j + 1,
+                        enclosing_3 - 1,
+                        VRNA_NEIGHBOR_INVALID,
+                        cb,
+                        data);
 
     /*
      *  3. base pairs that start in (move->pos_5, move->pos_3) and
@@ -1445,7 +1449,7 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
         i = pt[i]; /* hop over branching stems */
       } else if (pt[i] == 0) {
         /*  3.1 neighbors that introduce base pair (i, move_j) */
-        if ((is_compatible(fc, i, move_j)) && (move_j - i > min_loop_size))
+        if (is_compatible(fc, i, move_j))
           cb(fc, vrna_move_init(i, move_j), VRNA_NEIGHBOR_INVALID, data);
 
         /*
@@ -1455,7 +1459,7 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
         insertions_range_cb(fc,
                             pt,
                             i,
-                            MAX2(move_j - i, min_loop_size),
+                            move_j + 1,
                             enclosing_3 - 1,
                             VRNA_NEIGHBOR_INVALID,
                             cb,
@@ -1466,31 +1470,28 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
     /*
      *  4. base pairs that start at move->pos_3 and end somewhere downstream
      */
-    i = move_j;
     insertions_range_cb(fc,
                         pt,
-                        i,
-                        min_loop_size,
+                        move_j,
+                        move_j + 1,
                         enclosing_3 - 1,
                         VRNA_NEIGHBOR_INVALID,
                         cb,
                         data);
   }
 
+  if (options & VRNA_MOVESET_INSERTION) {
+    /* no deletions are affected if the next move is an insertion */
+  }
+
   /* next all invalid shift moves */
   if (options & VRNA_MOVESET_SHIFT) {
     /* 1st, the pairing partners of the enclosing pair (if existing) must not
-     * move into the range [move->pos_5:move->pos_3]
+     * interfere with interval [move->pos_5:move->pos_3]
      */
     if ((enclosing_5 > 0) &&
         (enclosing_3 <= n)) {
-      if (is_compatible(fc, enclosing_5, move_i))
-        cb(fc, vrna_move_init(enclosing_5, -move_i), VRNA_NEIGHBOR_INVALID, data);
-
-      if (is_compatible(fc, move_j, enclosing_3))
-        cb(fc, vrna_move_init(-move_j, enclosing_3), VRNA_NEIGHBOR_INVALID, data);
-
-      for (j = move_i + 1; j < move_j; j++) {
+      for (j = move_i; j <= move_j; j++) {
         if (pt[j] > j) {
           j = pt[j];
         } else {
@@ -1503,24 +1504,13 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
       }
     }
 
-    /* 2nd, all other base pairs within the same loop must not move
-     * there pairing partners into the interval [move->pos_5:move->pos_3]
+    /* 2nd, all other base pairs within the same loop and outside
+     * the new base pair must not interfere with the interval
+     * [move->pos_5:move->pos_3]
      */
-    for (i = enclosing_5; i < move_i; i++) {
+    for (i = enclosing_5 + 1; i < move_i; i++) {
       if (pt[i] > i) {
-        if (is_compatible(fc, i, move_i))
-          cb(fc, vrna_move_init(i, -move_i), VRNA_NEIGHBOR_INVALID, data);
-
-        if (is_compatible(fc, i, move_j))
-          cb(fc, vrna_move_init(i, -move_j), VRNA_NEIGHBOR_INVALID, data);
-
-        if (is_compatible(fc, pt[i], move_i))
-          cb(fc, vrna_move_init(pt[i], -move_i), VRNA_NEIGHBOR_INVALID, data);
-
-        if (is_compatible(fc, pt[i], move_j))
-          cb(fc, vrna_move_init(pt[i], -move_j), VRNA_NEIGHBOR_INVALID, data);
-
-        for (j = move_i + 1; j < move_j; j++) {
+        for (j = move_i; j <= move_j; j++) {
           if (pt[j] > j) {
             j = pt[j];
           } else {
@@ -1539,19 +1529,7 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
 
     for (j = move_j + 1; j < enclosing_3; j++) {
       if (pt[j] > j) {
-        if (is_compatible(fc, move_i, j))
-          cb(fc, vrna_move_init(-move_i, j), VRNA_NEIGHBOR_INVALID, data);
-
-        if (is_compatible(fc, move_j, j))
-          cb(fc, vrna_move_init(-move_j, j), VRNA_NEIGHBOR_INVALID, data);
-
-        if (is_compatible(fc, move_i, pt[j]))
-          cb(fc, vrna_move_init(-move_i, pt[j]), VRNA_NEIGHBOR_INVALID, data);
-
-        if (is_compatible(fc, move_j, pt[j]))
-          cb(fc, vrna_move_init(-move_j, pt[j]), VRNA_NEIGHBOR_INVALID, data);
-
-        for (i = move_i + 1; i < move_j; i++) {
+        for (i = move_i; i <= move_j; i++) {
           if (pt[i] > i) {
             i = pt[i];
           } else {
@@ -1568,13 +1546,12 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
       }
     }
 
-    /* Finally, invalidate shift moves from pairs enclosed by
-     * (move->pos_5, move->pos_3) into the interval outside the
-     * interval [move->pos_5,move->pos_3]
+    /* Finally, invalidate shift moves from pairs that will be enclosed by
+     * (move->pos_5, move->pos_3) outside the interval [move->pos_5,move->pos_3]
      */
     for (j = move_i + 1; j < move_j; j++) {
       if (j < pt[j]) {
-        for (i = enclosing_5 + 1; i < move_i; i++) {
+        for (i = enclosing_5 + 1; i <= move_i; i++) {
           if (pt[i] > i) {
             i = pt[i];
           } else {
@@ -1586,7 +1563,7 @@ generate_conflicts_local_nb_insertion(vrna_fold_compound_t  *fc,
           }
         }
 
-        for (i = move_j + 1; i < enclosing_3; i++) {
+        for (i = move_j; i < enclosing_3; i++) {
           if (i < pt[i]) {
             i = pt[i];
           } else {
@@ -1615,9 +1592,7 @@ generate_conflicts_local_nb_deletion(vrna_fold_compound_t *fc,
                                      unsigned int         options)
 {
   unsigned int  n = fc->length;
-  int           i, j;
-  int           enclosing_5   = 0;          /* exterior loop */
-  int           enclosing_3   = (int)n + 1; /* exterior loop */
+  int           i, j, enclosing_5, enclosing_3;
   int           min_loop_size = fc->params->model_details.min_loop_size;
   int           move_i        = -move->pos_5;
   int           move_j        = -move->pos_3;
@@ -1627,18 +1602,7 @@ generate_conflicts_local_nb_deletion(vrna_fold_compound_t *fc,
    */
   if (options & VRNA_MOVESET_SHIFT) {
     /* find out actual enclosing pair that delimits the loop affected by the current move */
-    for (i = move_i - 1; i > 0; i--) {
-      if (pt[i] == 0) {
-        continue;
-      } else if (pt[i] < i) {
-        i = pt[i]; /* hop over branching stems */
-      } else if (pt[i] > i) {
-        /* found enclosing pair */
-        enclosing_5 = i;
-        enclosing_3 = pt[i];
-        break;
-      }
-    }
+    enclosing_pair(pt, move_i, move_j, &enclosing_5, &enclosing_3);
 
     /* moves to the region 5' of move->pos_5 */
     for (i = enclosing_5 + 1; i < move_i; i++) {
@@ -1691,10 +1655,11 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
                                   unsigned int          options)
 {
   unsigned int  n = fc->length;
-  int           enclosing_5 = 0;            /* exterior loop */
-  int           enclosing_3 = (int)n + 1;   /* exterior loop */
-  int           i, j, p, q, move_i, move_j;
+  int           i, j, p, q, move_i, move_j, enclosing_5, enclosing_3;
 
+  /* here, we first determine the base pair (p,q) that is about
+   * to change one of its pairing partners
+   */
   if (move->pos_5 < 0) {
     p       = pt[move->pos_3];
     q       = move->pos_3;
@@ -1720,21 +1685,14 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
   }
 
   /* find out actual enclosing pair that delimits the loop affected by the current move */
-  for (i = move_i - 1; i > 0; i--) {
-    if (pt[i] == 0) {
-      continue;
-    } else if (pt[i] < i) {
-      i = pt[i]; /* hop over branching stems */
-    } else if (pt[i] > i) {
-      /* found enclosing pair */
-      enclosing_5 = i;
-      enclosing_3 = pt[i];
-      break;
-    }
-  }
+  enclosing_pair(pt, p, q, &enclosing_5, &enclosing_3);
 
   /* we now have the current base pair as (p, q) which will change
-   * to (move_i, move_j) after application of the move
+   * to (move_i, move_j) or (p', q') after application of the move
+   * Here, we distinguish 6 cases, where either p or q stays constant
+   * and the pairing partner is shifted towards 3' end of the enclosing
+   * loop, the 5' end of the enclosing loop, or towards the segment
+   * enclosed by (p,q).
    */
   if (options & VRNA_MOVESET_INSERTION) {
     if (move_i == q) {
@@ -1780,7 +1738,7 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
       }
 
       /* 1.2 invalidate insertion from the outside into interval [q + 1: move_j] */
-      for (j = q + 1; j <= move_j; j++) {
+      for (j = q + 1; j < move_j; j++) {
         if (pt[j] > j) {
           j = pt[j];
         } else {
@@ -1803,7 +1761,7 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
           }
         }
       }
-    } else if (p == move_j) {
+    } else if (move_j == p) {
       /*
        * 2. q of (p,q) moved to position q' < p forming new pair (q', p)
        *
@@ -1818,7 +1776,7 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
 
       /* 2.1 invalidate insertions where one pairing partner involves q' */
       j = move_i;
-      for (i = enclosing_5; i < move_i; i++) {
+      for (i = enclosing_5 + 1; i < move_i; i++) {
         if (pt[i] > i) {
           i = pt[i];
         } else {
@@ -1846,11 +1804,11 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
       }
 
       /* 2.2 invalidate insertions where one pairing partner is within interval [q':p-1] */
-      for (j = move_i; j < p; j++) {
+      for (j = move_i + 1; j < p; j++) {
         if (pt[j] > j) {
           j = pt[j];
         } else {
-          for (i = enclosing_5 + 1; i <= move_i; i++) {
+          for (i = enclosing_5 + 1; i < move_i; i++) {
             if (pt[i] > i) {
               i = pt[i];
             } else {
@@ -1881,12 +1839,43 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
        * ...p'........q....
        */
 
-      /* 3.1 invalidate insertions where one pairing partner is p' */
-      for (j = move_i; j < p; j++) {
+      /* 3.1 invalidate insertions where one pairing partner involves p' */
+      j = move_i;
+      for (i = enclosing_5 + 1; i < move_i; i++) {
+        if (pt[i] > i) {
+          i = pt[i];
+        } else {
+          if (is_compatible(fc, i, j))
+            cb(fc, vrna_move_init(i, j), VRNA_NEIGHBOR_INVALID, data);
+        }
+      }
+
+      for (i = move_i + 1; i < p; i++) {
+        if (pt[i] > i) {
+          i = pt[i];
+        } else {
+          if (is_compatible(fc, j, i))
+            cb(fc, vrna_move_init(j, i), VRNA_NEIGHBOR_INVALID, data);
+        }
+      }
+
+      for (i = q + 1; i < enclosing_3; i++) {
+        if (pt[i] > i) {
+          i = pt[i];
+        } else {
+          if (is_compatible(fc, j, i))
+            cb(fc, vrna_move_init(j, i), VRNA_NEIGHBOR_INVALID, data);
+        }
+      }
+
+      /* 3.2 invalidate insertions that span into free'd interval
+       * [p':p]
+       */
+      for (j = move_i + 1; j < p; j++) {
         if (pt[j] > j) {
           j = pt[j];
         } else {
-          for (i = enclosing_5 + 1; i <= move_i; i++) {
+          for (i = enclosing_5 + 1; i < move_i; i++) {
             if (pt[i] > i) {
               i = pt[i];
             } else {
@@ -1918,8 +1907,39 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
        * ......p..........q'
        */
 
-      /* 4.1 invalidate insertions where one pairing partner is q' */
-      for (j = q + 1; j <= move_j; j++) {
+      /* 4.1. invalidate insertions where one pairing partner involves q' */
+      j = move_j;
+      for (i = enclosing_5 + 1; i < p; i++) {
+        if (pt[i] > i) {
+          i = pt[i];
+        } else {
+          if (is_compatible(fc, i, j))
+            cb(fc, vrna_move_init(i, j), VRNA_NEIGHBOR_INVALID, data);
+        }
+      }
+
+      for (i = q + 1; i < move_j; i++) {
+        if (pt[i] > i) {
+          i = pt[i];
+        } else {
+          if (is_compatible(fc, i, j))
+            cb(fc, vrna_move_init(i, j), VRNA_NEIGHBOR_INVALID, data);
+        }
+      }
+
+      for (i = move_j + 1; i < enclosing_3; i++) {
+        if (pt[i] > i) {
+          i = pt[i];
+        } else {
+          if (is_compatible(fc, j, i))
+            cb(fc, vrna_move_init(j, i), VRNA_NEIGHBOR_INVALID, data);
+        }
+      }
+
+      /* 4.2 invalidate insertions that span into free'd interval
+       * [q:q']
+       */
+      for (j = q + 1; j < move_j; j++) {
         if (pt[j] > j) {
           j = pt[j];
         } else {
@@ -1932,7 +1952,7 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
             }
           }
 
-          for (i = move_j; i < enclosing_3; i++) {
+          for (i = move_j + 1; i < enclosing_3; i++) {
             if (pt[i] > i) {
               i = pt[i];
             } else {
@@ -2537,7 +2557,7 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
       /* 5.3 invalidate moves of pairs from within interval [p + 1: move_i] */
       for (i = p + 1; i < move_i; i++) {
         if (pt[i] > i) {
-          for (j = move_i + 1; j < q; j++) {
+          for (j = move_i; j < q; j++) {
             if (pt[j] > j) {
               j = pt[j];
             } else {
@@ -2614,7 +2634,7 @@ generate_conflicts_local_nb_shift(vrna_fold_compound_t  *fc,
       /* 6.3 invalidate shifts from within interval [move_j+1:q-1] */
       for (j = move_j + 1; j < q; j++) {
         if (pt[j] > j) {
-          for (i = p + 1; i < move_j; i++) {
+          for (i = p + 1; i <= move_j; i++) {
             if (pt[i] > i) {
               i = pt[i];
             } else {
