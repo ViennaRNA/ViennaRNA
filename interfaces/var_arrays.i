@@ -278,6 +278,8 @@ struct var_array {};
 
 
 #ifdef SWIGPYTHON
+%newobject var_array::__getitem__;
+
 %pythoncode %{
 class var_array_Iterator:
     def __init__(self, var_arr):
@@ -330,7 +332,7 @@ class var_array_Iterator:
           a = (var_array<T> *)vrna_alloc(sizeof(var_array<T>));
           a->data   = (T *)vrna_alloc(sizeof(T) * n);
           /* copy slice data */
-          for (Py_ssize_t i = start; i <= stop; i += step, real_i++)
+          for (Py_ssize_t i = start; i < stop; i += step, real_i++)
             a->data[real_i] = $self->data[i];
 
           if ((type & VAR_ARRAY_LINEAR) &&
