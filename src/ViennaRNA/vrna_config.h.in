@@ -42,8 +42,11 @@
  *
  * If this feature is present, the next line defines
  * 'VRNA_WITH_JSON_SUPPORT'
+ *
+ * Note: ViennaRNA >= 2.6.3 is always built with JSON support.
+ * This feature is still present to keep third-party code relying on it working.
  */
-@CONFIG_JSON@
+#define VRNA_WITH_JSON_SUPPORT
 
 /*
  * Build with Support Vector Machine (SVM) Z-score feature in RNALfold
