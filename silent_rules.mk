@@ -40,27 +40,22 @@ dmg_verbose_ = $(dmg_verbose_@AM_DEFAULT_V@)
 tutorial_verbose = $(tutorial_verbose_@AM_V@)
 tutorial_verbose_ = $(tutorial_verbose_@AM_DEFAULT_V@)
 
-if WITH_TTY_COLORS
+if WITH_COLOR_MAKE
 
-#am__v_GEN_0 = @echo -e "  \e[1;34mGEN\e[0m     " $@;
-#am__v_CC_0 = @echo -e "  \e[1;34mCC\e[0m      " $@;
-#am__v_CCLD_0 = @echo -e "  \e[1;34mCCLD\e[0m    " $@;
-#am__v_CXX_0 = @echo -e "  \e[1;34mCXX\e[0m     " $@;
-#am__v_CXXLD_0 = @echo -e "  \e[1;34mCXXLD\e[0m   " $@;
-ggo_verbose_0 = @echo -e "  \e[1;34mGGO\e[0m      $@";
-xxd_verbose_0 = @echo -e "  \e[1;34mXXD\e[0m      $@";
-doxy2swig_verbose_0 = @echo -e "  \e[1;34mDOXY2SWIG\e[0m $@";
-sphinx_verbose_0 = @echo -e "  \e[1;34mSPHINX\e[0m   $@";
-doxygen_verbose_0 = @echo -e "  \e[1;34mDOXYGEN\e[0m  $@";
-cla_verbose_0 = @echo -e "  \e[1;34mCLA\e[0m      $@";
-swig_verbose_0 = @echo -e "  \e[1;34mSWIG\e[0m      $@";
-man2rst_verbose_0 = @echo -e "  \e[1;34mMAN2RST\e[0m  $@";
-manpages_verbose_0 = @echo -e "  \e[1;34mMAN\e[0m      $@";
-checkmk_verbose_0 = @echo -e "  \e[1;34mCHECKMK\e[0m  $@";
-prepare_verbose_0 = @echo -e "  \e[1;34mPREPARE\e[0m  $@;
-pkg_verbose_0 = @echo -e "  \e[1;34mPKG-GEN\e[0m  $@;
-dmg_verbose_0 = @echo -e "  \e[1;34mDMG-GEN\e[0m  $@;
-tutorial_verbose_0 = @echo -e "  \e[1;34mTUT\e[0m      $@";
+ggo_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mGGO\033[0m      %s\n" $@ || echo "  GGO      $@";
+xxd_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mXXD\033[0m      %s\n" $@ || echo "  XXD      $@";
+doxy2swig_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mDOX2SWIG\033[0m %s\n" $@ || echo "  DOX2SWIG $@";
+sphinx_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mSPHINX\033[0m   %s\n" $@ || echo -e "  SPHINX    $@";
+doxygen_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mDOXYGEN\033[0m  %s\n" $@ || echo "  DOXYGEN  $@";
+cla_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mCLA\033[0m      %s\n" $@ || echo "  CLA      $@";
+swig_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mSWIG\033[0m     %s\n" $@ || echo "  SWIG     $@";
+man2rst_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mMAN2RST\033[0m  %s\n" $@ || echo "  MAN2RST  $@";
+manpages_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mMAN\033[0m      %s\n" $@ || echo "  MAN      $@";
+checkmk_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mCHECKMK\033[0m  %s\n" $@ || echo "  CHECKMK  $@";
+prepare_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mPREPARE\033[0m  $@ || echo "  PREPARE  $@;
+pkg_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mPKG-GEN\033[0m  $@ || echo "  PKG-GEN  $@;
+dmg_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mDMG-GEN\033[0m  $@ || echo "  DMG-GEN  $@;
+tutorial_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mTUT\033[0m      %s\n" $@ || echo "  TUT      $@";
 
 else
 

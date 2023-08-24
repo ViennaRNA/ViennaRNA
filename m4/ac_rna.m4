@@ -99,6 +99,8 @@ RNA_ENABLE_UNIT_TESTS
 ##----------------------------------##
 RNA_CHECK_BUILD_REQUIREMENTS
 
+RNA_COLOR_MAKE
+
 ##--------------------##
 ## Enable Subpackages ##
 ##--------------------##

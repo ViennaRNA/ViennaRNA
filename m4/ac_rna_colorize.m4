@@ -40,14 +40,14 @@ AC_DEFUN([COLORIZE_RESULT], [AC_REQUIRE([_COLORIZE_RESULT_PREPARE])dnl
 ])
 
 
-#AC_DEFUN([AC_CHECKING],[dnl
-#AC_REQUIRE([_COLORIZE_RESULT_PREPARE])dnl
-#AS_MESSAGE([checking ${msg_checking}$1${msg_reset}...])])
+AC_DEFUN([AC_CHECKING],[dnl
+AC_REQUIRE([_COLORIZE_RESULT_PREPARE])dnl
+AS_MESSAGE([checking ${msg_checking}$1${msg_reset}...])])
 
-#AC_DEFUN([AC_MSG_RESULT], [dnl
-#{ _AS_ECHO_LOG([result: $1])
-#COLORIZE_RESULT([$1]); dnl
-#}])
+AC_DEFUN([AC_MSG_RESULT], [dnl
+{ _AS_ECHO_LOG([result: $1])
+COLORIZE_RESULT([$1]); dnl
+}])
 
 
 
@@ -80,4 +80,23 @@ AC_DEFUN([AC_RNA_STRING_APPEND_FORMAT_BOLD],[dnl
 AC_DEFUN([AC_RNA_STRING_APPEND_FORMAT_UNDERLINE],[dnl
   AC_REQUIRE([_COLORIZE_RESULT_PREPARE])dnl
   [$1="${$1}${msg_underline}$2${msg_reset}"]
+])
+
+AC_DEFUN([RNA_COLOR_MAKE], [
+
+    enable_color_make="yes"
+
+    am__v_GEN_0="@@<:@ -t 1 @:>@ && printf \"  \\033@<:@01;34mGEN\\033@<:@00m      %s\\n\" \$$@@ || echo \"  GEN      \$$@@\";"
+    am__v_CC_0="@@<:@ -t 1 @:>@ && printf \"  \\033@<:@01;34mCC\\033@<:@00m       %s\\n\" \$$@@ || echo \"  CC       \$$@@\";"
+    am__v_CCLD_0="@@<:@ -t 1 @:>@ && printf \"  \\033@<:@01;34mCCLD\\033@<:@00m     %s\\n\" \$$@@ || echo \"  CCLD     \$$@@\";"
+    am__v_CXX_0="@@<:@ -t 1 @:>@ && printf \"  \\033@<:@01;34mCXX\\033@<:@00m      %s\\n\" \$$@@ || echo \"  CXX      \$$@@\";"
+    am__v_CXXLD_0="@@<:@ -t 1 @:>@ && printf \"  \\033@<:@01;34mCXXLD\\033@<:@00m    %s\\n\" \$$@@ || echo \"  CXXLD    \$$@@\";"
+
+    AC_SUBST([am__v_GEN_0])
+    AC_SUBST([am__v_CC_0])
+    AC_SUBST([am__v_CCLD_0])
+    AC_SUBST([am__v_CXX_0])
+    AC_SUBST([am__v_CXXLD_0])
+
+    AM_CONDITIONAL(WITH_COLOR_MAKE, test "x$enable_color_make" = "xyes")
 ])
