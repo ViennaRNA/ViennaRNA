@@ -1,6 +1,4 @@
-tutorial_verbose = $(tutorial_verbose_@AM_V@)
-tutorial_verbose_ = $(tutorial_verbose_@AM_DEFAULT_V@)
-tutorial_verbose_0 = @echo "  TUT      $@";
+include $(top_srcdir)/silent_rules.mk
 
 clean_tutorial = rm -f *.ps *.dvi *.idv *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl tutorial.pdf
 

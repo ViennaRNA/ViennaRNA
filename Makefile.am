@@ -30,7 +30,8 @@ EXTRA_DIST =  packaging/debian \
               license.txt \
               README.md \
               CHANGELOG.md \
-              MANIFEST.in
+              MANIFEST.in \
+              silent_rules.mk
 
 
 ############################################

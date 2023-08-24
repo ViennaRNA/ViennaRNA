@@ -1,6 +1,4 @@
-sphinx_verbose = $(sphinx_verbose_@AM_V@)
-sphinx_verbose_ = $(sphinx_verbose_@AM_DEFAULT_V@)
-sphinx_verbose_0 = @echo "  SPHINX    $@";
+include $(top_srcdir)/silent_rules.mk
 
 SUBDIRS = CLA source/man
 

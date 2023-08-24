@@ -1,3 +1,5 @@
+include $(top_srcdir)/silent_rules.mk
+
 AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
 AM_CPPFLAGS = $(RNA_CPPFLAGS) ${SVM_INC} -I$(top_srcdir)/src ${JSON_INC}

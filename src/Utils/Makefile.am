@@ -1,3 +1,5 @@
+include $(top_srcdir)/silent_rules.mk
+
 pkgbindir = $(pkgdatadir)/bin
 
 pscript = \
@@ -45,7 +47,7 @@ SUFFIXES = .ggo _cmdl.h _cmdl.c
 
 # this is how we make the commandline interface parser
 .ggo_cmdl.c:
-	$(AM_V_GEN)gengetopt -i $<
+	$(ggo_verbose)gengetopt -i $<
 
 _cmdl.c_cmdl.h :
 

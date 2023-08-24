@@ -1,6 +1,4 @@
-cla_verbose = $(cla_verbose_@AM_V@)
-cla_verbose_ = $(cla_verbose_@AM_DEFAULT_V@)
-cla_verbose_0 = @echo "  CLA      $@";
+include $(top_srcdir)/silent_rules.mk
 
 clean_cla = rm -f *.dvi *.idv *.aux *.toc *.idx *.ind *.ilg *.log *.out *.brf *.blg *.bbl CLA-*.pdf
 

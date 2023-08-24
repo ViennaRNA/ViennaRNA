@@ -1,8 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-xxd_verbose = $(xxd_verbose_@AM_V@)
-xxd_verbose_ = $(xxd_verbose_@AM_DEFAULT_V@)
-xxd_verbose_0 = @echo "  XXD      $@";
+include $(top_srcdir)/silent_rules.mk
 
 SUFFIXES = .json .par .ps .hex .svg
 

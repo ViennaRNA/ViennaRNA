@@ -1,6 +1,4 @@
-man2rst_verbose = $(man2rst_verbose_@AM_V@)
-man2rst_verbose_ = $(man2rst_verbose_@AM_DEFAULT_V@)
-man2rst_verbose_0 = @echo "  MAN2RST  $@";
+include $(top_srcdir)/silent_rules.mk
 
 REFMAN_MANPAGES = \
     RNA2Dfold.rst \

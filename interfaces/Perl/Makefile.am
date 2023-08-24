@@ -1,5 +1,5 @@
+include $(top_srcdir)/silent_rules.mk
 include ../generic.mk
-
 
 PERL_MODULE = $(SWIG_module_name).pm
 

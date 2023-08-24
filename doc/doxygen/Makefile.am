@@ -1,6 +1,4 @@
-doxygen_verbose = $(doxygen_verbose_@AM_V@)
-doxygen_verbose_ = $(doxygen_verbose_@AM_DEFAULT_V@)
-doxygen_verbose_0 = @echo "  DOC      $@";
+include $(top_srcdir)/silent_rules.mk
 
 pkgdata_DATA = \
     DoxygenLayout.xml

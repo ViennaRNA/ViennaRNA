@@ -1,6 +1,4 @@
-manpages_verbose = $(manpages_verbose_@AM_V@)
-manpages_verbose_ = $(manpages_verbose_@AM_DEFAULT_V@)
-manpages_verbose_0 = @echo "  MAN      $@";
+include $(top_srcdir)/silent_rules.mk
 
 info_TEXINFOS = RNAlib.texi
 

@@ -1,7 +1,4 @@
-doxy2swig_verbose = $(doxy2swig_verbose_@AM_V@)
-doxy2swig_verbose_ = $(doxy2swig_verbose_@AM_DEFAULT_V@)
-doxy2swig_verbose_0 = @echo "  DOX2SWIG $@";
-
+include $(top_srcdir)/silent_rules.mk
 include ../generic.mk
 
 if WITH_REFERENCE_MANUAL

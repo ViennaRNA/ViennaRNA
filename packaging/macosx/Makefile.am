@@ -1,12 +1,4 @@
-prepare_verbose = $(prepare_verbose_@AM_V@)
-prepare_verbose_ = $(prepare_verbose_@AM_DEFAULT_V@)
-prepare_verbose_0 = @echo PREPARE $@;
-pkg_verbose = $(pkg_verbose_@AM_V@)
-pkg_verbose_ = $(pkg_verbose_@AM_DEFAULT_V@)
-pkg_verbose_0 = @echo PKG-GEN $@;
-dmg_verbose = $(dmg_verbose_@AM_V@)
-dmg_verbose_ = $(dmg_verbose_@AM_DEFAULT_V@)
-dmg_verbose_0 = @echo DMG-GEN $@;
+include $(top_srcdir)/silent_rules.mk
 
 EXTRA_DIST =  resources/welcome.txt \
               resources/conclusion.html \

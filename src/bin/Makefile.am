@@ -1,8 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-ggo_verbose = $(ggo_verbose_@AM_V@)
-ggo_verbose_ = $(ggo_verbose_@AM_DEFAULT_V@)
-ggo_verbose_0 = @echo "  GGO      $@";
+include $(top_srcdir)/silent_rules.mk
 
 AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)

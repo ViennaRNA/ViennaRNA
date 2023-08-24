@@ -1,5 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+include $(top_srcdir)/silent_rules.mk
+
 bin_PROGRAMS = AnalyseDists AnalyseSeqs
 man_MANS = AnalyseDists.1 AnalyseSeqs.1
 
