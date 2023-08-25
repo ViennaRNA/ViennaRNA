@@ -251,7 +251,17 @@ is_compatible(const vrna_fold_compound_t  *vc,
               int                         i,
               int                         j)
 {
-  return vc->params->model_details.pair[vc->sequence_encoding2[i]][vc->sequence_encoding2[j]] != 0; /* see pair_mat.h */
+  /* better use hard constraints here! */
+  if (i > j) {
+    int k = i;
+    i = j;
+    j = k;
+  }
+
+  if (i + vc->params->model_details.min_loop_size < j)
+    return vc->params->model_details.pair[vc->sequence_encoding2[i]][vc->sequence_encoding2[j]] != 0; /* see pair_mat.h */
+
+  return 0;
 }
 
 
