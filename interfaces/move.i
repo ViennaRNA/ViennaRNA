@@ -97,6 +97,14 @@ def __repr__(self):
     # that looks like a constructor argument list
     strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
     return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+
+def __hash__(self):
+    p5, p3 = (self.pos_5, self.pos_3) if self.pos_5 < self.pos_3 else (self.pos_3, self.pos_5)
+    return hash((p5, p3))
+
+def __eq__(self, other):
+    return (self.pos_5 == other.pos_5 and self.pos_3 == other.pos_3) or ((self.pos_5 == other.pos_3 and self.pos_3 == other.pos_5))
+
 %}
 #endif
 
