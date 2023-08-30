@@ -43,6 +43,9 @@
 #ifdef __MINGW32__
 #include <direct.h>
 #endif
+#define _S_IFDIR  0x4000  /* Directory */
+#define _S_IFMT   0xF000  /* File type mask */
+#define S_ISDIR( m )    (((m) & S_IFMT) == S_IFDIR)
 #define DIRSEPC '\\'
 #define DIRSEPS "\\"
 #else
