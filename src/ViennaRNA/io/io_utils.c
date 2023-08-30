@@ -19,7 +19,6 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <errno.h>
-#include <libgen.h>
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
