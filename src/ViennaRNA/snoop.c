@@ -2736,10 +2736,11 @@ snoop_backtrack(int         i,
      *      }
      */
   }
-  char  duplexseq_1[j0];
-  char  duplexseq_2[n2 - j + 2];
 
   if (j < n2) {
+    char *duplexseq_1, *duplexseq_2;
+    duplexseq_1 = (char *)vrna_alloc((j0) * sizeof(char *));
+    duplexseq_2 = (char *)vrna_alloc((n2 - j + 2) * sizeof(char *));
     strncpy(duplexseq_1, snoseq, j0 - 1);
     strcpy(duplexseq_2, snoseq + j);
     duplexseq_1[j0 - 1]     = '\0';
@@ -2760,6 +2761,8 @@ snoop_backtrack(int         i,
         struc2[k - 1] = temp.structure[l1 + k - j - jbegin + 1];
     }
 
+    free(duplexseq_1);
+    free(duplexseq_2);
     free(temp.structure);
   }
 
@@ -3654,10 +3657,11 @@ snoop_backtrack_XS(int        i,
      *      }
      */
   }
-  char  duplexseq_1[j];
-  char  duplexseq_2[n2 - j0 + 2];
 
   if (j0 < n2) {
+    char *duplexseq_1, *duplexseq_2;
+    duplexseq_1 = (char *)vrna_alloc((j) * sizeof(char *));
+    duplexseq_2 = (char *)vrna_alloc((n2 - j0 + 2) * sizeof(char *));
     strncpy(duplexseq_1, snoseq, j - 1);
     strcpy(duplexseq_2, snoseq + j0);
     duplexseq_1[j - 1]        = '\0';
@@ -3678,6 +3682,8 @@ snoop_backtrack_XS(int        i,
         struc2[k - 1] = temp.structure[l1 + k - j0 - jbegin + 1];
     }
 
+    free(duplexseq_1);
+    free(duplexseq_2);
     free(temp.structure);
   }
 
