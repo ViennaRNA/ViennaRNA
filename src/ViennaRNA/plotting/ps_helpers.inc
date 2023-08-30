@@ -27,7 +27,7 @@ print_PS_header(FILE          *fh,
           "%%%%DocumentFonts: Helvetica\n"
           "%%%%Pages: 1\n"
           "%%%%EndComments\n\n",
-          VERSION,
+          VRNA_VERSION,
           vrna_time_stamp(),
           title,
           bbox[0], bbox[1], bbox[2], bbox[3]);
@@ -41,7 +41,16 @@ print_PS_header(FILE          *fh,
     c   = strdup(comments);
 
     ptr2  = c;
+#ifdef _WIN32
+# ifndef __MINGW32__
+    ptr   = strtok_s(c, "\n", &save_ptr);
+# else
     ptr   = strtok_r(c, "\n", &save_ptr);
+# endif
+#else
+    ptr   = strtok_r(c, "\n", &save_ptr);
+#endif
+
     l     = ptr - ptr2;
 
     while (ptr != NULL) {
@@ -54,7 +63,15 @@ print_PS_header(FILE          *fh,
 
       ptr2  = ptr;
       l     = strlen(ptr);
+#ifdef _WIN32
+# ifndef __MINGW32__
+      ptr   = strtok_s(NULL, "\n", &save_ptr);
+# else
       ptr   = strtok_r(NULL, "\n", &save_ptr);
+# endif
+#else
+      ptr   = strtok_r(NULL, "\n", &save_ptr);
+#endif
 
       /* compute number of delimiters between previous and current token */
       l   = ptr - ptr2 - l;

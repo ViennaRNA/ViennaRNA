@@ -22,6 +22,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 
+
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
@@ -579,11 +580,27 @@ vrna_strsplit(const char  *string,
     split = (char **)vrna_alloc(sizeof(char *) * (n + 2));
 
     n     = 0;
+#ifdef _WIN32
+# ifndef __MINGW32__
+    token = strtok_s(ptr2, delim, &save);
+# else
     token = strtok_r(ptr2, delim, &save);
+# endif
+#else
+    token = strtok_r(ptr2, delim, &save);
+#endif
 
     while (token != NULL) {
       split[n++]  = vrna_strdup_printf("%s", token);
-      token       = strtok_r(NULL, delim, &save);
+#ifdef _WIN32
+# ifndef __MINGW32__
+      token = strtok_s(NULL, delim, &save);
+# else
+      token = strtok_r(NULL, delim, &save);
+# endif
+#else
+      token = strtok_r(NULL, delim, &save);
+#endif
     }
 
     split[n] = NULL;
