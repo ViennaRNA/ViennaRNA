@@ -209,7 +209,6 @@ print_state(STATE *state);
 
 
 PRIVATE void
-UNUSED
 print_stack(LIST *list);
 
 
