@@ -323,30 +323,6 @@ unit(const double v[2],
      double       u[2]);
 
 
-/**
- * @brief min
- *      - the typical minimum function. calculates the minimum of two given numbers.
- * @param number1
- * @param number2
- * @return
- *      - the smaller number
- */
-PRIVATE double
-min(const double  number1,
-    const double  number2);
-
-
-/**
- * @brief sign
- *      - calculates the sign of a given number.
- * @param number
- * @return
- *      - the sign of the number
- */
-PRIVATE double
-sign(const double number);
-
-
 PRIVATE void
 circle(const double A[2],
        const double B[2],
@@ -809,29 +785,6 @@ unit(const double v[2],
 
   u[0]  = v[0] / length;
   u[1]  = v[1] / length;
-}
-
-
-PRIVATE double
-min(const double  number1,
-    const double  number2)
-{
-  if (number1 < number2)
-    return number1;
-  else
-    return number2;
-}
-
-
-PRIVATE double
-sign(const double number)
-{
-  if (number > 0.0)
-    return 1.0;
-  else if (number < 0.0)
-    return -1.0;
-  else
-    return 0.0;
 }
 
 
