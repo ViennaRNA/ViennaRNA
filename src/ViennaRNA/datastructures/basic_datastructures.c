@@ -50,10 +50,5 @@
 
 #ifndef VRNA_DISABLE_C11_FEATURES
 PUBLIC void
-vrna_C11_features(void)
-{
-  __asm("nop");
-}
-
-
+vrna_C11_features(void){}
 #endif
