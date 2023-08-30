@@ -32,6 +32,7 @@
 /*
  *  Modifications to synchronize Python IO stream and C FILE * stream
  *  inspired by matplotlib and implemented 2018 by Ronny Lorenz
+ *  Removal of fcntl by Ronny Lorenz in 2023
  */
 
 %{
@@ -44,25 +45,50 @@
 #else
 #include <unistd.h>
 #endif
-#include <fcntl.h>
 %}
 
 %types(FILE *);
 
-/* converts basic file descriptor flags onto a string */
-%fragment("fdfl_to_str", "header") {
+/* converts PyObject (assuming io class) into a mode string */
+%fragment("obj_to_mode", "header") {
 const char *
-fdfl_to_str(int fdfl) {
-
+obj_to_mode(PyObject *obj) {
   static const char * const file_mode[] = {"w+", "w", "r"};
+  PyObject *writable_fn, *readable_fn, *readable_res, *writable_res;
 
-  if (fdfl & O_RDWR) {
-    return file_mode[0];
-  } else if (fdfl & O_WRONLY) {
-    return file_mode[1];
-  } else {
-    return file_mode[2];
+  if (! (readable_fn = PyObject_GetAttrString (obj, "readable"))) {
+    PyErr_SetString (PyExc_TypeError, "Object has no readable function.");
+    return NULL;
   }
+
+  if (! (writable_fn = PyObject_GetAttrString (obj, "writable"))) {
+    PyErr_SetString (PyExc_TypeError, "Object has no writable function.");
+    return NULL;
+  }
+
+  if (! (readable_res = PyObject_CallObject(readable_fn, NULL))) {
+    PyErr_SetString (PyExc_SystemError, "Error calling readable function.");
+    return NULL;
+  }
+
+  if (! (writable_res = PyObject_CallObject(writable_fn, NULL))) {
+    PyErr_SetString (PyExc_SystemError, "Error calling writable function.");
+    return NULL;
+  }
+
+  if (PyObject_IsTrue(readable_res)) {
+    if (PyObject_IsTrue(writable_res)) {
+      return file_mode[0];
+    } else {
+      return file_mode[2];
+    }
+  } else if (PyObject_IsTrue(writable_res)) {
+    return file_mode[1];
+  }
+
+  PyErr_SetString (PyExc_SystemError, "Object is neither readable nor writable.");
+
+  return NULL;
 }
 }
 
@@ -70,19 +96,18 @@ fdfl_to_str(int fdfl) {
 #define SWIG_FILE3_DEBUG
 #endif
 
-%fragment("obj_to_file","header", fragment="fdfl_to_str") {
+%fragment("obj_to_file","header", fragment="obj_to_mode") {
 FILE *
 obj_to_file(PyObject *obj, long int *start_position) {
 %#if PY_VERSION_HEX >= 0x03000000
-  int fd, fd2, fdfl;
+  int fd, fd2;
   long int position;
-  FILE *fp;
+  FILE *fp = NULL;
   PyObject *ret, *os;
   if (!PyLong_Check(obj) &&                                /* is not an integer */
       PyObject_HasAttrString(obj, "fileno") &&             /* has fileno method */
       (PyObject_CallMethod(obj, "flush", NULL) != NULL) && /* flush() succeeded */
-      ((fd = PyObject_AsFileDescriptor(obj)) != -1) &&     /* got file descriptor */
-      ((fdfl = fcntl(fd, F_GETFL)) != -1)                  /* got descriptor flags */
+      ((fd = PyObject_AsFileDescriptor(obj)) != -1)        /* got file descriptor */
     ) {
     os = PyImport_ImportModule("os");
     if (os == NULL)
@@ -97,10 +122,19 @@ obj_to_file(PyObject *obj, long int *start_position) {
     fd2 = (int)PyNumber_AsSsize_t(ret, NULL);
     Py_DECREF(ret);
 
-    fp = fdopen(fd2, fdfl_to_str(fdfl)); /* the FILE* must be flushed
-                                            and closed after being used */
-    if (fp == NULL)
+    const char *mode = obj_to_mode(obj);
+
+    if (mode) {
+      fp = fdopen(fd2, mode); /* the FILE* must be flushed
+                                 and closed after being used */
+    } else {
+      return NULL;
+    }
+
+    if (fp == NULL) {
       PyErr_SetString(PyExc_IOError, "Failed to get FILE * from Python file object");
+      return NULL;
+    }
 
     *start_position = ftell(fp);
 
@@ -129,8 +163,8 @@ obj_to_file(PyObject *obj, long int *start_position) {
     }
 
 #ifdef SWIG_FILE3_DEBUG
-    fprintf(stderr, "opening fd %d (fl %d \"%s\") as FILE %p, start_position %ld, position: %ld\n",
-            fd, fdfl, fdfl_to_str(fdfl), (void *)fp, *start_position, position);
+    fprintf(stderr, "opening fd %d (fl \"%s\") as FILE %p, start_position %ld, position: %ld\n",
+            fd, obj_to_mode(obj), (void *)fp, *start_position, position);
 #endif
     return fp;
   }
@@ -217,13 +251,12 @@ fail_dispose_file:
 
 /* typemap for FILE * arguments that may be NULL */
 %typemap(typecheck, noblock = 1) FILE * nullfile {
-  int fd, fdfl;
+  int fd;
   if (($input == Py_None) ||
       (!PyLong_Check($input) &&                                /* is not an integer */
       PyObject_HasAttrString($input, "fileno") &&             /* has fileno method */
       (PyObject_CallMethod($input, "flush", NULL) != NULL) && /* flush() succeeded */
-      ((fd = PyObject_AsFileDescriptor($input)) != -1) &&     /* got file descriptor */
-      ((fdfl = fcntl(fd, F_GETFL)) != -1)                  /* got descriptor flags */
+      ((fd = PyObject_AsFileDescriptor($input)) != -1)        /* got file descriptor */
     )) {
     $1 = 1;
   } else {
@@ -233,12 +266,11 @@ fail_dispose_file:
 
 /* typemap for all other FILE * arguments */
 %typemap(typecheck, noblock = 1) FILE * {
-  int fd, fdfl;
+  int fd;
   if (!PyLong_Check($input) &&                                /* is not an integer */
       PyObject_HasAttrString($input, "fileno") &&             /* has fileno method */
       (PyObject_CallMethod($input, "flush", NULL) != NULL) && /* flush() succeeded */
-      ((fd = PyObject_AsFileDescriptor($input)) != -1) &&     /* got file descriptor */
-      ((fdfl = fcntl(fd, F_GETFL)) != -1)                  /* got descriptor flags */
+      ((fd = PyObject_AsFileDescriptor($input)) != -1)        /* got file descriptor */
     ) {
     $1 = 1;
   } else {
