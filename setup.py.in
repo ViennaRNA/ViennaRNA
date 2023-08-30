@@ -141,7 +141,8 @@ class vrna_build_ext(build_ext):
     def build_extensions(self):
         for ext in self.extensions:
             # we include config.h, so let's tell the source files about it
-            ext.define_macros += [('HAVE_CONFIG_H', None)]
+            if not self.compiler_is_msvc():
+                ext.define_macros += [('HAVE_CONFIG_H', None)]
 
             ext.libraries += ['m']
 
@@ -158,6 +159,24 @@ class vrna_build_ext(build_ext):
                     # collect all SIMD specific files
                     simd_files = [f for tmp in vrna_simd_files.values() for f in tmp]
                     ext.sources = [s for s in ext.sources if s not in simd_files]
+                else:
+                    ext.define_macros += [('VRNA_WITH_SIMD_AVX512', None)]
+                    ext.define_macros += [('VRNA_WITH_SIMD_SSE41', None)]
+            elif self.compiler_is_msvc():
+                self.with_openmp = False
+                ext.define_macros += [('VRNA_WITH_SIMD_AVX512', None)]
+                ext.define_macros += [('VRNA_WITH_SIMD_SSE41', None)]
+                ext.sources.append("src/@DLIB_DIR@/dlib/all/source.cpp")
+            else:
+                if platform.machine() == "arm64" or "arm64" in os.getenv("ARCHFLAGS", ""):
+                    self.with_simd = False
+                    # collect all SIMD specific files
+                    simd_files = [f for tmp in vrna_simd_files.values() for f in tmp]
+                    ext.sources = [s for s in ext.sources if s not in simd_files]
+                else:
+                    ext.define_macros += [('VRNA_WITH_SIMD_AVX512', None)]
+                    ext.define_macros += [('VRNA_WITH_SIMD_SSE41', None)]
+
 
             for sw in [f.replace('with-', '') for f in vrna_flags]:
                 if getattr(self, 'with_' + sw):
@@ -168,6 +187,14 @@ class vrna_build_ext(build_ext):
                     if getattr(self, sw + '_cflags', None):
                         ext.extra_compile_args += [f for f in getattr(self, sw + '_cflags').split()]
                         ext.extra_link_args += [f for f in getattr(self, sw + '_cflags').split()]
+
+            if self.compiler_is_msvc():
+                ext.libraries.remove("m")
+                try:
+                    ext.libraries.remove("stdc++")
+                except:
+                    pass
+
 
         build_ext.build_extensions(self)
 
