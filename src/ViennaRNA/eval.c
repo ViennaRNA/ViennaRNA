@@ -22,7 +22,17 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
+
+#ifdef _WIN32
+#ifdef __MINGW32__
 #include <unistd.h>
+#else
+#include "ViennaRNA/unistd_win.h"
+#endif
+#else
+#include <unistd.h>
+#endif
+
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"

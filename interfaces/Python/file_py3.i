@@ -35,7 +35,15 @@
  */
 
 %{
+#ifdef _WIN32
+#ifdef __MINGW32__
 #include <unistd.h>
+#else
+#include "ViennaRNA/unistd_win.h"
+#endif
+#else
+#include <unistd.h>
+#endif
 #include <fcntl.h>
 %}
 

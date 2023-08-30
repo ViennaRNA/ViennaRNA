@@ -60,7 +60,17 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>    /* #defines FLT_MAX ... */
+
+#ifdef _WIN32
+#ifdef __MINGW32__
 #include <unistd.h>
+#else
+#include "ViennaRNA/unistd_win.h"
+#endif
+#else
+#include <unistd.h>
+#endif
+
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/default.h"

@@ -10,7 +10,17 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
+#ifdef __MINGW32__
 #include <unistd.h>
+#else
+#include "ViennaRNA/unistd_win.h"
+#endif
+#else
+#include <unistd.h>
+#endif
+
 #include <ctype.h>
 #include <string.h>
 #include <math.h>

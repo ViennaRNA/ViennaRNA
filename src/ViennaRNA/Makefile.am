@@ -507,7 +507,8 @@ noinst_HEADERS  = params/intl11.h \
                   ${SVM_H} \
                   ${JSON_H} \
                   special_const.h \
-                  ${CEPHES_H}
+                  ${CEPHES_H} \
+                  unistd_win.h
 
 nodist_pkginclude_HEADERS = vrna_config.h
 
@@ -535,7 +536,8 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \
-              special_const.h
+              special_const.h \
+              unistd_win.h
 
 if VRNA_AM_SWITCH_SVM
 EXTRA_DIST += zscore_dat.inc
