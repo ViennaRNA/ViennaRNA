@@ -243,8 +243,8 @@ struct var_array {};
       max_i = var_array_data_size_sqr(max_i);
 
     /* also handle negative indices here */
-    if (((i < 0) && (-i >= max_i)) ||
-        ((i >= 0) && (i >= max_i)))
+    if (((i < 0) && ((size_t)-i >= max_i)) ||
+        ((i >= 0) && ((size_t)i >= max_i)))
       throw std::out_of_range("out of bounds access");
 
     if (i < 0)
@@ -265,8 +265,8 @@ struct var_array {};
       max_i = var_array_data_size_sqr(max_i);
 
     /* also handle negative indices here */
-    if (((i < 0) && (-i >= max_i)) ||
-        ((i >= 0) && (i >= max_i)))
+    if (((i < 0) && ((size_t)-i >= max_i)) ||
+        ((i >= 0) && ((size_t)i >= max_i)))
       throw std::out_of_range("out of bounds access");
 
     if (i < 0)
