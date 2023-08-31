@@ -86,7 +86,7 @@ def up_split_callback(v, v_size, i, maxsize, what, data):
 
 
 class pf_window_functionTest(unittest.TestCase):
-    DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
+    DATADIR = os.environ.get('VRNA_TEST_DATA', os.sep.join(["tests", "data"]))
 
     def test_pfl_fold(self):
         """RNA.pfl_fold() - sanity check for base pair probabilities"""
@@ -137,8 +137,8 @@ class pf_window_functionTest(unittest.TestCase):
         benchmark_set = ["Lysine_riboswitch_T._martima", "TPP_riboswitch_E.coli" ]
 
         for b in benchmark_set:
-            seq  =  getShapeSequenceFromFile(self.DATADIR + "/" + b + ".db")
-            reactivities = getShapeDataFromFile(self.DATADIR + "/" + b + ".shape_2rows")
+            seq  =  getShapeSequenceFromFile(os.sep.join([self.DATADIR, b + ".db"]))
+            reactivities = getShapeDataFromFile(os.sep.join([self.DATADIR, b + ".shape_2rows"]))
             data = { 'bpp': [], 'up': []}
 
             md = RNA.md()

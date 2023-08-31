@@ -10,42 +10,42 @@ import RNA
 
 
 class file_utils_msa_Test(unittest.TestCase):
-    DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
+    DATADIR = os.environ.get('VRNA_TEST_DATA', os.sep.join(["tests", "data"]))
 
     def test_file_msa_detect_format_stk(self):
         """Detect STOCKHOLM formatted MSA file"""
-        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/rfam_seed_selected.stk")
+        msa_format = RNA.file_msa_detect_format(os.sep.join([self.DATADIR, "rfam_seed_selected.stk"]))
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_STOCKHOLM)
 
 
     def test_file_msa_detect_format_clustal(self):
         """Detect CLUSTAL formatted MSA file"""
-        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/070313_ecoli_cdiff_16S_clustalw.aln")
+        msa_format = RNA.file_msa_detect_format(os.sep.join([self.DATADIR, "070313_ecoli_cdiff_16S_clustalw.aln"]))
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_CLUSTAL)
 
 
     def test_file_msa_detect_format_fasta(self):
         """Detect FASTA formatted MSA file"""
-        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/070313_ecoli_cdiff_16S_fasta.aln")
+        msa_format = RNA.file_msa_detect_format(os.sep.join([self.DATADIR, "070313_ecoli_cdiff_16S_fasta.aln"]))
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_FASTA)
 
 
     def test_file_msa_detect_format_maf(self):
         """Detect MAF formatted MSA file"""
-        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/test.maf")
+        msa_format = RNA.file_msa_detect_format(os.sep.join([self.DATADIR, "test.maf"]))
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_MAF)
 
 
     def test_file_msa_detect_format_unknown(self):
         """Detect unknown MSA file format"""
-        msa_format = RNA.file_msa_detect_format(self.DATADIR + "/rnafold.cmds")
+        msa_format = RNA.file_msa_detect_format(os.sep.join([self.DATADIR, "rnafold.cmds"]))
         self.assertTrue(msa_format == RNA.FILE_FORMAT_MSA_UNKNOWN)
 
 
     def test_file_msa_read_stk(self):
         """Read Stockholm formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(self.DATADIR + "/rfam_seed_selected.stk",
+            RNA.file_msa_read(os.sep.join([self.DATADIR, "rfam_seed_selected.stk"]),
                               RNA.FILE_FORMAT_MSA_STOCKHOLM | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -64,7 +64,7 @@ class file_utils_msa_Test(unittest.TestCase):
     def test_file_msa_read_clustal(self):
         """Read Clustal formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(self.DATADIR + "/070313_ecoli_cdiff_16S_clustalw.aln",
+            RNA.file_msa_read(os.sep.join([self.DATADIR, "070313_ecoli_cdiff_16S_clustalw.aln"]),
                               RNA.FILE_FORMAT_MSA_CLUSTAL | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -80,7 +80,7 @@ class file_utils_msa_Test(unittest.TestCase):
     def test_file_msa_read_fasta(self):
         """Read FASTA formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(self.DATADIR + "/070313_ecoli_cdiff_16S_fasta.aln",
+            RNA.file_msa_read(os.sep.join([self.DATADIR, "070313_ecoli_cdiff_16S_fasta.aln"]),
                               RNA.FILE_FORMAT_MSA_FASTA | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -96,7 +96,7 @@ class file_utils_msa_Test(unittest.TestCase):
     def test_file_msa_read_maf(self):
         """Read MAF formatted MSA file"""
         n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
-            RNA.file_msa_read(self.DATADIR + "/test.maf",
+            RNA.file_msa_read(os.sep.join([self.DATADIR, "test.maf"]),
                               RNA.FILE_FORMAT_MSA_MAF | \
                               RNA.FILE_FORMAT_MSA_SILENT)
 
@@ -111,7 +111,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
     def test_file_msa_read_multi_stk(self):
         """Read Multiple MSAs from Stockholm file"""
-        f = open(self.DATADIR + "/rfam_seed_selected.stk", 'r')
+        f = open(os.sep.join([self.DATADIR, "rfam_seed_selected.stk"]), 'r')
         counter = 0
         while True:
             n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \
@@ -135,7 +135,7 @@ class file_utils_msa_Test(unittest.TestCase):
 
     def test_file_msa_read_multi_maf(self):
         """Read multiple MSAs from MAF file"""
-        f = open(self.DATADIR + "/test.maf", 'r')
+        f = open(os.sep.join([self.DATADIR, "test.maf"]), 'r')
         counter = 0
         while True:
             n_seq, sequence_identifiers, alignment, alignment_id, consensus_structure = \

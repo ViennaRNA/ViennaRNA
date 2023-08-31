@@ -43,12 +43,12 @@ def getShapeSequenceFromFile(filepath):
     return lines[0]
 
 class constraintsTest(unittest.TestCase):
-    DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
+    DATADIR = os.environ.get('VRNA_TEST_DATA', os.sep.join(["tests", "data"]))
 
     def test_sc_add_deigan(self):
         """SHAPE data Deigan et al. 2009 method - Lysine riboswitch"""
-        seq          = getShapeSequenceFromFile(self.DATADIR + "/Lysine_riboswitch_T._martima.db")
-        reactivities = getShapeDataFromFile(self.DATADIR + "/Lysine_riboswitch_T._martima.shape_2rows")
+        seq          = getShapeSequenceFromFile(os.sep.join([self.DATADIR, "Lysine_riboswitch_T._martima.db"]))
+        reactivities = getShapeDataFromFile(os.sep.join([self.DATADIR, "Lysine_riboswitch_T._martima.shape_2rows"]))
 
         fc=RNA.fold_compound(seq)
         print(reactivities)
@@ -61,8 +61,8 @@ class constraintsTest(unittest.TestCase):
 
     def test_sc_add_SHAPE_deigan2(self):
         """SHAPE data Deigan et al. 2009 method - TPP riboswitch"""
-        seq_ribo     = getShapeSequenceFromFile(self.DATADIR + "/TPP_riboswitch_E.coli.db")
-        reactivities = getShapeDataFromFile(self.DATADIR + "/TPP_riboswitch_E.coli.shape_2rows")
+        seq_ribo     = getShapeSequenceFromFile(os.sep.join([self.DATADIR, "TPP_riboswitch_E.coli.db"]))
+        reactivities = getShapeDataFromFile(os.sep.join([self.DATADIR, "TPP_riboswitch_E.coli.shape_2rows"]))
 
         fc=RNA.fold_compound(seq_ribo)
         print(reactivities)
@@ -93,9 +93,9 @@ class constraintsTest(unittest.TestCase):
 
     def test_sc_add_SHAPE_zarringhalam(self):
         """SHAPE data Zarringhalam et al 2012 method"""
-        seq_ribo     = getShapeSequenceFromFile(self.DATADIR + "/TPP_riboswitch_E.coli.db")
+        seq_ribo     = getShapeSequenceFromFile(os.sep.join([self.DATADIR, "TPP_riboswitch_E.coli.db"]))
         fc           = RNA.fold_compound(seq_ribo)
-        reactivities = getShapeDataFromFile(self.DATADIR + "/TPP_riboswitch_E.coli.shape_2rows")
+        reactivities = getShapeDataFromFile(os.sep.join([self.DATADIR, "TPP_riboswitch_E.coli.shape_2rows"]))
 
         ret = fc.sc_add_SHAPE_zarringhalam(reactivities, 0.5, 0.5, "O"); # these values were copied from ronnys Talk about constraints, O = default value
         (ss,mfe) = fc.mfe()

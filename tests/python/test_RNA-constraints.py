@@ -19,7 +19,7 @@ def mfe_window_callback(start, end, structure, energy, data=None):
 
 
 class constraintsTest(unittest.TestCase):
-    DATADIR = os.environ.get('VRNA_TEST_DATA', "tests/data")
+    DATADIR = os.environ.get('VRNA_TEST_DATA', os.sep.join(["tests", "data"]))
 
     def test_constraints_add(self):
         """Add (hard and soft) contraints from file"""
@@ -28,7 +28,7 @@ class constraintsTest(unittest.TestCase):
         #hc.txt=    "P 1 0 2"
         #str_con=    "..........(((....)))"
 
-        hc_file = self.DATADIR + "/hc.txt"
+        hc_file = os.sep.join([self.DATADIR, "hc.txt"])
         fc = RNA.fold_compound(seq_con)
         fc.constraints_add(hc_file)
         (ss,mfe) = fc.mfe()
@@ -41,7 +41,7 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual(ss,str_con_def)
 
         #sc.txt = E 3 8 1 -5
-        sc_file = self.DATADIR + "/sc.txt"
+        sc_file = os.sep.join([self.DATADIR, "/sc.txt"])
         fc.sc_init()
         fc.constraints_add(sc_file)
         (ss,mfeNew) = fc.mfe()
