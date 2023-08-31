@@ -34,52 +34,6 @@ AC_CHECK_PROGS([SPHINXBUILD], [sphinx-build sphinx-build3], [no])
 RNA_PACKAGE_IF_ENABLED([doc],[
   if test "x$doxygen" != xno;
   then
-
-    # test for programs necessary in order to use doxygen
-    if test "x$LATEX_CMD" = xno;
-    then
-      AC_MSG_WARN([Could not find pdflatex!])
-      AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
-      doxygen_failed="pdflatex command is missing!"
-      doxygen=no
-    else
-      RNA_LATEX_TEST_PACKAGES(
-        [amsfonts amsmath array caption courier etoc fancyhdr fixltx2e fontenc geometry graphicx helvet hyperref ifthen ifxetex inputenc makeidx natbib newunicodechar sectsty textcomp tocloft wasysym], [], [
-          doxygen_failed="Required LaTeX packages are missing!"
-          doxygen=no
-      ])
-    fi
-
-    if test "x$makeindex" = xno;
-    then
-      AC_MSG_WARN([makeindex command not found on your system!])
-      AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
-      doxygen_failed="makeindex command is missing!"
-      doxygen=no
-    fi
-
-    if test "x$bibtex" = xno;
-    then
-      AC_MSG_WARN([bibtex command not found on your system!])
-      AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
-      doxygen_failed="bibtex command is missing!"
-      doxygen=no
-    fi
-
-    if test "x$grep" = xno;
-    then
-      AC_MSG_WARN([grep command not found on your system!])
-      AC_MSG_WARN([deactivating automatic (re)generation of reference manual!])
-      doxygen_failed="grep command is missing!"
-      doxygen=no
-    fi
-
-    if test "x$dot" = xno;
-    then
-      AC_MSG_WARN([dot command not found on your system!])
-      AC_MSG_WARN([deactivating graph output in reference manual!])
-    fi
-
     if test "x$perl" = xno;
     then
       AC_MSG_WARN([perl command not found on your system!])
