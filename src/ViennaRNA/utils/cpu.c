@@ -105,6 +105,10 @@ PRIVATE INLINE int
 execute_cpuid(uint32_t *regs)
 {
 #if defined(__x86_64__) || defined(_M_AMD64) || defined (_M_X64)
+# ifdef _WIN32
+#   ifndef __MINGW32__
+  __cpuidex(regs, regs[0], regs[2]);
+#   else
   __asm__ __volatile__ ("cpuid"
                         : "=a" (regs[0]),
                         "=b" (regs[1]),
@@ -112,7 +116,16 @@ execute_cpuid(uint32_t *regs)
                         "=d" (regs[3])
                         : "0" (regs[0]),
                         "2" (regs[2]));
-
+#   endif
+# else
+  __asm__ __volatile__ ("cpuid"
+                        : "=a" (regs[0]),
+                        "=b" (regs[1]),
+                        "=c" (regs[2]),
+                        "=d" (regs[3])
+                        : "0" (regs[0]),
+                        "2" (regs[2]));
+# endif
   return 1;
 #else
   return 0;
