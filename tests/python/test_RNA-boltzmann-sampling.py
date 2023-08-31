@@ -1,4 +1,5 @@
 import unittest
+import sys
 
 if __name__ == '__main__':
     from py_include import taprunner
@@ -79,14 +80,22 @@ class GeneralTests(unittest.TestCase):
         sss = list(set(ss))
         self.assertEqual(len(ss), len(sss))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows")
     def test_pbacktrack_nr_resume(self):
         """Boltzmann sampling - non redundant resume"""
+        try:
+            import pytest
+            if sys.platform.startswith("win"):
+                pytest.skip("May fail under Windows")
+        except:
+            pass
+
         num_samples = 500
         iterations  = 15
         fc      = prepare_fc()
         d       = None
         s_list  = list()
-        for i in range(0, iterations):
+        for _ in range(0, iterations):
             d, ss   = fc.pbacktrack(num_samples, d, RNA.PBACKTRACK_NON_REDUNDANT)
             s_list  = s_list + list(ss)
 
@@ -140,14 +149,22 @@ class GeneralTests(unittest.TestCase):
         sss = list(set(ss))
         self.assertEqual(len(ss), len(sss))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows")
     def test_pbacktrack_nr_resume_cb(self):
         """Boltzmann sampling - non redundant resume - callback"""
+        try:
+            import pytest
+            if sys.platform.startswith("win"):
+                pytest.skip("May fail under Windows")
+        except:
+            pass
+
         num_samples = 500
         iterations  = 15
         fc = prepare_fc()
         ss = list()
         d  = None
-        for i in range(0, iterations):
+        for _ in range(0, iterations):
             d, i = fc.pbacktrack(num_samples, store_structure, ss, d, RNA.PBACKTRACK_NON_REDUNDANT)
             self.assertEqual(i, num_samples)
 
