@@ -411,6 +411,8 @@ vrna_rotational_symmetry_db_pos(vrna_fold_compound_t  *fc,
       unsigned int  *shifts, s, r, i, j, ii, jj, string_permutations;
       short         *pt;
 
+      shifts = NULL;
+
       /* any structure has rotational symmetry of at least order 1, i.e. identity */
       string_permutations = permutations = 1;
 
