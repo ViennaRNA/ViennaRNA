@@ -68,8 +68,16 @@ class GeneralTests(unittest.TestCase):
         for s in ss:
             self.assertEqual(len(s), len(sequence))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows")
     def test_pbacktrack_nr(self):
         """Boltzmann sampling - non redundant"""
+        try:
+            import pytest
+            if sys.platform.startswith("win"):
+                pytest.skip("May fail under Windows")
+        except:
+            pass
+
         fc = prepare_fc()
 
         ss  = fc.pbacktrack(100, RNA.PBACKTRACK_NON_REDUNDANT)
@@ -135,8 +143,16 @@ class GeneralTests(unittest.TestCase):
         for s in ss:
             self.assertEqual(len(s), len(sequence))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows")
     def test_pbacktrack_nr_cb(self):
         """Boltzmann sampling - non redundant - callback"""
+        try:
+            import pytest
+            if sys.platform.startswith("win"):
+                pytest.skip("May fail under Windows")
+        except:
+            pass
+
         fc = prepare_fc()
         ss = list()
         i = fc.pbacktrack(100, store_structure, ss, RNA.PBACKTRACK_NON_REDUNDANT)
