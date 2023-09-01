@@ -287,6 +287,7 @@ vrna_file_msa_read(const char   *filename,
     *names  = NULL;
     *aln    = NULL;
   } else {
+    fclose(fp);
     return seq_num;
   }
 
