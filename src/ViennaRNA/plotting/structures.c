@@ -185,6 +185,7 @@ rnaplot_EPS(const char          *seq,
   xyplot = fopen(ssfile, "w");
   if (xyplot == NULL) {
     vrna_message_warning("can't open file %s - not doing xy_plot", ssfile);
+    free(string);
     return 0;
   }
 
