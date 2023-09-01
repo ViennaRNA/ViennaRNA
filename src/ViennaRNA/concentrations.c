@@ -44,8 +44,7 @@ Newton_Conc(double  ZAB,
             double  ZAA,
             double  ZBB,
             double  concA,
-            double  concB,
-            double  *ConcVec);
+            double  concB);
 
 
 PRIVATE double *
@@ -100,8 +99,7 @@ vrna_pf_dimer_concentrations(double                 FcAB,
                           KAA,
                           KBB,
                           startconc[i],
-                          startconc[i + 1],
-                          ConcVec);
+                          startconc[i + 1]);
     Concentration[i / 2].Ac_start = startconc[i];
     Concentration[i / 2].Bc_start = startconc[i + 1];
     Concentration[i / 2].ABc      = ConcVec[0];
@@ -127,10 +125,9 @@ Newton_Conc(double  KAB,
             double  KAA,
             double  KBB,
             double  concA,
-            double  concB,
-            double  *ConcVec)
+            double  concB)
 {
-  double  TOL, EPS, xn, yn, det, cA, cB;
+  double  TOL, EPS, xn, yn, det, cA, cB, *ConcVec;
   int     i;
 
   i = 0;
