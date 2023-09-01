@@ -2700,6 +2700,9 @@ BT_fms5_split(vrna_fold_compound_t  *fc,
   sc_ext_red_cb             sc_red_stem;
   sc_ext_red_cb             sc_red_ext;
 
+  if (!ms_dat)
+    return 0;
+
   S1            = fc->sequence_encoding;
   S2            = fc->sequence_encoding2;
   sn            = fc->strand_number;
