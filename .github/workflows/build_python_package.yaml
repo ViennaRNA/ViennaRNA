@@ -29,7 +29,7 @@ jobs:
       - name: install prerequisites
         run:  |
           sudo apt-get update
-          sudo apt-get -y install build-essential autoconf automake swig doxygen gengetopt help2man libtool check graphviz doxygen-latex
+          sudo apt-get -y install build-essential autoconf automake swig doxygen gengetopt help2man libtool check graphviz python3-sphinx 
       - name: autotools setup
         run:  |
           autoreconf -i
@@ -43,8 +43,8 @@ jobs:
           make
       - name: prepare doxygen XML
         run: |
-          cd doc
-          make refman-html
+          cd doc/doxygen
+          make doxygen-xml
       - name: prepare Python wrapper
         run: |
           cd interfaces/Python
@@ -70,7 +70,7 @@ jobs:
       # Ensure that a wheel builder finishes even if another fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - uses: actions/download-artifact@v3
@@ -90,11 +90,15 @@ jobs:
         #   CIBW_SOME_OPTION: value
         env:
           CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: VRNA_TEST_DATA={package}/tests/data pytest {package}/tests/python
+          CIBW_TEST_COMMAND: pytest --datadir {package}/tests/data {package}/tests/python
           CIBW_SKIP: cp37-* pp*
           CIBW_ENVIRONMENT: VRNA_SDIST_FILE=$VRNA_SDIST_FILE
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.14 CC=clang CXX=clang++
           CIBW_ARCHS_MACOS: x86_64 arm64
+      - name: Set sdist environment variable for windows
+        if: runner.os == 'Windows'
+        run:  |
+          echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$env:GITHUB_ENV"
       - name: Build wheels - Windows
         if: runner.os == 'Windows'
         uses: pypa/cibuildwheel@v2.13.1
@@ -105,10 +109,11 @@ jobs:
         # env:
         #   CIBW_SOME_OPTION: value
         env:
+          CIBW_ARCHS_WINDOWS: "AMD64"
+          CIBW_ENVIRONMENT_WINDOWS: VRNA_SDIST_FILE=$env:VRNA_SDIST_FILE
           CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: VRNA_TEST_DATA={package}/tests/data pytest {package}/tests/python
+          CIBW_TEST_COMMAND_WINDOWS: pytest --datadir {package}\tests\data {package}\tests\python
           CIBW_SKIP: cp37-* pp*
-          CIBW_ENVIRONMENT: VRNA_SDIST_FILE=$env:VRNA_SDIST_FILE
       - uses: actions/upload-artifact@v3
         with:
           path: ./dist/*.whl
