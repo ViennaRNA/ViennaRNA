@@ -140,6 +140,7 @@ class vrna_build_ext(build_ext):
 
     def build_extensions(self):
         for ext in self.extensions:
+            ext.define_macros += [('VRNA_VERSION', "\"@PACKAGE_VERSION@\"")]
             # we include config.h, so let's tell the source files about it
             if not self.compiler_is_msvc():
                 ext.define_macros += [('HAVE_CONFIG_H', None)]

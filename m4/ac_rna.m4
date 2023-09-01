@@ -124,6 +124,8 @@ AC_SUBST(VRNA_VERSION_MAJOR)
 AC_SUBST(VRNA_VERSION_MINOR)
 AC_SUBST(VRNA_VERSION_PATCH)
 
+AC_DEFINE_UNQUOTED([VRNA_VERSION], ["$VERSION"], [version of ViennaRNA Package])
+
 ##------------------##
 ## Prepare files    ##
 ##------------------##

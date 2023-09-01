@@ -344,7 +344,7 @@ gmlRNA(char *string,
           "# GML Output\n"
           "# CreationDate: %s\n"
           "# Name: %s\n"
-          "# Options: %s\n", VERSION, vrna_time_stamp(), ssfile, option_string());
+          "# Options: %s\n", VRNA_VERSION, vrna_time_stamp(), ssfile, option_string());
   fprintf(gmlfile,
           "graph [\n"
           " directed 0\n");
@@ -984,7 +984,7 @@ ssv_rna_plot(char *string,
           "# SStructView Output\n"
           "# CreationDate: %s\n"
           "# Name: %s\n"
-          "# Options: %s\n", VERSION, vrna_time_stamp(), ssfile, option_string());
+          "# Options: %s\n", VRNA_VERSION, vrna_time_stamp(), ssfile, option_string());
   for (i = 1; i <= length; i++)
     fprintf(ssvfile, "BASE\t%d\t%c\t%d\t%d\n",
             i, string[i - 1], (int)(X[i - 1] + 0.5), (int)(Y[i - 1] + 0.5));
@@ -1032,7 +1032,7 @@ xrna_plot(char  *string,
   fprintf(ss_file,
           "# Vienna RNA Package %s, XRNA output\n"
           "# CreationDate: %s\n"
-          "# Options: %s\n", VERSION, vrna_time_stamp(), option_string());
+          "# Options: %s\n", VRNA_VERSION, vrna_time_stamp(), option_string());
   for (i = 1; i <= length; i++)
     /* XRNA likes to have coordinate mirrored, so we use (-X, Y) */
     fprintf(ss_file, "%d %c %6.2f %6.2f %d %d\n", i, string[i - 1],
