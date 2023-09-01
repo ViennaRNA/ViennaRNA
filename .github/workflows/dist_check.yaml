@@ -43,7 +43,10 @@ jobs:
           python2 \
           python2-dev \
           graphviz \
-          doxygen-latex
+          python3-sphinx \
+          texlive-latex-recommended \
+          texlive-latex-extra \
+          texlive-fonts-recommended
     - name: Autotools setup
       run:  |
         tar -xjf src/dlib-19.24.tar.bz2 -C src
