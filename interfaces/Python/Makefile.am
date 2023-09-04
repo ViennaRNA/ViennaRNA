@@ -1,7 +1,7 @@
 include $(top_srcdir)/silent_rules.mk
 include ../generic.mk
 
-if WITH_REFERENCE_MANUAL
+if WITH_REFERENCE_MANUAL_XML
 doxy2swig_pydoc_file = documentation.i
 doxy2swig_pydoc_define = -DDOXY2SWIG
 else
@@ -86,7 +86,7 @@ _RNA_la_LDFLAGS = -Xcompiler $(PTHREAD_CFLAGS) \
 
 if HAS_SWIG
 
-if WITH_REFERENCE_MANUAL
+if WITH_REFERENCE_MANUAL_XML
 
 documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv $(srcdir)/../ignore_list.csv
 	$(doxy2swig_verbose)test -d $(top_builddir)/doc/doxygen/xml || ( test -d $(top_srcdir)/doc/doxygen/xml && $(LN_S) $(top_srcdir)/doc/doxygen/xml $(top_builddir)/doc/doxygen/xml ) && \
@@ -112,7 +112,7 @@ documentation.i: $(srcdir)/../classify.csv $(srcdir)/../typedefs.csv $(srcdir)/.
       $(top_builddir)/doc/doxygen/xml/index.xml \
       documentation.i
 
-endif WITH_REFERENCE_MANUAL
+endif WITH_REFERENCE_MANUAL_XML
 
 $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
 	$(swig_verbose)$(SWIG) \
