@@ -295,7 +295,7 @@ Sub Packages
   * Analyse{Dists,Seqs}       : ${result_cluster}
   * RNAlocmin                 : ${result_rnalocmin}
   * Kinwalker                 : ${result_kinwalker}
-  * RNAxplorer                : ${result_rnaxplorer}
+  * RNAxplorer                : ${result_rnaxplorer} ${rnaxplorer_failed}
 
 Extra Libraries
 ---------------

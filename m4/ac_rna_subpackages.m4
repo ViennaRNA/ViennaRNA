@@ -97,7 +97,34 @@ AC_DEFUN([RNA_ENABLE_PKG_RNAXPLORER],[
                   [${srcdir}/src/RNAxplorer/Makefile.am])
 
   RNA_PACKAGE_IF_ENABLED([rnaxplorer],[
-    AC_CONFIG_SUBDIRS([src/RNAxplorer])
+    rnaxplorer_requirements="no"
+    rnaxplorer_failed=""
+    AC_REQUIRE([AX_LAPACK])
+
+    if test "x$ax_lapack_ok" != "xno";
+    then
+      AC_CHECK_HEADERS([openblas/lapacke.h lapacke/lapacke.h lapacke.h],
+                       [rnaxplorer_requirements=yes; rnaxplorer_failed=""; break;],
+                       [rnaxplorer_failed="(missing lapacke.h)"])
+    else
+      rnaxplorer_failed="(missing lapack/blas)"
+    fi
+
+    if test "x$rnaxplorer_requirements" = "xyes";
+    then
+      AC_CONFIG_SUBDIRS([src/RNAxplorer])
+    else
+      AC_MSG_WARN([
+========================================
+Unable to detect all lapack requirements
+to build the subpackage RNAxplorer!
+
+  ${rnaxplorer_failed}
+
+Deactivating build of RNAxplorer...
+========================================])
+      with_rnaxplorer=no
+    fi
   ])
 
   AM_CONDITIONAL(MAKE_RNAXPLORER, test "x$with_rnaxplorer" != "xno")

@@ -37,7 +37,6 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_CC_C99
 
 if test "$GCC" = yes; then
    AC_DEFINE(UNUSED, __attribute__ ((unused)), avoid warning about unused variables)
