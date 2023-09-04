@@ -146,6 +146,24 @@ struct var_array {};
       free($self->data);
     free($self);
   }
+
+  std::string
+  type()
+  {
+    std::ostringstream out;
+
+    if ($self->type & VAR_ARRAY_LINEAR)
+      out << "RNA.VAR_ARRAY_LINEAR";
+    else  if ($self->type & VAR_ARRAY_TRI)
+      out << "RNA.VAR_ARRAY_TRI";
+    else  if ($self->type & VAR_ARRAY_SQR)
+      out << "RNA.VAR_ARRAY_SQR";
+
+    if ($self->type & VAR_ARRAY_ONE_BASED)
+      out << " | RNA.VAR_ARRAY_ONE_BASED";
+
+    return std::string(out.str());
+  }
 };
 
 
@@ -297,6 +315,74 @@ class var_array_Iterator:
 %}
 
 %extend var_array {
+
+%pythoncode %{
+def __str__(self):
+    return "{ data: [" + ",".join([str(s) for s in self]) + "], type: " + self.type() + "}"
+
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+
+def __iter__(self):
+    return var_array_Iterator(self)
+
+%}
+
+};
+
+
+%extend var_array<vrna_move_t> {
+  var_array<vrna_move_t> * __getitem__(PyObject *ob) {
+    size_t        n, real_i, max_i;
+    unsigned int  type;
+    Py_ssize_t    start, stop, step, slice_l, l;
+    var_array<vrna_move_t>  *a;
+
+    if (PySlice_Check(ob)) {
+      a = NULL;
+      max_i = $self->length;
+
+      if ($self->type & VAR_ARRAY_TRI)
+        max_i = var_array_data_size_tri(max_i - 1);
+      else if ($self->type & VAR_ARRAY_SQR)
+        max_i = var_array_data_size_sqr(max_i);
+
+      l = max_i;
+
+
+      if (PySlice_GetIndicesEx(ob, l, &start, &stop, &step, &slice_l) == 0) {
+        real_i  = 0;
+        type    = $self->type;
+        n       = slice_l;
+
+        if (n > 0) {
+          a = (var_array<vrna_move_t> *)vrna_alloc(sizeof(var_array<vrna_move_t>));
+          a->data   = (vrna_move_t *)vrna_alloc(sizeof(vrna_move_t) * n);
+          /* copy slice data */
+          for (Py_ssize_t i = start; i < stop; i += step, real_i++)
+            a->data[real_i] = $self->data[i];
+
+          a->length = n;
+          a->type   = type | VAR_ARRAY_OWNED;
+        }
+      } else {
+        return NULL;
+      }
+
+    } else {
+      PyErr_SetString(PyExc_TypeError, "Expected integer or slice object");
+      return 0;
+    }
+
+    return a;
+  }
+}
+
+%define varArrayExtend__getitem__(name, T)
+%extend name<T> {
   var_array<T> * __getitem__(PyObject *ob) {
     size_t        n, real_i, max_i;
     unsigned int  type;
@@ -355,47 +441,19 @@ class var_array_Iterator:
 
     return a;
   }
+}
+%enddef
 
-  std::string
-  __str__()
-  {
-    size_t n = $self->length;
+varArrayExtend__getitem__(var_array, unsigned char)
+varArrayExtend__getitem__(var_array, char)
+varArrayExtend__getitem__(var_array, short)
+varArrayExtend__getitem__(var_array, unsigned int)
+varArrayExtend__getitem__(var_array, int)
+varArrayExtend__getitem__(var_array, FLT_OR_DBL)
 
-    if ($self->type & VAR_ARRAY_ONE_BASED)
-      n += 1;
-
-    if ($self->type & VAR_ARRAY_TRI)
-      n = var_array_data_size_tri(n - 1);
-    else if ($self->type & VAR_ARRAY_SQR)
-      n = var_array_data_size_tri(n);
-
-    std::ostringstream out;
-    out << "{ data: [" << $self->data[0];
-    for (size_t i = 1; i < n; i++)
-      out << ", " << $self->data[i];
-    out << "], ";
-    out << "type: " << var_array_type_str($self);
-    out << " }";
-
-    return std::string(out.str());
-  }
-
-%pythoncode %{
-def __repr__(self):
-    # reformat string representation (self.__str__()) to something
-    # that looks like a constructor argument list
-    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
-    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
-
-def __iter__(self):
-    return var_array_Iterator(self)
-
-%}
-
-};
+%class_output_typemaps(var_array<vrna_move_t>)
 
 #endif
-
 
 %template (varArrayUChar) var_array<unsigned char>;
 %template (varArrayChar) var_array<char>;
@@ -403,6 +461,9 @@ def __iter__(self):
 %template (varArrayUInt) var_array<unsigned int>;
 %template (varArrayInt) var_array<int>;
 %template (varArrayFLTorDBL) var_array<FLT_OR_DBL>;
+%template (varArrayMove) var_array<vrna_move_t>;
+
+
 
 %constant unsigned int VAR_ARRAY_LINEAR     = VAR_ARRAY_LINEAR;
 %constant unsigned int VAR_ARRAY_TRI        = VAR_ARRAY_TRI;
