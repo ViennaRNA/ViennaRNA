@@ -24,9 +24,9 @@ if test x"$CPPFLAGS" = x""; then
 fi
 
 AC_ARG_ENABLE([debug],
-              AC_HELP_STRING([--enable-debug],
-              [compile with debug symbols @<:@default=no@:>@]),
-              [want_debug="$enableval"], [want_debug=no])
+              AS_HELP_STRING([--enable-debug], [compile with debug symbols @<:@default=no@:>@]),
+              [want_debug="$enableval"],
+              [want_debug=no])
 
 if test "x$want_debug" = "xyes"; then
   CFLAGS="$CFLAGS -O0 -ggdb"
@@ -68,7 +68,6 @@ AC_CONFIG_HEADERS([config.h])
 
 AM_PROG_AR
 
-AC_PROG_LIBTOOL
 LT_INIT([pic-only, static])
 AC_SUBST(LIBTOOL_DEPS)
 
@@ -76,10 +75,7 @@ dnl Vienna RNA package library path support, if not installed in standard direct
 VRNA_OK=true
 
 AC_ARG_WITH([vrna],
-    AC_HELP_STRING(
-        [--with-vrna=PREFIX],
-        [Installation directory of the Vienna RNA library]
-      )
+    AS_HELP_STRING([--with-vrna=PREFIX], [Installation directory of the Vienna RNA library])
 )
 
 dnl require rna lib linking
@@ -164,7 +160,9 @@ AC_CHECK_FUNCS([strdup])
 
 AC_RXP_INIT
 
-AC_OUTPUT([packaging/RNAxplorer.spec packaging/PKGBUILD])
+AC_CONFIG_FILES([packaging/RNAxplorer.spec packaging/PKGBUILD])
+
+AC_OUTPUT
 
 AC_RXP_NOTICE
 
