@@ -2,75 +2,70 @@
 /* BEGIN interface for neighbor generation          */
 /****************************************************/
 
-%apply  std::vector<vrna_move_t> *OUTPUT { std::vector<vrna_move_t> *invalid_moves};
+
+%newobject vrna_fold_compound_t::neighbors;
+%newobject vrna_fold_compound_t::move_neighbor_diff;
 
 %extend vrna_fold_compound_t{
 
 #ifdef SWIGPYTHON
+%apply  var_array< vrna_move_t > *&OUTPUT { var_array< vrna_move_t > *&invalid_moves };
+
 %feature("autodoc") neighbors;
 %feature("kwargs") neighbors;
 
-  std::vector<vrna_move_t>
+
+  var_array<vrna_move_t> *
   neighbors(var_array<short> &pt,
-            unsigned int      options = VRNA_MOVESET_DEFAULT)
+            unsigned int     options = VRNA_MOVESET_DEFAULT)
   {
-    std::vector<vrna_move_t>  v; /* fill vector with returned vrna_move_t */
-    vrna_move_t *move_t, *ptr;
+    var_array<vrna_move_t>  *v;
+    vrna_move_t             *move_t, *ptr;
 
-    move_t = ptr = vrna_neighbors($self, pt.data, options);
+    v      = NULL;
+    move_t = vrna_neighbors($self, pt.data, options);
 
-    if (ptr)
-      while ((ptr->pos_5 != 0) && (ptr->pos_3 != 0)) {
-        vrna_move_t m;
-        m = vrna_move_init(ptr->pos_5, ptr->pos_3);
-        v.push_back(m);
-        ptr++;
-      }
+    if (move_t) {
+      /* get size of new and changed moves */
+      size_t n = 0;
+      for (ptr = move_t; ptr->pos_5 != 0; ptr++, n++);
+      v = var_array_new(n, move_t, VAR_ARRAY_LINEAR | VAR_ARRAY_OWNED);
+    }
 
-    free(move_t);
     return v;
   }
 
-  %newobject vrna_fold_compound_t::move_neighbor_diff;
 
-  std::vector<vrna_move_t>
+  var_array<vrna_move_t> *
   move_neighbor_diff(var_array<short> &pt,
                      vrna_move_t      move,
-                     std::vector<vrna_move_t> *invalid_moves,
+                     var_array<vrna_move_t> *&invalid_moves,
                      unsigned int          options = VRNA_MOVESET_DEFAULT)
   {
-    std::vector<vrna_move_t>  v; /* fill vector with returned vrna_move_t */
-    vrna_move_t *move_t, *ptr, *ptr2, *mv_invalid;
+    var_array<vrna_move_t> *v; /* fill vector with returned vrna_move_t */
+    vrna_move_t *move_t, *mv_invalid, *ptr;
 
-    mv_invalid = NULL;
-    move_t = ptr = vrna_move_neighbor_diff($self,
-                                           pt.data,
-                                           move,
-                                           &mv_invalid,
-                                           options);
+    mv_invalid  = NULL;
+    v           = NULL;
+    move_t = vrna_move_neighbor_diff($self,
+                                     pt.data,
+                                     move,
+                                     &mv_invalid,
+                                     options);
 
     if (mv_invalid) {
-      *invalid_moves = std::vector<vrna_move_t>();
-      ptr2 = mv_invalid;
-      while ((ptr2->pos_5 != 0) && (ptr2->pos_3 != 0)) {
-        vrna_move_t m;
-        m = vrna_move_init(ptr2->pos_5, ptr2->pos_3);
-        (*invalid_moves).push_back(m);
-        ptr2++;
-      }
+      /* get size of invalid moves */
+      size_t n = 0;
+      for (ptr = mv_invalid; ptr->pos_5 != 0; ptr++, n++);
+      invalid_moves = var_array_new(n, mv_invalid, VAR_ARRAY_LINEAR | VAR_ARRAY_OWNED);
     }
 
-    if (ptr) {
-      while ((ptr->pos_5 != 0) && (ptr->pos_3 != 0)) {
-        vrna_move_t m;
-        m = vrna_move_init(ptr->pos_5, ptr->pos_3);
-        v.push_back(m);
-        ptr++;
-      }
+    if (move_t) {
+      /* get size of new and changed moves */
+      size_t n = 0;
+      for (ptr = move_t; ptr->pos_5 != 0; ptr++, n++);
+      v = var_array_new(n, move_t, VAR_ARRAY_LINEAR | VAR_ARRAY_OWNED);
     }
-
-    free(move_t);
-    free(mv_invalid);
 
     return v;
   }
