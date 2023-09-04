@@ -616,9 +616,18 @@ class Doxy2SWIG:
         self.pieces = pieces
     
     def do_verbatim(self, node):
-        self.start_new_paragraph()
-        self.subnode_parse(node, pieces=[''], indent=4)
-    
+        text = self.extract_text(node)
+        if text.startswith("embed:rst"):
+            if text.startswith("embed:rst:inline"):
+                text = text.replace("embed:rst:inline", "", 1)
+            else:
+                self.start_new_paragraph()
+                text = "\n".join(text.split("\n")[1:])
+            self.add_text(text)
+        else:
+            self.start_new_paragraph()
+            self.subnode_parse(node, pieces=[''], indent=4)
+
     def do_blockquote(self, node):
         self.start_new_paragraph()
         self.subnode_parse(node, pieces=[''], indent='> ')
