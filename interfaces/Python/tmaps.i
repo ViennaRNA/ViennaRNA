@@ -139,3 +139,44 @@
 %typemap(in) PyObject * {
   $1 = $input;
 }
+
+
+/* %class_output_typemaps() macro
+ *
+ * It must be executed for each class CLASS_TYPE, which needs typemaps for output,
+ * i.e.:
+ *
+ * %class_output_typemaps(CLASS_TYPE)
+ *
+ * In the interface files, simply use the following:
+ *
+ * %apply  CLASS_TYPE *&OUTPUT { CLASS_TYPE *&parameter_name };
+ *
+ * to render function parameters 'parameter_name' an output parameter
+ */
+%define %class_output_typemaps(CLASS_TYPE)
+
+%typemap(in, numinputs=0) (CLASS_TYPE *&OUTPUT) (CLASS_TYPE *temp) {
+  $1 = &temp;
+}
+
+%typemap(argout) (CLASS_TYPE *&OUTPUT) {
+  CLASS_TYPE *newObj;
+  *(CLASS_TYPE**)&newObj = *$1;
+
+  PyObject* temp = NULL;
+  if (!PyList_Check($result)) {
+    temp = $result;
+    $result = PyList_New(1);
+    PyList_SetItem($result, 0, temp);
+  }
+
+  temp = SWIG_NewPointerObj(SWIG_as_voidptr(newObj),
+                $descriptor(CLASS_TYPE*),
+                SWIG_POINTER_OWN | 0);
+
+  PyList_Append($result, temp);
+  Py_DECREF(temp);
+}
+
+%enddef    /* %class_output_typemaps() */
