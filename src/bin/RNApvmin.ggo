@@ -135,15 +135,13 @@ optional
 hidden
 
 option  "pfScale" S
-"Set scaling factor for Boltzmann factors to prevent under/overflows.\n"
-details="In the calculation of the pf use scale*mfe as an estimate for the ensemble\
- free energy (used to avoid overflows). The default is 1.07, useful values\
- are 1.0 to 1.2. Occasionally needed for long sequences.\nYou can also recompile\
- the program to use double precision (see the README file).\n\n"
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed for long sequences.\n\n"
 double
+default="1.07"
 optional
 hidden
-
 
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
