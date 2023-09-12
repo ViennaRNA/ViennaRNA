@@ -10,14 +10,19 @@ The Programs ``barriers`` and ``treekin``
 Introduction
 ============
 
-The following assumes you have the barriers and treekin programs
-installed. If not, the current release can be found at
-https://www.tbi.univie.ac.at/RNA/Barriers/. Installation proceeds
-as shown for the ``ViennaRNA Package``. One problem that often occurs
-during ``treekin`` installation is the dependency on ``blas`` and
-``lapack`` packages which is not carefully checked. For further
-information according to the barriers and treekin program also see
-the website.
+The following assumes you already have the ``barriers`` and ``treekin``
+programs installed. They are **not** part of the ``ViennaRNA Package``
+but their latest releases can be found at
+https://www.tbi.univie.ac.at/RNA/Barriers/ and
+https://www.tbi.univie.ac.at/RNA/Treekin/, respectively.
+Installation proceeds as shown for the ``ViennaRNA Package``.
+
+.. note::
+
+  One problem that often occurs during ``treekin`` installation is the
+  dependency on ``blas`` and ``lapack`` packages. For further information
+  according to the ``barriers`` and ``treekin`` program also see the website.
+
 
 A short recall on howto install/compile a program
 =================================================
