@@ -36,12 +36,13 @@ https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
    configuration
 
 .. toctree::
-   :caption: Usage:
+   :caption: Usage and Tutorials:
    :maxdepth: 1
 
    getting_started
+   manpages
    io
-   examples
+   RNAlib examples <examples>
 
 .. toctree::
    :caption: RNAlib

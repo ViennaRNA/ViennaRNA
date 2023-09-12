@@ -1,4 +1,4 @@
-Programs
+Manpages
 ========
 
 The ViennaRNA Package comes with a number of executable
@@ -8,8 +8,38 @@ important algorithms implemented in *RNAlib*.
 Find an overview of these programs and their corresponding
 manual pages below.
 
-Main Programs
--------------
+.. toctree::
+   :hidden:
+   :titlesonly:
+
+   man/RNA2Dfold
+   man/RNAaliduplex
+   man/RNAalifold
+   man/RNAcofold
+   man/RNAdistance
+   man/RNAdos
+   man/RNAduplex
+   man/RNAeval
+   man/RNAfold
+   man/RNAheat
+   man/RNAinverse
+   man/RNALalifold
+   man/RNALfold
+   man/RNAmultifold
+   man/RNApaln
+   man/RNAparconv
+   man/RNApdist
+   man/RNAPKplex
+   man/RNAplex
+   man/RNAplfold
+   man/RNAplot
+   man/RNApvmin
+   man/RNAsnoop
+   man/RNAsubopt
+   man/RNAup
+
+
+.. rubric:: Main Programs
 
 ========================= =====================
 Program                   Description
@@ -43,8 +73,7 @@ Program                   Description
 ========================= =====================
 
 
-Additional Programs
--------------------
+.. rubric:: Additional Programs
 
 We include the following additional programs in our distribution of the
 ViennaRNA Package. Whether or not they are installed together with the
@@ -65,32 +94,3 @@ RNAxplorer                Explore the RNA conformation space through
 ========================= =====================
 
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Man Pages:
-
-   man/RNA2Dfold
-   man/RNAaliduplex
-   man/RNAalifold
-   man/RNAcofold
-   man/RNAdistance
-   man/RNAdos
-   man/RNAduplex
-   man/RNAeval
-   man/RNAfold
-   man/RNAheat
-   man/RNAinverse
-   man/RNALalifold
-   man/RNALfold
-   man/RNAmultifold
-   man/RNApaln
-   man/RNAparconv
-   man/RNApdist
-   man/RNAPKplex
-   man/RNAplex
-   man/RNAplfold
-   man/RNAplot
-   man/RNApvmin
-   man/RNAsnoop
-   man/RNAsubopt
-   man/RNAup
