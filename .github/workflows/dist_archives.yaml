@@ -64,6 +64,10 @@ jobs:
           python2-dev \
           graphviz \
           python3-sphinx \
+          python3-myst-parser \
+          python3-sphinxcontrib.bibtex \
+          python3-sphinx-copybutton \
+          python3-sphinx-rtd-theme \
           texlive-latex-recommended \
           texlive-latex-extra \
           texlive-fonts-recommended
