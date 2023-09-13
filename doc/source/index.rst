@@ -19,11 +19,6 @@ programs we provide *RNAlib*, a C-library that can be linked to your own
 code or even used in your scripts and pipelines through our :doc:`/wrappers`
 for :doc:`Python <api_python>` and Perl 5.
 
-This document describes the library and will be primarily useful to
-programmers. However, it also contains details about the implementation
-that may be of interest to advanced users. The stand-alone programs are
-described in separate man pages.
-
 The latest version of the package including source code and html
 versions of the documentation can be found at
 https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
@@ -45,7 +40,7 @@ https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
    RNAlib examples <examples>
 
 .. toctree::
-   :caption: RNAlib
+   :caption: RNAlib API Reference
    :maxdepth: 1
 
    api
@@ -57,10 +52,10 @@ https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
    :caption: Miscellaneous
    :maxdepth: 1
 
-   News <news>
+   What's new <news>
    changelog
    bibliography
-   faq
+   FAQ <faq>
    Contributing <contributing>
    license
 

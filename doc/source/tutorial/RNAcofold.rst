@@ -42,16 +42,13 @@ Two Sequences one Structure
    frequency of mfe structure in ensemble 0.401754 , delta G binding= -3.95
 
 
-Secondary Structure and Dot Plot
-================================
+.. list-table:: Secondary Structure and Dot Plot
+   :widths: 50 50
+   :align: center
 
-|ss| |dp|
+   * - .. image:: ../gfx/tutorial/t_ss.png
+     - .. image:: ../gfx/tutorial/t_dp.png
 
-.. |ss| image:: ../gfx/tutorial/t_ss.png
-   :width: 10%
-
-.. |dp| image:: ../gfx/tutorial/t_dp.png
-   :width: 50%
 
 In the dot plot a cross marks the chain break between the two concatenated sequences.
 

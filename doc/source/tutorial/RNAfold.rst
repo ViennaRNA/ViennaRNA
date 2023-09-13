@@ -136,13 +136,17 @@ i and j.
 If the input was ``FASTA`` formatted, i.e. the sequence was preceded by a header line
 with sequence identifier, ``RNAfold`` creates a structure layout file named ``test_ss.ps``,
 where ``test`` is the sequence identifier as provided through the ``FASTA`` header.
-In case the header was omitted the output file name simply is ``rna.ps``.\\
-Let's take a look at the output file with your favorite ``PostScript`` viewer, e.g. ``gv``.\footnote{In contrast to
-  bitmap based image files (such as GIF or JPEG) PostScript files contain resolution
-  independent vector graphics, suitable for publication. They can be
-  viewed on-screen using a postscript viewer such as ``gv`` or
-  ``evince``}. Note the \& at the end of the following command line that simply detaches
-the program call and immediately starts the program in the background.
+In case the header was omitted the output file name simply is ``rna.ps``.
+
+Let's take a look at the output file with your favorite ``PostScript`` viewer, e.g. ``gv``.
+
+.. note::
+
+  In contrast to bitmap based image files (such as GIF or JPEG) PostScript files contain
+  resolution independent *vector graphics*, suitable for publication. They can be viewed
+  on-screen using a postscript viewer such as ``gv`` or ``evince``. Also note the ``&``
+  at the end of the following command line that simply detaches the program call and
+  immediately starts the program in the background.
 
 .. code:: bash
 
@@ -274,13 +278,13 @@ Fold the 5S rRNA sequence and visualize the structure. (The ``5S.seq`` is shippe
   $ relplot.pl 5S_ss.ps 5S_dp.ps > 5S_rss.ps
 
 
-|mnt_plot| and |rot_img|
+.. list-table::
+   :widths: 50 50
+   :align: center
 
-.. |mnt_plot| image:: ../gfx/tutorial/5S_mt.png
-   :width: 45%
+   * - .. image:: ../gfx/tutorial/5S_mt.png
+     - .. image:: ../gfx/tutorial/5S_rot.png
 
-.. |rot_img| image:: ../gfx/tutorial/5S_rot.png
-   :width: 45%
 
 A mountain plot is especially useful for long sequences where conventional
 structure drawings become terribly cluttered.  It is a xy-diagram plotting
@@ -355,8 +359,9 @@ sequences sequentially. This, however, might take a long time and the sequential
 processing will most likely bore out your multi-core workstation or laptop computer,
 since only a single core is used for the computations while the others are idle.
 If you happen to have more than a single CPU core and want to take advantage of
-the available parallel processing power, you can use the ``-j`` option of\
+the available parallel processing power, you can use the ``-j`` option of
 ``RNAfold`` to split the input into concurrent jobs.
+
 .. code::
 
   $ RNAfold -j file_*.fa > all_sequences_output.fold
@@ -796,7 +801,7 @@ this translates into a dissociation constant of
     K_d = exp(\Delta G / RT) = 8.983267433 \cdot 10^{-8}.
 
 Hence, the binding energies at :math:`50~nM`, :math:`100~nM`, :math:`400~nM`, and :math:`1~\mu M` are :math:`0.36~kcal/mol`,
-:math:`-0.07~kcal/mol`, :math:`-0.92~kcal/mol`, and :math:`-1.49~kcal/mol`, respectively.\
+:math:`-0.07~kcal/mol`, :math:`-0.92~kcal/mol`, and :math:`-1.49~kcal/mol`, respectively.
 
 The RNA sequence file ``forties_bundschuh.fa`` for this experiment is::
 

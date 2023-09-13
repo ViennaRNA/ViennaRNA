@@ -4,6 +4,18 @@ Getting Started
 Here you find some more or less elaborate tutorials and manuals on how
 to use our software.
 
+.. note::
+
+  The tutorials provided below are mostly taken from `A short Tutorial
+  on RNA Bioinformatics The ViennaRNA Package and related Programs
+  <https://www.tbi.univie.ac.at/RNA/tutorial/>`_. Since they have not
+  been updated for quite some time, some of the described features may
+  not work as expected and novel features of our programs may not be
+  mentioned.
+
+  We will be working on extending this part of the documentation in
+  the future.
+
 
 Global RNA Secondary Structure Prediction
 -----------------------------------------
