@@ -1697,6 +1697,7 @@ scan_ext(vrna_fold_compound_t *fc,
                             length, *indx, circular, with_gquad, kj, tmp_en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
+  vrna_sc_t                 *sc;
   struct hc_ext_def_dat     *hc_dat;
   vrna_hc_eval_f evaluate;
   struct sc_f5_dat          *sc_dat;
@@ -1714,6 +1715,7 @@ scan_ext(vrna_fold_compound_t *fc,
   S1      = fc->sequence_encoding;
   P       = fc->params;
   md      = &(P->model_details);
+  sc      = fc->sc;
 
   dangle_model  = md->dangles;
   circular      = md->circ;
@@ -1879,8 +1881,9 @@ scan_ext(vrna_fold_compound_t *fc,
 
     element_energy = vrna_E_ext_stem(type, s5, s3, P);
 
-    if (sc_red_stem)
-      element_energy += sc_red_stem(j, 1, j, sc_dat);
+    if (sc)
+      if (sc->f)
+        element_energy += sc->f(1, j, 1, j, VRNA_DECOMP_EXT_STEM, sc->data);
 
     if (c[kj] + element_energy + best_energy <= threshold) {
       repeat(fc,
@@ -2709,6 +2712,7 @@ repeat(vrna_fold_compound_t *fc,
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
+  vrna_sc_t                 *sc;
   struct hc_int_def_dat     *hc_dat_int;
   struct hc_ext_def_dat     *hc_dat_ext;
   struct hc_mb_def_dat      *hc_dat_mb;
@@ -2754,6 +2758,7 @@ repeat(vrna_fold_compound_t *fc,
   evaluate_int  = constraints_dat->hc_eval_int;
   evaluate_mb   = constraints_dat->hc_eval_mb;
 
+  sc              = fc->sc;
   sc_dat_int      = &(constraints_dat->sc_dat_int);
   sc_dat_mb       = &(constraints_dat->sc_dat_mb);
   sc_int_pair     = constraints_dat->sc_dat_int.pair;
@@ -2874,6 +2879,9 @@ repeat(vrna_fold_compound_t *fc,
                           P);
         break;
     }
+
+    if ((sc) && (sc->f))
+      element_energy += sc->f(i, j, i, j, VRNA_DECOMP_EXT_STEM, sc->data);
 
     if (sn[i] != sn[i + 1]) {
       if ((sn[j - 1] != sn[j]) &&
