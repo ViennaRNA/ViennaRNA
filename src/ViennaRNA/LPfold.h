@@ -9,8 +9,8 @@
  *  @brief    Partition function and equilibrium probability implementation for the sliding window algorithm
  *
  *  This file contains the implementation for sliding window partition function and equilibrium
- *  probabilities. It also provides the unpaired probability implementation from Bernhart et al.
- *  2011 @cite bernhart:2011
+ *  probabilities. It also provides the unpaired probability implementation from
+*   @rstinline :cite:t:`bernhart:2011` @endrst
  */
 
 #include <stdio.h>

@@ -46,7 +46,7 @@
  *  @brief  Boltzmann sampling flag indicating non-redundant backtracing mode
  *
  *  This flag will turn the Boltzmann sampling into non-redundant backtracing
- *  mode along the lines of Michalik et al. 2017 @cite michalik:2017
+ *  mode along the lines of @rstinline :cite:t:`michalik:2017` @endrst
  *
  *  @see    vrna_pbacktrack5_num(), vrna_pbacktrack5_cb(), vrna_pbacktrack5_resume(),
  *          vrna_pbacktrack5_resume_cb(), vrna_pbacktrack_num(), vrna_pbacktrack_cb(),
@@ -150,8 +150,8 @@ vrna_pbacktrack5(vrna_fold_compound_t *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
@@ -203,8 +203,8 @@ vrna_pbacktrack5_num(vrna_fold_compound_t *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack5() and vrna_pbacktrack5_num() this function yields the
  *  structure samples through a callback mechanism.
@@ -263,8 +263,8 @@ vrna_pbacktrack5_cb(vrna_fold_compound_t              *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack5_cb() this function allows for resuming a previous
  *  sampling round in specialized Boltzmann sampling, such as non-redundant backtracking.
@@ -347,8 +347,8 @@ vrna_pbacktrack5_resume(vrna_fold_compound_t  *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack5_resume() this function yields the structure samples
  *  through a callback mechanism.
@@ -468,8 +468,8 @@ vrna_pbacktrack(vrna_fold_compound_t *fc);
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
@@ -518,8 +518,8 @@ vrna_pbacktrack_num(vrna_fold_compound_t  *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack() and vrna_pbacktrack_num() this function yields the
  *  structure samples through a callback mechanism.
@@ -575,8 +575,8 @@ vrna_pbacktrack_cb(vrna_fold_compound_t             *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack_cb() this function allows for resuming a previous
  *  sampling round in specialized Boltzmann sampling, such as non-redundant backtracking.
@@ -654,8 +654,8 @@ vrna_pbacktrack_resume(vrna_fold_compound_t   *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack5_resume() this function yields the structure samples
  *  through a callback mechanism.
@@ -785,8 +785,8 @@ vrna_pbacktrack_sub(vrna_fold_compound_t *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  @pre    Unique multiloop decomposition has to be active upon creation of @p fc with vrna_fold_compound()
  *          or similar. This can be done easily by passing vrna_fold_compound() a model details parameter
@@ -840,8 +840,8 @@ vrna_pbacktrack_sub_num(vrna_fold_compound_t *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack5() and vrna_pbacktrack5_num() this function yields the
  *  structure samples through a callback mechanism.
@@ -902,8 +902,8 @@ vrna_pbacktrack_sub_cb(vrna_fold_compound_t              *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack5_cb() this function allows for resuming a previous
  *  sampling round in specialized Boltzmann sampling, such as non-redundant backtracking.
@@ -988,8 +988,8 @@ vrna_pbacktrack_sub_resume(vrna_fold_compound_t  *fc,
  *  thermodynamic temperature @f$ T @f$.
  *
  *  Using the @p options flag one can switch between regular (#VRNA_PBACKTRACK_DEFAULT) backtracing
- *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of Michalik
- *  et al. 2017 @cite michalik:2017.
+ *  mode, and non-redundant sampling (#VRNA_PBACKTRACK_NON_REDUNDANT) along the lines of
+ *  @rstinline :cite:t:`michalik:2017` @endrst.
  *
  *  In contrast to vrna_pbacktrack5_resume() this function yields the structure samples
  *  through a callback mechanism.

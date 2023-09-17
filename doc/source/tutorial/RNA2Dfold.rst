@@ -9,7 +9,7 @@ The Program ``RNA2Dfold``
 
 ``RNA2Dfold`` is a tool for computing the MFE structure, partition function and
 representative sample structures of :math:`\kappa, \lambda` neighborhoods
-and projects an high dimensional energy landscape of RNA into two dimensions.
+and projects an high dimensional energy landscape of RNA into two dimensions :cite:p:`lorenz:2009`.
 Therefore a sequence and two user-defined reference structures are expected by
 the program. For each of the resulting distance class, the MFE representative,
 the Boltzmann probabilities and the Gibbs free energy is computed. Additionally, 

@@ -4,7 +4,7 @@
 /**
  *  @file ViennaRNA/plotting/RNApuzzler/RNApuzzler.h
  *  @ingroup  plotting_utils
- *  @brief    Implementation of the RNApuzzler RNA secondary structure layout algorithm @cite wiegreffe:2018
+ *  @brief    Implementation of the RNApuzzler RNA secondary structure layout algorithm @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  */
 
@@ -48,7 +48,7 @@ typedef struct {
 
 
 /**
- *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>RNApuzzler</i> algorithm @cite wiegreffe:2018
+ *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>RNApuzzler</i> algorithm @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  *  This function basically is a wrapper to vrna_plot_coords() that passes the @p plot_type #VRNA_PLOT_TYPE_PUZZLER.
  *
@@ -93,7 +93,7 @@ vrna_plot_coords_puzzler(const char                   *structure,
 
 
 /**
- *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>RNApuzzler</i> algorithm @cite wiegreffe:2018
+ *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>RNApuzzler</i> algorithm @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  *  Same as vrna_plot_coords_puzzler() but takes a pair table with the structure
  *  information as input.

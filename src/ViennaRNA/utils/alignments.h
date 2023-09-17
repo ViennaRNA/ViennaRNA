@@ -272,7 +272,7 @@ vrna_aln_consensus_sequence(const char      **alignment,
 /**
  *  @brief  Compute the Most Informative Sequence (MIS) for a given multiple sequence alignment
  *
- *  The most informative sequence (MIS) @cite freyhult:2005 displays for each alignment column
+ *  The most informative sequence (MIS) @rstinline :cite:p:`freyhult:2005` @endrst displays for each alignment column
  *  the nucleotides with frequency greater than the background frequency, projected into IUPAC
  *  notation. Columns where gaps are over-represented are in lower case.
  *

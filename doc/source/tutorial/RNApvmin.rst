@@ -13,7 +13,7 @@ Introduction
 The program ``RNApvmin`` reads a RNA sequence from *stdin* and uses an iterative minimization
 process to calculate a perturbation vector that minimizes the discripancies between predicted
 pairing probabilites and observed pairing probabilities (deduced from given shape
-reactivities).
+reactivities) :cite:p:`washietl:2012`.
 The experimental SHAPE data has to be present in the file format described above.
 The application will write the calculated vector of perturbation energies to *stdout*,
 while the progress of the minimization process is written to *stderr*.

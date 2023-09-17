@@ -197,7 +197,7 @@ vrna_pf_fold(const char *sequence,
  *        and the data structure #vrna_fold_compound_t instead.
  *
  *  Folding of circular RNA sequences is handled as a post-processing step of the forward
- *  recursions. See @cite hofacker:2006 for further details.
+ *  recursions. See @rstinline :cite:t:`hofacker:2006` @endrst for further details.
  *
  *  @see vrna_pf_fold(), vrna_pf(), vrna_fold_compound(), #vrna_fold_compound_t
  *
@@ -254,7 +254,7 @@ vrna_pf_alifold(const char  **sequences,
  *        and the data structure #vrna_fold_compound_t instead.
  *
  *  Folding of circular RNA sequences is handled as a post-processing step of the forward
- *  recursions. See @cite hofacker:2006 for further details.
+ *  recursions. See @rstinline :cite:t:`hofacker:2006` @endrst for further details.
  *
  *  @see vrna_pf_alifold(), vrna_pf(), vrna_fold_compound_comparative(), #vrna_fold_compound_t
  *

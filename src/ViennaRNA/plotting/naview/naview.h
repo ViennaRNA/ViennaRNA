@@ -16,7 +16,7 @@
 /**
  *  @file ViennaRNA/plotting/naview.h
  *  @ingroup  plotting_utils
- *  @brief    Implementation of the Naview RNA secondary structure layout algorithm @cite bruccoleri:1988
+ *  @brief    Implementation of the Naview RNA secondary structure layout algorithm @rstinline :cite:p:`bruccoleri:1988` @endrst
  *
  */
 
@@ -27,7 +27,7 @@
 
 
 /**
- *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>Naview</i> algorithm @cite bruccoleri:1988
+ *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>Naview</i> algorithm @rstinline :cite:p:`bruccoleri:1988` @endrst
  *
  *  This function basically is a wrapper to vrna_plot_coords() that passes the @p plot_type #VRNA_PLOT_TYPE_NAVIEW.
  *
@@ -65,7 +65,7 @@ vrna_plot_coords_naview(const char  *structure,
 
 
 /**
- *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>Naview</i> algorithm @cite bruccoleri:1988
+ *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>Naview</i> algorithm @rstinline :cite:p:`bruccoleri:1988` @endrst
  *
  *  Same as vrna_plot_coords_naview() but takes a pair table with the structure
  *  information as input.

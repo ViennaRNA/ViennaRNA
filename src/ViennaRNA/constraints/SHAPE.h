@@ -51,7 +51,7 @@ vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *fc,
  *  adjacent to other structures. For all other loop types the energy model remains
  *  unchanged even when the experimental data highly disagrees with a certain motif.
  *
- *  @note For further details, we refer to @cite deigan:2009.
+ *  @note For further details, we refer to @rstinline :cite:t:`deigan:2009` @endrst.
  *
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_zarringhalam(), vrna_sc_minimize_pertubation()
  *
@@ -106,7 +106,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *fc,
  *  scaling factor. The magnitude of discrepancy between prediction and experimental observation
  *  is represented by @f$ |x_i - q_i| @f$.
  *
- *  @note For further details, we refer to @cite zarringhalam:2012
+ *  @note For further details, we refer to @rstinline :cite:t:`zarringhalam:2012` @endrst
  *
  *  @see  vrna_sc_remove(), vrna_sc_add_SHAPE_deigan(), vrna_sc_minimize_pertubation()
  *

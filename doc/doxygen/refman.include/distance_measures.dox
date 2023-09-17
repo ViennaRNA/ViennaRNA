@@ -60,7 +60,7 @@ Two cost matrices are provided for coarse grained structures:
    {   5, INF, INF, INF, INF, INF,   0},   /* E    replaced */
 @endverbatim
 
-The lower matrix uses the costs given in @cite shapiro:1990.
+The lower matrix uses the costs given in @rstinline :cite:t:`shapiro:1990` @endrst.
 All distance functions use the following global variables:
 
 @verbatim

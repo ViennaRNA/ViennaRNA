@@ -36,8 +36,8 @@ https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
 
    getting_started
    manpages
+   using_rnalib
    io
-   RNAlib examples <examples>
 
 .. toctree::
    :caption: RNAlib API Reference
@@ -46,7 +46,6 @@ https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
    api
    wrappers
    api_python
-   linking
 
 .. toctree::
    :caption: Miscellaneous
@@ -55,6 +54,7 @@ https://www.tbi.univie.ac.at/RNA and https://github.com/ViennaRNA/ViennaRNA.
    What's new <news>
    changelog
    bibliography
+   Citation <citing>
    FAQ <faq>
    Contributing <contributing>
    license

@@ -543,7 +543,7 @@ vrna_db_from_WUSS(const char *wuss);
  *  @brief  Convert a secondary structure in dot-bracket notation to its abstract shapes representation
  *
  *  This function converts a secondary structure into its abstract shapes representation as
- *  presented by Giegerich et al. 2004 @cite giegerich:2004.
+ *  presented by @rstinline :cite:t:`giegerich:2004` @endrst.
  *
  *  @see vrna_abstract_shapes_pt()
  *
@@ -560,7 +560,7 @@ vrna_abstract_shapes(const char    *structure,
  *  @brief  Convert a secondary structure to its abstract shapes representation
  *
  *  This function converts a secondary structure into its abstract shapes representation as
- *  presented by Giegerich et al. 2004 @cite giegerich:2004. This function is equivalent to
+ *  presented by @rstinline :cite:t:`giegerich:2004` @endrst. This function is equivalent to
  *  vrna_db_to_shapes(), but requires a pair table input instead of a dot-bracket structure.
  *
  *  @note   The length of the structure must be present at @p pt[0]!
@@ -794,13 +794,13 @@ vrna_letter_structure(char            *structure,
  *  Currently we support conversion into the following formats, denoted by the value
  *  of parameter @p type:
  *  * #VRNA_STRUCTURE_TREE_HIT            - @copybrief #VRNA_STRUCTURE_TREE_HIT
- *                                          (See also Fontana et al. 1993 @cite fontana:1993b)
+ *                                          (See also @rstinline :cite:t:`fontana:1993b` @endrst)
  *  * #VRNA_STRUCTURE_TREE_SHAPIRO_SHORT  - @copybrief #VRNA_STRUCTURE_TREE_SHAPIRO_SHORT
- *                                          (same as Shapiro 1988 @cite shapiro:1988, but with root node @p R and without @p S nodes for the stems)
+ *                                          (same as @rstinline :cite:t:`shapiro:1988` @endrst, but with root node @p R and without @p S nodes for the stems)
  *  * #VRNA_STRUCTURE_TREE_SHAPIRO        - @copybrief #VRNA_STRUCTURE_TREE_SHAPIRO
- *                                          (See also Shapiro 1988 @cite shapiro:1988)
+ *                                          (See also @rstinline :cite:t:`shapiro:1988` @endrst)
  *  * #VRNA_STRUCTURE_TREE_SHAPIRO_EXT    - @copybrief #VRNA_STRUCTURE_TREE_SHAPIRO_EXT
- *                                          (same as Shapiro 1988 @cite shapiro:1988, but external nodes denoted as @p E )
+ *                                          (same as @rstinline :cite:t:`shapiro:1988` @endrst, but external nodes denoted as @p E )
  *  * #VRNA_STRUCTURE_TREE_SHAPIRO_WEIGHT - @copybrief #VRNA_STRUCTURE_TREE_SHAPIRO_WEIGHT
  *                                          (same as #VRNA_STRUCTURE_TREE_SHAPIRO_EXT but with additional weights
  *                                          for number of unpaired nucleotides in loop, and number of pairs in stems)
@@ -821,7 +821,7 @@ vrna_db_to_tree_string(const char   *structure,
  *  @brief  Remove weights from a linear string tree representation of a secondary structure
  *
  *  This function strips the weights of a linear string tree representation such as @p HIT,
- *  or Coarse Grained Tree sensu Shapiro @cite shapiro:1988
+ *  or Coarse Grained Tree sensu @rstinline :cite:t:`shapiro:1988` @endrst
  *
  *  @see vrna_db_to_tree_string()
  *

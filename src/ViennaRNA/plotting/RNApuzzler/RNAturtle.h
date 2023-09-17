@@ -4,7 +4,7 @@
 /**
  *  @file ViennaRNA/plotting/RNApuzzler/RNAturtle.h
  *  @ingroup  plotting_utils
- *  @brief    Implementation of the RNAturtle RNA secondary structure layout algorithm @cite wiegreffe:2018
+ *  @brief    Implementation of the RNAturtle RNA secondary structure layout algorithm @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  */
 
@@ -15,7 +15,7 @@
 
 
 /**
- *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>RNAturtle</i> algorithm @cite wiegreffe:2018
+ *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>RNAturtle</i> algorithm @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  *  This function basically is a wrapper to vrna_plot_coords() that passes the @p plot_type #VRNA_PLOT_TYPE_TURTLE.
  *
@@ -57,7 +57,7 @@ vrna_plot_coords_turtle(const char  *structure,
 
 
 /**
- *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>RNAturtle</i> algorithm @cite wiegreffe:2018
+ *  @brief Compute nucleotide coordinates for secondary structure plot using the <i>RNAturtle</i> algorithm @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  *  Same as vrna_plot_coords_turtle() but takes a pair table with the structure
  *  information as input.

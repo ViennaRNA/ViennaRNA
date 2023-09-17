@@ -94,7 +94,7 @@ struct vrna_subopt_sol_s {
  *  @brief Returns list of subopt structures or writes to fp
  *
  *  This function produces <b>all</b> suboptimal secondary structures within
- *  'delta' * 0.01 kcal/mol of the optimum, see @cite wuchty:1999. The results
+ *  'delta' * 0.01 kcal/mol of the optimum, see @rstinline :cite:t:`wuchty:1999` @endrst. The results
  *  are either directly written to a 'fp' (if 'fp' is not NULL), or
  *  (fp==NULL) returned in a #vrna_subopt_solution_t * list terminated
  *  by an entry were the 'structure' member is NULL.
@@ -132,7 +132,7 @@ vrna_subopt(vrna_fold_compound_t  *fc,
  *  @brief  Generate suboptimal structures within an energy band arround the MFE
  *
  *  This is the most generic implementation of the suboptimal structure generator
- *  according to Wuchty et al. 1999 @cite wuchty:1999. Identical to vrna_subopt(), it computes all
+ *  according to @rstinline :cite:t:`wuchty:1999` @endrst. Identical to vrna_subopt(), it computes all
  *  secondary structures within an energy band @p delta arround the MFE. However,
  *  this function does not print the resulting structures and their corresponding
  *  free energies to a file pointer, or returns them as a list. Instead, it calls

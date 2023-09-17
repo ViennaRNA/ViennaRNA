@@ -8,7 +8,7 @@
 /**
  *  @brief Compute Zuker type suboptimal structures
  *
- *  Compute Suboptimal structures according to M. Zuker @cite zuker:1989 , i.e. for every
+ *  Compute Suboptimal structures according to @rstinline :cite:t:`zuker:1989` @endrst , i.e. for every
  *  possible base pair the minimum energy structure containing the resp. base pair.
  *  Returns a list of these structures and their energies.
  *

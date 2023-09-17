@@ -10,10 +10,14 @@ The Program ``RNAsubopt``
 Introduction
 ============
 
-``RNAsubopt`` calculates all suboptimal secondary structures within a
-given energy range above the ``MFE`` structure. Be careful, the number
-of structures returned grows exponentially with both sequence length and
-energy range.
+By default, ``RNAsubopt`` calculates all suboptimal secondary structures within a
+given energy range above the ``MFE`` structure :cite:p:`wuchty:1999`.
+
+.. note::
+
+    Be careful, the number of structures returned grows exponentially with both
+    sequence length and energy range.
+
 
 Suboptimal folding
 ==================
@@ -91,6 +95,10 @@ ensemble that have bases 6 to 8 unpaired.
 
 Sampling the Boltzmann Ensemble
 ===============================
+
+``RNAsubopt`` also implements a statisctical sampling algorithm to
+draw secondary structures from the ensemble according to their equilibrium
+probability :cite:p:`ding:2003`:
 
 - Draw a sample of size 10,000 from the Boltzmann ensemble
 - Calculate the desired property, e.g. by using a ``perl`` script::

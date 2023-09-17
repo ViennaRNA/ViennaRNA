@@ -146,7 +146,7 @@ vrna_path_options_free(vrna_path_options_t options);
  *  @brief    Create options data structure for findpath direct (re-)folding path heuristic
  *
  *  This function returns an options data structure that switches the vrna_path_direct()
- *  and vrna_path_direct_ub() API functions to use the <em>findpath</em> @cite flamm:2001
+ *  and vrna_path_direct_ub() API functions to use the <em>findpath</em> @rstinline :cite:p:`flamm:2001` @endrst
  *  heuristic. The parameter @p width specifies the width of the breadth-first search
  *  while the second parameter @p type allows one to set the type of the returned
  *  (re-)folding path.
@@ -179,7 +179,7 @@ vrna_path_options_findpath(int          width,
  *  - a list of transition moves with corresponding free energy change
  *
  *  If the @p options parameter is passed a <em>NULL</em> pointer, this function
- *  defaults to the <em>findpath heuristic</em> @cite flamm:2001 with a breadth-first
+ *  defaults to the <em>findpath heuristic</em> @rstinline :cite:p:`flamm:2001` @endrst with a breadth-first
  *  search width of @f$ 10 @f$, and the returned path consists of dot-bracket structures
  *  with corresponding free energies.
  *

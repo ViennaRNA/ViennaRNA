@@ -59,7 +59,7 @@ typedef struct vrna_plot_layout_s vrna_plot_layout_t;
  *  @brief Definition of Plot type <i>Naview</i>
  *
  *  This is the plot type definition for several RNA structure plotting functions telling
- *  them to use <b>Naview</b> plotting algorithm @cite bruccoleri:1988.
+ *  them to use <b>Naview</b> plotting algorithm @rstinline :cite:p:`bruccoleri:1988` @endrst.
  *
  *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
@@ -76,13 +76,13 @@ typedef struct vrna_plot_layout_s vrna_plot_layout_t;
 #define VRNA_PLOT_TYPE_CIRCULAR   2
 
 /**
- *  @brief  Definition of Plot type <i>Turtle</i> @cite wiegreffe:2018
+ *  @brief  Definition of Plot type <i>Turtle</i> @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  */
 #define VRNA_PLOT_TYPE_TURTLE  3
 
 /**
- *  @brief  Definition of Plot type <i>RNApuzzler</i> @cite wiegreffe:2018
+ *  @brief  Definition of Plot type <i>RNApuzzler</i> @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  */
 #define VRNA_PLOT_TYPE_PUZZLER  4
@@ -155,7 +155,7 @@ vrna_plot_layout_simple(const char *structure);
 
 #ifdef VRNA_WITH_NAVIEW_LAYOUT
 /**
- *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>Naview Algorithm</i> @cite bruccoleri:1988.
+ *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>Naview Algorithm</i> @rstinline :cite:p:`bruccoleri:1988` @endrst.
  *
  *  This function basically is a wrapper to vrna_plot_layout() that passes the @p plot_type #VRNA_PLOT_TYPE_NAVIEW.
  *
@@ -193,7 +193,7 @@ vrna_plot_layout_circular(const char *structure);
 
 
 /**
- *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>Turtle Algorithm</i> @cite wiegreffe:2018
+ *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>Turtle Algorithm</i> @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  *  This function basically is a wrapper to vrna_plot_layout() that passes the @p plot_type #VRNA_PLOT_TYPE_TURTLE.
  *
@@ -212,7 +212,7 @@ vrna_plot_layout_turtle(const char *structure);
 
 
 /**
- *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>RNApuzzler Algorithm</i> @cite wiegreffe:2018
+ *  @brief  Create a layout (coordinates, etc.) for a secondary structure plot using the <i>RNApuzzler Algorithm</i> @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  *  This function basically is a wrapper to vrna_plot_layout() that passes the @p plot_type #VRNA_PLOT_TYPE_PUZZLER.
  *
@@ -468,7 +468,7 @@ typedef struct {
  *  @brief Switch for changing the secondary structure layout algorithm
  *
  *  Current possibility are 0 for a simple radial drawing or 1 for the modified
- *  radial drawing taken from the @e naview program of @cite bruccoleri:1988.
+ *  radial drawing taken from the @e naview program of @rstinline :cite:t:`bruccoleri:1988` @endrst.
  *
  *  @note To provide thread safety please do not rely on this global variable in future implementations
  *        but pass a plot type flag directly to the function that decides which layout algorithm it may use!

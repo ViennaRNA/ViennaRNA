@@ -581,7 +581,7 @@ Once the SHAPE file is ready, it can be used to constrain folding:
   $ RNAfold --shape=rna.shape --shapeMethod=D < rna.seq
 
 
-A small compilation of reference data taken from Hajdin et al. 2013 is available online
+A small compilation of reference data taken from :cite:t:`hajdin:2013` is available online
 https://weeks.chem.unc.edu/data-files/ShapeKnots_DATA.zip. However, the included
 reference structures are only available in connect (``.ct``) format and require conversion into
 dot-bracket notation to compare them against predicted structures with ``RNAfold``.
@@ -637,7 +637,7 @@ specification in our model.
 
 The only ingredient that is still missing is the actual stabilizing energy contribution
 induced by the ligand binding into the aptamer pocket. But several experimental and computational
-studies have already determined dissociation constants for this system. Jenison et al. 1994,
+studies have already determined dissociation constants for this system. :cite:t:`jenison:1994`,
 for instance, determined a dissociation constant of :math:`K_d = 0.32\mu M` which, for standard
 reference concentration :math:`c = 1 mol/L`, can be translated into a binding free energy
 
@@ -707,8 +707,7 @@ and
 
     b(T) = H_b + TS_b
 
-have been determined from experimental UV-melting data taken from Zhang et al. 2011,
-Biochemistry.
+have been determined from experimental UV-melting data taken from :cite:t:`zhang:2011`.
 
 ``RNAfold`` allows one to activate the G-quadruplex implementation by simply
 providing the ``-g`` switch. G-quadruplexes are then taken into account for
@@ -785,10 +784,10 @@ specifier allows for restricting the binding to particular loop types, e.g.
 ``M`` for multibranch loops, or ``E`` for the exterior loop. See the
 syntax for command files above for an overview of all loop types available.
 
-As an example, consider the protein binding experiment taken from Forties and Bundschuh 2010,
-Bioinformatics (https://dx.doi.org/10.1093/bioinformatics/btp627). Here, the authors
-investigate a hypothetical unspecific RNA binding protein with a footprint of :math:`6~nt` and
-a binding energy of :math:`\Delta G = -10~kcal/mol` at :math:`1~M`. With :math:`T = 37^\circ C` and
+As an example, consider the protein binding experiment taken from :cite:t:`forties:2010`.
+Here, the authors investigate a hypothetical unspecific RNA binding protein with a
+footprint of :math:`6~nt` and a binding energy of :math:`\Delta G = -10~kcal/mol` at
+:math:`1~M`. With :math:`T = 37^\circ C` and
 
 .. math::
 

@@ -19,7 +19,7 @@
  *  @brief  Enumerate all necklaces with fixed content
  *
  *  This function implements <em>A fast algorithm to generate necklaces with fixed content</em>
- *  as published by Joe Sawada in 2003 @cite sawada:2003.
+ *  as published by @rstinline :cite:t:`sawada:2003` @endrst.
  *
  *  The function receives a list of counts (the elements on the necklace) for each
  *  type of object within a necklace. The list starts at index 0 and ends with an

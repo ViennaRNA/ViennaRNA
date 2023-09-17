@@ -30,7 +30,7 @@
 /**
  *  @brief Find energy of a saddle point between 2 structures (search only direct path)
  *
- *  This function uses an inplementation of the @em findpath algorithm @cite flamm:2001
+ *  This function uses an inplementation of the @em findpath algorithm @rstinline :cite:p:`flamm:2001` @endrst
  *  for near-optimal direct refolding path prediction.
  *
  *  Model details, and energy parameters are used as provided via the parameter 'fc'.
@@ -58,7 +58,7 @@ vrna_path_findpath_saddle(vrna_fold_compound_t  *fc,
 /**
  *  @brief Find energy of a saddle point between 2 structures (search only direct path)
  *
- *  This function uses an inplementation of the @em findpath algorithm @cite flamm:2001
+ *  This function uses an inplementation of the @em findpath algorithm @rstinline :cite:p:`flamm:2001` @endrst
  *  for near-optimal direct refolding path prediction.
  *
  *  Model details, and energy parameters are used as provided via the parameter 'fc'.
@@ -92,7 +92,7 @@ vrna_path_findpath_saddle_ub(vrna_fold_compound_t *fc,
 /**
  *  @brief Find refolding path between 2 structures (search only direct path)
  *
- *  This function uses an inplementation of the @em findpath algorithm @cite flamm:2001
+ *  This function uses an inplementation of the @em findpath algorithm @rstinline :cite:p:`flamm:2001` @endrst
  *  for near-optimal direct refolding path prediction.
  *
  *  Model details, and energy parameters are used as provided via the parameter 'fc'.
@@ -121,7 +121,7 @@ vrna_path_findpath(vrna_fold_compound_t *fc,
  *  @brief Find refolding path between 2 structures
  *  (search only direct path)
  *
- *  This function uses an inplementation of the @em findpath algorithm @cite flamm:2001
+ *  This function uses an inplementation of the @em findpath algorithm @rstinline :cite:p:`flamm:2001` @endrst
  *  for near-optimal direct refolding path prediction.
  *
  *  Model details, and energy parameters are used as provided via the parameter 'fc'.

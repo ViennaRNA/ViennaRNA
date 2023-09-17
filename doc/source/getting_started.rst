@@ -34,6 +34,10 @@ subset of implemented algorithms.
 Consensus Structure Prediction
 ------------------------------
 
+Consensus structures can be predicted by a modified version of the
+secondary structure prediction algorithm that takes as input a set of
+aligned sequences instead of a single sequence.
+
 Sequence co-variations are a direct consequence of RNA base pairing
 rules and can be deduced to alignments. RNA helices normally contain 
 only 6 out of the 16 possible combinations: the Watson-Crick pairs
@@ -45,6 +49,11 @@ mutation on the other side, e.g. a ``CG`` pair changes into a
 ``UA`` pair. Mutations where only one pairing partner changes (such
 as ``CG`` to ``UG`` are termed *consistent mutations*.
 
+The energy function consists of the mean energy averaged over the
+sequences, plus a covariance term that favors pairs with consistent
+and compensatory mutations and penalizes pairs that cannot be formed
+by all structures. For details see :cite:t:`hofacker:2002` and
+:cite:t:`bernhart:2008`.
 
 .. toctree::
    :maxdepth: 1

@@ -22,8 +22,8 @@
  *  @brief    Partition function and equilibrium probability implementation for the sliding window algorithm
  *
  *  This file contains the implementation for sliding window partition function and equilibrium
- *  probabilities. It also provides the unpaired probability implementation from Bernhart et al.
- *  2011 @cite bernhart:2011
+ *  probabilities. It also provides the unpaired probability implementation from
+ *  @rstinline :cite:t:`bernhart:2011` @endrst
  */
 
 
@@ -125,7 +125,7 @@ DEPRECATED(typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
  *  through the @p type argument whenever base pairing probabilities are provided.
  *
  *  Detailed information for the algorithm to compute unpaired probabilities
- *  can be taken from @cite bernhart:2005.
+ *  can be taken from @rstinline :cite:t:`bernhart:2005` @endrst.
  *
  *  @see  vrna_probs_window()
  */
@@ -139,7 +139,7 @@ DEPRECATED(typedef void (vrna_probs_window_callback)(FLT_OR_DBL    *pr,
  *  through the @p type argument whenever unpaired probabilities are provided.
  *
  *  Detailed information for the algorithm to compute unpaired probabilities
- *  can be taken from @cite bernhart:2011.
+ *  can be taken from @rstinline :cite:t:`bernhart:2011` @endrst.
  *
  *  @see  vrna_probs_window()
  */

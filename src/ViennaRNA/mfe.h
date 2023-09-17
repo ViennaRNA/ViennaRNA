@@ -136,7 +136,7 @@ vrna_fold(const char  *sequence,
  *  matrices are not available any more for any post-processing, e.g. suboptimal backtracking, etc.
  *
  *  Folding of circular RNA sequences is handled as a post-processing step of the forward
- *  recursions. See @cite hofacker:2006 for further details.
+ *  recursions. See @rstinline :cite:t:`hofacker:2006` @endrst for further details.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
  *        you require other conditions than specified by the default model details, use vrna_mfe(),
@@ -191,7 +191,7 @@ vrna_alifold(const char **sequences,
  *  backtracking, etc.
  *
  *  Folding of circular RNA sequences is handled as a post-processing step of the forward
- *  recursions. See @cite hofacker:2006 for further details.
+ *  recursions. See @rstinline :cite:t:`hofacker:2006` @endrst for further details.
  *
  *  @note In case you want to use the filled DP matrices for any subsequent post-processing step, or
  *        you require other conditions than specified by the default model details, use vrna_mfe(),

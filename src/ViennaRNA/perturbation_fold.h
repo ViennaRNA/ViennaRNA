@@ -117,7 +117,7 @@ typedef void (*progress_callback)(int     iteration,
  *  The found vector of perturbation energies will be stored in the array epsilon.
  *  The progress of the minimization process can be tracked by implementing and passing a callback function.
  *
- *  @see For further details we refere to @cite washietl:2012.
+ *  @see For further details we refer to @rstinline :cite:t:`washietl:2012` @endrst.
  *
  *  @ingroup perturbation
  *

@@ -202,7 +202,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
  *  This is a convenience wrapper to add support for m6A using the
  *  soft constraint callback mechanism. Modification sites are provided
  *  as a list of sequence positions (1-based). Energy parameter corrections
- *  are derived from @cite kierzek:2022.
+ *  are derived from @rstinline :cite:t:`kierzek:2022` @endrst.
  *
  *  @see  #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT
@@ -224,7 +224,7 @@ vrna_sc_mod_m6A(vrna_fold_compound_t  *fc,
  *  This is a convenience wrapper to add support for pseudouridine using the
  *  soft constraint callback mechanism. Modification sites are provided
  *  as a list of sequence positions (1-based). Energy parameter corrections
- *  are derived from @cite hudson:2013.
+ *  are derived from @rstinline :cite:t:`hudson:2013` @endrst.
  *
  *  @see  #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT
@@ -246,7 +246,7 @@ vrna_sc_mod_pseudouridine(vrna_fold_compound_t  *fc,
  *  This is a convenience wrapper to add support for inosine using the
  *  soft constraint callback mechanism. Modification sites are provided
  *  as a list of sequence positions (1-based). Energy parameter corrections
- *  are derived from @cite wright:2007 and @cite wright:2018.
+ *  are derived from @rstinline :cite:t:`wright:2007` @endrst and @rstinline :cite:t:`wright:2018` @endrst.
  *
  *  @see  #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT
@@ -268,7 +268,7 @@ vrna_sc_mod_inosine(vrna_fold_compound_t  *fc,
  *  This is a convenience wrapper to add support for 7-deaza-adenosine using the
  *  soft constraint callback mechanism. Modification sites are provided
  *  as a list of sequence positions (1-based). Energy parameter corrections
- *  are derived from @cite richardson:2016.
+ *  are derived from @rstinline :cite:t:`richardson:2016` @endrst.
  *
  *  @see  #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT
@@ -290,7 +290,7 @@ vrna_sc_mod_7DA(vrna_fold_compound_t  *fc,
  *  This is a convenience wrapper to add support for Purine using the
  *  soft constraint callback mechanism. Modification sites are provided
  *  as a list of sequence positions (1-based). Energy parameter corrections
- *  are derived from @cite jolley:2017.
+ *  are derived from @rstinline :cite:t:`jolley:2017` @endrst.
  *
  *  @see  #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT

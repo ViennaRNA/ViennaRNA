@@ -17,7 +17,7 @@ structures are reasonably stable you can find sequences where both target
 structures have almost equal energy and all other structures have much higher
 energies.
 Combined with ``RNAsubopt``, ``barriers`` and ``treekin``, this is a very
-useful tool for designing RNAswitches.
+useful tool for designing RNA switches.
 
 The input requires two structures in dot-bracket notation and additionally
 you can add a sequence. It is also possible to calculate the switching
@@ -26,7 +26,7 @@ function at two different temperatures with option ``-T`` and ``-T2``.
 Designing a Switch
 ==================
 
-Now we try to create an RNA switch using ``switch.pl``.
+Now we try to create an RNA switch using ``switch.pl`` :cite:p:`flamm:2001`.
 First we create our inputfile, then invoke the program using ten optimization
 runs  (``-n 10``) and do not allow *lonely pairs*. Write it out to ``switch.out``
 
