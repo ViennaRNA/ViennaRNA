@@ -15,6 +15,11 @@ import sys
 import platform
 import re
 
+from tempfile import mkstemp
+from shutil import move, copymode
+from os import fdopen, remove
+
+
 vrna_flags = [
     'with-svm',
     'with-naview',
@@ -98,6 +103,28 @@ with open(README_FILE, encoding="utf-8") as readme:
         LONG_DESCRIPTION += l
 
 
+def comment_lines(file_path, patterns, comment_char = "//"):
+    #Create temp file
+    fh, abs_path = mkstemp()
+    with fdopen(fh,'w') as new_file:
+        with open(file_path) as old_file:
+            for line in old_file:
+                replaced = False
+                for p in patterns:
+                    if line.startswith(p):
+                        new_file.write(comment_char + line)
+                        replaced = True
+                        break
+                if not replaced:
+                    new_file.write(line)
+    #Copy the file permissions from the old file to the new file
+    copymode(file_path, abs_path)
+    #Remove original file
+    remove(file_path)
+    #Move new file
+    move(abs_path, file_path)
+
+
 class vrna_build_ext(build_ext):
     user_options = build_ext.user_options[:]
     user_options.extend(vrna_options)
@@ -169,7 +196,8 @@ class vrna_build_ext(build_ext):
                 ext.define_macros += [('VRNA_WITH_SIMD_SSE41', None)]
                 ext.sources.append("src/@DLIB_DIR@/dlib/all/source.cpp")
             else:
-                if platform.machine() == "arm64" or "arm64" in os.getenv("ARCHFLAGS", ""):
+                if (platform.machine() == "arm64" or "arm64" in os.getenv("ARCHFLAGS", "")) or \
+                   (platform.machine() == "aarch64" or "aarch64" in os.getenv("ARCHFLAGS", "")):
                     self.with_simd = False
                     # collect all SIMD specific files
                     simd_files = [f for tmp in vrna_simd_files.values() for f in tmp]
@@ -321,6 +349,19 @@ def vrna_ext(name = "RNA._RNA"):
     #print(includeDirs)
     #print("srcFiles:")
     #print(srcFiles)
+
+    # comment out every cpp define in config.h that we want to handle
+    # from within this setup.py script
+    defines = ['#define VRNA_WITH_GSL',
+               '#define VRNA_NR_SAMPLING_MPFR',
+               '#define VRNA_WITH_SVM',
+               '#define VRNA_WITH_NAVIEW_LAYOUT',
+               '#define VRNA_WITH_OPENMP',
+               '#define VRNA_WITH_SIMD_AVX512',
+               '#define VRNA_WITH_SIMD_SSE41'
+              ]
+
+    comment_lines('config.h', defines)
 
     return Extension(
         name = name,
