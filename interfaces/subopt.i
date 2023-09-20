@@ -55,31 +55,20 @@ typedef struct {
  * tell swig that we have our own destructor for objects of this type
  */
 %{
-
-extern "C" {
-  typedef struct {
+typedef struct {
     float energy;
-    char *structure;
-  } subopt_solution;
-}
+    std::string structure;
+} subopt_solution;
 
 %}
 
-%nodefaultdtor subopt_solution;
-
 typedef struct {
     float energy;
-    char *structure;
+    std::string structure;
 } subopt_solution;
 
 
 %extend subopt_solution {
-
-  ~subopt_solution()
-  {
-    free($self->structure);
-    free($self);
-  }
 
 #ifdef SWIGPYTHON
   std::string
@@ -126,10 +115,9 @@ def __repr__(self):
     SOLUTION *sol = subopt(seq, NULL, delta, nullfile);
     if (sol)
       for(int i = 0; sol[i].structure != NULL; i++){
-        subopt_solution a;
-        a.energy = sol[i].energy;
-        a.structure = sol[i].structure;
+        subopt_solution a{ sol[i].energy, sol[i].structure};
         ret.push_back(a);
+        free(sol[i].structure);
       }
 
     free(sol);
@@ -162,10 +150,9 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NU
     SOLUTION *sol = vrna_subopt($self, delta, sorted, nullfile);
     if (sol)
       for(int i = 0; sol[i].structure != NULL; i++){
-        subopt_solution a;
-        a.energy = sol[i].energy;
-        a.structure = sol[i].structure;
+        subopt_solution a{ sol[i].energy, sol[i].structure};
         ret.push_back(a);
+        free(sol[i].structure);
       }
 
     free(sol);
@@ -182,10 +169,9 @@ std::vector<subopt_solution> my_subopt(char *seq, int delta, FILE *nullfile = NU
     SOLUTION *sol = vrna_subopt_zuker($self);
     if (sol)
       for(int i = 0; sol[i].structure != NULL; i++){
-        subopt_solution a;
-        a.energy = sol[i].energy;
-        a.structure = sol[i].structure;
+        subopt_solution a{ sol[i].energy, sol[i].structure};
         ret.push_back(a);
+        free(sol[i].structure);
       }
 
     free(sol);

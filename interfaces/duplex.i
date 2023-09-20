@@ -2,22 +2,6 @@
 /* BEGIN interface for duplex prediction      */
 /**********************************************/
 
-%nodefaultdtor duplexT;
-
-typedef struct {
-  int i;
-  int j;
-  char *structure;
-  float energy;
-} duplexT;
-
-%extend duplexT {
-  ~duplexT() {
-    free($self->structure);
-    free($self);
-  }
-}
-
 %ignore duplexT;
 
 /*
@@ -28,33 +12,23 @@ typedef struct {
  */
 %{
 
-extern "C" {
-  typedef struct {
-    int i;
-    int j;
-    char *structure;
-    float energy;
-  } duplex_list_t;
-}
+typedef struct {
+  int i;
+  int j;
+  double energy;
+  std::string structure;
+} duplex_list_t;
 
 %}
 
-%nodefaultdtor duplex_list_t;
 
 typedef struct {
-    int i;
-    int j;
-    float energy;
-    char *structure;
+  int i;
+  int j;
+  double energy;
+  std::string structure;
 } duplex_list_t;
 
-%extend duplex_list_t {
-
-  ~duplex_list_t() {
-    free($self->structure);
-    free($self);
-  }
-}
 
 namespace std {
   %template(DuplexVector) std::vector<duplex_list_t>;
@@ -68,11 +42,14 @@ namespace std {
 
 %{
 
-  duplexT
+  duplex_list_t
   my_duplexfold(std::string s1,
                 std::string s2)
   {
-    return duplexfold(s1.c_str(), s2.c_str());
+    duplexT r = duplexfold(s1.c_str(), s2.c_str());
+    duplex_list_t res{r.i, r.j, r.energy, r.structure};
+    free(r.structure);
+    return res;
   }
 
   std::vector<duplex_list_t>
@@ -86,19 +63,16 @@ namespace std {
     list = duplex_subopt(s1.c_str(), s2.c_str(), delta, w);
  
     for (ptr = list; ptr->structure != NULL; ptr++) {
-      duplex_list_t a;
-      a.i         = ptr->i;
-      a.j         = ptr->j;
-      a.energy    = ptr->energy;
-      a.structure = ptr->structure;
+      duplex_list_t a{ ptr->i, ptr->j, ptr->energy, ptr->structure};
       ret.push_back(a);
+      free(ptr->structure);
     }
     free(list);
 
     return ret;
   }
 
-  duplexT
+  duplex_list_t
   my_aliduplexfold(std::vector<std::string> alignment1,
                    std::vector<std::string> alignment2)
   {
@@ -109,7 +83,11 @@ namespace std {
     std::transform(alignment2.begin(), alignment2.end(), std::back_inserter(aln_vec2), convert_vecstring2veccharcp);
     aln_vec2.push_back(NULL); /* mark end of sequences */
 
-    return aliduplexfold((const char **)&aln_vec1[0], (const char **)&aln_vec2[0]);
+    duplexT r = aliduplexfold((const char **)&aln_vec1[0], (const char **)&aln_vec2[0]);
+    duplex_list_t res{r.i, r.j, r.energy, r.structure};
+    free(r.structure);
+    return res;
+
   }
 
   std::vector<duplex_list_t>
@@ -129,12 +107,9 @@ namespace std {
 
     list = aliduplex_subopt((const char **)&aln_vec1[0], (const char **)&aln_vec2[0], delta, w);
     for (ptr = list; ptr->structure != NULL; ptr++) {
-      duplex_list_t a;
-      a.i         = ptr->i;
-      a.j         = ptr->j;
-      a.energy    = ptr->energy;
-      a.structure = ptr->structure;
+      duplex_list_t a{ ptr->i, ptr->j, ptr->energy, ptr->structure};
       ret.push_back(a);
+      free(ptr->structure);
     }
     free(list);
 
@@ -153,11 +128,11 @@ namespace std {
 %feature("kwargs") my_aliduplex_subopt;
 #endif
 
-duplexT my_duplexfold(std::string s1, std::string s2);
+duplex_list_t my_duplexfold(std::string s1, std::string s2);
 
 std::vector<duplex_list_t> my_duplex_subopt(std::string s1, std::string s2, int delta, int w);
 
-duplexT my_aliduplexfold(std::vector<std::string> alignment1,
+duplex_list_t my_aliduplexfold(std::vector<std::string> alignment1,
                          std::vector<std::string> alignment2);
 
 std::vector<duplex_list_t>  my_aliduplex_subopt(std::vector<std::string> alignment1,

@@ -210,6 +210,8 @@ namespace std {
          free($1);
 }
 
+%typemap(newfree) char * "free($1);";
+
 
 // Additional target language specific typemaps
 %include "tmaps.i"

@@ -75,5 +75,29 @@ strcpy(symbolset, "AUGC");
 
 %}
 
+#ifdef SWIGPYTHON
+%typemap(varin) char * symbolset {
+  free(symbolset);
+  symbolset = strdup(PyUnicode_AsUTF8($input));
+}
+
+%typemap(varout) char * symbolset {
+  $result = PyUnicode_FromString((const char *)symbolset);
+}
+
+#endif
+
+#ifdef SWIGPERL5
+%typemap(varin) char * symbolset {
+  free(symbolset);
+  symbolset = strdup(SvPV_nolen($input));
+}
+
+%typemap(varout) char * symbolset {
+  sv_setpv($result, (const char *)symbolset);
+}
+
+#endif
+
 %include  <ViennaRNA/inverse.h>
 

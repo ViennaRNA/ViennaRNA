@@ -133,6 +133,11 @@ typedef struct {
     return vrna_params(model_details);
   }
 
+  ~vrna_param_t()
+  {
+    free($self);  
+  }
+
 #ifdef SWIGPYTHON
   std::string
   __str__()
@@ -244,6 +249,11 @@ def __repr__(self):
   {
     vrna_exp_param_t *P = vrna_exp_params(model_details);
     return P;
+  }
+
+  ~vrna_exp_param_t()
+  {
+    free($self);  
   }
 
 #ifdef SWIGPYTHON
