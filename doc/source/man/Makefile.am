@@ -39,7 +39,7 @@ if WITH_REFERENCE_MANUAL
 
 endif WITH_REFERENCE_MANUAL
 
-dist_pkgdata_DATA = $(REFMAN_MANPAGES)
+BUILT_SOURCES = $(REFMAN_MANPAGES)
 
 # remove all generated man pages
 maintainer-clean-local:

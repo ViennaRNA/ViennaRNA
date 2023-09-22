@@ -172,6 +172,7 @@ uninstall-pdfDATA: vrna_pdfrefman_uninst
 EXTRA_DIST =  $(pkgdata_DATA) \
               source \
               breathe \
+              man2rst.py \
               requirements.txt \
               refman-html \
               build \
