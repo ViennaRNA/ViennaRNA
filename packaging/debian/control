@@ -3,15 +3,15 @@ Maintainer: Ronny Lorenz <ronny@tbi.univie.ac.at>
 Section: science
 Priority: optional
 Standards-Version: 3.9.5
-X-Python-Version: >= 2.7
-Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev | libgsl-dev, libmpfr-dev, gawk, perl, libperl-dev, python-all, python-all-dev, python3-all, python3-all-dev, dh-python, lsb-release, gengetopt, texinfo, help2man, doxygen-latex, swig, graphviz, xxd, gfortran, liblapacke-dev, liblapack-dev
+X-Python-Version: >= 3.7
+Build-Depends: debhelper (>= 9), pkg-config, libgsl0-dev | libgsl-dev, libmpfr-dev, gawk, perl, libperl-dev, python3-all, python3-all-dev, dh-python3, lsb-release, build-essential, check, texinfo, gfortran, liblapacke-dev, liblapack-dev
 
 Package: viennarna
 Architecture: any
 Depends: libgomp1 (>= 4.4.5-1), libgsl0ldbl | libgsl2 | libgsl23 | libgsl25 | libgsl27, libmpfr4 | libmpfr6, liblapack, liblapacke, ${shlibs:Depends}, ${misc:Depends}
 Replaces: vienna-rna (<< 2.2.1-2)
 Breaks: vienna-rna (<< 2.2.1-2)
-Recommends: python-rna, perl-rna
+Recommends: python3-rna, perl-rna
 Description: Vienna RNA Package - Core
  The Vienna RNA Package Core consists of several executable
  programs and various scripts for the prediction and comparison
@@ -31,15 +31,6 @@ Architecture: all
 Conflicts: vienna-rna (<< 2.2.1-2)
 Description: ViennaRNA Package - RNAlib Reference Manual
  Reference Manual for RNAlib C-library in PDF and HTML format
-
-Package: python-rna
-Section: python
-Architecture: any
-Conflicts: vienna-rna (<< 2.2.1-2)
-Depends: ${python:Depends}, ${misc:Depends}, ${shlibs:Depends}, python
-Description: Python 2 bindings to ViennaRNA RNAlib
- The RNA class to access RNAlib C-library functions from
- within Python 2 scripts
 
 Package: python3-rna
 Section: python

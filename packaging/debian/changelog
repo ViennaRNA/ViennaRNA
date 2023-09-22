@@ -1,3 +1,10 @@
+viennarna (2.6.4-1) UNRELEASED; urgency=low
+
+  * Bump to upstream release 2.6.4
+  * This also removes the Python 2 interface for RNAlib
+
+ -- Ronny Lorenz <ronny@tbi.univie.ac.at>  Mon, 25 Sep 2023 12:00:00 +0200
+
 viennarna (2.6.3-1) UNRELEASED; urgency=low
 
   * Bump to upstream release 2.6.3

@@ -1,6 +1,23 @@
-# javascript files in doc/html are generated using doxygen, therefore the following error is invalid
-viennarna source: source-is-missing doc/html/jquery.js
-viennarna source: source-is-missing doc/html/jquery.js line length is * characters (>512)
-viennarna source: source-is-missing doc/html/svgpan.js line length is * characters (>256)
-viennarna source: source-is-missing doc/html/search/all_e.js line length is * characters (>256)
-viennarna source: source-is-missing doc/html/search/variables_b.js line length is * characters (>256)
+# javascript files in doc/build/html are generated using sphinx, therefore the following error is invalid
+viennarna source: source-is-missing doc/build/html/_static/clipboard.min.js
+viennarna source: source-is-missing doc/build/html/_static/jquery.js line length is 32679 characters (>512)
+viennarna source: source-is-missing doc/build/html/_static/js/badge_only.js line length is 934 characters (>512)
+viennarna source: source-is-missing doc/build/html/_static/js/html5shiv-printshiv.min.js
+viennarna source: source-is-missing doc/build/html/_static/js/html5shiv.min.js
+viennarna source: source-is-missing doc/build/html/_static/js/mathjax/output/chtml.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/build/html/_static/js/mathjax/output/chtml/fonts/tex.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/build/html/_static/js/mathjax/output/svg.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/build/html/_static/js/mathjax/output/svg/fonts/tex.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/build/html/_static/js/mathjax/tex-chtml.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/build/html/_static/js/theme.js line length is 5023 characters (>512)
+viennarna source: source-is-missing doc/build/latex/_static/jquery.js line length is 32679 characters (>512)
+viennarna source: source-is-missing doc/source/_static/js/mathjax/output/chtml.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/source/_static/js/mathjax/output/chtml/fonts/tex.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/source/_static/js/mathjax/output/svg.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/source/_static/js/mathjax/output/svg/fonts/tex.js line length is 32768 characters (>512)
+viennarna source: source-is-missing doc/source/_static/js/mathjax/tex-chtml.js line length is 32768 characters (>512)
+viennarna source: source-is-missing src/dlib-19.24/docs/python/_static/jquery.js line length is 32683 characters (>512)
+viennarna source: source-is-missing src/dlib-19.24/docs/python/_static/underscore.js line length is 18996 characters (>512)
+viennarna-doc: embedded-javascript-library usr/share/doc/ViennaRNA/html/_static/jquery.js please use libjs-jquery
+viennarna-doc: embedded-javascript-library usr/share/doc/ViennaRNA/html/_static/js/html5shiv-printshiv.min.js please use node-html5shiv
+viennarna-doc: embedded-javascript-library usr/share/doc/ViennaRNA/html/_static/js/html5shiv.min.js please use node-html5shiv

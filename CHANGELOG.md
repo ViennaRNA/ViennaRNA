@@ -4,7 +4,38 @@ Below, you'll find a list of notable changes for each version of the ViennaRNA P
 
 ## Version 2.6.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.3...HEAD)
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.4...HEAD)
+
+
+### [Version 2.6.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.3...v2.6.4)
+
+#### Programs
+  * Fix C++17 compilation issue with `kinwalker`
+  * Fix potential compilation issues with C++20 in `RNAforester` frontend
+  * Refactor and correct spelling issues in man pages for several executable programs
+
+#### Library
+  * API: Add shift move support to `vrna_move_neighbor_diff*()` functions
+  * API: Fix char array initialization in `snoop.c`
+  * API: Fix potentially leaking file pointer in `vrna_file_msa_read()`
+  * API: Fix potentially leaking memory in `rnaplot_EPS()`
+  * API: Fix potential use of uninitialized variable in `vrna_rotational_symmetry_db_pos()`
+  * API: Fix soft constraints issue in external loop of `vrna_subopt*()`
+  * SWIG: Add swig class output parameter typemap for Python
+  * SWIG: Add `__hash__()` and `__eq__()` methods for wrapped `_vrna_move_t` in Python
+  * SWIG: Return `var_array<vrna_move_t>` objects in Python wrapped `vrna_neighbors()` and `vrna_move_neighbor_diff()`
+  * SWIG: Refactor file handle wrapping between Python 3 and C
+  * SWIG: Fix `var_array` Python slices and associated memory leak
+  * SWIG: Fix bogus `delete/free()` calls in swig interface
+  * Add requirements to build `RNAlib` with MSVC for Windows
+  * Remove unused code in `RNApuzzler`
+
+#### Package
+  * DOC: Transition reference manual from `doxygen` to `sphinx` via `breathe` bridge
+  * DOC: Merge documentation of C-API and Python API
+  * DOC: Merge parts of tutorial into reference manual
+  * AUTOCONF: Refactor autoconf checks for capability to build reference manual
+  * AUTOCONF: Deactivate build of `RNAxplorer` if `lapack` requirements are not met
 
 
 ### [Version 2.6.3](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.2...v2.6.3)

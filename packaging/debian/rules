@@ -4,7 +4,7 @@ export DH_VERBOSE=1
 PERLARCHLIB := $(shell perl -MConfig -e 'print substr($$Config{vendorarch}, 1);')
 PYTHONARCHLIB := $(shell python3 -c "import sysconfig; print(sysconfig.get_path('platlib', vars={'platbase':'usr'}) + '/*')")
 
-BUILDOPTS= --with-cluster --without-forester --with-kinwalker --with-python2 --disable-silent-rules
+BUILDOPTS= --with-cluster --without-forester --with-kinwalker --disable-silent-rules
 
 ifeq ($(shell lsb_release --short --codename),wheezy)
 BUILDOPTS+= --disable-lto --without-rnalocmin
@@ -14,14 +14,8 @@ ifeq ($(shell lsb_release --short --codename),precise)
 BUILDOPTS+= --disable-lto --without-rnalocmin
 endif
 
-ifeq ($(shell lsb_release --short --codename),focal)
-HELPEROPTS= --with python3
-else
-HELPEROPTS= --with python2,python3
-endif
-
 %:
-	dh $@ --parallel $(HELPEROPTS)
+	dh $@ --parallel --with python3
 
 override_dh_auto_configure:
 	dh_auto_configure --  $(BUILDOPTS) INSTALLDIRS=vendor
