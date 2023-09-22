@@ -119,11 +119,9 @@ $(SWIG_wrapper): $(SWIG_src) $(INTERFACE_FILES)
                   -I$(top_srcdir)/src \
                   -I$(srcdir) \
                   -I$(builddir) \
-                  -DPY3 \
                   $(doxy2swig_pydoc_define) \
                   $(RNA_CPPFLAGS) \
                   -python \
-                  -py3 \
                   -c++ \
                   -keyword \
                   -w511,509 \
