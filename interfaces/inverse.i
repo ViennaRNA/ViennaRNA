@@ -78,13 +78,12 @@ strcpy(symbolset, "AUGC");
 #ifdef SWIGPYTHON
 %typemap(varin) char * symbolset {
   free(symbolset);
-  symbolset = strdup(PyUnicode_AsUTF8($input));
+  symbolset = strdup(SWIG_Python_str_AsChar($input));
 }
 
 %typemap(varout) char * symbolset {
-  $result = PyUnicode_FromString((const char *)symbolset);
+  $result = SWIG_Python_str_FromChar((const char *)symbolset);
 }
-
 #endif
 
 #ifdef SWIGPERL5
