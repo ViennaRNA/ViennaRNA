@@ -335,7 +335,7 @@ def __iter__(self):
 
 
 %extend var_array<vrna_move_t> {
-  var_array<vrna_move_t> * __getitem__(PyObject *ob) {
+  var_array<vrna_move_t> * __getitem__(SWIGPY_SLICEOBJECT *ob) {
     size_t        n, real_i, max_i;
     unsigned int  type;
     Py_ssize_t    start, stop, step, slice_l, l;
@@ -383,7 +383,7 @@ def __iter__(self):
 
 %define varArrayExtend__getitem__(name, T)
 %extend name<T> {
-  var_array<T> * __getitem__(PyObject *ob) {
+  var_array<T> * __getitem__(SWIGPY_SLICEOBJECT *ob) {
     size_t        n, real_i, max_i;
     unsigned int  type;
     Py_ssize_t    start, stop, step, slice_l, l;
