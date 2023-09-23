@@ -131,7 +131,7 @@ RNA_PACKAGE_IF_ENABLED([doc_pdf],[
   then
     # check if a generated reference manual already exists
     RNA_PACKAGE_IF_ENABLED([doc_pdf],[
-      AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/$DOXYGEN_PROJECT_NAME.pdf],
+      AC_RNA_TEST_FILE( [doc/$DOXYGEN_PROJECT_NAME.pdf],
                         [with_doc_pdf=yes],
                         [with_doc_pdf=no
                          doc_pdf_failed="($doc_build_pdf_failed)"])
@@ -145,7 +145,7 @@ RNA_PACKAGE_IF_ENABLED([doc_html],[
   if test "x$doc_build_requirements_html" = xno;
   then
     RNA_PACKAGE_IF_ENABLED([doc_html],[
-      AC_RNA_TEST_FILE( [$DOXYGEN_DOCDIR/html/index.html],
+      AC_RNA_TEST_FILE( [doc/build/html/index.html],
                         [with_doc_html=yes],
                         [with_doc_html=no
                          doc_html_failed="($doc_build_html_failed)"])
