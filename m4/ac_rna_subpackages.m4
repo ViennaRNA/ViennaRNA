@@ -99,15 +99,15 @@ AC_DEFUN([RNA_ENABLE_PKG_RNAXPLORER],[
   RNA_PACKAGE_IF_ENABLED([rnaxplorer],[
     rnaxplorer_requirements="no"
     rnaxplorer_failed=""
-    AC_REQUIRE([AX_LAPACK])
+    AC_PROG_F77
 
-    if test "x$ax_lapack_ok" != "xno";
+    if test "x$F77" != "x";
     then
       AC_CHECK_HEADERS([openblas/lapacke.h lapacke/lapacke.h lapacke.h],
                        [rnaxplorer_requirements=yes; rnaxplorer_failed=""; break;],
                        [rnaxplorer_failed="(missing lapacke.h)"])
     else
-      rnaxplorer_failed="(missing lapack/blas)"
+      rnaxplorer_failed="(missing fortran compiler)"
     fi
 
     if test "x$rnaxplorer_requirements" = "xyes";
