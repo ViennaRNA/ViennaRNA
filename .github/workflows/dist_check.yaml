@@ -34,7 +34,7 @@ jobs:
           doxygen \
           gengetopt \
           help2man \
-          yacc \
+          bison \
           flex \
           libtool \
           check \
@@ -50,6 +50,7 @@ jobs:
           python3-sphinx-rtd-theme \
           texlive-latex-recommended \
           texlive-latex-extra \
+          texlive-font-utils \
           texlive-fonts-recommended
     - name: Autotools setup
       run:  |
