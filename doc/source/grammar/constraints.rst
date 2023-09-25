@@ -32,7 +32,7 @@ Secondary structure constraints are always applied at decomposition level, i.e.
 in each step of the recursive structure decomposition, for instance during MFE
 prediction. Below is a visualization of the decomposition scheme
 
-.. image:: /gfx/recursions.svg
+.. image:: /gfx/recursions.png
 
 For :doc:`/grammar/constraints/hard` the following option flags may be used to constrain
 the pairing behavior of single, or pairs of nucleotides:
