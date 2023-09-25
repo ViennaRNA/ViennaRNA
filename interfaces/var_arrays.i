@@ -3,6 +3,17 @@
 /**********************************************/
 
 %{
+
+#ifdef SWIGPYTHON
+# ifndef SWIGPY_SLICEOBJECT
+#   if PY_VERSION_HEX >= 0x03020000
+#     define SWIGPY_SLICEOBJECT PyObject
+#   else
+#     define SWIGPY_SLICEOBJECT PySliceObject
+#   endif
+# endif
+#endif
+
 #include <sstream>
 
 #define VAR_ARRAY_LINEAR      1U
