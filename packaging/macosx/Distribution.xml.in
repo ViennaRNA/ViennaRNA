@@ -7,7 +7,6 @@
     <pkg-ref id="org.TBI.ViennaRNA.kinwalker"/>
     <pkg-ref id="org.TBI.ViennaRNA.rnalocmin"/>
     <pkg-ref id="org.TBI.ViennaRNA.libRNA"/>
-    <pkg-ref id="org.TBI.ViennaRNA.tutorial"/>
     <pkg-ref id="org.TBI.ViennaRNA.perl"/>
     <pkg-ref id="org.TBI.ViennaRNA.python"/>
     <pkg-ref id="org.TBI.ViennaRNA.python3"/>
@@ -27,7 +26,6 @@
         <line choice="org.TBI.ViennaRNA.kinwalker"/>
         <line choice="org.TBI.ViennaRNA.rnalocmin"/>
         <line choice="org.TBI.ViennaRNA.libRNA"/>
-        <line choice="org.TBI.ViennaRNA.tutorial"/>
         <line choice="org.TBI.ViennaRNA.perl"/>
         <line choice="org.TBI.ViennaRNA.python"/>
         <line choice="org.TBI.ViennaRNA.python3"/>
@@ -35,10 +33,6 @@
     <choice id="org.TBI.ViennaRNA.core" title="Core" enabled="false"
         description="Executable programs, utilities, and corresponding manual pages">
         <pkg-ref id="org.TBI.ViennaRNA.core">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Core.pkg</pkg-ref>
-    </choice>
-    <choice id="org.TBI.ViennaRNA.tutorial" title="RNA Bioinformatics Tutorial"
-        description="A tutorial on RNA Bioinformatics using the tools of the ViennaRNA Package">
-        <pkg-ref id="org.TBI.ViennaRNA.tutorial">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Tutorial.pkg</pkg-ref>
     </choice>
     <choice id="org.TBI.ViennaRNA.cluster" title="Cluster Analysis" start_selected="false"
         description="The programs AnalyseSeqs and AnalyseDists offer some cluster analysis tools (split decomposition, statistical geometry, neighbor joining, Ward's method) for sequences and distance data">
@@ -77,7 +71,6 @@
         <pkg-ref id="org.TBI.ViennaRNA.python3">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Python3.pkg</pkg-ref>
     </choice>
     <pkg-ref id="org.TBI.ViennaRNA.core" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Core.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.tutorial" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Tutorial.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.cluster" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Cluster%20Analysis.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.kinfold" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Kinfold.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.rnaforester" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAforester.pkg</pkg-ref>

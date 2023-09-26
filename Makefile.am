@@ -16,7 +16,6 @@ SUBDIRS = \
     doc/doxygen \
     interfaces \
     doc \
-    RNA-Tutorial \
     @subdirs@ \
     tests \
     examples \

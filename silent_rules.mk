@@ -37,9 +37,6 @@ pkg_verbose_ = $(pkg_verbose_@AM_DEFAULT_V@)
 dmg_verbose = $(dmg_verbose_@AM_V@)
 dmg_verbose_ = $(dmg_verbose_@AM_DEFAULT_V@)
 
-tutorial_verbose = $(tutorial_verbose_@AM_V@)
-tutorial_verbose_ = $(tutorial_verbose_@AM_DEFAULT_V@)
-
 if WITH_COLOR_MAKE
 
 ggo_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mGGO\033[0m      %s\n" $@ || echo "  GGO      $@";
@@ -55,7 +52,6 @@ checkmk_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mCHECKMK\033[0m  %s\n" $@ ||
 prepare_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mPREPARE\033[0m  $@ || echo "  PREPARE  $@;
 pkg_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mPKG-GEN\033[0m  $@ || echo "  PKG-GEN  $@;
 dmg_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mDMG-GEN\033[0m  $@ || echo "  DMG-GEN  $@;
-tutorial_verbose_0 = @[ -t 1 ] && printf "  \033[1;34mTUT\033[0m      %s\n" $@ || echo "  TUT      $@";
 
 else
 
@@ -72,6 +68,5 @@ checkmk_verbose_0 = @echo "  CHECKMK  $@";
 prepare_verbose_0 = @echo "  PREPARE  $@;
 pkg_verbose_0 = @echo "  PKG-GEN  $@;
 dmg_verbose_0 = @echo "  DMG-GEN  $@;
-tutorial_verbose_0 = @echo "  TUT      $@";
 
 endif

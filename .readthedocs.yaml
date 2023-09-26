@@ -24,7 +24,7 @@ build:
     pre_build:
       - tar -xjf src/dlib-19.24.tar.bz2 -C src/
       - tar -xzf src/libsvm-3.31.tar.gz -C src/
-      - autoreconf -i && ./configure --without-forester --without-kinfold --without-rnalocmin --without-rnaxplorer --without-cla --without-tutorial --without-perl --without-python2 --disable-lto
+      - autoreconf -i && ./configure --without-forester --without-kinfold --without-rnalocmin --without-rnaxplorer --without-cla --without-perl --without-python2 --disable-lto
       - cd src/ViennaRNA && make -j && cd ../../
       - cd doc/doxygen && make && cd ../../
       - cd interfaces/Python && make V=1 && cd ../../

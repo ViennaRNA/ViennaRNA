@@ -80,11 +80,6 @@ RNA_ENABLE_SWIG_INTERFACES
 RNA_ENABLE_DOXYGEN_REFMAN([RNAlib])
 
 ##--------------------##
-## Enable Tutorial    ##
-##--------------------##
-RNA_ENABLE_TUTORIAL([tutorial])
-
-##--------------------##
 ## Enable CLA         ##
 ##--------------------##
 RNA_ENABLE_CLA
@@ -138,7 +133,7 @@ AC_CONFIG_FILES([src/Utils/Makefile src/bin/Makefile src/Makefile src/ViennaRNA/
 AC_CONFIG_FILES([src/ViennaRNA/static/Makefile])
 AC_CONFIG_FILES([man/Makefile])
 AC_CONFIG_FILES([man/cmdlopt.sh],[chmod +x man/cmdlopt.sh])
-AC_CONFIG_FILES([doc/doxygen/Makefile doc/Makefile doc/source/man/Makefile doc/CLA/Makefile RNA-Tutorial/Makefile])
+AC_CONFIG_FILES([doc/doxygen/Makefile doc/Makefile doc/source/man/Makefile doc/CLA/Makefile])
 AC_CONFIG_FILES([examples/Makefile])
 AC_CONFIG_FILES([packaging/viennarna.spec packaging/PKGBUILD])
 AC_CONFIG_FILES([packaging/win_installer_archlinux_i686.nsi packaging/win_installer_archlinux_x86_64.nsi])
@@ -201,11 +196,6 @@ AS_IF([test "x$with_doc" != "xno"],[
   _docdir="Not to be installed"
 ])
 
-AS_IF([test "x$with_tutorial" != "xno"],[
-  eval _pdfdir=$(eval printf "%s" $pdfdir)],[
-  _pdfdir=""
-])
-
 
 AS_IF([test "x$ac_rna_warning" != "x"],[
   ac_rna_warning="
@@ -231,8 +221,6 @@ m4_map_args([ AC_RNA_COLOR_RESULT_PACKAGE],
             [python2],
             [doc_pdf],
             [doc_html],
-            [tutorial_pdf],
-            [tutorial_html],
             [cla_pdf],
             [check])
 
@@ -329,8 +317,6 @@ Documentation
 -------------
   * Reference Manual (PDF)    : ${result_doc_pdf} ${doc_pdf_failed}
   * Reference Manual (HTML)   : ${result_doc_html} ${doc_html_failed}
-  * Tutorial (PDF)            : ${result_tutorial_pdf} ${tutorial_pdf_failed}
-  * Tutorial (HTML)           : ${result_tutorial_html} ${tutorial_html_failed}
   * CLA (PDF)                 : ${result_cla_pdf} ${cla_pdf_failed}
 
 Unit Tests

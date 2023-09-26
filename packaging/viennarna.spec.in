@@ -266,7 +266,6 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/*
 %dir %{_datadir}/ViennaRNA
 %{_datadir}/ViennaRNA/bin
-%{_datadir}/ViennaRNA/tutorial
 %{_datadir}/ViennaRNA/*.par
 %{_datadir}/ViennaRNA/*.json
 %{_datadir}/ViennaRNA/*.R

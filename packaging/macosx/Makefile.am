@@ -19,7 +19,6 @@ staging_kinwalker_dir = staging_kinwalker
 staging_forester_dir = staging_forester
 staging_cluster_dir = staging_cluster
 staging_rnalocmin_dir = staging_rnalocmin
-staging_tutorial_dir = staging_tutorial
 
 CORE_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Core".pkg
 CLUSTER_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Cluster\ Analysis".pkg
@@ -28,7 +27,6 @@ KINWALKER_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Kinwalker".pkg
 FORESTER_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ RNAforester".pkg
 RNALOCMIN_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ RNAlocmin".pkg
 DEV_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Development".pkg
-TUTORIAL_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Tutorial".pkg
 PERL_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Perl".pkg
 PYTHON_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Python".pkg
 PYTHON3_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Python3".pkg
@@ -70,11 +68,6 @@ remove_staging_rnalocmin_dir = \
   { test ! -d $(staging_rnalocmin_dir) \
     || { find $(staging_rnalocmin_dir) -type d ! -perm -200 -exec chmod u+w {} ';' \
          && rm -fr $(staging_rnalocmin_dir); }; }
-
-remove_staging_tutorial_dir = \
-  { test ! -d $(staging_tutorial_dir) \
-    || { find $(staging_tutorial_dir) -type d ! -perm -200 -exec chmod u+w {} ';' \
-         && rm -fr $(staging_tutorial_dir); }; }
 
 remove_staging_perl_dir = \
   { test ! -d $(staging_perl_dir) \
@@ -176,13 +169,6 @@ staging-libRNA:
 	$(AM_V_at)$(MKDIR_P) $(staging_libRNA_dir)$(prefix)/lib/pkgconfig
 	$(AM_V_at)cp $(top_srcdir)/RNAlib2.pc $(staging_libRNA_dir)$(prefix)/lib/pkgconfig
 
-##
-## prepare Tutorial staging directory
-##
-staging-tutorial:
-	$(prepare_verbose)$(remove_staging_tutorial_dir)
-	$(AM_V_at)cd $(top_srcdir)/RNA-Tutorial \
-      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_tutorial_dir)
 
 ##
 ## prepare Perl staging directory
@@ -239,10 +225,6 @@ staging-python3:
 	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.rnalocmin --version @PACKAGE_VERSION@ \
       --root ${staging_rnalocmin_dir} "${RNALOCMIN_PKG_FILE}"
 
-"${TUTORIAL_PKG_FILE}": staging-tutorial
-	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.tutorial --version @PACKAGE_VERSION@ \
-      --root ${staging_tutorial_dir} "${TUTORIAL_PKG_FILE}"
-
 "${PERL_PKG_FILE}": staging-perl
 	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.perl --version @PACKAGE_VERSION@ \
       --root ${staging_perl_dir} "${PERL_PKG_FILE}"
@@ -263,7 +245,6 @@ staging-python3:
                 "${FORESTER_PKG_FILE}" \
                 "${KINWALKER_PKG_FILE}" \
                 "${RNALOCMIN_PKG_FILE}" \
-                "${TUTORIAL_PKG_FILE}" \
                 "${PERL_PKG_FILE}" \
                 "${PYTHON_PKG_FILE}" \
                 "${PYTHON3_PKG_FILE}"
@@ -292,7 +273,6 @@ clean-local:
 	$(remove_staging_kinwalker_dir)
 	$(remove_staging_forester_dir)
 	$(remove_staging_rnalocmin_dir)
-	$(remove_staging_tutorial_dir)
 	$(remove_staging_perl_dir)
 	$(remove_staging_python_dir)
 	$(remove_staging_python3_dir)
@@ -306,7 +286,6 @@ clean-local:
           "${KINFOLD_PKG_FILE}" \
           "${CLUSTER_PKG_FILE}" \
           "${RNALOCMIN_PKG_FILE}" \
-          "${TUTORIAL_PKG_FILE}" \
           "${DEV_PKG_FILE}" \
           "${CORE_PKG_FILE}"
 
@@ -319,7 +298,6 @@ PHONY:  resources \
         staging-forester \
         staging-kinwalker \
         staging-rnalocmin \
-        staging-tutorial \
         staging-perl \
         staging-python \
         staging-python3 \
