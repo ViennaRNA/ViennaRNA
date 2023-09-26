@@ -128,7 +128,7 @@ if WITH_REFERENCE_MANUAL_HTML
 vrna_htmlrefman_inst: installdirs refman-html
 	@$(NORMAL_INSTALL)
 	test -d $(builddir)/build/html || ($(MKDIR_P) $(builddir)/build && $(LN_S) $(srcdir)/build/html $(builddir)/build/html)
-	@for item in $$(find $(builddir)/build/html/ -type d) ; do install -m 755 $${item} -d $(DESTDIR)$(htmldir)/$${item#$(builddir)/build/html/} ; done
+	@for item in $$(find $(builddir)/build/html/ -type d) ; do install -d -m 755 $(DESTDIR)$(htmldir)/$${item#$(builddir)/build/html/} ; done
 	@for item in $$(find $(builddir)/build/html/ -type f) ; do install -m 644 $${item} $(DESTDIR)$(htmldir)/$${item#$(builddir)/build/html/} ; done
 	{ test ! -h $(builddir)/build/html || (rm -f $(builddir)/build/html && rm -rf $(builddir)/build) }
 
