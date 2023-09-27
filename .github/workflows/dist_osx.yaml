@@ -1,0 +1,70 @@
+name: Make MacOSX installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      config-flags:
+        description: 'Configure flags for building the Mac OSX installer'
+        default: '--without-openmp --with-cluster --with-kinwalker --without-rnaxplorer --enable-macosx-installer --disable-lto'
+        required: false
+        type: string
+      version-string:
+        description: 'Version string, e.g. 2.6.0'
+        required: false
+        default: '2.6.4'
+        type: string
+      artifact-name:
+        description: 'Name of the artifact'
+        required: false
+        default: 'osx-installer'
+        type: string
+      tarball-artifact-name:
+        description: 'Name of the tarball artifact (for download)'
+        required: false
+        default: 'dist-archives'
+        type: string
+  workflow_call:
+    inputs:
+      config-flags:
+        description: 'Configure flags for building the Mac OSX installer'
+        default: '--without-openmp --with-cluster --with-kinwalker --without-rnaxplorer --enable-macosx-installer --disable-lto'
+        required: false
+        type: string
+      version-string:
+        description: 'Version string, e.g. 2.6.0'
+        required: false
+        default: '2.6.4'
+        type: string
+      artifact-name:
+        description: 'Name of the artifact'
+        required: false
+        default: 'osx-installer'
+        type: string
+      tarball-artifact-name:
+        description: 'Name of the tarball artifact (for download)'
+        required: false
+        default: 'dist-archives'
+        type: string
+
+jobs:
+  create_osx_installer:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: ${{ inputs.tarball-artifact-name }}
+    - name: extract and configure
+      run:  |
+        tar -xzf ViennaRNA-${{ inputs.version-string }}.tar.gz
+        cd ViennaRNA-${{ inputs.version-string }}/
+        ./configure ${{ inputs.config-flags }}
+    - name: compile and build installer
+      working-directory: ViennaRNA-${{ inputs.version-string }}
+      run: |
+        make -j3
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ViennaRNA-${{ inputs.version-string }}/packaging/macosx/ViennaRNA-${{ inputs.version-string }}-MacOSX.dmg
+        retention-days: 3
