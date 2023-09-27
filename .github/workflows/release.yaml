@@ -16,24 +16,38 @@ jobs:
       zip: true
       artifact-name: 'dist-archives'
 
+  create-osx-installer:
+    needs: create-dist-archive
+    uses: ./.github/workflows/dist_osx.yaml
+    with:
+      tarball-artifact-name: 'dist-archives'
+      artifact-name: 'osx-installer'
+      version-string: ${{ needs.create-dist-archive.outputs.version_number }}
+
   create-release:
-    needs: [run-distcheck, create-dist-archives]
+    needs: [run-distcheck, create-dist-archives, create-osx-installer]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
-      with:
-        name: dist-archives
     - name: Extract release notes
       id: extract-release-notes
       uses: RaumZeit/extract-release-notes@a991ec1541871118630638fe002862a023870cff
       with:
         header_level: 3
         version_prefix: "Version"
+    - name: Download source archives
+      uses: actions/download-artifact@v3
+      with:
+        name: dist-archives
+    - name: Download OSX installer
+      uses: actions/download-artifact@v3
+      with:
+        name: osx-installer
     - name: Make release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "ViennaRNA-*.tar.gz,ViennaRNA-*.zip"
+        artifacts: "ViennaRNA-*.tar.gz,ViennaRNA-*.zip,ViennaRNA-*-MacOSX.dmg"
         body: ${{ steps.extract-release-notes.outputs.release_notes }}
+        name: "ViennaRNA Package ${{ needs.create-dist-archive.outputs.version_number }}"
