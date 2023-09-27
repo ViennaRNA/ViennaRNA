@@ -1,6 +1,14 @@
 AC_INIT([kinwalker],[2.0])
 
+AC_PREREQ([2.59])
+AC_CONFIG_AUX_DIR(config)
+
+AC_SUBST(VERSION)
+
+AC_CONFIG_MACRO_DIR([m4])
+
 AM_SILENT_RULES([yes])
+
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 if test "$GCC" = yes; then
@@ -11,7 +19,11 @@ fi
 
 #check for compilers c++ and c
 AC_PROG_CXX
+AC_PROG_CXXCPP
 AC_PROG_CC
+AC_PROG_CPP
+
+AX_CXX_COMPILE_STDCXX(14, noext, mandatory)
 
 #Output this variables to the makefiles
 
