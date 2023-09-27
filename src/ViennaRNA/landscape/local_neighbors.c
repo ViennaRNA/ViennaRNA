@@ -610,7 +610,7 @@ generate_local_nb_deletion(vrna_fold_compound_t *fc,
     /* 2.2.2 base pairs that end within interval spanned by the base
      * pair we just deleted
      */
-    insertions(fc, pt, enc5 + 1, mi - 1, mi, mj, ST_CHG, cb, data);
+    insertions(fc, pt, enc5 + 1, mi - 1, mi, mj, ST_NEW, cb, data);
     /* 2.2.3 base pairs that end after 3' nucleotide of current move */
     insertions(fc, pt, enc5 + 1, mi - 1, mj + 1, enc3 - 1, ST_CHG, cb, data);
 
