@@ -35,10 +35,17 @@ on:
         required: false
         default: 'distribution-archives'
         type: string
+    outputs:
+      version_number:
+        description: "The Version number of this build"
+        value: ${{ jobs.make_dist.outputs.version_number }}
 
 jobs:
-  check:
+  make_dist:
     runs-on: ubuntu-latest
+    # Map the job outputs to step outputs
+    outputs:
+      version_number: ${{ steps.tarball.outputs.version_number }}
 
     steps:
     - name: Checkout
@@ -80,7 +87,13 @@ jobs:
     - name: Configure
       run: ./configure ${{ inputs.config-flags }}
     - name: Make tarball
-      run:  make dist-gzip
+      id: tarball
+      run:  |
+        make dist-gzip
+        version_number=$(ls ViennaRNA-*.tar.gz)
+        version_number="${version_number#ViennaRNA-}"
+        version_number="${version_number%.tar.gz}"
+        echo "version_number=${version_number}" >> "$GITHUB_OUTPUT"
     - name: Make ZIP
       if: ${{ inputs.zip }}
       run:  make dist-zip
