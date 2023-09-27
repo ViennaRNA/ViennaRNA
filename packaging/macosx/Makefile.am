@@ -12,7 +12,6 @@ abs_path_thisdir = $(abs_top_srcdir)/$(thisdir)
 staging_core_dir = staging_core
 staging_libRNA_dir = staging_libRNA
 staging_perl_dir = staging_perl
-staging_python_dir = staging_python
 staging_python3_dir = staging_python3
 staging_kinfold_dir = staging_kinfold
 staging_kinwalker_dir = staging_kinwalker
@@ -28,7 +27,6 @@ FORESTER_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ RNAforester".pkg
 RNALOCMIN_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ RNAlocmin".pkg
 DEV_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Development".pkg
 PERL_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Perl".pkg
-PYTHON_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Python".pkg
 PYTHON3_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Python3".pkg
 VRNA_PKG_FILE="@PACKAGE_NAME@\ Package\ @PACKAGE_VERSION@\ Installer".pkg
 MACOSX_DMG_NAME="@PACKAGE_NAME@ @PACKAGE_VERSION@"
@@ -73,11 +71,6 @@ remove_staging_perl_dir = \
   { test ! -d $(staging_perl_dir) \
     || { find $(staging_perl_dir) -type d ! -perm -200 -exec chmod u+w {} ';' \
          && rm -fr $(staging_perl_dir); }; }
-
-remove_staging_python_dir = \
-  { test ! -d $(staging_python_dir) \
-    || { find $(staging_python_dir) -type d ! -perm -200 -exec chmod u+w {} ';' \
-         && rm -fr $(staging_python_dir); }; }
 
 remove_staging_python3_dir = \
   { test ! -d $(staging_python3_dir) \
@@ -178,13 +171,6 @@ staging-perl:
 	$(AM_V_at)cd $(top_srcdir)/interfaces/Perl \
       && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_perl_dir)
 
-##
-## prepare Python staging directory
-##
-staging-python:
-	$(prepare_verbose)$(remove_staging_python_dir)
-	$(AM_V_at)cd $(top_srcdir)/interfaces/Python2 \
-      && $(MAKE) install DESTDIR=$(abs_path_thisdir)/$(staging_python_dir)
 
 ##
 ## prepare Python3 staging directory
@@ -229,10 +215,6 @@ staging-python3:
 	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.perl --version @PACKAGE_VERSION@ \
       --root ${staging_perl_dir} "${PERL_PKG_FILE}"
 
-"${PYTHON_PKG_FILE}": staging-python
-	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.python --version @PACKAGE_VERSION@ \
-      --root ${staging_python_dir} "${PYTHON_PKG_FILE}"
-
 "${PYTHON3_PKG_FILE}": staging-python3
 	$(pkg_verbose)$(PKGBUILD) --identifier org.TBI.ViennaRNA.python3 --version @PACKAGE_VERSION@ \
       --root ${staging_python3_dir} "${PYTHON3_PKG_FILE}"
@@ -246,7 +228,6 @@ staging-python3:
                 "${KINWALKER_PKG_FILE}" \
                 "${RNALOCMIN_PKG_FILE}" \
                 "${PERL_PKG_FILE}" \
-                "${PYTHON_PKG_FILE}" \
                 "${PYTHON3_PKG_FILE}"
 	$(pkg_verbose)$(PRODUCTBUILD)  --distribution ./Distribution.xml \
       --package-path . \
@@ -274,11 +255,9 @@ clean-local:
 	$(remove_staging_forester_dir)
 	$(remove_staging_rnalocmin_dir)
 	$(remove_staging_perl_dir)
-	$(remove_staging_python_dir)
 	$(remove_staging_python3_dir)
 	-rm -rf disk_image
 	-rm -f  "${VRNA_PKG_FILE}" \
-          "${PYTHON_PKG_FILE}" \
           "${PYTHON3_PKG_FILE}" \
           "${PERL_PKG_FILE}" \
           "${FORESTER_PKG_FILE}" \
@@ -299,6 +278,5 @@ PHONY:  resources \
         staging-kinwalker \
         staging-rnalocmin \
         staging-perl \
-        staging-python \
         staging-python3 \
         disk_image

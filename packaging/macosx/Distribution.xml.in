@@ -8,7 +8,6 @@
     <pkg-ref id="org.TBI.ViennaRNA.rnalocmin"/>
     <pkg-ref id="org.TBI.ViennaRNA.libRNA"/>
     <pkg-ref id="org.TBI.ViennaRNA.perl"/>
-    <pkg-ref id="org.TBI.ViennaRNA.python"/>
     <pkg-ref id="org.TBI.ViennaRNA.python3"/>
     <options customize="always" hostArchitectures="x86_64" />
     <domains enable_localSystem="true" enableCurrentUserHome="false" enable_anywhere="false" />
@@ -27,7 +26,6 @@
         <line choice="org.TBI.ViennaRNA.rnalocmin"/>
         <line choice="org.TBI.ViennaRNA.libRNA"/>
         <line choice="org.TBI.ViennaRNA.perl"/>
-        <line choice="org.TBI.ViennaRNA.python"/>
         <line choice="org.TBI.ViennaRNA.python3"/>
     </choices-outline>
     <choice id="org.TBI.ViennaRNA.core" title="Core" enabled="false"
@@ -62,10 +60,6 @@
         description="Perl bindings for the C-library and additional Perl packages">
         <pkg-ref id="org.TBI.ViennaRNA.perl">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Perl.pkg</pkg-ref>
     </choice>
-    <choice id="org.TBI.ViennaRNA.python" title="Python 2 Interface"
-        description="Python 2 bindings for the C-library">
-        <pkg-ref id="org.TBI.ViennaRNA.python">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Python.pkg</pkg-ref>
-    </choice>
     <choice id="org.TBI.ViennaRNA.python3" title="Python 3 Interface"
         description="Python 3 bindings for the C-library">
         <pkg-ref id="org.TBI.ViennaRNA.python3">#@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@Python3.pkg</pkg-ref>
@@ -78,6 +72,5 @@
     <pkg-ref id="org.TBI.ViennaRNA.rnalocmin" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20RNAlocmin.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.libRNA" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Development.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.perl" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Perl.pkg</pkg-ref>
-    <pkg-ref id="org.TBI.ViennaRNA.python" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Python.pkg</pkg-ref>
     <pkg-ref id="org.TBI.ViennaRNA.python3" version="@PACKAGE_VERSION@" onConclusion="none">@PACKAGE_NAME@%20Package%20@PACKAGE_VERSION@%20Python3.pkg</pkg-ref>
 </installer-gui-script>
