@@ -3,7 +3,7 @@ The Program ``RNAcofold``
 =========================
 
 .. contents:: Table of Contents
-    :maxdepth: 1
+    :depth: 1
     :local:
 
 
@@ -70,6 +70,7 @@ of the two molecules.
 
 This is most easily done by creating a file with the initial concentrations of
 molecules :math:`A` and :math:`B` in two columns::
+
    [a_1]([mol/l])  [b_1]([mol/l])
    [a_2]([mol/l])  [b_2]([mol/l])
 

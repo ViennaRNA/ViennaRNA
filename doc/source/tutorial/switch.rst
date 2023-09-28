@@ -3,7 +3,7 @@ The Program ``switch.pl``
 =========================
 
 .. contents:: Table of Contents
-    :maxdepth: 1
+    :depth: 1
     :local:
 
 

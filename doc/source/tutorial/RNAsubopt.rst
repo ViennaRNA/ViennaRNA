@@ -3,7 +3,7 @@ The Program ``RNAsubopt``
 =========================
 
 .. contents:: Table of Contents
-    :maxdepth: 1
+    :depth: 1
     :local:
 
 

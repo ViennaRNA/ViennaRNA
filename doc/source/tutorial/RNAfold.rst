@@ -3,7 +3,7 @@ The Program ``RNAfold``
 =======================
 
 .. contents:: Table of Contents
-    :maxdepth: 1
+    :depth: 1
     :local:
 
 Introduction
@@ -89,8 +89,8 @@ MFE structure of a single sequence
 - Use a text editor (emacs, vi, nano, gedit) to prepare an input file by pasting the text
   below and save it under the name ``test.seq`` in your ``Data`` folder::
 
-  > test
-  CUACGGCGCGGCGCCCUUGGCGA
+    > test
+    CUACGGCGCGGCGCCCUUGGCGA
 
 - Compute the best (MFE) structure for this sequence using *batch processing mode*
 
@@ -302,7 +302,7 @@ be compared.
 The perl script ``relplot.pl`` adds reliability
 information to a RNA secondary structure plot in the form of color
 annotation. The script computes a well-definedness measure we call
-``positional entropy''
+``positional entropy``
 
 .. math::
 
