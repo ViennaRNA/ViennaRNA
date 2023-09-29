@@ -35,7 +35,7 @@ vpath %.1 = ../../../man
 if WITH_REFERENCE_MANUAL
 
 .1.rst:
-	$(man2rst_verbose)python ../../man2rst.py -i $< -o $@
+	$(man2rst_verbose)python3 ../../man2rst.py -i $< -o $@
 
 endif WITH_REFERENCE_MANUAL
 
