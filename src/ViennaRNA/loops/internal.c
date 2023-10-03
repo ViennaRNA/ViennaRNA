@@ -1,3 +1,4 @@
+/*WBL 23 Jul 2023 rnafold_all_4000/top10code/E_IntLoop.dif E_internal_loop.dif by hand*/
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -18,6 +19,9 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/internal.h"
 
+#define E_IntLoop_1xn 1 /*pickup  version of E_IntLoop optimised for 1xn loops where n < MAXLOOP*/
+#include "ViennaRNA/loops/internal.h"
+#undef  E_IntLoop_1xn /*be tidy*/
 
 #ifdef __GNUC__
 # define INLINE inline
@@ -417,7 +421,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
     unsigned int  type, type2, has_nick, *tt;
     int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
 
-    has_nick    = sn[i] != sn[j] ? 1 : 0;
+    has_nick    = 0; //has_nick not implemented below
     noGUclosure = md->noGUclosure;
     tt          = NULL;
     type        = 0;
@@ -673,7 +677,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
         first_l = j - 1 - MAXLOOP;
 
       u2 = 1;
-      for (l = j - 2; l >= first_l; l--, u2++) {
+      for (l = j - 2; l != first_l; l--, u2++) {
         if (u2 > hc_up[l + 1])
           break;
 
@@ -726,7 +730,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 #endif
                   } else {
                     eee +=
-                      E_IntLoop(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
+                      E_IntLoop_1xn_(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
                   }
 
                   break;

@@ -1,3 +1,5 @@
+/*WBL 23 Jul 2023 rnafold_all_4000/top10code/E_IntLoop.dif by hand*/
+#ifndef E_IntLoop_1xn
 #ifndef VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H
 #define VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H
 
@@ -476,9 +478,17 @@ ubf_eval_ext_int_loop(int           i,
   return energy;
 }
 
+#endif /*VRNA_DISABLE_BACKWARD_COMPATIBILITY*/
+#endif /*not VIENNA_RNA_PACKAGE_LOOPS_INTERNAL_H*/
+#endif /*not E_IntLoop_1xn*/
 
 PRIVATE INLINE int
-E_IntLoop(int           n1,
+#ifdef E_IntLoop_1xn
+E_IntLoop_1xn_(
+#else
+E_IntLoop(
+#endif /*E_IntLoop_1xn*/
+          int           n1,
           int           n2,
           int           type,
           int           type_2,
@@ -545,10 +555,14 @@ E_IntLoop(int           n1,
         return energy + salt_loop_correction;
       } else {
         /* 1xn loop */
+#ifdef E_IntLoop_1xn
+        energy = P->internal_loop[nl + 1];
+#else
         energy =
           (nl + 1 <=
            MAXLOOP) ? (P->internal_loop[nl + 1]) : (P->internal_loop[30] +
                                                     (int)(P->lxc * log((nl + 1) / 30.)));
+#endif /*E_IntLoop_1xn*/
         energy  += MIN2(MAX_NINIO, (nl - ns) * P->ninio[2]);
         energy  += P->mismatch1nI[type][si1][sj1] + P->mismatch1nI[type_2][sq1][sp1];
         return energy + salt_loop_correction;
@@ -580,6 +594,8 @@ E_IntLoop(int           n1,
 
   return energy + salt_loop_correction;
 }
+#ifndef E_IntLoop_1xn
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 
 PRIVATE INLINE FLT_OR_DBL
@@ -800,6 +816,6 @@ E_IntLoop_Co(int          type,
  * @}
  */
 
-#endif
+#endif /*not VRNA_DISABLE_BACKWARD_COMPATIBILITY*/
 
-#endif
+#endif /*not E_IntLoop_1xn*/
