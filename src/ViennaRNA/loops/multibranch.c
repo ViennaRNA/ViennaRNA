@@ -1032,6 +1032,9 @@ extend_fm_3p(int                        i,
         if (sc_wrapper->red_stem)
           en += sc_wrapper->red_stem(i, j, i + 1, j, sc_wrapper);
 
+        en += P->MLbase *
+              n_seq;
+
         e = MIN2(e, en);
       }
     }
@@ -1060,6 +1063,9 @@ extend_fm_3p(int                        i,
         if (sc_wrapper->red_stem)
           en += sc_wrapper->red_stem(i, j, i, j - 1, sc_wrapper);
 
+        en += P->MLbase *
+              n_seq;
+
         e = MIN2(e, en);
       }
     }
@@ -1087,6 +1093,9 @@ extend_fm_3p(int                        i,
 
         if (sc_wrapper->red_stem)
           en += sc_wrapper->red_stem(i, j, i + 1, j - 1, sc_wrapper);
+
+        en += 2 * P->MLbase *
+              n_seq;
 
         e = MIN2(e, en);
       }
