@@ -366,7 +366,7 @@ parameter sets:
 Since version 2.6.0 several programs received support to predict structures
 for sequences with modified bases. The corresponding energy parameters are
 incomplete and mostly restricted to base pair stacking. The ViennaRNA package
-currently includes paraneter sets for
+currently includes parameter sets for
   * [inosine][file_param_inosine]
   * [pseudouridine][file_param_pseudouridine]
   * [m6A][file_param_m6A]
@@ -374,7 +374,7 @@ currently includes paraneter sets for
   * [purine (a.k.a. nebularine)][file_param_purine]
   * [dihydrouridine][file_param_dihydrouridine]
 
-### Paramers Set Availability
+### Parameter Set Availability
 Energy parameter files are mostly provided for use with our executable
 programs. All parameter sets are compiled-in to our `RNAlib` C-library.
 Thus, when building upon our library, either through C/C++ or the
