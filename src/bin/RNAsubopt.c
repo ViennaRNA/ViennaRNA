@@ -33,6 +33,7 @@
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/commands.h"
+#include "ViennaRNA/datastructures/string.h"
 
 #include "RNAsubopt_cmdl.h"
 #include "gengetopt_helpers.h"
@@ -377,27 +378,38 @@ main(int  argc,
       if (constraints_file) {
         vrna_constraints_add(vc, constraints_file, VRNA_OPTION_DEFAULT);
       } else {
-        cstruc = NULL;
-        int           cp        = -1;
-        unsigned int  coptions  = (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0;
-        cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
-        cstruc  = vrna_cut_point_remove(cstruc, &cp);
-        if (vc->cutpoint != cp) {
-          vrna_message_error("Sequence and Structure have different cut points.\n"
-                             "sequence: %d, structure: %d",
-                             vc->cutpoint, cp);
-        }
+        char          *constraint_ptr, **constraints;
+        unsigned int  options;
 
-        cl = (cstruc) ? (int)strlen(cstruc) : 0;
+        options  = (maybe_multiline) ? VRNA_OPTION_MULTILINE : 0;
 
-        if (cl == 0)
-          vrna_message_warning("Structure constraint is missing");
-        else if (cl < length)
-          vrna_message_warning("Structure constraint is shorter than sequence");
-        else if (cl > length)
-          vrna_message_error("Structure constraint is too long");
+        constraint_ptr = vrna_extract_record_rest_structure((const char **)rec_rest, 0, options);
+        constraints = vrna_strsplit(constraint_ptr, NULL);
+        free(constraint_ptr);
 
-        if (cstruc) {
+        /* collect strand-wise constraints */
+        if (constraints) {
+          unsigned int  i = 0, strand_cnt = 1;
+          vrna_string_t constraint;
+          
+          constraint = vrna_string_make(NULL);
+
+          for (char **ptr = constraints; *ptr != NULL; ptr++, strand_cnt) {
+            if (strand_cnt > vc->strands)
+              vrna_message_error("Structure constraint contains too many strands (expected %u, got at least %u)\n",
+                                 vc->strands,
+                                 strand_cnt);
+
+            unsigned int l = strlen(*ptr);
+            if (vc->strand_end[strand_cnt] != i + l)
+              vrna_message_error("Length of structure constraint for strand %u differs from sequence (expected %u, got %u)\n",
+                                 strand_cnt,
+                                 vc->strand_end[strand_cnt] - i,
+                                 l);
+
+            vrna_string_append_cstring(constraint, *ptr);
+          }
+
           /* convert pseudo-dot-bracket to actual hard constraints */
           unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
 
@@ -407,7 +419,9 @@ main(int  argc,
           if (canonicalBPonly)
             constraint_options |= VRNA_CONSTRAINT_DB_CANONICAL_BP;
 
-          vrna_constraints_add(vc, (const char *)cstruc, constraint_options);
+          vrna_constraints_add(vc, (const char *)constraint, constraint_options);
+
+          vrna_string_free(constraint);
         }
       }
     }
@@ -433,9 +447,10 @@ main(int  argc,
                     mod_params);
 
     if (istty) {
-      if (cut_point == -1) {
+      if (vc->strands == 1) {
         vrna_message_info(stdout, "length = %d", length);
       } else {
+        
         vrna_message_info(stdout,
                           "length1 = %d\nlength2 = %d",
                           cut_point - 1,
@@ -463,7 +478,7 @@ main(int  argc,
                               VRNA_PBACKTRACK_NON_REDUNDANT :
                               VRNA_PBACKTRACK_DEFAULT;
 
-      if (vc->cutpoint != -1)
+      if (vc->strands > 1)
         vrna_message_error(
           "Boltzmann sampling for multiple interacting sequences not implemented (yet)!");
 
