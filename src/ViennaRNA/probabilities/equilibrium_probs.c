@@ -67,6 +67,7 @@ typedef struct {
   FLT_OR_DBL    **puh;
   FLT_OR_DBL    **pui;
   FLT_OR_DBL    **pum;
+  FLT_OR_DBL    **QI5;
   unsigned int  ud_max_size;
   FLT_OR_DBL    **pmlu;
   FLT_OR_DBL    *prm_MLbu;
@@ -178,6 +179,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
                      int                  *corr_size,
                      FLT_OR_DBL           *Qmax,
                      int                  *ov,
+                     helper_arrays        *dp_helpers,
                      constraints_helper   *constraints);
 
 
@@ -189,7 +191,14 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
                                  int                  *corr_size,
                                  FLT_OR_DBL           *Qmax,
                                  int                  *ov,
+                                 helper_arrays        *dp_helpers,
                                  constraints_helper   *constraints);
+
+PRIVATE void
+compute_up_int(vrna_fold_compound_t *fc,
+               unsigned int         l,
+               helper_arrays        *dp_helpers,
+               constraints_helper   *constraints);
 
 
 PRIVATE void
@@ -525,6 +534,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                                            int                  *corr_size,
                                            FLT_OR_DBL           *Qmax,
                                            int                  *ov,
+                                           helper_arrays        *dp_helpers,
                                            constraints_helper   *constraints);
 
     void (*compute_bpp_mul)(vrna_fold_compound_t  *fc,
@@ -577,11 +587,12 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                     &corr_size,
                     &Qmax,
                     &ov,
+                    ml_helpers,
                     constraints);
 
     if (ml_helpers->u > 0) {
       compute_up_hp(vc, l, ml_helpers, constraints);
-      //compute_up_int(vc, l, ml_helpers, constraints);
+      compute_up_int(vc, l, ml_helpers, constraints);
     }
 
     for (l = n - 1; l > 1; l--) {
@@ -592,6 +603,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                       &corr_size,
                       &Qmax,
                       &ov,
+                      ml_helpers,
                       constraints);
 
       compute_bpp_mul(vc,
@@ -615,10 +627,12 @@ pf_create_bppm(vrna_fold_compound_t *vc,
 
       if (ml_helpers->u > 0) {
         compute_up_hp(vc, l, ml_helpers, constraints);
+        compute_up_int(vc, l, ml_helpers, constraints);
       }
     }
     if (ml_helpers->u > 0) {
       compute_up_hp(vc, 1, ml_helpers, constraints);
+      compute_up_int(vc, 1, ml_helpers, constraints);
     }
 
     if (vc->type == VRNA_FC_TYPE_SINGLE) {
@@ -738,6 +752,11 @@ pf_create_bppm(vrna_fold_compound_t *vc,
         for (u = 1; u <= ml_helpers->u; u++)
           if (ml_helpers->puh[i][u] > 0.)
             printf("ph[%d][%d] = %g\n", i+u-1, u, ml_helpers->puh[i][u]);
+
+      for (i = 1; i <= n; i++)
+        for (u = 1; u <= ml_helpers->u; u++)
+          if (ml_helpers->pui[i][u] > 0.)
+            printf("pi[%d][%d] = %g\n", i+u-1, u, ml_helpers->pui[i][u]);
     }
 
     /* clean up */
@@ -802,6 +821,7 @@ get_ml_helper_arrays(vrna_fold_compound_t *fc,
   ml_helpers->puh         = NULL;
   ml_helpers->pui         = NULL;
   ml_helpers->pum         = NULL;
+  ml_helpers->QI5         = NULL;
 
   if (with_ud) {
     /* find out maximum size of any unstructured domain */
@@ -827,16 +847,19 @@ get_ml_helper_arrays(vrna_fold_compound_t *fc,
     ml_helpers->puh = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 2));
     ml_helpers->pui = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 2));
     ml_helpers->pum = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 2));
+    ml_helpers->QI5 = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 2));
     for (u = 1; u <= n; u++) {
       ml_helpers->pue[u] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (ulength + 1));
       ml_helpers->puh[u] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (ulength + 1));
       ml_helpers->pui[u] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (ulength + 1));
       ml_helpers->pum[u] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (ulength + 1));
+      ml_helpers->QI5[u] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (MAX2(ulength, MAXLOOP) + 1));
 
       ml_helpers->pue[u] -= 1;
       ml_helpers->puh[u] -= 1;
       ml_helpers->pui[u] -= 1;
       ml_helpers->pum[u] -= 1;
+      ml_helpers->QI5[u] -= 1;
     }
   }
 
@@ -865,16 +888,19 @@ free_ml_helper_arrays(helper_arrays *ml_helpers)
       ml_helpers->puh[u] += 1;
       ml_helpers->pui[u] += 1;
       ml_helpers->pum[u] += 1;
+      ml_helpers->QI5[u] += 1;
       free(ml_helpers->pue[u]);
       free(ml_helpers->puh[u]);
       free(ml_helpers->pui[u]);
       free(ml_helpers->pum[u]);
+      free(ml_helpers->QI5[u]);
     }
 
     free(ml_helpers->pue);
     free(ml_helpers->puh);
     free(ml_helpers->pui);
     free(ml_helpers->pum);
+    free(ml_helpers->QI5);
   }
 
   free(ml_helpers->prm_MLbu);
@@ -1208,14 +1234,15 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
                      int                  *corr_size,
                      FLT_OR_DBL           *Qmax,
                      int                  *ov,
+                     helper_arrays        *dp_helpers,
                      constraints_helper   *constraints)
 {
   unsigned char         type, type_2;
   char                  *ptype;
   short                 *S1;
-  unsigned int          i, j, k, n, u1, u2, with_ud, *hc_up_int, mini, maxj;
+  unsigned int          i, j, k, n, u1, u2, with_ud, *hc_up_int, mini, maxj, max_u;
   int                   ij, kl, *my_iindx, *jindx, *rtype;
-  FLT_OR_DBL            temp, tmp2, *qb, *probs, *scale;
+  FLT_OR_DBL            temp, tmp2, *qb, *probs, *scale, **QI5;
   double                max_real;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
@@ -1239,6 +1266,8 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
   domains_up  = fc->domains_up;
   with_ud     = (domains_up && domains_up->exp_energy_cb) ? 1 : 0;
   hc_up_int   = hc->up_int;
+  max_u       = dp_helpers->u;
+  QI5         = dp_helpers->QI5;
 
   qb    = fc->exp_matrices->qb;
   probs = fc->exp_matrices->probs;
@@ -1324,6 +1353,14 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
               tmp2  += temp * qql * qqr;
             }
 
+            if (max_u > 0) {
+              if (u1 > 0)
+                QI5[i + 1][u1] += tmp2 * qb[kl];
+
+              if (u2 > 0)
+                QI5[l + 1][u2] += tmp2 * qb[kl];
+            }
+
             if ((sc) &&
                 (sc->exp_f) &&
                 (sc->bt)) {
@@ -1375,12 +1412,13 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
                                  int                  *corr_size,
                                  FLT_OR_DBL           *Qmax,
                                  int                  *ov,
+                                 helper_arrays        *dp_helpers,
                                  constraints_helper   *constraints)
 {
   short                 **SS, **S5, **S3;
-  unsigned int          i, j, k, n, mini, maxj, type, u1, u2, *tt, s, n_seq, **a2s, *hc_up_int;
+  unsigned int          i, j, k, n, mini, maxj, type, u1, u2, *tt, s, n_seq, **a2s, *hc_up_int, max_u;
   int                   ij, kl, *my_iindx, *jindx, *pscore;
-  FLT_OR_DBL            tmp2, *qb, *probs, *scale, psc_exp;
+  FLT_OR_DBL            tmp2, *qb, *probs, *scale, psc_exp, **QI5;
   double                max_real, kTn;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
@@ -1402,6 +1440,8 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
   md        = &(pf_params->model_details);
   hc        = fc->hc;
   hc_up_int = hc->up_int;
+  max_u     = dp_helpers->u;
+  QI5       = dp_helpers->QI5;
 
   qb    = fc->exp_matrices->qb;
   probs = fc->exp_matrices->probs;
@@ -1471,6 +1511,11 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
             if (sc_wrapper_int->pair)
               tmp2 *= sc_wrapper_int->pair(i, j, k, l, sc_wrapper_int);
 
+            if (max_u > 0) {
+              QI5[i + 1][u1] += tmp2 * qb[kl];
+              QI5[l + 1][u2] += tmp2 * qb[kl];
+            }
+
             probs[kl] += tmp2;
           }
         }
@@ -1506,15 +1551,13 @@ compute_up_hp(vrna_fold_compound_t *fc,
   char                  **Ss;
   unsigned int          **a2s;
   short                 *S, *S2, **SS, **S5, **S3;
-  unsigned int          *sn;
   int                   u, type, n_seq, s, max_u, ij;
-  FLT_OR_DBL            q, qbt1, *qb, *probs, *scale, **puh, *Quh, *Quh2, temp;
+  FLT_OR_DBL            q, qbt1, *probs, *scale, **puh, *Quh;
   vrna_exp_param_t      *P;
   vrna_md_t             *md;
-  vrna_hc_t             *hc;
   vrna_ud_t             *domains_up;
-  unsigned int          i, j, k, n, lsize;
-  int                   kl, *my_iindx;
+  unsigned int          i, j, n, lsize;
+  int                   *my_iindx;
   struct hc_hp_def_dat  *hc_dat_local;
   vrna_hc_eval_f        evaluate;
   struct sc_hp_exp_dat  *sc_wrapper_hp;
@@ -1522,26 +1565,21 @@ compute_up_hp(vrna_fold_compound_t *fc,
   n           = fc->length;
   P           = fc->exp_params;
   md          = &(P->model_details);
-  sn          = fc->strand_number;
   scale       = fc->exp_matrices->scale;
   domains_up  = fc->domains_up;
-  qb          = fc->exp_matrices->qb;
   probs       = fc->exp_matrices->probs;
   my_iindx  = fc->iindx;
-  hc        = fc->hc;
   max_u     = dp_helpers->u;
   puh       = dp_helpers->puh;
-
 
   hc_dat_local  = &(constraints->hc_dat_hp);
   evaluate      = constraints->hc_eval_hp;
   sc_wrapper_hp = &(constraints->sc_wrapper_hp);
   Quh           = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * l);
-  Quh2          = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (max_u + 1));
 
   /* collect contributions for unpaired region starting at i + 1 with at least size max_u */
   j = l;
-  for (i = 1; i < j; i++) {
+  for (i = 1; i + max_u < j; i++) {
     ij = my_iindx[i] - j;
 
     if (probs[ij] == 0.)
@@ -1598,9 +1636,7 @@ compute_up_hp(vrna_fold_compound_t *fc,
 
       q *= scale[j - i + 1];
       q *= probs[ij];
-      temp += q;
-      if (i + max_u < j)
-        Quh[i + 1] = q;
+      Quh[i + 1] = q;
     }
   }
 
@@ -1608,7 +1644,7 @@ compute_up_hp(vrna_fold_compound_t *fc,
   j = l;
 
   for (u = 1; u < max_u; u++) {
-    if (u + 1 > l)
+    if (u + 1 >= l)
       break;
 
     i = l - u - 1;
@@ -1694,6 +1730,44 @@ compute_up_hp(vrna_fold_compound_t *fc,
     }
 
   free(Quh);
+}
+
+
+PRIVATE void
+compute_up_int(vrna_fold_compound_t *fc,
+               unsigned int         l,
+               helper_arrays        *dp_helpers,
+               constraints_helper   *constraints)
+{
+  unsigned int          n, u, max_u;
+  FLT_OR_DBL            q, **pui, **QI5;
+
+  n           = fc->length;
+  max_u     = dp_helpers->u;
+  pui       = dp_helpers->pui;
+  QI5           = dp_helpers->QI5;
+
+  if (l == n)
+    return;
+
+  /* collect all contributions for unpaired stretches starting at l + 1 */
+  q = 0.;
+  for (u = MAX2(MAXLOOP, max_u); u > max_u; u--)
+    q += QI5[l + 1][u];
+
+  for (; u > 0; u--) {
+    q += QI5[l + 1][u];
+    pui[l + 1][u] += q;
+  }
+
+  /* update every positions past l + 1 */
+  for (u = 2; u <= max_u; u++) {
+    for (int u2 = 1; u2 < u; u2++) {
+      if (l + u2 + 1 <= n) {
+        pui[l + 1 + u2][u - u2] += pui[l + 1][u];
+      }
+    }
+  }
 }
 
 
