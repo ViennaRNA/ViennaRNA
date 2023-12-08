@@ -36,9 +36,9 @@ section "Algorithms"
 sectiondesc="Select additional algorithms which should be included in the calculations.\n\n"
 
 option  "cutoff"  c
-"Report only base pairs with an average probability > cutoff in the dot plot.\n\n"
+"Only consider unpaired probabities > cutoff for putative PK sites.\n\n"
 float
-default="0.01"
+default="1e-6"
 optional
 
 option  "energyCutoff" e

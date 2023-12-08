@@ -57,7 +57,7 @@ main(int  argc,
   char                    *id_s1, *s1, *orig_s1, *ParamFile, *ns_bases, *plexstring,
                           *constraint, fname[FILENAME_MAX_LENGTH], *annotation, **rest;
   unsigned int            options;
-  int                     istty, i, noconv, length, pairdist, unpaired, winsize, verbose;
+  int                     istty, i, noconv, length, unpaired, verbose;
   float                   cutoff;
   double                  subopts, pk_penalty;
   vrna_md_t               md;
@@ -65,9 +65,7 @@ main(int  argc,
   options     = 0;
   subopts     = 0.0;
   dangles     = 2;
-  winsize     = 70;
-  cutoff      = 0.01;
-  pairdist    = 0;
+  cutoff      = 1e-6;
   unpaired    = 0;
   noconv      = 0;
   pk_penalty  = 8.10;
@@ -182,7 +180,6 @@ main(int  argc,
     strcat(fname, ".ps");
 
     length    = strlen(s1);
-    winsize   = pairdist = length;
     unpaired  = MIN2(30, length - 3);
 
     /* convert DNA alphabet to RNA if not explicitely switched off */
@@ -206,15 +203,15 @@ main(int  argc,
     if (length >= 5) {
       vrna_pk_plex_t *hits, *hit_ptr;
 
-      if (verbose)
-        printf("Winsize = %d\nPairdist = %d\nUnpaired = %d\n", winsize, pairdist, unpaired);
-
       /*
        ########################################################
        # do Plex computations
        ########################################################
        */
-      int                   **access = vrna_pk_plex_accessibility(s1, unpaired, cutoff);
+      vrna_fold_compound_t  *fca = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT | VRNA_OPTION_WINDOW);
+      int                   **access = vrna_pk_plex_accessibility(fca, unpaired, cutoff);
+
+      vrna_fold_compound_free(fca);
 
       if (verbose)
         printf("EnergyCutoff = %f\n", pk_penalty);

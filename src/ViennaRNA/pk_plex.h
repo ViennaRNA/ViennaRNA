@@ -146,15 +146,15 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
  *
  *  @see vrna_pk_plex()
  *
- *  @param  sequence  The RNA sequence
+ *  @param  fc        fold compound with the input sequence and model settings for accessibility computations
  *  @param  unpaired  The maximum number of unpaired nucleotides, i.e. length of interaction
  *  @param  cutoff    A cutoff value for unpaired probabilities
  *  @return           Opening energies as required for vrna_pk_plex()
  */
 int **
-vrna_pk_plex_accessibility(const char   *sequence,
-                           unsigned int unpaired,
-                           double       cutoff);
+vrna_pk_plex_accessibility(vrna_fold_compound_t *fc,
+                           unsigned int         unpaired,
+                           double               cutoff);
 
 
 /**

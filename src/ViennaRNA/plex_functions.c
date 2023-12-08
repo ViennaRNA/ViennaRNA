@@ -40,7 +40,7 @@
 #define DEFAULT_PENALTY             810
 #define DEFAULT_DELTA               0
 #define DEFAULT_INTERACTION_LENGTH  12
-#define DEFAULT_CUTOFF              1e-3
+#define DEFAULT_CUTOFF              1e-6
 
 struct vrna_pk_plex_option_s {
   unsigned int                delta;
@@ -53,6 +53,13 @@ struct vrna_pk_plex_option_s {
 typedef struct {
   int penalty;
 } default_data;
+
+
+typedef struct {
+  double  kT;
+  double  cutoff;
+  int     **open_en;
+} access_data;
 
 /*
  #################################
@@ -107,6 +114,14 @@ PKplex_heap_cmp(const void  *a,
                 const void  *b,
                 void        *data);
 
+
+PRIVATE void
+store_pU_callback(double        *pU,
+                  int           size,
+                  int           k,
+                  int           ulength,
+                  unsigned int  type,
+                  void          *data);
 
 /*
  #################################
@@ -198,10 +213,15 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
     options->max_interaction_length = MIN2(DEFAULT_INTERACTION_LENGTH, fc->length - 3);
 
     /* compute opening energies if not passed as argument */
-    if (!accessibility)
-      opening_energies = vrna_pk_plex_accessibility(fc->sequence,
+    if (!accessibility) {
+      vrna_fold_compound_t *fca = vrna_fold_compound(fc->sequence,
+                                                     &(fc->params->model_details),
+                                                     VRNA_OPTION_DEFAULT | VRNA_OPTION_WINDOW);
+      opening_energies = vrna_pk_plex_accessibility(fca,
                                                     options->max_interaction_length,
                                                     DEFAULT_CUTOFF);
+      vrna_fold_compound_free(fca);
+    }
 
     /* obtain list of potential PK interactions */
     interactions = duplexfold_XS(fc,
@@ -373,59 +393,42 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
 
 
 PUBLIC int **
-vrna_pk_plex_accessibility(const char   *sequence,
+vrna_pk_plex_accessibility(vrna_fold_compound_t *fc,
                            unsigned int unpaired,
                            double       cutoff)
 {
   unsigned int          n, i, j;
-  int                   **a = NULL;
+  int                   **a = NULL, r;
   double                **pup, kT;
   plist                 *dpp = NULL;
-  vrna_fold_compound_t  *fc;
   vrna_param_t          *P;
   vrna_md_t             *md;
+  access_data           data;
 
-  if (sequence) {
-    fc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_DEFAULT | VRNA_OPTION_WINDOW);
+  data.open_en = NULL;
+
+  if (fc) {
 
     n   = fc->length;
     P   = fc->params;
     md  = &(P->model_details);
 
-    pup       = (double **)vrna_alloc((n + 1) * sizeof(double *));
-    pup[0]    = (double *)vrna_alloc(sizeof(double));   /*I only need entry 0*/
-    pup[0][0] = (double)unpaired;
+    data.kT       = (md->temperature + K0) * GASCONST / 1000.0;
+    data.cutoff   = (cutoff > 0) ? cutoff : 0;
+    data.open_en  = (int **)vrna_alloc(sizeof(int *) * (unpaired + 2));
 
-    (void)pfl_fold(fc->sequence, n, n, cutoff, pup, &dpp, NULL, NULL);
-
-    kT = (md->temperature + K0) * GASCONST / 1000.0;
-
-    /* prepare the accesibility array */
-    a = (int **)vrna_alloc(sizeof(int *) * (unpaired + 2));
-
-    for (i = 0; i < unpaired + 2; i++)
-      a[i] = (int *)vrna_alloc(sizeof(int) * (n + 1));
-
-    for (i = 0; i <= n; i++)
-      for (j = 0; j < unpaired + 2; j++)
-        a[j][i] = INF;
-
-    for (i = 1; i <= n; i++) {
-      for (j = 1; j < unpaired + 1; j++)
-        if (pup[i][j] > 0)
-          a[j][i] = rint(100 * (-log(pup[i][j])) * kT);
+    for (j = 0; j < unpaired + 2; j++) {
+      data.open_en[j] = (int *)vrna_alloc(sizeof(int) * (n + 1));
+      for (i = 0; i <= n; i++)
+        data.open_en[j][i] = INF;
     }
 
-    a[0][0] = unpaired + 2;
+    data.open_en[0][0] = unpaired + 2;
 
-    vrna_fold_compound_free(fc);
-
-    for (i = 0; i <= n; i++)
-      free(pup[i]);
-    free(pup);
+    r = vrna_probs_window(fc, unpaired, VRNA_PROBS_WINDOW_UP, &store_pU_callback, (void *)(&data));
   }
 
-  return a;
+  return data.open_en;
 }
 
 
@@ -453,12 +456,12 @@ get_array(unsigned int  n,
   unsigned int  i, j;
   int           ***c3;
 
-  c3 = (int ***)vrna_alloc(sizeof(int **) * (n));
+  c3 = (int ***)vrna_alloc(sizeof(int **) * interaction_length);
 
-  for (i = 0; i < n; i++) {
-    c3[i] = (int **)vrna_alloc(sizeof(int *) * interaction_length);
+  for (i = 0; i < interaction_length; i++) {
+    c3[i] = (int **)vrna_alloc(sizeof(int *) * n);
 
-    for (j = 0; j < interaction_length; j++)
+    for (j = 0; j < n; j++)
       c3[i][j] = (int *)vrna_alloc(sizeof(int) * interaction_length);
   }
 
@@ -473,11 +476,10 @@ reset_array(int           ***c3,
 {
   unsigned int i, j, k;
 
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < interaction_length; j++)
+  for (i = 0; i < interaction_length; i++)
+    for (j = 0; j < n; j++)
       for (k = 0; k < interaction_length; k++)
         c3[i][j][k] = INF;
-  }
 }
 
 
@@ -488,8 +490,8 @@ free_array(int          ***c3,
 {
   unsigned int i, j;
 
-  for (i = 0; i < n; i++) {
-    for (j = 0; j < interaction_length; j++)
+  for (i = 0; i < interaction_length; i++) {
+    for (j = 0; j < n; j++)
       free(c3[i][j]);
     free(c3[i]);
   }
@@ -514,6 +516,30 @@ prepare_PKplex(vrna_fold_compound_t *fc)
   vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
   return 1;
+}
+
+
+PRIVATE void
+store_pU_callback(double        *pU,
+                  int           size,
+                  int           k,
+                  int           ulength,
+                  unsigned int  type,
+                  void          *data)
+{
+  int         i;
+  double      kT, cutoff;
+  access_data *d = (access_data *)data;
+
+  if ((type & VRNA_PROBS_WINDOW_UP) && ((type & VRNA_ANY_LOOP) == VRNA_ANY_LOOP)) {
+    kT      = d->kT;
+    cutoff  = d->cutoff;
+
+    for (i = 1; i <= size; i++) {
+      if (pU[i] > cutoff)
+        d->open_en[i][k] = rint(100 * (-log(pU[i])) * kT);
+    }
+  }
 }
 
 
@@ -575,7 +601,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
       for (j = i + turn + 1; j <= n; j++) {
         if (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
           type                                      = md->pair[S[j]][S[i]];
-          c3[j - 1][max_interaction_length - 1][0]  = vrna_E_ext_stem(type,
+          c3[max_interaction_length - 1][j - 1][0]  = vrna_E_ext_stem(type,
                                                                       S1[j - 1],
                                                                       si,
                                                                       P);
@@ -616,9 +642,9 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
                   for (j = MAX2(i + turn + 1, l - max_interaction_length + 1); j <= q; j++) {
                     if (hc->mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
                       type                    = md->pair[S[i]][S[j]];
-                      c3[j - 1][tempK][l - j] =
-                        MIN2(c3[j - 1][tempK][l - j],
-                             c3[j - 1][max_interaction_length - i + p - 1][q - j] + E);
+                      c3[tempK][j - 1][l - j] =
+                        MIN2(c3[tempK][j - 1][l - j],
+                             c3[max_interaction_length - i + p - 1][j - 1][q - j] + E);
                     }
                   }
                 }
@@ -629,18 +655,29 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
       }         /* next k */
 
       /* read out matrix minimum */
-      for (j = i + turn + 1; j <= n; j++) {
-        if (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
-          j_pos_end = MIN2(n + 1, j + max_interaction_length);
-          for (k = i - 1; k > i_pos_begin; k--) {
-            sk = (k > 1) ? S1[k - 1] : -1;
+      for (k = i - 1; k > i_pos_begin; k--) {
+        if (access_s1[i - k + 1][i] == INF)
+          continue;
+
+        int **c3k = c3[max_interaction_length - i + k - 1];
+        int a1    = access_s1[i - k + 1][i];
+        sk = (k > 1) ? S1[k - 1] : -1;
+
+        for (j = i + turn + 1; j <= n; j++) {
+          if (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+            j_pos_end = MIN2(n + 1, j + max_interaction_length);
+            int *c3kj = c3k[j - 1];
+
             for (l = j + 1; l < j_pos_end; l++) {
+              if (access_s1[l - j + 1][l] == INF)
+                continue;
+
               if (evaluate_ext(k, l, k, l, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
                 type2 = md->pair[S[k]][S[l]];
                 sl    = (l < n) ? S1[l + 1] : -1;
-                E     = c3[j - 1][max_interaction_length - i + k - 1][l - j] +
+                E     = c3kj[l - j] +
                         vrna_E_ext_stem(type2, sk, sl, P) +
-                        access_s1[i - k + 1][i] +
+                        a1 +
                         access_s1[l - j + 1][l];
 
                 if (E < Emin) {
@@ -719,7 +756,7 @@ backtrack_XS(vrna_fold_compound_t *fc,
   i0  = k;
   j0  = l;
   while (k <= i && l >= j) {
-    E           = c3[j - 1][max_interaction_length - i + k - 1][l - j];
+    E           = c3[max_interaction_length - i + k - 1][j - 1][l - j];
     traced      = 0;
     st1[k - i0] = '(';
     st2[l - j]  = ')';
@@ -749,7 +786,7 @@ backtrack_XS(vrna_fold_compound_t *fc,
                        S1[p - 1],
                        S1[q + 1],
                        P);
-        if (E == c3[j - 1][max_interaction_length - i + p - 1][q - j] + LE) {
+        if (E == c3[max_interaction_length - i + p - 1][j - 1][q - j] + LE) {
           traced  = 1;
           k       = p;
           l       = q;
