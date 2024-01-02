@@ -277,7 +277,8 @@ vrna_datastructures_HEADERS = \
     datastructures/stream_output.h \
     datastructures/string.h \
     datastructures/hash_tables.h \
-    datastructures/heap.h
+    datastructures/heap.h \
+    datastructures/sparse_mx.h
 
 
 vrna_landscape_HEADERS = \
@@ -439,7 +440,8 @@ libRNA_datastructures_la_SOURCES = \
     datastructures/stream_output.c \
     datastructures/string.c \
     datastructures/hash_tables.c \
-    datastructures/heap.c
+    datastructures/heap.c \
+    datastructures/sparse_mx.c
 
 libRNA_landscape_la_SOURCES = \
     move_set.c \
