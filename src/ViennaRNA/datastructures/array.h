@@ -5,11 +5,15 @@
 
 
 #if !defined(VRNA_NO_INLINE)
-  #if defined(_MSC_VER)
-    #define VRNA_NO_INLINE __declspec(noinline)
-  #else
-    #define VRNA_NO_INLINE __attribute__ ((noinline))
-  #endif
+# ifdef SWIG
+#   define VRNA_NO_INLINE 
+# else
+#   if defined(_MSC_VER)
+#     define VRNA_NO_INLINE __declspec(noinline)
+#   else
+#     define VRNA_NO_INLINE __attribute__ ((noinline))
+#   endif
+# endif
 #endif
 
 /**
