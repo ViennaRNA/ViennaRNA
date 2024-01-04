@@ -165,8 +165,8 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
                 int                   *j,
                 int                   *k,
                 int                   en,
-                int                   *component1,
-                int                   *component2);
+                unsigned int          *component1,
+                unsigned int          *component2);
 
 
 int
@@ -175,8 +175,8 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
                       int                   *j,
                       int                   *k,
                       int                   *l,
-                      int                   *component1,
-                      int                   *component2,
+                      unsigned int          *component1,
+                      unsigned int          *component2,
                       vrna_bp_stack_t       *bp_stack,
                       int                   *stack_count);
 

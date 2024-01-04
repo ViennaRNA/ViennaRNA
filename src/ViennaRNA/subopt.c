@@ -90,9 +90,9 @@ typedef struct {
  *  @brief  Sequence interval stack element used in subopt.c
  */
 typedef struct INTERVAL {
-  int i;
-  int j;
-  int array_flag;
+  int           i;
+  int           j;
+  unsigned int  array_flag;
 } INTERVAL;
 
 typedef struct {
@@ -188,9 +188,9 @@ make_gquad(int    i,
 
 
 PRIVATE INTERVAL *
-make_interval(int i,
-              int j,
-              int ml);
+make_interval(int           i,
+              int           j,
+              unsigned int  array_flag);
 
 
 PRIVATE STATE *
@@ -235,7 +235,7 @@ PRIVATE void
 scan_interval(vrna_fold_compound_t  *fc,
               int                   i,
               int                   j,
-              int                   array_flag,
+              unsigned int          array_flag,
               int                   threshold,
               STATE                 *state,
               subopt_env            *env,
@@ -256,7 +256,7 @@ PRIVATE INLINE void
 scan_m1(vrna_fold_compound_t  *fc,
         int                   i,
         int                   j,
-        int                   array_flag,
+        unsigned int          array_flag,
         int                   threshold,
         STATE                 *state,
         subopt_env            *env,
@@ -594,7 +594,7 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
   env->nopush     = true;
   env->Stack      = make_list();                      /* anchor */
   env->Intervals  = make_list();                      /* initial state: */
-  interval        = make_interval(1, length, 0);      /* interval [1,length,0] */
+  interval        = make_interval(1, length, VRNA_MX_FLAG_F5);      /* interval [1,length, F5 array] */
   push(env->Intervals, interval);
   env->nopush = false;
   state       = make_state(env->Intervals, NULL, partial_energy, 0, length);
@@ -767,9 +767,9 @@ make_gquad(int    i,
 
 
 PRIVATE INTERVAL *
-make_interval(int i,
-              int j,
-              int array_flag)
+make_interval(int           i,
+              int           j,
+              unsigned int  array_flag)
 {
   INTERVAL *interval;
 
@@ -868,7 +868,7 @@ print_state(STATE *state)
   if (state->Intervals->count) {
     printf("%d intervals:\n", state->Intervals->count);
     for (next = lst_first(state->Intervals); next; next = lst_next(next))
-      printf("[%d,%d],%d ", next->i, next->j, next->array_flag);
+      printf("[%d,%d],%u ", next->i, next->j, next->array_flag);
     printf("\n");
   }
 
@@ -957,19 +957,19 @@ best_attainable_energy(vrna_fold_compound_t *fc,
   sum = state->partial_energy;  /* energy of already found elements */
 
   for (next = lst_first(state->Intervals); next; next = lst_next(next)) {
-    if (next->array_flag == 0)
+    if (next->array_flag == VRNA_MX_FLAG_F5)
       sum += (md->circ) ? matrices->Fc : matrices->f5[next->j];
-    else if (next->array_flag == 1)
+    else if (next->array_flag == VRNA_MX_FLAG_M)
       sum += matrices->fML[indx[next->j] + next->i];
-    else if (next->array_flag == 2)
+    else if (next->array_flag == VRNA_MX_FLAG_C)
       sum += matrices->c[indx[next->j] + next->i];
-    else if (next->array_flag == 3)
+    else if (next->array_flag == VRNA_MX_FLAG_M1)
       sum += matrices->fM1[indx[next->j] + next->i];
-    else if (next->array_flag == 4)
+    else if (next->array_flag == VRNA_MX_FLAG_MS5)
       sum += matrices->fms5[next->j][next->i];
-    else if (next->array_flag == 5)
+    else if (next->array_flag == VRNA_MX_FLAG_MS3)
       sum += matrices->fms3[next->j][next->i];
-    else if (next->array_flag == 6)
+    else if (next->array_flag == VRNA_MX_FLAG_G)
       sum += matrices->ggg[indx[next->j] + next->i];
   }
 
@@ -1055,11 +1055,11 @@ make_output(vrna_subopt_solution_t  *SL,
 
 
 PRIVATE STATE *
-derive_new_state(int    i,
-                 int    j,
-                 STATE  *s,
-                 int    e,
-                 int    flag)
+derive_new_state(int          i,
+                 int          j,
+                 STATE        *s,
+                 int          e,
+                 unsigned int flag)
 {
   STATE     *s_new  = copy_state(s);
   INTERVAL  *ival   = make_interval(i, j, flag);
@@ -1073,12 +1073,12 @@ derive_new_state(int    i,
 
 
 PRIVATE void
-fork_state(int        i,
-           int        j,
-           STATE      *s,
-           int        e,
-           int        flag,
-           subopt_env *env)
+fork_state(int          i,
+           int          j,
+           STATE        *s,
+           int          e,
+           unsigned int flag,
+           subopt_env   *env)
 {
   STATE *s_new = derive_new_state(i, j, s, e, flag);
 
@@ -1096,7 +1096,7 @@ fork_int_state(int        i,
                int        e,
                subopt_env *env)
 {
-  STATE *s_new = derive_new_state(p, q, s, e, 2);
+  STATE *s_new = derive_new_state(p, q, s, e, VRNA_MX_FLAG_C);
 
   make_pair(i, j, s_new);
   make_pair(p, q, s_new);
@@ -1123,14 +1123,14 @@ fork_state_pair(int         i,
 
 
 PRIVATE void
-fork_two_states_pair(int        i,
-                     int        j,
-                     int        k,
-                     STATE      *s,
-                     int        e,
-                     int        flag1,
-                     int        flag2,
-                     subopt_env *env)
+fork_two_states_pair(int          i,
+                     int          j,
+                     int          k,
+                     STATE        *s,
+                     int          e,
+                     unsigned int flag1,
+                     unsigned int flag2,
+                     subopt_env   *env)
 {
   INTERVAL  *interval1, *interval2;
   STATE     *new_state;
@@ -1156,14 +1156,14 @@ fork_two_states_pair(int        i,
 
 
 PRIVATE void
-fork_state_pair_interval(int        i,
-                         int        j,
-                         int        k,
-                         int        l,
-                         STATE      *s,
-                         int        e,
-                         int        flag,
-                         subopt_env *env)
+fork_state_pair_interval(int          i,
+                         int          j,
+                         int          k,
+                         int          l,
+                         STATE        *s,
+                         int          e,
+                         unsigned int flag,
+                         subopt_env   *env)
 {
   INTERVAL  *interval;
   STATE     *new_state;
@@ -1193,8 +1193,8 @@ fork_two_states_pair_ms(int         i,
   STATE     *new_state;
 
   new_state = copy_state(s);
-  interval1 = make_interval(i + 1, sn1, 4);
-  interval2 = make_interval(j - 1, sn2, 5);
+  interval1 = make_interval(i + 1, sn1, VRNA_MX_FLAG_MS5);
+  interval2 = make_interval(j - 1, sn2, VRNA_MX_FLAG_MS3);
   push(new_state->Intervals, interval1);
   push(new_state->Intervals, interval2);
 
@@ -1207,15 +1207,15 @@ fork_two_states_pair_ms(int         i,
 
 
 PRIVATE void
-fork_two_states(int         i,
-                int         j,
-                int         p,
-                int         q,
-                STATE       *s,
-                int         e,
-                int         flag1,
-                int         flag2,
-                subopt_env  *env)
+fork_two_states(int           i,
+                int           j,
+                int           p,
+                int           q,
+                STATE         *s,
+                int           e,
+                unsigned int  flag1,
+                unsigned int  flag2,
+                subopt_env    *env)
 {
   INTERVAL  *interval1, *interval2;
   STATE     *new_state;
@@ -1243,7 +1243,7 @@ PRIVATE void
 scan_interval(vrna_fold_compound_t  *fc,
               int                   i,
               int                   j,
-              int                   array_flag,
+              unsigned int          array_flag,
               int                   threshold,
               STATE                 *state,
               subopt_env            *env,
@@ -1251,41 +1251,34 @@ scan_interval(vrna_fold_compound_t  *fc,
 {
   /* real backtrack routine */
 
-  /*
-   * array_flag = 0:  trace back in f5-array
-   * array_flag = 1:  trace back in fML-array
-   * array_flag = 2:  trace back in repeat()
-   * array_flag = 3:  trace back in fM1-array
-   */
-
   env->nopush = true;
 
   switch (array_flag) {
-    case 0:
+    case VRNA_MX_FLAG_F5:
       scan_ext(fc, i, j, threshold, state, env, constraints_dat);
       break;
 
-    case 1:
+    case VRNA_MX_FLAG_M:
       scan_mb(fc, i, j, threshold, state, env, constraints_dat);
     /* fall through */
 
-    case 3:
+    case VRNA_MX_FLAG_M1:
       scan_m1(fc, i, j, array_flag, threshold, state, env, constraints_dat);
       break;
 
-    case 2:
+    case VRNA_MX_FLAG_C:
       scan_pair(fc, i, j, threshold, state, env, constraints_dat);
       return;
 
-    case 4:
+    case VRNA_MX_FLAG_MS5:
       scan_fms5(fc, i, j, threshold, state, env, constraints_dat);
       break;
 
-    case 5:
+    case VRNA_MX_FLAG_MS3:
       scan_fms3(fc, i, j, threshold, state, env, constraints_dat);
       break;
 
-    case 6:
+    case VRNA_MX_FLAG_G:
       scan_gquad(fc, i, j, threshold, state, env, constraints_dat);
       return;
   }
@@ -1367,7 +1360,7 @@ scan_mb(vrna_fold_compound_t  *fc,
         element_energy = E_MLstem(0, -1, -1, P);
 
         if (fML[indx[k] + i] + ggg[indx[j] + k + 1] + element_energy + best_energy <= threshold) {
-          temp_state  = derive_new_state(i, k, state, 0, 1);
+          temp_state  = derive_new_state(i, k, state, 0, VRNA_MX_FLAG_M);
           env->nopush = false;
           repeat_gquad(fc,
                        k + 1,
@@ -1410,7 +1403,7 @@ scan_mb(vrna_fold_compound_t  *fc,
           element_energy += sc_red_stem(k + 1, j, k + 1, j, sc_dat);
 
         if (fML[indx[k] + i] + c[k1j] + element_energy + best_energy <= threshold) {
-          temp_state  = derive_new_state(i, k, state, 0, 1);
+          temp_state  = derive_new_state(i, k, state, 0, VRNA_MX_FLAG_M);
           env->nopush = false;
           repeat(fc,
                  k + 1,
@@ -1501,7 +1494,7 @@ PRIVATE INLINE void
 scan_m1(vrna_fold_compound_t  *fc,
         int                   i,
         int                   j,
-        int                   array_flag,
+        unsigned int          array_flag,
         int                   threshold,
         STATE                 *state,
         subopt_env            *env,
@@ -1560,14 +1553,14 @@ scan_m1(vrna_fold_compound_t  *fc,
   ij = indx[j] + i;
 
   if ((evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc_dat)) &&
-      (((array_flag == 3) && (fM1[indx[j - 1] + i] != INF)) ||
+      (((array_flag == VRNA_MX_FLAG_M1) && (fM1[indx[j - 1] + i] != INF)) ||
        (fML[indx[j - 1] + i] != INF))) {
     element_energy = P->MLbase;
 
     if (sc_red_ml)
       element_energy += sc_red_ml(i, j, i, j - 1, sc_dat);
 
-    if (array_flag == 3)
+    if (array_flag == VRNA_MX_FLAG_M1)
       fi = element_energy +
            fM1[indx[j - 1] + i];
     else
@@ -1769,7 +1762,7 @@ scan_ext(vrna_fold_compound_t *fc,
 
     if (f5[j - 1] + tmp_en + best_energy <= threshold)
       /* no basepair, nibbling of 3'-end */
-      fork_state(i, j - 1, state, tmp_en, 0, env);
+      fork_state(i, j - 1, state, tmp_en, VRNA_MX_FLAG_F5, env);
   }
 
   for (k = j - 1; k > 1; k--) {
@@ -1785,7 +1778,7 @@ scan_ext(vrna_fold_compound_t *fc,
         element_energy += sc_decomp_stem(j, k - 1, k, sc_dat);
 
       if (f5[k - 1] + ggg[kj] + element_energy + best_energy <= threshold) {
-        temp_state  = derive_new_state(1, k - 1, state, 0, 0);
+        temp_state  = derive_new_state(1, k - 1, state, 0, VRNA_MX_FLAG_F5);
         env->nopush = false;
         /* backtrace the quadruplex */
         repeat_gquad(fc,
@@ -1824,7 +1817,7 @@ scan_ext(vrna_fold_compound_t *fc,
         element_energy += sc_decomp_stem(j, k - 1, k, sc_dat);
 
       if (f5[k - 1] + c[kj] + element_energy + best_energy <= threshold) {
-        temp_state  = derive_new_state(1, k - 1, state, 0, 0);
+        temp_state  = derive_new_state(1, k - 1, state, 0, VRNA_MX_FLAG_F5);
         env->nopush = false;
         repeat(fc,
                k,
@@ -2008,7 +2001,7 @@ scan_circular(vrna_fold_compound_t  *fc,
     }
 
     if (tmp_en <= threshold) {
-      new_state                 = derive_new_state(1, 2, state, 0, 0);
+      new_state                 = derive_new_state(1, 2, state, 0, VRNA_MX_FLAG_F5);
       new_state->partial_energy = 0;
       push(env->Stack, new_state);
       env->nopush = false;
@@ -2043,7 +2036,7 @@ scan_circular(vrna_fold_compound_t  *fc,
              * the state onto the stack R... for further refinement...
              * we also denote this new interval to be scanned in C
              */
-            fork_state(k, l, state, tmpE, 2, env);
+            fork_state(k, l, state, tmpE, VRNA_MX_FLAG_C, env);
         }
       }
     }
@@ -2104,7 +2097,7 @@ scan_circular(vrna_fold_compound_t  *fc,
                    * intervals, enclosed by k,l and p,q respectively and we also have to
                    * add the partial energy, that comes from the exterior interior loop
                    */
-                  fork_two_states(k, l, p, q, state, tmpE, 2, 2, env);
+                  fork_two_states(k, l, p, q, state, tmpE, VRNA_MX_FLAG_C, VRNA_MX_FLAG_C, env);
               }
             }
           }
@@ -2155,17 +2148,17 @@ scan_circular(vrna_fold_compound_t  *fc,
                 new_state = copy_state(state);
 
                 /* first interval leads for search in fML array */
-                new_interval = make_interval(1, k, 1);
+                new_interval = make_interval(1, k, VRNA_MX_FLAG_M);
                 push(new_state->Intervals, new_interval);
                 env->nopush = false;
 
                 /* next, we have the first interval that has to be traced in fM1 */
-                new_interval = make_interval(k + 1, l, 3);
+                new_interval = make_interval(k + 1, l, VRNA_MX_FLAG_M1);
                 push(new_state->Intervals, new_interval);
                 env->nopush = false;
 
                 /* and the last of our three intervals is also one to be traced within fM1 array... */
-                new_interval = make_interval(l + 1, j, 3);
+                new_interval = make_interval(l + 1, j, VRNA_MX_FLAG_M1);
                 push(new_state->Intervals, new_interval);
                 env->nopush = false;
 
@@ -2262,7 +2255,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
 
     if (fms5[strand][i + 1] + element_energy + best_energy <= threshold)
       /* no basepair, nibbling of 5'-end */
-      fork_state(i + 1, strand, state, element_energy, 4, env);
+      fork_state(i + 1, strand, state, element_energy, VRNA_MX_FLAG_MS5, env);
   }
 
   if (evaluate(i, end, i, end, VRNA_DECOMP_EXT_STEM, hc_dat)) {
@@ -2333,7 +2326,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
         element_energy += sc_red_stem(i, k, i, k, sc_dat);
 
       if (fms5[strand][k + 1] + ggg[indx[k] + i] + element_energy + best_energy <= threshold) {
-        temp_state  = derive_new_state(k + 1, strand, state, 0, 4);
+        temp_state  = derive_new_state(k + 1, strand, state, 0, VRNA_MX_FLAG_MS5);
         env->nopush = false;
         repeat_gquad(fc,
                      i,
@@ -2373,7 +2366,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
         element_energy += sc_red_stem(i, k, i, k, sc_dat);
 
       if (fms5[strand][k + 1] + c[indx[k] + i] + element_energy + best_energy <= threshold) {
-        temp_state  = derive_new_state(k + 1, strand, state, 0, 4);
+        temp_state  = derive_new_state(k + 1, strand, state, 0, VRNA_MX_FLAG_MS5);
         env->nopush = false;
         repeat(fc,
                i,
@@ -2464,7 +2457,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
 
     if (fms3[strand][i - 1] + element_energy + best_energy <= threshold)
       /* no basepair, nibbling of 5'-end */
-      fork_state(i - 1, strand, state, element_energy, 5, env);
+      fork_state(i - 1, strand, state, element_energy, VRNA_MX_FLAG_MS3, env);
   }
 
   if (evaluate(start, i, start, i, VRNA_DECOMP_EXT_STEM, hc_dat)) {
@@ -2533,7 +2526,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
         element_energy += sc_red_stem(k + 1, i, k + 1, i, sc_dat);
 
       if (fms3[strand][k] + ggg[indx[i] + k + 1] + element_energy + best_energy <= threshold) {
-        temp_state  = derive_new_state(k, strand, state, 0, 5);
+        temp_state  = derive_new_state(k, strand, state, 0, VRNA_MX_FLAG_MS3);
         env->nopush = false;
         repeat_gquad(fc,
                      k + 1,
@@ -2572,7 +2565,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
         element_energy += sc_red_stem(k + 1, i, k + 1, i, sc_dat);
 
       if (fms3[strand][k] + c[indx[i] + k + 1] + element_energy + best_energy <= threshold) {
-        temp_state  = derive_new_state(k, strand, state, 0, 5);
+        temp_state  = derive_new_state(k, strand, state, 0, VRNA_MX_FLAG_MS3);
         env->nopush = false;
         repeat(fc,
                k + 1,
@@ -2792,7 +2785,7 @@ repeat(vrna_fold_compound_t *fc,
                               sc_dat_int);
       }
 
-      new_state = derive_new_state(i + 1, j - 1, state, part_energy + energy, 2);
+      new_state = derive_new_state(i + 1, j - 1, state, part_energy + energy, VRNA_MX_FLAG_C);
       make_pair(i, j, new_state);
       make_pair(i + 1, j - 1, new_state);
 
@@ -2903,7 +2896,7 @@ repeat(vrna_fold_compound_t *fc,
                                    sn[i + 1],
                                    state,
                                    part_energy + element_energy,
-                                   5,
+                                   VRNA_MX_FLAG_MS3,
                                    env);
         }
       }
@@ -2916,7 +2909,7 @@ repeat(vrna_fold_compound_t *fc,
                                  sn[j - 1],
                                  state,
                                  part_energy + element_energy,
-                                 4,
+                                 VRNA_MX_FLAG_MS5,
                                  env);
       }
     } else {
@@ -2996,7 +2989,7 @@ repeat(vrna_fold_compound_t *fc,
             aux_eee += sc_mb_decomp_ml(i + 1, j - 1, k - 1, k, sc_dat_mb);
 
           if ((eee + aux_eee) <= threshold)
-            fork_two_states_pair(i, j, k, state, part_energy + aux_eee, 1, 3, env);
+            fork_two_states_pair(i, j, k, state, part_energy + aux_eee, VRNA_MX_FLAG_M, VRNA_MX_FLAG_M1, env);
         }
       }
     }
@@ -3034,7 +3027,7 @@ repeat(vrna_fold_compound_t *fc,
           if (sc_int_pair)
             tmp_en += sc_int_pair(i, j, ps[cnt], qs[cnt], sc_dat_int);
 
-          new_state = derive_new_state(ps[cnt], qs[cnt], state, tmp_en + part_energy, 6);
+          new_state = derive_new_state(ps[cnt], qs[cnt], state, tmp_en + part_energy, VRNA_MX_FLAG_G);
 
           make_pair(i, j, new_state);
 

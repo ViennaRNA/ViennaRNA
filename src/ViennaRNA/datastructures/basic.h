@@ -129,9 +129,9 @@ struct vrna_data_linear_s {
  *  @brief  Stack of partial structures for backtracking
  */
 struct vrna_sect_s {
-  int i;
-  int j;
-  int ml;
+  int           i;
+  int           j;
+  unsigned int  ml;
 };
 
 /**

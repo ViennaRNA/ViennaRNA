@@ -405,7 +405,7 @@ backtrack_fold_from_pair(char *sequence,
 
   bt_stack[1].i   = i;
   bt_stack[1].j   = j;
-  bt_stack[1].ml  = 2;
+  bt_stack[1].ml  = VRNA_MX_FLAG_C;
 
   bp[0].i = 0; /* ??? this is set by backtrack anyway... */
 

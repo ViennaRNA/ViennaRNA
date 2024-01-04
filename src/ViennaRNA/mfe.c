@@ -319,7 +319,7 @@ vrna_backtrack5(vrna_fold_compound_t  *fc,
 
     bt_stack[++s].i = 1;
     bt_stack[s].j   = length;
-    bt_stack[s].ml  = 0;
+    bt_stack[s].ml  = VRNA_MX_FLAG_F5;
 
 
     if (backtrack(fc, bp, bt_stack, s, NULL) != 0) {
@@ -1128,7 +1128,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
       /* looks like we have to do this ... */
       bt_stack[++(*bt)].i = 1;
       bt_stack[(*bt)].j   = (Md5i > 0) ? Md5i : -Md5i;
-      bt_stack[(*bt)].ml  = 2;
+      bt_stack[(*bt)].ml  = VRNA_MX_FLAG_C;
       i                   = (Md5i > 0) ? Md5i + 1 : -Md5i + 2; /* let's backtrack fm_d5[Md5i+1] */
       real_i              = (Md5i > 0) ? i : i - 1;
 
@@ -1188,10 +1188,10 @@ postprocess_circular(vrna_fold_compound_t *fc,
         if (fM_d5[i] == fm) {
           bt_stack[++(*bt)].i = i;
           bt_stack[(*bt)].j   = u;
-          bt_stack[(*bt)].ml  = 1;
+          bt_stack[(*bt)].ml  = VRNA_MX_FLAG_M;
           bt_stack[++(*bt)].i = u + 1;
           bt_stack[(*bt)].j   = length - 1;
-          bt_stack[(*bt)].ml  = 1;
+          bt_stack[(*bt)].ml  = VRNA_MX_FLAG_M;
           break;
         }
       }
@@ -1201,7 +1201,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
       /* here we go again... */
       bt_stack[++(*bt)].i = (Md3i > 0) ? Md3i + 1 : -Md3i + 1;
       bt_stack[(*bt)].j   = length;
-      bt_stack[(*bt)].ml  = 2;
+      bt_stack[(*bt)].ml  = VRNA_MX_FLAG_C;
       i                   = (Md3i > 0) ? Md3i : -Md3i - 1; /* let's backtrack fm_d3[Md3i] */
       real_i              = (Md3i > 0) ? i : i + 1;
 
@@ -1261,10 +1261,10 @@ postprocess_circular(vrna_fold_compound_t *fc,
         if (fM_d3[i] == fm) {
           bt_stack[++(*bt)].i = 2;
           bt_stack[(*bt)].j   = u;
-          bt_stack[(*bt)].ml  = 1;
+          bt_stack[(*bt)].ml  = VRNA_MX_FLAG_M;
           bt_stack[++(*bt)].i = u + 1;
           bt_stack[(*bt)].j   = i;
-          bt_stack[(*bt)].ml  = 1;
+          bt_stack[(*bt)].ml  = VRNA_MX_FLAG_M;
           break;
         }
       }
@@ -1279,14 +1279,14 @@ postprocess_circular(vrna_fold_compound_t *fc,
     if (FcH == Fc) {
       bt_stack[++(*bt)].i = Hi;
       bt_stack[(*bt)].j   = Hj;
-      bt_stack[(*bt)].ml  = 2;
+      bt_stack[(*bt)].ml  = VRNA_MX_FLAG_C;
     } else if (FcI == Fc) {
       bt_stack[++(*bt)].i = Ii;
       bt_stack[(*bt)].j   = Ij;
-      bt_stack[(*bt)].ml  = 2;
+      bt_stack[(*bt)].ml  = VRNA_MX_FLAG_C;
       bt_stack[++(*bt)].i = Ip;
       bt_stack[(*bt)].j   = Iq;
-      bt_stack[(*bt)].ml  = 2;
+      bt_stack[(*bt)].ml  = VRNA_MX_FLAG_C;
     } else if (FcM == Fc) {
       /* grumpf we found a Multiloop */
       int eee;
@@ -1322,21 +1322,21 @@ postprocess_circular(vrna_fold_compound_t *fc,
         if (fm == eee) {
           bt_stack[++(*bt)].i = Mi + 1;
           bt_stack[(*bt)].j   = u;
-          bt_stack[(*bt)].ml  = 1;
+          bt_stack[(*bt)].ml  = VRNA_MX_FLAG_M;
           bt_stack[++(*bt)].i = u + 1;
           bt_stack[(*bt)].j   = length;
-          bt_stack[(*bt)].ml  = 1;
+          bt_stack[(*bt)].ml  = VRNA_MX_FLAG_M;
           break;
         }
       }
       bt_stack[++(*bt)].i = 1;
       bt_stack[(*bt)].j   = Mi;
-      bt_stack[(*bt)].ml  = 1;
+      bt_stack[(*bt)].ml  = VRNA_MX_FLAG_M;
     } else if (Fc == FcO) {
       /* unstructured */
       bt_stack[++(*bt)].i = 1;
       bt_stack[(*bt)].j   = 1;
-      bt_stack[(*bt)].ml  = 0;
+      bt_stack[(*bt)].ml  = VRNA_MX_FLAG_F5;
     }
   } else {
     /* forbidden, i.e. no configuration fulfills constraints */
@@ -3175,7 +3175,7 @@ backtrack(vrna_fold_compound_t  *fc,
   if (s == 0) {
     bt_stack[++s].i = 1;
     bt_stack[s].j   = length;
-    bt_stack[s].ml  = (backtrack_type == 'M') ? 1 : ((backtrack_type == 'C') ? 2 : 0);
+    bt_stack[s].ml  = (backtrack_type == 'M') ? VRNA_MX_FLAG_M : ((backtrack_type == 'C') ? VRNA_MX_FLAG_C : VRNA_MX_FLAG_F5);
   }
 
   while (s > 0) {
@@ -3189,14 +3189,14 @@ backtrack(vrna_fold_compound_t  *fc,
 
     switch (ml) {
       /* backtrack in f5 */
-      case 0:
+      case VRNA_MX_FLAG_F5:
       {
         int p, q;
         if (vrna_BT_ext_loop_f5(fc, &j, &p, &q, bp_stack, &b)) {
           if (j > 0) {
             bt_stack[++s].i = 1;
             bt_stack[s].j   = j;
-            bt_stack[s].ml  = 0;
+            bt_stack[s].ml  = VRNA_MX_FLAG_F5;
           }
 
           if (p > 0) {
@@ -3218,9 +3218,10 @@ backtrack(vrna_fold_compound_t  *fc,
       break;
 
       /* trace back in fML array */
-      case 1:
+      case VRNA_MX_FLAG_M:
       {
-        int p, q, comp1, comp2;
+        int p, q;
+        unsigned int comp1, comp2;
         if (vrna_BT_mb_loop_split(fc, &i, &j, &p, &q, &comp1, &comp2, bp_stack, &b)) {
           if (i > 0) {
             bt_stack[++s].i = i;
@@ -3244,7 +3245,7 @@ backtrack(vrna_fold_compound_t  *fc,
       break;
 
       /* backtrack in c */
-      case 2:
+      case VRNA_MX_FLAG_C:
         bp_stack[++b].i = i;
         bp_stack[b].j   = j;
         goto repeat1;
@@ -3252,7 +3253,7 @@ backtrack(vrna_fold_compound_t  *fc,
         break;
 
       /* backtrack in fms5 */
-      case 5:
+      case VRNA_MX_FLAG_MS5:
       {
         unsigned int strand = j;
 
@@ -3260,17 +3261,17 @@ backtrack(vrna_fold_compound_t  *fc,
           if (k > 0) {
             bt_stack[++s].i = i;
             bt_stack[s].j   = k;
-            bt_stack[s].ml  = 2;
+            bt_stack[s].ml  = VRNA_MX_FLAG_C;
 
             if (k < fc->strand_end[strand]) {
               bt_stack[++s].i = l;
               bt_stack[s].j   = strand;
-              bt_stack[s].ml  = 5;
+              bt_stack[s].ml  = VRNA_MX_FLAG_MS5;
             }
           } else if (i > 0) {
             bt_stack[++s].i = i;
             bt_stack[s].j   = strand;
-            bt_stack[s].ml  = 5;
+            bt_stack[s].ml  = VRNA_MX_FLAG_MS5;
           }
 
           continue;
@@ -3287,7 +3288,7 @@ backtrack(vrna_fold_compound_t  *fc,
       break;
 
       /* backtrack in fms3 */
-      case 6:
+      case VRNA_MX_FLAG_MS3:
       {
         unsigned int strand = i;
 
@@ -3295,17 +3296,17 @@ backtrack(vrna_fold_compound_t  *fc,
           if (k > 0) {
             bt_stack[++s].i = k;
             bt_stack[s].j   = j;
-            bt_stack[s].ml  = 2;
+            bt_stack[s].ml  = VRNA_MX_FLAG_C;
 
             if (k > fc->strand_start[strand]) {
               bt_stack[++s].i = strand;
               bt_stack[s].j   = l;
-              bt_stack[s].ml  = 6;
+              bt_stack[s].ml  = VRNA_MX_FLAG_MS3;
             }
           } else if (j > 0) {
             bt_stack[++s].i = strand;
             bt_stack[s].j   = j;
-            bt_stack[s].ml  = 6;
+            bt_stack[s].ml  = VRNA_MX_FLAG_MS3;
           }
 
           continue;
@@ -3364,13 +3365,13 @@ repeat1:
         if (i > 0) {
           bt_stack[++s].i = i;
           bt_stack[s].j   = sn1;
-          bt_stack[s].ml  = 5;
+          bt_stack[s].ml  = VRNA_MX_FLAG_MS5;
         }
 
         if (j > 0) {
           bt_stack[++s].i = sn2;
           bt_stack[s].j   = j;
-          bt_stack[s].ml  = 6;
+          bt_stack[s].ml  = VRNA_MX_FLAG_MS3;
         }
 
         continue;
@@ -3378,7 +3379,7 @@ repeat1:
     }
 
     /* (i.j) must close a multi-loop */
-    int comp1, comp2;
+    unsigned int comp1, comp2;
 
     if (vrna_BT_mb_loop(fc, &i, &j, &k, cij, &comp1, &comp2)) {
       bt_stack[++s].i = i;

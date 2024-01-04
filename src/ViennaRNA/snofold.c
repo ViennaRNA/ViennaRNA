@@ -22,6 +22,7 @@
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
+#include "ViennaRNA/dp_matrices.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/params/basic.h"
@@ -783,7 +784,7 @@ alibacktrack(const char **strings,
   if (s == 0) {
     sector[++s].i = 1;
     sector[s].j   = length;
-    sector[s].ml  = 2;
+    sector[s].ml  = VRNA_MX_FLAG_C;
   }
 
   while (s > 0) {
@@ -793,7 +794,7 @@ alibacktrack(const char **strings,
     j   = sector[s].j;
     ml  = sector[s--].ml;  /* ml is a flag indicating if backtracking is to
                            * occur in the fML- (1) or in the f-array (0) */
-    if (ml == 2) {
+    if (ml == VRNA_MX_FLAG_C) {
       base_pair[++b].i  = i;
       base_pair[b].j    = j;
       goto repeat1;
@@ -889,7 +890,7 @@ repeat1:
      */
     i1                = i + 1;
     j1                = j - 1;
-    sector[s + 1].ml  = sector[s + 2].ml = 1;
+    sector[s + 1].ml  = sector[s + 2].ml = VRNA_MX_FLAG_M;
 
     /*
      *      if (k<=j-3-TURN) { /\\* found the decomposition *\\/ *\/
@@ -1148,17 +1149,18 @@ backtrack(const char  *string,
   if (s == 0) {
     sector[++s].i = 1;
     sector[s].j   = length;
-    sector[s].ml  = 2;
+    sector[s].ml  = VRNA_MX_FLAG_C;
   }
 
   while (s > 0) {
-    int ml, cij, traced, i1, j1, /*d3, d5, mm,*/ p, q;
+    unsigned int ml;
+    int cij, traced, i1, j1, /*d3, d5, mm,*/ p, q;
     int canonical = 1;     /* (i,j) closes a canonical structure */
     i   = sector[s].i;
     j   = sector[s].j;
     ml  = sector[s--].ml;  /* ml is a flag indicating if backtracking is to
                            * occur in the fML- (1) or in the f-array (0) */
-    if (ml == 2) {
+    if (ml == VRNA_MX_FLAG_C) {
       base_pair[++b].i  = i;
       base_pair[b].j    = j;
       goto repeat1;
@@ -1252,7 +1254,7 @@ repeat1:
      */
     i1                = i + 1;
     j1                = j - 1;
-    sector[s + 1].ml  = sector[s + 2].ml = 1;
+    sector[s + 1].ml  = sector[s + 2].ml = VRNA_MX_FLAG_M;
 
     /*
      *      if (k<=j-3-TURN) { */ /* found the decomposition
@@ -1280,7 +1282,7 @@ snobacktrack_fold_from_pair(const char  *sequence,
 
   sector[1].i     = i;
   sector[1].j     = j;
-  sector[1].ml    = 2;
+  sector[1].ml    = VRNA_MX_FLAG_C;
   base_pair[0].i  = 0;
   encode_seq(sequence);
   backtrack(sequence, 1);
@@ -1305,7 +1307,7 @@ alisnobacktrack_fold_from_pair(const char **strings,
   n_seq           = s;
   sector[1].i     = i;
   sector[1].j     = j;
-  sector[1].ml    = 2;
+  sector[1].ml    = VRNA_MX_FLAG_C;
   base_pair[0].i  = 0;
   /* encode_seq(sequence); */
   Sali = (short **)vrna_alloc(n_seq * sizeof(short *));

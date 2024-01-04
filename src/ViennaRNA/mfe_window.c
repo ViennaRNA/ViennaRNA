@@ -886,7 +886,7 @@ backtrack(vrna_fold_compound_t  *vc,
 
   sector[++s].i = start;
   sector[s].j   = MIN2(length, end);
-  sector[s].ml  = (bt_type == 'M') ? 1 : ((bt_type == 'C') ? 2 : 0);
+  sector[s].ml  = (bt_type == 'M') ? VRNA_MX_FLAG_M : ((bt_type == 'C') ? VRNA_MX_FLAG_C : VRNA_MX_FLAG_F3);
 
   structure = (char *)vrna_alloc((MIN2(length - start, end) + 3) * sizeof(char));
 
@@ -908,12 +908,12 @@ backtrack(vrna_fold_compound_t  *vc,
 
     switch (ml) {
       /* backtrack in f3 */
-      case 0:
+      case VRNA_MX_FLAG_F3:
         if (vrna_BT_ext_loop_f3(vc, &i, j, &p, &q, bp_stack, &b)) {
           if (i > 0) {
             sector[++s].i = i;
             sector[s].j   = j;
-            sector[s].ml  = 0;
+            sector[s].ml  = VRNA_MX_FLAG_F3;
           }
 
           if (p > 0) {
@@ -940,7 +940,7 @@ backtrack(vrna_fold_compound_t  *vc,
         break;
 
       /* trace back in fML array */
-      case 1:
+      case VRNA_MX_FLAG_M:
         if (vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, &comp1, &comp2, bp_stack, &b)) {
           if (i > 0) {
             sector[++s].i = i;
@@ -962,7 +962,7 @@ backtrack(vrna_fold_compound_t  *vc,
         break;
 
       /* backtrack in c */
-      case 2:
+      case VRNA_MX_FLAG_C:
         bp_stack[++b].i = i;
         bp_stack[b].j   = j;
         goto repeat1;

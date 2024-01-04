@@ -16,6 +16,16 @@
  *
  */
 
+#define VRNA_MX_FLAG_F5     0U
+#define VRNA_MX_FLAG_F3     7U
+#define VRNA_MX_FLAG_MS5    4U
+#define VRNA_MX_FLAG_MS3    5U
+#define VRNA_MX_FLAG_M      1U
+#define VRNA_MX_FLAG_M1     3U
+#define VRNA_MX_FLAG_C      2U
+#define VRNA_MX_FLAG_G      6U
+
+
 /** @brief Typename for the Minimum Free Energy (MFE) DP matrices data structure #vrna_mx_mfe_s */
 typedef struct  vrna_mx_mfe_s vrna_mx_mfe_t;
 /** @brief Typename for the Partition Function (PF) DP matrices data structure #vrna_mx_pf_s */
