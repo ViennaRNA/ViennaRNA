@@ -25,7 +25,6 @@ typedef struct {
   var_array<int> *const fML;
   var_array<int> *const fM1;
   var_array<int> *const fM2;
-  var_array<int> *const ggg;
   const int             Fc;
   const int             FcH;
   const int             FcI;
@@ -74,14 +73,6 @@ typedef struct {
   {
     return var_array_new(mx->length,
                          mx->fM1,
-                         VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
-  }
-
-  var_array<int> *
-  vrna_mx_mfe_t_ggg_get(vrna_mx_mfe_t *mx)
-  {
-    return var_array_new(mx->length,
-                         mx->ggg,
                          VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
   }
 
@@ -144,7 +135,6 @@ typedef struct {
   var_array<FLT_OR_DBL> *const  probs;
   var_array<FLT_OR_DBL> *const  q1k;
   var_array<FLT_OR_DBL> *const  qln;
-  var_array<FLT_OR_DBL> *const  G;
   const FLT_OR_DBL              qo;
   var_array<FLT_OR_DBL> *const  qm2;
   const FLT_OR_DBL              qho;
@@ -206,14 +196,6 @@ typedef struct {
   }
 
   var_array<FLT_OR_DBL> *
-  vrna_mx_pf_t_G_get(vrna_mx_pf_t *mx)
-  {
-    return var_array_new(mx->length,
-                         mx->G,
-                         VAR_ARRAY_TRI | VAR_ARRAY_ONE_BASED);
-  }
-
-  var_array<FLT_OR_DBL> *
   vrna_mx_pf_t_probs_get(vrna_mx_pf_t *mx)
   {
     return var_array_new(mx->length,
@@ -271,4 +253,6 @@ typedef struct {
 %}
 
 
+%include <ViennaRNA/datastructures/array.h>
+%include <ViennaRNA/datastructures/sparse_mx.h>
 %include <ViennaRNA/dp_matrices.h>

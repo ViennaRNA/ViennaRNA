@@ -16,6 +16,8 @@
 extern "C" {
 #include  <ViennaRNA/model.h>
 #include  <ViennaRNA/datastructures/basic.h>
+#include  <ViennaRNA/datastructures/array.h>
+#include  <ViennaRNA/datastructures/sparse_mx.h>
 #include  <ViennaRNA/fold_compound.h>
 #include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/alphabet.h>
