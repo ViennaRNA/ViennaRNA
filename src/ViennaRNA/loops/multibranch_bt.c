@@ -374,7 +374,11 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
   /* 1. test for single component */
 
   if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     en = (sliding_window) ? ggg_local[ii][jj - ii] : vrna_smx_csr_get(c_gq, ii, jj, INF);
+#else
+    en = (sliding_window) ? ggg_local[ii][jj - ii] : vrna_smx_csr_int_get(c_gq, ii, jj, INF);
+#endif
 
     if (en != INF) {
       en += E_MLstem(0, -1, -1, P) *

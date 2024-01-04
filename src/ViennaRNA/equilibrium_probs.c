@@ -872,7 +872,11 @@ pf_create_bppm(vrna_fold_compound_t *vc,
             if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
               probs[ij] *= exp(-pscore[jindx[j] + i] / kTn);
           } else {
+#ifndef VRNA_DISABLE_C11_FEATURES
             q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
+#else
+            q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
+#endif
             if (q_g != 0.) {
               probs[ij] += q1k[i - 1] *
                            q_g *
@@ -1695,7 +1699,11 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
 
       if (with_gquad) {
         if ((!tt) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
             (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
+#else
+            (vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) == 0.))
+#endif
           continue;
       } else {
         if (qb[kl] == 0.)
@@ -1722,7 +1730,11 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
 
       if ((with_gquad) &&
           (qb[kl] == 0.)) {
+#ifndef VRNA_DISABLE_C11_FEATURES
         temp *= vrna_smx_csr_get(q_gq, k, l, 0.) *
+#else
+        temp *= vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) *
+#endif
                 expMLstem;
       } else if (hc_eval(k, l, k, l, VRNA_DECOMP_ML_STEM, hc_dat)) {
         if (tt == 0)
@@ -1945,7 +1957,11 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
 
       if (with_gquad) {
         if ((qb[kl] == 0.) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
             (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
+#else
+            (vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) == 0.))
+#endif
           continue;
       } else {
         if (qb[kl] == 0.)
@@ -1963,7 +1979,11 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
 
       if ((with_gquad) &&
           (qb[kl] == 0.)) {
+#ifndef VRNA_DISABLE_C11_FEATURES
         temp *= vrna_smx_csr_get(q_gq, k, l, 0.) *
+#else
+        temp *= vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) *
+#endif
                 expMLstem;
       } else {
         if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
@@ -2028,7 +2048,11 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
     for (k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
       if (q_g == 0.)
         continue;
@@ -2057,7 +2081,11 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
     for (k = 3; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
       if (q_g == 0.)
         continue;
@@ -2088,7 +2116,11 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
     for (k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
       if (q_g == 0.)
         continue;
@@ -2149,7 +2181,11 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
     for (k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
       if (q_g == 0.)
         continue;
@@ -2188,7 +2224,11 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
     for (k = 3; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
       if (q_g == 0.)
         continue;
@@ -2229,7 +2269,11 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
   if (l < n) {
     for (k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
+#ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
       if (q_g == 0.)
         continue;

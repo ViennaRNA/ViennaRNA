@@ -607,7 +607,11 @@ mfe_matrices_free_default(vrna_mx_mfe_t *self)
   free(self->fML);
   free(self->fM1);
   free(self->fM2);
+#ifndef VRNA_DISABLE_C11_FEATURES
   vrna_smx_csr_free(self->c_gq);
+#else
+  vrna_smx_csr_int_free(self->c_gq);
+#endif
 }
 
 
@@ -989,7 +993,11 @@ pf_matrices_free_default(vrna_mx_pf_t *self)
   free(self->probs);
   free(self->q1k);
   free(self->qln);
+#ifndef VRNA_DISABLE_C11_FEATURES
   vrna_smx_csr_free(self->q_gq);
+#else
+  vrna_smx_csr_FLT_OR_DBL_free(self->q_gq);
+#endif
 }
 
 

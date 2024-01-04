@@ -567,7 +567,11 @@ vrna_gq_pos_mfe(vrna_fold_compound_t *fc)
                                 NULL,
                                 NULL);
       if (e < INF)
+#ifndef VRNA_DISABLE_C11_FEATURES
         vrna_smx_csr_insert(gq_mfe_pos, i, j, e);
+#else
+        vrna_smx_csr_int_insert(gq_mfe_pos, i, j, e);
+#endif
     }
 
     free(gg);
@@ -627,7 +631,11 @@ vrna_gq_pos_pf(vrna_fold_compound_t *fc)
                                 NULL,
                                 NULL);
       if (q != 0.)
+#ifndef VRNA_DISABLE_C11_FEATURES
         vrna_smx_csr_insert(q_gq, i, j, q * scale[j - i + 1]);
+#else
+        vrna_smx_csr_FLT_OR_DBL_insert(q_gq, i, j, q * scale[j - i + 1]);
+#endif
     }
 
     free(gg);
@@ -1091,7 +1099,11 @@ get_plist_gquad_from_pr_max(short             *S,
                             (void *)Lmax,
                             (void *)lmax);
 
+#ifndef VRNA_DISABLE_C11_FEATURES
   pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] / vrna_smx_csr_get(q_gq, gi, gj, 0.);
+#else
+  pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] / vrna_smx_csr_FLT_OR_DBL_get(q_gq, gi, gj, 0.);
+#endif
   for (i = gi; i < gj; i++) {
     for (j = i; j <= gj; j++) {
       if (tempprobs[my_index[i] - j] > 0.) {
@@ -1186,7 +1198,11 @@ vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
 
   pp = probs[my_index[gi] - gj] *
        scale[gj - gi + 1] /
+#ifndef VRNA_DISABLE_C11_FEATURES
        vrna_smx_csr_get(q_gq, gi, gj, 0.);
+#else
+       vrna_smx_csr_FLT_OR_DBL_get(q_gq, gi, gj, 0.);
+#endif
 
   for (i = gi; i < gj; i++) {
     for (j = i; j <= gj; j++) {

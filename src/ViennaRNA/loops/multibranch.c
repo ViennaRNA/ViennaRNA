@@ -993,7 +993,11 @@ extend_fm_3p(int                        i,
 
   if (with_gquad) {
     if (sn[i] == sn[j]) {
+#ifndef VRNA_DISABLE_C11_FEATURES
       en  = (sliding_window) ? ggg_local[i][j - i] : vrna_smx_csr_get(c_gq, i, j, INF);
+#else
+      en  = (sliding_window) ? ggg_local[i][j - i] : vrna_smx_csr_int_get(c_gq, i, j, INF);
+#endif
       if (en != INF) {
         en  += E_MLstem(0, -1, -1, P) *
                n_seq;

@@ -375,7 +375,11 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
       for (q = minl; q < maxl; q++) {
         if (S1[q] != 3)
           continue;
+#ifndef VRNA_DISABLE_C11_FEATURES
         e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+        e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
 
         if (e_gq != INF) {
           c0 = energy + e_gq;
@@ -420,7 +424,11 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
       if (S1[q] != 3)
         continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+      e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
 
       if (e_gq != INF) {
         c0  = energy + e_gq;
@@ -457,7 +465,11 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
       if (S1[p] != 3)
         continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#endif
 
       if (e_gq != INF) {
         c0  = energy + e_gq;
@@ -771,7 +783,7 @@ vrna_E_gq_intLoop(vrna_fold_compound_t *fc,
   short             *S, *S1, si, sj, **SS, **S5, **S3;
   vrna_param_t      *P;
   vrna_md_t         *md;
-  vrna_smx_csr(int) *ggg;
+  vrna_smx_csr(int) *c_gq;
 
   n_seq   = fc->n_seq;
   S       = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
@@ -780,7 +792,7 @@ vrna_E_gq_intLoop(vrna_fold_compound_t *fc,
   S5      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
   S3      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   a2s     = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
-  ggg     = fc->matrices->c_gq;
+  c_gq    = fc->matrices->c_gq;
   P       = fc->params;
   md      = &(P->model_details);
   dangles = md->dangles;
@@ -828,7 +840,11 @@ vrna_E_gq_intLoop(vrna_fold_compound_t *fc,
         if (S1[q] != 3)
           continue;
 
-        e_gq = vrna_smx_csr_get(ggg, p, q, INF);
+#ifndef VRNA_DISABLE_C11_FEATURES
+        e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+        e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
 
         if (e_gq != INF) {
           c0 = energy + e_gq;
@@ -873,7 +889,11 @@ vrna_E_gq_intLoop(vrna_fold_compound_t *fc,
       if (S1[q] != 3)
         continue;
 
-      e_gq = vrna_smx_csr_get(ggg, p, q, INF);
+#ifndef VRNA_DISABLE_C11_FEATURES
+      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+      e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
 
       if (e_gq != INF) {
         c0  = energy + e_gq;
@@ -909,7 +929,11 @@ vrna_E_gq_intLoop(vrna_fold_compound_t *fc,
       if (S1[p] != 3)
         continue;
 
-      e_gq = vrna_smx_csr_get(ggg, p, q, INF);
+#ifndef VRNA_DISABLE_C11_FEATURES
+      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#endif
 
       if (e_gq != INF) {
         c0  = energy + e_gq;
@@ -1109,7 +1133,11 @@ vrna_E_gq_intLoop_exhaustive(vrna_fold_compound_t *fc,
         if (S[q] != 3)
           continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
         e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+        e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
 
         if (e_gq != INF) {
           c0 = energy + e_gq + P->internal_loop[j - q - 1];
@@ -1144,7 +1172,11 @@ vrna_E_gq_intLoop_exhaustive(vrna_fold_compound_t *fc,
       if (S[q] != 3)
         continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+      e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
 
       if (e_gq != INF) {
         c0 = energy + e_gq + P->internal_loop[l1 + j - q - 1];
@@ -1170,7 +1202,11 @@ vrna_E_gq_intLoop_exhaustive(vrna_fold_compound_t *fc,
       if (S[p] != 3)
         continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+      e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
 
       if (e_gq != INF) {
         c0 = energy + e_gq + P->internal_loop[l1];
@@ -1352,7 +1388,11 @@ vrna_exp_E_gq_intLoop(vrna_fold_compound_t *fc,
         if (S1[l] != 3)
           continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
         q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+        q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
         if (q_g != 0.) {
           q_g *= qe * scale[j - l + 1];
@@ -1398,7 +1438,11 @@ vrna_exp_E_gq_intLoop(vrna_fold_compound_t *fc,
       if (S1[l] != 3)
         continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
       if (q_g != 0.) {
         q_g *= qe * scale[u + j - l + 1];
@@ -1432,7 +1476,11 @@ vrna_exp_E_gq_intLoop(vrna_fold_compound_t *fc,
       if (S1[k] != 3)
         continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
 
       if (q_g != 0.) {
         q_g *= qe * scale[u + 2];

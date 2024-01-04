@@ -630,7 +630,11 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
       qbt1    += G_local[i][j];
     } else {
       q_gq  = fc->exp_matrices->q_gq;
+#ifndef VRNA_DISABLE_C11_FEATURES
       qbt1  += vrna_smx_csr_get(q_gq, i, j, 0.);
+#else
+      qbt1  += vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
+#endif
     }
   }
 

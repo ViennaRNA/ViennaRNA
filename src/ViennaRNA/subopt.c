@@ -972,7 +972,11 @@ best_attainable_energy(vrna_fold_compound_t *fc,
     else if (next->array_flag == VRNA_MX_FLAG_MS3)
       sum += matrices->fms3[next->j][next->i];
     else if (next->array_flag == VRNA_MX_FLAG_G)
+#ifndef VRNA_DISABLE_C11_FEATURES
       sum += vrna_smx_csr_get(matrices->c_gq, next->i, next->j, INF);
+#else
+      sum += vrna_smx_csr_int_get(matrices->c_gq, next->i, next->j, INF);
+#endif
   }
 
   return sum;
@@ -1357,7 +1361,11 @@ scan_mb(vrna_fold_compound_t  *fc,
       /* Multiloop decomposition if i,j contains more than 1 stack */
 
       if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
         int e_gq = vrna_smx_csr_get(c_gq, k + 1, j, INF);
+#else
+        int e_gq = vrna_smx_csr_int_get(c_gq, k + 1, j, INF);
+#endif
         if ((sn[k] == sn[k + 1]) &&
             (fML[indx[k] + i] != INF) &&
             (e_gq != INF)) {
@@ -1435,7 +1443,11 @@ scan_mb(vrna_fold_compound_t  *fc,
 
     /* Multiloop decomposition if i,j contains only 1 stack */
     if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
       e_gq = vrna_smx_csr_get(c_gq, k + 1, j, INF);
+#else
+      e_gq = vrna_smx_csr_int_get(c_gq, k + 1, j, INF);
+#endif
       if ((e_gq != INF) &&
           (sn[i] == sn[j])) {
         element_energy = E_MLstem(0, -1, -1, P) + P->MLbase * up;
@@ -1616,7 +1628,11 @@ scan_m1(vrna_fold_compound_t  *fc,
       }
     }
   } else if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     e_gq = vrna_smx_csr_get(c_gq, i, j, INF);
+#else
+    e_gq = vrna_smx_csr_int_get(c_gq, i, j, INF);
+#endif
     if (e_gq != INF) {
       element_energy = E_MLstem(0, -1, -1, P);
 
@@ -1782,7 +1798,11 @@ scan_ext(vrna_fold_compound_t *fc,
     kj = indx[j] + k;
 
     if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
       e_gq = vrna_smx_csr_get(c_gq, k, j, INF);
+#else
+      e_gq = vrna_smx_csr_int_get(c_gq, k, j, INF);
+#endif
       if ((sn[k - 1] == sn[j]) &&
           (f5[k - 1] != INF) &&
           (e_gq != INF)) {
@@ -1852,7 +1872,11 @@ scan_ext(vrna_fold_compound_t *fc,
   kj = indx[j] + 1;
 
   if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     e_gq = vrna_smx_csr_get(c_gq, 1, j, INF);
+#else
+    e_gq = vrna_smx_csr_int_get(c_gq, 1, j, INF);
+#endif
     if ((sn[1] == sn[j]) &&
         (e_gq != INF)) {
       element_energy = 0;
@@ -2313,7 +2337,11 @@ scan_fms5(vrna_fold_compound_t  *fc,
   }
 
   if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     e_gq = vrna_smx_csr_get(c_gq, i, end, INF);
+#else
+    e_gq = vrna_smx_csr_int_get(c_gq, i, end, INF);
+#endif
     if(e_gq != INF) {
       element_energy = 0;
 
@@ -2337,7 +2365,11 @@ scan_fms5(vrna_fold_compound_t  *fc,
 
   for (k = i + 1; k < end; k++) {
     if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
       e_gq = vrna_smx_csr_get(c_gq, i, k, INF);
+#else
+      e_gq = vrna_smx_csr_int_get(c_gq, i, k, INF);
+#endif
       if ((fms5[strand][k + 1] != INF) &&
           (e_gq != INF)) {
         element_energy = 0;
@@ -2519,7 +2551,11 @@ scan_fms3(vrna_fold_compound_t  *fc,
   }
 
   if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     e_gq = vrna_smx_csr_get(c_gq, start, i, INF);
+#else
+    e_gq = vrna_smx_csr_int_get(c_gq, start, i, INF);
+#endif
     if (e_gq != INF) {
       element_energy = 0;
 
@@ -2543,7 +2579,11 @@ scan_fms3(vrna_fold_compound_t  *fc,
 
   for (k = start; k < i; k++) {
     if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
       e_gq = vrna_smx_csr_get(c_gq, k + 1, i, INF);
+#else
+      e_gq = vrna_smx_csr_int_get(c_gq, k + 1, i, INF);
+#endif
       if ((fms3[strand][k] != INF) &&
           (e_gq != INF)) {
         element_energy = 0;
@@ -2676,7 +2716,11 @@ repeat_gquad(vrna_fold_compound_t *fc,
   best_energy += temp_energy; /* energy from unpushed interval */
 
   if (sn[i] == sn[j]) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     element_energy = vrna_smx_csr_get(c_gq, i, j, INF);
+#else
+    element_energy = vrna_smx_csr_int_get(c_gq, i, j, INF);
+#endif
     if ((element_energy != INF) &&
         (element_energy + best_energy <= threshold)) {
       /* find out how many gquads we might expect in the interval [i,j] */

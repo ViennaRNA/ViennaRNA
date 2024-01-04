@@ -344,7 +344,11 @@ fill_arrays(vrna_fold_compound_t *fc)
 
   /* no G-Quadruplexes for comparative partition function (yet) */
   if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     vrna_smx_csr_free(fc->exp_matrices->q_gq);
+#else
+    vrna_smx_csr_FLT_OR_DBL_free(fc->exp_matrices->q_gq);
+#endif
     fc->exp_matrices->q_gq = vrna_gq_pos_pf(fc);
   }
 

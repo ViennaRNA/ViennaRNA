@@ -396,7 +396,11 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
     case 0:   /* j is paired. Find pairing partner */
       for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           e_gq =  vrna_smx_csr_get(c_gq, u, jj, INF);
+#else
+          e_gq =  vrna_smx_csr_int_get(c_gq, u, jj, INF);
+#endif
           if ((e_gq != INF) &&
               (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
@@ -437,7 +441,11 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       mm3 = ((jj < length) && (sn[jj + 1] == sn[jj])) ? S1[jj + 1] : -1;
       for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           e_gq =  vrna_smx_csr_get(c_gq, u, jj, INF);
+#else
+          e_gq =  vrna_smx_csr_int_get(c_gq, u, jj, INF);
+#endif
           if ((e_gq != INF) &&
               (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
@@ -477,7 +485,11 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 
     default:
       if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
         e_gq =  vrna_smx_csr_get(c_gq, 1, jj, INF);
+#else
+        e_gq =  vrna_smx_csr_int_get(c_gq, 1, jj, INF);
+#endif
         if ((e_gq != INF) &&
             (fij == e_gq)) {
           *i  = *j = -1;
@@ -547,7 +559,11 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 
       for (u = jj - 1; u > 1; u--) {
         if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           e_gq =  vrna_smx_csr_get(c_gq, u, jj, INF);
+#else
+          e_gq =  vrna_smx_csr_int_get(c_gq, u, jj, INF);
+#endif
           if ((e_gq != INF) &&
               (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
@@ -759,7 +775,11 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
     case 0:   /* j is paired. Find pairing partner */
       for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           e_gq = vrna_smx_csr_get(c_gq, u, jj, INF);
+#else
+          e_gq = vrna_smx_csr_int_get(c_gq, u, jj, INF);
+#endif
           if ((e_gq != INF) &&
               (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
@@ -801,7 +821,11 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
     case 2:
       for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           e_gq = vrna_smx_csr_get(c_gq, u, jj, INF);
+#else
+          e_gq = vrna_smx_csr_int_get(c_gq, u, jj, INF);
+#endif
           if ((e_gq != INF) &&
               (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;

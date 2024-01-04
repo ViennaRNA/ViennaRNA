@@ -2369,12 +2369,20 @@ add_f5_gquad(vrna_fold_compound_t       *fc,
   e     = INF;
 
   for (i = j - 1; i > 1; i--) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     e_gq = vrna_smx_csr_get(c_gq, i, j, INF);
+#else
+    e_gq = vrna_smx_csr_int_get(c_gq, i, j, INF);
+#endif
     if ((f5[i - 1] != INF) && (e_gq != INF))
       e = MIN2(e, f5[i - 1] + e_gq);
   }
 
+#ifndef VRNA_DISABLE_C11_FEATURES
   e_gq = vrna_smx_csr_get(c_gq, 1, j, INF);
+#else
+  e_gq = vrna_smx_csr_int_get(c_gq, 1, j, INF);
+#endif
   if (e_gq != INF)
     e   = MIN2(e, e_gq);
 

@@ -56,6 +56,8 @@
         VRNA_SMX_CSR_DECLARE_GET(TYPE)
 
 
+#ifndef VRNA_DISABLE_C11_FEATURES
+
 #define GENERIC_SMX_CSR_PTR_FN_DEFINE(SMX_CSR_PTR, FN_NAME) \
   _Generic((SMX_CSR_PTR), \
       vrna_smx_csr_int_t *: (vrna_smx_csr_int ## _ ## FN_NAME), \
@@ -71,6 +73,7 @@
 #define vrna_smx_csr_free(X) \
   GENERIC_SMX_CSR_PTR_FN_DEFINE((X), free)((X))
 
+#endif
 
 /* Below follows a list of sparse matrix declarations for different data types */
 VRNA_SMX_CSR_DECLARE_ALL(int)
