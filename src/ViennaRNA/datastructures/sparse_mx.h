@@ -59,7 +59,8 @@
 #define GENERIC_SMX_CSR_PTR_FN_DEFINE(SMX_CSR_PTR, FN_NAME) \
   _Generic((SMX_CSR_PTR), \
       vrna_smx_csr_int_t *: (vrna_smx_csr_int ## _ ## FN_NAME), \
-      vrna_smx_csr_float_t *: (vrna_smx_csr_float ## _ ## FN_NAME))
+      vrna_smx_csr_float_t *: (vrna_smx_csr_float ## _ ## FN_NAME), \
+      vrna_smx_csr_FLT_OR_DBL_t *: (vrna_smx_csr_FLT_OR_DBL ## _ ## FN_NAME))
 
 #define vrna_smx_csr_insert(X, i, j, v) \
   GENERIC_SMX_CSR_PTR_FN_DEFINE((X), insert)((X), i, j, v)
@@ -74,7 +75,7 @@
 /* Below follows a list of sparse matrix declarations for different data types */
 VRNA_SMX_CSR_DECLARE_ALL(int)
 VRNA_SMX_CSR_DECLARE_ALL(float)
-
+VRNA_SMX_CSR_DECLARE_ALL(FLT_OR_DBL)
 
 
 #endif
