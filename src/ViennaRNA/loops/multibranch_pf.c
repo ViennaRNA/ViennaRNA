@@ -394,7 +394,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   unsigned int              *sn, *ss, *se, n_seq, s;
   int                       n, *iidx, k, ij, kl, maxk, ii, with_ud, u, circular, with_gquad,
                             *hc_up_ml, type;
-  FLT_OR_DBL                qbt1, temp, *qm, *qb, *qqm, *qqm1, **qqmu, q_temp, q_temp2, *G,
+  FLT_OR_DBL                qbt1, temp, *qm, *qb, *qqm, *qqm1, **qqmu, q_temp, q_temp2,
                             *expMLbase, **qb_local, **qm_local, **G_local;
   vrna_md_t                 *md;
   vrna_exp_param_t          *pf_params;
@@ -403,6 +403,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_exp_dat      sc_wrapper;
+  vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n               = (int)fc->length;
@@ -420,7 +421,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   qqmu            = aux_mx->qqmu;
   qm              = (sliding_window) ? NULL : fc->exp_matrices->qm;
   qb              = (sliding_window) ? NULL : fc->exp_matrices->qb;
-  G               = (sliding_window) ? NULL : fc->exp_matrices->G;
+  q_gq            = (sliding_window) ? NULL : fc->exp_matrices->q_gq;
   qm_local        = (sliding_window) ? fc->exp_matrices->qm_local : NULL;
   qb_local        = (sliding_window) ? fc->exp_matrices->qb_local : NULL;
   G_local         = (sliding_window) ? fc->exp_matrices->G_local : NULL;
@@ -516,9 +517,10 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   }
 
   if (with_gquad) {
-    q_temp  = (sliding_window) ? G_local[i][j] : G[ij];
-    qqm[i]  += q_temp *
-               pow(exp_E_MLstem(0, -1, -1, pf_params), (double)n_seq);
+    q_temp  = (sliding_window) ? G_local[i][j] : vrna_smx_csr_get(q_gq, i, j, 0.);
+    if (q_temp != 0.)
+      qqm[i]  += q_temp *
+                 pow(exp_E_MLstem(0, -1, -1, pf_params), (double)n_seq);
   }
 
   if (with_ud)

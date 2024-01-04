@@ -173,7 +173,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
   char                      *ptype, **ptype_local;
   short                     *S1, **SS, **S5, **S3;
   unsigned int              n_seq, s;
-  int                       ij, ii, jj, fij, fi, u, en, *my_c, *my_fML, *my_ggg,
+  int                       ij, ii, jj, fij, fi, u, en, *my_c, *my_fML,
                             *idx, with_gquad, dangle_model, *rtype, kk, cnt,
                             with_ud, type, type_2, en2, **c_local, **fML_local, **ggg_local;
   vrna_param_t              *P;
@@ -182,6 +182,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
   vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_dat          sc_wrapper;
+  vrna_smx_csr(int)         *c_gq;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -199,7 +200,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
 
   my_c      = (sliding_window) ? NULL : fc->matrices->c;
   my_fML    = (sliding_window) ? NULL : fc->matrices->fML;
-  my_ggg    = (sliding_window) ? NULL : fc->matrices->ggg;
+  c_gq      = (sliding_window) ? NULL : fc->matrices->c_gq;
   c_local   = (sliding_window) ? fc->matrices->c_local : NULL;
   fML_local = (sliding_window) ? fc->matrices->fML_local : NULL;
   ggg_local = (sliding_window) ? fc->matrices->ggg_local : NULL;
@@ -373,14 +374,17 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
   /* 1. test for single component */
 
   if (with_gquad) {
-    en = E_MLstem(0, -1, -1, P) *
-         n_seq;
-    en += (sliding_window) ? ggg_local[ii][jj - ii] : my_ggg[ij];
+    en = (sliding_window) ? ggg_local[ii][jj - ii] : vrna_smx_csr_get(c_gq, ii, jj, INF);
 
-    if (fij == en) {
-      *i  = *j = -1;
-      *k  = *l = -1;
-      return vrna_bt_gquad_mfe(fc, ii, jj, bp_stack);
+    if (en != INF) {
+      en += E_MLstem(0, -1, -1, P) *
+           n_seq;
+
+      if (fij == en) {
+        *i  = *j = -1;
+        *k  = *l = -1;
+        return vrna_bt_gquad_mfe(fc, ii, jj, bp_stack);
+      }
     }
   }
 

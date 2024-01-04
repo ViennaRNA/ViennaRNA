@@ -369,7 +369,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   char                  *ptype, **ptype_local;
   short                 *S, **SS, **S5, **S3;
   unsigned int          *sn, **a2s, n_seq, s, n;
-  int                   e, eee, *idx, ij, *c, *ggg, *rtype, with_ud, with_gquad, noclose,
+  int                   e, eee, *idx, ij, *c, *rtype, with_ud, with_gquad, noclose,
                         *hc_up, **c_local, **ggg_local;
   vrna_param_t          *P;
   vrna_md_t             *md;
@@ -401,7 +401,6 @@ E_internal_loop(vrna_fold_compound_t  *fc,
   S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   c           = (sliding_window) ? NULL : fc->matrices->c;
-  ggg         = (sliding_window) ? NULL : fc->matrices->ggg;
   c_local     = (sliding_window) ? fc->matrices->c_local : NULL;
   ggg_local   = (sliding_window) ? fc->matrices->ggg_local : NULL;
   P           = fc->params;
@@ -782,11 +781,11 @@ E_internal_loop(vrna_fold_compound_t  *fc,
         /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
+            eee = INF;
             if (sliding_window)
               eee = E_GQuad_IntLoop_L(i, j, type, S, ggg_local, fc->window_size, P);
             else if (sn[j] == sn[i])
-              eee = E_GQuad_IntLoop(i, j, type, S, ggg, idx, P);
-
+              eee = vrna_E_gq_intLoop(fc, i, j);
             e = MIN2(e, eee);
             break;
 
@@ -803,17 +802,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                                   n_seq,
                                                   P);
             } else {
-              eee = E_GQuad_IntLoop_comparative(i,
-                                                j,
-                                                tt,
-                                                fc->S_cons,
-                                                S5,
-                                                S3,
-                                                a2s,
-                                                ggg,
-                                                idx,
-                                                n_seq,
-                                                P);
+              eee = vrna_E_gq_intLoop(fc, i, j);
             }
 
             e = MIN2(e, eee);

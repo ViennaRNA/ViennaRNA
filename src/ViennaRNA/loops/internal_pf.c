@@ -113,13 +113,14 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   unsigned int          *sn, *se, *ss, n_seq, s, **a2s, n;
   int                   *rtype, noclose, *my_iindx, *jindx, *hc_up, ij,
                         with_gquad, with_ud;
-  FLT_OR_DBL            qbt1, q_temp, *qb, **qb_local, *G, *scale;
+  FLT_OR_DBL            qbt1, q_temp, *qb, **qb_local, *scale;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
   eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
   struct sc_int_exp_dat sc_wrapper;
+  vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n               = fc->length;
@@ -136,7 +137,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   qb          = (sliding_window) ? NULL : fc->exp_matrices->qb;
-  G           = (sliding_window) ? NULL : fc->exp_matrices->G;
+  q_gq        = (sliding_window) ? NULL : fc->exp_matrices->q_gq;
   qb_local    = (sliding_window) ? fc->exp_matrices->qb_local : NULL;
   scale       = fc->exp_matrices->scale;
   my_iindx    = fc->iindx;
@@ -523,7 +524,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
             if (sliding_window) {
               /* no G-Quadruplex support for sliding window partition function yet! */
             } else if (sn[j] == sn[i]) {
-              qbt1 += exp_E_GQuad_IntLoop(i, j, type, S1, G, scale, my_iindx, pf_params);
+              qbt1 += vrna_exp_E_gq_intLoop(fc, i, j);
             }
 
             break;
@@ -532,15 +533,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
             if (sliding_window) {
               /* no G-Quadruplex support for sliding window partition function yet! */
             } else {
-              qbt1 += exp_E_GQuad_IntLoop_comparative(i, j,
-                                                      tt,
-                                                      fc->S_cons,
-                                                      S5, S3, a2s,
-                                                      G,
-                                                      scale,
-                                                      my_iindx,
-                                                      (int)n_seq,
-                                                      pf_params);
+              qbt1 += vrna_exp_E_gq_intLoop(fc, i, j);
             }
 
             break;

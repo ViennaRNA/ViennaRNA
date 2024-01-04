@@ -358,15 +358,9 @@ bt_int_loop(vrna_fold_compound_t  *fc,
               }
             }
           } else {
-            if (backtrack_GQuad_IntLoop_comparative(en, *i, *j, tt, fc->S_cons, fc->S5, fc->S3,
-                                                    fc->a2s,
-                                                    fc->matrices->ggg, idx, &p, &q,
-                                                    n_seq,
-                                                    P)) {
-              if (vrna_bt_gquad_mfe(fc, p, q, bp_stack)) {
-                *i  = *j = -1; /* tell the calling block to continue backtracking with next block */
-                ret = 1;
-              }
+            if (vrna_bt_gquad_int(fc, *i, *j, en, bp_stack)) {
+              *i  = *j = -1; /* tell the calling block to continue backtracking with next block */
+              ret = 1;
             }
           }
 

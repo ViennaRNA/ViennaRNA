@@ -916,11 +916,12 @@ extend_fm_3p(int                        i,
 {
   short         *S, **SS, **S5, **S3;
   unsigned int  *sn, n_seq, s, sliding_window;
-  int           en, en2, length, *indx, *c, **c_local, **fm_local, *ggg, **ggg_local, ij, type,
+  int           en, en2, length, *indx, *c, **c_local, **fm_local, **ggg_local, ij, type,
                 dangle_model, with_gquad, e, u, k, cnt, with_ud;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_ud_t     *domains_up;
+  vrna_smx_csr(int) *c_gq;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -932,7 +933,7 @@ extend_fm_3p(int                        i,
   indx            = (sliding_window) ? NULL : fc->jindx;
   sn              = fc->strand_number;
   c               = (sliding_window) ? NULL : fc->matrices->c;
-  ggg             = (sliding_window) ? NULL : fc->matrices->ggg;
+  c_gq            = (sliding_window) ? NULL : fc->matrices->c_gq;
   c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
   fm_local        = (sliding_window) ? fc->matrices->fML_local : NULL;
   ggg_local       = (sliding_window) ? fc->matrices->ggg_local : NULL;
@@ -992,11 +993,13 @@ extend_fm_3p(int                        i,
 
   if (with_gquad) {
     if (sn[i] == sn[j]) {
-      en  = (sliding_window) ? ggg_local[i][j - i] : ggg[ij];
-      en  += E_MLstem(0, -1, -1, P) *
-             n_seq;
+      en  = (sliding_window) ? ggg_local[i][j - i] : vrna_smx_csr_get(c_gq, i, j, INF);
+      if (en != INF) {
+        en  += E_MLstem(0, -1, -1, P) *
+               n_seq;
 
-      e = MIN2(e, en);
+        e = MIN2(e, en);
+      }
     }
   }
 

@@ -2361,20 +2361,22 @@ add_f5_gquad(vrna_fold_compound_t       *fc,
              struct hc_ext_def_dat      *hc_dat_local,
              struct sc_f5_dat           *sc_wrapper)
 {
-  int e, i, ij, *indx, *f5, *ggg;
+  int               e, e_gq, i, *f5;
+  vrna_smx_csr(int) *c_gq;
 
-  indx  = fc->jindx;
   f5    = fc->matrices->f5;
-  ggg   = fc->matrices->ggg;
-  ij    = indx[j] + j - 1;
+  c_gq  = fc->matrices->c_gq;
   e     = INF;
 
-  for (i = j - 1; i > 1; i--, ij--)
-    if ((f5[i - 1] != INF) && (ggg[ij] != INF))
-      e = MIN2(e, f5[i - 1] + ggg[ij]);
+  for (i = j - 1; i > 1; i--) {
+    e_gq = vrna_smx_csr_get(c_gq, i, j, INF);
+    if ((f5[i - 1] != INF) && (e_gq != INF))
+      e = MIN2(e, f5[i - 1] + e_gq);
+  }
 
-  ij  = indx[j] + 1;
-  e   = MIN2(e, ggg[ij]);
+  e_gq = vrna_smx_csr_get(c_gq, 1, j, INF);
+  if (e_gq != INF)
+    e   = MIN2(e, e_gq);
 
   return e;
 }

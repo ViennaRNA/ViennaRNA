@@ -37,6 +37,7 @@ typedef struct  vrna_mx_mfe_s vrna_mx_mfe_t;
 typedef struct  vrna_mx_pf_s vrna_mx_pf_t;
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/datastructures/sparse_mx.h>
 #include <ViennaRNA/fold_compound.h>
 
 /**
@@ -88,7 +89,7 @@ struct vrna_mx_mfe_s {
   int *fML;         /**<  @brief  Multi-loop auxiliary energy array */
   int *fM1;         /**<  @brief  Second ML array, only for unique multibrnach loop decomposition */
   int *fM2;         /**<  @brief  Energy for a multibranch loop region with exactly two stems, extending to 3' end */
-  int *ggg;         /**<  @brief  Energies of g-quadruplexes */
+  vrna_smx_csr(int) *c_gq; /**<  @brief  Energies of g-quadruplexes */
   int Fc;           /**<  @brief  Minimum Free Energy of entire circular RNA */
   int FcH;          /**<  @brief  Minimum Free Energy of hairpin loop cases in circular RNA */
   int FcI;          /**<  @brief  Minimum Free Energy of internal loop cases in circular RNA */
@@ -250,7 +251,7 @@ struct vrna_mx_pf_s {
   FLT_OR_DBL *probs;
   FLT_OR_DBL *q1k;
   FLT_OR_DBL *qln;
-  FLT_OR_DBL *G;
+  vrna_smx_csr(FLT_OR_DBL) *q_gq; /**<  @brief  Boltzmann factors for g-quadruplexes */
 
   FLT_OR_DBL qo;
   FLT_OR_DBL *qm2;

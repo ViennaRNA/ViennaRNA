@@ -299,8 +299,9 @@ export_cofold_arrays_gq(int   **f5_p,
 {
   /* make the DP arrays available to routines such as subopt() */
   wrap_array_export(f5_p, c_p, fML_p, fM1_p, fc_p, indx_p, ptype_p);
-  if (backward_compat_compound)
-    *ggg_p = backward_compat_compound->matrices->ggg;
+  if (backward_compat_compound) {
+    *ggg_p = NULL; /* This will break backward compatibility */
+  }
 }
 
 

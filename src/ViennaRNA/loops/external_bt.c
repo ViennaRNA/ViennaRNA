@@ -264,14 +264,15 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
   char                      *ptype;
   short                     mm5, mm3, *S1;
   unsigned int              *sn, type;
-  int                       length, fij, fi, jj, u, en, e, *my_f5, *my_c, *my_ggg, *idx,
-                            dangle_model, with_gquad, cnt, ii, with_ud;
+  int                       length, fij, fi, jj, u, en, e, *my_f5, *my_c, *idx,
+                            dangle_model, with_gquad, cnt, ii, with_ud, e_gq;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
   vrna_ud_t                 *domains_up;
   vrna_hc_eval_f  evaluate;
   struct hc_ext_def_dat     hc_dat_local;
+  vrna_smx_csr(int)         *c_gq;
 
   length        = fc->length;
   P             = fc->params;
@@ -280,7 +281,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
   sc            = fc->sc;
   my_f5         = fc->matrices->f5;
   my_c          = fc->matrices->c;
-  my_ggg        = fc->matrices->ggg;
+  c_gq          = fc->matrices->c_gq;
   domains_up    = fc->domains_up;
   idx           = fc->jindx;
   ptype         = fc->ptype;
@@ -395,7 +396,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
     case 0:   /* j is paired. Find pairing partner */
       for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
-          if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
+          e_gq =  vrna_smx_csr_get(c_gq, u, jj, INF);
+          if ((e_gq != INF) &&
+              (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
             *k  = u - 1;
             return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
@@ -434,7 +437,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       mm3 = ((jj < length) && (sn[jj + 1] == sn[jj])) ? S1[jj + 1] : -1;
       for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
-          if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
+          e_gq =  vrna_smx_csr_get(c_gq, u, jj, INF);
+          if ((e_gq != INF) &&
+              (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
             *k  = u - 1;
             return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
@@ -472,7 +477,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 
     default:
       if (with_gquad) {
-        if (fij == my_ggg[idx[jj] + 1]) {
+        e_gq =  vrna_smx_csr_get(c_gq, 1, jj, INF);
+        if ((e_gq != INF) &&
+            (fij == e_gq)) {
           *i  = *j = -1;
           *k  = 0;
           return vrna_bt_gquad_mfe(fc, 1, jj, bp_stack);
@@ -540,7 +547,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 
       for (u = jj - 1; u > 1; u--) {
         if (with_gquad) {
-          if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
+          e_gq =  vrna_smx_csr_get(c_gq, u, jj, INF);
+          if ((e_gq != INF) &&
+              (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
             *k  = u - 1;
             return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
@@ -685,13 +694,14 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   unsigned int              **a2s, n;
   short                     **S, **S5, **S3;
   unsigned int              tt;
-  int                       fij, fi, jj, u, en, *my_f5, *my_c, *my_ggg, *idx,
+  int                       fij, fi, jj, u, en, e_gq, *my_f5, *my_c, *idx,
                             dangle_model, with_gquad, n_seq, ss, mm5, mm3;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
+  vrna_smx_csr(int)         *c_gq;
 
   n_seq         = fc->n_seq;
   n             = fc->length;
@@ -704,7 +714,7 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   scs           = fc->scs;
   my_f5         = fc->matrices->f5;
   my_c          = fc->matrices->c;
-  my_ggg        = fc->matrices->ggg;
+  c_gq          = fc->matrices->c_gq;
   idx           = fc->jindx;
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
@@ -749,7 +759,9 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
     case 0:   /* j is paired. Find pairing partner */
       for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
-          if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
+          e_gq = vrna_smx_csr_get(c_gq, u, jj, INF);
+          if ((e_gq != INF) &&
+              (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
             *k  = u - 1;
             return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
@@ -789,7 +801,9 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
     case 2:
       for (u = jj - 1; u >= 1; u--) {
         if (with_gquad) {
-          if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
+          e_gq = vrna_smx_csr_get(c_gq, u, jj, INF);
+          if ((e_gq != INF) &&
+              (fij == my_f5[u - 1] + e_gq)) {
             *i  = *j = -1;
             *k  = u - 1;
             return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);

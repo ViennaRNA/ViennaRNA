@@ -505,19 +505,6 @@ add_pf_matrices(vrna_fold_compound_t  *vc,
     if (!vc->exp_matrices)
       return 0;
 
-    if (vc->exp_params->model_details.gquad) {
-      switch (vc->type) {
-        case VRNA_FC_TYPE_SINGLE:
-          vc->exp_matrices->G = NULL;
-          /* can't do that here, since scale[] is not filled yet :(
-           * vc->exp_matrices->G = get_gquad_pf_matrix(vc->sequence_encoding2, vc->exp_matrices->scale, vc->exp_params);
-           */
-          break;
-        default:                    /* do nothing */
-          break;
-      }
-    }
-
     vrna_exp_params_rescale(vc, NULL);
   }
 
@@ -552,33 +539,8 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
       return 0;
 
     if (vc->params->model_details.gquad) {
-      switch (vc->type) {
-        case VRNA_FC_TYPE_SINGLE:
-          switch (mx_type) {
-            case VRNA_MX_WINDOW:                              /* do nothing, since we handle memory somewhere else */
-              break;
-            default:
-              vc->matrices->ggg = get_gquad_matrix(vc->sequence_encoding2, vc->params);
-              break;
-          }
-          break;
-        case VRNA_FC_TYPE_COMPARATIVE:
-          switch (mx_type) {
-            case VRNA_MX_WINDOW:                              /* do nothing, since we handle memory somewhere else */
-              break;
-            default:
-              vc->matrices->ggg = get_gquad_ali_matrix(vc->length,
-                                                       vc->S_cons,
-                                                       vc->S,
-                                                       vc->a2s,
-                                                       vc->n_seq,
-                                                       vc->params);
-              break;
-          }
-          break;
-        default:                      /* do nothing */
-          break;
-      }
+      if (mx_type != VRNA_MX_WINDOW)
+        vc->matrices->c_gq = vrna_gq_pos_mfe(vc);
     }
   }
 
@@ -645,7 +607,7 @@ mfe_matrices_free_default(vrna_mx_mfe_t *self)
   free(self->fML);
   free(self->fM1);
   free(self->fM2);
-  free(self->ggg);
+  vrna_smx_csr_free(self->c_gq);
 }
 
 
@@ -1025,9 +987,9 @@ pf_matrices_free_default(vrna_mx_pf_t *self)
   free(self->qm1);
   free(self->qm2);
   free(self->probs);
-  free(self->G);
   free(self->q1k);
   free(self->qln);
+  vrna_smx_csr_free(self->q_gq);
 }
 
 
@@ -1520,11 +1482,11 @@ nullify_mfe(vrna_mx_mfe_t *mx)
         mx->fML   = NULL;
         mx->fM1   = NULL;
         mx->fM2   = NULL;
-        mx->ggg   = NULL;
         mx->Fc    = INF;
         mx->FcH   = INF;
         mx->FcI   = INF;
         mx->FcM   = INF;
+        mx->c_gq  = NULL;
         break;
 
       case VRNA_MX_WINDOW:
@@ -1845,6 +1807,7 @@ nullify_pf(vrna_mx_pf_t *mx)
         mx->probs = NULL;
         mx->q1k   = NULL;
         mx->qln   = NULL;
+        mx->q_gq  = NULL;
         break;
 
       case VRNA_MX_WINDOW:

@@ -41,6 +41,12 @@
          (b) <= MIN2((d), (a) + VRNA_GQUAD_MAX_BOX_SIZE - 1); \
          (b)++)
 
+#define FOR_EACH_GQUAD_INC(a, b, c, d)  \
+  for ((a) = (c); (a) <= (d) - VRNA_GQUAD_MIN_BOX_SIZE + 1; (a)++) \
+    for ((b) = (a) + VRNA_GQUAD_MIN_BOX_SIZE - 1; \
+         (b) <= MIN2((d), (a) + VRNA_GQUAD_MAX_BOX_SIZE - 1); \
+         (b)++)
+
 /**
  *  This macro does almost the same as FOR_EACH_GQUAD() but keeps
  *  the 5' delimiter fixed. 'b' is the 3' delimiter of the gquad,
@@ -513,150 +519,121 @@ E_gquad_ali_en(int          i,
 }
 
 
-/********************************
- * Now, the triangular matrix
- * generators for the G-quadruplex
- * contributions are following
- *********************************/
-PUBLIC int *
-get_gquad_matrix(short        *S,
-                 vrna_param_t *P)
+PUBLIC vrna_smx_csr(int) *
+vrna_gq_pos_mfe(vrna_fold_compound_t *fc)
 {
-  int n, size, i, j, *gg, *my_index, *data;
+  vrna_smx_csr(int) *gq_mfe_pos = NULL;
 
-  n         = S[0];
-  my_index  = vrna_idx_col_wise(n);
-  gg        = get_g_islands(S);
-  size      = (n * (n + 1)) / 2 + 2;
-  data      = (int *)vrna_alloc(sizeof(int) * size);
+  if (fc) {
+    int           i, j, n;
+    int           *gg;
+    vrna_param_t  *P;
+    struct gquad_ali_helper gq_help;
+    void          *data;
+    void ( *process_f )(int, int, int *,
+                        void *, void *, void *, void *);
 
-  /* prefill the upper triangular matrix with INF */
-  for (i = 0; i < size; i++)
-    data[i] = INF;
+    n           = fc->length;
+    P           = fc->params;
+    gq_mfe_pos  = vrna_smx_csr_int_init(n);
 
-  FOR_EACH_GQUAD(i, j, 1, n){
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_mfe,
-                              (void *)(&(data[my_index[j] + i])),
-                              (void *)P,
-                              NULL,
-                              NULL);
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        gg  = get_g_islands(fc->sequence_encoding2);
+        data  = (void *)P;
+        process_f = &gquad_mfe;
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        gg = get_g_islands(fc->S_cons);
+        gq_help.S     = fc->S;
+        gq_help.a2s   = fc->a2s;
+        gq_help.n_seq = fc->n_seq;
+        gq_help.P     = P;
+        data          = (void *)&gq_help;
+        process_f     = &gquad_mfe_ali;
+        break;
+
+      default:
+        return NULL;
+    }
+
+    FOR_EACH_GQUAD_INC(i, j, 1, n) {
+      int e = INF;
+      process_gquad_enumeration(gg, i, j,
+                                process_f,
+                                (void *)(&e),
+                                data,
+                                NULL,
+                                NULL);
+      if (e < INF)
+        vrna_smx_csr_insert(gq_mfe_pos, i, j, e);
+    }
+
+    free(gg);
   }
 
-  free(my_index);
-  free(gg);
-  return data;
+  return gq_mfe_pos;
 }
 
 
-PUBLIC FLT_OR_DBL *
-get_gquad_pf_matrix(short             *S,
-                    FLT_OR_DBL        *scale,
-                    vrna_exp_param_t  *pf)
+
+
+PUBLIC vrna_smx_csr(FLT_OR_DBL) *
+vrna_gq_pos_pf(vrna_fold_compound_t *fc)
 {
-  int         n, size, *gg, i, j, *my_index;
-  FLT_OR_DBL  *data;
+  vrna_smx_csr(FLT_OR_DBL) *q_gq = NULL;
 
+  if (fc) {
+    int                     i, j, n, *gg;
+    FLT_OR_DBL              q, *scale;
+    vrna_exp_param_t        *pf_params;
+    struct gquad_ali_helper gq_help;
+    void                    *data;
+    void                    ( *process_f )(int, int, int *, void *, void *, void *, void *);
 
-  n         = S[0];
-  size      = (n * (n + 1)) / 2 + 2;
-  data      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-  gg        = get_g_islands(S);
-  my_index  = vrna_idx_row_wise(n);
+    n           = fc->length;
+    pf_params   = fc->exp_params;
+    q_gq        = vrna_smx_csr_FLT_OR_DBL_init(n);
+    scale       = fc->exp_matrices->scale;
 
-  FOR_EACH_GQUAD(i, j, 1, n){
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_pf,
-                              (void *)(&(data[my_index[i] - j])),
-                              (void *)pf,
-                              NULL,
-                              NULL);
-    data[my_index[i] - j] *= scale[j - i + 1];
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        gg  = get_g_islands(fc->sequence_encoding2);
+        data  = (void *)pf_params;
+        process_f = &gquad_pf;
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        gg = get_g_islands(fc->S_cons);
+        gq_help.S     = fc->S;
+        gq_help.a2s   = fc->a2s;
+        gq_help.n_seq = fc->n_seq;
+        gq_help.pf    = pf_params;
+        data          = (void *)&gq_help;
+        process_f     = &gquad_pf_ali;
+        break;
+
+      default:
+        return NULL;
+    }
+
+    FOR_EACH_GQUAD_INC(i, j, 1, n) {
+      q = 0.;
+      process_gquad_enumeration(gg, i, j,
+                                process_f,
+                                (void *)(&q),
+                                data,
+                                NULL,
+                                NULL);
+      if (q != 0.)
+        vrna_smx_csr_insert(q_gq, i, j, q * scale[j - i + 1]);
+    }
+
+    free(gg);
   }
 
-  free(my_index);
-  free(gg);
-  return data;
-}
-
-
-PUBLIC FLT_OR_DBL *
-get_gquad_pf_matrix_comparative(unsigned int      n,
-                                short             *S_cons,
-                                short             **S,
-                                unsigned int      **a2s,
-                                FLT_OR_DBL        *scale,
-                                unsigned int      n_seq,
-                                vrna_exp_param_t  *pf)
-{
-  int                     size, *gg, i, j, *my_index;
-  FLT_OR_DBL              *data;
-  struct gquad_ali_helper gq_help;
-
-
-  size          = (n * (n + 1)) / 2 + 2;
-  data          = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-  gg            = get_g_islands(S_cons);
-  my_index      = vrna_idx_row_wise(n);
-  gq_help.S     = S;
-  gq_help.a2s   = a2s;
-  gq_help.n_seq = n_seq;
-  gq_help.pf    = pf;
-
-  FOR_EACH_GQUAD(i, j, 1, n){
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_pf_ali,
-                              (void *)(&(data[my_index[i] - j])),
-                              (void *)&gq_help,
-                              NULL,
-                              NULL);
-    data[my_index[i] - j] *= scale[j - i + 1];
-  }
-
-  free(my_index);
-  free(gg);
-  return data;
-}
-
-
-PUBLIC int *
-get_gquad_ali_matrix(unsigned int n,
-                     short        *S_cons,
-                     short        **S,
-                     unsigned int **a2s,
-                     int          n_seq,
-                     vrna_param_t *P)
-{
-  int                     size, *data, *gg;
-  int                     i, j, *my_index;
-  struct gquad_ali_helper gq_help;
-
-  size      = (n * (n + 1)) / 2 + 2;
-  data      = (int *)vrna_alloc(sizeof(int) * size);
-  gg        = get_g_islands(S_cons);
-  my_index  = vrna_idx_col_wise(n);
-
-  gq_help.S     = S;
-  gq_help.a2s   = a2s;
-  gq_help.n_seq = n_seq;
-  gq_help.P     = P;
-
-  /* prefill the upper triangular matrix with INF */
-  for (i = 0; i < size; i++)
-    data[i] = INF;
-
-  FOR_EACH_GQUAD(i, j, 1, n){
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_mfe_ali,
-                              (void *)(&(data[my_index[j] + i])),
-                              (void *)&gq_help,
-                              NULL,
-                              NULL);
-  }
-
-  free(my_index);
-  free(gg);
-  return data;
+  return q_gq;
 }
 
 
@@ -1054,25 +1031,25 @@ PUBLIC plist *
 get_plist_gquad_from_pr(short             *S,
                         int               gi,
                         int               gj,
-                        FLT_OR_DBL        *G,
+                        vrna_smx_csr(FLT_OR_DBL)  *q_gq,
                         FLT_OR_DBL        *probs,
                         FLT_OR_DBL        *scale,
                         vrna_exp_param_t  *pf)
 {
   int L, l[3];
 
-  return get_plist_gquad_from_pr_max(S, gi, gj, G, probs, scale, &L, l, pf);
+  return get_plist_gquad_from_pr_max(S, gi, gj, q_gq, probs, scale, &L, l, pf);
 }
 
 
-PUBLIC plist *
-vrna_get_plist_gquad_from_pr(vrna_fold_compound_t *fc,
-                             int                  gi,
-                             int                  gj)
+PUBLIC vrna_ep_t *
+vrna_plist_gquad_from_pr(vrna_fold_compound_t *fc,
+                         int               gi,
+                         int               gj)
 {
   int L, l[3];
 
-  return vrna_get_plist_gquad_from_pr_max(fc, gi, gj, &L, l);
+  return vrna_plist_gquad_from_pr_max(fc, gi, gj, &L, l);
 }
 
 
@@ -1080,7 +1057,7 @@ PUBLIC plist *
 get_plist_gquad_from_pr_max(short             *S,
                             int               gi,
                             int               gj,
-                            FLT_OR_DBL        *G,
+                            vrna_smx_csr(FLT_OR_DBL)  *q_gq,
                             FLT_OR_DBL        *probs,
                             FLT_OR_DBL        *scale,
                             int               *Lmax,
@@ -1114,7 +1091,7 @@ get_plist_gquad_from_pr_max(short             *S,
                             (void *)Lmax,
                             (void *)lmax);
 
-  pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] / G[my_index[gi] - gj];
+  pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] / vrna_smx_csr_get(q_gq, gi, gj, 0.);
   for (i = gi; i < gj; i++) {
     for (j = i; j <= gj; j++) {
       if (tempprobs[my_index[i] - j] > 0.) {
@@ -1140,21 +1117,22 @@ get_plist_gquad_from_pr_max(short             *S,
 
 
 PUBLIC plist *
-vrna_get_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
-                                 int                  gi,
-                                 int                  gj,
-                                 int                  *Lmax,
-                                 int                  lmax[3])
+vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
+                             int                  gi,
+                             int                  gj,
+                             int                  *Lmax,
+                             int                  lmax[3])
 {
   short             *S;
   int               n, size, *gg, counter, i, j, *my_index;
-  FLT_OR_DBL        pp, *tempprobs, *G, *probs, *scale;
+  FLT_OR_DBL        pp, *tempprobs, *probs, *scale;
   plist             *pl;
   vrna_exp_param_t  *pf;
+  vrna_smx_csr(FLT_OR_DBL) *q_gq;
 
   n         = (int)fc->length;
   pf        = fc->exp_params;
-  G         = fc->exp_matrices->G;
+  q_gq      = fc->exp_matrices->q_gq;
   probs     = fc->exp_matrices->probs;
   scale     = fc->exp_matrices->scale;
   S         = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : fc->S_cons;
@@ -1208,7 +1186,7 @@ vrna_get_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
 
   pp = probs[my_index[gi] - gj] *
        scale[gj - gi + 1] /
-       G[my_index[gi] - gj];
+       vrna_smx_csr_get(q_gq, gi, gj, 0.);
 
   for (i = gi; i < gj; i++) {
     for (j = i; j <= gj; j++) {
@@ -1893,3 +1871,152 @@ process_gquad_enumeration(int *gg,
       }
   }
 }
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+/********************************
+ * Now, the triangular matrix
+ * generators for the G-quadruplex
+ * contributions are following
+ *********************************/
+PUBLIC int *
+get_gquad_matrix(short        *S,
+                 vrna_param_t *P)
+{
+  int n, size, i, j, *gg, *my_index, *data;
+
+  n         = S[0];
+  my_index  = vrna_idx_col_wise(n);
+  gg        = get_g_islands(S);
+  size      = (n * (n + 1)) / 2 + 2;
+  data      = (int *)vrna_alloc(sizeof(int) * size);
+
+  /* prefill the upper triangular matrix with INF */
+  for (i = 0; i < size; i++)
+    data[i] = INF;
+
+  FOR_EACH_GQUAD(i, j, 1, n){
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_mfe,
+                              (void *)(&(data[my_index[j] + i])),
+                              (void *)P,
+                              NULL,
+                              NULL);
+  }
+
+  free(my_index);
+  free(gg);
+  return data;
+}
+
+
+PUBLIC FLT_OR_DBL *
+get_gquad_pf_matrix(short             *S,
+                    FLT_OR_DBL        *scale,
+                    vrna_exp_param_t  *pf)
+{
+  int         n, size, *gg, i, j, *my_index;
+  FLT_OR_DBL  *data;
+
+
+  n         = S[0];
+  size      = (n * (n + 1)) / 2 + 2;
+  data      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+  gg        = get_g_islands(S);
+  my_index  = vrna_idx_row_wise(n);
+
+  FOR_EACH_GQUAD(i, j, 1, n){
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_pf,
+                              (void *)(&(data[my_index[i] - j])),
+                              (void *)pf,
+                              NULL,
+                              NULL);
+    data[my_index[i] - j] *= scale[j - i + 1];
+  }
+
+  free(my_index);
+  free(gg);
+  return data;
+}
+
+PUBLIC FLT_OR_DBL *
+get_gquad_pf_matrix_comparative(unsigned int      n,
+                                short             *S_cons,
+                                short             **S,
+                                unsigned int      **a2s,
+                                FLT_OR_DBL        *scale,
+                                unsigned int      n_seq,
+                                vrna_exp_param_t  *pf)
+{
+  int                     size, *gg, i, j, *my_index;
+  FLT_OR_DBL              *data;
+  struct gquad_ali_helper gq_help;
+
+
+  size          = (n * (n + 1)) / 2 + 2;
+  data          = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+  gg            = get_g_islands(S_cons);
+  my_index      = vrna_idx_row_wise(n);
+  gq_help.S     = S;
+  gq_help.a2s   = a2s;
+  gq_help.n_seq = n_seq;
+  gq_help.pf    = pf;
+
+  FOR_EACH_GQUAD(i, j, 1, n){
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_pf_ali,
+                              (void *)(&(data[my_index[i] - j])),
+                              (void *)&gq_help,
+                              NULL,
+                              NULL);
+    data[my_index[i] - j] *= scale[j - i + 1];
+  }
+
+  free(my_index);
+  free(gg);
+  return data;
+}
+
+
+PUBLIC int *
+get_gquad_ali_matrix(unsigned int n,
+                     short        *S_cons,
+                     short        **S,
+                     unsigned int **a2s,
+                     int          n_seq,
+                     vrna_param_t *P)
+{
+  int                     size, *data, *gg;
+  int                     i, j, *my_index;
+  struct gquad_ali_helper gq_help;
+
+  size      = (n * (n + 1)) / 2 + 2;
+  data      = (int *)vrna_alloc(sizeof(int) * size);
+  gg        = get_g_islands(S_cons);
+  my_index  = vrna_idx_col_wise(n);
+
+  gq_help.S     = S;
+  gq_help.a2s   = a2s;
+  gq_help.n_seq = n_seq;
+  gq_help.P     = P;
+
+  /* prefill the upper triangular matrix with INF */
+  for (i = 0; i < size; i++)
+    data[i] = INF;
+
+  FOR_EACH_GQUAD(i, j, 1, n){
+    process_gquad_enumeration(gg, i, j,
+                              &gquad_mfe_ali,
+                              (void *)(&(data[my_index[j] + i])),
+                              (void *)&gq_help,
+                              NULL,
+                              NULL);
+  }
+
+  free(my_index);
+  free(gg);
+  return data;
+}
+
+
+#endif

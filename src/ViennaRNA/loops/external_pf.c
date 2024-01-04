@@ -593,13 +593,14 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
                struct vrna_mx_pf_aux_el_s *aux_mx)
 {
   int                       *iidx, ij, with_ud, with_gquad;
-  FLT_OR_DBL                qbt1, *qq, **qqu, *G, **G_local;
+  FLT_OR_DBL                qbt1, *qq, **qqu, **G_local;
   vrna_md_t                 *md;
   vrna_exp_param_t          *pf_params;
   vrna_ud_t                 *domains_up;
   vrna_hc_eval_f evaluate;
   struct hc_ext_def_dat     hc_dat_local;
   struct sc_ext_exp_dat     sc_wrapper;
+  vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
   qq          = aux_mx->qq;
   qqu         = aux_mx->qqu;
@@ -628,10 +629,8 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
       G_local = fc->exp_matrices->G_local;
       qbt1    += G_local[i][j];
     } else {
-      G     = fc->exp_matrices->G;
-      iidx  = fc->iindx;
-      ij    = iidx[i] - j;
-      qbt1  += G[ij];
+      q_gq  = fc->exp_matrices->q_gq;
+      qbt1  += vrna_smx_csr_get(q_gq, i, j, 0.);
     }
   }
 

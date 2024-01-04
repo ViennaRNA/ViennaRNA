@@ -1739,11 +1739,12 @@ wrap_get_plist(vrna_mx_pf_t     *matrices,
                double           cut_off)
 {
   int         i, j, k, n, count, gquad;
-  FLT_OR_DBL  *probs, *G, *scale;
+  FLT_OR_DBL  *probs, *scale;
   vrna_ep_t   *pl;
+  vrna_smx_csr(FLT_OR_DBL) *q_gq;
 
   probs = matrices->probs;
-  G     = matrices->G;
+  q_gq  = matrices->q_gq;
   scale = matrices->scale;
   gquad = pf_params->model_details.gquad;
 
@@ -1776,7 +1777,7 @@ wrap_get_plist(vrna_mx_pf_t     *matrices,
         (pl)[count++].type  = VRNA_PLIST_TYPE_GQUAD;
         /* now add the probabilies of it's actual pairing patterns */
         vrna_ep_t *inner, *ptr;
-        inner = get_plist_gquad_from_pr(S, i, j, G, probs, scale, pf_params);
+        inner = get_plist_gquad_from_pr(S, i, j, q_gq, probs, scale, pf_params);
         for (ptr = inner; ptr->i != 0; ptr++) {
           if (count == n * length - 1) {
             n   *= 2;
@@ -1870,7 +1871,7 @@ wrap_plist(vrna_fold_compound_t *vc,
 
         /* now add the probabilies of it's actual pairing patterns */
         vrna_ep_t *inner, *ptr;
-        inner = vrna_get_plist_gquad_from_pr(vc, i, j);
+        inner = vrna_plist_gquad_from_pr(vc, i, j);
         for (ptr = inner; ptr->i != 0; ptr++) {
           if (count == n * length - 1) {
             n   *= 2;

@@ -645,7 +645,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
   unsigned int      s;
   int               n, i, j, l, ij, *pscore, *jindx, ov = 0;
   FLT_OR_DBL        Qmax = 0;
-  FLT_OR_DBL        *qb, *G, *probs;
+  FLT_OR_DBL        *qb, *probs, q_g;
   FLT_OR_DBL        *q1k, *qln;
 
   int               with_gquad;
@@ -657,6 +657,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
   vrna_mx_pf_t      *matrices;
   vrna_md_t         *md;
   vrna_ud_t         *domains_up;
+  vrna_smx_csr(FLT_OR_DBL) *q_gq;
 
   n           = vc->length;
   pscore      = (vc->type == VRNA_FC_TYPE_COMPARATIVE) ? vc->pscore : NULL;
@@ -674,7 +675,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
   matrices    = vc->exp_matrices;
 
   qb    = matrices->qb;
-  G     = matrices->G;
+  q_gq  = matrices->q_gq;
   probs = matrices->probs;
   q1k   = matrices->q1k;
   qln   = matrices->qln;
@@ -870,11 +871,14 @@ pf_create_bppm(vrna_fold_compound_t *vc,
             probs[ij] *= qb[ij];
             if (vc->type == VRNA_FC_TYPE_COMPARATIVE)
               probs[ij] *= exp(-pscore[jindx[j] + i] / kTn);
-          } else if (G[ij] > 0.) {
-            probs[ij] += q1k[i - 1] *
-                         G[ij] *
-                         qln[j + 1] /
-                         q1k[n];
+          } else {
+            q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
+            if (q_g != 0.) {
+              probs[ij] += q1k[i - 1] *
+                           q_g *
+                           qln[j + 1] /
+                           q1k[n];
+            }
           }
         } else {
           if (qb[ij] > 0.) {
@@ -1506,7 +1510,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
   unsigned int              *sn;
   int                       cnt, i, j, k, n, u, ii, ij, kl, lj, *my_iindx, *jindx,
                             *rtype, with_gquad, with_ud;
-  FLT_OR_DBL                temp, ppp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *G, *scale,
+  FLT_OR_DBL                temp, ppp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *scale,
                             *expMLbase, expMLclosing, expMLstem;
   double                    max_real;
   vrna_exp_param_t          *pf_params;
@@ -1515,6 +1519,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
   struct hc_mb_def_dat      *hc_dat;
   vrna_hc_eval_f hc_eval;
   struct sc_mb_exp_dat      *sc_wrapper;
+  vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
 
   n             = (int)fc->length;
@@ -1529,7 +1534,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
   ptype         = fc->ptype;
   qb            = fc->exp_matrices->qb;
   qm            = fc->exp_matrices->qm;
-  G             = fc->exp_matrices->G;
+  q_gq          = fc->exp_matrices->q_gq;
   probs         = fc->exp_matrices->probs;
   scale         = fc->exp_matrices->scale;
   expMLbase     = fc->exp_matrices->expMLbase;
@@ -1690,7 +1695,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
 
       if (with_gquad) {
         if ((!tt) &&
-            (G[kl] == 0.))
+            (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
           continue;
       } else {
         if (qb[kl] == 0.)
@@ -1717,7 +1722,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
 
       if ((with_gquad) &&
           (qb[kl] == 0.)) {
-        temp *= G[kl] *
+        temp *= vrna_smx_csr_get(q_gq, k, l, 0.) *
                 expMLstem;
       } else if (hc_eval(k, l, k, l, VRNA_DECOMP_ML_STEM, hc_dat)) {
         if (tt == 0)
@@ -1765,13 +1770,14 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
   short             **S, **S5, **S3;
   unsigned int      **a2s, s, n_seq, *sn;
   int               i, j, k, n, ii, kl, ij, lj, *my_iindx, *jindx, *pscore, with_gquad;
-  FLT_OR_DBL        temp, ppp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *G, *scale,
+  FLT_OR_DBL        temp, ppp, prm_MLb, prmt, prmt1, *qb, *probs, *qm, *scale,
                     *expMLbase, expMLclosing, expMLstem;
   double            max_real, kTn;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
   vrna_hc_t         *hc;
   vrna_sc_t         **scs;
+  vrna_smx_csr(FLT_OR_DBL) *q_gq;
 
   n             = (int)fc->length;
   n_seq         = fc->n_seq;
@@ -1787,7 +1793,7 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
   md            = &(pf_params->model_details);
   qb            = fc->exp_matrices->qb;
   qm            = fc->exp_matrices->qm;
-  G             = fc->exp_matrices->G;
+  q_gq          = fc->exp_matrices->q_gq;
   probs         = fc->exp_matrices->probs;
   scale         = fc->exp_matrices->scale;
   expMLbase     = fc->exp_matrices->expMLbase;
@@ -1939,7 +1945,7 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
 
       if (with_gquad) {
         if ((qb[kl] == 0.) &&
-            (G[kl] == 0.))
+            (vrna_smx_csr_get(q_gq, k, l, 0.) == 0.))
           continue;
       } else {
         if (qb[kl] == 0.)
@@ -1957,7 +1963,7 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
 
       if ((with_gquad) &&
           (qb[kl] == 0.)) {
-        temp *= G[kl] *
+        temp *= vrna_smx_csr_get(q_gq, k, l, 0.) *
                 expMLstem;
       } else {
         if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
@@ -2001,8 +2007,9 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
   char              *ptype;
   short             *S1;
   int               i, j, k, n, ij, kl, u1, u2, *my_iindx, *jindx;
-  FLT_OR_DBL        tmp2, qe, *G, *probs, *scale;
+  FLT_OR_DBL        tmp2, qe, q_g, *probs, *scale;
   vrna_exp_param_t  *pf_params;
+  vrna_smx_csr(FLT_OR_DBL) *q_gq;
 
   n         = (int)fc->length;
   S1        = fc->sequence_encoding;
@@ -2010,7 +2017,7 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
   my_iindx  = fc->iindx;
   jindx     = fc->jindx;
   pf_params = fc->exp_params;
-  G         = fc->exp_matrices->G;
+  q_gq      = fc->exp_matrices->q_gq;
   probs     = fc->exp_matrices->probs;
   scale     = fc->exp_matrices->scale;
 
@@ -2020,7 +2027,10 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
   if (l < n - 3) {
     for (k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
-      if (G[kl] == 0.)
+
+      q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+
+      if (q_g == 0.)
         continue;
 
       tmp2  = 0.;
@@ -2039,14 +2049,17 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
                  pf_params->expmismatchI[type][S1[i + 1]][S1[j - 1]] *
                  scale[u1 + 2];
       }
-      probs[kl] += tmp2 * G[kl];
+      probs[kl] += tmp2 * q_g;
     }
   }
 
   if (l < n - 1) {
     for (k = 3; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
-      if (G[kl] == 0.)
+
+      q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+
+      if (q_g == 0.)
         continue;
 
       tmp2 = 0.;
@@ -2067,14 +2080,17 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
                    scale[u1 + u2 + 2];
         }
       }
-      probs[kl] += tmp2 * G[kl];
+      probs[kl] += tmp2 * q_g;
     }
   }
 
   if (l < n) {
     for (k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
-      if (G[kl] == 0.)
+
+      q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+
+      if (q_g == 0.)
         continue;
 
       tmp2  = 0.;
@@ -2093,7 +2109,7 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
                  pf_params->expmismatchI[type][S1[i + 1]][S1[j - 1]] *
                  scale[u2 + 2];
       }
-      probs[kl] += tmp2 * G[kl];
+      probs[kl] += tmp2 * q_g;
     }
   }
 }
@@ -2107,9 +2123,10 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
   short             **S, **S5, **S3;
   unsigned int      **a2s, s, n_seq;
   int               i, j, k, n, ij, kl, u1, u2, u1_local, u2_local, *my_iindx;
-  FLT_OR_DBL        tmp2, qe, *G, *qb, *probs, *scale;
+  FLT_OR_DBL        tmp2, qe, q_g, *qb, *probs, *scale;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
+  vrna_smx_csr(FLT_OR_DBL) *q_gq;
 
   n         = (int)fc->length;
   n_seq     = fc->n_seq;
@@ -2119,7 +2136,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
   a2s       = fc->a2s;
   my_iindx  = fc->iindx;
   pf_params = fc->exp_params;
-  G         = fc->exp_matrices->G;
+  q_gq      = fc->exp_matrices->q_gq;
   qb        = fc->exp_matrices->qb;
   probs     = fc->exp_matrices->probs;
   scale     = fc->exp_matrices->scale;
@@ -2131,7 +2148,10 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
   if (l < n - 3) {
     for (k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
-      if (G[kl] == 0.)
+
+      q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+
+      if (q_g == 0.)
         continue;
 
       tmp2  = 0.;
@@ -2160,14 +2180,17 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
                 qe *
                 scale[u1 + 2];
       }
-      probs[kl] += tmp2 * G[kl];
+      probs[kl] += tmp2 * q_g;
     }
   }
 
   if (l < n - 1) {
     for (k = 3; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
-      if (G[kl] == 0.)
+
+      q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+
+      if (q_g == 0.)
         continue;
 
       tmp2 = 0.;
@@ -2199,14 +2222,16 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
                   scale[u1 + u2 + 2];
         }
       }
-      probs[kl] += tmp2 * G[kl];
+      probs[kl] += tmp2 * q_g;
     }
   }
 
   if (l < n) {
     for (k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
       kl = my_iindx[k] - l;
-      if (G[kl] == 0.)
+      q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+
+      if (q_g == 0.)
         continue;
 
       tmp2  = 0.;
@@ -2235,7 +2260,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
                 qe *
                 scale[u2 + 2];
       }
-      probs[kl] += tmp2 * G[kl];
+      probs[kl] += tmp2 * q_g;
     }
   }
 }
