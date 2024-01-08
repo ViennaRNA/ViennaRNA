@@ -662,6 +662,7 @@ def __repr__(self):
 }
 
 %rename (hx_from_ptable) my_hx_from_ptable;
+%rename (hx_merge) my_hx_merge;
 
 %{
 #include <vector>
@@ -713,6 +714,36 @@ def __repr__(self):
 
     return hx_v;
   }
+
+  std::vector<vrna_hx_t>
+  my_hx_merge(std::vector<vrna_hx_t>  list,
+              int                     maxdist = 0)
+  {
+    std::vector<vrna_hx_t>  hx_merged_v;
+    vrna_hx_t               *ptr, *hx_merged;
+
+    vrna_hx_t hx;
+    hx.start = hx.end = hx.length = hx.up5 = hx.up3 = 0;
+    list.push_back(hx);
+
+    hx_merged = vrna_hx_merge(&(list[0]), maxdist);
+
+    list.pop_back();
+
+    for (ptr = hx_merged; ptr->start && ptr->end; ptr++) {
+      vrna_hx_t hx;
+      hx.start  = ptr->start;
+      hx.end    = ptr->end;
+      hx.length = ptr->length;
+      hx.up5    = ptr->up5;
+      hx.up3    = ptr->up3;
+      hx_merged_v.push_back(hx);
+    }
+
+    free(hx_merged);
+
+    return hx_merged_v;
+  }
 %}
 
 #ifdef SWIGPYTHON
@@ -722,6 +753,7 @@ def __repr__(self):
 
 std::vector<vrna_hx_t> my_hx_from_ptable(std::vector<int> pt);
 std::vector<vrna_hx_t> my_hx_from_ptable(var_array<short> const &pt);
+std::vector<vrna_hx_t> my_hx_merge(std::vector<vrna_hx_t> list, int maxdist = 0);
 
 /************************************/
 /*  Distance measures               */
