@@ -1080,7 +1080,12 @@ vrna_hx_from_ptable(short *pt)
           list[l].up5     = list[l].up3 = 0;
           l++;
           stack[++s]  = pt[i] + 1;
-          stack[++s]  = k + 1;
+          /*
+           *  only push enclosed part to stack if there is anything
+           *  actually enclosed by the helix
+           */
+          if (k != pt[i])
+            stack[++s]  = k + 1;
           break;
         } else if (pt[i]) {
           /* end of region */
