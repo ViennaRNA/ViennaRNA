@@ -1103,6 +1103,19 @@ vrna_hx_from_ptable(short *pt)
   return list;
 }
 
+PRIVATE int
+hx_cmp(const void *a,
+       const void *b)
+{
+  if (((vrna_hx_t *)a)->start > ((vrna_hx_t *)b)->start)
+    return 1;
+
+  if (((vrna_hx_t *)a)->start < ((vrna_hx_t *)b)->start)
+    return -1;
+
+  return 0;
+}
+
 
 PUBLIC vrna_hx_t *
 vrna_hx_merge(const vrna_hx_t *list,
@@ -1119,6 +1132,8 @@ vrna_hx_merge(const vrna_hx_t *list,
     merged_list = (vrna_hx_t *)vrna_alloc(sizeof(vrna_hx_t) * (n + 1));
     memcpy(merged_list, list, sizeof(vrna_hx_t) * (n + 1));
 
+    qsort(merged_list, n, sizeof(vrna_hx_t), hx_cmp);
+
     s = n + 1;
 
     do {
@@ -1129,32 +1144,88 @@ vrna_hx_merge(const vrna_hx_t *list,
          * subsumes i, and not more than i
          */
 
-        /* 1st, check for neighbors */
-        neighbors = 0;
-        for (j = i + 1; merged_list[j].length > 0; j++) {
-          if (merged_list[j].start > merged_list[i - 1].end)
-            break;
+        /* 1st, check for neighboring helices or any crossing
+         * helices forming a pseudoknot
+         */
+        unsigned char attempt_merge = 1;
+        /* go through list of remaining helices and see whether helix[i - 1]
+         * (i) encloses another helix that also encloses helix[i]
+         * (ii) encloses another helix apart from [i]
+         * (iii) is enclosing parts of another helix forming a pseudoknot, or
+         * (iv) helix[i] forms a pseudoknot with another helix not enclosed by helix[i]
+         */
+        unsigned int is5, ie5, is3, ie3;
+        unsigned int i1s5, i1e5, i1s3, i1e3;
+        i1s5 = merged_list[i - 1].start;
+        i1e3 = merged_list[i - 1].end;
+        i1e5 = i1s5 + merged_list[i - 1].length + merged_list[i - 1].up5 - 1;
+        i1s3 = i1e3 + 1 - merged_list[i - 1].length - merged_list[i - 1].up3;
+        is5 = merged_list[i].start;
+        ie3 = merged_list[i].end;
+        ie5 = is5 + merged_list[i].length + merged_list[i].up5 - 1;
+        is3 = ie3 + 1 - merged_list[i].length - merged_list[i].up3;
 
-          if (merged_list[j].start < merged_list[i].end)
+        for (j = i + 1; merged_list[j].length > 0; j++) {
+          unsigned int s5, e5, s3, e3;
+          s5 = merged_list[j].start;
+          e3 = merged_list[j].end;
+          e5 = s5 + merged_list[j].length + merged_list[j].up5 - 1;
+          s3 = e3 + 1 - merged_list[j].length - merged_list[j].up3;
+
+          if ((i1e3 < s5) ||
+              (e3 < i1s5))
             continue;
 
-          neighbors = 1;
+          if (e5 < i1s5) {
+            if (((i1e5 < s3) && (e3 < is5)) ||
+                ((ie3 < s3) && (e3 < i1s3))) {
+              attempt_merge = 0;
+              break;
+            }
+            continue;
+          }
+
+          if ((i1e5 < s5) &&
+              (e5 < is5)) {
+            if ((ie5 < s3) && (e3 < is3)) {
+              attempt_merge = 0;
+              break;
+            } else if (i1e3 < s3) {
+              attempt_merge = 0;
+              break;
+            } else if (e3 < is5) {
+              attempt_merge = 0;
+              break;
+            } else if ((ie3 < s3) && (e3 < i1s3)) {
+              attempt_merge = 0;
+              break;
+            }
+            continue;
+          }      
+
+          if ((ie5 < s5) && (e5 < is3) && (ie3 < s3) && (e3 < i1s3)) {
+            attempt_merge = 0;
+            break;
+          }
+
+          if ((ie3 < s5) && (e5 < i1s3)) {
+            if ((e3 < i1s3) ||
+                (i1e3 < s3)) {
+              attempt_merge = 0;
+              break;
+            }
+          }
         }
-        if (neighbors)
+
+        if (!attempt_merge)
           continue;
 
         /* check if we may merge i with i-1 */
-        if (merged_list[i].end < merged_list[i - 1].end) {
-          merged_list[i - 1].up5 += merged_list[i].start
-                                    - merged_list[i - 1].start
-                                    - merged_list[i - 1].length
-                                    - merged_list[i - 1].up5
-                                    + merged_list[i].up5;
-          merged_list[i - 1].up3 += merged_list[i - 1].end
-                                    - merged_list[i - 1].length
-                                    - merged_list[i - 1].up3
-                                    - merged_list[i].end
-                                    + merged_list[i].up3;
+        if ((i1e5 < is5) && (ie3 < i1s3)) {
+          merged_list[i - 1].up5 += merged_list[i].up5
+                                    + (is5 - i1e5 - 1);
+          merged_list[i - 1].up3 += merged_list[i].up3
+                                    + (i1s3 - ie3 - 1);
           merged_list[i - 1].length += merged_list[i].length;
           /* splice out helix i */
           memmove(merged_list + i, merged_list + i + 1, sizeof(vrna_hx_t) * (n - i));
