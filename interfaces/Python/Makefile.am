@@ -16,6 +16,7 @@ LANG_SPECIFIC_INTERFACE_FILES = \
   $(srcdir)/globals-md.i \
   $(srcdir)/callbacks-fc.i \
   $(srcdir)/callbacks-sc.i \
+  $(srcdir)/callbacks-sc-direct.i \
   $(srcdir)/callbacks-ud.i \
   $(srcdir)/callbacks-subopt.i \
   $(srcdir)/callbacks-boltzmann-sampling.i \

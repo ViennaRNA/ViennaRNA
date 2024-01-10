@@ -13,6 +13,7 @@
 %include callbacks-melting.i
 #ifdef SWIGPYTHON
 %include callbacks-landscape.i
+%include callbacks-sc-direct.i
 #endif
 
 /* start constructing a sane interface to vrna_fold_compound_t */
