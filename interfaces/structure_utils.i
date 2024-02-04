@@ -820,6 +820,117 @@ int     my_bp_distance(std::vector<int> pt1, std::vector<int> pt2);
 int     my_bp_distance(var_array<short> const &pt1, var_array<short> const &pt2);
 double  my_dist_mountain(std::string str1, std::string str2, unsigned int p = 1);
 
+
+/************************************/
+/*          Benchmark               */
+/************************************/
+
+%nodefaultctor vrna_score_t;
+
+%rename (score) vrna_score_t;
+
+%newobject vrna_score_t::__str__;
+
+typedef struct {
+  int TP;
+  int TN;
+  int FP;
+  int FN;
+  float TPR;
+  float PPV;
+  float F1;
+  float MCC;
+} vrna_score_t;
+
+%extend vrna_score_t {
+
+    vrna_score_t(int TP=0,
+                 int TN=0,
+                 int FP=0,
+                 int FN=0)
+    {
+      vrna_score_t *score;
+
+      score         = (vrna_score_t *)vrna_alloc(sizeof(vrna_score_t));
+      vrna_score_from_confusion_matrix(score, TP, TN, FP, FN);
+
+      return score;
+    }
+
+#ifdef SWIGPYTHON
+    std::string
+    __str__()
+    {
+      std::ostringstream out;
+      out << "{ TP: " << $self->TP;
+      out << ", TN: " << $self->TN;
+      out << ", FP: " << $self->FP;
+      out << ", FN: " << $self->FN;
+      out << ", TPR: " << $self->TPR;
+      out << ", PPV: " << $self->PPV;
+      out << ", F1: " << $self->F1;
+      out << ", MCC: " << $self->MCC;
+      out << " }";
+
+      return std::string(out.str());
+    }
+
+%pythoncode %{
+def __repr__(self):
+    # reformat string representation (self.__str__()) to something
+    # that looks like a constructor argument list
+    strthis = self.__str__().replace(": ", "=").replace("{ ", "").replace(" }", "")
+    return  "%s.%s(%s)" % (self.__class__.__module__, self.__class__.__name__, strthis) 
+%}
+#endif
+}
+
+
+%rename (compare_structure) my_compare_structure;
+
+%{
+  vrna_score_t*
+  my_compare_structure(std::string str1,
+                       std::string str2,
+                       int fuzzy = 0,
+                       unsigned int options = VRNA_BRACKETS_RND)
+  {
+    return vrna_compare_structure(str1.c_str(), str2.c_str(), fuzzy, options);
+  }
+
+  vrna_score_t*
+  my_compare_structure(std::vector<int> pt1,
+                       std::vector<int> pt2,
+                       int fuzzy = 0)
+  {
+    std::vector<short> pt1_v_short;
+    std::vector<short> pt2_v_short;
+
+    transform(pt1.begin(), pt1.end(), back_inserter(pt1_v_short), convert_vecint2vecshort);
+    transform(pt2.begin(), pt2.end(), back_inserter(pt2_v_short), convert_vecint2vecshort);
+
+    return vrna_compare_structure_pt((short*)&pt1_v_short[0], (short*)&pt2_v_short[0], fuzzy);
+  }
+
+  vrna_score_t*
+  my_compare_structure(var_array<short> const &pt1,
+                       var_array<short> const &pt2,
+                       int fuzzy = 0)
+  {
+    return vrna_compare_structure_pt(pt1.data, pt2.data, fuzzy);
+  }
+%}
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_compare_structure;
+%feature("kwargs") my_compare_structure;
+#endif
+
+vrna_score_t*  my_compare_structure(std::string str1, std::string str2, int fuzzy = 0, unsigned int options = VRNA_BRACKETS_RND);
+vrna_score_t*  my_compare_structure(std::vector<int> pt1, std::vector<int> pt2, int fuzzy = 0);
+vrna_score_t*  my_compare_structure(var_array<short> const &pt1, var_array<short> const &pt2, int fuzzy = 0);
+
+
 /************************************/
 /*  Wrap constants                  */
 /************************************/

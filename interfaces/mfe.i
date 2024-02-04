@@ -357,6 +357,8 @@ char *my_circalifold(std::vector<std::string> alignment, char *constraints, floa
 %feature("autodoc") mfe_dimer;
 %feature("kwargs") mfe_dimer;
 %feature("autodoc") backtrack;
+%feature("autodoc") benchmark;
+%feature("kwargs") benchmark;
 #endif
 
   char *mfe(float *OUTPUT){
@@ -386,6 +388,21 @@ char *my_circalifold(std::vector<std::string> alignment, char *constraints, floa
     *OUTPUT = vrna_backtrack5($self, $self->length, structure);
     return structure;
   }
+
+  vrna_score_t*
+  benchmark(std::string gold,
+            int fuzzy = 0,
+            unsigned int options = VRNA_BRACKETS_RND)
+  {
+    vrna_score_t *score;
+    char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
+    vrna_mfe($self, structure);
+    score = vrna_compare_structure(gold.c_str(), structure, fuzzy, options);
+    
+    free(structure);
+    return score;
+  }
+
 }
 
 

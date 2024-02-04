@@ -385,6 +385,7 @@ libRNA_utils_la_SOURCES = \
     search/BoyerMoore.c \
     commands.c \
     combinatorics.c \
+		utils/structure_benchmark.c \
     ${SVM_UTILS}
 
 if VRNA_AM_SWITCH_SIMD_SSE41
