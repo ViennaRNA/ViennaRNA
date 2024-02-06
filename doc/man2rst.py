@@ -226,7 +226,7 @@ parser.add_argument("-o", "--output", type=str, help="The output .rst file", req
 args = parser.parse_args()
 
 
-with open(args.input, 'r') as f:
+with open(args.input, 'r', encoding="utf8", errors='ignore') as f:
     content = process_lines(f)
     content = stage_2(content)
 
