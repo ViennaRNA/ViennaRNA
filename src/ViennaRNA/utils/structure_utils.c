@@ -1165,6 +1165,36 @@ vrna_hx_merge(const vrna_hx_t *list,
         ie5 = is5 + merged_list[i].length + merged_list[i].up5 - 1;
         is3 = ie3 + 1 - merged_list[i].length - merged_list[i].up3;
 
+        /* do not merge if helices are not nested */
+        if ((is5 < i1e5) || (ie3 > i1s3))
+          continue;
+
+        /* check for conflicting helices */
+        for (j = 0; j < i - 1; j++) {
+          /*
+           * upstream starting helices can potentially form pseudoknots into the
+           * region between the two helices we are about to merge
+           */
+          unsigned int s5, e5, s3, e3;
+          s5 = merged_list[j].start;
+          e3 = merged_list[j].end;
+          e5 = s5 + merged_list[j].length + merged_list[j].up5 - 1;
+          s3 = e3 + 1 - merged_list[j].length - merged_list[j].up3;
+
+          /* do not allow for cases:
+           * [.(.(..).].) or [.(.].(..).)
+           */
+          if ((e5 < i1s5) &&
+              (i1e5 < s3) &&
+              ((e3 < is5) || ((e3 < i1s3) && (ie3 < s3)))) {
+            attempt_merge = 0;
+            break;
+          }
+        }
+
+        if (!attempt_merge)
+          continue;
+
         for (j = i + 1; merged_list[j].length > 0; j++) {
           unsigned int s5, e5, s3, e3;
           s5 = merged_list[j].start;
