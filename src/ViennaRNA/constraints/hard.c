@@ -296,44 +296,35 @@ vrna_hc_add_up(vrna_fold_compound_t *fc,
                int                  i,
                unsigned char        option)
 {
-  unsigned int actual_i, strand_i;
-
-  if (fc) {
-    if (fc->hc) {
-      if ((i <= 0) || (i > fc->length)) {
-        vrna_message_warning("vrna_hc_add_up: position out of range, not doing anything");
-        return;
-      }
-
-      strand_i  = fc->strand_number[i];
-      actual_i  = (unsigned int)i - fc->strand_start[strand_i] + 1;
-
-      hc_depot_store_up(fc,
-                        actual_i,
-                        strand_i,
-                        option);
-
-      fc->hc->state |= STATE_DIRTY_UP;
-    }
-  }
+  (void)vrna_hc_add_up_strand(fc, i, -1, option);
 }
 
 
 PUBLIC int
 vrna_hc_add_up_strand(vrna_fold_compound_t  *fc,
                       unsigned int          i,
-                      unsigned int          strand,
+                      int                   strand_indicator,
                       unsigned char         option)
 {
-  int ret = 0;
+  unsigned int  strand, n_i;
+  int           ret = 0;
 
   if ((fc) &&
       (fc->hc) &&
-      (strand < fc->strands) &&
+      (strand_indicator < (int)fc->strands) &&
       (i > 0)) {
-    unsigned int n_i = (fc->type == VRNA_FC_TYPE_SINGLE) ?
-                       fc->nucleotides[strand].length :
-                       fc->alignment[strand].sequences[0].length;
+
+    /* auto-detect strand? */
+    if (strand_indicator < 0) {
+      strand  = (int)fc->strand_number[i];
+      i       = i - fc->strand_start[strand_i] + 1;
+    } else {
+      strand = (unsigned int)strand_indicator;
+    }
+
+    n_i = (fc->type == VRNA_FC_TYPE_SINGLE) ?
+          fc->nucleotides[strand].length :
+          fc->alignment[strand].sequences[0].length;
 
     if (i > n_i)
       return ret;

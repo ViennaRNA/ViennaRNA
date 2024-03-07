@@ -525,10 +525,35 @@ vrna_hc_add_up(vrna_fold_compound_t *fc,
                unsigned char        option);
 
 
+/**
+ *  @brief  Make a certain nucleotide unpaired
+ *
+ *  This function puts a constraint onto a single nucleotide to limit or enforce
+ *  its structural context. The position @p i should be given in local coordinates
+ *  relative to the strand @p strand it corresponds to.
+ *
+ *  @note
+ *  A negative value for the strand number @p strand indicates autodetection
+ *  of the strand number assuming that coordinate i is given as global coordinates
+ *  for the (current) concatenation of all strands. In this case, the function
+ *  behaves exactly as vrna_hc_add_up().
+ *
+ *  @ingroup  hard_constraints
+ *
+ *  @see  vrna_hc_add_bp(), vrna_hc_add_bp_nonspecific(), vrna_hc_init(),
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP, #VRNA_CONSTRAINT_CONTEXT_HP_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
+ *
+ *  @param  fc      The #vrna_fold_compound_t the hard constraints are associated with
+ *  @param  i       The position that needs to stay unpaired (1-based)
+ *  @param  strand  The strand number of nucleotide @p i (0-based, negative value for autodetect)
+ *  @param  option  The options flag indicating how/where to store the hard constraints
+ */
 int
 vrna_hc_add_up_strand(vrna_fold_compound_t  *fc,
                       unsigned int          i,
-                      unsigned int          strand,
+                      int                   strand,
                       unsigned char         option);
 
 
@@ -597,12 +622,12 @@ vrna_hc_add_bp(vrna_fold_compound_t *fc,
  *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
  *        #VRNA_CONSTRAINT_CONTEXT_ENFORCE, #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
  *
- *  @param  fc      The #vrna_fold_compound_t the hard constraints are associated with
- *  @param  i       The 5' located nucleotide position of the base pair (1-based, relative to @p strand_i)
- *  @param  j       The 3' located nucleotide position of the base pair (1-based, relative to @p strand_j)
- *  @param  strand_i       The strand number of pairing partner @p i (negative for autodetect)
- *  @param  strand_i       The strand number of pairing partner @p j (negative for autodetect)
- *  @param  option  The options flag indicating how/where to store the hard constraints
+ *  @param  fc        The #vrna_fold_compound_t the hard constraints are associated with
+ *  @param  i         The 5' located nucleotide position of the base pair (1-based, relative to @p strand_i)
+ *  @param  j         The 3' located nucleotide position of the base pair (1-based, relative to @p strand_j)
+ *  @param  strand_i  The strand number of pairing partner @p i (0-based, negative value for autodetect)
+ *  @param  strand_i  The strand number of pairing partner @p j (0-based, negative value for autodetect)
+ *  @param  option    The option flag(s) indicating loop types and enforcement of the constraint
  */
 int
 vrna_hc_add_bp_strand(vrna_fold_compound_t  *fc,
