@@ -89,7 +89,15 @@ typedef struct {
   hc_add_up(int          i,
             unsigned int option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
-    vrna_hc_add_up($self,i, (unsigned char)option);
+    vrna_hc_add_up_strand($self, i, -1, (unsigned char)option);
+  }
+
+  void
+  hc_add_up_strand(unsigned int i,
+                   int          strand = -1,
+                   unsigned int option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
+  {
+    vrna_hc_add_up_strand($self, i, strand, (unsigned char)option);
   }
 
   /* Enforce a nucleotide to be paired (upstream/downstream) */
@@ -103,13 +111,23 @@ typedef struct {
   
   /* Favorize/Enforce  a certain base pair (i,j) */
   void
-  hc_add_bp(int           i,
-            int           j,
+  hc_add_bp(unsigned int  i,
+            unsigned int  j,
             unsigned int  option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
-    vrna_hc_add_bp($self,i,j,(unsigned char)option);
-  } 
-  
+    vrna_hc_add_bp_strand($self, i, j, -1, -1, (unsigned char)option);
+  }
+
+  void
+  hc_add_bp_strand(unsigned int  i,
+                   unsigned int  j,
+                   int           strand_i  = -1,
+                   int           strand_j  = -1,
+                   unsigned int  option    = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
+  {
+    vrna_hc_add_bp_strand($self, i, j, strand_i, strand_j, (unsigned char)option);
+  }
+
   int
   hc_add_from_db(const char   *constraint,
                  unsigned int options = VRNA_CONSTRAINT_DB_DEFAULT)
