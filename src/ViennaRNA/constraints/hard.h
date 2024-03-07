@@ -574,12 +574,42 @@ vrna_hc_add_bp(vrna_fold_compound_t *fc,
                unsigned char        option);
 
 
+/**
+ *  @brief  Favorize/Enforce  a certain base pair (i,j) where i and j may point to different strands
+ *
+ *  This function adds a base pair constraint for pair (i,j), where the positions i and j are
+ *  relative to the RNA strands i and j correspond to. For each strand @p strand_i and @strand_j
+ *  positions are 1-based. For instance, if position 5 of strand 0 must pair with position 10
+ *  of strand 1, the function call would be
+ *  @code
+ *  vrna_hc_add_bp(fc, 5, 10, 0, 1, VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_ENFORCE);
+ *  @endcode
+ *
+ *  Negative values for the strand numbers @p strand_i and @p strand_j indicate autodetection
+ *  of the strand number assuming that coordinates i and/or j are given as global coordinates
+ *  for the (current) concatenation of all strands
+ *
+ *  @ingroup  hard_constraints
+ *
+ *  @see  vrna_hc_add_bp_nonspecific(), vrna_hc_add_up(), vrna_hc_add_bp(), vrna_hc_init(),
+ *        #VRNA_CONSTRAINT_CONTEXT_EXT_LOOP, #VRNA_CONSTRAINT_CONTEXT_HP_LOOP,
+ *        #VRNA_CONSTRAINT_CONTEXT_INT_LOOP, #VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_MB_LOOP, #VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC,
+ *        #VRNA_CONSTRAINT_CONTEXT_ENFORCE, #VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
+ *
+ *  @param  fc      The #vrna_fold_compound_t the hard constraints are associated with
+ *  @param  i       The 5' located nucleotide position of the base pair (1-based, relative to @p strand_i)
+ *  @param  j       The 3' located nucleotide position of the base pair (1-based, relative to @p strand_j)
+ *  @param  strand_i       The strand number of pairing partner @p i (negative for autodetect)
+ *  @param  strand_i       The strand number of pairing partner @p j (negative for autodetect)
+ *  @param  option  The options flag indicating how/where to store the hard constraints
+ */
 int
 vrna_hc_add_bp_strand(vrna_fold_compound_t  *fc,
                       unsigned int          i,
-                      unsigned int          strand_i,
                       unsigned int          j,
-                      unsigned int          strand_j,
+                      int                   strand_i,
+                      int                   strand_j,
                       unsigned char         option);
 
 

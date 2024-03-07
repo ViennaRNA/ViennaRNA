@@ -478,12 +478,12 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
 PUBLIC int
 vrna_hc_add_bp_strand(vrna_fold_compound_t  *fc,
                       unsigned int          i,
-                      unsigned int          strand_i,
                       unsigned int          j,
-                      unsigned int          strand_j,
+                      int                   strand_i,
+                      int                   strand_j,
                       unsigned char         option)
 {
-  unsigned int  n_i, n_j;
+  unsigned int  n_i, n_j, *sn, *ss;
   int           ret, turn;
   vrna_hc_t     *hc;
 
@@ -491,11 +491,25 @@ vrna_hc_add_bp_strand(vrna_fold_compound_t  *fc,
 
   if ((fc) &&
       (fc->hc) &&
-      (strand_i < fc->strands) &&
-      (strand_j < fc->strands) &&
+      (strand_i < (int)fc->strands) &&
+      (strand_j < (int)fc->strands) &&
       (i > 0) &&
       (j > 0)) {
+    sn  = vc->strand_number;
+    ss  = vc->strand_start;
     hc  = fc->hc;
+
+    /* check whether we need to autodetect strand(s) */
+    if (strand_i < 0) {
+      strand_i  = sn[i];
+      i  = i - ss[strand_i] + 1;
+    }
+
+    if (strand_j < 0) {
+      strand_j  = sn[j];
+      j         = j - ss[strand_j] + 1;
+    }
+
     n_i = (fc->type == VRNA_FC_TYPE_SINGLE) ?
           fc->nucleotides[strand_i].length :
           fc->alignment[strand_i].sequences[0].length;
@@ -566,8 +580,8 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
 
         ret = vrna_hc_add_bp_strand(vc,
                                     actual_i,
-                                    strand_i,
                                     actual_j,
+                                    strand_i,
                                     strand_j,
                                     option);
       }
