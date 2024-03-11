@@ -212,6 +212,21 @@ my_file_connect_read_record(FILE         *fp,
 %clear std::string *remainder, std::string *sequence, std::string *structure, std::string *id;
 
 
+%constant unsigned int  INPUT_ERROR               = VRNA_INPUT_ERROR;
+%constant unsigned int  INPUT_QUIT                = VRNA_INPUT_QUIT;
+%constant unsigned int  INPUT_MISC                = VRNA_INPUT_MISC;
+%constant unsigned int  INPUT_FASTA_HEADER        = VRNA_INPUT_FASTA_HEADER;
+%constant unsigned int  INPUT_SEQUENCE            = VRNA_INPUT_SEQUENCE;
+%constant unsigned int  INPUT_CONSTRAINT          = VRNA_INPUT_CONSTRAINT;
+%constant unsigned int  INPUT_NO_TRUNCATION       = VRNA_INPUT_NO_TRUNCATION;
+%constant unsigned int  INPUT_NO_SPAN             = VRNA_INPUT_NO_SPAN;
+%constant unsigned int  INPUT_NO_REST             = VRNA_INPUT_NO_REST;
+%constant unsigned int  INPUT_NOSKIP_BLANK_LINES  = VRNA_INPUT_NOSKIP_BLANK_LINES;
+%constant unsigned int  INPUT_BLANK_LINE          = VRNA_INPUT_BLANK_LINE;
+%constant unsigned int  INPUT_NOSKIP_COMMENTS     = VRNA_INPUT_NOSKIP_COMMENTS;
+%constant unsigned int  INPUT_COMMENT             = VRNA_INPUT_COMMENT;
+%constant unsigned int  OPTION_MULTILINE          = VRNA_OPTION_MULTILINE;           
+
 %include <ViennaRNA/io/file_formats.h>
 
 /**********************************************/
