@@ -317,7 +317,7 @@ vrna_hc_add_up_strand(vrna_fold_compound_t  *fc,
     /* auto-detect strand? */
     if (strand_indicator < 0) {
       strand  = (int)fc->strand_number[i];
-      i       = i - fc->strand_start[strand_i] + 1;
+      i       = i - fc->strand_start[strand] + 1;
     } else {
       strand = (unsigned int)strand_indicator;
     }
@@ -486,8 +486,8 @@ vrna_hc_add_bp_strand(vrna_fold_compound_t  *fc,
       (strand_j < (int)fc->strands) &&
       (i > 0) &&
       (j > 0)) {
-    sn  = vc->strand_number;
-    ss  = vc->strand_start;
+    sn  = fc->strand_number;
+    ss  = fc->strand_start;
     hc  = fc->hc;
 
     /* check whether we need to autodetect strand(s) */
