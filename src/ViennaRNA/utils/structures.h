@@ -874,6 +874,12 @@ struct vrna_score_s {
 	int   FN;            /**< @brief False Negative count */
   float TPR;           /**< @brief True Positive Rate */
   float PPV;           /**< @brief Positive Predictive Value */
+  float FPR;           /**< @brief False Positive Rate */
+  float FOR;           /**< @brief False Omission Rate */
+  float TNR;           /**< @brief True Negative Rate */
+  float FDR;           /**< @brief False Discovery Rate */
+  float FNR;           /**< @brief False Negative Rate  */
+  float NPV;           /**< @brief Negative Predictive Value */
   float F1;            /**< @brief F1 Score */
   float MCC;           /**< @brief Matthews Correlation Coefficient */
 };

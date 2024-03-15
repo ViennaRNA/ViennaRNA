@@ -21,10 +21,16 @@ vrna_score_from_confusion_matrix(vrna_score_t* score,
 
 	score->TPR = TP + FN > 0 ? (float) TP / (TP + FN) : 0.0;
 	score->PPV = TP + FP > 0 ? (float) TP / (TP + FP) : 0.0;
+	score->FPR = TN + FP > 0 ? (float) FP / (TN + FP) : 0.0;
+	score->FOR = TN + FN > 0 ? (float) FN / (TN + FN) : 0.0;
+  score->FDR = 1 - score->PPV;
+  score->FNR = 1 - score->TPR;
+  score->TNR = 1 - score->FPR;
+  score->NPV = 1 - score->FOR;
 	score->F1  = score->TPR + score->PPV > 0 ? (float) 2 * score->TPR * score->PPV / (score->TPR + score->PPV) : 0.0;
 
-	int tmp = (TP + FP) * (TP + FN) * (TN + FP) * (TN + FN);
-	score->MCC = tmp > 0 ? (float) (TP * TN - FP * FN) / sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN)) : 0.0;
+	score->MCC = sqrt(score->PPV * score->TPR * score->TNR * score->NPV) - 
+	             sqrt(score->FDR * score->FNR * score->FPR * score->FOR);
 }
 
 

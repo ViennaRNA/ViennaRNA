@@ -838,6 +838,12 @@ typedef struct {
   int FN;
   float TPR;
   float PPV;
+  float FPR;
+  float FOR;
+  float TNR;
+  float FDR;
+  float FNR;
+  float NPV;
   float F1;
   float MCC;
 } vrna_score_t;
@@ -868,6 +874,12 @@ typedef struct {
       out << ", FN: " << $self->FN;
       out << ", TPR: " << $self->TPR;
       out << ", PPV: " << $self->PPV;
+      out << ", FPR: " << $self->FPR;
+      out << ", FOR: " << $self->FOR;
+      out << ", TNR: " << $self->TNR;
+      out << ", FDR: " << $self->FDR;
+      out << ", FNR: " << $self->FNR;
+      out << ", NPV: " << $self->NPV;
       out << ", F1: " << $self->F1;
       out << ", MCC: " << $self->MCC;
       out << " }";
