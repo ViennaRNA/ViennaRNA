@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>    
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/alphabet.h"
@@ -65,10 +66,27 @@ vrna_annotate_covar_db_extended(const char   **alignment,
                                 vrna_md_t    *md_p,
                                 unsigned int options)
 {
+  short int *pt;
+  char **result;
+  
+  pt      = vrna_ptable_from_string(structure, options);
+  result  = vrna_annotate_covar_pt(alignment, pt, md_p, 2, 0.2);
+
+  free(pt);
+
+  return result;
+}
+
+PUBLIC char **
+vrna_annotate_covar_pt(const char       **alignment,
+                       const short int  *pt,
+                       vrna_md_t        *md_p,
+                       double           threshold,
+                       double           min)
+{
   /* produce annotation for colored drawings from vrna_file_PS_rnaplot_a() */
   char      *ps, *colorps, **A;
-  int       i, n, s, pairings, maxl, a, b;
-  short     *ptable;
+  int       i, N, n, s, pairings, maxl, a, b;
   char      *colorMatrix[6][3] = {
     { "0.0 1",  "0.0 0.6",  "0.0 0.2"  },   /* red    */
     { "0.16 1", "0.16 0.6", "0.16 0.2" },   /* ochre  */
@@ -77,9 +95,14 @@ vrna_annotate_covar_db_extended(const char   **alignment,
     { "0.65 1", "0.65 0.6", "0.65 0.2" },   /* blue   */
     { "0.81 1", "0.81 0.6", "0.81 0.2" }    /* violet */
   };
+  double  sat_min = 0.2;
+  double  sat_pairs[6] = {
+    0.0, 0.16, 0.32, 0.48, 0.65, 0.81
+  };
+
   vrna_md_t md;
 
-  if ((!alignment) || (!structure))
+  if ((!alignment) || (!pt))
     return NULL;
 
   if (md_p)
@@ -94,7 +117,31 @@ vrna_annotate_covar_db_extended(const char   **alignment,
   ps      = (char *)vrna_alloc(maxl);
   colorps = (char *)vrna_alloc(maxl);
 
-  ptable  = vrna_ptable_from_string(structure, options);
+  /* count number of sequences in alignment */
+  for (N = 0; alignment[N] != NULL; N++);
+
+  if ((min >= 0) && (min < 1))
+    sat_min = min;
+
+  if (threshold < 0) {
+    /* default for any negative threshold input */
+    threshold = 2;
+  } else if (trunc(threshold) != threshold) {
+    /*
+       threshold is expressed as frequency, so
+       count number of sequences to convert to
+       absolute threshold
+    */
+    if (threshold < 1) { /* actual frequency */
+      threshold *= (double)N;
+    } else { /* floating point number > 1. we will truncate this to integer */
+      threshold = trunc(threshold);
+    }
+  }
+
+  if (threshold > (double)N)
+    threshold = (double)N;
+
 
   for (i = 1; i <= n; i++) {
     char  pps[64], ci = '\0', cj = '\0';
@@ -102,7 +149,7 @@ vrna_annotate_covar_db_extended(const char   **alignment,
       0, 0, 0, 0, 0, 0, 0, 0
     }, vi = 0, vj = 0;
 
-    if ((j = ptable[i]) < i)
+    if ((j = pt[i]) < i)
       continue;
 
     for (s = 0; alignment[s] != NULL; s++) {
@@ -134,9 +181,13 @@ vrna_annotate_covar_db_extended(const char   **alignment,
         vrna_message_error("out of memory in realloc");
     }
 
-    if (pfreq[0] <= 2 && pairings > 0) {
-      snprintf(pps, 64, "%d %d %s colorpair\n",
-               i, j, colorMatrix[pairings - 1][pfreq[0]]);
+    if ((pairings > 0) &&
+        (pfreq[0] <= (int)threshold)) {
+      double intensity = 1.;
+      if (pfreq[0] > 0)
+        intensity -= ((double)pfreq[0] / threshold) * (1. - sat_min);
+      snprintf(pps, 64, "%d %d %.2f %.6f colorpair\n",
+               i, j, sat_pairs[pairings - 1], intensity);
       strcat(colorps, pps);
     }
 
@@ -155,7 +206,7 @@ vrna_annotate_covar_db_extended(const char   **alignment,
       strcat(ps, pps);
     }
   }
-  free(ptable);
+
   A[0]  = colorps;
   A[1]  = ps;
   return A;
