@@ -688,7 +688,7 @@ parse_constraint(const char *line,
       } else if (l <= 0) {
         /* helix of size k starting with pair (i,j), or segment [i:i+k-1] */
         if (i != j) {
-          if ((j == 0) || (((j - i + 1) > 2 * k) && (orientation == '\0'))) {
+          if ((j == 0) || (((j - i + 1) >= 2 * k) && (orientation == '\0'))) {
             h     = k;
             k     = l = j;
             j     = i;
