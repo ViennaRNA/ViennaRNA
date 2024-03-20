@@ -73,6 +73,8 @@ struct options {
   int             non_red;
 
   int             color;
+  double          color_threshold;
+  double          color_min_sat;
   int             aln_PS;
   int             aln_PS_cols;
   int             mis;
@@ -247,12 +249,14 @@ init_default_options(struct options *opt)
   opt->eval_en  = 0;
   opt->non_red  = 0;
 
-  opt->color        = 0;
-  opt->aln_PS       = 0;
-  opt->aln_PS_cols  = 60;
-  opt->mis          = 0;
-  opt->sci          = 0;
-  opt->endgaps      = 0;
+  opt->color            = 0;
+  opt->color_threshold  = 2.;
+  opt->color_min_sat    = 0.2;
+  opt->aln_PS           = 0;
+  opt->aln_PS_cols      = 60;
+  opt->mis              = 0;
+  opt->sci              = 0;
+  opt->endgaps          = 0;
 
   opt->aln_out        = 0;
   opt->aln_out_prefix = NULL;
@@ -413,6 +417,12 @@ main(int  argc,
 
   if (args_info.color_given)
     opt.color = 1;
+
+  if (args_info.color_threshold_given)
+    opt.color_threshold = args_info.color_threshold_arg;
+
+  if (args_info.color_min_sat_given)
+    opt.color_min_sat = args_info.color_min_sat_arg;
 
   if (args_info.aln_given)
     opt.aln_PS = 1;
@@ -1250,9 +1260,15 @@ postscript_layout(const char      *filename,
                   const char      *consensus_structure,
                   struct options  *opt)
 {
-  char **A;
+  char      **A;
 
-  A = vrna_annotate_covar_db(alignment, consensus_structure, &(opt->md));
+  short int *pt = vrna_ptable(consensus_structure);
+
+  A = vrna_annotate_covar_pt(alignment,
+                             pt,
+                             &(opt->md),
+                             opt->color_threshold,
+                             opt->color_min_sat);
 
   THREADSAFE_FILE_OUTPUT(
     (void)vrna_file_PS_rnaplot_a(consensus_sequence,
@@ -1262,6 +1278,7 @@ postscript_layout(const char      *filename,
                                  A[1],
                                  &(opt->md)));
 
+  free(pt);
   free(A[0]);
   free(A[1]);
   free(A);
