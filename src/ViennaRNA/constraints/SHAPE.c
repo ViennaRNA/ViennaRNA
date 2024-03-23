@@ -25,6 +25,14 @@
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/constraints/SHAPE.h"
 
+
+#define gaussian(u) (1/(sqrt(2 * PI) * exp(- u * u / 2)))
+#define bandwidth(n) (pow(n, -1/5)) /* Scott factor assuming univariate */
+
+
+extern float zetacf(float);
+
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -54,6 +62,25 @@ PRIVATE FLT_OR_DBL
 conversion_deigan(double  reactivity,
                   double  m,
                   double  b);
+
+
+PRIVATE FLT_OR_DBL
+gaussian_kde_pdf(double  x,
+                 int     n,
+                 double* data);
+
+
+PRIVATE FLT_OR_DBL
+exp_pdf(double x,
+        double lambda);
+
+
+/* We use same format as scitpy */
+PRIVATE FLT_OR_DBL
+gev_pdf(double x,
+        double c,
+        double loc,
+        double scale);
 
 
 /*
@@ -579,4 +606,48 @@ conversion_deigan(double  reactivity,
                   double  b)
 {
   return reactivity < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivity + 1) + b);
+}
+
+
+/******************/
+/*      Eddy      */
+/******************/
+
+PRIVATE FLT_OR_DBL
+gaussian_kde_pdf(double  x,
+                 int     n,
+                 double* data)
+{
+  FLT_OR_DBL total;
+  for (int i = 0; i < n; i++)
+    total += gaussian((x - data[i]) / bandwidth(n));
+  return total / (n * bandwidth(n));
+}
+
+
+PRIVATE FLT_OR_DBL
+exp_pdf(double x,
+        double lambda)
+{
+  return x < 0 ? 0. : (FLT_OR_DBL)(lambda * exp(- lambda * x));
+}
+
+
+PRIVATE FLT_OR_DBL
+gev_pdf(double x,
+        double c,
+        double loc,
+        double scale)
+{
+  FLT_OR_DBL s, t;
+  s = (FLT_OR_DBL) ((x - loc) / scale);
+  t = c * s;
+  
+  if (c == 0) {
+    return exp(-s) * exp(-exp(-s));
+  } else if (t < 1) {
+    return pow(1 - t, 1 / c - 1) * exp(-pow(1 - t, 1 / c));
+  } else {
+    return 0;
+  }
 }
