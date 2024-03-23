@@ -169,4 +169,38 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
                     double      default_value);
 
 
+/**
+ *  @brief  Add SHAPE reactivity data as soft constraints (Eddy/RNAprob-2 method)
+ *
+ *  This approach of SHAPE directed RNA folding uses the probability framework proposed by Eddy
+ *
+ *  @f[ \Delta G_{\text{SHAPE}}(i) = - RT\ln(\mathbb{P}(\text{SHAPE reactivity}(i)\mid x_i\pi_i))+ @f]
+ *
+ *  to convert SHAPE reactivity values to pseudo energies for given nucleotide @f$ x_i @f$ and
+ *  pairedness @f$ \pi_i @f$ at position @f$ i @f$. The reactivity distribution is computed
+ *  using Gaussian kernel density estimation (KDE) with bandwidth @f$ h @f$ computed using
+ *  Scott factor
+ * 
+ * @f[ h = n^{-\frac{1}{5}} @f]
+ *
+ * where @f$ n @f$ is the number of data points.
+ *
+ *
+ *  @ingroup SHAPE_reactivities
+ *  @param  fc            The #vrna_fold_compound_t the soft constraints are associated with
+ *  @param  reactivities  A vector of normalized SHAPE reactivities
+ *  @param  unpaired_nb   Length of the array of unpaired SHAPE reactivities
+ *  @param  unpaired_data Pointer to an array of unpaired SHAPE reactivities
+ *  @param  paired_nb     Length of the array of paired SHAPE reactivities
+ *  @param  paired_data   Pointer to an array of paired SHAPE reactivities
+ *  @return               1 on successful extraction of the method, 0 on errors
+ */
+int
+vrna_sc_add_SHAPE_eddy_2(vrna_fold_compound_t *fc,
+                         const double         *reactivities,
+                         int                  unpaired_nb,
+                         const double         *unpaired_data,
+                         int                  paired_nb,
+                         const double         *paired_data);
+
 #endif

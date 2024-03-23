@@ -26,11 +26,7 @@
 #include "ViennaRNA/constraints/SHAPE.h"
 
 
-#define gaussian(u) (1/(sqrt(2 * PI) * exp(- u * u / 2)))
-#define bandwidth(n) (pow(n, -1/5)) /* Scott factor assuming univariate */
-
-
-extern float zetacf(float);
+#define gaussian(u) (1/(sqrt(2 * PI)) * exp(- u * u / 2))
 
 
 /*
@@ -64,10 +60,15 @@ conversion_deigan(double  reactivity,
                   double  b);
 
 
+/* PDF of x using Gaussian KDE
+ * n is data number
+ * h is bandwidth
+ */
 PRIVATE FLT_OR_DBL
 gaussian_kde_pdf(double  x,
                  int     n,
-                 double* data);
+                 float   h,
+                 const double* data);
 
 
 PRIVATE FLT_OR_DBL
@@ -82,6 +83,11 @@ gev_pdf(double x,
         double loc,
         double scale);
 
+/* Bandwidth for univariate KDE with Scott factor as in scipy */
+/* bandwidth = Scott facter * std with ddof = 1 */
+PRIVATE FLT_OR_DBL
+bandwidth(int n,
+          const double* data);
 
 /*
  #################################
@@ -549,6 +555,58 @@ vrna_sc_SHAPE_parse_method(const char *method_string,
 }
 
 
+PUBLIC int
+vrna_sc_add_SHAPE_eddy_2(vrna_fold_compound_t *fc,
+                         const double         *reactivities,
+                         int                  unpaired_nb,
+                         const double         *unpaired_data,
+                         int                  paired_nb,
+                         const double         *paired_data)
+{
+  int i, j;
+  double kT;
+  /* FLT_OR_DBL  *unpaired_values; */
+  FLT_OR_DBL  *paired_values;
+  float unpaired_h, paired_h;
+
+  kT = GASCONST * ((fc->params)->temperature + K0) / 1000; /* in kcal/mol */
+
+  if ((fc) &&
+      (reactivities)) {
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        /* unpaired_values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1)); */
+        paired_values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
+
+        /* Compute bandwidth */
+        unpaired_h = bandwidth(unpaired_nb, unpaired_data);
+        paired_h = bandwidth(paired_nb, paired_data);
+
+        /* convert and add */
+        for (i = 1; i <= fc->length; ++i) {
+          /* add for unpaired position */
+          vrna_sc_add_up(fc, i, - kT * log(gaussian_kde_pdf(reactivities[i], unpaired_nb, unpaired_h, unpaired_data)), VRNA_OPTION_DEFAULT);
+          paired_values[i] = - kT * log(gaussian_kde_pdf(reactivities[i], paired_nb, paired_h, paired_data));
+        }
+
+        for (i = 1; i <= fc->length; ++i) {
+          for (j = i + 1; j <= fc->length; ++j)
+            vrna_sc_add_bp(fc, i, j, paired_values[i] + paired_values[j], VRNA_OPTION_DEFAULT);
+        }
+        /* always store soft constraints in plain format */
+        free(paired_values);
+
+        return 1; /* success */
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        vrna_message_warning("vrna_sc_add_SHAPE_eddy_2() not implemented for comparative prediction! ");
+        break;
+    }
+  }
+  return 0;
+}
+
+
 PRIVATE void
 sc_parse_parameters(const char  *string,
                     char        c1,
@@ -616,12 +674,14 @@ conversion_deigan(double  reactivity,
 PRIVATE FLT_OR_DBL
 gaussian_kde_pdf(double  x,
                  int     n,
-                 double* data)
+                 float   h,
+                 const double* data)
 {
   FLT_OR_DBL total;
+  total = 0.;
   for (int i = 0; i < n; i++)
-    total += gaussian((x - data[i]) / bandwidth(n));
-  return total / (n * bandwidth(n));
+    total += gaussian((x - data[i]) / h);
+  return total / (n * h);
 }
 
 
@@ -650,4 +710,25 @@ gev_pdf(double x,
   } else {
     return 0;
   }
+}
+
+
+PRIVATE FLT_OR_DBL
+bandwidth(int n,
+          const double* data)
+{
+  double factor, mu, std;
+  mu = 0.;
+  std = 0.;
+
+  factor = (pow(n, -1./5));
+
+  for (int i = 0; i < n; i++)
+    mu += data[i];
+  mu /= n;
+
+  for (int i = 0; i < n; i++)
+    std += (data[i] - mu) * (data[i] - mu);
+  std = sqrt(std / (n - 1));
+  return (FLT_OR_DBL)(factor * std);
 }

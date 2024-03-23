@@ -12,6 +12,8 @@
 %feature("kwargs") sc_add_SHAPE_deigan_ali;
 %feature("autodoc") sc_add_SHAPE_zarringhalam;
 %feature("kwargs") sc_add_SHAPE_zarringhalam;
+%feature("autodoc") sc_add_SHAPE_eddy_2;
+%feature("kwargs") sc_add_SHAPE_eddy_2;
 #endif
 
   int
@@ -44,6 +46,14 @@
                             unsigned int        options = VRNA_OPTION_DEFAULT)
   {
     return vrna_sc_add_SHAPE_zarringhalam($self, (const double *) &reactivities[0], b, default_value, shape_conversion, options);
+  }
+
+  int
+  sc_add_SHAPE_eddy_2(std::vector<double> reactivities,
+                      std::vector<double> unpaired_data,
+                      std::vector<double> paired_data)
+  {
+    return vrna_sc_add_SHAPE_eddy_2($self, (const double *)&reactivities[0], unpaired_data.size(), (const double *)&unpaired_data[0], paired_data.size(), (const double *)&paired_data[0]);
   }
 }
 
