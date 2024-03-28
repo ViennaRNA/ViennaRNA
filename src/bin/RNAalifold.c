@@ -1260,7 +1260,7 @@ postscript_layout(const char      *filename,
                   const char      *consensus_structure,
                   struct options  *opt)
 {
-  char      **A;
+  vrna_string_t *A;
 
   short int *pt = vrna_ptable(consensus_structure);
 
@@ -1279,8 +1279,8 @@ postscript_layout(const char      *filename,
                                  &(opt->md)));
 
   free(pt);
-  free(A[0]);
-  free(A[1]);
+  vrna_string_free(A[0]);
+  vrna_string_free(A[1]);
   free(A);
 }
 
