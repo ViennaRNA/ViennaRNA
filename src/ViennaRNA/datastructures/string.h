@@ -44,6 +44,13 @@ vrna_string_t
 vrna_string_append_cstring(vrna_string_t  str,
                            char const     *other);
 
+vrna_string_t
+vrna_string_make_space_for(vrna_string_t str,
+                           size_t        add_len);
+
+size_t
+vrna_string_available_space(vrna_string_t const str);
+
 /**
  * @}
  */
