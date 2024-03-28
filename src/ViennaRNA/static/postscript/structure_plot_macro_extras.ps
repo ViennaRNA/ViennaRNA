@@ -118,3 +118,50 @@
    grestore
    % } if
 } bind def
+
+/ConsLegend { % xloc yloc tics range ConsLegend -> []
+  /STR 8 string def
+  /colshift 0.16 def
+  /sep 0.1 def
+  /range exch def
+  % precompute number of tics but leave one tics for range numbers
+  dup /tics exch dup 1 le { pop 42 } if def
+  /lasttick exch dup 1 eq { pop 1.0 } { dup 1 gt { cvi } if  } ifelse def
+  
+  gsave
+    /Helvetica findfont 10 scalefont setfont
+    xmin xmax add size sub 2 div
+    ymin ymax add size sub 2 div translate
+    size dup scale
+    translate
+    0.015 dup scale
+      6 -1 1
+      {
+        % get current number of different base pairs
+        dup 1 sub 6 exch sub /curnum exch STR cvs def
+        % compute y-position
+        dup 6 sub dup sep mul add /ypos exch def
+        % draw number of different base pairs
+        -1 ypos moveto gsave 0.1 dup scale curnum show grestore
+        % compute current color
+        6 exch sub colshift mul
+        /curcol exch def
+        % draw gradient for counter examples
+        gsave
+        10 tics 1 add div 1 scale
+        0 1 tics
+        {
+            dup ypos moveto
+            tics div range mul 1 exch sub
+            curcol exch hsb
+            1 0 rlineto 0 1 rlineto -1 0 rlineto closepath fill
+        } for
+        grestore
+      } for
+    0 setgray
+    % draw counterexample labels
+    -0.1 1 sep add moveto (0) gsave 0.1 dup scale show grestore
+    10 1 sep add moveto lasttick STR cvs
+    gsave 0.1 dup scale dup stringwidth pop -2 div 0 rmoveto show grestore
+  grestore
+} bind def
