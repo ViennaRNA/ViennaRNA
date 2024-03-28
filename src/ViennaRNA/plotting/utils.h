@@ -8,6 +8,7 @@
  */
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/datastructures/string.h>
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/utils/structures.h>
 
@@ -32,7 +33,7 @@ vrna_annotate_covar_db_extended(const char   **alignment,
                                 vrna_md_t    *md_p,
                                 unsigned int options);
 
-char **
+vrna_string_t *
 vrna_annotate_covar_pt(const char       **alignment,
                        const short int  *pt,
                        vrna_md_t        *md_p,
