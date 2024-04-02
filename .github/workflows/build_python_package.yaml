@@ -25,7 +25,7 @@ jobs:
       vrna_sdist_file: ${{ steps.create_sdist.outputs.file }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: install prerequisites
         run:  |
           sudo apt-get update
@@ -56,7 +56,7 @@ jobs:
           python -m build --sdist
           echo "file=$(cd dist && ls ViennaRNA-*.tar.gz)" >> "$GITHUB_OUTPUT"
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sdist
           path: dist/
@@ -86,7 +86,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: sdist
       - name: Set sdist environment variable
@@ -125,7 +125,7 @@ jobs:
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND_WINDOWS: pytest --datadir {package}\tests\data {package}\tests\python
           CIBW_SKIP: cp37-* pp*
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ./dist/*.whl
 
@@ -135,14 +135,14 @@ jobs:
     environment: production
     if: (github.event_name == 'workflow_dispatch' && inputs.publish-TestPyPI) || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           # unpacks default artifact into dist/
           # if `name: artifact` is omitted, the action will create extra parent dir
           name: artifact
           path: dist
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           # unpacks sdist into dist/
           name: sdist
@@ -159,14 +159,14 @@ jobs:
     runs-on: ubuntu-latest
     if: (github.event_name == 'workflow_dispatch' && inputs.publish-PyPI) || (github.event_name == 'release' && github.event.action == 'published')
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           # unpacks default artifact into dist/
           # if `name: artifact` is omitted, the action will create extra parent dir
           name: artifact
           path: dist
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           # unpacks sdist into dist/
           name: sdist

@@ -30,7 +30,7 @@ jobs:
     permissions:
       contents: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Extract release notes
       id: extract-release-notes
       uses: RaumZeit/extract-release-notes@a991ec1541871118630638fe002862a023870cff
@@ -38,11 +38,11 @@ jobs:
         header_level: 3
         version_prefix: "Version"
     - name: Download source archives
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: dist-archives
     - name: Download OSX installer
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: osx-installer
     - name: Make release
