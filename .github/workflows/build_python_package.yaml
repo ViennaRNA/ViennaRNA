@@ -98,7 +98,7 @@ jobs:
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$env:GITHUB_ENV"
       - name: Build wheels
         if: runner.os != 'Windows'
-        uses: pypa/cibuildwheel@v2.13.1
+        uses: pypa/cibuildwheel@v2.17.0
         with:
           package-dir: "$VRNA_SDIST_FILE"
           output-dir: dist
@@ -112,7 +112,7 @@ jobs:
           CIBW_TEST_COMMAND: pytest --datadir {package}/tests/data {package}/tests/python
       - name: Build wheels - Windows
         if: runner.os == 'Windows'
-        uses: pypa/cibuildwheel@v2.13.1
+        uses: pypa/cibuildwheel@v2.17.0
         with:
           package-dir: "$env:VRNA_SDIST_FILE"
           output-dir: dist
