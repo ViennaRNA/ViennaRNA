@@ -810,11 +810,18 @@ process_alignment_record(struct record_data_msa *record)
       ffname = vrna_strdup_printf("aln.ps");
 
     THREADSAFE_FILE_OUTPUT(
-      vrna_file_PS_aln(ffname,
-                       (const char **)record->alignment,
-                       (const char **)record->names,
-                       structure,
-                       opt->aln_PS_cols)
+      vrna_file_PS_aln_opt(ffname,
+                           (const char **)record->alignment,
+                           (const char **)record->names,
+                           structure,
+                           (vrna_aln_opt_t){
+                            .start = 0,
+                            .end = 0,
+                            .offset = 0,
+                            .columns = opt->aln_PS_cols,
+                            .color_threshold = opt->covar_threshold,
+                            .color_min_sat = opt->covar_min_sat
+                           })
       );
   }
 
