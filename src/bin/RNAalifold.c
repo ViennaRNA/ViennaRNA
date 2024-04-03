@@ -1033,11 +1033,19 @@ process_record(struct record_data *record)
 
   if (opt->aln_PS) {
     THREADSAFE_FILE_OUTPUT(
-      vrna_file_PS_aln(filename_aln,
-                       (const char **)record->alignment,
-                       (const char **)record->names,
-                       mfe_structure,
-                       opt->aln_PS_cols));
+      vrna_file_PS_aln_opt(filename_aln,
+                           (const char **)record->alignment,
+                           (const char **)record->names,
+                            mfe_structure,
+                            (vrna_aln_opt_t){
+                              .start = 0,
+                              .end = 0,
+                              .offset = 0,
+                              .columns = opt->aln_PS_cols,
+                              .color_threshold = opt->color_threshold,
+                              .color_min_sat = opt->color_min_sat
+                            })
+      );
   }
 
   /* free mfe arrays */
