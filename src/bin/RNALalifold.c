@@ -50,6 +50,8 @@ typedef struct {
   vrna_md_t *md;
   int       ss_eps;
   int       msa_eps;
+  double    color_threshold;
+  double    color_min_sat;
   int       msa_stk;
   int       csv;
   int       mis;
@@ -85,6 +87,7 @@ main(int  argc,
                                 split_contributions;
   long int                      first_alignment_number;
   float                         e_max;
+  double                        color_threshold, color_min_sat;
   vrna_md_t                     md;
   vrna_fold_compound_t          *fc;
   dataset_id                    id_control;
@@ -97,6 +100,8 @@ main(int  argc,
   ribo                    = 0;
   alnPS                   = 0;
   ssPS                    = 0;
+  color_threshold         = 2.;
+  color_min_sat           = 0.2;
   aln_out                 = 0;
   aln_columns             = 60;
   input_format_options    = VRNA_FILE_FORMAT_MSA_CLUSTAL; /* default to ClustalW format */
@@ -167,6 +172,12 @@ main(int  argc,
 
   if (args_info.aln_EPS_ss_given)
     ssPS = 1;
+
+  if (args_info.color_threshold_given)
+    color_threshold = args_info.color_threshold_arg;
+
+  if (args_info.color_min_sat_given)
+    color_min_sat = args_info.color_min_sat_arg;
 
   if (args_info.aln_EPS_given)
     alnPS = 1;
@@ -467,6 +478,8 @@ main(int  argc,
     data.columns        = aln_columns;
     data.md             = &md;
     data.ss_eps         = ssPS;
+    data.color_threshold  = color_threshold;
+    data.color_min_sat    = color_min_sat;
     data.msa_eps        = alnPS;
     data.msa_stk        = aln_out;
     data.csv            = csv;
@@ -577,7 +590,7 @@ print_hit_cb(int        start,
   char      **sub;
   char      *fname, *tmp_string;
   char      *id;
-  char      **A, *cons;
+  char      *cons;
   char      **names;
   char      **strings;
   char      **strings_orig;
@@ -587,6 +600,9 @@ print_hit_cb(int        start,
   vrna_md_t *md;
   int       with_ss, with_msa, with_stk, with_csv, with_mis, with_shapes, split_energies;
   float     threshold;
+  double    color_threshold, color_min_sat;
+  vrna_string_t *A;
+  short int     *pt;
 
   names           = ((hit_data *)data)->names;
   strings         = ((hit_data *)data)->strings;
@@ -595,6 +611,8 @@ print_hit_cb(int        start,
   columns         = ((hit_data *)data)->columns;
   md              = ((hit_data *)data)->md;
   with_ss         = ((hit_data *)data)->ss_eps;
+  color_threshold = ((hit_data *)data)->color_threshold;
+  color_min_sat   = ((hit_data *)data)->color_min_sat;
   with_msa        = ((hit_data *)data)->msa_eps;
   with_stk        = ((hit_data *)data)->msa_stk;
   with_csv        = ((hit_data *)data)->csv;
@@ -615,8 +633,15 @@ print_hit_cb(int        start,
     cons  =
       (with_mis) ? vrna_aln_consensus_mis((const char **)sub,
                                           md) : vrna_aln_consensus_sequence((const char **)sub, md);
-    A = vrna_annotate_covar_db((const char **)sub, ss, md);
 
+
+    pt = vrna_ptable(ss);
+
+    A = vrna_annotate_covar_pt((const char **)sub,
+                               pt,
+                               md,
+                               color_threshold,
+                               color_min_sat);
 
     if (split_energies) {
       vrna_fold_compound_t  *sub_fc = vrna_fold_compound_comparative((const char **)sub,
@@ -680,8 +705,9 @@ print_hit_cb(int        start,
       free(fname);
     }
 
-    free(A[0]);
-    free(A[1]);
+    free(pt);
+    vrna_string_free(A[0]);
+    vrna_string_free(A[1]);
     free(A);
     free(cons);
 
