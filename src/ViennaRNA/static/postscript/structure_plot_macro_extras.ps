@@ -135,6 +135,30 @@
     size dup scale
     translate
     0.015 dup scale
+    % legend lines
+    gsave 
+    0.5 setgray
+    0.05 setlinewidth
+    newpath
+    -1.5 2.5 moveto 10.1 2.5 lineto
+    stroke
+    newpath
+    -1.5 1.1 moveto 10.1 1.1 lineto
+    stroke
+    newpath
+    -1.5 2.5 moveto -1.5 -5 -6 sep mul add lineto
+    stroke
+    newpath
+    10.1 1.1 moveto 10.1 -5 -6 sep mul add lineto
+    stroke
+    newpath
+    -0.1 1.1 moveto -0.1 -5 -6 sep mul add lineto
+    stroke
+    newpath
+    -0.1 -5 -6 sep mul add moveto 10.1 -5 -6 sep mul add lineto
+    stroke
+    grestore
+    % color gradients
       6 -1 1
       {
         % get current number of different base pairs
@@ -159,9 +183,11 @@
         grestore
       } for
     0 setgray
-    % draw counterexample labels
-    -0.1 1 sep add moveto (0) gsave 0.1 dup scale show grestore
-    10 1 sep add moveto lasttick STR cvs
-    gsave 0.1 dup scale dup stringwidth pop -2 div 0 rmoveto show grestore
+    % legend labels
+    0.1 1.2 sep add moveto (0) gsave 0.1 dup scale show grestore
+    9.4 1.2 sep add moveto lasttick STR cvs gsave 0.1 dup scale show grestore
+    1 3 moveto (counter examples) gsave 0.1 dup scale show grestore
+    -2 -4.5 moveto 90 rotate (base pairs)  gsave 0.1 dup scale show grestore
+%    gsave 0.1 dup scale dup stringwidth pop -2 div 0 rmoveto show grestore
   grestore
 } bind def
