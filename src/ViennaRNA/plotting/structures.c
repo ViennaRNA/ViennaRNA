@@ -194,6 +194,10 @@ rnaplot_EPS(const char          *seq,
   bbox[0] = bbox[1] = 0;
   bbox[2] = bbox[3] = 700;
 
+  /* increase bounding box to negative y-axis to allow for legends */
+  if ((pre) || (post))
+    bbox[1] = -140;
+
   print_PS_header(xyplot,
                   "RNA Secondary Structure Plot",
                   bbox,

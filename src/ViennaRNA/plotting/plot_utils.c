@@ -157,7 +157,7 @@ vrna_annotate_covar_pt(const char       **alignment,
     tabs = threshold;
   }
 
-  snprintf(pps, 64, "0.5 0.1 %f %f ConsLegend\n",
+  snprintf(pps, 64, "0.8 -0.1 %f %f ConsLegend\n",
                threshold, 1. - min);
   colorps = vrna_string_append_cstring(colorps, pps);
 
