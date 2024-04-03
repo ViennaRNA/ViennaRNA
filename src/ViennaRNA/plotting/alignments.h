@@ -24,6 +24,15 @@
  *  @{
  */
 
+typedef struct {
+  unsigned int start;
+  unsigned int end;
+  unsigned int offset;
+  unsigned int columns;
+  double       color_threshold;
+  double       color_min_sat;
+} vrna_aln_opt_t;
+
 /**
  *  @brief  Create an annotated PostScript alignment plot
  *
@@ -71,6 +80,12 @@ vrna_file_PS_aln_slice(const char   *filename,
                        int          offset,
                        unsigned int columns);
 
+int
+vrna_file_PS_aln_opt(const char   *filename,
+                     const char   **seqs,
+                     const char   **names,
+                     const char   *structure,
+                     vrna_aln_opt_t options);
 
 /**
  * @}

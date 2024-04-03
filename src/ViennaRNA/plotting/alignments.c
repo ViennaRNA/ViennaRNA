@@ -61,26 +61,51 @@ vrna_file_PS_aln(const char   *filename,
                  const char   *structure,
                  unsigned int columns)
 {
-  return vrna_file_PS_aln_slice(filename,
-                                seqs,
-                                names,
-                                structure,
-                                0,
-                                0,
-                                0,
-                                columns);
+  return vrna_file_PS_aln_opt(filename,
+                              seqs,
+                              names,
+                              structure,
+                              (vrna_aln_opt_t){
+                                .start            = 0,
+                                .end              = 0,
+                                .offset           = 0,
+                                .columns          = columns,
+                                .color_threshold  = 2,
+                                .color_min_sat    = 0.2
+                              });
 }
 
 
 PUBLIC int
-vrna_file_PS_aln_slice(const char   *filename,
-                       const char   **seqs,
-                       const char   **names,
-                       const char   *structure,
-                       unsigned int start,
-                       unsigned int end,
-                       int          offset,
-                       unsigned int columns)
+vrna_file_PS_aln_slice(const char      *filename,
+                    const char      **seqs,
+                    const char      **names,
+                    const char      *structure,
+                    unsigned int    start,
+                    unsigned int    end,
+                    int             offset,
+                    unsigned int    columns)
+{
+  return vrna_file_PS_aln_opt(filename,
+                              seqs,
+                              names,
+                              structure,
+                              (vrna_aln_opt_t){
+                                .start            = start,
+                                .end              = end,
+                                .offset           = offset,
+                                .columns          = columns,
+                                .color_threshold  = 2,
+                                .color_min_sat    = 0.2
+                              });
+}
+
+PUBLIC int
+vrna_file_PS_aln_opt(const char      *filename,
+                    const char      **seqs,
+                    const char      **names,
+                    const char      *structure,
+                    vrna_aln_opt_t  options)
 {
   /* produce PS sequence alignment color-annotated by consensus structure */
 
@@ -95,13 +120,16 @@ vrna_file_PS_aln_slice(const char   *filename,
   int       match, block;
   FILE      *outfile;
   short     *pair_table;
-  char      *colorMatrix[6][3] = {
-    { "0.0 1",  "0.0 0.6",  "0.0 0.2"  },   /* red    */
-    { "0.16 1", "0.16 0.6", "0.16 0.2" },   /* ochre  */
-    { "0.32 1", "0.32 0.6", "0.32 0.2" },   /* turquoise */
-    { "0.48 1", "0.48 0.6", "0.48 0.2" },   /* green  */
-    { "0.65 1", "0.65 0.6", "0.65 0.2" },   /* blue   */
-    { "0.81 1", "0.81 0.6", "0.81 0.2" }    /* violet */
+  char      pps[64];
+  double  tabs;
+  double  sat_min = 0.2;
+  double  sat_pairs[6] = {
+    0.0,  /* red    */
+    0.16, /* ochre  */
+    0.32, /* turquoise */
+    0.48, /* green  */
+    0.65, /* blue   */
+    0.81  /* violet */
   };
 
   vrna_md_t md;
@@ -128,23 +156,23 @@ vrna_file_PS_aln_slice(const char   *filename,
   startY      = 2;                              /* "y origin" */
   namesX      = fontWidth;                      /* "x origin" */
 
-  if (start == 0)
-    start = 1;
+  if (options.start == 0)
+    options.start = 1;
 
-  if (end == 0)
-    end = (int)strlen(seqs[0]);
+  if (options.end == 0)
+    options.end = (int)strlen(seqs[0]);
 
   /* Number of columns of the alignment */
-  length = end - start + 1;
+  length = options.end - options.start + 1;
 
   substructure          = (char *)vrna_alloc(sizeof(char) * (length + 1));
-  substructure          = memcpy(substructure, structure + start - 1, sizeof(char) * length);
+  substructure          = memcpy(substructure, structure + options.start - 1, sizeof(char) * length);
   substructure[length]  = '\0';
 
   /* remove unbalanced brackets ? */
 
   /* Display long alignments in blocks of this size */
-  columnWidth = (columns == 0) ? length : columns;
+  columnWidth = (options.columns == 0) ? length : options.columns;
 
   /*
    *  Allocate memory for various strings, length*2 is (more than)
@@ -164,12 +192,36 @@ vrna_file_PS_aln_slice(const char   *filename,
       maxName = tmp;
   }
 
+  /* color annotation setup */
+  if ((options.color_min_sat >= 0) && (options.color_min_sat < 1))
+    sat_min = options.color_min_sat;
+
+  if (options.color_threshold > (double)N)
+    options.color_threshold = (double)N;
+
+  if (options.color_threshold < 0) {
+    /* default for any negative threshold input */
+    tabs = 2;
+  } else if (trunc(options.color_threshold) != options.color_threshold) {
+    /*
+       threshold is expressed as frequency, so
+       count number of sequences to convert to
+       absolute threshold
+    */
+    if (options.color_threshold < 1) { /* actual frequency */
+      tabs = options.color_threshold * (double)N;
+    } else { /* floating point number > 1. we will truncate this to integer */
+      tabs = trunc(options.color_threshold);
+    }
+  } else {
+    tabs = options.color_threshold;
+  }
 
   /* x-coord. where sequences start */
   seqsX = namesX + maxName * fontWidth + nameStep;
 
   /* calculate number of digits of the alignment length */
-  snprintf(tmpBuffer, length, "%d", start + length + offset);
+  snprintf(tmpBuffer, length, "%d", options.start + length + options.offset);
   maxNum = strlen(tmpBuffer);
 
   /* Calculate bounding box */
@@ -214,8 +266,8 @@ vrna_file_PS_aln_slice(const char   *filename,
 
   for (i = 0; i < length; i++) {
     /* Write number every 10th position, leave out block breaks */
-    if (((i + start + offset) % 10 == 0) && (i % columnWidth != 0)) {
-      snprintf(tmpBuffer, length, "%d", i + start + offset);
+    if (((i + options.start + options.offset) % 10 == 0) && (i % columnWidth != 0)) {
+      snprintf(tmpBuffer, length, "%d", i + options.start + options.offset);
       num = strlen(tmpBuffer);
       if (i + num <= length)
         memcpy(ruler + i, tmpBuffer, num);
@@ -234,7 +286,7 @@ vrna_file_PS_aln_slice(const char   *filename,
    *  are not! Therefore we need to shift structure coordinates
    *  accordingly.
    */
-  int shift = start - 1;
+  int shift = options.start - 1;
 
   pair_table -= shift;
 
@@ -242,9 +294,9 @@ vrna_file_PS_aln_slice(const char   *filename,
    * Draw color annotation first
    * Repeat for all pairs
    */
-  for (i = start; i <= end; i++) {
+  for (i = options.start; i <= options.end; i++) {
     j = pair_table[i] + shift;
-    if ((j > i) && (j <= end)) {
+    if ((j > i) && (j <= options.end)) {
       /* Repeat for open and closing position */
       for (k = 0; k < 2; k++) {
         unsigned int  tt;
@@ -252,7 +304,6 @@ vrna_file_PS_aln_slice(const char   *filename,
         int           ptype[8] = {
           0, 0, 0, 0, 0, 0, 0, 0
         };
-        char          *color;
         col   = (k == 0) ? i - shift - 1 : j - shift - 1;
         block = ceil((float)(col + 1) / columnWidth);
         xx    = seqsX + (col - (block - 1) * columnWidth) * fontWidth;
@@ -269,8 +320,14 @@ vrna_file_PS_aln_slice(const char   *filename,
             pairings++;
 
         nonpair = ptype[0];
-        if (nonpair <= 2) {
-          color = colorMatrix[pairings - 1][nonpair];
+
+        if ((pairings > 0) &&
+            (ptype[0] <= (int)tabs)) {
+          double intensity = 1.;
+          if (ptype[0] > 0)
+            intensity -= ((double)ptype[0] / tabs) * (1. - sat_min);
+          
+          snprintf(pps, 64, "%.2f %.6f", sat_pairs[pairings - 1], intensity);
           for (s = 0; s < N; s++) {
             yy = startY + (block - 1) * (lineStep * (N + 2) + blockStep + consStep + rulerStep) +
                  ssStep * (block) + (s + 1) * lineStep;
@@ -280,7 +337,7 @@ vrna_file_PS_aln_slice(const char   *filename,
                  [vrna_nucleotide_encode(seqs[s][j - 1], &md)];
             if (tt)
               fprintf(outfile, "%.1f %.1f %.1f %.1f %s box\n",
-                      xx, yy - 1, xx + fontWidth, yy + fontHeight + 1, color);
+                      xx, yy - 1, xx + fontWidth, yy + fontHeight + 1, pps);
           }
         }
       }
