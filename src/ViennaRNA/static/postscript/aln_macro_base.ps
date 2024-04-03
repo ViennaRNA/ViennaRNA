@@ -14,3 +14,88 @@
  moveto
   show
 } def
+
+/hsb {
+  dup 0.3 mul 1 exch sub sethsbcolor
+} bind def
+
+/min { 2 copy gt { exch } if pop } bind def
+/max { 2 copy lt { exch } if pop } bind def
+
+/ConsLegend { % xloc yloc tics range ConsLegend -> []
+  /STR 8 string def
+  /colshift 0.16 def
+  /sep 0.1 def
+  /ymin exch def
+  /xmax exch def
+  /ymax 0 def
+  /xmin 0 def
+  /range exch def
+  /size {xmax xmin sub ymax ymin sub max} bind def
+  % precompute number of tics but leave one tics for range numbers
+  dup /tics exch dup 1 le { pop 42 } if def
+  /lasttick exch dup 1 eq { pop 1.0 } { dup 1 gt { cvi } if  } ifelse def
+  
+  gsave
+    /Helvetica findfont 10 scalefont setfont
+    xmin xmax add size sub 2 div
+    ymin ymax add size sub 2 div translate
+    size dup scale
+    translate
+    0.015 dup scale
+    % legend lines
+    gsave 
+    0.5 setgray
+    0.05 setlinewidth
+    newpath
+    -1.5 2.5 moveto 10.1 2.5 lineto
+    stroke
+    newpath
+    -1.5 1.1 moveto 10.1 1.1 lineto
+    stroke
+    newpath
+    -1.5 2.5 moveto -1.5 -5 -6 sep mul add lineto
+    stroke
+    newpath
+    10.1 1.1 moveto 10.1 -5 -6 sep mul add lineto
+    stroke
+    newpath
+    -0.1 1.1 moveto -0.1 -5 -6 sep mul add lineto
+    stroke
+    newpath
+    -0.1 -5 -6 sep mul add moveto 10.1 -5 -6 sep mul add lineto
+    stroke
+    grestore
+    % color gradients
+      6 -1 1
+      {
+        % get current number of different base pairs
+        dup 1 sub 6 exch sub /curnum exch STR cvs def
+        % compute y-position
+        dup 6 sub dup sep mul add /ypos exch def
+        % draw number of different base pairs
+        -1 ypos moveto gsave 0.1 dup scale curnum show grestore
+        % compute current color
+        6 exch sub colshift mul
+        /curcol exch def
+        % draw gradient for counter examples
+        gsave
+        10 tics 1 add div 1 scale
+        0 1 tics
+        {
+            dup ypos moveto
+            tics div range mul 1 exch sub
+            curcol exch hsb
+            1 0 rlineto 0 1 rlineto -1 0 rlineto closepath fill
+        } for
+        grestore
+      } for
+    0 setgray
+    % legend labels
+    0.1 1.2 sep add moveto (0) gsave 0.1 dup scale show grestore
+    9.4 1.2 sep add moveto lasttick STR cvs gsave 0.1 dup scale show grestore
+    1 3 moveto (counter examples) gsave 0.1 dup scale show grestore
+    -2 -4.5 moveto 90 rotate (base pairs)  gsave 0.1 dup scale show grestore
+%    gsave 0.1 dup scale dup stringwidth pop -2 div 0 rmoveto show grestore
+  grestore
+} bind def

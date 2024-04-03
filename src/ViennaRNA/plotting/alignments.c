@@ -252,7 +252,8 @@ vrna_file_PS_aln_opt(const char      *filename,
                   "ALNdict",
                   PS_MACRO_ALN_BASE);
 
-  fprintf(outfile, "0 %d translate\n"
+  fprintf(outfile, "gsave\n"
+          "0 %d translate\n"
           "1 -1 scale\n"
           "/Courier findfont\n"
           "[10 0 0 -10 0 0] makefont setfont\n",
@@ -448,6 +449,12 @@ vrna_file_PS_aln_opt(const char      *filename,
     currPos += columnWidth;
   }
   free(cons);
+
+  fprintf(outfile, "grestore\n"
+          "0 %d translate\n"
+          "0.8 0 %f %f %d %d ConsLegend\n",
+          (int)imageHeight,
+          options.color_threshold, 1. - sat_min, (int)imageWidth, (int)imageHeight);
 
   print_PS_footer(outfile);
 
