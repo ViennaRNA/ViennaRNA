@@ -719,14 +719,18 @@ print_hit_cb(int        start,
 
       tmp_string = vrna_filename_sanitize(fname, "_");
 
-      vrna_file_PS_aln_slice(tmp_string,
-                             (const char **)strings_orig,
-                             (const char **)names,
-                             ss - start + 1,
-                             start,
-                             end,
-                             0,
-                             columns);
+      vrna_file_PS_aln_opt(tmp_string,
+                           (const char **)strings_orig,
+                           (const char **)names,
+                           ss - start + 1,
+                           (vrna_aln_opt_t){
+                            .start = start,
+                            .end = end,
+                            .offset = 0,
+                            .columns = columns,
+                            .color_threshold = color_threshold,
+                            .color_min_sat = color_min_sat
+                           });
       free(fname);
       free(tmp_string);
     }
