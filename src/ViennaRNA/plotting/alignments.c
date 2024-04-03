@@ -374,7 +374,7 @@ vrna_file_PS_aln_opt(const char      *filename,
     }
     ssEscaped[y] = '\0';
 
-    fprintf(outfile, "(%s) %.1f %.1f string\n", ssEscaped, seqsX, currY);
+    fprintf(outfile, "(%s) %.1f %.1f str\n", ssEscaped, seqsX, currY);
     currY += ssStep + lineStep;
 
     /* Display names, sequences and numbers */
@@ -392,10 +392,10 @@ vrna_file_PS_aln_opt(const char      *filename,
         if (seqs[i][j + shift] != '-')
           match++;
 
-      fprintf(outfile, "(%s) %.1f %.1f string\n", names[i], namesX, currY);
-      fprintf(outfile, "(%s) %.1f %.1f string\n", tmpBuffer, seqsX, currY);
+      fprintf(outfile, "(%s) %.1f %.1f str\n", names[i], namesX, currY);
+      fprintf(outfile, "(%s) %.1f %.1f str\n", tmpBuffer, seqsX, currY);
       fprintf(outfile,
-              "(%i) %.1f %.1f string\n",
+              "(%i) %.1f %.1f str\n",
               match,
               seqsX + fontWidth * (strlen(tmpBuffer)) + numberStep,
               currY);
@@ -404,7 +404,7 @@ vrna_file_PS_aln_opt(const char      *filename,
     currY += rulerStep;
     strncpy(tmpBuffer, ruler + currPos, columnWidth);
     tmpBuffer[columnWidth] = '\0';
-    fprintf(outfile, "(%s) %.1f %.1f string\n", tmpBuffer, seqsX, currY);
+    fprintf(outfile, "(%s) %.1f %.1f str\n", tmpBuffer, seqsX, currY);
 
     currY += lineStep;
     currY += consStep;
