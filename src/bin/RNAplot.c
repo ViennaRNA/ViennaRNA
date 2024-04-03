@@ -39,6 +39,8 @@ struct options {
   int           msa;
   int           mis;
   int           annotate_covar;
+  double        covar_threshold;
+  double        covar_min_sat;
   int           aln_PS;
   int           aln_PS_cols;
   vrna_md_t     md;
@@ -114,6 +116,8 @@ init_default_options(struct options *opt)
   opt->msa            = 0;
   opt->mis            = 0;
   opt->annotate_covar = 0;
+  opt->covar_threshold  = 2;
+  opt->covar_min_sat    = 0.2;
   opt->aln_PS         = 0;
   opt->aln_PS_cols    = 60;
   vrna_md_set_default(&(opt->md));
@@ -201,6 +205,12 @@ main(int  argc,
 
     if (args_info.covar_given)
       opt.annotate_covar = 1;
+
+    if (args_info.covar_threshold_given)
+      opt.covar_threshold = args_info.covar_threshold_arg;
+
+    if (args_info.covar_min_sat_given)
+      opt.covar_min_sat = args_info.covar_min_sat_arg;
 
     if (args_info.aln_given)
       opt.aln_PS = 1;
@@ -681,7 +691,7 @@ process_record(struct record_data *record)
 static void
 process_alignment_record(struct record_data_msa *record)
 {
-  char            *consensus_sequence, *structure, *ffname, *tmp_string, **A,
+  char            *consensus_sequence, *structure, *ffname, *tmp_string,
                   *pre, *post;
   struct options  *opt;
 
@@ -709,7 +719,15 @@ process_alignment_record(struct record_data_msa *record)
     ffname = vrna_strdup_printf("alirna");
 
   if (opt->annotate_covar) {
-    A = vrna_annotate_covar_db((const char **)record->alignment, structure, &(opt->md));
+    vrna_string_t *A;
+
+    short int *pt = vrna_ptable(structure);
+
+    A = vrna_annotate_covar_pt((const char **)record->alignment,
+                               pt,
+                               &(opt->md),
+                               opt->covar_threshold,
+                               opt->covar_min_sat);
 
     if (pre)
       pre = vrna_strdup_printf("%s\n%s", pre, A[0]);
@@ -721,8 +739,10 @@ process_alignment_record(struct record_data_msa *record)
     else
       post = vrna_strdup_printf("%s", A[1]);
 
-    free(A[0]);
-    free(A[1]);
+
+    free(pt);
+    vrna_string_free(A[0]);
+    vrna_string_free(A[1]);
     free(A);
   }
 

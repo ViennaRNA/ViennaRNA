@@ -190,6 +190,26 @@ flag
 dependon="msa"
 off
 
+option  "covar-threshold" -
+"Set the threshold of maximum counter examples for coloring consensus structure plot.\n"
+details="Floating point numbers between 0 and 1 are treated as frequencies among all sequences\
+in the alignment. All other will be truncated to integer and used as absolute number of counter
+examples.\n\n"
+float
+optional
+default="2"
+hidden
+
+
+option  "covar-min-sat" -
+"Set the minimum saturation for coloring consensus structure plot.\n"
+details="Floating point number >= 0 and smaller than 1.\n\n"
+float
+optional
+default="0.2"
+hidden
+
+
 option  "aln"             -
 "Produce a colored and structure annotated alignment in PostScript format in the file \"aln.ps\" in the\
  current directory.\n\n"
