@@ -367,6 +367,7 @@ snofold(const char  *string,
         const int   max_half_stem)
 {
   int length, energy, bonus, bonus_cnt, s;
+  vrna_md_t   md;
 
   /* Variable initialization */
   bonus     = 0;
@@ -382,9 +383,20 @@ snofold(const char  *string,
 
   if (length > init_length)
     snoinitialize_fold(length);
-  else if (fabs(P->temperature - temperature) > 1e-6)
-    snoupdate_fold_params();
-
+  else {
+    if (!P) {
+      snoupdate_fold_params();
+    } else {
+      set_model_details(&md);
+      md.window_size = P->model_details.window_size;
+      md.max_bp_span = P->model_details.max_bp_span;
+      /* check if model_details are the same as before */
+      if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+        snoupdate_fold_params();
+      }
+    }
+  }
+  
   /* encode_seq(string); */
   BP = (int *)vrna_alloc(sizeof(int) * (length + 2));
   make_ptypes(S, structure);
@@ -554,6 +566,7 @@ alisnofold(const char **strings,
 {
   int   s, n_seq, length, energy;
   char  *structure;
+  vrna_md_t md;
 
   length = (int)strlen(strings[0]);
   /* structure = (char *) vrna_alloc((unsigned) length+1); */
@@ -561,8 +574,17 @@ alisnofold(const char **strings,
   if (length > init_length)
     alisnoinitialize_fold(length);
 
-  if (fabs(P->temperature - temperature) > 1e-6)
+  if (!P) {
     snoupdate_fold_params();
+  } else {
+    set_model_details(&md);
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      snoupdate_fold_params();
+    }
+  }
 
   for (s = 0; strings[s] != NULL; s++);
   n_seq = s;
