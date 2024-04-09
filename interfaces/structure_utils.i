@@ -858,7 +858,7 @@ typedef struct {
       vrna_score_t *score;
 
       score         = (vrna_score_t *)vrna_alloc(sizeof(vrna_score_t));
-      vrna_score_from_confusion_matrix(score, TP, TN, FP, FN);
+      *score = vrna_score_from_confusion_matrix(TP, TN, FP, FN);
 
       return score;
     }
@@ -901,7 +901,7 @@ def __repr__(self):
 %rename (compare_structure) my_compare_structure;
 
 %{
-  vrna_score_t*
+  vrna_score_t
   my_compare_structure(std::string str1,
                        std::string str2,
                        int fuzzy = 0,
@@ -910,7 +910,7 @@ def __repr__(self):
     return vrna_compare_structure(str1.c_str(), str2.c_str(), fuzzy, options);
   }
 
-  vrna_score_t*
+  vrna_score_t
   my_compare_structure(std::vector<int> pt1,
                        std::vector<int> pt2,
                        int fuzzy = 0)
@@ -924,7 +924,7 @@ def __repr__(self):
     return vrna_compare_structure_pt((short*)&pt1_v_short[0], (short*)&pt2_v_short[0], fuzzy);
   }
 
-  vrna_score_t*
+  vrna_score_t
   my_compare_structure(var_array<short> const &pt1,
                        var_array<short> const &pt2,
                        int fuzzy = 0)
@@ -938,9 +938,9 @@ def __repr__(self):
 %feature("kwargs") my_compare_structure;
 #endif
 
-vrna_score_t*  my_compare_structure(std::string str1, std::string str2, int fuzzy = 0, unsigned int options = VRNA_BRACKETS_RND);
-vrna_score_t*  my_compare_structure(std::vector<int> pt1, std::vector<int> pt2, int fuzzy = 0);
-vrna_score_t*  my_compare_structure(var_array<short> const &pt1, var_array<short> const &pt2, int fuzzy = 0);
+vrna_score_t  my_compare_structure(std::string str1, std::string str2, int fuzzy = 0, unsigned int options = VRNA_BRACKETS_RND);
+vrna_score_t  my_compare_structure(std::vector<int> pt1, std::vector<int> pt2, int fuzzy = 0);
+vrna_score_t  my_compare_structure(var_array<short> const &pt1, var_array<short> const &pt2, int fuzzy = 0);
 
 
 /************************************/

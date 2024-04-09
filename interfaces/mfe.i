@@ -389,12 +389,12 @@ char *my_circalifold(std::vector<std::string> alignment, char *constraints, floa
     return structure;
   }
 
-  vrna_score_t*
+  vrna_score_t
   benchmark(std::string gold,
             int fuzzy = 0,
             unsigned int options = VRNA_BRACKETS_RND)
   {
-    vrna_score_t *score;
+    vrna_score_t score;
     char *structure = (char *)vrna_alloc(sizeof(char) * ($self->length + 1));
     vrna_mfe($self, structure);
     score = vrna_compare_structure(gold.c_str(), structure, fuzzy, options);

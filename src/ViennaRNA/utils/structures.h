@@ -868,38 +868,37 @@ vrna_tree_string_to_db(const char *tree);
  *
  */
 struct vrna_score_s {
-	int   TP;            /**< @brief True Positive count */
-	int   TN;            /**< @brief True Negative count */
-	int   FP;            /**< @brief False Positive count */
-	int   FN;            /**< @brief False Negative count */
-  float TPR;           /**< @brief True Positive Rate */
-  float PPV;           /**< @brief Positive Predictive Value */
-  float FPR;           /**< @brief False Positive Rate */
-  float FOR;           /**< @brief False Omission Rate */
-  float TNR;           /**< @brief True Negative Rate */
-  float FDR;           /**< @brief False Discovery Rate */
-  float FNR;           /**< @brief False Negative Rate  */
-  float NPV;           /**< @brief Negative Predictive Value */
-  float F1;            /**< @brief F1 Score */
-  float MCC;           /**< @brief Matthews Correlation Coefficient */
+  int   TP;             /**< @brief True Positive count */
+  int   TN;             /**< @brief True Negative count */
+  int   FP;             /**< @brief False Positive count */
+  int   FN;             /**< @brief False Negative count */
+  float TPR;            /**< @brief True Positive Rate */
+  float PPV;            /**< @brief Positive Predictive Value */
+  float FPR;            /**< @brief False Positive Rate */
+  float FOR;            /**< @brief False Omission Rate */
+  float TNR;            /**< @brief True Negative Rate */
+  float FDR;            /**< @brief False Discovery Rate */
+  float FNR;            /**< @brief False Negative Rate  */
+  float NPV;            /**< @brief Negative Predictive Value */
+  float F1;             /**< @brief F1 Score */
+  float MCC;            /**< @brief Matthews Correlation Coefficient */
 };
 
 
 /**
  *  @brief Construct score data structure from given confusion matrix
  *
- *  @param score  The score data structure to write
  *  @param TP     True positive count
  *  @param TN     True negative count
  *  @param FP     False positive count
  *  @param FN     False negative count
+ *  @return  The score data structure to write
  */
-void
-vrna_score_from_confusion_matrix(vrna_score_t* score,
-                                 int TP,
-                                 int TN,
-                                 int FP,
-                                 int FN);
+vrna_score_t
+vrna_score_from_confusion_matrix(int  TP,
+                                 int  TN,
+                                 int  FP,
+                                 int  FN);
 
 
 /**
@@ -912,10 +911,10 @@ vrna_score_from_confusion_matrix(vrna_score_t* score,
  *  @param fuzzy     Allows for base pair slippage. Hence, for any base pair (i,j) in the gold standard, a base pair (p, q) in the second structure is considered a true positive, if i - fuzzy <= p <= i + fuzzy, and j - fuzzy <= q <= j + fuzzy.
  *  @return          The #vrna_score_s data structure
  */
-vrna_score_t *
+vrna_score_t
 vrna_compare_structure_pt(const short *pt_gold,
-											    const short *pt_other,
-											    int fuzzy);
+                          const short *pt_other,
+                          int         fuzzy);
 
 
 /**
@@ -927,15 +926,17 @@ vrna_compare_structure_pt(const short *pt_gold,
  *  @param  options  A bitmask to specify which brackets are recognized during conversion to pair table
  *  @return          The #vrna_score_s data structure
  */
-vrna_score_t *
-vrna_compare_structure(const char *structure_gold,
-														 const char *structure_other,
-														 int fuzzy,
-														 unsigned int options);
+vrna_score_t
+vrna_compare_structure(const char   *structure_gold,
+                       const char   *structure_other,
+                       int          fuzzy,
+                       unsigned int options);
 
 
-/* End benchmark */
-/**@}*/
+/*
+ * End benchmark
+ **@}
+ */
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
