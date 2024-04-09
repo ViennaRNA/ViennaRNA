@@ -130,12 +130,18 @@ duplexfold_cu(const char  *s1,
   n2  = (int)strlen(s2);
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
-    if (P)
-      free(P);
-
+  if (!P) {
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n1 + 1));
@@ -417,12 +423,18 @@ aliduplexfold_cu(const char *s1[],
     vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
-    if (P)
-      free(P);
-
+  if (!P) {
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n1 + 1));
