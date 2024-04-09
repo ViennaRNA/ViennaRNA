@@ -211,13 +211,20 @@ aliduplexfold(const char  *s1[],
     vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     update_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n3 + 1));
@@ -470,7 +477,7 @@ aliLduplexfold(const char *s1[],
   /* FOLLOWING NEXT 4 LINE DEFINES AN ARRAY CONTAINING POSITION OF THE SUBOPT IN S1 */
   int   *position; /* contains the position of the hits with energy > E */
   int   *position_j;
-
+  vrna_md_t md;
 
   n1  = (int)strlen(s1[0]);
   n2  = (int)strlen(s2[0]);
@@ -483,8 +490,23 @@ aliLduplexfold(const char *s1[],
   position    = (int *)vrna_alloc((delta + (n1) + 4 + delta) * sizeof(int));
   position_j  = (int *)vrna_alloc((delta + (n1) + 4 + delta) * sizeof(int));
 
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6))
+  set_model_details(&md);
+  if (!P) {
     update_dfold_params();
+    P = vrna_params(&md);
+    make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_dfold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
+  }
+
 
   lc    = (int **)vrna_alloc(sizeof(int *) * 5);
   lin   = (int **)vrna_alloc(sizeof(int *) * 5);
@@ -1011,13 +1033,20 @@ aliduplexfold_XS(const char *s1[],
   /* printf("%d \n",i_pos); */
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     update_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n3 + 1));
@@ -1300,6 +1329,7 @@ aliLduplexfold_XS(const char  *s1[],
   int   *position; /* contains the position of the hits with energy > E */
   int   *position_j;
   int   maxPenalty[4];
+  vrna_md_t   md;
 
   n1  = (int)strlen(s1[0]);
   n2  = (int)strlen(s2[0]);
@@ -1315,8 +1345,22 @@ aliLduplexfold_XS(const char  *s1[],
   /**
   *** extension penalty, computed only once, further reduce the computation time
   **/
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6))
+  set_model_details(&md);
+  if (!P) {
     update_dfold_params();
+    P = vrna_params(&md);
+    make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_dfold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
+  }
 
   maxPenalty[0] = (int)-1 * P->stack[2][2] / 2;
   maxPenalty[1] = (int)-1 * P->stack[2][2];
