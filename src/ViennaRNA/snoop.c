@@ -280,13 +280,20 @@ alisnoopfold(const char **s1,
     vrna_message_error("unequal number of sequences in aliduplexfold()\n");
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     snoupdate_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      snoupdate_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n1 + 1));
@@ -1145,14 +1152,22 @@ Lsnoop_subopt(const char  *s1,
   Duplex_Er = 0;
   Loop_E    = 0, Loop_D = 0;
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS);
-  set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
-    snoupdate_fold_params();
-    if (P)
-      free(P);
 
+  set_model_details(&md);
+  if (!P) {
+    snoupdate_fold_params();
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      snoupdate_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   lc  = (int **)vrna_alloc(sizeof(int *) * (5));
@@ -1382,13 +1397,20 @@ Lsnoop_subopt_list(const char *s1,
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS);
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     snoupdate_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      snoupdate_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   lpair = (int **)vrna_alloc(sizeof(int *) * (6));
@@ -1782,13 +1804,20 @@ snoopfold(const char  *s1,
   n2  = (int)strlen(s2);
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     snoupdate_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      snoupdate_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n1 + 1));
@@ -1967,13 +1996,20 @@ snoopfold_XS_fill(const char  *s1,
   n2  = (int)strlen(s2);
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     snoupdate_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      snoupdate_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c_fill  = (int **)vrna_alloc(sizeof(int *) * (n1 + 1));
@@ -2848,13 +2884,20 @@ Lsnoop_subopt_list_XS(const char  *s1,
   snoexport_fold_arrays(&indx, &mLoop, &cLoop, &foldlist, &foldlist_XS);
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     snoupdate_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      snoupdate_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   lpair = (int **)vrna_alloc(sizeof(int *) * (6));
@@ -3244,13 +3287,20 @@ snoopfold_XS(const char *s1,
   n2  = (int)strlen(s2);
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     snoupdate_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      snoupdate_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n1 + 1));
