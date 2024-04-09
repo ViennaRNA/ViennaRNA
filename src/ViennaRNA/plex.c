@@ -303,14 +303,20 @@ duplexfold_XS(const char  *s1,
   n4  = (int)strlen(s2);
 
   set_model_details(&md);
-
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     update_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n3 + 1));
@@ -631,13 +637,20 @@ fduplexfold_XS(const char *s1,
   n4  = (int)strlen(s2);
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     update_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   /**
@@ -1109,13 +1122,21 @@ fbacktrack_XS(int       i,
 
   set_model_details(&md);
 
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  set_model_details(&md);
+  if (!P) {
     update_dfold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_dfold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   maxPenalty[0] = (int)-1 * P->stack[2][2] / 2;
@@ -1954,14 +1975,20 @@ Lduplexfold_XS(const char *s1,
   **/
 
   set_model_details(&md);
-
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     update_dfold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_dfold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   encode_seqs(s1, s2);
@@ -2669,13 +2696,20 @@ duplexfold(const char *s1,
   n4  = (int)strlen(s2);
 
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     update_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   c = (int **)vrna_alloc(sizeof(int *) * (n3 + 1));
@@ -2878,13 +2912,20 @@ fduplexfold(const char  *s1,
    * END OF DEFINITION FOR NEEDED SUBOPT DATA
    */
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     update_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   /*local c array initialization---------------------------------------------*/
@@ -3803,13 +3844,20 @@ Lduplexfold(const char  *s1,
   *** Sequence encoding
   **/
   set_model_details(&md);
-  if ((!P) || (fabs(P->temperature - temperature) > 1e-6)) {
+  if (!P) {
     update_fold_params();
-    if (P)
-      free(P);
-
     P = vrna_params(&md);
     make_pair_matrix();
+  } else {
+    md.window_size = P->model_details.window_size;
+    md.max_bp_span = P->model_details.max_bp_span;
+    /* check if model_details are the same as before */
+    if (memcmp(&md, &(P->model_details), sizeof(vrna_md_t))) {
+      free(P);
+      update_fold_params();
+      P = vrna_params(&md);
+      make_pair_matrix();
+    }
   }
 
   encode_seqs(s1, s2);
