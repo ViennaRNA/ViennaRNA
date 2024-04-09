@@ -192,6 +192,9 @@ main(int  argc,
       type  = 1;
     }
 
+    if (n >= MAXNUM)
+      vrna_message_error("Number of input structures exceeds maximum of %d", MAXNUM);
+
     tree_types    = 0;
     string_types  = 0;
     for (tt = 0; tt < types; tt++) {
