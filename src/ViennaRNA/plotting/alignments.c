@@ -239,7 +239,8 @@ vrna_file_PS_aln_opt(const char      *filename,
                 ceil((float)length / columnWidth) *
                 ((N + 2) * lineStep + blockStep + consStep + ssStep + rulerStep);
 
-  bbox[0] = bbox[1] = 0;
+  bbox[0] = 0;
+  bbox[1] = -100;
   bbox[2] = (int)imageWidth;
   bbox[3] = (int)imageHeight;
 
@@ -451,9 +452,8 @@ vrna_file_PS_aln_opt(const char      *filename,
   free(cons);
 
   fprintf(outfile, "grestore\n"
-          "0 %d translate\n"
-          "0.8 0 %f %f %d %d ConsLegend\n",
-          (int)imageHeight,
+          "0 0 translate\n"
+          "0 0 %f %f %d %d ConsLegend\n",
           options.color_threshold, 1. - sat_min, (int)imageWidth, (int)imageHeight);
 
   print_PS_footer(outfile);

@@ -26,46 +26,57 @@
   /STR 8 string def
   /colshift 0.16 def
   /sep 0.1 def
-  /ymin exch def
+  /ymax exch def
   /xmax exch def
-  /ymax 0 def
+  /ymin 0 def
   /xmin 0 def
   /range exch def
-  /size {xmax xmin sub ymax ymin sub max} bind def
+  /sizex {xmax xmin sub} bind def
+  /sizey {ymax ymin sub} bind def
+  /size {sizex sizey max} bind def
   % precompute number of tics but leave one tics for range numbers
   dup /tics exch dup 1 le { pop 42 } if def
   /lasttick exch dup 1 eq { pop 1.0 } { dup 1 gt { cvi } if  } ifelse def
-  
+
   gsave
     /Helvetica findfont 10 scalefont setfont
-    xmin xmax add size sub 2 div
-    ymin ymax add size sub 2 div translate
-    size dup scale
+    % coordinate transformation to achieve relative coordinates
+    % from 0...1
+    xmin xmax add sizex sub 2 div
+    ymin ymax add sizey sub 2 div translate
+    sizex sizey scale
+    % apply actual position of the legend
+    % according to xloc yloc
     translate
+    % re-scale
+    1 sizex div 1 sizey div scale
+    sizex dup scale
     0.015 dup scale
     % legend lines
     gsave 
     0.5 setgray
     0.05 setlinewidth
     newpath
-    -1.5 2.5 moveto 10.1 2.5 lineto
+    1.5 -0.5 moveto 13.1 -0.5 lineto
     stroke
     newpath
-    -1.5 1.1 moveto 10.1 1.1 lineto
+    1.5 -1.9 moveto 13.1 -1.9 lineto
     stroke
     newpath
-    -1.5 2.5 moveto -1.5 -5 -6 sep mul add lineto
+    1.5 -0.5 moveto 1.5 -8 -6 sep mul add lineto
     stroke
     newpath
-    10.1 1.1 moveto 10.1 -5 -6 sep mul add lineto
+    13.1 -1.9 moveto 13.1 -8 -6 sep mul add lineto
     stroke
     newpath
-    -0.1 1.1 moveto -0.1 -5 -6 sep mul add lineto
+    2.9 -1.9 moveto 2.9 -8 -6 sep mul add lineto
     stroke
     newpath
-    -0.1 -5 -6 sep mul add moveto 10.1 -5 -6 sep mul add lineto
+    2.9 -8 -6 sep mul add moveto 13.1 -8 -6 sep mul add lineto
     stroke
     grestore
+    gsave
+    3 -3 translate
     % color gradients
       6 -1 1
       {
@@ -90,12 +101,13 @@
         } for
         grestore
       } for
+    grestore
     0 setgray
     % legend labels
-    0.1 1.2 sep add moveto (0) gsave 0.1 dup scale show grestore
-    9.4 1.2 sep add moveto lasttick STR cvs gsave 0.1 dup scale show grestore
-    1 3 moveto (counter examples) gsave 0.1 dup scale show grestore
-    -2 -4.5 moveto 90 rotate (base pairs)  gsave 0.1 dup scale show grestore
+    3.1 -1.8 sep add moveto (0) gsave 0.1 dup scale show grestore
+    12.4 -1.8 sep add moveto lasttick STR cvs gsave 0.1 dup scale show grestore
+    4 0 moveto (counter examples) gsave 0.1 dup scale show grestore
+    1 -7.5 moveto 90 rotate (base pairs)  gsave 0.1 dup scale show grestore
 %    gsave 0.1 dup scale dup stringwidth pop -2 div 0 rmoveto show grestore
   grestore
 } bind def
