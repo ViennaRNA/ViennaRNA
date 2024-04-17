@@ -369,6 +369,7 @@ incomplete and mostly restricted to base pair stacking. The ViennaRNA package
 currently includes paraneter sets for
   * [inosine][file_param_inosine]
   * [pseudouridine][file_param_pseudouridine]
+  * [m1Ψ][file_param_m1Ψ]
   * [m5C][file_param_m5C]
   * [m6A][file_param_m6A]
   * [7DA][file_param_7DA]
@@ -414,6 +415,7 @@ Ivo Hofacker, Spring 2006
 [file_param_langdon2018]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_langdon2018.par
 [file_param_inosine]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_inosine_parameters.json
 [file_param_pseudouridine]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_pseudouridine_parameters.json
+[file_param_m1Ψ]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_n1methylpseudouridine_parameters.json
 [file_param_m5C]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_m5C_parameters.json
 [file_param_m6A]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_m6A_parameters.json
 [file_param_7DA]: https://github.com/ViennaRNA/ViennaRNA/blob/master/misc/rna_mod_7DA_parameters.json
