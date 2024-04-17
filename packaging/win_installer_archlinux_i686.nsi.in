@@ -117,6 +117,7 @@ section "Core" sec_core
   File /oname=Misc\rna_mod_inosine_parameters.json ../misc/rna_mod_inosine_parameters.json
   File /oname=Misc\rna_mod_m6A_parameters.json ../misc/rna_mod_m6A_parameters.json
   File /oname=Misc\rna_mod_pseudouridine_parameters.json ../misc/rna_mod_pseudouridine_parameters.json
+  File /oname=Misc\rna_mod_n1methylpseudouridine_parameters.json ../misc/rna_mod_n1methylpseudouridine_parameters.json
   File /oname=Misc\rna_mod_purine_parameters.json ../misc/rna_mod_purine_parameters.json
   File /oname=Misc\rna_mod_template_parameters.json ../misc/rna_mod_template_parameters.json
   File /oname=Misc\2Dlandscape_pf.gri ../misc/2Dlandscape_pf.gri
@@ -247,6 +248,7 @@ section "Uninstall"
   delete $INSTDIR\Misc\rna_mod_inosine_parameters.json
   delete $INSTDIR\Misc\rna_mod_m6A_parameters.json
   delete $INSTDIR\Misc\rna_mod_pseudouridine_parameters.json
+  delete $INSTDIR\Misc\rna_mod_n1methylpseudouridine_parameters.json
   delete $INSTDIR\Misc\rna_mod_purine_parameters.json
   delete $INSTDIR\Misc\rna_mod_template_parameters.json
   delete $INSTDIR\Misc\2Dlandscape_pf.gri

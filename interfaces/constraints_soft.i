@@ -71,6 +71,7 @@ vrna_sc_mod_param_t my_sc_mod_read_from_json(std::string json, vrna_md_t *md = N
 %feature("kwargs") sc_mod;
 %feature("kwargs") sc_mod_m6A;
 %feature("kwargs") sc_mod_pseudouridine;
+%feature("kwargs") sc_mod_n1methylpseudouridine;
 %feature("kwargs") sc_mod_inosine;
 %feature("kwargs") sc_mod_7DA;
 %feature("kwargs") sc_mod_purine;
@@ -259,6 +260,13 @@ vrna_sc_mod_param_t my_sc_mod_read_from_json(std::string json, vrna_md_t *md = N
                        unsigned int options = VRNA_SC_MOD_DEFAULT) {
     modification_sites.push_back(0); /* end marker for C-implementation */
     return vrna_sc_mod_pseudouridine($self, &modification_sites[0], options);
+  }
+
+  int
+  sc_mod_n1methylpseudouridine(std::vector<unsigned int> modification_sites,
+                               unsigned int options = VRNA_SC_MOD_DEFAULT) {
+    modification_sites.push_back(0); /* end marker for C-implementation */
+    return vrna_sc_mod_n1methylpseudouridine($self, &modification_sites[0], options);
   }
 
   int

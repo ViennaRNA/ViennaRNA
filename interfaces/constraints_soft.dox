@@ -147,6 +147,15 @@ This function is attached as overloaded method @p sc_mod_pseudouridine() to obje
 @endparblock
 
 
+@fn int vrna_sc_mod_n1methylpseudouridine(vrna_fold_compound_t *fc, const unsigned int *modification_sites, unsigned int options)
+@scripting
+@parblock
+This function is attached as overloaded method @p sc_mod_n1methylpseudouridine() to objects of type
+@p fold_compound with default @p options = #VRNA_SC_MOD_DEFAULT. See, e.g.
+@rstinline :py:meth:`RNA.fold_compound.sc_mod_n1methylpseudouridine()` in the :doc:`/api_python` @endrst.
+@endparblock
+
+
 @fn int vrna_sc_mod_inosine(vrna_fold_compound_t *fc, const unsigned int *modification_sites, unsigned int options)
 @scripting
 @parblock

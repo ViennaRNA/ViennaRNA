@@ -92,6 +92,7 @@ vrna_sc_mod_jsonfile,sc_mod_jsonfile,vrna_fold_compound_t,fc
 vrna_sc_mod_json,sc_mod_json,vrna_fold_compound_t,fc
 vrna_sc_mod_m6A,sc_mod_m6A,vrna_fold_compound_t,fc
 vrna_sc_mod_pseudouridine,sc_mod_pseudouridine,vrna_fold_compound_t,fc
+vrna_sc_mod_n1methylpseudouridine,sc_mod_n1methylpseudouridine,vrna_fold_compound_t,fc
 vrna_sc_mod_purine,sc_mod_purine,vrna_fold_compound_t,fc
 vrna_sc_mod,sc_mod,vrna_fold_compound_t,fc
 vrna_sc_remove,sc_remove,vrna_fold_compound_t,fc

@@ -30,8 +30,9 @@ typedef struct vrna_sc_mod_param_s *vrna_sc_mod_param_t;
  *  base as specified in the modification parameters
  *
  *  @see  vrna_sc_mod_json(), vrna_sc_mod_jsonfile(), vrna_sc_mod(), vrna_sc_mod_m6A(),
- *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_inosine(), vrna_sc_mod_7DA(),
- *        vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine(),
+ *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_n1methylpseudouridine(),
+ *        vrna_sc_mod_inosine(), vrna_sc_mod_7DA(), vrna_sc_mod_purine(),
+ *        vrna_sc_mod_dihydrouridine(),
  *        #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_DEFAULT
  */
 #define VRNA_SC_MOD_CHECK_FALLBACK  1
@@ -45,8 +46,9 @@ typedef struct vrna_sc_mod_param_s *vrna_sc_mod_param_t;
  *  base as specified in the modification parameters
  *
  *  @see  vrna_sc_mod_json(), vrna_sc_mod_jsonfile(), vrna_sc_mod(), vrna_sc_mod_m6A(),
- *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_inosine(), vrna_sc_mod_7DA(),
- *        vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine(),
+ *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_n1methylpseudouridine(),
+ *        vrna_sc_mod_inosine(), vrna_sc_mod_7DA(), vrna_sc_mod_purine(),
+ *        vrna_sc_mod_dihydrouridine(),
  *        #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_DEFAULT
  */
 #define VRNA_SC_MOD_CHECK_UNMOD     2
@@ -55,8 +57,9 @@ typedef struct vrna_sc_mod_param_s *vrna_sc_mod_param_t;
  *  @brief Do not produce any warnings within the vrna_sc_mod*() functions
  *
  *  @see  vrna_sc_mod_json(), vrna_sc_mod_jsonfile(), vrna_sc_mod(), vrna_sc_mod_m6A(),
- *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_inosine(), vrna_sc_mod_7DA(),
- *        vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine()
+ *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_n1methylpseudouridine(),
+ *        vrna_sc_mod_inosine(), vrna_sc_mod_7DA(), vrna_sc_mod_purine(),
+ *        vrna_sc_mod_dihydrouridine(),
  */
 #define VRNA_SC_MOD_SILENT          4
 
@@ -65,8 +68,9 @@ typedef struct vrna_sc_mod_param_s *vrna_sc_mod_param_t;
  *  @brief  Default settings for the vrna_sc_mod*() functions
  *
  *  @see  vrna_sc_mod_json(), vrna_sc_mod_jsonfile(), vrna_sc_mod(), vrna_sc_mod_m6A(),
- *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_inosine(), vrna_sc_mod_7DA(),
- *        vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine(),
+ *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_n1methylpseudouridine(),
+ *        vrna_sc_mod_inosine(), vrna_sc_mod_7DA(), vrna_sc_mod_purine(),
+ *        vrna_sc_mod_dihydrouridine(),
  *        #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT
  */
 #define VRNA_SC_MOD_DEFAULT         (VRNA_SC_MOD_CHECK_FALLBACK | VRNA_SC_MOD_CHECK_UNMOD)
@@ -120,8 +124,9 @@ vrna_sc_mod_parameters_free(vrna_sc_mod_param_t params);
  *  modification site special and adjust energy contributions if necessary.
  *
  *  @see  vrna_sc_mod_jsonfile(), vrna_sc_mod(), vrna_sc_mod_m6A(),
- *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_inosine(),
- *        vrna_sc_mod_7DA(), vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine(),
+ *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_n1methylpseudouridine(),
+ *        vrna_sc_mod_inosine(), vrna_sc_mod_7DA(), vrna_sc_mod_purine(),
+ *        vrna_sc_mod_dihydrouridine(),
  *        #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT,
  *        @ref modified-bases-params
@@ -148,8 +153,9 @@ vrna_sc_mod_json(vrna_fold_compound_t *fc,
  *  modification site special and adjust energy contributions if necessary.
  *
  *  @see  vrna_sc_mod_json(), vrna_sc_mod(), vrna_sc_mod_m6A(),
- *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_inosine(),
- *        vrna_sc_mod_7DA(), vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine(),
+ *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_n1methylpseudouridine(),
+ *        vrna_sc_mod_inosine(), vrna_sc_mod_7DA(), vrna_sc_mod_purine(),
+ *        vrna_sc_mod_dihydrouridine(),
  *        #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT,
  *        @ref modified-bases-params
@@ -178,8 +184,9 @@ vrna_sc_mod_jsonfile(vrna_fold_compound_t *fc,
  *
  *  @see  vrna_sc_mod_read_from_json(), vrna_sc_mod_read_from_jsonfile(),
  *        vrna_sc_mod_json(), vrna_sc_mod_jsonfile(), vrna_sc_mod_m6A(),
- *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_inosine(),
- *        vrna_sc_mod_7DA(), vrna_sc_mod_purine(), vrna_sc_mod_dihydrouridine()
+ *        vrna_sc_mod_pseudouridine(), vrna_sc_mod_n1methylpseudouridine(),
+ *        vrna_sc_mod_inosine(), vrna_sc_mod_7DA(), vrna_sc_mod_purine(),
+ *        vrna_sc_mod_dihydrouridine(),
  *        #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
  *        #VRNA_SC_MOD_DEFAULT
  *
@@ -238,6 +245,28 @@ int
 vrna_sc_mod_pseudouridine(vrna_fold_compound_t  *fc,
                           const unsigned int    *modification_sites,
                           unsigned int          options);
+
+
+/**
+ *  @brief  Add soft constraint callbacks for N1-methylpseudouridine
+ *
+ *  This is a convenience wrapper to add support for n1-methylpseudouridine using the
+ *  soft constraint callback mechanism. Modification sites are provided
+ *  as a list of sequence positions (1-based). Energy parameter corrections
+ *  are derived from @rstinline :cite:t:`dutta:2024` @endrst.
+ *
+ *  @see  #VRNA_SC_MOD_CHECK_FALLBACK, #VRNA_SC_MOD_CHECK_UNMOD, #VRNA_SC_MOD_SILENT,
+ *        #VRNA_SC_MOD_DEFAULT
+ *
+ *  @param  fc                  The fold_compound the corrections should be bound to
+ *  @param  modification_sites  A list of modification site, i.e. positions that contain the modified base (1-based, last element in the list indicated by 0)
+ *  @param  options             A bitvector of options how to handle the input, e.g. #VRNA_SC_MOD_DEFAULT
+ *  @return Number of sequence positions modified base parameters will be used for
+ */
+int
+vrna_sc_mod_n1methylpseudouridine(vrna_fold_compound_t  *fc,
+                                  const unsigned int    *modification_sites,
+                                  unsigned int          options);
 
 
 /**
