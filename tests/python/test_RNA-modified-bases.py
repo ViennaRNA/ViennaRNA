@@ -45,6 +45,20 @@ class ModifiedBaseTests(unittest.TestCase):
             print(seq, mpos, e, e_diff, e - e_diff)
             self.assertTrue(abs(e_diff) < 0.2)
 
+    def test_n1methylpseudouridine_duplexes(self):
+        """N1-methylpseudouridine duplex energies"""
+        params = json.loads(RNA.parameter_set_rna_mod_n1methylpseudouridine_parameters)
+        duplexes = params['modified_base']['duplexes']
+        code     = params['modified_base']['one_letter_code']
+        fallback = params['modified_base']['fallback']
+        for k,v in duplexes.items():
+            e, seq, mpos = extract_duplex_data(k, v, code, fallback)
+            # prepare computation
+            fc = RNA.fold_compound(seq)
+            fc.sc_mod_n1methylpseudouridine(mpos)
+            e_diff = e - fc.mfe()[1]
+            print(seq, mpos, e, e_diff, e - e_diff)
+            self.assertTrue(abs(e_diff) < 0.2)
 
     def test_inosine_duplexes(self):
         """Inosine duplex energies"""
