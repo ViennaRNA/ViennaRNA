@@ -1,0 +1,75 @@
+{
+  "modified_base": {
+    "name": "N1-Methylpseudouridine (m1Ψ)",
+    "sources": [
+      {
+        "authors": "Nivedita Dutta, Joanna Sarzynska, Indrajit Deb, and Ansuman Lahiri ",
+        "title": "Predicting nearest neighbor free energies of modified RNA with LIE: Results for pseudouridine and N1-methylpseudouridine within RNA duplexes",
+        "journal": "Physical Chemistry Chemical Physics 26:992-999",
+        "year": 2024,
+        "doi": "10.1039/D3CP02442C"
+      }
+    ],
+    "unmodified": "U",
+    "pairing_partners": [
+      "A"
+    ],
+    "one_letter_code": "1",
+    "fallback": "U",
+    "stacking_energies": {
+      "G1CA": -3.086,
+      "1CAG": -2.405,
+      "C1GA": -2.616,
+      "1GAC": -2.798,
+      "A1UA": -1.870,
+      "1UAA": -1.326,
+      "U1AA": -1.538,
+      "1AAU": -1.864
+    },
+    "mismatch_energies": {
+      "G1CG": -3.255,
+      "1CGG": -2.123,
+      "G1CU": -2.421,
+      "1CUG": -1.757,
+      "G1CC": -2.491,
+      "1CCG": -1.824
+    },
+    "duplexes": {
+      "UCAG1CAGUAGUCAGUCA": {
+        "length1": 9,
+        "length2": 9,
+        "dG37_p": -13.471
+      },
+      "UCAC1GAGUAGUUAAUCA": {
+        "length1": 9,
+        "length2": 9,
+        "dG37_p": -13.39
+      },
+      "UCAA1UAGUAGUUAAUCA": {
+        "length1": 9,
+        "length2": 9,
+        "dG37_p": -9.25
+      },
+      "UCAU1AAGUAGUAAUUCA": {
+        "length1": 9,
+        "length2": 9,
+        "dG37_p": -9.22
+      },
+      "UCAG1CAGUAGUCGGUCA": {
+        "length1": 9,
+        "length2": 9,
+        "dG37_p": -13.36
+      },
+      "UCAG1CAGUAGUCUGUCA": {
+        "length1": 9,
+        "length2": 9,
+        "dG37_p": -12.16
+      },
+      "UCAG1CAGUAGUCCGUCA": {
+        "length1": 9,
+        "length2": 9,
+        "dG37_p": -12.29
+      }
+    }
+  }
+}
