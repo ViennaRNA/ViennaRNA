@@ -28,6 +28,33 @@
  *  @{
  */
 
+#define VRNA_FILE_FORMAT_EPS            0U
+#define VRNA_FILE_FORMAT_SVG            1U
+#define VRNA_FILE_FORMAT_GML            2U
+#define VRNA_FILE_FORMAT_SSV            3U
+#define VRNA_FILE_FORMAT_XRNA           4U
+#define VRNA_FILE_FORMAT_PLOT_DEFAULT   VRNA_FILE_FORMAT_EPS
+
+
+typedef struct vrna_plot_data_s vrna_plot_data_t;
+
+
+struct vrna_plot_data_s {
+  char          *pre;
+  char          *post;
+  vrna_md_t     *md;
+  unsigned int  options;
+};
+
+
+int
+vrna_plot_structure(const char          *filename,
+                    const char          *sequence,
+                    const char          *structure,
+                    unsigned int        file_format,
+                    vrna_plot_layout_t  *layout,
+                    vrna_plot_data_t    *aux_data);
+
 /**
  *  @brief Produce a secondary structure graph in PostScript and write it to 'filename'.
  *

@@ -74,6 +74,71 @@ rnaplot_EPS(const char          *seq,
  #################################
  */
 PUBLIC int
+vrna_plot_structure(const char          *filename,
+                    const char          *sequence,
+                    const char          *structure,
+                    unsigned int        file_format,
+                    vrna_plot_layout_t  *layout,
+                    vrna_plot_data_t    *aux_data)
+{
+  int default_layout  = 0;
+  int no_aux_data     = 0;
+  int ret             = 0;
+
+  if ((structure) &&
+      (filename)) {
+
+    if (layout == NULL) { /* use global default layout */
+      default_layout = 1;
+      layout = vrna_plot_layout(structure, rna_plot_type);
+    }
+
+    switch (file_format) {
+      case VRNA_FILE_FORMAT_SVG:
+        break;
+
+      case VRNA_FILE_FORMAT_GML:
+        break;
+
+      case VRNA_FILE_FORMAT_SSV:
+        break;
+
+      case VRNA_FILE_FORMAT_XRNA:
+        break;
+
+      case VRNA_FILE_FORMAT_EPS:
+        /* fall through */
+
+      default: /* EPS output */
+        if (aux_data) {
+          ret = vrna_file_PS_rnaplot_layout(sequence,
+                                            structure,
+                                            filename,
+                                            aux_data->pre,
+                                            aux_data->post,
+                                            aux_data->md,
+                                            layout);
+        } else {
+          ret = vrna_file_PS_rnaplot_layout(sequence,
+                                            structure,
+                                            filename,
+                                            NULL,
+                                            NULL,
+                                            NULL,
+                                            layout);
+        }
+        break;   
+    }
+        
+    if (default_layout)
+      vrna_plot_layout_free(layout);
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
 vrna_file_PS_rnaplot(const char *string,
                      const char *structure,
                      const char *ssfile,
