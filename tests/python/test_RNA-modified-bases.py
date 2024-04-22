@@ -62,7 +62,7 @@ class ModifiedBaseTests(unittest.TestCase):
                 seq[len(seq) - pos] in params['modified_base']['pairing_partners']
                 for pos in mpos
             )
-            threshold = 0.4 if no_mismatch else 5
+            threshold = 0.4 if no_mismatch else 5 # large error on mismatch observed (as commit d02a234)
             self.assertTrue(abs(e_diff) < threshold)
 
     def test_inosine_duplexes(self):

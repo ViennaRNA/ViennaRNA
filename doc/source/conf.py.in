@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.abspath('@top_builddir@/interfaces/Python/'))
 # -- Project information -----------------------------------------------------
 
 project = '@PACKAGE_NAME@'
-copyright = '1994 - 2023, Ronny Lorenz, Ivo L. Hofacker, et al.'
+copyright = '1994 - 2024, Ronny Lorenz, Ivo L. Hofacker, et al.'
 author = 'Ronny Lorenz, Ivo L. Hofacker, et al.'
 
 # The full version, including alpha/beta/rc tags
