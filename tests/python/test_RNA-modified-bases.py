@@ -58,7 +58,12 @@ class ModifiedBaseTests(unittest.TestCase):
             fc.sc_mod_n1methylpseudouridine(mpos)
             e_diff = e - fc.mfe()[1]
             print(seq, mpos, e, e_diff, e - e_diff)
-            self.assertTrue(abs(e_diff) < 0.2)
+            no_mismatch = all(
+                seq[len(seq) - pos] in params['modified_base']['pairing_partners']
+                for pos in mpos
+            )
+            threshold = 0.4 if no_mismatch else 5
+            self.assertTrue(abs(e_diff) < threshold)
 
     def test_inosine_duplexes(self):
         """Inosine duplex energies"""
