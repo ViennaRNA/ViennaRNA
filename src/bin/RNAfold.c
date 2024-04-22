@@ -64,6 +64,7 @@ struct options {
   char            *filename_delim;
   int             pf;
   int             noPS;
+  int             plot_layout;
   int             noDP;
   int             noconv;
   int             lucky;
@@ -225,13 +226,15 @@ postscript_layout(vrna_fold_compound_t  *fc,
                   const char            *orig_sequence,
                   const char            *structure,
                   const char            *SEQ_ID,
-                  const char            *ligandMotif,
-                  const char            *filename_delim,
-                  int                   verbose)
+                  struct options        *opt)
 {
   char      *filename_plot  = NULL;
   char      *annotation     = NULL;
   vrna_md_t *md             = &(fc->params->model_details);
+
+  char  *ligandMotif = opt->ligandMotif;
+  char  *filename_delim = opt->filename_delim;
+  int   verbose = opt->verbose;
 
   filename_plot = generate_filename("%s%sss.ps",
                                     "rna.ps",
@@ -252,13 +255,23 @@ postscript_layout(vrna_fold_compound_t  *fc,
     free(m);
   }
 
+  vrna_plot_data_t  aux_data;
+  aux_data.pre = annotation;
+  aux_data.post = NULL;
+  aux_data.md = md;
+  vrna_plot_layout_t  *layout;
+
+  layout = vrna_plot_layout(structure, opt->plot_layout);
+
   THREADSAFE_FILE_OUTPUT(
-    vrna_file_PS_rnaplot_a(orig_sequence,
-                           structure,
-                           filename_plot,
-                           annotation,
-                           NULL,
-                           md));
+    vrna_plot_structure(filename_plot,
+                        orig_sequence,
+                        structure,
+                        VRNA_FILE_FORMAT_PLOT_DEFAULT,
+                        layout,
+                        &aux_data));
+
+  vrna_plot_layout_free(layout);
   free(annotation);
   free(filename_plot);
 }
@@ -292,12 +305,23 @@ ImFeelingLucky(vrna_fold_compound_t *fc,
                                       SEQ_ID,
                                       filename_delim);
 
+    vrna_plot_data_t  aux_data;
+    aux_data.pre = NULL;
+    aux_data.post = NULL;
+    aux_data.md = md;
+    vrna_plot_layout_t  *layout;
+
+    layout = vrna_plot_layout(s, rna_plot_type);
+
     THREADSAFE_FILE_OUTPUT(
-      vrna_file_PS_rnaplot(orig_sequence,
-                           s,
-                           filename_plot,
-                           md));
-    free(filename_plot);
+      vrna_plot_structure(filename_plot,
+                          orig_sequence,
+                          s,
+                          VRNA_FILE_FORMAT_PLOT_DEFAULT,
+                          layout,
+                          &aux_data));
+
+    vrna_plot_layout_free(layout);
   }
 
   free(s);
@@ -369,6 +393,7 @@ init_default_options(struct options *opt)
   opt->filename_delim = NULL;
   opt->pf             = 0;
   opt->noPS           = 0;
+  opt->plot_layout    = rna_plot_type;
   opt->noDP           = 0;
   opt->noconv         = 0;
   opt->lucky          = 0;
@@ -493,7 +518,7 @@ main(int  argc,
   }
 
   if (args_info.layout_type_given)
-    rna_plot_type = args_info.layout_type_arg;
+    opt.plot_layout = rna_plot_type = args_info.layout_type_arg;
 
   if (args_info.outfile_given) {
     opt.tofile = 1;
@@ -974,9 +999,7 @@ process_record(struct record_data *record)
                         record->sequence,
                         mfe_structure,
                         record->SEQ_ID,
-                        opt->ligandMotif,
-                        opt->filename_delim,
-                        opt->verbose);
+                        opt);
     }
   }
 
