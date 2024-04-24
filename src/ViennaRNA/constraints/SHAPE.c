@@ -14,6 +14,7 @@
 
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/constants.h" /* defines MINPSCORE */
+#include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
@@ -27,6 +28,16 @@
 
 
 #define gaussian(u) (1/(sqrt(2 * PI)) * exp(- u * u / 2))
+
+
+struct vrna_SHAPE_data_s {
+  unsigned int          method;
+  double                param1;
+  double                param2;
+  vrna_array(double *)  reactivities;
+  vrna_array(double)    data1;
+  vrna_array(double)    data2;
+};
 
 
 /*
@@ -46,6 +57,26 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
+PRIVATE int
+apply_Deigan2009_method(vrna_fold_compound_t      *fc,
+                        struct vrna_SHAPE_data_s  *data);
+
+
+PRIVATE int
+apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
+                              struct vrna_SHAPE_data_s  *data);
+
+
+PRIVATE int
+apply_Washietl2012_method(vrna_fold_compound_t      *fc,
+                          struct vrna_SHAPE_data_s  *data);
+
+
+PRIVATE int
+apply_Eddy2014_method(vrna_fold_compound_t      *fc,
+                      struct vrna_SHAPE_data_s  *data);
+
+
 PRIVATE void
 sc_parse_parameters(const char  *string,
                     char        c1,
@@ -94,6 +125,97 @@ bandwidth(int n,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
+PUBLIC int
+vrna_sc_SHAPE(vrna_fold_compound_t *fc,
+              double               *reactivities,
+              vrna_SHAPE_data_t    data)
+{
+  int               ret = 0;
+  vrna_SHAPE_data_t d;
+
+  if ((fc) &&
+      ((reactivities) || (data))) {
+    if (!data) {
+      /* use default method for SHAPE data incorporation */
+      d = vrna_SHAPE_data_Deigan2009(reactivities,
+                                     fc->length,
+                                     VRNA_SHAPE_METHOD_DEIGAN2009_DEFAULT_m,
+                                     VRNA_SHAPE_METHOD_DEIGAN2009_DEFAULT_b);
+    } else {
+      d = data;
+    }
+
+    switch (d->method) {
+      case VRNA_SHAPE_METHOD_DEIGAN2009:
+        ret = apply_Deigan2009_method(fc, d);
+        break;
+
+      case VRNA_SHAPE_METHOD_ZARRINGHALAM2012:
+        ret = apply_Zarringhalam2012_method(fc, d);
+        break;
+
+      case VRNA_SHAPE_METHOD_WASHIETL2012:
+        ret = apply_Washietl2012_method(fc, d);
+        break;
+
+      case VRNA_SHAPE_METHOD_EDDY2014:
+        ret = apply_Eddy2014_method(fc, d);
+        break;
+
+      default:
+        break;
+    }
+
+    if (data != d)
+      vrna_SHAPE_data_free(d);
+  }
+
+  return ret;
+}
+
+
+PUBLIC struct vrna_SHAPE_data_s *
+vrna_SHAPE_data_Deigan2009(const double *reactivities,
+                           unsigned int n,
+                           double       m,
+                           double       b)
+{
+  struct vrna_SHAPE_data_s *d = NULL;
+  
+  if (reactivities) {
+    d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
+
+    d->method = VRNA_SHAPE_METHOD_DEIGAN2009;
+    d->param1 = m;
+    d->param2 = b;
+
+    vrna_array_init_size(d->reactivities, 1);
+    vrna_array_init_size(d->reactivities[0], n + 1);
+    vrna_array_init(d->data1);
+    vrna_array_init(d->data2);
+
+    /* fill-in reactivity data */
+    for (unsigned int i = 0; i <= n; i++)
+      d->reactivities[0][i] = (FLT_OR_DBL)reactivities[i];
+  }
+
+  return d;
+}
+
+
+PUBLIC void
+vrna_SHAPE_data_free(struct vrna_SHAPE_data_s *d)
+{
+  if (d) {
+    vrna_array_free(d->reactivities);
+    vrna_array_free(d->data1);
+    vrna_array_free(d->data2);
+
+    free(d);
+  }
+}
+
+
 PUBLIC void
 vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
                            const char           *shape_file,
@@ -131,7 +253,12 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
   vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
   if (method == 'D') {
-    (void)vrna_sc_add_SHAPE_deigan(vc, (const double *)values, p1, p2, constraint_type);
+    vrna_SHAPE_data_t d = vrna_SHAPE_data_Deigan2009(values,
+                                                     length,
+                                                     p1,
+                                                     p2);
+    (void)vrna_sc_SHAPE(vc, NULL, d);
+    vrna_SHAPE_data_free(d);
   } else if (method == 'Z') {
     (void)vrna_sc_add_SHAPE_zarringhalam(vc,
                                          (const double *)values,
@@ -346,24 +473,16 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
                          double               b,
                          unsigned int         options)
 {
-  int         i;
-  FLT_OR_DBL  *values;
+  int         ret = 0;
 
   if ((vc) &&
       (reactivities)) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
-
-        /* first convert the values according to provided slope and intercept values */
-        for (i = 1; i <= vc->length; ++i)
-          values[i] = conversion_deigan(reactivities[i], m, b);
-
-        /* always store soft constraints in plain format */
-        vrna_sc_set_stack(vc, (const FLT_OR_DBL *)values, options);
-        free(values);
-
-        return 1; /* success */
+        vrna_SHAPE_data_t d = vrna_SHAPE_data_Deigan2009(reactivities, vc->length, m, b);
+        ret = vrna_sc_SHAPE(vc, NULL, d);
+        vrna_SHAPE_data_free(d);
+        break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
         vrna_log_warning("vrna_sc_add_SHAPE_deigan() not implemented for comparative prediction! "
@@ -372,7 +491,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
     }
   }
 
-  return 0; /* error */
+  return ret;
 }
 
 
@@ -605,6 +724,69 @@ vrna_sc_add_SHAPE_eddy_2(vrna_fold_compound_t *fc,
   }
   return 0;
 }
+
+
+PRIVATE int
+apply_Deigan2009_method(vrna_fold_compound_t      *fc,
+                        struct vrna_SHAPE_data_s  *data)
+{
+  int ret = 0;
+
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      if (fc->length <= vrna_array_size(data->reactivities)) {
+        FLT_OR_DBL *values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
+
+        /* first convert the values according to provided slope and intercept values */
+        for (unsigned int i = 1; i <= fc->length; ++i)
+          values[i] = conversion_deigan(data->reactivities[0][i], data->param1, data->param2);
+
+        /* always store soft constraints in plain format */
+        vrna_sc_set_stack(fc, (const FLT_OR_DBL *)values, VRNA_OPTION_DEFAULT);
+
+        free(values);
+
+        ret = 1; /* success */
+      }
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break;
+  }
+  
+  return ret;
+}
+
+
+PRIVATE int
+apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
+                              struct vrna_SHAPE_data_s  *data)
+{
+  int ret = 0;
+
+  return ret;
+}
+
+
+PRIVATE int
+apply_Washietl2012_method(vrna_fold_compound_t      *fc,
+                          struct vrna_SHAPE_data_s  *data)
+{
+  int ret = 0;
+
+  return ret;
+}
+
+
+PRIVATE int
+apply_Eddy2014_method(vrna_fold_compound_t      *fc,
+                      struct vrna_SHAPE_data_s  *data)
+{
+  int ret = 0;
+
+  return ret;
+}
+
 
 
 PRIVATE void

@@ -10,6 +10,35 @@
  *  into the folding recursions by means of soft constraints
  */
 
+typedef struct vrna_SHAPE_data_s *vrna_SHAPE_data_t;
+
+
+#define VRNA_SHAPE_METHOD_DEIGAN2009                      1U
+#define VRNA_SHAPE_METHOD_DEIGAN2009_DEFAULT_m            1.8
+#define VRNA_SHAPE_METHOD_DEIGAN2009_DEFAULT_b            -0.6
+#define VRNA_SHAPE_METHOD_ZARRINGHALAM2012                2U
+#define VRNA_SHAPE_METHOD_ZARRINGHALAM2012_DEFAULT_beta   0.89
+#define VRNA_SHAPE_METHOD_WASHIETL2012                    3U
+#define VRNA_SHAPE_METHOD_EDDY2014                        4U
+#define VRNA_SHAPE_METHOD_DEFAULT                         VRNA_SHAPE_METHOD_DEIGAN2009
+
+
+int
+vrna_sc_SHAPE(vrna_fold_compound_t *fc,
+              double               *reactivities,
+              vrna_SHAPE_data_t    data);
+
+
+vrna_SHAPE_data_t
+vrna_SHAPE_data_Deigan2009(const double *reactivities,
+                           unsigned int n,
+                           double       m,
+                           double       b);
+
+void
+vrna_SHAPE_data_free(struct vrna_SHAPE_data_s *d);
+
+
 /**
  *  @ingroup SHAPE_reactivities
  */
