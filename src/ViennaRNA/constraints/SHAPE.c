@@ -32,8 +32,8 @@
 
 struct vrna_SHAPE_data_s {
   unsigned int          method;
-  double                param1;
-  double                param2;
+  vrna_array(double)    params1;
+  vrna_array(double)    params2;
   vrna_array(double *)  reactivities;
   vrna_array(double)    data1;
   vrna_array(double)    data2;
@@ -186,17 +186,68 @@ vrna_SHAPE_data_Deigan2009(const double *reactivities,
     d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
 
     d->method = VRNA_SHAPE_METHOD_DEIGAN2009;
-    d->param1 = m;
-    d->param2 = b;
+    vrna_array_init_size(d->params1, 1);
+    vrna_array_init_size(d->params2, 1);
+    vrna_array_append(d->params1, m);
+    vrna_array_append(d->params2, b);
+
+    /* init and store reactivity data */
+    vrna_array(FLT_OR_DBL)  a;
+    vrna_array_init_size(a, n + 1);
+    for (unsigned int i = 0; i <= n; i++)
+      vrna_array_append(a, (FLT_OR_DBL)reactivities[i]);
 
     vrna_array_init_size(d->reactivities, 1);
-    vrna_array_init_size(d->reactivities[0], n + 1);
+    vrna_array_append(d->reactivities, a);
+
     vrna_array_init(d->data1);
     vrna_array_init(d->data2);
 
-    /* fill-in reactivity data */
-    for (unsigned int i = 0; i <= n; i++)
-      d->reactivities[0][i] = (FLT_OR_DBL)reactivities[i];
+  }
+
+  return d;
+}
+
+
+PUBLIC struct vrna_SHAPE_data_s *
+vrna_SHAPE_data_Deigan2009_comparative(const double       **reactivities,
+                                       const unsigned int *n,
+                                       unsigned int       n_seq,
+                                       double             *ms,
+                                       double             *bs)
+{
+  struct vrna_SHAPE_data_s *d = NULL;
+  
+  if ((reactivities) &&
+      (n) &&
+      (ms) &&
+      (bs)) {
+    d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
+
+    d->method = VRNA_SHAPE_METHOD_DEIGAN2009;
+    vrna_array_init_size(d->params1, n_seq);
+    vrna_array_init_size(d->params2, n_seq);
+    vrna_array_init_size(d->reactivities, n_seq);
+
+    for (unsigned int i = 0; i < n_seq; i++) {
+      vrna_array_append(d->params1, ms[i]);
+      vrna_array_append(d->params2, bs[i]);
+
+      if (reactivities[i]) {
+        /* init and store reactivity data */
+        vrna_array(FLT_OR_DBL)  a;
+        vrna_array_init_size(a, n[i] + 1);
+        for (unsigned int j = 0; j <= n[i]; j++)
+          vrna_array_append(a, (FLT_OR_DBL)reactivities[i][j]);
+
+        vrna_array_append(d->reactivities, a);
+      } else {
+        vrna_array_append(d->reactivities, NULL);
+      }
+    }
+
+    vrna_array_init(d->data1);
+    vrna_array_init(d->data2);
   }
 
   return d;
@@ -207,7 +258,16 @@ PUBLIC void
 vrna_SHAPE_data_free(struct vrna_SHAPE_data_s *d)
 {
   if (d) {
+    /* free all reactivity data */
+    for (unsigned int i = 0; i < vrna_array_size(d->reactivities); i++)
+      vrna_array_free(d->reactivities[i]);
     vrna_array_free(d->reactivities);
+
+    /* free parameters */
+    vrna_array_free(d->params1);
+    vrna_array_free(d->params2);
+
+    /* free auxiliary data */
     vrna_array_free(d->data1);
     vrna_array_free(d->data2);
 
@@ -739,7 +799,7 @@ apply_Deigan2009_method(vrna_fold_compound_t      *fc,
 
         /* first convert the values according to provided slope and intercept values */
         for (unsigned int i = 1; i <= fc->length; ++i)
-          values[i] = conversion_deigan(data->reactivities[0][i], data->param1, data->param2);
+          values[i] = conversion_deigan(data->reactivities[0][i], data->params1[0], data->params2[0]);
 
         /* always store soft constraints in plain format */
         vrna_sc_set_stack(fc, (const FLT_OR_DBL *)values, VRNA_OPTION_DEFAULT);
