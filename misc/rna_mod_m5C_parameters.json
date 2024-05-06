@@ -1,0 +1,31 @@
+{
+  "modified_base" : {
+    "name" : "5-methyl Cytosine (?)",
+    "sources" : [
+      {
+        "authors" : "Melissa C. Hopfinger, Charles C. Kirkpatrick and Brent M. Znosko",
+        "title" : "Predictions and analyses of RNA nearest neighbor parameters for modified nucleotides",
+        "journal" : "Nucleic Acids Research",
+        "year" : 2020,
+        "doi" : "10.1093/nar/gkaa654",
+        "comments" : "Energy parameters taken from supplementary material, one-letter code according to tRNAdb abbreviation for m5C"
+      }
+    ],
+    "unmodified" : "C",
+    "pairing_partners" : [
+      "G"
+    ],
+    "one_letter_code" : "?",
+    "fallback" : "C",
+    "stacking_energies" : {
+      "AGU?" : -1.87,
+      "CGG?" : -2.63,
+      "GGC?" : -2.9,
+      "UGA?" : -2.01,
+      "GA?U" : -2.06,
+      "GC?G" : -3.07,
+      "GG?C" : -3.03,
+      "GU?A" : -1.97 
+    }
+  }
+}

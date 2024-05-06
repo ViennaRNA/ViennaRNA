@@ -115,6 +115,7 @@ section "Core" sec_core
   File /oname=Misc\rna_mod_7DA_parameters.json ../misc/rna_mod_7DA_parameters.json
   File /oname=Misc\rna_mod_dihydrouridine_parameters.json ../misc/rna_mod_dihydrouridine_parameters.json
   File /oname=Misc\rna_mod_inosine_parameters.json ../misc/rna_mod_inosine_parameters.json
+  File /oname=Misc\rna_mod_m5C_parameters.json ../misc/rna_mod_m5C_parameters.json
   File /oname=Misc\rna_mod_m6A_parameters.json ../misc/rna_mod_m6A_parameters.json
   File /oname=Misc\rna_mod_pseudouridine_parameters.json ../misc/rna_mod_pseudouridine_parameters.json
   File /oname=Misc\rna_mod_purine_parameters.json ../misc/rna_mod_purine_parameters.json
@@ -245,6 +246,7 @@ section "Uninstall"
   delete $INSTDIR\Misc\rna_mod_7DA_parameters.json
   delete $INSTDIR\Misc\rna_mod_dihydrouridine_parameters.json
   delete $INSTDIR\Misc\rna_mod_inosine_parameters.json
+  delete $INSTDIR\Misc\rna_mod_m5C_parameters.json
   delete $INSTDIR\Misc\rna_mod_m6A_parameters.json
   delete $INSTDIR\Misc\rna_mod_pseudouridine_parameters.json
   delete $INSTDIR\Misc\rna_mod_purine_parameters.json

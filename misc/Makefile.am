@@ -9,6 +9,7 @@ energy_parameter_files = \
     rna_misc_special_hairpins.par \
     rna_mod_7DA_parameters.json \
     rna_mod_inosine_parameters.json \
+    rna_mod_m5C_parameters.json \
     rna_mod_m6A_parameters.json \
     rna_mod_pseudouridine_parameters.json \
     rna_mod_purine_parameters.json \
