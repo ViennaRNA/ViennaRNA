@@ -25,7 +25,6 @@ typedef struct vrna_SHAPE_data_s *vrna_SHAPE_data_t;
 
 int
 vrna_sc_SHAPE(vrna_fold_compound_t *fc,
-              double               *reactivities,
               vrna_SHAPE_data_t    data);
 
 
@@ -34,6 +33,29 @@ vrna_SHAPE_data_Deigan2009(const double *reactivities,
                            unsigned int n,
                            double       m,
                            double       b);
+
+
+vrna_SHAPE_data_t
+vrna_SHAPE_data_Deigan2009_comparative(const double       **reactivities,
+                                       const unsigned int *n,
+                                       unsigned int       n_seq,
+                                       double             *ms,
+                                       double             *bs);
+
+vrna_SHAPE_data_t
+vrna_SHAPE_data_Zarringhalam2012(const double *reactivities,
+                                 unsigned int n,
+                                 double       beta,
+                                 const char   *pr_conversion,
+                                 double       pr_default);
+
+vrna_SHAPE_data_t
+vrna_SHAPE_data_Zarringhalam2012_comparative(const double **reactivities,
+                                             unsigned int *n,
+                                             unsigned int n_seq,
+                                             double       *betas,
+                                             const char   **pr_conversions,
+                                             double       *pr_defaults);
 
 void
 vrna_SHAPE_data_free(struct vrna_SHAPE_data_s *d);

@@ -35,8 +35,8 @@ struct vrna_SHAPE_data_s {
   vrna_array(double)    params1;
   vrna_array(double)    params2;
   vrna_array(double *)  reactivities;
-  vrna_array(double)    data1;
-  vrna_array(double)    data2;
+  vrna_array(double *)  datas1;
+  vrna_array(double *)  datas2;
 };
 
 
@@ -127,47 +127,31 @@ bandwidth(int n,
  */
 PUBLIC int
 vrna_sc_SHAPE(vrna_fold_compound_t *fc,
-              double               *reactivities,
               vrna_SHAPE_data_t    data)
 {
   int               ret = 0;
-  vrna_SHAPE_data_t d;
 
-  if ((fc) &&
-      ((reactivities) || (data))) {
-    if (!data) {
-      /* use default method for SHAPE data incorporation */
-      d = vrna_SHAPE_data_Deigan2009(reactivities,
-                                     fc->length,
-                                     VRNA_SHAPE_METHOD_DEIGAN2009_DEFAULT_m,
-                                     VRNA_SHAPE_METHOD_DEIGAN2009_DEFAULT_b);
-    } else {
-      d = data;
-    }
-
-    switch (d->method) {
+  if ((fc) && (data)) {
+    switch (data->method) {
       case VRNA_SHAPE_METHOD_DEIGAN2009:
-        ret = apply_Deigan2009_method(fc, d);
+        ret = apply_Deigan2009_method(fc, data);
         break;
 
       case VRNA_SHAPE_METHOD_ZARRINGHALAM2012:
-        ret = apply_Zarringhalam2012_method(fc, d);
+        ret = apply_Zarringhalam2012_method(fc, data);
         break;
 
       case VRNA_SHAPE_METHOD_WASHIETL2012:
-        ret = apply_Washietl2012_method(fc, d);
+        ret = apply_Washietl2012_method(fc, data);
         break;
 
       case VRNA_SHAPE_METHOD_EDDY2014:
-        ret = apply_Eddy2014_method(fc, d);
+        ret = apply_Eddy2014_method(fc, data);
         break;
 
       default:
         break;
     }
-
-    if (data != d)
-      vrna_SHAPE_data_free(d);
   }
 
   return ret;
@@ -182,28 +166,12 @@ vrna_SHAPE_data_Deigan2009(const double *reactivities,
 {
   struct vrna_SHAPE_data_s *d = NULL;
   
-  if (reactivities) {
-    d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
-
-    d->method = VRNA_SHAPE_METHOD_DEIGAN2009;
-    vrna_array_init_size(d->params1, 1);
-    vrna_array_init_size(d->params2, 1);
-    vrna_array_append(d->params1, m);
-    vrna_array_append(d->params2, b);
-
-    /* init and store reactivity data */
-    vrna_array(FLT_OR_DBL)  a;
-    vrna_array_init_size(a, n + 1);
-    for (unsigned int i = 0; i <= n; i++)
-      vrna_array_append(a, (FLT_OR_DBL)reactivities[i]);
-
-    vrna_array_init_size(d->reactivities, 1);
-    vrna_array_append(d->reactivities, a);
-
-    vrna_array_init(d->data1);
-    vrna_array_init(d->data2);
-
-  }
+  if (reactivities)
+    d = vrna_SHAPE_data_Deigan2009_comparative(&reactivities,
+                                               &n,
+                                               1,
+                                               &m,
+                                               &b);
 
   return d;
 }
@@ -246,8 +214,105 @@ vrna_SHAPE_data_Deigan2009_comparative(const double       **reactivities,
       }
     }
 
-    vrna_array_init(d->data1);
-    vrna_array_init(d->data2);
+    vrna_array_init(d->datas1);
+    vrna_array_init(d->datas2);
+  }
+
+  return d;
+}
+
+
+PUBLIC struct vrna_SHAPE_data_s *
+vrna_SHAPE_data_Zarringhalam2012(const double *reactivities,
+                                 unsigned int n,
+                                 double       beta,
+                                 const char   *pr_conversion,
+                                 double       pr_default)
+{
+  struct vrna_SHAPE_data_s *d = NULL;
+  
+  if (reactivities) {
+    d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
+
+    d->method = VRNA_SHAPE_METHOD_ZARRINGHALAM2012;
+    vrna_array_init_size(d->params1, 1);
+    vrna_array_init(d->params2);
+    vrna_array_append(d->params1, beta);
+
+    /* init and store reactivity data */
+    vrna_array(FLT_OR_DBL)  a;
+    vrna_array_init_size(a, n + 1);
+    for (unsigned int i = 0; i <= n; i++)
+      vrna_array_append(a, (FLT_OR_DBL)reactivities[i]);
+
+    vrna_array_init_size(d->reactivities, 1);
+    vrna_array_append(d->reactivities, a);
+
+    /* prepare probability data according to pr_conversion strategy */
+    vrna_array(FLT_OR_DBL)  pr;
+    vrna_array_init_size(pr, n + 1);
+    for (unsigned int i = 0; i <= n; i++)
+      vrna_array_append(pr, (FLT_OR_DBL)reactivities[i]);
+    
+    vrna_sc_SHAPE_to_pr(pr_conversion, pr, n, pr_default);
+
+    vrna_array_init_size(d->datas1, 1);
+    vrna_array_append(d->datas1, pr);
+
+
+    vrna_array_init(d->datas2);
+  }
+
+  return d;
+}
+
+
+PUBLIC struct vrna_SHAPE_data_s *
+vrna_SHAPE_data_Zarringhalam2012_comparative(const double **reactivities,
+                                             unsigned int *n,
+                                             unsigned int n_seq,
+                                             double       *betas,
+                                             const char   **pr_conversions,
+                                             double       *pr_defaults)
+{
+  struct vrna_SHAPE_data_s *d = NULL;
+  
+  if (reactivities) {
+    d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
+
+    d->method = VRNA_SHAPE_METHOD_ZARRINGHALAM2012;
+    vrna_array_init_size(d->params1, n_seq);
+    vrna_array_init(d->params2);
+    vrna_array_init_size(d->reactivities, n_seq);
+    vrna_array_init_size(d->datas1, n_seq);
+
+    for (unsigned int i = 0; i < n_seq; i++) {
+      vrna_array_append(d->params1, betas[i]);
+
+      if (reactivities[i]) {
+        /* init and store reactivity data */
+        vrna_array(FLT_OR_DBL)  a;
+        vrna_array_init_size(a, n[i] + 1);
+        for (unsigned int j = 0; j <= n[i]; j++)
+          vrna_array_append(a, (FLT_OR_DBL)reactivities[i][j]);
+
+        vrna_array_append(d->reactivities, a);
+
+        /* prepare probability data according to pr_conversion strategy */
+        vrna_array(FLT_OR_DBL)  pr;
+        vrna_array_init_size(pr, n[i] + 1);
+        for (unsigned int j = 0; j <= n[i]; j++)
+          vrna_array_append(pr, (FLT_OR_DBL)reactivities[i][j]);
+    
+        vrna_sc_SHAPE_to_pr(pr_conversions[i], pr, n[i], pr_defaults[i]);
+        vrna_array_append(d->datas1, pr);
+      } else {
+        vrna_array_append(d->reactivities, NULL);
+        vrna_array_append(d->datas1, NULL);
+      }
+    }
+
+    vrna_array_init(d->datas2);
   }
 
   return d;
@@ -268,8 +333,15 @@ vrna_SHAPE_data_free(struct vrna_SHAPE_data_s *d)
     vrna_array_free(d->params2);
 
     /* free auxiliary data */
-    vrna_array_free(d->data1);
-    vrna_array_free(d->data2);
+    for (unsigned int i = 0; i < vrna_array_size(d->datas1); i++)
+      vrna_array_free(d->datas1[i]);
+
+    vrna_array_free(d->datas1);
+
+    for (unsigned int i = 0; i < vrna_array_size(d->datas2); i++)
+      vrna_array_free(d->datas2[i]);
+
+    vrna_array_free(d->datas2);
 
     free(d);
   }
@@ -284,11 +356,12 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
                            int                  verbose,
                            unsigned int         constraint_type)
 {
-  float   p1, p2;
-  char    method;
-  char    *sequence;
-  double  *values;
-  int     i, length = vc->length;
+  float             p1, p2;
+  char              method;
+  char              *sequence;
+  double            *values;
+  int               i, length = vc->length;
+  vrna_SHAPE_data_t d = NULL;
 
   if (!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) {
     vrna_log_warning("Method for SHAPE reactivity data conversion not recognized!");
@@ -312,30 +385,37 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
   values    = vrna_alloc(sizeof(double) * (length + 1));
   vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
-  if (method == 'D') {
-    vrna_SHAPE_data_t d = vrna_SHAPE_data_Deigan2009(values,
-                                                     length,
-                                                     p1,
-                                                     p2);
-    (void)vrna_sc_SHAPE(vc, NULL, d);
-    vrna_SHAPE_data_free(d);
-  } else if (method == 'Z') {
-    (void)vrna_sc_add_SHAPE_zarringhalam(vc,
-                                         (const double *)values,
-                                         p1,
-                                         0.5,
-                                         shape_conversion,
-                                         constraint_type);
-  } else {
-    assert(method == 'W');
-    FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
-    for (i = 0; i < length; i++)
-      v[i] = values[i];
+  switch (method) {
+    case 'D':
+      d = vrna_SHAPE_data_Deigan2009(values,
+                                     length,
+                                     p1,
+                                     p2);
+      break;
 
-    vrna_sc_set_up(vc, v, constraint_type);
+    case 'Z':
+      d = vrna_SHAPE_data_Zarringhalam2012(values,
+                                           length,
+                                           p1,
+                                           shape_conversion,
+                                           0.5);
+      break;
 
-    free(v);
+    case 'W':
+      FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
+      for (i = 0; i < length; i++)
+        v[i] = values[i];
+
+      vrna_sc_set_up(vc, v, constraint_type);
+      free(v);
+      free(values);
+      free(sequence);
+
+      return;
   }
+
+  (void)vrna_sc_SHAPE(vc, d);
+  vrna_SHAPE_data_free(d);
 
   free(values);
   free(sequence);
@@ -477,49 +557,19 @@ vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *vc,
                                const char           *shape_conversion,
                                unsigned int         options)
 {
-  int         i, j, n, ret;
-  double      *pr;
-  FLT_OR_DBL  *up, **bp;
-  vrna_md_t   *md;
+  int ret;
 
   ret = 0; /* error */
 
-  if (vc && reactivities && (vc->type == VRNA_FC_TYPE_SINGLE)) {
-    n   = vc->length;
-    md  = &(vc->params->model_details);
-
-    /* first we copy over the reactivities to convert them into probabilities later on */
-    pr = (double *)vrna_alloc(sizeof(double) * (n + 1));
-    for (i = 0; i <= n; i++)
-      pr[i] = reactivities[i];
-
-    if (vrna_sc_SHAPE_to_pr(shape_conversion, pr, n, default_value)) {
-      /*  now, convert them into pseudo free energies for unpaired, and
-       *  paired nucleotides
-       */
-      up  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
-      bp  = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
-      for (i = 1; i <= n; ++i) {
-        up[i] = b * fabs(pr[i] - 1);
-        bp[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
-        for (j = i + md->min_loop_size + 1; j <= n; ++j)
-          bp[i][j] = b * (pr[i] + pr[j]);
-      }
-
-      /* add the pseudo energies as soft constraints */
-      vrna_sc_set_up(vc, (const FLT_OR_DBL *)up, options);
-      vrna_sc_set_bp(vc, (const FLT_OR_DBL **)bp, options);
-
-      /* clean up memory */
-      for (i = 1; i <= n; ++i)
-        free(bp[i]);
-      free(bp);
-      free(up);
-
-      ret = 1; /* success */
-    }
-
-    free(pr);
+  if ((vc) &&
+      (reactivities && (vc->type == VRNA_FC_TYPE_SINGLE))) {
+    vrna_SHAPE_data_t d = vrna_SHAPE_data_Zarringhalam2012(reactivities,
+                                                           vc->length,
+                                                           b,
+                                                           shape_conversion,
+                                                           default_value);
+    ret = vrna_sc_SHAPE(vc, d);
+    vrna_SHAPE_data_free(d);
   }
 
   return ret;
@@ -540,7 +590,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
         vrna_SHAPE_data_t d = vrna_SHAPE_data_Deigan2009(reactivities, vc->length, m, b);
-        ret = vrna_sc_SHAPE(vc, NULL, d);
+        ret = vrna_sc_SHAPE(vc, d);
         vrna_SHAPE_data_free(d);
         break;
 
@@ -790,27 +840,71 @@ PRIVATE int
 apply_Deigan2009_method(vrna_fold_compound_t      *fc,
                         struct vrna_SHAPE_data_s  *data)
 {
-  int ret = 0;
+  unsigned int  i, s, n, n_data, **a2s;
+  int           ret;
+  FLT_OR_DBL    energy, *vs, **cvs;
+
+  ret = 0;
+  n   = fc->length;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
-      if (fc->length <= vrna_array_size(data->reactivities)) {
-        FLT_OR_DBL *values = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
+      if ((vrna_array_size(data->reactivities) > 0) &&
+          (n <= vrna_array_size(data->reactivities[0]))) {
+        vs = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
 
         /* first convert the values according to provided slope and intercept values */
-        for (unsigned int i = 1; i <= fc->length; ++i)
-          values[i] = conversion_deigan(data->reactivities[0][i], data->params1[0], data->params2[0]);
+        for (i = 1; i <= n; ++i)
+          vs[i] = conversion_deigan(data->reactivities[0][i], data->params1[0], data->params2[0]);
 
         /* always store soft constraints in plain format */
-        vrna_sc_set_stack(fc, (const FLT_OR_DBL *)values, VRNA_OPTION_DEFAULT);
+        ret = vrna_sc_set_stack(fc, (const FLT_OR_DBL *)vs, VRNA_OPTION_DEFAULT);
 
-        free(values);
-
-        ret = 1; /* success */
+        free(vs);
       }
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
+      if (vrna_array_size(data->reactivities) >= fc->n_seq) {
+        a2s = fc->a2s;
+
+        /* collect contributions for the sequences in the alignment */
+        cvs = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (fc->n_seq));
+
+        for (n_data = s = 0; s < fc->n_seq; s++)
+          if (data->reactivities[s] != NULL)
+            n_data++;
+
+        FLT_OR_DBL weight = (n_data > 0) ? ((FLT_OR_DBL)fc->n_seq / (FLT_OR_DBL)n_data) : 0.;
+
+        for (s = 0; s < fc->n_seq; s++) {
+          if (data->reactivities[s] != NULL) {
+            /*  begin preparation of the pseudo energies */
+            /*  beware of the fact that energy_stack will be accessed through a2s[s] array,
+             *  hence pseudo_energy might be gap-free (default)
+             */
+            unsigned int gaps, is_gap;
+            cvs[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+            for (gaps = 0, i = 1; i <= n; i++) {
+              is_gap  = (fc->sequences[s][i - 1] == '-') ? 1 : 0;
+              energy  = 0;
+              if ((i - gaps > 0) && !(is_gap))
+                energy = conversion_deigan(data->reactivities[s][i - gaps],
+                                           data->params1[s],
+                                           data->params2[s]) * weight;
+
+              if (fc->params->model_details.oldAliEn)
+                cvs[s][i] = energy;
+              else if (!is_gap)
+                cvs[s][a2s[s][i]] = energy;
+
+              gaps += is_gap;
+            }
+          }
+        }
+
+        ret = vrna_sc_set_stack_comparative(fc, (const FLT_OR_DBL **)cvs, VRNA_OPTION_DEFAULT);
+      }
       break;
   }
   
@@ -822,7 +916,54 @@ PRIVATE int
 apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
                               struct vrna_SHAPE_data_s  *data)
 {
-  int ret = 0;
+  unsigned int  i, j, n;
+  int           ret;
+  FLT_OR_DBL    *up, **bp;
+  double        *pr, b;
+
+  n   = fc->length;
+  ret = 0;
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      if ((vrna_array_size(data->datas1) > 0) &&
+          (n <= vrna_array_size(data->datas1[0]))) {
+        /*  now, convert probabilities into pseudo free energies for unpaired, and
+         *  paired nucleotides
+         */
+        pr  = data->datas1[0];
+        b   = data->params1[0];
+
+        up  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+        bp  = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
+
+        for (i = 1; i <= n; ++i) {
+          bp[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+          up[i] = b * fabs(pr[i] - 1);
+
+          for (j = i + 1; j <= n; ++j)
+            bp[i][j] = b * (pr[i] + pr[j]);
+        }
+
+        /* add the pseudo energies as soft constraints */
+        vrna_sc_set_up(fc, (const FLT_OR_DBL *)up, VRNA_OPTION_DEFAULT);
+        vrna_sc_set_bp(fc, (const FLT_OR_DBL **)bp, VRNA_OPTION_DEFAULT);
+
+        /* clean up memory */
+        for (i = 1; i <= n; ++i)
+          free(bp[i]);
+        free(bp);
+        free(up);
+
+        ret = 1; /* success */
+      }
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      if (vrna_array_size(data->reactivities) >= fc->n_seq) {
+        
+      }
+      break;
+  }
 
   return ret;
 }
@@ -832,7 +973,16 @@ PRIVATE int
 apply_Washietl2012_method(vrna_fold_compound_t      *fc,
                           struct vrna_SHAPE_data_s  *data)
 {
-  int ret = 0;
+  int ret;
+
+  ret = 0;
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      break;
+  }
 
   return ret;
 }
