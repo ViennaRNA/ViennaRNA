@@ -220,7 +220,7 @@
         if ((SvOK(callback)) &&
             (SvROK(callback)) &&
             (SvTYPE(SvRV(callback)) == SVt_PVAV)) {
-          if ((av_top_index((AV *)SvRV(callback)) + 1) < (int)vc->n_seq) {
+          if ((av_len((AV *)SvRV(callback)) + 1) < (int)vc->n_seq) {
             fprintf(stderr,
                     "Warning: invalid argument for fold_compound::sc_add_f: Too few code references in array\n");
             return 0;
@@ -316,7 +316,7 @@
         if ((SvOK(callback)) &&
             (SvROK(callback)) &&
             (SvTYPE(SvRV(callback)) == SVt_PVAV)) {
-          if ((av_top_index((AV *)SvRV(callback)) + 1) < (int)vc->n_seq) {
+          if ((av_len((AV *)SvRV(callback)) + 1) < (int)vc->n_seq) {
             fprintf(stderr,
                     "Warning: invalid argument for fold_compound::sc_add_exp_f: Too few code references in array\n");
             return 0;
@@ -469,7 +469,7 @@
         if ((SvOK(data)) &&
             (SvROK(data)) &&
             (SvTYPE(SvRV(data)) == SVt_PVAV)) {
-          if ((av_top_index((AV *)SvRV(data)) + 1) < (int)vc->n_seq) {
+          if ((av_len((AV *)SvRV(data)) + 1) < (int)vc->n_seq) {
             fprintf(stderr,
                     "Warning: invalid argument for fold_compound::sc_add_data: Too few code references in array\n");
             return 0;
@@ -481,7 +481,7 @@
         if ((SvOK(PerlFunc)) &&
             (SvROK(PerlFunc)) &&
             (SvTYPE(SvRV(PerlFunc)) == SVt_PVAV))
-          if ((av_top_index((AV *)SvRV(PerlFunc)) + 1) >= (int)vc->n_seq)
+          if ((av_len((AV *)SvRV(PerlFunc)) + 1) >= (int)vc->n_seq)
             free_data_good = 1;
 
         if (data_good) {
