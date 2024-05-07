@@ -23,6 +23,7 @@
 # endif
 #endif
 
+#define DEBUG
 
 /*
  #################################
@@ -860,11 +861,11 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
 #ifdef DEBUG
   char          bp[3] = {
     0
-  }, *bpairs[7] = {
-    "NN", "CG", "GC", "GU", "UG", "AU", "UA"
+  }, *bpairs[8] = {
+    "NN", "CG", "GC", "GU", "UG", "AU", "UA", "XX"
   };
 #endif
-  unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM;
+  unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM, pair_enc, pair_enc_rot;
   int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
   (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
   double        tempf;
@@ -878,8 +879,91 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
   nt[5]     = params->one_letter_code;
 
   if (params->available & MOD_PARAMS_MISMATCH_dG) {
+    /*  go through all enclosing base pair types, including those that
+     *  arise from the modification. Here we assume that any pair that
+     *  involves a modified base is present in both directions, hence
+     *  'params->num_ptypes' == 2 * num_pairing partners of the modified
+     *  base.
+     */
+    for (i = 1; i <= NBPAIRS + params->num_ptypes; i++) {
+      if (i <= NBPAIRS) {
+        /* 'regular' enclosing pairs */
+        pair_enc = i;
+#ifdef DEBUG
+        bp[0] = bpairs[i][0];
+        bp[1] = bpairs[i][1];
+#endif
+      } else {
+        /* an enclosing pair with a modification */
+        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
+        /* pair type of unmodified version as encoded in RNAlib */
+        if ((i - NBPAIRS - 1) % 2) {
+          pair_enc = md->pair[enc_unmod][enc_pp];
+#ifdef DEBUG
+          bp[1] = nt[5];
+          bp[0] = nt[enc_pp];
+#endif
+        } else {
+          pair_enc = md->pair[enc_pp][enc_unmod];
+#ifdef DEBUG
+          bp[0] = nt[5];
+          bp[1] = nt[enc_pp];
+#endif
+        }
+        if (pair_enc == 0)
+          pair_enc = 7;
+      }
+
+      for (si = 1; si < MAX_ALPHABET; si++) {
+        for (sj = 1; sj < MAX_ALPHABET; sj++) {
+          if (si == 5)
+            siu = enc_unmod;
+          else
+            siu = si;
+
+          if (sj == 5)
+            sju = enc_unmod;
+          else
+            sju = sj;
+
+          if ((*dG)[i][si][sj] != INF) {
+            if (params->available & MOD_PARAMS_MISMATCH_dH)
+              e = (*dH)[i][si][sj] - ((*dH)[i][si][sj] - (*dG)[i][si][sj]) * tempf;
+            else
+              e = (*dG)[i][si][sj];
+
+            /*
+             * take mismatch energies from multiloops as they do not contain anything
+             * but mismatch contributions. Also note, that multiloop mismatches are
+             * stored such that unpaired bases are outside of pair, in contrast to
+             * considering the unpaired bases enclosed. Thus, the pair and 5' and 3'
+             * unpaired bases must be rotatated
+             */
+            diffs->mismatch_diff[i][si][sj] = e - P->mismatchM[pair_enc][sju][siu];
+#ifdef DEBUG
+            printf("d_mm(%c%c, %c, %c) = %d = %d - %d\n",
+                   bp[0],
+                   bp[1],
+                   nt[si],
+                   nt[sj],
+                   diffs->mismatch_diff[i][si][sj],
+                   e,
+                   P->mismatchM[pair_enc][sju][siu]);
+#endif
+          }
+        }
+      }
+    }
+#if 0
     /* process all closing pairs without modified bases */
     for (i = 1; i <= params->num_ptypes + NBPAIRS; i += 2) {
+      pair_enc      = i;
+      pair_enc_rot  = i + 1;
+
+      if (i == NBPAIRS) {
+        i--;
+        continue;
+      }
       if (i > NBPAIRS) {
         /* closing pair consists of at least one modified base */
         enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
@@ -973,6 +1057,7 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
         }
       }
     }
+#endif
   }
 }
 
@@ -1343,8 +1428,8 @@ sc_PAIR_IL_mismatch(vrna_fold_compound_t  *fc,
                     int                   l,
                     void                  *d)
 {
-  if (((k - i - 1) > 2) &&
-      ((j - l - 1) > 2))
+  if (((k - i) > 1) &&
+      ((j - l) > 1))
     return mismatch(fc, i, j, (energy_corrections *)d) +
            mismatch(fc, l, k, (energy_corrections *)d);
 

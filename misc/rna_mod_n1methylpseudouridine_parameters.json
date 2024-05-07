@@ -12,7 +12,7 @@
     ],
     "unmodified": "U",
     "pairing_partners": [
-      "A"
+      "A", "G"
     ],
     "one_letter_code": "1",
     "fallback": "U",
@@ -24,15 +24,15 @@
       "A1UA": -1.870,
       "1UAA": -1.326,
       "U1AA": -1.538,
-      "1AAU": -1.864
+      "1AAU": -1.864,
+      "G1CG": -3.255,
+      "1CGG": -2.123
     },
     "mismatch_energies": {
-      "G1CG": -3.255,
-      "1CGG": -2.123,
       "G1CU": -2.421,
-      "1CUG": -1.757,
+      "GUC1": -1.757,
       "G1CC": -2.491,
-      "1CCG": -1.824
+      "GCC1": -1.824
     },
     "duplexes": {
       "UCAG1CAGUAGUCAGUCA": {
@@ -40,7 +40,7 @@
         "length2": 9,
         "dG37_p": -13.471
       },
-      "UCAC1GAGUAGUUAAUCA": {
+      "UCAC1GAGUAGUGACUCA": {
         "length1": 9,
         "length2": 9,
         "dG37_p": -13.39
