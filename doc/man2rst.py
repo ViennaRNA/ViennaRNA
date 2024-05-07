@@ -80,7 +80,7 @@ def process_lines(filehandle):
             continue
 
         # do a lot of replacements
-        line = line.replace('\-', '-').replace('\n\r', '\n')
+        line = line.replace('\\-', '-').replace('\n\r', '\n')
 
         for bp in bold_pat:
             line = bp.sub(r'**\1**', line)
