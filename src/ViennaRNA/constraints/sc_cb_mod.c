@@ -865,7 +865,7 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
     "NN", "CG", "GC", "GU", "UG", "AU", "UA", "XX"
   };
 #endif
-  unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_MP, pair_PM, pair_enc, pair_enc_rot;
+  unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_enc;
   int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
   (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
   double        tempf;
@@ -954,110 +954,6 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
         }
       }
     }
-#if 0
-    /* process all closing pairs without modified bases */
-    for (i = 1; i <= params->num_ptypes + NBPAIRS; i += 2) {
-      pair_enc      = i;
-      pair_enc_rot  = i + 1;
-
-      if (i == NBPAIRS) {
-        i--;
-        continue;
-      }
-      if (i > NBPAIRS) {
-        /* closing pair consists of at least one modified base */
-        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
-        /* pair type of unmodified version as encoded in RNAlib */
-        pair_MP = md->pair[enc_unmod][enc_pp];
-        pair_PM = md->pair[enc_pp][enc_unmod];
-
-#ifdef DEBUG
-        bp[0] = nt[5];
-        bp[1] = nt[enc_pp];
-#endif
-      } else {
-        /* closing pair is regular base pair without modified bases */
-        pair_MP = i;
-        pair_PM = i + 1;
-#ifdef DEBUG
-        bp[0] = bpairs[i][0];
-        bp[1] = bpairs[i][1];
-#endif
-      }
-
-      if (pair_MP == 0)
-        pair_MP = 7;
-
-      if (pair_PM == 0)
-        pair_PM = 7;
-
-      for (si = 1; si < MAX_ALPHABET; si++) {
-        for (sj = 1; sj < MAX_ALPHABET; sj++) {
-          if (si == 5)
-            siu = enc_unmod;
-          else
-            siu = si;
-
-          if (sj == 5)
-            sju = enc_unmod;
-          else
-            sju = sj;
-
-          if ((*dG)[i][si][sj] != INF) {
-            if (params->available & MOD_PARAMS_MISMATCH_dH)
-              e = (*dH)[i][si][sj] - ((*dH)[i][si][sj] - (*dG)[i][si][sj]) * tempf;
-            else
-              e = (*dG)[i][si][sj];
-
-            /*
-             * take mismatch energies from multiloops as they do not contain anything
-             * but mismatch contributions. Also note, that multiloop mismatches are
-             * stored such that unpaired bases are outside of pair, in contrast to
-             * considering the unpaired bases enclosed. Thus, the pair and 5' and 3'
-             * unpaired bases must be rotatated
-             */
-            diffs->mismatch_diff[i][si][sj] = e - P->mismatchM[pair_PM][sju][siu];
-#ifdef DEBUG
-            printf("d_mm(%c%c, %c, %c) = %d = %d - %d\n",
-                   bp[0],
-                   bp[1],
-                   nt[si],
-                   nt[sj],
-                   diffs->mismatch_diff[i][si][sj],
-                   e,
-                   P->mismatchM[pair_PM][sju][siu]);
-#endif
-          }
-
-          if ((*dG)[i + 1][si][sj] != INF) {
-            if (params->available & MOD_PARAMS_MISMATCH_dH)
-              e = (*dH)[i + 1][si][sj] - ((*dH)[i + 1][si][sj] - (*dG)[i + 1][si][sj]) * tempf;
-            else
-              e = (*dG)[i + 1][si][sj];
-
-            /*
-             * take mismatch energies from multiloops as they do not contain anything
-             * but mismatch contributions. Also note, that multiloop mismatches are
-             * stored such that unpaired bases are outside of pair, in contrast to
-             * considering the unpaired bases enclosed. Thus, the pair and 5' and 3'
-             * unpaired bases must be rotatated
-             */
-            diffs->mismatch_diff[i + 1][si][sj] = e - P->mismatchM[pair_MP][sju][siu];
-#ifdef DEBUG
-            printf("d_mm(%c%c, %c, %c) = %d = %d - %d\n",
-                   bp[1],
-                   bp[0],
-                   nt[si],
-                   nt[sj],
-                   diffs->mismatch_diff[i + 1][si][sj],
-                   e,
-                   P->mismatchM[pair_MP][sju][siu]);
-#endif
-          }
-        }
-      }
-    }
-#endif
   }
 }
 
@@ -1078,7 +974,7 @@ init_dangles(struct vrna_sc_mod_param_s *params,
     "NN", "CG", "GC", "GU", "UG", "AU", "UA"
   };
 #endif
-  unsigned int  i, si, enc_unmod, enc_pp, siu, pair_MP, pair_PM;
+  unsigned int  i, si, enc_unmod, enc_pp, siu, pair_enc;
   int           e, (*dG5)[MAX_PAIRS][MAX_ALPHABET], (*dH5)[MAX_PAIRS][MAX_ALPHABET],
   (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
   double        tempf;
@@ -1095,33 +991,34 @@ init_dangles(struct vrna_sc_mod_param_s *params,
 
   if (params->available & MOD_PARAMS_DANGLES_dG) {
     /* process all closing pairs without modified bases */
-    for (i = 1; i <= params->num_ptypes + NBPAIRS; i += 2) {
-      if (i > NBPAIRS) {
-        /* closing pair consists of at least one modified base */
-        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
-        /* pair type of unmodified version as encoded in RNAlib */
-        pair_MP = md->pair[enc_unmod][enc_pp];
-        pair_PM = md->pair[enc_pp][enc_unmod];
-
-#ifdef DEBUG
-        bp[0] = nt[5];
-        bp[1] = nt[enc_pp];
-#endif
-      } else {
-        /* closing pair is regular base pair without modified bases */
-        pair_MP = i;
-        pair_PM = i + 1;
+    for (i = 1; i <= NBPAIRS + params->num_ptypes; i++) {
+      if (i <= NBPAIRS) {
+        /* 'regular' enclosing pairs */
+        pair_enc = i;
 #ifdef DEBUG
         bp[0] = bpairs[i][0];
         bp[1] = bpairs[i][1];
 #endif
+      } else {
+        /* an enclosing pair with a modification */
+        enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
+        /* pair type of unmodified version as encoded in RNAlib */
+        if ((i - NBPAIRS - 1) % 2) {
+          pair_enc = md->pair[enc_unmod][enc_pp];
+#ifdef DEBUG
+          bp[1] = nt[5];
+          bp[0] = nt[enc_pp];
+#endif
+        } else {
+          pair_enc = md->pair[enc_pp][enc_unmod];
+#ifdef DEBUG
+          bp[0] = nt[5];
+          bp[1] = nt[enc_pp];
+#endif
+        }
+        if (pair_enc == 0)
+          pair_enc = 7;
       }
-
-      if (pair_MP == 0)
-        pair_MP = 7;
-
-      if (pair_PM == 0)
-        pair_PM = 7;
 
       for (si = 1; si < MAX_ALPHABET; si++) {
         if (si == 5)
@@ -1140,7 +1037,7 @@ init_dangles(struct vrna_sc_mod_param_s *params,
            * outside of pair, in contrast to considering the unpaired bases
            * enclosed. Thus, the pair must be rotatated
            */
-          diffs->dangle5_diff[i][si] = e - P->dangle5[pair_PM][siu];
+          diffs->dangle5_diff[i][si] = e - P->dangle5[pair_enc][siu];
 #ifdef DEBUG
           printf("d_d5(%c%c, %c) = %d = %d - %d\n",
                  bp[0],
@@ -1148,7 +1045,7 @@ init_dangles(struct vrna_sc_mod_param_s *params,
                  nt[si],
                  diffs->dangle5_diff[i][si],
                  e,
-                 P->dangle5[pair_PM][siu]);
+                 P->dangle5[pair_enc][siu]);
 #endif
         }
 
@@ -1163,7 +1060,7 @@ init_dangles(struct vrna_sc_mod_param_s *params,
            * outside of pair, in contrast to considering the unpaired bases
            * enclosed. Thus, the pair must be rotatated
            */
-          diffs->dangle3_diff[i][si] = e - P->dangle3[pair_PM][siu];
+          diffs->dangle3_diff[i][si] = e - P->dangle3[pair_enc][siu];
 #ifdef DEBUG
           printf("d_d3(%c%c, %c) = %d = %d - %d\n",
                  bp[0],
@@ -1171,53 +1068,7 @@ init_dangles(struct vrna_sc_mod_param_s *params,
                  nt[si],
                  diffs->dangle3_diff[i][si],
                  e,
-                 P->dangle3[pair_PM][siu]);
-#endif
-        }
-
-        if ((*dG5)[i + 1][si] != INF) {
-          if (params->available & MOD_PARAMS_DANGLES_dH)
-            e = (*dH5)[i + 1][si] - ((*dH5)[i + 1][si] - (*dG5)[i + 1][si]) * tempf;
-          else
-            e = (*dG5)[i + 1][si];
-
-          /*
-           * Note, that dangling ends arestored such that unpaired bases are
-           * outside of pair, in contrast to considering the unpaired bases
-           * enclosed. Thus, the pair must be rotatated
-           */
-          diffs->dangle5_diff[i + 1][si] = e - P->dangle5[pair_MP][siu];
-#ifdef DEBUG
-          printf("d_d5(%c%c, %c) = %d = %d - %d\n",
-                 bp[1],
-                 bp[0],
-                 nt[si],
-                 diffs->dangle5_diff[i + 1][si],
-                 e,
-                 P->dangle5[pair_MP][siu]);
-#endif
-        }
-
-        if ((*dG3)[i + 1][si] != INF) {
-          if (params->available & MOD_PARAMS_DANGLES_dH)
-            e = (*dH3)[i + 1][si] - ((*dH3)[i + 1][si] - (*dG3)[i + 1][si]) * tempf;
-          else
-            e = (*dG3)[i + 1][si];
-
-          /*
-           * Note, that dangling ends arestored such that unpaired bases are
-           * outside of pair, in contrast to considering the unpaired bases
-           * enclosed. Thus, the pair must be rotatated
-           */
-          diffs->dangle3_diff[i + 1][si] = e - P->dangle3[pair_MP][siu];
-#ifdef DEBUG
-          printf("d_d3(%c%c, %c) = %d = %d - %d\n",
-                 bp[1],
-                 bp[0],
-                 nt[si],
-                 diffs->dangle3_diff[i + 1][si],
-                 e,
-                 P->dangle3[pair_MP][siu]);
+                 P->dangle3[pair_enc][siu]);
 #endif
         }
       }
