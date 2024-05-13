@@ -84,31 +84,42 @@ sc_add_bp(vrna_fold_compound_t  *fc,
 
 
 PRIVATE void
-prepare_sc_up_mfe(vrna_fold_compound_t  *fc,
-                  unsigned int          options);
+prepare_sc_up_mfe(vrna_sc_t     *sc,
+                  unsigned int  n,
+                  unsigned int  options);
 
 
 PRIVATE void
-prepare_sc_bp_mfe(vrna_fold_compound_t  *fc,
-                  unsigned int          options);
+prepare_sc_bp_mfe(vrna_sc_t     *sc,
+                  unsigned int  n,
+                  int           *idx,
+                  unsigned int  options);
 
 
 PRIVATE void
-prepare_sc_up_pf(vrna_fold_compound_t *fc,
-                 unsigned int         options);
+prepare_sc_up_pf(vrna_sc_t    *sc,
+                 unsigned int n,
+                 double       kT,
+                 unsigned int options);
 
 
 PRIVATE void
-prepare_sc_bp_pf(vrna_fold_compound_t *fc,
-                 unsigned int         options);
+prepare_sc_bp_pf(vrna_sc_t    *sc,
+                 unsigned int n,
+                 int          *idx,
+                 double       kT,
+                 unsigned int options);
 
 
 PRIVATE void
-prepare_sc_stack_pf(vrna_fold_compound_t *fc);
+prepare_sc_stack_pf(vrna_sc_t     *fc,
+                    unsigned int  n,
+                    double        kT);
 
 
 PRIVATE int
 prepare_sc_user_cb(vrna_fold_compound_t *fc,
+                   vrna_sc_t            *sc,
                    unsigned int         options);
 
 
@@ -117,15 +128,16 @@ sc_init_up_storage(vrna_sc_t *sc);
 
 
 PRIVATE INLINE void
-populate_sc_up_mfe(vrna_fold_compound_t *fc,
-                   unsigned int         i,
-                   unsigned int         n);
+populate_sc_up_mfe(vrna_sc_t    *sc,
+                   unsigned int i,
+                   unsigned int n);
 
 
 PRIVATE INLINE void
-populate_sc_up_pf(vrna_fold_compound_t  *fc,
-                  unsigned int          i,
-                  unsigned int          n);
+populate_sc_up_pf(vrna_sc_t     *sc,
+                  unsigned int  i,
+                  unsigned int  n,
+                  double        kT);
 
 
 PRIVATE INLINE void
@@ -146,15 +158,20 @@ get_stored_bp_contributions(vrna_sc_bp_storage_t  *container,
 
 
 PRIVATE INLINE void
-populate_sc_bp_mfe(vrna_fold_compound_t *fc,
-                   unsigned int         i,
-                   unsigned int         n);
+populate_sc_bp_mfe(vrna_sc_t    *sc,
+                   unsigned int i,
+                   unsigned int maxdist,
+                   unsigned int n,
+                   int          *idx);
 
 
 PRIVATE INLINE void
-populate_sc_bp_pf(vrna_fold_compound_t  *fc,
-                  unsigned int          i,
-                  unsigned int          n);
+populate_sc_bp_pf(vrna_sc_t     *sc,
+                  unsigned int  i,
+                  unsigned int  maxdist,
+                  unsigned int  n,
+                  int           *idx,
+                  double        kT);
 
 
 PRIVATE INLINE void
@@ -245,19 +262,48 @@ vrna_sc_prepare(vrna_fold_compound_t  *fc,
   int ret = 0;
 
   if (fc) {
-    if (options & VRNA_OPTION_MFE) {
-      prepare_sc_up_mfe(fc, options);
-      prepare_sc_bp_mfe(fc, options);
+    unsigned int  n, s;
 
+    n = fc->length;
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if (options & VRNA_OPTION_MFE) {
+          prepare_sc_up_mfe(fc->sc, n, options);
+          prepare_sc_bp_mfe(fc->sc, n, fc->jindx, options);
+        }
+
+        if (options & VRNA_OPTION_PF) {
+          prepare_sc_up_pf(fc->sc, n, fc->exp_params->kT, options);
+          prepare_sc_bp_pf(fc->sc, n, fc->jindx, fc->exp_params->kT, options);
+          prepare_sc_stack_pf(fc->sc, n, fc->exp_params->kT);
+        }
+
+        ret &= prepare_sc_user_cb(fc, fc->sc, options);
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        if (fc->scs) {
+          if (options & VRNA_OPTION_MFE) {
+            for (s = 0; s < fc->n_seq; s++) {
+              prepare_sc_up_mfe(fc->scs[s], n, options);
+              prepare_sc_bp_mfe(fc->scs[s], n, fc->jindx, options);
+            }
+          }
+
+          if (options & VRNA_OPTION_PF) {
+            for (s = 0; s < fc->n_seq; s++) {
+              prepare_sc_up_pf(fc->scs[s], n, fc->exp_params->kT, options);
+              prepare_sc_bp_pf(fc->scs[s], n, fc->jindx, fc->exp_params->kT, options);
+              prepare_sc_stack_pf(fc->scs[s], fc->a2s[s][n], fc->exp_params->kT);
+              ret &= prepare_sc_user_cb(fc, fc->scs[s], options);
+            }
+          }
+        }
+
+        break; /* do nothing for now */
     }
 
-    if (options & VRNA_OPTION_PF) {
-      prepare_sc_up_pf(fc, options);
-      prepare_sc_bp_pf(fc, options);
-      prepare_sc_stack_pf(fc);
-    }
-
-    ret |= prepare_sc_user_cb(fc, options);
   }
 
   return ret;
@@ -269,9 +315,9 @@ vrna_sc_update(vrna_fold_compound_t *fc,
                unsigned int         i,
                unsigned int         options)
 {
-  unsigned int  n, maxdist;
+  unsigned int  n, maxdist, s;
   int           ret = 0;
-  vrna_sc_t     *sc;
+  vrna_sc_t     *sc, **scs;
 
   if (fc) {
     n       = fc->length;
@@ -283,6 +329,7 @@ vrna_sc_update(vrna_fold_compound_t *fc,
                            i, n);
     } else if (i > 0) {
       maxdist = MIN2(maxdist, n - i + 1);
+      ret = 1;
 
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
@@ -293,35 +340,59 @@ vrna_sc_update(vrna_fold_compound_t *fc,
             /* sliding-window mode, i.e. local structure prediction */
             if (sc->up_storage) {
               if (options & VRNA_OPTION_MFE)
-                populate_sc_up_mfe(fc, i, maxdist);
+                populate_sc_up_mfe(sc, i, maxdist);
 
               if (options & VRNA_OPTION_PF)
-                populate_sc_up_pf(fc, i, maxdist);
+                populate_sc_up_pf(sc, i, maxdist, fc->exp_params->kT);
             }
 
             if (sc->bp_storage) {
               if (options & VRNA_OPTION_MFE)
-                populate_sc_bp_mfe(fc, i, maxdist);
+                populate_sc_bp_mfe(fc->sc, i, maxdist, n, fc->jindx);
 
               if (options & VRNA_OPTION_PF)
-                populate_sc_bp_pf(fc, i, maxdist);
+                populate_sc_bp_pf(fc->sc, i, maxdist, n, fc->jindx, fc->exp_params->kT);
             }
 
             if ((sc->data) && (sc->prepare_data))
-              ret |= sc->prepare_data(fc, sc->data, options, (void *)&i);
-
-            return 1;
+              ret &= sc->prepare_data(fc, sc->data, options, (void *)&i);
           }
 
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
+          scs = fc->scs;
+
+          for (s = 0; s < fc->n_seq; s++) {
+            if ((scs[s]) &&
+                (scs[s]->type == VRNA_SC_WINDOW)) {
+              if (scs[s]->up_storage) {
+                if (options & VRNA_OPTION_MFE)
+                  populate_sc_up_mfe(scs[s], i, maxdist);
+
+                if (options & VRNA_OPTION_PF)
+                  populate_sc_up_pf(scs[s], i, maxdist, fc->exp_params->kT);
+              }
+
+              if (scs[s]->bp_storage) {
+                if (options & VRNA_OPTION_MFE)
+                  populate_sc_bp_mfe(fc->scs[s], i, maxdist, n, fc->jindx);
+
+                if (options & VRNA_OPTION_PF)
+                  populate_sc_bp_pf(fc->scs[s], i, maxdist, n, fc->jindx, fc->exp_params->kT);
+              }
+
+              if ((scs[s]->data) && (scs[s]->prepare_data))
+                ret &= scs[s]->prepare_data(fc, scs[s]->data, options, (void *)&i);
+              }
+          }
+
           break;
       }
     }
   }
 
-  return 0;
+  return ret;
 }
 
 
@@ -378,10 +449,10 @@ vrna_sc_set_bp(vrna_fold_compound_t *fc,
     sc_reset_bp(fc, constraints, options);
 
     if (options & VRNA_OPTION_MFE)
-      prepare_sc_bp_mfe(fc, options);
+      prepare_sc_bp_mfe(fc->sc, fc->length, fc->jindx, options);
 
     if (options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
-      prepare_sc_bp_pf(fc, options);
+      prepare_sc_bp_pf(fc->sc, fc->length, fc->jindx, fc->exp_params->kT, options);
 
     return 1;
   }
@@ -409,10 +480,10 @@ vrna_sc_add_bp(vrna_fold_compound_t *fc,
       sc_add_bp(fc, (unsigned int)i, (unsigned int)j, energy, options);
 
       if (options & VRNA_OPTION_MFE)
-        prepare_sc_bp_mfe(fc, options);
+        prepare_sc_bp_mfe(fc->sc, fc->length, fc->jindx, options);
 
       if (options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
-        prepare_sc_bp_pf(fc, options);
+        prepare_sc_bp_pf(fc->sc, fc->length, fc->jindx, fc->exp_params->kT, options);
 
       return 1;
     }
@@ -431,10 +502,10 @@ vrna_sc_set_up(vrna_fold_compound_t *fc,
     sc_reset_up(fc, constraints, options);
 
     if (options & VRNA_OPTION_MFE)
-      prepare_sc_up_mfe(fc, options);
+      prepare_sc_up_mfe(fc->sc, fc->length, options);
 
     if (options & VRNA_OPTION_PF)
-      prepare_sc_up_pf(fc, options);
+      prepare_sc_up_pf(fc->sc, fc->length, fc->exp_params->kT, options);
 
     return 1;
   }
@@ -458,10 +529,10 @@ vrna_sc_add_up(vrna_fold_compound_t *fc,
       sc_add_up(fc, (unsigned int)i, energy, options);
 
       if (options & VRNA_OPTION_MFE)
-        prepare_sc_up_mfe(fc, options);
+        prepare_sc_up_mfe(fc->sc, fc->length, options);
 
       if (options & VRNA_OPTION_PF)
-        prepare_sc_up_pf(fc, options);
+        prepare_sc_up_pf(fc->sc, fc->length, fc->exp_params->kT, options);
 
       return 1;
     }
@@ -789,30 +860,27 @@ sc_init_up_storage(vrna_sc_t *sc)
 
 /* pupulate sc->energy_up array at position i from sc->up_storage data */
 PRIVATE INLINE void
-populate_sc_up_mfe(vrna_fold_compound_t *fc,
-                   unsigned int         i,
-                   unsigned int         n)
+populate_sc_up_mfe(vrna_sc_t    *sc,
+                   unsigned int i,
+                   unsigned int n)
 {
   unsigned int  j;
-  vrna_sc_t     *sc = fc->sc;
 
   sc->energy_up[i][0] = 0;
   for (j = 1; j <= n; j++)
-    sc->energy_up[i][j] = sc->energy_up[i][j - 1]
-                          + sc->up_storage[i + j - 1];
+    sc->energy_up[i][j] = sc->energy_up[i][j - 1] +
+                          sc->up_storage[i + j - 1];
 }
 
 
 PRIVATE INLINE void
-populate_sc_up_pf(vrna_fold_compound_t  *fc,
-                  unsigned int          i,
-                  unsigned int          n)
+populate_sc_up_pf(vrna_sc_t     *sc,
+                  unsigned int  i,
+                  unsigned int  n,
+                  double        kT)
 {
   unsigned int  j;
-  double        GT, kT;
-  vrna_sc_t     *sc = fc->sc;
-
-  kT = fc->exp_params->kT;
+  double        GT;
 
   sc->exp_energy_up[i][0] = 1.;
 
@@ -903,17 +971,14 @@ get_stored_bp_contributions(vrna_sc_bp_storage_t  *container,
 
 
 PRIVATE INLINE void
-populate_sc_bp_mfe(vrna_fold_compound_t *fc,
-                   unsigned int         i,
-                   unsigned int         maxdist)
+populate_sc_bp_mfe(vrna_sc_t    *sc,
+                   unsigned int i,
+                   unsigned int maxdist,
+                   unsigned int n,
+                   int          *idx)
 {
-  unsigned int  j, k, n;
-  int           e, *idx;
-  vrna_sc_t     *sc;
-
-  n   = fc->length;
-  sc  = fc->sc;
-  idx = fc->jindx;
+  unsigned int  j, k;
+  int           e;
 
   if (sc->bp_storage[i]) {
     for (k = 1; k < maxdist; k++) {
@@ -955,22 +1020,17 @@ populate_sc_bp_mfe(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE void
-populate_sc_bp_pf(vrna_fold_compound_t  *fc,
-                  unsigned int          i,
-                  unsigned int          maxdist)
+populate_sc_bp_pf(vrna_sc_t     *sc,
+                  unsigned int  i,
+                  unsigned int  maxdist,
+                  unsigned int  n,
+                  int           *idx,
+                  double        kT)
 {
-  unsigned int      j, k, n;
-  int               e, *idx;
+  unsigned int      j, k;
+  int               e;
   FLT_OR_DBL        q;
-  double            GT, kT;
-  vrna_exp_param_t  *exp_params;
-  vrna_sc_t         *sc;
-
-  n           = fc->length;
-  exp_params  = fc->exp_params;
-  kT          = exp_params->kT;
-  sc          = fc->sc;
-  idx         = fc->jindx;
+  double            GT;
 
   if (sc->bp_storage[i]) {
     for (k = 1; k < maxdist; k++) {
@@ -1194,282 +1254,208 @@ sc_add_up(vrna_fold_compound_t  *fc,
 
 /* populate sc->energy_up arrays for usage in MFE computations */
 PRIVATE void
-prepare_sc_up_mfe(vrna_fold_compound_t  *fc,
-                  unsigned int          options)
+prepare_sc_up_mfe(vrna_sc_t     *sc,
+                  unsigned int  n,
+                  unsigned int  options)
 {
-  unsigned int  i, n;
-  vrna_sc_t     *sc;
+  unsigned int i;
 
-  n = fc->length;
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      sc = fc->sc;
-      if (sc) {
-        /* prepare sc for unpaired nucleotides only if we actually have some to apply */
-        if (sc->up_storage) {
-          if (sc->state & STATE_DIRTY_UP_MFE) {
-            /*  allocate memory such that we can access the soft constraint
-             *  energies of a subsequence of length j starting at position i
-             *  via sc->energy_up[i][j]
-             */
-            sc->energy_up = (int **)vrna_realloc(sc->energy_up, sizeof(int *) * (n + 2));
+  /* prepare sc for unpaired nucleotides only if we actually have some to apply */
+  if (sc) {
+    if (sc->up_storage) {
+      if (sc->state & STATE_DIRTY_UP_MFE) {
+        /*  allocate memory such that we can access the soft constraint
+         *  energies of a subsequence of length j starting at position i
+         *  via sc->energy_up[i][j]
+         */
+        sc->energy_up = (int **)vrna_realloc(sc->energy_up, sizeof(int *) * (n + 2));
 
-            if (options & VRNA_OPTION_WINDOW) {
-              /*
-               *  simply init with NULL pointers, since the sliding-window implementation must take
-               *  care of allocating the required memory and filling in appropriate energy contributions
-               */
-              for (i = 0; i <= n + 1; i++)
-                sc->energy_up[i] = NULL;
-            } else {
-              for (i = 1; i <= n; i++)
-                sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
+        if (options & VRNA_OPTION_WINDOW) {
+          /*
+           *  simply init with NULL pointers, since the sliding-window implementation must take
+           *  care of allocating the required memory and filling in appropriate energy contributions
+           */
+          for (i = 0; i <= n + 1; i++)
+            sc->energy_up[i] = NULL;
+        } else {
+          for (i = 1; i <= n; i++)
+            sc->energy_up[i] = (int *)vrna_realloc(sc->energy_up[i], sizeof(int) * (n - i + 2));
 
 
-              sc->energy_up[0]      = (int *)vrna_realloc(sc->energy_up[0], sizeof(int));
-              sc->energy_up[n + 1]  = (int *)vrna_realloc(sc->energy_up[n + 1], sizeof(int));
+          sc->energy_up[0]      = (int *)vrna_realloc(sc->energy_up[0], sizeof(int));
+          sc->energy_up[n + 1]  = (int *)vrna_realloc(sc->energy_up[n + 1], sizeof(int));
 
-              /* now add soft constraints as stored in container for unpaired sc */
-              for (i = 1; i <= n; i++)
-                populate_sc_up_mfe(fc, i, (n - i + 1));
+          /* now add soft constraints as stored in container for unpaired sc */
+          for (i = 1; i <= n; i++)
+            populate_sc_up_mfe(sc, i, n - i + 1);
 
-              sc->energy_up[0][0]     = 0;
-              sc->energy_up[n + 1][0] = 0;
-            }
-
-            sc->state &= ~STATE_DIRTY_UP_MFE;
-          }
-        } else if (sc->energy_up) {
-          /* remove any unpaired sc if storage container is empty */
-          free_sc_up(sc);
+          sc->energy_up[0][0]     = 0;
+          sc->energy_up[n + 1][0] = 0;
         }
+
+        sc->state &= ~STATE_DIRTY_UP_MFE;
       }
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      break; /* do nothing for now */
+    } else if (sc->energy_up) {
+      /* remove any unpaired sc if storage container is empty */
+      free_sc_up(sc);
+    }
   }
 }
 
 
 /* populate sc->exp_energy_up arrays for usage in partition function computations */
 PRIVATE void
-prepare_sc_up_pf(vrna_fold_compound_t *fc,
-                 unsigned int         options)
+prepare_sc_up_pf(vrna_sc_t    *sc,
+                 unsigned int n,
+                 double       kT,
+                 unsigned int options)
 {
-  unsigned int  i, n;
-  vrna_sc_t     *sc;
+  unsigned int  i;
 
-  n = fc->length;
+  if (sc) {
+    /* prepare sc for unpaired nucleotides only if we actually have some to apply */
+    if (sc->up_storage) {
+      if (sc->state & STATE_DIRTY_UP_PF) {
+        /*  allocate memory such that we can access the soft constraint
+         *  energies of a subsequence of length j starting at position i
+         *  via sc->exp_energy_up[i][j]
+         */
+        sc->exp_energy_up = (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_up,
+                                                        sizeof(FLT_OR_DBL *) * (n + 2));
 
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      sc = fc->sc;
-      if (sc) {
-        /* prepare sc for unpaired nucleotides only if we actually have some to apply */
-        if (sc->up_storage) {
-          if (sc->state & STATE_DIRTY_UP_PF) {
-            /*  allocate memory such that we can access the soft constraint
-             *  energies of a subsequence of length j starting at position i
-             *  via sc->exp_energy_up[i][j]
-             */
-            sc->exp_energy_up = (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_up,
-                                                            sizeof(FLT_OR_DBL *) * (n + 2));
+        if (options & VRNA_OPTION_WINDOW) {
+          /*
+           *  simply init with NULL pointers, since the sliding-window implementation must take
+           *  care of allocating the required memory and filling in appropriate Boltzmann factors
+           */
+          for (i = 0; i <= n + 1; i++)
+            sc->exp_energy_up[i] = NULL;
+        } else {
+          for (i = 1; i <= n; i++)
+            sc->exp_energy_up[i] =
+              (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[i],
+                                         sizeof(FLT_OR_DBL) * (n - i + 2));
 
-            if (options & VRNA_OPTION_WINDOW) {
-              /*
-               *  simply init with NULL pointers, since the sliding-window implementation must take
-               *  care of allocating the required memory and filling in appropriate Boltzmann factors
-               */
-              for (i = 0; i <= n + 1; i++)
-                sc->exp_energy_up[i] = NULL;
-            } else {
-              for (i = 1; i <= n; i++)
-                sc->exp_energy_up[i] =
-                  (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[i],
-                                             sizeof(FLT_OR_DBL) * (n - i + 2));
+          sc->exp_energy_up[0] =
+            (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[0], sizeof(FLT_OR_DBL));
+          sc->exp_energy_up[n + 1] = (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[n + 1],
+                                                                sizeof(FLT_OR_DBL));
 
-              sc->exp_energy_up[0] =
-                (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[0], sizeof(FLT_OR_DBL));
-              sc->exp_energy_up[n + 1] = (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_up[n + 1],
-                                                                    sizeof(FLT_OR_DBL));
+          for (i = 1; i <= n; i++)
+            populate_sc_up_pf(sc, i, n - i + 1, kT);
 
-              for (i = 1; i <= n; i++)
-                populate_sc_up_pf(fc, i, (n - i + 1));
-
-              sc->exp_energy_up[0][0]     = 1.;
-              sc->exp_energy_up[n + 1][0] = 1.;
-            }
-
-            sc->state &= ~STATE_DIRTY_UP_PF;
-          }
+          sc->exp_energy_up[0][0]     = 1.;
+          sc->exp_energy_up[n + 1][0] = 1.;
         }
+
+        sc->state &= ~STATE_DIRTY_UP_PF;
       }
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      break; /* do nothing for now */
+    }
   }
 }
 
 
 /* populate sc->energy_bp arrays for usage in MFE computations */
 PRIVATE void
-prepare_sc_bp_mfe(vrna_fold_compound_t  *fc,
-                  unsigned int          options)
+prepare_sc_bp_mfe(vrna_sc_t     *sc,
+                  unsigned int  n,
+                  int           *idx,
+                  unsigned int  options)
 {
-  unsigned int  i, n;
-  vrna_sc_t     *sc;
+  unsigned int  i;
 
-  n = fc->length;
-
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      sc = fc->sc;
-      if (sc) {
-        /* prepare sc for base paired positions only if we actually have some to apply */
-        if (sc->bp_storage) {
-          if (sc->state & STATE_DIRTY_BP_MFE) {
-            if (options & VRNA_OPTION_WINDOW) {
-              sc->energy_bp_local =
-                (int **)vrna_realloc(sc->energy_bp_local, sizeof(int *) * (n + 2));
-            } else {
-              sc->energy_bp =
-                (int *)vrna_realloc(sc->energy_bp, sizeof(int) * (((n + 1) * (n + 2)) / 2));
-
-              for (i = 1; i < n; i++)
-                populate_sc_bp_mfe(fc, i, n);
-            }
-
-            sc->state &= ~STATE_DIRTY_BP_MFE;
-          }
+  if (sc) {
+    /* prepare sc for base paired positions only if we actually have some to apply */
+    if (sc->bp_storage) {
+      if (sc->state & STATE_DIRTY_BP_MFE) {
+        if (options & VRNA_OPTION_WINDOW) {
+          sc->energy_bp_local =
+            (int **)vrna_realloc(sc->energy_bp_local, sizeof(int *) * (n + 2));
         } else {
-          free_sc_bp(sc);
+          sc->energy_bp =
+            (int *)vrna_realloc(sc->energy_bp, sizeof(int) * (((n + 1) * (n + 2)) / 2));
+
+          for (i = 1; i < n; i++)
+            populate_sc_bp_mfe(sc, i, n, n, idx);
         }
+
+        sc->state &= ~STATE_DIRTY_BP_MFE;
       }
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      break; /* do nothing for now */
+    } else {
+      free_sc_bp(sc);
+    }
   }
 }
 
 
 /* populate sc->exp_energy_bp arrays for usage in partition function computations */
 PRIVATE void
-prepare_sc_bp_pf(vrna_fold_compound_t *fc,
-                 unsigned int         options)
+prepare_sc_bp_pf(vrna_sc_t    *sc,
+                 unsigned int n,
+                 int          *idx,
+                 double       kT,
+                 unsigned int options)
 {
-  unsigned int  i, n;
-  vrna_sc_t     *sc;
+  unsigned int  i;
 
-  n = fc->length;
+  if (sc) {
+    /* prepare sc for base paired positions only if we actually have some to apply */
+    if (sc->bp_storage) {
+      if (sc->state & STATE_DIRTY_BP_PF) {
+        if (options & VRNA_OPTION_WINDOW) {
+          sc->exp_energy_bp_local =
+            (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_bp_local,
+                                        sizeof(FLT_OR_DBL *) * (n + 2));
+        } else {
+          sc->exp_energy_bp =
+            (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_bp,
+                                       sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
 
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      sc = fc->sc;
-      if (sc) {
-        /* prepare sc for base paired positions only if we actually have some to apply */
-        if (sc->bp_storage) {
-          if (sc->state & STATE_DIRTY_BP_PF) {
-            if (options & VRNA_OPTION_WINDOW) {
-              sc->exp_energy_bp_local =
-                (FLT_OR_DBL **)vrna_realloc(sc->exp_energy_bp_local,
-                                            sizeof(FLT_OR_DBL *) * (n + 2));
-            } else {
-              sc->exp_energy_bp =
-                (FLT_OR_DBL *)vrna_realloc(sc->exp_energy_bp,
-                                           sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
-
-              for (i = 1; i < n; i++)
-                populate_sc_bp_pf(fc, i, n);
-            }
-
-            sc->state &= ~STATE_DIRTY_BP_PF;
-          }
+          for (i = 1; i < n; i++)
+            populate_sc_bp_pf(sc, i, n, n, idx, kT);
         }
+
+        sc->state &= ~STATE_DIRTY_BP_PF;
       }
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      break; /* do nothing for now */
+    }
   }
 }
 
 
 PRIVATE void
-prepare_sc_stack_pf(vrna_fold_compound_t *fc)
+prepare_sc_stack_pf(vrna_sc_t     *sc,
+                    unsigned int  n,
+                    double        kT)
 {
-  unsigned int  s, n_seq;
-  int           i;
-  vrna_sc_t     *sc, **scs;
+  unsigned int           i;
 
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      sc = fc->sc;
-      if ((sc) && (sc->energy_stack)) {
-        if (!sc->exp_energy_stack) {
-          sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
-          for (i = 0; i <= fc->length; ++i)
-            sc->exp_energy_stack[i] = 1.;
-        }
-
-        for (i = 1; i <= fc->length; ++i)
-          sc->exp_energy_stack[i] = (FLT_OR_DBL)exp(
-            -(sc->energy_stack[i] * 10.) / fc->exp_params->kT);
+  if (sc) {
+    if(sc->energy_stack) {
+      if (!sc->exp_energy_stack) {
+        sc->exp_energy_stack = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
+        for (i = 0; i <= n; ++i)
+          sc->exp_energy_stack[i] = 1.;
       }
 
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      scs   = fc->scs;
-      n_seq = fc->n_seq;
-      if (scs) {
-        for (s = 0; s < n_seq; s++) {
-          if (scs[s] && scs[s]->energy_stack) {
-            if (!scs[s]->exp_energy_stack) {
-              scs[s]->exp_energy_stack =
-                (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->a2s[s][fc->length] + 1));
-              for (i = 0; i <= fc->a2s[s][fc->length]; i++)
-                scs[s]->exp_energy_stack[i] = 1.;
-            }
-
-            for (i = 1; i <= fc->a2s[s][fc->length]; ++i)
-              scs[s]->exp_energy_stack[i] = (FLT_OR_DBL)exp(
-                -(scs[s]->energy_stack[i] * 10.) / fc->exp_params->kT);
-          }
-        }
-      }
-
-      break;
+      for (i = 1; i <= n; ++i)
+        sc->exp_energy_stack[i] = (FLT_OR_DBL)exp(-(sc->energy_stack[i] * 10.) / kT);
+    }  
   }
 }
 
 
 PRIVATE int
 prepare_sc_user_cb(vrna_fold_compound_t *fc,
+                   vrna_sc_t            *sc,
                    unsigned int         options)
 {
-  int       ret = 0;
-  vrna_sc_t *sc;
+  int ret = 0;
 
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      sc = fc->sc;
-      if ((sc) &&
-          (sc->data) &&
-          (sc->prepare_data) &&
-          (sc->type == VRNA_SC_DEFAULT))
-        ret = sc->prepare_data(fc, sc->data, options, NULL);
-      break;
-
-    default:
-      break;
-  }
+  if ((sc) &&
+      (sc->data) &&
+      (sc->prepare_data) &&
+      (sc->type == VRNA_SC_DEFAULT))
+    ret = sc->prepare_data(fc, sc->data, options, NULL);
 
   return ret;
 }
