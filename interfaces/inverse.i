@@ -78,9 +78,13 @@ strcpy(symbolset, "AUGC");
 #ifdef SWIGPYTHON
 %typemap(varin) char * symbolset {
   free(symbolset);
+#if SWIG_VERSION >= 0x040200
   PyObject *bytes = NULL;
   symbolset = strdup(SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes));
   Py_XDECREF(bytes);
+#else
+  symbolset = strdup(SWIG_Python_str_AsChar($input));
+#endif
 }
 
 %typemap(varout) char * symbolset {
