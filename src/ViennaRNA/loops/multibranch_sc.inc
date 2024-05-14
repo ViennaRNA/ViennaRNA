@@ -124,7 +124,8 @@ sc_mb_pair_cb_5_up_comparative(int              i,
   for (s = 0; s < data->n_seq; s++)
     if (sc_up[s]) {
       length  = a2s[s][i + 1] - a2s[s][i];
-      e       += sc_up[s][a2s[s][i + 1]][length];
+      if (length != 0)
+        e += sc_up[s][a2s[s][i] + 1][length];
     }
 
   return e;
@@ -155,7 +156,8 @@ sc_mb_pair_cb_3_up_comparative(int              i,
   for (s = 0; s < data->n_seq; s++)
     if (sc_up[s]) {
       length  = a2s[s][j] - a2s[s][j - 1];
-      e       += sc_up[s][a2s[s][j - 1]][length];
+      if (length != 0)
+        e += sc_up[s][a2s[s][j] - 1][length];
     }
 
   return e;
@@ -850,10 +852,10 @@ sc_ml_reduce_ml_comparative(int               i,
     u1  = a2s[s][k] - a2s[s][i];
     u2  = a2s[s][j] - a2s[s][l];
 
-    if (u1)
+    if (u1 != 0)
       e += data->up[a2s[s][i]][u1];
 
-    if (u2)
+    if (u2 != 0)
       e += data->up[a2s[s][l] + 1][u2];
   }
   return e;
@@ -982,10 +984,37 @@ sc_ml_coax_stack_comparative(int              i,
 
   for (s = 0; s < data->n_seq; s++)
     if (data->stack_comparative[s]) {
-      e += data->stack_comparative[s][data->a2s[s][i]] +
-           data->stack_comparative[s][data->a2s[s][j]] +
-           data->stack_comparative[s][data->a2s[s][k]] +
-           data->stack_comparative[s][data->a2s[s][l]];
+      if ((data->a2s[s][i] + 1 == data->a2s[s][k]) ||
+          (data->a2s[s][l] + 1 == data->a2s[s][j]))
+        e += data->stack_comparative[s][data->a2s[s][i]] +
+             data->stack_comparative[s][data->a2s[s][j]] +
+             data->stack_comparative[s][data->a2s[s][k]] +
+             data->stack_comparative[s][data->a2s[s][l]];
+    }
+
+  return e;
+}
+
+
+PRIVATE INLINE int
+sc_ml_coax_enclosed_stack_comparative(int              i,
+                                      int              j,
+                                      int              k,
+                                      int              l,
+                                      struct sc_mb_dat *data)
+{
+  unsigned int  s;
+  int           e;
+
+  e = 0;
+
+  for (s = 0; s < data->n_seq; s++)
+    if (data->stack_comparative[s]) {
+      if (data->a2s[s][j] + 1 == data->a2s[s][k])
+        e += data->stack_comparative[s][data->a2s[s][i]] +
+             data->stack_comparative[s][data->a2s[s][j]] +
+             data->stack_comparative[s][data->a2s[s][k]] +
+             data->stack_comparative[s][data->a2s[s][l]];
     }
 
   return e;
@@ -1105,7 +1134,7 @@ sc_ml_coax_enclosed_stack_user_comparative(int              i,
                                            int              l,
                                            struct sc_mb_dat *data)
 {
-  return sc_ml_coax_stack_comparative(i, j, k, l, data) +
+  return sc_ml_coax_enclosed_stack_comparative(i, j, k, l, data) +
          sc_ml_coax_enclosed_user_comparative(i, j, k, l, data);
 }
 
@@ -1400,7 +1429,7 @@ init_sc_mb(vrna_fold_compound_t *fc,
         } else {
           if (provides_sc_stack) {
             sc_wrapper->coaxial_cls = &sc_ml_coax_stack_comparative;
-            sc_wrapper->coaxial_enc = &sc_ml_coax_stack_comparative;
+            sc_wrapper->coaxial_enc = &sc_ml_coax_enclosed_stack_comparative;
           }
 
           if (provides_sc_bp) {

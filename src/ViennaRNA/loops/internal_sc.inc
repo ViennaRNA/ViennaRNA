@@ -63,8 +63,8 @@ sc_int_cb_up_comparative(int                i,
                          int                l,
                          struct sc_int_dat  *data)
 {
-  unsigned int  s;
-  int           sc, u1, u2;
+  unsigned int  s, u1, u2;
+  int           sc;
 
   sc = 0;
 
@@ -73,11 +73,11 @@ sc_int_cb_up_comparative(int                i,
       u1  = data->a2s[s][k - 1] - data->a2s[s][i];
       u2  = data->a2s[s][j - 1] - data->a2s[s][l];
 
-      if (u1 > 0)
-        sc += data->up_comparative[s][data->a2s[s][i + 1]][u1];
+      if (u1 != 0)
+        sc += data->up_comparative[s][data->a2s[s][i] + 1][u1];
 
-      if (u2 > 0)
-        sc += data->up_comparative[s][data->a2s[s][l + 1]][u2];
+      if (u2 != 0)
+        sc += data->up_comparative[s][data->a2s[s][l] + 1][u2];
     }
 
   return sc;
@@ -157,7 +157,8 @@ sc_int_cb_stack(int               i,
 
   sc = 0;
 
-  if ((i + 1 == k) && (l + 1 == j)) {
+  if ((i + 1 == k) &&
+      (l + 1 == j)) {
     sc += data->stack[i] +
           data->stack[k] +
           data->stack[l] +
@@ -182,7 +183,8 @@ sc_int_cb_stack_comparative(int               i,
 
   for (s = 0; s < data->n_seq; s++)
     if (data->stack_comparative[s]) {
-      if ((data->a2s[s][k - 1] == data->a2s[s][i]) && (data->a2s[s][j - 1] == data->a2s[s][l])) {
+      if ((data->a2s[s][k] == (data->a2s[s][i] + 1)) &&
+          (data->a2s[s][j] == (data->a2s[s][l] + 1))) {
         sc += data->stack_comparative[s][data->a2s[s][i]] +
               data->stack_comparative[s][data->a2s[s][k]] +
               data->stack_comparative[s][data->a2s[s][l]] +
@@ -718,25 +720,25 @@ sc_int_cb_ext_up_comparative(int                i,
                              int                l,
                              struct sc_int_dat  *data)
 {
-  unsigned int  s;
-  int           u1, u2, u3, sc;
+  unsigned int  s, u1, u2, u3;
+  int           sc;
 
   sc = 0;
 
   for (s = 0; s < data->n_seq; s++)
     if (data->up_comparative[s]) {
-      u1  = data->a2s[s][i - 1];
+      u1  = (i > 1) ? data->a2s[s][i - 1] - data->a2s[s][1] : 0;
       u2  = data->a2s[s][k - 1] - data->a2s[s][j];
       u3  = data->a2s[s][data->n] - data->a2s[s][l];
 
-      if (u1 > 0)
-        sc += data->up_comparative[s][1][u1];
+      if (u1 != 0)
+        sc += data->up_comparative[s][data->a2s[s][1]][u1];
 
-      if (u2 > 0)
-        sc += data->up_comparative[s][data->a2s[s][j + 1]][u2];
+      if (u2 != 0)
+        sc += data->up_comparative[s][data->a2s[s][j] + 1][u2];
 
-      if (u3 > 0)
-        sc += data->up_comparative[s][data->a2s[s][l + 1]][u3];
+      if (u3 != 0)
+        sc += data->up_comparative[s][data->a2s[s][l] + 1][u3];
     }
 
   return sc;
@@ -780,7 +782,7 @@ sc_int_cb_ext_stack_comparative(int               i,
   for (s = 0; s < data->n_seq; s++)
     if (data->stack_comparative[s]) {
       if ((data->a2s[s][i] == 1) &&
-          (data->a2s[s][j] == data->a2s[s][k - 1]) &&
+          ((data->a2s[s][j] + 1) == data->a2s[s][k]) &&
           (data->a2s[s][l] == data->a2s[s][data->n])) {
         sc += data->stack_comparative[s][data->a2s[s][i]] +
               data->stack_comparative[s][data->a2s[s][k]] +

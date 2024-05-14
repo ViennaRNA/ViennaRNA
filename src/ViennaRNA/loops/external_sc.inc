@@ -848,11 +848,11 @@ sc_f5_cb_reduce_comparative(int               j,
 
 
 PRIVATE INLINE int
-sc_ext_cb_reduce_comparative(int  i,
-                             int               j,
-                             int               k,
-                             int               l,
-                             struct sc_f5_dat  *data)
+sc_ext_cb_reduce_comparative(int              i,
+                             int              j,
+                             int              k,
+                             int              l,
+                             struct sc_f5_dat *data)
 {
   unsigned int  s, start_1, start_2, length_1, length_2, **a2s;
   int           e_sc, ***sc_up;
@@ -887,7 +887,7 @@ sc_f3_cb_reduce_comparative(int               i,
                             int               l,
                             struct sc_f3_dat  *data)
 {
-  unsigned int  s, start_2, length_1, length_2, **a2s;
+  unsigned int  s, start_1, start_2, length_1, length_2, **a2s;
   int           e_sc, ***sc_up;
 
   sc_up = data->up_comparative;
@@ -897,12 +897,13 @@ sc_f3_cb_reduce_comparative(int               i,
 
   for (s = 0; s < data->n_seq; s++) {
     if (sc_up[s]) {
-      length_1  = a2s[s][k] - a2s[s][i];
+      start_1   = a2s[s][i];
+      length_1  = a2s[s][k] - start_1;
       start_2   = a2s[s][l] + 1;
       length_2  = a2s[s][data->n] - a2s[s][l];
 
       if (length_1 != 0)
-        e_sc += sc_up[s][a2s[s][i]][length_1];
+        e_sc += sc_up[s][start_1][length_1];
 
       if (length_2 != 0)
         e_sc += sc_up[s][start_2][length_2];
@@ -1303,11 +1304,11 @@ sc_f5_cb_split_in_ext_stem_comparative(int              j,
 }
 
 PRIVATE INLINE int
-sc_ext_cb_split_comparative(int i,
-                                        int              j,
-                                       int              k,
-                                       int              l,
-                                       struct sc_f5_dat *data)
+sc_ext_cb_split_comparative(int               i,
+                            int               j,
+                            int               k,
+                            int               l,
+                            struct sc_f5_dat  *data)
 {
   unsigned int  s, start_1, length_1, **a2s;
   int           e_sc, ***sc_up;
@@ -1597,13 +1598,14 @@ sc_f5_cb_split_in_ext_stem1_comparative(int               j,
     if (sc_up[s]) {
       start_1   = a2s[s][k] + 1;
       length_1  = a2s[s][l - 1] - a2s[s][k];
-      start_2   = a2s[s][j];
-      length_2  = 1;
+      start_2   = a2s[s][j - 1];
+      length_2  = a2s[s][j] - a2s[s][j - 1];
 
       if (length_1 != 0)
         e_sc += sc_up[s][start_1][length_1];
 
-      e_sc += sc_up[s][start_2][length_2];
+      if (length_2 != 0)
+        e_sc += sc_up[s][start_2][length_2];
     }
   }
 
@@ -1630,12 +1632,13 @@ sc_f3_cb_split_in_stem_ext1_comparative(int               i,
       start_1   = a2s[s][k] + 1;
       length_1  = a2s[s][l - 1] - a2s[s][k];
       start_2   = a2s[s][i];
-      length_2  = 1;
+      length_2  = a2s[s][i + 1] - a2s[s][i];
 
       if (length_1 != 0)
         e_sc += sc_up[s][start_1][length_1];
 
-      e_sc += sc_up[s][start_2][length_2];
+      if (length_2 != 0)
+        e_sc += sc_up[s][start_2][length_2];
     }
   }
 

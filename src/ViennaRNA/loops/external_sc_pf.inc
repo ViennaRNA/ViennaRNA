@@ -213,7 +213,7 @@ sc_ext_exp_cb_red_comparative(int                   i,
                               int                   l,
                               struct sc_ext_exp_dat *data)
 {
-  unsigned int  s, start_2, length_1, length_2, **a2s;
+  unsigned int  s, start_1, start_2, length_1, length_2, **a2s;
   FLT_OR_DBL    q_sc, ***sc_up;
 
   sc_up = data->up_comparative;
@@ -223,12 +223,13 @@ sc_ext_exp_cb_red_comparative(int                   i,
 
   for (s = 0; s < data->n_seq; s++) {
     if (sc_up[s]) {
-      length_1  = a2s[s][k] - a2s[s][i];
+      start_1   = a2s[s][i];
+      length_1  = a2s[s][k] - start_1;
       start_2   = a2s[s][l] + 1;
       length_2  = a2s[s][j] - a2s[s][l];
 
       if (length_1 != 0)
-        q_sc *= sc_up[s][a2s[s][i]][length_1];
+        q_sc *= sc_up[s][start_1][length_1];
 
       if (length_2 != 0)
         q_sc *= sc_up[s][start_2][length_2];
@@ -383,7 +384,7 @@ sc_ext_exp_cb_up_comparative(int                    i,
   q_sc = 1.;
 
   for (s = 0; s < data->n_seq; s++) {
-    length = a2s[s][j - 1] - a2s[s][i];
+    length = a2s[s][j] - a2s[s][i - 1];
 
     if (length != 0)
       q_sc *= sc_up[s][a2s[s][i]][length];

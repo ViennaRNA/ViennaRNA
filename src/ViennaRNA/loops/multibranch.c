@@ -1458,9 +1458,8 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
                c_local[k + 1][j - k - 1] +
                P->stack[type][type_2];
 
-          if (sc)
-            if (sc->f)
-              en += sc->f(i, k, k + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, sc->data);
+          if (sc_wrapper.coaxial_enc)
+            en += sc_wrapper.coaxial_enc(i, k, k + 1, j, &sc_wrapper);
 
           decomp = MIN2(decomp, en);
         }

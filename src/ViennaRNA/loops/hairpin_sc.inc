@@ -43,15 +43,16 @@ sc_hp_cb_up_comparative(int               i,
                         int               j,
                         struct sc_hp_dat  *data)
 {
-  unsigned int  s;
+  unsigned int  s, u;
   int           sc;
 
   sc = 0;
 
   for (s = 0; s < data->n_seq; s++)
     if (data->up_comparative[s]) {
-      int u = data->a2s[s][j - 1] - data->a2s[s][i];
-      sc += data->up_comparative[s][data->a2s[s][i + 1]][u];
+      u   = data->a2s[s][j - 1] - data->a2s[s][i];
+      if (u != 0)
+        sc += data->up_comparative[s][data->a2s[s][i] + 1][u];
     }
 
   return sc;
@@ -313,21 +314,21 @@ sc_hp_cb_ext_up_comparative(int               i,
                             int               j,
                             struct sc_hp_dat  *data)
 {
-  unsigned int  s;
-  int           sc, u1, u2;
+  unsigned int  s, u1, u2;
+  int           sc;
 
   sc = 0;
 
   for (s = 0; s < data->n_seq; s++)
     if (data->up_comparative[s]) {
       u1  = data->a2s[s][data->n] - data->a2s[s][j];
-      u2  = data->a2s[s][i - 1];
+      u2  = (i > 1) ? data->a2s[s][i - 1] - data->a2s[s][1] : 0;
 
-      if (u1 > 0)
-        sc += data->up[data->a2s[s][j + 1]][u1];
+      if (u1 != 0)
+        sc += data->up[data->a2s[s][j] + 1][u1];
 
-      if (u2 > 0)
-        sc += data->up[1][u2];
+      if (u2 != 0)
+        sc += data->up[data->a2s[s][1]][u2];
     }
 
   return sc;

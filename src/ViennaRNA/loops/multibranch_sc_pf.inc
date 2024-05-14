@@ -224,22 +224,22 @@ sc_mb_exp_red_cb_up_comparative(int                   i,
                                 int                   l,
                                 struct sc_mb_exp_dat  *data)
 {
-  unsigned int  s;
-  int           l1, l2, start2;
+  unsigned int  s, l1, l2, start1, start2;
   FLT_OR_DBL    sc;
 
   sc = 1.;
 
   for (s = 0; s < data->n_seq; s++) {
     if (data->up_comparative[s]) {
+      start1  = data->a2s[s][i];
       l1      = data->a2s[s][k] - data->a2s[s][i];
-      l2      = data->a2s[s][j] - data->a2s[s][l];
       start2  = data->a2s[s][l] + 1;
+      l2      = data->a2s[s][j] - data->a2s[s][l];
 
-      if (l1 > 0)
-        sc *= data->up_comparative[s][data->a2s[s][i]][l1];
+      if (l1 != 0)
+        sc *= data->up_comparative[s][start1][l1];
 
-      if (l2 > 0)
+      if (l2 != 0)
         sc *= data->up_comparative[s][start2][l2];
     }
   }
