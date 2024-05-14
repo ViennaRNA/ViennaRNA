@@ -219,6 +219,15 @@ vrna_sc_init(vrna_fold_compound_t *fc)
         fc->scs = (vrna_sc_t **)vrna_alloc(sizeof(vrna_sc_t *) * (N + 1));
 
         for (s = 0; s < N; s++)
+          /*  except for base pairs, constraints for individual sequences
+           *  in the MSA are stored per actual nucleotides, so we should
+           *  actually initialize with the 'gap-free' size of each sequence
+           *  However, for now we initialize with alignment columns until
+           *  usage of base pair constraints has been adjusted accordingly
+           *
+           *  This introduces some waste of memory for gap positions in
+           *  unpaired and stack constraints, though
+           */
           fc->scs[s] = init_sc_default(n);
 
         break;
@@ -247,6 +256,15 @@ vrna_sc_init_window(vrna_fold_compound_t *fc)
         fc->scs = (vrna_sc_t **)vrna_alloc(sizeof(vrna_sc_t *) * (N + 1));
 
         for (s = 0; s < N; s++)
+          /*  except for base pairs, constraints for individual sequences
+           *  in the MSA are stored per actual nucleotides, so we should
+           *  actually initialize with the 'gap-free' size of each sequence
+           *  However, for now we initialize with alignment columns until
+           *  usage of base pair constraints has been adjusted accordingly
+           *
+           *  This introduces some waste of memory for gap positions in
+           *  unpaired and stack constraints, though
+           */
           fc->scs[s] = init_sc_window(n);
 
         break;
@@ -286,14 +304,14 @@ vrna_sc_prepare(vrna_fold_compound_t  *fc,
         if (fc->scs) {
           if (options & VRNA_OPTION_MFE) {
             for (s = 0; s < fc->n_seq; s++) {
-              prepare_sc_up_mfe(fc->scs[s], n, options);
+              prepare_sc_up_mfe(fc->scs[s], fc->a2s[s][n], options);
               prepare_sc_bp_mfe(fc->scs[s], n, fc->jindx, options);
             }
           }
 
           if (options & VRNA_OPTION_PF) {
             for (s = 0; s < fc->n_seq; s++) {
-              prepare_sc_up_pf(fc->scs[s], n, fc->exp_params->kT, options);
+              prepare_sc_up_pf(fc->scs[s], fc->a2s[s][n], fc->exp_params->kT, options);
               prepare_sc_bp_pf(fc->scs[s], n, fc->jindx, fc->exp_params->kT, options);
               prepare_sc_stack_pf(fc->scs[s], fc->a2s[s][n], fc->exp_params->kT);
               ret &= prepare_sc_user_cb(fc, fc->scs[s], options);
@@ -315,7 +333,7 @@ vrna_sc_update(vrna_fold_compound_t *fc,
                unsigned int         i,
                unsigned int         options)
 {
-  unsigned int  n, maxdist, s;
+  unsigned int  n, maxdist, s, **a2s;
   int           ret = 0;
   vrna_sc_t     *sc, **scs;
 
@@ -362,16 +380,17 @@ vrna_sc_update(vrna_fold_compound_t *fc,
 
         case VRNA_FC_TYPE_COMPARATIVE:
           scs = fc->scs;
+          a2s = fc->a2s;
 
           for (s = 0; s < fc->n_seq; s++) {
             if ((scs[s]) &&
                 (scs[s]->type == VRNA_SC_WINDOW)) {
               if (scs[s]->up_storage) {
                 if (options & VRNA_OPTION_MFE)
-                  populate_sc_up_mfe(scs[s], i, maxdist);
+                  populate_sc_up_mfe(scs[s], a2s[s][i], a2s[s][maxdist]);
 
                 if (options & VRNA_OPTION_PF)
-                  populate_sc_up_pf(scs[s], i, maxdist, fc->exp_params->kT);
+                  populate_sc_up_pf(scs[s], a2s[s][i], a2s[s][maxdist], fc->exp_params->kT);
               }
 
               if (scs[s]->bp_storage) {
@@ -594,9 +613,9 @@ vrna_sc_set_stack_comparative(vrna_fold_compound_t  *fc,
       fc->scs[s]->energy_stack = NULL;
 
       if (constraints[s]) {
-        fc->scs[s]->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
+        fc->scs[s]->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->a2s[s][fc->length] + 1));
 
-        for (i = 1; i <= fc->length; ++i)
+        for (i = 1; i <= fc->a2s[s][fc->length]; ++i)
           fc->scs[s]->energy_stack[i] = (int)roundf(constraints[s][i] * 100.);
       }
     }
@@ -665,9 +684,9 @@ vrna_sc_add_stack_comparative(vrna_fold_compound_t  *fc,
 
       for (s = 0; s < fc->n_seq; s++) {
         if (!fc->scs[s]->energy_stack)
-          fc->scs[s]->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
+          fc->scs[s]->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->a2s[s][fc->length] + 1));
 
-        fc->scs[s]->energy_stack[i] += (int)roundf(energies[s] * 100.);
+        fc->scs[s]->energy_stack[fc->a2s[s][i]] += (int)roundf(energies[s] * 100.);
       }
 
       return 1;
