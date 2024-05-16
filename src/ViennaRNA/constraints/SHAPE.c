@@ -30,7 +30,7 @@
 #define gaussian(u) (1/(sqrt(2 * PI)) * exp(- u * u / 2))
 
 
-struct vrna_SHAPE_data_s {
+struct vrna_probing_data_s {
   unsigned int          method;
   vrna_array(double)    params1;
   vrna_array(double)    params2;
@@ -58,23 +58,23 @@ struct vrna_SHAPE_data_s {
  #################################
  */
 PRIVATE int
-apply_Deigan2009_method(vrna_fold_compound_t      *fc,
-                        struct vrna_SHAPE_data_s  *data);
+apply_Deigan2009_method(vrna_fold_compound_t        *fc,
+                        struct vrna_probing_data_s  *data);
 
 
 PRIVATE int
-apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
-                              struct vrna_SHAPE_data_s  *data);
+apply_Zarringhalam2012_method(vrna_fold_compound_t        *fc,
+                              struct vrna_probing_data_s  *data);
 
 
 PRIVATE int
-apply_Washietl2012_method(vrna_fold_compound_t      *fc,
-                          struct vrna_SHAPE_data_s  *data);
+apply_Washietl2012_method(vrna_fold_compound_t        *fc,
+                          struct vrna_probing_data_s  *data);
 
 
 PRIVATE int
-apply_Eddy2014_method(vrna_fold_compound_t      *fc,
-                      struct vrna_SHAPE_data_s  *data);
+apply_Eddy2014_method(vrna_fold_compound_t        *fc,
+                      struct vrna_probing_data_s  *data);
 
 
 PRIVATE void
@@ -126,26 +126,26 @@ bandwidth(int n,
  #################################
  */
 PUBLIC int
-vrna_sc_SHAPE(vrna_fold_compound_t *fc,
-              vrna_SHAPE_data_t    data)
+vrna_sc_probing(vrna_fold_compound_t  *fc,
+                vrna_probing_data_t   data)
 {
   int               ret = 0;
 
   if ((fc) && (data)) {
     switch (data->method) {
-      case VRNA_SHAPE_METHOD_DEIGAN2009:
+      case VRNA_PROBING_METHOD_DEIGAN2009:
         ret = apply_Deigan2009_method(fc, data);
         break;
 
-      case VRNA_SHAPE_METHOD_ZARRINGHALAM2012:
+      case VRNA_PROBING_METHOD_ZARRINGHALAM2012:
         ret = apply_Zarringhalam2012_method(fc, data);
         break;
 
-      case VRNA_SHAPE_METHOD_WASHIETL2012:
+      case VRNA_PROBING_METHOD_WASHIETL2012:
         ret = apply_Washietl2012_method(fc, data);
         break;
 
-      case VRNA_SHAPE_METHOD_EDDY2014:
+      case VRNA_PROBING_METHOD_EDDY2014:
         ret = apply_Eddy2014_method(fc, data);
         break;
 
@@ -158,48 +158,62 @@ vrna_sc_SHAPE(vrna_fold_compound_t *fc,
 }
 
 
-PUBLIC struct vrna_SHAPE_data_s *
-vrna_SHAPE_data_Deigan2009(const double *reactivities,
-                           unsigned int n,
-                           double       m,
-                           double       b)
+PUBLIC struct vrna_probing_data_s *
+vrna_probing_data_Deigan2009(const double *reactivities,
+                             unsigned int n,
+                             double       m,
+                             double       b)
 {
-  struct vrna_SHAPE_data_s *d = NULL;
+  struct vrna_probing_data_s *d = NULL;
   
   if (reactivities)
-    d = vrna_SHAPE_data_Deigan2009_comparative(&reactivities,
-                                               &n,
-                                               1,
-                                               &m,
-                                               &b);
+    d = vrna_probing_data_Deigan2009_comparative(&reactivities,
+                                                 &n,
+                                                 1,
+                                                 &m,
+                                                 &b,
+                                                 VRNA_PROBING_METHOD_MULTI_PARAMS_0);
 
   return d;
 }
 
 
-PUBLIC struct vrna_SHAPE_data_s *
-vrna_SHAPE_data_Deigan2009_comparative(const double       **reactivities,
-                                       const unsigned int *n,
-                                       unsigned int       n_seq,
-                                       double             *ms,
-                                       double             *bs)
+PUBLIC struct vrna_probing_data_s *
+vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
+                                         const unsigned int *n,
+                                         unsigned int       n_seq,
+                                         double             *ms,
+                                         double             *bs,
+                                         unsigned int       multi_params)
 {
-  struct vrna_SHAPE_data_s *d = NULL;
-  
-  if ((reactivities) &&
-      (n) &&
-      (ms) &&
-      (bs)) {
-    d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
+  struct vrna_probing_data_s  *d = NULL;
+  double                      m, b;
 
-    d->method = VRNA_SHAPE_METHOD_DEIGAN2009;
+  if ((reactivities) && (n)) {
+    if (multi_params == VRNA_PROBING_METHOD_MULTI_PARAMS_0) {
+      m = (ms) ? *ms : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
+      b = (bs) ? *bs : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
+    } else if (((ms == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)) ||
+               ((bs == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2))) {
+      /* if multi_params != 0, either ms or bs or both must be provided! */
+      return d;
+    }
+
+    d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
+
+    d->method = VRNA_PROBING_METHOD_DEIGAN2009;
     vrna_array_init_size(d->params1, n_seq);
     vrna_array_init_size(d->params2, n_seq);
     vrna_array_init_size(d->reactivities, n_seq);
 
     for (unsigned int i = 0; i < n_seq; i++) {
-      vrna_array_append(d->params1, ms[i]);
-      vrna_array_append(d->params2, bs[i]);
+      if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
+        m = ms[i];
+      if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
+        b = bs[i];
+
+      vrna_array_append(d->params1, m);
+      vrna_array_append(d->params2, b);
 
       if (reactivities[i]) {
         /* init and store reactivity data */
@@ -222,19 +236,33 @@ vrna_SHAPE_data_Deigan2009_comparative(const double       **reactivities,
 }
 
 
-PUBLIC struct vrna_SHAPE_data_s *
-vrna_SHAPE_data_Zarringhalam2012(const double *reactivities,
+PUBLIC struct vrna_probing_data_s *
+vrna_probing_data_Zarringhalam2012(const double *reactivities,
                                  unsigned int n,
                                  double       beta,
                                  const char   *pr_conversion,
                                  double       pr_default)
 {
-  struct vrna_SHAPE_data_s *d = NULL;
+#if 1
+  struct vrna_probing_data_s *d = NULL;
+  
+  if (reactivities)
+    d = vrna_probing_data_Zarringhalam2012_comparative(&reactivities,
+                                                       &n,
+                                                       1,
+                                                       &beta,
+                                                       &pr_conversion,
+                                                       &pr_default,
+                                                       VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+
+  return d;
+#else
+  struct vrna_probing_data_s *d = NULL;
   
   if (reactivities) {
-    d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
+    d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
 
-    d->method = VRNA_SHAPE_METHOD_ZARRINGHALAM2012;
+    d->method = VRNA_PROBING_METHOD_ZARRINGHALAM2012;
     vrna_array_init_size(d->params1, 1);
     vrna_array_init(d->params2);
     vrna_array_append(d->params1, beta);
@@ -264,30 +292,49 @@ vrna_SHAPE_data_Zarringhalam2012(const double *reactivities,
   }
 
   return d;
+#endif
 }
 
 
-PUBLIC struct vrna_SHAPE_data_s *
-vrna_SHAPE_data_Zarringhalam2012_comparative(const double **reactivities,
+PUBLIC struct vrna_probing_data_s *
+vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
                                              unsigned int *n,
                                              unsigned int n_seq,
                                              double       *betas,
                                              const char   **pr_conversions,
-                                             double       *pr_defaults)
+                                             double       *pr_defaults,
+                                             unsigned int multi_params)
 {
-  struct vrna_SHAPE_data_s *d = NULL;
-  
-  if (reactivities) {
-    d = (struct vrna_SHAPE_data_s *)vrna_alloc(sizeof(struct vrna_SHAPE_data_s));
+  struct vrna_probing_data_s  *d = NULL;
+  double                    beta;
+  const char                *pr_conversion;
+  double                    pr_default;
 
-    d->method = VRNA_SHAPE_METHOD_ZARRINGHALAM2012;
+  if (reactivities) {
+    if (multi_params == VRNA_PROBING_METHOD_MULTI_PARAMS_0) {
+      beta = (betas) ? *betas : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
+      pr_conversion = (pr_conversions) ? *pr_conversions : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion;
+      pr_default    = (pr_defaults) ? *pr_defaults : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability;
+    } else if (((betas == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)) ||
+               ((pr_conversions == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)) ||
+               ((pr_defaults == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_3))) {
+      /* if multi_params != 0, betas must be provided! */
+      return d;
+    }
+
+    d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
+
+    d->method = VRNA_PROBING_METHOD_ZARRINGHALAM2012;
     vrna_array_init_size(d->params1, n_seq);
     vrna_array_init(d->params2);
     vrna_array_init_size(d->reactivities, n_seq);
     vrna_array_init_size(d->datas1, n_seq);
 
     for (unsigned int i = 0; i < n_seq; i++) {
-      vrna_array_append(d->params1, betas[i]);
+      if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
+        beta = betas[i];
+
+      vrna_array_append(d->params1, beta);
 
       if (reactivities[i]) {
         /* init and store reactivity data */
@@ -303,8 +350,14 @@ vrna_SHAPE_data_Zarringhalam2012_comparative(const double **reactivities,
         vrna_array_init_size(pr, n[i] + 1);
         for (unsigned int j = 0; j <= n[i]; j++)
           vrna_array_append(pr, (FLT_OR_DBL)reactivities[i][j]);
+
+        if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
+          pr_conversion = pr_conversions[i];
+
+        if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_3)
+          pr_default = pr_defaults[i];
     
-        vrna_sc_SHAPE_to_pr(pr_conversions[i], pr, n[i], pr_defaults[i]);
+        vrna_sc_SHAPE_to_pr(pr_conversion, pr, n[i], pr_default);
         vrna_array_append(d->datas1, pr);
       } else {
         vrna_array_append(d->reactivities, NULL);
@@ -320,7 +373,7 @@ vrna_SHAPE_data_Zarringhalam2012_comparative(const double **reactivities,
 
 
 PUBLIC void
-vrna_SHAPE_data_free(struct vrna_SHAPE_data_s *d)
+vrna_probing_data_free(struct vrna_probing_data_s *d)
 {
   if (d) {
     /* free all reactivity data */
@@ -361,7 +414,7 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
   char              *sequence;
   double            *values;
   int               i, length = vc->length;
-  vrna_SHAPE_data_t d = NULL;
+  vrna_probing_data_t d = NULL;
 
   if (!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) {
     vrna_log_warning("Method for SHAPE reactivity data conversion not recognized!");
@@ -387,18 +440,18 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
 
   switch (method) {
     case 'D':
-      d = vrna_SHAPE_data_Deigan2009(values,
+      d = vrna_probing_data_Deigan2009(values,
                                      length,
                                      p1,
                                      p2);
       break;
 
     case 'Z':
-      d = vrna_SHAPE_data_Zarringhalam2012(values,
+      d = vrna_probing_data_Zarringhalam2012(values,
                                            length,
                                            p1,
                                            shape_conversion,
-                                           0.5);
+                                           VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
       break;
 
     case 'W':
@@ -414,8 +467,8 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
       return;
   }
 
-  (void)vrna_sc_SHAPE(vc, d);
-  vrna_SHAPE_data_free(d);
+  (void)vrna_sc_probing(vc, d);
+  vrna_probing_data_free(d);
 
   free(values);
   free(sequence);
@@ -563,13 +616,13 @@ vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *vc,
 
   if ((vc) &&
       (reactivities && (vc->type == VRNA_FC_TYPE_SINGLE))) {
-    vrna_SHAPE_data_t d = vrna_SHAPE_data_Zarringhalam2012(reactivities,
+    vrna_probing_data_t d = vrna_probing_data_Zarringhalam2012(reactivities,
                                                            vc->length,
                                                            b,
                                                            shape_conversion,
                                                            default_value);
-    ret = vrna_sc_SHAPE(vc, d);
-    vrna_SHAPE_data_free(d);
+    ret = vrna_sc_probing(vc, d);
+    vrna_probing_data_free(d);
   }
 
   return ret;
@@ -589,9 +642,9 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
       (reactivities)) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        vrna_SHAPE_data_t d = vrna_SHAPE_data_Deigan2009(reactivities, vc->length, m, b);
-        ret = vrna_sc_SHAPE(vc, d);
-        vrna_SHAPE_data_free(d);
+        vrna_probing_data_t d = vrna_probing_data_Deigan2009(reactivities, vc->length, m, b);
+        ret = vrna_sc_probing(vc, d);
+        vrna_probing_data_free(d);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
@@ -838,7 +891,7 @@ vrna_sc_add_SHAPE_eddy_2(vrna_fold_compound_t *fc,
 
 PRIVATE int
 apply_Deigan2009_method(vrna_fold_compound_t      *fc,
-                        struct vrna_SHAPE_data_s  *data)
+                        struct vrna_probing_data_s  *data)
 {
   unsigned int  i, s, n, n_data, **a2s;
   int           ret;
@@ -914,7 +967,7 @@ apply_Deigan2009_method(vrna_fold_compound_t      *fc,
 
 PRIVATE int
 apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
-                              struct vrna_SHAPE_data_s  *data)
+                              struct vrna_probing_data_s  *data)
 {
   unsigned int  i, j, n;
   int           ret;
@@ -971,7 +1024,7 @@ apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
 
 PRIVATE int
 apply_Washietl2012_method(vrna_fold_compound_t      *fc,
-                          struct vrna_SHAPE_data_s  *data)
+                          struct vrna_probing_data_s  *data)
 {
   int ret;
 
@@ -990,7 +1043,7 @@ apply_Washietl2012_method(vrna_fold_compound_t      *fc,
 
 PRIVATE int
 apply_Eddy2014_method(vrna_fold_compound_t      *fc,
-                      struct vrna_SHAPE_data_s  *data)
+                      struct vrna_probing_data_s  *data)
 {
   int ret = 0;
 
