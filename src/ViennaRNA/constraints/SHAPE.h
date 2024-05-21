@@ -91,8 +91,11 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 
 /**
  *  @brief  A flag indicating probing data conversion method of @rstinline :cite:t:`eddy:2014` @endrst
+ *
+ *  This flag indicates to use an implementation that distinguishes two classes of structural context, in particular
+ *  paired and unpaired positions.
  */
-#define VRNA_PROBING_METHOD_EDDY2014                              4U
+#define VRNA_PROBING_METHOD_EDDY2014_2                            4U
 
 
 /**
@@ -260,6 +263,25 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
                                              const char   **pr_conversions,
                                              double       *pr_defaults,
                                              unsigned int multi_params);
+
+vrna_probing_data_t
+vrna_probing_data_Eddy2014_2(const double *reactivities,
+                             unsigned int n,
+                             const double *unpaired_data,
+                             unsigned int unpaired_len,
+                             const double *paired_data,
+                             unsigned int paired_len);
+
+
+vrna_probing_data_t
+vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
+                                         unsigned int *n,
+                                         unsigned int n_seq,
+                                         const double **unpaired_datas,
+                                         unsigned int *unpaired_lens,
+                                         const double **paired_datas,
+                                         unsigned int *paired_lens,
+                                         unsigned int multi_params);
 
 void
 vrna_probing_data_free(vrna_probing_data_t d);

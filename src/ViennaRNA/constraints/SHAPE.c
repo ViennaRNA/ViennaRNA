@@ -145,7 +145,7 @@ vrna_sc_probing(vrna_fold_compound_t  *fc,
         ret = apply_Washietl2012_method(fc, data);
         break;
 
-      case VRNA_PROBING_METHOD_EDDY2014:
+      case VRNA_PROBING_METHOD_EDDY2014_2:
         ret = apply_Eddy2014_method(fc, data);
         break;
 
@@ -366,6 +366,108 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
     }
 
     vrna_array_init(d->datas2);
+  }
+
+  return d;
+}
+
+
+PUBLIC struct vrna_probing_data_s *
+vrna_probing_data_Eddy2014_2(const double         *reactivities,
+                             unsigned int         n,
+                             const double         *unpaired_data,
+                             unsigned int         unpaired_len,
+                             const double         *paired_data,
+                             unsigned int         paired_len)
+{
+  struct vrna_probing_data_s *d = NULL;
+  
+  if (reactivities)
+    d = vrna_probing_data_Eddy2014_2_comparative(&reactivities,
+                                                 &n,
+                                                 1,
+                                                 &unpaired_data,
+                                                 &unpaired_len,
+                                                 &paired_data,
+                                                 &paired_len,
+                                                 VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+
+  return d;
+}
+
+
+PUBLIC struct vrna_probing_data_s *
+vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
+                                         unsigned int *n,
+                                         unsigned int n_seq,
+                                         const double **unpaired_datas,
+                                         unsigned int *unpaired_lens,
+                                         const double **paired_datas,
+                                         unsigned int *paired_lens,
+                                         unsigned int multi_params)
+{
+  struct vrna_probing_data_s *d = NULL;
+  double unpaired_h, paired_h;
+
+  if ((reactivities) &&
+      (unpaired_datas) &&
+      (paired_datas)){
+    d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
+
+    d->method = VRNA_PROBING_METHOD_EDDY2014_2;
+    vrna_array_init(d->params1);
+    vrna_array_init(d->params2);
+    vrna_array_init_size(d->reactivities, n_seq);
+    vrna_array_init_size(d->datas1, n_seq);
+    vrna_array_init_size(d->datas2, n_seq);
+
+    /* prepare first probabilities */
+    if (multi_params == VRNA_PROBING_METHOD_MULTI_PARAMS_0) {
+      /* Compute bandwidth */
+      unpaired_h  = bandwidth(unpaired_lens[0], unpaired_datas[0]);
+      paired_h    = bandwidth(paired_lens[0], paired_datas[0]);
+    }
+
+    for (unsigned int i = 0; i < n_seq; i++) {
+      if (reactivities[i]) {
+        /* init and store reactivity data */
+        vrna_array(FLT_OR_DBL)  a;
+        vrna_array_init_size(a, n[i] + 1);
+        for (unsigned int j = 0; j <= n[i]; j++)
+          vrna_array_append(a, (FLT_OR_DBL)reactivities[i][j]);
+
+        vrna_array_append(d->reactivities, a);
+
+        /* kernel-density probability computations */
+        vrna_array(FLT_OR_DBL) unpaired;
+        vrna_array(FLT_OR_DBL) paired;
+
+        vrna_array_init_size(unpaired, n[i] + 1);
+        vrna_array_init_size(paired, n[i] + 1);
+
+        /* Compute bandwidth? */
+        if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
+          unpaired_h = bandwidth(unpaired_lens[i], unpaired_datas[i]);
+        if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
+          paired_h = bandwidth(paired_lens[i], paired_datas[i]);
+
+        /* convert and add */
+        vrna_array_append(unpaired, 0);
+        vrna_array_append(paired, 0.);
+
+        for (unsigned int j = 1; j <= n[i]; ++j) {
+          vrna_array_append(unpaired, log(gaussian_kde_pdf(reactivities[i][j], unpaired_lens[i], unpaired_h, unpaired_datas[i])));
+          vrna_array_append(paired, log(gaussian_kde_pdf(reactivities[i][j], paired_lens[i], paired_h, paired_datas[i])));
+        }
+
+        vrna_array_append(d->datas1, unpaired);
+        vrna_array_append(d->datas2, paired);
+      } else {
+        vrna_array_append(d->reactivities, NULL);
+        vrna_array_append(d->datas1, NULL);
+        vrna_array_append(d->datas2, NULL);
+      }
+    }
   }
 
   return d;
@@ -1012,9 +1114,7 @@ apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      if (vrna_array_size(data->reactivities) >= fc->n_seq) {
-        
-      }
+      vrna_message_warning("vrna_sc_probing(): Zarringhalam2012 method not implemented for comparative prediction yet! ");
       break;
   }
 
@@ -1042,10 +1142,46 @@ apply_Washietl2012_method(vrna_fold_compound_t      *fc,
 
 
 PRIVATE int
-apply_Eddy2014_method(vrna_fold_compound_t      *fc,
+apply_Eddy2014_method(vrna_fold_compound_t        *fc,
                       struct vrna_probing_data_s  *data)
 {
-  int ret = 0;
+  unsigned int  i, j, n;
+  int           ret;
+  double        kT;
+
+  n   = fc->length;
+  ret = 0;
+
+  kT = GASCONST * ((fc->params)->temperature + K0) / 1000; /* in kcal/mol */
+
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      if ((vrna_array_size(data->reactivities) > 0) &&
+          (n <= vrna_array_size(data->reactivities[0])) &&
+          (vrna_array_size(data->datas1) > 0) &&
+          (n <= vrna_array_size(data->datas1[0])) &&
+          (vrna_array_size(data->datas2) > 0) &&
+          (n <= vrna_array_size(data->datas2[0]))) {
+
+        /* add for unpaired position */
+        for (i = 1; i <= n; ++i)
+          vrna_sc_add_up(fc, i, - kT * data->datas1[0][i], VRNA_OPTION_DEFAULT);
+
+        /* add for paired position */
+        for (i = 1; i <= n; ++i)
+          for (j = i + 1; j <= n; ++j)
+            vrna_sc_add_bp(fc, i, j, - kT * (data->datas2[0][i] + data->datas2[0][j]), VRNA_OPTION_DEFAULT);
+        
+        ret = 1; /* success */
+      }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      vrna_message_warning("vrna_sc_probing(): Eddy2014 method not implemented for comparative prediction yet! ");
+      break;
+  
+  }
 
   return ret;
 }
