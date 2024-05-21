@@ -73,19 +73,18 @@ class constraintsTest(unittest.TestCase):
         self.assertEqual("%6.2f" %mfe,"%6.2f" % -52.61 )
 
 
-    # I just added completely randomly choosen sequences and shape data, this test only checks if the function can be called, not if it results correct results.
+    # with randomly choosen sequences and shape data, this test only checks if the function can be called, not if it results correct results.
     def test_sc_add_SHAPE_deigan_ali(self):
         """SHAPE data Deigan et al. 2009 method - Comparative MFE prediction"""
         # shape data from
         shapeSeq1 = "CCCAAAAGGG"
         shapeSeq2 = "AAUAAAAAUU"
-
-        shapeData1 = [-999.0,0.04,1.12,1.1,-999.0,0.05,0.5,0.3,-999.0,1.4]
-        shapeData2 = [-999.0,-999.0,-999.0,1.23,1.4,0.05,0.5,0.3,-999.0,1.4]
         shapeAli = [shapeSeq1,shapeSeq2]
+
+        shapeFiles = [os.sep.join([self.DATADIR, "alignment_1.shape_2rows"]), os.sep.join([self.DATADIR, "alignment_2.shape_2rows"])]
         fc=RNA.fold_compound(shapeAli);
-        assoc = [-1,1,2]
-        ret = fc.sc_add_SHAPE_deigan_ali(shapeAli, assoc,1.8,-0.6)
+        assoc = [0, 1]
+        ret = fc.sc_add_SHAPE_deigan_ali(shapeFiles, assoc,1.8,-0.6)
         (ss,mfe) = fc.mfe()
         print(ss, "[ %6.2f ]" % mfe)
         self.assertEqual(ret,1)

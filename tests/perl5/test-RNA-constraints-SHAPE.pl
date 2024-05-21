@@ -105,11 +105,12 @@ my $shapeSeq2 = "AAUAAAAAUU";
 
 #my @shapeData1 = (-999.0,0.04,1.12,1.1,-999.0,0.05,0.5,0.3,-999.0,1.4);
 #my @shapeData2 = (-999.0,-999.0,-999.0,1.23,1.4,0.05,0.5,0.3,-999.0,1.4);
+my @shapeFiles = ($datadir . "alignment_1.shape_2rows", $datadir . "alignment_2.shape_2rows");
 my @shapeAli = ($shapeSeq1,$shapeSeq2);
 $fc= new RNA::fold_compound(\@shapeAli);
 
-my @assoc = (-1,1,2);
-my $ret = $fc->sc_add_SHAPE_deigan_ali(\@shapeAli, \@assoc,1.8,-0.6);
+my @assoc = (0, 1);
+my $ret = $fc->sc_add_SHAPE_deigan_ali(\@shapeFiles, \@assoc,1.8,-0.6);
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
 is($ret,1);
