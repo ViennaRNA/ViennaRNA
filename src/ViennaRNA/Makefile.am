@@ -212,6 +212,7 @@ vrna_constraints_HEADERS = \
     constraints/basic.h \
     constraints/ligand.h \
     constraints/SHAPE.h \
+    constraints/probing.h \
     constraints/hard.h \
     constraints/soft.h \
     constraints/soft_special.h
@@ -364,6 +365,7 @@ libRNA_concentrations_la_SOURCES = \
 libRNA_constraints_la_SOURCES = \
     constraints/constraints.c \
     constraints/SHAPE.c \
+    constraints/probing.c \
     constraints/hard.c \
     constraints/soft.c \
     constraints/soft_cb_multi.c \
