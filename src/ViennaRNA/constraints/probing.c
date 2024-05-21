@@ -26,11 +26,11 @@
 #include "ViennaRNA/constraints/probing.h"
 
 
-#define gaussian(u) (1/(sqrt(2 * PI)) * exp(- u * u / 2))
+#define gaussian(u) (1 / (sqrt(2 * PI)) * exp(-u * u / 2))
 
 
 struct vrna_probing_data_s {
-  unsigned int          method;
+  unsigned int method;
   vrna_array(double)    params1;
   vrna_array(double)    params2;
   vrna_array(double *)  reactivities;
@@ -87,29 +87,32 @@ conversion_deigan(double  reactivity,
  * h is bandwidth
  */
 PRIVATE FLT_OR_DBL
-gaussian_kde_pdf(double  x,
-                 int     n,
-                 float   h,
-                 const double* data);
+gaussian_kde_pdf(double       x,
+                 int          n,
+                 float        h,
+                 const double *data);
 
 
 PRIVATE FLT_OR_DBL
-exp_pdf(double x,
-        double lambda);
+exp_pdf(double  x,
+        double  lambda);
 
 
 /* We use same format as scitpy */
 PRIVATE FLT_OR_DBL
-gev_pdf(double x,
-        double c,
-        double loc,
-        double scale);
+gev_pdf(double  x,
+        double  c,
+        double  loc,
+        double  scale);
 
-/* Bandwidth for univariate KDE with Scott factor as in scipy */
-/* bandwidth = Scott facter * std with ddof = 1 */
+
+/*
+ * Bandwidth for univariate KDE with Scott factor as in scipy
+ * bandwidth = Scott facter * std with ddof = 1
+ */
 PRIVATE FLT_OR_DBL
-bandwidth(int n,
-          const double* data);
+bandwidth(int           n,
+          const double  *data);
 
 
 PRIVATE void
@@ -129,7 +132,7 @@ PUBLIC int
 vrna_sc_probing(vrna_fold_compound_t  *fc,
                 vrna_probing_data_t   data)
 {
-  int               ret = 0;
+  int ret = 0;
 
   if ((fc) && (data)) {
     switch (data->method) {
@@ -165,7 +168,7 @@ vrna_probing_data_Deigan2009(const double *reactivities,
                              double       b)
 {
   struct vrna_probing_data_s *d = NULL;
-  
+
   if (reactivities)
     d = vrna_probing_data_Deigan2009_comparative(&reactivities,
                                                  &n,
@@ -209,6 +212,7 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
     for (unsigned int i = 0; i < n_seq; i++) {
       if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
         m = ms[i];
+
       if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
         b = bs[i];
 
@@ -238,13 +242,13 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
 
 PUBLIC struct vrna_probing_data_s *
 vrna_probing_data_Zarringhalam2012(const double *reactivities,
-                                 unsigned int n,
-                                 double       beta,
-                                 const char   *pr_conversion,
-                                 double       pr_default)
+                                   unsigned int n,
+                                   double       beta,
+                                   const char   *pr_conversion,
+                                   double       pr_default)
 {
   struct vrna_probing_data_s *d = NULL;
-  
+
   if (reactivities)
     d = vrna_probing_data_Zarringhalam2012_comparative(&reactivities,
                                                        &n,
@@ -260,23 +264,25 @@ vrna_probing_data_Zarringhalam2012(const double *reactivities,
 
 PUBLIC struct vrna_probing_data_s *
 vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
-                                             unsigned int *n,
-                                             unsigned int n_seq,
-                                             double       *betas,
-                                             const char   **pr_conversions,
-                                             double       *pr_defaults,
-                                             unsigned int multi_params)
+                                               unsigned int *n,
+                                               unsigned int n_seq,
+                                               double       *betas,
+                                               const char   **pr_conversions,
+                                               double       *pr_defaults,
+                                               unsigned int multi_params)
 {
   struct vrna_probing_data_s  *d = NULL;
-  double                    beta;
-  const char                *pr_conversion;
-  double                    pr_default;
+  double                      beta;
+  const char                  *pr_conversion;
+  double                      pr_default;
 
   if (reactivities) {
     if (multi_params == VRNA_PROBING_METHOD_MULTI_PARAMS_0) {
-      beta = (betas) ? *betas : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
-      pr_conversion = (pr_conversions) ? *pr_conversions : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion;
-      pr_default    = (pr_defaults) ? *pr_defaults : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability;
+      beta          = (betas) ? *betas : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta;
+      pr_conversion =
+        (pr_conversions) ? *pr_conversions : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion;
+      pr_default =
+        (pr_defaults) ? *pr_defaults : VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability;
     } else if (((betas == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)) ||
                ((pr_conversions == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)) ||
                ((pr_defaults == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_3))) {
@@ -318,7 +324,7 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
 
         if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_3)
           pr_default = pr_defaults[i];
-    
+
         vrna_sc_SHAPE_to_pr(pr_conversion, pr, n[i], pr_default);
         vrna_array_append(d->datas1, pr);
       } else {
@@ -335,15 +341,15 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
 
 
 PUBLIC struct vrna_probing_data_s *
-vrna_probing_data_Eddy2014_2(const double         *reactivities,
-                             unsigned int         n,
-                             const double         *unpaired_data,
-                             unsigned int         unpaired_len,
-                             const double         *paired_data,
-                             unsigned int         paired_len)
+vrna_probing_data_Eddy2014_2(const double *reactivities,
+                             unsigned int n,
+                             const double *unpaired_data,
+                             unsigned int unpaired_len,
+                             const double *paired_data,
+                             unsigned int paired_len)
 {
   struct vrna_probing_data_s *d = NULL;
-  
+
   if (reactivities)
     d = vrna_probing_data_Eddy2014_2_comparative(&reactivities,
                                                  &n,
@@ -368,12 +374,12 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
                                          unsigned int *paired_lens,
                                          unsigned int multi_params)
 {
-  struct vrna_probing_data_s *d = NULL;
-  double unpaired_h, paired_h;
+  struct vrna_probing_data_s  *d = NULL;
+  double                      unpaired_h, paired_h;
 
   if ((reactivities) &&
       (unpaired_datas) &&
-      (paired_datas)){
+      (paired_datas)) {
     d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
 
     d->method = VRNA_PROBING_METHOD_EDDY2014_2;
@@ -410,6 +416,7 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
         /* Compute bandwidth? */
         if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
           unpaired_h = bandwidth(unpaired_lens[i], unpaired_datas[i]);
+
         if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
           paired_h = bandwidth(paired_lens[i], paired_datas[i]);
 
@@ -418,8 +425,12 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
         vrna_array_append(paired, 0.);
 
         for (unsigned int j = 1; j <= n[i]; ++j) {
-          vrna_array_append(unpaired, log(gaussian_kde_pdf(reactivities[i][j], unpaired_lens[i], unpaired_h, unpaired_datas[i])));
-          vrna_array_append(paired, log(gaussian_kde_pdf(reactivities[i][j], paired_lens[i], paired_h, paired_datas[i])));
+          vrna_array_append(unpaired,
+                            log(gaussian_kde_pdf(reactivities[i][j], unpaired_lens[i], unpaired_h,
+                                                 unpaired_datas[i])));
+          vrna_array_append(paired,
+                            log(gaussian_kde_pdf(reactivities[i][j], paired_lens[i], paired_h,
+                                                 paired_datas[i])));
         }
 
         vrna_array_append(d->datas1, unpaired);
@@ -495,7 +506,8 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
     double  map_info[4][2] = { { 0.25, 0.35 },
                                { 0.30, 0.55 },
                                { 0.70, 0.85 },
-                               { 0,    1    } };
+                               { 0, 1 }
+                             };
 
     max = values[1];
     for (i = 2; i <= length; ++i)
@@ -563,7 +575,7 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
  #####################################
  */
 PRIVATE int
-apply_Deigan2009_method(vrna_fold_compound_t      *fc,
+apply_Deigan2009_method(vrna_fold_compound_t        *fc,
                         struct vrna_probing_data_s  *data)
 {
   unsigned int  i, s, n, n_data, **a2s;
@@ -588,6 +600,7 @@ apply_Deigan2009_method(vrna_fold_compound_t      *fc,
 
         free(vs);
       }
+
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
@@ -631,15 +644,16 @@ apply_Deigan2009_method(vrna_fold_compound_t      *fc,
 
         ret = vrna_sc_set_stack_comparative(fc, (const FLT_OR_DBL **)cvs, VRNA_OPTION_DEFAULT);
       }
+
       break;
   }
-  
+
   return ret;
 }
 
 
 PRIVATE int
-apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
+apply_Zarringhalam2012_method(vrna_fold_compound_t        *fc,
                               struct vrna_probing_data_s  *data)
 {
   unsigned int  i, j, n;
@@ -682,10 +696,12 @@ apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
 
         ret = 1; /* success */
       }
+
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      vrna_message_warning("vrna_sc_probing(): Zarringhalam2012 method not implemented for comparative prediction yet! ");
+      vrna_message_warning(
+        "vrna_sc_probing(): Zarringhalam2012 method not implemented for comparative prediction yet! ");
       break;
   }
 
@@ -694,7 +710,7 @@ apply_Zarringhalam2012_method(vrna_fold_compound_t      *fc,
 
 
 PRIVATE int
-apply_Washietl2012_method(vrna_fold_compound_t      *fc,
+apply_Washietl2012_method(vrna_fold_compound_t        *fc,
                           struct vrna_probing_data_s  *data)
 {
   int ret;
@@ -733,25 +749,28 @@ apply_Eddy2014_method(vrna_fold_compound_t        *fc,
           (n <= vrna_array_size(data->datas1[0])) &&
           (vrna_array_size(data->datas2) > 0) &&
           (n <= vrna_array_size(data->datas2[0]))) {
-
         /* add for unpaired position */
         for (i = 1; i <= n; ++i)
-          vrna_sc_add_up(fc, i, - kT * data->datas1[0][i], VRNA_OPTION_DEFAULT);
+          vrna_sc_add_up(fc, i, -kT * data->datas1[0][i], VRNA_OPTION_DEFAULT);
 
         /* add for paired position */
         for (i = 1; i <= n; ++i)
           for (j = i + 1; j <= n; ++j)
-            vrna_sc_add_bp(fc, i, j, - kT * (data->datas2[0][i] + data->datas2[0][j]), VRNA_OPTION_DEFAULT);
-        
+            vrna_sc_add_bp(fc,
+                           i,
+                           j,
+                           -kT * (data->datas2[0][i] + data->datas2[0][j]),
+                           VRNA_OPTION_DEFAULT);
+
         ret = 1; /* success */
       }
 
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      vrna_message_warning("vrna_sc_probing(): Eddy2014 method not implemented for comparative prediction yet! ");
+      vrna_message_warning(
+        "vrna_sc_probing(): Eddy2014 method not implemented for comparative prediction yet! ");
       break;
-  
   }
 
   return ret;
@@ -767,17 +786,20 @@ conversion_deigan(double  reactivity,
 }
 
 
-/******************/
-/*      Eddy      */
-/******************/
+/*
+ * ****************
+ *      Eddy
+ *****************
+ */
 
 PRIVATE FLT_OR_DBL
-gaussian_kde_pdf(double  x,
-                 int     n,
-                 float   h,
-                 const double* data)
+gaussian_kde_pdf(double       x,
+                 int          n,
+                 float        h,
+                 const double *data)
 {
   FLT_OR_DBL total;
+
   total = 0.;
   for (int i = 0; i < n; i++)
     total += gaussian((x - data[i]) / h);
@@ -786,23 +808,24 @@ gaussian_kde_pdf(double  x,
 
 
 PRIVATE FLT_OR_DBL
-exp_pdf(double x,
-        double lambda)
+exp_pdf(double  x,
+        double  lambda)
 {
-  return x < 0 ? 0. : (FLT_OR_DBL)(lambda * exp(- lambda * x));
+  return x < 0 ? 0. : (FLT_OR_DBL)(lambda * exp(-lambda * x));
 }
 
 
 PRIVATE FLT_OR_DBL
-gev_pdf(double x,
-        double c,
-        double loc,
-        double scale)
+gev_pdf(double  x,
+        double  c,
+        double  loc,
+        double  scale)
 {
   FLT_OR_DBL s, t;
-  s = (FLT_OR_DBL) ((x - loc) / scale);
+
+  s = (FLT_OR_DBL)((x - loc) / scale);
   t = c * s;
-  
+
   if (c == 0) {
     return exp(-s) * exp(-exp(-s));
   } else if (t < 1) {
@@ -814,14 +837,15 @@ gev_pdf(double x,
 
 
 PRIVATE FLT_OR_DBL
-bandwidth(int n,
-          const double* data)
+bandwidth(int           n,
+          const double  *data)
 {
   double factor, mu, std;
-  mu = 0.;
+
+  mu  = 0.;
   std = 0.;
 
-  factor = (pow(n, -1./5));
+  factor = (pow(n, -1. / 5));
 
   for (int i = 0; i < n; i++)
     mu += data[i];

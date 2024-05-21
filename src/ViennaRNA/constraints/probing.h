@@ -158,7 +158,7 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
  *        vrna_probing_data_Deigan2009(), vrna_probing_data_Deigan2009_comparative(),
  *        vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
  *        vrna_probing_data_Eddy2014_2(), vrna_probing_data_Eddy2014_2_comparative()
- *        
+ *
  *  @param  fc      The #vrna_fold_compound_t the probing data should be applied to in subsequent computations
  *  @param  data    The prepared probing data and probing data integration strategy
  *  @return 1 on success, 0 upon any error
@@ -197,14 +197,15 @@ vrna_sc_probing(vrna_fold_compound_t  *fc,
  *  @param  n             The length of the @p reactivities list
  *  @param  m             The slope used for the probing data to soft constraints conversion strategy
  *  @param  b             The intercept used for the probing data to soft constraints conversion strategy
- *  @return               A data structure containing the probing data and any preparations necessary to use
- *                        it in vrna_sc_probing() according to the method of @rstinline :cite:t:`deigan:2009` @endrst or @b NULL on any error.
+ *  @return               A pointer to a data structure containing the probing data and any preparations
+ *                        necessary to use it in vrna_sc_probing() according to the method of
+ *                        @rstinline :cite:t:`deigan:2009` @endrst or @b NULL on any error.
  */
 vrna_probing_data_t
 vrna_probing_data_Deigan2009(const double *reactivities,
-                           unsigned int n,
-                           double       m,
-                           double       b);
+                             unsigned int n,
+                             double       m,
+                             double       b);
 
 
 /**
@@ -245,16 +246,18 @@ vrna_probing_data_Deigan2009(const double *reactivities,
  *  @param  ms            0-based array of the slopes used for the probing data to soft constraints conversion strategy or the address of a single slope value to be applied for all data
  *  @param  bs            0-based array of the intercepts used for the probing data to soft constraints conversion strategy or the address of a single intercept value to be applied for all data
  *  @param  multi_params  A flag indicating what is passed through parameters @p ms and @p bs
- *  @return               A data structure containing the probing data and any preparations necessary to use
- *                        it in vrna_sc_probing() according to the method of @rstinline :cite:t:`deigan:2009` @endrst or @b NULL on any error.
+ *  @return               A pointer to a data structure containing the probing data and any preparations
+ *                        necessary to use it in vrna_sc_probing() according to the method of
+ *                        @rstinline :cite:t:`deigan:2009` @endrst or @b NULL on any error.
  */
 vrna_probing_data_t
 vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
-                                       const unsigned int *n,
-                                       unsigned int       n_seq,
-                                       double             *ms,
-                                       double             *bs,
-                                       unsigned int       multi_params);
+                                         const unsigned int *n,
+                                         unsigned int       n_seq,
+                                         double             *ms,
+                                         double             *bs,
+                                         unsigned int       multi_params);
+
 
 /**
  *  @brief  Prepare probing data according to Zarringhalam et al. 2012 method
@@ -285,15 +288,17 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
  *  @param  beta              The scaling factor @f$ \beta @f$ of the conversion function
  *  @param  pr_conversion     A flag that specifies how to convert reactivities to probabilities
  *  @param  pr_default        The default probability for a nucleotide where reactivity data is missing for
- *  @return                   A data structure containing the probing data and any preparations necessary to use
- *                            it in vrna_sc_probing() according to the method of @rstinline :cite:t:`zarringhalam:2012` @endrst or @b NULL on any error.
+ *  @return                   A pointer to a data structure containing the probing data and any preparations
+ *                            necessary to use it in vrna_sc_probing() according to the method of
+ *                            @rstinline :cite:t:`zarringhalam:2012` @endrst or @b NULL on any error.
  */
 vrna_probing_data_t
 vrna_probing_data_Zarringhalam2012(const double *reactivities,
-                                 unsigned int n,
-                                 double       beta,
-                                 const char   *pr_conversion,
-                                 double       pr_default);
+                                   unsigned int n,
+                                   double       beta,
+                                   const char   *pr_conversion,
+                                   double       pr_default);
+
 
 /**
  *  @brief  Prepare probing data according to Zarringhalam et al. 2012 method for comparative structure predictions
@@ -332,17 +337,19 @@ vrna_probing_data_Zarringhalam2012(const double *reactivities,
  *  @param  beta              The scaling factor @f$ \beta @f$ of the conversion function
  *  @param  pr_conversion     A flag that specifies how to convert reactivities to probabilities
  *  @param  pr_default        The default probability for a nucleotide where reactivity data is missing for
- *  @return                   A data structure containing the probing data and any preparations necessary to use
- *                            it in vrna_sc_probing() according to the method of @rstinline :cite:t:`zarringhalam:2012` @endrst or @b NULL on any error.
+ *  @return                   A pointer to a data structure containing the probing data and any preparations
+ *                            necessary to use it in vrna_sc_probing() according to the method of
+ *                            @rstinline :cite:t:`zarringhalam:2012` @endrst or @b NULL on any error.
  */
 vrna_probing_data_t
 vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
-                                             unsigned int *n,
-                                             unsigned int n_seq,
-                                             double       *betas,
-                                             const char   **pr_conversions,
-                                             double       *pr_defaults,
-                                             unsigned int multi_params);
+                                               unsigned int *n,
+                                               unsigned int n_seq,
+                                               double       *betas,
+                                               const char   **pr_conversions,
+                                               double       *pr_defaults,
+                                               unsigned int multi_params);
+
 
 /**
  *  @brief  Add probing data as soft constraints (Eddy/RNAprob-2 method)
@@ -361,7 +368,7 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
  *  method of @rstinline :cite:t:`deng:2016` @endrst. The reactivity distribution is computed
  *  using Gaussian kernel density estimation (KDE) with bandwidth @f$ h @f$ computed using
  *  Scott factor
- * 
+ *
  *  @f[ h = n^{-\frac{1}{5}} @f]
  *
  *  where @f$ n @f$ is the number of data points of the prior distribution.
@@ -380,8 +387,9 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
  *  @param  unpaired_len  Length of @p unpaired_data
  *  @param  paired_data   Pointer to an array of probing data for paired nucleotides
  *  @param  paired_len    Length of @p paired_data
- *  @return               A data structure containing the probing data and any preparations necessary to use
- *                        it in vrna_sc_probing() according to the method of @rstinline :cite:t:`eddy:2014` @endrst or @b NULL on any error.
+ *  @return               A pointer to a data structure containing the probing data and any preparations
+ *                        necessary to use it in vrna_sc_probing() according to the method of
+ *                        @rstinline :cite:t:`eddy:2014` @endrst or @b NULL on any error.
  */
 vrna_probing_data_t
 vrna_probing_data_Eddy2014_2(const double *reactivities,
@@ -437,8 +445,9 @@ vrna_probing_data_Eddy2014_2(const double *reactivities,
  *  @param  paired_datas    0-based array of 0-based arrays with probing data for paired nucleotides or address of a single array of such data
  *  @param  paired_lens     0-based array of lengths for each probing data array in @p paired_data
  *  @param  multi_params    A flag indicating what is passed through parameters @p unpaired_datas and @p paired_datas
- *  @return                 A data structure containing the probing data and any preparations necessary to use
- *                          it in vrna_sc_probing() according to the method of @rstinline :cite:t:`eddy:2014` @endrst or @b NULL on any error.
+ *  @return                 A pointer to a data structure containing the probing data and any preparations
+ *                          necessary to use it in vrna_sc_probing() according to the method of
+ *                          @rstinline :cite:t:`eddy:2014` @endrst or @b NULL on any error.
  */
 vrna_probing_data_t
 vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
@@ -484,7 +493,10 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
                     int         length,
                     double      default_value);
 
-/* End group probing_data */
-/**@}*/
+
+/*
+ * End group probing_data
+ **@}
+ */
 
 #endif
