@@ -54,12 +54,6 @@ sc_parse_parameters(const char  *string,
                     float       *v2);
 
 
-PRIVATE FLT_OR_DBL
-conversion_deigan(double  reactivity,
-                  double  m,
-                  double  b);
-
-
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -238,40 +232,27 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                              double               b,
                              unsigned int         options)
 {
-  FILE          *fp;
-  float         reactivity, *reactivities, weight;
-  char          *line, nucleotide, *sequence;
-  int           s, i, r, n_data, position, n_seq, ret;
-  FLT_OR_DBL    **contributions, energy;
-  unsigned int  **a2s;
+  char          *sequence;
+  int           ret;
+  unsigned int  **a2s, n, n_seq, s, ss, *ns;
+  double        *values, **r;
 
   ret = 0;
 
   if (vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
+    n     = vc->length;
     n_seq = vc->n_seq;
     a2s   = vc->a2s;
+    r     = (double **)vrna_alloc(sizeof(double *) * n_seq);
+    ns    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
 
-    vrna_sc_init(vc);
-
-    /* count number of SHAPE data available for this alignment */
-    for (n_data = s = 0; shape_file_association[s] != -1; s++) {
-      if (shape_file_association[s] >= n_seq)
-        continue;
-
-      /* try opening the shape data file */
-      if ((fp = fopen(shape_files[s], "r"))) {
-        fclose(fp);
-        n_data++;
-      }
+    for (s = 0; s < n_seq; s++) {
+      r[s]  = NULL;
+      ns[s] = 0;
     }
 
-    weight = (n_data > 0) ? ((float)n_seq / (float)n_data) : 0.;
-
-    /* collect contributions for the sequences in the alignment */
-    contributions = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n_seq));
-
-    for (s = 0; shape_file_association[s] != -1; s++) {
-      int ss = shape_file_association[s]; /* actual sequence number in alignment */
+    for (s = 0; shape_file_association[s] >= 0; s++) {
+      ss = shape_file_association[s]; /* actual sequence number in alignment */
 
       if (ss >= n_seq) {
         vrna_log_warning("Failed to associate SHAPE file \"%s\" with sequence %d in alignment! "
@@ -282,91 +263,53 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         continue;
       }
 
-      /* read the shape file */
-      if (!(fp = fopen(shape_files[s], "r"))) {
+      ns[ss]    = a2s[ss][n];
+      sequence  = vrna_alloc(sizeof(char) * (ns[ss] + 1));
+      values    = vrna_alloc(sizeof(double) * (ns[ss] + 1));
+
+      if (vrna_file_SHAPE_read(shape_files[s], ns[ss], -1, sequence, values)) {
+        r[ss] = values;
+
+        if (sequence) {
+          /* double check information by comparing the sequence read from */
+          char *tmp_seq = vrna_seq_ungapped(vc->sequences[shape_file_association[s]]);
+          if (strcmp(tmp_seq, sequence))
+            vrna_log_warning("Input sequence %d differs from sequence provided via SHAPE file!\n%s\n%s",
+                                 shape_file_association[s] + 1,
+                                 tmp_seq,
+                                 sequence);
+
+          free(tmp_seq);
+        }
+      } else {
         vrna_log_warning("Failed to open SHAPE data file \"%d\"! "
                              "No shape data will be used for sequence %d.",
                              s,
                              ss + 1);
-      } else {
-        reactivities  = (float *)vrna_alloc(sizeof(float) * (vc->length + 1));
-        sequence      = (char *)vrna_alloc(sizeof(char) * (vc->length + 1));
-
-        /* initialize reactivities with missing data for entire alignment length */
-        for (i = 1; i <= vc->length; i++)
-          reactivities[i] = -1.;
-
-        while ((line = vrna_read_line(fp))) {
-          r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
-          if (r) {
-            if (position <= 0) {
-              vrna_log_warning("SHAPE data for position %d outside alignment!", position);
-            } else if (position > vc->length) {
-              vrna_log_warning("SHAPE data for position %d outside alignment!", position);
-            } else {
-              switch (r) {
-                case 1:
-                  nucleotide = 'N';
-                /* fall through */
-                case 2:
-                  reactivity = -1.;
-                /* fall through */
-                default:
-                  sequence[position - 1]  = nucleotide;
-                  reactivities[position]  = reactivity;
-                  break;
-              }
-            }
-          }
-
-          free(line);
-        }
-        fclose(fp);
-
-        sequence[vc->length] = '\0';
-
-        /* double check information by comparing the sequence read from */
-        char *tmp_seq = vrna_seq_ungapped(vc->sequences[shape_file_association[s]]);
-        if (strcmp(tmp_seq, sequence))
-          vrna_log_warning("Input sequence %d differs from sequence provided via SHAPE file!",
-                               shape_file_association[s] + 1);
-
-        free(tmp_seq);
-
-        /*  begin preparation of the pseudo energies */
-        /*  beware of the fact that energy_stack will be accessed through a2s[s] array,
-         *  hence pseudo_energy might be gap-free (default)
-         */
-        int gaps, is_gap;
-        contributions[ss] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (vc->length + 1));
-        for (gaps = 0, i = 1; i <= vc->length; i++) {
-          is_gap  = (vc->sequences[ss][i - 1] == '-') ? 1 : 0;
-          energy  =
-            ((i - gaps > 0) && !(is_gap)) ? conversion_deigan(reactivities[i - gaps], m,
-                                                              b) * weight : 0.;
-
-          if (vc->params->model_details.oldAliEn)
-            contributions[ss][i] = energy;
-          else if (!is_gap)
-            contributions[ss][a2s[ss][i]] = energy;
-
-          gaps += is_gap;
-        }
-
-        free(reactivities);
       }
+
+      free(sequence);
     }
 
-    ret = vrna_sc_set_stack_comparative(vc, (const FLT_OR_DBL **)contributions, options);
+    vrna_probing_data_t d = vrna_probing_data_Deigan2009_comparative((const double **)r,
+                                                                     ns,
+                                                                     n_seq,
+                                                                     &m,
+                                                                     &b,
+                                                                     VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+    ret = vrna_sc_probing(vc, d);
+    vrna_probing_data_free(d);
 
     for (s = 0; s < n_seq; s++)
-      free(contributions[s]);
+      free(r[s]);
 
-    free(contributions);
+    free(r);
+    free(ns);
   }
 
   return ret;
 }
+
 
 
 PUBLIC int
@@ -488,13 +431,4 @@ sc_parse_parameters(const char  *string,
   }
 
   free(fmt);
-}
-
-
-PRIVATE FLT_OR_DBL
-conversion_deigan(double  reactivity,
-                  double  m,
-                  double  b)
-{
-  return reactivity < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivity + 1) + b);
 }
