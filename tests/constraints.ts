@@ -4,6 +4,7 @@
 
 #include <ViennaRNA/io/file_formats.h>
 #include <ViennaRNA/constraints/basic.h>
+#include <ViennaRNA/constraints/probing.h>
 #include <ViennaRNA/constraints/SHAPE.h>
 
 static int
