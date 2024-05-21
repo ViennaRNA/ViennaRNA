@@ -35,6 +35,7 @@
     std::vector<const char*>  vc;
     transform(shape_files.begin(), shape_files.end(), back_inserter(vc), convert_vecstring2veccharcp);
     vc.push_back(NULL); /* mark end of vector */
+    shape_file_association.push_back(-1); /* mark end of vector */
     return vrna_sc_add_SHAPE_deigan_ali($self, (const char **) &vc[0], (const int *) &shape_file_association[0], m, b, options);
   }
 
