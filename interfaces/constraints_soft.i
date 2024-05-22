@@ -214,13 +214,13 @@ vrna_sc_mod_param_t my_sc_mod_read_from_json(std::string json, vrna_md_t *md = N
   }
 
   int
-  sc_add_stack(int                  i,
-               std::vector<double>  energies,
-               unsigned int         options = VRNA_OPTION_DEFAULT)
+  sc_add_stack(std::vector<unsigned int>  i,
+               std::vector<double>        energies,
+               unsigned int               options = VRNA_OPTION_DEFAULT)
   {
     std::vector<FLT_OR_DBL>  v;
     transform(energies.begin(), energies.end(), std::back_inserter(v), convert_vecdbl2vecFLR_OR_DBL);
-    return vrna_sc_add_stack_comparative($self, i, (const FLT_OR_DBL *)&v[0], options);
+    return vrna_sc_add_stack_comparative($self, (unsigned int*)&i[0], (const FLT_OR_DBL *)&v[0], options);
   }
 
   int
