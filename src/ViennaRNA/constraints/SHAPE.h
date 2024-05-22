@@ -2,6 +2,7 @@
 #define VIENNA_RNA_PACKAGE_CONSTRAINTS_SHAPE_H
 
 #include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/constraints/probing.h>
 
 /**
  *  @file constraints/SHAPE.h
