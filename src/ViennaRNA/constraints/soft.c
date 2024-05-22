@@ -62,10 +62,22 @@ sc_reset_up(vrna_fold_compound_t  *fc,
             unsigned int          options);
 
 
+PRIVATE int
+sc_reset_up_comparative(vrna_fold_compound_t  *fc,
+                        const FLT_OR_DBL      **constraints,
+                        unsigned int          options);
+
+
 PRIVATE void
 sc_reset_bp(vrna_fold_compound_t  *fc,
             const FLT_OR_DBL      **constraints,
             unsigned int          options);
+
+
+PRIVATE int
+sc_reset_bp_comparative(vrna_fold_compound_t  *fc,
+                        const FLT_OR_DBL      ***constraints,
+                        unsigned int          options);
 
 
 PRIVATE void
@@ -75,12 +87,27 @@ sc_add_up(vrna_fold_compound_t  *fc,
           unsigned int          options);
 
 
+PRIVATE int
+sc_add_up_comparative(vrna_fold_compound_t  *fc,
+                      unsigned int          *is,
+                      const FLT_OR_DBL      *energies,
+                      unsigned int          options);
+
+
 PRIVATE void
 sc_add_bp(vrna_fold_compound_t  *fc,
           unsigned int          i,
           unsigned int          j,
           FLT_OR_DBL            energy,
           unsigned int          options);
+
+
+PRIVATE int
+sc_add_bp_comparative(vrna_fold_compound_t  *fc,
+                      unsigned int          *is,
+                      unsigned int          *js,
+                      const FLT_OR_DBL      *energies,
+                      unsigned int          options);
 
 
 PRIVATE void
@@ -481,6 +508,60 @@ vrna_sc_set_bp(vrna_fold_compound_t *fc,
 
 
 PUBLIC int
+vrna_sc_set_bp_comparative(vrna_fold_compound_t *fc,
+                           const FLT_OR_DBL     ***constraints,
+                           unsigned int         options)
+{
+  unsigned int  s;
+  int           ret;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (constraints)) {
+    ret = sc_reset_bp_comparative(fc, constraints, options);
+
+    if (options & VRNA_OPTION_MFE)
+      for (s = 0; s < fc->n_seq; s++)
+        prepare_sc_bp_mfe(fc->scs[s], fc->length, fc->jindx, options);
+
+    if (options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
+      for (s = 0; s < fc->n_seq; s++)
+        prepare_sc_bp_pf(fc->scs[s], fc->length, fc->jindx, fc->exp_params->kT, options);
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_set_bp_comparative_seq(vrna_fold_compound_t *fc,
+                               unsigned int         s,
+                               const FLT_OR_DBL     **constraints,
+                               unsigned int         options)
+{
+  int               ret;
+  const FLT_OR_DBL  ***cs;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (s < fc->n_seq) &&
+      (constraints)) {
+    cs    = (const FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL **) * fc->n_seq);
+    cs[s] = constraints;
+    ret   = vrna_sc_set_bp_comparative(fc, cs, options);
+
+    free(cs);
+  }
+  
+  return ret;
+}
+
+
+PUBLIC int
 vrna_sc_add_bp(vrna_fold_compound_t *fc,
                int                  i,
                int                  j,
@@ -513,6 +594,89 @@ vrna_sc_add_bp(vrna_fold_compound_t *fc,
 
 
 PUBLIC int
+vrna_sc_add_bp_comparative(vrna_fold_compound_t *fc,
+                           unsigned int         *is,
+                           unsigned int         *js,
+                           const FLT_OR_DBL     *energies,
+                           unsigned int         options)
+{
+  unsigned int  s;
+  int           ret;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (is) &&
+      (js) &&
+      (energies)) {
+    for (s = 0; s < fc->n_seq; s++) {
+      if (is[s] != 0) {
+        if ((is[s] > fc->length) ||
+            (js[s] < is[s]) ||
+            (js[s] > fc->length)) {
+          vrna_log_warning("vrna_sc_add_bp_comparative*(): Base pair (%d, %d) out of range for sequence %d!"
+                           " (Alignment length: %d)"
+                           "Omitting data!",
+                           is[s], js[s], s, fc->length);
+          is[s] = 0;
+        }
+      }
+    }
+
+    ret = sc_add_bp_comparative(fc, is, js, energies, options);
+
+    if (options & VRNA_OPTION_MFE)
+      for (s = 0; s < fc->n_seq; s++)
+        prepare_sc_bp_mfe(fc->scs[s], fc->length, fc->jindx, options);
+
+    if (options & VRNA_OPTION_PF) /* prepare Boltzmann factors for the BP soft constraints */
+      for (s = 0; s < fc->n_seq; s++)
+        prepare_sc_bp_pf(fc->scs[s], fc->length, fc->jindx, fc->exp_params->kT, options);
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_add_bp_comparative_seq(vrna_fold_compound_t *fc,
+                               unsigned int         s,
+                               unsigned int         i,
+                               unsigned int         j,
+                               FLT_OR_DBL           energy,
+                               unsigned int         options)
+{
+  unsigned int  *is, *js;
+  int           ret;
+  FLT_OR_DBL    *es;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (s < fc->n_seq) &&
+      (i != 0) &&
+      (i < j)) {
+    is    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * fc->n_seq);
+    js    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * fc->n_seq);
+    es    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * fc->n_seq);
+    is[s] = i;
+    js[s] = j;
+    es[s] = energy;
+
+    ret = vrna_sc_add_bp_comparative(fc, is, js, es, options);
+
+    free(is);
+    free(js);
+    free(es);
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
 vrna_sc_set_up(vrna_fold_compound_t *fc,
                const FLT_OR_DBL     *constraints,
                unsigned int         options)
@@ -531,6 +695,61 @@ vrna_sc_set_up(vrna_fold_compound_t *fc,
 
   return 0;
 }
+
+
+PUBLIC int
+vrna_sc_set_up_comparative(vrna_fold_compound_t *fc,
+                           const FLT_OR_DBL     **constraints,
+                           unsigned int         options)
+{
+  unsigned int  s;
+  int           ret;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (constraints)) {
+    ret = sc_reset_up_comparative(fc, constraints, options);
+
+    if (options & VRNA_OPTION_MFE)
+      for (s = 0; s < fc->n_seq; s++)
+        prepare_sc_up_mfe(fc->scs[s], fc->a2s[s][fc->length], options);
+
+    if (options & VRNA_OPTION_PF)
+      for (s = 0; s < fc->n_seq; s++)
+        prepare_sc_up_pf(fc->scs[s], fc->a2s[s][fc->length], fc->exp_params->kT, options);
+
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_set_up_comparative_seq(vrna_fold_compound_t *fc,
+                               unsigned int         s,
+                               const FLT_OR_DBL     *constraints,
+                               unsigned int         options)
+{
+  const FLT_OR_DBL  **c;
+  int               ret;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (s < fc->n_seq)) {
+    c     = (const FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * fc->n_seq);
+    c[s]  = constraints;
+    ret   = vrna_sc_set_up_comparative(fc, c, options);
+
+    free(c);
+  }
+
+  return ret;
+}
+
 
 
 PUBLIC int
@@ -558,6 +777,88 @@ vrna_sc_add_up(vrna_fold_compound_t *fc,
   }
 
   return 0;
+}
+
+
+PUBLIC int
+vrna_sc_add_up_comparative(vrna_fold_compound_t *fc,
+                           unsigned int         *is,
+                           const FLT_OR_DBL     *energies,
+                           unsigned int         options)
+{
+  unsigned int  s;
+  int           ret;
+
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (is) &&
+      (energies)) {
+    for (s = 0; s < fc->n_seq; s++) {
+      if ((is[s] != 0) &&
+          (is[s] > fc->a2s[s][fc->length])) {
+        vrna_log_warning("vrna_sc_add_up_comparative*(): Nucleotide position %d out of range for sequence %d!"
+                         " (Sequence length: %d)\n"
+                         "Omitting data!",
+                         is[s], s, fc->a2s[s][fc->length]);
+        is[s] = 0;
+      }
+    }
+
+    ret = sc_add_up_comparative(fc, is, energies, options);
+
+    if (options & VRNA_OPTION_MFE)
+      for (s = 0; s < fc->n_seq; s++)
+        prepare_sc_up_mfe(fc->scs[s], fc->a2s[s][fc->length], options);
+
+    if (options & VRNA_OPTION_PF)
+      for (s = 0; s < fc->n_seq; s++)
+        prepare_sc_up_pf(fc->scs[s], fc->a2s[s][fc->length], fc->exp_params->kT, options);
+
+  }
+
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_add_up_comparative_seq(vrna_fold_compound_t *fc,
+                               unsigned int         s,
+                               unsigned int         i,
+                               const FLT_OR_DBL     energy,
+                               unsigned int         options)
+{
+  unsigned int  *is;
+  int           ret;
+  FLT_OR_DBL    *es;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (s < fc->n_seq)) {
+    if ((i == 0) ||
+        (i > fc->a2s[s][fc->length])) {
+      vrna_log_warning("vrna_sc_add_up_comparative*(): Nucleotide position %d out of range for sequence %d!"
+                       " (Sequence length: %d)\n"
+                       "Omitting data!",
+                       i, s, fc->a2s[s][fc->length]);
+    } else {
+      is    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * fc->n_seq);
+      es    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * fc->n_seq);
+      is[s] = i;
+      es[s] = energy;
+
+      ret = vrna_sc_add_up_comparative(fc, is, (const FLT_OR_DBL *)es, options);
+
+      free(is);
+      free(es);
+    }
+  }
+
+  return ret;
 }
 
 
@@ -596,7 +897,10 @@ vrna_sc_set_stack_comparative(vrna_fold_compound_t  *fc,
                               const FLT_OR_DBL      **constraints,
                               unsigned int          options)
 {
-  unsigned int i, s;
+  unsigned int  i, s;
+  int           ret;
+
+  ret = 0;
 
   if ((fc) &&
       (constraints) &&
@@ -617,13 +921,39 @@ vrna_sc_set_stack_comparative(vrna_fold_compound_t  *fc,
 
         for (i = 1; i <= fc->a2s[s][fc->length]; ++i)
           fc->scs[s]->energy_stack[i] = (int)roundf(constraints[s][i] * 100.);
+
+        ret++;
       }
     }
-
-    return 1;
   }
 
-  return 0;
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_set_stack_comparative_seq(vrna_fold_compound_t  *fc,
+                                  unsigned int          s,
+                                  const FLT_OR_DBL      *constraints,
+                                  unsigned int          options)
+{
+  int               ret;
+  const FLT_OR_DBL  **c;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (s < fc->n_seq) &&
+      (constraints)) {
+    c     = (const FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * fc->n_seq);
+    c[s]  = constraints;
+    ret   = vrna_sc_set_stack_comparative(fc, c, options);
+
+    free(c);
+  }
+
+  return ret;
 }
 
 
@@ -662,38 +992,79 @@ vrna_sc_add_stack(vrna_fold_compound_t  *fc,
 
 PUBLIC int
 vrna_sc_add_stack_comparative(vrna_fold_compound_t  *fc,
-                              int                   i,
+                              unsigned int          *is,
                               const FLT_OR_DBL      *energies,
                               unsigned int          options)
 {
-  unsigned int s;
+  unsigned int  s;
+  int           ret;
+
+  ret = 0;
 
   if ((fc) &&
-      (fc->type == VRNA_FC_TYPE_COMPARATIVE)) {
-    if ((i < 1) || (i > fc->length)) {
-      vrna_log_warning("vrna_sc_add_stack*(): Nucleotide position %d out of range!"
-                           " (Alignment length: %d)",
-                           i, fc->length);
-    } else {
-      if (!fc->scs) {
-        if (options & VRNA_OPTION_WINDOW)
-          vrna_sc_init_window(fc);
-        else
-          vrna_sc_init(fc);
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (energies)) {
+    for (s = 0; s < fc->n_seq; s++) {
+      if ((is[s] != 0) &&
+          (is[s] > fc->a2s[s][fc->length])) {
+        vrna_log_warning("vrna_sc_add_stack_comparative*(): Nucleotide position %d out of range for sequence %d!"
+                           " (Sequence length: %d)\n"
+                           "Omitting data!",
+                           is[s], s, fc->a2s[s][fc->length]);
+        is[s] = 0;
       }
+    }
 
-      for (s = 0; s < fc->n_seq; s++) {
-        if (!fc->scs[s]->energy_stack)
+    if (!fc->scs) {
+      if (options & VRNA_OPTION_WINDOW)
+        vrna_sc_init_window(fc);
+      else
+        vrna_sc_init(fc);
+    }
+
+    for (s = 0; s < fc->n_seq; s++) {
+      if (is[s] != 0) {
+        if (fc->scs[s]->energy_stack == NULL)
           fc->scs[s]->energy_stack = (int *)vrna_alloc(sizeof(int) * (fc->a2s[s][fc->length] + 1));
 
-        fc->scs[s]->energy_stack[fc->a2s[s][i]] += (int)roundf(energies[s] * 100.);
+        fc->scs[s]->energy_stack[is[s]] += (int)roundf(energies[s] * 100.);
+        ret++;
       }
-
-      return 1;
     }
   }
 
-  return 0;
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_add_stack_comparative_seq(vrna_fold_compound_t  *fc,
+                                  unsigned int          s,
+                                  unsigned int          i,
+                                  FLT_OR_DBL            energy,
+                                  unsigned int          options)
+{
+  unsigned int  *is;
+  int           ret;
+  FLT_OR_DBL    *es;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (s < fc->n_seq)) {
+    is    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * fc->n_seq);
+    es    = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * fc->n_seq);
+    is[s] = i;
+    es[s] = energy;
+
+    ret   = vrna_sc_add_stack_comparative(fc, is, es, options);
+    
+    free(is);
+    free(es);
+  }
+  
+  return ret;
 }
 
 
@@ -734,35 +1105,114 @@ vrna_sc_add_auxdata(vrna_fold_compound_t    *fc,
 
 
 PUBLIC int
-vrna_sc_add_data_comparative(vrna_fold_compound_t *fc,
+vrna_sc_set_data_comparative(vrna_fold_compound_t *fc,
                              void                 **data,
-                             vrna_auxdata_free_f  *free_data)
+                             vrna_auxdata_free_f  *free_data,
+                             unsigned int         options)
 {
-  unsigned int s;
+  return vrna_sc_set_auxdata_comparative(fc, data, NULL, free_data, options);
+}
+
+
+PUBLIC int
+vrna_sc_set_data_comparative_seq(vrna_fold_compound_t    *fc,
+                                 unsigned int            s,
+                                 void                    *data,
+                                 vrna_auxdata_free_f     free_data,
+                                 unsigned int            options)
+{
+  return vrna_sc_set_auxdata_comparative_seq(fc, s, data, NULL, free_data, options);
+}
+
+
+
+PUBLIC int
+vrna_sc_set_auxdata_comparative(vrna_fold_compound_t    *fc,
+                                void                    **data,
+                                vrna_auxdata_prepare_f  *prepare_cbs,
+                                vrna_auxdata_free_f     *free_data,
+                                unsigned int            options)
+{
+  unsigned int  s;
+  int           ret;
+
+  ret = 0;
 
   if ((fc) &&
-      (fc->type == VRNA_FC_TYPE_COMPARATIVE)) {
-    if (!fc->scs)
-      vrna_sc_init(fc);
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (data)) {
+    if (!fc->scs) {
+      if (options & VRNA_OPTION_WINDOW)
+        vrna_sc_init_window(fc);
+      else
+        vrna_sc_init(fc);
+    }
+
+    for (s = 0; s < fc->n_seq; s++) {
+      /* release previous data entries */
+      if (fc->scs[s]->free_data)
+        fc->scs[s]->free_data(fc->scs[s]->data);
+
+      fc->scs[s]->free_data     = NULL;
+      fc->scs[s]->prepare_data  = NULL;
+      fc->scs[s]->data          = NULL;
+
+      /* set current data */
+      if (data[s]) {
+        fc->scs[s]->data = data[s];
+        ret++;
+      }
+    }
+
+    if (prepare_cbs)
+      for (s = 0; s < fc->n_seq; s++)
+        if (prepare_cbs[s])
+          fc->scs[s]->prepare_data = prepare_cbs[s];
 
     if (free_data)
-      for (s = 0; s < fc->n_seq; s++) {
-        if (fc->scs[s]->free_data) {
-          fc->scs[s]->free_data(fc->scs[s]->data);
-          fc->scs[s]->data = NULL;
-        }
-
-        fc->scs[s]->free_data = free_data[s];
-      }
-
-    if (data)
       for (s = 0; s < fc->n_seq; s++)
-        fc->scs[s]->data = data[s];
-
-    return 1;
+        if (free_data[s])
+          fc->scs[s]->free_data = free_data[s];
   }
 
-  return 0;
+  return ret;
+}
+
+
+PUBLIC int
+vrna_sc_set_auxdata_comparative_seq(vrna_fold_compound_t    *fc,
+                                    unsigned int            s,
+                                    void                    *data,
+                                    vrna_auxdata_prepare_f  prepare_cb,
+                                    vrna_auxdata_free_f     free_data,
+                                    unsigned int            options)
+{
+  int                     ret;
+  void                    **ds;
+  vrna_auxdata_prepare_f  *ps;
+  vrna_auxdata_free_f     *fs;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      (s < fc->n_seq) &&
+      (data)) {
+    ds    = (void **)vrna_alloc(sizeof(void *) * fc->n_seq);
+    ps    = (vrna_auxdata_prepare_f *)vrna_alloc(sizeof(vrna_auxdata_prepare_f) * fc->n_seq);
+    fs    = (vrna_auxdata_free_f *)vrna_alloc(sizeof(vrna_auxdata_free_f) * fc->n_seq);
+    ds[s] = data;
+    ps[s] = prepare_cb;
+    fs[s] = free_data;
+
+    ret   = vrna_sc_set_auxdata_comparative(fc, ds, ps, fs, options);
+    
+    free(ds);
+    free(ps);
+    free(fs);
+  }
+
+  return ret;
 }
 
 
@@ -785,24 +1235,35 @@ vrna_sc_add_f(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_sc_add_f_comparative(vrna_fold_compound_t  *fc,
-                          vrna_sc_f             *f)
+vrna_sc_set_f_comparative(vrna_fold_compound_t  *fc,
+                          vrna_sc_f             *f,
+                          unsigned int          options)
 {
-  unsigned int s;
+  unsigned int  s;
+  int           ret;
+
+
+  ret = 0;
 
   if ((fc) &&
       (f) &&
       (fc->type == VRNA_FC_TYPE_COMPARATIVE)) {
-    if (!fc->scs)
-      vrna_sc_init(fc);
+    if (!fc->scs) {
+      if (options & VRNA_OPTION_WINDOW)
+        vrna_sc_init_window(fc);
+      else
+        vrna_sc_init(fc);
+    }
 
-    for (s = 0; s < fc->n_seq; s++)
+    for (s = 0; s < fc->n_seq; s++) {
       fc->scs[s]->f = f[s];
 
-    return 1;
+      if (f[s] != NULL)
+        ret++;
+    }
   }
 
-  return 0;
+  return ret;
 }
 
 
@@ -843,24 +1304,34 @@ vrna_sc_add_exp_f(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_sc_add_exp_f_comparative(vrna_fold_compound_t  *fc,
-                              vrna_sc_exp_f         *exp_f)
+vrna_sc_set_exp_f_comparative(vrna_fold_compound_t  *fc,
+                              vrna_sc_exp_f         *exp_f,
+                              unsigned int          options)
 {
-  unsigned int s;
+  unsigned int  s;
+  int           ret;
+
+  ret = 0;
 
   if ((fc) &&
       (exp_f) &&
       (fc->type == VRNA_FC_TYPE_COMPARATIVE)) {
-    if (!fc->scs)
-      vrna_sc_init(fc);
+    if (!fc->scs) {
+      if (options & VRNA_OPTION_WINDOW)
+        vrna_sc_init_window(fc);
+      else
+        vrna_sc_init(fc);
+    }
 
-    for (s = 0; s < fc->n_seq; s++)
+    for (s = 0; s < fc->n_seq; s++) {
       fc->scs[s]->exp_f = exp_f[s];
 
-    return 1;
+      if (exp_f[s] != NULL)
+        ret++;
+    }
   }
 
-  return 0;
+  return ret;
 }
 
 
@@ -1114,6 +1585,38 @@ sc_add_bp(vrna_fold_compound_t  *fc,
 }
 
 
+PRIVATE int
+sc_add_bp_comparative(vrna_fold_compound_t  *fc,
+                      unsigned int          *is,
+                      unsigned int          *js,
+                      const FLT_OR_DBL      *energies,
+                      unsigned int          options)
+{
+  unsigned int  s;
+  int           ret;
+  vrna_sc_t     *sc;
+
+  ret = 0;
+  if ((options & VRNA_OPTION_WINDOW) && (!fc->sc))
+    vrna_sc_init_window(fc);
+  else if (!fc->sc)
+    vrna_sc_init(fc);
+
+  for (s = 0; s < fc->n_seq; s++) {
+    if (is[s] != 0) {
+      sc = fc->scs[s];
+      sc_init_bp_storage(sc);
+      sc_store_bp(sc->bp_storage, is[s], js[s], js[s], (int)roundf(energies[s] * 100.));
+      sc->state |= STATE_DIRTY_BP_MFE | STATE_DIRTY_BP_PF;
+
+      ret++;
+    }
+  }
+
+  return ret;
+}
+
+
 PRIVATE INLINE void
 free_sc_up(vrna_sc_t *sc)
 {
@@ -1214,6 +1717,50 @@ sc_reset_up(vrna_fold_compound_t  *fc,
 }
 
 
+PRIVATE int
+sc_reset_up_comparative(vrna_fold_compound_t  *fc,
+                        const FLT_OR_DBL      **constraints,
+                        unsigned int          options)
+{
+  unsigned int  i, s, n;
+  int           ret;
+  vrna_sc_t     *sc;
+
+  ret = 0;
+
+  if (!fc->scs) {
+    if (options & VRNA_OPTION_WINDOW)
+      vrna_sc_init_window(fc);
+    else
+      vrna_sc_init(fc);
+  }
+
+  for (s = 0; s < fc->n_seq; s++) {
+    if (constraints[s]) {
+      n   = fc->a2s[s][fc->length];
+      sc  = fc->scs[s];
+
+      free_sc_up(sc);
+
+      /* initialize container for unpaired probabilities */
+      sc_init_up_storage(sc);
+
+      /* add contributions to storage container */
+      for (i = 1; i <= n; i++)
+        sc->up_storage[i] = (int)roundf(constraints[s][i] * 100.); /* convert to 10kal/mol */
+
+      sc->state |= STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF;
+
+      ret++;
+    } else {
+      free_sc_up(sc);
+    }
+  }
+
+  return ret;
+}
+
+
 PRIVATE void
 sc_reset_bp(vrna_fold_compound_t  *fc,
             const FLT_OR_DBL      **constraints,
@@ -1251,6 +1798,51 @@ sc_reset_bp(vrna_fold_compound_t  *fc,
 }
 
 
+PRIVATE int
+sc_reset_bp_comparative(vrna_fold_compound_t  *fc,
+                        const FLT_OR_DBL      ***constraints,
+                        unsigned int          options)
+{
+  unsigned int  i, j, s, n;
+  int           ret;
+  vrna_sc_t     *sc;
+
+  ret = 0;
+
+  if (!fc->scs) {
+    if (options & VRNA_OPTION_WINDOW)
+      vrna_sc_init_window(fc);
+    else
+      vrna_sc_init(fc);
+  }
+
+  n = fc->length;
+
+  for (s = 0; s < fc->n_seq; s++) {
+    if (constraints[s]) {
+      sc  = fc->scs[s];
+      free_sc_bp(sc);
+
+      /* initialize container for base pair constraints */
+      sc_init_bp_storage(sc);
+
+      /* add contributions to storage container */
+      for (i = 1; i < n; i++)
+        for (j = i + 1; j <= n; j++)
+          sc_store_bp(sc->bp_storage, i, j, j, (int)roundf(constraints[s][i][j] * 100.));
+
+      sc->state |= STATE_DIRTY_BP_MFE | STATE_DIRTY_BP_PF;
+
+      ret++;
+    } else {
+      free_sc_bp(sc);
+    }
+  }
+
+  return ret;
+}
+
+
 PRIVATE void
 sc_add_up(vrna_fold_compound_t  *fc,
           unsigned int          i,
@@ -1268,6 +1860,40 @@ sc_add_up(vrna_fold_compound_t  *fc,
   sc_init_up_storage(sc);
   sc->up_storage[i] += (int)roundf(energy * 100.);
   sc->state         |= STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF;
+}
+
+
+PRIVATE int
+sc_add_up_comparative(vrna_fold_compound_t  *fc,
+                      unsigned int          *is,
+                      const FLT_OR_DBL      *energies,
+                      unsigned int          options)
+{
+  unsigned int  s;
+  int           ret;
+  vrna_sc_t     *sc;
+
+  ret = 0;
+
+  if (!fc->scs) {
+    if (options & VRNA_OPTION_WINDOW)
+      vrna_sc_init_window(fc);
+    else
+      vrna_sc_init(fc);
+  }
+
+  for (s = 0; s < fc->n_seq; s++) {
+    if (is[s] != 0) {
+      sc = fc->scs[s];
+      sc_init_up_storage(sc);
+      sc->up_storage[is[s]] += (int)roundf(energies[s] * 100.);
+      sc->state             |= STATE_DIRTY_UP_MFE | STATE_DIRTY_UP_PF;
+
+      ret++;
+    }
+  }
+
+  return ret;
 }
 
 
