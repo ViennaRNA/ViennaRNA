@@ -223,7 +223,7 @@ vrna_probing_data_Deigan2009(const double *reactivities,
  *  sequences. For that purpose, @p reactivities can be provided for any of the sequences
  *  in the MSA. Individual probing data is always expected to be specified in sequence coordinates,
  *  i.e. without considering gaps in the MSA. Therefore, each set of @p reactivities may have
- *  a different length as specified the parameter $p n.
+ *  a different length as specified the parameter @p n.
  *  In addition, each set of probing data may undergo the conversion using different parameters
  *  @f$ m @f$ and @f$ b @f$. Whether or not multiple sets of conversion parameters are provided
  *  must be specified using the @p multi_params flag parameter. Use #VRNA_PROBING_METHOD_MULTI_PARAMS_1
@@ -311,7 +311,7 @@ vrna_probing_data_Zarringhalam2012(const double *reactivities,
  *  sequences. For that purpose, @p reactivities can be provided for any of the sequences
  *  in the MSA. Individual probing data is always expected to be specified in sequence coordinates,
  *  i.e. without considering gaps in the MSA. Therefore, each set of @p reactivities may have
- *  a different length as specified the parameter $p n.
+ *  a different length as specified the parameter @p n.
  *  In addition, each set of probing data may undergo the conversion using different parameters
  *  @f$ beta @f$. Additionally, the probing data to probability conversions strategy and default
  *  values for missing data can be specified in a sequence-based manner. Whether or not multiple conversion
@@ -418,7 +418,7 @@ vrna_probing_data_Eddy2014_2(const double *reactivities,
  *  sequences. For that purpose, @p reactivities can be provided for any of the sequences
  *  in the MSA. Individual probing data is always expected to be specified in sequence coordinates,
  *  i.e. without considering gaps in the MSA. Therefore, each set of @p reactivities may have
- *  a different length as specified the parameter $p n.
+ *  a different length as specified the parameter @p n.
  *  In addition, each set of probing data may undergo the conversion using different prior distributions
  *  for unpaired and paired nucleotides. Whether or not multiple sets of conversion priors are provided
  *  must be specified using the @p multi_params flag parameter. Use #VRNA_PROBING_METHOD_MULTI_PARAMS_1
