@@ -43,6 +43,18 @@
 @defgroup   soft_constraints          Soft Constraints
 @ingroup    constraints
 
+@defgroup   soft_constraints_up       Soft Constraints (unpaired positions)
+@ingroup    soft_constraints
+
+@defgroup   soft_constraints_bp       Soft Constraints (base pairs)
+@ingroup    soft_constraints
+
+@defgroup   soft_constraints_st       Soft Constraints (base pair stacks)
+@ingroup    soft_constraints
+
+@defgroup   soft_constraints_generic  Soft Constraints (generic implementation)
+@ingroup    soft_constraints
+
 @defgroup   landscape                 The RNA Secondary Structure Landscape
 
 @defgroup   mfe                       Minimum Free Energy (MFE) Algorithms

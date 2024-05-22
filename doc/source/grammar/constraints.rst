@@ -90,6 +90,7 @@ High-level interfaces that build upon the soft constraints framework
 can be obtained by the implementations in the submodules:
 
 * :doc:`/modified_bases`
+* :doc:`/probing_data`
 * :doc:`/probing/SHAPE`
 * :doc:`/ligands/constraints`
 

@@ -7,6 +7,35 @@ Soft-constraints are used to change position specific contributions
 in the recursions by adding bonuses/penalties in form of pseudo free energies
 to certain loop configurations.
 
+Common API symbols
+------------------
+
 .. doxygengroup:: soft_constraints
+    :no-title:
+
+Unpaired Positions
+------------------
+
+.. doxygengroup:: soft_constraints_up
+    :no-title:
+
+
+Base Pairs
+----------
+
+.. doxygengroup:: soft_constraints_bp
+    :no-title:
+
+
+Stacked Base Pairs
+------------------
+
+.. doxygengroup:: soft_constraints_st
+    :no-title:
+
+Generic implementation
+----------------------
+
+.. doxygengroup:: soft_constraints_generic
     :no-title:
 
