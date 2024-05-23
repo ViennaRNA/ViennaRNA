@@ -215,6 +215,8 @@ typedef enum {
 
 /**
  *  @brief  A base pair constraint
+ *
+ *  @ingroup soft_constraints
  */
 typedef struct {
   unsigned int  interval_start;

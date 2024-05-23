@@ -220,6 +220,9 @@
 @defgroup   struct_utils_metrics      Distance measures between Secondary Structures
 @ingroup    struct_utils
 
+@defgroup   struct_utils_benchmark    Benchmark measures for Secondary Structure Predictions
+@ingroup    struct_utils
+
 @defgroup   aln_utils                 Multiple Sequence Alignment Utilities
 @ingroup    utils
 

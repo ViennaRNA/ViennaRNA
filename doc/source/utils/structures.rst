@@ -16,6 +16,7 @@ structure representations.
    struct/helix_list
    struct/trees
    struct/metrics
+   struct/benchmark
    struct/deprecated
 
 .. doxygengroup:: struct_utils

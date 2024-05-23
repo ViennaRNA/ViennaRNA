@@ -7,6 +7,11 @@ Soft-constraints are used to change position specific contributions
 in the recursions by adding bonuses/penalties in form of pseudo free energies
 to certain loop configurations.
 
+.. contents:: Table of Contents
+    :local:
+    :depth: 2
+
+
 Common API symbols
 ------------------
 
