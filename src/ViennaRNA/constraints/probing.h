@@ -161,7 +161,7 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
  *
  *  @param  fc      The #vrna_fold_compound_t the probing data should be applied to in subsequent computations
  *  @param  data    The prepared probing data and probing data integration strategy
- *  @return 1 on success, 0 upon any error
+ *  @return The number of probing data sets applied, 0 upon any error
  */
 int
 vrna_sc_probing(vrna_fold_compound_t  *fc,
@@ -242,7 +242,7 @@ vrna_probing_data_Deigan2009(const double *reactivities,
  *
  *  @param  reactivities  0-based array of 1-based arrays of per-nucleotide probing data, e.g. SHAPE reactivities
  *  @param  n             0-based array of lengths of the @p reactivities lists
- *  @params n_seq         The number of sequences in the MSA
+ *  @param  n_seq         The number of sequences in the MSA
  *  @param  ms            0-based array of the slopes used for the probing data to soft constraints conversion strategy or the address of a single slope value to be applied for all data
  *  @param  bs            0-based array of the intercepts used for the probing data to soft constraints conversion strategy or the address of a single intercept value to be applied for all data
  *  @param  multi_params  A flag indicating what is passed through parameters @p ms and @p bs
@@ -332,11 +332,13 @@ vrna_probing_data_Zarringhalam2012(const double *reactivities,
  *        #VRNA_PROBING_METHOD_MULTI_PARAMS_2, #VRNA_PROBING_METHOD_MULTI_PARAMS_3,
  *        #VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT
  *
- *  @param  reactivities      1-based array of per-nucleotide probing data, e.g. SHAPE reactivities
- *  @param  n                 The length of the @p reactivities list
- *  @param  beta              The scaling factor @f$ \beta @f$ of the conversion function
- *  @param  pr_conversion     A flag that specifies how to convert reactivities to probabilities
- *  @param  pr_default        The default probability for a nucleotide where reactivity data is missing for
+ *  @param  reactivities      0-based array of 1-based arrays of per-nucleotide probing data, e.g. SHAPE reactivities
+ *  @param  n                 0-based array of lengths of the @p reactivities lists
+ *  @param  n_seq             The number of sequences in the MSA
+ *  @param  betas             0-based array with scaling factors @f$ \beta @f$ of the conversion function or the address of a scaling factor to be applied for all data
+ *  @param  pr_conversions    0-based array of flags that specifies how to convert reactivities to probabilities or the address of a conversion strategy to be applied for all data
+ *  @param  pr_defaults       0-based array of default probabilities for a nucleotide where reactivity data is missing for or the address of a single default probability to be applied for all data
+ *  @param  multi_params      A flag indicating what is passed through parameters @p betas, @p pr_conversions, and @p pr_defaults
  *  @return                   A pointer to a data structure containing the probing data and any preparations
  *                            necessary to use it in vrna_sc_probing() according to the method of
  *                            @rstinline :cite:t:`zarringhalam:2012` @endrst or @b NULL on any error.
@@ -439,7 +441,7 @@ vrna_probing_data_Eddy2014_2(const double *reactivities,
  *
  *  @param  reactivities    0-based array of 1-based arrays of per-nucleotide probing data, e.g. SHAPE reactivities
  *  @param  n               0-based array of lengths of the @p reactivities lists
- *  @params n_seq           The number of sequences in the MSA
+ *  @param  n_seq           The number of sequences in the MSA
  *  @param  unpaired_datas  0-based array of 0-based arrays with probing data for unpaired nucleotides or address of a single array of such data
  *  @param  unpaired_lens   0-based array of lengths for each probing data array in @p unpaired_datas
  *  @param  paired_datas    0-based array of 0-based arrays with probing data for paired nucleotides or address of a single array of such data
@@ -494,9 +496,8 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
                     double      default_value);
 
 
-/*
- * End group probing_data
- **@}
+/**
+ *  @}
  */
 
 #endif
