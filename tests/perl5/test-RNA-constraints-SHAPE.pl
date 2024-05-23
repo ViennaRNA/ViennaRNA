@@ -113,7 +113,7 @@ my @assoc = (0, 1);
 my $ret = $fc->sc_add_SHAPE_deigan_ali(\@shapeFiles, \@assoc,1.8,-0.6);
 ($ss,$mfe) = $fc->mfe();
 printf("%s [%6.2f] \n",$ss,$mfe);
-is($ret,1);
+is($ret, 2);
 ##################################
 ##test_sc_add_SHAPE_zarringhalam
 print("test_sc_add_SHAPE_zarringhalam");

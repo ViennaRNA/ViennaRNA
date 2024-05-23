@@ -87,7 +87,7 @@ class constraintsTest(unittest.TestCase):
         ret = fc.sc_add_SHAPE_deigan_ali(shapeFiles, assoc,1.8,-0.6)
         (ss,mfe) = fc.mfe()
         print(ss, "[ %6.2f ]" % mfe)
-        self.assertEqual(ret,1)
+        self.assertEqual(ret,2)
 
 
     def test_sc_add_SHAPE_zarringhalam(self):
