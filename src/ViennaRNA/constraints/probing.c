@@ -77,9 +77,40 @@ apply_Eddy2014_method(vrna_fold_compound_t        *fc,
 
 
 PRIVATE FLT_OR_DBL
+get_msa_weight(unsigned int n_seq,
+               double       **datasets);
+
+
+PRIVATE FLT_OR_DBL
 conversion_deigan(double  reactivity,
                   double  m,
                   double  b);
+
+
+PRIVATE FLT_OR_DBL
+conversion_zarringhalam_up(double       beta,
+                           double       *pr,
+                           unsigned int i);
+
+
+PRIVATE FLT_OR_DBL
+conversion_zarringhalam_bp(double       beta,
+                           double       *pr,
+                           unsigned int i,
+                           unsigned int j);
+
+
+PRIVATE FLT_OR_DBL
+conversion_eddy_up(double       kT,
+                   double       *data,
+                   unsigned int i);
+
+
+PRIVATE FLT_OR_DBL
+conversion_eddy_bp(double       kT,
+                   double       *data,
+                   unsigned int i,
+                   unsigned int j);
 
 
 /* PDF of x using Gaussian KDE
@@ -503,11 +534,18 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
 
   if (*shape_conversion == 'M') {
     double  max;
-    double  map_info[4][2] = { { 0.25, 0.35 },
-                               { 0.30, 0.55 },
-                               { 0.70, 0.85 },
-                               { 0, 1 }
-                             };
+    double  map_info[4][2] = { {
+                                 0.25, 0.35
+                               },
+                               {
+                                 0.30, 0.55
+                               },
+                               {
+                                 0.70, 0.85
+                               },
+                               {
+                                 0, 1
+                               } };
 
     max = values[1];
     for (i = 2; i <= length; ++i)
@@ -580,7 +618,7 @@ apply_Deigan2009_method(vrna_fold_compound_t        *fc,
 {
   unsigned int  i, s, n, n_data, **a2s;
   int           ret;
-  FLT_OR_DBL    energy, *vs, **cvs;
+  FLT_OR_DBL    energy, *vs, **cvs, weight;
 
   ret = 0;
   n   = fc->length;
@@ -610,34 +648,20 @@ apply_Deigan2009_method(vrna_fold_compound_t        *fc,
         /* collect contributions for the sequences in the alignment */
         cvs = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (fc->n_seq));
 
-        for (n_data = s = 0; s < fc->n_seq; s++)
-          if (data->reactivities[s] != NULL)
-            n_data++;
-
-        FLT_OR_DBL weight = (n_data > 0) ? ((FLT_OR_DBL)fc->n_seq / (FLT_OR_DBL)n_data) : 0.;
+        weight = get_msa_weight(fc->n_seq, data->reactivities);
 
         for (s = 0; s < fc->n_seq; s++) {
           if (data->reactivities[s] != NULL) {
+            n = a2s[s][fc->length];
+
             /*  begin preparation of the pseudo energies */
-            /*  beware of the fact that energy_stack will be accessed through a2s[s] array,
-             *  hence pseudo_energy might be gap-free (default)
-             */
-            unsigned int gaps, is_gap;
             cvs[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
-            for (gaps = 0, i = 1; i <= n; i++) {
-              is_gap  = (fc->sequences[s][i - 1] == '-') ? 1 : 0;
-              energy  = 0;
-              if ((i - gaps > 0) && !(is_gap))
-                energy = conversion_deigan(data->reactivities[s][i - gaps],
-                                           data->params1[s],
-                                           data->params2[s]) * weight;
 
-              if (fc->params->model_details.oldAliEn)
-                cvs[s][i] = energy;
-              else if (!is_gap)
-                cvs[s][a2s[s][i]] = energy;
-
-              gaps += is_gap;
+            for (i = 1; i <= n; i++) {
+              cvs[s][i] = conversion_deigan(data->reactivities[s][i],
+                                            data->params1[s],
+                                            data->params2[s]) *
+                          weight;
             }
           }
         }
@@ -656,9 +680,9 @@ PRIVATE int
 apply_Zarringhalam2012_method(vrna_fold_compound_t        *fc,
                               struct vrna_probing_data_s  *data)
 {
-  unsigned int  i, j, n;
+  unsigned int  i, j, n, s, n_data, **a2s;
   int           ret;
-  FLT_OR_DBL    *up, **bp;
+  FLT_OR_DBL    *up, **bp, **ups, ***bps, weight;
   double        *pr, b;
 
   n   = fc->length;
@@ -678,10 +702,10 @@ apply_Zarringhalam2012_method(vrna_fold_compound_t        *fc,
 
         for (i = 1; i <= n; ++i) {
           bp[i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
-          up[i] = b * fabs(pr[i] - 1);
+          up[i] = conversion_zarringhalam_up(b, pr, i);
 
           for (j = i + 1; j <= n; ++j)
-            bp[i][j] = b * (pr[i] + pr[j]);
+            bp[i][j] = conversion_zarringhalam_bp(b, pr, i, j);
         }
 
         /* add the pseudo energies as soft constraints */
@@ -700,8 +724,59 @@ apply_Zarringhalam2012_method(vrna_fold_compound_t        *fc,
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      vrna_message_warning(
-        "vrna_sc_probing(): Zarringhalam2012 method not implemented for comparative prediction yet! ");
+      if (vrna_array_size(data->reactivities) >= fc->n_seq) {
+        a2s = fc->a2s;
+
+        /* compute weight for each set of probing data */
+        weight = get_msa_weight(fc->n_seq, data->reactivities);
+
+        ups = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * fc->n_seq);
+        bps = (FLT_OR_DBL ***)vrna_alloc(sizeof(FLT_OR_DBL * *) * fc->n_seq);
+        for (s = 0; s < fc->n_seq; s++) {
+          if (data->reactivities[s]) {
+            /* prepare memory */
+            ups[s]  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
+            bps[s]  = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (fc->length + 1));
+
+            for (i = 1; i <= fc->length; ++i)
+              bps[s][i] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (fc->length + 1));
+
+
+            /*  now, convert probabilities into pseudo free energies for unpaired, and
+             *  paired nucleotides
+             */
+            n   = a2s[s][fc->length];
+            pr  = data->datas1[s];
+            b   = data->params1[s] * weight;
+
+            /* currently, unpaired probabilities have to be stored in sequence coordinates */
+            for (i = 1; i <= n; ++i)
+              ups[s][i] = conversion_zarringhalam_up(b, pr, i);
+
+            /* currently, paired probabilities have to be stored in alignment coordinates */
+            for (i = 1; i <= fc->length; ++i)
+              for (j = i + 1; j <= fc->length; ++j)
+                bps[s][i][j] = conversion_zarringhalam_bp(b, pr, a2s[s][i], a2s[s][j]);
+          }
+        }
+
+        /* add the pseudo energies as soft constraints */
+        (void)vrna_sc_set_up_comparative(fc, (const FLT_OR_DBL **)ups, VRNA_OPTION_DEFAULT);
+        ret = vrna_sc_set_bp_comparative(fc, (const FLT_OR_DBL ***)bps, VRNA_OPTION_DEFAULT);
+
+        /* clean up memory */
+        for (s = 0; s < fc->n_seq; s++) {
+          if (data->reactivities[s]) {
+            for (i = 1; i <= fc->length; ++i)
+              free(bps[s][i]);
+            free(bps[s]);
+            free(ups[s]);
+          }
+        }
+        free(bps);
+        free(ups);
+      }
+
       break;
   }
 
@@ -732,8 +807,9 @@ PRIVATE int
 apply_Eddy2014_method(vrna_fold_compound_t        *fc,
                       struct vrna_probing_data_s  *data)
 {
-  unsigned int  i, j, n;
+  unsigned int  i, j, n, s, n_data, **a2s;
   int           ret;
+  FLT_OR_DBL    weight;
   double        kT;
 
   n   = fc->length;
@@ -751,7 +827,7 @@ apply_Eddy2014_method(vrna_fold_compound_t        *fc,
           (n <= vrna_array_size(data->datas2[0]))) {
         /* add for unpaired position */
         for (i = 1; i <= n; ++i)
-          vrna_sc_add_up(fc, i, -kT * data->datas1[0][i], VRNA_OPTION_DEFAULT);
+          vrna_sc_add_up(fc, i, conversion_eddy_up(kT, data->datas1[0], i), VRNA_OPTION_DEFAULT);
 
         /* add for paired position */
         for (i = 1; i <= n; ++i)
@@ -759,7 +835,7 @@ apply_Eddy2014_method(vrna_fold_compound_t        *fc,
             vrna_sc_add_bp(fc,
                            i,
                            j,
-                           -kT * (data->datas2[0][i] + data->datas2[0][j]),
+                           conversion_eddy_bp(kT, data->datas2[0], i, j),
                            VRNA_OPTION_DEFAULT);
 
         ret = 1; /* success */
@@ -768,12 +844,73 @@ apply_Eddy2014_method(vrna_fold_compound_t        *fc,
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
-      vrna_message_warning(
-        "vrna_sc_probing(): Eddy2014 method not implemented for comparative prediction yet! ");
+      if (vrna_array_size(data->reactivities) >= fc->n_seq) {
+        a2s = fc->a2s;
+
+        /* compute weight for each set of probing data */
+        weight = get_msa_weight(fc->n_seq, data->reactivities);
+
+        kT *= weight;
+
+        for (s = 0; s < fc->n_seq; s++) {
+          if (data->reactivities[s]) {
+            /*  now, convert probabilities into pseudo free energies for unpaired, and
+             *  paired nucleotides
+             */
+            n = a2s[s][fc->length];
+
+            /* add for unpaired position */
+            for (i = 1; i <= n; ++i)
+              vrna_sc_add_up_comparative_seq(fc,
+                                             s,
+                                             i,
+                                             conversion_eddy_up(kT, data->datas1[s], i),
+                                             VRNA_OPTION_DEFAULT);
+
+            /*
+             * add for paired position
+             * currently, paired probabilities have to be stored in alignment coordinates
+             */
+            for (i = 1; i <= fc->length; ++i)
+              for (j = i + 1; j <= fc->length; ++j)
+                vrna_sc_add_bp_comparative_seq(fc,
+                                               s,
+                                               i,
+                                               j,
+                                               conversion_eddy_bp(kT, data->datas2[s], a2s[s][i],
+                                                                  a2s[s][j]),
+                                               VRNA_OPTION_DEFAULT);
+          }
+        }
+      }
+
       break;
   }
 
   return ret;
+}
+
+
+/*
+ *  computes the individual weight for each set of probing data
+ *  by simply spreading-out the probing data contributions to
+ *  all sequences where no probing data is provided for.
+ */
+PRIVATE FLT_OR_DBL
+get_msa_weight(unsigned int n_seq,
+               double       **datasets)
+{
+  unsigned int  s, n_data;
+  FLT_OR_DBL    weight = 0;
+
+  for (n_data = s = 0; s < n_seq; s++)
+    if (datasets[s] != NULL)
+      n_data++;
+
+  if (n_data != 0)
+    weight = ((FLT_OR_DBL)n_seq / (FLT_OR_DBL)n_data);
+
+  return weight;
 }
 
 
@@ -786,12 +923,49 @@ conversion_deigan(double  reactivity,
 }
 
 
+PRIVATE FLT_OR_DBL
+conversion_zarringhalam_up(double       beta,
+                           double       *pr,
+                           unsigned int i)
+{
+  return beta * fabs(pr[i] - 1.);
+}
+
+
+PRIVATE FLT_OR_DBL
+conversion_zarringhalam_bp(double       beta,
+                           double       *pr,
+                           unsigned int i,
+                           unsigned int j)
+{
+  return beta * (pr[i] + pr[j]);
+}
+
+
+PRIVATE FLT_OR_DBL
+conversion_eddy_up(double       kT,
+                   double       *data,
+                   unsigned int i)
+{
+  return -kT * data[i];
+}
+
+
+PRIVATE FLT_OR_DBL
+conversion_eddy_bp(double       kT,
+                   double       *data,
+                   unsigned int i,
+                   unsigned int j)
+{
+  return -kT * (data[i] + data[j]);
+}
+
+
 /*
  * ****************
  *      Eddy
  *****************
  */
-
 PRIVATE FLT_OR_DBL
 gaussian_kde_pdf(double       x,
                  int          n,
