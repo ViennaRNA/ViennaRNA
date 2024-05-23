@@ -417,7 +417,7 @@ vrna_sc_set_bp(vrna_fold_compound_t *fc,
  *  @brief  Set soft constraints for paired nucleotides in comparative structure predictions
  *
  *  Similar to vrna_sc_set_bp() this function allows to set soft constraints @f$ e_{i,j}^\mathrm{BP} @f$
- *  for all base pairs @f$ (i, j) @f$ at once using a 1-based upper-triangular matrix $f[ E_\mathrm{BP} $f].
+ *  for all base pairs @f$ (i, j) @f$ at once using a 1-based upper-triangular matrix @f$ E_\mathrm{BP} @f$.
  *  Since this function is supposed to be used for comparative structure predictions over a
  *  multiple sequence alignment (MSA), a 0-based array of matrices must be supplied as
  *  parameter @p constraints. If no constraints are to be used for sequence @f$ s @f$ in the
