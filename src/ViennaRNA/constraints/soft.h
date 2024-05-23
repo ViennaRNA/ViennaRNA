@@ -231,10 +231,14 @@ typedef struct {
  *  @ingroup soft_constraints
  */
 struct vrna_sc_s {
-  const vrna_sc_type_e  type;
-  unsigned int          n;
+  /**
+   *  @name Common data fields
+   *  @{
+   */
+  const vrna_sc_type_e  type; /**< @brief Type of the soft constraints data structure */
+  unsigned int          n;    /**< @brief Length of the sequence this soft constraints data structure belongs to */
 
-  unsigned char         state;
+  unsigned char         state; /**< @brief  Current state of the soft constraints data structure */
 
   int                   **energy_up;      /**<  @brief Energy contribution for stretches of unpaired nucleotides */
   FLT_OR_DBL            **exp_energy_up;  /**<  @brief Boltzmann Factors of the energy contributions for unpaired sequence stretches */
@@ -242,29 +246,52 @@ struct vrna_sc_s {
   int                   *up_storage;      /**<  @brief  Storage container for energy contributions per unpaired nucleotide */
   vrna_sc_bp_storage_t  **bp_storage;     /**<  @brief  Storage container for energy contributions per base pair */
 
+  int           *energy_stack;                    /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
+  FLT_OR_DBL    *exp_energy_stack;                /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
+  /**
+   *  @}
+   *
+   */
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
   union {
     struct {
 #endif
+  /**
+   *  @name Global structure prediction data fields
+   *  @{
+   */
   int *energy_bp;                               /**<  @brief Energy contribution for base pairs */
   FLT_OR_DBL *exp_energy_bp;                    /**<  @brief Boltzmann Factors of the energy contribution for base pairs */
+  /**
+   *  @}
+   *
+   */
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
 };
 struct {
 #endif
+  /**
+   *  @name Local structure prediction data fields
+   *  @{
+   */
   int         **energy_bp_local;                        /**<  @brief Energy contribution for base pairs (sliding window approach) */
   FLT_OR_DBL  **exp_energy_bp_local;                    /**<  @brief Boltzmann Factors of the energy contribution for base pairs (sliding window approach) */
+  /**
+   *  @}
+   *
+   */
 #ifndef VRNA_DISABLE_C11_FEATURES
   /* C11 support for unnamed unions/structs */
 };
 };
 #endif
 
-  int           *energy_stack;                    /**<  @brief Pseudo Energy contribution per base pair involved in a stack */
-  FLT_OR_DBL    *exp_energy_stack;                /**<  @brief Boltzmann weighted pseudo energy contribution per nucleotide involved in a stack */
-
+  /**
+   *  @name User-defined data fields
+   *  @{
+   */
   /* generic soft contraints below */
   vrna_sc_f     f;            /**<  @brief  A function pointer used for pseudo
                                *            energy contribution in MFE calculations
@@ -290,6 +317,10 @@ struct {
 
   vrna_auxdata_prepare_f  prepare_data;
   vrna_auxdata_free_f     free_data;
+
+  /**
+   *  @}
+   */
 };
 
 /**
@@ -385,8 +416,8 @@ vrna_sc_set_bp(vrna_fold_compound_t *fc,
 /**
  *  @brief  Set soft constraints for paired nucleotides in comparative structure predictions
  *
- *  Similar to vrna_sc_set_bp() this function allows to set soft constraints @f$ e_{i,j}^\text{BP} @f$
- *  for all base pairs @f$ (i, j) @f$ at once using a 1-based upper-triangular matrix $f[ E_\text{BP} $f].
+ *  Similar to vrna_sc_set_bp() this function allows to set soft constraints @f$ e_{i,j}^\mathrm{BP} @f$
+ *  for all base pairs @f$ (i, j) @f$ at once using a 1-based upper-triangular matrix $f[ E_\mathrm{BP} $f].
  *  Since this function is supposed to be used for comparative structure predictions over a
  *  multiple sequence alignment (MSA), a 0-based array of matrices must be supplied as
  *  parameter @p constraints. If no constraints are to be used for sequence @f$ s @f$ in the
@@ -470,7 +501,7 @@ vrna_sc_add_bp(vrna_fold_compound_t *fc,
 /**
  *  @brief  Add soft constraints for paired nucleotides in comparative structure predictions
  *
- *  Similar to vrna_sc_add_bp(), this function allows to add soft constraints @f$ e_{i,j}^\text{BP} @f$
+ *  Similar to vrna_sc_add_bp(), this function allows to add soft constraints @f$ e_{i,j}^\mathrm{BP} @f$
  *  for all base pairs @f$ (i, j) @f$ in the multiple sequence alignment (MSA).
  *  The actual pairing partners @f$ i @f$ and @f$ j @f$ for each sequence in the MSA are
  *  provided in the form of 0-based arrays as parameters @p is and @p js. The corresponding
@@ -521,13 +552,13 @@ vrna_sc_add_bp_comparative(vrna_fold_compound_t *fc,
  *            vrna_sc_set_stack_comparative_seq(), vrna_sc_add_stack_comparative_seq(),
  *            vrna_sc_add_bp()
  *
- *  @param  fc          The #vrna_fold_compound_t the soft constraints are associated with
- *  @param  s           The 0-based number of the sequence in the alignment the constraints are provided for
- *  @param  is          A 0-based array of 5' position of the base pairs the soft constraint is added for
- *  @param  js          A 0-based array of 3' position of the base pairs the soft constraint is added for
- *  @param  energies    A 0-based array of free energies (soft-constraint) in @f$ kcal / mol @f$
- *  @param  options     The options flag indicating how/where to store the soft constraints
- *  @return             The number of sequences in the MSA constraints have been applied to
+ *  @param  fc        The #vrna_fold_compound_t the soft constraints are associated with
+ *  @param  s         The 0-based number of the sequence in the alignment the constraints are provided for
+ *  @param  i         5' position of the base pairs the soft constraint is added for
+ *  @param  j         3' position of the base pairs the soft constraint is added for
+ *  @param  energy    Free energy (soft-constraint) in @f$ kcal / mol @f$
+ *  @param  options   The options flag indicating how/where to store the soft constraints
+ *  @return           The number of sequences in the MSA constraints have been applied to
  */
 int
 vrna_sc_add_bp_comparative_seq(vrna_fold_compound_t *fc,
@@ -538,13 +569,8 @@ vrna_sc_add_bp_comparative_seq(vrna_fold_compound_t *fc,
                                unsigned int         options);
 
 
-/*
- * End group soft_constraints_bp
- **@}
- */
-
-
 /**
+ *  @}
  *  @addtogroup soft_constraints_up
  *  @{
  */
@@ -707,13 +733,8 @@ vrna_sc_add_up_comparative_seq(vrna_fold_compound_t *fc,
                                unsigned int         options);
 
 
-/*
- * End group soft_constraints_up
- **@}
- */
-
-
 /**
+ *  @}
  *  @addtogroup soft_constraints_st
  *  @{
  */
@@ -758,12 +779,8 @@ vrna_sc_add_stack_comparative_seq(vrna_fold_compound_t  *fc,
                                   unsigned int          options);
 
 
-/*
- * End group soft_constraints_st
- **@}
- */
-
 /**
+ *  @}
  *  @addtogroup soft_constraints_generic
  *  @{
  */
@@ -906,8 +923,7 @@ vrna_sc_set_exp_f_comparative(vrna_fold_compound_t  *fc,
                               unsigned int          options);
 
 /**
- *  @addtogroup soft_constraints_generic
- *  @{
+ *  @}
  */
 
 #endif
