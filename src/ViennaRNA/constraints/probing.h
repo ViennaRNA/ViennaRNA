@@ -151,6 +151,9 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 #define VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT                  VRNA_PROBING_METHOD_MULTI_PARAMS_0
 
 
+#define VRNA_PROBING_DATA_CHECK_SEQUENCE                          1U
+
+
 /**
  *  @brief  Apply probing data (e.g. SHAPE) to guide the structure prediction
  *
@@ -494,6 +497,15 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
                     double      *values,
                     int         length,
                     double      default_value);
+
+
+double **
+vrna_probing_data_load_n_distribute(unsigned int  n_seq,
+                                    unsigned int  *ns,
+                                    const char    **sequences,
+                                    const char    **file_names,
+                                    const int     *file_name_association,
+                                    unsigned int  options);
 
 
 /**

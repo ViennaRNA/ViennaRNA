@@ -232,79 +232,34 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                              double               b,
                              unsigned int         options)
 {
-  char          *sequence;
   int           ret;
-  unsigned int  **a2s, n, n_seq, s, ss, *ns;
-  double        *values, **r;
+  unsigned int  s;
+  double        **r;
 
   ret = 0;
 
-  if (vc && (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
-    n     = vc->length;
-    n_seq = vc->n_seq;
-    a2s   = vc->a2s;
-    r     = (double **)vrna_alloc(sizeof(double *) * n_seq);
-    ns    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
-
-    for (s = 0; s < n_seq; s++) {
-      r[s]  = NULL;
-      ns[s] = 0;
-    }
-
-    for (s = 0; shape_file_association[s] >= 0; s++) {
-      ss = shape_file_association[s]; /* actual sequence number in alignment */
-
-      if (ss >= n_seq) {
-        vrna_log_warning("Failed to associate SHAPE file \"%s\" with sequence %d in alignment! "
-                             "Alignment has only %d sequences!",
-                             shape_files[s],
-                             ss,
-                             n_seq);
-        continue;
-      }
-
-      ns[ss]    = a2s[ss][n];
-      sequence  = vrna_alloc(sizeof(char) * (ns[ss] + 1));
-      values    = vrna_alloc(sizeof(double) * (ns[ss] + 1));
-
-      if (vrna_file_SHAPE_read(shape_files[s], ns[ss], -1, sequence, values)) {
-        r[ss] = values;
-
-        if (sequence) {
-          /* double check information by comparing the sequence read from */
-          char *tmp_seq = vrna_seq_ungapped(vc->sequences[shape_file_association[s]]);
-          if (strcmp(tmp_seq, sequence))
-            vrna_log_warning("Input sequence %d differs from sequence provided via SHAPE file!\n%s\n%s",
-                                 shape_file_association[s] + 1,
-                                 tmp_seq,
-                                 sequence);
-
-          free(tmp_seq);
-        }
-      } else {
-        vrna_log_warning("Failed to open SHAPE data file \"%d\"! "
-                             "No shape data will be used for sequence %d.",
-                             s,
-                             ss + 1);
-      }
-
-      free(sequence);
-    }
+  if ((vc) &&
+      (vc->type == VRNA_FC_TYPE_COMPARATIVE)) {
+    r = vrna_probing_data_load_n_distribute(vc->n_seq,
+                                            vc->alignment->gapfree_size,
+                                            (const char **)vc->alignment->gapfree_seq,
+                                            shape_files,
+                                            shape_file_association,
+                                            VRNA_PROBING_DATA_CHECK_SEQUENCE);
 
     vrna_probing_data_t d = vrna_probing_data_Deigan2009_comparative((const double **)r,
-                                                                     ns,
-                                                                     n_seq,
+                                                                     vc->alignment->gapfree_size,
+                                                                     vc->n_seq,
                                                                      &m,
                                                                      &b,
                                                                      VRNA_PROBING_METHOD_MULTI_PARAMS_0);
     ret = vrna_sc_probing(vc, d);
     vrna_probing_data_free(d);
 
-    for (s = 0; s < n_seq; s++)
+    for (s = 0; s < vc->n_seq; s++)
       free(r[s]);
 
     free(r);
-    free(ns);
   }
 
   return ret;

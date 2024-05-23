@@ -19,6 +19,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/params/basic.h"
@@ -604,6 +605,69 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
 }
 
 
+PUBLIC double **
+vrna_probing_data_load_n_distribute(unsigned int  n_seq,
+                                    unsigned int  *ns,
+                                    const char    **sequences,
+                                    const char    **file_names,
+                                    const int     *file_name_association,
+                                    unsigned int  options)
+{
+  char          *sequence;
+  unsigned int  s, ss;
+  double        *values, **r;
+
+  r = NULL;
+
+  if ((ns) &&
+      (file_names) &&
+      (file_name_association)) {
+    r = (double **)vrna_alloc(sizeof(double *) * n_seq);
+
+    for (s = 0; file_name_association[s] >= 0; s++) {
+      ss = file_name_association[s]; /* actual sequence number in alignment */
+
+      if (ss >= n_seq) {
+        vrna_log_warning("Failed to associate probing data file \"%s\" with sequence %d in alignment! "
+                         "Omitting data since alignment has only %d sequences!",
+                         file_names[s],
+                         ss,
+                         n_seq);
+        continue;
+      }
+
+      sequence  = vrna_alloc(sizeof(char) * (ns[ss] + 1));
+      values    = vrna_alloc(sizeof(double) * (ns[ss] + 1));
+
+      if (vrna_file_SHAPE_read(file_names[s], ns[ss], -1, sequence, values)) {
+        r[ss] = values;
+
+        if ((sequence) &&
+            (sequences) &&
+            (options & VRNA_PROBING_DATA_CHECK_SEQUENCE)) {
+          /* double check information by comparing the sequence read from */
+          if (strcmp(sequence, sequences[ss]))
+            vrna_log_warning("Input sequence %d differs from sequence provided via probing data file!\n%s\n%s",
+                             file_name_association[s] + 1,
+                             sequences[ss],
+                             sequence);
+
+        }
+      } else {
+        vrna_log_warning("Failed to open probing data file \"%d\"! "
+                         "No data will be used for sequence %d.",
+                         s,
+                         ss + 1);
+      }
+
+      free(sequence);
+    }
+  }
+
+  return r;
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #
@@ -1051,7 +1115,7 @@ sc_parse_parameters(const char  *string,
     r   = sscanf(string, fmt, v1);
 
     if (!r)
-      vrna_message_warning(warning);
+      vrna_log_warning(warning);
 
     free(fmt);
 
@@ -1072,7 +1136,7 @@ sc_parse_parameters(const char  *string,
       r   = sscanf(string, fmt, v2);
 
       if (!r)
-        vrna_message_warning(warning);
+        vrna_log_warning(warning);
     }
   }
 
