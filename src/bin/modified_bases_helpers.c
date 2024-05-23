@@ -157,6 +157,11 @@ mod_params_collect_from_string(const char           *string,
             (const char *)parameter_set_rna_mod_pseudouridine_parameters,
             md);
           break;
+        case '1':
+          mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
+            (const char *)parameter_set_rna_mod_n1methylpseudouridine_parameters,
+            md);
+          break;
         case '9':
           mod_params[(*num_params)++] = vrna_sc_mod_read_from_json(
             (const char *)parameter_set_rna_mod_purine_parameters,

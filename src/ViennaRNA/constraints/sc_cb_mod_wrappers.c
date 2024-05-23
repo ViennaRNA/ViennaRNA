@@ -35,6 +35,18 @@ vrna_sc_mod_pseudouridine(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
+vrna_sc_mod_n1methylpseudouridine(vrna_fold_compound_t  *fc,
+                                  const unsigned int    *modification_sites,
+                                  unsigned int            options)
+{
+  return vrna_sc_mod_json(fc,
+                          (const char *)parameter_set_rna_mod_n1methylpseudouridine_parameters,
+                          modification_sites,
+                          options);
+}
+
+
+PUBLIC int
 vrna_sc_mod_inosine(vrna_fold_compound_t  *fc,
                     const unsigned int    *modification_sites,
                     unsigned int          options)

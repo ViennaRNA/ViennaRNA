@@ -303,6 +303,7 @@ details="Treat modified bases within the RNA sequence differently, i.e. use corr
  'I': Inosine\n\n\
  '6': N6-methyladenosine (m6A)\n\n\
  'P': Pseudouridine\n\n\
+ '1': N1-methylpseudouridine\n\n
  '9': Purine (a.k.a. nebularine)\n\n\
  'D': Dihydrouridine\n\n"
 string
