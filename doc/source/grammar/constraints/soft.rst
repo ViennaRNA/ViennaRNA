@@ -18,22 +18,22 @@ Common API symbols
 .. doxygengroup:: soft_constraints
     :no-title:
 
-Unpaired Positions
-------------------
+Constraints for Unpaired Positions
+----------------------------------
 
 .. doxygengroup:: soft_constraints_up
     :no-title:
 
 
-Base Pairs
-----------
+Constraints for Base Pairs
+--------------------------
 
 .. doxygengroup:: soft_constraints_bp
     :no-title:
 
 
-Stacked Base Pairs
-------------------
+Constraints for Stacked Base Pairs
+----------------------------------
 
 .. doxygengroup:: soft_constraints_st
     :no-title:
