@@ -42,6 +42,7 @@ extern "C" {
 #include  <ViennaRNA/constraints/hard.h>
 #include  <ViennaRNA/constraints/soft.h>
 #include  <ViennaRNA/constraints/soft_special.h>
+#include  <ViennaRNA/constraints/probing.h>
 #include  <ViennaRNA/constraints/SHAPE.h>
 #include  <ViennaRNA/constraints/ligand.h>
 
@@ -235,6 +236,7 @@ namespace std {
 %include constraints.i
 %include constraints_hard.i
 %include constraints_soft.i
+%include constraints_probing.i
 %include constraints_SHAPE.i
 %include constraints_ligand.i
 %include eval.i

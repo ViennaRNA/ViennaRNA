@@ -84,6 +84,9 @@ napoleon_type_aliases = {
     "float *": "list-like(double)",
     "double *": "list-like(double)",
     "double **": "list-like(list-like(double))",
+    "const double *": "list-like(double)",
+    "const double **": "list-like(list-like(double))",
+    "DoubleVector": "list-like(double)",
     "vrna_fold_compound_t *" : "fold_compound",
     "vrna_param_t *" : "param",
     "vrna_exp_param_t *" : "exp_param",
@@ -91,7 +94,20 @@ napoleon_type_aliases = {
     "std::string": "string",
     "FLT_OR_DBL" : "double",
     "FLT_OR_DBL *" : "list-like(double)",
-    "std::vector<FLT_OR_DBL>" : "list-like(double)"
+    "std::vector<FLT_OR_DBL>" : "list-like(double)",
+}
+
+
+autoclass_content = 'init'
+autodoc_default_options = {
+    'members': True,
+    'member-order': 'bysource',
+#    'special-members': '__init__',
+    'undoc-members': True,
+    'exclude-members': '__weakref__',
+    'imported-members': True,
+    'show-inheritance': True,
+    'class-doc-from': 'init',
 }
 
 

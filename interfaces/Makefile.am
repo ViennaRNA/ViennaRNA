@@ -11,6 +11,11 @@ SOURCES = \
     commands.i \
     compare.i \
     constraints.i \
+    constraints_hard.i \
+    constraints_soft.i \
+    constraints_probing.i \
+    constraints_SHAPE.i \
+    constraints_ligand.i \
     data_structures.i \
     dp_matrices.i \
     duplex.i \
@@ -77,6 +82,11 @@ EXTRA_DIST = \
     commands.i \
     compare.i \
     constraints.i \
+    constraints_hard.i \
+    constraints_soft.i \
+    constraints_probing.i \
+    constraints_SHAPE.i \
+    constraints_ligand.i \
     data_structures.i \
     dp_matrices.i \
     duplex.i \

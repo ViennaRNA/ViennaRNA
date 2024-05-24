@@ -94,6 +94,7 @@ vrna_sc_mod_m6A,sc_mod_m6A,vrna_fold_compound_t,fc
 vrna_sc_mod_pseudouridine,sc_mod_pseudouridine,vrna_fold_compound_t,fc
 vrna_sc_mod_purine,sc_mod_purine,vrna_fold_compound_t,fc
 vrna_sc_mod,sc_mod,vrna_fold_compound_t,fc
+vrna_sc_probing,sc_probing,vrna_fold_compound_t,fc
 vrna_sc_remove,sc_remove,vrna_fold_compound_t,fc
 vrna_sc_set_bp,sc_set_bp,vrna_fold_compound_t,fc
 vrna_sc_set_stack,sc_set_stack,vrna_fold_compound_t,fc
