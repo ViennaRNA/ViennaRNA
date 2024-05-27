@@ -700,7 +700,8 @@ class Doxy2SWIG:
 
         for line in ''.join(self.pieces).splitlines():
             keep_markdown_newline = line[-2:] == '  '
-            w_line = textwrap.wrap(line, width=width, break_long_words=False)
+            present_indent = len(line) - len(line.lstrip())
+            w_line = textwrap.wrap(line, width=width, subsequent_indent = ' ' * present_indent, break_long_words=False)
             if w_line == []:
                 w_line = ['']
             if keep_markdown_newline:
@@ -828,7 +829,7 @@ class Doxy2SWIG:
             for nn in self.get_specific_subnodes(node, 'xrefdescription'):
                 self.subnode_parse(nn, pieces=[''], indent=4)
         else:
-            self.add_text(['**' + title + '**', '\n'])
+            self.add_text(['.. admonition:: ' + title, '\n\n'])
             for nn in self.get_specific_subnodes(node, 'xrefdescription'):
                 self.subnode_parse(nn, pieces=[''], indent=4)
 
