@@ -52,6 +52,11 @@ typedef struct {
 } vrna_fold_compound_t;
 %mutable;
 
+#ifdef SWIGPYTHON
+%feature("autodoc")vrna_fold_compound_t::vrna_fold_compound_t;
+%feature("kwargs")vrna_fold_compound_t::vrna_fold_compound_t;
+#endif
+
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
   var_array<unsigned int> *const strand_number;
@@ -64,10 +69,6 @@ typedef struct {
   var_array<short>        *const sequence_encoding;
   var_array<short>        *const sequence_encoding2;
 
-#ifdef SWIGPYTHON
-%feature("autodoc")vrna_fold_compound_t::vrna_fold_compound_t;
-%feature("kwargs")vrna_fold_compound_t::vrna_fold_compound_t;
-#endif
   /* the default constructor, *md and option are optional, for single sequences*/
   vrna_fold_compound_t( const char    *sequence,
                         vrna_md_t     *md = NULL,
