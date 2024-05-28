@@ -7,6 +7,78 @@
 #include <sstream>
 %}
 
+#ifdef SWIGPYTHON
+%define SWG_MD_ACCESS_DS
+"
+.. note::
+
+  Default parameters can be modified by directly setting any of the following
+  global variables (accessible as `RNA.cvar.variable` where `variable` is the
+  variable name. Internally, getting/setting default parameters using their global variable
+  representative translates into calls of the corresponding getter and setter functions,
+  which consequently have not been wrapped directly in the scripting language interface(s):
+
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | global variable | `C getter`                                      | `C setter`                                  |
+  +=================+=================================================+=============================================+
+  | temperature     | :c:func:`vrna_md_defaults_temperature_get()`    | :c:func:`vrna_md_defaults_temperature()`    |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | dangles         | :c:func:`vrna_md_defaults_dangles_get()`        | :c:func:`vrna_md_defaults_dangles()`        |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | betaScale       | :c:func:`vrna_md_defaults_betaScale_get()`      | :c:func:`vrna_md_defaults_betaScale()`      |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | tetra_loop      | this is an alias of variable `special_hp`       |                                             |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | special_hp      | :c:func:`vrna_md_defaults_special_hp_get()`     | :c:func:`vrna_md_defaults_special_hp()`     |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | noLonelyPairs   | this is an alias of variable `noLP`             |                                             |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | noLP            | :c:func:`vrna_md_defaults_noLP_get()`           | :c:func:`vrna_md_defaults_noLP()`           |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | noGU            | :c:func:`vrna_md_defaults_noGU_get()`           | :c:func:`vrna_md_defaults_noGU()`           |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | no_closingGU    | this is an alias of variable `noGUclosure`      |                                             |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | noGUclosure     | :c:func:`vrna_md_defaults_noGUclosure_get()`    | :c:func:`vrna_md_defaults_noGUclosure()`    |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | logML           | :c:func:`vrna_md_defaults_logML_get()`          | :c:func:`vrna_md_defaults_logML()`          |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | circ            | :c:func:`vrna_md_defaults_circ_get()`           | :c:func:`vrna_md_defaults_circ()`           |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | gquad           | :c:func:`vrna_md_defaults_gquad_get()`          | :c:func:`vrna_md_defaults_gquad()`          |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | uniq_ML         | :c:func:`vrna_md_defaults_uniq_ML_get()`        | :c:func:`vrna_md_defaults_uniq_ML()`        |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | energy_set      | :c:func:`vrna_md_defaults_energy_set_get()`     | :c:func:`vrna_md_defaults_energy_set()`     |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | backtrack       | :c:func:`vrna_md_defaults_backtrack_get()`      | :c:func:`vrna_md_defaults_backtrack()`      |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | backtrack_type  | :c:func:`vrna_md_defaults_backtrack_type_get()` | :c:func:`vrna_md_defaults_backtrack_type()` |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | do_backtrack    | this is an alias of variable `compute_bpp`      |                                             |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | compute_bpp     | :c:func:`vrna_md_defaults_compute_bpp_get()`    | :c:func:`vrna_md_defaults_compute_bpp()`    |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | max_bp_span     | :c:func:`vrna_md_defaults_max_bp_span_get()`    | :c:func:`vrna_md_defaults_max_bp_span()`    |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | min_loop_size   | :c:func:`vrna_md_defaults_min_loop_size_get()`  | :c:func:`vrna_md_defaults_min_loop_size()`  |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | window_size     | :c:func:`vrna_md_defaults_window_size_get()`    | :c:func:`vrna_md_defaults_window_size()`    |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | oldAliEn        | :c:func:`vrna_md_defaults_oldAliEn_get()`       | :c:func:`vrna_md_defaults_oldAliEn()`       |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | ribo            | :c:func:`vrna_md_defaults_ribo_get()`           | :c:func:`vrna_md_defaults_ribo()`           |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | cv_fact         | :c:func:`vrna_md_defaults_cv_fact_get()`        | :c:func:`vrna_md_defaults_cv_fact()`        |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | nc_fact         | :c:func:`vrna_md_defaults_nc_fact_get()`        | :c:func:`vrna_md_defaults_nc_fact()`        |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+  | sfact           | :c:func:`vrna_md_defaults_sfact_get()`          | :c:func:`vrna_md_defaults_sfact()`          |
+  +-----------------+-------------------------------------------------+---------------------------------------------+
+"
+%enddef
+#endif
+
 /* scripting language access through 'md' instead of 'vrna_md_t' */
 %rename (md) vrna_md_t;
 
@@ -53,47 +125,79 @@ typedef struct {
 } vrna_md_t;
 
 
+#ifdef SWIGPYTHON
+%feature("docstring", SWG_MD_ACCESS_DS) vrna_md_t::vrna_md_t;
+%feature("autodoc", "3")vrna_md_t::vrna_md_t;
+%feature("kwargs")vrna_md_t::vrna_md_t;
+#endif
+
 /* make a nice object oriented interface to vrna_md_t */
 %extend vrna_md_t {
 
 #ifdef SWIGPYTHON
-%feature("autodoc")vrna_md_t::vrna_md_t;
-%feature("kwargs")vrna_md_t::vrna_md_t;
+%typemap("doc") double temperature "$1_name: double\n     The temperature in degree C used to scale the thermodynamic parameters"
+%typemap("doc") double betaScale "$1_name: double\n     A scaling factor for the thermodynamic temperature of the Boltzmann factors."
+%typemap("doc") int pf_smooth "$1_name: int\n     A flag specifying whether energies in Boltzmann factors need to be smoothed."
+%typemap("doc") int dangles "$1_name: int\n     Specifies the dangle model used in any energy evaluation (0, 1, 2, or 3)"
+%typemap("doc") int special_hp "$1_name: int\n     Include special hairpin contributions for tri, tetra and hexaloops."
+%typemap("doc") int noLP "$1_name: int\n     Only consider canonical structures, i.e. no ‘lonely’ base pairs."
+%typemap("doc") int noGU "$1_name: int\n     Do not allow GU pairs."
+%typemap("doc") int noGUclosure "$1_name: int\n     Do not allow loops to be closed by GU pair."
+%typemap("doc") int logML "$1_name: int\n     Use logarithmic scaling for multiloops."
+%typemap("doc") int circ "$1_name: int\n     Assume RNA to be circular instead of linear."
+%typemap("doc") int gquad "$1_name: int\n     Include G-quadruplexes in structure prediction."
+%typemap("doc") int uniq_ML "$1_name: int\n     Flag to ensure unique multi-branch loop decomposition during folding."
+%typemap("doc") int energy_set "$1_name: int\n     Specifies the energy set that defines set of compatible base pairs."
+%typemap("doc") int backtrack "$1_name: int\n     Specifies whether or not secondary structures should be backtraced."
+%typemap("doc") char backtrack_type "$1_name: char\n     Specifies in which matrix to backtrack."
+%typemap("doc") int compute_bpp "$1_name: int\n     Specifies whether or not backward recursions for base pair probability (bpp) computation will be performed."
+%typemap("doc") int max_bp_span "$1_name: int\n     maximum allowed base pair span"
+%typemap("doc") int min_loop_size "$1_name: int\n     Minimum size of hairpin loops."
+%typemap("doc") int window_size "$1_name: int\n     Size of the sliding window for locally optimal structure prediction."
+%typemap("doc") int oldAliEn "$1_name: int\n     Use old alifold energy model."
+%typemap("doc") int ribo "$1_name: int\n     Use ribosum scoring table in alifold energy model."
+%typemap("doc") double cv_fact "$1_name: double\n     Co-variance scaling factor for consensus structure prediction."
+%typemap("doc") double nc_fact "$1_name: double\n     Scaling factor to weight co-variance contributions of non-canonical pairs."
+%typemap("doc") double sfact "$1_name: double\n     Scaling factor for partition function scaling."
+%typemap("doc") double salt "$1_name: double\n     Salt (monovalent) concentration (M) in buffer."
+%typemap("doc") int saltMLLower "$1_name: int\n     Lower bound of multiloop size to use in loop salt correction linear fitting."
+%typemap("doc") int saltMLUpper "$1_name: int\n     Upper bound of multiloop size to use in loop salt correction linear fitting."
+%typemap("doc") int saltDPXInit "$1_name: int\n     User-provided salt correction for duplex initialization (in dcal/mol)."
 #endif
 
   /*  Default constructor */
   vrna_md_t(
-    const double  temperature     = vrna_md_defaults_temperature_get(),
-    const double  betaScale       = vrna_md_defaults_betaScale_get(),
-    const int     pf_smooth       = vrna_md_defaults_pf_smooth_get(),
-    const int     dangles         = vrna_md_defaults_dangles_get(),
-    const int     special_hp      = vrna_md_defaults_special_hp_get(),
-    const int     noLP            = vrna_md_defaults_noLP_get(),
-    const int     noGU            = vrna_md_defaults_noGU_get(),
-    const int     noGUclosure     = vrna_md_defaults_noGUclosure_get(),
-    const int     logML           = vrna_md_defaults_logML_get(),
-    const int     circ            = vrna_md_defaults_circ_get(),
-    const int     gquad           = vrna_md_defaults_gquad_get(),
-    const int     uniq_ML         = vrna_md_defaults_uniq_ML_get(),
-    const int     energy_set      = vrna_md_defaults_energy_set_get(),
-    const int     backtrack       = vrna_md_defaults_backtrack_get(),
-    const char    backtrack_type  = vrna_md_defaults_backtrack_type_get(),
-    const int     compute_bpp     = vrna_md_defaults_compute_bpp_get(),
-    const int     max_bp_span     = vrna_md_defaults_max_bp_span_get(),
-    const int     min_loop_size   = vrna_md_defaults_min_loop_size_get(),
-    const int     window_size     = vrna_md_defaults_window_size_get(),
-    const int     oldAliEn        = vrna_md_defaults_oldAliEn_get(),
-    const int     ribo            = vrna_md_defaults_ribo_get(),
-    const double  cv_fact         = vrna_md_defaults_cv_fact_get(),
-    const double  nc_fact         = vrna_md_defaults_nc_fact_get(),
-    const double  sfact           = vrna_md_defaults_sfact_get(),
-    const double  salt            = vrna_md_defaults_salt_get(),
-    const int     saltMLLower     = vrna_md_defaults_saltMLLower_get(),
-    const int     saltMLUpper     = vrna_md_defaults_saltMLUpper_get(),
-    const int     saltDPXInit     = vrna_md_defaults_saltDPXInit_get(),
-    const float   saltDPXInitFact = vrna_md_defaults_saltDPXInitFact_get(),
-    const float   helical_rise    = vrna_md_defaults_helical_rise_get(),
-    const float   backbone_length = vrna_md_defaults_backbone_length_get())
+    double  temperature     = vrna_md_defaults_temperature_get(),
+    double  betaScale       = vrna_md_defaults_betaScale_get(),
+    int     pf_smooth       = vrna_md_defaults_pf_smooth_get(),
+    int     dangles         = vrna_md_defaults_dangles_get(),
+    int     special_hp      = vrna_md_defaults_special_hp_get(),
+    int     noLP            = vrna_md_defaults_noLP_get(),
+    int     noGU            = vrna_md_defaults_noGU_get(),
+    int     noGUclosure     = vrna_md_defaults_noGUclosure_get(),
+    int     logML           = vrna_md_defaults_logML_get(),
+    int     circ            = vrna_md_defaults_circ_get(),
+    int     gquad           = vrna_md_defaults_gquad_get(),
+    int     uniq_ML         = vrna_md_defaults_uniq_ML_get(),
+    int     energy_set      = vrna_md_defaults_energy_set_get(),
+    int     backtrack       = vrna_md_defaults_backtrack_get(),
+    char    backtrack_type  = vrna_md_defaults_backtrack_type_get(),
+    int     compute_bpp     = vrna_md_defaults_compute_bpp_get(),
+    int     max_bp_span     = vrna_md_defaults_max_bp_span_get(),
+    int     min_loop_size   = vrna_md_defaults_min_loop_size_get(),
+    int     window_size     = vrna_md_defaults_window_size_get(),
+    int     oldAliEn        = vrna_md_defaults_oldAliEn_get(),
+    int     ribo            = vrna_md_defaults_ribo_get(),
+    double  cv_fact         = vrna_md_defaults_cv_fact_get(),
+    double  nc_fact         = vrna_md_defaults_nc_fact_get(),
+    double  sfact           = vrna_md_defaults_sfact_get(),
+    double  salt            = vrna_md_defaults_salt_get(),
+    int     saltMLLower     = vrna_md_defaults_saltMLLower_get(),
+    int     saltMLUpper     = vrna_md_defaults_saltMLUpper_get(),
+    int     saltDPXInit     = vrna_md_defaults_saltDPXInit_get(),
+    float   saltDPXInitFact = vrna_md_defaults_saltDPXInitFact_get(),
+    float   helical_rise    = vrna_md_defaults_helical_rise_get(),
+    float   backbone_length = vrna_md_defaults_backbone_length_get())
   {
     vrna_md_t *md       = (vrna_md_t *)vrna_alloc(sizeof(vrna_md_t));
     md->temperature     = temperature;
