@@ -46,6 +46,23 @@ dt.sig.sig-object.c > span.pre::before {
    content: "\00a0";
 }
 
+/* Newlines (\a) and spaces (\20) before each parameter */
+.sig-param::before {
+    content: "\a\20\20\20\20\20\20\20\20\20\20\20\20\20\20\20\20";
+    white-space: pre;
+}
+
+/* Newline after the last parameter (so the closing bracket is on a new line) */
+dt em.sig-param:last-of-type::after {
+    content: "\a";
+    white-space: pre;
+}
+
+/* To have blue background of width of the block (instead of width of content) */
+dl.class > dt:first-of-type {
+    display: block !important;
+}
+
 .rst-content .figure .caption {
     background-color: #f5f5f5;
     border-bottom: 1px solid #eee;
