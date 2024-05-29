@@ -20,8 +20,15 @@ BPs = {
 }
 
 
-def read_alignment(filename):
+def read_alignment(args):
     alignment = None
+
+    filename = None
+
+    if args.alignment:
+        filename = args.alignment
+    elif args.alnfile:
+        filename = args.alnfile
 
     try:
         import RNA
@@ -34,26 +41,62 @@ def read_alignment(filename):
     return alignment
 
 
-def structure_from_alifold(filename):
+def structure_from_alifold(args):
     import re
 
+    filename      = None
     structure     = None
     structure_pat = re.compile(r"^([\.\(\)\+]+)")
 
-    with open(filename) as f:
-        for line in f.readlines():
-            line = line.strip()
-            m = structure_pat.match(line)
-            if m:
-                structure = m.group(1)
-                break
+    if args.alifold_output:
+        filename = args.alifold_output
+    elif args.structfile:
+        filename = args.structfile
+
+    try:
+        with open(filename) as f:
+            for line in f.readlines():
+                line = line.strip()
+                m = structure_pat.match(line)
+                if m:
+                    structure = m.group(1)
+                    break
+    except:
+        pass
 
     return structure
 
 
-def structure_from_dotplot(filename, threshold = 0.9):
+def structure_from_dotplot(n, args):
+    import re
     structure = None
-    
+
+    prob_pat = re.compile(r"^\s*(\d+\.?\d*)\s+(\d+\.?\d*)\s+hsb\s+(\d+)\s+(\d+)\s+(\d+\.?\d*)\s+lbox")
+
+    fname = None
+    if args.dotplot:
+        fname = args.dotplot
+    elif args.structfile:
+        fname = args.structfile
+
+    try:
+        with open(fname) as f:
+            if f.readline().startswith("%!PS"):
+                structure = [ '.' for _ in range(n) ]
+                for line in f.readlines():
+                    line = line.strip()
+                    if line.startswith("%"):
+                        continue
+                    m = prob_pat.match(line)
+                    if m:
+                        if m.lastindex == 5 and float(m.group(5)) > args.threshold:
+                            structure[int(m.group(3)) - 1] = "("
+                            structure[int(m.group(4)) - 1] = ")"
+
+                structure = "".join(structure)
+    except:
+        pass
+
     return structure
 
 
@@ -100,7 +143,7 @@ def map_structure_to_seqs(alignment, structure, turn = 3):
                 pts[i] = 0
 
         # convert back
-        cons = [ "." for _ in range(pts[0] + 1)]
+        cons = [ "." for _ in range(pts[0]) ]
         for i in range(1, pts[0] + 1): 
             if pts[i] > i:
                 cons[i - 1] = '('
@@ -139,37 +182,28 @@ def make_pair_table(structure):
     return pt
 
 
-def refold(args):
+def hard_constraints(args):
     """
-    Legacy refold.pl functionality
+    Legacy refold.pl strategie using hard constraints
     """
     # try parsing the input alignment to work on
-    aln = None
-    
-    if args.alignment:
-        aln = read_alignment(args.alignment)
-    elif args.alnfile:
-        aln = read_alignment(args.alnfile)
+    aln = read_alignment(args)
 
     # only continue if we successfully read an input alignment
     if aln != None:
+        n = len(aln[0][1])
         # read consensus structure information, either from
         # RNAalifold output or dot-plot. 
+
         # Try dotplot first...
-        structure = None
-        if args.dotplot:
-            structure = structure_from_dotplot(args.dotplot, args.threshold)
-        elif args.structfile:
-            structure = structure_from_dotplot(args.structfile, args.threshold)
+        structure = structure_from_dotplot(n, args)
 
         # Try RNAalifold ouput if dot-plot parsing was unsuccessful
         if structure == None:
-            if args.alifold_output:
-                structure = structure_from_alifold(args.alifold_output)
-            elif args.structfile:
-                structure = structure_from_alifold(args.structfile)
+            structure = structure_from_alifold(args)
 
         if structure:
+            print(structure)
             map_structure_to_seqs(aln, structure, args.turn)
 
             return 0 # Success
@@ -203,41 +237,102 @@ def main():
                 sys.argv.insert(1, default_subparser) 
 
 
-    parser = argparse.ArgumentParser(
-        prog = "RNAconsens",
-        description = "An program to predict RNA secondary structures for single sequences based on the information gained from a multiple sequence alignment of homologous sequences",
-        epilog = "If in doubt our program is right, nature is at fault.  Comments should be sent to rna@tbi.univie.ac.at.")
+    core = argparse.ArgumentParser(add_help=False)
 
     # global options for all modes
-    parser.add_argument("-a", "--alignment", metavar = "filename", type=str, help="A multiple sequence alignment file name")
-    parser.add_argument("--turn", type=int, help="", default = 3)
+    core.add_argument("-a",
+                      "--alignment",
+                      metavar = "filename",
+                      type = str,
+                      help="A multiple sequence alignment file name")
+    core.add_argument("--turn",
+                      type = int,
+                      help = "Minimum hairpin length",
+                      default = 3)
+
+    main_parser = argparse.ArgumentParser(
+        prog = "RNAconsensus",
+        description = """
+        A program to predict RNA secondary structures for single sequences based on the information
+        gained from a multiple sequence alignment of homologous sequences.
+        """,
+        epilog = "If in doubt our program is right, nature is at fault. Comments should be sent to rna@tbi.univie.ac.at.",
+        parents=[core])
+
 
     # create subparsers for the different operating modes
-    subparsers = parser.add_subparsers(title='Modes',
-                                       description=None,
-                                       help='available modes')
+    sub_parsers = main_parser.add_subparsers(title = 'Prediction Stratgies',
+                                             description = """
+                                             This programm allows for different strategies for the way the consensus structure
+                                             information is incorporated for the single sequence predictions
+                                             """,
+                                             help='Available strategies')
 
     # 1. Legacy refold.pl mode where a structure prediction from RNAalifold is taken as
     # input to create hard constraints for predictions of structures for the single
     # sequences within the alignment. For that purpose, the program prints each
     # sequence and the consensus structure mapped to the sequence such that the
     # output can be used as input for RNAfold.
-    parser_a = subparsers.add_parser('refold', help='The legacy refold.pl mode')
+    hard_parser = sub_parsers.add_parser('hardcons',
+                                         description = """
+                                         In this mode, the program reads a multiple sequence alignment and a consensus
+                                         secondary structure, either in the form of the standard output of RNAalifold,
+                                         or in the form of a dot plot as produced by RNAalifold -p. For each sequence
+                                         in the alignment it writes the name, sequence, and constraint structure to
+                                         stdout in a format suitable for piping into RNAfold -C.
 
-    group1 = parser_a.add_argument_group('Consensus MFE', 'Map the consensus MFE structure as predicted by RNAalifold to each sequence in the input alignment')
-    group1.add_argument("-f", "--alifold-output", type=str, help="The output of RNAalifold for the input alignment", default = None)
+                                         The constraint string is produced by removing from the consensus structure
+                                         all gaps, as well as all pairs not compatible with the particular sequence.
+                                         If the structure is read from a dot plot file, only pairs with probability
+                                         larger than some threshold (default 0.9) are used.
+                                         """,
+                                         help='The legacy refold.pl mode',
+                                         parents=[core])
 
-    group2 = parser_a.add_argument_group('Consensus Probabilities', 'Create structure constraints for each sequence in the input alignment from consensus base pair probabilities as predicted by RNAalifold')
-    group2.add_argument("-d", "--dotplot", metavar = "filename", type=str, help="The dot-plot created by RNAalifold for the input alignment", default = None)
-    group2.add_argument("-t", "--threshold", type=float, help="", default = 0.9)
+    hard_g1 = hard_parser.add_argument_group("Consensus MFE",
+                                             "Map the consensus MFE structure as predicted by RNAalifold to each sequence in the input alignment")
+    hard_g1.add_argument("-f",
+                         "--alifold-output",
+                         type = str,
+                         help = "The output of RNAalifold for the input alignment",
+                         default = None)
 
-    parser_a.add_argument("alnfile", nargs='?', metavar = "alignment_file")
-    parser_a.add_argument("structfile", nargs='?', metavar = "dotplot_or_alifold_file")
-    parser_a.set_defaults(func=refold)
+    hard_g2 = hard_parser.add_argument_group("Consensus Probabilities",
+                                             """
+                                             Create structure constraints for each sequence in the input alignment from
+                                             consensus base pair probabilities as predicted by RNAalifold""")
+    hard_g2.add_argument("-d",
+                         "--dotplot",
+                         metavar = "filename",
+                         type = str,
+                         help = "The dot-plot created by RNAalifold for the input alignment",
+                         default = None)
+    hard_g2.add_argument("-t",
+                         "--threshold",
+                         type = float,
+                         help = "Base pair probability threshold. Take only base pairs with probability larger than threshold into account",
+                         default = 0.9)
 
-    set_default_subparser(parser, "refold")
+    hard_parser.add_argument("alnfile",
+                             nargs='?',
+                             metavar = "alignment_file",
+                             help = "The multiple sequence alignment file name if not specified by -a")
+    hard_parser.add_argument("structfile",
+                             nargs='?',
+                             metavar = "structure_file",
+                             help = "The RNAalifold output or dot plot file name")
+    hard_parser.set_defaults(func = hard_constraints)
 
-    args = parser.parse_args()
+    soft_parser = sub_parsers.add_parser('softcons',
+                                         description = """
+                                         """,
+                                         help='RNAsoftcons mode',
+                                         parents=[core])
+
+
+    set_default_subparser(main_parser, "hardcons")
+
+    args = main_parser.parse_args()
 
     # call the function corresponding to the chosen mode
     # and use its return value as exit code
