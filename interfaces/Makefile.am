@@ -16,6 +16,7 @@ SOURCES = \
     constraints_probing.i \
     constraints_SHAPE.i \
     constraints_ligand.i \
+    constraints_mod.i \
     data_structures.i \
     dp_matrices.i \
     duplex.i \
@@ -87,6 +88,7 @@ EXTRA_DIST = \
     constraints_probing.i \
     constraints_SHAPE.i \
     constraints_ligand.i \
+    constraints_mod.i \
     data_structures.i \
     dp_matrices.i \
     duplex.i \

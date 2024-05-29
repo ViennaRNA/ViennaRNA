@@ -239,6 +239,7 @@ namespace std {
 %include constraints_probing.i
 %include constraints_SHAPE.i
 %include constraints_ligand.i
+%include constraints_mod.i
 %include eval.i
 %include loops.i
 %include basic_algorithms.i
