@@ -4,6 +4,8 @@
 #
 #
 
+import sys
+
 
 # dictionary of canonical base pairs
 BPs = {
@@ -100,9 +102,36 @@ def structure_from_dotplot(n, args):
     return structure
 
 
-def map_structure_to_seqs(alignment, structure, turn = 3):
-    pt = None
-    has_vrna = False
+def hard_constraints_output(name, sequence, constraint, args):
+    if args.run:
+        ss  = None
+        mfe = None
+
+        # Try using the ViennaRNA Python API first
+        try:
+            import RNA
+            fc = RNA.fold_compound(sequence)
+            options = RNA.CONSTRAINT_DB_DEFAULT
+            if args.enforce:
+                options |= RNA.CONSTRAINT_DB_ENFORCE_BP
+            fc.hc_add_from_db(constraint, options)
+            ss, mfe = fc.mfe()
+        except:
+            # default to using the command line program RNAfold if Python API is not accessible
+            pass
+
+        if ss:
+            args.output_stream.write(f">{name}\n{sequence}\n{ss} ({mfe:6.2f})\n")
+
+    else:
+        args.output_stream.write(f">{name}\n{sequence}\n{constraint}\n")
+
+
+def map_structure_to_seqs(alignment, structure, args):
+    pt        = None
+    has_vrna  = False
+    turn      = args.turn
+
     try:
         import RNA
         pt = RNA.ptable(structure)
@@ -151,7 +180,7 @@ def map_structure_to_seqs(alignment, structure, turn = 3):
 
         cons = "".join(cons)
 
-        print(f">{name}\n{seql}\n{cons}")
+        hard_constraints_output(name, seql, cons, args)
 
 
 def make_pair_table(structure):
@@ -203,8 +232,7 @@ def hard_constraints(args):
             structure = structure_from_alifold(args)
 
         if structure:
-            print(structure)
-            map_structure_to_seqs(aln, structure, args.turn)
+            map_structure_to_seqs(aln, structure, args)
 
             return 0 # Success
 
@@ -217,24 +245,60 @@ def main():
 
     def set_default_subparser(parser,
                               default_subparser):
-        """default subparser selection. Call after setup, just before parse_args()
+        """Set a default subparser by subparser name.
+        
+        This function goes through the argument list sys.argv and checks
+        whether a subparser is specified. If this is not the case, it
+        checks whether any non-global arguments have been provided. Among
+        this set, it tests if they belong to the default parser as specified.
+        If this is the case or if the set is empty it adds the default
+        parser as subparser, i.e. first argument to sys.argv. Otherwise
+        it returns without any changes.
+        
+        Note
+        ----
+        
+            Call after setup, just before parse_args()
 
-        parser: the name of the parser you're making changes to
-        default_subparser: the name of the subparser to call by default"""
-        subparser_found = False
-        for arg in sys.argv[1:]:
-            if arg in ['-h', '--help']:  # global help if no subparser
-                break
-        else:
-            for x in parser._subparsers._actions:
+        Parameters
+        ----------
+        
+        parser: class(ArgumentParser)
+            The name of the parser you're making changes to
+        default_subparser: str
+            The name of the subparser to call by default
+        """
+        subparser_found   = False
+        subparser_options = False
+        global_args       = parser._option_string_actions.keys()
+        default_sp_args   = []
+        non_global_args   = []
+
+        # determine default subparser arguments
+        for x in parser._subparsers._actions:
                 if not isinstance(x, argparse._SubParsersAction):
                     continue
-                for sp_name in x._name_parser_map.keys():
-                    if sp_name in sys.argv[1:]:
-                        subparser_found = True
-            if not subparser_found:
-                # insert default in first position before all other arguments
-                sys.argv.insert(1, default_subparser) 
+                if default_subparser in x._name_parser_map.keys():
+                    sp = x._name_parser_map[default_subparser]
+                    default_sp_args = sp._option_string_actions.keys()
+
+        # create list of arguments we need for checking
+        non_global_args   = [ arg for arg in sys.argv[1:] if arg not in global_args ]
+        non_default_args  = [ arg for arg in non_global_args if arg not in default_sp_args ]
+
+        # now check whether a left-over non_default_arg actually is
+        # a subparser command
+        for x in parser._subparsers._actions:
+            if not isinstance(x, argparse._SubParsersAction):
+                continue
+            for sp_name in x._name_parser_map.keys():
+                if sp_name in non_default_args:
+                    subparser_found = True
+
+        # If no subparser has been specified and we have left-over non_global_args
+        # insert default in first position before all other arguments
+        if not subparser_found and non_global_args:
+            sys.argv.insert(1, default_subparser) 
 
 
     core = argparse.ArgumentParser(add_help=False)
@@ -245,6 +309,11 @@ def main():
                       metavar = "filename",
                       type = str,
                       help="A multiple sequence alignment file name")
+    core.add_argument("-o",
+                      "--output",
+                      type = str,
+                      help="A file or directory where to store the output",
+                      default = None)
     core.add_argument("--turn",
                       type = int,
                       help = "Minimum hairpin length",
@@ -288,6 +357,14 @@ def main():
                                          """,
                                          help='The legacy refold.pl mode',
                                          parents=[core])
+
+    hard_parser.add_argument("-r",
+                             "--run",
+                             help="Run the predictions instead of producing output that can be used with RNAFold",
+                             action="store_true")
+    hard_parser.add_argument("--enforce",
+                             help = "Enforce the structure constraint for single sequence predictions",
+                             action="store_true")
 
     hard_g1 = hard_parser.add_argument_group("Consensus MFE",
                                              "Map the consensus MFE structure as predicted by RNAalifold to each sequence in the input alignment")
@@ -334,9 +411,21 @@ def main():
 
     args = main_parser.parse_args()
 
+    # set default output stream and closing method
+    if args.output:
+        args.output_stream = open(args.output, "w")
+    else:
+        args.output_stream = sys.stdout
+
     # call the function corresponding to the chosen mode
     # and use its return value as exit code
-    sys.exit(args.func(args))
+    ret = args.func(args)
+
+    # close output stream if necessary
+    if args.output_stream != sys.stdout:
+        args.output_stream.close()
+
+    sys.exit(ret)
 
 
 
