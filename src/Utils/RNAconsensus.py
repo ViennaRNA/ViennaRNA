@@ -22,6 +22,37 @@ BPs = {
 }
 
 
+def parse_clustal(filename):
+    import re
+    alignment = dict()
+    order     = 0
+
+    with open(filename) as f:
+        for line in f.readlines():
+            line = line.strip()
+            # stop processing if stockholm file entry ends
+            if line.startswith("//"):
+                break
+
+            split = line.split()
+
+            # only consider lines where we have two separate columns of data
+            # and the second column looks more or less like a sequence
+            if len(split) == 2:
+                if re.match(r'^[a-zA-Z\-\_]+$', split[1]):
+                    if split[0] in alignment:
+                        alignment[split[0]][0] += split[1]
+                    else:
+                        alignment[split[0]] = (split[1], order)
+                        order += 1
+
+    if len(alignment) > 0:
+        # reformat alignment and preserver order
+        return [ (k, v[0]) for k, v in sorted(alignment.items(), key=lambda item: item[1][1]) ]
+    else:
+        return None
+
+
 def read_alignment(args):
     alignment = None
 
@@ -38,7 +69,7 @@ def read_alignment(args):
         if ret > 0:
             alignment = [ (name, seq) for (name, seq) in zip(names, seqs) ]
     except:
-        print("Failed to parse alignment file")
+        alignment = parse_clustal(filename)
 
     return alignment
 
