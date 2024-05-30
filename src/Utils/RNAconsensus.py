@@ -110,19 +110,25 @@ def hard_constraints_output(name, sequence, constraint, args):
         # Try using the ViennaRNA Python API first
         try:
             import RNA
+            print(1/0)
             fc = RNA.fold_compound(sequence)
             options = RNA.CONSTRAINT_DB_DEFAULT
             if args.enforce:
                 options |= RNA.CONSTRAINT_DB_ENFORCE_BP
             fc.hc_add_from_db(constraint, options)
             ss, mfe = fc.mfe()
-        except:
-            # default to using the command line program RNAfold if Python API is not accessible
-            pass
-
-        if ss:
             args.output_stream.write(f">{name}\n{sequence}\n{ss} ({mfe:6.2f})\n")
+        except:
+            import subprocess
+            # default to using the command line program RNAfold if Python API is not accessible
+            run = ['RNAfold', '-C', '--noPS']
+            if args.enforce:
+                run.append('--enforceConstraint')
 
+            data = f">{name}\n{sequence}\n{constraint}\n".encode('ascii')
+            p = subprocess.Popen(run, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            ret = p.communicate(input=data)
+            args.output_stream.write(ret[0].decode())
     else:
         args.output_stream.write(f">{name}\n{sequence}\n{constraint}\n")
 
