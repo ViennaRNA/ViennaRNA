@@ -1,6 +1,10 @@
 include $(top_srcdir)/silent_rules.mk
 
 pkgbindir = $(pkgdatadir)/bin
+pkgpyexecdir = $(py3execdir)/RNA
+
+pkgpyexec_DATA = \
+    RNAconsensus.py
 
 pscript = \
     b2mt.pl \
@@ -19,7 +23,13 @@ bin_PROGRAMS = \
     popt \
     ct2db
 
+PYTHON_UTILS = RNAconsensus
+
+bin_SCRIPTS = ${PYTHON_UTILS}
+pkgpyexec_SCRIPTS = RNAconsensus.py
 pkgbin_SCRIPTS = $(pscript)
+
+BUILT_SOURCES = ${PYTHON_UTILS}
 
 AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
@@ -34,7 +44,6 @@ GENGETOPT_CMDL =  ct2db_cmdl.c ct2db_cmdl.h
 
 GENGETOPT_FILES =  ct2db.ggo
 
-EXTRA_DIST = $(pscript) ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
 
 LDADD = $(top_builddir)/src/ViennaRNA/libRNA_conv.la -lm
 
@@ -52,6 +61,24 @@ SUFFIXES = .ggo _cmdl.h _cmdl.c
 _cmdl.c_cmdl.h :
 
 ct2db_SOURCES=ct2db_cmdl.c ct2db.c
+
+
+${PYTHON_UTILS}: python_wrapper
+	cp $< $@
+
+
+EXTRA_DIST = $(pscript) ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
+
+CLEANFILES = ${PYTHON_UTILS}
+
+
+install-exec-hook:
+	$(AM_V_GEN)target_path=${python3dir}; \
+	for i in $(PYTHON_UTILS); \
+	do \
+	  $(SED) -i 's#\$${exec_prefix}#'$(DESTDIR)$(prefix)'#g' $(DESTDIR)$(bindir)/$$i ; \
+	done
+
 
 install-data-hook:
 	$(AM_V_GEN)for i in $(pscript); \

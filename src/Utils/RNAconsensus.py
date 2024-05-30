@@ -446,6 +446,10 @@ def main():
 
     set_default_subparser(main_parser, "hardcons")
 
+    if len(sys.argv)==1:
+        main_parser.print_help(sys.stderr)
+        sys.exit(1)
+
     args = main_parser.parse_args()
 
     # set default output stream and closing method

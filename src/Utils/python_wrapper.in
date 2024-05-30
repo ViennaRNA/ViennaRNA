@@ -1,0 +1,2 @@
+#! /bin/sh
+exec @py3execdir@/RNA/`basename $0.py` "$@"

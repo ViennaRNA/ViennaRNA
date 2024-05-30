@@ -49,6 +49,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
                   print(sysconfig.get_path('purelib', vars={'base':'$' '{prefix}'}))"`
           fi
           AC_SUBST(python3dir, $PYTHON3_DIR)
+          AC_SUBST(python3dir_expanded, $(eval printf "%s" ${python3dir}))
           AC_MSG_RESULT([$PYTHON3_DIR])
           AC_ARG_VAR(PYTHON3_DIR, [Directory to install python3 scripts in])
 
@@ -58,6 +59,7 @@ AC_DEFUN([AX_PYTHON3_DEVEL],[
                   print(sysconfig.get_path('platlib', vars={'platbase':'$' '{exec_prefix}'}))"`
           fi
           AC_SUBST(py3execdir, $PYTHON3_EXECDIR)
+          AC_SUBST(py3execdir_expanded, $(eval printf "%s" ${py3execdir}))
           AC_MSG_RESULT([$PYTHON3_EXECDIR])
           AC_ARG_VAR(PYTHON3_EXECDIR, [Directory to install architecture dependent python3 things in])
 
