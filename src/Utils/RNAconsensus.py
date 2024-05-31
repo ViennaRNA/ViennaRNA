@@ -356,6 +356,15 @@ def hard_constraints(args):
     return 1  # Failure
 
 
+def soft_constraints(args):
+    """
+    RNAsoftcons implementations
+    """
+    print("Not implemented yet!")
+
+    return 1  # Failure
+
+
 def main():
     import sys
     import argparse
@@ -522,6 +531,8 @@ def main():
                                          """,
                                          help='RNAsoftcons mode',
                                          parents=[core])
+
+    soft_parser.set_defaults(func = soft_constraints)
 
 
     set_default_subparser(main_parser, "hardcons")
