@@ -127,12 +127,18 @@ def _hard_constraints_output(name, sequence, constraint, args):
         # Try using the ViennaRNA Python API first
         try:
             import RNA
-            fc = RNA.fold_compound(sequence)
-            options = RNA.CONSTRAINT_DB_DEFAULT
+            sequence  = sequence.replace("T", "U")
+            sequence  = sequence.replace("t", "u")
+            fc        = RNA.fold_compound(sequence)
+            options   = RNA.CONSTRAINT_DB_DEFAULT
+
             if args.enforce:
                 options |= RNA.CONSTRAINT_DB_ENFORCE_BP
+
             fc.hc_add_from_db(constraint, options)
+
             ss, mfe = fc.mfe()
+
             args.output_stream.write(f">{name}\n{sequence}\n{ss} ({mfe:6.2f})\n")
         except:
             import subprocess
@@ -206,10 +212,14 @@ def structure_from_dotplot(fname, n, threshold = 0.9):
         with open(fname) as f:
             if f.readline().startswith("%!PS"):
                 structure = [ '.' for _ in range(n) ]
+
                 for line in f.readlines():
                     line = line.strip()
+
+                    # omit comment lines
                     if line.startswith("%"):
                         continue
+
                     m = prob_pat.match(line)
                     if m:
                         if m.lastindex == 5 and \
@@ -258,8 +268,8 @@ def map_structure_to_seqs(alignment, structure, cb = _hard_constraints_output, c
 
     try:
         import RNA
-        pt = RNA.ptable(structure)
-        has_vrna = True
+        pt        = RNA.ptable(structure)
+        has_vrna  = True
     except:
         pt = _make_pair_table(structure)
 
@@ -271,13 +281,15 @@ def map_structure_to_seqs(alignment, structure, cb = _hard_constraints_output, c
             if seql[i] == '-':
                 # mark position for removal
                 cons[i] = 'x'
+
                 # if this is an opening base pair, make the pairing partner unpaired
                 if pt[i] > i:
                     cons[pt[i]] = '.'
+
             elif pt[i] > i:
                 # check if this is an allowed base pair in the current sequence
                 if seql[i].upper() + seql[pt[i]].upper() not in canonical_pairs:
-                    cons[i] = "."
+                    cons[i]     = "."
                     cons[pt[i]] = "."
 
         seql = "".join(seql).replace("-", "")
@@ -291,11 +303,12 @@ def map_structure_to_seqs(alignment, structure, cb = _hard_constraints_output, c
             pts = _make_pair_table(cons)
 
         for i in range(1, pts[0] + 1):
-            if pts[i] > i and (pts[i] - i - 1) < min_hp_size:
+            if pts[i] > i and \
+               (pts[i] - i - 1) < min_hp_size:
                 pts[pts[i]] = 0
                 pts[i] = 0
 
-        # convert back
+        # convert back to dot-bracket
         cons = [ "." for _ in range(pts[0]) ]
         for i in range(1, pts[0] + 1): 
             if pts[i] > i:
@@ -304,6 +317,7 @@ def map_structure_to_seqs(alignment, structure, cb = _hard_constraints_output, c
 
         cons = "".join(cons)
 
+        # execture callback
         cb(name, seql, cons, cb_data)
 
 
@@ -322,6 +336,7 @@ def hard_constraints(args):
 
         # Try dotplot first...
         fname = None
+
         if args.dotplot:
             fname = args.dotplot
         elif args.structfile:
