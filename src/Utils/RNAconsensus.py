@@ -8,7 +8,7 @@ import sys
 
 
 # dictionary of canonical base pairs
-BPs = {
+_BPs = {
   "AU" : 5,
   "GC" : 1,
   "CG" : 2,
@@ -22,7 +22,12 @@ BPs = {
 }
 
 
-def parse_clustal(filename):
+def _parse_clustal(filename):
+    """
+    Helper function that parses a ClustalW or Stockholm formatted
+    MSA file and returns the alignment as list of pairs of name
+    and aligned sequence
+    """
     import re
     alignment = dict()
     order     = 0
@@ -53,7 +58,12 @@ def parse_clustal(filename):
         return None
 
 
-def read_alignment(args):
+def _read_alignment(args):
+    """
+    Wrapper that tries reading an alignment file via the ViennaRNA Python interface
+    and falls-back to the _parse_clustal() function in this script if the Python interface
+    is not accessible
+    """
     alignment = None
 
     filename = None
@@ -69,12 +79,16 @@ def read_alignment(args):
         if ret > 0:
             alignment = [ (name, seq) for (name, seq) in zip(names, seqs) ]
     except:
-        alignment = parse_clustal(filename)
+        alignment = _parse_clustal(filename)
 
     return alignment
 
 
-def structure_from_alifold(args):
+def _structure_from_alifold(args):
+    """
+    A helper function to parse RNAalifold output and extract the predicted
+    MFE consensus structrue
+    """
     import re
 
     filename      = None
@@ -100,40 +114,12 @@ def structure_from_alifold(args):
     return structure
 
 
-def structure_from_dotplot(n, args):
-    import re
-    structure = None
-
-    prob_pat = re.compile(r"^\s*(\d+\.?\d*)\s+(\d+\.?\d*)\s+hsb\s+(\d+)\s+(\d+)\s+(\d+\.?\d*)\s+lbox")
-
-    fname = None
-    if args.dotplot:
-        fname = args.dotplot
-    elif args.structfile:
-        fname = args.structfile
-
-    try:
-        with open(fname) as f:
-            if f.readline().startswith("%!PS"):
-                structure = [ '.' for _ in range(n) ]
-                for line in f.readlines():
-                    line = line.strip()
-                    if line.startswith("%"):
-                        continue
-                    m = prob_pat.match(line)
-                    if m:
-                        if m.lastindex == 5 and float(m.group(5)) > args.threshold:
-                            structure[int(m.group(3)) - 1] = "("
-                            structure[int(m.group(4)) - 1] = ")"
-
-                structure = "".join(structure)
-    except:
-        pass
-
-    return structure
-
-
-def hard_constraints_output(name, sequence, constraint, args):
+def _hard_constraints_output(name, sequence, constraint, args):
+    """
+    Default callback for the hard constraints prediction that
+    either runs the predictions for the single sequences or
+    simply prints the constraint strings.
+    """
     if args.run:
         ss  = None
         mfe = None
@@ -141,7 +127,6 @@ def hard_constraints_output(name, sequence, constraint, args):
         # Try using the ViennaRNA Python API first
         try:
             import RNA
-            print(1/0)
             fc = RNA.fold_compound(sequence)
             options = RNA.CONSTRAINT_DB_DEFAULT
             if args.enforce:
@@ -164,65 +149,9 @@ def hard_constraints_output(name, sequence, constraint, args):
         args.output_stream.write(f">{name}\n{sequence}\n{constraint}\n")
 
 
-def map_structure_to_seqs(alignment, structure, args):
-    pt        = None
-    has_vrna  = False
-    turn      = args.turn
-
-    try:
-        import RNA
-        pt = RNA.ptable(structure)
-        has_vrna = True
-    except:
-        pt = make_pair_table(structure)
-
-    for name, seq in alignment:
-        seql = list("-" + seq)
-        cons = list("x" + structure)
-
-        for i in range(1, pt[0] + 1):
-            if seql[i] == '-':
-                # mark position for removal
-                cons[i] = 'x'
-                # if this is an opening base pair, make the pairing partner unpaired
-                if pt[i] > i:
-                    cons[pt[i]] = '.'
-            elif pt[i] > i:
-                # check if this is an allowed base pair in the current sequence
-                if seql[i] + seql[pt[i]] not in BPs:
-                    cons[i] = "."
-                    cons[pt[i]] = "."
-
-        seql = "".join(seql).replace("-", "")
-        cons = "".join(cons).replace("x", "")
-
-        # enforce minimum hairpin length constraint
-        pts = None
-        if has_vrna:
-            pts = RNA.ptable(cons)
-        else:
-            pts = make_pair_table(cons)
-
-        for i in range(1, pts[0] + 1):
-            if pts[i] > i and (pts[i] - i - 1) < turn:
-                pts[pts[i]] = 0
-                pts[i] = 0
-
-        # convert back
-        cons = [ "." for _ in range(pts[0]) ]
-        for i in range(1, pts[0] + 1): 
-            if pts[i] > i:
-                cons[i - 1] = '('
-                cons[pts[i] - 1] = ')'
-
-        cons = "".join(cons)
-
-        hard_constraints_output(name, seql, cons, args)
-
-
-def make_pair_table(structure):
+def _make_pair_table(structure):
     """
-    create a pair table for an input structure in dot-bracket format
+    Helper function to create a pair table from a dot-bracket structure.
     """
     pt    = [0 for _ in range(len(structure) + 1)]
     pt[0] = len(structure)
@@ -248,12 +177,142 @@ def make_pair_table(structure):
     return pt
 
 
+def structure_from_dotplot(fname, n, threshold = 0.9):
+    """
+    Parse an RNAalifold dot-plot and retrieve all base pairs of the predicted MFE 
+    structure that have probability above a certain threshold.
+  
+    Parameters
+    ----------
+
+    fname: str
+        The dot-plot file name
+    n: int
+        The expected length of the output structure
+    threshold: double
+        A threshold between 0 and 1
+
+    Returns
+    -------
+    str
+        The dot-bracket string as obtained from the dot-plot or None on any error
+    """
+    import re
+    structure = None
+
+    prob_pat = re.compile(r"^\s*(\d+\.?\d*)\s+(\d+\.?\d*)\s+hsb\s+(\d+)\s+(\d+)\s+(\d+\.?\d*)\s+lbox")
+
+    try:
+        with open(fname) as f:
+            if f.readline().startswith("%!PS"):
+                structure = [ '.' for _ in range(n) ]
+                for line in f.readlines():
+                    line = line.strip()
+                    if line.startswith("%"):
+                        continue
+                    m = prob_pat.match(line)
+                    if m:
+                        if m.lastindex == 5 and \
+                           float(m.group(5)) > threshold and \
+                           int(m.group(4)) <= n:
+                            structure[int(m.group(3)) - 1] = "("
+                            structure[int(m.group(4)) - 1] = ")"
+
+                structure = "".join(structure)
+    except:
+        pass
+
+    return structure
+
+
+def map_structure_to_seqs(alignment, structure, cb = _hard_constraints_output, cb_data = None, min_hp_size = 3, canonical_pairs = _BPs):
+    """
+    Given a multiple sequence alignment (MSA) and a corresponding consensus structure,
+    map the consensus structure to each sequence in the alignment.
+    
+    The mapping is such that for each individual sequence, retained base pairs must
+    be canonical, i.e. Watson-Crick or Wobble pairs, and they must not involve gap
+    positions. Otherwise, they are removed Finally, gaps are removed and the
+    three results `name`, `sequence`, and `structure` are returned through a callback
+    mechanism. Additionally, the callback receives as fourth argument the `cb_data`
+    object for further processing if required.
+
+    Parameters
+    ----------
+    
+    alignment:  list(tuple())
+        A list of (name, aligned_seq) pairs representing the MSA
+    structure:  str
+        The consensus structure for the MSA
+    cb: func
+        A callback function of the form cb(name, sequence, structure, cb_data)
+    cb_data: object
+        Any data passed through to the callback functionAn argument object specifying additional options
+    min_hp_size: int
+        The minimum number of unpaired nucleotides in a hairpin loop
+    canonical_pairs:  iterable
+        A list, tuple or dictionary containing upper-case entries "XY" where X and Y are nucleotides forming a canonical base pair (X,Y)
+    """
+    pt        = None
+    has_vrna  = False
+
+    try:
+        import RNA
+        pt = RNA.ptable(structure)
+        has_vrna = True
+    except:
+        pt = _make_pair_table(structure)
+
+    for name, seq in alignment:
+        seql = list("-" + seq)
+        cons = list("x" + structure)
+
+        for i in range(1, pt[0] + 1):
+            if seql[i] == '-':
+                # mark position for removal
+                cons[i] = 'x'
+                # if this is an opening base pair, make the pairing partner unpaired
+                if pt[i] > i:
+                    cons[pt[i]] = '.'
+            elif pt[i] > i:
+                # check if this is an allowed base pair in the current sequence
+                if seql[i].upper() + seql[pt[i]].upper() not in canonical_pairs:
+                    cons[i] = "."
+                    cons[pt[i]] = "."
+
+        seql = "".join(seql).replace("-", "")
+        cons = "".join(cons).replace("x", "")
+
+        # enforce minimum hairpin length constraint
+        pts = None
+        if has_vrna:
+            pts = RNA.ptable(cons)
+        else:
+            pts = _make_pair_table(cons)
+
+        for i in range(1, pts[0] + 1):
+            if pts[i] > i and (pts[i] - i - 1) < min_hp_size:
+                pts[pts[i]] = 0
+                pts[i] = 0
+
+        # convert back
+        cons = [ "." for _ in range(pts[0]) ]
+        for i in range(1, pts[0] + 1): 
+            if pts[i] > i:
+                cons[i - 1] = '('
+                cons[pts[i] - 1] = ')'
+
+        cons = "".join(cons)
+
+        cb(name, seql, cons, cb_data)
+
+
 def hard_constraints(args):
     """
     Legacy refold.pl strategie using hard constraints
     """
     # try parsing the input alignment to work on
-    aln = read_alignment(args)
+    aln = _read_alignment(args)
 
     # only continue if we successfully read an input alignment
     if aln != None:
@@ -262,14 +321,20 @@ def hard_constraints(args):
         # RNAalifold output or dot-plot. 
 
         # Try dotplot first...
-        structure = structure_from_dotplot(n, args)
+        fname = None
+        if args.dotplot:
+            fname = args.dotplot
+        elif args.structfile:
+            fname = args.structfile
+
+        structure = structure_from_dotplot(fname, n, args.threshold)
 
         # Try RNAalifold ouput if dot-plot parsing was unsuccessful
         if structure == None:
-            structure = structure_from_alifold(args)
+            structure = _structure_from_alifold(args)
 
         if structure:
-            map_structure_to_seqs(aln, structure, args)
+            map_structure_to_seqs(aln, structure, min_hp_size = args.turn, cb_data = args)
 
             return 0 # Success
 
