@@ -60,6 +60,11 @@ RNA_ENABLE_VECTORIZE
 RNA_ENABLE_MPFR
 RNA_ENABLE_NAVIEW
 
+## Setup Python 3 variables
+## for src/Utils/*.py scripts
+
+AX_REQUIRE_DEFINED([AX_PYTHON3_DEVEL])
+
 ## Set post conditions for feature
 ## settings
 

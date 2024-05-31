@@ -90,8 +90,6 @@ AC_DEFUN([RNA_ENABLE_SWIG_PERL],[
 
 AC_DEFUN([RNA_ENABLE_SWIG_PYTHON],[
 
-  AX_REQUIRE_DEFINED([AX_PYTHON3_DEVEL])
-
   RNA_ADD_PACKAGE([python],
                   [Python 3.x interface],
                   [yes],[],[],
