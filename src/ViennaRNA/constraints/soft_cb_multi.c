@@ -162,6 +162,178 @@ vrna_sc_multi_cb_add(vrna_fold_compound_t   *fc,
 }
 
 
+PUBLIC size_t
+vrna_sc_multi_cb_add_comparative(vrna_fold_compound_t   *fc,
+                                 vrna_sc_direct_f       *cbs,
+                                 vrna_sc_exp_direct_f   *cbs_exp,
+                                 void                   **datas,
+                                 vrna_auxdata_prepare_f *prepare_cbs,
+                                 vrna_auxdata_free_f    *free_cbs,
+                                 unsigned int           *ds,
+                                 unsigned int           multi_params)
+{
+  unsigned int      s, n_seq, n, **a2s;
+  size_t            ret;
+  vrna_sc_t         *sc, **scs;
+  sc_cb_container_t *data_multi;
+  sc_multi_s        *multi_s;
+
+  ret = 0;
+
+  if ((fc) &&
+      (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
+      ((cbs) || (cbs_exp)) &&
+      (ds)) {
+
+    n = fc->length;
+    n_seq = fc->n_seq;
+    a2s   = fc->a2s;
+
+    if (!fc->scs)
+      vrna_sc_init(fc);
+
+    scs      = fc->scs;
+
+    /* first, make sure that we initialize everything properly */
+    /* note, that unless the callbacks already stored for this
+       vrna_fold_compound_t are of type multi_cb, they will be
+       erased and substituted by the multi_cb mechanism!
+     */
+    vrna_array(void *)                  dats;
+    vrna_array(vrna_auxdata_prepare_f)  prep_d;
+    vrna_array(vrna_auxdata_free_f)     free_d;
+    vrna_array(vrna_sc_f)               fs;
+    vrna_array(vrna_sc_exp_f)           exp_fs;
+
+    vrna_array_init_size(dats, n_seq);
+    vrna_array_init_size(prep_d, n_seq);
+    vrna_array_init_size(free_d, n_seq);
+    vrna_array_init_size(fs, n_seq);
+    vrna_array_init_size(exp_fs, n_seq);
+
+    for (s = 0; s < n_seq; s++) {
+      sc = fc->scs[s];
+
+      /* change only if a callback is provided for this sequence */
+      if ((cbs[s]) ||
+          (cbs_exp[s])) {
+
+        if (sc->f != &sc_collect) {
+          multi_s = (sc_multi_s *)vrna_alloc(sizeof(sc_multi_s));
+          memset(&(multi_s->data[0]), 0, sizeof(sc_cb_container_t) * VRNA_DECOMP_TYPES_MAX);
+          multi_s->fc = fc;
+        } else {
+          multi_s = (sc_multi_s *)sc->data;
+        }
+
+        vrna_array_append(dats, (void *)multi_s);
+        vrna_array_append(prep_d, &sc_multi_prepare);
+        vrna_array_append(free_d, &sc_multi_free);
+        vrna_array_append(fs, &sc_collect);
+        vrna_array_append(exp_fs, &sc_exp_collect);
+      } else {
+        vrna_array_append(dats, sc->data);
+        vrna_array_append(prep_d, sc->prepare_data);
+        vrna_array_append(free_d, sc->free_data);
+        vrna_array_append(fs, sc->f);
+        vrna_array_append(exp_fs, sc->exp_f);
+      }
+    }
+
+    vrna_sc_set_auxdata_comparative(fc,
+                                    dats,
+                                    prep_d,
+                                    free_d,
+                                    VRNA_OPTION_DEFAULT);
+    vrna_sc_set_f_comparative(fc,
+                              fs,
+                              VRNA_OPTION_DEFAULT);
+
+    vrna_sc_set_exp_f_comparative(fc,
+                                  exp_fs,
+                                  VRNA_OPTION_DEFAULT);
+
+    vrna_array_free(dats);
+    vrna_array_free(prep_d);
+    vrna_array_free(free_d);
+    vrna_array_free(fs);
+    vrna_array_free(exp_fs);
+
+    for (s = 0; s < n_seq; s++) {
+      sc      = fc->scs[s];
+
+      if ((cbs[s]) ||
+          (cbs_exp[s])) {
+        multi_s = sc->data;
+
+        if (multi_s) {
+          if (!multi_s->data[ds[s]].cbs) {
+            vrna_array_init(multi_s->data[ds[s]].cbs);
+            vrna_array_init(multi_s->data[ds[s]].cbs_exp);
+            vrna_array_init(multi_s->data[ds[s]].data);
+            vrna_array_init(multi_s->data[ds[s]].data_exp);
+            vrna_array_init(multi_s->data[ds[s]].prepare_data);
+            vrna_array_init(multi_s->data[ds[s]].free_data);
+          }
+
+          data_multi = &(multi_s->data[ds[s]]);
+
+          vrna_sc_direct_f        current_cb            = NULL;
+          vrna_sc_exp_direct_f    current_cb_exp        = NULL;
+          void                    *current_data         = NULL;
+          vrna_auxdata_prepare_f  current_prepare_data  = NULL;
+          vrna_auxdata_free_f     current_free_data     = NULL;
+          void                    *current_data_exp     = NULL;
+
+          if (cbs)
+            current_cb = cbs[s];
+
+          if (datas)
+            current_data = datas[s];
+
+          if (prepare_cbs)
+            current_prepare_data = prepare_cbs[s];
+
+          if (free_cbs)
+            current_free_data = free_cbs[s];
+
+          if (cbs_exp) {
+            if (cbs_exp[s]) {
+              current_cb_exp = cbs_exp[s];
+              if (datas)
+                current_data_exp = datas[s];
+              else
+                current_data_exp = NULL;
+            } else if ((cbs) &&
+                       (cbs[s])) {
+              sc_cb_en_wrap *wrapper = (sc_cb_en_wrap *)vrna_alloc(sizeof(sc_cb_en_wrap));
+              wrapper->cb   = cbs[s];
+              if (datas)
+                wrapper->data = datas[s];
+              else
+                wrapper->data = NULL;
+              current_cb_exp = &cb_exp_default;
+              current_data_exp = wrapper;
+            }
+          }
+
+          vrna_array_append(data_multi->cbs, current_cb);
+          vrna_array_append(data_multi->data, current_data);
+          vrna_array_append(data_multi->prepare_data, current_prepare_data);
+          vrna_array_append(data_multi->free_data, current_free_data);
+          vrna_array_append(data_multi->cbs_exp, current_cb_exp);
+          vrna_array_append(data_multi->data_exp, current_data_exp);
+
+          ret += vrna_array_size(data_multi->cbs);
+        }
+      }
+    }
+  }
+
+  return ret;
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #

@@ -870,6 +870,16 @@ vrna_sc_multi_cb_add(vrna_fold_compound_t   *fc,
                      unsigned int           decomp_type);
 
 
+size_t
+vrna_sc_multi_cb_add_comparative(vrna_fold_compound_t   *fc,
+                                 vrna_sc_direct_f       *cbs,
+                                 vrna_sc_exp_direct_f   *cbs_exp,
+                                 void                   **datas,
+                                 vrna_auxdata_prepare_f *prepare_cbs,
+                                 vrna_auxdata_free_f    *free_cbs,
+                                 unsigned int           *ds,
+                                 unsigned int           multi_params);
+
 int
 vrna_sc_set_f_comparative(vrna_fold_compound_t  *fc,
                           vrna_sc_f             *f,
