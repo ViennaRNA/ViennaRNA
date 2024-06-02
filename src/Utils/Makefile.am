@@ -67,7 +67,11 @@ ${PYTHON_UTILS}: python_wrapper
 	cp $< $@
 
 
-EXTRA_DIST = $(pscript) ${GENGETOPT_FILES} ${GENGETOPT_CMDL}
+EXTRA_DIST = \
+    $(pscript) \
+    ${GENGETOPT_FILES} \
+    ${GENGETOPT_CMDL} \
+    RNAconsensus.py
 
 CLEANFILES = ${PYTHON_UTILS}
 
