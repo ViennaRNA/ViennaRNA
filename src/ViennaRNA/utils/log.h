@@ -19,13 +19,86 @@
  *  @brief    Logging system of the @em ViennaRNA @em Package
  */
 
+#include <stdio.h>
+#include <stdarg.h>
+#include <time.h>
+
 /**
  *  @addtogroup  utils_log
  *  @{
  */
 
-#include <stdio.h>
-#include <stdarg.h>
+typedef struct vrna_log_event_s {
+  const char  *format_string;
+  va_list     params;
+  int         level;
+  int         line_number;
+  const char  *file_name;
+} vrna_log_event_t;
+
+
+typedef void (*vrna_log_lock_f)(int lock, void *lock_data);
+typedef void (*vrna_log_cb_f)(vrna_log_event_t *event, void *log_data);
+
+enum {
+  VRNA_LOG_LEVEL_UNKNOWN  = -1,
+  VRNA_LOG_LEVEL_DEBUG    = 10,
+  VRNA_LOG_LEVEL_INFO     = 20,
+  VRNA_LOG_LEVEL_WARNING  = 30,
+  VRNA_LOG_LEVEL_ERROR    = 40,
+  VRNA_LOG_LEVEL_CRITICAL = 50
+};
+  
+#define VRNA_LOG_LEVEL_DEFAULT      VRNA_LOG_LEVEL_ERROR
+#define VRNA_LOG_OPTIONS_QUIET      1U
+#define VRNA_LOG_OPTIONS_TRACE_CALL 2U
+#define VRNA_LOG_OPTIONS_TRACE_TIME 4U
+#define VRNA_LOG_OPTIONS_DEFAULT    0U
+
+#define vrna_log_debug(...) \
+    do { \
+        vrna_log(VRNA_LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__); \
+    } while (0);
+
+#define vrna_log_info(...) \
+    do { \
+        vrna_log(VRNA_LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__); \
+    } while (0);
+
+#define vrna_log_warning(...) \
+    do { \
+        vrna_log(VRNA_LOG_LEVEL_WARNING, __FILE__, __LINE__, __VA_ARGS__); \
+    } while (0);
+
+#define vrna_log_error(...) \
+    do { \
+        vrna_log(VRNA_LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__); \
+    } while (0);
+
+#define vrna_log_critical(...) \
+    do { \
+        vrna_log(VRNA_LOG_LEVEL_CRITICAL, __FILE__, __LINE__, __VA_ARGS__); \
+    } while (0);
+
+
+void
+vrna_log(int level,
+         const char *file_name,
+         int        line_number,
+         const char *format_string,
+         ...);
+
+
+int vrna_log_level(void);
+
+
+int vrna_log_level_set(int level);
+
+
+unsigned int vrna_log_options(void);
+
+
+void vrna_log_options_set(unsigned int options);
 
 /**
  *  @addtogroup  message_utils
