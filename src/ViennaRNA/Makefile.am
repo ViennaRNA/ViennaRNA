@@ -233,6 +233,7 @@ vrna_utils_HEADERS = \
     utils/higher_order_functions.h \
     utils/cpu.h \
     utils/units.h \
+    utils/log.h \
     ${SVM_UTILS_H}
 
 
@@ -379,6 +380,7 @@ libRNA_utils_la_SOURCES = \
     utils/higher_order_functions.c \
     utils/cpu.c \
     utils/units.c \
+    utils/log.c \
     io/io_utils.c \
     io/file_formats.c \
     io/file_formats_msa.c \

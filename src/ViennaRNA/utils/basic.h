@@ -124,6 +124,7 @@
 #include <stdarg.h>
 
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/utils/log.h>
 
 
 #ifdef WITH_DMALLOC
@@ -298,106 +299,6 @@ vrna_idx_col_wise(unsigned int length);
  */
 
 /**
- *  @brief Print an error message and die
- *
- *  This function is a wrapper to @em fprintf(stderr, ...) that
- *  puts a capital <b>ERROR:</b> in front of the message and then exits
- *  the calling program.
- *
- *  @see vrna_message_verror(), vrna_message_warning(), vrna_message_info()
- *
- *  @param format The error message to be printed
- *  @param ...    Optional arguments for the formatted message string
- */
-void
-vrna_message_error(const char *format,
-                   ...);
-
-
-/**
- *  @brief Print an error message and die
- *
- *  This function is a wrapper to @em vfprintf(stderr, ...) that
- *  puts a capital <b>ERROR:</b> in front of the message and then exits
- *  the calling program.
- *
- *  @see vrna_message_error(), vrna_message_warning(), vrna_message_info()
- *
- *  @param format The error message to be printed
- *  @param args   The argument list for the formatted message string
- */
-void
-vrna_message_verror(const char  *format,
-                    va_list     args);
-
-
-/**
- *  @brief Print a warning message
- *
- *  This function is a wrapper to @em fprintf(stderr, ...) that
- *  puts a capital <b>WARNING:</b> in front of the message.
- *
- *  @see vrna_message_vwarning(), vrna_message_error(), vrna_message_info()
- *
- *  @param format The warning message to be printed
- *  @param ...    Optional arguments for the formatted message string
- */
-void
-vrna_message_warning(const char *format,
-                     ...);
-
-
-/**
- *  @brief Print a warning message
- *
- *  This function is a wrapper to @em fprintf(stderr, ...) that
- *  puts a capital <b>WARNING:</b> in front of the message.
- *
- *  @see vrna_message_vwarning(), vrna_message_error(), vrna_message_info()
- *
- *  @param format The warning message to be printed
- *  @param args   The argument list for the formatted message string
- */
-void
-vrna_message_vwarning(const char  *format,
-                      va_list     args);
-
-
-/**
- *  @brief Print an info message
- *
- *  This function is a wrapper to @em fprintf(...).
- *
- *  @see vrna_message_vinfo(), vrna_message_error(), vrna_message_warning()
- *
- *  @param fp     The file pointer where the message is printed to
- *  @param format The warning message to be printed
- *  @param ...    Optional arguments for the formatted message string
- */
-void
-vrna_message_info(FILE        *fp,
-                  const char  *format,
-                  ...);
-
-
-/**
- *  @brief Print an info message
- *
- *  This function is a wrapper to @em fprintf(...).
- *
- *  @see vrna_message_vinfo(), vrna_message_error(), vrna_message_warning()
- *
- *  @param fp     The file pointer where the message is printed to
- *  @param format The info message to be printed
- *  @param args   The argument list for the formatted message string
- */
-void
-vrna_message_vinfo(FILE       *fp,
-                   const char *format,
-                   va_list    args);
-
-
-/**
  *  @brief Print a line to @e stdout that asks for an input sequence
  *
  *  There will also be a ruler (scale line) printed that helps orientation of the sequence positions
@@ -463,22 +364,6 @@ DEPRECATED(void print_tty_input_seq(void), "Use vrna_message_input_seq_simple() 
  *  @deprecated Use vrna_message_input_seq() instead!
  */
 DEPRECATED(void print_tty_input_seq_str(const char *s), "Use vrna_message_input_seq() instead");
-
-/**
- *  @brief Print a warning message
- *
- *  Print a warning message to @e stderr
- *
- *  @deprecated Use vrna_message_warning() instead! (since v2.3.0)
- */
-DEPRECATED(void warn_user(const char message[]), "Use vrna_message_warning() instead");
-
-/**
- *  @brief Die with an error message
- *
- *  @deprecated Use vrna_message_error() instead! (since v2.3.0)
- */
-DEPRECATED(void nrerror(const char message[]), "Use vrna_message_error() instead()");
 
 /**
  *  @brief Allocate space safely
