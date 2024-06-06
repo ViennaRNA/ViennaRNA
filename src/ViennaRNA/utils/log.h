@@ -58,27 +58,27 @@ enum {
 #define vrna_log_debug(...) \
     do { \
         vrna_log(VRNA_LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0);
+    } while (0)
 
 #define vrna_log_info(...) \
     do { \
         vrna_log(VRNA_LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0);
+    } while (0)
 
 #define vrna_log_warning(...) \
     do { \
         vrna_log(VRNA_LOG_LEVEL_WARNING, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0);
+    } while (0)
 
 #define vrna_log_error(...) \
     do { \
         vrna_log(VRNA_LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0);
+    } while (0)
 
 #define vrna_log_critical(...) \
     do { \
         vrna_log(VRNA_LOG_LEVEL_CRITICAL, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0);
+    } while (0)
 
 
 void
