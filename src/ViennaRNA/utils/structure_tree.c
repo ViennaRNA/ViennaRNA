@@ -18,6 +18,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/structures.h"

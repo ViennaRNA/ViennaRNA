@@ -43,6 +43,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/plotting/naview/naview.h"
 
 typedef int LOGICAL;

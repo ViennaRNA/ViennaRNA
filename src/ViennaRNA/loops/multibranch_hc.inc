@@ -3,6 +3,9 @@
  *  partition function version of multibranch loop evaluation
  */
 
+#include "ViennaRNA/utils/log.h"
+
+
 struct hc_mb_def_dat {
   unsigned char             *mx;
   unsigned char             **mx_window;

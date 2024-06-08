@@ -3,6 +3,8 @@
  *  partition function version of exterior loop evaluation
  */
 
+#include "ViennaRNA/utils/log.h"
+
 struct hc_ext_def_dat {
   unsigned int              n;
   unsigned char             *mx;

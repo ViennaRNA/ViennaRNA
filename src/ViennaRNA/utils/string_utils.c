@@ -20,6 +20,7 @@
 #include <stdarg.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/utils/strings.h"
 
 
