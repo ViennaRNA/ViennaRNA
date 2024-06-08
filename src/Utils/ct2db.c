@@ -10,6 +10,7 @@
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/io/file_formats.h"
@@ -105,14 +106,13 @@ main(int  argc,
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
         if (!input_stream)
-          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
-                             input_files[i]);
+          vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
+                         input_files[i]);
 
         if (ct2db_params.verbose) {
-          vrna_message_info(stderr,
-                            "Processing %d. input file \"%s\"",
-                            i + 1,
-                            input_files[i]);
+          vrna_log_info("Processing %d. input file \"%s\"",
+                        i + 1,
+                        input_files[i]);
         }
 
         if (process_input(input_stream, (const char *)input_files[i], &ct2db_params) == 0)
@@ -168,10 +168,9 @@ process_input(FILE        *fp,
               bp++;
           }
 
-          vrna_message_info(stderr,
-                            "Removed %u of %u base pairs to make structure pseudo-knot free",
-                            bp_pk - bp,
-                            bp_pk);
+          vrna_log_info("Removed %u of %u base pairs to make structure pseudo-knot free",
+                        bp_pk - bp,
+                        bp_pk);
         }
 
         free(pt_pk);
