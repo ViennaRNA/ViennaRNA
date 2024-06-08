@@ -29,6 +29,7 @@
 #include "ViennaRNA/RNAstruct.h"
 #endif
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 
@@ -112,7 +113,7 @@ adaptive_walk(char        *start,
 
   len = strlen(start);
   if (strlen(target) != len)
-    vrna_message_error("%s\n%s\nadaptive_walk: start and target have unequal length", start,
+    vrna_log_error("%s\n%s\nadaptive_walk: start and target have unequal length", start,
                        target);
 
   string        = (char *)vrna_alloc(sizeof(char) * (len + 1));
@@ -348,7 +349,7 @@ make_ptable(const char  *structure,
       case ')':
         j = stack[--hx];
         if (hx < 0)
-          vrna_message_error("%s\nunbalanced brackets in make_ptable", structure);
+          vrna_log_error("%s\nunbalanced brackets in make_ptable", structure);
 
         table[i]  = j;
         table[j]  = i;
@@ -356,7 +357,7 @@ make_ptable(const char  *structure,
     }
   }
   if (hx != 0)
-    vrna_message_error("%s\nunbalanced brackets in make_ptable", structure);
+    vrna_log_error("%s\nunbalanced brackets in make_ptable", structure);
 
   free(stack);
 }
@@ -390,7 +391,7 @@ inverse_fold(char *start,
 
   len = strlen(structure);
   if (strlen(start) != len)
-    vrna_message_error("%s\n%s\ninverse_fold: start and structure have unequal length",
+    vrna_log_error("%s\n%s\ninverse_fold: start and structure have unequal length",
                        start,
                        structure);
 
@@ -575,7 +576,7 @@ make_pairset(void)
 
   npairs /= 2;
   if (npairs == 0)
-    vrna_message_error("No pairs in this alphabet!");
+    vrna_log_error("No pairs in this alphabet!");
 }
 
 
@@ -593,7 +594,7 @@ mfe_cost(const char *string,
   double  energy, distance;
 
   if (strlen(string) != strlen(target))
-    vrna_message_error("%s\n%s\nunequal length in mfe_cost", string, target);
+    vrna_log_error("%s\n%s\nunequal length in mfe_cost", string, target);
 
   energy = fold(string, structure);
 #if TDIST
@@ -630,7 +631,7 @@ pf_cost(const char  *string,
   e = energy_of_structure(string, target, 0);
   return (double)(e - f - final_cost);
 #else
-  vrna_message_error("this version not linked with pf_fold");
+  vrna_log_error("this version not linked with pf_fold");
   return 0;
 #endif
 }
@@ -669,7 +670,7 @@ aux_struct(const char *structure)
         o--;
         break;
       default:
-        vrna_message_error("Junk in structure at aux_structure\n");
+        vrna_log_error("Junk in structure at aux_structure\n");
     }
     i++;
   }

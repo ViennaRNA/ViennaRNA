@@ -14,6 +14,7 @@
 #include <math.h>
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/alphabet.h"
@@ -347,7 +348,7 @@ prune_sort(vrna_ep_t    *p,
   pp    = vrna_alloc(sizeof(vrna_ep_t) * (n + 1));
   for (pc = p; pc->i > 0; pc++) {
     if (pc->i > n)
-      vrna_message_error("mismatch between vrna_ep_t and structure in MEA()");
+      vrna_log_error("mismatch between vrna_ep_t and structure in MEA()");
 
     nt  = 0;
     pug = 0.;
@@ -485,7 +486,7 @@ mea_backtrack(const struct MEAdat *bdat,
     }
   }
   if (fail && j > i)
-    vrna_message_error("backtrack failed for MEA()");
+    vrna_log_error("backtrack failed for MEA()");
 }
 
 

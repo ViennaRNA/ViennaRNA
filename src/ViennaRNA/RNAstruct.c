@@ -13,6 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/RNAstruct.h"
 
 #define PRIVATE  static
@@ -65,7 +66,7 @@ aux_struct(const char *structure)
         o--;
         break;
       default:
-        vrna_message_error("Junk in structure at aux_structure\n");
+        vrna_log_error("Junk in structure at aux_structure\n");
     }
     i++;
   }

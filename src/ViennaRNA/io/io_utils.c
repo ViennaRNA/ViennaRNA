@@ -22,6 +22,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 
 #define PRIVATE  static
@@ -143,12 +144,12 @@ vrna_mkdir_p(const char *path)
       if (errno != ENOENT || (mkdir(ptr, 0777) &&
                               errno != EEXIST)) {
 #endif
-        vrna_message_warning("Can't create directory %s", ptr);
+        vrna_log_warning("Can't create directory %s", ptr);
         free(ptr);
         return -1;
       }
     } else if (!S_ISDIR(sb.st_mode)) {
-      vrna_message_warning("File exists but is not a directory %s: %s", ptr, strerror(ENOTDIR));
+      vrna_log_warning("File exists but is not a directory %s: %s", ptr, strerror(ENOTDIR));
       free(ptr);
       return -1;
     }

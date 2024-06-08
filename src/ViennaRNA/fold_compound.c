@@ -26,6 +26,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
@@ -202,13 +203,13 @@ vrna_fold_compound(const char       *sequence,
   /* sanity check */
   length = strlen(sequence);
   if (length == 0) {
-    vrna_message_warning("vrna_fold_compound@data_structures.c: "
+    vrna_log_warning("vrna_fold_compound@data_structures.c: "
                          "sequence length must be greater 0");
     return NULL;
   }
 
   if (length > vrna_sequence_length_max(options)) {
-    vrna_message_warning("vrna_fold_compound@data_structures.c: "
+    vrna_log_warning("vrna_fold_compound@data_structures.c: "
                          "sequence length of %d exceeds addressable range",
                          length);
     return NULL;
@@ -306,17 +307,17 @@ vrna_fold_compound_comparative2(const char                **sequences,
   length = strlen(sequences[0]);
   /* sanity check */
   if (length == 0) {
-    vrna_message_warning("vrna_fold_compound_comparative: "
+    vrna_log_warning("vrna_fold_compound_comparative: "
                          "sequence length must be greater 0");
   } else if (length > vrna_sequence_length_max(options)) {
-    vrna_message_warning("vrna_fold_compound_comparative: "
+    vrna_log_warning("vrna_fold_compound_comparative: "
                          "sequence length of %d exceeds addressable range",
                          length);
   }
 
   for (s = 0; s < n_seq; s++)
     if (strlen(sequences[s]) != length) {
-      vrna_message_warning("vrna_fold_compound_comparative: "
+      vrna_log_warning("vrna_fold_compound_comparative: "
                            "uneqal sequence lengths in alignment");
       return NULL;
     }
@@ -411,11 +412,11 @@ vrna_fold_compound_TwoD(const char    *sequence,
   /* sanity check */
   length = strlen(sequence);
   if (length == 0) {
-    vrna_message_warning("vrna_fold_compound_TwoD: "
+    vrna_log_warning("vrna_fold_compound_TwoD: "
                          "sequence length must be greater 0");
     return NULL;
   } else if (length > vrna_sequence_length_max(options)) {
-    vrna_message_warning("vrna_fold_compound_TwoD: "
+    vrna_log_warning("vrna_fold_compound_TwoD: "
                          "sequence length of %d exceeds addressable range",
                          length);
     return NULL;
@@ -423,14 +424,14 @@ vrna_fold_compound_TwoD(const char    *sequence,
 
   l = strlen(s1);
   if (l != length) {
-    vrna_message_warning("vrna_fold_compound_TwoD: "
+    vrna_log_warning("vrna_fold_compound_TwoD: "
                          "sequence and s1 differ in length");
     return NULL;
   }
 
   l = strlen(s2);
   if (l != length) {
-    vrna_message_warning("vrna_fold_compound_TwoD: "
+    vrna_log_warning("vrna_fold_compound_TwoD: "
                          "sequence and s2 differ in length");
     return NULL;
   }
@@ -514,7 +515,7 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
 
   /* check maximum sequence length restrictions */
   if (fc->length > vrna_sequence_length_max(options)) {
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_fold_compound_prepare@data_structures.c: sequence length of %d exceeds addressable range",
       fc->length);
     return 0;

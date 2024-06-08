@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/datastructures/string.h"
 #include "ViennaRNA/datastructures/array.h"
@@ -444,7 +445,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
 
       if (msite > fc->length) {
         if (!(options & VRNA_SC_MOD_SILENT))
-          vrna_message_warning("modification site %u after sequence length (%u)",
+          vrna_log_warning("modification site %u after sequence length (%u)",
                                msite,
                                fc->length);
         continue;
@@ -460,7 +461,7 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
 
       if (!pass) {
         if (!(options & VRNA_SC_MOD_SILENT))
-          vrna_message_warning(
+          vrna_log_warning(
             "modification site %u lists wrong unmodified base %c (should be %c)",
             msite,
             bases[fc->sequence_encoding[msite]],

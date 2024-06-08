@@ -15,6 +15,7 @@
 #include "ViennaRNA/edit_cost.h"
 #include "ViennaRNA/dist_vars.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 
 #define PRIVATE  static
 #define PUBLIC
@@ -136,7 +137,7 @@ tree_edit_distance(Tree *T1,
 
   if (edit_backtrack) {
     if ((n1 > MNODES) || (n2 > MNODES))
-      vrna_message_error("tree too large for alignment");
+      vrna_log_error("tree too large for alignment");
 
     alignment[0]  = (int *)vrna_alloc((n1 + 1) * sizeof(int));
     alignment[1]  = (int *)vrna_alloc((n2 + 1) * sizeof(int));
@@ -370,7 +371,7 @@ make_postorder_list(char *struc)
 
   n_nodes = number_of_nodes(struc);
   if (n_nodes > MNODES)
-    vrna_message_error("structure too long in make_postorder_list");
+    vrna_log_error("structure too long in make_postorder_list");
 
   pl          = (Postorder_list *)vrna_alloc(sizeof(Postorder_list) * (n_nodes + 1));
   pl[0].sons  = n_nodes;
@@ -466,7 +467,7 @@ decode(char *id)
     n++;
   }
 
-  vrna_message_error("Syntax error: node identifier \"%s\" not found "
+  vrna_log_error("Syntax error: node identifier \"%s\" not found "
                      "in coding string \"%s\"\n"
                      "Exiting...",
                      id, coding);
@@ -793,7 +794,7 @@ sprint_aligned_trees(void)
   }
   a1[l] = a2[l] = '\0';
   if (l > 8 * MNODES)
-    vrna_message_error("structure too long in sprint_aligned_trees");
+    vrna_log_error("structure too long in sprint_aligned_trees");
 
   if (aligned_line[0] != NULL)
     free(aligned_line[0]);

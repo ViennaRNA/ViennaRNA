@@ -11,6 +11,7 @@
 #include <svm.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/utils/svm.h"
@@ -64,7 +65,7 @@ get_z(char    *sequence,
     sd_free_energy  = sd_regression(AUGC[0], AUGC[1], AUGC[2], AUGC[3], AUGC[4], sd_model);
     my_z            = difference / sd_free_energy;
   } else {
-    vrna_message_warning("sequence out of bounds");
+    vrna_log_warning("sequence out of bounds");
 #if 0
     my_z = shuffle_score(sequence, energy);
 #endif
@@ -294,7 +295,7 @@ svm_load_model_string(char *modelString)
         }
       }
       if (svm_type_table[i] == NULL) {
-        vrna_message_warning("unknown svm type.");
+        vrna_log_warning("unknown svm type.");
         free(model->rho);
         free(model->label);
         free(model->nSV);
@@ -312,7 +313,7 @@ svm_load_model_string(char *modelString)
         }
       }
       if (kernel_type_table[i] == NULL) {
-        vrna_message_warning("unknown kernel type.");
+        vrna_log_warning("unknown kernel type.");
         free(model->rho);
         free(model->label);
         free(model->nSV);

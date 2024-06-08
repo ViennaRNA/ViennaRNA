@@ -28,6 +28,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/loops/all.h"
@@ -168,11 +169,11 @@ PUBLIC vrna_ep_t *
 stackProb(double cutoff)
 {
   if (!(backward_compat_compound && backward_compat)) {
-    vrna_message_warning("stackProb: "
+    vrna_log_warning("stackProb: "
                          "run pf_fold() first!");
     return NULL;
   } else if (!backward_compat_compound->exp_matrices->probs) {
-    vrna_message_warning("stackProb: "
+    vrna_log_warning("stackProb: "
                          "probs == NULL!");
     return NULL;
   }
@@ -186,7 +187,7 @@ centroid(int    length,
          double *dist)
 {
   if (pr == NULL) {
-    vrna_message_warning("centroid: "
+    vrna_log_warning("centroid: "
                          "pr == NULL. You need to call pf_fold() before centroid()");
     return NULL;
   }
@@ -207,7 +208,7 @@ mean_bp_dist(int length)
   double  d = 0;
 
   if (pr == NULL) {
-    vrna_message_warning("mean_bp_dist: "
+    vrna_log_warning("mean_bp_dist: "
                          "pr == NULL. You need to call pf_fold() before mean_bp_dist()");
     return d;
   }
@@ -240,7 +241,7 @@ get_subseq_F(int  i,
     }
   }
 
-  vrna_message_warning("get_subseq_F: "
+  vrna_log_warning("get_subseq_F: "
                        "call pf_fold() to fill q[] array before calling get_subseq_F()");
 
   return 0.; /* we will never get to this point */
@@ -579,7 +580,7 @@ mean_bp_distance(int length)
       if (backward_compat_compound->exp_matrices->probs)
         return vrna_mean_bp_distance(backward_compat_compound);
 
-  vrna_message_warning("mean_bp_distance: "
+  vrna_log_warning("mean_bp_distance: "
                        "you need to call vrna_pf_fold first");
 
   return 0.; /* we will never get to this point */
@@ -594,7 +595,7 @@ mean_bp_distance_pr(int         length,
   int     *index  = vrna_idx_row_wise((unsigned int)length);
 
   if (p == NULL) {
-    vrna_message_warning("mean_bp_distance_pr: "
+    vrna_log_warning("mean_bp_distance_pr: "
                          "p == NULL. You need to supply a valid probability matrix for mean_bp_distance_pr()");
     return d;
   }

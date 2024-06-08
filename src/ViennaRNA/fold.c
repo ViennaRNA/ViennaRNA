@@ -23,6 +23,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
@@ -397,7 +398,7 @@ backtrack_fold_from_pair(char *sequence,
     length  = strlen(sequence);
     bp      = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (1 + length / 2));
   } else {
-    vrna_message_warning("backtrack_fold_from_pair: "
+    vrna_log_warning("backtrack_fold_from_pair: "
                          "no sequence given");
     return NULL;
   }

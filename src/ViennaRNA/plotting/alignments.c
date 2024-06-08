@@ -18,6 +18,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/plotting/alignments.h"
 
@@ -139,7 +140,7 @@ vrna_file_PS_aln_opt(const char      *filename,
   outfile = fopen(filename, "w");
 
   if (outfile == NULL) {
-    vrna_message_warning("can't open file %s - not doing alignment plot\n", filename);
+    vrna_log_warning("can't open file %s - not doing alignment plot\n", filename);
     return 0;
   }
 

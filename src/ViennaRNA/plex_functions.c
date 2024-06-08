@@ -23,6 +23,7 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/alphabet.h"
@@ -764,7 +765,7 @@ backtrack_XS(vrna_fold_compound_t *fc,
     type = md->pair[S[k]][S[l]];
 
     if (!type)
-      vrna_message_error("backtrack failed in fold duplex bli");
+      vrna_log_error("backtrack failed in fold duplex bli");
 
     for (p = k + 1; p <= i; p++) {
       for (q = l - 1; q >= j; q--) {
@@ -803,7 +804,7 @@ backtrack_XS(vrna_fold_compound_t *fc,
                            P);
 
       if (E != 0)
-        vrna_message_error("backtrack failed in fold duplex bal");
+        vrna_log_error("backtrack failed in fold duplex bal");
       else
         break;
     }

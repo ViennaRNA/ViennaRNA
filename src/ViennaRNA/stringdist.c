@@ -16,6 +16,7 @@
 #include "ViennaRNA/edit_cost.h"
 #include "ViennaRNA/dist_vars.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 
 PUBLIC float
 string_edit_distance(swString *T1,
@@ -365,7 +366,7 @@ DeCode(char   *string,
       sscanf(label, "%d", &m);
       *w = (float)m;
       if (m == -1) {
-        vrna_message_warning("Non-integer weight in DeCode ignored");
+        vrna_log_warning("Non-integer weight in DeCode ignored");
         *w = 1.0;
       }
     } else {
@@ -405,7 +406,7 @@ decode(char *id)
     n++;
   }
 
-  vrna_message_error("Syntax error: node identifier \"%s\" not found "
+  vrna_log_error("Syntax error: node identifier \"%s\" not found "
                      "in coding string \"%s\"\n"
                      "Exiting",
                      id, coding);

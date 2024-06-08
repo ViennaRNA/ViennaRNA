@@ -15,6 +15,7 @@
 #include <string.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/gquad.h"
 
 #include "ViennaRNA/plotting/layouts.h"
@@ -192,7 +193,7 @@ vrna_plot_coords_pt(const short *pt,
         return vrna_plot_coords_naview_pt(pt, x, y);
 #else
       case VRNA_PLOT_TYPE_NAVIEW:
-        vrna_message_warning("Naview layout algorithm not available in this version of ViennaRNA Package");
+        vrna_log_warning("Naview layout algorithm not available in this version of ViennaRNA Package");
         break;
 
       default:
@@ -332,7 +333,7 @@ rna_layout(const char   *structure,
 #else
     case VRNA_PLOT_TYPE_NAVIEW:
       i = 0;
-      vrna_message_warning("Naview layout algorithm not available in this version of ViennaRNA Package");
+      vrna_log_warning("Naview layout algorithm not available in this version of ViennaRNA Package");
       break;
 
     default:
@@ -348,7 +349,7 @@ rna_layout(const char   *structure,
   }
 
   if (i != n) {
-    vrna_message_warning("strange things happening in vrna_plot_layout*()...");
+    vrna_log_warning("strange things happening in vrna_plot_layout*()...");
     layout->bbox[0] = layout->bbox[1] = layout->bbox[2] = layout->bbox[3] = 0;
   } else {
     /* adjust bounding box coordinates */

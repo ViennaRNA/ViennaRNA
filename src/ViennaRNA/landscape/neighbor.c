@@ -6,6 +6,7 @@
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/landscape/move.h"
@@ -681,7 +682,7 @@ pairs_from_interval_into_shifts_to_interval(const vrna_fold_compound_t  *vc,
     }
     /* stop if other bases pairs would cross the loop at i */
     if ((structure[j] < i_start && structure[j] > 0) || (structure[j] > i_end)) {
-      vrna_message_warning(
+      vrna_log_warning(
         "there was a crossing shift in a previously freed interval! This is wrong if non-crossing structures are considered.\n");
       break;
     }

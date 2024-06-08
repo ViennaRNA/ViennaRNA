@@ -18,6 +18,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/params/basic.h"
@@ -75,17 +76,16 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
   int     i, length = vc->length;
 
   if (!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) {
-    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
+    vrna_log_warning("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
 
   if (verbose) {
     if (method != 'W') {
       if (method == 'Z') {
-        vrna_message_info(stderr, "Using SHAPE method '%c' with parameter p1=%f", method, p1);
+        vrna_log_info("Using SHAPE method '%c' with parameter p1=%f", method, p1);
       } else {
-        vrna_message_info(stderr,
-                          "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+        vrna_log_info("Using SHAPE method '%c' with parameters p1=%f and p2=%f",
                           method,
                           p1,
                           p2);
@@ -134,19 +134,18 @@ vrna_constraints_add_SHAPE_ali(vrna_fold_compound_t *vc,
   char  method;
 
   if (!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) {
-    vrna_message_warning("Method for SHAPE reactivity data conversion not recognized!");
+    vrna_log_warning("Method for SHAPE reactivity data conversion not recognized!");
     return;
   }
 
   if (method != 'D') {
-    vrna_message_warning("SHAPE method %c not implemented for comparative prediction!",
+    vrna_log_warning("SHAPE method %c not implemented for comparative prediction!",
                          method);
-    vrna_message_warning("Ignoring SHAPE reactivity data!");
+    vrna_log_warning("Ignoring SHAPE reactivity data!");
     return;
   } else {
     if (verbose) {
-      vrna_message_info(stderr,
-                        "Using SHAPE method '%c' with parameters p1=%f and p2=%f",
+      vrna_log_info("Using SHAPE method '%c' with parameters p1=%f and p2=%f",
                         method,
                         p1,
                         p2);
@@ -334,7 +333,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
         return 1; /* success */
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        vrna_message_warning("vrna_sc_add_SHAPE_deigan() not implemented for comparative prediction! "
+        vrna_log_warning("vrna_sc_add_SHAPE_deigan() not implemented for comparative prediction! "
                              "Use vrna_sc_add_SHAPE_deigan_ali() instead!");
         break;
     }
@@ -388,7 +387,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
       int ss = shape_file_association[s]; /* actual sequence number in alignment */
 
       if (ss >= n_seq) {
-        vrna_message_warning("Failed to associate SHAPE file \"%s\" with sequence %d in alignment! "
+        vrna_log_warning("Failed to associate SHAPE file \"%s\" with sequence %d in alignment! "
                              "Alignment has only %d sequences!",
                              shape_files[s],
                              ss,
@@ -398,7 +397,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
 
       /* read the shape file */
       if (!(fp = fopen(shape_files[s], "r"))) {
-        vrna_message_warning("Failed to open SHAPE data file \"%d\"! "
+        vrna_log_warning("Failed to open SHAPE data file \"%d\"! "
                              "No shape data will be used for sequence %d.",
                              s,
                              ss + 1);
@@ -414,9 +413,9 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
           r = sscanf(line, "%d %c %f", &position, &nucleotide, &reactivity);
           if (r) {
             if (position <= 0) {
-              vrna_message_warning("SHAPE data for position %d outside alignment!", position);
+              vrna_log_warning("SHAPE data for position %d outside alignment!", position);
             } else if (position > vc->length) {
-              vrna_message_warning("SHAPE data for position %d outside alignment!", position);
+              vrna_log_warning("SHAPE data for position %d outside alignment!", position);
             } else {
               switch (r) {
                 case 1:
@@ -442,7 +441,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
         /* double check information by comparing the sequence read from */
         char *tmp_seq = vrna_seq_ungapped(vc->sequences[shape_file_association[s]]);
         if (strcmp(tmp_seq, sequence))
-          vrna_message_warning("Input sequence %d differs from sequence provided via SHAPE file!",
+          vrna_log_warning("Input sequence %d differs from sequence provided via SHAPE file!",
                                shape_file_association[s] + 1);
 
         free(tmp_seq);
@@ -545,7 +544,7 @@ sc_parse_parameters(const char  *string,
     r   = sscanf(string, fmt, v1);
 
     if (!r)
-      vrna_message_warning(warning);
+      vrna_log_warning(warning);
 
     free(fmt);
 
@@ -566,7 +565,7 @@ sc_parse_parameters(const char  *string,
       r   = sscanf(string, fmt, v2);
 
       if (!r)
-        vrna_message_warning(warning);
+        vrna_log_warning(warning);
     }
   }
 

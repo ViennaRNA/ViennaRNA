@@ -20,6 +20,7 @@
 
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/io/utils.h"
@@ -205,7 +206,7 @@ vrna_file_commands_read(const char    *filename,
   line          = NULL;
 
   if (!(fp = fopen(filename, "r"))) {
-    vrna_message_warning("Command File could not be opened!");
+    vrna_log_warning("Command File could not be opened!");
     return NULL;
   }
 
@@ -271,7 +272,7 @@ vrna_file_commands_read(const char    *filename,
         }
       } else if ((!(options & VRNA_CMD_PARSE_SILENT)) && (!(cmd.type == VRNA_CMD_ERROR))) {
         /* errors have been reported earlier */
-        vrna_message_warning("Ignoring forbidden command in file \"%s\":\nline %d: %s",
+        vrna_log_warning("Ignoring forbidden command in file \"%s\":\nline %d: %s",
                              filename,
                              line_number,
                              (const char *)line);
@@ -504,7 +505,7 @@ parse_command(const char    *line,
       cmd.type = known_commands[i].type;
     } else {
       if (!(options & VRNA_CMD_PARSE_SILENT)) {
-        vrna_message_warning("Ignoring invalid command in file \"%s\":\nline %d: %s",
+        vrna_log_warning("Ignoring invalid command in file \"%s\":\nline %d: %s",
                              filename,
                              line_number,
                              line);
@@ -514,7 +515,7 @@ parse_command(const char    *line,
     }
   } else {
     if (!(options & VRNA_CMD_PARSE_SILENT)) {
-      vrna_message_warning("Ignoring unknown command in file \"%s\":\nline %d: %s",
+      vrna_log_warning("Ignoring unknown command in file \"%s\":\nline %d: %s",
                            filename,
                            line_number,
                            line);

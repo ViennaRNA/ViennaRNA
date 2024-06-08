@@ -20,6 +20,7 @@
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/gquad.h"
 
 #ifndef INLINE
@@ -1298,7 +1299,7 @@ parse_gquad(const char  *struc,
       if (il == 0)
         *L = len;
       else if (len != *L)
-        vrna_message_error("unequal stack lengths in gquad");
+        vrna_log_error("unequal stack lengths in gquad");
 
       if (il == 3)
         break;
@@ -1306,7 +1307,7 @@ parse_gquad(const char  *struc,
       while (struc[++i] == '.'); /* linker */
       l[il] = i - end;
       if (struc[i] != '+')
-        vrna_message_error("illegal character in gquad linker region");
+        vrna_log_error("illegal character in gquad linker region");
     }
   } else {
     return 0;

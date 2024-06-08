@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/search/BoyerMoore.h"
 #include "ViennaRNA/combinatorics.h"
 
@@ -403,7 +404,7 @@ vrna_rotational_symmetry_db_pos(vrna_fold_compound_t  *fc,
   if ((fc) && (structure)) {
     n = strlen(structure);
     if (fc->length != n) {
-      vrna_message_warning("vrna_rotational_symmetry_db*: "
+      vrna_log_warning("vrna_rotational_symmetry_db*: "
                            "Sequence and structure have unequal lengths (%d vs. %d)",
                            fc->length,
                            n);

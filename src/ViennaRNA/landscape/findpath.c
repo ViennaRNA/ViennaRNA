@@ -10,6 +10,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/datastructures/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/fold.h"
@@ -591,7 +592,7 @@ main(int  argc,
 static void
 usage(void)
 {
-  vrna_message_error("usage: findpath.c  [-m depth] [-d[0|1|2]] [-v]");
+  vrna_log_error("usage: findpath.c  [-m depth] [-d[0|1|2]] [-v]");
 }
 
 

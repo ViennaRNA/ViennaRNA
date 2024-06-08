@@ -23,6 +23,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/io/file_formats.h"
@@ -132,7 +133,7 @@ vrna_file_helixlist(const char  *seq,
   FILE      *out;
 
   if (strlen(seq) != strlen(db)) {
-    vrna_message_warning("vrna_file_helixlist: "
+    vrna_log_warning("vrna_file_helixlist: "
                          "sequence and structure have unequal length (%d vs. %d)!",
                          strlen(seq),
                          strlen(db));
@@ -163,7 +164,7 @@ vrna_file_connect(const char  *seq,
   FILE  *out = (file) ? file : stdout;
 
   if (strlen(seq) != strlen(db)) {
-    vrna_message_warning("vrna_file_connect: "
+    vrna_log_warning("vrna_file_connect: "
                          "sequence and structure have unequal length (%d vs. %d)!",
                          strlen(seq),
                          strlen(db));
@@ -232,7 +233,7 @@ vrna_file_bpseq(const char  *seq,
   FILE  *out = (file) ? file : stdout;
 
   if (strlen(seq) != strlen(db)) {
-    vrna_message_warning("vrna_file_bpseq: "
+    vrna_log_warning("vrna_file_bpseq: "
                          "sequence and structure have unequal length (%d vs. %d)!",
                          strlen(seq),
                          strlen(db));
@@ -532,7 +533,7 @@ vrna_file_fasta_read_record(char          **header,
     *sequence     = input_string;
     input_string  = NULL;
   } else {
-    vrna_message_warning("vrna_file_fasta_read_record: "
+    vrna_log_warning("vrna_file_fasta_read_record: "
                          "sequence input missing!");
     return VRNA_INPUT_ERROR;
   }
@@ -640,7 +641,7 @@ vrna_file_SHAPE_read(const char *file_name,
     return 0;
 
   if (!(fp = fopen(file_name, "r"))) {
-    vrna_message_warning("SHAPE data file could not be opened");
+    vrna_log_warning("SHAPE data file could not be opened");
     return 0;
   }
 
@@ -665,7 +666,7 @@ vrna_file_SHAPE_read(const char *file_name,
     }
 
     if (position <= 0 || position > length) {
-      vrna_message_warning("Provided SHAPE data outside of sequence scope");
+      vrna_log_warning("Provided SHAPE data outside of sequence scope");
       fclose(fp);
       free(line);
       return 0;
@@ -701,7 +702,7 @@ vrna_file_SHAPE_read(const char *file_name,
   fclose(fp);
 
   if (!count) {
-    vrna_message_warning("SHAPE data file is empty");
+    vrna_log_warning("SHAPE data file is empty");
     return 0;
   }
 
@@ -921,7 +922,7 @@ vrna_file_connect_read_record(FILE          *fp,
 
   if (!fp) {
     if (options & VRNA_INPUT_VERBOSE)
-      vrna_message_warning("vrna_file_connect_read_record@file_formats.c: "
+      vrna_log_warning("vrna_file_connect_read_record@file_formats.c: "
                            "Can't read from file pointer while parsing connectivity table formatted sequence input!");
     return -1;
   }
@@ -1028,7 +1029,7 @@ vrna_file_connect_read_record(FILE          *fp,
       if (ct_entry) {
         if ((finalize_ct_data(ct_entry) != 0) &&
             (options & VRNA_INPUT_VERBOSE))
-          vrna_message_warning("vrna_file_connect_read_record@file_formats.c: "
+          vrna_log_warning("vrna_file_connect_read_record@file_formats.c: "
                                "Malformed input file! Sequence length stated: %u, actual length: %u\n",
                                ct_entry->length,
                                ct_entry->effective_length);
@@ -1056,7 +1057,7 @@ vrna_file_connect_read_record(FILE          *fp,
       if (!process_ct_nt_line(ct_entry, tok1, tok2, tok3, tok5, tok6))
         printf("Something went wrong with storing nucleotide information\n");
     } else if (options & VRNA_INPUT_VERBOSE) {
-      vrna_message_warning("vrna_file_connect_read_record@file_formats.c: "
+      vrna_log_warning("vrna_file_connect_read_record@file_formats.c: "
                            "Unusal line in input:\n%s\n", line);
     }
 
@@ -1070,7 +1071,7 @@ vrna_file_connect_read_record(FILE          *fp,
   if (ct_entry) {
     if ((finalize_ct_data(ct_entry) != 0) &&
         (options & VRNA_INPUT_VERBOSE))
-      vrna_message_warning("vrna_file_connect_read_record@file_formats.c: "
+      vrna_log_warning("vrna_file_connect_read_record@file_formats.c: "
                            "Malformed input file! Sequence length stated: %u, actual length: %u\n",
                            ct_entry->length,
                            ct_entry->effective_length);

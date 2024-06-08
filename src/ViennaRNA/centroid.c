@@ -15,6 +15,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/centroid.h"
@@ -58,7 +59,7 @@ vrna_centroid_from_plist(int        length,
   char  *centroid;
 
   if (pl == NULL) {
-    vrna_message_warning("vrna_centroid_from_plist: "
+    vrna_log_warning("vrna_centroid_from_plist: "
                          "pl == NULL!");
     return NULL;
   }
@@ -98,7 +99,7 @@ vrna_centroid_from_probs(int        length,
   int         *index = vrna_idx_row_wise(length);
 
   if (probs == NULL) {
-    vrna_message_warning("vrna_centroid_from_probs: "
+    vrna_log_warning("vrna_centroid_from_probs: "
                          "probs == NULL!");
     return NULL;
   }
@@ -144,11 +145,11 @@ vrna_centroid(vrna_fold_compound_t  *vc,
 
 
   if (!vc) {
-    vrna_message_warning("vrna_centroid: "
+    vrna_log_warning("vrna_centroid: "
                          "run vrna_pf_fold first!");
     return NULL;
   } else if (!vc->exp_matrices->probs) {
-    vrna_message_warning("vrna_centroid: "
+    vrna_log_warning("vrna_centroid: "
                          "probs == NULL!");
     return NULL;
   }

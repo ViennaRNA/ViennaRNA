@@ -17,6 +17,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/loops/all.h"
@@ -93,7 +94,7 @@ vrna_pf(vrna_fold_compound_t  *fc,
   if (fc) {
     /* make sure, everything is set up properly to start partition function computations */
     if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_PF)) {
-      vrna_message_warning("vrna_pf@part_func.c: Failed to prepare vrna_fold_compound");
+      vrna_log_warning("vrna_pf@part_func.c: Failed to prepare vrna_fold_compound");
       return dG;
     }
 
@@ -165,7 +166,7 @@ vrna_pf(vrna_fold_compound_t  *fc,
 
     /* ensemble free energy in Kcal/mol              */
     if (Q <= FLT_MIN)
-      vrna_message_warning("pf_scale too large");
+      vrna_log_warning("pf_scale too large");
 
     if (fc->strands > 1) {
       /* check for rotational symmetry correction */
@@ -397,11 +398,11 @@ fill_arrays(vrna_fold_compound_t *fc)
       if (q[ij] > Qmax) {
         Qmax = q[ij];
         if (Qmax > max_real / 10.)
-          vrna_message_warning("Q close to overflow: %d %d %g", i, j, q[ij]);
+          vrna_log_warning("Q close to overflow: %d %d %g", i, j, q[ij]);
       }
 
       if (q[ij] >= max_real) {
-        vrna_message_warning("overflow while computing partition function for segment q[%d,%d]\n"
+        vrna_log_warning("overflow while computing partition function for segment q[%d,%d]\n"
                              "use larger pf_scale", i, j);
 
         vrna_exp_E_ml_fast_free(aux_mx_ml);

@@ -29,6 +29,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/profiledist.h"
 #include "ViennaRNA/ProfileAln.h"
 
@@ -199,7 +200,7 @@ profile_aln(const float *T1,
             i--;
             j--;
           } else {
-            vrna_message_error("backtrack of alignment failed");
+            vrna_log_error("backtrack of alignment failed");
           }
 
           break;
@@ -323,17 +324,17 @@ set_paln_params(double  gap_open,
   open  = (gap_open > 0) ? -gap_open : gap_open;
   ext   = (gap_ext > 0) ? -gap_ext : gap_ext;
   if (open > ext)
-    vrna_message_warning("Gap extension penalty is smaller than "
+    vrna_log_warning("Gap extension penalty is smaller than "
                          "gap open. Do you realy want this?");
 
   seqw = seq_weight;
   if (seqw < 0) {
     seqw = 0;
-    vrna_message_warning("Sequence weight set to 0 (must be in [0..1])");
+    vrna_log_warning("Sequence weight set to 0 (must be in [0..1])");
   } else
   if (seqw > 1) {
     seqw = 1;
-    vrna_message_warning("Sequence weight set to 1 (must be in [0..1])");
+    vrna_log_warning("Sequence weight set to 1 (must be in [0..1])");
   }
 
   free_ends = (freeends) ? 1 : 0;

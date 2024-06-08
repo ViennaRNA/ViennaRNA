@@ -18,6 +18,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/SHAPE.h"
@@ -277,7 +278,7 @@ vrna_sc_update(vrna_fold_compound_t *fc,
     maxdist = (unsigned int)fc->window_size;
 
     if (i > n) {
-      vrna_message_warning("vrna_sc_update(): Position %u out of range!"
+      vrna_log_warning("vrna_sc_update(): Position %u out of range!"
                            " (Sequence length: %u)",
                            i, n);
     } else if (i > 0) {
@@ -401,7 +402,7 @@ vrna_sc_add_bp(vrna_fold_compound_t *fc,
         (i > fc->length) ||
         (j < i) ||
         (j > fc->length)) {
-      vrna_message_warning("vrna_sc_add_bp(): Base pair (%d, %d) out of range!"
+      vrna_log_warning("vrna_sc_add_bp(): Base pair (%d, %d) out of range!"
                            " (Sequence length: %d)",
                            i, j, fc->length);
     } else {
@@ -450,7 +451,7 @@ vrna_sc_add_up(vrna_fold_compound_t *fc,
 {
   if (fc && (fc->type == VRNA_FC_TYPE_SINGLE)) {
     if ((i < 1) || (i > fc->length)) {
-      vrna_message_warning("vrna_sc_add_up(): Nucleotide position %d out of range!"
+      vrna_log_warning("vrna_sc_add_up(): Nucleotide position %d out of range!"
                            " (Sequence length: %d)",
                            i, fc->length);
     } else {
@@ -545,7 +546,7 @@ vrna_sc_add_stack(vrna_fold_compound_t  *fc,
   if ((fc) &&
       (fc->type == VRNA_FC_TYPE_SINGLE)) {
     if ((i < 1) || (i > fc->length)) {
-      vrna_message_warning("vrna_sc_add_stack*(): Nucleotide position %d out of range!"
+      vrna_log_warning("vrna_sc_add_stack*(): Nucleotide position %d out of range!"
                            " (Sequence length: %d)",
                            i, fc->length);
     } else {
@@ -580,7 +581,7 @@ vrna_sc_add_stack_comparative(vrna_fold_compound_t  *fc,
   if ((fc) &&
       (fc->type == VRNA_FC_TYPE_COMPARATIVE)) {
     if ((i < 1) || (i > fc->length)) {
-      vrna_message_warning("vrna_sc_add_stack*(): Nucleotide position %d out of range!"
+      vrna_log_warning("vrna_sc_add_stack*(): Nucleotide position %d out of range!"
                            " (Alignment length: %d)",
                            i, fc->length);
     } else {

@@ -110,7 +110,7 @@ vrna_strdup_vprintf(const char  *format,
 
   /* check for any memory allocation error indicated by r == -1 */
   if (r == -1) {
-    vrna_message_warning("vrna_strdup_printf: memory allocation failure!");
+    vrna_log_warning("vrna_strdup_printf: memory allocation failure!");
     result = NULL;
   }
 
@@ -193,7 +193,7 @@ vrna_strcat_vprintf(char        **dest,
 
   /* check for any memory allocation error indicated by r == -1 */
   if (r == -1) {
-    vrna_message_warning("vrna_strcat_printf: memory allocation failure!");
+    vrna_log_warning("vrna_strcat_printf: memory allocation failure!");
     *dest = NULL;
   }
 
@@ -400,7 +400,7 @@ vrna_cut_point_remove(const char  *string,
         *cp = -1;
 
       if (strchr(pos + 1, '&'))
-        vrna_message_error("more than one cut-point in input");
+        vrna_log_error("more than one cut-point in input");
 
       for (; *pos; pos++)
         *pos = *(pos + 1);               /* splice out the & */

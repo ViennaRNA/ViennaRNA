@@ -14,6 +14,7 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/sequence.h"
 
@@ -284,7 +285,7 @@ vrna_msa_add(vrna_fold_compound_t     *fc,
       }
 
       if (num_names != msa->n_seq) {
-        vrna_message_warning("vrna_msa_add(): "
+        vrna_log_warning("vrna_msa_add(): "
                              "Too few names provided for sequences in MSA input! "
                              "Expected %u but received %u ",
                              msa->n_seq,
@@ -310,7 +311,7 @@ vrna_msa_add(vrna_fold_compound_t     *fc,
       }
 
       if (s != msa->n_seq) {
-        vrna_message_warning("vrna_msa_add(): "
+        vrna_log_warning("vrna_msa_add(): "
                              "Too few orientations provided for sequences in MSA input! "
                              "Expected %u but received %u ",
                              msa->n_seq,
@@ -332,7 +333,7 @@ vrna_msa_add(vrna_fold_compound_t     *fc,
       }
 
       if (s != msa->n_seq) {
-        vrna_message_warning("vrna_msa_add(): "
+        vrna_log_warning("vrna_msa_add(): "
                              "Too few start positions provided for sequences in MSA input! "
                              "Expected %u but received %u ",
                              msa->n_seq,
@@ -354,7 +355,7 @@ vrna_msa_add(vrna_fold_compound_t     *fc,
       }
 
       if (s != msa->n_seq) {
-        vrna_message_warning("vrna_msa_add(): "
+        vrna_log_warning("vrna_msa_add(): "
                              "Too few genome sizes provided for sequences in MSA input! "
                              "Expected %u but received %u ",
                              msa->n_seq,

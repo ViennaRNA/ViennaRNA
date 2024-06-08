@@ -12,6 +12,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
@@ -254,21 +255,21 @@ vrna_exp_E_ext_fast(vrna_fold_compound_t        *fc,
   if (fc) {
     if (j < i) {
       int t = j;
-      vrna_message_warning(
+      vrna_log_warning(
         "vrna_exp_E_ext_fast: i (%d) larger than j (%d)! Swapping coordinates...",
         i,
         j);
       j = i;
       i = t;
     } else if ((j < 1) || (i < 1)) {
-      vrna_message_warning(
+      vrna_log_warning(
         "vrna_exp_E_ext_fast: Indices too small [i = %d, j = %d]! "
         "Refusing to compute anything...",
         i,
         j);
       return 0.;
     } else if (j > fc->length) {
-      vrna_message_warning(
+      vrna_log_warning(
         "vrna_exp_E_ext_fast: Indices exceed sequence length (%d) [i = %d, j = %d]! "
         "Refusing to compute anything...",
         fc->length,

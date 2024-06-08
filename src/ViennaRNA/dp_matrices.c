@@ -24,6 +24,7 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/dp_matrices.h"
 
@@ -1299,7 +1300,7 @@ init_mx_mfe_default(vrna_fold_compound_t  *fc,
   n = fc->length;
 
   if ((int)(n * n) >= (int)INT_MAX) {
-    vrna_message_warning("init_mx_mfe_default(): "
+    vrna_log_warning("init_mx_mfe_default(): "
                          "sequence length %d exceeds addressable range",
                          n);
     return NULL;
@@ -1364,7 +1365,7 @@ init_mx_mfe_window(vrna_fold_compound_t *fc,
   m = fc->window_size;
 
   if ((int)(n * m) >= (int)INT_MAX) {
-    vrna_message_warning("init_mx_mfe_window(): "
+    vrna_log_warning("init_mx_mfe_window(): "
                          "sequence length %d exceeds addressable range",
                          n);
     return NULL;
@@ -1407,7 +1408,7 @@ init_mx_mfe_2Dfold(vrna_fold_compound_t *fc,
   n = fc->length;
 
   if ((int)(n * n) >= (int)INT_MAX) {
-    vrna_message_warning("init_mx_mfe_2Dfold(): "
+    vrna_log_warning("init_mx_mfe_2Dfold(): "
                          "sequence length %d exceeds addressable range",
                          n);
     return NULL;
@@ -1630,7 +1631,7 @@ init_mx_pf_default(vrna_fold_compound_t *fc,
   n = fc->length;
 
   if ((int)(n * n) >= (int)INT_MAX) {
-    vrna_message_warning("init_mx_pf_default(): "
+    vrna_log_warning("init_mx_pf_default(): "
                          "sequence length %d exceeds addressable range",
                          n);
     return NULL;
@@ -1695,7 +1696,7 @@ init_mx_pf_window(vrna_fold_compound_t  *fc,
   m = fc->window_size;
 
   if ((int)(n * m) >= (int)INT_MAX) {
-    vrna_message_warning("init_mx_pf_window(): "
+    vrna_log_warning("init_mx_pf_window(): "
                          "sequence length %d exceeds addressable range",
                          n);
     return NULL;
@@ -1753,7 +1754,7 @@ init_mx_pf_2Dfold(vrna_fold_compound_t  *fc,
   n = fc->length;
 
   if ((int)(n * n) >= (int)INT_MAX) {
-    vrna_message_warning("init_mx_pf_2Dfold(): "
+    vrna_log_warning("init_mx_pf_2Dfold(): "
                          "sequence length %d exceeds addressable range",
                          n);
     return NULL;

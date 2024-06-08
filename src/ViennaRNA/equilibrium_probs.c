@@ -17,6 +17,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/loops/all.h"
@@ -361,7 +362,7 @@ vrna_mean_bp_distance_pr(int        length,
   double  d;
 
   if (!p) {
-    vrna_message_warning("vrna_mean_bp_distance_pr: "
+    vrna_log_warning("vrna_mean_bp_distance_pr: "
                          "p == NULL. "
                          "You need to supply a valid probability matrix");
     return (double)INF / 100.;
@@ -378,11 +379,11 @@ PUBLIC double
 vrna_mean_bp_distance(vrna_fold_compound_t *vc)
 {
   if (!vc) {
-    vrna_message_warning("vrna_mean_bp_distance: run vrna_pf_fold first!");
+    vrna_log_warning("vrna_mean_bp_distance: run vrna_pf_fold first!");
   } else if (!vc->exp_matrices) {
-    vrna_message_warning("vrna_mean_bp_distance: exp_matrices == NULL!");
+    vrna_log_warning("vrna_mean_bp_distance: exp_matrices == NULL!");
   } else if (!vc->exp_matrices->probs) {
-    vrna_message_warning("vrna_mean_bp_distance: probs==NULL!");
+    vrna_log_warning("vrna_mean_bp_distance: probs==NULL!");
   } else {
     return wrap_mean_bp_distance(vc->exp_matrices->probs,
                                  vc->length,
@@ -625,7 +626,7 @@ vrna_pf_dimer_probs(double                  FAB,
 
       lp1->p = (lp1->p - (1 - pAB) * pp) / pAB;
       if (lp1->p < 0.) {
-        vrna_message_warning(
+        vrna_log_warning(
           "vrna_co_pf_probs: numeric instability detected, probability below zero!");
         lp1->p = 0.;
       }
@@ -893,7 +894,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     }
 
     if (ov > 0)
-      vrna_message_warning("%d overflows occurred while backtracking;\n"
+      vrna_log_warning("%d overflows occurred while backtracking;\n"
                            "you might try a smaller pf_scale than %g\n",
                            ov, pf_params->pf_scale);
 
@@ -923,7 +924,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     free(Y3p);
   } /* end if 'check for forward recursion' */
   else {
-    vrna_message_warning("bppm calculations have to be done after calling forward recursion");
+    vrna_log_warning("bppm calculations have to be done after calling forward recursion");
     return 0;
   }
 
@@ -1350,7 +1351,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
     if (probs[kl] > (*Qmax)) {
       (*Qmax) = probs[kl];
       if ((*Qmax) > max_real / 10.)
-        vrna_message_warning("P close to overflow: %d %d %g %g\n",
+        vrna_log_warning("P close to overflow: %d %d %g %g\n",
                              k, l, probs[kl], qb[kl]);
     }
 
@@ -1474,7 +1475,7 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
     if (probs[kl] > (*Qmax)) {
       (*Qmax) = probs[kl];
       if ((*Qmax) > max_real / 10.)
-        vrna_message_warning("P close to overflow: %d %d %g %g\n",
+        vrna_log_warning("P close to overflow: %d %d %g %g\n",
                              k, l, probs[kl], qb[kl]);
     }
 
@@ -1734,7 +1735,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       if (probs[kl] > (*Qmax)) {
         (*Qmax) = probs[kl];
         if ((*Qmax) > max_real / 10.)
-          vrna_message_warning("P close to overflow: %d %d %g %g\n",
+          vrna_log_warning("P close to overflow: %d %d %g %g\n",
                                k, l, probs[kl], qb[kl]);
       }
 
@@ -1974,7 +1975,7 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
       if (probs[kl] > (*Qmax)) {
         (*Qmax) = probs[kl];
         if ((*Qmax) > max_real / 10.)
-          vrna_message_warning("P close to overflow: %d %d %g %g\n",
+          vrna_log_warning("P close to overflow: %d %d %g %g\n",
                                k, l, probs[kl], qb[kl]);
       }
 

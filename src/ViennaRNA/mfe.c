@@ -24,6 +24,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
@@ -211,7 +212,7 @@ vrna_mfe(vrna_fold_compound_t *fc,
     ms_dat  = NULL;
 
     if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_MFE)) {
-      vrna_message_warning("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
+      vrna_log_warning("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
       return mfe;
     }
 
@@ -3206,7 +3207,7 @@ backtrack(vrna_fold_compound_t  *fc,
 
           continue;
         } else {
-          vrna_message_warning("backtracking failed in f5, segment [%d,%d], e = %d\n",
+          vrna_log_warning("backtracking failed in f5, segment [%d,%d], e = %d\n",
                                i,
                                j,
                                fc->matrices->f5[j]);
@@ -3235,7 +3236,7 @@ backtrack(vrna_fold_compound_t  *fc,
 
           continue;
         } else {
-          vrna_message_warning("backtracking failed in fML, segment [%d,%d]\n", i, j);
+          vrna_log_warning("backtracking failed in fML, segment [%d,%d]\n", i, j);
           ret = 0;
           goto backtrack_exit;
         }
@@ -3274,7 +3275,7 @@ backtrack(vrna_fold_compound_t  *fc,
 
           continue;
         } else {
-          vrna_message_warning("backtracking failed in fsm5[%d][%d] (%d:%d)\n",
+          vrna_log_warning("backtracking failed in fsm5[%d][%d] (%d:%d)\n",
                                strand,
                                i,
                                fc->strand_start[strand],
@@ -3309,7 +3310,7 @@ backtrack(vrna_fold_compound_t  *fc,
 
           continue;
         } else {
-          vrna_message_warning("backtracking failed in fsm3[%d][%d] (%d:%d)\n",
+          vrna_log_warning("backtracking failed in fsm3[%d][%d] (%d:%d)\n",
                                strand,
                                j,
                                fc->strand_start[strand],
@@ -3387,7 +3388,7 @@ repeat1:
       bt_stack[s].j   = j;
       bt_stack[s].ml  = comp2;
     } else {
-      vrna_message_warning("backtracking failed in repeat, segment [%d,%d]\n", i, j);
+      vrna_log_warning("backtracking failed in repeat, segment [%d,%d]\n", i, j);
       ret = 0;
       goto backtrack_exit;
     }

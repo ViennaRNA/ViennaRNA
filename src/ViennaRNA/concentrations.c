@@ -19,6 +19,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/concentrations.h"
 
@@ -157,7 +158,7 @@ Newton_Conc(double  KAB,
     cB  += yn;
     i++;
     if (i > 10000) {
-      vrna_message_warning("Newton did not converge after %d steps!!", i);
+      vrna_log_warning("Newton did not converge after %d steps!!", i);
       break;
     }
   } while (EPS > TOL);

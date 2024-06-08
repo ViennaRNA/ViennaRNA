@@ -13,6 +13,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 
 #include "ViennaRNA/move_set.h"
 
@@ -237,7 +238,7 @@ copy_arr(short  *dest,
          short  *src)
 {
   if (!src || !dest) {
-    vrna_message_warning("Empty pointer in copying");
+    vrna_log_warning("Empty pointer in copying");
     return;
   }
 
@@ -436,7 +437,7 @@ deletions(Encoded   *Enc,
 
         /* check*/
         if (lone != -1 && (pt[lone] == 0 || pt[pt[lone]] == 0))
-          vrna_message_warning("pt[%d(or %d)]!=\'.\'", lone, pt[lone]);
+          vrna_log_warning("pt[%d(or %d)]!=\'.\'", lone, pt[lone]);
 
         if (lone != -1) {
           Enc->bp_left2   = -lone - 1;
@@ -617,7 +618,7 @@ shifts(Encoded    *Enc,
 
       /* outer switch left*/
       if (Enc->verbose_lvl > 1)
-        vrna_message_info(stderr, "%2d bracket %2d position, outer switch left", brack_num + 1, i);
+        vrna_log_info("%2d bracket %2d position, outer switch left", brack_num + 1, i);
 
       for (k = i - 1; k > 0; k--) {
         if (pt[k] != 0 && pt[k] > k /*'('*/)
@@ -630,7 +631,7 @@ shifts(Encoded    *Enc,
 
         /* checks*/
         if (pt[k] != 0)
-          vrna_message_warning("\'%c\'should be \'.\' at pos %d!", pt[k], k);
+          vrna_log_warning("\'%c\'should be \'.\' at pos %d!", pt[k], k);
 
         /* switch (i,j) to (k,j)*/
         if (j - k > MINGAP && compat(Enc->seq[k - 1], Enc->seq[j - 1])) {
@@ -659,7 +660,7 @@ shifts(Encoded    *Enc,
 
       /* outer switch right*/
       if (Enc->verbose_lvl > 1)
-        vrna_message_info(stderr, "%2d bracket %2d position, outer switch right", brack_num + 1, i);
+        vrna_log_info("%2d bracket %2d position, outer switch right", brack_num + 1, i);
 
       for (k = j + 1; k <= len; k++) {
         if (pt[k] != 0 && pt[k] < k /*')'*/)
@@ -672,7 +673,7 @@ shifts(Encoded    *Enc,
 
         /* check*/
         if (pt[k] != 0)
-          vrna_message_warning("\'%c\'should be \'.\' at pos %d!", pt[k], k);
+          vrna_log_warning("\'%c\'should be \'.\' at pos %d!", pt[k], k);
 
         /* switch (i,j) to (i,k)*/
         if (k - i > MINGAP && compat(Enc->seq[i - 1], Enc->seq[k - 1])) {
@@ -700,7 +701,7 @@ shifts(Encoded    *Enc,
       }
 
       if (Enc->verbose_lvl > 1)
-        vrna_message_info(stderr, "%2d bracket %2d position, inner switch", brack_num + 1, i);
+        vrna_log_info("%2d bracket %2d position, inner switch", brack_num + 1, i);
 
       /* inner switch*/
       for (k = i + 1; k < j; k++) {

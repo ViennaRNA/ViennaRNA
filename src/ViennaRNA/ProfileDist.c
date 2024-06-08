@@ -17,6 +17,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/profiledist.h"
 
 PRIVATE int *alignment[2];
@@ -182,7 +183,7 @@ PrfEditCost(int         i,
 
   kmax = (int)T1[1];
   if ((int)T2[1] != kmax)
-    vrna_message_error("inconsistent Profiles in PrfEditCost");
+    vrna_log_error("inconsistent Profiles in PrfEditCost");
 
   if (i == 0)
     for (dist = 0., k = 0; k < kmax; k++)

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/loops/external.h"
 #include "ViennaRNA/loops/internal.h"
@@ -412,7 +413,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
           sol[num_struct].energy      = (float)e / 100.;
           sol[num_struct++].structure = s;
         } else {
-          vrna_message_warning("Backtracking failed for pair (%d,%d) en=%d", k, l, e);
+          vrna_log_warning("Backtracking failed for pair (%d,%d) en=%d", k, l, e);
         }
       }
     }
@@ -883,7 +884,7 @@ backtrack_outside:
 
           goto backtrack_outside;
         } else {
-          vrna_message_warning("backtracking failed for mb[%d] 1", i);
+          vrna_log_warning("backtracking failed for mb[%d] 1", i);
         }
 
         break;
@@ -921,7 +922,7 @@ backtrack_outside:
 
               goto backtrack_outside;
             } else {
-              vrna_message_warning("backtracking failed for mb[%d] 2", i);
+              vrna_log_warning("backtracking failed for mb[%d] 2", i);
             }
 
             break;
@@ -953,7 +954,7 @@ backtrack_outside:
 
               goto backtrack_outside;
             } else {
-              vrna_message_warning("backtracking failed for pair (%d,%d) in mb[%d] 3", k, l, i);
+              vrna_log_warning("backtracking failed for pair (%d,%d) in mb[%d] 3", k, l, i);
             }
 
             break;
@@ -983,7 +984,7 @@ backtrack_outside:
 
             goto backtrack_outside;
           } else {
-            vrna_message_warning("backtracking failed for mb_up[%d]\n", i);
+            vrna_log_warning("backtracking failed for mb_up[%d]\n", i);
           }
 
           break;
@@ -1040,7 +1041,7 @@ backtrack_outside:
               bt_stack[s].ml  = 2;
             }
           } else {
-            vrna_message_warning("Backtracking failed in f3[%d] = %d", k, f3[k]);
+            vrna_log_warning("Backtracking failed in f3[%d] = %d", k, f3[k]);
           }
 
           if (k == 0)

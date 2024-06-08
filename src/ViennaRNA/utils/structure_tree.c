@@ -145,7 +145,7 @@ vrna_tree_string_to_db(const char *structure)
       switch (structure[i]) {
         case '(':
           if (o < 0) {
-            vrna_message_warning("vrna_tree_string_to_db(): "
+            vrna_log_warning("vrna_tree_string_to_db(): "
                                  "Unbalanced parenthesis detected in tree string!"
                                  "Can't convert back to dot-bracket notation");
             goto tree_string_to_db_exit;
@@ -185,7 +185,7 @@ vrna_tree_string_to_db(const char *structure)
 
         default:
           if (!isdigit((int)structure[i])) {
-            vrna_message_warning("vrna_tree_string_to_db(): "
+            vrna_log_warning("vrna_tree_string_to_db(): "
                                  "Unsupported character \"%c\" detected in tree string! "
                                  "Can't convert back to dot-bracket notation",
                                  structure[i]);
@@ -193,7 +193,7 @@ vrna_tree_string_to_db(const char *structure)
           }
 
           if (k == 0) {
-            vrna_message_warning("vrna_tree_string_unexpand(): "
+            vrna_log_warning("vrna_tree_string_unexpand(): "
                                  "Node weight too large! "
                                  "Can't convert back to dot-bracket notation");
             goto tree_string_to_db_exit;
@@ -272,7 +272,7 @@ annotate_enclosing_pairs(const char *structure)
           break;
 
         default:
-          vrna_message_warning("annotate_enclosing_pairs: "
+          vrna_log_warning("annotate_enclosing_pairs: "
                                "Dot-braket string contains junk character \"%c\"",
                                annot[i]);
           free(annot);

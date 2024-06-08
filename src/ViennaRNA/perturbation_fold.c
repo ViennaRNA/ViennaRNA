@@ -19,6 +19,7 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/perturbation_fold.h"
 
@@ -138,7 +139,7 @@ evaluate_perturbation_vector_score(vrna_fold_compound_t *vc,
                                                        objective_function) / sigma_squared;
   }
 
-  vrna_message_info(stderr, "Score: pertubation: %g\tdiscrepancy: %g", ret, ret2);
+  vrna_log_info("Score: pertubation: %g\tdiscrepancy: %g", ret, ret2);
   free(p_prob_unpaired);
 
   return ret + ret2;

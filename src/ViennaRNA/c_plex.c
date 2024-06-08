@@ -41,6 +41,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
@@ -437,7 +438,7 @@ backtrack_CXS(int         i,
     st2[j - 1]  = ')';
     type        = pair[S1[i]][S2[j]];
     if (!type)
-      vrna_message_error("backtrack failed in fold duplex bli");
+      vrna_log_error("backtrack failed in fold duplex bli");
 
     for (k = i + 1; k <= n3 && k > i - MAXLOOP - 2; k++) {
       for (l = j - 1; l >= previous_const[j] && l >= 1; l--) {
@@ -482,7 +483,7 @@ backtrack_CXS(int         i,
 
       /* break; */
       if (E != P->DuplexInit + bonus_2) {
-        vrna_message_error("backtrack failed in fold duplex bal");
+        vrna_log_error("backtrack failed in fold duplex bal");
       } else {
         *Emin -= bonus_2;
         break;
@@ -1192,7 +1193,7 @@ backtrack_C(int         i,
     st2[j - 1]  = ')';
     type        = pair[S1[i]][S2[j]];
     if (!type)
-      vrna_message_error("backtrack failed in fold duplex a");
+      vrna_log_error("backtrack failed in fold duplex a");
 
     for (k = i - 1; k > 0 && k > i - MAXLOOP - 2; k--) {
       for (l = j + 1; l <= previous_const[j]; l++) {
@@ -1231,7 +1232,7 @@ backtrack_C(int         i,
         E -= P->TerminalAU;
 
       if (E != P->DuplexInit + 2 * extension_cost + bonus_2) {
-        vrna_message_error("backtrack failed in fold duplex b");
+        vrna_log_error("backtrack failed in fold duplex b");
       } else {
         *Emin -= bonus_2;
         break;

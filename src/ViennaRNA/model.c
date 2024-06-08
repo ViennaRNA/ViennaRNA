@@ -24,6 +24,7 @@
 
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/model.h"
 
@@ -321,7 +322,7 @@ vrna_md_set_nonstandards(vrna_md_t  *md,
         memcpy(nonstandards, &(md->nonstandards[0]), 33 * sizeof(char));
 #endif
       } else {
-        vrna_message_warning("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
+        vrna_log_warning("vrna_md_set_nonstandards: list too long, dropping nonstandards!");
       }
     } else {
       /* remove nonstandards */
@@ -459,7 +460,7 @@ vrna_md_defaults_temperature(double T)
     temperature = T;
 #endif
   } else {
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_md_defaults_temperature@model.c: Temperature out of range, T must be above absolute zero. Not changing anything!");
   }
 }
@@ -509,7 +510,7 @@ vrna_md_defaults_dangles(int d)
     dangles = d;
 #endif
   } else {
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_md_defaults_dangles@model.c: Dangles out of range, must be (0 <= d <= 3). Not changing anything!");
   }
 }
@@ -671,7 +672,7 @@ vrna_md_defaults_energy_set(int e)
     /* update pair/rtype/alias arrays accordingly */
     vrna_md_update(&defaults);
   } else {
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_md_defaults_energy_set@model.c: Energy Set out of range, must be (0 <= e <= 3). Not changing anything!");
   }
 }
@@ -711,7 +712,7 @@ vrna_md_defaults_backtrack_type(char t)
 #endif
       break;
     default:
-      vrna_message_warning(
+      vrna_log_warning(
         "vrna_md_defaults_backtrack_type@model.c: Backtrack type must be any of 'F', 'C', or 'M'. Not changing anything!");
   }
 }
@@ -1049,7 +1050,7 @@ fill_pair_matrices(vrna_md_t *md)
       break;
 
     default:
-      vrna_message_warning("vrna_md_update: "
+      vrna_log_warning("vrna_md_update: "
                            "Unknown energy_set = %d. "
                            "Using defaults!",
                            md->energy_set);

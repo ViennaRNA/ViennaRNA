@@ -18,6 +18,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/model.h"
@@ -530,7 +531,7 @@ vrna_aln_conservation_struct(const char       **alignment,
       /* check alignment for consistency */
       for (s = 0; alignment[s]; s++) {
         if (strlen(alignment[s]) != n) {
-          vrna_message_warning("vrna_aln_bpcons: Length of aligned sequence #%d does not match consensus structure length\n"
+          vrna_log_warning("vrna_aln_bpcons: Length of aligned sequence #%d does not match consensus structure length\n"
                                "%s\n\%s\n",
                                s + 1,
                                alignment[s],
@@ -567,7 +568,7 @@ vrna_aln_conservation_struct(const char       **alignment,
 
       free(pt);
     } else {
-      vrna_message_warning("vrna_aln_bpcons: Structure length is 0!");
+      vrna_log_warning("vrna_aln_bpcons: Structure length is 0!");
     }
   }
 
@@ -590,7 +591,7 @@ vrna_aln_conservation_col(const char      **alignment,
       /* check alignment for consistency */
       for (s = 1; alignment[s]; s++) {
         if (strlen(alignment[s]) != n) {
-          vrna_message_warning("vrna_aln_conservation: Length of aligned sequence #%d does not match length of first sequence\n"
+          vrna_log_warning("vrna_aln_conservation: Length of aligned sequence #%d does not match length of first sequence\n"
                                "%s\n\n",
                                s + 1,
                                alignment[s]);
@@ -634,7 +635,7 @@ vrna_aln_conservation_col(const char      **alignment,
         }
       }
     } else {
-      vrna_message_warning("vrna_aln_conservation: Length of first sequence in alignment is 0!");
+      vrna_log_warning("vrna_aln_conservation: Length of first sequence in alignment is 0!");
     }
   }
 
@@ -659,7 +660,7 @@ vrna_aln_consensus_sequence(const char      **alignment,
       /* check alignment for consistency */
       for (s = 1; alignment[s]; s++) {
         if (strlen(alignment[s]) != n) {
-          vrna_message_warning("vrna_aln_consensus_sequence: "
+          vrna_log_warning("vrna_aln_consensus_sequence: "
                                "Length of aligned sequence #%d does not match length of first sequence\n"
                                "%s\n\n",
                                s + 1,
@@ -730,7 +731,7 @@ vrna_aln_consensus_mis(const char       **alignment,
       /* check alignment for consistency */
       for (s = 1; alignment[s]; s++) {
         if (strlen(alignment[s]) != n) {
-          vrna_message_warning("vrna_aln_consensus_mis: "
+          vrna_log_warning("vrna_aln_consensus_mis: "
                                "Length of aligned sequence #%d does not match length of first sequence\n"
                                "%s\n\n",
                                s + 1,
@@ -855,12 +856,12 @@ read_clustal(FILE *clust,
   int   n, nn = 0, num_seq = 0, i;
 
   if ((line = vrna_read_line(clust)) == NULL) {
-    vrna_message_warning("Empty CLUSTAL file");
+    vrna_log_warning("Empty CLUSTAL file");
     return 0;
   }
 
   if ((strncmp(line, "CLUSTAL", 7) != 0) && (!strstr(line, "STOCKHOLM"))) {
-    vrna_message_warning("This doesn't look like a CLUSTAL/STOCKHOLM file, sorry");
+    vrna_log_warning("This doesn't look like a CLUSTAL/STOCKHOLM file, sorry");
     free(line);
     return 0;
   }
@@ -908,7 +909,7 @@ read_clustal(FILE *clust,
     } else {
       if (strcmp(name, names[nn]) != 0) {
         /* name doesn't match */
-        vrna_message_warning("Sorry, your file is messed up (inconsitent seq-names)");
+        vrna_log_warning("Sorry, your file is messed up (inconsitent seq-names)");
         free(line);
         free(seq);
         return 0;
@@ -926,7 +927,7 @@ read_clustal(FILE *clust,
     free(seq);
     free(line);
     if (num_seq >= MAX_NUM_NAMES) {
-      vrna_message_warning("Too many sequences in CLUSTAL/STOCKHOLM file");
+      vrna_log_warning("Too many sequences in CLUSTAL/STOCKHOLM file");
       return 0;
     }
 
@@ -936,20 +937,20 @@ read_clustal(FILE *clust,
   AlignedSeqs[num_seq]  = NULL;
   names[num_seq]        = NULL;
   if (num_seq == 0) {
-    vrna_message_warning("No sequences found in CLUSTAL/STOCKHOLM file");
+    vrna_log_warning("No sequences found in CLUSTAL/STOCKHOLM file");
     return 0;
   }
 
   n = strlen(AlignedSeqs[0]);
   for (nn = 1; nn < num_seq; nn++) {
     if (strlen(AlignedSeqs[nn]) != n) {
-      vrna_message_warning("Sorry, your file is messed up.\n"
+      vrna_log_warning("Sorry, your file is messed up.\n"
                            "Unequal lengths!");
       return 0;
     }
   }
 
-  vrna_message_info(stderr, "%d sequences; length of alignment %d.", nn, n);
+  vrna_log_info("%d sequences; length of alignment %d.", nn, n);
   return num_seq;
 }
 
@@ -1122,7 +1123,7 @@ alloc_sequence_arrays(const char      **sequences,
     *Ss   = (char **)vrna_alloc((n_seq + 1) * sizeof(char *));
     for (s = 0; s < n_seq; s++) {
       if (strlen(sequences[s]) != length)
-        vrna_message_error("uneqal seqence lengths");
+        vrna_log_error("uneqal seqence lengths");
 
       (*S5)[s]  = (short *)vrna_alloc((length + 2) * sizeof(short));
       (*S3)[s]  = (short *)vrna_alloc((length + 2) * sizeof(short));
@@ -1137,7 +1138,7 @@ alloc_sequence_arrays(const char      **sequences,
     (*Ss)[n_seq]  = NULL;
     (*S)[n_seq]   = NULL;
   } else {
-    vrna_message_error("alloc_sequence_arrays: no sequences in the alignment!");
+    vrna_log_error("alloc_sequence_arrays: no sequences in the alignment!");
   }
 }
 

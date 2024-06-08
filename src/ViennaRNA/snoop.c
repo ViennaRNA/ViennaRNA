@@ -19,6 +19,7 @@
 #include <string.h>
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/snofold.h"
@@ -277,7 +278,7 @@ alisnoopfold(const char **s1,
   n_seq = s;
   for (s = 0; s2[s] != NULL; s++);
   if (n_seq != s)
-    vrna_message_error("unequal number of sequences in aliduplexfold()\n");
+    vrna_log_error("unequal number of sequences in aliduplexfold()\n");
 
   set_model_details(&md);
   if (!P) {
@@ -310,10 +311,10 @@ alisnoopfold(const char **s1,
   Sali2 = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
   for (s = 0; s < n_seq; s++) {
     if ((int)strlen(s1[s]) != n1)
-      vrna_message_error("uneqal seqence lengths");
+      vrna_log_error("uneqal seqence lengths");
 
     if ((int)strlen(s2[s]) != n2)
-      vrna_message_error("uneqal seqence lengths");
+      vrna_log_error("uneqal seqence lengths");
 
     Sali1[s]  = aliencode_seq(s1[s]);
     Sali2[s]  = aliencode_seq(s2[s]);
@@ -550,10 +551,10 @@ alisnoop_subopt(const char  **s1,
   Sali2 = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
   for (s = 0; s < n_seq; s++) {
     if ((int)strlen(s1[s]) != n1)
-      vrna_message_error("uneqal seqence lengths");
+      vrna_log_error("uneqal seqence lengths");
 
     if ((int)strlen(s2[s]) != n2)
-      vrna_message_error("uneqal seqence lengths");
+      vrna_log_error("uneqal seqence lengths");
 
     Sali1[s]  = aliencode_seq(s1[s]);
     Sali2[s]  = aliencode_seq(s2[s]);
@@ -749,7 +750,7 @@ alisnoop_backtrack(int          i,
   n_seq = s;
   for (s = 0; Sali2[s] != NULL; s++);
   if (n_seq != s)
-    vrna_message_error("unequal number of sequences in alibacktrack()\n");
+    vrna_log_error("unequal number of sequences in alibacktrack()\n");
 
   st1   = (char *)vrna_alloc(sizeof(char) * (n1 + 1));
   st2   = (char *)vrna_alloc(sizeof(char) * (n2 + 1));
@@ -934,7 +935,7 @@ alisnoop_backtrack(int          i,
       E     += psc;
       *pscd += psc;
       if (!type)
-        vrna_message_error("backtrack failed in fold duplex c");
+        vrna_log_error("backtrack failed in fold duplex c");
 
       for (k = i - 1; (i - k) < MAXLOOP_L; k--) {
         for (l = j + 1; l <= n2; l++) {
@@ -990,7 +991,7 @@ alisnoop_backtrack(int          i,
         **/
       }
       if (E != n_seq * P->DuplexInit)
-        vrna_message_error("backtrack failed in fold duplex end");
+        vrna_log_error("backtrack failed in fold duplex end");
       else
         break;
     }
@@ -2587,7 +2588,7 @@ snoop_backtrack(int         i,
       st2[j - 1]  = '>';
       type        = pair[S1[i]][S2[j]];
       if (!type)
-        vrna_message_error("backtrack failed in fold duplex r");
+        vrna_log_error("backtrack failed in fold duplex r");
 
       for (k = i - 1; k > 0 && (i - k) < MAXLOOP_L; k--) {
         for (l = j + 1; l <= n2; l++) {
@@ -2692,7 +2693,7 @@ snoop_backtrack(int         i,
       st2[j - 1]  = '>';
       type        = pair[S1[i]][S2[j]];
       if (!type)
-        vrna_message_error("backtrack failed in fold duplex c");
+        vrna_log_error("backtrack failed in fold duplex c");
 
       for (k = i - 1; (i - k) < MAXLOOP_L; k--) {
         for (l = j + 1; l <= n2; l++) {
@@ -2733,7 +2734,7 @@ snoop_backtrack(int         i,
       *** if (type>2) {E -= P->TerminalAU;                    *Duplex_El +=P->TerminalAU;}
       **/
       if (E != P->DuplexInit)
-        vrna_message_error("backtrack failed in fold duplex end");
+        vrna_log_error("backtrack failed in fold duplex end");
       else
         break;
     }
@@ -3520,7 +3521,7 @@ snoop_backtrack_XS(int        i,
       st2[j - 1]  = '>';
       type        = pair[S1[i]][S2[j]];
       if (!type)
-        vrna_message_error("backtrack failed in fold duplex c");
+        vrna_log_error("backtrack failed in fold duplex c");
 
       for (k = i + 1; k > 0 && (k - i) < MAXLOOP_L; k++) {
         for (l = j - 1; l >= 1; l--) {
@@ -3628,7 +3629,7 @@ snoop_backtrack_XS(int        i,
       st2[j - 1]  = '>';
       type        = pair[S1[i]][S2[j]];
       if (!type)
-        vrna_message_error("backtrack failed in fold duplex r");
+        vrna_log_error("backtrack failed in fold duplex r");
 
       for (k = i + 1; k > 0 && (k - i) < MAXLOOP_L; k++) {
         for (l = j - 1; l >= 1; l--) {
@@ -3669,7 +3670,7 @@ snoop_backtrack_XS(int        i,
       }
 
       if (E != P->DuplexInit)
-        vrna_message_error("backtrack failed in fold duplex end");
+        vrna_log_error("backtrack failed in fold duplex end");
       else
         break;
     }

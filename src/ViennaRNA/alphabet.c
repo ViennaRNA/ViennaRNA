@@ -17,6 +17,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
 
 /*
@@ -246,7 +247,7 @@ vrna_ptypes(const short *S,
   n = S[0];
 
   if ((unsigned int)n > vrna_sequence_length_max(VRNA_OPTION_DEFAULT)) {
-    vrna_message_warning("vrna_ptypes@alphabet.c: sequence length of %d exceeds addressable range",
+    vrna_log_warning("vrna_ptypes@alphabet.c: sequence length of %d exceeds addressable range",
                          n);
     return NULL;
   }
@@ -553,7 +554,7 @@ get_ptypes(const short  *S,
 {
   if (S) {
     if ((unsigned int)S[0] > vrna_sequence_length_max(VRNA_OPTION_DEFAULT)) {
-      vrna_message_warning("get_ptypes@alphabet.c: sequence length of %d exceeds addressable range",
+      vrna_log_warning("get_ptypes@alphabet.c: sequence length of %d exceeds addressable range",
                            (int)S[0]);
       return NULL;
     }

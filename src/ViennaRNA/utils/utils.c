@@ -31,6 +31,7 @@
 #include "ViennaRNA/color_output.inc"
 
 #include "ViennaRNA/io/utils.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/utils/basic.h"
 
 #ifdef WITH_DMALLOC
@@ -88,12 +89,12 @@ vrna_alloc(unsigned size)
 #ifdef EINVAL
     if (errno == EINVAL) {
       fprintf(stderr, "vrna_alloc: requested size: %d\n", size);
-      vrna_message_error("Memory allocation failure -> EINVAL");
+      vrna_log_error("Memory allocation failure -> EINVAL");
     }
 
     if (errno == ENOMEM)
 #endif
-    vrna_message_error("Memory allocation failure -> no memory");
+    vrna_log_error("Memory allocation failure -> no memory");
   }
 
   return pointer;
@@ -112,12 +113,12 @@ vrna_realloc(void     *p,
 #ifdef EINVAL
     if (errno == EINVAL) {
       fprintf(stderr, "vrna_realloc: requested size: %d\n", size);
-      vrna_message_error("vrna_realloc allocation failure -> EINVAL");
+      vrna_log_error("vrna_realloc allocation failure -> EINVAL");
     }
 
     if (errno == ENOMEM)
 #endif
-    vrna_message_error("vrna_realloc allocation failure -> no memory");
+    vrna_log_error("vrna_realloc allocation failure -> no memory");
   }
 
   return p;

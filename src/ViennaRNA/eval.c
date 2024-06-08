@@ -37,6 +37,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/fold_vars.h"
@@ -158,7 +159,7 @@ vrna_eval_structure_v(vrna_fold_compound_t  *fc,
   if ((fc) &&
       (structure)) {
     if (strlen(structure) != fc->length) {
-      vrna_message_warning("vrna_eval_structure_*: "
+      vrna_log_warning("vrna_eval_structure_*: "
                            "string and structure have unequal length (%d vs. %d)",
                            fc->length,
                            strlen(structure));
@@ -197,7 +198,7 @@ vrna_eval_structure_cstr(vrna_fold_compound_t *fc,
   if ((fc) &&
       (structure)) {
     if (strlen(structure) != fc->length) {
-      vrna_message_warning("vrna_eval_structure_*: "
+      vrna_log_warning("vrna_eval_structure_*: "
                            "string and structure have unequal length (%d vs. %d)",
                            fc->length,
                            strlen(structure));
@@ -232,7 +233,7 @@ vrna_eval_structure_pt_v(vrna_fold_compound_t *fc,
   if ((fc) &&
       (pt)) {
     if (pt[0] != (short)fc->length) {
-      vrna_message_warning("vrna_eval_structure_*: "
+      vrna_log_warning("vrna_eval_structure_*: "
                            "string and structure have unequal length (%d vs. %d)",
                            fc->length,
                            pt[0]);
@@ -281,7 +282,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
 
     j = pt[i];
     if (j < i) {
-      vrna_message_warning("vrna_eval_loop_pt*: "
+      vrna_log_warning("vrna_eval_loop_pt*: "
                            "i = %d is unpaired in loop_energy()",
                            i);
       return INF;
@@ -289,7 +290,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
 
     if (md->pair[s[i]][s[j]] == 0) {
       if (verbosity_level > VRNA_VERBOSITY_QUIET) {
-        vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+        vrna_log_warning("bases %d and %d (%c%c) can't pair!",
                              i, j,
                              vrna_nucleotide_decode(s[i], md),
                              vrna_nucleotide_decode(s[j], md));
@@ -318,7 +319,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
       /* found interior loop */
       if (md->pair[s[q]][s[p]] == 0) {
         if (verbosity_level > VRNA_VERBOSITY_QUIET) {
-          vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+          vrna_log_warning("bases %d and %d (%c%c) can't pair!",
                                p, q,
                                vrna_nucleotide_decode(s[p], md),
                                vrna_nucleotide_decode(s[q], md));
@@ -361,7 +362,7 @@ vrna_eval_move_pt(vrna_fold_compound_t  *fc,
       if (pt[j] > j) {
         j = pt[j];          /* skip substructure */
       } else {
-        vrna_message_warning("vrna_eval_move_pt: "
+        vrna_log_warning("vrna_eval_move_pt: "
                              "illegal move or broken pair table in vrna_eval_move_pt()\n"
                              "%d %d %d %d ", m1, m2, j, pt[j]);
         return en;
@@ -532,7 +533,7 @@ eval_pt(vrna_fold_compound_t  *fc,
   int ee, energy;
 
   if (fc->params->model_details.gquad)
-    vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\n"
+    vrna_log_warning("vrna_eval_*_pt: No gquadruplex support!\n"
                          "Ignoring potential gquads in structure!\n"
                          "Use e.g. vrna_eval_structure() instead!");
 
@@ -986,7 +987,7 @@ eval_circ_pt(vrna_fold_compound_t *fc,
   }
 
   if (P->model_details.gquad)
-    vrna_message_warning("vrna_eval_*_pt: No gquadruplex support!\n"
+    vrna_log_warning("vrna_eval_*_pt: No gquadruplex support!\n"
                          "Ignoring potential gquads in structure!\n"
                          "Use e.g. vrna_eval_structure() instead!");
 
@@ -1489,7 +1490,7 @@ stack_energy(vrna_fold_compound_t *fc,
       n_seq   = 1;
       if (md->pair[s[i]][s[j]] == 0) {
         if (verbosity_level > VRNA_VERBOSITY_QUIET) {
-          vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+          vrna_log_warning("bases %d and %d (%c%c) can't pair!",
                                i, j,
                                string[i - 1],
                                string[j - 1]);
@@ -1514,7 +1515,7 @@ stack_energy(vrna_fold_compound_t *fc,
       if (fc->type == VRNA_FC_TYPE_SINGLE) {
         if (md->pair[s[q]][s[p]] == 0) {
           if (verbosity_level > VRNA_VERBOSITY_QUIET) {
-            vrna_message_warning("bases %d and %d (%c%c) can't pair!",
+            vrna_log_warning("bases %d and %d (%c%c) can't pair!",
                                  p, q,
                                  string[p - 1],
                                  string[q - 1]);
@@ -1661,7 +1662,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
   bonus = 0;
 
   if (i >= pt[i]) {
-    vrna_message_warning("energy_of_ml_pt: i is not 5' base of a closing pair!");
+    vrna_log_warning("energy_of_ml_pt: i is not 5' base of a closing pair!");
     return INF;
   }
 
@@ -1672,7 +1673,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
       if ((dangle_model % 2) ||
           (dangle_model > 2) ||
           (dangle_model < 0)) {
-        vrna_message_warning(
+        vrna_log_warning(
           "consensus structure evaluation for odd dangle models not implemented (yet)!");
         return INF;
       }

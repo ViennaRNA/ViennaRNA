@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
@@ -296,7 +297,7 @@ vrna_mfe_TwoD(vrna_fold_compound_t  *vars,
 
   if (distance1 >= 0) {
     if ((unsigned int)distance1 > maxD1)
-      vrna_message_warning("vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
+      vrna_log_warning("vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 1 to %u\n",
                            maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -304,7 +305,7 @@ vrna_mfe_TwoD(vrna_fold_compound_t  *vars,
 
   if (distance2 >= 0) {
     if ((unsigned int)distance2 > maxD2)
-      vrna_message_warning("vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
+      vrna_log_warning("vrna_mfe_TwoD@2Dfold.c: limiting maximum basepair distance 2 to %u\n",
                            maxD2);
     else
       maxD2 = (unsigned int)distance2;
@@ -1776,7 +1777,7 @@ backtrack_f5(unsigned int         j,
       }
     }
   }
-  vrna_message_error("backtracking failed in f5");
+  vrna_log_error("backtracking failed in f5");
 }
 
 
@@ -2073,7 +2074,7 @@ backtrack_c(unsigned int          i,
     }
   }
 
-  vrna_message_error("backtracking failed in c");
+  vrna_log_error("backtracking failed in c");
 }
 
 
@@ -2382,7 +2383,7 @@ backtrack_m(unsigned int          i,
     }
   }
 
-  vrna_message_error("backtracking failed in fML\n");
+  vrna_log_error("backtracking failed in fML\n");
 }
 
 
@@ -2501,7 +2502,7 @@ backtrack_m1(unsigned int         i,
     }
   }
 
-  vrna_message_error("backtack failed in m1\n");
+  vrna_log_error("backtack failed in m1\n");
 }
 
 
@@ -3041,7 +3042,7 @@ backtrack_fc(int                  k,
     }
   }
 
-  vrna_message_error("backtack failed in fc\n");
+  vrna_log_error("backtack failed in fc\n");
 }
 
 
@@ -3186,7 +3187,7 @@ backtrack_m2(unsigned int         i,
     }
   }
 
-  vrna_message_error("backtack failed in m2\n");
+  vrna_log_error("backtack failed in m2\n");
 }
 
 

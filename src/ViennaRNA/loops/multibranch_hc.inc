@@ -194,7 +194,7 @@ hc_mb_cb_def(int            i,
       break;
 
     default:
-      vrna_message_warning("hc_mb_cb_def@multibranch_hc.inc: "
+      vrna_log_warning("hc_mb_cb_def@multibranch_hc.inc: "
                            "Unrecognized decomposition %d",
                            d);
   }
@@ -265,7 +265,7 @@ hc_sn(int           i,
       break;
 
     default:
-      vrna_message_warning("hc_sn@multibranch_hc.inc: "
+      vrna_log_warning("hc_sn@multibranch_hc.inc: "
                            "Unrecognized decomposition %d",
                            d);
   }
@@ -352,7 +352,7 @@ hc_mb_cb_def_window(int           i,
       break;
 
     default:
-      vrna_message_warning("hc_mb_cb_def_window@multibranch_hc.inc: "
+      vrna_log_warning("hc_mb_cb_def_window@multibranch_hc.inc: "
                            "Unrecognized decomposition %d",
                            d);
   }

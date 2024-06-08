@@ -10,6 +10,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/loops/external.h"
@@ -70,7 +71,7 @@ vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
     if (j < i) {
       /* Note: j < i indicates that we want to evaluate exterior int loop (for circular RNAs)! */
       if (fc->hc->type == VRNA_HC_WINDOW) {
-        vrna_message_warning(
+        vrna_log_warning(
           "vrna_exp_E_int_loop: invalid sequence positions for pair (i,j) = (%d,%d)!",
           i,
           j);

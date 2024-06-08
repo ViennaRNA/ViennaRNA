@@ -20,6 +20,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/constants.h" /* defines MINPSCORE */
 #include "ViennaRNA/fold_vars.h"
@@ -230,7 +231,7 @@ vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
   underflow = 0;
 
   if (!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW)) {
-    vrna_message_warning("vrna_mfe_window@Lfold.c: Failed to prepare vrna_fold_compound");
+    vrna_log_warning("vrna_mfe_window@Lfold.c: Failed to prepare vrna_fold_compound");
     return (float)(INF / 100.);
   }
 
@@ -275,13 +276,13 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
   float mfe_local;
 
   if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_mfe_window_zscore@mfe_window.c: Comparative prediction not implemented");
     return (float)(INF / 100.);
   }
 
   if (!vrna_fold_compound_prepare(vc, VRNA_OPTION_MFE | VRNA_OPTION_WINDOW)) {
-    vrna_message_warning("vrna_mfe_window@Lfold.c: Failed to prepare vrna_fold_compound");
+    vrna_log_warning("vrna_mfe_window@Lfold.c: Failed to prepare vrna_fold_compound");
     return (float)(INF / 100.);
   }
 
@@ -740,7 +741,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #endif
         } else if (jj == -1) {
           /* some error occured during backtracking */
-          vrna_message_error("backtrack failed in short backtrack 1");
+          vrna_log_error("backtrack failed in short backtrack 1");
         }
       }
 
@@ -786,7 +787,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #endif
           } else if (jj == -1) {
             /* some error occured during backtracking */
-            vrna_message_error("backtrack failed in short backtrack 2");
+            vrna_log_error("backtrack failed in short backtrack 2");
           }
         }
       }
@@ -933,7 +934,7 @@ backtrack(vrna_fold_compound_t  *vc,
 
           continue;
         } else {
-          vrna_message_error("backtracking failed in f3, segment [%d,%d]\n", i, j);
+          vrna_log_error("backtracking failed in f3, segment [%d,%d]\n", i, j);
         }
 
         break;
@@ -955,7 +956,7 @@ backtrack(vrna_fold_compound_t  *vc,
 
           continue;
         } else {
-          vrna_message_error("backtracking failed in fML, segment [%d,%d]\n", i, j);
+          vrna_log_error("backtracking failed in fML, segment [%d,%d]\n", i, j);
         }
 
         break;
@@ -968,7 +969,7 @@ backtrack(vrna_fold_compound_t  *vc,
         break;
 
       default:
-        vrna_message_error("Backtracking failed due to unrecognized DP matrix!");
+        vrna_log_error("Backtracking failed due to unrecognized DP matrix!");
         break;
     }
 
@@ -1027,7 +1028,7 @@ repeat1:
       sector[s].j   = j;
       sector[s].ml  = comp2;
     } else {
-      vrna_message_error("backtracking failed in repeat, segment [%d,%d]\n", i, j);
+      vrna_log_error("backtracking failed in repeat, segment [%d,%d]\n", i, j);
     }
 
     /* end of repeat: --------------------------------------------------*/
@@ -1677,7 +1678,7 @@ vrna_backtrack_window(vrna_fold_compound_t  *fc,
     f3 = fc->matrices->f3_local;
 
     if (md->dangles % 2) {
-      vrna_message_warning(
+      vrna_log_warning(
         "Global mfE structure backtracking not available for odd dangle models yet!");
       return ret;
     }

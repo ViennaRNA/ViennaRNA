@@ -16,6 +16,7 @@
 #include <math.h>    
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/datastructures/string.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/plotting/utils.h"
@@ -197,7 +198,7 @@ vrna_annotate_covar_pt(const char       **alignment,
       ps      = vrna_string_make_space_for(ps, maxl);
       colorps = vrna_string_make_space_for(colorps, maxl);
       if ((ps == NULL) || (colorps == NULL))
-        vrna_message_error("out of memory in realloc");
+        vrna_log_error("out of memory in realloc");
     }
 
     if ((pairings > 0) &&
@@ -308,7 +309,7 @@ vrna_annotate_covar_pairs(const char  **alignment,
         }
       }
       if (nofound) {
-        vrna_message_warning("mfe base pair with very low prob in pf: %d %d",
+        vrna_log_warning("mfe base pair with very low prob in pf: %d %d",
                              ptr->i,
                              ptr->j);
 

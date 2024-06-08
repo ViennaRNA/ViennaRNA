@@ -29,6 +29,7 @@
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/datastructures/lists.h"
@@ -583,7 +584,7 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
   minimal_energy  = (circular) ? Fc : f5[length];
   threshold       = minimal_energy + delta;
   if (threshold >= INF) {
-    vrna_message_warning("Energy range too high, limiting to reasonable value");
+    vrna_log_warning("Energy range too high, limiting to reasonable value");
     threshold = INF - EMAX;
   }
 
@@ -639,7 +640,7 @@ vrna_subopt_cb(vrna_fold_compound_t *fc,
 
       if (!logML) {
         if ((double)(state->partial_energy / 100.) != structure_energy) {
-          vrna_message_error("%s %6.2f %6.2f",
+          vrna_log_error("%s %6.2f %6.2f",
                              structure,
                              state->partial_energy / 100.,
                              structure_energy);
@@ -853,7 +854,7 @@ copy_state(STATE *state)
 
   new_state->structure = strdup(state->structure);
   if (!new_state->structure)
-    vrna_message_error("out of memory");
+    vrna_log_error("out of memory");
 
   return new_state;
 }
@@ -1677,7 +1678,7 @@ scan_pair(vrna_fold_compound_t  *fc,
 
   if (env->nopush)
     if (!noLP)
-      vrna_message_warning("%d,%d\nOops, no solution in repeat!", i, j);
+      vrna_log_warning("%d,%d\nOops, no solution in repeat!", i, j);
 }
 
 
@@ -1741,7 +1742,7 @@ scan_ext(vrna_fold_compound_t *fc,
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
   if (i > 1)
-    vrna_message_error("Error while backtracking!");
+    vrna_log_error("Error while backtracking!");
 
   if ((j < i + 1) &&
       (sn[i] == so[j])) {
@@ -1974,7 +1975,7 @@ scan_circular(vrna_fold_compound_t  *fc,
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
   if (i > 1)
-    vrna_message_error("Error while backtracking!");
+    vrna_log_error("Error while backtracking!");
 
   if (j < i + turn + 1) {
     /* minimal structure element */
@@ -2616,7 +2617,7 @@ scan_gquad(vrna_fold_compound_t *fc,
                constraints_dat);
 
   if (env->nopush)
-    vrna_message_warning("%d,%d\nOops, no solution in gquad-repeat!", i, j);
+    vrna_log_warning("%d,%d\nOops, no solution in gquad-repeat!", i, j);
 }
 
 

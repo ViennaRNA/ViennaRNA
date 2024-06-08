@@ -17,6 +17,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/constraints/soft.h"
@@ -323,11 +324,11 @@ vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
 
   /* check for obvious inconsistencies in input sequence/structure motif */
   if (cp != cp2) {
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_sc_add_ligand_binding@ligand.c: Cutpoint in sequence and structure motif differ!");
     goto hi_motif_error;
   } else if (strlen(seq) != strlen(structure)) {
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_sc_add_ligand_binding@ligand.c: length of sequence and structure motif differ!");
     goto hi_motif_error;
   }
@@ -350,7 +351,7 @@ vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
   if (cp > 0) {
     if ((motif[0] != '(') || (motif[strlen(motif) - 1] != ')') || (motif[cp - 2] != '(') ||
         (motif[cp - 1] != ')')) {
-      vrna_message_warning(
+      vrna_log_warning(
         "vrna_sc_add_ligand_binding@ligand.c: No closing and/or enclosed pair in interior loop motif!");
       goto hi_motif_error;
     }
@@ -367,7 +368,7 @@ vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
     vrna_sc_add_exp_f(vc, &expAptamerContrib);
   } else {
     if ((motif[0] != '(') || (motif[strlen(motif) - 1] != ')')) {
-      vrna_message_warning("vrna_sc_add_ligand_binding@ligand.c: No closing pair in hairpin motif!");
+      vrna_log_warning("vrna_sc_add_ligand_binding@ligand.c: No closing pair in hairpin motif!");
       goto hi_motif_error;
     }
 
@@ -400,7 +401,7 @@ vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
 
   if ((pair_count > 0) && (pairs == NULL)) {
     /* error while parsing structure motif */
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_sc_add_ligand_binding@ligand.c: Error while parsing additional pairs in structure motif");
     goto hi_motif_error;
   }
@@ -781,7 +782,7 @@ scanForPairs(const char *motif5,
       /* printf("5' p[%d, %d]\n", pairs[*pair_count].i, pairs[*pair_count].j); */
       (*pair_count)++;
       if (stack_count < 0) {
-        vrna_message_warning(
+        vrna_log_warning(
           "vrna_sc_add_ligand_binding@ligand.c: 5' structure motif contains unbalanced brackets");
         free(stack);
         free(pairs);
@@ -801,7 +802,7 @@ scanForPairs(const char *motif5,
         /* printf("3' p[%d, %d]\n", pairs[*pair_count].i, pairs[*pair_count].j); */
         (*pair_count)++;
         if (stack_count < 0) {
-          vrna_message_warning(
+          vrna_log_warning(
             "vrna_sc_add_ligand_binding@ligand.c: 3' structure motif contains unbalanced brackets");
           free(stack);
           free(pairs);
@@ -812,7 +813,7 @@ scanForPairs(const char *motif5,
   }
 
   if (stack_count != 0) {
-    vrna_message_warning(
+    vrna_log_warning(
       "vrna_sc_add_ligand_binding@ligand.c: structure motif contains unbalanced brackets");
     (*pair_count)++;
     free(stack);

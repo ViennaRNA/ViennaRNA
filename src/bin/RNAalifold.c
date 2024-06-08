@@ -25,6 +25,7 @@
 #include "ViennaRNA/plotting/alignments.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/io/file_formats.h"
@@ -342,6 +343,8 @@ main(int  argc,
    */
   if (RNAalifold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  vrna_log_level_set(VRNA_LOG_LEVEL_INFO);
 
   /* get basic set of model details */
   ggo_get_md_eval(args_info, opt.md);
@@ -935,6 +938,10 @@ process_record(struct record_data *record)
 
   if (!opt->quiet) {
     vrna_cstr_message_info(o_stream->err,
+                           "%u sequences; length of alignment %u.",
+                           n_seq,
+                           n);
+    vrna_message_info(stderr,
                            "%u sequences; length of alignment %u.",
                            n_seq,
                            n);

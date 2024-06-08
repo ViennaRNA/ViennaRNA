@@ -19,6 +19,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/utils.h"
@@ -147,7 +148,7 @@ convert_parameter_file(const char   *iname,
       ifile             = stdin;
       skip_input_header = 1;
     } else if (!(ifile = fopen(iname, "r"))) {
-      vrna_message_warning("convert_epars: can't open file %s", iname);
+      vrna_log_warning("convert_epars: can't open file %s", iname);
       return;
     }
 
@@ -165,7 +166,7 @@ convert_parameter_file(const char   *iname,
   if (oname == NULL) {
     ofile = stdout;
   } else if (!(ofile = fopen(oname, "a+"))) {
-    vrna_message_warning("convert_epars: can't open file %s for writing", oname);
+    vrna_log_warning("convert_epars: can't open file %s for writing", oname);
     return;
   }
 
@@ -186,13 +187,13 @@ read_old_parameter_file(FILE  *ifile,
   unsigned int          read_successfully = 0;
 
   if (!(line = vrna_read_line(ifile))) {
-    vrna_message_warning("convert_epars: can't read input parameter file");
+    vrna_log_warning("convert_epars: can't read input parameter file");
     return 0;
   }
 
   if (!skip_header) {
     if (strncmp(line, "## RNAfold parameter file", 25) != 0) {
-      vrna_message_warning("convert_epars: Missing header line in input parameter file.\n"
+      vrna_log_warning("convert_epars: Missing header line in input parameter file.\n"
                            "May be this file has incorrect format?");
       free(line);
       return 0;
@@ -209,10 +210,8 @@ read_old_parameter_file(FILE  *ifile,
       type = gettype_184(ident);
       switch (type) {
         case QUIT_184:
-          if (ifile == stdin) {
-            vrna_message_info(stderr, "press ENTER to continue...");
-            fflush(stderr);
-          }
+          if (ifile == stdin)
+            vrna_log_info("press ENTER to continue...");
 
           last = 1;
           break;
@@ -328,7 +327,7 @@ read_old_parameter_file(FILE  *ifile,
           read_successfully |= VRNA_CONVERT_OUTPUT_MISC;
           break;
         default:          /* do nothing but complain */
-          vrna_message_warning("convert_parameter_file: Unknown field identifier in `%s'", line);
+          vrna_log_warning("convert_parameter_file: Unknown field identifier in `%s'", line);
       }
     } /* else ignore line */
 
@@ -383,7 +382,7 @@ get_array1(int  *arr,
   while (i < size) {
     line = vrna_read_line(fp);
     if (!line)
-      vrna_message_error("convert_epars: unexpected end of file in get_array1");
+      vrna_log_error("convert_epars: unexpected end of file in get_array1");
 
     ignore_comment(line);
     pos = 0;
@@ -395,7 +394,7 @@ get_array1(int  *arr,
       } else if (buf[0] == 'x') {
         /* should only be used for loop parameters */
         if (i == 0)
-          vrna_message_error("convert_epars: can't extrapolate first value");
+          vrna_log_error("convert_epars: can't extrapolate first value");
 
         p = arr[last] + (int)(0.5 + lxc37_184 * log(((double)i) / (double)(last)));
       } else if (strcmp(buf, "DEF") == 0) {
@@ -408,7 +407,7 @@ get_array1(int  *arr,
         r = sscanf(buf, "%d", &p);
         if (r != 1) {
           return line + pos;
-          vrna_message_error("convert_epars: can't interpret `%s' in get_array1", buf);
+          vrna_log_error("convert_epars: can't interpret `%s' in get_array1", buf);
           exit(1);
         }
 
@@ -436,7 +435,7 @@ rd_stacks(int   stacks[NBPAIRS + 1][NBPAIRS + 1],
   for (i = 1; i <= NBPAIRS; i++) {
     cp = get_array1(stacks[i] + 1, NBPAIRS, fp);
     if (cp) {
-      vrna_message_error("convert_epars: \nrd_stacks: %s", cp);
+      vrna_log_error("convert_epars: \nrd_stacks: %s", cp);
       exit(1);
     }
   }
@@ -455,7 +454,7 @@ rd_loop(int   loop[31],
   cp = get_array1(loop, 31, fp);
 
   if (cp) {
-    vrna_message_error("convert_epars: \nrd_loop: %s", cp);
+    vrna_log_error("convert_epars: \nrd_loop: %s", cp);
     exit(1);
   }
 
@@ -475,7 +474,7 @@ rd_mismatch(int   mismatch[NBPAIRS + 1][5][5],
   for (i = 1; i < NBPAIRS + 1; i++) {
     cp = get_array1(mismatch[i][0], 5 * 5, fp);
     if (cp) {
-      vrna_message_error("convert_epars: rd_mismatch: in field mismatch[%d]\n\t%s", i, cp);
+      vrna_log_error("convert_epars: rd_mismatch: in field mismatch[%d]\n\t%s", i, cp);
       exit(1);
     }
   }
@@ -495,7 +494,7 @@ rd_int11(int  int11[NBPAIRS + 1][NBPAIRS + 1][5][5],
     for (j = 1; j < NBPAIRS + 1; j++) {
       cp = get_array1(int11[i][j][0], 5 * 5, fp);
       if (cp) {
-        vrna_message_error("convert_epars: rd_int11: in field int11[%d][%d]\n\t%s", i, j, cp);
+        vrna_log_error("convert_epars: rd_int11: in field int11[%d][%d]\n\t%s", i, j, cp);
         exit(1);
       }
     }
@@ -517,7 +516,7 @@ rd_int21(int  int21[NBPAIRS + 1][NBPAIRS + 1][5][5][5],
       for (k = 0; k < 5; k++) {
         cp = get_array1(int21[i][j][k][0], 5 * 5, fp);
         if (cp) {
-          vrna_message_error("convert_epars: rd_int21: in field int21[%d][%d][%d]\n\t%s",
+          vrna_log_error("convert_epars: rd_int21: in field int21[%d][%d][%d]\n\t%s",
                              i, j, k, cp);
           exit(1);
         }
@@ -543,7 +542,7 @@ rd_int22(int  int22[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5],
           for (m = 1; m < 5; m++) {
             cp = get_array1(int22[i][j][k][l][m] + 1, 4, fp);
             if (cp) {
-              vrna_message_error("convert_epars: rd_int22: in field "
+              vrna_log_error("convert_epars: rd_int22: in field "
                                  "int22[%d][%d][%d][%d][%d]\n\t%s",
                                  i, j, k, l, m, cp);
               exit(1);
@@ -565,7 +564,7 @@ rd_dangle(int   dangle[NBPAIRS + 1][5],
   for (i = 0; i < NBPAIRS + 1; i++) {
     cp = get_array1(dangle[i], 5, fp);
     if (cp) {
-      vrna_message_error("convert_epars: \nrd_dangle: %s", cp);
+      vrna_log_error("convert_epars: \nrd_dangle: %s", cp);
       exit(1);
     }
   }
@@ -582,7 +581,7 @@ rd_MLparams(FILE *fp)
 
   cp = get_array1(values, 4, fp);
   if (cp) {
-    vrna_message_error("convert_epars: rd_MLparams: %s", cp);
+    vrna_log_error("convert_epars: rd_MLparams: %s", cp);
     exit(1);
   }
 
@@ -605,7 +604,7 @@ rd_misc(FILE *fp)
 
   cp = get_array1(values, 1, fp);
   if (cp) {
-    vrna_message_error("convert_epars: rd_misc: %s", cp);
+    vrna_log_error("convert_epars: rd_misc: %s", cp);
     exit(1);
   }
 
@@ -626,7 +625,7 @@ rd_ninio(FILE *fp)
   cp = get_array1(temp, 2, fp);
 
   if (cp) {
-    vrna_message_error("convert_epars: rd_F_ninio: %s", cp);
+    vrna_log_error("convert_epars: rd_F_ninio: %s", cp);
     exit(1);
   }
 
@@ -699,7 +698,7 @@ ignore_comment(char *line)
   if ((cp1 = strstr(line, "/*"))) {
     cp2 = strstr(cp1, "*/");
     if (cp2 == NULL)
-      vrna_message_error("convert_epars: unclosed comment in parameter file");
+      vrna_log_error("convert_epars: unclosed comment in parameter file");
 
     /* can't use strcpy for overlapping strings */
     for (cp2 += 2; *cp2 != '\0'; cp2++, cp1++)
@@ -1191,12 +1190,12 @@ check_symmetry(void)
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       if (stack37_184[i][j] != stack37_184[j][i])
-        vrna_message_warning("stacking energies not symmetric");
+        vrna_log_warning("stacking energies not symmetric");
 
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       if (enthalpies_184[i][j] != enthalpies_184[j][i])
-        vrna_message_warning("stacking enthalpies not symmetric");
+        vrna_log_warning("stacking enthalpies not symmetric");
 
   /* interior 1x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
@@ -1204,14 +1203,14 @@ check_symmetry(void)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++)
           if (int11_37_184[i][j][k][l] != int11_37_184[j][i][l][k])
-            vrna_message_warning("int11 energies not symmetric");
+            vrna_log_warning("int11 energies not symmetric");
 
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++)
           if (int11_H_184[i][j][k][l] != int11_H_184[j][i][l][k])
-            vrna_message_warning("int11 enthalpies not symmetric");
+            vrna_log_warning("int11 enthalpies not symmetric");
 
   /* interior 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
@@ -1222,7 +1221,7 @@ check_symmetry(void)
           for (m = 0; m < 5; m++)
             for (n = 0; n < 5; n++)
               if (int22_37_184[i][j][k][l][m][n] != int22_37_184[j][i][m][n][k][l])
-                vrna_message_warning("int22 energies not symmetric");
+                vrna_log_warning("int22 energies not symmetric");
         }
 
   for (i = 0; i <= NBPAIRS; i++)
@@ -1233,7 +1232,7 @@ check_symmetry(void)
           for (m = 0; m < 5; m++)
             for (n = 0; n < 5; n++)
               if (int22_H_184[i][j][k][l][m][n] != int22_H_184[j][i][m][n][k][l]) {
-                vrna_message_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d",
+                vrna_log_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d",
                                      i,
                                      j,
                                      k,

@@ -17,6 +17,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
@@ -234,7 +235,7 @@ vrna_hc_update(vrna_fold_compound_t *fc,
     hc  = fc->hc;
 
     if (i > n) {
-      vrna_message_warning("vrna_hc_update(): Position %u out of range!",
+      vrna_log_warning("vrna_hc_update(): Position %u out of range!",
                            " (Sequence length: %u)",
                            i, n);
     } else {
@@ -444,7 +445,7 @@ vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *vc,
   if (vc) {
     if (vc->hc) {
       if ((i <= 0) || (i > vc->length)) {
-        vrna_message_warning("vrna_hc_add_bp_nonspecific: position out of range, not doing anything");
+        vrna_log_warning("vrna_hc_add_bp_nonspecific: position out of range, not doing anything");
         return;
       }
 
@@ -552,9 +553,9 @@ vrna_hc_add_bp(vrna_fold_compound_t *vc,
 
     if (vc->hc) {
       if ((i <= 0) || (j <= i) || (j > vc->length)) {
-        vrna_message_warning("vrna_hc_add_bp: position out of range, omitting constraint");
+        vrna_log_warning("vrna_hc_add_bp: position out of range, omitting constraint");
       } else if ((sn[i] == sn[j]) && ((j - i - 1) < vc->params->model_details.min_loop_size)) {
-        vrna_message_warning(
+        vrna_log_warning(
           "vrna_hc_add_bp: Pairing partners (%d, %d) violate minimum loop size settings of %dnt, omitting constraint",
           i,
           j,
@@ -1535,7 +1536,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
       case ')':
         if (options & VRNA_CONSTRAINT_DB_RND_BRACK) {
           if (hx <= 0) {
-            vrna_message_warning("vrna_hc_add_from_db: "
+            vrna_log_warning("vrna_hc_add_from_db: "
                                  "Unbalanced brackets in constraint string\n%s\n"
                                  "No constraints will be applied!",
                                  constraint);
@@ -1547,7 +1548,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
           if (options & VRNA_CONSTRAINT_DB_CANONICAL_BP) {
             /* check whether this pair forms a non-canoncial base pair */
             if (md->pair[S[i]][S[j]] == 0) {
-              vrna_message_warning("Removing non-canonical base pair %c%c (%d,%d) from constraint",
+              vrna_log_warning("Removing non-canonical base pair %c%c (%d,%d) from constraint",
                                    sequence[i - 1], sequence[j - 1],
                                    i, j);
               break;
@@ -1555,7 +1556,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
           }
 
           if ((j - i - 1) < md->min_loop_size) {
-            vrna_message_warning("vrna_hc_add_from_db: "
+            vrna_log_warning("vrna_hc_add_from_db: "
                                  "Pairing partners (%d, %d) violate minimum loop size settings of %dnt, omitting constraint",
                                  i,
                                  j,
@@ -1762,7 +1763,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
         break;
 
       default:
-        vrna_message_warning(
+        vrna_log_warning(
           "vrna_hc_add_from_db: "
           "Unrecognized character '%c' in constraint string",
           constraint[j - 1]);
@@ -1771,7 +1772,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
   }
 
   if (hx != 0) {
-    vrna_message_warning("vrna_hc_add_from_db: "
+    vrna_log_warning("vrna_hc_add_from_db: "
                          "Unbalanced brackets in constraint string\n%s\n"
                          "No constraints will be applied!",
                          constraint);
@@ -2063,7 +2064,7 @@ constrain_ptypes(const char   *constraint,
           break;
         case ')':
           if (hx <= 0)
-            vrna_message_error("%s\nunbalanced brackets in constraint", constraint);
+            vrna_log_error("%s\nunbalanced brackets in constraint", constraint);
 
           i     = stack[--hx];
           type  = ptype[index[j] + i];
@@ -2108,7 +2109,7 @@ constrain_ptypes(const char   *constraint,
           break;
         case ')':
           if (hx <= 0)
-            vrna_message_error("%s\nunbalanced brackets in constraints", constraint);
+            vrna_log_error("%s\nunbalanced brackets in constraints", constraint);
 
           i     = stack[--hx];
           type  = ptype[index[i] - j];
@@ -2131,7 +2132,7 @@ constrain_ptypes(const char   *constraint,
   }
 
   if (hx != 0)
-    vrna_message_error("%s\nunbalanced brackets in constraint string", constraint);
+    vrna_log_error("%s\nunbalanced brackets in constraint string", constraint);
 
   free(index);
   free(stack);

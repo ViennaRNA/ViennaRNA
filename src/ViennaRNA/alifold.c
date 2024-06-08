@@ -36,6 +36,7 @@
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/loops/all.h"
 
 #ifdef _OPENMP
@@ -235,7 +236,7 @@ energy_of_ali_gquad_structure(const char  **sequences,
 
     vrna_fold_compound_free(vc);
   } else {
-    vrna_message_warning("energy_of_ali_gquad_structure: "
+    vrna_log_warning("energy_of_ali_gquad_structure: "
                          "no sequences in alignment!");
     return (float)(INF / 100.);
   }
@@ -263,7 +264,7 @@ energy_of_alistruct(const char  **sequences,
 
     vrna_fold_compound_free(vc);
   } else {
-    vrna_message_warning("energy_of_alistruct(): "
+    vrna_log_warning("energy_of_alistruct(): "
                          "no sequences in alignment!");
     return (float)(INF / 100.);
   }

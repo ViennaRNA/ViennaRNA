@@ -6,6 +6,7 @@
 #include "json/json.h"
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/datastructures/string.h"
 #include "ViennaRNA/io/utils.h"
@@ -103,7 +104,7 @@ vrna_sc_mod_read_from_jsonfile(const char *filename,
     params = vrna_sc_mod_read_from_json(param_content, md);
 
     if (!params)
-      vrna_message_warning("JSON content could not be read from file \"%s\"",
+      vrna_log_warning("JSON content could not be read from file \"%s\"",
                            filename);
 
     vrna_string_free(param_content);
@@ -123,7 +124,7 @@ vrna_sc_mod_read_from_json(const char *json,
 
   if (json) {
     if (!json_validate(json)) {
-      vrna_message_warning("JSON content is not valid\n");
+      vrna_log_warning("JSON content is not valid\n");
       return NULL;
     }
 
@@ -306,7 +307,7 @@ parse_stacks(JsonNode   *dom,
         /* encode sequence */
         for (i = 0; i < 4; i++) {
           if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n",
+            vrna_log_warning("Unrecognized character in \"%s\" base: %s\n",
                                  identifier,
                                  entry->key);
             break;
@@ -369,7 +370,7 @@ parse_mismatch(JsonNode   *dom,
         /* encode sequence */
         for (i = 0; i < 4; i++) {
           if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n",
+            vrna_log_warning("Unrecognized character in \"%s\" base: %s\n",
                                  identifier,
                                  entry->key);
             break;
@@ -432,7 +433,7 @@ parse_dangles(JsonNode    *dom,
         /* encode sequence */
         for (i = 0; i < 3; i++) {
           if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n",
+            vrna_log_warning("Unrecognized character in \"%s\" base: %s\n",
                                  identifier,
                                  entry->key);
             break;
@@ -491,7 +492,7 @@ parse_terminal(JsonNode   *dom,
         /* encode sequence */
         for (i = 0; i < 2; i++) {
           if (!(enc_ptr = strchr(&bases[0], entry->key[i]))) {
-            vrna_message_warning("Unrecognized character in \"%s\" base: %s\n",
+            vrna_log_warning("Unrecognized character in \"%s\" base: %s\n",
                                  identifier,
                                  entry->key);
             break;

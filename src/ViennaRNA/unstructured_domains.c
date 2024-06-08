@@ -22,6 +22,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/eval.h"
 #include "ViennaRNA/unstructured_domains.h"
@@ -1555,7 +1556,7 @@ backtrack_MEA_matrix(vrna_fold_compound_t *fc,
     }
 
     if (!found) {
-      vrna_message_warning("Backtracking failed in unstructured domains MEA\n");
+      vrna_log_warning("Backtracking failed in unstructured domains MEA\n");
       motif_cnt = 0;
       break;
     }
@@ -2604,7 +2605,7 @@ default_probs_add(vrna_fold_compound_t  *vc,
       storage     = &(d->outside_mb[i]);
       size        = &(d->outside_mb_count[i]);
     } else {
-      vrna_message_warning("Unknown unstructured domain loop type");
+      vrna_log_warning("Unknown unstructured domain loop type");
       return;
     }
 
@@ -2656,7 +2657,7 @@ default_probs_add(vrna_fold_compound_t  *vc,
       storage     = d->outside_mb;
       size        = d->outside_mb_count;
     } else {
-      vrna_message_warning("Unknown unstructured domain loop type");
+      vrna_log_warning("Unknown unstructured domain loop type");
       return;
     }
 

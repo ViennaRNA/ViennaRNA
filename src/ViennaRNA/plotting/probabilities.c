@@ -20,6 +20,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/plotting/probabilities.h"
 
@@ -301,7 +302,7 @@ vrna_plot_dp_EPS( const char              *filename,
   
   fh = fopen(filename, "w");
   if(!fh){
-    vrna_message_warning("can't open %s for dot plot", filename);
+    vrna_log_warning("can't open %s for dot plot", filename);
     return 0; /* return 0 for failure */
   }
 
@@ -1013,7 +1014,7 @@ PS_dot_common(const char    *seq,
 
   wastl = fopen(wastlfile,"w");
   if (wastl==NULL) {
-    vrna_message_warning("can't open %s for dot plot", wastlfile);
+    vrna_log_warning("can't open %s for dot plot", wastlfile);
     return NULL; /* return 0 for failure */
   }
   name = strdup(wastlfile);

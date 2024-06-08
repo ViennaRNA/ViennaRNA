@@ -3,6 +3,7 @@
 
 #include <ctype.h>
 #include <ViennaRNA/utils/basic.h>
+#include "ViennaRNA/utils/log.h"
 #include <ViennaRNA/fold_vars.h>
 
 #define NBASES 8
@@ -145,7 +146,7 @@ make_pair_matrix(void)
         pair[i][i - 1] = 6;     /* DC <-> UA */
       }
     } else {
-      vrna_message_error("What energy_set are YOU using??");
+      vrna_log_error("What energy_set are YOU using??");
     }
 
     for (i = 0; i <= MAXALPHA; i++)

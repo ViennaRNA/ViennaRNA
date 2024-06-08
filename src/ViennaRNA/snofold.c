@@ -20,6 +20,7 @@
 #include <string.h>
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
@@ -171,7 +172,7 @@ snoinitialize_fold(const int length)
   unsigned int n;
 
   if (length < 1)
-    vrna_message_error("snoinitialize_fold: argument must be greater 0");
+    vrna_log_error("snoinitialize_fold: argument must be greater 0");
 
   if (init_length > 0)
     snofree_arrays(length);
@@ -191,7 +192,7 @@ alisnoinitialize_fold(const int length)
   unsigned int n;
 
   if (length < 1)
-    vrna_message_error("snoinitialize_fold: argument must be greater 0");
+    vrna_log_error("snoinitialize_fold: argument must be greater 0");
 
   if (init_length > 0)
     snofree_arrays(length);
@@ -519,14 +520,14 @@ make_pscores(int                n,
           break;
         case ']':
           if (hx2 <= 0)
-            vrna_message_error("unbalanced brackets in constraints\n%s", structure);
+            vrna_log_error("unbalanced brackets in constraints\n%s", structure);
 
           i                   = stack2[--hx2];
           pscore[indx[j] + i] = NONE;
           break;
         case ')':
           if (hx <= 0)
-            vrna_message_error("unbalanced brackets in constraints\n%s", structure);
+            vrna_log_error("unbalanced brackets in constraints\n%s", structure);
 
           i     = stack[--hx];
           psij  = pscore[indx[j] + i]; /* store for later */
@@ -547,7 +548,7 @@ make_pscores(int                n,
       }
     }
     if (hx != 0)
-      vrna_message_error("unbalanced brackets in constraint string\n%s", structure);
+      vrna_log_error("unbalanced brackets in constraint string\n%s", structure);
 
     free(stack);
     free(stack2);
@@ -591,7 +592,7 @@ alisnofold(const char **strings,
   Sali  = (short **)vrna_alloc(n_seq * sizeof(short *));
   for (s = 0; s < n_seq; s++) {
     if (strlen(strings[s]) != length)
-      vrna_message_error("uneqal seqence lengths");
+      vrna_log_error("uneqal seqence lengths");
 
     Sali[s] = aliencode_seq(strings[s]);
   }
@@ -1310,7 +1311,7 @@ alisnobacktrack_fold_from_pair(const char **strings,
   Sali = (short **)vrna_alloc(n_seq * sizeof(short *));
   for (s = 0; s < n_seq; s++) {
     if (strlen(strings[s]) != length)
-      vrna_message_error("uneqal seqence lengths");
+      vrna_log_error("uneqal seqence lengths");
 
     Sali[s] = aliencode_seq(strings[s]);
   }

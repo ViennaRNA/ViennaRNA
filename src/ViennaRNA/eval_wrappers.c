@@ -34,6 +34,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/hard.h"
@@ -602,7 +603,7 @@ vrna_eval_move(vrna_fold_compound_t *fc,
       en  = vrna_eval_move_pt(fc, pt, m1, m2);
       free(pt);
     } else {
-      vrna_message_warning("vrna_eval_move: "
+      vrna_log_warning("vrna_eval_move: "
                            "sequence and structure have unequal length (%d vs. %d)",
                            fc->length,
                            strlen(structure));
@@ -801,7 +802,7 @@ energy_of_struct_pt(const char  *string,
       fc  = recycle_last_call(string, NULL);
       en  = vrna_eval_structure_pt_v(fc, pt, eos_debug, NULL);
     } else {
-      vrna_message_warning("energy_of_struct_pt: "
+      vrna_log_warning("energy_of_struct_pt: "
                            "string and structure have unequal length (%d vs. %d)",
                            strlen(string),
                            pt[0]);
@@ -950,7 +951,7 @@ energy_of_structure_pt(const char *string,
       fc  = recycle_last_call(string, NULL);
       en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
     } else {
-      vrna_message_warning("energy_of_structure_pt: "
+      vrna_log_warning("energy_of_structure_pt: "
                            "string and structure have unequal length (%d vs. %d)",
                            strlen(string),
                            pt[0]);
@@ -980,7 +981,7 @@ energy_of_struct_pt_par(const char    *string,
       fc  = recycle_last_call(string, parameters);
       en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
     } else {
-      vrna_message_warning("energy_of_struct_pt_par: "
+      vrna_log_warning("energy_of_struct_pt_par: "
                            "string and structure have unequal length (%d vs. %d)",
                            strlen(string),
                            pt[0]);

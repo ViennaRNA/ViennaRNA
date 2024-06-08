@@ -16,6 +16,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/loops/all.h"
@@ -213,23 +214,23 @@ vrna_pbacktrack_sub_resume_cb(vrna_fold_compound_t              *fc,
     vrna_mx_pf_t *matrices = fc->exp_matrices;
 
     if (start == 0) {
-      vrna_message_warning("vrna_pbacktrack*(): interval start coordinate must be at least 1");
+      vrna_log_warning("vrna_pbacktrack*(): interval start coordinate must be at least 1");
     } else if (end > fc->length) {
-      vrna_message_warning("vrna_pbacktrack*(): interval end coordinate exceeds sequence length");
+      vrna_log_warning("vrna_pbacktrack*(): interval end coordinate exceeds sequence length");
     } else if (end < start) {
-      vrna_message_warning("vrna_pbacktrack*(): interval end < start");
+      vrna_log_warning("vrna_pbacktrack*(): interval end < start");
     } else if ((!matrices) || (!matrices->q) || (!matrices->qb) || (!matrices->qm) ||
                (!fc->exp_params)) {
-      vrna_message_warning("vrna_pbacktrack*(): %s", info_call_pf);
+      vrna_log_warning("vrna_pbacktrack*(): %s", info_call_pf);
     } else if ((!fc->exp_params->model_details.uniq_ML) || (!matrices->qm1)) {
-      vrna_message_warning("vrna_pbacktrack*(): %s", info_set_uniq_ml);
+      vrna_log_warning("vrna_pbacktrack*(): %s", info_set_uniq_ml);
     } else if ((fc->exp_params->model_details.circ) && (end < fc->length)) {
-      vrna_message_warning("vrna_pbacktrack5*(): %s", info_no_circ);
+      vrna_log_warning("vrna_pbacktrack5*(): %s", info_no_circ);
     } else if (options & VRNA_PBACKTRACK_NON_REDUNDANT) {
       if (fc->exp_params->model_details.circ) {
-        vrna_message_warning("vrna_pbacktrack5*(): %s", info_no_circ);
+        vrna_log_warning("vrna_pbacktrack5*(): %s", info_no_circ);
       } else if (!nr_mem) {
-        vrna_message_warning("vrna_pbacktrack5*(): Pointer to nr_mem must not be NULL!");
+        vrna_log_warning("vrna_pbacktrack5*(): Pointer to nr_mem must not be NULL!");
       } else {
         if ((*nr_mem == NULL) ||
             ((*nr_mem)->start != start) ||
@@ -244,7 +245,7 @@ vrna_pbacktrack_sub_resume_cb(vrna_fold_compound_t              *fc,
 
         /* print warning if we've aborted backtracking too early */
         if ((i > 0) && (i < num_samples)) {
-          vrna_message_warning("vrna_pbacktrack5*(): "
+          vrna_log_warning("vrna_pbacktrack5*(): "
                                "Stopped non-redundant backtracking after %d samples"
                                " due to numeric instabilities!\n"
                                "Coverage of partition function so far: %.6f%%",
@@ -401,13 +402,13 @@ wrap_pbacktrack(vrna_fold_compound_t              *vc,
 #endif
 
       if (pf_overflow) {
-        vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_nr_overflow);
+        vrna_log_warning("vrna_pbacktrack_nr*(): %s", info_nr_overflow);
         free(pstruc + (start - 1));
         break;
       }
 
       if (is_dup) {
-        vrna_message_warning("vrna_pbacktrack_nr*(): %s", info_nr_duplicates);
+        vrna_log_warning("vrna_pbacktrack_nr*(): %s", info_nr_duplicates);
         free(pstruc + (start - 1));
         break;
       }
@@ -673,7 +674,7 @@ backtrack_ext_loop(int                              start,
         /* exhausted ensemble */
         return 0;
       } else {
-        vrna_message_warning("backtracking failed in ext loop");
+        vrna_log_warning("backtracking failed in ext loop");
         /* error */
         return -1;
       }
@@ -1058,7 +1059,7 @@ backtrack_qm1(int                             i,
     if (current_node) {
       return 0;
     } else {
-      vrna_message_error("backtrack failed in qm1");
+      vrna_log_error("backtrack failed in qm1");
       return 0;
     }
   }
@@ -1104,7 +1105,7 @@ backtrack_qm2(int                   k,
   }
 
   if (u == n - turn)
-    vrna_message_error("backtrack failed in qm2");
+    vrna_log_error("backtrack failed in qm2");
 
   backtrack_qm1(k, u, pstruc, vc, sc_wrap, NULL);
   backtrack_qm1(u + 1, n, pstruc, vc, sc_wrap, NULL);
@@ -1474,7 +1475,7 @@ backtrack(int                             i,
         free(types);
         return 0; /* backtrack failed for non-redundant mode most likely due to numerical instabilities */
       } else {
-        vrna_message_error("backtrack failed, can't find split index ");
+        vrna_log_error("backtrack failed, can't find split index ");
       }
     }
 
@@ -1746,7 +1747,7 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
      * if we reach the actual end of this function, an error has occured
      * cause we HAVE TO find an exterior loop or an open chain!!!
      */
-    vrna_message_error("backtracking failed in exterior loop");
+    vrna_log_error("backtracking failed in exterior loop");
 
 pbacktrack_circ_loop_end:
 

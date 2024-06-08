@@ -4,6 +4,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/datastructures/heap.h"
 #include "ViennaRNA/eval.h"
 #include <ViennaRNA/landscape/neighbor.h>
@@ -482,7 +483,7 @@ gradient_descent_update_cb(vrna_fold_compound_t *fc,
       break;
 
     default:
-      vrna_message_warning("unrecognized state in neighbor callback");
+      vrna_log_warning("unrecognized state in neighbor callback");
       break;
   }
 }

@@ -7,6 +7,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 
 #include "ViennaRNA/ribo.h"
@@ -817,7 +818,7 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_12_11[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     case 13:
@@ -863,7 +864,7 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_13_12[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     case 14:
@@ -914,7 +915,7 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_14_13[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     case 15:
@@ -970,7 +971,7 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_15_14[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     case 16:
@@ -1031,7 +1032,7 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_16_15[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     case 17:
@@ -1097,7 +1098,7 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_17_16[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     case 18:
@@ -1168,7 +1169,7 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_18_17[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     case 19:
@@ -1244,7 +1245,7 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_19_18[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     case 20:
@@ -1325,11 +1326,11 @@ get_ribosum(const char  **Alseq,
               ribo[i][j] = dm_20_19[i][j];
           break;
         default:
-          vrna_message_error("da hats was grobes im dmchoose\n");
+          vrna_log_error("da hats was grobes im dmchoose\n");
       }
       break;
     default:
-      vrna_message_error("da hats was grobes im dmchoose\n");
+      vrna_log_error("da hats was grobes im dmchoose\n");
   }
   return ribo;
 }

@@ -204,7 +204,7 @@ hc_ext_cb_def(int           i,
       break;
 
     default:
-      vrna_message_warning("hc_cb@exterior_loops.c: "
+      vrna_log_warning("hc_cb@exterior_loops.c: "
                            "Unrecognized decomposition %d",
                            d);
   }
@@ -282,7 +282,7 @@ hc_ext_cb_sn(int            i,
       break;
 
     default:
-      vrna_message_warning("hc_cb@exterior_loops.c: "
+      vrna_log_warning("hc_cb@exterior_loops.c: "
                            "Unrecognized decomposition %d",
                            d);
   }
@@ -406,7 +406,7 @@ hc_ext_cb_def_window(int            i,
       break;
 
     default:
-      vrna_message_warning("hc_cb@exterior_loops.c: "
+      vrna_log_warning("hc_cb@exterior_loops.c: "
                            "Unrecognized decomposition %d",
                            d);
   }

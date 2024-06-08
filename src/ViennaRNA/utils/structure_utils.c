@@ -22,6 +22,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/MEA.h"
 
 #ifdef __GNUC__
@@ -144,7 +145,7 @@ vrna_db_pack(const char *struc)
           p += 2;
           break;
         default:
-          vrna_message_warning("vrna_db_pack: "
+          vrna_log_warning("vrna_db_pack: "
                                "illegal character %c at position %d in structure\n%s",
                                struc[i],
                                i + 1,
@@ -271,7 +272,7 @@ vrna_loopidx_from_ptable(const short *pt)
         l = 0;                    /* external loop has index 0 */
 
       if (hx < 0) {
-        vrna_message_warning("vrna_loopidx_from_ptable: "
+        vrna_log_warning("vrna_loopidx_from_ptable: "
                              "unbalanced brackets in make_pair_table");
         free(stack);
         return NULL;
@@ -414,7 +415,7 @@ vrna_db_from_ptable(const short *ptable)
         bracket_count++;
 
         if (bracket_count >= 30) {
-          vrna_message_warning("Not enough bracket types available in vrna_db_from_ptable()! Skipping remaining base pairs!");
+          vrna_log_warning("Not enough bracket types available in vrna_db_from_ptable()! Skipping remaining base pairs!");
           break;
         }
       }
@@ -480,7 +481,7 @@ vrna_ptable_from_string(const char    *string,
   n = strlen(string);
 
   if (n > SHRT_MAX) {
-    vrna_message_warning("vrna_ptable_from_string: "
+    vrna_log_warning("vrna_ptable_from_string: "
                          "Structure too long to be converted to pair table (n=%d, max=%d)",
                          n,
                          SHRT_MAX);
@@ -654,7 +655,7 @@ vrna_dist_mountain(const char   *str1,
     n = strlen(str1);
 
     if (n != strlen(str2)) {
-      vrna_message_warning("vrna_dist_mountain: input structures have unequal lengths!");
+      vrna_log_warning("vrna_dist_mountain: input structures have unequal lengths!");
       return distance;
     }
 
@@ -986,9 +987,9 @@ vrna_plist_from_probs(vrna_fold_compound_t  *vc,
                       double                cut_off)
 {
   if (!vc)
-    vrna_message_warning("vrna_pl_get_from_pr: run vrna_pf_fold first!");
+    vrna_log_warning("vrna_pl_get_from_pr: run vrna_pf_fold first!");
   else if (!vc->exp_matrices->probs)
-    vrna_message_warning("vrna_pl_get_from_pr: probs==NULL!");
+    vrna_log_warning("vrna_pl_get_from_pr: probs==NULL!");
   else
     return wrap_plist(vc, cut_off);
 
@@ -1653,7 +1654,7 @@ extract_pairs(short       *pt,
       j = stack[--hx];
 
       if (hx < 0) {
-        vrna_message_warning("%s\nunbalanced brackets '%2s' found while extracting base pairs",
+        vrna_log_warning("%s\nunbalanced brackets '%2s' found while extracting base pairs",
                              structure,
                              pair);
         free(stack);
@@ -1668,7 +1669,7 @@ extract_pairs(short       *pt,
   free(stack);
 
   if (hx != 0) {
-    vrna_message_warning("%s\nunbalanced brackets '%2s' found while extracting base pairs",
+    vrna_log_warning("%s\nunbalanced brackets '%2s' found while extracting base pairs",
                          structure,
                          pair);
     return 0;

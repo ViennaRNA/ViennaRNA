@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/search/BoyerMoore.h"
 
 /*
@@ -261,14 +262,14 @@ get_BM_BCT(const char *needle,
       } \
       val = haystack[(shift + needle_size - 1) % haystack_size]; \
       if (val > max) { \
-        vrna_message_warning("vrna_search_BMH: " \
-                             "haystack value %d at hit %d " \
-                             "out of bad character table range [%d : %d]\n" \
-                             "Aborting search...", \
-                             (shift + needle_size - 1) % haystack_size, \
-                             val, \
-                             0, \
-                             max); \
+        vrna_log_warning("vrna_search_BMH: " \
+                         "haystack value %d at hit %d " \
+                         "out of bad character table range [%d : %d]\n" \
+                         "Aborting search...", \
+                         (shift + needle_size - 1) % haystack_size, \
+                         val, \
+                         0, \
+                         max); \
         return NULL; \
       } \
       shift += bad_chars[(size_t)val]; \

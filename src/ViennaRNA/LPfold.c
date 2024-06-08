@@ -19,6 +19,7 @@
 #include <math.h>
 #include <float.h>    /* #defines FLT_MAX ... */
 #include "ViennaRNA/datastructures/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
@@ -698,7 +699,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
     return 0; /* failure */
 
   if (!vrna_fold_compound_prepare(vc, VRNA_OPTION_PF | VRNA_OPTION_WINDOW)) {
-    vrna_message_warning("vrna_probs_window: "
+    vrna_log_warning("vrna_probs_window: "
                          "Failed to prepare vrna_fold_compound");
     return 0; /* failure */
   }
@@ -802,7 +803,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         if (temp > Qmax) {
           Qmax = temp;
           if (Qmax > max_real / 10.) {
-            vrna_message_warning("vrna_probs_window: "
+            vrna_log_warning("vrna_probs_window: "
                                  "Q close to overflow: %d %d %g\n",
                                  i,
                                  j,
@@ -811,7 +812,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         }
 
         if (temp >= max_real) {
-          vrna_message_warning("vrna_probs_window: "
+          vrna_log_warning("vrna_probs_window: "
                                "overflow while computing partition function for segment q[%d,%d]\n"
                                "use larger pf_scale",
                                i,
@@ -933,7 +934,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
   }
 
   if (ov > 0) {
-    vrna_message_warning("vrna_probs_window: "
+    vrna_log_warning("vrna_probs_window: "
                          "%d overflows occurred while backtracking;\n"
                          "you might try a smaller pf_scale than %g\n",
                          ov,
@@ -1343,7 +1344,7 @@ compute_probs(vrna_fold_compound_t        *vc,
       if (pR[k][l] > Qmax) {
         Qmax = pR[k][l];
         if (Qmax > max_real / 10.)
-          vrna_message_warning("P close to overflow: %d %d %g %g\n",
+          vrna_log_warning("P close to overflow: %d %d %g %g\n",
                                i, m, pR[k][l], qb[k][l]);
       }
 
@@ -2076,7 +2077,7 @@ print_pU_callback(double        *pU,
     else if (type & VRNA_MB_LOOP)
       fprintf(fp, "\tM\n");
     else
-      vrna_message_warning("unknown loop type");
+      vrna_log_warning("unknown loop type");
   }
 }
 
@@ -2343,7 +2344,7 @@ putoutpU_prob(double  **pU,
   if (backward_compat_compound && backward_compat)
     putoutpU_prob_old(pU, length, ulength, fp, energies, backward_compat_compound->exp_params);
   else
-    vrna_message_warning("putoutpU_prob: Not doing anything! First, run pfl_fold()!");
+    vrna_log_warning("putoutpU_prob: Not doing anything! First, run pfl_fold()!");
 }
 
 
@@ -2413,7 +2414,7 @@ putoutpU_prob_bin(double  **pU,
   if (backward_compat_compound && backward_compat)
     putoutpU_prob_bin_old(pU, length, ulength, fp, energies, backward_compat_compound->exp_params);
   else
-    vrna_message_warning("putoutpU_prob_bin: Not doing anything! First, run pfl_fold()!");
+    vrna_log_warning("putoutpU_prob_bin: Not doing anything! First, run pfl_fold()!");
 }
 
 

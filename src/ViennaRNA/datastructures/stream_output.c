@@ -11,6 +11,7 @@
 #endif
 
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/datastructures/stream_output.h"
 
 #ifdef __GNUC__
@@ -207,7 +208,7 @@ vrna_ostream_provide(struct vrna_ordered_stream_s *queue,
     pthread_mutex_lock(&queue->mtx);
 #endif
     if ((queue->end < i) || (i < queue->start)) {
-      vrna_message_warning(
+      vrna_log_warning(
         "vrna_ostream_provide(): data position (%d) out of range [%d:%d]!",
         i,
         queue->start,

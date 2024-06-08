@@ -73,6 +73,7 @@
 
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
@@ -700,21 +701,21 @@ pf_interact(const char  *s1,
         cj = (int)(pos - i_short) + 1;    /* j */
 
       if (ck > 0 && ci > 0 && ci - ck + 1 > w) {
-        vrna_message_warning("distance between constrains in longer seq, %d, larger than -w = %d",
+        vrna_log_warning("distance between constrains in longer seq, %d, larger than -w = %d",
                              ci - ck + 1,
                              w);
-        vrna_message_error("pf_interact: could not satisfy all constraints");
+        vrna_log_error("pf_interact: could not satisfy all constraints");
       }
 
       if (cj > 0 && cl > 0 && cl - cj + 1 > w) {
-        vrna_message_warning("distance between constrains in shorter seq, %d, larger than -w = %d",
+        vrna_log_warning("distance between constrains in shorter seq, %d, larger than -w = %d",
                              cl - cj + 1,
                              w);
-        vrna_message_error("pf_interact: could not satisfy all constraints");
+        vrna_log_error("pf_interact: could not satisfy all constraints");
       }
     }
   } else if (fold_constrained && cstruc == NULL) {
-    vrna_message_error("option -C selected, but no constrained structure given\n");
+    vrna_log_error("option -C selected, but no constrained structure given\n");
   }
 
   if (fold_constrained)
@@ -1024,7 +1025,7 @@ pf_interact(const char  *s1,
   }
 
   if (fold_constrained && (gi == 0 || gk == 0 || gl == 0 || gj == 0))
-    vrna_message_error("pf_interact: could not satisfy all constraints");
+    vrna_log_error("pf_interact: could not satisfy all constraints");
 
   /* fill structure interact */
   Int->length   = n1;
@@ -1129,7 +1130,7 @@ init_pf_two(int length)
 
   /* gets the arrays, that we need, from part_func.c */
   if (!get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln))
-    vrna_message_error("init_pf_two: pf_fold() has to be called before calling pf_unstru()\n");
+    vrna_log_error("init_pf_two: pf_fold() has to be called before calling pf_unstru()\n");
 
   /* get a pointer to the base pair probs */
   probs = export_bppm();
@@ -1138,7 +1139,7 @@ init_pf_two(int length)
 
   init_length = length;
   if (init_temp != Pf->temperature)
-    vrna_message_error("init_pf_two: inconsistency with temperature");
+    vrna_log_error("init_pf_two: inconsistency with temperature");
 }
 
 
@@ -1362,7 +1363,7 @@ get_u_vals(pu_contrib *p_c,
   }
 
   if (contribs > 5)
-    vrna_message_error("get_u_vals: error with contribs!");
+    vrna_log_error("get_u_vals: error with contribs!");
 
   /* allocate the results structure */
   u_results       = (pu_out *)vrna_alloc(1 * sizeof(pu_out));
@@ -1499,7 +1500,7 @@ plot_free_pu_out(pu_out   *res,
 
   wastl = fopen(ofile, "a");
   if (wastl == NULL) {
-    vrna_message_warning("p_cont: can't open %s for Up_plot", ofile);
+    vrna_log_warning("p_cont: can't open %s for Up_plot", ofile);
     return 0;
   }
 
@@ -1690,7 +1691,7 @@ get_ptypes_up(char        *Seq,
           break;
         case ')':
           if (hx <= 0)
-            vrna_message_error("1. unbalanced brackets in constraints\n%s", structure);
+            vrna_log_error("1. unbalanced brackets in constraints\n%s", structure);
 
           i     = stack[--hx];
           type  = con->ptype[con->indx[i] - j];
@@ -1708,7 +1709,7 @@ get_ptypes_up(char        *Seq,
       }
     }
     if (hx != 0)
-      vrna_message_error("2. unbalanced brackets in constraint string\n%s", structure);
+      vrna_log_error("2. unbalanced brackets in constraint string\n%s", structure);
 
     free(stack);
   }

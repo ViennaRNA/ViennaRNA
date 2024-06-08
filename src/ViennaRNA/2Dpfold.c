@@ -16,6 +16,7 @@
 #include <string.h>
 #include <float.h>    /* #defines FLT_MAX ... */
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/params/default.h"
@@ -188,7 +189,7 @@ vrna_pf_TwoD(vrna_fold_compound_t *vc,
 
   if (distance1 >= 0) {
     if ((unsigned int)distance1 > maxD1)
-      vrna_message_warning("vrna_pf_TwoD@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
+      vrna_log_warning("vrna_pf_TwoD@2Dpfold.c: limiting maximum basepair distance 1 to %u\n",
                            maxD1);
     else
       maxD1 = (unsigned int)distance1;
@@ -196,7 +197,7 @@ vrna_pf_TwoD(vrna_fold_compound_t *vc,
 
   if (distance2 >= 0) {
     if ((unsigned int)distance2 > maxD2)
-      vrna_message_warning("vrna_pf_TwoD@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
+      vrna_log_warning("vrna_pf_TwoD@2Dpfold.c: limiting maximum basepair distance 2 to %u\n",
                            maxD2);
     else
       maxD2 = (unsigned int)distance2;
@@ -1245,12 +1246,12 @@ pf2D_linear(vrna_fold_compound_t *vc)
           if (matrices->Q[ij][cnt1][cnt2 / 2] > Qmax) {
             Qmax = matrices->Q[ij][cnt1][cnt2 / 2];
             if (Qmax > max_real / 10.)
-              vrna_message_warning("Q close to overflow: %u %u %g\n", i, j,
+              vrna_log_warning("Q close to overflow: %u %u %g\n", i, j,
                                    matrices->Q[ij][cnt1][cnt2 / 2]);
           }
 
           if (matrices->Q[ij][cnt1][cnt2 / 2] >= max_real)
-            vrna_message_error("overflow in pf_fold while calculating q[%u,%u]\n"
+            vrna_log_error("overflow in pf_fold while calculating q[%u,%u]\n"
                                "use larger pf_scale", i, j);
         }
       }
@@ -2084,22 +2085,22 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
 
   if (md->circ) {
     if (n != length)
-      vrna_message_error(
+      vrna_log_error(
         "vrna_pbacktrack_TwoD@2Dfold.c: cotranscriptional backtracking for circular RNAs not supported!");
 
     return pbacktrack_circ(vc, d1, d2);
   }
 
   if (length > n)
-    vrna_message_error(
+    vrna_log_error(
       "vrna_pbacktrack_TwoD@2Dpfold.c: requested transcript length exceeds sequence length!");
 
 #if 0
   if (d1 > maxD1)
-    vrna_message_error("pbacktrack@2Dpfold.c: distance to 1st reference structure to high!");
+    vrna_log_error("pbacktrack@2Dpfold.c: distance to 1st reference structure to high!");
 
   if (d2 > maxD2)
-    vrna_message_error("pbacktrack@2Dpfold.c: distance to 2nd reference structure to high!");
+    vrna_log_error("pbacktrack@2Dpfold.c: distance to 2nd reference structure to high!");
 
 #endif
 
@@ -2118,7 +2119,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
   }
 
   if (dumb) {
-    vrna_message_error("neighborhood %d:%d is not in scope of calculated partition function!\n"
+    vrna_log_error("neighborhood %d:%d is not in scope of calculated partition function!\n"
                        "pbacktrack@2Dpfold.c: exiting...",
                        d1, d2);
   }
@@ -2282,7 +2283,7 @@ vrna_pbacktrack5_TwoD(vrna_fold_compound_t  *vc,
 pbacktrack_ext_loop_early_escape_rem:
 
       if (j == length + 1)
-        vrna_message_error("pbacktrack@2Dpfold.c: backtracking failed in ext loop (rem)");
+        vrna_log_error("pbacktrack@2Dpfold.c: backtracking failed in ext loop (rem)");
 
       /* finally start backtracking the first exterior stem */
       backtrack(vc, pstruc, cnt1, cnt2, i, j);
@@ -2398,7 +2399,7 @@ pbacktrack_ext_loop_early_escape_rem:
 pbacktrack_ext_loop_early_escape:
 
       if (j == length + 1)
-        vrna_message_error("pbacktrack@2Dpfold.c: backtracking failed in ext loop");
+        vrna_log_error("pbacktrack@2Dpfold.c: backtracking failed in ext loop");
 
       backtrack(vc, pstruc, cnt1, cnt2, i, j);
 
@@ -2489,7 +2490,7 @@ pbacktrack_circ(vrna_fold_compound_t  *vc,
   }
 
   if (dumb) {
-    vrna_message_error("neighborhood %d:%d is not in scope of calculated partition function!\n"
+    vrna_log_error("neighborhood %d:%d is not in scope of calculated partition function!\n"
                        "pbacktrack_circ@2Dpfold.c: exiting cheerless...",
                        d1, d2);
   }
@@ -2531,7 +2532,7 @@ pbacktrack_circ(vrna_fold_compound_t  *vc,
       goto pbacktrack_circ_escape;
     }
 
-    vrna_message_error(
+    vrna_log_error(
       "pbacktrack_circ@2Dpfold.c: backtracking failed in exterior loop! Exiting cheerless...");
   }
   /* normal backtracking */
@@ -2755,7 +2756,7 @@ backtrack_qcH(vrna_fold_compound_t  *vc,
       }
   }
 
-  vrna_message_error("backtrack_qcH@2Dpfold.c: failed to find closing pair!");
+  vrna_log_error("backtrack_qcH@2Dpfold.c: failed to find closing pair!");
 }
 
 
@@ -3223,7 +3224,7 @@ backtrack_qcM(vrna_fold_compound_t  *vc,
     }
   }
 
-  vrna_message_error("backtrack_qcM@2Dpfold.c: backtracking failed");
+  vrna_log_error("backtrack_qcM@2Dpfold.c: backtracking failed");
 }
 
 
@@ -3395,7 +3396,7 @@ backtrack_qm2(vrna_fold_compound_t  *vc,
     }
   }
 
-  vrna_message_error("backtrack_qm2@2Dpfold.c: backtracking failed");
+  vrna_log_error("backtrack_qm2@2Dpfold.c: backtracking failed");
 }
 
 
@@ -3478,7 +3479,7 @@ backtrack(vrna_fold_compound_t  *vc,
     if (d1 == -1) {
       r = vrna_urn() * Q_B_rem[ij];
       if (r == 0.)
-        vrna_message_error("backtrack@2Dpfold.c: backtracking failed\n");
+        vrna_log_error("backtrack@2Dpfold.c: backtracking failed\n");
 
       type    = ptype[jindx[j] + i];
       u       = j - i - 1;
@@ -3564,7 +3565,7 @@ backtrack_int_early_escape_rem:
           r = vrna_urn() * Q_B[ij][d1][d2 / 2];
 
       if (r == 0.)
-        vrna_message_error("backtrack@2Dpfold.c: backtracking failed\n");
+        vrna_log_error("backtrack@2Dpfold.c: backtracking failed\n");
 
       type    = ptype[jindx[j] + i];
       u       = j - i - 1;
@@ -3823,7 +3824,7 @@ backtrack_int_early_escape:
     }
 
     if (k >= j)
-      vrna_message_error("backtrack failed, can't find split index ");
+      vrna_log_error("backtrack failed, can't find split index ");
 
 backtrack_ml_early_escape:
 
@@ -3902,7 +3903,7 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
   }
 
   if (r == 0.)
-    vrna_message_error("backtrack_qm1@2Dpfold.c: backtracking failed\n");
+    vrna_log_error("backtrack_qm1@2Dpfold.c: backtracking failed\n");
 
   ii = my_iindx[i];
   for (qt = 0., l = i + turn + 1; l <= j; l++) {
@@ -3953,7 +3954,7 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
     }
   }
   if (l > j)
-    vrna_message_error("backtrack failed in qm1");
+    vrna_log_error("backtrack failed in qm1");
 
 backtrack_qm1_early_escape:
 
@@ -4027,7 +4028,7 @@ backtrack_qm(vrna_fold_compound_t *vc,
     }
 
     if (r == 0.)
-      vrna_message_error("backtrack_qm@2Dpfold.c: backtracking failed in finding qm contribution\n");
+      vrna_log_error("backtrack_qm@2Dpfold.c: backtracking failed in finding qm contribution\n");
 
     qmt = 0.;
     if (d1 == -1) {
@@ -4196,7 +4197,7 @@ backtrack_qm(vrna_fold_compound_t *vc,
     }
 
     if (k > j)
-      vrna_message_error("backtrack_qm@2Dpfold.c: backtrack failed in qm");
+      vrna_log_error("backtrack_qm@2Dpfold.c: backtrack failed in qm");
 
 backtrack_qm_early_escape:
 

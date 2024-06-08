@@ -16,6 +16,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/params/constants.h"
@@ -470,7 +471,7 @@ file2array(const char fname[])
 
     fclose(fp);
   } else {
-    vrna_message_warning("read_parameter_file():"
+    vrna_log_warning("read_parameter_file():"
                          "Can't open file %s\n",
                          fname);
   }
@@ -499,7 +500,7 @@ set_parameters_from_string(char       **file_content,
   last_param_file = (name) ? strdup(name) : NULL;
 
   if (strncmp(file_content[line_no++], "## RNAfold parameter file v2.0", 30) != 0) {
-    vrna_message_warning("Missing header line in file.\n"
+    vrna_log_warning("Missing header line in file.\n"
                          "May be this file has not v2.0 format.\n"
                          "Use INTERRUPT-key to stop.");
   }
@@ -690,7 +691,7 @@ set_parameters_from_string(char       **file_content,
           rd_Hexaloop37(file_content, &line_no);
           break;
         default:      /* do nothing but complain */
-          vrna_message_warning("read_epars: Unknown field identifier in `%s'", line);
+          vrna_log_warning("read_epars: Unknown field identifier in `%s'", line);
       }
     } /* else ignore line */
   }
@@ -751,7 +752,7 @@ get_array1(char   **content,
   while (i < size) {
     line = content[(*line_no)++];
     if (!line)
-      vrna_message_error("unexpected end of file in get_array1");
+      vrna_log_error("unexpected end of file in get_array1");
 
     ignore_comment(line);
     pos = 0;
@@ -763,7 +764,7 @@ get_array1(char   **content,
       } else if (buf[0] == 'x') {
         /* should only be used for loop parameters */
         if (i == 0)
-          vrna_message_error("can't extrapolate first value");
+          vrna_log_error("can't extrapolate first value");
 
         p = arr[last] + (int)(0.5 + lxc37 * log(((double)i) / (double)(last)));
       } else if (strcmp(buf, "DEF") == 0) {
@@ -776,7 +777,7 @@ get_array1(char   **content,
         r = sscanf(buf, "%d", &p);
         if (r != 1) {
           return line + pos;
-          vrna_message_error("can't interpret `%s' in get_array1", buf);
+          vrna_log_error("can't interpret `%s' in get_array1", buf);
           exit(1);
         }
 
@@ -815,7 +816,7 @@ rd_1dim_slice(char    **content,
   cp = get_array1(content, line_no, array + shift, dim - shift - post);
 
   if (cp) {
-    vrna_message_error("\nrd_1dim: %s", cp);
+    vrna_log_error("\nrd_1dim: %s", cp);
     exit(1);
   }
 
@@ -1148,7 +1149,7 @@ ignore_comment(char *line)
   if ((cp1 = strstr(line, "/*"))) {
     cp2 = strstr(cp1, "*/");
     if (cp2 == NULL)
-      vrna_message_error("unclosed comment in parameter file");
+      vrna_log_error("unclosed comment in parameter file");
 
     /* can't use strcpy for overlapping strings */
     for (cp2 += 2; *cp2 != '\0'; cp2++, cp1++)
@@ -1170,12 +1171,12 @@ check_symmetry(void)
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       if (stack37[i][j] != stack37[j][i])
-        vrna_message_warning("stacking energies not symmetric");
+        vrna_log_warning("stacking energies not symmetric");
 
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       if (stackdH[i][j] != stackdH[j][i])
-        vrna_message_warning("stacking enthalpies not symmetric");
+        vrna_log_warning("stacking enthalpies not symmetric");
 
   /* interior 1x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
@@ -1183,7 +1184,7 @@ check_symmetry(void)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++)
           if (int11_37[i][j][k][l] != int11_37[j][i][l][k])
-            vrna_message_warning("int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)",
+            vrna_log_warning("int11 energies not symmetric (%d,%d,%d,%d) (%d vs. %d)",
                                  i, j, k, l, int11_37[i][j][k][l], int11_37[j][i][l][k]);
 
   for (i = 0; i <= NBPAIRS; i++)
@@ -1191,7 +1192,7 @@ check_symmetry(void)
       for (k = 0; k < 5; k++)
         for (l = 0; l < 5; l++)
           if (int11_dH[i][j][k][l] != int11_dH[j][i][l][k])
-            vrna_message_warning("int11 enthalpies not symmetric");
+            vrna_log_warning("int11 enthalpies not symmetric");
 
   /* interior 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
@@ -1202,7 +1203,7 @@ check_symmetry(void)
           for (m = 0; m < 5; m++)
             for (n = 0; n < 5; n++)
               if (int22_37[i][j][k][l][m][n] != int22_37[j][i][m][n][k][l])
-                vrna_message_warning("int22 energies not symmetric");
+                vrna_log_warning("int22 energies not symmetric");
         }
 
   for (i = 0; i <= NBPAIRS; i++)
@@ -1213,7 +1214,7 @@ check_symmetry(void)
           for (m = 0; m < 5; m++)
             for (n = 0; n < 5; n++)
               if (int22_dH[i][j][k][l][m][n] != int22_dH[j][i][m][n][k][l])
-                vrna_message_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d",
+                vrna_log_warning("int22 enthalpies not symmetric: %d %d %d %d %d %d",
                                      i, j, k, l, m, n);
         }
 }
@@ -1352,7 +1353,7 @@ save_parameter_file(const char    fname[],
 
   outfp = fopen(fname, "w");
   if (!outfp) {
-    vrna_message_warning("can't open file %s", fname);
+    vrna_log_warning("can't open file %s", fname);
     return 0;
   }
 
@@ -1648,7 +1649,7 @@ read_parameter_file(const char fname[])
 {
   int ret = vrna_params_load(fname, VRNA_PARAMETER_FORMAT_DEFAULT);
   if (!ret)
-    vrna_message_warning("Failed to load parameters from file \"%s\"", fname);
+    vrna_log_warning("Failed to load parameters from file \"%s\"", fname);
 }
 
 
@@ -1731,7 +1732,7 @@ settype(enum parset s)
     case     MISC:
       return "Misc";
     default:
-      vrna_message_error("\nThe answer is: 42\n");
+      vrna_log_error("\nThe answer is: 42\n");
   }
   return "";
 }
@@ -1835,7 +1836,7 @@ write_parameter_file(const char fname[])
 
   outfp = fopen(fname, "w");
   if (!outfp) {
-    vrna_message_error("can't open file %s", fname);
+    vrna_log_error("can't open file %s", fname);
     exit(1);
   }
 

@@ -21,6 +21,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/file_formats_msa.h"
@@ -217,7 +218,7 @@ vrna_file_msa_detect_format(const char    *filename,
 
   if (!(fp = fopen(filename, "r"))) {
     if (!(options & VRNA_FILE_FORMAT_MSA_SILENT))
-      vrna_message_warning("vrna_file_msa_detect_format: "
+      vrna_log_warning("vrna_file_msa_detect_format: "
                            "Can't open alignment file \"%s\"!",
                            filename);
 
@@ -238,7 +239,7 @@ vrna_file_msa_detect_format(const char    *filename,
           break;
         }
       } else {
-        vrna_message_warning("vrna_file_msa_detect_format: "
+        vrna_log_warning("vrna_file_msa_detect_format: "
                              "Something unexpected happened while parsing the alignment file");
         goto msa_detect_format_exit;
       }
@@ -276,7 +277,7 @@ vrna_file_msa_read(const char   *filename,
 
   if (!(fp = fopen(filename, "r"))) {
     if (verb_level >= 0)
-      vrna_message_warning("vrna_file_msa_read: "
+      vrna_log_warning("vrna_file_msa_read: "
                            "Can't open alignment file \"%s\"!",
                            filename);
 
@@ -312,7 +313,7 @@ vrna_file_msa_read(const char   *filename,
         if (r > 0)
           break;
       } else {
-        vrna_message_warning("vrna_file_msa_read: "
+        vrna_log_warning("vrna_file_msa_read: "
                              "Something unexpected happened while parsing the alignment file");
         goto msa_read_exit;
       }
@@ -321,7 +322,7 @@ vrna_file_msa_read(const char   *filename,
 
   if (r == -1) {
     if (verb_level >= 0)
-      vrna_message_warning("vrna_file_msa_read: "
+      vrna_log_warning("vrna_file_msa_read: "
                            "Alignment file parser is unknown (or not specified?)");
   } else {
     seq_num = r;
@@ -329,7 +330,7 @@ vrna_file_msa_read(const char   *filename,
     if ((seq_num > 0) && (!(options & VRNA_FILE_FORMAT_MSA_NOCHECK))) {
       if (!check_alignment((const char **)(*names), (const char **)(*aln), seq_num, verb_level)) {
         if (verb_level >= 0)
-          vrna_message_warning("vrna_file_msa_read: "
+          vrna_log_warning("vrna_file_msa_read: "
                                "Alignment did not pass sanity checks!");
 
         /* discard the data we've read! */
@@ -373,7 +374,7 @@ vrna_file_msa_read_record(FILE          *fp,
 
   if (!fp) {
     if (verb_level >= 0)
-      vrna_message_warning("Can't read alignment from file pointer!");
+      vrna_log_warning("Can't read alignment from file pointer!");
 
     return seq_num;
   }
@@ -404,10 +405,10 @@ vrna_file_msa_read_record(FILE          *fp,
 
   if (r == 0) {
     if (verb_level >= 0)
-      vrna_message_warning("Did not find parser for specified MSA format!");
+      vrna_log_warning("Did not find parser for specified MSA format!");
   } else {
     if ((r > 1) && (verb_level > 0))
-      vrna_message_warning("More than one MSA format parser specified!\n"
+      vrna_log_warning("More than one MSA format parser specified!\n"
                            "Using parser for %s", parser_name);
 
     seq_num = parser(fp, names, aln, id, structure, verb_level);
@@ -415,7 +416,7 @@ vrna_file_msa_read_record(FILE          *fp,
     if ((seq_num > 0) && (!(options & VRNA_FILE_FORMAT_MSA_NOCHECK))) {
       if (!check_alignment((const char **)(*names), (const char **)(*aln), seq_num, verb_level)) {
         if (verb_level >= 0)
-          vrna_message_warning("Alignment did not pass sanity checks!");
+          vrna_log_warning("Alignment did not pass sanity checks!");
 
         /* discard the data we've read! */
         free_msa_record(names, aln, id, structure);
@@ -466,7 +467,7 @@ vrna_file_msa_write(const char    *filename,
 
     if (seq_num == 0) {
       if (verb_level >= 0)
-        vrna_message_warning("Alignment did not pass sanity checks!");
+        vrna_log_warning("Alignment did not pass sanity checks!");
 
       return ret;
     }
@@ -475,7 +476,7 @@ vrna_file_msa_write(const char    *filename,
     if ((seq_num > 0) && (!(options & VRNA_FILE_FORMAT_MSA_NOCHECK))) {
       if (!check_alignment(names, aln, seq_num, verb_level)) {
         if (verb_level >= 0)
-          vrna_message_warning("Alignment did not pass sanity checks!");
+          vrna_log_warning("Alignment did not pass sanity checks!");
 
         return ret;
       }
@@ -495,10 +496,10 @@ vrna_file_msa_write(const char    *filename,
 
     if (r == 0) {
       if (verb_level >= 0)
-        vrna_message_warning("Did not find writer for specified MSA format!");
+        vrna_log_warning("Did not find writer for specified MSA format!");
     } else {
       if ((r > 1) && (verb_level > 0))
-        vrna_message_warning("More than one MSA format writer specified!\n"
+        vrna_log_warning("More than one MSA format writer specified!\n"
                              "Using writer for %s",
                              writer_name);
 
@@ -510,7 +511,7 @@ vrna_file_msa_write(const char    *filename,
 
       if (!fp) {
         if (verb_level >= 0)
-          vrna_message_warning("Alignment file could not be opened for writing!");
+          vrna_log_warning("Alignment file could not be opened for writing!");
 
         return ret;
       }
@@ -522,7 +523,7 @@ vrna_file_msa_write(const char    *filename,
       fclose(fp);
     }
   } else if (verb_level >= 0) {
-    vrna_message_warning("vrna_file_msa_write: insufficient input for writing anything!");
+    vrna_log_warning("vrna_file_msa_write: insufficient input for writing anything!");
   }
 
   return ret;
@@ -545,7 +546,7 @@ parse_stockholm_alignment(FILE  *fp,
 
   if (!fp) {
     if (verbosity >= 0)
-      vrna_message_warning(
+      vrna_log_warning(
         "Can't read from filepointer while parsing Stockholm formatted sequence alignment!");
 
     return -1;
@@ -598,7 +599,7 @@ parse_stockholm_alignment(FILE  *fp,
         case '#':
           if (strstr(line, "STOCKHOLM 1.0")) {
             if (verbosity >= 0)
-              vrna_message_warning("Malformatted Stockholm record, missing // ?");
+              vrna_log_warning("Malformatted Stockholm record, missing // ?");
 
             /* drop everything we've read so far and start new, blank record */
             free_msa_record(names, aln, id, structure);
@@ -663,7 +664,7 @@ parse_stockholm_alignment(FILE  *fp,
               if (strcmp(tmp_name, (*names)[seq_current]) != 0) {
                 /* name doesn't match */
                 if (verbosity >= 0)
-                  vrna_message_warning(
+                  vrna_log_warning(
                     "Sorry, your file is messed up! Inconsistent (order of) sequence identifiers.");
 
                 free(line);
@@ -704,7 +705,7 @@ stockholm_next_line:
   } else {
     /*
      *  if (verbosity >= 0)
-     *    vrna_message_warning("Did not find any Stockholm 1.0 formatted record!");
+     *    vrna_log_warning("Did not find any Stockholm 1.0 formatted record!");
      */
     return -1;
   }
@@ -714,7 +715,7 @@ stockholm_next_line:
   endmarker_msa_record(names, aln, seq_num);
 
   if ((seq_num > 0) && (verbosity > 0))
-    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num,
+    vrna_log_info("%d sequences; length of alignment %d.", seq_num,
                       (int)strlen((*aln)[0]));
 
   return seq_num;
@@ -838,12 +839,12 @@ parse_fasta_alignment(FILE  *fp,
 
   if (seq_num > 0) {
     if (verbosity > 0)
-      vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num,
+      vrna_log_info("%d sequences; length of alignment %d.", seq_num,
                         (int)strlen((*aln)[0]));
   } else {
     /*
      *  if (verbosity >= 0)
-     *    vrna_message_warning("Did not find any FASTA formatted record!");
+     *    vrna_log_warning("Did not find any FASTA formatted record!");
      */
     return -1;
   }
@@ -866,7 +867,7 @@ parse_clustal_alignment(FILE  *clust,
 
   if (strncmp(line, "CLUSTAL", 7) != 0) {
     if (verbosity >= 0)
-      vrna_message_warning("This doesn't look like a CLUSTALW file, sorry");
+      vrna_log_warning("This doesn't look like a CLUSTALW file, sorry");
 
     free(line);
     return -1;
@@ -912,7 +913,7 @@ parse_clustal_alignment(FILE  *clust,
         if (strcmp(name, (*names)[nn]) != 0) {
           /* name doesn't match */
           if (verbosity >= 0)
-            vrna_message_warning(
+            vrna_log_warning(
               "Sorry, your file is messed up! Inconsistent (order of) sequence identifiers.");
 
           free(line);
@@ -950,7 +951,7 @@ parse_clustal_alignment(FILE  *clust,
   endmarker_msa_record(names, aln, seq_num);
 
   if ((seq_num > 0) && (verbosity > 0))
-    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num,
+    vrna_log_info("%d sequences; length of alignment %d.", seq_num,
                       (int)strlen((*aln)[0]));
 
   return seq_num;
@@ -970,7 +971,7 @@ parse_maf_alignment(FILE  *fp,
 
   if (!fp) {
     if (verbosity >= 0)
-      vrna_message_warning(
+      vrna_log_warning(
         "Can't read from filepointer while parsing MAF formatted sequence alignment!");
 
     return -1;
@@ -1048,7 +1049,7 @@ parse_maf_alignment(FILE  *fp,
   } else {
     /*
      *  if (verbosity >= 0)
-     *    vrna_message_warning("Did not find any MAF formatted record!");
+     *    vrna_log_warning("Did not find any MAF formatted record!");
      */
     return -1;
   }
@@ -1058,7 +1059,7 @@ maf_exit:
   endmarker_msa_record(names, aln, seq_num);
 
   if ((seq_num > 0) && (verbosity > 0))
-    vrna_message_info(stderr, "%d sequences; length of alignment %d.", seq_num,
+    vrna_log_info("%d sequences; length of alignment %d.", seq_num,
                       (int)strlen((*aln)[0]));
 
   return seq_num;
@@ -1232,7 +1233,7 @@ check_alignment(const char  **names,
     for (j = i + 1; j < seq_num; j++) {
       if (!strcmp(names[i], names[j])) {
         if (verbosity >= 0)
-          vrna_message_warning("Sequence IDs in input alignment are not unique!");
+          vrna_log_warning("Sequence IDs in input alignment are not unique!");
 
         pass = 0;
       }
@@ -1244,7 +1245,7 @@ check_alignment(const char  **names,
   for (i = 1; i < seq_num; i++)
     if ((int)strlen(aln[i]) != l) {
       if (verbosity >= 0)
-        vrna_message_warning("Sequence lengths in input alignment do not match!");
+        vrna_log_warning("Sequence lengths in input alignment do not match!");
 
       pass = 0;
     }
