@@ -41,8 +41,6 @@
 #define PRIVATE  static
 #define PUBLIC
 
-#define EXIT_ON_ERROR
-
 /*
  #################################
  # GLOBAL VARIABLES              #

@@ -31,6 +31,8 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
 
+#define EXIT_ON_ERROR
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -58,7 +60,7 @@ PRIVATE struct {
 } logger = {
   .default_file   = NULL,
   .default_level  = VRNA_LOG_LEVEL_DEFAULT,
-  .options        = VRNA_LOG_OPTIONS_DEFAULT,
+  .options        = VRNA_LOG_OPTION_DEFAULT,
   .lock           = NULL,
   .lock_data      = NULL,
   .callbacks      = NULL
@@ -87,6 +89,10 @@ unlock(void);
 PRIVATE const char *
 get_log_level_color(int level);
 
+
+PRIVATE const char *
+get_log_level_string(int level);
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -107,8 +113,8 @@ vrna_log(int level,
     .file_name = file_name
   };
 
-  va_start(event.params, format_string); 
-  log_v(&event); 
+  va_start(event.params, format_string);
+  log_v(&event);
   va_end(event.params);
 }
 
@@ -159,6 +165,163 @@ vrna_log_options_set(unsigned int options)
 }
 
 
+PUBLIC void
+vrna_message_error(const char *format,
+                   ...)
+{
+  va_list args;
+
+  va_start(args, format);
+  vrna_message_verror(format, args);
+  va_end(args);
+}
+
+
+PUBLIC void
+vrna_message_verror(const char  *format,
+                    va_list     args)
+{
+  vrna_log_event_t  event = {
+    .format_string = format,
+    .level = VRNA_LOG_LEVEL_ERROR,
+    .line_number = __LINE__,
+    .file_name = __FILE__
+  };
+
+  va_copy(event.params, args);
+  log_v(&event); 
+  va_end(event.params);
+
+#ifdef EXIT_ON_ERROR
+  exit(EXIT_FAILURE);
+#endif
+}
+
+
+PUBLIC void
+vrna_message_warning(const char *format,
+                     ...)
+{
+  va_list args;
+
+  va_start(args, format);
+  vrna_message_vwarning(format, args);
+  va_end(args);
+}
+
+
+PUBLIC void
+vrna_message_vwarning(const char  *format,
+                      va_list     args)
+{
+  vrna_log_event_t  event = {
+    .format_string = format,
+    .level = VRNA_LOG_LEVEL_WARNING,
+    .line_number = __LINE__,
+    .file_name = __FILE__
+  };
+
+  va_copy(event.params, args);
+  log_v(&event); 
+  va_end(event.params);
+}
+
+
+PUBLIC void
+vrna_message_info(FILE        *fp,
+                  const char  *format,
+                  ...)
+{
+  va_list args;
+
+  va_start(args, format);
+  vrna_message_vinfo(fp, format, args);
+  va_end(args);
+}
+
+
+PUBLIC void
+vrna_message_vinfo(FILE       *fp,
+                   const char *format,
+                   va_list    args)
+{
+  if (!fp)
+    fp = stdout;
+
+  vrna_log_event_t  event = {
+    .format_string = format,
+    .level = VRNA_LOG_LEVEL_INFO,
+    .line_number = __LINE__,
+    .file_name = __FILE__
+  };
+
+  va_copy(event.params, args);
+  log_v(&event); 
+  va_end(event.params);
+}
+
+
+/*
+ #################################
+ # STATIC helper functions below #
+ #################################
+ */
+PRIVATE void
+log_stderr(vrna_log_event_t *event)
+{
+  FILE *fp = stderr;
+
+  if (logger.default_file)
+    fp = logger.default_file;
+
+  /* print time unless turned off explicitely */
+  if (logger.options & VRNA_LOG_OPTION_TRACE_TIME) {
+    char timebuf[64];
+    time_t t = time(NULL);
+    timebuf[strftime(timebuf, sizeof(timebuf), "%H:%M:%S", localtime(&t))] = '\0';
+    fprintf(fp, "%s ", timebuf);
+  }
+
+  /* print log level */
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (isatty(fileno(fp))) {
+    fprintf(fp,
+            "%s%-11s" ANSI_COLOR_RESET " ",
+            get_log_level_color(event->level),
+            get_log_level_string(event->level));
+  } else {
+#endif
+    fprintf(fp,
+            "-11s ",
+            get_log_level_string(event->level));
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  }
+#endif
+
+  /* print file name / line number trace unless turned off explicitely */
+  if (logger.options & VRNA_LOG_OPTION_TRACE_CALL) {
+#ifndef VRNA_WITHOUT_TTY_COLORS
+    if (isatty(fileno(fp))) {
+      fprintf(fp,
+              "\x1b[90m%s:%d:" ANSI_COLOR_RESET " ",
+              event->file_name,
+              event->line_number);
+    } else {
+#endif
+      fprintf(fp, "%s:%d: ",
+              event->file_name,
+              event->line_number);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+    }
+#endif
+  }
+
+  /* print actual message */
+  vfprintf(fp, event->format_string, event->params);
+  fprintf(fp, "\n");
+  fflush(fp);
+}
+
 
 PRIVATE void
 log_v(vrna_log_event_t *event)
@@ -169,7 +332,7 @@ log_v(vrna_log_event_t *event)
     /* initialize callbacks if not done so far */
     vrna_array_init(logger.callbacks);
 
-  if (!(logger.options & VRNA_LOG_OPTIONS_QUIET)) {
+  if (!(logger.options & VRNA_LOG_OPTION_QUIET)) {
     /* print log if not in quiet mode */
     if (event->level >= logger.default_level)
       log_stderr(event);
@@ -204,17 +367,17 @@ get_log_level_string(int level)
 {
   switch (level) {
     case VRNA_LOG_LEVEL_DEBUG:
-      return "[DEBUG]";
+      return "[ DEBUG ]";
     case VRNA_LOG_LEVEL_INFO:
-      return "[INFO]";
+      return "[ INFO ]";
     case VRNA_LOG_LEVEL_WARNING:
-      return "[WARNING]";
+      return "[ WARNING ]";
     case VRNA_LOG_LEVEL_ERROR:
-      return "[ERROR]";
+      return "[ ERROR ]";
     case VRNA_LOG_LEVEL_CRITICAL:
-      return "[FATAL]";
+      return "[ FATAL ]";
     default:
-      return "[UNKNOWN]";
+      return "[ UNKNOWN ]";
   }
 }
 
@@ -238,194 +401,6 @@ get_log_level_color(int level)
   }
 }
 
-
-
-PUBLIC void
-vrna_message_error(const char *format,
-                   ...)
-{
-  va_list args;
-
-  va_start(args, format);
-  vrna_message_verror(format, args);
-  va_end(args);
-}
-
-
-PUBLIC void
-vrna_message_verror(const char  *format,
-                    va_list     args)
-{
-#ifndef VRNA_WITHOUT_TTY_COLORS
-  if (isatty(fileno(stderr))) {
-    fprintf(stderr, ANSI_COLOR_RED_B "ERROR: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT);
-    vfprintf(stderr, format, args);
-    fprintf(stderr, ANSI_COLOR_RESET "\n");
-  } else {
-#endif
-  fprintf(stderr, "ERROR: ");
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\n");
-#ifndef VRNA_WITHOUT_TTY_COLORS
-}
-
-
-#endif
-
-#ifdef EXIT_ON_ERROR
-  exit(EXIT_FAILURE);
-#endif
-}
-
-
-PUBLIC void
-vrna_message_warning(const char *format,
-                     ...)
-{
-#if 1
-  vrna_log_event_t  event = {
-    .format_string = format,
-    .level = VRNA_LOG_LEVEL_WARNING,
-    .line_number = __LINE__,
-    .file_name = __FILE__
-  };
-  va_start(event.params, format); 
-  log_v(&event); 
-  va_end(event.params);
-#else
-  va_list args;
-
-  va_start(args, format);
-  vrna_message_vwarning(format, args);
-  va_end(args);
-#endif
-}
-
-
-PUBLIC void
-vrna_message_vwarning(const char  *format,
-                      va_list     args)
-{
-#ifndef VRNA_WITHOUT_TTY_COLORS
-  if (isatty(fileno(stderr))) {
-    fprintf(stderr, ANSI_COLOR_MAGENTA_B "WARNING: " ANSI_COLOR_RESET ANSI_COLOR_BRIGHT);
-    vfprintf(stderr, format, args);
-    fprintf(stderr, ANSI_COLOR_RESET "\n");
-  } else {
-#endif
-  fprintf(stderr, "WARNING: ");
-  vfprintf(stderr, format, args);
-  fprintf(stderr, "\n");
-#ifndef VRNA_WITHOUT_TTY_COLORS
-}
-
-
-#endif
-}
-
-
-PUBLIC void
-vrna_message_info(FILE        *fp,
-                  const char  *format,
-                  ...)
-{
-#if 1
-  vrna_log_event_t  event = {
-    .format_string = format,
-    .level = VRNA_LOG_LEVEL_INFO,
-    .line_number = __LINE__,
-    .file_name = __FILE__
-  };
-  va_start(event.params, format); 
-  log_v(&event); 
-  va_end(event.params);
-#else
-  va_list args;
-
-  va_start(args, format);
-  vrna_message_vinfo(fp, format, args);
-  va_end(args);
-#endif
-}
-
-
-PUBLIC void
-vrna_message_vinfo(FILE       *fp,
-                   const char *format,
-                   va_list    args)
-{
-  if (!fp)
-    fp = stdout;
-
-#ifndef VRNA_WITHOUT_TTY_COLORS
-  if (isatty(fileno(fp))) {
-    fprintf(fp, ANSI_COLOR_BLUE_B);
-    vfprintf(fp, format, args);
-    fprintf(fp, ANSI_COLOR_RESET "\n");
-  } else {
-#endif
-    vfprintf(fp, format, args);
-    fprintf(fp, "\n");
-#ifndef VRNA_WITHOUT_TTY_COLORS
-  }
-#endif
-}
-
-
-PRIVATE void
-log_stderr(vrna_log_event_t *event)
-{
-  FILE *fp = stderr;
-
-  if (logger.default_file)
-    fp = logger.default_file;
-
-  /* print time unless turned off explicitely */
-  if (logger.options & VRNA_LOG_OPTIONS_TRACE_TIME) {
-    char timebuf[64];
-    time_t t = time(NULL);
-    timebuf[strftime(timebuf, sizeof(timebuf), "%H:%M:%S", localtime(&t))] = '\0';
-    fprintf(fp, "%s ", timebuf);
-  }
-
-  /* print log level */
-#ifndef VRNA_WITHOUT_TTY_COLORS
-  if (isatty(fileno(fp))) {
-    fprintf(fp,
-            "%s%-9s" ANSI_COLOR_RESET " ",
-            get_log_level_color(event->level),
-            get_log_level_string(event->level));
-  } else {
-#endif
-    fprintf(fp,
-            "-9s ",
-            get_log_level_string(event->level));
-#ifndef VRNA_WITHOUT_TTY_COLORS
-  }
-#endif
-
-  /* print file name / line number trace unless turned off explicitely */
-  if (logger.options & VRNA_LOG_OPTIONS_TRACE_CALL) {
-#ifndef VRNA_WITHOUT_TTY_COLORS
-    if (isatty(fileno(fp))) {
-      fprintf(fp,
-              "\x1b[90m%s:%d:" ANSI_COLOR_RESET " ",
-              event->file_name,
-              event->line_number);
-    } else {
-#endif
-      fprintf(fp, "%s:%d: ",
-              event->file_name,
-              event->line_number);
-#ifndef VRNA_WITHOUT_TTY_COLORS
-    }
-#endif
-  }
-
-  /* print actual message */
-  vfprintf(fp, event->format_string, event->params);
-  fprintf(fp, "\n");
-}
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY

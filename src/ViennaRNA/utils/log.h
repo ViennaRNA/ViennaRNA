@@ -50,10 +50,10 @@ enum {
 };
   
 #define VRNA_LOG_LEVEL_DEFAULT      VRNA_LOG_LEVEL_ERROR
-#define VRNA_LOG_OPTIONS_QUIET      1U
-#define VRNA_LOG_OPTIONS_TRACE_CALL 2U
-#define VRNA_LOG_OPTIONS_TRACE_TIME 4U
-#define VRNA_LOG_OPTIONS_DEFAULT    0U
+#define VRNA_LOG_OPTION_QUIET       1U
+#define VRNA_LOG_OPTION_TRACE_CALL  2U
+#define VRNA_LOG_OPTION_TRACE_TIME  4U
+#define VRNA_LOG_OPTION_DEFAULT     0U
 
 #define vrna_log_debug(...) \
     do { \
