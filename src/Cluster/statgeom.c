@@ -14,6 +14,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "PS3D.h"
 #include "distance_matrix.h"
 
@@ -46,7 +47,7 @@ PUBLIC float *statgeom(char **seqs, int n_of_seqs)
  float  temp;
    
    if(n_of_seqs < 4) {
-      fprintf(stderr,"Less than 4 sequences for statistical geometry.\n");
+      vrna_log_warning("Less than 4 sequences for statistical geometry.\n");
       return NULL;
    }
 
@@ -170,7 +171,7 @@ PUBLIC void SimplifiedBox(float *B, char *filename)
       ps3d_Preambel(fp, view, axis, "N");
       PS_DrawSimplifiedBox(X,Y,Z,T,P, fp);
       fclose(fp);
-   } else fprintf(stderr,"couldn't open %s -- not drawing box\n", temp);
+   } else vrna_log_error("couldn't open %s -- not drawing box\n", temp);
 }
 
 
@@ -184,9 +185,9 @@ PRIVATE void SingleBox(char *x1, char *x2, char *x3, char *x4)
    char  t[4];
 
    len=strlen(x1);
-   if(strlen(x2)!=len) vrna_message_error("Sequences of unequal length in 'SingleBox'");
-   if(strlen(x3)!=len) vrna_message_error("Sequences of unequal length in 'SingleBox'");
-   if(strlen(x4)!=len) vrna_message_error("Sequences of unequal length in 'SingleBox'");
+   if(strlen(x2)!=len) vrna_log_error("Sequences of unequal length in 'SingleBox'");
+   if(strlen(x3)!=len) vrna_log_error("Sequences of unequal length in 'SingleBox'");
+   if(strlen(x4)!=len) vrna_log_error("Sequences of unequal length in 'SingleBox'");
 
    IBox[0] = len;
    for(i=1; i<=15; i++) IBox[i] = 0;
@@ -235,7 +236,7 @@ PRIVATE void SingleBox(char *x1, char *x2, char *x3, char *x4)
          IBox[15]++;                           /*  A B C D */
          break;
        default:
-         vrna_message_error("This can't happen.");
+         vrna_log_error("This can't happen.");
       } 
    }
 }

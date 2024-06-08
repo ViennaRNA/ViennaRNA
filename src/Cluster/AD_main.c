@@ -11,6 +11,7 @@
 #include "distance_matrix.h"
 #include "treeplot.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 
 
 #define PUBLIC
@@ -86,6 +87,6 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-   vrna_message_error("usage: AnalyseDist [-X[swn]]");
+   vrna_log_error("usage: AnalyseDist [-X[swn]]");
    exit(0);
 }

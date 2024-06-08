@@ -13,6 +13,7 @@
 #include "cluster.h"
 #include "treeplot.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 
 
 #define PUBLIC
@@ -219,7 +220,7 @@ int main(int argc, char *argv[])
          nn[0] = n;
          for(i=1;i<4;i++) {
             ss[i] = read_sequence_list(&n,mask);
-            if(ss[i]==NULL) vrna_message_error("read_sequences: wrong or insufficient data.");
+            if(ss[i]==NULL) vrna_log_error("read_sequences: wrong or insufficient data.");
             nn[i] = n;
          }
          printf_taxa_list();
@@ -259,7 +260,7 @@ int main(int argc, char *argv[])
 		printf("> %s\n","G (Gotoh Distance)");
 		break;
 	      default:
-		vrna_message_error("This can't happen.");
+		vrna_log_error("This can't happen.");
 	     }
          }
          if(Do_Split) {
@@ -294,7 +295,7 @@ int main(int argc, char *argv[])
 
 PRIVATE void usage(void)
 {
-   vrna_message_error("usage: AnalyseSeqs [-X[bswnm]] [-Q] [-M{mask}] \n"
+   vrna_log_error("usage: AnalyseSeqs [-X[bswnm]] [-Q] [-M{mask}] \n"
    "                   [-D{H|A[,cost]|G[,cost1,cost2]}] [-d{D|B|H|S}]");
    exit(0);
 }

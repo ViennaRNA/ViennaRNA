@@ -8,6 +8,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "StrEdit_CostMatrix.h"
 
@@ -230,7 +231,7 @@ PUBLIC float **Hamming_Distance_Matrix(char **seqs, int n_of_seqs)
       D[i][i] = 0.;
       for(j=0;j<i;j++){
          if(strlen(seqs[i])!=strlen(seqs[j])) 
-            vrna_message_error("Unequal Seqence Length for Hamming Distance.");
+            vrna_log_error("Unequal Seqence Length for Hamming Distance.");
          D[i+1][j+1] = 0.0;
          for(k=0;k<strlen(seqs[i]);k++)
             D[i+1][j+1] += StrEditCost(k+1,k+1,seqs[i],seqs[j]);
@@ -458,7 +459,7 @@ PRIVATE float StrEditCost(int i, int j, char *T1, char *T2)
 {
    /* positions i,j from [1..length]; i,j=0 implies Gap */
    int i1,j1;
-   if((i==0)&&(j==0)) vrna_message_error("Edit Cost: Aligned gap characters !!!");
+   if((i==0)&&(j==0)) vrna_log_error("Edit Cost: Aligned gap characters !!!");
    if(i>0) i1 = decode(T1[i-1]); else i1 = 0;
    if(j>0) j1 = decode(T2[j-1]); else j1 = 0;
    if(StrEdit_CostMatrix==NULL) {
@@ -481,7 +482,7 @@ PRIVATE int decode(char id)
    for(n=0;n<alen;n++) {
       if(id==StrEdit_ValidAlphabet[n]) return n;
    }
-   fprintf(stderr,"Warning: Invalid character in DECODE -> set to ~gap~\n");
+   vrna_log_warning("Invalid character in DECODE -> set to ~gap~\n");
    return 0;
 }   
 
@@ -562,8 +563,8 @@ PUBLIC void  Set_StrEdit_CostMatrix(char type)
 PUBLIC   void    Set_StrEdit_GapCosts(float per_digit, float per_gap)
 {
    if(per_gap==0.) per_gap = per_digit;
-   if(per_digit<0) vrna_message_error("Gap Costs invalid.");
-   if(per_digit>per_gap) vrna_message_error("Gap Costs invalid.");
+   if(per_digit<0) vrna_log_error("Gap Costs invalid.");
+   if(per_digit>per_gap) vrna_log_error("Gap Costs invalid.");
 
    StrEdit_GapCost     = per_digit;
    StrEdit_GotohAlpha  = per_digit;   /* Gotoh gap function g(k) = a + b(k-1) */
