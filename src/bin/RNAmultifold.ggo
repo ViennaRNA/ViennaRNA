@@ -29,7 +29,8 @@ description "The program works much like RNAfold, but allows one to specify mult
 # Options
 
 option  "verbose" v
-"Be verbose.\n\n"
+"Be verbose.\n"
+details="Lower the log level setting such that even INFO messages are passed through.\n\n"
 flag
 off
 
@@ -154,6 +155,40 @@ details="This parameter can be used to deactivate the default behavior of limiti
  FASTA header data as prefixes. Note, however, that invalid characters (such as whitespace)\
  will be substituted by a delimiting character or simply removed, (see also the parameter\
  option --filename-delim).\n\n"
+flag
+off
+hidden
+
+
+option  "log-level" -
+"Set log level threshold.\n"
+details="By default, any log messages are filtered such that only warnings (level 2) or errors (level 3)\
+ are printed. This setting allows for specifying the log level threshold, where higher values result in\
+ fewer information. Log-level 5 turns off all messages, even errors and other critical information.\n\n"
+int
+typestr="level"
+default="2"
+hidden
+
+
+option  "log-file" -
+"Print log messages to a file instead of stderr.\n"
+string
+typestr="filename"
+default="RNAmultifold.log"
+argoptional
+hidden
+
+
+option  "log-time" -
+"Include time stamp in log messages.\n\n"
+flag
+off
+hidden
+
+
+option  "log-call" -
+"Include file and line of log calling function.\n\n"
 flag
 off
 hidden
