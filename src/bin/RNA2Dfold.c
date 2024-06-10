@@ -16,6 +16,7 @@
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/2Dfold.h"
@@ -48,7 +49,7 @@ main(int  argc,
                                     *reference_struc2, *ParamFile;
   int                               i, length, l, pf, istty, noconv, circ, maxDistance1,
                                     maxDistance2,
-                                    do_backtrack, stBT, nstBT;
+                                    do_backtrack, stBT, nstBT, verbose;
   double                            min_en;
   vrna_md_t                         md;
 
@@ -76,6 +77,9 @@ main(int  argc,
    */
   if (RNA2Dfold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
 
   /* temperature */
   if (args_info.temp_given)
@@ -110,7 +114,7 @@ main(int  argc,
   /* dangle options */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
@@ -122,7 +126,7 @@ main(int  argc,
     omp_set_num_threads(args_info.numThreads_arg);
 
 #else
-    vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
+    vrna_log_error("\'j\' option is available only if compiled with OpenMP support!");
 #endif
 
   /* get energy parameter file name */
@@ -217,9 +221,9 @@ main(int  argc,
       reference_struc1 = strdup(input_string);
       free(input_string);
       if (strlen(reference_struc1) != length)
-        vrna_message_error("sequence and 1st reference structure have unequal length");
+        vrna_log_error("sequence and 1st reference structure have unequal length");
     } else {
-      vrna_message_error("1st reference structure missing\n");
+      vrna_log_error("1st reference structure missing\n");
     }
 
     strncpy(structure1, reference_struc1, length);
@@ -231,9 +235,9 @@ main(int  argc,
       reference_struc2 = strdup(input_string);
       free(input_string);
       if (strlen(reference_struc2) != length)
-        vrna_message_error("sequence and 2nd reference structure have unequal length");
+        vrna_log_error("sequence and 2nd reference structure have unequal length");
     } else {
-      vrna_message_error("2nd reference structure missing\n");
+      vrna_log_error("2nd reference structure missing\n");
     }
 
     strncpy(structure2, reference_struc2, length);
@@ -353,7 +357,7 @@ main(int  argc,
           float free_energy = (-log((float)pf_s[i].q) - length * log(vc->exp_params->pf_scale)) *
                               (vc->exp_params->kT / 1000.);
           if ((pf_s[i].k != mfe_s[i].k) || (pf_s[i].l != mfe_s[i].l))
-            vrna_message_error("This should never happen!");
+            vrna_log_error("This should never happen!");
 
           char  *tline = vrna_strdup_printf("%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s",
                                             pf_s[i].k,
@@ -423,5 +427,9 @@ main(int  argc,
     free(rec_id);
     string = orig_sequence = mfe_structure = rec_id = NULL;
   } while (1);
-  return 0;
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
