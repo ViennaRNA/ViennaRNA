@@ -31,6 +31,7 @@
 #include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/centroid.h"
@@ -421,6 +422,9 @@ main(int  argc,
   if (RNAfold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, opt.verbose);
+
   /* get basic set of model details */
   ggo_get_md_eval(args_info, opt.md);
   ggo_get_md_fold(args_info, opt.md);
@@ -432,7 +436,7 @@ main(int  argc,
 
   /* check dangle model */
   if ((opt.md.dangles < 0) || (opt.md.dangles > 3)) {
-    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    vrna_log_warning("Requested dangle model not implemented, falling back to default dangles=2");
     opt.md.dangles = dangles = 2;
   }
 
@@ -490,9 +494,6 @@ main(int  argc,
   if (args_info.layout_type_given)
     rna_plot_type = args_info.layout_type_arg;
 
-  if (args_info.verbose_given)
-    opt.verbose = 1;
-
   if (args_info.outfile_given) {
     opt.tofile = 1;
     if (args_info.outfile_arg)
@@ -533,8 +534,8 @@ main(int  argc,
       if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
         opt.jobs = MIN2(thread_max, proc_cores_conf);
       } else {
-        vrna_message_warning("Could not determine number of available processor cores!\n"
-                             "Defaulting to serial computation");
+        vrna_log_warning("Could not determine number of available processor cores!\n"
+                         "Defaulting to serial computation");
         opt.jobs = 1;
       }
     } else {
@@ -543,7 +544,7 @@ main(int  argc,
 
     opt.jobs = MAX2(1, opt.jobs);
 #else
-    vrna_message_warning(
+    vrna_log_warning(
       "This version of RNAfold has been built without parallel input processing capabilities");
 #endif
 
@@ -564,16 +565,16 @@ main(int  argc,
    #############################################
    */
   if (opt.md.circ && opt.md.gquad) {
-    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
+    vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
     exit(EXIT_FAILURE);
   }
 
   if (opt.md.circ && opt.md.noLP)
-    vrna_message_warning("depending on the origin of the circular sequence, some structures may be missed when using --noLP\n"
-                         "Try rotating your sequence a few times");
+    vrna_log_warning("Depending on the origin of the circular sequence, some structures may be missed when using --noLP\n"
+             "Try rotating your sequence a few times");
 
   if ((opt.verbose) && (opt.jobs > 1))
-    vrna_message_info(stderr, "Preparing %d parallel computation slots", opt.jobs);
+    vrna_log_info("Preparing %d parallel computation slots", opt.jobs);
 
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
@@ -591,15 +592,17 @@ main(int  argc,
       if (!skip) {
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-        if (!input_stream)
-          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
-                             input_files[i]);
+        if (!input_stream) {
+          vrna_log_error("Unable to open %d. input file \"%s\" for reading",
+                         i + 1,
+                         input_files[i]);
+          exit(EXIT_FAILURE);
+        }
 
         if (opt.verbose) {
-          vrna_message_info(stderr,
-                            "Processing %d. input file \"%s\"",
-                            i + 1,
-                            input_files[i]);
+          vrna_log_info("Processing %d. input file \"%s\"",
+                        i + 1,
+                        input_files[i]);
         }
 
         if (process_input(input_stream, (const char *)input_files[i], &opt) == 0)
@@ -646,6 +649,9 @@ main(int  argc,
 
   free_id_data(opt.id_control);
 
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
   return EXIT_SUCCESS;
 }
 
@@ -684,11 +690,15 @@ get_output_stream(unsigned int    init_size,
 
         filename = vrna_filename_sanitize(tmp, opt->filename_delim);
 
-        if ((input_filename) && !strcmp(input_filename, filename))
-          vrna_message_error("Input and output file names are identical");
+        if ((input_filename) && !strcmp(input_filename, filename)) {
+          vrna_log_error("Input and output file names are identical");
+          exit(EXIT_FAILURE);
+        }
 
-        if (!(output = fopen(filename, "a")))
-          vrna_message_error("Failed to open file for writing");
+        if (!(output = fopen(filename, "a"))) {
+          vrna_log_error("Failed to open file for writing");
+          exit(EXIT_FAILURE);
+        }
       } else if (!output) {
         /* we need to open global output file */
         tmp = (opt->output_file) ?
@@ -697,11 +707,15 @@ get_output_stream(unsigned int    init_size,
 
         filename = vrna_filename_sanitize(tmp, opt->filename_delim);
 
-        if ((input_filename) && !strcmp(input_filename, filename))
-          vrna_message_error("Input and output file names are identical");
+        if ((input_filename) && !strcmp(input_filename, filename)) {
+          vrna_log_error("Input and output file names are identical");
+          exit(EXIT_FAILURE);
+        }
 
-        if (!(output = fopen(filename, "a")))
-          vrna_message_error("Failed to open file for writing");
+        if (!(output = fopen(filename, "a"))) {
+          vrna_log_error("Failed to open file for writing");
+          exit(EXIT_FAILURE);
+        }
 
         opt->output_stream = output;
       }
@@ -852,17 +866,17 @@ process_record(struct record_data *record)
   vc = vrna_fold_compound(rec_sequence, &(opt->md), VRNA_OPTION_DEFAULT);
 
   if (!vc) {
-    vrna_message_warning("Skipping computations for \"%s\"",
-                         (record->id) ? record->id : "identifier unavailable");
+    vrna_log_warning("Skipping computations for \"%s\"",
+                     (record->id) ? record->id : "identifier unavailable");
     return;
   }
 
   length = vc->length;
 
   if ((opt->md.circ) && (vrna_rotational_symmetry(rec_sequence) > 1))
-    vrna_message_warning("Input sequence %ld is rotationally symmetric! "
-                         "Symmetry correction might be required to compute actual MFE and equilibrium properties!",
-                         record->number);
+    vrna_log_warning("Input sequence %ld is rotationally symmetric! "
+                     "Symmetry correction might be required to compute actual MFE and equilibrium properties!",
+                     record->number);
 
   /* retrieve string stream, 6*length should be enough memory to start with */
   o_stream = get_output_stream(6 * length,
@@ -871,7 +885,7 @@ process_record(struct record_data *record)
                                record->input_filename);
 
   if (record->tty)
-    vrna_message_info(stdout, "length = %d\n", length);
+    vrna_log_info("length = %d\n", length);
 
   mfe_structure = (char *)vrna_alloc(sizeof(char) * (length + 1));
 
@@ -928,7 +942,7 @@ process_record(struct record_data *record)
   /* check whether the constraint allows for any solution */
   if ((fold_constrained) || (opt->cmds)) {
     if (min_en == (double)(INF / 100.)) {
-      vrna_message_error(
+      vrna_log_error(
         "Supplied structure constraints create empty solution set for sequence:\n%s",
         record->sequence);
       exit(EXIT_FAILURE);
@@ -978,13 +992,13 @@ process_record(struct record_data *record)
     vrna_exp_params_rescale(vc, &min_en);
 
     if (length > 2000)
-      vrna_message_info(stderr, "scaling factor %f", vc->exp_params->pf_scale);
+      vrna_log_info("scaling factor %f", vc->exp_params->pf_scale);
 
     energy = (double)vrna_pf(vc, pf_struc);
 
     /* in case we abort because of floating point errors */
     if (length > 1600)
-      vrna_message_info(stderr, "free energy = %8.2f", energy);
+      vrna_log_info("free energy = %8.2f", energy);
 
     if (opt->lucky) {
       ImFeelingLucky(vc,
@@ -1139,12 +1153,14 @@ apply_constraints(vrna_fold_compound_t  *fc,
     cstruc = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
     unsigned int  cl = (cstruc) ? strlen(cstruc) : 0;
 
-    if (cl == 0)
-      vrna_message_warning("structure constraint is missing");
-    else if (cl < length)
-      vrna_message_warning("structure constraint is shorter than sequence");
-    else if (cl > length)
-      vrna_message_error("structure constraint is too long");
+    if (cl == 0) {
+      vrna_log_warning("structure constraint is missing");
+    } else if (cl < length) {
+      vrna_log_warning("structure constraint is shorter than sequence");
+    } else if (cl > length) {
+      vrna_log_error("structure constraint is too long");
+      exit(EXIT_FAILURE);
+    }
 
     if (cstruc) {
       /** [Adding hard constraints from pseudo dot-bracket] */
@@ -1269,26 +1285,26 @@ add_ligand_motif(vrna_fold_compound_t *vc,
 
     ptr++;
     if (!(sscanf(ptr, "%f", &energy) == 1)) {
-      vrna_message_warning("Energy contribution in ligand motif missing!");
+      vrna_log_warning("Energy contribution in ligand motif missing!");
       error = 1;
     }
 
     if (strlen(seq) != strlen(str)) {
-      vrna_message_warning("Sequence and structure length in ligand motif have unequal lengths!");
+      vrna_log_warning("Sequence and structure length in ligand motif have unequal lengths!");
       error = 1;
     }
 
     if (strlen(seq) == 0) {
-      vrna_message_warning("Sequence length in ligand motif is zero!");
+      vrna_log_warning("Sequence length in ligand motif is zero!");
       error = 1;
     }
 
     if (!error && verbose)
-      vrna_message_info(stderr, "Read ligand motif: %s, %s, %f", seq, str, energy);
+      vrna_log_info("Read ligand motif: %s, %s, %f", seq, str, energy);
   }
 
   if (error || (!vrna_sc_add_hi_motif(vc, seq, str, energy, options)))
-    vrna_message_warning("Malformatted ligand motif! Skipping stabilizing motif.");
+    vrna_log_warning("Malformatted ligand motif! Skipping stabilizing motif.");
 
   free(seq);
   free(str);
