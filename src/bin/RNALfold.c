@@ -20,6 +20,7 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/Lfold.h"
@@ -118,6 +119,9 @@ main(int  argc,
   if (RNALfold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   /* parse options for ID manipulation */
   ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
 
@@ -132,7 +136,7 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
@@ -141,7 +145,7 @@ main(int  argc,
   /* do not allow weak pairs */
   if (args_info.backtrack_global_given) {
     if (dangles % 2) {
-      vrna_message_warning(
+      vrna_log_warning(
         "Global mfE structure backtracking not available for odd dangle models yet!"
         " Deactivating global backtracing now...");
       backtrack = 0;
@@ -199,16 +203,13 @@ main(int  argc,
       zsc_subsumed = 1;
 
 #else
-    vrna_message_error("\'z\' option is available only if compiled with SVM support!");
+    vrna_log_error("\'z\' option is available only if compiled with SVM support!");
 #endif
   }
 
   /* gquadruplex support */
   if (args_info.gquad_given)
     md.gquad = gquad = 1;
-
-  if (args_info.verbose_given)
-    verbose = 1;
 
   /* SHAPE reactivity data */
   ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
@@ -268,7 +269,7 @@ main(int  argc,
   if (infile) {
     input = fopen((const char *)infile, "r");
     if (!input)
-      vrna_message_error("Could not read input file");
+      vrna_log_error("Could not read input file");
   } else {
     input = stdin;
   }
@@ -331,12 +332,12 @@ main(int  argc,
       v_file_name = tmp_string;
 
       if (infile && !strcmp(infile, v_file_name))
-        vrna_message_error("Input and output file names are identical");
+        vrna_log_error("Input and output file names are identical");
 
       output = fopen((const char *)v_file_name, "a");
 
       if (!output)
-        vrna_message_error("Failed to open file for writing");
+        vrna_log_error("Failed to open file for writing");
 
       file_pos_start = ftell(output);
     } else {
@@ -490,6 +491,9 @@ main(int  argc,
   }
 
   free_id_data(id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
