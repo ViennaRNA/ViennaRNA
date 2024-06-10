@@ -20,6 +20,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/params/io.h"
@@ -186,8 +187,8 @@ main(int  argc,
   if (RNAplfold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
-  if (args_info.verbose_given)
-    verbose = 1;
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
 
   /* SHAPE reactivity data */
   ggo_get_SHAPE(args_info, with_shapes, shape_file, shape_method, shape_conversion);
@@ -208,7 +209,7 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
@@ -330,14 +331,14 @@ main(int  argc,
     pairdist = winsize;
 
   if (pairdist > winsize) {
-    vrna_message_warning("pairdist (-L %d) should be <= winsize (-W %d);"
+    vrna_log_warning("pairdist (-L %d) should be <= winsize (-W %d);"
                          "Setting pairdist=winsize",
                          pairdist, winsize);
     pairdist = winsize;
   }
 
   if (dangles % 2) {
-    vrna_message_warning("using default dangles = 2");
+    vrna_log_warning("using default dangles = 2");
     md.dangles = dangles = 2;
   }
 
@@ -400,19 +401,19 @@ main(int  argc,
 
     if (length > 1000000) {
       if (!simply_putout && !unpaired) {
-        vrna_message_warning("Switched to simple output mode!!!");
+        vrna_log_warning("Switched to simple output mode!!!");
         simply_putout = 1;
       }
     }
 
     if ((simply_putout) && (plexoutput)) {
-      vrna_message_warning("plexoutput not available in simple output mode!\n"
+      vrna_log_warning("plexoutput not available in simple output mode!\n"
                            "Switching back to full mode instead!");
       simply_putout = 0;
     }
 
     if ((simply_putout) && (binaries)) {
-      vrna_message_warning("binary output not available in simple output mode!\n"
+      vrna_log_warning("binary output not available in simple output mode!\n"
                            "Switching back to full mode instead!");
       simply_putout = 0;
     }
@@ -437,7 +438,7 @@ main(int  argc,
 
     /* adjust winsize, pairdist and ulength if necessary */
     if (length < winsize) {
-      vrna_message_warning("window size %d larger than sequence length %d", winsize, length);
+      vrna_log_warning("window size %d larger than sequence length %d", winsize, length);
       tempwin = winsize;
       winsize = length;
       if (pairdist > winsize) {
@@ -565,7 +566,7 @@ main(int  argc,
       int r = vrna_probs_window(fc, unpaired, plfold_opt, &plfold_callback, (void *)&data);
 
       if (!r) {
-        vrna_message_warning("Something bad happened while processing the input! "
+        vrna_log_warning("Something bad happened while processing the input! "
                              "Aborting now...");
         goto rnaplfold_exit;
       }
@@ -669,6 +670,9 @@ rnaplfold_exit:
   }
 
   free_id_data(id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
