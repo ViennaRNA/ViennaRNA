@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/plotting/alignments.h"
@@ -33,6 +34,7 @@
 #define PRIVATE static
 
 struct options {
+  int           verbose;
   unsigned int  msa_format;
   int           filename_full;
   char          *filename_delim;
@@ -110,6 +112,7 @@ process_alignment_record(struct record_data_msa *record);
 void
 init_default_options(struct options *opt)
 {
+  opt->verbose        = 0;
   opt->msa_format     = VRNA_FILE_FORMAT_MSA_STOCKHOLM;
   opt->filename_full  = 0;
   opt->filename_delim = NULL;
@@ -197,6 +200,9 @@ main(int  argc,
   if (RNAplot_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, opt.verbose);
+
   if (args_info.msa_given) {
     opt.msa = 1;
 
@@ -264,7 +270,7 @@ main(int  argc,
       if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
         opt.jobs = MIN2(thread_max, proc_cores_conf);
       } else {
-        vrna_message_warning("Could not determine number of available processor cores!\n"
+        vrna_log_warning("Could not determine number of available processor cores!\n"
                              "Defaulting to serial computation");
         opt.jobs = 1;
       }
@@ -274,7 +280,7 @@ main(int  argc,
 
     opt.jobs = MAX2(1, opt.jobs);
 #else
-    vrna_message_warning(
+    vrna_log_warning(
       "This version of RNAplot has been built without parallel input processing capabilities");
 #endif
   }
@@ -314,7 +320,7 @@ main(int  argc,
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
         if (!input_stream)
-          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
+          vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
 
         if (processing_func(input_stream, (const char *)input_files[i], &opt) == 0)
@@ -342,6 +348,9 @@ main(int  argc,
   free(opt.post);
 
   free_id_data(opt.id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
@@ -443,23 +452,23 @@ process_alignment_input(FILE            *input_stream,
 
       switch (opt->msa_format) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
-          vrna_message_error(msg, "Clustal");
+          vrna_log_error(msg, "Clustal");
           break;
 
         case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
-          vrna_message_error(msg, "Stockholm");
+          vrna_log_error(msg, "Stockholm");
           break;
 
         case VRNA_FILE_FORMAT_MSA_FASTA:
-          vrna_message_error(msg, "FASTA");
+          vrna_log_error(msg, "FASTA");
           break;
 
         case VRNA_FILE_FORMAT_MSA_MAF:
-          vrna_message_error(msg, "MAF");
+          vrna_log_error(msg, "MAF");
           break;
 
         default:
-          vrna_message_error(msg, "Unknown");
+          vrna_log_error(msg, "Unknown");
           break;
       }
     }
@@ -500,7 +509,7 @@ process_alignment_input(FILE            *input_stream,
           break;
 
         default:
-          vrna_message_error("Which input format are you using?");
+          vrna_log_error("Which input format are you using?");
           break;
       }
     }
@@ -571,10 +580,10 @@ process_record(struct record_data *record)
     (record->multiline_input) ? VRNA_OPTION_MULTILINE : 0);
 
   if (!structure)
-    vrna_message_error("structure missing for record %d\n", record->number);
+    vrna_log_error("structure missing for record %d\n", record->number);
 
   if (strlen(rec_sequence) != strlen(structure))
-    vrna_message_error("sequence and structure have unequal length");
+    vrna_log_error("sequence and structure have unequal length");
 
   if (record->SEQ_ID)
     ffname = vrna_strdup_printf("%s%sss", record->SEQ_ID, opt->filename_delim);
@@ -696,7 +705,7 @@ process_alignment_record(struct record_data_msa *record)
   struct options  *opt;
 
   if (!record->structure)
-    vrna_message_error("structure missing for record %d\n", record->number);
+    vrna_log_error("structure missing for record %d\n", record->number);
 
   opt       = record->options;
   structure = vrna_db_from_WUSS(record->structure);
