@@ -37,8 +37,10 @@ typedef struct vrna_log_event_s {
 } vrna_log_event_t;
 
 
-typedef void (*vrna_log_lock_f)(int lock, void *lock_data);
-typedef void (*vrna_log_cb_f)(vrna_log_event_t *event, void *log_data);
+typedef void (*vrna_log_lock_f)(int   lock,
+                                void  *lock_data);
+typedef void (*vrna_log_cb_f)(vrna_log_event_t  *event,
+                              void              *log_data);
 
 enum {
   VRNA_LOG_LEVEL_UNKNOWN  = -1,
@@ -46,9 +48,10 @@ enum {
   VRNA_LOG_LEVEL_INFO     = 20,
   VRNA_LOG_LEVEL_WARNING  = 30,
   VRNA_LOG_LEVEL_ERROR    = 40,
-  VRNA_LOG_LEVEL_CRITICAL = 50
+  VRNA_LOG_LEVEL_CRITICAL = 50,
+  VRNA_LOG_LEVEL_SILENT   = 999
 };
-  
+
 #define VRNA_LOG_LEVEL_DEFAULT      VRNA_LOG_LEVEL_ERROR
 #define VRNA_LOG_OPTION_QUIET       1U
 #define VRNA_LOG_OPTION_TRACE_CALL  2U
@@ -56,49 +59,66 @@ enum {
 #define VRNA_LOG_OPTION_DEFAULT     0U
 
 #define vrna_log_debug(...) \
-    do { \
-        vrna_log(VRNA_LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0)
+        do { \
+          vrna_log(VRNA_LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__); \
+        } while (0)
 
 #define vrna_log_info(...) \
-    do { \
-        vrna_log(VRNA_LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0)
+        do { \
+          vrna_log(VRNA_LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__); \
+        } while (0)
 
 #define vrna_log_warning(...) \
-    do { \
-        vrna_log(VRNA_LOG_LEVEL_WARNING, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0)
+        do { \
+          vrna_log(VRNA_LOG_LEVEL_WARNING, __FILE__, __LINE__, __VA_ARGS__); \
+        } while (0)
 
 #define vrna_log_error(...) \
-    do { \
-        vrna_log(VRNA_LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0)
+        do { \
+          vrna_log(VRNA_LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__); \
+        } while (0)
 
 #define vrna_log_critical(...) \
-    do { \
-        vrna_log(VRNA_LOG_LEVEL_CRITICAL, __FILE__, __LINE__, __VA_ARGS__); \
-    } while (0)
+        do { \
+          vrna_log(VRNA_LOG_LEVEL_CRITICAL, __FILE__, __LINE__, __VA_ARGS__); \
+        } while (0)
 
 
 void
-vrna_log(int level,
+vrna_log(int        level,
          const char *file_name,
          int        line_number,
          const char *format_string,
          ...);
 
 
-int vrna_log_level(void);
+int
+vrna_log_level(void);
 
 
-int vrna_log_level_set(int level);
+int
+vrna_log_level_set(int level);
 
 
-unsigned int vrna_log_options(void);
+unsigned int
+vrna_log_options(void);
 
 
-void vrna_log_options_set(unsigned int options);
+void
+vrna_log_options_set(unsigned int options);
+
+
+FILE *
+vrna_log_fp(void);
+
+
+void
+vrna_log_fp_set(FILE *fp);
+
+
+/**
+ *  @}
+ */
 
 /**
  *  @addtogroup  message_utils
@@ -218,14 +238,16 @@ vrna_message_vinfo(FILE       *fp,
  *
  *  @deprecated Use vrna_message_warning() instead! (since v2.3.0)
  */
-DEPRECATED(void warn_user(const char message[]), "Use vrna_message_warning() instead");
+DEPRECATED(void
+           warn_user(const char message[]), "Use vrna_message_warning() instead");
 
 /**
  *  @brief Die with an error message
  *
  *  @deprecated Use vrna_message_error() instead! (since v2.3.0)
  */
-DEPRECATED(void nrerror(const char message[]), "Use vrna_message_error() instead()");
+DEPRECATED(void
+           nrerror(const char message[]), "Use vrna_message_error() instead()");
 
 #endif
 
