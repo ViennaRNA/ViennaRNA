@@ -85,6 +85,9 @@ main(int  argc,
   if (PKplex_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   /* temperature */
   if (args_info.temp_given)
     md.temperature = temperature = args_info.temp_arg;
@@ -122,10 +125,6 @@ main(int  argc,
   /* set the pair probability cutoff */
   if (args_info.cutoff_given)
     cutoff = args_info.cutoff_arg;
-
-  /* turn on verbose output (mainly for debugging) */
-  if (args_info.verbose_given)
-    verbose = 1;
 
   /* set energy cutoff */
   if (args_info.energyCutoff_given)
@@ -311,7 +310,11 @@ main(int  argc,
     if (istty)
       vrna_message_input_seq_simple();
   }
-  return 0;
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
 
 
