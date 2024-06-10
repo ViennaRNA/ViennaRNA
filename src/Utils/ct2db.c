@@ -14,6 +14,9 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/io/file_formats.h"
+
+#include "../bin/gengetopt_helpers.h"
+
 #include "ct2db_cmdl.h"
 
 typedef struct _parameters {
@@ -74,6 +77,9 @@ main(int  argc,
   if (ct2db_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, ct2db_params.verbose);
+
   /* remove Pseudknots? */
   if (args_info.no_pk_given)
     ct2db_params.no_pk = 1;
@@ -81,10 +87,6 @@ main(int  argc,
   /* replace all characters by U or N */
   if (args_info.no_modified_given)
     ct2db_params.no_mod = 1;
-
-  /* be verbose ? */
-  if (args_info.verbose_given)
-    ct2db_params.verbose = 1;
 
   char  **input_files = NULL;
   int   i, num_files = 0;
@@ -109,11 +111,9 @@ main(int  argc,
           vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                          input_files[i]);
 
-        if (ct2db_params.verbose) {
-          vrna_log_info("Processing %d. input file \"%s\"",
-                        i + 1,
-                        input_files[i]);
-        }
+        vrna_log_info("Processing %d. input file \"%s\"",
+                      i + 1,
+                      input_files[i]);
 
         if (process_input(input_stream, (const char *)input_files[i], &ct2db_params) == 0)
           skip = 1;
@@ -128,6 +128,9 @@ main(int  argc,
   }
 
   free(input_files);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
@@ -156,22 +159,20 @@ process_input(FILE        *fp,
         pt    = vrna_pt_pk_remove(pt_pk, 0);
         ss    = vrna_db_from_ptable(pt);
 
-        if (opt->verbose) {
-          bp_pk = 0;
-          bp    = 0;
+        bp_pk = 0;
+        bp    = 0;
 
-          for (size_t i = 1; i <= pt_pk[0]; i++) {
-            if (pt_pk[i] > i)
-              bp_pk++;
+        for (size_t i = 1; i <= pt_pk[0]; i++) {
+          if (pt_pk[i] > i)
+            bp_pk++;
 
-            if (pt[i] > i)
-              bp++;
-          }
-
-          vrna_log_info("Removed %u of %u base pairs to make structure pseudo-knot free",
-                        bp_pk - bp,
-                        bp_pk);
+          if (pt[i] > i)
+            bp++;
         }
+
+        vrna_log_info("Removed %u of %u base pairs to make structure pseudo-knot free",
+                      bp_pk - bp,
+                      bp_pk);
 
         free(pt_pk);
         free(pt);
