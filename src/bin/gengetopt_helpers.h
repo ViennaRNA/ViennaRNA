@@ -361,4 +361,56 @@ set_salt_DNA(vrna_md_t *md);
   } \
 })
 
+
+#define ggo_log_settings(ggostruct, \
+                         verbose) \
+    do { \
+      int level             = VRNA_LOG_LEVEL_WARNING; \
+      unsigned int options  = 0; \
+      if (args_info.verbose_given) {\
+        level = VRNA_LOG_LEVEL_INFO; \
+        verbose = 1;\
+      } else {\
+        verbose = 0;\
+      }\
+      if (args_info.log_level_given) {\
+        switch (args_info.log_level_arg) { \
+          case 0: \
+            level = VRNA_LOG_LEVEL_DEBUG; \
+            break; \
+          case 1: \
+            level = VRNA_LOG_LEVEL_INFO; \
+            break; \
+          case 3: \
+            level = VRNA_LOG_LEVEL_ERROR; \
+            break; \
+          case 4: \
+            level = VRNA_LOG_LEVEL_CRITICAL; \
+            break; \
+          case 5: \
+            level = VRNA_LOG_LEVEL_SILENT; \
+            break; \
+          case 2: \
+            /* fall-through */ \
+          default: \
+            level = VRNA_LOG_LEVEL_WARNING;\
+            break; \
+        } \
+      }\
+      if (args_info.log_time_given) \
+        options |= VRNA_LOG_OPTION_TRACE_TIME; \
+      if (args_info.log_call_given) \
+        options |= VRNA_LOG_OPTION_TRACE_CALL; \
+      vrna_log_level_set(level); \
+      vrna_log_options_set(options); \
+      if (args_info.log_file_given) { \
+        FILE *fp = fopen((const char *)args_info.log_file_arg, "w"); \
+        if (!fp) { \
+          vrna_log_error("Unable to open log file \"%s\" for writing", \
+                         args_info.log_file_arg); \
+          exit(EXIT_FAILURE); \
+        } \
+        vrna_log_fp_set(fp); \
+      } \
+    } while (0)
 #endif
