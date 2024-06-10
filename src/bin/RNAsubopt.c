@@ -23,6 +23,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/subopt.h"
 #include "ViennaRNA/subopt_zuker.h"
@@ -92,7 +93,6 @@ main(int  argc,
   rec_id              = rec_sequence = orig_sequence = NULL;
   rec_rest            = NULL;
   cstruc              = structure = NULL;
-  verbose             = 0;
   st_back_en          = 0;
   infile              = NULL;
   outfile             = NULL;
@@ -117,6 +117,9 @@ main(int  argc,
   if (RNAsubopt_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   /* parse options for ID manipulation */
   ggo_get_id_control(args_info, id_control, "Sequence", "sequence", "_", 4, 1);
 
@@ -131,7 +134,7 @@ main(int  argc,
 
   /* check dangle model */
   if ((md.dangles < 0) || (md.dangles > 3)) {
-    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    vrna_log_warning("required dangle model not implemented, falling back to default dangles=2");
     md.dangles = dangles = 2;
   }
 
@@ -143,9 +146,6 @@ main(int  argc,
                                constraints_file,
                                enforceConstraints,
                                batch);
-
-  if (args_info.verbose_given)
-    verbose = 1;
 
   /* enforce canonical base pairs in any case? */
   if (args_info.canonicalBPonly_given)
@@ -200,22 +200,22 @@ main(int  argc,
 
   if (zuker) {
     if (md.circ) {
-      vrna_message_warning("Sorry, zuker subopts not yet implemented for circfold");
+      vrna_log_warning("Sorry, zuker subopts not yet implemented for circfold");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     } else if (n_back > 0) {
-      vrna_message_warning("Can't do zuker subopts and stochastic subopts at the same time");
+      vrna_log_warning("Can't do zuker subopts and stochastic subopts at the same time");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     } else if (md.gquad) {
-      vrna_message_warning("G-quadruplex support for Zuker subopts not implemented yet");
+      vrna_log_warning("G-quadruplex support for Zuker subopts not implemented yet");
       RNAsubopt_cmdline_parser_print_help();
       exit(1);
     }
   }
 
   if (md.gquad && (n_back > 0)) {
-    vrna_message_warning("G-quadruplex support for stochastic backtracking not implemented yet");
+    vrna_log_warning("G-quadruplex support for stochastic backtracking not implemented yet");
     RNAsubopt_cmdline_parser_print_help();
     exit(1);
   }
@@ -272,7 +272,7 @@ main(int  argc,
   if (infile) {
     input = fopen((const char *)infile, "r");
     if (!input)
-      vrna_message_error("Could not read input file");
+      vrna_log_error("Could not read input file");
   } else {
     input = stdin;
   }
@@ -344,11 +344,11 @@ main(int  argc,
       v_file_name = tmp_string;
 
       if (infile && !strcmp(infile, v_file_name))
-        vrna_message_error("Input and output file names are identical");
+        vrna_log_error("Input and output file names are identical");
 
       output = fopen((const char *)v_file_name, "a");
       if (!output)
-        vrna_message_error("Failed to open file for writing");
+        vrna_log_error("Failed to open file for writing");
     } else {
       output = stdout;
     }
@@ -396,13 +396,13 @@ main(int  argc,
 
           for (char **ptr = constraints; *ptr != NULL; ptr++, strand_cnt) {
             if (strand_cnt > vc->strands)
-              vrna_message_error("Structure constraint contains too many strands (expected %u, got at least %u)\n",
+              vrna_log_error("Structure constraint contains too many strands (expected %u, got at least %u)\n",
                                  vc->strands,
                                  strand_cnt);
 
             unsigned int l = strlen(*ptr);
             if (vc->strand_end[strand_cnt] != i + l)
-              vrna_message_error("Length of structure constraint for strand %u differs from sequence (expected %u, got %u)\n",
+              vrna_log_error("Length of structure constraint for strand %u differs from sequence (expected %u, got %u)\n",
                                  strand_cnt,
                                  vc->strand_end[strand_cnt] - i,
                                  l);
@@ -479,7 +479,7 @@ main(int  argc,
                               VRNA_PBACKTRACK_DEFAULT;
 
       if (vc->strands > 1)
-        vrna_message_error(
+        vrna_log_error(
           "Boltzmann sampling for multiple interacting sequences not implemented (yet)!");
 
       print_fasta_header(output, rec_id);
@@ -541,7 +541,7 @@ main(int  argc,
       vrna_subopt_solution_t  *zr;
 
       if (vc->strands > 1)
-        vrna_message_error("Sorry, zuker subopts not yet implemented for cofold");
+        vrna_log_error("Sorry, zuker subopts not yet implemented for cofold");
 
       int                     i;
       print_fasta_header(output, rec_id);
@@ -623,6 +623,9 @@ main(int  argc,
   }
 
   free_id_data(id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
