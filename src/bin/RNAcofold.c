@@ -35,6 +35,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
@@ -274,6 +275,9 @@ main(int  argc,
   if (RNAcofold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, opt.verbose);
+
   /* get basic set of model details */
   ggo_get_md_eval(args_info, opt.md);
   ggo_get_md_fold(args_info, opt.md);
@@ -284,7 +288,7 @@ main(int  argc,
 
   /* check dangle model */
   if ((opt.md.dangles < 0) || (opt.md.dangles > 3)) {
-    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    vrna_log_warning("required dangle model not implemented, falling back to default dangles=2");
     opt.md.dangles = dangles = 2;
   }
 
@@ -368,9 +372,6 @@ main(int  argc,
       opt.md.compute_bpp = 1;
   }
 
-  if (args_info.verbose_given)
-    opt.verbose = 1;
-
   if (args_info.commands_given)
     opt.commands = vrna_file_commands_read(args_info.commands_arg,
                                            VRNA_CMD_PARSE_HC | VRNA_CMD_PARSE_SC);
@@ -408,7 +409,7 @@ main(int  argc,
         opt.csv_output = 0;
         break;
       default:
-        vrna_message_warning("unknown output format \"%c\", using defaults!",
+        vrna_log_warning("unknown output format \"%c\", using defaults!",
                              *(args_info.output_format_arg));
         break;
     }
@@ -418,7 +419,7 @@ main(int  argc,
   if (args_info.csv_delim_given) {
     opt.csv_output_delim = *(args_info.csv_delim_arg);
     if (!opt.csv_output_delim) {
-      vrna_message_warning("Delimiting character for One-Line output is missing, using defaults!");
+      vrna_log_warning("Delimiting character for One-Line output is missing, using defaults!");
       opt.csv_output_delim = ',';
     }
   }
@@ -436,7 +437,7 @@ main(int  argc,
       if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
         opt.jobs = MIN2(thread_max, proc_cores_conf);
       } else {
-        vrna_message_warning("Could not determine number of available processor cores!\n"
+        vrna_log_warning("Could not determine number of available processor cores!\n"
                              "Defaulting to serial computation");
         opt.jobs = 1;
       }
@@ -446,7 +447,7 @@ main(int  argc,
 
     opt.jobs = MAX2(1, opt.jobs);
 #else
-    vrna_message_warning(
+    vrna_log_warning(
       "This version of RNAfold has been built without parallel input processing capabilities");
 #endif
 
@@ -467,14 +468,14 @@ main(int  argc,
    #############################################
    */
   if (opt.pf && opt.md.gquad)
-    vrna_message_error(
+    vrna_log_error(
       "G-Quadruplex support is currently not available for partition function computations");
 
   if ((opt.csv_output) && (opt.csv_header))
     write_csv_header(stdout, &opt);
 
   if ((opt.verbose) && (opt.jobs > 1))
-    vrna_message_info(stderr, "Preparing %d parallel computation slots", opt.jobs);
+    vrna_log_info("Preparing %d parallel computation slots", opt.jobs);
 
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
@@ -493,12 +494,11 @@ main(int  argc,
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
         if (!input_stream)
-          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
+          vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
 
         if (opt.verbose) {
-          vrna_message_info(stderr,
-                            "Processing %d. input file \"%s\"",
+          vrna_log_info("Processing %d. input file \"%s\"",
                             i + 1,
                             input_files[i]);
         }
@@ -541,6 +541,9 @@ main(int  argc,
   }
 
   free_id_data(opt.id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
@@ -698,7 +701,7 @@ process_record(struct record_data *record)
                                                 VRNA_OPTION_DEFAULT | VRNA_OPTION_HYBRID);
 
   if (!vc) {
-    vrna_message_warning("Skipping computations for \"%s\"",
+    vrna_log_warning("Skipping computations for \"%s\"",
                          (record->id) ? record->id : "identifier unavailable");
     return;
   }
@@ -706,7 +709,7 @@ process_record(struct record_data *record)
   n = vc->length;
 
   if (vc->strands > 2)
-    vrna_message_error("More than one strand delimiter in input!");
+    vrna_log_error("More than one strand delimiter in input!");
 
   /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
   o_stream->data = vrna_cstr(6 * n, stdout);
@@ -747,7 +750,7 @@ process_record(struct record_data *record)
       cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
       cstruc  = vrna_cut_point_remove(cstruc, &cp);
       if (vc->cutpoint != cp) {
-        vrna_message_error("Sequence and Structure have different cut points.\n"
+        vrna_log_error("Sequence and Structure have different cut points.\n"
                            "sequence: %d, structure: %d",
                            vc->cutpoint, cp);
       }
@@ -755,11 +758,11 @@ process_record(struct record_data *record)
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
       if (cl == 0)
-        vrna_message_warning("Structure constraint is missing");
+        vrna_log_warning("Structure constraint is missing");
       else if (cl < n)
-        vrna_message_warning("Structure constraint is shorter than sequence");
+        vrna_log_warning("Structure constraint is shorter than sequence");
       else if (cl > n)
-        vrna_message_error("Structure constraint is too long");
+        vrna_log_error("Structure constraint is too long");
 
       if (cstruc) {
         unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
@@ -800,7 +803,7 @@ process_record(struct record_data *record)
       /* read from file */
       FILE *fp = fopen(opt->concentration_file, "r");
       if (fp == NULL)
-        vrna_message_error("could not open concentration file %s", opt->concentration_file);
+        vrna_log_error("could not open concentration file %s", opt->concentration_file);
 
       concentrations = read_concentrations(fp);
       fclose(fp);
@@ -823,7 +826,7 @@ process_record(struct record_data *record)
   /* check whether the constraint allows for any solution */
   if ((fold_constrained) || (opt->commands)) {
     if (min_en == (double)(INF / 100.)) {
-      vrna_message_error(
+      vrna_log_error(
         "Supplied structure constraints create empty solution set for sequence:\n%s",
         record->sequence);
       exit(EXIT_FAILURE);
@@ -965,7 +968,7 @@ process_record(struct record_data *record)
 
     if (opt->doT) {
       if (vc->strands < 2) {
-        vrna_message_warning(
+        vrna_log_warning(
           "Sorry, i cannot do that with only one molecule, please give me two or leave it");
         free(mfAB);
         free(prAB);
