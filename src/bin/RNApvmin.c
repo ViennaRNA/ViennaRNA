@@ -14,6 +14,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
@@ -52,7 +53,7 @@ print_progress(int    iteration,
   FILE  *f;
   char  *path;
 
-  vrna_message_info(stderr, "Iteration: %d\t Score: %f", iteration, score);
+  vrna_log_info("Iteration: %d\t Score: %f", iteration, score);
 
   if (!g_statpath)
     return;
@@ -60,7 +61,7 @@ print_progress(int    iteration,
   path  = vrna_strdup_printf("%s_%04d", g_statpath, iteration);
   f     = fopen(path, "w");
   if (!f) {
-    vrna_message_warning("Couldn't open file '%s'", path);
+    vrna_log_warning("Couldn't open file '%s'", path);
     return;
   }
 
@@ -96,7 +97,7 @@ main(int  argc,
   char                      *rec_id, *rec_sequence, **rec_rest, *shape_sequence;
   size_t                    length;
   unsigned int              read_opt, rec_type;
-  int                       istty, algorithm, i, sample_size;
+  int                       istty, algorithm, i, sample_size, verbose;
   double                    *shape_data, initialStepSize, minStepSize, minImprovement,
                             minimizerTolerance;
 
@@ -112,13 +113,16 @@ main(int  argc,
   if (RNApvmin_cmdline_parser(argc, argv, &args_info))
     return 1;
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   if (args_info.inputs_num != 1) {
     RNApvmin_cmdline_parser_print_help();
     return 1;
   }
 
   if (args_info.tauSigmaRatio_arg <= 0) {
-    vrna_message_warning("invalid value for tauSigmaRatio");
+    vrna_log_warning("invalid value for tauSigmaRatio");
     return 1;
   }
 
@@ -131,7 +135,7 @@ main(int  argc,
     omp_set_num_threads(args_info.numThreads_arg);
 
 #else
-    vrna_message_error("\'j\' option is available only if compiled with OpenMP support!");
+    vrna_log_error("\'j\' option is available only if compiled with OpenMP support!");
 #endif
 
   ggo_get_read_paramFile(args_info, &md);
@@ -144,7 +148,7 @@ main(int  argc,
 
   if (args_info.dangles_given) {
     if (args_info.dangles_given > 3)
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = args_info.dangles_arg;
@@ -169,7 +173,7 @@ main(int  argc,
     g_statpath = args_info.intermediatePath_arg;
 
   if (args_info.objectiveFunction_arg < 0 || args_info.objectiveFunction_arg > 1) {
-    vrna_message_warning("required objective function mode not implemented, falling back to default");
+    vrna_log_warning("required objective function mode not implemented, falling back to default");
     args_info.objectiveFunction_arg = 0;
   }
 
@@ -297,5 +301,8 @@ main(int  argc,
 
   RNApvmin_cmdline_parser_free(&args_info);
 
-  return 0;
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
