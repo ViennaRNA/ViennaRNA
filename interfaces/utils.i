@@ -30,6 +30,9 @@
 
 
 %include  <ViennaRNA/utils/basic.h>
+
+%include  <ViennaRNA/utils/log.h>
+
 /**********************************************/
 /* BEGIN interface for string utilities       */
 /**********************************************/

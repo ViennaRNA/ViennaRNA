@@ -29,6 +29,7 @@ extern "C" {
 #include  <ViennaRNA/utils/structures.h>
 #include  <ViennaRNA/utils/strings.h>
 #include  <ViennaRNA/utils/alignments.h>
+#include  <ViennaRNA/utils/log.h>
 #include  <ViennaRNA/fold_vars.h>
 
 #include  <ViennaRNA/params/constants.h>
