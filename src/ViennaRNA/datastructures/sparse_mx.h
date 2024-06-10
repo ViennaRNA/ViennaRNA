@@ -1,11 +1,11 @@
-#ifndef   VRNA_SMX_H
-#define   VRNA_SMX_H
+#ifndef   VIENNA_RNA_PACKAGE_SPARSE_MATRIX_H
+#define   VIENNA_RNA_PACKAGE_SPARSE_MATRIX_H
 
 #include <stdlib.h>
 #include <ViennaRNA/datastructures/array.h>
 
 
-#define VRNA_SMX_CSR( TYPE ) \
+#define vrna_smx_csr( TYPE ) \
   vrna_smx_csr_##TYPE##_t
 
 #define VRNA_SMX_CSR_DECLARE( TYPE )      \
