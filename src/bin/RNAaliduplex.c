@@ -18,6 +18,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/subopt.h"
 #include "ViennaRNA/duplex.h"
@@ -40,7 +41,7 @@ main(int  argc,
   struct RNAaliduplex_args_info args_info;
   char                          *AS1[MAX_NUM_NAMES], *AS2[MAX_NUM_NAMES], *names1[MAX_NUM_NAMES],
                                 *names2[MAX_NUM_NAMES], *ParamFile, *c, *ns_bases;
-  int                           i, n_seq, n_seq2, delta, sym;
+  int                           i, n_seq, n_seq2, delta, sym, verbose;
   duplexT                       mfe, *subopt;
 
   file1     = NULL;
@@ -58,6 +59,9 @@ main(int  argc,
   if (RNAaliduplex_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   /* temperature */
   if (args_info.temp_given)
     temperature = args_info.temp_arg;
@@ -69,7 +73,7 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
@@ -113,18 +117,18 @@ main(int  argc,
   if (args_info.inputs_num == 2) {
     file1 = fopen(args_info.inputs[0], "r");
     if (file1 == NULL)
-      vrna_message_warning("can't open %s", args_info.inputs[0]);
+      vrna_log_warning("can't open %s", args_info.inputs[0]);
 
     file2 = fopen(args_info.inputs[1], "r");
     if (file2 == NULL)
-      vrna_message_warning("can't open %s", args_info.inputs[1]);
+      vrna_log_warning("can't open %s", args_info.inputs[1]);
   } else {
     RNAaliduplex_cmdline_parser_print_help();
     exit(1);
   }
 
   if (!(file1 && file2)) {
-    vrna_message_warning("No input files");
+    vrna_log_warning("No input files");
     RNAaliduplex_cmdline_parser_print_help();
     exit(1);
   } else {
@@ -133,7 +137,7 @@ main(int  argc,
     fclose(file1);
     fclose(file2);
     if (n_seq != n_seq2)
-      vrna_message_error("unequal number of seqs in alignments");
+      vrna_log_error("unequal number of seqs in alignments");
   }
 
   ggo_geometry_settings(args_info, NULL);
@@ -204,7 +208,11 @@ main(int  argc,
     free(AS2[i]);
     free(names2[i]);
   }
-  return 0;
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
 
 
