@@ -15,6 +15,7 @@ Utilities
    utils/combinatorics
    utils/data_structures
    utils/messages
+   utils/logs
    utils/units
 
 .. doxygengroup:: utils

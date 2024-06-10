@@ -49,20 +49,20 @@
  #################################
  */
 typedef struct {
-  vrna_log_cb_f cb;
-  void          *cb_data;
-  int           level;
+  vrna_log_cb_f     cb;
+  void              *cb_data;
+  vrna_log_levels_e level;
 } logger_callback;
 
 PRIVATE struct {
-  FILE            *default_file;
-  int             default_level;
-  unsigned int    options;
-  vrna_log_lock_f lock;
-  void            *lock_data;
+  FILE              *default_file;
+  vrna_log_levels_e default_level;
+  unsigned int      options;
+  vrna_log_lock_f   lock;
+  void              *lock_data;
   vrna_array(logger_callback) callbacks;
 #if VRNA_WITH_PTHREADS
-  pthread_mutex_t mtx;                    /* semaphore to prevent concurrent access */
+  pthread_mutex_t   mtx;            /* semaphore to prevent concurrent access */
 #endif
 } logger = {
   .default_file   = NULL,
@@ -98,11 +98,11 @@ unlock(void);
 
 
 PRIVATE const char *
-get_log_level_color(int level);
+get_log_level_color(vrna_log_levels_e level);
 
 
 PRIVATE const char *
-get_log_level_string(int level);
+get_log_level_string(vrna_log_levels_e level);
 
 
 /*
@@ -111,10 +111,10 @@ get_log_level_string(int level);
  #################################
  */
 PUBLIC void
-vrna_log(int        level,
-         const char *file_name,
-         int        line_number,
-         const char *format_string,
+vrna_log(vrna_log_levels_e  level,
+         const char         *file_name,
+         int                line_number,
+         const char         *format_string,
          ...)
 {
   vrna_log_event_t event = {
@@ -138,7 +138,7 @@ vrna_log_level(void)
 
 
 PUBLIC int
-vrna_log_level_set(int level)
+vrna_log_level_set(vrna_log_levels_e level)
 {
   switch (level) {
     case VRNA_LOG_LEVEL_DEBUG:
@@ -191,6 +191,110 @@ PUBLIC void
 vrna_log_options_set(unsigned int options)
 {
   logger.options = options;
+}
+
+
+PUBLIC size_t
+vrna_log_cb_add(vrna_log_cb_f     cb,
+                void              *data,
+                vrna_log_levels_e level)
+{
+  /* initialize the logger, if not done already */
+  if (logger.callbacks == NULL) {
+    /* initialize callbacks if not done so far */
+    vrna_array_init(logger.callbacks);
+  }
+
+  if (cb) {
+    logger_callback logger_cb = {
+      .cb       = cb,
+      .cb_data  = data,
+      .level    = level
+    };
+
+    /* append callback to callback list */
+    vrna_array_append(logger.callbacks, logger_cb);
+  }
+
+  return vrna_array_size(logger.callbacks);
+}
+
+
+PUBLIC size_t
+vrna_log_cb_num(void)
+{
+  return vrna_array_size(logger.callbacks);
+}
+
+
+PUBLIC size_t
+vrna_log_cb_remove(vrna_log_cb_f  cb,
+                   void           *data)
+{
+  /* initialize the logger, if not done already */
+  if (logger.callbacks == NULL) {
+    /* initialize callbacks if not done so far */
+    vrna_array_init(logger.callbacks);
+  }
+
+  /* search through logger callbacks to find
+   * the logger we want to remove
+   */
+  if ((cb) &&
+      (vrna_array_size(logger.callbacks) > 0)) {
+    size_t i;
+
+    for (i = 0; i < vrna_array_size(logger.callbacks); i++) {
+      if ((logger.callbacks[i].cb == cb) &&
+          (logger.callbacks[i].cb_data == data))
+        break;
+    }
+
+    /* did we find the callback ? */
+    if (i < vrna_array_size(logger.callbacks)) {
+      /* move all callbacks after the one we found */
+      if (i < vrna_array_size(logger.callbacks) - 1) {
+        (void)memmove(logger.callbacks + i,
+                      logger.callbacks + i + 1,
+                      (vrna_array_size(logger.callbacks) - i - 1) * sizeof(logger_callback));
+      }
+
+      /* reduce number of callbacks */
+      VRNA_ARRAY_HEADER(logger.callbacks)->num--;
+
+      return 1;
+    }
+  }
+
+  return 0; /* unsuccessful */
+}
+
+
+PUBLIC void
+vrna_log_lock_set(vrna_log_lock_f cb,
+                  void            *data)
+{
+  logger.lock       = cb;
+  logger.lock_data  = data;
+}
+
+
+PUBLIC void
+vrna_log_reset(void)
+{
+  if (logger.callbacks)
+    vrna_array_free(logger.callbacks);
+
+  /* initialize everything to default settings */
+  logger.default_file   = stderr;
+  logger.lock           = NULL;
+  logger.lock_data      = NULL;
+  logger.default_level  = VRNA_LOG_LEVEL_DEFAULT;
+  logger.options        = VRNA_LOG_OPTION_DEFAULT;
+  vrna_array_init(logger.callbacks);
+#if VRNA_WITH_PTHREADS
+  (void)pthread_mutex_init(&(logger.mtx), NULL);
+#endif
 }
 
 
@@ -397,8 +501,16 @@ log_v(vrna_log_event_t *event)
 PRIVATE void
 lock(void)
 {
+  if (logger.lock)
 #if VRNA_WITH_PTHREADS
+  {
+#endif
+    logger.lock(1, logger.lock_data);
+
+#if VRNA_WITH_PTHREADS
+} else {
   pthread_mutex_lock(&(logger.mtx));
+}
 #endif
 }
 
@@ -406,14 +518,22 @@ lock(void)
 PRIVATE void
 unlock(void)
 {
+  if (logger.lock)
 #if VRNA_WITH_PTHREADS
+  {
+#endif
+    logger.lock(0, logger.lock_data);
+
+#if VRNA_WITH_PTHREADS
+} else {
   pthread_mutex_unlock(&(logger.mtx));
+}
 #endif
 }
 
 
 PRIVATE const char *
-get_log_level_string(int level)
+get_log_level_string(vrna_log_levels_e level)
 {
   switch (level) {
     case VRNA_LOG_LEVEL_DEBUG:
@@ -433,7 +553,7 @@ get_log_level_string(int level)
 
 
 PRIVATE const char *
-get_log_level_color(int level)
+get_log_level_color(vrna_log_levels_e level)
 {
   switch (level) {
     case VRNA_LOG_LEVEL_DEBUG:

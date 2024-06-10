@@ -1,13 +1,7 @@
-Logging and Messages
-====================
+Messages
+========
 
-Functions to print logs and other kinds of messages.
-
-Logging System
---------------
-
-.. doxygengroup:: utils_log
-    :no-title:
+Functions to all kinds of messages.
 
 
 Other messages
