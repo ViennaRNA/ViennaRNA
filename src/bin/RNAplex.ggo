@@ -25,6 +25,13 @@ description "reads two RNA sequences from stdin or <filename> and\
 
 # Options
 
+option  "verbose" v
+"Be verbose.\n"
+details="Lower the log level setting such that even INFO messages are passed through.\n\n"
+flag
+off
+
+
 section "I/O Options"
 sectiondesc="Command line options for input and output (pre-)processing\n\n"
 
@@ -58,6 +65,40 @@ details="The -b option allows one to read and process opening energy files which
  opening energy files.\n\n"
 flag
 off
+
+
+option  "log-level" -
+"Set log level threshold.\n"
+details="By default, any log messages are filtered such that only warnings (level 2) or errors (level 3)\
+ are printed. This setting allows for specifying the log level threshold, where higher values result in\
+ fewer information. Log-level 5 turns off all messages, even errors and other critical information.\n\n"
+int
+typestr="level"
+default="2"
+hidden
+
+
+option  "log-file" -
+"Print log messages to a file instead of stderr.\n"
+string
+typestr="filename"
+default="RNAplex.log"
+argoptional
+hidden
+
+
+option  "log-time" -
+"Include time stamp in log messages.\n\n"
+flag
+off
+hidden
+
+
+option  "log-call" -
+"Include file and line of log calling function.\n\n"
+flag
+off
+hidden
 
 
 section "Algorithms"

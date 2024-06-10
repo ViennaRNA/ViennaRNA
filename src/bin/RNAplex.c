@@ -23,6 +23,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/ali_plex.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/utils/alignments.h"
@@ -203,6 +204,7 @@ main(int  argc,
   int                             i, l, sym;
 
   /* double kT, sfact=1.07; */
+  int                             verbose           = 0;
   int                             istty, delta = -INF;
   int                             noconv            = 0;
   int                             extension_cost    = 0;
@@ -237,6 +239,9 @@ main(int  argc,
    */
   if (RNAplex_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
 
   /*temperature*/
   if (args_info.temp_given)
@@ -351,7 +356,7 @@ main(int  argc,
    */
   if (probe_mode) {
     if (qname || tname) {
-      vrna_message_error(
+      vrna_log_error(
         "No query/target file allowed in Tm probe mode\nPlease pipe your input into RNAplex\n");
       /* get sequence */
     } else {
@@ -514,7 +519,7 @@ main(int  argc,
         return 0;
       }
 
-      vrna_message_error("Sorry not implemented yet");
+      vrna_log_error("Sorry not implemented yet");
     }/**
       * We have no single sequence case. Check if we have alignments.
       */
@@ -1100,13 +1105,13 @@ main(int  argc,
 
               free(cstruc);
             } else {
-              vrna_message_warning("constraints missing");
+              vrna_log_warning("constraints missing");
             }
 
             int   a = strchr(structure, '|') - structure;
             int   b = strrchr(structure, '|') - structure;
             if (alignment_length < b - a + 1)
-              vrna_message_error(
+              vrna_log_error(
                 "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
 
             int   **access_s2;
@@ -1298,13 +1303,13 @@ main(int  argc,
 
               free(cstruc);
             } else {
-              vrna_message_warning("constraints missing");
+              vrna_log_warning("constraints missing");
             }
 
             int a = strchr(structure, '|') - structure;
             int b = strrchr(structure, '|') - structure;
             if (alignment_length < b - a + 1)
-              vrna_message_error(
+              vrna_log_error(
                 "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
 
             printf(">%s\n>%s\n", id_s1, id_s2);
@@ -1437,7 +1442,7 @@ main(int  argc,
 
           free(cstruc);
         } else {
-          vrna_message_warning("constraints missing");
+          vrna_log_warning("constraints missing");
         }
       }
 
@@ -1474,7 +1479,7 @@ main(int  argc,
           int a = strchr(structure, '|') - structure;
           int b = strrchr(structure, '|') - structure;
           if (alignment_length < b - a + 1)
-            vrna_message_error(
+            vrna_log_error(
               "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
 
           Lduplexfold_C(s1,
@@ -1497,7 +1502,7 @@ main(int  argc,
         s1_len  = strlen(s1);
         s2_len  = strlen(s2);
         if (!(id_s1 && id_s2))
-          vrna_message_error(
+          vrna_log_error(
             "The fasta files has no header information..., cant fetch accessibility file\n");
 
         file_s1 = (char *)vrna_alloc(sizeof(char) * (strlen(id_s1) + strlen(access) + 20));
@@ -1562,7 +1567,7 @@ main(int  argc,
           int a = strchr(structure, '|') - structure;
           int b = strrchr(structure, '|') - structure;
           if (alignment_length < b - a + 1)
-            vrna_message_error(
+            vrna_log_error(
               "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
 
           Lduplexfold_CXS(s1,
@@ -1640,7 +1645,7 @@ main(int  argc,
         free(temp1[i]);
         free(temp2[i]);
       }
-      vrna_message_error("unequal number of seqs in alignments");
+      vrna_log_error("unequal number of seqs in alignments");
     }
 
     for (i = 0; temp1[i]; i++) {
@@ -1753,7 +1758,11 @@ main(int  argc,
   }
 
   RNAplex_cmdline_parser_free(&args_info);
-  return 0;
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
 
 
@@ -1790,7 +1799,7 @@ read_plfold_i(char      *fname,
   FILE    *in   = fopen(fname, "r");
 
   if (in == NULL) {
-    vrna_message_warning("File ' %s ' open error", fname);
+    vrna_log_warning("File ' %s ' open error", fname);
     return NULL;
   }
 
@@ -1814,12 +1823,12 @@ read_plfold_i(char      *fname,
     perror("Empty File");
 
   if (strchr(tmp, '>')) {
-    vrna_message_warning("file %s is not in RNAplfold format", fname);
+    vrna_log_warning("file %s is not in RNAplfold format", fname);
     return NULL;
   }
 
   if (fgets(tmp, sizeof(tmp), in) == 0) {
-    vrna_message_warning("No accessibility data");
+    vrna_log_warning("No accessibility data");
     return NULL;
   }
 
@@ -1892,7 +1901,7 @@ convert_plfold_i(char *fname)
   FILE  *in = fopen(fname, "r");
 
   if (in == NULL) {
-    vrna_message_warning("File ' %s ' open error", fname);
+    vrna_log_warning("File ' %s ' open error", fname);
     return -1;
   }
 
@@ -1904,12 +1913,12 @@ convert_plfold_i(char *fname)
     perror("Empty File");
 
   if (strchr(tmp, '>')) {
-    vrna_message_warning("file %s is not in RNAplfold format", fname);
+    vrna_log_warning("file %s is not in RNAplfold format", fname);
     return -1;
   }
 
   if (fgets(tmp, sizeof(tmp), in) == 0) {
-    vrna_message_warning("No accessibility data");
+    vrna_log_warning("No accessibility data");
     return -1;
   }
 
@@ -1961,7 +1970,7 @@ read_plfold_i_bin(char      *fname,
   int     seqlength;
 
   if (fp == NULL) {
-    vrna_message_warning("File ' %s ' open error", fname);
+    vrna_log_warning("File ' %s ' open error", fname);
     return NULL;
   }
 
@@ -1969,7 +1978,7 @@ read_plfold_i_bin(char      *fname,
 
   first_line = (int *)vrna_alloc(sizeof(int) * (end - beg + 1));              /* check length of the line LOOK at read_plfold_i */
   if (!fread(first_line, sizeof(int), (end - beg) + 1, fp)) {
-    vrna_message_warning("Problem reading size of profile from '%s'", fname); /* get the value of the u option */
+    vrna_log_warning("Problem reading size of profile from '%s'", fname); /* get the value of the u option */
     return NULL;
   }
 
@@ -2125,7 +2134,7 @@ average_accessibility_target(char       **names,
 
       end += 20; /* add 20 to the end, in order to take the N's into account */
       if (location_flag == 0) {
-        vrna_message_warning("\n!! Line %d in your target alignment contains location information\n"
+        vrna_log_warning("\n!! Line %d in your target alignment contains location information\n"
                              "while line %d did not. PLEASE CHECK your alignments!!\n"
                              "RNAplex will continue the target search.",
                              i + 1, i);
@@ -2137,7 +2146,7 @@ average_accessibility_target(char       **names,
       strcat(file_s1, bla);
     } else {
       if (location_flag == 1) {
-        vrna_message_warning("\n!! Line %d in your target alignment does not contain location information\n"
+        vrna_log_warning("\n!! Line %d in your target alignment does not contain location information\n"
                              "while line %d in your target alignment did. PLEASE CHECK your alignments!!\n"
                              "RNAplex will continue the target search.",
                              i + 1,
@@ -2241,7 +2250,7 @@ aliprint_struct(FILE      *Result,        /* result file */
       free(AS1[i]);
       free(AS2[i]);
     }
-    vrna_message_error("unequal number of seqs in alignments");
+    vrna_log_error("unequal number of seqs in alignments");
   }
 
   /**
@@ -2573,7 +2582,7 @@ linear_fit(int  *il_a,
   if ((sumxx - (sumx * sumx) / n) < 1e-6) {
     free(P);
     printf("divisor for internal loop is too small %d\n", (sumxx - (sumx * sumx) / n));
-    vrna_message_error("Problem in fitting");
+    vrna_log_error("Problem in fitting");
   }
 
   til_a = (sumxy - (sumx * sumy) / n) / (sumxx - (sumx * sumx) / n);
@@ -2607,7 +2616,7 @@ linear_fit(int  *il_a,
   free(P);
   if ((sumxx - (sumx * sumx) / n) < 1e-6) {
     printf("divisor for bulge loop is too small %d\n", (sumxx - (sumx * sumx) / n));
-    vrna_message_error("Problem in fitting");
+    vrna_log_error("Problem in fitting");
   }
 }
 
