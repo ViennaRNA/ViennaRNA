@@ -20,6 +20,7 @@
 #include "ViennaRNA/dist_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/params/io.h"
@@ -253,14 +254,17 @@ main(int  argc,
         break;
 
       default:
-        vrna_message_error("This can't happen.");
+        vrna_log_error("This can't happen.");
     }   /* END switch task */
     (void)fflush(stdout);
   }     /* END while */
   if (line != NULL)
     free(line);
 
-  return 0;
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
 
 
@@ -273,6 +277,7 @@ command_line(int        argc,
 {
   char                        *ns_bases   = NULL;
   char                        *ParamFile  = NULL;
+  int                         verbose;
   struct  RNApdist_args_info  args_info;
 
   task = 'p';
@@ -284,6 +289,9 @@ command_line(int        argc,
    */
   if (RNApdist_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
 
   /* temperature */
   if (args_info.temp_given)
