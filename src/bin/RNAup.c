@@ -25,6 +25,7 @@
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/part_func_up.h"
 #include "ViennaRNA/duplex.h"
@@ -104,7 +105,7 @@ main(int  argc,
                           *orig_s2,
                           *orig_target;
   int         i, j, length1, length2, length_target, sym, istty,
-              noconv, max_u, **unpaired_values, ulength_num;
+              noconv, max_u, **unpaired_values, ulength_num, verbose;
   double      min_en, sfact;
 
   /* variables for output */
@@ -154,6 +155,9 @@ main(int  argc,
   if (RNAup_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   /* do not create header */
   if (args_info.no_header_given)
     header = 0;
@@ -184,7 +188,7 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
@@ -457,7 +461,7 @@ main(int  argc,
 
           break;
         default:
-          vrna_message_error("This should never happen (again)");
+          vrna_log_error("This should never happen (again)");
           break;
       }
     }
@@ -482,7 +486,7 @@ main(int  argc,
 
     /* check if we have to change the mode we are operating in */
     if ((cut_point != -1) && (up_mode & RNA_UP_MODE_1)) {
-      vrna_message_warning(
+      vrna_log_warning(
         "Two concatenated sequences given, switching to pairwise interaction mode!");
       up_mode = RNA_UP_MODE_2;
     }
@@ -500,7 +504,7 @@ main(int  argc,
           if (s_target == NULL)
             read_again = 1;
         } else if (s_target != NULL) {
-          vrna_message_error(
+          vrna_log_error(
             "After the first sequence (pair): Input a single sequence (no &)!\n"
             "Each input seq. is compared to the very first seq. given.\n"
             );
@@ -527,7 +531,7 @@ main(int  argc,
         tokenize(input_string, &s2, &s3);   /* this also frees the input_string */
 
       if (cut_point != -1)
-        vrna_message_error(
+        vrna_log_error(
           "Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
 
       length2 = (int)strlen(s2);
@@ -561,12 +565,12 @@ main(int  argc,
         cut_point = -1;
         tokenize(input_string, &cstruc1, &cstruc2);
       } else {
-        vrna_message_error("constraints missing");
+        vrna_log_error("constraints missing");
       }
 
       /* now that we've got the constraining structure(s) check if the input was valid */
       if (old_cut != cut_point)
-        vrna_message_error(
+        vrna_log_error(
           "RNAup -C: mixed single/dual sequence or constraint strings or different cut points");
 
       read_again = 0;
@@ -585,23 +589,23 @@ main(int  argc,
         else if ((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0))
           tokenize(input_string, &cstruc2, &cstruc_tmp);
         else
-          vrna_message_error("constraints missing");
+          vrna_log_error("constraints missing");
 
         if (cut_point != -1)
-          vrna_message_error(
+          vrna_log_error(
             "Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
       }
 
       /* check length(s) of input sequence(s) and constraint(s) */
       if (strlen(cstruc1) != length1) {
         fprintf(stderr, "%s\n%s\n", s1, cstruc1);
-        vrna_message_error("RNAup -C: constraint string and structure have unequal length");
+        vrna_log_error("RNAup -C: constraint string and structure have unequal length");
       }
 
       if (s2 != NULL) {
         if (strlen(cstruc2) != length2) {
           fprintf(stderr, "%s\n%s\n", s2, cstruc2);
-          vrna_message_error("RNAup -C: constraint string and structure have unequal length");
+          vrna_log_error("RNAup -C: constraint string and structure have unequal length");
         }
       }
     } /* thats all for constraint folding */
@@ -635,7 +639,7 @@ main(int  argc,
 
     /* check ulength values against sequences given */
     if (max_u > length1)
-      vrna_message_error("maximum unpaired region exceeds sequence length");
+      vrna_log_error("maximum unpaired region exceeds sequence length");
 
     if (up_mode & RNA_UP_MODE_3) {
       /* if we haven't seen the target yet, store it now */
@@ -720,7 +724,7 @@ main(int  argc,
     min_en    = fold(s1, structure);
     pf_scale  = exp(-(sfact * min_en) / RT / length1);
     if (length1 > 2000)
-      vrna_message_info(stderr, "scaling factor %f", pf_scale);
+      vrna_log_info("scaling factor %f", pf_scale);
 
     if (cstruc1 != NULL)
       strncpy(structure, cstruc1, length1 + 1);
@@ -788,7 +792,7 @@ main(int  argc,
           min_en    = fold(s_target, structure);
           pf_scale  = exp(-(sfact * min_en) / RT / length_target);
           if (length_target > 2000)
-            vrna_message_info(stderr, "scaling factor %f", pf_scale);
+            vrna_log_info("scaling factor %f", pf_scale);
 
           if (cstruc_target != NULL)
             strncpy(structure, cstruc_target, length_target + 1);
@@ -908,6 +912,9 @@ main(int  argc,
   } while (1);
   free(cmdl_parameters);
 
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
   return EXIT_SUCCESS;
 }
 
@@ -1023,7 +1030,7 @@ tokenize(char *line,
     (*seq2) = (char *)vrna_alloc(((strlen(line) - cut) + 2) * sizeof(char));
 
     if (strchr(pos + 1, '&'))
-      vrna_message_error("more than one cut-point in input");
+      vrna_log_error("more than one cut-point in input");
 
     *pos = '\0';
     (void)sscanf(line, "%s", *seq1);
@@ -1039,7 +1046,7 @@ tokenize(char *line,
       cut_point = cut;
     } else if (cut_point != cut) {
       fprintf(stderr, "cut_point = %d cut = %d\n", cut_point, cut);
-      vrna_message_error("Sequence and Structure have different cut points.");
+      vrna_log_error("Sequence and Structure have different cut points.");
     }
   }
 
@@ -1291,7 +1298,7 @@ print_interaction(interact    *Int,
   }
 
   if (nix_up)
-    vrna_message_warning(
+    vrna_log_warning(
       "RNAduplex structure doesn't match any structure of RNAup structure ensemble");
 
   free(i_long);
@@ -1332,6 +1339,6 @@ print_unstru(pu_contrib *p_c,
     }
     printf("%4d,%4d \t (%.3f) \t for u=%3d\n", min_i, min_j, min_gu, w);
   } else {
-    vrna_message_error("error with prob unpaired");
+    vrna_log_error("error with prob unpaired");
   }
 }
