@@ -9,6 +9,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
@@ -771,6 +772,9 @@ main(int  argc,
   if (RNAdos_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   char *rnaSequence = NULL;
 
   if (!args_info.sequence_given) {
@@ -794,7 +798,7 @@ main(int  argc,
   /* dangle options */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg != 0) && (args_info.dangles_arg != 2))
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       md.dangles = dangles = args_info.dangles_arg;
@@ -836,13 +840,16 @@ main(int  argc,
                                                 VRNA_OPTION_DEFAULT);
 
   if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_MFE))
-    vrna_message_warning("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
+    vrna_log_warning("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
 
   int max_energy_dcal = max_energy * 100;
   compute_density_of_states(fc, max_energy_dcal, hash_bits, verbose);
 
   free(rnaSequence);
   vrna_fold_compound_free(fc);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
