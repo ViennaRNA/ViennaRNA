@@ -28,8 +28,12 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "RNAsnoop_cmdl.h"
+
+#include "gengetopt_helpers.h"
+
 static void
 aliprint_struc(snoopT     *dup,
                const char **s1,
@@ -145,6 +149,7 @@ main(int  argc,
                                     redraw /*if used (option I) allow to redraw command line output into ps files */;
 
   int noconv = 0;
+  int verbose;
 
   string_s            = NULL;
   string_t            = NULL;
@@ -161,6 +166,9 @@ main(int  argc,
    */
   if (RNAsnoop_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
 
   /* Redraw results from RNAsnoop */
   if (args_info.constraint_given)
@@ -729,7 +737,7 @@ main(int  argc,
         free(temp1[i]);
         free(temp2[i]);
       }
-      vrna_message_error("unequal number of seqs in alignments");
+      vrna_log_error("unequal number of seqs in alignments");
     }
 
     for (i = 0; temp1[i]; i++) {
@@ -809,7 +817,11 @@ main(int  argc,
 
   fclose(sno);
   fclose(mrna);
-  return 0;
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
 
 
@@ -1097,7 +1109,7 @@ read_rnaup(char       *fname,
     perror("Empty File");
 
   if (strchr(tmp, '>')) {
-    vrna_message_error("file %s is not in RNAup format", fname);
+    vrna_log_error("file %s is not in RNAup format", fname);
     exit(EXIT_FAILURE);
   }
 
@@ -1184,7 +1196,7 @@ read_plfold_i(char      *fname,
     perror("Empty File");
 
   if (strchr(tmp, '>')) {
-    vrna_message_error("file %s is not in RNAplfold format", fname);
+    vrna_log_error("file %s is not in RNAplfold format", fname);
     exit(EXIT_FAILURE);
   }
 
@@ -1405,7 +1417,7 @@ redraw_output(char  *fname,
         free(temp1[i]);
         free(temp2[i]);
       }
-      vrna_message_error("unequal number of seqs in alignments");
+      vrna_log_error("unequal number of seqs in alignments");
     }
 
     for (i = 0; temp1[i]; i++) {
