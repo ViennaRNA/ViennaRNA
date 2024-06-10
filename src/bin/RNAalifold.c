@@ -344,7 +344,8 @@ main(int  argc,
   if (RNAalifold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
-  vrna_log_level_set(VRNA_LOG_LEVEL_INFO);
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, opt.verbose);
 
   /* get basic set of model details */
   ggo_get_md_eval(args_info, opt.md);
@@ -357,7 +358,7 @@ main(int  argc,
 
   /* check dangle model */
   if (!((opt.md.dangles == 0) || (opt.md.dangles == 2))) {
-    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    vrna_log_warning("required dangle model not implemented, falling back to default dangles=2");
     opt.md.dangles = dangles = 2;
   }
 
@@ -476,12 +477,9 @@ main(int  argc,
   if (args_info.layout_type_given)
     rna_plot_type = args_info.layout_type_arg;
 
-  if (args_info.verbose_given)
-    opt.verbose = 1;
-
   if (args_info.quiet_given) {
     if (opt.verbose)
-      vrna_message_warning(
+      vrna_log_warning(
         "Can not be verbose and quiet at the same time! I keep on being chatty...");
     else
       opt.quiet = 1;
@@ -490,7 +488,7 @@ main(int  argc,
   /* SHAPE reactivity data */
   if (args_info.shape_given) {
     if (opt.verbose)
-      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
+      vrna_log_info("SHAPE reactivity data correction activated");
 
     opt.shape                   = 1;
     opt.shape_files             = (char **)vrna_alloc(sizeof(char *) * (args_info.shape_given + 1));
@@ -516,8 +514,7 @@ main(int  argc,
       }
 
       if (opt.verbose) {
-        vrna_message_info(stderr,
-                          "Using SHAPE reactivity data provided in file %s for sequence %d",
+        vrna_log_info("Using SHAPE reactivity data provided in file %s for sequence %d",
                           opt.shape_files[s],
                           opt.shape_file_association[s] + 1);
       }
@@ -565,7 +562,7 @@ main(int  argc,
         break;
 
       default:
-        vrna_message_warning("Unknown input format specified");
+        vrna_log_warning("Unknown input format specified");
         break;
     }
   }
@@ -594,7 +591,7 @@ main(int  argc,
       if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
         opt.jobs = MIN2(thread_max, proc_cores_conf);
       } else {
-        vrna_message_warning("Could not determine number of available processor cores!\n"
+        vrna_log_warning("Could not determine number of available processor cores!\n"
                              "Defaulting to serial computation");
         opt.jobs = 1;
       }
@@ -604,7 +601,7 @@ main(int  argc,
 
     opt.jobs = MAX2(1, opt.jobs);
 #else
-    vrna_message_warning(
+    vrna_log_warning(
       "This version of RNAfold has been built without parallel input processing capabilities");
 #endif
 
@@ -623,10 +620,10 @@ main(int  argc,
    #############################################
    */
   if (opt.md.circ && opt.md.gquad)
-    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
+    vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
 
   if (opt.md.circ && opt.md.noLP)
-    vrna_message_warning("Depending on the origin of the circular sequence, "
+    vrna_log_warning("Depending on the origin of the circular sequence, "
                          "some structures may be missed when using --noLP\n"
                          "Try rotating your sequence a few times\n");
 
@@ -671,13 +668,12 @@ main(int  argc,
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
         if (!input_stream)
-          vrna_message_error("Unable to open %d. input file \"%s\" for reading",
+          vrna_log_error("Unable to open %d. input file \"%s\" for reading",
                              i + 1,
                              input_files[i]);
 
         if (opt.verbose) {
-          vrna_message_info(stderr,
-                            "Processing %d. input file \"%s\"",
+          vrna_log_info( "Processing %d. input file \"%s\"",
                             i + 1,
                             input_files[i]);
         }
@@ -710,23 +706,23 @@ main(int  argc,
 
     switch (opt.input_format) {
       case VRNA_FILE_FORMAT_MSA_CLUSTAL:
-        vrna_message_error(msg, "Clustal");
+        vrna_log_error(msg, "Clustal");
         break;
 
       case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
-        vrna_message_error(msg, "Stockholm");
+        vrna_log_error(msg, "Stockholm");
         break;
 
       case VRNA_FILE_FORMAT_MSA_FASTA:
-        vrna_message_error(msg, "FASTA");
+        vrna_log_error(msg, "FASTA");
         break;
 
       case VRNA_FILE_FORMAT_MSA_MAF:
-        vrna_message_error(msg, "MAF");
+        vrna_log_error(msg, "MAF");
         break;
 
       default:
-        vrna_message_error(msg, "Unknown");
+        vrna_log_error(msg, "Unknown");
         break;
     }
   }
@@ -735,6 +731,9 @@ main(int  argc,
   free(input_files);
   free(opt.filename_delim);
   free_id_data(opt.id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
@@ -759,23 +758,23 @@ process_input(FILE            *input_stream,
 
       switch (opt->input_format) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
-          vrna_message_error(msg, "Clustal");
+          vrna_log_error(msg, "Clustal");
           break;
 
         case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
-          vrna_message_error(msg, "Stockholm");
+          vrna_log_error(msg, "Stockholm");
           break;
 
         case VRNA_FILE_FORMAT_MSA_FASTA:
-          vrna_message_error(msg, "FASTA");
+          vrna_log_error(msg, "FASTA");
           break;
 
         case VRNA_FILE_FORMAT_MSA_MAF:
-          vrna_message_error(msg, "MAF");
+          vrna_log_error(msg, "MAF");
           break;
 
         default:
-          vrna_message_error(msg, "Unknown");
+          vrna_log_error(msg, "Unknown");
           break;
       }
     }
@@ -816,7 +815,7 @@ process_input(FILE            *input_stream,
           break;
 
         default:
-          vrna_message_error("Which input format are you using?");
+          vrna_log_error("Which input format are you using?");
           break;
       }
     }
@@ -918,7 +917,7 @@ process_record(struct record_data *record)
                                       VRNA_OPTION_DEFAULT);
 
   if (!vc) {
-    vrna_message_warning("Skipping computations for \"%s\"",
+    vrna_log_warning("Skipping computations for \"%s\"",
                          (record->MSA_ID) ? record->MSA_ID : "identifier unavailable");
     return;
   }
@@ -941,8 +940,7 @@ process_record(struct record_data *record)
                            "%u sequences; length of alignment %u.",
                            n_seq,
                            n);
-    vrna_message_info(stderr,
-                           "%u sequences; length of alignment %u.",
+    vrna_log_info("%u sequences; length of alignment %u.",
                            n_seq,
                            n);
   }
@@ -968,7 +966,7 @@ process_record(struct record_data *record)
   /* check whether the constraint allows for any solution */
   if (fold_constrained) {
     if (min_en == (double)(INF / 100.)) {
-      vrna_message_error(
+      vrna_log_error(
         "Supplied structure constraints create empty solution set for alignment Nr. %d",
         record->number);
       exit(EXIT_FAILURE);
@@ -1099,7 +1097,7 @@ process_record(struct record_data *record)
       THREADSAFE_FILE_OUTPUT({
         aliout = fopen(filename_out, "w");
         if (!aliout)
-          vrna_message_warning("can't open %s ... skipping output", filename_out);
+          vrna_log_warning("can't open %s ... skipping output", filename_out);
         else
           print_aliout(vc, pl, opt->bppmThreshold, mfe_structure, aliout);
 
@@ -1212,11 +1210,11 @@ apply_constraints(vrna_fold_compound_t  *fc,
     unsigned int  cl      = strlen(cstruc);
 
     if (cl == 0)
-      vrna_message_warning("structure constraint is missing");
+      vrna_log_warning("structure constraint is missing");
     else if (cl < length)
-      vrna_message_warning("structure constraint is shorter than sequence");
+      vrna_log_warning("structure constraint is shorter than sequence");
     else if (cl > length)
-      vrna_message_error("structure constraint is too long");
+      vrna_log_error("structure constraint is too long");
 
     /** [Adding hard constraints from pseudo dot-bracket] */
     constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
@@ -1232,7 +1230,7 @@ apply_constraints(vrna_fold_compound_t  *fc,
 
     vrna_constraints_add(fc, SS_cons, constraint_options);
   } else {
-    vrna_message_warning("Constraint missing");
+    vrna_log_warning("Constraint missing");
   }
 }
 
@@ -1439,7 +1437,7 @@ apply_SHAPE_data(vrna_fold_compound_t *fc,
   for (s = 0; opt->shape_file_association[s] != -1; s++);
 
   if ((s != fc->n_seq) && (!opt->quiet)) {
-    vrna_message_warning("Number of sequences in alignment (%d) does not match "
+    vrna_log_warning("Number of sequences in alignment (%d) does not match "
                          "number of provided SHAPE reactivity data files (%d)!",
                          fc->n_seq,
                          s);
