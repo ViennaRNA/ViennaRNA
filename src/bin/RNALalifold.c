@@ -24,6 +24,7 @@
 #include "ViennaRNA/plotting/utils.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/utils/alignments.h"
@@ -128,6 +129,9 @@ main(int  argc,
   if (RNALalifold_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   /* get basic set of model details */
   ggo_get_md_eval(args_info, md);
   ggo_get_md_fold(args_info, md);
@@ -137,7 +141,7 @@ main(int  argc,
 
   /* check dangle model */
   if (!((md.dangles == 0) || (md.dangles == 2))) {
-    vrna_message_warning(
+    vrna_log_warning(
       "required dangle model %d not implemented, falling back to default dangles=2",
       md.dangles);
     md.dangles = 2;
@@ -209,12 +213,9 @@ main(int  argc,
     md.ribo     = ribo = 1;
   }
 
-  if (args_info.verbose_given)
-    verbose = 1;
-
   if (args_info.quiet_given) {
     if (verbose)
-      vrna_message_warning(
+      vrna_log_warning(
         "Can not be verbose and quiet at the same time! I keep on being chatty...");
     else
       quiet = 1;
@@ -223,7 +224,7 @@ main(int  argc,
   /* SHAPE reactivity data */
   if (args_info.shape_given) {
     if (verbose)
-      vrna_message_info(stderr, "SHAPE reactivity data correction activated");
+      vrna_log_info("SHAPE reactivity data correction activated");
 
     with_shapes             = 1;
     shape_files             = (char **)vrna_alloc(sizeof(char *) * (args_info.shape_given + 1));
@@ -249,8 +250,7 @@ main(int  argc,
       }
 
       if (verbose) {
-        vrna_message_info(stderr,
-                          "Using SHAPE reactivity data provided in file %s for sequence %d",
+        vrna_log_info("Using SHAPE reactivity data provided in file %s for sequence %d",
                           shape_files[s],
                           shape_file_association[s] + 1);
       }
@@ -269,8 +269,8 @@ main(int  argc,
     filename_in = strdup(args_info.inputs[0]);
     clust_file  = fopen(filename_in, "r");
     if (clust_file == NULL) {
-      vrna_message_warning("unable to open %s", filename_in);
-      vrna_message_error("Input file can't be read!");
+      vrna_log_warning("unable to open %s", filename_in);
+      vrna_log_error("Input file can't be read!");
     }
 
     /*
@@ -307,7 +307,7 @@ main(int  argc,
         break;
 
       default:
-        vrna_message_warning("Unknown input format specified");
+        vrna_log_warning("Unknown input format specified");
         break;
     }
   }
@@ -385,7 +385,7 @@ main(int  argc,
           format = strdup("Unknown");
           break;
       }
-      vrna_message_error(
+      vrna_log_error(
         "Your input file is missing sequences! Either your file is empty, or not in %s format!",
         format);
       free(format);
@@ -423,7 +423,7 @@ main(int  argc,
           break;
 
         default:
-          vrna_message_error("Which input format are you using?");
+          vrna_log_error("Which input format are you using?");
           break;
       }
     }
@@ -494,7 +494,7 @@ main(int  argc,
       for (s = 0; shape_file_association[s] != -1; s++);
 
       if ((s != n_seq) && (!quiet))
-        vrna_message_warning(
+        vrna_log_warning(
           "Number of sequences in alignment does not match number of provided SHAPE reactivity data files! ");
 
       shape_files             = (char **)vrna_realloc(shape_files, (n_seq + 1) * sizeof(char *));
@@ -555,7 +555,7 @@ main(int  argc,
         format = strdup("Unknown");
         break;
     }
-    vrna_message_error(
+    vrna_log_error(
       "Your input file is missing sequences! Either your file is empty, or not in %s format!",
       format);
     free(format);
@@ -575,6 +575,9 @@ main(int  argc,
   free(filename_delim);
 
   free_id_data(id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
