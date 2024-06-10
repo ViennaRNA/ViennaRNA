@@ -20,6 +20,7 @@
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/file_formats.h"
 
@@ -67,6 +68,9 @@ main(int  argc,
   if (RNAinverse_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, inv_verbose);
+
   /* temperature */
   if (args_info.temp_given)
     temperature = args_info.temp_arg;
@@ -78,7 +82,7 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
@@ -138,10 +142,6 @@ main(int  argc,
   /* set final cost */
   if (args_info.final_given)
     final_cost = args_info.final_arg;
-
-  /* do we wannabe verbose */
-  if (args_info.verbose_given)
-    inv_verbose = 1;
 
   /* get energy parameter file name */
   ggo_get_read_paramFile(args_info, NULL);
@@ -324,5 +324,9 @@ main(int  argc,
     free(start);
     (void)fflush(stdout);
   } while (1);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
   return EXIT_SUCCESS;
 }
