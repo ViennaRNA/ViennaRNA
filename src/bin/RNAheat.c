@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/file_formats.h"
@@ -46,6 +47,7 @@ struct options {
   vrna_md_t       md;
   dataset_id      id_control;
 
+  int             verbose;
   int             jobs;
   int             keep_order;
   unsigned int    next_record_number;
@@ -102,6 +104,7 @@ init_default_options(struct options *opt)
   opt->h        = 1;
   opt->mpoints  = 2;
 
+  opt->verbose            = 0;
   opt->jobs               = 1;
   opt->keep_order         = 1;
   opt->next_record_number = 0;
@@ -184,6 +187,9 @@ main(int  argc,
   if (RNAheat_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, opt.verbose);
+
   /*
    *  - dangles
    *  - special_hp
@@ -196,7 +202,7 @@ main(int  argc,
 
   /* check dangle model */
   if (!((opt.md.dangles == 0) || (opt.md.dangles == 2))) {
-    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    vrna_log_warning("required dangle model not implemented, falling back to default dangles=2");
     opt.md.dangles = 2;
   }
 
@@ -246,7 +252,7 @@ main(int  argc,
       if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
         opt.jobs = MIN2(thread_max, proc_cores_conf);
       } else {
-        vrna_message_warning("Could not determine number of available processor cores!\n"
+        vrna_log_warning("Could not determine number of available processor cores!\n"
                              "Defaulting to serial computation");
         opt.jobs = 1;
       }
@@ -256,7 +262,7 @@ main(int  argc,
 
     opt.jobs = MAX2(1, opt.jobs);
 #else
-    vrna_message_warning(
+    vrna_log_warning(
       "This version of RNAheat has been built without parallel input processing capabilities");
 #endif
 
@@ -279,7 +285,7 @@ main(int  argc,
    #############################################
    */
   if (opt.md.circ && opt.md.gquad)
-    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
+    vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
 
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
@@ -298,7 +304,7 @@ main(int  argc,
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
         if (!input_stream)
-          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
+          vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
 
         if (process_input(input_stream, (const char *)input_files[i], &opt) == 0)
@@ -325,6 +331,9 @@ main(int  argc,
   free(input_files);
 
   free_id_data(opt.id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
@@ -443,7 +452,7 @@ process_record(struct record_data *record)
                           VRNA_OPTION_DEFAULT);
 
   if (!fc) {
-    vrna_message_warning("Skipping computations for \"%s\"",
+    vrna_log_warning("Skipping computations for \"%s\"",
                          (record->id) ? record->id : "identifier unavailable");
     return;
   }
