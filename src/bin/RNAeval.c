@@ -24,6 +24,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/SHAPE.h"
@@ -216,6 +217,9 @@ main(int  argc,
   if (RNAeval_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, opt.verbose);
+
   /* get basic set of model details */
   ggo_get_md_eval(args_info, opt.md);
   ggo_get_circ(args_info, opt.md.circ);
@@ -225,7 +229,7 @@ main(int  argc,
 
   /* check dangle model */
   if ((opt.md.dangles < 0) || (opt.md.dangles > 3)) {
-    vrna_message_warning("required dangle model not implemented, falling back to default dangles=2");
+    vrna_log_warning("required dangle model not implemented, falling back to default dangles=2");
     opt.md.dangles = dangles = 2;
   }
 
@@ -239,10 +243,6 @@ main(int  argc,
   /* logarithmic multiloop energies */
   if (args_info.logML_given)
     opt.md.logML = logML = 1;
-
-  /* be verbose */
-  if (args_info.verbose_given)
-    opt.verbose = 1;
 
   if (args_info.msa_given) {
     opt.aln = 1;
@@ -283,7 +283,7 @@ main(int  argc,
       if (num_proc_cores(&proc_cores, &proc_cores_conf)) {
         opt.jobs = MIN2(thread_max, proc_cores_conf);
       } else {
-        vrna_message_warning("Could not determine number of available processor cores!\n"
+        vrna_log_warning("Could not determine number of available processor cores!\n"
                              "Defaulting to serial computation");
         opt.jobs = 1;
       }
@@ -293,7 +293,7 @@ main(int  argc,
 
     opt.jobs = MAX2(1, opt.jobs);
 #else
-    vrna_message_warning(
+    vrna_log_warning(
       "This version of RNAeval has been built without parallel input processing capabilities");
 #endif
 
@@ -318,7 +318,7 @@ main(int  argc,
    #############################################
    */
   if (opt.md.circ && opt.md.gquad)
-    vrna_message_error("G-Quadruplex support is currently not available for circular RNA structures");
+    vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
 
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
@@ -346,7 +346,7 @@ main(int  argc,
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
         if (!input_stream)
-          vrna_message_error("Unable to open %d. input file \"%s\" for reading", i + 1,
+          vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
 
         if (processing_func(input_stream, (const char *)input_files[i], &opt) == 0)
@@ -376,6 +376,9 @@ main(int  argc,
   free(opt.shape_conversion);
 
   free_id_data(opt.id_control);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
@@ -487,23 +490,23 @@ process_alignment_input(FILE            *input_stream,
 
       switch (opt->msa_format) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
-          vrna_message_error(msg, "Clustal");
+          vrna_log_error(msg, "Clustal");
           break;
 
         case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
-          vrna_message_error(msg, "Stockholm");
+          vrna_log_error(msg, "Stockholm");
           break;
 
         case VRNA_FILE_FORMAT_MSA_FASTA:
-          vrna_message_error(msg, "FASTA");
+          vrna_log_error(msg, "FASTA");
           break;
 
         case VRNA_FILE_FORMAT_MSA_MAF:
-          vrna_message_error(msg, "MAF");
+          vrna_log_error(msg, "MAF");
           break;
 
         default:
-          vrna_message_error(msg, "Unknown");
+          vrna_log_error(msg, "Unknown");
           break;
       }
     }
@@ -544,7 +547,7 @@ process_alignment_input(FILE            *input_stream,
           break;
 
         default:
-          vrna_message_error("Which input format are you using?");
+          vrna_log_error("Which input format are you using?");
           break;
       }
     }
@@ -635,7 +638,7 @@ process_record(struct record_data *record)
                           VRNA_OPTION_MFE | VRNA_OPTION_EVAL_ONLY);
 
   if (!vc) {
-    vrna_message_warning("Skipping computations for \"%s\"",
+    vrna_log_warning("Skipping computations for \"%s\"",
                          (record->id) ? record->id : "identifier unavailable");
     return;
   }
@@ -661,20 +664,20 @@ process_record(struct record_data *record)
                                            (record->multiline_input) ? VRNA_OPTION_MULTILINE : 0);
 
   if (!tmp)
-    vrna_message_error("structure missing for record %d\n", record->number);
+    vrna_log_error("structure missing for record %d\n", record->number);
 
   {
 #ifdef MULTISTRAND_EVAL
     char **structures = vrna_strsplit(tmp, "&");
     for (unsigned int a = 0; a < vc->strands; a++) {
       if (!structures[a])
-        vrna_message_error("Sequence and Structure have different number of strand delimiters");
+        vrna_log_error("Sequence and Structure have different number of strand delimiters");
 
       unsigned int l = strlen(structures[a]);
       switch (vc->type) {
         case VRNA_FC_TYPE_SINGLE:
           if (vc->nucleotides[a].length != l)
-            vrna_message_error(
+            vrna_log_error(
               "Structure and sequence part of strand %u differ in length (%u vs. %u)",
               a,
               l,
@@ -694,13 +697,13 @@ process_record(struct record_data *record)
     int cp = -1;
     structure = vrna_cut_point_remove(tmp, &cp);
     if (cp != vc->cutpoint) {
-      vrna_message_warning("cut_point = %d cut = %d", vc->cutpoint, cp);
-      vrna_message_error("Sequence and Structure have different cut points.");
+      vrna_log_warning("cut_point = %d cut = %d", vc->cutpoint, cp);
+      vrna_log_error("Sequence and Structure have different cut points.");
     }
 
     n = (int)strlen(structure);
     if (n != vc->length)
-      vrna_message_error("structure and sequence differ in length!");
+      vrna_log_error("structure and sequence differ in length!");
 
 #endif
 
@@ -800,7 +803,7 @@ process_alignment_record(struct record_data_msa *record)
   o_stream = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
 
   if (!record->structure)
-    vrna_message_error("structure missing for record %d\n", record->number);
+    vrna_log_error("structure missing for record %d\n", record->number);
 
   opt       = record->options;
   structure = vrna_db_from_WUSS(record->structure);
@@ -818,7 +821,7 @@ process_alignment_record(struct record_data_msa *record)
                                       VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
 
   if (!vc) {
-    vrna_message_warning("Skipping computations for \"%s\"",
+    vrna_log_warning("Skipping computations for \"%s\"",
                          (record->MSA_ID) ? record->MSA_ID : "identifier unavailable");
     return;
   }
