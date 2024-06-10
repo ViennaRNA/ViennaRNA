@@ -18,6 +18,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/subopt.h"
 #include "ViennaRNA/duplex.h"
@@ -41,7 +42,7 @@ main(int  argc,
   char                              *input_string, *s1, *s2, *orig_s1, *orig_s2,
                                     *c, *ParamFile, *ns_bases;
   unsigned int                      input_type;
-  int                               i, sym, istty, delta, noconv;
+  int                               i, sym, istty, delta, noconv, verbose;
 
   ParamFile = NULL;
   ns_bases  = NULL;
@@ -58,6 +59,9 @@ main(int  argc,
   if (RNAduplex_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
 
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
+
   /* temperature */
   if (args_info.temp_given)
     temperature = args_info.temp_arg;
@@ -69,7 +73,7 @@ main(int  argc,
   /* set dangle model */
   if (args_info.dangles_given) {
     if ((args_info.dangles_arg < 0) || (args_info.dangles_arg > 3))
-      vrna_message_warning(
+      vrna_log_warning(
         "required dangle model not implemented, falling back to default dangles=2");
     else
       dangles = args_info.dangles_arg;
@@ -242,7 +246,11 @@ main(int  argc,
     free(orig_s2);
     s1 = s2 = orig_s1 = orig_s2 = NULL;
   } while (1);
-  return 0;
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
 
 
