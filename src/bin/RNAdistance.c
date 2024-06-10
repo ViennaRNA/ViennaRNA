@@ -21,9 +21,12 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "RNAdistance_cmdl.h"
+
+#include "gengetopt_helpers.h"
 
 #define MAXNUM      1000    /* max number of structs for distance matrix */
 
@@ -193,7 +196,7 @@ main(int  argc,
     }
 
     if (n >= MAXNUM)
-      vrna_message_error("Number of input structures exceeds maximum of %d", MAXNUM);
+      vrna_log_error("Number of input structures exceeds maximum of %d", MAXNUM);
 
     tree_types    = 0;
     string_types  = 0;
@@ -202,7 +205,7 @@ main(int  argc,
         case 'f':
         case 'F':
           if (type != 1)
-            vrna_message_error("Can't convert back to full structure");
+            vrna_log_error("Can't convert back to full structure");
 
           xstruc = expand_Full(line);
           if (islower(ttype[tt])) /* tree_edit */
@@ -215,7 +218,7 @@ main(int  argc,
           break;
         case 'P':
           if (type != 1)
-            vrna_message_error("Can't convert back to full structure");
+            vrna_log_error("Can't convert back to full structure");
 
           P[n] = strdup(line);
           break;
@@ -233,7 +236,7 @@ main(int  argc,
               free(xstruc);
               break;
             default:
-              vrna_message_error("Can't convert to HIT structure");
+              vrna_log_error("Can't convert to HIT structure");
           }
           break;
         case 'c':
@@ -253,7 +256,7 @@ main(int  argc,
               xstruc = unweight(line);
               break;
             default:
-              vrna_message_error("Unknown structure representation");
+              vrna_log_error("Unknown structure representation");
               exit(0);
           }
           if (islower(ttype[tt]))
@@ -285,7 +288,7 @@ main(int  argc,
 
           break;
         default:
-          vrna_message_error("Unknown distance type");
+          vrna_log_error("Unknown distance type");
       }
     }
     n++;
@@ -390,7 +393,11 @@ main(int  argc,
     }
     fflush(stdout);
   } while (type != 999);
-  return 0;
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
+
+  return EXIT_SUCCESS;
 }
 
 
@@ -611,6 +618,7 @@ PRIVATE void
 command_line(int  argc,
              char *argv[])
 {
+  int           verbose;
   struct        RNAdistance_args_info args_info;
 
   /* default values */
@@ -626,6 +634,9 @@ command_line(int  argc,
    */
   if (RNAdistance_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
 
   /* use specified distance representations */
   if (args_info.distance_given) {
