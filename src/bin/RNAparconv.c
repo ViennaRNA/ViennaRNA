@@ -20,8 +20,11 @@
 #include <unistd.h>
 #include <string.h>
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/convert.h"
 #include "RNAparconv_cmdl.h"
+
+#include "gengetopt_helpers.h"
 
 int
 main(int  argc,
@@ -29,7 +32,7 @@ main(int  argc,
 {
   struct  RNAparconv_args_info  args_info;
   char                          *ifileName, *ofileName;
-  int                           i, silent;
+  int                           i, silent, verbose;
   unsigned int                  options;
 
   ifileName = ofileName = NULL;
@@ -43,6 +46,9 @@ main(int  argc,
    */
   if (RNAparconv_cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
+
+  /* prepare logging system and verbose mode */
+  ggo_log_settings(args_info, verbose);
 
   /* use input file */
   if (args_info.input_given)
@@ -124,7 +130,7 @@ main(int  argc,
       ofileName = strdup(args_info.inputs[i]);
     } else {
       RNAparconv_cmdline_parser_print_help();
-      vrna_message_error("unrecognized or too many parameter options given!");
+      vrna_log_error("unrecognized or too many parameter options given!");
     }
   }
 
@@ -148,6 +154,9 @@ main(int  argc,
 
 
   convert_parameter_file(ifileName, ofileName, options);
+
+  if (vrna_log_fp() != stderr)
+    fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
 }
