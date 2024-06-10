@@ -5,6 +5,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 
 #include "input_id_helpers.h"
 
@@ -24,7 +25,7 @@ ID_number_increase(long int   *num,
                    const char *name)
 {
   if (*num == LONG_MAX) {
-    vrna_message_warning("%s ID number overflow, beginning with 1 (again)!", name);
+    vrna_log_warning("%s ID number overflow, beginning with 1 (again)!", name);
     *num = 1;
   } else {
     (*num)++;
@@ -141,7 +142,7 @@ set_next_id(char            **ID_default,
 {
   if (dat) {
     if (dat->number == LONG_MAX) {
-      vrna_message_warning("%s ID number overflow, beginning with 1 (again)!", dat->name);
+      vrna_log_warning("%s ID number overflow, beginning with 1 (again)!", dat->name);
       dat->number = 1;
     }
 
@@ -202,7 +203,7 @@ fileprefix_from_id_alifold(const char     *id,
 
   if (dat) {
     if (dat->number == LONG_MAX) {
-      vrna_message_warning("%s ID number overflow, beginning with 1 (again)!", dat->name);
+      vrna_log_warning("%s ID number overflow, beginning with 1 (again)!", dat->name);
       dat->number = 1;
     }
 
