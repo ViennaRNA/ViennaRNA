@@ -525,27 +525,30 @@ vrna_gq_pos_mfe(vrna_fold_compound_t *fc)
   vrna_smx_csr(int) *gq_mfe_pos = NULL;
 
   if (fc) {
-    int           i, j, n;
+    int           i, j, n, n2;
     int           *gg;
     vrna_param_t  *P;
+    short         *S_enc, *S_tmp;
     struct gquad_ali_helper gq_help;
     void          *data;
     void ( *process_f )(int, int, int *,
                         void *, void *, void *, void *);
 
     n           = fc->length;
+    n2          = 0;
     P           = fc->params;
+    S_tmp       = NULL;
     gq_mfe_pos  = vrna_smx_csr_int_init(n);
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        gg  = get_g_islands(fc->sequence_encoding2);
-        data  = (void *)P;
+        S_enc     = fc->sequence_encoding2;
+        data      = (void *)P;
         process_f = &gquad_mfe;
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        gg = get_g_islands(fc->S_cons);
+        S_enc         = fc->S_cons;
         gq_help.S     = fc->S;
         gq_help.a2s   = fc->a2s;
         gq_help.n_seq = fc->n_seq;
@@ -558,22 +561,46 @@ vrna_gq_pos_mfe(vrna_fold_compound_t *fc)
         return NULL;
     }
 
+    if (P->model_details.circ) {
+      n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
+
+      S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
+      memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
+      memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);
+      S_tmp[0] = n + n2;
+      S_enc = S_tmp;
+      n += n2;
+    }
+
+    gg  = get_g_islands(S_enc);
+
     FOR_EACH_GQUAD_INC(i, j, 1, n) {
       int e = INF;
+      if (i > n - n2)
+        break;
+
       process_gquad_enumeration(gg, i, j,
                                 process_f,
                                 (void *)(&e),
                                 data,
                                 NULL,
                                 NULL);
-      if (e < INF)
+      if ((e < INF) && (j - i + 1 <= n - n2)) {
+        vrna_log_debug("gquad[%d,%d] = %d l=%d, n= %d",
+                       i,
+                       (j - 1) % (n - n2) + 1,
+                       e,
+                       j - i + 1,
+                       n - n2);
 #ifndef VRNA_DISABLE_C11_FEATURES
-        vrna_smx_csr_insert(gq_mfe_pos, i, j, e);
+        vrna_smx_csr_insert(gq_mfe_pos, i, (j - 1) % (n - n2) + 1, e);
 #else
-        vrna_smx_csr_int_insert(gq_mfe_pos, i, j, e);
+        vrna_smx_csr_int_insert(gq_mfe_pos, i, (j - 1) % (n - n2) + 1, e);
 #endif
+      }
     }
 
+    free(S_tmp);
     free(gg);
   }
 
