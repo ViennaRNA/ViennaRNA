@@ -410,7 +410,7 @@ decode(char *id)
                      "in coding string \"%s\"\n"
                      "Exiting",
                      id, coding);
-  exit(0);
+  return 0;
 }
 
 

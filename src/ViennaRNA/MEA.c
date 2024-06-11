@@ -347,8 +347,10 @@ prune_sort(vrna_ep_t    *p,
   size  = n + 1;
   pp    = vrna_alloc(sizeof(vrna_ep_t) * (n + 1));
   for (pc = p; pc->i > 0; pc++) {
-    if (pc->i > n)
+    if (pc->i > n) {
       vrna_log_error("mismatch between vrna_ep_t and structure in MEA()");
+      return NULL;
+    }
 
     nt  = 0;
     pug = 0.;

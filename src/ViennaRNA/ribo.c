@@ -819,6 +819,7 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     case 13:
@@ -865,6 +866,7 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     case 14:
@@ -916,6 +918,7 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     case 15:
@@ -972,6 +975,7 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     case 16:
@@ -1033,6 +1037,7 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     case 17:
@@ -1099,6 +1104,7 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     case 18:
@@ -1170,6 +1176,7 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     case 19:
@@ -1246,6 +1253,7 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     case 20:
@@ -1327,10 +1335,12 @@ get_ribosum(const char  **Alseq,
           break;
         default:
           vrna_log_error("da hats was grobes im dmchoose\n");
+          return NULL;
       }
       break;
     default:
       vrna_log_error("da hats was grobes im dmchoose\n");
+      return NULL;
   }
   return ribo;
 }

@@ -112,9 +112,11 @@ adaptive_walk(char        *start,
                            const char *);
 
   len = strlen(start);
-  if (strlen(target) != len)
+  if (strlen(target) != len) {
     vrna_log_error("%s\n%s\nadaptive_walk: start and target have unequal length", start,
                        target);
+    return (double)INF;
+  }
 
   string        = (char *)vrna_alloc(sizeof(char) * (len + 1));
   cstring       = (char *)vrna_alloc(sizeof(char) * (len + 1));
@@ -348,8 +350,11 @@ make_ptable(const char  *structure,
         break;
       case ')':
         j = stack[--hx];
-        if (hx < 0)
+        if (hx < 0) {
           vrna_log_error("%s\nunbalanced brackets in make_ptable", structure);
+          free(stack);
+          return;
+        }
 
         table[i]  = j;
         table[j]  = i;
@@ -390,10 +395,12 @@ inverse_fold(char *start,
   nc2 = j = o = fold_type = 0;
 
   len = strlen(structure);
-  if (strlen(start) != len)
+  if (strlen(start) != len) {
     vrna_log_error("%s\n%s\ninverse_fold: start and structure have unequal length",
                        start,
                        structure);
+    return (float)INF;
+  }
 
   string  = (char *)vrna_alloc(len + 1);
   wstring = (char *)vrna_alloc(len + 1);
@@ -593,8 +600,10 @@ mfe_cost(const char *string,
 #endif
   double  energy, distance;
 
-  if (strlen(string) != strlen(target))
+  if (strlen(string) != strlen(target)) {
     vrna_log_error("%s\n%s\nunequal length in mfe_cost", string, target);
+    return (double)INF;
+  }
 
   energy = fold(string, structure);
 #if TDIST
@@ -671,6 +680,9 @@ aux_struct(const char *structure)
         break;
       default:
         vrna_log_error("Junk in structure at aux_structure\n");
+        free(match_paren);
+        free(string);
+        return NULL;
     }
     i++;
   }

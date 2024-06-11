@@ -751,8 +751,10 @@ get_array1(char   **content,
   i = last = 0;
   while (i < size) {
     line = content[(*line_no)++];
-    if (!line)
+    if (!line) {
       vrna_log_error("unexpected end of file in get_array1");
+      return NULL;
+    }
 
     ignore_comment(line);
     pos = 0;
@@ -763,9 +765,10 @@ get_array1(char   **content,
         continue;
       } else if (buf[0] == 'x') {
         /* should only be used for loop parameters */
-        if (i == 0)
+        if (i == 0) {
           vrna_log_error("can't extrapolate first value");
-
+          return NULL;
+        }
         p = arr[last] + (int)(0.5 + lxc37 * log(((double)i) / (double)(last)));
       } else if (strcmp(buf, "DEF") == 0) {
         p = DEF;
@@ -776,9 +779,8 @@ get_array1(char   **content,
       } else {
         r = sscanf(buf, "%d", &p);
         if (r != 1) {
-          return line + pos;
           vrna_log_error("can't interpret `%s' in get_array1", buf);
-          exit(1);
+          return line + pos;
         }
 
         last = i;
@@ -815,10 +817,8 @@ rd_1dim_slice(char    **content,
 
   cp = get_array1(content, line_no, array + shift, dim - shift - post);
 
-  if (cp) {
+  if (cp)
     vrna_log_error("\nrd_1dim: %s", cp);
-    exit(1);
-  }
 
   return;
 }
@@ -1148,8 +1148,10 @@ ignore_comment(char *line)
 
   if ((cp1 = strstr(line, "/*"))) {
     cp2 = strstr(cp1, "*/");
-    if (cp2 == NULL)
+    if (cp2 == NULL) {
       vrna_log_error("unclosed comment in parameter file");
+      return;
+    }
 
     /* can't use strcpy for overlapping strings */
     for (cp2 += 2; *cp2 != '\0'; cp2++, cp1++)
@@ -1837,7 +1839,7 @@ write_parameter_file(const char fname[])
   outfp = fopen(fname, "w");
   if (!outfp) {
     vrna_log_error("can't open file %s", fname);
-    exit(1);
+    return;
   }
 
   fprintf(outfp, "## RNAfold parameter file v2.0\n");

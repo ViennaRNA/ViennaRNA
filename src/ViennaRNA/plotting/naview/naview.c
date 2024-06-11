@@ -360,8 +360,10 @@ static struct loop *construct_loop(int ibase)
 	  lp = construct_loop(rp->end2 < nbase ? rp->end2+1 : 0);
 	}
 	else {
-	  vrna_log_error("naview: Error detected in construct_loop. i = %d not found in region table.",i);
-	  exit(FATAL_ERROR);
+	  vrna_log_error("Error detected in construct_loop. i = %d not found in region table.",i);
+    free(retloop->connections);
+    retloop->connections = NULL;
+    return NULL;
 	}
 	retloop->connections = (struct connection **)
 	  realloc(retloop->connections,
@@ -1007,7 +1009,7 @@ static int    find_ic_middle(int icstart, int icend, struct connection *anchor_c
   while (!done) {
     if (count++ > lp->nconnection * 2) {
       printf("Infinite loop detected in find_ic_middle\n");
-      exit(FATAL_ERROR);
+      return ret;
     }
     if (anchor_connection != NULL && lp->connections[ic] == acp) {
       ret = ic;
@@ -1050,7 +1052,7 @@ static void generate_region(struct connection *cp)
   if (bases[cp->start].x > anum - 100.0 ||
       bases[cp->end].x > anum - 100.0) {
     printf("Bad region passed to generate_region. Coordinates not defined.\n");
-    exit(FATAL_ERROR);
+    return;
   }
   for (i=start+1; i<=end; i++) {
     l++;
@@ -1226,7 +1228,7 @@ static void find_center_for_arc(int n,double b,double *hp,double *thetap)
     disc = 1.0 - 0.5/(r*r);
     if (fabs(disc) > 1.0) {
       vrna_log_error("Unexpected large magnitude discriminant = %g %g", disc,r);
-      exit(FATAL_ERROR);
+      return;
     }
     theta = acos(disc);
     /*    theta = 2*acos(sqrt(1-1/(4*r*r))); */

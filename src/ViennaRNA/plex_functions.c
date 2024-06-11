@@ -764,8 +764,12 @@ backtrack_XS(vrna_fold_compound_t *fc,
 
     type = md->pair[S[k]][S[l]];
 
-    if (!type)
+    if (!type) {
       vrna_log_error("backtrack failed in fold duplex bli");
+      free(st1);
+      free(st2);
+      return NULL;
+    }
 
     for (p = k + 1; p <= i; p++) {
       for (q = l - 1; q >= j; q--) {
@@ -803,10 +807,14 @@ backtrack_XS(vrna_fold_compound_t *fc,
                            S1[k + 1],
                            P);
 
-      if (E != 0)
+      if (E != 0) {
         vrna_log_error("backtrack failed in fold duplex bal");
-      else
+        free(st1);
+        free(st2);
+        return NULL;
+      } else {
         break;
+      }
     }
   }
   struc = (char *)vrna_alloc(sizeof(char) * (k - i0 + 1 + j0 - l + 1 + 2));

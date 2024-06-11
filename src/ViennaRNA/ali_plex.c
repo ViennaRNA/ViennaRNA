@@ -198,7 +198,7 @@ aliduplexfold(const char  *s1[],
 {
   int       i, j, s, n_seq, Emin = INF, i_min = 0, j_min = 0;
   char      *struc;
-  duplexT   mfe;
+  duplexT   mfe = {0};
   vrna_md_t md;
   short     **S1, **S2;
   int       *type;
@@ -208,8 +208,11 @@ aliduplexfold(const char  *s1[],
   for (s = 0; s1[s] != NULL; s++);
   n_seq = s;
   for (s = 0; s2[s] != NULL; s++);
-  if (n_seq != s)
+
+  if (n_seq != s) {
     vrna_log_error("unequal number of sequences in aliduplexfold()\n");
+    return mfe;
+  }
 
   set_model_details(&md);
   if (!P) {
@@ -235,11 +238,19 @@ aliduplexfold(const char  *s1[],
   S1  = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
   S2  = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
   for (s = 0; s < n_seq; s++) {
-    if (strlen(s1[s]) != n3)
+    if (strlen(s1[s]) != n3) {
       vrna_log_error("uneqal seqence lengths");
+      free(S1);
+      free(S2);
+      return mfe;
+    }
 
-    if (strlen(s2[s]) != n4)
+    if (strlen(s2[s]) != n4) {
       vrna_log_error("uneqal seqence lengths");
+      free(S1);
+      free(S2);
+      return mfe;
+    }
 
     S1[s] = encode_seq(s1[s]);
     S2[s] = encode_seq(s2[s]);
@@ -354,8 +365,11 @@ alibacktrack(int          n3,
   for (s = 0; S1[s] != NULL; s++);
   n_seq = s;
   for (s = 0; S2[s] != NULL; s++);
-  if (n_seq != s)
+
+  if (n_seq != s) {
     vrna_log_error("unequal number of sequences in alibacktrack()\n");
+    return NULL;
+  }
 
   st1   = (char *)vrna_alloc(sizeof(char) * (n3 + 1));
   st2   = (char *)vrna_alloc(sizeof(char) * (n4 + 1));
@@ -411,10 +425,16 @@ alibacktrack(int          n3,
         E -=
           vrna_E_ext_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
                           P) + 2 * extension_cost;
-      if (E != n_seq * P->DuplexInit + n_seq * 2 * extension_cost)
+      if (E != n_seq * P->DuplexInit + n_seq * 2 * extension_cost) {
         vrna_log_error("backtrack failed in aliduplex");
-      else
+        free(st1);
+        free(st2);
+        free(type);
+        free(struc);
+        return NULL;
+      } else {
         break;
+      }
     }
   }
   if (i > 1)
@@ -485,8 +505,11 @@ aliLduplexfold(const char *s1[],
   for (s = 0; s1[s]; s++);
   n_seq = s;
   for (s = 0; s2[s]; s++);
-  if (n_seq != s)
+
+  if (n_seq != s) {
     vrna_log_error("unequal number of sequences in aliduplexfold()\n");
+    return NULL;
+  }
 
   position    = (int *)vrna_alloc((delta + (n1) + 4 + delta) * sizeof(int));
   position_j  = (int *)vrna_alloc((delta + (n1) + 4 + delta) * sizeof(int));
@@ -508,6 +531,30 @@ aliLduplexfold(const char *s1[],
     }
   }
 
+  S1  = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
+  S2  = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
+  for (s = 0; s < n_seq; s++) {
+    if (strlen(s1[s]) != n1) {
+      vrna_log_error("uneqal seqence lengths");
+      free(position);
+      free(position_j);
+      free(S1);
+      free(S2);
+      return NULL;
+    }
+
+    if (strlen(s2[s]) != n2) {
+      vrna_log_error("uneqal seqence lengths");
+      free(position);
+      free(position_j);
+      free(S1);
+      free(S2);
+      return NULL;
+    }
+
+    S1[s] = encode_seq(s1[s]);
+    S2[s] = encode_seq(s2[s]);
+  }
 
   lc    = (int **)vrna_alloc(sizeof(int *) * 5);
   lin   = (int **)vrna_alloc(sizeof(int *) * 5);
@@ -525,19 +572,6 @@ aliLduplexfold(const char *s1[],
     liny[i] = (int *)vrna_alloc(sizeof(int) * (n2 + 5));
   }
 
-
-  S1  = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
-  S2  = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
-  for (s = 0; s < n_seq; s++) {
-    if (strlen(s1[s]) != n1)
-      vrna_log_error("uneqal seqence lengths");
-
-    if (strlen(s2[s]) != n2)
-      vrna_log_error("uneqal seqence lengths");
-
-    S1[s] = encode_seq(s1[s]);
-    S2[s] = encode_seq(s2[s]);
-  }
   type = (int *)vrna_alloc(n_seq * sizeof(int));
   /**
   *** array initialization
@@ -1022,7 +1056,7 @@ aliduplexfold_XS(const char *s1[],
   int       *type, *type2;
 
   struc = NULL;
-  duplexT   mfe;
+  duplexT   mfe = {0};
   vrna_md_t md;
   int       n_seq;
 
@@ -1059,11 +1093,18 @@ aliduplexfold_XS(const char *s1[],
   S1  = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
   S2  = (short **)vrna_alloc((n_seq + 1) * sizeof(short *));
   for (s = 0; s < n_seq; s++) {
-    if (strlen(s1[s]) != n3)
+    if (strlen(s1[s]) != n3) {
       vrna_log_error("uneqal seqence lengths");
-
-    if (strlen(s2[s]) != n4)
+      free(S1);
+      free(S2);
+      return mfe;
+    }
+    if (strlen(s2[s]) != n4) {
       vrna_log_error("uneqal seqence lengths");
+      free(S1);
+      free(S2);
+      return mfe;
+    }
 
     S1[s] = encode_seq(s1[s]);
     S2[s] = encode_seq(s2[s]);

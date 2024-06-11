@@ -147,6 +147,7 @@ make_pair_matrix(void)
       }
     } else {
       vrna_log_error("What energy_set are YOU using??");
+      return;
     }
 
     for (i = 0; i <= MAXALPHA; i++)

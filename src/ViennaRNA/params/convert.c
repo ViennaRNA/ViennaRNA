@@ -381,8 +381,10 @@ get_array1(int  *arr,
   i = last = 0;
   while (i < size) {
     line = vrna_read_line(fp);
-    if (!line)
+    if (!line) {
       vrna_log_error("convert_epars: unexpected end of file in get_array1");
+      return NULL;
+    }
 
     ignore_comment(line);
     pos = 0;
@@ -393,8 +395,10 @@ get_array1(int  *arr,
         continue;
       } else if (buf[0] == 'x') {
         /* should only be used for loop parameters */
-        if (i == 0)
+        if (i == 0) {
           vrna_log_error("convert_epars: can't extrapolate first value");
+          return NULL;
+        }
 
         p = arr[last] + (int)(0.5 + lxc37_184 * log(((double)i) / (double)(last)));
       } else if (strcmp(buf, "DEF") == 0) {
@@ -406,9 +410,8 @@ get_array1(int  *arr,
       } else {
         r = sscanf(buf, "%d", &p);
         if (r != 1) {
-          return line + pos;
           vrna_log_error("convert_epars: can't interpret `%s' in get_array1", buf);
-          exit(1);
+          return line + pos;
         }
 
         last = i;
@@ -436,7 +439,7 @@ rd_stacks(int   stacks[NBPAIRS + 1][NBPAIRS + 1],
     cp = get_array1(stacks[i] + 1, NBPAIRS, fp);
     if (cp) {
       vrna_log_error("convert_epars: \nrd_stacks: %s", cp);
-      exit(1);
+      return;
     }
   }
   return;
@@ -453,10 +456,8 @@ rd_loop(int   loop[31],
 
   cp = get_array1(loop, 31, fp);
 
-  if (cp) {
+  if (cp)
     vrna_log_error("convert_epars: \nrd_loop: %s", cp);
-    exit(1);
-  }
 
   return;
 }
@@ -475,7 +476,7 @@ rd_mismatch(int   mismatch[NBPAIRS + 1][5][5],
     cp = get_array1(mismatch[i][0], 5 * 5, fp);
     if (cp) {
       vrna_log_error("convert_epars: rd_mismatch: in field mismatch[%d]\n\t%s", i, cp);
-      exit(1);
+      return;
     }
   }
   return;
@@ -495,7 +496,7 @@ rd_int11(int  int11[NBPAIRS + 1][NBPAIRS + 1][5][5],
       cp = get_array1(int11[i][j][0], 5 * 5, fp);
       if (cp) {
         vrna_log_error("convert_epars: rd_int11: in field int11[%d][%d]\n\t%s", i, j, cp);
-        exit(1);
+        return;
       }
     }
   }
@@ -518,7 +519,7 @@ rd_int21(int  int21[NBPAIRS + 1][NBPAIRS + 1][5][5][5],
         if (cp) {
           vrna_log_error("convert_epars: rd_int21: in field int21[%d][%d][%d]\n\t%s",
                              i, j, k, cp);
-          exit(1);
+          return;
         }
       }
     }
@@ -545,7 +546,7 @@ rd_int22(int  int22[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5],
               vrna_log_error("convert_epars: rd_int22: in field "
                                  "int22[%d][%d][%d][%d][%d]\n\t%s",
                                  i, j, k, l, m, cp);
-              exit(1);
+              return;
             }
           }
 
@@ -565,7 +566,7 @@ rd_dangle(int   dangle[NBPAIRS + 1][5],
     cp = get_array1(dangle[i], 5, fp);
     if (cp) {
       vrna_log_error("convert_epars: \nrd_dangle: %s", cp);
-      exit(1);
+      return;
     }
   }
   return;
@@ -582,7 +583,7 @@ rd_MLparams(FILE *fp)
   cp = get_array1(values, 4, fp);
   if (cp) {
     vrna_log_error("convert_epars: rd_MLparams: %s", cp);
-    exit(1);
+    return;
   }
 
   ML_BASE37_184     = values[0];
@@ -605,7 +606,7 @@ rd_misc(FILE *fp)
   cp = get_array1(values, 1, fp);
   if (cp) {
     vrna_log_error("convert_epars: rd_misc: %s", cp);
-    exit(1);
+    return;
   }
 
   DuplexInit_184 = values[0];
@@ -626,7 +627,7 @@ rd_ninio(FILE *fp)
 
   if (cp) {
     vrna_log_error("convert_epars: rd_F_ninio: %s", cp);
-    exit(1);
+    return;
   }
 
   F_ninio37_184[2]  = temp[0];
@@ -697,8 +698,10 @@ ignore_comment(char *line)
 
   if ((cp1 = strstr(line, "/*"))) {
     cp2 = strstr(cp1, "*/");
-    if (cp2 == NULL)
+    if (cp2 == NULL) {
       vrna_log_error("convert_epars: unclosed comment in parameter file");
+      return;
+    }
 
     /* can't use strcpy for overlapping strings */
     for (cp2 += 2; *cp2 != '\0'; cp2++, cp1++)

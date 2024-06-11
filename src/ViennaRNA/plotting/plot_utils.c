@@ -197,8 +197,13 @@ vrna_annotate_covar_pt(const char       **alignment,
       maxl    *= 2;
       ps      = vrna_string_make_space_for(ps, maxl);
       colorps = vrna_string_make_space_for(colorps, maxl);
-      if ((ps == NULL) || (colorps == NULL))
+      if ((ps == NULL) || (colorps == NULL)) {
         vrna_log_error("out of memory in realloc");
+        free(annotation);
+        vrna_string_free(ps);
+        vrna_string_free(colorps);
+        return NULL;
+      }
     }
 
     if ((pairings > 0) &&

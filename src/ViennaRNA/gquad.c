@@ -1298,16 +1298,19 @@ parse_gquad(const char  *struc,
       len = end - start;
       if (il == 0)
         *L = len;
-      else if (len != *L)
+      else if (len != *L) {
         vrna_log_error("unequal stack lengths in gquad");
-
+        return 0;
+      }
       if (il == 3)
         break;
 
       while (struc[++i] == '.'); /* linker */
       l[il] = i - end;
-      if (struc[i] != '+')
+      if (struc[i] != '+') {
         vrna_log_error("illegal character in gquad linker region");
+        return 0;
+      }
     }
   } else {
     return 0;

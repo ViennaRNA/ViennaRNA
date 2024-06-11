@@ -1122,8 +1122,15 @@ alloc_sequence_arrays(const char      **sequences,
     *a2s  = (unsigned short **)vrna_alloc((n_seq + 1) * sizeof(unsigned short *));
     *Ss   = (char **)vrna_alloc((n_seq + 1) * sizeof(char *));
     for (s = 0; s < n_seq; s++) {
-      if (strlen(sequences[s]) != length)
+      if (strlen(sequences[s]) != length) {
         vrna_log_error("uneqal seqence lengths");
+        *S = NULL;
+        *S5 = NULL;
+        *S3 = NULL;
+        *a2s = NULL;
+        *Ss = NULL;
+        return;
+      }
 
       (*S5)[s]  = (short *)vrna_alloc((length + 2) * sizeof(short));
       (*S3)[s]  = (short *)vrna_alloc((length + 2) * sizeof(short));
@@ -1138,7 +1145,13 @@ alloc_sequence_arrays(const char      **sequences,
     (*Ss)[n_seq]  = NULL;
     (*S)[n_seq]   = NULL;
   } else {
-    vrna_log_error("alloc_sequence_arrays: no sequences in the alignment!");
+    vrna_log_error("no sequences in the alignment!");
+    *S = NULL;
+    *S5 = NULL;
+    *S3 = NULL;
+    *a2s = NULL;
+    *Ss = NULL;
+    return;
   }
 }
 

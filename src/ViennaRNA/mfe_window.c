@@ -742,6 +742,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
         } else if (jj == -1) {
           /* some error occured during backtracking */
           vrna_log_error("backtrack failed in short backtrack 1");
+          free_aux_arrays(helper_arrays);
+          free_dp_matrices(vc);
+          return INF;
         }
       }
 
@@ -788,6 +791,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
           } else if (jj == -1) {
             /* some error occured during backtracking */
             vrna_log_error("backtrack failed in short backtrack 2");
+            free_aux_arrays(helper_arrays);
+            free_dp_matrices(vc);
+            return INF;
           }
         }
       }
@@ -935,6 +941,9 @@ backtrack(vrna_fold_compound_t  *vc,
           continue;
         } else {
           vrna_log_error("backtracking failed in f3, segment [%d,%d]\n", i, j);
+          free(structure);
+          free(bp_stack);
+          return NULL;
         }
 
         break;
@@ -957,6 +966,9 @@ backtrack(vrna_fold_compound_t  *vc,
           continue;
         } else {
           vrna_log_error("backtracking failed in fML, segment [%d,%d]\n", i, j);
+          free(structure);
+          free(bp_stack);
+          return NULL;
         }
 
         break;
@@ -970,6 +982,9 @@ backtrack(vrna_fold_compound_t  *vc,
 
       default:
         vrna_log_error("Backtracking failed due to unrecognized DP matrix!");
+        free(structure);
+        free(bp_stack);
+        return NULL;
         break;
     }
 
@@ -1029,6 +1044,9 @@ repeat1:
       sector[s].ml  = comp2;
     } else {
       vrna_log_error("backtracking failed in repeat, segment [%d,%d]\n", i, j);
+      free(structure);
+      free(bp_stack);
+      return NULL;
     }
 
     /* end of repeat: --------------------------------------------------*/

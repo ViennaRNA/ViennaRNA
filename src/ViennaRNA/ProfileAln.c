@@ -201,6 +201,18 @@ profile_aln(const float *T1,
             j--;
           } else {
             vrna_log_error("backtrack of alignment failed");
+            free(alignment[0]);
+            free(alignment[1]);
+            for (i = 0; i <= length1; i++) {
+              free(S[i]);
+              free(E[i]);
+              free(F[i]);
+            }
+            free(S);
+            free(E);
+            free(F);
+
+            return (float)INF;
           }
 
           break;

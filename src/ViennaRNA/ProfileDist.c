@@ -182,8 +182,11 @@ PrfEditCost(int         i,
   int     k, kmax;
 
   kmax = (int)T1[1];
-  if ((int)T2[1] != kmax)
+
+  if ((int)T2[1] != kmax) {
     vrna_log_error("inconsistent Profiles in PrfEditCost");
+    return (double)INF;
+  }
 
   if (i == 0)
     for (dist = 0., k = 0; k < kmax; k++)

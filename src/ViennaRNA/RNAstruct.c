@@ -67,6 +67,9 @@ aux_struct(const char *structure)
         break;
       default:
         vrna_log_error("Junk in structure at aux_structure\n");
+        free(string);
+        free(match_paren);
+        return NULL;
     }
     i++;
   }

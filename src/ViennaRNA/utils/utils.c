@@ -87,7 +87,7 @@ vrna_alloc(unsigned size)
 #ifdef EINVAL
     if (errno == EINVAL) {
       fprintf(stderr, "vrna_alloc: requested size: %d\n", size);
-      vrna_log_error("Memory allocation failure -> EINVAL");
+      ("Memory allocation failure -> EINVAL");
     }
 
     if (errno == ENOMEM)

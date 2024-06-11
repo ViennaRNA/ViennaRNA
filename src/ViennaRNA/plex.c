@@ -499,8 +499,12 @@ backtrack_XS(int        i,
     st1[i - 1]  = '(';
     st2[j - 1]  = ')';
     type        = pair[S1[i]][S2[j]];
-    if (!type)
+    if (!type) {
       vrna_log_error("backtrack failed in fold duplex bli");
+      free(st1);
+      free(st2);
+      return NULL;
+    }
 
     for (k = i + 1; k <= n3 && k > i - MAXLOOP - 2; k++) {
       for (l = j - 1; l >= 1; l--) {
@@ -545,10 +549,14 @@ backtrack_XS(int        i,
 #endif
       E -= vrna_E_ext_stem(rtype[type], SS2[j - 1], SS1[i + 1], P);
       break;
-      if (E != P->DuplexInit)
+      if (E != P->DuplexInit) {
         vrna_log_error("backtrack failed in fold duplex bal");
-      else
+        free(st1);
+        free(st2);
+        return NULL;
+      } else {
         break;
+      }
     }
   }
   /*
@@ -1206,8 +1214,13 @@ fbacktrack_XS(int       i,
         type = pair[S1[i]][S2[j]];
         int bAU;
         bAU = (type > 2 ? P->TerminalAU : 0);
-        if (!type)
+
+        if (!type) {
           vrna_log_error("backtrack failed in fold duplex");
+          free(st1);
+          free(st2);
+          return NULL;
+        }
 
         type2 = pair[S1[i - 1]][S2[j + 1]];
         if (type2 && c[i][j] == (c[i - 1][j + 1] + P->stack[rtype[type]][type2] + di1 + dj1)) {
@@ -1891,6 +1904,9 @@ fbacktrack_XS(int       i,
      */
     if (E != P->DuplexInit) {
       vrna_log_error("backtrack failed in second fold duplex");
+      free(st1);
+      free(st2);
+      return NULL;
     } else {
       *dG         += P->DuplexInit;
       *dGplex     += P->DuplexInit;
@@ -2810,8 +2826,12 @@ backtrack(int       i,
     st1[i - 1]  = '(';
     st2[j - 1]  = ')';
     type        = pair[S1[i]][S2[j]];
-    if (!type)
+    if (!type) {
       vrna_log_error("backtrack failed in fold duplex");
+      free(st1);
+      free(st2);
+      return NULL;
+    }
 
     for (k = i - 1; k > 0 && k > i - MAXLOOP - 2; k--) {
       for (l = j + 1; l <= n4; l++) {
@@ -2843,10 +2863,14 @@ backtrack(int       i,
       ***      if (j<n4) E -= P->dangle3[type][SS2[j+1]]+extension_cost;
       ***      if (type>2) E -= P->TerminalAU;
       **/
-      if (E != P->DuplexInit + 2 * extension_cost)
+      if (E != P->DuplexInit + 2 * extension_cost) {
         vrna_log_error("backtrack failed in fold duplex");
-      else
+        free(st1);
+        free(st2);
+        return NULL;
+      } else {
         break;
+      }
     }
   }
   if (i > 1)
@@ -3238,8 +3262,12 @@ fbacktrack(int        i,
         type = pair[S1[i]][S2[j]];
         int bAU;
         bAU = (type > 2 ? P->TerminalAU : 0);
-        if (!type)
+        if (!type) {
           vrna_log_error("backtrack failed in fold duplex");
+          free(st1);
+          free(st2);
+          return NULL;
+        }
 
         type2 = pair[S1[i - 1]][S2[j + 1]];
         if (type2 &&
@@ -3766,6 +3794,9 @@ fbacktrack(int        i,
     E           -= correction + 2 * extension_cost;
     if (E != P->DuplexInit + 2 * extension_cost) {
       vrna_log_error("backtrack failed in second fold duplex");
+      free(st1);
+      free(st2);
+      return NULL;
     } else {
       *dG         += P->DuplexInit;
       st1[i - 1]  = '(';

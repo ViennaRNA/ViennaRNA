@@ -705,6 +705,12 @@ pf_interact(const char  *s1,
                              ci - ck + 1,
                              w);
         vrna_log_error("pf_interact: could not satisfy all constraints");
+
+        free(Int->Pi);
+        free(Int->Gi);
+        free(Int);
+        Int = NULL;
+        goto early_exit;
       }
 
       if (cj > 0 && cl > 0 && cl - cj + 1 > w) {
@@ -712,10 +718,22 @@ pf_interact(const char  *s1,
                              cl - cj + 1,
                              w);
         vrna_log_error("pf_interact: could not satisfy all constraints");
+
+        free(Int->Pi);
+        free(Int->Gi);
+        free(Int);
+        Int = NULL;
+        goto early_exit;
       }
     }
   } else if (fold_constrained && cstruc == NULL) {
     vrna_log_error("option -C selected, but no constrained structure given\n");
+
+    free(Int->Pi);
+    free(Int->Gi);
+    free(Int);
+    Int = NULL;
+    goto early_exit;
   }
 
   if (fold_constrained)
@@ -1024,8 +1042,15 @@ pf_interact(const char  *s1,
     free(qint_4);
   }
 
-  if (fold_constrained && (gi == 0 || gk == 0 || gl == 0 || gj == 0))
+  if (fold_constrained && (gi == 0 || gk == 0 || gl == 0 || gj == 0)) {
     vrna_log_error("pf_interact: could not satisfy all constraints");
+
+    free(Int->Pi);
+    free(Int->Gi);
+    free(Int);
+    Int = NULL;
+    goto early_exit;
+  }
 
   /* fill structure interact */
   Int->length   = n1;
@@ -1036,14 +1061,19 @@ pf_interact(const char  *s1,
   Int->Gikjl    = G_min;
   Int->Gikjl_wo = Gi_min;
 
+  early_exit:
+
   free(i_long);
   free(i_short);
 
-  for (i = 1; i <= n1; i++)
-    free(int_ik[i]);
+  if (int_ik)
+    for (i = 1; i <= n1; i++)
+      free(int_ik[i]);
   free(int_ik);
-  for (i = 1; i <= n1; i++)
-    free(qint_ik[i]);
+
+  if (qint_ik)
+    for (i = 1; i <= n1; i++)
+      free(qint_ik[i]);
   free(qint_ik);
 
   /* reset the global variables pf_scale and scale to their original values */
@@ -1129,8 +1159,10 @@ init_pf_two(int length)
   make_pair_matrix();
 
   /* gets the arrays, that we need, from part_func.c */
-  if (!get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln))
+  if (!get_pf_arrays(&S, &S1, &ptype, &qb, &qm, &q1k, &qln)) {
     vrna_log_error("init_pf_two: pf_fold() has to be called before calling pf_unstru()\n");
+    return;
+  }
 
   /* get a pointer to the base pair probs */
   probs = export_bppm();
@@ -1138,8 +1170,10 @@ init_pf_two(int length)
   scale_stru_pf_params((unsigned)length);
 
   init_length = length;
-  if (init_temp != Pf->temperature)
+  if (init_temp != Pf->temperature) {
     vrna_log_error("init_pf_two: inconsistency with temperature");
+    return;
+  }
 }
 
 
@@ -1362,8 +1396,10 @@ get_u_vals(pu_contrib *p_c,
     ++contribs;
   }
 
-  if (contribs > 5)
+  if (contribs > 5) {
     vrna_log_error("get_u_vals: error with contribs!");
+    return NULL;
+  }
 
   /* allocate the results structure */
   u_results       = (pu_out *)vrna_alloc(1 * sizeof(pu_out));
@@ -1690,8 +1726,16 @@ get_ptypes_up(char        *Seq,
         case '<': /* pairs upstream */
           break;
         case ')':
-          if (hx <= 0)
+          if (hx <= 0) {
             vrna_log_error("1. unbalanced brackets in constraints\n%s", structure);
+            free(stack);
+            free(s);
+            free(s1);
+            free(con->indx);
+            free(con->ptype);
+            free(con);
+            return NULL;
+          }
 
           i     = stack[--hx];
           type  = con->ptype[con->indx[i] - j];
@@ -1708,9 +1752,16 @@ get_ptypes_up(char        *Seq,
           break;
       }
     }
-    if (hx != 0)
+    if (hx != 0) {
       vrna_log_error("2. unbalanced brackets in constraint string\n%s", structure);
-
+      free(stack);
+      free(s);
+      free(s1);
+      free(con->indx);
+      free(con->ptype);
+      free(con);
+      return NULL;
+    }
     free(stack);
   }
 

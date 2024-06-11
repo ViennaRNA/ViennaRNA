@@ -853,8 +853,10 @@ copy_state(STATE *state)
   }
 
   new_state->structure = strdup(state->structure);
-  if (!new_state->structure)
+  if (!new_state->structure) {
     vrna_log_error("out of memory");
+    return NULL;
+  }
 
   return new_state;
 }
@@ -1734,8 +1736,10 @@ scan_ext(vrna_fold_compound_t *fc,
 
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
-  if (i > 1)
+  if (i > 1) {
     vrna_log_error("Error while backtracking!");
+    return;
+  }
 
   if ((j < i + 1) &&
       (sn[i] == so[j])) {
@@ -1967,8 +1971,10 @@ scan_circular(vrna_fold_compound_t  *fc,
 
   best_energy = best_attainable_energy(fc, state);  /* .. on remaining intervals */
 
-  if (i > 1)
+  if (i > 1) {
     vrna_log_error("Error while backtracking!");
+    return;
+  }
 
   if (j < i + turn + 1) {
     /* minimal structure element */

@@ -400,8 +400,11 @@ vrna_cut_point_remove(const char  *string,
       if (*cp >= len)
         *cp = -1;
 
-      if (strchr(pos + 1, '&'))
+      if (strchr(pos + 1, '&')) {
         vrna_log_error("more than one cut-point in input");
+        free(copy);
+        return NULL;
+      }
 
       for (; *pos; pos++)
         *pos = *(pos + 1);               /* splice out the & */
