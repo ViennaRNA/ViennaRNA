@@ -565,10 +565,12 @@ main(int  argc,
    # begin initializing
    #############################################
    */
+#if 0
   if (opt.md.circ && opt.md.gquad) {
     vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
     exit(EXIT_FAILURE);
   }
+#endif
 
   if (opt.md.circ && opt.md.noLP)
     vrna_log_warning("Depending on the origin of the circular sequence, some structures may be missed when using --noLP\n"
