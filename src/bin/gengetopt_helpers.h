@@ -7,6 +7,8 @@ set_geometry(vrna_md_t *md);
 void
 set_salt_DNA(vrna_md_t *md);
 
+#include "ViennaRNA/utils/log.h"
+
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
