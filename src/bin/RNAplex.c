@@ -358,6 +358,7 @@ main(int  argc,
     if (qname || tname) {
       vrna_log_error(
         "No query/target file allowed in Tm probe mode\nPlease pipe your input into RNAplex\n");
+      exit(EXIT_FAILURE);
       /* get sequence */
     } else {
       /* fix temperature to 37C */
@@ -520,6 +521,7 @@ main(int  argc,
       }
 
       vrna_log_error("Sorry not implemented yet");
+      exit(EXIT_FAILURE);
     }/**
       * We have no single sequence case. Check if we have alignments.
       */
@@ -1110,9 +1112,11 @@ main(int  argc,
 
             int   a = strchr(structure, '|') - structure;
             int   b = strrchr(structure, '|') - structure;
-            if (alignment_length < b - a + 1)
+            if (alignment_length < b - a + 1) {
               vrna_log_error(
                 "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+              exit(EXIT_FAILURE);
+            }
 
             int   **access_s2;
             char  *file_s2;
@@ -1308,9 +1312,11 @@ main(int  argc,
 
             int a = strchr(structure, '|') - structure;
             int b = strrchr(structure, '|') - structure;
-            if (alignment_length < b - a + 1)
+            if (alignment_length < b - a + 1) {
               vrna_log_error(
                 "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+              exit(EXIT_FAILURE);
+            }
 
             printf(">%s\n>%s\n", id_s1, id_s2);
             double begin = BeginTimer();
@@ -1478,10 +1484,11 @@ main(int  argc,
         } else {
           int a = strchr(structure, '|') - structure;
           int b = strrchr(structure, '|') - structure;
-          if (alignment_length < b - a + 1)
+          if (alignment_length < b - a + 1) {
             vrna_log_error(
               "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
-
+            exit(EXIT_FAILURE);
+          }
           Lduplexfold_C(s1,
                         s2,
                         delta,
@@ -1501,9 +1508,11 @@ main(int  argc,
         int   s1_len, s2_len;
         s1_len  = strlen(s1);
         s2_len  = strlen(s2);
-        if (!(id_s1 && id_s2))
+        if (!(id_s1 && id_s2)) {
           vrna_log_error(
             "The fasta files has no header information..., cant fetch accessibility file\n");
+          exit(EXIT_FAILURE);
+        }
 
         file_s1 = (char *)vrna_alloc(sizeof(char) * (strlen(id_s1) + strlen(access) + 20));
         file_s2 = (char *)vrna_alloc(sizeof(char) * (strlen(id_s2) + strlen(access) + 20));
@@ -1566,9 +1575,11 @@ main(int  argc,
         } else {
           int a = strchr(structure, '|') - structure;
           int b = strrchr(structure, '|') - structure;
-          if (alignment_length < b - a + 1)
+          if (alignment_length < b - a + 1) {
             vrna_log_error(
               "Maximal duplex length (-l option) is smaller than constraint on the structures\n. Please adjust the -l option accordingly\n");
+            exit(EXIT_FAILURE);
+          }
 
           Lduplexfold_CXS(s1,
                           s2,
@@ -1646,6 +1657,7 @@ main(int  argc,
         free(temp2[i]);
       }
       vrna_log_error("unequal number of seqs in alignments");
+      exit(EXIT_FAILURE);
     }
 
     for (i = 0; temp1[i]; i++) {
@@ -2251,6 +2263,7 @@ aliprint_struct(FILE      *Result,        /* result file */
       free(AS2[i]);
     }
     vrna_log_error("unequal number of seqs in alignments");
+    exit(EXIT_FAILURE);
   }
 
   /**
@@ -2583,6 +2596,7 @@ linear_fit(int  *il_a,
     free(P);
     printf("divisor for internal loop is too small %d\n", (sumxx - (sumx * sumx) / n));
     vrna_log_error("Problem in fitting");
+    exit(EXIT_FAILURE);
   }
 
   til_a = (sumxy - (sumx * sumy) / n) / (sumxx - (sumx * sumx) / n);
@@ -2617,6 +2631,7 @@ linear_fit(int  *il_a,
   if ((sumxx - (sumx * sumx) / n) < 1e-6) {
     printf("divisor for bulge loop is too small %d\n", (sumxx - (sumx * sumx) / n));
     vrna_log_error("Problem in fitting");
+    exit(EXIT_FAILURE);
   }
 }
 

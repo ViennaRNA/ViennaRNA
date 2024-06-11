@@ -319,10 +319,11 @@ main(int  argc,
       if (!skip) {
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-        if (!input_stream)
+        if (!input_stream) {
           vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
-
+          goto exit_fail;
+        }
         if (processing_func(input_stream, (const char *)input_files[i], &opt) == 0)
           skip = 1;
 
@@ -353,6 +354,9 @@ main(int  argc,
     fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
+
+  exit_fail:
+    return EXIT_FAILURE;
 }
 
 
@@ -453,23 +457,23 @@ process_alignment_input(FILE            *input_stream,
       switch (opt->msa_format) {
         case VRNA_FILE_FORMAT_MSA_CLUSTAL:
           vrna_log_error(msg, "Clustal");
-          break;
+          return 0;
 
         case VRNA_FILE_FORMAT_MSA_STOCKHOLM:
           vrna_log_error(msg, "Stockholm");
-          break;
+          return 0;
 
         case VRNA_FILE_FORMAT_MSA_FASTA:
           vrna_log_error(msg, "FASTA");
-          break;
+          return 0;
 
         case VRNA_FILE_FORMAT_MSA_MAF:
           vrna_log_error(msg, "MAF");
-          break;
+          return 0;
 
         default:
           vrna_log_error(msg, "Unknown");
-          break;
+          return 0;
       }
     }
 
@@ -510,7 +514,7 @@ process_alignment_input(FILE            *input_stream,
 
         default:
           vrna_log_error("Which input format are you using?");
-          break;
+          return 0;
       }
     }
 
@@ -579,11 +583,15 @@ process_record(struct record_data *record)
     0,
     (record->multiline_input) ? VRNA_OPTION_MULTILINE : 0);
 
-  if (!structure)
+  if (!structure) {
     vrna_log_error("structure missing for record %d\n", record->number);
+    exit(EXIT_FAILURE);
+  }
 
-  if (strlen(rec_sequence) != strlen(structure))
+  if (strlen(rec_sequence) != strlen(structure)) {
     vrna_log_error("sequence and structure have unequal length");
+    exit(EXIT_FAILURE);
+  }
 
   if (record->SEQ_ID)
     ffname = vrna_strdup_printf("%s%sss", record->SEQ_ID, opt->filename_delim);
@@ -704,8 +712,10 @@ process_alignment_record(struct record_data_msa *record)
                   *pre, *post;
   struct options  *opt;
 
-  if (!record->structure)
+  if (!record->structure) {
     vrna_log_error("structure missing for record %d\n", record->number);
+    exit(EXIT_FAILURE);
+  }
 
   opt       = record->options;
   structure = vrna_db_from_WUSS(record->structure);

@@ -42,7 +42,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define EQUAL(A, B) (fabs((A)-(B)) < 1000 * DBL_EPSILON)
 
-PRIVATE void
+PRIVATE int
 tokenize(char *line,
          char **seq1,
          char **seq2);
@@ -66,7 +66,7 @@ print_interaction(interact    *Int,
                   int         incr5);
 
 
-PRIVATE void
+PRIVATE int
 print_unstru(pu_contrib *p_c,
              int        w);
 
@@ -462,6 +462,7 @@ main(int  argc,
           break;
         default:
           vrna_log_error("This should never happen (again)");
+          goto exit_fail;
           break;
       }
     }
@@ -474,11 +475,13 @@ main(int  argc,
     }
 
     /* break on any error, EOF or quit request */
-    if (input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR))
+    if (input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) {
       break;                              /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-    else
-      tokenize(input_string, &s1, &s2);   /* this also frees the input_string */
-
+    } else {
+      int ret = tokenize(input_string, &s1, &s2);   /* this also frees the input_string */
+      if (ret == 0)
+        goto exit_fail;
+    }
     length1 = (int)strlen(s1);
     length2 = (s2) ? (int)strlen(s2) : 0;
 
@@ -508,6 +511,7 @@ main(int  argc,
             "After the first sequence (pair): Input a single sequence (no &)!\n"
             "Each input seq. is compared to the very first seq. given.\n"
             );
+          goto exit_fail;
         }
 
         break;
@@ -525,15 +529,18 @@ main(int  argc,
         free(input_string);
       }
       /* break on any error, EOF or quit request */
-      if (input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR))
+      if (input_type & (VRNA_INPUT_QUIT | VRNA_INPUT_ERROR)) {
         break;                              /* else assume a proper sequence of letters of a certain alphabet (RNA, DNA, etc.) */
-      else
-        tokenize(input_string, &s2, &s3);   /* this also frees the input_string */
-
-      if (cut_point != -1)
+      } else {
+        int ret = tokenize(input_string, &s2, &s3);   /* this also frees the input_string */
+        if (ret == 0)
+          goto exit_fail;
+      }
+      if (cut_point != -1) {
         vrna_log_error(
           "Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
-
+        goto exit_fail;
+      }
       length2 = (int)strlen(s2);
     }
 
@@ -563,16 +570,20 @@ main(int  argc,
       } else if ((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)) {
         old_cut   = cut_point;
         cut_point = -1;
-        tokenize(input_string, &cstruc1, &cstruc2);
+        int ret = tokenize(input_string, &cstruc1, &cstruc2);
+        if (ret == 0)
+          goto exit_fail;
       } else {
         vrna_log_error("constraints missing");
+        goto exit_fail;
       }
 
       /* now that we've got the constraining structure(s) check if the input was valid */
-      if (old_cut != cut_point)
+      if (old_cut != cut_point) {
         vrna_log_error(
           "RNAup -C: mixed single/dual sequence or constraint strings or different cut points");
-
+        goto exit_fail;
+      }
       read_again = 0;
 
       if (cut_point == -1) {
@@ -584,28 +595,35 @@ main(int  argc,
 
       if (read_again) {
         input_type = get_input_line(&input_string, VRNA_INPUT_NOSKIP_COMMENTS);
-        if (input_type & VRNA_INPUT_QUIT)
+        if (input_type & VRNA_INPUT_QUIT) {
           break;
-        else if ((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0))
-          tokenize(input_string, &cstruc2, &cstruc_tmp);
-        else
+        } else if ((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)) {
+          int ret = tokenize(input_string, &cstruc2, &cstruc_tmp);
+          if (ret == 0)
+            goto exit_fail;
+        } else {
           vrna_log_error("constraints missing");
-
-        if (cut_point != -1)
+          goto exit_fail;
+        }
+        if (cut_point != -1) {
           vrna_log_error(
             "Don't confuse me by mixing concatenated (&) with single sequences! Go, have some sleep and then check your input again...");
+          goto exit_fail;
+        }
       }
 
       /* check length(s) of input sequence(s) and constraint(s) */
       if (strlen(cstruc1) != length1) {
         fprintf(stderr, "%s\n%s\n", s1, cstruc1);
         vrna_log_error("RNAup -C: constraint string and structure have unequal length");
+        goto exit_fail;
       }
 
       if (s2 != NULL) {
         if (strlen(cstruc2) != length2) {
           fprintf(stderr, "%s\n%s\n", s2, cstruc2);
           vrna_log_error("RNAup -C: constraint string and structure have unequal length");
+          goto exit_fail;
         }
       }
     } /* thats all for constraint folding */
@@ -638,8 +656,10 @@ main(int  argc,
     }
 
     /* check ulength values against sequences given */
-    if (max_u > length1)
+    if (max_u > length1) {
       vrna_log_error("maximum unpaired region exceeds sequence length");
+      goto exit_fail;
+    }
 
     if (up_mode & RNA_UP_MODE_3) {
       /* if we haven't seen the target yet, store it now */
@@ -752,9 +772,13 @@ main(int  argc,
       case RNA_UP_MODE_1:
         for (i = 1; i <= unpaired_values[0][0]; i++) {
           j = unpaired_values[i][0];
-          do
-            print_unstru(unstr_out, j);
-          while (++j <= unpaired_values[i][1]);
+          int ret;
+          do {
+            ret = print_unstru(unstr_out, j);
+          } while ((++j <= unpaired_values[i][1]) &&
+                   (ret != 0));
+          if (ret == 0)
+            goto exit_fail;
         }
         if (output && header)
           head =
@@ -916,6 +940,9 @@ main(int  argc,
     fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
+
+  exit_fail:
+    return EXIT_FAILURE;
 }
 
 
@@ -1015,7 +1042,7 @@ adjustUnpairedValues(int ***unpaired_values)
 /* call:  tokenize(line,&seq1,&seq2); the sequence string is split at the "&"
  * and the first seq is written in seq1, the second into seq2  */
 /* using sscanf instead of strcpy get's rid of trainling junk on the input line */
-void
+int
 tokenize(char *line,
          char **seq1,
          char **seq2)
@@ -1029,8 +1056,10 @@ tokenize(char *line,
     (*seq1) = (char *)vrna_alloc((cut + 1) * sizeof(char));
     (*seq2) = (char *)vrna_alloc(((strlen(line) - cut) + 2) * sizeof(char));
 
-    if (strchr(pos + 1, '&'))
+    if (strchr(pos + 1, '&')) {
       vrna_log_error("more than one cut-point in input");
+      return 0;
+    }
 
     *pos = '\0';
     (void)sscanf(line, "%s", *seq1);
@@ -1047,11 +1076,12 @@ tokenize(char *line,
     } else if (cut_point != cut) {
       fprintf(stderr, "cut_point = %d cut = %d\n", cut_point, cut);
       vrna_log_error("Sequence and Structure have different cut points.");
+      return 0;
     }
   }
 
   free(line);
-  return;
+  return 1;
 }
 
 
@@ -1309,7 +1339,7 @@ print_interaction(interact    *Int,
 
 
 /* print coordinates and free energy for the region of highest accessibility */
-PRIVATE void
+PRIVATE int
 print_unstru(pu_contrib *p_c,
              int        w)
 {
@@ -1338,7 +1368,9 @@ print_unstru(pu_contrib *p_c,
       }
     }
     printf("%4d,%4d \t (%.3f) \t for u=%3d\n", min_i, min_j, min_gu, w);
+    return 1;
   } else {
     vrna_log_error("error with prob unpaired");
+    return 0;
   }
 }

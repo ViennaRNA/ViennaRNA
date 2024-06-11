@@ -204,6 +204,7 @@ main(int  argc,
 
 #else
     vrna_log_error("\'z\' option is available only if compiled with SVM support!");
+    exit(EXIT_FAILURE);
 #endif
   }
 
@@ -268,8 +269,10 @@ main(int  argc,
 
   if (infile) {
     input = fopen((const char *)infile, "r");
-    if (!input)
+    if (!input) {
       vrna_log_error("Could not read input file");
+      exit(EXIT_FAILURE);
+    }
   } else {
     input = stdin;
   }
@@ -331,13 +334,17 @@ main(int  argc,
       free(v_file_name);
       v_file_name = tmp_string;
 
-      if (infile && !strcmp(infile, v_file_name))
+      if (infile && !strcmp(infile, v_file_name)) {
         vrna_log_error("Input and output file names are identical");
+        exit(EXIT_FAILURE);
+      }
 
       output = fopen((const char *)v_file_name, "a");
 
-      if (!output)
+      if (!output) {
         vrna_log_error("Failed to open file for writing");
+        exit(EXIT_FAILURE);
+      }
 
       file_pos_start = ftell(output);
     } else {

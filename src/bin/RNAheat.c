@@ -284,8 +284,10 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (opt.md.circ && opt.md.gquad)
+  if (opt.md.circ && opt.md.gquad) {
     vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
+    exit(EXIT_FAILURE);
+  }
 
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
@@ -303,9 +305,11 @@ main(int  argc,
       if (!skip) {
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-        if (!input_stream)
+        if (!input_stream){
           vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
+          exit(EXIT_FAILURE);
+        }
 
         if (process_input(input_stream, (const char *)input_files[i], &opt) == 0)
           skip = 1;

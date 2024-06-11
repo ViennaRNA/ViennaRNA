@@ -131,6 +131,7 @@ main(int  argc,
     } else {
       RNAparconv_cmdline_parser_print_help();
       vrna_log_error("unrecognized or too many parameter options given!");
+      exit(EXIT_FAILURE);
     }
   }
 

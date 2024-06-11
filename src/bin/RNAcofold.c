@@ -467,9 +467,11 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (opt.pf && opt.md.gquad)
+  if (opt.pf && opt.md.gquad) {
     vrna_log_error(
       "G-Quadruplex support is currently not available for partition function computations");
+    exit(EXIT_FAILURE);
+  }
 
   if ((opt.csv_output) && (opt.csv_header))
     write_csv_header(stdout, &opt);
@@ -493,9 +495,11 @@ main(int  argc,
       if (!skip) {
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-        if (!input_stream)
+        if (!input_stream) {
           vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
+          exit(EXIT_FAILURE);
+        }
 
         if (opt.verbose) {
           vrna_log_info("Processing %d. input file \"%s\"",
@@ -708,8 +712,10 @@ process_record(struct record_data *record)
 
   n = vc->length;
 
-  if (vc->strands > 2)
+  if (vc->strands > 2) {
     vrna_log_error("More than one strand delimiter in input!");
+    exit(EXIT_FAILURE);
+  }
 
   /* retrieve string stream bound to stdout, 6*length should be enough memory to start with */
   o_stream->data = vrna_cstr(6 * n, stdout);
@@ -753,16 +759,19 @@ process_record(struct record_data *record)
         vrna_log_error("Sequence and Structure have different cut points.\n"
                            "sequence: %d, structure: %d",
                            vc->cutpoint, cp);
+        exit(EXIT_FAILURE);
       }
 
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
 
-      if (cl == 0)
+      if (cl == 0) {
         vrna_log_warning("Structure constraint is missing");
-      else if (cl < n)
+      } else if (cl < n) {
         vrna_log_warning("Structure constraint is shorter than sequence");
-      else if (cl > n)
+      } else if (cl > n) {
         vrna_log_error("Structure constraint is too long");
+        exit(EXIT_FAILURE);
+      }
 
       if (cstruc) {
         unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
@@ -802,8 +811,10 @@ process_record(struct record_data *record)
     if (opt->concentration_file) {
       /* read from file */
       FILE *fp = fopen(opt->concentration_file, "r");
-      if (fp == NULL)
+      if (fp == NULL) {
         vrna_log_error("could not open concentration file %s", opt->concentration_file);
+        exit(EXIT_FAILURE);
+      }
 
       concentrations = read_concentrations(fp);
       fclose(fp);

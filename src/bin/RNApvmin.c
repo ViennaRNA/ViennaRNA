@@ -135,7 +135,10 @@ main(int  argc,
     omp_set_num_threads(args_info.numThreads_arg);
 
 #else
-    vrna_log_error("\'j\' option is available only if compiled with OpenMP support!");
+    {
+      vrna_log_error("\'j\' option is available only if compiled with OpenMP support!");
+      goto exit_fail;
+    }
 #endif
 
   ggo_get_read_paramFile(args_info, &md);
@@ -305,4 +308,7 @@ main(int  argc,
     fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
+
+  exit_fail:
+    return EXIT_FAILURE;
 }

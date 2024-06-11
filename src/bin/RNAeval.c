@@ -317,8 +317,10 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (opt.md.circ && opt.md.gquad)
+  if (opt.md.circ && opt.md.gquad) {
     vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
+    exit(EXIT_FAILURE);
+  }
 
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
@@ -345,9 +347,11 @@ main(int  argc,
       if (!skip) {
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-        if (!input_stream)
+        if (!input_stream) {
           vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
+          exit(EXIT_FAILURE);
+        }
 
         if (processing_func(input_stream, (const char *)input_files[i], &opt) == 0)
           skip = 1;
@@ -509,6 +513,7 @@ process_alignment_input(FILE            *input_stream,
           vrna_log_error(msg, "Unknown");
           break;
       }
+      exit(EXIT_FAILURE);
     }
 
     input_format = format_guess;
@@ -548,7 +553,7 @@ process_alignment_input(FILE            *input_stream,
 
         default:
           vrna_log_error("Which input format are you using?");
-          break;
+          exit(EXIT_FAILURE);
       }
     }
 
@@ -663,8 +668,10 @@ process_record(struct record_data *record)
                                            0,
                                            (record->multiline_input) ? VRNA_OPTION_MULTILINE : 0);
 
-  if (!tmp)
+  if (!tmp) {
     vrna_log_error("structure missing for record %d\n", record->number);
+    exit(EXIT_FAILURE);
+  }
 
   {
 #ifdef MULTISTRAND_EVAL
@@ -676,12 +683,14 @@ process_record(struct record_data *record)
       unsigned int l = strlen(structures[a]);
       switch (vc->type) {
         case VRNA_FC_TYPE_SINGLE:
-          if (vc->nucleotides[a].length != l)
+          if (vc->nucleotides[a].length != l) {
             vrna_log_error(
               "Structure and sequence part of strand %u differ in length (%u vs. %u)",
               a,
               l,
               vc->nucleotides[a].length);
+            exit(EXIT_FAILURE);
+          }
 
           break;
 
@@ -699,12 +708,14 @@ process_record(struct record_data *record)
     if (cp != vc->cutpoint) {
       vrna_log_warning("cut_point = %d cut = %d", vc->cutpoint, cp);
       vrna_log_error("Sequence and Structure have different cut points.");
+      exit(EXIT_FAILURE);
     }
 
     n = (int)strlen(structure);
-    if (n != vc->length)
+    if (n != vc->length) {
       vrna_log_error("structure and sequence differ in length!");
-
+      exit(EXIT_FAILURE);
+    }
 #endif
 
     free(tmp);
@@ -802,8 +813,10 @@ process_alignment_record(struct record_data_msa *record)
 
   o_stream = (struct output_stream *)vrna_alloc(sizeof(struct output_stream));
 
-  if (!record->structure)
+  if (!record->structure) {
     vrna_log_error("structure missing for record %d\n", record->number);
+    exit(EXIT_FAILURE);
+  }
 
   opt       = record->options;
   structure = vrna_db_from_WUSS(record->structure);

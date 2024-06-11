@@ -269,8 +269,8 @@ main(int  argc,
     filename_in = strdup(args_info.inputs[0]);
     clust_file  = fopen(filename_in, "r");
     if (clust_file == NULL) {
-      vrna_log_warning("unable to open %s", filename_in);
-      vrna_log_error("Input file can't be read!");
+      vrna_log_error("unable to open input file \"%s\"", filename_in);
+      exit(EXIT_FAILURE);
     }
 
     /*
@@ -389,6 +389,7 @@ main(int  argc,
         "Your input file is missing sequences! Either your file is empty, or not in %s format!",
         format);
       free(format);
+      exit(EXIT_FAILURE);
     }
 
     input_format_options = format_guess;
@@ -424,6 +425,7 @@ main(int  argc,
 
         default:
           vrna_log_error("Which input format are you using?");
+          exit(EXIT_FAILURE);
           break;
       }
     }
@@ -559,6 +561,7 @@ main(int  argc,
       "Your input file is missing sequences! Either your file is empty, or not in %s format!",
       format);
     free(format);
+    exit(EXIT_FAILURE);
   }
 
   if (clust_file != stdin)

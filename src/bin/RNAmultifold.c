@@ -360,10 +360,11 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (opt.pf && opt.md.gquad)
+  if (opt.pf && opt.md.gquad) {
     vrna_log_error(
       "G-Quadruplex support is currently not available for partition function computations");
-
+    exit(EXIT_FAILURE);
+  }
   if ((opt.verbose) && (opt.jobs > 1))
     vrna_log_info("Preparing %d parallel computation slots", opt.jobs);
 
@@ -383,9 +384,11 @@ main(int  argc,
       if (!skip) {
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-        if (!input_stream)
+        if (!input_stream) {
           vrna_log_error("Unable to open %d. input file \"%s\" for reading", i + 1,
                              input_files[i]);
+          exit(EXIT_FAILURE);
+        }
 
         if (opt.verbose) {
           vrna_log_info("Processing %d. input file \"%s\"",
@@ -620,6 +623,7 @@ process_record(struct record_data *record)
         vrna_log_error("Sequence and Structure have different cut points.\n"
                            "sequence: %d, structure: %d",
                            vc->cutpoint, cp);
+        exit(EXIT_FAILURE);
       }
 
       cl = (cstruc) ? (int)strlen(cstruc) : 0;
@@ -628,9 +632,10 @@ process_record(struct record_data *record)
         vrna_log_warning("Structure constraint is missing");
       else if (cl < n)
         vrna_log_warning("Structure constraint is shorter than sequence");
-      else if (cl > n)
+      else if (cl > n) {
         vrna_log_error("Structure constraint is too long");
-
+        exit(EXIT_FAILURE);
+      }
       if (cstruc) {
         unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
 
@@ -663,8 +668,10 @@ process_record(struct record_data *record)
     if (opt->concentration_file) {
       /* read from file */
       FILE *fp = fopen(opt->concentration_file, "r");
-      if (fp == NULL)
+      if (fp == NULL) {
         vrna_log_error("could not open concentration file %s", opt->concentration_file);
+        exit(EXIT_FAILURE);
+      }
 
       concentrations = read_concentrations(fp, vc->strands);
       fclose(fp);

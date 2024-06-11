@@ -255,6 +255,8 @@ main(int  argc,
 
       default:
         vrna_log_error("This can't happen.");
+        exit(EXIT_FAILURE);
+
     }   /* END switch task */
     (void)fflush(stdout);
   }     /* END while */

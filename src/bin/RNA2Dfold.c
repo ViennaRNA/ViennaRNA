@@ -127,6 +127,7 @@ main(int  argc,
 
 #else
     vrna_log_error("\'j\' option is available only if compiled with OpenMP support!");
+    exit(EXIT_FAILURE);
 #endif
 
   /* get energy parameter file name */
@@ -220,10 +221,13 @@ main(int  argc,
     } else if ((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)) {
       reference_struc1 = strdup(input_string);
       free(input_string);
-      if (strlen(reference_struc1) != length)
+      if (strlen(reference_struc1) != length) {
         vrna_log_error("sequence and 1st reference structure have unequal length");
+        exit(EXIT_FAILURE);
+      }
     } else {
       vrna_log_error("1st reference structure missing\n");
+      exit(EXIT_FAILURE);
     }
 
     strncpy(structure1, reference_struc1, length);
@@ -234,10 +238,13 @@ main(int  argc,
     } else if ((input_type & VRNA_INPUT_MISC) && (strlen(input_string) > 0)) {
       reference_struc2 = strdup(input_string);
       free(input_string);
-      if (strlen(reference_struc2) != length)
+      if (strlen(reference_struc2) != length) {
         vrna_log_error("sequence and 2nd reference structure have unequal length");
+        exit(EXIT_FAILURE);
+      }
     } else {
       vrna_log_error("2nd reference structure missing\n");
+      exit(EXIT_FAILURE);
     }
 
     strncpy(structure2, reference_struc2, length);
@@ -356,8 +363,10 @@ main(int  argc,
         for (i = 0; pf_s[i].k != INF; i++) {
           float free_energy = (-log((float)pf_s[i].q) - length * log(vc->exp_params->pf_scale)) *
                               (vc->exp_params->kT / 1000.);
-          if ((pf_s[i].k != mfe_s[i].k) || (pf_s[i].l != mfe_s[i].l))
+          if ((pf_s[i].k != mfe_s[i].k) || (pf_s[i].l != mfe_s[i].l)) {
             vrna_log_error("This should never happen!");
+            exit(EXIT_FAILURE);
+          }
 
           char  *tline = vrna_strdup_printf("%d\t%d\t%2.8f\t%2.8f\t%2.8f\t%6.2f\t%6.2f\t%s",
                                             pf_s[i].k,

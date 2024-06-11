@@ -195,8 +195,10 @@ main(int  argc,
       type  = 1;
     }
 
-    if (n >= MAXNUM)
+    if (n >= MAXNUM) {
       vrna_log_error("Number of input structures exceeds maximum of %d", MAXNUM);
+      exit(EXIT_FAILURE);
+    }
 
     tree_types    = 0;
     string_types  = 0;
@@ -204,8 +206,10 @@ main(int  argc,
       switch (ttype[tt]) {
         case 'f':
         case 'F':
-          if (type != 1)
+          if (type != 1) {
             vrna_log_error("Can't convert back to full structure");
+            exit(EXIT_FAILURE);
+          }
 
           xstruc = expand_Full(line);
           if (islower(ttype[tt])) /* tree_edit */
@@ -217,8 +221,10 @@ main(int  argc,
           free(xstruc);
           break;
         case 'P':
-          if (type != 1)
+          if (type != 1) {
             vrna_log_error("Can't convert back to full structure");
+            exit(EXIT_FAILURE);
+          }
 
           P[n] = strdup(line);
           break;
@@ -237,6 +243,7 @@ main(int  argc,
               break;
             default:
               vrna_log_error("Can't convert to HIT structure");
+              exit(EXIT_FAILURE);
           }
           break;
         case 'c':
@@ -257,7 +264,7 @@ main(int  argc,
               break;
             default:
               vrna_log_error("Unknown structure representation");
-              exit(0);
+              exit(EXIT_FAILURE);
           }
           if (islower(ttype[tt]))
             T[tree_types++][n] = make_tree(xstruc);
@@ -289,6 +296,7 @@ main(int  argc,
           break;
         default:
           vrna_log_error("Unknown distance type");
+          exit(EXIT_FAILURE);
       }
     }
     n++;

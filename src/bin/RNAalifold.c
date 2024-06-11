@@ -619,8 +619,10 @@ main(int  argc,
    # begin initializing
    #############################################
    */
-  if (opt.md.circ && opt.md.gquad)
+  if (opt.md.circ && opt.md.gquad) {
     vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
+    exit(EXIT_FAILURE);
+  }
 
   if (opt.md.circ && opt.md.noLP)
     vrna_log_warning("Depending on the origin of the circular sequence, "
@@ -667,10 +669,12 @@ main(int  argc,
       if (!skip) {
         FILE *input_stream = fopen((const char *)input_files[i], "r");
 
-        if (!input_stream)
+        if (!input_stream) {
           vrna_log_error("Unable to open %d. input file \"%s\" for reading",
                              i + 1,
                              input_files[i]);
+          exit(EXIT_FAILURE);
+        }
 
         if (opt.verbose) {
           vrna_log_info( "Processing %d. input file \"%s\"",
@@ -725,6 +729,7 @@ main(int  argc,
         vrna_log_error(msg, "Unknown");
         break;
     }
+    exit(EXIT_FAILURE);
   }
 
   free(opt.shape_files);
@@ -777,6 +782,8 @@ process_input(FILE            *input_stream,
           vrna_log_error(msg, "Unknown");
           break;
       }
+
+      exit(EXIT_FAILURE);
     }
 
     input_format = format_guess;
@@ -816,7 +823,7 @@ process_input(FILE            *input_stream,
 
         default:
           vrna_log_error("Which input format are you using?");
-          break;
+          exit(EXIT_FAILURE);
       }
     }
 
@@ -1209,12 +1216,14 @@ apply_constraints(vrna_fold_compound_t  *fc,
     unsigned int  length  = fc->length;
     unsigned int  cl      = strlen(cstruc);
 
-    if (cl == 0)
+    if (cl == 0) {
       vrna_log_warning("structure constraint is missing");
-    else if (cl < length)
+    } else if (cl < length) {
       vrna_log_warning("structure constraint is shorter than sequence");
-    else if (cl > length)
+    } else if (cl > length) {
       vrna_log_error("structure constraint is too long");
+      exit(EXIT_FAILURE);
+    }
 
     /** [Adding hard constraints from pseudo dot-bracket] */
     constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;

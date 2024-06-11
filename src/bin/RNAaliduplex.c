@@ -136,8 +136,10 @@ main(int  argc,
     n_seq2  = read_clustal(file2, AS2, names2);
     fclose(file1);
     fclose(file2);
-    if (n_seq != n_seq2)
+    if (n_seq != n_seq2) {
       vrna_log_error("unequal number of seqs in alignments");
+      exit(EXIT_FAILURE);
+    }
   }
 
   ggo_geometry_settings(args_info, NULL);

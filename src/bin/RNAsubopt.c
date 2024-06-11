@@ -271,8 +271,10 @@ main(int  argc,
 
   if (infile) {
     input = fopen((const char *)infile, "r");
-    if (!input)
+    if (!input) {
       vrna_log_error("Could not read input file");
+      goto exit_fail;
+    }
   } else {
     input = stdin;
   }
@@ -343,12 +345,15 @@ main(int  argc,
       free(v_file_name);
       v_file_name = tmp_string;
 
-      if (infile && !strcmp(infile, v_file_name))
+      if (infile && !strcmp(infile, v_file_name)) {
         vrna_log_error("Input and output file names are identical");
-
+        goto exit_fail;
+      }
       output = fopen((const char *)v_file_name, "a");
-      if (!output)
+      if (!output) {
         vrna_log_error("Failed to open file for writing");
+        goto exit_fail;
+      }
     } else {
       output = stdout;
     }
@@ -395,18 +400,20 @@ main(int  argc,
           constraint = vrna_string_make(NULL);
 
           for (char **ptr = constraints; *ptr != NULL; ptr++, strand_cnt) {
-            if (strand_cnt > vc->strands)
+            if (strand_cnt > vc->strands) {
               vrna_log_error("Structure constraint contains too many strands (expected %u, got at least %u)\n",
                                  vc->strands,
                                  strand_cnt);
-
+              goto exit_fail;
+            }
             unsigned int l = strlen(*ptr);
-            if (vc->strand_end[strand_cnt] != i + l)
+            if (vc->strand_end[strand_cnt] != i + l) {
               vrna_log_error("Length of structure constraint for strand %u differs from sequence (expected %u, got %u)\n",
                                  strand_cnt,
                                  vc->strand_end[strand_cnt] - i,
                                  l);
-
+              goto exit_fail;
+            }
             vrna_string_append_cstring(constraint, *ptr);
           }
 
@@ -478,10 +485,11 @@ main(int  argc,
                               VRNA_PBACKTRACK_NON_REDUNDANT :
                               VRNA_PBACKTRACK_DEFAULT;
 
-      if (vc->strands > 1)
+      if (vc->strands > 1) {
         vrna_log_error(
           "Boltzmann sampling for multiple interacting sequences not implemented (yet)!");
-
+        goto exit_fail;
+      }
       print_fasta_header(output, rec_id);
 
       fprintf(output, "%s\n", orig_sequence);
@@ -540,9 +548,10 @@ main(int  argc,
     else {
       vrna_subopt_solution_t  *zr;
 
-      if (vc->strands > 1)
+      if (vc->strands > 1) {
         vrna_log_error("Sorry, zuker subopts not yet implemented for cofold");
-
+        goto exit_fail;
+      }
       int                     i;
       print_fasta_header(output, rec_id);
 
@@ -628,6 +637,9 @@ main(int  argc,
     fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
+
+  exit_fail:
+    return EXIT_FAILURE;
 }
 
 

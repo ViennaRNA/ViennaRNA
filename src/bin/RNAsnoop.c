@@ -738,6 +738,7 @@ main(int  argc,
         free(temp2[i]);
       }
       vrna_log_error("unequal number of seqs in alignments");
+      goto exit_fail;
     }
 
     for (i = 0; temp1[i]; i++) {
@@ -822,6 +823,9 @@ main(int  argc,
     fclose(vrna_log_fp());
 
   return EXIT_SUCCESS;
+
+  exit_fail:
+    return EXIT_FAILURE;
 }
 
 
@@ -1418,6 +1422,7 @@ redraw_output(char  *fname,
         free(temp2[i]);
       }
       vrna_log_error("unequal number of seqs in alignments");
+      exit(EXIT_FAILURE);
     }
 
     for (i = 0; temp1[i]; i++) {
