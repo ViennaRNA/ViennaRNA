@@ -352,6 +352,28 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
     }
     return probabilities;
   }
+
+  std::vector<vrna_ep_t>
+  stack_prob(double cutoff = 1e-5)
+  {
+    std::vector<vrna_ep_t > ep_v;
+    vrna_ep_t               *ptr, *plist;
+
+    plist = vrna_stack_prob($self, cutoff);
+
+    for (ptr = plist; ptr->i && ptr->j; ptr++) {
+      vrna_ep_t pl;
+      pl.i = ptr->i;
+      pl.j = ptr->j;
+      pl.p = ptr->p;
+      pl.type = ptr->type;
+      ep_v.push_back(pl);
+    }
+
+    free(plist);
+
+    return ep_v;
+  }
 }
 
 %{

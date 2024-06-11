@@ -102,6 +102,7 @@ vrna_sequence_add,sequence_add,vrna_fold_compound_t,fc
 vrna_sequence_prepare,sequence_prepare,vrna_fold_compound_t,fc
 vrna_sequence_remove_all,sequence_remove_all,vrna_fold_compound_t,fc
 vrna_sequence_remove,sequence_remove,vrna_fold_compound_t,fc
+vrna_stack_prob,stack_prob,vrna_fold_compound_t,fc
 vrna_subopt_cb,subopt_cb,vrna_fold_compound_t,fc
 vrna_subopt,subopt,vrna_fold_compound_t,fc
 vrna_subopt_zuker,subopt_zuker,vrna_fold_compound_t,fc

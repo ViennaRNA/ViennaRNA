@@ -61,6 +61,14 @@ This function is attached as method @p pr_energy() to objects of type @p fold_co
 @rstinline:py:meth:`RNA.fold_compound.pr_energy()` in the :doc:`/api_python`@endrst.
 @endparblock
 
+@fn vrna_ep_t *vrna_stack_prob(vrna_fold_compound_t *fc, double cutoff)
+@scripting
+@parblock
+This function is attached as overloaded method @p stack_prob() to objects of type @p fold_compound.
+The optional argument @p cutoff defaults to 1e-5. See, e.g.
+@rstinline:py:meth:`RNA.fold_compound.stack_prob()` in the :doc:`/api_python`@endrst.
+@endparblock
+
 @fn char *vrna_MEA(vrna_fold_compound_t *fc, double gamma, float *mea)
 @scripting
 @parblock
