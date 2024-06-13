@@ -506,11 +506,12 @@ postprocess_circular(vrna_fold_compound_t *fc,
   int           Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, *fM_d3, *fM_d5, Md3i,
                 Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, *fM2, i, j, ij, u,
                 length, new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp,
-                dangle_model, turn, s, n_seq;
+                dangle_model, turn, s, n_seq, with_gquad, FgH, FgI, FgM;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc, **scs;
+  vrna_smx_csr(int) *c_gq;
 
   length            = fc->length;
   n_seq             = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -527,13 +528,15 @@ postprocess_circular(vrna_fold_compound_t *fc,
   sc                = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sc : NULL;
   scs               = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->scs;
   dangle_model      = md->dangles;
+  with_gquad        = md->gquad;
   turn              = md->min_loop_size;
   hard_constraints  = hc->mx;
   my_c              = fc->matrices->c;
   my_fML            = fc->matrices->fML;
   fM2               = fc->matrices->fM2;
+  c_gq              = fc->matrices->c_gq;
 
-  Fc  = FcO = FcH = FcI = FcM = FcMd3 = FcMd5 = INF;
+  Fc  = FcO = FcH = FcI = FcM = FcMd3 = FcMd5 = FgH = FgI = FgM = INF;
   Mi  = Md5i = Md3i = Iq = Ip = Ij = Ii = Hj = Hi = 0;
 
   /* unfolded state */
@@ -559,9 +562,12 @@ postprocess_circular(vrna_fold_compound_t *fc,
       case VRNA_FC_TYPE_COMPARATIVE:
         if (scs) {
           for (s = 0; s < fc->n_seq; s++)
-            if (scs[s])
+            if (scs[s]) {
               if (scs[s]->energy_up)
                 Fc += scs[s]->energy_up[1][a2s[s][length]];
+              if (scs[s]->f)
+                Fc += scs[s]->f(1, length, 1, length, VRNA_DECOMP_EXT_UP, scs[s]->data);
+            }
         }
 
         break;
@@ -569,6 +575,104 @@ postprocess_circular(vrna_fold_compound_t *fc,
     FcO = Fc;
   } else {
     Fc = INF;
+  }
+
+  if (with_gquad) {
+    /* consider all configurations where a G-quadruplex spans over the artificial cutpoint */
+    unsigned int n2 = MIN2(length, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
+    unsigned int n3 = length + n2;
+    unsigned int start = 1;
+    if (length > VRNA_GQUAD_MAX_BOX_SIZE)
+      start = length - VRNA_GQUAD_MAX_BOX_SIZE;
+
+    /* loop over each possible start of a cutpoint-spanning gquad */
+    for (i = start; i <= length; i++) {
+      unsigned int start_j = 1;
+      unsigned int stop_j = length - 1;
+      if ((length - i + 1) < VRNA_GQUAD_MIN_BOX_SIZE)
+        start_j = VRNA_GQUAD_MIN_BOX_SIZE + i - length - 1;
+      if (length > VRNA_GQUAD_MAX_BOX_SIZE)
+        stop_j = VRNA_GQUAD_MAX_BOX_SIZE + i - length - 1;
+      if (stop_j >= i)
+        stop_j = i - 1;
+      vrna_log_debug("i=%d, start=%d, stop=%d, length=%d", i, start_j, stop_j, length);
+
+      for (j = start_j; j <= stop_j; j++) {
+        new_c = vrna_smx_csr_get(c_gq, i, j, INF);
+        vrna_log_debug("i=%d, j=%d, length=%d", i, j, length);
+        if (new_c != INF) {
+          vrna_log_debug("g=%d", new_c);
+          /* case 1: gquad is the only structure, rest is unpaired */
+          if (i - j > 3) { /* keep at least 3 unpaired bases between start and end of gquad */
+            unsigned int u;
+            u = i - j - 1;
+            /* 1st, obey hard constraints */
+            if (hc->up_ext[j + 1] >= u)
+              eval = 1;
+            if (hc->f)
+              eval = (hc->f(j + 1, length, i, length, VRNA_DECOMP_EXT_EXT, hc->data)) ? eval : 0;
+            if (eval) {
+              int e = new_c;
+              switch (fc->type) {
+                case VRNA_FC_TYPE_SINGLE:
+                  if (sc) {
+                    if (sc->energy_up)
+                      e += sc->energy_up[j + 1][u];
+                    if (sc->f)
+                      e += sc->f(j + 1, length, i, length, VRNA_DECOMP_EXT_EXT, sc->data);
+                  }
+                  break;
+                case VRNA_FC_TYPE_COMPARATIVE:
+                  if (scs) {
+                    for (s = 0; s < n_seq; s++) {
+                      if (scs[s]) {
+                        if (scs[s]->energy_up) {
+                          s = a2s[s][j] + 1;
+                          us = as3[s][i] - s;
+                          if (us > 0)
+                            e += scs[s]->energy_up[s][us];
+                        }
+
+                        if (scs[s]->f)
+                          e += scs[s]->f(j + 1, length, i, length, VRNA_DECOMP_EXT_EXT, scs[s]->data);
+                      }
+                    }
+                  }
+                  break;
+              }
+
+              if (e < FgH) {
+                FgH = e;
+              }
+            }
+          } /* end case 1 */
+
+          /* case 2: gquad forms an internal-loop like structure with another base pair or gquadruplex */
+          for (u1 = 0, p = j + 1; p + VRNA_GQUAD_MIN_BOX_SIZE - 1 < i; p++, u1++) {
+            if (u1 > MAXLOOP)
+              break;
+            for (u2 = 0, q = i - 1; q >= p + VRNA_GQUAD_MIN_BOX_SIZE - 1; q--, u2++) {
+              if (u1 + u2 > MAXLOOP)
+                break;
+              e = vrna_smx_csr_get(c_gq, p, q, INF);
+              if (e != INF) {
+                switch (fc->type) {
+                  case VRNA_FC_TYPE_SINGLE:
+                    e += P->internal_loop[u1 + u2];
+                    break;
+                  case VRNA_FC_TYPE_COMPARATIVE:
+                    for (s = 0; s < n_seq; s++) {
+                      s1 = a2s[s][j] + 1;
+                      u1 = a2s[s][p] - s1;
+                      s2 = a2s[s][q] + 1;
+                      u2 = a2s[s][i] - s2;
+                    }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   for (i = 1; i < length; i++)

@@ -586,12 +586,13 @@ vrna_gq_pos_mfe(vrna_fold_compound_t *fc)
                                 NULL,
                                 NULL);
       if ((e < INF) && (j - i + 1 <= n - n2)) {
-        vrna_log_debug("gquad[%d,%d] = %d l=%d, n= %d",
+        vrna_log_debug("gquad[%d,%d] = %d l=%d, n= %d, e=%d",
                        i,
                        (j - 1) % (n - n2) + 1,
                        e,
                        j - i + 1,
-                       n - n2);
+                       n - n2,
+                       e);
 #ifndef VRNA_DISABLE_C11_FEATURES
         vrna_smx_csr_insert(gq_mfe_pos, i, (j - 1) % (n - n2) + 1, e);
 #else
