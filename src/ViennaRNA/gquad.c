@@ -538,7 +538,7 @@ vrna_gq_pos_mfe(vrna_fold_compound_t *fc)
     n2          = 0;
     P           = fc->params;
     S_tmp       = NULL;
-    gq_mfe_pos  = vrna_smx_csr_int_init(n);
+    gq_mfe_pos  = vrna_smx_csr_int_init(n + 1);
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
