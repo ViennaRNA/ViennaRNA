@@ -136,6 +136,9 @@ main(int  argc,
 
   ggo_geometry_settings(args_info, &md);
 
+  ggo_get_md_part(args_info, md);
+
+
   /* free allocated memory of command line data structure */
   PKplex_cmdline_parser_free(&args_info);
 

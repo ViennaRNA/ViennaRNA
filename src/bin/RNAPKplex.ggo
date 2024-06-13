@@ -97,6 +97,26 @@ default="0.0"
 optional
 
 
+option  "betaScale" -
+"Set the scaling of the Boltzmann factors.\n"
+details="The argument provided with this option is used to scale the thermodynamic temperature\
+ in the Boltzmann factors independently from the temperature of the individual loop energy contributions.\
+ The Boltzmann factors then become 'exp(- dG/(kT*betaScale))' where 'k' is the Boltzmann constant, 'dG'\
+ the free energy contribution of the state and 'T' the absolute temperature.\n\n"
+double
+default="1."
+optional
+hidden
+
+option  "pfScale" S
+"In the calculation of the pf use scale*mfe as an estimate for the ensemble free energy (used to avoid\
+ overflows).\n"
+details="The default is 1.07, useful values are 1.0 to 1.2. Occasionally needed for long sequences.\n\n"
+double
+default="1.07"
+optional
+hidden
+
 section "Energy Parameters"
 sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
 
