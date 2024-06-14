@@ -504,12 +504,13 @@ postprocess_circular(vrna_fold_compound_t *fc,
   unsigned char *hard_constraints, eval;
   char          *ptype;
   short         *S1, **SS, **S5, **S3;
-  unsigned int  **a2s, u1, u2, us, us1, us2, s1, s2, p, q;
+  unsigned int  **a2s, u1, u2, us, us1, us2, s1, s2, p, q,
+                Egi, Egj, Hgi, Hgj, Igi, Igj, Igp, Igq, Mgi, Mgj;
   int           Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, *fM_d3, *fM_d5, Md3i,
                 Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, *fM2, i, j, ij, u,
                 length, new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp,
-                dangle_model, turn, s, n_seq, with_gquad, FgH, FgI, FgM,
-                e, *fM2_real;
+                dangle_model, turn, s, n_seq, with_gquad, FgE, FgH, FgI,
+                FgM, e, *fM2_real;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
@@ -537,6 +538,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
   my_c              = fc->matrices->c;
   my_fML            = fc->matrices->fML;
   fM2               = fc->matrices->fM2;
+  fM2_real          = NULL;
   c_gq              = fc->matrices->c_gq;
 
   struct hc_mb_def_dat      hc_mb_dat_local;
@@ -546,8 +548,12 @@ postprocess_circular(vrna_fold_compound_t *fc,
   evaluate_mb = prepare_hc_mb_def(fc, &hc_mb_dat_local);
   init_sc_mb(fc, &sc_mb_wrapper);
 
-  Fc  = FcO = FcH = FcI = FcM = FcMd3 = FcMd5 = FgH = FgI = FgM = INF;
+  Fc  = FcO = FcH = FcI = FcM = FcMd3 = FcMd5 = INF;
   Mi  = Md5i = Md3i = Iq = Ip = Ij = Ii = Hj = Hi = 0;
+
+  /* explicit gquadruplex cases */
+  FgE = FgH = FgI = FgM = INF;
+  Egi = Egj = Hgi = Hgj = Igi = Igj = Igp = Igq = Mgi = Mgj = 0;
 
   /* unfolded state */
   eval = (hc->up_ext[1] >= length) ? 1 : 0;
@@ -684,6 +690,8 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
               if (e < FgH) {
                 FgH = e;
+                Hgi = i;
+                Hgj = j;
               }
             }
           } /* end case 1 */
@@ -763,6 +771,10 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
                 if (new_c + e < FgI) {
                   FgI = new_c + e;
+                  Igi = i;
+                  Igj = j;
+                  Igp = p;
+                  Igq = q;
                 }
               }
             }
@@ -843,6 +855,12 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
                 if (new_c + e < FgI) {
                   FgI = new_c + e;
+                  Igi = i;
+                  Igj = j;
+                  Igp = 0;
+                  Igq = 0;
+                  Ip = p;
+                  Iq = q;
                 }
               }
             }
@@ -856,8 +874,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 fM2_real[indx[i - 1] + j + 1] +
                 n_seq *
                 (P->MLclosing + E_MLstem(0, -1, -1, P));
-            if (e < FgM)
+            if (e < FgM) {
               FgM = e;
+              Mgi = i;
+              Mgj = j;
+            }
           }
         }
       }
@@ -931,7 +952,9 @@ postprocess_circular(vrna_fold_compound_t *fc,
             }
 
             if (e < Fc) {
-              Fc = e;
+              FgE = e;
+              Egi = i;
+              Egj = j;
             }
           }
         }
@@ -1539,6 +1562,8 @@ postprocess_circular(vrna_fold_compound_t *fc,
       free(fmd5_tmp);
     }
 
+    /* Start backtracing in exterior loops and prepare for everything else */
+
     if (FcMd5 < MIN2(Fc, FcMd3)) {
       int real_i, sc_en = 0;
 
@@ -1783,6 +1808,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
   fc->matrices->FcM = FcM;
   fc->matrices->Fc  = Fc;
 
+  free(fM2_real);
   free_sc_mb(&sc_mb_wrapper);
 
   return Fc;
