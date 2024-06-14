@@ -853,7 +853,7 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
   evaluate = prepare_hc_int_def(fc, &hc_dat_local);
 
   /* CONSTRAINED INTERIOR LOOP start */
-  if (hc[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
+  if (hc[n * i + j] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) {
     /* prepare necessary variables */
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
       tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
@@ -884,7 +884,7 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
 
         int pq = indx[q] + p;
 
-        eval_loop = hc[n * p + q] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
+        eval_loop = hc[n * p + q] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
         if (eval_loop && evaluate(i, j, p, q, &hc_dat_local)) {
           energy = c[pq];

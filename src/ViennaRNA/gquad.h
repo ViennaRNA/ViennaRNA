@@ -1,8 +1,11 @@
 #ifndef VIENNA_RNA_PACKAGE_GQUAD_H
 #define VIENNA_RNA_PACKAGE_GQUAD_H
 
+#include <string.h>
+
 #include <ViennaRNA/datastructures/basic.h>
 #include "ViennaRNA/datastructures/sparse_mx.h"
+#include <ViennaRNA/utils/log.h>
 #include <ViennaRNA/alphabet.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
@@ -222,54 +225,98 @@ vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
    * here we do some fancy stuff to backtrace the stacksize and linker lengths
    * of the g-quadruplex that should reside within position i,j
    */
-  short         *S;
+  short         *S, *S_enc, *S_tmp;
+  unsigned int  n, n2;
   int           l[3], L, a, n_seq;
   vrna_param_t  *P;
 
   if (fc) {
+    n = fc->length;
     P = fc->params;
+    L = -1;
+    S_tmp = NULL;
+
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        S = fc->sequence_encoding2;
-        L = -1;
-
-        get_gquad_pattern_mfe(S, i, j, P, &L, l);
+        S_enc     = fc->sequence_encoding2;
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        n_seq = fc->n_seq;
-        L     = -1;
-        get_gquad_pattern_mfe_ali(fc->S, fc->a2s, fc->S_cons, n_seq, i, j, P, &L, l);
+        S_enc         = fc->S_cons;
+        break;
+    }
+
+    if (P->model_details.circ) {
+      n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
+
+      S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
+      memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
+      memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);
+      S_tmp[0] = n + n2;
+      S_enc = S_tmp;
+      if (j < i)
+        j += n;
+    }
+    vrna_log_debug("try bt gquad [%d,%d]", i, j);
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        get_gquad_pattern_mfe(S_enc, i, j, P, &L, l);
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        get_gquad_pattern_mfe_ali(fc->S, fc->a2s, fc->S_cons, fc->n_seq, i, j, P, &L, l);
         break;
     }
 
     if (L != -1) {
       /* fill the G's of the quadruplex into base_pair2 */
       for (a = 0; a < L; a++) {
+        int p1, p2, p3, p4;
+        p1 = i + a;
+        p2 = p1 + L + l[0];
+        p3 = p2 + L + l[1];
+        p4 = p3 + L + l[2];
+        if (p1 > n) {
+          p1 = ((p1 - 1) % n) + 1;
+          p2 = ((p2 - 1) % n) + 1;
+          p3 = ((p3 - 1) % n) + 1;
+          p4 = ((p4 - 1) % n) + 1;
+        } else if (p2 > n) {
+          p2 = ((p2 - 1) % n) + 1;
+          p3 = ((p3 - 1) % n) + 1;
+          p4 = ((p4 - 1) % n) + 1;
+        } else if (p3 > n) {
+          p3 = ((p3 - 1) % n) + 1;
+          p4 = ((p4 - 1) % n) + 1;
+        } else if (p4 > n) {
+          p4 = ((p4 - 1) % n) + 1;
+        }
+
         vrna_bps_push(bp_stack,
                       (vrna_bp_t){
-                        .i = i + a,
-                        .j = i + a
+                        .i = p1,
+                        .j = p1
                       });
         vrna_bps_push(bp_stack,
                       (vrna_bp_t){
-                        .i  = i + L + l[0] + a,
-                        .j    = i + L + l[0] + a
+                        .i = p2,
+                        .j = p2
                       });
         vrna_bps_push(bp_stack,
                       (vrna_bp_t){
-                        .i  = i + L + l[0] + L + l[1] + a,
-                        .j    = i + L + l[0] + L + l[1] + a
+                        .i = p3,
+                        .j = p3
                       });
         vrna_bps_push(bp_stack,
                       (vrna_bp_t){
-                        .i  = i + L + l[0] + L + l[1] + L + l[2] + a,
-                        .j    = i + L + l[0] + L + l[1] + L + l[2] + a
+                        .i = p4,
+                        .j = p4
                       });
       }
-
+      free(S_tmp);
       return 1;
     } else {
+      free(S_tmp);
       return 0;
     }
   }
