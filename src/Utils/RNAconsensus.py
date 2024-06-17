@@ -1,4 +1,5 @@
 #!/usr/bin/env  python3
+        paired = bpp>=0.99
 #
 # 2024, Ronny Lorenz <ronny@tbi.univie.ac.at>
 #
@@ -356,11 +357,121 @@ def hard_constraints(args):
     return 1  # Failure
 
 
+#############################
+#                           #
+#      Soft Consensus       #
+#                           #
+#############################
+
+class SoftConsensus:
+    """Create consensus object from given msa that can provide phylogenetic information in soft constraint
+    """
+    # def __init__(self, alignment, md=RNA.md()):
+    def __init__(self, alignment, ps_bound=-3):
+        try:
+            import RNA
+            import numpy as np
+        except:
+            raise Exception("Soft consensus requires viennaRNA and numpy")
+        # self.md = md
+        self._alignment = [seq for seq in alignment]
+        self._consensus = ""
+        self._fc = None
+        self._ps_bound = ps_bound
+        self._ps_energy_bps = []      # 1-indexed
+        self._dominant_bps = []   # 1-indexed
+
+        self._fold()
+
+
+    def _fold(self):
+        """Get consensus structure and bpp
+        """
+        # fc = RNA.fold_compound(self.alignment, self.md)
+        fc = RNA.fold_compound(self.alignment)
+        ss, mfe = fc.mfe()
+        fc.exp_params_rescale(mfe)
+        # _, self.fee = fc.pf()
+        fc.pf()
+
+        self._consensus = ss
+        self._fc = fc
+
+        self._ps_energy_bps = self._pseudo_energy()
+
+        self._dominant_bps = [(ai, aj) for ai, aj in zip(*np.where(self.ps_energy_bps<0))]
+
+
+    def _pseudo_energy(self):
+        """Compute basepair pseudo energy matrix from phylogenetic informations
+        """
+        RT = RNA.GASCONST*(self.md.temperature + RNA.K0)/1000
+        bpp = np.array(self.fc.bpp())
+        np.set_printoptions(threshold=np.inf)
+
+        # Set unpaired and highly paired bps to NaN
+        # paired = bpp>=0.99
+        paired = bpp==1
+        unpaired = bpp==0
+        bpp[paired] = np.NaN
+        bpp[unpaired] = np.NaN
+
+        # Pseudo-energy
+        # ensure all ps satisfy ps_bound (default=-3) <= ps <= 0
+        ps = np.maximum(self._ps_bound, np.minimum(0, -RT*np.log(bpp/(1-bpp))))
+
+        ps[unpaired] = 0
+        # Set a cap for high paired bp
+        ps[paired] = self._ps_bound
+        # ps[paired] = -RT * 2
+
+        return ps
+
+
+    def _get_energy_of_aligned_seq(self, aligned):
+        """Return pseudo energy matrix for aligned sequence
+        """
+
+        ungap = np.array(['X']+list(aligned)) != '-'
+        l = np.sum(ungap)
+        ungap_bps = np.outer(ungap, ungap)
+        res = self._ps_energy_bps.copy()
+        return res[ungap_bps].reshape((l,l))
+
+
+    def fc_of_aligned_seq(self, aligned):
+        """Create fold compound for given aligned sequence with soft constraint
+
+        Args:
+            aligned: aligned sequence of interest or its index in the alignment
+        """
+        if isinstance(aligned, int):
+            aligned_seq = self._alignment[aligned]
+        else:
+            aligned_seq = ''.join(aligned)
+        seq = aligned_seq.replace('-', '')
+        # fc = RNA.fold_compound(seq, self.md)
+        fc = RNA.fold_compound(seq)
+        to_add = self._get_energy_of_aligned_seq(aligned_seq)
+        fc.sc_add_bp(to_add.tolist())
+        return fc
+
 def soft_constraints(args):
     """
     RNAsoftcons implementations
     """
-    print("Not implemented yet!")
+    aln = _read_alignment(args)
+    if aln != None:
+        bound = args.bound
+        if bound > 0:
+            # TODO: add warning
+            bound = -bound
+        soft = SoftConsensus(map(lambda t: t[1], aln), bound)
+        for name, seq in alignment:
+            fc = soft.fc_of_aligned_seq(seq)
+            ss, mfe = fc.mfe()
+            args.output_stream.write(f">{name}\n{seq}\n{ss} ({mfe:6.2f})\n")
+        return 0
 
     return 1  # Failure
 
@@ -531,6 +642,11 @@ def main():
                                          """,
                                          help='RNAsoftcons mode',
                                          parents=[core])
+    soft_parser.add_argument("-b",
+                         "--bound",
+                         type = float,
+                         help = "The pseudo_energy bound for each base pair. Positive value will be automatically converted to negative",
+                         default = -3)
 
     soft_parser.set_defaults(func = soft_constraints)
 
