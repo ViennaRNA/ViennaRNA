@@ -637,6 +637,7 @@ class Doxy2SWIG:
         self.add_text('* * * * *  \n')
     
     def do_includes(self, node):
+        return # omit #include <> tags
         self.add_text('\nC++ includes: ')
         self.subnode_parse(node)
         self.add_text('\n')
