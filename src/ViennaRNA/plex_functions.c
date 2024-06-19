@@ -218,6 +218,8 @@ vrna_pk_plex(vrna_fold_compound_t *fc,
       vrna_fold_compound_t *fca = vrna_fold_compound(fc->sequence,
                                                      &(fc->params->model_details),
                                                      VRNA_OPTION_DEFAULT | VRNA_OPTION_WINDOW);
+
+      vrna_exp_params_rescale(fca, &mfe);
       opening_energies = vrna_pk_plex_accessibility(fca,
                                                     options->max_interaction_length,
                                                     DEFAULT_CUTOFF);

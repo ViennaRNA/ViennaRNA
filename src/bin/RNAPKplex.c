@@ -205,12 +205,17 @@ main(int  argc,
     if (length >= 5) {
       vrna_pk_plex_t *hits, *hit_ptr;
 
+      vrna_fold_compound_t  *fc;
+      fc = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT);
+      double mfe = vrna_mfe(fc, NULL);
+
       /*
        ########################################################
        # do Plex computations
        ########################################################
        */
       vrna_fold_compound_t  *fca = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT | VRNA_OPTION_WINDOW);
+      vrna_exp_params_rescale(fca, &mfe);
       int                   **access = vrna_pk_plex_accessibility(fca, unpaired, cutoff);
 
       vrna_fold_compound_free(fca);
@@ -218,10 +223,7 @@ main(int  argc,
       if (verbose)
         printf("EnergyCutoff = %f\n", pk_penalty);
 
-      vrna_fold_compound_t  *fc;
       vrna_pk_plex_opt_t    pk_plex_options;
-
-      fc = vrna_fold_compound(s1, &md, VRNA_OPTION_DEFAULT);
 
 
       pk_plex_options = vrna_pk_plex_opt((unsigned int)vrna_convert_kcal_to_dcal(subopts),
