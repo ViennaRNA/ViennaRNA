@@ -53,12 +53,22 @@ typedef struct {
 %mutable;
 
 #ifdef SWIGPYTHON
-%feature("autodoc")vrna_fold_compound_t::vrna_fold_compound_t;
-%feature("kwargs")vrna_fold_compound_t::vrna_fold_compound_t;
+%feature("docstring") vrna_fold_compound_t::vrna_fold_compound_t "";
+%feature("autodoc") vrna_fold_compound_t::vrna_fold_compound_t;
+%feature("kwargs") vrna_fold_compound_t::vrna_fold_compound_t;
 #endif
 
 /* create object oriented interface for vrna_fold_compount_t */
 %extend vrna_fold_compound_t {
+#ifdef SWIGPYTHON
+//%typemap("doc") const char *sequence "$1_name: string\n     The nucleotide sequence in upper-case characters"
+//%typemap("doc") std::vector<std::string>  alignment "$1_name: list(string)\n     The multiple sequence alignment (MSA) in upper-case characters"
+//%typemap("doc") vrna_md_t *md "$1_name: object\n     The model details data structure"
+//%typemap("doc") unsigned int options "$1_name: int\n     The options"
+//%typemap("doc") char *s1 "$1_name: string\n     The first reference structure in dot-bracket notation"
+//%typemap("doc") char *s2 "$1_name: string\n     The second reference structure in dot-bracket notation"
+#endif
+
   var_array<unsigned int> *const strand_number;
   var_array<unsigned int> *const strand_order;
   var_array<unsigned int> *const strand_start;

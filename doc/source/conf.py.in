@@ -97,11 +97,11 @@ napoleon_type_aliases = {
     "std::vector<FLT_OR_DBL>" : "list-like(double)",
 }
 
-
-autoclass_content = 'init'
+autoclass_content = "both"
+autodoc_class_signature = "mixed"
 autodoc_default_options = {
     'members': True,
-    'member-order': 'bysource',
+    'member-order': 'alphabetical',
 #    'special-members': '__init__',
     'undoc-members': True,
     'exclude-members': '__weakref__',
@@ -109,7 +109,6 @@ autodoc_default_options = {
     'show-inheritance': True,
     'class-doc-from': 'init',
 }
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

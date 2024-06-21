@@ -127,8 +127,8 @@ typedef struct {
 
 #ifdef SWIGPYTHON
 %feature("docstring", SWG_MD_ACCESS_DS) vrna_md_t::vrna_md_t;
-%feature("autodoc", "3")vrna_md_t::vrna_md_t;
-%feature("kwargs")vrna_md_t::vrna_md_t;
+%feature("autodoc", "3") vrna_md_t::vrna_md_t;
+%feature("kwargs") vrna_md_t::vrna_md_t;
 #endif
 
 /* make a nice object oriented interface to vrna_md_t */
