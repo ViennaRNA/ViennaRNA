@@ -21,6 +21,8 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/external.h"
 
+#include "ViennaRNA/grammar.inc"
+
 #ifdef __GNUC__
 # define INLINE inline
 #else

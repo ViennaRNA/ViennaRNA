@@ -25,6 +25,11 @@
 #define VRNA_MX_FLAG_C      2U
 #define VRNA_MX_FLAG_G      6U
 
+/* The following define should indicate the maximum matrix flag we use internally
+   User-provided auxiliary grammar rules will then be assigned numbers above this
+   threshold
+*/
+#define VRNA_MX_FLAG_MAX    31U
 
 /** @brief Typename for the Minimum Free Energy (MFE) DP matrices data structure #vrna_mx_mfe_s */
 typedef struct  vrna_mx_mfe_s vrna_mx_mfe_t;

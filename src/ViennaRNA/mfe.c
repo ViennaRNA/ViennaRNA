@@ -38,6 +38,8 @@
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/mfe.h"
 
+#include "ViennaRNA/grammar.inc"
+
 #ifdef __GNUC__
 # define INLINE inline
 #else
@@ -3161,6 +3163,7 @@ backtrack(vrna_fold_compound_t  *fc,
   char          backtrack_type;
   int           i, j, ij, k, l, length, b, *my_c, *indx, noLP, *pscore, ret;
   vrna_param_t  *P;
+  vrna_gr_aux_t aux_grammar;
 
   ret             = 1;
   b               = bp_stack[0].i;
@@ -3171,6 +3174,8 @@ backtrack(vrna_fold_compound_t  *fc,
   noLP            = P->model_details.noLP;
   pscore          = fc->pscore;         /* covariance scores for comparative structure prediction */
   backtrack_type  = P->model_details.backtrack_type;
+  aux_grammar     = fc->aux_grammar;
+
 
   if (s == 0) {
     bt_stack[++s].i = 1;
@@ -3323,6 +3328,18 @@ backtrack(vrna_fold_compound_t  *fc,
       break;
 
       default:
+        /* catch auxiliary grammar backtracking here */
+        if ((aux_grammar) &&
+            (aux_grammar->cb_bt_aux)) {
+          if (aux_grammar->cb_bt_aux(fc, i, j, bp_stack, &b, bt_stack, &s, aux_grammar->data)) {
+            continue;
+          } else {
+            vrna_log_warning("backtracking failed in auxiliary grammar backtrack, segment [%d, %d]\n",
+                             i,
+                             j);
+          }
+        }
+
         ret = 0;
         goto backtrack_exit;
     }

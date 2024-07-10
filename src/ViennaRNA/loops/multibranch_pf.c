@@ -19,6 +19,8 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/multibranch.h"
 
+#include "ViennaRNA/grammar.inc"
+
 #ifdef __GNUC__
 # define INLINE inline
 #else

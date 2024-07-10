@@ -21,6 +21,8 @@
 #include "ViennaRNA/loops/external.h"
 #include "ViennaRNA/utils/higher_order_functions.h"
 
+#include "ViennaRNA/grammar.inc"
+
 #ifdef __GNUC__
 # define INLINE inline
 #else
@@ -231,7 +233,7 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
     vrna_hc_eval_f evaluate;
     struct hc_ext_def_dat     hc_dat_local;
     struct sc_f5_dat          sc_wrapper;
-    vrna_gr_aux_t             *grammar;
+    vrna_gr_aux_t             grammar;
 
     length        = (int)fc->length;
     f5            = fc->matrices->f5;

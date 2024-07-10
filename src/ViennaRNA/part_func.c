@@ -29,6 +29,8 @@
 #include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/part_func.h"
 
+#include "ViennaRNA/grammar.inc"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif

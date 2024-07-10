@@ -233,7 +233,7 @@ struct vrna_fc_s {
   vrna_ud_t     *domains_up;                /**<  @brief  Additional unstructured domains */
 
   /* auxiliary (user-defined) extension to the folding grammar */
-  vrna_gr_aux_t *aux_grammar;               /**<  @brief  Additional decomposition grammar rules */
+  vrna_gr_aux_t aux_grammar;               /**<  @brief  Additional decomposition grammar rules */
 
   /**
    *  @}

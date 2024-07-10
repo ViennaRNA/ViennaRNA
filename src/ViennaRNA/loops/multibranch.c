@@ -26,6 +26,8 @@
 #include "ViennaRNA/loops/multibranch.h"
 #include "ViennaRNA/utils/higher_order_functions.h"
 
+#include "ViennaRNA/grammar.inc"
+
 #ifdef __GNUC__
 # define INLINE inline
 #else

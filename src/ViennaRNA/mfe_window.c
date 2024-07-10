@@ -36,6 +36,8 @@
 #include "ViennaRNA/utils/units.h"
 #include "ViennaRNA/mfe_window.h"
 
+#include "ViennaRNA/grammar.inc"
+
 #ifdef VRNA_WITH_SVM
 #include "ViennaRNA/zscore_dat.inc"
 #endif
