@@ -122,6 +122,7 @@ vrna_fold_compound_free(vrna_fold_compound_t *fc)
 
     vrna_hc_free(fc->hc);
     vrna_ud_remove(fc);
+    vrna_gr_reset(fc);
     vrna_sequence_remove_all(fc);
 
     /* now distinguish the fc type */
@@ -554,6 +555,9 @@ vrna_fold_compound_prepare(vrna_fold_compound_t *fc,
 
   /* Add DP matrices, if not they are not present or do not fit current settings */
   vrna_mx_prepare(fc, options);
+
+  /* prepare auxiliary grammar rules data structure, if required */
+  ret &= vrna_gr_prepare(fc, options);
 
   return ret;
 }

@@ -14,8 +14,26 @@ add_aux_grammar(vrna_fold_compound_t *fc);
 
 
 PUBLIC int
+vrna_gr_prepare(vrna_fold_compound_t  *fc,
+                unsigned int          options)
+{
+  int ret = 1;
+
+  if ((fc) &&
+      (fc->aux_grammar) &&
+      (fc->aux_grammar->prepare_data))
+    ret &= fc->aux_grammar->prepare_data(fc,
+                                         fc->aux_grammar->data,
+                                         options,
+                                         NULL);
+
+  return ret;
+}
+
+
+PUBLIC int
 vrna_gr_set_aux_f(vrna_fold_compound_t  *fc,
-                  vrna_grammar_rule_f cb)
+                  vrna_grammar_rule_f   cb)
 {
   int ret = 0;
 
@@ -33,7 +51,7 @@ vrna_gr_set_aux_f(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_gr_set_aux_exp_f(vrna_fold_compound_t      *fc,
+vrna_gr_set_aux_exp_f(vrna_fold_compound_t    *fc,
                       vrna_grammar_rule_f_exp cb)
 {
   int ret = 0;
@@ -53,7 +71,7 @@ vrna_gr_set_aux_exp_f(vrna_fold_compound_t      *fc,
 
 PUBLIC int
 vrna_gr_set_aux_c(vrna_fold_compound_t  *fc,
-                  vrna_grammar_rule_f cb)
+                  vrna_grammar_rule_f   cb)
 {
   int ret = 0;
 
@@ -71,7 +89,7 @@ vrna_gr_set_aux_c(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_gr_set_aux_exp_c(vrna_fold_compound_t      *fc,
+vrna_gr_set_aux_exp_c(vrna_fold_compound_t    *fc,
                       vrna_grammar_rule_f_exp cb)
 {
   int ret = 0;
@@ -91,7 +109,7 @@ vrna_gr_set_aux_exp_c(vrna_fold_compound_t      *fc,
 
 PUBLIC int
 vrna_gr_set_aux_m(vrna_fold_compound_t  *fc,
-                  vrna_grammar_rule_f cb)
+                  vrna_grammar_rule_f   cb)
 {
   int ret = 0;
 
@@ -109,7 +127,7 @@ vrna_gr_set_aux_m(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_gr_set_aux_exp_m(vrna_fold_compound_t      *fc,
+vrna_gr_set_aux_exp_m(vrna_fold_compound_t    *fc,
                       vrna_grammar_rule_f_exp cb)
 {
   int ret = 0;
@@ -128,7 +146,7 @@ vrna_gr_set_aux_exp_m(vrna_fold_compound_t      *fc,
 
 
 PUBLIC int
-vrna_gr_set_aux_m1(vrna_fold_compound_t   *fc,
+vrna_gr_set_aux_m1(vrna_fold_compound_t *fc,
                    vrna_grammar_rule_f  cb)
 {
   int ret = 0;
@@ -147,7 +165,7 @@ vrna_gr_set_aux_m1(vrna_fold_compound_t   *fc,
 
 
 PUBLIC int
-vrna_gr_set_aux_exp_m1(vrna_fold_compound_t       *fc,
+vrna_gr_set_aux_exp_m1(vrna_fold_compound_t     *fc,
                        vrna_grammar_rule_f_exp  cb)
 {
   int ret = 0;
@@ -166,7 +184,7 @@ vrna_gr_set_aux_exp_m1(vrna_fold_compound_t       *fc,
 
 
 PUBLIC int
-vrna_gr_set_aux(vrna_fold_compound_t      *fc,
+vrna_gr_set_aux(vrna_fold_compound_t    *fc,
                 vrna_grammar_rule_f_aux cb)
 {
   int ret = 0;
@@ -185,7 +203,7 @@ vrna_gr_set_aux(vrna_fold_compound_t      *fc,
 
 
 PUBLIC int
-vrna_gr_set_aux_exp(vrna_fold_compound_t          *fc,
+vrna_gr_set_aux_exp(vrna_fold_compound_t        *fc,
                     vrna_grammar_rule_f_aux_exp cb)
 {
   int ret = 0;
@@ -204,9 +222,10 @@ vrna_gr_set_aux_exp(vrna_fold_compound_t          *fc,
 
 
 PUBLIC int
-vrna_gr_set_data(vrna_fold_compound_t       *fc,
-                 void                       *data,
-                 vrna_grammar_data_free_f free_data)
+vrna_gr_set_data(vrna_fold_compound_t   *fc,
+                 void                   *data,
+                 vrna_auxdata_prepare_f prepare_cb,
+                 vrna_auxdata_free_f    free_cb)
 {
   int ret = 0;
 
@@ -214,8 +233,9 @@ vrna_gr_set_data(vrna_fold_compound_t       *fc,
     if (!fc->aux_grammar)
       add_aux_grammar(fc);
 
-    fc->aux_grammar->data       = data;
-    fc->aux_grammar->free_data  = free_data;
+    fc->aux_grammar->data         = data;
+    fc->aux_grammar->free_data    = free_cb;
+    fc->aux_grammar->prepare_data = prepare_cb;
 
     ret = 1;
   }
@@ -225,8 +245,8 @@ vrna_gr_set_data(vrna_fold_compound_t       *fc,
 
 
 PUBLIC int
-vrna_gr_set_cond(vrna_fold_compound_t   *fc,
-                 vrna_grammar_cond_f  cb)
+vrna_gr_set_cond(vrna_fold_compound_t     *fc,
+                 vrna_recursion_status_f  cb)
 {
   int ret = 0;
 
@@ -279,6 +299,7 @@ add_aux_grammar(vrna_fold_compound_t *fc)
   fc->aux_grammar->cb_aux_exp_m   = NULL;
   fc->aux_grammar->cb_aux_exp_m1  = NULL;
 
-  fc->aux_grammar->data       = NULL;
-  fc->aux_grammar->free_data  = NULL;
+  fc->aux_grammar->data         = NULL;
+  fc->aux_grammar->free_data    = NULL;
+  fc->aux_grammar->prepare_data = NULL;
 }
