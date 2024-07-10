@@ -176,9 +176,13 @@ E_ml_rightmost_stem(int                   i,
 
     e = extend_fm_3p(i, j, fc->matrices->fM1, fc, evaluate, &hc_dat_local, &sc_wrapper);
 
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_m1)) {
-      int ee = fc->aux_grammar->cb_aux_m1(fc, i, j, fc->aux_grammar->data);
-      e = MIN2(e, ee);
+    if (fc->aux_grammar) {
+      for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->m1); c++) {
+        if (fc->aux_grammar->m1[c].cb) {
+          int ee = fc->aux_grammar->m1[c].cb(fc, i, j, fc->aux_grammar->m1[c].data);
+          e = MIN2(e, ee);
+        }
+      }
     }
 
     free_sc_mb(&sc_wrapper);
@@ -1545,9 +1549,13 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
     e = MIN2(e, decomp);
   }
 
-  if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_m)) {
-    en  = fc->aux_grammar->cb_aux_m(fc, i, j, fc->aux_grammar->data);
-    e   = MIN2(e, en);
+  if (fc->aux_grammar) {
+    for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->m); c++) {
+      if (fc->aux_grammar->m[c].cb) {
+        en  = fc->aux_grammar->m[c].cb(fc, i, j, fc->aux_grammar->m[c].data);
+        e   = MIN2(e, en);
+      }
+    }
   }
 
   fmi[j] = e;

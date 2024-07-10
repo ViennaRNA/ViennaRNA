@@ -687,8 +687,12 @@ fill_arrays(vrna_fold_compound_t            *vc,
       /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
       fML[i][j - i] = vrna_E_ml_stems_fast(vc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
 
-      if ((vc->aux_grammar) && (vc->aux_grammar->cb_aux))
-        vc->aux_grammar->cb_aux(vc, i, j, vc->aux_grammar->data);
+      if (vc->aux_grammar) {
+        for (size_t c = 0; c < vrna_array_size(vc->aux_grammar->aux); c++) {
+          if (vc->aux_grammar->aux[c].cb)
+            vc->aux_grammar->aux[c].cb(vc, i, j, vc->aux_grammar->aux[c].data);
+        }
+      }
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
@@ -1933,9 +1937,13 @@ decompose_pair(vrna_fold_compound_t *fc,
     }
 
     /* finally, check for auxiliary grammar rule(s) */
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_c)) {
-      energy  = fc->aux_grammar->cb_aux_c(fc, i, j, fc->aux_grammar->data);
-      e       = MIN2(e, energy);
+    if (fc->aux_grammar) {
+      for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->c); c++) {
+        if (fc->aux_grammar->c[c].cb) {
+          energy  = fc->aux_grammar->c[c].cb(fc, i, j, fc->aux_grammar->c[c].data);
+          e       = MIN2(e, energy);
+        }
+      }
     }
 
     if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&

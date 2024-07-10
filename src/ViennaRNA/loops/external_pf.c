@@ -195,7 +195,7 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc)
             j   = i + d;
             ij  = iidx[i] - j;
 
-            q[ij] += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->data);
+            q[ij] += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->datas[0]);
           }
       }
     }
@@ -643,7 +643,7 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
 
   /* apply auxiliary grammar rule for exterior loop case */
   if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_f))
-    qbt1 += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->data);
+    qbt1 += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->datas[0]);
 
   free_sc_ext_exp(&sc_wrapper);
 

@@ -248,9 +248,13 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
     f5[0] = 0;
     f5[1] = reduce_f5_up(fc, 1, evaluate, &hc_dat_local, &sc_wrapper);
 
-    if ((grammar) && (grammar->cb_aux_f)) {
-      en    = grammar->cb_aux_f(fc, 1, 1, grammar->data);
-      f5[1] = MIN2(f5[1], en);
+    if (grammar) {
+      for (size_t c = 0; c < vrna_array_size(grammar->f); c++) {
+        if (grammar->f[c].cb) {
+          en    = grammar->f[c].cb(fc, 1, 1, grammar->f[c].data);
+          f5[1] = MIN2(f5[1], en);
+        }
+      }
     }
 
     /*
@@ -272,9 +276,13 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
             f5[j] = MIN2(f5[j], en);
           }
 
-          if ((grammar) && (grammar->cb_aux_f)) {
-            en    = grammar->cb_aux_f(fc, 1, j, grammar->data);
-            f5[j] = MIN2(f5[j], en);
+          if (grammar) {
+            for (size_t c = 0; c < vrna_array_size(grammar->f); c++) {
+              if (grammar->f[c].cb) {
+                en    = grammar->f[c].cb(fc, 1, j, grammar->f[c].data);
+                f5[j] = MIN2(f5[j], en);
+              }
+            }
           }
         }
         break;
@@ -293,9 +301,13 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
             f5[j] = MIN2(f5[j], en);
           }
 
-          if ((grammar) && (grammar->cb_aux_f)) {
-            en    = grammar->cb_aux_f(fc, 1, j, grammar->data);
-            f5[j] = MIN2(f5[j], en);
+          if (grammar) {
+            for (size_t c = 0; c < vrna_array_size(grammar->f); c++) {
+              if (grammar->f[c].cb) {
+                en    = grammar->f[c].cb(fc, 1, j, grammar->f[c].data);
+                f5[j] = MIN2(f5[j], en);
+              }
+            }
           }
         }
         break;
@@ -313,9 +325,13 @@ vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
             f5[j] = MIN2(f5[j], en);
           }
 
-          if ((grammar) && (grammar->cb_aux_f)) {
-            en    = grammar->cb_aux_f(fc, 1, j, grammar->data);
-            f5[j] = MIN2(f5[j], en);
+          if (grammar) {
+            for (size_t c = 0; c < vrna_array_size(grammar->f); c++) {
+              if (grammar->f[c].cb) {
+                en    = grammar->f[c].cb(fc, 1, j, grammar->f[c].data);
+                f5[j] = MIN2(f5[j], en);
+              }
+            }
           }
         }
         break;

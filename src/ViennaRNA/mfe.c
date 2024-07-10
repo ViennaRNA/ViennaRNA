@@ -223,8 +223,11 @@ vrna_mfe(vrna_fold_compound_t *fc,
       fc->stat_cb(fc, VRNA_STATUS_MFE_PRE, fc->auxdata);
 
     /* call user-defined grammar pre-condition callback function */
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
-      fc->aux_grammar->cb_proc(fc, VRNA_STATUS_MFE_PRE, fc->aux_grammar->data);
+    if (fc->aux_grammar) {
+      for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->cbs_status); i++)
+        if (fc->aux_grammar->cbs_status[i])
+          fc->aux_grammar->cbs_status[i](fc, VRNA_STATUS_MFE_PRE, fc->aux_grammar->datas[i]);
+    }
 
     if (fc->strands > 1)
       ms_dat = get_ms_helpers(fc);
@@ -254,8 +257,12 @@ vrna_mfe(vrna_fold_compound_t *fc,
       fc->stat_cb(fc, VRNA_STATUS_MFE_POST, fc->auxdata);
 
     /* call user-defined grammar post-condition callback function */
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
-      fc->aux_grammar->cb_proc(fc, VRNA_STATUS_MFE_POST, fc->aux_grammar->data);
+    if (fc->aux_grammar) {
+      for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->cbs_status); i++)
+        if (fc->aux_grammar->cbs_status[i])
+          fc->aux_grammar->cbs_status[i](fc, VRNA_STATUS_MFE_POST, fc->aux_grammar->datas[i]);
+    }
+
 
     switch (fc->params->model_details.backtrack_type) {
       case 'C':
@@ -415,8 +422,11 @@ fill_arrays(vrna_fold_compound_t  *fc,
       if (uniq_ML)
         fM1[ij] = E_ml_rightmost_stem(i, j, fc);
 
-      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux))
-        fc->aux_grammar->cb_aux(fc, i, j, fc->aux_grammar->data);
+      if (fc->aux_grammar)
+        /* call auxiliary grammar rules */
+        for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->aux); i++)
+          if(fc->aux_grammar->aux[i].cb)
+            (void)fc->aux_grammar->aux[i].cb(fc, i, j, fc->aux_grammar->aux[i].data);
     } /* end of j-loop */
 
     rotate_aux_arrays(helper_arrays, length);
@@ -3305,11 +3315,23 @@ backtrack(vrna_fold_compound_t  *fc,
       default:
         /* catch auxiliary grammar backtracking here */
         if ((aux_grammar) &&
-            (aux_grammar->cb_bt_aux)) {
-          if (aux_grammar->cb_bt_aux(fc, i, j, bp_stack, &b, bt_stack, &s, aux_grammar->data)) {
-            continue;
+            (ml > VRNA_MX_FLAG_MAX)) {
+          unsigned int flag = ml -
+                              VRNA_MX_FLAG_MAX -
+                              1;
+          if ((flag < vrna_array_size(aux_grammar->aux)) &&
+              (aux_grammar->aux[flag].cb_bt)) {
+            if (aux_grammar->aux[flag].cb_bt(fc, i, j, bp_stack, &b, bt_stack, &s, aux_grammar->aux[flag].data)) {
+              continue;
+            } else {
+              vrna_log_warning("backtracking failed in auxiliary grammar backtrack %u, segment [%d, %d]\n",
+                             ml,
+                             i,
+                             j);
+            }
           } else {
-            vrna_log_warning("backtracking failed in auxiliary grammar backtrack, segment [%d, %d]\n",
+              vrna_log_error("backtracking requested but unavailable for auxiliary grammar %u, segment [%d, %d]\n",
+                             ml,
                              i,
                              j);
           }
@@ -3380,10 +3402,16 @@ repeat1:
       bt_stack[++s].i = k + 1;
       bt_stack[s].j   = j;
       bt_stack[s].ml  = comp2;
-    } else if ((aux_grammar) &&
-               (aux_grammar->cb_bt_c) &&
-               (aux_grammar->cb_bt_c(fc, i, j, bp_stack, &b, bt_stack, &s, aux_grammar->data))) {
-      continue;
+    } else if (aux_grammar) {
+      ret = 0;
+      /* go through each user-provided backtrack callback and try finding the solution */
+      for (size_t c = 0; c < vrna_array_size(aux_grammar->c); c++)
+        if ((aux_grammar->c[c].cb_bt) &&
+            (ret = aux_grammar->c[c].cb_bt(fc, i, j, bp_stack, &b, bt_stack, &s, aux_grammar->c[c].data)))
+          break;
+
+      if (ret)
+        continue;
     } else {
       vrna_log_warning("backtracking failed in repeat, segment [%d,%d]\n", i, j);
       ret = 0;
@@ -3467,9 +3495,13 @@ decompose_pair(vrna_fold_compound_t *fc,
     }
 
     /* finally, check for auxiliary grammar rule(s) */
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_c)) {
-      energy  = fc->aux_grammar->cb_aux_c(fc, i, j, fc->aux_grammar->data);
-      new_c   = MIN2(new_c, energy);
+    if (fc->aux_grammar) {
+      for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->c); c++) {
+        if (fc->aux_grammar->c[c].cb) {
+          energy  = fc->aux_grammar->c[c].cb(fc, i, j, fc->aux_grammar->c[c].data);
+          new_c   = MIN2(new_c, energy);
+        }
+      }
     }
 
     if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&

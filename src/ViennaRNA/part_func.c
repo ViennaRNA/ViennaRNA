@@ -125,8 +125,11 @@ vrna_pf(vrna_fold_compound_t  *fc,
       vrna_pf_multifold_prepare(fc);
 
     /* call user-defined grammar pre-condition callback function */
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
-      fc->aux_grammar->cb_proc(fc, VRNA_STATUS_PF_PRE, fc->aux_grammar->data);
+    if (fc->aux_grammar) {
+      for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->cbs_status); i++)
+        if (fc->aux_grammar->cbs_status[i])
+          fc->aux_grammar->cbs_status[i](fc, VRNA_STATUS_PF_PRE, fc->aux_grammar->datas[i]);
+    }
 
     if (!fill_arrays(fc)) {
 #ifdef SUN4
@@ -142,8 +145,11 @@ vrna_pf(vrna_fold_compound_t  *fc,
       postprocess_circular(fc);
 
     /* call user-defined grammar post-condition callback function */
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
-      fc->aux_grammar->cb_proc(fc, VRNA_STATUS_PF_POST, fc->aux_grammar->data);
+    if (fc->aux_grammar) {
+      for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->cbs_status); i++)
+        if (fc->aux_grammar->cbs_status[i])
+          fc->aux_grammar->cbs_status[i](fc, VRNA_STATUS_PF_POST, fc->aux_grammar->datas[i]);
+    }
 
     if (fc->strands > 1)
       vrna_gr_reset(fc);
@@ -385,7 +391,7 @@ fill_arrays(vrna_fold_compound_t *fc)
 
         /* apply auxiliary grammar rule for multibranch loop (M1) case */
         if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_m1))
-          temp += fc->aux_grammar->cb_aux_exp_m1(fc, i, j, fc->aux_grammar->data);
+          temp += fc->aux_grammar->cb_aux_exp_m1(fc, i, j, fc->aux_grammar->datas[0]);
 
         qm1[jindx[j] + i] = temp;
       }
@@ -395,7 +401,7 @@ fill_arrays(vrna_fold_compound_t *fc)
 
       /* apply auxiliary grammar rule (storage takes place in user-defined data structure */
       if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp))
-        fc->aux_grammar->cb_aux_exp(fc, i, j, fc->aux_grammar->data);
+        fc->aux_grammar->cb_aux_exp(fc, i, j, fc->aux_grammar->datas[0]);
 
       if (q[ij] > Qmax) {
         Qmax = q[ij];
@@ -462,7 +468,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     contribution += vrna_exp_E_mb_loop_fast(fc, i, j, aux_mx_ml);
 
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_c))
-      contribution += fc->aux_grammar->cb_aux_exp_c(fc, i, j, fc->aux_grammar->data);
+      contribution += fc->aux_grammar->cb_aux_exp_c(fc, i, j, fc->aux_grammar->datas[0]);
 
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
       jindx         = fc->jindx;

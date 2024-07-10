@@ -93,10 +93,12 @@ vrna_bt_m(vrna_fold_compound_t  *fc,
         bt_stack[(*bt_stack_size)].j   = q;
         bt_stack[(*bt_stack_size)].ml  = comp2;
       }
-    } else if ((fc->aux_grammar) &&
-               (fc->aux_grammar->cb_bt_m) &&
-               (fc->aux_grammar->cb_bt_m(fc, i, j, bp_stack, bp_stack_size, bt_stack, bt_stack_size, fc->aux_grammar->data))){
-      ret = 1;
+    } else if (fc->aux_grammar) {
+      for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->m); c++) {
+        if ((fc->aux_grammar->m[c].cb_bt) &&
+            (ret = fc->aux_grammar->m[c].cb_bt(fc, i, j, bp_stack, bp_stack_size, bt_stack, bt_stack_size, fc->aux_grammar->m[c].data)))
+          break;
+      }
     }
   }
 
