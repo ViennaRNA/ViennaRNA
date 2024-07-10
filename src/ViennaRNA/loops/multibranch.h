@@ -144,6 +144,15 @@ vrna_exp_E_ml_fast(vrna_fold_compound_t *fc,
  *  @{
  */
 
+unsigned int
+vrna_bt_m(vrna_fold_compound_t  *fc,
+          unsigned int          i,
+          unsigned int          j,
+          vrna_bp_stack_t      *bp_stack,
+          int                  *bp_stack_size,
+          vrna_sect_t          *bt_stack,
+          int                  *bt_stack_size);
+
 /**
  *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
  *

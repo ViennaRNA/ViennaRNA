@@ -20,6 +20,8 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/external.h"
 
+#include "ViennaRNA/grammar.inc"
+
 #ifdef __GNUC__
 # define INLINE inline
 #else
@@ -94,6 +96,48 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
+
+PUBLIC unsigned int
+vrna_bt_f(vrna_fold_compound_t  *fc,
+          unsigned int          i,
+          unsigned int          j,
+          vrna_bp_stack_t      *bp_stack,
+          int                  *bp_stack_size,
+          vrna_sect_t          *bt_stack,
+          int                  *bt_stack_size)
+{
+  unsigned int ret = 0;
+  int ii, jj, p, q;
+
+  ii = (int)i;
+  jj = (int)j;
+
+  if (fc) {
+    if (ret = (unsigned int)vrna_BT_ext_loop_f5(fc, &jj, &p, &q, bp_stack, bp_stack_size)) {
+      ret = 1;
+
+      if (jj > 0) {
+        bt_stack[++(*bt_stack_size)].i = 1;
+        bt_stack[(*bt_stack_size)].j   = jj;
+        bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_F5;
+      }
+
+      if (p > 0) {
+        bt_stack[++(*bt_stack_size)].i = p;
+        bt_stack[(*bt_stack_size)].j   = q;
+        bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_C;
+      }
+    } else if ((fc->aux_grammar) &&
+               (fc->aux_grammar->cb_bt_f) &&
+               (fc->aux_grammar->cb_bt_f(fc, i, j, bp_stack, bp_stack_size, bt_stack, bt_stack_size, fc->aux_grammar->data))){
+      ret = 1;
+    }
+  }
+
+  return ret;
+}
+
+
 PUBLIC int
 vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
                     int                   *k,

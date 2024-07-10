@@ -178,6 +178,16 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t *fc,
  *  @{
  */
 
+unsigned int
+vrna_bt_f(vrna_fold_compound_t  *fc,
+          unsigned int          i,
+          unsigned int          j,
+          vrna_bp_stack_t      *bp_stack,
+          int                  *bp_stack_size,
+          vrna_sect_t          *bt_stack,
+          int                  *bt_stack_size);
+
+
 int
 vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
                     int                   *k,

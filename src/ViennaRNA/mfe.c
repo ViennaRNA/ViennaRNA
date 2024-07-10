@@ -3196,20 +3196,7 @@ backtrack(vrna_fold_compound_t  *fc,
       /* backtrack in f5 */
       case VRNA_MX_FLAG_F5:
       {
-        int p, q;
-        if (vrna_BT_ext_loop_f5(fc, &j, &p, &q, bp_stack, &b)) {
-          if (j > 0) {
-            bt_stack[++s].i = 1;
-            bt_stack[s].j   = j;
-            bt_stack[s].ml  = VRNA_MX_FLAG_F5;
-          }
-
-          if (p > 0) {
-            i = p;
-            j = q;
-            goto repeat1;
-          }
-
+        if (vrna_bt_f(fc, i, j, bp_stack, &b, bt_stack, &s)) {
           continue;
         } else {
           vrna_log_warning("backtracking failed in f5, segment [%d,%d], e = %d\n",
@@ -3225,24 +3212,12 @@ backtrack(vrna_fold_compound_t  *fc,
       /* trace back in fML array */
       case VRNA_MX_FLAG_M:
       {
-        int p, q;
-        unsigned int comp1, comp2;
-        if (vrna_BT_mb_loop_split(fc, &i, &j, &p, &q, &comp1, &comp2, bp_stack, &b)) {
-          if (i > 0) {
-            bt_stack[++s].i = i;
-            bt_stack[s].j   = j;
-            bt_stack[s].ml  = comp1;
-          }
-
-          if (p > 0) {
-            bt_stack[++s].i = p;
-            bt_stack[s].j   = q;
-            bt_stack[s].ml  = comp2;
-          }
-
+        if (vrna_bt_m(fc, i, j, bp_stack, &b, bt_stack, &s)) {
           continue;
         } else {
-          vrna_log_warning("backtracking failed in fML, segment [%d,%d]\n", i, j);
+          vrna_log_warning("backtracking failed in fML, segment [%d,%d]",
+                               i,
+                               j);
           ret = 0;
           goto backtrack_exit;
         }
@@ -3405,6 +3380,10 @@ repeat1:
       bt_stack[++s].i = k + 1;
       bt_stack[s].j   = j;
       bt_stack[s].ml  = comp2;
+    } else if ((aux_grammar) &&
+               (aux_grammar->cb_bt_c) &&
+               (aux_grammar->cb_bt_c(fc, i, j, bp_stack, &b, bt_stack, &s, aux_grammar->data))) {
+      continue;
     } else {
       vrna_log_warning("backtracking failed in repeat, segment [%d,%d]\n", i, j);
       ret = 0;
