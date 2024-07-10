@@ -79,11 +79,13 @@ DEPRECATED(typedef void (vrna_callback_free_auxdata)(void *data),
  *       vrna_pf(),
  *       #VRNA_STATUS_MFE_PRE, #VRNA_STATUS_MFE_POST, #VRNA_STATUS_PF_PRE, #VRNA_STATUS_PF_POST
  *
+ *  @param fc       The fold compound emitting the status
  *  @param status   The status indicator
  *  @param data     The data structure that was assigned with vrna_fold_compound_add_auxdata()
  */
-typedef void (*vrna_recursion_status_f)(unsigned char status,
-                                              void          *data);
+typedef void (*vrna_recursion_status_f)(vrna_fold_compound_t *fc,
+                                        unsigned char status,
+                                        void          *data);
 
 DEPRECATED(typedef void (vrna_callback_recursion_status)(unsigned char status,
                                               void          *data),

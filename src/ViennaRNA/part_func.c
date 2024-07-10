@@ -116,7 +116,7 @@ vrna_pf(vrna_fold_compound_t  *fc,
 
     /* call user-defined recursion status callback function */
     if (fc->stat_cb)
-      fc->stat_cb(VRNA_STATUS_PF_PRE, fc->auxdata);
+      fc->stat_cb(fc, VRNA_STATUS_PF_PRE, fc->auxdata);
 
     /* for now, multi-strand folding is implemented as additional grammar rule */
     if (fc->strands > 1)
@@ -148,7 +148,7 @@ vrna_pf(vrna_fold_compound_t  *fc,
 
     /* call user-defined recursion status callback function */
     if (fc->stat_cb)
-      fc->stat_cb(VRNA_STATUS_PF_POST, fc->auxdata);
+      fc->stat_cb(fc, VRNA_STATUS_PF_POST, fc->auxdata);
 
     switch (md->backtrack_type) {
       case 'C':

@@ -218,7 +218,7 @@ vrna_mfe(vrna_fold_compound_t *fc,
 
     /* call user-defined recursion status callback function */
     if (fc->stat_cb)
-      fc->stat_cb(VRNA_STATUS_MFE_PRE, fc->auxdata);
+      fc->stat_cb(fc, VRNA_STATUS_MFE_PRE, fc->auxdata);
 
     /* call user-defined grammar pre-condition callback function */
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
@@ -249,7 +249,7 @@ vrna_mfe(vrna_fold_compound_t *fc,
 
     /* call user-defined recursion status callback function */
     if (fc->stat_cb)
-      fc->stat_cb(VRNA_STATUS_MFE_POST, fc->auxdata);
+      fc->stat_cb(fc, VRNA_STATUS_MFE_POST, fc->auxdata);
 
     /* call user-defined grammar post-condition callback function */
     if ((fc->aux_grammar) && (fc->aux_grammar->cb_proc))
