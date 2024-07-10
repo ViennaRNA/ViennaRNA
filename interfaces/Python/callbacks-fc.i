@@ -15,7 +15,8 @@ typedef struct {
 } pycallback_t;
 
 static void
-py_wrap_fc_status_callback(unsigned char status,
+py_wrap_fc_status_callback(vrna_fold_compound_t  *fc,
+                           unsigned char status,
                            void          *data);
 
 static void
@@ -129,8 +130,9 @@ fc_add_pydata(vrna_fold_compound_t *vc,
 }
 
 static void
-py_wrap_fc_status_callback( unsigned char status,
-                            void          *data)
+py_wrap_fc_status_callback(vrna_fold_compound_t  *fc,
+                           unsigned char status,
+                           void          *data)
 {
 
   PyObject *func, *arglist, *result, *err;
@@ -138,7 +140,7 @@ py_wrap_fc_status_callback( unsigned char status,
 
   func = cb->cb;
   /* compose argument list */
-  arglist = Py_BuildValue("(B,O)", status, (cb->data) ? cb->data : Py_None);
+  arglist = Py_BuildValue("(O,B,O)", fc, status, (cb->data) ? cb->data : Py_None);
   result =  PyObject_CallObject(func, arglist);
 
   /* BEGIN recognizing errors in callback execution */
@@ -148,7 +150,7 @@ py_wrap_fc_status_callback( unsigned char status,
       PyErr_Print();
       /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
       if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
-        throw std::runtime_error( "Fold compound callback must take exactly 2 arguments" );
+        throw std::runtime_error( "Fold compound callback must take exactly 3 arguments" );
       } else {
         throw std::runtime_error( "Some error occurred while executing fold compound callback" );
       }

@@ -19,7 +19,7 @@ typedef struct {
   SV  *delete_data;
 } perl_callback_t;
 
-static void perl_wrap_fc_status_callback(unsigned char status, void *data);
+static void perl_wrap_fc_status_callback(vrna_fold_compound_t *fc, unsigned char status, void *data);
 
 static void
 delete_perl_callback(void * data){
@@ -168,7 +168,8 @@ fc_add_perl_callback( vrna_fold_compound_t *vc,
 }
 
 static void
-perl_wrap_fc_status_callback( unsigned char status,
+perl_wrap_fc_status_callback( vrna_fold_compound_t *fc,
+                              unsigned char status,
                               void *data){
 
   SV *func;
@@ -185,11 +186,18 @@ perl_wrap_fc_status_callback( unsigned char status,
     SAVETMPS;
     PUSHMARK(SP);
 
+    SV *fcSV = SWIG_NewPointerObj(SWIG_as_voidptr(fc),
+                               SWIGTYPE_p_vrna_fold_compound_t,
+                               0);
+    XPUSHs(fcSV);
+
     SV* pSV = sv_newmortal();
     sv_setiv(pSV, (IV)status);  /* add status value to perl stack */
     XPUSHs(pSV);
+
     if(cb->data && SvOK(cb->data))          /* add data object to perl stack (if any) */
       XPUSHs(cb->data);
+
     PUTBACK;
 
     perl_call_sv(func, G_EVAL | G_DISCARD);
