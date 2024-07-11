@@ -31,7 +31,12 @@ PUBLIC int
 vrna_pf_multifold_prepare(vrna_fold_compound_t *fc)
 {
   if (fc)
-    return vrna_gr_set_aux_exp_c(fc, &mf_rule_pair);
+    return vrna_gr_add_aux_exp_c(fc,
+                                 &mf_rule_pair,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL);
 
   return 0;
 }
@@ -48,15 +53,15 @@ mf_rule_pair(vrna_fold_compound_t *fc,
              int                  j,
              void                 *data)
 {
-  short                     *S1, *S2, s5, s3;
-  unsigned int              *sn, *ends, type, nick;
-  int                       *my_iindx;
-  FLT_OR_DBL                contribution, *q, *scale, qbase, tmp, tmp2;
-  vrna_exp_param_t          *pf_params;
-  vrna_md_t                 *md;
-  vrna_hc_eval_f evaluate;
-  struct hc_ext_def_dat     hc_dat_local;
-  vrna_sc_t                 *sc;
+  short                 *S1, *S2, s5, s3;
+  unsigned int          *sn, *ends, type, nick;
+  int                   *my_iindx;
+  FLT_OR_DBL            contribution, *q, *scale, qbase, tmp, tmp2;
+  vrna_exp_param_t      *pf_params;
+  vrna_md_t             *md;
+  vrna_hc_eval_f        evaluate;
+  struct hc_ext_def_dat hc_dat_local;
+  vrna_sc_t             *sc;
 
   contribution  = 0;
   S1            = fc->sequence_encoding;

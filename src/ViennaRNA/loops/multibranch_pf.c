@@ -147,17 +147,21 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc)
           qm[ij] = 0.;
         }
 
-      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_m)) {
-        for (d = 0; d <= turn; d++)
-          for (i = 1; i <= n - d; i++) {
-            j   = i + d;
-            ij  = iidx[i] - j;
+      if (fc->aux_grammar) {
+        for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_m); c++) {
+          if (fc->aux_grammar->exp_m[c].cb) {
+            for (d = 0; d <= turn; d++)
+              for (i = 1; i <= n - d; i++) {
+                j   = i + d;
+                ij  = iidx[i] - j;
 
-            if (j > n)
-              continue;
+                if (j > n)
+                  continue;
 
-            qm[ij] += fc->aux_grammar->cb_aux_exp_m(fc, i, j, fc->aux_grammar->datas[0]);
+                qm[ij] += fc->aux_grammar->exp_m[c].cb(fc, i, j, fc->aux_grammar->exp_m[c].data);
+              }
           }
+        }
       }
     }
   }
@@ -649,8 +653,12 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   }
 
   /* apply auxiliary grammar rule for multibranch loop case */
-  if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_m))
-    temp += fc->aux_grammar->cb_aux_exp_m(fc, i, j, fc->aux_grammar->datas[0]);
+  if (fc->aux_grammar) {
+    for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_m); c++) {
+      if (fc->aux_grammar->exp_m[c].cb)
+        temp += fc->aux_grammar->exp_m[c].cb(fc, i, j, fc->aux_grammar->exp_m[c].data);
+    }
+  }
 
   free_sc_mb_exp(&sc_wrapper);
 

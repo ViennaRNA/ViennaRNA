@@ -390,8 +390,12 @@ fill_arrays(vrna_fold_compound_t *fc)
         temp = vrna_exp_E_ml_fast_qqm(aux_mx_ml)[i]; /* for stochastic backtracking and circfold */
 
         /* apply auxiliary grammar rule for multibranch loop (M1) case */
-        if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_m1))
-          temp += fc->aux_grammar->cb_aux_exp_m1(fc, i, j, fc->aux_grammar->datas[0]);
+        if (fc->aux_grammar) {
+          for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_m1); c++) {
+            if (fc->aux_grammar->exp_m1[c].cb)
+              temp += fc->aux_grammar->m1[c].cb(fc, i, j, fc->aux_grammar->m1[c].data);
+          }
+        }
 
         qm1[jindx[j] + i] = temp;
       }
@@ -400,8 +404,12 @@ fill_arrays(vrna_fold_compound_t *fc)
       q[ij] = vrna_exp_E_ext_fast(fc, i, j, aux_mx_el);
 
       /* apply auxiliary grammar rule (storage takes place in user-defined data structure */
-      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp))
-        fc->aux_grammar->cb_aux_exp(fc, i, j, fc->aux_grammar->datas[0]);
+      if (fc->aux_grammar) {
+        for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_aux); c++) {
+          if (fc->aux_grammar->exp_aux[c].cb)
+            (void)fc->aux_grammar->exp_aux[c].cb(fc, i, j, fc->aux_grammar->exp_aux[c].data);
+        }
+      }
 
       if (q[ij] > Qmax) {
         Qmax = q[ij];
@@ -467,8 +475,12 @@ decompose_pair(vrna_fold_compound_t *fc,
     /* process multibranch loop(s) */
     contribution += vrna_exp_E_mb_loop_fast(fc, i, j, aux_mx_ml);
 
-    if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_c))
-      contribution += fc->aux_grammar->cb_aux_exp_c(fc, i, j, fc->aux_grammar->datas[0]);
+    if (fc->aux_grammar) {
+      for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_c); c++) {
+        if (fc->aux_grammar->exp_c[c].cb)
+          contribution += fc->aux_grammar->exp_c[c].cb(fc, i, j, fc->aux_grammar->exp_c[c].data);
+      }
+    }
 
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
       jindx         = fc->jindx;

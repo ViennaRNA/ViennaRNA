@@ -189,14 +189,18 @@ vrna_exp_E_ext_fast_init(vrna_fold_compound_t *fc)
           q[ij] = reduce_ext_up_fast(fc, i, j, aux_mx, evaluate, &hc_dat_local, &sc_wrapper);
         }
 
-      if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_f)) {
-        for (d = 0; d <= turn; d++)
-          for (i = 1; i <= n - d; i++) {
-            j   = i + d;
-            ij  = iidx[i] - j;
+      if (fc->aux_grammar) {
+        for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_f); c++) {
+          if (fc->aux_grammar->exp_f[c].cb) {
+            for (d = 0; d <= turn; d++)
+              for (i = 1; i <= n - d; i++) {
+                j   = i + d;
+                ij  = iidx[i] - j;
 
-            q[ij] += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->datas[0]);
+                q[ij] += fc->aux_grammar->exp_f[c].cb(fc, i, j, fc->aux_grammar->exp_f[c].data);
+              }
           }
+        }
       }
     }
   }
@@ -642,8 +646,12 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
   qbt1 += split_ext_fast(fc, i, j, aux_mx, evaluate, &hc_dat_local, &sc_wrapper);
 
   /* apply auxiliary grammar rule for exterior loop case */
-  if ((fc->aux_grammar) && (fc->aux_grammar->cb_aux_exp_f))
-    qbt1 += fc->aux_grammar->cb_aux_exp_f(fc, i, j, fc->aux_grammar->datas[0]);
+  if (fc->aux_grammar) {
+    for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_f); c++) {
+      if (fc->aux_grammar->exp_f[c].cb)
+        qbt1 += fc->aux_grammar->exp_f[c].cb(fc, i, j, fc->aux_grammar->exp_f[c].data);
+    }
+  }
 
   free_sc_ext_exp(&sc_wrapper);
 
