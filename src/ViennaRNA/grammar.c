@@ -116,7 +116,7 @@ add_rule_exp(vrna_array(grammar_rule_exp_wrap_t)  where,
 }
 
 
-PUBLIC int
+PUBLIC unsigned int
 vrna_gr_add_aux_f(vrna_fold_compound_t    *fc,
                   vrna_grammar_rule_f     cb,
                   vrna_grammar_bt_f       cb_bt,
@@ -124,7 +124,7 @@ vrna_gr_add_aux_f(vrna_fold_compound_t    *fc,
                   vrna_auxdata_prepare_f  data_prepare,
                   vrna_auxdata_free_f     data_release)
 {
-  int ret = 0;
+  unsigned int ret = 0;
 
   if ((fc) &&
       (cb || cb_bt)) {
@@ -138,7 +138,7 @@ vrna_gr_add_aux_f(vrna_fold_compound_t    *fc,
              data_prepare,
              data_release);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->f);
   }
 
   return ret;
@@ -167,14 +167,14 @@ vrna_gr_add_aux_exp_f(vrna_fold_compound_t    *fc,
                  data_prepare,
                  data_release);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->exp_f);
   }
 
   return ret;
 }
 
 
-PUBLIC int
+PUBLIC unsigned int
 vrna_gr_add_aux_c(vrna_fold_compound_t    *fc,
                   vrna_grammar_rule_f     cb,
                   vrna_grammar_bt_f       cb_bt,
@@ -182,7 +182,7 @@ vrna_gr_add_aux_c(vrna_fold_compound_t    *fc,
                   vrna_auxdata_prepare_f  data_prepare,
                   vrna_auxdata_free_f     data_release)
 {
-  int ret = 0;
+  unsigned int ret = 0;
 
   if ((fc) &&
       (cb || cb_bt)) {
@@ -196,7 +196,7 @@ vrna_gr_add_aux_c(vrna_fold_compound_t    *fc,
              data_prepare,
              data_release);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->c);
   }
 
   return ret;
@@ -225,14 +225,14 @@ vrna_gr_add_aux_exp_c(vrna_fold_compound_t    *fc,
                  data_prepare,
                  data_release);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->exp_c);
   }
 
   return ret;
 }
 
 
-PUBLIC int
+PUBLIC unsigned int
 vrna_gr_add_aux_m(vrna_fold_compound_t    *fc,
                   vrna_grammar_rule_f     cb,
                   vrna_grammar_bt_f       cb_bt,
@@ -240,7 +240,7 @@ vrna_gr_add_aux_m(vrna_fold_compound_t    *fc,
                   vrna_auxdata_prepare_f  data_prepare,
                   vrna_auxdata_free_f     data_release)
 {
-  int ret = 0;
+  unsigned int ret = 0;
 
   if ((fc) &&
       (cb || cb_bt)) {
@@ -254,7 +254,7 @@ vrna_gr_add_aux_m(vrna_fold_compound_t    *fc,
              data_prepare,
              data_release);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->m);
   }
 
   return ret;
@@ -283,14 +283,14 @@ vrna_gr_add_aux_exp_m(vrna_fold_compound_t    *fc,
                  data_prepare,
                  data_release);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->exp_m);
   }
 
   return ret;
 }
 
 
-PUBLIC int
+PUBLIC unsigned int
 vrna_gr_add_aux_m1(vrna_fold_compound_t   *fc,
                    vrna_grammar_rule_f    cb,
                    vrna_grammar_bt_f      cb_bt,
@@ -298,7 +298,7 @@ vrna_gr_add_aux_m1(vrna_fold_compound_t   *fc,
                    vrna_auxdata_prepare_f data_prepare,
                    vrna_auxdata_free_f    data_release)
 {
-  int ret = 0;
+  unsigned int ret = 0;
 
   if ((fc) &&
       (cb || cb_bt)) {
@@ -312,7 +312,7 @@ vrna_gr_add_aux_m1(vrna_fold_compound_t   *fc,
              data_prepare,
              data_release);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->m1);
   }
 
   return ret;
@@ -341,7 +341,7 @@ vrna_gr_add_aux_exp_m1(vrna_fold_compound_t   *fc,
                  data_prepare,
                  data_release);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->exp_m1);
   }
 
   return ret;
@@ -428,7 +428,7 @@ vrna_gr_add_status(vrna_fold_compound_t     *fc,
     vrna_array_append(fc->aux_grammar->prepare_datas, prepare_cb);
     vrna_array_append(fc->aux_grammar->free_datas, free_cb);
 
-    ret = 1;
+    ret = vrna_array_size(fc->aux_grammar->cbs_status);
   }
 
   return ret;

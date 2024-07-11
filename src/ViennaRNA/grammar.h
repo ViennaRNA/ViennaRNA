@@ -51,7 +51,7 @@ vrna_gr_prepare(vrna_fold_compound_t  *fc,
                 unsigned int          options);
 
 
-int
+unsigned int
 vrna_gr_add_aux_f(vrna_fold_compound_t    *fc,
                   vrna_grammar_rule_f     cb,
                   vrna_grammar_bt_f       cb_bt,
@@ -69,7 +69,7 @@ vrna_gr_add_aux_exp_f(vrna_fold_compound_t    *fc,
                       vrna_auxdata_free_f     data_release);
 
 
-int
+unsigned int
 vrna_gr_add_aux_c(vrna_fold_compound_t    *fc,
                   vrna_grammar_rule_f     cb,
                   vrna_grammar_bt_f       cb_bt,
@@ -87,7 +87,7 @@ vrna_gr_add_aux_exp_c(vrna_fold_compound_t    *fc,
                       vrna_auxdata_free_f     data_release);
 
 
-int
+unsigned int
 vrna_gr_add_aux_m(vrna_fold_compound_t    *fc,
                   vrna_grammar_rule_f     cb,
                   vrna_grammar_bt_f       cb_bt,
@@ -105,7 +105,7 @@ vrna_gr_add_aux_exp_m(vrna_fold_compound_t    *fc,
                       vrna_auxdata_free_f     data_release);
 
 
-int
+unsigned int
 vrna_gr_add_aux_m1(vrna_fold_compound_t   *fc,
                    vrna_grammar_rule_f    cb,
                    vrna_grammar_bt_f      cb_bt,
