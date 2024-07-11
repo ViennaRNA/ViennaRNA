@@ -8,12 +8,13 @@ The RNA folding grammar as implemented in RNAlib
    :caption: Specialized Modules:
 
    grammar/model_details
+   grammar/constraints
    grammar/domains_up
    grammar/domains_struc
-   grammar/constraints
 
-Secondary Structure Folding Recurrences
----------------------------------------
+
+Introduction
+------------
 
 To predict secondary structures composed of the four distinguished loop types
 introduced before, all algorithms implemented in *RNAlib* follow a specific
@@ -23,11 +24,20 @@ recursive decomposition scheme, also known as the *RNA folding grammar*, or
 .. image:: gfx/recursions.png
 
 However, compared to other RNA secondary structure prediction libraries, our
-implementation allows for a fine-grained control of the above recursions by
-constraining both, the individual derivations of the grammar as well as the
-evaluation of particular loop contributions. Furthermore, we provide a mechanism
-to extend the above grammar with additional derivation rules, so-called
-*Domains*.
+implementation allows for a fine-grained control of the above recursions through:
+
+* :doc:`/grammar/constraints`, that may be applied to both, the individual
+  derivations of the grammar (:doc:`/grammar/constraints/hard`) as well as
+  the evaluation of particular loop contributions (:doc:`/grammar/constraints/soft`)
+
+* **Extension of the RNA folding grammar rule set**. Here, users may provide
+  additional rules for each of the decomposition stages ``F``, ``C``, ``M``,
+  and ``M1``, as well further auxiliary rules.
+
+* :doc:`/grammar/domains_struc` and :doc:`grammar/domains_up` that already implement
+  efficient grammar extensions for self-enclosed structures and unpaired sequence
+  segments, respectively.
+
 
 Additional Structural Domains
 -----------------------------
@@ -51,107 +61,28 @@ additional dynamic processing matrices ``S`` and ``U`` where we store the
 pre-computed contributions of structured domains (``S``), and unstructured
 domains (``U``).
 
-Structured Domains
-------------------
 
-Usually, structured domains represent self-enclosed structural modules that
-exhibit a more or less complex base pairing pattern. This can be more or less
-well-defined 3D motifs, such as *G-Quadruplexes*, or loops with additional
-non-canonical base pair interactions, such as *kink-turns*.
+Extending the RNA Folding Grammar
+---------------------------------
 
-.. note::
+The RNA folding grammar can be easily extended by additional user-provided
+rules. For that purpose, we implement a generic callback-based machinery, that
+allows one to add rules to the existing decomposition stages ``F``, ``C``, ``M``,
+and ``M1``. If such an extension is not sufficient, users may even extend the
+grammar by arbitrary additional derivations.
 
-  Currently, our implementation only provides the specialized case of *G-Quadruplexes*.
+Additional rules can be supplied for both, MFE and partition function computations.
+Here, a set of two callback functions must be provided, one for the *inside*, and
+another for the *outside* recursions. The functions will then be called at appropriate
+steps in the recursions automatically. Each function will be provided with a
+set of parameters for the decomposition step and a user-defined data pointer that
+may point to some memory storing any additional data required for the grammar rule.
 
-
-Unstructured Domains
---------------------
-
-Unstructured domains appear in the production rules of the RNA folding grammar
-wherever new unpaired nucleotides are attached to a growing substructure
-(see also :cite:t:`lorenz:2016b`):
-
-.. image:: gfx/Crecursion.png
-
-The white boxes represent the stretch of RNA bound to the ligand and represented by a more or less specific
-sequence motif. The motif itself is considered unable to form base pairs. The additional production rule ``U``
-is used to precompute the contribution of unpaired stretches possibly bound by one or more ligands. The
-auxiliary DP matrix for this production rule is filled right before processing the other (regular) production
-rules of the RNA folding grammar.
-
-Domain Extension API
---------------------
-
-For the sake of flexibility, each of the domains is associated with a specific
-data structure serving as an abstract interface to the extension. The interface
-uses callback functions to
-
-  * pre-compute arbitrary data, e.g. filling up additional dynamic programming matrices, and
-  * evaluate the contribution of a paired or unpaired structural feature of the RNA.
-
-Implementations of these callbacks are separate for regular free energy evaluation,
-e.g. MFE prediction, and partition function applications. A data structure holding
-arbitrary data required for the callback functions can be associated to the domain
-as well. While *RNAlib* comes with a default implementation for structured and
-unstructured domains, the system is entirely user-customizable.
-
-.. admonition:: See also...
-
-  :doc:`/grammar/domains_up`, :doc:`/grammar/domains_struc`, :doc:`/modules/gquads`,
-  :doc:`/ligands/unstructured_domains`
+The detailed API for this mechanism can be found below.
 
 
-Constraints on the Folding Grammar
-----------------------------------
-
-Secondary Structure constraints can be subdivided into two groups:
-
-  * Hard Constraints
-  * Soft Constraints
-
-While Hard-Constraints directly influence the production rules used in the folding
-recursions by allowing, disallowing, or enforcing certain decomposition steps,
-Soft-constraints on the other hand are used to change position specific contributions
-in the recursions by adding bonuses/penalties in form of pseudo free energies
-to certain loop configurations.
-
-.. note::
-
-  Secondary structure constraints are always applied at decomposition level, i.e.
-  in each step of the recursive structure decomposition, for instance during MFE
-  prediction.
-
-
-Hard Constraints API
---------------------
-
-Hard constraints as implemented in our library can be specified for individual loop
-types, i.e. the atomic derivations of the RNA folding grammar rules. Hence, the pairing
-behavior of both, single nucleotides and pairs of bases, can be constrained in every
-loop context separately. Additionally, an abstract implementation using a callback
-mechanism allows for full control of more complex hard constraints.
-
-.. admonition:: See also...
-
-  :doc:`/grammar/constraints/hard`
-
-
-Soft Constraints API
---------------------
-
-For the sake of memory efficiency, we do not implement a loop context aware version of
-soft constraints. The *static* soft constraints as implemented only distinguish unpaired
-from paired nucleotides. This is usually sufficient for most use-case scenarios.
-However, similar to hard constraints, an abstract soft constraints implementation using
-a callback mechanism exists, that allows for any soft constraint that is compatible with
-the RNA folding grammar. Thus, loop contexts and even individual derivation rules can
-be addressed separately for maximum flexibility in soft-constraints application.
-
-.. admonition:: See also...
-
-  :doc:`/grammar/constraints/soft`, :doc:`/ligands/constraints`, :doc:`/probing/SHAPE`
-
-
+RNA Folding Grammar Extension API
+---------------------------------
 
 .. doxygengroup:: grammar
     :no-title:

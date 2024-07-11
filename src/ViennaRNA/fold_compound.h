@@ -50,6 +50,15 @@ typedef struct vrna_fc_s vrna_fold_compound_t;
 typedef void (*vrna_auxdata_free_f)(void *data);
 
 
+/**
+ *  @brief  Callback to prepare user-provided data based on some event
+ *
+ *  @param  fc          The fold compound the event was emitted from
+ *  @param  data        The user-defined data that may be prepared according to the event
+ *  @param  event       The event
+ *  @param  event_data  Some additional data corresponding to the event
+ *  @return             non-zero if the preparation was successful, 0 otherwise
+ */
 typedef int (*vrna_auxdata_prepare_f)(vrna_fold_compound_t  *fc,
                                       void                  *data,
                                       unsigned int          event,

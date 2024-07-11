@@ -78,8 +78,8 @@ vrna_gr_prepare(vrna_fold_compound_t  *fc,
 
 PRIVATE void
 add_rule(vrna_array(grammar_rule_wrap_t)  where,
-         vrna_grammar_rule_f              cb,
-         vrna_grammar_bt_f                cb_bt,
+         vrna_gr_inside_f                 cb,
+         vrna_gr_outside_f                cb_bt,
          void                             *data,
          vrna_auxdata_prepare_f           data_prepare,
          vrna_auxdata_free_f              data_release)
@@ -118,8 +118,8 @@ add_rule_exp(vrna_array(grammar_rule_exp_wrap_t)  where,
 
 PUBLIC unsigned int
 vrna_gr_add_aux_f(vrna_fold_compound_t    *fc,
-                  vrna_grammar_rule_f     cb,
-                  vrna_grammar_bt_f       cb_bt,
+                  vrna_gr_inside_f        cb,
+                  vrna_gr_outside_f       cb_bt,
                   void                    *data,
                   vrna_auxdata_prepare_f  data_prepare,
                   vrna_auxdata_free_f     data_release)
@@ -176,8 +176,8 @@ vrna_gr_add_aux_exp_f(vrna_fold_compound_t    *fc,
 
 PUBLIC unsigned int
 vrna_gr_add_aux_c(vrna_fold_compound_t    *fc,
-                  vrna_grammar_rule_f     cb,
-                  vrna_grammar_bt_f       cb_bt,
+                  vrna_gr_inside_f        cb,
+                  vrna_gr_outside_f       cb_bt,
                   void                    *data,
                   vrna_auxdata_prepare_f  data_prepare,
                   vrna_auxdata_free_f     data_release)
@@ -234,8 +234,8 @@ vrna_gr_add_aux_exp_c(vrna_fold_compound_t    *fc,
 
 PUBLIC unsigned int
 vrna_gr_add_aux_m(vrna_fold_compound_t    *fc,
-                  vrna_grammar_rule_f     cb,
-                  vrna_grammar_bt_f       cb_bt,
+                  vrna_gr_inside_f        cb,
+                  vrna_gr_outside_f       cb_bt,
                   void                    *data,
                   vrna_auxdata_prepare_f  data_prepare,
                   vrna_auxdata_free_f     data_release)
@@ -292,8 +292,8 @@ vrna_gr_add_aux_exp_m(vrna_fold_compound_t    *fc,
 
 PUBLIC unsigned int
 vrna_gr_add_aux_m1(vrna_fold_compound_t   *fc,
-                   vrna_grammar_rule_f    cb,
-                   vrna_grammar_bt_f      cb_bt,
+                   vrna_gr_inside_f       cb,
+                   vrna_gr_outside_f      cb_bt,
                    void                   *data,
                    vrna_auxdata_prepare_f data_prepare,
                    vrna_auxdata_free_f    data_release)
@@ -350,8 +350,8 @@ vrna_gr_add_aux_exp_m1(vrna_fold_compound_t   *fc,
 
 PUBLIC unsigned int
 vrna_gr_add_aux(vrna_fold_compound_t    *fc,
-                vrna_grammar_rule_f     cb,
-                vrna_grammar_bt_f       cb_bt,
+                vrna_gr_inside_f        cb,
+                vrna_gr_outside_f       cb_bt,
                 void                    *data,
                 vrna_auxdata_prepare_f  data_prepare,
                 vrna_auxdata_free_f     data_release)

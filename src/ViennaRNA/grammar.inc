@@ -1,7 +1,7 @@
 
 typedef struct {
-  vrna_grammar_rule_f     cb;
-  vrna_grammar_bt_f       cb_bt;
+  vrna_gr_inside_f     cb;
+  vrna_gr_outside_f       cb_bt;
   void                    *data;
   vrna_auxdata_prepare_f  prepare;
   vrna_auxdata_free_f     release;
