@@ -738,9 +738,9 @@ backtrack(vrna_fold_compound_t  *fc,
           vrna_bp_stack_t       *bp)
 {
   short         *S, *S1, s5, s3;
-  unsigned int  n, i, j, b, type, u1, u2, max_j, min_i, prev_l, prev_k,
+  unsigned int  n, i, j, b, s, type, u1, u2, max_j, min_i, prev_l, prev_k,
                 *sn;
-  int           e, tmp, en, *f5, *idx, kl, ij, s, *outside_c,
+  int           e, tmp, en, *f5, *idx, kl, ij, *outside_c,
                 *f3, *fML, **aux_mb, **aux_mb_up, dangle_model, *mb, *mb_up;
   sect          bt_stack[MAXSECTORS];
   vrna_param_t  *P;

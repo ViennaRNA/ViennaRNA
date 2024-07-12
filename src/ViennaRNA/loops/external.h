@@ -182,10 +182,10 @@ unsigned int
 vrna_bt_f(vrna_fold_compound_t  *fc,
           unsigned int          i,
           unsigned int          j,
-          vrna_bp_stack_t      *bp_stack,
-          int                  *bp_stack_size,
-          vrna_sect_t          *bt_stack,
-          int                  *bt_stack_size);
+          vrna_bp_stack_t       *bp_stack,
+          unsigned int          *bp_stack_size,
+          vrna_sect_t           *bt_stack,
+          unsigned int          *bt_stack_size);
 
 
 int
@@ -194,7 +194,7 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
                     int                   *i,
                     int                   *j,
                     vrna_bp_stack_t       *bp_stack,
-                    int                   *stack_count);
+                    unsigned int          *stack_count);
 
 
 int
@@ -204,7 +204,7 @@ vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
                     int                   *i,
                     int                   *j,
                     vrna_bp_stack_t       *bp_stack,
-                    int                   *stack_count);
+                    unsigned int          *stack_count);
 
 
 int

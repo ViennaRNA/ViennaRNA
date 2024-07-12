@@ -55,7 +55,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
                  unsigned int         *component1,
                  unsigned int         *component2,
                  vrna_bp_stack_t      *bp_stack,
-                 int                  *stack_count);
+                 unsigned int         *stack_count);
 
 
 /*
@@ -67,10 +67,10 @@ PUBLIC unsigned int
 vrna_bt_m(vrna_fold_compound_t  *fc,
           unsigned int          i,
           unsigned int          j,
-          vrna_bp_stack_t      *bp_stack,
-          int                  *bp_stack_size,
-          vrna_sect_t          *bt_stack,
-          int                  *bt_stack_size)
+          vrna_bp_stack_t       *bp_stack,
+          unsigned int          *bp_stack_size,
+          vrna_sect_t           *bt_stack,
+          unsigned int          *bt_stack_size)
 {
   unsigned int ret = 0, comp1, comp2;
   int ii, jj, p, q;
@@ -116,7 +116,7 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
                       unsigned int          *c1,
                       unsigned int          *c2,
                       vrna_bp_stack_t       *bp_stack,
-                      int                   *stack_count)
+                      unsigned int          *stack_count)
 {
   int r = 0;
 
@@ -154,7 +154,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
                  unsigned int         *component1,
                  unsigned int         *component2,
                  vrna_bp_stack_t      *bp_stack,
-                 int                  *stack_count)
+                 unsigned int         *stack_count)
 {
   unsigned char             sliding_window;
   char                      *ptype, **ptype_local;

@@ -40,7 +40,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
             int                   *j,
             int                   en,
             vrna_bp_stack_t       *bp_stack,
-            int                   *stack_count);
+            unsigned int          *stack_count);
 
 
 PRIVATE int
@@ -49,7 +49,7 @@ BT_stack(vrna_fold_compound_t *fc,
          int                  *j,
          int                  *en,
          vrna_bp_stack_t      *bp_stack,
-         int                  *stack_count);
+         unsigned int         *stack_count);
 
 
 /*
@@ -63,7 +63,7 @@ vrna_BT_int_loop(vrna_fold_compound_t *fc,
                  int                  *j,
                  int                  en,
                  vrna_bp_stack_t      *bp_stack,
-                 int                  *stack_count)
+                 unsigned int         *stack_count)
 {
   if (fc)
     return BT_int_loop(fc, i, j, en, bp_stack, stack_count);
@@ -78,7 +78,7 @@ vrna_BT_stack(vrna_fold_compound_t  *fc,
               int                   *j,
               int                   *en,
               vrna_bp_stack_t       *bp_stack,
-              int                   *stack_count)
+              unsigned int          *stack_count)
 {
   if (fc)
     return BT_stack(fc, i, j, en, bp_stack, stack_count);
@@ -93,7 +93,7 @@ BT_stack(vrna_fold_compound_t *fc,
          int                  *j,
          int                  *en,
          vrna_bp_stack_t      *bp_stack,
-         int                  *stack_count)
+         unsigned int         *stack_count)
 {
   unsigned char         sliding_window, eval_loop, hc_decompose_ij, hc_decompose_pq;
   char                  *ptype, **ptype_local;
@@ -209,7 +209,7 @@ BT_int_loop(vrna_fold_compound_t  *fc,
             int                   *j,
             int                   en,
             vrna_bp_stack_t       *bp_stack,
-            int                   *stack_count)
+            unsigned int          *stack_count)
 {
   unsigned char         sliding_window, hc_decompose_ij, hc_decompose_pq;
   unsigned char         eval_loop;

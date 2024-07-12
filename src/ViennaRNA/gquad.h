@@ -247,7 +247,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
                   int                   j,
                   int                   en,
                   vrna_bp_stack_t       *bp_stack,
-                  int                   *stack_count);
+                  unsigned int          *stack_count);
 
 
 PRIVATE INLINE int
@@ -255,7 +255,7 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j,
                   vrna_bp_stack_t       *bp_stack,
-                  int                   *stack_count)
+                  unsigned int          *stack_count)
 {
   /*
    * here we do some fancy stuff to backtrace the stacksize and linker lengths
@@ -310,7 +310,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
                   int                   j,
                   int                   en,
                   vrna_bp_stack_t       *bp_stack,
-                  int                   *stack_count)
+                  unsigned int          *stack_count)
 {
   int           energy, dangles, *idx, ij, p, q, maxl, minl, c0, l1, *ggg;
   unsigned char type;

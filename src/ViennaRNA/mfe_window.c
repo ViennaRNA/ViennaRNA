@@ -873,9 +873,10 @@ backtrack(vrna_fold_compound_t  *vc,
    *  ------------------------------------------------------------------*/
   sect sector[MAXSECTORS];            /* backtracking sectors */
   char *structure, **ptype;
-  int i, j, k, length, no_close, type, s, b, bt_type, turn,
+  unsigned int  bt_stack_size, bp_stack_size, comp1, comp2;
+  int i, j, k, length, no_close, type, bt_type, turn,
       dangle_model, noLP, noGUclosure, **c, dangle3, ml, cij,
-      **pscore, canonical, p, q, comp1, comp2, max3;
+      **pscore, canonical, p, q, max3;
   vrna_param_t *P;
   vrna_md_t *md;
   vrna_bp_stack_t *bp_stack;
@@ -892,13 +893,13 @@ backtrack(vrna_fold_compound_t  *vc,
   turn          = md->min_loop_size;
   c             = vc->matrices->c_local;
 
-  s         = 0;                                                                                /* depth of backtracking stack */
-  b         = 0;                                                                                /* number of base pairs */
+  bt_stack_size = 0;                                                                                /* depth of backtracking stack */
+  bp_stack_size = 0;                                                                                /* number of base pairs */
   bp_stack  = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));  /* add a guess of how many G's may be involved in a G quadruplex */
 
-  sector[++s].i = start;
-  sector[s].j   = MIN2(length, end);
-  sector[s].ml  = (bt_type == 'M') ? VRNA_MX_FLAG_M : ((bt_type == 'C') ? VRNA_MX_FLAG_C : VRNA_MX_FLAG_F3);
+  sector[++bt_stack_size].i = start;
+  sector[bt_stack_size].j   = MIN2(length, end);
+  sector[bt_stack_size].ml  = (bt_type == 'M') ? VRNA_MX_FLAG_M : ((bt_type == 'C') ? VRNA_MX_FLAG_C : VRNA_MX_FLAG_F3);
 
   structure = (char *)vrna_alloc((MIN2(length - start, end) + 3) * sizeof(char));
 
@@ -906,13 +907,13 @@ backtrack(vrna_fold_compound_t  *vc,
 
   dangle3 = 0;
 
-  while (s > 0) {
+  while (bt_stack_size > 0) {
     canonical = 1;     /* (i,j) closes a canonical structure */
 
     /* pop one element from stack */
-    i   = sector[s].i;
-    j   = sector[s].j;
-    ml  = sector[s--].ml;  /* ml is a flag indicating if backtracking is to
+    i   = sector[bt_stack_size].i;
+    j   = sector[bt_stack_size].j;
+    ml  = sector[bt_stack_size--].ml;  /* ml is a flag indicating if backtracking is to
                            * occur in the fML- (1) or in the f-array (0) */
 
     if (j < i + turn + 1)
@@ -921,11 +922,11 @@ backtrack(vrna_fold_compound_t  *vc,
     switch (ml) {
       /* backtrack in f3 */
       case VRNA_MX_FLAG_F3:
-        if (vrna_BT_ext_loop_f3(vc, &i, j, &p, &q, bp_stack, &b)) {
+        if (vrna_BT_ext_loop_f3(vc, &i, j, &p, &q, bp_stack, &bp_stack_size)) {
           if (i > 0) {
-            sector[++s].i = i;
-            sector[s].j   = j;
-            sector[s].ml  = VRNA_MX_FLAG_F3;
+            sector[++bt_stack_size].i = i;
+            sector[bt_stack_size].j   = j;
+            sector[bt_stack_size].ml  = VRNA_MX_FLAG_F3;
           }
 
           if (p > 0) {
@@ -940,7 +941,7 @@ backtrack(vrna_fold_compound_t  *vc,
              * check whether last element on the bp_stack is involved in G-Quadruplex formation
              * and increase output dot-bracket string length by 1 if necessary
              */
-            if ((bp_stack[b].i == bp_stack[b].j) && (bp_stack[b].i < length))
+            if ((bp_stack[bp_stack_size].i == bp_stack[bp_stack_size].j) && (bp_stack[bp_stack_size].i < length))
               dangle3 = 1;
           }
 
@@ -956,17 +957,17 @@ backtrack(vrna_fold_compound_t  *vc,
 
       /* trace back in fML array */
       case VRNA_MX_FLAG_M:
-        if (vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, &comp1, &comp2, bp_stack, &b)) {
+        if (vrna_BT_mb_loop_split(vc, &i, &j, &p, &q, &comp1, &comp2, bp_stack, &bp_stack_size)) {
           if (i > 0) {
-            sector[++s].i = i;
-            sector[s].j   = j;
-            sector[s].ml  = comp1;
+            sector[++bt_stack_size].i = i;
+            sector[bt_stack_size].j   = j;
+            sector[bt_stack_size].ml  = comp1;
           }
 
           if (p > 0) {
-            sector[++s].i = p;
-            sector[s].j   = q;
-            sector[s].ml  = comp2;
+            sector[++bt_stack_size].i = p;
+            sector[bt_stack_size].j   = q;
+            sector[bt_stack_size].ml  = comp2;
           }
 
           continue;
@@ -981,8 +982,8 @@ backtrack(vrna_fold_compound_t  *vc,
 
       /* backtrack in c */
       case VRNA_MX_FLAG_C:
-        bp_stack[++b].i = i;
-        bp_stack[b].j   = j;
+        bp_stack[++bp_stack_size].i = i;
+        bp_stack[bp_stack_size].j   = j;
         goto repeat1;
         break;
 
@@ -1001,7 +1002,7 @@ repeat1:
       cij = c[i][j - i];
 
     if (noLP) {
-      if (vrna_BT_stack(vc, &i, &j, &cij, bp_stack, &b)) {
+      if (vrna_BT_stack(vc, &i, &j, &cij, bp_stack, &bp_stack_size)) {
         canonical = 0;
         goto repeat1;
       }
@@ -1019,7 +1020,7 @@ repeat1:
           if (cij == FORBIDDEN)
             continue;
         } else {
-          if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
+          if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &bp_stack_size))
             continue;
         }
 
@@ -1027,13 +1028,13 @@ repeat1:
 
       case VRNA_FC_TYPE_COMPARATIVE:
         cij += pscore[i][j - i];
-        if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &b))
+        if (vrna_BT_hp_loop(vc, i, j, cij, bp_stack, &bp_stack_size))
           continue;
 
         break;
     }
 
-    if (vrna_BT_int_loop(vc, &i, &j, cij, bp_stack, &b)) {
+    if (vrna_BT_int_loop(vc, &i, &j, cij, bp_stack, &bp_stack_size)) {
       if (i < 0)
         continue;
       else
@@ -1042,12 +1043,12 @@ repeat1:
 
     /* (i.j) must close a multi-loop */
     if (vrna_BT_mb_loop(vc, &i, &j, &k, cij, &comp1, &comp2)) {
-      sector[++s].i = i;
-      sector[s].j   = k;
-      sector[s].ml  = comp1;
-      sector[++s].i = k + 1;
-      sector[s].j   = j;
-      sector[s].ml  = comp2;
+      sector[++bt_stack_size].i = i;
+      sector[bt_stack_size].j   = k;
+      sector[bt_stack_size].ml  = comp1;
+      sector[++bt_stack_size].i = k + 1;
+      sector[bt_stack_size].j   = j;
+      sector[bt_stack_size].ml  = comp2;
     } else {
       vrna_log_error("backtracking failed in repeat, segment [%d,%d]\n", i, j);
       free(structure);
@@ -1059,11 +1060,11 @@ repeat1:
   } /* end of infinite while loop */
 
 
-  bp_stack[0].i = b;
+  bp_stack[0].i = bp_stack_size;
 
   /* and now create a dot-brakcet string from the base pair stack... */
   max3 = 1;
-  for (i = 1; i <= b; i++) {
+  for (i = 1; i <= bp_stack_size; i++) {
     if (bp_stack[i].i == bp_stack[i].j) {
       /* Gquad bonds are marked as bp[i].i == bp[i].j */
       structure[bp_stack[i].i - start] = '+';

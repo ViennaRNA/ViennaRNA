@@ -356,7 +356,7 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
                 int                   j,
                 int                   en,
                 vrna_bp_stack_t       *bp_stack,
-                int                   *stack_count);
+                unsigned int          *stack_count);
 
 
 /**
