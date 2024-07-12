@@ -91,8 +91,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
 
 PRIVATE int
 postprocess_circular(vrna_fold_compound_t *fc,
-                     sect                 bt_stack[],
-                     unsigned int         *bt_stack_size);
+                     vrna_array(vrna_sect_t) bt_stack);
 
 
 PRIVATE INLINE void
@@ -108,8 +107,7 @@ fill_fM_d3(vrna_fold_compound_t *fc,
 PRIVATE int
 backtrack(vrna_fold_compound_t  *fc,
           vrna_bp_stack_t       *bp_stack,
-          sect                  bt_stack[],
-          unsigned int          bt_stack_size,
+          vrna_array(vrna_sect_t) bt_stack,
           struct ms_helpers     *ms_dat);
 
 
@@ -203,11 +201,12 @@ vrna_mfe(vrna_fold_compound_t *fc,
   unsigned int      bt_stack_size;
   int               length, energy;
   float             mfe;
-  sect              bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
+  vrna_array(vrna_sect_t) bt_stack; /* stack of partial structures for backtracking */
   vrna_bp_stack_t   *bp;
   struct ms_helpers *ms_dat;
 
-  bt_stack_size = 0;
+  vrna_array_init(bt_stack);
+
   mfe = (float)(INF / 100.);
 
   if (fc) {
@@ -216,6 +215,7 @@ vrna_mfe(vrna_fold_compound_t *fc,
 
     if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_MFE)) {
       vrna_log_warning("vrna_mfe@mfe.c: Failed to prepare vrna_fold_compound");
+      vrna_array_free(bt_stack);
       return mfe;
     }
 
@@ -236,13 +236,13 @@ vrna_mfe(vrna_fold_compound_t *fc,
     energy = fill_arrays(fc, ms_dat);
 
     if (fc->params->model_details.circ)
-      energy = postprocess_circular(fc, bt_stack, &bt_stack_size);
+      energy = postprocess_circular(fc, bt_stack);
 
     if (structure && fc->params->model_details.backtrack) {
       /* add a guess of how many G's may be involved in a G quadruplex */
       bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));
 
-      if (backtrack(fc, bp, bt_stack, bt_stack_size, ms_dat) != 0) {
+      if (backtrack(fc, bp, bt_stack, ms_dat) != 0) {
         ss = vrna_db_from_bp_stack(bp, length);
         strncpy(structure, ss, length + 1);
         free(ss);
@@ -286,6 +286,8 @@ vrna_mfe(vrna_fold_compound_t *fc,
     free_ms_helpers(ms_dat, fc->strands);
   }
 
+  vrna_array_free(bt_stack);
+
   return mfe;
 }
 
@@ -296,8 +298,16 @@ vrna_backtrack_from_intervals(vrna_fold_compound_t  *fc,
                               sect                  bt_stack[],
                               int                   s)
 {
-  if (fc)
-    return backtrack(fc, bp_stack, bt_stack, (unsigned int)s, NULL);
+  if (fc) {
+    vrna_array(vrna_sect_t) bts;
+    if (s > 0) {
+      vrna_array_init_size(bts, (unsigned int)s);
+      bts = memcpy(bts, &(bt_stack[0]), sizeof(vrna_sect_t) * (unsigned int)s);
+    } else {
+      vrna_array_init(bts);
+    }
+    return backtrack(fc, bp_stack, bts, NULL);
+  }
 
   return 0;
 }
@@ -309,12 +319,10 @@ vrna_backtrack5(vrna_fold_compound_t  *fc,
                 char                  *structure)
 {
   char            *ss;
-  unsigned int    s;
   float           mfe;
-  sect            bt_stack[MAXSECTORS]; /* stack of partial structures for backtracking */
+  vrna_array(vrna_sect_t) bt_stack; /* stack of partial structures for backtracking */
   vrna_bp_stack_t *bp;
 
-  s   = 0;
   mfe = (float)(INF / 100.);
 
   if ((fc) && (structure) && (fc->matrices) && (fc->matrices->f5) &&
@@ -327,12 +335,15 @@ vrna_backtrack5(vrna_fold_compound_t  *fc,
     /* add a guess of how many G's may be involved in a G quadruplex */
     bp = (vrna_bp_stack_t *)vrna_alloc(sizeof(vrna_bp_stack_t) * (4 * (1 + length / 2)));
 
-    bt_stack[++s].i = 1;
-    bt_stack[s].j   = length;
-    bt_stack[s].ml  = VRNA_MX_FLAG_F5;
+    vrna_array_init_size(bt_stack, 1);
+    vrna_array_append(bt_stack,
+                      ((vrna_sect_t){
+                        .i = 1,
+                        .j = length,
+                        .ml = VRNA_MX_FLAG_F5
+                      }));
 
-
-    if (backtrack(fc, bp, bt_stack, s, NULL) != 0) {
+    if (backtrack(fc, bp, bt_stack, NULL) != 0) {
       ss = vrna_db_from_bp_stack(bp, length);
       strncpy(structure, ss, length + 1);
       free(ss);
@@ -450,8 +461,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
 /* post-processing step for circular RNAs */
 PRIVATE int
 postprocess_circular(vrna_fold_compound_t *fc,
-                     sect                 bt_stack[],
-                     unsigned int         *bt_stack_size)
+                     vrna_array(vrna_sect_t)  bt_stack)
 {
   /*
    * auxiliarry arrays:
@@ -1139,9 +1149,13 @@ postprocess_circular(vrna_fold_compound_t *fc,
       int real_i, sc_en = 0;
 
       /* looks like we have to do this ... */
-      bt_stack[++(*bt_stack_size)].i = 1;
-      bt_stack[(*bt_stack_size)].j   = (Md5i > 0) ? Md5i : -Md5i;
-      bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_C;
+      vrna_array_append(bt_stack,
+                        ((vrna_sect_t){
+                          .i = 1,
+                          .j = (Md5i > 0) ? Md5i : -Md5i,
+                          .ml = VRNA_MX_FLAG_C
+                        }));
+
       i                   = (Md5i > 0) ? Md5i + 1 : -Md5i + 2; /* let's backtrack fm_d5[Md5i+1] */
       real_i              = (Md5i > 0) ? i : i - 1;
 
@@ -1199,12 +1213,14 @@ postprocess_circular(vrna_fold_compound_t *fc,
         }
 
         if (fM_d5[i] == fm) {
-          bt_stack[++(*bt_stack_size)].i = i;
-          bt_stack[(*bt_stack_size)].j   = u;
-          bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_M;
-          bt_stack[++(*bt_stack_size)].i = u + 1;
-          bt_stack[(*bt_stack_size)].j   = length - 1;
-          bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_M;
+          vrna_array_append(bt_stack, ((vrna_sect_t){
+            .i = i,
+            .j = u,
+            .ml = VRNA_MX_FLAG_M}));
+          vrna_array_append(bt_stack, ((vrna_sect_t){
+            .i = u + 1,
+            .j   = length - 1,
+            .ml  = VRNA_MX_FLAG_M}));
           break;
         }
       }
@@ -1212,9 +1228,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
     } else if (FcMd3 < Fc) {
       int real_i, sc_en = 0;
       /* here we go again... */
-      bt_stack[++(*bt_stack_size)].i = (Md3i > 0) ? Md3i + 1 : -Md3i + 1;
-      bt_stack[(*bt_stack_size)].j   = length;
-      bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_C;
+      vrna_array_append(bt_stack, ((vrna_sect_t){
+        .i = (Md3i > 0) ? Md3i + 1 : -Md3i + 1,
+        .j   = length,
+        .ml  = VRNA_MX_FLAG_C}));
+
       i                   = (Md3i > 0) ? Md3i : -Md3i - 1; /* let's backtrack fm_d3[Md3i] */
       real_i              = (Md3i > 0) ? i : i + 1;
 
@@ -1272,12 +1290,14 @@ postprocess_circular(vrna_fold_compound_t *fc,
         }
 
         if (fM_d3[i] == fm) {
-          bt_stack[++(*bt_stack_size)].i = 2;
-          bt_stack[(*bt_stack_size)].j   = u;
-          bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_M;
-          bt_stack[++(*bt_stack_size)].i = u + 1;
-          bt_stack[(*bt_stack_size)].j   = i;
-          bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_M;
+          vrna_array_append(bt_stack, ((vrna_sect_t){
+            .i = 2,
+            .j = u,
+            .ml = VRNA_MX_FLAG_M}));
+          vrna_array_append(bt_stack, ((vrna_sect_t){
+            .i = u + 1,
+            .j   = i,
+            .ml  = VRNA_MX_FLAG_M}));
           break;
         }
       }
@@ -1290,16 +1310,19 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
   if (Fc < INF) {
     if (FcH == Fc) {
-      bt_stack[++(*bt_stack_size)].i = Hi;
-      bt_stack[(*bt_stack_size)].j   = Hj;
-      bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_C;
+      vrna_array_append(bt_stack, ((vrna_sect_t){
+        .i = Hi,
+        .j = Hj,
+        .ml = VRNA_MX_FLAG_C}));
     } else if (FcI == Fc) {
-      bt_stack[++(*bt_stack_size)].i = Ii;
-      bt_stack[(*bt_stack_size)].j   = Ij;
-      bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_C;
-      bt_stack[++(*bt_stack_size)].i = Ip;
-      bt_stack[(*bt_stack_size)].j   = Iq;
-      bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_C;
+      vrna_array_append(bt_stack, ((vrna_sect_t){
+        .i = Ii,
+        .j = Ij,
+        .ml = VRNA_MX_FLAG_C}));
+      vrna_array_append(bt_stack, ((vrna_sect_t){
+        .i = Ip,
+        .j = Iq,
+        .ml = VRNA_MX_FLAG_C}));
     } else if (FcM == Fc) {
       /* grumpf we found a Multiloop */
       int eee;
@@ -1333,23 +1356,27 @@ postprocess_circular(vrna_fold_compound_t *fc,
         }
 
         if (fm == eee) {
-          bt_stack[++(*bt_stack_size)].i = Mi + 1;
-          bt_stack[(*bt_stack_size)].j   = u;
-          bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_M;
-          bt_stack[++(*bt_stack_size)].i = u + 1;
-          bt_stack[(*bt_stack_size)].j   = length;
-          bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_M;
+          vrna_array_append(bt_stack, ((vrna_sect_t){
+            .i = Mi + 1,
+            .j = u,
+            .ml = VRNA_MX_FLAG_M}));
+          vrna_array_append(bt_stack, ((vrna_sect_t){
+            .i = u + 1,
+            .j = length,
+            .ml = VRNA_MX_FLAG_M}));
           break;
         }
       }
-      bt_stack[++(*bt_stack_size)].i = 1;
-      bt_stack[(*bt_stack_size)].j   = Mi;
-      bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_M;
+      vrna_array_append(bt_stack, ((vrna_sect_t){
+        .i = 1,
+        .j = Mi,
+        .ml = VRNA_MX_FLAG_M}));
     } else if (Fc == FcO) {
       /* unstructured */
-      bt_stack[++(*bt_stack_size)].i = 1;
-      bt_stack[(*bt_stack_size)].j   = 1;
-      bt_stack[(*bt_stack_size)].ml  = VRNA_MX_FLAG_F5;
+      vrna_array_append(bt_stack, ((vrna_sect_t){
+        .i = 1,
+        .j = 1,
+        .ml = VRNA_MX_FLAG_F5}));
     }
   } else {
     /* forbidden, i.e. no configuration fulfills constraints */
