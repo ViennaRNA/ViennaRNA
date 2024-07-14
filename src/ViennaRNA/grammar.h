@@ -95,9 +95,9 @@ typedef FLT_OR_DBL (*vrna_gr_outside_exp_f)(vrna_fold_compound_t  *fc,
  *  For that purpose, the function may modify the base pair (@p bp_stack) by adding
  *  all base pairs identified through the additional rule. In addition, when the rule
  *  sub-divides the sequence segment into smaller pieces, these pieces can be put onto
- *  the backtracking (@p bt_stack) stack(s). The stack sizes always have to be increased
- *  accordingly. On successful backtrack, the function returns non-zero, and exactly
- *  zero (0) when the backtracking failed.
+ *  the backtracking (@p bt_stack) stack(s).
+ *  On successful backtrack, the function returns non-zero, and exactly zero (0)
+ *  when the backtracking failed.
  *
  *  @callback
  *  @parblock
@@ -114,7 +114,6 @@ typedef FLT_OR_DBL (*vrna_gr_outside_exp_f)(vrna_fold_compound_t  *fc,
  *  @param  bp_stack      The base pair stack
  *  @param  bp_stack_size A pointer to the current size of the @p bp_stack size
  *  @param  bt_stack      The backtracking stack (all segments that need to be further investigated)
- *  @param  bt_stack_size A pointer to the current size of the @p bt_stack size
  *  @param  data  An arbitrary user-provided data pointer
  *  @return       The free energy computed by the auxiliary grammar rule in dekacal/mol
  */
@@ -123,8 +122,7 @@ typedef int (*vrna_gr_outside_f)(vrna_fold_compound_t *fc,
                                  unsigned int         j,
                                  vrna_bp_stack_t      *bp_stack,
                                  unsigned int         *bp_stack_size,
-                                 vrna_sect_t          *bt_stack,
-                                 unsigned int         *bt_stack_size,
+                                 vrna_array(vrna_sect_t)  bt_stack,
                                  void                 *data);
 
 

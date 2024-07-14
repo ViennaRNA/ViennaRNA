@@ -3,6 +3,7 @@
 
 #include <ViennaRNA/utils/basic.h>
 #include <ViennaRNA/datastructures/basic.h>
+#include <ViennaRNA/datastructures/array.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
 
@@ -145,13 +146,12 @@ vrna_exp_E_ml_fast(vrna_fold_compound_t *fc,
  */
 
 unsigned int
-vrna_bt_m(vrna_fold_compound_t  *fc,
-          unsigned int          i,
-          unsigned int          j,
-          vrna_bp_stack_t       *bp_stack,
-          unsigned int          *bp_stack_size,
-          vrna_sect_t           *bt_stack,
-          unsigned int          *bt_stack_size);
+vrna_bt_m(vrna_fold_compound_t    *fc,
+          unsigned int            i,
+          unsigned int            j,
+          vrna_bp_stack_t         *bp_stack,
+          unsigned int            *bp_stack_size,
+          vrna_array(vrna_sect_t) bt_stack);
 
 /**
  *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
