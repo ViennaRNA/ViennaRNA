@@ -351,12 +351,11 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
  *
  */
 int
-vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
+vrna_bt_hp_loop(vrna_fold_compound_t  *fc,
                 int                   i,
                 int                   j,
                 int                   en,
-                vrna_bp_stack_t       *bp_stack,
-                unsigned int          *stack_count);
+                vrna_bps_t            bp_stack);
 
 
 /**
@@ -364,6 +363,16 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
  */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+DEPRECATED(int
+vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j,
+                int                   en,
+                vrna_bp_stack_t       *bp_stack,
+                unsigned int          *stack_count),
+          "Use vrna_bt_hp_loop() instead!");
+
 
 /**
  *  @addtogroup   eval_deprecated

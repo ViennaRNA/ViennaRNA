@@ -183,32 +183,29 @@ unsigned int
 vrna_bt_f(vrna_fold_compound_t    *fc,
           unsigned int            i,
           unsigned int            j,
-          vrna_bp_stack_t         *bp_stack,
-          unsigned int            *bp_stack_size,
+          vrna_bps_t              bp_stack,
           vrna_bts_t              bt_stack);
 
 
-int
-vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
+unsigned int
+vrna_bt_ext_loop_f5(vrna_fold_compound_t  *fc,
                     int                   *k,
                     int                   *i,
                     int                   *j,
-                    vrna_bp_stack_t       *bp_stack,
-                    unsigned int          *stack_count);
+                    vrna_bps_t            bp_stack);
 
 
-int
-vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
+unsigned int
+vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
                     int                   *k,
                     int                   maxdist,
                     int                   *i,
                     int                   *j,
-                    vrna_bp_stack_t       *bp_stack,
-                    unsigned int          *stack_count);
+                    vrna_bps_t            bp_stack);
 
 
 int
-vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
                        int                  *i,
                        int                  maxdist);
 
@@ -223,6 +220,34 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
  *  @addtogroup   eval_deprecated
  *  @{
  */
+
+DEPRECATED(int
+vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
+                    int                   *k,
+                    int                   *i,
+                    int                   *j,
+                    vrna_bp_stack_t       *bp_stack,
+                    unsigned int          *stack_count),
+            "Use vrna_bt_ext_loop_f5() instead!");
+
+
+DEPRECATED(int
+vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
+                    int                   *k,
+                    int                   maxdist,
+                    int                   *i,
+                    int                   *j,
+                    vrna_bp_stack_t       *bp_stack,
+                    unsigned int          *stack_count),
+            "Use vrna_bt_ext_loop_f3() instead!");
+
+
+DEPRECATED(int
+vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+                       int                  *i,
+                       int                  maxdist),
+            "Use vrna_bt_ext_loop_f3_pp() instead!");
+
 
 /**
  *  @brief Compute the energy contribution of a stem branching off a loop-region

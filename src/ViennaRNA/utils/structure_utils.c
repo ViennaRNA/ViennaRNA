@@ -884,6 +884,57 @@ vrna_letter_structure(char            *structure,
 
 
 PUBLIC char *
+vrna_db_from_bps(vrna_bps_t   bp_stack,
+                 unsigned int length)
+{
+  size_t        k;
+  unsigned int  i, j, tmp;
+  int           temp;
+  char          *structure;
+  vrna_bp_t     bp;
+
+  structure = NULL;
+
+  if (bp_stack) {
+    structure = vrna_alloc(sizeof(char) * (length + 1));
+
+    if (length > 0)
+      memset(structure, '.', length);
+
+    structure[length] = '\0';
+
+    for (k = 0; k < vrna_bps_size(bp_stack); k++) {
+      bp = vrna_bps_at(bp_stack, k);
+      i = bp.i;
+      j = bp.j;
+      if (i > length)
+        i -= length;
+
+      if (j > length)
+        j -= length;
+
+      if (i > j) {
+        temp  = i;
+        i     = j;
+        j     = temp;
+      }
+
+      if (i == j) {
+        /* Gquad bonds are marked as bp[i].i == bp[i].j */
+        structure[i - 1] = '+';
+      } else {
+        /* the following ones are regular base pairs */
+        structure[i - 1]  = '(';
+        structure[j - 1]  = ')';
+      }
+    }
+  }
+
+  return structure;
+}
+
+
+PUBLIC char *
 vrna_db_from_bp_stack(vrna_bp_stack_t *bp,
                       unsigned int    length)
 {

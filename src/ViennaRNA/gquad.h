@@ -251,11 +251,18 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
+vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j,
-                  vrna_bp_stack_t       *bp_stack,
-                  unsigned int          *stack_count)
+                  int                   en,
+                  vrna_bps_t            bp_stack);
+
+
+PRIVATE INLINE int
+vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j,
+                  vrna_bps_t            bp_stack)
 {
   /*
    * here we do some fancy stuff to backtrace the stacksize and linker lengths
@@ -285,15 +292,28 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
     if (L != -1) {
       /* fill the G's of the quadruplex into base_pair2 */
       for (a = 0; a < L; a++) {
-        bp_stack[++(*stack_count)].i  = i + a;
-        bp_stack[(*stack_count)].j    = i + a;
-        bp_stack[++(*stack_count)].i  = i + L + l[0] + a;
-        bp_stack[(*stack_count)].j    = i + L + l[0] + a;
-        bp_stack[++(*stack_count)].i  = i + L + l[0] + L + l[1] + a;
-        bp_stack[(*stack_count)].j    = i + L + l[0] + L + l[1] + a;
-        bp_stack[++(*stack_count)].i  = i + L + l[0] + L + l[1] + L + l[2] + a;
-        bp_stack[(*stack_count)].j    = i + L + l[0] + L + l[1] + L + l[2] + a;
+        vrna_bps_push(bp_stack,
+                      (vrna_bp_t){
+                        .i = i + a,
+                        .j = i + a
+                      });
+        vrna_bps_push(bp_stack,
+                      (vrna_bp_t){
+                        .i  = i + L + l[0] + a,
+                        .j    = i + L + l[0] + a
+                      });
+        vrna_bps_push(bp_stack,
+                      (vrna_bp_t){
+                        .i  = i + L + l[0] + L + l[1] + a,
+                        .j    = i + L + l[0] + L + l[1] + a
+                      });
+        vrna_bps_push(bp_stack,
+                      (vrna_bp_t){
+                        .i  = i + L + l[0] + L + l[1] + L + l[2] + a,
+                        .j    = i + L + l[0] + L + l[1] + L + l[2] + a
+                      });
       }
+
       return 1;
     } else {
       return 0;
@@ -305,12 +325,39 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
+vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j,
+                  vrna_bp_stack_t       *bp_stack,
+                  unsigned int          *stack_count)
+{
+  int r = 0;
+
+  if ((fc) &&
+      (bp_stack) &&
+      (stack_count)) {
+    vrna_bps_t bps = vrna_bps_init(4);
+    r = vrna_bt_gquad_mfe(fc, i, j, bps);
+
+    while (vrna_bps_size(bps) > 0) {
+      vrna_bp_t bp = vrna_bps_pop(bps);
+      bp_stack[++(*stack_count)].i = bp.i;
+      bp_stack[*stack_count].j = bp.j;
+    }
+
+    vrna_bps_free(bps);
+  }
+
+  return r;
+}
+
+
+PRIVATE INLINE int
+vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j,
                   int                   en,
-                  vrna_bp_stack_t       *bp_stack,
-                  unsigned int          *stack_count)
+                  vrna_bps_t            bp_stack)
 {
   int           energy, dangles, *idx, ij, p, q, maxl, minl, c0, l1, *ggg;
   unsigned char type;
@@ -354,7 +401,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
           continue;
 
         if (en == energy + ggg[idx[q] + p] + P->internal_loop[j - q - 1])
-          return vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count);
+          return vrna_bt_gquad_mfe(fc, p, q, bp_stack);
       }
     }
   }
@@ -380,7 +427,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
         continue;
 
       if (en == energy + ggg[idx[q] + p] + P->internal_loop[l1 + j - q - 1])
-        return vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count);
+        return vrna_bt_gquad_mfe(fc, p, q, bp_stack);
     }
   }
 
@@ -397,10 +444,38 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
         continue;
 
       if (en == energy + ggg[idx[q] + p] + P->internal_loop[l1])
-        return vrna_BT_gquad_mfe(fc, p, q, bp_stack, stack_count);
+        return vrna_bt_gquad_mfe(fc, p, q, bp_stack);
     }
 
   return 0;
+}
+
+
+PRIVATE INLINE int
+vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j,
+                  int                   en,
+                  vrna_bp_stack_t       *bp_stack,
+                  unsigned int          *stack_count)
+{
+  int r = 0;
+
+  if ((fc) &&
+      (bp_stack) &&
+      (stack_count)) {
+    vrna_bps_t bps = vrna_bps_init(4);
+    r = vrna_bt_gquad_int(fc, i, j, en, bps);
+    while (vrna_bps_size(bps) > 0) {
+      vrna_bp_t bp = vrna_bps_pop(bps);
+      bp_stack[++(*stack_count)].i = bp.i;
+      bp_stack[*stack_count].j = bp.j;
+    }
+    
+    vrna_bps_free(bps);
+  }
+
+  return r;
 }
 
 

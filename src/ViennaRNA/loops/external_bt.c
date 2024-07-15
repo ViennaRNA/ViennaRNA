@@ -41,52 +41,64 @@
  #################################
  */
 
-PRIVATE int
-BT_ext_loop_f5(vrna_fold_compound_t *fc,
+PRIVATE unsigned int
+bt_ext_loop_f5(vrna_fold_compound_t *fc,
                int                  *k,
                int                  *i,
                int                  *j,
-               vrna_bp_stack_t      *bp_stack,
-               unsigned int         *stack_count);
+               vrna_bps_t           bp_stack);
 
 
-PRIVATE int
-BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
+PRIVATE unsigned int
+bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
                            int                  *k,
                            int                  *i,
                            int                  *j,
-                           vrna_bp_stack_t      *bp_stack,
-                           unsigned int         *stack_count);
+                           vrna_bps_t           bp_stack);
 
 
-PRIVATE int
-BT_ext_loop_f3(vrna_fold_compound_t *fc,
+PRIVATE unsigned int
+bt_ext_loop_f5(vrna_fold_compound_t *fc,
+               int                  *k,
+               int                  *i,
+               int                  *j,
+               vrna_bps_t           bp_stack);
+
+
+PRIVATE unsigned int
+bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
+                           int                  *k,
+                           int                  *i,
+                           int                  *j,
+                           vrna_bps_t           bp_stack);
+
+
+PRIVATE unsigned int
+bt_ext_loop_f3(vrna_fold_compound_t *fc,
                int                  *k,
                int                  maxdist,
                int                  *i,
                int                  *j,
-               vrna_bp_stack_t      *bp_stack,
-               unsigned int         *stack_count);
+               vrna_bps_t           bp_stack);
 
 
-PRIVATE int
-BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
+PRIVATE unsigned int
+bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
                            int                  *k,
                            int                  maxdist,
                            int                  *i,
                            int                  *j,
-                           vrna_bp_stack_t      *bp_stack,
-                           unsigned int         *stack_count);
+                           vrna_bps_t           bp_stack);
 
 
 PRIVATE int
-BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
+bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
                   int                   *i,
                   int                   maxj);
 
 
 PRIVATE int
-BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
+bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
                               int                   *i,
                               int                   maxj);
 
@@ -101,8 +113,7 @@ PUBLIC unsigned int
 vrna_bt_f(vrna_fold_compound_t    *fc,
           unsigned int            i,
           unsigned int            j,
-          vrna_bp_stack_t         *bp_stack,
-          unsigned int            *bp_stack_size,
+          vrna_bps_t              bp_stack,
           vrna_bts_t              bt_stack)
 {
   unsigned int ret = 0;
@@ -112,7 +123,7 @@ vrna_bt_f(vrna_fold_compound_t    *fc,
   jj = (int)j;
 
   if (fc) {
-    if (ret = (unsigned int)vrna_BT_ext_loop_f5(fc, &jj, &p, &q, bp_stack, bp_stack_size)) {
+    if (ret = vrna_bt_ext_loop_f5(fc, &jj, &p, &q, bp_stack)) {
       ret = 1;
 
       if (jj > 0) {
@@ -131,7 +142,7 @@ vrna_bt_f(vrna_fold_compound_t    *fc,
     } else if (fc->aux_grammar) {
       for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->f); c++) {
         if ((fc->aux_grammar->f[c].cb_bt) &&
-            (ret = fc->aux_grammar->f[c].cb_bt(fc, i, j, bp_stack, bp_stack_size, bt_stack, fc->aux_grammar->f[c].data)))
+            (ret = fc->aux_grammar->f[c].cb_bt(fc, i, j, bp_stack, bt_stack, fc->aux_grammar->f[c].data)))
           break;
       }
     }
@@ -141,27 +152,50 @@ vrna_bt_f(vrna_fold_compound_t    *fc,
 }
 
 
-PUBLIC int
-vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
+PUBLIC unsigned int
+vrna_bt_ext_loop_f5(vrna_fold_compound_t  *fc,
                     int                   *k,
                     int                   *i,
                     int                   *j,
-                    vrna_bp_stack_t       *bp_stack,
-                    unsigned int          *stack_count)
+                    vrna_bps_t            bp_stack)
 {
   if (fc) {
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        return BT_ext_loop_f5(fc, k, i, j, bp_stack, stack_count);
+        return bt_ext_loop_f5(fc, k, i, j, bp_stack);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        return BT_ext_loop_f5_comparative(fc, k, i, j, bp_stack, stack_count);
+        return bt_ext_loop_f5_comparative(fc, k, i, j, bp_stack);
         break;
     }
   }
 
-  return -1;
+  return 0;
+}
+
+
+PUBLIC unsigned int
+vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
+                    int                   *k,
+                    int                   maxdist,
+                    int                   *i,
+                    int                   *j,
+                    vrna_bps_t            bp_stack)
+{
+  if (fc) {
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        return bt_ext_loop_f3(fc, k, maxdist, i, j, bp_stack);
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        return bt_ext_loop_f3_comparative(fc, k, maxdist, i, j, bp_stack);
+        break;
+    }
+  }
+
+  return 0;
 }
 
 
@@ -174,35 +208,44 @@ vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
                     vrna_bp_stack_t       *bp_stack,
                     unsigned int          *stack_count)
 {
-  if (fc) {
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        return BT_ext_loop_f3(fc, k, maxdist, i, j, bp_stack, stack_count);
-        break;
+  int r = 0;
 
-      case VRNA_FC_TYPE_COMPARATIVE:
-        return BT_ext_loop_f3_comparative(fc, k, maxdist, i, j, bp_stack, stack_count);
-        break;
+  if ((fc) &&
+      (k) &&
+      (i) &&
+      (j) &&
+      (bp_stack) &&
+      (stack_count)) {
+    vrna_bps_t  bps = vrna_bps_init(0);
+
+    r = (int)vrna_bt_ext_loop_f3(fc, k, maxdist, i, j, bps);
+
+    while (vrna_bps_size(bps) > 0) {
+      vrna_bp_t bp = vrna_bps_pop(bps);
+      bp_stack[++(*stack_count)].i = bp.i;
+      bp_stack[*stack_count].j = bp.j;
     }
+
+    vrna_bps_free(bps);
   }
 
-  return -1;
+  return r;
 }
 
 
 PUBLIC int
-vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
                        int                  *i,
                        int                  maxj)
 {
   if (fc) {
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        return BT_ext_loop_f3_pp(fc, i, maxj);
+        return bt_ext_loop_f3_pp(fc, i, maxj);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        return BT_ext_loop_f3_pp_comparative(fc, i, maxj);
+        return bt_ext_loop_f3_pp_comparative(fc, i, maxj);
         break;
     }
   }
@@ -211,13 +254,12 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE int
-BT_ext_loop_f5(vrna_fold_compound_t *fc,
+PRIVATE unsigned int
+bt_ext_loop_f5(vrna_fold_compound_t *fc,
                int                  *k,
                int                  *i,
                int                  *j,
-               vrna_bp_stack_t      *bp_stack,
-               unsigned int         *stack_count)
+               vrna_bps_t           bp_stack)
 {
   char                      *ptype;
   short                     mm5, mm3, *S1;
@@ -356,7 +398,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
           }
         }
 
@@ -377,8 +419,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
             *i                            = u;
             *j                            = jj;
             *k                            = u - 1;
-            bp_stack[++(*stack_count)].i  = u;
-            bp_stack[(*stack_count)].j    = jj;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i  = u,
+                            .j  = jj
+                          });
             return 1;
           }
         }
@@ -392,7 +437,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
           }
         }
 
@@ -414,8 +459,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
             *i                            = u;
             *j                            = jj;
             *k                            = u - 1;
-            bp_stack[++(*stack_count)].i  = u;
-            bp_stack[(*stack_count)].j    = jj;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i  = u,
+                            .j  = jj
+                          });
             return 1;
           }
         }
@@ -427,7 +475,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
         if (fij == my_ggg[idx[jj] + 1]) {
           *i  = *j = -1;
           *k  = 0;
-          return vrna_BT_gquad_mfe(fc, 1, jj, bp_stack, stack_count);
+          return vrna_bt_gquad_mfe(fc, 1, jj, bp_stack);
         }
       }
 
@@ -448,8 +496,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
           *i                            = 1;
           *j                            = jj;
           *k                            = 0;
-          bp_stack[++(*stack_count)].i  = 1;
-          bp_stack[(*stack_count)].j    = jj;
+          vrna_bps_push(bp_stack,
+                        (vrna_bp_t){
+                          .i  = 1,
+                          .j  = jj
+                        });
           return 1;
         }
       }
@@ -477,8 +528,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
             *i                            = 1;
             *j                            = jj - 1;
             *k                            = 0;
-            bp_stack[++(*stack_count)].i  = 1;
-            bp_stack[(*stack_count)].j    = jj - 1;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i  = 1,
+                            .j  = jj - 1
+                          });
             return 1;
           }
         }
@@ -489,7 +543,7 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
           }
         }
 
@@ -514,8 +568,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
             *i                            = u;
             *j                            = jj;
             *k                            = u - 1;
-            bp_stack[++(*stack_count)].i  = u;
-            bp_stack[(*stack_count)].j    = jj;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i  = u,
+                            .j  = jj
+                          });
             return 1;
           }
         }
@@ -539,8 +596,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
               *i                            = u;
               *j                            = jj;
               *k                            = u - 2;
-              bp_stack[++(*stack_count)].i  = u;
-              bp_stack[(*stack_count)].j    = jj;
+              vrna_bps_push(bp_stack,
+                            (vrna_bp_t){
+                              .i = u,
+                              .j = jj
+                            });
               return 1;
             }
           }
@@ -575,8 +635,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
             *i                            = u;
             *j                            = jj - 1;
             *k                            = u - 1;
-            bp_stack[++(*stack_count)].i  = u;
-            bp_stack[(*stack_count)].j    = jj - 1;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i = u,
+                            .j = jj - 1
+                          });
             return 1;
           }
         }
@@ -596,8 +659,11 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
             *i                            = u;
             *j                            = jj - 1;
             *k                            = u - 2;
-            bp_stack[++(*stack_count)].i  = u;
-            bp_stack[(*stack_count)].j    = jj - 1;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i  = u,
+                            .j  = jj - 1
+                          });
             return 1;
           }
         }
@@ -609,13 +675,12 @@ BT_ext_loop_f5(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE int
-BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
+PRIVATE unsigned int
+bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
                            int                  *k,
                            int                  *i,
                            int                  *j,
-                           vrna_bp_stack_t      *bp_stack,
-                           unsigned int         *stack_count)
+                           vrna_bps_t           bp_stack)
 {
   unsigned int              **a2s, n;
   short                     **S, **S5, **S3;
@@ -687,7 +752,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
           }
         }
 
@@ -710,8 +775,11 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
             *i                            = u;
             *j                            = jj;
             *k                            = u - 1;
-            bp_stack[++(*stack_count)].i  = u;
-            bp_stack[(*stack_count)].j    = jj;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i  = u,
+                            .j  = jj
+                          });
             return 1;
           }
         }
@@ -724,7 +792,7 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
           if (fij == my_f5[u - 1] + my_ggg[idx[jj] + u]) {
             *i  = *j = -1;
             *k  = u - 1;
-            return vrna_BT_gquad_mfe(fc, u, jj, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, u, jj, bp_stack);
           }
         }
 
@@ -749,8 +817,11 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
             *i                            = u;
             *j                            = jj;
             *k                            = u - 1;
-            bp_stack[++(*stack_count)].i  = u;
-            bp_stack[(*stack_count)].j    = jj;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i = u,
+                            .j    = jj
+                          });
             return 1;
           }
         }
@@ -762,14 +833,13 @@ BT_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE int
-BT_ext_loop_f3(vrna_fold_compound_t *fc,
+PRIVATE unsigned int
+bt_ext_loop_f3(vrna_fold_compound_t *fc,
                int                  *k,
                int                  maxdist,
                int                  *i,
                int                  *j,
-               vrna_bp_stack_t      *bp_stack,
-               unsigned int         *stack_count)
+               vrna_bps_t           bp_stack)
 {
   char                      **ptype;
   short                     mm5, mm3, *S1;
@@ -837,7 +907,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
         }
 
@@ -855,8 +925,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
             *i                            = ii;
             *j                            = u;
             *k                            = u + 1;
-            bp_stack[++(*stack_count)].i  = ii;
-            bp_stack[(*stack_count)].j    = u;
+            vrna_bps_push(bp_stack,
+                         (vrna_bp_t){
+                          .i = ii,
+                          .j = u
+                         });
             return 1;
           }
         }
@@ -871,7 +944,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
         }
 
@@ -890,8 +963,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
             *i                            = ii;
             *j                            = u;
             *k                            = u + 1;
-            bp_stack[++(*stack_count)].i  = ii;
-            bp_stack[(*stack_count)].j    = u;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i = ii,
+                            .j = u
+                          });
             return 1;
           }
         }
@@ -905,7 +981,7 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
         }
 
@@ -929,8 +1005,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
               *i                            = ii + 1;
               *j                            = u;
               *k                            = u + 2;
-              bp_stack[++(*stack_count)].i  = ii + 1;
-              bp_stack[(*stack_count)].j    = u;
+              vrna_bps_push(bp_stack,
+                            (vrna_bp_t){
+                              .i = ii + 1,
+                              .j = u
+                            });
               return 1;
             }
           }
@@ -957,8 +1036,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
               *i                            = ii + 1;
               *j                            = u;
               *k                            = u + 2;
-              bp_stack[++(*stack_count)].i  = ii + 1;
-              bp_stack[(*stack_count)].j    = u;
+              vrna_bps_push(bp_stack,
+                            (vrna_bp_t){
+                              .i = ii + 1,
+                              .j = u
+                            });
               return 1;
             }
           }
@@ -983,8 +1065,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
             *i                            = ii + 1;
             *j                            = u;
             *k                            = u + 1;
-            bp_stack[++(*stack_count)].i  = ii + 1;
-            bp_stack[(*stack_count)].j    = u;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i = ii + 1,
+                            .j = u
+                          });
             return 1;
           }
         }
@@ -1010,8 +1095,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
               *i                            = ii;
               *j                            = u;
               *k                            = u + 2;
-              bp_stack[++(*stack_count)].i  = ii;
-              bp_stack[(*stack_count)].j    = u;
+              vrna_bps_push(bp_stack,
+                            (vrna_bp_t){
+                              .i = ii,
+                              .j = u
+                            });
               return 1;
             }
           }
@@ -1035,8 +1123,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
               *i                            = ii;
               *j                            = u;
               *k                            = u + 2;
-              bp_stack[++(*stack_count)].i  = ii;
-              bp_stack[(*stack_count)].j    = u;
+              vrna_bps_push(bp_stack,
+                            (vrna_bp_t){
+                              .i = ii,
+                              .j = u
+                            });
               return 1;
             }
           }
@@ -1056,8 +1147,11 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
             *i                            = ii;
             *j                            = u;
             *k                            = u + 1;
-            bp_stack[++(*stack_count)].i  = ii;
-            bp_stack[(*stack_count)].j    = u;
+              vrna_bps_push(bp_stack,
+                            (vrna_bp_t){
+                              .i = ii,
+                              .j = u
+                            });
             return 1;
           }
         }
@@ -1070,14 +1164,13 @@ BT_ext_loop_f3(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE int
-BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
+PRIVATE unsigned int
+bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
                            int                  *k,
                            int                  maxdist,
                            int                  *i,
                            int                  *j,
-                           vrna_bp_stack_t      *bp_stack,
-                           unsigned int         *stack_count)
+                           vrna_bps_t           bp_stack)
 {
   short                     **S, **S5, **S3;
   unsigned int              type, ss, n_seq, **a2s;
@@ -1150,7 +1243,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
         }
 
@@ -1165,8 +1258,11 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
             *i                            = ii;
             *j                            = u;
             *k                            = u + 1;
-            bp_stack[++(*stack_count)].i  = ii;
-            bp_stack[(*stack_count)].j    = u;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i = ii,
+                            .j = u
+                          });
             return 1;
           }
         }
@@ -1180,7 +1276,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
             *i  = *j = -1;
             *k  = u + 1;
-            return vrna_BT_gquad_mfe(fc, ii, u, bp_stack, stack_count);
+            return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
         }
 
@@ -1197,8 +1293,11 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
             *i                            = ii;
             *j                            = u;
             *k                            = u + 1;
-            bp_stack[++(*stack_count)].i  = ii;
-            bp_stack[(*stack_count)].j    = u;
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i = ii,
+                            .j = u
+                          });
             return 1;
           }
         }
@@ -1211,7 +1310,7 @@ BT_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
+bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
                   int                   *i,
                   int                   maxj)
 {
@@ -1457,7 +1556,7 @@ BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
 
 
 PRIVATE int
-BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
+bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
                               int                   *i,
                               int                   maxj)
 {
@@ -1674,3 +1773,60 @@ BT_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
 
   return j;
 }
+
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+
+PUBLIC int
+vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
+                    int                   *k,
+                    int                   *i,
+                    int                   *j,
+                    vrna_bp_stack_t       *bp_stack,
+                    unsigned int          *stack_count)
+{
+  int r = 0;
+
+  if ((fc) &&
+      (k) &&
+      (i) &&
+      (j) &&
+      (bp_stack) &&
+      (stack_count)) {
+
+    vrna_bps_t  bps = vrna_bps_init(0);
+     
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        r = (int)bt_ext_loop_f5(fc, k, i, j, bps);
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        r = (int)bt_ext_loop_f5_comparative(fc, k, i, j, bps);
+        break;
+    }
+
+    while (vrna_bps_size(bps) > 0) {
+      vrna_bp_t bp = vrna_bps_pop(bps);
+      bp_stack[++(*stack_count)].i = bp.i;
+      bp_stack[*stack_count].j = bp.j;
+    }
+
+    vrna_bps_free(bps);
+  }
+
+  return r;
+}
+
+
+PUBLIC int
+vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+                       int                  *i,
+                       int                  maxj)
+{
+  return vrna_bt_ext_loop_f3_pp(fc, i, maxj);
+}
+
+
+#endif

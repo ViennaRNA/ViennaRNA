@@ -36,26 +36,26 @@
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-PRIVATE int
-BT_mb_loop(vrna_fold_compound_t *fc,
-           int                  *i,
-           int                  *j,
-           int                  *k,
-           int                  en,
-           unsigned int         *component1,
-           unsigned int         *component2);
-
 
 PRIVATE int
-BT_mb_loop_split(vrna_fold_compound_t *fc,
+bt_mb_loop_split(vrna_fold_compound_t *fc,
                  int                  *i,
                  int                  *j,
                  int                  *k,
                  int                  *l,
                  unsigned int         *component1,
                  unsigned int         *component2,
-                 vrna_bp_stack_t      *bp_stack,
-                 unsigned int         *stack_count);
+                 vrna_bps_t           bp_stack);
+
+
+PRIVATE int
+bt_mb_loop(vrna_fold_compound_t *fc,
+           int                  *i,
+           int                  *j,
+           int                  *k,
+           int                  en,
+           unsigned int         *component1,
+           unsigned int         *component2);
 
 
 /*
@@ -67,8 +67,7 @@ PUBLIC unsigned int
 vrna_bt_m(vrna_fold_compound_t    *fc,
           unsigned int            i,
           unsigned int            j,
-          vrna_bp_stack_t         *bp_stack,
-          unsigned int            *bp_stack_size,
+          vrna_bps_t              bp_stack,
           vrna_bts_t              bt_stack)
 {
   unsigned int ret = 0, comp1, comp2;
@@ -77,8 +76,10 @@ vrna_bt_m(vrna_fold_compound_t    *fc,
   ii = (int)i;
   jj = (int)j;
 
-  if (fc) {
-    if (ret = (unsigned int)vrna_BT_mb_loop_split(fc, &ii, &jj, &p, &q, &comp1, &comp2, bp_stack, bp_stack_size)) {
+  if ((fc) &&
+      (bt_stack) &&
+      (bp_stack)) {
+    if (ret = (unsigned int)vrna_bt_mb_loop_split(fc, &ii, &jj, &p, &q, &comp1, &comp2, bp_stack)) {
       ret = 1;
 
       if (ii > 0) {
@@ -97,7 +98,7 @@ vrna_bt_m(vrna_fold_compound_t    *fc,
     } else if (fc->aux_grammar) {
       for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->m); c++) {
         if ((fc->aux_grammar->m[c].cb_bt) &&
-            (ret = fc->aux_grammar->m[c].cb_bt(fc, i, j, bp_stack, bp_stack_size, bt_stack, fc->aux_grammar->m[c].data)))
+            (ret = fc->aux_grammar->m[c].cb_bt(fc, i, j, bp_stack, bt_stack, fc->aux_grammar->m[c].data)))
           break;
       }
     }
@@ -109,27 +110,33 @@ vrna_bt_m(vrna_fold_compound_t    *fc,
 
 
 PUBLIC int
-vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
+vrna_bt_mb_loop_split(vrna_fold_compound_t  *fc,
                       int                   *i,
                       int                   *j,
                       int                   *k,
                       int                   *l,
                       unsigned int          *c1,
                       unsigned int          *c2,
-                      vrna_bp_stack_t       *bp_stack,
-                      unsigned int          *stack_count)
+                      vrna_bps_t            bp_stack)
 {
   int r = 0;
 
-  if (fc)
-    r = BT_mb_loop_split(fc, i, j, k, l, c1, c2, bp_stack, stack_count);
+  if ((fc) &&
+      (i) &&
+      (j) &&
+      (k) &&
+      (l) &&
+      (c1) &&
+      (c2) &&
+      (bp_stack))
+    r = bt_mb_loop_split(fc, i, j, k, l, c1, c2, bp_stack);
 
   return r;
 }
 
 
 PUBLIC int
-vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
+vrna_bt_mb_loop(vrna_fold_compound_t  *fc,
                 int                   *i,
                 int                   *j,
                 int                   *k,
@@ -139,23 +146,28 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
 {
   int r = 0;
 
-  if (fc)
-    r = BT_mb_loop(fc, i, j, k, en, c1, c2);
+  if ((fc) &&
+      (i) &&
+      (j) &&
+      (k) &&
+      (c1) &&
+      (c2)) {
+    r = bt_mb_loop(fc, i, j, k, en, c1, c2);
+  }
 
   return r;
 }
 
 
 PRIVATE int
-BT_mb_loop_split(vrna_fold_compound_t *fc,
+bt_mb_loop_split(vrna_fold_compound_t *fc,
                  int                  *i,
                  int                  *j,
                  int                  *k,
                  int                  *l,
                  unsigned int         *component1,
                  unsigned int         *component2,
-                 vrna_bp_stack_t      *bp_stack,
-                 unsigned int         *stack_count)
+                 vrna_bps_t           bp_stack)
 {
   unsigned char             sliding_window;
   char                      *ptype, **ptype_local;
@@ -368,7 +380,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
     if (fij == en) {
       *i  = *j = -1;
       *k  = *l = -1;
-      return vrna_BT_gquad_mfe(fc, ii, jj, bp_stack, stack_count);
+      return vrna_bt_gquad_mfe(fc, ii, jj, bp_stack);
     }
   }
 
@@ -655,7 +667,7 @@ BT_mb_loop_split(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-BT_mb_loop(vrna_fold_compound_t *fc,
+bt_mb_loop(vrna_fold_compound_t *fc,
            int                  *i,
            int                  *j,
            int                  *k,
@@ -1025,3 +1037,59 @@ odd_dangles_exit:
 
   return 0;
 }
+
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+PUBLIC int
+vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
+                      int                   *i,
+                      int                   *j,
+                      int                   *k,
+                      int                   *l,
+                      unsigned int          *c1,
+                      unsigned int          *c2,
+                      vrna_bp_stack_t       *bp_stack,
+                      unsigned int          *stack_count)
+{
+  int r = 0;
+
+  if ((fc) &&
+      (i) &&
+      (j) &&
+      (k) &&
+      (l) &&
+      (c1) &&
+      (c2) &&
+      (bp_stack) &&
+      (stack_count)) {
+    vrna_bps_t bps = vrna_bps_init(0);
+    r = bt_mb_loop_split(fc, i, j, k, l, c1, c2, bps);
+
+    while (vrna_array_size(bps) > 0) {
+      vrna_bp_t bp = vrna_bps_pop(bps);
+      bp_stack[++(*stack_count)].i = bp.i;
+      bp_stack[*stack_count].j = bp.j;
+    }
+
+    vrna_bps_free(bps);
+  }
+
+  return r;
+}
+
+
+PUBLIC int
+vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
+                int                   *i,
+                int                   *j,
+                int                   *k,
+                int                   en,
+                unsigned int          *c1,
+                unsigned int          *c2)
+{
+  return vrna_bt_mb_loop(fc, i, j, k, en, c1, c2);
+}
+
+
+#endif

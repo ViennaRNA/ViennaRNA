@@ -722,6 +722,10 @@ char
 vrna_bpp_symbol(const float *x);
 
 
+char *
+vrna_db_from_bps(vrna_bps_t   bp_stack,
+                 unsigned int length);
+
 /**
  *  @brief Create a dot-backet/parenthesis structure from backtracking stack
  *

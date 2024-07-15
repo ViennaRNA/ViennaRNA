@@ -15,13 +15,10 @@
 /* below are several convenience typedef's we use throughout the ViennaRNA library */
 
 /** @brief Typename for the base pair repesenting data structure #vrna_basepair_s */
-typedef struct vrna_basepair_s vrna_basepair_t;
+typedef struct vrna_basepair_s  vrna_bp_t;
 
 /** @brief Typename for the base pair list repesenting data structure #vrna_elem_prob_s */
 typedef struct vrna_elem_prob_s vrna_plist_t;
-
-/** @brief Typename for the base pair stack repesenting data structure #vrna_bp_stack_s */
-typedef struct vrna_bp_stack_s vrna_bp_stack_t;
 
 /** @brief Typename for data structure #vrna_cpair_s */
 typedef struct vrna_cpair_s vrna_cpair_t;
@@ -33,7 +30,23 @@ typedef struct vrna_data_linear_s vrna_data_lin_t;
 
 typedef struct vrna_color_s vrna_color_t;
 
+/**
+ *  @brief  The backtrack stack data structure
+ *
+ *  @see  vrna_bts_init(), vrna_bts_free(), vrna_bts_push(),
+ *        vrna_bts_top(), vrna_bts_pop()
+ */
 typedef struct vrna_bt_stack_s  *vrna_bts_t;
+
+
+/**
+ *  @brief  The basepair stack data structure
+ *
+ *  @see  vrna_bps_init(), vrna_bps_free(), vrna_bps_push(),
+ *        vrna_bps_top(), vrna_bps_pop(), vrna_bps_at()
+ */
+typedef struct vrna_bp_stack_s  *vrna_bps_t;
+
 
 /** @brief Typename for floating point number in partition function computations */
 #ifdef  USE_FLOAT_PF
@@ -46,6 +59,22 @@ typedef double FLT_OR_DBL;
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /* the following typedefs are for backward compatibility only */
+
+/** @brief Typename for base pair element
+ *  @deprecated Use vrna_bp_t instead!
+ */
+typedef struct {
+  int i;
+  int j;
+} vrna_basepair_t;
+
+
+/** @brief Typename for the base pair stack element */
+typedef struct {
+  unsigned int  i;
+  unsigned int  j;
+} vrna_bp_stack_t;
+
 
 /**
  *  @brief Old typename of #vrna_basepair_s
@@ -74,7 +103,7 @@ typedef struct vrna_sect_s sect;
  *  @brief Old typename of #vrna_bp_stack_s
  *  @deprecated Use #vrna_bp_stack_t instead!
  */
-typedef struct vrna_bp_stack_s bondT;
+typedef vrna_bp_stack_t bondT;
 
 #endif
 
@@ -101,8 +130,8 @@ typedef struct vrna_bp_stack_s bondT;
  *  @brief  Base pair data structure used in subopt.c
  */
 struct vrna_basepair_s {
-  int i;
-  int j;
+  unsigned int i;
+  unsigned int j;
 };
 
 /**
@@ -134,14 +163,6 @@ struct vrna_sect_s {
   int           i;
   int           j;
   unsigned int  ml;
-};
-
-/**
- *  @brief  Base pair stack element
- */
-struct vrna_bp_stack_s {
-  unsigned int  i;
-  unsigned int  j;
 };
 
 
@@ -315,6 +336,34 @@ vrna_bts_pop(vrna_bts_t bts);
 
 size_t
 vrna_bts_size(vrna_bts_t bts);
+
+
+vrna_bps_t
+vrna_bps_init(size_t  n);
+
+
+void
+vrna_bps_free(vrna_bps_t bps);
+
+
+size_t
+vrna_bps_push(vrna_bps_t  bps,
+              vrna_bp_t   pair);
+
+
+vrna_bp_t
+vrna_bps_top(vrna_bps_t bps);
+
+
+vrna_bp_t
+vrna_bps_pop(vrna_bps_t bps);
+
+vrna_bp_t
+vrna_bps_at(vrna_bps_t  bps,
+            size_t      position);
+
+size_t
+vrna_bps_size(vrna_bps_t bps);
 
 
 /**

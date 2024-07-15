@@ -22,7 +22,12 @@ struct vrna_bt_stack_s {
   vrna_array(vrna_sect_t) stack;
 };
 
-/*
+struct vrna_bp_stack_s {
+  vrna_array(vrna_bp_t) pairs;
+};
+
+ 
+ /*
  #################################
  # PRIVATE MACROS                #
  #################################
@@ -118,6 +123,90 @@ vrna_bts_size(vrna_bts_t bts)
 {
   if (bts)
     return vrna_array_size(bts->stack);
+  
+  return 0;
+}
+
+
+PUBLIC vrna_bps_t
+vrna_bps_init(size_t  n)
+{
+  vrna_bps_t  bps = vrna_alloc(sizeof(struct vrna_bp_stack_s));
+
+  if (n)
+    vrna_array_init_size(bps->pairs, n);
+  else
+    vrna_array_init(bps->pairs)
+
+  return bps;
+}
+
+
+PUBLIC void
+vrna_bps_free(vrna_bps_t bps)
+{
+  if (bps) {
+    vrna_array_free(bps->pairs);
+    free(bps);
+  }
+}
+
+
+PUBLIC size_t
+vrna_bps_push(vrna_bps_t  bps,
+              vrna_bp_t   pair)
+{
+  if (bps) {
+    vrna_array_append(bps->pairs, pair);
+    return vrna_array_size(bps->pairs);
+  }
+  
+  return 0;
+}
+
+
+PUBLIC vrna_bp_t
+vrna_bps_top(vrna_bps_t bps)
+{
+  if ((bps) &&
+      (vrna_array_size(bps->pairs) > 0)) {
+    return bps->pairs[vrna_array_size(bps->pairs) - 1];
+  }
+  
+  return (vrna_bp_t){0};
+}
+
+
+PUBLIC vrna_bp_t
+vrna_bps_pop(vrna_bps_t bps)
+{
+  if ((bps) &&
+      (vrna_array_size(bps->pairs) > 0)) {
+    return bps->pairs[--(vrna_array_size(bps->pairs))];
+  }
+  
+  return (vrna_bp_t){0};
+}
+
+
+PUBLIC vrna_bp_t
+vrna_bps_at(vrna_bps_t  bps,
+            size_t      position)
+{
+  if ((bps) &&
+      (vrna_array_size(bps->pairs) > position)) {
+    return bps->pairs[position];
+  }
+  
+  return (vrna_bp_t){0};
+}
+
+
+PUBLIC size_t
+vrna_bps_size(vrna_bps_t bps)
+{
+  if (bps)
+    return vrna_array_size(bps->pairs);
   
   return 0;
 }

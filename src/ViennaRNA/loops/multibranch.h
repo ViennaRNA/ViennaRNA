@@ -149,8 +149,7 @@ unsigned int
 vrna_bt_m(vrna_fold_compound_t    *fc,
           unsigned int            i,
           unsigned int            j,
-          vrna_bp_stack_t         *bp_stack,
-          unsigned int            *bp_stack_size,
+          vrna_bps_t              bp_stack,
           vrna_bts_t              bt_stack);
 
 /**
@@ -169,7 +168,7 @@ vrna_bt_m(vrna_fold_compound_t    *fc,
  *  @returns              1, if backtracking succeeded, 0 otherwise.
  */
 int
-vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
+vrna_bt_mb_loop(vrna_fold_compound_t  *fc,
                 int                   *i,
                 int                   *j,
                 int                   *k,
@@ -179,15 +178,14 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
 
 
 int
-vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
+vrna_bt_mb_loop_split(vrna_fold_compound_t  *fc,
                       int                   *i,
                       int                   *j,
                       int                   *k,
                       int                   *l,
                       unsigned int          *component1,
                       unsigned int          *component2,
-                      vrna_bp_stack_t       *bp_stack,
-                      unsigned int          *stack_count);
+                      vrna_bps_t            bp_stack);
 
 
 /**
@@ -196,6 +194,30 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+DEPRECATED(int
+vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
+                int                   *i,
+                int                   *j,
+                int                   *k,
+                int                   en,
+                unsigned int          *component1,
+                unsigned int          *component2),
+          "Use vrna_bt_mb_loop() instead!");
+
+
+DEPRECATED(int
+vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
+                      int                   *i,
+                      int                   *j,
+                      int                   *k,
+                      int                   *l,
+                      unsigned int          *component1,
+                      unsigned int          *component2,
+                      vrna_bp_stack_t       *bp_stack,
+                      unsigned int          *stack_count),
+          "Use vrna_bt_mb_loop_split() instead!");
+
 
 /**
  *  @addtogroup   eval_deprecated
