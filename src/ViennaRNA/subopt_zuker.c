@@ -768,9 +768,9 @@ backtrack(vrna_fold_compound_t  *fc,
   aux_mb_up     = aux_mx->mb_up;
 
   /* push interval enclosed by (i,j) on bt_stack */
-  bt_stack[++s].i = k;
-  bt_stack[s].j   = l;
-  bt_stack[s].ml  = VRNA_MX_FLAG_C;
+  bt_stack[s].i     = k;
+  bt_stack[s].j     = l;
+  bt_stack[s++].ml  = VRNA_MX_FLAG_C;
 
 backtrack_outside:
 
@@ -875,9 +875,9 @@ backtrack_outside:
 
       if (e == en) {
         if (backtrack_mb(fc, i, &k, &l, aux_mx)) {
-          bt_stack[++s].i = prev_l + 1;
-          bt_stack[s].j   = l - 1;
-          bt_stack[s].ml  = VRNA_MX_FLAG_M;
+          bt_stack[s].i     = prev_l + 1;
+          bt_stack[s].j     = l - 1;
+          bt_stack[s++].ml  = VRNA_MX_FLAG_M;
 
           bp[++b].i = k;
           bp[b].j   = l;
@@ -913,9 +913,9 @@ backtrack_outside:
           /* (k,l) is left-most pair in a multibranch loop */
           if (e == en) {
             if (backtrack_mb(fc, i, &k, &l, aux_mx)) {
-              bt_stack[++s].i = prev_l + 1;
-              bt_stack[s].j   = l - 1;
-              bt_stack[s].ml  = VRNA_MX_FLAG_M;
+              bt_stack[s].i     = prev_l + 1;
+              bt_stack[s].j     = l - 1;
+              bt_stack[s++].ml  = VRNA_MX_FLAG_M;
 
               bp[++b].i = k;
               bp[b].j   = l;
@@ -941,13 +941,13 @@ backtrack_outside:
 
           if (e == en) {
             if (backtrack_mb(fc, i, &k, &l, aux_mx)) {
-              bt_stack[++s].i = prev_l + 1;
-              bt_stack[s].j   = l - 1;
-              bt_stack[s].ml  = VRNA_MX_FLAG_M;
+              bt_stack[s].i     = prev_l + 1;
+              bt_stack[s].j     = l - 1;
+              bt_stack[s++].ml  = VRNA_MX_FLAG_M;
 
-              bt_stack[++s].i = i + 1;
-              bt_stack[s].j   = prev_k - 1;
-              bt_stack[s].ml  = VRNA_MX_FLAG_M;
+              bt_stack[s].i     = i + 1;
+              bt_stack[s].j     = prev_k - 1;
+              bt_stack[s++].ml  = VRNA_MX_FLAG_M;
 
               bp[++b].i = k;
               bp[b].j   = l;
@@ -975,9 +975,9 @@ backtrack_outside:
 
         if (e == en) {
           if (backtrack_mb_up(fc, i, &k, &l, aux_mx)) {
-            bt_stack[++s].i = i + 1;
-            bt_stack[s].j   = prev_k - 1;
-            bt_stack[s].ml  = VRNA_MX_FLAG_M;
+            bt_stack[s].i     = i + 1;
+            bt_stack[s].j     = prev_k - 1;
+            bt_stack[s++].ml  = VRNA_MX_FLAG_M;
 
             bp[++b].i = k;
             bp[b].j   = l;
@@ -1021,9 +1021,9 @@ backtrack_outside:
     if (e == en) {
       if (k > 1) {
         /* push 5' external loop interval (1,k - 1) on bt_stack */
-        bt_stack[++s].i = 1;
-        bt_stack[s].j   = k - 1;
-        bt_stack[s].ml  = VRNA_MX_FLAG_F5;
+        bt_stack[s].i     = 1;
+        bt_stack[s].j     = k - 1;
+        bt_stack[s++].ml  = VRNA_MX_FLAG_F5;
       }
 
       if (l < n) {
@@ -1036,9 +1036,9 @@ backtrack_outside:
           if (backtrack_f3(fc, &k, &i, &j, f3)) {
             if (i > 0) {
               /* store base pair for future backtracking */
-              bt_stack[++s].i = i;
-              bt_stack[s].j   = j;
-              bt_stack[s].ml  = VRNA_MX_FLAG_C;
+              bt_stack[s].i     = i;
+              bt_stack[s].j     = j;
+              bt_stack[s++].ml  = VRNA_MX_FLAG_C;
             }
           } else {
             vrna_log_warning("Backtracking failed in f3[%d] = %d", k, f3[k]);
@@ -1058,6 +1058,7 @@ backtrack_outside:
 backtrack_inside:
   bp[0].i = b;
 
+  vrna_log_error("Added %d bps", b);
   return vrna_backtrack_from_intervals(fc, bp, bt_stack, s);
 
 backtrack_fail:
