@@ -2,7 +2,7 @@
 #define VIENNA_RNA_PACKAGE_ARRAY_H
 
 #include <stddef.h>
-
+#include "ViennaRNA/utils/log.h"
 
 #if !defined(VRNA_NO_INLINE)
 # ifdef SWIG

@@ -103,7 +103,7 @@ vrna_bt_f(vrna_fold_compound_t    *fc,
           unsigned int            j,
           vrna_bp_stack_t         *bp_stack,
           unsigned int            *bp_stack_size,
-          vrna_array(vrna_sect_t) bt_stack)
+          vrna_bts_t              bt_stack)
 {
   unsigned int ret = 0;
   int ii, jj, p, q;
@@ -116,14 +116,14 @@ vrna_bt_f(vrna_fold_compound_t    *fc,
       ret = 1;
 
       if (jj > 0) {
-        vrna_array_append(bt_stack, ((vrna_sect_t){
+        vrna_bts_push(bt_stack, ((vrna_sect_t){
           .i = 1,
           .j = jj,
           .ml = VRNA_MX_FLAG_F5}));
       }
 
       if (p > 0) {
-        vrna_array_append(bt_stack, ((vrna_sect_t){
+        vrna_bts_push(bt_stack, ((vrna_sect_t){
           .i = p,
           .j = q,
           .ml = VRNA_MX_FLAG_C}));

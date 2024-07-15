@@ -33,6 +33,8 @@ typedef struct vrna_data_linear_s vrna_data_lin_t;
 
 typedef struct vrna_color_s vrna_color_t;
 
+typedef struct vrna_bt_stack_s  *vrna_bts_t;
+
 /** @brief Typename for floating point number in partition function computations */
 #ifdef  USE_FLOAT_PF
 typedef float FLT_OR_DBL;
@@ -289,6 +291,31 @@ typedef struct dupVar {
   int     inactive;
   int     processed;
 } dupVar;
+
+
+vrna_bts_t
+vrna_bts_init(size_t  n);
+
+
+void
+vrna_bts_free(vrna_bts_t bts);
+
+
+size_t
+vrna_bts_push(vrna_bts_t  bts,
+              vrna_sect_t element);
+
+
+vrna_sect_t
+vrna_bts_top(vrna_bts_t bts);
+
+
+vrna_sect_t
+vrna_bts_pop(vrna_bts_t bts);
+
+size_t
+vrna_bts_size(vrna_bts_t bts);
+
 
 /**
  *  @brief  Dummy symbol to check whether the library was build using C11/C++11 features

@@ -122,7 +122,7 @@ typedef int (*vrna_gr_outside_f)(vrna_fold_compound_t *fc,
                                  unsigned int         j,
                                  vrna_bp_stack_t      *bp_stack,
                                  unsigned int         *bp_stack_size,
-                                 vrna_array(vrna_sect_t)  bt_stack,
+                                 vrna_bts_t           bt_stack,
                                  void                 *data);
 
 
