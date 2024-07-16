@@ -274,6 +274,9 @@
 @defgroup   dp_matrices               The Dynamic Programming Matrices
 @ingroup    data_structures
 
+@defgroup   data_structures_bt        Backtracking-related Structures
+@ingroup    data_structures
+
 @defgroup   hash_table_utils          Hash Tables
 @ingroup    data_structures
 

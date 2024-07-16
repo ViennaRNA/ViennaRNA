@@ -14,39 +14,15 @@
 
 /* below are several convenience typedef's we use throughout the ViennaRNA library */
 
-/** @brief Typename for the base pair repesenting data structure #vrna_basepair_s */
-typedef struct vrna_basepair_s  vrna_bp_t;
-
 /** @brief Typename for the base pair list repesenting data structure #vrna_elem_prob_s */
 typedef struct vrna_elem_prob_s vrna_plist_t;
 
 /** @brief Typename for data structure #vrna_cpair_s */
 typedef struct vrna_cpair_s vrna_cpair_t;
 
-/** @brief Typename for stack of partial structures #vrna_sect_s */
-typedef struct vrna_sect_s vrna_sect_t;
-
 typedef struct vrna_data_linear_s vrna_data_lin_t;
 
 typedef struct vrna_color_s vrna_color_t;
-
-/**
- *  @brief  The backtrack stack data structure
- *
- *  @see  vrna_bts_init(), vrna_bts_free(), vrna_bts_push(),
- *        vrna_bts_top(), vrna_bts_pop()
- */
-typedef struct vrna_bt_stack_s  *vrna_bts_t;
-
-
-/**
- *  @brief  The basepair stack data structure
- *
- *  @see  vrna_bps_init(), vrna_bps_free(), vrna_bps_push(),
- *        vrna_bps_top(), vrna_bps_pop(), vrna_bps_at()
- */
-typedef struct vrna_bp_stack_s  *vrna_bps_t;
-
 
 /** @brief Typename for floating point number in partition function computations */
 #ifdef  USE_FLOAT_PF
@@ -107,6 +83,44 @@ typedef vrna_bp_stack_t bondT;
 
 #endif
 
+/**
+ *  @}
+ */
+
+
+/**
+ *  @addtogroup data_structures_bt
+ *  @{
+ */
+
+/**
+ *  @brief  The backtrack stack data structure
+ *
+ *  @see  vrna_bts_init(), vrna_bts_free(), vrna_bts_push(),
+ *        vrna_bts_top(), vrna_bts_pop()
+ */
+typedef struct vrna_bt_stack_s  *vrna_bts_t;
+
+
+/**
+ *  @brief  The basepair stack data structure
+ *
+ *  @see  vrna_bps_init(), vrna_bps_free(), vrna_bps_push(),
+ *        vrna_bps_top(), vrna_bps_pop(), vrna_bps_at()
+ */
+typedef struct vrna_bp_stack_s  *vrna_bps_t;
+
+
+/** @brief Typename for the base pair repesenting data structure #vrna_basepair_s */
+typedef struct vrna_basepair_s  vrna_bp_t;
+
+/** @brief Typename for stack of partial structures #vrna_sect_s */
+typedef struct vrna_sect_s vrna_sect_t;
+
+/**
+ *  @}
+ */
+
 #include <ViennaRNA/params/constants.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/model.h>
@@ -125,14 +139,6 @@ typedef vrna_bp_stack_t bondT;
  * shared among the Vienna RNA Package
  * ############################################################
  */
-
-/**
- *  @brief  Base pair data structure used in subopt.c
- */
-struct vrna_basepair_s {
-  unsigned int i;
-  unsigned int j;
-};
 
 /**
  *  @brief this datastructure is used as input parameter in functions of PS_dot.c
@@ -157,14 +163,9 @@ struct vrna_data_linear_s {
 
 
 /**
- *  @brief  Stack of partial structures for backtracking
+ *  @addtogroup   data_structures
+ *  @{
  */
-struct vrna_sect_s {
-  int           i;
-  int           j;
-  unsigned int  ml;
-};
-
 
 /*
  * ############################################################
@@ -313,58 +314,213 @@ typedef struct dupVar {
   int     processed;
 } dupVar;
 
+/**
+ *  @}
+ */
 
+
+
+/**
+ *  @addtogroup data_structures_bt
+ *  @{
+ */
+
+
+/**
+ *  @brief  Stack of partial structures for backtracking
+ */
+struct vrna_sect_s {
+  int           i;
+  int           j;
+  unsigned int  ml;
+};
+
+
+/**
+ *  @brief  Base pair data structure used in subopt.c
+ */
+struct vrna_basepair_s {
+  unsigned int i;
+  unsigned int j;
+};
+
+/**
+ *  @brief  Get an initialized backtrack stack
+ *
+ *  This function yields an initialized backtracking stack
+ *  that holds all elements that need to be further evaluated.
+ *  The individual elements stored in the stack are of type
+ *  #vrna_sect_t and store the sequence delimiters and corresponding
+ *  backtrack DP matrix flag.
+ *
+ *  @note Memory for the stack must be released via the vrna_bts_free()
+ *        function.
+ *
+ *  @see  #vrna_bts_t, vrna_bts_free(), vrna_bts_push(),
+ *        vrna_bts_top(),vrna_bts_pop(), vrna_bts_size(),
+ *
+ *  @param  n   The initial size of the backtrack stack
+ *  @return     An initialized backtrack stack, ready for usage in backtracking functions
+ */
 vrna_bts_t
 vrna_bts_init(size_t  n);
 
-
+/**
+ *  @brief  Release memory occupied by a backtrack stack
+ *
+ *  @param  bts   The backtrack stack that should be free'd
+ */
 void
 vrna_bts_free(vrna_bts_t bts);
 
 
+/**
+ *  @brief  Push a new interval onto the backtrack stack
+ *
+ *  This function pushes a new sequence interval for backtracking
+ *  onto the backstracking stack @p bts.
+ *
+ *  @param  bts     The backtrack stack
+ *  @param  element The sequence interval and corresponding DP matrix flag
+ *  @return         The size of the backtrack stack after pushing the new interval
+ */
 size_t
 vrna_bts_push(vrna_bts_t  bts,
               vrna_sect_t element);
 
 
+/**
+ *  @brief  Retrieve the top element of the backtrack stack
+ *
+ *  Retrieves the last element put onto the stack, or a zero'd
+ *  out #vrna_sect_t structure. The latter is returned on error
+ *  or when topping an empty stack.
+ *
+ *  @param  bts   The backtrack stack
+ *  @return       The top element of the backtrack stack, or a zero'd out #vrna_sect_t
+ */
 vrna_sect_t
 vrna_bts_top(vrna_bts_t bts);
 
 
+/**
+ *  @brief  Pop last element of from backtrack stack
+ *
+ *  Retrieves and removes the last element put onto the stack, or a zero'd
+ *  out #vrna_sect_t structure. The latter is returned on error
+ *  or when topping an empty stack.
+ *
+ *  @param  bts   The backtrack stack
+ *  @return       The top element of the backtrack stack, or a zero'd out #vrna_sect_t
+ */
 vrna_sect_t
 vrna_bts_pop(vrna_bts_t bts);
 
+/**
+ *  @brief  Get the size of the backtrack stack
+ *
+ *  @param  bts   The backtrack stack
+ *  @return       The size of the backtracking stack
+ */
 size_t
 vrna_bts_size(vrna_bts_t bts);
 
 
+/**
+ *  @brief  Get an initialized base pair stack
+ *
+ *  Base pair stacks are used in the backtracking procedure to store
+ *  all base pairs and structural elements that have been identified
+ *  so far. Thos function returns an initialized backtracking stack
+ *  with initial size @p n. Individual elements stored in this stack
+ *  are of type #vrna_bp_t.
+ *
+ *  @note Memory for the stack must be released via the vrna_bps_free()
+ *        function.
+ *
+ *  @param  n   The initial size of the base pair stack
+ *  @return     An initialized base pair stack
+ */
 vrna_bps_t
 vrna_bps_init(size_t  n);
 
 
+/**
+ *  @brief  Release memory of a base pair stack
+ *
+ *  @param  bps   The base pair stack to be free'd
+ */
 void
 vrna_bps_free(vrna_bps_t bps);
 
 
+/**
+ *  @brief  Put a new base pair element on top of the stack
+ *
+ *  @param  bps   The base pair stack
+ *  @param  pair  The base pair to be put onto the stack
+ *  @return       The size of the base pair stack after pushing the base pair
+ */
 size_t
 vrna_bps_push(vrna_bps_t  bps,
               vrna_bp_t   pair);
 
 
+/**
+ *  @brief  Retrieve the top element of the base pair stack
+ *
+ *  Retrieves the last element put onto the stack, or a zero'd
+ *  out #vrna_bp_t structure. The latter is returned on error
+ *  or when topping an empty stack.
+ *
+ *  @param  bps   The base pair stack
+ *  @return       The top element of the base pair stack, or a zero'd out #vrna_bp_t
+ */
 vrna_bp_t
 vrna_bps_top(vrna_bps_t bps);
 
 
+/**
+ *  @brief  Pop last element of from base pair stack
+ *
+ *  Retrieves and removes the last element put onto the stack, or a zero'd
+ *  out #vrna_bp_t structure. The latter is returned on error or when
+ *  topping an empty stack.
+ *
+ *  @param  bps   The base pair stack
+ *  @return       The top element of the backtrack stack, or a zero'd out #vrna_bp_t
+ */
 vrna_bp_t
 vrna_bps_pop(vrna_bps_t bps);
 
+
+/**
+ *  @brief  Retrieve the n'th element of the base pair stack
+ *
+ *  Retrieves the n'th element counted from the bottom of the stack (0-based),
+ *  or a zero'd out #vrna_bp_t structure. The latter is returned on error
+ *  or when @p n is outside the size of the stack.
+ *
+ *  @param  bps   The base pair stack
+ *  @param  n     The position within the stack
+ *  @return       The n'th element of the base pair stack, or a zero'd out #vrna_bp_t
+ */
 vrna_bp_t
 vrna_bps_at(vrna_bps_t  bps,
-            size_t      position);
+            size_t      n);
 
+/**
+ *  @brief  Get the size of the base pair stack
+ *
+ *  @param  bps   The base pair stack
+ *  @return       The size of the base pair stack
+ */
 size_t
 vrna_bps_size(vrna_bps_t bps);
 
+/**
+ *  @}
+ */
 
 /**
  *  @brief  Dummy symbol to check whether the library was build using C11/C++11 features

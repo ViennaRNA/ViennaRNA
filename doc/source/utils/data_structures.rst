@@ -16,5 +16,16 @@ can be found here.
    datastructures/strings
    datastructures/buffers
 
+
+Common Data Structures
+----------------------
+
 .. doxygengroup:: data_structures
+    :no-title:
+
+
+Backtracking Related Data Structures
+------------------------------------
+
+.. doxygengroup:: data_structures_bt
     :no-title:
