@@ -44,40 +44,43 @@
  */
 
 
-int         E_gquad(int           L,
-                    int           l[3],
-                    vrna_param_t  *P);
+int
+E_gquad(int           L,
+        int           l[3],
+        vrna_param_t  *P);
 
 
-FLT_OR_DBL  exp_E_gquad(int               L,
-                        int               l[3],
-                        vrna_exp_param_t  *pf);
+FLT_OR_DBL
+exp_E_gquad(int               L,
+            int               l[3],
+            vrna_exp_param_t  *pf);
 
 
-void E_gquad_ali_en(int           i,
-                    int           L,
-                    int           l[3],
-                    const short   **S,
-                    unsigned int  **a2s,
-                    unsigned int  n_seq,
-                    vrna_param_t  *P,
-                    int           en[2]);
-
+void
+E_gquad_ali_en(int          i,
+               int          L,
+               int          l[3],
+               const short  **S,
+               unsigned int **a2s,
+               unsigned int n_seq,
+               vrna_param_t *P,
+               int          en[2]);
 
 
 vrna_smx_csr(int) *
-vrna_gq_pos_mfe(vrna_fold_compound_t *fc);
+vrna_gq_pos_mfe(vrna_fold_compound_t * fc);
 
 vrna_smx_csr(FLT_OR_DBL) *
-vrna_gq_pos_pf(vrna_fold_compound_t *fc);
+vrna_gq_pos_pf(vrna_fold_compound_t * fc);
 
 
-int **get_gquad_L_matrix(short        *S,
-                         int          start,
-                         int          maxdist,
-                         int          n,
-                         int          **g,
-                         vrna_param_t *P);
+int **
+get_gquad_L_matrix(short        *S,
+                   int          start,
+                   int          maxdist,
+                   int          n,
+                   int          **g,
+                   vrna_param_t *P);
 
 
 void
@@ -85,12 +88,13 @@ vrna_gquad_mx_local_update(vrna_fold_compound_t *fc,
                            int                  start);
 
 
-void get_gquad_pattern_mfe(short        *S,
-                           int          i,
-                           int          j,
-                           vrna_param_t *P,
-                           int          *L,
-                           int          l[3]);
+void
+get_gquad_pattern_mfe(short         *S,
+                      int           i,
+                      int           j,
+                      vrna_param_t  *P,
+                      int           *L,
+                      int           l[3]);
 
 
 void
@@ -103,41 +107,43 @@ get_gquad_pattern_exhaustive(short        *S,
                              int          threshold);
 
 
-void get_gquad_pattern_pf(short             *S,
-                          int               i,
-                          int               j,
-                          vrna_exp_param_t  *pf,
-                          int               *L,
-                          int               l[3]);
+void
+get_gquad_pattern_pf(short            *S,
+                     int              i,
+                     int              j,
+                     vrna_exp_param_t *pf,
+                     int              *L,
+                     int              l[3]);
 
 
-plist *get_plist_gquad_from_pr(short            *S,
-                               int              gi,
-                               int              gj,
-                               vrna_smx_csr(FLT_OR_DBL)  *q_gq,
-                               FLT_OR_DBL       *probs,
-                               FLT_OR_DBL       *scale,
-                               vrna_exp_param_t *pf);
+plist *get_plist_gquad_from_pr(short *S,
+                               int gi,
+                               int gj,
+                               vrna_smx_csr(FLT_OR_DBL) * q_gq,
+                               FLT_OR_DBL * probs,
+                               FLT_OR_DBL * scale,
+                               vrna_exp_param_t * pf);
 
 vrna_ep_t *
 vrna_plist_gquad_from_pr(vrna_fold_compound_t *fc,
-                         int               gi,
-                         int               gj);
+                         int                  gi,
+                         int                  gj);
 
 
-plist *get_plist_gquad_from_pr_max(short            *S,
-                                   int              gi,
-                                   int              gj,
-                                   vrna_smx_csr(FLT_OR_DBL)  *q_gq,
-                                   FLT_OR_DBL       *probs,
-                                   FLT_OR_DBL       *scale,
-                                   int              *L,
-                                   int              l[3],
-                                   vrna_exp_param_t *pf);
+plist *get_plist_gquad_from_pr_max(short *S,
+                                   int gi,
+                                   int gj,
+                                   vrna_smx_csr(FLT_OR_DBL) * q_gq,
+                                   FLT_OR_DBL * probs,
+                                   FLT_OR_DBL * scale,
+                                   int *L,
+                                   int l[3],
+                                   vrna_exp_param_t * pf);
 
 
-plist *get_plist_gquad_from_db(const char *structure,
-                               float      pr);
+plist *
+get_plist_gquad_from_db(const char  *structure,
+                        float       pr);
 
 
 vrna_ep_t *
@@ -148,25 +154,28 @@ vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
                              int                  lmax[3]);
 
 
-int         get_gquad_count(short *S,
-                            int   i,
-                            int   j);
+int
+get_gquad_count(short *S,
+                int   i,
+                int   j);
 
 
-int         get_gquad_layer_count(short *S,
-                                  int   i,
-                                  int   j);
+int
+get_gquad_layer_count(short *S,
+                      int   i,
+                      int   j);
 
 
-void get_gquad_pattern_mfe_ali(short        **S,
-                               unsigned int **a2s,
-                               short        *S_cons,
-                               int          n_seq,
-                               int          i,
-                               int          j,
-                               vrna_param_t *P,
-                               int          *L,
-                               int          l[3]);
+void
+get_gquad_pattern_mfe_ali(short         **S,
+                          unsigned int  **a2s,
+                          short         *S_cons,
+                          int           n_seq,
+                          int           i,
+                          int           j,
+                          vrna_param_t  *P,
+                          int           *L,
+                          int           l[3]);
 
 
 /**
@@ -179,23 +188,23 @@ void get_gquad_pattern_mfe_ali(short        **S,
  *  end2 = parse_gquad(struc+end1, &L, l); end2+=end1; ... ;
  *  end3 = parse_gquad(struc+end2, &L, l); end3+=end2; ... ;
  */
-int parse_gquad(const char  *struc,
-                int         *L,
-                int         l[3]);
+int
+parse_gquad(const char  *struc,
+            int         *L,
+            int         l[3]);
 
 
-
-
-int backtrack_GQuad_IntLoop_L(int          c,
-                                             int          i,
-                                             int          j,
-                                             int          type,
-                                             short        *S,
-                                             int          **ggg,
-                                             int          maxdist,
-                                             int          *p,
-                                             int          *q,
-                                             vrna_param_t *P);
+int
+backtrack_GQuad_IntLoop_L(int           c,
+                          int           i,
+                          int           j,
+                          int           type,
+                          short         *S,
+                          int           **ggg,
+                          int           maxdist,
+                          int           *p,
+                          int           *q,
+                          vrna_param_t  *P);
 
 
 int
@@ -293,9 +302,9 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
 
 
 int
-vrna_E_gq_intLoop(vrna_fold_compound_t *fc,
-                  int           i,
-                  int           j);
+vrna_E_gq_intLoop(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j);
 
 
 int
@@ -313,11 +322,11 @@ E_GQuad_IntLoop_L_comparative(int           i,
 
 int *
 vrna_E_gq_intLoop_exhaustive(vrna_fold_compound_t *fc,
-                            int          i,
-                            int          j,
-                           int          **p_p,
-                           int          **q_p,
-                           int          threshold);
+                             int                  i,
+                             int                  j,
+                             int                  **p_p,
+                             int                  **q_p,
+                             int                  threshold);
 
 
 int
@@ -331,9 +340,9 @@ E_GQuad_IntLoop_L(int           i,
 
 
 FLT_OR_DBL
-vrna_exp_E_gq_intLoop(vrna_fold_compound_t *fc,
-                      int               i,
-                      int               j);
+vrna_exp_E_gq_intLoop(vrna_fold_compound_t  *fc,
+                      int                   i,
+                      int                   j);
 
 
 /**
@@ -358,31 +367,31 @@ vrna_exp_E_gq_intLoop(vrna_fold_compound_t *fc,
  *  @param P  A pointer to the data structure containing the precomputed energy contributions
  *  @return   A pointer to the G-quadruplex contribution matrix
  */
-DEPRECATED(int *get_gquad_matrix(short *S, vrna_param_t *P),
+DEPRECATED(int *get_gquad_matrix(short *S, vrna_param_t * P),
            "Use vrna_gq_pos_mfe() instead");
 
-DEPRECATED(int *get_gquad_ali_matrix(unsigned int  n,
-                          short         *S_cons,
-                          short         **S,
-                          unsigned int  **a2s,
-                          int           n_seq,
-                          vrna_param_t  *P),
+DEPRECATED(int *get_gquad_ali_matrix(unsigned int n,
+                                     short *S_cons,
+                                     short **S,
+                                     unsigned int **a2s,
+                                     int n_seq,
+                                     vrna_param_t * P),
            "Use vrna_gq_pos_mfe() instead");
 
 
-DEPRECATED(FLT_OR_DBL *get_gquad_pf_matrix(short             *S,
-                                FLT_OR_DBL        *scale,
-                                vrna_exp_param_t  *pf),
+DEPRECATED(FLT_OR_DBL * get_gquad_pf_matrix(short *S,
+                                            FLT_OR_DBL * scale,
+                                            vrna_exp_param_t * pf),
            "Use vrna_gq_pos_pf() instead");
 
 
-DEPRECATED(FLT_OR_DBL *get_gquad_pf_matrix_comparative(unsigned int  n,
-                                            short             *S_cons,
-                                            short             **S,
-                                            unsigned int      **a2s,
-                                            FLT_OR_DBL        *scale,
-                                            unsigned int      n_seq,
-                                            vrna_exp_param_t  *pf),
+DEPRECATED(FLT_OR_DBL * get_gquad_pf_matrix_comparative(unsigned int n,
+                                                        short *S_cons,
+                                                        short **S,
+                                                        unsigned int **a2s,
+                                                        FLT_OR_DBL * scale,
+                                                        unsigned int n_seq,
+                                                        vrna_exp_param_t * pf),
            "Use vrna_gq_pos_pf() instead");
 
 
