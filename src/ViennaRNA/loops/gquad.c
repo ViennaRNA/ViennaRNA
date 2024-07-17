@@ -21,7 +21,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 
 #ifndef INLINE
 #ifdef __GNUC__

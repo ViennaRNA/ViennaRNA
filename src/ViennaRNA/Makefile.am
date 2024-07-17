@@ -232,7 +232,8 @@ vrna_loops_HEADERS = \
     loops/external.h \
     loops/hairpin.h \
     loops/internal.h \
-    loops/multibranch.h
+    loops/multibranch.h \
+    loops/gquad.h
 
 
 vrna_utils_HEADERS = \
@@ -338,7 +339,6 @@ libRNA_conv_la_SOURCES = \
     plex.c \
     snofold.c \
     snoop.c \
-    gquad.c \
     perturbation_fold.c \
     centroid.c \
     model.c \
@@ -440,7 +440,8 @@ libRNA_loops_la_SOURCES = \
     loops/internal_pf.c \
     loops/multibranch.c \
     loops/multibranch_bt.c \
-    loops/multibranch_pf.c
+    loops/multibranch_pf.c \
+    loops/gquad.c
 
 libRNA_params_la_SOURCES = \
     params/io.c \
