@@ -155,6 +155,24 @@
 @defgroup   gquads                    G-Quadruplexes
 @ingroup    paired_modules
 
+@defgroup   gquad_eval                Energy Evaluation for G-quadruplexes
+@ingroup    gquads
+
+@defgroup   gquad_dp                  Construction of G-quadruplex Dynamic Programming Matrices
+@ingroup    gquads
+
+@defgroup   gquad_parse               Parsing of G-quadruplexes
+@ingroup    gquads
+
+@defgroup   gquad_backtrack           Backtracking of G-quadruplexes
+@ingroup    gquads
+
+@defgroup   gquad_other               Ungrouped functions related to G-quadruplexes
+@ingroup    gquads
+
+@defgroup   gquad_deprecated          Depreacted G-Quadruplex API
+@ingroup    gquads
+
 @defgroup   modified_bases            Post-transcriptional Modifications
 @brief                                Support of modified bases in secondary structure prediction
 

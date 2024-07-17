@@ -31,18 +31,15 @@
 #endif
 
 /**
- *  @file       gquad.h
- *  @ingroup    paired_modules
+ *  @file       ViennaRNA/loops/gquad.h
+ *  @ingroup    gquads
  *  @brief      G-quadruplexes
  */
 
 /**
- *  @addtogroup gquads
+ *  @addtogroup gquad_eval
  *  @{
- *
- *  @brief Various functions related to G-quadruplex computations
  */
-
 
 int
 E_gquad(int           L,
@@ -67,11 +64,66 @@ E_gquad_ali_en(int          i,
                int          en[2]);
 
 
-vrna_smx_csr(int) *
-vrna_gq_pos_mfe(vrna_fold_compound_t * fc);
+int
+vrna_E_gq_intLoop(vrna_fold_compound_t  *fc,
+                  int                   i,
+                  int                   j);
 
-vrna_smx_csr(FLT_OR_DBL) *
-vrna_gq_pos_pf(vrna_fold_compound_t * fc);
+
+int
+E_GQuad_IntLoop_L_comparative(int           i,
+                              int           j,
+                              unsigned int  *tt,
+                              short         *S_cons,
+                              short         **S5,
+                              short         **S3,
+                              unsigned int  **a2s,
+                              int           **ggg,
+                              int           n_seq,
+                              vrna_param_t  *P);
+
+
+int *
+vrna_E_gq_intLoop_exhaustive(vrna_fold_compound_t *fc,
+                             int                  i,
+                             int                  j,
+                             int                  **p_p,
+                             int                  **q_p,
+                             int                  threshold);
+
+
+int
+E_GQuad_IntLoop_L(int           i,
+                  int           j,
+                  int           type,
+                  short         *S,
+                  int           **ggg,
+                  int           maxdist,
+                  vrna_param_t  *P);
+
+
+FLT_OR_DBL
+vrna_exp_E_gq_intLoop(vrna_fold_compound_t  *fc,
+                      int                   i,
+                      int                   j);
+
+
+/**
+ *  @}
+ */
+
+
+/**
+ *  @addtogroup gquad_dp
+ *  @{
+ */
+
+vrna_smx_csr_int_t *
+vrna_gq_pos_mfe(vrna_fold_compound_t *fc);
+
+
+vrna_smx_csr_FLT_OR_DBL_t *
+vrna_gq_pos_pf(vrna_fold_compound_t *fc);
 
 
 int **
@@ -88,6 +140,15 @@ vrna_gquad_mx_local_update(vrna_fold_compound_t *fc,
                            int                  start);
 
 
+/**
+ *  @}
+ */
+
+
+/**
+ *  @addtogroup gquad_parse
+ *  @{
+ */
 void
 get_gquad_pattern_mfe(short         *S,
                       int           i,
@@ -116,42 +177,9 @@ get_gquad_pattern_pf(short            *S,
                      int              l[3]);
 
 
-plist *get_plist_gquad_from_pr(short *S,
-                               int gi,
-                               int gj,
-                               vrna_smx_csr(FLT_OR_DBL) * q_gq,
-                               FLT_OR_DBL * probs,
-                               FLT_OR_DBL * scale,
-                               vrna_exp_param_t * pf);
-
-vrna_ep_t *
-vrna_plist_gquad_from_pr(vrna_fold_compound_t *fc,
-                         int                  gi,
-                         int                  gj);
-
-
-plist *get_plist_gquad_from_pr_max(short *S,
-                                   int gi,
-                                   int gj,
-                                   vrna_smx_csr(FLT_OR_DBL) * q_gq,
-                                   FLT_OR_DBL * probs,
-                                   FLT_OR_DBL * scale,
-                                   int *L,
-                                   int l[3],
-                                   vrna_exp_param_t * pf);
-
-
 plist *
 get_plist_gquad_from_db(const char  *structure,
                         float       pr);
-
-
-vrna_ep_t *
-vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
-                             int                  gi,
-                             int                  gj,
-                             int                  *Lmax,
-                             int                  lmax[3]);
 
 
 int
@@ -179,7 +207,9 @@ get_gquad_pattern_mfe_ali(short         **S,
 
 
 /**
- *  given a dot-bracket structure (possibly) containing gquads encoded
+ *  @brief  Parse a G-Quadruplex from a dot-bracket structure string
+ *
+ *  Given a dot-bracket structure (possibly) containing gquads encoded
  *  by '+' signs, find first gquad, return end position or 0 if none found
  *  Upon return L and l[] contain the number of stacked layers, as well as
  *  the lengths of the linker regions.
@@ -194,6 +224,60 @@ parse_gquad(const char  *struc,
             int         l[3]);
 
 
+/**
+ *  @}
+ */
+
+
+/**
+ *  @addtogroup gquad_other
+ *  @{
+ */
+plist *
+get_plist_gquad_from_pr(short *S,
+                        int gi,
+                        int gj,
+                        vrna_smx_csr(FLT_OR_DBL) * q_gq,
+                        FLT_OR_DBL * probs,
+                        FLT_OR_DBL * scale,
+                        vrna_exp_param_t * pf);
+
+
+vrna_ep_t *
+vrna_plist_gquad_from_pr(vrna_fold_compound_t *fc,
+                         int                  gi,
+                         int                  gj);
+
+
+plist *
+get_plist_gquad_from_pr_max(short *S,
+                            int gi,
+                            int gj,
+                            vrna_smx_csr(FLT_OR_DBL) * q_gq,
+                            FLT_OR_DBL * probs,
+                            FLT_OR_DBL * scale,
+                            int *L,
+                            int l[3],
+                            vrna_exp_param_t * pf);
+
+
+vrna_ep_t *
+vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
+                             int                  gi,
+                             int                  gj,
+                             int                  *Lmax,
+                             int                  lmax[3]);
+
+
+/**
+ *  @}
+ */
+
+
+/**
+ *  @addtogroup gquad_backtrack
+ *  @{
+ */
 int
 backtrack_GQuad_IntLoop_L(int           c,
                           int           i,
@@ -301,55 +385,17 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
                                       vrna_param_t  *P);
 
 
-int
-vrna_E_gq_intLoop(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j);
-
-
-int
-E_GQuad_IntLoop_L_comparative(int           i,
-                              int           j,
-                              unsigned int  *tt,
-                              short         *S_cons,
-                              short         **S5,
-                              short         **S3,
-                              unsigned int  **a2s,
-                              int           **ggg,
-                              int           n_seq,
-                              vrna_param_t  *P);
-
-
-int *
-vrna_E_gq_intLoop_exhaustive(vrna_fold_compound_t *fc,
-                             int                  i,
-                             int                  j,
-                             int                  **p_p,
-                             int                  **q_p,
-                             int                  threshold);
-
-
-int
-E_GQuad_IntLoop_L(int           i,
-                  int           j,
-                  int           type,
-                  short         *S,
-                  int           **ggg,
-                  int           maxdist,
-                  vrna_param_t  *P);
-
-
-FLT_OR_DBL
-vrna_exp_E_gq_intLoop(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j);
-
-
 /**
  * @}
  */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/**
+ *  @addtogroup gquad_deprecated
+ *  @{
+ */
+
 
 /**
  *  @brief Get a triangular matrix prefilled with minimum free energy
@@ -393,6 +439,10 @@ DEPRECATED(FLT_OR_DBL * get_gquad_pf_matrix_comparative(unsigned int n,
                                                         unsigned int n_seq,
                                                         vrna_exp_param_t * pf),
            "Use vrna_gq_pos_pf() instead");
+
+/**
+ * @}
+ */
 
 
 #endif
