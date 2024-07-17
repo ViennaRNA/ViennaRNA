@@ -2776,8 +2776,7 @@ repeat(vrna_fold_compound_t *fc,
   unsigned int              n, *sn, *se, nick;
   int                       ij, k, p, q, energy, new, mm, no_close, type, type_2, element_energy,
                             *c, *fML, *fM1, e_gq, **fms5, **fms3, rt, *indx, *rtype, noGUclosure,
-                            noLP, with_gquad, dangle_model, minq, eee, aux_eee, cnt, *ps, *qs,
-                            *en, tmp_en;
+                            noLP, with_gquad, dangle_model, minq, eee, aux_eee, cnt, *en, tmp_en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
@@ -3084,28 +3083,32 @@ repeat(vrna_fold_compound_t *fc,
 
     if (with_gquad) {
       /* now we have to find all loops where (i,j) encloses a gquad in an interior loops style */
-      ps  = qs = en = NULL;
-      en = vrna_E_gq_intLoop_exhaustive(fc, i, j, &ps, &qs, threshold - best_energy);
-      for (cnt = 0; ps[cnt] != -1; cnt++) {
-        if ((hc->up_int[i + 1] >= ps[cnt] - i - 1) &&
-            (hc->up_int[qs[cnt] + 1] >= j - qs[cnt] - 1)) {
-          tmp_en = en[cnt];
+      vrna_array(int) ge = NULL;
+      vrna_array(int) ps = NULL;
+      vrna_array(int) qs = NULL;
+      ge = vrna_gq_int_loop_subopt(fc, i, j, &ps, &qs, threshold - best_energy);
+      if (ge) {
+        for (cnt = 0; cnt < vrna_array_size(ge); cnt++) {
+          if ((hc->up_int[i + 1] >= ps[cnt] - i - 1) &&
+              (hc->up_int[qs[cnt] + 1] >= j - qs[cnt] - 1)) {
+            tmp_en = ge[cnt];
 
-          if (sc_int_pair)
-            tmp_en += sc_int_pair(i, j, ps[cnt], qs[cnt], sc_dat_int);
+            if (sc_int_pair)
+              tmp_en += sc_int_pair(i, j, ps[cnt], qs[cnt], sc_dat_int);
 
-          new_state = derive_new_state(ps[cnt], qs[cnt], state, tmp_en + part_energy, VRNA_MX_FLAG_G);
+            new_state = derive_new_state(ps[cnt], qs[cnt], state, tmp_en + part_energy, VRNA_MX_FLAG_G);
 
-          make_pair(i, j, new_state);
+            make_pair(i, j, new_state);
 
-          /* new_state->best_energy = new + best_energy; */
-          push(env->Stack, new_state);
-          env->nopush = false;
+            /* new_state->best_energy = new + best_energy; */
+            push(env->Stack, new_state);
+            env->nopush = false;
+          }
         }
       }
-      free(en);
-      free(ps);
-      free(qs);
+      vrna_array_free(ge);
+      vrna_array_free(ps);
+      vrna_array_free(qs);
     }
   }
 

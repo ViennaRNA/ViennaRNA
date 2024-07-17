@@ -785,7 +785,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
             if (sliding_window)
               eee = E_GQuad_IntLoop_L(i, j, type, S, ggg_local, fc->window_size, P);
             else if (sn[j] == sn[i])
-              eee = vrna_E_gq_intLoop(fc, i, j);
+              eee = vrna_gq_int_loop_mfe(fc, i, j);
             e = MIN2(e, eee);
             break;
 
@@ -802,7 +802,7 @@ E_internal_loop(vrna_fold_compound_t  *fc,
                                                   n_seq,
                                                   P);
             } else {
-              eee = vrna_E_gq_intLoop(fc, i, j);
+              eee = vrna_gq_int_loop_mfe(fc, i, j);
             }
 
             e = MIN2(e, eee);
