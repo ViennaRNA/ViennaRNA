@@ -586,13 +586,13 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
 
     p = i + 1;
     if (S1[p] == 3) {
-      if (p < j - VRNA_GQUAD_MIN_BOX_SIZE) {
+      if (p + VRNA_GQUAD_MIN_BOX_SIZE < j) {
         minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
         if (minq + 1 + MAXLOOP < j)
           minq = j - MAXLOOP - 1;
 
         maxq  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-        if (maxq + 3 >= j)
+        if (maxq + 3 > j)
           maxq = j - 3;
 
         for (q = minq; q < maxq; q++) {
@@ -607,7 +607,7 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
 
           if (e_gq != INF) {
             c0 = energy + e_gq;
-            vrna_log_debug("l = %d = %d + %d", j - q - 1, 0, j - q - 1);
+
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
                 c0 += P->internal_loop[j - q - 1];
@@ -629,7 +629,7 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
     }
 
     for (p = i + 2;
-         p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+         p + VRNA_GQUAD_MIN_BOX_SIZE < j;
          p++) {
       l1 = p - i - 1;
       if (l1 > MAXLOOP)
@@ -639,19 +639,13 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
         continue;
 
       minq = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-      if (minq + 1 + MAXLOOP < j)
-        minq = j - MAXLOOP - 1;
-      if (minq + MAXLOOP - l1 >= j)
-        minq = j + l1 - MAXLOOP;
+      if (minq + 1 + MAXLOOP - l1 < j)
+        minq = j - MAXLOOP + l1 - 1;
       
       maxq = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-      if (maxq > j)
-        maxq = j;
+      if (maxq >= j)
+        maxq = j - 1;
 
-      if (l1 < 3)
-        maxq -= 3 - l1;
-
-      vrna_log_debug("i: %d, j: %d, p: %d, minq: %d, maxq: %d", i, j, p, minq, maxq);
       for (q = minq; q < maxq; q++) {
         if (S1[q] != 3)
           continue;
@@ -665,7 +659,6 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
         if (e_gq != INF) {
           c0 = energy + e_gq;
 
-          vrna_log_debug("l = %d = %d + %d", l1 + j - q - 1, l1, j - q - 1);
           switch (fc->type) {
             case VRNA_FC_TYPE_SINGLE:
               c0 += P->internal_loop[l1 + j - q - 1];
@@ -688,7 +681,7 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
     q = j - 1;
     if (S1[q] == 3)
       for (p = i + 4;
-           p + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= q;
+           p + VRNA_GQUAD_MIN_BOX_SIZE - 1 < j;
            p++) {
         l1 = p - i - 1;
         if (l1 > MAXLOOP)
@@ -706,7 +699,6 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
         if (e_gq != INF) {
           c0 = energy + e_gq;
 
-          vrna_log_debug("l = %d = %d + %d", p - i - 1, p - i - 1, 0);
           switch (fc->type) {
             case VRNA_FC_TYPE_SINGLE:
               c0 += P->internal_loop[l1];
@@ -1481,13 +1473,15 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
 
   p = i + 1;
   if (S1[p] == 3) {
-    if (p < j - VRNA_GQUAD_MIN_BOX_SIZE) {
-      minl  = j - i + p - MAXLOOP - 2;
-      c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-      minl  = MAX2(c0, minl);
-      c0    = j - 3;
+    if (p + VRNA_GQUAD_MIN_BOX_SIZE < j) {
+      minl = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      if (minl + 1 + MAXLOOP < j)
+        minl = j - MAXLOOP - 1;
+
       maxl  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-      maxl  = MIN2(c0, maxl);
+      if (maxl + 3 >= j)
+        maxl = j - 3;
+
       for (q = minl; q < maxl; q++) {
         if (S1[q] != 3)
           continue;
@@ -1522,7 +1516,7 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
   }
 
   for (p = i + 2;
-       p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+       p + VRNA_GQUAD_MIN_BOX_SIZE < j;
        p++) {
     l1 = p - i - 1;
     if (l1 > MAXLOOP)
@@ -1531,12 +1525,14 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
     if (S1[p] != 3)
       continue;
 
-    minl  = j - i + p - MAXLOOP - 2;
-    c0    = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-    minl  = MAX2(c0, minl);
-    c0    = j - 1;
-    maxl  = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-    maxl  = MIN2(c0, maxl);
+    minl = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+    if (minl + 1 + MAXLOOP - l1 < j)
+      minl = j - MAXLOOP +l1 - 1;
+    
+    maxl = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+    if (maxl >= j)
+      maxl = j - 1;
+
     for (q = minl; q < maxl; q++) {
       if (S1[q] != 3)
         continue;
@@ -1573,7 +1569,7 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
   q = j - 1;
   if (S1[q] == 3)
     for (p = i + 4;
-         p < j - VRNA_GQUAD_MIN_BOX_SIZE;
+         p + VRNA_GQUAD_MIN_BOX_SIZE - 1 < j;
          p++) {
       l1 = p - i - 1;
       if (l1 > MAXLOOP)
@@ -3256,14 +3252,15 @@ process_gquad_enumeration(int *gg,
 
   n = j - i + 1;
 
-  if ((n >= VRNA_GQUAD_MIN_BOX_SIZE) && (n <= VRNA_GQUAD_MAX_BOX_SIZE)) {
+  if ((n >= VRNA_GQUAD_MIN_BOX_SIZE) &&
+      (n <= VRNA_GQUAD_MAX_BOX_SIZE)) {
     for (L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
          L >= VRNA_GQUAD_MIN_STACK_SIZE;
          L--)
       if (gg[j - L + 1] >= L) {
         max_linker = n - 4 * L;
-        if ((max_linker >= 3 * VRNA_GQUAD_MIN_LINKER_LENGTH)
-            && (max_linker <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH)) {
+        if ((max_linker >= 3 * VRNA_GQUAD_MIN_LINKER_LENGTH) &&
+            (max_linker <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH)) {
           maxl0 = MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH,
                        max_linker - 2 * VRNA_GQUAD_MIN_LINKER_LENGTH
                        );
@@ -3276,11 +3273,15 @@ process_gquad_enumeration(int *gg,
                            );
               for (l[1] = VRNA_GQUAD_MIN_LINKER_LENGTH;
                    l[1] <= maxl1;
-                   l[1]++)
+                   l[1]++) {
                 if (gg[i + 2 * L + l[0] + l[1]] >= L) {
                   l[2] = max_linker - l[0] - l[1];
-                  f(i, L, &(l[0]), data, P, aux1, aux2);
+                  if ((l[2] <= VRNA_GQUAD_MAX_LINKER_LENGTH) &&
+                      (gg[i + 3 * L + l[0] + l[1] + l[2]] >= L)) {
+                    f(i, L, &(l[0]), data, P, aux1, aux2);
+                  }
                 }
+              }
             }
         }
       }
