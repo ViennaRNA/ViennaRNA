@@ -3562,7 +3562,7 @@ decompose_pair(vrna_fold_compound_t *fc,
       for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->c); c++) {
         if (fc->aux_grammar->c[c].cb) {
           energy  = fc->aux_grammar->c[c].cb(fc, i, j, fc->aux_grammar->c[c].data);
-          new_c   = MIN2(new_c, energy);
+          e   = MIN2(e, energy);
         }
       }
     }
