@@ -20,12 +20,8 @@
 %ignore snoopT;
 %ignore dupVar;
 
+%rename(bp) vrna_bp_t;
 %rename(basepair) vrna_basepair_t;
-
-typedef struct {
-  int i;
-  int j;
-} vrna_basepair_t;
 
 #ifdef SWIGPERL5
 %rename(_next) node::next;
