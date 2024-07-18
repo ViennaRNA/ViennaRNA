@@ -1,6 +1,6 @@
 
 typedef struct {
-  vrna_gr_inside_f     cb;
+  vrna_gr_inside_f        cb;
   vrna_gr_outside_f       cb_bt;
   void                    *data;
   vrna_auxdata_prepare_f  prepare;
@@ -34,4 +34,9 @@ struct vrna_gr_aux_s {
   vrna_array(void *)                  datas;
   vrna_array(vrna_auxdata_prepare_f)  prepare_datas;
   vrna_array(vrna_auxdata_free_f)     free_datas;
+
+  vrna_gr_serialize_bp_f  serialize_bp;
+  void                    *serialize_bp_data;
+  vrna_auxdata_prepare_f  serialize_bp_prepare_data;
+  vrna_auxdata_free_f     serialize_bp_free_data;
 };

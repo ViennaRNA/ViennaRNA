@@ -242,7 +242,12 @@ vrna_mfe(vrna_fold_compound_t *fc,
       /* add a guess of how many G's may be involved in a G quadruplex */
       bp = vrna_bps_init(4 * (1 + length / 2));
       if (backtrack(fc, bp, bt_stack, ms_dat) != 0) {
-        ss = vrna_db_from_bps(bp, length);
+        if ((fc->aux_grammar) &&
+            (fc->aux_grammar->serialize_bp)) {
+          ss = fc->aux_grammar->serialize_bp(fc, bp,fc->aux_grammar->serialize_bp_data);
+        } else {
+          ss = vrna_db_from_bps(bp, length);
+        }
         strncpy(structure, ss, length + 1);
         free(ss);
       } else {

@@ -70,6 +70,13 @@ vrna_gr_prepare(vrna_fold_compound_t  *fc,
                                                fc->aux_grammar->aux[i].data,
                                                options,
                                                NULL);
+
+    if ((fc->aux_grammar->serialize_bp) &&
+        (fc->aux_grammar->serialize_bp_prepare_data))
+      ret &= fc->aux_grammar->serialize_bp_prepare_data(fc,
+                                                        fc->aux_grammar->serialize_bp_data,
+                                                         options,
+                                                         NULL);
   }
 
   return ret;
@@ -419,7 +426,8 @@ vrna_gr_add_status(vrna_fold_compound_t     *fc,
 {
   unsigned int ret = 0;
 
-  if (fc) {
+  if ((fc) &&
+      (cb)) {
     if (!fc->aux_grammar)
       init_aux_grammar(fc);
 
@@ -429,6 +437,30 @@ vrna_gr_add_status(vrna_fold_compound_t     *fc,
     vrna_array_append(fc->aux_grammar->free_datas, free_cb);
 
     ret = vrna_array_size(fc->aux_grammar->cbs_status);
+  }
+
+  return ret;
+}
+
+
+PUBLIC unsigned int
+vrna_gr_set_serialize_bp(vrna_fold_compound_t   *fc,
+                         vrna_gr_serialize_bp_f cb,
+                         void                   *data,
+                         vrna_auxdata_prepare_f prepare_cb,
+                         vrna_auxdata_free_f    free_cb)
+{
+  unsigned int ret = 0;
+
+  if ((fc) &&
+      (cb)) {
+    if (!fc->aux_grammar)
+      init_aux_grammar(fc);
+
+    fc->aux_grammar->serialize_bp = cb;
+    fc->aux_grammar->serialize_bp_data = data;
+    fc->aux_grammar->serialize_bp_prepare_data = prepare_cb;
+    fc->aux_grammar->serialize_bp_free_data = free_cb;
   }
 
   return ret;
@@ -512,6 +544,9 @@ vrna_gr_reset(vrna_fold_compound_t *fc)
     vrna_array_free(fc->aux_grammar->free_datas);
     vrna_array_free(fc->aux_grammar->cbs_status);
 
+    if (fc->aux_grammar->serialize_bp_free_data)
+      fc->aux_grammar->serialize_bp_free_data(fc->aux_grammar->serialize_bp_data);
+
     /* release memory for aux grammar structure itself */
     free(fc->aux_grammar);
     fc->aux_grammar = NULL;
@@ -541,5 +576,10 @@ init_aux_grammar(vrna_fold_compound_t *fc)
     vrna_array_init(fc->aux_grammar->datas);
     vrna_array_init(fc->aux_grammar->free_datas);
     vrna_array_init(fc->aux_grammar->prepare_datas);
+
+    fc->aux_grammar->serialize_bp               = NULL;
+    fc->aux_grammar->serialize_bp_data          = NULL;
+    fc->aux_grammar->serialize_bp_prepare_data  = NULL;
+    fc->aux_grammar->serialize_bp_free_data     = NULL;
   }
 }
