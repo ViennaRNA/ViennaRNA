@@ -722,6 +722,17 @@ char
 vrna_bpp_symbol(const float *x);
 
 
+/**
+ *  @brief Create a dot-backet/parenthesis structure from backtracking stack
+ *
+ *  This function is capable to create dot-bracket structures from base pairs
+ *  stored within the base pair stack @p bp_stack.
+ *
+ *  @param bp_stack Base pair stack containing the traced base pairs
+ *  @param length   The length of the structure
+ *  @return         The secondary structure in dot-bracket notation as
+ *                  provided in the input
+ */
 char *
 vrna_db_from_bps(vrna_bps_t   bp_stack,
                  unsigned int length);
