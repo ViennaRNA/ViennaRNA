@@ -493,11 +493,12 @@ postprocess_circular(vrna_fold_compound_t *fc)
   int               u, p, q, k, turn, n, *my_iindx, *jindx, s;
   FLT_OR_DBL        *scale, *qb, *qm, *qm1, *qm2, qo, qho, qio, qmo,
                     qbt1, qot, expMLclosing, n_seq;
-  unsigned char     eval;
+  unsigned char     eval, with_gquad;
   vrna_exp_param_t  *pf_params;
   vrna_mx_pf_t      *matrices;
   vrna_hc_t         *hc;
   vrna_sc_t         *sc, **scs;
+  vrna_md_t         *md;
 
   n             = fc->length;
   n_seq         = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -505,6 +506,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
   my_iindx      = fc->iindx;
   jindx         = fc->jindx;
   pf_params     = fc->exp_params;
+  md            = &(pf_params->model_details);
   hc            = fc->hc;
   qb            = matrices->qb;
   qm            = matrices->qm;
@@ -512,7 +514,8 @@ postprocess_circular(vrna_fold_compound_t *fc)
   qm2           = matrices->qm2;
   scale         = matrices->scale;
   expMLclosing  = pf_params->expMLclosing;
-  turn          = pf_params->model_details.min_loop_size;
+  turn          = md->min_loop_size;
+  with_gquad    = (unsigned char)md->gquad;
   hc            = fc->hc;
   sc            = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sc : NULL;
   scs           = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->scs : NULL;
@@ -783,6 +786,44 @@ postprocess_circular(vrna_fold_compound_t *fc)
         break;
     }
     qo += qbt1;
+  }
+
+  if (with_gquad) {
+    vrna_smx_csr(FLT_OR_DBL)  *q_gq = fc->exp_matrices->q_gq;
+    FLT_OR_DBL                q_g;
+    unsigned int              i, j, n;
+
+    /* consider all configurations where a G-quadruplex spans over the artificial cutpoint */
+    n = fc->length;
+
+    unsigned int n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
+    unsigned int n3 = n + n2;
+    unsigned int start = 1;
+    if (n > VRNA_GQUAD_MAX_BOX_SIZE)
+      start = n - VRNA_GQUAD_MAX_BOX_SIZE;
+
+    /* loop over each possible start of a cutpoint-spanning gquad */
+    for (i = start; i <= n; i++) {
+      unsigned int start_j = 1;
+      unsigned int stop_j = n - 1;
+      if ((n - i + 1) < VRNA_GQUAD_MIN_BOX_SIZE)
+        start_j = VRNA_GQUAD_MIN_BOX_SIZE + i - n - 1;
+      if (n > VRNA_GQUAD_MAX_BOX_SIZE)
+        stop_j = VRNA_GQUAD_MAX_BOX_SIZE + i - n - 1;
+      if (stop_j >= i)
+        stop_j = i - 1;
+      vrna_log_debug("i=%d, start=%d, stop=%d, length=%d", i, start_j, stop_j, n);
+
+      for (j = start_j; j <= stop_j; j++) {
+        q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
+
+        vrna_log_debug("i=%d, j=%d, n=%d", i, j, n);
+        if (q_g != 0.) {
+          vrna_log_debug("g=%g", q_g);
+    
+        }
+      }
+    }
   }
 
   qo += qho + qio + qmo;
