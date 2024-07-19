@@ -113,9 +113,9 @@ E_GQuad_IntLoop_L(int           i,
 
 
 FLT_OR_DBL
-vrna_exp_E_gq_intLoop(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j);
+vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
+                    unsigned int                   i,
+                    unsigned int                   j);
 
 
 /**
@@ -301,27 +301,19 @@ backtrack_GQuad_IntLoop_L(int           c,
                           vrna_param_t  *P);
 
 
-int
-vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  int                   en,
-                  vrna_bp_stack_t       *bp_stack,
-                  unsigned int          *stack_count);
-
-
-int
-vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  int                   en,
-                  vrna_bps_t            bp_stack);
-
 
 int
 vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j,
+                  vrna_bps_t            bp_stack);
+
+
+int
+vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
+                  unsigned int                   i,
+                  unsigned int                   j,
+                  int                   en,
                   vrna_bps_t            bp_stack);
 
 
@@ -332,13 +324,6 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
                   vrna_bp_stack_t       *bp_stack,
                   unsigned int          *stack_count);
 
-
-int
-vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  int                   en,
-                  vrna_bps_t            bp_stack);
 
 
 int

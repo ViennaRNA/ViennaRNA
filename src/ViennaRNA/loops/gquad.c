@@ -529,8 +529,8 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
                 unsigned int          i,
                 unsigned int          j)
 {
-  unsigned int  type, s, n_seq, **a2s, p, q;
-  int           energy, ge, e_gq, dangles, l1, minq, maxq, c0, u1, u2;
+  unsigned int  type, s, n_seq, **a2s, p, q, u1, u2, minq, maxq, l1;
+  int           energy, ge, e_gq, dangles, c0;
   short         *S, *S1, si, sj, **SS, **S5, **S3;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -680,7 +680,7 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t  *fc,
 
     q = j - 1;
     if (S1[q] == 3)
-      for (p = i + 4;
+      for (p = (i + 4 + VRNA_GQUAD_MAX_BOX_SIZE - 1 < q) ? q - VRNA_GQUAD_MAX_BOX_SIZE + 1 : i + 4;
            p + VRNA_GQUAD_MIN_BOX_SIZE - 1 < j;
            p++) {
         l1 = p - i - 1;
@@ -1080,16 +1080,15 @@ E_GQuad_IntLoop_L(int           i,
 
 
 PUBLIC FLT_OR_DBL
-vrna_exp_E_gq_intLoop(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j)
+vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
+                      unsigned int          i,
+                      unsigned int          j)
 {
-  unsigned int      type, s, n_seq, **a2s;
-  int               k, l, minl, maxl, u, u1, u2, r;
-  FLT_OR_DBL        q, qe, q_g;
-  double            *expintern;
   short             *S, *S1, si, sj, **SS, **S5, **S3;
-  FLT_OR_DBL        *scale;
+  unsigned int      type, s, n_seq, k, l, minl, maxl, u, u1, u2, **a2s;
+  int               r;
+  FLT_OR_DBL        q, qe, q_g, *scale;
+  double            *expintern;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
 
@@ -1110,46 +1109,103 @@ vrna_exp_E_gq_intLoop(vrna_fold_compound_t  *fc,
   si        = S1[i + 1];
   sj        = S1[j - 1];
 
-  qe = 1.;
+  qe  = 1.;
+  q   = 0.;
 
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      type = vrna_get_ptype_md(S[i], S[j], md);
-      if (dangles == 2)
-        qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][si][sj];
-
-      if (type > 2)
-        qe *= (FLT_OR_DBL)pf_params->expTermAU;
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      for (s = 0; s < n_seq; s++) {
-        type = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-        if (md->dangles == 2)
-          qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][S3[s][i]][S5[s][j]];
+  if ((fc) &&
+      (i > 0) &&
+      (i + VRNA_GQUAD_MIN_BOX_SIZE < j)) {
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        type = vrna_get_ptype_md(S[i], S[j], md);
+        if (dangles == 2)
+          qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][si][sj];
 
         if (type > 2)
           qe *= (FLT_OR_DBL)pf_params->expTermAU;
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        for (s = 0; s < n_seq; s++) {
+          type = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
+          if (md->dangles == 2)
+            qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][S3[s][i]][S5[s][j]];
+
+          if (type > 2)
+            qe *= (FLT_OR_DBL)pf_params->expTermAU;
+        }
+        break;
+
+      default:
+        return 0.;
+    }
+
+    expintern = &(pf_params->expinternal[0]);
+    q         = 0;
+    k         = i + 1;
+
+    if (S1[k] == 3) {
+      if (k + VRNA_GQUAD_MIN_BOX_SIZE < j) {
+        minl = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+        if (minl + 1 + MAXLOOP < j)
+          minl = j - MAXLOOP - 1;
+
+        maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+        if (maxl + 3 > j)
+          maxl = j - 3;
+
+        for (l = minl; l < maxl; l++) {
+          if (S1[l] != 3)
+            continue;
+
+#ifndef VRNA_DISABLE_C11_FEATURES
+          q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+          q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
+
+          if (q_g != 0.) {
+            q_g *= qe * scale[j - l + 1];
+
+            switch (fc->type) {
+              case VRNA_FC_TYPE_SINGLE:
+                q_g *= (FLT_OR_DBL)expintern[j - l - 1];
+                break;
+
+              case VRNA_FC_TYPE_COMPARATIVE:
+                for (s = 0; s < n_seq; s++) {
+                  u1  = a2s[s][j - 1] - a2s[s][l];
+                  q_g *= (FLT_OR_DBL)expintern[u1];
+                }
+
+                break;
+            }
+
+            q += q_g;
+          }
+        }
       }
-      break;
+    }
 
-    default:
-      return 0.;
-  }
+    for (k = i + 2;
+         k + VRNA_GQUAD_MIN_BOX_SIZE < j;
+         k++) {
+      u = k - i - 1;
+      if (u > MAXLOOP)
+        break;
 
-  expintern = &(pf_params->expinternal[0]);
-  q         = 0;
-  k         = i + 1;
+      if (S1[k] != 3)
+        continue;
 
-  if (S1[k] == 3) {
-    if (k < j - VRNA_GQUAD_MIN_BOX_SIZE) {
-      minl  = j - MAXLOOP - 1;
-      u     = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-      minl  = MAX2(u, minl);
-      u     = j - 3;
-      maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-      maxl  = MIN2(u, maxl);
+      minl = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+      if (minl + 1 + MAXLOOP - u < j)
+        minl = j - MAXLOOP + u - 1;
+
+      maxl = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
+      if (maxl >= j)
+        maxl = j - 1;
+
       for (l = minl; l < maxl; l++) {
         if (S1[l] != 3)
           continue;
@@ -1161,19 +1217,19 @@ vrna_exp_E_gq_intLoop(vrna_fold_compound_t  *fc,
 #endif
 
         if (q_g != 0.) {
-          q_g *= qe * scale[j - l + 1];
+          q_g *= qe * scale[u + j - l + 1];
 
           switch (fc->type) {
             case VRNA_FC_TYPE_SINGLE:
-              q_g *= (FLT_OR_DBL)expintern[j - l - 1];
+              q_g *= (FLT_OR_DBL)expintern[u + j - l - 1];
               break;
 
             case VRNA_FC_TYPE_COMPARATIVE:
               for (s = 0; s < n_seq; s++) {
-                u1  = a2s[s][j - 1] - a2s[s][l];
-                q_g *= (FLT_OR_DBL)expintern[u1];
+                u1  = a2s[s][k - 1] - a2s[s][i];
+                u2  = a2s[s][j - 1] - a2s[s][l];
+                q_g *= (FLT_OR_DBL)expintern[u1 + u2];
               }
-
               break;
           }
 
@@ -1181,91 +1237,45 @@ vrna_exp_E_gq_intLoop(vrna_fold_compound_t  *fc,
         }
       }
     }
-  }
 
-  for (k = i + 2;
-       k <= j - VRNA_GQUAD_MIN_BOX_SIZE;
-       k++) {
-    u = k - i - 1;
-    if (u > MAXLOOP)
-      break;
+    l = j - 1;
+    if (S1[l] == 3)
+      for (k = (i + 4 + VRNA_GQUAD_MAX_BOX_SIZE - 1 < l) ? l - VRNA_GQUAD_MAX_BOX_SIZE + 1 : i + 4;
+          k + VRNA_GQUAD_MIN_BOX_SIZE - 1 < j;
+          k++) {
+        u = k - i - 1;
+        if (u > MAXLOOP)
+          break;
 
-    if (S1[k] != 3)
-      continue;
-
-    minl  = j - i + k - MAXLOOP - 2;
-    r     = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-    minl  = MAX2(r, minl);
-    maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-    r     = j - 1;
-    maxl  = MIN2(r, maxl);
-    for (l = minl; l < maxl; l++) {
-      if (S1[l] != 3)
-        continue;
+        if (S1[k] != 3)
+          continue;
 
 #ifndef VRNA_DISABLE_C11_FEATURES
-      q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+        q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
 #else
-      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+        q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
 #endif
 
-      if (q_g != 0.) {
-        q_g *= qe * scale[u + j - l + 1];
+        if (q_g != 0.) {
+          q_g *= qe * scale[u + 2];
 
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            q_g *= (FLT_OR_DBL)expintern[u + j - l - 1];
-            break;
+          switch (fc->type) {
+            case VRNA_FC_TYPE_SINGLE:
+              q_g *= (FLT_OR_DBL)expintern[u];
+              break;
 
-          case VRNA_FC_TYPE_COMPARATIVE:
-            for (s = 0; s < n_seq; s++) {
-              u1  = a2s[s][k - 1] - a2s[s][i];
-              u2  = a2s[s][j - 1] - a2s[s][l];
-              q_g *= (FLT_OR_DBL)expintern[u1 + u2];
-            }
-            break;
+            case VRNA_FC_TYPE_COMPARATIVE:
+              for (s = 0; s < n_seq; s++) {
+                u1  = a2s[s][k - 1] - a2s[s][i];
+                q_g *= (FLT_OR_DBL)expintern[u1];
+              }
+              break;
+          }
+
+          q += q_g;
         }
-
-        q += q_g;
       }
-    }
   }
-
-  l = j - 1;
-  if (S1[l] == 3)
-    for (k = i + 4; k <= j - VRNA_GQUAD_MIN_BOX_SIZE; k++) {
-      u = k - i - 1;
-      if (u > MAXLOOP)
-        break;
-
-      if (S1[k] != 3)
-        continue;
-
-#ifndef VRNA_DISABLE_C11_FEATURES
-      q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
-#else
-      q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
-#endif
-
-      if (q_g != 0.) {
-        q_g *= qe * scale[u + 2];
-
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            q_g *= (FLT_OR_DBL)expintern[u];
-            break;
-
-          case VRNA_FC_TYPE_COMPARATIVE:
-            for (s = 0; s < n_seq; s++) {
-              u1  = a2s[s][k - 1] - a2s[s][i];
-              q_g *= (FLT_OR_DBL)expintern[u1];
-            }
-            break;
-        }
-
-        q += q_g;
-      }
-    }
 
   return q;
 }
@@ -1316,7 +1326,6 @@ vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
         j += n;
     }
 
-    vrna_log_debug("try bt gquad [%d,%d]", i, j);
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
         get_gquad_pattern_mfe(S_enc, i, j, P, &L, l);
@@ -1414,16 +1423,16 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
 
 PUBLIC int
 vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
+                  unsigned int                   i,
+                  unsigned int                   j,
                   int                   en,
                   vrna_bps_t            bp_stack)
 {
-  int           energy, e_gq, dangles, p, q, maxl, minl, c0, l1, u1, u2;
   unsigned char type;
-  unsigned int  **a2s, n_seq, s;
   char          *ptype;
   short         si, sj, *S, *S1, **SS, **S5, **S3;
+  int           energy, e_gq, dangles, c0;
+  unsigned int  **a2s, n_seq, s, p, q, l1, u1, u2, maxl, minl;
 
   vrna_smx_csr(int) * c_gq;
 
@@ -1962,13 +1971,6 @@ vrna_gq_pos_mfe(vrna_fold_compound_t * fc){
                                 NULL,
                                 NULL);
       if ((e < INF) && (j - i + 1 <= n - n2)) {
-        vrna_log_debug("gquad[%d,%d] = %d l=%d, n= %d, e=%d",
-                       i,
-                       (j - 1) % (n - n2) + 1,
-                       e,
-                       j - i + 1,
-                       n - n2,
-                       e);
 #ifndef VRNA_DISABLE_C11_FEATURES
         vrna_smx_csr_insert(gq_mfe_pos, i, (j - 1) % (n - n2) + 1, e);
 #else

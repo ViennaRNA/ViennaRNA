@@ -2026,12 +2026,13 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
   unsigned char     type;
   char              *ptype;
   short             *S1;
-  int               i, j, k, n, ij, kl, u1, u2, *my_iindx, *jindx;
+  unsigned int      i, j, k, n;
+  int               ij, kl, u1, u2, *my_iindx, *jindx;
   FLT_OR_DBL        tmp2, qe, q_g, *probs, *scale;
   vrna_exp_param_t  *pf_params;
   vrna_smx_csr(FLT_OR_DBL) *q_gq;
 
-  n         = (int)fc->length;
+  n         = fc->length;
   S1        = fc->sequence_encoding;
   ptype     = fc->ptype;
   my_iindx  = fc->iindx;
@@ -2044,8 +2045,10 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
   /* 2.5. bonding k,l as gquad enclosed by i,j */
   double *expintern = &(pf_params->expinternal[0]);
 
-  if (l < n - 3) {
-    for (k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+  if (l + 3 < n) {
+    for (k = 2;
+         k + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= l;
+         k++) {
       kl = my_iindx[k] - l;
 
 #ifndef VRNA_DISABLE_C11_FEATURES
@@ -2059,7 +2062,9 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
 
       tmp2  = 0.;
       i     = k - 1;
-      for (j = MIN2(l + MAXLOOP + 1, n); j > l + 3; j--) {
+      for (j = MIN2(l + MAXLOOP + 1, n);
+           j > l + 3;
+           j--) {
         ij    = my_iindx[i] - j;
         type  = (unsigned char)ptype[jindx[j] + i];
         if (!type)
@@ -2077,8 +2082,10 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
     }
   }
 
-  if (l < n - 1) {
-    for (k = 3; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+  if (l + 1 < n) {
+    for (k = (3 + VRNA_GQUAD_MAX_BOX_SIZE - 1 < l) ? l - VRNA_GQUAD_MAX_BOX_SIZE + 1 : 3;
+         k + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= l;
+         k++) {
       kl = my_iindx[k] - l;
 
 #ifndef VRNA_DISABLE_C11_FEATURES
@@ -2091,9 +2098,13 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
         continue;
 
       tmp2 = 0.;
-      for (i = MAX2(1, k - MAXLOOP - 1); i <= k - 2; i++) {
+      for (i = (k > MAXLOOP + 1) ? k - MAXLOOP - 1 : 1;
+           i + 1 < k;
+           i++) {
         u1 = k - i - 1;
-        for (j = l + 2; j <= MIN2(l + MAXLOOP - u1 + 1, n); j++) {
+        for (j = l + 2;
+             j <= MIN2(l + MAXLOOP - u1 + 1, n);
+             j++) {
           ij    = my_iindx[i] - j;
           type  = (unsigned char)ptype[jindx[j] + i];
           if (!type)
@@ -2113,7 +2124,9 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
   }
 
   if (l < n) {
-    for (k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+    for (k = 4;
+         k + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= l;
+         k++) {
       kl = my_iindx[k] - l;
 
 #ifndef VRNA_DISABLE_C11_FEATURES
@@ -2127,7 +2140,9 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
 
       tmp2  = 0.;
       j     = l + 1;
-      for (i = MAX2(1, k - MAXLOOP - 1); i < k - 3; i++) {
+      for (i = (k > MAXLOOP + 1) ? k - MAXLOOP - 1 : 1;
+           i + 3 < k;
+           i++) {
         ij    = my_iindx[i] - j;
         type  = (unsigned char)ptype[jindx[j] + i];
         if (!type)

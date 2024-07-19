@@ -524,7 +524,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
             if (sliding_window) {
               /* no G-Quadruplex support for sliding window partition function yet! */
             } else if (sn[j] == sn[i]) {
-              qbt1 += vrna_exp_E_gq_intLoop(fc, i, j);
+              qbt1 += vrna_gq_int_loop_pf(fc, i, j);
             }
 
             break;
@@ -533,7 +533,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
             if (sliding_window) {
               /* no G-Quadruplex support for sliding window partition function yet! */
             } else {
-              qbt1 += vrna_exp_E_gq_intLoop(fc, i, j);
+              qbt1 += vrna_gq_int_loop_pf(fc, i, j);
             }
 
             break;
