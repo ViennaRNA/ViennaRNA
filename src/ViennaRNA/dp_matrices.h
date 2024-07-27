@@ -255,6 +255,8 @@ struct vrna_mx_pf_s {
 
   FLT_OR_DBL qo;
   FLT_OR_DBL *qm2;
+  FLT_OR_DBL *qm2_real;
+  FLT_OR_DBL *qm1_new;
   FLT_OR_DBL qho;
   FLT_OR_DBL qio;
   FLT_OR_DBL qmo;

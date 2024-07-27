@@ -990,6 +990,8 @@ pf_matrices_free_default(vrna_mx_pf_t *self)
   free(self->qm);
   free(self->qm1);
   free(self->qm2);
+  free(self->qm2_real);
+  free(self->qm1_new);
   free(self->probs);
   free(self->q1k);
   free(self->qln);
@@ -1812,6 +1814,8 @@ nullify_pf(vrna_mx_pf_t *mx)
         mx->qm    = NULL;
         mx->qm1   = NULL;
         mx->qm2   = NULL;
+        mx->qm2_real   = NULL;
+        mx->qm1_new   = NULL;
         mx->probs = NULL;
         mx->q1k   = NULL;
         mx->qln   = NULL;
