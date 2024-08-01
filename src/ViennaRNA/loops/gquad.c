@@ -2010,7 +2010,7 @@ vrna_gq_pos_pf(vrna_fold_compound_t * fc){
     n2        = 0;
     pf_params = fc->exp_params;
     S_tmp     = NULL;
-    q_gq      = vrna_smx_csr_FLT_OR_DBL_init(n);
+    q_gq      = vrna_smx_csr_FLT_OR_DBL_init(n + 1);
     scale     = fc->exp_matrices->scale;
 
     switch (fc->type) {

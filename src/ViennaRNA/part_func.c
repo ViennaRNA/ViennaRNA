@@ -823,7 +823,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
     unsigned int start = 1;
 
     /* we first compute QM2 a,d QM1, whith at least two and exactly one component, respectively. */
-    qm2_real = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (((n + 1) * n) / 2 + 2));
+    qm2_real = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
     qm1_new = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
 
     /* 1st QM2 */
@@ -942,7 +942,15 @@ postprocess_circular(vrna_fold_compound_t *fc)
             if (u1 > MAXLOOP)
               break;
 
-            for (u2 = 0, l = i - 1; l >= k + VRNA_GQUAD_MIN_BOX_SIZE - 1; l--, u2++) {
+            unsigned int lmax = i - 1;
+            if (u1 == 0)
+              lmax = i - 4;
+            else if (u1 == 1)
+              lmax = i - 2;
+            
+            u2 = i - lmax - 1;
+            
+            for (l = lmax; l >= k + VRNA_GQUAD_MIN_BOX_SIZE - 1; l--, u2++) {
               /* obey hard constraints */
               if (hc->up_int[l + 1] < u2)
                 break;
@@ -992,7 +1000,14 @@ postprocess_circular(vrna_fold_compound_t *fc)
             if (u1 > MAXLOOP)
               break;
 
-            for (u2 = 0, l = i - 1; l > k + turn; l--, u2++) {
+            unsigned int lmax = i - 1;
+            if (u1 == 0)
+              lmax = i - 4;
+            else if (u1 == 1)
+              lmax = i - 2;
+            
+            u2 = i - lmax - 1;
+            for (l = lmax; l > k + turn; l--, u2++) {
               /* obey hard constraints */
               if (hc->up_int[l + 1] < u2)
                 break;
@@ -1051,6 +1066,10 @@ postprocess_circular(vrna_fold_compound_t *fc)
     /* next case: everything unpaired except for one gquad somewhere not spanning artifical cutpoint */
     for (i = 1; i + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= n; i++)
       for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; (j <= n) && j <= (i + VRNA_GQUAD_MAX_BOX_SIZE - 1); j++) {
+        /* keep at least 3 unpaired bases in the loop around */
+        if (i + n - j < 3)
+          break;
+        
         q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
         if (q_g != 0.) {
           qbt1 = 0.;
@@ -1101,13 +1120,14 @@ postprocess_circular(vrna_fold_compound_t *fc)
                   unsigned int sk, sl;
                   sl = S1[l + 1];
                   sk = S1[k - 1];
-                  eval = (hc->up_int[q] >= u3) ? 1 : 0;
+                  eval = (hc->up_int[l] >= u3) ? 1 : 0;
                   eval = (hc->mx[n * k + l] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? eval : 0;
                   if (eval) {
-                    vrna_log_debug("[%d,%d] + (%d,%d)", i, j, k, l);
-                    int kl = my_iindx[k] - l;
+                    vrna_log_debug("[%d,%d] + (%d,%d) %d", i, j, k, l, eval);
+                     int kl = my_iindx[k] - l;
                     qbt1 = q_g *
-                           qb[kl];
+                           qb[kl] *
+                           scale[u1 + u2 + u3];
 
                     if (qbt1 != 0.) {
                       switch (fc->type) {
@@ -1134,7 +1154,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                             us1   = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
                             us2   = a2s[s][k - 1] - a2s[s][j];
                             us3   = a2s[s][n] - a2s[s][l];
-                            qbt1  *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                            qbt1  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
                           }
                           break;
                       }
@@ -1173,7 +1193,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                           us1     = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
                           us2     = a2s[s][k - 1] - a2s[s][j];
                           us3     = a2s[s][n] - a2s[s][l];
-                          qbt1 *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                          qbt1 *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
                         }
                         break;
                     }
@@ -1244,7 +1264,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                           us1 = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
                           us2 = a2s[s][l - 1] - a2s[s][j];
                           us3 = a2s[s][n] - a2s[s][l];
-                          q_g *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                          q_g *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
                         }
                         break;
                     }
@@ -1261,6 +1281,8 @@ postprocess_circular(vrna_fold_compound_t *fc)
       }
     }
 
+    matrices->qm2_real = qm2_real;
+    matrices->qm1_new   = qm1_new;
   }
 
   free_sc_mb_exp(&sc_mb_wrapper);

@@ -3828,11 +3828,13 @@ bppm_circ(vrna_fold_compound_t  *fc,
           constraints_helper    *constraints)
 {
   char                      *ptype;
-  unsigned char             *hard_constraints, eval;
+  unsigned char             *hard_constraints, eval, with_gquad;
   short                     *S, *S1, **SS, **S5, **S3;
-  unsigned int              s, n_seq, type, rt, *tt, **a2s;
+  unsigned int              s, n_seq, type, rt, *tt, **a2s, turn, u1, u2, u3, us1, us2, us3;
   int                       n, i, j, k, l, ij, *rtype, *my_iindx, *jindx;
-  FLT_OR_DBL                tmp, tmp2, expMLclosing, *qb, *qm, *qm1, *probs, *scale, *expMLbase, qo;
+  FLT_OR_DBL                tmp, tmp2, expMLclosing, *qb, *qm, *qm1, *probs, *scale, *expMLbase, qo,
+                            *qm2_real, *qm1_new, q_g;
+  double                    *expintern;
   vrna_hc_t                 *hc;
   vrna_exp_param_t          *pf_params;
   vrna_mx_pf_t              *matrices;
@@ -3841,6 +3843,8 @@ bppm_circ(vrna_fold_compound_t  *fc,
   vrna_hc_eval_f hc_eval_mb;
   struct sc_int_exp_dat     *sc_dat_int;
   struct sc_mb_exp_dat      *sc_dat_mb;
+
+  vrna_smx_csr(FLT_OR_DBL)  *q_gq = fc->exp_matrices->q_gq;
 
   FLT_OR_DBL                (*numerator_f)(vrna_fold_compound_t *fc,
                                            int                  i,
@@ -3859,6 +3863,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
   my_iindx          = fc->iindx;
   jindx             = fc->jindx;
   ptype             = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->ptype : NULL;
+  turn              = md->min_loop_size;
   type              = 0;
   rt                = 0;
   tt                = NULL;
@@ -3867,6 +3872,8 @@ bppm_circ(vrna_fold_compound_t  *fc,
   qb                = matrices->qb;
   qm                = matrices->qm;
   qm1               = matrices->qm1;
+  qm2_real          = matrices->qm2_real;
+  qm1_new           = matrices->qm1_new;
   probs             = matrices->probs;
   scale             = matrices->scale;
   expMLbase         = matrices->expMLbase;
@@ -3878,7 +3885,17 @@ bppm_circ(vrna_fold_compound_t  *fc,
   sc_dat_mb         = &(constraints->sc_wrapper_mb);
 
   expMLclosing  = pf_params->expMLclosing;
+  expintern     = &(pf_params->expinternal[0]);
   rtype         = &(pf_params->model_details.rtype[0]);
+
+  struct sc_mb_exp_dat sc_mb_wrapper;
+  struct sc_ext_exp_dat sc_ext_wrapper;
+  struct sc_int_exp_dat sc_int_wrapper;
+  init_sc_mb_exp(fc, &sc_mb_wrapper);
+  init_sc_ext_exp(fc, &sc_ext_wrapper);
+  init_sc_int_exp(fc, &sc_int_wrapper);
+
+  with_gquad    = (unsigned char)md->gquad;
 
   switch (fc->type) {
     case  VRNA_FC_TYPE_SINGLE:
@@ -4096,13 +4113,13 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     sc_contrib;
           }
 
-          /* 1.3.2 Left part  */
+          /* 1.3.2 right-most part  */
           if (hc->up_ml[j + 1] >= (n - j)) {
-            for (k = 2; k < i - 2; k++) {
+            if ((qm2_real) &&
+                (i > 1)) {
               if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                  (hc_eval_mb(1, i - 1, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
-                tmp = qm[my_iindx[1] - k] *
-                      qm1[jindx[i - 1] + k + 1] *
+                  (hc_eval_mb(1, j, i - 1, i, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
+                tmp = qm2_real[my_iindx[1] - i + 1] *
                       expMLbase[n - j];
 
                 if (fc->type == VRNA_FC_TYPE_SINGLE) {
@@ -4125,21 +4142,56 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   tmp *= sc_dat_mb->red_ml(i, n, i, j, sc_dat_mb);
 
                 if (sc_dat_mb->decomp_ml)
-                  tmp *= sc_dat_mb->decomp_ml(1, i - 1, k, k + 1, sc_dat_mb);
+                  tmp *= sc_dat_mb->decomp_ml(1, j, i - 1, i, sc_dat_mb);
 
                 tmp2 += tmp *
                         sc_contrib;
+
+              }
+            } else {
+              for (k = 2; k < i - 2; k++) {
+                if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
+                    (hc_eval_mb(1, i - 1, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
+                  tmp = qm[my_iindx[1] - k] *
+                        qm1[jindx[i - 1] + k + 1] *
+                        expMLbase[n - j];
+
+                  if (fc->type == VRNA_FC_TYPE_SINGLE) {
+                    tmp *= exp_E_MLstem(type,
+                                        S1[i - 1],
+                                        S1[j + 1],
+                                        pf_params) *
+                           expMLclosing;
+                  } else {
+                    for (s = 0; s < n_seq; s++)
+                      tmp *= exp_E_MLstem(rtype[tt[s]],
+                                          S5[s][i],
+                                          S3[s][j],
+                                          pf_params);
+
+                    tmp *= pow(expMLclosing, n_seq);
+                  }
+
+                  if (sc_dat_mb->red_ml)
+                    tmp *= sc_dat_mb->red_ml(i, n, i, j, sc_dat_mb);
+
+                  if (sc_dat_mb->decomp_ml)
+                    tmp *= sc_dat_mb->decomp_ml(1, i - 1, k, k + 1, sc_dat_mb);
+
+                  tmp2 += tmp *
+                          sc_contrib;
+                }
               }
             }
           }
 
-          /* 1.3.3 Right part */
+          /* 1.3.3 left-most part */
           if (hc->up_ml[1] >= (i - 1)) {
-            for (k = j + 2; k < n - 1; k++) {
+            if ((qm2_real) &&
+                (j + 1 < n)) {
               if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                  (hc_eval_mb(j + 1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
-                tmp = qm[my_iindx[j + 1] - k] *
-                      qm1[jindx[n] + k + 1] *
+                  (hc_eval_mb(i, n, j, j + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
+                tmp = qm2_real[my_iindx[j + 1] - n] *
                       expMLbase[i - 1];
 
                 if (fc->type == VRNA_FC_TYPE_SINGLE) {
@@ -4162,10 +4214,44 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   tmp *= sc_dat_mb->red_ml(1, j, i, j, sc_dat_mb);
 
                 if (sc_dat_mb->decomp_ml)
-                  tmp *= sc_dat_mb->decomp_ml(j + 1, n, k, k + 1, sc_dat_mb);
+                  tmp *= sc_dat_mb->decomp_ml(i, n, j, j + 1, sc_dat_mb);
 
                 tmp2 += tmp *
                         sc_contrib;
+              }
+            } else {
+              for (k = j + 2; k < n - 1; k++) {
+                if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
+                    (hc_eval_mb(j + 1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
+                  tmp = qm[my_iindx[j + 1] - k] *
+                        qm1[jindx[n] + k + 1] *
+                        expMLbase[i - 1];
+
+                  if (fc->type == VRNA_FC_TYPE_SINGLE) {
+                    tmp *= exp_E_MLstem(type,
+                                        S1[i - 1],
+                                        S1[j + 1],
+                                        pf_params) *
+                           expMLclosing;
+                  } else {
+                    for (s = 0; s < n_seq; s++)
+                      tmp *= exp_E_MLstem(rtype[tt[s]],
+                                          S5[s][i],
+                                          S3[s][j],
+                                          pf_params);
+
+                    tmp *= pow(expMLclosing, n_seq);
+                  }
+
+                  if (sc_dat_mb->red_ml)
+                    tmp *= sc_dat_mb->red_ml(1, j, i, j, sc_dat_mb);
+
+                  if (sc_dat_mb->decomp_ml)
+                    tmp *= sc_dat_mb->decomp_ml(j + 1, n, k, k + 1, sc_dat_mb);
+
+                  tmp2 += tmp *
+                          sc_contrib;
+                }
               }
             }
           }
@@ -4173,13 +4259,621 @@ bppm_circ(vrna_fold_compound_t  *fc,
           /* all exterior loop decompositions for pair i,j done  */
         }
 
+        if (with_gquad) {
+          unsigned int u1, u2, u3,  us1, us2, us3;
+          /* consider all the other possibilities where at least one gquad is enclosed in the same loop as (i,j) */
+          /* 1. interior-loop like structure */
+          if (hard_constraints[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
+            /* 1.1 gquad is 5' of base pair (i,j) */
+            short sj = S1[j + 1];
+            short si = S1[i - 1];
+
+            FLT_OR_DBL qint = qb[my_iindx[i] - j];
+
+            switch (fc->type) {
+              case VRNA_FC_TYPE_SINGLE:
+                if (dangles == 2)
+                  qint *= pf_params->expmismatchI[rt][sj][si];
+
+                if (rt > 2)
+                  qint *= pf_params->expTermAU;
+
+                break;
+
+              case VRNA_FC_TYPE_COMPARATIVE:
+                for (s = 0; s < n_seq; s++) {
+                  if (md->dangles == 2)
+                    qint *= pf_params->expmismatchI[tt[s]][S3[s][j]][S5[s][i]];
+
+                  if (tt[s] > 2)
+                    qint *= pf_params->expTermAU;
+                }
+                break;
+            }
+
+
+            if ((j + 2 < n) && 
+                ((n - j) <= MAXLOOP)) {
+              unsigned int u1   = n - j;
+              unsigned int kmax = 1 + MAXLOOP - u1;
+              for (k = 1; k <= kmax; k++) {
+                u2 = k - 1;
+                unsigned int lmax = i - 1;
+                if (k + VRNA_GQUAD_MAX_BOX_SIZE - 1 < lmax)
+                  lmax = k + VRNA_GQUAD_MAX_BOX_SIZE - 1;
+
+                unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                if (lmin >= i)
+                  lmin = i;
+                else if ((i - lmin) + u1 + u2 > MAXLOOP + 1)
+                  lmin = i - (MAXLOOP - u1 - u2) - 1;
+                   
+                for (l = lmin; l <= lmax; l++) {
+                  q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+                  if (q_g != 0.) {
+                    tmp = q_g *
+                          qint *
+                          scale[u1 + u2 + (i - lmin - 1)];
+
+                    switch (fc->type) {
+                      case VRNA_FC_TYPE_SINGLE:
+                        tmp *= (FLT_OR_DBL)expintern[u1 + u2 +  (i - lmin - 1)];
+                        break;
+
+                      case VRNA_FC_TYPE_COMPARATIVE:
+                        for (s = 0; s < n_seq; s++) {
+                          us1   = (k > 1) ? a2s[s][k - 1] - a2s[s][1] : 0;
+                          us2   = a2s[s][i - 1] - a2s[s][l];
+                          us3   = a2s[s][n] - a2s[s][j];
+                          tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                        }
+                        break;
+                    }
+
+                    if (sc_int_wrapper.pair_ext)
+                      tmp *= sc_int_wrapper.pair_ext(k, l, i, j, &sc_int_wrapper);
+
+                    tmp2 += tmp;
+                  }
+                }
+              }
+            } else if (j == n - 1) {
+              u1   = 1;
+              unsigned int kmax = 1 + MAXLOOP - u1;
+              for (k = 1; k <= kmax; k++) {
+                u2 = k - 1;
+                unsigned int lmax = (k > 2) ? i - 1 : i - 2;
+                if (k + VRNA_GQUAD_MAX_BOX_SIZE - 1 < lmax)
+                  lmax = k + VRNA_GQUAD_MAX_BOX_SIZE - 1;
+
+                unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                if (lmin >= i)
+                  lmin = i;
+                else if ((i - lmin) + u1 + u2 > MAXLOOP + 1)
+                  lmin = i - (MAXLOOP - u1 - u2) - 1;
+                   
+                for (l = lmin; l <= lmax; l++) {
+                  q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+                  if (q_g != 0.) {
+                    tmp = q_g *
+                          qint *
+                          scale[u1 + u2 + (i - lmin - 1)];
+
+                    switch (fc->type) {
+                      case VRNA_FC_TYPE_SINGLE:
+                        tmp *= (FLT_OR_DBL)expintern[u1 + u2 +  (i - lmin - 1)];
+                        break;
+
+                      case VRNA_FC_TYPE_COMPARATIVE:
+                        for (s = 0; s < n_seq; s++) {
+                          us1   = (k > 1) ? a2s[s][k - 1] - a2s[s][1] : 0;
+                          us2   = a2s[s][i - 1] - a2s[s][l];
+                          us3   = a2s[s][n] - a2s[s][j];
+                          tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                        }
+                        break;
+                    }
+
+                    if (sc_int_wrapper.pair_ext)
+                      tmp *= sc_int_wrapper.pair_ext(k, l, i, j, &sc_int_wrapper);
+
+                    tmp2 += tmp;
+                  }
+                }
+              }
+            } else if (j == n) {
+              u1   = 0;
+              unsigned int kmax = 1 + MAXLOOP - u1;
+              if (kmax + 1 > i)
+                kmax = i - 1;
+
+              for (k = 1; k <= kmax; k++) {
+                u2 = k - 1;
+                unsigned int lmax = (i > 4) ? i - 4 : 0;
+                if (k > 2)
+                  lmax = i - 1;
+                else if (k > 1)
+                  lmax = i - 2;
+
+                if (k + VRNA_GQUAD_MAX_BOX_SIZE - 1 < lmax)
+                  lmax = k + VRNA_GQUAD_MAX_BOX_SIZE - 1;
+
+                unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                if (lmin >= i)
+                  lmin = i;
+                else if ((i - lmin) + u1 + u2 > MAXLOOP + 1)
+                  lmin = i - (MAXLOOP - u1 - u2) - 1;
+                   
+                for (l = lmin; l <= lmax; l++) {
+                  u3 = i - l - 1;
+                  vrna_log_debug("i = %d, j = %d, k = %d, l = %d, lim = %d, lmax = %d, u1=%d, u2 = %d, u3 = %d, tot = %d", i, j, k, l, lmin, lmax, u1, u2, u3, u1 + u2 + u3);
+                  q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+                  if (q_g != 0.) {
+                    tmp = q_g *
+                          qint *
+                          scale[u1 + u2 + u3];
+
+                    switch (fc->type) {
+                      case VRNA_FC_TYPE_SINGLE:
+                        tmp *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                        break;
+
+                      case VRNA_FC_TYPE_COMPARATIVE:
+                        for (s = 0; s < n_seq; s++) {
+                          us1   = (k > 1) ? a2s[s][k - 1] - a2s[s][1] : 0;
+                          us2   = a2s[s][i - 1] - a2s[s][l];
+                          us3   = a2s[s][n] - a2s[s][j];
+                          tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                        }
+                        break;
+                    }
+
+                    if (sc_int_wrapper.pair_ext)
+                      tmp *= sc_int_wrapper.pair_ext(k, l, i, j, &sc_int_wrapper);
+
+                    tmp2 += tmp;
+                  }
+                }
+              }
+            }
+            /* 1.2 gquad is 3' of base pair (i,j) */
+            if (i == 1) {
+              u1 = 0;            
+              unsigned int kmax = j + MAXLOOP - u1 + 1;
+              if (j + VRNA_GQUAD_MIN_BOX_SIZE <= n)
+                kmax = MIN2(kmax, n - VRNA_GQUAD_MIN_BOX_SIZE + 1);
+              else
+                kmax = j;
+
+              for (k = j + 1; k <= kmax; k++) {
+                u2 = k - j - 1;
+                unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                if (lmin > n)
+                  break;
+                if (lmin + MAXLOOP - u1 - u2 < n)
+                  lmin = n + u1 + u2 - MAXLOOP;
+
+                unsigned int lmax = k + VRNA_GQUAD_MAX_BOX_SIZE -1;
+                if (lmax > n)
+                  lmax = n;
+
+                if ((u2 == 0) &&
+                    (lmax + 3 > n))
+                  lmax = n - 3;
+                else if ((u2 == 1) &&
+                         (lmax + 1 > n))
+                  lmax = n - 1;
+
+                for (l = lmin; l <= lmax; l++) {
+                  q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+                  if (q_g != 0.) {
+                    u3  = n - l;
+                    tmp = q_g *
+                          qint *
+                          scale[u1 + u2 + u3];
+
+                    switch (fc->type) {
+                      case VRNA_FC_TYPE_SINGLE:
+                        tmp *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                        break;
+
+                      case VRNA_FC_TYPE_COMPARATIVE:
+                        for (s = 0; s < n_seq; s++) {
+                          us1   = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
+                          us2   = a2s[s][k - 1] - a2s[s][j];
+                          us3   = a2s[s][n] - a2s[s][l];
+                          tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                        }
+                        break;
+                    }
+
+                    if (sc_int_wrapper.pair_ext)
+                      tmp *= sc_int_wrapper.pair_ext(i, j, k, l, &sc_int_wrapper);
+
+                    tmp2 += tmp;
+                  }
+                }
+              }
+            } else if (i == 2) {
+              u1 = 1;            
+              unsigned int kmax = j + MAXLOOP - u1 + 1;
+              if (j + VRNA_GQUAD_MIN_BOX_SIZE <= n)
+                kmax = MIN2(kmax, n - VRNA_GQUAD_MIN_BOX_SIZE + 1);
+              else
+                kmax = j;
+
+              for (k = j + 1; k <= kmax; k++) {
+                u2 = k - j - 1;
+                unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                if (lmin > n)
+                  break;
+                if (lmin + MAXLOOP - u1 - u2 < n)
+                  lmin = n + u1 + u2 - MAXLOOP;
+
+                unsigned int lmax = k + VRNA_GQUAD_MAX_BOX_SIZE -1;
+                if (lmax > n)
+                  lmax = n;
+
+                if ((u2 == 0) &&
+                    (lmax + 2 > n))
+                  lmax = n - 2;
+
+                for (l = lmin; l <= lmax; l++) {
+                  q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+                  if (q_g != 0.) {
+                    u3  = n - l;
+                    tmp = q_g *
+                          qint *
+                          scale[u1 + u2 + u3];
+
+                    switch (fc->type) {
+                      case VRNA_FC_TYPE_SINGLE:
+                        tmp *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                        break;
+
+                      case VRNA_FC_TYPE_COMPARATIVE:
+                        for (s = 0; s < n_seq; s++) {
+                          us1   = a2s[s][i - 1] - a2s[s][1];
+                          us2   = a2s[s][k - 1] - a2s[s][j];
+                          us3   = a2s[s][n] - a2s[s][l];
+                          tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                        }
+                        break;
+                    }
+
+                    if (sc_int_wrapper.pair_ext)
+                      tmp *= sc_int_wrapper.pair_ext(i, j, k, l, &sc_int_wrapper);
+
+                    tmp2 += tmp;
+                  }
+                }
+              }
+            } else {
+              u1 = i - 1;
+              unsigned int kmax = j + MAXLOOP - u1 + 1;
+              if (j + VRNA_GQUAD_MIN_BOX_SIZE <= n)
+                kmax = MIN2(kmax, n - VRNA_GQUAD_MIN_BOX_SIZE + 1);
+              else
+                kmax = j;
+
+              for (k = j + 1; k <= kmax; k++) {
+                u2 = k - j - 1;
+                unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                if (lmin > n)
+                  break;
+                if (lmin + MAXLOOP - u1 - u2 < n)
+                  lmin = n + u1 + u2 - MAXLOOP;
+
+                unsigned int lmax = k + VRNA_GQUAD_MAX_BOX_SIZE -1;
+                if (lmax > n)
+                  lmax = n;
+
+                if ((u2 == 0) &&
+                    (u1 < 3) &&
+                    (lmax + (3 - u1) > n))
+                  lmax = n - (3 - u1);
+
+                for (l = lmin; l <= lmax; l++) {
+                  q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+                  if (q_g != 0.) {
+                    u3  = n - l;
+                    tmp = q_g *
+                          qint *
+                          scale[u1 + u2 + u3];
+
+                    switch (fc->type) {
+                      case VRNA_FC_TYPE_SINGLE:
+                        tmp *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                        break;
+
+                      case VRNA_FC_TYPE_COMPARATIVE:
+                        for (s = 0; s < n_seq; s++) {
+                          us1   = a2s[s][i - 1] - a2s[s][1];
+                          us2   = a2s[s][k - 1] - a2s[s][j];
+                          us3   = a2s[s][n] - a2s[s][l];
+                          tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                        }
+                        break;
+                    }
+
+                    if (sc_int_wrapper.pair_ext)
+                      tmp *= sc_int_wrapper.pair_ext(i, j, k, l, &sc_int_wrapper);
+
+                    tmp2 += tmp;
+                  }
+                }
+              }
+            }
+          }
+
+          /* 2. multibranch-loop like configurations with gquads handled implicitely above already */
+
+          /* 3. all base pairs (i,j) where G-Quad spans across n,1 boundary */
+          /* 3.1 interior-loop like configurations */
+          if (j + MAXLOOP + VRNA_GQUAD_MIN_BOX_SIZE > n) {
+            unsigned int kmin = j + 1;
+            unsigned int kmax = n;
+            if (j + MAXLOOP + 1 < kmax)
+              kmax = j + MAXLOOP + 1;
+            for (k = kmin; k <= kmax; k++) {
+              u1 = k - j - 1;
+              unsigned int lmin = 1;
+              unsigned int lmax = (k + VRNA_GQUAD_MAX_BOX_SIZE - 1 + 1) % (n + 1) - 1;
+              if (lmax >= i)
+                lmax = i - 1;
+              for (l = lmin; l <= lmax; l++) {
+                u2 = i - l - 1;
+                if (u1 + u2 > MAXLOOP)
+                  continue;
+
+              }
+            }
+          }          
+          /* 3.2 multibranch-loop like configurations */
+        }
+
         probs[ij] *= tmp2;
       } else {
         probs[ij] = 0;
       }
+      
+      if ((with_gquad) &&
+          ((q_g = vrna_smx_csr_get(q_gq, i, j, 0.)) != 0.)) {
+        /* now for G-Quadruplex probabilities */
+        tmp2 = 0.;
+        FLT_OR_DBL tmp3 = 0;
+
+        /* 1. all possible G-quads spanning from i to j */
+        
+        /* 1.1 hairpin-loop like configurations */
+        if ((i - 1) + (n - j) >= 3) {
+          eval = (hc->up_ext[1] >= i - 1) ? 1 : 0;
+          if (j < n)
+            eval = (hc->up_ext[j + 1] >= n - j) ? eval : 0;
+          if (hc->f) {
+            if (i > 1)
+              eval = (hc->f(1, i - 1, 1, i - 1, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
+            if (j < n)
+              eval = (hc->f(j + 1, n, j + 1, n, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
+          }
+          
+          if (eval) {
+            tmp = q_g *
+                  scale[(i - 1) + (n - j)]; 
+
+            if (sc_ext_wrapper.red_up)
+              tmp *= sc_ext_wrapper.red_up(1, i - 1, &sc_ext_wrapper) *
+                     sc_ext_wrapper.red_up(j + 1, n, &sc_ext_wrapper);
+ 
+            tmp2 += tmp;
+          }
+        }
+
+        /* 1.2 interior-loop like configurations */
+        /* 1.2.1 (k,l) [i,j] */
+        u3 = n - j;
+        if ((i > turn + 2) &&
+            (u3 <= MAXLOOP) &&
+            (hc->up_int[j + 1] >= u3)) {
+          unsigned int kmax = i - 1;
+          if (kmax + u3 > MAXLOOP + 1)
+            kmax = MAXLOOP - u3 + 1;
+
+          for (k = 1; k <= kmax; k++) {
+            u1 = k - 1;
+            if (hc->up_int[1] < u1)
+              break;
+
+            unsigned int lmin = k + turn + 1;
+            if ((i - lmin) + u1 + u3 > MAXLOOP)
+              lmin = i + u1 + u2 - MAXLOOP - 1;
+
+            for (u2 = 0, l = i - 1; l >= lmin; l--, u2++) {
+              if (hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
+                eval = (hc->up_int[l + 1] >= u2) ? 1 : 0;
+                
+                tmp = qb[my_iindx[k] - l];
+                /* maybe some hc->f constraint in the future, once it supports gquads */
+                if ((tmp != 0.) &&
+                    (eval)) {
+                  tmp = q_g *
+                        scale[u1 + u2 + u3];
+
+                  switch (fc->type) {
+                    case VRNA_FC_TYPE_SINGLE:
+                      type    = vrna_get_ptype_md(S[l], S[k], md);
+                      if (dangles == 2)
+                        tmp *= pf_params->expmismatchI[type][S1[l + 1]][S1[k - 1]];
+
+                      if (type > 2)
+                        tmp *= pf_params->expTermAU;
+
+                      tmp *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                      break;
+
+                    case VRNA_FC_TYPE_COMPARATIVE:
+                      for (s = 0; s < n_seq; s++) {
+                        type = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                        if (md->dangles == 2)
+                          tmp *= pf_params->expmismatchI[type][S3[s][l]][S5[s][k]];
+
+                        if (type > 2)
+                          tmp *= pf_params->expTermAU;
+
+                        us1   = (k > 1) ? a2s[s][k - 1] - a2s[s][1] : 0;
+                        us2   = a2s[s][i - 1] - a2s[s][l];
+                        us3   = a2s[s][n] - a2s[s][j];
+                        tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                      }
+                      break;
+                  }
+
+                  /* soft constraints for at least unpaired bases in the interior-loop like conformation?! */
+
+                  tmp2 += tmp;
+                }
+              }
+          
+            }
+          }
+        }
+        /* 1.2.2 [i,j] (k,l)  */
+        u1 = i - 1;
+        if ((j + turn + 1 < n) &&
+            (u1 <= MAXLOOP) &&
+            (hc->up_int[1] >= u1)) {
+          unsigned int kmax = j + MAXLOOP - u1 + 1;
+          if (kmax + turn + 2 > n)
+            kmax = n - turn - 1;
+
+          for (k = j + 1; k <= kmax; k++) {
+            u2 = k - j - 1;
+            if (hc->up_int[j + 1] < u2)
+              break;
+
+            unsigned int lmin = k + turn + 1;
+            if ((n - lmin) + u1 + u2 > MAXLOOP)
+              lmin = n + u1 + u2 - MAXLOOP - 1;
+
+            for (u3 = 0, l = n; l >= lmin; l--, u3++) {
+              if (hc->mx[k * n + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
+                eval = (hc->up_int[l + 1] >= u3) ? 1 : 0;
+                
+                tmp = qb[my_iindx[k] - l];
+                /* maybe some hc->f constraint in the future, once it supports gquads */
+                if ((tmp != 0.) &&
+                    (eval)) {
+                  tmp = q_g *
+                        scale[u1 + u2 + u3];
+
+                  switch (fc->type) {
+                    case VRNA_FC_TYPE_SINGLE:
+                      type    = vrna_get_ptype_md(S[l], S[k], md);
+                      if (dangles == 2)
+                        tmp *= pf_params->expmismatchI[type][S1[l+1]][S1[k-1]];
+
+                      if (type > 2)
+                        tmp *= pf_params->expTermAU;
+
+                      tmp *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                      break;
+
+                    case VRNA_FC_TYPE_COMPARATIVE:
+                      for (s = 0; s < n_seq; s++) {
+                        type = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+                        if (md->dangles == 2)
+                          tmp *= pf_params->expmismatchI[type][S3[s][l]][S5[s][k]];
+
+                        if (type > 2)
+                          tmp *= pf_params->expTermAU;
+
+                        us1   = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
+                        us2   = a2s[s][k - 1] - a2s[s][j];
+                        us3   = a2s[s][n] - a2s[s][l];
+                        tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                      }
+                      break;
+                  }
+
+                  /* soft constraints for at least unpaired bases in the interior-loop like conformation?! */
+
+                  tmp2 += tmp;
+                }
+              }
+          
+            }
+          }
+        }
+        /* 1.2.3 [i,j] [k,l]  */
+        u1 = i - 1;
+        if ((j + VRNA_GQUAD_MIN_BOX_SIZE - 1 < n) &&
+            (u1 <= MAXLOOP) &&
+            (hc->up_int[1] >= u1)) {
+          unsigned int kmax = j + MAXLOOP - u1 + 1;
+          if (kmax + VRNA_GQUAD_MIN_BOX_SIZE - 1 > n)
+            kmax = n - VRNA_GQUAD_MIN_BOX_SIZE;
+
+          for (k = j + 1; k <= kmax; k++) {
+            u2 = k - j - 1;
+            if (hc->up_int[j + 1] < u2)
+              break;
+
+            unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+            if ((n - lmin) + u1 + u2 > MAXLOOP)
+              lmin = n + u1 + u2 - MAXLOOP - 1;
+
+            for (u3 = 0, l = n; l >= lmin; l--, u3++) {
+              if (hc->up_int[l + 1] < u3)
+                break;
+
+              if ((((u1 + u3) == 0) && (u2 < 3)) ||
+                  (((u1 + u3) < 3) && (u2 == 0)))
+                continue;
+
+              tmp = vrna_smx_csr_get(q_gq, k, l, 0.);
+              
+              if (tmp != 0.) {
+                  tmp = q_g *
+                        scale[u1 + u2 + u3];
+
+                switch (fc->type) {
+                  case VRNA_FC_TYPE_SINGLE:
+                    tmp *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                    break;
+
+                  case VRNA_FC_TYPE_COMPARATIVE:
+                    for (s = 0; s < n_seq; s++) {
+                      us1   = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
+                      us2   = a2s[s][k - 1] - a2s[s][j];
+                      us3   = a2s[s][n] - a2s[s][l];
+                      tmp  *= (FLT_OR_DBL)expintern[us1 + us2 + us3];
+                    }
+                    break;
+                }
+
+                /* soft constraints for at least unpaired bases in the interior-loop like conformation?! */
+
+                tmp2 += tmp;
+                probs[my_iindx[k] - l] += tmp; /* add contribution for 2nd gquad here instead of extra block below */
+              }
+            }
+          }
+        }
+
+        /* 1.3 multibranch-loop like configurations */
+        
+        
+        /* store total contribution */
+        probs[ij] += tmp2;
+      }
     }
   }
 
+  /* finally, all Gquads spanning the n,1 junction */
+
+  free_sc_mb_exp(&sc_mb_wrapper);
+  free_sc_ext_exp(&sc_ext_wrapper);
+  free_sc_int_exp(&sc_int_wrapper);
   free(tt);
 }
 
