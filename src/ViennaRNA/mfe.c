@@ -953,8 +953,8 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
             if (e < FgH) {
               FgH = e;
-              Egi = i;
-              Egj = j;
+              Hgi = i;
+              Hgj = j;
             }
           }
         }
