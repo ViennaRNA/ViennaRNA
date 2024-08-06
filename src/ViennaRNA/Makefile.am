@@ -4,7 +4,7 @@ include $(top_srcdir)/silent_rules.mk
 
 AM_CFLAGS = $(RNA_CFLAGS) $(PTHREAD_CFLAGS)
 AM_CXXFLAGS = $(RNA_CXXFLAGS) $(PTHREAD_CFLAGS)
-AM_CPPFLAGS = $(RNA_CPPFLAGS) ${SVM_INC} -I$(top_srcdir)/src ${JSON_INC}
+AM_CPPFLAGS = $(RNA_CPPFLAGS) -I$(top_srcdir)/src ${JSON_INC}
 AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 
 SUBDIRS = static @NAVIEW_DIR@
@@ -36,6 +36,10 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_eval.la \
                       libRNA_landscape.la \
                       libRNA_special_const.la
+
+if VRNA_AM_SWITCH_SVM
+noinst_LTLIBRARIES += libRNA_svm.la
+endif
 
 # where to install the headers on the system
 libRNA_ladir = $(includedir)/ViennaRNA
@@ -83,12 +87,17 @@ nodist_EXTRA_libRNA_la_SOURCES =
 endif
 
 if VRNA_AM_SWITCH_SVM
+  libRNA_conv_la_LIBADD += libRNA_svm.la
+
   SVM_SRC         = ../@LIBSVM_DIR@/svm.cpp
   SVM_INC         = -I$(top_srcdir)/src/@LIBSVM_DIR@
   SVM_H           = ../@LIBSVM_DIR@/svm.h
   SVM_UTILS       = utils/svm_utils.c
   SVM_UTILS_H     = utils/svm.h
   SVM_UTILS_H_OLD = svm_utils.h
+
+  libRNA_svm_la_CPPFLAGS = $(CPPFLAGS)  -I$(top_srcdir)/src ${SVM_INC} -U_OPENMP ## disable OpenMP support for libSVM
+  libRNA_utils_la_CPPFLAGS = $(AM_CPPFLAGS) ${SVM_INC}
 endif
 
 JSON_SRC    = ../json/json.c
@@ -194,8 +203,6 @@ pkginclude_HEADERS =  \
     neighbor.h \
     walk.h \
     heat_capacity.h \
-    ${SVM_UTILS_H_OLD} \
-    ${SVM_H} \
     ${JSON_H} \
     ${CEPHES_H}
 
@@ -205,7 +212,9 @@ pkginclude_HEADERS += naview.h
 endif
 
 if VRNA_AM_SWITCH_SVM
-pkginclude_HEADERS +=  zscore.h
+pkginclude_HEADERS +=  zscore.h \
+    ${SVM_UTILS_H_OLD} \
+    ${SVM_H}
 endif
 
 vrna_constraints_HEADERS = \
@@ -337,7 +346,6 @@ libRNA_conv_la_SOURCES = \
     boltzmann_sampling.c \
     bs_wrappers.c \
     equilibrium_probs.c \
-    ${SVM_SRC} \
     ${JSON_SRC} \
     alphabet.c \
     sequence.c \
@@ -347,7 +355,8 @@ libRNA_conv_la_SOURCES = \
     ${CEPHES_SRC}
 
 if VRNA_AM_SWITCH_SVM
-libRNA_conv_la_SOURCES += zscore.c
+libRNA_svm_la_SOURCES = \
+    ${SVM_SRC}
 endif
 
 libRNA_eval_la_SOURCES = \
@@ -390,8 +399,14 @@ libRNA_utils_la_SOURCES = \
     search/BoyerMoore.c \
     commands.c \
     combinatorics.c \
-		utils/structure_benchmark.c \
+		utils/structure_benchmark.c
+
+if VRNA_AM_SWITCH_SVM
+libRNA_utils_la_SOURCES += \
+    zscore.c \
     ${SVM_UTILS}
+endif
+
 
 if VRNA_AM_SWITCH_SIMD_SSE41
 libRNA_utils_sse41_la_SOURCES = \
