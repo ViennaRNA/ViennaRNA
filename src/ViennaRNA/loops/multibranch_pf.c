@@ -522,9 +522,11 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
 #else
     q_temp  = (sliding_window) ? G_local[i][j] : vrna_smx_csr_int_get(q_gq, i, j, 0.);
 #endif
-    if (q_temp != 0.)
+    if (q_temp != 0.) {
       qqm[i]  += q_temp *
                  pow(exp_E_MLstem(0, -1, -1, pf_params), (double)n_seq);
+      vrna_log_debug("ml-gq [%d,%d] = %g", i, j, q_temp);
+    }
   }
 
   if (with_ud)
