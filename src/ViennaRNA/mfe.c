@@ -971,7 +971,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
             for (p = j + 1; p + u1 < j + MAXLOOP + 1; p++) {
               u2 = p - j - 1;
               unsigned int u3, us3;
-              unsigned int stop = (length > MAXLOOP) ? length + u1 + u2 - MAXLOOP : p + turn + 1;
+              unsigned int stop = p + turn + 1;
+              
+              if (stop + MAXLOOP < length + u1 + u2)
+                stop = length + u1 + u2 - MAXLOOP;
+
               if (hc->up_int[j + 1] >= u2) {
                 for (u3 = 0, q = length; q >= stop; q--, u3++) {
                   if (u1 + u2 + u3 < 3)
@@ -1038,7 +1042,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
             for (p = j + 1; p + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= length; p++) {
               u2 = p - j - 1;
               if (hc->up_int[j + 1] >= u2) {
-                unsigned int stop = (length > MAXLOOP) ? length + u1 + u2 - MAXLOOP : p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+                unsigned int stop = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+
+                if (stop + MAXLOOP < length + u1 + u2)
+                  stop = length + u1 + u2 - MAXLOOP;
+
                 unsigned int u3, us3;
                 for (u3 = 0, q = length; q >= stop; q--, u3++) {
                   if (u1 + u2 + u3 < 3)
@@ -1114,7 +1122,10 @@ postprocess_circular(vrna_fold_compound_t *fc,
               if (hc->up_int[j + 1] < u2)
                 break;
 
-              unsigned int stop = (length > MAXLOOP) ? length + u1 + u2 - MAXLOOP : p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+              unsigned int stop = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
+              if (stop + MAXLOOP < length + u1 + u2)
+                stop = length + u1 + u2 - MAXLOOP;
+
               unsigned int u3, us3;
               for (u3 = 0, q = length; q >= stop; q--, u3++) {
                 if (u1 + u2 + u3 < 3)
