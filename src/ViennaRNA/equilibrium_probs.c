@@ -880,9 +880,9 @@ pf_create_bppm(vrna_fold_compound_t *vc,
             if (q_g != 0.) {
               if (!md->circ)
                 probs[ij] += q1k[i - 1] *
-                             qln[j + 1];
+                             qln[j + 1] / q1k[n];
 
-              probs[ij] *= q_g / q1k[n];
+              probs[ij] *= q_g;
               vrna_log_debug("prg[%d,%d] = %g", i, j, probs[ij]);
             }
           }
@@ -1732,12 +1732,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
 
       if ((with_gquad) &&
           (qb[kl] == 0.)) {
-#ifndef VRNA_DISABLE_C11_FEATURES
-        temp *= vrna_smx_csr_get(q_gq, k, l, 0.) *
-#else
-        temp *= vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) *
-#endif
-                expMLstem;
+        temp *= expMLstem;
       } else if (hc_eval(k, l, k, l, VRNA_DECOMP_ML_STEM, hc_dat)) {
         if (tt == 0)
           tt = 7;
@@ -1981,12 +1976,7 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
 
       if ((with_gquad) &&
           (qb[kl] == 0.)) {
-#ifndef VRNA_DISABLE_C11_FEATURES
-        temp *= vrna_smx_csr_get(q_gq, k, l, 0.) *
-#else
-        temp *= vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.) *
-#endif
-                expMLstem;
+        temp *= expMLstem;
       } else {
         if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
           for (s = 0; s < n_seq; s++) {
@@ -2080,7 +2070,7 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
                  pf_params->expmismatchI[type][S1[i + 1]][S1[j - 1]] *
                  scale[u1 + 2];
       }
-      probs[kl] += tmp2 * q_g;
+      probs[kl] += tmp2;
     }
   }
 
@@ -2121,7 +2111,7 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
                    scale[u1 + u2 + 2];
         }
       }
-      probs[kl] += tmp2 * q_g;
+      probs[kl] += tmp2;
     }
   }
 
@@ -2158,7 +2148,7 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
                  pf_params->expmismatchI[type][S1[i + 1]][S1[j - 1]] *
                  scale[u2 + 2];
       }
-      probs[kl] += tmp2 * q_g;
+      probs[kl] += tmp2;
     }
   }
 }
@@ -2233,7 +2223,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
                 qe *
                 scale[u1 + 2];
       }
-      probs[kl] += tmp2 * q_g;
+      probs[kl] += tmp2;
     }
   }
 
@@ -2279,7 +2269,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
                   scale[u1 + u2 + 2];
         }
       }
-      probs[kl] += tmp2 * q_g;
+      probs[kl] += tmp2;
     }
   }
 
@@ -2321,7 +2311,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
                 qe *
                 scale[u2 + 2];
       }
-      probs[kl] += tmp2 * q_g;
+      probs[kl] += tmp2;
     }
   }
 }
@@ -5087,7 +5077,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
                 tmp2 += tmp * tmp3;
                 vrna_log_debug("O | int [%d,%d] [%d,%d] => %g gq = %g", i, j, k, l, tmp, tmp * q_g);
-                probs[my_iindx[k] - l] += tmp * q_g; /* add contribution for 2nd gquad here instead of extra block below */
+                probs[my_iindx[k] - l] += tmp * q_g / qo; /* add contribution for 2nd gquad here instead of extra block below */
               }
             }
           }
@@ -5165,7 +5155,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
         }
         
         /* store total contribution */
-        probs[ij] += tmp2;
+        probs[ij] += tmp2 / qo;
         vrna_log_debug("prg[%d,%d] = %g", i, j, probs[ij]);
       }
     }
