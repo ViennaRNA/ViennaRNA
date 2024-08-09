@@ -807,10 +807,19 @@ postprocess_circular(vrna_fold_compound_t *fc,
               }
           
               e = my_c[indx[q] + p];
+
               if (e != INF) {
                 switch (fc->type) {
                   case VRNA_FC_TYPE_SINGLE:
+                    type = vrna_get_ptype_md(S[q], S[p], md);
+                    if (md->dangles == 2)
+                      e += P->mismatchI[type][S1[q + 1]][S1[p - 1]];
+
+                    if (type > 2)
+                      e += P->TerminalAU;
+
                     e += P->internal_loop[u1 + u2];
+
                     if (sc) {
                       if (sc->energy_up) {
                         if (u1 > 0)
@@ -826,6 +835,13 @@ postprocess_circular(vrna_fold_compound_t *fc,
                     break;
                   case VRNA_FC_TYPE_COMPARATIVE:
                     for (s = 0; s < n_seq; s++) {
+                      type = vrna_get_ptype_md(SS[s][q], SS[s][p], md);
+                      if (md->dangles == 2)
+                        e += P->mismatchI[type][S3[s][q]][S5[s][p]];
+
+                      if (type > 2)
+                        e += P->TerminalAU;
+
                       s1 = a2s[s][j] + 1;
                       us1 = a2s[s][p] - s1;
                       s2 = a2s[s][q] + 1;
