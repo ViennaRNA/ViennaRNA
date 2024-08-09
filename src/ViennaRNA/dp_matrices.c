@@ -997,8 +997,10 @@ pf_matrices_free_default(vrna_mx_pf_t *self)
   free(self->qln);
 #ifndef VRNA_DISABLE_C11_FEATURES
   vrna_smx_csr_free(self->q_gq);
+  vrna_smx_csr_free(self->p_gq);
 #else
   vrna_smx_csr_FLT_OR_DBL_free(self->q_gq);
+  vrna_smx_csr_FLT_OR_DBL_free(self->p_gq);
 #endif
 }
 
@@ -1820,6 +1822,7 @@ nullify_pf(vrna_mx_pf_t *mx)
         mx->q1k   = NULL;
         mx->qln   = NULL;
         mx->q_gq  = NULL;
+        mx->p_gq  = NULL;
         break;
 
       case VRNA_MX_WINDOW:

@@ -252,6 +252,7 @@ struct vrna_mx_pf_s {
   FLT_OR_DBL *q1k;
   FLT_OR_DBL *qln;
   vrna_smx_csr(FLT_OR_DBL) *q_gq; /**<  @brief  Boltzmann factors for g-quadruplexes */
+  vrna_smx_csr(FLT_OR_DBL) *p_gq; /**<  @brief  probabilities for g-quadruplexes */
 
   FLT_OR_DBL qo;
   FLT_OR_DBL *qm2;
