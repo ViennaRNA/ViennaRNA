@@ -1129,7 +1129,7 @@ vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
       case VRNA_FC_TYPE_COMPARATIVE:
         for (s = 0; s < n_seq; s++) {
           type = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-          if (md->dangles == 2)
+          if (dangles == 2)
             qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][S3[s][i]][S5[s][j]];
 
           if (type > 2)
