@@ -1830,6 +1830,7 @@ wrap_plist(vrna_fold_compound_t *vc,
   vrna_ep_t         *pl;
   vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
+  vrna_smx_csr(FLT_OR_DBL)  *p_gq;
 
   S         = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : vc->S_cons;
   index     = vc->iindx;
@@ -1838,6 +1839,7 @@ wrap_plist(vrna_fold_compound_t *vc,
   matrices  = vc->exp_matrices;
   probs     = matrices->probs;
   gquad     = pf_params->model_details.gquad;
+  circ      = pf_params->model_details.circ;
 
   count = 0;
   n     = 2;
@@ -1901,6 +1903,32 @@ wrap_plist(vrna_fold_compound_t *vc,
         (pl)[count].j       = j;
         (pl)[count].p       = (float)probs[index[i] - j];
         (pl)[count++].type  = VRNA_PLIST_TYPE_BASEPAIR;
+      }
+    }
+  }
+
+  if ((gquad) &&
+      (circ)) {
+    p_gq = vc->exp_matrices->p_gq;
+    unsigned int imin = 2;
+    if (imin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= length)
+       imin = length - VRNA_GQUAD_MAX_BOX_SIZE + 1;
+
+    for (i = imin; i <= length; i++) {
+      unsigned int jmin = 1;
+      unsigned int jmax = VRNA_GQUAD_MAX_BOX_SIZE - 1 - (length - i);
+      if (jmax >= length)
+        jmax = i - 1;
+
+      for (j = jmin; j <= jmax; j++) {
+        FLT_OR_DBL p_g;
+        if ((p_g = vrna_smx_csr_get(p_gq, i, j, 0.)) >= (FLT_OR_DBL)cut_off) {
+          vrna_log_debug("pg[%d,%d] = %g", i, j, p_g);
+          (pl)[count].i       = i;
+          (pl)[count].j       = j;
+          (pl)[count].p       = (float)p_g;
+          (pl)[count++].type  = VRNA_PLIST_TYPE_GQUAD;
+        }
       }
     }
   }
