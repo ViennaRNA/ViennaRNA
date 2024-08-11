@@ -2722,6 +2722,8 @@ parse_gquad(const char  *struc,
 {
   int i, il, start, end, len;
 
+  return 0;
+
   for (i = 0; struc[i] && struc[i] != '+'; i++);
   if (struc[i] == '+') {
     /* start of gquad */
