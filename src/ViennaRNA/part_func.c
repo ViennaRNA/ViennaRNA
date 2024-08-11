@@ -897,7 +897,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
     if (n > VRNA_GQUAD_MAX_BOX_SIZE)
       start = n - VRNA_GQUAD_MAX_BOX_SIZE;
 
-    /* loop over each possible start of a cutpoint-spanning gquad */
+    /* loop over each possible start of a n,1 junction-spanning gquad */
     for (i = start; i <= n; i++) {
       unsigned int start_j = 1;
       unsigned int stop_j = n - 1;
@@ -926,7 +926,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
             if (hc->f)
               eval = (hc->f(j + 1, n, i, n, VRNA_DECOMP_EXT_EXT, hc->data)) ? eval : 0;
             if (eval) {
-              qbt1 = q_g;
+              qbt1 = q_g * scale[u];
  
               if (sc_ext_wrapper.red_ext)
                 qbt1 *= sc_ext_wrapper.red_ext(j + 1, n, i, n, &sc_ext_wrapper);
@@ -945,14 +945,21 @@ postprocess_circular(vrna_fold_compound_t *fc)
               break;
 
             unsigned int lmax = i - 1;
+#if 1
+#else
             if (u1 == 0)
               lmax = i - 4;
             else if (u1 == 1)
               lmax = i - 2;
+#endif
             
             u2 = i - lmax - 1;
             
             for (l = lmax; l >= k + VRNA_GQUAD_MIN_BOX_SIZE - 1; l--, u2++) {
+              if (((u1 == 0) && (u2 < 3)) ||
+                  ((u1 < 3) && (u2 == 0)))
+                continue;
+
               /* obey hard constraints */
               if (hc->up_int[l + 1] < u2)
                 break;
@@ -988,7 +995,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                 if (sc_int_wrapper.pair_ext)
                   qbt1 *= sc_int_wrapper.pair_ext(i, j, k, l, &sc_int_wrapper);
 
-                vrna_log_debug("int [%d,%d] [%d,%d] => %g n,1", i, j, k, l, qbt1);
+                vrna_log_debug("int [%d,%d] [%d,%d] => %g n,1 i", i, j, k, l, qbt1);
 
                 qio += qbt1;
               }
@@ -1005,13 +1012,19 @@ postprocess_circular(vrna_fold_compound_t *fc)
               break;
 
             unsigned int lmax = i - 1;
+#if 1
+#else
             if (u1 == 0)
               lmax = i - 4;
             else if (u1 == 1)
               lmax = i - 2;
+#endif
             
             u2 = i - lmax - 1;
             for (l = lmax; l > k + turn; l--, u2++) {
+              if (((u1 == 0) && (u2 < 3)) ||
+                  ((u1 < 3) && (u2 == 0)))
+                continue;
               /* obey hard constraints */
               if (hc->up_int[l + 1] < u2)
                 break;
@@ -1056,10 +1069,8 @@ postprocess_circular(vrna_fold_compound_t *fc)
                       if (tt > 2)
                         qbt1 *= pf_params->expTermAU;
 
-                      s1 = a2s[s][j] + 1;
-                      us1 = a2s[s][p] - s1;
-                      s2 = a2s[s][q] + 1;
-                      us2 = a2s[s][i] - s2;
+                      us1   = a2s[s][k - 1] - a2s[s][j];
+                      us2   = a2s[s][i - 1] - a2s[s][l];
                       qbt1 *= (FLT_OR_DBL)expintern[us1 + us2];
                     }
                     break;
@@ -1135,7 +1146,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
         for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + turn + 2 <= n; j++) {
           q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
           if (q_g != 0.) {
-            for (k = j + 1; k + u1 < j + MAXLOOP + 1; k++) {
+            for (k = j + 1; k + u1 <= j + MAXLOOP + 1; k++) {
               u2 = k - j - 1;
               unsigned int u3, us3;
               unsigned int stop = k + turn + 1;
