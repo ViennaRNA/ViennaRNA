@@ -156,6 +156,7 @@ PYTHON3_TESTS = python/test_RNA-combinatorics.py \
                 python/test_RNA-boltzmann-sampling.py \
                 python/test_RNA-utils.py \
                 python/test_RNA-modified-bases.py \
+                python/test_RNA-circ.py \
                 python/test_RNA.py
 
 # add test script output files here
