@@ -1213,7 +1213,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
         }
 
         /* [gquad] + [gquad] */
-        for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + turn + 2 <= n; j++) {
+        for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + VRNA_GQUAD_MIN_BOX_SIZE <= n; j++) {
           q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
           if (q_g != 0.) {
             for (k = j + 1; k + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= n; k++) {
@@ -1230,11 +1230,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
                       ((u1 + u3 == 0) && (u2 < 3)))
                     continue;
 
-                  qbt1 = vrna_smx_csr_get(q_gq, k, l, 0.);
-                  if (qbt1 != 0.) {
+                  FLT_OR_DBL qbt2 = vrna_smx_csr_get(q_gq, k, l, 0.);
+                  if (qbt2 != 0.) {
                     switch (fc->type) {
                       case VRNA_FC_TYPE_SINGLE:
-                        qbt1 *= (FLT_OR_DBL)expintern[u1 + u2 + u3];
+                        qbt1 = (FLT_OR_DBL)expintern[u1 + u2 + u3];
                         break;
 
                       case VRNA_FC_TYPE_COMPARATIVE:
@@ -1247,8 +1247,8 @@ postprocess_circular(vrna_fold_compound_t *fc)
                         break;
                     }
 
-                    vrna_log_debug("int [%d,%d] [%d,%d] => %g", i, j, k, l, qbt1);
-                    qio += qbt1;
+                    vrna_log_debug("int [%d,%d] [%d,%d] => %g = %g * %g * %g", i, j, k, l, qbt1 * qbt2, qbt1, q_g, qbt2);
+                    qio += q_g * qbt1 * qbt2 * scale[u1 + u2 + u3];
                   }
                 }
               }
