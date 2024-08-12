@@ -984,7 +984,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
         for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + turn + 2 <= length; j++) {
           e = vrna_smx_csr_get(c_gq, i, j, INF);
           if (e != INF) {
-            for (p = j + 1; p + u1 < j + MAXLOOP + 1; p++) {
+            for (p = j + 1; p + u1 <= j + MAXLOOP + 1; p++) {
               u2 = p - j - 1;
               unsigned int u3, us3;
               unsigned int stop = p + turn + 1;
@@ -994,7 +994,8 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
               if (hc->up_int[j + 1] >= u2) {
                 for (u3 = 0, q = length; q >= stop; q--, u3++) {
-                  if (u1 + u2 + u3 < 3)
+                  if (((u2 == 0) && (u1 + u3 < 3)) ||
+                      ((u1 + u3 == 0) && (u2 < 3)))
                     continue;
                   unsigned int sq, sp;
                   sq = S1[q + 1];
@@ -1052,7 +1053,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
         }
 
         /* [gquad] + [gquad] */
-        for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + turn + 2 <= length; j++) {
+        for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + VRNA_GQUAD_MIN_BOX_SIZE + 1 <= length; j++) {
           e = vrna_smx_csr_get(c_gq, i, j, INF);
           if (e != INF) {
             for (p = j + 1; p + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= length; p++) {
@@ -1065,7 +1066,8 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
                 unsigned int u3, us3;
                 for (u3 = 0, q = length; q >= stop; q--, u3++) {
-                  if (u1 + u2 + u3 < 3)
+                  if (((u2 == 0) && (u1 + u3 < 3)) ||
+                      ((u1 + u3 == 0) && (u2 < 3)))
                     continue;
 
                   int energy = vrna_smx_csr_get(c_gq, p, q, INF);
@@ -1133,7 +1135,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 break;
             }
 
-            for (p = j + 1; p + VRNA_GQUAD_MIN_BOX_SIZE < length; p++) {
+            for (p = j + 1; p + VRNA_GQUAD_MIN_BOX_SIZE -1 <= length; p++) {
               u2 = p - j - 1;
               if (hc->up_int[j + 1] < u2)
                 break;
@@ -1144,7 +1146,8 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
               unsigned int u3, us3;
               for (u3 = 0, q = length; q >= stop; q--, u3++) {
-                if (u1 + u2 + u3 < 3)
+                if (((u2 == 0) && (u1 + u3 < 3)) ||
+                    ((u1 + u3 == 0) && (u2 < 3)))
                   continue;
 
                 eval = (hc->up_int[q] >= u3) ? 1 : 0;
@@ -2036,15 +2039,15 @@ postprocess_circular(vrna_fold_compound_t *fc,
           .j = Hgj,
           .ml = VRNA_MX_FLAG_G}));
       } else if (Fc == FgI) {
-        vrna_log_debug("backtrace gquad internal loop-like configuration");
+        vrna_log_debug("backtrace gquad internal loop-like configuration %d, %d, %d, %d, %d", Igi, Igj, Igp, Igq, Igg);
         vrna_bts_push(bt_stack, ((vrna_sect_t){
           .i = Igi,
           .j = Igj,
           .ml = VRNA_MX_FLAG_G}));
         if (Igg) {
           vrna_bts_push(bt_stack, ((vrna_sect_t){
-            .i = Ip,
-            .j = Iq,
+            .i = Igp,
+            .j = Igq,
             .ml = VRNA_MX_FLAG_G}));
         } else {
           vrna_bts_push(bt_stack, ((vrna_sect_t){
@@ -4069,6 +4072,7 @@ backtrack(vrna_fold_compound_t    *fc,
 
       case VRNA_MX_FLAG_G:
         if (vrna_bt_gquad_mfe(fc, i, j, bp_stack)) {
+          vrna_log_debug("bt_stack_size: %d", vrna_bts_size(bt_stack));
           continue;
         } else {
           vrna_log_warning("backtracking failed in G, segment [%d,%d]\n", i, j);
