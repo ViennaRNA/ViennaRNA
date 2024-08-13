@@ -319,6 +319,23 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
 }
 
 
+PUBLIC FLT_OR_DBL
+vrna_ext_circ_exp_en(unsigned int n,
+                     vrna_md_t    *md)
+{
+  vrna_md_t md_tmp;
+
+  if (md == NULL) {
+   vrna_md_set_default(&md_tmp);
+   md = &md_tmp;
+  }
+
+  double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
+
+  return (FLT_OR_DBL)exp(-(md->circ_alpha0 + (3./2.) * log(n))); /* return in dekacal/mol */
+}
+
+
 PRIVATE INLINE FLT_OR_DBL
 reduce_ext_ext_fast(vrna_fold_compound_t        *fc,
                     int                         i,

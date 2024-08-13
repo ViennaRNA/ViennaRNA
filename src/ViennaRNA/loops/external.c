@@ -515,6 +515,22 @@ vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
 }
 
 
+PUBLIC int
+vrna_ext_circ_en(unsigned int n,
+                 vrna_md_t    *md)
+{
+  vrna_md_t md_tmp;
+
+  if (md == NULL) {
+   vrna_md_set_default(&md_tmp);
+   md = &md_tmp;
+  }
+
+  double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
+  return (int)(100. * kT * (md->circ_alpha0 + (3./2.) * log((double)n)) + 0.5f); /* return in dekacal/mol */
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #

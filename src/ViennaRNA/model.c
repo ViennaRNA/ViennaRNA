@@ -163,7 +163,8 @@ PRIVATE vrna_md_t defaults = {
   VRNA_MODEL_DEFAULT_SALT_DPXINIT,
   VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT,
   VRNA_MODEL_DEFAULT_HELICAL_RISE,
-  VRNA_MODEL_DEFAULT_BACKBONE_LENGTH
+  VRNA_MODEL_DEFAULT_BACKBONE_LENGTH,
+  VRNA_MODEL_DEFAULT_CIRC_ALPHA0
 };
 
 /*
@@ -375,6 +376,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.saltDPXInitFact  = VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT;
   defaults.helical_rise     = VRNA_MODEL_DEFAULT_HELICAL_RISE;
   defaults.backbone_length  = VRNA_MODEL_DEFAULT_BACKBONE_LENGTH;
+  defaults.circ_alpha0      = VRNA_MODEL_DEFAULT_CIRC_ALPHA0;
   if (md_p) {
     /* now try to apply user settings */
     /*
@@ -414,6 +416,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_saltDPXInitFact(md_p->saltDPXInitFact);
     vrna_md_defaults_helical_rise(md_p->helical_rise);
     vrna_md_defaults_backbone_length(md_p->backbone_length);
+    vrna_md_defaults_circ_alpha0(md_p->circ_alpha0);
     copy_nonstandards(&defaults, &(md_p->nonstandards[0]));
   }
 
@@ -973,6 +976,20 @@ vrna_md_defaults_backbone_length_get(void)
 }
 
 PUBLIC void
+vrna_md_defaults_circ_alpha0(double a0)
+{
+  defaults.circ_alpha0 = a0;
+}
+
+
+PUBLIC double
+vrna_md_defaults_circ_alpha0_get(void)
+{
+  return defaults.circ_alpha0;
+}
+
+
+PUBLIC void
 vrna_md_update(vrna_md_t *md)
 {
   if (md)
@@ -1154,6 +1171,7 @@ set_model_details(vrna_md_t *md)
     md->saltDPXInitFact = defaults.saltDPXInitFact;
     md->helical_rise    = defaults.helical_rise;
     md->backbone_length = defaults.backbone_length;
+    md->circ_alpha0     = defaults.circ_alpha0;
 
     if (nonstandards)
       copy_nonstandards(md, nonstandards);

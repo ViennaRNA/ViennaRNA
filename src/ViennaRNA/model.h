@@ -220,6 +220,9 @@ typedef struct vrna_md_s vrna_md_t;
 #define VRNA_MODEL_DEFAULT_BACKBONE_LENGTH   VRNA_MODEL_BACKBONE_LENGTH_RNA
 
 
+#define VRNA_MODEL_DEFAULT_CIRC_ALPHA0  4.385
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 #ifndef MAXALPHA
@@ -308,6 +311,8 @@ struct vrna_md_s {
   float   saltDPXInitFact;                  /**<  @brief  */
   float   helical_rise;                     /**<  @brief  */
   float   backbone_length;                  /**<  @brief  */
+
+  double  circ_alpha0;
 };
 
 
@@ -1005,6 +1010,14 @@ vrna_md_defaults_backbone_length(float value);
 
 float
 vrna_md_defaults_backbone_length_get(void);
+
+
+void
+vrna_md_defaults_circ_alpha0(double a0);
+
+
+double
+vrna_md_defaults_circ_alpha0_get(void);
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
