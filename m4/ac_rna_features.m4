@@ -620,3 +620,24 @@ AC_DEFUN([RNA_ENABLE_NAVIEW],[
 ])
 
 
+#
+# Add entropic penalty for unpaired circular RNA
+#
+
+AC_DEFUN([RNA_ENABLE_CIRC_PENALTY],[
+
+  RNA_ADD_FEATURE([cpen],
+                  [Entropic penalty for unpaired circular chain],
+                  [yes])
+
+  RNA_FEATURE_IF_ENABLED([cpen],[
+
+    AC_DEFINE([VRNA_WITH_CIRC_PENALTY], [1], [Add entropic penalty for unpaired circular chain])
+    CONFIG_CIRC_PENALTY="#define VRNA_WITH_CIRC_PENALTY"
+    AX_APPEND_FLAG([-DVRNA_WITH_CIRC_PENALTY], [RNA_CPPFLAGS])
+  ])
+
+  AC_SUBST(CONFIG_CIRC_PENALTY)
+])
+
+

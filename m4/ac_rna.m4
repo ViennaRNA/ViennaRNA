@@ -59,6 +59,7 @@ RNA_ENABLE_SIMD
 RNA_ENABLE_VECTORIZE
 RNA_ENABLE_MPFR
 RNA_ENABLE_NAVIEW
+RNA_ENABLE_CIRC_PENALTY
 
 ## Setup Python 3 variables
 ## for src/Utils/*.py scripts
