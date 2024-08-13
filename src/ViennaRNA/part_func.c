@@ -776,13 +776,18 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
   qmo += qbt1;
 
-  /* add an additional pf of 1.0 to take the open chain into account too */
+  /* add open chain, i.e. no base pairs or structure at all */
   eval = (hc->up_ext[1] >= n) ? 1 : 0;
   if (hc->f)
     eval = (hc->f(1, n, 1, n, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
 
   if (eval) {
+#ifdef VRNA_WITH_CIRC_PENALTY
+    qbt1 = vrna_ext_circ_exp_en(n, md) *
+           scale[n];
+#else
     qbt1 = scale[n];
+#endif
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:

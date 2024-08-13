@@ -48,6 +48,7 @@
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 
+
 struct aux_arrays {
   int *cc;    /* auxilary arrays for canonical structures     */
   int *cc1;   /* auxilary arrays for canonical structures     */
@@ -562,7 +563,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
     eval = (hc->f(1, length, 1, length, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
 
   if (eval) {
+#ifdef VRNA_WITH_CIRC_PENALTY
+    Fc = vrna_ext_circ_en(length, md);
+#else
     Fc = 0; /* base line for unfolded state */
+#endif
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
