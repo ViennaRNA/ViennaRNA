@@ -498,7 +498,6 @@ vrna_gq_consensus_exp_energy(int                L,
                              const short        **S,
                              const unsigned int **a2s)
 {
-  int         s;
   FLT_OR_DBL  q = 0.;
 
   if ((pf) &&
@@ -749,8 +748,8 @@ vrna_gq_int_loop_subopt(vrna_fold_compound_t  *fc,
     S1      = fc->sequence_encoding;
     type    = vrna_get_ptype_md(S[i], S[j], md);
     dangles = md->dangles;
-    si      = S[i + 1];
-    sj      = S[j - 1];
+    si      = S1[i + 1];
+    sj      = S1[j - 1];
     energy  = 0;
 
     if (dangles == 2)
@@ -1086,7 +1085,6 @@ vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
 {
   short             *S, *S1, si, sj, **SS, **S5, **S3;
   unsigned int      type, s, n_seq, k, l, minl, maxl, u, u1, u2, **a2s;
-  int               r;
   FLT_OR_DBL        q, qe, q_g, *scale;
   double            *expintern;
   vrna_exp_param_t  *pf_params;
@@ -1293,7 +1291,7 @@ vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
    * here we do some fancy stuff to backtrace the stacksize and linker lengths
    * of the g-quadruplex that should reside within position i,j
    */
-  short         *S, *S_enc, *S_tmp;
+  short         *S_enc, *S_tmp;
   unsigned int  n, n2;
   int           l[3], L, a, n_seq;
   vrna_param_t  *P;
@@ -1304,14 +1302,12 @@ vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
     L     = -1;
     S_tmp = NULL;
 
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        S_enc = fc->sequence_encoding2;
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
         S_enc = fc->S_cons;
-        break;
+        n_seq = fc->n_seq;
+    } else {
+      S_enc = fc->sequence_encoding2;
+      n_seq = 1;
     }
 
     if (P->model_details.circ) {
@@ -1326,14 +1322,10 @@ vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
         j += n;
     }
 
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        get_gquad_pattern_mfe(S_enc, i, j, P, &L, l);
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        get_gquad_pattern_mfe_ali(fc->S, fc->a2s, fc->S_cons, fc->n_seq, i, j, P, &L, l);
-        break;
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      get_gquad_pattern_mfe_ali(fc->S, fc->a2s, fc->S_cons, n_seq, i, j, P, &L, l);
+    } else {
+      get_gquad_pattern_mfe(S_enc, i, j, P, &L, l);
     }
 
     if (L != -1) {
@@ -1429,7 +1421,6 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
                   vrna_bps_t            bp_stack)
 {
   unsigned char type;
-  char          *ptype;
   short         si, sj, *S, *S1, **SS, **S5, **S3;
   int           energy, e_gq, dangles, c0;
   unsigned int  **a2s, n_seq, s, p, q, l1, u1, u2, maxl, minl;
@@ -2754,7 +2745,6 @@ parse_gquad(const char  *struc,
     return 0;
   }
 
-  /* printf("gquad at %d %d %d %d %d\n", end, *L, l[0], l[1], l[2]); */
   return end;
 }
 
@@ -3108,7 +3098,7 @@ gquad_mfe_ali(int   i,
               void  *NA,
               void  *NA2)
 {
-  int j, en[2], cc;
+  int en[2], cc;
 
   en[0] = en[1] = INF;
 
