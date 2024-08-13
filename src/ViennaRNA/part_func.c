@@ -820,8 +820,6 @@ postprocess_circular(vrna_fold_compound_t *fc)
     /* consider all configurations where a G-quadruplex spans over the artificial cutpoint */
     n = fc->length;
 
-    unsigned int n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
-    unsigned int n3 = n + n2;
     unsigned int start = 1;
 
     /* we first compute QM2 a,d QM1, whith at least two and exactly one component, respectively. */
@@ -907,14 +905,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
         stop_j = VRNA_GQUAD_MAX_BOX_SIZE + i - n - 1;
       if (stop_j >= i)
         stop_j = i - 1;
-      //vrna_log_debug("i=%d, start=%d, stop=%d, length=%d", i, start_j, stop_j, n);
 
       for (j = start_j; j <= stop_j; j++) {
         q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
 
-        //vrna_log_debug("i=%d, j=%d, n=%d", i, j, n);
         if (q_g != 0.) {
-          //vrna_log_debug("g=%g", q_g);
 
           /* case 1: gquad is the only structure, rest is unpaired */
           if (i - j > 3) { /* keep at least 3 unpaired bases between start and end of gquad */
@@ -983,10 +978,8 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
                   case VRNA_FC_TYPE_COMPARATIVE:
                     for (s = 0; s < n_seq; s++) {
-                      s1 = a2s[s][j] + 1;
-                      us1 = a2s[s][p] - s1;
-                      s2 = a2s[s][q] + 1;
-                      us2 = a2s[s][i] - s2;
+                      us1   = a2s[s][k - 1] - a2s[s][j];
+                      us2   = a2s[s][i - 1] - a2s[s][l];
                       qbt1 *= (FLT_OR_DBL)expintern[us1 + us2];
                     }
                     break;
