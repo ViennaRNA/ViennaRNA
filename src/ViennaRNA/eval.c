@@ -1103,6 +1103,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
   P             = fc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
+  elem_i        = 0;
+  elem_j        = 0;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_COMPARATIVE:
@@ -1214,14 +1216,14 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
 
             if (verbosity_level > 0) {
               vrna_cstr_print_eval_gquad(output_stream,
-                                         pos,
+                                         u,
                                          L,
                                          l,
                                          (int)tmp_e / (int)n_seq);
             }
 
             energy  += tmp_e;
-            up_mis  += pos;
+            up_mis  += u + pos - 1;
             u       += pos;
             num_g++;
           }
@@ -1307,7 +1309,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
             /* or b) a multibranch loop like structure */
             e_temp = num_g * E_MLstem(0, -1, -1, P) +
                      P->MLclosing +
-                     (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
+                     (s - r - 1 - up_mis) * P->MLbase;
 
             e_plus = n_seq * e_temp;
 
@@ -1342,7 +1344,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
         case 1:
           e_temp = num_g * E_MLstem(0, -1, -1, P) +
                    P->MLclosing +
-                   (elem_i - r - 1 + s - elem_j - 1 - up_mis) * P->MLbase;
+                   (s + elem_i - r - 1 - up_mis - elem_j - 1) * P->MLbase;
           e_plus = n_seq * e_temp;
 
           switch (fc->type) {
