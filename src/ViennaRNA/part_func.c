@@ -783,7 +783,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
   if (eval) {
 #ifdef VRNA_WITH_CIRC_PENALTY
-    qbt1 = vrna_ext_circ_exp_en(n, md) *
+    qbt1 = pow(vrna_ext_circ_exp_en(n, md), (double)n_seq) *
            scale[n];
 #else
     qbt1 = scale[n];
@@ -926,7 +926,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
             if (hc->f)
               eval = (hc->f(j + 1, n, i, n, VRNA_DECOMP_EXT_EXT, hc->data)) ? eval : 0;
             if (eval) {
-              qbt1 = q_g * scale[u];
+              qbt1 = q_g *
+#ifdef VRNA_WITH_CIRC_PENALTY
+                     pow(vrna_hp_exp_energy(u, 0, 0, 0, NULL, pf_params), (double)n_seq) *
+#endif
+                     scale[u];
  
               if (sc_ext_wrapper.red_ext)
                 qbt1 *= sc_ext_wrapper.red_ext(j + 1, n, i, n, &sc_ext_wrapper);
@@ -1111,6 +1115,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
           /* obey constraints */
           u1 = i - 1;
           u2 = n - j;
+
           eval = (hc->up_ext[1] >= u1) ? 1 : 0;
           if (u2 > 0)
             eval = (hc->up_ext[j + 1] >= u2) ? eval : 0;
@@ -1123,7 +1128,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
           }
 
           if (eval) {
-            qbt1 = q_g * scale[u1 + u2];
+            qbt1 = q_g *
+#ifdef VRNA_WITH_CIRC_PENALTY
+                   pow(vrna_hp_exp_energy(u1 + u2, 0, 0, 0, NULL, pf_params), (double)n_seq) *
+#endif
+                   scale[u1 + u2];
 
             /* apply soft constraints, if any */
             if (sc_ext_wrapper.red_up)

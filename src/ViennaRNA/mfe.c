@@ -564,7 +564,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
   if (eval) {
 #ifdef VRNA_WITH_CIRC_PENALTY
-    Fc = vrna_ext_circ_en(length, md);
+    Fc = vrna_ext_circ_en(length, md) * (int)n_seq;
 #else
     Fc = 0; /* base line for unfolded state */
 #endif
@@ -665,7 +665,13 @@ postprocess_circular(vrna_fold_compound_t *fc,
             if (hc->f)
               eval = (hc->f(j + 1, length, i, length, VRNA_DECOMP_EXT_EXT, hc->data)) ? eval : 0;
             if (eval) {
+#ifdef VRNA_WITH_CIRC_PENALTY
+              int e = new_c +
+                      vrna_hp_energy(u, 0, 0, 0, NULL, P) * (int)n_seq;
+#else
               int e = new_c;
+#endif
+
               switch (fc->type) {
                 case VRNA_FC_TYPE_SINGLE:
                   if (sc) {
@@ -915,6 +921,9 @@ postprocess_circular(vrna_fold_compound_t *fc,
           /* obey constraints */
           u1 = i - 1;
           u2 = length - j;
+          if (u1 + u2 < 3)
+            continue;
+
           eval = (hc->up_ext[1] >= u1) ? 1 : 0;
           if (u2 > 0)
             eval = (hc->up_ext[j + 1] >= u2) ? eval : 0;
@@ -927,6 +936,10 @@ postprocess_circular(vrna_fold_compound_t *fc,
           }
 
           if (eval) {
+#ifdef VRNA_WITH_CIRC_PENALTY
+            e += vrna_hp_energy(u1 + u2, 0, 0, 0, NULL, P) * (int)n_seq;
+#endif
+
             /* apply soft constraints, if any */
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
