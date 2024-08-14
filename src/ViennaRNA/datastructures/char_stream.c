@@ -563,6 +563,35 @@ vrna_cstr_print_eval_ext_loop(struct vrna_cstr_s  *buf,
 
 
 PUBLIC void
+vrna_cstr_print_eval_ext_loop_revert(struct vrna_cstr_s  *buf,
+                                     int                 energy)
+{
+  if (!buf)
+    return;
+
+#ifndef VRNA_WITHOUT_TTY_COLORS
+  if (buf->istty) {
+    vrna_cstr_printf(buf,
+                     ANSI_COLOR_MAGENTA "External loop" ANSI_COLOR_RESET
+                     "                           : "
+                     ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
+                     -energy);
+  } else {
+#endif
+  vrna_cstr_printf(buf,
+                   "External loop"
+                   "                           : "
+                   "%5d\n",
+                   -energy);
+#ifndef VRNA_WITHOUT_TTY_COLORS
+}
+
+
+#endif
+}
+
+
+PUBLIC void
 vrna_cstr_print_eval_hp_loop(struct vrna_cstr_s *buf,
                              int                i,
                              int                j,

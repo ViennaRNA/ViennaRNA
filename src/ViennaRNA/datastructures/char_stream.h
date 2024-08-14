@@ -193,6 +193,11 @@ vrna_cstr_print_eval_ext_loop(struct vrna_cstr_s  *buf,
 
 
 void
+vrna_cstr_print_eval_ext_loop_revert(struct vrna_cstr_s  *buf,
+                                     int                 energy);
+
+
+void
 vrna_cstr_print_eval_hp_loop(struct vrna_cstr_s *buf,
                              int                i,
                              int                j,
