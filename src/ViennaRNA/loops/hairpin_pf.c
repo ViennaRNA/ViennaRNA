@@ -54,6 +54,81 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *fc,
  #################################
  */
 
+PUBLIC FLT_OR_DBL
+vrna_hp_exp_energy(unsigned int     u,
+                   unsigned int     type,
+                   unsigned int     si1,
+                   unsigned int     sj1,
+                   const char       *string,
+                   vrna_exp_param_t *P)
+{
+  double q, kT, salt_correction;
+
+  kT = P->kT;   /* kT in cal/mol  */
+  salt_correction = 1.;
+
+  if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+    if (u<=MAXLOOP)
+      salt_correction = P->expSaltLoop[u+1];
+    else
+      salt_correction = exp(-vrna_salt_loop_int(u+1, P->model_details.salt, P->temperature+K0, P->model_details.backbone_length) * 10. / kT);
+  }
+
+  if (u <= 30)
+    q = P->exphairpin[u];
+  else
+    q = P->exphairpin[30] * exp(-(P->lxc * log(u / 30.)) * 10. / kT);
+
+  q *= salt_correction;
+
+  if (u < 3)
+    return (FLT_OR_DBL)q;         /* should only be the case when folding alignments */
+
+  if ((string) && (P->model_details.special_hp)) {
+    if (u == 4) {
+      char tl[7] = {
+        0
+      }, *ts;
+      memcpy(tl, string, sizeof(char) * 6);
+      tl[6] = '\0';
+      if ((ts = strstr(P->Tetraloops, tl))) {
+        if (type != 7)
+          return (FLT_OR_DBL)(P->exptetra[(ts - P->Tetraloops) / 7] * salt_correction);
+        else
+          q *= P->exptetra[(ts - P->Tetraloops) / 7];
+      }
+    } else if (u == 6) {
+      char tl[9] = {
+        0
+      }, *ts;
+      memcpy(tl, string, sizeof(char) * 8);
+      tl[8] = '\0';
+      if ((ts = strstr(P->Hexaloops, tl)))
+        return (FLT_OR_DBL)(P->exphex[(ts - P->Hexaloops) / 9] * salt_correction);
+    } else if (u == 3) {
+      char tl[6] = {
+        0
+      }, *ts;
+      memcpy(tl, string, sizeof(char) * 5);
+      tl[5] = '\0';
+      if ((ts = strstr(P->Triloops, tl)))
+        return (FLT_OR_DBL)(P->exptri[(ts - P->Triloops) / 6] * salt_correction);
+
+      if (type > 2)
+        return (FLT_OR_DBL)(q * P->expTermAU);
+      else
+        return (FLT_OR_DBL)q;
+    }
+  }
+
+  if ((si1) &&
+      (sj1))
+    q *= P->expmismatchH[type][si1][sj1];
+
+  return (FLT_OR_DBL)q;
+}
+
+
 /**
  *  @brief High-Level function for hairpin loop energy evaluation (partition function variant)
  *
