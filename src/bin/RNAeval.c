@@ -317,10 +317,12 @@ main(int  argc,
    # begin initializing
    #############################################
    */
+#if 0
   if (opt.md.circ && opt.md.gquad) {
     vrna_log_error("G-Quadruplex support is currently not available for circular RNA structures");
     exit(EXIT_FAILURE);
   }
+#endif
 
   if (opt.keep_order)
     opt.output_queue = vrna_ostream_init(&flush_cstr_callback, NULL);
