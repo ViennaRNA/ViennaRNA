@@ -1049,7 +1049,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                             us1     = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
                             us2     = a2s[s][p - 1] - a2s[s][j];
                             us3     = a2s[s][length] - a2s[s][q];
-                            energy += P->internal_loop[u1 + u2 + u3];
+                            energy += P->internal_loop[us1 + us2 + us3];
                           }
                           break;
                       }
@@ -1100,7 +1100,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                           us1     = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
                           us2     = a2s[s][p - 1] - a2s[s][j];
                           us3     = a2s[s][length] - a2s[s][q];
-                          energy += P->internal_loop[u1 + u2 + u3];
+                          energy += P->internal_loop[us1 + us2 + us3];
                         }
                         break;
                     }
@@ -1182,7 +1182,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                           us1     = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
                           us2     = a2s[s][p - 1] - a2s[s][j];
                           us3     = a2s[s][length] - a2s[s][q];
-                          energy += P->internal_loop[u1 + u2 + u3];
+                          energy += P->internal_loop[us1 + us2 + us3];
                         }
                         break;
                     }
