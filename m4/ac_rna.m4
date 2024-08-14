@@ -243,6 +243,7 @@ m4_map_args([ AC_RNA_COLOR_RESULT_FEATURE],
             [lto],
             [pthreads],
             [openmp],
+            [cpen],
             [unittests],
             [check_perl],
             [check_python],
@@ -300,6 +301,7 @@ Extra Libraries
 
 Features
 --------
+  * CircRNA Entropy penalty   : ${result_cpen}
   * Use hash for NR Sampling  : ${result_NRhash}
   * C11 features              : ${result_c11}
   * TTY colors                : ${result_tty_colors}
