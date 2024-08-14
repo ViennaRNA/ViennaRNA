@@ -1587,7 +1587,12 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
     /* initialize pstruct with single bases  */
     memset(pstruc, '.', sizeof(char) * n);
 
-    qt = 1.0 * scale[n];
+#ifdef VRNA_WITH_CIRC_PENALTY
+    qt = pow(vrna_ext_circ_exp_en(n, md), (double)n_seq) *
+         scale[n];
+#else
+    qt = scale[n];
+#endif
 
     /* add soft constraints for open chain configuration */
     if (sc_wrapper_ext->red_up)
