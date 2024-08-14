@@ -1948,6 +1948,7 @@ scan_circular(vrna_fold_compound_t  *fc,
   unsigned char             *hard_constraints;
   char                      *ptype;
   short                     *S1;
+  unsigned int              n_seq;
   int                       k, l, p, q, tmp_en, best_energy, *c, *fML, *fM1, Fc, FcH,
                             FcI, FcM, *fM2, length, *indx, *rtype, turn, kl, type, tmpE,
                             u1, qmin, u2, type_2, tmpE2;
@@ -1971,6 +1972,7 @@ scan_circular(vrna_fold_compound_t  *fc,
   INTERVAL                  *new_interval;
 
   length  = fc->length;
+  n_seq   = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   indx    = fc->jindx;
   ptype   = fc->ptype;
   S1      = fc->sequence_encoding;
@@ -2033,7 +2035,11 @@ scan_circular(vrna_fold_compound_t  *fc,
    * backtrack anything further...
    */
   if (evaluate_ext(1, length, 1, length, VRNA_DECOMP_EXT_UP, hc_dat_ext)) {
-    tmp_en = 0;
+#ifdef VRNA_WITH_CIRC_PENALTY
+    tmp_en = vrna_ext_circ_en(length, md) * (int)n_seq;
+#else
+    tmp_en = 0; /* base line for unfolded state */
+#endif
 
     if (sc) {
       if (sc->energy_up)
