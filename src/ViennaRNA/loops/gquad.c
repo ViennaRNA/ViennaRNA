@@ -1329,7 +1329,7 @@ vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
     }
 
     if (L != -1) {
-      /* fill the G's of the quadruplex into base_pair2 */
+      /* fill the G's of the quadruplex into bp_stack */
       for (a = 0; a < L; a++) {
         int p1, p2, p3, p4;
         p1  = i + a;
@@ -2706,43 +2706,187 @@ get_gquad_layer_count(short *S,
 }
 
 
-PUBLIC int
-parse_gquad(const char  *struc,
-            int         *L,
-            int         l[3])
+PUBLIC unsigned int
+vrna_gq_parse(const char    *db_string,
+              unsigned int  *L,
+              unsigned int  l[3])
 {
-  int i, il, start, end, len;
+  unsigned int i, n, end, start, stop, pre, tetrad, stacks, LL[4];
 
   end = 0;
 
-  for (i = 0; struc[i] && struc[i] != '+'; i++);
-  if (struc[i] == '+') {
-    /* start of gquad */
-    for (il = 0; il <= 3; il++) {
-      start = i; /* pos of first '+' */
-      while (struc[++i] == '+')
-        if ((il) && (i - start == *L))
+  if ((db_string == NULL) ||
+      (L == NULL))
+    return 0;
+
+  /*
+   *  scan along the dot-bracket string to identify the first character that
+   *  indicates a part of a G-Quadruplex
+   */
+
+  n       = strlen(db_string);
+  LL[0]   = LL[1] = LL[2] = LL[3] = 0;
+  stop    = 0;
+  *L      = 0;
+  l[0]    = l[1] = l[2] = 0;
+  tetrad  = 0;
+
+  for (i = 0;
+      (db_string[i]) &&
+      (db_string[i] != VRNA_GQUAD_DB_SYMBOL) &&
+      (db_string[i] != VRNA_GQUAD_DB_SYMBOL_END);
+      i++);
+
+  if (db_string[i]) {
+    pre = i;
+
+    /* we've encountered some piece that suspicially looks like a G-Quadruplex */
+    if (db_string[i] == VRNA_GQUAD_DB_SYMBOL_END) {
+      stop    = 1;
+      LL[0]   = 1;
+    }
+
+
+    while (stop == 0) {
+      start = i;
+      while (db_string[++i] == VRNA_GQUAD_DB_SYMBOL)
+        /* stop consuming gquad symbols if we already know the number of stacks */
+        if ((tetrad > 1) &&
+            (i - start == LL[tetrad - 1]))
           break;
 
-      end = i;
-      len = end - start;
-      if (il == 0)
-        *L = len;
-      else if (len != *L) {
-        vrna_log_error("unequal stack lengths in gquad");
+      end         = i;
+      LL[tetrad]  = end - start;
+
+      if (db_string[i] == VRNA_GQUAD_DB_SYMBOL_END)
+        LL[tetrad]++;
+
+      if ((tetrad > 1) &&
+          (LL[tetrad] != LL[tetrad - 1])) {
+        vrna_log_error("unequal stack sizes (%u vs. %u) in G-quadruplex",
+                       LL[tetrad - 1],
+                       LL[tetrad]);
         return 0;
       }
 
-      if (il == 3)
+      /* check whether we stopped due to linker or end symbol */
+      if (db_string[i] == VRNA_GQUAD_DB_SYMBOL_END) {
+        stop = i;
         break;
+      }
 
-      while (struc[++i] == '.'); /* linker */
-      l[il] = i - end;
-      if (struc[i] != '+') {
-        vrna_log_error("illegal character in gquad linker region");
+      if (tetrad == 3)
+        break; /* no more linkers */
+
+      /* next character must be linker! */
+      /* count number of linker nucleotides */
+      while (db_string[i++] == '.');
+      l[tetrad] = i - end - 1;
+
+      if (l[tetrad] == 0) {
+        vrna_log_error("zero-length linker in G-Quadruplex");
+        return 0;
+      } else {
+        i--;
+      }
+
+      if (db_string[i] == '\0') {
         return 0;
       }
+
+      tetrad++;
     }
+
+    if (stop > 0) {
+      if (tetrad < 3) {
+        /* move currently parsed lengths to correct positions */
+        unsigned int s;
+        for (s = 0; s <= tetrad; s++)
+          LL[3 - s] = LL[tetrad - s];
+
+        for (; s <= 3; s++)
+          LL[3 - s] = 0;
+
+        for (s = 0; s < tetrad; s++)
+          l[2 - s] = l[tetrad - s - 1];
+
+        l[2 - s++] = pre;
+
+        for (; s < 3; s++)
+          l[2 - s] = 0;
+      }
+
+      /* only continue parsing if we did not find a complete G-Quadruplex yet */
+      if (LL[0] != LL[3]) {
+        i = n - 1;
+        /* check whether the end of the structure is a continuation of a g-run or a linker */
+        if (db_string[i] == '.') {
+          while (db_string[--i] == '.');
+          l[2 - tetrad] += n - i - 1;
+          tetrad++;
+        } else if (pre > 0) {
+          tetrad++;
+        }
+
+        while (tetrad < 4) {
+          start = i;
+
+          while (db_string[--i] == VRNA_GQUAD_DB_SYMBOL) {
+            /* stop consuming gquad symbols if we already know the number of stacks */
+            if ((tetrad == 3) &&
+                (start - i + LL[3 - tetrad] >= LL[3]))
+              break;
+          }
+
+          end = i;
+          LL[3 - tetrad] += start - end;
+
+          if ((tetrad > 0) &&
+            (LL[3 - tetrad] != LL[4 - tetrad])) {
+            vrna_log_error("unequal stack sizes (%u vs. %u) in G-quadruplex",
+                           LL[3 - tetrad],
+                           LL[4 - tetrad]);
+            return 0;
+          }
+
+          if (tetrad == 3)
+            break; /* no more linkers */
+
+          /* next character must be linker! */
+          /* count number of linker nucleotides */
+          while (db_string[i--] == '.');
+          l[2 - tetrad] = end - i - 1;
+
+          if (l[2 - tetrad] == 0) {
+            vrna_log_error("zero-length linker in G-Quadruplex");
+            return 0;
+          } else {
+            i++;
+          }
+
+          if (i <= stop + 1) {
+            return 0;
+          }
+          tetrad++;
+        }
+      }
+
+      end = stop;
+    }
+  }
+
+  /* last sanity check */
+  if ((LL[0] == LL[1]) &&
+      (LL[1] == LL[2]) &&
+      (LL[2] == LL[3])) {
+    *L = LL[0];
+  } else {
+    vrna_log_error("Unequal G-quadruplex stack tetrad lengths (%u, %u, %u, %d)",
+                   LL[0],
+                   LL[1],
+                   LL[2],
+                   LL[3]);
+    return 0;
   }
 
   return end;
@@ -3312,6 +3456,26 @@ process_gquad_enumeration(int *gg,
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+PUBLIC int
+parse_gquad(const char  *struc,
+            int         *L,
+            int         l[3])
+{
+  unsigned int ret, LL, ll[3];
+  
+  ret = vrna_gq_parse(struc, &LL, ll);
+  
+  if (ret) {
+    *L = (int)LL;
+    l[0] = (int)ll[0];
+    l[1] = (int)ll[1];
+    l[2] = (int)ll[2];
+  }
+
+  return ret;
+}
+
 
 PUBLIC int
 E_gquad(int L,

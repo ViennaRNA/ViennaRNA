@@ -37,6 +37,10 @@
  *  @brief      G-quadruplexes
  */
 
+#define   VRNA_GQUAD_DB_SYMBOL      '+'
+#define   VRNA_GQUAD_DB_SYMBOL_END  '~'
+
+
 /**
  *  @addtogroup gquad_eval
  *  @{
@@ -220,19 +224,36 @@ get_gquad_pattern_mfe_ali(short         **S,
  *  @brief  Parse a G-Quadruplex from a dot-bracket structure string
  *
  *  Given a dot-bracket structure (possibly) containing gquads encoded
- *  by '+' signs, find first gquad, return end position or 0 if none found
+ *  by '+' signs (and an optional '~' end sign, find first gquad, return
+ *  end position (1-based) or 0 if none found.
  *  Upon return L and l[] contain the number of stacked layers, as well as
  *  the lengths of the linker regions.
- *  To parse a string with many gquads, call parse_gquad repeatedly e.g.
- *  end1 = parse_gquad(struc, &L, l); ... ;
- *  end2 = parse_gquad(struc+end1, &L, l); end2+=end1; ... ;
- *  end3 = parse_gquad(struc+end2, &L, l); end3+=end2; ... ;
+ *
+ *  @note   For circular RNAs and G-Quadruplexes spanning the n,1-junction
+ *          the sum of linkers and g-runs is lower than the end position.
+ *          This condition can be used to check whether or not to accept
+ *          a G-Quadruplex parsed from the dot-bracket string. Also note,
+ *          that such n,1-junction spanning G-Quadruplexes must end with
+ *          a `~` sign, to be unambigous.
+ *
+ *
+ *  To parse a string with many gquads, call vrna_gq_parse() repeatedly e.g.
+ *
+ *  @code
+ *  end1 = vrna_gq_parse(struc, &L, l); ... ;
+ *  end2 = vrna_gq_parse(struc+end1, &L, l); end2+=end1; ... ;
+ *  end3 = vrna_gq_parse(struc+end2, &L, l); end3+=end2; ... ;
+ *  @endcode
+ *
+ *  @param  db_string   The input structure in dot-bracket notation
+ *  @param  L           A pointer to an unsigned integer to store the layer (stack) size
+ *  @param  l           An array of three values to store the respective linker lenghts
+ *  @return             The end position of the G-Quadruplex (1-based) or 0 if not found
  */
-int
-parse_gquad(const char  *struc,
-            int         *L,
-            int         l[3]);
-
+unsigned int
+vrna_gq_parse(const char    *db_string,
+              unsigned int  *L,
+              unsigned int  l[3]);
 
 /**
  *  @}
@@ -423,6 +444,24 @@ exp_E_gquad_ali(int               i,
                 unsigned int      **a2s,
                 int               n_seq,
                 vrna_exp_param_t  *pf);
+
+
+/**
+ *  @brief  Parse a G-Quadruplex from a dot-bracket structure string
+ *
+ *  Given a dot-bracket structure (possibly) containing gquads encoded
+ *  by '+' signs, find first gquad, return end position or 0 if none found
+ *  Upon return L and l[] contain the number of stacked layers, as well as
+ *  the lengths of the linker regions.
+ *  To parse a string with many gquads, call parse_gquad repeatedly e.g.
+ *  end1 = parse_gquad(struc, &L, l); ... ;
+ *  end2 = parse_gquad(struc+end1, &L, l); end2+=end1; ... ;
+ *  end3 = parse_gquad(struc+end2, &L, l); end3+=end2; ... ;
+ */
+DEPRECATED(int parse_gquad(const char  *struc,
+                           int         *L,
+                           int         l[3]),
+           "Use vrna_gq_parse() instead");
 
 
 /**
