@@ -64,6 +64,7 @@ extern "C" {
 #include  <ViennaRNA/loops/hairpin.h>
 #include  <ViennaRNA/loops/internal.h>
 #include  <ViennaRNA/loops/multibranch.h>
+#include  <ViennaRNA/loops/gquad.h>
 
 #include  <ViennaRNA/mfe.h>
 #include  <ViennaRNA/mfe_window.h>
@@ -231,6 +232,7 @@ namespace std {
 
 %include var_arrays.i
 %include type_checks.i
+%include data_structures.i
 %include params.i
 %include model_details.i
 %include utils.i
@@ -264,7 +266,6 @@ namespace std {
 %include walk.i
 %include paths.i
 %include heat_capacity.i
-%include data_structures.i
 %include fold_compound.i
 %include dp_matrices.i
 %include parameter_sets.i

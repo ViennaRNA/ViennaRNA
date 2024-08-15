@@ -28,3 +28,5 @@
 #endif
 
 %include <ViennaRNA/datastructures/basic.h>
+%include <ViennaRNA/datastructures/array.h>
+%include <ViennaRNA/datastructures/sparse_mx.h>
