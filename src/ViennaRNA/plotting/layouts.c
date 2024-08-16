@@ -261,8 +261,8 @@ rna_layout(const char   *structure,
 {
   struct vrna_plot_layout_s *layout;
   short                     *pt, *pt_g;
-  unsigned int              i, n;
-  int                       xmin, xmax, ymin, ymax, ee, gb, ge, Lg, l[3], r;
+  unsigned int              i, n, ee, Lg, l[3];
+  int                       xmin, xmax, ymin, ymax, gb, ge, r;
 
 
   n               = strlen(structure);
@@ -278,11 +278,11 @@ rna_layout(const char   *structure,
 
   /* account for possible G-Quadruplexes in dot-bracket string */
   ge = 0;
-  while ((ee = parse_gquad(structure + ge, &Lg, l)) > 0) {
+  while ((ee = vrna_gq_parse(structure + ge, &Lg, l)) > 0) {
     ge  += ee;
     gb  = ge - Lg * 4 - l[0] - l[1] - l[2] + 1;
     /* add pseudo-base pair encloding gquad */
-    for (i = 0; i < (unsigned int)Lg; i++) {
+    for (i = 0; i < Lg; i++) {
       pt_g[ge - i]  = gb + i;
       pt_g[gb + i]  = ge - i;
     }

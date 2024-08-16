@@ -537,13 +537,13 @@ vrna_db_from_WUSS(const char *wuss)
 {
   char          *db, *tmp;
   short         *pt;
-  int           pos, L, l[3], i, p, q;
-  unsigned int  n;
+  unsigned int  i, p, q, pos, L, l[3], num_gq, n;
 
   db = NULL;
 
   if (wuss) {
-    n = strlen(wuss);
+    n       = strlen(wuss);
+    num_gq  = 0;
 
     /*
      *  Note, in WUSS notation, matching pairs of (), <>, {}, [] are allowed but must not
@@ -561,22 +561,56 @@ vrna_db_from_WUSS(const char *wuss)
     db = vrna_db_from_ptable(pt);
 
     /* check for G-Quadruplexes, annotated as G quartets */
-    q = 1;
-    while ((pos = parse_gquad(wuss + q - 1, &L, l)) > 0) {
-      q += pos - 1;
-      p = q - 4 * L - l[0] - l[1] - l[2] + 1;
+    q = 0;
+    while ((pos = vrna_gq_parse(wuss + q, &L, l)) > 0) {
+      num_gq++;
+      q += pos;
 
-      if (q > n)
-        break;
+      if ((num_gq == 1) &&
+          (4 * L + l[0] + l[1] + l[2] > pos)) {
+        /* G-Quadruplex wraps around n,1 junction */
+        p = n + pos + 1 - 4 * L - l[0] - l[1] - l[2] + 1;
 
-      /* re-insert G-Quadruplex */
-      for (i = 0; i < L; i++) {
-        db[p + i - 1]                                 = '+';
-        db[p + L + l[0] + i - 1]                      = '+';
-        db[p + (2 * L) + l[0] + l[1] + i - 1]         = '+';
-        db[p + (3 * L) + l[0] + l[1] + l[2] + i - 1]  = '+';
+        for (i = 0; i < L; i++) {
+          unsigned int p1, p2, p3, p4;
+          p1  = p + i;
+          p2  = p1 + L + l[0];
+          p3  = p2 + L + l[1];
+          p4  = p3 + L + l[2];
+
+          if (p4 > n)
+            p4 = ((p4 - 1) % n) + 1;
+
+          if (p3 > n)
+            p3 = ((p3 - 1) % n) + 1;
+
+          if (p2 > n)
+            p2 = ((p2 - 1) % n) + 1;
+
+          if (p1 > n)
+            p1 = ((p1 - 1) % n) + 1;
+
+          db[p1 - 1] = db[p2 - 1] = db[p3 - 1] = db[p4 - 1] = VRNA_GQUAD_DB_SYMBOL;
+
+          if (i + 1 == L) /* last position of G-Quadruplex */
+            db[p4 - 1] = VRNA_GQUAD_DB_SYMBOL_END;
+        }
+      } else {
+        p = q - 4 * L - l[0] - l[1] - l[2] + 1;
+
+        if (q > n)
+          break;
+
+        /* re-insert G-Quadruplex */
+        for (i = 0; i < L; i++) {
+          db[p + i - 1]                                 = VRNA_GQUAD_DB_SYMBOL;
+          db[p + L + l[0] + i - 1]                      = VRNA_GQUAD_DB_SYMBOL;
+          db[p + (2 * L) + l[0] + l[1] + i - 1]         = VRNA_GQUAD_DB_SYMBOL;
+          db[p + (3 * L) + l[0] + l[1] + l[2] + i - 1]  = VRNA_GQUAD_DB_SYMBOL;
+        }
       }
-      q++;
+
+//      q++;
     }
 
     free(pt);

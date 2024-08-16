@@ -484,8 +484,8 @@ wrap_eval_structure(vrna_fold_compound_t  *fc,
                     vrna_cstr_t           output_stream,
                     int                   verbosity)
 {
-  unsigned int  n_seq;
-  int           res, gq, *loop_idx, L, l[3];
+  unsigned int  n_seq, L, l[3];
+  int           res, gq, e, *loop_idx;
   float         energy;
   vrna_md_t     *md;
 
@@ -504,12 +504,13 @@ wrap_eval_structure(vrna_fold_compound_t  *fc,
   /* re-set gquad support to previous state */
   md->gquad = gq;
 
-  if (gq && (parse_gquad(structure, &L, l) > 0)) {
+  if ((gq) &&
+      (vrna_gq_parse(structure, &L, l) > 0)) {
     if (verbosity > 0)
       vrna_cstr_print_eval_sd_corr(output_stream);
 
     loop_idx  = vrna_loopidx_from_ptable(pt);
-    res       += en_corr_of_loop_gquad(fc,
+    e         = en_corr_of_loop_gquad(fc,
                                        1,
                                        fc->length,
                                        structure,
@@ -517,6 +518,8 @@ wrap_eval_structure(vrna_fold_compound_t  *fc,
                                        (const int *)loop_idx,
                                        output_stream,
                                        verbosity);
+    res = ADD_OR_INF(res, e);
+
     free(loop_idx);
   }
 
@@ -1087,10 +1090,10 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
                            int                   verbosity_level)
 {
   short         *S, *S1, **SS, **S5, **S3;
-  int           corr_en, tmp_e, e_minus, e_plus, L, l[3], gq_en[2];
+  int           corr_en, tmp_e, e_minus, e_plus, gq_en[2];
   unsigned int  n_seq, n, p, q, num_elem, num_gq, up, up_mis, elem_i,
                 elem_j, elem_p, elem_q, gq_p, gq_q, pos, u1, u2, u3,
-                us1, us2, us3, type, type2, s, **a2s;
+                us1, us2, us3, type, type2, s, **a2s, L, l[3];
   vrna_param_t  *P;
   vrna_md_t     *md;
 
@@ -1106,7 +1109,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
    *  contributions here.
    */
 
-  vrna_log_debug("Correcting for mis-treated circular exterior loop with g-quadruplexes");
+  vrna_log_debug("Correcting for mis-treated circular exterior loop with g-quadruplexes [%d,%d]", i, j);
 
   n         = fc->length;
   n_seq     = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->n_seq : 1;
@@ -1122,7 +1125,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
   num_elem  = 0; /* number of elements in exterior loop */
   up        = 0; /* number of unpaired bases in exterior loop */
   num_gq    = 1; /* total number of gquadruplexes in exterior loop */
-  up_mis    = j - i + 1; /* number of bases misinerpreted as unpaired */
+  up_mis    = (i < j) ? j - i + 1 : (n - i + 1) + (j); /* number of bases misinerpreted as unpaired */
   corr_en   = 0;
   e_minus   = 0;
   e_plus    = 0;
@@ -1130,109 +1133,212 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
   elem_i = elem_j = elem_p = elem_q = gq_p = gq_q = 0;
 
   /*
-   *  1. Llet's determine, how many elements the exterior loop contains:
-   *
-   *  1.1 Seek to position 1. Note, that [i,j] already is the left-most
-   *      gquad, so we only need to check for base pairs 5' of it...
+   *  1. Let's determine, how many elements the exterior loop contains:
    */
-  for (p = i - 1; p > 0; p--) {
-    if (pt[p] == 0) {
-      up++;
-      continue;
-    } else if (p < pt[p]) {
-      vrna_log_error("found base pair (%d,%d) enclosing gquad [%d,%d]",
-                     p, pt[p], i, j);
-      break;
-    } else {
-      corr_en += en_corr_of_loop_gquad(fc,
-                                       pt[p],
-                                       p,
-                                       structure,
-                                       pt,
-                                       loop_idx,
-                                       output_stream,
-                                       verbosity_level);
-      /* store base pair positions for any corrections we apply later on */
-      if (num_elem == 0) {
-        elem_i = pt[p];
-        elem_j = p;
-      } else if (num_elem == 1) {
-        elem_p = pt[p];
-        elem_q = p;
-      }
+  if (i < j) { /* 1.1 G-Quadruplex not spanning the n,1 junction */
+    /*
+     *  1.1.1 Seek to position 1. Note, that [i,j] already is the left-most
+     *        gquad, so we only need to check for base pairs 5' of it...
+     */
+    for (p = i - 1; p > 0; p--) {
+      if (pt[p] == 0) {
+        up++;
+        continue;
+      } else if (p < pt[p]) {
+        vrna_log_error("found base pair (%d,%d) enclosing gquad [%d,%d]",
+                       p, pt[p], i, j);
+        return INF;
+      } else {
+        tmp_e = en_corr_of_loop_gquad(fc,
+                                      pt[p],
+                                      p,
+                                      structure,
+                                      pt,
+                                      loop_idx,
+                                      output_stream,
+                                      verbosity_level);
 
-      num_elem++;
-      p = pt[p];
-    }
-  }
-
-  /*
-   *  1.2 Seek to position n. Here, we need to check for more gquads
-   *      in the external loop, as well as for any stems that may need
-   *      corrections as well.
-   */
-  for (p = j + 1; p <= n; p++) {
-    if (p < pt[p]) {
-      /* base pair */
-      corr_en += en_corr_of_loop_gquad(fc,
-                                       p,
-                                       pt[p],
-                                       structure,
-                                       pt,
-                                       loop_idx,
-                                       output_stream,
-                                       verbosity_level);
-
-      /* store base pair positions for any corrections we apply later on */
-      if (num_elem == 0) {
-        elem_i = p;
-        elem_j = pt[p];
-      } else if (num_elem == 1) {
-        elem_p = p;
-        elem_q = pt[p];
-      }
-
-      p = pt[p];
-      num_elem++;
-    } else if (structure[p - 1] == '.') {
-      up++;
-      continue;
-    } else if (structure[p - 1] == '+') {
-      /* found another gquad */
-      pos = (unsigned int)parse_gquad(structure + p - 1, &L, l);
-      if (pos > 0) {
-        switch (fc->type) {
-          case VRNA_FC_TYPE_COMPARATIVE:
-            E_gquad_ali_en(p, L, l, (const short **)fc->S, fc->a2s, n_seq, P, gq_en);
-            tmp_e = gq_en[0];
-            break;
-
-          default:
-            tmp_e = E_gquad(L, l, P);
-            break;
-        }
-
-        if (verbosity_level > 0) {
-          vrna_cstr_print_eval_gquad(output_stream,
-                                     p,
-                                     L,
-                                     l,
-                                     (int)tmp_e / (int)n_seq);
-        }
-
-        gq_p    = p;
-        gq_q    = p + pos - 1;
+        if (tmp_e == INF)
+          return INF;
+        
         corr_en += tmp_e;
-        up_mis  += pos;
-        p       += pos;
-        num_gq++;
+
+        /* store base pair positions for any corrections we apply later on */
+        if (num_elem == 0) {
+          elem_i = pt[p];
+          elem_j = p;
+        } else if (num_elem == 1) {
+          elem_p = pt[p];
+          elem_q = p;
+        }
+
+        num_elem++;
+        p = pt[p];
       }
-    } else if (pt[p] != 0) {
-      vrna_log_error("found base pair (%d,%d) enclosing gquad [%d,%d]",
-                     pt[p], p, i, j);
-      break;
+    }
+
+    /*
+     *  1.1.2 Seek to position n. Here, we need to check for more gquads
+     *        in the external loop, as well as for any stems that may need
+     *        corrections as well.
+     */
+    for (p = j + 1; p <= n; p++) {
+      if (p < pt[p]) {
+        /* base pair */
+        tmp_e = en_corr_of_loop_gquad(fc,
+                                         p,
+                                         pt[p],
+                                         structure,
+                                         pt,
+                                         loop_idx,
+                                         output_stream,
+                                         verbosity_level);
+        if (tmp_e == INF)
+          return INF;
+
+        corr_en += tmp_e;
+
+        /* store base pair positions for any corrections we apply later on */
+        if (num_elem == 0) {
+          elem_i = p;
+          elem_j = pt[p];
+        } else if (num_elem == 1) {
+          elem_p = p;
+          elem_q = pt[p];
+        }
+
+        p = pt[p];
+        num_elem++;
+      } else if (structure[p - 1] == '.') {
+        up++;
+        continue;
+      } else if (structure[p - 1] == '+') {
+        /* found another gquad */
+        pos = vrna_gq_parse(structure + p - 1, &L, l);
+
+        if (pos > 0) {
+          /* sanity check for malformed gquad (this one must not span the n,1 junction! */
+          if (4 * L + l[0] + l[1] + l[2] > pos) {
+            vrna_log_error("malformed gquadruplex somewhere after position %u",
+                           p - 1);
+            return INF;
+          }
+
+          switch (fc->type) {
+            case VRNA_FC_TYPE_COMPARATIVE:
+              E_gquad_ali_en(p, L, l, (const short **)fc->S, fc->a2s, n_seq, P, gq_en);
+              tmp_e = gq_en[0];
+              break;
+
+            default:
+              tmp_e = E_gquad(L, l, P);
+              break;
+          }
+
+          if (verbosity_level > 0) {
+            vrna_cstr_print_eval_gquad(output_stream,
+                                       p,
+                                       p + pos - 1,
+                                       L,
+                                       l,
+                                       (int)tmp_e / (int)n_seq);
+          }
+
+          gq_p    = p;
+          gq_q    = p + pos - 1;
+          corr_en += tmp_e;
+          up_mis  += pos;
+          p       += pos;
+          num_gq++;
+        }
+      } else if (pt[p] != 0) {
+        vrna_log_error("found base pair (%d,%d) enclosing gquad [%d,%d]",
+                       pt[p], p, i, j);
+        return INF;
+      }
+    }
+  } else { /* 1.2 G-Quadruplex spanning the n,1 junction */
+    /*
+     *  1.2.1 Seek to position i - 1. Here, we need to check for more gquads
+     *        in the external loop, as well as for any stems that may need
+     *        corrections as well.
+     */
+    for (p = j + 1; p < i; p++) {
+      if (p < pt[p]) {
+        /* base pair */
+        tmp_e = en_corr_of_loop_gquad(fc,
+                                         p,
+                                         pt[p],
+                                         structure,
+                                         pt,
+                                         loop_idx,
+                                         output_stream,
+                                         verbosity_level);
+        if (tmp_e == INF)
+          return INF;
+
+        corr_en += tmp_e;
+
+        /* store base pair positions for any corrections we apply later on */
+        if (num_elem == 0) {
+          elem_i = p;
+          elem_j = pt[p];
+        } else if (num_elem == 1) {
+          elem_p = p;
+          elem_q = pt[p];
+        }
+
+        p = pt[p];
+        num_elem++;
+      } else if (structure[p - 1] == '.') {
+        up++;
+        continue;
+      } else if (structure[p - 1] == '+') {
+        /* found another gquad */
+        pos = vrna_gq_parse(structure + p - 1, &L, l);
+        if (pos > 0) {
+          /* sanity check for malformed gquad (this one must not span the n,1 junction! */
+          if (4 * L + l[0] + l[1] + l[2] > pos) {
+            vrna_log_error("malformed gquadruplex somewhere after position %u",
+                           p - 1);
+            return INF;
+          }
+
+          switch (fc->type) {
+            case VRNA_FC_TYPE_COMPARATIVE:
+              E_gquad_ali_en(p, L, l, (const short **)fc->S, fc->a2s, n_seq, P, gq_en);
+              tmp_e = gq_en[0];
+              break;
+
+            default:
+              tmp_e = E_gquad(L, l, P);
+              break;
+          }
+
+          if (verbosity_level > 0) {
+            vrna_cstr_print_eval_gquad(output_stream,
+                                       p,
+                                       p + pos - 1,
+                                       L,
+                                       l,
+                                       (int)tmp_e / (int)n_seq);
+          }
+
+          gq_p    = p;
+          gq_q    = p + pos - 1;
+          corr_en += tmp_e;
+          up_mis  += pos;
+          p       += pos;
+          num_gq++;
+        }
+      } else if (pt[p] != 0) {
+        vrna_log_error("found base pair (%d,%d) enclosing gquad [%d,%d]",
+                       pt[p], p, i, j);
+        return INF;
+      }
     }
   }
+
 
   /* now for the actual correction (if necessary) */
   switch (num_elem) {
@@ -1246,16 +1352,21 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
 
       switch (num_gq) {
         case 1: /* actually a hairpin-like gquad structure */
-          if ((i - 1) + (n - j) < 3)
+          u1 = (i < j) ? (i - 1) + (n - j) : (i - j - 1);
+
+          if (u1 < 3)
             return INF;
 #ifdef VRNA_WITH_CIRC_PENALTY
           e_plus += vrna_hp_energy(n - up_mis, 0, 0, 0, NULL, P) * (int)n_seq;
 #endif
+          vrna_log_debug("e_plus = %d, e_minus = %d", e_plus, e_minus);
           break;
 
         case 2: /* actually an internal-loop-like structure */
-          if (((i - 1 == 0) && (n - gq_q < 3)) ||
-              ((i - 1 < 3) && (n - gq_q == 0)))
+          u1 = (i < j) ? i - 1 + n - gq_q : gq_p - j - 1;
+          u2 = (i < j) ? gq_p - j - 1 : i - gq_q - 1;
+          if (((u1 == 0) && (u2 < 3)) ||
+              ((u1 < 3) && (u2 == 0)))
             return INF;
 
           e_plus += P->internal_loop[n - up_mis];
@@ -1294,14 +1405,20 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
               if (type > 2)
                 tmp_e += P->TerminalAU;
 
-              if (i > elem_j) {
-                u1 = elem_i - 1;
-                u2 = i - elem_j - 1;
-                u3 = n - j;
+              if (i < j) {
+                if (i > elem_j) {
+                  u1 = elem_i - 1;
+                  u2 = i - elem_j - 1;
+                  u3 = n - j;
+                } else {
+                  u1 = i - 1;
+                  u2 = elem_i - j - 1;
+                  u3 = n - elem_j;
+                }
               } else {
-                u1 = i - 1;
+                u1 = i - elem_j - 1;
                 u2 = elem_i - j - 1;
-                u3 = n - elem_j;
+                u3 = 0;
               }
 
               tmp_e += P->internal_loop[u1 + u2 + u3];
@@ -1316,14 +1433,20 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
                 if (type > 2)
                   tmp_e += P->TerminalAU;
 
-                if (i > elem_j) {
-                  us1 = (elem_i > 1) ? a2s[s][elem_i - 1] - a2s[s][1]: 0;
-                  us2 = a2s[s][i - 1] - a2s[s][elem_j];
-                  us3 = a2s[s][n] - a2s[s][j];
+                if (i < j) {
+                  if (i > elem_j) {
+                    us1 = (elem_i > 1) ? a2s[s][elem_i - 1] - a2s[s][1]: 0;
+                    us2 = a2s[s][i - 1] - a2s[s][elem_j];
+                    us3 = a2s[s][n] - a2s[s][j];
+                  } else {
+                    us1     = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
+                    us2     = a2s[s][elem_i - 1] - a2s[s][j];
+                    us3     = a2s[s][n] - a2s[s][elem_j];
+                  }
                 } else {
-                  us1     = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
-                  us2     = a2s[s][elem_i - 1] - a2s[s][j];
-                  us3     = a2s[s][n] - a2s[s][elem_j];
+                  us1 = a2s[s][elem_i - 1] - a2s[s][j];
+                  us2 = a2s[s][i - 1] - a2s[s][elem_j];
+                  us3 = 0;
                 }
 
                 tmp_e += P->internal_loop[us1 + us2 + us3];
@@ -1478,13 +1601,14 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
 {
   char          *sequence;
   short         *s1, *s2, **S, **S5, **S3;
-  unsigned int  cnt, n_seq;
-  int           pos, tmp_e, energy, p, q, r, s, u, type, type2,
-                L, l[3], num_elem, num_g, elem_i, elem_j,
+  unsigned int  cnt, n_seq, L, l[3], pos;
+  int           n, tmp_e, energy, p, q, r, s, u, type, type2,
+                num_elem, num_g, elem_i, elem_j,
                 up_mis, gq_en[2], dangle_model;
   vrna_param_t  *P;
   vrna_md_t     *md;
 
+  n             = fc->length;
   s1            = fc->sequence_encoding;
   s2            = fc->sequence_encoding2;
   S             = fc->S;
@@ -1511,11 +1635,27 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
   energy  = 0;
   q       = i;
 
-  while ((pos = parse_gquad(structure + q - 1, &L, l)) > 0) {
-    q += pos - 1;
-    p = q - 4 * L - l[0] - l[1] - l[2] + 1;
+  while ((pos = vrna_gq_parse(structure + q - 1, &L, l)) > 0) {
+    q     += pos - 1;
+
     if (q > j)
       break;
+
+    num_g = 1;
+
+    /* check whether gquad spans n,1 junction */
+    if (4 * L + l[0] + l[1] + l[2] > pos) {
+      if ((md->circ) &&
+          (num_g == 1)) { /* allow for n,1 junction spanning G-Quadruplex only once */
+        p = n + pos + 1 - 4 * L - l[0] - l[1] - l[2];
+      } else {
+        break; /* not allowed for linear sequences */
+      }
+    } else if (q > j) {
+      break;
+    } else {
+      p = q - 4 * L - l[0] - l[1] - l[2] + 1;
+    }
 
     /* we've found the first g-quadruplex at position [p,q] */
     switch (fc->type) {
@@ -1534,6 +1674,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
     if (verbosity_level > 0) {
       vrna_cstr_print_eval_gquad(output_stream,
                                  p,
+                                 q,
                                  L,
                                  l,
                                  (int)tmp_e / (int)n_seq);
@@ -1546,14 +1687,16 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
          *  so we need to correct the exterior loop energy
          *  accordingly.
          */
-        energy  += en_corr_of_loop_gquad_circ(fc,
-                                              (unsigned int)p,
-                                              (unsigned int)q,
-                                              structure,
-                                              pt,
-                                              loop_idx,
-                                              output_stream,
-                                              verbosity_level);
+        tmp_e = en_corr_of_loop_gquad_circ(fc,
+                                           (unsigned int)p,
+                                           (unsigned int)q,
+                                           structure,
+                                           pt,
+                                           loop_idx,
+                                           output_stream,
+                                           verbosity_level);
+
+        energy = ADD_OR_INF(energy, tmp_e);
         break;
       } else {
         q++;
@@ -1607,8 +1750,15 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           u++;
         } else if (structure[u - 1] == '+') {
           /* found another gquad */
-          pos = parse_gquad(structure + u - 1, &L, l);
+          pos = vrna_gq_parse(structure + u - 1, &L, l);
           if (pos > 0) {
+            /* sanity check for malformed gquad (this one must not span the n,1 junction! */
+            if (4 * L + l[0] + l[1] + l[2] > pos) {
+              vrna_log_error("malformed gquadruplex somewhere after position %u",
+                             u - 1);
+              return INF;
+            }
+
             switch (fc->type) {
               case VRNA_FC_TYPE_COMPARATIVE:
                 E_gquad_ali_en(u, L, l, (const short **)S, fc->a2s, n_seq, P, gq_en);
@@ -1623,6 +1773,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
             if (verbosity_level > 0) {
               vrna_cstr_print_eval_gquad(output_stream,
                                          u,
+                                         u + pos - 1,
                                          L,
                                          l,
                                          (int)tmp_e / (int)n_seq);
@@ -1638,7 +1789,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           num_elem++;
           elem_i  = u;
           elem_j  = pt[u];
-          energy  += en_corr_of_loop_gquad(fc,
+          tmp_e   = en_corr_of_loop_gquad(fc,
                                            u,
                                            pt[u],
                                            structure,
@@ -1646,6 +1797,10 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
                                            loop_idx,
                                            output_stream,
                                            verbosity_level);
+          if (tmp_e == INF)
+            return INF;
+
+          energy  += tmp_e;
           u = pt[u] + 1;
         }
       }

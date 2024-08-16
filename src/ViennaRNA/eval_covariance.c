@@ -151,8 +151,9 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
                             const int             *loop_idx)
 {
   short         **S;
-  int           pos, en_covar, p, q, r, s, u, gq_en[2], num_elem,
-                num_g, up_mis, L, l[3], n_seq;
+  unsigned int  pos, L, l[3], n_seq;
+  int           en_covar, p, q, r, s, u, gq_en[2], num_elem,
+                num_g, up_mis;
   vrna_param_t  *P;
 
   en_covar  = 0;
@@ -161,7 +162,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
   P         = fc->params;
   q         = i;
 
-  while ((pos = parse_gquad(structure + q - 1, &L, l)) > 0) {
+  while ((pos = vrna_gq_parse(structure + q - 1, &L, l)) > 0) {
     q += pos - 1;
     p = q - 4 * L - l[0] - l[1] - l[2] + 1;
     if (q > j)
@@ -220,7 +221,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           u++;
         } else if (structure[u - 1] == '+') {
           /* found another gquad */
-          pos = parse_gquad(structure + u - 1, &L, l);
+          pos = vrna_gq_parse(structure + u - 1, &L, l);
           if (pos > 0) {
             E_gquad_ali_en(u, L, l, (const short **)S, fc->a2s, n_seq, P, gq_en);
             en_covar  += gq_en[1];

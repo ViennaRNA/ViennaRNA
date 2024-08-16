@@ -856,6 +856,7 @@ vrna_cstr_print_eval_mb_loop_revert(struct vrna_cstr_s  *buf,
 PUBLIC void
 vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
                            int                i,
+                           int                j,
                            int                L,
                            int                l[3],
                            int                energy)
@@ -871,7 +872,7 @@ vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
                      ANSI_COLOR_BRIGHT "L%d  " ANSI_COLOR_RESET
                      "(%2d,%2d,%2d)  : "
                      ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
-                     i, i + 4 * L + l[0] + l[1] + l[2] - 1,
+                     i, j,
                      L, l[0], l[1], l[2],
                      energy);
   } else {
@@ -882,7 +883,7 @@ vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
                    "L%d  "
                    "(%2d,%2d,%2d)  : "
                    "%5d\n",
-                   i, i + 4 * L + l[0] + l[1] + l[2] - 1,
+                   i, j,
                    L, l[0], l[1], l[2],
                    energy);
 #ifndef VRNA_WITHOUT_TTY_COLORS

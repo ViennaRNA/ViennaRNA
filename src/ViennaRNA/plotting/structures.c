@@ -168,7 +168,8 @@ rnaplot_EPS(const char          *seq,
 {
   float     xmin, xmax, ymin, ymax;
   int       i, length;
-  int       ee, gb, ge, Lg, l[3], bbox[4];
+  unsigned int  ee, Lg, l[3];
+  int       gb, ge, bbox[4];
   float     *X, *Y;
   FILE      *xyplot;
   short     *pair_table;
@@ -260,7 +261,7 @@ rnaplot_EPS(const char          *seq,
 
   /* add gquad pairs */
   ge = 0;
-  while ((ee = parse_gquad(structure + ge, &Lg, l)) > 0) {
+  while ((ee = vrna_gq_parse(structure + ge, &Lg, l)) > 0) {
     int k;
     fprintf(xyplot, "%% gquad\n");
     ge  += ee;
