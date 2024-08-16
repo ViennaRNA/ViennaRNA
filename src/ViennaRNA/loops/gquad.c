@@ -2763,15 +2763,15 @@ vrna_gq_parse(const char    *db_string,
 
       if ((tetrad > 1) &&
           (LL[tetrad] != LL[tetrad - 1])) {
-        vrna_log_error("unequal stack sizes (%u vs. %u) in G-quadruplex",
-                       LL[tetrad - 1],
-                       LL[tetrad]);
+        vrna_log_debug("unequal stack sizes (%u vs. %u) in G-quadruplex",
+                         LL[tetrad - 1],
+                         LL[tetrad]);
         return 0;
       }
 
       /* check whether we stopped due to linker or end symbol */
       if (db_string[i] == VRNA_GQUAD_DB_SYMBOL_END) {
-        stop = i;
+        stop = i + 1;
         break;
       }
 
@@ -2784,7 +2784,7 @@ vrna_gq_parse(const char    *db_string,
       l[tetrad] = i - end - 1;
 
       if (l[tetrad] == 0) {
-        vrna_log_error("zero-length linker in G-Quadruplex");
+        vrna_log_debug("zero-length linker in G-Quadruplex");
         return 0;
       } else {
         i--;
@@ -2843,7 +2843,7 @@ vrna_gq_parse(const char    *db_string,
 
           if ((tetrad > 0) &&
             (LL[3 - tetrad] != LL[4 - tetrad])) {
-            vrna_log_error("unequal stack sizes (%u vs. %u) in G-quadruplex",
+            vrna_log_debug("unequal stack sizes (%u vs. %u) in G-quadruplex",
                            LL[3 - tetrad],
                            LL[4 - tetrad]);
             return 0;
@@ -2858,7 +2858,7 @@ vrna_gq_parse(const char    *db_string,
           l[2 - tetrad] = end - i - 1;
 
           if (l[2 - tetrad] == 0) {
-            vrna_log_error("zero-length linker in G-Quadruplex");
+            vrna_log_debug("zero-length linker in G-Quadruplex");
             return 0;
           } else {
             i++;
@@ -2881,7 +2881,7 @@ vrna_gq_parse(const char    *db_string,
       (LL[2] == LL[3])) {
     *L = LL[0];
   } else {
-    vrna_log_error("Unequal G-quadruplex stack tetrad lengths (%u, %u, %u, %d)",
+    vrna_log_debug("Unequal G-quadruplex stack tetrad lengths (%u, %u, %u, %d)",
                    LL[0],
                    LL[1],
                    LL[2],
