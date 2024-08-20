@@ -62,10 +62,9 @@ AC_SUBST(LIBTOOL_DEPS)
 dnl Checks for libraries.
 AC_CHECK_LIB([m], [exp])
 
-dnl Checks for header files.
-AC_INCLUDES_DEFAULT
 AC_PROG_EGREP
 
+dnl Checks for header files.
 AC_HEADER_STDBOOL
 AC_CHECK_HEADERS([malloc.h float.h limits.h stdlib.h string.h strings.h unistd.h math.h stdarg.h])
 
