@@ -3832,9 +3832,9 @@ bppm_circ(vrna_fold_compound_t  *fc,
 {
   char                      *ptype;
   unsigned char             *hard_constraints, eval, with_gquad;
-  short                     *S, *S1, **SS, **S5, **S3, si, sj, sk, sl;
-  unsigned int              s, n_seq, type, type2, rt, *tt, **a2s, turn, u1, u2, u3, us1, us2, us3,
-                            imin, imax, jmin, jmax, kmin, kmax, lmin, lmax;
+  short                     *S, *S1, **SS, **S5, **S3, si, sj;
+  unsigned int              s, n_seq, type, rt, *tt, **a2s, turn, u1, u2, u3, us1, us2, us3,
+                            imin, imax, jmin, jmax, kmin;
   int                       n, i, j, k, l, ij, *rtype, *my_iindx, *jindx;
   FLT_OR_DBL                tmp, tmp2, tmp3, expMLclosing, *qb, *qm, *probs, *scale, *expMLbase, qo,
                             *qm2_real, q_g, qbt1;
@@ -4454,7 +4454,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
         if ((q_g = vrna_smx_csr_get(q_gq, i, j, 0.)) != 0.) {
           tmp2 = 0.;
-          FLT_OR_DBL tmp3 = 0;
 
           /* 1. all possible G-quads spanning from i to j */
           
