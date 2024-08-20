@@ -48,6 +48,9 @@
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 
+//#define DEBUG
+
+#define M2_FORWARD
 
 struct aux_arrays {
   int *cc;    /* auxilary arrays for canonical structures     */
@@ -403,7 +406,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
             struct ms_helpers     *ms_dat)
 {
   unsigned int      *sn;
-  int               i, j, ij, length, uniq_ML, *indx, *f5, *c, *fML, *fM1;
+  int               i, j, ij, length, uniq_ML, *indx, *f5, *c, *fML, *fM1, *fM2_real;
   vrna_param_t      *P;
   vrna_md_t         *md;
   vrna_mx_mfe_t     *matrices;
@@ -420,6 +423,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
   c           = matrices->c;
   fML         = matrices->fML;
   fM1         = matrices->fM1;
+  fM2_real    = matrices->fM2_real;
   domains_up  = fc->domains_up;
   sn          = fc->strand_number;
 
@@ -433,8 +437,13 @@ fill_arrays(vrna_fold_compound_t  *fc,
   /* prefill matrices with init contributions */
   for (i = 1; i <= length; i++) {
     c[indx[i] + i] = fML[indx[i] + i] = INF;
+
     if (uniq_ML)
       fM1[indx[i] + i] = INF;
+
+    if (fM2_real)
+      for (j = i + 1; j <= length; j++)
+        fM2_real[indx[j] + i] = INF;
   }
 
   /* start recursion */
@@ -470,6 +479,11 @@ fill_arrays(vrna_fold_compound_t  *fc,
           if(fc->aux_grammar->aux[i].cb)
             (void)fc->aux_grammar->aux[i].cb(fc, i, j, fc->aux_grammar->aux[i].data);
     } /* end of j-loop */
+
+    if (fM2_real) {
+      for (j = i + 1; j <= length; j++)
+        fM2_real[indx[j] + i] = helper_arrays->DMLi[j];
+    }
 
     rotate_aux_arrays(helper_arrays, length);
 
@@ -511,7 +525,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, *fM2, i, j, ij, u,
                 length, new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp,
                 dangle_model, turn, s, n_seq, with_gquad, FgH, FgI,
-                FgM, e, *fM2_real;
+                FgM, e, *fM2_real, *fM1_new;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_hc_t     *hc;
@@ -541,6 +555,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
   my_fML            = fc->matrices->fML;
   fM2               = fc->matrices->fM2;
   fM2_real          = NULL;
+  fM1_new           = NULL;
   c_gq              = fc->matrices->c_gq;
 
   struct hc_mb_def_dat      hc_mb_dat_local;
@@ -599,36 +614,99 @@ postprocess_circular(vrna_fold_compound_t *fc,
     Fc = INF;
   }
 
-  if (with_gquad) {
-    /*  1st, prepare the real fM2 dp matrix, i.e. for any starting point i and end point j,
-     *  store the optimal energy for a multi-branch component with at least two branches (incl. gquads)
-     *  we compose this from fML and fML
-     */
-    fM2_real = (int *)vrna_alloc(sizeof(int) * ((length * (length + 1)) / 2 + 2));
-    for (j = length; j > 0; j--)
-      for (i = j; i > 0; i--)
-        fM2_real[indx[j] + i] = INF;
+  /*  1st, prepare the real fM2 dp matrix, i.e. for any starting point i and end point j,
+   *  store the optimal energy for a multi-branch component with at least two branches (incl. gquads)
+   *  we compose this from fML and fML
+   */
+#ifdef M2_FORWARD
+  fM2_real = fc->matrices->fM2_real;
+#else
+  fM2_real = (int *)vrna_alloc(sizeof(int) * ((length * (length + 1)) / 2 + 2));
+  for (j = length; j > 0; j--)
+    for (i = j; i > 0; i--)
+      fM2_real[indx[j] + i] = INF;
 
-    for (j = length; j > 4 + 2 * turn - 1; j--) {
-      for (i = j - 2 * turn - 3; i > 0; i--) {
-        for (u = i + turn + 1; u + 1 + turn + 1 <= j; u++) {
-          if ((my_fML[indx[u] + i] == INF) ||
-              (my_fML[indx[j] + u + 1] == INF) ||
-              ((hc->f) && (!hc->f(i, j, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data))))
-            continue;
+  for (j = length; j > 4 + 2 * turn - 1; j--) {
+    for (i = j - 2 * turn - 3; i > 0; i--) {
+      for (u = i + turn + 1; u + 1 + turn + 1 <= j; u++) {
+        if ((my_fML[indx[u] + i] == INF) ||
+            (my_fML[indx[j] + u + 1] == INF) ||
+            ((hc->f) && (!hc->f(i, j, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data))))
+          continue;
 
-          e = my_fML[indx[u] + i] + my_fML[indx[j] + u + 1];
+        e = my_fML[indx[u] + i] + my_fML[indx[j] + u + 1];
 
-          if (sc_mb_wrapper.decomp_ml)
-            e += sc_mb_wrapper.decomp_ml(i, j, u, u + 1, &sc_mb_wrapper);
-            
-          if (e < fM2_real[indx[j] + i])
-            fM2_real[indx[j] + i] = e;
+        if (sc_mb_wrapper.decomp_ml)
+          e += sc_mb_wrapper.decomp_ml(i, j, u, u + 1, &sc_mb_wrapper);
+          
+        if (e < fM2_real[indx[j] + i])
+          fM2_real[indx[j] + i] = e;
+      }
+    }
+  }
+#endif
+
+  fM1_new = (int *)vrna_alloc(sizeof(int) * (length + 2));
+
+  /* 2nd, QM1 */    
+  for (j = length; j > 0; j--)
+    fM1_new[j] = INF;
+
+  for (j = MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE); j <= length; j++) {
+    /* regular base pairs */
+    for (u = j - turn - 1; u >= 1; u--) {
+      eval = (hc->up_ml[1] >= u - 1) ? (hc->mx[length * j + u] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) : 0;
+      if ((hc->f) && (!hc->f(1, j, u, j, VRNA_DECOMP_ML_ML, hc->data)))
+        eval = 0;
+
+      if (eval) {
+        switch (fc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            type  = vrna_get_ptype_md(S[u], S[j], md);
+            e   = my_c[indx[j] + u] +
+                  E_MLstem(type, S1[u - 1], S1[j + 1], P) +
+                  (u - 1) * P->MLbase;
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            e   = 0;
+            break;
         }
-        vrna_log_debug("fM2_real[%d,%d] = %d", i, j, fM2_real[indx[j] + i]);
+
+        if (sc_mb_wrapper.red_ml)
+          e += sc_mb_wrapper.red_ml(1, j, u, j, &sc_mb_wrapper);
+
+        fM1_new[j] = MIN2(fM1_new[j], e);
       }
     }
 
+    if (with_gquad) {
+      /* g-quads */
+      if (j >= VRNA_GQUAD_MIN_BOX_SIZE) {
+        for (u = j - VRNA_GQUAD_MIN_BOX_SIZE + 1; u >= 1; u--) {
+          eval = (hc->up_ml[1] >= u - 1) ? 1 : 0;
+          if ((hc->f) && (!hc->f(1, j, u, j, VRNA_DECOMP_ML_ML, hc->data)))
+            eval = 0;
+
+          if (eval) {
+            e = vrna_smx_csr_get(c_gq, u, j, INF);
+            if (e != INF) {
+              e += (E_MLstem(0, -1, -1, P) + (u - 1) * P->MLbase) *
+                   (int)n_seq;
+
+              if (sc_mb_wrapper.red_ml)
+                e += sc_mb_wrapper.red_ml(1, j, u, j, &sc_mb_wrapper);
+
+              fM1_new[j] = MIN2(fM1_new[j], e);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  if (with_gquad) {
     /* consider all configurations where a G-quadruplex spans over the artificial cutpoint */
     unsigned int n2 = MIN2(length, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
     unsigned int n3 = length + n2;
@@ -646,12 +724,16 @@ postprocess_circular(vrna_fold_compound_t *fc,
         stop_j = VRNA_GQUAD_MAX_BOX_SIZE + i - length - 1;
       if (stop_j >= i)
         stop_j = i - 1;
+#ifdef DEBUG
       vrna_log_debug("i=%d, start=%d, stop=%d, length=%d", i, start_j, stop_j, length);
+#endif
 
       for (j = start_j; j <= stop_j; j++) {
         new_c = vrna_smx_csr_get(c_gq, i, j, INF);
 
+#ifdef DEBUG
         vrna_log_debug("i=%d, j=%d, length=%d", i, j, length);
+#endif
         if (new_c != INF) {
           vrna_log_debug("g=%d", new_c);
 
@@ -896,8 +978,10 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
           /* case 3, gquad forms a multi-branch loop like structure with other base pairs or gquadruplexes */
           if (fM2_real[indx[i - 1] + j + 1] != INF) {
+#ifdef DEBUG
             vrna_log_debug("ml-case: ggg[%d-%d] + fm2[%d,%d] = %d + %d + %d", i, j, j + 1, i - 1, new_c, fM2_real[indx[i - 1] + j + 1], n_seq *
               (P->MLclosing + E_MLstem(0, -1, -1, P)));
+#endif
             e = new_c +
                 fM2_real[indx[i - 1] + j + 1] +
                 n_seq *
@@ -1021,7 +1105,9 @@ postprocess_circular(vrna_fold_compound_t *fc,
                   eval = (hc->up_int[q] >= u3) ? 1 : 0;
                   eval = (hc->mx[length * p + q] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? eval : 0;
                   if (eval) {
+#ifdef DEBUG
                     vrna_log_debug("[%d,%d] + (%d,%d)", i, j, p, q);
+#endif
                     int pq = indx[q] + p;
                     int energy = my_c[pq];
                     if (energy != INF) {
@@ -1257,6 +1343,26 @@ postprocess_circular(vrna_fold_compound_t *fc,
    * to get a unique ML decomposition, just use fM1 instead of fML
    * below. However, that will not work with dangle_model==1
    */
+#if 1
+  /* use fM1_new and fM2 to construct segments with at least 3 branches */
+  unsigned int space3 = 2 * MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE);
+  for (u = MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE); u + space3 <= length; u++) {
+    if ((fM1_new[u] != INF) &&
+        (fM2_real[indx[length] + u + 1] != INF)) {
+      new_c = fM1_new[u] +
+              fM2_real[indx[length] + u + 1];
+
+      if (new_c < FcM) {
+        FcM = new_c;
+        Mi  = u;
+      }
+    }
+  }
+
+  if (FcM != INF)
+    FcM += n_seq * P->MLclosing;
+
+#else
   int *fml_tmp = my_fML;
 
   /* some pre-processing to reduce redundant code */
@@ -1407,6 +1513,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
         break;
     }
   }
+#endif
 
   Fc = MIN2(Fc, FcM);
 
@@ -1997,6 +2104,99 @@ postprocess_circular(vrna_fold_compound_t *fc,
     } else if (FcM == Fc) {
       /* grumpf we found a Multiloop */
       int eee;
+#if 1
+      /* 1. find component in fM1_new */
+      for (u = 1; u + MIN2(turn + 1, VRNA_GQUAD_MIN_BOX_SIZE - 1) <= Mi; u++) {
+        if (hc->up_ml[1] < u - 1)
+          break;
+
+        eval = ((hc->f) && (!hc->f(1, Mi, u, Mi, VRNA_DECOMP_ML_ML, hc->data))) ? 0 : 1;
+
+        if ((eval) &&
+            (hc->mx[length * Mi + u] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP)){
+          switch (fc->type) {
+            case VRNA_FC_TYPE_SINGLE:
+              type  = vrna_get_ptype_md(S[u], S[Mi], md);
+              e   = my_c[indx[Mi] + u] +
+                    E_MLstem(type, S1[u - 1], S1[Mi + 1], P) +
+                    (u - 1) * P->MLbase;
+              break;
+
+            case VRNA_FC_TYPE_COMPARATIVE:
+              e   = 0;
+              break;
+          }
+
+          if (sc_mb_wrapper.red_ml)
+            e += sc_mb_wrapper.red_ml(1, Mi, u, Mi, &sc_mb_wrapper);
+
+          if (e == fM1_new[Mi]) {
+            vrna_bts_push(bt_stack, ((vrna_sect_t){
+                    .i = u,
+                    .j = Mi,
+                    .ml = VRNA_MX_FLAG_C}));
+            break;
+          }
+        }
+
+        if ((with_gquad) &&
+            (eval) &&
+            (u + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= Mi)) {
+
+          e = vrna_smx_csr_get(c_gq, u, Mi, INF);
+          if (e != INF) {
+            e += (E_MLstem(0, -1, -1, P) + (u - 1) * P->MLbase) *
+                 (int)n_seq;
+
+            if (sc_mb_wrapper.red_ml)
+              e += sc_mb_wrapper.red_ml(1, j, u, j, &sc_mb_wrapper);
+
+            if (e == fM1_new[Mi]) {
+              vrna_bts_push(bt_stack, ((vrna_sect_t){
+                    .i = u,
+                    .j = Mi,
+                    .ml = VRNA_MX_FLAG_G}));
+              break;
+            }
+          }
+        }
+      }
+
+      if (u > Mi)
+        vrna_log_error("Backtrack failed in fM1_new[%d] = %d", Mi, fM1_new[Mi]);
+
+      /* 2. find split-point in fM2_real */
+      for (u = Mi + 1 + MIN2(turn + 1, VRNA_GQUAD_MIN_BOX_SIZE - 1);
+           u + MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE) <= length;
+           u++) {
+        if ((my_fML[indx[u] + Mi + 1] == INF) ||
+            (my_fML[indx[length] + u + 1] == INF) ||
+            ((hc->f) && (!hc->f(Mi + 1, length, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data))))
+          continue;
+
+        new_c = my_fML[indx[u] + Mi + 1] +
+                my_fML[indx[length] + u + 1];
+
+        if (sc_mb_wrapper.decomp_ml)
+          new_c += sc_mb_wrapper.decomp_ml(Mi + 1, length, u, u + 1, &sc_mb_wrapper);
+
+        if (new_c == fM2_real[indx[length] + Mi + 1]) {
+            vrna_bts_push(bt_stack, ((vrna_sect_t){
+                  .i = Mi + 1,
+                  .j = u,
+                  .ml = VRNA_MX_FLAG_M}));
+            vrna_bts_push(bt_stack, ((vrna_sect_t){
+                  .i = u + 1,
+                  .j = length,
+                  .ml = VRNA_MX_FLAG_M}));
+            break;
+        }
+      }
+
+      if (u + MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE) > length)
+        vrna_log_error("Backtrack failed in fM2_real[%d][%d] = %d", Mi + 1, length, fM2_real[indx[length] + Mi + 1]);
+
+#else
       /* backtrack in fM2 */
       fm = fM2[Mi + 1];
       for (u = Mi + turn + 1; u < length - turn; u++) {
@@ -2042,6 +2242,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
         .i = 1,
         .j = Mi,
         .ml = VRNA_MX_FLAG_M}));
+#endif
     } else if (Fc == FcO) {
       /* unstructured */
       vrna_bts_push(bt_stack, ((vrna_sect_t){
@@ -2122,7 +2323,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
   fc->matrices->FcM = FcM;
   fc->matrices->Fc  = Fc;
 
+#ifndef M2_FORWARD
   free(fM2_real);
+#endif
+  free(fM1_new);
+
   free_sc_mb(&sc_mb_wrapper);
 
   return Fc;
