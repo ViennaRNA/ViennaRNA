@@ -314,7 +314,7 @@ PRIVATE int
 fill_arrays(vrna_fold_compound_t *fc)
 {
   int                 n, i, j, k, ij, *my_iindx, *jindx, with_gquad, with_ud;
-  FLT_OR_DBL          temp, Qmax, *q, *qb, *qm, *qm1, *qm2_real, *q1k, *qln;
+  FLT_OR_DBL          temp, Qmax, *q, *qb, *qm, *qm1, *qm2, *q1k, *qln;
   const FLT_OR_DBL    *qqm;
   double              max_real;
   vrna_ud_t           *domains_up;
@@ -334,7 +334,7 @@ fill_arrays(vrna_fold_compound_t *fc)
   qb          = matrices->qb;
   qm          = matrices->qm;
   qm1         = matrices->qm1;
-  qm2_real    = matrices->qm2_real;
+  qm2         = matrices->qm2_real;
   q1k         = matrices->q1k;
   qln         = matrices->qln;
   md          = &(pf_params->model_details);
@@ -374,6 +374,9 @@ fill_arrays(vrna_fold_compound_t *fc)
       ij = my_iindx[i] - j;
 
       qb[ij] = decompose_pair(fc, i, j, aux_mx_ml);
+
+      if (qm2)
+        qm2[ij] = vrna_exp_E_m2_fast(fc, i, j, aux_mx_ml);
 
       /* Multibranch loop */
       qm[ij] = vrna_exp_E_ml_fast(fc, i, j, aux_mx_ml);

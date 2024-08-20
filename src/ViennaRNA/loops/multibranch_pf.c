@@ -33,6 +33,8 @@
 struct vrna_mx_pf_aux_ml_s {
   FLT_OR_DBL  *qqm;
   FLT_OR_DBL  *qqm1;
+  FLT_OR_DBL  *qqm2;
+  FLT_OR_DBL  *qqm21;
 
   int         qqmu_size;
   FLT_OR_DBL  **qqmu;
@@ -60,10 +62,10 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_ml2_fast(vrna_fold_compound_t        *fc,
-               int                         i,
-               int                         j,
-               struct vrna_mx_pf_aux_ml_s  *aux_mx);
+exp_E_m2_fast(vrna_fold_compound_t        *fc,
+              int                         i,
+              int                         j,
+              struct vrna_mx_pf_aux_ml_s  *aux_mx);
 
 PRIVATE FLT_OR_DBL *
 qqm_constraints(vrna_fold_compound_t *fc,
@@ -121,6 +123,21 @@ vrna_exp_E_ml_fast(vrna_fold_compound_t       *fc,
 }
 
 
+PUBLIC FLT_OR_DBL
+vrna_exp_E_m2_fast(vrna_fold_compound_t       *fc,
+                   int                        i,
+                   int                        j,
+                   struct vrna_mx_pf_aux_ml_s *aux_mx)
+{
+  FLT_OR_DBL q = 0.;
+
+  if ((fc) && (aux_mx))
+    q = exp_E_m2_fast(fc, i, j, aux_mx);
+
+  return q;
+}
+
+
 PUBLIC struct vrna_mx_pf_aux_ml_s *
 vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc)
 {
@@ -140,6 +157,8 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc)
       (struct vrna_mx_pf_aux_ml_s *)vrna_alloc(sizeof(struct vrna_mx_pf_aux_ml_s));
     aux_mx->qqm       = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
     aux_mx->qqm1      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    aux_mx->qqm2      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    aux_mx->qqm21     = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
     aux_mx->qqmu_size = 0;
     aux_mx->qqmu      = NULL;
 
@@ -208,6 +227,10 @@ vrna_exp_E_ml_fast_rotate(struct vrna_mx_pf_aux_ml_s *aux_mx)
     aux_mx->qqm1  = aux_mx->qqm;
     aux_mx->qqm   = tmp;
 
+    tmp           = aux_mx->qqm21;
+    aux_mx->qqm21 = aux_mx->qqm2;
+    aux_mx->qqm2  = tmp;
+
     /* rotate auxiliary arrays for unstructured domains */
     if (aux_mx->qqmu) {
       tmp = aux_mx->qqmu[aux_mx->qqmu_size];
@@ -227,6 +250,8 @@ vrna_exp_E_ml_fast_free(struct vrna_mx_pf_aux_ml_s *aux_mx)
 
     free(aux_mx->qqm);
     free(aux_mx->qqm1);
+    free(aux_mx->qqm2);
+    free(aux_mx->qqm21);
 
     if (aux_mx->qqmu) {
       for (u = 0; u <= aux_mx->qqmu_size; u++)
@@ -276,7 +301,8 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   short                     *S1, **SS, **S5, **S3;
   unsigned int              *sn, n_seq, s, *se;
   int                       ij, k, kl, *my_iindx, *jindx, *rtype, tt;
-  FLT_OR_DBL                qbt1, temp, qqqmmm, *qm, **qm_local, *scale, expMLclosing, *qqm1;
+  FLT_OR_DBL                qbt1, temp, qqqmmm, *qm, *qm2, **qm_local, *scale, expMLclosing, *qqm1,
+                            *qqm21;
   vrna_hc_t                 *hc;
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
@@ -285,6 +311,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   struct sc_mb_exp_dat      sc_wrapper;
 
   qqm1            = aux_mx->qqm1;
+  qqm21           = aux_mx->qqm21;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   se              = fc->strand_end;
@@ -297,6 +324,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
   S5              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
   S3              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   qm              = (sliding_window) ? NULL : fc->exp_matrices->qm;
+  qm2             = (sliding_window) ? NULL : fc->exp_matrices->qm2;
   qm_local        = (sliding_window) ? fc->exp_matrices->qm_local : NULL;
   scale           = fc->exp_matrices->scale;
   pf_params       = fc->exp_params;
@@ -337,69 +365,74 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
     if (sc_wrapper.pair)
       qqqmmm *= sc_wrapper.pair(i, j, &sc_wrapper);
 
-    FLT_OR_DBL *qqm1_tmp = qqm1;
+    if (qm2) {
+      temp = qm2[my_iindx[i + 1] - j + 1];
+    } else if (!sliding_window) {
+      temp = qqm21[i + 1];
+    } else {
+      FLT_OR_DBL *qqm1_tmp = qqm1;
 
-    if (hc->f) {
-      qqm1_tmp  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (j - i + 2));
-      qqm1_tmp  -= i;
-
-      for (k = i + 2; k <= j - 1; k++) {
-        qqm1_tmp[k] = qqm1[k];
-        if (!evaluate(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &hc_dat_local))
-          qqm1_tmp[k] = 0.;
-      }
-    }
-
-    if (sc_wrapper.decomp_ml) {
-      if (qqm1_tmp == qqm1) {
+      if (hc->f) {
         qqm1_tmp  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (j - i + 2));
         qqm1_tmp  -= i;
 
-        for (k = i + 2; k <= j - 1; k++)
+        for (k = i + 2; k <= j - 1; k++) {
           qqm1_tmp[k] = qqm1[k];
+          if (!evaluate(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, &hc_dat_local))
+            qqm1_tmp[k] = 0.;
+        }
       }
 
-      for (k = i + 2; k <= j - 1; k++)
-        qqm1_tmp[k] *= sc_wrapper.decomp_ml(i + 1, j - 1, k - 1, k, &sc_wrapper);
-    }
+      if (sc_wrapper.decomp_ml) {
+        if (qqm1_tmp == qqm1) {
+          qqm1_tmp  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (j - i + 2));
+          qqm1_tmp  -= i;
 
-    temp = 0.0;
+          for (k = i + 2; k <= j - 1; k++)
+            qqm1_tmp[k] = qqm1[k];
+        }
 
-    /* set initial decomposition split point */
-    k = i + 2;
+        for (k = i + 2; k <= j - 1; k++)
+          qqm1_tmp[k] *= sc_wrapper.decomp_ml(i + 1, j - 1, k - 1, k, &sc_wrapper);
+      }
 
-    if (sliding_window) {
-      for (; k <= j - 1; k++, kl--)
-        temp += qm_local[i + 1][k - 1] *
-                qqm1_tmp[k];
-    } else {
-      kl = my_iindx[i + 1] - (i + 1);
-      /*
-       *  loop over entire range but skip decompositions with in-between strand nick,
-       *  this should be faster than evaluating hard constraints callback for each
-       *  decomposition
-       */
-      while (1) {
-        /* limit for-loop to last nucleotide of 5' part strand */
-        int stop = MIN2(j - 1, se[sn[k - 1]]);
+      temp = 0.0;
 
-        for (; k <= stop; k++, kl--)
-          temp += qm[kl] *
+      /* set initial decomposition split point */
+      k = i + 2;
+
+      if (sliding_window) {
+        for (; k <= j - 1; k++, kl--)
+          temp += qm_local[i + 1][k - 1] *
                   qqm1_tmp[k];
+      } else {
+        kl = my_iindx[i + 1] - (i + 1);
+        /*
+         *  loop over entire range but skip decompositions with in-between strand nick,
+         *  this should be faster than evaluating hard constraints callback for each
+         *  decomposition
+         */
+        while (1) {
+          /* limit for-loop to last nucleotide of 5' part strand */
+          int stop = MIN2(j - 1, se[sn[k - 1]]);
 
-        k++;
-        kl--;
+          for (; k <= stop; k++, kl--)
+            temp += qm[kl] *
+                    qqm1_tmp[k];
 
-        if (stop == j - 1)
-          break;
+          k++;
+          kl--;
+
+          if (stop == j - 1)
+            break;
+        }
+      }
+
+      if (qqm1_tmp != qqm1) {
+        qqm1_tmp += i;
+        free(qqm1_tmp);
       }
     }
-
-    if (qqm1_tmp != qqm1) {
-      qqm1_tmp += i;
-      free(qqm1_tmp);
-    }
-
     qbt1 += temp *
             qqqmmm;
   }
@@ -421,7 +454,7 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   unsigned int              *sn, *ss, *se, n_seq, s;
   int                       n, *iidx, k, ij, kl, maxk, ii, with_ud, u, circular, with_gquad,
                             *hc_up_ml, type;
-  FLT_OR_DBL                qbt1, temp, *qm, *qm2_real, *qb, *qqm, *qqm1, **qqmu, q_temp, q_temp2,
+  FLT_OR_DBL                qbt1, temp, *qm, *qm2, *qb, *qqm, *qqm1, *qqm2, **qqmu, q_temp, q_temp2,
                             *expMLbase, **qb_local, **qm_local, **G_local;
   vrna_md_t                 *md;
   vrna_exp_param_t          *pf_params;
@@ -444,10 +477,11 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   iidx            = (sliding_window) ? NULL : fc->iindx;
   ij              = (sliding_window) ? 0 : iidx[i] - j;
   qqm             = aux_mx->qqm;
+  qqm2            = aux_mx->qqm2;
   qqm1            = aux_mx->qqm1;
   qqmu            = aux_mx->qqmu;
   qm              = (sliding_window) ? NULL : fc->exp_matrices->qm;
-  qm2_real        = (sliding_window) ? NULL : fc->exp_matrices->qm2_real;
+  qm2             = (sliding_window) ? NULL : fc->exp_matrices->qm2_real;
   qb              = (sliding_window) ? NULL : fc->exp_matrices->qb;
   q_gq            = (sliding_window) ? NULL : fc->exp_matrices->q_gq;
   qm_local        = (sliding_window) ? fc->exp_matrices->qm_local : NULL;
@@ -469,12 +503,12 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
   qbt1    = 0;
   q_temp  = 0.;
 
-  temp = exp_E_ml2_fast(fc, i, j, aux_mx);
+  /* get contribution with at least 2 stems */
+  /* here, we assume that qm2[i,j] has been filled already */
+  temp = (qm2) ? qm2[iidx[i] - j] : exp_E_m2_fast(fc, i, j, aux_mx);
 
-  if (qm2_real) {
-    /* store contribution with at least 2 stems */
-    qm2_real[iidx[i] - j] = temp;
-  }
+  /* store for fast ML decomposition */
+  qqm2[i] = temp;
 
   /*
    *  construction of qm matrix containing multiple loop
@@ -539,10 +573,10 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_ml2_fast(vrna_fold_compound_t        *fc,
-               int                         i,
-               int                         j,
-               struct vrna_mx_pf_aux_ml_s  *aux_mx)
+exp_E_m2_fast(vrna_fold_compound_t        *fc,
+              int                         i,
+              int                         j,
+              struct vrna_mx_pf_aux_ml_s  *aux_mx)
 {
   unsigned char             sliding_window;
   short                     *S1, *S2, **SS, **S5, **S3;
@@ -680,7 +714,6 @@ exp_E_ml2_fast(vrna_fold_compound_t        *fc,
     if (q_temp != 0.) {
       qqm[i]  += q_temp *
                  pow(exp_E_MLstem(0, -1, -1, pf_params), (double)n_seq);
-      vrna_log_debug("ml-gq [%d,%d] = %g", i, j, q_temp);
     }
   }
 
@@ -732,14 +765,12 @@ exp_E_ml2_fast(vrna_fold_compound_t        *fc,
   }
 
   /* apply auxiliary grammar rule for multibranch loop case */
-#if 0
   if (fc->aux_grammar) {
     for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_m2); c++) {
       if (fc->aux_grammar->exp_m2[c].cb)
         temp += fc->aux_grammar->exp_m2[c].cb(fc, i, j, fc->aux_grammar->exp_m2[c].data);
     }
   }
-#endif
 
   free_sc_mb_exp(&sc_wrapper);
 
