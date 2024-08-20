@@ -31,12 +31,13 @@
 
 #include "ViennaRNA/grammar.inc"
 
+#include "ViennaRNA/loops/external_sc_pf.inc"
+#include "ViennaRNA/loops/internal_sc_pf.inc"
+#include "ViennaRNA/loops/multibranch_sc_pf.inc"
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-#define M2_FORWARD
-#define USE_QM2_REAL
 
 /*
  #################################
@@ -484,10 +485,6 @@ decompose_pair(vrna_fold_compound_t *fc,
   return contribution;
 }
 
-#include "ViennaRNA/loops/external_sc_pf.inc"
-#include "ViennaRNA/loops/internal_sc_pf.inc"
-#include "ViennaRNA/loops/multibranch_sc_pf.inc"
-
 /*
  * calculate partition function for circular case
  * NOTE: this is the postprocessing step ONLY
@@ -500,7 +497,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
   short             *S1, *S, **SS, **S5, **S3;
   unsigned int      **a2s;
   int               u, p, q, i, j, k, turn, n, tt, *my_iindx, *jindx, s;
-  FLT_OR_DBL        *scale, *qb, *qm, *qm1, *qm2, qo, qho, qio, qmo,
+  FLT_OR_DBL        *scale, *qb, *qm, qo, qho, qio, qmo,
                     qbt1, qot, expMLclosing, n_seq, *expMLbase;
   FLT_OR_DBL        *qm2_real, *qm1_new, q_g;
   double            *expintern;
@@ -529,8 +526,8 @@ postprocess_circular(vrna_fold_compound_t *fc)
   a2s           = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   qb            = matrices->qb;
   qm            = matrices->qm;
-  qm1           = matrices->qm1;
-  qm2           = matrices->qm2;
+  qm2_real      = matrices->qm2_real;
+  qm1_new       = matrices->qm1_new;
 
   q_gq          = fc->exp_matrices->q_gq;
   scale         = matrices->scale;
@@ -543,12 +540,6 @@ postprocess_circular(vrna_fold_compound_t *fc)
   sc            = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sc : NULL;
   scs           = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->scs : NULL;
   qo            = qho = qio = qmo = 0.;
-#ifdef M2_FORWARD
-  qm2_real      = matrices->qm2_real;
-#else
-  qm2_real      = NULL;
-#endif
-  qm1_new       = NULL;
 
   struct sc_mb_exp_dat sc_mb_wrapper;
   struct sc_ext_exp_dat sc_ext_wrapper;
@@ -575,35 +566,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
   /* 3. Multiloops  */
 
-  /* we first compute QM2 a,d QM1, whith at least two and exactly one component, respectively. */
-#ifndef M2_FORWARD
-  qm2_real = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (((n + 1) * (n + 2)) / 2));
-#endif
-  qm1_new = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
-
-#ifndef M2_FORWARD
-  /* 1st QM2 */
-  for (i = 1; i + turn < n; i++) {
-    for (j = n; i + turn + 1 + 1 + turn < j; j--) {
-      for (u = i + turn + 1; u + 1 + turn < j; u++) {
-        if ((qm[my_iindx[i] - u] == 0.) ||
-            (qm[my_iindx[u + 1] - j] == 0.) ||
-            ((hc->f) && (!hc->f(i, j, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data))))
-          continue;
-
-        qbt1 = qm[my_iindx[i] - u] *
-               qm1[jindx[j] + u + 1];
-
-        if (sc_mb_wrapper.decomp_ml)
-          qbt1 *= sc_mb_wrapper.decomp_ml(i, j, u, u + 1, &sc_mb_wrapper);
-          
-        qm2_real[my_iindx[i] - j] += qbt1;
-      }
-    }
-  }
-#endif
-
-  /* 2nd, QM1 */
+  /* fill QM1 */
   for (j = 1; j < MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE); j++)
     qm1_new[j] = 0.;
 
@@ -654,234 +617,45 @@ postprocess_circular(vrna_fold_compound_t *fc)
     }
   }
 
-#ifdef USE_QM2_REAL
   /* use fM1_new and fM2 to construct segments with at least 3 branches */
   unsigned int space3 = 2 * MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE);
   qbt1 = 0.;
+
+  FLT_OR_DBL *qm1_tmp = qm1_new;
+
+  /* apply hard constraints if necessary */
+  if (hc->f) {
+    qm1_tmp = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+    qm1_tmp = memcpy(qm1_tmp, qm1_new, sizeof(FLT_OR_DBL) * (n + 2));
+
+    for (k = turn + 2; k <= n; k++)
+      if (!hc->f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
+        qm1_tmp[k] = 0.;
+  }
+
+  /* apply soft constraints if necessary */
+  if (sc_mb_wrapper.decomp_ml) {
+    if (qm1_tmp == qm1_new) {
+      qm1_tmp = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
+      qm1_tmp = memcpy(qm1_tmp, qm1_new, sizeof(FLT_OR_DBL) * (n + 2));
+    }
+
+    for (k = turn + 2; k <= n; k++)
+      qm1_tmp[k] *= sc_mb_wrapper.decomp_ml(1, n, k, k + 1, &sc_mb_wrapper);
+  }
+
+  /* actual decomposition */
   for (k = MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE);
        k + space3 <= n;
        k++) {
-    qbt1 += qm1_new[k] *
+    qbt1 += qm1_tmp[k] *
             qm2_real[my_iindx[k + 1] - n];
   }
 
   qbt1 *= pow(expMLclosing, n_seq);
 
-#else
-  /* construct qm2 matrix for exterior multibranch loop computation */
-  if (hc->f) {
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if ((sc) && (sc->exp_f)) {
-          for (k = 1; k < n - turn - 1; k++) {
-            qot = 0.;
-
-            for (u = k + turn + 1; u < n - turn - 1; u++)
-              if (hc->f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
-                qot += qm1[jindx[u] + k] *
-                       qm1[jindx[n] + (u + 1)] *
-                       sc->exp_f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-              }
-
-            qm2[k] = qot;
-          }
-        } else {
-          for (k = 1; k < n - turn - 1; k++) {
-            qot = 0.;
-
-            for (u = k + turn + 1; u < n - turn - 1; u++)
-              if (hc->f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
-                qot += qm1[jindx[u] + k] *
-                       qm1[jindx[n] + (u + 1)];
-
-            qm2[k] = qot;
-          }
-        }
-
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        if (scs) {
-          for (k = 1; k < n - turn - 1; k++) {
-            qbt1 = 0.;
-
-            for (u = k + turn + 1; u < n - turn - 1; u++) {
-              if (hc->f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
-                qot = qm1[jindx[u] + k] *
-                      qm1[jindx[n] + (u + 1)];
-
-                for (s = 0; s < n_seq; s++)
-                  if ((scs[s]) && scs[s]->exp_f)
-                    qot *= scs[s]->exp_f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
-
-                qbt1 += qot;
-              }
-            }
-
-            qm2[k] = qbt1;
-          }
-        } else {
-          for (k = 1; k < n - turn - 1; k++) {
-            qot = 0.;
-
-            for (u = k + turn + 1; u < n - turn - 1; u++)
-              if (hc->f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
-                qot += qm1[jindx[u] + k] *
-                       qm1[jindx[n] + (u + 1)];
-
-            qm2[k] = qot;
-          }
-        }
-
-        break;
-    }
-  } else {
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if ((sc) && (sc->exp_f)) {
-          for (k = 1; k < n - turn - 1; k++) {
-            qot = 0.;
-
-            for (u = k + turn + 1; u < n - turn - 1; u++)
-              qot += qm1[jindx[u] + k] *
-                     qm1[jindx[n] + (u + 1)] *
-                     sc->exp_f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-
-            qm2[k] = qot;
-          }
-        } else {
-          for (k = 1; k < n - turn - 1; k++) {
-            qot = 0.;
-
-            for (u = k + turn + 1; u < n - turn - 1; u++)
-              qot += qm1[jindx[u] + k] *
-                     qm1[jindx[n] + (u + 1)];
-
-            qm2[k] = qot;
-          }
-        }
-
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        if (scs) {
-          for (k = 1; k < n - turn - 1; k++) {
-            qbt1 = 0.;
-
-            for (u = k + turn + 1; u < n - turn - 1; u++) {
-              qot = qm1[jindx[u] + k] *
-                    qm1[jindx[n] + (u + 1)];
-
-              for (s = 0; s < n_seq; s++)
-                if ((scs[s]) && (scs[s]->exp_f))
-                  qot *= scs[s]->exp_f(k, n, u, u + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
-
-              qbt1 += qot;
-            }
-
-            qm2[k] = qbt1;
-          }
-        } else {
-          for (k = 1; k < n - turn - 1; k++) {
-            qot = 0.;
-
-            for (u = k + turn + 1; u < n - turn - 1; u++)
-              qot += qm1[jindx[u] + k] *
-                     qm1[jindx[n] + (u + 1)];
-
-            qm2[k] = qot;
-          }
-        }
-
-        break;
-    }
-  }
-
-  qbt1 = 0.;
-  /* go through exterior multibranch loop configurations */
-  if (hc->f) {
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if ((sc) && (sc->exp_f)) {
-          for (k = turn + 2; k < n - 2 * turn - 3; k++)
-            if (hc->f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
-              qbt1 += qm[my_iindx[1] - k] *
-                      qm2[k + 1] *
-                      sc->exp_f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-        } else {
-          for (k = turn + 2; k < n - 2 * turn - 3; k++)
-            if (hc->f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
-              qbt1 += qm[my_iindx[1] - k] *
-                      qm2[k + 1];
-        }
-
-        qbt1 *= expMLclosing;
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        if (scs) {
-          for (k = turn + 2; k < n - 2 * turn - 3; k++)
-            if (hc->f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data)) {
-              qot = qm[my_iindx[1] - k] *
-                    qm2[k + 1];
-
-              for (s = 0; s < n_seq; s++)
-                if ((scs[s]) && (scs[s]->exp_f))
-                  qot *= scs[s]->exp_f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
-
-              qbt1 += qot;
-            }
-        } else {
-          for (k = turn + 2; k < n - 2 * turn - 3; k++)
-            if (hc->f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc->data))
-              qbt1 += qm[my_iindx[1] - k] *
-                      qm2[k + 1];
-        }
-
-        qbt1 *= pow(expMLclosing, fc->n_seq);
-        break;
-    }
-  } else {
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        if ((sc) && (sc->exp_f)) {
-          for (k = turn + 2; k < n - 2 * turn - 3; k++)
-            qbt1 += qm[my_iindx[1] - k] *
-                    qm2[k + 1] *
-                    sc->exp_f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, sc->data);
-        } else {
-          for (k = turn + 2; k < n - 2 * turn - 3; k++)
-            qbt1 += qm[my_iindx[1] - k] *
-                    qm2[k + 1];
-        }
-
-        qbt1 *= expMLclosing;
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        if (scs) {
-          for (k = turn + 2; k < n - 2 * turn - 3; k++) {
-            qot = qm[my_iindx[1] - k] *
-                  qm2[k + 1];
-
-            for (s = 0; s < n_seq; s++)
-              if ((scs[s]) && (scs[s]->exp_f))
-                qot *= scs[s]->exp_f(1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, scs[s]->data);
-
-            qbt1 += qot;
-          }
-        } else {
-          for (k = turn + 2; k < n - 2 * turn - 3; k++)
-            qbt1 += qm[my_iindx[1] - k] *
-                    qm2[k + 1];
-        }
-
-        qbt1 *= pow(expMLclosing, fc->n_seq);
-        break;
-    }
-  }
-
-#endif
+  if (qm1_tmp != qm1_new)
+    free(qm1_tmp);
 
   vrna_log_debug("imb = %g", qbt1);
 
@@ -1391,10 +1165,6 @@ postprocess_circular(vrna_fold_compound_t *fc)
   qo += qho + qio + qmo;
   vrna_log_debug("qho = %g, qio = %g, qmo = %g, qo = %g", qho, qio, qmo, qo);
 
-#ifndef M2_FORWARD
-  matrices->qm2_real = qm2_real;
-#endif
-  matrices->qm1_new   = qm1_new;
   matrices->qo  = qo;
   matrices->qho = qho;
   matrices->qio = qio;

@@ -89,6 +89,7 @@ struct vrna_mx_mfe_s {
   int *fML;         /**<  @brief  Multi-loop auxiliary energy array */
   int *fM1;         /**<  @brief  Second ML array, only for unique multibrnach loop decomposition */
   int *fM2;         /**<  @brief  Energy for a multibranch loop region with exactly two stems, extending to 3' end */
+  int *fM1_new;     /**<  @brief  ML array with exactly one component within 5'end and i, ending at i (for circRNA) */
   int *fM2_real;    /**<  @brief  Energy for a multibranch loop region with at least two stems */
   vrna_smx_csr(int) *c_gq; /**<  @brief  Energies of g-quadruplexes */
   int Fc;           /**<  @brief  Minimum Free Energy of entire circular RNA */

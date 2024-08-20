@@ -689,7 +689,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
    */
   if ((qb) &&
       (probs) &&
-      (circular ? matrices->qm2 != NULL : (q1k != NULL && qln != NULL))) {
+      (circular ? matrices->qm2_real != NULL : (q1k != NULL && qln != NULL))) {
     with_gquad = pf_params->model_details.gquad;
 
     double      kTn = pf_params->kT / 10.;               /* kT in cal/mol  */
@@ -3836,7 +3836,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
   unsigned int              s, n_seq, type, type2, rt, *tt, **a2s, turn, u1, u2, u3, us1, us2, us3,
                             imin, imax, jmin, jmax, kmin, kmax, lmin, lmax;
   int                       n, i, j, k, l, ij, *rtype, *my_iindx, *jindx;
-  FLT_OR_DBL                tmp, tmp2, tmp3, expMLclosing, *qb, *qm, *qm1, *probs, *scale, *expMLbase, qo,
+  FLT_OR_DBL                tmp, tmp2, tmp3, expMLclosing, *qb, *qm, *probs, *scale, *expMLbase, qo,
                             *qm2_real, q_g, qbt1;
   double                    *expintern;
   vrna_hc_t                 *hc;
@@ -3873,7 +3873,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
   matrices          = fc->exp_matrices;
   qb                = matrices->qb;
   qm                = matrices->qm;
-  qm1               = matrices->qm1;
   qm2_real          = matrices->qm2_real;
   probs             = matrices->probs;
   scale             = matrices->scale;
@@ -4126,8 +4125,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
           /* 1.3.2 right-most part  */
           if (hc->up_ml[j + 1] >= (n - j)) {
-            if ((qm2_real) &&
-                (i > 1)) {
+            if (i > 1) {
               if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
                   (hc_eval_mb(1, j, i - 1, i, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
                 tmp = qm2_real[my_iindx[1] - i + 1] *
@@ -4159,47 +4157,12 @@ bppm_circ(vrna_fold_compound_t  *fc,
                         sc_contrib;
 
               }
-            } else {
-              for (k = 2; k < i - 2; k++) {
-                if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                    (hc_eval_mb(1, i - 1, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
-                  tmp = qm[my_iindx[1] - k] *
-                        qm1[jindx[i - 1] + k + 1] *
-                        expMLbase[n - j];
-
-                  if (fc->type == VRNA_FC_TYPE_SINGLE) {
-                    tmp *= exp_E_MLstem(type,
-                                        S1[i - 1],
-                                        S1[j + 1],
-                                        pf_params) *
-                           expMLclosing;
-                  } else {
-                    for (s = 0; s < n_seq; s++)
-                      tmp *= exp_E_MLstem(rtype[tt[s]],
-                                          S5[s][i],
-                                          S3[s][j],
-                                          pf_params);
-
-                    tmp *= pow(expMLclosing, n_seq);
-                  }
-
-                  if (sc_mb_wrapper.red_ml)
-                    tmp *= sc_mb_wrapper.red_ml(i, n, i, j, &sc_mb_wrapper);
-
-                  if (sc_mb_wrapper.decomp_ml)
-                    tmp *= sc_mb_wrapper.decomp_ml(1, i - 1, k, k + 1, &sc_mb_wrapper);
-
-                  tmp2 += tmp *
-                          sc_contrib;
-                }
-              }
             }
           }
 
           /* 1.3.3 left-most part */
           if (hc->up_ml[1] >= (i - 1)) {
-            if ((qm2_real) &&
-                (j + 1 < n)) {
+            if (j + 1 < n) {
               if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
                   (hc_eval_mb(i, n, j, j + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
                 tmp = qm2_real[my_iindx[j + 1] - n] *
@@ -4229,40 +4192,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
                 tmp2 += tmp *
                         sc_contrib;
-              }
-            } else {
-              for (k = j + 2; k < n - 1; k++) {
-                if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                    (hc_eval_mb(j + 1, n, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
-                  tmp = qm[my_iindx[j + 1] - k] *
-                        qm1[jindx[n] + k + 1] *
-                        expMLbase[i - 1];
-
-                  if (fc->type == VRNA_FC_TYPE_SINGLE) {
-                    tmp *= exp_E_MLstem(type,
-                                        S1[i - 1],
-                                        S1[j + 1],
-                                        pf_params) *
-                           expMLclosing;
-                  } else {
-                    for (s = 0; s < n_seq; s++)
-                      tmp *= exp_E_MLstem(rtype[tt[s]],
-                                          S5[s][i],
-                                          S3[s][j],
-                                          pf_params);
-
-                    tmp *= pow(expMLclosing, n_seq);
-                  }
-
-                  if (sc_mb_wrapper.red_ml)
-                    tmp *= sc_mb_wrapper.red_ml(1, j, i, j, &sc_mb_wrapper);
-
-                  if (sc_mb_wrapper.decomp_ml)
-                    tmp *= sc_mb_wrapper.decomp_ml(j + 1, n, k, k + 1, &sc_mb_wrapper);
-
-                  tmp2 += tmp *
-                          sc_contrib;
-                }
               }
             }
           }
