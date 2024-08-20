@@ -70,10 +70,9 @@ AS_IF([test "x$VRNA_CFLAGS" != "x" && test "x$VRNA_LIBS" != "x"],
 AM_CONDITIONAL([WITH_LIBRNA_API3], [test "x${HAVE_LIBRNA_API3}" = "x1"])
 AM_CONDITIONAL([WITH_LIBRNA_API2], [test "x${HAVE_LIBRNA_API2}" = "x1"])
 
-dnl Checks for header files.
-AC_INCLUDES_DEFAULT
 AC_PROG_EGREP
 
+dnl Checks for header files.
 AC_CHECK_HEADERS(stdlib.h string.h strings.h unistd.h)
 
 dnl Checks for libraries.
