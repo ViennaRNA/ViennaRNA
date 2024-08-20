@@ -516,21 +516,22 @@ postprocess_circular(vrna_fold_compound_t *fc,
    * fM_d5 = multiloop region with >= 2 stems, extending to pos n-1
    *         (a pair (1,k) will form a 5' dangle with pos n)
    */
-  unsigned char *hard_constraints, eval;
-  char          *ptype;
-  short         *S, *S1, **SS, **S5, **S3;
-  unsigned int  **a2s, u1, u2, us, us1, us2, s1, s2, p, q,
-                Egi, Egj, Hgi, Hgj, Igi, Igj, Igp, Igq, Igg, Mgi, Mgj;
-  int           Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, *fM_d3, *fM_d5, Md3i,
-                Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, i, j, ij, u,
-                length, new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp,
-                dangle_model, turn, s, n_seq, with_gquad, FgH, FgI,
-                FgM, e, *fM2_real, *fM1_new;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_hc_t     *hc;
-  vrna_sc_t     *sc, **scs;
+  unsigned char     *hard_constraints, eval;
+  char              *ptype;
+  short             *S, *S1, **SS, **S5, **S3;
+  unsigned int      **a2s, u1, u2, us, us1, us2, s1, s2, p, q,
+                    Hgi, Hgj, Igi, Igj, Igp, Igq, Igg, Mgi, Mgj;
+  int               Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, *fM_d3, *fM_d5, Md3i,
+                    Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, i, j, ij, u,
+                    length, new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp,
+                    dangle_model, turn, s, n_seq, with_gquad, FgH, FgI,
+                    FgM, e, *fM2_real, *fM1_new;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
+  vrna_hc_t         *hc;
+  vrna_sc_t         *sc, **scs;
   vrna_smx_csr(int) *c_gq;
+  struct sc_mb_dat  sc_mb_wrapper;
 
   length            = fc->length;
   n_seq             = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -557,11 +558,6 @@ postprocess_circular(vrna_fold_compound_t *fc,
   fM2_real          = fc->matrices->fM2_real;
   c_gq              = fc->matrices->c_gq;
 
-  struct hc_mb_def_dat      hc_mb_dat_local;
-  struct sc_mb_dat          sc_mb_wrapper;
-  vrna_hc_eval_f            evaluate_mb;
-
-  evaluate_mb = prepare_hc_mb_def(fc, &hc_mb_dat_local);
   init_sc_mb(fc, &sc_mb_wrapper);
 
   Fc  = FcO = FcH = FcI = FcM = FcMd3 = FcMd5 = INF;
@@ -569,7 +565,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
   /* explicit gquadruplex cases */
   FgH = FgI = FgM = INF;
-  Egi = Egj = Hgi = Hgj = Igi = Igj = Igp = Igq = Igg = Mgi = Mgj = 0;
+  Hgi = Hgj = Igi = Igj = Igp = Igq = Igg = Mgi = Mgj = 0;
 
   /* unfolded state */
   eval = (hc->up_ext[1] >= length) ? 1 : 0;
@@ -625,16 +621,20 @@ postprocess_circular(vrna_fold_compound_t *fc,
         eval = 0;
 
       if (eval) {
+        e = my_c[indx[j] + u] +
+            (n_seq) * (u - 1) * P->MLbase;
+
         switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            type  = vrna_get_ptype_md(S[u], S[j], md);
-            e   = my_c[indx[j] + u] +
-                  E_MLstem(type, S1[u - 1], S1[j + 1], P) +
-                  (u - 1) * P->MLbase;
+          case VRNA_FC_TYPE_COMPARATIVE:
+            for (s = 0; s < n_seq; s++) {
+              type  =   vrna_get_ptype_md(SS[s][u], SS[s][j], md);
+              e     +=  E_MLstem(type, S5[s][u], S3[s][j], P);
+            }
             break;
 
-          case VRNA_FC_TYPE_COMPARATIVE:
-            e   = 0;
+          default:
+            type  =   vrna_get_ptype_md(S[u], S[j], md);
+            e     +=  E_MLstem(type, S1[u - 1], S1[j + 1], P);
             break;
         }
 
@@ -673,8 +673,6 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
   if (with_gquad) {
     /* consider all configurations where a G-quadruplex spans over the artificial cutpoint */
-    unsigned int n2 = MIN2(length, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
-    unsigned int n3 = length + n2;
     unsigned int start = 1;
     if (length > VRNA_GQUAD_MAX_BOX_SIZE)
       start = length - VRNA_GQUAD_MAX_BOX_SIZE;
@@ -1929,9 +1927,6 @@ postprocess_circular(vrna_fold_compound_t *fc,
         .j = Iq,
         .ml = VRNA_MX_FLAG_C}));
     } else if (FcM == Fc) {
-      /* grumpf we found a Multiloop */
-      int eee;
-
       /* 1. find component in fM1_new */
       for (u = 1; u + MIN2(turn + 1, VRNA_GQUAD_MIN_BOX_SIZE - 1) <= Mi; u++) {
         if (hc->up_ml[1] < u - 1)
@@ -1941,16 +1936,20 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
         if ((eval) &&
             (hc->mx[length * Mi + u] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP)){
+          e = my_c[indx[Mi] + u] +
+              (n_seq) * (u - 1) * P->MLbase;
+
           switch (fc->type) {
-            case VRNA_FC_TYPE_SINGLE:
-              type  = vrna_get_ptype_md(S[u], S[Mi], md);
-              e   = my_c[indx[Mi] + u] +
-                    E_MLstem(type, S1[u - 1], S1[Mi + 1], P) +
-                    (u - 1) * P->MLbase;
+            case VRNA_FC_TYPE_COMPARATIVE:
+              for (s = 0; s < n_seq; s++) {
+                type  =   vrna_get_ptype_md(SS[s][u], SS[s][Mi], md);
+                e     +=  E_MLstem(type, S5[s][u], S3[s][Mi], P);
+              }
               break;
 
-            case VRNA_FC_TYPE_COMPARATIVE:
-              e   = 0;
+            default:
+              type  =   vrna_get_ptype_md(S[u], S[Mi], md);
+              e     +=  E_MLstem(type, S1[u - 1], S1[Mi + 1], P);
               break;
           }
 
