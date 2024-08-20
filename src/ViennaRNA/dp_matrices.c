@@ -1634,7 +1634,7 @@ init_mx_pf_default(vrna_fold_compound_t *fc,
     if (alloc_vector & ALLOC_FML)
       mx->qm = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
-    if ((alloc_vector & ALLOC_UNIQ) || fc->exp_params->model_details.circ)
+    if (alloc_vector & ALLOC_UNIQ)
       mx->qm1 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
     if (alloc_vector & ALLOC_CIRC) {
