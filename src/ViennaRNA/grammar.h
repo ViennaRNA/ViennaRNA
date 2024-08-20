@@ -483,6 +483,85 @@ vrna_gr_add_aux_exp_m1(vrna_fold_compound_t   *fc,
 
 
 /**
+ *  @brief  Add an auxiliary grammar rule for the M2-decomposition (MFE version)
+ *
+ *  This function binds callback functions for auxiliary grammar rules (inside and outside)
+ *  in the M2-decomposition, i.e. the multibranch loop components with at least two branches.
+ *
+ *  While the inside rule (@p cb) computes a minimum free energy contribution for any
+ *  subsequence the outside rule (@p cb_bt) is used for backtracking the corresponding
+ *  structure.
+ *
+ *  Both callbacks will be provided with the @p data pointer that can be used to
+ *  store whatever data is needed in the callback evaluations. The @p data_prepare
+ *  callback may be used to prepare the @p data just before the start of the recursions. If
+ *  present, it will be called prior the actual decompositions automatically. You may use
+ *  the @p data_release callback to properly free the memory of @p data once it is not required
+ *  anymore. Hence, it serves as a kind of destructor for @p data which will be called as
+ *  soon as the grammar rules of @p fc are re-set to defaults or if the @p fc is destroyed.
+ *
+ *  @see  vrna_gr_add_aux_f(), vrna_gr_add_aux_c(), vrna_gr_add_aux_m(), vrna_gr_add_aux(),
+ *        vrna_gr_add_aux_exp_m1(), #vrna_gr_inside_f, #vrna_gr_outside_f, #vrna_fold_compound_t,
+ *        #vrna_auxdata_prepare_f, #vrna_auxdata_free_f
+ *
+ *  @param  fc            The fold compound that is to be extended by auxiliary grammar rules
+ *  @param  cb            The auxiliary grammar callback for the inside step
+ *  @param  cb_bt         The auxiliary grammar callback for the outside (backtracking) step
+ *  @param  data          A pointer to some data that will be passed through to the inside and outside callbacks
+ *  @param  data_prepare  A callback to prepare @p data
+ *  @param  data_release  A callback to free-up memory occupied by @p data
+ *  @return               The current number of auxiliary grammar rules for the MFE M2-decomposition stage, or 0 on error.
+ */
+unsigned int
+vrna_gr_add_aux_m2(vrna_fold_compound_t   *fc,
+                   vrna_gr_inside_f       cb,
+                   vrna_gr_outside_f      cb_bt,
+                   void                   *data,
+                   vrna_auxdata_prepare_f data_prepare,
+                   vrna_auxdata_free_f    data_release);
+
+
+/**
+ *  @brief  Add an auxiliary grammar rule for the M2-decomposition (partition function version)
+ *
+ *  This function binds callback functions for auxiliary grammar rules (inside and outside)
+ *  in the M2-decomposition, i.e. the multibranch loop components with at least two branches.
+ *
+ *  While the inside rule (@p cb) computes the partition function for any subsequence, the
+ *  outside rule (@p cb_out) is used for (base pairing) probabilities.
+ *
+ *  Both callbacks will be provided with the @p data pointer that can be used to
+ *  store whatever data is needed in the callback evaluations. The @p data_prepare
+ *  callback may be used to prepare the @p data just before the start of the recursions. If
+ *  present, it will be called prior the actual decompositions automatically. You may use
+ *  the @p data_release callback to properly free the memory of @p data once it is not required
+ *  anymore. Hence, it serves as a kind of destructor for @p data which will be called as
+ *  soon as the grammar rules of @p fc are re-set to defaults or if the @p fc is destroyed.
+ *
+ *  @bug  Calling the @p cb_out callback is not implemented yet!
+ *
+ *  @see  vrna_gr_add_aux_exp_f(), vrna_gr_add_aux_exp_c(), vrna_gr_add_aux_exp_m(), vrna_gr_add_aux_exp(),
+ *        vrna_gr_add_aux_m1(), #vrna_gr_inside_exp_f, #vrna_gr_outside_exp_f, #vrna_fold_compound_t,
+ *        #vrna_auxdata_prepare_f, #vrna_auxdata_free_f
+ *
+ *  @param  fc            The fold compound that is to be extended by auxiliary grammar rules
+ *  @param  cb            The auxiliary grammar callback for the inside step
+ *  @param  cb_out        The auxiliary grammar callback for the outside (probability) step
+ *  @param  data          A pointer to some data that will be passed through to the inside and outside callbacks
+ *  @param  data_prepare  A callback to prepare @p data
+ *  @param  data_release  A callback to free-up memory occupied by @p data
+ *  @return               The current number of auxiliary grammar rules for the partition function M2-decomposition stage, or 0 on error.
+ */
+unsigned int
+vrna_gr_add_aux_exp_m2(vrna_fold_compound_t   *fc,
+                       vrna_gr_inside_exp_f   cb,
+                       vrna_gr_outside_exp_f  cb_out,
+                       void                   *data,
+                       vrna_auxdata_prepare_f data_prepare,
+                       vrna_auxdata_free_f    data_release);
+
+
+/**
  *  @brief  Add an auxiliary grammar rule (MFE version)
  *
  *  This function binds callback functions for auxiliary grammar rules (inside and outside)

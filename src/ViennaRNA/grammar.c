@@ -56,10 +56,18 @@ vrna_gr_prepare(vrna_fold_compound_t  *fc,
                                              NULL);
 
     /* prepare m1 data */
-    for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->f); i++)
+    for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->m1); i++)
       if (fc->aux_grammar->m1[i].prepare)
         ret &= fc->aux_grammar->m1[i].prepare(fc,
                                               fc->aux_grammar->m1[i].data,
+                                              options,
+                                              NULL);
+
+    /* prepare m2 data */
+    for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->m2); i++)
+      if (fc->aux_grammar->m2[i].prepare)
+        ret &= fc->aux_grammar->m2[i].prepare(fc,
+                                              fc->aux_grammar->m2[i].data,
                                               options,
                                               NULL);
 
@@ -356,6 +364,64 @@ vrna_gr_add_aux_exp_m1(vrna_fold_compound_t   *fc,
 
 
 PUBLIC unsigned int
+vrna_gr_add_aux_m2(vrna_fold_compound_t   *fc,
+                   vrna_gr_inside_f       cb,
+                   vrna_gr_outside_f      cb_bt,
+                   void                   *data,
+                   vrna_auxdata_prepare_f data_prepare,
+                   vrna_auxdata_free_f    data_release)
+{
+  unsigned int ret = 0;
+
+  if ((fc) &&
+      (cb || cb_bt)) {
+    if (!fc->aux_grammar)
+      init_aux_grammar(fc);
+
+    add_rule(fc->aux_grammar->m2,
+             cb,
+             cb_bt,
+             data,
+             data_prepare,
+             data_release);
+
+    ret = vrna_array_size(fc->aux_grammar->m2);
+  }
+
+  return ret;
+}
+
+
+PUBLIC unsigned int
+vrna_gr_add_aux_exp_m2(vrna_fold_compound_t   *fc,
+                       vrna_gr_inside_exp_f   cb,
+                       vrna_gr_outside_exp_f  cb_out,
+                       void                   *data,
+                       vrna_auxdata_prepare_f data_prepare,
+                       vrna_auxdata_free_f    data_release)
+{
+  unsigned int ret = 0;
+
+  if ((fc) &&
+      (cb || cb_out)) {
+    if (!fc->aux_grammar)
+      init_aux_grammar(fc);
+
+    add_rule_exp(fc->aux_grammar->exp_m2,
+                 cb,
+                 cb_out,
+                 data,
+                 data_prepare,
+                 data_release);
+
+    ret = vrna_array_size(fc->aux_grammar->exp_m2);
+  }
+
+  return ret;
+}
+
+
+PUBLIC unsigned int
 vrna_gr_add_aux(vrna_fold_compound_t    *fc,
                 vrna_gr_inside_f        cb,
                 vrna_gr_outside_f       cb_bt,
@@ -497,6 +563,12 @@ vrna_gr_reset(vrna_fold_compound_t *fc)
 
     vrna_array_free(fc->aux_grammar->m1);
 
+    for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->m2); i++)
+      if (fc->aux_grammar->m2[i].release)
+        fc->aux_grammar->m2[i].release(fc->aux_grammar->m2[i].data);
+
+    vrna_array_free(fc->aux_grammar->m2);
+
     for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->aux); i++)
       if (fc->aux_grammar->aux[i].release)
         fc->aux_grammar->aux[i].release(fc->aux_grammar->aux[i].data);
@@ -527,6 +599,12 @@ vrna_gr_reset(vrna_fold_compound_t *fc)
         fc->aux_grammar->exp_m1[i].release(fc->aux_grammar->exp_m1[i].data);
 
     vrna_array_free(fc->aux_grammar->exp_m1);
+
+    for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->exp_m2); i++)
+      if (fc->aux_grammar->exp_m2[i].release)
+        fc->aux_grammar->exp_m2[i].release(fc->aux_grammar->exp_m2[i].data);
+
+    vrna_array_free(fc->aux_grammar->exp_m2);
 
     for (size_t i = 0; i < vrna_array_size(fc->aux_grammar->exp_aux); i++)
       if (fc->aux_grammar->exp_aux[i].release)
@@ -560,16 +638,18 @@ init_aux_grammar(vrna_fold_compound_t *fc)
   fc->aux_grammar = (struct vrna_gr_aux_s *)vrna_alloc(sizeof(struct vrna_gr_aux_s));
 
   if (fc->aux_grammar) {
-    vrna_array_init(fc->aux_grammar->aux);
     vrna_array_init(fc->aux_grammar->f);
     vrna_array_init(fc->aux_grammar->c);
     vrna_array_init(fc->aux_grammar->m);
     vrna_array_init(fc->aux_grammar->m1);
+    vrna_array_init(fc->aux_grammar->m2);
+    vrna_array_init(fc->aux_grammar->aux);
 
     vrna_array_init(fc->aux_grammar->exp_f);
     vrna_array_init(fc->aux_grammar->exp_c);
     vrna_array_init(fc->aux_grammar->exp_m);
     vrna_array_init(fc->aux_grammar->exp_m1);
+    vrna_array_init(fc->aux_grammar->exp_m2);
     vrna_array_init(fc->aux_grammar->exp_aux);
 
     vrna_array_init(fc->aux_grammar->cbs_status);
