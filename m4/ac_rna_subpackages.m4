@@ -99,7 +99,6 @@ AC_DEFUN([RNA_ENABLE_PKG_RNAXPLORER],[
   RNA_PACKAGE_IF_ENABLED([rnaxplorer],[
     rnaxplorer_requirements="no"
     rnaxplorer_failed=""
-    AC_PROG_F77
 
     if test "x$F77" != "x";
     then
