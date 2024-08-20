@@ -48,8 +48,6 @@
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 
-//#define DEBUG
-
 #define M2_FORWARD
 
 struct aux_arrays {
@@ -724,16 +722,14 @@ postprocess_circular(vrna_fold_compound_t *fc,
         stop_j = VRNA_GQUAD_MAX_BOX_SIZE + i - length - 1;
       if (stop_j >= i)
         stop_j = i - 1;
-#ifdef DEBUG
+
       vrna_log_debug("i=%d, start=%d, stop=%d, length=%d", i, start_j, stop_j, length);
-#endif
 
       for (j = start_j; j <= stop_j; j++) {
         new_c = vrna_smx_csr_get(c_gq, i, j, INF);
 
-#ifdef DEBUG
         vrna_log_debug("i=%d, j=%d, length=%d", i, j, length);
-#endif
+
         if (new_c != INF) {
           vrna_log_debug("g=%d", new_c);
 
@@ -978,10 +974,8 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
           /* case 3, gquad forms a multi-branch loop like structure with other base pairs or gquadruplexes */
           if (fM2_real[indx[i - 1] + j + 1] != INF) {
-#ifdef DEBUG
             vrna_log_debug("ml-case: ggg[%d-%d] + fm2[%d,%d] = %d + %d + %d", i, j, j + 1, i - 1, new_c, fM2_real[indx[i - 1] + j + 1], n_seq *
               (P->MLclosing + E_MLstem(0, -1, -1, P)));
-#endif
             e = new_c +
                 fM2_real[indx[i - 1] + j + 1] +
                 n_seq *
@@ -1105,9 +1099,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                   eval = (hc->up_int[q] >= u3) ? 1 : 0;
                   eval = (hc->mx[length * p + q] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? eval : 0;
                   if (eval) {
-#ifdef DEBUG
                     vrna_log_debug("[%d,%d] + (%d,%d)", i, j, p, q);
-#endif
                     int pq = indx[q] + p;
                     int energy = my_c[pq];
                     if (energy != INF) {
