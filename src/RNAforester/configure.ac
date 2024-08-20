@@ -53,10 +53,10 @@ CPPFLAGS=["-Ig2-0.72/src/ ${CPPFLAGS}"]
 
 dnl AC_CHECK_LIB(gd,main,,)
 		  
-dnl Checks for header files.
-AC_INCLUDES_DEFAULT
+
 AC_PROG_EGREP
 
+dnl Checks for header files.
 AC_CHECK_HEADER(g2.h,AC_DEFINE(HAVE_LIBG2,1,Define to 1 if you have the `g2' library (-lg2).),AC_MSG_WARN(Compiling without support for graphical output. Install the g2 library that comes with the RNAforester distribution or download the latest version at http://g2.sourceforge.net/))
 dnl AC_CHECK_HEADER(g2_PS.h,,AC_MSG_WARN(Compiling without support for graphical output. Install the g2 library that comes with the RNAforester distribution or download the latest version at http://g2.sourceforge.net/))
 
