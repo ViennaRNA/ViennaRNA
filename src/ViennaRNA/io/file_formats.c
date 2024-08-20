@@ -34,7 +34,6 @@
 # define INLINE
 #endif
 
-#define DEBUG
 /*
  #################################
  # PRIVATE VARIABLES             #
