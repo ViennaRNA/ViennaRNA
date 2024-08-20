@@ -154,11 +154,14 @@ typedef void (*vrna_log_cb_f)(vrna_log_event_t  *event,
  *  @see  #vrna_log_info, #vrna_log_warning, #vrna_log_error, #vrna_log_critical,
  *        vrna_log(), vrna_log_level_set(), vrna_log_options_set(), vrna_log_fp_set()
  */
-#define vrna_log_debug(...) \
+#ifndef VRNA_LOG_NO_DEBUG_RNALIB
+# define vrna_log_debug(...) \
         do { \
           vrna_log(VRNA_LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__); \
         } while (0)
-
+#else
+# define vrna_log_debug(...)
+#endif
 /**
  *  @brief  Issue an info log message
  *

@@ -641,3 +641,21 @@ AC_DEFUN([RNA_ENABLE_CIRC_PENALTY],[
 ])
 
 
+#
+# Add entropic penalty for unpaired circular RNA
+#
+
+AC_DEFUN([RNA_ENABLE_DEBUG_RNALIB],[
+
+  RNA_ADD_FEATURE([debug],
+                  [Enable debug messages within RNAlib code],
+                  [no])
+
+  RNA_FEATURE_IF_DISABLED([debug],[
+
+    AC_DEFINE([VRNA_LOG_NO_DEBUG_RNALIB], [1], [Do not log debug messages within RNAlib code])
+    AX_APPEND_FLAG([-DVRNA_LOG_NO_DEBUG_RNALIB], [RNA_CPPFLAGS])
+  ])
+])
+
+
