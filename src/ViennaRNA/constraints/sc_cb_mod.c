@@ -24,8 +24,6 @@
 # endif
 #endif
 
-//#define DEBUG
-
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -813,8 +811,8 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
               e = (*dG)[i][sj][si];
 
             diffs->stack_diff[i][sj][si] = e - P->stack[pair_MP][tt];
-#ifdef DEBUG
-            printf("d_stack(%c%c, %c%c) = %d = %d - %d\n",
+
+            vrna_log_debug("d_stack(%c%c, %c%c) = %d = %d - %d",
                    nt[5],
                    nt[enc_pp],
                    nt[sj],
@@ -822,7 +820,6 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
                    diffs->stack_diff[i][sj][si],
                    e,
                    P->stack[pair_MP][tt]);
-#endif
           }
 
           if ((*dG)[i + 1][sj][si] != INF) {
@@ -832,8 +829,8 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
               e = (*dG)[i + 1][sj][si];
 
             diffs->stack_diff[i + 1][sj][si] = e - P->stack[pair_PM][tt];
-#ifdef DEBUG
-            printf("d_stack(%c%c, %c%c) = %d = %d - %d\n",
+
+            vrna_log_debug("d_stack(%c%c, %c%c) = %d = %d - %d",
                    nt[enc_pp],
                    nt[5],
                    nt[sj],
@@ -841,7 +838,6 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
                    diffs->stack_diff[i + 1][sj][si],
                    e,
                    P->stack[pair_PM][tt]);
-#endif
           }
         }
       }
@@ -859,13 +855,12 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
 
-#ifdef DEBUG
   char          bp[3] = {
     0
   }, *bpairs[8] = {
     "NN", "CG", "GC", "GU", "UG", "AU", "UA", "XX"
   };
-#endif
+
   unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_enc;
   int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
   (*dH)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET];
@@ -890,26 +885,23 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
       if (i <= NBPAIRS) {
         /* 'regular' enclosing pairs */
         pair_enc = i;
-#ifdef DEBUG
+
         bp[0] = bpairs[i][0];
         bp[1] = bpairs[i][1];
-#endif
       } else {
         /* an enclosing pair with a modification */
         enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
         /* pair type of unmodified version as encoded in RNAlib */
         if ((i - NBPAIRS - 1) % 2) {
           pair_enc = md->pair[enc_unmod][enc_pp];
-#ifdef DEBUG
+
           bp[1] = nt[5];
           bp[0] = nt[enc_pp];
-#endif
         } else {
           pair_enc = md->pair[enc_pp][enc_unmod];
-#ifdef DEBUG
+
           bp[0] = nt[5];
           bp[1] = nt[enc_pp];
-#endif
         }
         if (pair_enc == 0)
           pair_enc = 7;
@@ -941,8 +933,8 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
              * unpaired bases must be rotatated
              */
             diffs->mismatch_diff[i][si][sj] = e - P->mismatchM[pair_enc][sju][siu];
-#ifdef DEBUG
-            printf("d_mm(%c%c, %c, %c) = %d = %d - %d\n",
+
+            vrna_log_debug("d_mm(%c%c, %c, %c) = %d = %d - %d",
                    bp[0],
                    bp[1],
                    nt[si],
@@ -950,7 +942,6 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
                    diffs->mismatch_diff[i][si][sj],
                    e,
                    P->mismatchM[pair_enc][sju][siu]);
-#endif
           }
         }
       }
@@ -968,13 +959,11 @@ init_dangles(struct vrna_sc_mod_param_s *params,
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
 
-#ifdef DEBUG
   char          bp[3] = {
     0
   }, *bpairs[7] = {
     "NN", "CG", "GC", "GU", "UG", "AU", "UA"
   };
-#endif
   unsigned int  i, si, enc_unmod, enc_pp, siu, pair_enc;
   int           e, (*dG5)[MAX_PAIRS][MAX_ALPHABET], (*dH5)[MAX_PAIRS][MAX_ALPHABET],
   (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
@@ -996,26 +985,23 @@ init_dangles(struct vrna_sc_mod_param_s *params,
       if (i <= NBPAIRS) {
         /* 'regular' enclosing pairs */
         pair_enc = i;
-#ifdef DEBUG
+
         bp[0] = bpairs[i][0];
         bp[1] = bpairs[i][1];
-#endif
       } else {
         /* an enclosing pair with a modification */
         enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
         /* pair type of unmodified version as encoded in RNAlib */
         if ((i - NBPAIRS - 1) % 2) {
           pair_enc = md->pair[enc_unmod][enc_pp];
-#ifdef DEBUG
+
           bp[1] = nt[5];
           bp[0] = nt[enc_pp];
-#endif
         } else {
           pair_enc = md->pair[enc_pp][enc_unmod];
-#ifdef DEBUG
+
           bp[0] = nt[5];
           bp[1] = nt[enc_pp];
-#endif
         }
         if (pair_enc == 0)
           pair_enc = 7;
@@ -1039,15 +1025,14 @@ init_dangles(struct vrna_sc_mod_param_s *params,
            * enclosed. Thus, the pair must be rotatated
            */
           diffs->dangle5_diff[i][si] = e - P->dangle5[pair_enc][siu];
-#ifdef DEBUG
-          printf("d_d5(%c%c, %c) = %d = %d - %d\n",
+
+          vrna_log_debug("d_d5(%c%c, %c) = %d = %d - %d",
                  bp[0],
                  bp[1],
                  nt[si],
                  diffs->dangle5_diff[i][si],
                  e,
                  P->dangle5[pair_enc][siu]);
-#endif
         }
 
         if ((*dG3)[i][si] != INF) {
@@ -1062,15 +1047,14 @@ init_dangles(struct vrna_sc_mod_param_s *params,
            * enclosed. Thus, the pair must be rotatated
            */
           diffs->dangle3_diff[i][si] = e - P->dangle3[pair_enc][siu];
-#ifdef DEBUG
-          printf("d_d3(%c%c, %c) = %d = %d - %d\n",
+
+          vrna_log_debug("d_d3(%c%c, %c) = %d = %d - %d",
                  bp[0],
                  bp[1],
                  nt[si],
                  diffs->dangle3_diff[i][si],
                  e,
                  P->dangle3[pair_enc][siu]);
-#endif
         }
       }
     }
@@ -1111,14 +1095,13 @@ init_terminal(struct vrna_sc_mod_param_s  *params,
           e = (*dG)[i];
 
         diffs->terminal_diff[i] = e - Terminal_unmod;
-#ifdef DEBUG
-        printf("d_term(%c%c) = %d = %d - %d\n",
+
+        vrna_log_debug("d_term(%c%c) = %d = %d - %d",
                nt[5],
                nt[enc_pp],
                diffs->terminal_diff[i],
                e,
                Terminal_unmod);
-#endif
       }
 
       if ((*dG)[i + 1] != INF) {
@@ -1128,14 +1111,13 @@ init_terminal(struct vrna_sc_mod_param_s  *params,
           e = (*dG)[i + 1];
 
         diffs->terminal_diff[i + 1] = e - Terminal_unmod;
-#ifdef DEBUG
-        printf("d_term(%c%c) = %d = %d - %d\n",
+
+        vrna_log_debug("d_term(%c%c) = %d = %d - %d",
                nt[enc_pp],
                nt[5],
                diffs->terminal_diff[i + 1],
                e,
                Terminal_unmod);
-#endif
       }
     }
   }
