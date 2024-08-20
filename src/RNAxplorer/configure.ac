@@ -151,7 +151,6 @@ dnl Checks for libraries.
 AC_CHECK_LIB([m], [exp])
 
 dnl Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS([malloc.h float.h limits.h stdlib.h string.h strings.h unistd.h unistd.h math.h])
 dnl ----------------------------------------
 dnl for Vienna RNA
