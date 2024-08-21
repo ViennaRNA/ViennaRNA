@@ -239,6 +239,7 @@ m4_map_args([ AC_RNA_COLOR_RESULT_FEATURE],
             [tty_colors],
             [floatpf],
             [warn_deprecated],
+            [debug],
             [vectorize],
             [simd],
             [lto],
@@ -308,6 +309,7 @@ Features
   * TTY colors                : ${result_tty_colors}
   * Float Precision(PF}       : ${result_floatpf}
   * Deprecation Warnings      : ${result_warn_deprecated}
+  * Debug Log Messages        : ${result_debug}
 
 Optimizations
 -------------
