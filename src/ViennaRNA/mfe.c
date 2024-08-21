@@ -573,10 +573,18 @@ postprocess_circular(vrna_fold_compound_t *fc,
     eval = (hc->f(1, length, 1, length, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
 
   if (eval) {
+    Fc = 0;
 #ifdef VRNA_WITH_CIRC_PENALTY
-    Fc = vrna_ext_circ_en(length, md) * (int)n_seq;
-#else
-    Fc = 0; /* base line for unfolded state */
+    switch (fc->type) {
+      case VRNA_FC_TYPE_COMPARATIVE:
+        for (s = 0; s < n_seq; s++)
+          Fc += vrna_ext_circ_en(a2s[s][length], md);
+        break;
+
+      default:
+        Fc += vrna_ext_circ_en(length, md);
+        break;
+    }
 #endif
 
     switch (fc->type) {
@@ -1163,7 +1171,6 @@ postprocess_circular(vrna_fold_compound_t *fc,
           }
         }
 
-#if 1
         /* (basepair) + [gquad] */
         for (j = i + turn + 1; j + VRNA_GQUAD_MIN_BOX_SIZE <= length; j++) {
           eval  = (hc->mx[length * i + j] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? 1 : 0;
@@ -1244,7 +1251,6 @@ postprocess_circular(vrna_fold_compound_t *fc,
             }
           }
         }
-#endif
       }
     }    
 

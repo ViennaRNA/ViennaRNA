@@ -1022,7 +1022,16 @@ eval_circ_pt(vrna_fold_compound_t *fc,
   switch (degree) {
     case 0:   /* unstructured */
 #ifdef VRNA_WITH_CIRC_PENALTY
-      en0 += vrna_ext_circ_en(length, md) * (int)n_seq;
+      switch (fc->type) {
+        case VRNA_FC_TYPE_COMPARATIVE:
+          for (s = 0; s < n_seq; s++)
+            en0 += vrna_ext_circ_en(a2s[s][length], md);
+          break;
+
+        default:
+          en0 += vrna_ext_circ_en(length, md);
+          break;
+      }
 #endif
 
       switch (fc->type) {
