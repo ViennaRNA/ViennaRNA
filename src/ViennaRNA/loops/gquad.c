@@ -96,6 +96,7 @@
 struct gquad_ali_helper {
   const short         **S;
   const unsigned int  **a2s;
+  unsigned int        length;
   int               n_seq;
   vrna_param_t      *P;
   vrna_exp_param_t  *pf;
@@ -333,32 +334,44 @@ gquad_count_layers(int  i,
 
 /* other useful static functions */
 
+PRIVATE int
+E_gquad_consensus(int L,
+                  int l[3],
+                  unsigned int position,
+                  unsigned int length,
+                  unsigned int n_seq,
+                  const unsigned int **a2s,
+                  vrna_param_t *P);
+
 PRIVATE
 int
-E_gquad_ali_penalty(int           i,
-                    int           L,
+E_gquad_ali_penalty(int           L,
                     int           l[3],
-                    const short   **S,
+                    unsigned int  i,
+                    unsigned int  length,
                     unsigned int  n_seq,
+                    const short   **S,
                     vrna_param_t  *P);
 
 
 PRIVATE
 FLT_OR_DBL
-exp_E_gquad_ali_penalty(int               i,
-                        int               L,
+exp_E_gquad_ali_penalty(int               L,
                         int               l[3],
-                        const short       **S,
+                        unsigned int      i,
+                        unsigned int      length,
                         unsigned int      n_seq,
+                        const short       **S,
                         vrna_exp_param_t  *P);
 
 
 PRIVATE void
-count_gquad_layer_mismatches(int          i,
-                             int          L,
+count_gquad_layer_mismatches(int          L,
                              int          l[3],
-                             const short  **S,
+                             unsigned int i,
+                             unsigned int n,
                              unsigned int n_seq,
+                             const short  **S,
                              unsigned int mm[2]);
 
 
@@ -452,11 +465,12 @@ vrna_gq_exp_energy(int               L,
 PUBLIC void
 vrna_gq_consensus_energy(int          L,
                          int          l[3],
-                         vrna_param_t *P,
                          unsigned int position,
+                         unsigned int length,
                          unsigned int n_seq,
                          const short  **S,
                          unsigned int **a2s,
+                         vrna_param_t *P,
                          int          en[2])
 {
   unsigned int  s;
@@ -468,17 +482,10 @@ vrna_gq_consensus_energy(int          L,
     CHECK_GQUAD(L, l, return);
 
     /* compute actual quadruplex contribution for subalignment */
-    ee = 0;
-
-    for (s = 0; s < n_seq; s++) {
-      u1  = a2s[s][position + L + l[0] - 1] - a2s[s][position + L - 1];
-      u2  = a2s[s][position + 2 * L + l[0] + l[1] - 1] - a2s[s][position + 2 * L + l[0] - 1];
-      u3  = a2s[s][position + 3 * L + l[0] + l[1] + l[2] - 1] - a2s[s][position + 3 * L + l[0] + l[1] - 1];
-      ee  += P->gquad[L][u1 + u2 + u3];
-    }
+    ee = E_gquad_consensus(L, l, position, length, n_seq, (const unsigned int **)a2s, P);
 
     /* get penalty from incompatible sequences in alignment */
-    ee2 = E_gquad_ali_penalty(position, L, l, S, n_seq, P);
+    ee2 = E_gquad_ali_penalty(L, l, position, length, n_seq, S, P);
 
     /* assign return values */
     if (ee2 != INF) {
@@ -1924,6 +1931,7 @@ vrna_gq_pos_mfe(vrna_fold_compound_t * fc){
         struct gquad_ali_helper gq_help = {
           .S    = (const short **)fc->S,
           .a2s  = (const unsigned int**)fc->a2s,
+          .length = fc->length,
           .n_seq = fc->n_seq,
           .P     = P
         };
@@ -2014,10 +2022,11 @@ vrna_gq_pos_pf(vrna_fold_compound_t * fc){
       case VRNA_FC_TYPE_COMPARATIVE:
         S_enc         = fc->S_cons;
         struct gquad_ali_helper gq_help = {
-          .S    = (const short **)fc->S,
-          .a2s  = (const unsigned int**)fc->a2s,
-          .n_seq = fc->n_seq,
-          .pf    = pf_params
+          .S      = (const short **)fc->S,
+          .a2s    = (const unsigned int**)fc->a2s,
+          .n_seq  = fc->n_seq,
+          .length = fc->length,
+          .pf     = pf_params
         };
         tmp           = gq_help;
         data          = (void *)&tmp;
@@ -2899,17 +2908,153 @@ vrna_gq_parse(const char    *db_string,
  #          (internal use only)          #
  #########################################
  */
+PRIVATE INLINE int
+aln_linker_length(unsigned int start,
+                  unsigned int end,
+                  unsigned int n,
+                  const unsigned int *a2ss)
+{
+  if (start <= end) {
+    return a2ss[end] - a2ss[start - 1];
+  } else {
+    return a2ss[n] - a2ss[start - 1] + a2ss[end];
+  }
+}
+
+
+/* compute (individual) lengths of the unpaired linker sequences */
+/*  note here, that we might have a GQ spanning the n,1 junction,
+ *  so we first need to transform the linker start and end
+ *  positions accordingly
+ */
+PRIVATE INLINE void
+aln_linker_positions(int          L,
+                     int          l[3],
+                     unsigned int position,
+                     unsigned int length,
+                     unsigned int starts[3],
+                     unsigned int ends[3])
+{
+  if ((length > 0) &&
+      (position + 4 * L + l[0] + l[1] + l[2] >= length)) {
+    starts[0]  = (position + L - 1) % (length) + 1;
+    ends[0]    = (position + L + l[0] - 1 - 1) % (length) + 1;
+    starts[1]  = (position + 2 * L + l[0] - 1) % (length) + 1;
+    ends[1]    = (position + 2 * L + l[0] + l[1] - 1 - 1) % (length) + 1;
+    starts[2]  = (position + 3 * L + l[0] + l[1] - 1) % (length) + 1;
+    ends[2]    = (position + 3 * L + l[0] + l[1] + l[2] - 1 - 1) % (length) + 1;
+  } else {
+    starts[0]  = position + L;
+    ends[0]    = starts[0] + l[0] - 1;
+    starts[1]  = ends[0] + L + 1;
+    ends[1]    = starts[1] + l[1] - 1;
+    starts[2]  = ends[1] + L + 1;
+    ends[2]    = starts[2] + l[2] - 1;
+  }
+}
+
+
+/* retrieve a set of sequence coordinates for the Gs involved
+ * in a layer (1-based) of a GQ with stack size L and linker
+ * lengths l starting at position i. The GQ may cross the n,1
+ * junction so the total length of the sequence (alignment) has
+ * to be passed through variable n
+ */
+PRIVATE void
+gq_layer_pos(int L,
+             int l[3],
+             unsigned int layer,
+             unsigned int i,
+             unsigned int n,
+             unsigned int layer_pos[4])
+{
+  if ((n > 0) &&
+      (i + 4 * L + l[0] + l[1] + l[2] >= n)) {
+    layer_pos[0] = (i + layer - 1 - 1) % (n) + 1;
+    layer_pos[1] = (i + layer + L + l[0] - 1 - 1) % (n) + 1;
+    layer_pos[2] = (i + layer + 2 * L + l[0] + l[1] - 1 - 1) % (n) + 1 ;
+    layer_pos[3] = (i + layer + 3 * L + l[0] + l[1] + l[2] - 1 - 1) % (n) + 1;
+  } else {
+    layer_pos[0] = i + layer - 1;
+    layer_pos[1] = i + layer + L + l[0] - 1;
+    layer_pos[2] = i + layer + 2 * L + l[0] + l[1] - 1;
+    layer_pos[3] = i + layer + 3 * L + l[0] + l[1] + l[2] - 1;
+  } 
+}
+
+
 PRIVATE int
-E_gquad_ali_penalty(int           i,
-                    int           L,
+E_gquad_consensus(int L,
+                  int l[3],
+                  unsigned int position,
+                  unsigned int length,
+                  unsigned int n_seq,
+                  const unsigned int **a2s,
+                  vrna_param_t *P)
+{
+  unsigned int  l_start[3], l_end[3], s, u1, u2, u3;
+  int           e;
+
+
+  e = 0;
+
+  aln_linker_positions(L, l, position, length, l_start, l_end);
+
+  for (s = 0; s < n_seq; s++) {
+    u1 = aln_linker_length(l_start[0], l_end[0], length, a2s[s]);
+    u2 = aln_linker_length(l_start[1], l_end[1], length, a2s[s]);
+    u3 = aln_linker_length(l_start[2], l_end[2], length, a2s[s]);
+
+    e += P->gquad[L][u1 + u2 + u3];
+  }
+
+  return e;
+}
+
+
+
+PRIVATE FLT_OR_DBL
+exp_E_gquad_consensus(int L,
+                  int l[3],
+                  unsigned int position,
+                  unsigned int length,
+                  unsigned int n_seq,
+                  const unsigned int **a2s,
+                  vrna_exp_param_t *pf)
+{
+  unsigned int  l_start[3], l_end[3], s, u1, u2, u3;
+  FLT_OR_DBL    q;
+
+
+  q = 1.;
+
+  aln_linker_positions(L, l, position, length, l_start, l_end);
+
+  for (s = 0; s < n_seq; s++) {
+    u1 = aln_linker_length(l_start[0], l_end[0], length, a2s[s]);
+    u2 = aln_linker_length(l_start[1], l_end[1], length, a2s[s]);
+    u3 = aln_linker_length(l_start[2], l_end[2], length, a2s[s]);
+
+    q *= pf->expgquad[L][u1 + u2 + u3];
+  }
+
+  return q;
+}
+
+
+
+PRIVATE int
+E_gquad_ali_penalty(int           L,
                     int           l[3],
-                    const short   **S,
+                    unsigned int  i,
+                    unsigned int  length,
                     unsigned int  n_seq,
+                    const short   **S,
                     vrna_param_t  *P)
 {
   unsigned int mm[2];
 
-  count_gquad_layer_mismatches(i, L, l, S, n_seq, mm);
+  count_gquad_layer_mismatches(L, l, i, length, n_seq, S, mm);
 
   if (mm[1] > P->gquadLayerMismatchMax)
     return INF;
@@ -2919,16 +3064,17 @@ E_gquad_ali_penalty(int           i,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_gquad_ali_penalty(int               i,
-                        int               L,
+exp_E_gquad_ali_penalty(int               L,
                         int               l[3],
-                        const short       **S,
+                        unsigned int      i,
+                        unsigned int      n,
                         unsigned int      n_seq,
+                        const short       **S,
                         vrna_exp_param_t  *pf)
 {
   unsigned int mm[2];
 
-  count_gquad_layer_mismatches(i, L, l, S, n_seq, mm);
+  count_gquad_layer_mismatches(L, l, i, n, n_seq, S, mm);
 
   if (mm[1] > pf->gquadLayerMismatchMax)
     return (FLT_OR_DBL)0.;
@@ -2938,76 +3084,75 @@ exp_E_gquad_ali_penalty(int               i,
 
 
 PRIVATE void
-count_gquad_layer_mismatches(int          i,
-                             int          L,
+count_gquad_layer_mismatches(int          L,
                              int          l[3],
-                             const short  **S,
+                             unsigned int i,
+                             unsigned int n,
                              unsigned int n_seq,
+                             const short  **S,
                              unsigned int mm[2])
 {
-  unsigned int  s;
+  unsigned int  s, layer_pos[4], k, ld, mismatch;
   int           cnt;
 
   mm[0] = mm[1] = 0;
 
+
   /* check for compatibility in the alignment */
   for (s = 0; s < n_seq; s++) {
-    unsigned int  ld        = 0; /* !=0 if layer destruction was detected */
-    unsigned int  mismatch  = 0;
+    mismatch  = 0;
 
     /* check bottom layer */
-    if (S[s][i] != 3)
-      ld |= 1U;
+    gq_layer_pos(L, l, 1, i, n, layer_pos);
 
-    if (S[s][i + L + l[0]] != 3)
-      ld |= 2U;
-
-    if (S[s][i + 2 * L + l[0] + l[1]] != 3)
-      ld |= 4U;
-
-    if (S[s][i + 3 * L + l[0] + l[1] + l[2]] != 3)
-      ld |= 8U;
-
-    /* add 1x penalty for missing bottom layer */
-    if (ld)
+    if (S[s][layer_pos[0]] != 3) {
+      /* add 1x penalty for missing bottom layer */
       mismatch++;
+    } else if (S[s][layer_pos[1]] != 3) {
+      /* add 1x penalty for missing bottom layer */
+      mismatch++;
+    } else if (S[s][layer_pos[2]] != 3) {
+      /* add 1x penalty for missing bottom layer */
+      mismatch++;
+    } else if (S[s][layer_pos[3]] != 3) {
+      /* add 1x penalty for missing bottom layer */
+      mismatch++;
+    }
 
     /* check top layer */
-    ld = 0;
-    if (S[s][i + L - 1] != 3)
-      ld |= 1U;
+    gq_layer_pos(L, l, L, i, n, layer_pos);
 
-    if (S[s][i + 2 * L + l[0] - 1] != 3)
-      ld |= 2U;
-
-    if (S[s][i + 3 * L + l[0] + l[1] - 1] != 3)
-      ld |= 4U;
-
-    if (S[s][i + 4 * L + l[0] + l[1] + l[2] - 1] != 3)
-      ld |= 8U;
-
-    /* add 1x penalty for missing top layer */
-    if (ld)
+    if (S[s][layer_pos[0]] != 3) {
+      /* add 1x penalty for missing bottom layer */
       mismatch++;
+    } else if (S[s][layer_pos[1]] != 3) {
+      /* add 1x penalty for missing bottom layer */
+      mismatch++;
+    } else if (S[s][layer_pos[2]] != 3) {
+      /* add 1x penalty for missing bottom layer */
+      mismatch++;
+    } else if (S[s][layer_pos[3]] != 3) {
+      /* add 1x penalty for missing bottom layer */
+      mismatch++;
+    }
 
     /* check inner layers */
-    ld = 0;
-    for (cnt = 1; cnt < L - 1; cnt++) {
-      if (S[s][i + cnt] != 3)
-        ld |= 1U;
+    for (cnt = 2; cnt < L; cnt++) {
+      gq_layer_pos(L, l, cnt, i, n, layer_pos);
 
-      if (S[s][i + L + l[0] + cnt] != 3)
-        ld |= 2U;
-
-      if (S[s][i + 2 * L + l[0] + l[1] + cnt] != 3)
-        ld |= 4U;
-
-      if (S[s][i + 3 * L + l[0] + l[1] + l[2] + cnt] != 3)
-        ld |= 8U;
-
-      /* add 2x penalty for missing inner layer */
-      if (ld)
+      if (S[s][layer_pos[0]] != 3) {
+        /* add 2x penalty for missing inner layer */
         mismatch += 2;
+      } else if (S[s][layer_pos[1]] != 3) {
+        /* add 2x penalty for missing inner layer */
+        mismatch += 2;
+      } else if (S[s][layer_pos[2]] != 3) {
+        /* add 2x penalty for missing inner layer */
+        mismatch += 2;
+      } else if (S[s][layer_pos[3]] != 3) {
+        /* add 2x penalty for missing inner layer */
+        mismatch += 2;
+      }
     }
 
     mm[0] += mismatch;
@@ -3161,7 +3306,8 @@ gquad_pf_ali(int  i,
 {
   const short             **S;
   const unsigned int      **a2s;
-  int                     u1, u2, u3, s, n_seq;
+  unsigned int            n, s, n_seq;
+  int                     u1, u2, u3;
   FLT_OR_DBL              penalty;
   vrna_exp_param_t        *pf;
   struct gquad_ali_helper *gq_help;
@@ -3169,20 +3315,14 @@ gquad_pf_ali(int  i,
   gq_help = (struct gquad_ali_helper *)helper;
   S       = gq_help->S;
   a2s     = gq_help->a2s;
+  n       = gq_help->length;
   n_seq   = gq_help->n_seq;
   pf      = gq_help->pf;
-  penalty = exp_E_gquad_ali_penalty(i, L, l, S, (unsigned int)n_seq, pf);
+  penalty = exp_E_gquad_ali_penalty(L, l, (unsigned int)i, n, n_seq, S, pf);
 
-  if (penalty != 0.) {
-    double q = 1.;
-    for (s = 0; s < n_seq; s++) {
-      u1  = a2s[s][i + L + l[0] - 1] - a2s[s][i + L - 1];
-      u2  = a2s[s][i + 2 * L + l[0] + l[1] - 1] - a2s[s][i + 2 * L + l[0] - 1];
-      u3  = a2s[s][i + 3 * L + l[0] + l[1] + l[2] - 1] - a2s[s][i + 3 * L + l[0] + l[1] - 1];
-      q   *= pf->expgquad[L][u1 + u2 + u3];
-    }
-    *((FLT_OR_DBL *)data) += q * penalty;
-  }
+  if (penalty != 0.)
+    *((FLT_OR_DBL *)data) += penalty *
+                             exp_E_gquad_consensus(L, l, (unsigned int)i, n, n_seq, a2s, pf);
 }
 
 
@@ -3268,7 +3408,7 @@ gquad_mfe_ali_en(int  i,
 {
   const short             **S;
   const unsigned int      **a2s;
-  unsigned int            s, n_seq;
+  unsigned int            s, n_seq, n;
   int                     en[2], cc, dd, u1, u2, u3;
   vrna_param_t            *P;
   struct gquad_ali_helper *gq_help;
@@ -3276,17 +3416,12 @@ gquad_mfe_ali_en(int  i,
   gq_help = (struct gquad_ali_helper *)helper;
   S       = gq_help->S;
   a2s     = gq_help->a2s;
+  n       = gq_help->length;
   n_seq   = gq_help->n_seq;
   P       = gq_help->P;
 
-  for (en[0] = 0, s = 0; s < n_seq; s++) {
-    u1    = a2s[s][i + L + l[0] - 1] - a2s[s][i + L - 1];
-    u2    = a2s[s][i + 2 * L + l[0] + l[1] - 1] - a2s[s][i + 2 * L + l[0] - 1];
-    u3    = a2s[s][i + 3 * L + l[0] + l[1] + l[2] - 1] - a2s[s][i + 3 * L + l[0] + l[1] - 1];
-    en[0] += P->gquad[L][u1 + u2 + u3];
-  }
-
-  en[1] = E_gquad_ali_penalty(i, L, l, S, n_seq, P);
+  en[0] = E_gquad_consensus(L, l, i, n, n_seq, (const unsigned int **)a2s, P);
+  en[1] = E_gquad_ali_penalty(L, l, i, n, n_seq, S, P);
 
   if (en[1] != INF) {
     cc  = en[0] + en[1];
@@ -3506,7 +3641,7 @@ E_gquad_ali_en(int          i,
                vrna_param_t *P,
                int          en[2])
 {
-  return vrna_gq_consensus_energy(L, l, P, (unsigned int)i, n_seq, S, a2s, en);
+  return vrna_gq_consensus_energy(L, l, (unsigned int)i, 0, n_seq, S, a2s, P, en);
 }
 
 

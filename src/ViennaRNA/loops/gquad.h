@@ -61,11 +61,12 @@ vrna_gq_exp_energy(int               L,
 void
 vrna_gq_consensus_energy(int          L,
                          int          l[3],
-                         vrna_param_t *P,
                          unsigned int position,
+                         unsigned int length,
                          unsigned int n_seq,
                          const short  **S,
                          unsigned int **a2s,
+                         vrna_param_t *P,
                          int          en[2]);
 
 
