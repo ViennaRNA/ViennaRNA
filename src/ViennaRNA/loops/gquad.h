@@ -47,15 +47,15 @@
  */
 
 int
-vrna_gq_energy(int           L,
-               int           l[3],
-               vrna_param_t  *P);
+vrna_gq_energy(int          L,
+               int          l[3],
+               vrna_param_t *P);
 
 
 FLT_OR_DBL
-vrna_gq_exp_energy(int               L,
-                   int               l[3],
-                   vrna_exp_param_t  *pf);
+vrna_gq_exp_energy(int              L,
+                   int              l[3],
+                   vrna_exp_param_t *pf);
 
 
 void
@@ -75,6 +75,7 @@ vrna_gq_consensus_exp_energy(int                L,
                              int                l[3],
                              vrna_exp_param_t   *pf,
                              unsigned int       position,
+                             unsigned int       length,
                              unsigned int       n_seq,
                              const short        **S,
                              const unsigned int **a2s);
@@ -87,12 +88,12 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t *fc,
 
 
 vrna_array(int)
-vrna_gq_int_loop_subopt(vrna_fold_compound_t  *fc,
-                        unsigned int          i,
-                        unsigned int          j,
-                        vrna_array(int)       *p_p,
-                        vrna_array(int)       *q_p,
-                        int                   threshold);
+vrna_gq_int_loop_subopt(vrna_fold_compound_t * fc,
+                        unsigned int i,
+                        unsigned int j,
+                        vrna_array(int) * p_p,
+                        vrna_array(int) * q_p,
+                        int threshold);
 
 int
 E_GQuad_IntLoop_L_comparative(int           i,
@@ -119,8 +120,8 @@ E_GQuad_IntLoop_L(int           i,
 
 FLT_OR_DBL
 vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
-                    unsigned int                   i,
-                    unsigned int                   j);
+                    unsigned int          i,
+                    unsigned int          j);
 
 
 /**
@@ -252,9 +253,9 @@ get_gquad_pattern_mfe_ali(short         **S,
  *  @return             The end position of the G-Quadruplex (1-based) or 0 if not found
  */
 unsigned int
-vrna_gq_parse(const char    *db_string,
-              unsigned int  *L,
-              unsigned int  l[3]);
+  vrna_gq_parse(const char *db_string,
+                unsigned int *L,
+                unsigned int l[3]);
 
 /**
  *  @}
@@ -266,13 +267,13 @@ vrna_gq_parse(const char    *db_string,
  *  @{
  */
 plist *
-get_plist_gquad_from_pr(short *S,
-                        int gi,
-                        int gj,
-                        vrna_smx_csr(FLT_OR_DBL) * q_gq,
-                        FLT_OR_DBL * probs,
-                        FLT_OR_DBL * scale,
-                        vrna_exp_param_t * pf);
+  get_plist_gquad_from_pr(short *S,
+                          int gi,
+                          int gj,
+                          vrna_smx_csr(FLT_OR_DBL) * q_gq,
+                          FLT_OR_DBL * probs,
+                          FLT_OR_DBL * scale,
+                          vrna_exp_param_t * pf);
 
 
 vrna_ep_t *
@@ -282,15 +283,15 @@ vrna_plist_gquad_from_pr(vrna_fold_compound_t *fc,
 
 
 plist *
-get_plist_gquad_from_pr_max(short *S,
-                            int gi,
-                            int gj,
-                            vrna_smx_csr(FLT_OR_DBL) * q_gq,
-                            FLT_OR_DBL * probs,
-                            FLT_OR_DBL * scale,
-                            int *L,
-                            int l[3],
-                            vrna_exp_param_t * pf);
+  get_plist_gquad_from_pr_max(short *S,
+                              int gi,
+                              int gj,
+                              vrna_smx_csr(FLT_OR_DBL) * q_gq,
+                              FLT_OR_DBL * probs,
+                              FLT_OR_DBL * scale,
+                              int *L,
+                              int l[3],
+                              vrna_exp_param_t * pf);
 
 
 vrna_ep_t *
@@ -323,7 +324,6 @@ backtrack_GQuad_IntLoop_L(int           c,
                           vrna_param_t  *P);
 
 
-
 int
 vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
                   int                   i,
@@ -333,8 +333,8 @@ vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
 
 int
 vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
-                  unsigned int                   i,
-                  unsigned int                   j,
+                  unsigned int          i,
+                  unsigned int          j,
                   int                   en,
                   vrna_bps_t            bp_stack);
 
@@ -345,7 +345,6 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
                   int                   j,
                   vrna_bp_stack_t       *bp_stack,
                   unsigned int          *stack_count);
-
 
 
 int
@@ -415,8 +414,8 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
 
 
 int
-E_gquad(int L,
-        int l[3],
+E_gquad(int           L,
+        int           l[3],
         vrna_param_t  *P);
 
 
@@ -459,9 +458,10 @@ exp_E_gquad_ali(int               i,
  *  end2 = parse_gquad(struc+end1, &L, l); end2+=end1; ... ;
  *  end3 = parse_gquad(struc+end2, &L, l); end3+=end2; ... ;
  */
-DEPRECATED(int parse_gquad(const char  *struc,
-                           int         *L,
-                           int         l[3]),
+DEPRECATED(int
+           parse_gquad(const char *struc,
+                       int        *L,
+                       int        l[3]),
            "Use vrna_gq_parse() instead");
 
 
