@@ -376,7 +376,14 @@ vrna_backtrack5(vrna_fold_compound_t  *fc,
                   }));
 
     if (backtrack(fc, bp_stack, bt_stack, NULL) != 0) {
-      ss = vrna_db_from_bps(bp_stack, length);
+      if ((fc->aux_grammar) &&
+          (fc->aux_grammar->serialize_bp)) {
+        ss = fc->aux_grammar->serialize_bp(fc,
+                                           bp_stack,
+                                           fc->aux_grammar->serialize_bp_data);
+      } else {
+        ss = vrna_db_from_bps(bp_stack, length);
+      }
       strncpy(structure, ss, length + 1);
       free(ss);
 
