@@ -2915,6 +2915,48 @@ vrna_gq_parse(const char    *db_string,
 }
 
 
+PUBLIC void
+vrna_db_insert_gq(char          *db,
+                  unsigned int  i,
+                  unsigned int  L,
+                  unsigned int l[3]
+                  unsigned int  n)
+{
+  if (db) {
+    if (n == 0)
+      n = strlen(db);
+
+    if (4 * L + l[0] + l[1] + l[2] <= n) {
+      unsigned int j, ll;
+      for (ll = 0; ll < L; ll++) {
+        j     = (i + ll - 1) % (n);
+        db[j] = VRNA_GQUAD_DB_SYMBOL;
+      }
+
+      i += L + l[0];
+      for (ll = 0; ll < L; ll++) {
+        j     = (i + ll - 1) % (n);
+        db[j] = VRNA_GQUAD_DB_SYMBOL;
+      }
+
+      i += L + l[1];
+      for (ll = 0; ll < L; ll++) {
+        j     = (i + ll - 1) % (n);
+        db[j] = VRNA_GQUAD_DB_SYMBOL;
+      }
+
+      i += L + l[2];
+      for (ll = 0; ll < L - 1; ll++) {
+        j     = (i + ll - 1) % (n);
+        db[j] = VRNA_GQUAD_DB_SYMBOL;
+      }
+      j     = (i + ll - 1) % (n);
+      db[j] = VRNA_GQUAD_DB_SYMBOL_END;
+    }
+  }
+}
+
+
 /*
  #########################################
  # BEGIN OF PRIVATE FUNCTION DEFINITIONS #
