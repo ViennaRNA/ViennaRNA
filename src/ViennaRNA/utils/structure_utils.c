@@ -880,6 +880,74 @@ vrna_db_from_probs(const FLT_OR_DBL *p,
 }
 
 
+PUBLIC char *
+vrna_pairing_tendency(vrna_fold_compound_t *fc)
+{
+  unsigned int  i, j, n;
+  int           *idx;
+  FLT_OR_DBL    *p, pp;
+  float         P[3];    /* P[][0] unpaired, P[][1] upstream p, P[][2] downstream p */
+  vrna_md_t     *md;
+  char                      *s;
+  vrna_smx_csr(FLT_OR_DBL)  *p_gq;
+
+  s = NULL;
+
+  if ((fc) &&
+      (fc->exp_matrices) &&
+      (fc->exp_matrices->probs)) {
+    n   = fc->length;
+    idx = fc->iindx;
+    p   = fc->exp_matrices->probs;
+    md  = &(fc->exp_params->model_details);
+    s   = (char *)vrna_alloc(sizeof(char) * (n + 1));
+
+    if ((md->circ) &&
+        (md->gquad) &&
+        (fc->exp_matrices->p_gq))
+      p_gq = fc->exp_matrices->p_gq;
+    else
+      p_gq = NULL;
+
+    for (j = 1; j <= n; j++) {
+      P[0]  = 1.0;
+      P[1]  = P[2] = 0.0;
+
+      for (i = 1; i < j; i++) {
+        P[2]  += (float)p[idx[i] - j];  /* j is paired downstream */
+        P[0]  -= (float)p[idx[i] - j];  /* j is unpaired */
+      }
+
+      for (i = j + 1; i <= n; i++) {
+        P[1]  += (float)p[idx[j] - i];  /* j is paired upstream */
+        P[0]  -= (float)p[idx[j] - i];  /* j is unpaired */
+      }
+
+      if (p_gq) {
+        /* do something about the gquads wrapping around the n,1 junction */
+        for (i = 1; i < j; i++) {
+          pp    = vrna_smx_csr_get(p_gq, j, i, 0.);
+          P[1]  += (float)pp;  /* j is paired downstream */
+          P[0]  -= (float)pp;  /* j is unpaired */
+        }
+
+        for (i = j + 1; i <= n; i++) {
+          pp    = vrna_smx_csr_get(p_gq, i, j, 0.);
+          P[2]  += (float)pp;  /* j is paired downstream */
+          P[0]  -= (float)pp;  /* j is unpaired */
+        }
+      }
+
+      s[j - 1] = vrna_bpp_symbol(P);
+    }
+
+    s[n] = '\0';
+  }
+
+  return s;
+}
+
+
 PUBLIC void
 vrna_letter_structure(char            *structure,
                       vrna_bp_stack_t *bp,

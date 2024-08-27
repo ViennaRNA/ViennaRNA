@@ -714,6 +714,9 @@ char *
 vrna_db_from_probs(const FLT_OR_DBL *pr,
                    unsigned int     length);
 
+char *
+vrna_pairing_tendency(vrna_fold_compound_t *fc);
+
 
 /**
  *  @brief Get a pseudo dot bracket notation for a given probability information
