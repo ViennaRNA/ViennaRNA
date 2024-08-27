@@ -110,8 +110,10 @@ vrna__array_set_capacity(void    *array,
  *  @brief  Release memory of an array @p a
  */
 #define vrna_array_free(a) do { \
-  vrna_array_header_t *h = VRNA_ARRAY_HEADER(a); \
-  free(h); \
+  if (a) { \
+    vrna_array_header_t *h = VRNA_ARRAY_HEADER(a); \
+    free(h); \
+  } \
 } while (0)
 
 
