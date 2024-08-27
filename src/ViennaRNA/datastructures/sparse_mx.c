@@ -74,14 +74,57 @@
     return default_v;                                           \
   }
 
+#define VRNA_SMX_CSR_DEFINE_GET_SIZE( TYPE )                    \
+  size_t                                                        \
+  vrna_smx_csr_##TYPE##_get_size(vrna_smx_csr_##TYPE##_t  *mx)  \
+  {                                                             \
+    if(mx)                                                      \
+      return vrna_array_size(mx->v);                            \
+                                                                \
+    return 0;                                                   \
+  }
+
+#define VRNA_SMX_CSR_DEFINE_GET_ENTRY( TYPE )   \
+  TYPE  \
+  vrna_smx_csr_##TYPE##_get_entry(vrna_smx_csr_##TYPE##_t *mx,        \
+                                  size_t                  pos,        \
+                                  unsigned int            *i,         \
+                                  unsigned int            *j,         \
+                                  TYPE                    default_v)  \
+  {                                                                   \
+    unsigned int  p, d, s, k;                                         \
+    if ((mx) &&                                                       \
+        (pos < vrna_array_size(mx->v)) &&                             \
+        (i) && (j)) {                                                  \
+      if (mx->dirty) {                                                \
+        for (s = 1; s < vrna_array_capacity(mx->row_idx); s++)        \
+          mx->row_idx[s] += mx->row_idx[s - 1];                       \
+        mx->dirty = (unsigned char)0;                                 \
+      }                                                               \
+      /* get j-position */                                            \
+      *j = mx->col_idx[pos];                                          \
+      /* go through row_idx to find i position */                     \
+      for (d = 1; d < vrna_array_capacity(mx->row_idx); d++) {        \
+        /* found i-position */                                        \
+        if (mx->row_idx[d] > pos) {                                   \
+          *i = d - 1;                                                 \
+          return mx->v[pos];                                          \
+        }                                                             \
+      }                                                               \
+    }                                                                 \
+    return default_v;                                                 \
+  }
+
 
 #define VRNA_SMX_CSR_DEFINE_ALL( TYPE )  \
         VRNA_SMX_CSR_DEFINE_INIT(TYPE)   \
         VRNA_SMX_CSR_DEFINE_FREE(TYPE)   \
         VRNA_SMX_CSR_DEFINE_INSERT(TYPE) \
-        VRNA_SMX_CSR_DEFINE_GET(TYPE)
-
+        VRNA_SMX_CSR_DEFINE_GET(TYPE) \
+        VRNA_SMX_CSR_DEFINE_GET_SIZE(TYPE) \
+        VRNA_SMX_CSR_DEFINE_GET_ENTRY(TYPE)
 
 VRNA_SMX_CSR_DEFINE_ALL(int)
 VRNA_SMX_CSR_DEFINE_ALL(float)
+VRNA_SMX_CSR_DEFINE_ALL(double)
 VRNA_SMX_CSR_DEFINE_ALL(FLT_OR_DBL)
