@@ -18,6 +18,8 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/gquad.h"
 #include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/datastructures/array.h"
+#include "ViennaRNA/datastructures/sparse_mx.h"
 #include "ViennaRNA/MEA.h"
 
 /* compute an MEA structure, i.e. the structure maximising
@@ -37,8 +39,8 @@
  */
 
 typedef struct Litem {
-  int     i;
-  double  A;
+  unsigned int  i;
+  double        A;
 } Litem;
 
 typedef struct List {
@@ -58,19 +60,24 @@ comp_plist(const void *a,
            const void *b);
 
 
+PRIVATE int
+comp_plist_circ(const void  *a,
+                const void  *b);
+
+
 PRIVATE vrna_ep_t *
-prune_sort(vrna_ep_t    *p,
-           double       *pu,
-           unsigned int n,
-           double       gamma,
-           short        *S,
-           int          gq);
+prune_plist(vrna_ep_t     *p,
+            double        *pu,
+            unsigned int  *size,
+            unsigned int  n,
+            double        gamma,
+            unsigned int  *features);
 
 
 PRIVATE void
-pushC(List    *c,
-      int     i,
-      double  a);
+pushC(List          *c,
+      unsigned int  i,
+      double        a);
 
 
 struct MEAdat {
@@ -83,21 +90,18 @@ struct MEAdat {
 };
 
 PRIVATE void
-mea_backtrack(const struct MEAdat *bdat,
-              int                 i,
-              int                 j,
-              int                 paired,
-              short               *S,
-              vrna_exp_param_t    *pf);
+mea_backtrack(vrna_fold_compound_t  *fc,
+              const struct MEAdat   *bdat,
+              unsigned int          i,
+              unsigned int          j,
+              unsigned int          paired);
 
 
 PRIVATE float
-compute_MEA(vrna_ep_t         *p,
-            unsigned int      n,
-            short             *S,
-            double            gamma,
-            vrna_exp_param_t  *pf,
-            char              *structure);
+compute_MEA(vrna_fold_compound_t  *fc,
+            vrna_ep_t             *p,
+            double                gamma,
+            char                  *structure);
 
 
 /*
@@ -120,15 +124,12 @@ vrna_MEA(vrna_fold_compound_t *fc,
       (fc->exp_params) &&
       (fc->exp_matrices) &&
       (fc->exp_matrices->probs)) {
-
     structure = (char *)vrna_alloc(sizeof(char) * (fc->length + 1));
     pl        = vrna_plist_from_probs(fc, 1e-4 / (1 + gamma));
 
-    *mea = compute_MEA(pl,
-                       fc->length,
-                       (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : fc->S_cons,
+    *mea = compute_MEA(fc,
+                       pl,
                        gamma,
-                       fc->exp_params,
                        structure);
 
     free(pl);
@@ -145,11 +146,11 @@ vrna_MEA_from_plist(vrna_ep_t   *plist,
                     vrna_md_t   *md_p,
                     float       *mea)
 {
-  char              *structure;
-  short             *S;
-  unsigned int      n;
-  vrna_md_t         md;
-  vrna_exp_param_t  *exp_params;
+  char                  *structure;
+  unsigned int          n;
+  vrna_md_t             md;
+  vrna_exp_param_t      *exp_params;
+  vrna_fold_compound_t  *fc;
 
   structure = NULL;
 
@@ -166,16 +167,15 @@ vrna_MEA_from_plist(vrna_ep_t   *plist,
 
     exp_params = vrna_exp_params(&md);
 
-    S = vrna_seq_encode(sequence, &md);
+    fc = vrna_fold_compound(sequence, &md, VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
+    vrna_exp_params_subst(fc, exp_params);
 
-    *mea = compute_MEA(plist,
-                       n,
-                       S,
+    *mea = compute_MEA(fc,
+                       plist,
                        gamma,
-                       exp_params,
                        structure);
 
-    free(S);
+    vrna_fold_compound_free(fc);
     free(exp_params);
   }
 
@@ -188,47 +188,105 @@ vrna_MEA_from_plist(vrna_ep_t   *plist,
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
+
+#define HAS_CIRC_GQUAD    1U
+
+
 PRIVATE float
-compute_MEA(vrna_ep_t         *p,
-            unsigned int      n,
-            short             *S,
-            double            gamma,
-            vrna_exp_param_t  *pf,
-            char              *structure)
+compute_MEA(vrna_fold_compound_t  *fc,
+            vrna_ep_t             *p,
+            double                gamma,
+            char                  *structure)
 {
-  unsigned int  i, j;
-  int           with_gquad = 0;
-  double        EA, MEA, *Mi, *Mi1, *tmp, *pu;
+  unsigned int  i, j, n, size_pl, features, jmax_gq, i_gq, j_gq;
+  double        EA, MEA, *Mi, *Mi1, *Mi1_gq, *tmp, *pu;
   vrna_ep_t     *pp, *pl;
-  vrna_md_t     *md;
   Litem         *li;
   List          *C;
   struct MEAdat bdat;
 
-  md          = &(pf->model_details);
-  with_gquad  = md->gquad;
+  vrna_smx_csr(double)      *gq_circ      = NULL;
+  vrna_array(unsigned int)  gq_circ_imin  = NULL;
+  vrna_array(unsigned int)  gq_circ_imax  = NULL;
+
+  n       = fc->length;
+  jmax_gq = 0;
+  i_gq    = j_gq = 0;
+  Mi1_gq  = NULL;
 
   memset(structure, '.', sizeof(char) * n);
   structure[n] = '\0';
 
   pu  = vrna_alloc(sizeof(double) * (n + 1));
-  pp  = pl = prune_sort(p, pu, n, gamma, S, with_gquad);
+  pp  = pl = prune_plist(p, pu, &size_pl, n, gamma, &features);
+
+  /* check whether we have G-Quadruplexes that span the n,1 junction */
+  if (features & HAS_CIRC_GQUAD) {
+    /* sort entries so that we can safely insert them into the sparse mx */
+    qsort(pl, size_pl, sizeof(vrna_ep_t), comp_plist_circ);
+
+    /* required for backtracking */
+    Mi1_gq = (double *)vrna_alloc((n + 1) * sizeof(double));
+
+    vrna_array_init_size(gq_circ_imin, n + 1);
+    for (i = 0; i <= n; i++)
+      vrna_array_append(gq_circ_imin, n);
+
+    vrna_array_init_size(gq_circ_imax, n + 1);
+    memset(gq_circ_imax, 0, sizeof(unsigned int) * (n + 1));
+    vrna_array_size(gq_circ_imax) = n + 1;
+
+    for (pp = pl; pp->i > 0; pp++) {
+      if ((pp->type == VRNA_PLIST_TYPE_GQUAD) &&
+          (pp->i > pp->j)) {
+        if (gq_circ == NULL)
+          gq_circ = vrna_smx_csr_double_init(n);
+
+        EA = (pp->j + n - pp->i + 1) * gamma * pp->p;
+        vrna_smx_csr_insert(gq_circ, pp->j, pp->i, EA);
+
+        if (pp->j > jmax_gq)
+          jmax_gq = pp->j;
+
+        if (pp->i < gq_circ_imin[pp->j])
+          gq_circ_imin[pp->j] = pp->i;
+
+        if (pp->i > gq_circ_imax[pp->j])
+          gq_circ_imax[pp->j] = pp->i;
+      }
+    }
+  }
+
+  /* sort in the order we need it for the dp recursions below */
+  qsort(pl, size_pl, sizeof(vrna_ep_t), comp_plist);
+
+  pp = pl;
 
   C = (List *)vrna_alloc((n + 1) * (sizeof(List)));
 
   Mi  = (double *)vrna_alloc((n + 1) * sizeof(double));
   Mi1 = (double *)vrna_alloc((n + 1) * sizeof(double));
 
+  MEA = 0.;
+
   for (i = n; i > 0; i--) {
     Mi[i] = pu[i];
+    if ((pp->i == i) &&
+        (pp->i > pp->j))
+      pp++;
+
     for (j = i + 1; j <= n; j++) {
       Mi[j] = Mi[j - 1] + pu[j];
+
       for (li = C[j].list; li < C[j].list + C[j].nelem; li++) {
         EA    = li->A + Mi[(li->i) - 1];
         Mi[j] = MAX2(Mi[j], EA);
       }
-      if ((unsigned int)pp->i == i && (unsigned int)pp->j == j) {
+
+      if (((unsigned int)pp->i == i) &&
+          ((unsigned int)pp->j == j)) {
         EA = Mi1[j - 1];
+
         switch (pp->type) {
           case VRNA_PLIST_TYPE_GQUAD:
             EA += (j - i + 1) * gamma * pp->p;
@@ -250,23 +308,56 @@ compute_MEA(vrna_ep_t         *p,
 
         pp++;
       }
+
+      if ((gq_circ) &&
+          (i <= jmax_gq) &&
+          (j >= gq_circ_imin[i]) &&
+          (j <= gq_circ_imax[i])) {
+        if ((EA = vrna_smx_csr_get(gq_circ, i, j, 0.)) != 0.) {
+          EA += Mi1[j - 1];
+          if (MEA < EA) {
+            MEA   = EA;
+            i_gq  = i;
+            j_gq  = j;
+            /* make a copy of Mi1 */
+            Mi1_gq = memcpy(Mi1_gq, Mi1, sizeof(double) * (n + 1));
+          }
+        }
+      }
     }
     tmp = Mi1;
     Mi1 = Mi;
     Mi  = tmp;
   }
 
-  MEA = Mi1[n];
+  MEA = MAX2(MEA, Mi1[n]);
 
   bdat.structure  = structure;
   bdat.gamma      = gamma;
-  bdat.C          = C;
-  bdat.Mi         = Mi1;
   bdat.pl         = pl;
   bdat.pu         = pu;
-  mea_backtrack(&bdat, 1, n, 0, S, pf);
+  bdat.C          = C;
+
+  if ((i_gq > 0) &&
+      (j_gq > 0)) {
+    unsigned int L, l[3];
+    vrna_get_gquad_pattern_pf(fc, j_gq, i_gq, &L, l);
+    if (L > 0)
+      vrna_db_insert_gq(structure, j_gq, L, l, n);
+
+    bdat.Mi = Mi1_gq;
+    mea_backtrack(fc, &bdat, i_gq + 1, j_gq - 1, 0);
+  } else {
+    bdat.Mi = Mi1;
+    mea_backtrack(fc, &bdat, 1, n, 0);
+  }
+
+  vrna_array_free(gq_circ_imin);
+  vrna_array_free(gq_circ_imax);
+  vrna_smx_csr_free(gq_circ);
   free(Mi);
   free(Mi1);
+  free(Mi1_gq);
   free(pl);
   free(pu);
   for (i = 1; i <= n; i++)
@@ -279,6 +370,11 @@ compute_MEA(vrna_ep_t         *p,
 }
 
 
+/*
+ *  sort by sequence position:
+ *  1. in descending order for i
+ *  2. in ascending order for j
+ */
 PRIVATE int
 comp_plist(const void *a,
            const void *b)
@@ -296,31 +392,65 @@ comp_plist(const void *a,
 }
 
 
+/*
+ *  sort by sequence position:
+ *  1. in ascending order for j
+ *  2. in ascending order for i
+ */
+PRIVATE int
+comp_plist_circ(const void  *a,
+                const void  *b)
+{
+  vrna_ep_t *A, *B;
+  int       di;
+
+  A   = (vrna_ep_t *)a;
+  B   = (vrna_ep_t *)b;
+  di  = (A->j - B->j);
+  if (di != 0)
+    return di;
+
+  return A->i - B->i;
+}
+
+
 PRIVATE vrna_ep_t *
-prune_sort(vrna_ep_t    *p,
-           double       *pu,
-           unsigned int n,
-           double       gamma,
-           short        *S,
-           int          gq)
+prune_plist(vrna_ep_t     *p,
+            double        *pu,
+            unsigned int  *size_pl,
+            unsigned int  n,
+            double        gamma,
+            unsigned int  *features)
 {
   /*
    * produce a list containing all base pairs with
    * 2*gamma*p_ij > p^u_i + p^u_j
    * already sorted to be in the order we need them within the DP
    */
-  unsigned int  size, i, nt, nump = 0;
+  unsigned int  size, i, nt;
   double        pug;
   vrna_ep_t     *pp, *pc;
+
+  *size_pl  = 0;
+  *features = 0;
 
   for (i = 1; i <= n; i++)
     pu[i] = 1.;
 
+  /* collect probabilities to be unpaired */
   for (pc = p; pc->i > 0; pc++) {
     switch (pc->type) {
       case VRNA_PLIST_TYPE_GQUAD:
-        for (i = pc->i; i <= pc->j; i++)
-          pu[i] -= pc->p;
+        if (pc->i < pc->j) {
+          for (i = pc->i; i <= pc->j; i++)
+            pu[i] -= pc->p;
+        } else {
+          for (i = pc->i; i <= n; i++)
+            pu[i] -= pc->p;
+          for (i = 1; i <= pc->j; i++)
+            pu[i] -= pc->p;
+        }
+
         break;
 
       case VRNA_PLIST_TYPE_BASEPAIR:
@@ -344,6 +474,10 @@ prune_sort(vrna_ep_t    *p,
         pu[i] = pc->p;
 
   /* prepare pair probability entries */
+  /* here, we only keep pair/gquad probabilities that exceed
+   * the sum of unpaired probabilities of the nucleotides they
+   * cover, respectively.
+   */
   size  = n + 1;
   pp    = vrna_alloc(sizeof(vrna_ep_t) * (n + 1));
   for (pc = p; pc->i > 0; pc++) {
@@ -357,36 +491,48 @@ prune_sort(vrna_ep_t    *p,
 
     switch (pc->type) {
       case VRNA_PLIST_TYPE_GQUAD:
-        nt = pc->j - pc->i + 1;
-        for (i = pc->i; i <= pc->j; i++)
-          pug += pu[i];
+        if (pc->i < pc->j) {
+          nt = pc->j - pc->i + 1;
+          for (i = pc->i; i <= pc->j; i++)
+            pug += pu[i];
+        } else {
+          nt = pc->j + n - pc->i + 1;
+          for (i = pc->i; i <= n; i++)
+            pug += pu[i];
+          for (i = 1; i <= pc->j; i++)
+            pug += pu[i];
+        }
+
         break;
 
       case VRNA_PLIST_TYPE_BASEPAIR:
-        nt = 2;
+        nt  = 2;
         pug = pu[pc->i] + pu[pc->j];
         break;
     }
 
     if (pc->p * nt * gamma > pug) {
-      if (nump + 1 >= size) {
+      if ((*size_pl) + 1 >= size) {
         size  += size / 2 + 1;
         pp    = vrna_realloc(pp, size * sizeof(vrna_ep_t));
       }
 
-      pp[nump++] = *pc;
+      if ((pc->type == VRNA_PLIST_TYPE_GQUAD) &&
+          (pc->i > pc->j))
+        *features |= HAS_CIRC_GQUAD;
+
+      pp[(*size_pl)++] = *pc;
     }
   }
-  pp[nump].i = pp[nump].j = pp[nump].p = 0;
-  qsort(pp, nump, sizeof(vrna_ep_t), comp_plist);
+  pp[(*size_pl)].i = pp[(*size_pl)].j = pp[(*size_pl)].p = 0;
   return pp;
 }
 
 
 PRIVATE void
-pushC(List    *c,
-      int     i,
-      double  a)
+pushC(List          *c,
+      unsigned int  i,
+      double        a)
 {
   if (c->nelem + 1 >= c->size) {
     c->size = MAX2(8, c->size * sqrt(2));
@@ -400,27 +546,31 @@ pushC(List    *c,
 
 
 PRIVATE void
-mea_backtrack(const struct MEAdat *bdat,
-              int                 i,
-              int                 j,
-              int                 pair,
-              short               *S,
-              vrna_exp_param_t    *pf)
+mea_backtrack(vrna_fold_compound_t  *fc,
+              const struct MEAdat   *bdat,
+              unsigned int          i,
+              unsigned int          j,
+              unsigned int          pair)
 {
   /*
    * backtrack structure for the interval [i..j]
    * recursively calls itself, recomputes the necessary parts of the M matrix
    */
-  int     fail, gq, k, L, l[3];
-  double  *Mi, prec, *pu, EA;
-  List    *C;
-  Litem   *li;
+  short             *S;
+  unsigned int      fail, L, l[3], n, gq, k;
+  double            *Mi, prec, *pu, EA;
+  List              *C;
+  Litem             *li;
+  vrna_exp_param_t  *pf;
 
+  n     = fc->length;
+  pf    = fc->exp_params;
   fail  = 1;
   gq    = pf->model_details.gquad;
   C     = bdat->C;
   Mi    = bdat->Mi;
   pu    = bdat->pu;
+  S     = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : fc->S_cons;
 
   if (pair) {
     /*
@@ -429,14 +579,12 @@ mea_backtrack(const struct MEAdat *bdat,
      */
     if (gq) {
       if ((S[i] == 3) && (S[j] == 3)) {
-        get_gquad_pattern_pf(S, i, j, pf, &L, l);
-        for (k = 0; k < L; k++) {
-          bdat->structure[i + k - 1] \
-                  = bdat->structure[i + k + L + l[0] - 1] \
-                  = bdat->structure[i + k + 2 * L + l[0] + l[1] - 1] \
-                  = bdat->structure[i + k + 3 * L + l[0] + l[1] + l[2] - 1] \
-                  = '+';
-        }
+        vrna_get_gquad_pattern_pf(fc, i, j, &L, l);
+        if (L > 0)
+          vrna_db_insert_gq(bdat->structure, i, L, l, n);
+        else
+          vrna_log_error("Failed to parse G-Quadruplex");
+
         return;
       } else {
         bdat->structure[i - 1]  = '(';
@@ -474,16 +622,18 @@ mea_backtrack(const struct MEAdat *bdat,
 
   prec = DBL_EPSILON * Mi[j];
   /* Mi values are filled, do the backtrace */
-  while (j > i && Mi[j] <= Mi[j - 1] + pu[j] + prec) {
+  while ((j > i) &&
+         (Mi[j] <= (Mi[j - 1] + pu[j] + prec))) {
     bdat->structure[j - 1] = '.';
     j--;
   }
+
   for (li = C[j].list; li < C[j].list + C[j].nelem && li->i >= i; li++) {
     if (Mi[j] <= li->A + Mi[(li->i) - 1] + prec) {
       if (li->i > i + 3)
-        mea_backtrack(bdat, i, (li->i) - 1, 0, S, pf);
+        mea_backtrack(fc, bdat, i, (li->i) - 1, 0);
 
-      mea_backtrack(bdat, li->i, j, 1, S, pf);
+      mea_backtrack(fc, bdat, li->i, j, 1);
       fail = 0;
     }
   }
@@ -515,35 +665,45 @@ MEA_seq(vrna_ep_t         *p,
         double            gamma,
         vrna_exp_param_t  *pf)
 {
-  short             *S;
-  double            MEA;
-  vrna_exp_param_t  *exp_params;
-  vrna_md_t         md;
+  char                  *s;
+  unsigned int          n;
+  double                MEA;
+  vrna_fold_compound_t  *fc;
 
-  S = NULL;
+  s   = NULL;
+  fc  = NULL;
+  MEA = 0.;
 
-  if (!pf) {
-    /* use global variables to set model details */
-    set_model_details(&md);
-    exp_params = vrna_exp_params(&md);
-  } else {
-    exp_params = pf;
+  if ((p) &&
+      (structure)) {
+    n = strlen(structure);
+    if (sequence) {
+      if (strlen(sequence) != n) {
+        vrna_log_error("sequence and structure of different length (%u vs. %u)",
+                       strlen(sequence),
+                       n);
+        return 0.;
+      }
+    } else {
+      s = (char *)vrna_alloc(sizeof(char) * (n + 1));
+      memset(s, '.', sizeof(char) * n);
+      s[n]      = '\0';
+      sequence  = (const char *)s;
+    }
+
+    fc = vrna_fold_compound(sequence, NULL, VRNA_OPTION_DEFAULT | VRNA_OPTION_EVAL_ONLY);
+    if (pf)
+      vrna_exp_params_subst(fc, pf);
+
+    MEA = compute_MEA(fc,
+                      p,
+                      gamma,
+                      structure);
+
+    /* clean up */
+    vrna_fold_compound_free(fc);
+    free(s);
   }
-
-  if (sequence)
-    S = vrna_seq_encode(sequence, &(exp_params->model_details));
-
-  MEA = compute_MEA(p,
-                    strlen(structure),
-                    S,
-                    gamma,
-                    exp_params,
-                    structure);
-
-  /* clean up */
-  free(S);
-  if (!pf)
-    free(exp_params);
 
   return MEA;
 }
