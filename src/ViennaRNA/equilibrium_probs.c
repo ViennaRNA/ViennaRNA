@@ -897,7 +897,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
       }
 
     if (structure != NULL) {
-      char *s = vrna_db_from_probs(probs, (unsigned int)n);
+      char *s = vrna_pairing_tendency(vc);
       memcpy(structure, s, n);
       structure[n] = '\0';
       free(s);
