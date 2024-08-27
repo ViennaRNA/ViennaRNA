@@ -434,7 +434,9 @@ get_scaled_params(vrna_md_t *md)
     for (j = 3 * VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH; j++) {
       double  GQuadAlpha_T  = RESCALE_dG(GQuadAlpha37, GQuadAlphadH, tempf);
       double  GQuadBeta_T   = RESCALE_dG(GQuadBeta37, GQuadBetadH, tempf);
-      params->gquad[i][j] = (int)GQuadAlpha_T * (i - 1) + (int)(((double)GQuadBeta_T) * log(j - 2));
+      double  GQuadEnergy   = (double)GQuadAlpha_T * (double)(i - 1) +
+                              (double)GQuadBeta_T * log((double)j - 2.);
+      params->gquad[i][j]   = (int)GQuadEnergy;
     }
 
   for (i = 0; i < 31; i++)
@@ -633,9 +635,9 @@ get_scaled_exp_params(vrna_md_t *md,
     for (j = 3 * VRNA_GQUAD_MIN_LINKER_LENGTH; j <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH; j++) {
       double  GQuadAlpha_T  = RESCALE_dG(GQuadAlpha37, GQuadAlphadH, TT);
       double  GQuadBeta_T   = RESCALE_dG(GQuadBeta37, GQuadBetadH, TT);
-      GT = ((double)GQuadAlpha_T) * ((double)(i - 1)) + ((double)GQuadBeta_T) *
-           log(((double)j) - 2.);
-      pf->expgquad[i][j] = exp(-TRUNC_MAYBE(GT) * 10. / kT);
+      double  GQuadEnergy   = (double)GQuadAlpha_T * (double)(i - 1) +
+                              (double)GQuadBeta_T * log((double)j - 2.);
+      pf->expgquad[i][j] = exp(-TRUNC_MAYBE((double)((int)GQuadEnergy)) * 10. / kT);
     }
 
   /* loop energies: hairpins, bulges, interior, mulit-loops */
