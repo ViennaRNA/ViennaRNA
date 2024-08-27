@@ -17,7 +17,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/centroid.h"
 
 /*
@@ -60,7 +60,7 @@ vrna_centroid_from_plist(int        length,
 
   if (pl == NULL) {
     vrna_log_warning("vrna_centroid_from_plist: "
-                         "pl == NULL!");
+                     "pl == NULL!");
     return NULL;
   }
 
@@ -100,7 +100,7 @@ vrna_centroid_from_probs(int        length,
 
   if (probs == NULL) {
     vrna_log_warning("vrna_centroid_from_probs: "
-                         "probs == NULL!");
+                     "probs == NULL!");
     return NULL;
   }
 
@@ -131,56 +131,55 @@ vrna_centroid_from_probs(int        length,
  * p_ij>0.5
  */
 PUBLIC char *
-vrna_centroid(vrna_fold_compound_t  *vc,
+vrna_centroid(vrna_fold_compound_t  *fc,
               double                *dist)
 {
-  int               i, j, k, length;
-  FLT_OR_DBL        p;
   char              *centroid;
   short             *S;
-  vrna_mx_pf_t      *matrices;
-  FLT_OR_DBL        *probs;
+  unsigned int      L, l[3], i, j, k, kmax, n;
   int               *my_iindx;
+  FLT_OR_DBL        p, *probs;
+  vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
+  vrna_md_t         *md;
 
-
-  if (!vc) {
-    vrna_log_warning("vrna_centroid: "
-                         "run vrna_pf_fold first!");
+  if (!fc) {
+    vrna_log_warning("vrna_fold_compound_t missing!");
     return NULL;
-  } else if (!vc->exp_matrices->probs) {
-    vrna_log_warning("vrna_centroid: "
-                         "probs == NULL!");
+  } else if (!dist) {
+    vrna_log_error("pointer to centroid distance is missing");
+    return NULL;
+  } else if (!fc->exp_matrices->probs) {
+    vrna_log_warning("probs == NULL!");
     return NULL;
   }
 
-  length    = vc->length;
-  pf_params = vc->exp_params;
-  S         = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : vc->S_cons;
-  my_iindx  = vc->iindx;
-
-  matrices  = vc->exp_matrices;
+  n         = fc->length;
+  pf_params = fc->exp_params;
+  md        = &(pf_params->model_details);
+  S         = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : fc->S_cons;
+  my_iindx  = fc->iindx;
+  matrices  = fc->exp_matrices;
   probs     = matrices->probs;
-
   *dist     = 0.;
-  centroid  = (char *)vrna_alloc((length + 1) * sizeof(char));
-  for (i = 0; i < length; i++)
+
+  centroid = (char *)vrna_alloc((n + 1) * sizeof(char));
+
+  for (i = 0; i < n; i++)
     centroid[i] = '.';
-  for (i = 1; i <= length; i++)
-    for (j = i + 1; j <= length; j++) {
+  for (i = 1; i <= n; i++)
+    for (j = i + 1; j <= n; j++) {
       if ((p = probs[my_iindx[i] - j]) > 0.5) {
-        if (pf_params->model_details.gquad) {
+        if (md->gquad) {
           /* check for presence of gquadruplex */
           if ((S[i] == 3) && (S[j] == 3)) {
-            int L, l[3];
-            get_gquad_pattern_pf(S, i, j, pf_params, &L, l);
-            for (k = 0; k < L; k++) {
-              centroid[i + k - 1] \
-                      = centroid[i + k + L + l[0] - 1] \
-                      = centroid[i + k + 2 * L + l[0] + l[1] - 1] \
-                      = centroid[i + k + 3 * L + l[0] + l[1] + l[2] - 1] \
-                      = '+';
-            }
+            vrna_get_gquad_pattern_pf(fc, i, j, &L, l);
+
+            if (L > 0)
+              vrna_db_insert_gq(centroid, i, L, l, n);
+            else
+              vrna_log_error("failed to detect G-Quadruplex pattern");
+
             /* skip everything within the gquad */
             i     = j;
             j     = j + 1;
@@ -198,7 +197,30 @@ vrna_centroid(vrna_fold_compound_t  *vc,
       }
     }
 
-  centroid[length] = '\0';
+  if ((md->circ) &&
+      (md->gquad) &&
+      (matrices->p_gq)) {
+    kmax = vrna_smx_csr_get_size(matrices->p_gq);
+
+    /* add gquads that wrap around the n,1 junction */
+    for (k = 0; k < kmax; k++) {
+      p = vrna_smx_csr_get_entry(matrices->p_gq, k, &i, &j, 0.);
+      if (p > 0.5) {
+        /* get the gquad pattern */
+        vrna_log_debug("centroid: adding gq[%d,%d]", i, j);
+        vrna_get_gquad_pattern_pf(fc, i, j, &L, l);
+
+        if (L > 0)
+          vrna_db_insert_gq(centroid, i, L, l, n);
+        else
+          vrna_log_error("failed to detect G-Quadruplex pattern");
+
+        *dist += (1 - p);
+      }
+    }
+  }
+
+  centroid[n] = '\0';
   return centroid;
 }
 
