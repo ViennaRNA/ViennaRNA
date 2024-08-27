@@ -4705,7 +4705,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
             eval  = (hc->up_hp[l + 1] >= u1) ? 1 : 0;
 
             if ((eval) &&
-                (u1 < 3)) {
+                (u1 >= 3)) {
 #ifdef VRNA_WITH_CIRC_PENALTY
               qbt1 = pow(vrna_hp_exp_energy(u1, 0, 0, 0, NULL, pf_params), (double)n_seq) *
                      scale[u1];
