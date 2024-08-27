@@ -23,6 +23,9 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/loops/gquad.h"
 
+#include "ViennaRNA/loops/gquad_intern.h"
+
+
 #ifndef INLINE
 #ifdef __GNUC__
 # define INLINE inline
@@ -31,135 +34,12 @@
 #endif
 #endif
 
-/**
- *  Use this macro to loop over each G-quadruplex
- *  delimited by a and b within the subsequence [c,d]
- */
-#define FOR_EACH_GQUAD(a, b, c, d)  \
-        for ((a) = (d) - VRNA_GQUAD_MIN_BOX_SIZE + 1; (a) >= (c); (a)--) \
-        for ((b) = (a) + VRNA_GQUAD_MIN_BOX_SIZE - 1; \
-             (b) <= MIN2((d), (a) + VRNA_GQUAD_MAX_BOX_SIZE - 1); \
-             (b)++)
-
-#define FOR_EACH_GQUAD_INC(a, b, c, d)  \
-        for ((a) = (c); (a) <= (d) - VRNA_GQUAD_MIN_BOX_SIZE + 1; (a)++) \
-        for ((b) = (a) + VRNA_GQUAD_MIN_BOX_SIZE - 1; \
-             (b) <= MIN2((d), (a) + VRNA_GQUAD_MAX_BOX_SIZE - 1); \
-             (b)++)
-
-/**
- *  This macro does almost the same as FOR_EACH_GQUAD() but keeps
- *  the 5' delimiter fixed. 'b' is the 3' delimiter of the gquad,
- *  for gquads within subsequence [a,c] that have 5' delimiter 'a'
- */
-#define FOR_EACH_GQUAD_AT(a, b, c)  \
-        for ((b) = (a) + VRNA_GQUAD_MIN_BOX_SIZE - 1; \
-             (b) <= MIN2((c), (a) + VRNA_GQUAD_MAX_BOX_SIZE - 1); \
-             (b)++)
-
-
-/*
- * Check whether a G-Quadruplex with layer size L and linker lengths l
- * is valid. Perform action r if it doesn't validate
- */
-#define CHECK_GQUAD(L, l, r) \
-        do { \
-          for (size_t i = 0; i < 3; i++) { \
-            if ((l)[i] > VRNA_GQUAD_MAX_LINKER_LENGTH) { \
-              vrna_log_warning("G-Quadruplex linker length of %u exceeds maximum length of %u", \
-                               (unsigned int)(l)[i], \
-                               VRNA_GQUAD_MAX_LINKER_LENGTH); \
-              r; \
-            } \
-            if ((l)[i] < VRNA_GQUAD_MIN_LINKER_LENGTH) { \
-              vrna_log_warning("G-Quadruplex linker length of %u below minimum length of %u", \
-                               (unsigned int)(l)[i], \
-                               VRNA_GQUAD_MIN_LINKER_LENGTH); \
-              r; \
-            } \
-          } \
-          if ((L) > VRNA_GQUAD_MAX_STACK_SIZE) { \
-            vrna_log_warning("G-Quadruplex stack size of %u exceeds maximum stack size of %u", \
-                             (L), \
-                             VRNA_GQUAD_MAX_STACK_SIZE); \
-            r; \
-          } \
-          if ((L) < VRNA_GQUAD_MIN_STACK_SIZE) { \
-            vrna_log_warning("G-Quadruplex stack size of %u below minimum stack size of %u", \
-                             (L), \
-                             VRNA_GQUAD_MIN_STACK_SIZE); \
-            r; \
-          } \
-        } while (0)
-
-
-struct gquad_ali_helper {
-  const short         **S;
-  const unsigned int  **a2s;
-  unsigned int        length;
-  int                 n_seq;
-  vrna_param_t        *P;
-  vrna_exp_param_t    *pf;
-  int                 L;
-  int                 *l;
-};
 
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
-
-PRIVATE INLINE
-int *
-get_g_islands(short *S);
-
-
-PRIVATE INLINE
-int *
-get_g_islands_sub(short *S,
-                  int   i,
-                  int   j);
-
-
-/**
- *  IMPORTANT:
- *  If you don't know how to use this function, DONT'T USE IT!
- *
- *  The function pointer this function takes as argument is
- *  used for individual calculations with each g-quadruplex
- *  delimited by [i,j].
- *  The function it points to always receives as first 3 arguments
- *  position i, the stack size L and an array l[3] containing the
- *  individual linker sizes.
- *  The remaining 4 (void *) pointers of the callback function receive
- *  the parameters 'data', 'P', 'aux1' and 'aux2' and thus may be
- *  used to pass whatever data you like to.
- *  As the names of those parameters suggest the convention is that
- *  'data' should be used as a pointer where data is stored into,
- *  e.g the MFE or PF and the 'P' parameter should actually be a
- *  'vrna_param_t *' or 'vrna_exp_param_t *' type.
- *  However, what you actually pass obviously depends on the
- *  function the pointer is pointing to.
- *
- *  Although all of this may look like an overkill, it is found
- *  to be almost as fast as implementing g-quadruplex enumeration
- *  in each individual scenario, i.e. code duplication.
- *  Using this function, however, ensures that all g-quadruplex
- *  enumerations are absolutely identical.
- */
-PRIVATE
-void
-process_gquad_enumeration(int *gg,
-                          int i,
-                          int j,
-                          void ( *f )(int, int, int *,
-                                      void *, void *, void *, void *),
-                          void *data,
-                          void *P,
-                          void *aux1,
-                          void *aux2);
-
 
 /**
  *  MFE callback for process_gquad_enumeration()
@@ -374,27 +254,6 @@ count_gquad_layer_mismatches(int          L,
                              unsigned int n_seq,
                              const short  **S,
                              unsigned int mm[2]);
-
-
-PRIVATE int **
-create_L_matrix(short         *S,
-                int           start,
-                int           maxdist,
-                int           n,
-                int           **g,
-                vrna_param_t  *P);
-
-
-PRIVATE int **
-create_aliL_matrix(int          start,
-                   int          maxdist,
-                   int          n,
-                   int          **g,
-                   short        *S_cons,
-                   short        **S,
-                   unsigned int **a2s,
-                   int          n_seq,
-                   vrna_param_t *P);
 
 
 PRIVATE void
@@ -1892,385 +1751,6 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
 }
 
 
-/* 3. Dynamic programming matrices */
-
-PUBLIC
-vrna_smx_csr(int) *
-vrna_gq_pos_mfe(vrna_fold_compound_t * fc){
-  vrna_smx_csr(int) * gq_mfe_pos = NULL;
-
-  if (fc) {
-    int           i, j, n, n2;
-    int           *gg;
-    vrna_param_t  *P;
-    short         *S_enc, *S_tmp;
-    void          *data;
-    void          ( *process_f )(int,
-                                 int,
-                                 int *,
-                                 void *,
-                                 void *,
-                                 void *,
-                                 void *);
-    struct gquad_ali_helper tmp = {
-      0
-    };
-
-    n           = fc->length;
-    n2          = 0;
-    P           = fc->params;
-    S_tmp       = NULL;
-    gq_mfe_pos  = vrna_smx_csr_int_init(n + 1);
-
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        S_enc     = fc->sequence_encoding2;
-        data      = (void *)P;
-        process_f = &gquad_mfe;
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        S_enc = fc->S_cons;
-        struct gquad_ali_helper gq_help = {
-          .S      = (const short **)fc->S,
-          .a2s    = (const unsigned int **)fc->a2s,
-          .length = fc->length,
-          .n_seq  = fc->n_seq,
-          .P      = P
-        };
-        tmp       = gq_help;
-        data      = (void *)&tmp;
-        process_f = &gquad_mfe_ali;
-        break;
-
-      default:
-        return NULL;
-    }
-
-    if (P->model_details.circ) {
-      n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
-
-      S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
-      memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
-      memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);
-      S_tmp[0]  = n + n2;
-      S_enc     = S_tmp;
-      n         += n2;
-    }
-
-    gg = get_g_islands(S_enc);
-
-    FOR_EACH_GQUAD_INC(i, j, 1, n) {
-      int e = INF;
-
-      if (i > n - n2)
-        break;
-
-      process_gquad_enumeration(gg, i, j,
-                                process_f,
-                                (void *)(&e),
-                                data,
-                                NULL,
-                                NULL);
-      if ((e < INF) && (j - i + 1 <= n - n2)) {
-#ifndef VRNA_DISABLE_C11_FEATURES
-        vrna_smx_csr_insert(gq_mfe_pos, i, (j - 1) % (n - n2) + 1, e);
-#else
-        vrna_smx_csr_int_insert(gq_mfe_pos, i, (j - 1) % (n - n2) + 1, e);
-#endif
-      }
-    }
-
-    free(S_tmp);
-    free(gg);
-  }
-
-  return gq_mfe_pos;
-}
-
-
-PUBLIC
-vrna_smx_csr(FLT_OR_DBL) *
-vrna_gq_pos_pf(vrna_fold_compound_t * fc){
-  vrna_smx_csr(FLT_OR_DBL) * q_gq = NULL;
-
-  if (fc) {
-    int               i, j, n, n2, *gg;
-    short             *S_tmp, *S_enc;
-    FLT_OR_DBL        q, *scale;
-    vrna_exp_param_t  *pf_params;
-    void              *data;
-    void              ( *process_f )(int,
-                                     int,
-                                     int *,
-                                     void *,
-                                     void *,
-                                     void *,
-                                     void *);
-    struct gquad_ali_helper tmp = {
-      0
-    };
-
-    n         = fc->length;
-    n2        = 0;
-    pf_params = fc->exp_params;
-    S_tmp     = NULL;
-    q_gq      = vrna_smx_csr_FLT_OR_DBL_init(n + 1);
-    scale     = fc->exp_matrices->scale;
-
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        S_enc     = fc->sequence_encoding2;
-        data      = (void *)pf_params;
-        process_f = &gquad_pf;
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        S_enc = fc->S_cons;
-        struct gquad_ali_helper gq_help = {
-          .S      = (const short **)fc->S,
-          .a2s    = (const unsigned int **)fc->a2s,
-          .length = fc->length,
-          .n_seq  = fc->n_seq,
-          .pf     = pf_params
-        };
-        tmp       = gq_help;
-        data      = (void *)&tmp;
-        process_f = &gquad_pf_ali;
-        break;
-
-      default:
-        return NULL;
-    }
-
-    if (pf_params->model_details.circ) {
-      n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
-
-      S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
-      memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
-      memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);
-      S_tmp[0]  = n + n2;
-      S_enc     = S_tmp;
-      n         += n2;
-    }
-
-    gg = get_g_islands(S_enc);
-
-    FOR_EACH_GQUAD_INC(i, j, 1, n) {
-      q = 0.;
-
-      if (i > n - n2)
-        break;
-
-      process_gquad_enumeration(gg, i, j,
-                                process_f,
-                                (void *)(&q),
-                                data,
-                                NULL,
-                                NULL);
-      if ((q != 0.) &&
-          (j - i + 1 <= n - n2)) {
-#ifndef VRNA_DISABLE_C11_FEATURES
-        vrna_smx_csr_insert(q_gq, i, (j - 1) % (n - n2) + 1, q * scale[j - i + 1]);
-
-#else
-        vrna_smx_csr_FLT_OR_DBL_insert(q_gq, i, (j - 1) % (n - n2) + 1, q * scale[j - i + 1]);
-#endif
-      }
-    }
-
-    free(S_tmp);
-    free(gg);
-  }
-
-  return q_gq;
-}
-
-
-PUBLIC int **
-get_gquad_L_matrix(short        *S,
-                   int          start,
-                   int          maxdist,
-                   int          n,
-                   int          **g,
-                   vrna_param_t *P)
-{
-  return create_L_matrix(S, start, maxdist, n, g, P);
-}
-
-
-PUBLIC void
-vrna_gquad_mx_local_update(vrna_fold_compound_t *vc,
-                           int                  start)
-{
-  if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
-    vc->matrices->ggg_local = create_aliL_matrix(
-      start,
-      vc->window_size,
-      vc->length,
-      vc->matrices->ggg_local,
-      vc->S_cons,
-      vc->S,
-      vc->a2s,
-      vc->n_seq,
-      vc->params);
-  } else {
-    vc->matrices->ggg_local = create_L_matrix(
-      vc->sequence_encoding,
-      start,
-      vc->window_size,
-      vc->length,
-      vc->matrices->ggg_local,
-      vc->params);
-  }
-}
-
-
-PRIVATE int **
-create_L_matrix(short         *S,
-                int           start,
-                int           maxdist,
-                int           n,
-                int           **g,
-                vrna_param_t  *P)
-{
-  int **data;
-  int i, j, k, *gg, p, q;
-
-  p   = MAX2(1, start);
-  q   = MIN2(n, start + maxdist + 4);
-  gg  = get_g_islands_sub(S, p, q);
-
-  if (g) {
-    /* we just update the gquadruplex contribution for the current
-     * start and rotate the rest */
-    data = g;
-    /* we re-use the memory allocated previously */
-    data[start]               = data[start + maxdist + 5];
-    data[start + maxdist + 5] = NULL;
-
-    /* prefill with INF */
-    for (i = 0; i < maxdist + 5; i++)
-      data[start][i] = INF;
-
-    /*  now we compute contributions for all gquads with 5' delimiter at
-     *  position 'start'
-     */
-    FOR_EACH_GQUAD_AT(start, j, start + maxdist + 4){
-      process_gquad_enumeration(gg, start, j,
-                                &gquad_mfe,
-                                (void *)(&(data[start][j - start])),
-                                (void *)P,
-                                NULL,
-                                NULL);
-    }
-  } else {
-    /* create a new matrix from scratch since this is the first
-     * call to this function */
-
-    /* allocate memory and prefill with INF */
-    data = (int **)vrna_alloc(sizeof(int *) * (n + 1));
-    for (k = n; (k > n - maxdist - 5) && (k >= 0); k--) {
-      data[k] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-      for (i = 0; i < maxdist + 5; i++)
-        data[k][i] = INF;
-    }
-
-    /* compute all contributions for the gquads in this interval */
-    FOR_EACH_GQUAD(i, j, MAX2(1, n - maxdist - 4), n){
-      process_gquad_enumeration(gg, i, j,
-                                &gquad_mfe,
-                                (void *)(&(data[i][j - i])),
-                                (void *)P,
-                                NULL,
-                                NULL);
-    }
-  }
-
-  gg += p - 1;
-  free(gg);
-  return data;
-}
-
-
-PRIVATE int **
-create_aliL_matrix(int          start,
-                   int          maxdist,
-                   int          n,
-                   int          **g,
-                   short        *S_cons,
-                   short        **S,
-                   unsigned int **a2s,
-                   int          n_seq,
-                   vrna_param_t *P)
-{
-  int **data;
-  int i, j, k, *gg, p, q;
-
-  p   = MAX2(1, start);
-  q   = MIN2(n, start + maxdist + 4);
-  gg  = get_g_islands_sub(S_cons, p, q);
-
-  struct gquad_ali_helper gq_help = {
-    .S      = (const short **)S,
-    .a2s    = (const unsigned int **)a2s,
-    .length = n,
-    .n_seq  = n_seq,
-    .P      = P
-  };
-
-  if (g) {
-    /* we just update the gquadruplex contribution for the current
-     * start and rotate the rest */
-    data = g;
-    /* we re-use the memory allocated previously */
-    data[start]               = data[start + maxdist + 5];
-    data[start + maxdist + 5] = NULL;
-
-    /* prefill with INF */
-    for (i = 0; i < maxdist + 5; i++)
-      data[start][i] = INF;
-
-    /*  now we compute contributions for all gquads with 5' delimiter at
-     *  position 'start'
-     */
-    FOR_EACH_GQUAD_AT(start, j, start + maxdist + 4){
-      process_gquad_enumeration(gg, start, j,
-                                &gquad_mfe_ali,
-                                (void *)(&(data[start][j - start])),
-                                (void *)&gq_help,
-                                NULL,
-                                NULL);
-    }
-  } else {
-    /* create a new matrix from scratch since this is the first
-     * call to this function */
-
-    /* allocate memory and prefill with INF */
-    data = (int **)vrna_alloc(sizeof(int *) * (n + 1));
-    for (k = n; (k > n - maxdist - 5) && (k >= 0); k--) {
-      data[k] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-      for (i = 0; i < maxdist + 5; i++)
-        data[k][i] = INF;
-    }
-
-    /* compute all contributions for the gquads in this interval */
-    FOR_EACH_GQUAD(i, j, MAX2(1, n - maxdist - 4), n){
-      process_gquad_enumeration(gg, i, j,
-                                &gquad_mfe_ali,
-                                (void *)(&(data[i][j - i])),
-                                (void *)&gq_help,
-                                NULL,
-                                NULL);
-    }
-  }
-
-  gg += p - 1;
-  free(gg);
-  return data;
-}
-
-
 /* 4. Parsing */
 
 PUBLIC plist *
@@ -2442,44 +1922,94 @@ get_gquad_pattern_pf(short            *S,
 
 PUBLIC void
 vrna_get_gquad_pattern_pf(vrna_fold_compound_t  *fc,
-                          int                   i,
-                          int                   j,
-                          int                   *L,
-                          int                   l[3])
+                          unsigned int          i,
+                          unsigned int          j,
+                          unsigned int          *LL,
+                          unsigned int          ll[3])
 {
-  short             *S  = fc->type == VRNA_FC_TYPE_SINGLE ? fc->sequence_encoding2 : fc->S_cons;
-  int               *gg = get_g_islands_sub(S, i, j);
+  short             *S_enc, *S_tmp;
+  unsigned int      n, n2;
+  int               *gg, L, l[3];
   FLT_OR_DBL        q   = 0.;
-  vrna_exp_param_t  *pf = fc->exp_params;
+  vrna_exp_param_t  *pf_params;
+  void              *data;
+  void              ( *process_f )(int,
+                                   int,
+                                   int *,
+                                   void *,
+                                   void *,
+                                   void *,
+                                   void *);
+  struct gquad_ali_helper tmp = {
+    0
+  };
 
-  if (fc->type == VRNA_FC_TYPE_SINGLE) {
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_pf_pos,
-                              (void *)(&q),
-                              (void *)pf,
-                              (void *)L,
-                              (void *)l);
-  } else {
-    struct gquad_ali_helper gq_help = {
-      .S      = (const short **)fc->S,
-      .a2s    = (const unsigned int **)fc->a2s,
-      .length = fc->length,
-      .n_seq  = fc->n_seq,
-      .pf     = pf,
-      .L      = (int)(*L),
-      .l      = (int *)l
-    };
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_pf_pos_ali,
-                              (void *)(&q),
-                              (void *)&gq_help,
-                              NULL,
-                              NULL);
-    *L = gq_help.L;
+  n         = fc->length;
+  n2        = 0;
+  pf_params = fc->exp_params;
+  S_tmp     = NULL;
+
+  *LL   = 0;
+  ll[0] = ll[1] = ll[2] = 0;
+
+  switch (fc->type) {
+    case VRNA_FC_TYPE_COMPARATIVE:
+      S_enc = fc->S_cons;
+      struct gquad_ali_helper gq_help = {
+        .S      = (const short **)fc->S,
+        .a2s    = (const unsigned int **)fc->a2s,
+        .length = fc->length,
+        .n_seq  = fc->n_seq,
+        .pf     = pf_params,
+        .L      = 0,
+        .l      = (int *)&(l[0])
+      };
+      tmp       = gq_help;
+      data      = (void *)&tmp;
+      process_f = &gquad_pf_pos_ali;
+      break;
+
+    default:
+      S_enc     = fc->sequence_encoding2;
+      data      = (void *)pf_params;
+      process_f = &gquad_pf_pos;
+      break;
   }
+
+  if ((pf_params->model_details.circ) &&
+      (j < i)) {
+    j += n;
+    /* G-Quadruplex wraps around the n,1 junction */
+    n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
+    S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
+    memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
+    memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);
+    S_tmp[0]  = n + n2;
+    S_enc     = S_tmp;
+    n         += n2;
+  }
+
+  gg = get_g_islands_sub(S_enc, i, j);
+
+  process_gquad_enumeration(gg, i, j,
+                            process_f,
+                            (void *)(&q),
+                            data,
+                            (void *)&L,
+                            (void *)&(l[0]));
+
+  if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+    *LL = (unsigned int)tmp.L;
+  else
+    *LL = (unsigned int)L;
+  
+  ll[0] = (unsigned int)l[0];
+  ll[1] = (unsigned int)l[1];
+  ll[2] = (unsigned int)l[2];
 
   gg += i - 1;
   free(gg);
+  free(S_tmp);
 }
 
 
@@ -2548,7 +2078,8 @@ get_plist_gquad_from_pr_max(short                     *S,
                             (void *)lmax);
 
 #ifndef VRNA_DISABLE_C11_FEATURES
-  pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] / vrna_smx_csr_get(q_gq, gi, gj, 0.);
+  pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] /
+       vrna_smx_csr_get(q_gq, gi, gj, 0.);
 #else
   pp = probs[my_index[gi] - gj] * scale[gj - gi + 1] /
        vrna_smx_csr_FLT_OR_DBL_get(q_gq, gi, gj, 0.);
@@ -2919,7 +2450,7 @@ PUBLIC void
 vrna_db_insert_gq(char          *db,
                   unsigned int  i,
                   unsigned int  L,
-                  unsigned int l[3]
+                  unsigned int l[3],
                   unsigned int  n)
 {
   if (db) {
@@ -3549,93 +3080,6 @@ gquad_interact_ali(int  i,
 }
 
 
-PRIVATE INLINE int *
-get_g_islands(short *S)
-{
-  return get_g_islands_sub(S, 1, S[0]);
-}
-
-
-PRIVATE INLINE int *
-get_g_islands_sub(short *S,
-                  int   i,
-                  int   j)
-{
-  int x, *gg;
-
-  gg  = (int *)vrna_alloc(sizeof(int) * (j - i + 2));
-  gg  -= i - 1;
-
-  if (S[j] == 3)
-    gg[j] = 1;
-
-  for (x = j - 1; x >= i; x--)
-    if (S[x] == 3)
-      gg[x] = gg[x + 1] + 1;
-
-  return gg;
-}
-
-
-/**
- *  We could've also created a macro that loops over all G-quadruplexes
- *  delimited by i and j. However, for the fun of it we use this function
- *  that receives a pointer to a callback function which in turn does the
- *  actual computation for each quadruplex found.
- */
-PRIVATE
-void
-process_gquad_enumeration(int *gg,
-                          int i,
-                          int j,
-                          void ( *f )(int, int, int *,
-                                      void *, void *, void *, void *),
-                          void *data,
-                          void *P,
-                          void *aux1,
-                          void *aux2)
-{
-  int L, l[3], n, max_linker, maxl0, maxl1;
-
-  n = j - i + 1;
-
-  if ((n >= VRNA_GQUAD_MIN_BOX_SIZE) &&
-      (n <= VRNA_GQUAD_MAX_BOX_SIZE)) {
-    for (L = MIN2(gg[i], VRNA_GQUAD_MAX_STACK_SIZE);
-         L >= VRNA_GQUAD_MIN_STACK_SIZE;
-         L--)
-      if (gg[j - L + 1] >= L) {
-        max_linker = n - 4 * L;
-        if ((max_linker >= 3 * VRNA_GQUAD_MIN_LINKER_LENGTH) &&
-            (max_linker <= 3 * VRNA_GQUAD_MAX_LINKER_LENGTH)) {
-          maxl0 = MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH,
-                       max_linker - 2 * VRNA_GQUAD_MIN_LINKER_LENGTH
-                       );
-          for (l[0] = VRNA_GQUAD_MIN_LINKER_LENGTH;
-               l[0] <= maxl0;
-               l[0]++)
-            if (gg[i + L + l[0]] >= L) {
-              maxl1 = MIN2(VRNA_GQUAD_MAX_LINKER_LENGTH,
-                           max_linker - l[0] - VRNA_GQUAD_MIN_LINKER_LENGTH
-                           );
-              for (l[1] = VRNA_GQUAD_MIN_LINKER_LENGTH;
-                   l[1] <= maxl1;
-                   l[1]++) {
-                if (gg[i + 2 * L + l[0] + l[1]] >= L) {
-                  l[2] = max_linker - l[0] - l[1];
-                  if ((l[2] <= VRNA_GQUAD_MAX_LINKER_LENGTH) &&
-                      (gg[i + 3 * L + l[0] + l[1] + l[2]] >= L)) {
-                    f(i, L, &(l[0]), data, P, aux1, aux2);
-                  }
-                }
-              }
-            }
-        }
-      }
-  }
-}
-
-
 /*
  *###########################################
  *# deprecated functions below              #
@@ -3693,7 +3137,7 @@ E_gquad_ali_en(int          i,
                vrna_param_t *P,
                int          en[2])
 {
-  return vrna_gq_consensus_energy(L, l, (unsigned int)i, 0, n_seq, S, a2s, P, en);
+  vrna_gq_consensus_energy(L, l, (unsigned int)i, 0, n_seq, S, a2s, P, en);
 }
 
 
@@ -3714,158 +3158,6 @@ exp_E_gquad_ali(int               i,
                                       n_seq,
                                       (const short **)S,
                                       (const unsigned int **)a2s);
-}
-
-
-/********************************
- * Now, the triangular matrix
- * generators for the G-quadruplex
- * contributions are following
- *********************************/
-PUBLIC int *
-get_gquad_matrix(short        *S,
-                 vrna_param_t *P)
-{
-  int n, size, i, j, *gg, *my_index, *data;
-
-  n         = S[0];
-  my_index  = vrna_idx_col_wise(n);
-  gg        = get_g_islands(S);
-  size      = (n * (n + 1)) / 2 + 2;
-  data      = (int *)vrna_alloc(sizeof(int) * size);
-
-  /* prefill the upper triangular matrix with INF */
-  for (i = 0; i < size; i++)
-    data[i] = INF;
-
-  FOR_EACH_GQUAD(i, j, 1, n){
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_mfe,
-                              (void *)(&(data[my_index[j] + i])),
-                              (void *)P,
-                              NULL,
-                              NULL);
-  }
-
-  free(my_index);
-  free(gg);
-  return data;
-}
-
-
-PUBLIC FLT_OR_DBL *
-get_gquad_pf_matrix(short             *S,
-                    FLT_OR_DBL        *scale,
-                    vrna_exp_param_t  *pf)
-{
-  int         n, size, *gg, i, j, *my_index;
-  FLT_OR_DBL  *data;
-
-
-  n         = S[0];
-  size      = (n * (n + 1)) / 2 + 2;
-  data      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-  gg        = get_g_islands(S);
-  my_index  = vrna_idx_row_wise(n);
-
-  FOR_EACH_GQUAD(i, j, 1, n){
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_pf,
-                              (void *)(&(data[my_index[i] - j])),
-                              (void *)pf,
-                              NULL,
-                              NULL);
-    data[my_index[i] - j] *= scale[j - i + 1];
-  }
-
-  free(my_index);
-  free(gg);
-  return data;
-}
-
-
-PUBLIC FLT_OR_DBL *
-get_gquad_pf_matrix_comparative(unsigned int      n,
-                                short             *S_cons,
-                                short             **S,
-                                unsigned int      **a2s,
-                                FLT_OR_DBL        *scale,
-                                unsigned int      n_seq,
-                                vrna_exp_param_t  *pf)
-{
-  int         size, *gg, i, j, *my_index;
-  FLT_OR_DBL  *data;
-
-
-  size      = (n * (n + 1)) / 2 + 2;
-  data      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
-  gg        = get_g_islands(S_cons);
-  my_index  = vrna_idx_row_wise(n);
-
-  struct gquad_ali_helper gq_help = {
-    .S      = (const short **)S,
-    .a2s    = (const unsigned int **)a2s,
-    .length = n,
-    .n_seq  = n_seq,
-    .pf     = pf
-  };
-
-  FOR_EACH_GQUAD(i, j, 1, n){
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_pf_ali,
-                              (void *)(&(data[my_index[i] - j])),
-                              (void *)&gq_help,
-                              NULL,
-                              NULL);
-    data[my_index[i] - j] *= scale[j - i + 1];
-  }
-
-  free(my_index);
-  free(gg);
-  return data;
-}
-
-
-PUBLIC int *
-get_gquad_ali_matrix(unsigned int n,
-                     short        *S_cons,
-                     short        **S,
-                     unsigned int **a2s,
-                     int          n_seq,
-                     vrna_param_t *P)
-{
-  int size, *data, *gg;
-  int i, j, *my_index;
-
-  size      = (n * (n + 1)) / 2 + 2;
-  data      = (int *)vrna_alloc(sizeof(int) * size);
-  gg        = get_g_islands(S_cons);
-  my_index  = vrna_idx_col_wise(n);
-
-  struct gquad_ali_helper gq_help = {
-    .S      = (const short **)S,
-    .a2s    = (const unsigned int **)a2s,
-    .length = n,
-    .n_seq  = n_seq,
-    .P      = P
-  };
-
-  /* prefill the upper triangular matrix with INF */
-  for (i = 0; i < size; i++)
-    data[i] = INF;
-
-  FOR_EACH_GQUAD(i, j, 1, n){
-    process_gquad_enumeration(gg, i, j,
-                              &gquad_mfe_ali,
-                              (void *)(&(data[my_index[j] + i])),
-                              (void *)&gq_help,
-                              NULL,
-                              NULL);
-  }
-
-  free(my_index);
-  free(gg);
-  return data;
 }
 
 

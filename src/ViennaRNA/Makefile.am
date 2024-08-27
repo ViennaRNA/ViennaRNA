@@ -277,7 +277,7 @@ vrna_params_HEADERS = \
     params/basic.h \
     params/io.h \
     params/convert.h \
-		params/salt.h
+    params/salt.h
 
 
 vrna_datastructures_HEADERS = \
@@ -441,7 +441,9 @@ libRNA_loops_la_SOURCES = \
     loops/multibranch.c \
     loops/multibranch_bt.c \
     loops/multibranch_pf.c \
-    loops/gquad.c
+    loops/gquad.c \
+    loops/gquad_dp.c
+
 
 libRNA_params_la_SOURCES = \
     params/io.c \
@@ -543,6 +545,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               loops/external_hc.inc \
               loops/external_sc.inc \
               loops/external_sc_pf.inc \
+              loops/gquad_intern.h \
               loops/hairpin_hc.inc \
               loops/hairpin_sc.inc \
               loops/hairpin_sc_pf.inc \

@@ -193,6 +193,14 @@ get_gquad_pattern_pf(short            *S,
                      int              l[3]);
 
 
+void
+vrna_get_gquad_pattern_pf(vrna_fold_compound_t  *fc,
+                          unsigned int          i, 
+                          unsigned int          j,
+                          unsigned int          *L,
+                          unsigned int          [3]);
+
+
 plist *
 get_plist_gquad_from_db(const char  *structure,
                         float       pr);
@@ -256,6 +264,13 @@ unsigned int
   vrna_gq_parse(const char *db_string,
                 unsigned int *L,
                 unsigned int l[3]);
+
+void
+vrna_db_insert_gq(char          *db,
+                  unsigned int  i,
+                  unsigned int  L,
+                  unsigned int l[3],
+                  unsigned int  n);
 
 /**
  *  @}
