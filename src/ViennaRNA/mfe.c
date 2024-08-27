@@ -449,7 +449,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
       fM1[indx[i] + i] = INF;
 
     if (fM2_real)
-      for (j = i + 1; j <= length; j++)
+      for (j = i; j <= length; j++)
         fM2_real[indx[j] + i] = INF;
   }
 
