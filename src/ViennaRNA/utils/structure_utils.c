@@ -2030,6 +2030,34 @@ wrap_plist(vrna_fold_compound_t *vc,
           (pl)[count].j       = j;
           (pl)[count].p       = (float)p_g;
           (pl)[count++].type  = VRNA_PLIST_TYPE_GQUAD;
+
+          /* now add the probabilies of it's actual pairing patterns */
+          vrna_ep_t *inner, *ptr;
+          inner = vrna_plist_gquad_from_pr(vc, i, j);
+          for (ptr = inner; ptr->i != 0; ptr++) {
+            if (count == n * length - 1) {
+              n   *= 2;
+              pl  = (vrna_ep_t *)vrna_realloc(pl, n * length * sizeof(vrna_ep_t));
+            }
+
+            /* check if we've already seen this pair */
+            for (k = 0; k < count; k++)
+              if (((pl)[k].i == ptr->i) &&
+                  ((pl)[k].j == ptr->j) &&
+                  ((pl)[k].type == VRNA_PLIST_TYPE_TRIPLE))
+                break;
+
+            (pl)[k].i     = ptr->i;
+            (pl)[k].j     = ptr->j;
+            (pl)[k].type  = ptr->type;
+            if (k == count) {
+              (pl)[k].p = ptr->p;
+              count++;
+            } else {
+              (pl)[k].p += ptr->p;
+            }
+          }
+          free(inner);
         }
       }
     }
