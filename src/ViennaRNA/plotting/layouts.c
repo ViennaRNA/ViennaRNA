@@ -280,11 +280,19 @@ rna_layout(const char   *structure,
   ge = 0;
   while ((ee = vrna_gq_parse(structure + ge, &Lg, l)) > 0) {
     ge  += ee;
-    gb  = ge - Lg * 4 - l[0] - l[1] - l[2] + 1;
+    if (4 * Lg + l[0] + l[1] + l[2] > ee) {
+      gb = n + ge - 4 * Lg - l[0] - l[1] - l[2] + 1;
+    } else {
+      gb  = ge - Lg * 4 - l[0] - l[1] - l[2] + 1;
+    }
+
     /* add pseudo-base pair encloding gquad */
     for (i = 0; i < Lg; i++) {
-      pt_g[ge - i]  = gb + i;
-      pt_g[gb + i]  = ge - i;
+      unsigned int ii, jj;
+      ii = (gb + i - 1) % n + 1;
+      jj = (n + ge - i - 1) % n + 1;
+      pt_g[ii]  = jj;
+      pt_g[jj]  = ii;
     }
   }
 

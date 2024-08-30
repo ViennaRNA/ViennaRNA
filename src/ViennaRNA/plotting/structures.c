@@ -167,8 +167,8 @@ rnaplot_EPS(const char          *seq,
             vrna_plot_layout_t  *layout)
 {
   float     xmin, xmax, ymin, ymax;
-  int       i, length;
-  unsigned int  ee, Lg, l[3];
+  int       i;
+  unsigned int  ee, Lg, l[3], length;
   int       gb, ge, bbox[4];
   float     *X, *Y;
   FILE      *xyplot;
@@ -265,16 +265,21 @@ rnaplot_EPS(const char          *seq,
     int k;
     fprintf(xyplot, "%% gquad\n");
     ge  += ee;
-    gb  = ge - Lg * 4 - l[0] - l[1] - l[2] + 1; /* add pseudo-base pair encloding gquad */
+    if (4 * Lg + l[0] + l[1] + l[2] > ee) {
+      gb = length + ge - Lg * 4 - l[0] - l[1] - l[2] + 1; /* add pseudo-base pair encloding gquad */
+    } else {
+      gb  = ge - Lg * 4 - l[0] - l[1] - l[2] + 1; /* add pseudo-base pair encloding gquad */
+    }
+
     for (k = 0; k < Lg; k++) {
       int ii, jj, il;
       for (il = 0, ii = gb + k; il < 3; il++) {
         jj = ii + l[il] + Lg;
-        fprintf(xyplot, "[%d %d]\n", ii, jj);
+        fprintf(xyplot, "[%d %d]\n", (ii - 1) % (length) + 1, (jj - 1) % (length) + 1);
         ii = jj;
       }
       jj = gb + k;
-      fprintf(xyplot, "[%d %d]\n", jj, ii);
+      fprintf(xyplot, "[%d %d]\n", (jj - 1) % (length) + 1, (ii - 1) % (length) + 1);
     }
   }
 
