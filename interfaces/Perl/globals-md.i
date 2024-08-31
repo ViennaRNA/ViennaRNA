@@ -107,6 +107,14 @@
   sv_setiv($result, (IV) vrna_md_defaults_circ_get());
 }
 
+%typemap(varin) int circ_penalty {
+  vrna_md_defaults_circ_penalty(SvIV($input));
+}
+
+%typemap(varout) int circ_penalty {
+  sv_setiv($result, (IV) vrna_md_defaults_circ_penalty_get());
+}
+
 %typemap(varin) int gquad {
   vrna_md_defaults_gquad(SvIV($input));
 }

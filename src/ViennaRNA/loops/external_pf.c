@@ -330,10 +330,14 @@ vrna_ext_circ_exp_en(unsigned int n,
    md = &md_tmp;
   }
 
-  double e  = (double)vrna_ext_circ_en(n, md) / 100.;
-  double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
+  if (md->circ_penalty) {
+    double e  = (double)vrna_ext_circ_en(n, md) / 100.;
+    double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
 
-  return (FLT_OR_DBL)exp(-e / kT); /* return in dekacal/mol */
+    return (FLT_OR_DBL)exp(-e / kT); /* return in dekacal/mol */
+  } else {
+    return 1;
+  }
 }
 
 

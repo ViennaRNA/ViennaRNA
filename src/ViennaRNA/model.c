@@ -128,43 +128,44 @@ dm_default[7][7] = DM_DEFAULT;
 
 
 PRIVATE vrna_md_t defaults = {
-  VRNA_MODEL_DEFAULT_TEMPERATURE,
-  1.,
-  VRNA_MODEL_DEFAULT_PF_SMOOTH,
-  VRNA_MODEL_DEFAULT_DANGLES,
-  VRNA_MODEL_DEFAULT_SPECIAL_HP,
-  VRNA_MODEL_DEFAULT_NO_LP,
-  VRNA_MODEL_DEFAULT_NO_GU,
-  VRNA_MODEL_DEFAULT_NO_GU_CLOSURE,
-  VRNA_MODEL_DEFAULT_LOG_ML,
-  VRNA_MODEL_DEFAULT_CIRC,
-  VRNA_MODEL_DEFAULT_GQUAD,
-  VRNA_MODEL_DEFAULT_UNIQ_ML,
-  VRNA_MODEL_DEFAULT_ENERGY_SET,
-  VRNA_MODEL_DEFAULT_BACKTRACK,
-  VRNA_MODEL_DEFAULT_BACKTRACK_TYPE,
-  VRNA_MODEL_DEFAULT_COMPUTE_BPP,
-  { 0 },
-  VRNA_MODEL_DEFAULT_MAX_BP_SPAN,
-  TURN,
-  VRNA_MODEL_DEFAULT_WINDOW_SIZE,
-  VRNA_MODEL_DEFAULT_ALI_OLD_EN,
-  VRNA_MODEL_DEFAULT_ALI_RIBO,
-  VRNA_MODEL_DEFAULT_ALI_CV_FACT,
-  VRNA_MODEL_DEFAULT_ALI_NC_FACT,
-  1.07,
-  BP_REV_DEFAULT,
-  BP_ALIAS_DEFAULT,
-  BP_ENCODING_DEFAULT,
-  DM_DEFAULT,
-  VRNA_MODEL_DEFAULT_SALT,
-  VRNA_MODEL_DEFAULT_SALT_MLLOWER,
-  VRNA_MODEL_DEFAULT_SALT_MLUPPER,
-  VRNA_MODEL_DEFAULT_SALT_DPXINIT,
-  VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT,
-  VRNA_MODEL_DEFAULT_HELICAL_RISE,
-  VRNA_MODEL_DEFAULT_BACKBONE_LENGTH,
-  VRNA_MODEL_DEFAULT_CIRC_ALPHA0
+  .temperature = VRNA_MODEL_DEFAULT_TEMPERATURE,
+  .betaScale = 1.,
+  .pf_smooth = VRNA_MODEL_DEFAULT_PF_SMOOTH,
+  .dangles  = VRNA_MODEL_DEFAULT_DANGLES,
+  .special_hp  = VRNA_MODEL_DEFAULT_SPECIAL_HP,
+  .noLP  = VRNA_MODEL_DEFAULT_NO_LP,
+  .noGU  = VRNA_MODEL_DEFAULT_NO_GU,
+  .noGUclosure  = VRNA_MODEL_DEFAULT_NO_GU_CLOSURE,
+  .logML  = VRNA_MODEL_DEFAULT_LOG_ML,
+  .circ  = VRNA_MODEL_DEFAULT_CIRC,
+  .circ_penalty  = VRNA_MODEL_DEFAULT_CIRC_PENALTY,
+  .gquad  = VRNA_MODEL_DEFAULT_GQUAD,
+  .uniq_ML  = VRNA_MODEL_DEFAULT_UNIQ_ML,
+  .energy_set  = VRNA_MODEL_DEFAULT_ENERGY_SET,
+  .backtrack  = VRNA_MODEL_DEFAULT_BACKTRACK,
+  .backtrack_type  = VRNA_MODEL_DEFAULT_BACKTRACK_TYPE,
+  .compute_bpp  = VRNA_MODEL_DEFAULT_COMPUTE_BPP,
+  .nonstandards  = { 0 },
+  .max_bp_span  = VRNA_MODEL_DEFAULT_MAX_BP_SPAN,
+  .min_loop_size  = TURN,
+  .window_size  = VRNA_MODEL_DEFAULT_WINDOW_SIZE,
+  .oldAliEn  = VRNA_MODEL_DEFAULT_ALI_OLD_EN,
+  .ribo  = VRNA_MODEL_DEFAULT_ALI_RIBO,
+  .cv_fact  = VRNA_MODEL_DEFAULT_ALI_CV_FACT,
+  .nc_fact  = VRNA_MODEL_DEFAULT_ALI_NC_FACT,
+  .sfact  = 1.07,
+  .rtype  = BP_REV_DEFAULT,
+  .alias  = BP_ALIAS_DEFAULT,
+  .pair  = BP_ENCODING_DEFAULT,
+  .pair_dist  = DM_DEFAULT,
+  .salt  = VRNA_MODEL_DEFAULT_SALT,
+  .saltMLLower  = VRNA_MODEL_DEFAULT_SALT_MLLOWER,
+  .saltMLUpper  = VRNA_MODEL_DEFAULT_SALT_MLUPPER,
+  .saltDPXInit  = VRNA_MODEL_DEFAULT_SALT_DPXINIT,
+  .saltDPXInitFact  = VRNA_MODEL_DEFAULT_SALT_DPXINIT_FACT,
+  .helical_rise  = VRNA_MODEL_DEFAULT_HELICAL_RISE,
+  .backbone_length  = VRNA_MODEL_DEFAULT_BACKBONE_LENGTH,
+  .circ_alpha0  = VRNA_MODEL_DEFAULT_CIRC_ALPHA0
 };
 
 /*
@@ -352,6 +353,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
   defaults.logML            = VRNA_MODEL_DEFAULT_LOG_ML;
   defaults.gquad            = VRNA_MODEL_DEFAULT_GQUAD;
   defaults.circ             = VRNA_MODEL_DEFAULT_CIRC;
+  defaults.circ_penalty     = VRNA_MODEL_DEFAULT_CIRC_PENALTY;
   defaults.uniq_ML          = VRNA_MODEL_DEFAULT_UNIQ_ML;
   defaults.compute_bpp      = VRNA_MODEL_DEFAULT_COMPUTE_BPP;
   defaults.backtrack        = VRNA_MODEL_DEFAULT_BACKTRACK;
@@ -393,6 +395,7 @@ vrna_md_defaults_reset(vrna_md_t *md_p)
     vrna_md_defaults_logML(md_p->logML);
     vrna_md_defaults_gquad(md_p->gquad);
     vrna_md_defaults_circ(md_p->circ);
+    vrna_md_defaults_circ_penalty(md_p->circ_penalty);
     vrna_md_defaults_uniq_ML(md_p->uniq_ML);
     vrna_md_defaults_compute_bpp(md_p->compute_bpp);
     vrna_md_defaults_backtrack(md_p->backtrack);
@@ -627,6 +630,20 @@ PUBLIC int
 vrna_md_defaults_circ_get(void)
 {
   return defaults.circ;
+}
+
+
+PUBLIC void
+vrna_md_defaults_circ_penalty(int flag)
+{
+  defaults.circ_penalty = flag ? 1 : 0;
+}
+
+
+PUBLIC int
+vrna_md_defaults_circ_penalty_get(void)
+{
+  return defaults.circ_penalty;
 }
 
 
@@ -1148,6 +1165,7 @@ set_model_details(vrna_md_t *md)
     md->logML           = logML;
     md->gquad           = gquad;
     md->circ            = circ;
+    md->circ_penalty    = VRNA_MODEL_DEFAULT_CIRC_PENALTY;
     md->uniq_ML         = uniq_ML;
     md->compute_bpp     = do_backtrack;
     md->backtrack       = VRNA_MODEL_DEFAULT_BACKTRACK;

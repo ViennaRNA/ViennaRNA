@@ -97,6 +97,7 @@ typedef struct {
   int     noGUclosure;
   int     logML;
   int     circ;
+  int     circ_penalty;
   int     gquad;
   int     uniq_ML;
   int     energy_set;
@@ -122,6 +123,7 @@ typedef struct {
   float   saltDPXInitFact;
   float   helical_rise;
   float   backbone_length;
+  double  circ_alpha0;
 } vrna_md_t;
 
 
@@ -145,6 +147,7 @@ typedef struct {
 %typemap("doc") int noGUclosure "$1_name: int\n     Do not allow loops to be closed by GU pair."
 %typemap("doc") int logML "$1_name: int\n     Use logarithmic scaling for multiloops."
 %typemap("doc") int circ "$1_name: int\n     Assume RNA to be circular instead of linear."
+%typemap("doc") int circ_penalty "$1_name: int\n     Add entropic penalty for unpaired chain in circular RNAs."
 %typemap("doc") int gquad "$1_name: int\n     Include G-quadruplexes in structure prediction."
 %typemap("doc") int uniq_ML "$1_name: int\n     Flag to ensure unique multi-branch loop decomposition during folding."
 %typemap("doc") int energy_set "$1_name: int\n     Specifies the energy set that defines set of compatible base pairs."
@@ -177,6 +180,7 @@ typedef struct {
     int     noGUclosure     = vrna_md_defaults_noGUclosure_get(),
     int     logML           = vrna_md_defaults_logML_get(),
     int     circ            = vrna_md_defaults_circ_get(),
+    int     circ_penalty    = vrna_md_defaults_circ_penalty_get(),
     int     gquad           = vrna_md_defaults_gquad_get(),
     int     uniq_ML         = vrna_md_defaults_uniq_ML_get(),
     int     energy_set      = vrna_md_defaults_energy_set_get(),
@@ -210,6 +214,7 @@ typedef struct {
     md->noGUclosure     = noGUclosure;
     md->logML           = logML;
     md->circ            = circ;
+    md->circ_penalty    = circ_penalty;
     md->gquad           = gquad;
     md->uniq_ML         = uniq_ML;
     md->energy_set      = energy_set;
@@ -275,6 +280,7 @@ typedef struct {
     out << ", noGUclosure: " << $self->noGUclosure ;
     out << ", logML: " << $self->logML ;
     out << ", circ: " << $self->circ ;
+    out << ", circ_penalty: " << $self->circ_penalty;
     out << ", gquad: " << $self->gquad ;
     out << ", uniq_ML: " << $self->uniq_ML ;
     out << ", energy_set: " << $self->energy_set  ;
@@ -348,6 +354,7 @@ extern int    no_closingGU;    /* this is an alias of noGUclosure */
 extern int    noGUclosure;
 extern int    logML;
 extern int    circ;
+extern int    circ_penalty;
 extern int    gquad;
 extern int    uniq_ML;
 extern int    energy_set;
@@ -379,6 +386,7 @@ extern double backbone_length;
 %constant int     MODEL_DEFAULT_NO_GU             = VRNA_MODEL_DEFAULT_NO_GU;
 %constant int     MODEL_DEFAULT_NO_GU_CLOSURE     = VRNA_MODEL_DEFAULT_NO_GU_CLOSURE;
 %constant int     MODEL_DEFAULT_CIRC              = VRNA_MODEL_DEFAULT_CIRC;
+%constant int     MODEL_DEFAULT_CIRC_PENALTY      = VRNA_MODEL_DEFAULT_CIRC_PENALTY;
 %constant int     MODEL_DEFAULT_GQUAD             = VRNA_MODEL_DEFAULT_GQUAD;
 %constant int     MODEL_DEFAULT_UNIQ_ML           = VRNA_MODEL_DEFAULT_UNIQ_ML;
 %constant int     MODEL_DEFAULT_ENERGY_SET        = VRNA_MODEL_DEFAULT_ENERGY_SET;

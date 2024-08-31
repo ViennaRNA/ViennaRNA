@@ -220,7 +220,9 @@ typedef struct vrna_md_s vrna_md_t;
 #define VRNA_MODEL_DEFAULT_BACKBONE_LENGTH   VRNA_MODEL_BACKBONE_LENGTH_RNA
 
 
-#define VRNA_MODEL_DEFAULT_CIRC_ALPHA0  4.385
+#define VRNA_MODEL_DEFAULT_CIRC_PENALTY   1
+
+#define VRNA_MODEL_DEFAULT_CIRC_ALPHA0    4.385
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -277,6 +279,7 @@ struct vrna_md_s {
   int     noGUclosure;                      /**<  @brief  Do not allow loops to be closed by GU pair */
   int     logML;                            /**<  @brief  Use logarithmic scaling for multiloops */
   int     circ;                             /**<  @brief  Assume RNA to be circular instead of linear */
+  int     circ_penalty;                     /**<  @brief  Add an entropic penalty to the unpaired circRNA chain */ 
   int     gquad;                            /**<  @brief  Include G-quadruplexes in structure prediction */
   int     uniq_ML;                          /**<  @brief  Flag to ensure unique multi-branch loop decomposition during folding */
   int     energy_set;                       /**<  @brief  Specifies the energy set that defines set of compatible base pairs */
@@ -602,6 +605,28 @@ vrna_md_defaults_circ(int flag);
  */
 int
 vrna_md_defaults_circ_get(void);
+
+
+/**
+ *  @brief  Set default behavior for fully unpaired circular RNA penalty
+ *
+ *  @see  vrna_ext_circ_en(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_CIRC_PENALTY
+ *
+ *  @param  flag  On/Off switch (0 = OFF, else = ON)
+ */
+void
+vrna_md_defaults_circ_penalty(int flag);
+
+
+/**
+ *  @brief  Get default behavior for fully unpaired circular RNA penalty
+ *
+ *  @see vrna_md_defaults_circ_penalty(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_CIRC
+ *
+ *  @return The global default settings for adding an entropic penalty for unpaired circular RNA ring
+ */
+int
+vrna_md_defaults_circ_penalty_get(void);
 
 
 /**
