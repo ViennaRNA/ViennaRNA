@@ -1023,7 +1023,11 @@ vrna_db_from_bps(vrna_bps_t   bp_stack,
 
       if (i == j) {
         /* Gquad bonds are marked as bp[i].i == bp[i].j */
-        structure[i - 1] = '+';
+        if (bp.L > 0) {
+          vrna_db_insert_gq(structure, i, bp.L, bp.l, length);
+        } else {
+          structure[i - 1] = '+';
+        }
       } else {
         /* the following ones are regular base pairs */
         structure[i - 1]  = '(';

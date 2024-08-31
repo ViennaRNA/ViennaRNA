@@ -342,6 +342,8 @@ struct vrna_sect_s {
 struct vrna_basepair_s {
   unsigned int i;
   unsigned int j;
+  unsigned int L;
+  unsigned int l[3];
 };
 
 /**
