@@ -327,6 +327,13 @@ vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
  *  @{
  */
 int
+vrna_bt_gquad(vrna_fold_compound_t  *fc,
+              unsigned int          i,
+              unsigned int          j,
+              unsigned int          *L,
+              unsigned int          l[3]);
+
+int
 backtrack_GQuad_IntLoop_L(int           c,
                           int           i,
                           int           j,

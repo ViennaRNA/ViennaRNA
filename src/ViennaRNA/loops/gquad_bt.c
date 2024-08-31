@@ -274,6 +274,65 @@ gquad_mfe_ali_pos(int   i,
  */
 
 PUBLIC int
+vrna_bt_gquad(vrna_fold_compound_t  *fc,
+              unsigned int          i,
+              unsigned int          j,
+              unsigned int          *L,
+              unsigned int          l[3])
+{
+  /*
+   * here we do some fancy stuff to backtrace the stacksize and linker lengths
+   * of the g-quadruplex that should reside within position i,j
+   */
+  short         *S_enc, *S_tmp;
+  unsigned int  n, n2;
+  int           a, n_seq;
+  vrna_param_t  *P;
+
+  if (fc) {
+    n     = fc->length;
+    P     = fc->params;
+    *L     = 0;
+    l[0] = l[1] = l[2] = 0;
+    S_tmp = NULL;
+
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      S_enc = fc->S_cons;
+      n_seq = fc->n_seq;
+    } else {
+      S_enc = fc->sequence_encoding2;
+      n_seq = 1;
+    }
+
+    if (P->model_details.circ) {
+      n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
+
+      S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
+      memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
+      memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);
+      S_tmp[0]  = n + n2;
+      S_enc     = S_tmp;
+      if (j < i)
+        j += n;
+    }
+
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
+      get_gquad_pattern_mfe_ali(fc->S, fc->a2s, fc->S_cons, n_seq, i, j, P, L, l);
+    } else {
+      get_gquad_pattern_mfe(S_enc, i, j, P, L, l);
+    }
+
+    free(S_tmp);
+
+    if (*L > 0)
+      return 1;
+  }
+
+  return 0;
+}
+
+
+PUBLIC int
 vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
                   int                   i,
                   int                   j,
