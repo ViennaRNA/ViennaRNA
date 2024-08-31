@@ -128,11 +128,12 @@ vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
  *
  */
 int
-vrna_bt_stack(vrna_fold_compound_t  *fc,
-              int                   *i,
-              int                   *j,
+vrna_bt_stacked_pairs(vrna_fold_compound_t  *fc,
+              unsigned int                  i,
+              unsigned int                  j,
               int                   *en,
-              vrna_bps_t            bp_stack);
+              vrna_bps_t            bp_stack,
+              vrna_bts_t            bt_stack);
 
 
 /**
@@ -141,10 +142,11 @@ vrna_bt_stack(vrna_fold_compound_t  *fc,
  */
 int
 vrna_bt_int_loop(vrna_fold_compound_t *fc,
-                 int                  *i,
-                 int                  *j,
+                 unsigned int         i,
+                 unsigned int         j,
                  int                  en,
-                 vrna_bps_t           bp_stack);
+                 vrna_bps_t           bp_stack,
+                 vrna_bts_t           bt_stack);
 
 
 /**

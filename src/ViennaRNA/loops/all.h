@@ -34,6 +34,8 @@
 
 #include <ViennaRNA/loops/multibranch.h>
 
+#include <ViennaRNA/loops/gquad.h>
+
 /**
  * @}
  */

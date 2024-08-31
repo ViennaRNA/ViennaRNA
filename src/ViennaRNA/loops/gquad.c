@@ -1145,620 +1145,14 @@ vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
 }
 
 
-/* 2. Backtracking */
-
-PUBLIC int
-vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  vrna_bps_t            bp_stack)
-{
-  /*
-   * here we do some fancy stuff to backtrace the stacksize and linker lengths
-   * of the g-quadruplex that should reside within position i,j
-   */
-  short         *S_enc, *S_tmp;
-  unsigned int  n, n2;
-  int           l[3], L, a, n_seq;
-  vrna_param_t  *P;
-
-  if (fc) {
-    n     = fc->length;
-    P     = fc->params;
-    L     = -1;
-    S_tmp = NULL;
-
-    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
-      S_enc = fc->S_cons;
-      n_seq = fc->n_seq;
-    } else {
-      S_enc = fc->sequence_encoding2;
-      n_seq = 1;
-    }
-
-    if (P->model_details.circ) {
-      n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
-
-      S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
-      memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
-      memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);
-      S_tmp[0]  = n + n2;
-      S_enc     = S_tmp;
-      if (j < i)
-        j += n;
-    }
-
-    if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
-      get_gquad_pattern_mfe_ali(fc->S, fc->a2s, fc->S_cons, n_seq, i, j, P, &L, l);
-    } else {
-      get_gquad_pattern_mfe(S_enc, i, j, P, &L, l);
-    }
-
-    if (L != -1) {
-      /* fill the G's of the quadruplex into bp_stack */
-      for (a = 0; a < L; a++) {
-        int p1, p2, p3, p4;
-        p1  = i + a;
-        p2  = p1 + L + l[0];
-        p3  = p2 + L + l[1];
-        p4  = p3 + L + l[2];
-        if (p1 > n) {
-          p1  = ((p1 - 1) % n) + 1;
-          p2  = ((p2 - 1) % n) + 1;
-          p3  = ((p3 - 1) % n) + 1;
-          p4  = ((p4 - 1) % n) + 1;
-        } else if (p2 > n) {
-          p2  = ((p2 - 1) % n) + 1;
-          p3  = ((p3 - 1) % n) + 1;
-          p4  = ((p4 - 1) % n) + 1;
-        } else if (p3 > n) {
-          p3  = ((p3 - 1) % n) + 1;
-          p4  = ((p4 - 1) % n) + 1;
-        } else if (p4 > n) {
-          p4 = ((p4 - 1) % n) + 1;
-        }
-
-        vrna_bps_push(bp_stack,
-                      (vrna_bp_t){
-          .i  = p1,
-          .j  = p1
-        });
-        vrna_bps_push(bp_stack,
-                      (vrna_bp_t){
-          .i  = p2,
-          .j  = p2
-        });
-        vrna_bps_push(bp_stack,
-                      (vrna_bp_t){
-          .i  = p3,
-          .j  = p3
-        });
-        vrna_bps_push(bp_stack,
-                      (vrna_bp_t){
-          .i  = p4,
-          .j  = p4
-        });
-      }
-      free(S_tmp);
-      return 1;
-    } else {
-      free(S_tmp);
-      return 0;
-    }
-  }
-
-  return 0;
-}
-
-
-PUBLIC int
-vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  vrna_bp_stack_t       *bp_stack,
-                  unsigned int          *stack_count)
-{
-  int r = 0;
-
-  if ((fc) &&
-      (bp_stack) &&
-      (stack_count)) {
-    vrna_bps_t bps = vrna_bps_init(4);
-    r = vrna_bt_gquad_mfe(fc, i, j, bps);
-
-    while (vrna_bps_size(bps) > 0) {
-      vrna_bp_t bp = vrna_bps_pop(bps);
-      bp_stack[++(*stack_count)].i  = bp.i;
-      bp_stack[*stack_count].j      = bp.j;
-    }
-
-    vrna_bps_free(bps);
-  }
-
-  return r;
-}
-
-
-PUBLIC int
-vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
-                  unsigned int          i,
-                  unsigned int          j,
-                  int                   en,
-                  vrna_bps_t            bp_stack)
-{
-  unsigned char type;
-  short         si, sj, *S, *S1, **SS, **S5, **S3;
-  int           energy, e_gq, dangles, c0;
-  unsigned int  **a2s, n_seq, s, p, q, l1, u1, u2, maxl, minl;
-
-  vrna_smx_csr(int) * c_gq;
-
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-
-  n_seq   = fc->n_seq;
-  S       = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
-  S1      = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : fc->S_cons;
-  SS      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
-  S5      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
-  S3      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
-  a2s     = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
-  c_gq    = fc->matrices->c_gq;
-  P       = fc->params;
-  md      = &(P->model_details);
-  dangles = md->dangles;
-  si      = S1[i + 1];
-  sj      = S1[j - 1];
-  energy  = 0;
-
-  switch (fc->type) {
-    case VRNA_FC_TYPE_SINGLE:
-      type = vrna_get_ptype_md(S[i], S[j], md);
-      if (dangles == 2)
-        energy += P->mismatchI[type][si][sj];
-
-      if (type > 2)
-        energy += P->TerminalAU;
-
-      break;
-
-    case VRNA_FC_TYPE_COMPARATIVE:
-      for (s = 0; s < n_seq; s++) {
-        type = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-        if (md->dangles == 2)
-          energy += P->mismatchI[type][S3[s][i]][S5[s][j]];
-
-        if (type > 2)
-          energy += P->TerminalAU;
-      }
-      break;
-
-    default:
-      return INF;
-  }
-
-  p = i + 1;
-  if (S1[p] == 3) {
-    if (p + VRNA_GQUAD_MIN_BOX_SIZE < j) {
-      minl = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-      if (minl + 1 + MAXLOOP < j)
-        minl = j - MAXLOOP - 1;
-
-      maxl = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-      if (maxl + 3 >= j)
-        maxl = j - 3;
-
-      for (q = minl; q < maxl; q++) {
-        if (S1[q] != 3)
-          continue;
-
-#ifndef VRNA_DISABLE_C11_FEATURES
-        e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
-#else
-        e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
-#endif
-
-        if (e_gq != INF) {
-          c0 = energy + e_gq;
-
-          switch (fc->type) {
-            case VRNA_FC_TYPE_SINGLE:
-              c0 += P->internal_loop[j - q - 1];
-              break;
-
-            case VRNA_FC_TYPE_COMPARATIVE:
-              for (s = 0; s < n_seq; s++) {
-                u1  = a2s[s][j - 1] - a2s[s][q];
-                c0  += P->internal_loop[u1];
-              }
-              break;
-          }
-
-          if (en == c0)
-            return vrna_bt_gquad_mfe(fc, p, q, bp_stack);
-        }
-      }
-    }
-  }
-
-  for (p = i + 2;
-       p + VRNA_GQUAD_MIN_BOX_SIZE < j;
-       p++) {
-    l1 = p - i - 1;
-    if (l1 > MAXLOOP)
-      break;
-
-    if (S1[p] != 3)
-      continue;
-
-    minl = p + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-    if (minl + 1 + MAXLOOP - l1 < j)
-      minl = j - MAXLOOP + l1 - 1;
-
-    maxl = p + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-    if (maxl >= j)
-      maxl = j - 1;
-
-    for (q = minl; q < maxl; q++) {
-      if (S1[q] != 3)
-        continue;
-
-#ifndef VRNA_DISABLE_C11_FEATURES
-      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
-#else
-      e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
-#endif
-
-      if (e_gq != INF) {
-        c0 = energy + e_gq;
-
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            c0 += P->internal_loop[l1 + j - q - 1];
-            break;
-
-          case VRNA_FC_TYPE_COMPARATIVE:
-            for (s = 0; s < n_seq; s++) {
-              u1  = a2s[s][p - 1] - a2s[s][i];
-              u2  = a2s[s][j - 1] - a2s[s][q];
-              c0  += P->internal_loop[u1 + u2];
-            }
-            break;
-        }
-
-        if (en == c0)
-          return vrna_bt_gquad_mfe(fc, p, q, bp_stack);
-      }
-    }
-  }
-
-  q = j - 1;
-  if (S1[q] == 3)
-    for (p = i + 4;
-         p + VRNA_GQUAD_MIN_BOX_SIZE - 1 < j;
-         p++) {
-      l1 = p - i - 1;
-      if (l1 > MAXLOOP)
-        break;
-
-      if (S1[p] != 3)
-        continue;
-
-#ifndef VRNA_DISABLE_C11_FEATURES
-      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
-#else
-      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
-#endif
-
-      if (e_gq != INF) {
-        c0 = energy + e_gq;
-
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            c0 += P->internal_loop[l1];
-            break;
-
-          case VRNA_FC_TYPE_COMPARATIVE:
-            for (s = 0; s < n_seq; s++) {
-              u1  = a2s[s][p - 1] - a2s[s][i];
-              c0  += P->internal_loop[u1];
-            }
-            break;
-        }
-
-        if (en == c0)
-          return vrna_bt_gquad_mfe(fc, p, q, bp_stack);
-      }
-    }
-
-  return 0;
-}
-
-
-PUBLIC int
-vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  int                   en,
-                  vrna_bp_stack_t       *bp_stack,
-                  unsigned int          *stack_count)
-{
-  int r = 0;
-
-  if ((fc) &&
-      (bp_stack) &&
-      (stack_count)) {
-    vrna_bps_t bps = vrna_bps_init(4);
-    r = vrna_bt_gquad_int(fc, i, j, en, bps);
-    while (vrna_bps_size(bps) > 0) {
-      vrna_bp_t bp = vrna_bps_pop(bps);
-      bp_stack[++(*stack_count)].i  = bp.i;
-      bp_stack[*stack_count].j      = bp.j;
-    }
-
-    vrna_bps_free(bps);
-  }
-
-  return r;
-}
-
-
-/**
- *  backtrack an interior loop like enclosed g-quadruplex
- *  with closing pair (i,j) with underlying Lfold matrix
- *
- *  @param c      The total contribution the loop should resemble
- *  @param i      position i of enclosing pair
- *  @param j      position j of enclosing pair
- *  @param type   base pair type of enclosing pair (must be reverse type)
- *  @param S      integer encoded sequence
- *  @param ggg    triangular matrix containing g-quadruplex contributions
- *  @param p      here the 5' position of the gquad is stored
- *  @param q      here the 3' position of the gquad is stored
- *  @param P      the datastructure containing the precalculated contibutions
- *
- *  @return       1 on success, 0 if no gquad found
- */
-int
-backtrack_GQuad_IntLoop_L(int           c,
-                          int           i,
-                          int           j,
-                          int           type,
-                          short         *S,
-                          int           **ggg,
-                          int           maxdist,
-                          int           *p,
-                          int           *q,
-                          vrna_param_t  *P)
-{
-  int   energy, dangles, k, l, maxl, minl, c0, l1;
-  short si, sj;
-
-  dangles = P->model_details.dangles;
-  si      = S[i + 1];
-  sj      = S[j - 1];
-  energy  = 0;
-
-  if (dangles == 2)
-    energy += P->mismatchI[type][si][sj];
-
-  if (type > 2)
-    energy += P->TerminalAU;
-
-  k = i + 1;
-  if (S[k] == 3) {
-    if (k < j - VRNA_GQUAD_MIN_BOX_SIZE) {
-      minl  = j - i + k - MAXLOOP - 2;
-      c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-      minl  = MAX2(c0, minl);
-      c0    = j - 3;
-      maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-      maxl  = MIN2(c0, maxl);
-      for (l = minl; l < maxl; l++) {
-        if (S[l] != 3)
-          continue;
-
-        if (c == energy + ggg[k][l - k] + P->internal_loop[j - l - 1]) {
-          *p  = k;
-          *q  = l;
-          return 1;
-        }
-      }
-    }
-  }
-
-  for (k = i + 2;
-       k < j - VRNA_GQUAD_MIN_BOX_SIZE;
-       k++) {
-    l1 = k - i - 1;
-    if (l1 > MAXLOOP)
-      break;
-
-    if (S[k] != 3)
-      continue;
-
-    minl  = j - i + k - MAXLOOP - 2;
-    c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-    minl  = MAX2(c0, minl);
-    c0    = j - 1;
-    maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-    maxl  = MIN2(c0, maxl);
-    for (l = minl; l < maxl; l++) {
-      if (S[l] != 3)
-        continue;
-
-      if (c == energy + ggg[k][l - k] + P->internal_loop[l1 + j - l - 1]) {
-        *p  = k;
-        *q  = l;
-        return 1;
-      }
-    }
-  }
-
-  l = j - 1;
-  if (S[l] == 3)
-    for (k = i + 4;
-         k < j - VRNA_GQUAD_MIN_BOX_SIZE;
-         k++) {
-      l1 = k - i - 1;
-      if (l1 > MAXLOOP)
-        break;
-
-      if (S[k] != 3)
-        continue;
-
-      if (c == energy + ggg[k][l - k] + P->internal_loop[l1]) {
-        *p  = k;
-        *q  = l;
-        return 1;
-      }
-    }
-
-  return 0;
-}
-
-
-int
-backtrack_GQuad_IntLoop_L_comparative(int           c,
-                                      int           i,
-                                      int           j,
-                                      unsigned int  *type,
-                                      short         *S_cons,
-                                      short         **S5,
-                                      short         **S3,
-                                      unsigned int  **a2s,
-                                      int           **ggg,
-                                      int           *p,
-                                      int           *q,
-                                      int           n_seq,
-                                      vrna_param_t  *P)
-{
-  /*
-   * The case that is handled here actually resembles something like
-   * an interior loop where the enclosing base pair is of regular
-   * kind and the enclosed pair is not a canonical one but a g-quadruplex
-   * that should then be decomposed further...
-   */
-  int mm, dangle_model, k, l, maxl, minl, c0, l1, ss, tt, eee, u1, u2;
-
-  dangle_model = P->model_details.dangles;
-
-  mm = 0;
-  for (ss = 0; ss < n_seq; ss++) {
-    tt = type[ss];
-
-    if (dangle_model == 2)
-      mm += P->mismatchI[tt][S3[ss][i]][S5[ss][j]];
-
-    if (tt > 2)
-      mm += P->TerminalAU;
-  }
-
-  for (k = i + 2;
-       k < j - VRNA_GQUAD_MIN_BOX_SIZE;
-       k++) {
-    if (S_cons[k] != 3)
-      continue;
-
-    l1 = k - i - 1;
-    if (l1 > MAXLOOP)
-      break;
-
-    minl  = j - i + k - MAXLOOP - 2;
-    c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-    minl  = MAX2(c0, minl);
-    c0    = j - 1;
-    maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-    maxl  = MIN2(c0, maxl);
-    for (l = minl; l < maxl; l++) {
-      if (S_cons[l] != 3)
-        continue;
-
-      eee = 0;
-
-      for (ss = 0; ss < n_seq; ss++) {
-        u1  = a2s[ss][k - 1] - a2s[ss][i];
-        u2  = a2s[ss][j - 1] - a2s[ss][l];
-        eee += P->internal_loop[u1 + u2];
-      }
-
-      c0 = mm +
-           ggg[k][l - k] +
-           eee;
-
-      if (c == c0) {
-        *p  = k;
-        *q  = l;
-        return 1;
-      }
-    }
-  }
-  k = i + 1;
-  if (S_cons[k] == 3) {
-    if (k < j - VRNA_GQUAD_MIN_BOX_SIZE) {
-      minl  = j - i + k - MAXLOOP - 2;
-      c0    = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-      minl  = MAX2(c0, minl);
-      c0    = j - 3;
-      maxl  = k + VRNA_GQUAD_MAX_BOX_SIZE + 1;
-      maxl  = MIN2(c0, maxl);
-      for (l = minl; l < maxl; l++) {
-        if (S_cons[l] != 3)
-          continue;
-
-        eee = 0;
-
-        for (ss = 0; ss < n_seq; ss++) {
-          u1  = a2s[ss][j - 1] - a2s[ss][l];
-          eee += P->internal_loop[u1];
-        }
-
-        if (c == mm + ggg[k][l - k] + eee) {
-          *p  = k;
-          *q  = l;
-          return 1;
-        }
-      }
-    }
-  }
-
-  l = j - 1;
-  if (S_cons[l] == 3) {
-    for (k = i + 4; k < j - VRNA_GQUAD_MIN_BOX_SIZE; k++) {
-      l1 = k - i - 1;
-      if (l1 > MAXLOOP)
-        break;
-
-      if (S_cons[k] != 3)
-        continue;
-
-      eee = 0;
-
-      for (ss = 0; ss < n_seq; ss++) {
-        u1  = a2s[ss][k - 1] - a2s[ss][i];
-        eee += P->internal_loop[u1];
-      }
-
-      if (c == mm + ggg[k][l - k] + eee) {
-        *p  = k;
-        *q  = l;
-        return 1;
-      }
-    }
-  }
-
-  return 0;
-}
-
-
 /* 4. Parsing */
 
 PUBLIC plist *
 get_plist_gquad_from_db(const char  *structure,
                         float       pr)
 {
-  int   x, size, actual_size, L, n, ge, ee, gb, l[3];
-  plist *pl;
+  unsigned int  x, L, l[3], n, size, ge, ee, actual_size, gb;
+  plist         *pl;
 
   actual_size = 0;
   ge          = 0;
@@ -1766,9 +1160,14 @@ get_plist_gquad_from_db(const char  *structure,
   size        = strlen(structure);
   pl          = (plist *)vrna_alloc(n * size * sizeof(plist));
 
-  while ((ee = parse_gquad(structure + ge, &L, l)) > 0) {
+  while ((ee = vrna_gq_parse(structure + ge, &L, l)) > 0) {
     ge  += ee;
-    gb  = ge - L * 4 - l[0] - l[1] - l[2] + 1;
+
+    if (4 * L + l[0] + l[1] + l[2] > ee) {
+      gb = size + ge - L * 4 - l[0] - l[1] - l[2] + 1;
+    } else {
+      gb = ge - L * 4 - l[0] - l[1] - l[2] + 1;
+    }
 
     /* add pseudo-base pair enclosing gquad */
     if (actual_size >= n * size - 5) {
@@ -1787,23 +1186,23 @@ get_plist_gquad_from_db(const char  *structure,
         pl  = (plist *)vrna_realloc(pl, n * size * sizeof(plist));
       }
 
-      pl[actual_size].i       = gb + x;
-      pl[actual_size].j       = ge + x - L + 1;
+      pl[actual_size].i       = (gb + x - 1) % (size) + 1;
+      pl[actual_size].j       = (ge + x - L + 1 - 1) % (size) + 1;
       pl[actual_size].p       = pr;
       pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
 
-      pl[actual_size].i       = gb + x;
-      pl[actual_size].j       = gb + x + l[0] + L;
+      pl[actual_size].i       = (gb + x - 1) % (size) + 1;
+      pl[actual_size].j       = (gb + x + l[0] + L - 1) % (size) + 1;
       pl[actual_size].p       = pr;
       pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
 
-      pl[actual_size].i       = gb + x + l[0] + L;
-      pl[actual_size].j       = ge + x - 2 * L - l[2] + 1;
+      pl[actual_size].i       = (gb + x + l[0] + L - 1) % (size) + 1;
+      pl[actual_size].j       = (ge + x - 2 * L - l[2] + 1 - 1) % (size) + 1;
       pl[actual_size].p       = pr;
       pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
 
-      pl[actual_size].i       = ge + x - 2 * L - l[2] + 1;
-      pl[actual_size].j       = ge + x - L + 1;
+      pl[actual_size].i       = (ge + x - 2 * L - l[2] + 1 - 1) % (size) + 1;
+      pl[actual_size].j       = (ge + x - L + 1 - 1) % (size) + 1;
       pl[actual_size].p       = pr;
       pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
     }
@@ -2115,26 +1514,81 @@ vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
                              int                  *Lmax,
                              int                  lmax[3])
 {
-  short             *S;
-  int               n, size, *gg, counter, i, j, *my_index;
+  short             *S_enc, *S_tmp;
+  unsigned int      n, n2, **a2s, real_j;
+  int               size, *gg, counter, i, j, *my_index;
   FLT_OR_DBL        pp, *tempprobs, *probs, *scale;
   plist             *pl;
   vrna_exp_param_t  *pf;
-
   vrna_smx_csr(FLT_OR_DBL) * q_gq;
+  void              *data;
+  void          ( *process_f )(int,
+                               int,
+                               int *,
+                               void *,
+                               void *,
+                               void *,
+                               void *);
+  struct gquad_ali_helper tmp = {
+    0
+  };
 
-  n         = (int)fc->length;
+  n         = fc->length;
   pf        = fc->exp_params;
   q_gq      = fc->exp_matrices->q_gq;
   probs     = fc->exp_matrices->probs;
   scale     = fc->exp_matrices->scale;
-  S         = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : fc->S_cons;
+  counter   = 0;
+  real_j    = gj;
+  S_tmp     = NULL;
+
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      S_enc     = fc->sequence_encoding2;
+      data      = (void *)pf;
+      process_f = &gquad_mfe;
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      S_enc = fc->S_cons;
+      struct gquad_ali_helper gq_help = {
+        .S      = (const short **)fc->S,
+        .a2s    = (const unsigned int **)fc->a2s,
+        .length = fc->length,
+        .n_seq  = fc->n_seq,
+        .pf     = pf,
+        .L      = *Lmax,
+        .l      = &(lmax[0])
+      };
+      tmp       = gq_help;
+      data      = (void *)&tmp;
+      process_f = &gquad_mfe_ali;
+      break;
+
+    default:
+      return NULL;
+  }
+
+  if ((pf->model_details.circ) &&
+      (gi > gj)) {
+    n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
+
+    gj += n;
+    vrna_log_debug("preparing for circ");
+    S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
+    memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
+    memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);
+    S_tmp[0]  = n + n2;
+    S_enc     = S_tmp;
+    n         += n2;
+  }
+
   size      = (n * (n + 1)) / 2 + 2;
   tempprobs = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
   pl        = (plist *)vrna_alloc((n * n) * sizeof(plist));
-  gg        = get_g_islands_sub(S, gi, gj);
-  counter   = 0;
   my_index  = vrna_idx_row_wise(n);
+
+  gg        = get_g_islands_sub(S_enc, gi, gj);
 
   pp = 0.;
 
@@ -2153,45 +1607,49 @@ vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
                               (void *)Lmax,
                               (void *)lmax);
   } else {
-    struct gquad_ali_helper gq_help = {
-      .S      = (const short **)fc->S,
-      .a2s    = (const unsigned int **)fc->a2s,
-      .length = fc->length,
-      .n_seq  = fc->n_seq,
-      .pf     = pf,
-      .L      = *Lmax,
-      .l      = &(lmax[0])
-    };
-
     process_gquad_enumeration(gg, gi, gj,
                               &gquad_interact_ali,
                               (void *)tempprobs,
                               (void *)my_index,
-                              (void *)&(gq_help),
+                              (void *)&(tmp),
                               NULL);
 
     process_gquad_enumeration(gg, gi, gj,
                               &gquad_pf_pos_ali,
                               (void *)(&pp),
-                              (void *)&gq_help,
+                              (void *)&tmp,
                               NULL,
                               NULL);
-    *Lmax = gq_help.L;
+    *Lmax = tmp.L;
   }
 
-  pp = probs[my_index[gi] - gj] *
-       scale[gj - gi + 1] /
+  if (gj > real_j) {
+    vrna_smx_csr(FLT_OR_DBL) *p_gq = fc->exp_matrices->p_gq;
+    pp = scale[real_j + n - n2 - gi + 1] *
 #ifndef VRNA_DISABLE_C11_FEATURES
-       vrna_smx_csr_get(q_gq, gi, gj, 0.);
+         vrna_smx_csr_get(p_gq, gi, real_j, 0.);
 #else
-       vrna_smx_csr_FLT_OR_DBL_get(q_gq, gi, gj, 0.);
+         vrna_smx_csr_FLT_OR_DBL_get(p_gq, gi, real_j, 0.);
 #endif
+  } else {
+    pp = probs[my_index[gi] - gj] *
+       scale[gj - gi + 1];
+  }
+  
+  pp  /= 
+#ifndef VRNA_DISABLE_C11_FEATURES
+       vrna_smx_csr_get(q_gq, gi, real_j, 0.);
+#else
+       vrna_smx_csr_FLT_OR_DBL_get(q_gq, gi, real_j, 0.);
+#endif
+
+  n -= n2;
 
   for (i = gi; i < gj; i++) {
     for (j = i; j <= gj; j++) {
       if (tempprobs[my_index[i] - j] > 0.) {
-        pl[counter].i = i;
-        pl[counter].j = j;
+        pl[counter].i = (i - 1) % (n) + 1;
+        pl[counter].j = (j - 1) % (n) + 1;
         pl[counter].p = pp *
                         tempprobs[my_index[i] - j];
         pl[counter++].type = VRNA_PLIST_TYPE_TRIPLE;
@@ -2206,6 +1664,7 @@ vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
   gg += gi - 1;
   free(gg);
   free(my_index);
+  free(S_tmp);
   free(tempprobs);
   return pl;
 }

@@ -442,7 +442,8 @@ libRNA_loops_la_SOURCES = \
     loops/multibranch_bt.c \
     loops/multibranch_pf.c \
     loops/gquad.c \
-    loops/gquad_dp.c
+    loops/gquad_dp.c \
+    loops/gquad_bt.c
 
 
 libRNA_params_la_SOURCES = \

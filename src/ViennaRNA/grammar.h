@@ -90,7 +90,7 @@ typedef FLT_OR_DBL (*vrna_gr_outside_exp_f)(vrna_fold_compound_t  *fc,
  *  This function will be called during the backtracking stage of MFE predictions
  *  for subsequences from position @p i to @p j and is supposed to identify the
  *  the structure components that give rise to the corresponding energy contribution
- *  determined in the inside (forward) step.
+ *  @p e as determined in the inside (forward) step.
  *
  *  For that purpose, the function may modify the base pair stack (@p bp_stack) by adding
  *  all base pairs identified through the additional rule. In addition, when the rule
@@ -111,6 +111,7 @@ typedef FLT_OR_DBL (*vrna_gr_outside_exp_f)(vrna_fold_compound_t  *fc,
  *  @param  fc            The fold compound to work on
  *  @param  i             The 5' delimiter of the sequence segment
  *  @param  j             The 3' delimiter of the sequence segment
+ *  @param  e             The energy of the segment [i:j]
  *  @param  bp_stack      The base pair stack
  *  @param  bt_stack      The backtracking stack (all segments that need to be further investigated)
  *  @param  data  An arbitrary user-provided data pointer
@@ -119,6 +120,7 @@ typedef FLT_OR_DBL (*vrna_gr_outside_exp_f)(vrna_fold_compound_t  *fc,
 typedef int (*vrna_gr_outside_f)(vrna_fold_compound_t *fc,
                                  unsigned int         i,
                                  unsigned int         j,
+                                 int                  e,
                                  vrna_bps_t           bp_stack,
                                  vrna_bts_t           bt_stack,
                                  void                 *data);

@@ -174,25 +174,21 @@ vrna_bt_m(vrna_fold_compound_t    *fc,
  *  @param    component2  Type of rightmost block (1 = ML, 2 = C)
  *  @returns              1, if backtracking succeeded, 0 otherwise.
  */
-int
+unsigned int
 vrna_bt_mb_loop(vrna_fold_compound_t  *fc,
-                int                   *i,
-                int                   *j,
-                int                   *k,
+                unsigned int          i,
+                unsigned int          j,
                 int                   en,
-                unsigned int          *component1,
-                unsigned int          *component2);
+                vrna_bps_t            bp_stack,
+                vrna_bts_t            bt_stack);
 
 
-int
+unsigned int
 vrna_bt_mb_loop_split(vrna_fold_compound_t  *fc,
-                      int                   *i,
-                      int                   *j,
-                      int                   *k,
-                      int                   *l,
-                      unsigned int          *component1,
-                      unsigned int          *component2,
-                      vrna_bps_t            bp_stack);
+                      unsigned int          i,
+                      unsigned int          j,
+                      vrna_bps_t            bp_stack,
+                      vrna_bts_t            bt_stack);
 
 
 /**

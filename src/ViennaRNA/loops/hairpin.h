@@ -421,10 +421,11 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
  */
 int
 vrna_bt_hp_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
+                unsigned int          i,
+                unsigned int          j,
                 int                   en,
-                vrna_bps_t            bp_stack);
+                vrna_bps_t            bp_stack,
+                vrna_bts_t            bt_stack);
 
 
 /**

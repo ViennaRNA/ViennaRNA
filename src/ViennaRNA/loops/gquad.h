@@ -351,7 +351,8 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
                   unsigned int          i,
                   unsigned int          j,
                   int                   en,
-                  vrna_bps_t            bp_stack);
+                  vrna_bps_t            bp_stack,
+                  vrna_bts_t            bt_stack);
 
 
 int

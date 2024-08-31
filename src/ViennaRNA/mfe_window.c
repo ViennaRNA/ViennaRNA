@@ -956,7 +956,8 @@ backtrack(vrna_fold_compound_t  *vc,
         } else {
           vrna_log_error("backtracking failed in f3, segment [%d,%d]\n", i, j);
           free(structure);
-          free(bp_stack);
+          vrna_bps_free(bp_stack);
+          vrna_bts_free(bt_stack);
           return NULL;
         }
 
@@ -964,30 +965,13 @@ backtrack(vrna_fold_compound_t  *vc,
 
       /* trace back in fML array */
       case VRNA_MX_FLAG_M:
-        if (vrna_bt_mb_loop_split(vc, &i, &j, &p, &q, &comp1, &comp2, bp_stack)) {
-          if (i > 0) {
-            vrna_bts_push(bt_stack,
-                          (vrna_sect_t){
-                            .i = i,
-                            .j = j,
-                            .ml  = comp1
-                          });
-          }
-
-          if (p > 0) {
-            vrna_bts_push(bt_stack,
-                          (vrna_sect_t){
-                            .i = p,
-                            .j = q,
-                            .ml = comp2
-                          });
-          }
-
+        if (vrna_bt_mb_loop_split(vc, i, j, bp_stack, bt_stack)) {
           continue;
         } else {
           vrna_log_error("backtracking failed in fML, segment [%d,%d]\n", i, j);
           free(structure);
-          free(bp_stack);
+          vrna_bps_free(bp_stack);
+          vrna_bts_free(bt_stack);
           return NULL;
         }
 
@@ -1019,8 +1003,16 @@ repeat1:
       cij = c[i][j - i];
 
     if (noLP) {
-      if (vrna_bt_stack(vc, &i, &j, &cij, bp_stack)) {
+      if (vrna_bt_stacked_pairs(vc, i, j, &cij, bp_stack, bt_stack)) {
         canonical = 0;
+
+        /* remove enclosed element from backtrack stack to
+         * allow for immediately going back to repeat1
+         */
+        vrna_sect_t trash = vrna_bts_pop(bt_stack);
+        i = trash.i;
+        j = trash.j;
+
         goto repeat1;
       }
     }
@@ -1037,7 +1029,7 @@ repeat1:
           if (cij == FORBIDDEN)
             continue;
         } else {
-          if (vrna_bt_hp_loop(vc, i, j, cij, bp_stack))
+          if (vrna_bt_hp_loop(vc, i, j, cij, bp_stack, bt_stack))
             continue;
         }
 
@@ -1045,33 +1037,18 @@ repeat1:
 
       case VRNA_FC_TYPE_COMPARATIVE:
         cij += pscore[i][j - i];
-        if (vrna_bt_hp_loop(vc, i, j, cij, bp_stack))
+        if (vrna_bt_hp_loop(vc, i, j, cij, bp_stack, bt_stack))
           continue;
 
         break;
     }
 
-    if (vrna_bt_int_loop(vc, &i, &j, cij, bp_stack)) {
-      if (i < 0)
-        continue;
-      else
-        goto repeat1;
-    }
+    if (vrna_bt_int_loop(vc, i, j, cij, bp_stack, bt_stack))
+      continue;
 
     /* (i.j) must close a multi-loop */
-    if (vrna_bt_mb_loop(vc, &i, &j, &k, cij, &comp1, &comp2)) {
-      vrna_bts_push(bt_stack,
-                    (vrna_sect_t){
-                      .i = i,
-                      .j = k,
-                      .ml = comp1
-                    });
-      vrna_bts_push(bt_stack,
-                    (vrna_sect_t){
-                      .i = k + 1,
-                      .j = j,
-                      .ml = comp2
-                    });
+    if (vrna_bt_mb_loop(vc, i, j, cij, bp_stack, bt_stack)) {
+      continue;
     } else {
       vrna_log_error("backtracking failed in repeat, segment [%d,%d]\n", i, j);
       free(structure);

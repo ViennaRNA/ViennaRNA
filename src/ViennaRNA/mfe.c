@@ -3964,13 +3964,13 @@ backtrack(vrna_fold_compound_t    *fc,
       /* backtrack in f5 */
       case VRNA_MX_FLAG_F5:
       {
-        if (vrna_bt_f(fc, i, j, bp_stack, bt_stack)) {
+        if (vrna_bt_f(fc, 1, j, bp_stack, bt_stack)) {
           continue;
         } else {
-          vrna_log_warning("backtracking failed in f5, segment [%d,%d], e = %d\n",
-                               i,
-                               j,
-                               fc->matrices->f5[j]);
+          vrna_log_warning("backtracking failed in f, segment [%d,%d], e = %d\n",
+                           i,
+                           j,
+                           fc->matrices->f5[j]);
           ret = 0;
           goto backtrack_exit;
         }
@@ -4097,7 +4097,7 @@ backtrack(vrna_fold_compound_t    *fc,
                               1;
           if ((flag < vrna_array_size(aux_grammar->aux)) &&
               (aux_grammar->aux[flag].cb_bt)) {
-            if (aux_grammar->aux[flag].cb_bt(fc, i, j, bp_stack, bt_stack, aux_grammar->aux[flag].data)) {
+            if (aux_grammar->aux[flag].cb_bt(fc, i, j, INF, bp_stack, bt_stack, aux_grammar->aux[flag].data)) {
               continue;
             } else {
               vrna_log_warning("backtracking failed in auxiliary grammar backtrack %u, segment [%d, %d]\n",
@@ -4126,8 +4126,15 @@ repeat1:
       cij = my_c[ij];
 
     if (noLP) {
-      if (vrna_bt_stack(fc, &i, &j, &cij, bp_stack)) {
+      if (vrna_bt_stacked_pairs(fc, i, j, &cij, bp_stack, bt_stack)) {
         canonical = 0;
+        /* remove enclosed element from backtrack stack to
+         * allow for immediately going back to repeat1
+         */
+        vrna_sect_t trash = vrna_bts_pop(bt_stack);
+        i = trash.i;
+        j = trash.j;
+
         goto repeat1;
       }
     }
@@ -4137,15 +4144,11 @@ repeat1:
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
       cij += pscore[indx[j] + i];
 
-    if (vrna_bt_hp_loop(fc, i, j, cij, bp_stack))
+    if (vrna_bt_hp_loop(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
-    if (vrna_bt_int_loop(fc, &i, &j, cij, bp_stack)) {
-      if (i < 0)
-        continue;
-      else
-        goto repeat1;
-    }
+    if (vrna_bt_int_loop(fc, i, j, cij, bp_stack, bt_stack))
+      continue;
 
     if (fc->strands > 1) {
       unsigned int sn1, sn2;
@@ -4173,21 +4176,14 @@ repeat1:
     /* (i.j) must close a multi-loop */
     unsigned int comp1, comp2;
 
-    if (vrna_bt_mb_loop(fc, &i, &j, &k, cij, &comp1, &comp2)) {
-      vrna_bts_push(bt_stack, ((vrna_sect_t){
-        .i = i,
-        .j = k,
-        .ml = comp1}));
-      vrna_bts_push(bt_stack, ((vrna_sect_t){
-        .i = k + 1,
-        .j = j,
-        .ml = comp2}));
+    if (vrna_bt_mb_loop(fc, i, j, cij, bp_stack, bt_stack)) {
+      continue;
     } else if (aux_grammar) {
       ret = 0;
       /* go through each user-provided backtrack callback and try finding the solution */
       for (size_t c = 0; c < vrna_array_size(aux_grammar->c); c++)
         if ((aux_grammar->c[c].cb_bt) &&
-            (ret = aux_grammar->c[c].cb_bt(fc, i, j, bp_stack, bt_stack, aux_grammar->c[c].data)))
+            (ret = aux_grammar->c[c].cb_bt(fc, i, j, cij, bp_stack, bt_stack, aux_grammar->c[c].data)))
           break;
 
       if (ret)
