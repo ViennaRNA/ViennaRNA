@@ -3928,6 +3928,7 @@ backtrack(vrna_fold_compound_t    *fc,
           struct ms_helpers       *ms_dat)
 {
   char          backtrack_type;
+  unsigned int  L, ll[3];
   int           i, j, ij, k, l, length, *my_c, *indx, noLP, *pscore, ret;
   vrna_param_t  *P;
   vrna_gr_aux_t aux_grammar;
@@ -4080,8 +4081,14 @@ backtrack(vrna_fold_compound_t    *fc,
       break;
 
       case VRNA_MX_FLAG_G:
-        if (vrna_bt_gquad_mfe(fc, i, j, bp_stack)) {
-          vrna_log_debug("bt_stack_size: %d", vrna_bts_size(bt_stack));
+        if (vrna_bt_gquad(fc, i, j, &L, ll)) {
+          vrna_bps_push(bp_stack,
+                        (vrna_bp_t){
+                          .i = i,
+                          .j = i,
+                          .L = L,
+                          .l = { ll[0], ll[1], ll[2] }
+                        });
           continue;
         } else {
           vrna_log_warning("backtracking failed in G, segment [%d,%d]\n", i, j);
