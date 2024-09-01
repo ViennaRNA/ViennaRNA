@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0 EPSF-3.0
 %%Creator: ViennaRNA-2.6.4
-%%CreationDate: Wed Aug 21 11:16:34 2024
+%%CreationDate: Sun Sep  1 17:19:34 2024
 %%Title: RNA Dot Plot
 %%BoundingBox: 0 0 700 720
 %%DocumentFonts: Helvetica
@@ -126,8 +126,16 @@ DPdict begin
   3 1 roll % prepare hsb color
   sethsbcolor
   % now produce the coordinates for lines
-  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub
-  moveto lineto lineto closepath fill
+  dup 3 -1 roll dup 4 1 roll lt
+  {
+    0 len len len len 0 8 -2 roll exch 1 sub dup dup len exch sub 3 -1 roll 4 -1 roll dup len exch sub dup 3 1 roll
+    moveto lineto lineto lineto lineto lineto
+  }
+  {
+    exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub
+    moveto lineto lineto
+  } ifelse
+  closepath fill
   grestore
 } bind def
 /uUDmotif{ % i j uUDmotif
@@ -370,29 +378,29 @@ drawData
 %data (commands) starts here
 
 %start of quadruplex data
-51 68 0.065683492 utri
-52 68 0.997840517 utri
+51 68 0.065799515 utri
+52 68 0.997832871 utri
 
 %start of Hmotif data
 
 %start of Imotif data
 %start of base pair probability data
 51 57 0.000000000 ubox
-51 56 0.065683492 ubox
-51 66 0.065683492 ubox
+51 56 0.065799515 ubox
+51 66 0.065799515 ubox
 51 67 0.000000000 ubox
-52 56 0.997840517 ubox
-52 57 0.065683492 ubox
+52 56 0.997832871 ubox
+52 57 0.065799515 ubox
 52 58 0.000000000 ubox
-52 66 0.997840517 ubox
-52 67 0.065683492 ubox
+52 66 0.997832871 ubox
+52 67 0.065799515 ubox
 52 68 0.000000000 ubox
-53 57 0.997840517 ubox
-53 58 0.065683492 ubox
-53 67 0.997840517 ubox
-53 68 0.065683492 ubox
-54 58 0.997840517 ubox
-54 68 0.997840517 ubox
+53 57 0.997832871 ubox
+53 58 0.065799515 ubox
+53 67 0.997832871 ubox
+53 68 0.065799515 ubox
+54 58 0.997832871 ubox
+54 68 0.997832871 ubox
 56 61 0.707106781 ubox
 56 62 0.707106781 ubox
 56 63 0.000000000 ubox
@@ -477,7 +485,7 @@ drawData
 16 20 0.003503236 ubox
 16 21 0.013913643 ubox
 16 22 0.010271215 ubox
-16 23 0.034039320 ubox
+16 23 0.034039318 ubox
 16 34 0.010515382 ubox
 16 91 0.019920664 ubox
 16 95 0.010474978 ubox
@@ -608,7 +616,7 @@ drawData
 31 38 0.043720851 ubox
 31 39 0.003429286 ubox
 31 45 0.010703620 ubox
-31 76 0.139029076 ubox
+31 76 0.139029083 ubox
 31 78 0.133427214 ubox
 31 83 0.143804508 ubox
 31 89 0.297191288 ubox
@@ -633,8 +641,8 @@ drawData
 33 88 0.117621793 ubox
 34 42 0.660163676 ubox
 34 43 0.063091393 ubox
-34 75 0.012195679 ubox
-34 77 0.011573459 ubox
+34 75 0.012195680 ubox
+34 77 0.011573460 ubox
 34 80 0.089228483 ubox
 34 81 0.007793874 ubox
 34 85 0.226053348 ubox
@@ -652,7 +660,7 @@ drawData
 35 86 0.192191576 ubox
 36 42 0.067668179 ubox
 36 43 0.059787312 ubox
-36 75 0.010020053 ubox
+36 75 0.010020054 ubox
 36 77 0.015652534 ubox
 36 80 0.006049160 ubox
 36 81 0.035941065 ubox
@@ -661,14 +669,14 @@ drawData
 37 41 0.061473179 ubox
 37 42 0.055099792 ubox
 37 43 0.013512925 ubox
-37 44 0.021910469 ubox
+37 44 0.021910468 ubox
 37 77 0.005319562 ubox
 37 80 0.034288074 ubox
 37 81 0.006664085 ubox
 37 82 0.296931312 ubox
 37 86 0.006460607 ubox
 38 42 0.017167722 ubox
-38 43 0.044129393 ubox
+38 43 0.044129391 ubox
 38 75 0.010658359 ubox
 38 77 0.054962618 ubox
 38 80 0.011993151 ubox
@@ -688,8 +696,8 @@ drawData
 42 74 0.008949457 ubox
 42 78 0.682138846 ubox
 42 79 0.042579229 ubox
-43 72 0.161813161 ubox
-43 73 0.009065783 ubox
+43 72 0.161813167 ubox
+43 73 0.009065784 ubox
 43 76 0.007488612 ubox
 43 78 0.047148048 ubox
 44 76 0.969922955 ubox
@@ -697,13 +705,13 @@ drawData
 45 75 0.985758369 ubox
 46 70 0.162552372 ubox
 46 74 0.986357464 ubox
-47 69 0.162538243 ubox
+47 69 0.162538248 ubox
 47 73 0.986670829 ubox
-48 69 0.004726219 ubox
+48 69 0.004726183 ubox
 48 72 0.986657418 ubox
 49 71 0.981007979 ubox
-50 71 0.029908603 ubox
-51 72 0.003301240 ubox
+50 71 0.029908374 ubox
+51 72 0.003301214 ubox
 87 96 0.011917587 ubox
 88 95 0.015564735 ubox
 89 94 0.050665301 ubox
