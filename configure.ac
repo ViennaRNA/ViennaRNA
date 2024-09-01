@@ -46,14 +46,18 @@ else
 fi
 
 AC_PROG_INSTALL
-AM_PROG_AR
 AC_PROG_MAKE_SET
-AC_PROG_GREP
-AC_PROG_MKDIR_P
-AM_PROG_CC_C_O
+
 AC_PROG_SED
 AC_PROG_AWK
+AC_PROG_GREP
+AC_PROG_EGREP
+AC_PROG_FGREP
+
+AC_PROG_MKDIR_P
 AC_PROG_LN_S
+
+AM_PROG_AR
 
 LT_INIT([pic-only, static])
 AC_SUBST(LIBTOOL_DEPS)
@@ -62,7 +66,6 @@ AC_SUBST(LIBTOOL_DEPS)
 dnl Checks for libraries.
 AC_CHECK_LIB([m], [exp])
 
-AC_PROG_EGREP
 
 dnl Checks for header files.
 AC_HEADER_STDBOOL
@@ -77,7 +80,9 @@ AC_CHECK_FUNCS([floor strdup strstr strchr strrchr strstr strtol strtoul pow rin
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_SIZE_T
-AC_C_INLINE([])
+AC_C_INLINE
+AC_C__GENERIC
+
 
 AC_RNA_INIT
 

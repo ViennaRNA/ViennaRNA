@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0 EPSF-3.0
-%%Creator: ViennaRNA-2.4.14
-%%CreationDate: Wed Jun 17 17:23:52 2020
+%%Creator: ViennaRNA-2.6.4
+%%CreationDate: Sun Sep  1 16:51:16 2024
 %%Title: RNA Dot Plot
 %%BoundingBox: 66 211 518 662
 %%DocumentFonts: Helvetica
@@ -126,8 +126,16 @@ DPdict begin
   3 1 roll % prepare hsb color
   sethsbcolor
   % now produce the coordinates for lines
-  exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub
-  moveto lineto lineto closepath fill
+  dup 3 -1 roll dup 4 1 roll lt
+  {
+    0 len len len len 0 8 -2 roll exch 1 sub dup dup len exch sub 3 -1 roll 4 -1 roll dup len exch sub dup 3 1 roll
+    moveto lineto lineto lineto lineto lineto
+  }
+  {
+    exch 1 sub dup len exch sub dup 4 -1 roll dup 3 1 roll dup len exch sub
+    moveto lineto lineto
+  } ifelse
+  closepath fill
   grestore
 } bind def
 
