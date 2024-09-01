@@ -88,15 +88,4 @@
  */
 @CONFIG_NAVIEW_LAYOUT@
 
-/*
- * Build with extra entropic penalty for fully unpaired open
- * chain in circular RNAs
- *
- * If this feature is enabled, the next line defines
- * 'VRNA_WITH_CIRC_PENALTY'
- */
-@CONFIG_CIRC_PENALTY@
-
-
-
 #endif

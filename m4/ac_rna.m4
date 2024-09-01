@@ -59,7 +59,6 @@ RNA_ENABLE_SIMD
 RNA_ENABLE_VECTORIZE
 RNA_ENABLE_MPFR
 RNA_ENABLE_NAVIEW
-RNA_ENABLE_CIRC_PENALTY
 RNA_ENABLE_DEBUG_RNALIB
 
 ## Setup Python 3 variables
@@ -303,7 +302,6 @@ Extra Libraries
 
 Features
 --------
-  * CircRNA Entropy penalty   : ${result_cpen}
   * Use hash for NR Sampling  : ${result_NRhash}
   * C11 features              : ${result_c11}
   * TTY colors                : ${result_tty_colors}

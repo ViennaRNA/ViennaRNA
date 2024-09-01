@@ -1021,7 +1021,6 @@ eval_circ_pt(vrna_fold_compound_t *fc,
   /* evaluate exterior loop itself */
   switch (degree) {
     case 0:   /* unstructured */
-#ifdef VRNA_WITH_CIRC_PENALTY
       switch (fc->type) {
         case VRNA_FC_TYPE_COMPARATIVE:
           for (s = 0; s < n_seq; s++)
@@ -1032,7 +1031,6 @@ eval_circ_pt(vrna_fold_compound_t *fc,
           en0 += vrna_ext_circ_en(length, md);
           break;
       }
-#endif
 
       switch (fc->type) {
         case VRNA_FC_TYPE_COMPARATIVE:
@@ -1352,9 +1350,8 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
   /* now for the actual correction (if necessary) */
   switch (num_elem) {
     case 0: /* exterior loop has been falsly assumed to be entirely unpaired */
-#ifdef VRNA_WITH_CIRC_PENALTY
       e_minus += vrna_ext_circ_en(n, md) * (int)n_seq;
-#endif
+
       if (verbosity_level > 0)
         vrna_cstr_print_eval_ext_loop_revert(output_stream,
                                              (int)e_minus / (int)n_seq);
@@ -1365,9 +1362,9 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
 
           if (u1 < 3)
             return INF;
-#ifdef VRNA_WITH_CIRC_PENALTY
+
           e_plus += vrna_hp_energy(n - up_mis, 0, 0, 0, NULL, P) * (int)n_seq;
-#endif
+
           vrna_log_debug("e_plus = %d, e_minus = %d", e_plus, e_minus);
           break;
 

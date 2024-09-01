@@ -2035,11 +2035,7 @@ scan_circular(vrna_fold_compound_t  *fc,
    * backtrack anything further...
    */
   if (evaluate_ext(1, length, 1, length, VRNA_DECOMP_EXT_UP, hc_dat_ext)) {
-#ifdef VRNA_WITH_CIRC_PENALTY
     tmp_en = vrna_ext_circ_en(length, md) * (int)n_seq;
-#else
-    tmp_en = 0; /* base line for unfolded state */
-#endif
 
     if (sc) {
       if (sc->energy_up)

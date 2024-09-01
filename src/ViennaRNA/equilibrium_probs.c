@@ -4471,12 +4471,10 @@ bppm_circ(vrna_fold_compound_t  *fc,
             }
             
             if (eval) {
-#ifdef VRNA_WITH_CIRC_PENALTY
-              tmp = pow(vrna_hp_exp_energy((i - 1) + (n - j), 0, 0, 0, NULL, pf_params), (double)n_seq) *
-                  scale[(i - 1) + (n - j)];
-#else
               tmp = scale[(i - 1) + (n - j)]; 
-#endif
+
+              if (md->circ_penalty)
+                tmp *= pow(vrna_hp_exp_energy((i - 1) + (n - j), 0, 0, 0, NULL, pf_params), (double)n_seq);
 
               if (sc_ext_wrapper.red_up)
                 tmp *= sc_ext_wrapper.red_up(1, i - 1, &sc_ext_wrapper) *
@@ -4697,21 +4695,18 @@ bppm_circ(vrna_fold_compound_t  *fc,
       vrna_log_debug("n,1 k= %d, l = [%d:%d]", k, lmin, lmax);
       for (l = lmin; l <= lmax; l++) {
          if ((q_g = vrna_smx_csr_get(q_gq, k, l, 0.)) != 0.) {
-//            vrna_log_debug("n,1 l = %d, q_g = %g", l, q_g);
             tmp2 = 0;
-            
+
             /* 1. hairpin-loop like case, i.e. single gquad, rest unpaired */
             u1    = k - l - 1;
             eval  = (hc->up_hp[l + 1] >= u1) ? 1 : 0;
 
             if ((eval) &&
                 (u1 >= 3)) {
-#ifdef VRNA_WITH_CIRC_PENALTY
-              qbt1 = pow(vrna_hp_exp_energy(u1, 0, 0, 0, NULL, pf_params), (double)n_seq) *
-                     scale[u1];
-#else
               qbt1 = scale[u1];
-#endif
+
+              if (md->circ_penalty)
+                qbt1 *= pow(vrna_hp_exp_energy(u1, 0, 0, 0, NULL, pf_params), (double)n_seq);
 
               if (sc_hp_wrapper.pair_ext)
                 qbt1 *= sc_hp_wrapper.pair_ext(k, l, &sc_hp_wrapper);

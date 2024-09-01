@@ -680,7 +680,6 @@ postprocess_circular(vrna_fold_compound_t *fc)
   if (eval) {
     qbt1 = scale[n];
 
-#ifdef VRNA_WITH_CIRC_PENALTY
     switch (fc->type) {
       case VRNA_FC_TYPE_COMPARATIVE:
         for (s = 0; s < n_seq; s++)
@@ -691,7 +690,6 @@ postprocess_circular(vrna_fold_compound_t *fc)
         qbt1 *= vrna_ext_circ_exp_en(n, md);
         break;
     }
-#endif
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
@@ -757,11 +755,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
               eval = (hc->f(j + 1, n, i, n, VRNA_DECOMP_EXT_EXT, hc->data)) ? eval : 0;
             if (eval) {
               qbt1 = q_g *
-#ifdef VRNA_WITH_CIRC_PENALTY
-                     pow(vrna_hp_exp_energy(u, 0, 0, 0, NULL, pf_params), (double)n_seq) *
-#endif
                      scale[u];
- 
+
+              if (md->circ_penalty)
+                qbt1 *= pow(vrna_hp_exp_energy(u, 0, 0, 0, NULL, pf_params), (double)n_seq);
+
               if (sc_ext_wrapper.red_ext)
                 qbt1 *= sc_ext_wrapper.red_ext(j + 1, n, i, n, &sc_ext_wrapper);
 
@@ -943,10 +941,10 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
           if (eval) {
             qbt1 = q_g *
-#ifdef VRNA_WITH_CIRC_PENALTY
-                   pow(vrna_hp_exp_energy(u1 + u2, 0, 0, 0, NULL, pf_params), (double)n_seq) *
-#endif
                    scale[u1 + u2];
+
+            if (md->circ_penalty)
+              qbt1 *= pow(vrna_hp_exp_energy(u1 + u2, 0, 0, 0, NULL, pf_params), (double)n_seq);
 
             /* apply soft constraints, if any */
             if (sc_ext_wrapper.red_up)
