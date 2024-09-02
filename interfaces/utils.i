@@ -31,8 +31,6 @@
 
 %include  <ViennaRNA/utils/basic.h>
 
-%include  <ViennaRNA/utils/log.h>
-
 /**********************************************/
 /* BEGIN interface for string utilities       */
 /**********************************************/
@@ -238,6 +236,47 @@ std::string my_filename_sanitize(std::string name);
 std::string my_filename_sanitize(std::string name, char c);
 
 %include  <ViennaRNA/io/utils.h>
+
+/**********************************************/
+/* BEGIN interface for logging utilities      */
+/**********************************************/
+
+/* allow for passing unsigned int instead of vrna_log_levels_e to the below functions */
+%apply int { vrna_log_levels_e };
+
+#ifdef SWIGPYTHON
+%include callbacks-log.i
+#endif
+
+/* rename the logging system API */
+%rename (log_level)       vrna_log_level;
+%rename (log_level_set)   vrna_log_level_set;
+%rename (log_options)     vrna_log_options;
+%rename (log_options_set) vrna_log_options_set;
+%rename (log_cb_num)      vrna_log_cb_num;
+%rename (log_reset)       vrna_log_reset;
+%rename (log_fp)          vrna_log_fp;
+%rename (log_fp_set)      vrna_log_fp_set;
+
+
+/* add logging-related constants */
+
+%constant int  LOG_LEVEL_UNKNOWN  = VRNA_LOG_LEVEL_UNKNOWN;   /**< Unknown log level */
+%constant int  LOG_LEVEL_DEBUG    = VRNA_LOG_LEVEL_DEBUG;     /**< Debug log level */
+%constant int  LOG_LEVEL_INFO     = VRNA_LOG_LEVEL_INFO;      /**< Info log level */
+%constant int  LOG_LEVEL_WARNING  = VRNA_LOG_LEVEL_WARNING;   /**< Warning log level */
+%constant int  LOG_LEVEL_ERROR    = VRNA_LOG_LEVEL_ERROR;     /**< Error log level */
+%constant int  LOG_LEVEL_CRITICAL = VRNA_LOG_LEVEL_CRITICAL;  /**< Critical log level */
+%constant int  LOG_LEVEL_SILENT   = VRNA_LOG_LEVEL_SILENT;    /**< Silent log level */
+%constant int  LOG_LEVEL_DEFAULT  = VRNA_LOG_LEVEL_DEFAULT;
+
+%constant unsigned int LOG_OPTION_QUIET = VRNA_LOG_OPTION_QUIET;
+%constant unsigned int LOG_OPTION_TRACE_CALL = VRNA_LOG_OPTION_TRACE_CALL;
+%constant unsigned int LOG_OPTION_TRACE_TIME = VRNA_LOG_OPTION_TRACE_TIME;
+%constant unsigned int LOG_OPTION_DEFAULT = VRNA_LOG_OPTION_DEFAULT;
+
+
+%include  <ViennaRNA/utils/log.h>
 
 
 
