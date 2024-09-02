@@ -151,6 +151,8 @@ vrna_log_level_set(vrna_log_levels_e level)
     case VRNA_LOG_LEVEL_ERROR:
     /* fall through */
     case VRNA_LOG_LEVEL_CRITICAL:
+    /* fall through */
+    case VRNA_LOG_LEVEL_SILENT:
       logger.default_level = level;
       break;
     default:
