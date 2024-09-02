@@ -105,8 +105,13 @@ vrna_strdup_vprintf(const char  *format,
 
   va_end(copy);  /* Each va_start() or va_copy() needs a va_end() */
 #else
+  va_list copy;
+  va_copy(copy, argp);
+
   /* the default is to use vasprintf() if available */
-  r = vasprintf(&result, format, argp);
+  r = vasprintf(&result, format, copy);
+
+  va_end(copy); /* Each va_start() or va_copy() needs a va_end() */
 #endif
 
   /* check for any memory allocation error indicated by r == -1 */
