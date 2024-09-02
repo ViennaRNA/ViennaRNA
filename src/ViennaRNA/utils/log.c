@@ -49,9 +49,10 @@
  #################################
  */
 typedef struct {
-  vrna_log_cb_f     cb;
-  void              *cb_data;
-  vrna_log_levels_e level;
+  vrna_log_cb_f       cb;
+  void                *cb_data;
+  vrna_logdata_free_f data_release;
+  vrna_log_levels_e   level;
 } logger_callback;
 
 PRIVATE struct {
@@ -195,9 +196,10 @@ vrna_log_options_set(unsigned int options)
 
 
 PUBLIC size_t
-vrna_log_cb_add(vrna_log_cb_f     cb,
-                void              *data,
-                vrna_log_levels_e level)
+vrna_log_cb_add(vrna_log_cb_f       cb,
+                void                *data,
+                vrna_logdata_free_f data_release,
+                vrna_log_levels_e   level)
 {
   /* initialize the logger, if not done already */
   if (logger.callbacks == NULL) {
@@ -207,9 +209,10 @@ vrna_log_cb_add(vrna_log_cb_f     cb,
 
   if (cb) {
     logger_callback logger_cb = {
-      .cb       = cb,
-      .cb_data  = data,
-      .level    = level
+      .cb           = cb,
+      .cb_data      = data,
+      .data_release = data_release,
+      .level        = level
     };
 
     /* append callback to callback list */
@@ -252,6 +255,10 @@ vrna_log_cb_remove(vrna_log_cb_f  cb,
 
     /* did we find the callback ? */
     if (i < vrna_array_size(logger.callbacks)) {
+      /* release data if necessary */
+      if (logger.callbacks[i].data_release)
+        logger.callbacks[i].data_release(logger.callbacks[i].cb_data);
+
       /* move all callbacks after the one we found */
       if (i < vrna_array_size(logger.callbacks) - 1) {
         (void)memmove(logger.callbacks + i,
@@ -282,8 +289,13 @@ vrna_log_lock_set(vrna_log_lock_f cb,
 PUBLIC void
 vrna_log_reset(void)
 {
-  if (logger.callbacks)
+  if (logger.callbacks) {
+    for (size_t i = 0; i < vrna_array_size(logger.callbacks); i++)
+      if (logger.callbacks[i].data_release)
+        logger.callbacks[i].data_release(logger.callbacks[i].cb_data);
+
     vrna_array_free(logger.callbacks);
+  }
 
   /* initialize everything to default settings */
   logger.default_file   = stderr;
@@ -291,6 +303,7 @@ vrna_log_reset(void)
   logger.lock_data      = NULL;
   logger.default_level  = VRNA_LOG_LEVEL_DEFAULT;
   logger.options        = VRNA_LOG_OPTION_DEFAULT;
+
   vrna_array_init(logger.callbacks);
 #if VRNA_WITH_PTHREADS
   (void)pthread_mutex_init(&(logger.mtx), NULL);

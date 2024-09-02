@@ -78,6 +78,7 @@ typedef void (*vrna_log_lock_f)(int   lock,
 typedef void (*vrna_log_cb_f)(vrna_log_event_t  *event,
                               void              *log_data);
 
+typedef void (*vrna_logdata_free_f)(void *data);
 
 /**
  *  @brief  Default log level
@@ -333,13 +334,15 @@ vrna_log_fp_set(FILE *fp);
  *
  *  @param  cb    The callback function
  *  @param  data  The data passed through to the callback function
+ *  @param  data_release  A function that releases memory occupied by @p data (maybe NULL)
  *  @param  level The log level threshold for this callback
  *  @returns      The current number of log message callbacks stored in the logging system
  */
 size_t
-vrna_log_cb_add(vrna_log_cb_f     cb,
-                void              *data,
-                vrna_log_levels_e level);
+vrna_log_cb_add(vrna_log_cb_f       cb,
+                void                *data,
+                vrna_logdata_free_f data_release,
+                vrna_log_levels_e   level);
 
 
 /**
