@@ -152,6 +152,7 @@ namespace std {
   %template(DoublePair) std::pair<double,double>;
   %template(IntVector) std::vector<int>;
   %template(UIntVector) std::vector<unsigned int>;
+  %template(UIntUIntVector) std::vector<std::vector<unsigned int> >;
   %template(DoubleVector) std::vector<double>;
   %template(StringVector) std::vector<string>;
   %template(ConstCharVector) std::vector<const char*>;

@@ -131,4 +131,33 @@ std::vector<unsigned int> boustrophedon(unsigned int start, unsigned int end);
 unsigned int              boustrophedon(unsigned int start, unsigned int end, unsigned int pos);
 
 
+%{
+  std::vector<std::vector<unsigned int> >
+  n_multichoose_k(unsigned int n,
+                  unsigned int k)
+  {
+    unsigned int **result;
+    std::vector<std::vector<unsigned int> > r;
+    result = vrna_n_multichoose_k(n, k);
+
+    for (size_t j = 0; result[j] != NULL; j++) {
+      std::vector<unsigned int> e;
+      for (size_t i = 0; i < k; i++)
+        e.push_back(result[j][i]);
+
+      r.push_back(e);
+      free(result[j]);
+    }
+
+    free(result);
+
+    return r;
+  }
+
+%}
+
+std::vector<std::vector<unsigned int> >
+n_multichoose_k(unsigned int n,
+                unsigned int k);
+
 %include  <ViennaRNA/combinatorics.h>
