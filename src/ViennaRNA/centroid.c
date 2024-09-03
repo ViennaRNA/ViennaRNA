@@ -207,7 +207,6 @@ vrna_centroid(vrna_fold_compound_t  *fc,
       p = vrna_smx_csr_get_entry(matrices->p_gq, k, &i, &j, 0.);
       if (p > 0.5) {
         /* get the gquad pattern */
-        vrna_log_debug("centroid: adding gq[%d,%d]", i, j);
         vrna_get_gquad_pattern_pf(fc, i, j, &L, l);
 
         if (L > 0)

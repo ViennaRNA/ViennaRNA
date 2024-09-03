@@ -2029,7 +2029,6 @@ wrap_plist(vrna_fold_compound_t *vc,
       for (j = jmin; j <= jmax; j++) {
         FLT_OR_DBL p_g;
         if ((p_g = vrna_smx_csr_get(p_gq, i, j, 0.)) >= (FLT_OR_DBL)cut_off) {
-          vrna_log_debug("pg[%d,%d] = %g", i, j, p_g);
           (pl)[count].i       = i;
           (pl)[count].j       = j;
           (pl)[count].p       = (float)p_g;

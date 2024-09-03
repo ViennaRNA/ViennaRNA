@@ -883,7 +883,6 @@ pf_create_bppm(vrna_fold_compound_t *vc,
                              qln[j + 1] / q1k[n];
 
               probs[ij] *= q_g;
-              vrna_log_debug("prg[%d,%d] = %g", i, j, probs[ij]);
             }
           }
         } else {
@@ -4275,7 +4274,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     if (sc_int_wrapper.pair_ext)
                       tmp *= sc_int_wrapper.pair_ext(k, l, i, j, &sc_int_wrapper);
 
-                    vrna_log_debug("O | int [%d,%d] (%d,%d) => %g 1 = %g = %g * %g * %g [%g] {%g}", k, l, i, j, tmp, q_g * tmp * qint / qo,qint, scale[u1 + u2 + (i - l - 1)], qb[my_iindx[i] - j], q_g, qo);
                     /* store outside part for base pair */
                     tmp2 += qint *
                             q_g *
@@ -4335,7 +4333,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   if (sc_int_wrapper.pair_ext)
                     tmp *= sc_int_wrapper.pair_ext(i, j, k, l, &sc_int_wrapper);
 
-                  vrna_log_debug("O | int (%d,%d) [%d,%d] => %g 6 = %g = %g * %g * %g * %g [%g]", i, j, k, l, tmp, q_g * tmp / qo, q_g, qint, scale[u1 + u2 + u3], qb[my_iindx[i] - j], q_g);
                   /* store outside part for base pair */
                   tmp2 +=  qint *
                           q_g *
@@ -4393,7 +4390,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                       if (sc_mb_wrapper.pair_ext)
                         tmp *= sc_mb_wrapper.pair_ext(i, j, &sc_mb_wrapper);
 
-                      vrna_log_debug("O | mb [%d,%d] => %g n.1", k, l, q_g * tmp);
                       /* store outside part for base pair (i,j) */
                       tmp2 += q_g *
                               tmp;
@@ -4412,7 +4408,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                       if (sc_mb_wrapper.pair_ext)
                         tmp *= sc_mb_wrapper.pair_ext(i, j, &sc_mb_wrapper);
 
-                      vrna_log_debug("O | mb [%d,%d] => %g n.1", k, l, q_g * tmp);
                       /* store outside part for base pair (i,j) */
                       tmp2 += q_g *
                               tmp;
@@ -4430,7 +4425,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     if (sc_mb_wrapper.pair_ext)
                       tmp *= sc_mb_wrapper.pair_ext(i, j, &sc_mb_wrapper);
 
-                    vrna_log_debug("O | mb [%d,%d] => %g n.1", k, l, q_g * tmp);
                       /* store outside part for base pair (i,j) */
                     tmp2 += q_g *
                             tmp;
@@ -4480,7 +4474,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                 tmp *= sc_ext_wrapper.red_up(1, i - 1, &sc_ext_wrapper) *
                        sc_ext_wrapper.red_up(j + 1, n, &sc_ext_wrapper);
  
-              vrna_log_debug("O | solo [%d,%d] => %g gq = %g, %g", i, j, tmp, q_g, tmp * q_g);
               tmp2 += tmp;
             }
           }
@@ -4535,7 +4528,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   /* soft constraints for at least unpaired bases in the interior-loop like conformation?! */
 
                   tmp2 += tmp * tmp3;
-                  vrna_log_debug("O | int [%d,%d] [%d,%d] => %g gq = %g * %g * %g / %g", i, j, k, l, tmp * tmp3 * q_g / qo, tmp, tmp3, q_g, qo);
                   probs[my_iindx[k] - l] += tmp * q_g / qo; /* add contribution for 2nd gquad here instead of extra block below */
                 }
               }
@@ -4624,7 +4616,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     if (sc_mb_wrapper.pair_ext)
                       tmp *= sc_mb_wrapper.pair_ext(i, j, &sc_mb_wrapper);
 
-                    vrna_log_debug("O | mb [%d,%d] => %g n.1", k, l, q_g * tmp);
                     /* store outside part for base pair (i,j) */
                     tmp2 += q_g *
                             tmp;
@@ -4643,7 +4634,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     if (sc_mb_wrapper.pair_ext)
                       tmp *= sc_mb_wrapper.pair_ext(i, j, &sc_mb_wrapper);
 
-                    vrna_log_debug("O | mb [%d,%d] => %g n.1", k, l, q_g * tmp);
                     /* store outside part for base pair (i,j) */
                     tmp2 += q_g *
                             tmp;
@@ -4661,7 +4651,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   if (sc_mb_wrapper.pair_ext)
                     tmp *= sc_mb_wrapper.pair_ext(i, j, &sc_mb_wrapper);
 
-                  vrna_log_debug("O | mb [%d,%d] => %g n.1", k, l, q_g * tmp);
                     /* store outside part for base pair (i,j) */
                   tmp2 += q_g *
                           tmp;
@@ -4672,8 +4661,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
           /* store total contribution */
           probs[ij] += tmp2 / qo;
-
-          vrna_log_debug("prg1[%d,%d] = %g = %g, q_g = %g", i, j, probs[ij], probs[ij] * q_g, q_g);
         }
       }
     }
@@ -4692,7 +4679,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
       if (lmax >= n)
         lmax = k - 1;
 
-      vrna_log_debug("n,1 k= %d, l = [%d:%d]", k, lmin, lmax);
       for (l = lmin; l <= lmax; l++) {
          if ((q_g = vrna_smx_csr_get(q_gq, k, l, 0.)) != 0.) {
             tmp2 = 0;
@@ -4712,7 +4698,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                 qbt1 *= sc_hp_wrapper.pair_ext(k, l, &sc_hp_wrapper);
 
               tmp2 += qbt1;
-            vrna_log_debug("hp2[%d,%d] = %g = %g, q_g = %g, %g", k, l, qbt1, qbt1 / qo * q_g, q_g, qbt1 * q_g);
             }
 
             /* 2. internal-loop like case, i.e. single gquad plus base pair or second gquad */
@@ -4728,7 +4713,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
               if ((MAXLOOP <= n) && 
                   (jmin + MAXLOOP < k + u1))
                 jmin = k + u1 - MAXLOOP - 1;
-              vrna_log_debug("n,1 i = %d, j = [%d:%d]\n", i, jmin, jmax);
+
               for (j = jmax; j >= jmin; j--) {
                 u2 = k - j - 1;
                 if (((u1 == 0) && (u2 < 3)) ||
@@ -4786,8 +4771,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   /* store base pair probs */
                   probs[my_iindx[i] - j] += qbt1 * qint *
                                             q_g / qo;
-
-                  vrna_log_debug("O | int [%d,%d] (%d,%d) => %g n.1 = %g = %g * %g * %g [%g] {%g}", k, l, i, j, qbt1, qbt1 * qint * q_g / qo, qint, scale[u1 + u2], qb[my_iindx[i] - j], q_g, qo);
                 }
 
                 /* 2.2 second element is a gquad */
@@ -4821,18 +4804,13 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   /* store other gquad probs */
                   probs[my_iindx[i] - j] += qbt1 *
                                             q_g / qo;
-
-                  vrna_log_debug("O | int [%d,%d] [%d,%d] => %g n.1 = %g", k, l, i, j, qbt1, qbt1 * q_g);
                 }
               }
             }
-            vrna_log_debug("O | int [%d,%d] => %g n.1", k, l, tmp2);
 
             /* 3. multibranch-loop like case, i.e. gquad plus at least two more stems */
             qbt1 = qm2_real[my_iindx[l + 1] - k + 1] *
                    pow(exp_E_MLstem(0, -1, -1, pf_params) * expMLclosing, (double)n_seq);
-
-            vrna_log_debug("mb2[%d,%d] = %g = %g", k, l, qbt1 / qo, qbt1 / qo * q_g);
 
             tmp2 += qbt1;
 
@@ -4843,8 +4821,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
 #else
             vrna_smx_csr_FLT_OR_DBL_insert(matrices->p_gq, k, l, tmp2 * q_g / qo);
 #endif
-            vrna_log_debug("prg2[%d,%d] = %g = %g", k, l, tmp2 / qo, tmp2 / qo * q_g);
-
          }
        }
     }

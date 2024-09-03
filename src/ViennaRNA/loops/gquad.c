@@ -1574,7 +1574,7 @@ vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
     n2 = MIN2(n, VRNA_GQUAD_MAX_BOX_SIZE) - 1;
 
     gj += n;
-    vrna_log_debug("preparing for circ");
+
     S_tmp = (short *)vrna_alloc(sizeof(short) * (n + n2 + 1));
     memcpy(S_tmp, S_enc, sizeof(short) * (n + 1));
     memcpy(S_tmp + (n + 1), S_enc + 1, sizeof(short) * n2);

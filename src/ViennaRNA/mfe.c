@@ -702,16 +702,10 @@ postprocess_circular(vrna_fold_compound_t *fc,
       if (stop_j >= i)
         stop_j = i - 1;
 
-      vrna_log_debug("i=%d, start=%d, stop=%d, length=%d", i, start_j, stop_j, length);
-
       for (j = start_j; j <= stop_j; j++) {
         new_c = vrna_smx_csr_get(c_gq, i, j, INF);
 
-        vrna_log_debug("i=%d, j=%d, length=%d", i, j, length);
-
         if (new_c != INF) {
-          vrna_log_debug("g=%d", new_c);
-
           /* case 1: gquad is the only structure, rest is unpaired */
           if (i - j > 3) { /* keep at least 3 unpaired bases between start and end of gquad */
             unsigned int u;
@@ -952,8 +946,6 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
           /* case 3, gquad forms a multi-branch loop like structure with other base pairs or gquadruplexes */
           if (fM2_real[indx[i - 1] + j + 1] != INF) {
-            vrna_log_debug("ml-case: ggg[%d-%d] + fm2[%d,%d] = %d + %d + %d", i, j, j + 1, i - 1, new_c, fM2_real[indx[i - 1] + j + 1], n_seq *
-              (P->MLclosing + E_MLstem(0, -1, -1, P)));
             e = new_c +
                 fM2_real[indx[i - 1] + j + 1] +
                 n_seq *
@@ -1077,7 +1069,6 @@ postprocess_circular(vrna_fold_compound_t *fc,
                   eval = (hc->up_int[q] >= u3) ? 1 : 0;
                   eval = (hc->mx[length * p + q] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? eval : 0;
                   if (eval) {
-                    vrna_log_debug("[%d,%d] + (%d,%d)", i, j, p, q);
                     int pq = indx[q] + p;
                     int energy = my_c[pq];
                     if (energy != INF) {
@@ -2039,15 +2030,12 @@ postprocess_circular(vrna_fold_compound_t *fc,
         .j = 1,
         .ml = VRNA_MX_FLAG_F5}));
     } else if (with_gquad) {
-      vrna_log_debug("backtrace gquad configuration");
       if (Fc == FgH) {
-        vrna_log_debug("backtrace gquad hairpin-like configuration");
         vrna_bts_push(bt_stack, ((vrna_sect_t){
           .i = Hgi,
           .j = Hgj,
           .ml = VRNA_MX_FLAG_G}));
       } else if (Fc == FgI) {
-        vrna_log_debug("backtrace gquad internal loop-like configuration %d, %d, %d, %d, %d", Igi, Igj, Igp, Igq, Igg);
         vrna_bts_push(bt_stack, ((vrna_sect_t){
           .i = Igi,
           .j = Igj,
@@ -2064,7 +2052,6 @@ postprocess_circular(vrna_fold_compound_t *fc,
             .ml = VRNA_MX_FLAG_C}));
         }
       } else if (Fc == FgM) {
-        vrna_log_debug("backtrace gquad multibranch loop-like configuration");
         vrna_bts_push(bt_stack, ((vrna_sect_t){
           .i = Mgi,
           .j = Mgj,
