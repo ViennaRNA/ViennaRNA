@@ -88,8 +88,8 @@ and installation process.*
 
 Usually you'll simply unpack the distribution tarball, configure and make:
 ```
-tar -zxvf ViennaRNA-2.6.4.tar.gz
-cd ViennaRNA-2.6.4
+tar -zxvf ViennaRNA-2.7.0.tar.gz
+cd ViennaRNA-2.7.0
 ./configure
 make
 sudo make install
@@ -120,7 +120,7 @@ script:
    program `RNALfold`:
 ```
 cd src
-tar -xzf libsvm-3.31.tar.gz
+tar -xzf libsvm-3.35.tar.gz
 cd ..
 ```
 
@@ -132,17 +132,20 @@ tar -xjf dlib-19.24.tar.bz2
 cd ..
 ```
 
-3. Install the additional maintainer tools `gengetopt`, `help2man`,`flex`,`xxd`,
-   and `swig` if necessary. For instance, in RedHat based distributions, the
-   following packages need to be installed:
+3. Install the autotools toolchain and the additional maintainer tools
+   `gengetopt`, `help2man`,`flex`,`xxd`, and `swig` if necessary. For
+   instance, in Debian based distributions, the following packages need
+   to be installed:
+    - `build-essential` (basic build tools, such as compiler, linker, etc.)
+    - `autoconf`, `automake`, `libtool`, `pkg-config` (autotools toolchain)
     - `gengetopt` (to generate command line parameter parsers)
     - `help2man` (to generate the man pages) 
-    - `yacc`, `flex` and `flex-devel` (to generate sources for RNAforester)
+    - `bison` and `flex`` (to generate sources for RNAforester)
     - `vim-common` (for the `xxd` program)
     - `swig` (to generate the scripting language interfaces)
     - `liblapacke` (for `RNAxplorer`)
     - `liblapack`  (for `RNAxplorer`)
-    - A fortran compiler, e.g. `gcc-gfortran` (for `RNAxplorer`)
+    - A fortran compiler, e.g. `gfortran` (for `RNAxplorer`)
 
 4. Finally, run the autoconf/automake toolchain:
 ```

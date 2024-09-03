@@ -11,7 +11,7 @@ CONFIGURE_OPTIONS=" --without-swig \
                     --without-forester \
                     --with-cluster \
                     --with-kinwalker \
-		    --without-rnaxplorer \
+                    --without-rnaxplorer \
                     --disable-pthreads \
                     --disable-tty-colors \
                     --disable-lto"

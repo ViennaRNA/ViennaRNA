@@ -80,7 +80,7 @@ install-exec-hook:
 	$(AM_V_GEN)target_path=${python3dir}; \
 	for i in $(PYTHON_UTILS); \
 	do \
-	  $(SED) -i 's#\$${exec_prefix}#'$(DESTDIR)$(prefix)'#g' $(DESTDIR)$(bindir)/$$i ; \
+	  $(SED) -i 's#\$${exec_prefix}#'$(prefix)'#g' $(DESTDIR)$(bindir)/$$i ; \
 	done
 
 

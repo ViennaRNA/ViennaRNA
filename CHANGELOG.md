@@ -2,9 +2,100 @@
 
 Below, you'll find a list of notable changes for each version of the ViennaRNA Package.
 
-## Version 2.6.x
+## Version 2.7.x
 
-### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.4...HEAD)
+
+### [Unreleased](https://github.com/ViennaRNA/ViennaRNA/compare/v2.7.0...HEAD)
+
+
+### [Version 2.7.0](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.4...v2.7.0)
+
+#### Programs
+  * Add hard limit for number of input structures in `RNAdistance`
+  * Add counter example settings to `RNAalifold`
+  * Add covariance annotation legend to `RNAplot` layout plots for MSA input
+  * Add covariance annotation legend to `RNALalifold` layout plots
+  * Adapt structure conservation coloring and add legend in alignment output of `RNAplot`, `RNAalifold`, and `RNALalifold`
+  * Add `RNAconsensus` Python program that will eventually replace `refold.pl`
+  * Add `--log-file`, `--log-level`, `--log-call` and `--log-time` command line options to executable programs
+  * Add `--betaScale` and `--pfScale` options to and rescale Boltzmann factors in `RNAPKplex`
+  * Add support for G-Quadruplexes in circular RNAs for `RNAfold`, `RNAalifold`, and `RNAeval`
+  * Change `RNAplot` command line argument `-o` to `-f`
+  * Add `--random-seed` option to `RNAsubopt` and `RNAalifold` to specify seed for random number generator
+
+#### Library
+  * API: Add circular RNA G-Quadruplex support
+  * API: Add structure prediction benchmark functions `vrna_compare_structure()` and `vrna_compare_structure_pt()`
+  * API: Add `vrna_annotate_covar_pt()` that allows for specifying number of counter examples
+  * API: Add structure conservation legend to EPS consensus structure layout plots
+  * API: Add `vrna_string_make_space_for()` and `vrna_string_available_space()` functions in `ViennaRNA/datastructures/string.h`
+  * API: Add `vrna_file_PS_aln_opt()` to allow for changing conservation coloring
+  * API: Add flexible log message system to avoid spam on `stderr` and `stdout`
+  * API: Add (generic) compressed sparse row (CSR) matrix implementation
+  * API: Add Eddy 2014 approach to incorporate experimental probing data (using Gaussian KDE)
+  * API: Add generic support for experimental probing data via new API in `ViennaRNA/probing/basic.h`
+  * API: Add full probing data support for consensus structure prediction
+  * API: Add `vrna_sc_multi_cb_add_comparative()` to allow for multi callback soft constraints in comparative structure predictions
+  * API: Add `vrna_fold_compound_t` to parameters passed to recursion status callback
+  * API: Add M2 matrices in favor of M1 for global MFE and partition function computations
+  * API: Add safeguard to `vrna_array_free()`
+  * API: Add `vrna_pairing_tendency()` as replacement for `vrna_db_from_probs()`
+  * API: Group related API symbols and header files into specific subdirectories
+  * API: Allow base pair hard constraints via commands file where `j = i + 1`
+  * API: Refactor `vrna_pk_plex()` accessibility computations
+  * API: Refactor backtracking implementations and API, now located under `ViennaRNA/backtrack/`
+  * API: Refactor experimental probing data (SHAPE) implementations, now located under `ViennaRNA/probing/`
+  * API: Refactor auxiliary grammar extension API, now located under `ViennaRNA/grammar/`
+  * API: Refactor G-Quadruplex implementation and fix existing bugs and numerical issues in corresponding energy evaluation
+  * API: Refactor verbose `vrna_eval*()` implementations
+  * API: Refactor structure plotting API and add unified structure plotting function `vrna_plot_structure()`
+  * API: Remove `exit()` calls from `RNAlib`
+  * API: Change behavior and parameter order for `vrna_hc_add_bp_strand()`
+  * API: Change behavior and parameters of `vrna_hc_add_up_strand()`
+  * API: Unify backtracking matrix flags
+  * API: Use `vrna_array()` based base pair and backtrack stacks for MFE implementations
+  * API: Introduce entropic penalty for unpaired circular RNAs (may be switched off by model settings `circ_penalty` flag)
+  * API: Deprecate `vrna_message_info()`, `vrna_message_warning()`, and `vrna_message_error()` in favor of new loggin system
+  * API: Fix `vrna_neighbor_diff*()` insertion moves
+  * API: Fix MFE inside recursion for multiloop unpaired positions
+  * API: Fix `vrna_hx_from_ptable()` when provided hairpins of length 0
+  * API: Fix `vrna_hx_merge()` to support pseudoknotted helices
+  * API: Fix re-use of previous energy parameters upon model changes in `duplex.c`
+  * API: Fix re-use of previous energy parameters upon model changes in `c_plex.c`
+  * API: Fix re-use of previous energy parameters upon model changes in `plex.c`
+  * API: Fix re-use of previous energy parameters upon model changes in `ali_plex.c`
+  * API: Fix re-use of previous energy parameters upon model changes in `snofold.c`
+  * API: Fix re-use of previous energy parameters upon model changes in `snoop.c`
+  * API: Fix mismatch and dangling end energies in `sc_cb_mod.c` for modified base support
+  * API: Fix Zuker-style subopt backtracking
+  * API: Fix bug in `vrna_strdup_vprintf()` that resulted in losing parmeters upon consecutive calls
+  * API: Fix default exterior loop MFE soft constraints for comparative structure prediction
+  * SWIG: Use `av_len()` instad of `av_top_index()` for Perl 5 to support perl5 < v5.18.0
+  * SWIG: Fix compilation issues for Python 3.12 due to use of `SWIG_Python_str_AsChar()`
+  * SWIG: Add wrapper for `vrna_hx_merge()`
+  * SWIG: Add wrapper for `vrna_sc_multi_cb_add()`
+  * SWIG: Add wrappers for `vrna_hc_add_bp_strand()` and `vrna_hc_add_up_strand()`
+  * SWIG: Add file I/O constants
+  * SWIG: Add wrappers for structure prediction benchmark functions
+  * SWIG: Add wrappers for log message system
+  * SWIG: Add wrapper for `vrna_stack_prob()`
+  * SWIG: Add wrappers for new probing data API
+  * SWIG: Add wrapper for `vrna_n_multichoose_k()`
+  * SWIG: Return `int` instead of float for `eval_structure_pt_simple()`
+
+#### Package
+  * AUTOCONF: Fix several `autoconf`/`automake` related issues
+  * AUTOCONF: Add `./configure --enable-debug` option that prevents removal of `vrna_log_debug()` message from `RNAlib`
+  * Add m5C JSON energy parameter file
+  * Add N1-methylpseudouridine JSON energy parameter file
+  * Add OpenMP library flags to `RNAlib2.pc`
+  * DOC: Improve document structure
+  * Bump `libsvm` to version 3.35
+  * Remove RNA-Tutorial since it is now included as part of the reference manual
+  * Remove Python 2 builds from MacOSX installer
+
+
+## Version 2.6.x
 
 
 ### [Version 2.6.4](https://github.com/ViennaRNA/ViennaRNA/compare/v2.6.3...v2.6.4)

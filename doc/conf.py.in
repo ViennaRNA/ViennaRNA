@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath('@top_builddir@/interfaces/Python/'))
 # -- Project information -----------------------------------------------------
 
 project = '@PACKAGE_NAME@'
-copyright = '1994 - 2023, Ronny Lorenz, Ivo L. Hofacker, et al.'
+copyright = '1994 - 2024, Ronny Lorenz, Ivo L. Hofacker, et al.'
 author = 'Ronny Lorenz, Ivo L. Hofacker, et al.'
 
 # The full version, including alpha/beta/rc tags
@@ -107,6 +107,9 @@ napoleon_type_aliases = {
     "float *": "list-like(double)",
     "double *": "list-like(double)",
     "double **": "list-like(list-like(double))",
+    "const double *": "list-like(double)",
+    "const double **": "list-like(list-like(double))",
+    "DoubleVector": "list-like(double)",
     "vrna_fold_compound_t *" : "fold_compound",
     "vrna_param_t *" : "param",
     "vrna_exp_param_t *" : "exp_param",
@@ -114,9 +117,21 @@ napoleon_type_aliases = {
     "std::string": "string",
     "FLT_OR_DBL" : "double",
     "FLT_OR_DBL *" : "list-like(double)",
-    "std::vector<FLT_OR_DBL>" : "list-like(double)"
+    "std::vector<FLT_OR_DBL>" : "list-like(double)",
 }
 
+autoclass_content = "both"
+autodoc_class_signature = "mixed"
+autodoc_default_options = {
+    'members': True,
+    'member-order': 'alphabetical',
+#    'special-members': '__init__',
+    'undoc-members': True,
+    'exclude-members': '__weakref__',
+    'imported-members': True,
+    'show-inheritance': True,
+    'class-doc-from': 'init',
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [f"{multiproject_projects[current_project]['path']}/_templates"]
