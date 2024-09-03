@@ -202,6 +202,8 @@ You probably need to install the mpfr-devel package or similar
 
 AC_DEFUN([RNA_ENABLE_OPENMP],[
 
+  AX_REQUIRE_DEFINED([AX_COMPILER_VENDOR])
+
   RNA_ADD_FEATURE([openmp],
                   [OpenMP support],
                   [yes])
@@ -213,10 +215,76 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
 
     AS_IF([ test "x$enable_openmp" != "xno" ],[
       OMP_CFLAGS="$OPENMP_CFLAGS"
+      OMP_LIBS=""
 
       AC_LANG_PUSH([C++])
       AX_OPENMP([],[enable_openmp="no"])
       AC_LANG_POP([C++])
+
+
+      if test "x$enable_openmp" != "xno"
+      then
+        AC_CHECK_HEADER([omp.h], [], [AC_MSG_RESULT([OpenMP header file not found])])
+        AC_MSG_CHECKING([for the correct linker flags to use for OpenMP])
+        AS_CASE([$ax_cv_c_compiler_vendor],
+        [gnu],[
+          if test "x$OMP_LIBS" = x ; then
+            AC_COMPILE_IFELSE([ AC_LANG_PROGRAM([#include <omp.h>], [
+              omp_set_num_threads(1);])],[OMP_LIBS="-lgomp"],[])
+          fi
+        ],
+        [clang],[
+          if test "x$OMP_LIBS" = x ; then
+            AC_COMPILE_IFELSE([ AC_LANG_PROGRAM([#include <omp.h>], [
+              omp_set_num_threads(1);])],[OMP_LIBS="-lomp"],[])
+          fi
+        ],
+        [sun], [
+          if test "x$OMP_LIBS" = x ; then
+            AC_COMPILE_IFELSE([ AC_LANG_PROGRAM([#include <omp.h>], [
+              omp_set_num_threads(1);])],[OMP_LIBS="-lmtsk"],[])
+          fi
+        ],
+        [open64], [
+          if $CC --version 2>&1 | grep Open64 > /dev/null ; then
+            AC_COMPILE_IFELSE([ AC_LANG_PROGRAM([#include <omp.h>], [
+              omp_set_num_threads(1);])],[OMP_LIBS="-lopenmp"],[])
+          fi
+        ],
+        [sgi], [
+          if test "x$OMP_LIBS" = x ; then
+            AC_COMPILE_IFELSE([ AC_LANG_PROGRAM([#include <omp.h>], [
+              omp_set_num_threads(1);])],[OMP_LIBS="-lmp"],[])
+          fi
+        ],
+        [ibm],[
+          if test "x$OMP_LIBS" = x ; then
+            AC_COMPILE_IFELSE([ AC_LANG_PROGRAM([#include <omp.h>], [
+              omp_set_num_threads(1);])],[OMP_LIBS="-lxmlsmp"],[])
+          fi
+        ],
+        [portland],[
+          if test "x$OMP_LIBS" = x ; then
+            AC_COMPILE_IFELSE([ AC_LANG_PROGRAM([#include <omp.h>], [
+              omp_set_num_threads(1);])],[OMP_LIBS="-mp"],[])
+          fi
+        ],
+        [intel],[
+          if test "x$OMP_LIBS" = x ; then
+            AC_COMPILE_IFELSE([ AC_LANG_PROGRAM([#include <omp.h>], [
+              omp_set_num_threads(1);])],[OMP_LIBS="-openmp"],[])
+          fi
+        ],
+        [
+            enable_openmp="no"
+        ])
+
+        if test "x$enable_openmp" != "xno" ; then
+          AC_MSG_RESULT([${OMP_LIBS}])
+        else
+          AC_MSG_RESULT([not found!])
+        fi
+      fi
 
       if test "x$enable_openmp" != "xno"
       then
@@ -241,6 +309,7 @@ AC_DEFUN([RNA_ENABLE_OPENMP],[
   AC_SUBST(LIBGOMPFLAG)
   AC_SUBST(OPENMP_CFLAGS)
   AC_SUBST(OPENMP_CXXFLAGS)
+  AC_SUBST(OMP_LIBS)
 ])
 
 
