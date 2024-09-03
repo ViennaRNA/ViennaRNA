@@ -49,11 +49,36 @@
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/datastructures/char_stream.h"
+#include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/eval.h"
 
 #include "ViennaRNA/color_output.inc"
 
 #define   ADD_OR_INF(a, b)     (((a) != INF) && ((b) != INF) ?  (a) + (b) : INF)
+
+typedef enum {
+  VRNA_STRUCTURE_ELEM_EXT_LOOP  = 0,
+  VRNA_STRUCTURE_ELEM_HP_LOOP   = 1,
+  VRNA_STRUCTURE_ELEM_INT_LOOP  = 2,
+  VRNA_STRUCTURE_ELEM_MB_LOOP   = 3,
+  VRNA_STRUCTURE_ELEM_GQUAD     = 4,
+  VRNA_STRUCTURE_ELEM_UD        = 5,
+  VRNA_STRUCTURE_ELEM_STACK     = 6,
+  VRNA_STRUCTURE_ELEM_BULGE     = 7
+} vrna_struct_elem_type_e;
+
+
+typedef struct {
+  vrna_struct_elem_type_e type;
+  unsigned int            i;
+  unsigned int            j;
+  unsigned int            p;
+  unsigned int            q;
+  unsigned int            L;
+  unsigned int            l[3];
+  int                     energy;
+} vrna_struct_elem_t;
+
 
 /*
  #################################
@@ -73,11 +98,10 @@
  #################################
  */
 PRIVATE int
-stack_energy(vrna_fold_compound_t *fc,
-             int                  i,
-             const short          *pt,
-             vrna_cstr_t          output_stream,
-             int                  verbostiy_level);
+stack_energy(vrna_fold_compound_t           *fc,
+             int                            i,
+             const short                    *pt,
+             vrna_array(vrna_struct_elem_t) *elements);
 
 
 PRIVATE int
@@ -87,36 +111,44 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
 
 
 PRIVATE int
-eval_pt(vrna_fold_compound_t  *fc,
-        const short           *pt,
-        vrna_cstr_t           output_stream,
-        int                   verbosity_level);
+eval_pt(vrna_fold_compound_t            *fc,
+        const short                     *pt,
+        vrna_array(vrna_struct_elem_t)  *elements);
 
 
 PRIVATE int
-eval_circ_pt(vrna_fold_compound_t *fc,
-             const short          *pt,
-             vrna_cstr_t          output_stream,
-             int                  verbosity_level);
+eval_circ_pt(vrna_fold_compound_t           *fc,
+             const short                    *pt,
+             vrna_array(vrna_struct_elem_t) *elements);
 
 
 PRIVATE int
-en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j,
-                      const char            *structure,
-                      const short           *pt,
-                      const int             *loop_idx,
-                      vrna_cstr_t           output_stream,
-                      int                   verbosity_level);
+en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
+                      int                             i,
+                      int                             j,
+                      const char                      *structure,
+                      const short                     *pt,
+                      const int                       *loop_idx,
+                      vrna_array(vrna_struct_elem_t)  *elements,
+                      vrna_array(vrna_struct_elem_t)  *elements_rev);
+
+
+PRIVATE int
+en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
+                           unsigned int                   i,
+                           unsigned int                   j,
+                           const char                     *structure,
+                           const short                    *pt,
+                           const int                      *loop_idx,
+                           vrna_array(vrna_struct_elem_t) *elements,
+                           vrna_array(vrna_struct_elem_t) *elements_rev);
 
 
 PRIVATE float
-wrap_eval_structure(vrna_fold_compound_t  *fc,
-                    const char            *structure,
-                    const short           *pt,
-                    vrna_cstr_t           output_stream,
-                    int                   verbosity);
+wrap_eval_structure(vrna_fold_compound_t            *fc,
+                    const char                      *structure,
+                    const short                     *pt,
+                    vrna_array(vrna_struct_elem_t)  *elements);
 
 
 PRIVATE int
@@ -126,10 +158,9 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-energy_of_ext_loop_components(vrna_fold_compound_t  *fc,
-                              const short           *pt,
-                              vrna_cstr_t           output_stream,
-                              int                   verbosity_level);
+energy_of_ext_loop_components(vrna_fold_compound_t            *fc,
+                              const short                     *pt,
+                              vrna_array(vrna_struct_elem_t)  *elements);
 
 
 PRIVATE int
@@ -137,6 +168,12 @@ first_pair_after_last_nick(unsigned int i,
                            unsigned int j,
                            const short  *pt,
                            unsigned int *sn);
+
+
+PRIVATE void
+print_structure_elements(const char                     *s,
+                         vrna_array(vrna_struct_elem_t) elements,
+                         vrna_cstr_t                    output_stream);
 
 
 /*
@@ -154,29 +191,37 @@ vrna_eval_structure_v(vrna_fold_compound_t  *fc,
   float       en;
   vrna_cstr_t output_stream;
 
+  vrna_array(vrna_struct_elem_t)  elements = NULL;
+
   en = (float)INF / 100.;
 
   if ((fc) &&
       (structure)) {
     if (strlen(structure) != fc->length) {
-      vrna_log_warning("vrna_eval_structure_*: "
-                           "string and structure have unequal length (%d vs. %d)",
-                           fc->length,
-                           strlen(structure));
+      vrna_log_warning("Sequence and structure have unequal length (%d vs. %d)",
+                       fc->length,
+                       strlen(structure));
       return en;
     }
+
+    if (verbosity_level > 0)
+      vrna_array_init(elements);
 
     output_stream = vrna_cstr(fc->length, (file) ? file : stdout);
     pt            = vrna_ptable(structure);
     en            = wrap_eval_structure(fc,
                                         structure,
                                         pt,
-                                        output_stream,
-                                        verbosity_level);
+                                        &elements);
+
+    print_structure_elements(fc->sequence,
+                             elements,
+                             output_stream);
 
     vrna_cstr_fflush(output_stream);
     vrna_cstr_free(output_stream);
 
+    vrna_array_free(elements);
     free(pt);
   }
 
@@ -193,25 +238,34 @@ vrna_eval_structure_cstr(vrna_fold_compound_t *fc,
   short *pt;
   float en;
 
+  vrna_array(vrna_struct_elem_t) elements = NULL;
+
   en = (float)INF / 100.;
 
   if ((fc) &&
       (structure)) {
     if (strlen(structure) != fc->length) {
-      vrna_log_warning("vrna_eval_structure_*: "
-                           "string and structure have unequal length (%d vs. %d)",
-                           fc->length,
-                           strlen(structure));
+      vrna_log_warning("Sequence and structure have unequal length (%d vs. %d)",
+                       fc->length,
+                       strlen(structure));
       return en;
     }
+
+    if (verbosity_level > 0)
+      vrna_array_init(elements);
 
     pt  = vrna_ptable(structure);
     en  = wrap_eval_structure(fc,
                               structure,
                               pt,
-                              output_stream,
-                              verbosity_level);
+                              &elements);
 
+    print_structure_elements(fc->sequence,
+                             elements,
+                             output_stream);
+
+
+    vrna_array_free(elements);
     free(pt);
   }
 
@@ -228,26 +282,31 @@ vrna_eval_structure_pt_v(vrna_fold_compound_t *fc,
   int         e;
   vrna_cstr_t output_stream;
 
+  vrna_array(vrna_struct_elem_t) elements = NULL;
+
+
   e = INF;
 
   if ((fc) &&
       (pt)) {
     if (pt[0] != (short)fc->length) {
-      vrna_log_warning("vrna_eval_structure_*: "
-                           "string and structure have unequal length (%d vs. %d)",
-                           fc->length,
-                           pt[0]);
+      vrna_log_warning("Sequence and structure have unequal length (%d vs. %d)",
+                       fc->length,
+                       pt[0]);
       return INF;
     }
+
+    if (verbosity_level > 0)
+      vrna_array_init(elements);
 
     output_stream = vrna_cstr(fc->length, (file) ? file : stdout);
     e             = eval_pt(fc,
                             pt,
-                            output_stream,
-                            verbosity_level);
+                            &elements);
 
     vrna_cstr_fflush(output_stream);
     vrna_cstr_free(output_stream);
+    vrna_array_free(elements);
   }
 
   return e;
@@ -282,18 +341,16 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
 
     j = pt[i];
     if (j < i) {
-      vrna_log_warning("vrna_eval_loop_pt*: "
-                           "i = %d is unpaired in loop_energy()",
-                           i);
+      vrna_log_warning("i = %d is unpaired in loop_energy()", i);
       return INF;
     }
 
     if (md->pair[s[i]][s[j]] == 0) {
       if (verbosity_level > VRNA_VERBOSITY_QUIET) {
-        vrna_log_warning("bases %d and %d (%c%c) can't pair!",
-                             i, j,
-                             vrna_nucleotide_decode(s[i], md),
-                             vrna_nucleotide_decode(s[j], md));
+        vrna_log_warning("Bases %d and %d (%c%c) can't pair!",
+                         i, j,
+                         vrna_nucleotide_decode(s[i], md),
+                         vrna_nucleotide_decode(s[j], md));
       }
     }
 
@@ -312,6 +369,19 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
     if (p > q) {
       /* Hairpin */
       energy = vrna_eval_hp_loop(fc, i, j);
+      if (energy == INF) {
+        if (j - i - 1 < md->min_loop_size) {
+          vrna_log_warning("Hairpin loop closed by %d and %d (%c,%c) too short",
+                           i, j,
+                           vrna_nucleotide_decode(s[i], md),
+                           vrna_nucleotide_decode(s[j], md));
+        } else {
+          vrna_log_warning("Hairpin loop closed by %d and %d (%c,%c) forbidden",
+                           i, j,
+                           vrna_nucleotide_decode(s[i], md),
+                           vrna_nucleotide_decode(s[j], md));
+        }
+      }
     } else if (pt[q] != (short)p) {
       /* multi-loop */
       energy = energy_of_ml_pt(fc, i, (const short *)pt);
@@ -319,10 +389,10 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
       /* found interior loop */
       if (md->pair[s[q]][s[p]] == 0) {
         if (verbosity_level > VRNA_VERBOSITY_QUIET) {
-          vrna_log_warning("bases %d and %d (%c%c) can't pair!",
-                               p, q,
-                               vrna_nucleotide_decode(s[p], md),
-                               vrna_nucleotide_decode(s[q], md));
+          vrna_log_warning("Bases %d and %d (%c%c) can't pair!",
+                           p, q,
+                           vrna_nucleotide_decode(s[p], md),
+                           vrna_nucleotide_decode(s[q], md));
         }
       }
 
@@ -362,9 +432,9 @@ vrna_eval_move_pt(vrna_fold_compound_t  *fc,
       if (pt[j] > j) {
         j = pt[j];          /* skip substructure */
       } else {
-        vrna_log_warning("vrna_eval_move_pt: "
-                             "illegal move or broken pair table in vrna_eval_move_pt()\n"
-                             "%d %d %d %d ", m1, m2, j, pt[j]);
+        vrna_log_warning("illegal move or broken pair table\n"
+                         "%d %d %d %d ",
+                         m1, m2, j, pt[j]);
         return en;
       }
     }
@@ -478,48 +548,66 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
 
 
 PRIVATE float
-wrap_eval_structure(vrna_fold_compound_t  *fc,
-                    const char            *structure,
-                    const short           *pt,
-                    vrna_cstr_t           output_stream,
-                    int                   verbosity)
+wrap_eval_structure(vrna_fold_compound_t            *fc,
+                    const char                      *structure,
+                    const short                     *pt,
+                    vrna_array(vrna_struct_elem_t)  *elements)
 {
   unsigned int  n_seq, L, l[3];
   int           res, gq, e, *loop_idx;
   float         energy;
   vrna_md_t     *md;
 
-  energy    = (float)INF / 100.;
-  n_seq     = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
-  md        = &(fc->params->model_details);
-  gq        = md->gquad;
+  energy  = (float)INF / 100.;
+  n_seq   = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
+  md      = &(fc->params->model_details);
+  gq      = md->gquad;
   /* temporarily turn-off gquad support to suppress warnings */
   md->gquad = 0;
 
   if (md->circ)
-    res = eval_circ_pt(fc, pt, output_stream, verbosity);
+    res = eval_circ_pt(fc, pt, elements);
   else
-    res = eval_pt(fc, pt, output_stream, verbosity);
+    res = eval_pt(fc, pt, elements);
 
   /* re-set gquad support to previous state */
   md->gquad = gq;
 
   if ((gq) &&
       (vrna_gq_parse(structure, &L, l) > 0)) {
-    if (verbosity > 0)
-      vrna_cstr_print_eval_sd_corr(output_stream);
+    vrna_array(vrna_struct_elem_t)  elements_rev = NULL;
+
+    if (*elements)
+      vrna_array_init(elements_rev);
 
     loop_idx  = vrna_loopidx_from_ptable(pt);
     e         = en_corr_of_loop_gquad(fc,
-                                       1,
-                                       fc->length,
-                                       structure,
-                                       pt,
-                                       (const int *)loop_idx,
-                                       output_stream,
-                                       verbosity);
+                                      1,
+                                      fc->length,
+                                      structure,
+                                      pt,
+                                      (const int *)loop_idx,
+                                      elements,
+                                      &elements_rev);
     res = ADD_OR_INF(res, e);
 
+    /* revert loop energies for loops with gquads */
+    if (elements_rev) {
+      for (size_t i = 0; i < vrna_array_size(elements_rev); i++)
+        /* remove reverted element in 'elements' */
+        for (size_t j = 0; j < vrna_array_size(*elements); j++) {
+          if (memcmp((*elements) + j, elements_rev + i, sizeof(vrna_struct_elem_t)) == 0) {
+            if (j + 1 < vrna_array_size(*elements))
+              memmove((*elements) + j, (*elements) + j + 1,
+                      sizeof(vrna_struct_elem_t) * (vrna_array_size(*elements) - j));
+
+            vrna_array_size(*elements) = vrna_array_size(*elements) - 1;
+            break;
+          }
+        }
+    }
+
+    vrna_array_free(elements_rev);
     free(loop_idx);
   }
 
@@ -530,30 +618,31 @@ wrap_eval_structure(vrna_fold_compound_t  *fc,
 
 
 PRIVATE int
-eval_pt(vrna_fold_compound_t  *fc,
-        const short           *pt,
-        vrna_cstr_t           output_stream,
-        int                   verbosity_level)
+eval_pt(vrna_fold_compound_t            *fc,
+        const short                     *pt,
+        vrna_array(vrna_struct_elem_t)  *elements)
 {
   int ee, energy;
 
   if (fc->params->model_details.gquad)
-    vrna_log_warning("vrna_eval_*_pt: No gquadruplex support!\n"
-                         "Ignoring potential gquads in structure!\n"
-                         "Use e.g. vrna_eval_structure() instead!");
+    vrna_log_warning("Missing G-Quadruplex support!\n"
+                     "Ignoring potential gquads in structure!\n"
+                     "Use e.g. vrna_eval_structure() instead!");
 
   vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
   energy = energy_of_extLoop_pt(fc, 0, pt);
 
-  if (verbosity_level > 0) {
-    vrna_cstr_print_eval_ext_loop(output_stream,
-                                  (fc->type == VRNA_FC_TYPE_COMPARATIVE) ?
+  if (*elements)
+    vrna_array_append(*elements,
+                      ((vrna_struct_elem_t){
+                        .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                        .energy = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ?
                                   (int)energy / (int)fc->n_seq :
-                                  energy);
-  }
+                                  energy
+                      }));
 
-  ee      = energy_of_ext_loop_components(fc, pt, output_stream, verbosity_level);
+  ee      = energy_of_ext_loop_components(fc, pt, elements);
   energy  = ADD_OR_INF(energy, ee);
 
   return energy;
@@ -908,13 +997,12 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-energy_of_ext_loop_components(vrna_fold_compound_t  *fc,
-                              const short           *pt,
-                              vrna_cstr_t           output_stream,
-                              int                   verbosity_level)
+energy_of_ext_loop_components(vrna_fold_compound_t            *fc,
+                              const short                     *pt,
+                              vrna_array(vrna_struct_elem_t)  *elements)
 {
   unsigned int  last_s, s, i, n, a, *so, *sn, *ss;
-  int           energy = 0;
+  int           e, energy = 0;
 
   n       = fc->length;
   so      = fc->strand_order;
@@ -937,7 +1025,8 @@ energy_of_ext_loop_components(vrna_fold_compound_t  *fc,
            * pairs down-stream
            * add energy of enclosed substem
            */
-          energy  += stack_energy(fc, i, pt, output_stream, verbosity_level);
+          e       = stack_energy(fc, i, pt, elements);
+          energy  = ADD_OR_INF(energy, e);
           i       = (unsigned int)pt[i];
           last_s  = sn[i]; /* update current strand number */
         } else {
@@ -959,10 +1048,9 @@ energy_of_ext_loop_components(vrna_fold_compound_t  *fc,
 
 
 PRIVATE int
-eval_circ_pt(vrna_fold_compound_t *fc,
-             const short          *pt,
-             vrna_cstr_t          output_stream,
-             int                  verbosity_level)
+eval_circ_pt(vrna_fold_compound_t           *fc,
+             const short                    *pt,
+             vrna_array(vrna_struct_elem_t) *elements)
 {
   unsigned int  s, n_seq, **a2s;
   int           i, j, length, energy, en0, degree;
@@ -994,9 +1082,9 @@ eval_circ_pt(vrna_fold_compound_t *fc,
   }
 
   if (md->gquad)
-    vrna_log_warning("vrna_eval_*_pt: No gquadruplex support!\n"
-                         "Ignoring potential gquads in structure!\n"
-                         "Use e.g. vrna_eval_structure() instead!");
+    vrna_log_warning("Missing G-Quadruplex support!\n"
+                     "Ignoring potential gquads in structure!\n"
+                     "Use e.g. vrna_eval_structure() instead!");
 
   vrna_sc_prepare(fc, VRNA_OPTION_MFE);
 
@@ -1006,12 +1094,13 @@ eval_circ_pt(vrna_fold_compound_t *fc,
       continue;
 
     degree++;
-    energy += stack_energy(fc,
-                           i,
-                           (const short *)pt,
-                           output_stream,
-                           verbosity_level);
-    i = pt[i];
+    en0 = stack_energy(fc,
+                       i,
+                       (const short *)pt,
+                       elements);
+
+    energy  = ADD_OR_INF(energy, en0);
+    i       = pt[i];
   }
 
   /* find first stem */
@@ -1075,26 +1164,28 @@ eval_circ_pt(vrna_fold_compound_t *fc,
       break;
   }
 
-  if (verbosity_level > 0)
-    vrna_cstr_print_eval_ext_loop(output_stream,
-                                  (int)en0 / (int)n_seq);
+  if (*elements)
+    vrna_array_append(*elements,
+                      ((vrna_struct_elem_t){
+                        .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                        .energy = (int)en0 / (int)n_seq
+                      }));
 
-  energy += en0;
+  energy = ADD_OR_INF(energy, en0);
 
-  vrna_log_debug("circ_e = %d", energy);
   return energy;
 }
 
 
 PRIVATE int
-en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
-                           unsigned int          i,
-                           unsigned int          j,
-                           const char            *structure,
-                           const short           *pt,
-                           const int             *loop_idx,
-                           vrna_cstr_t           output_stream,
-                           int                   verbosity_level)
+en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
+                           unsigned int                   i,
+                           unsigned int                   j,
+                           const char                     *structure,
+                           const short                    *pt,
+                           const int                      *loop_idx,
+                           vrna_array(vrna_struct_elem_t) *elements,
+                           vrna_array(vrna_struct_elem_t) *elements_rev)
 {
   short         *S, *S1, **SS, **S5, **S3;
   int           corr_en, tmp_e, e_minus, e_plus, gq_en[2];
@@ -1116,23 +1207,21 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
    *  contributions here.
    */
 
-  vrna_log_debug("Correcting for mis-treated circular exterior loop with g-quadruplexes [%d,%d]", i, j);
+  n     = fc->length;
+  n_seq = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->n_seq : 1;
+  P     = fc->params;
+  md    = &(P->model_details);
+  S     = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? NULL : fc->sequence_encoding2;
+  S1    = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? NULL : fc->sequence_encoding;
+  SS    = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->S : NULL;
+  S5    = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->S5 : NULL;
+  S3    = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->S3 : NULL;
+  a2s   = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->a2s : NULL;
 
-  n         = fc->length;
-  n_seq     = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->n_seq : 1;
-  P         = fc->params;
-  md        = &(P->model_details);
-  S         = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? NULL : fc->sequence_encoding2;
-  S1        = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? NULL : fc->sequence_encoding;
-  SS        = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->S : NULL;
-  S5        = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->S5 : NULL;
-  S3        = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->S3 : NULL;
-  a2s       = (fc->type == VRNA_FC_TYPE_COMPARATIVE) ? fc->a2s : NULL;
-
-  num_elem  = 0; /* number of elements in exterior loop */
-  up        = 0; /* number of unpaired bases in exterior loop */
-  num_gq    = 1; /* total number of gquadruplexes in exterior loop */
-  up_mis    = (i < j) ? j - i + 1 : (n - i + 1) + (j); /* number of bases misinerpreted as unpaired */
+  num_elem  = 0;                                        /* number of elements in exterior loop */
+  up        = 0;                                        /* number of unpaired bases in exterior loop */
+  num_gq    = 1;                                        /* total number of gquadruplexes in exterior loop */
+  up_mis    = (i < j) ? j - i + 1 : (n - i + 1) + (j);  /* number of bases misinerpreted as unpaired */
   corr_en   = 0;
   e_minus   = 0;
   e_plus    = 0;
@@ -1142,7 +1231,8 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
   /*
    *  1. Let's determine, how many elements the exterior loop contains:
    */
-  if (i < j) { /* 1.1 G-Quadruplex not spanning the n,1 junction */
+  if (i < j) {
+    /* 1.1 G-Quadruplex not spanning the n,1 junction */
     /*
      *  1.1.1 Seek to position 1. Note, that [i,j] already is the left-most
      *        gquad, so we only need to check for base pairs 5' of it...
@@ -1152,7 +1242,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
         up++;
         continue;
       } else if (p < pt[p]) {
-        vrna_log_error("found base pair (%d,%d) enclosing gquad [%d,%d]",
+        vrna_log_error("Found base pair (%d,%d) enclosing gquad [%d,%d]",
                        p, pt[p], i, j);
         return INF;
       } else {
@@ -1162,21 +1252,21 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
                                       structure,
                                       pt,
                                       loop_idx,
-                                      output_stream,
-                                      verbosity_level);
+                                      elements,
+                                      elements_rev);
 
         if (tmp_e == INF)
           return INF;
-        
+
         corr_en += tmp_e;
 
         /* store base pair positions for any corrections we apply later on */
         if (num_elem == 0) {
-          elem_i = pt[p];
-          elem_j = p;
+          elem_i  = pt[p];
+          elem_j  = p;
         } else if (num_elem == 1) {
-          elem_p = pt[p];
-          elem_q = p;
+          elem_p  = pt[p];
+          elem_q  = p;
         }
 
         num_elem++;
@@ -1193,13 +1283,13 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
       if (p < pt[p]) {
         /* base pair */
         tmp_e = en_corr_of_loop_gquad(fc,
-                                         p,
-                                         pt[p],
-                                         structure,
-                                         pt,
-                                         loop_idx,
-                                         output_stream,
-                                         verbosity_level);
+                                      p,
+                                      pt[p],
+                                      structure,
+                                      pt,
+                                      loop_idx,
+                                      elements,
+                                      elements_rev);
         if (tmp_e == INF)
           return INF;
 
@@ -1207,11 +1297,11 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
 
         /* store base pair positions for any corrections we apply later on */
         if (num_elem == 0) {
-          elem_i = p;
-          elem_j = pt[p];
+          elem_i  = p;
+          elem_j  = pt[p];
         } else if (num_elem == 1) {
-          elem_p = p;
-          elem_q = pt[p];
+          elem_p  = p;
+          elem_q  = pt[p];
         }
 
         p = pt[p];
@@ -1226,14 +1316,22 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
         if (pos > 0) {
           /* sanity check for malformed gquad (this one must not span the n,1 junction! */
           if (4 * L + l[0] + l[1] + l[2] > pos) {
-            vrna_log_error("malformed gquadruplex somewhere after position %u",
+            vrna_log_error("Malformed gquadruplex somewhere after position %u",
                            p - 1);
             return INF;
           }
 
           switch (fc->type) {
             case VRNA_FC_TYPE_COMPARATIVE:
-              vrna_gq_consensus_energy(L, l, (unsigned int)p, n, n_seq, (const short **)SS, a2s, P, gq_en);
+              vrna_gq_consensus_energy(L,
+                                       l,
+                                       (unsigned int)p,
+                                       n,
+                                       n_seq,
+                                       (const short **)SS,
+                                       a2s,
+                                       P,
+                                       gq_en);
               tmp_e = gq_en[0];
               break;
 
@@ -1242,14 +1340,16 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
               break;
           }
 
-          if (verbosity_level > 0) {
-            vrna_cstr_print_eval_gquad(output_stream,
-                                       p,
-                                       p + pos - 1,
-                                       L,
-                                       l,
-                                       (int)tmp_e / (int)n_seq);
-          }
+          if (*elements)
+            vrna_array_append(*elements,
+                              ((vrna_struct_elem_t){
+                                .type = VRNA_STRUCTURE_ELEM_GQUAD,
+                                .i = p,
+                                .j = p + pos - 1,
+                                .L = L,
+                                .l = { l[0], l[1], l[2] },
+                                .energy = (int)tmp_e / (int)n_seq
+                              }));
 
           gq_p    = p;
           gq_q    = p + pos - 1;
@@ -1259,12 +1359,13 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
           num_gq++;
         }
       } else if (pt[p] != 0) {
-        vrna_log_error("found base pair (%d,%d) enclosing gquad [%d,%d]",
+        vrna_log_error("Found base pair (%d,%d) enclosing gquad [%d,%d]",
                        pt[p], p, i, j);
         return INF;
       }
     }
-  } else { /* 1.2 G-Quadruplex spanning the n,1 junction */
+  } else {
+    /* 1.2 G-Quadruplex spanning the n,1 junction */
     /*
      *  1.2.1 Seek to position i - 1. Here, we need to check for more gquads
      *        in the external loop, as well as for any stems that may need
@@ -1274,13 +1375,13 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
       if (p < pt[p]) {
         /* base pair */
         tmp_e = en_corr_of_loop_gquad(fc,
-                                         p,
-                                         pt[p],
-                                         structure,
-                                         pt,
-                                         loop_idx,
-                                         output_stream,
-                                         verbosity_level);
+                                      p,
+                                      pt[p],
+                                      structure,
+                                      pt,
+                                      loop_idx,
+                                      elements,
+                                      elements_rev);
         if (tmp_e == INF)
           return INF;
 
@@ -1288,11 +1389,11 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
 
         /* store base pair positions for any corrections we apply later on */
         if (num_elem == 0) {
-          elem_i = p;
-          elem_j = pt[p];
+          elem_i  = p;
+          elem_j  = pt[p];
         } else if (num_elem == 1) {
-          elem_p = p;
-          elem_q = pt[p];
+          elem_p  = p;
+          elem_q  = pt[p];
         }
 
         p = pt[p];
@@ -1306,14 +1407,22 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
         if (pos > 0) {
           /* sanity check for malformed gquad (this one must not span the n,1 junction! */
           if (4 * L + l[0] + l[1] + l[2] > pos) {
-            vrna_log_error("malformed gquadruplex somewhere after position %u",
+            vrna_log_error("Malformed gquadruplex somewhere after position %u",
                            p - 1);
             return INF;
           }
 
           switch (fc->type) {
             case VRNA_FC_TYPE_COMPARATIVE:
-              vrna_gq_consensus_energy(L, l, (unsigned int)p, n, n_seq, (const short **)SS, a2s, P, gq_en);
+              vrna_gq_consensus_energy(L,
+                                       l,
+                                       (unsigned int)p,
+                                       n,
+                                       n_seq,
+                                       (const short **)SS,
+                                       a2s,
+                                       P,
+                                       gq_en);
               tmp_e = gq_en[0];
               break;
 
@@ -1322,14 +1431,16 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
               break;
           }
 
-          if (verbosity_level > 0) {
-            vrna_cstr_print_eval_gquad(output_stream,
-                                       p,
-                                       p + pos - 1,
-                                       L,
-                                       l,
-                                       (int)tmp_e / (int)n_seq);
-          }
+          if (*elements)
+            vrna_array_append(*elements,
+                              ((vrna_struct_elem_t){
+                                .type = VRNA_STRUCTURE_ELEM_GQUAD,
+                                .i = p,
+                                .j = p + pos - 1,
+                                .L = L,
+                                .l = { l[0], l[1], l[2] },
+                                .energy = (int)tmp_e / (int)n_seq
+                              }));
 
           gq_p    = p;
           gq_q    = p + pos - 1;
@@ -1339,22 +1450,26 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
           num_gq++;
         }
       } else if (pt[p] != 0) {
-        vrna_log_error("found base pair (%d,%d) enclosing gquad [%d,%d]",
+        vrna_log_error("Found base pair (%d,%d) enclosing gquad [%d,%d]",
                        pt[p], p, i, j);
         return INF;
       }
     }
   }
 
-
   /* now for the actual correction (if necessary) */
   switch (num_elem) {
     case 0: /* exterior loop has been falsly assumed to be entirely unpaired */
       e_minus += vrna_ext_circ_en(n, md) * (int)n_seq;
 
-      if (verbosity_level > 0)
-        vrna_cstr_print_eval_ext_loop_revert(output_stream,
-                                             (int)e_minus / (int)n_seq);
+      if (*elements_rev)
+        vrna_array_append(*elements_rev,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                            .energy = (int)e_minus / (int)n_seq
+                          }));
+
+      tmp_e = 0;
 
       switch (num_gq) {
         case 1: /* actually a hairpin-like gquad structure */
@@ -1363,40 +1478,49 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
           if (u1 < 3)
             return INF;
 
-          e_plus += vrna_hp_energy(n - up_mis, 0, 0, 0, NULL, P) * (int)n_seq;
+          tmp_e += vrna_hp_energy(n - up_mis, 0, 0, 0, NULL, P) * (int)n_seq;
 
-          vrna_log_debug("e_plus = %d, e_minus = %d", e_plus, e_minus);
           break;
 
         case 2: /* actually an internal-loop-like structure */
-          u1 = (i < j) ? i - 1 + n - gq_q : gq_p - j - 1;
-          u2 = (i < j) ? gq_p - j - 1 : i - gq_q - 1;
+          u1  = (i < j) ? i - 1 + n - gq_q : gq_p - j - 1;
+          u2  = (i < j) ? gq_p - j - 1 : i - gq_q - 1;
           if (((u1 == 0) && (u2 < 3)) ||
               ((u1 < 3) && (u2 == 0)))
             return INF;
 
-          e_plus += P->internal_loop[n - up_mis];
+          tmp_e += P->internal_loop[n - up_mis];
           break;
-        
+
         default:  /* actually a multibranch-loop-like structure */
-          tmp_e = P->MLclosing +
-                  (up * P->MLbase) +
-                  (num_gq * E_MLstem(0, -1, -1, P));
-
-          e_plus += tmp_e *
-                    (int)n_seq;
-
+          tmp_e += (P->MLclosing +
+                    (up * P->MLbase) +
+                    (num_gq * E_MLstem(0, -1, -1, P))) *
+                   (int)n_seq;
           break;
       }
+
+
+      if (*elements)
+        vrna_array_append(*elements,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                            .energy = (int)tmp_e / (int)n_seq
+                          }));
+
+      e_plus += tmp_e;
 
       break;
 
     case 1: /* exterior loop has been falsly assumed to be hairpin-like */
       e_minus += vrna_eval_ext_hp_loop(fc, elem_i, elem_j);
 
-      if (verbosity_level > 0)
-        vrna_cstr_print_eval_ext_loop_revert(output_stream,
-                                             (int)e_minus / (int)n_seq);
+      if (*elements_rev)
+        vrna_array_append(*elements_rev,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                            .energy = (int)e_minus / (int)n_seq
+                          }));
 
       tmp_e = 0;
 
@@ -1404,7 +1528,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
         case 1: /* actually an internal-loop-like structure */
           switch (fc->type) {
             case VRNA_FC_TYPE_SINGLE:
-              type    = vrna_get_ptype_md(S[elem_j], S[elem_i], md);
+              type = vrna_get_ptype_md(S[elem_j], S[elem_i], md);
               if (dangles == 2)
                 tmp_e += P->mismatchI[type][S1[elem_j + 1]][S1[elem_i - 1]];
 
@@ -1413,18 +1537,18 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
 
               if (i < j) {
                 if (i > elem_j) {
-                  u1 = elem_i - 1;
-                  u2 = i - elem_j - 1;
-                  u3 = n - j;
+                  u1  = elem_i - 1;
+                  u2  = i - elem_j - 1;
+                  u3  = n - j;
                 } else {
-                  u1 = i - 1;
-                  u2 = elem_i - j - 1;
-                  u3 = n - elem_j;
+                  u1  = i - 1;
+                  u2  = elem_i - j - 1;
+                  u3  = n - elem_j;
                 }
               } else {
-                u1 = i - elem_j - 1;
-                u2 = elem_i - j - 1;
-                u3 = 0;
+                u1  = i - elem_j - 1;
+                u2  = elem_i - j - 1;
+                u3  = 0;
               }
 
               tmp_e += P->internal_loop[u1 + u2 + u3];
@@ -1445,9 +1569,9 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
                     us2 = a2s[s][i - 1] - a2s[s][elem_j];
                     us3 = a2s[s][n] - a2s[s][j];
                   } else {
-                    us1     = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
-                    us2     = a2s[s][elem_i - 1] - a2s[s][j];
-                    us3     = a2s[s][n] - a2s[s][elem_j];
+                    us1 = (i > 1) ? a2s[s][i - 1] - a2s[s][1] : 0;
+                    us2 = a2s[s][elem_i - 1] - a2s[s][j];
+                    us3 = a2s[s][n] - a2s[s][elem_j];
                   }
                 } else {
                   us1 = a2s[s][elem_i - 1] - a2s[s][j];
@@ -1474,31 +1598,35 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
             case VRNA_FC_TYPE_COMPARATIVE:
               if (dangles == 2) {
                 for (s = 0; s < n_seq; s++) {
-                  type    = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
-                  tmp_e  += E_MLstem(type, S5[s][elem_i], S3[s][elem_j], P);
+                  type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
+                  tmp_e += E_MLstem(type, S5[s][elem_i], S3[s][elem_j], P);
                 }
               } else {
                 for (s = 0; s < n_seq; s++) {
-                  type    = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
-                  tmp_e  += E_MLstem(type, -1, -1, P);
+                  type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
+                  tmp_e += E_MLstem(type, -1, -1, P);
                 }
               }
-            
+
               break;
             default:
-              type    = vrna_get_ptype_md(S[elem_i], S[elem_j], md);
+              type = vrna_get_ptype_md(S[elem_i], S[elem_j], md);
               if (dangles == 2)
                 tmp_e += E_MLstem(type, S1[elem_i - 1], S1[elem_j + 1], P);
               else
                 tmp_e += E_MLstem(type, -1, -1, P);
+
               break;
           }
           break;
       }
 
-      if (verbosity_level > 0)
-        vrna_cstr_print_eval_ext_loop(output_stream,
-                                      (int)tmp_e / (int)n_seq);
+      if (*elements)
+        vrna_array_append(*elements,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                            .energy = (int)tmp_e / (int)n_seq
+                          }));
 
       e_plus += tmp_e;
       break;
@@ -1507,9 +1635,12 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
       e_minus += eval_ext_int_loop(fc, elem_i, elem_j, elem_p, elem_q);
 
 
-      if (verbosity_level > 0)
-        vrna_cstr_print_eval_ext_loop_revert(output_stream,
-                                             (int)e_minus / (int)n_seq);
+      if (*elements_rev)
+        vrna_array_append(*elements_rev,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                            .energy = (int)e_minus / (int)n_seq
+                          }));
 
       /* we actually have a multibranch-loop-like structure here */
       tmp_e = P->MLclosing +
@@ -1523,24 +1654,24 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
         case VRNA_FC_TYPE_COMPARATIVE:
           if (dangles == 2) {
             for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
-              type2   = vrna_get_ptype_md(SS[s][elem_p], SS[s][elem_q], md);
-              tmp_e  += E_MLstem(type, S5[s][elem_i], S3[s][elem_j], P) +
-                        E_MLstem(type2, S5[s][elem_p], S3[s][elem_q], P);
+              type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
+              type2 = vrna_get_ptype_md(SS[s][elem_p], SS[s][elem_q], md);
+              tmp_e += E_MLstem(type, S5[s][elem_i], S3[s][elem_j], P) +
+                       E_MLstem(type2, S5[s][elem_p], S3[s][elem_q], P);
             }
           } else {
             for (s = 0; s < n_seq; s++) {
-              type    = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
-              type2   = vrna_get_ptype_md(SS[s][elem_p], SS[s][elem_q], md);
-              tmp_e  += E_MLstem(type, -1, -1, P) +
-                        E_MLstem(type2, -1, -1, P);
+              type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
+              type2 = vrna_get_ptype_md(SS[s][elem_p], SS[s][elem_q], md);
+              tmp_e += E_MLstem(type, -1, -1, P) +
+                       E_MLstem(type2, -1, -1, P);
             }
           }
-        
+
           break;
         default:
-          type    = vrna_get_ptype_md(S[elem_i], S[elem_j], md);
-          type2   = vrna_get_ptype_md(S[elem_p], S[elem_q], md);
+          type  = vrna_get_ptype_md(S[elem_i], S[elem_j], md);
+          type2 = vrna_get_ptype_md(S[elem_p], S[elem_q], md);
           if (dangles == 2) {
             tmp_e += E_MLstem(type, S1[elem_i - 1], S1[elem_j + 1], P) +
                      E_MLstem(type2, S1[elem_p - 1], S1[elem_q + 1], P);
@@ -1548,12 +1679,16 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
             tmp_e += E_MLstem(type, -1, -1, P) +
                      E_MLstem(type2, -1, -1, P);
           }
+
           break;
       }
 
-      if (verbosity_level > 0)
-        vrna_cstr_print_eval_ext_loop(output_stream,
-                                      (int)tmp_e / (int)n_seq);
+      if (*elements)
+        vrna_array_append(*elements,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                            .energy = (int)tmp_e / (int)n_seq
+                          }));
 
       e_plus += tmp_e;
       break;
@@ -1563,17 +1698,23 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
                  P->MLbase *
                  (int)n_seq;
 
-      if (verbosity_level > 0)
-        vrna_cstr_print_eval_ext_loop_revert(output_stream,
-                                             (int)e_minus / (int)n_seq);
+      if (*elements_rev)
+        vrna_array_append(*elements_rev,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                            .energy = (int)e_minus / (int)n_seq
+                          }));
 
       tmp_e = (int)num_gq *
               E_MLstem(0, -1, -1, P) *
               (int)n_seq;
 
-      if (verbosity_level > 0)
-        vrna_cstr_print_eval_ext_loop(output_stream,
-                                      (int)tmp_e / (int)n_seq);
+      if (*elements)
+        vrna_array_append(*elements,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_EXT_LOOP,
+                            .energy = (int)tmp_e / (int)n_seq
+                          }));
 
       e_plus += tmp_e;
 
@@ -1586,6 +1727,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
   return corr_en;
 }
 
+
 /*---------------------------------------------------------------------------*/
 /*  returns a correction term that may be added to the energy retrieved
  *  from energy_of_struct_par() to correct misinterpreted loops. This
@@ -1596,14 +1738,14 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t  *fc,
  *  recursive variant
  */
 PRIVATE int
-en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j,
-                      const char            *structure,
-                      const short           *pt,
-                      const int             *loop_idx,
-                      vrna_cstr_t           output_stream,
-                      int                   verbosity_level)
+en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
+                      int                             i,
+                      int                             j,
+                      const char                      *structure,
+                      const short                     *pt,
+                      const int                       *loop_idx,
+                      vrna_array(vrna_struct_elem_t)  *elements,
+                      vrna_array(vrna_struct_elem_t)  *elements_rev)
 {
   char          *sequence;
   short         *s1, *s2, **S, **S5, **S3;
@@ -1642,7 +1784,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
   q       = i;
 
   while ((pos = vrna_gq_parse(structure + q - 1, &L, l)) > 0) {
-    q     += pos - 1;
+    q += pos - 1;
 
     if (q > j)
       break;
@@ -1652,7 +1794,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
     /* check whether gquad spans n,1 junction */
     if (4 * L + l[0] + l[1] + l[2] > pos) {
       if ((md->circ) &&
-          (num_g == 1)) { /* allow for n,1 junction spanning G-Quadruplex only once */
+          (num_g == 1)) {
+        /* allow for n,1 junction spanning G-Quadruplex only once */
         p = n + pos + 1 - 4 * L - l[0] - l[1] - l[2];
       } else {
         break; /* not allowed for linear sequences */
@@ -1666,7 +1809,15 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
     /* we've found the first g-quadruplex at position [p,q] */
     switch (fc->type) {
       case VRNA_FC_TYPE_COMPARATIVE:
-        vrna_gq_consensus_energy(L, l, (unsigned int)p, n, n_seq, (const short **)fc->S, fc->a2s, P, gq_en);
+        vrna_gq_consensus_energy(L,
+                                 l,
+                                 (unsigned int)p,
+                                 n,
+                                 n_seq,
+                                 (const short **)fc->S,
+                                 fc->a2s,
+                                 P,
+                                 gq_en);
         tmp_e = gq_en[0];
         break;
 
@@ -1677,14 +1828,16 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
 
     energy += tmp_e;
 
-    if (verbosity_level > 0) {
-      vrna_cstr_print_eval_gquad(output_stream,
-                                 p,
-                                 q,
-                                 L,
-                                 l,
-                                 (int)tmp_e / (int)n_seq);
-    }
+    if (*elements)
+      vrna_array_append(*elements,
+                        ((vrna_struct_elem_t){
+                          .type = VRNA_STRUCTURE_ELEM_GQUAD,
+                          .i = p,
+                          .j = q,
+                          .L = L,
+                          .l = { l[0], l[1], l[2] },
+                          .energy = (int)tmp_e / (int)n_seq
+                        }));
 
     /* check if it's enclosed in a base pair */
     if (loop_idx[p] == 0) {
@@ -1699,8 +1852,8 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
                                            structure,
                                            pt,
                                            loop_idx,
-                                           output_stream,
-                                           verbosity_level);
+                                           elements,
+                                           elements_rev);
 
         energy = ADD_OR_INF(energy, tmp_e);
         break;
@@ -1760,14 +1913,22 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           if (pos > 0) {
             /* sanity check for malformed gquad (this one must not span the n,1 junction! */
             if (4 * L + l[0] + l[1] + l[2] > pos) {
-              vrna_log_error("malformed gquadruplex somewhere after position %u",
+              vrna_log_error("Malformed gquadruplex somewhere after position %u",
                              u - 1);
               return INF;
             }
 
             switch (fc->type) {
               case VRNA_FC_TYPE_COMPARATIVE:
-                vrna_gq_consensus_energy(L, l, (unsigned int)u, n, n_seq, (const short **)fc->S, fc->a2s, P, gq_en);
+                vrna_gq_consensus_energy(L,
+                                         l,
+                                         (unsigned int)u,
+                                         n,
+                                         n_seq,
+                                         (const short **)fc->S,
+                                         fc->a2s,
+                                         P,
+                                         gq_en);
                 tmp_e = gq_en[0];
                 break;
 
@@ -1776,14 +1937,16 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
                 break;
             }
 
-            if (verbosity_level > 0) {
-              vrna_cstr_print_eval_gquad(output_stream,
-                                         u,
-                                         u + pos - 1,
-                                         L,
-                                         l,
-                                         (int)tmp_e / (int)n_seq);
-            }
+            if (*elements)
+              vrna_array_append(*elements,
+                                ((vrna_struct_elem_t){
+                                  .type = VRNA_STRUCTURE_ELEM_GQUAD,
+                                  .i = u,
+                                  .j = u + pos - 1,
+                                  .L = L,
+                                  .l = { l[0], l[1], l[2] },
+                                  .energy = (int)tmp_e / (int)n_seq
+                                }));
 
             energy  += tmp_e;
             up_mis  += u + pos - 1;
@@ -1796,18 +1959,18 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           elem_i  = u;
           elem_j  = pt[u];
           tmp_e   = en_corr_of_loop_gquad(fc,
-                                           u,
-                                           pt[u],
-                                           structure,
-                                           pt,
-                                           loop_idx,
-                                           output_stream,
-                                           verbosity_level);
+                                          u,
+                                          pt[u],
+                                          structure,
+                                          pt,
+                                          loop_idx,
+                                          elements,
+                                          elements_rev);
           if (tmp_e == INF)
             return INF;
 
           energy  += tmp_e;
-          u = pt[u] + 1;
+          u       = pt[u] + 1;
         }
       }
 
@@ -1822,14 +1985,14 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
         case 0:
           e_minus = vrna_eval_hp_loop(fc, r, s);
 
-          if (verbosity_level > 0) {
-            vrna_cstr_print_eval_hp_loop_revert(output_stream,
-                                                r,
-                                                s,
-                                                sequence[r - 1],
-                                                sequence[s - 1],
-                                                (int)e_minus / (int)n_seq);
-          }
+          if (*elements_rev)
+            vrna_array_append(*elements_rev,
+                              ((vrna_struct_elem_t){
+                                .type = VRNA_STRUCTURE_ELEM_HP_LOOP,
+                                .i = r,
+                                .j = s,
+                                .energy = (int)e_minus / (int)n_seq
+                              }));
 
           /* if we consider the G-Quadruplex, we have */
           if (num_g == 1) {
@@ -1860,18 +2023,16 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
 
             e_plus += n_seq * P->internal_loop[s - r - 1 - up_mis];
 
-            if (verbosity_level > 0) {
-              vrna_cstr_print_eval_int_loop(output_stream,
-                                            r,
-                                            s,
-                                            sequence[r - 1],
-                                            sequence[s - 1],
-                                            p,
-                                            q,
-                                            sequence[p - 1],
-                                            sequence[q - 1],
-                                            (int)e_plus / (int)n_seq);
-            }
+            if (*elements)
+              vrna_array_append(*elements,
+                                ((vrna_struct_elem_t){
+                                  .type = VRNA_STRUCTURE_ELEM_INT_LOOP,
+                                  .i = r,
+                                  .j = s,
+                                  .p = p,
+                                  .q = q,
+                                  .energy = (int)e_plus / (int)n_seq
+                                }));
           } else {
             /* or b) a multibranch loop like structure */
             e_temp = num_g * E_MLstem(0, -1, -1, P) +
@@ -1894,14 +2055,14 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
                 break;
             }
 
-            if (verbosity_level > 0) {
-              vrna_cstr_print_eval_mb_loop(output_stream,
-                                           r,
-                                           s,
-                                           sequence[r - 1],
-                                           sequence[s - 1],
-                                           (int)e_plus / (int)n_seq);
-            }
+            if (*elements)
+              vrna_array_append(*elements,
+                                ((vrna_struct_elem_t){
+                                  .type = VRNA_STRUCTURE_ELEM_MB_LOOP,
+                                  .i = r,
+                                  .j = s,
+                                  .energy = (int)e_plus / (int)n_seq
+                                }));
           }
 
           energy += e_plus - e_minus;
@@ -1935,25 +2096,25 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           e_minus = vrna_eval_int_loop(fc, r, s, elem_i, elem_j);
           energy  += e_plus - e_minus;
 
-          if (verbosity_level > 0) {
-            vrna_cstr_print_eval_int_loop_revert(output_stream,
-                                                 r,
-                                                 s,
-                                                 sequence[r - 1],
-                                                 sequence[j - 1],
-                                                 elem_i,
-                                                 elem_j,
-                                                 sequence[elem_i - 1],
-                                                 sequence[elem_j - 1],
-                                                 (int)e_minus / (int)n_seq);
+          if (*elements_rev)
+            vrna_array_append(*elements_rev,
+                              ((vrna_struct_elem_t){
+                                .type = VRNA_STRUCTURE_ELEM_INT_LOOP,
+                                .i = r,
+                                .j = s,
+                                .p = elem_i,
+                                .q = elem_j,
+                                .energy = (int)e_minus / (int)n_seq
+                              }));
 
-            vrna_cstr_print_eval_mb_loop(output_stream,
-                                         r,
-                                         s,
-                                         sequence[r - 1],
-                                         sequence[s - 1],
-                                         (int)e_plus / (int)n_seq);
-          }
+          if (*elements)
+            vrna_array_append(*elements,
+                              ((vrna_struct_elem_t){
+                                .type = VRNA_STRUCTURE_ELEM_MB_LOOP,
+                                .i = r,
+                                .j = s,
+                                .energy = (int)e_plus / (int)n_seq
+                              }));
 
           break;
 
@@ -1963,21 +2124,23 @@ en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           e_plus  = num_g * E_MLstem(0, -1, -1, P) * n_seq;
           energy  += e_plus - e_minus;
 
-          if (verbosity_level > 0) {
-            vrna_cstr_print_eval_mb_loop_revert(output_stream,
-                                                r,
-                                                s,
-                                                sequence[r - 1],
-                                                sequence[s - 1],
-                                                (int)e_minus / (int)n_seq);
+          if (*elements_rev)
+            vrna_array_append(*elements_rev,
+                              ((vrna_struct_elem_t){
+                                .type = VRNA_STRUCTURE_ELEM_MB_LOOP,
+                                .i = r,
+                                .j = s,
+                                .energy = (int)e_minus / (int)n_seq
+                              }));
 
-            vrna_cstr_print_eval_mb_loop(output_stream,
-                                         r,
-                                         s,
-                                         sequence[r - 1],
-                                         sequence[s - 1],
-                                         (int)e_plus / (int)n_seq);
-          }
+          if (*elements)
+            vrna_array_append(*elements,
+                              ((vrna_struct_elem_t){
+                                .type = VRNA_STRUCTURE_ELEM_MB_LOOP,
+                                .i = r,
+                                .j = s,
+                                .energy = (int)e_minus / (int)n_seq
+                              }));
 
           break;
       }
@@ -2026,11 +2189,10 @@ first_pair_after_last_nick(unsigned int i,
 
 
 PRIVATE int
-stack_energy(vrna_fold_compound_t *fc,
-             int                  i,
-             const short          *pt,
-             vrna_cstr_t          output_stream,
-             int                  verbosity_level)
+stack_energy(vrna_fold_compound_t           *fc,
+             int                            i,
+             const short                    *pt,
+             vrna_array(vrna_struct_elem_t) *elements)
 {
   /* recursively calculate energy of substructure enclosed by (i,j) */
   char          *string;
@@ -2058,12 +2220,10 @@ stack_energy(vrna_fold_compound_t *fc,
       string  = fc->sequence;
       n_seq   = 1;
       if (md->pair[s[i]][s[j]] == 0) {
-        if (verbosity_level > VRNA_VERBOSITY_QUIET) {
-          vrna_log_warning("bases %d and %d (%c%c) can't pair!",
-                               i, j,
-                               string[i - 1],
-                               string[j - 1]);
-        }
+        vrna_log_warning("Bases %d and %d (%c%c) can't pair!",
+                         i, j,
+                         string[i - 1],
+                         string[j - 1]);
       }
 
       break;
@@ -2083,27 +2243,27 @@ stack_energy(vrna_fold_compound_t *fc,
         (sn[q] == sn[j])) {
       if (fc->type == VRNA_FC_TYPE_SINGLE) {
         if (md->pair[s[q]][s[p]] == 0) {
-          if (verbosity_level > VRNA_VERBOSITY_QUIET) {
-            vrna_log_warning("bases %d and %d (%c%c) can't pair!",
-                                 p, q,
-                                 string[p - 1],
-                                 string[q - 1]);
-          }
+          vrna_log_warning("Bases %d and %d (%c%c) can't pair!",
+                           p, q,
+                           string[p - 1],
+                           string[q - 1]);
         }
       }
 
       ee = vrna_eval_int_loop(fc, i, j, p, q);
 
-      if (verbosity_level > 0) {
-        vrna_cstr_print_eval_int_loop(output_stream,
-                                      i, j,
-                                      string[i - 1], string[j - 1],
-                                      p, q,
-                                      string[p - 1], string[q - 1],
-                                      (int)ee / (int)n_seq);
-      }
+      if (*elements)
+        vrna_array_append(*elements,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_INT_LOOP,
+                            .i = i,
+                            .j = j,
+                            .p = p,
+                            .q = q,
+                            .energy = (int)ee / (int)n_seq
+                          }));
 
-      energy  += ee;
+      energy  = ADD_OR_INF(energy, ee);
       i       = p;
       j       = q;
     } else {
@@ -2117,14 +2277,31 @@ stack_energy(vrna_fold_compound_t *fc,
     /* hairpin */
     if (sn[i] == sn[j]) {
       ee = vrna_eval_hp_loop(fc, i, j);
-      if (verbosity_level > 0) {
-        vrna_cstr_print_eval_hp_loop(output_stream,
-                                     i, j,
-                                     string[i - 1], string[j - 1],
-                                     (int)ee / (int)n_seq);
+
+      if (ee == INF) {
+        if (j - i - 1 < md->min_loop_size) {
+          vrna_log_warning("Hairpin loop closed by %d and %d (%c,%c) too short",
+                           i, j,
+                           vrna_nucleotide_decode(s[i], md),
+                           vrna_nucleotide_decode(s[j], md));
+        } else {
+          vrna_log_warning("Hairpin loop closed by %d and %d (%c,%c) forbidden",
+                           i, j,
+                           vrna_nucleotide_decode(s[i], md),
+                           vrna_nucleotide_decode(s[j], md));
+        }
       }
 
-      energy += ee;
+      if (*elements)
+        vrna_array_append(*elements,
+                          ((vrna_struct_elem_t){
+                            .type = VRNA_STRUCTURE_ELEM_HP_LOOP,
+                            .i = i,
+                            .j = j,
+                            .energy = (int)ee / (int)n_seq
+                          }));
+
+      energy = ADD_OR_INF(energy, ee);
     }
 
     return energy;
@@ -2134,7 +2311,7 @@ stack_energy(vrna_fold_compound_t *fc,
   if (!first_pair_after_last_nick(i, j, pt, sn)) {
     while (p < j) {
       /* add up the contributions of the substructures of the ML */
-      energy  += stack_energy(fc, p, pt, output_stream, verbosity_level);
+      energy  += stack_energy(fc, p, pt, elements);
       p       = pt[p];
       /* search for next base pair in multiloop */
       while (pt[++p] == 0);
@@ -2142,14 +2319,16 @@ stack_energy(vrna_fold_compound_t *fc,
 
     ee = energy_of_ml_pt(fc, i, pt);
 
-    if (verbosity_level > 0) {
-      vrna_cstr_print_eval_mb_loop(output_stream,
-                                   i, j,
-                                   string[i - 1], string[j - 1],
-                                   (int)ee / (int)n_seq);
-    }
+    if (*elements)
+      vrna_array_append(*elements,
+                        ((vrna_struct_elem_t){
+                          .type = VRNA_STRUCTURE_ELEM_MB_LOOP,
+                          .i = i,
+                          .j = j,
+                          .energy = (int)ee / (int)n_seq
+                        }));
 
-    energy += ee;
+    energy = ADD_OR_INF(energy, ee);
   } else {
     return energy;
   }
@@ -2231,7 +2410,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
   bonus = 0;
 
   if (i >= pt[i]) {
-    vrna_log_warning("energy_of_ml_pt: i is not 5' base of a closing pair!");
+    vrna_log_warning("i = %d (pt[%d] = %d) is not 5' base of a closing pair!", i, i, pt[i]);
     return INF;
   }
 
@@ -2243,7 +2422,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
           (dangle_model > 2) ||
           (dangle_model < 0)) {
         vrna_log_warning(
-          "consensus structure evaluation for odd dangle models not implemented (yet)!");
+          "Consensus structure evaluation for odd dangle models not implemented (yet)!");
         return INF;
       }
 
@@ -2702,4 +2881,96 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
     energy += (u * P->MLbase);
 
   return energy + bonus;
+}
+
+
+PRIVATE int
+struct_elem_compare(const void  *a,
+                    const void  *b)
+{
+  int                 ret = 0;
+
+  vrna_struct_elem_t  *aa = (vrna_struct_elem_t *)a;
+  vrna_struct_elem_t  *bb = (vrna_struct_elem_t *)b;
+
+  ret = (int)aa->i - (int)bb->i;
+
+  if (ret == 0)
+    ret = (int)aa->j - (int)bb->j;
+
+  return ret;
+}
+
+
+PRIVATE void
+print_structure_elements(const char                     *s,
+                         vrna_array(vrna_struct_elem_t) elements,
+                         vrna_cstr_t                    output_stream)
+{
+  if (elements) {
+    /* sort elements from 5' to 3' position */
+    qsort(elements,
+          vrna_array_size(elements),
+          sizeof(vrna_struct_elem_t),
+          struct_elem_compare);
+
+    /* print individual energy contributions */
+    for (size_t i = 0; i < vrna_array_size(elements); i++) {
+      switch (elements[i].type) {
+        case VRNA_STRUCTURE_ELEM_EXT_LOOP:
+          vrna_cstr_print_eval_ext_loop(output_stream,
+                                        elements[i].energy);
+          break;
+
+        case VRNA_STRUCTURE_ELEM_HP_LOOP:
+          vrna_cstr_print_eval_hp_loop(output_stream,
+                                       elements[i].i,
+                                       elements[i].j,
+                                       s[elements[i].i - 1],
+                                       s[elements[i].j - 1],
+                                       elements[i].energy);
+          break;
+
+        case VRNA_STRUCTURE_ELEM_INT_LOOP:
+          vrna_cstr_print_eval_int_loop(output_stream,
+                                        elements[i].i,
+                                        elements[i].j,
+                                        s[elements[i].i - 1],
+                                        s[elements[i].j - 1],
+                                        elements[i].p,
+                                        elements[i].q,
+                                        s[elements[i].p - 1],
+                                        s[elements[i].q - 1],
+                                        elements[i].energy);
+          break;
+
+        case VRNA_STRUCTURE_ELEM_MB_LOOP:
+          vrna_cstr_print_eval_mb_loop(output_stream,
+                                       elements[i].i,
+                                       elements[i].j,
+                                       s[elements[i].i - 1],
+                                       s[elements[i].j - 1],
+                                       elements[i].energy);
+          break;
+
+        case VRNA_STRUCTURE_ELEM_GQUAD:
+          vrna_cstr_print_eval_gquad(output_stream,
+                                     elements[i].i,
+                                     elements[i].j,
+                                     elements[i].L,
+                                     elements[i].l,
+                                     elements[i].energy);
+          break;
+
+        case VRNA_STRUCTURE_ELEM_UD:
+        /* fall-through */
+        case VRNA_STRUCTURE_ELEM_STACK:
+        /* fall-through */
+        case VRNA_STRUCTURE_ELEM_BULGE:
+        /* fall-through */
+        default:
+          break;
+      }
+    }
+  }
 }
