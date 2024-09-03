@@ -29,7 +29,8 @@ examples_python = \
     Python/maximum_matching.py \
     Python/oo_example1.py \
     Python/subopt.py \
-    Python/RNAfold_MEA.py
+    Python/RNAfold_MEA.py \
+    Python/vrna_logs.py
 
 data_files = \
     files/alignment_clustal.aln \

@@ -86,6 +86,16 @@ respectively.
   The last two return values may be empty strings in case the alignment does not provide
   the required data.
 
+Logging
+-------
+
+The example below demonstrates how log messages issued by the `RNAlib`
+C-library can be re-routed to the native Python `logging` module.
+
+.. literalinclude:: ../../../examples/Python/vrna_logs.py
+   :encoding: latin-1
+
+
 
 .. toctree::
    :maxdepth: 1
