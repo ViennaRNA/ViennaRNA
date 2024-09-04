@@ -247,25 +247,26 @@ vrna_md_option_string(vrna_md_t *md)
 
   *options = '\0';
 
-  if (md) {
-    if (md->dangles != VRNA_MODEL_DEFAULT_DANGLES)
-      sprintf(options + strlen(options), "-d%d ", md->dangles);
+  if (md == NULL)
+    md = &(defaults);
 
-    if (!md->special_hp)
-      strcat(options, "-4 ");
+  sprintf(options + strlen(options), "-d%d ", md->dangles);
 
-    if (md->noLP)
-      strcat(options, "--noLP ");
+  if (!md->special_hp)
+    strcat(options, "-4 ");
 
-    if (md->noGU)
-      strcat(options, "--noGU ");
+  if (md->noLP)
+    strcat(options, "--noLP ");
 
-    if (md->noGUclosure)
-      strcat(options, "--noClosingGU ");
+  if (md->noGU)
+    strcat(options, "--noGU ");
 
-    if (md->temperature != VRNA_MODEL_DEFAULT_TEMPERATURE)
-      sprintf(options + strlen(options), "-T %f ", md->temperature);
-  }
+  if (md->noGUclosure)
+    strcat(options, "--noClosingGU ");
+
+  if (md->temperature != VRNA_MODEL_DEFAULT_TEMPERATURE)
+    sprintf(options + strlen(options), "-T %f ", md->temperature);
+
 
   return options;
 }
