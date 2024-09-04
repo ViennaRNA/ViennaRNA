@@ -565,7 +565,6 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               params/svm_model_sd.inc \
               data_structures_nonred.inc \
               plotting/ps_helpers.inc \
-              plotting/svg_helpers.inc \
               ${RNAPUZZLER_INC} \
               landscape/local_neighbors.inc \
               ${SVM_H} \
