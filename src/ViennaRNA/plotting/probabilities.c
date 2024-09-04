@@ -217,13 +217,13 @@ vrna_plot_dp_PS_list( char *seq,
 
   FILE          *wastl;
   size_t        cnt;
-  char          *seq_plain, *tmp, **seqs;
+  char          *seq_plain, **seqs;
   unsigned int  *nicks, curr_length;
   int           pl_size, gq_num;
   plist         *pl1;
 
   nicks     = NULL;
-  seq_plain = tmp = NULL;
+  seq_plain = NULL;
   seqs      = vrna_strsplit(seq, "&");
 
   if (seqs) {
@@ -240,7 +240,6 @@ vrna_plot_dp_PS_list( char *seq,
       nicks[0] = curr_length + 1;
       vrna_strcat_printf(&seq_plain, "%s", seqs[1]);
       curr_length += strlen(seqs[1]);
-      free(tmp);
       free(seqs[1]);
 
       /* add all remaining sequences (so far, we do not store the individual nicks for the remaining sequences */
@@ -249,7 +248,6 @@ vrna_plot_dp_PS_list( char *seq,
         nicks[cnt - 1] = curr_length + 1;
         vrna_strcat_printf(&seq_plain, "%s", seqs[cnt]);
         curr_length += strlen(seqs[cnt]);
-        free(tmp);
         free(seqs[cnt++]);
       }
     }

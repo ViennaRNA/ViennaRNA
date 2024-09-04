@@ -225,10 +225,11 @@ main(int  argc,
       opt.aln_PS_cols = args_info.aln_EPS_cols_arg;
   }
 
-  if (opt.msa)
+  if (opt.msa) {
     ggo_get_id_control(args_info, opt.id_control, "Alignment", "alignment", "_", 4, 1);
-  else
+  } else {
     ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
+  }
 
   if (args_info.layout_type_given)
     opt.plot_type = (unsigned int)args_info.layout_type_arg;

@@ -717,7 +717,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
   if (with_gquad) {
 
     unsigned int              us1, us2, u1, u2, k, l;
-    unsigned int              sk, sl;
+    unsigned int              si, sj, sk, sl;
 
     /* consider all configurations where a G-quadruplex spans over the artificial cutpoint */
 
@@ -1074,8 +1074,8 @@ postprocess_circular(vrna_fold_compound_t *fc)
               (qbt1 != 0.)) {
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
-                unsigned int si = S1[i - 1];
-                unsigned int sj = S1[j + 1];
+                si = S1[i - 1];
+                sj = S1[j + 1];
                 tt    = vrna_get_ptype_md(S[j], S[i], md);
                 if (md->dangles == 2)
                   qint *= pf_params->expmismatchI[tt][sj][si];

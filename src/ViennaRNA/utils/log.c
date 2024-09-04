@@ -131,7 +131,7 @@ vrna_log(vrna_log_levels_e  level,
 }
 
 
-PUBLIC int
+PUBLIC vrna_log_levels_e
 vrna_log_level(void)
 {
   return logger.default_level;

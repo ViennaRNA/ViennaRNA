@@ -132,17 +132,23 @@ pr_defaults: list(double)
   }
 
 
-  /* constructor for Deigan method MSA with multiple parameters */
+  /* constructor for Zarringhalam method MSA with multiple parameters */
   vrna_probing_data_s(std::vector< std::vector<double> > reactivities,
                       std::vector<double>              betas,
-                      std::vector<std::string>         pr_conversions = { VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion },
-                      std::vector<double>              pr_defaults = { VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability })
+                      std::vector<std::string>         pr_conversions = std::vector<std::string>(),
+                      std::vector<double>              pr_defaults = std::vector<double>() )
   {
     unsigned int              n_seq = reactivities.size();
     std::vector<unsigned int> ns;
     vrna_probing_data_s       *obj;
     double                    **d;
     char                      **c;
+
+    if (pr_conversions.size() == 0)
+      pr_conversions.push_back(VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion);
+
+    if (pr_defaults.size() == 0)
+      pr_defaults.push_back(VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
       ns.push_back(reactivities[i].size());
@@ -270,8 +276,8 @@ pr_defaults: list(double)
   vrna_probing_data_s *
   probing_data_Zarringhalam2012_comparative(std::vector< std::vector<double> > reactivities,
                                             std::vector<double>              betas,
-                                            std::vector<std::string>         pr_conversions = { VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion },
-                                            std::vector<double>              pr_defaults = { VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability },
+                                            std::vector<std::string>         pr_conversions = std::vector<std::string>(),
+                                            std::vector<double>              pr_defaults = std::vector<double>(),
                                             unsigned int                     multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0)
   {
     unsigned int              n_seq = reactivities.size();
@@ -279,6 +285,12 @@ pr_defaults: list(double)
     vrna_probing_data_s       *obj;
     double                    **d;
     char                      **c;
+
+    if (pr_conversions.size() == 0)
+      pr_conversions.push_back(VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion);
+
+    if (pr_defaults.size() == 0)
+      pr_defaults.push_back(VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
       ns.push_back(reactivities[i].size());
@@ -436,8 +448,8 @@ probing_data_Zarringhalam2012(std::vector<double> reactivities,
 vrna_probing_data_s *
 probing_data_Zarringhalam2012_comparative(std::vector< std::vector<double> > reactivities,
                                           std::vector<double>              betas,
-                                          std::vector<std::string>         pr_conversions = { VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion },
-                                          std::vector<double>              pr_defaults = { VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability },
+                                          std::vector<std::string>         pr_conversions = std::vector<std::string>(),
+                                          std::vector<double>              pr_defaults = std::vector<double>(),
                                           unsigned int                     multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0);
 
 

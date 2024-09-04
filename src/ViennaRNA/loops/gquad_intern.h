@@ -76,11 +76,11 @@ struct gquad_ali_helper {
   const short         **S;
   const unsigned int  **a2s;
   unsigned int        length;
-  int                 n_seq;
+  unsigned int        n_seq;
   vrna_param_t        *P;
   vrna_exp_param_t    *pf;
-  int                 L;
-  int                 *l;
+  unsigned int        L;
+  unsigned int        *l;
 };
 
 
@@ -154,17 +154,17 @@ get_g_islands(short *S)
  */
 PRIVATE
 void
-process_gquad_enumeration(int *gg,
-                          int i,
-                          int j,
-                          void ( *f )(int, int, int *,
+process_gquad_enumeration(unsigned int *gg,
+                          unsigned int i,
+                          unsigned int j,
+                          void ( *f )(unsigned int, unsigned int, unsigned int *,
                                       void *, void *, void *, void *),
                           void *data,
                           void *P,
                           void *aux1,
                           void *aux2)
 {
-  int L, l[3], n, max_linker, maxl0, maxl1;
+  unsigned int L, l[3], n, max_linker, maxl0, maxl1;
 
   n = j - i + 1;
 

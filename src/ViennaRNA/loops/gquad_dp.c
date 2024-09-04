@@ -41,53 +41,15 @@
  #################################
  */
 
-/**
- *  IMPORTANT:
- *  If you don't know how to use this function, DONT'T USE IT!
- *
- *  The function pointer this function takes as argument is
- *  used for individual calculations with each g-quadruplex
- *  delimited by [i,j].
- *  The function it points to always receives as first 3 arguments
- *  position i, the stack size L and an array l[3] containing the
- *  individual linker sizes.
- *  The remaining 4 (void *) pointers of the callback function receive
- *  the parameters 'data', 'P', 'aux1' and 'aux2' and thus may be
- *  used to pass whatever data you like to.
- *  As the names of those parameters suggest the convention is that
- *  'data' should be used as a pointer where data is stored into,
- *  e.g the MFE or PF and the 'P' parameter should actually be a
- *  'vrna_param_t *' or 'vrna_exp_param_t *' type.
- *  However, what you actually pass obviously depends on the
- *  function the pointer is pointing to.
- *
- *  Although all of this may look like an overkill, it is found
- *  to be almost as fast as implementing g-quadruplex enumeration
- *  in each individual scenario, i.e. code duplication.
- *  Using this function, however, ensures that all g-quadruplex
- *  enumerations are absolutely identical.
- */
-PRIVATE
-void
-process_gquad_enumeration(int *gg,
-                          int i,
-                          int j,
-                          void ( *f )(int, int, int *,
-                                      void *, void *, void *, void *),
-                          void *data,
-                          void *P,
-                          void *aux1,
-                          void *aux2);
-
 
 /**
  *  MFE callback for process_gquad_enumeration()
  */
 PRIVATE
 void
-gquad_mfe(int   i,
-          int   L,
-          int   *l,
+gquad_mfe(unsigned int   i,
+          unsigned int   L,
+          unsigned int   *l,
           void  *data,
           void  *P,
           void  *NA,
@@ -99,9 +61,9 @@ gquad_mfe(int   i,
  */
 PRIVATE
 void
-gquad_pf(int  i,
-         int  L,
-         int  *l,
+gquad_pf(unsigned int  i,
+         unsigned int  L,
+         unsigned int  *l,
          void *data,
          void *P,
          void *NA,
@@ -109,9 +71,9 @@ gquad_pf(int  i,
 
 
 PRIVATE void
-gquad_pf_ali(int  i,
-             int  L,
-             int  *l,
+gquad_pf_ali(unsigned int  i,
+             unsigned int  L,
+             unsigned int  *l,
              void *data,
              void *helper,
              void *NA,
@@ -123,9 +85,9 @@ gquad_pf_ali(int  i,
  */
 PRIVATE
 void
-gquad_mfe_ali(int   i,
-              int   L,
-              int   *l,
+gquad_mfe_ali(unsigned int   i,
+              unsigned int   L,
+              unsigned int   *l,
               void  *data,
               void  *helper,
               void  *NA,
@@ -138,9 +100,9 @@ gquad_mfe_ali(int   i,
  */
 PRIVATE
 void
-gquad_mfe_ali_en(int  i,
-                 int  L,
-                 int  *l,
+gquad_mfe_ali_en(unsigned int  i,
+                 unsigned int  L,
+                 unsigned int  *l,
                  void *data,
                  void *helper,
                  void *NA,
@@ -150,8 +112,8 @@ gquad_mfe_ali_en(int  i,
 /* other useful static functions */
 
 PRIVATE int
-E_gquad_consensus(int                 L,
-                  int                 l[3],
+E_gquad_consensus(unsigned int                 L,
+                  unsigned int                 l[3],
                   unsigned int        position,
                   unsigned int        length,
                   unsigned int        n_seq,
@@ -161,8 +123,8 @@ E_gquad_consensus(int                 L,
 
 PRIVATE
 int
-E_gquad_ali_penalty(int           L,
-                    int           l[3],
+E_gquad_ali_penalty(unsigned int           L,
+                    unsigned int           l[3],
                     unsigned int  i,
                     unsigned int  length,
                     unsigned int  n_seq,
@@ -172,8 +134,8 @@ E_gquad_ali_penalty(int           L,
 
 PRIVATE
 FLT_OR_DBL
-exp_E_gquad_ali_penalty(int               L,
-                        int               l[3],
+exp_E_gquad_ali_penalty(unsigned int               L,
+                        unsigned int               l[3],
                         unsigned int      i,
                         unsigned int      length,
                         unsigned int      n_seq,
@@ -182,8 +144,8 @@ exp_E_gquad_ali_penalty(int               L,
 
 
 PRIVATE void
-count_gquad_layer_mismatches(int          L,
-                             int          l[3],
+count_gquad_layer_mismatches(unsigned int          L,
+                             unsigned int          l[3],
                              unsigned int i,
                              unsigned int n,
                              unsigned int n_seq,
@@ -230,14 +192,14 @@ vrna_gq_pos_mfe(vrna_fold_compound_t * fc){
   vrna_smx_csr(int) * gq_mfe_pos = NULL;
 
   if (fc) {
-    int           i, j, n, n2;
-    int           *gg;
+    unsigned int           i, j, n, n2;
+    unsigned int           *gg;
     vrna_param_t  *P;
     short         *S_enc, *S_tmp;
     void          *data;
-    void          ( *process_f )(int,
-                                 int,
-                                 int *,
+    void          ( *process_f )(unsigned int,
+                                 unsigned int,
+                                 unsigned int *,
                                  void *,
                                  void *,
                                  void *,
@@ -325,14 +287,14 @@ vrna_gq_pos_pf(vrna_fold_compound_t * fc){
   vrna_smx_csr(FLT_OR_DBL) * q_gq = NULL;
 
   if (fc) {
-    int               i, j, n, n2, *gg;
+    unsigned int      i, j, n, n2, *gg;
     short             *S_tmp, *S_enc;
     FLT_OR_DBL        q, *scale;
     vrna_exp_param_t  *pf_params;
     void              *data;
-    void              ( *process_f )(int,
-                                     int,
-                                     int *,
+    void              ( *process_f )(unsigned int,
+                                     unsigned int,
+                                     unsigned int *,
                                      void *,
                                      void *,
                                      void *,
@@ -465,7 +427,7 @@ create_L_matrix(short         *S,
                 vrna_param_t  *P)
 {
   int **data;
-  int i, j, k, *gg, p, q;
+  unsigned int i, j, k, *gg, p, q;
 
   p   = MAX2(1, start);
   q   = MIN2(n, start + maxdist + 4);
@@ -500,14 +462,18 @@ create_L_matrix(short         *S,
 
     /* allocate memory and prefill with INF */
     data = (int **)vrna_alloc(sizeof(int *) * (n + 1));
-    for (k = n; (k > n - maxdist - 5) && (k >= 0); k--) {
+    for (k = n; (k + maxdist + 5 > n) && (k > 0); k--) {
       data[k] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
       for (i = 0; i < maxdist + 5; i++)
         data[k][i] = INF;
     }
 
     /* compute all contributions for the gquads in this interval */
-    FOR_EACH_GQUAD(i, j, MAX2(1, n - maxdist - 4), n){
+    unsigned int start = 1;
+    if (maxdist + 4 < n)
+      start = n - maxdist - 4;
+
+    FOR_EACH_GQUAD(i, j, start, n){
       process_gquad_enumeration(gg, i, j,
                                 &gquad_mfe,
                                 (void *)(&(data[i][j - i])),
@@ -535,7 +501,7 @@ create_aliL_matrix(int          start,
                    vrna_param_t *P)
 {
   int **data;
-  int i, j, k, *gg, p, q;
+  unsigned int i, j, k, *gg, p, q;
 
   p   = MAX2(1, start);
   q   = MIN2(n, start + maxdist + 4);
@@ -585,7 +551,11 @@ create_aliL_matrix(int          start,
     }
 
     /* compute all contributions for the gquads in this interval */
-    FOR_EACH_GQUAD(i, j, MAX2(1, n - maxdist - 4), n){
+    unsigned int start = 1;
+    if (maxdist + 4 < n)
+      start = n - maxdist - 4;
+
+    FOR_EACH_GQUAD(i, j, start, n){
       process_gquad_enumeration(gg, i, j,
                                 &gquad_mfe_ali,
                                 (void *)(&(data[i][j - i])),
@@ -627,8 +597,8 @@ aln_linker_length(unsigned int        start,
  *  positions accordingly
  */
 PRIVATE INLINE void
-aln_linker_positions(int          L,
-                     int          l[3],
+aln_linker_positions(unsigned int          L,
+                     unsigned int          l[3],
                      unsigned int position,
                      unsigned int length,
                      unsigned int starts[3],
@@ -660,8 +630,8 @@ aln_linker_positions(int          L,
  * to be passed through variable n
  */
 PRIVATE void
-gq_layer_pos(int          L,
-             int          l[3],
+gq_layer_pos(unsigned int          L,
+             unsigned int          l[3],
              unsigned int layer,
              unsigned int i,
              unsigned int n,
@@ -683,8 +653,8 @@ gq_layer_pos(int          L,
 
 
 PRIVATE int
-E_gquad_consensus(int                 L,
-                  int                 l[3],
+E_gquad_consensus(unsigned int                 L,
+                  unsigned int                 l[3],
                   unsigned int        position,
                   unsigned int        length,
                   unsigned int        n_seq,
@@ -712,8 +682,8 @@ E_gquad_consensus(int                 L,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_gquad_consensus(int                 L,
-                      int                 l[3],
+exp_E_gquad_consensus(unsigned int                 L,
+                      unsigned int                 l[3],
                       unsigned int        position,
                       unsigned int        length,
                       unsigned int        n_seq,
@@ -741,8 +711,8 @@ exp_E_gquad_consensus(int                 L,
 
 
 PRIVATE int
-E_gquad_ali_penalty(int           L,
-                    int           l[3],
+E_gquad_ali_penalty(unsigned int           L,
+                    unsigned int           l[3],
                     unsigned int  i,
                     unsigned int  length,
                     unsigned int  n_seq,
@@ -761,8 +731,8 @@ E_gquad_ali_penalty(int           L,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_gquad_ali_penalty(int               L,
-                        int               l[3],
+exp_E_gquad_ali_penalty(unsigned int               L,
+                        unsigned int               l[3],
                         unsigned int      i,
                         unsigned int      n,
                         unsigned int      n_seq,
@@ -781,8 +751,8 @@ exp_E_gquad_ali_penalty(int               L,
 
 
 PRIVATE void
-count_gquad_layer_mismatches(int          L,
-                             int          l[3],
+count_gquad_layer_mismatches(unsigned int          L,
+                             unsigned int          l[3],
                              unsigned int i,
                              unsigned int n,
                              unsigned int n_seq,
@@ -861,9 +831,9 @@ count_gquad_layer_mismatches(int          L,
 
 
 PRIVATE void
-gquad_mfe(int   i,
-          int   L,
-          int   *l,
+gquad_mfe(unsigned int   i,
+          unsigned int   L,
+          unsigned int   *l,
           void  *data,
           void  *P,
           void  *NA,
@@ -877,9 +847,9 @@ gquad_mfe(int   i,
 
 
 PRIVATE void
-gquad_pf(int  i,
-         int  L,
-         int  *l,
+gquad_pf(unsigned int  i,
+         unsigned int  L,
+         unsigned int  *l,
          void *data,
          void *pf,
          void *NA,
@@ -890,9 +860,9 @@ gquad_pf(int  i,
 
 
 PRIVATE void
-gquad_pf_ali(int  i,
-             int  L,
-             int  *l,
+gquad_pf_ali(unsigned int  i,
+             unsigned int  L,
+             unsigned int  *l,
              void *data,
              void *helper,
              void *NA,
@@ -911,18 +881,18 @@ gquad_pf_ali(int  i,
   n       = gq_help->length;
   n_seq   = gq_help->n_seq;
   pf      = gq_help->pf;
-  penalty = exp_E_gquad_ali_penalty(L, l, (unsigned int)i, n, n_seq, S, pf);
+  penalty = exp_E_gquad_ali_penalty(L, l, i, n, n_seq, S, pf);
 
   if (penalty != 0.)
     *((FLT_OR_DBL *)data) += penalty *
-                             exp_E_gquad_consensus(L, l, (unsigned int)i, n, n_seq, a2s, pf);
+                             exp_E_gquad_consensus(L, l, i, n, n_seq, a2s, pf);
 }
 
 
 PRIVATE void
-gquad_mfe_ali(int   i,
-              int   L,
-              int   *l,
+gquad_mfe_ali(unsigned int   i,
+              unsigned int   L,
+              unsigned int   *l,
               void  *data,
               void  *helper,
               void  *NA,
@@ -944,9 +914,9 @@ gquad_mfe_ali(int   i,
 
 
 PRIVATE void
-gquad_mfe_ali_en(int  i,
-                 int  L,
-                 int  *l,
+gquad_mfe_ali_en(unsigned int  i,
+                 unsigned int  L,
+                 unsigned int  *l,
                  void *data,
                  void *helper,
                  void *NA,
@@ -998,7 +968,9 @@ PUBLIC int *
 get_gquad_matrix(short        *S,
                  vrna_param_t *P)
 {
-  int n, size, i, j, *gg, *my_index, *data;
+  unsigned int n, size, i, j, *gg;
+
+  int *my_index, *data;
 
   n         = S[0];
   my_index  = vrna_idx_col_wise(n);
@@ -1030,8 +1002,9 @@ get_gquad_pf_matrix(short             *S,
                     FLT_OR_DBL        *scale,
                     vrna_exp_param_t  *pf)
 {
-  int         n, size, *gg, i, j, *my_index;
-  FLT_OR_DBL  *data;
+  unsigned int  n, size, *gg, i, j;
+  int           *my_index;
+  FLT_OR_DBL    *data;
 
 
   n         = S[0];
@@ -1065,7 +1038,8 @@ get_gquad_pf_matrix_comparative(unsigned int      n,
                                 unsigned int      n_seq,
                                 vrna_exp_param_t  *pf)
 {
-  int         size, *gg, i, j, *my_index;
+  unsigned int         size, *gg, i, j;
+  int           *my_index;
   FLT_OR_DBL  *data;
 
 
@@ -1106,8 +1080,8 @@ get_gquad_ali_matrix(unsigned int n,
                      int          n_seq,
                      vrna_param_t *P)
 {
-  int size, *data, *gg;
-  int i, j, *my_index;
+  unsigned int  i, j, size, *gg;
+  int           *my_index, *data;
 
   size      = (n * (n + 1)) / 2 + 2;
   data      = (int *)vrna_alloc(sizeof(int) * size);

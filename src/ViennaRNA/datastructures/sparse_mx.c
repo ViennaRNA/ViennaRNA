@@ -92,10 +92,10 @@
                                   unsigned int            *j,         \
                                   TYPE                    default_v)  \
   {                                                                   \
-    unsigned int  p, d, s, k;                                         \
+    unsigned int  d, s;                                               \
     if ((mx) &&                                                       \
         (pos < vrna_array_size(mx->v)) &&                             \
-        (i) && (j)) {                                                  \
+        (i) && (j)) {                                                 \
       if (mx->dirty) {                                                \
         for (s = 1; s < vrna_array_capacity(mx->row_idx); s++)        \
           mx->row_idx[s] += mx->row_idx[s - 1];                       \

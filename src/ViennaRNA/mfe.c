@@ -526,7 +526,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
   unsigned char     *hard_constraints, eval;
   char              *ptype;
   short             *S, *S1, **SS, **S5, **S3;
-  unsigned int      **a2s, u1, u2, us, us1, us2, s1, s2, p, q,
+  unsigned int      **a2s, u1, u2, us, us1, us2, s1, s2, p, q, si, sj,
                     Hgi, Hgj, Igi, Igj, Igp, Igq, Igg, Mgi, Mgj;
   int               Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, *fM_d3, *fM_d5, Md3i,
                     Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, i, j, ij, u,
@@ -1176,9 +1176,9 @@ postprocess_circular(vrna_fold_compound_t *fc,
               (e != INF)) {
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
-                unsigned int si = S1[i - 1];
-                unsigned int sj = S1[j + 1];
-                type    = vrna_get_ptype_md(S[j], S[i], md);
+                si    = S1[i - 1];
+                sj    = S1[j + 1];
+                type  = vrna_get_ptype_md(S[j], S[i], md);
                 if (dangles == 2)
                   e += P->mismatchI[type][sj][si];
 

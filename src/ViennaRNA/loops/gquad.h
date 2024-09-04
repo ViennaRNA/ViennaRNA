@@ -47,20 +47,20 @@
  */
 
 int
-vrna_gq_energy(int          L,
-               int          l[3],
+vrna_gq_energy(unsigned int          L,
+               unsigned int          l[3],
                vrna_param_t *P);
 
 
 FLT_OR_DBL
-vrna_gq_exp_energy(int              L,
-                   int              l[3],
+vrna_gq_exp_energy(unsigned int              L,
+                   unsigned int              l[3],
                    vrna_exp_param_t *pf);
 
 
 void
-vrna_gq_consensus_energy(int          L,
-                         int          l[3],
+vrna_gq_consensus_energy(unsigned int          L,
+                         unsigned int          l[3],
                          unsigned int position,
                          unsigned int length,
                          unsigned int n_seq,
@@ -71,8 +71,8 @@ vrna_gq_consensus_energy(int          L,
 
 
 FLT_OR_DBL
-vrna_gq_consensus_exp_energy(int                L,
-                             int                l[3],
+vrna_gq_consensus_exp_energy(unsigned int                L,
+                             unsigned int                l[3],
                              vrna_exp_param_t   *pf,
                              unsigned int       position,
                              unsigned int       length,
@@ -311,10 +311,10 @@ plist *
 
 vrna_ep_t *
 vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
-                             int                  gi,
-                             int                  gj,
-                             int                  *Lmax,
-                             int                  lmax[3]);
+                             unsigned int                  gi,
+                             unsigned int                  gj,
+                             unsigned int                  *Lmax,
+                             unsigned int                  lmax[3]);
 
 
 /**
@@ -348,8 +348,8 @@ backtrack_GQuad_IntLoop_L(int           c,
 
 int
 vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
+                  unsigned int                   i,
+                  unsigned int                   j,
                   vrna_bps_t            bp_stack);
 
 

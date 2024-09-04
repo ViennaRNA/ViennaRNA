@@ -531,8 +531,8 @@ vrna_aln_conservation_struct(const char       **alignment,
       /* check alignment for consistency */
       for (s = 0; alignment[s]; s++) {
         if (strlen(alignment[s]) != n) {
-          vrna_log_warning("vrna_aln_bpcons: Length of aligned sequence #%d does not match consensus structure length\n"
-                               "%s\n\%s\n",
+          vrna_log_warning("vrna_aln_bpcons: Length of aligned sequence %u does not match consensus structure length\n"
+                               "%s\n%s\n",
                                s + 1,
                                alignment[s],
                                structure);

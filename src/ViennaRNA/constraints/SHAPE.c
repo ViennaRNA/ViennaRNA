@@ -72,6 +72,7 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
   char              *sequence;
   double            *values;
   int               i, length = vc->length;
+  FLT_OR_DBL        *v;
   vrna_probing_data_t d = NULL;
 
   if (!vrna_sc_SHAPE_parse_method(shape_method, &method, &p1, &p2)) {
@@ -113,7 +114,7 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
       break;
 
     case 'W':
-      FLT_OR_DBL *v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
+      v = vrna_alloc(sizeof(FLT_OR_DBL) * (length + 1));
       for (i = 0; i < length; i++)
         v[i] = values[i];
 

@@ -12,129 +12,129 @@ set_salt_DNA(vrna_md_t *md);
 /* make this interface backward compatible with RNAlib < 2.2.0 */
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
-#define ggo_get_temperature(ggostruct, dest) ({ \
+#define ggo_get_temperature(ggostruct, dest) { \
     if (ggostruct.temp_given) \
       dest = ggostruct.temp_arg; \
     temperature = (double)dest; \
-  })
+  }
 
-#define ggo_get_dangles(ggostruct, dest) ({ \
+#define ggo_get_dangles(ggostruct, dest) { \
     if (ggostruct.dangles_given) \
       dest = ggostruct.dangles_arg; \
     dangles = (int)dest; \
-  })
+  }
 
-#define ggo_get_special_hp(ggostruct, dest) ({ \
+#define ggo_get_special_hp(ggostruct, dest) { \
     if (ggostruct.noTetra_given) \
       dest = 0; \
     tetra_loop = (int)dest; \
-  })
+  }
 
-#define ggo_get_noLP(ggostruct, dest) ({ \
+#define ggo_get_noLP(ggostruct, dest) { \
     if (ggostruct.noLP_given) \
       dest = 1; \
     noLonelyPairs = (int)dest; \
-  })
+  }
 
-#define ggo_get_noGU(ggostruct, dest) ({ \
+#define ggo_get_noGU(ggostruct, dest) { \
     if (ggostruct.noGU_given) \
       dest = 1; \
     noGU = (int)dest; \
-  })
+  }
 
-#define ggo_get_noGUclosure(ggostruct, dest) ({ \
+#define ggo_get_noGUclosure(ggostruct, dest) { \
     if (ggostruct.noClosingGU_given) \
       dest = 1; \
     no_closingGU = (int)dest; \
-  })
+  }
 
-#define ggo_get_gquad(ggostruct, dest) ({ \
+#define ggo_get_gquad(ggostruct, dest) { \
     if (ggostruct.gquad_given) \
       dest = 1; \
     gquad = (int)dest; \
-  })
+  }
 
-#define ggo_get_energyModel(ggostruct, dest) ({ \
+#define ggo_get_energyModel(ggostruct, dest) { \
     if (ggostruct.energyModel_given) \
       dest = ggostruct.energyModel_arg; \
     energy_set = (int)dest; \
-  })
+  }
 
-#define ggo_get_maxBPspan(ggostruct, dest)  ({ \
+#define ggo_get_maxBPspan(ggostruct, dest)  { \
     if (ggostruct.maxBPspan_given) \
       dest = ggostruct.maxBPspan_arg; \
     max_bp_span = (int)dest; \
-  })
+  }
 
 
 #else
 
-#define ggo_get_temperature(ggostruct, dest) ({ \
+#define ggo_get_temperature(ggostruct, dest) { \
     if (ggostruct.temp_given) \
       dest = ggostruct.temp_arg; \
-  })
+  }
 
-#define ggo_get_dangles(ggostruct, dest) ({ \
+#define ggo_get_dangles(ggostruct, dest) { \
     if (ggostruct.dangles_given) \
       dest = ggostruct.dangles_arg; \
-  })
+  }
 
-#define ggo_get_special_hp(ggostruct, dest) ({ \
+#define ggo_get_special_hp(ggostruct, dest) { \
     if (ggostruct.noTetra_given) \
       dest = 0; \
-  })
+  }
 
-#define ggo_get_noLP(ggostruct, dest) ({ \
+#define ggo_get_noLP(ggostruct, dest) { \
     if (ggostruct.noLP_given) \
       dest = 1; \
-  })
+  }
 
-#define ggo_get_noGUclosure(ggostruct, dest) ({ \
+#define ggo_get_noGUclosure(ggostruct, dest) { \
     if (ggostruct.noClosingGU_given) \
       dest = 1; \
-  })
+  }
 
-#define ggo_get_gquad(ggostruct, dest) ({ \
+#define ggo_get_gquad(ggostruct, dest) { \
     if (ggostruct.gquad_given) \
       dest = 1; \
-  })
+  }
 
-#define ggo_get_energyModel(ggostruct, dest) ({ \
+#define ggo_get_energyModel(ggostruct, dest) { \
     if (ggostruct.energyModel_given) \
       dest = ggostruct.energyModel_arg; \
-  })
+  }
 
-#define ggo_get_maxBPspan(ggostruct, dest)  ({ \
+#define ggo_get_maxBPspan(ggostruct, dest)  { \
     if (ggostruct.maxBPspan_given) \
       dest = ggostruct.maxBPspan_arg; \
-  })
+  }
 
 #endif
 
 
-#define ggo_get_pfScale(ggostruct, dest) ({ \
+#define ggo_get_pfScale(ggostruct, dest) { \
     if (ggostruct.pfScale_given) \
       dest = ggostruct.pfScale_arg; \
-  })
+  }
 
-#define ggo_get_betaScale(ggostruct, dest) ({ \
+#define ggo_get_betaScale(ggostruct, dest) { \
     if (ggostruct.betaScale_given) \
       dest = ggostruct.betaScale_arg; \
-  })
+  }
 
 /* assume RNA sequence to be circular */
-#define ggo_get_circ(ggostruct, dest) ({ \
+#define ggo_get_circ(ggostruct, dest) { \
     if (ggostruct.circ_given) \
       dest = 1; \
-  })
+  }
 
 /* Allow other pairs in addition to the usual AU,GC,and GU pairs */
-#define ggo_get_nsp(ggostruct, dest) ({ \
+#define ggo_get_nsp(ggostruct, dest) { \
     if (ggostruct.nsp_given) \
       dest = strdup(ggostruct.nsp_arg); \
-  })
+  }
 
-#define ggo_get_read_paramFile(ggostruct, md) ({ \
+#define ggo_get_read_paramFile(ggostruct, md) { \
     /* take another energy parameter set */ \
     if (ggostruct.paramFile_given) { \
       if (!strcmp(ggostruct.paramFile_arg, "DNA")) {\
@@ -145,15 +145,15 @@ set_salt_DNA(vrna_md_t *md);
         vrna_params_load(ggostruct.paramFile_arg, VRNA_PARAMETER_FORMAT_DEFAULT); \
       } \
     } \
-  })
+  }
 
 /* For salt correction */
-#define ggo_get_salt(ggostruct, dest) ({ \
+#define ggo_get_salt(ggostruct, dest) { \
     if (ggostruct.salt_given) \
       dest = ggostruct.salt_arg; \
-  })
+  }
 
-#define ggo_geometry_settings(ggostruct, md) ({ \
+#define ggo_geometry_settings(ggostruct, md) { \
     if (ggostruct.helical_rise_given) \
       vrna_md_defaults_helical_rise(ggostruct.helical_rise_arg); \
     \
@@ -162,7 +162,7 @@ set_salt_DNA(vrna_md_t *md);
     \
     if (md) \
       set_geometry(md); \
-  })
+  }
 
 /*
  *  The following macro automatically sets a basic set of
@@ -175,7 +175,7 @@ set_salt_DNA(vrna_md_t *md);
  *  - ns_bases
  *  - parameter file
  */
-#define ggo_get_md_eval(ggostruct, md) ({ \
+#define ggo_get_md_eval(ggostruct, md) { \
     /* dangles */ \
     ggo_get_dangles(ggostruct, md.dangles); \
     /* special_hp */ \
@@ -196,7 +196,7 @@ set_salt_DNA(vrna_md_t *md);
         vrna_md_set_nonstandards(&md, ns_bases); \
     } \
     ggo_get_read_paramFile(ggostruct, &(md)); \
-  })
+  }
 
 
 /*
@@ -206,7 +206,7 @@ set_salt_DNA(vrna_md_t *md);
  *  - noGU
  *  - noGUclosure
  */
-#define ggo_get_md_fold(ggostruct, md) ({ \
+#define ggo_get_md_fold(ggostruct, md) { \
     /* do not allow weak pairs */ \
     ggo_get_noLP(ggostruct, md.noLP); \
     /* do not allow wobble pairs (GU) */ \
@@ -215,7 +215,7 @@ set_salt_DNA(vrna_md_t *md);
     ggo_get_noGUclosure(ggostruct, md.noGUclosure); \
     /* set maximum base pair span */ \
     ggo_get_maxBPspan(ggostruct, md.max_bp_span); \
-  })
+  }
 
 
 /*
@@ -225,11 +225,11 @@ set_salt_DNA(vrna_md_t *md);
  *  - noGU
  *  - noGUclosure
  */
-#define ggo_get_md_part(ggostruct, md) ({ \
+#define ggo_get_md_part(ggostruct, md) { \
     /* set pf scaling factor */ \
     ggo_get_pfScale(ggostruct, md.sfact); \
     ggo_get_betaScale(ggostruct, md.betaScale); \
-  })
+  }
 
 
 /*
@@ -240,7 +240,7 @@ set_salt_DNA(vrna_md_t *md);
                       SHAPE_switch, \
                       SHAPE_files, \
                       SHAPE_method, \
-                      SHAPE_conversion)  ({ \
+                      SHAPE_conversion)  { \
     /* SHAPE reactivity data */ \
     if (ggostruct.shape_given) { \
       SHAPE_switch = 1; \
@@ -253,7 +253,7 @@ set_salt_DNA(vrna_md_t *md);
       SHAPE_method = NULL; \
       SHAPE_conversion = NULL; \
     } \
-  })
+  }
 
 
 /*
@@ -265,7 +265,7 @@ set_salt_DNA(vrna_md_t *md);
                                 ID_prefix, ID_prefix_default, \
                                 ID_delimiter, ID_delimiter_default, \
                                 ID_digits, ID_digits_default, \
-                                ID_start, ID_start_default) ({ \
+                                ID_start, ID_start_default) { \
     if (ggostruct.auto_id_given) { ID_auto_switch = 1; } \
     if (ggostruct.id_prefix_given) { \
       ID_prefix = strdup(ggostruct.id_prefix_arg); \
@@ -291,7 +291,7 @@ set_salt_DNA(vrna_md_t *md);
         ID_start = ID_start_default; \
       } \
     } else { ID_start = ID_start_default; } \
-  })
+  }
 
 
 #define ggo_get_id_control(ggostruct,\
@@ -300,7 +300,7 @@ set_salt_DNA(vrna_md_t *md);
                            default_prefix,\
                            default_delimiter,\
                            default_digits,\
-                           default_start) ({ \
+                           default_start) { \
   id_ctrl = init_id_data(identifier, default_prefix, default_delimiter, default_digits, default_start); \
   if (ggostruct.auto_id_given)    { set_auto_id(id_ctrl, 1); } \
   if (ggostruct.id_prefix_given)  { set_id_prefix(id_ctrl, ggostruct.id_prefix_arg); set_auto_id(id_ctrl, 1); } \
@@ -318,14 +318,14 @@ set_salt_DNA(vrna_md_t *md);
                                     vrna_message_warning("ID number start (%ld) out of allowed range! Using defaults...", ggostruct.id_start_arg); \
                                   } \
                                 } \
-})
+}
 
 
 #define ggo_get_constraints_settings(ggostruct, \
                                      constraint_switch, \
                                      constraint_file, \
                                      constraint_enforce, \
-                                     constraint_batch)  ({ \
+                                     constraint_batch)  { \
     /* structure constraint */ \
     if (ggostruct.constraint_given) { \
       constraint_switch = 1; \
@@ -344,12 +344,12 @@ set_salt_DNA(vrna_md_t *md);
       constraint_batch = 1; \
     else \
       constraint_batch = 0; \
-  })
+  }
 
 
 #define ggo_get_modified_base_settings(ggostruct, \
                                        mod_params, \
-                                       md)  ({ \
+                                       md)  { \
   size_t        num_mod_params  = 0; \
   if (ggostruct.modifications_given) { \
     mod_params = mod_params_collect_from_string(ggostruct.modifications_arg, \
@@ -364,7 +364,7 @@ set_salt_DNA(vrna_md_t *md);
                                                mod_params,\
                                                md);\
   } \
-})
+}
 
 
 #define ggo_log_settings(ggostruct, \

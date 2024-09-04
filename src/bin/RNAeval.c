@@ -304,10 +304,11 @@ main(int  argc,
   input_files = collect_unnamed_options(&args_info, &num_input);
   input_files = append_input_files(&args_info, input_files, &num_input);
 
-  if (opt.aln)
+  if (opt.aln) {
     ggo_get_id_control(args_info, opt.id_control, "Alignment", "alignment", "_", 4, 1);
-  else
+  } else {
     ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
+  }
 
   /* free allocated memory of command line data structure */
   RNAeval_cmdline_parser_free(&args_info);

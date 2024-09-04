@@ -39,28 +39,28 @@ PRIVATE INLINE double
 bjerrum_length(double T)
 {
 	return 167100.052/(T*epsilonr(T));
-};
+}
 
 
 PRIVATE INLINE double
 ionic_strength(double rho)
 {
   return rho;
-};
+}
 
 
 PRIVATE INLINE double
 kappa_inv(double rho, double T)
 {
   return 8.1284/(sqrt(bjerrum_length(T)*ionic_strength(rho)));
-};
+}
 
 
 PRIVATE INLINE double
 kappa(double rho, double T)
 {
   return sqrt(bjerrum_length(T)*ionic_strength(rho))/8.1284;
-};
+}
 
 
 PRIVATE INLINE double
@@ -71,7 +71,7 @@ tau_ds(double T, double Helical_Rise)
   bjerrum_length_inv = 1. / bjerrum_length(T);
   helical_rise_inv = 1. / Helical_Rise;
   return MIN2(helical_rise_inv, bjerrum_length_inv);
-};
+}
 
 
 PRIVATE INLINE double
@@ -81,14 +81,14 @@ tau_ss(double T, double backbonelen)
 
   bjerrum_length_inv = 1/bjerrum_length(T);
   return MIN2(1/backbonelen, bjerrum_length_inv);
-};
+}
 
 
 PRIVATE INLINE double
 pairing_salt_const(double T, double Helical_Rise)
 {
   return 2*(GASCONST / 1000.)*T*bjerrum_length(T)*Helical_Rise*tau_ds(T, Helical_Rise)*tau_ds(T, Helical_Rise);
-};
+}
 
 
 PRIVATE double
@@ -101,7 +101,7 @@ approx_hyper(double y)
 	c = log(2*PI/y) - 1.96351;
 
 	return a*b + (1-a)*c;
-};
+}
 
 
 PRIVATE double
@@ -113,7 +113,7 @@ loop_salt_aux(double kmlss, int L, double T, double backbonelen)
 	b = log(kmlss) - log(PI/2) + Eular_const + approx_hyper(kmlss) + 1/kmlss * (1 - exp(-kmlss) + kmlss*expn(1, kmlss));
 
 	return a*b*100;
-};
+}
 
 PUBLIC double
 vrna_salt_loop(int L, double rho, double T, double backbonelen)
@@ -128,7 +128,7 @@ vrna_salt_loop(int L, double rho, double T, double backbonelen)
 	correction = loop_salt_aux(kmlss, L, T, backbonelen) - loop_salt_aux(kmlss_ref, L, T, backbonelen);
 
 	return correction;
-};
+}
 
 PUBLIC int
 vrna_salt_loop_int(int L, double rho, double T, double backbonelen)
