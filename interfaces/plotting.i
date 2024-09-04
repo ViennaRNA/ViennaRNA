@@ -147,6 +147,82 @@ std::vector<COORDINATE> my_naview_xy_coordinates(std::string);
 %ignore naview_xy_coordinates;
 #endif
 
+/* class definitions for vrna_plot_layout_t */
+%rename (plot_layout) vrna_plot_layout_t;
+
+%nodefaultctor  vrna_plot_layout_t;
+%nodefaultdtor  vrna_plot_layout_t;
+
+typedef struct {} vrna_plot_layout_t;
+
+%extend vrna_plot_layout_t {
+  vrna_plot_layout_t(std::string  structure,
+                     unsigned int plot_type = VRNA_PLOT_TYPE_DEFAULT)
+  {
+    return vrna_plot_layout(structure.c_str(),
+                            plot_type);
+  }
+
+  ~vrna_plot_layout_t()
+  {
+    vrna_plot_layout_free($self);
+  }
+};
+
+/* class definitions for vrna_plot_options_puzzler_t */
+%rename (plot_options_puzzler)  vrna_plot_options_puzzler_t;
+
+%nodefaultctor  vrna_plot_options_puzzler_t;
+%nodefaultdtor  vrna_plot_options_puzzler_t;
+
+typedef struct {
+  short       checkAncestorIntersections;
+  short       checkSiblingIntersections;
+  short       checkExteriorIntersections;
+  short       allowFlipping;
+  short       optimize;
+} vrna_plot_options_puzzler_t;
+
+%extend vrna_plot_options_puzzler_t {
+  vrna_plot_options_puzzler_t *
+  vrna_plot_options_puzzler_t(void)
+  {
+    return vrna_plot_options_puzzler();
+  }
+
+  ~vrna_plot_options_puzzler_t()
+  {
+    vrna_plot_options_puzzler_free($self);
+  }
+};
+
+
+
+%newobject  vrna_plot_layout_simple;
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
+%newobject  vrna_plot_layout_naview;
+#endif
+%newobject  vrna_plot_layout_circular;
+%newobject  vrna_plot_layout_turtle;
+%newobject  vrna_plot_layout_puzzler;
+
+%rename (plot_layout_simple)    vrna_plot_layout_simple;
+#ifdef VRNA_WITH_NAVIEW_LAYOUT
+%rename (plot_layout_naview)    vrna_plot_layout_naview;
+#endif
+%rename (plot_layout_circular)  vrna_plot_layout_circular;
+%rename (plot_layout_turtle)    vrna_plot_layout_turtle;
+%rename (plot_layout_puzzler)   vrna_plot_layout_puzzler;
+
+
+%constant unsigned int PLOT_TYPE_SIMPLE   = VRNA_PLOT_TYPE_SIMPLE;
+%constant unsigned int PLOT_TYPE_NAVIEW   = VRNA_PLOT_TYPE_NAVIEW;
+%constant unsigned int PLOT_TYPE_CIRCULAR = VRNA_PLOT_TYPE_CIRCULAR;
+%constant unsigned int PLOT_TYPE_TURTLE   = VRNA_PLOT_TYPE_TURTLE;
+%constant unsigned int PLOT_TYPE_PUZZLER  = VRNA_PLOT_TYPE_PUZZLER;
+%constant unsigned int PLOT_TYPE_DEFAULT  = VRNA_PLOT_TYPE_DEFAULT;
+
+
 %include <ViennaRNA/plotting/layouts.h>
 
 
@@ -229,6 +305,227 @@ int file_PS_rnaplot_a(std::string sequence,
                         std::string post);
 
 %ignore PS_rna_plot_snoop_a;
+
+
+%rename (plot_data) vrna_plot_data_t;
+
+%nodefaultctor  vrna_plot_data_t;
+%nodefaultdtor  vrna_plot_data_t;
+
+typedef struct {
+  char          *pre;
+  char          *post;
+  vrna_md_t     *md;
+  unsigned int  options;
+} vrna_plot_data_t;
+
+%extend vrna_plot_data_t {
+  vrna_plot_data_t(std::string  pre = "",
+                   std::string  post = "",
+                   vrna_md_t    *md = NULL,
+                   unsigned int options = 0)
+  {
+    vrna_plot_data_t  *d = NULL;
+
+    if ((pre.size() > 0) ||
+        (post.size() > 0) ||
+        (md)) {
+      d           = (vrna_plot_data_t *)vrna_alloc(sizeof(vrna_plot_data_t));
+      d->pre      = (pre.size() > 0) ? strdup(pre.c_str()) : NULL;
+      d->post     = (post.size() > 0) ? strdup(post.c_str()) : NULL;
+      d->md       = md;
+      d->options  = options;
+    }
+
+    return d;
+  }
+
+  ~vrna_plot_data_t()
+  {
+    free($self->pre);
+    free($self->post);
+    free($self);
+  }
+};
+
+%rename (plot_structure)      my_plot_structure;
+%rename (plot_structure_svg)  my_plot_structure_svg;
+%rename (plot_structure_eps)  my_plot_structure_eps;
+%rename (plot_structure_gml)  my_plot_structure_gml;
+%rename (plot_structure_ssv)  my_plot_structure_ssv;
+%rename (plot_structure_xrna) my_plot_structure_xrna;
+
+
+#ifdef SWIGPYTHON
+%feature("autodoc") my_plot_structure;
+%feature("kwargs")  my_plot_structure;
+%feature("autodoc") my_plot_structure_svg;
+%feature("kwargs")  my_plot_structure_svg;
+%feature("autodoc") my_plot_structure_eps;
+%feature("kwargs")  my_plot_structure_eps;
+%feature("autodoc") my_plot_structure_gml;
+%feature("kwargs")  my_plot_structure_gml;
+%feature("autodoc") my_plot_structure_ssv;
+%feature("kwargs")  my_plot_structure_ssv;
+%feature("autodoc") my_plot_structure_xrna;
+%feature("kwargs")  my_plot_structure_xrna;
+#endif
+
+%{
+  int
+  my_plot_structure(std::string         filename,
+                    std::string         sequence,
+                    std::string         structure,
+                    unsigned int        file_format = VRNA_FILE_FORMAT_PLOT_DEFAULT,
+                    vrna_plot_layout_t  *layout     = NULL,
+                    vrna_plot_data_t    *data       = NULL)
+  {
+    return vrna_plot_structure(filename.c_str(),
+                               sequence.c_str(),
+                               structure.c_str(),
+                               file_format,
+                               layout,
+                               data);
+  }
+
+
+  int
+  my_plot_structure_eps(std::string         filename,
+                        std::string         sequence,
+                        std::string         structure,
+                        vrna_plot_layout_t  *layout = NULL,
+                        vrna_plot_data_t    *data   = NULL)
+  {
+    return vrna_plot_structure_eps(filename.c_str(),
+                                   sequence.c_str(),
+                                   structure.c_str(),
+                                   layout,
+                                   data);
+  }
+
+
+  int
+  my_plot_structure_svg(std::string         filename,
+                        std::string         sequence,
+                        std::string         structure,
+                        vrna_plot_layout_t  *layout = NULL,
+                        vrna_plot_data_t    *data   = NULL)
+  {
+    return vrna_plot_structure_svg(filename.c_str(),
+                                 sequence.c_str(),
+                                 structure.c_str(),
+                                 layout,
+                                 data);
+  }
+
+
+  int
+  my_plot_structure_gml(std::string         filename,
+                        std::string         sequence,
+                        std::string         structure,
+                        vrna_plot_layout_t  *layout = NULL,
+                        vrna_plot_data_t    *data   = NULL,
+                        char                option  = 'x')
+  {
+    return vrna_plot_structure_gml(filename.c_str(),
+                                   sequence.c_str(),
+                                   structure.c_str(),
+                                   layout,
+                                   data,
+                                   option);
+  }
+
+
+  int
+  my_plot_structure_ssv(std::string         filename,
+                        std::string         sequence,
+                        std::string         structure,
+                        vrna_plot_layout_t  *layout = NULL,
+                        vrna_plot_data_t    *data   = NULL)
+  {
+    return vrna_plot_structure_ssv(filename.c_str(),
+                                   sequence.c_str(),
+                                   structure.c_str(),
+                                   layout,
+                                   data);
+  }
+
+
+  int
+  my_plot_structure_xrna(std::string        filename,
+                         std::string        sequence,
+                         std::string        structure,
+                         vrna_plot_layout_t *layout = NULL,
+                         vrna_plot_data_t   *data   = NULL)
+  {
+    return vrna_plot_structure_xrna(filename.c_str(),
+                                    sequence.c_str(),
+                                    structure.c_str(),
+                                    layout,
+                                    data);
+  }
+
+
+%}
+
+
+int
+my_plot_structure(std::string         filename,
+                  std::string         sequence,
+                  std::string         structure,
+                  unsigned int        file_format = VRNA_FILE_FORMAT_PLOT_DEFAULT,
+                  vrna_plot_layout_t  *layout     = NULL,
+                  vrna_plot_data_t    *data       = NULL);
+
+
+int
+my_plot_structure_eps(std::string         filename,
+                      std::string         sequence,
+                      std::string         structure,
+                      vrna_plot_layout_t  *layout = NULL,
+                      vrna_plot_data_t    *data   = NULL);
+
+
+int
+my_plot_structure_svg(std::string         filename,
+                      std::string         sequence,
+                      std::string         structure,
+                      vrna_plot_layout_t  *layout = NULL,
+                      vrna_plot_data_t    *data   = NULL);
+
+
+int
+my_plot_structure_gml(std::string         filename,
+                      std::string         sequence,
+                      std::string         structure,
+                      vrna_plot_layout_t  *layout = NULL,
+                      vrna_plot_data_t    *data   = NULL,
+                      char                option  = 'x');
+
+
+int
+my_plot_structure_ssv(std::string         filename,
+                      std::string         sequence,
+                      std::string         structure,
+                      vrna_plot_layout_t  *layout = NULL,
+                      vrna_plot_data_t    *data   = NULL);
+
+
+int
+my_plot_structure_xrna(std::string        filename,
+                       std::string        sequence,
+                       std::string        structure,
+                       vrna_plot_layout_t *layout = NULL,
+                       vrna_plot_data_t   *data   = NULL);
+
+
+%constant unsigned int FILE_FORMAT_EPS          = VRNA_FILE_FORMAT_EPS;
+%constant unsigned int FILE_FORMAT_SVG          = VRNA_FILE_FORMAT_SVG;        
+%constant unsigned int FILE_FORMAT_GML          = VRNA_FILE_FORMAT_GML;        
+%constant unsigned int FILE_FORMAT_SSV          = VRNA_FILE_FORMAT_SSV;
+%constant unsigned int FILE_FORMAT_XRNA         = VRNA_FILE_FORMAT_XRNA;        
+%constant unsigned int FILE_FORMAT_PLOT_DEFAULT = VRNA_FILE_FORMAT_PLOT_DEFAULT;
+
 
 %include <ViennaRNA/plotting/structures.h>
 
