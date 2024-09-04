@@ -230,10 +230,8 @@ main(int  argc,
   else
     ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
 
-  if (args_info.layout_type_given) {
-    rna_plot_type = args_info.layout_type_arg;
+  if (args_info.layout_type_given)
     opt.plot_type = (unsigned int)args_info.layout_type_arg;
-  }
 
   if (args_info.pre_given)
     opt.pre = strdup(args_info.pre_arg);
