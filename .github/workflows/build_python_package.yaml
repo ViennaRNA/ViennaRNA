@@ -34,7 +34,7 @@ jobs:
         run:  |
           autoreconf -i
           tar -xjf src/dlib-19.24.tar.bz2 -C src
-          tar -xzf src/libsvm-3.31.tar.gz -C src
+          tar -xzf src/libsvm-3.33.tar.gz -C src
       - name: configure
         run: ./configure --without-kinfold --without-forester --without-rnalocmin --without-rnaxplorer --without-perl --without-gsl --disable-mpfr
       - name: prepare source files
@@ -77,8 +77,10 @@ jobs:
             cibw_archs: "aarch64"
           - os: windows-latest
             cibw_archs: "AMD64"
-          - os: macos-latest
+          - os: macos-13
             cibw_archs: "x86_64 universal2 arm64"
+          - os: macos-14
+            cibw_archs: "arm64"
 
     steps:
       - name: Set up QEMU
@@ -98,7 +100,7 @@ jobs:
           echo "VRNA_SDIST_FILE=${{needs.build_sdist.outputs.vrna_sdist_file}}" >> "$env:GITHUB_ENV"
       - name: Build wheels
         if: runner.os != 'Windows'
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.20.0
         with:
           package-dir: "$VRNA_SDIST_FILE"
           output-dir: dist
@@ -112,7 +114,7 @@ jobs:
           CIBW_TEST_COMMAND: pytest --datadir {package}/tests/data {package}/tests/python
       - name: Build wheels - Windows
         if: runner.os == 'Windows'
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.20.0
         with:
           package-dir: "$env:VRNA_SDIST_FILE"
           output-dir: dist
@@ -172,7 +174,7 @@ jobs:
           name: sdist
           path: dist
 
-      - name: Publish package to TestPyPI
+      - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}

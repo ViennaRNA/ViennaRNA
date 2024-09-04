@@ -82,7 +82,7 @@ jobs:
     - name: Autotools setup
       run:  |
         tar -xjf src/dlib-19.24.tar.bz2 -C src
-        tar -xzf src/libsvm-3.31.tar.gz -C src
+        tar -xzf src/libsvm-3.33.tar.gz -C src
         autoreconf -i
     - name: Configure
       run: ./configure ${{ inputs.config-flags }}
