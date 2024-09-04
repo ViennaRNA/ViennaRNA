@@ -53,7 +53,7 @@ typedef struct vrna_plot_layout_s vrna_plot_layout_t;
  *
  *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
-#define VRNA_PLOT_TYPE_SIMPLE     0
+#define VRNA_PLOT_TYPE_SIMPLE     0U
 
 /**
  *  @brief Definition of Plot type <i>Naview</i>
@@ -63,7 +63,7 @@ typedef struct vrna_plot_layout_s vrna_plot_layout_t;
  *
  *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
-#define VRNA_PLOT_TYPE_NAVIEW     1
+#define VRNA_PLOT_TYPE_NAVIEW     1U
 
 /**
  *  @brief Definition of Plot type <i>Circular</i>
@@ -73,19 +73,19 @@ typedef struct vrna_plot_layout_s vrna_plot_layout_t;
  *
  *  @see rna_plot_type, vrna_file_PS_rnaplot_a(), vrna_file_PS_rnaplot(), svg_rna_plot(), gmlRNA(), ssv_rna_plot(), xrna_plot()
  */
-#define VRNA_PLOT_TYPE_CIRCULAR   2
+#define VRNA_PLOT_TYPE_CIRCULAR   2U
 
 /**
  *  @brief  Definition of Plot type <i>Turtle</i> @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  */
-#define VRNA_PLOT_TYPE_TURTLE  3
+#define VRNA_PLOT_TYPE_TURTLE  3U
 
 /**
  *  @brief  Definition of Plot type <i>RNApuzzler</i> @rstinline :cite:p:`wiegreffe:2018` @endrst
  *
  */
-#define VRNA_PLOT_TYPE_PUZZLER  4
+#define VRNA_PLOT_TYPE_PUZZLER  4U
 
 #ifdef VRNA_WITH_NAVIEW_LAYOUT
 # define VRNA_PLOT_TYPE_DEFAULT  VRNA_PLOT_TYPE_NAVIEW
