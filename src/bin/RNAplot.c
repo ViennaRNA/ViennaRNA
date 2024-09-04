@@ -50,7 +50,7 @@ struct options {
 
   char          *pre;
   char          *post;
-  char          format[5];
+  char          format[6];
   unsigned int  plot_type;
 
   int           jobs;
@@ -128,8 +128,8 @@ init_default_options(struct options *opt)
   opt->pre        = NULL;
   opt->post       = NULL;
   opt->plot_type  = 1;
-  strncpy(&(opt->format[0]), "ps", 4);
-  opt->format[4] = '\0';
+  strncpy(&(opt->format[0]), "eps", 5);
+  opt->format[5] = '\0';
 
   opt->jobs                       = 1;
   opt->next_record_number         = 0;
@@ -240,8 +240,8 @@ main(int  argc,
     opt.post = strdup(args_info.post_arg);
 
   if (args_info.output_format_given) {
-    strncpy(&(opt.format[0]), args_info.output_format_arg, 4);
-    opt.format[4] = '\0';
+    strncpy(&(opt.format[0]), args_info.output_format_arg, 5);
+    opt.format[5] = '\0';
   }
 
   /* filename sanitize delimiter */
@@ -605,20 +605,19 @@ process_record(struct record_data *record)
 
   switch (opt->format[0]) {
     case 's':
-      tmp_string = vrna_strdup_printf("%s.svg", ffname);
-      free(ffname);
-      ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
-      free(tmp_string);
-      file_format = VRNA_FILE_FORMAT_SVG;
-
-      break;
-
-    case 'p':
-      tmp_string = vrna_strdup_printf("%s.ps", ffname);
-      free(ffname);
-      ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
-      free(tmp_string);
-      file_format = VRNA_FILE_FORMAT_EPS;
+      if (opt->format[1] == 'v') { /* svg */
+        tmp_string = vrna_strdup_printf("%s.svg", ffname);
+        free(ffname);
+        ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
+        free(tmp_string);
+        file_format = VRNA_FILE_FORMAT_SVG;
+      } else {
+        tmp_string = vrna_strdup_printf("%s.ssv", ffname);
+        free(ffname);
+        ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
+        free(tmp_string);
+        file_format = VRNA_FILE_FORMAT_SSV;
+      }
 
       break;
 
@@ -641,8 +640,14 @@ process_record(struct record_data *record)
       break;
 
     default:
-      RNAplot_cmdline_parser_print_help();
-      exit(EXIT_FAILURE);
+      tmp_string = vrna_strdup_printf("%s.eps", ffname);
+      free(ffname);
+      ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
+      free(tmp_string);
+      file_format = VRNA_FILE_FORMAT_EPS;
+
+      break;
+
   }
 
   if ((opt->pre) || (opt->post)) {

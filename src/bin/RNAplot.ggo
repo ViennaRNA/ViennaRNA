@@ -77,16 +77,17 @@ typestr="number"
 argoptional
 optional
 
-option  "output-format"   o
-"Specify output format."
-details="Available formats are: PostScript ('ps'), Graph Meta Language ('gml'),\
- Scalable Vector Graphics ('svg'), and XRNA save file ('xrna'). Output filenames will end in\
- \".ps\" \".gml\" \".svg\" \".ss\", respectively.\n"
+option  "output-format"   f
+"Specify output file format."
+details="Available formats are: Encapsulated PostScript ('eps'), Scalable Vector Graphics ('svg'),\
+ Graph Meta Language ('gml'), and XRNA save file ('xrna'). Output filenames will end in\
+ \".eps\" \".gml\" \".svg\" \".ss\", respectively.\n"
 string
-typestr="ps|gml|xrna|svg"
-default="ps"
+values="eps","svg","gml","xrna","ssv"
+typestr="format"
+default="eps"
 optional
-hidden
+
 
 option  "pre"   -
 "Add annotation macros to postscript file, and add the postscript code in \"string\" just\
@@ -278,6 +279,7 @@ details="Select the layout algorithm that computes the nucleotide coordinates.\
  '3': RNAturtle (Wiegreffe et al. 2018)\n\n\
  '4': RNApuzzler (Wiegreffe et al. 2018)\n"
 int
+values="0","1","2","3","4"
 default="1"
 optional
 
