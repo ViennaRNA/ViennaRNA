@@ -51,7 +51,7 @@ struct options {
   char          *pre;
   char          *post;
   char          format[5];
-  int           plot_type;
+  unsigned int  plot_type;
 
   int           jobs;
   unsigned int  next_record_number;
@@ -230,8 +230,10 @@ main(int  argc,
   else
     ggo_get_id_control(args_info, opt.id_control, "Sequence", "sequence", "_", 4, 1);
 
-  if (args_info.layout_type_given)
+  if (args_info.layout_type_given) {
     rna_plot_type = args_info.layout_type_arg;
+    opt.plot_type = (unsigned int)args_info.layout_type_arg;
+  }
 
   if (args_info.pre_given)
     opt.pre = strdup(args_info.pre_arg);
@@ -598,51 +600,27 @@ process_record(struct record_data *record)
   else
     ffname = vrna_strdup_printf("rna");
 
+  vrna_plot_data_t            *data       = NULL;
+  vrna_plot_layout_t          *layout     = NULL;
+  vrna_plot_options_puzzler_t *puzzler    = NULL;
+  unsigned int                file_format = VRNA_FILE_FORMAT_PLOT_DEFAULT;
+
   switch (opt->format[0]) {
+    case 's':
+      tmp_string = vrna_strdup_printf("%s.svg", ffname);
+      free(ffname);
+      ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
+      free(tmp_string);
+      file_format = VRNA_FILE_FORMAT_SVG;
+
+      break;
+
     case 'p':
       tmp_string = vrna_strdup_printf("%s.ps", ffname);
       free(ffname);
       ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
       free(tmp_string);
-
-      if (rna_plot_type == VRNA_PLOT_TYPE_PUZZLER) {
-        /* RNA puzzler behavior specification */
-        vrna_plot_options_puzzler_t *puzzler;
-        vrna_plot_layout_t          *layout;
-
-        puzzler           = vrna_plot_options_puzzler();
-        puzzler->filename = ffname;
-        puzzler->drawArcs = 1;
-
-        puzzler->checkAncestorIntersections = opt->checkAncestorIntersections;
-        puzzler->checkSiblingIntersections  = opt->checkSiblingIntersections;
-        puzzler->checkExteriorIntersections = opt->checkExteriorIntersections;
-        puzzler->allowFlipping              = opt->allowFlipping;
-        puzzler->optimize                   = opt->optimize;
-
-        layout = vrna_plot_layout_puzzler(structure,
-                                          puzzler);
-
-        THREADSAFE_FILE_OUTPUT(
-          vrna_file_PS_rnaplot_layout(rec_sequence,
-                                      structure,
-                                      ffname,
-                                      opt->pre,
-                                      opt->post,
-                                      &(opt->md),
-                                      layout));
-
-        vrna_plot_layout_free(layout);
-        vrna_plot_options_puzzler_free(puzzler);
-      } else {
-        THREADSAFE_FILE_OUTPUT(
-          vrna_file_PS_rnaplot_a(rec_sequence,
-                                 structure,
-                                 ffname,
-                                 opt->pre,
-                                 opt->post,
-                                 &(opt->md)));
-      }
+      file_format = VRNA_FILE_FORMAT_EPS;
 
       break;
 
@@ -651,10 +629,8 @@ process_record(struct record_data *record)
       free(ffname);
       ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
       free(tmp_string);
+      file_format = VRNA_FILE_FORMAT_GML;
 
-      THREADSAFE_FILE_OUTPUT(
-        gmlRNA(rec_sequence, structure, ffname, 'x')
-        );
       break;
 
     case 'x':
@@ -662,27 +638,52 @@ process_record(struct record_data *record)
       free(ffname);
       ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
       free(tmp_string);
+      file_format = VRNA_FILE_FORMAT_XRNA;
 
-      THREADSAFE_FILE_OUTPUT(
-        xrna_plot(rec_sequence, structure, ffname)
-        );
-      break;
-
-    case 's':
-      tmp_string = vrna_strdup_printf("%s.svg", ffname);
-      free(ffname);
-      ffname = vrna_filename_sanitize(tmp_string, opt->filename_delim);
-      free(tmp_string);
-
-      THREADSAFE_FILE_OUTPUT(
-        svg_rna_plot(rec_sequence, structure, ffname)
-        );
       break;
 
     default:
       RNAplot_cmdline_parser_print_help();
       exit(EXIT_FAILURE);
   }
+
+  if ((opt->pre) || (opt->post)) {
+    data = (vrna_plot_data_t *)vrna_alloc(sizeof(vrna_plot_data_t));
+    data->pre     = opt->pre;
+    data->post    = opt->post;
+    data->md      = &(opt->md);
+    data->options = 0U;
+  }
+
+  if (opt->plot_type == VRNA_PLOT_TYPE_PUZZLER) {
+    /* RNA puzzler behavior specification */
+
+    puzzler           = vrna_plot_options_puzzler();
+    puzzler->filename = ffname;
+    puzzler->drawArcs = 1;
+
+    puzzler->checkAncestorIntersections = opt->checkAncestorIntersections;
+    puzzler->checkSiblingIntersections  = opt->checkSiblingIntersections;
+    puzzler->checkExteriorIntersections = opt->checkExteriorIntersections;
+    puzzler->allowFlipping              = opt->allowFlipping;
+    puzzler->optimize                   = opt->optimize;
+
+    layout = vrna_plot_layout_puzzler(structure,
+                                      puzzler);
+  } else {
+    layout = vrna_plot_layout(structure, opt->plot_type);
+  }
+
+  THREADSAFE_FILE_OUTPUT(
+    vrna_plot_structure(ffname,
+                        rec_sequence,
+                        structure,
+                        file_format,
+                        layout,
+                        data));
+
+  vrna_plot_layout_free(layout);
+  vrna_plot_options_puzzler_free(puzzler);
 
   /* clean up */
   free(record->id);

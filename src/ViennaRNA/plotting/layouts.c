@@ -267,6 +267,7 @@ rna_layout(const char   *structure,
 
   n               = strlen(structure);
   layout          = (struct vrna_plot_layout_s *)vrna_alloc(sizeof(struct vrna_plot_layout_s));
+  layout->type    = plot_type;
   layout->length  = n;
   layout->x       = NULL;
   layout->y       = NULL;

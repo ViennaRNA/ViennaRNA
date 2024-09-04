@@ -424,6 +424,11 @@ libRNA_plotting_la_SOURCES = \
     plotting/probabilities.c \
     plotting/structures.c \
     plotting/plot_utils.c \
+    plotting/svg.c \
+    plotting/eps.c \
+    plotting/gml.c \
+    plotting/xrna.c \
+    plotting/ssv.c \
     plotting/RNApuzzler/RNApuzzler.c \
     plotting/RNApuzzler/RNAturtle.c
 

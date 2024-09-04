@@ -55,6 +55,47 @@ vrna_plot_structure(const char          *filename,
                     vrna_plot_layout_t  *layout,
                     vrna_plot_data_t    *aux_data);
 
+
+int
+vrna_plot_structure_svg(const char          *filename,
+                        const char          *sequence,
+                        const char          *structure,
+                        vrna_plot_layout_t  *layout,
+                        vrna_plot_data_t    *data);
+
+
+int
+vrna_plot_structure_eps(const char          *filename,
+                        const char          *sequence,
+                        const char          *structure,
+                        vrna_plot_layout_t  *layout,
+                        vrna_plot_data_t    *data);
+
+
+int
+vrna_plot_structure_gml(const char          *filename,
+                        const char          *sequence,
+                        const char          *structure,
+                        vrna_plot_layout_t  *layout,
+                        vrna_plot_data_t    *data,
+                        char                option);
+
+
+int
+vrna_plot_structure_ssv(const char          *filename,
+                        const char          *sequence,
+                        const char          *structure,
+                        vrna_plot_layout_t  *layout,
+                        vrna_plot_data_t    *data);
+
+
+int
+vrna_plot_structure_xrna(const char          *filename,
+                         const char          *sequence,
+                         const char          *structure,
+                         vrna_plot_layout_t  *layout,
+                         vrna_plot_data_t    *data);
+
 /**
  *  @brief Produce a secondary structure graph in PostScript and write it to 'filename'.
  *

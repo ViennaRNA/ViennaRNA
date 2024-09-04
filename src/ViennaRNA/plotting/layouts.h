@@ -95,6 +95,7 @@ typedef struct vrna_plot_layout_s vrna_plot_layout_t;
 
 
 struct vrna_plot_layout_s {
+  unsigned int  type;
   unsigned int  length;
   float         *x;
   float         *y;
