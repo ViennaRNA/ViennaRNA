@@ -109,7 +109,7 @@ nullify(vrna_fold_compound_t *fc);
 PUBLIC void
 vrna_fold_compound_free(vrna_fold_compound_t *fc)
 {
-  int s;
+  unsigned int s;
 
   if (fc) {
     /* first destroy common attributes */
@@ -291,7 +291,7 @@ vrna_fold_compound_comparative2(const char                **sequences,
                                 vrna_md_t                 *md_p,
                                 unsigned int              options)
 {
-  int                   s, n_seq, length;
+  unsigned int          s, n_seq, length;
   vrna_fold_compound_t  *fc;
   vrna_md_t             md;
   unsigned int          aux_options;
@@ -402,7 +402,7 @@ vrna_fold_compound_TwoD(const char    *sequence,
                         vrna_md_t     *md_p,
                         unsigned int  options)
 {
-  int                   length, l, turn;
+  unsigned int          length, l, turn;
   vrna_fold_compound_t  *fc;
   vrna_md_t             md;
 
