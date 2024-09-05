@@ -39,7 +39,7 @@ testname="Partition function (base pair probabilities - Hetero-dimer)"
 RNAcofold --noPS -a --auto-id --id-prefix="rnacofold_pf_test" < ${DATADIR}/rnacofold.small.seq > rnacofold_pf.fold
 for file in ABrnacofold_pf_test_00*dp5.ps
 do
-  diff=$(${DIFF} -ru -I CreationDate -I Creator ${RNACOFOLD_RESULTSDIR}/${file} ${file})
+  diff=$(${DIFF} -ru -I CreationDate -I Creator -I Program ${RNACOFOLD_RESULTSDIR}/${file} ${file})
   if [ "x${diff}" != "x" ] ; then break; fi
 done
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
@@ -47,7 +47,7 @@ if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed
 testname="Partition function (base pair probabilities - Homo-dimers)"
 for file in AArnacofold_pf_test_00*dp5.ps BBrnacofold_pf_test_00*dp5.ps
 do
-  diff=$(${DIFF} -ru -I CreationDate -I Creator ${RNACOFOLD_RESULTSDIR}/${file} ${file})
+  diff=$(${DIFF} -ru -I CreationDate -I Creator -I Program ${RNACOFOLD_RESULTSDIR}/${file} ${file})
   if [ "x${diff}" != "x" ] ; then break; fi
 done
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
@@ -55,7 +55,7 @@ if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed
 testname="Partition function (base pair probabilities - Monomers)"
 for file in Arnacofold_pf_test_00*dp5.ps Brnacofold_pf_test_00*dp5.ps
 do
-  diff=$(${DIFF} -ru -I CreationDate -I Creator ${RNACOFOLD_RESULTSDIR}/${file} ${file})
+  diff=$(${DIFF} -ru -I CreationDate -I Creator -I Program ${RNACOFOLD_RESULTSDIR}/${file} ${file})
   if [ "x${diff}" != "x" ] ; then break; fi
 done
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi

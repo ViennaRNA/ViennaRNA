@@ -36,7 +36,7 @@ testname="Partition function (base pair probabilities)"
 RNAfold --noPS -p2 --auto-id --id-prefix="rnafold_pf_test" < ${DATADIR}/rnafold.small.seq > rnafold_pf.fold
 for file in rnafold_pf_test_00*dp.ps
 do
-  diff=$(${DIFF} -ru -I CreationDate -I Creator ${RNAFOLD_RESULTSDIR}/${file} ${file})
+  diff=$(${DIFF} -ru -I CreationDate -I Creator -I Program ${RNAFOLD_RESULTSDIR}/${file} ${file})
   if [ "x${diff}" != "x" ] ; then break; fi
 done
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
@@ -44,7 +44,7 @@ if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed
 testname="Partition function (stack probabilities)"
 for file in rnafold_pf_test_00*dp2.ps
 do
-  diff=$(${DIFF} -ru -I CreationDate -I Creator ${RNAFOLD_RESULTSDIR}/${file} ${file})
+  diff=$(${DIFF} -ru -I CreationDate -I Creator -I Program ${RNAFOLD_RESULTSDIR}/${file} ${file})
   if [ "x${diff}" != "x" ] ; then break; fi
 done
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi

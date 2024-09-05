@@ -35,7 +35,7 @@ if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed
 testname="G-Quadruplex feature (probabilities)"
 for file in rnafold_gquad_test_00*dp.ps
 do
-  diff=$(${DIFF} -ru -I CreationDate -I Creator ${RNAFOLD_RESULTSDIR}/${file} ${file})
+  diff=$(${DIFF} -ru -I CreationDate -I Creator -I Program ${RNAFOLD_RESULTSDIR}/${file} ${file})
   if [ "x${diff}" != "x" ] ; then break; fi
 done
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
@@ -47,7 +47,7 @@ diff=$(${DIFF} -ru -I frequency ${RNAFOLD_RESULTSDIR}/rnafold.theo.gold rnafold_
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 
 testname="Aptamer Motif - Theophylline (probabilities)"
-diff=$(${DIFF} -ru -I CreationDate -I Creator ${RNAFOLD_RESULTSDIR}/rnafold_theo_test_0001_dp.ps rnafold_theo_test_0001_dp.ps)
+diff=$(${DIFF} -ru -I CreationDate -I Creator -I Program ${RNAFOLD_RESULTSDIR}/rnafold_theo_test_0001_dp.ps rnafold_theo_test_0001_dp.ps)
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
 
 # Test Constraints (Hard, Soft, Unstructured domains)
@@ -59,7 +59,7 @@ if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed
 testname="Command file - Constraints and Ligand motifs (probabilities)"
 for file in rnafold_cmd_test_00*dp.ps
 do
-  diff=$(${DIFF} -ru -I CreationDate -I Creator ${RNAFOLD_RESULTSDIR}/${file} ${file})
+  diff=$(${DIFF} -ru -I CreationDate -I Creator -I Program ${RNAFOLD_RESULTSDIR}/${file} ${file})
   if [ "x${diff}" != "x" ] ; then break; fi
 done
 if [ "x${diff}" != "x" ] ; then failed "$testname"; echo -e "$diff"; else passed "$testname"; fi
@@ -106,7 +106,7 @@ do
   echo $s | RNAfold --noPS -c -p --id-prefix="test_circ" > rnafold_special.fold
   # compute base pair probabilities with soft constraints (shifting ensemble by -1kcal/mol per nucleotide)
   echo $s | RNAfold --noPS -c -p --id-prefix="test_circ_sc" --commands=${DATADIR}/rnafold_sc_lift.cmds > rnafold_special.fold
-  diff=$(${DIFF} -ru -I CreationDate -I test_circ test_circ_sc_0001_dp.ps test_circ_0001_dp.ps)
+  diff=$(${DIFF} -ru -I CreationDate -I Creator -I test_circ -I Program test_circ_sc_0001_dp.ps test_circ_0001_dp.ps)
   rm test_circ_0001_dp.ps test_circ_sc_0001_dp.ps
   if [ "x${diff}" != "x" ]; then break; fi
 done
