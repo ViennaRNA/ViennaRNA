@@ -205,7 +205,7 @@ compute_MEA(vrna_fold_compound_t  *fc,
   List          *C;
   struct MEAdat bdat;
 
-  vrna_smx_csr(double)      *gq_circ      = NULL;
+  vrna_smx_csr(FLT_OR_DBL)  *gq_circ      = NULL;
   vrna_array(unsigned int)  gq_circ_imin  = NULL;
   vrna_array(unsigned int)  gq_circ_imax  = NULL;
 
