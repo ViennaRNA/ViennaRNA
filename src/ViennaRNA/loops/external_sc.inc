@@ -44,7 +44,7 @@ struct sc_f5_dat {
   void                    *user_data;
 
   /* below attributes are for comparative structure prediction */
-  int                     n_seq;
+  unsigned int            n_seq;
   unsigned int            **a2s;
   int                     ***up_comparative;
 
@@ -67,7 +67,7 @@ struct sc_f3_dat {
   void                    *user_data;
 
   /* below attributes are for comparative structure prediction */
-  int                     n_seq;
+  unsigned int            n_seq;
   unsigned int            **a2s;
   int                     ***up_comparative;
 

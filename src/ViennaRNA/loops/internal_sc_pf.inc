@@ -8,7 +8,7 @@ typedef FLT_OR_DBL (*sc_int_exp_cb)(int                    i,
 
 struct sc_int_exp_dat {
   unsigned int                n;
-  int                         n_seq;
+  unsigned int                n_seq;
   unsigned int                **a2s;
 
   int                         *idx;

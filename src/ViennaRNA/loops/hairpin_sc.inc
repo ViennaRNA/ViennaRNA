@@ -6,7 +6,7 @@ typedef int (*sc_hp_cb)(int              i,
 
 
 struct sc_hp_dat {
-  int                     n;
+  unsigned int            n;
   unsigned int            n_seq;
   unsigned int            **a2s;
   int                     *idx;

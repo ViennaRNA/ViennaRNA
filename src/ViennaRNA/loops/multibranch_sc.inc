@@ -11,7 +11,7 @@ typedef int (*sc_mb_red_cb)(int              i,
                            struct sc_mb_dat *data);
 
 struct sc_mb_dat {
-  int                     n_seq;
+  unsigned int            n_seq;
   unsigned int            **a2s;
 
   int                     *idx;

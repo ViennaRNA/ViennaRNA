@@ -8,7 +8,7 @@ typedef int (*sc_int_cb)(int               i,
 
 struct sc_int_dat {
   unsigned int            n;
-  int                     n_seq;
+  unsigned int            n_seq;
   unsigned int            **a2s;
 
   int                     *idx;

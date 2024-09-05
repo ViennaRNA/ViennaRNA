@@ -30,7 +30,7 @@ struct sc_ext_exp_dat {
   void                        *user_data;
 
   /* below attributes are for comparative structure prediction */
-  int                         n_seq;
+  unsigned int                n_seq;
   unsigned int                **a2s;
   FLT_OR_DBL                  ***up_comparative;
 
