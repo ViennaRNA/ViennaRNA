@@ -413,7 +413,8 @@ fill_arrays(vrna_fold_compound_t  *fc,
             struct ms_helpers     *ms_dat)
 {
   unsigned int      *sn;
-  int               i, j, ij, length, uniq_ML, *indx, *f5, *c, *fML, *fM1, *fM2_real;
+  unsigned int      i, j, length, uniq_ML;
+  int               ij, *indx, *f5, *c, *fML, *fM1, *fM2_real;
   vrna_param_t      *P;
   vrna_md_t         *md;
   vrna_mx_mfe_t     *matrices;
@@ -454,7 +455,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
   }
 
   /* start recursion */
-  if (length <= ((fc->strands > 1) ? fc->strands : md->min_loop_size)) {
+  if (length <= ((fc->strands > 1) ? fc->strands : (unsigned int)md->min_loop_size)) {
     /* clean up memory */
     free_aux_arrays(helper_arrays);
 
@@ -527,11 +528,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
   char              *ptype;
   short             *S, *S1, **SS, **S5, **S3;
   unsigned int      **a2s, u1, u2, us, us1, us2, s1, s2, p, q, si, sj,
-                    Hgi, Hgj, Igi, Igj, Igp, Igq, Igg, Mgi, Mgj;
-  int               Hi, Hj, Ii, Ij, Ip, Iq, ip, iq, Mi, *fM_d3, *fM_d5, Md3i,
-                    Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, i, j, ij, u,
-                    length, new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp,
-                    dangle_model, turn, s, n_seq, with_gquad, FgH, FgI,
+                    Hgi, Hgj, Igi, Igj, Igp, Igq, Igg, Mgi, Mgj, Hi, Hj,
+                    Ii, Ij, Ip, Iq, ip, iq, Mi, i, j, u, length, s, n_seq,
+                    turn, dangle_model, with_gquad;
+  int               *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, ij,
+                    new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp, FgH, FgI,
                     FgM, e, *fM2_real, *fM1_new;
   vrna_param_t      *P;
   vrna_md_t         *md;
