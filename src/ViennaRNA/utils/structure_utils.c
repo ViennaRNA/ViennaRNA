@@ -926,13 +926,21 @@ vrna_pairing_tendency(vrna_fold_compound_t *fc)
       if (p_gq) {
         /* do something about the gquads wrapping around the n,1 junction */
         for (i = 1; i < j; i++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           pp    = vrna_smx_csr_get(p_gq, j, i, 0.);
+#else
+          pp    = vrna_smx_csr_FLT_OR_DBL_get(p_gq, j, i, 0.);
+#endif
           P[1]  += (float)pp;  /* j is paired downstream */
           P[0]  -= (float)pp;  /* j is unpaired */
         }
 
         for (i = j + 1; i <= n; i++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           pp    = vrna_smx_csr_get(p_gq, i, j, 0.);
+#else
+          pp    = vrna_smx_csr_FLT_OR_DBL_get(p_gq, i, j, 0.);
+#endif
           P[2]  += (float)pp;  /* j is paired downstream */
           P[0]  -= (float)pp;  /* j is unpaired */
         }
@@ -2028,7 +2036,11 @@ wrap_plist(vrna_fold_compound_t *vc,
 
       for (j = jmin; j <= jmax; j++) {
         FLT_OR_DBL p_g;
+#ifndef VRNA_DISABLE_C11_FEATURES
         if ((p_g = vrna_smx_csr_get(p_gq, i, j, 0.)) >= (FLT_OR_DBL)cut_off) {
+#else
+        if ((p_g = vrna_smx_csr_FLT_OR_DBL_get(p_gq, i, j, 0.)) >= (FLT_OR_DBL)cut_off) {
+#endif
           (pl)[count].i       = i;
           (pl)[count].j       = j;
           (pl)[count].p       = (float)p_g;

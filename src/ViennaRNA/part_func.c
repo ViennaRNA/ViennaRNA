@@ -611,7 +611,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
             eval = 0;
 
           if (eval) {
+#ifndef VRNA_DISABLE_C11_FEATURES
             q_g = vrna_smx_csr_get(q_gq, u, j, 0.);
+#else
+            q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, u, j, 0.);
+#endif
             if (q_g != 0.) {
               qbt1    = q_g *
                         pow(exp_E_MLstem(0, -1, -1, pf_params), (double)n_seq) *
@@ -738,7 +742,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
         stop_j = i - 1;
 
       for (j = start_j; j <= stop_j; j++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
         q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
+#else
+        q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
+#endif
 
         if (q_g != 0.) {
 
@@ -793,7 +801,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
                 vrna_log_debug("user-defined hard constraints not implemented for int-loop type gquads yet!");
               }
 
+#ifndef VRNA_DISABLE_C11_FEATURES
               qbt1 = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+              qbt1 = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
               if (qbt1 != 0.) {
                 qbt1 *= q_g * scale[u1 + u2];
 
@@ -913,7 +925,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
         if ((i - 1) + (n - j) < 3)
           break;
         
+#ifndef VRNA_DISABLE_C11_FEATURES
         q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
+#else
+        q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
+#endif
         if (q_g != 0.) {
           qbt1 = 0.;
           
@@ -955,7 +971,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
       if (hc->up_int[1] + 1 >= i) {
         /* [gquad] + (basepair) */
         for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + turn + 2 <= n; j++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
+#else
+          q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
+#endif
           if (q_g != 0.) {
             for (k = j + 1; k + u1 <= j + MAXLOOP + 1; k++) {
               u2 = k - j - 1;
@@ -1023,7 +1043,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
         /* [gquad] + [gquad] */
         for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + VRNA_GQUAD_MIN_BOX_SIZE <= n; j++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           q_g = vrna_smx_csr_get(q_gq, i, j, 0.);
+#else
+          q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
+#endif
           if (q_g != 0.) {
             for (k = j + 1; k + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= n; k++) {
               u2 = k - j - 1;
@@ -1039,7 +1063,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
                       ((u1 + u3 == 0) && (u2 < 3)))
                     continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
                   FLT_OR_DBL qbt2 = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+                  FLT_OR_DBL qbt2 = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
                   if (qbt2 != 0.) {
                     switch (fc->type) {
                       case VRNA_FC_TYPE_SINGLE:
@@ -1114,7 +1142,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
                 eval = (hc->up_int[l] >= u3) ? 1 : 0;
                 if (eval) {
+#ifndef VRNA_DISABLE_C11_FEATURES
                   q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+                  q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
                   if (q_g != 0.) {
                     switch (fc->type) {
                       case VRNA_FC_TYPE_SINGLE:

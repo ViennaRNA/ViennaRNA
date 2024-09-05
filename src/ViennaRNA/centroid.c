@@ -200,11 +200,19 @@ vrna_centroid(vrna_fold_compound_t  *fc,
   if ((md->circ) &&
       (md->gquad) &&
       (matrices->p_gq)) {
+#ifndef VRNA_DISABLE_C11_FEATURES
     kmax = vrna_smx_csr_get_size(matrices->p_gq);
+#else
+    kmax = vrna_smx_csr_FLT_OR_DBL_get_size(matrices->p_gq);
+#endif
 
     /* add gquads that wrap around the n,1 junction */
     for (k = 0; k < kmax; k++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
       p = vrna_smx_csr_get_entry(matrices->p_gq, k, &i, &j, 0.);
+#else
+      p = vrna_smx_csr_FLT_OR_DBL_get_entry(matrices->p_gq, k, &i, &j, 0.);
+#endif
       if (p > 0.5) {
         /* get the gquad pattern */
         vrna_get_gquad_pattern_pf(fc, i, j, &L, l);

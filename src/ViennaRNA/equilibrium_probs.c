@@ -4252,7 +4252,11 @@ bppm_circ(vrna_fold_compound_t  *fc,
                       ((u1 + u2 < 3) && (i - l - 1 == 0)))
                     continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
                   q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+                  q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
                   if (q_g != 0.) {
                     tmp = scale[u1 + u2 + (i - l - 1)];
 
@@ -4311,7 +4315,11 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     ((u1 + u3 < 3) && (u2 == 0)))
                   continue;
               
+#ifndef VRNA_DISABLE_C11_FEATURES
                 q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+                q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
                 if (q_g != 0.) {
                   tmp = scale[u1 + u2 + u3];
 
@@ -4377,7 +4385,11 @@ bppm_circ(vrna_fold_compound_t  *fc,
               if (lmax >= i)
                 lmax = i - 1;
               for (l = lmin; l <= lmax; l++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
                 if ((q_g = vrna_smx_csr_get(q_gq, k, l, 0.)) != 0.) {
+#else
+                if ((q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.)) != 0.) {
+#endif
                   /* 3.2.1 (i,j) last branch before gquad, ie. [k,l] + ML + (i,j) */
                   if (l + turn < i) {
                     u1 = k - j - 1;
@@ -4447,7 +4459,11 @@ bppm_circ(vrna_fold_compound_t  *fc,
       for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j <= maxj; j++) {
         ij = my_iindx[i] - j;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
         if ((q_g = vrna_smx_csr_get(q_gq, i, j, 0.)) != 0.) {
+#else
+        if ((q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.)) != 0.) {
+#endif
           tmp2 = 0.;
 
           /* 1. all possible G-quads spanning from i to j */
@@ -4505,7 +4521,11 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     (((u1 + u3) < 3) && (u2 == 0)))
                   continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
                 FLT_OR_DBL tmp3 = vrna_smx_csr_get(q_gq, k, l, 0.);
+#else
+                FLT_OR_DBL tmp3 = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.);
+#endif
                 
                 if (tmp3 != 0.) {
                     tmp = scale[u1 + u2 + u3];
@@ -4603,7 +4623,11 @@ bppm_circ(vrna_fold_compound_t  *fc,
             if (lmax >= i)
               lmax = i - 1;
             for (l = lmin; l <= lmax; l++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
               if ((q_g = vrna_smx_csr_get(q_gq, k, l, 0.)) != 0.) {
+#else
+              if ((q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.)) != 0.) {
+#endif
                 /* 3.2.1 (i,j) last branch before gquad, ie. [k,l] + ML + (i,j) */
                 if (l + turn < i) {
                   u1 = k - j - 1;
@@ -4680,7 +4704,11 @@ bppm_circ(vrna_fold_compound_t  *fc,
         lmax = k - 1;
 
       for (l = lmin; l <= lmax; l++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
          if ((q_g = vrna_smx_csr_get(q_gq, k, l, 0.)) != 0.) {
+#else
+         if ((q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.)) != 0.) {
+#endif
             tmp2 = 0;
 
             /* 1. hairpin-loop like case, i.e. single gquad, rest unpaired */
@@ -4777,7 +4805,11 @@ bppm_circ(vrna_fold_compound_t  *fc,
                 if ((eval) &&
                     (j - i + 1 >= VRNA_GQUAD_MIN_BOX_SIZE) &&
                     (j - i + 1 <= VRNA_GQUAD_MAX_BOX_SIZE) &&
+#ifndef VRNA_DISABLE_C11_FEATURES
                     ((tmp3 = vrna_smx_csr_get(q_gq, i, j, 0.)) != 0.)) {
+#else
+                    ((tmp3 = vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.)) != 0.)) {
+#endif
                   qbt1 = scale[u1 + u2];
 
                   switch (fc->type) {

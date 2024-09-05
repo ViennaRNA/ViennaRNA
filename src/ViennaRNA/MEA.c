@@ -205,7 +205,7 @@ compute_MEA(vrna_fold_compound_t  *fc,
   List          *C;
   struct MEAdat bdat;
 
-  vrna_smx_csr(FLT_OR_DBL)  *gq_circ      = NULL;
+  vrna_smx_csr(double)  *gq_circ      = NULL;
   vrna_array(unsigned int)  gq_circ_imin  = NULL;
   vrna_array(unsigned int)  gq_circ_imax  = NULL;
 
@@ -243,7 +243,11 @@ compute_MEA(vrna_fold_compound_t  *fc,
           gq_circ = vrna_smx_csr_double_init(n);
 
         EA = (pp->j + n - pp->i + 1) * gamma * pp->p;
+#ifndef VRNA_DISABLE_C11_FEATURES
         vrna_smx_csr_insert(gq_circ, pp->j, pp->i, EA);
+#else
+        vrna_smx_csr_double_insert(gq_circ, pp->j, pp->i, EA);
+#endif
 
         if (pp->j > jmax_gq)
           jmax_gq = pp->j;
@@ -313,7 +317,11 @@ compute_MEA(vrna_fold_compound_t  *fc,
           (i <= jmax_gq) &&
           (j >= gq_circ_imin[i]) &&
           (j <= gq_circ_imax[i])) {
+#ifndef VRNA_DISABLE_C11_FEATURES
         if ((EA = vrna_smx_csr_get(gq_circ, i, j, 0.)) != 0.) {
+#else
+        if ((EA = vrna_smx_csr_double_get(gq_circ, i, j, 0.)) != 0.) {
+#endif
           EA += Mi1[j - 1];
           if (MEA < EA) {
             MEA   = EA;
@@ -354,7 +362,11 @@ compute_MEA(vrna_fold_compound_t  *fc,
 
   vrna_array_free(gq_circ_imin);
   vrna_array_free(gq_circ_imax);
+#ifndef VRNA_DISABLE_C11_FEATURES
   vrna_smx_csr_free(gq_circ);
+#else
+  vrna_smx_csr_double_free(gq_circ);
+#endif
   free(Mi);
   free(Mi1);
   free(Mi1_gq);

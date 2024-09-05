@@ -561,7 +561,7 @@ vrna_gq_int_loop_mfe(vrna_fold_compound_t *fc,
 #ifndef VRNA_DISABLE_C11_FEATURES
         e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
 #else
-        e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+        e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
 #endif
 
         if (e_gq != INF) {

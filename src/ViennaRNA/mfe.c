@@ -668,7 +668,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
             eval = 0;
 
           if (eval) {
+#ifndef VRNA_DISABLE_C11_FEATURES
             e = vrna_smx_csr_get(c_gq, u, j, INF);
+#else
+            e = vrna_smx_csr_int_get(c_gq, u, j, INF);
+#endif
             if (e != INF) {
               e += (E_MLstem(0, -1, -1, P) + (u - 1) * P->MLbase) *
                    (int)n_seq;
@@ -703,7 +707,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
         stop_j = i - 1;
 
       for (j = start_j; j <= stop_j; j++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
         new_c = vrna_smx_csr_get(c_gq, i, j, INF);
+#else
+        new_c = vrna_smx_csr_int_get(c_gq, i, j, INF);
+#endif
 
         if (new_c != INF) {
           /* case 1: gquad is the only structure, rest is unpaired */
@@ -782,7 +790,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 vrna_log_debug("user-defined hard constraints not implemented for int-loop type gquads yet!");
               }
 
+#ifndef VRNA_DISABLE_C11_FEATURES
               e = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+              e = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
               if (e != INF) {
                 switch (fc->type) {
                   case VRNA_FC_TYPE_SINGLE:
@@ -964,7 +976,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
     /* last case explicitely handled here: everything unpaired except for one gquad somewhere not spanning artifical cutpoint */
     for (i = 1; i + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= length; i++)
       for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; (j <= length) && j <= (i + VRNA_GQUAD_MAX_BOX_SIZE - 1); j++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
         e = vrna_smx_csr_get(c_gq, i, j, INF);
+#else
+        e = vrna_smx_csr_int_get(c_gq, i, j, INF);
+#endif
         if (e != INF) {
           /* obey constraints */
           u1 = i - 1;
@@ -1048,7 +1064,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
       if (hc->up_int[1] + 1 >= i) {
         /* [gquad] + (basepair) */
         for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + turn + 2 <= length; j++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           e = vrna_smx_csr_get(c_gq, i, j, INF);
+#else
+          e = vrna_smx_csr_int_get(c_gq, i, j, INF);
+#endif
           if (e != INF) {
             for (p = j + 1; p + u1 <= j + MAXLOOP + 1; p++) {
               u2 = p - j - 1;
@@ -1119,7 +1139,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
         /* [gquad] + [gquad] */
         for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + VRNA_GQUAD_MIN_BOX_SIZE + 1 <= length; j++) {
+#ifndef VRNA_DISABLE_C11_FEATURES
           e = vrna_smx_csr_get(c_gq, i, j, INF);
+#else
+          e = vrna_smx_csr_int_get(c_gq, i, j, INF);
+#endif
           if (e != INF) {
             for (p = j + 1; p + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= length; p++) {
               u2 = p - j - 1;
@@ -1135,7 +1159,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
                       ((u1 + u3 == 0) && (u2 < 3)))
                     continue;
 
+#ifndef VRNA_DISABLE_C11_FEATURES
                   int energy = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+                  int energy = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
                   if (energy != INF) {
                     switch (fc->type) {
                       case VRNA_FC_TYPE_SINGLE:
@@ -1216,7 +1244,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
                 eval = (hc->up_int[q] >= u3) ? 1 : 0;
                 if (eval) {
+#ifndef VRNA_DISABLE_C11_FEATURES
                   int energy = vrna_smx_csr_get(c_gq, p, q, INF);
+#else
+                  int energy = vrna_smx_csr_int_get(c_gq, p, q, INF);
+#endif
                   if (energy != INF) {
                     switch (fc->type) {
                       case VRNA_FC_TYPE_SINGLE:
@@ -1971,7 +2003,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
             (eval) &&
             (u + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= Mi)) {
 
+#ifndef VRNA_DISABLE_C11_FEATURES
           e = vrna_smx_csr_get(c_gq, u, Mi, INF);
+#else
+          e = vrna_smx_csr_int_get(c_gq, u, Mi, INF);
+#endif
           if (e != INF) {
             e += (E_MLstem(0, -1, -1, P) + (u - 1) * P->MLbase) *
                  (int)n_seq;

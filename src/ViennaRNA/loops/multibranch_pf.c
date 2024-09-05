@@ -709,7 +709,7 @@ exp_E_m2_fast(vrna_fold_compound_t        *fc,
 #ifndef VRNA_DISABLE_C11_FEATURES
     q_temp  = (sliding_window) ? G_local[i][j] : vrna_smx_csr_get(q_gq, i, j, 0.);
 #else
-    q_temp  = (sliding_window) ? G_local[i][j] : vrna_smx_csr_int_get(q_gq, i, j, 0.);
+    q_temp  = (sliding_window) ? G_local[i][j] : vrna_smx_csr_FLT_OR_DBL_get(q_gq, i, j, 0.);
 #endif
     if (q_temp != 0.) {
       qqm[i]  += q_temp *
