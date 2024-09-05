@@ -6,7 +6,7 @@ include setup.py
 recursive-include src/json *h
 recursive-include src/ViennaRNA *.h *.inc *.hex
 recursive-include src/dlib-19.24 *.h *.cpp
-recursive-include src/libsvm-3.31 *.h
+recursive-include src/libsvm-3.33 *.h
 recursive-include src/cephes *.h
 include tests/data/*
 include tests/python/*.py
