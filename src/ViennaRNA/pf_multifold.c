@@ -17,8 +17,8 @@
 
 PRIVATE FLT_OR_DBL
 mf_rule_pair(vrna_fold_compound_t *fc,
-             int                  i,
-             int                  j,
+             unsigned int         i,
+             unsigned int         j,
              void                 *data);
 
 
@@ -49,8 +49,8 @@ vrna_pf_multifold_prepare(vrna_fold_compound_t *fc)
  */
 PRIVATE FLT_OR_DBL
 mf_rule_pair(vrna_fold_compound_t *fc,
-             int                  i,
-             int                  j,
+             unsigned int         i,
+             unsigned int         j,
              void                 *data)
 {
   short                 *S1, *S2, s5, s3;
