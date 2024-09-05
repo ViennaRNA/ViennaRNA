@@ -149,7 +149,7 @@ class GeneralTests(unittest.TestCase):
             trial += 1
         (ss, en) = RNA.fold(sinv)
         self.assertEqual(ss, struct1)
-        RNA.cvar.symbolset = ""
+        RNA.cvar.symbolset = "ACGU"
 
 
     def test_eos_dimer(self):
