@@ -497,8 +497,8 @@ PRIVATE void
 postprocess_circular(vrna_fold_compound_t *fc)
 {
   short             *S1, *S, **SS, **S5, **S3;
-  unsigned int      **a2s, n_seq;
-  int               u, p, q, i, j, k, turn, n, tt, *my_iindx, s;
+  unsigned int      **a2s, n_seq, s, u, p, q, i, j, k, turn, n, tt;
+  int               *my_iindx;
   FLT_OR_DBL        *scale, *qb, *qm2, *qm1, q_g, qo, qho, qio,
                     qmo, qbt1, expMLclosing, *expMLbase;
   double            *expintern;
@@ -549,7 +549,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
   for (p = 1; p < n; p++) {
     for (q = p + turn + 1; q <= n; q++) {
-      u = n - q + p - 1;
+      u = n + p - q - 1;
       if (u < turn)
         continue;
 
