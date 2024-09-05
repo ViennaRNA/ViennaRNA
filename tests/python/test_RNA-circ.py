@@ -44,10 +44,11 @@ def rotate_structure(db, i):
     if (i % n) == 0:
         return str(db)
 
+    pt_db = [ e for e in RNA.ptable(db) ]
     pt    = [ 0 for _ in range(n + 1) ]
     pt[0] = n
 
-    for j, p in enumerate(RNA.ptable(db)[1:], start = 1):
+    for j, p in enumerate(pt_db[1:], start = 1):
         if p > j:
             ii, jj = c(j, p, i, n)
             pt[jj], pt[ii] = ii, jj
