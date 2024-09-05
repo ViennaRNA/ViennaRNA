@@ -45,8 +45,8 @@ typedef struct vrna_gr_aux_s *vrna_gr_aux_t;
  *  @return       The free energy computed by the auxiliary grammar rule in dekacal/mol
  */
 typedef int (*vrna_gr_inside_f)(vrna_fold_compound_t  *fc,
-                                int                   i,
-                                int                   j,
+                                unsigned int          i,
+                                unsigned int          j,
                                 void                  *data);
 
 
@@ -73,14 +73,14 @@ typedef int (*vrna_gr_inside_f)(vrna_fold_compound_t  *fc,
  *  @return       The partition function omputed by the auxiliary grammar rule with energies in cal/mol
  */
 typedef FLT_OR_DBL (*vrna_gr_inside_exp_f)(vrna_fold_compound_t *fc,
-                                           int                  i,
-                                           int                  j,
+                                           unsigned int         i,
+                                           unsigned int         j,
                                            void                 *data);
 
 
 typedef FLT_OR_DBL (*vrna_gr_outside_exp_f)(vrna_fold_compound_t  *fc,
-                                            int                   i,
-                                            int                   j,
+                                            unsigned int          i,
+                                            unsigned int          j,
                                             void                  *data);
 
 
@@ -146,9 +146,9 @@ typedef int (*vrna_gr_outside_f)(vrna_fold_compound_t *fc,
  *  @param  data      An arbitrary user-provided data pointer
  *  @return           A '\0'-terminated dot-bracket-like string representing the structure from @p bp_stack (and @p data)
  */
-typedef char * (*vrna_gr_serialize_bp_f)(vrna_fold_compound_t  *fc,
-                                         vrna_bps_t            bp_stack,
-                                         void                  *data);
+typedef char * (*vrna_gr_serialize_bp_f)(vrna_fold_compound_t *fc,
+                                         vrna_bps_t           bp_stack,
+                                         void                 *data);
 
 
 /**
@@ -663,7 +663,6 @@ vrna_gr_add_status(vrna_fold_compound_t     *fc,
                    void                     *data,
                    vrna_auxdata_prepare_f   prepare_cb,
                    vrna_auxdata_free_f      free_cb);
-
 
 
 /**
