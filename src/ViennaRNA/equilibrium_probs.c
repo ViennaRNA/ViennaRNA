@@ -4206,11 +4206,12 @@ bppm_circ(vrna_fold_compound_t  *fc,
             /* 1.1 gquad is 5' of base pair (i,j) */
 
             FLT_OR_DBL qint = 1.;
+            short si, sj;
 
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
-                short sj = S1[j + 1];
-                short si = S1[i - 1];
+                sj = S1[j + 1];
+                si = S1[i - 1];
 
                 if (md->dangles == 2)
                   qint *= pf_params->expmismatchI[rt][sj][si];
