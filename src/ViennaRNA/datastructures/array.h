@@ -122,7 +122,7 @@ vrna__array_set_capacity(void    *array,
  */
 #define vrna_array_append(a, item) do { \
   if (vrna_array_capacity(a) < vrna_array_size(a) + 1) \
-    vrna_array_grow(a, 0); \
+    vrna_array_grow(a, vrna_array_size(a) + 1); \
   (a)[vrna_array_size(a)++] = (item); \
 } while (0)
 
