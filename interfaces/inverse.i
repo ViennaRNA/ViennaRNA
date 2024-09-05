@@ -70,8 +70,8 @@ char * my_inverse_pf_fold(char *start, const char *target, float *OUTPUT);
 %init %{
 /* work around segfault when script tries to free symbolset */
 
-symbolset = (char *) vrna_alloc(21);
-strcpy(symbolset, "AUGC");
+symbolset = (char *) vrna_alloc(sizeof(char) * 5);
+strncpy(symbolset, "AUGC");
 
 %}
 
@@ -80,11 +80,18 @@ strcpy(symbolset, "AUGC");
   free(symbolset);
 #if SWIG_VERSION >= 0x040200
   PyObject *bytes = NULL;
-  symbolset = strdup(SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes));
+  char *tmp = SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes);
   Py_XDECREF(bytes);
 #else
-  symbolset = strdup(SWIG_Python_str_AsChar($input));
+  char *tmp = SWIG_Python_str_AsChar($input);
 #endif
+  if ((tmp) &&
+      (tmp[0])) {
+    symbolset = strdup(tmp);
+  } else {
+    symbolset = (char *) vrna_alloc(sizeof(char) * 5);
+    strncpy(symbolset, "AUGC");
+  }
 }
 
 %typemap(varout) char * symbolset {
