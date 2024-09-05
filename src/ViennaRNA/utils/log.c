@@ -98,8 +98,10 @@ PRIVATE void
 unlock(void);
 
 
+#ifndef VRNA_WITHOUT_TTY_COLORS
 PRIVATE const char *
 get_log_level_color(vrna_log_levels_e level);
+#endif
 
 
 PRIVATE const char *
@@ -567,6 +569,7 @@ get_log_level_string(vrna_log_levels_e level)
 }
 
 
+#ifndef VRNA_WITHOUT_TTY_COLORS
 PRIVATE const char *
 get_log_level_color(vrna_log_levels_e level)
 {
@@ -585,6 +588,7 @@ get_log_level_color(vrna_log_levels_e level)
       return ANSI_COLOR_RESET;
   }
 }
+#endif
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
