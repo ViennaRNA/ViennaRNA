@@ -194,6 +194,8 @@ class vrna_build_ext(build_ext):
                 self.with_openmp = False
                 ext.define_macros += [('VRNA_WITH_SIMD_AVX512', None)]
                 ext.define_macros += [('VRNA_WITH_SIMD_SSE41', None)]
+                # disable C11 features since they are supported by MSVC only in parts (if at all)
+                ext.define_macros += [('VRNA_DISABLE_C11_FEATURES', None)]
                 ext.sources.append("src/@DLIB_DIR@/dlib/all/source.cpp")
             else:
                 if (platform.machine() == "arm64" or "arm64" in os.getenv("ARCHFLAGS", "")) or \
