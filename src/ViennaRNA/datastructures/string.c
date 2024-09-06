@@ -3,6 +3,16 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/datastructures/string.h"
 
+PRIVATE vrna_string_t
+vrna_string_make_length(void const *init_str,
+                        size_t      len);
+
+PRIVATE vrna_string_t
+vrna_string_append_length(vrna_string_t str,
+                          void const    *other,
+                          size_t        other_len);
+
+
 size_t
 vrna_string_length(vrna_string_t const str) {
   return VRNA_STRING_HEADER(str)->len;
@@ -27,7 +37,7 @@ set_string_size(vrna_string_t str,
   VRNA_STRING_HEADER(str)->size = cap;
 }
 
-vrna_string_t
+PRIVATE vrna_string_t
 vrna_string_make_length(void const *init_str,
                         size_t      len)
 {
@@ -110,7 +120,7 @@ vrna_string_make_space_for(vrna_string_t str,
   return str;
 }
 
-vrna_string_t
+PRIVATE vrna_string_t
 vrna_string_append_length(vrna_string_t str,
                           void const    *other,
                           size_t        other_len)

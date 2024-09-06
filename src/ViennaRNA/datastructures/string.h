@@ -36,6 +36,15 @@ vrna_string_make(char const *str);
 void
 vrna_string_free(vrna_string_t str);
 
+
+size_t
+vrna_string_length(vrna_string_t const str);
+
+
+size_t
+vrna_string_size(vrna_string_t const str);
+
+
 vrna_string_t
 vrna_string_append(vrna_string_t str,
                    vrna_string_t const other);
