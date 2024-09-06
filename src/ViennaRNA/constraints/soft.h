@@ -344,6 +344,10 @@ void
 vrna_sc_init(vrna_fold_compound_t *fc);
 
 
+void
+vrna_sc_init_window(vrna_fold_compound_t *fc);
+
+
 /**
  *  @brief  Prepare soft constraints
  *
