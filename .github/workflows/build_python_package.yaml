@@ -129,7 +129,9 @@ jobs:
           CIBW_SKIP: cp37-* pp*
       - uses: actions/upload-artifact@v4
         with:
+          name: wheels-${{ strategy.job-index }}
           path: ./dist/*.whl
+          compression-level: 0 # no compression
 
   upload_test_pypi:
     needs: [build_wheels, build_sdist]
@@ -139,9 +141,9 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          # unpacks default artifact into dist/
-          # if `name: artifact` is omitted, the action will create extra parent dir
-          name: artifact
+          # unpacks all wheels into dist/
+          pattern: wheels-*
+          merge-multiple: true
           path: dist
 
       - uses: actions/download-artifact@v4
@@ -163,9 +165,9 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          # unpacks default artifact into dist/
-          # if `name: artifact` is omitted, the action will create extra parent dir
-          name: artifact
+          # unpacks all wheels into dist/
+          pattern: wheels-*
+          merge-multiple: true
           path: dist
 
       - uses: actions/download-artifact@v4
