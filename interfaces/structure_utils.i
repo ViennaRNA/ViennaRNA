@@ -159,7 +159,7 @@ def __repr__(self):
     if (target.size() == 2)
       vrna_db_flatten_to(structure, target.c_str(), options);
     else
-      vrna_message_warning("db_flatten(): target pair must be string of exactly 2 characters!");
+      vrna_log_warning("db_flatten(): target pair must be string of exactly 2 characters!");
   }
 
   std::string
