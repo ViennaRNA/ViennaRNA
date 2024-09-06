@@ -690,6 +690,10 @@ DEPRECATED(vrna_ep_t * stackProb(double cutoff), "Use vrna_stack_prob() instead"
 DEPRECATED(void
            init_pf_fold(int length), "This function is obsolete");
 
+
+DEPRECATED(void
+           init_pf_circ_fold(int length), "This function is obsolete");
+
 /**
  *  @deprecated This function is deprecated and should not be used anymore as it is not threadsafe!
  *
