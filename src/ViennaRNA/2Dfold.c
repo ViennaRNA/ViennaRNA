@@ -31,7 +31,7 @@
  # GLOBAL VARIABLES              #
  #################################
  */
-int compute_2Dfold_F3 = 0;
+static int compute_2Dfold_F3 = 0;
 
 /*
  #################################
