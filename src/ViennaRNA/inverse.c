@@ -33,6 +33,9 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 
+#include "ViennaRNA/inverse.h"
+
+
 PRIVATE double
 adaptive_walk(char        *start,
               const char  *target);
@@ -385,7 +388,7 @@ make_ptable(const char  *structure,
 
 PUBLIC float
 inverse_fold(char *start,
-             char *structure)
+             const char *structure)
 {
   int     i, j, jj, len, o;
   int     *pt;
@@ -485,7 +488,7 @@ adios:
 
 PUBLIC float
 inverse_pf_fold(char  *start,
-                char  *target)
+                const char  *target)
 {
   double  dist;
   int     dang;
