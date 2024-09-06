@@ -8,6 +8,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/cpu.h"
+#include "ViennaRNA/utils/higher_order_functions.h"
 
 
 typedef int (*proto_fun_zip_reduce)(const int  *a,
@@ -33,7 +34,7 @@ fun_zip_add_min_default(const int *e1,
 
 
 #if VRNA_WITH_SIMD_AVX512
-int
+extern int
 vrna_fun_zip_add_min_avx512(const int *e1,
                             const int *e2,
                             int       count);
@@ -42,7 +43,7 @@ vrna_fun_zip_add_min_avx512(const int *e1,
 #endif
 
 #if VRNA_WITH_SIMD_SSE41
-int
+extern int
 vrna_fun_zip_add_min_sse41(const int  *e1,
                            const int  *e2,
                            int        count);
