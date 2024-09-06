@@ -1592,11 +1592,11 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
     switch (vc->type) {
       case VRNA_FC_TYPE_COMPARATIVE:
         for (s = 0; s < n_seq; s++)
-          qt *= pow(vrna_ext_circ_exp_en(a2s[s][n], md), 1. / (double)n_seq);
+          qt *= pow(vrna_exp_E_ext_loop_circ(a2s[s][n], md), 1. / (double)n_seq);
         break;
 
       default:
-        qt *= vrna_ext_circ_exp_en(n, md);
+        qt *= vrna_exp_E_ext_loop_circ(n, md);
         break;
     }
 

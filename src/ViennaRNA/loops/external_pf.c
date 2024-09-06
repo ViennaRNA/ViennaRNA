@@ -320,7 +320,7 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
 
 
 PUBLIC FLT_OR_DBL
-vrna_ext_circ_exp_en(unsigned int n,
+vrna_exp_E_ext_loop_circ(unsigned int n,
                      vrna_md_t    *md)
 {
   vrna_md_t md_tmp;
@@ -331,7 +331,7 @@ vrna_ext_circ_exp_en(unsigned int n,
   }
 
   if (md->circ_penalty) {
-    double e  = (double)vrna_ext_circ_en(n, md) / 100.;
+    double e  = (double)vrna_E_ext_loop_circ(n, md) / 100.;
     double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
 
     return (FLT_OR_DBL)exp(-e / kT); /* return in dekacal/mol */

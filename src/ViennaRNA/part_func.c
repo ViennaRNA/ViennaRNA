@@ -685,11 +685,11 @@ postprocess_circular(vrna_fold_compound_t *fc)
     switch (fc->type) {
       case VRNA_FC_TYPE_COMPARATIVE:
         for (s = 0; s < n_seq; s++)
-          qbt1 *= pow(vrna_ext_circ_exp_en(a2s[s][n], md), 1. / (double)n_seq);
+          qbt1 *= pow(vrna_exp_E_ext_loop_circ(a2s[s][n], md), 1. / (double)n_seq);
         break;
 
       default:
-        qbt1 *= vrna_ext_circ_exp_en(n, md);
+        qbt1 *= vrna_exp_E_ext_loop_circ(n, md);
         break;
     }
 

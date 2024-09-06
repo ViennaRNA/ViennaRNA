@@ -516,7 +516,7 @@ vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_ext_circ_en(unsigned int n,
+vrna_E_ext_loop_circ(unsigned int n,
                  vrna_md_t    *md)
 {
   vrna_md_t md_tmp;
