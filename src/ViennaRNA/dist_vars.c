@@ -1,4 +1,5 @@
 /*             Global variables for Distance-Package */
+#include "ViennaRNA/dist_vars.h"
 
 int   edit_backtrack = 0; /* calculate aligned representation */
 
