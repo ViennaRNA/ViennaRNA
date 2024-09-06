@@ -492,15 +492,14 @@ PRIVATE INLINE void
 free_dp_matrices(vrna_fold_compound_t *vc,
                  unsigned int         options)
 {
-  size_t        i, n;
+  unsigned int  i, n, winSize;
   char          **ptype;
-  int           winSize;
   FLT_OR_DBL    **pR, **q, **qb, **qm, **qm2, **QI5, **qmb, **q2l;
   vrna_mx_pf_t  *mx;
   vrna_hc_t     *hc;
   vrna_sc_t     *sc;
 
-  n       = (size_t)vc->length;
+  n       = vc->length;
   winSize = vc->window_size;
   mx      = vc->exp_matrices;
   pR      = mx->pR;
@@ -559,10 +558,10 @@ PRIVATE INLINE void
 init_dp_matrices(vrna_fold_compound_t *vc,
                  unsigned int         options)
 {
-  int j, max_j, winSize;
+  unsigned int j, max_j, winSize;
 
   winSize = vc->window_size;
-  max_j   = MIN2((int)vc->length, 2 * winSize + MAXLOOP + 2);
+  max_j   = MIN2(vc->length, 2 * winSize + MAXLOOP + 2);
 
   for (j = 1; j <= max_j; j++)
     allocate_dp_matrices(vc, j, options);
@@ -647,10 +646,10 @@ PRIVATE INLINE void
 init_constraints(vrna_fold_compound_t *fc,
                  unsigned int         options)
 {
-  int j, max_j, winSize;
+  unsigned int j, max_j, winSize;
 
   winSize = fc->window_size;
-  max_j   = MIN2((int)fc->length, 2 * winSize + MAXLOOP + 2);
+  max_j   = MIN2(fc->length, 2 * winSize + MAXLOOP + 2);
 
   for (j = 1; j <= max_j; j++) {
     make_ptypes(fc, j);
@@ -665,7 +664,7 @@ rotate_constraints(vrna_fold_compound_t *fc,
                    int                  j,
                    unsigned int         options)
 {
-  if (j + 1 <= fc->length) {
+  if (j + 1 <= (int)fc->length) {
     make_ptypes(fc, j + 1);
     vrna_hc_update(fc, j + 1, VRNA_OPTION_WINDOW_F5);
     vrna_sc_update(fc, j + 1, VRNA_OPTION_PF | VRNA_OPTION_WINDOW_F5);

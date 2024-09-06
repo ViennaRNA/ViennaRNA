@@ -58,32 +58,32 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
 
 PRIVATE unsigned int
 bt_ext_loop_f3(vrna_fold_compound_t *fc,
-               int                  *k,
-               int                  maxdist,
-               int                  *i,
-               int                  *j,
+               unsigned int                  *k,
+               unsigned int                  maxdist,
+               unsigned int                  *i,
+               unsigned int                  *j,
                vrna_bps_t           bp_stack);
 
 
 PRIVATE unsigned int
 bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
-                           int                  *k,
-                           int                  maxdist,
-                           int                  *i,
-                           int                  *j,
+                           unsigned int                  *k,
+                           unsigned int                  maxdist,
+                           unsigned int                  *i,
+                           unsigned int                  *j,
                            vrna_bps_t           bp_stack);
 
 
 PRIVATE int
 bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
-                  int                   *i,
-                  int                   maxj);
+                  unsigned int                   *i,
+                  unsigned int                   maxj);
 
 
 PRIVATE int
 bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
-                              int                   *i,
-                              int                   maxj);
+                              unsigned int                   *i,
+                              unsigned int                   maxj);
 
 
 /*
@@ -159,10 +159,10 @@ vrna_bt_ext_loop_f5(vrna_fold_compound_t  *fc,
 
 PUBLIC unsigned int
 vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
-                    int                   *k,
-                    int                   maxdist,
-                    int                   *i,
-                    int                   *j,
+                    unsigned int                   *k,
+                    unsigned int                   maxdist,
+                    unsigned int                   *i,
+                    unsigned int                   *j,
                     vrna_bps_t            bp_stack)
 {
   if (fc) {
@@ -199,8 +199,12 @@ vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
       (bp_stack) &&
       (stack_count)) {
     vrna_bps_t  bps = vrna_bps_init(0);
+    unsigned int kk, ii, jj;
+    kk = *k;
+    ii = *i;
+    jj = *j;
 
-    r = (int)vrna_bt_ext_loop_f3(fc, k, maxdist, i, j, bps);
+    r = (int)vrna_bt_ext_loop_f3(fc, &kk, (unsigned int)maxdist, &ii, &jj, bps);
 
     while (vrna_bps_size(bps) > 0) {
       vrna_bp_t bp = vrna_bps_pop(bps);
@@ -209,6 +213,10 @@ vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
     }
 
     vrna_bps_free(bps);
+
+    *k = (int)kk;
+    *i = (int)ii;
+    *j = (int)jj;
   }
 
   return r;
@@ -217,8 +225,8 @@ vrna_BT_ext_loop_f3(vrna_fold_compound_t  *fc,
 
 PUBLIC int
 vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
-                       int                  *i,
-                       int                  maxj)
+                       unsigned int                  *i,
+                       unsigned int                  maxj)
 {
   if (fc) {
     switch (fc->type) {
@@ -913,17 +921,16 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
 
 PRIVATE unsigned int
 bt_ext_loop_f3(vrna_fold_compound_t *fc,
-               int                  *k,
-               int                  maxdist,
-               int                  *i,
-               int                  *j,
+               unsigned int         *k,
+               unsigned int         maxdist,
+               unsigned int         *i,
+               unsigned int         *j,
                vrna_bps_t           bp_stack)
 {
   char                      **ptype;
   short                     mm5, mm3, *S1;
-  unsigned int              type;
-  int                       length, fij, fj, ii, u, *f3, **c, **ggg,
-                            dangle_model, with_gquad, en;
+  unsigned int              type, length, ii, u, dangle_model, with_gquad;
+  int                       fij, fj, *f3, **c, **ggg, en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
@@ -968,7 +975,7 @@ bt_ext_loop_f3(vrna_fold_compound_t *fc,
 
   if (ii >= maxdist) {
     /* no more pairs */
-    *i  = *j = -1;
+    *i  = *j = 0;
     *k  = 0;
     return 1;
   }
@@ -983,7 +990,7 @@ bt_ext_loop_f3(vrna_fold_compound_t *fc,
       for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
-            *i  = *j = -1;
+            *i  = *j = 0;
             *k  = u + 1;
             return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
@@ -1020,7 +1027,7 @@ bt_ext_loop_f3(vrna_fold_compound_t *fc,
       for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
-            *i  = *j = -1;
+            *i  = *j = 0;
             *k  = u + 1;
             return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
@@ -1057,7 +1064,7 @@ bt_ext_loop_f3(vrna_fold_compound_t *fc,
       for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
-            *i  = *j = -1;
+            *i  = *j = 0;
             *k  = u + 1;
             return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
@@ -1244,16 +1251,15 @@ bt_ext_loop_f3(vrna_fold_compound_t *fc,
 
 PRIVATE unsigned int
 bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
-                           int                  *k,
-                           int                  maxdist,
-                           int                  *i,
-                           int                  *j,
+                           unsigned int                  *k,
+                           unsigned int                  maxdist,
+                           unsigned int                  *i,
+                           unsigned int                  *j,
                            vrna_bps_t           bp_stack)
 {
   short                     **S, **S5, **S3;
-  unsigned int              type, ss, n_seq, **a2s;
-  int                       n, fij, cc, fj, ii, u, *f3, **c, **ggg,
-                            dangle_model, with_gquad;
+  unsigned int              n, type, ss, n_seq, **a2s, ii, u, dangle_model, with_gquad;
+  int                       fij, cc, fj, *f3, **c, **ggg;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
@@ -1304,7 +1310,7 @@ bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
 
   if (ii >= maxdist) {
     /* no more pairs */
-    *i  = *j = -1;
+    *i  = *j = 0;
     *k  = 0;
     return 1;
   }
@@ -1319,7 +1325,7 @@ bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
       for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
-            *i  = *j = -1;
+            *i  = *j = 0;
             *k  = u + 1;
             return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
@@ -1352,7 +1358,7 @@ bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
       for (u = maxdist; u > ii; u--) {
         if (with_gquad) {
           if (fij == ggg[ii][u - ii] + f3[u + 1]) {
-            *i  = *j = -1;
+            *i  = *j = 0;
             *k  = u + 1;
             return vrna_bt_gquad_mfe(fc, ii, u, bp_stack);
           }
@@ -1389,10 +1395,11 @@ bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
 
 PRIVATE int
 bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
-                  int                   *i,
-                  int                   maxj)
+                  unsigned int                   *i,
+                  unsigned int                   maxj)
 {
-  int j, start;
+  int j;
+  unsigned int start;
 
   j     = -1;
   start = *i;
@@ -1400,9 +1407,8 @@ bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
   if (fc) {
     char                      **ptype;
     short                     *S1;
-    unsigned int              type;
-    int                       traced2, length, dangle_model, with_gquad, maxdist, cc,
-                              **c, **ggg, *f3, fij, ii;
+    unsigned int              ii, length, type, traced2, dangle_model, with_gquad, maxdist;
+    int                       cc, **c, **ggg, *f3, fij;
     vrna_param_t              *P;
     vrna_md_t                 *md;
     vrna_sc_t                 *sc;
@@ -1635,18 +1641,18 @@ bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
 
 PRIVATE int
 bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
-                              int                   *i,
-                              int                   maxj)
+                              unsigned int                   *i,
+                              unsigned int                   maxj)
 {
-  int j, start;
+  int j;
+  unsigned int start;
 
   j = -1;
 
   if (fc) {
     short                     **S, **S5, **S3;
-    unsigned int              tt, s, n_seq, **a2s;
-    int                       traced2, length, dangle_model, with_gquad, maxdist, cc, **c,
-                              **ggg, *f3, fij;
+    unsigned int              tt, s, n_seq, **a2s, traced2, length, dangle_model, with_gquad, maxdist;
+    int                       cc, **c, **ggg, *f3, fij;
     vrna_param_t              *P;
     vrna_md_t                 *md;
     vrna_sc_t                 **scs;
@@ -1878,23 +1884,23 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        r = (int)bt_ext_loop_f5(fc, *k, bps, bts);
+        r = (int)bt_ext_loop_f5(fc, (unsigned int)(*k), bps, bts);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
-        r = (int)bt_ext_loop_f5_comparative(fc, *k, bps, bts);
+        r = (int)bt_ext_loop_f5_comparative(fc, (unsigned int)(*k), bps, bts);
         break;
     }
 
     while (vrna_bts_size(bts) > 0) {
       vrna_sect_t s = vrna_bts_pop(bts);
       if (s.ml == VRNA_MX_FLAG_F5) {
-        *k = s.j;
+        *k = (int)s.j;
       } else if (s.ml == VRNA_MX_FLAG_C) {
         bp_stack[++(*stack_count)].i = s.i;
         bp_stack[*stack_count].j = s.j;
-        *i = s.i;
-        *j = s.j;
+        *i = (int)s.i;
+        *j = (int)s.j;
       } else if (s.ml == VRNA_MX_FLAG_G) {
         r = vrna_bt_gquad_mfe(fc, s.i, s.j, bps);
       }
@@ -1919,7 +1925,15 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
                        int                  *i,
                        int                  maxj)
 {
-  return vrna_bt_ext_loop_f3_pp(fc, i, maxj);
+  int r;
+
+  unsigned int ii = (unsigned int)(*i);
+
+  r = vrna_bt_ext_loop_f3_pp(fc, &ii, (unsigned int)maxj);
+
+  *i = (int)ii;
+
+  return r;
 }
 
 

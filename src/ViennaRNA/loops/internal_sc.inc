@@ -756,7 +756,7 @@ sc_int_cb_ext_stack(int               i,
 
   sc = 0;
 
-  if ((i == 1) && (j + 1 == k) && (l == data->n)) {
+  if ((i == 1) && (j + 1 == k) && (l == (int)data->n)) {
     sc += data->stack[i] +
           data->stack[k] +
           data->stack[l] +

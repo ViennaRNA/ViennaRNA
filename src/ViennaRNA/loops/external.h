@@ -205,17 +205,17 @@ vrna_bt_ext_loop_f5(vrna_fold_compound_t  *fc,
 
 unsigned int
 vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
-                    int                   *k,
-                    int                   maxdist,
-                    int                   *i,
-                    int                   *j,
+                    unsigned int                   *k,
+                    unsigned int                   maxdist,
+                    unsigned int                   *i,
+                    unsigned int                   *j,
                     vrna_bps_t            bp_stack);
 
 
 int
 vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
-                       int                  *i,
-                       int                  maxdist);
+                       unsigned int                  *i,
+                       unsigned int                  maxdist);
 
 
 /**

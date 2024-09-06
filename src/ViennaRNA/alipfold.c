@@ -95,7 +95,7 @@ wrap_alipf_fold(const char        **sequences,
                 int               is_constrained,
                 int               is_circular)
 {
-  int                   i, n_seq;
+  unsigned int          i, n_seq;
   float                 free_energy;
   vrna_fold_compound_t  *vc;
   vrna_md_t             md;

@@ -873,9 +873,9 @@ backtrack(vrna_fold_compound_t  *vc,
    *  ------------------------------------------------------------------*/
   char *structure, **ptype;
   unsigned int  comp1, comp2;
-  int i, j, k, length, no_close, type, bt_type, turn,
-      dangle_model, noLP, noGUclosure, **c, dangle3, ml, cij,
-      **pscore, canonical, p, q, max3;
+  unsigned int  i, j, k, length, type, turn, p, q, max3, no_close,
+                dangle_model, noLP, noGUclosure, canonical;
+  int           bt_type, **c, dangle3, ml, cij, **pscore;
   vrna_param_t *P;
   vrna_md_t *md;
   vrna_bts_t  bt_stack;
@@ -899,13 +899,13 @@ backtrack(vrna_fold_compound_t  *vc,
   vrna_bts_push(bt_stack,
                 (vrna_sect_t){
                   .i = start,
-                  .j   = MIN2(length, end),
+                  .j   = MIN2(length, (unsigned int)end),
                   .ml  = (bt_type == 'M') ? VRNA_MX_FLAG_M : ((bt_type == 'C') ? VRNA_MX_FLAG_C : VRNA_MX_FLAG_F3)
                 });
 
-  structure = (char *)vrna_alloc((MIN2(length - start, end) + 3) * sizeof(char));
+  structure = (char *)vrna_alloc((MIN2(length - (unsigned int)start, (unsigned int)end) + 3) * sizeof(char));
 
-  memset(structure, '.', MIN2(length - start, end) + 1);
+  memset(structure, '.', MIN2(length - (unsigned int)start, (unsigned int)end) + 1);
 
   dangle3 = 0;
 
@@ -1330,27 +1330,27 @@ update_block(unsigned int i,
       return 0;
 
     /* check whether we need to split the block into multiple ones */
-    size_t stems        = 0;
-    size_t mem_stems    = 10;
-    size_t *start_stem  = (size_t *)vrna_alloc(sizeof(size_t) * mem_stems);
-    size_t *end_stem    = (size_t *)vrna_alloc(sizeof(size_t) * mem_stems);
+    unsigned int stems        = 0;
+    unsigned int mem_stems    = 10;
+    unsigned int *start_stem  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * mem_stems);
+    unsigned int *end_stem    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * mem_stems);
 
-    for (size_t pos = i_local + 1; pos <= end; pos++)
+    for (unsigned int pos = i_local + 1; pos <= end; pos++)
       if (b->pt[pos] > pos) {
         start_stem[stems] = pos;
         end_stem[stems]   = b->pt[pos];
         stems++;
         if (stems == mem_stems) {
           mem_stems   *= 1.4;
-          start_stem  = vrna_realloc(start_stem, sizeof(size_t) * mem_stems);
-          end_stem    = vrna_realloc(end_stem, sizeof(size_t) * mem_stems);
+          start_stem  = vrna_realloc(start_stem, sizeof(unsigned int) * mem_stems);
+          end_stem    = vrna_realloc(end_stem, sizeof(unsigned int) * mem_stems);
         }
 
         pos = b->pt[pos];
       }
 
     if (stems > 1) {
-      for (size_t k = stems - 1; k > 0; k--) {
+      for (unsigned int k = stems - 1; k > 0; k--) {
         /* create a new block */
         struct block *new_block = (struct block *)vrna_alloc(sizeof(struct block));
 
@@ -1360,7 +1360,7 @@ update_block(unsigned int i,
         new_block->shift  = (dangles == 2) ? 1 : 0;
 
         /* create structure pair table for new block */
-        size_t l = end_stem[k] - start_stem[k] + 1;
+        unsigned int l = end_stem[k] - start_stem[k] + 1;
         if (dangles == 2) {
           l++;    /* for 5' dangles */
           if (new_block->end < max_n)
@@ -1370,7 +1370,7 @@ update_block(unsigned int i,
         new_block->pt     = (short *)vrna_alloc(sizeof(short) * (l + 1));
         new_block->pt[0]  = l;
         /* go through original structure and extract base pair positions relative to new block */
-        for (size_t p = start_stem[k]; p <= end_stem[k]; p++) {
+        for (unsigned int p = start_stem[k]; p <= end_stem[k]; p++) {
           if (b->pt[p] > p) {
             short i, j;
 
