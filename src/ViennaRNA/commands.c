@@ -136,7 +136,7 @@ typedef struct {
 #define NUM_COMMANDS  7
 
 /* set of known parsable commands */
-parsable known_commands[NUM_COMMANDS] = {
+PRIVATE parsable known_commands[NUM_COMMANDS] = {
   /* cmd , type , parser */
   { "UD", VRNA_CMD_UD,  parse_ud_command          },  /* unstructured domain */
   { "SD", VRNA_CMD_SD,  NULL                      },  /* structured domain */
