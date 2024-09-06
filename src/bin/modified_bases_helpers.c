@@ -3,6 +3,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 
 
 #include "ViennaRNA/constraints/sc_cb_intern.h"
@@ -64,9 +65,9 @@ mod_positions_seq_prepare(char                *sequence,
               sequence[mod_positions[i][old_size + j] - 1 + strand_num] = (*ptr)->fallback;
 
               if (verbose)
-                printf("Found modified base %c at position %d\n",
-                       (*ptr)->one_letter_code,
-                       mod_positions[i][old_size + j]);
+                vrna_log_info("Found modified base %c at position %d\n",
+                              (*ptr)->one_letter_code,
+                              mod_positions[i][old_size + j]);
 
             }
           }

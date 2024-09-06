@@ -278,7 +278,7 @@ set_salt_DNA(vrna_md_t *md);
       if ((ggostruct.id_digits_arg > 0) && (ggostruct.id_digits_arg < 19)) { \
         ID_digits = ggostruct.id_digits_arg; } \
       else { \
-        vrna_message_warning("ID number digits out of allowed range! Using defaults..."); \
+        vrna_log_warning("ID number digits out of allowed range! Using defaults..."); \
         ID_digits = ID_digits_default; \
       } \
     } else { ID_digits = ID_digits_default; } \
@@ -287,7 +287,7 @@ set_salt_DNA(vrna_md_t *md);
       if ((ggostruct.id_start_arg >= 0) && (ggostruct.id_start_arg <= LONG_MAX)) { \
         ID_start = ggostruct.id_start_arg; \
       } else { \
-        vrna_message_warning("ID number start out of allowed range! Using defaults..."); \
+        vrna_log_warning("ID number start out of allowed range! Using defaults..."); \
         ID_start = ID_start_default; \
       } \
     } else { ID_start = ID_start_default; } \
@@ -308,14 +308,14 @@ set_salt_DNA(vrna_md_t *md);
   if (ggostruct.id_digits_given)  { if ((ggostruct.id_digits_arg > 0) && (ggostruct.id_digits_arg < 19)) { \
                                       set_id_digits(id_ctrl, ggostruct.id_digits_arg); \
                                     } else { \
-                                      vrna_message_warning("ID number digits (%d) out of allowed range! Using defaults...", ggostruct.id_digits_arg); \
+                                      vrna_log_warning("ID number digits (%d) out of allowed range! Using defaults...", ggostruct.id_digits_arg); \
                                     } \
                                   } \
   if (ggostruct.id_start_given) { set_auto_id(id_ctrl, 1); \
                                   if ((ggostruct.id_start_arg >= 0) && (ggostruct.id_start_arg <= LONG_MAX)) { \
                                     set_id_start(id_ctrl, ggostruct.id_start_arg); \
                                   } else { \
-                                    vrna_message_warning("ID number start (%ld) out of allowed range! Using defaults...", ggostruct.id_start_arg); \
+                                    vrna_log_warning("ID number start (%ld) out of allowed range! Using defaults...", ggostruct.id_start_arg); \
                                   } \
                                 } \
 }
