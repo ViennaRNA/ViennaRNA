@@ -515,6 +515,11 @@ vrna_ep_t *vrna_plist_from_probs(vrna_fold_compound_t *fc,
                                  double               cut_off);
 
 
+int
+vrna_plist_append(vrna_ep_t       **target,
+                  const vrna_ep_t *list);
+
+
 /* End pair list interface */
 /**@}*/
 
