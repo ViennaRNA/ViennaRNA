@@ -193,9 +193,8 @@ main(int  argc,
     aln_out = 1;
     if (args_info.aln_stk_arg) {
       if (prefix) {
-        vrna_message_info(stdout,
-                          "multiple output prefixes detected, using \"%s\"",
-                          args_info.aln_stk_arg);
+        vrna_log_warning("multiple output prefixes detected, using \"%s\"",
+                         args_info.aln_stk_arg);
         free(prefix);
       }
 
