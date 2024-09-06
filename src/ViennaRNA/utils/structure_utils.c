@@ -1939,21 +1939,22 @@ wrap_plist(vrna_fold_compound_t *vc,
            double               cut_off)
 {
   short             *S;
-  int               i, j, k, n, m, count, gquad, length, *index;
+  unsigned int      with_gquad, with_circ, i, j, k, n, m, length, count;
+  int               *index;
   FLT_OR_DBL        *probs;
   vrna_ep_t         *pl;
   vrna_mx_pf_t      *matrices;
   vrna_exp_param_t  *pf_params;
   vrna_smx_csr(FLT_OR_DBL)  *p_gq;
 
-  S         = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : vc->S_cons;
-  index     = vc->iindx;
-  length    = vc->length;
-  pf_params = vc->exp_params;
-  matrices  = vc->exp_matrices;
-  probs     = matrices->probs;
-  gquad     = pf_params->model_details.gquad;
-  circ      = pf_params->model_details.circ;
+  S           = (vc->type == VRNA_FC_TYPE_SINGLE) ? vc->sequence_encoding2 : vc->S_cons;
+  index       = vc->iindx;
+  length      = vc->length;
+  pf_params   = vc->exp_params;
+  matrices    = vc->exp_matrices;
+  probs       = matrices->probs;
+  with_gquad  = pf_params->model_details.gquad;
+  with_circ   = pf_params->model_details.circ;
 
   count = 0;
   n     = 2;
@@ -1974,7 +1975,7 @@ wrap_plist(vrna_fold_compound_t *vc,
       }
 
       /* check for presence of gquadruplex */
-      if ((gquad) &&
+      if ((with_gquad) &&
           (S[i] == 3) &&
           (S[j] == 3)) {
         /* add probability of a gquadruplex at position (i,j)
@@ -2021,8 +2022,9 @@ wrap_plist(vrna_fold_compound_t *vc,
     }
   }
 
-  if ((gquad) &&
-      (circ)) {
+  if ((with_gquad) &&
+      (with_circ) &&
+      (vc->exp_matrices->p_gq)) {
     p_gq = vc->exp_matrices->p_gq;
     unsigned int imin = 2;
     if (imin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= length)
