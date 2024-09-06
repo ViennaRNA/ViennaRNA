@@ -26,7 +26,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/alphabet.h"

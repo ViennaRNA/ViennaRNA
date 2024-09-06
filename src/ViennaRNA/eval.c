@@ -45,7 +45,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/loops/all.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/datastructures/char_stream.h"

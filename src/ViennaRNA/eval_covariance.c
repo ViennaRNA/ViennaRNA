@@ -23,7 +23,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/eval.h"
 
 

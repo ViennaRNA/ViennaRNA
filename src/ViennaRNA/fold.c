@@ -30,7 +30,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/fold.h"
 

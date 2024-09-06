@@ -21,7 +21,7 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/plotting/probabilities.h"
 
 #include "ViennaRNA/static/templates_postscript.h"

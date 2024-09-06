@@ -16,7 +16,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 
 #include "ViennaRNA/plotting/layouts.h"
 

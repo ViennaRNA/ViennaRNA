@@ -37,7 +37,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/cofold.h"
-#include "ViennaRNA/gquad.h"
+#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/subopt.h"
 
