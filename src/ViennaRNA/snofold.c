@@ -160,11 +160,6 @@ PRIVATE char  alpha[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
  * PRIVATE int min_hairpin = TURN;
  */
 
-/*
- * some definitions to take circfold into account...
- * PRIVATE int   *fM2 = NULL;*/        /* fM2 = multiloop region with exactly two stems, extending to 3' end
- */
-PUBLIC int Fc, FcH, FcI, FcM;          /* parts of the exterior loop energies                        */
 /*--------------------------------------------------------------------------*/
 
 void
