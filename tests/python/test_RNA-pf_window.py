@@ -2,6 +2,7 @@ import os
 from operator import add
 import math
 import unittest
+import sys
 
 if __name__ == '__main__':
     from py_include import taprunner
@@ -236,6 +237,7 @@ class pf_window_functionTest(unittest.TestCase):
             self.assertEqual("%g" % du['p'], "%g" % dc['p'])
 
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows due to numeric imprecision")
     def test_probs_window(self):
         """Soft constraints - energy landscape shift - unpaired probabilities
         
