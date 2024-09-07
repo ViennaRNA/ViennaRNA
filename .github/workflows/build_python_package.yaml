@@ -106,7 +106,7 @@ jobs:
           output-dir: dist
         env:
           CIBW_BUILD_VERBOSITY: 3
-          CIBW_SKIP: cp37-* pp*
+          CIBW_SKIP: cp37-* cp38-* pp*
           CIBW_ENVIRONMENT: VRNA_SDIST_FILE=$VRNA_SDIST_FILE
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.14 CC=clang CXX=clang++
           CIBW_ARCHS: ${{ matrix.cibw_archs }}
@@ -126,7 +126,7 @@ jobs:
           CIBW_ENVIRONMENT_WINDOWS: VRNA_SDIST_FILE=$env:VRNA_SDIST_FILE
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND_WINDOWS: pytest --datadir {package}\tests\data {package}\tests\python
-          CIBW_SKIP: cp37-* pp*
+          CIBW_SKIP: cp37-*  cp38-* pp*
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ strategy.job-index }}
