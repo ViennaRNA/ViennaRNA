@@ -47,38 +47,38 @@
  */
 
 int
-vrna_gq_energy(unsigned int          L,
-               unsigned int          l[3],
-               vrna_param_t *P);
+vrna_E_gq(unsigned int  L,
+          unsigned int  l[3],
+          vrna_param_t  *P);
 
 
 FLT_OR_DBL
-vrna_gq_exp_energy(unsigned int              L,
-                   unsigned int              l[3],
-                   vrna_exp_param_t *pf);
+vrna_exp_E_gq(unsigned int      L,
+              unsigned int      l[3],
+              vrna_exp_param_t  *pf);
 
 
 void
-vrna_gq_consensus_energy(unsigned int          L,
-                         unsigned int          l[3],
-                         unsigned int position,
-                         unsigned int length,
-                         unsigned int n_seq,
-                         const short  **S,
-                         unsigned int **a2s,
-                         vrna_param_t *P,
-                         int          en[2]);
+vrna_E_consensus_gq(unsigned int L,
+                    unsigned int l[3],
+                    unsigned int position,
+                    unsigned int length,
+                    unsigned int n_seq,
+                    const short  **S,
+                    unsigned int **a2s,
+                    vrna_param_t *P,
+                    int          en[2]);
 
 
 FLT_OR_DBL
-vrna_gq_consensus_exp_energy(unsigned int                L,
-                             unsigned int                l[3],
-                             vrna_exp_param_t   *pf,
-                             unsigned int       position,
-                             unsigned int       length,
-                             unsigned int       n_seq,
-                             const short        **S,
-                             const unsigned int **a2s);
+vrna_exp_E_consensus_gq(unsigned int        L,
+                        unsigned int        l[3],
+                        vrna_exp_param_t    *pf,
+                        unsigned int        position,
+                        unsigned int        length,
+                        unsigned int        n_seq,
+                        const short         **S,
+                        const unsigned int  **a2s);
 
 
 int
@@ -261,9 +261,9 @@ get_gquad_pattern_mfe_ali(short         **S,
  *  @return             The end position of the G-Quadruplex (1-based) or 0 if not found
  */
 unsigned int
-  vrna_gq_parse(const char *db_string,
-                unsigned int *L,
-                unsigned int l[3]);
+vrna_gq_parse(const char *db_string,
+              unsigned int *L,
+              unsigned int l[3]);
 
 void
 vrna_db_insert_gq(char          *db,

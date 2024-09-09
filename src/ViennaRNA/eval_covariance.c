@@ -169,7 +169,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
       break;
 
     /* we've found the first g-quadruplex at position [p,q] */
-    vrna_gq_consensus_energy(L, l, (unsigned int)p, fc->length, n_seq, (const short **)S, fc->a2s, P, gq_en);
+    vrna_E_consensus_gq(L, l, (unsigned int)p, fc->length, n_seq, (const short **)S, fc->a2s, P, gq_en);
     en_covar += gq_en[1];
     /* check if it's enclosed in a base pair */
     if (loop_idx[p] == 0) {
@@ -223,7 +223,7 @@ covar_en_corr_of_loop_gquad(vrna_fold_compound_t  *fc,
           /* found another gquad */
           pos = vrna_gq_parse(structure + u - 1, &L, l);
           if (pos > 0) {
-            vrna_gq_consensus_energy(L, l, (unsigned int)u, fc->length, n_seq, (const short **)S, fc->a2s, P, gq_en);
+            vrna_E_consensus_gq(L, l, (unsigned int)u, fc->length, n_seq, (const short **)S, fc->a2s, P, gq_en);
             en_covar  += gq_en[1];
             up_mis    += pos;
             u         += pos;

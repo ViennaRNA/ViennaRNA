@@ -1323,7 +1323,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
 
           switch (fc->type) {
             case VRNA_FC_TYPE_COMPARATIVE:
-              vrna_gq_consensus_energy(L,
+              vrna_E_consensus_gq(L,
                                        l,
                                        (unsigned int)p,
                                        n,
@@ -1414,7 +1414,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
 
           switch (fc->type) {
             case VRNA_FC_TYPE_COMPARATIVE:
-              vrna_gq_consensus_energy(L,
+              vrna_E_consensus_gq(L,
                                        l,
                                        (unsigned int)p,
                                        n,
@@ -1809,7 +1809,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
     /* we've found the first g-quadruplex at position [p,q] */
     switch (fc->type) {
       case VRNA_FC_TYPE_COMPARATIVE:
-        vrna_gq_consensus_energy(L,
+        vrna_E_consensus_gq(L,
                                  l,
                                  (unsigned int)p,
                                  n,
@@ -1920,7 +1920,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
 
             switch (fc->type) {
               case VRNA_FC_TYPE_COMPARATIVE:
-                vrna_gq_consensus_energy(L,
+                vrna_E_consensus_gq(L,
                                          l,
                                          (unsigned int)u,
                                          n,

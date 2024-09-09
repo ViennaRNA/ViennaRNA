@@ -281,9 +281,9 @@ gquad_mfe_ali_pos(unsigned int   i,
  * contribution functions
  *********************************/
 PUBLIC int
-vrna_gq_energy(unsigned int          L,
-               unsigned int          l[3],
-               vrna_param_t *P)
+vrna_E_gq(unsigned int L,
+          unsigned int l[3],
+          vrna_param_t *P)
 {
   int c = INF;
 
@@ -302,9 +302,9 @@ vrna_gq_energy(unsigned int          L,
 
 
 PUBLIC FLT_OR_DBL
-vrna_gq_exp_energy(unsigned int              L,
-                   unsigned int              l[3],
-                   vrna_exp_param_t *pf)
+vrna_exp_E_gq(unsigned int      L,
+              unsigned int      l[3],
+              vrna_exp_param_t  *pf)
 {
   FLT_OR_DBL q = 0.;
 
@@ -323,15 +323,15 @@ vrna_gq_exp_energy(unsigned int              L,
 
 
 PUBLIC void
-vrna_gq_consensus_energy(unsigned int          L,
-                         unsigned int          l[3],
-                         unsigned int position,
-                         unsigned int length,
-                         unsigned int n_seq,
-                         const short  **S,
-                         unsigned int **a2s,
-                         vrna_param_t *P,
-                         int          en[2])
+vrna_E_consensus_gq(unsigned int  L,
+                    unsigned int  l[3],
+                    unsigned int  position,
+                    unsigned int  length,
+                    unsigned int  n_seq,
+                    const short   **S,
+                    unsigned int  **a2s,
+                    vrna_param_t  *P,
+                    int           en[2])
 {
   unsigned int  s;
   int           ee, ee2, u1, u2, u3;
@@ -357,14 +357,14 @@ vrna_gq_consensus_energy(unsigned int          L,
 
 
 PUBLIC FLT_OR_DBL
-vrna_gq_consensus_exp_energy(unsigned int                L,
-                             unsigned int                l[3],
-                             vrna_exp_param_t   *pf,
-                             unsigned int       position,
-                             unsigned int       length,
-                             unsigned int       n_seq,
-                             const short        **S,
-                             const unsigned int **a2s)
+vrna_exp_E_consensus_gq(unsigned int        L,
+                        unsigned int        l[3],
+                        vrna_exp_param_t    *pf,
+                        unsigned int        position,
+                        unsigned int        length,
+                        unsigned int        n_seq,
+                        const short         **S,
+                        const unsigned int  **a2s)
 {
   FLT_OR_DBL q = 0.;
 
@@ -2597,7 +2597,7 @@ E_gquad(int           L,
   ll[1] = (unsigned int)l[1];
   ll[2] = (unsigned int)l[2];
 
-  return vrna_gq_energy(LL, ll, P);
+  return vrna_E_gq(LL, ll, P);
 }
 
 
@@ -2613,7 +2613,7 @@ exp_E_gquad(int               L,
   ll[1] = (unsigned int)l[1];
   ll[2] = (unsigned int)l[2];
 
-  return vrna_gq_exp_energy(LL, ll, pf);
+  return vrna_exp_E_gq(LL, ll, pf);
 }
 
 
@@ -2634,7 +2634,7 @@ E_gquad_ali_en(int          i,
   ll[1] = (unsigned int)l[1];
   ll[2] = (unsigned int)l[2];
 
-  vrna_gq_consensus_energy(LL, ll, (unsigned int)i, 0, n_seq, S, a2s, P, en);
+  vrna_E_consensus_gq(LL, ll, (unsigned int)i, 0, n_seq, S, a2s, P, en);
 }
 
 
@@ -2654,7 +2654,7 @@ exp_E_gquad_ali(int               i,
   ll[1] = (unsigned int)l[1];
   ll[2] = (unsigned int)l[2];
 
-  return vrna_gq_consensus_exp_energy(LL,
+  return vrna_exp_E_consensus_gq(LL,
                                       ll,
                                       pf,
                                       (unsigned int)i,
