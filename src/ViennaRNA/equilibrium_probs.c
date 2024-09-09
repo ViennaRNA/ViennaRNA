@@ -835,7 +835,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
               vrna_basepair_t *ptr, *aux_bps;
               aux_bps = sc->bt(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
               if (aux_bps) {
-                FLT_OR_DBL qhp = vrna_exp_E_hp_loop(vc, i, j);
+                FLT_OR_DBL qhp = vrna_exp_eval_hairpin(vc, i, j, VRNA_EVAL_LOOP_DEFAULT);
                 for (ptr = aux_bps; (ptr) && (ptr->i != 0); ptr++) {
                   bp_correction[corr_cnt].i   = ptr->i;
                   bp_correction[corr_cnt].j   = ptr->j;
@@ -2714,7 +2714,7 @@ ud_outside_hp_loops(vrna_fold_compound_t *vc)
                 if (probs[kl] > 0.) {
                   ud_bak          = vc->domains_up;
                   vc->domains_up  = NULL;
-                  temp            = vrna_exp_E_hp_loop(vc, k, l);
+                  temp            = vrna_exp_eval_hairpin(vc, k, l, VRNA_EVAL_LOOP_DEFAULT);
                   vc->domains_up  = ud_bak;
 
                   /* add contribution of motif */
@@ -2800,7 +2800,7 @@ ud_outside_hp_loops2(vrna_fold_compound_t *vc)
       if (probs[kl] > 0.) {
         ud_bak          = vc->domains_up;
         vc->domains_up  = NULL;
-        temp            = vrna_exp_E_hp_loop(vc, k, l);
+        temp            = vrna_exp_eval_hairpin(vc, k, l, VRNA_EVAL_LOOP_DEFAULT);
         vc->domains_up  = ud_bak;
         temp            *= probs[kl];
 
@@ -3938,7 +3938,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
         }
 
         /* 1.1. Exterior Hairpin Contribution */
-        tmp2 = vrna_exp_E_hp_loop(fc, j, i);
+        tmp2 = vrna_exp_eval_hairpin(fc, j, i, VRNA_EVAL_LOOP_DEFAULT);
 
         if (hard_constraints[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
           /*
@@ -4485,7 +4485,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
               tmp = scale[(i - 1) + (n - j)]; 
 
               if (md->circ_penalty)
-                tmp *= pow(vrna_hp_exp_energy((i - 1) + (n - j), 0, 0, 0, NULL, pf_params), (double)n_seq);
+                tmp *= pow(vrna_exp_E_hairpin((i - 1) + (n - j), 0, 0, 0, NULL, pf_params), (double)n_seq);
 
               if (sc_ext_wrapper.red_up)
                 tmp *= sc_ext_wrapper.red_up(1, i - 1, &sc_ext_wrapper) *
@@ -4721,7 +4721,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
               qbt1 = scale[u1];
 
               if (md->circ_penalty)
-                qbt1 *= pow(vrna_hp_exp_energy(u1, 0, 0, 0, NULL, pf_params), (double)n_seq);
+                qbt1 *= pow(vrna_exp_E_hairpin(u1, 0, 0, 0, NULL, pf_params), (double)n_seq);
 
               if (sc_hp_wrapper.pair_ext)
                 qbt1 *= sc_hp_wrapper.pair_ext(k, l, &sc_hp_wrapper);

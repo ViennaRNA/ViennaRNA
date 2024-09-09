@@ -368,7 +368,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
 
     if (p > q) {
       /* Hairpin */
-      energy = vrna_eval_hp_loop(fc, i, j);
+      energy = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_NO_CONSTRAINTS);
       if (energy == INF) {
         if (j - i - 1 < md->min_loop_size) {
           vrna_log_warning("Hairpin loop closed by %d and %d (%c,%c) too short",
@@ -1478,7 +1478,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
           if (u1 < 3)
             return INF;
 
-          tmp_e += vrna_hp_energy(n - up_mis, 0, 0, 0, NULL, P) * (int)n_seq;
+          tmp_e += vrna_E_hairpin(n - up_mis, 0, 0, 0, NULL, P) * (int)n_seq;
 
           break;
 
@@ -1983,7 +1983,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
       switch (num_elem) {
         /* g-quad was misinterpreted as hairpin closed by (r,s) */
         case 0:
-          e_minus = vrna_eval_hp_loop(fc, r, s);
+          e_minus = vrna_eval_hairpin(fc, r, s, VRNA_EVAL_LOOP_NO_CONSTRAINTS);
 
           if (*elements_rev)
             vrna_array_append(*elements_rev,
@@ -2276,7 +2276,7 @@ stack_energy(vrna_fold_compound_t           *fc,
   if (p > q) {
     /* hairpin */
     if (sn[i] == sn[j]) {
-      ee = vrna_eval_hp_loop(fc, i, j);
+      ee = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_NO_CONSTRAINTS);
 
       if (ee == INF) {
         if (j - i - 1 < md->min_loop_size) {

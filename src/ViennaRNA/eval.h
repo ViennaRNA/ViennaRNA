@@ -46,6 +46,13 @@
 #define VRNA_VERBOSITY_DEFAULT    1
 
 
+#define VRNA_EVAL_LOOP_DEFAULT          0U
+#define VRNA_EVAL_LOOP_NO_HC            1U
+#define VRNA_EVAL_LOOP_NO_SC            2U
+
+#define VRNA_EVAL_LOOP_NO_CONSTRAINTS   (VRNA_EVAL_LOOP_NO_HC | VRNA_EVAL_LOOP_NO_SC)
+
+
 /**
  *  @name Basic Energy Evaluation Interface with Dot-Bracket Structure String
  *  @{

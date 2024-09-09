@@ -49,57 +49,62 @@
  *
  */
 PUBLIC int
-vrna_bt_hp_loop(vrna_fold_compound_t  *fc,
+vrna_bt_hairpin(vrna_fold_compound_t  *fc,
                 unsigned int          i,
                 unsigned int          j,
                 int                   en,
                 vrna_bps_t            bp_stack,
                 vrna_bts_t            bt_stack)
 {
-  int       e, u;
-  vrna_sc_t *sc;
+  unsigned int  u;
+  int           e;
+  vrna_sc_t     *sc;
 
   sc = NULL;
 
-  u = j - i - 1;
+  if ((fc) &&
+      (bp_stack) &&
+      (bt_stack)) {
+    u = j - i - 1;
 
-  if (fc->hc->up_hp[i + 1] < u)
-    return 0;
+    if (fc->hc->up_hp[i + 1] < u)
+      return 0;
 
-  e = vrna_E_hp_loop(fc, i, j);
+    e = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
 
-  if (e == en) {
-    switch (fc->type) {
-      case  VRNA_FC_TYPE_SINGLE:
-        sc = fc->sc;
-        break;
+    if (e == en) {
+      switch (fc->type) {
+        case  VRNA_FC_TYPE_SINGLE:
+          sc = fc->sc;
+          break;
 
-      case  VRNA_FC_TYPE_COMPARATIVE:
-        if (fc->scs)
-          sc = fc->scs[0];
+        case  VRNA_FC_TYPE_COMPARATIVE:
+          if (fc->scs)
+            sc = fc->scs[0];
 
-        break;
+          break;
 
-      default:
-        break;
-    }
-
-    if (sc) {
-      if (sc->bt) {
-        vrna_basepair_t *ptr, *aux_bps;
-        aux_bps = sc->bt(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
-        for (ptr = aux_bps; ptr && ptr->i != 0; ptr++) {
-          vrna_bps_push(bp_stack,
-                        (vrna_bp_t){
-                          .i = ptr->i,
-                          .j = ptr->j
-                        });
-        }
-        free(aux_bps);
+        default:
+          break;
       }
-    }
 
-    return 1;
+      if (sc) {
+        if (sc->bt) {
+          vrna_basepair_t *ptr, *aux_bps;
+          aux_bps = sc->bt(i, j, i, j, VRNA_DECOMP_PAIR_HP, sc->data);
+          for (ptr = aux_bps; ptr && ptr->i != 0; ptr++) {
+            vrna_bps_push(bp_stack,
+                          (vrna_bp_t){
+                            .i = ptr->i,
+                            .j = ptr->j
+                          });
+          }
+          free(aux_bps);
+        }
+      }
+
+      return 1;
+    }
   }
 
   return 0;
@@ -125,7 +130,7 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
     vrna_bps_t  bps = vrna_bps_init(0);
     vrna_bts_t  bts = vrna_bts_init(0);
 
-    r = vrna_bt_hp_loop(fc, i, j, en, bps, bts);
+    r = vrna_bt_hairpin(fc, i, j, en, bps, bts);
 
     while (vrna_bps_size(bps) > 0) {
       vrna_bp_t bp = vrna_bps_pop(bps);

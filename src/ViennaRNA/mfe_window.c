@@ -871,9 +871,8 @@ backtrack(vrna_fold_compound_t  *vc,
    *  base pairing list. No search for equivalent structures is done.
    *  This is fast, since only few structure elements are recalculated.
    *  ------------------------------------------------------------------*/
-  char *structure, **ptype;
-  unsigned int  comp1, comp2;
-  unsigned int  i, j, k, length, type, turn, p, q, max3, no_close,
+  char          *structure, **ptype;
+  unsigned int  i, j, length, type, turn, p, q, max3, no_close,
                 dangle_model, noLP, noGUclosure, canonical;
   int           bt_type, **c, dangle3, ml, cij, **pscore;
   vrna_param_t *P;
@@ -1029,7 +1028,7 @@ repeat1:
           if (cij == FORBIDDEN)
             continue;
         } else {
-          if (vrna_bt_hp_loop(vc, i, j, cij, bp_stack, bt_stack))
+          if (vrna_bt_hairpin(vc, i, j, cij, bp_stack, bt_stack))
             continue;
         }
 
@@ -1037,7 +1036,7 @@ repeat1:
 
       case VRNA_FC_TYPE_COMPARATIVE:
         cij += pscore[i][j - i];
-        if (vrna_bt_hp_loop(vc, i, j, cij, bp_stack, bt_stack))
+        if (vrna_bt_hairpin(vc, i, j, cij, bp_stack, bt_stack))
           continue;
 
         break;
@@ -1286,12 +1285,12 @@ update_block(unsigned int i,
              unsigned int max_n,
              struct block *b)
 {
-  short *S1, *S2, d5, d3;
-  unsigned int type;
-  int n, i_local, j_local, ediff, dangles;
-  vrna_fold_compound_t *fc;
-  vrna_param_t *params;
-  vrna_md_t *md;
+  short                 *S1, *S2, d5, d3;
+  unsigned int          type, n, i_local, j_local, end, pos, k, l, p;
+  int                   ediff, dangles;
+  vrna_fold_compound_t  *fc;
+  vrna_param_t          *params;
+  vrna_md_t             *md;
 
   fc      = b->fc;
   n       = fc->length;
@@ -1302,12 +1301,12 @@ update_block(unsigned int i,
   dangles = md->dangles;
 
   /* re-evaluate energy for removal of base pair (i, k) */
-  i_local = (int)(i - (b->start - b->shift) + 1);
+  i_local = i + b->shift + 1 - b->start;
 
   if (b->pt[i_local]) {
-    j_local = (int)(b->pt[i_local]);
+    j_local = (unsigned int)b->pt[i_local];
     /* compute energy differences due to removal of base pair (i_local, j_local) */
-    ediff = vrna_eval_move_pt(fc, b->pt, -i_local, -j_local);
+    ediff = vrna_eval_move_pt(fc, b->pt, -(int)i_local, -(int)j_local);
 
     /* update energy */
     b->energy += ediff;
@@ -1318,7 +1317,7 @@ update_block(unsigned int i,
      *  decreases on the 3' end as well. At this point, we also
      *  remove any further trailing bases, if any
      */
-    int end = j_local;
+    end = j_local;
 
     do {
       b->end--;
@@ -1335,8 +1334,8 @@ update_block(unsigned int i,
     unsigned int *start_stem  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * mem_stems);
     unsigned int *end_stem    = (unsigned int *)vrna_alloc(sizeof(unsigned int) * mem_stems);
 
-    for (unsigned int pos = i_local + 1; pos <= end; pos++)
-      if (b->pt[pos] > pos) {
+    for (pos = i_local + 1; pos <= end; pos++)
+      if ((unsigned int)b->pt[pos] > pos) {
         start_stem[stems] = pos;
         end_stem[stems]   = b->pt[pos];
         stems++;
@@ -1350,7 +1349,7 @@ update_block(unsigned int i,
       }
 
     if (stems > 1) {
-      for (unsigned int k = stems - 1; k > 0; k--) {
+      for (k = stems - 1; k > 0; k--) {
         /* create a new block */
         struct block *new_block = (struct block *)vrna_alloc(sizeof(struct block));
 
@@ -1360,7 +1359,7 @@ update_block(unsigned int i,
         new_block->shift  = (dangles == 2) ? 1 : 0;
 
         /* create structure pair table for new block */
-        unsigned int l = end_stem[k] - start_stem[k] + 1;
+        l = end_stem[k] - start_stem[k] + 1;
         if (dangles == 2) {
           l++;    /* for 5' dangles */
           if (new_block->end < max_n)
@@ -1370,8 +1369,8 @@ update_block(unsigned int i,
         new_block->pt     = (short *)vrna_alloc(sizeof(short) * (l + 1));
         new_block->pt[0]  = l;
         /* go through original structure and extract base pair positions relative to new block */
-        for (unsigned int p = start_stem[k]; p <= end_stem[k]; p++) {
-          if (b->pt[p] > p) {
+        for (p = start_stem[k]; p <= end_stem[k]; p++) {
+          if ((unsigned int)b->pt[p] > p) {
             short i, j;
 
             i = p - start_stem[k] + 1 + new_block->shift;
@@ -1432,8 +1431,8 @@ update_block(unsigned int i,
      * position i + 1 forms a base pair due to 5' dangles
      */
     if (b->pt[i + 1]) {
-      i_local = (int)i + b->start - 1 + 1;
-      j_local = b->pt[i_local + 1];
+      i_local = (unsigned int)i + b->start - 1 + 1;
+      j_local = (unsigned int)b->pt[i_local + 1];
       switch (dangles) {
         case 2:
           d5    = S1[i_local - 1];
@@ -1615,7 +1614,7 @@ insert_block(char         *structure,
   /* The last block is always part of the full length MFE */
   for (i = start; i <= end; i++) {
     i_local = i - start + shift + 1;
-    if (pt[i_local] > i_local) {
+    if ((unsigned int)pt[i_local] > i_local) {
       structure[i - 1]                                = '(';
       structure[start - shift + pt[i_local] - 1 - 1]  = ')';
     }

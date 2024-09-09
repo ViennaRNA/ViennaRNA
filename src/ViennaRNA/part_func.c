@@ -463,7 +463,7 @@ decompose_pair(vrna_fold_compound_t *fc,
 
   if (hc->mx[j * n + i]) {
     /* process hairpin loop(s) */
-    contribution += vrna_exp_E_hp_loop(fc, i, j);
+    contribution += vrna_exp_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
     /* process interior loop(s) */
     contribution += vrna_exp_E_int_loop(fc, i, j);
     /* process multibranch loop(s) */
@@ -555,7 +555,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
       /* 1. get exterior hairpin contribution  */
       qho += qb[my_iindx[p] - q] *
-             vrna_exp_E_hp_loop(fc, q, p);
+             vrna_exp_eval_hairpin(fc, q, p, VRNA_EVAL_LOOP_DEFAULT);
 
       /* 2. get exterior interior loop contribution */
       qio += qb[my_iindx[p] - q] *
@@ -763,7 +763,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                      scale[u];
 
               if (md->circ_penalty)
-                qbt1 *= pow(vrna_hp_exp_energy(u, 0, 0, 0, NULL, pf_params), (double)n_seq);
+                qbt1 *= pow(vrna_exp_E_hairpin(u, 0, 0, 0, NULL, pf_params), (double)n_seq);
 
               if (sc_ext_wrapper.red_ext)
                 qbt1 *= sc_ext_wrapper.red_ext(j + 1, n, i, n, &sc_ext_wrapper);
@@ -953,7 +953,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                    scale[u1 + u2];
 
             if (md->circ_penalty)
-              qbt1 *= pow(vrna_hp_exp_energy(u1 + u2, 0, 0, 0, NULL, pf_params), (double)n_seq);
+              qbt1 *= pow(vrna_exp_E_hairpin(u1 + u2, 0, 0, 0, NULL, pf_params), (double)n_seq);
 
             /* apply soft constraints, if any */
             if (sc_ext_wrapper.red_up)

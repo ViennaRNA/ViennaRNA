@@ -529,8 +529,8 @@ postprocess_circular(vrna_fold_compound_t *fc,
   short             *S, *S1, **SS, **S5, **S3;
   unsigned int      **a2s, u1, u2, us, us1, us2, s1, s2, p, q, si, sj,
                     Hgi, Hgj, Igi, Igj, Igp, Igq, Igg, Mgi, Mgj, Hi, Hj,
-                    Ii, Ij, Ip, Iq, ip, iq, Mi, i, j, u, length, s, n_seq,
-                    turn, dangle_model, with_gquad;
+                    Ii, Ij, Ip, Iq, Mi, i, j, u, length, s, n_seq, turn,
+                    dangle_model, with_gquad;
   int               *fM_d3, *fM_d5, Md3i, Md5i, FcMd3, FcMd5, FcH, FcI, FcM, Fc, ij,
                     new_c, fm, type, *my_c, *my_fML, *indx, FcO, tmp, FgH, FgI,
                     FgM, e, *fM2_real, *fM1_new;
@@ -729,7 +729,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
               int e = new_c;
 
               if (md->circ_penalty)
-                e += vrna_hp_energy(u, 0, 0, 0, NULL, P) * (int)n_seq;
+                e += vrna_E_hairpin(u, 0, 0, 0, NULL, P) * (int)n_seq;
 
               switch (fc->type) {
                 case VRNA_FC_TYPE_SINGLE:
@@ -1003,7 +1003,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
           if (eval) {
 
             if (md->circ_penalty)
-              e += vrna_hp_energy(u1 + u2, 0, 0, 0, NULL, P) * (int)n_seq;
+              e += vrna_E_hairpin(u1 + u2, 0, 0, 0, NULL, P) * (int)n_seq;
 
             /* apply soft constraints, if any */
             switch (fc->type) {
@@ -1301,7 +1301,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
         continue;
 
       /* exterior hairpin case */
-      new_c = vrna_E_hp_loop(fc, j, i);
+      new_c = vrna_eval_hairpin(fc, j, i, VRNA_EVAL_LOOP_DEFAULT);
       if (new_c != INF)
         new_c += my_c[ij];
 
@@ -4173,7 +4173,7 @@ repeat1:
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
       cij += pscore[indx[j] + i];
 
-    if (vrna_bt_hp_loop(fc, i, j, cij, bp_stack, bt_stack))
+    if (vrna_bt_hairpin(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
     if (vrna_bt_int_loop(fc, i, j, cij, bp_stack, bt_stack))
@@ -4203,8 +4203,6 @@ repeat1:
     }
 
     /* (i.j) must close a multi-loop */
-    unsigned int comp1, comp2;
-
     if (vrna_bt_mb_loop(fc, i, j, cij, bp_stack, bt_stack)) {
       continue;
     } else if (aux_grammar) {
@@ -4260,7 +4258,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     new_c = INF;
 
     /* check for hairpin loop */
-    energy  = vrna_E_hp_loop(fc, i, j);
+    energy  = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
     new_c   = MIN2(new_c, energy);
 
     /* check for multibranch loops */
