@@ -106,7 +106,7 @@ stack_energy(vrna_fold_compound_t           *fc,
 
 PRIVATE int
 energy_of_ml_pt(vrna_fold_compound_t  *fc,
-                int                   i,
+                unsigned int          i,
                 const short           *pt);
 
 
@@ -187,6 +187,7 @@ vrna_eval_structure_v(vrna_fold_compound_t  *fc,
                       int                   verbosity_level,
                       FILE                  *file)
 {
+  char        *sequence;
   short       *pt;
   float       en;
   vrna_cstr_t output_stream;
@@ -213,8 +214,12 @@ vrna_eval_structure_v(vrna_fold_compound_t  *fc,
                                         structure,
                                         pt,
                                         &elements);
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+      sequence = fc->cons_seq;
+    else
+      sequence = fc->sequence;
 
-    print_structure_elements(fc->sequence,
+    print_structure_elements(sequence,
                              elements,
                              output_stream);
 
@@ -235,6 +240,7 @@ vrna_eval_structure_cstr(vrna_fold_compound_t *fc,
                          int                  verbosity_level,
                          vrna_cstr_t          output_stream)
 {
+  char  *sequence;
   short *pt;
   float en;
 
@@ -260,7 +266,12 @@ vrna_eval_structure_cstr(vrna_fold_compound_t *fc,
                               pt,
                               &elements);
 
-    print_structure_elements(fc->sequence,
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+      sequence = fc->cons_seq;
+    else
+      sequence = fc->sequence;
+
+    print_structure_elements(sequence,
                              elements,
                              output_stream);
 
@@ -368,7 +379,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
 
     if (p > q) {
       /* Hairpin */
-      energy = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_NO_CONSTRAINTS);
+      energy = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_NO_HC);
       if (energy == INF) {
         if (j - i - 1 < md->min_loop_size) {
           vrna_log_warning("Hairpin loop closed by %d and %d (%c,%c) too short",
@@ -755,7 +766,7 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
         break;
       }
 
-      if ((pt[i] != 0) && (pt[i] > i)) {
+      if ((pt[i] != 0) && ((unsigned int)pt[i] > i)) {
         /*
          * pairs down-stream
          * add energy of previous unpaired region
@@ -1020,7 +1031,7 @@ energy_of_ext_loop_components(vrna_fold_compound_t            *fc,
         break;
 
       if (pt[i] != 0) {
-        if (pt[i] > i) {
+        if ((unsigned int)pt[i] > i) {
           /*
            * pairs down-stream
            * add energy of enclosed substem
@@ -1189,7 +1200,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
 {
   short         *S, *S1, **SS, **S5, **S3;
   int           corr_en, tmp_e, e_minus, e_plus, gq_en[2];
-  unsigned int  n_seq, n, p, q, num_elem, num_gq, up, up_mis, elem_i,
+  unsigned int  n_seq, n, p, num_elem, num_gq, up, up_mis, elem_i,
                 elem_j, elem_p, elem_q, gq_p, gq_q, pos, u1, u2, u3,
                 us1, us2, us3, type, type2, s, **a2s, L, l[3];
   vrna_param_t  *P;
@@ -1241,7 +1252,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
       if (pt[p] == 0) {
         up++;
         continue;
-      } else if (p < pt[p]) {
+      } else if (p < (unsigned int)pt[p]) {
         vrna_log_error("Found base pair (%d,%d) enclosing gquad [%d,%d]",
                        p, pt[p], i, j);
         return INF;
@@ -1280,7 +1291,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
      *        corrections as well.
      */
     for (p = j + 1; p <= n; p++) {
-      if (p < pt[p]) {
+      if (p < (unsigned int)pt[p]) {
         /* base pair */
         tmp_e = en_corr_of_loop_gquad(fc,
                                       p,
@@ -1336,7 +1347,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
               break;
 
             default:
-              tmp_e = E_gquad(L, l, P);
+              tmp_e = vrna_E_gq(L, l, P);
               break;
           }
 
@@ -1372,7 +1383,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
      *        corrections as well.
      */
     for (p = j + 1; p < i; p++) {
-      if (p < pt[p]) {
+      if (p < (unsigned int)pt[p]) {
         /* base pair */
         tmp_e = en_corr_of_loop_gquad(fc,
                                       p,
@@ -1427,7 +1438,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
               break;
 
             default:
-              tmp_e = E_gquad(L, l, P);
+              tmp_e = vrna_E_gq(L, l, P);
               break;
           }
 
@@ -1747,7 +1758,6 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
                       vrna_array(vrna_struct_elem_t)  *elements,
                       vrna_array(vrna_struct_elem_t)  *elements_rev)
 {
-  char          *sequence;
   short         *s1, *s2, **S, **S5, **S3;
   unsigned int  cnt, n_seq, L, l[3], pos;
   int           n, tmp_e, energy, p, q, r, s, u, type, type2,
@@ -1771,12 +1781,10 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
   switch (fc->type) {
     case VRNA_FC_TYPE_COMPARATIVE:
       n_seq     = fc->n_seq;
-      sequence  = fc->cons_seq;
       break;
 
     default:
       n_seq     = 1;
-      sequence  = fc->sequence;
       break;
   }
 
@@ -1822,7 +1830,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
         break;
 
       default:
-        tmp_e = E_gquad(L, l, P);
+        tmp_e = vrna_E_gq(L, l, P);
         break;
     }
 
@@ -1933,7 +1941,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
                 break;
 
               default:
-                tmp_e = E_gquad(L, l, P);
+                tmp_e = vrna_E_gq(L, l, P);
                 break;
             }
 
@@ -1983,7 +1991,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
       switch (num_elem) {
         /* g-quad was misinterpreted as hairpin closed by (r,s) */
         case 0:
-          e_minus = vrna_eval_hairpin(fc, r, s, VRNA_EVAL_LOOP_NO_CONSTRAINTS);
+          e_minus = vrna_eval_hairpin(fc, r, s, VRNA_EVAL_LOOP_NO_HC);
 
           if (*elements_rev)
             vrna_array_append(*elements_rev,
@@ -2276,7 +2284,7 @@ stack_energy(vrna_fold_compound_t           *fc,
   if (p > q) {
     /* hairpin */
     if (sn[i] == sn[j]) {
-      ee = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_NO_CONSTRAINTS);
+      ee = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_NO_HC);
 
       if (ee == INF) {
         if (j - i - 1 < md->min_loop_size) {
@@ -2353,13 +2361,12 @@ stack_energy(vrna_fold_compound_t           *fc,
  ***/
 PRIVATE int
 energy_of_ml_pt(vrna_fold_compound_t  *fc,
-                int                   i,
+                unsigned int          i,
                 const short           *pt)
 {
   short         *s, *s1, **S, **S5, **S3;
-  unsigned int  *sn, **a2s, n_seq;
-  int           energy, cx_energy, tmp, tmp2, best_energy = INF, bonus, *idx, dangle_model,
-                logML, circular, *rtype, ss, n, i1, j, p, q, q_prev, q_prev2, u, uu,
+  unsigned int  *sn, **a2s, n_seq, ss, i1, j, p, q, q_prev, q_prev2, n, dangle_model, logML, circular;
+  int           energy, cx_energy, tmp, tmp2, best_energy, bonus, *idx, *rtype, u, uu,
                 x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang, e_stem,
                 e_stem5, e_stem3, e_stem53, mlintern[NBPAIRS + 1];
   int           E_mm5_available;    /* energy of 5' part where 5' mismatch of current stem is available */
@@ -2380,6 +2387,8 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
   dangle_model  = md->dangles;
   logML         = md->logML;
   rtype         = &(md->rtype[0]);
+
+  best_energy = INF;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_COMPARATIVE:
@@ -2409,18 +2418,17 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
 
   bonus = 0;
 
-  if (i >= pt[i]) {
+  if (i >= (unsigned int)pt[i]) {
     vrna_log_warning("i = %d (pt[%d] = %d) is not 5' base of a closing pair!", i, i, pt[i]);
     return INF;
   }
 
-  j = (i == 0) ? n + 1 : (int)pt[i];
+  j = (i == 0) ? n + 1 : (unsigned int)pt[i];
 
   switch (fc->type) {
     case VRNA_FC_TYPE_COMPARATIVE:
       if ((dangle_model % 2) ||
-          (dangle_model > 2) ||
-          (dangle_model < 0)) {
+          (dangle_model > 2)) {
         vrna_log_warning(
           "Consensus structure evaluation for odd dangle models not implemented (yet)!");
         return INF;
