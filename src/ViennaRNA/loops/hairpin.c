@@ -59,8 +59,8 @@ eval_ext_hp_loop(vrna_fold_compound_t *fc,
 PUBLIC int
 vrna_E_hairpin(unsigned int size,
                unsigned int type,
-               unsigned int si1,
-               unsigned int sj1,
+               int          si1,
+               int          sj1,
                const char   *sequence,
                vrna_param_t *P)
 {
@@ -124,12 +124,8 @@ vrna_E_hairpin(unsigned int size,
       }
     }
 
-#if 0
-    /* FIXME: Do we only add mismatch energies when the adjacent bases are non-null?
-     */
-    if ((si1 > 0) &&
-        (sj1 > 0))
-#endif
+    if ((si1 >= 0) &&
+        (sj1 >= 0))
       energy += P->mismatchH[type][si1][sj1];
   }
 

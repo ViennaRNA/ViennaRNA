@@ -72,6 +72,8 @@
  *            Turner energy parameter set! No additional hard- or soft constraints are applied. See vrna_eval_hp_loop()
  *            for a function that also takes into account any user-supplied constraints!
  *
+ *  @note     Whenever one of the mismatch base encodings @p si1 or @p sj1 is negative, terminal mismatch energies are not applied!
+ *
  *  @note     The parameter @p sequence is a 0-terminated string of size @p size + 2 that contain the nucleic acid
  *            sequence of the loop in upper-case letters. This parameter is only required for loops of @p size below
  *            7, since it is used for look-up of unusually stable tri-, tetra- and hexa-loops, such as GNRA tetra loops.
@@ -90,8 +92,8 @@
 int
 vrna_E_hairpin(unsigned int size,
                unsigned int type,
-               unsigned int si1,
-               unsigned int sj1,
+               int          si1,
+               int          sj1,
                const char   *sequence,
                vrna_param_t *P);
 
@@ -156,6 +158,8 @@ vrna_eval_hairpin(vrna_fold_compound_t  *fc,
  *  This is the partition function variant of vrna_E_hp() that returns the Boltzmann
  *  weight @f$e^{-\Delta E/kT} @f$ instead of the energy @f$ E @f$.
  *
+ *  @note   Whenever one of the mismatch base encodings @p si1 or @p sj1 is negative, terminal mismatch energies are not applied!
+ *
  *  @note   Do not forget to scale this Bolztmann factor properly, e.g. by multiplying with scale[u+2]
  *
  *  @see vrna_exp_eval_hp_loop(), #vrna_exp_param_t, vrna_E_hp()
@@ -171,8 +175,8 @@ vrna_eval_hairpin(vrna_fold_compound_t  *fc,
 FLT_OR_DBL
 vrna_exp_E_hairpin(unsigned int     size,
                    unsigned int     type,
-                   unsigned int     si1,
-                   unsigned int     sj1,
+                   int              si1,
+                   int              sj1,
                    const char       *sequence,
                    vrna_exp_param_t *P);
 
