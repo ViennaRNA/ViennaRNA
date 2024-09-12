@@ -729,7 +729,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
               int e = new_c;
 
               if (md->circ_penalty)
-                e += vrna_E_hairpin(u, 0, 0, 0, NULL, P) * (int)n_seq;
+                e += vrna_E_hairpin(u, 0, -1, -1, NULL, P) * (int)n_seq;
 
               switch (fc->type) {
                 case VRNA_FC_TYPE_SINGLE:
@@ -1003,7 +1003,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
           if (eval) {
 
             if (md->circ_penalty)
-              e += vrna_E_hairpin(u1 + u2, 0, 0, 0, NULL, P) * (int)n_seq;
+              e += vrna_E_hairpin(u1 + u2, 0, -1, -1, NULL, P) * (int)n_seq;
 
             /* apply soft constraints, if any */
             switch (fc->type) {

@@ -4485,7 +4485,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
               tmp = scale[(i - 1) + (n - j)]; 
 
               if (md->circ_penalty)
-                tmp *= pow(vrna_exp_E_hairpin((i - 1) + (n - j), 0, 0, 0, NULL, pf_params), (double)n_seq);
+                tmp *= pow(vrna_exp_E_hairpin((i - 1) + (n - j), 0, -1, -1, NULL, pf_params), (double)n_seq);
 
               if (sc_ext_wrapper.red_up)
                 tmp *= sc_ext_wrapper.red_up(1, i - 1, &sc_ext_wrapper) *
@@ -4721,7 +4721,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
               qbt1 = scale[u1];
 
               if (md->circ_penalty)
-                qbt1 *= pow(vrna_exp_E_hairpin(u1, 0, 0, 0, NULL, pf_params), (double)n_seq);
+                qbt1 *= pow(vrna_exp_E_hairpin(u1, 0, -1, -1, NULL, pf_params), (double)n_seq);
 
               if (sc_hp_wrapper.pair_ext)
                 qbt1 *= sc_hp_wrapper.pair_ext(k, l, &sc_hp_wrapper);

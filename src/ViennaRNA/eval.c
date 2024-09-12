@@ -1489,7 +1489,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
           if (u1 < 3)
             return INF;
 
-          tmp_e += vrna_E_hairpin(n - up_mis, 0, 0, 0, NULL, P) * (int)n_seq;
+          tmp_e += vrna_E_hairpin(n - up_mis, 0, -1, -1, NULL, P) * (int)n_seq;
 
           break;
 

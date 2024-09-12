@@ -763,7 +763,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                      scale[u];
 
               if (md->circ_penalty)
-                qbt1 *= pow(vrna_exp_E_hairpin(u, 0, 0, 0, NULL, pf_params), (double)n_seq);
+                qbt1 *= pow(vrna_exp_E_hairpin(u, 0, -1, -1, NULL, pf_params), (double)n_seq);
 
               if (sc_ext_wrapper.red_ext)
                 qbt1 *= sc_ext_wrapper.red_ext(j + 1, n, i, n, &sc_ext_wrapper);
@@ -953,7 +953,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                    scale[u1 + u2];
 
             if (md->circ_penalty)
-              qbt1 *= pow(vrna_exp_E_hairpin(u1 + u2, 0, 0, 0, NULL, pf_params), (double)n_seq);
+              qbt1 *= pow(vrna_exp_E_hairpin(u1 + u2, 0, -1, -1, NULL, pf_params), (double)n_seq);
 
             /* apply soft constraints, if any */
             if (sc_ext_wrapper.red_up)
