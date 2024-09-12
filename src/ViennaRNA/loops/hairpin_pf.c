@@ -127,8 +127,12 @@ vrna_exp_E_hairpin(unsigned int     u,
       }
     }
 
+#if 0
+    /* FIXME: Do we only add mismatch energies when the adjacent bases are non-null?
+     */
     if ((si1) &&
         (sj1))
+#endif
       q *= P->expmismatchH[type][si1][sj1];
   }
 
