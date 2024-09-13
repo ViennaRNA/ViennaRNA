@@ -1369,7 +1369,7 @@ scan_mb(vrna_fold_compound_t  *fc,
         if ((sn[k] == sn[k + 1]) &&
             (fML[indx[k] + i] != INF) &&
             (e_gq != INF)) {
-          element_energy = E_MLstem(0, -1, -1, P);
+          element_energy = vrna_E_multibranch_stem(0, -1, -1, P);
 
           if (fML[indx[k] + i] + e_gq + element_energy + best_energy <= threshold) {
             temp_state  = derive_new_state(i, k, state, 0, VRNA_MX_FLAG_M);
@@ -1407,7 +1407,7 @@ scan_mb(vrna_fold_compound_t  *fc,
             break;
         }
 
-        element_energy = E_MLstem(type, s5, s3, P);
+        element_energy = vrna_E_multibranch_stem(type, s5, s3, P);
 
         if (sc_decomp_ml)
           element_energy += sc_decomp_ml(i, j, k, k + 1, sc_dat);
@@ -1450,7 +1450,7 @@ scan_mb(vrna_fold_compound_t  *fc,
 #endif
       if ((e_gq != INF) &&
           (sn[i] == sn[j])) {
-        element_energy = E_MLstem(0, -1, -1, P) + P->MLbase * up;
+        element_energy = vrna_E_multibranch_stem(0, -1, -1, P) + P->MLbase * up;
 
         if (sc_red_stem)
           element_energy += sc_red_stem(i, j, k + 1, j, sc_dat);
@@ -1484,7 +1484,7 @@ scan_mb(vrna_fold_compound_t  *fc,
             break;
         }
 
-        element_energy = E_MLstem(type, s5, s3, P);
+        element_energy = vrna_E_multibranch_stem(type, s5, s3, P);
 
         element_energy += P->MLbase * up;
 
@@ -1599,10 +1599,10 @@ scan_m1(vrna_fold_compound_t  *fc,
 
       switch (dangle_model) {
         case 0:
-          element_energy = E_MLstem(type, -1, -1, P);
+          element_energy = vrna_E_multibranch_stem(type, -1, -1, P);
           break;
         default:
-          element_energy = E_MLstem(type,
+          element_energy = vrna_E_multibranch_stem(type,
                                     (((i > 1) && (sn[i - 1] == sn[i])) || circular) ? S1[i - 1] : -1,
                                     (((j < length) && (sn[j] == sn[j + 1])) || circular)  ? S1[j + 1] : -1,
                                     P);
@@ -1634,7 +1634,7 @@ scan_m1(vrna_fold_compound_t  *fc,
     e_gq = vrna_smx_csr_int_get(c_gq, i, j, INF);
 #endif
     if (e_gq != INF) {
-      element_energy = E_MLstem(0, -1, -1, P);
+      element_energy = vrna_E_multibranch_stem(0, -1, -1, P);
 
       if (sc_red_stem)
         element_energy += sc_red_stem(i, j, i, j, sc_dat);
@@ -3040,10 +3040,10 @@ repeat(vrna_fold_compound_t *fc,
     element_energy = mm;
     switch (dangle_model) {
       case 0:
-        element_energy = E_MLstem(rt, -1, -1, P) + mm;
+        element_energy = vrna_E_multibranch_stem(rt, -1, -1, P) + mm;
         break;
       default:
-        element_energy = E_MLstem(rt, S1[j - 1], S1[i + 1], P) + mm;
+        element_energy = vrna_E_multibranch_stem(rt, S1[j - 1], S1[i + 1], P) + mm;
         break;
     }
 

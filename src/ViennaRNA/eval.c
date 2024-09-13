@@ -1170,7 +1170,7 @@ eval_circ_pt(vrna_fold_compound_t           *fc,
       en0 = energy_of_ml_pt(fc, 0, (const short *)pt);
 
       if (fc->type == VRNA_FC_TYPE_SINGLE)
-        en0 -= E_MLstem(0, -1, -1, P);         /* remove virtual closing pair */
+        en0 -= vrna_E_multibranch_stem(0, -1, -1, P);         /* remove virtual closing pair */
 
       break;
   }
@@ -1506,7 +1506,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
         default:  /* actually a multibranch-loop-like structure */
           tmp_e += (P->MLclosing +
                     (up * P->MLbase) +
-                    (num_gq * E_MLstem(0, -1, -1, P))) *
+                    (num_gq * vrna_E_multibranch_stem(0, -1, -1, P))) *
                    (int)n_seq;
           break;
       }
@@ -1600,7 +1600,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
         default: /* actually a multibranch-loop-like structure */
           tmp_e = P->MLclosing +
                   (up * P->MLbase) +
-                  (num_gq * E_MLstem(0, -1, -1, P));
+                  (num_gq * vrna_E_multibranch_stem(0, -1, -1, P));
 
           tmp_e *= (int)n_seq;
 
@@ -1610,12 +1610,12 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
               if (dangles == 2) {
                 for (s = 0; s < n_seq; s++) {
                   type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
-                  tmp_e += E_MLstem(type, S5[s][elem_i], S3[s][elem_j], P);
+                  tmp_e += vrna_E_multibranch_stem(type, S5[s][elem_i], S3[s][elem_j], P);
                 }
               } else {
                 for (s = 0; s < n_seq; s++) {
                   type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
-                  tmp_e += E_MLstem(type, -1, -1, P);
+                  tmp_e += vrna_E_multibranch_stem(type, -1, -1, P);
                 }
               }
 
@@ -1623,9 +1623,9 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
             default:
               type = vrna_get_ptype_md(S[elem_i], S[elem_j], md);
               if (dangles == 2)
-                tmp_e += E_MLstem(type, S1[elem_i - 1], S1[elem_j + 1], P);
+                tmp_e += vrna_E_multibranch_stem(type, S1[elem_i - 1], S1[elem_j + 1], P);
               else
-                tmp_e += E_MLstem(type, -1, -1, P);
+                tmp_e += vrna_E_multibranch_stem(type, -1, -1, P);
 
               break;
           }
@@ -1656,7 +1656,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
       /* we actually have a multibranch-loop-like structure here */
       tmp_e = P->MLclosing +
               (up * P->MLbase) +
-              (num_gq * E_MLstem(0, -1, -1, P));
+              (num_gq * vrna_E_multibranch_stem(0, -1, -1, P));
 
       tmp_e *= (int)n_seq;
 
@@ -1667,15 +1667,15 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
               type2 = vrna_get_ptype_md(SS[s][elem_p], SS[s][elem_q], md);
-              tmp_e += E_MLstem(type, S5[s][elem_i], S3[s][elem_j], P) +
-                       E_MLstem(type2, S5[s][elem_p], S3[s][elem_q], P);
+              tmp_e += vrna_E_multibranch_stem(type, S5[s][elem_i], S3[s][elem_j], P) +
+                       vrna_E_multibranch_stem(type2, S5[s][elem_p], S3[s][elem_q], P);
             }
           } else {
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
               type2 = vrna_get_ptype_md(SS[s][elem_p], SS[s][elem_q], md);
-              tmp_e += E_MLstem(type, -1, -1, P) +
-                       E_MLstem(type2, -1, -1, P);
+              tmp_e += vrna_E_multibranch_stem(type, -1, -1, P) +
+                       vrna_E_multibranch_stem(type2, -1, -1, P);
             }
           }
 
@@ -1684,11 +1684,11 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
           type  = vrna_get_ptype_md(S[elem_i], S[elem_j], md);
           type2 = vrna_get_ptype_md(S[elem_p], S[elem_q], md);
           if (dangles == 2) {
-            tmp_e += E_MLstem(type, S1[elem_i - 1], S1[elem_j + 1], P) +
-                     E_MLstem(type2, S1[elem_p - 1], S1[elem_q + 1], P);
+            tmp_e += vrna_E_multibranch_stem(type, S1[elem_i - 1], S1[elem_j + 1], P) +
+                     vrna_E_multibranch_stem(type2, S1[elem_p - 1], S1[elem_q + 1], P);
           } else {
-            tmp_e += E_MLstem(type, -1, -1, P) +
-                     E_MLstem(type2, -1, -1, P);
+            tmp_e += vrna_E_multibranch_stem(type, -1, -1, P) +
+                     vrna_E_multibranch_stem(type2, -1, -1, P);
           }
 
           break;
@@ -1717,7 +1717,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
                           }));
 
       tmp_e = (int)num_gq *
-              E_MLstem(0, -1, -1, P) *
+              vrna_E_multibranch_stem(0, -1, -1, P) *
               (int)n_seq;
 
       if (*elements)
@@ -2043,7 +2043,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
                                 }));
           } else {
             /* or b) a multibranch loop like structure */
-            e_temp = num_g * E_MLstem(0, -1, -1, P) +
+            e_temp = num_g * vrna_E_multibranch_stem(0, -1, -1, P) +
                      P->MLclosing +
                      (s - r - 1 - up_mis) * P->MLbase;
 
@@ -2053,13 +2053,13 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
               case VRNA_FC_TYPE_COMPARATIVE:
                 for (cnt = 0; cnt < n_seq; cnt++) {
                   type    = vrna_get_ptype_md(S[cnt][s], S[cnt][r], md);
-                  e_plus  += E_MLstem(type, S5[cnt][s], S3[cnt][r], P);
+                  e_plus  += vrna_E_multibranch_stem(type, S5[cnt][s], S3[cnt][r], P);
                 }
                 break;
 
               default:
                 type    = md->pair[s2[s]][s2[r]];
-                e_plus  += E_MLstem(type, s1[s - 1], s1[r + 1], P);
+                e_plus  += vrna_E_multibranch_stem(type, s1[s - 1], s1[r + 1], P);
                 break;
             }
 
@@ -2078,7 +2078,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
 
         /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
         case 1:
-          e_temp = num_g * E_MLstem(0, -1, -1, P) +
+          e_temp = num_g * vrna_E_multibranch_stem(0, -1, -1, P) +
                    P->MLclosing +
                    (s + elem_i - r - 1 - up_mis - elem_j - 1) * P->MLbase;
           e_plus = n_seq * e_temp;
@@ -2088,16 +2088,16 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
               for (cnt = 0; cnt < n_seq; cnt++) {
                 type    = vrna_get_ptype_md(S[cnt][s], S[cnt][r], md);
                 type2   = vrna_get_ptype_md(S[cnt][elem_i], S[cnt][elem_j], md);
-                e_plus  += E_MLstem(type, S5[cnt][s], S3[cnt][r], P) +
-                           E_MLstem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
+                e_plus  += vrna_E_multibranch_stem(type, S5[cnt][s], S3[cnt][r], P) +
+                           vrna_E_multibranch_stem(type, S5[cnt][elem_i], S3[cnt][elem_j], P);
               }
               break;
 
             default:
               type    = md->pair[s2[s]][s2[r]];
               type2   = md->pair[s2[elem_i]][s2[elem_j]];
-              e_plus  += E_MLstem(type, s1[s - 1], s1[r + 1], P) +
-                         E_MLstem(type2, s1[elem_i - 1], s1[elem_j + 1], P);
+              e_plus  += vrna_E_multibranch_stem(type, s1[s - 1], s1[r + 1], P) +
+                         vrna_E_multibranch_stem(type2, s1[elem_i - 1], s1[elem_j + 1], P);
               break;
           }
 
@@ -2129,7 +2129,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
         /* gquad was misinterpreted as unpaired nucleotides in a multiloop */
         default:
           e_minus = (up_mis) * P->MLbase * n_seq;
-          e_plus  = num_g * E_MLstem(0, -1, -1, P) * n_seq;
+          e_plus  = num_g * vrna_E_multibranch_stem(0, -1, -1, P) * n_seq;
           energy  += e_plus - e_minus;
 
           if (*elements_rev)
@@ -2509,7 +2509,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
               /* get type of base pair (p,q) */
               tt = vrna_get_ptype_md(S[ss][p], S[ss][q], md);
 
-              energy += E_MLstem(tt, -1, -1, P);
+              energy += vrna_E_multibranch_stem(tt, -1, -1, P);
             }
 
             /* seek to the next stem */
@@ -2539,7 +2539,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
             for (ss = 0; ss < n_seq; ss++) {
               tt = vrna_get_ptype_md(S[ss][j], S[ss][i], md);
 
-              energy += E_MLstem(tt, -1, -1, P);
+              energy += vrna_E_multibranch_stem(tt, -1, -1, P);
             }
           }
 
@@ -2552,7 +2552,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
             /* get type of base pair (p,q) */
             tt = vrna_get_ptype_md(s[p], s[q], md);
 
-            energy += E_MLstem(tt, -1, -1, P);
+            energy += vrna_E_multibranch_stem(tt, -1, -1, P);
 
             /* seek to the next stem */
             p       = q + 1;
@@ -2571,10 +2571,10 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
             /* actual closing pair */
             tt = vrna_get_ptype_md(s[j], s[i], md);
 
-            energy += E_MLstem(tt, -1, -1, P);
+            energy += vrna_E_multibranch_stem(tt, -1, -1, P);
           } else {
             /* virtual closing pair */
-            energy += E_MLstem(0, -1, -1, P);
+            energy += vrna_E_multibranch_stem(0, -1, -1, P);
           }
 
           break;
@@ -2594,7 +2594,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
 
               mm5     = ((a2s[ss][p] > 1) || circular) ? S5[ss][p] : -1;
               mm3     = ((a2s[ss][q] < a2s[ss][n]) || circular) ? S3[ss][q] : -1;
-              energy  += E_MLstem(tt, mm5, mm3, P);
+              energy  += vrna_E_multibranch_stem(tt, mm5, mm3, P);
             }
 
             /* seek to the next stem */
@@ -2625,7 +2625,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
 
               mm5     = S5[ss][j];
               mm3     = S3[ss][i];
-              energy  += E_MLstem(tt, mm5, mm3, P);
+              energy  += vrna_E_multibranch_stem(tt, mm5, mm3, P);
             }
           }
 
@@ -2640,7 +2640,7 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
 
             mm5     = sn[p - 1] == sn[p] ? s1[p - 1] : -1;
             mm3     = sn[q] == sn[q + 1] ? s1[q + 1] : -1;
-            energy  += E_MLstem(tt, mm5, mm3, P);
+            energy  += vrna_E_multibranch_stem(tt, mm5, mm3, P);
 
             /* seek to the next stem */
             p       = q + 1;
@@ -2659,10 +2659,10 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
 
             mm5     = sn[j - 1] == sn[j] ? s1[j - 1] : -1;
             mm3     = sn[i] == sn[i + 1] ? s1[i + 1] : -1;
-            energy  += E_MLstem(tt, mm5, mm3, P);
+            energy  += vrna_E_multibranch_stem(tt, mm5, mm3, P);
           } else {
             /* virtual closing pair */
-            energy += E_MLstem(0, -1, -1, P);
+            energy += vrna_E_multibranch_stem(0, -1, -1, P);
           }
 
           break;
@@ -2803,10 +2803,10 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
 
         mm5       = ((sn[p - 1] == sn[p]) && !pt[p - 1])  ? s1[p - 1] : -1;
         mm3       = ((sn[q] == sn[q + 1]) && !pt[q + 1])  ? s1[q + 1] : -1;
-        e_stem    = E_MLstem(tt, -1, -1, P);
-        e_stem5   = E_MLstem(tt, mm5, -1, P);
-        e_stem3   = E_MLstem(tt, -1, mm3, P);
-        e_stem53  = E_MLstem(tt, mm5, mm3, P);
+        e_stem    = vrna_E_multibranch_stem(tt, -1, -1, P);
+        e_stem5   = vrna_E_multibranch_stem(tt, mm5, -1, P);
+        e_stem3   = vrna_E_multibranch_stem(tt, -1, mm3, P);
+        e_stem53  = vrna_E_multibranch_stem(tt, mm5, mm3, P);
 
         tmp   = E_mm5_occupied + e_stem3;
         tmp   = MIN2(tmp, E_mm5_available + e_stem53);
@@ -2855,13 +2855,13 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
           E2_mm5_occupied   = E2_mm5_available;
         }
 
-        e_stem    = E_MLstem(type, -1, -1, P);
-        e_stem5   = E_MLstem(type, mm5, -1, P);
-        e_stem3   = E_MLstem(type, -1, mm3, P);
-        e_stem53  = E_MLstem(type, mm5, mm3, P);
+        e_stem    = vrna_E_multibranch_stem(type, -1, -1, P);
+        e_stem5   = vrna_E_multibranch_stem(type, mm5, -1, P);
+        e_stem3   = vrna_E_multibranch_stem(type, -1, mm3, P);
+        e_stem53  = vrna_E_multibranch_stem(type, mm5, mm3, P);
       } else {
         /* virtual closing pair */
-        e_stem = e_stem5 = e_stem3 = e_stem53 = E_MLstem(0, -1, -1, P);
+        e_stem = e_stem5 = e_stem3 = e_stem53 = vrna_E_multibranch_stem(0, -1, -1, P);
       }
 
       /* now lets see how we get the minimum including the enclosing stem */

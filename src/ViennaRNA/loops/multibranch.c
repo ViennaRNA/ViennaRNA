@@ -255,7 +255,7 @@ ml_pair_d0(vrna_fold_compound_t       *fc,
           if (md->noGUclosure && ((tt == 3) || (tt == 4)))
             return INF; /* not allowed */
 
-          e += E_MLstem(tt, -1, -1, P) +
+          e += vrna_E_multibranch_stem(tt, -1, -1, P) +
                P->MLclosing;
           break;
 
@@ -264,7 +264,7 @@ ml_pair_d0(vrna_fold_compound_t       *fc,
           SS    = fc->S;
           for (s = 0; s < n_seq; s++) {
             tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
-            e   += E_MLstem(tt, -1, -1, P);
+            e   += vrna_E_multibranch_stem(tt, -1, -1, P);
           }
 
           e += n_seq * P->MLclosing;
@@ -349,7 +349,7 @@ ml_pair_d2(vrna_fold_compound_t       *fc,
           si1 = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
           sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
 
-          e += E_MLstem(tt, sj1, si1, P) +
+          e += vrna_E_multibranch_stem(tt, sj1, si1, P) +
                P->MLclosing;
           break;
 
@@ -361,7 +361,7 @@ ml_pair_d2(vrna_fold_compound_t       *fc,
 
           for (s = 0; s < n_seq; s++) {
             tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
-            e   += E_MLstem(tt, S5[s][j], S3[s][i], P);
+            e   += vrna_E_multibranch_stem(tt, S5[s][j], S3[s][i], P);
           }
 
           e += n_seq * P->MLclosing;
@@ -414,7 +414,7 @@ ml_pair5(vrna_fold_compound_t       *fc,
 
           si1 = ((strands == 1) || (sn[i] == sn[i + 2])) ? S[i + 1] : -1;
 
-          e += E_MLstem(tt, -1, si1, P) +
+          e += vrna_E_multibranch_stem(tt, -1, si1, P) +
                P->MLclosing +
                P->MLbase;
           break;
@@ -426,7 +426,7 @@ ml_pair5(vrna_fold_compound_t       *fc,
 
           for (s = 0; s < n_seq; s++) {
             tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
-            e   += E_MLstem(tt, -1, S3[s][i], P);
+            e   += vrna_E_multibranch_stem(tt, -1, S3[s][i], P);
           }
 
           e += (P->MLclosing + P->MLbase) *
@@ -480,7 +480,7 @@ ml_pair3(vrna_fold_compound_t       *fc,
 
           sj1 = ((strands == 1) || (sn[j - 2] == sn[j])) ? S[j - 1] : -1;
 
-          e += E_MLstem(tt, sj1, -1, P) +
+          e += vrna_E_multibranch_stem(tt, sj1, -1, P) +
                P->MLclosing +
                P->MLbase;
           break;
@@ -492,7 +492,7 @@ ml_pair3(vrna_fold_compound_t       *fc,
 
           for (s = 0; s < n_seq; s++) {
             tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
-            e   += E_MLstem(tt, S5[s][j], -1, P);
+            e   += vrna_E_multibranch_stem(tt, S5[s][j], -1, P);
           }
 
           e += (P->MLclosing + P->MLbase) *
@@ -548,7 +548,7 @@ ml_pair53(vrna_fold_compound_t      *fc,
           si1 = ((strands == 1) || (sn[i] == sn[i + 2])) ? S[i + 1] : -1;
           sj1 = ((strands == 1) || (sn[j - 2] == sn[j])) ? S[j - 1] : -1;
 
-          e += E_MLstem(tt, sj1, si1, P) +
+          e += vrna_E_multibranch_stem(tt, sj1, si1, P) +
                P->MLclosing +
                2 * P->MLbase;
           break;
@@ -561,7 +561,7 @@ ml_pair53(vrna_fold_compound_t      *fc,
 
           for (s = 0; s < n_seq; s++) {
             tt  = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
-            e   += E_MLstem(tt, S5[s][j], S3[s][i], P);
+            e   += vrna_E_multibranch_stem(tt, S5[s][j], S3[s][i], P);
           }
 
           e += (P->MLclosing + 2 * P->MLbase) *
@@ -988,9 +988,9 @@ extend_fm_3p(int                        i,
             ij,
             fc->ptype);
           if (dangle_model == 2)
-            en += E_MLstem(type, (i == 1) ? S[length] : S[i - 1], S[j + 1], P);
+            en += vrna_E_multibranch_stem(type, (i == 1) ? S[length] : S[i - 1], S[j + 1], P);
           else
-            en += E_MLstem(type, -1, -1, P);
+            en += vrna_E_multibranch_stem(type, -1, -1, P);
 
           break;
 
@@ -998,12 +998,12 @@ extend_fm_3p(int                        i,
           if (dangle_model == 2) {
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              en    += E_MLstem(type, S5[s][i], S3[s][j], P);
+              en    += vrna_E_multibranch_stem(type, S5[s][i], S3[s][j], P);
             }
           } else {
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              en    += E_MLstem(type, -1, -1, P);
+              en    += vrna_E_multibranch_stem(type, -1, -1, P);
             }
           }
 
@@ -1025,7 +1025,7 @@ extend_fm_3p(int                        i,
       en  = (sliding_window) ? ggg_local[i][j - i] : vrna_smx_csr_int_get(c_gq, i, j, INF);
 #endif
       if (en != INF) {
-        en  += E_MLstem(0, -1, -1, P) *
+        en  += vrna_E_multibranch_stem(0, -1, -1, P) *
                n_seq;
 
         e = MIN2(e, en);
@@ -1057,13 +1057,13 @@ extend_fm_3p(int                        i,
                     vrna_get_ptype_window(i + 1, j, fc->ptype_local) :
                     vrna_get_ptype(indx[j] + i + 1, fc->ptype);
 
-            en += E_MLstem(type, S[i], -1, P);
+            en += vrna_E_multibranch_stem(type, S[i], -1, P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i + 1], SS[s][j], md);
-              en    += E_MLstem(type, S5[s][i + 1], -1, P);
+              en    += vrna_E_multibranch_stem(type, S5[s][i + 1], -1, P);
             }
             break;
         }
@@ -1088,13 +1088,13 @@ extend_fm_3p(int                        i,
                     vrna_get_ptype_window(i, j - 1, fc->ptype_local) :
                     vrna_get_ptype(indx[j - 1] + i, fc->ptype);
 
-            en += E_MLstem(type, -1, S[j], P);
+            en += vrna_E_multibranch_stem(type, -1, S[j], P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j - 1], md);
-              en    += E_MLstem(type, -1, S3[s][j], P);
+              en    += vrna_E_multibranch_stem(type, -1, S3[s][j], P);
             }
             break;
         }
@@ -1119,13 +1119,13 @@ extend_fm_3p(int                        i,
                     vrna_get_ptype_window(i + 1, j - 1, fc->ptype_local) :
                     vrna_get_ptype(indx[j - 1] + i + 1, fc->ptype);
 
-            en += E_MLstem(type, S[i], S[j], P);
+            en += vrna_E_multibranch_stem(type, S[i], S[j], P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i + 1], SS[s][j - 1], md);
-              en    += E_MLstem(type, S5[s][i], S3[s][j], P);
+              en    += vrna_E_multibranch_stem(type, S5[s][i], S3[s][j], P);
             }
             break;
         }
@@ -1308,13 +1308,13 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
               (sliding_window) ? vrna_get_ptype_window(i + 1, j, ptype_local) : vrna_get_ptype(
                 ij + 1,
                 ptype);
-            en += E_MLstem(type, mm5, -1, P);
+            en += vrna_E_multibranch_stem(type, mm5, -1, P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i + 1], SS[s][j], md);
-              en    += E_MLstem(type, S5[s][i + 1], -1, P);
+              en    += vrna_E_multibranch_stem(type, S5[s][i + 1], -1, P);
             }
             break;
         }
@@ -1340,13 +1340,13 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
                                                        ptype_local) : vrna_get_ptype(
                 indx[j - 1] + i,
                 ptype);
-            en += E_MLstem(type, -1, mm3, P);
+            en += vrna_E_multibranch_stem(type, -1, mm3, P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j - 1], md);
-              en    += E_MLstem(type, -1, S3[s][j - 1], P);
+              en    += vrna_E_multibranch_stem(type, -1, S3[s][j - 1], P);
             }
             break;
         }
@@ -1372,13 +1372,13 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
                                                        ptype_local) : vrna_get_ptype(
                 indx[j - 1] + i + 1,
                 ptype);
-            en += E_MLstem(type, mm5, mm3, P);
+            en += vrna_E_multibranch_stem(type, mm5, mm3, P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i + 1], SS[s][j - 1], md);
-              en    += E_MLstem(type, S5[s][i + 1], S3[s][j - 1], P);
+              en    += vrna_E_multibranch_stem(type, S5[s][i + 1], S3[s][j - 1], P);
             }
             break;
         }

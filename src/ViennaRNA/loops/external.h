@@ -319,10 +319,10 @@ vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
  *
  *  @note   This function is threadsafe
  *
- *  @see    E_MLstem(), _ExtLoop()
+ *  @see    vrna_E_multibranch_stem(), _ExtLoop()
  *
- *  @deprecated     Please use one of the functions vrna_E_ext_stem() and
- *                  E_MLstem() instead! Use the former for cases where @p extLoop != 0
+ *  @deprecated     Please use one of the functions vrna_E_exterior_stem() and
+ *                  vrna_E_multibranch_stem() instead! Use the former for cases where @p extLoop != 0
  *                  and the latter otherwise.
  *
  *  @param  type    The pair type of the first base pair un the stem

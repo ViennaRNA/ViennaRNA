@@ -643,13 +643,13 @@ postprocess_circular(vrna_fold_compound_t *fc,
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  =   vrna_get_ptype_md(SS[s][u], SS[s][j], md);
-              e     +=  E_MLstem(type, S5[s][u], S3[s][j], P);
+              e     +=  vrna_E_multibranch_stem(type, S5[s][u], S3[s][j], P);
             }
             break;
 
           default:
             type  =   vrna_get_ptype_md(S[u], S[j], md);
-            e     +=  E_MLstem(type, S1[u - 1], S1[j + 1], P);
+            e     +=  vrna_E_multibranch_stem(type, S1[u - 1], S1[j + 1], P);
             break;
         }
 
@@ -675,7 +675,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
             e = vrna_smx_csr_int_get(c_gq, u, j, INF);
 #endif
             if (e != INF) {
-              e += (E_MLstem(0, -1, -1, P) + (u - 1) * P->MLbase) *
+              e += (vrna_E_multibranch_stem(0, -1, -1, P) + (u - 1) * P->MLbase) *
                    (int)n_seq;
 
               if (sc_mb_wrapper.red_ml)
@@ -962,7 +962,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
             e = new_c +
                 fM2_real[indx[i - 1] + j + 1] +
                 n_seq *
-                (P->MLclosing + E_MLstem(0, -1, -1, P));
+                (P->MLclosing + vrna_E_multibranch_stem(0, -1, -1, P));
             if (e < FgM) {
               FgM = e;
               Mgi = i;
@@ -1454,7 +1454,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
                 type  = vrna_get_ptype(indx[length] + i + 1, ptype);
-                tmp   = E_MLstem(type, -1, S1[1], P) +
+                tmp   = vrna_E_multibranch_stem(type, -1, S1[1], P) +
                         P->MLclosing;
                 break;
 
@@ -1462,7 +1462,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 tmp = P->MLclosing * n_seq;
                 for (s = 0; s < n_seq; s++) {
                   type  = vrna_get_ptype_md(SS[s][i + 1], SS[s][length], md);
-                  tmp   += E_MLstem(type, -1, S3[s][length], P);
+                  tmp   += vrna_E_multibranch_stem(type, -1, S3[s][length], P);
                 }
                 break;
             }
@@ -1555,7 +1555,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
                 type  = vrna_get_ptype(indx[length] + i + 1, ptype);
-                tmp   = E_MLstem(type, S1[i], S1[1], P) +
+                tmp   = vrna_E_multibranch_stem(type, S1[i], S1[1], P) +
                         P->MLclosing;
                 break;
 
@@ -1563,7 +1563,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 tmp = P->MLclosing * n_seq;
                 for (s = 0; s < n_seq; s++) {
                   type  = vrna_get_ptype_md(SS[s][i + 1], SS[s][length], md);
-                  tmp   += E_MLstem(type, S5[s][i + 1], S3[s][length], P);
+                  tmp   += vrna_E_multibranch_stem(type, S5[s][i + 1], S3[s][length], P);
                 }
                 break;
             }
@@ -1644,7 +1644,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
                 type  = vrna_get_ptype(indx[i] + 1, ptype);
-                tmp   = E_MLstem(type, S1[length], -1, P) +
+                tmp   = vrna_E_multibranch_stem(type, S1[length], -1, P) +
                         P->MLclosing;
                 break;
 
@@ -1652,7 +1652,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 tmp = P->MLclosing * n_seq;
                 for (s = 0; s < n_seq; s++) {
                   type  = vrna_get_ptype_md(SS[s][1], SS[s][i], md);
-                  tmp   += E_MLstem(type, S5[s][1], -1, P);
+                  tmp   += vrna_E_multibranch_stem(type, S5[s][1], -1, P);
                 }
                 break;
             }
@@ -1743,7 +1743,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
             switch (fc->type) {
               case VRNA_FC_TYPE_SINGLE:
                 type  = vrna_get_ptype(indx[i] + 1, ptype);
-                tmp   = E_MLstem(type, S1[length], S1[i + 1], P) +
+                tmp   = vrna_E_multibranch_stem(type, S1[length], S1[i + 1], P) +
                         P->MLclosing;
                 break;
 
@@ -1751,7 +1751,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 tmp = P->MLclosing * n_seq;
                 for (s = 0; s < n_seq; s++) {
                   type  = vrna_get_ptype_md(SS[s][1], SS[s][i], md);
-                  tmp   += E_MLstem(type, S5[s][1], S3[s][i], P);
+                  tmp   += vrna_E_multibranch_stem(type, S5[s][1], S3[s][i], P);
                 }
                 break;
             }
@@ -1978,13 +1978,13 @@ postprocess_circular(vrna_fold_compound_t *fc,
             case VRNA_FC_TYPE_COMPARATIVE:
               for (s = 0; s < n_seq; s++) {
                 type  =   vrna_get_ptype_md(SS[s][u], SS[s][Mi], md);
-                e     +=  E_MLstem(type, S5[s][u], S3[s][Mi], P);
+                e     +=  vrna_E_multibranch_stem(type, S5[s][u], S3[s][Mi], P);
               }
               break;
 
             default:
               type  =   vrna_get_ptype_md(S[u], S[Mi], md);
-              e     +=  E_MLstem(type, S1[u - 1], S1[Mi + 1], P);
+              e     +=  vrna_E_multibranch_stem(type, S1[u - 1], S1[Mi + 1], P);
               break;
           }
 
@@ -2010,7 +2010,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
           e = vrna_smx_csr_int_get(c_gq, u, Mi, INF);
 #endif
           if (e != INF) {
-            e += (E_MLstem(0, -1, -1, P) + (u - 1) * P->MLbase) *
+            e += (vrna_E_multibranch_stem(0, -1, -1, P) + (u - 1) * P->MLbase) *
                  (int)n_seq;
 
             if (sc_mb_wrapper.red_ml)

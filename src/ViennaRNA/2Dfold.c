@@ -636,9 +636,9 @@ mfe_linear(vrna_fold_compound_t *vc)
           tt    = rtype[type];
           temp2 = P->MLclosing;
           if (dangles == 2)
-            temp2 += E_MLstem(tt, S1[j - 1], S1[i + 1], P);
+            temp2 += vrna_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], P);
           else
-            temp2 += E_MLstem(tt, -1, -1, P);
+            temp2 += vrna_E_multibranch_stem(tt, -1, -1, P);
 
           for (u = i + turn + 2; u < j - turn - 2; u++) {
             int i1u   = my_iindx[i + 1] - u;
@@ -776,12 +776,12 @@ mfe_linear(vrna_fold_compound_t *vc)
 
       if (dangles == 2)
         temp2 =
-          E_MLstem(type,
+          vrna_E_multibranch_stem(type,
                    ((i > 1) || circ) ? S1[i - 1] : -1,
                    ((j < seq_length) || circ) ? S1[j + 1] : -1,
                    P);
       else
-        temp2 = E_MLstem(type, -1, -1, P);
+        temp2 = vrna_E_multibranch_stem(type, -1, -1, P);
 
       int min_k_guess, max_k_guess, min_l_guess, max_l_guess;
       int min_k_real_m, max_k_real_m, *min_l_real_m, *max_l_real_m;
@@ -1946,9 +1946,9 @@ backtrack_c(unsigned int          i,
         tt      = rtype[type];
         energy  = P->MLclosing;
         if (dangles == 2)
-          energy += E_MLstem(tt, S1[j - 1], S1[i + 1], P);
+          energy += vrna_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], P);
         else
-          energy += E_MLstem(tt, -1, -1, P);
+          energy += vrna_E_multibranch_stem(tt, -1, -1, P);
 
         if (E_M_rem[i1u] != INF) {
           if (E_M1[u1j1]) {
@@ -2045,9 +2045,9 @@ backtrack_c(unsigned int          i,
         tt      = rtype[type];
         energy  = P->MLclosing;
         if (dangles == 2)
-          energy += E_MLstem(tt, S1[j - 1], S1[i + 1], P);
+          energy += vrna_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], P);
         else
-          energy += E_MLstem(tt, -1, -1, P);
+          energy += vrna_E_multibranch_stem(tt, -1, -1, P);
 
         if ((d1 <= k) && (d2 <= l)) {
           for (cnt1 = k_min_M[i1u];
@@ -2191,12 +2191,12 @@ backtrack_m(unsigned int          i,
       type = ptype[jindx[j] + i];
       if (dangles == 2)
         energy =
-          E_MLstem(type,
+          vrna_E_multibranch_stem(type,
                    ((i > 1) || circ) ? S1[i - 1] : -1,
                    ((j < seq_length) || circ) ? S1[j + 1] : -1,
                    P);
       else
-        energy = E_MLstem(type, -1, -1, P);
+        energy = vrna_E_multibranch_stem(type, -1, -1, P);
 
       if (e == (E_C_rem[ij] + energy)) {
         backtrack_c(i, j, -1, -1, structure, vc);
@@ -2215,9 +2215,9 @@ backtrack_m(unsigned int          i,
       d2  = base_d2 - referenceBPs2[iu] - referenceBPs2[uj];
 
       if (dangles == 2)
-        energy = E_MLstem(type, S1[u], (j < seq_length) || circ ? S1[j + 1] : -1, P);
+        energy = vrna_E_multibranch_stem(type, S1[u], (j < seq_length) || circ ? S1[j + 1] : -1, P);
       else
-        energy = E_MLstem(type, -1, -1, P);
+        energy = vrna_E_multibranch_stem(type, -1, -1, P);
 
       if (E_M_rem[iu] != INF) {
         if (E_C[uj]) {
@@ -2326,12 +2326,12 @@ backtrack_m(unsigned int          i,
 
       if (dangles == 2)
         energy =
-          E_MLstem(type,
+          vrna_E_multibranch_stem(type,
                    ((i > 1) || circ) ? S1[i - 1] : -1,
                    ((j < seq_length) || circ) ? S1[j + 1] : -1,
                    P);
       else
-        energy = E_MLstem(type, -1, -1, P);
+        energy = vrna_E_multibranch_stem(type, -1, -1, P);
 
       if ((k >= k_min_C[ij]) && (k <= k_max_C[ij])) {
         if ((l >= l_min_C[ij][k]) && (l <= l_max_C[ij][k])) {
@@ -2358,9 +2358,9 @@ backtrack_m(unsigned int          i,
       d2  = base_d2 - referenceBPs2[my_iindx[i] - u] - referenceBPs2[my_iindx[u + 1] - j];
 
       if (dangles == 2)
-        energy = E_MLstem(type, S1[u], ((j < seq_length) || circ) ? S1[j + 1] : -1, P);
+        energy = vrna_E_multibranch_stem(type, S1[u], ((j < seq_length) || circ) ? S1[j + 1] : -1, P);
       else
-        energy = E_MLstem(type, -1, -1, P);
+        energy = vrna_E_multibranch_stem(type, -1, -1, P);
 
       if (d1 <= k && d2 <= l) {
         for (cnt1 = k_min_M[my_iindx[i] - u]; cnt1 <= MIN2(k - d1, k_max_M[my_iindx[i] - u]);
@@ -2444,12 +2444,12 @@ backtrack_m1(unsigned int         i,
   d2    = referenceBPs2[ij] - referenceBPs2[ij + 1];
 
   if (dangles == 2)
-    energy = E_MLstem(type,
+    energy = vrna_E_multibranch_stem(type,
                       (i > 1) || circ ? S1[i - 1] : -1,
                       (j < seq_length) || circ ? S1[j + 1] : -1,
                       P);
   else
-    energy = E_MLstem(type, -1, -1, P);
+    energy = vrna_E_multibranch_stem(type, -1, -1, P);
 
   if (k == -1) {
     if (E_C_rem[ij] != INF) {

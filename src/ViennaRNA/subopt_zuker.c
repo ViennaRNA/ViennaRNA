@@ -288,10 +288,10 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
 
           switch (dangle_model) {
             case 2:
-              e = E_MLstem(type, S1[k - 1], S1[l + 1], P);
+              e = vrna_E_multibranch_stem(type, S1[k - 1], S1[l + 1], P);
               break;
             default:
-              e = E_MLstem(type, -1, -1, P);
+              e = vrna_E_multibranch_stem(type, -1, -1, P);
               break;
           }
 
@@ -523,10 +523,10 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
 
             switch (dangle_model) {
               case 2:
-                e += E_MLstem(type, S1[j - 1], S1[i + 1], P);
+                e += vrna_E_multibranch_stem(type, S1[j - 1], S1[i + 1], P);
                 break;
               default:
-                e += E_MLstem(type, -1, -1, P);
+                e += vrna_E_multibranch_stem(type, -1, -1, P);
                 break;
             }
 
@@ -576,10 +576,10 @@ prepare_ml_helper(vrna_fold_compound_t  *fc,
 
         switch (dangle_model) {
           case 2:
-            e += E_MLstem(type, S1[l], S1[i + 1], P);
+            e += vrna_E_multibranch_stem(type, S1[l], S1[i + 1], P);
             break;
           default:
-            e += E_MLstem(type, -1, -1, P);
+            e += vrna_E_multibranch_stem(type, -1, -1, P);
             break;
         }
 
@@ -839,10 +839,10 @@ backtrack_outside:
 
     switch (dangle_model) {
       case 2:
-        tmp = E_MLstem(type, S1[k - 1], S1[l + 1], P);
+        tmp = vrna_E_multibranch_stem(type, S1[k - 1], S1[l + 1], P);
         break;
       default:
-        tmp = E_MLstem(type, -1, -1, P);
+        tmp = vrna_E_multibranch_stem(type, -1, -1, P);
         break;
     }
 
@@ -1108,10 +1108,10 @@ backtrack_mb(vrna_fold_compound_t *fc,
 
       switch (dangle_model) {
         case 2:
-          en += E_MLstem(type, S1[j - 1], S1[i + 1], P);
+          en += vrna_E_multibranch_stem(type, S1[j - 1], S1[i + 1], P);
           break;
         default:
-          en += E_MLstem(type, -1, -1, P);
+          en += vrna_E_multibranch_stem(type, -1, -1, P);
           break;
       }
 
@@ -1174,10 +1174,10 @@ backtrack_mb_up(vrna_fold_compound_t  *fc,
 
       switch (dangle_model) {
         case 2:
-          en += E_MLstem(type, S1[j - 1], S1[i + 1], P);
+          en += vrna_E_multibranch_stem(type, S1[j - 1], S1[i + 1], P);
           break;
         default:
-          en += E_MLstem(type, -1, -1, P);
+          en += vrna_E_multibranch_stem(type, -1, -1, P);
           break;
       }
 

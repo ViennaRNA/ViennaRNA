@@ -341,7 +341,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
 #endif
 
     if (en != INF) {
-      en += E_MLstem(0, -1, -1, P) *
+      en += vrna_E_multibranch_stem(0, -1, -1, P) *
            n_seq;
 
       if (fij == en) {
@@ -370,13 +370,13 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
             type = (sliding_window) ? vrna_get_ptype_window(i, j, ptype_local) : vrna_get_ptype(
               ij,
               ptype);
-            en2 = E_MLstem(type, -1, -1, P);
+            en2 = vrna_E_multibranch_stem(type, -1, -1, P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              en2   += E_MLstem(type, -1, -1, P);
+              en2   += vrna_E_multibranch_stem(type, -1, -1, P);
             }
             break;
         }
@@ -402,13 +402,13 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
             type = (sliding_window) ? vrna_get_ptype_window(i, j, ptype_local) : vrna_get_ptype(
               ij,
               ptype);
-            en2 = E_MLstem(type, S1[i - 1], S1[j + 1], P);
+            en2 = vrna_E_multibranch_stem(type, S1[i - 1], S1[j + 1], P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              en2   += E_MLstem(type, S5[s][i], S3[s][j], P);
+              en2   += vrna_E_multibranch_stem(type, S5[s][i], S3[s][j], P);
             }
             break;
         }
@@ -434,13 +434,13 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
             type = (sliding_window) ? vrna_get_ptype_window(i, j, ptype_local) : vrna_get_ptype(
               ij,
               ptype);
-            en2 = E_MLstem(type, -1, -1, P);
+            en2 = vrna_E_multibranch_stem(type, -1, -1, P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              en2   += E_MLstem(type, -1, -1, P);
+              en2   += vrna_E_multibranch_stem(type, -1, -1, P);
             }
             break;
         }
@@ -467,13 +467,13 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
               (sliding_window) ? vrna_get_ptype_window(i + 1, j, ptype_local) : vrna_get_ptype(
                 ij + 1,
                 ptype);
-            en2 += E_MLstem(type, S1[i], -1, P);
+            en2 += vrna_E_multibranch_stem(type, S1[i], -1, P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              en2   += E_MLstem(type, S5[s][i], -1, P);
+              en2   += vrna_E_multibranch_stem(type, S5[s][i], -1, P);
             }
             break;
         }
@@ -504,13 +504,13 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
                                                        ptype_local) : vrna_get_ptype(
                 idx[j - 1] + i,
                 ptype);
-            en2 += E_MLstem(type, -1, S1[j], P);
+            en2 += vrna_E_multibranch_stem(type, -1, S1[j], P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              en2   += E_MLstem(type, -1, S3[s][j], P);
+              en2   += vrna_E_multibranch_stem(type, -1, S3[s][j], P);
             }
             break;
         }
@@ -541,13 +541,13 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
                                                        ptype_local) : vrna_get_ptype(
                 idx[j - 1] + i + 1,
                 ptype);
-            en2 += E_MLstem(type, S1[i], S1[j], P);
+            en2 += vrna_E_multibranch_stem(type, S1[i], S1[j], P);
             break;
 
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              en2   += E_MLstem(type,
+              en2   += vrna_E_multibranch_stem(type,
                                 S5[s][i],
                                 S3[s][j],
                                 P);
@@ -742,23 +742,23 @@ bt_mb_loop(vrna_fold_compound_t *fc,
     if (dangles == 2) {
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
-          e -= E_MLstem(type, s5, s3, P);
+          e -= vrna_E_multibranch_stem(type, s5, s3, P);
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
           for (s = 0; s < n_seq; s++)
-            e -= E_MLstem(tt[s], S5[s][j], S3[s][i], P);
+            e -= vrna_E_multibranch_stem(tt[s], S5[s][j], S3[s][i], P);
           break;
       }
     } else {
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
-          e -= E_MLstem(type, -1, -1, P);
+          e -= vrna_E_multibranch_stem(type, -1, -1, P);
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
           for (s = 0; s < n_seq; s++)
-            e -= E_MLstem(tt[s], -1, -1, P);
+            e -= vrna_E_multibranch_stem(tt[s], -1, -1, P);
           break;
       }
     }
@@ -796,12 +796,12 @@ bt_mb_loop(vrna_fold_compound_t *fc,
 
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
-          e -= E_MLstem(type, -1, s3, P);
+          e -= vrna_E_multibranch_stem(type, -1, s3, P);
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
           for (s = 0; s < n_seq; s++)
-            e -= E_MLstem(tt[s], -1, S3[s][i], P);
+            e -= vrna_E_multibranch_stem(tt[s], -1, S3[s][i], P);
           break;
       }
 
@@ -835,12 +835,12 @@ bt_mb_loop(vrna_fold_compound_t *fc,
 
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
-          e -= E_MLstem(type, s5, -1, P);
+          e -= vrna_E_multibranch_stem(type, s5, -1, P);
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
           for (s = 0; s < n_seq; s++)
-            e -= E_MLstem(tt[s], S5[s][j], -1, P);
+            e -= vrna_E_multibranch_stem(tt[s], S5[s][j], -1, P);
           break;
       }
 
@@ -876,12 +876,12 @@ bt_mb_loop(vrna_fold_compound_t *fc,
 
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
-          e -= E_MLstem(type, s5, s3, P);
+          e -= vrna_E_multibranch_stem(type, s5, s3, P);
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:
           for (s = 0; s < n_seq; s++)
-            e -= E_MLstem(tt[s], S5[s][j], S3[s][i], P);
+            e -= vrna_E_multibranch_stem(tt[s], S5[s][j], S3[s][i], P);
           break;
       }
 
