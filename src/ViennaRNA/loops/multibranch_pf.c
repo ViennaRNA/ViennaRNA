@@ -94,6 +94,30 @@ qqm_constraints_up(vrna_fold_compound_t *fc,
  #################################
  */
 PUBLIC FLT_OR_DBL
+vrna_exp_E_multibranch_stem(unsigned int      type,
+                            int               si1,
+                            int               sj1,
+                            vrna_exp_param_t  *P)
+{
+  double energy;
+  
+  energy = P->expMLintern[type];
+
+  if (si1 >= 0 && sj1 >= 0)
+    energy *= P->expmismatchM[type][si1][sj1];
+  else if (si1 >= 0)
+    energy *= P->expdangle5[type][si1];
+  else if (sj1 >= 0)
+    energy *= P->expdangle3[type][sj1];
+
+  if (type > 2)
+    energy *= P->expTermAU;
+
+  return (FLT_OR_DBL)energy;
+}
+
+
+PUBLIC FLT_OR_DBL
 vrna_exp_E_mb_loop_fast(vrna_fold_compound_t        *fc,
                         int                         i,
                         int                         j,

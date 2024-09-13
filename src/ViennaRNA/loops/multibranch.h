@@ -47,6 +47,37 @@
 
 
 /**
+ *  @brief  Evaluate the free energy contribution of a stem branching off a multibranch loop
+ *
+ *  This function yields the free energy contribution for the terminal base
+ *  pairs of a stem branching off a multibranch loop. In essence, this consists of
+ *  (i) a terminal mismatch or dangling end contribution, (ii) the score for a stem
+ *  according to the affine multibranch loop model, and (iii) a terminal AU/GU penalty,
+ *  if applicable.
+ *
+ *  @note By default, terminal mismatch energies are applied that correspond to the
+ *        neighboring nucleotides provided by their encodings @p n5d and @p n3d. Whenever
+ *        the encodings are negative, the implementation switches to usage of dangling
+ *        end energies (for the non-negative base). If both encodings are negative, no
+ *        terminal mismatch contributions are added.
+ *
+ *  @see vrna_exp_E_multibranch_stem(), vrna_E_exterior_stem()
+ *
+ *  @param  type  The base pair encoding
+ *  @param  si1   The encoded nucleotide directly adjacent at the 5' side of the base pair (may be -1)
+ *  @param  sj1   The encoded nucleotide directly adjacent at the 3' side of the base pair (may be -1)
+ *  @param  p     The pre-computed energy parameters
+ *  @return       The energy contribution of the introduced mutlibranch loop stem
+ */
+int
+vrna_E_multibranch_stem(unsigned int  type,
+                        int           si1,
+                        int           sj1,
+                        vrna_param_t  *P);
+
+
+
+/**
  *  @brief Evaluate energy of a multi branch helices stacking onto closing pair (i,j)
  *
  *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
@@ -87,6 +118,36 @@ vrna_E_ml_stems_fast(vrna_fold_compound_t *fc,
  *  @name Boltzmann weight (partition function) interface
  *  @{
  */
+
+
+/**
+ *  @brief  Evaluate the free energy contribution of a stem branching off a multibranch loop  (Boltzmann factor version)
+ *
+ *  This function yields the free energy contribution as Boltzmann factor @f$ exp(-E/kT) @f$
+ *  for the terminal base pairs of a stem branching off a multibranch loop. In essence, this
+ *  consists of (i) a terminal mismatch or dangling end contribution, (ii) the score for a
+ *  stem according to the affine multibranch loop model, and (iii) a terminal AU/GU penalty,
+ *  if applicable.
+ *
+ *  @note By default, terminal mismatch energies are applied that correspond to the
+ *        neighboring nucleotides provided by their encodings @p n5d and @p n3d. Whenever
+ *        the encodings are negative, the implementation switches to usage of dangling
+ *        end energies (for the non-negative base). If both encodings are negative, no
+ *        terminal mismatch contributions are added.
+ *
+ *  @see vrna_E_multibranch_stem(), vrna_exp_E_exterior_stem()
+ *
+ *  @param  type  The base pair encoding
+ *  @param  si1   The encoded nucleotide directly adjacent at the 5' side of the base pair (may be -1)
+ *  @param  sj1   The encoded nucleotide directly adjacent at the 3' side of the base pair (may be -1)
+ *  @param  p     The pre-computed energy parameters (Boltzmann factor version)
+ *  @return       The Boltzmann factor of the energy contribution for the introduced mutlibranch loop stem
+ */
+FLT_OR_DBL
+vrna_exp_E_multibranch_stem(unsigned int      type,
+                            int               si1,
+                            int               sj1,
+                            vrna_exp_param_t  *P);
 
 
 /**
@@ -247,6 +308,14 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
  *  @param  D The datastructure containing scaled energy parameters
  *  @return   The energy contribution of the introduced multiloop stem
  */
+DEPRECATED(PRIVATE INLINE int
+E_MLstem(int          type,
+         int          si1,
+         int          sj1,
+         vrna_param_t *P),
+          "Use vrna_E_multibranch_stem() instead!");
+
+
 PRIVATE INLINE int
 E_MLstem(int          type,
          int          si1,
@@ -279,6 +348,15 @@ E_MLstem(int          type,
  *
  *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
+DEPRECATED(PRIVATE INLINE FLT_OR_DBL
+exp_E_MLstem(int              type,
+             int              si1,
+             int              sj1,
+             vrna_exp_param_t *P),
+          "Use vrna_exp_E_multibranch_stem() instead!");
+
+
+
 PRIVATE INLINE FLT_OR_DBL
 exp_E_MLstem(int              type,
              int              si1,
