@@ -8,13 +8,13 @@
  *
  *  <P>
  *  This file contains functions for the calculation of the free energy @f$\Delta G@f$
- *  of a hairpin- [ E_Hairpin() ] or interior-loop [ E_IntLoop()] .<BR>
+ *  of a hairpin- [ vrna_E_hairpin() ] or interior-loop [ vrna_E_internal()] .<BR>
  *  The unit of the free energy returned is @f$10^{-2} * \mathrm{kcal}/\mathrm{mol}@f$
  *  </P>
  *  <P>
  *  In case of computing the partition function, this file also supplies functions
- *  which return the Boltzmann weights @f$e^{-\Delta G/kT} @f$ for a hairpin- [ exp_E_Hairpin() ]
- *  or interior-loop [ exp_E_IntLoop() ].
+ *  which return the Boltzmann weights @f$e^{-\Delta G/kT} @f$ for a hairpin- [ vrna_exp_E_hairpin() ]
+ *  or interior-loop [ vrna_exp_E_internal() ].
  *  </P>
  */
 

@@ -539,7 +539,7 @@ vrna_stack_prob(vrna_fold_compound_t  *vc,
 
         p *= qb[index[i + 1] - (j - 1)] /
              qb[index[i] - j];
-        p *= exp_E_IntLoop(0,
+        p *= vrna_exp_E_internal(0,
                            0,
                            vrna_get_ptype(jindx[j] + i, ptype),
                            rtype[vrna_get_ptype(jindx[j - 1] + i + 1, ptype)],
@@ -1293,7 +1293,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
             int jij = jindx[j] + i;
             type  = vrna_get_ptype(jij, ptype);
             tmp2  = probs[ij] *
-                    exp_E_IntLoop(u1,
+                    vrna_exp_E_internal(u1,
                                   u2,
                                   type,
                                   type_2,
@@ -1461,7 +1461,7 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
               int u1_loc  = a2s[s][k - 1] - a2s[s][i];
               int u2_loc  = a2s[s][j - 1] - a2s[s][l];
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-              tmp2  *= exp_E_IntLoop(u1_loc,
+              tmp2  *= vrna_exp_E_internal(u1_loc,
                                      u2_loc,
                                      type,
                                      tt[s],
@@ -3984,7 +3984,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
                 if (fc->type == VRNA_FC_TYPE_SINGLE) {
                   type_2 = vrna_get_ptype(jindx[l] + k, ptype);
 
-                  tmp *= exp_E_IntLoop(ln1 + ln3,
+                  tmp *= vrna_exp_E_internal(ln1 + ln3,
                                        ln2,
                                        rt,
                                        rtype[type_2],
@@ -4000,7 +4000,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     ln1a    = a2s[s][n] - a2s[s][j];
                     ln1a    += a2s[s][k - 1];
                     type_2  = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-                    tmp     *= exp_E_IntLoop(ln1a, ln2a, tt[s], type_2,
+                    tmp     *= vrna_exp_E_internal(ln1a, ln2a, tt[s], type_2,
                                              S3[s][j],
                                              S5[s][i],
                                              S5[s][k],
@@ -4056,7 +4056,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
                 if (fc->type == VRNA_FC_TYPE_SINGLE) {
                   type_2  = vrna_get_ptype(jindx[l] + k, ptype);
-                  tmp     *= exp_E_IntLoop(ln2 + ln3,
+                  tmp     *= vrna_exp_E_internal(ln2 + ln3,
                                            ln1,
                                            rtype[type_2],
                                            rt,
@@ -4070,7 +4070,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
                     ln1a    = a2s[s][k] - a2s[s][j + 1];
                     ln2a    = a2s[s][i - 1] + a2s[s][n] - a2s[s][l];
                     type_2  = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-                    tmp     *= exp_E_IntLoop(ln2a, ln1a, type_2, tt[s],
+                    tmp     *= vrna_exp_E_internal(ln2a, ln1a, type_2, tt[s],
                                              S3[s][l],
                                              S5[s][k],
                                              S5[s][i],

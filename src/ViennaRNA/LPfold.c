@@ -1177,7 +1177,7 @@ compute_probs(vrna_fold_compound_t        *vc,
             type = vrna_get_ptype_window(i, m + i, ptype);
             if (pR[i][m] > 0) {
               temp = pR[i][m] *
-                     exp_E_IntLoop(u1,
+                     vrna_exp_E_internal(u1,
                                    u2,
                                    type,
                                    type_2,
@@ -1442,7 +1442,7 @@ get_deppp(vrna_fold_compound_t  *vc,
     if ((qb[start][j] * qb[start - 1][(j + 1)]) > 10e-200) {
       int type    = ptype[start - 1][j + 1];
       int type_2  = rtype[(unsigned char)ptype[start][j]];
-      tmp = qb[start][j] / qb[start - 1][(j + 1)] * exp_E_IntLoop(0,
+      tmp = qb[start][j] / qb[start - 1][(j + 1)] * vrna_exp_E_internal(0,
                                                                   0,
                                                                   type,
                                                                   type_2,
@@ -1507,7 +1507,7 @@ compute_stack_probabilities(vrna_fold_compound_t  *vc,
       type_2  = rtype[vrna_get_ptype_window(start, j + start, ptype)];
       tmp     = qb[start][j] /
                 qb[start - 1][(j + 1)] *
-                exp_E_IntLoop(0,
+                vrna_exp_E_internal(0,
                               0,
                               type,
                               type_2,

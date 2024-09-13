@@ -1304,7 +1304,7 @@ backtrack(int                             i,
               type_2 = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
               /* add *scale[u1+u2+2] */
-              q_temp *= exp_E_IntLoop(u1,
+              q_temp *= vrna_exp_E_internal(u1,
                                       u2,
                                       type,
                                       type_2,
@@ -1318,7 +1318,7 @@ backtrack(int                             i,
                 u1_local  = a2s[s][k - 1] - a2s[s][i] /*??*/;
                 u2_local  = a2s[s][j - 1] - a2s[s][l];
                 type_2    = vrna_get_ptype_md(S[s][l], S[s][k], md);
-                q_temp    *= exp_E_IntLoop(u1_local,
+                q_temp    *= vrna_exp_E_internal(u1_local,
                                            u2_local,
                                            types[s],
                                            type_2,
@@ -1668,7 +1668,7 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
                 switch (vc->type) {
                   case VRNA_FC_TYPE_SINGLE:
                     type2   = vrna_get_ptype_md(S2[l], S2[k], md);
-                    q_temp  *= exp_E_IntLoop(ln2 + ln3,
+                    q_temp  *= vrna_exp_E_internal(ln2 + ln3,
                                              ln1,
                                              type2,
                                              type,
@@ -1684,7 +1684,7 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
                       u1_local  = a2s[s][i - 1];
                       u2_local  = a2s[s][k - 1] - a2s[s][j];
                       u3_local  = a2s[s][n] - a2s[s][l];
-                      q_temp    *= exp_E_IntLoop(u1_local + u3_local,
+                      q_temp    *= vrna_exp_E_internal(u1_local + u3_local,
                                                  u2_local,
                                                  type2,
                                                  tt[s],

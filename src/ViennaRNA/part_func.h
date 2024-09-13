@@ -722,7 +722,7 @@ DEPRECATED(double
            "Use vrna_mean_bp_distance() or vrna_mean_bp_distance_pr() instead");
 
 /**
- *  @deprecated Use @ref exp_E_IntLoop() from loop_energies.h instead
+ *  @deprecated Use @ref vrna_exp_E_internal() from loop_energies.h instead
  */
 DEPRECATED(double
            expLoopEnergy(int    u1,

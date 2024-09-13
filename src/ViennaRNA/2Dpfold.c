@@ -560,7 +560,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
 
             type_2  = rtype[type_2];
             aux_en  =
-              exp_E_IntLoop(k - i - 1, j - l - 1, type, type_2, S1[i + 1], S1[j - 1], S1[k - 1],
+              vrna_exp_E_internal(k - i - 1, j - l - 1, type, type_2, S1[i + 1], S1[j - 1], S1[k - 1],
                             S1[l + 1], pf_params) * scale[k - i + j - l];
 
             /* get distance to reference if closing the interior loop
@@ -1713,7 +1713,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
               continue;
 
             qot =
-              exp_E_IntLoop(ln2,
+              vrna_exp_E_internal(ln2,
                             ln1,
                             rtype[type2],
                             type,
@@ -1765,7 +1765,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
               continue;
 
             qot =
-              exp_E_IntLoop(ln2,
+              vrna_exp_E_internal(ln2,
                             ln1,
                             rtype[type2],
                             type,
@@ -2858,7 +2858,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
               if (!type2)
                 continue;
 
-              qt = exp_E_IntLoop(ln2, ln1,
+              qt = vrna_exp_E_internal(ln2, ln1,
                                  rtype[type2], type,
                                  S1[q + 1], S1[p - 1],
                                  S1[i - 1], S1[j + 1],
@@ -2916,7 +2916,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
               if (!type2)
                 continue;
 
-              qt = exp_E_IntLoop(ln2, ln1,
+              qt = vrna_exp_E_internal(ln2, ln1,
                                  rtype[type2], type,
                                  S1[q + 1], S1[p - 1],
                                  S1[i - 1], S1[j + 1],
@@ -3012,7 +3012,7 @@ backtrack_qcI(vrna_fold_compound_t  *vc,
             if (!type2)
               continue;
 
-            qt = exp_E_IntLoop(ln2, ln1,
+            qt = vrna_exp_E_internal(ln2, ln1,
                                rtype[type2], type,
                                S1[q + 1], S1[p - 1],
                                S1[i - 1], S1[j + 1],
@@ -3533,7 +3533,7 @@ backtrack(vrna_fold_compound_t  *vc,
             db      = base_d2 + referenceBPs2[my_iindx[i] - j] - referenceBPs2[my_iindx[k] - l];
             type_2  = rtype[type_2];
             FLT_OR_DBL tmp_en =
-              exp_E_IntLoop(u1,
+              vrna_exp_E_internal(u1,
                             j - l - 1,
                             type,
                             type_2,
@@ -3619,7 +3619,7 @@ backtrack_int_early_escape_rem:
             db      = base_d2 + referenceBPs2[my_iindx[i] - j] - referenceBPs2[my_iindx[k] - l];
             type_2  = rtype[type_2];
             FLT_OR_DBL tmp_en =
-              exp_E_IntLoop(u1,
+              vrna_exp_E_internal(u1,
                             j - l - 1,
                             type,
                             type_2,
