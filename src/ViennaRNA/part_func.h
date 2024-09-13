@@ -736,7 +736,7 @@ DEPRECATED(double
            "");
 
 /**
- *  @deprecated Use exp_E_Hairpin() from loop_energies.h instead
+ *  @deprecated Use vrna_exp_E_hairpin() from loop_energies.h instead
  */
 DEPRECATED(double
            expHairpinEnergy(int         u,

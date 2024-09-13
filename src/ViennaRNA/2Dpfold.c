@@ -514,7 +514,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
         if (!no_close) {
           if ((da >= 0) && (db >= 0)) {
             if (((unsigned int)da <= maxD1) && ((unsigned int)db <= maxD2)) {
-              matrices->Q_B[ij][da][db / 2] = exp_E_Hairpin(dij,
+              matrices->Q_B[ij][da][db / 2] = vrna_exp_E_hairpin(dij,
                                                             type,
                                                             S1[i + 1],
                                                             S1[j - 1],
@@ -530,7 +530,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
                                           );
               }
             } else {
-              matrices->Q_B_rem[ij] = exp_E_Hairpin(dij,
+              matrices->Q_B_rem[ij] = vrna_exp_E_hairpin(dij,
                                                     type,
                                                     S1[i + 1],
                                                     S1[j - 1],
@@ -1654,7 +1654,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
        */
       da  = base_d1 - referenceBPs1[pq];
       db  = base_d2 - referenceBPs2[pq];
-      qot = exp_E_Hairpin(u, type, S1[q + 1], S1[p - 1], loopseq, pf_params) * scale[u];
+      qot = vrna_exp_E_hairpin(u, type, S1[q + 1], S1[p - 1], loopseq, pf_params) * scale[u];
 
       if (Q_B_rem[pq])
         matrices->Q_cH_rem += Q_B_rem[pq] * qot;
@@ -2684,7 +2684,7 @@ backtrack_qcH(vrna_fold_compound_t  *vc,
           strncat(loopseq, sequence, i);
         }
 
-        qt = exp_E_Hairpin(u, type,
+        qt = vrna_exp_E_hairpin(u, type,
                            S1[j + 1], S1[i - 1],
                            loopseq, pf_params)
              * scale[u];
@@ -2744,7 +2744,7 @@ backtrack_qcH(vrna_fold_compound_t  *vc,
           strncat(loopseq, sequence, i);
         }
 
-        qt = exp_E_Hairpin(u, type,
+        qt = vrna_exp_E_hairpin(u, type,
                            S1[j + 1], S1[i - 1],
                            loopseq, pf_params)
              * scale[u];
@@ -3508,7 +3508,7 @@ backtrack(vrna_fold_compound_t  *vc,
       if ((da > maxD1) || (db > maxD2))
         if (!(((type == 3) || (type == 4)) && no_closingGU))
           qbt1 =
-            exp_E_Hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1,
+            vrna_exp_E_hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1,
                           pf_params) * scale[u + 2];
 
       if (qbt1 >= r)
@@ -3596,7 +3596,7 @@ backtrack_int_early_escape_rem:
       if ((da == d1) && (db == d2))
         if (!(((type == 3) || (type == 4)) && no_closingGU))
           qbt1 =
-            exp_E_Hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1,
+            vrna_exp_E_hairpin(u, type, S1[i + 1], S1[j - 1], sequence + i - 1,
                           pf_params) * scale[u + 2];
 
       if (qbt1 >= r)

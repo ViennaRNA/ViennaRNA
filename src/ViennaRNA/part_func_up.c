@@ -323,7 +323,7 @@ pf_unstru(char  *sequence,
           temp = 0.;
         else
           temp = prpr[po] *
-                 exp_E_Hairpin(u, type, S1[p + 1], S1[o - 1], sequence + p - 1, Pf) * scale[u + 2];
+                 vrna_exp_E_hairpin(u, type, S1[p + 1], S1[o - 1], sequence + p - 1, Pf) * scale[u + 2];
 
         /* all H contribs are collect for the longest unpaired region */
         store_H[p + 1] = temp;
