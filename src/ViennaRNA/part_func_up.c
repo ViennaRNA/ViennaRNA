@@ -387,12 +387,12 @@ pf_unstru(char  *sequence,
       qqm[p] = qqm1[p] * expMLbase[1];
       if (type) {
         qbt1 = qb[po] *
-               exp_E_MLstem(type, (p > 1) ? S1[p - 1] : -1, (o < n) ? S1[o + 1] : -1, Pf);
+               vrna_exp_E_multibranch_stem(type, (p > 1) ? S1[p - 1] : -1, (o < n) ? S1[o + 1] : -1, Pf);
         qqm[p] += qbt1;
         /* reverse dangles for prpr[po]*... */
         temp  = 0.;
         tt    = rtype[type];
-        temp  = prpr[po] * exp_E_MLstem(tt, S1[o - 1], S1[p + 1], Pf) * scale[2] * Pf->expMLclosing;
+        temp  = prpr[po] * vrna_exp_E_multibranch_stem(tt, S1[o - 1], S1[p + 1], Pf) * scale[2] * Pf->expMLclosing;
         for (i = p + 1; i < o; i++) {
           int p1i = (p + 1) < (i - 1)  ? my_iindx[p + 1] - (i - 1)  : 0;
           /*unpaired region expMLbase[i-p] left of structured
@@ -499,12 +499,12 @@ pf_unstru(char  *sequence,
       qqm[p] = qqm1[p] * expMLbase[1];
       if (type) {
         qbt1    = qb[po];
-        qbt1    *= exp_E_MLstem(type, (o > 1) ? S1[o - 1] : -1, (p < n) ? S1[p + 1] : -1, Pf);
+        qbt1    *= vrna_exp_E_multibranch_stem(type, (o > 1) ? S1[o - 1] : -1, (p < n) ? S1[p + 1] : -1, Pf);
         qqm[p]  += qbt1;
         /* revers dangles for prpr[po]...  */
         temp  = 0.;
         tt    = rtype[type];
-        temp  = prpr[po] * exp_E_MLstem(tt, S1[p - 1], S1[o + 1], Pf) * Pf->expMLclosing * scale[2];
+        temp  = prpr[po] * vrna_exp_E_multibranch_stem(tt, S1[p - 1], S1[o + 1], Pf) * Pf->expMLclosing * scale[2];
       }
 
       tqm2 = 0.;

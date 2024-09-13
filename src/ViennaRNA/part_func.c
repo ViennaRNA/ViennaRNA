@@ -584,14 +584,14 @@ postprocess_circular(vrna_fold_compound_t *fc)
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               tt    = vrna_get_ptype_md(SS[s][u], SS[s][j], md);
-              qbt1  *= exp_E_MLstem(tt, S5[s][u], S3[s][j], pf_params);
+              qbt1  *= vrna_exp_E_multibranch_stem(tt, S5[s][u], S3[s][j], pf_params);
             }
 
             break;
 
           default:
             tt    = vrna_get_ptype_md(S[u], S[j], md);
-            qbt1  *= exp_E_MLstem(tt, S1[u - 1], S1[j + 1], pf_params);
+            qbt1  *= vrna_exp_E_multibranch_stem(tt, S1[u - 1], S1[j + 1], pf_params);
             break;
         }
 
@@ -618,7 +618,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
 #endif
             if (q_g != 0.) {
               qbt1    = q_g *
-                        pow(exp_E_MLstem(0, -1, -1, pf_params), (double)n_seq) *
+                        pow(vrna_exp_E_multibranch_stem(0, -1, -1, pf_params), (double)n_seq) *
                         expMLbase[u - 1];
 
               if (sc_mb_wrapper.red_ml)
@@ -909,7 +909,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
           if (qm2[my_iindx[j + 1] - i + 1] != 0) {
             qbt1 = q_g *
                    qm2[my_iindx[j + 1] - i + 1] *
-                   pow(exp_E_MLstem(0, -1, -1, pf_params) * expMLclosing, (double)n_seq);
+                   pow(vrna_exp_E_multibranch_stem(0, -1, -1, pf_params) * expMLclosing, (double)n_seq);
             qmo += qbt1;
           }
 

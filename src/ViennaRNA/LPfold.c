@@ -1217,7 +1217,7 @@ compute_probs(vrna_fold_compound_t        *vc,
         if (hc->matrix_local[i][m - i] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
           tt  = rtype[vrna_get_ptype_window(i, m + i, ptype)];
           ppp = pR[i][m] *
-                exp_E_MLstem(tt, S1[m - 1], S1[i + 1], pf_params) *
+                vrna_exp_E_multibranch_stem(tt, S1[m - 1], S1[i + 1], pf_params) *
                 qm[i + 1][k - 1];
 
           if (sc) {
@@ -1239,7 +1239,7 @@ compute_probs(vrna_fold_compound_t        *vc,
         tt    = rtype[vrna_get_ptype_window(k - 1, m + k - 1, ptype)];
         prmt1 = pR[k - 1][m] *
                 expMLclosing *
-                exp_E_MLstem(tt,
+                vrna_exp_E_multibranch_stem(tt,
                              S1[l],
                              S1[k],
                              pf_params);
@@ -1303,7 +1303,7 @@ compute_probs(vrna_fold_compound_t        *vc,
           double dang;
           /* coefficient for computations of unpairedarrays */
           dang = qb[k][l] *
-                 exp_E_MLstem(tt,
+                 vrna_exp_E_multibranch_stem(tt,
                               (k > 1) ? S1[k - 1] : -1,
                               (l < n) ? S1[l + 1] : -1,
                               pf_params) *
@@ -1326,7 +1326,7 @@ compute_probs(vrna_fold_compound_t        *vc,
           temp += prml[m] * qm[l + 1][m - 1];
 
 
-        temp *= exp_E_MLstem(tt,
+        temp *= vrna_exp_E_multibranch_stem(tt,
                              (k > 1) ? S1[k - 1] : -1,
                              (l < n) ? S1[l + 1] : -1,
                              pf_params) *
@@ -1661,7 +1661,7 @@ compute_pU(vrna_fold_compound_t       *vc,
         }
 
         /* add dangles, multloopclosing etc. */
-        qqq = exp_E_MLstem(tt,
+        qqq = vrna_exp_E_multibranch_stem(tt,
                            S1[j3 - 1],
                            S1[i5 + 1],
                            pf_params) *
@@ -1785,7 +1785,7 @@ compute_pU(vrna_fold_compound_t       *vc,
       for (obp = k + len + turn + turn; obp <= MIN2(n, k + winSize - 1); obp++) {
         if (hc->matrix_local[k][obp - k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
           tt    = rtype[vrna_get_ptype_window(k, obp + k, ptype)];
-          temp  = exp_E_MLstem(tt, S1[obp - 1], S1[k + 1], pf_params) *
+          temp  = vrna_exp_E_multibranch_stem(tt, S1[obp - 1], S1[k + 1], pf_params) *
                   scale[2] *
                   expMLbase[len] *
                   expMLclosing *

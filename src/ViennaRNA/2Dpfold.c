@@ -605,7 +605,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
           for (u = i + turn + 2; u < j - turn - 2; u++) {
             tt    = rtype[type];
             temp2 = pf_params->expMLclosing *
-                    exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params) * scale[2];
+                    vrna_exp_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], pf_params) * scale[2];
 
             if (matrices->Q_M_rem[my_iindx[i + 1] - u]) {
               if (matrices->Q_M1[jindx[j - 1] + u + 1]) {
@@ -849,7 +849,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
 
       /* j pairs with i */
       if ((!no_close) && type) {
-        FLT_OR_DBL aux_en = exp_E_MLstem(type,
+        FLT_OR_DBL aux_en = vrna_exp_E_multibranch_stem(type,
                                          (i > 1) || circ ? S1[i - 1] : -1,
                                          (j < seq_length) || circ ? S1[j + 1] : -1,
                                          pf_params);
@@ -896,7 +896,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
       ii = my_iindx[i];
       for (k = i + 1; k <= j; k++) {
         tt    = ptype[jindx[j] + k];
-        temp2 = exp_E_MLstem(tt, S1[k - 1], (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
+        temp2 = vrna_exp_E_multibranch_stem(tt, S1[k - 1], (j < seq_length) || circ ? S1[j + 1] : -1, pf_params);
 
         if (matrices->Q_B_rem[my_iindx[k] - j]) {
           matrices->Q_M_rem[ij] += matrices->Q_B_rem[my_iindx[k] - j] *
@@ -3930,7 +3930,7 @@ backtrack_qm1(vrna_fold_compound_t  *vc,
   for (qt = 0., l = i + turn + 1; l <= j; l++) {
     type = ptype[jindx[l] + i];
     if (type) {
-      FLT_OR_DBL tmp = exp_E_MLstem(type, S1[i - 1], S1[l + 1], pf_params) * pow(
+      FLT_OR_DBL tmp = vrna_exp_E_multibranch_stem(type, S1[i - 1], S1[l + 1], pf_params) * pow(
         pf_params->expMLbase,
         j - l) * scale[j - l];
       /* compute the introduced distance to reference structures */

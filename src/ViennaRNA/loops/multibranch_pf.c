@@ -373,7 +373,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
         tt = (sliding_window) ?
              rtype[vrna_get_ptype_window(i, j + i, ptype_local)] :
              rtype[vrna_get_ptype(ij, ptype)];
-        qqqmmm *= exp_E_MLstem(tt, S1[j - 1], S1[i + 1], pf_params);
+        qqqmmm *= vrna_exp_E_multibranch_stem(tt, S1[j - 1], S1[i + 1], pf_params);
 
         break;
 
@@ -381,7 +381,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
       case VRNA_FC_TYPE_COMPARATIVE:
         for (s = 0; s < n_seq; s++) {
           tt      = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
-          qqqmmm  *= exp_E_MLstem(tt, S5[s][j], S3[s][i], pf_params);
+          qqqmmm  *= vrna_exp_E_multibranch_stem(tt, S5[s][j], S3[s][i], pf_params);
         }
         break;
     }
@@ -703,7 +703,7 @@ exp_E_m2_fast(vrna_fold_compound_t        *fc,
         S2    = fc->sequence_encoding2;
         type  = vrna_get_ptype_md(S2[i], S2[j], md);
 
-        qbt1 *= exp_E_MLstem(type,
+        qbt1 *= vrna_exp_E_multibranch_stem(type,
                              ((i > 1) || circular) ? S1[i - 1] : -1,
                              ((j < n) || circular) ? S1[j + 1] : -1,
                              pf_params);
@@ -714,7 +714,7 @@ exp_E_m2_fast(vrna_fold_compound_t        *fc,
         q_temp = 1.;
         for (s = 0; s < n_seq; s++) {
           type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-          q_temp  *= exp_E_MLstem(type,
+          q_temp  *= vrna_exp_E_multibranch_stem(type,
                                   ((i > 1) || circular) ? S5[s][i] : -1,
                                   ((j < n) || circular) ? S3[s][j] : -1,
                                   pf_params);
@@ -737,7 +737,7 @@ exp_E_m2_fast(vrna_fold_compound_t        *fc,
 #endif
     if (q_temp != 0.) {
       qqm[i]  += q_temp *
-                 pow(exp_E_MLstem(0, -1, -1, pf_params), (double)n_seq);
+                 pow(vrna_exp_E_multibranch_stem(0, -1, -1, pf_params), (double)n_seq);
     }
   }
 
