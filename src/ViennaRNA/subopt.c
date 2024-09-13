@@ -1846,7 +1846,7 @@ scan_ext(vrna_fold_compound_t *fc,
           break;
       }
 
-      element_energy = vrna_E_ext_stem(type, s5, s3, P);
+      element_energy = vrna_E_exterior_stem(type, s5, s3, P);
 
       if (sc_decomp_stem)
         element_energy += sc_decomp_stem(j, k - 1, k, sc_dat);
@@ -1914,7 +1914,7 @@ scan_ext(vrna_fold_compound_t *fc,
         break;
     }
 
-    element_energy = vrna_E_ext_stem(type, s5, s3, P);
+    element_energy = vrna_E_exterior_stem(type, s5, s3, P);
 
     if (sc)
       if (sc->f)
@@ -2319,7 +2319,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
         break;
     }
 
-    element_energy = vrna_E_ext_stem(type, s5, s3, P);
+    element_energy = vrna_E_exterior_stem(type, s5, s3, P);
 
     if (sc_red_stem)
       element_energy += sc_red_stem(i, end, i, end, sc_dat);
@@ -2415,7 +2415,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
           break;
       }
 
-      element_energy = vrna_E_ext_stem(type, s5, s3, P);
+      element_energy = vrna_E_exterior_stem(type, s5, s3, P);
 
       if (sc_decomp)
         element_energy += sc_decomp(i, end, k, k + 1, sc_dat);
@@ -2533,7 +2533,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
         break;
     }
 
-    element_energy = vrna_E_ext_stem(type, s5, s3, P);
+    element_energy = vrna_E_exterior_stem(type, s5, s3, P);
 
     if (sc_red_stem)
       element_energy += sc_red_stem(start, i, start, i, sc_dat);
@@ -2628,7 +2628,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
           break;
       }
 
-      element_energy = vrna_E_ext_stem(type, s5, s3, P);
+      element_energy = vrna_E_exterior_stem(type, s5, s3, P);
 
       if (sc_decomp)
         element_energy += sc_decomp(start, i, k, k + 1, sc_dat);
@@ -2936,11 +2936,11 @@ repeat(vrna_fold_compound_t *fc,
 
     switch (dangle_model) {
       case 0:
-        element_energy += vrna_E_ext_stem(rt, -1, -1, P);
+        element_energy += vrna_E_exterior_stem(rt, -1, -1, P);
         break;
       default:
         element_energy +=
-          vrna_E_ext_stem(rt,
+          vrna_E_exterior_stem(rt,
                           (sn[j - 1] == sn[j]) ?
                           S1[j - 1] :
                           -1,

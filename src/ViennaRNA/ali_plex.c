@@ -273,7 +273,7 @@ aliduplexfold(const char  *s1[],
 
       for (s = 0; s < n_seq; s++)
         c[i][j] +=
-          vrna_E_ext_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
+          vrna_E_exterior_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
                           P) + 2 * extension_cost;
       for (k = i - 1; k > 0 && k > i - MAXLOOP - 2; k--) {
         for (l = j + 1; l <= n4; l++) {
@@ -300,7 +300,7 @@ aliduplexfold(const char  *s1[],
       E       = c[i][j];
       for (s = 0; s < n_seq; s++)
         E +=
-          vrna_E_ext_stem(rtype[type[s]], (j > 1) ? S2[s][j - 1] : -1, (i < n3) ? S1[s][i + 1] : -1,
+          vrna_E_exterior_stem(rtype[type[s]], (j > 1) ? S2[s][j - 1] : -1, (i < n3) ? S1[s][i + 1] : -1,
                           P) + 2 * extension_cost;
       if (E < Emin) {
         Emin  = E;
@@ -423,7 +423,7 @@ alibacktrack(int          n3,
     if (!traced) {
       for (s = 0; s < n_seq; s++)
         E -=
-          vrna_E_ext_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
+          vrna_E_exterior_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n4) ? S2[s][j + 1] : -1,
                           P) + 2 * extension_cost;
       if (E != n_seq * P->DuplexInit + n_seq * 2 * extension_cost) {
         vrna_log_error("backtrack failed in aliduplex");
@@ -675,7 +675,7 @@ aliLduplexfold(const char *s1[],
         continue;
 
       for (s = 0; s < n_seq; s++)
-        lc[idx][j] += vrna_E_ext_stem(type[s], S1[s][i - 1], S2[s][j + 1], P) + 2 * extension_cost;
+        lc[idx][j] += vrna_E_exterior_stem(type[s], S1[s][i - 1], S2[s][j + 1], P) + 2 * extension_cost;
       for (s = 0; s < n_seq; s++) {
         type2 = pair[S1[s][i - 1]][S2[s][j + 1]];
         if (type2 == 0)
@@ -827,7 +827,7 @@ aliLduplexfold(const char *s1[],
       lc[idx][j]  -= psc;
       temp        = lc[idx][j];
       for (s = 0; s < n_seq; s++)
-        temp += vrna_E_ext_stem(rtype[type[s]], S2[s][j - 1], S1[s][i + 1], P) + 2 * extension_cost;
+        temp += vrna_E_exterior_stem(rtype[type[s]], S2[s][j - 1], S1[s][i + 1], P) + 2 * extension_cost;
       if (min_colonne > temp) {
         min_colonne   = temp;
         min_j_colonne = j;
@@ -1123,7 +1123,7 @@ aliduplexfold_XS(const char *s1[],
       type[s] = 7;
 
   for (s = 0; s < n_seq; s++)
-    c[i][j] += vrna_E_ext_stem(rtype[type[s]],
+    c[i][j] += vrna_E_exterior_stem(rtype[type[s]],
                                (j_flag ? S2[s][j - 1] : -1),
                                (i_flag ? S1[s][i + 1] : -1),
                                P);
@@ -1170,7 +1170,7 @@ aliduplexfold_XS(const char *s1[],
       E       += n_seq * (access_s1[i - k + 1][i_pos] + access_s2[l - 1][j_pos + (l - 1) - 1]);
       for (s = 0; s < n_seq; s++)
         E +=
-          vrna_E_ext_stem(type2[s], (k > 1) ? S1[s][k - 1] : -1, (l < n4) ? S2[s][l + 1] : -1, P);
+          vrna_E_exterior_stem(type2[s], (k > 1) ? S1[s][k - 1] : -1, (l < n4) ? S2[s][l + 1] : -1, P);
       if (E < Emin) {
         Emin  = E;
         k_min = k;
@@ -1552,7 +1552,7 @@ aliLduplexfold_XS(const char  *s1[],
         continue;
 
       for (s = 0; s < n_seq; s++)
-        lc[idx][j] += vrna_E_ext_stem(type[s], S1[s][i - 1], S2[s][j + 1], P);
+        lc[idx][j] += vrna_E_exterior_stem(type[s], S1[s][i - 1], S2[s][j + 1], P);
       for (s = 0; s < n_seq; s++) {
         type2 = pair[S1[s][i - 1]][S2[s][j + 1]];
         if (type2 == 0)
@@ -1705,7 +1705,7 @@ aliLduplexfold_XS(const char  *s1[],
       temp        = lc[idx][j];
 
       for (s = 0; s < n_seq; s++)
-        temp += vrna_E_ext_stem(rtype[type[s]], S2[s][j - 1], S1[s][i + 1], P);
+        temp += vrna_E_exterior_stem(rtype[type[s]], S2[s][j - 1], S1[s][i + 1], P);
       if (min_colonne > temp) {
         min_colonne   = temp;
         min_j_colonne = j;

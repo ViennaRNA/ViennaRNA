@@ -1194,9 +1194,9 @@ mfe_linear(vrna_fold_compound_t *vc)
     additional_en = 0;
     if (type) {
       if (dangles == 2)
-        additional_en += vrna_E_ext_stem(type, -1, j < seq_length ? S1[j + 1] : -1, P);
+        additional_en += vrna_E_exterior_stem(type, -1, j < seq_length ? S1[j + 1] : -1, P);
       else
-        additional_en += vrna_E_ext_stem(type, -1, -1, P);
+        additional_en += vrna_E_exterior_stem(type, -1, -1, P);
     }
 
     /* make min and max k guess for memory allocation */
@@ -1305,9 +1305,9 @@ mfe_linear(vrna_fold_compound_t *vc)
       type  = ptype[jindx[j] + i];
       if (type) {
         if (dangles == 2)
-          additional_en = vrna_E_ext_stem(type, S1[i - 1], j < seq_length ? S1[j + 1] : -1, P);
+          additional_en = vrna_E_exterior_stem(type, S1[i - 1], j < seq_length ? S1[j + 1] : -1, P);
         else
-          additional_en = vrna_E_ext_stem(type, -1, -1, P);
+          additional_en = vrna_E_exterior_stem(type, -1, -1, P);
 
         if (matrices->E_C_rem[ij] != INF) {
           for (cnt3 = matrices->k_min_F5[i - 1]; cnt3 <= matrices->k_max_F5[i - 1]; cnt3++)
@@ -1420,9 +1420,9 @@ mfe_linear(vrna_fold_compound_t *vc)
       additional_en = 0;
       if (type) {
         if (dangles == 2)
-          additional_en += vrna_E_ext_stem(type, j > 1 ? S1[j - 1] : -1, -1, P);
+          additional_en += vrna_E_exterior_stem(type, j > 1 ? S1[j - 1] : -1, -1, P);
         else
-          additional_en += vrna_E_ext_stem(type, -1, -1, P);
+          additional_en += vrna_E_exterior_stem(type, -1, -1, P);
       }
 
       /* make min and max k guess for memory allocation */
@@ -1513,9 +1513,9 @@ mfe_linear(vrna_fold_compound_t *vc)
                               referenceBPs2[my_iindx[1] - i + 1];
 
           if (dangles == 2)
-            additional_en = vrna_E_ext_stem(type, S1[i - 1], j < seq_length ? S1[j + 1] : -1, P);
+            additional_en = vrna_E_exterior_stem(type, S1[i - 1], j < seq_length ? S1[j + 1] : -1, P);
           else
-            additional_en = vrna_E_ext_stem(type, -1, -1, P);
+            additional_en = vrna_E_exterior_stem(type, -1, -1, P);
 
           for (cnt1 = matrices->k_min_C[ij]; cnt1 <= matrices->k_max_C[ij]; cnt1++)
             for (cnt2 = matrices->l_min_C[ij][cnt1]; cnt2 <= matrices->l_max_C[ij][cnt1]; cnt2 += 2)
@@ -1662,9 +1662,9 @@ backtrack_f5(unsigned int         j,
   type = ptype[jindx[j] + 1];
   if (type) {
     if (dangles == 2)
-      energy = vrna_E_ext_stem(type, -1, j < seq_length ? S1[j + 1] : -1, P);
+      energy = vrna_E_exterior_stem(type, -1, j < seq_length ? S1[j + 1] : -1, P);
     else
-      energy = vrna_E_ext_stem(type, -1, -1, P);
+      energy = vrna_E_exterior_stem(type, -1, -1, P);
 
     if (k == -1) {
       if (E_C_rem[my_iindx[1] - j] + energy == E_F5_rem[j]) {
@@ -1691,9 +1691,9 @@ backtrack_f5(unsigned int         j,
                           referenceBPs2[my_iindx[1] - i + 1];
 
       if (dangles == 2)
-        energy = vrna_E_ext_stem(type, S1[i - 1], j < seq_length ? S1[j + 1] : -1, P);
+        energy = vrna_E_exterior_stem(type, S1[i - 1], j < seq_length ? S1[j + 1] : -1, P);
       else
-        energy = vrna_E_ext_stem(type, -1, -1, P);
+        energy = vrna_E_exterior_stem(type, -1, -1, P);
 
       if (k == -1) {
         if (E_C_rem[ij] != INF) {

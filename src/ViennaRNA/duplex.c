@@ -162,7 +162,7 @@ duplexfold_cu(const char  *s1,
       if (!type)
         continue;
 
-      c[i][j] += vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
+      c[i][j] += vrna_E_exterior_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
       for (k = i - 1; k > 0 && k > i - MAXLOOP - 2; k--) {
         for (l = j + 1; l <= n2; l++) {
           if (i - k + l - j - 2 > MAXLOOP)
@@ -178,7 +178,7 @@ duplexfold_cu(const char  *s1,
         }
       }
       E = c[i][j];
-      E += vrna_E_ext_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
+      E += vrna_E_exterior_stem(rtype[type], (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
       if (E < Emin) {
         Emin  = E;
         i_min = i;
@@ -239,7 +239,7 @@ duplex_subopt(const char  *s1,
         continue;
 
       E   = Ed = c[i][j];
-      Ed  += vrna_E_ext_stem(type, (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
+      Ed  += vrna_E_exterior_stem(type, (j > 1) ? SS2[j - 1] : -1, (i < n1) ? SS1[i + 1] : -1, P);
       if (Ed > thresh)
         continue;
 
@@ -340,7 +340,7 @@ backtrack(int i,
         break;
     }
     if (!traced) {
-      E -= vrna_E_ext_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
+      E -= vrna_E_exterior_stem(type, (i > 1) ? SS1[i - 1] : -1, (j < n2) ? SS2[j + 1] : -1, P);
       if (E != P->DuplexInit) {
         vrna_log_error("backtrack failed in fold duplex");
         free(st1);
@@ -489,7 +489,7 @@ aliduplexfold_cu(const char *s1[],
         continue;
 
       for (s = 0; s < n_seq; s++)
-        c[i][j] += vrna_E_ext_stem(type[s],
+        c[i][j] += vrna_E_exterior_stem(type[s],
                                    (i > 1) ? S1[s][i - 1] : -1,
                                    (j < n2) ? S2[s][j + 1] : -1,
                                    P);
@@ -518,7 +518,7 @@ aliduplexfold_cu(const char *s1[],
       E       = c[i][j];
       for (s = 0; s < n_seq; s++)
         E +=
-          vrna_E_ext_stem(rtype[type[s]],
+          vrna_E_exterior_stem(rtype[type[s]],
                           (j > 1) ? S2[s][j - 1] : -1,
                           (i < n1) ? S1[s][i + 1] : -1,
                           P);
@@ -620,7 +620,7 @@ aliduplex_subopt(const char *s1[],
       E = Ed = c[i][j];
       for (s = 0; s < n_seq; s++)
         Ed +=
-          vrna_E_ext_stem(type[s], (j > 1) ? S2[s][j - 1] : -1, (i < n1) ? S1[s][i + 1] : -1, P);
+          vrna_E_exterior_stem(type[s], (j > 1) ? S2[s][j - 1] : -1, (i < n1) ? S1[s][i + 1] : -1, P);
       if (Ed > thresh)
         continue;
 
@@ -745,7 +745,7 @@ alibacktrack(int          i,
     }
     if (!traced) {
       for (s = 0; s < n_seq; s++)
-        E -= vrna_E_ext_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n2) ? S2[s][j + 1] : -1, P);
+        E -= vrna_E_exterior_stem(type[s], (i > 1) ? S1[s][i - 1] : -1, (j < n2) ? S2[s][j + 1] : -1, P);
       if (E != n_seq * P->DuplexInit) {
         vrna_log_error("backtrack failed in aliduplex");
         free(st1);

@@ -804,13 +804,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
 
               switch (dangle_model) {
                 case 0:
-                  e += vrna_E_ext_stem(tt, -1, -1, P);
+                  e += vrna_E_exterior_stem(tt, -1, -1, P);
                   break;
 
                 case 2:
                   s5  = ((sn[i - 1] == sn[i]) && (a2s[sss][i] > 1)) ? S5[sss][i] : -1;
                   s3  = ((sn[j] == sn[j + 1]) && (a2s[sss][j] < a2s[sss][n])) ? S3[sss][j] : -1;
-                  e   += vrna_E_ext_stem(tt, s5, s3, P);
+                  e   += vrna_E_exterior_stem(tt, s5, s3, P);
                   break;
 
                 default:
@@ -825,13 +825,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
 
             switch (dangle_model) {
               case 0:
-                e += vrna_E_ext_stem(tt, -1, -1, P);
+                e += vrna_E_exterior_stem(tt, -1, -1, P);
                 break;
 
               case 2:
                 s5  = ((sn[i - 1] == sn[i]) && (i > 1)) ? s1[i - 1] : -1;
                 s3  = ((sn[j] == sn[j + 1]) && (j < n)) ? s1[j + 1] : -1;
-                e   += vrna_E_ext_stem(tt, s5, s3, P);
+                e   += vrna_E_exterior_stem(tt, s5, s3, P);
                 break;
 
               default:
@@ -844,12 +844,12 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                 }
 
                 e = MIN2(
-                  e_mm3_occupied + vrna_E_ext_stem(tt, -1, s3, P),
-                  e_mm3_available + vrna_E_ext_stem(tt, s5, s3, P)
+                  e_mm3_occupied + vrna_E_exterior_stem(tt, -1, s3, P),
+                  e_mm3_available + vrna_E_exterior_stem(tt, s5, s3, P)
                   );
                 e_mm3_available = MIN2(
-                  e_mm3_occupied + vrna_E_ext_stem(tt, -1, -1, P),
-                  e_mm3_available + vrna_E_ext_stem(tt, s5, -1, P)
+                  e_mm3_occupied + vrna_E_exterior_stem(tt, -1, -1, P),
+                  e_mm3_available + vrna_E_exterior_stem(tt, s5, -1, P)
                   );
                 e_mm3_occupied = e;
                 break;
@@ -899,13 +899,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
 
               switch (dangle_model) {
                 case 0:
-                  e += vrna_E_ext_stem(tt, -1, -1, P);
+                  e += vrna_E_exterior_stem(tt, -1, -1, P);
                   break;
 
                 case 2:
                   s5  = (sn[j - 1] == sn[j]) ? S5[sss][j] : -1;
                   s3  = (sn[i] == sn[i + 1]) ? S3[sss][i] : -1;
-                  e   += vrna_E_ext_stem(tt, s5, s3, P);
+                  e   += vrna_E_exterior_stem(tt, s5, s3, P);
                   break;
 
                 default:
@@ -920,13 +920,13 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
 
             switch (dangle_model) {
               case 0:
-                e += vrna_E_ext_stem(tt, -1, -1, P);
+                e += vrna_E_exterior_stem(tt, -1, -1, P);
                 break;
 
               case 2:
                 s5  = (sn[j - 1] == sn[j]) ? s1[j - 1] : -1;
                 s3  = (sn[i] == sn[i + 1]) ? s1[i + 1] : -1;
-                e   += vrna_E_ext_stem(tt, s5, s3, P);
+                e   += vrna_E_exterior_stem(tt, s5, s3, P);
                 break;
 
               default:
@@ -939,12 +939,12 @@ energy_of_extLoop_pt(vrna_fold_compound_t *fc,
                 }
 
                 e = MIN2(
-                  e_mm3_occupied + vrna_E_ext_stem(tt, -1, s3, P),
-                  e_mm3_available + vrna_E_ext_stem(tt, s5, s3, P)
+                  e_mm3_occupied + vrna_E_exterior_stem(tt, -1, s3, P),
+                  e_mm3_available + vrna_E_exterior_stem(tt, s5, s3, P)
                   );
                 e_mm3_available = MIN2(
-                  e_mm3_occupied + vrna_E_ext_stem(tt, -1, -1, P),
-                  e_mm3_available + vrna_E_ext_stem(tt, s5, -1, P)
+                  e_mm3_occupied + vrna_E_exterior_stem(tt, -1, -1, P),
+                  e_mm3_available + vrna_E_exterior_stem(tt, s5, -1, P)
                   );
                 e_mm3_occupied = e;
                 break;

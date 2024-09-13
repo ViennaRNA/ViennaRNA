@@ -628,15 +628,15 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
                fC[j - 1];
       switch (dangle_model) {
         case 0:
-          decomp += vrna_E_ext_stem(tt, -1, -1, P);
+          decomp += vrna_E_exterior_stem(tt, -1, -1, P);
           break;
 
         case 2:
-          decomp += vrna_E_ext_stem(tt, S_j1, S_i1, P);
+          decomp += vrna_E_exterior_stem(tt, S_j1, S_i1, P);
           break;
 
         default:
-          decomp += vrna_E_ext_stem(tt, -1, -1, P);
+          decomp += vrna_E_exterior_stem(tt, -1, -1, P);
           break;
       }
     }
@@ -648,7 +648,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
       if ((fC[i + 2] != INF) && (fC[j - 1] != INF)) {
         en = fC[i + 2] +
              fC[j - 1] +
-             vrna_E_ext_stem(tt, -1, S_i1, P);
+             vrna_E_exterior_stem(tt, -1, S_i1, P);
         decomp = MIN2(decomp, en);
       }
     }
@@ -657,7 +657,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
       if ((fC[i + 1] != INF) && (fC[j - 2] != INF)) {
         en = fC[i + 1] +
              fC[j - 2] +
-             vrna_E_ext_stem(tt, S_j1, -1, P);
+             vrna_E_exterior_stem(tt, S_j1, -1, P);
         decomp = MIN2(decomp, en);
       }
     }
@@ -666,7 +666,7 @@ E_mb_loop_fake(vrna_fold_compound_t *fc,
       if ((fC[i + 2] != INF) && (fC[j - 2] != INF)) {
         en = fC[i + 2] +
              fC[j - 2] +
-             vrna_E_ext_stem(tt, S_j1, S_i1, P);
+             vrna_E_exterior_stem(tt, S_j1, S_i1, P);
         decomp = MIN2(decomp, en);
       }
     }

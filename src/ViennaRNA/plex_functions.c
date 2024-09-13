@@ -604,7 +604,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
       for (j = i + turn + 1; j <= n; j++) {
         if (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
           type                                      = md->pair[S[j]][S[i]];
-          c3[max_interaction_length - 1][j - 1][0]  = vrna_E_ext_stem(type,
+          c3[max_interaction_length - 1][j - 1][0]  = vrna_E_exterior_stem(type,
                                                                       S1[j - 1],
                                                                       si,
                                                                       P);
@@ -679,7 +679,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
                 type2 = md->pair[S[k]][S[l]];
                 sl    = (l < n) ? S1[l + 1] : -1;
                 E     = c3kj[l - j] +
-                        vrna_E_ext_stem(type2, sk, sl, P) +
+                        vrna_E_exterior_stem(type2, sk, sl, P) +
                         a1 +
                         access_s1[l - j + 1][l];
 
@@ -804,7 +804,7 @@ backtrack_XS(vrna_fold_compound_t *fc,
         break;
     }
     if (!traced) {
-      E -= vrna_E_ext_stem(rtype[type],
+      E -= vrna_E_exterior_stem(rtype[type],
                            S1[l - 1],
                            S1[k + 1],
                            P);

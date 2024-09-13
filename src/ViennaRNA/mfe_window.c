@@ -1440,8 +1440,8 @@ update_block(unsigned int i,
           type  = vrna_get_ptype_md(S2[i_local],
                                     S2[j_local],
                                     md);
-          ediff = vrna_E_ext_stem(type, -1, d3, params) -
-                  vrna_E_ext_stem(type, d5, d3, params);
+          ediff = vrna_E_exterior_stem(type, -1, d3, params) -
+                  vrna_E_exterior_stem(type, d5, d3, params);
           break;
 
         case 0:

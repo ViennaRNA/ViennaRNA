@@ -147,7 +147,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
     if (hc->mx[n + n] & VRNA_CONSTRAINT_CONTEXT_EXT_LOOP) {
       kl            = idx[n] + 1;
       type          = vrna_get_ptype_md(S[1], S[n], md);
-      e             = vrna_E_ext_stem(type, -1, -1, P);
+      e             = vrna_E_exterior_stem(type, -1, -1, P);
       outside_c[kl] = e;
     }
 
@@ -162,11 +162,11 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
 
           switch (dangle_model) {
             case 2:
-              e += vrna_E_ext_stem(type, S1[k - 1], -1, P);
+              e += vrna_E_exterior_stem(type, S1[k - 1], -1, P);
               break;
 
             default:
-              e += vrna_E_ext_stem(type, -1, -1, P);
+              e += vrna_E_exterior_stem(type, -1, -1, P);
               break;
           }
 
@@ -190,11 +190,11 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
 
           switch (dangle_model) {
             case 2:
-              e += vrna_E_ext_stem(type, -1, S1[k + 1], P);
+              e += vrna_E_exterior_stem(type, -1, S1[k + 1], P);
               break;
 
             default:
-              e += vrna_E_ext_stem(type, -1, -1, P);
+              e += vrna_E_exterior_stem(type, -1, -1, P);
               break;
           }
 
@@ -233,10 +233,10 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
 
             switch (dangle_model) {
               case 2:
-                e_ext += vrna_E_ext_stem(type, S1[k - 1], S1[l + 1], P);
+                e_ext += vrna_E_exterior_stem(type, S1[k - 1], S1[l + 1], P);
                 break;
               default:
-                e_ext += vrna_E_ext_stem(type, -1, -1, P);
+                e_ext += vrna_E_exterior_stem(type, -1, -1, P);
             }
 
             if (sc)
@@ -686,10 +686,10 @@ compute_f3(vrna_fold_compound_t *fc)
 
           switch (dangle_model) {
             case 2:
-              e += vrna_E_ext_stem(type, S1[j - 1], S1[k + 1], P);
+              e += vrna_E_exterior_stem(type, S1[j - 1], S1[k + 1], P);
               break;
             default:
-              e += vrna_E_ext_stem(type, -1, -1, P);
+              e += vrna_E_exterior_stem(type, -1, -1, P);
               break;
           }
 
@@ -710,10 +710,10 @@ compute_f3(vrna_fold_compound_t *fc)
         e     = c[jk];
         switch (dangle_model) {
           case 2:
-            e += vrna_E_ext_stem(type, S1[j - 1], -1, P);
+            e += vrna_E_exterior_stem(type, S1[j - 1], -1, P);
             break;
           default:
-            e += vrna_E_ext_stem(type, -1, -1, P);
+            e += vrna_E_exterior_stem(type, -1, -1, P);
             break;
         }
 
@@ -1001,10 +1001,10 @@ backtrack_outside:
       case 2:
         s5  = (k > 1) ? S1[k - 1] : -1;
         s3  = (l < n) ? S1[l + 1] : -1;
-        en  = vrna_E_ext_stem(type, s5, s3, P);
+        en  = vrna_E_exterior_stem(type, s5, s3, P);
         break;
       default:
-        en = vrna_E_ext_stem(type, -1, -1, P);
+        en = vrna_E_exterior_stem(type, -1, -1, P);
         break;
     }
 
@@ -1275,7 +1275,7 @@ backtrack_f3(vrna_fold_compound_t *fc,
             if (sc->f)
               en += sc->f(ii, n, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
 
-          if (fij == vrna_E_ext_stem(type, -1, -1, P) + en + f3[u + 1]) {
+          if (fij == vrna_E_exterior_stem(type, -1, -1, P) + en + f3[u + 1]) {
             *i  = ii;
             *j  = u;
             *k  = u + 1;
@@ -1298,7 +1298,7 @@ backtrack_f3(vrna_fold_compound_t *fc,
             if (sc->f)
               en += sc->f(ii, n, u, u + 1, VRNA_DECOMP_EXT_STEM_EXT, sc->data);
 
-          if (fij == vrna_E_ext_stem(type, s5, s3, P) + en + f3[u + 1]) {
+          if (fij == vrna_E_exterior_stem(type, s5, s3, P) + en + f3[u + 1]) {
             *i  = ii;
             *j  = u;
             *k  = u + 1;
