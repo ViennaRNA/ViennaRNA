@@ -579,7 +579,7 @@ mfe_linear(vrna_fold_compound_t *vc)
 
             /* continue unless stack */
 
-            energy = E_IntLoop(p - i - 1,
+            energy = vrna_E_internal(p - i - 1,
                                j - q - 1,
                                type,
                                type_2,
@@ -1889,7 +1889,7 @@ backtrack_c(unsigned int          i,
       d2  = base_d2 - referenceBPs2[pq];
 
       energy =
-        E_IntLoop(p - i - 1, j - q - 1, type, type_2, S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1],
+        vrna_E_internal(p - i - 1, j - q - 1, type, type_2, S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1],
                   P);
 
 
@@ -2696,7 +2696,7 @@ backtrack_fc(int                  k,
                 continue;
 
               energy =
-                E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
+                vrna_E_internal(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
               if (E_C_rem[ij] != INF) {
                 if (E_C[pq]) {
                   for (cnt1 = k_min_C[pq];
@@ -2972,7 +2972,7 @@ backtrack_fc(int                  k,
                   d1      = base_d1 - referenceBPs1[ij] - referenceBPs1[pq];
                   d2      = base_d2 - referenceBPs2[ij] - referenceBPs2[pq];
                   energy  =
-                    E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
+                    vrna_E_internal(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
                   if ((k >= d1) && (l >= d2)) {
                     for (cnt1 = k_min_C[ij]; cnt1 <= MIN2(k_max_C[ij], k - d1); cnt1++)
                       for (cnt2 = l_min_C[ij][cnt1]; cnt2 <= MIN2(l_max_C[ij][cnt1], l - d2);
@@ -3674,7 +3674,7 @@ mfe_circ(vrna_fold_compound_t *vc)
             d1      = base_d1 - referenceBPs1[ij] - referenceBPs1[pq];
             d2      = base_d2 - referenceBPs2[ij] - referenceBPs2[pq];
             energy  =
-              E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
+              vrna_E_internal(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
 
             if (E_C_rem[pq] != INF)
               matrices->E_FcI_rem = MIN2(matrices->E_FcI_rem, E_C_rem[ij] + E_C_rem[pq] + energy);
@@ -3723,7 +3723,7 @@ mfe_circ(vrna_fold_compound_t *vc)
             d1      = base_d1 - referenceBPs1[ij] - referenceBPs1[pq];
             d2      = base_d2 - referenceBPs2[ij] - referenceBPs2[pq];
             energy  =
-              E_IntLoop(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
+              vrna_E_internal(u1, u2, type, type_2, S1[j + 1], S1[i - 1], S1[p - 1], S1[q + 1], P);
             if (E_C_rem[pq] != INF) {
               for (cnt1 = k_min_C[ij];
                    cnt1 <= k_max_C[ij];

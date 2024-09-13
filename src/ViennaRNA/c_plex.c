@@ -310,7 +310,7 @@ duplexfold_CXS(const char *s1,
           if (!type3)
             continue;
 
-          E = E_IntLoop(p - k - 1,
+          E = vrna_E_internal(p - k - 1,
                         l - q - 1,
                         type2,
                         rtype[type3],
@@ -450,7 +450,7 @@ backtrack_CXS(int         i,
         if (!type2)
           continue;
 
-        LE = E_IntLoop(k - i - 1,
+        LE = vrna_E_internal(k - i - 1,
                        j - l - 1,
                        type,
                        rtype[type2],
@@ -686,7 +686,7 @@ Lduplexfold_CXS(const char  *s1,
       if ((type2 = pair[S1[i - 1]][S2[j + 1]])) {
         lc[idx][j] =
           MIN2(lc[idx_1][j + 1] +
-               E_IntLoop(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
                          P) + di1 + dj1,
                lc[idx][j]);                                                                                                          /* 0x0+1x1 */
       }
@@ -694,7 +694,7 @@ Lduplexfold_CXS(const char  *s1,
       if ((type2 = pair[S1[i - 2]][S2[j + 1]])) {
         lc[idx][j] =
           MIN2(lc[idx_2][j + 1] +
-               E_IntLoop(1, 0, type2, rtype[type], SS1[i - 1], SS2[j], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(1, 0, type2, rtype[type], SS1[i - 1], SS2[j], SS1[i - 1], SS2[j + 1],
                          P) + di2 + dj1,
                lc[idx][j]);                                                                                                          /* 0x1 +1x1 */
       }
@@ -704,7 +704,7 @@ Lduplexfold_CXS(const char  *s1,
         if ((type2 = pair[S1[i - 1]][S2[j + 2]])) {
           lc[idx][j] =
             MIN2(lc[idx_1][j + 2] +
-                 E_IntLoop(0, 1, type2, rtype[type], SS1[i], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(0, 1, type2, rtype[type], SS1[i], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                            P) + di1 + dj2,
                  lc[idx][j]);                                                                                                          /* 1x0 + 1x1 */
         }
@@ -712,7 +712,7 @@ Lduplexfold_CXS(const char  *s1,
         if ((type2 = pair[S1[i - 2]][S2[j + 2]])) {
           lc[idx][j] =
             MIN2(lc[idx_2][j + 2] +
-                 E_IntLoop(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                            P) + di2 + dj2,
                  lc[idx][j]);                                                                                                              /*  1x1 +1x1 */
         }
@@ -720,7 +720,7 @@ Lduplexfold_CXS(const char  *s1,
         if ((type2 = pair[S1[i - 3]][S2[j + 2]])) {
           lc[idx][j] =
             MIN2(lc[idx_3][j + 2] +
-                 E_IntLoop(2, 1, type2, rtype[type], SS1[i - 2], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(2, 1, type2, rtype[type], SS1[i - 2], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                            P) + di3 + dj2,
                  lc[idx][j]);                                                                                                              /*  2x1 +1x1 */
         }
@@ -729,7 +729,7 @@ Lduplexfold_CXS(const char  *s1,
           if ((type2 = pair[S1[i - 3]][S2[j + 3]])) {
             lc[idx][j] =
               MIN2(lc[idx_3][j + 3] +
-                   E_IntLoop(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1],
+                   vrna_E_internal(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1],
                              SS2[j + 1],
                              P) + di3 + dj3,
                    lc[idx][j]);                                                                                                            /* 2x2 + 1x1 */
@@ -738,7 +738,7 @@ Lduplexfold_CXS(const char  *s1,
           if ((type2 = pair[S1[i - 2]][S2[j + 3]])) {
             lc[idx][j] =
               MIN2(lc[idx_2][j + 3] +
-                   E_IntLoop(1, 2, type2, rtype[type], SS1[i - 1], SS2[j + 2], SS1[i - 1],
+                   vrna_E_internal(1, 2, type2, rtype[type], SS1[i - 1], SS2[j + 2], SS1[i - 1],
                              SS2[j + 1],
                              P) + di2 + dj3,
                    lc[idx][j]);                                                                                                             /*  1x2 +1x1 */
@@ -747,7 +747,7 @@ Lduplexfold_CXS(const char  *s1,
           if ((type2 = pair[S1[i - 4]][S2[j + 3]])) {
             lc[idx][j] =
               MIN2(lc[idx_4][j + 3] +
-                   E_IntLoop(3, 2, type2, rtype[type], SS1[i - 3], SS2[j + 2], SS1[i - 1],
+                   vrna_E_internal(3, 2, type2, rtype[type], SS1[i - 3], SS2[j + 2], SS1[i - 1],
                              SS2[j + 1],
                              P) + di4 + dj3,
                    lc[idx][j]);
@@ -757,7 +757,7 @@ Lduplexfold_CXS(const char  *s1,
             if ((type2 = pair[S1[i - 3]][S2[j + 4]])) {
               lc[idx][j] =
                 MIN2(lc[idx_3][j + 4] +
-                     E_IntLoop(2, 3, type2, rtype[type], SS1[i - 2], SS2[j + 3], SS1[i - 1],
+                     vrna_E_internal(2, 3, type2, rtype[type], SS1[i - 2], SS2[j + 3], SS1[i - 1],
                                SS2[j + 1],
                                P) + di3 + dj4,
                      lc[idx][j]);
@@ -1098,7 +1098,7 @@ duplexfold_C(const char *s1,
           if (!type2)
             continue;
 
-          E = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+          E = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                         SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1],
                         P) + (i - k + l - j) * extension_cost + bonus_2;
           c[i][j] = MIN2(c[i][j], c[k][l] + E);
@@ -1205,7 +1205,7 @@ backtrack_C(int         i,
         if (!type2)
           continue;
 
-        LE = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+        LE = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                        SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1],
                        P) + (i - k + l - j) * extension_cost + bonus_2;
         if (E == c[k][l] + LE) {
@@ -1430,13 +1430,13 @@ Lduplexfold_C(const char  *s1,
       type2       = pair[S1[i - 1]][S2[j + 1]];
       lc[idx][j]  =
         MIN2(lc[idx_1][j + 1] +
-             E_IntLoop(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
+             vrna_E_internal(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
                        P) + 2 * extension_cost,
              lc[idx][j]);
       type2       = pair[S1[i - 2]][S2[j + 1]];
       lc[idx][j]  =
         MIN2(lc[idx_2][j + 1] +
-             E_IntLoop(1, 0, type2, rtype[type], SS1[i - 1], SS2[j], SS1[i - 1], SS2[j + 1],
+             vrna_E_internal(1, 0, type2, rtype[type], SS1[i - 1], SS2[j], SS1[i - 1], SS2[j + 1],
                        P) + 3 * extension_cost,
              lc[idx][j]);
       /* kleine loops checks wird in den folgenden if test gemacht. */
@@ -1444,45 +1444,45 @@ Lduplexfold_C(const char  *s1,
         type2       = pair[S1[i - 1]][S2[j + 2]];
         lc[idx][j]  =
           MIN2(lc[idx_1][j + 2] +
-               E_IntLoop(0, 1, type2, rtype[type], SS1[i], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(0, 1, type2, rtype[type], SS1[i], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                          P) + 3 * extension_cost,
                lc[idx][j]);
         type2       = pair[S1[i - 2]][S2[j + 2]];
         lc[idx][j]  =
           MIN2(lc[idx_2][j + 2] +
-               E_IntLoop(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                          P) + 4 * extension_cost,
                lc[idx][j]);
         type2       = pair[S1[i - 3]][S2[j + 2]];
         lc[idx][j]  =
           MIN2(lc[idx_3][j + 2] +
-               E_IntLoop(2, 1, type2, rtype[type], SS1[i - 2], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(2, 1, type2, rtype[type], SS1[i - 2], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                          P) + 5 * extension_cost,
                lc[idx][j]);
         if (!(structure[j + 1] == '|')) {
           type2       = pair[S1[i - 3]][S2[j + 3]];
           lc[idx][j]  =
             MIN2(lc[idx_3][j + 3] +
-                 E_IntLoop(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                            P) + 6 * extension_cost,
                  lc[idx][j]);
           type2       = pair[S1[i - 2]][S2[j + 3]];
           lc[idx][j]  =
             MIN2(lc[idx_2][j + 3] +
-                 E_IntLoop(1, 2, type2, rtype[type], SS1[i - 1], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(1, 2, type2, rtype[type], SS1[i - 1], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                            P) + 5 * extension_cost,
                  lc[idx][j]);
           type2       = pair[S1[i - 4]][S2[j + 3]];
           lc[idx][j]  =
             MIN2(lc[idx_4][j + 3] +
-                 E_IntLoop(3, 2, type2, rtype[type], SS1[i - 3], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(3, 2, type2, rtype[type], SS1[i - 3], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                            P) + 7 * extension_cost,
                  lc[idx][j]);
           if (!(structure[j + 2] == '|')) {
             type2       = pair[S1[i - 3]][S2[j + 4]];
             lc[idx][j]  =
               MIN2(lc[idx_3][j + 4] +
-                   E_IntLoop(2, 3, type2, rtype[type], SS1[i - 2], SS2[j + 3], SS1[i - 1],
+                   vrna_E_internal(2, 3, type2, rtype[type], SS1[i - 2], SS2[j + 3], SS1[i - 1],
                              SS2[j + 1],
                              P) + 7 * extension_cost,
                    lc[idx][j]);

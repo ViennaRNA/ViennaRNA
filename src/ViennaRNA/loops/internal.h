@@ -307,15 +307,17 @@ vrna_BT_int_loop(vrna_fold_compound_t *fc,
  *  @param  P       The datastructure containing scaled energy parameters
  *  @return The Free energy of the Interior-loop in dcal/mol
  */
-PRIVATE INLINE int E_IntLoop(int          n1,
-                             int          n2,
-                             int          type,
-                             int          type_2,
-                             int          si1,
-                             int          sj1,
-                             int          sp1,
-                             int          sq1,
-                             vrna_param_t *P);
+DEPRECATED(PRIVATE INLINE int
+E_IntLoop(int           n1,
+          int           n2,
+          int           type,
+          int           type_2,
+          int           si1,
+          int           sj1,
+          int           sp1,
+          int           sq1,
+          vrna_param_t  *P),
+          "Use vrna_E_internal() instead!");
 
 
 /**
@@ -337,15 +339,17 @@ PRIVATE INLINE int E_IntLoop(int          n1,
  *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
  *  @return The Boltzmann weight of the Interior-loop
  */
-PRIVATE INLINE FLT_OR_DBL exp_E_IntLoop(int               u1,
-                                        int               u2,
-                                        int               type,
-                                        int               type2,
-                                        short             si1,
-                                        short             sj1,
-                                        short             sp1,
-                                        short             sq1,
-                                        vrna_exp_param_t  *P);
+DEPRECATED(PRIVATE INLINE FLT_OR_DBL
+exp_E_IntLoop(int               u1,
+              int               u2,
+              int               type,
+              int               type2,
+              short             si1,
+              short             sj1,
+              short             sp1,
+              short             sq1,
+              vrna_exp_param_t  *P),
+          "Use vrna_exp_E_internal() instead!");
 
 
 PRIVATE INLINE int E_IntLoop_Co(int           type,
@@ -401,7 +405,7 @@ ubf_eval_int_loop(int           i,
 
   if ((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))) {
     /* regular interior loop */
-    energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+    energy = vrna_E_internal(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else {
     /* interior loop like cofold structure */
     short Si, Sj;
@@ -471,7 +475,7 @@ ubf_eval_int_loop2(int            i,
 
   if ((sn[i] == sn[p]) && (sn[q] == sn[j])) {
     /* regular interior loop */
-    energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+    energy = vrna_E_internal(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else {
     /* interior loop like cofold structure */
     short Si, Sj;
@@ -547,7 +551,7 @@ ubf_eval_ext_int_loop(int           i,
   u2  = p1 - j;
   u3  = length - q;
 
-  energy = E_IntLoop(u2, u1 + u3, type, type_2, si, sj, sp, sq, P);
+  energy = vrna_E_internal(u2, u1 + u3, type, type_2, si, sj, sp, sq, P);
 
   /* add soft constraints */
   if (sc) {
@@ -570,19 +574,6 @@ ubf_eval_ext_int_loop(int           i,
 
   return energy;
 }
-
-
-DEPRECATED(PRIVATE INLINE int
-E_IntLoop(int           n1,
-          int           n2,
-          int           type,
-          int           type_2,
-          int           si1,
-          int           sj1,
-          int           sp1,
-          int           sq1,
-          vrna_param_t  *P),
-            "Use vrna_E_internal() instead!");
 
 
 PRIVATE INLINE int
@@ -688,19 +679,6 @@ E_IntLoop(int           n1,
 
   return energy + salt_loop_correction;
 }
-
-
-DEPRECATED(PRIVATE INLINE FLT_OR_DBL
-exp_E_IntLoop(int               u1,
-              int               u2,
-              int               type,
-              int               type2,
-              short             si1,
-              short             sj1,
-              short             sp1,
-              short             sq1,
-              vrna_exp_param_t  *P),
-          "Use vrna_exp_E_internal() instead!");
 
 
 PRIVATE INLINE FLT_OR_DBL

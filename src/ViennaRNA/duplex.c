@@ -172,7 +172,7 @@ duplexfold_cu(const char  *s1,
           if (!type2)
             continue;
 
-          E = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+          E = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                         SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1], P);
           c[i][j] = MIN2(c[i][j], c[k][l] + E);
         }
@@ -327,7 +327,7 @@ backtrack(int i,
         if (!type2)
           continue;
 
-        LE = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+        LE = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                        SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1], P);
         if (E == c[k][l] + LE) {
           traced  = 1;
@@ -508,7 +508,7 @@ aliduplexfold_cu(const char *s1[],
             if (type2 == 0)
               type2 = 7;
 
-            E += E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type[s]],
+            E += vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type[s]],
                            S1[s][k + 1], S2[s][l - 1], S1[s][i - 1], S2[s][j + 1], P);
           }
           c[i][j] = MIN2(c[i][j], c[k][l] + E);
@@ -730,7 +730,7 @@ alibacktrack(int          i,
           if (type2 == 0)
             type2 = 7;
 
-          LE += E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type[s]],
+          LE += vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type[s]],
                           S1[s][k + 1], S2[s][l - 1], S1[s][i - 1], S2[s][j + 1], P);
         }
         if (E == c[k][l] + LE) {

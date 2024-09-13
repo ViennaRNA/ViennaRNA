@@ -387,7 +387,7 @@ duplexfold_XS(const char  *s1,
           if (!type3)
             continue;
 
-          E = E_IntLoop(p - k - 1,
+          E = vrna_E_internal(p - k - 1,
                         l - q - 1,
                         type2,
                         rtype[type3],
@@ -516,7 +516,7 @@ backtrack_XS(int        i,
         if (!type2)
           continue;
 
-        LE = E_IntLoop(k - i - 1,
+        LE = vrna_E_internal(k - i - 1,
                        j - l - 1,
                        type,
                        rtype[type2],
@@ -878,7 +878,7 @@ fduplexfold_XS(const char *s1,
 
       /**
       *** 1x2 / 2x1 stack extension
-      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
+      *** vrna_E_internal(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
       *** P->int21[rtype[type]][type2][SS2[j+2]][SS1[i-1]][SS1[i-1]]
       **/
       if ((type2 = pair[S1[i - 3]][S2[j + 2]])) {
@@ -1226,7 +1226,7 @@ fbacktrack_XS(int       i,
         if (type2 && c[i][j] == (c[i - 1][j + 1] + P->stack[rtype[type]][type2] + di1 + dj1)) {
           k     = i - 1;
           l     = j + 1;
-          (*dG) += E_IntLoop(i - k - 1,
+          (*dG) += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -1235,7 +1235,7 @@ fbacktrack_XS(int       i,
                              SS1[i - 1],
                              SS2[j + 1],
                              P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1260,7 +1260,7 @@ fbacktrack_XS(int       i,
             c[i][j] == (c[i - 1][j + 2] + P->bulge[1] + P->stack[rtype[type]][type2] + di1 + dj2)) {
           k   = i - 1;
           l   = j + 2;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -1269,7 +1269,7 @@ fbacktrack_XS(int       i,
                            SS1[i - 1],
                            SS2[j + 1],
                            P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1294,7 +1294,7 @@ fbacktrack_XS(int       i,
             c[i][j] == (c[i - 2][j + 1] + P->bulge[1] + P->stack[type2][rtype[type]] + di2 + dj1)) {
           k   = i - 2;
           l   = j + 1;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -1303,7 +1303,7 @@ fbacktrack_XS(int       i,
                            SS1[i - 1],
                            SS2[j + 1],
                            P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1329,7 +1329,7 @@ fbacktrack_XS(int       i,
             (c[i - 2][j + 2] + P->int11[type2][rtype[type]][SS1[i - 1]][SS2[j + 1]] + di2 + dj2)) {
           k   = i - 2;
           l   = j + 2;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -1338,7 +1338,7 @@ fbacktrack_XS(int       i,
                            SS1[i - 1],
                            SS2[j + 1],
                            P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1366,7 +1366,7 @@ fbacktrack_XS(int       i,
              dj3)) {
           k   = i - 3;
           l   = j + 3;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -1375,7 +1375,7 @@ fbacktrack_XS(int       i,
                            SS1[i - 1],
                            SS2[j + 1],
                            P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1403,7 +1403,7 @@ fbacktrack_XS(int       i,
              dj2)) {
           k   = i - 3;
           l   = j + 2;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -1412,7 +1412,7 @@ fbacktrack_XS(int       i,
                            SS1[i - 1],
                            SS2[j + 1],
                            P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1440,7 +1440,7 @@ fbacktrack_XS(int       i,
              dj3)) {
           k   = i - 2;
           l   = j + 3;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -1449,7 +1449,7 @@ fbacktrack_XS(int       i,
                            SS1[i - 1],
                            SS2[j + 1],
                            P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1475,7 +1475,7 @@ fbacktrack_XS(int       i,
                                  P->mismatch23I[rtype[type]][SS2[j + 1]][SS1[i - 1]] + di4 + dj3)) {
           k   = i - 4;
           l   = j + 3;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -1484,7 +1484,7 @@ fbacktrack_XS(int       i,
                            SS1[i - 1],
                            SS2[j + 1],
                            P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1510,7 +1510,7 @@ fbacktrack_XS(int       i,
                                  P->mismatch23I[rtype[type]][SS2[j + 1]][SS1[i - 1]] + di3 + dj4)) {
           k   = i - 3;
           l   = j + 4;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -1519,7 +1519,7 @@ fbacktrack_XS(int       i,
                            SS1[i - 1],
                            SS2[j + 1],
                            P);
-          *dGplex += E_IntLoop(i - k - 1,
+          *dGplex += vrna_E_internal(i - k - 1,
                                l - j - 1,
                                type2,
                                rtype[type],
@@ -1702,7 +1702,7 @@ fbacktrack_XS(int       i,
           l     = j + 1;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -1741,7 +1741,7 @@ fbacktrack_XS(int       i,
           l     = j;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -1779,7 +1779,7 @@ fbacktrack_XS(int       i,
           l     = j + 1;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -1821,7 +1821,7 @@ fbacktrack_XS(int       i,
           l     = j + 1;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -1863,7 +1863,7 @@ fbacktrack_XS(int       i,
           l     = j + 1;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -2245,7 +2245,7 @@ Lduplexfold_XS(const char *s1,
 
       /**
       *** 1x2 / 2x1 stack extension
-      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
+      *** vrna_E_internal(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
       *** P->int21[rtype[type]][type2][SS2[j+2]][SS1[i-1]][SS1[i-1]]
       **/
       if ((type2 = pair[S1[i - 3]][S2[j + 2]])) {
@@ -2756,7 +2756,7 @@ duplexfold(const char *s1,
           if (!type2)
             continue;
 
-          E = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+          E = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                         SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1],
                         P) + (i - k + l - j) * extension_cost;
           c[i][j] = MIN2(c[i][j], c[k][l] + E);
@@ -2843,7 +2843,7 @@ backtrack(int       i,
         if (!type2)
           continue;
 
-        LE = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+        LE = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                        SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1],
                        P) + (i - k + l - j) * extension_cost;
         if (E == c[k][l] + LE) {
@@ -3081,7 +3081,7 @@ fduplexfold(const char  *s1,
              c[i][j]);
       /**
       *** 1x2 / 2x1 stack extension
-      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
+      *** vrna_E_internal(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
       *** P->int21[rtype[type]][type2][SS2[j+2]][SS1[i-1]][SS1[i-1]]
       **/
       type2   = pair[S1[i - 3]][S2[j + 2]];
@@ -3274,7 +3274,7 @@ fbacktrack(int        i,
             c[i][j] == (c[i - 1][j + 1] + P->stack[rtype[type]][type2] + 2 * extension_cost)) {
           k     = i - 1;
           l     = j + 1;
-          (*dG) += E_IntLoop(i - k - 1,
+          (*dG) += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -3298,7 +3298,7 @@ fbacktrack(int        i,
             (c[i - 1][j + 2] + P->bulge[1] + P->stack[rtype[type]][type2] + 3 * extension_cost)) {
           k   = i - 1;
           l   = j + 2;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -3322,7 +3322,7 @@ fbacktrack(int        i,
             (c[i - 2][j + 1] + P->bulge[1] + P->stack[type2][rtype[type]] + 3 * extension_cost)) {
           k   = i - 2;
           l   = j + 1;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -3347,7 +3347,7 @@ fbacktrack(int        i,
              extension_cost)) {
           k   = i - 2;
           l   = j + 2;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -3373,7 +3373,7 @@ fbacktrack(int        i,
              extension_cost)) {
           k   = i - 3;
           l   = j + 3;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -3399,7 +3399,7 @@ fbacktrack(int        i,
              extension_cost)) {
           k   = i - 3;
           l   = j + 2;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -3425,7 +3425,7 @@ fbacktrack(int        i,
              extension_cost)) {
           k   = i - 2;
           l   = j + 3;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -3450,7 +3450,7 @@ fbacktrack(int        i,
                                  extension_cost)) {
           k   = i - 4;
           l   = j + 3;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -3475,7 +3475,7 @@ fbacktrack(int        i,
                                  extension_cost)) {
           k   = i - 3;
           l   = j + 4;
-          *dG += E_IntLoop(i - k - 1,
+          *dG += vrna_E_internal(i - k - 1,
                            l - j - 1,
                            type2,
                            rtype[type],
@@ -3623,7 +3623,7 @@ fbacktrack(int        i,
           l     = j + 1;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -3657,7 +3657,7 @@ fbacktrack(int        i,
           l     = j;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -3692,7 +3692,7 @@ fbacktrack(int        i,
           l     = j + 1;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -3728,7 +3728,7 @@ fbacktrack(int        i,
           l     = j + 1;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -3764,7 +3764,7 @@ fbacktrack(int        i,
           l     = j + 1;
           j     = temp;
           type  = pair[S1[i]][S2[j]];
-          *dG   += E_IntLoop(i - k - 1,
+          *dG   += vrna_E_internal(i - k - 1,
                              l - j - 1,
                              type2,
                              rtype[type],
@@ -4058,7 +4058,7 @@ Lduplexfold(const char  *s1,
 
       /**
       *** 1x2 / 2x1 stack extension
-      *** E_IntLoop(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
+      *** vrna_E_internal(1,2,type2, rtype[type],SS1[i-1], SS2[j+2], SS1[i-1], SS2[j+1], P) corresponds to
       *** P->int21[rtype[type]][type2][SS2[j+2]][SS1[i-1]][SS1[i-1]]
       **/
       if ((type2 = pair[S1[i - 3]][S2[j + 2]])) {

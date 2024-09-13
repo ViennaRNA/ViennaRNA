@@ -677,7 +677,7 @@ alifill_arrays(const char **strings,
               if (type_2 == 0)
                 type_2 = 7;
 
-              energy += E_IntLoop(p - i - 1, j - q - 1, type[s], type_2,
+              energy += vrna_E_internal(p - i - 1, j - q - 1, type[s], type_2,
                                   Sali[s][i + 1], Sali[s][j - 1],
                                   Sali[s][p - 1], Sali[s][q + 1], P);
             }
@@ -859,7 +859,7 @@ repeat1:
           if (type_2 == 0)
             type_2 = 7;
 
-          energy += E_IntLoop(p - i - 1, j - q - 1, type[ss], type_2,
+          energy += vrna_E_internal(p - i - 1, j - q - 1, type[ss], type_2,
                               Sali[ss][i + 1], Sali[ss][j - 1],
                               Sali[ss][p - 1], Sali[ss][q + 1], P);
         }
@@ -989,7 +989,7 @@ fill_arrays(const char  *string,
 
             /* continue unless stack */
 
-            energy = E_IntLoop(p - i - 1, j - q - 1, type, type_2,
+            energy = vrna_E_internal(p - i - 1, j - q - 1, type, type_2,
                                S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1], P);
             new_c = MIN2(energy + c[indx[q] + p], new_c);
             if ((p == i + 1) && (j == q + 1))
@@ -1225,7 +1225,7 @@ repeat1:
 
         /* continue unless stack */
 
-        energy = E_IntLoop(p - i - 1, j - q - 1, type, type_2,
+        energy = vrna_E_internal(p - i - 1, j - q - 1, type, type_2,
                            S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1], P);
         new     = energy + c[indx[q] + p] + bonus;
         traced  = (cij == new);

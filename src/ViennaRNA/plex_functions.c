@@ -633,7 +633,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
                   type3 = md->pair[S[q]][S[p]];
                   sq    = S1[q + 1];
 
-                  E = E_IntLoop(p - k - 1,
+                  E = vrna_E_internal(p - k - 1,
                                 l - q - 1,
                                 type2,
                                 type3,
@@ -784,7 +784,7 @@ backtrack_XS(vrna_fold_compound_t *fc,
         if (!type2)
           continue;
 
-        LE = E_IntLoop(p - k - 1,
+        LE = vrna_E_internal(p - k - 1,
                        l - q - 1,
                        type,
                        type2,

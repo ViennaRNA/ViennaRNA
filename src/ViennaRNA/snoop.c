@@ -383,7 +383,7 @@ alisnoopfold(const char **s1,
             if (type4 == 0)
               type4 = 7;
 
-            E += E_IntLoop(i - k - 1, l - j - 1, type4, rtype[type[s]],
+            E += vrna_E_internal(i - k - 1, l - j - 1, type4, rtype[type[s]],
                            Sali1[s][k + 1], Sali2[s][l - 1], Sali1[s][i - 1], Sali2[s][j + 1], P);
           }
           c[i][j] = MIN2(c[i][j], c[k][l] + E);
@@ -811,7 +811,7 @@ alisnoop_backtrack(int          i,
               type4 = 7;
 
             LE +=
-              E_IntLoop(i - k - 1,
+              vrna_E_internal(i - k - 1,
                         l - j - 1,
                         type4,
                         rtype[type[s]],
@@ -952,7 +952,7 @@ alisnoop_backtrack(int          i,
               type4 = 7;
 
             LE +=
-              E_IntLoop(i - k - 1,
+              vrna_E_internal(i - k - 1,
                         l - j - 1,
                         type4,
                         rtype[type[s]],
@@ -1229,12 +1229,12 @@ Lsnoop_subopt(const char  *s1,
         if (type2 > 0) {
           lc[idx][j] =
             MIN2(lc[idx_1][j + 1] +
-                 E_IntLoop(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
                            P) + 2 * penalty,
                  lc[idx][j]);
           lr[idx][j] =
             MIN2(lr[idx_1][j + 1] +
-                 E_IntLoop(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
                            P) + 2 * penalty,
                  lr[idx][j]);
         }
@@ -1245,12 +1245,12 @@ Lsnoop_subopt(const char  *s1,
         if (type2 > 0) {
           lc[idx][j] =
             MIN2(lc[idx_2][j + 2] +
-                 E_IntLoop(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                            P) + 4 * penalty,
                  lc[idx][j]);
           lr[idx][j] =
             MIN2(lr[idx_2][j + 2] +
-                 E_IntLoop(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                            P) + 4 * penalty,
                  lr[idx][j]);
         }
@@ -1261,12 +1261,12 @@ Lsnoop_subopt(const char  *s1,
         if (type2 > 0) {
           lc[idx][j] =
             MIN2(lc[idx_3][j + 3] +
-                 E_IntLoop(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                            P) + 6 * penalty,
                  lc[idx][j]);
           lr[idx][j] =
             MIN2(lr[idx_3][j + 3] +
-                 E_IntLoop(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+                 vrna_E_internal(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                            P) + 6 * penalty,
                  lr[idx][j]);
         }
@@ -1487,12 +1487,12 @@ Lsnoop_subopt_list(const char *s1,
       if (type2 > 0) {
         lc[idx][j] =
           MIN2(lc[idx_1][j + 1] +
-               E_IntLoop(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
                          P) + 2 * penalty,
                lc[idx][j]);
         lr[idx][j] =
           MIN2(lr[idx_1][j + 1] +
-               E_IntLoop(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1],
                          P) + 2 * penalty,
                lr[idx][j]);
       }
@@ -1506,12 +1506,12 @@ Lsnoop_subopt_list(const char *s1,
       if (type2 > 0) {
         lc[idx][j] =
           MIN2(lc[idx_2][j + 2] +
-               E_IntLoop(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                          P),
                lc[idx][j]);
         lr[idx][j] =
           MIN2(lr[idx_2][j + 2] +
-               E_IntLoop(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                          P),
                lr[idx][j]);
         /*         } */
@@ -1525,12 +1525,12 @@ Lsnoop_subopt_list(const char *s1,
       if (type2 > 0) {
         lc[idx][j] =
           MIN2(lc[idx_3][j + 3] +
-               E_IntLoop(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                          P) + 6 * penalty,
                lc[idx][j]);
         lr[idx][j] =
           MIN2(lr[idx_3][j + 3] +
-               E_IntLoop(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                          P) + 6 * penalty,
                lr[idx][j]);
         /*         } */
@@ -1883,7 +1883,7 @@ snoopfold(const char  *s1,
           if (!type2)
             continue;
 
-          E = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+          E = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                         SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1], P);
           c[i][j] = MIN2(c[i][j], c[k][l] + E + (i - k + l - j) * penalty);
           r[i][j] = MIN2(r[i][j], r[k][l] + E + (i - k + l - j) * penalty);
@@ -2087,7 +2087,7 @@ snoopfold_XS_fill(const char  *s1,
           if (!type2)
             continue;
 
-          E = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+          E = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                         SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1], P);
           c_fill[i][j]  = MIN2(c_fill[i][j], c_fill[k][l] + E + di[i - k]);
           r_fill[i][j]  = MIN2(r_fill[i][j], r_fill[k][l] + E + di[i - k]);
@@ -2603,7 +2603,7 @@ snoop_backtrack(int         i,
           if (!type2)
             continue;
 
-          LE = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+          LE = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                          SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1], P);
           if (E == r[k][l] + LE + (i - k + l - j) * penalty) {
             traced      = 1;
@@ -2708,7 +2708,7 @@ snoop_backtrack(int         i,
           if (!type2)
             continue;
 
-          LE = E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type],
+          LE = vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type],
                          SS1[k + 1], SS2[l - 1], SS1[i - 1], SS2[j + 1], P);
           if (E == c[k][l] + LE + (i - k + l - j) * penalty) {
             traced      = 1;
@@ -2982,11 +2982,11 @@ Lsnoop_subopt_list_XS(const char  *s1,
       if (type2 > 0) {
         lc[idx][j] =
           MIN2(lc[idx_1][j + 1] +
-               E_IntLoop(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1], P) + di1,
+               vrna_E_internal(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1], P) + di1,
                lc[idx][j]);
         lr[idx][j] =
           MIN2(lr[idx_1][j + 1] +
-               E_IntLoop(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1], P) + di1,
+               vrna_E_internal(0, 0, type2, rtype[type], SS1[i], SS2[j], SS1[i - 1], SS2[j + 1], P) + di1,
                lr[idx][j]);
       }
 
@@ -2994,12 +2994,12 @@ Lsnoop_subopt_list_XS(const char  *s1,
       if (type2 > 0) {
         lc[idx][j] =
           MIN2(lc[idx_2][j + 2] +
-               E_IntLoop(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                          P) + di2,
                lc[idx][j]);
         lr[idx][j] =
           MIN2(lr[idx_2][j + 2] +
-               E_IntLoop(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(1, 1, type2, rtype[type], SS1[i - 1], SS2[j + 1], SS1[i - 1], SS2[j + 1],
                          P) + di2,
                lr[idx][j]);
       }
@@ -3008,12 +3008,12 @@ Lsnoop_subopt_list_XS(const char  *s1,
       if (type2 > 0) {
         lc[idx][j] =
           MIN2(lc[idx_3][j + 3] +
-               E_IntLoop(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                          P) + di3,
                lc[idx][j]);
         lr[idx][j] =
           MIN2(lr[idx_3][j + 3] +
-               E_IntLoop(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
+               vrna_E_internal(2, 2, type2, rtype[type], SS1[i - 2], SS2[j + 2], SS1[i - 1], SS2[j + 1],
                          P) + di3,
                lr[idx][j]);
       }
@@ -3383,7 +3383,7 @@ snoopfold_XS(const char *s1,
             continue;
 
           E =
-            E_IntLoop(p - a - 1,
+            vrna_E_internal(p - a - 1,
                       b - q - 1,
                       type2,
                       rtype[type],
@@ -3536,7 +3536,7 @@ snoop_backtrack_XS(int        i,
           if (!type2)
             continue;
 
-          LE = E_IntLoop(k - i - 1, j - l - 1, type2, rtype[type],
+          LE = vrna_E_internal(k - i - 1, j - l - 1, type2, rtype[type],
                          SS1[i + 1], SS2[j - 1], SS1[k - 1], SS2[l + 1], P);
           if (E == c[k][l] + LE) {
             traced      = 1;
@@ -3644,7 +3644,7 @@ snoop_backtrack_XS(int        i,
           if (!type2)
             continue;
 
-          LE = E_IntLoop(k - i - 1, j - l - 1, type2, rtype[type],
+          LE = vrna_E_internal(k - i - 1, j - l - 1, type2, rtype[type],
                          SS1[i + 1], SS2[j - 1], SS1[k - 1], SS2[l + 1], P);
           if (E == r[k][l] + LE) {
             traced      = 1;

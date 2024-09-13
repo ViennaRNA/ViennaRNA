@@ -169,7 +169,7 @@ ubf_eval_int_loop_comparative(int           col_i,
   u1  = p1 - i;
   u2  = j1 - q;
 
-  energy = E_IntLoop(u1, u2, type, type_2, si, sj, sp, sq, P);
+  energy = vrna_E_internal(u1, u2, type, type_2, si, sj, sp, sq, P);
 
   /* add soft constraints */
   if (sc) {

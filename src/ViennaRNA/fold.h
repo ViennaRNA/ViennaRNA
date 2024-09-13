@@ -228,7 +228,7 @@ export_circfold_arrays_par( int *Fc_p,
 
 /**
  *  @deprecated {This function is deprecated and will be removed soon.
- *  Use @ref E_IntLoop() instead!}
+ *  Use @ref vrna_E_internal() instead!}
  */
 DEPRECATED(int LoopEnergy(int n1,
                           int n2,

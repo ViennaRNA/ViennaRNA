@@ -2122,7 +2122,7 @@ scan_circular(vrna_fold_compound_t  *fc,
                 if (u1 + u2 > MAXLOOP)
                   continue;
 
-                tmpE = E_IntLoop(u1,
+                tmpE = vrna_E_internal(u1,
                                  u2,
                                  type,
                                  type_2,
@@ -2852,7 +2852,7 @@ repeat(vrna_fold_compound_t *fc,
       type_2  = rtype[vrna_get_ptype(indx[j - 1] + i + 1, ptype)];
       energy  = 0;
 
-      energy = E_IntLoop(0, 0, type, type_2, S1[i + 1], S1[j - 1], S1[i + 1], S1[j - 1], P);
+      energy = vrna_E_internal(0, 0, type, type_2, S1[i + 1], S1[j - 1], S1[i + 1], S1[j - 1], P);
 
       if (sc_int_pair) {
         energy += sc_int_pair(i,
@@ -2909,7 +2909,7 @@ repeat(vrna_fold_compound_t *fc,
               continue;
 
         if (evaluate_int(i, j, p, q, hc_dat_int)) {
-          energy = E_IntLoop(p - i - 1, j - q - 1, type, rtype[type_2],
+          energy = vrna_E_internal(p - i - 1, j - q - 1, type, rtype[type_2],
                              S1[i + 1], S1[j - 1], S1[p - 1], S1[q + 1], P);
 
           new = energy + c[indx[q] + p];

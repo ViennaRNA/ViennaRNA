@@ -289,7 +289,7 @@ aliduplexfold(const char  *s1[],
             if (type2 == 0)
               type2 = 7;
 
-            E += E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type[s]],
+            E += vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type[s]],
                            S1[s][k + 1], S2[s][l - 1], S1[s][i - 1], S2[s][j + 1],
                            P) + (i - k + l - j) * extension_cost;
           }
@@ -406,7 +406,7 @@ alibacktrack(int          n3,
           if (type2 == 0)
             type2 = 7;
 
-          LE += E_IntLoop(i - k - 1, l - j - 1, type2, rtype[type[s]],
+          LE += vrna_E_internal(i - k - 1, l - j - 1, type2, rtype[type[s]],
                           S1[s][k + 1], S2[s][l - 1], S1[s][i - 1], S2[s][j + 1],
                           P) + (i - k + l - j) * extension_cost;
         }
@@ -682,27 +682,27 @@ aliLduplexfold(const char *s1[],
           type2 = 7;
 
         c_stack +=
-          E_IntLoop(0, 0, type2, rtype[type[s]], S1[s][i], S2[s][j], S1[s][i - 1], S2[s][j + 1],
+          vrna_E_internal(0, 0, type2, rtype[type[s]], S1[s][i], S2[s][j], S1[s][i - 1], S2[s][j + 1],
                     P) + 2 * extension_cost;
         type2 = pair[S1[s][i - 1]][S2[s][j + 2]];
         if (type2 == 0)
           type2 = 7;
 
         c_01 +=
-          E_IntLoop(0, 1, type2, rtype[type[s]], S1[s][i], S2[s][j + 1], S1[s][i - 1], S2[s][j + 1],
+          vrna_E_internal(0, 1, type2, rtype[type[s]], S1[s][i], S2[s][j + 1], S1[s][i - 1], S2[s][j + 1],
                     P) + 3 * extension_cost;
         type2 = pair[S1[s][i - 2]][S2[s][j + 1]];
         if (type2 == 0)
           type2 = 7;
 
         c_10 +=
-          E_IntLoop(1, 0, type2, rtype[type[s]], S1[s][i - 1], S2[s][j], S1[s][i - 1], S2[s][j + 1],
+          vrna_E_internal(1, 0, type2, rtype[type[s]], S1[s][i - 1], S2[s][j], S1[s][i - 1], S2[s][j + 1],
                     P) + 3 * extension_cost;
         type2 = pair[S1[s][i - 2]][S2[s][j + 2]];
         if (type2 == 0)
           type2 = 7;
 
-        c_11 += E_IntLoop(1,
+        c_11 += vrna_E_internal(1,
                           1,
                           type2,
                           rtype[type[s]],
@@ -715,7 +715,7 @@ aliLduplexfold(const char *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_22 += E_IntLoop(2,
+        c_22 += vrna_E_internal(2,
                           2,
                           type2,
                           rtype[type[s]],
@@ -728,7 +728,7 @@ aliLduplexfold(const char *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_21 += E_IntLoop(2,
+        c_21 += vrna_E_internal(2,
                           1,
                           type2,
                           rtype[type[s]],
@@ -741,7 +741,7 @@ aliLduplexfold(const char *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_12 += E_IntLoop(1,
+        c_12 += vrna_E_internal(1,
                           2,
                           type2,
                           rtype[type[s]],
@@ -754,7 +754,7 @@ aliLduplexfold(const char *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_32 += E_IntLoop(3,
+        c_32 += vrna_E_internal(3,
                           2,
                           type2,
                           rtype[type[s]],
@@ -767,7 +767,7 @@ aliLduplexfold(const char *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_23 += E_IntLoop(2,
+        c_23 += vrna_E_internal(2,
                           3,
                           type2,
                           rtype[type[s]],
@@ -1159,7 +1159,7 @@ aliduplexfold_XS(const char *s1[],
             if (type3 == 0)
               type3 = 7;
 
-            E += E_IntLoop(p - k - 1, l - q - 1, type2[s], rtype[type3],
+            E += vrna_E_internal(p - k - 1, l - q - 1, type2[s], rtype[type3],
                            S1[s][k + 1], S2[s][l - 1], S1[s][p - 1], S2[s][q + 1], P);
           }
           c[k][l] = MIN2(c[k][l], c[p][q] + E);
@@ -1292,7 +1292,7 @@ alibacktrack_XS(int         n3,
           if (type2 == 0)
             type2 = 7;
 
-          LE += E_IntLoop(k - i - 1, j - l - 1, type[s], rtype[type2],
+          LE += vrna_E_internal(k - i - 1, j - l - 1, type[s], rtype[type2],
                           S1[s][i + 1], S2[s][j - 1], S1[s][k - 1], S2[s][l + 1], P);
         }
         if (E == c[k][l] + LE) {
@@ -1559,27 +1559,27 @@ aliLduplexfold_XS(const char  *s1[],
           type2 = 7;
 
         c_stack +=
-          E_IntLoop(0, 0, type2, rtype[type[s]], S1[s][i], S2[s][j], S1[s][i - 1], S2[s][j + 1],
+          vrna_E_internal(0, 0, type2, rtype[type[s]], S1[s][i], S2[s][j], S1[s][i - 1], S2[s][j + 1],
                     P) + di1 + dj1;
         type2 = pair[S1[s][i - 1]][S2[s][j + 2]];
         if (type2 == 0)
           type2 = 7;
 
         c_01 +=
-          E_IntLoop(0, 1, type2, rtype[type[s]], S1[s][i], S2[s][j + 1], S1[s][i - 1], S2[s][j + 1],
+          vrna_E_internal(0, 1, type2, rtype[type[s]], S1[s][i], S2[s][j + 1], S1[s][i - 1], S2[s][j + 1],
                     P) + di1 + dj2;
         type2 = pair[S1[s][i - 2]][S2[s][j + 1]];
         if (type2 == 0)
           type2 = 7;
 
         c_10 +=
-          E_IntLoop(1, 0, type2, rtype[type[s]], S1[s][i - 1], S2[s][j], S1[s][i - 1], S2[s][j + 1],
+          vrna_E_internal(1, 0, type2, rtype[type[s]], S1[s][i - 1], S2[s][j], S1[s][i - 1], S2[s][j + 1],
                     P) + di2 + dj1;
         type2 = pair[S1[s][i - 2]][S2[s][j + 2]];
         if (type2 == 0)
           type2 = 7;
 
-        c_11 += E_IntLoop(1,
+        c_11 += vrna_E_internal(1,
                           1,
                           type2,
                           rtype[type[s]],
@@ -1592,7 +1592,7 @@ aliLduplexfold_XS(const char  *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_22 += E_IntLoop(2,
+        c_22 += vrna_E_internal(2,
                           2,
                           type2,
                           rtype[type[s]],
@@ -1605,7 +1605,7 @@ aliLduplexfold_XS(const char  *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_21 += E_IntLoop(2,
+        c_21 += vrna_E_internal(2,
                           1,
                           type2,
                           rtype[type[s]],
@@ -1618,7 +1618,7 @@ aliLduplexfold_XS(const char  *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_12 += E_IntLoop(1,
+        c_12 += vrna_E_internal(1,
                           2,
                           type2,
                           rtype[type[s]],
@@ -1631,7 +1631,7 @@ aliLduplexfold_XS(const char  *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_32 += E_IntLoop(3,
+        c_32 += vrna_E_internal(3,
                           2,
                           type2,
                           rtype[type[s]],
@@ -1644,7 +1644,7 @@ aliLduplexfold_XS(const char  *s1[],
         if (type2 == 0)
           type2 = 7;
 
-        c_23 += E_IntLoop(2,
+        c_23 += vrna_E_internal(2,
                           3,
                           type2,
                           rtype[type[s]],
