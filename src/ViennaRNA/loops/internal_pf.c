@@ -61,6 +61,133 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
  #################################
  */
 PUBLIC FLT_OR_DBL
+vrna_exp_E_internal(unsigned int      u1,
+                    unsigned int      u2,
+                    unsigned int      type,
+                    unsigned int      type2,
+                    int               si1,
+                    int               sj1,
+                    int               sp1,
+                    int               sq1,
+                    vrna_exp_param_t  *P)
+{
+  unsigned int  ul, us, backbones, no_close = 0;
+  double        z, salt_stack_correction = P->expSaltStack;
+  double        salt_loop_correction = 1.;
+
+  z = 0.;
+
+  if (P) {
+    no_close              = 0;
+    salt_stack_correction = P->expSaltStack;
+    salt_loop_correction  = 1.;
+
+    if ((P->model_details.noGUclosure) &&
+        ((type2 == 3) || (type2 == 4) || (type == 3) || (type == 4)))
+      no_close = 1;
+
+    if (u1 > u2) {
+      ul  = u1;
+      us  = u2;
+    } else {
+      ul  = u2;
+      us  = u1;
+    }
+
+    if (ul == 0) /* stack */
+      return  (FLT_OR_DBL)P->expstack[type][type2] *
+              salt_stack_correction;
+
+    if (no_close)
+      return 0.;
+
+
+    if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
+      /* salt correction for loop */
+      backbones = ul + us + 2;
+      if (backbones <= MAXLOOP + 1) {
+        salt_loop_correction = P->expSaltLoop[backbones];
+      } else {
+        int E = vrna_salt_loop_int(backbones,
+                                   P->model_details.salt,
+                                   P->temperature + K0,
+                                   P->model_details.backbone_length);
+
+        salt_loop_correction = exp(-(double)E * 10. / P->kT);
+      }
+    }
+
+    z = 1.;
+
+    switch (us) {
+      case 0:
+        /* bulge */
+        z = P->expbulge[ul];
+
+        if (ul == 1) {
+          z *= P->expstack[type][type2];
+        } else { /* add stacking energy for 1-bulges */
+          if (type > 2)
+            z *= P->expTermAU;
+
+          if (type2 > 2)
+            z *= P->expTermAU;
+        }
+
+        break;
+
+      case 1:
+        if (ul == 1) { /* 1x1 loop */
+          z = P->expint11[type][type2][si1][sj1];
+        } else if (ul == 2) {
+          /* 2x1 loop */
+          if (u1 == 1)
+            z = P->expint21[type][type2][si1][sq1][sj1];
+          else
+            z = P->expint21[type2][type][sq1][si1][sp1];
+        } else {
+          /* 1xn loop */
+          z =   P->expinternal[ul + us];
+          z *=  P->expninio[2][ul - us];
+          z *=  P->expmismatch1nI[type][si1][sj1] *
+                P->expmismatch1nI[type2][sq1][sp1];
+        }
+
+        break;
+
+      case 2:
+        if (ul == 2) {
+          /* 2x2 loop */
+          z = P->expint22[type][type2][si1][sp1][sq1][sj1];
+          break;
+        } else if (ul == 3) {
+          /* 2x3 loop */
+          z =   P->expinternal[5] * 
+                P->expninio[2][1];
+          z *=  P->expmismatch23I[type][si1][sj1] *
+                P->expmismatch23I[type2][sq1][sp1];
+          break;
+        }
+        /* fall through */
+
+      default:
+        /* generic interior loop */
+        z =   P->expinternal[ul + us];
+        z *=  P->expninio[2][ul - us];
+        z *=  P->expmismatchI[type][si1][sj1] *
+              P->expmismatchI[type2][sq1][sp1];
+
+        break;
+    }
+
+    z *= salt_loop_correction;
+  }
+
+  return (FLT_OR_DBL)z;
+}
+
+
+PUBLIC FLT_OR_DBL
 vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j)
@@ -199,7 +326,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                     rtype[vrna_get_ptype_window(k, l + k, ptype_local)] :
                     rtype[vrna_get_ptype(kl, ptype)];
 
-            q_temp *= exp_E_IntLoop(0,
+            q_temp *= vrna_exp_E_internal(0,
                                     0,
                                     type,
                                     type2,
@@ -214,7 +341,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
           case VRNA_FC_TYPE_COMPARATIVE:
             for (s = 0; s < n_seq; s++) {
               type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-              q_temp  *= exp_E_IntLoop(0,
+              q_temp  *= vrna_exp_E_internal(0,
                                        0,
                                        tt[s],
                                        type2,
@@ -274,7 +401,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                 if ((noGUclosure) && (type2 == 3 || type2 == 4))
                   continue;
 
-                q_temp *= exp_E_IntLoop(u1,
+                q_temp *= vrna_exp_E_internal(u1,
                                         0,
                                         type,
                                         type2,
@@ -290,7 +417,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                 for (s = 0; s < n_seq; s++) {
                   int u1_local = a2s[s][k - 1] - a2s[s][i];
                   type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-                  q_temp  *= exp_E_IntLoop(u1_local,
+                  q_temp  *= vrna_exp_E_internal(u1_local,
                                            0,
                                            tt[s],
                                            type2,
@@ -356,7 +483,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                 if ((noGUclosure) && (type2 == 3 || type2 == 4))
                   continue;
 
-                q_temp *= exp_E_IntLoop(0,
+                q_temp *= vrna_exp_E_internal(0,
                                         u2,
                                         type,
                                         type2,
@@ -372,7 +499,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                 for (s = 0; s < n_seq; s++) {
                   int u2_local = a2s[s][j - 1] - a2s[s][l];
                   type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-                  q_temp  *= exp_E_IntLoop(0,
+                  q_temp  *= vrna_exp_E_internal(0,
                                            u2_local,
                                            tt[s],
                                            type2,
@@ -452,7 +579,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                 if ((noGUclosure) && (type2 == 3 || type2 == 4))
                   continue;
 
-                q_temp *= exp_E_IntLoop(u1,
+                q_temp *= vrna_exp_E_internal(u1,
                                         u2,
                                         type,
                                         type2,
@@ -469,7 +596,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                   int u1_local  = a2s[s][k - 1] - a2s[s][i];
                   int u2_local  = a2s[s][j - 1] - a2s[s][l];
                   type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-                  q_temp  *= exp_E_IntLoop(u1_local,
+                  q_temp  *= vrna_exp_E_internal(u1_local,
                                            u2_local,
                                            tt[s],
                                            type2,
@@ -639,7 +766,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
 
               /* regular interior loop */
               q_temp *=
-                exp_E_IntLoop(u2,
+                vrna_exp_E_internal(u2,
                               u1 + u3,
                               type,
                               type2,
@@ -656,7 +783,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
                 u1_local  = a2s[s][i - 1];
                 u2_local  = a2s[s][k - 1] - a2s[s][j];
                 u3_local  = a2s[s][n] - a2s[s][l];
-                q_temp    *= exp_E_IntLoop(u2_local,
+                q_temp    *= vrna_exp_E_internal(u2_local,
                                            u1_local + u3_local,
                                            tt[s],
                                            type2,
@@ -798,7 +925,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
                 rtype[vrna_get_ptype_window(k, l, ptype_local)] :
                 rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
-        q_temp = exp_E_IntLoop(u1,
+        q_temp = vrna_exp_E_internal(u1,
                                u2,
                                type,
                                type2,
@@ -818,7 +945,7 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
           int u2_local  = a2s[s][j - 1] - a2s[s][l];
           type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
           type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-          q_temp  *= exp_E_IntLoop(u1_local,
+          q_temp  *= vrna_exp_E_internal(u1_local,
                                    u2_local,
                                    type,
                                    type2,
