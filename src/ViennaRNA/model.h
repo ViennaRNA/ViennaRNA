@@ -610,7 +610,7 @@ vrna_md_defaults_circ_get(void);
 /**
  *  @brief  Set default behavior for fully unpaired circular RNA penalty
  *
- *  @see  vrna_E_ext_loop_circ(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_CIRC_PENALTY
+ *  @see  vrna_E_exterior_loop(), vrna_md_defaults_reset(), vrna_md_set_default(), #vrna_md_t, #VRNA_MODEL_DEFAULT_CIRC_PENALTY
  *
  *  @param  flag  On/Off switch (0 = OFF, else = ON)
  */

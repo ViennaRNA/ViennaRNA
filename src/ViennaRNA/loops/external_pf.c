@@ -101,10 +101,10 @@ exp_E_ext_fast(vrna_fold_compound_t       *fc,
  #################################
  */
 PUBLIC FLT_OR_DBL
-vrna_exp_E_ext_stem(unsigned int      type,
-                    int               n5d,
-                    int               n3d,
-                    vrna_exp_param_t  *p)
+vrna_exp_E_exterior_stem(unsigned int     type,
+                         int              n5d,
+                         int              n3d,
+                         vrna_exp_param_t *p)
 {
   double energy = 1.0;
 
@@ -119,6 +119,29 @@ vrna_exp_E_ext_stem(unsigned int      type,
     energy *= p->expTermAU;
 
   return (FLT_OR_DBL)energy;
+}
+
+
+PUBLIC FLT_OR_DBL
+vrna_exp_E_exterior_loop(unsigned int n,
+                         vrna_md_t    *md)
+{
+  vrna_md_t md_tmp;
+
+  if (md == NULL) {
+   vrna_md_set_default(&md_tmp);
+   md = &md_tmp;
+  }
+
+  if ((md->circ) &&
+      (md->circ_penalty)) {
+    double e  = (double)vrna_E_exterior_loop(n, md) / 100.;
+    double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
+
+    return (FLT_OR_DBL)exp(-e / kT); /* return in dekacal/mol */
+  } else {
+    return 1.;
+  }
 }
 
 
@@ -315,28 +338,6 @@ vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
 
     for (k = j; k >= MAX2(1, j); k--)
       q[k][j] = reduce_ext_up_fast(fc, k, j, aux_mx, evaluate, &hc_dat_local, &sc_wrapper);
-  }
-}
-
-
-PUBLIC FLT_OR_DBL
-vrna_exp_E_ext_loop_circ(unsigned int n,
-                     vrna_md_t    *md)
-{
-  vrna_md_t md_tmp;
-
-  if (md == NULL) {
-   vrna_md_set_default(&md_tmp);
-   md = &md_tmp;
-  }
-
-  if (md->circ_penalty) {
-    double e  = (double)vrna_E_ext_loop_circ(n, md) / 100.;
-    double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
-
-    return (FLT_OR_DBL)exp(-e / kT); /* return in dekacal/mol */
-  } else {
-    return 1;
   }
 }
 
@@ -728,4 +729,14 @@ exp_E_ExtLoop(int               type,
 }
 
 
+
+
+PUBLIC FLT_OR_DBL
+vrna_exp_E_ext_stem(unsigned int      type,
+                    int               n5d,
+                    int               n3d,
+                    vrna_exp_param_t  *p)
+{
+  return vrna_exp_E_exterior_stem(type, n5d, n3d, p);
+}
 #endif

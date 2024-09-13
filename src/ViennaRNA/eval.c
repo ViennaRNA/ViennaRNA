@@ -1124,11 +1124,11 @@ eval_circ_pt(vrna_fold_compound_t           *fc,
       switch (fc->type) {
         case VRNA_FC_TYPE_COMPARATIVE:
           for (s = 0; s < n_seq; s++)
-            en0 += vrna_E_ext_loop_circ(a2s[s][length], md);
+            en0 += vrna_E_exterior_loop(a2s[s][length], md);
           break;
 
         default:
-          en0 += vrna_E_ext_loop_circ(length, md);
+          en0 += vrna_E_exterior_loop(length, md);
           break;
       }
 
@@ -1471,7 +1471,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
   /* now for the actual correction (if necessary) */
   switch (num_elem) {
     case 0: /* exterior loop has been falsly assumed to be entirely unpaired */
-      e_minus += vrna_E_ext_loop_circ(n, md) * (int)n_seq;
+      e_minus += vrna_E_exterior_loop(n, md) * (int)n_seq;
 
       if (*elements_rev)
         vrna_array_append(*elements_rev,

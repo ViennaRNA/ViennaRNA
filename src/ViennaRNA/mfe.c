@@ -586,11 +586,11 @@ postprocess_circular(vrna_fold_compound_t *fc,
     switch (fc->type) {
       case VRNA_FC_TYPE_COMPARATIVE:
         for (s = 0; s < n_seq; s++)
-          Fc += vrna_E_ext_loop_circ(a2s[s][length], md);
+          Fc += vrna_E_exterior_loop(a2s[s][length], md);
         break;
 
       default:
-        Fc += vrna_E_ext_loop_circ(length, md);
+        Fc += vrna_E_exterior_loop(length, md);
         break;
     }
 

@@ -48,7 +48,13 @@
  *  If either of the adjacent nucleotides @f$(i - 1)@f$ and @f$(j+1)@f$ must not
  *  contribute stacking energy, the corresponding encoding must be @f$-1@f$.
  *
- *  @see vrna_E_exp_stem()
+ *  @note By default, terminal mismatch energies are applied that correspond to the
+ *        neighboring nucleotides provided by their encodings @p n5d and @p n3d. Whenever
+ *        the encodings are negative, the implementation switches to usage of dangling
+ *        end energies (for the non-negative base). If both encodings are negative, no
+ *        terminal mismatch contributions are added.
+ *
+ *  @see vrna_exp_E_exterior_stem()
  *
  *  @param  type  The base pair encoding
  *  @param  n5d   The encoded nucleotide directly adjacent at the 5' side of the base pair (may be -1)
@@ -57,11 +63,15 @@
  *  @return       The energy contribution of the introduced exterior-loop stem
  */
 int
-vrna_E_ext_stem(unsigned int  type,
-                int           n5d,
-                int           n3d,
-                vrna_param_t  *p);
+vrna_E_exterior_stem(unsigned int  type,
+                     int           n5d,
+                     int           n3d,
+                     vrna_param_t  *p);
 
+
+int
+vrna_E_exterior_loop(unsigned int n,
+                     vrna_md_t    *md);
 
 /**
  *  @brief Evaluate the free energy of a base pair in the exterior loop
@@ -77,15 +87,24 @@ vrna_E_ext_stem(unsigned int  type,
  *          pairs (i + 1, j), (i, j - 1), and (i + 1, j - 1) and returns the minimum
  *          for all four possibilities in total.
  *
+ *  @note   By default, all user-supplied hard- and soft constraints will be taken
+ *          into account! Use the #VRNA_EVAL_LOOP_NO_HC and #VRNA_EVAL_LOOP_NO_SC
+ *          bit flags as input for @p options to change the default behavior if necessary.
+ *
+ *  @see    vrna_E_exterior_stem(),
+ *          #VRNA_EVAL_LOOP_NO_HC, #VRNA_EVAL_LOOP_NO_SC, #VRNA_EVAL_LOOP_NO_CONSTRAINTS
+ *
  *  @param  fc    Fold compound to work on (defines the model and parameters)
  *  @param  i     5' position of the base pair
  *  @param  j     3' position of the base pair
- *  @return       Free energy contribution that arises when this pair is formed in the exterior loop
+ *  @param  options   A bit-field that specifies which aspects (not) to consider during evaluation
+ *  @returns          Free energy for the terminal base pair of a stem branching off the exterior loop in deka-kal/mol or #INF if the pair is forbidden
  */
 int
-vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
-                   int                   i,
-                   int                   j);
+vrna_eval_exterior_stem(vrna_fold_compound_t  *fc,
+                        unsigned int          i,
+                        unsigned int          j,
+                        unsigned int          options);
 
 
 int
@@ -96,10 +115,6 @@ int
 vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
                   int                   i);
 
-
-int
-vrna_E_ext_loop_circ(unsigned int n,
-                     vrna_md_t    *md);
 
 /* End basic interface */
 /**@}*/
@@ -126,10 +141,14 @@ typedef struct vrna_mx_pf_aux_el_s *vrna_mx_pf_aux_el_t;
  *  Given a base pair @f$(i,j)@f$ encoded by @em type, compute the energy contribution
  *  including dangling-end/terminal-mismatch contributions. Instead of returning the
  *  energy contribution per-se, this function returns the corresponding Boltzmann factor.
- *  If either of the adjacent nucleotides @f$(i - 1)@f$ and @f$(j+1)@f$ must not
- *  contribute stacking energy, the corresponding encoding must be @f$-1@f$.
  *
- *  @see vrna_E_ext_stem()
+ *  @note By default, terminal mismatch energies are applied that correspond to the
+ *        neighboring nucleotides provided by their encodings @p n5d and @p n3d. Whenever
+ *        the encodings are negative, the implementation switches to usage of dangling
+ *        end energies (for the non-negative base). If both encodings are negative, no
+ *        terminal mismatch contributions are added.
+ *
+ *  @see vrna_E_exterior()
  *
  *  @param  type  The base pair encoding
  *  @param  n5d   The encoded nucleotide directly adjacent at the 5' side of the base pair (may be -1)
@@ -138,10 +157,15 @@ typedef struct vrna_mx_pf_aux_el_s *vrna_mx_pf_aux_el_t;
  *  @return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
  */
 FLT_OR_DBL
-vrna_exp_E_ext_stem(unsigned int      type,
-                    int               n5d,
-                    int               n3d,
-                    vrna_exp_param_t  *p);
+vrna_exp_E_exterior_stem(unsigned int     type,
+                         int              n5d,
+                         int              n3d,
+                         vrna_exp_param_t *p);
+
+
+FLT_OR_DBL
+vrna_exp_E_exterior_loop(unsigned int n,
+                         vrna_md_t    *md);
 
 
 vrna_mx_pf_aux_el_t
@@ -167,11 +191,6 @@ void
 vrna_exp_E_ext_fast_update(vrna_fold_compound_t *fc,
                            int                  j,
                            vrna_mx_pf_aux_el_t  aux_mx);
-
-
-FLT_OR_DBL
-vrna_exp_E_ext_loop_circ(unsigned int n,
-                         vrna_md_t    *md);
 
 
 /* End partition function interface */
@@ -257,6 +276,13 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
  *  @{
  */
 
+DEPRECATED(int
+vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
+                   int                   i,
+                   int                   j),
+           "Use vrna_eval_exterior_stem() instead!");
+
+
 /**
  *  @brief Compute the energy contribution of a stem branching off a loop-region
  *
@@ -312,14 +338,29 @@ DEPRECATED(int E_Stem(int           type,
                       int           sj1,
                       int           extLoop,
                       vrna_param_t  *P),
-           "This function is obsolete. Use vrna_E_ext_stem() or E_MLstem() instead");
+           "This function is obsolete. Use vrna_E_exterior_stem() or vrna_E_multibranch_stem() instead");
 
 
 DEPRECATED(int E_ExtLoop(int          type,
                          int          si1,
                          int          sj1,
                          vrna_param_t *P),
-           "Use vrna_E_ext_stem() instead");
+           "Use vrna_E_exterior_stem() instead");
+
+
+DEPRECATED(int
+vrna_E_ext_stem(unsigned int  type,
+                int           n5d,
+                int           n3d,
+                vrna_param_t  *p),
+          "Use vrna_E_exterior_stem() instead!");
+
+DEPRECATED(FLT_OR_DBL
+vrna_exp_E_ext_stem(unsigned int      type,
+                    int               n5d,
+                    int               n3d,
+                    vrna_exp_param_t  *p),
+          "Use vrna_exp_E_exterior_stem() instead!");
 
 
 /**
@@ -334,7 +375,7 @@ DEPRECATED(FLT_OR_DBL exp_E_ExtLoop(int               type,
                                     int               si1,
                                     int               sj1,
                                     vrna_exp_param_t  *P),
-           "Use vrna_exp_E_ext_stem() instead");
+           "Use vrna_exp_E_exterior_stem() instead");
 
 
 /**
@@ -352,7 +393,7 @@ DEPRECATED(FLT_OR_DBL exp_E_Stem(int              type,
                                  int              sj1,
                                  int              extLoop,
                                  vrna_exp_param_t *P),
-           "This function is obsolete");
+           "This function is obsolete. Use vrna_exp_E_exterior_stem() or vrna_exp_E_multibranch_stem() instead!");
 
 
 #endif

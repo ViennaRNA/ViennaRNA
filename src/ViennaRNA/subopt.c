@@ -2035,7 +2035,7 @@ scan_circular(vrna_fold_compound_t  *fc,
    * backtrack anything further...
    */
   if (evaluate_ext(1, length, 1, length, VRNA_DECOMP_EXT_UP, hc_dat_ext)) {
-    tmp_en = vrna_E_ext_loop_circ(length, md) * (int)n_seq;
+    tmp_en = vrna_E_exterior_loop(length, md) * (int)n_seq;
 
     if (sc) {
       if (sc->energy_up)
