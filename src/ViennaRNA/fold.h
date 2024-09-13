@@ -223,7 +223,7 @@ export_circfold_arrays_par( int *Fc_p,
 /* finally moved the loop energy function declarations to this header...  */
 /* BUT: The functions only exist for backward compatibility reasons!      */
 /* You better include "loop_energies.h" and call the functions:           */
-/* E_Hairpin() and E_IntLoop() which are (almost) threadsafe as they get  */
+/* vrna_E_hairpin() and E_IntLoop() which are (almost) threadsafe as they get  */
 /* a pointer to the energy parameter data structure as additional argument */
 
 /**
@@ -242,14 +242,14 @@ DEPRECATED(int LoopEnergy(int n1,
 
 /**
  *  @deprecated {This function is deprecated and will be removed soon.
- *  Use @ref E_Hairpin() instead!}
+ *  Use @ref vrna_E_hairpin() instead!}
  */
 DEPRECATED(int HairpinE(int size,
                         int type,
                         int si1,
                         int sj1,
                         const char *string),
-"Use E_Hairpin() instead");
+"Use vrna_E_hairpin() instead");
 
 /**
  *  Allocate arrays for folding\n

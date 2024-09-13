@@ -525,7 +525,7 @@ mfe_linear(vrna_fold_compound_t *vc)
         /* d1 and d2 are the distancies to both references introduced by closing a hairpin structure at (i,j) */
         if ((d1 >= 0) && (d2 >= 0)) {
           if (((unsigned int)d1 <= maxD1) && ((unsigned int)d2 <= maxD2)) {
-            matrices->E_C[ij][d1][d2 / 2] = (no_close) ? FORBIDDEN : E_Hairpin(dij,
+            matrices->E_C[ij][d1][d2 / 2] = (no_close) ? FORBIDDEN : vrna_E_hairpin(dij,
                                                                                type,
                                                                                S1[i + 1],
                                                                                S1[j - 1],
@@ -543,7 +543,7 @@ mfe_linear(vrna_fold_compound_t *vc)
 #endif
           } else {
             matrices->E_C_rem[ij] =
-              (no_close) ? FORBIDDEN : E_Hairpin(dij, type, S1[i + 1], S1[j - 1], sequence + i - 1,
+              (no_close) ? FORBIDDEN : vrna_E_hairpin(dij, type, S1[i + 1], S1[j - 1], sequence + i - 1,
                                                  P);
           }
         }
@@ -1859,12 +1859,12 @@ backtrack_c(unsigned int          i,
 
   if (k == -1) {
     if (((unsigned int)base_d1 > maxD1) || ((unsigned int)base_d2 > maxD2))
-      if (e == E_Hairpin(j - i - 1, type, S1[i + 1], S1[j - 1], sequence + i - 1, P))
+      if (e == vrna_E_hairpin(j - i - 1, type, S1[i + 1], S1[j - 1], sequence + i - 1, P))
         return;
   } else {
     if ((unsigned int)base_d1 == k)
       if ((unsigned int)base_d2 == l)
-        if (E_Hairpin(j - i - 1, type, S1[i + 1], S1[j - 1], sequence + i - 1, P) == e)
+        if (vrna_E_hairpin(j - i - 1, type, S1[i + 1], S1[j - 1], sequence + i - 1, P) == e)
           return;
   }
 
@@ -2631,7 +2631,7 @@ backtrack_fc(int                  k,
             strncat(loopseq, sequence, i);
           }
 
-          energy = E_Hairpin(u, type, S1[j + 1], S1[i - 1], loopseq, P);
+          energy = vrna_E_hairpin(u, type, S1[j + 1], S1[i - 1], loopseq, P);
 
           if (E_C_rem[ij] != INF) {
             if (E_Fc_rem == (E_C_rem[ij] + energy)) {
@@ -2901,7 +2901,7 @@ backtrack_fc(int                  k,
                 strncat(loopseq, sequence, i);
               }
 
-              energy = E_Hairpin(u, type, S1[j + 1], S1[i - 1], loopseq, P);
+              energy = vrna_E_hairpin(u, type, S1[j + 1], S1[i - 1], loopseq, P);
               if ((k >= d1) && (l >= d2)) {
                 if ((k - d1 >= k_min_C[ij]) && (k - d1 <= k_max_C[ij])) {
                   if ((l - d2 >= l_min_C[ij][k - d1]) && (l - d2 <= l_max_C[ij][k - d1])) {
@@ -3577,7 +3577,7 @@ mfe_circ(vrna_fold_compound_t *vc)
         strncat(loopseq, sequence, i);
       }
 
-      energy = E_Hairpin(u, type, S1[j + 1], S1[i - 1], loopseq, P);
+      energy = vrna_E_hairpin(u, type, S1[j + 1], S1[i - 1], loopseq, P);
 
       if (E_C_rem[ij] != INF)
         matrices->E_FcH_rem = MIN2(matrices->E_FcH_rem, E_C_rem[ij] + energy);

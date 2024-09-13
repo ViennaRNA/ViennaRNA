@@ -649,7 +649,7 @@ alifill_arrays(const char **strings,
         /* hairpin ----------------------------------------------*/
 
         for (new_c = s = 0; s < n_seq; s++)
-          new_c += E_Hairpin(j - i - 1,
+          new_c += vrna_E_hairpin(j - i - 1,
                              type[s],
                              Sali[s][i + 1],
                              Sali[s][j - 1],
@@ -838,7 +838,7 @@ repeat1:
     {
       int cc = 0;
       for (ss = 0; ss < n_seq; ss++)
-        cc += E_Hairpin(j - i - 1,
+        cc += vrna_E_hairpin(j - i - 1,
                         type[ss],
                         Sali[ss][i + 1],
                         Sali[ss][j - 1],
@@ -959,7 +959,7 @@ fill_arrays(const char  *string,
         if (no_close)
           new_c = FORBIDDEN;
         else
-          new_c = E_Hairpin(j - i - 1, type, S1[i + 1], S1[j - 1], string + i - 1, P); /* computes hair pin structure for subsequence i...j */
+          new_c = vrna_E_hairpin(j - i - 1, type, S1[i + 1], S1[j - 1], string + i - 1, P); /* computes hair pin structure for subsequence i...j */
 
         /*--------------------------------------------------------
          *  check for elementary structures involving more than one
@@ -1202,7 +1202,7 @@ repeat1:
       if (cij == FORBIDDEN)
         continue;
     } else
-    if (cij == E_Hairpin(j - i - 1, type, S1[i + 1], S1[j - 1], string + i - 1, P) + bonus) {
+    if (cij == vrna_E_hairpin(j - i - 1, type, S1[i + 1], S1[j - 1], string + i - 1, P) + bonus) {
       continue;
     }
 
