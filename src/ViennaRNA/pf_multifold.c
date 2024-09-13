@@ -82,7 +82,7 @@ mf_rule_pair(vrna_fold_compound_t *fc,
     type  = vrna_get_ptype_md(S2[j], S2[i], md);
     s5    = (sn[j] == sn[j - 1]) ? S1[j - 1] : -1;
     s3    = (sn[i] == sn[i + 1]) ? S1[i + 1] : -1;
-    qbase = vrna_exp_E_ext_stem(type, s5, s3, pf_params) *
+    qbase = vrna_exp_E_exterior_stem(type, s5, s3, pf_params) *
             scale[2];
 
     if (sc) {

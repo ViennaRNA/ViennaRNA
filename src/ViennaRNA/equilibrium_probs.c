@@ -1149,7 +1149,7 @@ contrib_ext_pair(vrna_fold_compound_t *fc,
   s5    = ((i > 1) && (sn[i] == sn[i - 1])) ? S1[i - 1] : -1;
   s3    = ((j < n) && (sn[j + 1] == sn[j])) ? S1[j + 1] : -1;
 
-  contribution = vrna_exp_E_ext_stem(type, s5, s3, pf_params);
+  contribution = vrna_exp_E_exterior_stem(type, s5, s3, pf_params);
 
   if ((sc) &&
       (sc->exp_f))
@@ -1195,7 +1195,7 @@ contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
     s5    = (a2s[s][i] > 1) ? S5[s][i] : -1;
     s3    = (a2s[s][j] < a2s[s][n]) ? S3[s][j] : -1;
 
-    contribution *= vrna_exp_E_ext_stem(type, s5, s3, pf_params);
+    contribution *= vrna_exp_E_exterior_stem(type, s5, s3, pf_params);
   }
 
   if (scs) {
@@ -2376,7 +2376,7 @@ multistrand_update_Y5(vrna_fold_compound_t  *fc,
       if (probs[my_iindx[end] - j] > 0) {
         type  = vrna_get_ptype_md(S[j], S[end], md);
         qtmp  = probs[my_iindx[end] - j] *
-                vrna_exp_E_ext_stem(type,
+                vrna_exp_E_exterior_stem(type,
                                     S1[j - 1],
                                     -1,
                                     pf_params) *
@@ -2393,7 +2393,7 @@ multistrand_update_Y5(vrna_fold_compound_t  *fc,
             (sn[i] == sn[i + 1])) {
           type  = vrna_get_ptype_md(S[j], S[i], md);
           qtmp  = probs[my_iindx[i] - j] *
-                  vrna_exp_E_ext_stem(type,
+                  vrna_exp_E_exterior_stem(type,
                   S1[j - 1],
                   S1[i + 1],
                   pf_params) *
@@ -2413,7 +2413,7 @@ multistrand_update_Y5(vrna_fold_compound_t  *fc,
           (sn[i] == sn[i + 1])) {
         type  = vrna_get_ptype_md(S[j], S[i], md);
         qtmp  = probs[my_iindx[i] - j] *
-                vrna_exp_E_ext_stem(type,
+                vrna_exp_E_exterior_stem(type,
                                     S1[j - 1],
                                     S1[i + 1],
                                     pf_params) *
@@ -2483,7 +2483,7 @@ multistrand_update_Y3(vrna_fold_compound_t  *fc,
           if (probs[my_iindx[i] - start] > 0) {
             type = vrna_get_ptype_md(S[start], S[i], md);
             qtmp = probs[my_iindx[i] - start] *
-                         vrna_exp_E_ext_stem(type,
+                         vrna_exp_E_exterior_stem(type,
                                              -1,
                                              S1[i + 1],
                                              pf_params) *
@@ -2500,7 +2500,7 @@ multistrand_update_Y3(vrna_fold_compound_t  *fc,
                 (sn[j - 1] == sn[j])) {
               type = vrna_get_ptype_md(S[j], S[i], md);
               qtmp = probs[my_iindx[i] - j] *
-                           vrna_exp_E_ext_stem(type,
+                           vrna_exp_E_exterior_stem(type,
                                                S1[j - 1],
                                                S1[i + 1],
                                                pf_params) *
@@ -2600,7 +2600,7 @@ multistrand_contrib(vrna_fold_compound_t  *fc,
       type      = vrna_get_ptype_md(S[k], S[l], md);
       s5        = (sn[k - 1] == sn[k]) ? S1[k - 1] : -1;
       s3        = (sn[l] == sn[l + 1]) ? S1[l + 1] : -1;
-      qtmp      = vrna_exp_E_ext_stem(type,
+      qtmp      = vrna_exp_E_exterior_stem(type,
                                       s5,
                                       s3,
                                       pf_params);

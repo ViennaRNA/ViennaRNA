@@ -610,14 +610,14 @@ backtrack_ext_loop(int                              start,
 
         if (vc->type == VRNA_FC_TYPE_SINGLE) {
           type  = vrna_get_ptype_md(S2[i], S2[j], md);
-          qkl   *= vrna_exp_E_ext_stem(type,
+          qkl   *= vrna_exp_E_exterior_stem(type,
                                        (i > 1) ? S1[i - 1] : -1,
                                        (j < n) ? S1[j + 1] : -1,
                                        pf_params);
         } else {
           for (s = 0; s < n_seq; s++) {
             type  = vrna_get_ptype_md(S[s][i], S[s][j], md);
-            qkl   *= vrna_exp_E_ext_stem(type,
+            qkl   *= vrna_exp_E_exterior_stem(type,
                                          (a2s[s][i] > 1) ? S5[s][i] : -1,
                                          (a2s[s][j] < a2s[s][n]) ? S3[s][j] : -1,
                                          pf_params);

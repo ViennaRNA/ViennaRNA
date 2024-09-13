@@ -1125,7 +1125,7 @@ compute_probs(vrna_fold_compound_t        *vc,
                       q[l - winSize + 1][l];
       }
 
-      pR[k][l] *= vrna_exp_E_ext_stem(type,
+      pR[k][l] *= vrna_exp_E_exterior_stem(type,
                                       (k > 1) ? S1[k - 1] : -1,
                                       (l < n) ? S1[l + 1] : -1,
                                       pf_params);

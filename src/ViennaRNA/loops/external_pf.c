@@ -440,7 +440,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
         type    = vrna_get_ptype_md(S2[i], S2[j], md);
         s5      = (((i > 1) || circular) && (sn[i] == sn[i - 1])) ? S1[i - 1] : -1;
         s3      = (((j < n) || circular) && (sn[j + 1] == sn[j])) ? S1[j + 1] : -1;
-        q_temp  *= vrna_exp_E_ext_stem(type, s5, s3, pf_params);
+        q_temp  *= vrna_exp_E_exterior_stem(type, s5, s3, pf_params);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
@@ -451,7 +451,7 @@ reduce_ext_stem_fast(vrna_fold_compound_t       *fc,
         a2s   = fc->a2s;
         for (s = 0; s < n_seq; s++) {
           type    = vrna_get_ptype_md(S[s][i], S[s][j], md);
-          q_temp  *= vrna_exp_E_ext_stem(type,
+          q_temp  *= vrna_exp_E_exterior_stem(type,
                                          ((a2s[s][i] > 1) || circular) ? S5[s][i] : -1,
                                          ((a2s[s][j] < a2s[s][n]) || circular) ? S3[s][j] : -1,
                                          pf_params);
@@ -725,7 +725,7 @@ exp_E_ExtLoop(int               type,
               int               sj1,
               vrna_exp_param_t  *P)
 {
-  return vrna_exp_E_ext_stem(type, si1, sj1, P);
+  return vrna_exp_E_exterior_stem((unsigned int)type, si1, sj1, P);
 }
 
 
