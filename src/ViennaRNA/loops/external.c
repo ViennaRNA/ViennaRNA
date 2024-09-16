@@ -36,7 +36,7 @@
 
 
 #include "ViennaRNA/constraints/external_hc.inc"
-#include "external_sc.inc"
+#include "ViennaRNA/constraints/external_sc.inc"
 
 #ifdef VRNA_WITH_SVM
 #include "ViennaRNA/zscore_dat.inc"

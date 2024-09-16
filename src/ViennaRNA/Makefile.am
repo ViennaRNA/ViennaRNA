@@ -563,20 +563,20 @@ nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
               grammar.inc \
+              loops/gquad_intern.h \
               constraints/hc_depot.inc \
               constraints/external_hc.inc \
-              loops/external_sc.inc \
-              loops/external_sc_pf.inc \
-              loops/gquad_intern.h \
+              constraints/external_sc.inc \
+              constraints/external_sc_pf.inc \
               constraints/hairpin_hc.inc \
-              loops/hairpin_sc.inc \
-              loops/hairpin_sc_pf.inc \
+              constraints/hairpin_sc.inc \
+              constraints/hairpin_sc_pf.inc \
               constraints/internal_hc.inc \
-              loops/internal_sc.inc \
-              loops/internal_sc_pf.inc \
+              constraints/internal_sc.inc \
+              constraints/internal_sc_pf.inc \
               constraints/multibranch_hc.inc \
-              loops/multibranch_sc.inc \
-              loops/multibranch_sc_pf.inc \
+              constraints/multibranch_sc.inc \
+              constraints/multibranch_sc_pf.inc \
               params/svm_model_avg.inc \
               params/svm_model_sd.inc \
               data_structures_nonred.inc \

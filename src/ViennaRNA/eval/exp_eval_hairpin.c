@@ -28,7 +28,7 @@
 #endif
 
 #include "ViennaRNA/constraints/hairpin_hc.inc"
-#include "ViennaRNA/loops/hairpin_sc_pf.inc"
+#include "ViennaRNA/constraints/hairpin_sc_pf.inc"
 
 /*
  #################################

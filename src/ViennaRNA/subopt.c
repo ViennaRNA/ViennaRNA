@@ -46,10 +46,10 @@
 #include "ViennaRNA/constraints/internal_hc.inc"
 #include "ViennaRNA/constraints/multibranch_hc.inc"
 
-#include "ViennaRNA/loops/external_sc.inc"
-#include "ViennaRNA/loops/hairpin_sc.inc"
-#include "ViennaRNA/loops/internal_sc.inc"
-#include "ViennaRNA/loops/multibranch_sc.inc"
+#include "ViennaRNA/constraints/external_sc.inc"
+#include "ViennaRNA/constraints/hairpin_sc.inc"
+#include "ViennaRNA/constraints/internal_sc.inc"
+#include "ViennaRNA/constraints/multibranch_sc.inc"
 
 /* hack */
 #include "ViennaRNA/color_output.inc"

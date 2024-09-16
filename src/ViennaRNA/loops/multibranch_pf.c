@@ -28,7 +28,7 @@
 #endif
 
 #include "ViennaRNA/constraints/multibranch_hc.inc"
-#include "multibranch_sc_pf.inc"
+#include "ViennaRNA/constraints/multibranch_sc_pf.inc"
 
 struct vrna_mx_pf_aux_ml_s {
   FLT_OR_DBL  *qqm;

@@ -62,9 +62,9 @@ struct aux_arrays {
 };
 
 #include "ViennaRNA/constraints/external_hc.inc"
-#include "ViennaRNA/loops/external_sc.inc"
+#include "ViennaRNA/constraints/external_sc.inc"
 #include "ViennaRNA/constraints/multibranch_hc.inc"
-#include "ViennaRNA/loops/multibranch_sc.inc"
+#include "ViennaRNA/constraints/multibranch_sc.inc"
 
 struct ms_helpers {
   vrna_hc_eval_f evaluate;

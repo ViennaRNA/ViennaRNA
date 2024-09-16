@@ -27,7 +27,7 @@
 #endif
 
 #include "ViennaRNA/constraints/internal_hc.inc"
-#include "ViennaRNA/loops/internal_sc.inc"
+#include "ViennaRNA/constraints/internal_sc.inc"
 
 /*
  #################################

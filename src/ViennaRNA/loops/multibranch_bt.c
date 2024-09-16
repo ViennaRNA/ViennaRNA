@@ -29,7 +29,7 @@
 #endif
 
 #include "ViennaRNA/constraints/multibranch_hc.inc"
-#include "multibranch_sc.inc"
+#include "ViennaRNA/constraints/multibranch_sc.inc"
 
 /*
  #################################

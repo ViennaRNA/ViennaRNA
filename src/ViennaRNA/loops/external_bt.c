@@ -33,7 +33,7 @@
 #endif
 
 #include "ViennaRNA/constraints/external_hc.inc"
-#include "external_sc.inc"
+#include "ViennaRNA/constraints/external_sc.inc"
 
 /*
  #################################
