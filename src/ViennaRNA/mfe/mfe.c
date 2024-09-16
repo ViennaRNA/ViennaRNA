@@ -36,7 +36,7 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 
 #include "ViennaRNA/grammar.inc"
 

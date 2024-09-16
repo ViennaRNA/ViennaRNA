@@ -14,7 +14,7 @@
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 
 
 /* wrappers for single sequences */

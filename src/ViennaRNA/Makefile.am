@@ -250,6 +250,8 @@ vrna_eval_HEADERS = \
 
 
 vrna_mfe_HEADERS = \
+    mfe/global.h \
+    mfe/local.h \
     mfe/exterior.h \
     mfe/internal.h \
     mfe/multibranch.h
@@ -330,10 +332,6 @@ libRNA_conv_la_SOURCES = \
     inverse.c \
     ProfileDist.c \
     RNAstruct.c \
-    mfe.c \
-    mfe_window.c \
-    mfe_wrappers.c \
-    mfe_window_wrappers.c \
     fold.c \
     stringdist.c \
     subopt.c \
@@ -470,7 +468,12 @@ libRNA_loops_la_SOURCES = \
 
 
 libRNA_mfe_la_SOURCES = \
+    mfe/mfe.c \
+    mfe/mfe_window.c \
+    mfe/mfe_wrappers.c \
+    mfe/mfe_window_wrappers.c \
     mfe/mfe_exterior.c \
+    mfe/mfe_exterior_window.c \
     mfe/bt_exterior.c \
     mfe/bt_hairpin.c \
     mfe/mfe_internal.c \

@@ -34,7 +34,7 @@
 #include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/units.h"
-#include "ViennaRNA/mfe_window.h"
+#include "ViennaRNA/mfe/local.h"
 
 #include "ViennaRNA/grammar.inc"
 

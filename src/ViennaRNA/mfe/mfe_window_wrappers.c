@@ -13,7 +13,7 @@
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/mfe_window.h"
+#include "ViennaRNA/mfe/local.h"
 
 
 /* wrappers for local MFE prediction */
