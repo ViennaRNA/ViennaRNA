@@ -66,10 +66,16 @@ extern "C" {
 #include  <ViennaRNA/loops/multibranch.h>
 #include  <ViennaRNA/loops/gquad.h>
 
+#include  <ViennaRNA/eval/basic.h>
+#include  <ViennaRNA/eval/structures.h>
+#include  <ViennaRNA/eval/external.h>
+#include  <ViennaRNA/eval/hairpin.h>
+#include  <ViennaRNA/eval/internal.h>
+#include  <ViennaRNA/eval/multibranch.h>
+
 #include  <ViennaRNA/mfe.h>
 #include  <ViennaRNA/mfe_window.h>
 #include  <ViennaRNA/fold.h>
-#include  <ViennaRNA/eval.h>
 #include  <ViennaRNA/cofold.h>
 #include  <ViennaRNA/alifold.h>
 

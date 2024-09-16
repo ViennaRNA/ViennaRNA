@@ -8,7 +8,7 @@
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/landscape/move.h"
 #include "ViennaRNA/landscape/neighbor.h"
 

@@ -33,7 +33,7 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/datastructures/lists.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/cofold.h"

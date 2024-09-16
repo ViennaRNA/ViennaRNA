@@ -874,16 +874,17 @@ WARN_LOGFILE           = doxygen.warnings
 INPUT                  =  @top_srcdir@/doc/doxygen/refman.include/ \
                           @top_builddir@/doc/doxygen/refman.include/ \
                           @top_srcdir@/src/ViennaRNA \
-                          @top_srcdir@/src/ViennaRNA/params \
-                          @top_srcdir@/src/ViennaRNA/loops \
                           @top_srcdir@/src/ViennaRNA/constraints \
+                          @top_srcdir@/src/ViennaRNA/datastructures \
+                          @top_srcdir@/src/ViennaRNA/eval \
                           @top_srcdir@/src/ViennaRNA/io \
                           @top_srcdir@/src/ViennaRNA/landscape \
+                          @top_srcdir@/src/ViennaRNA/loops \
+                          @top_srcdir@/src/ViennaRNA/params \
                           @top_srcdir@/src/ViennaRNA/plotting \
                           @top_srcdir@/src/ViennaRNA/plotting/RNApuzzler \
-                          @top_srcdir@/src/ViennaRNA/utils \
                           @top_srcdir@/src/ViennaRNA/search \
-                          @top_srcdir@/src/ViennaRNA/datastructures \
+                          @top_srcdir@/src/ViennaRNA/utils \
                           @top_srcdir@/interfaces
 
 # This tag can be used to specify the character encoding of the source files

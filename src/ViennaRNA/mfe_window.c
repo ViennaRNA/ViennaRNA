@@ -31,7 +31,7 @@
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/constraints/hard.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/units.h"
 #include "ViennaRNA/mfe_window.h"

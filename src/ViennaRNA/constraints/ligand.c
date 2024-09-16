@@ -19,7 +19,7 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/constraints/ligand.h"
 

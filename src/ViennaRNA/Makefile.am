@@ -11,6 +11,7 @@ SUBDIRS = static @NAVIEW_DIR@
 DIST_SUBDIRS = static @NAVIEW_DIR@
 
 vrna_constraintsdir     = $(pkgincludedir)/constraints
+vrna_evaldir            = $(pkgincludedir)/eval
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_iodir              = $(pkgincludedir)/io
@@ -236,6 +237,15 @@ vrna_loops_HEADERS = \
     loops/gquad.h
 
 
+vrna_eval_HEADERS = \
+    eval/basic.h \
+    eval/structures.h \
+    eval/external.h \
+    eval/hairpin.h \
+    eval/internal.h \
+    eval/multibranch.h
+
+
 vrna_utils_HEADERS = \
     utils/basic.h \
     utils/strings.h \
@@ -360,9 +370,17 @@ libRNA_svm_la_SOURCES = \
 endif
 
 libRNA_eval_la_SOURCES = \
-    eval.c \
-    eval_covariance.c \
-    eval_wrappers.c
+    eval/eval_external.c \
+    eval/eval_hairpin.c \
+    eval/eval_internal.c \
+    eval/eval_multibranch.c \
+    eval/exp_eval_external.c \
+    eval/exp_eval_hairpin.c \
+    eval/exp_eval_internal.c \
+    eval/exp_eval_multibranch.c \
+    eval/eval_structures.c \
+    eval/eval_covariance.c \
+    eval/eval_wrappers.c
 
 
 libRNA_concentrations_la_SOURCES = \
@@ -437,9 +455,7 @@ libRNA_loops_la_SOURCES = \
     loops/external.c \
     loops/external_bt.c \
     loops/external_pf.c \
-    loops/hairpin.c \
     loops/hairpin_bt.c \
-    loops/hairpin_pf.c \
     loops/internal.c \
     loops/internal_bt.c \
     loops/internal_pf.c \

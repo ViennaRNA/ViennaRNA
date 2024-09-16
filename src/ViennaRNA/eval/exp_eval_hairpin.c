@@ -27,8 +27,8 @@
 # define INLINE
 #endif
 
-#include "hairpin_hc.inc"
-#include "hairpin_sc_pf.inc"
+#include "ViennaRNA/loops/hairpin_hc.inc"
+#include "ViennaRNA/loops/hairpin_sc_pf.inc"
 
 /*
  #################################

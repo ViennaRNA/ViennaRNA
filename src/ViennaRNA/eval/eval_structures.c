@@ -50,7 +50,7 @@
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/array.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 
 #include "ViennaRNA/color_output.inc"
 

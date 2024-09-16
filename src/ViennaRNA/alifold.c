@@ -28,7 +28,7 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/basic.h"

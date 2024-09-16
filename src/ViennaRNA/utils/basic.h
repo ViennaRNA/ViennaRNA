@@ -120,11 +120,18 @@
  */
 #define MAX3(A, B, C)   (MAX2((MAX2((A), (B))), (C)))
 
+/** @} */
+
+
 #include <stdio.h>
 #include <stdarg.h>
 
 #include <ViennaRNA/datastructures/basic.h>
 
+/**
+ *  @addtogroup utils
+ *  @{
+ */
 
 #ifdef WITH_DMALLOC
 /* use dmalloc library to check for memory management bugs */
@@ -288,9 +295,7 @@ int *
 vrna_idx_col_wise(unsigned int length);
 
 
-/**
- *  @}
- */
+/** @} */
 
 /**
  *  @addtogroup  message_utils
@@ -439,10 +444,7 @@ vrna_message_input_seq(const char *s);
 void
 vrna_message_input_msa(const char *s);
 
-
-/**
- *  @}
- */
+/** @} */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 

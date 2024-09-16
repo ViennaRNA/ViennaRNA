@@ -6,7 +6,7 @@
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/mfe.h>
-#include <ViennaRNA/eval.h>
+#include <ViennaRNA/eval/structures.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)

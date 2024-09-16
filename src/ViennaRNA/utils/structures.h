@@ -45,6 +45,8 @@ typedef struct vrna_elem_prob_s vrna_ep_t;
  */
 typedef struct vrna_score_s vrna_score_t;
 
+/** @} */
+
 
 /**
  *  @addtogroup struct_utils_dot_bracket
@@ -122,10 +124,17 @@ typedef struct vrna_score_s vrna_score_t;
    VRNA_BRACKETS_SQR | \
    VRNA_BRACKETS_ALPHA)
 
+/** @} */
+
 
 #include <stdio.h>
 
 #include <ViennaRNA/datastructures/basic.h>
+
+/**
+ *  @addtogroup   struct_utils
+ *  @{
+ */
 
 /**
  *  @brief Pack secondary secondary structure, 5:1 compression using base 3 encoding
@@ -286,7 +295,7 @@ vrna_db_pk_remove(const char *structure,
                   unsigned int options);
 
 /* End dot-bracket interface */
-/**@}*/
+/** @} */
 
 /**
  *  @addtogroup struct_utils_pair_table
@@ -404,7 +413,7 @@ vrna_pt_pk_remove(const short   *ptable,
 
 
 /* End pair table interface */
-/**@}*/
+/** @} */
 
 
 /**
@@ -521,7 +530,7 @@ vrna_plist_append(vrna_ep_t       **target,
 
 
 /* End pair list interface */
-/**@}*/
+/** @} */
 
 
 /**
@@ -543,7 +552,7 @@ vrna_db_from_WUSS(const char *wuss);
 
 
 /* End WUSS notation interface */
-/**@}*/
+/** @} */
 
 
 /**
@@ -589,7 +598,7 @@ vrna_abstract_shapes_pt(const short  *pt,
 
 
 /* End abstract shapes interface */
-/**@}*/
+/** @} */
 
 
 /**
@@ -628,8 +637,13 @@ vrna_hx_merge(const vrna_hx_t *list,
 
 
 /* End helix list interface */
-/**@}*/
+/** @} */
 
+
+/**
+ *  @addtogroup   struct_utils
+ *  @{
+ */
 
 /**
  *  @brief Get a loop index representation of a structure
@@ -637,6 +651,7 @@ vrna_hx_merge(const vrna_hx_t *list,
 int *
 vrna_loopidx_from_ptable(const short *pt);
 
+/** @} */
 
 /**
  *  @addtogroup struct_utils_metrics
@@ -686,7 +701,12 @@ vrna_dist_mountain(const char   *str1,
 
 
 /* End metrics interface */
-/**@}*/
+/** @} */
+
+/**
+ *  @addtogroup   struct_utils
+ *  @{
+ */
 
 /**
  *  @brief Make a reference base pair count matrix
@@ -766,6 +786,8 @@ vrna_letter_structure(char            *structure,
                       vrna_bp_stack_t *bp,
                       unsigned int    length);
 
+
+/** @} */
 
 /**
  *  @addtogroup struct_utils_tree
@@ -878,7 +900,7 @@ vrna_tree_string_to_db(const char *tree);
 
 
 /* End tree representations */
-/**@}*/
+/** @} */
 
 
 /**
@@ -956,10 +978,8 @@ vrna_compare_structure(const char   *structure_gold,
                        unsigned int options);
 
 
-/*
- * End benchmark
- **@}
- */
+/* End benchmark */
+/** @} */
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -1195,9 +1215,5 @@ DEPRECATED(char    bppm_symbol(const float *x),
            "Use vrna_bpp_symbol() instead");
 
 #endif
-
-/**
- * @}
- */
 
 #endif

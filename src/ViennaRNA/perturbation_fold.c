@@ -12,7 +12,6 @@
 #include <gsl/gsl_multimin.h>
 #endif
 
-#include "ViennaRNA/eval.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"

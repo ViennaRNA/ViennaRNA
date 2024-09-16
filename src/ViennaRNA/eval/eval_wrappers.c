@@ -40,7 +40,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 
 #ifdef __GNUC__
 # define INLINE inline

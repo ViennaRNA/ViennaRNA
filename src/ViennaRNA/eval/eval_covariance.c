@@ -24,7 +24,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/loops/gquad.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 
 
 /*

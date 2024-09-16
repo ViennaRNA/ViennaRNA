@@ -31,7 +31,7 @@
 #include "ViennaRNA/ribo.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/mfe.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/utils/structures.h"
