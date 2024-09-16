@@ -34,6 +34,7 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/params/io.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/centroid.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params/basic.h"

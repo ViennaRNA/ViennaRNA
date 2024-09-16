@@ -9,7 +9,7 @@
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/part_func_window.h"
 

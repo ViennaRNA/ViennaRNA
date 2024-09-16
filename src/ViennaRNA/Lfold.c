@@ -20,7 +20,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/datastructures/basic.h"
-#include "ViennaRNA/mfe_window.h"
+#include "ViennaRNA/mfe/local.h"
 #include "ViennaRNA/Lfold.h"
 
 

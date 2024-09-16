@@ -26,7 +26,7 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alifold.h"
-#include "ViennaRNA/Lfold.h"
+#include "ViennaRNA/mfe/local.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/alphabet.h"

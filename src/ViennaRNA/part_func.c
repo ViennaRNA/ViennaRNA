@@ -24,7 +24,7 @@
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/pf_multifold.h"
 #include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/part_func.h"

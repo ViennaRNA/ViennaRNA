@@ -25,7 +25,7 @@
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/part_func_co.h"
 

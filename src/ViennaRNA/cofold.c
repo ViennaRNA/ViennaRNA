@@ -22,7 +22,7 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/subopt_zuker.h"
 #include "ViennaRNA/cofold.h"
 

@@ -21,7 +21,7 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-#include <ViennaRNA/mfe_window.h>
+#include <ViennaRNA/mfe/local.h>
 
 /**
  *  @brief The local analog to fold().

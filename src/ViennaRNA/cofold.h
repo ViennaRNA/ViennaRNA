@@ -3,7 +3,7 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
-#include <ViennaRNA/mfe.h>
+#include <ViennaRNA/mfe/global.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)

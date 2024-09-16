@@ -73,8 +73,11 @@ extern "C" {
 #include  <ViennaRNA/eval/internal.h>
 #include  <ViennaRNA/eval/multibranch.h>
 
-#include  <ViennaRNA/mfe.h>
-#include  <ViennaRNA/mfe_window.h>
+#include  <ViennaRNA/mfe/global.h>
+#include  <ViennaRNA/mfe/local.h>
+#include  <ViennaRNA/mfe/exterior.h>
+#include  <ViennaRNA/mfe/internal.h>
+#include  <ViennaRNA/mfe/multibranch.h>
 #include  <ViennaRNA/fold.h>
 #include  <ViennaRNA/cofold.h>
 #include  <ViennaRNA/alifold.h>

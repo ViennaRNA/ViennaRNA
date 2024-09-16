@@ -22,7 +22,7 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/local.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"

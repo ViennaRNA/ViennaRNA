@@ -159,7 +159,7 @@ my_aliLfold(std::vector<std::string> alignment,
             FILE                     *nullfile = NULL);
 
 
-%include <ViennaRNA/mfe_window.h>
+%include <ViennaRNA/mfe/local.h>
 
 #ifdef VRNA_WITH_SVM
 %constant unsigned int ZSCORE_OPTIONS_NONE      =  VRNA_ZSCORE_OPTIONS_NONE;

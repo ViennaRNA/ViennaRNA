@@ -7,7 +7,7 @@
 #include "ViennaRNA/loops/internal.h"
 #include "ViennaRNA/loops/multibranch.h"
 #include "ViennaRNA/constraints/hard.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/subopt_zuker.h"
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */

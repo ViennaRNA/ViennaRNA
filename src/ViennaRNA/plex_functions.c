@@ -28,7 +28,7 @@
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/LPfold.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/datastructures/heap.h"
 
 #include "ViennaRNA/constraints/external_hc.inc"

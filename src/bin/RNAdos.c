@@ -16,7 +16,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/loops/all.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/mfe.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/file_utils.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/datastructures/hash_tables.h"
