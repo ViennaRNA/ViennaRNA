@@ -12,6 +12,7 @@ DIST_SUBDIRS = static @NAVIEW_DIR@
 
 vrna_constraintsdir     = $(pkgincludedir)/constraints
 vrna_evaldir            = $(pkgincludedir)/eval
+vrna_mfedir             = $(pkgincludedir)/mfe
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_iodir              = $(pkgincludedir)/io
@@ -35,6 +36,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_params.la \
                       libRNA_loops.la \
                       libRNA_eval.la \
+                      libRNA_mfe.la \
                       libRNA_landscape.la \
                       libRNA_special_const.la
 
@@ -61,6 +63,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_params.la \
     libRNA_eval.la \
     libRNA_loops.la \
+    libRNA_mfe.la \
     libRNA_landscape.la
 
 if VRNA_AM_SWITCH_NAVIEW
@@ -244,6 +247,12 @@ vrna_eval_HEADERS = \
     eval/hairpin.h \
     eval/internal.h \
     eval/multibranch.h
+
+
+vrna_mfe_HEADERS = \
+    mfe/exterior.h \
+    mfe/internal.h \
+    mfe/multibranch.h
 
 
 vrna_utils_HEADERS = \
@@ -452,19 +461,22 @@ libRNA_plotting_la_SOURCES = \
 
 
 libRNA_loops_la_SOURCES = \
-    loops/external.c \
-    loops/external_bt.c \
     loops/external_pf.c \
-    loops/hairpin_bt.c \
-    loops/internal.c \
-    loops/internal_bt.c \
     loops/internal_pf.c \
-    loops/multibranch.c \
-    loops/multibranch_bt.c \
     loops/multibranch_pf.c \
     loops/gquad.c \
     loops/gquad_dp.c \
     loops/gquad_bt.c
+
+
+libRNA_mfe_la_SOURCES = \
+    mfe/mfe_exterior.c \
+    mfe/bt_exterior.c \
+    mfe/bt_hairpin.c \
+    mfe/mfe_internal.c \
+    mfe/bt_internal.c \
+    mfe/mfe_multibranch.c \
+    mfe/bt_multibranch.c
 
 
 libRNA_params_la_SOURCES = \

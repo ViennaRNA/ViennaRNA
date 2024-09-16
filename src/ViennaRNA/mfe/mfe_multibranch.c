@@ -21,9 +21,9 @@
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/loops/external.h"
 #include "ViennaRNA/loops/gquad.h"
+#include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/loops/multibranch.h"
 #include "ViennaRNA/utils/higher_order_functions.h"
 
 #include "ViennaRNA/grammar.inc"
@@ -36,6 +36,8 @@
 
 #include "ViennaRNA/constraints/multibranch_hc.inc"
 #include "ViennaRNA/constraints/multibranch_sc.inc"
+
+#include "ViennaRNA/mfe/multibranch.h"
 
 /*
  #################################

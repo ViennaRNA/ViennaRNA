@@ -14,6 +14,8 @@
 
 /* include energy evaluation API for backward compatibility */
 #include <ViennaRNA/eval/internal.h>
+/* include MFE API for backward compatibility */
+#include <ViennaRNA/mfe/internal.h>
 
 
 #ifdef VRNA_WARN_DEPRECATED
@@ -49,34 +51,6 @@
  */
 
 
-/**
- *  @name Basic free energy interface
- *  @{
- */
-
-int
-vrna_E_int_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j);
-
-
-int
-vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   *ip,
-                    int                   *iq);
-
-
-int
-vrna_E_stack(vrna_fold_compound_t *fc,
-             int                  i,
-             int                  j);
-
-
-/* End basic interface */
-/**@}*/
-
 
 /**
  *  @name Boltzmann weight (partition function) interface
@@ -99,66 +73,5 @@ vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
  */
 
 
-/**
- *  @addtogroup mfe_backtracking
- *  @{
- */
-
-
-/**
- *  @brief Backtrack a stacked pair closed by @f$ (i,j) @f$
- *
- */
-int
-vrna_bt_stacked_pairs(vrna_fold_compound_t  *fc,
-              unsigned int                  i,
-              unsigned int                  j,
-              int                   *en,
-              vrna_bps_t            bp_stack,
-              vrna_bts_t            bt_stack);
-
-
-/**
- *  @brief Backtrack an interior loop closed by @f$ (i,j) @f$
- *
- */
-int
-vrna_bt_int_loop(vrna_fold_compound_t *fc,
-                 unsigned int         i,
-                 unsigned int         j,
-                 int                  en,
-                 vrna_bps_t           bp_stack,
-                 vrna_bts_t           bt_stack);
-
-
-/**
- * @}
- */
-
-
-#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
-
-
-DEPRECATED(int
-vrna_BT_stack(vrna_fold_compound_t  *fc,
-              int                   *i,
-              int                   *j,
-              int                   *en,
-              vrna_bp_stack_t       *bp_stack,
-              unsigned int          *stack_count),
-          "Use vrna_bt_stack() instead!");
-
-
-DEPRECATED(int
-vrna_BT_int_loop(vrna_fold_compound_t *fc,
-                 int                  *i,
-                 int                  *j,
-                 int                  en,
-                 vrna_bp_stack_t      *bp_stack,
-                 unsigned int         *stack_count),
-          "Use vrna_bt_int_loop() instead!");
-
-
-#endif
 
 #endif

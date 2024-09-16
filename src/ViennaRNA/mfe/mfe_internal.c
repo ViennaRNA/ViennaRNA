@@ -17,7 +17,6 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/eval/internal.h"
-#include "ViennaRNA/loops/internal.h"
 
 
 #ifdef __GNUC__
@@ -28,6 +27,8 @@
 
 #include "ViennaRNA/constraints/internal_hc.inc"
 #include "ViennaRNA/constraints/internal_sc.inc"
+
+#include "ViennaRNA/mfe/internal.h"
 
 /*
  #################################
