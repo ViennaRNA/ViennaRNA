@@ -564,17 +564,17 @@ nodist_pkginclude_HEADERS = vrna_config.h
 EXTRA_DIST =  $(pkginclude_HEADERS) \
               grammar.inc \
               constraints/hc_depot.inc \
-              loops/external_hc.inc \
+              constraints/external_hc.inc \
               loops/external_sc.inc \
               loops/external_sc_pf.inc \
               loops/gquad_intern.h \
-              loops/hairpin_hc.inc \
+              constraints/hairpin_hc.inc \
               loops/hairpin_sc.inc \
               loops/hairpin_sc_pf.inc \
-              loops/internal_hc.inc \
+              constraints/internal_hc.inc \
               loops/internal_sc.inc \
               loops/internal_sc_pf.inc \
-              loops/multibranch_hc.inc \
+              constraints/multibranch_hc.inc \
               loops/multibranch_sc.inc \
               loops/multibranch_sc_pf.inc \
               params/svm_model_avg.inc \

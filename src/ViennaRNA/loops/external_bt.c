@@ -32,7 +32,7 @@
 #include "ViennaRNA/zscore_dat.inc"
 #endif
 
-#include "external_hc.inc"
+#include "ViennaRNA/constraints/external_hc.inc"
 #include "external_sc.inc"
 
 /*

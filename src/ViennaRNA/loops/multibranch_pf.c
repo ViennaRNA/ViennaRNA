@@ -27,7 +27,7 @@
 # define INLINE
 #endif
 
-#include "multibranch_hc.inc"
+#include "ViennaRNA/constraints/multibranch_hc.inc"
 #include "multibranch_sc_pf.inc"
 
 struct vrna_mx_pf_aux_ml_s {

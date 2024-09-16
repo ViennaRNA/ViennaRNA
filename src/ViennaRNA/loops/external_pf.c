@@ -31,7 +31,7 @@
 
 #define SPEEDUP_HC  0
 
-#include "external_hc.inc"
+#include "ViennaRNA/constraints/external_hc.inc"
 #include "external_sc_pf.inc"
 
 struct vrna_mx_pf_aux_el_s {

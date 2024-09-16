@@ -61,9 +61,9 @@ struct aux_arrays {
   int *DMLi2; /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 };
 
-#include "ViennaRNA/loops/external_hc.inc"
+#include "ViennaRNA/constraints/external_hc.inc"
 #include "ViennaRNA/loops/external_sc.inc"
-#include "ViennaRNA/loops/multibranch_hc.inc"
+#include "ViennaRNA/constraints/multibranch_hc.inc"
 #include "ViennaRNA/loops/multibranch_sc.inc"
 
 struct ms_helpers {

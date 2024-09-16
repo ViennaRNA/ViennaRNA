@@ -34,7 +34,7 @@
 #endif
 
 
-#include "ViennaRNA/loops/external_hc.inc"
+#include "ViennaRNA/constraints/external_hc.inc"
 #include "ViennaRNA/loops/external_sc.inc"
 
 /*

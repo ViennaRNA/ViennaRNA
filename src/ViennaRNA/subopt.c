@@ -41,10 +41,10 @@
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/subopt.h"
 
-#include "ViennaRNA/loops/external_hc.inc"
-#include "ViennaRNA/loops/hairpin_hc.inc"
-#include "ViennaRNA/loops/internal_hc.inc"
-#include "ViennaRNA/loops/multibranch_hc.inc"
+#include "ViennaRNA/constraints/external_hc.inc"
+#include "ViennaRNA/constraints/hairpin_hc.inc"
+#include "ViennaRNA/constraints/internal_hc.inc"
+#include "ViennaRNA/constraints/multibranch_hc.inc"
 
 #include "ViennaRNA/loops/external_sc.inc"
 #include "ViennaRNA/loops/hairpin_sc.inc"

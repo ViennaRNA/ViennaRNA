@@ -28,7 +28,7 @@
 # define INLINE
 #endif
 
-#include "multibranch_hc.inc"
+#include "ViennaRNA/constraints/multibranch_hc.inc"
 #include "multibranch_sc.inc"
 
 /*
