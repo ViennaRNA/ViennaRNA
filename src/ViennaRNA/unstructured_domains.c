@@ -352,7 +352,10 @@ vrna_ud_motifs_centroid(vrna_fold_compound_t  *fc,
 
   motifs = NULL;
 
-  if ((fc) && (fc->domains_up) && (fc->domains_up->probs_get) && (structure)) {
+  if ((fc) &&
+      (fc->domains_up) &&
+      (fc->domains_up->probs_get) &&
+      (structure)) {
     domains_up = fc->domains_up;
     struct binding_segment *segments = extract_binding_segments(structure, &num_segments);
 
@@ -364,7 +367,7 @@ vrna_ud_motifs_centroid(vrna_fold_compound_t  *fc,
       t = segments[s].type;
 
       for (i = segments[s].start; i <= segments[s].end; i++) {
-        for (m = 0; m < domains_up->motif_count; m++) {
+        for (m = 0; m < (unsigned int)domains_up->motif_count; m++) {
           j = i + domains_up->motif_size[m] - 1;
           if (j <= segments[s].end) {
             /* actually, the condition below should check whether the motif probability makes up more than 50% of the unpaired probability */
@@ -417,7 +420,10 @@ vrna_ud_motifs_MEA(vrna_fold_compound_t *fc,
 
   motifs = NULL;
 
-  if ((fc) && (fc->domains_up) && (fc->domains_up->probs_get) && (structure) &&
+  if ((fc) &&
+      (fc->domains_up) &&
+      (fc->domains_up->probs_get) &&
+      (structure) &&
       (probability_list)) {
     n         = fc->length;
     segments  = extract_binding_segments(structure, &num_segments);
@@ -433,7 +439,7 @@ vrna_ud_motifs_MEA(vrna_fold_compound_t *fc,
         pu[ptr->i]  -= ptr->p;
         pu[ptr->j]  -= ptr->p;
       } else if (ptr->type == VRNA_PLIST_TYPE_UD_MOTIF) {
-        for (i = ptr->i; i <= ptr->j; i++)
+        for (i = (unsigned int)ptr->i; i <= (unsigned int)ptr->j; i++)
           pu[i] -= ptr->p;
       }
     }
@@ -677,7 +683,8 @@ vrna_ud_get_motif_size_at(vrna_fold_compound_t  *vc,
     int k, l, cnt, *ret, *ptr;
 
     ret = NULL;
-    if ((i > 0) && (i <= vc->length)) {
+    if ((i > 0) &&
+        ((unsigned int)i <= vc->length)) {
       ptr = get_motifs(vc, i, loop_type);
       if (ptr) {
         for (k = 0; ptr[k] != -1; k++) /* replace motif number with its size */
@@ -720,7 +727,8 @@ vrna_ud_get_motifs_at(vrna_fold_compound_t  *vc,
                       unsigned int          loop_type)
 {
   if (vc && vc->domains_up)
-    if ((i > 0) && (i <= vc->length))
+    if ((i > 0) &&
+        ((unsigned int)i <= vc->length))
       return get_motifs(vc, i, loop_type);
 
   return NULL;
@@ -737,8 +745,8 @@ vrna_ud_detect_motifs(vrna_fold_compound_t  *vc,
   motif_list = NULL;
 
   if (structure && vc->domains_up) {
-    int   l, start, end;
-    char  last, *loops;
+    unsigned int  l, start, end;
+    char          last, *loops;
 
     l           = 0;
     list_pos    = 0;
@@ -1113,14 +1121,14 @@ fill_MFE_matrix(vrna_fold_compound_t  *fc,
                 unsigned int          to,
                 unsigned int          type)
 {
-  unsigned int  i, d, m;
-  int           u, e, ee;
+  unsigned int  i, d, m, u;
+  int           e, ee;
   vrna_ud_t     *domains_up;
 
   domains_up = fc->domains_up;
 
   e = 0;
-  for (m = 0; m < domains_up->uniq_motif_count; m++) {
+  for (m = 0; m < (unsigned int)domains_up->uniq_motif_count; m++) {
     if (domains_up->uniq_motif_size[m] == 1) {
       ee = domains_up->energy_cb(fc,
                                  to,
@@ -1136,7 +1144,7 @@ fill_MFE_matrix(vrna_fold_compound_t  *fc,
   for (d = 2, i = to - 1; i >= from; i--, d++) {
     e = mx[i + 1];
 
-    for (m = 0; m < domains_up->uniq_motif_count; m++) {
+    for (m = 0; m < (unsigned int)domains_up->uniq_motif_count; m++) {
       u = domains_up->uniq_motif_size[m];
       if (u <= d) {
         ee = domains_up->energy_cb(fc,
@@ -1183,7 +1191,7 @@ backtrack_MFE_matrix(vrna_fold_compound_t *fc,
       continue;
     }
 
-    for (m = 0; m < domains_up->uniq_motif_count; m++) {
+    for (m = 0; m < (unsigned int)domains_up->uniq_motif_count; m++) {
       u = domains_up->uniq_motif_size[m];
 
       if (u <= d) {
@@ -1199,7 +1207,7 @@ backtrack_MFE_matrix(vrna_fold_compound_t *fc,
 
           if (e == ee) {
             /* determine actual motif number and add this motif to list */
-            for (k = 0; k < domains_up->motif_count; k++)
+            for (k = 0; k < (unsigned int)domains_up->motif_count; k++)
               if ((domains_up->motif_type[k] & type) && (domains_up->motif_size[k] == u))
                 if (eee == (int)roundf(domains_up->motif_en[k] * 100.))
                   break;
@@ -1228,7 +1236,7 @@ backtrack_MFE_matrix(vrna_fold_compound_t *fc,
     e = mx[i];
 
     if (e != 0) {
-      for (m = 0; m < domains_up->uniq_motif_count; m++) {
+      for (m = 0; m < (unsigned int)domains_up->uniq_motif_count; m++) {
         if (domains_up->uniq_motif_size[m] == 1) {
           ee = domains_up->energy_cb(fc,
                                      i,
@@ -1238,7 +1246,7 @@ backtrack_MFE_matrix(vrna_fold_compound_t *fc,
 
           if (e == ee) {
             /* determine actual motif number and add this motif to list */
-            for (k = 0; k < domains_up->motif_count; k++)
+            for (k = 0; k < (unsigned int)domains_up->motif_count; k++)
               if ((domains_up->motif_type[k] & type) && (domains_up->motif_size[k] == 1))
                 if (ee == (int)roundf(domains_up->motif_en[k] * 100.))
                   break;
@@ -1350,7 +1358,7 @@ backtrack_MFE_matrix_exhaustive(vrna_fold_compound_t  *fc,
       i++;
 
     /* detect motif */
-    for (k = 0; k < domains_up->uniq_motif_count; k++) {
+    for (k = 0; k < (unsigned int)domains_up->uniq_motif_count; k++) {
       u = domains_up->uniq_motif_size[k];
       if (i + u - 1 <= to) {
         ee = domains_up->energy_cb(fc,
@@ -1365,7 +1373,7 @@ backtrack_MFE_matrix_exhaustive(vrna_fold_compound_t  *fc,
           memcpy(ptr, local_list, sizeof(vrna_ud_motif_t) * local_cnt);
 
           /* determine actual motif number and add this motif to list */
-          for (m = 0; m < domains_up->uniq_motif_count; m++)
+          for (m = 0; m < (unsigned int)domains_up->uniq_motif_count; m++)
             if ((domains_up->motif_type[m] & type) && (domains_up->motif_size[m] == u)) {
               if (ee == (int)roundf(domains_up->motif_en[m] * 100.)) {
                 k = m;
@@ -1392,7 +1400,7 @@ backtrack_MFE_matrix_exhaustive(vrna_fold_compound_t  *fc,
             memcpy(ptr, local_list, sizeof(vrna_ud_motif_t) * local_cnt);
 
             /* determine actual motif number and add this motif to list */
-            for (m = 0; m < domains_up->uniq_motif_count; m++)
+            for (m = 0; m < (unsigned int)domains_up->uniq_motif_count; m++)
               if ((domains_up->motif_type[m] & type) && (domains_up->motif_size[m] == u)) {
                 if (ee == (int)roundf(domains_up->motif_en[m] * 100.)) {
                   k = m;
@@ -1449,7 +1457,7 @@ fill_MEA_matrix(vrna_fold_compound_t  *fc,
 
   ea = pu[to];
 
-  for (m = 0; m < domains_up->motif_count; m++) {
+  for (m = 0; m < (unsigned int)domains_up->motif_count; m++) {
     if (!(type & domains_up->motif_type[m]))
       continue;
 
@@ -1464,7 +1472,7 @@ fill_MEA_matrix(vrna_fold_compound_t  *fc,
   for (d = 2, i = to - 1; i >= from; i--, d++) {
     ea = mx[i + 1] + pu[i];
 
-    for (m = 0; m < domains_up->motif_count; m++) {
+    for (m = 0; m < (unsigned int)domains_up->motif_count; m++) {
       if (!(type & domains_up->motif_type[m]))
         continue;
 
@@ -1520,7 +1528,7 @@ backtrack_MEA_matrix(vrna_fold_compound_t *fc,
       continue;
     }
 
-    for (m = 0; m < domains_up->motif_count; m++) {
+    for (m = 0; m < (unsigned int)domains_up->motif_count; m++) {
       if (!(type & domains_up->motif_type[m]))
         continue;
 
@@ -1598,7 +1606,7 @@ add_ligand_motif(vrna_fold_compound_t *vc,
   ud  = vc->domains_up;
 
   /* First, we update the list of unique motif lengths */
-  for (same_size = i = 0; i < ud->uniq_motif_count; i++) {
+  for (same_size = i = 0; i < (unsigned int)ud->uniq_motif_count; i++) {
     if (ud->uniq_motif_size[i] == n) {
       same_size = 1;
       break;
