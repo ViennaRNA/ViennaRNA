@@ -14,7 +14,7 @@ struct hc_int_def_dat {
   unsigned char             **mx_local;
   unsigned int              *sn;
   unsigned int              n;
-  int                       *up;
+  unsigned int              *up;
 
   void                      *hc_dat;
   vrna_hc_eval_f hc_f;

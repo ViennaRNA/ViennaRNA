@@ -10,7 +10,7 @@ struct hc_ext_def_dat {
   unsigned char             *mx;
   unsigned char             **mx_window;
   unsigned int              *sn;
-  int                       *hc_up;
+  unsigned int              *hc_up;
   void                      *hc_dat;
   vrna_hc_eval_f hc_f;
 };
@@ -92,9 +92,8 @@ hc_ext_cb_def(int           i,
               unsigned char d,
               void          *data)
 {
-  int                   di, dj;
+  unsigned int          n, di, dj;
   unsigned char         eval;
-  unsigned int          n;
   struct hc_ext_def_dat *dat = (struct hc_ext_def_dat *)data;
 
   eval  = (unsigned char)0;
@@ -230,9 +229,6 @@ hc_ext_cb_sn(int            i,
   sn    = dat->sn;
   eval  = (unsigned char)0;
 
-  /* for now with the 'old' cofold implementation, we allow for any decomposition */
-  //return (unsigned char)1;
-
   switch (d) {
     case VRNA_DECOMP_EXT_EXT_STEM1:
       if (sn[j - 1] != sn[j])
@@ -301,7 +297,7 @@ hc_ext_cb_def_window(int            i,
                      unsigned char  d,
                      void           *data)
 {
-  int                   di, dj;
+  unsigned int          di, dj;
   unsigned char         eval;
   struct hc_ext_def_dat *dat = (struct hc_ext_def_dat *)data;
 

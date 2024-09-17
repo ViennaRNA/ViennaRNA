@@ -58,13 +58,13 @@
  #################################
  */
 typedef struct {
-  FLT_OR_DBL  *prm_l;
-  FLT_OR_DBL  *prm_l1;
-  FLT_OR_DBL  *prml;
+  FLT_OR_DBL    *prm_l;
+  FLT_OR_DBL    *prm_l1;
+  FLT_OR_DBL    *prml;
 
-  int         ud_max_size;
-  FLT_OR_DBL  **pmlu;
-  FLT_OR_DBL  *prm_MLbu;
+  unsigned int  ud_max_size;
+  FLT_OR_DBL    **pmlu;
+  FLT_OR_DBL    *prm_MLbu;
 } helper_arrays;
 
 
@@ -404,7 +404,7 @@ vrna_ensemble_defect_pt(vrna_fold_compound_t  *fc,
 
   if ((fc) &&
       (pt) &&
-      (pt[0] == fc->length) &&
+      ((unsigned int)pt[0] == fc->length) &&
       (fc->exp_matrices) &&
       (fc->exp_matrices->probs)) {
     n = fc->length;
@@ -426,7 +426,7 @@ vrna_ensemble_defect_pt(vrna_fold_compound_t  *fc,
 
       if (pt[i] == 0)
         ed += pi;
-      else if (pt[i] > i)
+      else if ((unsigned int)pt[i] > i)
         ed += 1 - probs[ii - pt[i]];
       else
         ed += 1 - probs[idx[pt[i]] - i];
@@ -965,7 +965,7 @@ get_ml_helper_arrays(vrna_fold_compound_t *fc)
 
   if (with_ud) {
     /* find out maximum size of any unstructured domain */
-    for (u = 0; u < domains_up->uniq_motif_count; u++)
+    for (u = 0; u < (unsigned int)domains_up->uniq_motif_count; u++)
       if (ml_helpers->ud_max_size < domains_up->uniq_motif_size[u])
         ml_helpers->ud_max_size = domains_up->uniq_motif_size[u];
 
@@ -1221,8 +1221,8 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
   unsigned char         type, type_2;
   char                  *ptype;
   short                 *S1;
-  int                   i, j, k, n, ij, kl, u1, u2, *my_iindx, *jindx, *rtype,
-                        with_ud, *hc_up_int;
+  unsigned int          i, j, k, n, u1, u2, with_ud, *hc_up_int;
+  int                   ij, kl, *my_iindx, *jindx, *rtype;
   FLT_OR_DBL            temp, tmp2, *qb, *probs, *scale;
   double                max_real;
   vrna_exp_param_t      *pf_params;

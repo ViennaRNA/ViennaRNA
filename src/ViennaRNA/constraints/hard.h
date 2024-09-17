@@ -369,32 +369,19 @@ struct vrna_hc_s {
 
   unsigned char   state;
 
-#ifndef VRNA_DISABLE_C11_FEATURES
-  /* C11 support for unnamed unions/structs */
-  union {
-    struct {
-#endif
-  unsigned char *mx;
-#ifndef VRNA_DISABLE_C11_FEATURES
-};
-struct {
-#endif
-  unsigned char **matrix_local;
-#ifndef VRNA_DISABLE_C11_FEATURES
-};
-};
-#endif
+  unsigned char       *mx;
+  unsigned char       **matrix_local;
 
-  int                 *up_ext;    /**<  @brief  A linear array that holds the number of allowed
+  unsigned int        *up_ext;    /**<  @brief  A linear array that holds the number of allowed
                                    *            unpaired nucleotides in an exterior loop
                                    */
-  int                 *up_hp;     /**<  @brief  A linear array that holds the number of allowed
+  unsigned int        *up_hp;     /**<  @brief  A linear array that holds the number of allowed
                                    *            unpaired nucleotides in a hairpin loop
                                    */
-  int                 *up_int;    /**<  @brief  A linear array that holds the number of allowed
+  unsigned int        *up_int;    /**<  @brief  A linear array that holds the number of allowed
                                    *            unpaired nucleotides in an interior loop
                                    */
-  int                 *up_ml;     /**<  @brief  A linear array that holds the number of allowed
+  unsigned int        *up_ml;     /**<  @brief  A linear array that holds the number of allowed
                                    *            unpaired nucleotides in a multi branched loop
                                    */
 
@@ -521,7 +508,7 @@ vrna_hc_update(vrna_fold_compound_t *fc,
  */
 void
 vrna_hc_add_up(vrna_fold_compound_t *fc,
-               int                  i,
+               unsigned int         i,
                unsigned char        option);
 
 
@@ -594,8 +581,8 @@ vrna_hc_add_up_strand_batch(vrna_fold_compound_t  *fc,
  */
 int
 vrna_hc_add_bp(vrna_fold_compound_t *fc,
-               int                  i,
-               int                  j,
+               unsigned int         i,
+               unsigned int         j,
                unsigned char        option);
 
 
@@ -657,7 +644,7 @@ vrna_hc_add_bp_strand(vrna_fold_compound_t  *fc,
  */
 void
 vrna_hc_add_bp_nonspecific(vrna_fold_compound_t *fc,
-                           int                  i,
+                           unsigned int         i,
                            int                  d,
                            unsigned char        option);
 

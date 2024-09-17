@@ -9,12 +9,12 @@ typedef struct {
 } vrna_hc_t;
 
 %extend vrna_hc_t {
-  const unsigned int              n;
-  var_array<unsigned char> *const mx;
-  var_array<int> *const           up_ext;
-  var_array<int> *const           up_hp;
-  var_array<int> *const           up_int;
-  var_array<int> *const           up_ml;
+  const unsigned int                n;
+  var_array<unsigned char>  *const  mx;
+  var_array<unsigned int>   *const  up_ext;
+  var_array<unsigned int>   *const  up_hp;
+  var_array<unsigned int>   *const  up_int;
+  var_array<unsigned int>   *const  up_ml;
 };
 
 %{
@@ -32,7 +32,7 @@ typedef struct {
                          VAR_ARRAY_SQR | VAR_ARRAY_ONE_BASED);
   }
 
-  var_array<int> *
+  var_array<unsigned int> *
   vrna_hc_t_up_ext_get(vrna_hc_t *hc)
   {
     return var_array_new(hc->n,
@@ -40,7 +40,7 @@ typedef struct {
                          VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
-  var_array<int> *
+  var_array<unsigned int> *
   vrna_hc_t_up_hp_get(vrna_hc_t *hc)
   {
     return var_array_new(hc->n,
@@ -48,7 +48,7 @@ typedef struct {
                          VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
-  var_array<int> *
+  var_array<unsigned int> *
   vrna_hc_t_up_int_get(vrna_hc_t *hc)
   {
     return var_array_new(hc->n,
@@ -56,7 +56,7 @@ typedef struct {
                          VAR_ARRAY_LINEAR | VAR_ARRAY_ONE_BASED);
   }
 
-  var_array<int> *
+  var_array<unsigned int> *
   vrna_hc_t_up_ml_get(vrna_hc_t *hc)
   {
     return var_array_new(hc->n,

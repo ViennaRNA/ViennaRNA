@@ -572,7 +572,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
   for (j = MIN2(turn + 2, VRNA_GQUAD_MIN_BOX_SIZE); j <= n; j++) {
     /* regular base pairs */
     for (u = j - turn - 1; u >= 1; u--) {
-      eval = (hc->up_ml[1] >= (int)(u - 1)) ? (hc->mx[n * j + u] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) : 0;
+      eval = (hc->up_ml[1] >= (u - 1)) ? (hc->mx[n * j + u] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) : 0;
       if ((hc->f) && (!hc->f(1, j, u, j, VRNA_DECOMP_ML_ML, hc->data)))
         eval = 0;
 
@@ -606,7 +606,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
     if (with_gquad) {
       if (j >= VRNA_GQUAD_MIN_BOX_SIZE) {
         for (u = j - VRNA_GQUAD_MIN_BOX_SIZE + 1; u >= 1; u--) {
-          eval = (hc->up_ml[1] >= (int)(u - 1)) ? 1 : 0;
+          eval = (hc->up_ml[1] >= (u - 1)) ? 1 : 0;
           if ((hc->f) && (!hc->f(1, j, u, j, VRNA_DECOMP_ML_ML, hc->data)))
             eval = 0;
 
@@ -675,7 +675,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
   qmo += qbt1;
 
   /* add open chain, i.e. no base pairs or structure at all */
-  eval = (hc->up_ext[1] >= (int)n) ? 1 : 0;
+  eval = (hc->up_ext[1] >= n) ? 1 : 0;
   if (hc->f)
     eval = (hc->f(1, n, 1, n, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
 
@@ -754,7 +754,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
           if (i - j > 3) { /* keep at least 3 unpaired bases between start and end of gquad */
             u = i - j - 1;
             /* 1st, obey hard constraints */
-            if (hc->up_ext[j + 1] >= (int)u)
+            if (hc->up_ext[j + 1] >= u)
               eval = 1;
             if (hc->f)
               eval = (hc->f(j + 1, n, i, n, VRNA_DECOMP_EXT_EXT, hc->data)) ? eval : 0;
@@ -775,7 +775,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
           /* case 2.1: gquad forms an internal-loop like structure with another gquadruplex */
           for (u1 = 0, k = j + 1; k + VRNA_GQUAD_MIN_BOX_SIZE - 1 < i; k++, u1++) {
             /* obey hard constraints */
-            if (hc->up_int[j + 1] < (int)u1)
+            if (hc->up_int[j + 1] < u1)
               break;
 
             if (u1 > MAXLOOP)
@@ -790,7 +790,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                 continue;
 
               /* obey hard constraints */
-              if (hc->up_int[l + 1] < (int)u2)
+              if (hc->up_int[l + 1] < u2)
                 break;
 
               if (u1 + u2 > MAXLOOP)
@@ -834,7 +834,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
           /* case 2.2: gquad forms an internal-loop like structure with another base pair */
           for (u1 = 0, k = j + 1; k + turn + 1 < i; k++, u1++) {
             /* obey hard constraints */
-            if (hc->up_int[j + 1] < (int)u1)
+            if (hc->up_int[j + 1] < u1)
               break;
 
             if (u1 > MAXLOOP)
@@ -847,7 +847,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                   ((u1 < 3) && (u2 == 0)))
                 continue;
               /* obey hard constraints */
-              if (hc->up_int[l + 1] < (int)u2)
+              if (hc->up_int[l + 1] < u2)
                 break;
               if (!(hc->mx[n * k + l] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)))
                 continue;
@@ -937,9 +937,9 @@ postprocess_circular(vrna_fold_compound_t *fc)
           u1 = i - 1;
           u2 = n - j;
 
-          eval = (hc->up_ext[1] >= (int)u1) ? 1 : 0;
+          eval = (hc->up_ext[1] >= u1) ? 1 : 0;
           if (u2 > 0)
-            eval = (hc->up_ext[j + 1] >= (int)u2) ? eval : 0;
+            eval = (hc->up_ext[j + 1] >= u2) ? eval : 0;
           if (hc->f) {
             if (u1 > 0)
               eval = (hc->f(1, i - 1, 1, i - 1, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
@@ -968,7 +968,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
     /* internal loop cases with at least one gquad below */
     for (i = 1; i < MAXLOOP + 1; i++) {
       u1 = i - 1;
-      if (hc->up_int[1] + 1 >= (int)i) {
+      if (hc->up_int[1] + 1 >= i) {
         /* [gquad] + (basepair) */
         for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j + turn + 2 <= n; j++) {
 #ifndef VRNA_DISABLE_C11_FEATURES
@@ -985,14 +985,14 @@ postprocess_circular(vrna_fold_compound_t *fc)
               if (stop + MAXLOOP < n + u1 + u2)
                 stop = n + u1 + u2 - MAXLOOP;
 
-              if (hc->up_int[j + 1] >= (int)u2) {
+              if (hc->up_int[j + 1] >= u2) {
                 for (u3 = 0, l = n; l >= stop; l--, u3++) {
                   if (((u2 == 0) && (u1 + u3 < 3)) ||
                       ((u1 + u3 == 0) && (u2 < 3)))
                     continue;
 
 
-                  eval = (hc->up_int[l] >= (int)u3) ? 1 : 0;
+                  eval = (hc->up_int[l] >= u3) ? 1 : 0;
                   eval = (hc->mx[n * k + l] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ? eval : 0;
                   if (eval) {
                     int kl = my_iindx[k] - l;
@@ -1051,7 +1051,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
           if (q_g != 0.) {
             for (k = j + 1; k + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= n; k++) {
               u2 = k - j - 1;
-              if (hc->up_int[j + 1] >= (int)u2) {
+              if (hc->up_int[j + 1] >= u2) {
                 unsigned int stop = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
                 
                 if (stop + MAXLOOP < n + u1 + u2)
@@ -1127,7 +1127,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
 
             for (k = j + 1; k + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= n; k++) {
               u2 = k - j - 1;
-              if (hc->up_int[j + 1] < (int)u2)
+              if (hc->up_int[j + 1] < u2)
                 break;
 
               unsigned int stop = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
@@ -1140,7 +1140,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
                     ((u1 + u3 == 0) && (u2 < 3)))
                   continue;
 
-                eval = (hc->up_int[l] >= (int)u3) ? 1 : 0;
+                eval = (hc->up_int[l] >= u3) ? 1 : 0;
                 if (eval) {
 #ifndef VRNA_DISABLE_C11_FEATURES
                   q_g = vrna_smx_csr_get(q_gq, k, l, 0.);

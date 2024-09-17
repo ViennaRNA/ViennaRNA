@@ -11,7 +11,7 @@ struct hc_mb_def_dat {
   unsigned char             **mx_window;
   unsigned int              *sn;
   unsigned int              n;
-  int                       *hc_up;
+  unsigned int              *hc_up;
   void                      *hc_dat;
   vrna_hc_eval_f hc_f;
 };
@@ -95,8 +95,7 @@ hc_mb_cb_def(int            i,
              void           *data)
 {
   unsigned char         eval;
-  unsigned int          n;
-  int                   di, dj, u;
+  unsigned int          n, di, dj, u;
   struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
   eval  = (unsigned char)0;
@@ -285,7 +284,7 @@ hc_mb_cb_def_window(int           i,
                     unsigned char d,
                     void          *data)
 {
-  int                   di, dj, u;
+  unsigned int          di, dj, u;
   unsigned char         eval;
   struct hc_mb_def_dat  *dat = (struct hc_mb_def_dat *)data;
 
