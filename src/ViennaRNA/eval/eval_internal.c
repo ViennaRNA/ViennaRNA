@@ -145,7 +145,7 @@ vrna_E_internal(unsigned int  n1,
           energy = (nl + 1 <= MAXLOOP) ?
                     (P->internal_loop[nl + 1]) :
                     (P->internal_loop[30] + (int)(P->lxc * log((nl + 1) / 30.)));
-          energy += MIN2(MAX_NINIO, (nl - ns) * P->ninio[2]);
+          energy += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
           energy += P->mismatch1nI[type][si1][sj1] +
                     P->mismatch1nI[type_2][sq1][sp1];
         }
@@ -174,7 +174,7 @@ vrna_E_internal(unsigned int  n1,
                   (P->internal_loop[u]) :
                   (P->internal_loop[30] + (int)(P->lxc * log((u) / 30.)));
 
-        energy += MIN2(MAX_NINIO, (nl - ns) * P->ninio[2]);
+        energy += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
 
         energy += P->mismatchI[type][si1][sj1] +
                   P->mismatchI[type_2][sq1][sp1];
