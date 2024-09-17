@@ -785,8 +785,8 @@ backtrack_qm(unsigned int                     i,
 #endif
 
       for (span = j - i, cnt = i + 1; cnt <= j; cnt++) {
-        k = (int)(i + 1 + span * ((cnt - i - 1) % 2)) +
-            (int)((1 - (2 * ((cnt - i - 1) % 2))) * ((cnt - i) / 2));
+        k = (unsigned int)(i + 1 + span * ((cnt - i - 1) % 2)) +
+            (unsigned int)((1 - (2 * ((cnt - i - 1) % 2))) * ((cnt - i) / 2));
         q_temp  = 0.;
         u       = k - i;
         /* [i...k] is unpaired */
@@ -1297,7 +1297,9 @@ backtrack(unsigned int                    i,
       max_k = MIN2(max_k, i + 1 + hc_up_int[i + 1]);
       for (k = i + 1; k <= max_k; k++) {
         u1    = k - i - 1;
-        min_l = MAX2(k + turn + 1, j - 1 - MAXLOOP + u1);
+        min_l = k + turn + 1;
+        if (min_l + MAXLOOP + 1 < j + u1)
+          min_l = j - 1 - MAXLOOP + u1;
         kl    = my_iindx[k] - j + 1;
         for (u2 = 0, l = j - 1; l >= min_l; l--, kl++, u2++) {
           if (hc_up_int[l + 1] < u2)
