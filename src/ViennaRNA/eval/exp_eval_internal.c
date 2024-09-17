@@ -200,8 +200,8 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
   char                  *ptype, **ptype_local;
   unsigned char         *hc_mx, **hc_mx_local, eval_loop, hc_decompose_ij, hc_decompose_kl;
   short                 *S1, **SS, **S5, **S3;
-  unsigned int          n, *sn, n_seq, s, **a2s;
-  int                   u1, u2, *rtype, *jindx, *hc_up;
+  unsigned int          u1, u2, n, *sn, n_seq, s, **a2s, *hc_up;
+  int                   *rtype, *jindx;
   FLT_OR_DBL            qbt1, q_temp, *scale;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
@@ -283,8 +283,8 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
         q_temp = 1.;
 
         for (s = 0; s < n_seq; s++) {
-          int u1_local  = a2s[s][k - 1] - a2s[s][i];
-          int u2_local  = a2s[s][j - 1] - a2s[s][l];
+          unsigned int u1_local  = a2s[s][k - 1] - a2s[s][i];
+          unsigned int u2_local  = a2s[s][j - 1] - a2s[s][l];
           type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
           type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
           q_temp  *= vrna_exp_E_internal(u1_local,
