@@ -175,7 +175,7 @@ compute_bpp_external(vrna_fold_compound_t *fc,
 
 PRIVATE void
 compute_bpp_internal(vrna_fold_compound_t *fc,
-                     int                  l,
+                     unsigned int         l,
                      vrna_ep_t            **bp_correction,
                      int                  *corr_cnt,
                      int                  *corr_size,
@@ -186,7 +186,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
 
 PRIVATE void
 compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
-                                 int                  l,
+                                 unsigned int         l,
                                  vrna_ep_t            **bp_correction,
                                  int                  *corr_cnt,
                                  int                  *corr_size,
@@ -197,12 +197,12 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
 
 PRIVATE void
 compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
-                            int                   l);
+                            unsigned int          l);
 
 
 PRIVATE void
 compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
-                                        int                   l);
+                                        unsigned int          l);
 
 
 PRIVATE void
@@ -239,7 +239,7 @@ contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
 
 PRIVATE void
 multistrand_update_Y5(vrna_fold_compound_t  *fc,
-                      int                   l,
+                      unsigned int          l,
                       FLT_OR_DBL            *Y5,
                       FLT_OR_DBL            **Y5p,
                       constraints_helper    *constraints);
@@ -247,7 +247,7 @@ multistrand_update_Y5(vrna_fold_compound_t  *fc,
 
 PRIVATE void
 multistrand_update_Y3(vrna_fold_compound_t  *fc,
-                      int                   l,
+                      unsigned int          l,
                       FLT_OR_DBL            **Y3,
                       FLT_OR_DBL            **Y3p,
                       constraints_helper    *constraints);
@@ -255,7 +255,7 @@ multistrand_update_Y3(vrna_fold_compound_t  *fc,
 
 PRIVATE void
 multistrand_contrib(vrna_fold_compound_t  *fc,
-                    int                   l,
+                    unsigned int          l,
                     FLT_OR_DBL            *Y5,
                     FLT_OR_DBL            **Y3,
                     constraints_helper    *constraints,
@@ -710,7 +710,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
     constraints = get_constraints_helper(vc);
 
     void                (*compute_bpp_int)(vrna_fold_compound_t *fc,
-                                           int                  l,
+                                           unsigned int         l,
                                            vrna_ep_t            **bp_correction,
                                            int                  *corr_cnt,
                                            int                  *corr_size,
@@ -1210,7 +1210,7 @@ contrib_ext_pair_comparative(vrna_fold_compound_t *fc,
 
 PRIVATE void
 compute_bpp_internal(vrna_fold_compound_t *fc,
-                     int                  l,
+                     unsigned int         l,
                      vrna_ep_t            **bp_correction,
                      int                  *corr_cnt,
                      int                  *corr_size,
@@ -1221,7 +1221,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
   unsigned char         type, type_2;
   char                  *ptype;
   short                 *S1;
-  unsigned int          i, j, k, n, u1, u2, with_ud, *hc_up_int;
+  unsigned int          i, j, k, n, u1, u2, with_ud, *hc_up_int, mini, maxj;
   int                   ij, kl, *my_iindx, *jindx, *rtype;
   FLT_OR_DBL            temp, tmp2, *qb, *probs, *scale;
   double                max_real;
@@ -1268,22 +1268,26 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
     if (hc->mx[l * n + k] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) {
       type_2 = rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
-      for (i = MAX2(1, k - MAXLOOP - 1); i <= k - 1; i++) {
+      mini = 1;
+      if (k > MAXLOOP + 2)
+        mini = k - MAXLOOP - 1;
+
+      for (i = mini; i <= k - 1; i++) {
         u1 = k - i - 1;
         if (hc_up_int[i + 1] < u1)
           continue;
 
-        int max_j = l + 1 + MAXLOOP - u1;
+        maxj = l + 1 + MAXLOOP - u1;
 
-        if (max_j > n)
-          max_j = n;
+        if (maxj > n)
+          maxj = n;
 
-        if (max_j > l + 1 + hc_up_int[l + 1])
-          max_j = l + 1 + hc_up_int[l + 1];
+        if (maxj > l + 1 + hc_up_int[l + 1])
+          maxj = l + 1 + hc_up_int[l + 1];
 
         u2 = 0;
 
-        for (j = l + 1; j <= max_j; j++, u2++) {
+        for (j = l + 1; j <= maxj; j++, u2++) {
           ij = my_iindx[i] - j;
 
           if (probs[ij] == 0.)
@@ -1377,7 +1381,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
 
 PRIVATE void
 compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
-                                 int                  l,
+                                 unsigned int         l,
                                  vrna_ep_t            **bp_correction,
                                  int                  *corr_cnt,
                                  int                  *corr_size,
@@ -1386,8 +1390,8 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
                                  constraints_helper   *constraints)
 {
   short                 **SS, **S5, **S3;
-  unsigned int          type, *tt, s, n_seq, **a2s;
-  int                   i, j, k, n, ij, kl, u1, u2, *my_iindx, *jindx, *pscore, *hc_up_int;
+  unsigned int          i, j, k, n, mini, maxj, type, u1, u2, *tt, s, n_seq, **a2s, *hc_up_int;
+  int                   ij, kl, *my_iindx, *jindx, *pscore;
   FLT_OR_DBL            tmp2, *qb, *probs, *scale, psc_exp;
   double                max_real, kTn;
   vrna_exp_param_t      *pf_params;
@@ -1436,12 +1440,20 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
       for (s = 0; s < n_seq; s++)
         tt[s] = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
 
-      for (i = MAX2(1, k - MAXLOOP - 1); i <= k - 1; i++) {
+      mini = 1;
+      if (k > MAXLOOP + 2)
+        mini = k - MAXLOOP - 1;
+
+      for (i = mini; i <= k - 1; i++) {
         u1 = k - i - 1;
         if (hc_up_int[i + 1] < u1)
           continue;
 
-        for (j = l + 1; j <= MIN2(l + MAXLOOP - k + i + 2, n); j++) {
+        maxj = l + MAXLOOP + i + 2 - k;
+        if (maxj > n)
+          maxj = n;
+
+        for (j = l + 1; j <= maxj; j++) {
           ij = my_iindx[i] - j;
 
           if (probs[ij] == 0.)
@@ -1458,8 +1470,8 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
                    psc_exp;
 
             for (s = 0; s < n_seq; s++) {
-              int u1_loc  = a2s[s][k - 1] - a2s[s][i];
-              int u2_loc  = a2s[s][j - 1] - a2s[s][l];
+              unsigned int u1_loc  = a2s[s][k - 1] - a2s[s][i];
+              unsigned int u2_loc  = a2s[s][j - 1] - a2s[s][l];
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
               tmp2  *= vrna_exp_E_internal(u1_loc,
                                      u2_loc,
@@ -2012,13 +2024,13 @@ compute_bpp_multibranch_comparative(vrna_fold_compound_t  *fc,
 
 PRIVATE void
 compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
-                            int                   l)
+                            unsigned int          l)
 {
   unsigned char     type;
   char              *ptype;
   short             *S1;
-  unsigned int      i, j, k, n;
-  int               ij, kl, u1, u2, *my_iindx, *jindx;
+  unsigned int      i, j, k, n, u1, u2;
+  int               ij, kl, *my_iindx, *jindx;
   FLT_OR_DBL        tmp2, qe, q_g, *probs, *scale;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
@@ -2166,12 +2178,12 @@ compute_gquad_prob_internal(vrna_fold_compound_t  *fc,
 
 PRIVATE void
 compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
-                                        int                   l)
+                                        unsigned int          l)
 {
   unsigned char     type;
   short             **S, **S5, **S3;
-  unsigned int      **a2s, s, n_seq;
-  int               i, j, k, n, ij, kl, u1, u2, u1_local, u2_local, *my_iindx;
+  unsigned int      i, j, k, n, u1, u2, u1_local, u2_local, **a2s, s, n_seq;
+  int               ij, kl, *my_iindx;
   FLT_OR_DBL        tmp2, qe, q_g, *qb, *probs, *scale;
   vrna_exp_param_t  *pf_params;
   vrna_md_t         *md;
@@ -2195,7 +2207,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
   double *expintern = &(pf_params->expinternal[0]);
 
   if (l < n - 3) {
-    for (k = 2; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+    for (k = 2; k + VRNA_GQUAD_MIN_BOX_SIZE <= l + 1; k++) {
       kl = my_iindx[k] - l;
 
 #ifndef VRNA_DISABLE_C11_FEATURES
@@ -2238,7 +2250,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
   }
 
   if (l < n - 1) {
-    for (k = 3; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+    for (k = 3; k + VRNA_GQUAD_MIN_BOX_SIZE <= l + 1; k++) {
       kl = my_iindx[k] - l;
 
 #ifndef VRNA_DISABLE_C11_FEATURES
@@ -2251,7 +2263,11 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
         continue;
 
       tmp2 = 0.;
-      for (i = MAX2(1, k - MAXLOOP - 1); i <= k - 2; i++) {
+      unsigned int mini = 1;
+      if (k > MAXLOOP + 2)
+        mini = k - MAXLOOP - 1;
+
+      for (i = mini; i <= k - 2; i++) {
         u1 = k - i - 1;
         for (j = l + 2; j <= MIN2(l + MAXLOOP - u1 + 1, n); j++) {
           ij = my_iindx[i] - j;
@@ -2284,7 +2300,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
   }
 
   if (l < n) {
-    for (k = 4; k <= l - VRNA_GQUAD_MIN_BOX_SIZE + 1; k++) {
+    for (k = 4; k + VRNA_GQUAD_MIN_BOX_SIZE <= l + 1; k++) {
       kl = my_iindx[k] - l;
 #ifndef VRNA_DISABLE_C11_FEATURES
       q_g = vrna_smx_csr_get(q_gq, k, l, 0.);
@@ -2297,7 +2313,11 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
 
       tmp2  = 0.;
       j     = l + 1;
-      for (i = MAX2(1, k - MAXLOOP - 1); i < k - 3; i++) {
+      unsigned int mini = 1;
+      if (k > MAXLOOP + 2)
+        mini = k - MAXLOOP - 1;
+
+      for (i = mini; i < k - 3; i++) {
         ij = my_iindx[i] - j;
         if (qb[ij] == 0.)
           continue;
@@ -2329,7 +2349,7 @@ compute_gquad_prob_internal_comparative(vrna_fold_compound_t  *fc,
 
 PRIVATE void
 multistrand_update_Y5(vrna_fold_compound_t  *fc,
-                      int                   l,
+                      unsigned int          l,
                       FLT_OR_DBL            *Y5,
                       FLT_OR_DBL            **Y5p,
                       constraints_helper    *constraints)
@@ -2443,7 +2463,7 @@ multistrand_update_Y5(vrna_fold_compound_t  *fc,
 
 PRIVATE void
 multistrand_update_Y3(vrna_fold_compound_t  *fc,
-                      int                   l,
+                      unsigned int          l,
                       FLT_OR_DBL            **Y3,
                       FLT_OR_DBL            **Y3p,
                       constraints_helper    *constraints)
@@ -2544,7 +2564,7 @@ multistrand_update_Y3(vrna_fold_compound_t  *fc,
 
 PRIVATE void
 multistrand_contrib(vrna_fold_compound_t  *fc,
-                    int                   l,
+                    unsigned int          l,
                     FLT_OR_DBL            *Y5,
                     FLT_OR_DBL            **Y3,
                     constraints_helper    *constraints,
@@ -2617,10 +2637,11 @@ multistrand_contrib(vrna_fold_compound_t  *fc,
 PRIVATE INLINE void
 ud_outside_ext_loops(vrna_fold_compound_t *vc)
 {
-  int         i, j, u, n, cnt, *motif_list, *hc_up;
-  FLT_OR_DBL  *q1k, *qln, temp, *scale;
-  vrna_sc_t   *sc;
-  vrna_ud_t   *domains_up;
+  unsigned int  i, j, n, cnt, *hc_up;
+  int           u, *motif_list;
+  FLT_OR_DBL    *q1k, *qln, temp, *scale;
+  vrna_sc_t     *sc;
+  vrna_ud_t     *domains_up;
 
   n           = vc->length;
   q1k         = vc->exp_matrices->q1k;
@@ -2637,9 +2658,9 @@ ud_outside_ext_loops(vrna_fold_compound_t *vc)
     if (motif_list) {
       cnt = 0;
       while (-1 != (u = motif_list[cnt])) {
-        j = i + u - 1;
+        j = i + (unsigned int)u - 1;
         if (j <= n) {
-          if (hc_up[i] >= u) {
+          if (hc_up[i] >= (unsigned int)u) {
             temp  = q1k[i - 1] * qln[j + 1] / q1k[n];
             temp  *= domains_up->exp_energy_cb(vc,
                                                i,
@@ -2676,10 +2697,11 @@ ud_outside_ext_loops(vrna_fold_compound_t *vc)
 PRIVATE INLINE void
 ud_outside_hp_loops(vrna_fold_compound_t *vc)
 {
-  int         i, j, k, l, kl, *my_iindx, u, n, cnt, *motif_list, *hc_up;
-  FLT_OR_DBL  temp, outside, exp_motif_en, *probs, q1, q2;
+  unsigned int  i, j, k, l, n, cnt, *hc_up;
+  int           kl, *my_iindx, u, *motif_list;
+  FLT_OR_DBL    temp, outside, exp_motif_en, *probs, q1, q2;
 
-  vrna_ud_t   *domains_up, *ud_bak;
+  vrna_ud_t     *domains_up, *ud_bak;
 
   n           = vc->length;
   my_iindx    = vc->iindx;
@@ -2697,7 +2719,7 @@ ud_outside_hp_loops(vrna_fold_compound_t *vc)
         outside = 0.;
         j       = i + u - 1;
         if (j < n) {
-          if (hc_up[i] >= u) {
+          if (hc_up[i] >= (unsigned int)u) {
             exp_motif_en = domains_up->exp_energy_cb(vc,
                                                      i,
                                                      j,
@@ -2767,8 +2789,9 @@ ud_outside_hp_loops(vrna_fold_compound_t *vc)
 PRIVATE INLINE void
 ud_outside_hp_loops2(vrna_fold_compound_t *vc)
 {
-  int         i, j, k, l, kl, *my_iindx, u, u1, u2, n, m;
-  FLT_OR_DBL  temp, outside, exp_motif_en, *probs, q1, q2, **qq_ud, **pp_ud;
+  unsigned int  i, j, k, l, u1, u2, n, m;
+  int           kl, *my_iindx, u;
+  FLT_OR_DBL    temp, outside, exp_motif_en, *probs, q1, q2, **qq_ud, **pp_ud;
 
   vrna_ud_t   *domains_up, *ud_bak;
 
@@ -2778,7 +2801,7 @@ ud_outside_hp_loops2(vrna_fold_compound_t *vc)
   domains_up  = vc->domains_up;
 
   qq_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
-  for (k = 0; k < domains_up->uniq_motif_count; k++) {
+  for (k = 0; k < (unsigned int)domains_up->uniq_motif_count; k++) {
     qq_ud[k]  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
     u         = domains_up->uniq_motif_size[k];
     for (i = 1; i <= n - u + 1; i++) {
@@ -2791,7 +2814,7 @@ ud_outside_hp_loops2(vrna_fold_compound_t *vc)
   }
 
   pp_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
-  for (k = 0; k < domains_up->uniq_motif_count; k++)
+  for (k = 0; k < (unsigned int)domains_up->uniq_motif_count; k++)
     pp_ud[k] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
 
   for (k = 1; k < n; k++) {
@@ -2805,7 +2828,7 @@ ud_outside_hp_loops2(vrna_fold_compound_t *vc)
         temp            *= probs[kl];
 
         if (temp > 0.) {
-          for (m = 0; m < domains_up->uniq_motif_count; m++) {
+          for (m = 0; m < (unsigned int)domains_up->uniq_motif_count; m++) {
             u = domains_up->uniq_motif_size[m];
             for (u1 = 0, u2 = l - k - u - 1, i = k + 1, j = k + u; j < l; i++, j++, u1++, u2--) {
               exp_motif_en  = qq_ud[m][i];
@@ -2833,7 +2856,7 @@ ud_outside_hp_loops2(vrna_fold_compound_t *vc)
     }
   }
 
-  for (k = 0; k < domains_up->uniq_motif_count; k++) {
+  for (k = 0; k < (unsigned int)domains_up->uniq_motif_count; k++) {
     u = domains_up->uniq_motif_size[k];
     /* actually store the results */
     for (i = 1; i <= n - u + 1; i++) {
@@ -2856,11 +2879,12 @@ ud_outside_hp_loops2(vrna_fold_compound_t *vc)
 PRIVATE INLINE void
 ud_outside_int_loops(vrna_fold_compound_t *vc)
 {
-  int         i, j, k, l, p, q, pq, kl, u, n, cnt, *motif_list, *my_iindx,
-              *hc_up, kmin, pmax, qmin, lmax;
-  FLT_OR_DBL  temp, q1, q2, q3, exp_motif_en, outside,
-              *probs, *qb;
-  vrna_ud_t   *domains_up, *ud_bak;
+  unsigned int  i, j, k, l, p, q, n, cnt, *hc_up, kmin,
+                pmax, qmin, lmax;
+  int           pq, kl, u, *motif_list, *my_iindx;
+  FLT_OR_DBL    temp, q1, q2, q3, exp_motif_en, outside,
+                *probs, *qb;
+  vrna_ud_t     *domains_up, *ud_bak;
 
   n           = vc->length;
   my_iindx    = vc->iindx;
@@ -2877,10 +2901,10 @@ ud_outside_int_loops(vrna_fold_compound_t *vc)
       cnt = 0;
       while (-1 != (u = motif_list[cnt])) {
         outside = 0.;
-        j       = i + u - 1;
+        j       = i + (unsigned int)u - 1;
 
         if (j < n) {
-          if (hc_up[i] >= u) {
+          if (hc_up[i] >= (unsigned int)u) {
             exp_motif_en = domains_up->exp_energy_cb(vc,
                                                      i,
                                                      j,
@@ -2888,8 +2912,11 @@ ud_outside_int_loops(vrna_fold_compound_t *vc)
                                                      domains_up->data);
 
             /* 3.1 motif is within 5' loop */
-            kmin  = j - MAXLOOP - 1;
-            kmin  = MAX2(kmin, 1);
+            kmin = 1;
+
+            if (j > MAXLOOP + 2)
+              kmin  = j - MAXLOOP - 1;
+
             for (k = kmin; k < i; k++) {
               pmax  = k + MAXLOOP + 1;
               pmax  = MIN2(pmax, n);
@@ -2952,14 +2979,17 @@ ud_outside_int_loops(vrna_fold_compound_t *vc)
               pmax  = k + i + MAXLOOP - j;
               pmax  = MIN2(pmax, n);
               for (p = k + 1; p <= pmax; p++) {
-                qmin  = p + j - k - MAXLOOP - 1;
-                qmin  = MAX2(qmin, p + 1);
+                qmin = p + 1;
+
+                if (j > k + MAXLOOP + 2)
+                  qmin  = p + j - k - MAXLOOP - 1;
+
                 for (q = i - 1; q >= qmin; q--) {
                   pq = my_iindx[p] - q;
                   if (qb[pq] == 0.)
                     continue;
 
-                  lmax  = k + q - p + MAXLOOP + 2;
+                  lmax  = k + q + MAXLOOP + 2 - p;
                   lmax  = MIN2(lmax, n);
                   for (l = j + 1; l < lmax; l++) {
                     kl = my_iindx[k] - l;
@@ -3034,8 +3064,9 @@ PRIVATE INLINE void
 ud_outside_int_loops2(vrna_fold_compound_t *vc)
 {
   unsigned char *hard_constraints;
-  int           i, j, k, l, p, q, pq, kl, u, n, *my_iindx, pmax, qmin,
+  unsigned int  i, j, k, l, p, q, u, n, pmax, qmin,
                 u1, u2, uu1, uu2, u2_max, m;
+  int           pq, kl, *my_iindx;
   FLT_OR_DBL    temp, q5, q3, exp_motif_en, outside,
                 *probs, *qb, qq1, qq2, *qqk, *qql, *qqp, **qq_ud, **pp_ud, temp5,
                 temp3;
@@ -3053,7 +3084,7 @@ ud_outside_int_loops2(vrna_fold_compound_t *vc)
   qqp = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
 
   qq_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
-  for (k = 0; k < domains_up->uniq_motif_count; k++) {
+  for (k = 0; k < (unsigned int)domains_up->uniq_motif_count; k++) {
     qq_ud[k]  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
     u         = domains_up->uniq_motif_size[k];
     for (i = 1; i <= n - u + 1; i++) {
@@ -3066,7 +3097,7 @@ ud_outside_int_loops2(vrna_fold_compound_t *vc)
   }
 
   pp_ud = (FLT_OR_DBL **)vrna_alloc(sizeof(FLT_OR_DBL *) * (n + 1));
-  for (k = 0; k < domains_up->uniq_motif_count; k++)
+  for (k = 0; k < (unsigned int)domains_up->uniq_motif_count; k++)
     pp_ud[k] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
 
   for (k = 1; k < n; k++) {
@@ -3082,7 +3113,11 @@ ud_outside_int_loops2(vrna_fold_compound_t *vc)
         continue;
 
       if (hard_constraints[k * n + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-        for (i = l - 1; i > MAX2(k, l - MAXLOOP - 1); i--) {
+        unsigned int imin = k;
+        if (l > MAXLOOP + 2)
+          imin = l - MAXLOOP - 1;
+
+        for (i = l - 1; i > imin; i--) {
           qql[i] = domains_up->exp_energy_cb(vc,
                                              i, l - 1,
                                              VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP,
@@ -3094,8 +3129,11 @@ ud_outside_int_loops2(vrna_fold_compound_t *vc)
         for (p = k + 1; p < pmax; p++) {
           u1      = p - k - 1;
           u2_max  = MAXLOOP - u1;
-          qmin    = l - 1 - u2_max;
-          qmin    = MAX2(qmin, p + 1);
+          qmin    = p + 1;
+
+          if (l > p + 2 + u2_max)
+            qmin = l - 1 - u2_max;
+
           for (i = p - 1; i > k; i--) {
             qqp[i] = domains_up->exp_energy_cb(vc,
                                                i, p - 1,
@@ -3126,7 +3164,7 @@ ud_outside_int_loops2(vrna_fold_compound_t *vc)
               temp3 = temp * q5;
 
               /* loop over all available motifs */
-              for (m = 0; m < domains_up->uniq_motif_count; m++) {
+              for (m = 0; m < (unsigned int)domains_up->uniq_motif_count; m++) {
                 u = domains_up->uniq_motif_size[m];
                 for (i = k + 1, j = k + u; j < p; i++, j++) {
                   /* ud in 5' loop */
@@ -3176,7 +3214,7 @@ ud_outside_int_loops2(vrna_fold_compound_t *vc)
   free(qqk);
   free(qql);
   free(qqp);
-  for (k = 0; k < domains_up->uniq_motif_count; k++) {
+  for (k = 0; k < (unsigned int)domains_up->uniq_motif_count; k++) {
     u = domains_up->uniq_motif_size[k];
     /* actually store the results */
     for (i = 1; i <= n - u + 1; i++) {
@@ -3202,8 +3240,8 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
   unsigned char     *hc;
   char              *ptype;
   short             *S;
-  int               i, j, k, l, kl, jkl, *my_iindx, u, n, cnt, *motif_list,
-                    *hc_up, tt, *jindx, *rtype, up, ud_max_size;
+  unsigned int      i, j, k, l, n, cnt, *hc_up, tt, ud_max_size, up;
+  int               kl, jkl, *my_iindx, u, *motif_list, *jindx, *rtype;
   FLT_OR_DBL        temp, *scale, outside, exp_motif_en, *probs, *qb, *qm, expMLclosing,
                     *expMLbase, *qmli, exp_motif_ml_left, exp_motif_ml_right;
   vrna_exp_param_t  *pf_params;
@@ -3230,7 +3268,7 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
   expMLbase     = vc->exp_matrices->expMLbase;
   expMLclosing  = pf_params->expMLclosing;
 
-  for (ud_max_size = u = 0; u < domains_up->uniq_motif_count; u++)
+  for (ud_max_size = 0, u = 0; u < domains_up->uniq_motif_count; u++)
     if (ud_max_size < domains_up->uniq_motif_size[u])
       ud_max_size = domains_up->uniq_motif_size[u];
 
@@ -3244,7 +3282,7 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
         outside = 0.;
         j       = i + u - 1;
         if (j < n) {
-          if (hc_up[i] >= u) {
+          if (hc_up[i] >= (unsigned int)u) {
             exp_motif_en = domains_up->exp_energy_cb(vc,
                                                      i,
                                                      j,
@@ -3330,7 +3368,7 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
                 }
               }
 
-              for (u = j + 1; u < l; u++) {
+              for (u = j + 1; (unsigned int)u < l; u++) {
                 /* 1st, l-1 is unpaired */
                 if (hc_up[l - 1]) {
                   temp = qm1ui[1][u] * expMLbase[1];
@@ -3344,9 +3382,9 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
                 }
 
                 /* 2nd, l-1 is the final position of another motif [p:l-1] */
-                for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
-                  int size = domains_up->uniq_motif_size[cnt];
-                  if ((u < l - size) &&
+                for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
+                  unsigned int size = (unsigned int)domains_up->uniq_motif_size[cnt];
+                  if (((unsigned int)u < l - size) &&
                       (hc_up[l - size] >= size)) {
                     temp = qm1ui[size][u] *
                            expMLbase[size] *
@@ -3402,7 +3440,7 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
               FLT_OR_DBL  rqq = 0;
 
               /* update qmli[k] = qm1[k,i-1] */
-              for (qmli[k] = 0., u = k + 1; u < i; u++) {
+              for (qmli[k] = 0., u = k + 1; (unsigned int)u < i; u++) {
                 /* respect hard constraints */
                 if (hc[n * u + k] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
                   up = (i - 1) - (u + 1) + 1;
@@ -3427,14 +3465,14 @@ ud_outside_mb_loops(vrna_fold_compound_t *vc)
                 }
               }
 
-              for (u = k; u < i; u++)
+              for (u = k; (unsigned int)u < i; u++)
                 lqq += qm[my_iindx[k + 1] - (u - 1)] *
                        qmli[u];
 
               for (l = j + 1; l <= n; l++) {
                 kl = my_iindx[k] - l;
                 if (hc[n * k + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-                  int up, jkl;
+                  int jkl;
                   jkl = jindx[l] + k;
                   tt  = rtype[vrna_get_ptype(jkl, ptype)];
                   up  = l - j - 1;
@@ -3497,8 +3535,8 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
   unsigned char     *hc;
   char              *ptype;
   short             *S;
-  int               i, j, k, l, kl, jkl, *my_iindx, u, n, cnt, *motif_list,
-                    *hc_up, tt, *jindx, *rtype, up, ud_max_size;
+  unsigned int      i, j, k, l, n, cnt, *hc_up, tt, up, ud_max_size;
+  int               kl, jkl, *my_iindx, u, *motif_list, *jindx, *rtype;
   FLT_OR_DBL        temp, *scale, outside, exp_motif_en, *probs, *qb, *qm,
                     expMLclosing, *expMLbase, *qmli, exp_motif_ml_left,
                     exp_motif_ml_right, *qqi, *qqj, *qqmi, *qqmj;
@@ -3545,7 +3583,7 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
         outside = 0.;
         j       = i + u - 1;
         if (j < n) {
-          if (hc_up[i] >= u) {
+          if (hc_up[i] >= (unsigned int)u) {
             exp_motif_en = domains_up->exp_energy_cb(vc,
                                                      i,
                                                      j,
@@ -3641,7 +3679,7 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
                 }
               }
 
-              for (u = j + 1; u < l; u++) {
+              for (u = j + 1; (unsigned int)u < l; u++) {
                 /* 1st, l-1 is unpaired */
                 if (hc_up[l - 1]) {
                   temp = qm1ui[1][u] * expMLbase[1];
@@ -3655,9 +3693,9 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
                 }
 
                 /* 2nd, l-1 is the final position of another motif [p:l-1] */
-                for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
-                  int size = domains_up->uniq_motif_size[cnt];
-                  if ((u < l - size) &&
+                for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
+                  unsigned int size = (unsigned int)domains_up->uniq_motif_size[cnt];
+                  if (((unsigned int)u < l - size) &&
                       (hc_up[l - size] >= size)) {
                     temp = qm1ui[size][u] *
                            expMLbase[size] *
@@ -3713,7 +3751,7 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
               FLT_OR_DBL  rqq = 0;
 
               /* update qmli[k] = qm1[k,i-1] */
-              for (qmli[k] = 0., u = k + 1; u < i; u++) {
+              for (qmli[k] = 0., u = k + 1; (unsigned int)u < i; u++) {
                 int ku = my_iindx[k] - u;
                 /* respect hard constraints */
                 if (hc[k * n + u] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC) {
@@ -3736,14 +3774,14 @@ ud_outside_mb_loops2(vrna_fold_compound_t *vc)
                 }
               }
 
-              for (u = k; u < i; u++)
+              for (u = k; (unsigned int)u < i; u++)
                 lqq += qm[my_iindx[k + 1] - (u - 1)] *
                        qmli[u];
 
               for (l = j + 1; l <= n; l++) {
                 kl = my_iindx[k] - l;
                 if (hc[k * n + l] & VRNA_CONSTRAINT_CONTEXT_MB_LOOP) {
-                  int up, jkl;
+                  int jkl;
                   jkl = jindx[l] + k;
                   tt  = rtype[vrna_get_ptype(jkl, ptype)];
                   up  = l - j - 1;
@@ -3951,7 +3989,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
             ln1 = k - 1;
             ln3 = n - j;
 
-            if (hc->up_int[j + 1] < (ln1 + ln3))
+            if (hc->up_int[j + 1] < (unsigned int)(ln1 + ln3))
               break;
 
             if ((ln1 + ln3) > MAXLOOP)
@@ -3968,7 +4006,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
               if ((ln1 + ln2 + ln3) > MAXLOOP)
                 continue;
 
-              if (hc->up_int[l + 1] < ln2)
+              if (hc->up_int[l + 1] < (unsigned int)ln2)
                 continue;
 
               if (qb[my_iindx[k] - l] == 0.)
@@ -4023,7 +4061,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
             int ln1, lstart;
             ln1 = k - j - 1;
 
-            if (hc->up_int[j + 1] < ln1)
+            if (hc->up_int[j + 1] < (unsigned int)ln1)
               break;
 
             if ((ln1 + i - 1) > MAXLOOP)
@@ -4041,7 +4079,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
               if ((ln1 + ln2 + ln3) > MAXLOOP)
                 continue;
 
-              if (hc->up_int[l + 1] < (ln2 + ln3))
+              if (hc->up_int[l + 1] < (unsigned int)(ln2 + ln3))
                 continue;
 
               if (qb[my_iindx[k] - l] == 0.)
@@ -4123,7 +4161,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
           }
 
           /* 1.3.2 right-most part  */
-          if (hc->up_ml[j + 1] >= (n - j)) {
+          if (hc->up_ml[j + 1] >= (unsigned int)(n - j)) {
             if (i > 1) {
               if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
                   (hc_eval_mb(1, j, i - 1, i, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
@@ -4160,7 +4198,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
           }
 
           /* 1.3.3 left-most part */
-          if (hc->up_ml[1] >= (i - 1)) {
+          if (hc->up_ml[1] >= (unsigned int)(i - 1)) {
             if (j + 1 < n) {
               if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
                   (hc_eval_mb(i, n, j, j + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
@@ -4236,19 +4274,19 @@ bppm_circ(vrna_fold_compound_t  *fc,
             if (n - j <= MAXLOOP) {
               unsigned int u1   = n - j;
               unsigned int kmax = 1 + MAXLOOP - u1;
-              for (k = 1; k <= kmax; k++) {
+              for (k = 1; (unsigned int)k <= kmax; k++) {
                 u2 = k - 1;
                 unsigned int lmax = i - 1;
-                if (k + VRNA_GQUAD_MAX_BOX_SIZE - 1 < lmax)
+                if ((unsigned int)k + VRNA_GQUAD_MAX_BOX_SIZE - 1 < lmax)
                   lmax = k + VRNA_GQUAD_MAX_BOX_SIZE - 1;
 
                 unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-                if (lmin >= i)
+                if (lmin >= (unsigned int)i)
                   lmin = i;
                 else if ((i - lmin) + u1 + u2 > MAXLOOP + 1)
                   lmin = i - (MAXLOOP - u1 - u2) - 1;
                    
-                for (l = lmin; l <= lmax; l++) {
+                for (l = lmin; (unsigned int)l <= lmax; l++) {
                   if (((u1 + u2 == 0) && (i - l - 1 < 3)) ||
                       ((u1 + u2 < 3) && (i - l - 1 == 0)))
                     continue;
@@ -4294,23 +4332,23 @@ bppm_circ(vrna_fold_compound_t  *fc,
             u1 = i - 1;
             unsigned int kmax = j + MAXLOOP - u1 + 1;
             if (j + VRNA_GQUAD_MIN_BOX_SIZE <= n)
-              kmax = MIN2(kmax, n - VRNA_GQUAD_MIN_BOX_SIZE + 1);
+              kmax = MIN2(kmax, (unsigned int)n - VRNA_GQUAD_MIN_BOX_SIZE + 1);
             else
               kmax = j;
 
-            for (k = j + 1; k <= kmax; k++) {
+            for (k = j + 1; (unsigned int)k <= kmax; k++) {
               u2 = k - j - 1;
               unsigned int lmin = k + VRNA_GQUAD_MIN_BOX_SIZE - 1;
-              if (lmin > n)
+              if (lmin > (unsigned int)n)
                 break;
-              if (lmin + MAXLOOP - u1 - u2 < n)
+              if (lmin + MAXLOOP - u1 - u2 < (unsigned int)n)
                 lmin = n + u1 + u2 - MAXLOOP;
 
               unsigned int lmax = k + VRNA_GQUAD_MAX_BOX_SIZE - 1;
-              if (lmax > n)
+              if (lmax > (unsigned int)n)
                 lmax = n;
 
-              for (l = lmin; l <= lmax; l++) {
+              for (l = lmin; (unsigned int)l <= lmax; l++) {
                 u3  = n - l;
                 if (((u1 + u3 == 0) && (u2 < 3)) ||
                     ((u1 + u3 < 3) && (u2 == 0)))
@@ -4376,23 +4414,23 @@ bppm_circ(vrna_fold_compound_t  *fc,
             FLT_OR_DBL expGQstem = pow(vrna_exp_E_multibranch_stem(0, -1, -1, pf_params), (double)n_seq);
 
             unsigned int kmin = j + 1;
-            if (kmin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= n)
+            if (kmin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= (unsigned int)n)
               kmin = n - VRNA_GQUAD_MAX_BOX_SIZE + 1;
 
             for (k = kmin; k <= n; k++) {
 
               unsigned int lmin = 1;
               unsigned int lmax = VRNA_GQUAD_MAX_BOX_SIZE - 1 - (n - k);
-              if (lmax >= i)
+              if (lmax >= (unsigned int)i)
                 lmax = i - 1;
-              for (l = lmin; l <= lmax; l++) {
+              for (l = lmin; (unsigned int)l <= lmax; l++) {
 #ifndef VRNA_DISABLE_C11_FEATURES
                 if ((q_g = vrna_smx_csr_get(q_gq, k, l, 0.)) != 0.) {
 #else
                 if ((q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.)) != 0.) {
 #endif
                   /* 3.2.1 (i,j) last branch before gquad, ie. [k,l] + ML + (i,j) */
-                  if (l + turn < i) {
+                  if (l + turn < (unsigned int)i) {
                     u1 = k - j - 1;
                     if (hc->up_ml[j + 1] >= u1) {
                       tmp = qmb *
@@ -4410,7 +4448,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   }
 
                   /* 3.2.2 (i,j) first branch after gquad, ie. [k,l] + (i,j) + ML */
-                  if (j + turn < k) {
+                  if (j + turn < (unsigned int)k) {
                     u2 = i - l - 1;
                     if (hc->up_ml[l + 1] >= u2) {
                       tmp = qmb *
@@ -4428,8 +4466,8 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   }            
 
                   /* 3.2.3 (i,j) somewhere in between, ie. [k,l] + ML + (i,j) + ML */
-                  if ((l + turn < i) &&
-                      (j + turn < k)) {
+                  if ((l + turn < (unsigned int)i) &&
+                      (j + turn < (unsigned int)k)) {
                     tmp = qmb *
                           qm[my_iindx[l + 1] - i + 1] *
                           qm[my_iindx[j + 1] - k + 1] *
@@ -4457,7 +4495,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
     /* first, for all G-Quadruplexes not spanning the n,1 junction */
     for (i = 1; i + VRNA_GQUAD_MIN_BOX_SIZE - 1 <= n; i++) {
       unsigned int maxj = MIN2(i + VRNA_GQUAD_MAX_BOX_SIZE - 1, n);
-      for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; j <= maxj; j++) {
+      for (j = i + VRNA_GQUAD_MIN_BOX_SIZE - 1; (unsigned int)j <= maxj; j++) {
         ij = my_iindx[i] - j;
 
 #ifndef VRNA_DISABLE_C11_FEATURES
@@ -4471,9 +4509,9 @@ bppm_circ(vrna_fold_compound_t  *fc,
           
           /* 1.1 hairpin-loop like configurations */
           if ((i - 1) + (n - j) >= 3) {
-            eval = (hc->up_ext[1] >= i - 1) ? 1 : 0;
+            eval = (hc->up_ext[1] >= (unsigned int)(i - 1)) ? 1 : 0;
             if (j < n)
-              eval = (hc->up_ext[j + 1] >= n - j) ? eval : 0;
+              eval = (hc->up_ext[j + 1] >= (unsigned int)(n - j)) ? eval : 0;
             if (hc->f) {
               if (i > 1)
                 eval = (hc->f(1, i - 1, 1, i - 1, VRNA_DECOMP_EXT_UP, hc->data)) ? eval : 0;
@@ -4502,10 +4540,10 @@ bppm_circ(vrna_fold_compound_t  *fc,
               (u1 <= MAXLOOP) &&
               (hc->up_int[1] >= u1)) {
             unsigned int kmax = j + 1 + MAXLOOP - u1;
-            if (kmax + VRNA_GQUAD_MIN_BOX_SIZE - 1 > n)
+            if (kmax + VRNA_GQUAD_MIN_BOX_SIZE - 1 > (unsigned int)n)
               kmax = n - VRNA_GQUAD_MIN_BOX_SIZE + 1;
 
-            for (k = j + 1; k <= kmax; k++) {
+            for (k = j + 1; (unsigned int)k <= kmax; k++) {
               u2 = k - j - 1;
               if (hc->up_int[j + 1] < u2)
                 break;
@@ -4514,7 +4552,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
               if (lmin + MAXLOOP < n + u1 + u2)
                 lmin = n + u1 + u2 - MAXLOOP;
 
-              for (u3 = 0, l = n; l >= lmin; l--, u3++) {
+              for (u3 = 0, l = n; (unsigned int)l >= lmin; l--, u3++) {
                 if (hc->up_int[l + 1] < u3)
                   break;
 
@@ -4571,7 +4609,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
           }
 
           /* 1.3.1,2 right-most part  */
-          if (hc->up_ml[j + 1] >= (n - j)) {
+          if (hc->up_ml[j + 1] >= (unsigned int)(n - j)) {
             if (i > 1) {
               if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
                   (hc_eval_mb(1, j, i - 1, i, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
@@ -4591,7 +4629,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
           }
 
           /* 1.3.1.3 left-most part */
-          if (hc->up_ml[1] >= (i - 1)) {
+          if (hc->up_ml[1] >= (unsigned int)(i - 1)) {
             if (j + 1 < n) {
               if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
                   (hc_eval_mb(i, n, j, j + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
@@ -4614,23 +4652,23 @@ bppm_circ(vrna_fold_compound_t  *fc,
           FLT_OR_DBL elem = pow(vrna_exp_E_multibranch_stem(0, -1, -1, pf_params), (double)n_seq);
 
           unsigned int kmin = j + 1;
-          if (kmin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= n)
+          if (kmin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= (unsigned int)n)
             kmin = n - VRNA_GQUAD_MAX_BOX_SIZE + 1;
 
           for (k = kmin; k <= n; k++) {
 
             unsigned int lmin = 1;
             unsigned int lmax = VRNA_GQUAD_MAX_BOX_SIZE - 1 - (n - k);
-            if (lmax >= i)
+            if (lmax >= (unsigned int)i)
               lmax = i - 1;
-            for (l = lmin; l <= lmax; l++) {
+            for (l = lmin; (unsigned int)l <= lmax; l++) {
 #ifndef VRNA_DISABLE_C11_FEATURES
               if ((q_g = vrna_smx_csr_get(q_gq, k, l, 0.)) != 0.) {
 #else
               if ((q_g = vrna_smx_csr_FLT_OR_DBL_get(q_gq, k, l, 0.)) != 0.) {
 #endif
                 /* 3.2.1 (i,j) last branch before gquad, ie. [k,l] + ML + (i,j) */
-                if (l + turn < i) {
+                if (l + turn < (unsigned int)i) {
                   u1 = k - j - 1;
                   if (hc->up_ml[j + 1] >= u1) {
                     tmp = expGQstem *
@@ -4648,7 +4686,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
                 }
 
                 /* 3.2.2 (i,j) first branch after gquad, ie. [k,l] + (i,j) + ML */
-                if (j + turn < k) {
+                if (j + turn < (unsigned int)k) {
                   u2 = i - l - 1;
                   if (hc->up_ml[l + 1] >= u2) {
                     tmp = expGQstem *
@@ -4666,8 +4704,8 @@ bppm_circ(vrna_fold_compound_t  *fc,
                 }            
 
                 /* 3.2.3 (i,j) somewhere in between, ie. [k,l] + ML + (i,j) + ML */
-                if ((l + turn < i) &&
-                    (j + turn < k)) {
+                if ((l + turn < (unsigned int)i) &&
+                    (j + turn < (unsigned int)k)) {
                   tmp = expGQstem *
                         qm[my_iindx[l + 1] - i + 1] *
                         qm[my_iindx[j + 1] - k + 1] *
@@ -4692,7 +4730,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
 
     /* finally, probabilities for all Gquads spanning the n,1 junction */
     kmin = 2;
-    if (kmin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= n)
+    if (kmin + VRNA_GQUAD_MAX_BOX_SIZE - 1 <= (unsigned int)n)
       kmin = n - VRNA_GQUAD_MAX_BOX_SIZE + 1;
 
     for (k = kmin; k <= n; k++) {
@@ -4701,10 +4739,10 @@ bppm_circ(vrna_fold_compound_t  *fc,
       if (n - k + lmin < VRNA_GQUAD_MIN_BOX_SIZE)
         lmin = VRNA_GQUAD_MIN_BOX_SIZE + k - n - 1;
 
-      if (lmax >= n)
+      if (lmax >= (unsigned int)n)
         lmax = k - 1;
 
-      for (l = lmin; l <= lmax; l++) {
+      for (l = lmin; (unsigned int)l <= lmax; l++) {
 #ifndef VRNA_DISABLE_C11_FEATURES
          if ((q_g = vrna_smx_csr_get(q_gq, k, l, 0.)) != 0.) {
 #else
@@ -4732,10 +4770,10 @@ bppm_circ(vrna_fold_compound_t  *fc,
             /* 2. internal-loop like case, i.e. single gquad plus base pair or second gquad */
             imin = l + 1;
             imax = l + MAXLOOP + 1;
-            if (imax >= k)
+            if (imax >= (unsigned int)k)
               imax = k - 1;
 
-            for (i = imin; i <= imax; i++) {
+            for (i = imin; (unsigned int)i <= imax; i++) {
               u1 = i - l - 1;
               jmax = k - 1;
               jmin = i + turn + 1;
@@ -4743,7 +4781,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
                   (jmin + MAXLOOP < k + u1))
                 jmin = k + u1 - MAXLOOP - 1;
 
-              for (j = jmax; j >= jmin; j--) {
+              for (j = jmax; (unsigned int)j >= jmin; j--) {
                 u2 = k - j - 1;
                 if (((u1 == 0) && (u2 < 3)) ||
                     ((u1 < 3) && (u2 == 0)))
