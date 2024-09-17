@@ -31,13 +31,13 @@
 #include "ViennaRNA/constraints/multibranch_sc_pf.inc"
 
 struct vrna_mx_pf_aux_ml_s {
-  FLT_OR_DBL  *qqm;
-  FLT_OR_DBL  *qqm1;
-  FLT_OR_DBL  *qqm2;
-  FLT_OR_DBL  *qqm21;
+  FLT_OR_DBL    *qqm;
+  FLT_OR_DBL    *qqm1;
+  FLT_OR_DBL    *qqm2;
+  FLT_OR_DBL    *qqm21;
 
-  int         qqmu_size;
-  FLT_OR_DBL  **qqmu;
+  unsigned int  qqmu_size;
+  FLT_OR_DBL    **qqmu;
 };
 
 
@@ -49,29 +49,29 @@ struct vrna_mx_pf_aux_ml_s {
 
 PRIVATE FLT_OR_DBL
 exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
-                   int                        i,
-                   int                        j,
+                   unsigned int                        i,
+                   unsigned int                        j,
                    struct vrna_mx_pf_aux_ml_s *aux_mx);
 
 
 PRIVATE FLT_OR_DBL
 exp_E_ml_fast(vrna_fold_compound_t        *fc,
-              int                         i,
-              int                         j,
+              unsigned int                         i,
+              unsigned int                         j,
               struct vrna_mx_pf_aux_ml_s  *aux_mx);
 
 
 PRIVATE FLT_OR_DBL
 exp_E_m2_fast(vrna_fold_compound_t        *fc,
-              int                         i,
-              int                         j,
+              unsigned int                         i,
+              unsigned int                         j,
               struct vrna_mx_pf_aux_ml_s  *aux_mx);
 
 PRIVATE FLT_OR_DBL *
 qqm_constraints(vrna_fold_compound_t *fc,
-                int i,
-                int j,
-                int max_up,
+                unsigned int i,
+                unsigned int j,
+                unsigned int max_up,
                 struct vrna_mx_pf_aux_ml_s  *aux_mx,
                 vrna_hc_eval_f              evaluate,
                 struct hc_mb_def_dat        *hc_dat_local,
@@ -80,9 +80,9 @@ qqm_constraints(vrna_fold_compound_t *fc,
 
 PRIVATE FLT_OR_DBL *
 qqm_constraints_up(vrna_fold_compound_t *fc,
-                   int i,
-                   int j,
-                   int                         max_up,
+                   unsigned int i,
+                   unsigned int j,
+                   unsigned int                         max_up,
                    struct vrna_mx_pf_aux_ml_s  *aux_mx,
                    vrna_hc_eval_f              evaluate,
                    struct hc_mb_def_dat        *hc_dat_local,
@@ -144,17 +144,17 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc)
   struct vrna_mx_pf_aux_ml_s *aux_mx = NULL;
 
   if (fc) {
-    int         i, j, d, n, u, turn, ij, *iidx;
-    FLT_OR_DBL  *qm;
+    unsigned int  i, j, d, n, u, turn;
+    int           ij, *iidx;
+    FLT_OR_DBL    *qm;
 
-    n     = (int)fc->length;
+    n     = fc->length;
     iidx  = fc->iindx;
     turn  = fc->exp_params->model_details.min_loop_size;
     qm    = fc->exp_matrices->qm;
 
     /* allocate memory for helper arrays */
-    aux_mx =
-      (struct vrna_mx_pf_aux_ml_s *)vrna_alloc(sizeof(struct vrna_mx_pf_aux_ml_s));
+    aux_mx = (struct vrna_mx_pf_aux_ml_s *)vrna_alloc(sizeof(struct vrna_mx_pf_aux_ml_s));
     aux_mx->qqm       = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
     aux_mx->qqm1      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
     aux_mx->qqm2      = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 2));
@@ -163,13 +163,13 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc)
     aux_mx->qqmu      = NULL;
 
     if (fc->type == VRNA_FC_TYPE_SINGLE) {
-      vrna_ud_t *domains_up = fc->domains_up;
-      int       with_ud     = (domains_up && domains_up->exp_energy_cb);
-      int       ud_max_size = 0;
+      vrna_ud_t     *domains_up = fc->domains_up;
+      unsigned int  with_ud     = (domains_up && domains_up->exp_energy_cb);
+      unsigned int  ud_max_size = 0;
 
       /* pre-processing ligand binding production rule(s) and auxiliary memory */
       if (with_ud) {
-        for (u = 0; u < domains_up->uniq_motif_count; u++)
+        for (u = 0; u < (unsigned int)domains_up->uniq_motif_count; u++)
           if (ud_max_size < domains_up->uniq_motif_size[u])
             ud_max_size = domains_up->uniq_motif_size[u];
 
@@ -182,7 +182,7 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc)
 
     if (fc->hc->type == VRNA_HC_WINDOW) {
     } else {
-      for (d = 0; d <= turn; d++)
+      for (d = 0; d <= MIN2(turn, n); d++)
         for (i = 1; i <= n - d; i++) {
           j   = i + d;
           ij  = iidx[i] - j;
@@ -196,7 +196,7 @@ vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc)
       if (fc->aux_grammar) {
         for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->exp_m); c++) {
           if (fc->aux_grammar->exp_m[c].cb) {
-            for (d = 0; d <= turn; d++)
+            for (d = 0; d <= MIN2(turn, n); d++)
               for (i = 1; i <= n - d; i++) {
                 j   = i + d;
                 ij  = iidx[i] - j;
@@ -220,8 +220,8 @@ PUBLIC void
 vrna_exp_E_ml_fast_rotate(struct vrna_mx_pf_aux_ml_s *aux_mx)
 {
   if (aux_mx) {
-    int         u;
-    FLT_OR_DBL  *tmp;
+    unsigned int  u;
+    FLT_OR_DBL    *tmp;
 
     tmp           = aux_mx->qqm1;
     aux_mx->qqm1  = aux_mx->qqm;
@@ -246,7 +246,7 @@ PUBLIC void
 vrna_exp_E_ml_fast_free(struct vrna_mx_pf_aux_ml_s *aux_mx)
 {
   if (aux_mx) {
-    int u;
+    unsigned int u;
 
     free(aux_mx->qqm);
     free(aux_mx->qqm1);
@@ -292,15 +292,15 @@ vrna_exp_E_ml_fast_qqm1(struct vrna_mx_pf_aux_ml_s *aux_mx)
  */
 PRIVATE FLT_OR_DBL
 exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
-                   int                        i,
-                   int                        j,
+                   unsigned int                        i,
+                   unsigned int                        j,
                    struct vrna_mx_pf_aux_ml_s *aux_mx)
 {
   unsigned char             sliding_window;
   char                      *ptype, **ptype_local;
   short                     *S1, **SS, **S5, **S3;
-  unsigned int              *sn, n_seq, s, *se;
-  int                       ij, k, kl, *my_iindx, *jindx, *rtype, tt;
+  unsigned int              k, *sn, n_seq, s, *se, tt;
+  int                       ij, kl, *my_iindx, *jindx, *rtype;
   FLT_OR_DBL                qbt1, temp, qqqmmm, *qm, *qm2, **qm_local, *scale, expMLclosing, *qqm1,
                             *qqm21;
   vrna_hc_t                 *hc;
@@ -414,7 +414,7 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
          */
         while (1) {
           /* limit for-loop to last nucleotide of 5' part strand */
-          int stop = MIN2(j - 1, se[sn[k - 1]]);
+          unsigned int stop = MIN2(j - 1, se[sn[k - 1]]);
 
           for (; k <= stop; k++, kl--)
             temp += qm[kl] *
@@ -445,63 +445,35 @@ exp_E_mb_loop_fast(vrna_fold_compound_t       *fc,
 
 PRIVATE FLT_OR_DBL
 exp_E_ml_fast(vrna_fold_compound_t        *fc,
-              int                         i,
-              int                         j,
+              unsigned int                i,
+              unsigned int                j,
               struct vrna_mx_pf_aux_ml_s  *aux_mx)
 {
   unsigned char             sliding_window;
-  short                     *S1, *S2, **SS, **S5, **S3;
-  unsigned int              *sn, *ss, *se, n_seq, s;
-  int                       n, *iidx, k, ij, kl, maxk, ii, with_ud, u, circular, with_gquad,
-                            *hc_up_ml, type;
-  FLT_OR_DBL                qbt1, temp, *qm, *qm2, *qb, *qqm, *qqm1, *qqm2, **qqmu, q_temp, q_temp2,
-                            *expMLbase, **qb_local, **qm_local, **G_local;
-  vrna_md_t                 *md;
-  vrna_exp_param_t          *pf_params;
+  unsigned int              k, maxk, *sn, *se, with_ud, *hc_up_ml, ii;
+  int                       *iidx;
+  FLT_OR_DBL                temp, *qm2, *qqm, *qqm2, *expMLbase;
   vrna_ud_t                 *domains_up;
   vrna_hc_t                 *hc;
   vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_exp_dat      sc_wrapper;
-  vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
-  n               = (int)fc->length;
   sn              = fc->strand_number;
-  ss              = fc->strand_start;
   se              = fc->strand_end;
-  n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
-  SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
-  S5              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
-  S3              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   iidx            = (sliding_window) ? NULL : fc->iindx;
-  ij              = (sliding_window) ? 0 : iidx[i] - j;
   qqm             = aux_mx->qqm;
   qqm2            = aux_mx->qqm2;
-  qqm1            = aux_mx->qqm1;
-  qqmu            = aux_mx->qqmu;
-  qm              = (sliding_window) ? NULL : fc->exp_matrices->qm;
   qm2             = (sliding_window) ? NULL : fc->exp_matrices->qm2_real;
-  qb              = (sliding_window) ? NULL : fc->exp_matrices->qb;
-  q_gq            = (sliding_window) ? NULL : fc->exp_matrices->q_gq;
-  qm_local        = (sliding_window) ? fc->exp_matrices->qm_local : NULL;
-  qb_local        = (sliding_window) ? fc->exp_matrices->qb_local : NULL;
-  G_local         = (sliding_window) ? fc->exp_matrices->G_local : NULL;
   expMLbase       = fc->exp_matrices->expMLbase;
-  pf_params       = fc->exp_params;
-  md              = &(pf_params->model_details);
   hc              = fc->hc;
   domains_up      = fc->domains_up;
-  circular        = md->circ;
-  with_gquad      = md->gquad;
   with_ud         = (domains_up && domains_up->exp_energy_cb);
   hc_up_ml        = hc->up_ml;
   evaluate        = prepare_hc_mb_def(fc, &hc_dat_local);
 
   init_sc_mb_exp(fc, &sc_wrapper);
-
-  qbt1    = 0;
-  q_temp  = 0.;
 
   /* get contribution with at least 2 stems */
   /* here, we assume that qm2[i,j] has been filled already */
@@ -574,31 +546,29 @@ exp_E_ml_fast(vrna_fold_compound_t        *fc,
 
 PRIVATE FLT_OR_DBL
 exp_E_m2_fast(vrna_fold_compound_t        *fc,
-              int                         i,
-              int                         j,
+              unsigned int                i,
+              unsigned int                j,
               struct vrna_mx_pf_aux_ml_s  *aux_mx)
 {
   unsigned char             sliding_window;
   short                     *S1, *S2, **SS, **S5, **S3;
-  unsigned int              *sn, *ss, *se, n_seq, s;
-  int                       n, *iidx, k, ij, kl, maxk, ii, with_ud, u, circular, with_gquad,
-                            *hc_up_ml, type;
+  unsigned int              n, k, *sn, *ss, n_seq, s, with_ud,
+                            u, circular, with_gquad, type;
+  int                       *iidx, ij, kl;
   FLT_OR_DBL                qbt1, temp, *qm, *qb, *qqm, *qqm1, **qqmu, q_temp, q_temp2,
                             *expMLbase, **qb_local, **qm_local, **G_local;
   vrna_md_t                 *md;
   vrna_exp_param_t          *pf_params;
   vrna_ud_t                 *domains_up;
-  vrna_hc_t                 *hc;
   vrna_hc_eval_f evaluate;
   struct hc_mb_def_dat      hc_dat_local;
   struct sc_mb_exp_dat      sc_wrapper;
   vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
-  n               = (int)fc->length;
+  n               = fc->length;
   sn              = fc->strand_number;
   ss              = fc->strand_start;
-  se              = fc->strand_end;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
   S5              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
@@ -617,12 +587,10 @@ exp_E_m2_fast(vrna_fold_compound_t        *fc,
   expMLbase       = fc->exp_matrices->expMLbase;
   pf_params       = fc->exp_params;
   md              = &(pf_params->model_details);
-  hc              = fc->hc;
   domains_up      = fc->domains_up;
   circular        = md->circ;
   with_gquad      = md->gquad;
   with_ud         = (domains_up && domains_up->exp_energy_cb);
-  hc_up_ml        = hc->up_ml;
   evaluate        = prepare_hc_mb_def(fc, &hc_dat_local);
 
   init_sc_mb_exp(fc, &sc_wrapper);
@@ -645,8 +613,8 @@ exp_E_m2_fast(vrna_fold_compound_t        *fc,
   if (with_ud) {
     q_temp = 0.;
 
-    int cnt;
-    for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
+    unsigned int cnt;
+    for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
       u = domains_up->uniq_motif_size[cnt];
       if (j - u >= i) {
         if (evaluate(i, j, i, j - u, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
@@ -746,7 +714,7 @@ exp_E_m2_fast(vrna_fold_compound_t        *fc,
 
     while (1) {
       /* limit for-loop to first nucleotide of 3' part strand */
-      int stop = MAX2(i, ss[sn[k]]);
+      unsigned int stop = MAX2(i, ss[sn[k]]);
       for (; k > stop; k--, kl++)
         temp += qm[kl] *
                 qqm_tmp[k];
@@ -778,19 +746,19 @@ exp_E_m2_fast(vrna_fold_compound_t        *fc,
 }
 
 PRIVATE FLT_OR_DBL *
-qqm_constraints(vrna_fold_compound_t *fc,
-                int i,
-                int j,
-                int                         max_up,
+qqm_constraints(vrna_fold_compound_t        *fc,
+                unsigned int                i,
+                unsigned int                j,
+                unsigned int                max_up,
                 struct vrna_mx_pf_aux_ml_s  *aux_mx,
                 vrna_hc_eval_f              evaluate,
                 struct hc_mb_def_dat        *hc_dat_local,
                 struct sc_mb_exp_dat        *sc_wrapper)
 {
-  int         k;
-  FLT_OR_DBL  *qqm      = aux_mx->qqm;
-  FLT_OR_DBL  *qqm_tmp  = qqm;
-  vrna_hc_t   *hc       = fc->hc;
+  unsigned int  k;
+  FLT_OR_DBL    *qqm      = aux_mx->qqm;
+  FLT_OR_DBL    *qqm_tmp  = qqm;
+  vrna_hc_t     *hc       = fc->hc;
 
   /* apply hard constraints if necessary */
   if (hc->f) {
@@ -823,19 +791,19 @@ qqm_constraints(vrna_fold_compound_t *fc,
 
 
 PRIVATE FLT_OR_DBL *
-qqm_constraints_up(vrna_fold_compound_t *fc,
-                   int i,
-                   int j,
-                   int                         max_up,
-                   struct vrna_mx_pf_aux_ml_s  *aux_mx,
-                   vrna_hc_eval_f              evaluate,
-                   struct hc_mb_def_dat        *hc_dat_local,
-                   struct sc_mb_exp_dat        *sc_wrapper)
+qqm_constraints_up(vrna_fold_compound_t       *fc,
+                   unsigned int               i,
+                   unsigned int               j,
+                   unsigned int               max_up,
+                   struct vrna_mx_pf_aux_ml_s *aux_mx,
+                   vrna_hc_eval_f             evaluate,
+                   struct hc_mb_def_dat       *hc_dat_local,
+                   struct sc_mb_exp_dat       *sc_wrapper)
 {
-  int         k;
-  FLT_OR_DBL  *qqm      = aux_mx->qqm;
-  FLT_OR_DBL  *qqm_tmp  = qqm;
-  vrna_hc_t   *hc       = fc->hc;
+  unsigned int  k;
+  FLT_OR_DBL    *qqm      = aux_mx->qqm;
+  FLT_OR_DBL    *qqm_tmp  = qqm;
+  vrna_hc_t     *hc       = fc->hc;
 
   /* apply hard constraints if necessary */
   if (hc->f) {
