@@ -45,8 +45,8 @@ struct perm_list {
 };
 
 struct necklace_content {
-  int value;
-  int count;
+  int           value;
+  unsigned int  count;
 };
 
 
@@ -405,9 +405,9 @@ vrna_rotational_symmetry_db_pos(vrna_fold_compound_t  *fc,
     n = strlen(structure);
     if (fc->length != n) {
       vrna_log_warning("vrna_rotational_symmetry_db*: "
-                           "Sequence and structure have unequal lengths (%d vs. %d)",
-                           fc->length,
-                           n);
+                       "Sequence and structure have unequal lengths (%d vs. %d)",
+                       fc->length,
+                       n);
     } else {
       unsigned int  *shifts, s, r, i, j, ii, jj, string_permutations;
       short         *pt;
