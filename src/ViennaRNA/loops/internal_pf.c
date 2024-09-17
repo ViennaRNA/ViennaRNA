@@ -37,14 +37,14 @@
 
 PRIVATE FLT_OR_DBL
 exp_E_int_loop(vrna_fold_compound_t *fc,
-               int                  i,
-               int                  j);
+               unsigned int         i,
+               unsigned int         j);
 
 
 PRIVATE FLT_OR_DBL
 exp_E_ext_int_loop(vrna_fold_compound_t *fc,
-                   int                  p,
-                   int                  q);
+                   unsigned int         p,
+                   unsigned int         q);
 
 
 /*
@@ -59,7 +59,9 @@ vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
 {
   FLT_OR_DBL q = 0.;
 
-  if ((fc) && (i > 0) && (j > 0)) {
+  if ((fc) &&
+      (i > 0) &&
+      (j > 0)) {
     if (j < i) {
       /* Note: j < i indicates that we want to evaluate exterior int loop (for circular RNAs)! */
       if (fc->hc->type == VRNA_HC_WINDOW) {
@@ -81,16 +83,16 @@ vrna_exp_E_int_loop(vrna_fold_compound_t  *fc,
 
 PRIVATE FLT_OR_DBL
 exp_E_int_loop(vrna_fold_compound_t *fc,
-               int                  i,
-               int                  j)
+               unsigned int         i,
+               unsigned int         j)
 {
   unsigned char         sliding_window, hc_decompose_ij, hc_decompose_kl;
   char                  *ptype, **ptype_local;
   unsigned char         *hc_mx, **hc_mx_local;
   short                 *S1, **SS, **S5, **S3;
-  unsigned int          *sn, *se, *ss, n_seq, s, **a2s, n;
-  int                   *rtype, noclose, *my_iindx, *jindx, *hc_up, ij,
-                        with_gquad, with_ud;
+  unsigned int          *sn, *se, *ss, n_seq, s, **a2s, n, *hc_up,
+                        with_gquad, with_ud, noclose;
+  int                   *rtype, *my_iindx, *jindx, ij;
   FLT_OR_DBL            qbt1, q_temp, *qb, **qb_local, *scale;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
@@ -98,7 +100,6 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   eval_hc               evaluate;
   struct hc_int_def_dat hc_dat_local;
   struct sc_int_exp_dat sc_wrapper;
-  vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n               = fc->length;
@@ -115,7 +116,6 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   qb          = (sliding_window) ? NULL : fc->exp_matrices->qb;
-  q_gq        = (sliding_window) ? NULL : fc->exp_matrices->q_gq;
   qb_local    = (sliding_window) ? fc->exp_matrices->qb_local : NULL;
   scale       = fc->exp_matrices->scale;
   my_iindx    = fc->iindx;
@@ -140,8 +140,8 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
 
   /* CONSTRAINED INTERIOR LOOP start */
   if (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-    unsigned int  type, type2, *tt;
-    int           k, l, kl, last_k, first_l, u1, u2, noGUclosure;
+    unsigned int  k, l, last_k, first_l, u1, u2, noGUclosure, type, type2, *tt;
+    int           kl;
 
     noGUclosure = md->noGUclosure;
     tt          = NULL;
@@ -163,7 +163,9 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
     /* handle stacks separately */
     k = i + 1;
     l = j - 1;
-    if ((k < l) && (sn[i] == sn[k]) && (sn[l] == sn[j])) {
+    if ((k < l) &&
+        (sn[i] == sn[k]) &&
+        (sn[l] == sn[j])) {
       kl              = (sliding_window) ? 0 : jindx[l] + k;
       hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[n * k + l];
 
@@ -218,7 +220,8 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
 
       /* handle bulges in 5' side */
       l = j - 1;
-      if ((l > i + 2) && (sn[j] == sn[l])) {
+      if ((l > i + 2) &&
+          (sn[j] == sn[l])) {
         last_k = l - 1;
 
         if (last_k > i + 1 + MAXLOOP)
@@ -249,7 +252,8 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
                         rtype[vrna_get_ptype_window(k, l + k, ptype_local)] :
                         rtype[vrna_get_ptype(kl, ptype)];
 
-                if ((noGUclosure) && (type2 == 3 || type2 == 4))
+                if ((noGUclosure) &&
+                    (type2 == 3 || type2 == 4))
                   continue;
 
                 q_temp *= vrna_exp_E_internal(u1,
@@ -266,7 +270,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
 
               case VRNA_FC_TYPE_COMPARATIVE:
                 for (s = 0; s < n_seq; s++) {
-                  int u1_local = a2s[s][k - 1] - a2s[s][i];
+                  unsigned int u1_local = a2s[s][k - 1] - a2s[s][i];
                   type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
                   q_temp  *= vrna_exp_E_internal(u1_local,
                                            0,
@@ -305,7 +309,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
       k = i + 1;
       if ((k < j - 2) && (sn[i] == sn[k])) {
         first_l = k + 1;
-        if (first_l < j - 1 - MAXLOOP)
+        if (first_l + 1 + MAXLOOP < j)
           first_l = j - 1 - MAXLOOP;
 
         if (first_l < ss[sn[j]])
@@ -348,7 +352,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
 
               case VRNA_FC_TYPE_COMPARATIVE:
                 for (s = 0; s < n_seq; s++) {
-                  int u2_local = a2s[s][j - 1] - a2s[s][l];
+                  unsigned int u2_local = a2s[s][j - 1] - a2s[s][l];
                   type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
                   q_temp  *= vrna_exp_E_internal(0,
                                            u2_local,
@@ -400,8 +404,8 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
       for (k = i + 2; k <= last_k; k++, u1++) {
         first_l = k + 1;
 
-        if (first_l < j - 1 - MAXLOOP + u1)
-          first_l = j - 1 - MAXLOOP + u1;
+        if (first_l + 1 + MAXLOOP < j + u1)
+          first_l = j + u1 - 1 - MAXLOOP;
 
         if (first_l < ss[sn[j]])
           first_l = ss[sn[j]];
@@ -444,8 +448,8 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
 
               case VRNA_FC_TYPE_COMPARATIVE:
                 for (s = 0; s < n_seq; s++) {
-                  int u1_local  = a2s[s][k - 1] - a2s[s][i];
-                  int u2_local  = a2s[s][j - 1] - a2s[s][l];
+                  unsigned int u1_local  = a2s[s][k - 1] - a2s[s][i];
+                  unsigned int u2_local  = a2s[s][j - 1] - a2s[s][l];
                   type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
                   q_temp  *= vrna_exp_E_internal(u1_local,
                                            u2_local,
@@ -530,15 +534,15 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
 
 PRIVATE FLT_OR_DBL
 exp_E_ext_int_loop(vrna_fold_compound_t *fc,
-                   int                  i,
-                   int                  j)
+                   unsigned int         i,
+                   unsigned int         j)
 {
   unsigned char         *hc_mx, eval_loop;
   short                 *S, *S2, **SS, **S5, **S3;
-  unsigned int          *tt, n_seq, s, **a2s, type, type2;
-  int                   k, l, u1, u2, u3, qmin, with_ud,
-                        n, *my_iindx, *hc_up,
+  unsigned int          k, l, u1, u2, u3, qmin, with_ud, n, *tt,
+                        n_seq, s, **a2s, type, type2, *hc_up,
                         u1_local, u2_local, u3_local;
+  int                   *my_iindx;
   FLT_OR_DBL            q, q_temp, *qb, *scale;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
@@ -593,9 +597,9 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
       if (hc_up[j + 1] < u2)
         break;
 
-      qmin = u2 + i - 1 + n - MAXLOOP;
-      if (qmin < k + 1)
-        qmin = k + 1;
+      qmin = k + 1;
+      if (j + MAXLOOP + 3 < i + n)
+        qmin = u2 + i - 1 + n - MAXLOOP;
 
       for (l = n; l >= qmin; l--) {
         u1  = i - 1;
