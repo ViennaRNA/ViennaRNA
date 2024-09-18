@@ -17,6 +17,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/backtrack/internal.h"
 
 

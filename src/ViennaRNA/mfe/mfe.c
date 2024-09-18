@@ -46,6 +46,7 @@
 #include "ViennaRNA/backtrack/hairpin.h"
 #include "ViennaRNA/backtrack/internal.h"
 #include "ViennaRNA/backtrack/multibranch.h"
+#include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/mfe/global.h"
 

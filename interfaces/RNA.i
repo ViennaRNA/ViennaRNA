@@ -83,6 +83,7 @@ extern "C" {
 #include  <ViennaRNA/backtrack/exterior.h>
 #include  <ViennaRNA/backtrack/internal.h>
 #include  <ViennaRNA/backtrack/multibranch.h>
+#include  <ViennaRNA/backtrack/gquad.h>
 
 #include  <ViennaRNA/fold.h>
 #include  <ViennaRNA/cofold.h>

@@ -265,7 +265,8 @@ vrna_backtrack_HEADERS = \
     backtrack/exterior.h \
     backtrack/hairpin.h \
     backtrack/internal.h \
-    backtrack/multibranch.h
+    backtrack/multibranch.h \
+    backtrack/gquad.h
 
 
 vrna_utils_HEADERS = \
@@ -474,8 +475,7 @@ libRNA_loops_la_SOURCES = \
     loops/internal_pf.c \
     loops/multibranch_pf.c \
     loops/gquad.c \
-    loops/gquad_dp.c \
-    loops/gquad_bt.c
+    loops/gquad_dp.c
 
 
 libRNA_mfe_la_SOURCES = \
@@ -493,8 +493,8 @@ libRNA_backtrack_la_SOURCES = \
     backtrack/bt_exterior.c \
     backtrack/bt_hairpin.c \
     backtrack/bt_internal.c \
-    backtrack/bt_multibranch.c
-
+    backtrack/bt_multibranch.c \
+    backtrack/bt_gquad.c
 
 libRNA_params_la_SOURCES = \
     params/io.c \

@@ -19,6 +19,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/eval/multibranch.h"
+#include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/backtrack/multibranch.h"
 
 #include "ViennaRNA/grammar.inc"

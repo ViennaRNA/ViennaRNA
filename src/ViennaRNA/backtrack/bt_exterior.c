@@ -19,6 +19,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/eval/external.h"
+#include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/backtrack/exterior.h"
 
 #include "ViennaRNA/grammar.inc"
