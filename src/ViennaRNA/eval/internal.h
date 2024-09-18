@@ -126,6 +126,13 @@ vrna_eval_internal(vrna_fold_compound_t *fc,
                    unsigned int         options);
 
 
+int
+vrna_eval_stack(vrna_fold_compound_t  *fc,
+                unsigned int          i,
+                unsigned int          j,
+                unsigned int          options);
+
+
 /* End basic interface */
 /**@}*/
 
@@ -818,6 +825,13 @@ vrna_eval_int_loop(vrna_fold_compound_t *fc,
                    int                  k,
                    int                  l),
           "Use vrna_eval_internal() instead!");
+
+DEPRECATED(int
+vrna_E_stack(vrna_fold_compound_t *fc,
+             int                  i,
+             int                  j),
+           "Use vrna_eval_stack() instead!");
+
 
 
 /**

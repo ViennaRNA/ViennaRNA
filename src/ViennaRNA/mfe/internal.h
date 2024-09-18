@@ -39,12 +39,6 @@ vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
                     int                   *iq);
 
 
-int
-vrna_E_stack(vrna_fold_compound_t *fc,
-             int                  i,
-             int                  j);
-
-
 /* End basic interface */
 /**@}*/
 
