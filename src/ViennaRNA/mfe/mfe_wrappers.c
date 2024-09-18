@@ -14,6 +14,7 @@
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/backtrack/global.h"
 #include "ViennaRNA/mfe/global.h"
 
 

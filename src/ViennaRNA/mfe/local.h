@@ -27,8 +27,7 @@
  *
  *  @file     ViennaRNA/mfe/local.h
  *  @ingroup  mfe, mfe_window
- *  @brief Compute local Minimum Free Energy (MFE) using a sliding window approach and
- *         backtrace corresponding secondary structures
+ *  @brief Compute local Minimum Free Energy (MFE) using a sliding window approach
  *
  *  This file includes the interface to all functions related to predicting locally
  *  stable secondary structures.

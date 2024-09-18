@@ -6,6 +6,7 @@
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
 #include <ViennaRNA/mfe/global.h>
+#include <ViennaRNA/backtrack/global.h>
 #include <ViennaRNA/eval/structures.h>
 
 #ifdef VRNA_WARN_DEPRECATED

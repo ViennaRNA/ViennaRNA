@@ -12,6 +12,9 @@
 /* include MFE API here for backward compatibility */
 #include <ViennaRNA/mfe/exterior.h>
 
+/* include backtrack API here for backward compatibility */
+#include <ViennaRNA/backtrack/exterior.h>
+
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(DEPRECATED)

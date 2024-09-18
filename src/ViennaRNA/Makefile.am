@@ -13,6 +13,7 @@ DIST_SUBDIRS = static @NAVIEW_DIR@
 vrna_constraintsdir     = $(pkgincludedir)/constraints
 vrna_evaldir            = $(pkgincludedir)/eval
 vrna_mfedir             = $(pkgincludedir)/mfe
+vrna_backtrackdir       = $(pkgincludedir)/backtrack
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_iodir              = $(pkgincludedir)/io
@@ -37,6 +38,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_loops.la \
                       libRNA_eval.la \
                       libRNA_mfe.la \
+                      libRNA_backtrack.la \
                       libRNA_landscape.la \
                       libRNA_special_const.la
 
@@ -64,6 +66,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_eval.la \
     libRNA_loops.la \
     libRNA_mfe.la \
+    libRNA_backtrack.la \
     libRNA_landscape.la
 
 if VRNA_AM_SWITCH_NAVIEW
@@ -255,6 +258,14 @@ vrna_mfe_HEADERS = \
     mfe/exterior.h \
     mfe/internal.h \
     mfe/multibranch.h
+
+
+vrna_backtrack_HEADERS = \
+    backtrack/global.h \
+    backtrack/exterior.h \
+    backtrack/hairpin.h \
+    backtrack/internal.h \
+    backtrack/multibranch.h
 
 
 vrna_utils_HEADERS = \
@@ -474,12 +485,15 @@ libRNA_mfe_la_SOURCES = \
     mfe/mfe_window_wrappers.c \
     mfe/mfe_exterior.c \
     mfe/mfe_exterior_window.c \
-    mfe/bt_exterior.c \
-    mfe/bt_hairpin.c \
     mfe/mfe_internal.c \
-    mfe/bt_internal.c \
-    mfe/mfe_multibranch.c \
-    mfe/bt_multibranch.c
+    mfe/mfe_multibranch.c
+
+
+libRNA_backtrack_la_SOURCES = \
+    backtrack/bt_exterior.c \
+    backtrack/bt_hairpin.c \
+    backtrack/bt_internal.c \
+    backtrack/bt_multibranch.c
 
 
 libRNA_params_la_SOURCES = \

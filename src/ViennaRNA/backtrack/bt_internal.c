@@ -16,7 +16,8 @@
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/loops/internal.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/backtrack/internal.h"
 
 
 #ifdef __GNUC__

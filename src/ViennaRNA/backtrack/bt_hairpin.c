@@ -19,7 +19,8 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/loops/hairpin.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/backtrack/hairpin.h"
 
 #ifdef __GNUC__
 # define INLINE inline

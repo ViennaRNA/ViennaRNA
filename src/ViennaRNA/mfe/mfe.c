@@ -34,7 +34,18 @@
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/external.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
+#include "ViennaRNA/mfe/exterior.h"
+#include "ViennaRNA/mfe/internal.h"
+#include "ViennaRNA/mfe/multibranch.h"
+#include "ViennaRNA/backtrack/global.h"
+#include "ViennaRNA/backtrack/exterior.h"
+#include "ViennaRNA/backtrack/hairpin.h"
+#include "ViennaRNA/backtrack/internal.h"
+#include "ViennaRNA/backtrack/multibranch.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/mfe/global.h"
 
@@ -204,7 +215,8 @@ vrna_mfe(vrna_fold_compound_t *fc,
          char                 *structure)
 {
   char              *ss;
-  int               length, energy;
+  unsigned int      length;
+  int               energy;
   float             mfe;
   vrna_bts_t        bt_stack; /* stack of partial structures for backtracking */
   vrna_bps_t        bp;
@@ -216,7 +228,7 @@ vrna_mfe(vrna_fold_compound_t *fc,
   mfe = (float)(INF / 100.);
 
   if (fc) {
-    length  = (int)fc->length;
+    length  = fc->length;
     ms_dat  = NULL;
 
     if (!vrna_fold_compound_prepare(fc, VRNA_OPTION_MFE)) {

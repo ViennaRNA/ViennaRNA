@@ -78,6 +78,12 @@ extern "C" {
 #include  <ViennaRNA/mfe/exterior.h>
 #include  <ViennaRNA/mfe/internal.h>
 #include  <ViennaRNA/mfe/multibranch.h>
+
+#include  <ViennaRNA/backtrack/global.h>
+#include  <ViennaRNA/backtrack/exterior.h>
+#include  <ViennaRNA/backtrack/internal.h>
+#include  <ViennaRNA/backtrack/multibranch.h>
+
 #include  <ViennaRNA/fold.h>
 #include  <ViennaRNA/cofold.h>
 #include  <ViennaRNA/alifold.h>
@@ -259,6 +265,7 @@ namespace std {
 %include basic_algorithms.i
 %include mfe.i
 %include mfe_window.i
+%include backtrack.i
 %include part_func.i
 %include boltzmann_sampling.i
 %include pf_window.i

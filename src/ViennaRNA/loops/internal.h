@@ -16,6 +16,8 @@
 #include <ViennaRNA/eval/internal.h>
 /* include MFE API for backward compatibility */
 #include <ViennaRNA/mfe/internal.h>
+/* include backtrack API for backward compatibility */
+#include <ViennaRNA/backtrack/internal.h>
 
 
 #ifdef VRNA_WARN_DEPRECATED

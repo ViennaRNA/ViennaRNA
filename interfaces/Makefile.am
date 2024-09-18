@@ -5,6 +5,7 @@ SUBDIRS = @PERL_INTERFACE@ @PYTHON_INTERFACE@ @PYTHON2_INTERFACE@
 SOURCES = \
     RNA.i \
     aln_utils.i \
+    backtrack.i \
     basic_algorithms.i \
     boltzmann_sampling.i \
     combinatorics.i \
@@ -77,6 +78,7 @@ DOXYGEN_DOCUMENTATION = \
 EXTRA_DIST = \
     RNA.i \
     aln_utils.i \
+    backtrack.i \
     basic_algorithms.i \
     boltzmann_sampling.i \
     combinatorics.i \

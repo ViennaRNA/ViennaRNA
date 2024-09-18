@@ -228,29 +228,6 @@ vrna_exp_eval_hairpin(vrna_fold_compound_t  *fc,
  */
 
 
-/**
- *  @addtogroup mfe_backtracking
- *  @{
- */
-
-/**
- *  @brief Backtrack a hairpin loop closed by @f$ (i,j) @f$
- *
- *  @note This function is polymorphic! The provided #vrna_fold_compound_t may be of type
- *        #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
- *
- */
-int
-vrna_bt_hairpin(vrna_fold_compound_t  *fc,
-                unsigned int          i,
-                unsigned int          j,
-                int                   en,
-                vrna_bps_t            bp_stack,
-                vrna_bts_t            bt_stack);
-
-
-/** @} */
-
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
@@ -502,16 +479,6 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
                    int                  i,
                    int                  j),
            "Use vrna_exp_eval_hairpin() instead!");
-
-DEPRECATED(int
-vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   en,
-                vrna_bp_stack_t       *bp_stack,
-                unsigned int          *stack_count),
-          "Use vrna_bt_hairpin() instead!");
-
 
 /** @} */
 

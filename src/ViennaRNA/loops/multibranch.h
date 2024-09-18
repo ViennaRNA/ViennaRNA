@@ -11,6 +11,8 @@
 #include <ViennaRNA/eval/multibranch.h>
 /* include mfe API for backward compatibility */
 #include <ViennaRNA/mfe/multibranch.h>
+/* include backtrack API for backward compatibility */
+#include <ViennaRNA/backtrack/multibranch.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(DEPRECATED)

@@ -27,6 +27,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/mfe/global.h"
+#include "ViennaRNA/backtrack/global.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/utils/basic.h"
