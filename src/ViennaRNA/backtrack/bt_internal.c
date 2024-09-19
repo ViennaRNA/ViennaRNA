@@ -103,8 +103,8 @@ bt_stacked_pairs(vrna_fold_compound_t *fc,
   unsigned char         sliding_window, eval_loop, hc_decompose_ij, hc_decompose_pq;
   char                  *ptype, **ptype_local;
   short                 **SS;
-  unsigned int          n, n_seq, s, *sn, type, type_2;
-  int                   ret, eee, ij, p, q, *idx, *my_c, **c_local, *rtype;
+  unsigned int          n, n_seq, s, *sn, type, type_2, p, q;
+  int                   ret, eee, ij, *idx, *my_c, **c_local, *rtype;
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
@@ -213,9 +213,8 @@ bt_int_loop(vrna_fold_compound_t  *fc,
   unsigned char         sliding_window, hc_decompose_ij, hc_decompose_pq;
   unsigned char         eval_loop;
   short                 *S2, **SS;
-  unsigned int          n, n_seq, s, *sn, type, *tt;
-  int                   ij, p, q, minq, *idx, no_close, energy, *my_c,
-                        **c_local, ret;
+  unsigned int          n, n_seq, s, *sn, type, *tt, p, q, minq;
+  int                   ij, *idx, no_close, energy, *my_c, **c_local, ret;
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
@@ -243,12 +242,14 @@ bt_int_loop(vrna_fold_compound_t  *fc,
 
   if (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
     for (p = i + 1; p <= MIN2(j - 2, i + MAXLOOP + 1); p++) {
-      minq = j - i + p - MAXLOOP - 2;
-      if (minq < p + 1)
-        minq = p + 1;
-
       if (hc->up_int[i + 1] < (p - i - 1))
         break;
+
+      minq = p + 1;
+
+      if (p + 1 + MAXLOOP + 2 + i <  j + p)
+        minq = p + j - i - MAXLOOP - 2;
+
 
       for (q = j - 1; q >= minq; q--) {
         if (hc->up_int[q + 1] < (j - q - 1))
@@ -316,8 +317,11 @@ bt_int_loop(vrna_fold_compound_t  *fc,
 
           if (sliding_window) {
             if ((!no_close) && (sn[j] == sn[i])) {
+              int pp, qq;
               if (backtrack_GQuad_IntLoop_L(en, i, j, type, S2, fc->matrices->ggg_local,
-                                            fc->window_size, &p, &q, P)) {
+                                            fc->window_size, &pp, &qq, P)) {
+                p = (unsigned int)pp;
+                q = (unsigned int)qq;
                 if (vrna_bt_gquad_mfe(fc, p, q, bp_stack)) {
                   i  = j = -1; /* tell the calling block to continue backtracking with next block */
                   ret = 1;
@@ -342,10 +346,13 @@ bt_int_loop(vrna_fold_compound_t  *fc,
             tt[s] = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
 
           if (sliding_window) {
+            int pp, qq;
             if (backtrack_GQuad_IntLoop_L_comparative(en, i, j, tt, fc->S_cons, fc->S5, fc->S3,
                                                       fc->a2s,
-                                                      fc->matrices->ggg_local, &p, &q, n_seq,
+                                                      fc->matrices->ggg_local, &pp, &qq, n_seq,
                                                       P)) {
+              p = (unsigned int)pp;
+              q = (unsigned int)qq;
               if (vrna_bt_gquad_mfe(fc, p, q, bp_stack)) {
                 i  = j = -1; /* tell the calling block to continue backtracking with next block */
                 ret = 1;
