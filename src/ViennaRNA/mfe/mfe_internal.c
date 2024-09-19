@@ -47,23 +47,17 @@ typedef struct {
  */
 
 PRIVATE int
-E_internal_loop(vrna_fold_compound_t  *fc,
-                unsigned int          i,
-                unsigned int          j);
+mfe_internal_loop(vrna_fold_compound_t  *fc,
+                  unsigned int          i,
+                  unsigned int          j);
 
 
 PRIVATE int
-E_ext_internal_loop(vrna_fold_compound_t  *fc,
-                    unsigned int          i,
-                    unsigned int          j,
-                    unsigned int          *ip,
-                    unsigned int          *iq);
-
-
-PRIVATE int
-E_stack(vrna_fold_compound_t  *fc,
-        unsigned int          i,
-        unsigned int          j);
+mfe_internal_loop_ext(vrna_fold_compound_t  *fc,
+                      unsigned int          i,
+                      unsigned int          j,
+                      unsigned int          *ip,
+                      unsigned int          *iq);
 
 
 PRIVATE helper_data_t *
@@ -96,39 +90,30 @@ mfe_bulges(vrna_fold_compound_t *fc,
  */
 
 PUBLIC int
-vrna_E_int_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j)
+vrna_mfe_internal(vrna_fold_compound_t  *fc,
+                  unsigned int          i,
+                  unsigned int          j)
 {
-  int e = INF;
-
   if (fc)
-    e = E_internal_loop(fc, (unsigned int)i, (unsigned int)j);
+    return mfe_internal_loop(fc, i, j);
 
-  return e;
+  return INF;
 }
 
 
 PUBLIC int
-vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   *ip,
-                    int                   *iq)
+vrna_mfe_internal_ext(vrna_fold_compound_t  *fc,
+                      unsigned int          i,
+                      unsigned int          j,
+                      unsigned int          *ip,
+                      unsigned int          *iq)
 {
-  int e = INF;
+  if (fc)
+    return mfe_internal_loop_ext(fc, i, j, ip, iq);
 
-  if (fc) {
-    unsigned int p, q;
-    p = (unsigned int)*ip;
-    q = (unsigned int)*iq;
-    e = E_ext_internal_loop(fc, (unsigned int)i, (unsigned int)j, &p, &q);
-    *ip = (int)p;
-    *iq = (int)q;
-  }
-
-  return e;
+  return INF;
 }
+
 
 
 /*
@@ -480,7 +465,7 @@ mfe_bulges(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-E_internal_loop(vrna_fold_compound_t  *fc,
+mfe_internal_loop(vrna_fold_compound_t  *fc,
                 unsigned int          i,
                 unsigned int          j)
 {
@@ -685,11 +670,11 @@ E_internal_loop(vrna_fold_compound_t  *fc,
 
 
 PRIVATE int
-E_ext_internal_loop(vrna_fold_compound_t  *fc,
-                    unsigned int          i,
-                    unsigned int          j,
-                    unsigned int          *ip,
-                    unsigned int          *iq)
+mfe_internal_loop_ext(vrna_fold_compound_t  *fc,
+                      unsigned int          i,
+                      unsigned int          j,
+                      unsigned int          *ip,
+                      unsigned int          *iq)
 {
   int                   energy, e, *indx, *c;
   unsigned char         *hc, eval_loop;
@@ -773,3 +758,48 @@ E_ext_internal_loop(vrna_fold_compound_t  *fc,
   return e;
 }
 
+/*
+ * ###########################################
+ * # deprecated functions below              #
+ *###########################################
+ */
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+PUBLIC int
+vrna_E_int_loop(vrna_fold_compound_t  *fc,
+                int                   i,
+                int                   j)
+{
+  return vrna_mfe_internal(fc,
+                           (unsigned int)i,
+                           (unsigned int)j);
+}
+
+
+PUBLIC int
+vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
+                    int                   i,
+                    int                   j,
+                    int                   *ip,
+                    int                   *iq)
+{
+  int e = INF;
+
+  if (fc) {
+    unsigned int p, q;
+    e = vrna_mfe_internal_ext(fc,
+                              (unsigned int)i,
+                              (unsigned int)j,
+                              &p,
+                              &q);
+    if (ip)
+      *ip = (int)p;
+    if (iq)
+      *iq = (int)q;
+  }
+
+  return e;
+}
+
+#endif
