@@ -67,10 +67,7 @@
 struct aux_arrays {
   int *cc;    /* auxilary arrays for canonical structures     */
   int *cc1;   /* auxilary arrays for canonical structures     */
-  int *Fmi;   /* holds row i of fML (avoids jumps in memory)  */
-  int *DMLi;  /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  int *DMLi1; /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  int *DMLi2; /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+  vrna_mx_mfe_aux_ml_t  ml_helpers;
 };
 
 #include "ViennaRNA/constraints/external_hc.inc"
@@ -487,8 +484,16 @@ fill_arrays(vrna_fold_compound_t  *fc,
       /* decompose subsegment [i, j] with pair (i, j) */
       c[ij] = decompose_pair(fc, i, j, helper_arrays, ms_dat);
 
+      /* decompose subsegment [i, j] that is multibranch loop part with at least two branches */
+      if (fM2_real)
+        fM2_real[ij] = vrna_mfe_multibranch_m2_fast(fc,
+                                                    i,
+                                                    j,
+                                                    helper_arrays->ml_helpers);
+
       /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
-      fML[ij] = vrna_E_ml_stems_fast(fc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
+      fML[ij] = vrna_mfe_multibranch_stems_fast(fc, i, j, helper_arrays->ml_helpers);
+
 
       /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
       if (uniq_ML)
@@ -500,11 +505,6 @@ fill_arrays(vrna_fold_compound_t  *fc,
           if(fc->aux_grammar->aux[i].cb)
             (void)fc->aux_grammar->aux[i].cb(fc, i, j, fc->aux_grammar->aux[i].data);
     } /* end of j-loop */
-
-    if (fM2_real) {
-      for (j = i + 1; j <= length; j++)
-        fM2_real[indx[j] + i] = helper_arrays->DMLi[j];
-    }
 
     rotate_aux_arrays(helper_arrays, length);
 
@@ -4252,16 +4252,13 @@ decompose_pair(vrna_fold_compound_t *fc,
 {
   unsigned char hc_decompose;
   unsigned int  n;
-  int           e, new_c, energy, stackEnergy, ij, dangle_model, noLP,
-                *DMLi1, *DMLi2, *cc, *cc1;
+  int           e, new_c, energy, stackEnergy, ij, dangle_model, noLP, *cc, *cc1;
 
   n             = fc->length;
   ij            = fc->jindx[j] + i;
   dangle_model  = fc->params->model_details.dangles;
   noLP          = fc->params->model_details.noLP;
   hc_decompose  = fc->hc->mx[n * i + j];
-  DMLi1         = aux->DMLi1;
-  DMLi2         = aux->DMLi2;
   cc            = aux->cc;
   cc1           = aux->cc1;
   e             = INF;
@@ -4275,7 +4272,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     new_c   = MIN2(new_c, energy);
 
     /* check for multibranch loops */
-    energy  = vrna_E_mb_loop_fast(fc, i, j, DMLi1, DMLi2);
+    energy  = vrna_mfe_multibranch_loop_fast(fc, i, j, aux->ml_helpers);
     new_c   = MIN2(new_c, energy);
 
     if (dangle_model == 3) {
@@ -4285,7 +4282,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     }
 
     /* check for interior loops */
-    energy  = vrna_E_int_loop(fc, i, j);
+    energy  = vrna_mfe_internal(fc, i, j);
     new_c   = MIN2(new_c, energy);
 
     /* multi-strand decomposition */
@@ -4296,7 +4293,7 @@ decompose_pair(vrna_fold_compound_t *fc,
 
     /* remember stack energy for --noLP option */
     if (noLP) {
-      stackEnergy = vrna_E_stack(fc, i, j);
+      stackEnergy = vrna_eval_stack(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
       new_c       = MIN2(new_c, cc1[j - 1] + stackEnergy);
       cc[j]       = new_c;
       if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
@@ -4330,19 +4327,13 @@ decompose_pair(vrna_fold_compound_t *fc,
 PRIVATE INLINE struct aux_arrays *
 get_aux_arrays(unsigned int length)
 {
-  unsigned int      j;
   struct aux_arrays *aux = (struct aux_arrays *)vrna_alloc(sizeof(struct aux_arrays));
 
   aux->cc     = (int *)vrna_alloc(sizeof(int) * (length + 2));  /* auxilary arrays for canonical structures     */
   aux->cc1    = (int *)vrna_alloc(sizeof(int) * (length + 2));  /* auxilary arrays for canonical structures     */
-  aux->Fmi    = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* holds row i of fML (avoids jumps in memory)  */
-  aux->DMLi   = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  aux->DMLi1  = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  aux->DMLi2  = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 
-  /* prefill helper arrays */
-  for (j = 0; j <= length; j++)
-    aux->Fmi[j] = aux->DMLi[j] = aux->DMLi1[j] = aux->DMLi2[j] = INF;
+  /* get fast multiloop decomposition helpers */
+  aux->ml_helpers = vrna_mfe_multibranch_fast_init(length);
 
   return aux;
 }
@@ -4355,15 +4346,13 @@ rotate_aux_arrays(struct aux_arrays *aux,
   unsigned int  j;
   int           *FF;
 
-  FF          = aux->DMLi2;
-  aux->DMLi2  = aux->DMLi1;
-  aux->DMLi1  = aux->DMLi;
-  aux->DMLi   = FF;
   FF          = aux->cc1;
   aux->cc1    = aux->cc;
   aux->cc     = FF;
   for (j = 1; j <= length; j++)
-    aux->cc[j] = aux->Fmi[j] = aux->DMLi[j] = INF;
+    aux->cc[j] = INF;
+
+  vrna_mfe_multibranch_fast_rotate(aux->ml_helpers);
 }
 
 
@@ -4372,9 +4361,7 @@ free_aux_arrays(struct aux_arrays *aux)
 {
   free(aux->cc);
   free(aux->cc1);
-  free(aux->Fmi);
-  free(aux->DMLi);
-  free(aux->DMLi1);
-  free(aux->DMLi2);
+  vrna_mfe_multibranch_fast_free(aux->ml_helpers);
+
   free(aux);
 }
