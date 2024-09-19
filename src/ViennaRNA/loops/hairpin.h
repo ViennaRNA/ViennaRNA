@@ -4,7 +4,7 @@
 /**
  *  @file       ViennaRNA/loops/hairpin.h
  *  @brief      Deprecated include file for hairpin energy evaluation function declarations
- *  @deprecated Use ViennaRNA/eval/hairpin.h and ViennaRNA/eval/hairpin.h instead
+ *  @deprecated Use ViennaRNA/eval/hairpin.h and ViennaRNA/backtrack/hairpin.h instead
  */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY

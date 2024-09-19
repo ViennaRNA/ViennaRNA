@@ -14,6 +14,7 @@ vrna_constraintsdir     = $(pkgincludedir)/constraints
 vrna_evaldir            = $(pkgincludedir)/eval
 vrna_mfedir             = $(pkgincludedir)/mfe
 vrna_backtrackdir       = $(pkgincludedir)/backtrack
+vrna_partfuncdir        = $(pkgincludedir)/partfunc
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_iodir              = $(pkgincludedir)/io
@@ -39,6 +40,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_eval.la \
                       libRNA_mfe.la \
                       libRNA_backtrack.la \
+                      libRNA_partfunc.la \
                       libRNA_landscape.la \
                       libRNA_special_const.la
 
@@ -67,6 +69,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_loops.la \
     libRNA_mfe.la \
     libRNA_backtrack.la \
+    libRNA_partfunc.la \
     libRNA_landscape.la
 
 if VRNA_AM_SWITCH_NAVIEW
@@ -267,6 +270,12 @@ vrna_backtrack_HEADERS = \
     backtrack/internal.h \
     backtrack/multibranch.h \
     backtrack/gquad.h
+
+
+vrna_partfunc_HEADERS = \
+    partfunc/exterior.h \
+    partfunc/internal.h \
+    partfunc/multibranch.h
 
 
 vrna_utils_HEADERS = \
@@ -471,9 +480,6 @@ libRNA_plotting_la_SOURCES = \
 
 
 libRNA_loops_la_SOURCES = \
-    loops/external_pf.c \
-    loops/internal_pf.c \
-    loops/multibranch_pf.c \
     loops/gquad.c \
     loops/gquad_dp.c
 
@@ -496,12 +502,20 @@ libRNA_backtrack_la_SOURCES = \
     backtrack/bt_multibranch.c \
     backtrack/bt_gquad.c
 
+
+libRNA_partfunc_la_SOURCES = \
+    partfunc/pf_exterior.c \
+    partfunc/pf_internal.c \
+    partfunc/pf_multibranch.c
+
+
 libRNA_params_la_SOURCES = \
     params/io.c \
     params/default.c \
     params/params.c \
     params/convert.c \
 		params/salt.c
+
 
 libRNA_datastructures_la_SOURCES = \
     datastructures/array.c \

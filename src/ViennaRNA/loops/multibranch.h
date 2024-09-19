@@ -1,115 +1,20 @@
-#ifndef VIENNA_RNA_PACKAGE_LOOPS_MULTIBRANCH_H
-#define VIENNA_RNA_PACKAGE_LOOPS_MULTIBRANCH_H
+#ifndef VIENNA_RNA_PACKAGE_LOOPS_MULTIBRANCH_DEPRECATED_H
+#define VIENNA_RNA_PACKAGE_LOOPS_MULTIBRANCH_DEPRECATED_H
 
-#include <ViennaRNA/utils/basic.h>
-#include <ViennaRNA/datastructures/basic.h>
-#include <ViennaRNA/datastructures/array.h>
-#include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/params/basic.h>
+/**
+ *  @file       ViennaRNA/loops/multibranch.h
+ *  @brief      Deprecated include file for multibranch loop energy evaluation function declarations
+ *  @deprecated Use ViennaRNA/eval/multibranch.h, ViennaRNA/mfe/multibranch.h, ViennaRNA/backtrack/multibranch.h, and ViennaRNA/partfunc/multibranch.h instead
+ */
 
-/* include energy evaluation API for backward compatibility */
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+# ifdef VRNA_WARN_DEPRECATED
+#warning "Including deprecated header file <ViennaRNA/loops/multibranch.h>! Use <ViennaRNA/eval/multibranch.h>, <ViennaRNA/mfe/multibranch.h>, <ViennaRNA/backtrack/multibranch.h>, and <ViennaRNA/partfunc/multibranch.h> instead!"
+# endif
 #include <ViennaRNA/eval/multibranch.h>
-/* include mfe API for backward compatibility */
 #include <ViennaRNA/mfe/multibranch.h>
-/* include backtrack API for backward compatibility */
 #include <ViennaRNA/backtrack/multibranch.h>
-
-#ifdef VRNA_WARN_DEPRECATED
-# if defined(DEPRECATED)
-#   undef DEPRECATED
-# endif
-# if defined(__clang__)
-#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
-# elif defined(__GNUC__)
-#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
-# else
-#  define DEPRECATED(func, msg) func
-# endif
-#else
-# define DEPRECATED(func, msg) func
+#include <ViennaRNA/partfunc/multibranch.h>
 #endif
-
-#ifdef __GNUC__
-# define INLINE inline
-#else
-# define INLINE
-#endif
-
-/**
- *  @file     ViennaRNA/loops/multibranch.h
- *  @ingroup  eval, eval_loops, eval_loops_mb
- *  @brief    Energy evaluation of multibranch loops for MFE and partition function calculations
- */
-
-/**
- *  @addtogroup  eval_loops_mb
- *  @{
- */
-
-
-/**
- *  @name Boltzmann weight (partition function) interface
- *  @{
- */
-
-
-/**
- *  @brief  Auxiliary helper arrays for fast exterior loop computations
- *
- *  @see  vrna_exp_E_ml_fast_init(), vrna_exp_E_ml_fast_rotate(),
- *        vrna_exp_E_ml_fast_free(), vrna_exp_E_ml_fast()
- */
-typedef struct vrna_mx_pf_aux_ml_s *vrna_mx_pf_aux_ml_t;
-
-
-FLT_OR_DBL
-vrna_exp_E_mb_loop_fast(vrna_fold_compound_t  *fc,
-                        int                   i,
-                        int                   j,
-                        vrna_mx_pf_aux_ml_t   aux_mx);
-
-
-vrna_mx_pf_aux_ml_t
-vrna_exp_E_ml_fast_init(vrna_fold_compound_t *fc);
-
-
-void
-vrna_exp_E_ml_fast_rotate(vrna_mx_pf_aux_ml_t aux_mx);
-
-
-void
-vrna_exp_E_ml_fast_free(vrna_mx_pf_aux_ml_t aux_mx);
-
-
-const FLT_OR_DBL *
-vrna_exp_E_ml_fast_qqm(vrna_mx_pf_aux_ml_t aux_mx);
-
-
-const FLT_OR_DBL *
-vrna_exp_E_ml_fast_qqm1(vrna_mx_pf_aux_ml_t aux_mx);
-
-
-FLT_OR_DBL
-vrna_exp_E_ml_fast(vrna_fold_compound_t *fc,
-                   int                  i,
-                   int                  j,
-                   vrna_mx_pf_aux_ml_t  aux_mx);
-
-
-FLT_OR_DBL
-vrna_exp_E_m2_fast(vrna_fold_compound_t       *fc,
-                   int                        i,
-                   int                        j,
-                   struct vrna_mx_pf_aux_ml_s *aux_mx);
-
-
-/* End partition function interface */
-/**@}*/
-
-/**
- * @}
- */
-
-
 
 #endif
