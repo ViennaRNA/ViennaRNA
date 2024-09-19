@@ -27,7 +27,7 @@
 #include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/boltzmann_sampling.h"
 
-#include "ViennaRNA/constraints/external_sc_pf.inc"
+#include "ViennaRNA/constraints/exterior_sc_pf.inc"
 #include "ViennaRNA/constraints/internal_sc_pf.inc"
 #include "ViennaRNA/constraints/multibranch_sc_pf.inc"
 

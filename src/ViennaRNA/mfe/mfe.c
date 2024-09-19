@@ -34,7 +34,7 @@
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/eval/external.h"
+#include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/eval/hairpin.h"
 #include "ViennaRNA/eval/internal.h"
 #include "ViennaRNA/eval/multibranch.h"
@@ -70,8 +70,8 @@ struct aux_arrays {
   vrna_mx_mfe_aux_ml_t  ml_helpers;
 };
 
-#include "ViennaRNA/constraints/external_hc.inc"
-#include "ViennaRNA/constraints/external_sc.inc"
+#include "ViennaRNA/constraints/exterior_hc.inc"
+#include "ViennaRNA/constraints/exterior_sc.inc"
 #include "ViennaRNA/constraints/multibranch_hc.inc"
 #include "ViennaRNA/constraints/multibranch_sc.inc"
 

@@ -31,7 +31,7 @@
 
 #include "ViennaRNA/grammar.inc"
 
-#include "ViennaRNA/constraints/external_sc_pf.inc"
+#include "ViennaRNA/constraints/exterior_sc_pf.inc"
 #include "ViennaRNA/constraints/internal_sc_pf.inc"
 #include "ViennaRNA/constraints/multibranch_sc_pf.inc"
 

@@ -21,7 +21,7 @@
 #endif
 
 /**
- *  @file     ViennaRNA/backtrack/external.h
+ *  @file     ViennaRNA/backtrack/exterior.h
  *  @ingroup  mfe
  *  @brief    Backtracking of exterior loops for MFE computations
  */

@@ -31,8 +31,8 @@
 
 #define SPEEDUP_HC  0
 
-#include "ViennaRNA/constraints/external_hc.inc"
-#include "ViennaRNA/constraints/external_sc_pf.inc"
+#include "ViennaRNA/constraints/exterior_hc.inc"
+#include "ViennaRNA/constraints/exterior_sc_pf.inc"
 
 struct vrna_mx_pf_aux_el_s {
   FLT_OR_DBL  *qq;

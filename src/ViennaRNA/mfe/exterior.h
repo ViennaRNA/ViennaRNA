@@ -5,7 +5,7 @@
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
 /**
- *  @file     ViennaRNA/mfe/external.h
+ *  @file     ViennaRNA/mfe/exterior.h
  *  @ingroup  mfe
  *  @brief    Energy evaluation of exterior loops for MFE computations
  */

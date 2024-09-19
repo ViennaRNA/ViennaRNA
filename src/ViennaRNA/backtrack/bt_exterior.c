@@ -18,7 +18,7 @@
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/eval/external.h"
+#include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/backtrack/exterior.h"
 
@@ -34,8 +34,8 @@
 #include "ViennaRNA/zscore_dat.inc"
 #endif
 
-#include "ViennaRNA/constraints/external_hc.inc"
-#include "ViennaRNA/constraints/external_sc.inc"
+#include "ViennaRNA/constraints/exterior_hc.inc"
+#include "ViennaRNA/constraints/exterior_sc.inc"
 
 /*
  #################################

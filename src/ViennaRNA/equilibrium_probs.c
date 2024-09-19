@@ -30,12 +30,12 @@
 #include "ViennaRNA/part_func.h"
 #include "ViennaRNA/equilibrium_probs.h"
 
-#include "ViennaRNA/constraints/external_hc.inc"
+#include "ViennaRNA/constraints/exterior_hc.inc"
 #include "ViennaRNA/constraints/hairpin_hc.inc"
 #include "ViennaRNA/constraints/internal_hc.inc"
 #include "ViennaRNA/constraints/multibranch_hc.inc"
 
-#include "ViennaRNA/constraints/external_sc_pf.inc"
+#include "ViennaRNA/constraints/exterior_sc_pf.inc"
 #include "ViennaRNA/constraints/hairpin_sc_pf.inc"
 #include "ViennaRNA/constraints/internal_sc_pf.inc"
 #include "ViennaRNA/constraints/multibranch_sc_pf.inc"

@@ -7,7 +7,7 @@
 #include <ViennaRNA/params/basic.h>
 
 /* include energy evaluation API here for backward compatibility */
-#include <ViennaRNA/eval/external.h>
+#include <ViennaRNA/eval/exterior.h>
 
 /* include MFE API here for backward compatibility */
 #include <ViennaRNA/mfe/exterior.h>

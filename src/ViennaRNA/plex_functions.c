@@ -31,7 +31,7 @@
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/datastructures/heap.h"
 
-#include "ViennaRNA/constraints/external_hc.inc"
+#include "ViennaRNA/constraints/exterior_hc.inc"
 
 #include "ViennaRNA/pk_plex.h"
 

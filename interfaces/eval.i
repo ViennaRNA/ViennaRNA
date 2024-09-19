@@ -376,7 +376,7 @@ my_eval_structure_pt_simple(std::vector<std::string> alignment,
 
 %include  <ViennaRNA/eval/basic.h>
 %include  <ViennaRNA/eval/structures.h>
-%include  <ViennaRNA/eval/external.h>
+%include  <ViennaRNA/eval/exterior.h>
 %include  <ViennaRNA/eval/hairpin.h>
 %include  <ViennaRNA/eval/internal.h>
 %include  <ViennaRNA/eval/multibranch.h>

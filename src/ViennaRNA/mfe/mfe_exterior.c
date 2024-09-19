@@ -19,7 +19,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/eval/structures.h"
-#include "ViennaRNA/eval/external.h"
+#include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/utils/higher_order_functions.h"
 
 #include "ViennaRNA/grammar.inc"
@@ -35,8 +35,8 @@
 #endif
 
 
-#include "ViennaRNA/constraints/external_hc.inc"
-#include "ViennaRNA/constraints/external_sc.inc"
+#include "ViennaRNA/constraints/exterior_hc.inc"
+#include "ViennaRNA/constraints/exterior_sc.inc"
 
 #ifdef VRNA_WITH_SVM
 #include "ViennaRNA/zscore_dat.inc"

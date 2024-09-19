@@ -22,7 +22,7 @@
 #endif
 
 /**
- *  @file     ViennaRNA/eval/external.h
+ *  @file     ViennaRNA/eval/exterior.h
  *  @ingroup  eval, eval_loops, eval_loops_ext
  *  @brief    Energy evaluation of exterior loops
  */

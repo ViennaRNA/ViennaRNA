@@ -246,7 +246,7 @@ vrna_loops_HEADERS = \
 vrna_eval_HEADERS = \
     eval/basic.h \
     eval/structures.h \
-    eval/external.h \
+    eval/exterior.h \
     eval/hairpin.h \
     eval/internal.h \
     eval/multibranch.h
@@ -389,11 +389,11 @@ libRNA_svm_la_SOURCES = \
 endif
 
 libRNA_eval_la_SOURCES = \
-    eval/eval_external.c \
+    eval/eval_exterior.c \
     eval/eval_hairpin.c \
     eval/eval_internal.c \
     eval/eval_multibranch.c \
-    eval/exp_eval_external.c \
+    eval/exp_eval_exterior.c \
     eval/exp_eval_hairpin.c \
     eval/exp_eval_internal.c \
     eval/exp_eval_multibranch.c \
@@ -594,9 +594,9 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               grammar.inc \
               loops/gquad_intern.h \
               constraints/hc_depot.inc \
-              constraints/external_hc.inc \
-              constraints/external_sc.inc \
-              constraints/external_sc_pf.inc \
+              constraints/exterior_hc.inc \
+              constraints/exterior_sc.inc \
+              constraints/exterior_sc_pf.inc \
               constraints/hairpin_hc.inc \
               constraints/hairpin_sc.inc \
               constraints/hairpin_sc_pf.inc \

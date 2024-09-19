@@ -13,7 +13,7 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/external_hc.inc"
+#include "ViennaRNA/constraints/exterior_hc.inc"
 
 PRIVATE FLT_OR_DBL
 mf_rule_pair(vrna_fold_compound_t *fc,
