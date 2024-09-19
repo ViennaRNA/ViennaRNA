@@ -101,13 +101,10 @@ vrna_bt_f(vrna_fold_compound_t *fc,
           vrna_bps_t           bp_stack,
           vrna_bts_t           bt_stack)
 {
-  unsigned int n, ret = 0;
-  int ii, jj, p, q, e;
+  unsigned int  n, ret = 0;
+  int           e;
 
   e   = INF;
-  ii  = (int)i;
-  jj  = (int)j;
-
 
   if ((fc) &&
       (bp_stack) &&
@@ -254,9 +251,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 {
   char                      *ptype;
   short                     mm5, mm3, *S1;
-  unsigned int              *sn, type;
-  int                       length, fij, fi, u, en, e, *my_f5, *my_c, *idx,
-                            dangle_model, with_gquad, cnt, ii, with_ud, e_gq;
+  unsigned int              length, *sn, type, u, dangle_model, with_gquad, cnt,
+                            ii, with_ud;
+  int                       fij, fi, en, e, *my_f5, *my_c, *idx, e_gq;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 *sc;
@@ -314,8 +311,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       /* next, try nibble off a ligand */
       for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
         u   = domains_up->uniq_motif_size[cnt];
-        ii  = j - u + 1;
-        if ((ii > 0) && evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+        if ((j >= u) &&
+            evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+          ii  = j - u + 1;
           en = domains_up->energy_cb(fc,
                                      ii,
                                      j,
@@ -736,9 +734,8 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
 {
   unsigned int              **a2s, n;
   short                     **S, **S5, **S3;
-  unsigned int              tt;
-  int                       fij, fi, u, en, e_gq, *my_f5, *my_c, *idx,
-                            dangle_model, with_gquad, n_seq, ss, mm5, mm3;
+  unsigned int              tt, u, dangle_model, with_gquad, n_seq, ss;
+  int                       fij, fi, en, e_gq, *my_f5, *my_c, *idx, mm5, mm3;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_sc_t                 **scs;
@@ -1432,7 +1429,7 @@ bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     md            = &(P->model_details);
     dangle_model  = md->dangles;
     with_gquad    = md->gquad;
-    maxdist       = MIN2(fc->window_size, maxj);
+    maxdist       = MIN2((unsigned int)fc->window_size, maxj);
     traced2       = 0;
     ii            = start;
     evaluate      = prepare_hc_ext_def_window(fc, &hc_dat_local);
@@ -1441,7 +1438,7 @@ bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
     zsc_pre_filter  = ((zsc_data) &&
                        (zsc_data->filter_on) &&
                        (zsc_data->pre_filter) &&
-                       (zsc_data->current_i == ii)) ? 1 : 0;
+                       ((unsigned int)zsc_data->current_i == ii)) ? 1 : 0;
 #endif
 
     fij = f3[start];
@@ -1675,7 +1672,7 @@ bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
     md            = &(P->model_details);
     dangle_model  = md->dangles;
     with_gquad    = md->gquad;
-    maxdist       = MIN2(fc->window_size, maxj);
+    maxdist       = MIN2((unsigned int)fc->window_size, maxj);
     traced2       = 0;
     start         = *i;
     evaluate      = prepare_hc_ext_def_window(fc, &hc_dat_local);
