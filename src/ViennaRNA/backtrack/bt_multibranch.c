@@ -68,7 +68,7 @@ vrna_bt_m(vrna_fold_compound_t    *fc,
           vrna_bps_t              bp_stack,
           vrna_bts_t              bt_stack)
 {
-  unsigned int  ret = 0, comp1, comp2;
+  unsigned int  ret = 0;
   int           e, *idx;
 
   if ((fc) &&
@@ -80,7 +80,7 @@ vrna_bt_m(vrna_fold_compound_t    *fc,
           fc->matrices->fML_local[i][j - i] :
           fc->matrices->fML[idx[j] + i];
 
-    if (ret = bt_mb_loop_split(fc, i, j, bp_stack, bt_stack)) {
+    if ((ret = bt_mb_loop_split(fc, i, j, bp_stack, bt_stack))) {
       ret = 1;
     } else if (fc->aux_grammar) {
       for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->m); c++) {
@@ -139,10 +139,10 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
   unsigned char             sliding_window;
   char                      *ptype, **ptype_local;
   short                     *S1, **SS, **S5, **S3;
-  unsigned int              n_seq, s;
-  int                       ij, fij, fi, u, en, *my_c, *my_fML,
-                            *idx, with_gquad, dangle_model, *rtype, kk, cnt,
-                            with_ud, type, type_2, en2, **c_local, **fML_local, **ggg_local;
+  unsigned int              n_seq, s, with_gquad, dangle_model, u, kk, cnt,
+                            with_ud, type, type_2;
+  int                       ij, fij, fi, en, *my_c, *my_fML, *idx, *rtype,
+                            en2, **c_local, **fML_local, **ggg_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
@@ -204,7 +204,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       }
 
       /* next try to nibble off ligand */
-      for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
+      for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
         u   = domains_up->uniq_motif_size[cnt];
         kk  = j - u + 1;
         if ((kk >= i) && evaluate(i, j, i, j - u, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
@@ -258,7 +258,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       }
 
       /* next try to nibble off ligand again */
-      for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
+      for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
         u   = domains_up->uniq_motif_size[cnt];
         kk  = i + u - 1;
         if ((kk <= j) && evaluate(i, j, i + u, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
@@ -676,9 +676,8 @@ bt_mb_loop(vrna_fold_compound_t *fc,
   unsigned char             sliding_window;
   char                      *ptype, **ptype_local;
   short                     s5, s3, *S1, **SS, **S5, **S3;
-  unsigned int              *sn, n_seq, s, *tt, c1, c2;
-  int                       ij, p, q, r, e, tmp_en, *idx, dangle_model,
-                            *my_c, *my_fML, *rtype, type, type_2, **c_local, **fML_local;
+  unsigned int              *sn, n_seq, s, *tt, c1, c2, p, q, r, dangle_model, type, type_2;
+  int                       ij, e, tmp_en, *idx, *my_c, *my_fML, *rtype, **c_local, **fML_local;
   vrna_param_t              *P;
   vrna_md_t                 *md;
   vrna_hc_eval_f evaluate;
