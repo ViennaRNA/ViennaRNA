@@ -125,8 +125,6 @@ vrna_E_hairpin(unsigned int size,
  *  @note   This function is polymorphic! The provided #vrna_fold_compound_t may be
  *          of type #VRNA_FC_TYPE_SINGLE or #VRNA_FC_TYPE_COMPARATIVE
  *
- *  @ingroup eval
- *
  *  @see    vrna_E_hairpin(), vrna_exp_eval_hairpin(),
  *          #VRNA_EVAL_LOOP_NO_HC, #VRNA_EVAL_LOOP_NO_SC, #VRNA_EVAL_LOOP_NO_CONSTRAINTS
  *
