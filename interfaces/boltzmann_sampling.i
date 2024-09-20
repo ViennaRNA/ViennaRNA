@@ -224,4 +224,4 @@ typedef struct {} vrna_pbacktrack_mem_t;
 %constant unsigned int PBACKTRACK_DEFAULT       = VRNA_PBACKTRACK_DEFAULT;
 %constant unsigned int PBACKTRACK_NON_REDUNDANT = VRNA_PBACKTRACK_NON_REDUNDANT;
 
-%include  <ViennaRNA/boltzmann_sampling.h>
+%include  <ViennaRNA/sampling/basic.h>

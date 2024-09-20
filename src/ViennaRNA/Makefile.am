@@ -16,6 +16,7 @@ vrna_mfedir             = $(pkgincludedir)/mfe
 vrna_backtrackdir       = $(pkgincludedir)/backtrack
 vrna_partfuncdir        = $(pkgincludedir)/partfunc
 vrna_suboptdir          = $(pkgincludedir)/subopt
+vrna_samplingdir        = $(pkgincludedir)/sampling
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_iodir              = $(pkgincludedir)/io
@@ -43,6 +44,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_backtrack.la \
                       libRNA_partfunc.la \
                       libRNA_subopt.la \
+                      libRNA_sampling.la \
                       libRNA_landscape.la \
                       libRNA_special_const.la
 
@@ -73,6 +75,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_backtrack.la \
     libRNA_partfunc.la \
     libRNA_subopt.la \
+    libRNA_sampling.la \
     libRNA_landscape.la
 
 if VRNA_AM_SWITCH_NAVIEW
@@ -127,6 +130,7 @@ CEPHES_H    = ../cephes/mconf.h
 
 DEPRECATED_INCLUDE_FILES = \
     aln_util.h \
+    boltzmann_sampling.h \
     char_stream.h \
     constraints.h \
     constraints_hard.h \
@@ -185,7 +189,6 @@ pkginclude_HEADERS =  \
     alifold.h \
     ali_plex.h \
     alphabet.h \
-    boltzmann_sampling.h \
     centroid.h\
     cofold.h \
     combinatorics.h \
@@ -294,6 +297,10 @@ vrna_subopt_HEADERS = \
     subopt/zuker.h
 
 
+vrna_sampling_HEADERS = \
+    sampling/basic.h
+
+
 vrna_utils_HEADERS = \
     utils/basic.h \
     utils/strings.h \
@@ -383,8 +390,6 @@ libRNA_conv_la_SOURCES = \
     centroid.c \
     model.c \
     dp_matrices.c \
-    boltzmann_sampling.c \
-    bs_wrappers.c \
     equilibrium_probs.c \
     ${JSON_SRC} \
     alphabet.c \
@@ -528,6 +533,11 @@ libRNA_subopt_la_SOURCES = \
     subopt/subopt_zuker.c
 
 
+libRNA_sampling_la_SOURCES = \
+    sampling/boltzmann_sampling.c \
+    sampling/bs_wrappers.c
+
+
 libRNA_params_la_SOURCES = \
     params/io.c \
     params/default.c \
@@ -641,7 +651,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               constraints/multibranch_sc_pf.inc \
               params/svm_model_avg.inc \
               params/svm_model_sd.inc \
-              data_structures_nonred.inc \
+              sampling/data_structures_nonred.inc \
               plotting/ps_helpers.inc \
               ${RNAPUZZLER_INC} \
               landscape/local_neighbors.inc \

@@ -881,6 +881,7 @@ INPUT                  =  @top_srcdir@/doc/doxygen/refman.include/ \
                           @top_srcdir@/src/ViennaRNA/backtrack \
                           @top_srcdir@/src/ViennaRNA/partfunc \
                           @top_srcdir@/src/ViennaRNA/subopt \
+                          @top_srcdir@/src/ViennaRNA/sampling \
                           @top_srcdir@/src/ViennaRNA/io \
                           @top_srcdir@/src/ViennaRNA/landscape \
                           @top_srcdir@/src/ViennaRNA/loops \

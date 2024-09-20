@@ -91,13 +91,18 @@ extern "C" {
 #include  <ViennaRNA/partfunc/internal.h>
 #include  <ViennaRNA/partfunc/multibranch.h>
 
+#include  <ViennaRNA/subopt/basic.h>
+#include  <ViennaRNA/subopt/wuchty.h>
+#include  <ViennaRNA/subopt/zuker.h>
+
+#include  <ViennaRNA/sampling/basic.h>
+
 #include  <ViennaRNA/fold.h>
 #include  <ViennaRNA/cofold.h>
 #include  <ViennaRNA/alifold.h>
 
 #include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/equilibrium_probs.h>
-#include  <ViennaRNA/boltzmann_sampling.h>
 #include  <ViennaRNA/concentrations.h>
 #include  <ViennaRNA/LPfold.h>
 #include  <ViennaRNA/centroid.h>
@@ -115,9 +120,6 @@ extern "C" {
 #include  <ViennaRNA/profiledist.h>
 #include  <ViennaRNA/dist_vars.h>
 #include  <ViennaRNA/pair_mat.h>
-#include  <ViennaRNA/subopt/basic.h>
-#include  <ViennaRNA/subopt/wuchty.h>
-#include  <ViennaRNA/subopt/zuker.h>
 #include  <ViennaRNA/duplex.h>
 
 #include  <ViennaRNA/combinatorics.h>

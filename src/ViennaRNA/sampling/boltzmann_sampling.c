@@ -19,19 +19,22 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/combinatorics.h"
-#include "ViennaRNA/boltzmann_sampling.h"
+#include "ViennaRNA/sampling/basic.h"
 
 #include "ViennaRNA/constraints/exterior_sc_pf.inc"
 #include "ViennaRNA/constraints/internal_sc_pf.inc"
 #include "ViennaRNA/constraints/multibranch_sc_pf.inc"
 
-#include "ViennaRNA/data_structures_nonred.inc"
+#include "ViennaRNA/sampling/data_structures_nonred.inc"
 
 /*
  #################################
