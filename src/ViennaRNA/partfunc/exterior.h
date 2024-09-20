@@ -1,5 +1,5 @@
-#ifndef VIENNA_RNA_PACKAGE_LOOPS_EXTERNAL_H
-#define VIENNA_RNA_PACKAGE_LOOPS_EXTERNAL_H
+#ifndef VIENNA_RNA_PACKAGE_PARTFUNC_EXTERIOR_H
+#define VIENNA_RNA_PACKAGE_PARTFUNC_EXTERIOR_H
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/datastructures/array.h>

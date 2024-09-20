@@ -17,7 +17,7 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
-#include <ViennaRNA/part_func_window.h>
+#include <ViennaRNA/partfunc/local.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)

@@ -272,9 +272,12 @@ vrna_backtrack_HEADERS = \
     backtrack/gquad.h
 
 
-vrna_partfunc_HEADERS = \
-    partfunc/exterior.h \
-    partfunc/internal.h \
+vrna_partfunc_HEADERS =   \
+    partfunc/global.h     \
+    partfunc/local.h      \
+    partfunc/multifold.h  \
+    partfunc/exterior.h   \
+    partfunc/internal.h   \
     partfunc/multibranch.h
 
 
@@ -345,10 +348,7 @@ vrna_landscape_HEADERS = \
 libRNA_conv_la_SOURCES = \
     fold_compound.c \
     dist_vars.c \
-    part_func.c \
-    part_func_wrappers.c \
     pf_fold.c \
-    pf_multifold.c \
     treedist.c \
     inverse.c \
     ProfileDist.c \
@@ -364,7 +364,6 @@ libRNA_conv_la_SOURCES = \
     duplex.c \
     alifold.c \
     alipfold.c \
-    LPfold.c \
     part_func_up.c \
     ribo.c \
     MEA.c \
@@ -504,6 +503,10 @@ libRNA_backtrack_la_SOURCES = \
 
 
 libRNA_partfunc_la_SOURCES = \
+    partfunc/partfunc.c \
+    partfunc/pf_window.c \
+    partfunc/pf_wrappers.c \
+    partfunc/pf_multifold.c \
     partfunc/pf_exterior.c \
     partfunc/pf_internal.c \
     partfunc/pf_multibranch.c

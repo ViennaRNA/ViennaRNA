@@ -24,13 +24,19 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plotting/probabilities.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
+#include "ViennaRNA/partfunc/exterior.h"
+#include "ViennaRNA/partfunc/internal.h"
+#include "ViennaRNA/partfunc/multibranch.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/Lfold.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/part_func_window.h"
+#include "ViennaRNA/partfunc/local.h"
 
 /*
  #################################

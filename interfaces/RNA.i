@@ -85,6 +85,8 @@ extern "C" {
 #include  <ViennaRNA/backtrack/multibranch.h>
 #include  <ViennaRNA/backtrack/gquad.h>
 
+#include  <ViennaRNA/partfunc/global.h>
+#include  <ViennaRNA/partfunc/local.h>
 #include  <ViennaRNA/partfunc/exterior.h>
 #include  <ViennaRNA/partfunc/internal.h>
 #include  <ViennaRNA/partfunc/multibranch.h>
@@ -93,8 +95,6 @@ extern "C" {
 #include  <ViennaRNA/cofold.h>
 #include  <ViennaRNA/alifold.h>
 
-#include  <ViennaRNA/part_func.h>
-#include  <ViennaRNA/part_func_window.h>
 #include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/equilibrium_probs.h>
 #include  <ViennaRNA/boltzmann_sampling.h>

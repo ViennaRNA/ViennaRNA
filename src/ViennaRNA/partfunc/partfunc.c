@@ -24,16 +24,16 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe/global.h"
-#include "ViennaRNA/pf_multifold.h"
 #include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/eval/hairpin.h"
 #include "ViennaRNA/eval/internal.h"
 #include "ViennaRNA/eval/multibranch.h"
+#include "ViennaRNA/partfunc/multifold.h"
 #include "ViennaRNA/partfunc/exterior.h"
 #include "ViennaRNA/partfunc/internal.h"
 #include "ViennaRNA/partfunc/multibranch.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 
 #include "ViennaRNA/grammar.inc"
 

@@ -190,7 +190,8 @@ double my_pf_add(double dG1, double dG2, double kT = 0);
   }
 }
 
-%include  <ViennaRNA/part_func.h>
+%include  <ViennaRNA/partfunc/global.h>
+
 %include  <ViennaRNA/equilibrium_probs.h>
 
 /**********************************************/

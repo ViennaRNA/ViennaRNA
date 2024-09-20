@@ -103,4 +103,5 @@ std::vector<std::vector<double> > pfl_fold_up(std::string sequence,
 %constant unsigned int PROBS_WINDOW_UP_SPLIT  = VRNA_PROBS_WINDOW_UP_SPLIT;
 %constant unsigned int PROBS_WINDOW_PF        = VRNA_PROBS_WINDOW_PF;
 
+%include  <ViennaRNA/partfunc/local.h>
 %include  <ViennaRNA/LPfold.h>

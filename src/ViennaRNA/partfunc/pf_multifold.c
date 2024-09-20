@@ -4,8 +4,8 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/loops/external.h"
-#include "ViennaRNA/pf_multifold.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/partfunc/multifold.h"
 
 #ifdef __GNUC__
 # define INLINE inline
