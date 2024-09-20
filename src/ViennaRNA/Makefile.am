@@ -15,6 +15,7 @@ vrna_evaldir            = $(pkgincludedir)/eval
 vrna_mfedir             = $(pkgincludedir)/mfe
 vrna_backtrackdir       = $(pkgincludedir)/backtrack
 vrna_partfuncdir        = $(pkgincludedir)/partfunc
+vrna_probabilitiesdir   = $(pkgincludedir)/probabilities
 vrna_suboptdir          = $(pkgincludedir)/subopt
 vrna_samplingdir        = $(pkgincludedir)/sampling
 vrna_inversedir         = $(pkgincludedir)/inverse
@@ -45,6 +46,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_mfe.la \
                       libRNA_backtrack.la \
                       libRNA_partfunc.la \
+                      libRNA_probabilities.la \
                       libRNA_subopt.la \
                       libRNA_sampling.la \
                       libRNA_inverse.la \
@@ -78,6 +80,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_mfe.la \
     libRNA_backtrack.la \
     libRNA_partfunc.la \
+    libRNA_probabilities.la \
     libRNA_subopt.la \
     libRNA_sampling.la \
     libRNA_inverse.la \
@@ -148,6 +151,7 @@ DEPRECATED_INCLUDE_FILES = \
     data_structures.h \
     energy_const.h \
     energy_par.h \
+    equilibrium_probs.h \
     eval.h \
     exterior_loops.h \
     file_formats.h \
@@ -205,7 +209,6 @@ pkginclude_HEADERS =  \
     dp_matrices.h \
     duplex.h \
     edit_cost.h \
-    equilibrium_probs.h \
     fold_compound.h \
     fold.h \
     fold_vars.h \
@@ -295,6 +298,11 @@ vrna_partfunc_HEADERS =   \
     partfunc/exterior.h   \
     partfunc/internal.h   \
     partfunc/multibranch.h
+
+
+vrna_probabilities_HEADERS =   \
+    probabilities/basepairs.h     \
+    probabilities/structures.h
 
 
 vrna_subopt_HEADERS = \
@@ -402,7 +410,6 @@ libRNA_conv_la_SOURCES = \
     centroid.c \
     model.c \
     dp_matrices.c \
-    equilibrium_probs.c \
     ${JSON_SRC} \
     alphabet.c \
     sequence.c \
@@ -538,6 +545,11 @@ libRNA_partfunc_la_SOURCES = \
     partfunc/part_func_up.c \
     partfunc/part_func_co.c \
     partfunc/pf_fold.c
+
+
+libRNA_probabilities_la_SOURCES = \
+    probabilities/equilibrium_probs.c \
+    probabilities/probs_structures.c
 
 
 libRNA_subopt_la_SOURCES = \

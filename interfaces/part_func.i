@@ -192,7 +192,8 @@ double my_pf_add(double dG1, double dG2, double kT = 0);
 
 %include  <ViennaRNA/partfunc/global.h>
 
-%include  <ViennaRNA/equilibrium_probs.h>
+%include  <ViennaRNA/probabilities/basepairs.h>
+%include  <ViennaRNA/probabilities/structures.h>
 
 /**********************************************/
 /* BEGIN interface for cofold partition       */

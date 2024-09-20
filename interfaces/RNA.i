@@ -97,12 +97,14 @@ extern "C" {
 
 #include  <ViennaRNA/sampling/basic.h>
 
+#include  <ViennaRNA/probabilities/basepairs.h>
+#include  <ViennaRNA/probabilities/structures.h>
+
 #include  <ViennaRNA/fold.h>
 #include  <ViennaRNA/cofold.h>
 #include  <ViennaRNA/alifold.h>
 
 #include  <ViennaRNA/part_func_co.h>
-#include  <ViennaRNA/equilibrium_probs.h>
 #include  <ViennaRNA/concentrations.h>
 #include  <ViennaRNA/LPfold.h>
 #include  <ViennaRNA/centroid.h>
