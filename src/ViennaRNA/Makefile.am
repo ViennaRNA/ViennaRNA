@@ -478,7 +478,7 @@ libRNA_landscape_la_SOURCES = \
     landscape/walk.c
 
 libRNA_special_const_la_SOURCES = \
-    special_const.c \
+    params/special_const.c \
     io/sanitize.c
 
 RNAPUZZLER_H = \
@@ -538,7 +538,7 @@ noinst_HEADERS  = params/intl11.h \
                   list.h \
                   ${SVM_H} \
                   ${JSON_H} \
-                  special_const.h \
+                  params/special_const.h \
                   ${CEPHES_H} \
                   unistd_win.h \
                   io/sanitize.h
@@ -570,7 +570,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               ${SVM_H} \
               ${JSON_H} \
               color_output.inc \
-              special_const.h \
+              params/special_const.h \
               unistd_win.h \
               io/sanitize.h
 

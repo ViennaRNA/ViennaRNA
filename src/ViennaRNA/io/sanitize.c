@@ -20,7 +20,7 @@ sanitize_input(const char *string)
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/PS_dot.h"
 #include "ViennaRNA/utils.h"
-#include "ViennaRNA/special_const.h"
+#include "ViennaRNA/params/special_const.h"
 #include "ViennaRNA/io/sanitize.h"
 
 #ifdef __GNUC__
