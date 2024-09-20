@@ -136,10 +136,10 @@
   }
 }
 
-%include  <ViennaRNA/loops/external.h>
-%include  <ViennaRNA/loops/hairpin.h>
-%include  <ViennaRNA/loops/internal.h>
-%include  <ViennaRNA/loops/multibranch.h>
+%include  <ViennaRNA/eval/exterior.h>
+%include  <ViennaRNA/eval/hairpin.h>
+%include  <ViennaRNA/eval/internal.h>
+%include  <ViennaRNA/eval/multibranch.h>
 
 %rename(gq_parse)       my_gq_parse;
 

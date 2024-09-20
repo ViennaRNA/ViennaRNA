@@ -30,7 +30,10 @@
 #include "ViennaRNA/plotting/structures.h"
 /* #include "ViennaRNA/fold.h" */
 #include "ViennaRNA/duplex.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
 
 
 #define STACK_BULGE1  1   /* stacking energies for bulges of size 1 */

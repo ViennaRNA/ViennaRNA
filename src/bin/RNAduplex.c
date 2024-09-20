@@ -20,7 +20,7 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
-#include "ViennaRNA/subopt.h"
+#include "ViennaRNA/subopt/wuchty.h"
 #include "ViennaRNA/duplex.h"
 
 #include "gengetopt_helpers.h"

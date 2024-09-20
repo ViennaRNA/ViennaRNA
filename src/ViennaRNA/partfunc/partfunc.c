@@ -24,7 +24,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe/global.h"
-#include "ViennaRNA/combinatorics.h"
+#include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/eval/hairpin.h"
 #include "ViennaRNA/eval/internal.h"
@@ -33,6 +33,7 @@
 #include "ViennaRNA/partfunc/exterior.h"
 #include "ViennaRNA/partfunc/internal.h"
 #include "ViennaRNA/partfunc/multibranch.h"
+#include "ViennaRNA/probabilities/basepairs.h"
 #include "ViennaRNA/partfunc/global.h"
 
 #include "ViennaRNA/grammar.inc"

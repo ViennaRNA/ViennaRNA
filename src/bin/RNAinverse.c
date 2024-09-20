@@ -14,10 +14,10 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
-#include "ViennaRNA/inverse.h"
+#include "ViennaRNA/inverse/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/fold.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"

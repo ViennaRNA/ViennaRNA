@@ -24,9 +24,12 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/mfe/global.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/part_func_co.h"
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY

@@ -22,12 +22,15 @@
 #include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
-#include "ViennaRNA/dp_matrices.h"
+#include "ViennaRNA/datastructures/dp_matrices.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/snofold.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
 
 #ifdef __GNUC__
 #define INLINE inline

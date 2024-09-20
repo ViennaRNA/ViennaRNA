@@ -19,7 +19,7 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/loops/external.h"
+#include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/structured_domains.h"

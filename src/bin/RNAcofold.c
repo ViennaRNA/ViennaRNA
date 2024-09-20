@@ -29,7 +29,7 @@
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/part_func_co.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/centroid.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/utils/basic.h"

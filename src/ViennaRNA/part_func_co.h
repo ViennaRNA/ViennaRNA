@@ -26,8 +26,9 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
-#include <ViennaRNA/part_func.h>
-#include <ViennaRNA/equilibrium_probs.h>
+#include <ViennaRNA/partfunc/global.h>
+#include <ViennaRNA/probabilities/structures.h>
+#include <ViennaRNA/probabilities/basepairs.h>
 #include <ViennaRNA/concentrations.h>
 #include <ViennaRNA/utils/structures.h>
 

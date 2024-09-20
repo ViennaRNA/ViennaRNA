@@ -15,8 +15,8 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <string.h>
-#include "ViennaRNA/fold.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/mfe/local.h"
+#include "ViennaRNA/partfunc/local.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"

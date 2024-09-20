@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/dist_vars.h"
 #include "ViennaRNA/utils/basic.h"

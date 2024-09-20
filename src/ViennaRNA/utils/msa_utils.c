@@ -22,7 +22,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/model.h"
-#include "ViennaRNA/ribo.h"
+#include "ViennaRNA/params/ribosum.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/alignments.h"

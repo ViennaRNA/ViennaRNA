@@ -15,7 +15,7 @@
 #include <math.h>
 #include "ViennaRNA/dist_vars.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/profiledist.h"

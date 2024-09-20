@@ -24,7 +24,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/backtrack/global.h"
-#include "ViennaRNA/subopt_zuker.h"
+#include "ViennaRNA/subopt/zuker.h"
 #include "ViennaRNA/cofold.h"
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY

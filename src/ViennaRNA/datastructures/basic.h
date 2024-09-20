@@ -125,7 +125,7 @@ typedef struct vrna_sect_s vrna_sect_t;
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/model.h>
 #include <ViennaRNA/params/basic.h>
-#include <ViennaRNA/dp_matrices.h>
+#include <ViennaRNA/datastructures/dp_matrices.h>
 #include <ViennaRNA/constraints/hard.h>
 #include <ViennaRNA/constraints/soft.h>
 #include <ViennaRNA/grammar.h>

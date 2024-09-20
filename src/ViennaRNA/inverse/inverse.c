@@ -20,7 +20,7 @@
 #include <math.h>
 #include <float.h>
 #if PF
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #endif
 #include "ViennaRNA/fold.h"
 #if TDIST

@@ -17,8 +17,11 @@
 #include <string.h>
 #include <limits.h>
 
-#include "ViennaRNA/fold.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/mfe/global.h"
+#include "ViennaRNA/partfunc/global.h"
+#include "ViennaRNA/eval/structures.h"
+#include "ViennaRNA/probabilities/structures.h"
+#include "ViennaRNA/probabilities/basepairs.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/plotting/structures.h"
@@ -32,6 +35,7 @@
 #include "ViennaRNA/io/file_formats_msa.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/params/io.h"
+#include "ViennaRNA/centroid.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"

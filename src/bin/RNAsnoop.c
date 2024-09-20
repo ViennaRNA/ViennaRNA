@@ -20,7 +20,7 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/snoop.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plotting/alignments.h"
 #include "ViennaRNA/plotting/probabilities.h"

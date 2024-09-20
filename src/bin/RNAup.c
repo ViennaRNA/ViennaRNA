@@ -26,7 +26,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/part_func_up.h"
 #include "ViennaRNA/duplex.h"
 #include "ViennaRNA/params/constants.h"

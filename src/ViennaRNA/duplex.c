@@ -25,7 +25,9 @@
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/alifold.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
 #include "ViennaRNA/subopt/wuchty.h"
 #include "ViennaRNA/duplex.h"
 

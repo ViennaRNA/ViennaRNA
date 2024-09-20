@@ -30,7 +30,7 @@
 #include "ViennaRNA/constraints/SHAPE.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/file_formats_msa.h"
-#include "ViennaRNA/eval.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/datastructures/char_stream.h"

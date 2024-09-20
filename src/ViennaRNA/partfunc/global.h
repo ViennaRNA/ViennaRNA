@@ -24,9 +24,6 @@ typedef struct vrna_dimer_pf_s cofoldF;
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/utils/structures.h>
 #include <ViennaRNA/params/basic.h>
-#include <ViennaRNA/centroid.h>
-#include <ViennaRNA/equilibrium_probs.h>
-#include <ViennaRNA/boltzmann_sampling.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)

@@ -24,8 +24,9 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "ViennaRNA/fold.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/mfe/global.h"
+#include "ViennaRNA/partfunc/global.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/plotting/structures.h"
@@ -46,10 +47,12 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/commands.h"
-#include "ViennaRNA/equilibrium_probs.h"
+#include "ViennaRNA/probabilities/basepairs.h"
+#include "ViennaRNA/probabilities/structures.h"
+#include "ViennaRNA/sampling/basic.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
-#include "ViennaRNA/combinatorics.h"
+#include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/color_output.inc"
 #include "ViennaRNA/io/sanitize.h"
 

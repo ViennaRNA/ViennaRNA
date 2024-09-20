@@ -60,10 +60,6 @@ extern "C" {
 #include  <ViennaRNA/io/file_formats_msa.h>
 #include  <ViennaRNA/io/utils.h>
 
-#include  <ViennaRNA/loops/external.h>
-#include  <ViennaRNA/loops/hairpin.h>
-#include  <ViennaRNA/loops/internal.h>
-#include  <ViennaRNA/loops/multibranch.h>
 #include  <ViennaRNA/loops/gquad.h>
 
 #include  <ViennaRNA/eval/basic.h>
@@ -301,8 +297,6 @@ namespace std {
 /**********************************************/
 /* BEGIN interface for data structures        */
 /**********************************************/
-
-%include <ViennaRNA/dp_matrices.h>
 
 //%subsection "Global Variables to Modify Folding"
 //extern double *pr;  /*  base pairing prob. matrix */

@@ -14,7 +14,7 @@
 #include <string.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/boltzmann_sampling.h"
+#include "ViennaRNA/sampling/basic.h"
 
 
 /*

@@ -12,7 +12,7 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/loops/external.h"
+#include "ViennaRNA/eval/exterior.h"
 
 #ifdef __GNUC__
 # define INLINE inline

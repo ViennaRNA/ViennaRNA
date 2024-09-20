@@ -16,9 +16,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
-#include "ViennaRNA/fold.h"
-#include "ViennaRNA/part_func.h"
 #include "ViennaRNA/fold_vars.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/plotting/alignments.h"
 #include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/plotting/utils.h"

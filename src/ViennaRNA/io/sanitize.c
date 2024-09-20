@@ -16,10 +16,11 @@ sanitize_input(const char *string)
 #include <unistd.h>
 #include <string.h>
 #include <termios.h>
-#include "ViennaRNA/fold.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/PS_dot.h"
-#include "ViennaRNA/utils.h"
+#include "ViennaRNA/plotting/layouts.h"
+#include "ViennaRNA/utils/basic.h"
+#include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/params/special_const.h"
 #include "ViennaRNA/io/sanitize.h"
 

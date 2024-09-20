@@ -28,17 +28,20 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/backtrack/global.h"
-#include "ViennaRNA/fold.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/ribo.h"
+#include "ViennaRNA/params/ribosum.h"
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
 
 #ifdef _OPENMP
 #include <omp.h>

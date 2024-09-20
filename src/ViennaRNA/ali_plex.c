@@ -48,7 +48,10 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/plex.h"
 #include "ViennaRNA/ali_plex.h"
 

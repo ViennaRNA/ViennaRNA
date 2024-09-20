@@ -3,13 +3,13 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/params/basic.h>
-#include <ViennaRNA/ribo.h>
+#include <ViennaRNA/params/ribosum.h>
 #include <ViennaRNA/mfe/global.h>
 #include <ViennaRNA/backtrack/global.h>
-#include <ViennaRNA/part_func.h>
+#include <ViennaRNA/partfunc/global.h>
 #include <ViennaRNA/utils/alignments.h>
 #include <ViennaRNA/utils/structures.h>
-#include <ViennaRNA/boltzmann_sampling.h>
+#include <ViennaRNA/sampling/basic.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)

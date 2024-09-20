@@ -17,9 +17,10 @@
 #include <math.h>
 #include <ctype.h>
 #include <string.h>
-#include "ViennaRNA/part_func.h"
-#include "ViennaRNA/fold.h"
-#include "ViennaRNA/cofold.h"
+#include "ViennaRNA/partfunc/global.h"
+#include "ViennaRNA/sampling/basic.h"
+#include "ViennaRNA/mfe/global.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"

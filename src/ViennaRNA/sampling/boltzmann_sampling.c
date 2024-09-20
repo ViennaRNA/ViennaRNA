@@ -27,7 +27,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/combinatorics.h"
+#include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/sampling/basic.h"
 
 #include "ViennaRNA/constraints/exterior_sc_pf.inc"

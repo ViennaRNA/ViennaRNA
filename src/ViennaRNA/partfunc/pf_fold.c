@@ -31,12 +31,19 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe/global.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/probabilities/basepairs.h"
+#include "ViennaRNA/probabilities/structures.h"
+#include "ViennaRNA/centroid.h"
+#include "ViennaRNA/sampling/basic.h"
+#include "ViennaRNA/partfunc/global.h"
 
 #ifdef _OPENMP
 #include <omp.h>

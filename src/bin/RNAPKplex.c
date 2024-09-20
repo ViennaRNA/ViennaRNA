@@ -24,10 +24,10 @@
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/plotting/structures.h"
-#include "ViennaRNA/fold.h"
+#include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/io/file_formats.h"
-#include "ViennaRNA/PKplex.h"
+#include "ViennaRNA/pk_plex.h"
 
 #include "gengetopt_helpers.h"
 #include "RNAPKplex_cmdl.h"

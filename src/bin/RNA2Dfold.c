@@ -10,8 +10,9 @@
 #include <unistd.h>
 #include <string.h>
 #include "ViennaRNA/datastructures/basic.h"
-#include "ViennaRNA/fold.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/mfe/global.h"
+#include "ViennaRNA/partfunc/global.h"
+#include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plotting/probabilities.h"
 #include "ViennaRNA/utils/basic.h"

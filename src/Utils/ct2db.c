@@ -6,7 +6,7 @@
 #include <string.h>
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/datastructures/basic.h"
-#include "ViennaRNA/part_func.h"
+#include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/structures.h"
