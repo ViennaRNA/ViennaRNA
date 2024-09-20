@@ -366,14 +366,10 @@ libRNA_conv_la_SOURCES = \
     inverse.c \
     ProfileDist.c \
     RNAstruct.c \
-    fold.c \
     stringdist.c \
-    Lfold.c \
-    cofold.c \
     part_func_co.c \
     ProfileAln.c \
     duplex.c \
-    alifold.c \
     alipfold.c \
     part_func_up.c \
     ribo.c \
@@ -502,7 +498,11 @@ libRNA_mfe_la_SOURCES = \
     mfe/mfe_exterior.c \
     mfe/mfe_exterior_window.c \
     mfe/mfe_internal.c \
-    mfe/mfe_multibranch.c
+    mfe/mfe_multibranch.c \
+    mfe/alifold.c \
+    mfe/cofold.c \
+    mfe/Lfold.c \
+    mfe/fold.c
 
 
 libRNA_backtrack_la_SOURCES = \
