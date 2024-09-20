@@ -50,7 +50,7 @@
 #include "ViennaRNA/datastructures/stream_output.h"
 #include "ViennaRNA/combinatorics.h"
 #include "ViennaRNA/color_output.inc"
-#include "ViennaRNA/ugly_bt.h"
+#include "ViennaRNA/io/sanitize.h"
 
 #include "RNAfold_cmdl.h"
 #include "gengetopt_helpers.h"
