@@ -479,7 +479,7 @@ libRNA_landscape_la_SOURCES = \
 
 libRNA_special_const_la_SOURCES = \
     special_const.c \
-    ugly_bt.c
+    sanitize.c
 
 RNAPUZZLER_H = \
     plotting/RNApuzzler/headers/AABB_struct.h \
@@ -541,7 +541,7 @@ noinst_HEADERS  = params/intl11.h \
                   special_const.h \
                   ${CEPHES_H} \
                   unistd_win.h \
-                  ugly_bt.h
+                  sanitize.h
 
 nodist_pkginclude_HEADERS = vrna_config.h
 
@@ -572,7 +572,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               color_output.inc \
               special_const.h \
               unistd_win.h \
-              ugly_bt.h
+              sanitize.h
 
 if VRNA_AM_SWITCH_SVM
 EXTRA_DIST += zscore_dat.inc
