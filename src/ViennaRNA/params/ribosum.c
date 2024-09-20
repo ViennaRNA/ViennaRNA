@@ -10,7 +10,7 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 
-#include "ViennaRNA/ribo.h"
+#include "ViennaRNA/params/ribosum.h"
 
 static float  dm_12_5[7][7] =
 { { 0, 0,        0,        0,         0,         0,         0 },

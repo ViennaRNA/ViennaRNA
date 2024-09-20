@@ -363,7 +363,8 @@ vrna_params_HEADERS = \
     params/basic.h \
     params/io.h \
     params/convert.h \
-    params/salt.h
+    params/salt.h \
+    params/ribosum.h
 
 
 vrna_datastructures_HEADERS = \
@@ -395,7 +396,6 @@ libRNA_conv_la_SOURCES = \
     stringdist.c \
     ProfileAln.c \
     duplex.c \
-    ribo.c \
     MEA.c \
     mm.c \
     2Dfold.c \
@@ -567,7 +567,8 @@ libRNA_params_la_SOURCES = \
     params/default.c \
     params/params.c \
     params/convert.c \
-    params/salt.c
+    params/salt.c \
+    params/ribosum.c
 
 
 libRNA_inverse_la_SOURCES = \
