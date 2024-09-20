@@ -376,7 +376,8 @@ vrna_datastructures_HEADERS = \
     datastructures/string.h \
     datastructures/hash_tables.h \
     datastructures/heap.h \
-    datastructures/sparse_mx.h
+    datastructures/sparse_mx.h \
+    datastructures/dp_matrices.h
 
 
 vrna_landscape_HEADERS = \
@@ -409,7 +410,6 @@ libRNA_conv_la_SOURCES = \
     perturbation_fold.c \
     centroid.c \
     model.c \
-    dp_matrices.c \
     ${JSON_SRC} \
     alphabet.c \
     sequence.c \
@@ -588,7 +588,9 @@ libRNA_datastructures_la_SOURCES = \
     datastructures/string.c \
     datastructures/hash_tables.c \
     datastructures/heap.c \
-    datastructures/sparse_mx.c
+    datastructures/sparse_mx.c \
+    datastructures/dp_matrices.c
+
 
 libRNA_landscape_la_SOURCES = \
     move_set.c \

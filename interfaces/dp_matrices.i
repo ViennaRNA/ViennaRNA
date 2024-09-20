@@ -255,4 +255,4 @@ typedef struct {
 
 %include <ViennaRNA/datastructures/array.h>
 %include <ViennaRNA/datastructures/sparse_mx.h>
-%include <ViennaRNA/dp_matrices.h>
+%include <ViennaRNA/datastructures/dp_matrices.h>

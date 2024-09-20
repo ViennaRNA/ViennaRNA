@@ -18,8 +18,8 @@ extern "C" {
 #include  <ViennaRNA/datastructures/basic.h>
 #include  <ViennaRNA/datastructures/array.h>
 #include  <ViennaRNA/datastructures/sparse_mx.h>
+#include  <ViennaRNA/datastructures/dp_matrices.h>
 #include  <ViennaRNA/fold_compound.h>
-#include  <ViennaRNA/dp_matrices.h>
 #include  <ViennaRNA/alphabet.h>
 #include  <ViennaRNA/sequence.h>
 #include  <ViennaRNA/grammar.h>
