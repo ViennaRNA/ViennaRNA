@@ -113,7 +113,8 @@ extern "C" {
 #include  <ViennaRNA/zscore.h>
 #endif
 
-#include  <ViennaRNA/inverse.h>
+#include  <ViennaRNA/inverse/basic.h>
+
 #include  <ViennaRNA/RNAstruct.h>
 #include  <ViennaRNA/treedist.h>
 #include  <ViennaRNA/stringdist.h>

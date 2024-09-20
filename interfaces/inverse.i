@@ -111,5 +111,5 @@ strncpy(symbolset, "AUGC", sizeof(char) * 5);
 
 #endif
 
-%include  <ViennaRNA/inverse.h>
+%include  <ViennaRNA/inverse/basic.h>
 

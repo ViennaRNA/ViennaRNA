@@ -33,7 +33,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/pair_mat.h"
 
-#include "ViennaRNA/inverse.h"
+#include "ViennaRNA/inverse/basic.h"
 
 
 PRIVATE double

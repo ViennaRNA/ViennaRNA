@@ -17,6 +17,7 @@ vrna_backtrackdir       = $(pkgincludedir)/backtrack
 vrna_partfuncdir        = $(pkgincludedir)/partfunc
 vrna_suboptdir          = $(pkgincludedir)/subopt
 vrna_samplingdir        = $(pkgincludedir)/sampling
+vrna_inversedir         = $(pkgincludedir)/inverse
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_combinatoricsdir   = $(pkgincludedir)/combinatorics
@@ -46,6 +47,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_partfunc.la \
                       libRNA_subopt.la \
                       libRNA_sampling.la \
+                      libRNA_inverse.la \
                       libRNA_combinatorics.la \
                       libRNA_landscape.la \
                       libRNA_special_const.la
@@ -78,6 +80,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_partfunc.la \
     libRNA_subopt.la \
     libRNA_sampling.la \
+    libRNA_inverse.la \
     libRNA_combinatorics.la \
     libRNA_landscape.la
 
@@ -154,6 +157,7 @@ DEPRECATED_INCLUDE_FILES = \
     gquad.h \
     hairpin_loops.h \
     interior_loops.h \
+    inverse.h \
     Lfold.h \
     loop_energies.h \
     LPfold.h \
@@ -207,7 +211,6 @@ pkginclude_HEADERS =  \
     fold_vars.h \
     grammar.h \
     heat_capacity.h \
-    inverse.h \
     MEA.h \
     mm.h \
     model.h \
@@ -307,6 +310,10 @@ vrna_combinatorics_HEADERS = \
     combinatorics/basic.h
 
 
+vrna_inverse_HEADERS = \
+    inverse/basic.h
+
+
 vrna_utils_HEADERS = \
     utils/basic.h \
     utils/strings.h \
@@ -375,7 +382,6 @@ libRNA_conv_la_SOURCES = \
     fold_compound.c \
     dist_vars.c \
     treedist.c \
-    inverse.c \
     ProfileDist.c \
     RNAstruct.c \
     stringdist.c \
@@ -550,6 +556,10 @@ libRNA_params_la_SOURCES = \
     params/params.c \
     params/convert.c \
     params/salt.c
+
+
+libRNA_inverse_la_SOURCES = \
+    inverse/inverse.c
 
 
 libRNA_combinatorics_la_SOURCES = \
