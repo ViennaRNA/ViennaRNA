@@ -25,8 +25,8 @@
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/alifold.h"
-#include "ViennaRNA/subopt.h"
 #include "ViennaRNA/loops/all.h"
+#include "ViennaRNA/subopt/wuchty.h"
 #include "ViennaRNA/duplex.h"
 
 #ifdef _OPENMP

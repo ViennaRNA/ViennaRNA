@@ -115,8 +115,9 @@ extern "C" {
 #include  <ViennaRNA/profiledist.h>
 #include  <ViennaRNA/dist_vars.h>
 #include  <ViennaRNA/pair_mat.h>
-#include  <ViennaRNA/subopt.h>
-#include  <ViennaRNA/subopt_zuker.h>
+#include  <ViennaRNA/subopt/basic.h>
+#include  <ViennaRNA/subopt/wuchty.h>
+#include  <ViennaRNA/subopt/zuker.h>
 #include  <ViennaRNA/duplex.h>
 
 #include  <ViennaRNA/combinatorics.h>

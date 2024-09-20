@@ -3,13 +3,14 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/loops/external.h"
-#include "ViennaRNA/loops/internal.h"
-#include "ViennaRNA/loops/multibranch.h"
+#include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/eval/hairpin.h"
+#include "ViennaRNA/eval/internal.h"
+#include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/backtrack/global.h"
-#include "ViennaRNA/subopt_zuker.h"
+#include "ViennaRNA/subopt/zuker.h"
 
 #define MAXSECTORS        500     /* dimension for a backtrack array */
 

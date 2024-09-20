@@ -1,26 +1,17 @@
-/* subopt_zuker.h */
-#ifndef VIENNA_RNA_PACKAGE_SUBOPT_ZUKER_H
-#define VIENNA_RNA_PACKAGE_SUBOPT_ZUKER_H
-
-#include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/subopt.h>
+#ifndef VIENNA_RNA_PACKAGE_SUBOPT_ZUKER_DEPRECATED_H
+#define VIENNA_RNA_PACKAGE_SUBOPT_ZUKER_DEPRECATED_H
 
 /**
- *  @brief Compute Zuker type suboptimal structures
- *
- *  Compute Suboptimal structures according to @rstinline :cite:t:`zuker:1989` @endrst , i.e. for every
- *  possible base pair the minimum energy structure containing the resp. base pair.
- *  Returns a list of these structures and their energies.
- *
- *  @ingroup subopt_zuker
- *
- *  @see vrna_subopt(), zukersubopt(), zukersubopt_par()
- *
- *  @param  fc  fold compound
- *  @return     List of zuker suboptimal structures
+ *  @file       subopt_zuker.h
+ *  @brief      Deprecated include file for Zuker-style subopt API
+ *  @deprecated Use ViennaRNA/subopt/zuker.h instead
  */
-vrna_subopt_solution_t *
-vrna_subopt_zuker(vrna_fold_compound_t *fc);
 
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+# ifdef VRNA_WARN_DEPRECATED
+#warning "Including deprecated header file <ViennaRNA/subopt_zuker.h>! Use <ViennaRNA/subopt/zuker.h> instead!"
+# endif
+#include <ViennaRNA/subopt/zuker.h>
+#endif
 
 #endif

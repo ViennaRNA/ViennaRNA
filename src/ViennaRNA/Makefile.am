@@ -15,6 +15,7 @@ vrna_evaldir            = $(pkgincludedir)/eval
 vrna_mfedir             = $(pkgincludedir)/mfe
 vrna_backtrackdir       = $(pkgincludedir)/backtrack
 vrna_partfuncdir        = $(pkgincludedir)/partfunc
+vrna_suboptdir          = $(pkgincludedir)/subopt
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_iodir              = $(pkgincludedir)/io
@@ -41,6 +42,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_mfe.la \
                       libRNA_backtrack.la \
                       libRNA_partfunc.la \
+                      libRNA_subopt.la \
                       libRNA_landscape.la \
                       libRNA_special_const.la
 
@@ -70,6 +72,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_mfe.la \
     libRNA_backtrack.la \
     libRNA_partfunc.la \
+    libRNA_subopt.la \
     libRNA_landscape.la
 
 if VRNA_AM_SWITCH_NAVIEW
@@ -122,104 +125,108 @@ CEPHES_SRC  = ../cephes/kn.c \
 CEPHES_H    = ../cephes/mconf.h
 
 
-pkginclude_HEADERS =  \
-    concentrations.h \
-    wrap_dlib.h \
-    pair_mat.h \
-    RNAstruct.h \
-    dist_vars.h \
+DEPRECATED_INCLUDE_FILES = \
+    aln_util.h \
+    char_stream.h \
+    constraints.h \
+    constraints_hard.h \
+    constraints_ligand.h \
+    constraints_SHAPE.h \
+    constraints_soft.h \
+    convert_epars.h \
+    data_structures.h \
+    energy_const.h \
+    energy_par.h \
+    eval.h \
+    exterior_loops.h \
+    file_formats.h \
+    file_formats_msa.h \
+    file_utils.h \
+    findpath.h \
+    gquad.h \
+    hairpin_loops.h \
+    interior_loops.h \
+    Lfold.h \
+    loop_energies.h \
+    LPfold.h \
     mfe.h \
     mfe_window.h \
-    fold.h \
+    multibranch_loops.h \
+    neighbor.h \
+    pair_mat.h \
+    params.h \
     part_func.h \
     part_func_window.h \
     pf_multifold.h \
-    stringdist.h \
-    edit_cost.h \
-    fold_vars.h \
-    profiledist.h \
-    treedist.h \
-    inverse.h \
+    PKplex.h\
+    plot_aln.h \
+    plot_layouts.h \
+    plot_structure.h \
+    plot_utils.h \
+    PS_dot.h \
+    read_epars.h \
+    stream_output.h \
+    string_utils.h \
+    structure_utils.h \
     subopt.h \
     subopt_zuker.h \
-    cofold.h \
-    duplex.h \
-    alifold.h \
-    part_func_co.h \
-    ProfileAln.h \
-    LPfold.h \
-    Lfold.h \
-    part_func_up.h \
-    ribo.h \
-    findpath.h \
-    data_structures.h \
-    char_stream.h \
-    stream_output.h \
-    fold_compound.h \
-    MEA.h \
-    mm.h \
-    loop_energies.h \
-    exterior_loops.h \
-    hairpin_loops.h \
-    interior_loops.h \
-    multibranch_loops.h \
-    2Dfold.h \
-    2Dpfold.h \
-    PKplex.h\
-    pk_plex.h\
-    ali_plex.h \
-    plex.h \
-    snofold.h \
-    snoop.h \
-    move_set.h\
-    gquad.h \
-    constraints.h \
-    eval.h \
-    perturbation_fold.h \
-    centroid.h\
-    utils.h \
-    structure_utils.h \
-    string_utils.h \
-    aln_util.h \
-    model.h \
-    dp_matrices.h \
-    PS_dot.h \
-    plot_structure.h \
-    plot_aln.h \
-    plot_utils.h \
-    plot_layouts.h \
-    boltzmann_sampling.h \
-    equilibrium_probs.h \
-    constraints_ligand.h \
-    constraints_SHAPE.h \
-    constraints_hard.h \
-    constraints_soft.h \
-    alphabet.h \
-    sequence.h \
-    grammar.h \
-    structured_domains.h \
-    unstructured_domains.h \
-    file_utils.h \
-    file_formats.h \
-    file_formats_msa.h \
-    energy_par.h \
-    energy_const.h \
-    params.h \
-    read_epars.h \
-    convert_epars.h \
-    commands.h \
     units.h \
-    combinatorics.h \
-    neighbor.h \
-    walk.h \
-    heat_capacity.h \
-    ${JSON_H} \
-    ${CEPHES_H}
+    utils.h \
+    walk.h
 
 
 if VRNA_AM_SWITCH_NAVIEW
-pkginclude_HEADERS += naview.h 
+DEPRECATED_INCLUDE_FILES += naview.h 
 endif
+
+pkginclude_HEADERS =  \
+    2Dfold.h \
+    2Dpfold.h \
+    alifold.h \
+    ali_plex.h \
+    alphabet.h \
+    boltzmann_sampling.h \
+    centroid.h\
+    cofold.h \
+    combinatorics.h \
+    commands.h \
+    concentrations.h \
+    dist_vars.h \
+    dp_matrices.h \
+    duplex.h \
+    edit_cost.h \
+    equilibrium_probs.h \
+    fold_compound.h \
+    fold.h \
+    fold_vars.h \
+    grammar.h \
+    heat_capacity.h \
+    inverse.h \
+    MEA.h \
+    mm.h \
+    model.h \
+    move_set.h\
+    part_func_co.h \
+    part_func_up.h \
+    perturbation_fold.h \
+    pk_plex.h\
+    plex.h \
+    ProfileAln.h \
+    profiledist.h \
+    ribo.h \
+    RNAstruct.h \
+    sequence.h \
+    snofold.h \
+    snoop.h \
+    stringdist.h \
+    structured_domains.h \
+    treedist.h \
+    unstructured_domains.h \
+    wrap_dlib.h \
+    ${JSON_H} \
+    ${CEPHES_H} \
+    ${DEPRECATED_INCLUDE_FILES}
+
 
 if VRNA_AM_SWITCH_SVM
 pkginclude_HEADERS +=  zscore.h \
@@ -279,6 +286,12 @@ vrna_partfunc_HEADERS =   \
     partfunc/exterior.h   \
     partfunc/internal.h   \
     partfunc/multibranch.h
+
+
+vrna_subopt_HEADERS = \
+    subopt/basic.h    \
+    subopt/wuchty.h   \
+    subopt/zuker.h
 
 
 vrna_utils_HEADERS = \
@@ -355,8 +368,6 @@ libRNA_conv_la_SOURCES = \
     RNAstruct.c \
     fold.c \
     stringdist.c \
-    subopt.c \
-    subopt_zuker.c \
     Lfold.c \
     cofold.c \
     part_func_co.c \
@@ -512,12 +523,17 @@ libRNA_partfunc_la_SOURCES = \
     partfunc/pf_multibranch.c
 
 
+libRNA_subopt_la_SOURCES = \
+    subopt/subopt.c \
+    subopt/subopt_zuker.c
+
+
 libRNA_params_la_SOURCES = \
     params/io.c \
     params/default.c \
     params/params.c \
     params/convert.c \
-		params/salt.c
+    params/salt.c
 
 
 libRNA_datastructures_la_SOURCES = \

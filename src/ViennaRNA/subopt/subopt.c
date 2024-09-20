@@ -39,7 +39,7 @@
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/subopt.h"
+#include "ViennaRNA/subopt/wuchty.h"
 
 #include "ViennaRNA/constraints/exterior_hc.inc"
 #include "ViennaRNA/constraints/hairpin_hc.inc"
