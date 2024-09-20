@@ -20,7 +20,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/search/BoyerMoore.h"
-#include "ViennaRNA/combinatorics.h"
+#include "ViennaRNA/combinatorics/basic.h"
 
 #ifdef __GNUC__
 # define INLINE inline

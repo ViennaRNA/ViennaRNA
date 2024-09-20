@@ -122,7 +122,7 @@ extern "C" {
 #include  <ViennaRNA/pair_mat.h>
 #include  <ViennaRNA/duplex.h>
 
-#include  <ViennaRNA/combinatorics.h>
+#include  <ViennaRNA/combinatorics/basic.h>
 
 #include  <ViennaRNA/move_set.h>
 #include  <ViennaRNA/landscape/paths.h>

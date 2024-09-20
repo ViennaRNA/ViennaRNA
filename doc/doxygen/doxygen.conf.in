@@ -890,6 +890,7 @@ INPUT                  =  @top_srcdir@/doc/doxygen/refman.include/ \
                           @top_srcdir@/src/ViennaRNA/plotting/RNApuzzler \
                           @top_srcdir@/src/ViennaRNA/search \
                           @top_srcdir@/src/ViennaRNA/utils \
+                          @top_srcdir@/src/ViennaRNA/combinatorics \
                           @top_srcdir@/interfaces
 
 # This tag can be used to specify the character encoding of the source files

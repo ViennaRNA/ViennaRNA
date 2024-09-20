@@ -19,6 +19,7 @@ vrna_suboptdir          = $(pkgincludedir)/subopt
 vrna_samplingdir        = $(pkgincludedir)/sampling
 vrna_paramsdir          = $(pkgincludedir)/params
 vrna_utilsdir           = $(pkgincludedir)/utils
+vrna_combinatoricsdir   = $(pkgincludedir)/combinatorics
 vrna_iodir              = $(pkgincludedir)/io
 vrna_searchdir          = $(pkgincludedir)/search
 vrna_plottingdir        = $(pkgincludedir)/plotting
@@ -45,6 +46,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_partfunc.la \
                       libRNA_subopt.la \
                       libRNA_sampling.la \
+                      libRNA_combinatorics.la \
                       libRNA_landscape.la \
                       libRNA_special_const.la
 
@@ -76,6 +78,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_partfunc.la \
     libRNA_subopt.la \
     libRNA_sampling.la \
+    libRNA_combinatorics.la \
     libRNA_landscape.la
 
 if VRNA_AM_SWITCH_NAVIEW
@@ -132,6 +135,7 @@ DEPRECATED_INCLUDE_FILES = \
     aln_util.h \
     boltzmann_sampling.h \
     char_stream.h \
+    combinatorics.h \
     constraints.h \
     constraints_hard.h \
     constraints_ligand.h \
@@ -191,7 +195,6 @@ pkginclude_HEADERS =  \
     alphabet.h \
     centroid.h\
     cofold.h \
-    combinatorics.h \
     commands.h \
     concentrations.h \
     dist_vars.h \
@@ -299,6 +302,9 @@ vrna_subopt_HEADERS = \
 
 vrna_sampling_HEADERS = \
     sampling/basic.h
+
+vrna_combinatorics_HEADERS = \
+    combinatorics/basic.h
 
 
 vrna_utils_HEADERS = \
@@ -451,8 +457,8 @@ libRNA_utils_la_SOURCES = \
     io/file_formats_msa.c \
     search/BoyerMoore.c \
     commands.c \
-    combinatorics.c \
-		utils/structure_benchmark.c
+    utils/structure_benchmark.c
+
 
 if VRNA_AM_SWITCH_SVM
 libRNA_utils_la_SOURCES += \
@@ -544,6 +550,10 @@ libRNA_params_la_SOURCES = \
     params/params.c \
     params/convert.c \
     params/salt.c
+
+
+libRNA_combinatorics_la_SOURCES = \
+    combinatorics/combinatorics.c
 
 
 libRNA_datastructures_la_SOURCES = \

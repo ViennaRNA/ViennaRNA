@@ -160,4 +160,4 @@ std::vector<std::vector<unsigned int> >
 n_multichoose_k(unsigned int n,
                 unsigned int k);
 
-%include  <ViennaRNA/combinatorics.h>
+%include  <ViennaRNA/combinatorics/basic.h>
