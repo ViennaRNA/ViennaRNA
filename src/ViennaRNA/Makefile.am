@@ -361,17 +361,13 @@ vrna_landscape_HEADERS = \
 libRNA_conv_la_SOURCES = \
     fold_compound.c \
     dist_vars.c \
-    pf_fold.c \
     treedist.c \
     inverse.c \
     ProfileDist.c \
     RNAstruct.c \
     stringdist.c \
-    part_func_co.c \
     ProfileAln.c \
     duplex.c \
-    alipfold.c \
-    part_func_up.c \
     ribo.c \
     MEA.c \
     mm.c \
@@ -520,7 +516,11 @@ libRNA_partfunc_la_SOURCES = \
     partfunc/pf_multifold.c \
     partfunc/pf_exterior.c \
     partfunc/pf_internal.c \
-    partfunc/pf_multibranch.c
+    partfunc/pf_multibranch.c \
+    partfunc/alipfold.c \
+    partfunc/part_func_up.c \
+    partfunc/part_func_co.c \
+    partfunc/pf_fold.c
 
 
 libRNA_subopt_la_SOURCES = \
