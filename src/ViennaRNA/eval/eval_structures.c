@@ -410,7 +410,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
         }
       }
 
-      energy = vrna_eval_int_loop(fc, i, j, p, q);
+      energy = vrna_eval_internal(fc, i, j, p, q, VRNA_EVAL_LOOP_NO_HC);
     }
   }
 
@@ -1155,7 +1155,7 @@ eval_circ_pt(vrna_fold_compound_t           *fc,
       break;
 
     case 1:   /* hairpin loop */
-      en0 = vrna_eval_ext_hp_loop(fc, i, j);
+      en0 = vrna_eval_hairpin(fc, j, i, VRNA_EVAL_LOOP_NO_HC);
       break;
 
     case 2:   /* interior loop */
@@ -1527,7 +1527,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
       break;
 
     case 1: /* exterior loop has been falsly assumed to be hairpin-like */
-      e_minus += vrna_eval_ext_hp_loop(fc, elem_i, elem_j);
+      e_minus += vrna_eval_hairpin(fc, elem_i, elem_j, VRNA_EVAL_LOOP_NO_HC);
 
       if (*elements_rev)
         vrna_array_append(*elements_rev,
@@ -2104,7 +2104,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
               break;
           }
 
-          e_minus = vrna_eval_int_loop(fc, r, s, elem_i, elem_j);
+          e_minus = vrna_eval_internal(fc, r, s, elem_i, elem_j, VRNA_EVAL_LOOP_NO_HC);
           energy  += e_plus - e_minus;
 
           if (*elements_rev)
@@ -2261,7 +2261,7 @@ stack_energy(vrna_fold_compound_t           *fc,
         }
       }
 
-      ee = vrna_eval_int_loop(fc, i, j, p, q);
+      ee = vrna_eval_internal(fc, i, j, p, q, VRNA_EVAL_LOOP_NO_HC);
 
       if (*elements)
         vrna_array_append(*elements,

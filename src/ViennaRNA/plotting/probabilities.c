@@ -1159,7 +1159,7 @@ int PS_dot_plot(char *string, char *wastlfile) {
     } else {
       mf = NULL;
     }
-    i = PS_dot_plot_list(string, wastlfile, pl, mf, "");
+    i = vrna_plot_dp_PS_list(string, cut_point, wastlfile, pl, mf, "");
     free(mf);
     free(pl);
   }

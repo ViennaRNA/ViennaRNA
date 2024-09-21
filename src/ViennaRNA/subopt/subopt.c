@@ -2074,7 +2074,7 @@ scan_circular(vrna_fold_compound_t  *fc,
         kl = indx[l] + k;
 
         if (c[kl] != INF) {
-          tmpE = vrna_E_hp_loop(fc, l, k);
+          tmpE = vrna_eval_hairpin(fc, l, k, VRNA_EVAL_LOOP_DEFAULT);
 
           if (c[kl] + tmpE + best_energy <= threshold)
             /*
@@ -3077,7 +3077,7 @@ repeat(vrna_fold_compound_t *fc,
 
   if (sn[i] == sn[j]) {
     if (!no_close) {
-      element_energy = vrna_E_hp_loop(fc, i, j);
+      element_energy = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
 
       if (element_energy != INF) {
         if (element_energy + best_energy <= threshold)

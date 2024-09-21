@@ -273,7 +273,7 @@ vrna_subopt_zuker(vrna_fold_compound_t *fc)
 
               if (hc->mx[j * n + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
                 tmp = outside_c[ij] +
-                      vrna_eval_int_loop(fc, i, j, k, l);
+                      vrna_eval_internal(fc, i, j, k, l, VRNA_EVAL_LOOP_NO_HC);
 
                 e_int = MIN2(e_int, tmp);
               }
@@ -808,7 +808,7 @@ backtrack_outside:
 
         if (hc->mx[j * n + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
           ij  = idx[j] + i;
-          tmp = vrna_eval_int_loop(fc, i, j, k, l);
+          tmp = vrna_eval_internal(fc, i, j, k, l, VRNA_EVAL_LOOP_NO_HC);
 
           if (e == tmp + outside_c[ij]) {
             bp[++b].i = i;

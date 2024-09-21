@@ -21,6 +21,7 @@ sanitize_input(const char *string)
 #include "ViennaRNA/plotting/layouts.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
+#include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/special_const.h"
 #include "ViennaRNA/io/sanitize.h"
 
@@ -207,13 +208,13 @@ addFragments(bt_data  *d,
              int      j)
 {
   int   cnt;
-  float r     = urn();
+  float r     = vrna_urn();
   int   *size = &(d->fragments_n);
   sectf *list = d->fragments;
 
   for (cnt = 0; cnt < 1 + (int)(4. * r); cnt++) {
-    float x = urn();
-    float y = urn();
+    float x = vrna_urn();
+    float y = vrna_urn();
     list                      = (sectf *)vrna_realloc(list, sizeof(sectf) * (++(*size) + 1));
     list[(*size) - 1].ml      = *size;
     list[(*size) - 1].x       = i;
@@ -300,13 +301,14 @@ initStacks(bt_data  *d,
   d->en           = vrna_fold(d->sequence, d->structure);
   pl              = vrna_ptable(d->structure);
 
-  x     = (float *)vrna_alloc(sizeof(float) * (length + 1));
-  y     = (float *)vrna_alloc(sizeof(float) * (length + 1));
+  x     = y = NULL;
   list  = (secti *)vrna_alloc((length + 1) * sizeof(secti));
   xmax  = ymax = 0;
   xmin  = ymin = INF;
-  if (length != naview_xy_coordinates(pl, x, y))
-    nrerror("make_coord_list: error in number of coordinates");
+  if (length != vrna_plot_coords_pt(pl, &x, &y, VRNA_PLOT_TYPE_DEFAULT)) {
+    vrna_log_error("make_coord_list: error in number of coordinates");
+    exit(1);
+  }
 
   for (n = 0; n < length; n++) {
     xmin  = MIN2(xmin, x[n]);
@@ -407,7 +409,7 @@ sanitize_input(const char *string)
   neu.c_cc[VTIME] = 0;
   tcsetattr(0, TCSANOW, &neu);
   printf("%s", start);
-  init_rand();
+  vrna_init_rand();
   while (1) {
     usleep(1000);
     switch (state) {
@@ -501,7 +503,7 @@ sanitize_input(const char *string)
                 p = (*(d->struct_list)).i;
                 q = (*(d->struct_list)).j;
                 if ((i == p) && (j == q)) {
-                  float r = urn();
+                  float r = vrna_urn();
 
                   (d->reactive) = (secti *)vrna_realloc((d->reactive),
                                                        sizeof(secti) *

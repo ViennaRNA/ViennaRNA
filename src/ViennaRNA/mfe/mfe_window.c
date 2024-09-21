@@ -721,7 +721,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
          */
         int ii, jj;
         ii  = i;
-        jj  = vrna_BT_ext_loop_f3_pp(vc, &ii, maxdist);
+        jj  = vrna_bt_ext_loop_f3_pp(vc, &ii, maxdist);
         if (jj > 0) {
 #ifdef VRNA_WITH_SVM
           double thisz = 0;
@@ -784,7 +784,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #endif
           int ii, jj;
           ii  = i;
-          jj  = vrna_BT_ext_loop_f3_pp(vc, &ii, maxdist);
+          jj  = vrna_bt_ext_loop_f3_pp(vc, &ii, maxdist);
           if (jj > 0) {
 #ifdef VRNA_WITH_SVM
             double thisz = 0;
@@ -1916,7 +1916,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     new_c = INF;
 
     /* check for hairpin loop */
-    energy  = vrna_E_hp_loop(fc, i, j);
+    energy  = vrna_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
     new_c   = MIN2(new_c, energy);
 
     /* check for multibranch loops */
@@ -1930,12 +1930,12 @@ decompose_pair(vrna_fold_compound_t *fc,
     }
 
     /* check for interior loops */
-    energy  = vrna_E_int_loop(fc, i, j);
+    energy  = vrna_mfe_internal(fc, i, j);
     new_c   = MIN2(new_c, energy);
 
     /* remember stack energy for --noLP option */
     if (noLP) {
-      stackEnergy = vrna_E_stack(fc, i, j);
+      stackEnergy = vrna_eval_stack(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
       new_c       = MIN2(new_c, cc1[j - 1 - (i + 1)] + stackEnergy);
       cc[j - i]   = new_c;
       if ((fc->type == VRNA_FC_TYPE_COMPARATIVE) &&

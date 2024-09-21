@@ -268,7 +268,7 @@ bt_int_loop(vrna_fold_compound_t  *fc,
                  c_local[p][q - p] :
                  my_c[idx[q] + p];
 
-        energy += vrna_eval_int_loop(fc, i, j, p, q);
+        energy += vrna_eval_internal(fc, i, j, p, q, VRNA_EVAL_LOOP_NO_HC);
 
         if (energy == en) {
           vrna_sc_t *sc =

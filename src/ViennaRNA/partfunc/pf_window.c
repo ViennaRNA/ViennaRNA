@@ -781,7 +781,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
          */
         if (hc_decompose) {
           /* process hairpin loop(s) */
-          qbt1 += vrna_exp_E_hp_loop(vc, i, j);
+          qbt1 += vrna_exp_eval_hairpin(vc, i, j, VRNA_EVAL_LOOP_DEFAULT);
           /* process interior loop(s) */
           qbt1 += vrna_exp_E_int_loop(vc, i, j);
           /* process multibranch loop(s) */
@@ -1692,7 +1692,7 @@ compute_pU(vrna_fold_compound_t       *vc,
 
       /* add hairpins */
       if (hc->matrix_local[i5][j3 - i5] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) {
-        temp                      = vrna_exp_E_hp_loop(vc, i5, j3);
+        temp                      = vrna_exp_eval_hairpin(vc, i5, j3, VRNA_EVAL_LOOP_DEFAULT);
         pU[k + ulength][ulength]  += temp * pR[i5][j3];
 
         if (options & VRNA_PROBS_WINDOW_UP_SPLIT)
@@ -1716,11 +1716,11 @@ compute_pU(vrna_fold_compound_t       *vc,
   temp = 0.;
   for (obp = MIN2(n, k + winSize - 1); obp > k + ulength; obp--)
     temp += pR[k][obp] *
-            vrna_exp_E_hp_loop(vc, k, obp);
+            vrna_exp_eval_hairpin(vc, k, obp, VRNA_EVAL_LOOP_DEFAULT);
 
   for (obp = MIN2(n, MIN2(k + winSize - 1, k + ulength)); obp > k + 1; obp--) {
     temp += pR[k][obp] *
-            vrna_exp_E_hp_loop(vc, k, obp);
+            vrna_exp_eval_hairpin(vc, k, obp, VRNA_EVAL_LOOP_DEFAULT);
     QBH[obp - k - 1]  += temp;
     QBE[obp - k - 1]  += temp;
   }

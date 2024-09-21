@@ -1325,18 +1325,17 @@ postprocess_circular(vrna_fold_compound_t *fc,
       }
 
       /* exterior interior loop case */
-      int ip = 0, iq = 0;
-      new_c = vrna_E_ext_int_loop(fc, i, j, &ip, &iq);
+      new_c = vrna_mfe_internal_ext(fc, i, j, &p, &q);
       if (new_c != INF)
         new_c += my_c[ij];
 
-      if (ip != 0) {
+      if (p != 0) {
         if (new_c < FcI) {
           FcI = new_c;
           Ii  = i;
           Ij  = j;
-          Ip  = (unsigned int)ip;
-          Iq  = (unsigned int)iq;
+          Ip  = p;
+          Iq  = q;
         }
       }
     } /* end of i,j loop */

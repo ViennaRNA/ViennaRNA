@@ -1253,7 +1253,7 @@ backtrack(unsigned int                    i,
     hc_decompose = hard_constraints[n * i + j];
 
     /* hairpin contribution */
-    q_temp = vrna_exp_E_hp_loop(vc, i, j);
+    q_temp = vrna_exp_eval_hairpin(vc, i, j, VRNA_EVAL_LOOP_DEFAULT);
 
     if (current_node) {
       fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_HAIRPIN, 0, 0) *
@@ -1638,7 +1638,7 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
         qb_ij = qb[my_iindx[i] - j];
 
         qt += qb_ij *
-              vrna_exp_E_hp_loop(vc, j, i);
+              vrna_exp_eval_hairpin(vc, j, i, VRNA_EVAL_LOOP_DEFAULT);
 
         /* found a hairpin? so backtrack in the enclosed part and we're done  */
         if (qt > r) {
