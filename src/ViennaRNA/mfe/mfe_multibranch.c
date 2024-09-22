@@ -41,7 +41,6 @@
 
 struct vrna_mx_mfe_aux_ml_s {
   unsigned int  n;
-  unsigned int  i;
   int           *Fmi;
   int           *DMLi;
   int           *DMLi1;
@@ -258,7 +257,6 @@ get_aux_arrays(unsigned int length)
   
   aux         = (struct vrna_mx_mfe_aux_ml_s *)vrna_alloc(sizeof(struct vrna_mx_mfe_aux_ml_s));
   aux->n      = length;
-  aux->i      = length - 1; /* assumes that decompositions start with i = length - 1 and each rotatation decreases i */
   aux->Fmi    = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* holds row i of fML (avoids jumps in memory)  */
   aux->DMLi   = (int *)vrna_alloc(sizeof(int) * (length + 1));  /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
   aux->DMLi1  = (int *)vrna_alloc(sizeof(int) * (length + 1));  /*                MIN(fML[i+1,k]+fML[k+1,j])    */
@@ -278,17 +276,13 @@ rotate_aux_arrays(struct vrna_mx_mfe_aux_ml_s *aux)
   unsigned int  j;
   int           *FF;
 
-  if (aux->i > 0) {
-    FF          = aux->DMLi2;
-    aux->DMLi2  = aux->DMLi1;
-    aux->DMLi1  = aux->DMLi;
-    aux->DMLi   = FF;
+  FF          = aux->DMLi2;
+  aux->DMLi2  = aux->DMLi1;
+  aux->DMLi1  = aux->DMLi;
+  aux->DMLi   = FF;
 
-    for (j = 1; j <= aux->n; j++)
-      aux->Fmi[j] = aux->DMLi[j] = INF;
-
-    aux->i--;
-  }
+  for (j = 1; j <= aux->n; j++)
+    aux->Fmi[j] = aux->DMLi[j] = INF;
 }
 
 

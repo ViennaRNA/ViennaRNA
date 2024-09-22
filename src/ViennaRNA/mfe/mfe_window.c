@@ -76,10 +76,7 @@ typedef struct {
 struct aux_arrays {
   int *cc;    /* auxilary arrays for canonical structures     */
   int *cc1;   /* auxilary arrays for canonical structures     */
-  int *Fmi;   /* holds row i of fML (avoids jumps in memory)  */
-  int *DMLi;  /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  int *DMLi1; /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  int *DMLi2; /*                MIN(fML[i+2,k]+fML[k+1,j])    */
+  vrna_mx_mfe_aux_ml_t  ml_helpers;
 };
 
 /*
@@ -696,7 +693,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
       c[i][j - i] = decompose_pair(vc, i, j, helper_arrays);
 
       /* decompose subsegment [i, j] that is multibranch loop part with at least one branch */
-      fML[i][j - i] = vrna_E_ml_stems_fast(vc, i, j, helper_arrays->Fmi, helper_arrays->DMLi);
+      fML[i][j - i] = vrna_mfe_multibranch_stems_fast(vc, i, j, helper_arrays->ml_helpers);
 
       if (vc->aux_grammar) {
         for (size_t c = 0; c < vrna_array_size(vc->aux_grammar->aux); c++) {
@@ -719,7 +716,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
          * energy due to unpaired nucleotides in the exterior loop, which
          * may happen in the case of using soft constraints
          */
-        int ii, jj;
+        unsigned int  ii;
+        int           jj;
         ii  = i;
         jj  = vrna_bt_ext_loop_f3_pp(vc, &ii, maxdist);
         if (jj > 0) {
@@ -782,7 +780,8 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #else
         } else if (f3[i] < 0) {
 #endif
-          int ii, jj;
+          unsigned int  ii;
+          int           jj;
           ii  = i;
           jj  = vrna_bt_ext_loop_f3_pp(vc, &ii, maxdist);
           if (jj > 0) {
@@ -1899,14 +1898,11 @@ decompose_pair(vrna_fold_compound_t *fc,
                struct aux_arrays    *aux)
 {
   unsigned char hc_decompose;
-  int e, new_c, energy, stackEnergy, dangle_model, noLP,
-      *DMLi1, *DMLi2, *cc, *cc1;
+  int e, new_c, energy, stackEnergy, dangle_model, noLP, *cc, *cc1;
 
   dangle_model  = fc->params->model_details.dangles;
   noLP          = fc->params->model_details.noLP;
   hc_decompose  = fc->hc->matrix_local[i][j - i];
-  DMLi1         = aux->DMLi1;
-  DMLi2         = aux->DMLi2;
   cc            = aux->cc;
   cc1           = aux->cc1;
   e             = INF;
@@ -1920,7 +1916,7 @@ decompose_pair(vrna_fold_compound_t *fc,
     new_c   = MIN2(new_c, energy);
 
     /* check for multibranch loops */
-    energy  = vrna_E_mb_loop_fast(fc, i, j, DMLi1, DMLi2);
+    energy  = vrna_mfe_multibranch_loop_fast(fc, i, j, aux->ml_helpers);
     new_c   = MIN2(new_c, energy);
 
     if (dangle_model == 3) {
@@ -1974,14 +1970,8 @@ get_aux_arrays(unsigned int maxdist)
 
   aux->cc     = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* auxilary arrays for canonical structures     */
   aux->cc1    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* auxilary arrays for canonical structures     */
-  aux->Fmi    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* holds row i of fML (avoids jumps in memory)  */
-  aux->DMLi   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* DMLi[j] holds  MIN(fML[i,k]+fML[k+1,j])      */
-  aux->DMLi1  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /*                MIN(fML[i+1,k]+fML[k+1,j])    */
-  aux->DMLi2  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /*                MIN(fML[i+2,k]+fML[k+1,j])    */
 
-  /* prefill helper arrays */
-  for (j = 0; j < maxdist + 5; j++)
-    aux->Fmi[j] = aux->DMLi[j] = aux->DMLi1[j] = aux->DMLi2[j] = INF;
+  aux->ml_helpers = vrna_mfe_multibranch_fast_init(maxdist + 5);
 
   return aux;
 }
@@ -1994,26 +1984,22 @@ rotate_aux_arrays(struct aux_arrays *aux,
   unsigned int j;
   int *FF;
 
-  FF          = aux->DMLi2;
-  aux->DMLi2  = aux->DMLi1;
-  aux->DMLi1  = aux->DMLi;
-  aux->DMLi   = FF;
+  vrna_mfe_multibranch_fast_rotate(aux->ml_helpers);
+
   FF          = aux->cc1;
   aux->cc1    = aux->cc;
   aux->cc     = FF;
   for (j = 1; j < maxdist + 5; j++)
-    aux->cc[j] = aux->Fmi[j] = aux->DMLi[j] = INF;
+    aux->cc[j] = INF;
 }
 
 
 PRIVATE INLINE void
 free_aux_arrays(struct aux_arrays *aux)
 {
+  vrna_mfe_multibranch_fast_free(aux->ml_helpers);
+
   free(aux->cc);
   free(aux->cc1);
-  free(aux->Fmi);
-  free(aux->DMLi);
-  free(aux->DMLi1);
-  free(aux->DMLi2);
   free(aux);
 }
