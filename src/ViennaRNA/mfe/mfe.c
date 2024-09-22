@@ -497,7 +497,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
 
       /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
       if (uniq_ML)
-        fM1[ij] = E_ml_rightmost_stem(i, j, fc);
+        fM1[ij] = vrna_mfe_multibranch_m1(fc, i, j);
 
       if (fc->aux_grammar)
         /* call auxiliary grammar rules */
@@ -4276,7 +4276,7 @@ decompose_pair(vrna_fold_compound_t *fc,
 
     if (dangle_model == 3) {
       /* coaxial stacking */
-      energy  = vrna_E_mb_loop_stack(fc, i, j);
+      energy  = vrna_mfe_multibranch_loop_stack(fc, i, j);
       new_c   = MIN2(new_c, energy);
     }
 

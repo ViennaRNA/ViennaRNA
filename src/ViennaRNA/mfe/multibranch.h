@@ -77,15 +77,22 @@ vrna_mfe_multibranch_m2_fast(vrna_fold_compound_t *fc,
  *
  *  Computes total free energy for coaxial stacking of (i.j) with (i+1.k) or (k+1.j-1)
  */
+int
+vrna_mfe_multibranch_loop_stack(vrna_fold_compound_t  *fc,
+                                unsigned int          i,
+                                unsigned int          j);
 
 
-/* End basic interface */
-/**@}*/
+int
+vrna_mfe_multibranch_m1(vrna_fold_compound_t  *fc,
+                        unsigned int          i,
+                        unsigned int          j);
 
+/* End MFE interface */
+/** @} */
 
-/**
- * @}
- */
+/* End eal_loops_mb */
+/** @} */
 
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
@@ -94,7 +101,7 @@ DEPRECATED(int
 vrna_E_mb_loop_stack(vrna_fold_compound_t *fc,
                      int                  i,
                      int                  j),
-           "Use vrna_mfe_multibranch_stack() instead!");
+           "Use vrna_mfe_multibranch_loop_stack() instead!");
 
 
 
@@ -111,7 +118,7 @@ DEPRECATED(int
 E_ml_rightmost_stem(int                   i,
                     int                   j,
                     vrna_fold_compound_t  *fc),
-          "Use vrna_mfe_multibranch_rightmost_stem() instead!");
+          "Use vrna_mfe_multibranch_m1() instead!");
 
 
 DEPRECATED(int

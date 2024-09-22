@@ -1921,7 +1921,7 @@ decompose_pair(vrna_fold_compound_t *fc,
 
     if (dangle_model == 3) {
       /* coaxial stacking */
-      energy  = vrna_E_mb_loop_stack(fc, i, j);
+      energy  = vrna_mfe_multibranch_loop_stack(fc, i, j);
       new_c   = MIN2(new_c, energy);
     }
 

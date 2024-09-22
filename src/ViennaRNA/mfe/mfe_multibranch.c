@@ -208,17 +208,32 @@ vrna_mfe_multibranch_m2_fast(vrna_fold_compound_t *fc,
   return INF;
 }
 
-                             
+
 PUBLIC int
-E_ml_rightmost_stem(int                   i,
-                    int                   j,
-                    vrna_fold_compound_t  *fc)
+vrna_mfe_multibranch_loop_stack(vrna_fold_compound_t  *fc,
+                                unsigned int          i,
+                                unsigned int          j)
+{
+  if (fc)
+    return E_mb_loop_stack(fc, i, j);
+
+  return INF;
+}
+
+
+
+PUBLIC int
+vrna_mfe_multibranch_m1(vrna_fold_compound_t  *fc,
+                        unsigned int          i,
+                        unsigned int          j)
 {
   int e;
 
   e = INF;
 
-  if ((fc) && (fc->matrices) && (fc->matrices->fM1)) {
+  if ((fc) &&
+      (fc->matrices) &&
+      (fc->matrices->fM1)) {
     struct hc_mb_def_dat      hc_dat_local;
     struct sc_mb_dat          sc_wrapper;
     vrna_hc_eval_f evaluate;
@@ -1669,6 +1684,16 @@ vrna_E_mb_loop_stack(vrna_fold_compound_t *fc,
   return e;
 }
 
+
+PUBLIC int
+E_ml_rightmost_stem(int                   i,
+                    int                   j,
+                    vrna_fold_compound_t  *fc)
+{
+  return vrna_mfe_multibranch_m1(fc,
+                                 (unsigned int)i,
+                                 (unsigned int)j);
+}
 
 
 #endif
