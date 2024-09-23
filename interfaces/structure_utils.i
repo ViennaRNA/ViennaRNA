@@ -970,4 +970,12 @@ vrna_score_t  my_compare_structure(var_array<short> const &pt1, var_array<short>
 %constant unsigned int BRACKETS_ANY     = VRNA_BRACKETS_ANY;
 
 
-%include  <ViennaRNA/utils/structures.h>
+%include <ViennaRNA/structures/benchmark.h>
+%include <ViennaRNA/structures/dotbracket.h>
+%include <ViennaRNA/structures/helix.h>
+%include <ViennaRNA/structures/metrics.h>
+%include <ViennaRNA/structures/pairtable.h>
+%include <ViennaRNA/structures/problist.h>
+%include <ViennaRNA/structures/shapes.h>
+%include <ViennaRNA/structures/tree.h>
+%include <ViennaRNA/structures/utils.h>

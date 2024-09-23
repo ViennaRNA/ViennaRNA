@@ -21,7 +21,7 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/utils/strings.h"
-#include "ViennaRNA/structures/structures.h"
+#include "ViennaRNA/structures/tree.h"
 
 /*
  #################################

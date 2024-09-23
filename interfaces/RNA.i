@@ -28,11 +28,20 @@ extern "C" {
 #include  <ViennaRNA/commands.h>
 
 #include  <ViennaRNA/utils/basic.h>
-#include  <ViennaRNA/utils/structures.h>
 #include  <ViennaRNA/utils/strings.h>
 #include  <ViennaRNA/utils/alignments.h>
 #include  <ViennaRNA/utils/log.h>
 #include  <ViennaRNA/fold_vars.h>
+
+#include <ViennaRNA/structures/benchmark.h>
+#include <ViennaRNA/structures/dotbracket.h>
+#include <ViennaRNA/structures/helix.h>
+#include <ViennaRNA/structures/metrics.h>
+#include <ViennaRNA/structures/pairtable.h>
+#include <ViennaRNA/structures/problist.h>
+#include <ViennaRNA/structures/shapes.h>
+#include <ViennaRNA/structures/tree.h>
+#include <ViennaRNA/structures/utils.h>
 
 #include  <ViennaRNA/params/constants.h>
 #include  <ViennaRNA/params/basic.h>

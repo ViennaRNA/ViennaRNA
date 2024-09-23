@@ -375,7 +375,15 @@ vrna_params_HEADERS = \
 
 
 vrna_structures_HEADERS = \
-    structures/structures.h
+    structures/benchmark.h \
+    structures/dotbracket.h \
+    structures/helix.h \
+    structures/metrics.h \
+    structures/pairtable.h \
+    structures/problist.h \
+    structures/shapes.h \
+    structures/tree.h \
+    structures/utils.h
 
 
 vrna_datastructures_HEADERS = \
@@ -468,9 +476,15 @@ libRNA_constraints_la_SOURCES = \
     constraints/ligand.c
 
 libRNA_structures_la_SOURCES = \
-    structures/structure_utils.c \
+    structures/structure_benchmark.c \
+    structures/structure_dotbracket.c \
+    structures/structure_helix.c \
+    structures/structure_metrics.c \
+    structures/structure_pairtable.c \
+    structures/structure_problist.c \
+    structures/structure_shapes.c \
     structures/structure_tree.c \
-    structures/structure_benchmark.c
+    structures/structure_utils.c
 
 
 libRNA_utils_la_SOURCES = \
