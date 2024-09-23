@@ -15,7 +15,6 @@
 #include <string.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/structures/shapes.h"
 
 #ifdef __GNUC__

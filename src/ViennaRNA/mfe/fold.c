@@ -30,7 +30,6 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/eval/hairpin.h"
 #include "ViennaRNA/eval/internal.h"

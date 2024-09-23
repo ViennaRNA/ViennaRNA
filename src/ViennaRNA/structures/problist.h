@@ -143,6 +143,17 @@ vrna_plist_append(vrna_ep_t       **target,
 /** @} */
 
 
+/**
+ *  @addtogroup gquad_parse
+ *  @{
+ */
+plist *
+get_plist_gquad_from_db(const char  *structure,
+                        float       pr);
+
+/** @} */
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /*###########################################*/

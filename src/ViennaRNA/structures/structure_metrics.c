@@ -19,7 +19,6 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/structures/metrics.h"
 
 #ifdef __GNUC__

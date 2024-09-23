@@ -25,7 +25,7 @@
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/loops/gquad.h"
+#include "ViennaRNA/mfe/gquad.h"
 #include "ViennaRNA/datastructures/dp_matrices.h"
 
 /*

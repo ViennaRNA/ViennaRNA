@@ -140,52 +140,5 @@
 %include  <ViennaRNA/eval/hairpin.h>
 %include  <ViennaRNA/eval/internal.h>
 %include  <ViennaRNA/eval/multibranch.h>
+%include  <ViennaRNA/eval/gquad.h>
 
-%rename(gq_parse)       my_gq_parse;
-
-#ifdef SWIGPYTHON
-%feature("autodoc") my_gq_parse;
-#endif
-
-%apply  unsigned int *OUTPUT { unsigned int *L };
-%apply  std::vector<unsigned int> *OUTPUT { std::vector<unsigned int> *l };
-
-%{
-  unsigned int
-  my_gq_parse(std::string               structure,
-              unsigned int              *L,
-              std::vector<unsigned int> *l)
-  {
-    unsigned int c_L, c_l[3], pos = 0;
-
-    if (structure.size() > 0) {
-      *L = 0;
-      l->clear();
-
-      pos = vrna_gq_parse(structure.c_str(), &c_L, &(c_l[0]));
-
-      if (pos) {
-        *L = c_L;
-        l->push_back(c_l[0]);
-        l->push_back(c_l[1]);
-        l->push_back(c_l[2]);
-      }
-
-      return pos;
-    }
-    
-    return pos;
-  }
-
-%}
-
-unsigned int
-my_gq_parse(std::string               structure,
-            unsigned int              *L,
-            std::vector<unsigned int> *l);
-
-
-%clear unsigned int *L;
-%clear std::vector<unsigned int> *l;
-
-%include  <ViennaRNA/loops/gquad.h>

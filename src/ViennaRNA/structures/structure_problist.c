@@ -20,7 +20,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/gquad.h"
+#include "ViennaRNA/partfunc/gquad.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/structures/problist.h"
 
@@ -148,6 +148,74 @@ vrna_plist_append(vrna_ep_t       **target,
   }
 
   return 0;
+}
+
+
+PUBLIC plist *
+get_plist_gquad_from_db(const char  *structure,
+                        float       pr)
+{
+  unsigned int  x, L, l[3], n, size, ge, ee, actual_size, gb;
+  plist         *pl;
+
+  actual_size = 0;
+  ge          = 0;
+  n           = 2;
+  size        = strlen(structure);
+  pl          = (plist *)vrna_alloc(n * size * sizeof(plist));
+
+  while ((ee = vrna_gq_parse(structure + ge, &L, l)) > 0) {
+    ge  += ee;
+
+    if (4 * L + l[0] + l[1] + l[2] > ee) {
+      gb = size + ge - L * 4 - l[0] - l[1] - l[2] + 1;
+    } else {
+      gb = ge - L * 4 - l[0] - l[1] - l[2] + 1;
+    }
+
+    /* add pseudo-base pair enclosing gquad */
+    if (actual_size >= n * size - 5) {
+      n   *= 2;
+      pl  = (plist *)vrna_realloc(pl, n * size * sizeof(plist));
+    }
+
+    pl[actual_size].i       = gb;
+    pl[actual_size].j       = ge;
+    pl[actual_size].p       = pr;
+    pl[actual_size++].type  = VRNA_PLIST_TYPE_GQUAD;
+
+    for (x = 0; x < L; x++) {
+      if (actual_size >= n * size - 5) {
+        n   *= 2;
+        pl  = (plist *)vrna_realloc(pl, n * size * sizeof(plist));
+      }
+
+      pl[actual_size].i       = (gb + x - 1) % (size) + 1;
+      pl[actual_size].j       = (ge + x - L + 1 - 1) % (size) + 1;
+      pl[actual_size].p       = pr;
+      pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
+
+      pl[actual_size].i       = (gb + x - 1) % (size) + 1;
+      pl[actual_size].j       = (gb + x + l[0] + L - 1) % (size) + 1;
+      pl[actual_size].p       = pr;
+      pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
+
+      pl[actual_size].i       = (gb + x + l[0] + L - 1) % (size) + 1;
+      pl[actual_size].j       = (ge + x - 2 * L - l[2] + 1 - 1) % (size) + 1;
+      pl[actual_size].p       = pr;
+      pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
+
+      pl[actual_size].i       = (ge + x - 2 * L - l[2] + 1 - 1) % (size) + 1;
+      pl[actual_size].j       = (ge + x - L + 1 - 1) % (size) + 1;
+      pl[actual_size].p       = pr;
+      pl[actual_size++].type  = VRNA_PLIST_TYPE_TRIPLE;
+    }
+  }
+
+  pl[actual_size].i   = pl[actual_size].j = 0;
+  pl[actual_size++].p = 0;
+  pl                  = (plist *)vrna_realloc(pl, actual_size * sizeof(plist));
+  return pl;
 }
 
 

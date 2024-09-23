@@ -21,7 +21,6 @@
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/plotting/layouts.h"
 #include "ViennaRNA/plotting/utils.h"
 #include "ViennaRNA/plotting/structures.h"

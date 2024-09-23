@@ -21,8 +21,8 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/utils/log.h"
+#include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/backtrack/gquad.h"
-#include "ViennaRNA/loops/gquad.h"
 
 #include "ViennaRNA/loops/gquad_intern.h"
 

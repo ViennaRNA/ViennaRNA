@@ -18,9 +18,9 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe/global.h"
@@ -33,6 +33,7 @@
 #include "ViennaRNA/partfunc/exterior.h"
 #include "ViennaRNA/partfunc/internal.h"
 #include "ViennaRNA/partfunc/multibranch.h"
+#include "ViennaRNA/partfunc/gquad.h"
 #include "ViennaRNA/probabilities/basepairs.h"
 #include "ViennaRNA/partfunc/global.h"
 

@@ -21,12 +21,20 @@
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/plotting/probabilities.h"
 
 #include "ViennaRNA/static/templates_postscript.h"
 
 #include "ViennaRNA/plotting/ps_helpers.inc"
+
+
+#ifndef INLINE
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+#endif
 
 /*
 #################################

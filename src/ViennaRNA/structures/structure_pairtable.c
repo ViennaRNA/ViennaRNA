@@ -20,7 +20,6 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/structures/pairtable.h"

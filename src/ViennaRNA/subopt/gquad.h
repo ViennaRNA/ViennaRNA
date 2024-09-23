@@ -33,6 +33,12 @@ get_gquad_pattern_exhaustive(short        *S,
                              int          threshold);
 
 
+
+int
+get_gquad_count(short *S,
+                int   i,
+                int   j);
+
 /**
  *  @}
  */

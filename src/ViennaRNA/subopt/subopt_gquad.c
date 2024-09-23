@@ -41,6 +41,17 @@ gquad_pos_exhaustive(unsigned int  i,
                      void *lex);
 
 
+PRIVATE
+void
+gquad_count(unsigned int   i,
+            unsigned int   L,
+            unsigned int   *l,
+            void  *data,
+            void  *NA,
+            void  *NA2,
+            void  *NA3);
+
+
 /*
  #########################################
  # BEGIN OF PUBLIC FUNCTION DEFINITIONS  #
@@ -222,6 +233,31 @@ get_gquad_pattern_exhaustive(short        *S,
 }
 
 
+PUBLIC int
+get_gquad_count(short *S,
+                int   i,
+                int   j)
+{
+  unsigned int p, q, *gg;
+  int           counter;
+
+  gg = get_g_islands_sub(S, (unsigned int)i, (unsigned int)j);
+  counter = 0;
+
+  FOR_EACH_GQUAD(p, q, (unsigned int)i, (unsigned int)j)
+  process_gquad_enumeration(gg, p, q,
+                            &gquad_count,
+                            (void *)(&counter),
+                            NULL,
+                            NULL,
+                            NULL);
+
+  gg += (unsigned int)i - 1;
+  free(gg);
+  return counter;
+}
+
+
 /*
  #########################################
  # BEGIN OF PRIVATE FUNCTION DEFINITIONS #
@@ -256,6 +292,20 @@ gquad_pos_exhaustive(unsigned int  i,
     *(((unsigned int *)lex) + (3 * cnt) + 1) = l[1];
     *(((unsigned int *)lex) + (3 * cnt) + 2) = l[2];
   }
+}
+
+
+PRIVATE
+void
+gquad_count(unsigned int   i,
+            unsigned int   L,
+            unsigned int   *l,
+            void  *data,
+            void  *NA,
+            void  *NA2,
+            void  *NA3)
+{
+  *((int *)data) += 1;
 }
 
 

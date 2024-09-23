@@ -31,7 +31,6 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/params/ribosum.h"
 #include "ViennaRNA/constraints/hard.h"
@@ -41,6 +40,15 @@
 #include "ViennaRNA/mm.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/fold_compound.h"
+
+
+#ifndef INLINE
+#ifdef __GNUC__
+# define INLINE inline
+#else
+# define INLINE
+#endif
+#endif
 
 /*
  #################################

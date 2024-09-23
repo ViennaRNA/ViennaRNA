@@ -48,7 +48,7 @@
 #include "ViennaRNA/eval/hairpin.h"
 #include "ViennaRNA/eval/internal.h"
 #include "ViennaRNA/eval/multibranch.h"
-#include "ViennaRNA/loops/gquad.h"
+#include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/datastructures/char_stream.h"

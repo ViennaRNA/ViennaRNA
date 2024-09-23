@@ -43,7 +43,6 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_utils.la \
                       libRNA_plotting.la \
                       libRNA_params.la \
-                      libRNA_loops.la \
                       libRNA_eval.la \
                       libRNA_mfe.la \
                       libRNA_backtrack.la \
@@ -82,7 +81,6 @@ libRNA_conv_la_LIBADD = \
     libRNA_plotting.la \
     libRNA_params.la \
     libRNA_eval.la \
-    libRNA_loops.la \
     libRNA_mfe.la \
     libRNA_backtrack.la \
     libRNA_partfunc.la \
@@ -267,8 +265,7 @@ vrna_loops_HEADERS = \
     loops/external.h \
     loops/hairpin.h \
     loops/internal.h \
-    loops/multibranch.h \
-    loops/gquad.h
+    loops/multibranch.h
 
 
 vrna_eval_HEADERS = \
@@ -545,10 +542,6 @@ libRNA_plotting_la_SOURCES = \
     plotting/ssv.c \
     plotting/RNApuzzler/RNApuzzler.c \
     plotting/RNApuzzler/RNAturtle.c
-
-
-libRNA_loops_la_SOURCES = \
-    loops/gquad.c
 
 
 libRNA_mfe_la_SOURCES = \

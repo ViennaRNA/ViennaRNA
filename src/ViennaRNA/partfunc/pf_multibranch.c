@@ -14,7 +14,7 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/loops/gquad.h"
+#include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/eval/multibranch.h"

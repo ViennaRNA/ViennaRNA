@@ -34,7 +34,6 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/params/ribosum.h"
-#include "ViennaRNA/loops/gquad.h"
 #include "ViennaRNA/alifold.h"
 #include "ViennaRNA/utils/alignments.h"
 #include "ViennaRNA/utils/log.h"

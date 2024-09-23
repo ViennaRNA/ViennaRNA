@@ -71,8 +71,6 @@ extern "C" {
 #include  <ViennaRNA/io/file_formats_msa.h>
 #include  <ViennaRNA/io/utils.h>
 
-#include  <ViennaRNA/loops/gquad.h>
-
 #include  <ViennaRNA/eval/basic.h>
 #include  <ViennaRNA/eval/structures.h>
 #include  <ViennaRNA/eval/exterior.h>

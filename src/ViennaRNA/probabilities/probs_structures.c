@@ -24,7 +24,7 @@
 #include "ViennaRNA/eval/hairpin.h"
 #include "ViennaRNA/eval/internal.h"
 #include "ViennaRNA/eval/multibranch.h"
-#include "ViennaRNA/loops/gquad.h"
+#include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe/global.h"

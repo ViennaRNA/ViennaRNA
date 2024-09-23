@@ -16,7 +16,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/loops/gquad.h"
+#include "ViennaRNA/partfunc/gquad.h"
 #include "ViennaRNA/alphabet.h"
 #include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/datastructures/sparse_mx.h"
