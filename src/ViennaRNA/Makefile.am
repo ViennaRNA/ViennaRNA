@@ -27,6 +27,7 @@ vrna_searchdir          = $(pkgincludedir)/search
 vrna_plottingdir        = $(pkgincludedir)/plotting
 vrna_puzzlerdir         = $(pkgincludedir)/plotting/RNApuzzler
 vrna_loopsdir           = $(pkgincludedir)/loops
+vrna_structuresdir      = $(pkgincludedir)/structures
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 vrna_landscapedir       = $(pkgincludedir)/landscape
 
@@ -52,6 +53,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_inverse.la \
                       libRNA_combinatorics.la \
                       libRNA_landscape.la \
+                      libRNA_structures.la \
                       libRNA_special_const.la
 
 if VRNA_AM_SWITCH_SVM
@@ -73,6 +75,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_constraints.la \
     libRNA_datastructures.la \
     libRNA_utils.la \
+    libRNA_structures.la \
     libRNA_plotting.la \
     libRNA_params.la \
     libRNA_eval.la \
@@ -371,6 +374,10 @@ vrna_params_HEADERS = \
     params/ribosum.h
 
 
+vrna_structures_HEADERS = \
+    structures/structures.h
+
+
 vrna_datastructures_HEADERS = \
     datastructures/array.h \
     datastructures/basic.h \
@@ -460,11 +467,15 @@ libRNA_constraints_la_SOURCES = \
     constraints/sc_cb_mod_wrappers.c \
     constraints/ligand.c
 
+libRNA_structures_la_SOURCES = \
+    structures/structure_utils.c \
+    structures/structure_tree.c \
+    structures/structure_benchmark.c
+
+
 libRNA_utils_la_SOURCES = \
     utils/utils.c \
     utils/string_utils.c \
-    utils/structure_utils.c \
-    utils/structure_tree.c \
     utils/msa_utils.c \
     utils/higher_order_functions.c \
     utils/cpu.c \
@@ -474,8 +485,7 @@ libRNA_utils_la_SOURCES = \
     io/file_formats.c \
     io/file_formats_msa.c \
     search/BoyerMoore.c \
-    commands.c \
-    utils/structure_benchmark.c
+    commands.c
 
 
 if VRNA_AM_SWITCH_SVM

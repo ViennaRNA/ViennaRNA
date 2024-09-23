@@ -5,7 +5,7 @@
 
 #include <math.h>
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/structures.h"
 
 PUBLIC vrna_score_t
 vrna_score_from_confusion_matrix(int  TP,
