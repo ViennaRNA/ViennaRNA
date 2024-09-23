@@ -86,4 +86,5 @@ my_seq_encode(std::string sequence,
 %constant unsigned int SEQUENCE_RNA = VRNA_SEQUENCE_RNA;
 %constant unsigned int SEQUENCE_DNA = VRNA_SEQUENCE_DNA;
 
-%include <ViennaRNA/sequence.h>
+%include <ViennaRNA/sequences/sequence.h>
+%include <ViennaRNA/sequences/alphabet.h>

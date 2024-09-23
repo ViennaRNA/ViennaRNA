@@ -28,6 +28,7 @@ vrna_plottingdir        = $(pkgincludedir)/plotting
 vrna_puzzlerdir         = $(pkgincludedir)/plotting/RNApuzzler
 vrna_loopsdir           = $(pkgincludedir)/loops
 vrna_structuresdir      = $(pkgincludedir)/structures
+vrna_sequencesdir       = $(pkgincludedir)/sequences
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 vrna_landscapedir       = $(pkgincludedir)/landscape
 
@@ -54,6 +55,7 @@ noinst_LTLIBRARIES =  libRNA_concentrations.la \
                       libRNA_combinatorics.la \
                       libRNA_landscape.la \
                       libRNA_structures.la \
+                      libRNA_sequences.la \
                       libRNA_special_const.la
 
 if VRNA_AM_SWITCH_SVM
@@ -76,6 +78,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_datastructures.la \
     libRNA_utils.la \
     libRNA_structures.la \
+    libRNA_sequences.la \
     libRNA_plotting.la \
     libRNA_params.la \
     libRNA_eval.la \
@@ -142,6 +145,7 @@ CEPHES_H    = ../cephes/mconf.h
 
 DEPRECATED_INCLUDE_FILES = \
     aln_util.h \
+    alphabet.h \
     boltzmann_sampling.h \
     char_stream.h \
     combinatorics.h \
@@ -184,6 +188,7 @@ DEPRECATED_INCLUDE_FILES = \
     plot_utils.h \
     PS_dot.h \
     read_epars.h \
+    sequence.h \
     stream_output.h \
     string_utils.h \
     structure_utils.h \
@@ -203,7 +208,6 @@ pkginclude_HEADERS =  \
     2Dpfold.h \
     alifold.h \
     ali_plex.h \
-    alphabet.h \
     centroid.h\
     cofold.h \
     commands.h \
@@ -230,7 +234,6 @@ pkginclude_HEADERS =  \
     profiledist.h \
     ribo.h \
     RNAstruct.h \
-    sequence.h \
     snofold.h \
     snoop.h \
     stringdist.h \
@@ -385,6 +388,12 @@ vrna_structures_HEADERS = \
     structures/tree.h \
     structures/utils.h
 
+vrna_sequences_HEADERS = \
+    sequences/alphabet.h \
+    sequences/sequence.h \
+    sequences/alignments.h \
+    sequences/utils.h
+
 
 vrna_datastructures_HEADERS = \
     datastructures/array.h \
@@ -430,8 +439,6 @@ libRNA_conv_la_SOURCES = \
     centroid.c \
     model.c \
     ${JSON_SRC} \
-    alphabet.c \
-    sequence.c \
     unstructured_domains.c \
     grammar.c \
     heat_capacity.c \
@@ -487,10 +494,16 @@ libRNA_structures_la_SOURCES = \
     structures/structure_utils.c
 
 
+libRNA_sequences_la_SOURCES = \
+    sequences/alphabet.c \
+    sequences/sequence.c \
+    sequences/msa.c \
+    sequences/seq_utils.c
+
+
 libRNA_utils_la_SOURCES = \
     utils/utils.c \
     utils/string_utils.c \
-    utils/msa_utils.c \
     utils/higher_order_functions.c \
     utils/cpu.c \
     utils/units.c \

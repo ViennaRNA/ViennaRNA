@@ -20,8 +20,6 @@ extern "C" {
 #include  <ViennaRNA/datastructures/sparse_mx.h>
 #include  <ViennaRNA/datastructures/dp_matrices.h>
 #include  <ViennaRNA/fold_compound.h>
-#include  <ViennaRNA/alphabet.h>
-#include  <ViennaRNA/sequence.h>
 #include  <ViennaRNA/grammar.h>
 #include  <ViennaRNA/unstructured_domains.h>
 #include  <ViennaRNA/structured_domains.h>
@@ -29,9 +27,13 @@ extern "C" {
 
 #include  <ViennaRNA/utils/basic.h>
 #include  <ViennaRNA/utils/strings.h>
-#include  <ViennaRNA/utils/alignments.h>
 #include  <ViennaRNA/utils/log.h>
 #include  <ViennaRNA/fold_vars.h>
+
+#include <ViennaRNA/sequences/alphabet.h>
+#include <ViennaRNA/sequences/sequence.h>
+#include <ViennaRNA/sequences/alignments.h>
+#include <ViennaRNA/sequences/utils.h>
 
 #include <ViennaRNA/structures/benchmark.h>
 #include <ViennaRNA/structures/dotbracket.h>

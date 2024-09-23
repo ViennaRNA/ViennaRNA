@@ -142,6 +142,7 @@ my_strtrim(char          *seq_mutable,
 %constant unsigned int TRIM_ALL         = VRNA_TRIM_ALL;
 
 %include  <ViennaRNA/utils/strings.h>
+%include  <ViennaRNA/sequences/utils.h>
 
 /**********************************************/
 /* BEGIN interface for structure utilities    */
