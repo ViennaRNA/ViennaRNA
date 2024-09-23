@@ -1337,20 +1337,20 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
 
           switch (fc->type) {
             case VRNA_FC_TYPE_COMPARATIVE:
-              vrna_E_consensus_gq(L,
-                                       l,
-                                       (unsigned int)p,
-                                       n,
-                                       n_seq,
-                                       (const short **)SS,
-                                       a2s,
-                                       P,
-                                       gq_en);
+              vrna_E_consensus_gquad(L,
+                                     l,
+                                     (unsigned int)p,
+                                     n,
+                                     n_seq,
+                                     (const short **)SS,
+                                     (const unsigned int **)a2s,
+                                     P,
+                                     gq_en);
               tmp_e = gq_en[0];
               break;
 
             default:
-              tmp_e = vrna_E_gq(L, l, P);
+              tmp_e = vrna_E_gquad(L, l, P);
               break;
           }
 
@@ -1428,20 +1428,20 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
 
           switch (fc->type) {
             case VRNA_FC_TYPE_COMPARATIVE:
-              vrna_E_consensus_gq(L,
-                                       l,
-                                       (unsigned int)p,
-                                       n,
-                                       n_seq,
-                                       (const short **)SS,
-                                       a2s,
-                                       P,
-                                       gq_en);
+              vrna_E_consensus_gquad(L,
+                                     l,
+                                     (unsigned int)p,
+                                     n,
+                                     n_seq,
+                                     (const short **)SS,
+                                     (const unsigned int **)a2s,
+                                     P,
+                                     gq_en);
               tmp_e = gq_en[0];
               break;
 
             default:
-              tmp_e = vrna_E_gq(L, l, P);
+              tmp_e = vrna_E_gquad(L, l, P);
               break;
           }
 
@@ -1820,20 +1820,20 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
     /* we've found the first g-quadruplex at position [p,q] */
     switch (fc->type) {
       case VRNA_FC_TYPE_COMPARATIVE:
-        vrna_E_consensus_gq(L,
-                                 l,
-                                 (unsigned int)p,
-                                 n,
-                                 n_seq,
-                                 (const short **)fc->S,
-                                 fc->a2s,
-                                 P,
-                                 gq_en);
+        vrna_E_consensus_gquad(L,
+                               l,
+                               (unsigned int)p,
+                               n,
+                               n_seq,
+                               (const short **)fc->S,
+                               (const unsigned int **)fc->a2s,
+                               P,
+                               gq_en);
         tmp_e = gq_en[0];
         break;
 
       default:
-        tmp_e = vrna_E_gq(L, l, P);
+        tmp_e = vrna_E_gquad(L, l, P);
         break;
     }
 
@@ -1931,20 +1931,20 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
 
             switch (fc->type) {
               case VRNA_FC_TYPE_COMPARATIVE:
-                vrna_E_consensus_gq(L,
-                                         l,
-                                         (unsigned int)u,
-                                         n,
-                                         n_seq,
-                                         (const short **)fc->S,
-                                         fc->a2s,
-                                         P,
-                                         gq_en);
+                vrna_E_consensus_gquad(L,
+                                       l,
+                                       (unsigned int)u,
+                                       n,
+                                       n_seq,
+                                       (const short **)fc->S,
+                                       (const unsigned int **)fc->a2s,
+                                       P,
+                                       gq_en);
                 tmp_e = gq_en[0];
                 break;
 
               default:
-                tmp_e = vrna_E_gq(L, l, P);
+                tmp_e = vrna_E_gquad(L, l, P);
                 break;
             }
 

@@ -14,6 +14,9 @@
 /* backward compatibility */
 #include <ViennaRNA/mfe/gquad.h>
 
+/* backward compatibility */
+#include <ViennaRNA/eval/gquad.h>
+
 
 #ifndef INLINE
 #ifdef __GNUC__
@@ -49,50 +52,6 @@
  *  @addtogroup gquad_eval
  *  @{
  */
-
-int
-vrna_E_gq(unsigned int  L,
-          unsigned int  l[3],
-          vrna_param_t  *P);
-
-
-FLT_OR_DBL
-vrna_exp_E_gq(unsigned int      L,
-              unsigned int      l[3],
-              vrna_exp_param_t  *pf);
-
-
-void
-vrna_E_consensus_gq(unsigned int L,
-                    unsigned int l[3],
-                    unsigned int position,
-                    unsigned int length,
-                    unsigned int n_seq,
-                    const short  **S,
-                    unsigned int **a2s,
-                    vrna_param_t *P,
-                    int          en[2]);
-
-
-FLT_OR_DBL
-vrna_exp_E_consensus_gq(unsigned int        L,
-                        unsigned int        l[3],
-                        vrna_exp_param_t    *pf,
-                        unsigned int        position,
-                        unsigned int        length,
-                        unsigned int        n_seq,
-                        const short         **S,
-                        const unsigned int  **a2s);
-
-
-vrna_array(int)
-vrna_gq_int_loop_subopt(vrna_fold_compound_t * fc,
-                        unsigned int i,
-                        unsigned int j,
-                        vrna_array(int) * p_p,
-                        vrna_array(int) * q_p,
-                        int threshold);
-
 FLT_OR_DBL
 vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
                     unsigned int          i,

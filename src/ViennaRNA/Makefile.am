@@ -271,7 +271,8 @@ vrna_eval_HEADERS = \
     eval/exterior.h \
     eval/hairpin.h \
     eval/internal.h \
-    eval/multibranch.h
+    eval/multibranch.h \
+    eval/gquad.h
 
 
 vrna_mfe_HEADERS = \
@@ -309,7 +310,8 @@ vrna_probabilities_HEADERS =   \
 vrna_subopt_HEADERS = \
     subopt/basic.h    \
     subopt/wuchty.h   \
-    subopt/zuker.h
+    subopt/zuker.h \
+    subopt/gquad.h
 
 
 vrna_sampling_HEADERS = \
@@ -429,6 +431,7 @@ libRNA_eval_la_SOURCES = \
     eval/eval_hairpin.c \
     eval/eval_internal.c \
     eval/eval_multibranch.c \
+    eval/eval_gquad.c \
     eval/exp_eval_exterior.c \
     eval/exp_eval_hairpin.c \
     eval/exp_eval_internal.c \
@@ -556,7 +559,8 @@ libRNA_probabilities_la_SOURCES = \
 
 libRNA_subopt_la_SOURCES = \
     subopt/subopt.c \
-    subopt/subopt_zuker.c
+    subopt/subopt_zuker.c \
+    subopt/subopt_gquad.c
 
 
 libRNA_sampling_la_SOURCES = \
