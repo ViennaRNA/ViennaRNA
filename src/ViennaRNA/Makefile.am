@@ -299,7 +299,8 @@ vrna_partfunc_HEADERS =   \
     partfunc/multifold.h  \
     partfunc/exterior.h   \
     partfunc/internal.h   \
-    partfunc/multibranch.h
+    partfunc/multibranch.h \
+    partfunc/gquad.h
 
 
 vrna_probabilities_HEADERS =   \
@@ -510,8 +511,7 @@ libRNA_plotting_la_SOURCES = \
 
 
 libRNA_loops_la_SOURCES = \
-    loops/gquad.c \
-    loops/gquad_dp.c
+    loops/gquad.c
 
 
 libRNA_mfe_la_SOURCES = \
@@ -546,6 +546,7 @@ libRNA_partfunc_la_SOURCES = \
     partfunc/pf_exterior.c \
     partfunc/pf_internal.c \
     partfunc/pf_multibranch.c \
+    partfunc/pf_gquad.c \
     partfunc/alipfold.c \
     partfunc/part_func_up.c \
     partfunc/part_func_co.c \

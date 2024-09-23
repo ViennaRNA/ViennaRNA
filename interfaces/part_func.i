@@ -330,6 +330,7 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 %include  <ViennaRNA/partfunc/exterior.h>
 %include  <ViennaRNA/partfunc/internal.h>
 %include  <ViennaRNA/partfunc/multibranch.h>
+%include  <ViennaRNA/partfunc/gquad.h>
 
 %extend vrna_fold_compound_t{
 

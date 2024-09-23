@@ -17,6 +17,9 @@
 /* backward compatibility */
 #include <ViennaRNA/eval/gquad.h>
 
+/* backward compatibility */
+#include <ViennaRNA/partfunc/gquad.h>
+
 
 #ifndef INLINE
 #ifdef __GNUC__
@@ -46,35 +49,6 @@
 
 #define   VRNA_GQUAD_DB_SYMBOL      '+'
 #define   VRNA_GQUAD_DB_SYMBOL_END  '~'
-
-
-/**
- *  @addtogroup gquad_eval
- *  @{
- */
-FLT_OR_DBL
-vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
-                    unsigned int          i,
-                    unsigned int          j);
-
-
-/**
- *  @}
- */
-
-
-/**
- *  @addtogroup gquad_dp
- *  @{
- */
-
-vrna_smx_csr_FLT_OR_DBL_t *
-vrna_gq_pos_pf(vrna_fold_compound_t *fc);
-
-
-/**
- *  @}
- */
 
 
 /**

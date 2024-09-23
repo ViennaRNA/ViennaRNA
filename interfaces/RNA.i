@@ -88,6 +88,7 @@ extern "C" {
 #include  <ViennaRNA/partfunc/exterior.h>
 #include  <ViennaRNA/partfunc/internal.h>
 #include  <ViennaRNA/partfunc/multibranch.h>
+#include  <ViennaRNA/partfunc/gquad.h>
 
 #include  <ViennaRNA/subopt/basic.h>
 #include  <ViennaRNA/subopt/wuchty.h>
