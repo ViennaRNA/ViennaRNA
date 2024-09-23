@@ -30,6 +30,17 @@
  #################################
  */
 
+PRIVATE
+void
+gquad_pos_exhaustive(unsigned int  i,
+                     unsigned int  L,
+                     unsigned int  *l,
+                     void *data,
+                     void *P,
+                     void *Lex,
+                     void *lex);
+
+
 /*
  #########################################
  # BEGIN OF PUBLIC FUNCTION DEFINITIONS  #
@@ -181,9 +192,70 @@ vrna_gq_int_loop_subopt(vrna_fold_compound_t * fc,
 }
 
 
+PUBLIC void
+get_gquad_pattern_exhaustive(short        *S,
+                             int          i,
+                             int          j,
+                             vrna_param_t *P,
+                             int          *L,
+                             int          *l,
+                             int          threshold)
+{
+  unsigned int *gg, LL, ll[3];
+
+  gg = get_g_islands_sub(S, (unsigned int)i, (unsigned int)j);
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_pos_exhaustive,
+                            (void *)(&threshold),
+                            (void *)P,
+                            (void *)&LL,
+                            (void *)ll);
+
+  gg += (unsigned int)i - 1;
+
+  *L = LL;
+  l[0] = ll[0];
+  l[1] = ll[1];
+  l[2] = ll[2];
+  free(gg);
+}
+
+
 /*
  #########################################
  # BEGIN OF PRIVATE FUNCTION DEFINITIONS #
  #          (internal use only)          #
  #########################################
  */
+PRIVATE
+void
+gquad_pos_exhaustive(unsigned int  i,
+                     unsigned int  L,
+                     unsigned int  *l,
+                     void *data,
+                     void *P,
+                     void *Lex,
+                     void *lex)
+{
+  int cnt;
+  int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
+
+  if (cc <= *((int *)data)) {
+    /*  since Lex is an array of L values and lex an
+     *  array of l triples we need to find out where
+     *  the current gquad position is to be stored...
+     * the below implementation might be slow but we
+     * still use it for now
+     */
+    for (cnt = 0; ((unsigned int *)Lex)[cnt] != 0; cnt++);
+
+    *((unsigned int *)Lex + cnt)             = L;
+    *((unsigned int *)Lex + cnt + 1)         = 0;
+    *(((unsigned int *)lex) + (3 * cnt) + 0) = l[0];
+    *(((unsigned int *)lex) + (3 * cnt) + 1) = l[1];
+    *(((unsigned int *)lex) + (3 * cnt) + 2) = l[2];
+  }
+}
+
+

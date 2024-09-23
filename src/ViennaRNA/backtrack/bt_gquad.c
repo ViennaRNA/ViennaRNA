@@ -42,9 +42,82 @@
  #################################
  */
 
-/**
- *  MFE callback for process_gquad_enumeration()
- */
+PRIVATE INLINE int
+aln_linker_length(unsigned int        start,
+                  unsigned int        end,
+                  unsigned int        n,
+                  const unsigned int  *a2ss);
+
+
+PRIVATE INLINE void
+aln_linker_positions(unsigned int          L,
+                     unsigned int          l[3],
+                     unsigned int position,
+                     unsigned int length,
+                     unsigned int starts[3],
+                     unsigned int ends[3]);
+
+
+PRIVATE void
+get_gquad_pattern_mfe(short         *S,
+                      int           i,
+                      int           j,
+                      vrna_param_t  *P,
+                      int           *L,
+                      int           l[3]);
+
+
+PRIVATE void
+get_gquad_pattern_mfe_ali(short         **S,
+                          unsigned int  **a2s,
+                          short         *S_cons,
+                          int           n_seq,
+                          int           i,
+                          int           j,
+                          vrna_param_t  *P,
+                          int           *L,
+                          int           l[3]);
+
+
+PRIVATE void
+gquad_mfe_pos(unsigned int   i,
+              unsigned int   L,
+              unsigned int   *l,
+              void  *data,
+              void  *P,
+              void  *Lmfe,
+              void  *lmfe);
+
+
+PRIVATE void
+gquad_mfe_ali_pos(unsigned int   i,
+                  unsigned int   L,
+                  unsigned int   *l,
+                  void  *data,
+                  void  *helper,
+                  void  *Lmfe,
+                  void  *lmfe);
+
+
+PRIVATE void
+gquad_mfe_ali(unsigned int   i,
+              unsigned int   L,
+              unsigned int   *l,
+              void  *data,
+              void  *helper,
+              void  *NA,
+              void  *NA2);
+
+
+PRIVATE void
+gquad_mfe_ali_en(unsigned int  i,
+                 unsigned int  L,
+                 unsigned int  *l,
+                 void *data,
+                 void *helper,
+                 void *NA,
+                 void *NA2);
+
 
 /*
  #########################################
@@ -795,3 +868,181 @@ aln_linker_positions(unsigned int          L,
     ends[2]   = starts[2] + l[2] - 1;
   }
 }
+
+
+PRIVATE void
+get_gquad_pattern_mfe(short         *S,
+                      int           i,
+                      int           j,
+                      vrna_param_t  *P,
+                      int           *L,
+                      int           l[3])
+{
+  unsigned int *gg = get_g_islands_sub(S, (unsigned int)i, (unsigned int)j);
+  int c   = INF;
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_mfe_pos,
+                            (void *)(&c),
+                            (void *)P,
+                            (void *)L,
+                            (void *)l);
+
+  gg += i - 1;
+  free(gg);
+}
+
+
+PRIVATE void
+get_gquad_pattern_mfe_ali(short         **S,
+                          unsigned int  **a2s,
+                          short         *S_cons,
+                          int           n_seq,
+                          int           i,
+                          int           j,
+                          vrna_param_t  *P,
+                          int           *L,
+                          int           l[3])
+{
+  int           mfe;
+  unsigned int *gg, LL, ll[3];
+
+
+  gg  = get_g_islands_sub(S_cons, (unsigned int)i, (unsigned int)j);
+  mfe = INF;
+
+  struct gquad_ali_helper gq_help = {
+    .S      = (const short **)S,
+    .a2s    = (const unsigned int **)a2s,
+    .n_seq  = (unsigned int)n_seq,
+    .P      = P
+  };
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_mfe_ali_pos,
+                            (void *)(&mfe),
+                            (void *)&gq_help,
+                            (void *)&LL,
+                            (void *)ll);
+
+  gg += (unsigned int)i - 1;
+
+  *L = LL;
+  l[0] = ll[0];
+  l[1] = ll[1];
+  l[2] = ll[2];
+  free(gg);
+}
+
+
+PRIVATE void
+gquad_mfe_pos(unsigned int   i,
+              unsigned int   L,
+              unsigned int   *l,
+              void  *data,
+              void  *P,
+              void  *Lmfe,
+              void  *lmfe)
+{
+  int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
+
+  if (cc < *((int *)data)) {
+    *((int *)data)        = cc;
+    *((unsigned int *)Lmfe)        = L;
+    *((unsigned int *)lmfe)        = l[0];
+    *(((unsigned int *)lmfe) + 1)  = l[1];
+    *(((unsigned int *)lmfe) + 2)  = l[2];
+  }
+}
+
+
+PRIVATE void
+gquad_mfe_ali_pos(unsigned int   i,
+                  unsigned int   L,
+                  unsigned int   *l,
+                  void  *data,
+                  void  *helper,
+                  void  *Lmfe,
+                  void  *lmfe)
+{
+  int cc = INF;
+
+  gquad_mfe_ali(i, L, l, (void *)&cc, helper, NULL, NULL);
+
+  if (cc < *((int *)data)) {
+    *((int *)data)        = cc;
+    *((unsigned int *)Lmfe)        = L;
+    *((unsigned int *)lmfe)        = l[0];
+    *(((unsigned int *)lmfe) + 1)  = l[1];
+    *(((unsigned int *)lmfe) + 2)  = l[2];
+  }
+}
+
+
+PRIVATE void
+gquad_mfe_ali(unsigned int   i,
+              unsigned int   L,
+              unsigned int   *l,
+              void  *data,
+              void  *helper,
+              void  *NA,
+              void  *NA2)
+{
+  int en[2], cc;
+
+  en[0] = en[1] = INF;
+
+  CHECK_GQUAD(L, l, return );
+
+  gquad_mfe_ali_en(i, L, l, (void *)(&(en[0])), helper, NULL, NULL);
+  if (en[1] != INF) {
+    cc = en[0] + en[1];
+    if (cc < *((int *)data))
+      *((int *)data) = cc;
+  }
+}
+
+
+PRIVATE void
+gquad_mfe_ali_en(unsigned int  i,
+                 unsigned int  L,
+                 unsigned int  *l,
+                 void *data,
+                 void *helper,
+                 void *NA,
+                 void *NA2)
+{
+  const short             **S;
+  const unsigned int      **a2s;
+  unsigned int            n_seq, n;
+  int                     en[2], cc, dd;
+  vrna_param_t            *P;
+  struct gquad_ali_helper *gq_help;
+
+  gq_help = (struct gquad_ali_helper *)helper;
+  S       = gq_help->S;
+  a2s     = gq_help->a2s;
+  n       = gq_help->length;
+  n_seq   = gq_help->n_seq;
+  P       = gq_help->P;
+
+  vrna_E_consensus_gquad(L,
+                         l,
+                         i,
+                         n,
+                         n_seq,
+                         S,
+                         a2s,
+                         P,
+                         en);
+
+  if (en[1] != INF) {
+    cc  = en[0] + en[1];
+    dd  = ((int *)data)[0] + ((int *)data)[1];
+    if (cc < dd) {
+      ((int *)data)[0]  = en[0];
+      ((int *)data)[1]  = en[1];
+    }
+  }
+}
+

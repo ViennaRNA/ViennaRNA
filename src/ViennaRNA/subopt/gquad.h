@@ -22,6 +22,17 @@ vrna_gq_int_loop_subopt(vrna_fold_compound_t * fc,
                         vrna_array(int) * p_p,
                         vrna_array(int) * q_p,
                         int threshold);
+
+void
+get_gquad_pattern_exhaustive(short        *S,
+                             int          i,
+                             int          j,
+                             vrna_param_t *P,
+                             int          *L,
+                             int          *l,
+                             int          threshold);
+
+
 /**
  *  @}
  */

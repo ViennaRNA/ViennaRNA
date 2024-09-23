@@ -40,6 +40,76 @@ vrna_gq_pos_pf(vrna_fold_compound_t *fc);
  *  @}
  */
 
+/**
+ *  @addtogroup gquad_parse
+ *  @{
+ */
+void
+get_gquad_pattern_pf(short            *S,
+                     int              i,
+                     int              j,
+                     vrna_exp_param_t *pf,
+                     int              *L,
+                     int              l[3]);
+
+
+void
+vrna_get_gquad_pattern_pf(vrna_fold_compound_t  *fc,
+                          unsigned int          i, 
+                          unsigned int          j,
+                          unsigned int          *L,
+                          unsigned int          [3]);
+
+/**
+ *  @}
+ */
+
+
+/**
+ *  @addtogroup gquad_other
+ *  @{
+ */
+plist *
+  get_plist_gquad_from_pr(short *S,
+                          int gi,
+                          int gj,
+                          vrna_smx_csr(FLT_OR_DBL) * q_gq,
+                          FLT_OR_DBL * probs,
+                          FLT_OR_DBL * scale,
+                          vrna_exp_param_t * pf);
+
+
+vrna_ep_t *
+vrna_plist_gquad_from_pr(vrna_fold_compound_t *fc,
+                         int                  gi,
+                         int                  gj);
+
+
+plist *
+  get_plist_gquad_from_pr_max(short *S,
+                              int gi,
+                              int gj,
+                              vrna_smx_csr(FLT_OR_DBL) * q_gq,
+                              FLT_OR_DBL * probs,
+                              FLT_OR_DBL * scale,
+                              int *L,
+                              int l[3],
+                              vrna_exp_param_t * pf);
+
+
+vrna_ep_t *
+vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
+                             unsigned int                  gi,
+                             unsigned int                  gj,
+                             unsigned int                  *Lmax,
+                             unsigned int                  lmax[3]);
+
+
+/**
+ *  @}
+ */
+
+
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**

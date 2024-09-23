@@ -55,42 +55,6 @@
  *  @addtogroup gquad_parse
  *  @{
  */
-void
-get_gquad_pattern_mfe(short         *S,
-                      int           i,
-                      int           j,
-                      vrna_param_t  *P,
-                      int           *L,
-                      int           l[3]);
-
-
-void
-get_gquad_pattern_exhaustive(short        *S,
-                             int          i,
-                             int          j,
-                             vrna_param_t *P,
-                             int          *L,
-                             int          *l,
-                             int          threshold);
-
-
-void
-get_gquad_pattern_pf(short            *S,
-                     int              i,
-                     int              j,
-                     vrna_exp_param_t *pf,
-                     int              *L,
-                     int              l[3]);
-
-
-void
-vrna_get_gquad_pattern_pf(vrna_fold_compound_t  *fc,
-                          unsigned int          i, 
-                          unsigned int          j,
-                          unsigned int          *L,
-                          unsigned int          [3]);
-
-
 plist *
 get_plist_gquad_from_db(const char  *structure,
                         float       pr);
@@ -106,18 +70,6 @@ int
 get_gquad_layer_count(short *S,
                       int   i,
                       int   j);
-
-
-void
-get_gquad_pattern_mfe_ali(short         **S,
-                          unsigned int  **a2s,
-                          short         *S_cons,
-                          int           n_seq,
-                          int           i,
-                          int           j,
-                          vrna_param_t  *P,
-                          int           *L,
-                          int           l[3]);
 
 
 /**
@@ -167,91 +119,12 @@ vrna_db_insert_gq(char          *db,
  */
 
 
-/**
- *  @addtogroup gquad_other
- *  @{
- */
-plist *
-  get_plist_gquad_from_pr(short *S,
-                          int gi,
-                          int gj,
-                          vrna_smx_csr(FLT_OR_DBL) * q_gq,
-                          FLT_OR_DBL * probs,
-                          FLT_OR_DBL * scale,
-                          vrna_exp_param_t * pf);
-
-
-vrna_ep_t *
-vrna_plist_gquad_from_pr(vrna_fold_compound_t *fc,
-                         int                  gi,
-                         int                  gj);
-
-
-plist *
-  get_plist_gquad_from_pr_max(short *S,
-                              int gi,
-                              int gj,
-                              vrna_smx_csr(FLT_OR_DBL) * q_gq,
-                              FLT_OR_DBL * probs,
-                              FLT_OR_DBL * scale,
-                              int *L,
-                              int l[3],
-                              vrna_exp_param_t * pf);
-
-
-vrna_ep_t *
-vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
-                             unsigned int                  gi,
-                             unsigned int                  gj,
-                             unsigned int                  *Lmax,
-                             unsigned int                  lmax[3]);
-
-
-/**
- *  @}
- */
-
-
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
  *  @addtogroup gquad_deprecated
  *  @{
  */
-
-
-int
-E_gquad(int           L,
-        int           l[3],
-        vrna_param_t  *P);
-
-
-FLT_OR_DBL
-exp_E_gquad(int               L,
-            int               l[3],
-            vrna_exp_param_t  *pf);
-
-
-void
-E_gquad_ali_en(int          i,
-               int          L,
-               int          l[3],
-               const short  **S,
-               unsigned int **a2s,
-               unsigned int n_seq,
-               vrna_param_t *P,
-               int          en[2]);
-
-
-FLT_OR_DBL
-exp_E_gquad_ali(int               i,
-                int               L,
-                int               l[3],
-                short             **S,
-                unsigned int      **a2s,
-                int               n_seq,
-                vrna_exp_param_t  *pf);
-
 
 /**
  *  @brief  Parse a G-Quadruplex from a dot-bracket structure string
@@ -271,21 +144,6 @@ DEPRECATED(int
                        int        l[3]),
            "Use vrna_gq_parse() instead");
 
-
-DEPRECATED(FLT_OR_DBL * get_gquad_pf_matrix(short *S,
-                                            FLT_OR_DBL * scale,
-                                            vrna_exp_param_t * pf),
-           "Use vrna_gq_pos_pf() instead");
-
-
-DEPRECATED(FLT_OR_DBL * get_gquad_pf_matrix_comparative(unsigned int n,
-                                                        short *S_cons,
-                                                        short **S,
-                                                        unsigned int **a2s,
-                                                        FLT_OR_DBL * scale,
-                                                        unsigned int n_seq,
-                                                        vrna_exp_param_t * pf),
-           "Use vrna_gq_pos_pf() instead");
 
 /**
  * @}
