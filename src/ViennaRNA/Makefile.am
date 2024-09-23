@@ -279,7 +279,8 @@ vrna_mfe_HEADERS = \
     mfe/local.h \
     mfe/exterior.h \
     mfe/internal.h \
-    mfe/multibranch.h
+    mfe/multibranch.h \
+    mfe/gquad.h
 
 
 vrna_backtrack_HEADERS = \
@@ -519,6 +520,7 @@ libRNA_mfe_la_SOURCES = \
     mfe/mfe_exterior_window.c \
     mfe/mfe_internal.c \
     mfe/mfe_multibranch.c \
+    mfe/mfe_gquad.c \
     mfe/alifold.c \
     mfe/cofold.c \
     mfe/Lfold.c \

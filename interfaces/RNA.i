@@ -74,6 +74,7 @@ extern "C" {
 #include  <ViennaRNA/mfe/exterior.h>
 #include  <ViennaRNA/mfe/internal.h>
 #include  <ViennaRNA/mfe/multibranch.h>
+#include  <ViennaRNA/mfe/gquad.h>
 
 #include  <ViennaRNA/backtrack/global.h>
 #include  <ViennaRNA/backtrack/exterior.h>

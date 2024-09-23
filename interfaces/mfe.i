@@ -397,6 +397,7 @@ char *my_circalifold(std::vector<std::string> alignment, char *constraints, floa
 %include  <ViennaRNA/mfe/exterior.h>
 %include  <ViennaRNA/mfe/internal.h>
 %include  <ViennaRNA/mfe/multibranch.h>
+%include  <ViennaRNA/mfe/gquad.h>
 
 
 /**********************************************/

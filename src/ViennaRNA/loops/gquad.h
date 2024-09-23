@@ -11,6 +11,10 @@
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
 
+/* backward compatibility */
+#include <ViennaRNA/mfe/gquad.h>
+
+
 #ifndef INLINE
 #ifdef __GNUC__
 # define INLINE inline
@@ -81,12 +85,6 @@ vrna_exp_E_consensus_gq(unsigned int        L,
                         const unsigned int  **a2s);
 
 
-int
-vrna_gq_int_loop_mfe(vrna_fold_compound_t *fc,
-                     unsigned int         i,
-                     unsigned int         j);
-
-
 vrna_array(int)
 vrna_gq_int_loop_subopt(vrna_fold_compound_t * fc,
                         unsigned int i,
@@ -94,29 +92,6 @@ vrna_gq_int_loop_subopt(vrna_fold_compound_t * fc,
                         vrna_array(int) * p_p,
                         vrna_array(int) * q_p,
                         int threshold);
-
-int
-E_GQuad_IntLoop_L_comparative(int           i,
-                              int           j,
-                              unsigned int  *tt,
-                              short         *S_cons,
-                              short         **S5,
-                              short         **S3,
-                              unsigned int  **a2s,
-                              int           **ggg,
-                              int           n_seq,
-                              vrna_param_t  *P);
-
-
-int
-E_GQuad_IntLoop_L(int           i,
-                  int           j,
-                  int           type,
-                  short         *S,
-                  int           **ggg,
-                  int           maxdist,
-                  vrna_param_t  *P);
-
 
 FLT_OR_DBL
 vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
@@ -134,26 +109,8 @@ vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
  *  @{
  */
 
-vrna_smx_csr_int_t *
-vrna_gq_pos_mfe(vrna_fold_compound_t *fc);
-
-
 vrna_smx_csr_FLT_OR_DBL_t *
 vrna_gq_pos_pf(vrna_fold_compound_t *fc);
-
-
-int **
-get_gquad_L_matrix(short        *S,
-                   int          start,
-                   int          maxdist,
-                   int          n,
-                   int          **g,
-                   vrna_param_t *P);
-
-
-void
-vrna_gquad_mx_local_update(vrna_fold_compound_t *fc,
-                           int                  start);
 
 
 /**
@@ -380,34 +337,6 @@ DEPRECATED(int
                        int        *L,
                        int        l[3]),
            "Use vrna_gq_parse() instead");
-
-
-/**
- *  @brief Get a triangular matrix prefilled with minimum free energy
- *  contributions of G-quadruplexes.
- *
- *  At each position ij in the matrix, the minimum free energy of any
- *  G-quadruplex delimited by i and j is stored. If no G-quadruplex formation
- *  is possible, the matrix element is set to INF.
- *  Access the elements in the matrix via matrix[indx[j]+i]. To get
- *  the integer array indx see get_jindx().
- *
- *  @see get_jindx(), encode_sequence()
- *
- *  @param S  The encoded sequence
- *  @param P  A pointer to the data structure containing the precomputed energy contributions
- *  @return   A pointer to the G-quadruplex contribution matrix
- */
-DEPRECATED(int *get_gquad_matrix(short *S, vrna_param_t * P),
-           "Use vrna_gq_pos_mfe() instead");
-
-DEPRECATED(int *get_gquad_ali_matrix(unsigned int n,
-                                     short *S_cons,
-                                     short **S,
-                                     unsigned int **a2s,
-                                     int n_seq,
-                                     vrna_param_t * P),
-           "Use vrna_gq_pos_mfe() instead");
 
 
 DEPRECATED(FLT_OR_DBL * get_gquad_pf_matrix(short *S,
