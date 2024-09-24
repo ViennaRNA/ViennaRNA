@@ -1499,6 +1499,11 @@ E_ml_stems_fast(vrna_fold_compound_t  *fc,
   /* here, we assume that qm2[i,j] has been filled already */
   decomp = (fm2) ? fm2[ij] : mfe_multibranch_m2_fast(fc, i, j, helpers);
 
+  if (sliding_window) {
+    fmi   -= i;
+    dmli  -= i;
+  }
+  
   dmli[j] = decomp;               /* store for use in fast ML decompositon */
 
   e = MIN2(e, decomp);
