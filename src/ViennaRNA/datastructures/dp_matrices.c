@@ -540,7 +540,7 @@ add_mfe_matrices(vrna_fold_compound_t *vc,
 
     if (vc->params->model_details.gquad) {
       if (mx_type != VRNA_MX_WINDOW)
-        vc->matrices->c_gq = vrna_gq_pos_mfe(vc);
+        vc->matrices->c_gq = vrna_mfe_gquad_mx(vc);
     }
   }
 

@@ -315,6 +315,7 @@ bt_int_loop(vrna_fold_compound_t  *fc,
                  vrna_get_ptype(ij, fc->ptype);
           no_close = (((type == 3) || (type == 4)) && md->noGUclosure);
 
+#if 0
           if (sliding_window) {
             if ((!no_close) && (sn[j] == sn[i])) {
               int pp, qq;
@@ -329,14 +330,16 @@ bt_int_loop(vrna_fold_compound_t  *fc,
               }
             }
           } else {
+#endif
             if ((!no_close) && (sn[j] == sn[i])) {
               if (vrna_bt_gquad_int(fc, i, j, en, bp_stack, bt_stack)) {
                 ret = 1; /* success */
                 goto bt_int_exit;
               }
             }
+#if 0
           }
-
+#endif
           break;
 
         case VRNA_FC_TYPE_COMPARATIVE:

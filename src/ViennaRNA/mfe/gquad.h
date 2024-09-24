@@ -44,32 +44,10 @@
  */
 
 int
-vrna_gq_int_loop_mfe(vrna_fold_compound_t *fc,
+vrna_mfe_gquad_internal_loop(vrna_fold_compound_t *fc,
                      unsigned int         i,
                      unsigned int         j);
 
-
-int
-E_GQuad_IntLoop_L_comparative(int           i,
-                              int           j,
-                              unsigned int  *tt,
-                              short         *S_cons,
-                              short         **S5,
-                              short         **S3,
-                              unsigned int  **a2s,
-                              int           **ggg,
-                              int           n_seq,
-                              vrna_param_t  *P);
-
-
-int
-E_GQuad_IntLoop_L(int           i,
-                  int           j,
-                  int           type,
-                  short         *S,
-                  int           **ggg,
-                  int           maxdist,
-                  vrna_param_t  *P);
 
 /**
  *  @}
@@ -81,8 +59,20 @@ E_GQuad_IntLoop_L(int           i,
  *  @{
  */
 
+
+/**
+ *  @brief  Get G-Quadruplexes (MFE)
+ *
+ *  This function yields a sparse, two-dimensional matrix @f$ G @f@ that at
+ *  position @f$ G(i,j) @f$ stores the minimum free energy of a G-Quadruplex
+ *  that starts at @f$ i @f$ and ends at @f$ j @f$.
+ *
+ *  @param  fc    The fold_compound
+ *  @return       A sparse matrix with all MFE G-Quadruplexes
+ */
 vrna_smx_csr_int_t *
-vrna_gq_pos_mfe(vrna_fold_compound_t *fc);
+vrna_mfe_gquad_mx(vrna_fold_compound_t *fc);
+
 
 int **
 get_gquad_L_matrix(short        *S,
@@ -127,17 +117,45 @@ vrna_gquad_mx_local_update(vrna_fold_compound_t *fc,
  *  @param P  A pointer to the data structure containing the precomputed energy contributions
  *  @return   A pointer to the G-quadruplex contribution matrix
  */
-DEPRECATED(int *get_gquad_matrix(short *S, vrna_param_t * P),
-           "Use vrna_gq_pos_mfe() instead");
+DEPRECATED(int *
+get_gquad_matrix(short *S,
+                 vrna_param_t * P),
+           "Use vrna_mfe_gquad_mx() instead");
 
-DEPRECATED(int *get_gquad_ali_matrix(unsigned int n,
-                                     short *S_cons,
-                                     short **S,
-                                     unsigned int **a2s,
-                                     int n_seq,
-                                     vrna_param_t * P),
-           "Use vrna_gq_pos_mfe() instead");
 
+DEPRECATED(int *
+get_gquad_ali_matrix(unsigned int n,
+                     short *S_cons,
+                     short **S,
+                     unsigned int **a2s,
+                     int n_seq,
+                     vrna_param_t * P),
+           "Use vrna_mfe_gquad_mx() instead");
+
+
+DEPRECATED(int
+E_GQuad_IntLoop_L_comparative(int           i,
+                              int           j,
+                              unsigned int  *tt,
+                              short         *S_cons,
+                              short         **S5,
+                              short         **S3,
+                              unsigned int  **a2s,
+                              int           **ggg,
+                              int           n_seq,
+                              vrna_param_t  *P),
+          "Use vrna_mfe_gquad_internal_loop() instead");
+
+
+DEPRECATED(int
+E_GQuad_IntLoop_L(int           i,
+                  int           j,
+                  int           type,
+                  short         *S,
+                  int           **ggg,
+                  int           maxdist,
+                  vrna_param_t  *P),
+          "Use vrna_mfe_gquad_internal_loop() instead");
 
 /**
  * @}

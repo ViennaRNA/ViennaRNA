@@ -44,6 +44,7 @@
 #include "ViennaRNA/backtrack/hairpin.h"
 #include "ViennaRNA/backtrack/internal.h"
 #include "ViennaRNA/backtrack/multibranch.h"
+#include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/units.h"
 #include "ViennaRNA/mfe/local.h"
@@ -873,7 +874,7 @@ want_backtrack(vrna_fold_compound_t *fc,
 
 
 PRIVATE char *
-backtrack(vrna_fold_compound_t  *vc,
+backtrack(vrna_fold_compound_t  *fc,
           int                   start,
           int                   end)
 {
@@ -885,23 +886,24 @@ backtrack(vrna_fold_compound_t  *vc,
   char          *structure, **ptype;
   unsigned int  i, j, length, type, turn, p, q, max3, no_close,
                 dangle_model, noLP, noGUclosure, canonical;
+  unsigned int  L, ll[3];
   int           bt_type, **c, dangle3, ml, cij, **pscore;
   vrna_param_t *P;
   vrna_md_t *md;
   vrna_bts_t  bt_stack;
   vrna_bps_t  bp_stack;
 
-  length        = vc->length;
-  ptype         = vc->ptype_local;
-  pscore        = vc->pscore_local;
-  P             = vc->params;
+  length        = fc->length;
+  ptype         = fc->ptype_local;
+  pscore        = fc->pscore_local;
+  P             = fc->params;
   md            = &(P->model_details);
   dangle_model  = md->dangles;
   noLP          = md->noLP;
   noGUclosure   = md->noGUclosure;
   bt_type       = md->backtrack_type;
   turn          = md->min_loop_size;
-  c             = vc->matrices->c_local;
+  c             = fc->matrices->c_local;
 
   bt_stack = vrna_bts_init(0);
   bp_stack = vrna_bps_init(4 * (1 + length / 2));
@@ -917,7 +919,7 @@ backtrack(vrna_fold_compound_t  *vc,
 
   memset(structure, '.', MIN2(length - (unsigned int)start, (unsigned int)end) + 1);
 
-  dangle3 = 0;
+  dangle3 = (end < length) ? 1 : 0;
 
   while (vrna_bts_size(bt_stack) > 0) {
     canonical = 1;     /* (i,j) closes a canonical structure */
@@ -935,36 +937,13 @@ backtrack(vrna_fold_compound_t  *vc,
     switch (ml) {
       /* backtrack in f3 */
       case VRNA_MX_FLAG_F3:
-        if (vrna_bt_ext_loop_f3(vc, &i, j, &p, &q, bp_stack)) {
-          if (i > 0) {
-            vrna_bts_push(bt_stack,
-                          (vrna_sect_t){
-                            .i = i,
-                            .j = j,
-                            .ml  = VRNA_MX_FLAG_F3
-                          });
-          }
-
-          if (p > 0) {
-            if (((i == q + 2) || (dangle_model)) && (q < length))
-              dangle3 = 1;
-
-            i = p;
-            j = q;
-            goto repeat1;
-          } else if (md->gquad) {
-            /*
-             * check whether last element on the bp_stack is involved in G-Quadruplex formation
-             * and increase output dot-bracket string length by 1 if necessary
-             */
-            vrna_bp_t bp = vrna_bps_top(bp_stack);
-            if ((bp.i == bp.j) && (bp.i < length))
-              dangle3 = 1;
-          }
-
+        if (vrna_bt_f(fc, i, j, bp_stack, bt_stack)) {
           continue;
         } else {
-          vrna_log_error("backtracking failed in f3, segment [%d,%d]\n", i, j);
+          vrna_log_error("backtracking failed in f3, segment [%d,%d], e = %d",
+                         i,
+                         j,
+                         fc->matrices->f3[i]);
           free(structure);
           vrna_bps_free(bp_stack);
           vrna_bts_free(bt_stack);
@@ -975,7 +954,7 @@ backtrack(vrna_fold_compound_t  *vc,
 
       /* trace back in fML array */
       case VRNA_MX_FLAG_M:
-        if (vrna_bt_mb_loop_split(vc, i, j, bp_stack, bt_stack)) {
+        if (vrna_bt_mb_loop_split(fc, i, j, bp_stack, bt_stack)) {
           continue;
         } else {
           vrna_log_error("backtracking failed in fML, segment [%d,%d]\n", i, j);
@@ -997,8 +976,24 @@ backtrack(vrna_fold_compound_t  *vc,
         goto repeat1;
         break;
 
+      case VRNA_MX_FLAG_G:
+        if (vrna_bt_gquad(fc, i, j, &L, ll)) {
+          vrna_bps_push(bp_stack,
+                        (vrna_bp_t){
+                          .i = i,
+                          .j = i,
+                          .L = L,
+                          .l = { ll[0], ll[1], ll[2] }
+                        });
+          continue;
+        } else {
+          vrna_log_warning("backtracking failed in G, segment [%d,%d]\n", i, j);
+        }
+        break;
+
       default:
-        vrna_log_error("Backtracking failed due to unrecognized DP matrix!");
+        vrna_log_error("Backtracking failed for segment [%d,%d] due to unrecognized DP matrix [%d]!",
+                       i, j, ml);
         free(structure);
         vrna_bps_free(bp_stack);
         vrna_bts_free(bt_stack);
@@ -1013,7 +1008,7 @@ repeat1:
       cij = c[i][j - i];
 
     if (noLP) {
-      if (vrna_bt_stacked_pairs(vc, i, j, &cij, bp_stack, bt_stack)) {
+      if (vrna_bt_stacked_pairs(fc, i, j, &cij, bp_stack, bt_stack)) {
         canonical = 0;
 
         /* remove enclosed element from backtrack stack to
@@ -1029,35 +1024,17 @@ repeat1:
 
     canonical = 1;
 
-    switch (vc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        type = vrna_get_ptype_window(i, j, ptype);
+    if (fc->type == VRNA_FC_TYPE_COMPARATIVE)
+      cij += pscore[i][j - i];
 
-        no_close = (((type == 3) || (type == 4)) && noGUclosure);
+    if (vrna_bt_hairpin(fc, i, j, cij, bp_stack, bt_stack))
+      continue;
 
-        if (no_close) {
-          if (cij == FORBIDDEN)
-            continue;
-        } else {
-          if (vrna_bt_hairpin(vc, i, j, cij, bp_stack, bt_stack))
-            continue;
-        }
-
-        break;
-
-      case VRNA_FC_TYPE_COMPARATIVE:
-        cij += pscore[i][j - i];
-        if (vrna_bt_hairpin(vc, i, j, cij, bp_stack, bt_stack))
-          continue;
-
-        break;
-    }
-
-    if (vrna_bt_int_loop(vc, i, j, cij, bp_stack, bt_stack))
+    if (vrna_bt_int_loop(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
     /* (i.j) must close a multi-loop */
-    if (vrna_bt_mb_loop(vc, i, j, cij, bp_stack, bt_stack)) {
+    if (vrna_bt_mb_loop(fc, i, j, cij, bp_stack, bt_stack)) {
       continue;
     } else {
       vrna_log_error("backtracking failed in repeat, segment [%d,%d]\n", i, j);
@@ -1076,7 +1053,19 @@ repeat1:
     vrna_bp_t bp = vrna_bps_pop(bp_stack);
     if (bp.i == bp.j) {
       /* Gquad bonds are marked as bp[i].i == bp[i].j */
-      structure[bp.i - start] = '+';
+      if (bp.L > 0) {
+        vrna_db_insert_gq(structure,
+                          bp.i - start + 1,
+                          bp.L,
+                          bp.l,
+                          MIN2(length - (unsigned int)start, (unsigned int)end) + 1);
+        unsigned int gqend = bp.i + 4 * bp.L + bp.l[0] + bp.l[1] + bp.l[2] - 1;
+        if (max3 < gqend - start)
+          max3 = gqend - start;
+      } else {
+        structure[bp.i - start] = '+';
+      }
+
     } else {
       /* the following ones are regular base pairs */
       structure[bp.i - start]  = '(';

@@ -562,6 +562,8 @@ libRNA_mfe_la_SOURCES = \
 
 libRNA_backtrack_la_SOURCES = \
     backtrack/bt_exterior.c \
+    backtrack/bt_exterior_f5.c \
+    backtrack/bt_exterior_f3.c \
     backtrack/bt_hairpin.c \
     backtrack/bt_internal.c \
     backtrack/bt_multibranch.c \

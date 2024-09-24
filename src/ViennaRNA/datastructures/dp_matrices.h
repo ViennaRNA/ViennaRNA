@@ -114,6 +114,7 @@ struct {
   int *f3_local;            /**<  @brief  Energy of 5' end */
   int **fML_local;          /**<  @brief  Multi-loop auxiliary energy array */
   int **ggg_local;          /**<  @brief  Energies of g-quadruplexes */
+  unsigned int ggg_local_shift;
   /**
    * @}
    */

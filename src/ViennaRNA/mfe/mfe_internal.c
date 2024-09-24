@@ -631,35 +631,8 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
 
       if (with_gquad) {
         /* include all cases where a g-quadruplex may be enclosed by base pair (i,j) */
-        switch (fc->type) {
-          case VRNA_FC_TYPE_SINGLE:
-            eee = INF;
-            if (sliding_window)
-              eee = E_GQuad_IntLoop_L(i, j, type, S, ggg_local, fc->window_size, P);
-            else if (sn[j] == sn[i])
-              eee = vrna_gq_int_loop_mfe(fc, i, j);
-            e = MIN2(e, eee);
-            break;
-
-          case VRNA_FC_TYPE_COMPARATIVE:
-            if (sliding_window) {
-              eee = E_GQuad_IntLoop_L_comparative(i,
-                                                  j,
-                                                  helpers->tt,
-                                                  fc->S_cons,
-                                                  S5,
-                                                  S3,
-                                                  a2s,
-                                                  ggg_local,
-                                                  n_seq,
-                                                  P);
-            } else {
-              eee = vrna_gq_int_loop_mfe(fc, i, j);
-            }
-
-            e = MIN2(e, eee);
-            break;
-        }
+        eee = vrna_mfe_gquad_internal_loop(fc, i, j);
+        e   = MIN2(e, eee);
       }
     }
   }
