@@ -325,8 +325,8 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
 {
   unsigned char type;
   short         si, sj, *S, *S1, **SS, **S5, **S3;
-  int           energy, e_gq, dangles, c0;
-  unsigned int  **a2s, n_seq, s, p, q, l1, u1, u2, maxl, minl;
+  int           energy, e_gq, dangles, c0, **ggg;
+  unsigned int  **a2s, n_seq, s, p, q, l1, u1, u2, maxl, minl, sliding_window;
 
   vrna_smx_csr(int) * c_gq;
 
@@ -340,7 +340,9 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
   S5      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
   S3      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   a2s     = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
-  c_gq    = fc->matrices->c_gq;
+  sliding_window = (fc->matrices->type == VRNA_MX_WINDOW) ? 1 : 0;
+  c_gq    = (sliding_window) ? NULL : fc->matrices->c_gq;
+  ggg     = (sliding_window) ? fc->matrices->ggg_local : NULL;
   P       = fc->params;
   md      = &(P->model_details);
   dangles = md->dangles;
@@ -389,11 +391,15 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
         if (S1[q] != 3)
           continue;
 
+        if (sliding_window) {
+          e_gq = ggg[p][q - p];
+        } else {
 #ifndef VRNA_DISABLE_C11_FEATURES
-        e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+          e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
 #else
-        e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+          e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
 #endif
+        }
 
         if (e_gq != INF) {
           c0 = energy + e_gq;
@@ -447,11 +453,15 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
       if (S1[q] != 3)
         continue;
 
+        if (sliding_window) {
+          e_gq = ggg[p][q - p];
+        } else {
 #ifndef VRNA_DISABLE_C11_FEATURES
-      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+        e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
 #else
-      e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+        e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
 #endif
+      }
 
       if (e_gq != INF) {
         c0 = energy + e_gq;
@@ -495,11 +505,15 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
       if (S1[p] != 3)
         continue;
 
+        if (sliding_window) {
+          e_gq = ggg[p][q - p];
+        } else {
 #ifndef VRNA_DISABLE_C11_FEATURES
-      e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
+        e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
 #else
-      e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
+        e_gq = vrna_smx_csr_int_get(c_gq, p, q, INF);
 #endif
+      }
 
       if (e_gq != INF) {
         c0 = energy + e_gq;
