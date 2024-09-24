@@ -18,20 +18,20 @@ bind_mfe_window_callback(PyObject *PyFunc,
 
 
 static void
-python_wrap_mfe_window_cb(int         start,
-                          int         end,
-                          const char  *structure,
-                          float       energy,
-                          void        *data);
+python_wrap_mfe_window_cb(unsigned int  start,
+                          unsigned int  end,
+                          const char    *structure,
+                          float         energy,
+                          void          *data);
 
 #ifdef VRNA_WITH_SVM
 static void
-python_wrap_mfe_window_zscore_cb(int        start,
-                                 int        end,
-                                 const char *structure,
-                                 float      energy,
-                                 float      zscore,
-                                 void       *data);
+python_wrap_mfe_window_zscore_cb(unsigned int start,
+                                 unsigned int end,
+                                 const char   *structure,
+                                 float        energy,
+                                 float        zscore,
+                                 void         *data);
 #endif
 
 static python_mfe_window_callback_t *
@@ -59,11 +59,11 @@ release_mfe_window_callback(python_mfe_window_callback_t *cb)
 }
 
 static void
-python_wrap_mfe_window_cb(int         start,
-                          int         end,
-                          const char  *structure,
-                          float       energy,
-                          void        *data)
+python_wrap_mfe_window_cb(unsigned int  start,
+                          unsigned int  end,
+                          const char    *structure,
+                          float         energy,
+                          void          *data)
 {
   PyObject *func, *arglist, *result, *err;
   python_mfe_window_callback_t *cb = (python_mfe_window_callback_t *)data;
@@ -111,12 +111,12 @@ python_wrap_mfe_window_cb(int         start,
 
 #ifdef VRNA_WITH_SVM
 static void
-python_wrap_mfe_window_zscore_cb(int        start,
-                                 int        end,
-                                 const char *structure,
-                                 float      energy,
-                                 float      zscore,
-                                 void       *data)
+python_wrap_mfe_window_zscore_cb(unsigned int start,
+                                 unsigned int end,
+                                 const char   *structure,
+                                 float        energy,
+                                 float        zscore,
+                                 void         *data)
 {
 
   PyObject *func, *arglist, *result, *err;

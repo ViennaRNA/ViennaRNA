@@ -4,7 +4,7 @@ struct vrna_zsc_dat_s {
   double            min_z;
   unsigned char     filter_on;
   double            *current_z;
-  int               current_i;
+  unsigned int      current_i;
   unsigned char     pre_filter;
   unsigned char     report_subsumed;
 };

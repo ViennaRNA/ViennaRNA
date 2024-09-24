@@ -64,11 +64,11 @@ typedef struct {
 
 
 PRIVATE void
-print_hit_cb(int        start,
-             int        end,
-             const char *structure,
-             float      en,
-             void       *data);
+print_hit_cb(unsigned int start,
+             unsigned int end,
+             const char   *structure,
+             float        en,
+             void         *data);
 
 
 int
@@ -585,11 +585,11 @@ main(int  argc,
 
 
 PRIVATE void
-print_hit_cb(int        start,
-             int        end,
-             const char *structure,
-             float      en,
-             void       *data)
+print_hit_cb(unsigned int start,
+             unsigned int end,
+             const char   *structure,
+             float        en,
+             void         *data)
 {
   char      **sub;
   char      *fname, *tmp_string;
@@ -633,7 +633,7 @@ print_hit_cb(int        start,
   }
 
   if ((en / (float)(end - start + 1)) <= threshold) {
-    sub   = vrna_aln_slice((const char **)strings, (unsigned int)start, (unsigned int)end);
+    sub   = vrna_aln_slice((const char **)strings, start, end);
     cons  =
       (with_mis) ? vrna_aln_consensus_mis((const char **)sub,
                                           md) : vrna_aln_consensus_sequence((const char **)sub, md);
@@ -656,14 +656,14 @@ print_hit_cb(int        start,
       if (with_shapes) {
         float cov_en = vrna_eval_covar_structure(sub_fc, ss);
         if (with_csv == 1) {
-          msg = vrna_strdup_printf(",%6.2f,%6.2f,%6.2f,%d,%d",
+          msg = vrna_strdup_printf(",%6.2f,%6.2f,%6.2f,%u,%u",
                                    real_en,
                                    -cov_en,
                                    en - real_en + cov_en,
                                    start,
                                    end);
         } else {
-          msg = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f + %6.2f) %4d - %4d",
+          msg = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f + %6.2f) %4u - %4u",
                                    en,
                                    real_en,
                                    -cov_en,
@@ -675,7 +675,7 @@ print_hit_cb(int        start,
         if (with_csv == 1) {
           msg = vrna_strdup_printf(",%6.2f,%6.2f,%d,%d", real_en, en - real_en, start, end);
         } else {
-          msg = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f) %4d - %4d",
+          msg = vrna_strdup_printf(" (%6.2f = %6.2f + %6.2f) %4u - %4u",
                                    en,
                                    real_en,
                                    en - real_en,
@@ -687,9 +687,9 @@ print_hit_cb(int        start,
       vrna_fold_compound_free(sub_fc);
     } else {
       if (with_csv == 1)
-        msg = vrna_strdup_printf(",%6.2f,%d,%d", en, start, end);
+        msg = vrna_strdup_printf(",%6.2f,%u,%u", en, start, end);
       else
-        msg = vrna_strdup_printf(" (%6.2f) %4d - %4d", en, start, end);
+        msg = vrna_strdup_printf(" (%6.2f) %4u - %4u", en, start, end);
     }
 
     print_structure(stdout, ss, msg);
@@ -697,9 +697,9 @@ print_hit_cb(int        start,
 
     if (with_ss) {
       if (prefix)
-        fname = vrna_strdup_printf("%s_ss_%d_%d.eps", prefix, start, end);
+        fname = vrna_strdup_printf("%s_ss_%u_%u.eps", prefix, start, end);
       else
-        fname = vrna_strdup_printf("ss_%d_%d.eps", start, end);
+        fname = vrna_strdup_printf("ss_%u_%u.eps", start, end);
 
       tmp_string = vrna_filename_sanitize(fname, "_");
       free(fname);
@@ -717,9 +717,9 @@ print_hit_cb(int        start,
 
     if (with_msa) {
       if (prefix)
-        fname = vrna_strdup_printf("%s_aln_%d_%d.eps", prefix, start, end);
+        fname = vrna_strdup_printf("%s_aln_%u_%u.eps", prefix, start, end);
       else
-        fname = vrna_strdup_printf("aln_%d_%d.eps", start, end);
+        fname = vrna_strdup_printf("aln_%u_%u.eps", start, end);
 
       tmp_string = vrna_filename_sanitize(fname, "_");
 
@@ -741,15 +741,15 @@ print_hit_cb(int        start,
 
     if (with_stk) {
       char          **sub_orig = vrna_aln_slice((const char **)strings_orig,
-                                                (unsigned int)start,
-                                                (unsigned int)end);
+                                                start,
+                                                end);
       unsigned int  options = VRNA_FILE_FORMAT_MSA_STOCKHOLM |
                               VRNA_FILE_FORMAT_MSA_APPEND;
       if (with_mis)
         options |= VRNA_FILE_FORMAT_MSA_MIS;
 
       if (prefix) {
-        id    = vrna_strdup_printf("%s_aln_%d_%d", prefix, start, end);
+        id    = vrna_strdup_printf("%s_aln_%u_%u", prefix, start, end);
         fname = vrna_strdup_printf("%s.stk", prefix);
 
         tmp_string = vrna_filename_sanitize(fname, "_");
@@ -765,7 +765,7 @@ print_hit_cb(int        start,
                             options);
         free(fname);
       } else {
-        id = vrna_strdup_printf("aln_%d_%d", start, end);
+        id = vrna_strdup_printf("aln_%u_%u", start, end);
         vrna_file_msa_write("RNALalifold_results.stk",
                             (const char **)names,
                             (const char **)sub_orig,

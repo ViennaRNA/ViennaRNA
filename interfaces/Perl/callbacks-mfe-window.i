@@ -17,10 +17,10 @@ typedef struct {
 
 static perl_mfe_window_callback_t * bind_mfe_window_callback(SV *PerlFunc, SV *PerlData);
 
-static void perl_wrap_mfe_window_cb(int start, int end, const char *stucture, float energy, void *data);
+static void perl_wrap_mfe_window_cb(unsigned int start, unsigned int end, const char *stucture, float energy, void *data);
 
 #ifdef VRNA_WITH_SVM
-static void perl_wrap_mfe_window_zscore_cb(int start, int end, const char *stucture, float energy, float zscore, void *data);
+static void perl_wrap_mfe_window_zscore_cb(unsigned int start, unsigned int end, const char *stucture, float energy, float zscore, void *data);
 #endif
 
 static perl_mfe_window_callback_t *
@@ -41,7 +41,7 @@ bind_mfe_window_callback(SV *PerlFunc, SV *PerlData){
 }
 
 static void
-perl_wrap_mfe_window_cb(int start, int end, const char *stucture, float energy, void *data){
+perl_wrap_mfe_window_cb(unsigned int start, unsigned int end, const char *stucture, float energy, void *data){
 
   SV *func;
   perl_mfe_window_callback_t *cb = (perl_mfe_window_callback_t *)data;
@@ -93,7 +93,7 @@ perl_wrap_mfe_window_cb(int start, int end, const char *stucture, float energy, 
 
 #ifdef VRNA_WITH_SVM
 static void
-perl_wrap_mfe_window_zscore_cb(int start, int end, const char *stucture, float energy, float zscore, void *data){
+perl_wrap_mfe_window_zscore_cb(unsigned int start, unsigned int end, const char *stucture, float energy, float zscore, void *data){
 
   SV *func;
   perl_mfe_window_callback_t *cb = (perl_mfe_window_callback_t *)data;

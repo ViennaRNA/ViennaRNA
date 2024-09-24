@@ -49,17 +49,17 @@
  *
  *  @see vrna_mfe_window()
  *
- *  @param start provides the first position of the hit (1-based, relative to entire sequence/alignment)
- *  @param end provides the last position of the hit (1-based, relative to the entire sequence/alignment)
- *  @param structure provides the (sub)structure in dot-bracket notation
- *  @param en is the free energy of the structure hit in kcal/mol
- *  @param data is some arbitrary data pointer passed through by the function executing the callback
+ *  @param start      provides the first position of the hit (1-based, relative to entire sequence/alignment)
+ *  @param end        provides the last position of the hit (1-based, relative to the entire sequence/alignment)
+ *  @param structure  provides the (sub)structure in dot-bracket notation
+ *  @param en         is the free energy of the structure hit in kcal/mol
+ *  @param data       is some arbitrary data pointer passed through by the function executing the callback
  */
-typedef void (*vrna_mfe_window_f)(int         start,
-                                        int         end,
-                                        const char  *structure,
-                                        float       en,
-                                        void        *data);
+typedef void (*vrna_mfe_window_f)(unsigned int  start,
+                                  unsigned int  end,
+                                  const char    *structure,
+                                  float         en,
+                                  void          *data);
 
 DEPRECATED(typedef void (vrna_mfe_window_callback)(int         start,
                                         int         end,
@@ -71,12 +71,12 @@ DEPRECATED(typedef void (vrna_mfe_window_callback)(int         start,
 
 
 #ifdef VRNA_WITH_SVM
-typedef void (*vrna_mfe_window_zscore_f)(int        start,
-                                               int        end,
-                                               const char *structure,
-                                               float      en,
-                                               float      zscore,
-                                               void       *data);
+typedef void (*vrna_mfe_window_zscore_f)(unsigned int start,
+                                         unsigned int end,
+                                         const char   *structure,
+                                         float        en,
+                                         float        zscore,
+                                         void         *data);
 
 DEPRECATED(typedef void (vrna_mfe_window_zscore_callback)(int        start,
                                                int        end,

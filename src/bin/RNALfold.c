@@ -45,22 +45,22 @@ typedef struct {
 
 #ifdef VRNA_WITH_SVM
 PRIVATE void
-default_callback_z(int        start,
-                   int        end,
-                   const char *structure,
-                   float      en,
-                   float      zscore,
-                   void       *data);
+default_callback_z(unsigned int start,
+                   unsigned int end,
+                   const char   *structure,
+                   float        en,
+                   float        zscore,
+                   void         *data);
 
 
 #endif
 
 PRIVATE void
-default_callback(int        start,
-                 int        end,
-                 const char *structure,
-                 float      en,
-                 void       *data);
+default_callback(unsigned int start,
+                 unsigned int end,
+                 const char   *structure,
+                 float        en,
+                 void         *data);
 
 
 int
@@ -507,11 +507,11 @@ main(int  argc,
 
 
 PRIVATE void
-default_callback(int        start,
-                 int        end,
-                 const char *structure,
-                 float      en,
-                 void       *data)
+default_callback(unsigned int start,
+                 unsigned int end,
+                 const char   *structure,
+                 float        en,
+                 void         *data)
 {
   FILE  *output       = ((hit_data *)data)->output;
   int   dangle_model  = ((hit_data *)data)->dangle_model;
@@ -519,12 +519,12 @@ default_callback(int        start,
   char  *msg          = NULL;
 
   if ((dangle_model == 2) && (start > 1)) {
-    msg       = vrna_strdup_printf(" (%6.2f) %4d", en, start - 1);
+    msg       = vrna_strdup_printf(" (%6.2f) %4u", en, start - 1);
     struct_d2 = vrna_strdup_printf(".%s", structure);
     print_structure(output, struct_d2, msg);
     free(struct_d2);
   } else {
-    msg = vrna_strdup_printf(" (%6.2f) %4d", en, start);
+    msg = vrna_strdup_printf(" (%6.2f) %4u", en, start);
     print_structure(output, structure, msg);
   }
 
@@ -534,12 +534,12 @@ default_callback(int        start,
 
 #ifdef VRNA_WITH_SVM
 PRIVATE void
-default_callback_z(int        start,
-                   int        end,
-                   const char *structure,
-                   float      en,
-                   float      zscore,
-                   void       *data)
+default_callback_z(unsigned int start,
+                   unsigned int end,
+                   const char   *structure,
+                   float        en,
+                   float        zscore,
+                   void         *data)
 {
   FILE  *output       = ((hit_data *)data)->output;
   int   dangle_model  = ((hit_data *)data)->dangle_model;
@@ -547,12 +547,12 @@ default_callback_z(int        start,
   char  *msg          = NULL;
 
   if ((dangle_model == 2) && (start > 1)) {
-    msg       = vrna_strdup_printf(" (%6.2f) %4d z= %.3f", en, start - 1, zscore);
+    msg       = vrna_strdup_printf(" (%6.2f) %4u z= %.3f", en, start - 1, zscore);
     struct_d2 = vrna_strdup_printf(".%s", structure);
     print_structure(output, struct_d2, msg);
     free(struct_d2);
   } else {
-    msg = vrna_strdup_printf(" (%6.2f) %4d z= %.3f", en, start, zscore);
+    msg = vrna_strdup_printf(" (%6.2f) %4u z= %.3f", en, start, zscore);
     print_structure(output, structure, msg);
   }
 
