@@ -194,7 +194,7 @@ We will disable LTO support now!
 
             AC_LANG_PUSH([C])
             AC_LINK_IFELSE([
-                    AC_LANG_PROGRAM([[#include <stdlib.h>]],
+                    AC_LANG_PROGRAM([[#include <stdio.h>]],
                                     [[printf("bla");]])
                     ],[lto_link_success=yes],[lto_link_success=no])
             AC_LANG_POP([C])
