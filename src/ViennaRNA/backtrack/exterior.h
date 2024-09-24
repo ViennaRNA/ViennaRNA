@@ -55,10 +55,10 @@ vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
                     vrna_bts_t            bt_stack);
 
 
-int
+unsigned int
 vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
-                       unsigned int                  *i,
-                       unsigned int                  maxdist);
+                       unsigned int         *i,
+                       unsigned int         maxdist);
 
 
 /**

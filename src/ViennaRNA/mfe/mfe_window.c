@@ -110,21 +110,21 @@ backtrack(vrna_fold_compound_t  *vc,
 
 
 PRIVATE int
-fill_arrays(vrna_fold_compound_t            *vc,
+fill_arrays(vrna_fold_compound_t      *vc,
             int                             *underflow,
-            vrna_mfe_window_f        cb,
+            vrna_mfe_window_f         cb,
 #ifdef VRNA_WITH_SVM
-            vrna_mfe_window_zscore_f cb_z,
+            vrna_mfe_window_zscore_f  cb_z,
 #endif
-            void                            *data);
+            void                      *data);
 
 
 PRIVATE void
 default_callback(int        start,
                  int        end,
-                 const char *structure,
-                 float      en,
-                 void       *data);
+                 const char   *structure,
+                 float        en,
+                 void         *data);
 
 
 PRIVATE double
@@ -141,9 +141,9 @@ make_pscores(vrna_fold_compound_t *fc,
 PRIVATE void
 default_callback_comparative(int        start,
                              int        end,
-                             const char *structure,
-                             float      en,
-                             void       *data);
+                             const char   *structure,
+                             float        en,
+                             void         *data);
 
 
 PRIVATE INLINE void
@@ -193,10 +193,10 @@ decompose_pair(vrna_fold_compound_t *fc,
 PRIVATE void
 default_callback_z(int        start,
                    int        end,
-                   const char *structure,
-                   float      en,
-                   float      zscore,
-                   void       *data);
+                   const char   *structure,
+                   float        en,
+                   float        zscore,
+                   void         *data);
 
 
 PRIVATE INLINE int
@@ -232,12 +232,12 @@ vrna_mfe_window(vrna_fold_compound_t  *vc,
 
 
 PUBLIC float
-vrna_mfe_window_cb(vrna_fold_compound_t     *vc,
-                   vrna_mfe_window_f cb,
-                   void                     *data)
+vrna_mfe_window_cb(vrna_fold_compound_t *vc,
+                   vrna_mfe_window_f    cb,
+                   void                 *data)
 {
   int   energy, underflow, n_seq;
-  float mfe_local, e_factor;
+  float         mfe_local, e_factor;
 
   /* keep track of how many times we were close to an integer underflow */
   underflow = 0;
@@ -285,7 +285,7 @@ vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
                           void                            *data)
 {
   int   energy, underflow;
-  float mfe_local;
+  float         mfe_local;
 
   if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
     vrna_log_warning(
@@ -327,8 +327,8 @@ PRIVATE INLINE void
 allocate_dp_matrices(vrna_fold_compound_t *fc)
 {
   int       i, j, length, maxdist, **c, **fML;
-  vrna_hc_t *hc;
-  vrna_sc_t *sc;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   length  = fc->length;
   maxdist = MIN2(fc->window_size, length);
@@ -393,8 +393,8 @@ PRIVATE INLINE void
 free_dp_matrices(vrna_fold_compound_t *fc)
 {
   int       i, length, maxdist, **c, **fML, **ggg, with_gquad;
-  vrna_hc_t *hc;
-  vrna_sc_t *sc;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   length      = fc->length;
   maxdist     = MIN2(fc->window_size, length);
@@ -462,8 +462,8 @@ rotate_dp_matrices(vrna_fold_compound_t *fc,
                    int                  i)
 {
   int       ii, maxdist, length, **c, **fML;
-  vrna_hc_t *hc;
-  vrna_sc_t *sc;
+  vrna_hc_t     *hc;
+  vrna_sc_t     *sc;
 
   length  = fc->length;
   maxdist = fc->window_size;
@@ -589,20 +589,19 @@ rotate_constraints(vrna_fold_compound_t *fc,
 
 
 PRIVATE int
-fill_arrays(vrna_fold_compound_t            *vc,
+fill_arrays(vrna_fold_compound_t      *vc,
             int                             *underflow,
-            vrna_mfe_window_f        cb,
+            vrna_mfe_window_f         cb,
 #ifdef VRNA_WITH_SVM
-            vrna_mfe_window_zscore_f cb_z,
+            vrna_mfe_window_zscore_f  cb_z,
 #endif
-            void                            *data)
+            void                      *data)
 {
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
   char              *prev;
-  int               i, j, length, maxdist, **c, **fML, *f3,
-                    with_gquad, dangle_model, turn, n_seq,
-                    prev_i, prev_j, prev_end, prev_en;
+  unsigned int      i, j, ii, jj, length, maxdist, with_gquad, dangle_model, turn, n_seq, prev_i, prev_j, prev_end;
+  int               **c, **fML, *f3, prev_en;
   double            e_fact;
 
 #ifdef VRNA_WITH_SVM
@@ -635,6 +634,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
   with_zscore     = (zsc_data) ? zsc_data->filter_on : 0;
   report_subsumed = (zsc_data) ? zsc_data->report_subsumed : 0;
 #endif
+
+  if (turn + 2 > length)
+    return INF;
 
   if (vc->type == VRNA_FC_TYPE_COMPARATIVE) {
 #ifdef VRNA_WITH_SVM
@@ -683,7 +685,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
   init_constraints(vc);
 
   if (with_gquad)
-    vrna_gquad_mx_local_update(vc, length - maxdist - 4);
+    vrna_gquad_mx_local_update(vc, (int)length - (int)maxdist - 4);
 
   for (i = length - turn - 1; i >= 1; i--) {
     /* i,j in [1..length] */
@@ -718,10 +720,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
          * energy due to unpaired nucleotides in the exterior loop, which
          * may happen in the case of using soft constraints
          */
-        unsigned int  ii;
-        int           jj;
         ii  = i;
         jj  = vrna_bt_ext_loop_f3_pp(vc, &ii, maxdist);
+
         if (jj > 0) {
 #ifdef VRNA_WITH_SVM
           double thisz = 0;
@@ -756,12 +757,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
         }
 
 #endif
-        } else if (jj == -1) {
-          /* some error occured during backtracking */
-          vrna_log_error("backtrack failed in short backtrack 1");
-          free_aux_arrays(helper_arrays);
-          free_dp_matrices(vc);
-          return INF;
         }
       }
 
@@ -782,10 +777,9 @@ fill_arrays(vrna_fold_compound_t            *vc,
 #else
         } else if (f3[i] < 0) {
 #endif
-          unsigned int  ii;
-          int           jj;
           ii  = i;
           jj  = vrna_bt_ext_loop_f3_pp(vc, &ii, maxdist);
+
           if (jj > 0) {
 #ifdef VRNA_WITH_SVM
             double thisz = 0;
@@ -806,12 +800,6 @@ fill_arrays(vrna_fold_compound_t            *vc,
           }
 
 #endif
-          } else if (jj == -1) {
-            /* some error occured during backtracking */
-            vrna_log_error("backtrack failed in short backtrack 2");
-            free_aux_arrays(helper_arrays);
-            free_dp_matrices(vc);
-            return INF;
           }
         }
       }
@@ -820,7 +808,7 @@ fill_arrays(vrna_fold_compound_t            *vc,
     /* check for values close to integer underflow */
     if (INT_CLOSE_TO_UNDERFLOW(f3[i])) {
       /* correct f3 free energies and increase underflow counter */
-      int cnt;
+      unsigned int cnt;
       for (cnt = i; cnt <= MIN2(i + maxdist + 2, length); cnt++)
         f3[cnt] -= UNDERFLOW_CORRECTION;
       (*underflow)++;
@@ -1093,8 +1081,8 @@ make_ptypes(vrna_fold_compound_t  *vc,
 {
   int j, k, type, n, maxdist, turn, noLP;
   short *S;
-  char **ptype;
-  vrna_md_t *md;
+  char          **ptype;
+  vrna_md_t     *md;
 
   n       = (int)vc->length;
   S       = vc->sequence_encoding2;
@@ -1167,7 +1155,7 @@ make_pscores(vrna_fold_compound_t *fc,
    * should be 0 for conserved pairs, >0 for good pairs
    */
   int n, j, **pscore, maxd, turn, noLP;
-  vrna_md_t *md;
+  vrna_md_t     *md;
 
   n       = (int)fc->length;
   maxd    = fc->window_size;
@@ -1207,11 +1195,11 @@ make_pscores(vrna_fold_compound_t *fc,
 PRIVATE void
 default_callback(int        start,
                  int        end,
-                 const char *structure,
-                 float      en,
-                 void       *data)
+                 const char   *structure,
+                 float        en,
+                 void         *data)
 {
-  FILE *output      = ((hit_data *)data)->output;
+  FILE          *output       = ((hit_data *)data)->output;
   int dangle_model  = ((hit_data *)data)->dangle_model;
 
   if ((dangle_model == 2) && (start > 1))
@@ -1225,12 +1213,12 @@ default_callback(int        start,
 PRIVATE void
 default_callback_z(int        start,
                    int        end,
-                   const char *structure,
-                   float      en,
-                   float      zscore,
-                   void       *data)
+                   const char   *structure,
+                   float        en,
+                   float        zscore,
+                   void         *data)
 {
-  FILE *output      = ((hit_data *)data)->output;
+  FILE          *output      = ((hit_data *)data)->output;
   int dangle_model  = ((hit_data *)data)->dangle_model;
 
   if ((dangle_model == 2) && (start > 1))
@@ -1246,11 +1234,11 @@ default_callback_z(int        start,
 PRIVATE void
 default_callback_comparative(int        start,
                              int        end,
-                             const char *structure,
-                             float      en,
-                             void       *data)
+                             const char   *structure,
+                             float        en,
+                             void         *data)
 {
-  FILE *output      = ((hit_data *)data)->output;
+  FILE          *output       = ((hit_data *)data)->output;
   int dangle_model  = ((hit_data *)data)->dangle_model;
   int csv           = ((hit_data *)data)->csv;
 

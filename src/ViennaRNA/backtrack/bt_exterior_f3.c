@@ -58,16 +58,16 @@ bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
                            vrna_bts_t            bt_stack);
 
 
-PRIVATE int
+PRIVATE unsigned int
 bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
-                  unsigned int                   *i,
-                  unsigned int                   maxj);
+                  unsigned int          *i,
+                  unsigned int          maxj);
 
 
-PRIVATE int
+PRIVATE unsigned int
 bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
-                              unsigned int                   *i,
-                              unsigned int                   maxj);
+                              unsigned int          *i,
+                              unsigned int          maxj);
 
 
 /*
@@ -100,7 +100,7 @@ vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
 }
 
 
-PUBLIC int
+PUBLIC unsigned int
 vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
                        unsigned int         *i,
                        unsigned int         maxj)
@@ -117,7 +117,7 @@ vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
     }
   }
 
-  return -1;
+  return 0;
 }
 
 
@@ -673,15 +673,14 @@ bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
 }
 
 
-PRIVATE int
+PRIVATE unsigned int
 bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
-                  unsigned int                   *i,
-                  unsigned int                   maxj)
+                  unsigned int          *i,
+                  unsigned int          maxj)
 {
-  int j;
-  unsigned int start;
+  unsigned int j, start;
 
-  j     = -1;
+  j     = 0;
   start = *i;
 
   if (fc) {
@@ -910,8 +909,10 @@ bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
         break;
     }
 
-    if (!traced2)
-      j = -1;
+    if (!traced2) {
+      j = 0;
+      vrna_log_error("backtrack failed in short backtrack for position %u", *i);
+    }
   }
 
   *i = start;
@@ -919,15 +920,14 @@ bt_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
 }
 
 
-PRIVATE int
+PRIVATE unsigned int
 bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
-                              unsigned int                   *i,
-                              unsigned int                   maxj)
+                              unsigned int          *i,
+                              unsigned int          maxj)
 {
-  int j;
-  unsigned int start;
+  unsigned int j, start;
 
-  j = -1;
+  j = 0;
 
   if (fc) {
     short                     **S, **S5, **S3;
@@ -1131,8 +1131,10 @@ bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
 
     }
 
-    if (!traced2)
-      j = -1;
+    if (!traced2) {
+      j = 0;
+      vrna_log_error("backtrack failed in short backtrack for position %u", *i);
+    }
   }
 
   return j;
@@ -1150,7 +1152,7 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
 
   unsigned int ii = (unsigned int)(*i);
 
-  r = vrna_bt_ext_loop_f3_pp(fc, &ii, (unsigned int)maxj);
+  r = (int)vrna_bt_ext_loop_f3_pp(fc, &ii, (unsigned int)maxj);
 
   *i = (int)ii;
 
