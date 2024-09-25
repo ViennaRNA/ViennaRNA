@@ -76,7 +76,7 @@ bt_ext_loop_f3_pp_comparative(vrna_fold_compound_t  *fc,
  #################################
  */
 PUBLIC unsigned int
-vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
+vrna_bt_exterior_f3(vrna_fold_compound_t  *fc,
                     unsigned int          i,
                     unsigned int          j,
                     vrna_bps_t            bp_stack,
@@ -101,7 +101,7 @@ vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
 
 
 PUBLIC unsigned int
-vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+vrna_bt_exterior_f3_pp(vrna_fold_compound_t *fc,
                        unsigned int         *i,
                        unsigned int         maxj)
 {
@@ -1145,7 +1145,7 @@ vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t *fc,
   int           r;
   unsigned int  ii = (unsigned int)(*i);
 
-  r = (int)vrna_bt_ext_loop_f3_pp(fc, &ii, (unsigned int)maxj);
+  r = (int)vrna_bt_exterior_f3_pp(fc, &ii, (unsigned int)maxj);
 
   *i = (int)ii;
 

@@ -98,11 +98,11 @@ vrna_bt_m(vrna_fold_compound_t  *fc,
 
 
 PUBLIC unsigned int
-vrna_bt_mb_loop_split(vrna_fold_compound_t  *fc,
-                      unsigned int          i,
-                      unsigned int          j,
-                      vrna_bps_t            bp_stack,
-                      vrna_bts_t            bt_stack)
+vrna_bt_multibranch_split(vrna_fold_compound_t  *fc,
+                          unsigned int          i,
+                          unsigned int          j,
+                          vrna_bps_t            bp_stack,
+                          vrna_bts_t            bt_stack)
 {
   if ((fc) &&
       (bp_stack) &&
@@ -114,12 +114,12 @@ vrna_bt_mb_loop_split(vrna_fold_compound_t  *fc,
 
 
 PUBLIC unsigned int
-vrna_bt_mb_loop(vrna_fold_compound_t  *fc,
-                unsigned int          i,
-                unsigned int          j,
-                int                   en,
-                vrna_bps_t            bp_stack,
-                vrna_bts_t            bt_stack)
+vrna_bt_multibranch_loop(vrna_fold_compound_t  *fc,
+                         unsigned int          i,
+                         unsigned int          j,
+                         int                   en,
+                         vrna_bps_t            bp_stack,
+                         vrna_bts_t            bt_stack)
 {
   if ((fc) &&
       (bp_stack) &&

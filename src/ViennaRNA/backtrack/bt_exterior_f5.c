@@ -63,7 +63,7 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
  #################################
  */
 PUBLIC unsigned int
-vrna_bt_ext_loop_f5(vrna_fold_compound_t  *fc,
+vrna_bt_exterior_f5(vrna_fold_compound_t  *fc,
                     unsigned int          j,
                     vrna_bps_t            bp_stack,
                     vrna_bts_t            bt_stack)

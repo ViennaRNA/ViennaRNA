@@ -315,12 +315,12 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
-                  unsigned int          i,
-                  unsigned int          j,
-                  int                   en,
-                  vrna_bps_t            bp_stack,
-                  vrna_bts_t            bt_stack)
+vrna_bt_gquad_interior(vrna_fold_compound_t  *fc,
+                       unsigned int          i,
+                       unsigned int          j,
+                       int                   en,
+                       vrna_bps_t            bp_stack,
+                       vrna_bts_t            bt_stack)
 {
   unsigned char type;
   short         si, sj, *S, *S1, **SS, **S5, **S3;
@@ -803,7 +803,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
     vrna_bps_t  bps = vrna_bps_init(4);
     vrna_bts_t  bts = vrna_bts_init(0);
 
-    r = vrna_bt_gquad_int(fc, (unsigned int)i, (unsigned int)j, en, bps, bts);
+    r = vrna_bt_gquad_interior(fc, (unsigned int)i, (unsigned int)j, en, bps, bts);
 
     while (vrna_bts_size(bts) > 0) {
       vrna_sect_t s = vrna_bts_pop(bts);

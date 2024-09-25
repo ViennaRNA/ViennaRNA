@@ -516,7 +516,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
      * end of i-loop
      * calculate energies of 5' fragments
      */
-  (void)vrna_E_ext_loop_5(fc);
+  (void)vrna_mfe_exterior_f5(fc);
 
   /* clean up memory */
   free_aux_arrays(helper_arrays);
@@ -4262,7 +4262,7 @@ repeat1:
     if (vrna_bt_hairpin(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
-    if (vrna_bt_int_loop(fc, i, j, cij, bp_stack, bt_stack))
+    if (vrna_bt_interior_loop(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
     if (fc->strands > 1) {
@@ -4289,7 +4289,7 @@ repeat1:
     }
 
     /* (i.j) must close a multi-loop */
-    if (vrna_bt_mb_loop(fc, i, j, cij, bp_stack, bt_stack)) {
+    if (vrna_bt_multibranch_loop(fc, i, j, cij, bp_stack, bt_stack)) {
       continue;
     } else if (aux_grammar) {
       ret = 0;

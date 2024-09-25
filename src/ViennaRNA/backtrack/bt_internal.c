@@ -60,12 +60,12 @@ bt_stacked_pairs(vrna_fold_compound_t *fc,
  #################################
  */
 PUBLIC int
-vrna_bt_int_loop(vrna_fold_compound_t *fc,
-                 unsigned int         i,
-                 unsigned int         j,
-                 int                  en,
-                 vrna_bps_t           bp_stack,
-                 vrna_bts_t           bt_stack)
+vrna_bt_interior_loop(vrna_fold_compound_t *fc,
+                      unsigned int         i,
+                      unsigned int         j,
+                      int                  en,
+                      vrna_bps_t           bp_stack,
+                      vrna_bts_t           bt_stack)
 {
   if ((fc) &&
       (bp_stack) &&
@@ -306,7 +306,7 @@ bt_int_loop(vrna_fold_compound_t  *fc,
      * that should then be decomposed further...
      */
     if ((md->gquad) &&
-        (vrna_bt_gquad_int(fc, i, j, en, bp_stack, bt_stack))) {
+        (vrna_bt_gquad_interior(fc, i, j, en, bp_stack, bt_stack))) {
       ret = 1;   /* success */
       goto bt_int_exit;
     }

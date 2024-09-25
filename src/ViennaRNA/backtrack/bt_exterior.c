@@ -42,11 +42,11 @@ vrna_bt_f(vrna_fold_compound_t  *fc,
         (fc->matrices->type == VRNA_MX_DEFAULT) &&
         (fc->matrices->f5)) {
       e   = fc->matrices->f5[j];
-      ret = vrna_bt_ext_loop_f5(fc, j, bp_stack, bt_stack);
+      ret = vrna_bt_exterior_f5(fc, j, bp_stack, bt_stack);
     } else if ((fc->matrices->type == VRNA_MX_WINDOW) &&
                (fc->matrices->f3)) {
       e   = fc->matrices->f3[i];
-      ret = vrna_bt_ext_loop_f3(fc, i, j, bp_stack, bt_stack);
+      ret = vrna_bt_exterior_f3(fc, i, j, bp_stack, bt_stack);
     }
 
     if ((!ret) &&

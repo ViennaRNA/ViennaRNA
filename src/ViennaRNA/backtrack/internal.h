@@ -51,12 +51,12 @@ vrna_bt_stacked_pairs(vrna_fold_compound_t  *fc,
  *
  */
 int
-vrna_bt_int_loop(vrna_fold_compound_t *fc,
-                 unsigned int         i,
-                 unsigned int         j,
-                 int                  en,
-                 vrna_bps_t           bp_stack,
-                 vrna_bts_t           bt_stack);
+vrna_bt_interior_loop(vrna_fold_compound_t *fc,
+                      unsigned int         i,
+                      unsigned int         j,
+                      int                  en,
+                      vrna_bps_t           bp_stack,
+                      vrna_bts_t           bt_stack);
 
 
 /**
@@ -88,7 +88,7 @@ DEPRECATED(int
                             int                   en,
                             vrna_bp_stack_t       *bp_stack,
                             unsigned int          *stack_count),
-           "Use vrna_bt_int_loop() instead!");
+           "Use vrna_bt_interior_loop() instead!");
 
 /**
  * @}

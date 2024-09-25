@@ -141,7 +141,7 @@ add_f5_gquad(vrna_fold_compound_t   *fc,
  #################################
  */
 PUBLIC int
-vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
+vrna_mfe_exterior_f5(vrna_fold_compound_t *fc)
 {
   if (fc) {
     unsigned int          j, length, dangle_model, with_gquad;

@@ -718,7 +718,7 @@ fill_arrays(vrna_fold_compound_t      *vc,
     } /* for (j...) */
 
     /* calculate energies of 5' and 3' fragments */
-    f3[i] = vrna_E_ext_loop_3(vc, i);
+    f3[i] = vrna_mfe_exterior_f3(vc, i);
 
     {
       char *ss = NULL;
@@ -731,7 +731,7 @@ fill_arrays(vrna_fold_compound_t      *vc,
          * may happen in the case of using soft constraints
          */
         ii  = i;
-        jj  = vrna_bt_ext_loop_f3_pp(vc, &ii, maxdist);
+        jj  = vrna_bt_exterior_f3_pp(vc, &ii, maxdist);
 
         if (jj > 0) {
 #ifdef VRNA_WITH_SVM
@@ -788,7 +788,7 @@ fill_arrays(vrna_fold_compound_t      *vc,
         } else if (f3[i] < 0) {
 #endif
           ii  = i;
-          jj  = vrna_bt_ext_loop_f3_pp(vc, &ii, maxdist);
+          jj  = vrna_bt_exterior_f3_pp(vc, &ii, maxdist);
 
           if (jj > 0) {
 #ifdef VRNA_WITH_SVM
@@ -1026,11 +1026,11 @@ repeat1:
     if (vrna_bt_hairpin(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
-    if (vrna_bt_int_loop(fc, i, j, cij, bp_stack, bt_stack))
+    if (vrna_bt_interior_loop(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
     /* (i.j) must close a multi-loop */
-    if (vrna_bt_mb_loop(fc, i, j, cij, bp_stack, bt_stack)) {
+    if (vrna_bt_multibranch_loop(fc, i, j, cij, bp_stack, bt_stack)) {
       continue;
     } else {
       vrna_log_error("backtracking failed in repeat, segment [%d,%d]", i, j);

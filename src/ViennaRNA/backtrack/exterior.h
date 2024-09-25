@@ -41,14 +41,14 @@ vrna_bt_f(vrna_fold_compound_t  *fc,
 
 
 unsigned int
-vrna_bt_ext_loop_f5(vrna_fold_compound_t  *fc,
+vrna_bt_exterior_f5(vrna_fold_compound_t  *fc,
                     unsigned int          j,
                     vrna_bps_t            bp_stack,
                     vrna_bts_t            bt_stack);
 
 
 unsigned int
-vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
+vrna_bt_exterior_f3(vrna_fold_compound_t  *fc,
                     unsigned int          i,
                     unsigned int          j,
                     vrna_bps_t            bp_stack,
@@ -56,7 +56,7 @@ vrna_bt_ext_loop_f3(vrna_fold_compound_t  *fc,
 
 
 unsigned int
-vrna_bt_ext_loop_f3_pp(vrna_fold_compound_t *fc,
+vrna_bt_exterior_f3_pp(vrna_fold_compound_t *fc,
                        unsigned int         *i,
                        unsigned int         maxdist);
 
@@ -78,7 +78,7 @@ DEPRECATED(int
                                int                  *j,
                                vrna_bp_stack_t      *bp_stack,
                                unsigned int         *stack_count),
-           "Use vrna_bt_ext_loop_f5() or vrna_bt_f() instead!");
+           "Use vrna_bt_exterior_f5() or vrna_bt_f() instead!");
 
 
 DEPRECATED(int
@@ -89,14 +89,14 @@ DEPRECATED(int
                                int                  *j,
                                vrna_bp_stack_t      *bp_stack,
                                unsigned int         *stack_count),
-           "Use vrna_bt_ext_loop_f3() instead!");
+           "Use vrna_bt_exterior_f3() instead!");
 
 
 DEPRECATED(int
            vrna_BT_ext_loop_f3_pp(vrna_fold_compound_t  *fc,
                                   int                   *i,
                                   int                   maxdist),
-           "Use vrna_bt_ext_loop_f3_pp() instead!");
+           "Use vrna_bt_exterior_f3_pp() instead!");
 
 /**
  * @}
