@@ -61,16 +61,16 @@ vrna_exp_E_exterior_loop(unsigned int n,
   vrna_md_t md_tmp;
 
   if (md == NULL) {
-   vrna_md_set_default(&md_tmp);
-   md = &md_tmp;
+    vrna_md_set_default(&md_tmp);
+    md = &md_tmp;
   }
 
   if ((md->circ) &&
       (md->circ_penalty)) {
-    double e  = (double)vrna_E_exterior_loop(n, md) / 100.;
-    double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
+    double  e   = (double)vrna_E_exterior_loop(n, md) / 100.;
+    double  kT  = md->betaScale * (md->temperature + K0) * GASCONST / 1000.;  /* kT in kcal/mol */
 
-    return (FLT_OR_DBL)exp(-e / kT); /* return in dekacal/mol */
+    return (FLT_OR_DBL)exp(-e / kT);                                          /* return in dekacal/mol */
   } else {
     return 1.;
   }
@@ -128,8 +128,6 @@ exp_E_ExtLoop(int               type,
 }
 
 
-
-
 PUBLIC FLT_OR_DBL
 vrna_exp_E_ext_stem(unsigned int      type,
                     int               n5d,
@@ -138,4 +136,6 @@ vrna_exp_E_ext_stem(unsigned int      type,
 {
   return vrna_exp_E_exterior_stem(type, n5d, n3d, p);
 }
+
+
 #endif

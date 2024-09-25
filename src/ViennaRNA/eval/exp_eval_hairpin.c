@@ -54,7 +54,6 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *fc,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-
 PUBLIC FLT_OR_DBL
 vrna_exp_E_hairpin(unsigned int     u,
                    unsigned int     type,
@@ -66,16 +65,18 @@ vrna_exp_E_hairpin(unsigned int     u,
   double q, kT, salt_correction;
 
   q = 0.;
-  
+
   if (P) {
-    kT = P->kT;   /* kT in cal/mol  */
+    kT              = P->kT; /* kT in cal/mol  */
     salt_correction = 1.;
 
     if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-      if (u<=MAXLOOP)
-        salt_correction = P->expSaltLoop[u+1];
+      if (u <= MAXLOOP)
+        salt_correction = P->expSaltLoop[u + 1];
       else
-        salt_correction = exp(-vrna_salt_loop_int(u+1, P->model_details.salt, P->temperature+K0, P->model_details.backbone_length) * 10. / kT);
+        salt_correction =
+          exp(-vrna_salt_loop_int(u + 1, P->model_details.salt, P->temperature + K0,
+                                  P->model_details.backbone_length) * 10. / kT);
     }
 
     if (u <= 30)
@@ -163,18 +164,20 @@ vrna_exp_eval_hairpin(vrna_fold_compound_t  *fc,
 
     /* is this base pair allowed to close a hairpin (like) loop ? */
     if (eval)
-      return (i > j) ? exp_eval_ext_hp_loop(fc, j, i, options) : exp_eval_hp_loop(fc, i, j, options);
+      return (i > j) ?
+             exp_eval_ext_hp_loop(fc, j, i, options) :
+             exp_eval_hp_loop(fc, i, j, options);
   }
 
   return 0.;
 }
+
 
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
-
 PRIVATE FLT_OR_DBL
 exp_eval_hp_loop(vrna_fold_compound_t *fc,
                  unsigned int         i,
@@ -370,6 +373,7 @@ exp_eval_ext_hp_loop(vrna_fold_compound_t *fc,
   return q;
 }
 
+
 /*
  #####################################
  # DEPRECATED functions below        #
@@ -387,7 +391,6 @@ vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
                                (unsigned int)j,
                                VRNA_EVAL_LOOP_DEFAULT);
 }
-
 
 
 #endif

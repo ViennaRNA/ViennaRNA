@@ -125,8 +125,6 @@ vrna_exp_E_multibranch_stem(unsigned int      type,
  */
 
 
-
-
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 /**
@@ -155,11 +153,11 @@ vrna_exp_E_multibranch_stem(unsigned int      type,
  *  @return   The energy contribution of the introduced multiloop stem
  */
 DEPRECATED(PRIVATE INLINE int
-E_MLstem(int          type,
-         int          si1,
-         int          sj1,
-         vrna_param_t *P),
-          "Use vrna_E_multibranch_stem() instead!");
+           E_MLstem(int           type,
+                    int           si1,
+                    int           sj1,
+                    vrna_param_t  *P),
+           "Use vrna_E_multibranch_stem() instead!");
 
 
 PRIVATE INLINE int
@@ -195,12 +193,11 @@ E_MLstem(int          type,
  *  @return The Boltzmann weighted energy contribution of the introduced multiloop stem
  */
 DEPRECATED(PRIVATE INLINE FLT_OR_DBL
-exp_E_MLstem(int              type,
-             int              si1,
-             int              sj1,
-             vrna_exp_param_t *P),
-          "Use vrna_exp_E_multibranch_stem() instead!");
-
+           exp_E_MLstem(int               type,
+                        int               si1,
+                        int               sj1,
+                        vrna_exp_param_t  *P),
+           "Use vrna_exp_E_multibranch_stem() instead!");
 
 
 PRIVATE INLINE FLT_OR_DBL

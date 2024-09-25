@@ -179,6 +179,7 @@ vrna_exp_E_hairpin(unsigned int     size,
                    const char       *sequence,
                    vrna_exp_param_t *P);
 
+
 /**
  *  @brief High-Level function for hairpin loop energy evaluation (partition function variant)
  *
@@ -268,13 +269,76 @@ vrna_exp_eval_hairpin(vrna_fold_compound_t  *fc,
  *  @return The Free energy of the Hairpin-loop in dcal/mol
  */
 DEPRECATED(PRIVATE INLINE int
-E_Hairpin(int           size,
-          int           type,
-          int           si1,
-          int           sj1,
-          const char    *string,
-          vrna_param_t  *P),
-          "Use vrna_E_hairpin() instead!");
+           E_Hairpin(int          size,
+                     int          type,
+                     int          si1,
+                     int          sj1,
+                     const char   *string,
+                     vrna_param_t *P),
+           "Use vrna_E_hairpin() instead!");
+
+
+DEPRECATED(int
+           vrna_E_hp_loop(vrna_fold_compound_t  *fc,
+                          int                   i,
+                          int                   j),
+           "Use vrna_eval_hairpin() instead!");
+
+
+DEPRECATED(int
+           vrna_E_ext_hp_loop(vrna_fold_compound_t  *fc,
+                              int                   i,
+                              int                   j),
+           "Use vrna_eval_hairpin() instead!");
+
+
+DEPRECATED(int
+           vrna_eval_hp_loop(vrna_fold_compound_t *fc,
+                             int                  i,
+                             int                  j),
+           "Use vrna_eval_hairpin() instead!");
+
+
+DEPRECATED(int
+           vrna_eval_ext_hp_loop(vrna_fold_compound_t *fc,
+                                 int                  i,
+                                 int                  j),
+           "Use vrna_eval_hairpin() instead!");
+
+
+/**
+ *  @brief Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of a hairpin loop
+ *
+ *  @note multiply by scale[u+2]
+ *
+ *  @see get_scaled_pf_parameters(), vrna_exp_param_t, E_Hairpin()
+ *
+ *  @warning  Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
+ *            Energy evaluation may change due to updates in global variable "tetra_loop"
+ *
+ *  @param  u       The size of the loop (number of unpaired nucleotides)
+ *  @param  type    The pair type of the base pair closing the hairpin
+ *  @param  si1     The 5'-mismatching nucleotide
+ *  @param  sj1     The 3'-mismatching nucleotide
+ *  @param  string  The sequence of the loop (May be @p NULL, otherwise mst be at least @f$size + 2@f$ long)
+ *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
+ *  @return The Boltzmann weight of the Hairpin-loop
+ */
+DEPRECATED(PRIVATE INLINE FLT_OR_DBL
+           exp_E_Hairpin(int              u,
+                         int              type,
+                         short            si1,
+                         short            sj1,
+                         const char       *string,
+                         vrna_exp_param_t *P),
+           "Use vrna_exp_E_hairpin() instead!");
+
+
+DEPRECATED(FLT_OR_DBL
+           vrna_exp_E_hp_loop(vrna_fold_compound_t  *fc,
+                              int                   i,
+                              int                   j),
+           "Use vrna_exp_eval_hairpin() instead!");
 
 
 PRIVATE INLINE int
@@ -290,17 +354,20 @@ E_Hairpin(int           size,
   salt_correction = 0;
 
   if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-    if (size<=MAXLOOP)
-      salt_correction = P->SaltLoop[size+1];
+    if (size <= MAXLOOP)
+      salt_correction = P->SaltLoop[size + 1];
     else
-      salt_correction = vrna_salt_loop_int(size+1, P->model_details.salt, P->temperature+K0, P->model_details.backbone_length);
+      salt_correction = vrna_salt_loop_int(size + 1,
+                                           P->model_details.salt,
+                                           P->temperature + K0,
+                                           P->model_details.backbone_length);
   }
 
   if (size <= 30)
     energy = P->hairpin[size];
   else
     energy = P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
-  
+
   energy += salt_correction;
 
   if (size < 3)
@@ -343,62 +410,6 @@ E_Hairpin(int           size,
 }
 
 
-DEPRECATED(int
-vrna_E_hp_loop(vrna_fold_compound_t *fc,
-               int                  i,
-               int                  j),
-           "Use vrna_eval_hairpin() instead!");
-
-
-DEPRECATED(int
-vrna_E_ext_hp_loop(vrna_fold_compound_t *fc,
-                   int                  i,
-                   int                  j),
-           "Use vrna_eval_hairpin() instead!");
-
-
-DEPRECATED(int
-vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j),
-           "Use vrna_eval_hairpin() instead!");
-
-
-DEPRECATED(int
-vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,
-                      int                   i,
-                      int                   j),
-           "Use vrna_eval_hairpin() instead!");
-
-
-/**
- *  @brief Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of a hairpin loop
- *
- *  @note multiply by scale[u+2]
- *
- *  @see get_scaled_pf_parameters(), vrna_exp_param_t, E_Hairpin()
- *
- *  @warning  Not (really) thread safe! A threadsafe implementation will replace this function in a future release!\n
- *            Energy evaluation may change due to updates in global variable "tetra_loop"
- *
- *  @param  u       The size of the loop (number of unpaired nucleotides)
- *  @param  type    The pair type of the base pair closing the hairpin
- *  @param  si1     The 5'-mismatching nucleotide
- *  @param  sj1     The 3'-mismatching nucleotide
- *  @param  string  The sequence of the loop (May be @p NULL, otherwise mst be at least @f$size + 2@f$ long)
- *  @param  P       The datastructure containing scaled Boltzmann weights of the energy parameters
- *  @return The Boltzmann weight of the Hairpin-loop
- */
-DEPRECATED(PRIVATE INLINE FLT_OR_DBL
-exp_E_Hairpin(int               u,
-              int               type,
-              short             si1,
-              short             sj1,
-              const char        *string,
-              vrna_exp_param_t  *P),
-          "Use vrna_exp_E_hairpin() instead!");
-
-
 PRIVATE INLINE FLT_OR_DBL
 exp_E_Hairpin(int               u,
               int               type,
@@ -409,14 +420,16 @@ exp_E_Hairpin(int               u,
 {
   double q, kT, salt_correction;
 
-  kT = P->kT;   /* kT in cal/mol  */
+  kT              = P->kT; /* kT in cal/mol  */
   salt_correction = 1.;
 
   if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-    if (u<=MAXLOOP)
-      salt_correction = P->expSaltLoop[u+1];
+    if (u <= MAXLOOP)
+      salt_correction = P->expSaltLoop[u + 1];
     else
-      salt_correction = exp(-vrna_salt_loop_int(u+1, P->model_details.salt, P->temperature+K0, P->model_details.backbone_length) * 10. / kT);
+      salt_correction =
+        exp(-vrna_salt_loop_int(u + 1, P->model_details.salt, P->temperature + K0,
+                                P->model_details.backbone_length) * 10. / kT);
   }
 
   if (u <= 30)
@@ -471,12 +484,6 @@ exp_E_Hairpin(int               u,
   return (FLT_OR_DBL)q;
 }
 
-
-DEPRECATED(FLT_OR_DBL
-vrna_exp_E_hp_loop(vrna_fold_compound_t *fc,
-                   int                  i,
-                   int                  j),
-           "Use vrna_exp_eval_hairpin() instead!");
 
 /** @} */
 

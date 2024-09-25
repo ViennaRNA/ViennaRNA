@@ -965,9 +965,10 @@ vrna_eval_move_shift_pt(vrna_fold_compound_t  *fc,
  *  @param verbosity_level a flag to turn verbose output on/off
  *  @return          the free energy of the input structure given the input sequence in kcal/mol
  */
-DEPRECATED(float energy_of_structure(const char *string,
-                                     const char *structure,
-                                     int        verbosity_level),
+DEPRECATED(float
+           energy_of_structure(const char *string,
+                               const char *structure,
+                               int        verbosity_level),
            "Use vrna_eval_structure_simple() and vrna_eval_structure() instead");
 
 /**
@@ -985,10 +986,11 @@ DEPRECATED(float energy_of_structure(const char *string,
  *  @param verbosity_level  A flag to turn verbose output on/off
  *  @return                The free energy of the input structure given the input sequence in kcal/mol
  */
-DEPRECATED(float energy_of_struct_par(const char    *string,
-                                      const char    *structure,
-                                      vrna_param_t  *parameters,
-                                      int           verbosity_level),
+DEPRECATED(float
+           energy_of_struct_par(const char    *string,
+                                const char    *structure,
+                                vrna_param_t  *parameters,
+                                int           verbosity_level),
            "Use vrna_eval_structure() instead");
 
 /**
@@ -1009,9 +1011,10 @@ DEPRECATED(float energy_of_struct_par(const char    *string,
  *  @param verbosity_level  A flag to turn verbose output on/off
  *  @return                The free energy of the input structure given the input sequence in kcal/mol
  */
-DEPRECATED(float energy_of_circ_structure(const char  *string,
-                                          const char  *structure,
-                                          int         verbosity_level),
+DEPRECATED(float
+           energy_of_circ_structure(const char  *string,
+                                    const char  *structure,
+                                    int         verbosity_level),
            "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
 
 /**
@@ -1029,22 +1032,25 @@ DEPRECATED(float energy_of_circ_structure(const char  *string,
  *  @param verbosity_level  A flag to turn verbose output on/off
  *  @return                The free energy of the input structure given the input sequence in kcal/mol
  */
-DEPRECATED(float energy_of_circ_struct_par(const char   *string,
-                                           const char   *structure,
-                                           vrna_param_t *parameters,
-                                           int          verbosity_level),
+DEPRECATED(float
+           energy_of_circ_struct_par(const char   *string,
+                                     const char   *structure,
+                                     vrna_param_t *parameters,
+                                     int          verbosity_level),
            "Use vrna_eval_structure() instead");
 
 
-DEPRECATED(float energy_of_gquad_structure(const char *string,
-                                           const char *structure,
-                                           int        verbosity_level),
+DEPRECATED(float
+           energy_of_gquad_structure(const char *string,
+                                     const char *structure,
+                                     int        verbosity_level),
            "Use vrna_eval_structure_simple() instead");
 
-DEPRECATED(float energy_of_gquad_struct_par(const char    *string,
-                                            const char    *structure,
-                                            vrna_param_t  *parameters,
-                                            int           verbosity_level),
+DEPRECATED(float
+           energy_of_gquad_struct_par(const char    *string,
+                                      const char    *structure,
+                                      vrna_param_t  *parameters,
+                                      int           verbosity_level),
            "Use vrna_eval_structure() instead");
 
 
@@ -1068,11 +1074,12 @@ DEPRECATED(float energy_of_gquad_struct_par(const char    *string,
  *  @param verbosity_level a flag to turn verbose output on/off
  *  @return          the free energy of the input structure given the input sequence in 10kcal/mol
  */
-DEPRECATED(int energy_of_structure_pt(const char  *string,
-                                      short       *ptable,
-                                      short       *s,
-                                      short       *s1,
-                                      int         verbosity_level),
+DEPRECATED(int
+           energy_of_structure_pt(const char  *string,
+                                  short       *ptable,
+                                  short       *s,
+                                  short       *s1,
+                                  int         verbosity_level),
            "Use vrna_eval_structure_pt_simple() and vrna_eval_structure_pt() instead");
 
 /**
@@ -1092,12 +1099,13 @@ DEPRECATED(int energy_of_structure_pt(const char  *string,
  *  @param verbosity_level  A flag to turn verbose output on/off
  *  @return                The free energy of the input structure given the input sequence in 10kcal/mol
  */
-DEPRECATED(int energy_of_struct_pt_par(const char   *string,
-                                       short        *ptable,
-                                       short        *s,
-                                       short        *s1,
-                                       vrna_param_t *parameters,
-                                       int          verbosity_level),
+DEPRECATED(int
+           energy_of_struct_pt_par(const char   *string,
+                                   short        *ptable,
+                                   short        *s,
+                                   short        *s1,
+                                   vrna_param_t *parameters,
+                                   int          verbosity_level),
            "Use vrna_eval_structure_pt() instead");
 
 
@@ -1117,10 +1125,11 @@ DEPRECATED(int energy_of_struct_pt_par(const char   *string,
  *  @param m2         second coordinate of base pair
  *  @returns          energy change of the move in kcal/mol
  */
-DEPRECATED(float energy_of_move(const char  *string,
-                                const char  *structure,
-                                int         m1,
-                                int         m2),
+DEPRECATED(float
+           energy_of_move(const char  *string,
+                          const char  *structure,
+                          int         m1,
+                          int         m2),
            "Use vrna_eval_move() instead");
 
 
@@ -1142,11 +1151,12 @@ DEPRECATED(float energy_of_move(const char  *string,
  *  @param m2         second coordinate of base pair
  *  @returns          energy change of the move in 10cal/mol
  */
-DEPRECATED(int energy_of_move_pt(short  *pt,
-                                 short  *s,
-                                 short  *s1,
-                                 int    m1,
-                                 int    m2),
+DEPRECATED(int
+           energy_of_move_pt(short  *pt,
+                             short  *s,
+                             short  *s1,
+                             int    m1,
+                             int    m2),
            "Use vrna_eval_move_pt_simple() and vrna_eval_move_pt() instead");
 
 /**
@@ -1162,10 +1172,11 @@ DEPRECATED(int energy_of_move_pt(short  *pt,
  *  @param i          position of covering base pair
  *  @returns          free energy of the loop in 10cal/mol
  */
-DEPRECATED(int   loop_energy(short  *ptable,
-                             short  *s,
-                             short  *s1,
-                             int    i),
+DEPRECATED(int
+           loop_energy(short  *ptable,
+                       short  *s,
+                       short  *s1,
+                       int    i),
            "Use vrna_eval_loop_pt() instead");
 
 /**
@@ -1183,8 +1194,9 @@ DEPRECATED(int   loop_energy(short  *ptable,
  *  @param structure  secondary structure in dot-bracket notation
  *  @return          the free energy of the input structure given the input sequence in kcal/mol
  */
-DEPRECATED(float energy_of_struct(const char  *string,
-                                  const char  *structure),
+DEPRECATED(float
+           energy_of_struct(const char  *string,
+                            const char  *structure),
            "Use vrna_eval_structure_simple() instead");
 
 /**
@@ -1204,10 +1216,11 @@ DEPRECATED(float energy_of_struct(const char  *string,
  *  @param s1         encoded RNA sequence
  *  @return          the free energy of the input structure given the input sequence in 10kcal/mol
  */
-DEPRECATED(int energy_of_struct_pt(const char *string,
-                                   short      *ptable,
-                                   short      *s,
-                                   short      *s1),
+DEPRECATED(int
+           energy_of_struct_pt(const char *string,
+                               short      *ptable,
+                               short      *s,
+                               short      *s1),
            "Use vrna_eval_structure_pt_simple() instead");
 
 /**
@@ -1225,8 +1238,9 @@ DEPRECATED(int energy_of_struct_pt(const char *string,
  *  @param structure  secondary structure in dot-bracket notation
  *  @return          the free energy of the input structure given the input sequence in kcal/mol
  */
-DEPRECATED(float energy_of_circ_struct(const char *string,
-                                       const char *structure),
+DEPRECATED(float
+           energy_of_circ_struct(const char *string,
+                                 const char *structure),
            "Use vrna_eval_circ_structure_simple() and vrna_eval_structure() instead");
 
 #endif

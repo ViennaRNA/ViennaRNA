@@ -83,12 +83,11 @@ vrna_exp_E_internal(unsigned int      u1,
     }
 
     if (ul == 0) /* stack */
-      return  (FLT_OR_DBL)P->expstack[type][type2] *
-              salt_stack_correction;
+      return (FLT_OR_DBL)P->expstack[type][type2] *
+             salt_stack_correction;
 
     if (no_close)
       return 0.;
-
 
     if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
       /* salt correction for loop */
@@ -114,7 +113,8 @@ vrna_exp_E_internal(unsigned int      u1,
 
         if (ul == 1) {
           z *= P->expstack[type][type2];
-        } else { /* add stacking energy for 1-bulges */
+        } else {
+          /* add stacking energy for 1-bulges */
           if (type > 2)
             z *= P->expTermAU;
 
@@ -125,7 +125,8 @@ vrna_exp_E_internal(unsigned int      u1,
         break;
 
       case 1:
-        if (ul == 1) { /* 1x1 loop */
+        if (ul == 1) {
+          /* 1x1 loop */
           z = P->expint11[type][type2][si1][sj1];
         } else if (ul == 2) {
           /* 2x1 loop */
@@ -135,10 +136,10 @@ vrna_exp_E_internal(unsigned int      u1,
             z = P->expint21[type2][type][sq1][si1][sp1];
         } else {
           /* 1xn loop */
-          z =   P->expinternal[ul + us];
-          z *=  P->expninio[2][ul - us];
-          z *=  P->expmismatch1nI[type][si1][sj1] *
-                P->expmismatch1nI[type2][sq1][sp1];
+          z = P->expinternal[ul + us];
+          z *= P->expninio[2][ul - us];
+          z *= P->expmismatch1nI[type][si1][sj1] *
+               P->expmismatch1nI[type2][sq1][sp1];
         }
 
         break;
@@ -150,20 +151,21 @@ vrna_exp_E_internal(unsigned int      u1,
           break;
         } else if (ul == 3) {
           /* 2x3 loop */
-          z =   P->expinternal[5] * 
-                P->expninio[2][1];
-          z *=  P->expmismatch23I[type][si1][sj1] *
-                P->expmismatch23I[type2][sq1][sp1];
+          z = P->expinternal[5] *
+              P->expninio[2][1];
+          z *= P->expmismatch23I[type][si1][sj1] *
+               P->expmismatch23I[type2][sq1][sp1];
           break;
         }
-        /* fall through */
+
+      /* fall through */
 
       default:
         /* generic interior loop */
-        z =   P->expinternal[ul + us];
-        z *=  P->expninio[2][ul - us];
-        z *=  P->expmismatchI[type][si1][sj1] *
-              P->expmismatchI[type2][sq1][sp1];
+        z = P->expinternal[ul + us];
+        z *= P->expninio[2][ul - us];
+        z *= P->expmismatchI[type][si1][sj1] *
+             P->expmismatchI[type2][sq1][sp1];
 
         break;
     }
@@ -268,14 +270,14 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
                 rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
         q_temp = vrna_exp_E_internal(u1,
-                               u2,
-                               type,
-                               type2,
-                               S1[i + 1],
-                               S1[j - 1],
-                               S1[k - 1],
-                               S1[l + 1],
-                               pf_params);
+                                     u2,
+                                     type,
+                                     type2,
+                                     S1[i + 1],
+                                     S1[j - 1],
+                                     S1[k - 1],
+                                     S1[l + 1],
+                                     pf_params);
 
         break;
 
@@ -283,19 +285,19 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
         q_temp = 1.;
 
         for (s = 0; s < n_seq; s++) {
-          unsigned int u1_local  = a2s[s][k - 1] - a2s[s][i];
-          unsigned int u2_local  = a2s[s][j - 1] - a2s[s][l];
+          unsigned int  u1_local  = a2s[s][k - 1] - a2s[s][i];
+          unsigned int  u2_local  = a2s[s][j - 1] - a2s[s][l];
           type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
           type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
           q_temp  *= vrna_exp_E_internal(u1_local,
-                                   u2_local,
-                                   type,
-                                   type2,
-                                   S3[s][i],
-                                   S5[s][j],
-                                   S5[s][k],
-                                   S3[s][l],
-                                   pf_params);
+                                         u2_local,
+                                         type,
+                                         type2,
+                                         S3[s][i],
+                                         S5[s][j],
+                                         S5[s][k],
+                                         S3[s][l],
+                                         pf_params);
         }
 
         break;

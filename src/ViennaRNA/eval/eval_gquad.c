@@ -43,17 +43,19 @@
 
 PRIVATE
 int
-E_gquad_ali_penalty(unsigned int           L,
-                    unsigned int           l[3],
+E_gquad_ali_penalty(unsigned int  L,
+                    unsigned int  l[3],
                     unsigned int  i,
                     unsigned int  length,
                     unsigned int  n_seq,
                     const short   **S,
                     vrna_param_t  *P);
+
+
 PRIVATE
 FLT_OR_DBL
-exp_E_gquad_ali_penalty(unsigned int               L,
-                        unsigned int               l[3],
+exp_E_gquad_ali_penalty(unsigned int      L,
+                        unsigned int      l[3],
                         unsigned int      i,
                         unsigned int      length,
                         unsigned int      n_seq,
@@ -62,8 +64,8 @@ exp_E_gquad_ali_penalty(unsigned int               L,
 
 
 PRIVATE int
-E_gquad_consensus(unsigned int                 L,
-                  unsigned int                 l[3],
+E_gquad_consensus(unsigned int        L,
+                  unsigned int        l[3],
                   unsigned int        position,
                   unsigned int        length,
                   unsigned int        n_seq,
@@ -72,17 +74,18 @@ E_gquad_consensus(unsigned int                 L,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_gquad_consensus(unsigned int                 L,
-                      unsigned int                 l[3],
+exp_E_gquad_consensus(unsigned int        L,
+                      unsigned int        l[3],
                       unsigned int        position,
                       unsigned int        length,
                       unsigned int        n_seq,
                       const unsigned int  **a2s,
                       vrna_exp_param_t    *pf);
 
+
 PRIVATE void
-count_gquad_layer_mismatches(unsigned int          L,
-                             unsigned int          l[3],
+count_gquad_layer_mismatches(unsigned int L,
+                             unsigned int l[3],
                              unsigned int i,
                              unsigned int n,
                              unsigned int n_seq,
@@ -91,12 +94,13 @@ count_gquad_layer_mismatches(unsigned int          L,
 
 
 PRIVATE INLINE void
-aln_linker_positions(unsigned int          L,
-                     unsigned int          l[3],
+aln_linker_positions(unsigned int L,
+                     unsigned int l[3],
                      unsigned int position,
                      unsigned int length,
                      unsigned int starts[3],
                      unsigned int ends[3]);
+
 
 PRIVATE INLINE int
 aln_linker_length(unsigned int        start,
@@ -106,8 +110,8 @@ aln_linker_length(unsigned int        start,
 
 
 PRIVATE void
-gq_layer_pos(unsigned int          L,
-             unsigned int          l[3],
+gq_layer_pos(unsigned int L,
+             unsigned int l[3],
              unsigned int layer,
              unsigned int i,
              unsigned int n,
@@ -136,9 +140,9 @@ vrna_E_gquad(unsigned int L,
 
 
 PUBLIC FLT_OR_DBL
-vrna_exp_E_gquad(unsigned int      L,
-                 unsigned int      l[3],
-                 vrna_exp_param_t  *pf)
+vrna_exp_E_gquad(unsigned int     L,
+                 unsigned int     l[3],
+                 vrna_exp_param_t *pf)
 {
   if (pf) {
     CHECK_GQUAD(L, l, return 0.);
@@ -151,15 +155,15 @@ vrna_exp_E_gquad(unsigned int      L,
 
 
 PUBLIC void
-vrna_E_consensus_gquad(unsigned int  L,
-                    unsigned int  l[3],
-                    unsigned int  position,
-                    unsigned int  length,
-                    unsigned int  n_seq,
-                    const short   **S,
-                    const unsigned int  **a2s,
-                    vrna_param_t  *P,
-                    int           en[2])
+vrna_E_consensus_gquad(unsigned int       L,
+                       unsigned int       l[3],
+                       unsigned int       position,
+                       unsigned int       length,
+                       unsigned int       n_seq,
+                       const short        **S,
+                       const unsigned int **a2s,
+                       vrna_param_t       *P,
+                       int                en[2])
 {
   unsigned int  s;
   int           penalty;
@@ -195,14 +199,14 @@ vrna_E_consensus_gquad(unsigned int  L,
 
 
 PUBLIC FLT_OR_DBL
-vrna_exp_E_consensus_gquad(unsigned int        L,
-                        unsigned int        l[3],
-                        vrna_exp_param_t    *pf,
-                        unsigned int        position,
-                        unsigned int        length,
-                        unsigned int        n_seq,
-                        const short         **S,
-                        const unsigned int  **a2s)
+vrna_exp_E_consensus_gquad(unsigned int       L,
+                           unsigned int       l[3],
+                           vrna_exp_param_t   *pf,
+                           unsigned int       position,
+                           unsigned int       length,
+                           unsigned int       n_seq,
+                           const short        **S,
+                           const unsigned int **a2s)
 {
   FLT_OR_DBL penalty, q = 0.;
 
@@ -218,7 +222,7 @@ vrna_exp_E_consensus_gquad(unsigned int        L,
                                       n_seq,
                                       S,
                                       pf);
-    
+
     if (penalty != 0.)
       q = penalty *
           exp_E_gquad_consensus(L,
@@ -234,9 +238,6 @@ vrna_exp_E_consensus_gquad(unsigned int        L,
 }
 
 
-
-
-
 /*
  #########################################
  # BEGIN OF PRIVATE FUNCTION DEFINITIONS #
@@ -244,8 +245,8 @@ vrna_exp_E_consensus_gquad(unsigned int        L,
  #########################################
  */
 PRIVATE int
-E_gquad_ali_penalty(unsigned int           L,
-                    unsigned int           l[3],
+E_gquad_ali_penalty(unsigned int  L,
+                    unsigned int  l[3],
                     unsigned int  i,
                     unsigned int  length,
                     unsigned int  n_seq,
@@ -264,8 +265,8 @@ E_gquad_ali_penalty(unsigned int           L,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_gquad_ali_penalty(unsigned int               L,
-                        unsigned int               l[3],
+exp_E_gquad_ali_penalty(unsigned int      L,
+                        unsigned int      l[3],
                         unsigned int      i,
                         unsigned int      n,
                         unsigned int      n_seq,
@@ -284,8 +285,8 @@ exp_E_gquad_ali_penalty(unsigned int               L,
 
 
 PRIVATE int
-E_gquad_consensus(unsigned int                 L,
-                  unsigned int                 l[3],
+E_gquad_consensus(unsigned int        L,
+                  unsigned int        l[3],
                   unsigned int        position,
                   unsigned int        length,
                   unsigned int        n_seq,
@@ -313,8 +314,8 @@ E_gquad_consensus(unsigned int                 L,
 
 
 PRIVATE FLT_OR_DBL
-exp_E_gquad_consensus(unsigned int                 L,
-                      unsigned int                 l[3],
+exp_E_gquad_consensus(unsigned int        L,
+                      unsigned int        l[3],
                       unsigned int        position,
                       unsigned int        length,
                       unsigned int        n_seq,
@@ -342,8 +343,8 @@ exp_E_gquad_consensus(unsigned int                 L,
 
 
 PRIVATE void
-count_gquad_layer_mismatches(unsigned int          L,
-                             unsigned int          l[3],
+count_gquad_layer_mismatches(unsigned int L,
+                             unsigned int l[3],
                              unsigned int i,
                              unsigned int n,
                              unsigned int n_seq,
@@ -427,8 +428,8 @@ count_gquad_layer_mismatches(unsigned int          L,
  *  positions accordingly
  */
 PRIVATE INLINE void
-aln_linker_positions(unsigned int          L,
-                     unsigned int          l[3],
+aln_linker_positions(unsigned int L,
+                     unsigned int l[3],
                      unsigned int position,
                      unsigned int length,
                      unsigned int starts[3],
@@ -474,8 +475,8 @@ aln_linker_length(unsigned int        start,
  * to be passed through variable n
  */
 PRIVATE void
-gq_layer_pos(unsigned int          L,
-             unsigned int          l[3],
+gq_layer_pos(unsigned int L,
+             unsigned int l[3],
              unsigned int layer,
              unsigned int i,
              unsigned int n,
@@ -496,9 +497,6 @@ gq_layer_pos(unsigned int          L,
 }
 
 
-
-
-
 /*
  *###########################################
  *# deprecated functions below              #
@@ -515,7 +513,7 @@ E_gquad(int           L,
 {
   unsigned int LL, ll[3];
 
-  LL = (unsigned int)L;
+  LL    = (unsigned int)L;
   ll[0] = (unsigned int)l[0];
   ll[1] = (unsigned int)l[1];
   ll[2] = (unsigned int)l[2];
@@ -531,7 +529,7 @@ exp_E_gquad(int               L,
 {
   unsigned int LL, ll[3];
 
-  LL = (unsigned int)L;
+  LL    = (unsigned int)L;
   ll[0] = (unsigned int)l[0];
   ll[1] = (unsigned int)l[1];
   ll[2] = (unsigned int)l[2];
@@ -552,7 +550,7 @@ E_gquad_ali_en(int          i,
 {
   unsigned int LL, ll[3];
 
-  LL = (unsigned int)L;
+  LL    = (unsigned int)L;
   ll[0] = (unsigned int)l[0];
   ll[1] = (unsigned int)l[1];
   ll[2] = (unsigned int)l[2];
@@ -580,19 +578,19 @@ exp_E_gquad_ali(int               i,
 {
   unsigned int LL, ll[3];
 
-  LL = (unsigned int)L;
+  LL    = (unsigned int)L;
   ll[0] = (unsigned int)l[0];
   ll[1] = (unsigned int)l[1];
   ll[2] = (unsigned int)l[2];
 
   return vrna_exp_E_consensus_gquad(LL,
-                                      ll,
-                                      pf,
-                                      (unsigned int)i,
-                                      0,
-                                      n_seq,
-                                      (const short **)S,
-                                      (const unsigned int **)a2s);
+                                    ll,
+                                    pf,
+                                    (unsigned int)i,
+                                    0,
+                                    n_seq,
+                                    (const short **)S,
+                                    (const unsigned int **)a2s);
 }
 
 

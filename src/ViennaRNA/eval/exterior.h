@@ -63,15 +63,16 @@
  *  @return       The energy contribution of the introduced exterior-loop stem
  */
 int
-vrna_E_exterior_stem(unsigned int  type,
-                     int           n5d,
-                     int           n3d,
-                     vrna_param_t  *p);
+vrna_E_exterior_stem(unsigned int type,
+                     int          n5d,
+                     int          n3d,
+                     vrna_param_t *p);
 
 
 int
 vrna_E_exterior_loop(unsigned int n,
                      vrna_md_t    *md);
+
 
 /**
  *  @brief Evaluate the free energy of a base pair in the exterior loop
@@ -166,11 +167,10 @@ vrna_exp_E_exterior_loop(unsigned int n,
  *  @addtogroup   eval_deprecated
  *  @{
  */
-
 DEPRECATED(int
-vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
-                   int                   i,
-                   int                   j),
+           vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
+                              int                   i,
+                              int                   j),
            "Use vrna_eval_exterior_stem() instead!");
 
 
@@ -224,34 +224,36 @@ vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
  *  @return         The Free energy of the branch off the loop in dcal/mol
  *
  */
-DEPRECATED(int E_Stem(int           type,
-                      int           si1,
-                      int           sj1,
-                      int           extLoop,
-                      vrna_param_t  *P),
+DEPRECATED(int
+           E_Stem(int           type,
+                  int           si1,
+                  int           sj1,
+                  int           extLoop,
+                  vrna_param_t  *P),
            "This function is obsolete. Use vrna_E_exterior_stem() or vrna_E_multibranch_stem() instead");
 
 
-DEPRECATED(int E_ExtLoop(int          type,
-                         int          si1,
-                         int          sj1,
-                         vrna_param_t *P),
+DEPRECATED(int
+           E_ExtLoop(int          type,
+                     int          si1,
+                     int          sj1,
+                     vrna_param_t *P),
            "Use vrna_E_exterior_stem() instead");
 
 
 DEPRECATED(int
-vrna_E_ext_stem(unsigned int  type,
-                int           n5d,
-                int           n3d,
-                vrna_param_t  *p),
-          "Use vrna_E_exterior_stem() instead!");
+           vrna_E_ext_stem(unsigned int type,
+                           int          n5d,
+                           int          n3d,
+                           vrna_param_t *p),
+           "Use vrna_E_exterior_stem() instead!");
 
 DEPRECATED(FLT_OR_DBL
-vrna_exp_E_ext_stem(unsigned int      type,
-                    int               n5d,
-                    int               n3d,
-                    vrna_exp_param_t  *p),
-          "Use vrna_exp_E_exterior_stem() instead!");
+           vrna_exp_E_ext_stem(unsigned int     type,
+                               int              n5d,
+                               int              n3d,
+                               vrna_exp_param_t *p),
+           "Use vrna_exp_E_exterior_stem() instead!");
 
 
 /**
@@ -262,10 +264,11 @@ vrna_exp_E_ext_stem(unsigned int      type,
  *
  *  @return The Boltzmann weighted energy contribution of the introduced exterior-loop stem
  */
-DEPRECATED(FLT_OR_DBL exp_E_ExtLoop(int               type,
-                                    int               si1,
-                                    int               sj1,
-                                    vrna_exp_param_t  *P),
+DEPRECATED(FLT_OR_DBL
+           exp_E_ExtLoop(int              type,
+                         int              si1,
+                         int              sj1,
+                         vrna_exp_param_t *P),
            "Use vrna_exp_E_exterior_stem() instead");
 
 
@@ -279,11 +282,12 @@ DEPRECATED(FLT_OR_DBL exp_E_ExtLoop(int               type,
  *
  *  @return The Boltzmann weighted energy contribution of the branch off the loop
  */
-DEPRECATED(FLT_OR_DBL exp_E_Stem(int              type,
-                                 int              si1,
-                                 int              sj1,
-                                 int              extLoop,
-                                 vrna_exp_param_t *P),
+DEPRECATED(FLT_OR_DBL
+           exp_E_Stem(int               type,
+                      int               si1,
+                      int               sj1,
+                      int               extLoop,
+                      vrna_exp_param_t  *P),
            "This function is obsolete. Use vrna_exp_E_exterior_stem() or vrna_exp_E_multibranch_stem() instead!");
 
 

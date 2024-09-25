@@ -604,9 +604,9 @@ vrna_eval_move(vrna_fold_compound_t *fc,
       free(pt);
     } else {
       vrna_log_warning("vrna_eval_move: "
-                           "sequence and structure have unequal length (%d vs. %d)",
-                           fc->length,
-                           strlen(structure));
+                       "sequence and structure have unequal length (%d vs. %d)",
+                       fc->length,
+                       strlen(structure));
     }
   }
 
@@ -803,9 +803,9 @@ energy_of_struct_pt(const char  *string,
       en  = vrna_eval_structure_pt_v(fc, pt, eos_debug, NULL);
     } else {
       vrna_log_warning("energy_of_struct_pt: "
-                           "string and structure have unequal length (%d vs. %d)",
-                           strlen(string),
-                           pt[0]);
+                       "string and structure have unequal length (%d vs. %d)",
+                       strlen(string),
+                       pt[0]);
     }
   }
 
@@ -952,9 +952,9 @@ energy_of_structure_pt(const char *string,
       en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
     } else {
       vrna_log_warning("energy_of_structure_pt: "
-                           "string and structure have unequal length (%d vs. %d)",
-                           strlen(string),
-                           pt[0]);
+                       "string and structure have unequal length (%d vs. %d)",
+                       strlen(string),
+                       pt[0]);
     }
   }
 
@@ -982,9 +982,9 @@ energy_of_struct_pt_par(const char    *string,
       en  = vrna_eval_structure_pt_v(fc, pt, verbosity_level, NULL);
     } else {
       vrna_log_warning("energy_of_struct_pt_par: "
-                           "string and structure have unequal length (%d vs. %d)",
-                           strlen(string),
-                           pt[0]);
+                       "string and structure have unequal length (%d vs. %d)",
+                       strlen(string),
+                       pt[0]);
     }
   }
 

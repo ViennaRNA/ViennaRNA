@@ -34,7 +34,6 @@
 #define VRNA_EVAL_LOOP_NO_CONSTRAINTS   (VRNA_EVAL_LOOP_NO_HC | VRNA_EVAL_LOOP_NO_SC)
 
 
-
 /**
  * @}
  */

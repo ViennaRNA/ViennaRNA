@@ -91,8 +91,8 @@ vrna_E_exterior_loop(unsigned int n,
 
   if ((md->circ) &&
       (md->circ_penalty)) {
-    double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.; /* kT in kcal/mol */
-    return (int)(100. * kT * (md->circ_alpha0 + (3./2.) * log((double)n)) + 0.5f); /* return in dekacal/mol */
+    double kT = md->betaScale * (md->temperature + K0) * GASCONST / 1000.;            /* kT in kcal/mol */
+    return (int)(100. * kT * (md->circ_alpha0 + (3. / 2.) * log((double)n)) + 0.5f);  /* return in dekacal/mol */
   } else {
     return 0;
   }
@@ -112,7 +112,6 @@ vrna_eval_exterior_stem(vrna_fold_compound_t  *fc,
       (i > 0) &&
       (j > 0) &&
       (i < j)) {
-
     evaluate = NULL;
 
     if (!(options & VRNA_EVAL_LOOP_NO_HC)) {
@@ -129,7 +128,6 @@ vrna_eval_exterior_stem(vrna_fold_compound_t  *fc,
 }
 
 
-
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #
@@ -143,30 +141,30 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
                    vrna_hc_eval_f         evaluate,
                    struct hc_ext_def_dat  *hc_dat_local)
 {
-  unsigned int              eval;
-  char                      *ptype;
-  short                     *S;
-  unsigned int              type;
-  int                       ij, en, e, *idx;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_sc_t                 *sc;
+  unsigned int  eval;
+  char          *ptype;
+  short         *S;
+  unsigned int  type;
+  int           ij, en, e, *idx;
+  vrna_param_t  *P;
+  vrna_md_t     *md;
+  vrna_sc_t     *sc;
 
-  S         = fc->sequence_encoding;
-  idx       = fc->jindx;
-  ptype     = fc->ptype;
-  P         = fc->params;
-  md        = &(P->model_details);
-  sc        = fc->sc;
+  S     = fc->sequence_encoding;
+  idx   = fc->jindx;
+  ptype = fc->ptype;
+  P     = fc->params;
+  md    = &(P->model_details);
+  sc    = fc->sc;
 
-  e     = INF;
+  e = INF;
 
   if (options & VRNA_EVAL_LOOP_NO_HC) {
     eval = (unsigned char)1;
   } else {
     eval = evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local);
   }
-  
+
   if (eval) {
     ij    = idx[j] + i;
     type  = vrna_get_ptype(ij, ptype);
@@ -199,7 +197,7 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
     } else {
       eval = evaluate(i, j, i, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local);
     }
-    
+
     if (eval) {
       ij    = idx[j - 1] + i;
       type  = vrna_get_ptype(ij, ptype);
@@ -221,7 +219,7 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
     } else {
       eval = evaluate(i, j, i + 1, j, VRNA_DECOMP_EXT_STEM, hc_dat_local);
     }
-    
+
     if (eval) {
       ij    = idx[j] + i + 1;
       type  = vrna_get_ptype(ij, ptype);
@@ -243,7 +241,7 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
     } else {
       eval = evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local);
     }
-    
+
     if (eval) {
       ij    = idx[j - 1] + i + 1;
       type  = vrna_get_ptype(ij, ptype);
@@ -320,14 +318,15 @@ E_ExtLoop(int           type,
 
 
 PUBLIC int
-vrna_eval_ext_stem(vrna_fold_compound_t  *fc,
-                   int                   i,
-                   int                   j)
+vrna_eval_ext_stem(vrna_fold_compound_t *fc,
+                   int                  i,
+                   int                  j)
 {
   return vrna_eval_exterior_stem(fc,
                                  (unsigned int)i,
                                  (unsigned int)j,
                                  VRNA_EVAL_LOOP_DEFAULT);
 }
+
 
 #endif

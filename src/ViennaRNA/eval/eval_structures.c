@@ -1783,11 +1783,11 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
 
   switch (fc->type) {
     case VRNA_FC_TYPE_COMPARATIVE:
-      n_seq     = fc->n_seq;
+      n_seq = fc->n_seq;
       break;
 
     default:
-      n_seq     = 1;
+      n_seq = 1;
       break;
   }
 
@@ -2368,7 +2368,8 @@ energy_of_ml_pt(vrna_fold_compound_t  *fc,
                 const short           *pt)
 {
   short         *s, *s1, **S, **S5, **S3;
-  unsigned int  *sn, **a2s, n_seq, ss, i1, j, p, q, q_prev, q_prev2, n, dangle_model, logML, circular;
+  unsigned int  *sn, **a2s, n_seq, ss, i1, j, p, q, q_prev, q_prev2, n, dangle_model, logML,
+                circular;
   int           energy, cx_energy, tmp, tmp2, best_energy, bonus, *idx, *rtype, u, uu,
                 x, type, count, mm5, mm3, tt, ld5, new_cx, dang5, dang3, dang, e_stem,
                 e_stem5, e_stem3, e_stem53, mlintern[NBPAIRS + 1];

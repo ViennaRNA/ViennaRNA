@@ -43,38 +43,38 @@
  */
 
 int
-vrna_E_gquad(unsigned int  L,
-             unsigned int  l[3],
-             vrna_param_t  *P);
+vrna_E_gquad(unsigned int L,
+             unsigned int l[3],
+             vrna_param_t * P);
 
 
 FLT_OR_DBL
-vrna_exp_E_gquad(unsigned int      L,
-                 unsigned int      l[3],
-                 vrna_exp_param_t  *pf);
+vrna_exp_E_gquad(unsigned int L,
+                 unsigned int l[3],
+                 vrna_exp_param_t * pf);
 
 
 void
 vrna_E_consensus_gquad(unsigned int L,
-                    unsigned int l[3],
-                    unsigned int position,
-                    unsigned int length,
-                    unsigned int n_seq,
-                    const short  **S,
-                    const unsigned int **a2s,
-                    vrna_param_t *P,
-                    int          en[2]);
+                       unsigned int l[3],
+                       unsigned int position,
+                       unsigned int length,
+                       unsigned int n_seq,
+                       const short **S,
+                       const unsigned int **a2s,
+                       vrna_param_t * P,
+                       int en[2]);
 
 
 FLT_OR_DBL
-vrna_exp_E_consensus_gquad(unsigned int        L,
-                        unsigned int        l[3],
-                        vrna_exp_param_t    *pf,
-                        unsigned int        position,
-                        unsigned int        length,
-                        unsigned int        n_seq,
-                        const short         **S,
-                        const unsigned int  **a2s);
+vrna_exp_E_consensus_gquad(unsigned int L,
+                           unsigned int l[3],
+                           vrna_exp_param_t * pf,
+                           unsigned int position,
+                           unsigned int length,
+                           unsigned int n_seq,
+                           const short **S,
+                           const unsigned int **a2s);
 
 /**
  *  @}
@@ -87,39 +87,41 @@ vrna_exp_E_consensus_gquad(unsigned int        L,
  *  @addtogroup gquad_deprecated
  *  @{
  */
+DEPRECATED(int
+           E_gquad(int          L,
+                   int          l[3],
+                   vrna_param_t *P),
+           "Use vrna_E_gquad() instead");
 
 
-int
-E_gquad(int           L,
-        int           l[3],
-        vrna_param_t  *P);
+DEPRECATED(FLT_OR_DBL
+           exp_E_gquad(int              L,
+                       int              l[3],
+                       vrna_exp_param_t *pf),
+           "Use vrna_exp_E_gquad() instead");
 
 
-FLT_OR_DBL
-exp_E_gquad(int               L,
-            int               l[3],
-            vrna_exp_param_t  *pf);
+DEPRECATED(void
+           E_gquad_ali_en(int           i,
+                          int           L,
+                          int           l[3],
+                          const short   **S,
+                          unsigned int  **a2s,
+                          unsigned int  n_seq,
+                          vrna_param_t  *P,
+                          int           en[2]),
+           "Use vrna_E_consensus_gquad() instead");
 
 
-void
-E_gquad_ali_en(int          i,
-               int          L,
-               int          l[3],
-               const short  **S,
-               unsigned int **a2s,
-               unsigned int n_seq,
-               vrna_param_t *P,
-               int          en[2]);
-
-
-FLT_OR_DBL
-exp_E_gquad_ali(int               i,
-                int               L,
-                int               l[3],
-                short             **S,
-                unsigned int      **a2s,
-                int               n_seq,
-                vrna_exp_param_t  *pf);
+DEPRECATED(FLT_OR_DBL
+           exp_E_gquad_ali(int              i,
+                           int              L,
+                           int              l[3],
+                           short            **S,
+                           unsigned int     **a2s,
+                           int              n_seq,
+                           vrna_exp_param_t *pf),
+           "Use vrna_exp_E_consensus_gquad() instead");
 
 
 /**

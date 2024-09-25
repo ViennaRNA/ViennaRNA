@@ -54,7 +54,6 @@ eval_ext_hp_loop(vrna_fold_compound_t *fc,
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-
 PUBLIC int
 vrna_E_hairpin(unsigned int size,
                unsigned int type,
@@ -71,8 +70,8 @@ vrna_E_hairpin(unsigned int size,
     salt_correction = 0;
 
     if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-      if (size<=MAXLOOP)
-        salt_correction = P->SaltLoop[size+1];
+      if (size <= MAXLOOP)
+        salt_correction = P->SaltLoop[size + 1];
       else
         salt_correction = vrna_salt_loop_int(size + 1,
                                              P->model_details.salt,
@@ -84,12 +83,11 @@ vrna_E_hairpin(unsigned int size,
       energy = P->hairpin[size];
     else
       energy = P->hairpin[30] + (int)(P->lxc * log((size) / 30.));
-  
+
     energy += salt_correction;
 
     if (size < 3)
       return energy;            /* should only be the case when folding alignments */
-
 
     if ((sequence) &&
         (P->model_details.special_hp)) {
@@ -146,7 +144,6 @@ vrna_eval_hairpin(vrna_fold_compound_t  *fc,
   if ((fc) &&
       (i > 0) &&
       (j > 0)) {
-
     /* prepare hard constraints check */
     if ((options & VRNA_EVAL_LOOP_NO_HC) ||
         (fc->hc == NULL)) {
@@ -412,6 +409,7 @@ vrna_eval_hp_loop(vrna_fold_compound_t  *fc,
                            (unsigned int)j,
                            VRNA_EVAL_LOOP_NO_HC);
 }
+
 
 PUBLIC int
 vrna_eval_ext_hp_loop(vrna_fold_compound_t  *fc,

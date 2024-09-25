@@ -99,14 +99,14 @@
  *  @return The Free energy of the internal loop in dcal/mol
  */
 int
-vrna_E_internal(unsigned int n1,
-                unsigned int n2,
-                unsigned int type,
-                unsigned int type_2,
-                int          si1,
-                int          sj1,
-                int          sp1,
-                int          sq1,
+vrna_E_internal(unsigned int  n1,
+                unsigned int  n2,
+                unsigned int  type,
+                unsigned int  type_2,
+                int           si1,
+                int           sj1,
+                int           sp1,
+                int           sq1,
                 vrna_param_t  *P);
 
 
@@ -231,16 +231,16 @@ vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
  *  @return The Free energy of the Interior-loop in dcal/mol
  */
 DEPRECATED(PRIVATE INLINE int
-E_IntLoop(int           n1,
-          int           n2,
-          int           type,
-          int           type_2,
-          int           si1,
-          int           sj1,
-          int           sp1,
-          int           sq1,
-          vrna_param_t  *P),
-          "Use vrna_E_internal() instead!");
+           E_IntLoop(int          n1,
+                     int          n2,
+                     int          type,
+                     int          type_2,
+                     int          si1,
+                     int          sj1,
+                     int          sp1,
+                     int          sq1,
+                     vrna_param_t *P),
+           "Use vrna_E_internal() instead!");
 
 
 /**
@@ -263,31 +263,33 @@ E_IntLoop(int           n1,
  *  @return The Boltzmann weight of the Interior-loop
  */
 DEPRECATED(PRIVATE INLINE FLT_OR_DBL
-exp_E_IntLoop(int               u1,
-              int               u2,
-              int               type,
-              int               type2,
-              short             si1,
-              short             sj1,
-              short             sp1,
-              short             sq1,
-              vrna_exp_param_t  *P),
-          "Use vrna_exp_E_internal() instead!");
+           exp_E_IntLoop(int              u1,
+                         int              u2,
+                         int              type,
+                         int              type2,
+                         short            si1,
+                         short            sj1,
+                         short            sp1,
+                         short            sq1,
+                         vrna_exp_param_t *P),
+           "Use vrna_exp_E_internal() instead!");
 
 
-PRIVATE INLINE int E_IntLoop_Co(int           type,
-                                int           type_2,
-                                int           i,
-                                int           j,
-                                int           p,
-                                int           q,
-                                int           cutpoint,
-                                short         si1,
-                                short         sj1,
-                                short         sp1,
-                                short         sq1,
-                                int           dangles,
-                                vrna_param_t  *P);
+DEPRECATED(PRIVATE INLINE int
+           E_IntLoop_Co(int           type,
+                        int           type_2,
+                        int           i,
+                        int           j,
+                        int           p,
+                        int           q,
+                        int           cutpoint,
+                        short         si1,
+                        short         sj1,
+                        short         sp1,
+                        short         sq1,
+                        int           dangles,
+                        vrna_param_t  *P),
+           "This function is obsolete");
 
 
 /*
@@ -300,6 +302,99 @@ PRIVATE INLINE int E_IntLoop_Co(int           type,
  *
  *  NOTE: do not include into doxygen reference manual!
  */
+DEPRECATED(PRIVATE INLINE int
+           ubf_eval_int_loop(int            i,
+                             int            j,
+                             int            p,
+                             int            q,
+                             int            i1,
+                             int            j1,
+                             int            p1,
+                             int            q1,
+                             short          si,
+                             short          sj,
+                             short          sp,
+                             short          sq,
+                             unsigned char  type,
+                             unsigned char  type_2,
+                             int            *rtype,
+                             int            ij,
+                             int            cp,
+                             vrna_param_t   *P,
+                             vrna_sc_t      *sc),
+           "This function is obsolete");
+
+
+DEPRECATED(PRIVATE INLINE int
+           ubf_eval_int_loop2(int           i,
+                              int           j,
+                              int           p,
+                              int           q,
+                              int           i1,
+                              int           j1,
+                              int           p1,
+                              int           q1,
+                              short         si,
+                              short         sj,
+                              short         sp,
+                              short         sq,
+                              unsigned char type,
+                              unsigned char type_2,
+                              int           *rtype,
+                              int           ij,
+                              unsigned int  *sn,
+                              unsigned int  *ss,
+                              vrna_param_t  *P,
+                              vrna_sc_t     *sc),
+           "This function is obsolete");
+
+
+/*
+ *  ugly but fast exterior interior loop evaluation
+ *
+ *  Avoid including this function in your own code. It only serves
+ *  as a fast inline block internally re-used throughout the RNAlib. It
+ *  evalutes the free energy of interior loops in single sequences or sequence
+ *  hybrids. Soft constraints are also applied if available.
+ *
+ *  NOTE: do not include into doxygen reference manual!
+ */
+DEPRECATED(PRIVATE INLINE int
+           ubf_eval_ext_int_loop(int            i,
+                                 int            j,
+                                 int            p,
+                                 int            q,
+                                 int            i1,
+                                 int            j1,
+                                 int            p1,
+                                 int            q1,
+                                 short          si,
+                                 short          sj,
+                                 short          sp,
+                                 short          sq,
+                                 unsigned char  type,
+                                 unsigned char  type_2,
+                                 int            length,
+                                 vrna_param_t   *P,
+                                 vrna_sc_t      *sc),
+           "This function is obsolete");
+
+
+DEPRECATED(int
+           vrna_eval_int_loop(vrna_fold_compound_t  *fc,
+                              int                   i,
+                              int                   j,
+                              int                   k,
+                              int                   l),
+           "Use vrna_eval_internal() instead!");
+
+DEPRECATED(int
+           vrna_E_stack(vrna_fold_compound_t  *fc,
+                        int                   i,
+                        int                   j),
+           "Use vrna_eval_stack() instead!");
+
+
 PRIVATE INLINE int
 ubf_eval_int_loop(int           i,
                   int           j,
@@ -439,16 +534,6 @@ ubf_eval_int_loop2(int            i,
 }
 
 
-/*
- *  ugly but fast exterior interior loop evaluation
- *
- *  Avoid including this function in your own code. It only serves
- *  as a fast inline block internally re-used throughout the RNAlib. It
- *  evalutes the free energy of interior loops in single sequences or sequence
- *  hybrids. Soft constraints are also applied if available.
- *
- *  NOTE: do not include into doxygen reference manual!
- */
 PRIVATE INLINE int
 ubf_eval_ext_int_loop(int           i,
                       int           j,
@@ -514,7 +599,7 @@ E_IntLoop(int           n1,
   int nl, ns, u, energy, salt_stack_correction, salt_loop_correction, backbones;
 
   salt_stack_correction = P->SaltStack;
-  salt_loop_correction = 0;
+  salt_loop_correction  = 0;
 
   if (n1 > n2) {
     nl  = n1;
@@ -527,15 +612,17 @@ E_IntLoop(int           n1,
   if (nl == 0) {
     return P->stack[type][type_2] + salt_stack_correction;  /* stack */
   }
-  
-  backbones = nl+ns+2;
+
+  backbones = nl + ns + 2;
 
   if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
     /* salt correction for loop */
-    if (backbones <= MAXLOOP+1)
+    if (backbones <= MAXLOOP + 1)
       salt_loop_correction = P->SaltLoop[backbones];
     else
-      salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0, P->model_details.backbone_length);
+      salt_loop_correction =
+        vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature + K0,
+                           P->model_details.backbone_length);
   }
 
   if (ns == 0) {
@@ -620,7 +707,7 @@ exp_E_IntLoop(int               u1,
   int     noGUclosure = P->model_details.noGUclosure;
   int     backbones;
   double  salt_stack_correction = P->expSaltStack;
-  double  salt_loop_correction = 1.;
+  double  salt_loop_correction  = 1.;
 
   if ((noGUclosure) && ((type2 == 3) || (type2 == 4) || (type == 3) || (type == 4)))
     no_close = 1;
@@ -634,13 +721,15 @@ exp_E_IntLoop(int               u1,
   }
 
   /* salt correction for loop */
-  backbones = ul+us+2;
+  backbones = ul + us + 2;
 
   if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-    if (backbones <= MAXLOOP+1)
+    if (backbones <= MAXLOOP + 1)
       salt_loop_correction = P->expSaltLoop[backbones];
     else
-      salt_loop_correction = exp(-vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0, P->model_details.backbone_length) * 10. / P->kT);
+      salt_loop_correction =
+        exp(-vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature + K0,
+                                P->model_details.backbone_length) * 10. / P->kT);
   }
 
   if (ul == 0) {
@@ -722,10 +811,12 @@ E_IntLoop_Co(int          type,
   backbones = p - i + j - q;
   /* salt correction for loop */
   if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
-    if (backbones <= MAXLOOP+1)
+    if (backbones <= MAXLOOP + 1)
       salt_loop_correction = P->SaltLoop[backbones];
     else
-      salt_loop_correction = vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature+K0, P->model_details.backbone_length);
+      salt_loop_correction =
+        vrna_salt_loop_int(backbones, P->model_details.salt, P->temperature + K0,
+                           P->model_details.backbone_length);
   }
 
   energy = 0;
@@ -758,22 +849,22 @@ E_IntLoop_Co(int          type,
   if (p - i > 2) {
     if (j - q > 2) {
       /* all degrees of freedom */
-      e = MIN2(tmm, d5);
-      e = MIN2(e, d3);
-      energy += e;
-      e = MIN2(tmm_2, d5_2);
-      e = MIN2(e, d3_2);
-      energy += e;
+      e       = MIN2(tmm, d5);
+      e       = MIN2(e, d3);
+      energy  += e;
+      e       = MIN2(tmm_2, d5_2);
+      e       = MIN2(e, d3_2);
+      energy  += e;
     } else if (j - q == 2) {
       /* all degrees of freedom in 5' part between i and p */
-      e = MIN2(tmm + d5_2, d3 + d5_2);
-      e = MIN2(e, d5 + d5_2);
-      e = MIN2(e, d3 + tmm_2);
-      e = MIN2(e, d3 + d3_2);
-      e = MIN2(e, tmm_2); /* no dangles on enclosing pair */
-      e = MIN2(e, d5_2);  /* no dangles on enclosing pair */
-      e = MIN2(e, d3_2);  /* no dangles on enclosing pair */
-      energy += e;
+      e       = MIN2(tmm + d5_2, d3 + d5_2);
+      e       = MIN2(e, d5 + d5_2);
+      e       = MIN2(e, d3 + tmm_2);
+      e       = MIN2(e, d3 + d3_2);
+      e       = MIN2(e, tmm_2); /* no dangles on enclosing pair */
+      e       = MIN2(e, d5_2);  /* no dangles on enclosing pair */
+      e       = MIN2(e, d3_2);  /* no dangles on enclosing pair */
+      energy  += e;
     } else {
       /* no unpaired base between q and j */
       energy += d3 + d5_2;
@@ -781,24 +872,24 @@ E_IntLoop_Co(int          type,
   } else if (p - i == 2) {
     if (j - q > 2) {
       /* all degrees of freedom in 3' part between q and j */
-      e = MIN2(tmm + d3_2, d5 + d3_2);
-      e = MIN2(e, d5 + d3_2);
-      e = MIN2(e, d3 + d3_2);
-      e = MIN2(e, d5 + tmm_2);
-      e = MIN2(e, tmm_2);
-      e = MIN2(e, d5_2);
-      e = MIN2(e, d3_2);
-      energy += e;
+      e       = MIN2(tmm + d3_2, d5 + d3_2);
+      e       = MIN2(e, d5 + d3_2);
+      e       = MIN2(e, d3 + d3_2);
+      e       = MIN2(e, d5 + tmm_2);
+      e       = MIN2(e, tmm_2);
+      e       = MIN2(e, d5_2);
+      e       = MIN2(e, d3_2);
+      energy  += e;
     } else if (j - q == 2) {
       /* one possible dangling base between either side */
-      e = MIN2(tmm, tmm_2);
-      e = MIN2(e, d3);
-      e = MIN2(e, d5);
-      e = MIN2(e, d5_2);
-      e = MIN2(e, d3_2);
-      e = MIN2(e, d3 + d3_2);
-      e = MIN2(e, d5 + d5_2);
-      energy += e;
+      e       = MIN2(tmm, tmm_2);
+      e       = MIN2(e, d3);
+      e       = MIN2(e, d5);
+      e       = MIN2(e, d5_2);
+      e       = MIN2(e, d3_2);
+      e       = MIN2(e, d3 + d3_2);
+      e       = MIN2(e, d5 + d5_2);
+      energy  += e;
     } else {
       /* one unpaired base between i and p */
       energy += MIN2(d3, d5_2);
@@ -816,22 +907,6 @@ E_IntLoop_Co(int          type,
 
   return energy + salt_loop_correction;
 }
-
-
-DEPRECATED(int
-vrna_eval_int_loop(vrna_fold_compound_t *fc,
-                   int                  i,
-                   int                  j,
-                   int                  k,
-                   int                  l),
-          "Use vrna_eval_internal() instead!");
-
-DEPRECATED(int
-vrna_E_stack(vrna_fold_compound_t *fc,
-             int                  i,
-             int                  j),
-           "Use vrna_eval_stack() instead!");
-
 
 
 /**

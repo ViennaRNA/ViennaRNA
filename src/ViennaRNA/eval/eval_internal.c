@@ -59,6 +59,7 @@ eval_stack(vrna_fold_compound_t *fc,
            unsigned int         j,
            unsigned int         options);
 
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -99,8 +100,8 @@ vrna_E_internal(unsigned int  n1,
     }
 
     if (nl == 0)  /* stack */
-      return  P->stack[type][type_2] +
-              salt_stack_correction;
+      return P->stack[type][type_2] +
+             salt_stack_correction;
 
     if (no_close)
       return INF;
@@ -108,7 +109,7 @@ vrna_E_internal(unsigned int  n1,
     if (P->model_details.salt != VRNA_MODEL_DEFAULT_SALT) {
       /* salt correction for loop */
       backbones = nl + ns + 2;
-      if (backbones <= MAXLOOP+1)
+      if (backbones <= MAXLOOP + 1)
         salt_loop_correction = P->SaltLoop[backbones];
       else
         salt_loop_correction = vrna_salt_loop_int(backbones,
@@ -123,11 +124,12 @@ vrna_E_internal(unsigned int  n1,
       case 0:
         /* bulge */
         energy = (nl <= MAXLOOP) ?
-                  P->bulge[nl] :
+                 P->bulge[nl] :
                  (P->bulge[30] + (int)(P->lxc * log(nl / 30.)));
-        if (nl == 1) { /* add stacking energy for 1-bulges */
+        if (nl == 1) {
+          /* add stacking energy for 1-bulges */
           energy += P->stack[type][type_2];
-        } else { 
+        } else {
           if (type > 2)
             energy += P->TerminalAU;
 
@@ -138,7 +140,8 @@ vrna_E_internal(unsigned int  n1,
         break;
 
       case 1:
-        if (nl == 1) { /* 1x1 loop */
+        if (nl == 1) {
+          /* 1x1 loop */
           energy = P->int11[type][type_2][si1][sj1];
         } else if (nl == 2) {
           /* 2x1 loop */
@@ -149,11 +152,11 @@ vrna_E_internal(unsigned int  n1,
         } else {
           /* 1xn loop */
           energy = (nl + 1 <= MAXLOOP) ?
-                    (P->internal_loop[nl + 1]) :
-                    (P->internal_loop[30] + (int)(P->lxc * log((nl + 1) / 30.)));
-          energy += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
-          energy += P->mismatch1nI[type][si1][sj1] +
-                    P->mismatch1nI[type_2][sq1][sp1];
+                   (P->internal_loop[nl + 1]) :
+                   (P->internal_loop[30] + (int)(P->lxc * log((nl + 1) / 30.)));
+          energy  += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
+          energy  += P->mismatch1nI[type][si1][sj1] +
+                     P->mismatch1nI[type_2][sq1][sp1];
         }
 
         break;
@@ -171,14 +174,15 @@ vrna_E_internal(unsigned int  n1,
                     P->mismatch23I[type_2][sq1][sp1];
           break;
         }
-        /* fall through */
+
+      /* fall through */
 
       default:
         /* generic interior loop (no else here!)*/
         u       = nl + ns;
-        energy += (u <= MAXLOOP) ?
-                  (P->internal_loop[u]) :
-                  (P->internal_loop[30] + (int)(P->lxc * log((u) / 30.)));
+        energy  += (u <= MAXLOOP) ?
+                   (P->internal_loop[u]) :
+                   (P->internal_loop[30] + (int)(P->lxc * log((u) / 30.)));
 
         energy += MIN2(MAX_NINIO, (int)(nl - ns) * P->ninio[2]);
 
@@ -212,7 +216,6 @@ vrna_eval_internal(vrna_fold_compound_t *fc,
       (j > 0) &&
       (k > 0) &&
       (l > 0)) {
-
     /* prepare hard constraints check */
     if ((options & VRNA_EVAL_LOOP_NO_HC) ||
         (fc->hc == NULL)) {
@@ -224,9 +227,9 @@ vrna_eval_internal(vrna_fold_compound_t *fc,
 
     /* is this base pair allowed to close a hairpin (like) loop ? */
     if (eval)
-      return  (j < k) ?
-              eval_ext_int_loop(fc, i, j, k, l, options) :
-              eval_int_loop(fc, i, j, k, l, options);
+      return (j < k) ?
+             eval_ext_int_loop(fc, i, j, k, l, options) :
+             eval_int_loop(fc, i, j, k, l, options);
   }
 
   return INF;
@@ -246,7 +249,6 @@ vrna_eval_stack(vrna_fold_compound_t  *fc,
   if ((fc) &&
       (i > 0) &&
       (i + 2 < j)) {
-
     /* prepare hard constraints check */
     if ((options & VRNA_EVAL_LOOP_NO_HC) ||
         (fc->hc == NULL)) {
@@ -320,11 +322,11 @@ eval_int_loop(vrna_fold_compound_t  *fc,
     case VRNA_FC_TYPE_COMPARATIVE:
       e = 0;
       for (s = 0; s < n_seq; s++) {
-        type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-        type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-        u1      = a2s[s][k - 1] - a2s[s][i];
-        u2      = a2s[s][j - 1] - a2s[s][l];
-        e       += vrna_E_internal(u1, u2, type, type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
+        type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
+        type2 = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+        u1    = a2s[s][k - 1] - a2s[s][i];
+        u2    = a2s[s][j - 1] - a2s[s][l];
+        e     += vrna_E_internal(u1, u2, type, type2, S3[s][i], S5[s][j], S5[s][k], S3[s][l], P);
       }
 
       break;
@@ -342,8 +344,8 @@ eval_int_loop(vrna_fold_compound_t  *fc,
     }
 
     if (with_ud) {
-      int energy  = e;
-      e5      = e3 = 0;
+      int energy = e;
+      e5 = e3 = 0;
 
       u1  = k - i - 1;
       u2  = j - l - 1;
@@ -485,26 +487,25 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
       e = MIN2(e, energy + e5 + e3);
     }
   }
-  
 
   return e;
 }
 
 
 PRIVATE int
-eval_stack(vrna_fold_compound_t  *fc,
-           unsigned int          i,
-           unsigned int          j,
-           unsigned int          options)
+eval_stack(vrna_fold_compound_t *fc,
+           unsigned int         i,
+           unsigned int         j,
+           unsigned int         options)
 {
-  unsigned char         sliding_window;
-  char                  *ptype, **ptype_local;
-  short                 **SS;
-  unsigned int          p, q, s, n_seq, *sn, type, type_2;
-  int                   e, ij, pq, *rtype, *indx;
-  vrna_param_t          *P;
-  vrna_md_t             *md;
-  struct sc_int_dat     sc_wrapper;
+  unsigned char     sliding_window;
+  char              *ptype, **ptype_local;
+  short             **SS;
+  unsigned int      p, q, s, n_seq, *sn, type, type_2;
+  int               e, ij, pq, *rtype, *indx;
+  vrna_param_t      *P;
+  vrna_md_t         *md;
+  struct sc_int_dat sc_wrapper;
 
   e               = INF;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -519,12 +520,12 @@ eval_stack(vrna_fold_compound_t  *fc,
   ptype_local = (fc->type == VRNA_FC_TYPE_SINGLE) ?
                 (sliding_window ? fc->ptype_local : NULL) :
                 NULL;
-  P           = fc->params;
-  md          = &(P->model_details);
-  rtype       = &(md->rtype[0]);
-  indx        = (sliding_window) ? NULL : fc->jindx;
-  ij          = (sliding_window) ? 0 : indx[j] + i;
-  pq          = (sliding_window) ? 0 : indx[q] + p;
+  P     = fc->params;
+  md    = &(P->model_details);
+  rtype = &(md->rtype[0]);
+  indx  = (sliding_window) ? NULL : fc->jindx;
+  ij    = (sliding_window) ? 0 : indx[j] + i;
+  pq    = (sliding_window) ? 0 : indx[q] + p;
 
   if ((sn[p] != sn[i]) ||
       (sn[j] != sn[q]))
@@ -593,6 +594,7 @@ vrna_eval_int_loop(vrna_fold_compound_t *fc,
                             VRNA_EVAL_LOOP_NO_HC);
 }
 
+
 PUBLIC int
 vrna_E_stack(vrna_fold_compound_t *fc,
              int                  i,
@@ -606,4 +608,3 @@ vrna_E_stack(vrna_fold_compound_t *fc,
 
 
 #endif
-

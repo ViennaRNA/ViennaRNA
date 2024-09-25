@@ -45,7 +45,7 @@ vrna_exp_E_multibranch_stem(unsigned int      type,
                             vrna_exp_param_t  *P)
 {
   double energy;
-  
+
   energy = P->expMLintern[type];
 
   if (si1 >= 0 && sj1 >= 0)
