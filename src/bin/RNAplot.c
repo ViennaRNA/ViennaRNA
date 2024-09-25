@@ -24,7 +24,7 @@
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/file_formats_msa.h"
 #include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 
 #include "RNAplot_cmdl.h"
 #include "gengetopt_helpers.h"

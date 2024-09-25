@@ -40,7 +40,7 @@
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
-#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/constraints/ligand.h"
 #include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/structured_domains.h"

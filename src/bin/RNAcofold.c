@@ -19,10 +19,11 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/commands.h"
+#include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
@@ -34,7 +35,7 @@
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/datastructures/char_stream.h"
@@ -723,21 +724,22 @@ process_record(struct record_data *record)
   o_stream->err = vrna_cstr(n, stderr);
 
   if (record->tty) {
-    if (vc->cutpoint == -1) {
-      vrna_message_info(stdout, "length = %u", n);
+    if (vc->strands == 1) {
+      printf("length = %u", n);
     } else {
-      vrna_message_info(stdout,
-                        "length1 = %d\nlength2 = %d",
-                        vc->cutpoint - 1,
-                        (int)n - vc->cutpoint + 1);
+      printf("length1 = %d\nlength2 = %d",
+             vc->nucleotides[0].length,
+             vc->nucleotides[1].length);
     }
   }
 
-  if (vc->cutpoint == vc->length / 2 + 1) {
-    if (!strncmp(vc->sequence, vc->sequence + vc->cutpoint - 1, vc->cutpoint - 1)) {
+  if (vc->strands > 1) {
+    unsigned int r = vrna_rotational_symmetry(vc->sequence);
+    if (r > 1) {
       vrna_cstr_message_warning(o_stream->err,
-                                "Both input strands are identical, thus inducing rotationally symmetry! "
-                                "Symmetry correction might be required to compute actual MFE!");
+                                "The input sequences show a rotational symmetry of %u! "
+                                "Symmetry correction might be required to compute actual MFE!",
+                                r);
     }
   }
 
@@ -754,15 +756,48 @@ process_record(struct record_data *record)
       int           cp        = -1;
 
       cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
-      cstruc  = vrna_cut_point_remove(cstruc, &cp);
-      if (vc->cutpoint != cp) {
-        vrna_log_error("Sequence and Structure have different cut points.\n"
-                           "sequence: %d, structure: %d",
-                           vc->cutpoint, cp);
-        exit(EXIT_FAILURE);
+
+      char **structures = vrna_strsplit(cstruc, "&");
+      for (unsigned int a = 0; a < vc->strands; a++) {
+        if (!structures[a]) {
+          vrna_log_error("Sequence and Structure have different number of strand delimiters");
+          exit(EXIT_FAILURE);
+        }
+
+        unsigned int l = strlen(structures[a]);
+
+        cl += l;
+
+        switch (vc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            if (vc->nucleotides[a].length != l) {
+              vrna_log_error(
+                "Structure and sequence part of strand %u differ in length (%u vs. %u)",
+                a,
+                l,
+                vc->nucleotides[a].length);
+              exit(EXIT_FAILURE);
+            }
+
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            if (vc->alignment[a].sequences[0].length != l) {
+              vrna_log_error(
+                "Structure and sequence part of strand %u differ in length (%u vs. %u)",
+                a,
+                l,
+                vc->alignment[a].sequences[0].length);
+              exit(EXIT_FAILURE);
+            }
+            break;
+        }
       }
 
-      cl = (cstruc) ? (int)strlen(cstruc) : 0;
+      for (unsigned int a = 0; a < vc->strands; a++)
+        free(structures[a]);
+
+      free(structures);
 
       if (cl == 0) {
         vrna_log_warning("Structure constraint is missing");
@@ -845,7 +880,18 @@ process_record(struct record_data *record)
   }
 
   {
-    char *pstruct = vrna_cut_point_insert(mfe_structure, vc->cutpoint);
+    char  *pstruct    = NULL;
+    char  *tmp_struct = strdup(mfe_structure);
+
+    if (vc->strands == 1) {
+      pstruct = tmp_struct;
+    } else {
+      for (unsigned int i = 1; i < vc->strands; i++) {
+        pstruct = vrna_cut_point_insert(tmp_struct, (int)vc->strand_start[i] + (i - 1));
+        free(tmp_struct);
+        tmp_struct = pstruct;
+      }
+    }
 
     if (opt->csv_output) {
       vrna_cstr_printf(o_stream->data,
@@ -914,10 +960,21 @@ process_record(struct record_data *record)
     AB = AA = BB = vrna_pf_dimer(vc, pairing_propensity);
 
     if (opt->md.compute_bpp) {
-      char *costruc;
+      char *costruc = NULL;
       prAB = vrna_plist_from_probs(vc, opt->bppmThreshold);
 
-      costruc = vrna_cut_point_insert(pairing_propensity, vc->cutpoint);
+      char  *tmp_struct = strdup(pairing_propensity);
+
+      if (vc->strands == 1) {
+        costruc = tmp_struct;
+      } else {
+        for (unsigned int i = 1; i < vc->strands; i++) {
+          costruc = vrna_cut_point_insert(tmp_struct, (int)vc->strand_start[i] + (i - 1));
+          free(tmp_struct);
+          tmp_struct = costruc;
+        }
+      }
+
       if (opt->csv_output) {
         vrna_cstr_printf(o_stream->data,
                          "%c"
@@ -1205,7 +1262,7 @@ process_record(struct record_data *record)
         if (filename_dot) {
           THREADSAFE_FILE_OUTPUT(
             (void)vrna_plot_dp_PS_list(record->sequence,
-                                       vc->cutpoint,
+                                       (vc->strands > 1) ? vc->strand_start[1] : -1,
                                        filename_dot,
                                        prAB,
                                        mfAB,
@@ -1332,7 +1389,7 @@ compute_MEA(vrna_fold_compound_t  *fc,
             double                MEAgamma,
             vrna_cstr_t           rec_output)
 {
-  char  *structure, *mea_structure;
+  char  *structure, *mea_structure = NULL;
   float mea, mea_en;
 
   structure = vrna_MEA(fc, MEAgamma, &mea);
@@ -1340,7 +1397,17 @@ compute_MEA(vrna_fold_compound_t  *fc,
   mea_en = vrna_eval_structure(fc, (const char *)structure);
 
   /* insert cut point */
-  mea_structure = vrna_cut_point_insert(structure, fc->cutpoint);
+  char  *tmp_struct = strdup(structure);
+
+  if (fc->strands == 1) {
+    mea_structure = tmp_struct;
+  } else {
+    for (unsigned int i = 1; i < fc->strands; i++) {
+      mea_structure = vrna_cut_point_insert(tmp_struct, (int)fc->strand_start[i] + (i - 1));
+      free(tmp_struct);
+      tmp_struct = mea_structure;
+    }
+  }
 
   vrna_cstr_printf_structure(rec_output, mea_structure, " {%6.2f MEA=%.2f}", mea_en, mea);
 
@@ -1353,14 +1420,24 @@ static void
 compute_centroid(vrna_fold_compound_t *fc,
                  vrna_cstr_t          rec_output)
 {
-  char    *cent, *centroid_structure;
+  char    *cent, *centroid_structure = NULL;
   double  cent_en, dist;
 
   cent    = vrna_centroid(fc, &dist);
   cent_en = vrna_eval_structure(fc, (const char *)cent);
 
   /* insert cut point */
-  centroid_structure = vrna_cut_point_insert(cent, fc->cutpoint);
+  char  *tmp_struct = strdup(cent);
+
+  if (fc->strands == 1) {
+    centroid_structure = tmp_struct;
+  } else {
+    for (unsigned int i = 1; i < fc->strands; i++) {
+      centroid_structure = vrna_cut_point_insert(tmp_struct, (int)fc->strand_start[i] + (i - 1));
+      free(tmp_struct);
+      tmp_struct = centroid_structure;
+    }
+  }
 
   vrna_cstr_printf_structure(rec_output, centroid_structure, " {%6.2f d=%.2f}", cent_en, dist);
 
@@ -1487,11 +1564,11 @@ postscript_layout(vrna_fold_compound_t  *fc,
     filename_plot = strdup("rna.ps");
   }
 
-  if (fc->cutpoint >= 0) {
+  if (fc->strands > 1) {
     annot = vrna_strdup_printf("1 %d 9  0 0.9 0.2 omark\n"
                                "%d %d 9  1 0.1 0.2 omark\n",
-                               fc->cutpoint - 1,
-                               fc->cutpoint + 1,
+                               fc->strand_end[0],
+                               fc->strand_start[1] + 1,
                                fc->length + 1);
   }
 

@@ -17,7 +17,7 @@
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/subopt/wuchty.h"

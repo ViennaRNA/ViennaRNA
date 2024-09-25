@@ -211,7 +211,7 @@ main(int  argc,
     vrna_seq_toupper(s2);
 
     if (istty)
-      vrna_message_info(stdout, "lengths = %d,%d\n", (int)strlen(s1), (int)strlen(s2));
+      printf("lengths = %d,%d\n", (int)strlen(s1), (int)strlen(s2));
 
     /*
      ########################################################

@@ -26,7 +26,7 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/ali_plex.h"
 #include "ViennaRNA/alifold.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/fold.h"
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/plex.h"

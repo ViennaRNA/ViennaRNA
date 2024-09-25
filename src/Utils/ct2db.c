@@ -9,7 +9,7 @@
 #include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/MEA.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/io/utils.h"

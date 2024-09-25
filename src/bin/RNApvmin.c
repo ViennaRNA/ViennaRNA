@@ -18,7 +18,7 @@
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
-#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/perturbation_fold.h"
 #include "ViennaRNA/io/file_formats.h"
 
@@ -186,17 +186,17 @@ main(int  argc,
       int arg;
     } mapper[] =
     {              { VRNA_MINIMIZER_CONJUGATE_FR,
-                     minimizer_arg_conjugate_fr                                                                 },
+                     minimizer_arg_conjugate_fr },
                    { VRNA_MINIMIZER_CONJUGATE_PR,
-                     minimizer_arg_conjugate_pr                                                                                                },
+                     minimizer_arg_conjugate_pr },
                    { VRNA_MINIMIZER_VECTOR_BFGS,
-                     minimizer_arg_vector_bfgs                                                                                                                               },
+                     minimizer_arg_vector_bfgs },
                    { VRNA_MINIMIZER_VECTOR_BFGS2,
-                     minimizer_arg_vector_bfgs2                                                                                                                                                            },
+                     minimizer_arg_vector_bfgs2 },
                    { VRNA_MINIMIZER_STEEPEST_DESCENT,
-                     minimizer_arg_steepest_descent                                                                                                                                                                                      },
+                     minimizer_arg_steepest_descent },
                    { 0,
-                     0                                                                                                                                                                                                                   } };
+                     0 } };
     for (i = 0; mapper[i].algorithm; ++i)
       if (args_info.minimizer_arg == mapper[i].arg) {
         algorithm = mapper[i].algorithm;

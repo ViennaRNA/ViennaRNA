@@ -27,7 +27,7 @@
 #include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 #include "RNAsnoop_cmdl.h"

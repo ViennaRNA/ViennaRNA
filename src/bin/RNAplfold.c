@@ -26,7 +26,7 @@
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
@@ -391,7 +391,7 @@ main(int  argc,
     vrna_seq_toupper(rec_sequence);
 
     if (istty)
-      vrna_message_info(stdout, "length = %d", length);
+      printf("length = %d", length);
 
     /*
      ########################################################

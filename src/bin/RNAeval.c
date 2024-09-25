@@ -27,14 +27,15 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/constraints/basic.h"
-#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/file_formats_msa.h"
 #include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/cofold.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
+#include "ViennaRNA/datastructures/string.h"
 #include "ViennaRNA/color_output.inc"
 
 #include "RNAeval_cmdl.h"
@@ -43,8 +44,6 @@
 #include "parallel_helpers.h"
 
 #define DBL_ROUND(a, digits) (round((a) * pow(10., (double)(digits))) / pow(10., (double)(digits)))
-
-#define MULTISTRAND_EVAL
 
 struct options {
   unsigned int    msa_format;
@@ -677,7 +676,6 @@ process_record(struct record_data *record)
   }
 
   {
-#ifdef MULTISTRAND_EVAL
     char **structures = vrna_strsplit(tmp, "&");
     for (unsigned int a = 0; a < vc->strands; a++) {
       if (!structures[a])
@@ -702,63 +700,42 @@ process_record(struct record_data *record)
       }
     }
     structure = vrna_strjoin((const char **)structures, NULL);
+
     for (unsigned int a = 0; a < vc->strands; a++)
       free(structures[a]);
+
     free(structures);
-#else
-    int cp = -1;
-    structure = vrna_cut_point_remove(tmp, &cp);
-    if (cp != vc->cutpoint) {
-      vrna_log_warning("cut_point = %d cut = %d", vc->cutpoint, cp);
-      vrna_log_error("Sequence and Structure have different cut points.");
-      exit(EXIT_FAILURE);
-    }
-
-    n = (int)strlen(structure);
-    if (n != vc->length) {
-      vrna_log_error("structure and sequence differ in length!");
-      exit(EXIT_FAILURE);
-    }
-#endif
-
     free(tmp);
   }
 
   if (record->tty) {
-#ifdef MULTISTRAND_EVAL
-    if (vc->strands == 1) {
-      vrna_message_info(stdout, "length = %u", vc->length);
-    } else {
-      switch (vc->type) {
-        case VRNA_FC_TYPE_SINGLE:
-          for (unsigned int a = 0; a < vc->strands; a++)
-            vrna_message_info(stdout,
-                              "length%u = %u",
-                              a + 1,
-                              vc->nucleotides[a].length);
-          break;
+    char          *tmp;
+    vrna_string_t lstring;
 
-        case VRNA_FC_TYPE_COMPARATIVE:
-          for (unsigned int a = 0; a < vc->strands; a++)
-            vrna_message_info(stdout,
-                              "length%u = %u",
-                              a + 1,
-                              vc->alignment[a].sequences[0].length);
-          break;
-      }
+    lstring = vrna_string_make("length(s) = {");
+    tmp     = vrna_strdup_printf(" %u",
+                                 (vc->type == VRNA_FC_TYPE_COMPARATIVE) ?
+                                 vc->alignment[0].sequences[0].length :
+                                 vc->nucleotides[0].length);
+
+    lstring = vrna_string_append_cstring(lstring, tmp);
+    free(tmp);
+
+    for (unsigned int i = 1; i < vc->strands; i++) {
+      tmp = vrna_strdup_printf(" %u",
+                               (vc->type == VRNA_FC_TYPE_COMPARATIVE) ?
+                               vc->alignment[i].sequences[0].length :
+                               vc->nucleotides[i].length);
+      lstring = vrna_string_append_cstring(lstring, tmp);
+      free(tmp);
     }
 
-#else
-    if (vc->cutpoint == -1) {
-      vrna_message_info(stdout, "length = %d", n);
-    } else {
-      vrna_message_info(stdout,
-                        "length1 = %d\nlength2 = %d",
-                        vc->cutpoint - 1,
-                        n - vc->cutpoint + 1);
-    }
+    tmp     = vrna_strdup_printf(" }, total = %u, sequences = %u\n", vc->length, vc->strands);
+    lstring = vrna_string_append_cstring(lstring, tmp);
+    free(tmp);
 
-#endif
+    printf("%s", lstring);
+    vrna_string_free(lstring);
   }
 
   /*

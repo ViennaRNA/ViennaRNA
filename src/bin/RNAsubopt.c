@@ -30,7 +30,7 @@
 #include "ViennaRNA/subopt/zuker.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
-#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
@@ -456,13 +456,11 @@ main(int  argc,
 
     if (istty) {
       if (vc->strands == 1) {
-        vrna_message_info(stdout, "length = %d", length);
+        printf("length = %d", length);
       } else {
-        
-        vrna_message_info(stdout,
-                          "length1 = %d\nlength2 = %d",
-                          cut_point - 1,
-                          length - cut_point + 1);
+        printf("length1 = %d\nlength2 = %d",
+               cut_point - 1,
+               length - cut_point + 1);
       }
     }
 

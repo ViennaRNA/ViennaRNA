@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/datastructures/basic.h"
@@ -18,7 +18,7 @@
 #include "ViennaRNA/eval/hairpin.h"
 #include "ViennaRNA/eval/internal.h"
 #include "ViennaRNA/eval/multibranch.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/io/file_formats.h"

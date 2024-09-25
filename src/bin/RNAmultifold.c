@@ -22,7 +22,7 @@
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/cofold.h"
@@ -34,11 +34,12 @@
 #include "ViennaRNA/eval/structures.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/io.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
+#include "ViennaRNA/datastructures/string.h"
 #include "ViennaRNA/concentrations.h"
 #include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/wrap_dlib.h"
@@ -588,21 +589,36 @@ process_record(struct record_data *record)
   o_stream->err = vrna_cstr(n, stderr);
 
   if (record->tty) {
-    if (vc->cutpoint == -1) {
-      vrna_message_info(stdout, "length = %u", n);
-    } else {
-      vrna_message_info(stdout,
-                        "length1 = %d\nlength2 = %d",
-                        vc->cutpoint - 1,
-                        (int)n - vc->cutpoint + 1);
+    char          *tmp;
+    vrna_string_t lstring;
+
+    lstring = vrna_string_make("length(s) = {");
+    tmp     = vrna_strdup_printf(" %u", 1 + vc->strand_end[0] - vc->strand_start[0]);
+
+    lstring = vrna_string_append_cstring(lstring, tmp);
+    free(tmp);
+
+    for (unsigned int i = 1; i < vc->strands; i++) {
+      char *tmp = vrna_strdup_printf(", %u", 1 + vc->strand_end[i] - vc->strand_start[i]);
+      lstring = vrna_string_append_cstring(lstring, tmp);
+      free(tmp);
     }
+
+    tmp     = vrna_strdup_printf(" }, total = %u, sequences = %u\n", vc->length, vc->strands);
+    lstring = vrna_string_append_cstring(lstring, tmp);
+    free(tmp);
+
+    printf("%s", lstring);
+    vrna_string_free(lstring);
   }
 
-  if (vc->cutpoint == vc->length / 2 + 1) {
-    if (!strncmp(vc->sequence, vc->sequence + vc->cutpoint - 1, vc->cutpoint - 1)) {
+  if (vc->strands > 1) {
+    unsigned int r = vrna_rotational_symmetry(vc->sequence);
+    if (r > 1) {
       vrna_cstr_message_warning(o_stream->err,
-                                "Both input strands are identical, thus inducing rotationally symmetry! "
-                                "Symmetry correction might be required to compute actual MFE!");
+                                "The input sequences show a rotational symmetry of %u! "
+                                "Symmetry correction might be required to compute actual MFE!",
+                                r);
     }
   }
 
@@ -619,24 +635,57 @@ process_record(struct record_data *record)
       int           cp        = -1;
 
       cstruc  = vrna_extract_record_rest_structure((const char **)rec_rest, 0, coptions);
-      cstruc  = vrna_cut_point_remove(cstruc, &cp);
-      if (vc->cutpoint != cp) {
-        vrna_log_error("Sequence and Structure have different cut points.\n"
-                           "sequence: %d, structure: %d",
-                           vc->cutpoint, cp);
-        exit(EXIT_FAILURE);
+
+      char **structures = vrna_strsplit(cstruc, "&");
+      for (unsigned int a = 0; a < vc->strands; a++) {
+        if (!structures[a]) {
+          vrna_log_error("Sequence and Structure have different number of strand delimiters");
+          exit(EXIT_FAILURE);
+        }
+
+        unsigned int l = strlen(structures[a]);
+        cl += l;
+
+        switch (vc->type) {
+          case VRNA_FC_TYPE_SINGLE:
+            if (vc->nucleotides[a].length != l) {
+              vrna_log_error(
+                "Structure and sequence part of strand %u differ in length (%u vs. %u)",
+                a,
+                l,
+                vc->nucleotides[a].length);
+              exit(EXIT_FAILURE);
+            }
+
+            break;
+
+          case VRNA_FC_TYPE_COMPARATIVE:
+            if (vc->alignment[a].sequences[0].length != l) {
+              vrna_log_error(
+                "Structure and sequence part of strand %u differ in length (%u vs. %u)",
+                a,
+                l,
+                vc->alignment[a].sequences[0].length);
+              exit(EXIT_FAILURE);
+            }
+            break;
+        }
       }
 
-      cl = (cstruc) ? (int)strlen(cstruc) : 0;
+      for (unsigned int a = 0; a < vc->strands; a++)
+        free(structures[a]);
+
+      free(structures);
 
       if (cl == 0)
         vrna_log_warning("Structure constraint is missing");
       else if (cl < n)
-        vrna_log_warning("Structure constraint is shorter than sequence");
+        vrna_log_warning("Structure constraint is shorter than sequence(s)");
       else if (cl > n) {
         vrna_log_error("Structure constraint is too long");
         exit(EXIT_FAILURE);
       }
+
       if (cstruc) {
         unsigned int constraint_options = VRNA_CONSTRAINT_DB_DEFAULT;
 
