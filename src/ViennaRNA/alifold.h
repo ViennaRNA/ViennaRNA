@@ -7,8 +7,8 @@
 #include <ViennaRNA/mfe/global.h>
 #include <ViennaRNA/backtrack/global.h>
 #include <ViennaRNA/partfunc/global.h>
-#include <ViennaRNA/utils/alignments.h>
-#include <ViennaRNA/utils/structures.h>
+#include <ViennaRNA/sequences/alignments.h>
+#include <ViennaRNA/structures/problist.h>
 #include <ViennaRNA/sampling/basic.h>
 
 #ifdef VRNA_WARN_DEPRECATED

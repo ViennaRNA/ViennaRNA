@@ -15,8 +15,8 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/alphabet.h"
-#include "ViennaRNA/sequence.h"
+#include "ViennaRNA/sequences/alphabet.h"
+#include "ViennaRNA/sequences/sequence.h"
 
 /*
  #################################

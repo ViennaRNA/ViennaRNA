@@ -131,7 +131,12 @@ typedef struct vrna_sect_s vrna_sect_t;
 #include <ViennaRNA/grammar.h>
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/problist.h"
+#include "ViennaRNA/structures/pairtable.h"
+#include "ViennaRNA/structures/dotbracket.h"
+#include "ViennaRNA/structures/utils.h"
+#include "ViennaRNA/structures/metrics.h"
+#include "ViennaRNA/structures/helix.h"
 
 /*
  * ############################################################

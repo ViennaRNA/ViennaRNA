@@ -31,7 +31,7 @@ typedef struct vrna_unstructured_domain_motif_s vrna_ud_motif_t;
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/utils/structures.h>
+#include <ViennaRNA/structures/problist.h>
 
 /**
  *  @brief Callback to retrieve binding free energy of a ligand bound to an unpaired sequence segment

@@ -23,7 +23,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/datastructures/basic.h"
@@ -47,7 +47,7 @@
 #include "ViennaRNA/backtrack/internal.h"
 #include "ViennaRNA/backtrack/multibranch.h"
 #include "ViennaRNA/backtrack/gquad.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/mfe/global.h"
 
 #include "ViennaRNA/grammar.inc"

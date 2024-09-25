@@ -17,7 +17,7 @@
 #include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/eval/hairpin.h"
 
 #ifdef __GNUC__

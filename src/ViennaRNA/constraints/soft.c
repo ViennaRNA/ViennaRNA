@@ -17,11 +17,11 @@
 #include "ViennaRNA/params/constants.h" /* defines MINPSCORE */
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/constraints/SHAPE.h"
+#include "ViennaRNA/probing/SHAPE.h"
 #include "ViennaRNA/constraints/soft.h"
 
 

@@ -35,7 +35,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/params/ribosum.h"
 #include "ViennaRNA/alifold.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/eval/hairpin.h"

@@ -15,10 +15,9 @@
 #include <ctype.h>
 #include <math.h>    
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/datastructures/string.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/plotting/utils.h"
 
 /*

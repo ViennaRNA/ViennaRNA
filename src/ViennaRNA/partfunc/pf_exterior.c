@@ -13,7 +13,7 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/eval/gquad.h"

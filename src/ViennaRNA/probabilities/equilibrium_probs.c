@@ -29,7 +29,7 @@
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/eval/structures.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/probabilities/basepairs.h"
 

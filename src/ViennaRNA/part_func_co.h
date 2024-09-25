@@ -30,7 +30,7 @@
 #include <ViennaRNA/probabilities/structures.h>
 #include <ViennaRNA/probabilities/basepairs.h>
 #include <ViennaRNA/concentrations.h>
-#include <ViennaRNA/utils/structures.h>
+#include <ViennaRNA/structures/problist.h>
 
 /**
  *  @brief Toggles no intrabp in 2nd mol

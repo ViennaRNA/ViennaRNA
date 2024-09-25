@@ -6,8 +6,7 @@
 #include <ViennaRNA/datastructures/basic.h>
 #include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/datastructures/sparse_mx.h"
-#include <ViennaRNA/utils/log.h>
-#include <ViennaRNA/alphabet.h>
+#include <ViennaRNA/sequences/alphabet.h>
 #include <ViennaRNA/fold_compound.h>
 #include <ViennaRNA/params/basic.h>
 

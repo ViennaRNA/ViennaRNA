@@ -35,7 +35,7 @@
 #include "ViennaRNA/partfunc/multibranch.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/Lfold.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/partfunc/local.h"
 
 /*

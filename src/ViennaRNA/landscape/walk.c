@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/datastructures/heap.h"
 #include "ViennaRNA/eval/structures.h"

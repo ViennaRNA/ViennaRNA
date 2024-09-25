@@ -39,7 +39,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/eval/structures.h"
 
 #ifdef __GNUC__

@@ -23,9 +23,9 @@
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/params/ribosum.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 
 #define NONE -10000 /* score for forbidden pairs */
 /*

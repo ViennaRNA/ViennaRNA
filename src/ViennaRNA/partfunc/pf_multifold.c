@@ -3,7 +3,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/partfunc/multifold.h"
 

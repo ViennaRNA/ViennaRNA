@@ -42,7 +42,7 @@
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/subopt/gquad.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/subopt/wuchty.h"
 
 #include "ViennaRNA/constraints/exterior_hc.inc"

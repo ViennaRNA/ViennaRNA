@@ -38,7 +38,7 @@
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/backtrack/global.h"
 #include "ViennaRNA/partfunc/global.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/problist.h"
 #include "ViennaRNA/alifold.h"
 
 #ifdef _OPENMP

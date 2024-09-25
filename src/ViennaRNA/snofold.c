@@ -19,7 +19,7 @@
 #include <ctype.h>
 #include <string.h>
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/datastructures/dp_matrices.h"

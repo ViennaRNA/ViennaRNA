@@ -26,7 +26,7 @@
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/sampling/basic.h"
 

@@ -22,7 +22,7 @@ typedef struct vrna_dimer_pf_s cofoldF;
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/utils/structures.h>
+#include <ViennaRNA/structures/problist.h>
 #include <ViennaRNA/params/basic.h>
 
 #ifdef VRNA_WARN_DEPRECATED

@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/strings.h"
-#include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/io/utils.h"
 

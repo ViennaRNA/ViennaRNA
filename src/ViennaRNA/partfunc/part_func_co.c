@@ -19,7 +19,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/problist.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/plotting/probabilities.h"

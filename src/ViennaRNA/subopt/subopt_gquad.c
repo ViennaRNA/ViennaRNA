@@ -19,7 +19,7 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/subopt/gquad.h"
 
 #include "ViennaRNA/loops/gquad_intern.h"

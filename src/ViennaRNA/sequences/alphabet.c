@@ -18,7 +18,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/log.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 
 /*
  * For now, we neglect all non-standard nucleotides in an input sequence, i.e. only

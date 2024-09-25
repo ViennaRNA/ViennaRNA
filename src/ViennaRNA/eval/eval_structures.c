@@ -36,7 +36,7 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/model.h"
@@ -50,7 +50,7 @@
 #include "ViennaRNA/eval/multibranch.h"
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/cofold.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/eval/structures.h"

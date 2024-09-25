@@ -8,7 +8,7 @@
 #include "ViennaRNA/fold_compound.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/problist.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/partfunc/local.h"

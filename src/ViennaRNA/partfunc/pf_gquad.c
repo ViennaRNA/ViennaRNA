@@ -18,7 +18,7 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/params/constants.h"
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/partfunc/gquad.h"

@@ -3,7 +3,7 @@
 
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/utils/structures.h>
+#include <ViennaRNA/structures/problist.h>
 
 #ifdef VRNA_WARN_DEPRECATED
 # if defined(__clang__)

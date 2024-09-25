@@ -24,21 +24,21 @@
 #include <limits.h>
 
 #include "ViennaRNA/utils/basic.h"
-#include "ViennaRNA/utils/structures.h"
 #include "ViennaRNA/utils/strings.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/utils/alignments.h"
+#include "ViennaRNA/sequences/alignments.h"
 #include "ViennaRNA/params/ribosum.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/cofold.h"
 #include "ViennaRNA/mm.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
+#include "ViennaRNA/structures/utils.h"
 #include "ViennaRNA/fold_compound.h"
 
 

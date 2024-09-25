@@ -10,7 +10,7 @@
 #include <ViennaRNA/datastructures/basic.h>
 #include <ViennaRNA/datastructures/string.h>
 #include <ViennaRNA/model.h>
-#include <ViennaRNA/utils/structures.h>
+#include <ViennaRNA/structures/problist.h>
 
 /**
  *  @addtogroup  annotation_utils

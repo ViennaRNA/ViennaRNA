@@ -29,7 +29,7 @@
 #include "ViennaRNA/eval/hairpin.h"
 #include "ViennaRNA/eval/internal.h"
 #include "ViennaRNA/eval/multibranch.h"
-#include "ViennaRNA/alphabet.h"
+#include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/LPfold.h"
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/datastructures/heap.h"

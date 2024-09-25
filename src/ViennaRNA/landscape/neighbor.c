@@ -5,7 +5,7 @@
 
 #include "ViennaRNA/pair_mat.h"
 #include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/utils/structures.h"
+#include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/model.h"
 #include "ViennaRNA/eval/structures.h"
