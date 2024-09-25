@@ -1462,18 +1462,13 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
 {
   char          *sequence;
   short         *S;
-  unsigned int  n, i, j, length, min_loop_size, num_up, num_bp,
-                num_bp_unspecific, size_up, size_bp, size_bp_unspecific;
-  int           hx, *stack, cut;
+  unsigned int  n, i, j, spos, length, min_loop_size;
+  int           hx, *stack;
   vrna_md_t     *md;
-#if 1
+
   vrna_array(vrna_hc_up_t)  up;
   vrna_array(struct hc_bp)  bp;
   vrna_array(struct hc_bp)  bp_unspecific;
-#else
-  vrna_hc_up_t  *up;
-  struct hc_bp  *bp, *bp_unspecific;
-#endif
 
   if (constraint == NULL)
     return;
@@ -1483,43 +1478,29 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
   S             = vc->sequence_encoding2;
   md            = &(vc->params->model_details);
   min_loop_size = md->min_loop_size;
-  cut           = vc->cutpoint;
   n             = strlen(constraint);
   stack         = (int *)vrna_alloc(sizeof(int) * (n + 1));
-  size_up       = size_bp = size_bp_unspecific = 10;
-  num_up        = num_bp = num_bp_unspecific = 0;
-#if 1
+
   vrna_array_init(up);
   vrna_array_init(bp);
   vrna_array_init(bp_unspecific);
-#else
-  up            = (vrna_hc_up_t *)vrna_alloc(sizeof(vrna_hc_up_t) * size_up);
-  bp            = (struct hc_bp *)vrna_alloc(sizeof(struct hc_bp) * size_bp);
-  bp_unspecific = (struct hc_bp *)vrna_alloc(sizeof(struct hc_bp) * size_bp_unspecific);
-#endif
 
-  for (hx = 0, j = 1; j <= n; j++) {
-    switch (constraint[j - 1]) {
+  ;
+  for (hx = 0, spos = 0, j = 1; spos < n; j++, spos++) {
+    switch (constraint[spos]) {
+      case '&':
+        /* multistrand delimiter */
+        j--;
+        break;
+
       /* can't pair */
       case 'x':
         if (options & VRNA_CONSTRAINT_DB_X) {
-#if 1
           vrna_array_append(up,
                             ((vrna_hc_up_t){
                               .position = j,
                               .options = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
                             }));
-#else
-          up[num_up].position = j;
-          up[num_up].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-          num_up++;
-
-          if (num_up == size_up) {
-            size_up *= 1.4;
-            up      = (vrna_hc_up_t *)vrna_realloc(up, sizeof(vrna_hc_up_t) * size_up);
-          }
-#endif
         }
 
         break;
@@ -1527,7 +1508,6 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
       /* must pair, i.e. may not be unpaired */
       case '|':
         if (options & VRNA_CONSTRAINT_DB_PIPE) {
-#if 1
           vrna_array_append(bp_unspecific,
                             ((struct hc_bp){
                               .i = j,
@@ -1536,23 +1516,6 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                          VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_ENFORCE:
                                          VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
                             }));
-#else
-          bp_unspecific[num_bp_unspecific].i        = j;  /* position */
-          bp_unspecific[num_bp_unspecific].j        = 0;  /* direction */
-          bp_unspecific[num_bp_unspecific].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-          if (options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
-            bp_unspecific[num_bp_unspecific].options |= VRNA_CONSTRAINT_CONTEXT_ENFORCE;
-
-          num_bp_unspecific++;
-
-          if (num_bp_unspecific == size_bp_unspecific) {
-            size_bp_unspecific  *= 1.4;
-            bp_unspecific       = (struct hc_bp *)vrna_realloc(bp_unspecific,
-                                                               sizeof(struct hc_bp) *
-                                                               size_bp_unspecific);
-          }
-#endif
         }
 
         break;
@@ -1596,7 +1559,6 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
             break;
           }
 
-#if 1
           vrna_array_append(bp,
                             ((struct hc_bp){
                               .i = i,
@@ -1605,21 +1567,6 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                           VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS | VRNA_CONSTRAINT_CONTEXT_ENFORCE:
                                           VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
                             }));
-#else
-          bp[num_bp].i        = i;
-          bp[num_bp].j        = j;
-          bp[num_bp].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-          if (options & VRNA_CONSTRAINT_DB_ENFORCE_BP)
-            bp[num_bp].options |= VRNA_CONSTRAINT_CONTEXT_ENFORCE;
-
-          num_bp++;
-
-          if (num_bp == size_bp) {
-            size_bp *= 1.4;
-            bp      = (struct hc_bp *)vrna_realloc(bp, sizeof(struct hc_bp) * size_bp);
-          }
-#endif
         }
 
         break;
@@ -1627,44 +1574,12 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
       /* pairs downstream */
       case '<':
         if (options & VRNA_CONSTRAINT_DB_ANG_BRACK) {
-#if 1
           vrna_array_append(bp_unspecific,
                             ((struct hc_bp){
                               .i = j,
                               .j = 1,
                               .options = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
                             }));
-#else
-          bp_unspecific[num_bp_unspecific].i        = j;
-          bp_unspecific[num_bp_unspecific].j        = 1;
-          bp_unspecific[num_bp_unspecific].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-          num_bp_unspecific++;
-
-          if (num_bp_unspecific == size_bp_unspecific) {
-            size_bp_unspecific  *= 1.4;
-            bp_unspecific       = (struct hc_bp *)vrna_realloc(bp_unspecific,
-                                                               sizeof(struct hc_bp) *
-                                                               size_bp_unspecific);
-          }
-#endif
-
-#if 0
-          if (!(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)) {
-            /* (re-)allow this nucleotide to stay unpaired for nostalgic reasons */
-            up[num_up].position = j;
-            up[num_up].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS |
-                                  VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
-
-            num_up++;
-
-            if (num_up == size_up) {
-              size_up *= 1.4;
-              up      = (vrna_hc_up_t *)vrna_realloc(up, sizeof(vrna_hc_up_t) * size_up);
-            }
-          }
-
-#endif
         }
 
         break;
@@ -1672,44 +1587,12 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
       /* pairs upstream */
       case '>':
         if (options & VRNA_CONSTRAINT_DB_ANG_BRACK) {
-#if 1
           vrna_array_append(bp_unspecific,
                             ((struct hc_bp){
                               .i        = j,
                               .j        = -1,
                               .options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS
                             }));
-#else
-          bp_unspecific[num_bp_unspecific].i        = j;
-          bp_unspecific[num_bp_unspecific].j        = -1;
-          bp_unspecific[num_bp_unspecific].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS;
-
-          num_bp_unspecific++;
-
-          if (num_bp_unspecific == size_bp_unspecific) {
-            size_bp_unspecific  *= 1.4;
-            bp_unspecific       = (struct hc_bp *)vrna_realloc(bp_unspecific,
-                                                               sizeof(struct hc_bp) *
-                                                               size_bp_unspecific);
-          }
-#endif
-
-#if 0
-          if (!(options & VRNA_CONSTRAINT_DB_ENFORCE_BP)) {
-            /* (re-)allow this nucleotide to stay unpaired for nostalgic reasons */
-            up[num_up].position = j;
-            up[num_up].options  = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS |
-                                  VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
-
-            num_up++;
-
-            if (num_up == size_up) {
-              size_up *= 1.4;
-              up      = (vrna_hc_up_t *)vrna_realloc(up, sizeof(vrna_hc_up_t) * size_up);
-            }
-          }
-
-#endif
         }
 
         break;
@@ -1718,59 +1601,25 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
       case 'l':
         if (options & VRNA_CONSTRAINT_DB_INTRAMOL) {
           unsigned int l;
-          if (cut > 1) {
-            if (j < (unsigned int)cut) {
-              for (l = MAX2(j + min_loop_size, (unsigned int)cut); l <= length; l++) {
-#if 1
-                vrna_array_append(bp,
-                                  ((struct hc_bp){
-                                    .i        = j,
-                                    .j        = l,
-                                    .options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                                VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
-                                  }));
-#else
-                bp[num_bp].i        = j;
-                bp[num_bp].j        = l;
-                bp[num_bp].options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                      VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
+          if (vc->strands > 1) {
+            for (l = 1; l < vc->strand_start[vc->strand_number[j]]; l++) {
+              vrna_array_append(bp,
+                                ((struct hc_bp){
+                                  .i        = j,
+                                  .j        = l,
+                                  .options  = VRNA_CONSTRAINT_CONTEXT_NONE |
+                                              VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
+                                }));
+            }
 
-                num_bp++;
-
-                if (num_bp == size_bp) {
-                  size_bp *= 1.4;
-                  bp      = (struct hc_bp *)vrna_realloc(bp, sizeof(struct hc_bp) * size_bp);
-                }
-#endif
-              }
-            } else {
-              unsigned int maxl = (unsigned int)cut;
-              if ((j > min_loop_size) &&
-                  (maxl > j - min_loop_size))
-                maxl = j - min_loop_size;
-              for (l = 1; l < maxl; l++) {
-#if 1
-                vrna_array_append(bp,
-                                  ((struct hc_bp){
-                                    .i        = l,
-                                    .j        = j,
-                                    .options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                                VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
-                                  }));
-#else
-                bp[num_bp].i        = l;
-                bp[num_bp].j        = j;
-                bp[num_bp].options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                      VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
-
-                num_bp++;
-
-                if (num_bp == size_bp) {
-                  size_bp *= 1.4;
-                  bp      = (struct hc_bp *)vrna_realloc(bp, sizeof(struct hc_bp) * size_bp);
-                }
-#endif
-              }
+            for (l = vc->strand_end[vc->strand_number[j]] + 1; l <= vc->length; l++) {
+              vrna_array_append(bp,
+                                ((struct hc_bp){
+                                  .i        = j,
+                                  .j        = l,
+                                  .options  = VRNA_CONSTRAINT_CONTEXT_NONE |
+                                              VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
+                                }));
             }
           }
         }
@@ -1781,10 +1630,8 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
       case 'e':
         if (options & VRNA_CONSTRAINT_DB_INTERMOL) {
           unsigned int l;
-          if (cut > 1) {
-            if (j < (unsigned int)cut) {
-              for (l = 1; l < j; l++) {
-#if 1
+          if (vc->strands > 1) {
+            for (l = vc->strand_start[vc->strand_number[j]]; l < j; l++) {
                 vrna_array_append(bp,
                                   ((struct hc_bp){
                                     .i        = l,
@@ -1792,23 +1639,9 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                     .options  = VRNA_CONSTRAINT_CONTEXT_NONE |
                                                 VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
                                   }));
-#else
-                bp[num_bp].i        = l;
-                bp[num_bp].j        = j;
-                bp[num_bp].options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                      VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
+            }
 
-                num_bp++;
-
-                if (num_bp == size_bp) {
-                  size_bp *= 1.4;
-                  bp      = (struct hc_bp *)vrna_realloc(bp, sizeof(struct hc_bp) * size_bp);
-                }
-#endif
-              }
-
-              for (l = j + 1; l < (unsigned int)cut; l++) {
-#if 1
+            for (l = j + 1; l <= vc->strand_end[vc->strand_number[j]]; l++) {
                 vrna_array_append(bp,
                                   ((struct hc_bp){
                                     .i        = j,
@@ -1816,68 +1649,6 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                                     .options  = VRNA_CONSTRAINT_CONTEXT_NONE |
                                                 VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
                                   }));
-#else
-                bp[num_bp].i        = j;
-                bp[num_bp].j        = l;
-                bp[num_bp].options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                      VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
-
-                num_bp++;
-
-                if (num_bp == size_bp) {
-                  size_bp *= 1.4;
-                  bp      = (struct hc_bp *)vrna_realloc(bp, sizeof(struct hc_bp) * size_bp);
-                }
-#endif
-              }
-            } else {
-              for (l = cut; l < j; l++) {
-#if 1
-                vrna_array_append(bp,
-                                  ((struct hc_bp){
-                                    .i        = l,
-                                    .j        = j,
-                                    .options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                                VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
-                                  }));
-#else
-                bp[num_bp].i        = l;
-                bp[num_bp].j        = j;
-                bp[num_bp].options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                      VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
-
-                num_bp++;
-
-                if (num_bp == size_bp) {
-                  size_bp *= 1.4;
-                  bp      = (struct hc_bp *)vrna_realloc(bp, sizeof(struct hc_bp) * size_bp);
-                }
-#endif
-              }
-
-              for (l = j + 1; l <= length; l++) {
-#if 1
-                vrna_array_append(bp,
-                                  ((struct hc_bp){
-                                    .i        = j,
-                                    .j        = l,
-                                    .options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                                VRNA_CONSTRAINT_CONTEXT_NO_REMOVE
-                                  }));
-#else
-                bp[num_bp].i        = j;
-                bp[num_bp].j        = l;
-                bp[num_bp].options  = VRNA_CONSTRAINT_CONTEXT_NONE |
-                                      VRNA_CONSTRAINT_CONTEXT_NO_REMOVE;
-
-                num_bp++;
-
-                if (num_bp == size_bp) {
-                  size_bp *= 1.4;
-                  bp      = (struct hc_bp *)vrna_realloc(bp, sizeof(struct hc_bp) * size_bp);
-                }
-#endif
-              }
             }
           }
         }
@@ -1891,7 +1662,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
         vrna_log_warning(
           "vrna_hc_add_from_db: "
           "Unrecognized character '%c' in constraint string",
-          constraint[j - 1]);
+          constraint[spos]);
         break;
     }
   }
@@ -1907,29 +1678,20 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
   /* finally, apply constraints */
 
   /* 1st, unspecific pairing states */
-#if 1
   for (i = 0; i < vrna_array_size(bp_unspecific); i++)
-#else
-  for (i = 0; i < num_bp_unspecific; i++)
-#endif
     vrna_hc_add_bp_nonspecific(vc,
                                bp_unspecific[i].i,  /* nucleotide position */
                                bp_unspecific[i].j,  /* pairing direction */
                                bp_unspecific[i].options);
 
   /* 2nd, specific base pairs */
-#if 1
   for (i = 0; i < vrna_array_size(bp); i++)
-#else
-  for (i = 0; i < num_bp; i++)
-#endif
     vrna_hc_add_bp(vc,
                    bp[i].i,
                    bp[i].j,
                    bp[i].options);
 
   /* 3rd, unpaired constraints */
-#if 1
   if (vrna_array_size(up) > 0) {
     vrna_array_append(up,
                       ((vrna_hc_up_t){
@@ -1937,25 +1699,13 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
                       }));
     vrna_hc_add_up_batch(vc, up);
   }
-#else
-  if (num_up > 0) {
-    up[num_up].position = 0;  /* end of list marker */
-    vrna_hc_add_up_batch(vc, up);
-  }
-#endif
 
 db_constraints_exit:
 
   /* clean up */
-#if 1
   vrna_array_free(up);
   vrna_array_free(bp);
   vrna_array_free(bp_unspecific);
-#else
-  free(up);
-  free(bp);
-  free(bp_unspecific);
-#endif
   free(stack);
 }
 
