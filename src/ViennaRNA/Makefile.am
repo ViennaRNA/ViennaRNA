@@ -10,52 +10,55 @@ AM_LDFLAGS = $(RNA_LDFLAGS) $(PTHREAD_LIBS)
 SUBDIRS = static @NAVIEW_DIR@
 DIST_SUBDIRS = static @NAVIEW_DIR@
 
-vrna_constraintsdir     = $(pkgincludedir)/constraints
-vrna_evaldir            = $(pkgincludedir)/eval
-vrna_mfedir             = $(pkgincludedir)/mfe
 vrna_backtrackdir       = $(pkgincludedir)/backtrack
-vrna_partfuncdir        = $(pkgincludedir)/partfunc
-vrna_probabilitiesdir   = $(pkgincludedir)/probabilities
-vrna_suboptdir          = $(pkgincludedir)/subopt
-vrna_samplingdir        = $(pkgincludedir)/sampling
-vrna_inversedir         = $(pkgincludedir)/inverse
-vrna_paramsdir          = $(pkgincludedir)/params
-vrna_utilsdir           = $(pkgincludedir)/utils
 vrna_combinatoricsdir   = $(pkgincludedir)/combinatorics
-vrna_iodir              = $(pkgincludedir)/io
-vrna_searchdir          = $(pkgincludedir)/search
-vrna_plottingdir        = $(pkgincludedir)/plotting
-vrna_puzzlerdir         = $(pkgincludedir)/plotting/RNApuzzler
-vrna_loopsdir           = $(pkgincludedir)/loops
-vrna_structuresdir      = $(pkgincludedir)/structures
-vrna_sequencesdir       = $(pkgincludedir)/sequences
+vrna_constraintsdir     = $(pkgincludedir)/constraints
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
+vrna_evaldir            = $(pkgincludedir)/eval
+vrna_inversedir         = $(pkgincludedir)/inverse
+vrna_iodir              = $(pkgincludedir)/io
 vrna_landscapedir       = $(pkgincludedir)/landscape
+vrna_loopsdir           = $(pkgincludedir)/loops
+vrna_mfedir             = $(pkgincludedir)/mfe
+vrna_paramsdir          = $(pkgincludedir)/params
+vrna_partfuncdir        = $(pkgincludedir)/partfunc
+vrna_plottingdir        = $(pkgincludedir)/plotting
+vrna_probabilitiesdir   = $(pkgincludedir)/probabilities
+vrna_probingdir         = $(pkgincludedir)/probing
+vrna_puzzlerdir         = $(pkgincludedir)/plotting/RNApuzzler
+vrna_samplingdir        = $(pkgincludedir)/sampling
+vrna_searchdir          = $(pkgincludedir)/search
+vrna_sequencesdir       = $(pkgincludedir)/sequences
+vrna_structuresdir      = $(pkgincludedir)/structures
+vrna_suboptdir          = $(pkgincludedir)/subopt
+vrna_utilsdir           = $(pkgincludedir)/utils
 
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
 
 # convenience library
-noinst_LTLIBRARIES =  libRNA_concentrations.la \
-                      libRNA_conv.la \
-                      libRNA_constraints.la \
-                      libRNA_datastructures.la \
-                      libRNA_utils.la \
-                      libRNA_plotting.la \
-                      libRNA_params.la \
-                      libRNA_eval.la \
-                      libRNA_mfe.la \
-                      libRNA_backtrack.la \
-                      libRNA_partfunc.la \
-                      libRNA_probabilities.la \
-                      libRNA_subopt.la \
-                      libRNA_sampling.la \
-                      libRNA_inverse.la \
-                      libRNA_combinatorics.la \
-                      libRNA_landscape.la \
-                      libRNA_structures.la \
-                      libRNA_sequences.la \
-                      libRNA_special_const.la
+noinst_LTLIBRARIES =  \
+    libRNA_backtrack.la \
+    libRNA_combinatorics.la \
+    libRNA_concentrations.la \
+    libRNA_constraints.la \
+    libRNA_conv.la \
+    libRNA_datastructures.la \
+    libRNA_eval.la \
+    libRNA_inverse.la \
+    libRNA_landscape.la \
+    libRNA_mfe.la \
+    libRNA_params.la \
+    libRNA_partfunc.la \
+    libRNA_plotting.la \
+    libRNA_probabilities.la \
+    libRNA_probing.la \
+    libRNA_sampling.la \
+    libRNA_sequences.la \
+    libRNA_special_const.la \
+    libRNA_structures.la \
+    libRNA_subopt.la \
+    libRNA_utils.la
 
 if VRNA_AM_SWITCH_SVM
 noinst_LTLIBRARIES += libRNA_svm.la
@@ -72,24 +75,25 @@ libRNA_la_LDFLAGS = -avoid-version -static $(LTO_LDFLAGS) $(PTHREAD_LIBS)
 libRNA_concentrations_la_CPPFLAGS = $(AM_CPPFLAGS) $(DLIB_CPPFLAGS)
 
 libRNA_conv_la_LIBADD = \
+    libRNA_backtrack.la \
+    libRNA_combinatorics.la \
     libRNA_concentrations.la \
     libRNA_constraints.la \
     libRNA_datastructures.la \
-    libRNA_utils.la \
-    libRNA_structures.la \
-    libRNA_sequences.la \
-    libRNA_plotting.la \
-    libRNA_params.la \
     libRNA_eval.la \
-    libRNA_mfe.la \
-    libRNA_backtrack.la \
-    libRNA_partfunc.la \
-    libRNA_probabilities.la \
-    libRNA_subopt.la \
-    libRNA_sampling.la \
     libRNA_inverse.la \
-    libRNA_combinatorics.la \
-    libRNA_landscape.la
+    libRNA_landscape.la \
+    libRNA_mfe.la \
+    libRNA_params.la \
+    libRNA_partfunc.la \
+    libRNA_plotting.la \
+    libRNA_probabilities.la \
+    libRNA_probing.la \
+    libRNA_sampling.la \
+    libRNA_sequences.la \
+    libRNA_structures.la \
+    libRNA_subopt.la \
+    libRNA_utils.la
 
 if VRNA_AM_SWITCH_NAVIEW
   libRNA_plotting_la_LIBADD = @NAVIEW_DIR@/libRNA_naview.la
@@ -152,6 +156,7 @@ DEPRECATED_INCLUDE_FILES = \
     constraints_ligand.h \
     constraints_SHAPE.h \
     constraints_soft.h \
+    constraints/SHAPE.h \
     convert_epars.h \
     data_structures.h \
     energy_const.h \
@@ -253,11 +258,14 @@ endif
 vrna_constraints_HEADERS = \
     constraints/basic.h \
     constraints/ligand.h \
-    constraints/SHAPE.h \
-    constraints/probing.h \
     constraints/hard.h \
     constraints/soft.h \
     constraints/soft_special.h
+
+
+vrna_probing_HEADERS = \
+    probing/basic.h \
+    probing/SHAPE.h
 
 
 vrna_loops_HEADERS = \
@@ -469,8 +477,6 @@ libRNA_concentrations_la_SOURCES = \
 
 libRNA_constraints_la_SOURCES = \
     constraints/constraints.c \
-    constraints/SHAPE.c \
-    constraints/probing.c \
     constraints/hard.c \
     constraints/soft.c \
     constraints/soft_cb_multi.c \
@@ -478,6 +484,12 @@ libRNA_constraints_la_SOURCES = \
     constraints/sc_cb_mod_parser.c \
     constraints/sc_cb_mod_wrappers.c \
     constraints/ligand.c
+
+
+libRNA_probing_la_SOURCES = \
+    probing/probing.c \
+    probing/SHAPE.c
+
 
 libRNA_structures_la_SOURCES = \
     structures/structure_benchmark.c \

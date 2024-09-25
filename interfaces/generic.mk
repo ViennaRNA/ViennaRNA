@@ -14,10 +14,10 @@ SWIG_misc_src = \
   $(srcdir)/../constraints.i \
   $(srcdir)/../constraints_hard.i \
   $(srcdir)/../constraints_soft.i \
-  $(srcdir)/../constraints_probing.i \
-  $(srcdir)/../constraints_SHAPE.i \
   $(srcdir)/../constraints_ligand.i \
   $(srcdir)/../constraints_mod.i \
+  $(srcdir)/../probing.i \
+  $(srcdir)/../probing_SHAPE.i \
   $(srcdir)/../data_structures.i \
   $(srcdir)/../dp_matrices.i \
   $(srcdir)/../duplex.i \

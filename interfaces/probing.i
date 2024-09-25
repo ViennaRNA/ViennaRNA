@@ -498,4 +498,4 @@ probing_data_Eddy2014_2_comparative(std::vector< std::vector<double> >  reactivi
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_DEFAULT                 = VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT;
 %constant unsigned int  PROBING_DATA_CHECK_SEQUENCE                         = VRNA_PROBING_DATA_CHECK_SEQUENCE;
 
-%include  <ViennaRNA/constraints/probing.h>
+%include  <ViennaRNA/probing/basic.h>

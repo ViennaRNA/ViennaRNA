@@ -14,10 +14,10 @@ SOURCES = \
     constraints.i \
     constraints_hard.i \
     constraints_soft.i \
-    constraints_probing.i \
-    constraints_SHAPE.i \
     constraints_ligand.i \
     constraints_mod.i \
+    probing.i \
+    probing_SHAPE.i \
     data_structures.i \
     dp_matrices.i \
     duplex.i \
@@ -57,8 +57,9 @@ DOXYGEN_DOCUMENTATION = \
     combinatorics.dox \
     constraints_hard.dox \
     constraints_ligand.dox \
-    constraints_SHAPE.dox \
     constraints_soft.dox \
+    probing.dox \
+    probing_SHAPE.dox \
     eval.dox \
     paths.dox \
     fold_compound.dox \
@@ -87,10 +88,10 @@ EXTRA_DIST = \
     constraints.i \
     constraints_hard.i \
     constraints_soft.i \
-    constraints_probing.i \
-    constraints_SHAPE.i \
     constraints_ligand.i \
     constraints_mod.i \
+    probing.i \
+    probing_SHAPE.i \
     data_structures.i \
     dp_matrices.i \
     duplex.i \

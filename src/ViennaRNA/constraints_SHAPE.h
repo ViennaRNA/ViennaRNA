@@ -3,15 +3,15 @@
 
 /**
  *  @file constraints_SHAPE.h
- *  @brief      Use ViennaRNA/constraints/SHAPE.h instead
- *  @deprecated Use ViennaRNA/constraints/SHAPE.h instead
+ *  @brief      Use ViennaRNA/probing/SHAPE.h instead
+ *  @deprecated Use ViennaRNA/probing/SHAPE.h instead
  */
 
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 # ifdef VRNA_WARN_DEPRECATED
-#warning "Including deprecated header file <ViennaRNA/constraints_SHAPE.h>! Use <ViennaRNA/constraints/SHAPE.h> instead!"
+#warning "Including deprecated header file <ViennaRNA/constraints_SHAPE.h>! Use <ViennaRNA/probing/SHAPE.h> instead!"
 # endif
-#include <ViennaRNA/constraints/SHAPE.h>
+#include <ViennaRNA/probing/SHAPE.h>
 #endif
 
 #endif

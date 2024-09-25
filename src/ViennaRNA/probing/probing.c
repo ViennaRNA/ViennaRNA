@@ -24,7 +24,7 @@
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/soft.h"
-#include "ViennaRNA/constraints/probing.h"
+#include "ViennaRNA/probing/basic.h"
 
 
 #define gaussian(u) (1 / (sqrt(2 * PI)) * exp(-u * u / 2))

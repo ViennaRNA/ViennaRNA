@@ -889,6 +889,7 @@ INPUT                  =  @top_srcdir@/doc/doxygen/refman.include/ \
                           @top_srcdir@/src/ViennaRNA/plotting \
                           @top_srcdir@/src/ViennaRNA/plotting/RNApuzzler \
                           @top_srcdir@/src/ViennaRNA/probabilities \
+                          @top_srcdir@/src/ViennaRNA/probing \
                           @top_srcdir@/src/ViennaRNA/sampling \
                           @top_srcdir@/src/ViennaRNA/search \
                           @top_srcdir@/src/ViennaRNA/sequences \

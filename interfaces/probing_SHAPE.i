@@ -58,4 +58,4 @@
   }
 }
 
-%include  <ViennaRNA/constraints/SHAPE.h>
+%include  <ViennaRNA/probing/SHAPE.h>

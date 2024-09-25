@@ -1,14 +1,14 @@
-#ifndef VIENNA_RNA_PACKAGE_CONSTRAINTS_PROBING_H
-#define VIENNA_RNA_PACKAGE_CONSTRAINTS_PROBING_H
+#ifndef VIENNA_RNA_PACKAGE_PROBING_H
+#define VIENNA_RNA_PACKAGE_PROBING_H
 
 #include <ViennaRNA/fold_compound.h>
 
 /**
- *  @file constraints/probing.h
- *  @ingroup probing_data
- *  @brief  This module provides function to incorporate RNA structure
- *          probing data, e.g. SHAPE reactivities, into the folding recursions
- *          by means of soft constraints
+ *  @file     ViennaRNA/probing/basic.h
+ *  @ingroup  probing_data
+ *  @brief    This module provides function to incorporate RNA structure
+ *            probing data, e.g. SHAPE reactivities, into the folding recursions
+ *            by means of soft constraints
  */
 
 /**

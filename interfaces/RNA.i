@@ -55,9 +55,11 @@ extern "C" {
 #include  <ViennaRNA/constraints/hard.h>
 #include  <ViennaRNA/constraints/soft.h>
 #include  <ViennaRNA/constraints/soft_special.h>
-#include  <ViennaRNA/constraints/probing.h>
-#include  <ViennaRNA/constraints/SHAPE.h>
 #include  <ViennaRNA/constraints/ligand.h>
+
+#include  <ViennaRNA/probing/basic.h>
+#include  <ViennaRNA/probing/SHAPE.h>
+
 
 #ifdef VRNA_WITH_NAVIEW_LAYOUT
 #include  <ViennaRNA/plotting/naview/naview.h>
@@ -275,10 +277,10 @@ namespace std {
 %include constraints.i
 %include constraints_hard.i
 %include constraints_soft.i
-%include constraints_probing.i
-%include constraints_SHAPE.i
 %include constraints_ligand.i
 %include constraints_mod.i
+%include probing.i
+%include probing_SHAPE.i
 %include eval.i
 %include loops.i
 %include basic_algorithms.i

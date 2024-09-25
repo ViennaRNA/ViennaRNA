@@ -6,8 +6,8 @@
 
 #include <ViennaRNA/io/file_formats.h>
 #include <ViennaRNA/constraints/basic.h>
-#include <ViennaRNA/constraints/probing.h>
-#include <ViennaRNA/constraints/SHAPE.h>
+#include <ViennaRNA/probing/basic.h>
+#include <ViennaRNA/probing/SHAPE.h>
 
 static int
 deltaCompare(double a,
