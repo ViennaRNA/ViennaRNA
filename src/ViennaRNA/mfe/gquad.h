@@ -45,8 +45,8 @@
 
 int
 vrna_mfe_gquad_internal_loop(vrna_fold_compound_t *fc,
-                     unsigned int         i,
-                     unsigned int         j);
+                             unsigned int         i,
+                             unsigned int         j);
 
 
 /**
@@ -118,44 +118,44 @@ vrna_gquad_mx_local_update(vrna_fold_compound_t *fc,
  *  @return   A pointer to the G-quadruplex contribution matrix
  */
 DEPRECATED(int *
-get_gquad_matrix(short *S,
-                 vrna_param_t * P),
+           get_gquad_matrix(short *S,
+                            vrna_param_t * P),
            "Use vrna_mfe_gquad_mx() instead");
 
 
 DEPRECATED(int *
-get_gquad_ali_matrix(unsigned int n,
-                     short *S_cons,
-                     short **S,
-                     unsigned int **a2s,
-                     int n_seq,
-                     vrna_param_t * P),
+           get_gquad_ali_matrix(unsigned int n,
+                                short *S_cons,
+                                short **S,
+                                unsigned int **a2s,
+                                int n_seq,
+                                vrna_param_t * P),
            "Use vrna_mfe_gquad_mx() instead");
 
 
 DEPRECATED(int
-E_GQuad_IntLoop_L_comparative(int           i,
-                              int           j,
-                              unsigned int  *tt,
-                              short         *S_cons,
-                              short         **S5,
-                              short         **S3,
-                              unsigned int  **a2s,
-                              int           **ggg,
-                              int           n_seq,
-                              vrna_param_t  *P),
-          "Use vrna_mfe_gquad_internal_loop() instead");
+           E_GQuad_IntLoop_L_comparative(int          i,
+                                         int          j,
+                                         unsigned int *tt,
+                                         short        *S_cons,
+                                         short        **S5,
+                                         short        **S3,
+                                         unsigned int **a2s,
+                                         int          **ggg,
+                                         int          n_seq,
+                                         vrna_param_t *P),
+           "Use vrna_mfe_gquad_internal_loop() instead");
 
 
 DEPRECATED(int
-E_GQuad_IntLoop_L(int           i,
-                  int           j,
-                  int           type,
-                  short         *S,
-                  int           **ggg,
-                  int           maxdist,
-                  vrna_param_t  *P),
-          "Use vrna_mfe_gquad_internal_loop() instead");
+           E_GQuad_IntLoop_L(int          i,
+                             int          j,
+                             int          type,
+                             short        *S,
+                             int          **ggg,
+                             int          maxdist,
+                             vrna_param_t *P),
+           "Use vrna_mfe_gquad_internal_loop() instead");
 
 /**
  * @}

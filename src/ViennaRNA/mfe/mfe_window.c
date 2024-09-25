@@ -76,8 +76,8 @@ typedef struct {
 
 
 struct aux_arrays {
-  int *cc;    /* auxilary arrays for canonical structures     */
-  int *cc1;   /* auxilary arrays for canonical structures     */
+  int                   *cc;  /* auxilary arrays for canonical structures     */
+  int                   *cc1; /* auxilary arrays for canonical structures     */
   vrna_mx_mfe_aux_ml_t  ml_helpers;
 };
 
@@ -280,10 +280,10 @@ vrna_mfe_window_zscore(vrna_fold_compound_t *vc,
 
 
 PUBLIC float
-vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *vc,
-                          double                          min_z,
-                          vrna_mfe_window_zscore_f cb_z,
-                          void                            *data)
+vrna_mfe_window_zscore_cb(vrna_fold_compound_t      *vc,
+                          double                    min_z,
+                          vrna_mfe_window_zscore_f  cb_z,
+                          void                      *data)
 {
   unsigned int  underflow;
   int           energy;
@@ -610,7 +610,8 @@ fill_arrays(vrna_fold_compound_t      *vc,
   /* fill "c", "fML" and "f3" arrays and return  optimal energy */
 
   char              *prev;
-  unsigned int      i, j, ii, jj, length, maxdist, with_gquad, dangle_model, turn, n_seq, prev_i, prev_j, prev_end;
+  unsigned int      i, j, ii, jj, length, maxdist, with_gquad, dangle_model, turn, n_seq, prev_i,
+                    prev_j, prev_end;
   int               **c, **fML, *f3, prev_en;
   double            e_fact;
 
@@ -710,10 +711,9 @@ fill_arrays(vrna_fold_compound_t      *vc,
       fML[i][j - i] = vrna_mfe_multibranch_stems_fast(vc, i, j, helper_arrays->ml_helpers);
 
       if (vc->aux_grammar) {
-        for (size_t c = 0; c < vrna_array_size(vc->aux_grammar->aux); c++) {
+        for (size_t c = 0; c < vrna_array_size(vc->aux_grammar->aux); c++)
           if (vc->aux_grammar->aux[c].cb)
             vc->aux_grammar->aux[c].cb(vc, i, j, vc->aux_grammar->aux[c].data);
-        }
       }
     } /* for (j...) */
 
@@ -844,8 +844,8 @@ want_backtrack(vrna_fold_compound_t *fc,
                unsigned int         j,
                double               *z)
 {
-  unsigned int  bt;
-  int           *f3;
+  unsigned int bt;
+  int *f3;
 
   bt  = 1; /* we want to backtrack by default */
   *z  = (double)INF;
@@ -882,26 +882,26 @@ backtrack(vrna_fold_compound_t  *fc,
    *  base pairing list. No search for equivalent structures is done.
    *  This is fast, since only few structure elements are recalculated.
    *  ------------------------------------------------------------------*/
-  char          bt_type, *structure;
-  unsigned int  i, j, length, turn, max3,
-                noLP, canonical, L, ll[3], dangle3, ml;
-  int           **c, cij, **pscore;
+  char bt_type, *structure;
+  unsigned int i, j, length, turn, max3,
+               noLP, canonical, L, ll[3], dangle3, ml;
+  int **c, cij, **pscore;
   vrna_param_t *P;
   vrna_md_t *md;
-  vrna_bts_t  bt_stack;
-  vrna_bps_t  bp_stack;
+  vrna_bts_t bt_stack;
+  vrna_bps_t bp_stack;
 
-  length        = fc->length;
-  pscore        = fc->pscore_local;
-  P             = fc->params;
-  md            = &(P->model_details);
-  noLP          = md->noLP;
-  bt_type       = md->backtrack_type;
-  turn          = md->min_loop_size;
-  c             = fc->matrices->c_local;
+  length  = fc->length;
+  pscore  = fc->pscore_local;
+  P       = fc->params;
+  md      = &(P->model_details);
+  noLP    = md->noLP;
+  bt_type = md->backtrack_type;
+  turn    = md->min_loop_size;
+  c       = fc->matrices->c_local;
 
-  bt_stack = vrna_bts_init(0);
-  bp_stack = vrna_bps_init(4 * (1 + length / 2));
+  bt_stack  = vrna_bts_init(0);
+  bp_stack  = vrna_bps_init(4 * (1 + length / 2));
 
   vrna_bts_push(bt_stack,
                 (vrna_sect_t){
@@ -924,7 +924,7 @@ backtrack(vrna_fold_compound_t  *fc,
     i   = e.i;
     j   = e.j;
     ml  = e.ml;  /* ml is a flag indicating if backtracking is to
-                           * occur in the fML- (1) or in the f-array (0) */
+                 * occur in the fML- (1) or in the f-array (0) */
 
     if (j < i + turn + 1)
       continue;                     /* no more pairs in this interval */
@@ -984,6 +984,7 @@ backtrack(vrna_fold_compound_t  *fc,
         } else {
           vrna_log_warning("backtracking failed in G, segment [%d,%d]", i, j);
         }
+
         break;
 
       default:
@@ -1060,11 +1061,10 @@ repeat1:
       } else {
         structure[bp.i - start] = '+';
       }
-
     } else {
       /* the following ones are regular base pairs */
-      structure[bp.i - start]  = '(';
-      structure[bp.j - start]  = ')';
+      structure[bp.i - start] = '(';
+      structure[bp.j - start] = ')';
     }
 
     if (max3 < bp.j - start)
@@ -1086,10 +1086,10 @@ PRIVATE void
 make_ptypes(vrna_fold_compound_t  *vc,
             unsigned int          i)
 {
-  char          **ptype;
-  short         *S;
-  unsigned int  j, k, type, n, maxdist, turn, noLP;
-  vrna_md_t     *md;
+  char **ptype;
+  short *S;
+  unsigned int j, k, type, n, maxdist, turn, noLP;
+  vrna_md_t *md;
 
   n       = vc->length;
   S       = vc->sequence_encoding2;
@@ -1161,9 +1161,9 @@ make_pscores(vrna_fold_compound_t *fc,
    * compensatory/consistent mutations and incompatible seqs
    * should be 0 for conserved pairs, >0 for good pairs
    */
-  unsigned int  n, j, maxd, turn, noLP;
-  int           **pscore;
-  vrna_md_t     *md;
+  unsigned int n, j, maxd, turn, noLP;
+  int **pscore;
+  vrna_md_t *md;
 
   n       = fc->length;
   maxd    = fc->window_size;
@@ -1207,8 +1207,8 @@ default_callback(unsigned int start,
                  float        en,
                  void         *data)
 {
-  FILE          *output       = ((hit_data *)data)->output;
-  unsigned int  dangle_model  = ((hit_data *)data)->dangle_model;
+  FILE *output              = ((hit_data *)data)->output;
+  unsigned int dangle_model = ((hit_data *)data)->dangle_model;
 
   if ((dangle_model == 2) && (start > 1))
     fprintf(output, ".%s (%6.2f) %4u\n", structure, en, start - 1);
@@ -1226,8 +1226,8 @@ default_callback_z(unsigned int start,
                    float        zscore,
                    void         *data)
 {
-  FILE          *output      = ((hit_data *)data)->output;
-  unsigned int  dangle_model = ((hit_data *)data)->dangle_model;
+  FILE *output              = ((hit_data *)data)->output;
+  unsigned int dangle_model = ((hit_data *)data)->dangle_model;
 
   if ((dangle_model == 2) && (start > 1))
     fprintf(output, ".%s (%6.2f) %4u z= %.3f\n", structure, en, start - 1, zscore);
@@ -1246,9 +1246,9 @@ default_callback_comparative(unsigned int start,
                              float        en,
                              void         *data)
 {
-  FILE          *output       = ((hit_data *)data)->output;
-  unsigned int  dangle_model  = ((hit_data *)data)->dangle_model;
-  unsigned int  csv           = ((hit_data *)data)->csv;
+  FILE *output              = ((hit_data *)data)->output;
+  unsigned int dangle_model = ((hit_data *)data)->dangle_model;
+  unsigned int csv          = ((hit_data *)data)->csv;
 
   if (csv == 1) {
     if ((dangle_model == 2) && (start > 1))
@@ -1953,8 +1953,8 @@ get_aux_arrays(unsigned int maxdist)
 {
   struct aux_arrays *aux = (struct aux_arrays *)vrna_alloc(sizeof(struct aux_arrays));
 
-  aux->cc     = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* auxilary arrays for canonical structures     */
-  aux->cc1    = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));   /* auxilary arrays for canonical structures     */
+  aux->cc   = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));     /* auxilary arrays for canonical structures     */
+  aux->cc1  = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));     /* auxilary arrays for canonical structures     */
 
   aux->ml_helpers = vrna_mfe_multibranch_fast_init(maxdist + 5);
 
@@ -1971,9 +1971,9 @@ rotate_aux_arrays(struct aux_arrays *aux,
 
   vrna_mfe_multibranch_fast_rotate(aux->ml_helpers);
 
-  FF          = aux->cc1;
-  aux->cc1    = aux->cc;
-  aux->cc     = FF;
+  FF        = aux->cc1;
+  aux->cc1  = aux->cc;
+  aux->cc   = FF;
   for (j = 1; j < maxdist + 5; j++)
     aux->cc[j] = INF;
 }

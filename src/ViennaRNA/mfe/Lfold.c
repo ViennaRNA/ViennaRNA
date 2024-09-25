@@ -36,7 +36,6 @@
  * # deprecated functions below              #
  *###########################################
  */
-
 PUBLIC float
 Lfold(const char  *string,
       const char  *structure,
@@ -116,10 +115,10 @@ aliLfold(const char *AS[],
 
 
 PUBLIC float
-aliLfold_cb(const char                **AS,
-            int                       maxdist,
-            vrna_mfe_window_f  cb,
-            void                      *data)
+aliLfold_cb(const char        **AS,
+            int               maxdist,
+            vrna_mfe_window_f cb,
+            void              *data)
 {
   float                 en;
   vrna_fold_compound_t  *fc;

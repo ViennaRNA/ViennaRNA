@@ -59,19 +59,19 @@ vrna_mfe_internal_ext(vrna_fold_compound_t  *fc,
 #ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
 
 DEPRECATED(int
-vrna_E_int_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j),
+           vrna_E_int_loop(vrna_fold_compound_t *fc,
+                           int                  i,
+                           int                  j),
            "Use vrna_mfe_internal() instead!");
 
 
 DEPRECATED(int
-vrna_E_ext_int_loop(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   *ip,
-                    int                   *iq),
-          "Use vrna_mfe_internal_ext() instead!");
+           vrna_E_ext_int_loop(vrna_fold_compound_t *fc,
+                               int                  i,
+                               int                  j,
+                               int                  *ip,
+                               int                  *iq),
+           "Use vrna_mfe_internal_ext() instead!");
 
 
 #endif

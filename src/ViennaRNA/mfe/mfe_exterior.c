@@ -144,13 +144,13 @@ PUBLIC int
 vrna_E_ext_loop_5(vrna_fold_compound_t *fc)
 {
   if (fc) {
-    unsigned int              j, length, dangle_model, with_gquad;
-    int                       en, *f5;
-    vrna_param_t              *P;
-    vrna_hc_eval_f evaluate;
-    struct hc_ext_def_dat     hc_dat_local;
-    struct sc_f5_dat          sc_wrapper;
-    vrna_gr_aux_t             grammar;
+    unsigned int          j, length, dangle_model, with_gquad;
+    int                   en, *f5;
+    vrna_param_t          *P;
+    vrna_hc_eval_f        evaluate;
+    struct hc_ext_def_dat hc_dat_local;
+    struct sc_f5_dat      sc_wrapper;
+    vrna_gr_aux_t         grammar;
 
     length        = fc->length;
     f5            = fc->matrices->f5;
@@ -708,7 +708,7 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t   *fc,
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
-      stems[1]  = INF;
+      stems[1] = INF;
       if (2 < j) {
         ij = indx[j] + 2;
 
@@ -721,6 +721,7 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t   *fc,
             stems[1] += sc_red_stem(j, 2, j, sc_wrapper);
         }
       }
+
       break;
 
     case VRNA_FC_TYPE_COMPARATIVE:
@@ -751,10 +752,10 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t   *fc,
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
-      stems[1]  = INF;
+      stems[1] = INF;
 
       if (2 < j) {
-        ij        = indx[j] + 2;
+        ij = indx[j] + 2;
 
         if ((c[ij] != INF) && (evaluate(1, j, 2, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           stems[1] = c[ij];
@@ -770,6 +771,7 @@ f5_get_stem_contributions_d5(vrna_fold_compound_t   *fc,
 
         free(sj);
       }
+
       break;
   }
 
@@ -828,10 +830,10 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t   *fc,
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
-      stems[1]  = INF;
+      stems[1] = INF;
 
       if (2 < j) {
-        ij        = indx[j - 1] + 1;
+        ij = indx[j - 1] + 1;
 
         if ((c[ij] != INF) && (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           type      = vrna_get_ptype(ij, ptype);
@@ -877,10 +879,10 @@ f5_get_stem_contributions_d3(vrna_fold_compound_t   *fc,
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i, sc_wrapper);
 
-      stems[1]  = INF;
+      stems[1] = INF;
 
       if (2 < j) {
-        ij        = indx[j - 1] + 1;
+        ij = indx[j - 1] + 1;
 
         if ((c[ij] != INF) && (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           stems[1] = c[ij];
@@ -957,10 +959,10 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t  *fc,
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
-      stems[1]  = INF;
+      stems[1] = INF;
 
       if (3 < j) {
-        ij        = indx[j - 1] + 2;
+        ij = indx[j - 1] + 2;
 
         if ((c[ij] != INF) && (evaluate(1, j, 2, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           type      = vrna_get_ptype(ij, ptype);
@@ -997,7 +999,10 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t  *fc,
           stems[i] = c[ij];
           for (s = 0; s < n_seq; s++) {
             type      = vrna_get_ptype_md(SS[s][i + 1], ssj1[s], md);
-            stems[i]  += vrna_E_exterior_stem(type, (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1, s3j1[s], P);
+            stems[i]  += vrna_E_exterior_stem(type,
+                                              (a2s[s][i + 1] > 1) ? S5[s][i + 1] : -1,
+                                              s3j1[s],
+                                              P);
           }
         }
       }
@@ -1007,9 +1012,9 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t  *fc,
           if (stems[i] != INF)
             stems[i] += sc_spl_stem(j, i - 1, i + 1, sc_wrapper);
 
-      stems[1]  = INF;
+      stems[1] = INF;
       if (3 < j) {
-        ij        = indx[j - 1] + 2;
+        ij = indx[j - 1] + 2;
 
         if ((c[ij] != INF) && (evaluate(1, j, 2, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
           stems[1] = c[ij];
@@ -1065,7 +1070,7 @@ add_f5_gquad(vrna_fold_compound_t   *fc,
   e_gq = vrna_smx_csr_int_get(c_gq, 1, j, INF);
 #endif
   if (e_gq != INF)
-    e   = MIN2(e, e_gq);
+    e = MIN2(e, e_gq);
 
   return e;
 }
@@ -1076,10 +1081,10 @@ decompose_f5_ext_stem(vrna_fold_compound_t  *fc,
                       unsigned int          j,
                       int                   *stems)
 {
-  int e, *f5;
+  int       e, *f5;
 
-  f5    = fc->matrices->f5;
-  e     = INF;
+  f5  = fc->matrices->f5;
+  e   = INF;
 
   const int count = j;
 

@@ -31,13 +31,13 @@
  */
 PRIVATE
 void
-gquad_mfe(unsigned int   i,
-          unsigned int   L,
-          unsigned int   *l,
-          void  *data,
-          void  *P,
-          void  *NA,
-          void  *NA2);
+gquad_mfe(unsigned int  i,
+          unsigned int  L,
+          unsigned int  *l,
+          void          *data,
+          void          *P,
+          void          *NA,
+          void          *NA2);
 
 
 /**
@@ -45,13 +45,13 @@ gquad_mfe(unsigned int   i,
  */
 PRIVATE
 void
-gquad_mfe_ali(unsigned int   i,
-              unsigned int   L,
-              unsigned int   *l,
-              void  *data,
-              void  *helper,
-              void  *NA,
-              void  *NA2);
+gquad_mfe_ali(unsigned int  i,
+              unsigned int  L,
+              unsigned int  *l,
+              void          *data,
+              void          *helper,
+              void          *NA,
+              void          *NA2);
 
 
 /**
@@ -60,19 +60,20 @@ gquad_mfe_ali(unsigned int   i,
  */
 PRIVATE
 void
-gquad_mfe_ali_en(unsigned int  i,
-                 unsigned int  L,
-                 unsigned int  *l,
-                 void *data,
-                 void *helper,
-                 void *NA,
-                 void *NA2);
+gquad_mfe_ali_en(unsigned int i,
+                 unsigned int L,
+                 unsigned int *l,
+                 void         *data,
+                 void         *helper,
+                 void         *NA,
+                 void         *NA2);
+
 
 /* other useful static functions */
 
 PRIVATE int
-E_gquad_consensus(unsigned int                 L,
-                  unsigned int                 l[3],
+E_gquad_consensus(unsigned int        L,
+                  unsigned int        l[3],
                   unsigned int        position,
                   unsigned int        length,
                   unsigned int        n_seq,
@@ -82,8 +83,8 @@ E_gquad_consensus(unsigned int                 L,
 
 PRIVATE
 int
-E_gquad_ali_penalty(unsigned int           L,
-                    unsigned int           l[3],
+E_gquad_ali_penalty(unsigned int  L,
+                    unsigned int  l[3],
                     unsigned int  i,
                     unsigned int  length,
                     unsigned int  n_seq,
@@ -92,8 +93,8 @@ E_gquad_ali_penalty(unsigned int           L,
 
 
 PRIVATE void
-count_gquad_layer_mismatches(unsigned int          L,
-                             unsigned int          l[3],
+count_gquad_layer_mismatches(unsigned int L,
+                             unsigned int l[3],
                              unsigned int i,
                              unsigned int n,
                              unsigned int n_seq,
@@ -101,10 +102,9 @@ count_gquad_layer_mismatches(unsigned int          L,
                              unsigned int mm[2]);
 
 
-
 PRIVATE INLINE void
-aln_linker_positions(unsigned int          L,
-                     unsigned int          l[3],
+aln_linker_positions(unsigned int L,
+                     unsigned int l[3],
                      unsigned int position,
                      unsigned int length,
                      unsigned int starts[3],
@@ -139,12 +139,13 @@ create_aliL_matrix(int          start,
  * to be passed through variable n
  */
 PRIVATE void
-gq_layer_pos(unsigned int          L,
-             unsigned int          l[3],
+gq_layer_pos(unsigned int L,
+             unsigned int l[3],
              unsigned int layer,
              unsigned int i,
              unsigned int n,
              unsigned int layer_pos[4]);
+
 
 PRIVATE INLINE int
 aln_linker_length(unsigned int        start,
@@ -154,8 +155,8 @@ aln_linker_length(unsigned int        start,
 
 
 PRIVATE void
-count_gquad_layer_mismatches(unsigned int          L,
-                             unsigned int          l[3],
+count_gquad_layer_mismatches(unsigned int L,
+                             unsigned int l[3],
                              unsigned int i,
                              unsigned int n,
                              unsigned int n_seq,
@@ -169,15 +170,14 @@ count_gquad_layer_mismatches(unsigned int          L,
  #      (all available in RNAlib)        #
  #########################################
  */
-
 PUBLIC
 vrna_smx_csr(int) *
 vrna_mfe_gquad_mx(vrna_fold_compound_t * fc){
   vrna_smx_csr(int) * gq_mfe_pos = NULL;
 
   if (fc) {
-    unsigned int           i, j, n, n2;
-    unsigned int           *gg;
+    unsigned int  i, j, n, n2;
+    unsigned int  *gg;
     vrna_param_t  *P;
     short         *S_enc, *S_tmp;
     void          *data;
@@ -284,21 +284,21 @@ vrna_mfe_gquad_internal_loop(vrna_fold_compound_t *fc,
       (i > 0) &&
       (i + VRNA_GQUAD_MIN_BOX_SIZE < j)) {
     sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
-    n_seq   = fc->n_seq;
-    ggg     = (sliding_window) ? fc->matrices->ggg_local : NULL;
-    S       = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
-    S1      = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : fc->S_cons;
-    SS      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
-    S5      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
-    S3      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
-    a2s     = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
-    c_gq    = (sliding_window) ? NULL : fc->matrices->c_gq;
-    P       = fc->params;
-    md      = &(P->model_details);
-    dangles = md->dangles;
-    si      = S1[i + 1];
-    sj      = S1[j - 1];
-    energy  = 0;
+    n_seq           = fc->n_seq;
+    ggg             = (sliding_window) ? fc->matrices->ggg_local : NULL;
+    S               = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
+    S1              = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : fc->S_cons;
+    SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+    S5              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
+    S3              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
+    a2s             = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
+    c_gq            = (sliding_window) ? NULL : fc->matrices->c_gq;
+    P               = fc->params;
+    md              = &(P->model_details);
+    dangles         = md->dangles;
+    si              = S1[i + 1];
+    sj              = S1[j - 1];
+    energy          = 0;
 
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
@@ -478,7 +478,7 @@ vrna_mfe_gquad_internal_loop(vrna_fold_compound_t *fc,
 
 PUBLIC void
 vrna_mfe_gquad_mx_update(vrna_fold_compound_t *fc,
-                            unsigned int         start)
+                         unsigned int         start)
 {
   if ((fc) &&
       (fc->matrices) &&
@@ -539,8 +539,8 @@ create_L_matrix(short         *S,
                 int           **g,
                 vrna_param_t  *P)
 {
-  int **data;
-  unsigned int i, j, k, *gg, p, q;
+  int           **data;
+  unsigned int  i, j, k, *gg, p, q;
 
   p   = MAX2(1, start);
   q   = MIN2(n, start + maxdist + 4);
@@ -613,8 +613,8 @@ create_aliL_matrix(int          start,
                    int          n_seq,
                    vrna_param_t *P)
 {
-  int **data;
-  unsigned int i, j, k, *gg, p, q;
+  int           **data;
+  unsigned int  i, j, k, *gg, p, q;
 
   p   = MAX2(1, start);
   q   = MIN2(n, start + maxdist + 4);
@@ -684,7 +684,6 @@ create_aliL_matrix(int          start,
 }
 
 
-
 /*
  #########################################
  # BEGIN OF PRIVATE FUNCTION DEFINITIONS #
@@ -692,13 +691,13 @@ create_aliL_matrix(int          start,
  #########################################
  */
 PRIVATE void
-gquad_mfe(unsigned int   i,
-          unsigned int   L,
-          unsigned int   *l,
-          void  *data,
-          void  *P,
-          void  *NA,
-          void  *NA2)
+gquad_mfe(unsigned int  i,
+          unsigned int  L,
+          unsigned int  *l,
+          void          *data,
+          void          *P,
+          void          *NA,
+          void          *NA2)
 {
   int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
 
@@ -708,13 +707,13 @@ gquad_mfe(unsigned int   i,
 
 
 PRIVATE void
-gquad_mfe_ali(unsigned int   i,
-              unsigned int   L,
-              unsigned int   *l,
-              void  *data,
-              void  *helper,
-              void  *NA,
-              void  *NA2)
+gquad_mfe_ali(unsigned int  i,
+              unsigned int  L,
+              unsigned int  *l,
+              void          *data,
+              void          *helper,
+              void          *NA,
+              void          *NA2)
 {
   int en[2], cc;
 
@@ -732,13 +731,13 @@ gquad_mfe_ali(unsigned int   i,
 
 
 PRIVATE void
-gquad_mfe_ali_en(unsigned int  i,
-                 unsigned int  L,
-                 unsigned int  *l,
-                 void *data,
-                 void *helper,
-                 void *NA,
-                 void *NA2)
+gquad_mfe_ali_en(unsigned int i,
+                 unsigned int L,
+                 unsigned int *l,
+                 void         *data,
+                 void         *helper,
+                 void         *NA,
+                 void         *NA2)
 {
   const short             **S;
   const unsigned int      **a2s;
@@ -767,9 +766,10 @@ gquad_mfe_ali_en(unsigned int  i,
   }
 }
 
+
 PRIVATE int
-E_gquad_consensus(unsigned int                 L,
-                  unsigned int                 l[3],
+E_gquad_consensus(unsigned int        L,
+                  unsigned int        l[3],
                   unsigned int        position,
                   unsigned int        length,
                   unsigned int        n_seq,
@@ -797,8 +797,8 @@ E_gquad_consensus(unsigned int                 L,
 
 
 PRIVATE int
-E_gquad_ali_penalty(unsigned int           L,
-                    unsigned int           l[3],
+E_gquad_ali_penalty(unsigned int  L,
+                    unsigned int  l[3],
                     unsigned int  i,
                     unsigned int  length,
                     unsigned int  n_seq,
@@ -822,8 +822,8 @@ E_gquad_ali_penalty(unsigned int           L,
  *  positions accordingly
  */
 PRIVATE INLINE void
-aln_linker_positions(unsigned int          L,
-                     unsigned int          l[3],
+aln_linker_positions(unsigned int L,
+                     unsigned int l[3],
                      unsigned int position,
                      unsigned int length,
                      unsigned int starts[3],
@@ -855,8 +855,8 @@ aln_linker_positions(unsigned int          L,
  * to be passed through variable n
  */
 PRIVATE void
-gq_layer_pos(unsigned int          L,
-             unsigned int          l[3],
+gq_layer_pos(unsigned int L,
+             unsigned int l[3],
              unsigned int layer,
              unsigned int i,
              unsigned int n,
@@ -892,15 +892,15 @@ aln_linker_length(unsigned int        start,
 
 
 PRIVATE void
-count_gquad_layer_mismatches(unsigned int          L,
-                             unsigned int          l[3],
+count_gquad_layer_mismatches(unsigned int L,
+                             unsigned int l[3],
                              unsigned int i,
                              unsigned int n,
                              unsigned int n_seq,
                              const short  **S,
                              unsigned int mm[2])
 {
-  unsigned int  s, layer_pos[4], mismatch, cnt;
+  unsigned int s, layer_pos[4], mismatch, cnt;
 
   mm[0] = mm[1] = 0;
 
@@ -988,9 +988,9 @@ PUBLIC int *
 get_gquad_matrix(short        *S,
                  vrna_param_t *P)
 {
-  unsigned int n, size, i, j, *gg;
+  unsigned int  n, size, i, j, *gg;
 
-  int *my_index, *data;
+  int           *my_index, *data;
 
   n         = S[0];
   my_index  = vrna_idx_col_wise(n);
@@ -1271,6 +1271,4 @@ E_GQuad_IntLoop_L(int           i,
 }
 
 
-
 #endif
-

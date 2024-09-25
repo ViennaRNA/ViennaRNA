@@ -61,13 +61,12 @@ typedef void (*vrna_mfe_window_f)(unsigned int  start,
                                   float         en,
                                   void          *data);
 
-DEPRECATED(typedef void (vrna_mfe_window_callback)(int         start,
-                                        int         end,
-                                        const char  *structure,
-                                        float       en,
-                                        void        *data),
+DEPRECATED(typedef void (vrna_mfe_window_callback)(int start,
+                                                   int end,
+                                                   const char *structure,
+                                                   float en,
+                                                   void *data),
            "Use vrna_mfe_window_f instead!");
-
 
 
 #ifdef VRNA_WITH_SVM
@@ -78,12 +77,12 @@ typedef void (*vrna_mfe_window_zscore_f)(unsigned int start,
                                          float        zscore,
                                          void         *data);
 
-DEPRECATED(typedef void (vrna_mfe_window_zscore_callback)(int        start,
-                                               int        end,
-                                               const char *structure,
-                                               float      en,
-                                               float      zscore,
-                                               void       *data),
+DEPRECATED(typedef void (vrna_mfe_window_zscore_callback)(int start,
+                                                          int end,
+                                                          const char *structure,
+                                                          float en,
+                                                          float zscore,
+                                                          void *data),
            "Use vrna_mfe_window_zscore_f instead!");
 #endif
 
@@ -123,9 +122,9 @@ vrna_mfe_window(vrna_fold_compound_t  *fc,
 
 
 float
-vrna_mfe_window_cb(vrna_fold_compound_t     *fc,
-                   vrna_mfe_window_f cb,
-                   void                     *data);
+vrna_mfe_window_cb(vrna_fold_compound_t *fc,
+                   vrna_mfe_window_f    cb,
+                   void                 *data);
 
 
 #ifdef VRNA_WITH_SVM
@@ -161,10 +160,10 @@ vrna_mfe_window_zscore(vrna_fold_compound_t *fc,
 
 
 float
-vrna_mfe_window_zscore_cb(vrna_fold_compound_t            *fc,
-                          double                          min_z,
-                          vrna_mfe_window_zscore_f cb,
-                          void                            *data);
+vrna_mfe_window_zscore_cb(vrna_fold_compound_t      *fc,
+                          double                    min_z,
+                          vrna_mfe_window_zscore_f  cb,
+                          void                      *data);
 
 
 #endif
@@ -212,10 +211,10 @@ vrna_Lfold(const char *string,
 
 
 float
-vrna_Lfold_cb(const char                *string,
-              int                       window_size,
-              vrna_mfe_window_f  cb,
-              void                      *data);
+vrna_Lfold_cb(const char        *string,
+              int               window_size,
+              vrna_mfe_window_f cb,
+              void              *data);
 
 
 #ifdef VRNA_WITH_SVM
@@ -251,24 +250,26 @@ vrna_Lfoldz(const char  *string,
 
 
 float
-vrna_Lfoldz_cb(const char                       *string,
-               int                              window_size,
-               double                           min_z,
-               vrna_mfe_window_zscore_f  cb,
-               void                             *data);
+vrna_Lfoldz_cb(const char               *string,
+               int                      window_size,
+               double                   min_z,
+               vrna_mfe_window_zscore_f cb,
+               void                     *data);
 
 
 #endif
 
-float vrna_aliLfold(const char  **alignment,
-                    int         maxdist,
-                    FILE        *fp);
+float
+vrna_aliLfold(const char  **alignment,
+              int         maxdist,
+              FILE        *fp);
 
 
-float vrna_aliLfold_cb(const char               **alignment,
-                       int                      maxdist,
-                       vrna_mfe_window_f cb,
-                       void                     *data);
+float
+vrna_aliLfold_cb(const char         **alignment,
+                 int                maxdist,
+                 vrna_mfe_window_f  cb,
+                 void               *data);
 
 
 /* End simplified local MFE interface */

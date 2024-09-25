@@ -66,7 +66,7 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t   *fc,
 
 
 PRIVATE INLINE int *
-f3_get_stem_contributions_d2(vrna_fold_compound_t *fc,
+f3_get_stem_contributions_d2(vrna_fold_compound_t   *fc,
                              unsigned int           i,
                              vrna_hc_eval_f         evaluate,
                              struct hc_ext_def_dat  *hc_dat_local,
@@ -82,11 +82,11 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t   *fc,
 
 
 PRIVATE INLINE int *
-f3_get_stem_contributions_d5(vrna_fold_compound_t       *fc,
-                             unsigned int                        i,
-                             vrna_hc_eval_f  evaluate,
-                             struct hc_ext_def_dat      *hc_dat_local,
-                             struct sc_f3_dat           *sc_wrapper);
+f3_get_stem_contributions_d5(vrna_fold_compound_t   *fc,
+                             unsigned int           i,
+                             vrna_hc_eval_f         evaluate,
+                             struct hc_ext_def_dat  *hc_dat_local,
+                             struct sc_f3_dat       *sc_wrapper);
 
 
 PRIVATE INLINE int *
@@ -146,13 +146,13 @@ vrna_E_ext_loop_3(vrna_fold_compound_t  *fc,
                   int                   i)
 {
   if (fc) {
-    unsigned int              dangle_model, with_gquad;
-    int                       e, en;
-    vrna_param_t              *P;
-    vrna_md_t                 *md;
-    vrna_hc_eval_f evaluate;
-    struct hc_ext_def_dat     hc_dat_local;
-    struct sc_f3_dat          sc_wrapper;
+    unsigned int          dangle_model, with_gquad;
+    int                   e, en;
+    vrna_param_t          *P;
+    vrna_md_t             *md;
+    vrna_hc_eval_f        evaluate;
+    struct hc_ext_def_dat hc_dat_local;
+    struct sc_f3_dat      sc_wrapper;
 
     e = INF;
 
