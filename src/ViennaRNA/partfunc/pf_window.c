@@ -71,7 +71,7 @@ typedef struct {
   double      **pUH;
 } helper_arrays;
 
-/* soft constraint contributions function (interior-loops) */
+/* soft constraint contributions function (internal-loops) */
 typedef FLT_OR_DBL (*sc_int)(vrna_fold_compound_t *,
                             int,
                             int,
@@ -782,7 +782,7 @@ vrna_probs_window(vrna_fold_compound_t        *vc,
         if (hc_decompose) {
           /* process hairpin loop(s) */
           qbt1 += vrna_exp_eval_hairpin(vc, i, j, VRNA_EVAL_LOOP_DEFAULT);
-          /* process interior loop(s) */
+          /* process internal loop(s) */
           qbt1 += vrna_exp_E_int_loop(vc, i, j);
           /* process multibranch loop(s) */
           qbt1 += vrna_exp_E_mb_loop_fast(vc, i, j, aux_mx_ml);

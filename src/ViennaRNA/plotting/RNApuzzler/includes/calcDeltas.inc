@@ -421,7 +421,7 @@ calcDeltas(const treeNode               *node,
         canGoHigher = 1;
         break;
       } else {
-        /* parent is interior loop */
+        /* parent is internal loop */
         double childAngle = getArcAngle(parent->cfg, 0);
 
         if (fabs(childAngle - MATH_PI) < EPSILON_3) {

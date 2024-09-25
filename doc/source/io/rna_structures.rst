@@ -36,7 +36,7 @@ which, drawn as a secondary structure graph, looks like:
     :align: center
 
 It is a stem-loop structure consisting of a an outer helix of 3 base pairs followed by
-an interior loop of size 3, a second helix of length 4, and a hairpin loop of size 3.
+an internal loop of size 3, a second helix of length 4, and a hairpin loop of size 3.
 
 Pseudo Dot-Bracket Notation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -101,9 +101,9 @@ Below, you'll find a list of secondary structure elements and their correspondin
 
     <<<<<_____>>>>>
 
-* **Bulges and interior loops**
+* **Bulges and internal loops**
 
-  Residues that constitute a bulge or interior loop are denoted by dashes, ``-``::
+  Residues that constitute a bulge or internal loop are denoted by dashes, ``-``::
 
     (((--<<_____>>-)))
 
@@ -217,7 +217,7 @@ represents the different structure elements by single matching brackets
 and labels them as
 
 * ``H``  (hairpin loop),
-* ``I``  (interior loop),
+* ``I``  (internal loop),
 * ``B``  (bulge),
 * ``M``  (multi-loop), and
 * ``S``  (stack).

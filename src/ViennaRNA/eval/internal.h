@@ -37,7 +37,7 @@
 /**
  *  @file     ViennaRNA/eval/internal.h
  *  @ingroup  eval, eval_loops, eval_loops_int
- *  @brief    Energy evaluation of internal-/interior loops
+ *  @brief    Energy evaluation of internal loops
  */
 
 /**
@@ -53,9 +53,9 @@
 
 
 /**
- *  @brief  Compute the Energy of an interior-/internal loop
+ *  @brief  Compute the Energy of an internal loop
  *
- *  This function computes the free energy @f$ E @f$ of an interior-loop with the
+ *  This function computes the free energy @f$ E @f$ of an internal-loop with the
  *  following structure: <BR>
  *  <PRE>
  *        3'  5'
@@ -70,9 +70,9 @@
  *        |   |
  *        5'  3'
  *  </PRE>
- *  This general structure depicts an interior-loop that is closed by the base pair (X,Y).
+ *  This general structure depicts an internal-loop that is closed by the base pair (X,Y).
  *  The enclosed base pair is (V,U) which leaves the unpaired bases a_1-a_n and b_1-b_n
- *  that constitute the loop. In this example, the length of the interior-loop is @f$(n+m)@f$
+ *  that constitute the loop. In this example, the length of the internal-loop is @f$(n+m)@f$
  *  where n or m may be 0 resulting in a bulge-loop or base pair stack.
  *  The mismatching nucleotides for the closing pair (X,Y) are:<BR>
  *  5'-mismatch: a_1<BR>
@@ -82,14 +82,14 @@
  *  3'-mismatch: a_n<BR>
  *
  *  @note Base pairs are always denoted in 5'->3' direction. Thus the enclosed base pair
- *        must be 'turned arround' when evaluating the free energy of the interior-loop<br>
+ *        must be 'turned arround' when evaluating the free energy of the internal-loop<br>
  *        This function is threadsafe
  *
  *  @see vrna_exp_E_internal()
  *
  *  @param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
  *  @param  n2      The size of the 'right'-loop (number of unpaired nucleotides)
- *  @param  type    The pair type of the base pair closing the interior loop
+ *  @param  type    The pair type of the base pair closing the internal loop
  *  @param  type_2  The pair type of the enclosed base pair
  *  @param  si1     The 5'-mismatching nucleotide of the closing pair
  *  @param  sj1     The 3'-mismatching nucleotide of the closing pair
@@ -111,7 +111,7 @@ vrna_E_internal(unsigned int  n1,
 
 
 /**
- *  @brief Evaluate the free energy contribution of an interior loop with delimiting
+ *  @brief Evaluate the free energy contribution of an internal loop with delimiting
  *  base pairs @f$(i,j)@f$ and @f$(k,l)@f$
  *
  *  @note This function is polymorphic, i.e. it accepts #vrna_fold_compound_t of type
@@ -156,11 +156,12 @@ vrna_exp_E_internal(unsigned int      n1,
 
 
 FLT_OR_DBL
-vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
-                         int                  i,
-                         int                  j,
-                         int                  k,
-                         int                  l);
+vrna_exp_eval_internal(vrna_fold_compound_t *fc,
+                       unsigned int         i,
+                       unsigned int         j,
+                       unsigned int         k,
+                       unsigned int         l,
+                       unsigned int         options);
 
 
 /* End partition function interface */
@@ -186,8 +187,8 @@ vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
 #define ON_SAME_STRAND(I, J, C)  (((I) >= (C)) || ((J) < (C)))
 
 /**
- *  <H2>Compute the Energy of an interior-loop</H2>
- *  This function computes the free energy @f$\Delta G@f$ of an interior-loop with the
+ *  <H2>Compute the Energy of an internal-loop</H2>
+ *  This function computes the free energy @f$\Delta G@f$ of an internal-loop with the
  *  following structure: <BR>
  *  <PRE>
  *        3'  5'
@@ -202,9 +203,9 @@ vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
  *        |   |
  *        5'  3'
  *  </PRE>
- *  This general structure depicts an interior-loop that is closed by the base pair (X,Y).
+ *  This general structure depicts an internal-loop that is closed by the base pair (X,Y).
  *  The enclosed base pair is (V,U) which leaves the unpaired bases a_1-a_n and b_1-b_n
- *  that constitute the loop. In this example, the length of the interior-loop is @f$(n+m)@f$
+ *  that constitute the loop. In this example, the length of the internal-loop is @f$(n+m)@f$
  *  where n or m may be 0 resulting in a bulge-loop or base pair stack.
  *  The mismatching nucleotides for the closing pair (X,Y) are:<BR>
  *  5'-mismatch: a_1<BR>
@@ -214,14 +215,14 @@ vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
  *  3'-mismatch: a_n<BR>
  *
  *  @note Base pairs are always denoted in 5'->3' direction. Thus the enclosed base pair
- *        must be 'turned arround' when evaluating the free energy of the interior-loop<br>
+ *        must be 'turned arround' when evaluating the free energy of the internal-loop<br>
  *        This function is threadsafe
  *
  *  @see scale_parameters(), vrna_param_t
  *
  *  @param  n1      The size of the 'left'-loop (number of unpaired nucleotides)
  *  @param  n2      The size of the 'right'-loop (number of unpaired nucleotides)
- *  @param  type    The pair type of the base pair closing the interior loop
+ *  @param  type    The pair type of the base pair closing the internal loop
  *  @param  type_2  The pair type of the enclosed base pair
  *  @param  si1     The 5'-mismatching nucleotide of the closing pair
  *  @param  sj1     The 3'-mismatching nucleotide of the closing pair
@@ -244,7 +245,7 @@ DEPRECATED(PRIVATE INLINE int
 
 
 /**
- *  <H2>Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of interior loop</H2>
+ *  <H2>Compute Boltzmann weight @f$e^{-\Delta G/kT} @f$ of internal loop</H2>
  *  multiply by scale[u1+u2+2] for scaling
  *
  *  @note This function is threadsafe
@@ -253,7 +254,7 @@ DEPRECATED(PRIVATE INLINE int
  *
  *  @param  u1      The size of the 'left'-loop (number of unpaired nucleotides)
  *  @param  u2      The size of the 'right'-loop (number of unpaired nucleotides)
- *  @param  type    The pair type of the base pair closing the interior loop
+ *  @param  type    The pair type of the base pair closing the internal loop
  *  @param  type2   The pair type of the enclosed base pair
  *  @param  si1     The 5'-mismatching nucleotide of the closing pair
  *  @param  sj1     The 3'-mismatching nucleotide of the closing pair
@@ -293,11 +294,11 @@ DEPRECATED(PRIVATE INLINE int
 
 
 /*
- *  ugly but fast interior loop evaluation
+ *  ugly but fast internal loop evaluation
  *
  *  Avoid including this function in your own code. It only serves
  *  as a fast inline block internally re-used throughout the RNAlib. It
- *  evalutes the free energy of interior loops in single sequences or sequence
+ *  evalutes the free energy of internal loops in single sequences or sequence
  *  hybrids. Soft constraints are also applied if available.
  *
  *  NOTE: do not include into doxygen reference manual!
@@ -350,11 +351,11 @@ DEPRECATED(PRIVATE INLINE int
 
 
 /*
- *  ugly but fast exterior interior loop evaluation
+ *  ugly but fast exterior internal loop evaluation
  *
  *  Avoid including this function in your own code. It only serves
  *  as a fast inline block internally re-used throughout the RNAlib. It
- *  evalutes the free energy of interior loops in single sequences or sequence
+ *  evalutes the free energy of internal loops in single sequences or sequence
  *  hybrids. Soft constraints are also applied if available.
  *
  *  NOTE: do not include into doxygen reference manual!
@@ -395,6 +396,15 @@ DEPRECATED(int
            "Use vrna_eval_stack() instead!");
 
 
+DEPRECATED(FLT_OR_DBL
+           vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
+                                    int                  i,
+                                    int                  j,
+                                    int                  k,
+                                    int                  l),
+           "Use vrna_exp_eval_internal() instead!");
+
+
 PRIVATE INLINE int
 ubf_eval_int_loop(int           i,
                   int           j,
@@ -422,10 +432,10 @@ ubf_eval_int_loop(int           i,
   u2  = j1 - q;
 
   if ((cp < 0) || (ON_SAME_STRAND(i, p, cp) && ON_SAME_STRAND(q, j, cp))) {
-    /* regular interior loop */
+    /* regular internal loop */
     energy = vrna_E_internal(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else {
-    /* interior loop like cofold structure */
+    /* internal loop like cofold structure */
     short Si, Sj;
     Si      = ON_SAME_STRAND(i, i1, cp) ? si : -1;
     Sj      = ON_SAME_STRAND(j1, j, cp) ? sj : -1;
@@ -492,10 +502,10 @@ ubf_eval_int_loop2(int            i,
   u2  = j1 - q;
 
   if ((sn[i] == sn[p]) && (sn[q] == sn[j])) {
-    /* regular interior loop */
+    /* regular internal loop */
     energy = vrna_E_internal(u1, u2, type, type_2, si, sj, sp, sq, P);
   } else {
-    /* interior loop like cofold structure */
+    /* internal loop like cofold structure */
     short Si, Sj;
     Si      = (sn[i1] == sn[i]) ? si : -1;
     Sj      = (sn[j] == sn[j1]) ? sj : -1;
@@ -595,7 +605,7 @@ E_IntLoop(int           n1,
           int           sq1,
           vrna_param_t  *P)
 {
-  /* compute energy of degree 2 loop (stack bulge or interior) */
+  /* compute energy of degree 2 loop (stack bulge or internal) */
   int nl, ns, u, energy, salt_stack_correction, salt_loop_correction, backbones;
 
   salt_stack_correction = P->SaltStack;
@@ -639,7 +649,7 @@ E_IntLoop(int           n1,
         energy += P->TerminalAU;
     }
   } else {
-    /* interior loop */
+    /* internal loop */
     if (ns == 1) {
       if (nl == 1)                    /* 1x1 loop */
         return P->int11[type][type_2][si1][sj1] + salt_loop_correction;
@@ -675,7 +685,7 @@ E_IntLoop(int           n1,
     }
 
     {
-      /* generic interior loop (no else here!)*/
+      /* generic internal loop (no else here!)*/
       u       = nl + ns;
       energy  =
         (u <=
@@ -778,7 +788,7 @@ exp_E_IntLoop(int               u1,
       }
     }
 
-    /* generic interior loop (no else here!)*/
+    /* generic internal loop (no else here!)*/
     z = P->expinternal[ul + us] * P->expmismatchI[type][si1][sj1] *
         P->expmismatchI[type2][sq1][sp1];
     return (FLT_OR_DBL)(z * P->expninio[2][ul - us] * salt_loop_correction);

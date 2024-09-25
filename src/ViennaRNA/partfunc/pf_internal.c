@@ -621,7 +621,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
             case VRNA_FC_TYPE_SINGLE:
               type2 = vrna_get_ptype_md(S2[l], S2[k], md);
 
-              /* regular interior loop */
+              /* regular internal loop */
               q_temp *=
                 vrna_exp_E_internal(u2,
                               u1 + u3,

@@ -25,14 +25,14 @@ enclosing unpaired nucleotides, and/or further base pairs. Our implementation
 distinguishes four basic types of loops:
 
 - hairpin loops
-- interior loops
+- internal loops
 - multibranch loops
 - exterior loop
 
 While the exterior loop is a special case without a closing pair, the other
 loops are determined by the number of base pairs involved in the loop formation,
 i.e. hairpin loops are 1-loops, since only a single base pair delimits the loop.
-interior loops are 2-loops due to their enclosing, and enclosed base pair. All
+internal loops are 2-loops due to their enclosing, and enclosed base pair. All
 loops where more than two base pairs are involved, are termed multibranch loops.
 
 .. image:: gfx/loop_types.png

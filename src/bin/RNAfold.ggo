@@ -249,7 +249,7 @@ details="In addition to the MFE structure\
  discussion of dangling end options below.\n\nAn additionally passed value to this option changes the behavior\
  of partition function calculation:\n-p0 Calculate the partition function but not the pair probabilities,\
  saving about 50% in runtime. This prints the ensemble free energy 'dG=-kT ln(Z)'.\n-p2 Compute stack probabilities,\
- i.e. the probability that a pair '(i,j)' and the immediately interior pair '(i+1,j-1)' are formed simultaneously in\
+ i.e. the probability that a pair '(i,j)' and the immediately enclosed pair '(i+1,j-1)' are formed simultaneously in\
  addition to pair probabilities. A second postscript dot plot named \"name_dp2.ps\", or \"dot2.ps\" (if the\
  sequence does not have a name), is produced that contains pair probabilities in the upper right half and stack\
  probabilities in the lower left.\n\n"
@@ -414,7 +414,7 @@ optional
 option  "motif"   -
 "Specify stabilizing energy of a ligand binding to a particular sequence/structure motif.\n"
 details="Some ligands binding to RNAs require and/or induce particular sequence and structure motifs. For\
- instance they bind to an interior loop, or small hairpin loop. If for such cases a binding free energy is\
+ instance they bind to an internal loop, or small hairpin loop. If for such cases a binding free energy is\
  known, the binding and therefore stabilizing effect of the ligand can be included in the folding recursions.\
  Interior loop motifs are specified as concatenations of 5' and 3' motif, separated by an '&' character.\n\
  Energy contributions must be specified in kcal/mol.\nSee the manpage for an example usage of this option.\n\n"
@@ -425,7 +425,7 @@ hidden
 
 option  "commands"   -
 "Read additional commands from file\n"
-details="Commands include hard and soft constraints, but also structure motifs in hairpin and interior\
+details="Commands include hard and soft constraints, but also structure motifs in hairpin and internal\
  loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
  domains.\n\n"
 string
@@ -500,7 +500,7 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
  dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
  of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
- of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
+ of the two enclosed pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
  -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
  -d2 setting, i.e. dangling ends will be treated differently.\n\n"
 int

@@ -489,8 +489,8 @@ aliLduplexfold(const char *s1[],
   int   bopen       = b_b;
   int   bext        = b_a + extension_cost;
   int   iopen       = il_b;
-  int   iext_s      = 2 * (il_a + extension_cost);  /* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
-  int   iext_ass    = 50 + il_a + extension_cost;   /* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int   iext_s      = 2 * (il_a + extension_cost);  /* iext_s 2 nt nucleotide extension of internal loop, on i and j side */
+  int   iext_ass    = 50 + il_a + extension_cost;   /* iext_ass assymetric extension of internal loop, either on i or on j side. */
   int   min_colonne = INF;                          /* enthaelt das maximum einer kolonne */
   int   i_length;
   int   max_pos;                                    /* get position of the best hit */
@@ -611,7 +611,7 @@ aliLduplexfold(const char *s1[],
       *** c_stack -> stacking of c
       *** c_10, c01 -> stack from bulge
       *** c_nm -> arrives in stack from nxm loop
-      *** c_in -> arrives in stack from interior loop
+      *** c_in -> arrives in stack from internal loop
       *** c_bx -> arrives in stack from large bulge on target
       *** c_by -> arrives in stack from large bulge on query
       ***
@@ -1361,8 +1361,8 @@ aliLduplexfold_XS(const char  *s1[],
   int   bopen       = b_b;
   int   bext        = b_a;
   int   iopen       = il_b;
-  int   iext_s      = 2 * (il_a); /* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
-  int   iext_ass    = 50 + il_a;  /* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int   iext_s      = 2 * (il_a); /* iext_s 2 nt nucleotide extension of internal loop, on i and j side */
+  int   iext_ass    = 50 + il_a;  /* iext_ass assymetric extension of internal loop, either on i or on j side. */
   int   min_colonne = INF;        /* enthaelt das maximum einer kolonne */
   int   i_length;
   int   max_pos;                  /* get position of the best hit */

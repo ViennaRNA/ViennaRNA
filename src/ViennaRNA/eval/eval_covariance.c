@@ -282,7 +282,7 @@ stack_energy_covar_pt(vrna_fold_compound_t  *fc,
   q       = j;
 
   while (p < q) {
-    /* process all stacks and interior loops */
+    /* process all stacks and internal loops */
     while (pt[++p] == 0);
     while (pt[--q] == 0);
     if ((pt[q] != (short)p) || (p > q))

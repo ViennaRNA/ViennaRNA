@@ -1,6 +1,6 @@
 /*
  *  This file contains some utility functions required by both, MFE and
- *  partition function version of interior loop evaluation
+ *  partition function version of internal loop evaluation
  */
 
 typedef unsigned char (*eval_hc)(int   i,
@@ -72,12 +72,45 @@ hc_int_cb_def(int   i,
               void  *data)
 {
   unsigned char pij, pkl;
+  unsigned int  u1, u2, u3;
 
   struct hc_int_def_dat *dat = (struct hc_int_def_dat *)data;
 
   if ((dat->sn[i] != dat->sn[k]) ||
       (dat->sn[l] != dat->sn[j]))
     return (unsigned char)0;
+
+  if (j < k) {
+    /* circular RNA */
+    u1 = i - 1;
+    u2 = k - j;
+    u3 = dat->n - l;
+
+    if ((u1) &&
+        (dat->up[1] < u1))
+      return (unsigned char)0;
+
+    if ((u2) &&
+        (dat->up[j + 1] < u2))
+      return (unsigned char)0;
+
+    if ((u3) &&
+       (dat->up[l + 1] < u3))
+      return (unsigned char)0;
+
+  } else {
+    /* linear RNA */
+    u1 = k - i - 1;
+    u2 = j - l - 1;
+
+    if ((u1) &&
+        (dat->up[i + 1] < u1))
+      return (unsigned char)0;
+
+    if ((u2) &&
+        (dat->up[l + 1] < u2))
+      return (unsigned char)0;
+  }
 
   if (dat->mx) {
     pij = dat->mx[dat->n * i + j];

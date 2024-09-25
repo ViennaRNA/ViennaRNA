@@ -53,12 +53,12 @@
 #define VRNA_DECOMP_PAIR_HP     (unsigned char)1
 
 /**
- *  @brief  Indicator for interior loop decomposition step
+ *  @brief  Indicator for internal loop decomposition step
  *
  *  @ingroup  constraints
  *
  *  @details This flag notifies the soft or hard constraint callback function that the current
- *  decomposition step evaluates an interior loop enclosed by the base pair @f$(i,j)@f$,
+ *  decomposition step evaluates an internal loop enclosed by the base pair @f$(i,j)@f$,
  *  and enclosing the base pair @f$(k,l)@f$.
  *
  *  @image xml   decomp_il.svg

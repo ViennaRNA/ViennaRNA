@@ -2091,9 +2091,9 @@ scan_circular(vrna_fold_compound_t  *fc,
     }
   }
 
-  /* now lets see, if we can do an exterior interior loop without breaking the threshold */
+  /* now lets see, if we can do an exterior internal loop without breaking the threshold */
   if (FcI + best_energy <= threshold) {
-    /* now we search for our exterior interior loop possibilities */
+    /* now we search for our exterior internal loop possibilities */
     for (k = i; k < j; k++) {
       for (l = j; l >= k + turn + 1; l--) {
         kl = indx[l] + k;         /* just confusing these indices ;-) */
@@ -2144,7 +2144,7 @@ scan_circular(vrna_fold_compound_t  *fc,
                    * ok, similar to the hairpin stuff, we add new states onto the stack R
                    * but in contrast to the hairpin decomposition, we have to add two new
                    * intervals, enclosed by k,l and p,q respectively and we also have to
-                   * add the partial energy, that comes from the exterior interior loop
+                   * add the partial energy, that comes from the exterior internal loop
                    */
                   fork_two_states(k, l, p, q, state, tmpE, VRNA_MX_FLAG_C, VRNA_MX_FLAG_C, env);
               }
@@ -2924,7 +2924,7 @@ repeat(vrna_fold_compound_t *fc,
           new = energy + c[indx[q] + p];
 
           if (new + best_energy <= threshold)
-            /* stack, bulge, or interior loop */
+            /* stack, bulge, or internal loop */
             fork_int_state(i, j, p, q, state, part_energy + energy, env);
         } /*end of if block */
       }   /* end of q-loop */
@@ -3088,7 +3088,7 @@ repeat(vrna_fold_compound_t *fc,
     }
 
     if (with_gquad) {
-      /* now we have to find all loops where (i,j) encloses a gquad in an interior loops style */
+      /* now we have to find all loops where (i,j) encloses a gquad in an internal loops style */
       vrna_array(int) ge = NULL;
       vrna_array(int) ps = NULL;
       vrna_array(int) qs = NULL;

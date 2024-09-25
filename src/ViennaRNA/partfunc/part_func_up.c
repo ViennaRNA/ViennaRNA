@@ -202,7 +202,7 @@ get_pu_contrib_struct(unsigned int  n,
   pu->w       = w;
   /* contributions to probability of being unpaired witihin a(n)
    * H hairpin,
-   * I interior loop,
+   * I internal loop,
    * M muliloop,
    * E exterior loop*/
   /* pu_test->X[i][j] where i <= j and i [1...n], j = [1...w[ */
@@ -257,7 +257,7 @@ pf_unstru(char  *sequence,
   unsigned int  size;
   double        temp, tqm2;
   double        qbt1, *tmp, sum_l, *sum_M;
-  double        *store_H, *store_Io, **store_I2o; /* hairp., interior contribs */
+  double        *store_H, *store_Io, **store_I2o; /* hairp., internal contribs */
   double        *store_M_qm_o, *store_M_mlbase;   /* multiloop contributions */
   pu_contrib    *pu_test;
 
@@ -331,7 +331,7 @@ pf_unstru(char  *sequence,
         /* all H contribs are collect for the longest unpaired region */
         store_H[p + 1] = temp;
 
-        /* interior loops with interior pair k,l and an unpaired region of
+        /* internal loops with internal pair k,l and an unpaired region of
          * length w between p and k || l and o*/
         for (k = p + 1; k <= MIN2(p + MAXLOOP + 1, o - TURN - 2); k++) {
           u1    = k - p - 1;
@@ -453,7 +453,7 @@ pf_unstru(char  *sequence,
     max_v   = MIN2(w - 1, n - i);
     for (v = n; v >= 0; v--) {
       if (v <= MIN2(max_v, MAXLOOP)) {
-        /* all unpaired regions [i,v] between p and k in interior loops */
+        /* all unpaired regions [i,v] between p and k in internal loops */
         /* notice v runs from max_v -> 0, sum_iv sums all int. l. contribs */
         /* for each x, v < x =< max_v, since they contribute to [i,v] */
         sum_iv            += store_I2o[i][v];
@@ -813,7 +813,7 @@ pf_interact(const char  *s1,
       else
         add_i3 = pc_size - 1;
 
-      /* only one bp (no interior loop) */
+      /* only one bp (no internal loop) */
       if (p_c2 == NULL) {
         /* consider only structure of longer seq. */
         qint_ik[i][i] += qint_4[i][j][0][0] * rev_d * p_c_S[add_i5][add_i3] * scale[((int)w / 2)];
@@ -1412,7 +1412,7 @@ get_u_vals(pu_contrib *p_c,
   u_results->contribs = contribs;
   /* add 1 column for position within the sequence and
    * add 1 column for the free energy of interaction values */
-  /* header e.g. u3I (contribution for u3 interior loops */
+  /* header e.g. u3I (contribution for u3 internal loops */
   size              = 1 + (num_u_vals * contribs) + 1;
   u_results->header = (char **)vrna_alloc((size + 1) * sizeof(char *));
   for (i = 0; i < (size + 1); i++)

@@ -675,7 +675,7 @@ EPS_print_sc_motif_data(FILE          *eps,
       }
     }
 
-  /* print triangles for interior loop motifs in upper half */
+  /* print triangles for internal loop motifs in upper half */
   fprintf(eps,"\n%%start of Imotif data\n");
   int   a,b;
   float ppp;

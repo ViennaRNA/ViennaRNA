@@ -472,7 +472,7 @@ decompose_pair(vrna_fold_compound_t *fc,
   if (hc->mx[j * n + i]) {
     /* process hairpin loop(s) */
     contribution += vrna_exp_eval_hairpin(fc, i, j, VRNA_EVAL_LOOP_DEFAULT);
-    /* process interior loop(s) */
+    /* process internal loop(s) */
     contribution += vrna_exp_E_int_loop(fc, i, j);
     /* process multibranch loop(s) */
     contribution += vrna_exp_E_mb_loop_fast(fc, i, j, aux_mx_ml);
@@ -565,7 +565,7 @@ postprocess_circular(vrna_fold_compound_t *fc)
       qho += qb[my_iindx[p] - q] *
              vrna_exp_eval_hairpin(fc, q, p, VRNA_EVAL_LOOP_DEFAULT);
 
-      /* 2. get exterior interior loop contribution */
+      /* 2. get exterior internal loop contribution */
       qio += qb[my_iindx[p] - q] *
              vrna_exp_E_int_loop(fc, q, p);
     }

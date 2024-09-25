@@ -400,7 +400,7 @@ vrna_eval_loop_pt_v(vrna_fold_compound_t  *fc,
       /* multi-loop */
       energy = energy_of_ml_pt(fc, i, (const short *)pt);
     } else {
-      /* found interior loop */
+      /* found internal loop */
       if (md->pair[s[q]][s[p]] == 0) {
         if (verbosity_level > VRNA_VERBOSITY_QUIET) {
           vrna_log_warning("Bases %d and %d (%c%c) can't pair!",
@@ -1158,7 +1158,7 @@ eval_circ_pt(vrna_fold_compound_t           *fc,
       en0 = vrna_eval_hairpin(fc, j, i, VRNA_EVAL_LOOP_NO_HC);
       break;
 
-    case 2:   /* interior loop */
+    case 2:   /* internal loop */
     {
       int p, q;
       /* seek to next pair */
@@ -2007,7 +2007,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
 
           /* if we consider the G-Quadruplex, we have */
           if (num_g == 1) {
-            /* a) an interior loop like structure */
+            /* a) an internal loop like structure */
             switch (fc->type) {
               case VRNA_FC_TYPE_COMPARATIVE:
                 for (cnt = 0; cnt < n_seq; cnt++) {
@@ -2079,7 +2079,7 @@ en_corr_of_loop_gquad(vrna_fold_compound_t            *fc,
           energy += e_plus - e_minus;
           break;
 
-        /* g-quad was misinterpreted as interior loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
+        /* g-quad was misinterpreted as internal loop closed by (r,s) with enclosed pair (elem_i, elem_j) */
         case 1:
           e_temp = num_g * vrna_E_multibranch_stem(0, -1, -1, P) +
                    P->MLclosing +
@@ -2244,7 +2244,7 @@ stack_energy(vrna_fold_compound_t           *fc,
   q = j;
 
   while (p < q) {
-    /* process all stacks and interior loops */
+    /* process all stacks and internal loops */
     while (pt[++p] == 0);
     while (pt[--q] == 0);
     if ((pt[q] != (short)p) || (p > q))

@@ -1372,7 +1372,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
         Hj  = j;
       }
 
-      /* exterior interior loop case */
+      /* exterior internal loop case */
       new_c = vrna_mfe_internal_ext(fc, i, j, &p, &q);
       if (new_c != INF)
         new_c += my_c[ij];
@@ -4262,7 +4262,7 @@ repeat1:
     if (vrna_bt_hairpin(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
-    if (vrna_bt_interior_loop(fc, i, j, cij, bp_stack, bt_stack))
+    if (vrna_bt_internal_loop(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
     if (fc->strands > 1) {
@@ -4354,7 +4354,7 @@ decompose_pair(vrna_fold_compound_t *fc,
       new_c   = MIN2(new_c, energy);
     }
 
-    /* check for interior loops */
+    /* check for internal loops */
     energy  = vrna_mfe_internal(fc, i, j);
     new_c   = MIN2(new_c, energy);
 

@@ -36,7 +36,7 @@ vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
 
 
 int
-vrna_bt_gquad_interior(vrna_fold_compound_t  *fc,
+vrna_bt_gquad_internal(vrna_fold_compound_t  *fc,
                        unsigned int          i,
                        unsigned int          j,
                        int                   en,
@@ -70,11 +70,11 @@ DEPRECATED(int
                              int                  en,
                              vrna_bp_stack_t      *bp_stack,
                              unsigned int         *stack_count),
-           "Use vrna_bt_gquad_interior() instead");
+           "Use vrna_bt_gquad_internal() instead");
 
 
 /**
- *  backtrack an interior loop like enclosed g-quadruplex
+ *  backtrack an internal loop like enclosed g-quadruplex
  *  with closing pair (i,j) with underlying Lfold matrix
  *
  *  @param c      The total contribution the loop should resemble
@@ -100,7 +100,7 @@ DEPRECATED(int
                                      int          *p,
                                      int          *q,
                                      vrna_param_t *P),
-           "Use vrna_bt_gquad_interior() instead");
+           "Use vrna_bt_gquad_internal() instead");
 
 
 DEPRECATED(int
@@ -117,7 +117,7 @@ DEPRECATED(int
                                                  int          *q,
                                                  int          n_seq,
                                                  vrna_param_t *P),
-           "Use vrna_bt_gquad_interior() instead");
+           "Use vrna_bt_gquad_internal() instead");
 
 
 /** @} */

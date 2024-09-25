@@ -26,7 +26,7 @@
 /**
  *  @file     ViennaRNA/mfe/internal.h
  *  @ingroup  mfe
- *  @brief    Energy evaluation of interior loops for MFE computations
+ *  @brief    Energy evaluation of internal loops for MFE computations
  */
 
 /**

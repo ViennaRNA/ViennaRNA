@@ -253,7 +253,7 @@ DEPRECATED(typedef unsigned char (vrna_callback_hc_evaluate)(int i,
 #define VRNA_CONSTRAINT_CONTEXT_HP_LOOP       (unsigned char)0x02
 
 /**
- *  @brief  Hard constraints flag, base pair encloses an interior loop
+ *  @brief  Hard constraints flag, base pair encloses an internal loop
  *
  *  @ingroup  hard_constraints
  *
@@ -269,7 +269,7 @@ DEPRECATED(typedef unsigned char (vrna_callback_hc_evaluate)(int i,
 #define VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC  (unsigned char)0x08
 
 /**
- *  @brief  Hard constraints flag, base pair is enclosed in an interior loop
+ *  @brief  Hard constraints flag, base pair is enclosed in an internal loop
  *
  *  @ingroup  hard_constraints
  *
@@ -349,7 +349,7 @@ typedef enum {
  *  following types of base pairs:
  *  - in the exterior loop (#VRNA_CONSTRAINT_CONTEXT_EXT_LOOP)
  *  - enclosing a hairpin (#VRNA_CONSTRAINT_CONTEXT_HP_LOOP)
- *  - enclosing an interior loop (#VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
+ *  - enclosing an internal loop (#VRNA_CONSTRAINT_CONTEXT_INT_LOOP)
  *  - enclosed by an exterior loop (#VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)
  *  - enclosing a multi branch loop (#VRNA_CONSTRAINT_CONTEXT_MB_LOOP)
  *  - enclosed by a multi branch loop (#VRNA_CONSTRAINT_CONTEXT_MB_LOOP_ENC)
@@ -379,7 +379,7 @@ struct vrna_hc_s {
                                    *            unpaired nucleotides in a hairpin loop
                                    */
   unsigned int        *up_int;    /**<  @brief  A linear array that holds the number of allowed
-                                   *            unpaired nucleotides in an interior loop
+                                   *            unpaired nucleotides in an internal loop
                                    */
   unsigned int        *up_ml;     /**<  @brief  A linear array that holds the number of allowed
                                    *            unpaired nucleotides in a multi branched loop

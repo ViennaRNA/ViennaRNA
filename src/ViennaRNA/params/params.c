@@ -530,7 +530,7 @@ get_scaled_params(vrna_md_t *md)
       params->dangle3[i][j] = (dd > 0) ? 0 : dd;  /* must be <= 0 */
     }
 
-  /* interior 1x1 loops */
+  /* internal 1x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -539,7 +539,7 @@ get_scaled_params(vrna_md_t *md)
                                                  int11_dH[i][j][k][l],
                                                  tempf);
 
-  /* interior 2x1 loops */
+  /* internal 2x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -551,7 +551,7 @@ get_scaled_params(vrna_md_t *md)
                                                       tempf);
         }
 
-  /* interior 2x2 loops */
+  /* internal 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -640,7 +640,7 @@ get_scaled_exp_params(vrna_md_t *md,
       pf->expgquad[i][j] = exp(-TRUNC_MAYBE((double)((int)GQuadEnergy)) * 10. / kT);
     }
 
-  /* loop energies: hairpins, bulges, interior, mulit-loops */
+  /* loop energies: hairpins, bulges, internal, mulit-loops */
   for (i = 0; i < 31; i++)
     pf->exphairpin[i] = RESCALE_BF(hairpin37[i], hairpindH[i], TT, kT);
 
@@ -673,7 +673,7 @@ get_scaled_exp_params(vrna_md_t *md,
     }
   }
 
-  /* special case of size 2 interior loops (single mismatch) */
+  /* special case of size 2 internal loops (single mismatch) */
   if (james_rule)
     pf->expinternal[2] = exp(-80 * 10. / kT);
 
@@ -758,7 +758,7 @@ get_scaled_exp_params(vrna_md_t *md,
         }
       }
 
-  /* interior lops of length 2 */
+  /* internal lops of length 2 */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -769,7 +769,7 @@ get_scaled_exp_params(vrna_md_t *md,
                                                 kT);
         }
 
-  /* interior 2x1 loops */
+  /* internal 2x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -783,7 +783,7 @@ get_scaled_exp_params(vrna_md_t *md,
           }
         }
 
-  /* interior 2x2 loops */
+  /* internal 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -870,7 +870,7 @@ get_exp_params_ali(vrna_md_t    *md,
       pf->expgquad[i][j] = exp(-TRUNC_MAYBE(GT) * 10. / kTn);
     }
 
-  /* loop energies: hairpins, bulges, interior, mulit-loops */
+  /* loop energies: hairpins, bulges, internal, mulit-loops */
   for (i = 0; i < 31; i++)
     pf->exphairpin[i] = RESCALE_BF(hairpin37[i], hairpindH[i], TT, kTn);
   /*add penalty for too short hairpins*/
@@ -911,7 +911,7 @@ get_exp_params_ali(vrna_md_t    *md,
     }
   }
 
-  /* special case of size 2 interior loops (single mismatch) */
+  /* special case of size 2 internal loops (single mismatch) */
   if (james_rule)
     pf->expinternal[2] = exp(-80 * 10. / kTn);
 
@@ -1003,7 +1003,7 @@ get_exp_params_ali(vrna_md_t    *md,
         }
       }
 
-  /* interior lops of length 2 */
+  /* internal lops of length 2 */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -1014,7 +1014,7 @@ get_exp_params_ali(vrna_md_t    *md,
                                                 kTn);
         }
 
-  /* interior 2x1 loops */
+  /* internal 2x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -1028,7 +1028,7 @@ get_exp_params_ali(vrna_md_t    *md,
           }
         }
 
-  /* interior 2x2 loops */
+  /* internal 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)

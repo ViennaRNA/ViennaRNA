@@ -315,7 +315,7 @@ vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
 
 
 PUBLIC int
-vrna_bt_gquad_interior(vrna_fold_compound_t  *fc,
+vrna_bt_gquad_internal(vrna_fold_compound_t  *fc,
                        unsigned int          i,
                        unsigned int          j,
                        int                   en,
@@ -803,7 +803,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
     vrna_bps_t  bps = vrna_bps_init(4);
     vrna_bts_t  bts = vrna_bts_init(0);
 
-    r = vrna_bt_gquad_interior(fc, (unsigned int)i, (unsigned int)j, en, bps, bts);
+    r = vrna_bt_gquad_internal(fc, (unsigned int)i, (unsigned int)j, en, bps, bts);
 
     while (vrna_bts_size(bts) > 0) {
       vrna_sect_t s = vrna_bts_pop(bts);
@@ -825,7 +825,7 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
 
 
 /**
- *  backtrack an interior loop like enclosed g-quadruplex
+ *  backtrack an internal loop like enclosed g-quadruplex
  *  with closing pair (i,j) with underlying Lfold matrix
  *
  *  @param c      The total contribution the loop should resemble
@@ -956,7 +956,7 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
 {
   /*
    * The case that is handled here actually resembles something like
-   * an interior loop where the enclosing base pair is of regular
+   * an internal loop where the enclosing base pair is of regular
    * kind and the enclosed pair is not a canonical one but a g-quadruplex
    * that should then be decomposed further...
    */

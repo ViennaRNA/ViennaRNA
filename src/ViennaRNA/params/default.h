@@ -22,12 +22,12 @@ extern int bulge37[31];
 extern int bulgedH[31];
 extern int internal_loop37[31];
 extern int internal_loopdH[31];
-extern int mismatchI37[NBPAIRS+1][5][5];  /* interior loop mismatches */
-extern int mismatchIdH[NBPAIRS+1][5][5];  /* interior loop mismatches */
-extern int mismatch1nI37[NBPAIRS+1][5][5];  /* interior loop mismatches */
-extern int mismatch23I37[NBPAIRS+1][5][5];  /* interior loop mismatches */
-extern int mismatch1nIdH[NBPAIRS+1][5][5];  /* interior loop mismatches */
-extern int mismatch23IdH[NBPAIRS+1][5][5];  /* interior loop mismatches */
+extern int mismatchI37[NBPAIRS+1][5][5];  /* internal loop mismatches */
+extern int mismatchIdH[NBPAIRS+1][5][5];  /* internal loop mismatches */
+extern int mismatch1nI37[NBPAIRS+1][5][5];  /* internal loop mismatches */
+extern int mismatch23I37[NBPAIRS+1][5][5];  /* internal loop mismatches */
+extern int mismatch1nIdH[NBPAIRS+1][5][5];  /* internal loop mismatches */
+extern int mismatch23IdH[NBPAIRS+1][5][5];  /* internal loop mismatches */
 extern int mismatchH37[NBPAIRS+1][5][5];  /* same for hairpins */
 extern int mismatchM37[NBPAIRS+1][5][5];  /* same for multiloops */
 extern int mismatchHdH[NBPAIRS+1][5][5];  /* same for hairpins */
@@ -40,13 +40,13 @@ extern int dangle3_37[NBPAIRS+1][5];      /* 3' dangle */
 extern int dangle3_dH[NBPAIRS+1][5];       /* corresponding enthalpies */
 extern int dangle5_dH[NBPAIRS+1][5];
 
-extern int int11_37[NBPAIRS+1][NBPAIRS+1][5][5]; /* 1x1 interior loops */
+extern int int11_37[NBPAIRS+1][NBPAIRS+1][5][5]; /* 1x1 internal loops */
 extern int int11_dH[NBPAIRS+1][NBPAIRS+1][5][5];
 
-extern int int21_37[NBPAIRS+1][NBPAIRS+1][5][5][5]; /* 2x1 interior loops */
+extern int int21_37[NBPAIRS+1][NBPAIRS+1][5][5][5]; /* 2x1 internal loops */
 extern int int21_dH[NBPAIRS+1][NBPAIRS+1][5][5][5];
 
-extern int int22_37[NBPAIRS+1][NBPAIRS+1][5][5][5][5]; /* 2x2 interior loops */
+extern int int22_37[NBPAIRS+1][NBPAIRS+1][5][5][5][5]; /* 2x2 internal loops */
 extern int int22_dH[NBPAIRS+1][NBPAIRS+1][5][5][5][5];
 
 /* constants for linearly destabilizing contributions for multi-loops

@@ -261,7 +261,7 @@ PRIVATE vrna_param_t *P = NULL;
 *** energy array used in fduplexfold and fduplexfold_XS
 *** We do not use the 1D array here as it is not time critical
 *** It also makes the code more readable
-*** c -> stack;in -> interior loop;bx/by->bulge;inx/iny->1xn loops
+*** c -> stack;in -> internal loop;bx/by->bulge;inx/iny->1xn loops
 **/
 
 PRIVATE int **c = NULL, **in = NULL, **bx = NULL, **by = NULL, **inx = NULL, **iny = NULL;
@@ -612,9 +612,9 @@ fduplexfold_XS(const char *s1,
   char    *struc;
   /**
   *** bext=b_a bulge extension parameter for linear model
-  *** iopen=il_b interior opening for linear model
-  *** iext_s=2*il_a asymmetric extension for interior loop
-  *** iext_ass=60+il_a symmetric extension for interior loop
+  *** iopen=il_b internal opening for linear model
+  *** iext_s=2*il_a asymmetric extension for internal loop
+  *** iext_ass=60+il_a symmetric extension for internal loop
   *** min_colonne=INF; max score of a row
   *** i_length;
   *** max_pos; position of best hit during recursion on target
@@ -629,8 +629,8 @@ fduplexfold_XS(const char *s1,
   int       bopen       = b_b;
   int       bext        = b_a;
   int       iopen       = il_b;
-  int       iext_s      = 2 * il_a;   /* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
-  int       iext_ass    = 50 + il_a;  /* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int       iext_s      = 2 * il_a;   /* iext_s 2 nt nucleotide extension of internal loop, on i and j side */
+  int       iext_ass    = 50 + il_a;  /* iext_ass assymetric extension of internal loop, either on i or on j side. */
   int       min_colonne = INF;        /* enthaelt das maximum einer kolonne */
   int       i_length;
   int       max_pos;                  /* get position of the best hit */
@@ -800,7 +800,7 @@ fduplexfold_XS(const char *s1,
       **/
       type2 = pair[S2[j + 1]][S1[i - 1]];
       /**
-      *** start/extend interior loop
+      *** start/extend internal loop
       **/
       in[i][j] = MIN2(
         c[i - 1][j + 1] + P->mismatchI[type2][SS2[j]][SS1[i]] + iopen + iext_s + di1 + dj1,
@@ -821,7 +821,7 @@ fduplexfold_XS(const char *s1,
         c[i - 1][j + 1] + P->mismatch1nI[type2][SS2[j]][SS1[i]] + iopen + iext_s + di1 + dj1,
         iny[i][j + 1] + iext_ass + dj1);
       /**
-      *** extend interior loop
+      *** extend internal loop
       **/
       in[i][j]  = MIN2(in[i][j], in[i][j + 1] + iext_ass + dj1);
       in[i][j]  = MIN2(in[i][j], in[i - 1][j + 1] + iext_s + di1 + dj1);
@@ -1106,8 +1106,8 @@ fbacktrack_XS(int       i,
   int   bopen     = b_b;
   int   bext      = b_a;
   int   iopen     = il_b;
-  int   iext_s    = 2 * il_a;   /* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
-  int   iext_ass  = 50 + il_a;  /* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int   iext_s    = 2 * il_a;   /* iext_s 2 nt nucleotide extension of internal loop, on i and j side */
+  int   iext_ass  = 50 + il_a;  /* iext_ass assymetric extension of internal loop, either on i or on j side. */
 
   st1 = (char *)vrna_alloc(sizeof(char) * (n3 + 1));
   st2 = (char *)vrna_alloc(sizeof(char) * (n4 + 1));
@@ -1117,7 +1117,7 @@ fbacktrack_XS(int       i,
 
   state = 1; /* we start backtracking from a a pair , i.e. c-matrix */
   /* state 1 -> base pair, c
-   * state 2 -> interior loop, in
+   * state 2 -> internal loop, in
    * state 3 -> bx loop, bx
    * state 4 -> by loop, by
    */
@@ -2151,7 +2151,7 @@ Lduplexfold_XS(const char *s1,
       **/
       type2 = pair[S2[j + 1]][S1[i - 1]];
       /**
-      *** start/extend interior loop
+      *** start/extend internal loop
       **/
       SA[LINI(idx, j, n2)] = MIN2(SA[LCI(idx_1, j + 1,
                                          n2)] + P->mismatchI[type2][SS2[j]][SS1[i]] + di1 + dj1 + iopen + iext_s,
@@ -2172,7 +2172,7 @@ Lduplexfold_XS(const char *s1,
                                           n2)] + P->mismatch1nI[type2][SS2[j]][SS1[i]] + di1 + dj1 + iopen + iext_s,
                                    SA[LINIY(idx, j + 1, n2)] + iext_ass + dj1);
       /**
-      *** extend interior loop
+      *** extend internal loop
       **/
       SA[LINI(idx, j, n2)]  = MIN2(SA[LINI(idx, j, n2)], SA[LINI(idx, j + 1, n2)] + iext_ass + dj1);
       SA[LINI(idx, j, n2)]  = MIN2(SA[LINI(idx, j, n2)],
@@ -2916,8 +2916,8 @@ fduplexfold(const char  *s1,
   int       bopen       = b_b;
   int       bext        = b_a + extension_cost;
   int       iopen       = il_b;
-  int       iext_s      = 2 * (il_a + extension_cost);  /* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
-  int       iext_ass    = 50 + il_a + extension_cost;   /* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int       iext_s      = 2 * (il_a + extension_cost);  /* iext_s 2 nt nucleotide extension of internal loop, on i and j side */
+  int       iext_ass    = 50 + il_a + extension_cost;   /* iext_ass assymetric extension of internal loop, either on i or on j side. */
   int       min_colonne = INF;                          /* enthaelt das maximum einer kolonne */
   int       i_length;
   int       max_pos;                                    /* get position of the best hit */
@@ -3010,7 +3010,7 @@ fduplexfold(const char  *s1,
       **/
       type2 = pair[S2[j + 1]][S1[i - 1]];
       /**
-      *** start/extend interior loop
+      *** start/extend internal loop
       **/
       in[i][j] =
         MIN2(c[i - 1][j + 1] + P->mismatchI[type2][SS2[j]][SS1[i]] + iopen + iext_s,
@@ -3028,7 +3028,7 @@ fduplexfold(const char  *s1,
       iny[i][j] = MIN2(c[i - 1][j + 1] + P->mismatch1nI[type2][SS2[j]][SS1[i]] + iopen + iext_s,
                        iny[i][j + 1] + iext_ass);
       /**
-      *** extend interior loop
+      *** extend internal loop
       **/
       in[i][j]  = MIN2(in[i][j], in[i][j + 1] + iext_ass);
       in[i][j]  = MIN2(in[i][j], in[i - 1][j + 1] + iext_s);
@@ -3237,8 +3237,8 @@ fbacktrack(int        i,
   int   bopen     = b_b;
   int   bext      = b_a + extension_cost;
   int   iopen     = il_b;
-  int   iext_s    = 2 * (il_a + extension_cost);  /* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
-  int   iext_ass  = 50 + il_a + extension_cost;   /* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int   iext_s    = 2 * (il_a + extension_cost);  /* iext_s 2 nt nucleotide extension of internal loop, on i and j side */
+  int   iext_ass  = 50 + il_a + extension_cost;   /* iext_ass assymetric extension of internal loop, either on i or on j side. */
 
   st1 = (char *)vrna_alloc(sizeof(char) * (n3 + 1));
   st2 = (char *)vrna_alloc(sizeof(char) * (n4 + 1));
@@ -3248,7 +3248,7 @@ fbacktrack(int        i,
 
   state = 1; /* we start backtracking from a a pair , i.e. c-matrix */
   /* state 1 -> base pair, c
-   * state 2 -> interior loop, in
+   * state 2 -> internal loop, in
    * state 3 -> bx loop, bx
    * state 4 -> by loop, by
    */
@@ -3852,8 +3852,8 @@ Lduplexfold(const char  *s1,
   int       bopen       = b_b;
   int       bext        = b_a + extension_cost;
   int       iopen       = il_b;
-  int       iext_s      = 2 * (il_a + extension_cost);  /* iext_s 2 nt nucleotide extension of interior loop, on i and j side */
-  int       iext_ass    = 50 + il_a + extension_cost;   /* iext_ass assymetric extension of interior loop, either on i or on j side. */
+  int       iext_s      = 2 * (il_a + extension_cost);  /* iext_s 2 nt nucleotide extension of internal loop, on i and j side */
+  int       iext_ass    = 50 + il_a + extension_cost;   /* iext_ass assymetric extension of internal loop, either on i or on j side. */
   int       min_colonne = INF;                          /* enthaelt das maximum einer kolonne */
   int       i_length;
   int       max_pos;                                    /* get position of the best hit */
@@ -3967,7 +3967,7 @@ Lduplexfold(const char  *s1,
       **/
       type2 = pair[S2[j + 1]][S1[i - 1]];
       /**
-      *** start/extend interior loop
+      *** start/extend internal loop
       **/
       SA[LINI(idx, j, n2)] = MIN2(SA[LCI(idx_1, j + 1,
                                          n2)] + P->mismatchI[type2][SS2[j]][SS1[i]] + iopen + iext_s,
@@ -3987,7 +3987,7 @@ Lduplexfold(const char  *s1,
                                           n2)] + P->mismatch1nI[type2][SS2[j]][SS1[i]] + iopen + iext_s,
                                    SA[LINIY(idx, j + 1, n2)] + iext_ass);
       /**
-      *** extend interior loop
+      *** extend internal loop
       **/
       SA[LINI(idx, j, n2)]  = MIN2(SA[LINI(idx, j, n2)], SA[LINI(idx, j + 1, n2)] + iext_ass);
       SA[LINI(idx, j, n2)]  = MIN2(SA[LINI(idx, j, n2)], SA[LINI(idx_1, j + 1, n2)] + iext_s);

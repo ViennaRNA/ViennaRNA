@@ -1294,7 +1294,7 @@ backtrack(unsigned int                    i,
 #endif
 
     if (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
-      /* interior loop contributions */
+      /* internal loop contributions */
       max_k = i + MAXLOOP + 1;
       max_k = MIN2(max_k, j - turn - 2);
       max_k = MIN2(max_k, i + 1 + hc_up_int[i + 1]);
@@ -1391,13 +1391,13 @@ backtrack(unsigned int                    i,
 
         free(types);
 
-        return backtrack(k, l, pstruc, vc, sc_wrap, nr_mem); /* found the interior loop, repeat for inside */
+        return backtrack(k, l, pstruc, vc, sc_wrap, nr_mem); /* found the internal loop, repeat for inside */
       } else {
-        /* interior loop contributions did not exceed threshold, so we break */
+        /* internal loop contributions did not exceed threshold, so we break */
         break;
       }
     } else {
-      /* must not be interior loop, so we break out */
+      /* must not be internal loop, so we break out */
       break;
     }
   } while (1);
@@ -1646,7 +1646,7 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
           goto pbacktrack_circ_loop_end;
         }
 
-        /* 2. search for (k,l) with which we can close an interior loop  */
+        /* 2. search for (k,l) with which we can close an internal loop  */
         if (hc_mx[n * i + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
           if (vc->type == VRNA_FC_TYPE_SINGLE)
             type = vrna_get_ptype_md(S2[j], S2[i], md);
@@ -1721,7 +1721,7 @@ pbacktrack_circ(vrna_fold_compound_t              *vc,
 
                 qt += q_temp;
                 /*
-                 * found an exterior interior loop? also this time, we can go straight
+                 * found an exterior internal loop? also this time, we can go straight
                  * forward and backtracking the both enclosed parts and we're done
                  */
                 if (qt > r) {

@@ -178,7 +178,7 @@ struct vrna_data_linear_s {
  */
 typedef struct pu_contrib {
   double  **H;    /**<  @brief  hairpin loops */
-  double  **I;    /**<  @brief  interior loops */
+  double  **I;    /**<  @brief  internal loops */
   double  **M;    /**<  @brief  multi loops */
   double  **E;    /**<  @brief  exterior loop */
   int     length; /**<  @brief  length of the input sequence */

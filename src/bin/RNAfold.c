@@ -1538,7 +1538,7 @@ add_ligand_motifs_to_list(vrna_ep_t       **list,
         (*list) = vrna_realloc((*list), sizeof(vrna_ep_t) * (size + add + 1));
       }
     } else {
-      /* interior loop motif */
+      /* internal loop motif */
       (*list)[size + cnt].i     = m_ptr->i;
       (*list)[size + cnt].j     = m_ptr->j;
       (*list)[size + cnt].p     = 0.95 * 0.95;

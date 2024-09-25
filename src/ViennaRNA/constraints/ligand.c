@@ -1,6 +1,6 @@
 /*
  * Reference implementation for including ligand binding to hairpins, or
- * interior loops, with known sequence and/or structure motif, and
+ * internal loops, with known sequence and/or structure motif, and
  * binding free energy utilizing generic soft constraint feature
  *
  * (c) 2015 Ronny Lorenz - ViennaRNA Package
@@ -177,7 +177,7 @@ vrna_sc_ligand_detect_motifs(vrna_fold_compound_t *vc,
 
       /* check motif type */
       if ((pos->k) && (pos->l)) {
-        /* interior loop motif */
+        /* internal loop motif */
         if ((!pt[pos->k]) || (pt[pos->k] != pos->l))
           continue;
 
@@ -352,11 +352,11 @@ vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
     if ((motif[0] != '(') || (motif[strlen(motif) - 1] != ')') || (motif[cp - 2] != '(') ||
         (motif[cp - 1] != ')')) {
       vrna_log_warning(
-        "vrna_sc_add_ligand_binding@ligand.c: No closing and/or enclosed pair in interior loop motif!");
+        "vrna_sc_add_ligand_binding@ligand.c: No closing and/or enclosed pair in internal loop motif!");
       goto hi_motif_error;
     }
 
-    /* construct corresponding alternative interior loop motif (....(&)...) */
+    /* construct corresponding alternative internal loop motif (....(&)...) */
     motif_alt[0]                  = '(';
     motif_alt[cp - 2]             = '(';
     motif_alt[cp - 1]             = ')';

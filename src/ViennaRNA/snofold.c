@@ -660,7 +660,7 @@ alifill_arrays(const char **strings,
                              P);
         /*--------------------------------------------------------
          *  check for elementary structures involving more than one
-         *  closing pair (interior loop).
+         *  closing pair (internal loop).
          *  --------------------------------------------------------*/
 
         for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {
@@ -966,7 +966,7 @@ fill_arrays(const char  *string,
 
         /*--------------------------------------------------------
          *  check for elementary structures involving more than one
-         *  closing pair (interior loop).
+         *  closing pair (internal loop).
          *  --------------------------------------------------------*/
 
         for (p = i + 1; p <= MIN2(j - 2 - TURN, i + MAXLOOP + 1); p++) {

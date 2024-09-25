@@ -76,7 +76,7 @@ vrna_E_internal(unsigned int  n1,
                 int           sq1,
                 vrna_param_t  *P)
 {
-  /* compute energy of degree 2 loop (stack bulge or interior) */
+  /* compute energy of degree 2 loop (stack bulge or internal) */
   unsigned int  nl, ns, u, backbones, no_close;
   int           energy, salt_stack_correction, salt_loop_correction;
 
@@ -178,7 +178,7 @@ vrna_E_internal(unsigned int  n1,
       /* fall through */
 
       default:
-        /* generic interior loop (no else here!)*/
+        /* generic internal loop (no else here!)*/
         u       = nl + ns;
         energy  += (u <= MAXLOOP) ?
                    (P->internal_loop[u]) :
@@ -314,7 +314,7 @@ eval_int_loop(vrna_fold_compound_t  *fc,
       u1  = k - i - 1;
       u2  = j - l - 1;
 
-      /* regular interior loop */
+      /* regular internal loop */
       e = vrna_E_internal(u1, u2, type, type2, S[i + 1], S[j - 1], S[k - 1], S[l + 1], P);
 
       break;
@@ -434,7 +434,7 @@ eval_ext_int_loop(vrna_fold_compound_t  *fc,
       u2  = k - j - 1;
       u3  = n - l;
 
-      /* regular interior loop */
+      /* regular internal loop */
       energy = vrna_E_internal(u2,
                                u1 + u3,
                                type,

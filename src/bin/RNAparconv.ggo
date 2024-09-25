@@ -70,7 +70,7 @@ off
 hidden
 
 option  "without-IntE"  -
-"Do not print converted interior loop energies, enthalpies and asymetry factors\n\n"
+"Do not print converted internal loop energies, enthalpies and asymetry factors\n\n"
 flag
 off
 hidden
@@ -100,7 +100,7 @@ off
 hidden
 
 option  "without-MismatchI"  -
-"Do not print converted interior loop mismatch energies and enthalpies\n\n"
+"Do not print converted internal loop mismatch energies and enthalpies\n\n"
 flag
 off
 hidden

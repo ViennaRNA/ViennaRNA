@@ -4,7 +4,7 @@
 /**
  *  @file     constraints/ligand.h
  *  @ingroup  ligand_binding
- *  @brief    Functions for incorporation of ligands binding to hairpin and interior loop motifs using the soft constraints framework
+ *  @brief    Functions for incorporation of ligands binding to hairpin and internal loop motifs using the soft constraints framework
  */
 
 /**
@@ -29,7 +29,7 @@ struct vrna_sc_motif_s {
 
 
 /**
- *  @brief  Add soft constraints for hairpin or interior loop binding motif
+ *  @brief  Add soft constraints for hairpin or internal loop binding motif
  *
  *  Here is an example that adds a theophylline binding motif. Free energy
  *  contribution is derived from @f$k_d = 0.1 \mu M@f$, taken from

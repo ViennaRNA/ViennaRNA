@@ -1,7 +1,7 @@
 /**
  *  @file 1.8.4_intloops.h
  *  @ingroup energy_parameters_convert
- *  @brief Free energy parameters for interior loop contributions needed by the parameter file conversion functions
+ *  @brief Free energy parameters for internal loop contributions needed by the parameter file conversion functions
  */
 
 PRIVATE int int11_37_184[NBPAIRS+1][NBPAIRS+1][5][5] =

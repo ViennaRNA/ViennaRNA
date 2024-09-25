@@ -36,11 +36,12 @@
  */
 
 PRIVATE FLT_OR_DBL
-exp_E_interior_loop(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   k,
-                    int                   l);
+exp_eval_internal(vrna_fold_compound_t  *fc,
+                  unsigned int          i,
+                  unsigned int          j,
+                  unsigned int          k,
+                  unsigned int          l,
+                  unsigned int          options);
 
 
 /*
@@ -161,7 +162,7 @@ vrna_exp_E_internal(unsigned int      u1,
       /* fall through */
 
       default:
-        /* generic interior loop */
+        /* generic internal loop */
         z = P->expinternal[ul + us];
         z *= P->expninio[2][ul - us];
         z *= P->expmismatchI[type][si1][sj1] *
@@ -178,25 +179,46 @@ vrna_exp_E_internal(unsigned int      u1,
 
 
 PUBLIC FLT_OR_DBL
-vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
-                         int                  i,
-                         int                  j,
-                         int                  k,
-                         int                  l)
+vrna_exp_eval_internal(vrna_fold_compound_t *fc,
+                       unsigned int         i,
+                       unsigned int         j,
+                       unsigned int         k,
+                       unsigned int         l,
+                       unsigned int         options)
 {
-  if (fc)
-    return exp_E_interior_loop(fc, i, j, k, l);
+  unsigned char         eval;
+  eval_hc               evaluate;
+  struct hc_int_def_dat hc_dat_local;
+
+  if ((fc) &&
+      (i > 0) &&
+      (j > 0) &&
+      (k > 0) &&
+      (l > 0)) {
+    /* prepare hard constraints check */
+    if ((options & VRNA_EVAL_LOOP_NO_HC) ||
+        (fc->hc == NULL)) {
+      eval = (unsigned char)1;
+    } else {
+      evaluate  = prepare_hc_int_def(fc, &hc_dat_local);
+      eval      = evaluate(i, j, k, l, &hc_dat_local);
+    }
+
+    if (eval)
+      return exp_eval_internal(fc, i, j, k, l, options);
+  }
 
   return 0.;
 }
 
 
 PRIVATE FLT_OR_DBL
-exp_E_interior_loop(vrna_fold_compound_t  *fc,
-                    int                   i,
-                    int                   j,
-                    int                   k,
-                    int                   l)
+exp_eval_internal(vrna_fold_compound_t  *fc,
+                  unsigned int          i,
+                  unsigned int          j,
+                  unsigned int          k,
+                  unsigned int          l,
+                  unsigned int          options)
 {
   unsigned char         sliding_window, type, type2;
   char                  *ptype, **ptype_local;
@@ -237,78 +259,66 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
   u1          = k - i - 1;
   u2          = j - l - 1;
 
-  if ((sn[k] != sn[i]) || (sn[j] != sn[l]))
+  if ((sn[k] != sn[i]) ||
+      (sn[j] != sn[l]))
     return qbt1;
 
-  if (hc_up[l + 1] < u2)
-    return qbt1;
+  /* discard this configuration if (p,q) is not allowed to be enclosed pair of an internal loop */
+  q_temp = 0;
 
-  if (hc_up[i + 1] < u1)
-    return qbt1;
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      type = (sliding_window) ?
+             vrna_get_ptype_window(i, j, ptype_local) :
+             vrna_get_ptype(jindx[j] + i, ptype);
+      type2 = (sliding_window) ?
+              rtype[vrna_get_ptype_window(k, l, ptype_local)] :
+              rtype[vrna_get_ptype(jindx[l] + k, ptype)];
 
-  evaluate = prepare_hc_int_def(fc, &hc_dat_local);
+      q_temp = vrna_exp_E_internal(u1,
+                                   u2,
+                                   type,
+                                   type2,
+                                   S1[i + 1],
+                                   S1[j - 1],
+                                   S1[k - 1],
+                                   S1[l + 1],
+                                   pf_params);
 
-  init_sc_int_exp(fc, &sc_wrapper);
+      break;
 
-  hc_decompose_ij = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
-  hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[n * k + l];
-  eval_loop       = ((hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
-                     (hc_decompose_kl & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) ?
-                    1 : 0;
+    case VRNA_FC_TYPE_COMPARATIVE:
+      q_temp = 1.;
 
-  /* discard this configuration if (p,q) is not allowed to be enclosed pair of an interior loop */
-  if (eval_loop && evaluate(i, j, k, l, &hc_dat_local)) {
-    q_temp = 0;
+      for (s = 0; s < n_seq; s++) {
+        unsigned int  u1_local  = a2s[s][k - 1] - a2s[s][i];
+        unsigned int  u2_local  = a2s[s][j - 1] - a2s[s][l];
+        type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
+        type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
+        q_temp  *= vrna_exp_E_internal(u1_local,
+                                       u2_local,
+                                       type,
+                                       type2,
+                                       S3[s][i],
+                                       S5[s][j],
+                                       S5[s][k],
+                                       S3[s][l],
+                                       pf_params);
+      }
 
-    switch (fc->type) {
-      case VRNA_FC_TYPE_SINGLE:
-        type = (sliding_window) ?
-               vrna_get_ptype_window(i, j, ptype_local) :
-               vrna_get_ptype(jindx[j] + i, ptype);
-        type2 = (sliding_window) ?
-                rtype[vrna_get_ptype_window(k, l, ptype_local)] :
-                rtype[vrna_get_ptype(jindx[l] + k, ptype)];
+      break;
+  }
 
-        q_temp = vrna_exp_E_internal(u1,
-                                     u2,
-                                     type,
-                                     type2,
-                                     S1[i + 1],
-                                     S1[j - 1],
-                                     S1[k - 1],
-                                     S1[l + 1],
-                                     pf_params);
+  if (q_temp > 0.) {
+    if (!(options & VRNA_EVAL_LOOP_NO_SC)) {
+      init_sc_int_exp(fc, &sc_wrapper);
 
-        break;
+      /* soft constraints */
+      if (sc_wrapper.pair)
+        q_temp *= sc_wrapper.pair(i, j, k, l, &sc_wrapper);
 
-      case VRNA_FC_TYPE_COMPARATIVE:
-        q_temp = 1.;
-
-        for (s = 0; s < n_seq; s++) {
-          unsigned int  u1_local  = a2s[s][k - 1] - a2s[s][i];
-          unsigned int  u2_local  = a2s[s][j - 1] - a2s[s][l];
-          type    = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-          type2   = vrna_get_ptype_md(SS[s][l], SS[s][k], md);
-          q_temp  *= vrna_exp_E_internal(u1_local,
-                                         u2_local,
-                                         type,
-                                         type2,
-                                         S3[s][i],
-                                         S5[s][j],
-                                         S5[s][k],
-                                         S3[s][l],
-                                         pf_params);
-        }
-
-        break;
+      free_sc_int_exp(&sc_wrapper);
     }
-
-    /* soft constraints */
-    if (sc_wrapper.pair)
-      q_temp *= sc_wrapper.pair(i, j, k, l, &sc_wrapper);
-
-    qbt1 += q_temp *
-            scale[u1 + u2 + 2];
 
     /* unstructured domains */
     if (domains_up && domains_up->exp_energy_cb) {
@@ -341,9 +351,31 @@ exp_E_interior_loop(vrna_fold_compound_t  *fc,
               qq3 *
               scale[u1 + u2 + 2]; /* motifs in both parts */
     }
-  }
 
-  free_sc_int_exp(&sc_wrapper);
+    qbt1 += q_temp *
+            scale[u1 + u2 + 2];
+  }
 
   return qbt1;
 }
+
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+PUBLIC FLT_OR_DBL
+vrna_exp_E_interior_loop(vrna_fold_compound_t *fc,
+                         int                  i,
+                         int                  j,
+                         int                  k,
+                         int                  l)
+{
+  return vrna_exp_eval_internal(fc,
+                                (unsigned int)i,
+                                (unsigned int)j,
+                                (unsigned int)k,
+                                (unsigned int)l,
+                                VRNA_EVAL_LOOP_DEFAULT);
+}
+
+
+#endif

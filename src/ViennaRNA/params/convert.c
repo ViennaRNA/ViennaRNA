@@ -242,8 +242,8 @@ read_old_parameter_file(FILE  *ifile,
         case MMI_184:
           rd_mismatch(mismatchI37_184, ifile);
           read_successfully |= VRNA_CONVERT_OUTPUT_MM_INT
-                               | VRNA_CONVERT_OUTPUT_MM_INT_1N                /* since 1:n-interior loop mismatches are treated seperately in 2.0 */
-                               | VRNA_CONVERT_OUTPUT_MM_INT_23;               /* since 2:3-interior loop mismatches are treated seperately in 2.0 */
+                               | VRNA_CONVERT_OUTPUT_MM_INT_1N                /* since 1:n-internal loop mismatches are treated seperately in 2.0 */
+                               | VRNA_CONVERT_OUTPUT_MM_INT_23;               /* since 2:3-internal loop mismatches are treated seperately in 2.0 */
           break;
         case MMM_184:
           rd_mismatch(mismatchM37_184, ifile);
@@ -252,9 +252,9 @@ read_old_parameter_file(FILE  *ifile,
         case MM_H_184:
           rd_mismatch(mism_H_184, ifile);
           read_successfully |= VRNA_CONVERT_OUTPUT_MM_HP                      /* since hairpin mismatches are treated seperately in 2.0 */
-                               | VRNA_CONVERT_OUTPUT_MM_INT                   /* since interior loop  mismatches are treated seperately in 2.0 */
-                               | VRNA_CONVERT_OUTPUT_MM_INT_1N                /* since 1:n-interior loop mismatches are treated seperately in 2.0 */
-                               | VRNA_CONVERT_OUTPUT_MM_INT_23                /* since 2:3-interior loop mismatches are treated seperately in 2.0 */
+                               | VRNA_CONVERT_OUTPUT_MM_INT                   /* since internal loop  mismatches are treated seperately in 2.0 */
+                               | VRNA_CONVERT_OUTPUT_MM_INT_1N                /* since 1:n-internal loop mismatches are treated seperately in 2.0 */
+                               | VRNA_CONVERT_OUTPUT_MM_INT_23                /* since 2:3-internal loop mismatches are treated seperately in 2.0 */
                                | VRNA_CONVERT_OUTPUT_MM_MULTI;                /* since multi loop mismatches are treated seperately in 2.0 */
           break;
         case INT11_184:
@@ -973,7 +973,7 @@ write_new_parameter_file(FILE         *ofile,
   }
 
   if (options & VRNA_CONVERT_OUTPUT_INT_11) {
-    /* don't print "no pair" entries for interior loop arrays */
+    /* don't print "no pair" entries for internal loop arrays */
     fprintf(ofile, "\n# %s\n", settype(INT11));
     {
       int i, k, l;
@@ -1200,7 +1200,7 @@ check_symmetry(void)
       if (enthalpies_184[i][j] != enthalpies_184[j][i])
         vrna_log_warning("stacking enthalpies not symmetric");
 
-  /* interior 1x1 loops */
+  /* internal 1x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -1215,7 +1215,7 @@ check_symmetry(void)
           if (int11_H_184[i][j][k][l] != int11_H_184[j][i][l][k])
             vrna_log_warning("int11 enthalpies not symmetric");
 
-  /* interior 2x2 loops */
+  /* internal 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)

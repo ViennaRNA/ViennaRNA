@@ -108,7 +108,7 @@ PRIVATE int internal_loop37_184[31] = {
        330, 335, 340, 345, 349, 353, 357, 361, 365, 369};
 
 /* terminal mismatches */
-/* mismatch free energies for interior loops at 37C */
+/* mismatch free energies for internal loops at 37C */
 PRIVATE int mismatchI37_184[NBPAIRS+1][5][5] =
 { /* @@ */
   {{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}},

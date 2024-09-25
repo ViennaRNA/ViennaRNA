@@ -495,7 +495,7 @@ oldLoopEnergy(int i,
   vrna_param_t  *P  = backward_compat_compound->params;
   short         *S1 = backward_compat_compound->sequence_encoding;
 
-  /* compute energy of degree 2 loop (stack bulge or interior) */
+  /* compute energy of degree 2 loop (stack bulge or internal) */
   int           n1, n2, m, energy;
 
   n1  = p - i - 1;
@@ -520,7 +520,7 @@ oldLoopEnergy(int i,
 
 #endif
   } else {
-    /* interior loop */
+    /* internal loop */
 
     if ((n1 + n2 == 2) && (james_rule)) {
       /* special case for loop size 2 */
@@ -557,7 +557,7 @@ LoopEnergy(int  n1,
            int  sq1)
 {
   vrna_param_t  *P = backward_compat_compound->params;
-  /* compute energy of degree 2 loop (stack bulge or interior) */
+  /* compute energy of degree 2 loop (stack bulge or internal) */
   int           nl, ns, energy;
 
   if (n1 > n2) {
@@ -587,7 +587,7 @@ LoopEnergy(int  n1,
 
     return energy;
   } else {
-    /* interior loop */
+    /* internal loop */
     if (ns == 1) {
       if (nl == 1)                     /* 1x1 loop */
         return P->int11[type][type_2][si1][sj1];
@@ -623,7 +623,7 @@ LoopEnergy(int  n1,
     }
 
     {
-      /* generic interior loop (no else here!)*/
+      /* generic internal loop (no else here!)*/
       energy = (n1 + n2 <= MAXLOOP) ? (P->internal_loop[n1 + n2]) :
                (P->internal_loop[30] + (int)(P->lxc * log((n1 + n2) / 30.)));
 

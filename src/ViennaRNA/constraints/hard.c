@@ -2007,7 +2007,7 @@ hc_update_up(vrna_fold_compound_t *vc)
       hc->up_hp[i] = (hc->mx[n * i + i] & VRNA_CONSTRAINT_CONTEXT_HP_LOOP) ? 1 +
                      hc->up_hp[i + 1] : 0;
 
-    for (hc->up_int[n + 1] = 0, i = n; i > 0; i--) /* unpaired stretch in interior loop */
+    for (hc->up_int[n + 1] = 0, i = n; i > 0; i--) /* unpaired stretch in internal loop */
       hc->up_int[i] = (hc->mx[n * i + i] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) ? 1 +
                       hc->up_int[i + 1] : 0;
 

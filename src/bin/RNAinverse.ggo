@@ -148,7 +148,7 @@ details="\nWith -d1 only unpaired bases can participate in at most one dangling 
  any case; this is the default for mfe and partition function folding (-p).\nThe option -d0 ignores\
  dangling ends altogether (mostly for debugging).\nWith -d3 mfe folding will allow coaxial stacking\
  of adjacent helices in multi-loops. At the moment the implementation will not allow coaxial stacking\
- of the two interior pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
+ of the two enclosed pairs in a loop of degree 3 and works only for mfe folding.\n\nNote that with\
  -d1 and -d3 only the MFE computations will be using this setting while partition function uses\
  -d2 setting, i.e. dangling ends will be treated differently.\n\n"
 int

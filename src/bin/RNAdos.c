@@ -270,7 +270,7 @@ decompose_pair(vrna_fold_compound_t         *fc,
       hashtable_list_add_count(result_table, energy_hp, 1);
     }
 
-    /* check for interior loops */
+    /* check for internal loops */
     int maxp = MIN2(j - 2 - turn, i + MAXLOOP + 1);
     int p, q, type_2, pq;
     int energy;

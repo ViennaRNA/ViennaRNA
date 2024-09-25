@@ -225,18 +225,18 @@ fixIntersectionWithAncestor(treeNode                    *ancestor,
 
     return 0;
 
-  double interiorChildAngle;
+  double internalChildAngle;
   if (isInteriorLoop(rotationNode)) {
     /*
-     * prevent interior loops from increasing the distance to their "straight" state
+     * prevent internal loops from increasing the distance to their "straight" state
      * We only allow rotations towards straight.
      */
-    interiorChildAngle = getChildAngleByIndex(rotationNode, 0);
+    internalChildAngle = getChildAngleByIndex(rotationNode, 0);
     short allowedRotationSign = 0;
 
-    if (interiorChildAngle > MATH_PI)
+    if (internalChildAngle > MATH_PI)
       allowedRotationSign = -1;
-    else if (interiorChildAngle < MATH_PI)
+    else if (internalChildAngle < MATH_PI)
       allowedRotationSign = 1;
 
     if (rotationSign != allowedRotationSign)
@@ -249,10 +249,10 @@ fixIntersectionWithAncestor(treeNode                    *ancestor,
 
   if (isInteriorLoop(rotationNode)) {
     /*
-     * prevent interior loops from rotating over their "straight" state
-     * If necessary we limit the rotation so that this interior loop becomes straight.
+     * prevent internal loops from rotating over their "straight" state
+     * If necessary we limit the rotation so that this internal loop becomes straight.
      */
-    double diffToStraight = MATH_PI - interiorChildAngle;
+    double diffToStraight = MATH_PI - internalChildAngle;
 
     if (fabs(rotationAngle) > fabs(diffToStraight))
 
@@ -292,7 +292,7 @@ fixIntersectionWithAncestor(treeNode                    *ancestor,
 
 
 /**
- * check if loop is interior and straight
+ * check if loop is internal and straight
  */
 PRIVATE short
 isStraightInteriorLoop(treeNode *node)
@@ -305,7 +305,7 @@ isStraightInteriorLoop(treeNode *node)
 
 /**
  * compute intersection path from ancestor to intersector
- * skipping straight interior loops that can not be used for rotations
+ * skipping straight internal loops that can not be used for rotations
  * -> improves rotation angle and rotation loop computations
  */
 PRIVATE treeNode **
@@ -321,7 +321,7 @@ constructReducedIntersectionPath(treeNode         *ancestor,
     node = getParent(node);
 
     if (!isStraightInteriorLoop(node))
-      /* skip straight interior loops */
+      /* skip straight internal loops */
       ++(*pathLength);
   }
 
@@ -336,7 +336,7 @@ constructReducedIntersectionPath(treeNode         *ancestor,
 
       break;
     default:
-      /* include ancestor node for all other intersections (if not straight interior loop) */
+      /* include ancestor node for all other intersections (if not straight internal loop) */
       ;
   }
 
@@ -392,13 +392,13 @@ handleIntersectionWithAncestor(treeNode                     *ancestor,
   if (rotationSign != 0) {
     /*
      * run from intersector to ancestor twice:
-     * in the first run we only choose interior loops for rotations
+     * in the first run we only choose internal loops for rotations
      */
     int nodeNumber = pathLength - 2;     /* skip intersector, start with its first ancestor */
 
     while ((changedNode == NULL) && (nodeNumber >= 0)) {
       if (isInteriorLoop(path[nodeNumber])) {
-        /* interior loop: try to improve */
+        /* internal loop: try to improve */
         changedNode = fixIntersectionWithAncestor(ancestor,
                                                   path[nodeNumber],
                                                   intersector,

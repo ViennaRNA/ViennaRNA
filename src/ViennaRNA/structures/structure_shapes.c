@@ -305,7 +305,7 @@ get_shrep(const short   *pt,
 
             break;
           } else {
-            /* interior loop with enclosed pair (k,l) */
+            /* internal loop with enclosed pair (k,l) */
             no_stack  = (u5 + u3 > 0) ? 1 : 0;
             bulge     = ((u5 > 0) && (u3 > 0)) ? 1 : 0;
 

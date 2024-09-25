@@ -12,8 +12,8 @@ auxiliary derivation rules for each case when consecutive unpaired nucleotides a
 Therefore, this model is applicable to ligand binding to any loop context.
 
 The second approach, on the other hand, uses the soft-constraints feature to change the energy
-evaluation of hairpin- or interior-loops. Hence, it can only be appleid when a ligand binds to
-a hairpin-like, or interior-loop like motif.
+evaluation of hairpin- or internal-loops. Hence, it can only be appleid when a ligand binds to
+a hairpin-like, or internal-loop like motif.
 
 .. toctree::
    :maxdepth: 1

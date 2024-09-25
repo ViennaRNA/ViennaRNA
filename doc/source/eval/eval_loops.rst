@@ -43,7 +43,7 @@ Functions to evaluate the free energy contributions for hairpin loops.
 Internal Loops
 --------------
 
-Functions to evaluate the free energy contributions for internal (interior) loops.
+Functions to evaluate the free energy contributions for internal loops.
 
 .. doxygengroup:: eval_loops_int
     :no-title:

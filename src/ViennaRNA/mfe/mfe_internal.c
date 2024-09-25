@@ -700,7 +700,7 @@ mfe_internal_loop_ext(vrna_fold_compound_t  *fc,
 
   evaluate = prepare_hc_int_def(fc, &hc_dat_local);
 
-  /* CONSTRAINED INTERIOR LOOP start */
+  /* CONSTRAINED internal LOOP start */
   if (hc[n * i + j] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) {
     /* prepare necessary variables */
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {

@@ -569,7 +569,7 @@ mfe_linear(vrna_fold_compound_t *vc)
 
             type_2 = rtype[type_2];
 
-            /* get distance to reference if closing the interior loop
+            /* get distance to reference if closing the internal loop
              *  d2 = dbp(S_{i,j}, S_{p.q} + {i,j})
              */
             d1  = base_d1 + referenceBPs1[ij] - referenceBPs1[pq];
@@ -2660,7 +2660,7 @@ backtrack_fc(int                  k,
         }
     }
 
-    /* check for interior loop configurations */
+    /* check for internal loop configurations */
     if (E_Fc_rem == E_FcI_rem) {
       for (d = turn + 2; d <= seq_length; d++) /* i,j in [1..length] */
         for (j = d; j <= seq_length; j++) {
@@ -2746,7 +2746,7 @@ backtrack_fc(int                  k,
               if (!(E_C[pq]))
                 continue;
 
-              /* get distance to reference if closing the interior loop
+              /* get distance to reference if closing the internal loop
                *  d2a = dbp(T1_[1,n}, T1_{p,q} + T1_{i,j})
                *  d2b = dbp(T2_[1,n}, T2_{p,q} + T2_{i,j})
                */
@@ -2968,7 +2968,7 @@ backtrack_fc(int                  k,
                   if (u1 + u2 > MAXLOOP)
                     continue;
 
-                  /* get distance to reference if closing the interior loop
+                  /* get distance to reference if closing the internal loop
                    *  d2a = dbp(T1_[1,n}, T1_{p,q} + T1_{i,j})
                    *  d2b = dbp(T2_[1,n}, T2_{p,q} + T2_{i,j})
                    */
@@ -3670,7 +3670,7 @@ mfe_circ(vrna_fold_compound_t *vc)
             if (u1 + u2 > MAXLOOP)
               continue;
 
-            /* get distance to reference if closing the interior loop
+            /* get distance to reference if closing the internal loop
              *  d2a = dbp(T1_[1,n}, T1_{p,q} + T1_{i,j})
              *  d2b = dbp(T2_[1,n}, T2_{p,q} + T2_{i,j})
              */
@@ -3719,7 +3719,7 @@ mfe_circ(vrna_fold_compound_t *vc)
             if (u1 + u2 > MAXLOOP)
               continue;
 
-            /* get distance to reference if closing the interior loop
+            /* get distance to reference if closing the internal loop
              *  d2a = dbp(T1_[1,n}, T1_{p,q} + T1_{i,j})
              *  d2b = dbp(T2_[1,n}, T2_{p,q} + T2_{i,j})
              */

@@ -321,7 +321,7 @@ expLoopEnergy(int   u1,
               short sp1,
               short sq1)
 {
-  /* compute Boltzmann weight of interior loop,
+  /* compute Boltzmann weight of internal loop,
    * multiply by scale[u1+u2+2] for scaling */
   double            z           = 0;
   int               no_close    = 0;
@@ -350,7 +350,7 @@ expLoopEnergy(int   u1,
           z *= pf_params->expTermAU;
       }
     } else {
-      /* interior loop */
+      /* internal loop */
       if (u1 + u2 == 2) {
         /* size 2 is special */
         z = pf_params->expint11[type][type2][si1][sj1];

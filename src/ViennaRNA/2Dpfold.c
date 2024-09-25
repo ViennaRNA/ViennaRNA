@@ -566,7 +566,7 @@ pf2D_linear(vrna_fold_compound_t *vc)
               vrna_exp_E_internal(k - i - 1, j - l - 1, type, type_2, S1[i + 1], S1[j - 1], S1[k - 1],
                             S1[l + 1], pf_params) * scale[k - i + j - l];
 
-            /* get distance to reference if closing the interior loop
+            /* get distance to reference if closing the internal loop
              *  d2 = dbp(S_{i,j}, S_{k,l} + {i,j})
              */
             da  = base_da + referenceBPs1[ij] - referenceBPs1[kl];
@@ -1687,7 +1687,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
       }
 
       /*
-       * 2. exterior interior loops, i "define" the (k,l) pair as "outer pair"
+       * 2. exterior internal loops, i "define" the (k,l) pair as "outer pair"
        * so "outer type" is rtype[type[k,l]] and inner type is type[p,q]
        */
       if (Q_B_rem[pq]) {
@@ -1791,7 +1791,7 @@ pf2D_circ(vrna_fold_compound_t *vc)
             if (!Q_B[kl])
               continue;
 
-            /* get distance to reference if closing the interior loop
+            /* get distance to reference if closing the internal loop
              *  d2a = dbp(T1_[1,n}, T1_{p,q} + T1_{k,l})
              *  d2b = dbp(T2_[1,n}, T2_{p,q} + T2_{k,l})
              */
@@ -2576,7 +2576,7 @@ pbacktrack_circ(vrna_fold_compound_t  *vc,
       }
     }
 
-    /* exterior interior loop ? */
+    /* exterior internal loop ? */
     if ((k_min_Q_cI <= d1) && (k_max_Q_cI >= d1)) {
       int l_min = l_min_Q_cI[d1];
       if ((d2 % 2) == (l_min % 2)) {
@@ -3517,7 +3517,7 @@ backtrack(vrna_fold_compound_t  *vc,
       if (qbt1 >= r)
         return;            /* found the hairpin we're done */
 
-      /* lets see if we form an interior loop */
+      /* lets see if we form an internal loop */
       for (k = i + 1; k <= MIN2(i + MAXLOOP + 1, j - turn - 2); k++) {
         unsigned int u_pre, lmin;
         u1    = k - i - 1;

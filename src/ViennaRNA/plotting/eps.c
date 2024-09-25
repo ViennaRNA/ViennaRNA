@@ -398,16 +398,16 @@ PS_rna_plot_snoop_a(const char  *string,
    */
 
   for (i = 1; i < cut_point; i++) {
-    /* interior loop of size 0 */
+    /* internal loop of size 0 */
     if (pair_table_snoop[i] != 0) {
       X[i - 1]  = X[pair_table_snoop[i] - 1];
       Y[i - 1]  = Y[pair_table_snoop[i] - 1];
     } else if (pair_table_snoop[i - 1] && pair_table_snoop[i + 1]) {
-      /* interior loop of size 1 */
+      /* internal loop of size 1 */
       X[i - 1]  = X[pair_table_snoop[i - 1] - 1 - 1];
       Y[i - 1]  = Y[pair_table_snoop[i - 1] - 1 - 1];
     } else if (pair_table_snoop[i - 1] && pair_table_snoop[i + 2]) {
-      /* interior loop of size 2 */
+      /* internal loop of size 2 */
       if (pair_table_snoop[i - 1] - pair_table_snoop[i + 2] == 2) {
         X[i - 1]  = X[pair_table_snoop[i - 1] - 2];
         Y[i - 1]  = Y[pair_table_snoop[i - 1] - 2];
@@ -440,7 +440,7 @@ PS_rna_plot_snoop_a(const char  *string,
         i++;
       }
     } else if (pair_table_snoop[i - 1] && pair_table_snoop[i + 3]) {
-      /* interior loop of size 2 */
+      /* internal loop of size 2 */
       if (pair_table[pair_table_snoop[i - 1] - 1]) {
         X[i - 1]  = 0.5 * (X[pair_table_snoop[i - 1] - 1] + X[pair_table_snoop[i - 1] - 2]);
         Y[i - 1]  = 0.5 * (Y[pair_table_snoop[i - 1] - 1] + Y[pair_table_snoop[i - 1] - 2]);

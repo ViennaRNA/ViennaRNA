@@ -633,7 +633,7 @@ pf_create_bppm(vrna_fold_compound_t *vc,
             }
           }
 
-        /*  correct pairing probabilities for auxiliary base pairs from hairpin-, or interior loop motifs
+        /*  correct pairing probabilities for auxiliary base pairs from hairpin-, or internal loop motifs
          *  as augmented by the generalized soft constraints feature
          */
         for (i = 0; i < corr_cnt; i++) {
@@ -1121,7 +1121,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
             if ((sc) &&
                 (sc->exp_f) &&
                 (sc->bt)) {
-              /* store probability correction for auxiliary pairs in interior loop motif */
+              /* store probability correction for auxiliary pairs in internal loop motif */
               vrna_basepair_t *ptr, *aux_bps;
               aux_bps = sc->bt(i, j, k, l, VRNA_DECOMP_PAIR_IL, sc->data);
               for (ptr = aux_bps; ptr && ptr->i != 0; ptr++) {
@@ -2715,7 +2715,7 @@ ud_outside_int_loops(vrna_fold_compound_t *vc)
                     if (probs[kl] > 0.) {
                       ud_bak          = vc->domains_up;
                       vc->domains_up  = NULL;
-                      temp            = vrna_exp_E_interior_loop(vc, k, l, p, q);
+                      temp            = vrna_exp_eval_internal(vc, k, l, p, q, VRNA_EVAL_LOOP_DEFAULT);
                       vc->domains_up  = ud_bak;
 
                       if (temp > 0.) {
@@ -2778,7 +2778,7 @@ ud_outside_int_loops(vrna_fold_compound_t *vc)
                     if (probs[kl] > 0.) {
                       ud_bak          = vc->domains_up;
                       vc->domains_up  = NULL;
-                      temp            = vrna_exp_E_interior_loop(vc, k, l, p, q);
+                      temp            = vrna_exp_eval_internal(vc, k, l, p, q, VRNA_EVAL_LOOP_DEFAULT);
                       vc->domains_up  = ud_bak;
 
                       if (temp > 0.) {
@@ -2934,7 +2934,7 @@ ud_outside_int_loops2(vrna_fold_compound_t *vc)
               u2              = l - q - 1;
               ud_bak          = vc->domains_up;
               vc->domains_up  = NULL;
-              temp            = vrna_exp_E_interior_loop(vc, k, l, p, q);
+              temp            = vrna_exp_eval_internal(vc, k, l, p, q, VRNA_EVAL_LOOP_DEFAULT);
               vc->domains_up  = ud_bak;
               temp            *= probs[kl] * qb[pq];
 
@@ -3763,7 +3763,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
         if (hard_constraints[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
           /*
            * 1.2. Exterior Interior Loop Contribution
-           * 1.2.1. i,j  delimtis the "left" part of the interior loop
+           * 1.2.1. i,j  delimtis the "left" part of the internal loop
            * (j,i) is "outer pair"
            */
           for (k = 1; k < i - 1; k++) {
@@ -3838,7 +3838,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
             }
           }
 
-          /* 1.2.2. i,j  delimtis the "right" part of the interior loop  */
+          /* 1.2.2. i,j  delimtis the "right" part of the internal loop  */
           for (k = j + 1; k < n; k++) {
             int ln1, lstart;
             ln1 = k - j - 1;
@@ -4021,7 +4021,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
         if (with_gquad) {
           unsigned int u1, u2, u3,  us1, us2, us3;
           /* consider all the other possibilities where at least one gquad is enclosed in the same loop as (i,j) */
-          /* 1. interior-loop like structure */
+          /* 1. internal-loop like structure */
           if (hard_constraints[i * n + j] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) {
             /* 1.1 gquad is 5' of base pair (i,j) */
 
@@ -4315,7 +4315,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
             }
           }
 
-          /* 1.2 interior-loop like configurations */
+          /* 1.2 internal-loop like configurations */
           /* 1.2.3 [i,j] [k,l] everything else already handled above */
           u1 = i - 1;
           if ((j + VRNA_GQUAD_MIN_BOX_SIZE <= n) &&
@@ -4366,7 +4366,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
                       break;
                   }
 
-                  /* soft constraints for at least unpaired bases in the interior-loop like conformation?! */
+                  /* soft constraints for at least unpaired bases in the internal-loop like conformation?! */
 
                   tmp2 += tmp * tmp3;
                   probs[my_iindx[k] - l] += tmp * q_g / qo; /* add contribution for 2nd gquad here instead of extra block below */

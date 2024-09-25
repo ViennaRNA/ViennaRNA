@@ -1026,7 +1026,7 @@ repeat1:
     if (vrna_bt_hairpin(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
-    if (vrna_bt_interior_loop(fc, i, j, cij, bp_stack, bt_stack))
+    if (vrna_bt_internal_loop(fc, i, j, cij, bp_stack, bt_stack))
       continue;
 
     /* (i.j) must close a multi-loop */
@@ -1911,7 +1911,7 @@ decompose_pair(vrna_fold_compound_t *fc,
       new_c   = MIN2(new_c, energy);
     }
 
-    /* check for interior loops */
+    /* check for internal loops */
     energy  = vrna_mfe_internal(fc, i, j);
     new_c   = MIN2(new_c, energy);
 

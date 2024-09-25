@@ -1599,7 +1599,7 @@ E_ml_stems_fast(vrna_fold_compound_t        *fc,
 #if 0
     /*
      * This is needed for Y shaped ML loops with coax stacking of
-     * interior pairts, but backtracking will fail if activated
+     * enclosed parts, but backtracking will fail if activated
      */
     DMLi[j] = MIN2(DMLi[j], decomp);
     DMLi[j] = MIN2(DMLi[j], DMLi[j - 1] + P->MLbase);

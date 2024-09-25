@@ -75,7 +75,7 @@ main(int  argc,
   if (args_info.without_Dangle3_given)
     options &= ~VRNA_CONVERT_OUTPUT_DANGLE3;
 
-  /* output without interior loop energies + enthalpies */
+  /* output without internal loop energies + enthalpies */
   if (args_info.without_IntE_given) {
     options &= ~(VRNA_CONVERT_OUTPUT_NINIO
                  | VRNA_CONVERT_OUTPUT_INT
@@ -100,7 +100,7 @@ main(int  argc,
   if (args_info.without_MismatchH_given)
     options &= ~VRNA_CONVERT_OUTPUT_MM_HP;
 
-  /* output without interior loop mismatch energies + enthalpies */
+  /* output without internal loop mismatch energies + enthalpies */
   if (args_info.without_MismatchI_given)
     options &= ~(VRNA_CONVERT_OUTPUT_MM_INT
                  | VRNA_CONVERT_OUTPUT_MM_INT_1N

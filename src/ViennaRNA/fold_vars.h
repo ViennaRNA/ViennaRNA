@@ -33,7 +33,7 @@ extern int  csv;
 extern char *RibosumFile;   
 
 /**
- *  interior loops of size 2 get energy 0.8Kcal and
+ *  internal loops of size 2 get energy 0.8Kcal and
  *  no mismatches, default 1
  */
 extern int  james_rule;

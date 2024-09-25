@@ -24,7 +24,7 @@
 /**
  *  @file     ViennaRNA/backtrack/internal.h
  *  @ingroup  mfe
- *  @brief    Backtracking of interior loops for MFE computations
+ *  @brief    Backtracking of internal loops for MFE computations
  */
 
 /**
@@ -47,11 +47,11 @@ vrna_bt_stacked_pairs(vrna_fold_compound_t  *fc,
 
 
 /**
- *  @brief Backtrack an interior loop closed by @f$ (i,j) @f$
+ *  @brief Backtrack an internal loop closed by @f$ (i,j) @f$
  *
  */
 int
-vrna_bt_interior_loop(vrna_fold_compound_t *fc,
+vrna_bt_internal_loop(vrna_fold_compound_t *fc,
                       unsigned int         i,
                       unsigned int         j,
                       int                  en,
@@ -88,7 +88,7 @@ DEPRECATED(int
                             int                   en,
                             vrna_bp_stack_t       *bp_stack,
                             unsigned int          *stack_count),
-           "Use vrna_bt_interior_loop() instead!");
+           "Use vrna_bt_internal_loop() instead!");
 
 /**
  * @}

@@ -158,7 +158,7 @@ typedef FLT_OR_DBL (*vrna_sc_exp_direct_f)(vrna_fold_compound_t *fc,
  * @callback
  * @parblock
  * This callback enables one to add auxiliary base pairs in the backtracking steps
- * of hairpin- and interior loops.
+ * of hairpin- and internal loops.
  * @endparblock
  *
  * @ingroup soft_constraints_generic

@@ -192,7 +192,7 @@ DEPRECATED(typedef FLT_OR_DBL (vrna_callback_ud_probs_get)(vrna_fold_compound_t 
 #define VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP     2U
 
 /**
- *  @brief Flag to indicate ligand bound to unpiared stretch in an interior loop
+ *  @brief Flag to indicate ligand bound to unpiared stretch in an internal loop
  *  @ingroup domains_up
  */
 #define VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP    4U
@@ -350,7 +350,7 @@ vrna_ud_motifs_MFE(vrna_fold_compound_t *fc,
  *  ligands, which all will be evaluated. Ligand motif data can be removed from the
  *  #vrna_fold_compound_t again using the vrna_ud_remove() function. The loop
  *  type parameter allows one to limit the ligand binding to particular loop type,
- *  such as the exterior loop, hairpin loops, interior loops, or multibranch loops.
+ *  such as the exterior loop, hairpin loops, internal loops, or multibranch loops.
  *
  *  @see  #VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP,
  *        #VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP,
@@ -440,7 +440,7 @@ void  vrna_ud_set_data(vrna_fold_compound_t       *fc,
  *  usually performs a lookup in the precomputed @p B matrices. Which @p B matrix is
  *  addressed will be indicated by the flags #VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP, #VRNA_UNSTRUCTURED_DOMAIN_HP_LOOP
  *  #VRNA_UNSTRUCTURED_DOMAIN_INT_LOOP, and #VRNA_UNSTRUCTURED_DOMAIN_MB_LOOP. As their names already imply,
- *  they specify exterior loops (@p F production rule), hairpin loops and interior loops
+ *  they specify exterior loops (@p F production rule), hairpin loops and internal loops
  *  (@p C production rule), and multibranch loops (@p M and @p M1 production rule).
  *
  *  @image xml ligands_up_callback.svg

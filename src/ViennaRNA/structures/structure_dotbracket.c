@@ -976,7 +976,7 @@ assign_elements_pair(short  *pt,
         elements[k - 1] = 'h';
       break;
 
-    case 1:   /* interior loop */
+    case 1:   /* internal loop */
       elements[i - 1] = elements[j - 1] = 'I';
       p               = 0;
       for (k = i + 1; k < j; k++) {

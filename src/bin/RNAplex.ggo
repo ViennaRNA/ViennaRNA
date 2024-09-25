@@ -113,7 +113,7 @@ optional
 
 option "extension-cost" c
 "Cost to add to each nucleotide in a duplex\n"
-details="Cost of extending a duplex by one nucleotide. Allows one to find compact duplexes, having few/small bulges or interior loops\
+details="Cost of extending a duplex by one nucleotide. Allows one to find compact duplexes, having few/small bulges or internal loops\
  Only useful when no accessibility profiles are available. This option is disabled if accessibility profiles are used (-a option)\n\n"
 default="0"
 int

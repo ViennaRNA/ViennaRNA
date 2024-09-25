@@ -70,7 +70,7 @@ int             logML           = VRNA_MODEL_DEFAULT_LOG_ML;
 
 /* below are some more deprecated global symbols we need to get rid off */
 
-int             james_rule        = 1;    /* interior loops of size 2 get energy 0.8Kcal and
+int             james_rule        = 1;    /* internal loops of size 2 get energy 0.8Kcal and
                                            * no mismatches (no longer used) */
 char            *RibosumFile      = NULL; /* TODO: compile ribosums into program
                                            * Warning: this variable will vanish */

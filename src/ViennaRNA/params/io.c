@@ -1180,7 +1180,7 @@ check_symmetry(void)
       if (stackdH[i][j] != stackdH[j][i])
         vrna_log_warning("stacking enthalpies not symmetric");
 
-  /* interior 1x1 loops */
+  /* internal 1x1 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -1196,7 +1196,7 @@ check_symmetry(void)
           if (int11_dH[i][j][k][l] != int11_dH[j][i][l][k])
             vrna_log_warning("int11 enthalpies not symmetric");
 
-  /* interior 2x2 loops */
+  /* internal 2x2 loops */
   for (i = 0; i <= NBPAIRS; i++)
     for (j = 0; j <= NBPAIRS; j++)
       for (k = 0; k < 5; k++)
@@ -1488,7 +1488,7 @@ save_parameter_file(const char    fname[],
     display_array(dangle3_dH[c], 5, 5, outfp);
 
 
-  /* dont print "no pair" entries for interior loop arrays */
+  /* dont print "no pair" entries for internal loop arrays */
   fprintf(outfp, "\n# %s\n", settype(INT11));
   {
     int i, k, l;
@@ -1672,9 +1672,9 @@ settype(enum parset s)
     case      B_H:
       return "bulge_enthalpies";
     case       IL:
-      return "interior";
+      return "internal";
     case     IL_H:
-      return "interior_enthalpies";
+      return "internal_enthalpies";
     case      MME:
       return "mismatch_exterior";
     case    MME_H:
@@ -1684,17 +1684,17 @@ settype(enum parset s)
     case    MMH_H:
       return "mismatch_hairpin_enthalpies";
     case      MMI:
-      return "mismatch_interior";
+      return "mismatch_internal";
     case    MMI_H:
-      return "mismatch_interior_enthalpies";
+      return "mismatch_internal_enthalpies";
     case    MMI1N:
-      return "mismatch_interior_1n";
+      return "mismatch_internal_1n";
     case  MMI1N_H:
-      return "mismatch_interior_1n_enthalpies";
+      return "mismatch_internal_1n_enthalpies";
     case    MMI23:
-      return "mismatch_interior_23";
+      return "mismatch_internal_23";
     case  MMI23_H:
-      return "mismatch_interior_23_enthalpies";
+      return "mismatch_internal_23_enthalpies";
     case      MMM:
       return "mismatch_multi";
     case    MMM_H:
@@ -1745,82 +1745,107 @@ settype(enum parset s)
 PUBLIC enum parset
 gettype(const char *ident)
 {
-  if (strcmp(ident, "stack") == 0)
+  if (strcmp(ident, "stack") == 0) {
     return S;
-  else if (strcmp(ident, "stack_enthalpies") == 0)
+  } else if (strcmp(ident, "stack_enthalpies") == 0) {
     return S_H;
-  else if (strcmp(ident, "hairpin") == 0)
+  } else if (strcmp(ident, "hairpin") == 0) {
     return HP;
-  else if (strcmp(ident, "hairpin_enthalpies") == 0)
+  } else if (strcmp(ident, "hairpin_enthalpies") == 0) {
     return HP_H;
-  else if (strcmp(ident, "bulge") == 0)
+  } else if (strcmp(ident, "bulge") == 0) {
     return B;
-  else if (strcmp(ident, "bulge_enthalpies") == 0)
+  } else if (strcmp(ident, "bulge_enthalpies") == 0) {
     return B_H;
-  else if (strcmp(ident, "interior") == 0)
+  } else if (strcmp(ident, "interior") == 0) {
+    vrna_log_warning("Detected deprecated identifier 'interior'! Use 'internal' instead!");
     return IL;
-  else if (strcmp(ident, "interior_enthalpies") == 0)
+  } else if (strcmp(ident, "interior_enthalpies") == 0) {
+    vrna_log_warning("Detected  deprecated identifier 'interior_enthalpies'! Use 'internal_enthalpies' instead!");
     return IL_H;
-  else if (strcmp(ident, "mismatch_exterior") == 0)
+  } else if (strcmp(ident, "internal") == 0) {
+    return IL;
+  } else if (strcmp(ident, "internal_enthalpies") == 0) {
+    return IL_H;
+  } else if (strcmp(ident, "mismatch_exterior") == 0) {
     return MME;
-  else if (strcmp(ident, "mismatch_exterior_enthalpies") == 0)
+  } else if (strcmp(ident, "mismatch_exterior_enthalpies") == 0) {
     return MME_H;
-  else if (strcmp(ident, "mismatch_hairpin") == 0)
+  } else if (strcmp(ident, "mismatch_hairpin") == 0) {
     return MMH;
-  else if (strcmp(ident, "mismatch_hairpin_enthalpies") == 0)
+  } else if (strcmp(ident, "mismatch_hairpin_enthalpies") == 0) {
     return MMH_H;
-  else if (strcmp(ident, "mismatch_interior") == 0)
+  } else if (strcmp(ident, "mismatch_interior") == 0) {
+    vrna_log_warning("Detected  deprecated identifier 'mismatch_interior'! Use 'mismatch_internal' instead!");
     return MMI;
-  else if (strcmp(ident, "mismatch_interior_enthalpies") == 0)
+  } else if (strcmp(ident, "mismatch_interior_enthalpies") == 0) {
+    vrna_log_warning("Detected  deprecated identifier 'mismatch_interior_enthalpies'! Use 'mismatch_internal_enthalpies' instead!");
     return MMI_H;
-  else if (strcmp(ident, "mismatch_interior_1n") == 0)
+  } else if (strcmp(ident, "mismatch_interior_1n") == 0) {
+    vrna_log_warning("Detected  deprecated identifier 'mismatch_interior_1n'! Use 'mismatch_internal_1n' instead!");
     return MMI1N;
-  else if (strcmp(ident, "mismatch_interior_1n_enthalpies") == 0)
+  } else if (strcmp(ident, "mismatch_interior_1n_enthalpies") == 0) {
+    vrna_log_warning("Detected  deprecated identifier 'mismatch_interior_1n_enthalpies'! Use 'mismatch_internal_1n_enthalpies' instead!");
     return MMI1N_H;
-  else if (strcmp(ident, "mismatch_interior_23") == 0)
+  } else if (strcmp(ident, "mismatch_interior_23") == 0) {
+    vrna_log_warning("Detected  deprecated identifier 'mismatch_interior_23'! Use 'mismatch_internal_23' instead!");
     return MMI23;
-  else if (strcmp(ident, "mismatch_interior_23_enthalpies") == 0)
+  } else if (strcmp(ident, "mismatch_interior_23_enthalpies") == 0) {
+    vrna_log_warning("Detected  deprecated identifier 'mismatch_interior_23_enthalpies'! Use 'mismatch_internal_23_enthalpies' instead!");
     return MMI23_H;
-  else if (strcmp(ident, "mismatch_multi") == 0)
+  } else if (strcmp(ident, "mismatch_interior") == 0) {
+    return MMI;
+  } else if (strcmp(ident, "mismatch_interior_enthalpies") == 0) {
+    return MMI_H;
+  } else if (strcmp(ident, "mismatch_interior_1n") == 0) {
+    return MMI1N;
+  } else if (strcmp(ident, "mismatch_interior_1n_enthalpies") == 0) {
+    return MMI1N_H;
+  } else if (strcmp(ident, "mismatch_interior_23") == 0) {
+    return MMI23;
+  } else if (strcmp(ident, "mismatch_interior_23_enthalpies") == 0) {
+    return MMI23_H;
+  } else if (strcmp(ident, "mismatch_multi") == 0) {
     return MMM;
-  else if (strcmp(ident, "mismatch_multi_enthalpies") == 0)
+  } else if (strcmp(ident, "mismatch_multi_enthalpies") == 0) {
     return MMM_H;
-  else if (strcmp(ident, "int11") == 0)
+  } else if (strcmp(ident, "int11") == 0) {
     return INT11;
-  else if (strcmp(ident, "int11_enthalpies") == 0)
+  } else if (strcmp(ident, "int11_enthalpies") == 0) {
     return INT11_H;
-  else if (strcmp(ident, "int21") == 0)
+  } else if (strcmp(ident, "int21") == 0) {
     return INT21;
-  else if (strcmp(ident, "int21_enthalpies") == 0)
+  } else if (strcmp(ident, "int21_enthalpies") == 0) {
     return INT21_H;
-  else if (strcmp(ident, "int22") == 0)
+  } else if (strcmp(ident, "int22") == 0) {
     return INT22;
-  else if (strcmp(ident, "int22_enthalpies") == 0)
+  } else if (strcmp(ident, "int22_enthalpies") == 0) {
     return INT22_H;
-  else if (strcmp(ident, "dangle5") == 0)
+  } else if (strcmp(ident, "dangle5") == 0) {
     return D5;
-  else if (strcmp(ident, "dangle5_enthalpies") == 0)
+  } else if (strcmp(ident, "dangle5_enthalpies") == 0) {
     return D5_H;
-  else if (strcmp(ident, "dangle3") == 0)
+  } else if (strcmp(ident, "dangle3") == 0) {
     return D3;
-  else if (strcmp(ident, "dangle3_enthalpies") == 0)
+  } else if (strcmp(ident, "dangle3_enthalpies") == 0) {
     return D3_H;
-  else if (strcmp(ident, "ML_params") == 0)
+  } else if (strcmp(ident, "ML_params") == 0) {
     return ML;
-  else if (strcmp(ident, "NINIO") == 0)
+  } else if (strcmp(ident, "NINIO") == 0) {
     return NIN;
-  else if (strcmp(ident, "Triloops") == 0)
+  } else if (strcmp(ident, "Triloops") == 0) {
     return TRI;
-  else if (strcmp(ident, "Tetraloops") == 0)
+  } else if (strcmp(ident, "Tetraloops") == 0) {
     return TL;
-  else if (strcmp(ident, "Hexaloops") == 0)
+  } else if (strcmp(ident, "Hexaloops") == 0) {
     return HEX;
-  else if (strcmp(ident, "Misc") == 0)
+  } else if (strcmp(ident, "Misc") == 0) {
     return MISC;
-  else if (strcmp(ident, "END") == 0)
+  } else if (strcmp(ident, "END") == 0) {
     return QUIT;
-  else
+  } else {
     return UNKNOWN;
+  }
 }
 
 

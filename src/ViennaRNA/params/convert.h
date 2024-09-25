@@ -20,11 +20,11 @@
 #define VRNA_CONVERT_OUTPUT_STACK         4U
 /** Flag to indicate printing of  hairpin mismatch contribution  */
 #define VRNA_CONVERT_OUTPUT_MM_HP         8U
-/** Flag to indicate printing of  interior loop mismatch contribution  */
+/** Flag to indicate printing of  internal loop mismatch contribution  */
 #define VRNA_CONVERT_OUTPUT_MM_INT        16U
-/** Flag to indicate printing of  1:n interior loop mismatch contribution  */
+/** Flag to indicate printing of  1:n internal loop mismatch contribution  */
 #define VRNA_CONVERT_OUTPUT_MM_INT_1N     32U
-/** Flag to indicate printing of  2:3 interior loop mismatch contribution  */
+/** Flag to indicate printing of  2:3 internal loop mismatch contribution  */
 #define VRNA_CONVERT_OUTPUT_MM_INT_23     64U
 /** Flag to indicate printing of  multi loop mismatch contribution  */
 #define VRNA_CONVERT_OUTPUT_MM_MULTI      128U
@@ -34,15 +34,15 @@
 #define VRNA_CONVERT_OUTPUT_DANGLE5       512U
 /** Flag to indicate printing of  3' dangle contribution  */
 #define VRNA_CONVERT_OUTPUT_DANGLE3       1024U
-/** Flag to indicate printing of  1:1 interior loop contribution  */
+/** Flag to indicate printing of  1:1 internal loop contribution  */
 #define VRNA_CONVERT_OUTPUT_INT_11        2048U
-/** Flag to indicate printing of  2:1 interior loop contribution */
+/** Flag to indicate printing of  2:1 internal loop contribution */
 #define VRNA_CONVERT_OUTPUT_INT_21        4096U
-/** Flag to indicate printing of  2:2 interior loop contribution  */
+/** Flag to indicate printing of  2:2 internal loop contribution  */
 #define VRNA_CONVERT_OUTPUT_INT_22        8192U
 /** Flag to indicate printing of  bulge loop contribution  */
 #define VRNA_CONVERT_OUTPUT_BULGE         16384U
-/** Flag to indicate printing of  interior loop contribution  */
+/** Flag to indicate printing of  internal loop contribution  */
 #define VRNA_CONVERT_OUTPUT_INT           32768U
 /** Flag to indicate printing of  multi loop contribution  */
 #define VRNA_CONVERT_OUTPUT_ML            65536U
@@ -52,7 +52,7 @@
 #define VRNA_CONVERT_OUTPUT_SPECIAL_HP    262144U
 /** Flag to indicate printing of  given parameters only\n\note This option overrides all other output options, except #VRNA_CONVERT_OUTPUT_DUMP ! */
 #define VRNA_CONVERT_OUTPUT_VANILLA       524288U
-/** Flag to indicate printing of  interior loop asymmetry contribution  */
+/** Flag to indicate printing of  internal loop asymmetry contribution  */
 #define VRNA_CONVERT_OUTPUT_NINIO         1048576U
 /** Flag to indicate dumping the energy contributions from the library instead of an input file  */
 #define VRNA_CONVERT_OUTPUT_DUMP          2097152U

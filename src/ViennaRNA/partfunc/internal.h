@@ -37,7 +37,7 @@
 /**
  *  @file     ViennaRNA/partfunc/internal.h
  *  @ingroup  eval, eval_loops, eval_loops_int
- *  @brief    Energy evaluation of interior loops for MFE and partition function calculations
+ *  @brief    Energy evaluation of internal loops for MFE and partition function calculations
  */
 
 /**
