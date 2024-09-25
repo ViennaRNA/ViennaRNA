@@ -20,18 +20,17 @@
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
  */
-
 PUBLIC unsigned int
-vrna_bt_f(vrna_fold_compound_t *fc,
-          unsigned int         i,
-          unsigned int         j,
-          vrna_bps_t           bp_stack,
-          vrna_bts_t           bt_stack)
+vrna_bt_f(vrna_fold_compound_t  *fc,
+          unsigned int          i,
+          unsigned int          j,
+          vrna_bps_t            bp_stack,
+          vrna_bts_t            bt_stack)
 {
   unsigned int  n, ret = 0;
   int           e;
 
-  e   = INF;
+  e = INF;
 
   if ((fc) &&
       (bp_stack) &&
@@ -54,7 +53,9 @@ vrna_bt_f(vrna_fold_compound_t *fc,
         (fc->aux_grammar)) {
       for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->f); c++) {
         if ((fc->aux_grammar->f[c].cb_bt) &&
-            ((ret = fc->aux_grammar->f[c].cb_bt(fc, i, j, e, bp_stack, bt_stack, fc->aux_grammar->f[c].data)) != 0))
+            ((ret =
+                fc->aux_grammar->f[c].cb_bt(fc, i, j, e, bp_stack, bt_stack,
+                                            fc->aux_grammar->f[c].data)) != 0))
           break;
       }
     }

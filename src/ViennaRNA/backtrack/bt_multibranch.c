@@ -62,11 +62,11 @@ bt_mb_loop(vrna_fold_compound_t *fc,
  #################################
  */
 PUBLIC unsigned int
-vrna_bt_m(vrna_fold_compound_t    *fc,
-          unsigned int            i,
-          unsigned int            j,
-          vrna_bps_t              bp_stack,
-          vrna_bts_t              bt_stack)
+vrna_bt_m(vrna_fold_compound_t  *fc,
+          unsigned int          i,
+          unsigned int          j,
+          vrna_bps_t            bp_stack,
+          vrna_bts_t            bt_stack)
 {
   unsigned int  ret = 0;
   int           e, *idx;
@@ -85,14 +85,15 @@ vrna_bt_m(vrna_fold_compound_t    *fc,
     } else if (fc->aux_grammar) {
       for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->m); c++) {
         if ((fc->aux_grammar->m[c].cb_bt) &&
-            (ret = fc->aux_grammar->m[c].cb_bt(fc, i, j, e, bp_stack, bt_stack, fc->aux_grammar->m[c].data)))
+            (ret =
+               fc->aux_grammar->m[c].cb_bt(fc, i, j, e, bp_stack, bt_stack,
+                                           fc->aux_grammar->m[c].data)))
           break;
       }
     }
   }
 
   return ret;
-
 }
 
 
@@ -136,20 +137,20 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
                  vrna_bps_t           bp_stack,
                  vrna_bts_t           bt_stack)
 {
-  unsigned char             sliding_window;
-  char                      *ptype, **ptype_local;
-  short                     *S1, **SS, **S5, **S3;
-  unsigned int              n_seq, s, with_gquad, dangle_model, u, kk, cnt,
-                            with_ud, type, type_2;
-  int                       ij, fij, fi, en, *my_c, *my_fML, *idx, *rtype,
-                            en2, **c_local, **fML_local, **ggg_local;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_ud_t                 *domains_up;
-  vrna_hc_eval_f evaluate;
-  struct hc_mb_def_dat      hc_dat_local;
-  struct sc_mb_dat          sc_wrapper;
-  vrna_smx_csr(int)         *c_gq;
+  unsigned char         sliding_window;
+  char                  *ptype, **ptype_local;
+  short                 *S1, **SS, **S5, **S3;
+  unsigned int          n_seq, s, with_gquad, dangle_model, u, kk, cnt,
+                        with_ud, type, type_2;
+  int                   ij, fij, fi, en, *my_c, *my_fML, *idx, *rtype,
+                        en2, **c_local, **fML_local, **ggg_local;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  vrna_ud_t             *domains_up;
+  vrna_hc_eval_f        evaluate;
+  struct hc_mb_def_dat  hc_dat_local;
+  struct sc_mb_dat      sc_wrapper;
+  vrna_smx_csr(int)     *c_gq;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -344,7 +345,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
 
     if (en != INF) {
       en += vrna_E_multibranch_stem(0, -1, -1, P) *
-           n_seq;
+            n_seq;
 
       if (fij == en) {
         vrna_bts_push(bt_stack,
@@ -550,9 +551,9 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
               en2   += vrna_E_multibranch_stem(type,
-                                S5[s][i],
-                                S3[s][j],
-                                P);
+                                               S5[s][i],
+                                               S3[s][j],
+                                               P);
             }
             break;
         }
@@ -673,16 +674,16 @@ bt_mb_loop(vrna_fold_compound_t *fc,
            vrna_bps_t           bp_stack,
            vrna_bts_t           bt_stack)
 {
-  unsigned char             sliding_window;
-  char                      *ptype, **ptype_local;
-  short                     s5, s3, *S1, **SS, **S5, **S3;
-  unsigned int              *sn, n_seq, s, *tt, c1, c2, p, q, r, dangle_model, type, type_2;
-  int                       ij, e, tmp_en, *idx, *my_c, *my_fML, *rtype, **c_local, **fML_local;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_hc_eval_f evaluate;
-  struct hc_mb_def_dat      hc_dat_local;
-  struct sc_mb_dat          sc_wrapper;
+  unsigned char         sliding_window;
+  char                  *ptype, **ptype_local;
+  short                 s5, s3, *S1, **SS, **S5, **S3;
+  unsigned int          *sn, n_seq, s, *tt, c1, c2, p, q, r, dangle_model, type, type_2;
+  int                   ij, e, tmp_en, *idx, *my_c, *my_fML, *rtype, **c_local, **fML_local;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  vrna_hc_eval_f        evaluate;
+  struct hc_mb_def_dat  hc_dat_local;
+  struct sc_mb_dat      sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
@@ -1068,7 +1069,6 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
       (c2) &&
       (bp_stack) &&
       (stack_count)) {
-
     vrna_sect_t s;
     vrna_bps_t  bps = vrna_bps_init(0);
     vrna_bts_t  bts = vrna_bts_init(0);
@@ -1093,16 +1093,16 @@ vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
       if (s.ml == VRNA_MX_FLAG_G) {
         r = vrna_bt_gquad_mfe(fc, s.i, s.j, bps);
       } else {
-        *k = s.i;
-        *l = s.j;
+        *k  = s.i;
+        *l  = s.j;
         *c2 = s.ml;
       }
     }
 
     while (vrna_array_size(bps) > 0) {
       vrna_bp_t bp = vrna_bps_pop(bps);
-      bp_stack[++(*stack_count)].i = bp.i;
-      bp_stack[*stack_count].j = bp.j;
+      bp_stack[++(*stack_count)].i  = bp.i;
+      bp_stack[*stack_count].j      = bp.j;
     }
 
     vrna_bps_free(bps);
@@ -1130,7 +1130,6 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
       (k) &&
       (c1) &&
       (c2)) {
-
     vrna_sect_t s;
     vrna_bps_t  bps = vrna_bps_init(0);
     vrna_bts_t  bts = vrna_bts_init(0);
@@ -1144,8 +1143,8 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
       if (s.ml == VRNA_MX_FLAG_G) {
         r = vrna_bt_gquad_mfe(fc, s.i, s.j, bps);
       } else {
-        *i = s.i;
-        *k = s.j;
+        *i  = s.i;
+        *k  = s.j;
         *c1 = s.ml;
       }
     }
@@ -1155,8 +1154,8 @@ vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
       if (s.ml == VRNA_MX_FLAG_G) {
         r = vrna_bt_gquad_mfe(fc, s.i, s.j, bps);
       } else {
-        *k = s.i;
-        *j = s.j;
+        *k  = s.i;
+        *j  = s.j;
         *c2 = s.ml;
       }
     }

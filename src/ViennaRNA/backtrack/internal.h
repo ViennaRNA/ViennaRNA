@@ -21,12 +21,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-#ifdef __GNUC__
-# define INLINE inline
-#else
-# define INLINE
-#endif
-
 /**
  *  @file     ViennaRNA/backtrack/internal.h
  *  @ingroup  mfe
@@ -45,11 +39,11 @@
  */
 int
 vrna_bt_stacked_pairs(vrna_fold_compound_t  *fc,
-              unsigned int                  i,
-              unsigned int                  j,
-              int                   *en,
-              vrna_bps_t            bp_stack,
-              vrna_bts_t            bt_stack);
+                      unsigned int          i,
+                      unsigned int          j,
+                      int                   *en,
+                      vrna_bps_t            bp_stack,
+                      vrna_bts_t            bt_stack);
 
 
 /**
@@ -77,25 +71,24 @@ vrna_bt_int_loop(vrna_fold_compound_t *fc,
  *  @addtogroup global_deprecated
  *  @{
  */
+DEPRECATED(int
+           vrna_BT_stack(vrna_fold_compound_t *fc,
+                         int                  *i,
+                         int                  *j,
+                         int                  *en,
+                         vrna_bp_stack_t      *bp_stack,
+                         unsigned int         *stack_count),
+           "Use vrna_bt_stack() instead!");
+
 
 DEPRECATED(int
-vrna_BT_stack(vrna_fold_compound_t  *fc,
-              int                   *i,
-              int                   *j,
-              int                   *en,
-              vrna_bp_stack_t       *bp_stack,
-              unsigned int          *stack_count),
-          "Use vrna_bt_stack() instead!");
-
-
-DEPRECATED(int
-vrna_BT_int_loop(vrna_fold_compound_t *fc,
-                 int                  *i,
-                 int                  *j,
-                 int                  en,
-                 vrna_bp_stack_t      *bp_stack,
-                 unsigned int         *stack_count),
-          "Use vrna_bt_int_loop() instead!");
+           vrna_BT_int_loop(vrna_fold_compound_t  *fc,
+                            int                   *i,
+                            int                   *j,
+                            int                   en,
+                            vrna_bp_stack_t       *bp_stack,
+                            unsigned int          *stack_count),
+           "Use vrna_bt_int_loop() instead!");
 
 /**
  * @}

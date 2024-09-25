@@ -50,8 +50,8 @@ aln_linker_length(unsigned int        start,
 
 
 PRIVATE INLINE void
-aln_linker_positions(unsigned int          L,
-                     unsigned int          l[3],
+aln_linker_positions(unsigned int L,
+                     unsigned int l[3],
                      unsigned int position,
                      unsigned int length,
                      unsigned int starts[3],
@@ -80,43 +80,43 @@ get_gquad_pattern_mfe_ali(short         **S,
 
 
 PRIVATE void
-gquad_mfe_pos(unsigned int   i,
-              unsigned int   L,
-              unsigned int   *l,
-              void  *data,
-              void  *P,
-              void  *Lmfe,
-              void  *lmfe);
+gquad_mfe_pos(unsigned int  i,
+              unsigned int  L,
+              unsigned int  *l,
+              void          *data,
+              void          *P,
+              void          *Lmfe,
+              void          *lmfe);
 
 
 PRIVATE void
-gquad_mfe_ali_pos(unsigned int   i,
-                  unsigned int   L,
-                  unsigned int   *l,
-                  void  *data,
-                  void  *helper,
-                  void  *Lmfe,
-                  void  *lmfe);
+gquad_mfe_ali_pos(unsigned int  i,
+                  unsigned int  L,
+                  unsigned int  *l,
+                  void          *data,
+                  void          *helper,
+                  void          *Lmfe,
+                  void          *lmfe);
 
 
 PRIVATE void
-gquad_mfe_ali(unsigned int   i,
-              unsigned int   L,
-              unsigned int   *l,
-              void  *data,
-              void  *helper,
-              void  *NA,
-              void  *NA2);
+gquad_mfe_ali(unsigned int  i,
+              unsigned int  L,
+              unsigned int  *l,
+              void          *data,
+              void          *helper,
+              void          *NA,
+              void          *NA2);
 
 
 PRIVATE void
-gquad_mfe_ali_en(unsigned int  i,
-                 unsigned int  L,
-                 unsigned int  *l,
-                 void *data,
-                 void *helper,
-                 void *NA,
-                 void *NA2);
+gquad_mfe_ali_en(unsigned int i,
+                 unsigned int L,
+                 unsigned int *l,
+                 void         *data,
+                 void         *helper,
+                 void         *NA,
+                 void         *NA2);
 
 
 /*
@@ -125,7 +125,6 @@ gquad_mfe_ali_en(unsigned int  i,
  #      (all available in RNAlib)        #
  #########################################
  */
-
 PUBLIC int
 vrna_bt_gquad(vrna_fold_compound_t  *fc,
               unsigned int          i,
@@ -144,8 +143,8 @@ vrna_bt_gquad(vrna_fold_compound_t  *fc,
   if (fc) {
     n     = fc->length;
     P     = fc->params;
-    *L     = 0;
-    l[0] = l[1] = l[2] = 0;
+    *L    = 0;
+    l[0]  = l[1] = l[2] = 0;
     S_tmp = NULL;
 
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
@@ -186,8 +185,8 @@ vrna_bt_gquad(vrna_fold_compound_t  *fc,
 
 PUBLIC int
 vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
-                  unsigned int                   i,
-                  unsigned int                   j,
+                  unsigned int          i,
+                  unsigned int          j,
                   vrna_bps_t            bp_stack)
 {
   /*
@@ -326,29 +325,31 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
   unsigned char type;
   short         si, sj, *S, *S1, **SS, **S5, **S3;
   int           energy, e_gq, dangles, c0, **ggg;
-  unsigned int  **a2s, n_seq, s, p, q, l1, u1, u2, maxl, minl, sliding_window;
+  unsigned int  *sn, **a2s, n_seq, s, p, q, l1, u1, u2, maxl, minl, sliding_window, noclose;
 
   vrna_smx_csr(int) * c_gq;
 
   vrna_param_t  *P;
   vrna_md_t     *md;
 
-  n_seq   = fc->n_seq;
-  S       = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
-  S1      = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : fc->S_cons;
-  SS      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
-  S5      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
-  S3      = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
-  a2s     = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
-  sliding_window = (fc->matrices->type == VRNA_MX_WINDOW) ? 1 : 0;
-  c_gq    = (sliding_window) ? NULL : fc->matrices->c_gq;
-  ggg     = (sliding_window) ? fc->matrices->ggg_local : NULL;
-  P       = fc->params;
-  md      = &(P->model_details);
-  dangles = md->dangles;
-  si      = S1[i + 1];
-  sj      = S1[j - 1];
-  energy  = 0;
+  n_seq           = fc->n_seq;
+  sn              = fc->strand_number;
+  S               = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
+  S1              = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding : fc->S_cons;
+  SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
+  S5              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S5;
+  S3              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
+  a2s             = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
+  sliding_window  = (fc->matrices->type == VRNA_MX_WINDOW) ? 1 : 0;
+  c_gq            = (sliding_window) ? NULL : fc->matrices->c_gq;
+  ggg             = (sliding_window) ? fc->matrices->ggg_local : NULL;
+  P               = fc->params;
+  md              = &(P->model_details);
+  dangles         = md->dangles;
+  si              = S1[i + 1];
+  sj              = S1[j - 1];
+  energy          = 0;
+  noclose         = 0;
 
   switch (fc->type) {
     case VRNA_FC_TYPE_SINGLE:
@@ -358,6 +359,9 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
 
       if (type > 2)
         energy += P->TerminalAU;
+
+      noclose = ((md->noGUclosure) &&
+                 ((type == 3) || (type == 4)));
 
       break;
 
@@ -373,8 +377,13 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
       break;
 
     default:
-      return INF;
+      return 0;
   }
+
+  if ((noclose) ||
+      (sn[i] != sn[j]))
+    return 0;
+
 
   p = i + 1;
   if (S1[p] == 3) {
@@ -453,9 +462,9 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
       if (S1[q] != 3)
         continue;
 
-        if (sliding_window) {
-          e_gq = ggg[p][q - p];
-        } else {
+      if (sliding_window) {
+        e_gq = ggg[p][q - p];
+      } else {
 #ifndef VRNA_DISABLE_C11_FEATURES
         e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
 #else
@@ -505,9 +514,9 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
       if (S1[p] != 3)
         continue;
 
-        if (sliding_window) {
-          e_gq = ggg[p][q - p];
-        } else {
+      if (sliding_window) {
+        e_gq = ggg[p][q - p];
+      } else {
 #ifndef VRNA_DISABLE_C11_FEATURES
         e_gq = vrna_smx_csr_get(c_gq, p, q, INF);
 #else
@@ -547,6 +556,237 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
 }
 
 
+/*
+ #########################################
+ # BEGIN OF PRIVATE FUNCTION DEFINITIONS #
+ #          (internal use only)          #
+ #########################################
+ */
+PRIVATE INLINE int
+aln_linker_length(unsigned int        start,
+                  unsigned int        end,
+                  unsigned int        n,
+                  const unsigned int  *a2ss)
+{
+  if (start <= end) {
+    return a2ss[end] - a2ss[start - 1];
+  } else {
+    return a2ss[n] - a2ss[start - 1] + a2ss[end];
+  }
+}
+
+
+/* compute (individual) lengths of the unpaired linker sequences */
+/*  note here, that we might have a GQ spanning the n,1 junction,
+ *  so we first need to transform the linker start and end
+ *  positions accordingly
+ */
+PRIVATE INLINE void
+aln_linker_positions(unsigned int L,
+                     unsigned int l[3],
+                     unsigned int position,
+                     unsigned int length,
+                     unsigned int starts[3],
+                     unsigned int ends[3])
+{
+  if ((length > 0) &&
+      (position + 4 * L + l[0] + l[1] + l[2] >= length)) {
+    starts[0] = (position + L - 1) % (length) + 1;
+    ends[0]   = (position + L + l[0] - 1 - 1) % (length) + 1;
+    starts[1] = (position + 2 * L + l[0] - 1) % (length) + 1;
+    ends[1]   = (position + 2 * L + l[0] + l[1] - 1 - 1) % (length) + 1;
+    starts[2] = (position + 3 * L + l[0] + l[1] - 1) % (length) + 1;
+    ends[2]   = (position + 3 * L + l[0] + l[1] + l[2] - 1 - 1) % (length) + 1;
+  } else {
+    starts[0] = position + L;
+    ends[0]   = starts[0] + l[0] - 1;
+    starts[1] = ends[0] + L + 1;
+    ends[1]   = starts[1] + l[1] - 1;
+    starts[2] = ends[1] + L + 1;
+    ends[2]   = starts[2] + l[2] - 1;
+  }
+}
+
+
+PRIVATE void
+get_gquad_pattern_mfe(short         *S,
+                      int           i,
+                      int           j,
+                      vrna_param_t  *P,
+                      int           *L,
+                      int           l[3])
+{
+  unsigned int  *gg = get_g_islands_sub(S, (unsigned int)i, (unsigned int)j);
+  int           c   = INF;
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_mfe_pos,
+                            (void *)(&c),
+                            (void *)P,
+                            (void *)L,
+                            (void *)l);
+
+  gg += i - 1;
+  free(gg);
+}
+
+
+PRIVATE void
+get_gquad_pattern_mfe_ali(short         **S,
+                          unsigned int  **a2s,
+                          short         *S_cons,
+                          int           n_seq,
+                          int           i,
+                          int           j,
+                          vrna_param_t  *P,
+                          int           *L,
+                          int           l[3])
+{
+  int           mfe;
+  unsigned int  *gg, LL, ll[3];
+
+
+  gg  = get_g_islands_sub(S_cons, (unsigned int)i, (unsigned int)j);
+  mfe = INF;
+
+  struct gquad_ali_helper gq_help = {
+    .S      = (const short **)S,
+    .a2s    = (const unsigned int **)a2s,
+    .n_seq  = (unsigned int)n_seq,
+    .P      = P
+  };
+
+  process_gquad_enumeration(gg, i, j,
+                            &gquad_mfe_ali_pos,
+                            (void *)(&mfe),
+                            (void *)&gq_help,
+                            (void *)&LL,
+                            (void *)ll);
+
+  gg += (unsigned int)i - 1;
+
+  *L    = LL;
+  l[0]  = ll[0];
+  l[1]  = ll[1];
+  l[2]  = ll[2];
+  free(gg);
+}
+
+
+PRIVATE void
+gquad_mfe_pos(unsigned int  i,
+              unsigned int  L,
+              unsigned int  *l,
+              void          *data,
+              void          *P,
+              void          *Lmfe,
+              void          *lmfe)
+{
+  int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
+
+  if (cc < *((int *)data)) {
+    *((int *)data)                = cc;
+    *((unsigned int *)Lmfe)       = L;
+    *((unsigned int *)lmfe)       = l[0];
+    *(((unsigned int *)lmfe) + 1) = l[1];
+    *(((unsigned int *)lmfe) + 2) = l[2];
+  }
+}
+
+
+PRIVATE void
+gquad_mfe_ali_pos(unsigned int  i,
+                  unsigned int  L,
+                  unsigned int  *l,
+                  void          *data,
+                  void          *helper,
+                  void          *Lmfe,
+                  void          *lmfe)
+{
+  int cc = INF;
+
+  gquad_mfe_ali(i, L, l, (void *)&cc, helper, NULL, NULL);
+
+  if (cc < *((int *)data)) {
+    *((int *)data)                = cc;
+    *((unsigned int *)Lmfe)       = L;
+    *((unsigned int *)lmfe)       = l[0];
+    *(((unsigned int *)lmfe) + 1) = l[1];
+    *(((unsigned int *)lmfe) + 2) = l[2];
+  }
+}
+
+
+PRIVATE void
+gquad_mfe_ali(unsigned int  i,
+              unsigned int  L,
+              unsigned int  *l,
+              void          *data,
+              void          *helper,
+              void          *NA,
+              void          *NA2)
+{
+  int en[2], cc;
+
+  en[0] = en[1] = INF;
+
+  CHECK_GQUAD(L, l, return );
+
+  gquad_mfe_ali_en(i, L, l, (void *)(&(en[0])), helper, NULL, NULL);
+  if (en[1] != INF) {
+    cc = en[0] + en[1];
+    if (cc < *((int *)data))
+      *((int *)data) = cc;
+  }
+}
+
+
+PRIVATE void
+gquad_mfe_ali_en(unsigned int i,
+                 unsigned int L,
+                 unsigned int *l,
+                 void         *data,
+                 void         *helper,
+                 void         *NA,
+                 void         *NA2)
+{
+  const short             **S;
+  const unsigned int      **a2s;
+  unsigned int            n_seq, n;
+  int                     en[2], cc, dd;
+  vrna_param_t            *P;
+  struct gquad_ali_helper *gq_help;
+
+  gq_help = (struct gquad_ali_helper *)helper;
+  S       = gq_help->S;
+  a2s     = gq_help->a2s;
+  n       = gq_help->length;
+  n_seq   = gq_help->n_seq;
+  P       = gq_help->P;
+
+  vrna_E_consensus_gquad(L,
+                         l,
+                         i,
+                         n,
+                         n_seq,
+                         S,
+                         a2s,
+                         P,
+                         en);
+
+  if (en[1] != INF) {
+    cc  = en[0] + en[1];
+    dd  = ((int *)data)[0] + ((int *)data)[1];
+    if (cc < dd) {
+      ((int *)data)[0]  = en[0];
+      ((int *)data)[1]  = en[1];
+    }
+  }
+}
+
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
 PUBLIC int
 vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
                   int                   i,
@@ -560,13 +800,13 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
   if ((fc) &&
       (bp_stack) &&
       (stack_count)) {
-    vrna_bps_t bps = vrna_bps_init(4);
-    vrna_bts_t bts = vrna_bts_init(0);
+    vrna_bps_t  bps = vrna_bps_init(4);
+    vrna_bts_t  bts = vrna_bts_init(0);
 
     r = vrna_bt_gquad_int(fc, (unsigned int)i, (unsigned int)j, en, bps, bts);
 
     while (vrna_bts_size(bts) > 0) {
-      vrna_sect_t s= vrna_bts_pop(bts);
+      vrna_sect_t s = vrna_bts_pop(bts);
       r = vrna_bt_gquad_mfe(fc, s.i, s.j, bps);
     }
 
@@ -832,231 +1072,4 @@ backtrack_GQuad_IntLoop_L_comparative(int           c,
 }
 
 
-/*
- #########################################
- # BEGIN OF PRIVATE FUNCTION DEFINITIONS #
- #          (internal use only)          #
- #########################################
- */
-PRIVATE INLINE int
-aln_linker_length(unsigned int        start,
-                  unsigned int        end,
-                  unsigned int        n,
-                  const unsigned int  *a2ss)
-{
-  if (start <= end) {
-    return a2ss[end] - a2ss[start - 1];
-  } else {
-    return a2ss[n] - a2ss[start - 1] + a2ss[end];
-  }
-}
-
-
-/* compute (individual) lengths of the unpaired linker sequences */
-/*  note here, that we might have a GQ spanning the n,1 junction,
- *  so we first need to transform the linker start and end
- *  positions accordingly
- */
-PRIVATE INLINE void
-aln_linker_positions(unsigned int          L,
-                     unsigned int          l[3],
-                     unsigned int position,
-                     unsigned int length,
-                     unsigned int starts[3],
-                     unsigned int ends[3])
-{
-  if ((length > 0) &&
-      (position + 4 * L + l[0] + l[1] + l[2] >= length)) {
-    starts[0] = (position + L - 1) % (length) + 1;
-    ends[0]   = (position + L + l[0] - 1 - 1) % (length) + 1;
-    starts[1] = (position + 2 * L + l[0] - 1) % (length) + 1;
-    ends[1]   = (position + 2 * L + l[0] + l[1] - 1 - 1) % (length) + 1;
-    starts[2] = (position + 3 * L + l[0] + l[1] - 1) % (length) + 1;
-    ends[2]   = (position + 3 * L + l[0] + l[1] + l[2] - 1 - 1) % (length) + 1;
-  } else {
-    starts[0] = position + L;
-    ends[0]   = starts[0] + l[0] - 1;
-    starts[1] = ends[0] + L + 1;
-    ends[1]   = starts[1] + l[1] - 1;
-    starts[2] = ends[1] + L + 1;
-    ends[2]   = starts[2] + l[2] - 1;
-  }
-}
-
-
-PRIVATE void
-get_gquad_pattern_mfe(short         *S,
-                      int           i,
-                      int           j,
-                      vrna_param_t  *P,
-                      int           *L,
-                      int           l[3])
-{
-  unsigned int *gg = get_g_islands_sub(S, (unsigned int)i, (unsigned int)j);
-  int c   = INF;
-
-  process_gquad_enumeration(gg, i, j,
-                            &gquad_mfe_pos,
-                            (void *)(&c),
-                            (void *)P,
-                            (void *)L,
-                            (void *)l);
-
-  gg += i - 1;
-  free(gg);
-}
-
-
-PRIVATE void
-get_gquad_pattern_mfe_ali(short         **S,
-                          unsigned int  **a2s,
-                          short         *S_cons,
-                          int           n_seq,
-                          int           i,
-                          int           j,
-                          vrna_param_t  *P,
-                          int           *L,
-                          int           l[3])
-{
-  int           mfe;
-  unsigned int *gg, LL, ll[3];
-
-
-  gg  = get_g_islands_sub(S_cons, (unsigned int)i, (unsigned int)j);
-  mfe = INF;
-
-  struct gquad_ali_helper gq_help = {
-    .S      = (const short **)S,
-    .a2s    = (const unsigned int **)a2s,
-    .n_seq  = (unsigned int)n_seq,
-    .P      = P
-  };
-
-  process_gquad_enumeration(gg, i, j,
-                            &gquad_mfe_ali_pos,
-                            (void *)(&mfe),
-                            (void *)&gq_help,
-                            (void *)&LL,
-                            (void *)ll);
-
-  gg += (unsigned int)i - 1;
-
-  *L = LL;
-  l[0] = ll[0];
-  l[1] = ll[1];
-  l[2] = ll[2];
-  free(gg);
-}
-
-
-PRIVATE void
-gquad_mfe_pos(unsigned int   i,
-              unsigned int   L,
-              unsigned int   *l,
-              void  *data,
-              void  *P,
-              void  *Lmfe,
-              void  *lmfe)
-{
-  int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
-
-  if (cc < *((int *)data)) {
-    *((int *)data)        = cc;
-    *((unsigned int *)Lmfe)        = L;
-    *((unsigned int *)lmfe)        = l[0];
-    *(((unsigned int *)lmfe) + 1)  = l[1];
-    *(((unsigned int *)lmfe) + 2)  = l[2];
-  }
-}
-
-
-PRIVATE void
-gquad_mfe_ali_pos(unsigned int   i,
-                  unsigned int   L,
-                  unsigned int   *l,
-                  void  *data,
-                  void  *helper,
-                  void  *Lmfe,
-                  void  *lmfe)
-{
-  int cc = INF;
-
-  gquad_mfe_ali(i, L, l, (void *)&cc, helper, NULL, NULL);
-
-  if (cc < *((int *)data)) {
-    *((int *)data)        = cc;
-    *((unsigned int *)Lmfe)        = L;
-    *((unsigned int *)lmfe)        = l[0];
-    *(((unsigned int *)lmfe) + 1)  = l[1];
-    *(((unsigned int *)lmfe) + 2)  = l[2];
-  }
-}
-
-
-PRIVATE void
-gquad_mfe_ali(unsigned int   i,
-              unsigned int   L,
-              unsigned int   *l,
-              void  *data,
-              void  *helper,
-              void  *NA,
-              void  *NA2)
-{
-  int en[2], cc;
-
-  en[0] = en[1] = INF;
-
-  CHECK_GQUAD(L, l, return );
-
-  gquad_mfe_ali_en(i, L, l, (void *)(&(en[0])), helper, NULL, NULL);
-  if (en[1] != INF) {
-    cc = en[0] + en[1];
-    if (cc < *((int *)data))
-      *((int *)data) = cc;
-  }
-}
-
-
-PRIVATE void
-gquad_mfe_ali_en(unsigned int  i,
-                 unsigned int  L,
-                 unsigned int  *l,
-                 void *data,
-                 void *helper,
-                 void *NA,
-                 void *NA2)
-{
-  const short             **S;
-  const unsigned int      **a2s;
-  unsigned int            n_seq, n;
-  int                     en[2], cc, dd;
-  vrna_param_t            *P;
-  struct gquad_ali_helper *gq_help;
-
-  gq_help = (struct gquad_ali_helper *)helper;
-  S       = gq_help->S;
-  a2s     = gq_help->a2s;
-  n       = gq_help->length;
-  n_seq   = gq_help->n_seq;
-  P       = gq_help->P;
-
-  vrna_E_consensus_gquad(L,
-                         l,
-                         i,
-                         n,
-                         n_seq,
-                         S,
-                         a2s,
-                         P,
-                         en);
-
-  if (en[1] != INF) {
-    cc  = en[0] + en[1];
-    dd  = ((int *)data)[0] + ((int *)data)[1];
-    if (cc < dd) {
-      ((int *)data)[0]  = en[0];
-      ((int *)data)[1]  = en[1];
-    }
-  }
-}
-
+#endif

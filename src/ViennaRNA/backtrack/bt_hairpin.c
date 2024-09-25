@@ -122,11 +122,10 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
                 unsigned int          *stack_count)
 {
   int r = 0;
-  
+
   if ((fc) &&
       (bp_stack) &&
       (stack_count)) {
-
     vrna_bps_t  bps = vrna_bps_init(0);
     vrna_bts_t  bts = vrna_bts_init(0);
 
@@ -134,8 +133,8 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
 
     while (vrna_bps_size(bps) > 0) {
       vrna_bp_t bp = vrna_bps_pop(bps);
-      bp_stack[++(*stack_count)].i = bp.i;
-      bp_stack[*stack_count].j = bp.j;
+      bp_stack[++(*stack_count)].i  = bp.i;
+      bp_stack[*stack_count].j      = bp.j;
     }
 
     vrna_bps_free(bps);
@@ -144,5 +143,6 @@ vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
 
   return r;
 }
+
 
 #endif

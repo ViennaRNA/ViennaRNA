@@ -22,29 +22,16 @@
  *  @{
  */
 int
-vrna_bt_gquad(vrna_fold_compound_t  *fc,
-              unsigned int          i,
-              unsigned int          j,
-              unsigned int          *L,
-              unsigned int          l[3]);
-
-int
-backtrack_GQuad_IntLoop_L(int           c,
-                          int           i,
-                          int           j,
-                          int           type,
-                          short         *S,
-                          int           **ggg,
-                          int           maxdist,
-                          int           *p,
-                          int           *q,
-                          vrna_param_t  *P);
-
+vrna_bt_gquad(vrna_fold_compound_t *fc,
+              unsigned int         i,
+              unsigned int         j,
+              unsigned int         *L,
+              unsigned int         l[3]);
 
 int
 vrna_bt_gquad_mfe(vrna_fold_compound_t  *fc,
-                  unsigned int                   i,
-                  unsigned int                   j,
+                  unsigned int          i,
+                  unsigned int          j,
                   vrna_bps_t            bp_stack);
 
 
@@ -57,21 +44,33 @@ vrna_bt_gquad_int(vrna_fold_compound_t  *fc,
                   vrna_bts_t            bt_stack);
 
 
-int
-vrna_BT_gquad_mfe(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  vrna_bp_stack_t       *bp_stack,
-                  unsigned int          *stack_count);
+/**
+ * @}
+ */
+
+#ifndef VRNA_DISABLE_BACKWARD_COMPATIBILITY
+
+/**
+ *  @addtogroup gquad_deprecated
+ *  @{
+ */
+DEPRECATED(int
+           vrna_BT_gquad_mfe(vrna_fold_compound_t *fc,
+                             int                  i,
+                             int                  j,
+                             vrna_bp_stack_t      *bp_stack,
+                             unsigned int         *stack_count),
+           "Use vrna_bt_gquad_mfe() instead");
 
 
-int
-vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  int                   en,
-                  vrna_bp_stack_t       *bp_stack,
-                  unsigned int          *stack_count);
+DEPRECATED(int
+           vrna_BT_gquad_int(vrna_fold_compound_t *fc,
+                             int                  i,
+                             int                  j,
+                             int                  en,
+                             vrna_bp_stack_t      *bp_stack,
+                             unsigned int         *stack_count),
+           "Use vrna_bt_gquad_int() instead");
 
 
 /**
@@ -90,37 +89,39 @@ vrna_BT_gquad_int(vrna_fold_compound_t  *fc,
  *
  *  @return       1 on success, 0 if no gquad found
  */
-int
-backtrack_GQuad_IntLoop_L(int           c,
-                          int           i,
-                          int           j,
-                          int           type,
-                          short         *S,
-                          int           **ggg,
-                          int           maxdist,
-                          int           *p,
-                          int           *q,
-                          vrna_param_t  *P);
+DEPRECATED(int
+           backtrack_GQuad_IntLoop_L(int          c,
+                                     int          i,
+                                     int          j,
+                                     int          type,
+                                     short        *S,
+                                     int          **ggg,
+                                     int          maxdist,
+                                     int          *p,
+                                     int          *q,
+                                     vrna_param_t *P),
+           "Use vrna_bt_gquad_int() instead");
 
 
-int
-backtrack_GQuad_IntLoop_L_comparative(int           c,
-                                      int           i,
-                                      int           j,
-                                      unsigned int  *type,
-                                      short         *S_cons,
-                                      short         **S5,
-                                      short         **S3,
-                                      unsigned int  **a2s,
-                                      int           **ggg,
-                                      int           *p,
-                                      int           *q,
-                                      int           n_seq,
-                                      vrna_param_t  *P);
+DEPRECATED(int
+           backtrack_GQuad_IntLoop_L_comparative(int          c,
+                                                 int          i,
+                                                 int          j,
+                                                 unsigned int *type,
+                                                 short        *S_cons,
+                                                 short        **S5,
+                                                 short        **S3,
+                                                 unsigned int **a2s,
+                                                 int          **ggg,
+                                                 int          *p,
+                                                 int          *q,
+                                                 int          n_seq,
+                                                 vrna_param_t *P),
+           "Use vrna_bt_gquad_int() instead");
 
 
-/**
- * @}
- */
+/** @} */
+
+#endif
 
 #endif

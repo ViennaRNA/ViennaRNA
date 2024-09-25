@@ -21,12 +21,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-#ifdef __GNUC__
-# define INLINE inline
-#else
-# define INLINE
-#endif
-
 /**
  *  @file     ViennaRNA/backtrack/multibranch.h
  *  @ingroup  mfe
@@ -40,11 +34,12 @@
  */
 
 unsigned int
-vrna_bt_m(vrna_fold_compound_t    *fc,
-          unsigned int            i,
-          unsigned int            j,
-          vrna_bps_t              bp_stack,
-          vrna_bts_t              bt_stack);
+vrna_bt_m(vrna_fold_compound_t  *fc,
+          unsigned int          i,
+          unsigned int          j,
+          vrna_bps_t            bp_stack,
+          vrna_bts_t            bt_stack);
+
 
 /**
  *  @brief  Backtrack the decomposition of a multi branch loop closed by @f$ (i,j) @f$
@@ -89,29 +84,28 @@ vrna_bt_mb_loop_split(vrna_fold_compound_t  *fc,
  *  @addtogroup global_deprecated
  *  @{
  */
+DEPRECATED(int
+           vrna_BT_mb_loop(vrna_fold_compound_t *fc,
+                           int                  *i,
+                           int                  *j,
+                           int                  *k,
+                           int                  en,
+                           unsigned int         *component1,
+                           unsigned int         *component2),
+           "Use vrna_bt_mb_loop() instead!");
+
 
 DEPRECATED(int
-vrna_BT_mb_loop(vrna_fold_compound_t  *fc,
-                int                   *i,
-                int                   *j,
-                int                   *k,
-                int                   en,
-                unsigned int          *component1,
-                unsigned int          *component2),
-          "Use vrna_bt_mb_loop() instead!");
-
-
-DEPRECATED(int
-vrna_BT_mb_loop_split(vrna_fold_compound_t  *fc,
-                      int                   *i,
-                      int                   *j,
-                      int                   *k,
-                      int                   *l,
-                      unsigned int          *component1,
-                      unsigned int          *component2,
-                      vrna_bp_stack_t       *bp_stack,
-                      unsigned int          *stack_count),
-          "Use vrna_bt_mb_loop_split() instead!");
+           vrna_BT_mb_loop_split(vrna_fold_compound_t *fc,
+                                 int                  *i,
+                                 int                  *j,
+                                 int                  *k,
+                                 int                  *l,
+                                 unsigned int         *component1,
+                                 unsigned int         *component2,
+                                 vrna_bp_stack_t      *bp_stack,
+                                 unsigned int         *stack_count),
+           "Use vrna_bt_mb_loop_split() instead!");
 
 /**
  * @}

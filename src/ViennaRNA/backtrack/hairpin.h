@@ -23,12 +23,6 @@
 # define DEPRECATED(func, msg) func
 #endif
 
-#ifdef __GNUC__
-# define INLINE inline
-#else
-# define INLINE
-#endif
-
 /**
  *
  *  @file     ViennaRNA/backtrack/hairpin.h
@@ -66,15 +60,14 @@ vrna_bt_hairpin(vrna_fold_compound_t  *fc,
  *  @addtogroup global_deprecated
  *  @{
  */
-
 DEPRECATED(int
-vrna_BT_hp_loop(vrna_fold_compound_t  *fc,
-                int                   i,
-                int                   j,
-                int                   en,
-                vrna_bp_stack_t       *bp_stack,
-                unsigned int          *stack_count),
-          "Use vrna_bt_hairpin() instead!");
+           vrna_BT_hp_loop(vrna_fold_compound_t *fc,
+                           int                  i,
+                           int                  j,
+                           int                  en,
+                           vrna_bp_stack_t      *bp_stack,
+                           unsigned int         *stack_count),
+           "Use vrna_bt_hairpin() instead!");
 
 
 /** @} */

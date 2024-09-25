@@ -56,6 +56,7 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
                            vrna_bps_t           bp_stack,
                            vrna_bts_t           bt_stack);
 
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -91,18 +92,18 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
                vrna_bps_t           bp_stack,
                vrna_bts_t           bt_stack)
 {
-  char                      *ptype;
-  short                     mm5, mm3, *S1;
-  unsigned int              length, *sn, type, u, dangle_model, with_gquad, cnt,
-                            ii, with_ud;
-  int                       fij, fi, en, e, *my_f5, *my_c, *idx, e_gq;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_sc_t                 *sc;
-  vrna_ud_t                 *domains_up;
-  vrna_hc_eval_f  evaluate;
-  struct hc_ext_def_dat     hc_dat_local;
-  vrna_smx_csr(int)         *c_gq;
+  char                  *ptype;
+  short                 mm5, mm3, *S1;
+  unsigned int          length, *sn, type, u, dangle_model, with_gquad, cnt,
+                        ii, with_ud;
+  int                   fij, fi, en, e, *my_f5, *my_c, *idx, e_gq;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  vrna_sc_t             *sc;
+  vrna_ud_t             *domains_up;
+  vrna_hc_eval_f        evaluate;
+  struct hc_ext_def_dat hc_dat_local;
+  vrna_smx_csr(int)     *c_gq;
 
   length        = fc->length;
   P             = fc->params;
@@ -152,15 +153,15 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 
       /* next, try nibble off a ligand */
       for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
-        u   = domains_up->uniq_motif_size[cnt];
+        u = domains_up->uniq_motif_size[cnt];
         if ((j >= u) &&
             evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
           ii  = j - u + 1;
-          en = domains_up->energy_cb(fc,
-                                     ii,
-                                     j,
-                                     VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
-                                     domains_up->data);
+          en  = domains_up->energy_cb(fc,
+                                      ii,
+                                      j,
+                                      VRNA_UNSTRUCTURED_DOMAIN_EXT_LOOP | VRNA_UNSTRUCTURED_DOMAIN_MOTIF,
+                                      domains_up->data);
           if (sc) {
             if (sc->energy_up)
               en += sc->energy_up[ii][u];
@@ -220,9 +221,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       for (u = j - 1; u >= 1; u--) {
         if (with_gquad) {
 #ifndef VRNA_DISABLE_C11_FEATURES
-          e_gq =  vrna_smx_csr_get(c_gq, u, j, INF);
+          e_gq = vrna_smx_csr_get(c_gq, u, j, INF);
 #else
-          e_gq =  vrna_smx_csr_int_get(c_gq, u, j, INF);
+          e_gq = vrna_smx_csr_int_get(c_gq, u, j, INF);
 #endif
           if ((e_gq != INF) &&
               (fij == my_f5[u - 1] + e_gq)) {
@@ -253,6 +254,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 #if 0
           if (sn[j] != sn[u])
             en += P->DuplexInit;
+
 #endif
 
           if (fij == vrna_E_exterior_stem(type, -1, -1, P) + en + my_f5[u - 1]) {
@@ -279,9 +281,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       for (u = j - 1; u >= 1; u--) {
         if (with_gquad) {
 #ifndef VRNA_DISABLE_C11_FEATURES
-          e_gq =  vrna_smx_csr_get(c_gq, u, j, INF);
+          e_gq = vrna_smx_csr_get(c_gq, u, j, INF);
 #else
-          e_gq =  vrna_smx_csr_int_get(c_gq, u, j, INF);
+          e_gq = vrna_smx_csr_int_get(c_gq, u, j, INF);
 #endif
           if ((e_gq != INF) &&
               (fij == my_f5[u - 1] + e_gq)) {
@@ -313,6 +315,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 #if 0
           if (sn[j] != sn[u])
             en += P->DuplexInit;
+
 #endif
 
           if (fij == vrna_E_exterior_stem(type, mm5, mm3, P) + en + my_f5[u - 1]) {
@@ -337,13 +340,12 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
     default:
       if (with_gquad) {
 #ifndef VRNA_DISABLE_C11_FEATURES
-        e_gq =  vrna_smx_csr_get(c_gq, 1, j, INF);
+        e_gq = vrna_smx_csr_get(c_gq, 1, j, INF);
 #else
-        e_gq =  vrna_smx_csr_int_get(c_gq, 1, j, INF);
+        e_gq = vrna_smx_csr_int_get(c_gq, 1, j, INF);
 #endif
         if ((e_gq != INF) &&
             (fij == e_gq)) {
-
           vrna_bts_push(bt_stack,
                         ((vrna_sect_t){
                           .i = 1,
@@ -402,9 +404,9 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       for (u = j - 1; u > 1; u--) {
         if (with_gquad) {
 #ifndef VRNA_DISABLE_C11_FEATURES
-          e_gq =  vrna_smx_csr_get(c_gq, u, j, INF);
+          e_gq = vrna_smx_csr_get(c_gq, u, j, INF);
 #else
-          e_gq =  vrna_smx_csr_int_get(c_gq, u, j, INF);
+          e_gq = vrna_smx_csr_int_get(c_gq, u, j, INF);
 #endif
           if ((e_gq != INF) &&
               (fij == my_f5[u - 1] + e_gq)) {
@@ -430,6 +432,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 #if 0
         if (sn[j] != sn[u])
           en += P->DuplexInit;
+
 #endif
 
         if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
@@ -498,6 +501,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 #if 0
         if (sn[j - 1] != sn[u])
           en += P->DuplexInit;
+
 #endif
 
         mm5 = (sn[u] == sn[u - 1]) ? S1[u - 1] : -1;
@@ -574,16 +578,17 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
                            vrna_bps_t           bp_stack,
                            vrna_bts_t           bt_stack)
 {
-  unsigned int              **a2s, n;
-  short                     **S, **S5, **S3;
-  unsigned int              tt, u, dangle_model, with_gquad, n_seq, ss;
-  int                       fij, fi, en, e_gq, *my_f5, *my_c, *idx, mm5, mm3;
-  vrna_param_t              *P;
-  vrna_md_t                 *md;
-  vrna_sc_t                 **scs;
-  vrna_hc_eval_f evaluate;
-  struct hc_ext_def_dat     hc_dat_local;
-  vrna_smx_csr(int)         *c_gq;
+  unsigned int          **a2s, n;
+  short                 **S, **S5, **S3;
+  unsigned int          tt, u, dangle_model, with_gquad, n_seq, ss;
+  int                   fij, fi, en, e_gq, *my_f5, *my_c, *idx, mm5, mm3;
+  vrna_param_t          *P;
+  vrna_md_t             *md;
+  vrna_sc_t             **scs;
+  vrna_hc_eval_f        evaluate;
+  struct hc_ext_def_dat hc_dat_local;
+
+  vrna_smx_csr(int) * c_gq;
 
   n_seq         = fc->n_seq;
   n             = fc->length;
@@ -779,7 +784,6 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
       (j) &&
       (bp_stack) &&
       (stack_count)) {
-
     vrna_bps_t  bps = vrna_bps_init(0);
     vrna_bts_t  bts = vrna_bts_init(0);
 
@@ -798,10 +802,10 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
       if (s.ml == VRNA_MX_FLAG_F5) {
         *k = (int)s.j;
       } else if (s.ml == VRNA_MX_FLAG_C) {
-        bp_stack[++(*stack_count)].i = s.i;
-        bp_stack[*stack_count].j = s.j;
-        *i = (int)s.i;
-        *j = (int)s.j;
+        bp_stack[++(*stack_count)].i  = s.i;
+        bp_stack[*stack_count].j      = s.j;
+        *i                            = (int)s.i;
+        *j                            = (int)s.j;
       } else if (s.ml == VRNA_MX_FLAG_G) {
         r = vrna_bt_gquad_mfe(fc, s.i, s.j, bps);
       }
@@ -809,8 +813,8 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
 
     while (vrna_bps_size(bps) > 0) {
       vrna_bp_t bp = vrna_bps_pop(bps);
-      bp_stack[++(*stack_count)].i = bp.i;
-      bp_stack[*stack_count].j = bp.j;
+      bp_stack[++(*stack_count)].i  = bp.i;
+      bp_stack[*stack_count].j      = bp.j;
     }
 
     vrna_bps_free(bps);
@@ -819,5 +823,6 @@ vrna_BT_ext_loop_f5(vrna_fold_compound_t  *fc,
 
   return r;
 }
+
 
 #endif
