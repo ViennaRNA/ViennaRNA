@@ -33,6 +33,7 @@ vrna_sequencesdir       = $(pkgincludedir)/sequences
 vrna_structuresdir      = $(pkgincludedir)/structures
 vrna_suboptdir          = $(pkgincludedir)/subopt
 vrna_utilsdir           = $(pkgincludedir)/utils
+vrna_zscoredir          = $(pkgincludedir)/zscore
 
 # the library names to build
 lib_LTLIBRARIES = libRNA.la
@@ -253,7 +254,7 @@ pkginclude_HEADERS =  \
 
 
 if VRNA_AM_SWITCH_SVM
-pkginclude_HEADERS +=  zscore.h \
+pkginclude_HEADERS += \
     ${SVM_UTILS_H_OLD} \
     ${SVM_H}
 endif
@@ -355,8 +356,17 @@ vrna_utils_HEADERS = \
     utils/higher_order_functions.h \
     utils/cpu.h \
     utils/units.h \
-    utils/log.h \
+    utils/log.h
+
+
+if VRNA_AM_SWITCH_SVM
+vrna_utils_HEADERS += \
     ${SVM_UTILS_H}
+
+
+vrna_zscore_HEADERS = \
+    zscore/basic.h
+endif
 
 
 vrna_search_HEADERS = \
@@ -539,7 +549,7 @@ libRNA_utils_la_SOURCES = \
 
 if VRNA_AM_SWITCH_SVM
 libRNA_utils_la_SOURCES += \
-    zscore.c \
+    zscore/zscore.c \
     ${SVM_UTILS}
 endif
 
@@ -767,5 +777,5 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               io/sanitize.h
 
 if VRNA_AM_SWITCH_SVM
-EXTRA_DIST += zscore_dat.inc
+EXTRA_DIST += intern/zscore_dat.h
 endif

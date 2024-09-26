@@ -5,7 +5,7 @@
 #include <ViennaRNA/fold_compound.h>
 
 #ifdef VRNA_WITH_SVM
-#include <ViennaRNA/zscore.h>
+#include <ViennaRNA/zscore/basic.h>
 #endif
 
 #ifdef VRNA_WARN_DEPRECATED

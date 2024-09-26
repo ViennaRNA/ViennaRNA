@@ -16,7 +16,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/svm.h"
 
-#include "ViennaRNA/zscore_dat.inc"
+#include "ViennaRNA/intern/zscore_dat.h"
 
 
 PRIVATE INLINE double

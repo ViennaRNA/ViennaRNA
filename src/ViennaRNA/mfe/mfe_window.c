@@ -52,7 +52,7 @@
 #include "ViennaRNA/intern/grammar_dat.h"
 
 #ifdef VRNA_WITH_SVM
-#include "ViennaRNA/zscore_dat.inc"
+#include "ViennaRNA/intern/zscore_dat.h"
 #endif
 
 #ifdef __GNUC__

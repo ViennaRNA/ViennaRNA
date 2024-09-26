@@ -143,7 +143,7 @@ DEPRECATED(typedef void (vrna_callback_recursion_status)(unsigned char status,
 #include <ViennaRNA/unstructured_domains.h>
 
 #ifdef VRNA_WITH_SVM
-#include <ViennaRNA/zscore.h>
+#include <ViennaRNA/zscore/basic.h>
 #endif
 
 

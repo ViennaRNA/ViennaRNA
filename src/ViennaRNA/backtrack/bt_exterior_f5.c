@@ -30,10 +30,6 @@
 # define INLINE
 #endif
 
-#ifdef VRNA_WITH_SVM
-#include "ViennaRNA/zscore_dat.inc"
-#endif
-
 #include "ViennaRNA/constraints/exterior_hc.inc"
 #include "ViennaRNA/constraints/exterior_sc.inc"
 

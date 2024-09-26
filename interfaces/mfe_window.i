@@ -170,5 +170,5 @@ my_aliLfold(std::vector<std::string> alignment,
 %constant unsigned int ZSCORE_SETTINGS_DEFAULT  = VRNA_ZSCORE_SETTINGS_DEFAULT;
 
 
-%include <ViennaRNA/zscore.h>
+%include <ViennaRNA/zscore/basic.h>
 #endif

@@ -31,7 +31,7 @@
 #endif
 
 #ifdef VRNA_WITH_SVM
-#include "ViennaRNA/zscore.h" /* for VRNA_ZSCORE_* macros */
+#include "ViennaRNA/zscore/basic.h" /* for VRNA_ZSCORE_* macros */
 #endif
 
 
@@ -39,7 +39,7 @@
 #include "ViennaRNA/constraints/exterior_sc.inc"
 
 #ifdef VRNA_WITH_SVM
-#include "ViennaRNA/zscore_dat.inc"
+#include "ViennaRNA/intern/zscore_dat.h"
 #endif
 
 #include "ViennaRNA/mfe/exterior.h"

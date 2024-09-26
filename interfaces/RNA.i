@@ -125,7 +125,7 @@ extern "C" {
 #include  <ViennaRNA/heat_capacity.h>
 
 #ifdef VRNA_WITH_SVM
-#include  <ViennaRNA/zscore.h>
+#include  <ViennaRNA/zscore/basic.h>
 #endif
 
 #include  <ViennaRNA/inverse/basic.h>
