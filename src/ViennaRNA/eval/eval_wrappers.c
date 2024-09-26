@@ -26,7 +26,7 @@
 #ifdef __MINGW32__
 #include <unistd.h>
 #else
-#include "ViennaRNA/unistd_win.h"
+#include "ViennaRNA/intern/unistd_win.h"
 #endif
 #else
 #include <unistd.h>

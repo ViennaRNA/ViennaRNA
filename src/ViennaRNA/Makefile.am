@@ -733,7 +733,6 @@ noinst_HEADERS  = params/intl11.h \
                   ${JSON_H} \
                   params/special_const.h \
                   ${CEPHES_H} \
-                  unistd_win.h \
                   io/sanitize.h
 
 nodist_pkginclude_HEADERS = vrna_config.h
@@ -763,8 +762,8 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               intern/color_output.h \
               intern/gquad_helpers.h \
               intern/grammar_dat.h \
+              intern/unistd_win.h \
               params/special_const.h \
-              unistd_win.h \
               io/sanitize.h
 
 if VRNA_AM_SWITCH_SVM
