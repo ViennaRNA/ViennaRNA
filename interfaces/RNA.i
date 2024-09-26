@@ -20,10 +20,13 @@ extern "C" {
 #include  <ViennaRNA/datastructures/sparse_mx.h>
 #include  <ViennaRNA/datastructures/dp_matrices.h>
 #include  <ViennaRNA/fold_compound.h>
-#include  <ViennaRNA/grammar.h>
 #include  <ViennaRNA/unstructured_domains.h>
 #include  <ViennaRNA/structured_domains.h>
 #include  <ViennaRNA/commands.h>
+
+#include  <ViennaRNA/grammar/basic.h>
+#include  <ViennaRNA/grammar/mfe.h>
+#include  <ViennaRNA/grammar/partfunc.h>
 
 #include  <ViennaRNA/utils/basic.h>
 #include  <ViennaRNA/utils/strings.h>

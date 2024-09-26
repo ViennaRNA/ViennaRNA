@@ -5,6 +5,7 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/eval/exterior.h"
+#include "ViennaRNA/grammar/partfunc.h"
 #include "ViennaRNA/partfunc/multifold.h"
 
 #ifdef __GNUC__

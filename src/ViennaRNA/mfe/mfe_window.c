@@ -49,7 +49,7 @@
 #include "ViennaRNA/utils/units.h"
 #include "ViennaRNA/mfe/local.h"
 
-#include "ViennaRNA/grammar.inc"
+#include "ViennaRNA/intern/grammar_dat.h"
 
 #ifdef VRNA_WITH_SVM
 #include "ViennaRNA/zscore_dat.inc"

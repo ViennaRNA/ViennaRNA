@@ -138,7 +138,7 @@ DEPRECATED(typedef void (vrna_callback_recursion_status)(unsigned char status,
 #include <ViennaRNA/datastructures/dp_matrices.h>
 #include <ViennaRNA/constraints/hard.h>
 #include <ViennaRNA/constraints/soft.h>
-#include <ViennaRNA/grammar.h>
+#include <ViennaRNA/grammar/basic.h>
 #include <ViennaRNA/structured_domains.h>
 #include <ViennaRNA/unstructured_domains.h>
 

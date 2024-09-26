@@ -15,6 +15,7 @@ vrna_combinatoricsdir   = $(pkgincludedir)/combinatorics
 vrna_constraintsdir     = $(pkgincludedir)/constraints
 vrna_datastructuresdir  = $(pkgincludedir)/datastructures
 vrna_evaldir            = $(pkgincludedir)/eval
+vrna_grammardir         = $(pkgincludedir)/grammar
 vrna_inversedir         = $(pkgincludedir)/inverse
 vrna_iodir              = $(pkgincludedir)/io
 vrna_landscapedir       = $(pkgincludedir)/landscape
@@ -45,6 +46,7 @@ noinst_LTLIBRARIES =  \
     libRNA_conv.la \
     libRNA_datastructures.la \
     libRNA_eval.la \
+    libRNA_grammar.la \
     libRNA_inverse.la \
     libRNA_landscape.la \
     libRNA_mfe.la \
@@ -81,6 +83,7 @@ libRNA_conv_la_LIBADD = \
     libRNA_constraints.la \
     libRNA_datastructures.la \
     libRNA_eval.la \
+    libRNA_grammar.la \
     libRNA_inverse.la \
     libRNA_landscape.la \
     libRNA_mfe.la \
@@ -169,6 +172,7 @@ DEPRECATED_INCLUDE_FILES = \
     file_formats_msa.h \
     file_utils.h \
     findpath.h \
+    grammar.h \
     gquad.h \
     hairpin_loops.h \
     interior_loops.h \
@@ -223,7 +227,6 @@ pkginclude_HEADERS =  \
     fold_compound.h \
     fold.h \
     fold_vars.h \
-    grammar.h \
     heat_capacity.h \
     mm.h \
     model.h \
@@ -338,6 +341,12 @@ vrna_inverse_HEADERS = \
     inverse/basic.h
 
 
+vrna_grammar_HEADERS = \
+    grammar/basic.h \
+    grammar/mfe.h \
+    grammar/partfunc.h
+
+
 vrna_utils_HEADERS = \
     utils/basic.h \
     utils/strings.h \
@@ -446,14 +455,15 @@ libRNA_conv_la_SOURCES = \
     model.c \
     ${JSON_SRC} \
     unstructured_domains.c \
-    grammar.c \
     heat_capacity.c \
     ${CEPHES_SRC}
+
 
 if VRNA_AM_SWITCH_SVM
 libRNA_svm_la_SOURCES = \
     ${SVM_SRC}
 endif
+
 
 libRNA_eval_la_SOURCES = \
     eval/eval_exterior.c \
@@ -633,6 +643,12 @@ libRNA_combinatorics_la_SOURCES = \
     combinatorics/combinatorics.c
 
 
+libRNA_grammar_la_SOURCES = \
+    grammar/grammar.c \
+    grammar/gr_extension_mfe.c \
+    grammar/gr_extension_pf.c
+
+
 libRNA_datastructures_la_SOURCES = \
     datastructures/array.c \
     datastructures/basic_datastructures.c \
@@ -723,7 +739,6 @@ noinst_HEADERS  = params/intl11.h \
 nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
-              grammar.inc \
               constraints/hc_depot.inc \
               constraints/exterior_hc.inc \
               constraints/exterior_sc.inc \
@@ -747,6 +762,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               ${JSON_H} \
               intern/color_output.h \
               intern/gquad_helpers.h \
+              intern/grammar_dat.h \
               params/special_const.h \
               unistd_win.h \
               io/sanitize.h

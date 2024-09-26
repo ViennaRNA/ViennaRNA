@@ -37,7 +37,7 @@
 #include "ViennaRNA/probabilities/basepairs.h"
 #include "ViennaRNA/partfunc/global.h"
 
-#include "ViennaRNA/grammar.inc"
+#include "ViennaRNA/intern/grammar_dat.h"
 
 #include "ViennaRNA/constraints/exterior_sc_pf.inc"
 #include "ViennaRNA/constraints/internal_sc_pf.inc"

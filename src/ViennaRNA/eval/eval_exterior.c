@@ -21,7 +21,7 @@
 #include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/eval/structures.h"
 
-#include "ViennaRNA/grammar.inc"
+#include "ViennaRNA/intern/grammar_dat.h"
 
 #ifdef __GNUC__
 # define INLINE inline

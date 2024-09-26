@@ -7,7 +7,7 @@
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/backtrack/exterior.h"
 
-#include "ViennaRNA/grammar.inc"
+#include "ViennaRNA/intern/grammar_dat.h"
 
 /*
  #################################

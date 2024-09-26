@@ -26,7 +26,7 @@
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/utils/higher_order_functions.h"
 
-#include "ViennaRNA/grammar.inc"
+#include "ViennaRNA/intern/grammar_dat.h"
 
 #ifdef __GNUC__
 # define INLINE inline

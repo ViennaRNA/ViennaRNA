@@ -38,6 +38,8 @@
 %constant unsigned int UNSTRUCTURED_DOMAIN_ALL_LOOPS  = VRNA_UNSTRUCTURED_DOMAIN_ALL_LOOPS;
 %constant unsigned int UNSTRUCTURED_DOMAIN_MOTIF      = VRNA_UNSTRUCTURED_DOMAIN_MOTIF;
 
-%include  <ViennaRNA/grammar.h>
+%include  <ViennaRNA/grammar/basic.h>
+%include  <ViennaRNA/grammar/mfe.h>
+%include  <ViennaRNA/grammar/partfunc.h>
 %include  <ViennaRNA/unstructured_domains.h>
 %include  <ViennaRNA/structured_domains.h>

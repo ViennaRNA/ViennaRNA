@@ -19,7 +19,7 @@
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/eval/multibranch.h"
 
-#include "ViennaRNA/grammar.inc"
+#include "ViennaRNA/intern/grammar_dat.h"
 
 #ifdef __GNUC__
 # define INLINE inline

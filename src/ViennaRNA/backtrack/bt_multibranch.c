@@ -22,7 +22,7 @@
 #include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/backtrack/multibranch.h"
 
-#include "ViennaRNA/grammar.inc"
+#include "ViennaRNA/intern/grammar_dat.h"
 
 #ifdef __GNUC__
 # define INLINE inline
