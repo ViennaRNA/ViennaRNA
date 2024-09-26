@@ -29,6 +29,15 @@
 #define PUBLIC
 #define PRIVATE static
 
+#ifdef UNUSED
+# undef UNUSED
+#endif
+#if defined(__clang__) || defined(__GNUC__)
+# define UNUSED __attribute__((unused))
+#else
+# define UNUSED
+#endif
+
 /**
  *  @brief Output flag of get_input_line():  @e "An ERROR has occured, maybe EOF"
  */
