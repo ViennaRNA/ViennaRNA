@@ -24,7 +24,7 @@
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/commands.h"
+#include "ViennaRNA/io/commands.h"
 
 /**
  *  @brief Types of commands within a list of #vrna_command_s structures

@@ -34,7 +34,7 @@
 #include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/io/utils.h"
-#include "ViennaRNA/commands.h"
+#include "ViennaRNA/io/commands.h"
 #include "ViennaRNA/datastructures/string.h"
 
 #include "RNAsubopt_cmdl.h"

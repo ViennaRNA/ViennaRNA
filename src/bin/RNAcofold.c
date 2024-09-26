@@ -18,7 +18,7 @@
 #include "ViennaRNA/plotting/structures.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/params/basic.h"
-#include "ViennaRNA/commands.h"
+#include "ViennaRNA/io/commands.h"
 #include "ViennaRNA/combinatorics/basic.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/constraints/hard.h"

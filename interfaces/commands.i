@@ -85,4 +85,4 @@ my_file_commands_read(std::string   filename,
 %constant unsigned int CMD_PARSE_SD       = VRNA_CMD_PARSE_SD;
 %constant unsigned int CMD_PARSE_UD       = VRNA_CMD_PARSE_UD;
 
-%include <ViennaRNA/commands.h>
+%include <ViennaRNA/io/commands.h>

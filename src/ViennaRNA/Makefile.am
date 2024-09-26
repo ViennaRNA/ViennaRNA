@@ -155,6 +155,7 @@ DEPRECATED_INCLUDE_FILES = \
     boltzmann_sampling.h \
     centroid.h\
     char_stream.h \
+    commands.h \
     combinatorics.h \
     constraints.h \
     constraints_hard.h \
@@ -219,7 +220,6 @@ pkginclude_HEADERS =  \
     alifold.h \
     ali_plex.h \
     cofold.h \
-    commands.h \
     concentrations.h \
     dist_vars.h \
     dp_matrices.h \
@@ -389,7 +389,8 @@ vrna_puzzler_HEADERS = \
 vrna_io_HEADERS = \
     io/utils.h \
     io/file_formats.h \
-    io/file_formats_msa.h
+    io/file_formats_msa.h \
+    io/commands.h
 
 
 vrna_params_HEADERS = \
@@ -544,7 +545,7 @@ libRNA_utils_la_SOURCES = \
     io/file_formats.c \
     io/file_formats_msa.c \
     search/BoyerMoore.c \
-    commands.c
+    io/commands.c
 
 
 if VRNA_AM_SWITCH_SVM

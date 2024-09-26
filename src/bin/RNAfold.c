@@ -46,7 +46,7 @@
 #include "ViennaRNA/structured_domains.h"
 #include "ViennaRNA/unstructured_domains.h"
 #include "ViennaRNA/io/file_formats.h"
-#include "ViennaRNA/commands.h"
+#include "ViennaRNA/io/commands.h"
 #include "ViennaRNA/probabilities/basepairs.h"
 #include "ViennaRNA/probabilities/structures.h"
 #include "ViennaRNA/sampling/basic.h"

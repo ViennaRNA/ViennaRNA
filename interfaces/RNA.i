@@ -22,7 +22,6 @@ extern "C" {
 #include  <ViennaRNA/fold_compound.h>
 #include  <ViennaRNA/unstructured_domains.h>
 #include  <ViennaRNA/structured_domains.h>
-#include  <ViennaRNA/commands.h>
 
 #include  <ViennaRNA/grammar/basic.h>
 #include  <ViennaRNA/grammar/mfe.h>
@@ -74,6 +73,7 @@ extern "C" {
 #include  <ViennaRNA/plotting/alignments.h>
 #include  <ViennaRNA/plotting/probabilities.h>
 
+#include  <ViennaRNA/io/commands.h>
 #include  <ViennaRNA/io/file_formats.h>
 #include  <ViennaRNA/io/file_formats_msa.h>
 #include  <ViennaRNA/io/utils.h>
