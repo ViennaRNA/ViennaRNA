@@ -879,6 +879,7 @@ INPUT                  =  @top_srcdir@/doc/doxygen/refman.include/ \
                           @top_srcdir@/src/ViennaRNA/constraints \
                           @top_srcdir@/src/ViennaRNA/datastructures \
                           @top_srcdir@/src/ViennaRNA/eval \
+                          @top_srcdir@/src/ViennaRNA/grammar \
                           @top_srcdir@/src/ViennaRNA/inverse \
                           @top_srcdir@/src/ViennaRNA/io \
                           @top_srcdir@/src/ViennaRNA/landscape \
@@ -896,6 +897,7 @@ INPUT                  =  @top_srcdir@/doc/doxygen/refman.include/ \
                           @top_srcdir@/src/ViennaRNA/structures \
                           @top_srcdir@/src/ViennaRNA/subopt \
                           @top_srcdir@/src/ViennaRNA/utils \
+                          @top_srcdir@/src/ViennaRNA/zscore \
                           @top_srcdir@/interfaces
 
 # This tag can be used to specify the character encoding of the source files
