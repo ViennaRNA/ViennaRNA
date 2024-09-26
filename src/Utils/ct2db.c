@@ -7,7 +7,7 @@
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/partfunc/global.h"
-#include "ViennaRNA/MEA.h"
+#include "ViennaRNA/structures/mea.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/structures/pairtable.h"
 #include "ViennaRNA/utils/log.h"

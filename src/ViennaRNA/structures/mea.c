@@ -20,7 +20,7 @@
 #include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/datastructures/sparse_mx.h"
-#include "ViennaRNA/MEA.h"
+#include "ViennaRNA/structures/mea.h"
 
 /* compute an MEA structure, i.e. the structure maximising
  * EA = \sum_{(i,j) \in S} 2\gamma p_{i,j} + \sum_{i is unpaired} p^u_i

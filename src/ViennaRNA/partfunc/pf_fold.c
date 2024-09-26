@@ -40,7 +40,7 @@
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/probabilities/basepairs.h"
 #include "ViennaRNA/probabilities/structures.h"
-#include "ViennaRNA/centroid.h"
+#include "ViennaRNA/structures/centroid.h"
 #include "ViennaRNA/sampling/basic.h"
 #include "ViennaRNA/partfunc/global.h"
 

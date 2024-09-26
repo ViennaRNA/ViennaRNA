@@ -417,7 +417,7 @@ double get_pr(int i, int j);
 
 }
 
-%include  <ViennaRNA/centroid.h>
+%include  <ViennaRNA/structures/centroid.h>
 
 /**********************************************/
 /* BEGIN interface for MEA structure          */
@@ -557,4 +557,4 @@ char *my_MEA_from_plist(std::vector<vrna_ep_t> plist,
 %ignore MEA;
 %ignore MEA_seq;
 
-%include  <ViennaRNA/MEA.h>
+%include  <ViennaRNA/structures/mea.h>

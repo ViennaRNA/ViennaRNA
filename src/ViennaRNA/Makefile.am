@@ -149,6 +149,7 @@ DEPRECATED_INCLUDE_FILES = \
     aln_util.h \
     alphabet.h \
     boltzmann_sampling.h \
+    centroid.h\
     char_stream.h \
     combinatorics.h \
     constraints.h \
@@ -175,6 +176,7 @@ DEPRECATED_INCLUDE_FILES = \
     Lfold.h \
     loop_energies.h \
     LPfold.h \
+    MEA.h \
     mfe.h \
     mfe_window.h \
     multibranch_loops.h \
@@ -211,7 +213,6 @@ pkginclude_HEADERS =  \
     2Dpfold.h \
     alifold.h \
     ali_plex.h \
-    centroid.h\
     cofold.h \
     commands.h \
     concentrations.h \
@@ -224,7 +225,6 @@ pkginclude_HEADERS =  \
     fold_vars.h \
     grammar.h \
     heat_capacity.h \
-    MEA.h \
     mm.h \
     model.h \
     move_set.h\
@@ -259,6 +259,7 @@ vrna_constraints_HEADERS = \
     constraints/basic.h \
     constraints/ligand.h \
     constraints/hard.h \
+    constraints/SHAPE.h \
     constraints/soft.h \
     constraints/soft_special.h
 
@@ -384,8 +385,10 @@ vrna_params_HEADERS = \
 
 vrna_structures_HEADERS = \
     structures/benchmark.h \
+    structures/centroid.h \
     structures/dotbracket.h \
     structures/helix.h \
+    structures/mea.h \
     structures/metrics.h \
     structures/pairtable.h \
     structures/problist.h \
@@ -430,7 +433,6 @@ libRNA_conv_la_SOURCES = \
     stringdist.c \
     ProfileAln.c \
     duplex.c \
-    MEA.c \
     mm.c \
     2Dfold.c \
     2Dpfold.c \
@@ -441,7 +443,6 @@ libRNA_conv_la_SOURCES = \
     snofold.c \
     snoop.c \
     perturbation_fold.c \
-    centroid.c \
     model.c \
     ${JSON_SRC} \
     unstructured_domains.c \
@@ -493,8 +494,10 @@ libRNA_probing_la_SOURCES = \
 
 libRNA_structures_la_SOURCES = \
     structures/structure_benchmark.c \
+    structures/centroid.c \
     structures/structure_dotbracket.c \
     structures/structure_helix.c \
+    structures/mea.c \
     structures/structure_metrics.c \
     structures/structure_pairtable.c \
     structures/structure_problist.c \

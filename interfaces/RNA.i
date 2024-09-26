@@ -44,6 +44,8 @@ extern "C" {
 #include <ViennaRNA/structures/shapes.h>
 #include <ViennaRNA/structures/tree.h>
 #include <ViennaRNA/structures/utils.h>
+#include <ViennaRNA/structures/centroid.h>
+#include <ViennaRNA/structures/mea.h>
 
 #include  <ViennaRNA/params/constants.h>
 #include  <ViennaRNA/params/basic.h>
@@ -117,8 +119,6 @@ extern "C" {
 #include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/concentrations.h>
 #include  <ViennaRNA/LPfold.h>
-#include  <ViennaRNA/centroid.h>
-#include  <ViennaRNA/MEA.h>
 #include  <ViennaRNA/heat_capacity.h>
 
 #ifdef VRNA_WITH_SVM

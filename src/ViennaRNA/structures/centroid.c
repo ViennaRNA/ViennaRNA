@@ -18,7 +18,7 @@
 #include "ViennaRNA/utils/log.h"
 #include "ViennaRNA/fold_vars.h"
 #include "ViennaRNA/partfunc/gquad.h"
-#include "ViennaRNA/centroid.h"
+#include "ViennaRNA/structures/centroid.h"
 
 /*
  #################################
