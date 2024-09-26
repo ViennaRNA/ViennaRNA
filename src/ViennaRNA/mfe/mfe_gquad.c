@@ -16,7 +16,7 @@
 #include "ViennaRNA/datastructures/basic.h"
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/mfe/gquad.h"
-#include "ViennaRNA/loops/gquad_intern.h"
+#include "ViennaRNA/intern/gquad_helpers.h"
 
 
 /*

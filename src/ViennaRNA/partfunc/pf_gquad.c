@@ -23,7 +23,7 @@
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/partfunc/gquad.h"
 
-#include "ViennaRNA/loops/gquad_intern.h"
+#include "ViennaRNA/intern/gquad_helpers.h"
 
 
 #ifndef INLINE

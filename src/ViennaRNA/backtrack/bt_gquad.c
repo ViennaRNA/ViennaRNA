@@ -24,7 +24,7 @@
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/backtrack/gquad.h"
 
-#include "ViennaRNA/loops/gquad_intern.h"
+#include "ViennaRNA/intern/gquad_helpers.h"
 
 
 #ifndef INLINE

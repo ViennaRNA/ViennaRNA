@@ -22,7 +22,7 @@
 #include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/subopt/gquad.h"
 
-#include "ViennaRNA/loops/gquad_intern.h"
+#include "ViennaRNA/intern/gquad_helpers.h"
 
 /*
  #################################

@@ -724,7 +724,6 @@ nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
               grammar.inc \
-              loops/gquad_intern.h \
               constraints/hc_depot.inc \
               constraints/exterior_hc.inc \
               constraints/exterior_sc.inc \
@@ -747,6 +746,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               ${SVM_H} \
               ${JSON_H} \
               intern/color_output.h \
+              intern/gquad_helpers.h \
               params/special_const.h \
               unistd_win.h \
               io/sanitize.h
