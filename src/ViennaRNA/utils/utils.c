@@ -28,7 +28,7 @@
 #include <unistd.h>
 #endif
 
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #include "ViennaRNA/io/utils.h"
 #include "ViennaRNA/utils/log.h"

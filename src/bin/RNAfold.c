@@ -53,7 +53,7 @@
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
 #include "ViennaRNA/combinatorics/basic.h"
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 #include "ViennaRNA/io/sanitize.h"
 
 #include "RNAfold_cmdl.h"

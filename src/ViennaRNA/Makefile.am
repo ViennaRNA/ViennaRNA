@@ -746,7 +746,7 @@ EXTRA_DIST =  $(pkginclude_HEADERS) \
               landscape/local_neighbors.inc \
               ${SVM_H} \
               ${JSON_H} \
-              color_output.inc \
+              intern/color_output.h \
               params/special_const.h \
               unistd_win.h \
               io/sanitize.h

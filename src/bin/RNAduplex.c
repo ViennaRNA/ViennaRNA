@@ -26,7 +26,7 @@
 #include "gengetopt_helpers.h"
 #include "RNAduplex_cmdl.h"
 
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 PRIVATE void
 print_struc(duplexT const *dup);

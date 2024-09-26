@@ -27,7 +27,7 @@
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
 #include "ViennaRNA/heat_capacity.h"
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #include "RNAheat_cmdl.h"
 #include "gengetopt_helpers.h"

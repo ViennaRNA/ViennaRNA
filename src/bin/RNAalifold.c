@@ -51,7 +51,7 @@
 #include "input_id_helpers.h"
 #include "parallel_helpers.h"
 
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #define DBL_ROUND(a, digits) (round((a) * pow(10., (double)(digits))) / pow(10., (double)(digits)))
 

@@ -37,7 +37,7 @@
 #include "input_id_helpers.h"
 #include "modified_bases_helpers.h"
 
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #ifndef isnan
 #define isnan(x) \

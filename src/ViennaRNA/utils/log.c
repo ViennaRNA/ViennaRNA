@@ -29,7 +29,7 @@
 # include <pthread.h>
 #endif
 
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/utils/basic.h"

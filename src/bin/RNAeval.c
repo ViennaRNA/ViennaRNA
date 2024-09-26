@@ -36,7 +36,7 @@
 #include "ViennaRNA/datastructures/char_stream.h"
 #include "ViennaRNA/datastructures/stream_output.h"
 #include "ViennaRNA/datastructures/string.h"
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #include "RNAeval_cmdl.h"
 #include "gengetopt_helpers.h"

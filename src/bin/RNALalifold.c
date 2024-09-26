@@ -37,7 +37,7 @@
 #include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #define DEFAULT_SPAN  70;
 

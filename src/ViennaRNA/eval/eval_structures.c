@@ -55,7 +55,7 @@
 #include "ViennaRNA/datastructures/array.h"
 #include "ViennaRNA/eval/structures.h"
 
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #define   ADD_OR_INF(a, b)     (((a) != INF) && ((b) != INF) ?  (a) + (b) : INF)
 

@@ -1,3 +1,5 @@
+#ifndef VRNA_INTERN_COLOR_OUTPUT_H
+#define VRNA_INTERN_COLOR_OUTPUT_H
 
 /* deactivate ANSI colors in TTY output if we compile for windows */
 #ifndef VRNA_WITHOUT_TTY_COLORS
@@ -547,3 +549,4 @@ print_comment(FILE *fp,
 
 #endif
 
+#endif

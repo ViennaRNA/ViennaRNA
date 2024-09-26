@@ -27,7 +27,7 @@
 #include "gengetopt_helpers.h"
 #include "RNAinverse_cmdl.h"
 
-#include "ViennaRNA/color_output.inc"
+#include "ViennaRNA/intern/color_output.h"
 
 #ifdef dmalloc
 #include  "/usr/local/include/dmalloc.h"
