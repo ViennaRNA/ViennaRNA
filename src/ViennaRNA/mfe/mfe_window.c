@@ -81,6 +81,18 @@ struct aux_arrays {
   vrna_mx_mfe_aux_ml_t  ml_helpers;
 };
 
+struct block {
+  vrna_fold_compound_t *fc;
+  short *pt;
+  unsigned long int start;
+  unsigned long int end;
+  unsigned long int shift;
+  int energy;
+  int energy_no3d;                   /* energy without 3'dangle */
+  struct block *next_entry;
+};
+
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -207,6 +219,10 @@ want_backtrack(vrna_fold_compound_t *fc,
 
 
 #endif
+
+
+PRIVATE void
+print_block_list(struct block *block_list) VRNA_UNUSED;
 
 
 /*
@@ -1202,7 +1218,7 @@ make_pscores(vrna_fold_compound_t *fc,
 
 PRIVATE void
 default_callback(unsigned int start,
-                 unsigned int end,
+                 unsigned int end VRNA_UNUSED,
                  const char   *structure,
                  float        en,
                  void         *data)
@@ -1220,7 +1236,7 @@ default_callback(unsigned int start,
 #ifdef VRNA_WITH_SVM
 PRIVATE void
 default_callback_z(unsigned int start,
-                   unsigned int end,
+                   unsigned int end VRNA_UNUSED,
                    const char   *structure,
                    float        en,
                    float        zscore,
@@ -1262,18 +1278,6 @@ default_callback_comparative(unsigned int start,
       fprintf(output, "%s (%6.2f) %4u - %4u\n", structure, en, start, end);
   }
 }
-
-
-struct block {
-  vrna_fold_compound_t *fc;
-  short *pt;
-  unsigned long int start;
-  unsigned long int end;
-  unsigned long int shift;
-  int energy;
-  int energy_no3d;                   /* energy without 3'dangle */
-  struct block *next_entry;
-};
 
 
 PRIVATE int
