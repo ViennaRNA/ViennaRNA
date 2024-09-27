@@ -183,7 +183,10 @@ set_salt_DNA(vrna_md_t *md);
     /* salt correction support */ \
     ggo_get_salt(ggostruct, md.salt); \
     /* set energy model */ \
-    ggo_get_energyModel(ggostruct, md.energy_set); \
+    { ggo_get_energyModel(ggostruct, md.energy_set); \
+      if(md.energy_set > 0) \
+        vrna_md_update(&md); \
+    } \
     /* Allow other pairs in addition to the usual AU,GC,and GU pairs */ \
     { char *ns_bases = NULL; \
       ggo_get_nsp(ggostruct, ns_bases); \
