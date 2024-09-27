@@ -190,7 +190,7 @@ vrna_salt_ml(double saltLoop[], int lower, int upper, int* m, int* b)
 PUBLIC int
 vrna_salt_duplex_init(vrna_md_t *md_p)
 {
-  double    a, x, penalty;
+  double    x;
   vrna_md_t md;
 
   if (md_p == NULL) {
