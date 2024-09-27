@@ -1,3 +1,6 @@
+#include <ViennaRNA/utils/basic.h>
+
+
 struct sc_mb_dat;
 
 typedef int (*sc_mb_pair_cb)(int               i,
@@ -102,7 +105,7 @@ sc_mb_pair_cb_bp_local_comparative(int              i,
 
 PRIVATE INLINE int
 sc_mb_pair_cb_5_up(int              i,
-                   int              j,
+                   int              j VRNA_UNUSED,
                    struct sc_mb_dat *data)
 {
   return data->up[i + 1][1];
@@ -111,7 +114,7 @@ sc_mb_pair_cb_5_up(int              i,
 
 PRIVATE INLINE int
 sc_mb_pair_cb_5_up_comparative(int              i,
-                               int              j,
+                               int              j VRNA_UNUSED,
                                struct sc_mb_dat *data)
 {
   unsigned int  s, length, **a2s;
@@ -133,7 +136,7 @@ sc_mb_pair_cb_5_up_comparative(int              i,
 
 
 PRIVATE INLINE int
-sc_mb_pair_cb_3_up(int              i,
+sc_mb_pair_cb_3_up(int              i VRNA_UNUSED,
                    int              j,
                    struct sc_mb_dat *data)
 {
@@ -142,7 +145,7 @@ sc_mb_pair_cb_3_up(int              i,
 
 
 PRIVATE INLINE int
-sc_mb_pair_cb_3_up_comparative(int              i,
+sc_mb_pair_cb_3_up_comparative(int              i VRNA_UNUSED,
                                int              j,
                                struct sc_mb_dat *data)
 {
