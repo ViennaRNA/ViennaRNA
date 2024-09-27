@@ -122,7 +122,7 @@ vrna_ht_get(struct vrna_hash_table_s  *ht,
 
     vrna_hash_entry_list_t *entries = ht->Hash_table[hashval];
     if (entries) {
-      int i;
+      size_t i;
       for (i = 0; i < entries->length; i++) {
         if (ht->Compare_function(x, entries->hash_entries[i]) == 0)
           //found the same entry
@@ -153,7 +153,7 @@ vrna_ht_insert(struct vrna_hash_table_s *ht,
       vrna_hash_entry_list_t *entries = (vrna_hash_entry_list_t *)ht->Hash_table[hashval];
       if (entries) {
         //at first test if the entry is already in the list.
-        int i;
+        size_t i;
         for (i = 0; i < entries->length; i++) {
           if (ht->Compare_function(x, entries->hash_entries[i]) == 0)
             //found the same entry
@@ -194,13 +194,13 @@ vrna_ht_insert(struct vrna_hash_table_s *ht,
 PUBLIC void
 vrna_ht_clear(struct vrna_hash_table_s *ht)
 {
-  unsigned int i;
+  unsigned int k;
 
   if (ht) {
-    for (i = 0; i < ht->Hash_size + 1; i++) {
-      vrna_hash_entry_list_t *entries = ht->Hash_table[i];
+    for (k = 0; k < ht->Hash_size + 1; k++) {
+      vrna_hash_entry_list_t *entries = ht->Hash_table[k];
       if (entries) {
-        int i;
+        size_t i;
         for (i = 0; i < entries->length; i++) {
           ht->Free_hash_entry(entries->hash_entries[i]);
           entries->hash_entries[i] = NULL;
@@ -245,12 +245,12 @@ vrna_ht_remove(struct vrna_hash_table_s *ht,
 
     vrna_hash_entry_list_t *entries = ht->Hash_table[hashval];
     if (entries) {
-      int i;
+      size_t i;
       for (i = 0; i < entries->length; i++) {
         if (ht->Compare_function(x, entries->hash_entries[i]) == 0) {
           //found the same entry --> shift the list to the left in order to delete the value.
-          int size_rest = entries->length - i - 1;
-          if (size_rest <= 0) {
+          size_t size_rest = entries->length - i - 1;
+          if (size_rest == 0) {
             entries->hash_entries[i] = 0;
           } else {
             void  *offset     = entries->hash_entries + i;
@@ -330,14 +330,14 @@ PUBLIC unsigned int
 vrna_ht_db_hash_func(void           *x,
                      unsigned long  hashtable_size)
 {
-  register unsigned char  *k;           /* the key */
+  register char           *k;           /* the key */
   register unsigned int   length;       /* the length of the key */
   register unsigned int   initval = 0;  /* the previous hash, or an arbitrary value */
   register unsigned int   a, b, c, len;
 
   /* Set up the internal state */
   k   = ((vrna_ht_entry_db_t *)x)->structure;
-  len = length = (unsigned int)strlen(k);
+  len = length = strlen(k);
   a   = b = 0x9e3779b9; /* the golden ratio; an arbitrary value */
   c   = initval;        /* the previous hash value */
 
@@ -361,28 +361,39 @@ vrna_ht_db_hash_func(void           *x,
     /* all the case statements fall through */
     case 11:
       c += ((unsigned int)k[10] << 24);
+      /* fall through */
     case 10:
       c += ((unsigned int)k[9] << 16);
+      /* fall through */
     case 9:
       c += ((unsigned int)k[8] << 8);
     /* the first byte of c is reserved for the length */
+      /* fall through */
     case 8:
       b += ((unsigned int)k[7] << 24);
+      /* fall through */
     case 7:
       b += ((unsigned int)k[6] << 16);
+      /* fall through */
     case 6:
       b += ((unsigned int)k[5] << 8);
+      /* fall through */
     case 5:
       b += k[4];
+      /* fall through */
     case 4:
       a += ((unsigned int)k[3] << 24);
+      /* fall through */
     case 3:
       a += ((unsigned int)k[2] << 16);
+      /* fall through */
     case 2:
       a += ((unsigned int)k[1] << 8);
+      /* fall through */
     case 1:
       a += k[0];
       /* case 0: nothing left to add */
+      break;
   }
   mix(a, b, c);
   /*-------------------------------------------- report the result */
