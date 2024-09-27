@@ -27,7 +27,7 @@ vrna_bt_f(vrna_fold_compound_t  *fc,
           vrna_bps_t            bp_stack,
           vrna_bts_t            bt_stack)
 {
-  unsigned int  n, ret = 0;
+  unsigned int  ret = 0;
   int           e;
 
   e = INF;
@@ -36,8 +36,6 @@ vrna_bt_f(vrna_fold_compound_t  *fc,
       (bp_stack) &&
       (bt_stack) &&
       (fc->matrices)) {
-    n = fc->length;
-
     if ((i == 1) &&
         (fc->matrices->type == VRNA_MX_DEFAULT) &&
         (fc->matrices->f5)) {
