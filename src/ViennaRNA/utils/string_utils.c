@@ -146,7 +146,8 @@ vrna_strcat_vprintf(char        **dest,
                     va_list     args)
 {
   char    *buf;
-  int     r, l1, l2;
+  int     r;
+  size_t  l1, l2;
   size_t  old_count, new_count;
 
   if ((!dest) || (!format))
