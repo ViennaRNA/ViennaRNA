@@ -125,7 +125,7 @@ PRIVATE unsigned int
 bt_ext_loop_f3(vrna_fold_compound_t *fc,
                unsigned int         i,
                unsigned int         j,
-               vrna_bps_t           bp_stack,
+               vrna_bps_t           bp_stack VRNA_UNUSED,
                vrna_bts_t           bt_stack)
 {
   char                  **ptype;
@@ -510,7 +510,7 @@ PRIVATE unsigned int
 bt_ext_loop_f3_comparative(vrna_fold_compound_t *fc,
                            unsigned int         i,
                            unsigned int         j,
-                           vrna_bps_t           bp_stack,
+                           vrna_bps_t           bp_stack VRNA_UNUSED,
                            vrna_bts_t           bt_stack)
 {
   short                 **S, **S5, **S3;
