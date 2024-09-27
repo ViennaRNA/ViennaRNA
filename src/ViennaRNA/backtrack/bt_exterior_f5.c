@@ -85,7 +85,7 @@ vrna_bt_exterior_f5(vrna_fold_compound_t  *fc,
 PRIVATE unsigned int
 bt_ext_loop_f5(vrna_fold_compound_t *fc,
                unsigned int         j,
-               vrna_bps_t           bp_stack,
+               vrna_bps_t           bp_stack VRNA_UNUSED,
                vrna_bts_t           bt_stack)
 {
   char                  *ptype;
@@ -148,7 +148,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       }
 
       /* next, try nibble off a ligand */
-      for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
+      for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
         u = domains_up->uniq_motif_size[cnt];
         if ((j >= u) &&
             evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
@@ -571,7 +571,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 PRIVATE unsigned int
 bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
                            unsigned int         j,
-                           vrna_bps_t           bp_stack,
+                           vrna_bps_t           bp_stack VRNA_UNUSED,
                            vrna_bts_t           bt_stack)
 {
   unsigned int          **a2s, n;
