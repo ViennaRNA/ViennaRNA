@@ -134,7 +134,7 @@ PRIVATE unsigned int
 bt_mb_loop_split(vrna_fold_compound_t *fc,
                  unsigned int         i,
                  unsigned int         j,
-                 vrna_bps_t           bp_stack,
+                 vrna_bps_t           bp_stack VRNA_UNUSED,
                  vrna_bts_t           bt_stack)
 {
   unsigned char         sliding_window;
@@ -671,7 +671,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
            unsigned int         i,
            unsigned int         j,
            int                  en,
-           vrna_bps_t           bp_stack,
+           vrna_bps_t           bp_stack VRNA_UNUSED,
            vrna_bts_t           bt_stack)
 {
   unsigned char         sliding_window;
