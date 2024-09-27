@@ -204,7 +204,7 @@ rd_6dim(char    **content,
         size_t  *line_no,
         int     *array,
         int     dim[6],
-        int     shift[6]);
+        int     shift[6]) VRNA_UNUSED;
 
 
 PRIVATE void
@@ -252,7 +252,7 @@ save_parameter_file(const char    fname[],
  */
 PUBLIC int
 vrna_params_load(const char   fname[],
-                 unsigned int options)
+                 unsigned int options VRNA_UNUSED)
 {
   char  *name, **file_content, **ptr;
   int   ret;
@@ -288,7 +288,7 @@ vrna_params_save(const char   fname[],
 PUBLIC int
 vrna_params_load_from_string(const char   *string,
                              const char   *name,
-                             unsigned int options)
+                             unsigned int options VRNA_UNUSED)
 {
   int ret = 0;
 
@@ -1344,10 +1344,10 @@ update_nst(int array[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5])
 
 PRIVATE int
 save_parameter_file(const char    fname[],
-                    unsigned int  options)
+                    unsigned int  options VRNA_UNUSED)
 {
   FILE  *outfp;
-  int   c;
+  size_t   c;
   char  *pnames[] = {
     "NP", "CG", "GC", "GU", "UG", "AU", "UA", " @"
   };
@@ -1373,7 +1373,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMH));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchH37[k][i], 5, 5, outfp);
@@ -1381,7 +1381,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMH_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchHdH[k][i], 5, 5, outfp);
@@ -1389,7 +1389,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMI));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchI37[k][i], 5, 5, outfp);
@@ -1397,7 +1397,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMI_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchIdH[k][i], 5, 5, outfp);
@@ -1405,7 +1405,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMI1N));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatch1nI37[k][i], 5, 5, outfp);
@@ -1413,7 +1413,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMI1N_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatch1nIdH[k][i], 5, 5, outfp);
@@ -1421,7 +1421,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMI23));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatch23I37[k][i], 5, 5, outfp);
@@ -1429,7 +1429,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMI23_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatch23IdH[k][i], 5, 5, outfp);
@@ -1437,7 +1437,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMM));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchM37[k][i], 5, 5, outfp);
@@ -1445,7 +1445,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MMM_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchMdH[k][i], 5, 5, outfp);
@@ -1453,7 +1453,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MME));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchExt37[k][i], 5, 5, outfp);
@@ -1461,7 +1461,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(MME_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchExtdH[k][i], 5, 5, outfp);
@@ -1491,7 +1491,7 @@ save_parameter_file(const char    fname[],
   /* dont print "no pair" entries for internal loop arrays */
   fprintf(outfp, "\n# %s\n", settype(INT11));
   {
-    int i, k, l;
+    size_t i, k, l;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (l = 1; l < NBPAIRS + 1; l++) {
         fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
@@ -1502,7 +1502,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(INT11_H));
   {
-    int i, k, l;
+    size_t i, k, l;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (l = 1; l < NBPAIRS + 1; l++) {
         fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
@@ -1513,7 +1513,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(INT21));
   {
-    int p1, p2, i, j;
+    size_t p1, p2, i, j;
     for (p1 = 1; p1 < NBPAIRS + 1; p1++)
       for (p2 = 1; p2 < NBPAIRS + 1; p2++)
         for (i = 0; i < 5; i++) {
@@ -1526,7 +1526,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(INT21_H));
   {
-    int p1, p2, i, j;
+    size_t p1, p2, i, j;
     for (p1 = 1; p1 < NBPAIRS + 1; p1++)
       for (p2 = 1; p2 < NBPAIRS + 1; p2++)
         for (i = 0; i < 5; i++) {
@@ -1539,7 +1539,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(INT22));
   {
-    int p1, p2, i, j, k;
+    size_t p1, p2, i, j, k;
     for (p1 = 1; p1 < NBPAIRS; p1++)
       for (p2 = 1; p2 < NBPAIRS; p2++)
         for (i = 1; i < 5; i++)
@@ -1553,7 +1553,7 @@ save_parameter_file(const char    fname[],
 
   fprintf(outfp, "\n# %s\n", settype(INT22_H));
   {
-    int p1, p2, i, j, k;
+    size_t p1, p2, i, j, k;
     for (p1 = 1; p1 < NBPAIRS; p1++)
       for (p2 = 1; p2 < NBPAIRS; p2++)
         for (i = 1; i < 5; i++)
@@ -1855,7 +1855,7 @@ PUBLIC void
 write_parameter_file(const char fname[])
 {
   FILE  *outfp;
-  int   c;
+  size_t   c;
   char  *pnames[] = {
     "NP", "CG", "GC", "GU", "UG", "AU", "UA", " @"
   };
@@ -1881,7 +1881,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMH));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchH37[k][i], 5, 5, outfp);
@@ -1889,7 +1889,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMH_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchHdH[k][i], 5, 5, outfp);
@@ -1897,7 +1897,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMI));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchI37[k][i], 5, 5, outfp);
@@ -1905,7 +1905,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMI_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchIdH[k][i], 5, 5, outfp);
@@ -1913,7 +1913,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMI1N));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatch1nI37[k][i], 5, 5, outfp);
@@ -1921,7 +1921,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMI1N_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatch1nIdH[k][i], 5, 5, outfp);
@@ -1929,7 +1929,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMI23));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatch23I37[k][i], 5, 5, outfp);
@@ -1937,7 +1937,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMI23_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatch23IdH[k][i], 5, 5, outfp);
@@ -1945,7 +1945,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMM));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchM37[k][i], 5, 5, outfp);
@@ -1953,7 +1953,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MMM_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchMdH[k][i], 5, 5, outfp);
@@ -1961,7 +1961,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MME));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchExt37[k][i], 5, 5, outfp);
@@ -1969,7 +1969,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(MME_H));
   {
-    int i, k;
+    size_t i, k;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (i = 0; i < 5; i++)
         display_array(mismatchExtdH[k][i], 5, 5, outfp);
@@ -1999,7 +1999,7 @@ write_parameter_file(const char fname[])
   /* dont print "no pair" entries for interior loop arrays */
   fprintf(outfp, "\n# %s\n", settype(INT11));
   {
-    int i, k, l;
+    size_t i, k, l;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (l = 1; l < NBPAIRS + 1; l++) {
         fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
@@ -2010,7 +2010,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(INT11_H));
   {
-    int i, k, l;
+    size_t i, k, l;
     for (k = 1; k < NBPAIRS + 1; k++)
       for (l = 1; l < NBPAIRS + 1; l++) {
         fprintf(outfp, "/* %2s..%2s */\n", pnames[k], pnames[l]);
@@ -2021,7 +2021,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(INT21));
   {
-    int p1, p2, i, j;
+    size_t p1, p2, i, j;
     for (p1 = 1; p1 < NBPAIRS + 1; p1++)
       for (p2 = 1; p2 < NBPAIRS + 1; p2++)
         for (i = 0; i < 5; i++) {
@@ -2034,7 +2034,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(INT21_H));
   {
-    int p1, p2, i, j;
+    size_t p1, p2, i, j;
     for (p1 = 1; p1 < NBPAIRS + 1; p1++)
       for (p2 = 1; p2 < NBPAIRS + 1; p2++)
         for (i = 0; i < 5; i++) {
@@ -2047,7 +2047,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(INT22));
   {
-    int p1, p2, i, j, k;
+    size_t p1, p2, i, j, k;
     for (p1 = 1; p1 < NBPAIRS; p1++)
       for (p2 = 1; p2 < NBPAIRS; p2++)
         for (i = 1; i < 5; i++)
@@ -2061,7 +2061,7 @@ write_parameter_file(const char fname[])
 
   fprintf(outfp, "\n# %s\n", settype(INT22_H));
   {
-    int p1, p2, i, j, k;
+    size_t p1, p2, i, j, k;
     for (p1 = 1; p1 < NBPAIRS; p1++)
       for (p2 = 1; p2 < NBPAIRS; p2++)
         for (i = 1; i < 5; i++)
