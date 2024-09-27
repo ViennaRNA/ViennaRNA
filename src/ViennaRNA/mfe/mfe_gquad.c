@@ -476,22 +476,6 @@ vrna_mfe_gquad_internal_loop(vrna_fold_compound_t *fc,
 }
 
 
-PUBLIC void
-vrna_mfe_gquad_mx_update(vrna_fold_compound_t *fc,
-                         unsigned int         start)
-{
-  if ((fc) &&
-      (fc->matrices) &&
-      (fc->matrices->type == VRNA_MX_WINDOW)) {
-    if (fc->matrices->ggg_local) {
-      /* update entries, i.e. rotate and fill */
-    } else {
-      /* create new matrix, i.e. init and fill */
-    }
-  }
-}
-
-
 PUBLIC int **
 get_gquad_L_matrix(short        *S,
                    int          start,
@@ -555,13 +539,13 @@ create_L_matrix(short         *S,
     data[start + maxdist + 5] = NULL;
 
     /* prefill with INF */
-    for (i = 0; i < maxdist + 5; i++)
+    for (i = 0; i < (unsigned int)maxdist + 5; i++)
       data[start][i] = INF;
 
     /*  now we compute contributions for all gquads with 5' delimiter at
      *  position 'start'
      */
-    FOR_EACH_GQUAD_AT(start, j, start + maxdist + 4){
+    FOR_EACH_GQUAD_AT((unsigned int)start, j, (unsigned int)(start + maxdist + 4)){
       process_gquad_enumeration(gg, start, j,
                                 &gquad_mfe,
                                 (void *)(&(data[start][j - start])),
@@ -575,18 +559,18 @@ create_L_matrix(short         *S,
 
     /* allocate memory and prefill with INF */
     data = (int **)vrna_alloc(sizeof(int *) * (n + 1));
-    for (k = n; (k + maxdist + 5 > n) && (k > 0); k--) {
+    for (k = n; ((int)k + maxdist + 5 > n) && (k > 0); k--) {
       data[k] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-      for (i = 0; i < maxdist + 5; i++)
+      for (i = 0; i < (unsigned int)maxdist + 5; i++)
         data[k][i] = INF;
     }
 
     /* compute all contributions for the gquads in this interval */
     unsigned int start = 1;
     if (maxdist + 4 < n)
-      start = n - maxdist - 4;
+      start = (unsigned int)(n - maxdist - 4);
 
-    FOR_EACH_GQUAD(i, j, start, n){
+    FOR_EACH_GQUAD(i, j, start, (unsigned int)n){
       process_gquad_enumeration(gg, i, j,
                                 &gquad_mfe,
                                 (void *)(&(data[i][j - i])),
@@ -637,13 +621,13 @@ create_aliL_matrix(int          start,
     data[start + maxdist + 5] = NULL;
 
     /* prefill with INF */
-    for (i = 0; i < maxdist + 5; i++)
+    for (i = 0; i < (unsigned int)maxdist + 5; i++)
       data[start][i] = INF;
 
     /*  now we compute contributions for all gquads with 5' delimiter at
      *  position 'start'
      */
-    FOR_EACH_GQUAD_AT(start, j, start + maxdist + 4){
+    FOR_EACH_GQUAD_AT((unsigned int)start, j, (unsigned int)(start + maxdist + 4)){
       process_gquad_enumeration(gg, start, j,
                                 &gquad_mfe_ali,
                                 (void *)(&(data[start][j - start])),
@@ -657,18 +641,22 @@ create_aliL_matrix(int          start,
 
     /* allocate memory and prefill with INF */
     data = (int **)vrna_alloc(sizeof(int *) * (n + 1));
-    for (k = n; (k > n - maxdist - 5) && (k >= 0); k--) {
+    k = 0;
+    if (maxdist + 4 < n)
+      k = n - maxdist - 4;
+
+    for (; k <= (unsigned int)n; k++) {
       data[k] = (int *)vrna_alloc(sizeof(int) * (maxdist + 5));
-      for (i = 0; i < maxdist + 5; i++)
+      for (i = 0; i < (unsigned int)maxdist + 5; i++)
         data[k][i] = INF;
     }
 
     /* compute all contributions for the gquads in this interval */
     unsigned int start = 1;
     if (maxdist + 4 < n)
-      start = n - maxdist - 4;
+      start = (unsigned int)(n - maxdist - 4);
 
-    FOR_EACH_GQUAD(i, j, start, n){
+    FOR_EACH_GQUAD(i, j, start, (unsigned int)n){
       process_gquad_enumeration(gg, i, j,
                                 &gquad_mfe_ali,
                                 (void *)(&(data[i][j - i])),
@@ -691,13 +679,13 @@ create_aliL_matrix(int          start,
  #########################################
  */
 PRIVATE void
-gquad_mfe(unsigned int  i,
+gquad_mfe(unsigned int  i VRNA_UNUSED,
           unsigned int  L,
           unsigned int  *l,
           void          *data,
           void          *P,
-          void          *NA,
-          void          *NA2)
+          void          *NA VRNA_UNUSED,
+          void          *NA2 VRNA_UNUSED)
 {
   int cc = ((vrna_param_t *)P)->gquad[L][l[0] + l[1] + l[2]];
 
@@ -712,8 +700,8 @@ gquad_mfe_ali(unsigned int  i,
               unsigned int  *l,
               void          *data,
               void          *helper,
-              void          *NA,
-              void          *NA2)
+              void          *NA VRNA_UNUSED,
+              void          *NA2 VRNA_UNUSED)
 {
   int en[2], cc;
 
@@ -736,8 +724,8 @@ gquad_mfe_ali_en(unsigned int i,
                  unsigned int *l,
                  void         *data,
                  void         *helper,
-                 void         *NA,
-                 void         *NA2)
+                 void         *NA VRNA_UNUSED,
+                 void         *NA2 VRNA_UNUSED)
 {
   const short             **S;
   const unsigned int      **a2s;
@@ -1188,7 +1176,7 @@ E_GQuad_IntLoop_L(int           i,
                   int           type,
                   short         *S,
                   int           **ggg,
-                  int           maxdist,
+                  int           maxdist VRNA_UNUSED,
                   vrna_param_t  *P)
 {
   int   energy, ge, dangles, p, q, l1, minq, maxq, c0;
