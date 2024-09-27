@@ -60,15 +60,15 @@ gquad_count(unsigned int   i,
  */
 
 vrna_array(int)
-vrna_gq_int_loop_subopt(vrna_fold_compound_t * fc,
-                        unsigned int i,
-                        unsigned int j,
-                        vrna_array(int) * ps,
-                        vrna_array(int) * qs,
-                        int threshold){
-  unsigned int   type, p, q, l1, minq, maxq;
-  int   energy, *ge, e_gq, dangles, c0;
-  short *S, *S1, si, sj;
+vrna_gq_int_loop_subopt(vrna_fold_compound_t      *fc,
+                        unsigned int              i,
+                        unsigned int              j,
+                        vrna_array(unsigned int)  *ps,
+                        vrna_array(unsigned int)  *qs,
+                        int                       threshold){
+  short         *S, *S1, si, sj;
+  unsigned int  type, p, q, l1, minq, maxq;
+  int           energy, *ge, e_gq, dangles, c0;
 
   ge  = NULL;
   *ps = NULL;
@@ -205,46 +205,41 @@ vrna_gq_int_loop_subopt(vrna_fold_compound_t * fc,
 
 PUBLIC void
 get_gquad_pattern_exhaustive(short        *S,
-                             int          i,
-                             int          j,
+                             unsigned int i,
+                             unsigned int j,
                              vrna_param_t *P,
-                             int          *L,
-                             int          *l,
+                             unsigned int *L,
+                             unsigned int *l,
                              int          threshold)
 {
-  unsigned int *gg, LL, ll[3];
+  unsigned int *gg;
 
-  gg = get_g_islands_sub(S, (unsigned int)i, (unsigned int)j);
+  gg = get_g_islands_sub(S, i, j);
 
   process_gquad_enumeration(gg, i, j,
                             &gquad_pos_exhaustive,
                             (void *)(&threshold),
                             (void *)P,
-                            (void *)&LL,
-                            (void *)ll);
+                            (void *)&L,
+                            (void *)l);
 
-  gg += (unsigned int)i - 1;
+  gg += i - 1;
 
-  *L = LL;
-  l[0] = ll[0];
-  l[1] = ll[1];
-  l[2] = ll[2];
   free(gg);
 }
 
 
-PUBLIC int
-get_gquad_count(short *S,
-                int   i,
-                int   j)
+PUBLIC unsigned int
+get_gquad_count(short         *S,
+                unsigned int  i,
+                unsigned int  j)
 {
-  unsigned int p, q, *gg;
-  int           counter;
+  unsigned int p, q, *gg, counter;
 
-  gg = get_g_islands_sub(S, (unsigned int)i, (unsigned int)j);
+  gg = get_g_islands_sub(S, i, j);
   counter = 0;
 
-  FOR_EACH_GQUAD(p, q, (unsigned int)i, (unsigned int)j)
+  FOR_EACH_GQUAD(p, q, i, j)
   process_gquad_enumeration(gg, p, q,
                             &gquad_count,
                             (void *)(&counter),
@@ -252,8 +247,9 @@ get_gquad_count(short *S,
                             NULL,
                             NULL);
 
-  gg += (unsigned int)i - 1;
+  gg += i - 1;
   free(gg);
+
   return counter;
 }
 
@@ -305,7 +301,7 @@ gquad_count(unsigned int   i,
             void  *NA2,
             void  *NA3)
 {
-  *((int *)data) += 1;
+  *((unsigned int *)data) += 1;
 }
 
 

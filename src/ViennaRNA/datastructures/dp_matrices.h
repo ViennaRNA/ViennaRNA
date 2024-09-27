@@ -18,11 +18,12 @@
 
 #define VRNA_MX_FLAG_F5     0U
 #define VRNA_MX_FLAG_F3     7U
+#define VRNA_MX_FLAG_C      2U
+#define VRNA_MX_FLAG_M      1U
+#define VRNA_MX_FLAG_M2     8U
+#define VRNA_MX_FLAG_M1     3U
 #define VRNA_MX_FLAG_MS5    4U
 #define VRNA_MX_FLAG_MS3    5U
-#define VRNA_MX_FLAG_M      1U
-#define VRNA_MX_FLAG_M1     3U
-#define VRNA_MX_FLAG_C      2U
 #define VRNA_MX_FLAG_G      6U
 
 /* The following define should indicate the maximum matrix flag we use internally
