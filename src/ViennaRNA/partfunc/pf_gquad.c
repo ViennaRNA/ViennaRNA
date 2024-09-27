@@ -674,7 +674,7 @@ vrna_plist_gquad_from_pr_max(vrna_fold_compound_t *fc,
                              unsigned int                  lmax[3])
 {
   short             *S_enc, *S_tmp;
-  unsigned int      n, n2, **a2s, real_j, *gg;
+  unsigned int      n, n2, real_j, *gg;
   int               size, counter, i, j, *my_index;
   FLT_OR_DBL        pp, *tempprobs, *probs, *scale;
   plist             *pl;
@@ -848,13 +848,13 @@ vrna_plist_gquad_from_pr(vrna_fold_compound_t *fc,
  #########################################
  */
 PRIVATE void
-gquad_pf(unsigned int  i,
+gquad_pf(unsigned int  i VRNA_UNUSED,
          unsigned int  L,
          unsigned int  *l,
          void *data,
          void *pf,
-         void *NA,
-         void *NA2)
+         void *NA VRNA_UNUSED,
+         void *NA2 VRNA_UNUSED)
 {
   *((FLT_OR_DBL *)data) += ((vrna_exp_param_t *)pf)->expgquad[L][l[0] + l[1] + l[2]];
 }
@@ -866,8 +866,8 @@ gquad_pf_ali(unsigned int  i,
              unsigned int  *l,
              void *data,
              void *helper,
-             void *NA,
-             void *NA2)
+             void *NA VRNA_UNUSED,
+             void *NA2 VRNA_UNUSED)
 {
   const short             **S;
   const unsigned int      **a2s;
@@ -948,8 +948,7 @@ count_gquad_layer_mismatches(unsigned int          L,
                              const short  **S,
                              unsigned int mm[2])
 {
-  unsigned int  s, layer_pos[4], mismatch;
-  int           cnt;
+  unsigned int  s, layer_pos[4], mismatch, cnt;
 
   mm[0] = mm[1] = 0;
 
@@ -1123,8 +1122,8 @@ gquad_pf_pos_ali(unsigned int  i,
                  unsigned int  *l,
                  void *data,
                  void *helper,
-                 void *NA,
-                 void *NA2)
+                 void *NA VRNA_UNUSED,
+                 void *NA2 VRNA_UNUSED)
 {
   FLT_OR_DBL              gq        = 0.;
   struct gquad_ali_helper *gq_help  = (struct gquad_ali_helper *)helper;
@@ -1148,19 +1147,16 @@ gquad_interact(unsigned int  i,
                void *data,
                void *pf,
                void *index,
-               void *NA2)
+               void *NA2 VRNA_UNUSED)
 {
-  int         x, *idx, LL, ll[3];
-  FLT_OR_DBL  gq, *pp;
+  unsigned int  x;
+  int           *idx;
+  FLT_OR_DBL    gq, *pp;
 
   idx = (int *)index;
   pp  = (FLT_OR_DBL *)data;
-  LL  = (int)L;
-  ll[0] = (int)l[0];
-  ll[1] = (int)l[1];
-  ll[2] = (int)l[2];
 
-  gq  = exp_E_gquad(LL, ll, (vrna_exp_param_t *)pf);
+  gq  = vrna_exp_E_gquad(L, l, (vrna_exp_param_t *)pf);
 
   for (x = 0; x < L; x++) {
     pp[idx[i + x] - (i + x + 3 * L + l[0] + l[1] + l[2])]                       += gq;
@@ -1178,10 +1174,11 @@ gquad_interact_ali(unsigned int  i,
                    void *data,
                    void *index,
                    void *helper,
-                   void *NA)
+                   void *NA VRNA_UNUSED)
 {
-  int         x, *idx, bad;
-  FLT_OR_DBL  gq, *pp;
+  unsigned int  x;
+  int           *idx, bad;
+  FLT_OR_DBL    gq, *pp;
 
   idx = (int *)index;
   pp  = (FLT_OR_DBL *)data;
