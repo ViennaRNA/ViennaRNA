@@ -602,7 +602,7 @@ PRIVATE INLINE int
 ml_pair53(vrna_fold_compound_t  *fc,
           unsigned int          i,
           unsigned int          j,
-          int                   *dmli1,
+          int                   *dmli1 VRNA_UNUSED,
           int                   *dmli2,
           vrna_hc_eval_f        evaluate,
           struct hc_mb_def_dat  *hc_wrapper,
