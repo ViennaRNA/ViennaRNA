@@ -386,16 +386,16 @@ expLoopEnergy(int   u1,
 
 
 PUBLIC void
-init_pf_circ_fold(int length)
+init_pf_circ_fold(int length VRNA_UNUSED)
 {
-  /* DO NOTHING */
+  ;/* DO NOTHING */
 }
 
 
 PUBLIC void
-init_pf_fold(int length)
+init_pf_fold(int length VRNA_UNUSED)
 {
-  /* DO NOTHING */
+  ;/* DO NOTHING */
 }
 
 
@@ -497,7 +497,7 @@ pbacktrack(char *seq)
 
 
 PUBLIC char *
-pbacktrack5(char  *seq,
+pbacktrack5(char  *seq VRNA_UNUSED,
             int   length)
 {
   /* the seq parameter must no differ to the one stored globally anyway, so we just ignore it */
@@ -506,7 +506,7 @@ pbacktrack5(char  *seq,
 
 
 PUBLIC char *
-pbacktrack_circ(char *seq)
+pbacktrack_circ(char *seq VRNA_UNUSED)
 {
   char      *structure;
   vrna_md_t *md;
@@ -524,7 +524,7 @@ pbacktrack_circ(char *seq)
 
 
 PUBLIC void
-update_pf_params(int length)
+update_pf_params(int length VRNA_UNUSED)
 {
   if (backward_compat_compound && backward_compat) {
     vrna_md_t md;
@@ -538,7 +538,7 @@ update_pf_params(int length)
 
 
 PUBLIC void
-update_pf_params_par(int              length,
+update_pf_params_par(int              length VRNA_UNUSED,
                      vrna_exp_param_t *parameters)
 {
   if (backward_compat_compound && backward_compat) {
@@ -557,7 +557,7 @@ update_pf_params_par(int              length,
 
 
 PUBLIC char *
-get_centroid_struct_gquad_pr(int    length,
+get_centroid_struct_gquad_pr(int    length VRNA_UNUSED,
                              double *dist)
 {
   return vrna_centroid(backward_compat_compound, dist);
@@ -566,7 +566,7 @@ get_centroid_struct_gquad_pr(int    length,
 
 PUBLIC void
 assign_plist_gquad_from_pr(vrna_ep_t  **pl,
-                           int        length, /* ignored */
+                           int        length VRNA_UNUSED, /* ignored */
                            double     cut_off)
 {
   if (!backward_compat_compound)
@@ -579,7 +579,7 @@ assign_plist_gquad_from_pr(vrna_ep_t  **pl,
 
 
 PUBLIC double
-mean_bp_distance(int length)
+mean_bp_distance(int length VRNA_UNUSED)
 {
   if (backward_compat_compound)
     if (backward_compat_compound->exp_matrices)
