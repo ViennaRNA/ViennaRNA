@@ -261,10 +261,10 @@ vrna_cstr_print_eval_mb_loop_revert(struct vrna_cstr_s  *buf,
 
 void
 vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
-                           int                i,
-                           int                j,
-                           int                L,
-                           int                l[3],
+                           unsigned int       i,
+                           unsigned int       j,
+                           unsigned int       L,
+                           unsigned int       l[3],
                            int                energy);
 
 

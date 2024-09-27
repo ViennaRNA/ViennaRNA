@@ -166,8 +166,8 @@ vrna_cstr_vprintf(struct vrna_cstr_s  *buf,
                   va_list             args)
 {
   char    *ptr;
-  int     r, l1, l2;
-  size_t  size_avail, size_old, size_new;
+  int     r;
+  size_t  size_avail, size_old, size_new, l1, l2;
 
   if ((!buf) && (!format))
     return -1;
@@ -202,11 +202,13 @@ vrna_cstr_vprintf(struct vrna_cstr_s  *buf,
     l2  = size_old;
   }
 
-  if ((size_new > 0) && (l1 < SIZE_MAX) && ((SIZE_MAX - l1) > l2)) {
+  if ((size_new > 0) &&
+      (l1 < SIZE_MAX) &&
+      (SIZE_MAX > (l1 + l2))) {
     /* increase string memory if necessary */
     if ((size_old + size_new + 1) > size_avail) {
       size_avail = size_old + size_new + 1;
-      if (size_avail < SIZE_MAX - CSTR_OVERHEAD)
+      if (size_avail + CSTR_OVERHEAD < SIZE_MAX)
         size_avail += CSTR_OVERHEAD;
 
       ptr = (char *)vrna_realloc(ptr, sizeof(char) * (size_avail));
@@ -219,7 +221,7 @@ vrna_cstr_vprintf(struct vrna_cstr_s  *buf,
     } else {
       buf->string = ptr;
       buf->size   = size_avail;
-      r           = size_old + size_new;
+      r           = (int)(size_old + size_new);
     }
   } else if (size_new == 0) {
     /* we do not treat empty format string as error */
@@ -855,10 +857,10 @@ vrna_cstr_print_eval_mb_loop_revert(struct vrna_cstr_s  *buf,
 
 PUBLIC void
 vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
-                           int                i,
-                           int                j,
-                           int                L,
-                           int                l[3],
+                           unsigned int                i,
+                           unsigned int                j,
+                           unsigned int       L,
+                           unsigned int       l[3],
                            int                energy)
 {
   if (!buf)
@@ -868,9 +870,9 @@ vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
   if (buf->istty) {
     vrna_cstr_printf(buf,
                      ANSI_COLOR_CYAN "G-Quadruplex " ANSI_COLOR_RESET
-                     " (%3d,%3d) "
-                     ANSI_COLOR_BRIGHT "L%d  " ANSI_COLOR_RESET
-                     "(%2d,%2d,%2d)  : "
+                     " (%3u,%3u) "
+                     ANSI_COLOR_BRIGHT "L%u  " ANSI_COLOR_RESET
+                     "(%2u,%2u,%2u)  : "
                      ANSI_COLOR_GREEN "%5d" ANSI_COLOR_RESET "\n",
                      i, j,
                      L, l[0], l[1], l[2],
@@ -879,9 +881,9 @@ vrna_cstr_print_eval_gquad(struct vrna_cstr_s *buf,
 #endif
   vrna_cstr_printf(buf,
                    "G-Quadruplex "
-                   " (%3d,%3d) "
-                   "L%d  "
-                   "(%2d,%2d,%2d)  : "
+                   " (%3u,%3u) "
+                   "L%u  "
+                   "(%2u,%2u,%2u)  : "
                    "%5d\n",
                    i, j,
                    L, l[0], l[1], l[2],
