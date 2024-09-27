@@ -1,3 +1,6 @@
+#include <ViennaRNA/utils/basic.h>
+
+
 struct sc_int_dat;
 
 typedef int (*sc_int_cb)(int               i,
@@ -87,8 +90,8 @@ sc_int_cb_up_comparative(int                i,
 PRIVATE INLINE int
 sc_int_cb_bp(int                i,
              int                j,
-             int                k,
-             int                l,
+             int                k VRNA_UNUSED,
+             int                l VRNA_UNUSED,
              struct sc_int_dat  *data)
 {
   return data->bp[data->idx[j] + i];
@@ -98,8 +101,8 @@ sc_int_cb_bp(int                i,
 PRIVATE INLINE int
 sc_int_cb_bp_comparative(int                i,
                          int                j,
-                         int                k,
-                         int                l,
+                         int                k VRNA_UNUSED,
+                         int                l VRNA_UNUSED,
                          struct sc_int_dat  *data)
 {
   unsigned int  s;
@@ -118,8 +121,8 @@ sc_int_cb_bp_comparative(int                i,
 PRIVATE INLINE int
 sc_int_cb_bp_local(int                i,
                    int                j,
-                   int                k,
-                   int                l,
+                   int                k VRNA_UNUSED,
+                   int                l VRNA_UNUSED,
                    struct sc_int_dat  *data)
 {
   return data->bp_local[i][j - i];
@@ -129,8 +132,8 @@ sc_int_cb_bp_local(int                i,
 PRIVATE INLINE int
 sc_int_cb_bp_local_comparative(int                i,
                                int                j,
-                               int                k,
-                               int                l,
+                               int                k VRNA_UNUSED,
+                               int                l VRNA_UNUSED,
                                struct sc_int_dat  *data)
 {
   unsigned int  s;
