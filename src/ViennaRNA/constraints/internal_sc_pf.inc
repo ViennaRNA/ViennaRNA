@@ -1,3 +1,6 @@
+#include <ViennaRNA/utils/basic.h>
+
+
 struct sc_int_exp_dat;
 
 typedef FLT_OR_DBL (*sc_int_exp_cb)(int                    i,
@@ -88,8 +91,8 @@ sc_int_exp_cb_up_comparative(int                    i,
 PRIVATE INLINE FLT_OR_DBL
 sc_int_exp_cb_bp(int                    i,
                  int                    j,
-                 int                    k,
-                 int                    l,
+                 int                    k VRNA_UNUSED,
+                 int                    l VRNA_UNUSED,
                  struct sc_int_exp_dat  *data)
 {
   return data->bp[data->idx[j] + i];
@@ -99,8 +102,8 @@ sc_int_exp_cb_bp(int                    i,
 PRIVATE INLINE FLT_OR_DBL
 sc_int_exp_cb_bp_comparative(int                    i,
                              int                    j,
-                             int                    k,
-                             int                    l,
+                             int                    k VRNA_UNUSED,
+                             int                    l VRNA_UNUSED,
                              struct sc_int_exp_dat  *data)
 {
   unsigned int  s;
@@ -119,8 +122,8 @@ sc_int_exp_cb_bp_comparative(int                    i,
 PRIVATE INLINE FLT_OR_DBL
 sc_int_exp_cb_bp_local(int                    i,
                        int                    j,
-                       int                    k,
-                       int                    l,
+                       int                    k VRNA_UNUSED,
+                       int                    l VRNA_UNUSED,
                        struct sc_int_exp_dat  *data)
 {
   return data->bp_local[i][j - i];
@@ -130,8 +133,8 @@ sc_int_exp_cb_bp_local(int                    i,
 PRIVATE INLINE FLT_OR_DBL
 sc_int_exp_cb_bp_local_comparative(int                    i,
                                    int                    j,
-                                   int                    k,
-                                   int                    l,
+                                   int                    k VRNA_UNUSED,
+                                   int                    l VRNA_UNUSED,
                                    struct sc_int_exp_dat  *data)
 {
   unsigned int  s;
