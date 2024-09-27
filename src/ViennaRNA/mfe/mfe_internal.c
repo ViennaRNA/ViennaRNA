@@ -501,7 +501,7 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
   unsigned int  *sn, **a2s, n_seq, s, n, *hc_up, type, type2, has_nick,
                 k, l, last_k, first_l, u1, u2, noGUclosure, with_ud,
                 with_gquad, noclose, u1_local, u2_local;
-  int           e, eee, e3, e5, *idx, ij, kl, *c, *rtype, **c_local, **ggg_local;
+  int           e, eee, e3, e5, *idx, ij, kl, *c, *rtype, **c_local;
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_ud_t     *domains_up;
@@ -530,7 +530,6 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
   a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   c           = (sliding_window) ? NULL : fc->matrices->c;
   c_local     = (sliding_window) ? fc->matrices->c_local : NULL;
-  ggg_local   = (sliding_window) ? fc->matrices->ggg_local : NULL;
   P           = fc->params;
   md          = &(P->model_details);
   rtype       = &(md->rtype[0]);
