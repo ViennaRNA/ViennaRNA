@@ -38,7 +38,7 @@
  */
 PUBLIC float
 Lfold(const char  *string,
-      const char  *structure,
+      const char  *structure VRNA_UNUSED,
       int         window_size)
 {
   float                 energy;
@@ -64,7 +64,7 @@ Lfold(const char  *string,
 
 PUBLIC float
 Lfoldz(const char *string,
-       const char *structure,
+       const char *structure VRNA_UNUSED,
        int        window_size,
        int        zsc,
        double     min_z)
@@ -93,7 +93,7 @@ Lfoldz(const char *string,
 
 PUBLIC float
 aliLfold(const char *AS[],
-         const char *structure,
+         const char *structure VRNA_UNUSED,
          int        maxdist)
 {
   float                 en;
