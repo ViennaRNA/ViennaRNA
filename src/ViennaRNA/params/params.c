@@ -1078,7 +1078,7 @@ get_exp_params_ali(vrna_md_t    *md,
 PRIVATE void
 rescale_params(vrna_fold_compound_t *vc)
 {
-  int               i;
+  unsigned int      i;
   vrna_exp_param_t  *pf = vc->exp_params;
   vrna_mx_pf_t      *m  = vc->exp_matrices;
 
