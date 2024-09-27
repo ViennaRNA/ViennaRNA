@@ -170,11 +170,11 @@ vrna_sc_multi_cb_add_comparative(vrna_fold_compound_t   *fc,
                                  vrna_auxdata_prepare_f *prepare_cbs,
                                  vrna_auxdata_free_f    *free_cbs,
                                  unsigned int           *ds,
-                                 unsigned int           multi_params)
+                                 unsigned int           multi_params VRNA_UNUSED)
 {
-  unsigned int      s, n_seq, n, **a2s;
+  unsigned int      s, n_seq;
   size_t            ret;
-  vrna_sc_t         *sc, **scs;
+  vrna_sc_t         *sc;
   sc_cb_container_t *data_multi;
   sc_multi_s        *multi_s;
 
@@ -184,15 +184,10 @@ vrna_sc_multi_cb_add_comparative(vrna_fold_compound_t   *fc,
       (fc->type == VRNA_FC_TYPE_COMPARATIVE) &&
       ((cbs) || (cbs_exp)) &&
       (ds)) {
-
-    n = fc->length;
     n_seq = fc->n_seq;
-    a2s   = fc->a2s;
 
     if (!fc->scs)
       vrna_sc_init(fc);
-
-    scs      = fc->scs;
 
     /* first, make sure that we initialize everything properly */
     /* note, that unless the callbacks already stored for this
