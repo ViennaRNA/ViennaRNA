@@ -650,7 +650,7 @@ rotate_dp_matrices(vrna_fold_compound_t *vc,
 
 PRIVATE INLINE void
 init_constraints(vrna_fold_compound_t *fc,
-                 unsigned int         options)
+                 unsigned int         options VRNA_UNUSED)
 {
   unsigned int j, max_j, winSize;
 
@@ -668,7 +668,7 @@ init_constraints(vrna_fold_compound_t *fc,
 PRIVATE INLINE void
 rotate_constraints(vrna_fold_compound_t *fc,
                    int                  j,
-                   unsigned int         options)
+                   unsigned int         options VRNA_UNUSED)
 {
   if (j + 1 <= (int)fc->length) {
     make_ptypes(fc, j + 1);
@@ -994,11 +994,11 @@ sc_contribution(vrna_fold_compound_t  *vc,
 
 
 PRIVATE FLT_OR_DBL
-sc_dummy(vrna_fold_compound_t *vc,
-         int                  i,
-         int                  j,
-         int                  k,
-         int                  l)
+sc_dummy(vrna_fold_compound_t *vc VRNA_UNUSED,
+         int                  i VRNA_UNUSED,
+         int                  j VRNA_UNUSED,
+         int                  k VRNA_UNUSED,
+         int                  l VRNA_UNUSED)
 {
   return 1.;
 }
@@ -1016,25 +1016,25 @@ add_QI5_contribution(FLT_OR_DBL **QI5,
 
 
 PRIVATE void
-add_QI5_dummy(FLT_OR_DBL  **QI5,
-              int         i,
-              int         j,
-              FLT_OR_DBL  q,
-              FLT_OR_DBL  qkl)
+add_QI5_dummy(FLT_OR_DBL  **QI5 VRNA_UNUSED,
+              int         i VRNA_UNUSED,
+              int         j VRNA_UNUSED,
+              FLT_OR_DBL  q VRNA_UNUSED,
+              FLT_OR_DBL  qkl VRNA_UNUSED)
 {
   return;
 }
 
 
 PRIVATE void
-compute_probs(vrna_fold_compound_t        *vc,
-              int                         j,
-              helper_arrays               *aux_arrays,
-              int                         ulength,
-              vrna_probs_window_f  cb,
-              void                        *data,
-              unsigned int                options,
-              int                         *ov)
+compute_probs(vrna_fold_compound_t  *vc,
+              int                   j,
+              helper_arrays         *aux_arrays,
+              int                   ulength VRNA_UNUSED,
+              vrna_probs_window_f   cb VRNA_UNUSED,
+              void                  *data VRNA_UNUSED,
+              unsigned int          options,
+              int                   *ov)
 {
   char              **ptype;
   short             *S1;
@@ -1154,8 +1154,8 @@ compute_probs(vrna_fold_compound_t        *vc,
       if (start_i < 1)
         start_i = 1;
 
-      int   u1 = 0;
-      short sk1, sl1, si1;
+      unsigned int  u1 = 0;
+      short         sk1, sl1, si1;
 
       sk1 = S1[k - 1];
       sl1 = S1[l + 1];
@@ -1174,7 +1174,7 @@ compute_probs(vrna_fold_compound_t        *vc,
           max_m = n;
 
         for (m = l + 1; m <= max_m; m++) {
-          int u2 = m - l - 1;
+          unsigned int u2 = m - l - 1;
 
           if (hc->up_int[l + 1] < u2)
             break;
@@ -2057,7 +2057,7 @@ PRIVATE void
 print_pU_callback(double        *pU,
                   int           size,
                   int           k,
-                  int           ulength,
+                  int           ulength VRNA_UNUSED,
                   unsigned int  type,
                   void          *data)
 {
@@ -2271,14 +2271,14 @@ wrap_pf_foldLP(char             *sequence,
 
 
 PUBLIC void
-init_pf_foldLP(int length)
+init_pf_foldLP(int length VRNA_UNUSED)
 {
-  /* DO NOTHING */
+  ;/* DO NOTHING */
 }
 
 
 PUBLIC void
-update_pf_paramsLP(int length)
+update_pf_paramsLP(int length VRNA_UNUSED)
 {
   if (backward_compat_compound && backward_compat) {
     vrna_md_t md;
@@ -2292,7 +2292,7 @@ update_pf_paramsLP(int length)
 
 
 PUBLIC void
-update_pf_paramsLP_par(int              length,
+update_pf_paramsLP_par(int              length VRNA_UNUSED,
                        vrna_exp_param_t *parameters)
 {
   if (backward_compat_compound && backward_compat) {
@@ -2441,7 +2441,7 @@ putoutpU_prob_bin_old(double            **pU,
                       int               length,
                       int               ulength,
                       FILE              *fp,
-                      int               energies,
+                      int               energies VRNA_UNUSED,
                       vrna_exp_param_t  *parameters)
 {
   /* put out unpaireds */
