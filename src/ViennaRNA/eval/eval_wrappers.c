@@ -788,8 +788,8 @@ energy_of_struct(const char *string,
 PUBLIC int
 energy_of_struct_pt(const char  *string,
                     short       *pt,
-                    short       *s,
-                    short       *s1)
+                    short       *s VRNA_UNUSED,
+                    short       *s1 VRNA_UNUSED)
 {
   int                   en;
   vrna_fold_compound_t  *fc;
@@ -936,8 +936,8 @@ energy_of_gquad_struct_par(const char   *string,
 PUBLIC int
 energy_of_structure_pt(const char *string,
                        short      *pt,
-                       short      *s,
-                       short      *s1,
+                       short      *s VRNA_UNUSED,
+                       short      *s1 VRNA_UNUSED,
                        int        verbosity_level)
 {
   int                   en;
@@ -965,8 +965,8 @@ energy_of_structure_pt(const char *string,
 PUBLIC int
 energy_of_struct_pt_par(const char    *string,
                         short         *pt,
-                        short         *s,
-                        short         *s1,
+                        short         *s VRNA_UNUSED,
+                        short         *s1 VRNA_UNUSED,
                         vrna_param_t  *parameters,
                         int           verbosity_level)
 {
@@ -1048,7 +1048,7 @@ energy_of_circ_struct_par(const char    *string,
 PUBLIC int
 loop_energy(short *pt,
             short *s,
-            short *s1,
+            short *s1 VRNA_UNUSED,
             int   i)
 {
   char                  *seq;
@@ -1102,7 +1102,7 @@ energy_of_move(const char *string,
 PUBLIC int
 energy_of_move_pt(short *pt,
                   short *s,
-                  short *s1,
+                  short *s1 VRNA_UNUSED,
                   int   m1,
                   int   m2)
 {
