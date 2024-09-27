@@ -306,7 +306,7 @@ vrna_sc_add_hi_motif(vrna_fold_compound_t *vc,
                      const char           *seq,
                      const char           *structure,
                      FLT_OR_DBL           energy,
-                     unsigned int         options)
+                     unsigned int         options VRNA_UNUSED)
 {
   int         cp, cp2;
   char        *sequence, *motif, *motif_alt;
@@ -520,8 +520,8 @@ AptamerContrib(int            i,
 static int
 AptamerContribHairpin(int           i,
                       int           j,
-                      int           k,
-                      int           l,
+                      int           k VRNA_UNUSED,
+                      int           l VRNA_UNUSED,
                       unsigned char d,
                       void          *data)
 {
@@ -574,8 +574,8 @@ expAptamerContrib(int           i,
 static FLT_OR_DBL
 expAptamerContribHairpin(int            i,
                          int            j,
-                         int            k,
-                         int            l,
+                         int            k VRNA_UNUSED,
+                         int            l VRNA_UNUSED,
                          unsigned char  d,
                          void           *data)
 {
@@ -641,8 +641,8 @@ backtrack_int_motif(int           i,
 static vrna_basepair_t *
 backtrack_hp_motif(int            i,
                    int            j,
-                   int            k,
-                   int            l,
+                   int            k VRNA_UNUSED,
+                   int            l VRNA_UNUSED,
                    unsigned char  d,
                    void           *data)
 {
