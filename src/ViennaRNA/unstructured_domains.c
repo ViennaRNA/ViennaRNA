@@ -899,13 +899,14 @@ ud_get_motifs_MFE(vrna_fold_compound_t    *fc,
 
 
 PRIVATE vrna_ud_motif_t **
-ud_get_motifs_energy(vrna_fold_compound_t   *fc,
+ud_get_motifs_energy(vrna_fold_compound_t   *fc VRNA_UNUSED,
                      struct binding_segment *segments,
-                     unsigned int           segments_num,
-                     int                    e)
+                     unsigned int           segments_num VRNA_UNUSED,
+                     int                    e VRNA_UNUSED)
 {
   vrna_ud_motif_t **motif_lists;
 
+  vrna_log_error("not implemented!");
   motif_lists = NULL;
 
   if (segments) {
@@ -2710,7 +2711,7 @@ default_probs_add(vrna_fold_compound_t  *vc,
 
 
 PRIVATE FLT_OR_DBL
-default_probs_get(vrna_fold_compound_t  *vc,
+default_probs_get(vrna_fold_compound_t  *vc VRNA_UNUSED,
                   int                   i,
                   int                   j,
                   unsigned int          loop_type,
