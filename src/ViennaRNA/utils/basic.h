@@ -29,13 +29,10 @@
 #define PUBLIC
 #define PRIVATE static
 
-#ifdef UNUSED
-# undef UNUSED
-#endif
 #if defined(__clang__) || defined(__GNUC__)
-# define UNUSED __attribute__((unused))
+# define VRNA_UNUSED __attribute__((unused))
 #else
-# define UNUSED
+# define VRNA_UNUSED
 #endif
 
 /**
