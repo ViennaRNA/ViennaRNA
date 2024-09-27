@@ -2,6 +2,8 @@
  *  This file contains soft constraints wrappers for exterior loop evaluation
  */
 
+#include <ViennaRNA/utils/basic.h>
+
 struct sc_f5_dat;
 struct sc_f3_dat;
 
@@ -661,7 +663,7 @@ free_sc_f5(struct sc_f5_dat *sc_wrapper)
 
 static void
 init_sc_f3(vrna_fold_compound_t *fc,
-           int                  i,
+           int                  i VRNA_UNUSED,
            struct sc_f3_dat     *sc_wrapper)
 {
   unsigned int  s;
@@ -1230,11 +1232,11 @@ sc_f5_cb_split_in_ext_stem(int              j,
 
 
 PRIVATE INLINE int
-sc_ext_cb_split(int i,
-                            int              j,
-                           int              k,
-                           int              l,
-                           struct sc_f5_dat *data)
+sc_ext_cb_split(int              i VRNA_UNUSED,
+                int              j VRNA_UNUSED,
+                int              k,
+                int              l,
+                struct sc_f5_dat *data)
 {
   unsigned int  start_1, length_1;
   int           e_sc, **sc_up;
@@ -1254,7 +1256,7 @@ sc_ext_cb_split(int i,
 
 
 PRIVATE INLINE int
-sc_f3_cb_split_in_stem_ext(int              i,
+sc_f3_cb_split_in_stem_ext(int              i VRNA_UNUSED,
                            int              k,
                            int              l,
                            struct sc_f3_dat *data)
@@ -1277,7 +1279,7 @@ sc_f3_cb_split_in_stem_ext(int              i,
 
 
 PRIVATE INLINE int
-sc_f5_cb_split_in_ext_stem_comparative(int              j,
+sc_f5_cb_split_in_ext_stem_comparative(int              j VRNA_UNUSED,
                                        int              k,
                                        int              l,
                                        struct sc_f5_dat *data)
@@ -1304,8 +1306,8 @@ sc_f5_cb_split_in_ext_stem_comparative(int              j,
 }
 
 PRIVATE INLINE int
-sc_ext_cb_split_comparative(int               i,
-                            int               j,
+sc_ext_cb_split_comparative(int               i VRNA_UNUSED,
+                            int               j VRNA_UNUSED,
                             int               k,
                             int               l,
                             struct sc_f5_dat  *data)
@@ -1333,7 +1335,7 @@ sc_ext_cb_split_comparative(int               i,
 
 
 PRIVATE INLINE int
-sc_f3_cb_split_in_stem_ext_comparative(int              i,
+sc_f3_cb_split_in_stem_ext_comparative(int              i VRNA_UNUSED,
                                        int              k,
                                        int              l,
                                        struct sc_f3_dat *data)
