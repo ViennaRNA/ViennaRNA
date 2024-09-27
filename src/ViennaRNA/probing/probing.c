@@ -127,7 +127,7 @@ gaussian_kde_pdf(double       x,
 
 PRIVATE FLT_OR_DBL
 exp_pdf(double  x,
-        double  lambda);
+        double  lambda) VRNA_UNUSED;
 
 
 /* We use same format as scitpy */
@@ -135,7 +135,7 @@ PRIVATE FLT_OR_DBL
 gev_pdf(double  x,
         double  c,
         double  loc,
-        double  scale);
+        double  scale) VRNA_UNUSED;
 
 
 /*
@@ -847,7 +847,7 @@ apply_Zarringhalam2012_method(vrna_fold_compound_t        *fc,
 
 PRIVATE int
 apply_Washietl2012_method(vrna_fold_compound_t        *fc,
-                          struct vrna_probing_data_s  *data)
+                          struct vrna_probing_data_s  *data VRNA_UNUSED)
 {
   int ret;
 
