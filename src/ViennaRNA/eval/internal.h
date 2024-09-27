@@ -293,6 +293,20 @@ DEPRECATED(PRIVATE INLINE int
            "This function is obsolete");
 
 
+PRIVATE INLINE int
+__E_IntLoop_Co(int          type,
+               int          type_2,
+               int          i,
+               int          j,
+               int          p,
+               int          q,
+               int          cutpoint,
+               short        si1,
+               short        sj1,
+               short        sp1,
+               short        sq1,
+               int          dangles,
+               vrna_param_t *P);
 /*
  *  ugly but fast internal loop evaluation
  *
@@ -439,13 +453,13 @@ ubf_eval_int_loop(int           i,
     short Si, Sj;
     Si      = ON_SAME_STRAND(i, i1, cp) ? si : -1;
     Sj      = ON_SAME_STRAND(j1, j, cp) ? sj : -1;
-    energy  = E_IntLoop_Co(rtype[type], rtype[type_2],
-                           i, j, p, q,
-                           cp,
-                           Si, Sj,
-                           sp, sq,
-                           P->model_details.dangles,
-                           P);
+    energy  = __E_IntLoop_Co(rtype[type], rtype[type_2],
+                             i, j, p, q,
+                             cp,
+                             Si, Sj,
+                             sp, sq,
+                             P->model_details.dangles,
+                             P);
   }
 
   /* add soft constraints */
@@ -509,13 +523,13 @@ ubf_eval_int_loop2(int            i,
     short Si, Sj;
     Si      = (sn[i1] == sn[i]) ? si : -1;
     Sj      = (sn[j] == sn[j1]) ? sj : -1;
-    energy  = E_IntLoop_Co(rtype[type], rtype[type_2],
-                           i, j, p, q,
-                           ss[1],
-                           Si, Sj,
-                           sp, sq,
-                           P->model_details.dangles,
-                           P);
+    energy  = __E_IntLoop_Co(rtype[type], rtype[type_2],
+                             i, j, p, q,
+                             ss[1],
+                             Si, Sj,
+                             sp, sq,
+                             P->model_details.dangles,
+                             P);
   }
 
   /* add soft constraints */
@@ -813,6 +827,37 @@ E_IntLoop_Co(int          type,
              int          dangles,
              vrna_param_t *P)
 {
+  return __E_IntLoop_Co(type,
+                        type_2,
+                        i,
+                        j,
+                        p,
+                        q,
+                        cutpoint,
+                        si1,
+                        sj1,
+                        sp1,
+                        sq1,
+                        dangles,
+                        P);
+}
+
+
+PRIVATE INLINE int
+__E_IntLoop_Co(int          type,
+               int          type_2,
+               int          i,
+               int          j,
+               int          p,
+               int          q,
+               int          cutpoint,
+               short        si1,
+               short        sj1,
+               short        sp1,
+               short        sq1,
+               int          dangles,
+               vrna_param_t *P)
+{
   int e, energy, ci, cj, cp, cq, d3, d5, d5_2, d3_2, tmm, tmm_2;
   int salt_loop_correction, backbones;
 
@@ -917,8 +962,6 @@ E_IntLoop_Co(int          type,
 
   return energy + salt_loop_correction;
 }
-
-
 /**
  * @}
  */
