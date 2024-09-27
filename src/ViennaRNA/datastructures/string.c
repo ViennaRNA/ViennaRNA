@@ -98,14 +98,13 @@ vrna_string_make_space_for(vrna_string_t str,
   size_t len      = vrna_string_length(str);
   size_t  new_len = len + add_len;
   void *ptr, *new_ptr;
-  size_t available, old_size, new_size;
+  size_t available, new_size;
 
   available = vrna_string_available_space(str);
   if (available >= add_len) /* Return if there is enough space left */
     return str;
 
   ptr = (char *)str - sizeof(vrna_string_header_t);
-  old_size = sizeof(vrna_string_header_t) + vrna_string_length(str) + 1;
   new_size = sizeof(vrna_string_header_t) + new_len + 1;
 
   new_ptr = vrna_realloc(ptr, new_size);
