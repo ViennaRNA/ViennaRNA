@@ -47,119 +47,119 @@ typedef struct  vrna_exp_param_s vrna_exp_param_t;
  *  @brief The datastructure that contains temperature scaled energy parameters.
  */
 struct vrna_param_s {
-  int       id;
-  int       stack[NBPAIRS + 1][NBPAIRS + 1];
-  int       hairpin[31];
-  int       bulge[MAXLOOP + 1];
-  int       internal_loop[MAXLOOP + 1];
-  int       mismatchExt[NBPAIRS + 1][5][5];
-  int       mismatchI[NBPAIRS + 1][5][5];
-  int       mismatch1nI[NBPAIRS + 1][5][5];
-  int       mismatch23I[NBPAIRS + 1][5][5];
-  int       mismatchH[NBPAIRS + 1][5][5];
-  int       mismatchM[NBPAIRS + 1][5][5];
-  int       dangle5[NBPAIRS + 1][5];
-  int       dangle3[NBPAIRS + 1][5];
-  int       int11[NBPAIRS + 1][NBPAIRS + 1][5][5];
-  int       int21[NBPAIRS + 1][NBPAIRS + 1][5][5][5];
-  int       int22[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5];
-  int       ninio[5];
-  double    lxc;
-  int       MLbase;
-  int       MLintern[NBPAIRS + 1];
-  int       MLclosing;
-  int       TerminalAU;
-  int       DuplexInit;
-  int       Tetraloop_E[200];
-  char      Tetraloops[1401];
-  int       Triloop_E[40];
-  char      Triloops[241];
-  int       Hexaloop_E[40];
-  char      Hexaloops[1801];
-  int       TripleC;
-  int       MultipleCA;
-  int       MultipleCB;
-  int       gquad[VRNA_GQUAD_MAX_STACK_SIZE + 1][3 * VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
-  int       gquadLayerMismatch;
-  int       gquadLayerMismatchMax;
+  int           id;
+  int           stack[NBPAIRS + 1][NBPAIRS + 1];
+  int           hairpin[31];
+  int           bulge[MAXLOOP + 1];
+  int           internal_loop[MAXLOOP + 1];
+  int           mismatchExt[NBPAIRS + 1][5][5];
+  int           mismatchI[NBPAIRS + 1][5][5];
+  int           mismatch1nI[NBPAIRS + 1][5][5];
+  int           mismatch23I[NBPAIRS + 1][5][5];
+  int           mismatchH[NBPAIRS + 1][5][5];
+  int           mismatchM[NBPAIRS + 1][5][5];
+  int           dangle5[NBPAIRS + 1][5];
+  int           dangle3[NBPAIRS + 1][5];
+  int           int11[NBPAIRS + 1][NBPAIRS + 1][5][5];
+  int           int21[NBPAIRS + 1][NBPAIRS + 1][5][5][5];
+  int           int22[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5];
+  int           ninio[5];
+  double        lxc;
+  int           MLbase;
+  int           MLintern[NBPAIRS + 1];
+  int           MLclosing;
+  int           TerminalAU;
+  int           DuplexInit;
+  int           Tetraloop_E[200];
+  char          Tetraloops[1401];
+  int           Triloop_E[40];
+  char          Triloops[241];
+  int           Hexaloop_E[40];
+  char          Hexaloops[1801];
+  int           TripleC;
+  int           MultipleCA;
+  int           MultipleCB;
+  int           gquad[VRNA_GQUAD_MAX_STACK_SIZE + 1][3 * VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
+  int           gquadLayerMismatch;
+  unsigned int  gquadLayerMismatchMax;
 
-  double    temperature;      /**<  @brief  Temperature used for loop contribution scaling */
+  double        temperature;      /**<  @brief  Temperature used for loop contribution scaling */
 
-  vrna_md_t model_details;    /**<  @brief  Model details to be used in the recursions */
-  char      param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
-  int       SaltStack;
-  int       SaltLoop[MAXLOOP + 2];
-  double    SaltLoopDbl[MAXLOOP + 2];
-  int       SaltMLbase;
-  int       SaltMLintern;
-  int       SaltMLclosing;
-  int       SaltDPXInit;
+  vrna_md_t     model_details;    /**<  @brief  Model details to be used in the recursions */
+  char          param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
+  int           SaltStack;
+  int           SaltLoop[MAXLOOP + 2];
+  double        SaltLoopDbl[MAXLOOP + 2];
+  int           SaltMLbase;
+  int           SaltMLintern;
+  int           SaltMLclosing;
+  int           SaltDPXInit;
 };
 
 /**
  *  @brief  The data structure that contains temperature scaled Boltzmann weights of the energy parameters.
  */
 struct vrna_exp_param_s {
-  int     id;   /**<  @brief  An identifier for the data structure
-                 *    @deprecated This attribute will be removed in version 3
-                 */
-  double  expstack[NBPAIRS + 1][NBPAIRS + 1];
-  double  exphairpin[31];
-  double  expbulge[MAXLOOP + 1];
-  double  expinternal[MAXLOOP + 1];
-  double  expmismatchExt[NBPAIRS + 1][5][5];
-  double  expmismatchI[NBPAIRS + 1][5][5];
-  double  expmismatch23I[NBPAIRS + 1][5][5];
-  double  expmismatch1nI[NBPAIRS + 1][5][5];
-  double  expmismatchH[NBPAIRS + 1][5][5];
-  double  expmismatchM[NBPAIRS + 1][5][5];
-  double  expdangle5[NBPAIRS + 1][5];
-  double  expdangle3[NBPAIRS + 1][5];
-  double  expint11[NBPAIRS + 1][NBPAIRS + 1][5][5];
-  double  expint21[NBPAIRS + 1][NBPAIRS + 1][5][5][5];
-  double  expint22[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5];
-  double  expninio[5][MAXLOOP + 1];
-  double  lxc;
-  double  expMLbase;
-  double  expMLintern[NBPAIRS + 1];
-  double  expMLclosing;
-  double  expTermAU;
-  double  expDuplexInit;
-  double  exptetra[40];
-  double  exptri[40];
-  double  exphex[40];
-  char    Tetraloops[1401];
-  double  expTriloop[40];
-  char    Triloops[241];
-  char    Hexaloops[1801];
-  double  expTripleC;
-  double  expMultipleCA;
-  double  expMultipleCB;
-  double  expgquad[VRNA_GQUAD_MAX_STACK_SIZE + 1][3 * VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
-  double  expgquadLayerMismatch;
-  int     gquadLayerMismatchMax;
+  int           id;   /**<  @brief  An identifier for the data structure
+                       *    @deprecated This attribute will be removed in version 3
+                       */
+  double        expstack[NBPAIRS + 1][NBPAIRS + 1];
+  double        exphairpin[31];
+  double        expbulge[MAXLOOP + 1];
+  double        expinternal[MAXLOOP + 1];
+  double        expmismatchExt[NBPAIRS + 1][5][5];
+  double        expmismatchI[NBPAIRS + 1][5][5];
+  double        expmismatch23I[NBPAIRS + 1][5][5];
+  double        expmismatch1nI[NBPAIRS + 1][5][5];
+  double        expmismatchH[NBPAIRS + 1][5][5];
+  double        expmismatchM[NBPAIRS + 1][5][5];
+  double        expdangle5[NBPAIRS + 1][5];
+  double        expdangle3[NBPAIRS + 1][5];
+  double        expint11[NBPAIRS + 1][NBPAIRS + 1][5][5];
+  double        expint21[NBPAIRS + 1][NBPAIRS + 1][5][5][5];
+  double        expint22[NBPAIRS + 1][NBPAIRS + 1][5][5][5][5];
+  double        expninio[5][MAXLOOP + 1];
+  double        lxc;
+  double        expMLbase;
+  double        expMLintern[NBPAIRS + 1];
+  double        expMLclosing;
+  double        expTermAU;
+  double        expDuplexInit;
+  double        exptetra[40];
+  double        exptri[40];
+  double        exphex[40];
+  char          Tetraloops[1401];
+  double        expTriloop[40];
+  char          Triloops[241];
+  char          Hexaloops[1801];
+  double        expTripleC;
+  double        expMultipleCA;
+  double        expMultipleCB;
+  double        expgquad[VRNA_GQUAD_MAX_STACK_SIZE + 1][3 * VRNA_GQUAD_MAX_LINKER_LENGTH + 1];
+  double        expgquadLayerMismatch;
+  unsigned int  gquadLayerMismatchMax;
 
-  double  kT;
-  double  pf_scale;           /**<  @brief    Scaling factor to avoid over-/underflows */
+  double        kT;
+  double        pf_scale;           /**<  @brief    Scaling factor to avoid over-/underflows */
 
-  double  temperature;        /**<  @brief    Temperature used for loop contribution scaling */
-  double  alpha;              /**<  @brief    Scaling factor for the thermodynamic temperature
-                               *    @details  This allows for temperature scaling in Boltzmann
-                               *              factors independently from the energy contributions.
-                               *              The resulting Boltzmann factors are then computed by
-                               *              @f$ e^{-E/(\alpha \cdot K \cdot T)} @f$
-                               */
+  double        temperature;        /**<  @brief    Temperature used for loop contribution scaling */
+  double        alpha;              /**<  @brief    Scaling factor for the thermodynamic temperature
+                                     *    @details  This allows for temperature scaling in Boltzmann
+                                     *              factors independently from the energy contributions.
+                                     *              The resulting Boltzmann factors are then computed by
+                                     *              @f$ e^{-E/(\alpha \cdot K \cdot T)} @f$
+                                     */
 
-  vrna_md_t model_details;    /**<  @brief  Model details to be used in the recursions */
-  char      param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
+  vrna_md_t     model_details;    /**<  @brief  Model details to be used in the recursions */
+  char          param_file[256];  /**<  @brief  The filename the parameters were derived from, or empty string if they represent the default */
 
-  double    expSaltStack;
-  double    expSaltLoop[MAXLOOP + 2];
-  double    SaltLoopDbl[MAXLOOP + 2];
-  int       SaltMLbase;
-  int       SaltMLintern;
-  int       SaltMLclosing;
-  int       SaltDPXInit;
+  double        expSaltStack;
+  double        expSaltLoop[MAXLOOP + 2];
+  double        SaltLoopDbl[MAXLOOP + 2];
+  int           SaltMLbase;
+  int           SaltMLintern;
+  int           SaltMLclosing;
+  int           SaltDPXInit;
 };
 
 
