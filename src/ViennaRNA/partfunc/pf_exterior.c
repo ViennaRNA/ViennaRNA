@@ -282,7 +282,7 @@ vrna_exp_E_ext_fast(vrna_fold_compound_t        *fc,
 PUBLIC void
 vrna_exp_E_ext_fast_update(vrna_fold_compound_t       *fc,
                            int                        j,
-                           struct vrna_mx_pf_aux_el_s *aux_mx)
+                           struct vrna_mx_pf_aux_el_s *aux_mx VRNA_UNUSED)
 {
   int                       k;
   FLT_OR_DBL                **q;
