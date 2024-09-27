@@ -241,9 +241,7 @@ do_path(vrna_fold_compound_t  *vc,
 
   while (((options & VRNA_PATH_STEEPEST_DESCENT) && !isDeepest) ||
          ((options & VRNA_PATH_RANDOM) && iterations > 0)) {
-    vrna_move_t m = {
-      0, 0
-    };
+    vrna_move_t m = { 0 };
     if (options & VRNA_PATH_STEEPEST_DESCENT) {
       /* determine the deepest neighbor */
       int lowestEnergyIndex = -1;
@@ -319,9 +317,7 @@ do_path(vrna_fold_compound_t  *vc,
   }
 
   if (!(options & VRNA_PATH_NO_TRANSITION_OUTPUT)) {
-    vrna_move_t end = {
-      0, 0
-    };
+    vrna_move_t end = { 0 };
     moves[numberOfMoves]  = end;
     moves                 = vrna_realloc(moves, sizeof(vrna_move_t) * (numberOfMoves + 1));
   }
