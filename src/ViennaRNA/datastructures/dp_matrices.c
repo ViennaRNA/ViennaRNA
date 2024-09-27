@@ -617,8 +617,8 @@ mfe_matrices_free_default(vrna_mx_mfe_t *self)
 
 PRIVATE void
 mfe_matrices_free_window(vrna_mx_mfe_t  *self,
-                         unsigned int   length,
-                         unsigned int   window_size)
+                         unsigned int   length VRNA_UNUSED,
+                         unsigned int   window_size VRNA_UNUSED)
 {
   free(self->c_local);
   free(self->fML_local);
@@ -1007,8 +1007,8 @@ pf_matrices_free_default(vrna_mx_pf_t *self)
 
 PRIVATE void
 pf_matrices_free_window(vrna_mx_pf_t  *self,
-                        unsigned int  length,
-                        unsigned int  window_size)
+                        unsigned int  length VRNA_UNUSED,
+                        unsigned int  window_size VRNA_UNUSED)
 {
   free(self->q_local);
   free(self->qb_local);
