@@ -1,3 +1,6 @@
+#include <ViennaRNA/utils/basic.h>
+
+
 /*
  *  This file contains some utility functions required by both, MFE and
  *  partition function version of internal loop evaluation
@@ -172,7 +175,7 @@ ubf_eval_int_loop_comparative(int           col_i,
                               int           col_q,
                               unsigned char type,
                               unsigned char type_2,
-                              int           *rtype,
+                              int           *rtype VRNA_UNUSED,
                               int           ij,
                               vrna_param_t  *P,
                               short         *SS,
