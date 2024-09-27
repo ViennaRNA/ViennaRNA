@@ -1,6 +1,8 @@
 #ifndef VRNA_INTERN_GRAMMAR_DAT_H
 #define VRNA_INTERN_GRAMMAR_DAT_H
 
+#include <ViennaRNA/utils/basic.h>
+
 #include "ViennaRNA/grammar/basic.h"
 #include "ViennaRNA/grammar/mfe.h"
 #include "ViennaRNA/grammar/partfunc.h"
@@ -51,7 +53,7 @@ struct vrna_gr_aux_s {
 
 
 PRIVATE void
-init_aux_grammar(vrna_fold_compound_t *fc);
+init_aux_grammar(vrna_fold_compound_t *fc) VRNA_UNUSED;
 
 
 PRIVATE void
