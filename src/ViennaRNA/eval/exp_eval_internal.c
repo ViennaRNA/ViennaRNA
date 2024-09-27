@@ -222,20 +222,16 @@ exp_eval_internal(vrna_fold_compound_t  *fc,
 {
   unsigned char         sliding_window, type, type2;
   char                  *ptype, **ptype_local;
-  unsigned char         *hc_mx, **hc_mx_local, eval_loop, hc_decompose_ij, hc_decompose_kl;
   short                 *S1, **SS, **S5, **S3;
-  unsigned int          u1, u2, n, *sn, n_seq, s, **a2s, *hc_up;
+  unsigned int          u1, u2, *sn, n_seq, s, **a2s;
   int                   *rtype, *jindx;
   FLT_OR_DBL            qbt1, q_temp, *scale;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
   struct sc_int_exp_dat sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
-  n               = fc->length;
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : fc->ptype) : NULL;
   ptype_local     =
@@ -246,9 +242,6 @@ exp_eval_internal(vrna_fold_compound_t  *fc,
   S3          = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S3;
   a2s         = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->a2s;
   jindx       = fc->jindx;
-  hc_mx       = (sliding_window) ? NULL : fc->hc->mx;
-  hc_mx_local = (sliding_window) ? fc->hc->matrix_local : NULL;
-  hc_up       = fc->hc->up_int;
   pf_params   = fc->exp_params;
   sn          = fc->strand_number;
   md          = &(pf_params->model_details);
