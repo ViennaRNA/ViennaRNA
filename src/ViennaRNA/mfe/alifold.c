@@ -221,7 +221,7 @@ update_alifold_params(void)
 PUBLIC float
 energy_of_ali_gquad_structure(const char  **sequences,
                               const char  *structure,
-                              int         n_seq,
+                              int         n_seq VRNA_UNUSED,
                               float       *energy)
 {
   if (sequences[0] != NULL) {
@@ -250,7 +250,7 @@ energy_of_ali_gquad_structure(const char  **sequences,
 PUBLIC float
 energy_of_alistruct(const char  **sequences,
                     const char  *structure,
-                    int         n_seq,
+                    int         n_seq VRNA_UNUSED,
                     float       *energy)
 {
   if (sequences[0] != NULL) {
