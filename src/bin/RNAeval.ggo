@@ -296,10 +296,10 @@ string
 optional
 hidden
 
-option  "energyModel" e
+option  "energyModel" -
 "Set energy model.\n"
 details="Rarely used option to fold sequences from the artificial ABCD... alphabet, where\
- A pairs B, C-D etc.  Use the energy parameters for GC (-e 1) or AU (-e 2) pairs.\n\n"
+ A pairs B, C-D etc.  Use the energy parameters for GC (--energyModel 1) or AU (--energyModel 2) pairs.\n\n"
 int
 optional
 hidden
