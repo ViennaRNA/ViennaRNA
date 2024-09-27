@@ -786,10 +786,10 @@ parse_constraints_line(const char     *line,
   int           v1, v2;
   int           ret           = 0;
   int           range_mode    = 0;
-  int           pos           = 0;
+  size_t        pos           = 0;
   int           max_entries   = 5;
   int           entries_seen  = 0;
-  int           pp;
+  size_t        pp;
   float         energy;
   char          buf[256], buf2[10], *c;
   unsigned char tmp_loop;
@@ -815,11 +815,11 @@ parse_constraints_line(const char     *line,
 
   /* now lets scan the entire line for content */
   while (!ret && (entries_seen < max_entries) &&
-         (sscanf(line + pos, "%15s%n", &buf[0], &pp) == 1)) {
+         (sscanf(line + pos, "%15s%ln", &buf[0], &pp) == 1)) {
     pos += pp;
     switch (entries_seen) {
       case 0: /* must be i, or range */
-        if (sscanf(buf, "%d-%d%n", &v1, &v2, &pp) == 2) {
+        if (sscanf(buf, "%d-%d%ln", &v1, &v2, &pp) == 2) {
           if (pp == strlen(buf)) {
             *i          = v1;
             *j          = v2;
@@ -827,7 +827,7 @@ parse_constraints_line(const char     *line,
             --max_entries;       /* no orientation allowed now */
             break;
           }
-        } else if (sscanf(buf, "%d%n", &v1, &pp) == 1) {
+        } else if (sscanf(buf, "%d%ln", &v1, &pp) == 1) {
           if (pp == strlen(buf)) {
             *i = v1;
             break;
@@ -837,7 +837,7 @@ parse_constraints_line(const char     *line,
         ret = 1;
         break;
       case 1: /* must be j, or range */
-        if (sscanf(buf, "%d-%d%n", &v1, &v2, &pp) == 2) {
+        if (sscanf(buf, "%d-%d%ln", &v1, &v2, &pp) == 2) {
           if (pp == strlen(buf)) {
             *k  = v1;
             *l  = v2;
@@ -848,13 +848,13 @@ parse_constraints_line(const char     *line,
             break;
           }
         } else if (range_mode) {
-          if (sscanf(buf, "%d%n", &v1, &pp) == 1) {
+          if (sscanf(buf, "%d%ln", &v1, &pp) == 1) {
             if (pp == strlen(buf)) {
               *l = v1;
               break;
             }
           }
-        } else if (sscanf(buf, "%d%n", &v1, &pp) == 1) {
+        } else if (sscanf(buf, "%d%ln", &v1, &pp) == 1) {
           if (pp == strlen(buf)) {
             *j = v1;
             break;
@@ -866,7 +866,7 @@ parse_constraints_line(const char     *line,
       case 2: /* skip if in range_mode */
         if (!range_mode) {
           /* must be k */
-          if (sscanf(buf, "%d%n", &v1, &pp) == 1) {
+          if (sscanf(buf, "%d%ln", &v1, &pp) == 1) {
             if (pp == strlen(buf)) {
               *k = v1;
               break;
@@ -877,13 +877,13 @@ parse_constraints_line(const char     *line,
           break;
         } else {
           --max_entries;
-          /* fall through */
         }
+        /* fall through */
 
       case 3:
         if (command == 'E') {
           /* must be pseudo energy */
-          if (sscanf(buf, "%g%n", &energy, &pp) == 1) {
+          if (sscanf(buf, "%g%ln", &energy, &pp) == 1) {
             if (pp == strlen(buf)) {
               *e = energy;
               break;
@@ -891,7 +891,7 @@ parse_constraints_line(const char     *line,
           }
         } else {
           /*  must be loop type, or orientation */
-          if (sscanf(buf, "%8s%n", &buf2[0], &pp) == 1) {
+          if (sscanf(buf, "%8s%ln", &buf2[0], &pp) == 1) {
             buf2[8] = '\0';
             if (pp == strlen(buf)) {
               for (c = &(buf2[0]); (*c != '\0') && (!ret); c++) {
