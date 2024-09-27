@@ -1,3 +1,6 @@
+#include <ViennaRNA/utils/basic.h>
+
+
 /*
  *  This file contains some utility functions required by both, MFE and
  *  partition function version of hairpin loop evaluation
@@ -68,9 +71,9 @@ prepare_hc_hp_def_window(vrna_fold_compound_t *fc,
 PRIVATE unsigned char
 hc_hp_cb_def(int            i,
              int            j,
-             int            k,
-             int            l,
-             unsigned char  d,
+             int            k VRNA_UNUSED,
+             int            l VRNA_UNUSED,
+             unsigned char  d VRNA_UNUSED,
              void           *data)
 {
   unsigned int          u, p, q;
@@ -108,9 +111,9 @@ hc_hp_cb_def(int            i,
 PRIVATE unsigned char
 hc_hp_cb_def_window(int           i,
                     int           j,
-                    int           k,
-                    int           l,
-                    unsigned char d,
+                    int           k VRNA_UNUSED,
+                    int           l VRNA_UNUSED,
+                    unsigned char d VRNA_UNUSED,
                     void          *data)
 {
   unsigned int          u;
