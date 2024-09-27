@@ -2990,9 +2990,7 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
   vrna_hc_eval_f        evaluate;
   struct hc_ext_def_dat *hc_dat_local;
   struct sc_f5_dat      *sc_wrapper;
-  sc_ext_red_cb         sc_spl;
   sc_ext_red_cb         sc_red_stem;
-  sc_ext_red_cb         sc_red_ext;
 
   contribution  = INF;
   S1            = fc->sequence_encoding;
@@ -3007,9 +3005,7 @@ pair_multi_strand(vrna_fold_compound_t  *fc,
   evaluate      = ms_dat->evaluate;
   hc_dat_local  = &(ms_dat->hc_dat_local);
   sc_wrapper    = &(ms_dat->sc_wrapper);
-  sc_spl        = sc_wrapper->decomp;
   sc_red_stem   = sc_wrapper->red_stem;
-  sc_red_ext    = sc_wrapper->red_ext;
 
   if ((sn[i] != sn[j]) &&
       (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
@@ -3264,9 +3260,7 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
   vrna_hc_eval_f        evaluate;
   struct hc_ext_def_dat *hc_dat_local;
   struct sc_f5_dat      *sc_wrapper;
-  sc_ext_red_cb         sc_spl;
   sc_ext_red_cb         sc_red_stem;
-  sc_ext_red_cb         sc_red_ext;
 
   if (fc) {
     S1            = fc->sequence_encoding;
@@ -3281,9 +3275,7 @@ BT_multi_strand(vrna_fold_compound_t  *fc,
     evaluate      = ms_dat->evaluate;
     hc_dat_local  = &(ms_dat->hc_dat_local);
     sc_wrapper    = &(ms_dat->sc_wrapper);
-    sc_spl        = sc_wrapper->decomp;
     sc_red_stem   = sc_wrapper->red_stem;
-    sc_red_ext    = sc_wrapper->red_ext;
 
     if ((sn[*i] != sn[*j]) &&
         (evaluate(*i, *j, *i, *j, VRNA_DECOMP_EXT_STEM, hc_dat_local))) {
