@@ -752,7 +752,7 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
 
     case VRNA_FC_TYPE_COMPARATIVE:
       if ((sn[i] != sn[j]) ||
-          (((j - i + 1) <= md->max_bp_span) && ((j - i - 1) >= md->min_loop_size))) {
+          (((j - i + 1) <= (unsigned int)md->max_bp_span) && ((j - i - 1) >= (unsigned int)md->min_loop_size))) {
         int min_score = md->cv_fact * MINPSCORE;
         int act_score = (fc->hc->type == VRNA_HC_WINDOW) ?
                         fc->pscore_local[i][j - i] :
@@ -767,7 +767,7 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
           /* can it be enclosed by another base pair? */
           if ((i > 1) &&
               (j < fc->length) &&
-              (((j - i + 2) < md->max_bp_span) || (sn[i - 1] != sn[j + 1]))) {
+              (((j - i + 2) < (unsigned int)md->max_bp_span) || (sn[i - 1] != sn[j + 1]))) {
             int outer_pscore = (fc->hc->type == VRNA_HC_WINDOW) ?
                                fc->pscore_local[i - 1][j - i + 2] :
                                fc->pscore[fc->jindx[j + 1] + i - 1];
@@ -777,7 +777,7 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
 
           /* can it enclose another base pair? */
           if ((i + 2 < j) &&
-              (((j - i - 2) > md->min_loop_size) || (sn[i + 1] != sn[j - 1]))) {
+              (((j - i - 2) > (unsigned int)md->min_loop_size) || (sn[i + 1] != sn[j - 1]))) {
             int inner_pscore = (fc->hc->type == VRNA_HC_WINDOW) ?
                                fc->pscore_local[i + 1][j - i - 2] :
                                fc->pscore[fc->jindx[j - 1] + i + 1];
@@ -799,7 +799,7 @@ default_pair_constraint(vrna_fold_compound_t  *fc,
 PRIVATE INLINE void
 populate_hc_up(vrna_fold_compound_t *fc,
                unsigned int         i,
-               unsigned int         options)
+               unsigned int         options VRNA_UNUSED)
 {
   unsigned char context;
   unsigned int  actual_i, strand;
@@ -1462,7 +1462,7 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
 {
   char          *sequence;
   short         *S;
-  unsigned int  n, i, j, spos, length, min_loop_size;
+  unsigned int  n, i, j, spos;
   int           hx, *stack;
   vrna_md_t     *md;
 
@@ -1474,10 +1474,8 @@ apply_DB_constraint(vrna_fold_compound_t  *vc,
     return;
 
   sequence      = vc->sequence;
-  length        = vc->length;
   S             = vc->sequence_encoding2;
   md            = &(vc->params->model_details);
-  min_loop_size = md->min_loop_size;
   n             = strlen(constraint);
   stack         = (int *)vrna_alloc(sizeof(int) * (n + 1));
 
