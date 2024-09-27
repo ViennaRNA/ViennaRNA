@@ -270,9 +270,10 @@ wrap_zukersubopt(const char   *string,
 
 
 PUBLIC void
-initialize_cofold(int length)
+initialize_cofold(int length VRNA_UNUSED)
 {
-  /* DO NOTHING */ }
+  ;/* DO NOTHING */
+}
 
 
 PUBLIC void
