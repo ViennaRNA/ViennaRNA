@@ -1308,9 +1308,9 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t  *fc,
 PRIVATE INLINE int
 add_f3_gquad(vrna_fold_compound_t   *fc,
              unsigned int           i,
-             vrna_hc_eval_f         evaluate,
-             struct hc_ext_def_dat  *hc_dat_local,
-             struct sc_f3_dat       *sc_wrapper)
+             vrna_hc_eval_f         evaluate VRNA_UNUSED,
+             struct hc_ext_def_dat  *hc_dat_local VRNA_UNUSED,
+             struct sc_f3_dat       *sc_wrapper VRNA_UNUSED)
 {
   unsigned int  j, length, maxdist;
   int           e, *f3, *ggg;
