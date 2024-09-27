@@ -492,83 +492,14 @@ vrna_eval_move_pt(vrna_fold_compound_t  *fc,
  # STATIC helper functions below #
  #################################
  */
-PRIVATE INLINE int
-eval_ext_int_loop(vrna_fold_compound_t  *fc,
-                  int                   i,
-                  int                   j,
-                  int                   p,
-                  int                   q)
-{
-  unsigned char type, type_2;
-  short         **SS, **S5, **S3, *S, si, sj, sp, sq;
-  unsigned int  s, n_seq, **a2s;
-  int           e, length;
-  vrna_param_t  *P;
-  vrna_md_t     *md;
-  vrna_sc_t     *sc, **scs;
-
-  length  = fc->length;
-  P       = fc->params;
-  md      = &(P->model_details);
-  S       = fc->sequence_encoding;
-  e       = INF;
-
-  switch (fc->type) {
-    case VRNA_FC_TYPE_COMPARATIVE:
-      n_seq = fc->n_seq;
-      SS    = fc->S;
-      S5    = fc->S5;
-      S3    = fc->S3;
-      a2s   = fc->a2s;
-      n_seq = fc->n_seq;
-      scs   = fc->scs;
-
-      for (e = 0, s = 0; s < n_seq; s++) {
-        type    = vrna_get_ptype_md(SS[s][j], SS[s][i], md);
-        type_2  = vrna_get_ptype_md(SS[s][q], SS[s][p], md);
-
-        sc = (scs && scs[s]) ? scs[s] : NULL;
-
-        e += ubf_eval_ext_int_loop(a2s[s][i], a2s[s][j], a2s[s][p], a2s[s][q],
-                                   a2s[s][i - 1], a2s[s][j + 1], a2s[s][p - 1], a2s[s][q + 1],
-                                   S3[s][j], S5[s][i], S5[s][p], S3[s][q],
-                                   type, type_2,
-                                   a2s[s][length],
-                                   P, sc);
-      }
-
-      break;
-
-    default:
-      si      = S[j + 1];
-      sj      = S[i - 1];
-      sp      = S[p - 1];
-      sq      = S[q + 1];
-      type    = vrna_get_ptype_md(S[j], S[i], md);
-      type_2  = vrna_get_ptype_md(S[q], S[p], md);
-      sc      = fc->sc;
-
-      e = ubf_eval_ext_int_loop(i, j, p, q,
-                                i - 1, j + 1, p - 1, q + 1,
-                                si, sj, sp, sq,
-                                type, type_2,
-                                length,
-                                P, sc);
-      break;
-  }
-
-  return e;
-}
-
-
 PRIVATE float
 wrap_eval_structure(vrna_fold_compound_t            *fc,
                     const char                      *structure,
                     const short                     *pt,
                     vrna_array(vrna_struct_elem_t)  *elements)
 {
-  unsigned int  n_seq, L, l[3];
-  int           res, gq, e, *loop_idx;
+  unsigned int  n_seq, L, l[3], gq;
+  int           res, e, *loop_idx;
   float         energy;
   vrna_md_t     *md;
 
@@ -1165,7 +1096,8 @@ eval_circ_pt(vrna_fold_compound_t           *fc,
       for (p = j + 1; pt[p] == 0; p++);
       q = pt[p];
 
-      en0 = eval_ext_int_loop(fc, i, j, p, q);
+      en0 = vrna_eval_internal(fc, i, j, p, q, VRNA_EVAL_LOOP_NO_HC);
+
     }
     break;
 
@@ -1646,8 +1578,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
       break;
 
     case 2: /* exterior loop hase been falsly interpreted as internal-loop-like */
-      e_minus += eval_ext_int_loop(fc, elem_i, elem_j, elem_p, elem_q);
-
+      e_minus += vrna_eval_internal(fc, elem_i, elem_j, elem_p, elem_q, VRNA_EVAL_LOOP_NO_HC);
 
       if (*elements_rev)
         vrna_array_append(*elements_rev,
