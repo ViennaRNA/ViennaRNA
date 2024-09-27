@@ -476,10 +476,10 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
       /* allow for all pairing partners specified in the input */
       for (unsigned int j = 1; j < msite; j++) {
         if ((sn[msite] != sn[j]) ||
-            ((msite - j - 1) >= md->min_loop_size)) {
+            ((msite - j - 1) >= (unsigned int)md->min_loop_size)) {
           for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
             unsigned int pp_enc = params->pairing_partners_encoding[cnt];
-            if (fc->sequence_encoding[j] == pp_enc) {
+            if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
               vrna_hc_add_bp(fc,
                              j,
                              msite,
@@ -490,10 +490,10 @@ vrna_sc_mod(vrna_fold_compound_t      *fc,
       }
       for (unsigned int j = msite + 1; j <= fc->length; j++) {
         if ((sn[msite] != sn[j]) ||
-            ((j - msite - 1) >= md->min_loop_size)) {
+            ((j - msite - 1) >= (unsigned int)md->min_loop_size)) {
           for (unsigned int cnt = 0; cnt < params->num_ptypes / 2; cnt++) {
             unsigned int pp_enc = params->pairing_partners_encoding[cnt];
-            if (fc->sequence_encoding[j] == pp_enc) {
+            if ((unsigned int)fc->sequence_encoding[j] == pp_enc) {
               vrna_hc_add_bp(fc,
                              msite,
                              j,
@@ -758,9 +758,11 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
             energy_corrections          *diffs,
             vrna_param_t                *P)
 {
+/*
   char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
+*/
   unsigned int  i, si, sj, enc_unmod, enc_pp, tt, pair_MP, pair_PM;
   int           e,
                 (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
@@ -773,7 +775,9 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
   enc_unmod = params->fallback_encoding;
   dG        = &(params->stack_dG);
   dH        = &(params->stack_dH);
+/*
   nt[5]     = params->one_letter_code;
+*/
 
   if (params->available & MOD_PARAMS_STACK_dG) {
     for (i = 1; i <= params->num_ptypes; i += 2) {
@@ -851,15 +855,18 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
                 energy_corrections          *diffs,
                 vrna_param_t                *P)
 {
+/*
   char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
 
   char          bp[3] = {
     0
-  }, *bpairs[8] = {
+  };
+  char          *bpairs[8] = {
     "NN", "CG", "GC", "GU", "UG", "AU", "UA", "XX"
   };
+*/
 
   unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_enc;
   int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
@@ -872,7 +879,9 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
   enc_unmod = params->fallback_encoding;
   dG        = &(params->mismatch_dG);
   dH        = &(params->mismatch_dH);
+/*
   nt[5]     = params->one_letter_code;
+*/
 
   if (params->available & MOD_PARAMS_MISMATCH_dG) {
     /*  go through all enclosing base pair types, including those that
@@ -886,8 +895,10 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
         /* 'regular' enclosing pairs */
         pair_enc = i;
 
+/*
         bp[0] = bpairs[i][0];
         bp[1] = bpairs[i][1];
+*/
       } else {
         /* an enclosing pair with a modification */
         enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
@@ -895,13 +906,17 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
         if ((i - NBPAIRS - 1) % 2) {
           pair_enc = md->pair[enc_unmod][enc_pp];
 
+/*
           bp[1] = nt[5];
           bp[0] = nt[enc_pp];
+*/
         } else {
           pair_enc = md->pair[enc_pp][enc_unmod];
 
+/*
           bp[0] = nt[5];
           bp[1] = nt[enc_pp];
+*/
         }
         if (pair_enc == 0)
           pair_enc = 7;
@@ -955,15 +970,18 @@ init_dangles(struct vrna_sc_mod_param_s *params,
              energy_corrections         *diffs,
              vrna_param_t               *P)
 {
+/*
   char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
 
   char          bp[3] = {
     0
-  }, *bpairs[7] = {
+  };
+  char          *bpairs[7] = {
     "NN", "CG", "GC", "GU", "UG", "AU", "UA"
   };
+*/
   unsigned int  i, si, enc_unmod, enc_pp, siu, pair_enc;
   int           e, (*dG5)[MAX_PAIRS][MAX_ALPHABET], (*dH5)[MAX_PAIRS][MAX_ALPHABET],
   (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
@@ -977,7 +995,9 @@ init_dangles(struct vrna_sc_mod_param_s *params,
   dH5       = &(params->dangle5_dH);
   dG3       = &(params->dangle3_dG);
   dH3       = &(params->dangle3_dH);
+/*
   nt[5]     = params->one_letter_code;
+*/
 
   if (params->available & MOD_PARAMS_DANGLES_dG) {
     /* process all closing pairs without modified bases */
@@ -986,8 +1006,10 @@ init_dangles(struct vrna_sc_mod_param_s *params,
         /* 'regular' enclosing pairs */
         pair_enc = i;
 
+/*
         bp[0] = bpairs[i][0];
         bp[1] = bpairs[i][1];
+*/
       } else {
         /* an enclosing pair with a modification */
         enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
@@ -995,13 +1017,17 @@ init_dangles(struct vrna_sc_mod_param_s *params,
         if ((i - NBPAIRS - 1) % 2) {
           pair_enc = md->pair[enc_unmod][enc_pp];
 
+/*
           bp[1] = nt[5];
           bp[0] = nt[enc_pp];
+*/
         } else {
           pair_enc = md->pair[enc_pp][enc_unmod];
 
+/*
           bp[0] = nt[5];
           bp[1] = nt[enc_pp];
+*/
         }
         if (pair_enc == 0)
           pair_enc = 7;
@@ -1067,9 +1093,11 @@ init_terminal(struct vrna_sc_mod_param_s  *params,
               energy_corrections          *diffs,
               vrna_param_t                *P)
 {
+/*
   char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
+*/
   unsigned int  i, enc_unmod, enc_pp, tt;
   int           e, (*dG)[MAX_PAIRS], (*dH)[MAX_PAIRS], Terminal_unmod;
   double        tempf;
@@ -1080,7 +1108,9 @@ init_terminal(struct vrna_sc_mod_param_s  *params,
   enc_unmod = params->fallback_encoding;
   dG        = &(params->terminal_dG);
   dH        = &(params->terminal_dH);
+/*
   nt[5]     = params->one_letter_code;
+*/
 
   if (params->available & MOD_PARAMS_TERMINAL_dG) {
     for (i = 1; i <= params->num_ptypes; i += 2) {
@@ -1167,11 +1197,11 @@ terminal(unsigned int       i,
 
 /* hairpin loop correction including terminalAU terms */
 PRIVATE INLINE int
-sc_PAIR_HP_terminal(vrna_fold_compound_t  *fc,
+sc_PAIR_HP_terminal(vrna_fold_compound_t  *fc VRNA_UNUSED,
                     int                   i,
                     int                   j,
-                    int                   k,
-                    int                   l,
+                    int                   k VRNA_UNUSED,
+                    int                   l VRNA_UNUSED,
                     void                  *d)
 {
   return terminal(i, j,
@@ -1184,8 +1214,8 @@ PRIVATE INLINE int
 sc_PAIR_HP_mismatch(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j,
-                    int                   k,
-                    int                   l,
+                    int                   k VRNA_UNUSED,
+                    int                   l VRNA_UNUSED,
                     void                  *d)
 {
   return mismatch(fc,
@@ -1209,7 +1239,7 @@ sc_PAIR_HP(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE int
-sc_PAIR_IL_stack(vrna_fold_compound_t *fc,
+sc_PAIR_IL_stack(vrna_fold_compound_t *fc VRNA_UNUSED,
                  int                  i,
                  int                  j,
                  int                  k,
@@ -1238,7 +1268,7 @@ sc_PAIR_IL_stack(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE int
-sc_PAIR_IL_terminal(vrna_fold_compound_t  *fc,
+sc_PAIR_IL_terminal(vrna_fold_compound_t  *fc VRNA_UNUSED,
                     int                   i,
                     int                   j,
                     int                   k,
@@ -1325,11 +1355,11 @@ sc_PAIR_IL(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE int
-sc_PAIR_ML_terminal(vrna_fold_compound_t  *fc,
+sc_PAIR_ML_terminal(vrna_fold_compound_t  *fc VRNA_UNUSED,
                     int                   i,
                     int                   j,
-                    int                   k,
-                    int                   l,
+                    int                   k VRNA_UNUSED,
+                    int                   l VRNA_UNUSED,
                     void                  *d)
 {
   return terminal(i, j,
@@ -1341,8 +1371,8 @@ PRIVATE INLINE int
 sc_PAIR_ML_mismatch(vrna_fold_compound_t  *fc,
                     int                   i,
                     int                   j,
-                    int                   k,
-                    int                   l,
+                    int                   k VRNA_UNUSED,
+                    int                   l VRNA_UNUSED,
                     void                  *d)
 {
   return mismatch(fc,
@@ -1365,9 +1395,9 @@ sc_PAIR_ML(vrna_fold_compound_t *fc,
 
 
 PRIVATE INLINE int
-sc_STEM_terminal(vrna_fold_compound_t *fc,
-                 int                  i,
-                 int                  j,
+sc_STEM_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
+                 int                  i VRNA_UNUSED,
+                 int                  j VRNA_UNUSED,
                  int                  k,
                  int                  l,
                  void                 *d)
@@ -1379,8 +1409,8 @@ sc_STEM_terminal(vrna_fold_compound_t *fc,
 
 PRIVATE INLINE int
 sc_STEM_mismatch(vrna_fold_compound_t *fc,
-                 int                  i,
-                 int                  j,
+                 int                  i VRNA_UNUSED,
+                 int                  j VRNA_UNUSED,
                  int                  k,
                  int                  l,
                  void                 *d)
@@ -1405,11 +1435,11 @@ sc_STEM(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t *fc,
+sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
                          int                  i,
-                         int                  j,
+                         int                  j VRNA_UNUSED,
                          int                  k,
-                         int                  l,
+                         int                  l VRNA_UNUSED,
                          void                 *d)
 {
   return terminal(k, i,
@@ -1420,9 +1450,9 @@ sc_EXT_STEM_EXT_terminal(vrna_fold_compound_t *fc,
 PRIVATE INLINE int
 sc_EXT_STEM_EXT_mismatch(vrna_fold_compound_t *fc,
                          int                  i,
-                         int                  j,
+                         int                  j VRNA_UNUSED,
                          int                  k,
-                         int                  l,
+                         int                  l VRNA_UNUSED,
                          void                 *d)
 {
   return mismatch(fc,
@@ -1445,10 +1475,10 @@ sc_EXT_STEM_EXT(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t *fc,
-                         int                  i,
+sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
+                         int                  i VRNA_UNUSED,
                          int                  j,
-                         int                  k,
+                         int                  k VRNA_UNUSED,
                          int                  l,
                          void                 *d)
 {
@@ -1459,9 +1489,9 @@ sc_EXT_EXT_STEM_terminal(vrna_fold_compound_t *fc,
 
 PRIVATE INLINE int
 sc_EXT_EXT_STEM_mismatch(vrna_fold_compound_t *fc,
-                         int                  i,
+                         int                  i VRNA_UNUSED,
                          int                  j,
-                         int                  k,
+                         int                  k VRNA_UNUSED,
                          int                  l,
                          void                 *d)
 {
@@ -1485,9 +1515,9 @@ sc_EXT_EXT_STEM(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t *fc,
-                             int                  i,
-                             int                  j,
+sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
+                             int                  i VRNA_UNUSED,
+                             int                  j VRNA_UNUSED,
                              int                  k,
                              int                  l,
                              void                 *d)
@@ -1499,8 +1529,8 @@ sc_EXT_STEM_OUTSIDE_terminal(vrna_fold_compound_t *fc,
 
 PRIVATE INLINE int
 sc_EXT_STEM_OUTSIDE_mismatch(vrna_fold_compound_t *fc,
-                             int                  i,
-                             int                  j,
+                             int                  i VRNA_UNUSED,
+                             int                  j VRNA_UNUSED,
                              int                  k,
                              int                  l,
                              void                 *d)
@@ -1525,10 +1555,10 @@ sc_EXT_STEM_OUTSIDE(vrna_fold_compound_t  *fc,
 
 
 PRIVATE INLINE int
-sc_ML_ML_STEM_terminal(vrna_fold_compound_t *fc,
-                       int                  i,
+sc_ML_ML_STEM_terminal(vrna_fold_compound_t *fc VRNA_UNUSED,
+                       int                  i VRNA_UNUSED,
                        int                  j,
-                       int                  k,
+                       int                  k VRNA_UNUSED,
                        int                  l,
                        void                 *d)
 {
@@ -1539,9 +1569,9 @@ sc_ML_ML_STEM_terminal(vrna_fold_compound_t *fc,
 
 PRIVATE INLINE int
 sc_ML_ML_STEM_mismatch(vrna_fold_compound_t *fc,
-                       int                  i,
+                       int                  i VRNA_UNUSED,
                        int                  j,
-                       int                  k,
+                       int                  k VRNA_UNUSED,
                        int                  l,
                        void                 *d)
 {
