@@ -286,9 +286,9 @@ circfold(const char *string,
 
 
 PUBLIC void
-initialize_fold(int length)
+initialize_fold(int length VRNA_UNUSED)
 {
-  /* DO NOTHING */
+  ;/* DO NOTHING */
 }
 
 
