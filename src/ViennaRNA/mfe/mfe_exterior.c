@@ -1032,9 +1032,9 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t  *fc,
 PRIVATE INLINE int
 add_f5_gquad(vrna_fold_compound_t   *fc,
              unsigned int           j,
-             vrna_hc_eval_f         evaluate,
-             struct hc_ext_def_dat  *hc_dat_local,
-             struct sc_f5_dat       *sc_wrapper)
+             vrna_hc_eval_f         evaluate VRNA_UNUSED,
+             struct hc_ext_def_dat  *hc_dat_local VRNA_UNUSED,
+             struct sc_f5_dat       *sc_wrapper VRNA_UNUSED)
 {
   unsigned int      i;
   int               e, e_gq, *f5;
