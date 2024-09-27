@@ -52,7 +52,7 @@ PRIVATE FLT_OR_DBL
 mf_rule_pair(vrna_fold_compound_t *fc,
              unsigned int         i,
              unsigned int         j,
-             void                 *data)
+             void                 *data VRNA_UNUSED)
 {
   short                 *S1, *S2, s5, s3;
   unsigned int          *sn, *ends, type, nick;
