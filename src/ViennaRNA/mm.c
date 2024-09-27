@@ -151,7 +151,7 @@ maximumMatchingConstraint(const char  *string,
       max = mm[iindx[i] - j + 1];
       for (l = j - TURN - 1; l >= i; l--) {
         if (pair[encodedString[l]][encodedString[j]])
-          if (ptable[l] != j)
+          if ((unsigned int)ptable[l] != j)
             max = MAX2(max, ((l > i) ? mm[iindx[i] - l + 1] : 0) + 1 + mm[iindx[l + 1] - j + 1]);
       }
       mm[iindx[i] - j] = max;
@@ -184,7 +184,7 @@ maximumMatching2Constraint(const char *string,
       max = mm[iindx[i] - j + 1];
       for (l = j - TURN - 1; l >= i; l--) {
         if (pair[encodedString[l]][encodedString[j]])
-          if (ptable[l] != j && ptable2[l] != j)
+          if ((unsigned int)ptable[l] != j && ptable2[l] != j)
             max = MAX2(max, ((l > i) ? mm[iindx[i] - l + 1] : 0) + 1 + mm[iindx[l + 1] - j + 1]);
       }
       mm[iindx[i] - j] = max;
