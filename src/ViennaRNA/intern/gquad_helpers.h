@@ -152,8 +152,19 @@ get_g_islands(short *S)
  *  that receives a pointer to a callback function which in turn does the
  *  actual computation for each quadruplex found.
  */
-PRIVATE
-void
+PRIVATE void
+process_gquad_enumeration(unsigned int *gg,
+                          unsigned int i,
+                          unsigned int j,
+                          void ( *f )(unsigned int, unsigned int, unsigned int *,
+                                      void *, void *, void *, void *),
+                          void *data,
+                          void *P,
+                          void *aux1,
+                          void *aux2) VRNA_UNUSED;
+
+
+PRIVATE void
 process_gquad_enumeration(unsigned int *gg,
                           unsigned int i,
                           unsigned int j,
