@@ -212,9 +212,8 @@ bt_int_loop(vrna_fold_compound_t  *fc,
 {
   unsigned char         sliding_window, hc_decompose_ij, hc_decompose_pq;
   unsigned char         eval_loop;
-  short                 *S2, **SS;
-  unsigned int          n, n_seq, s, *sn, type, *tt, p, q, minq;
-  int                   ij, *idx, no_close, energy, *my_c, **c_local, ret;
+  unsigned int          n, p, q, minq;
+  int                   *idx, energy, *my_c, **c_local, ret;
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
@@ -224,18 +223,12 @@ bt_int_loop(vrna_fold_compound_t  *fc,
   ret             = 0;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
   n               = fc->length;
-  n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
-  sn              = fc->strand_number;
-  S2              = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sequence_encoding2 : NULL;
-  SS              = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
   idx             = (sliding_window) ? NULL : fc->jindx;
   P               = fc->params;
   md              = &(P->model_details);
   hc              = fc->hc;
   my_c            = (sliding_window) ? NULL : fc->matrices->c;
   c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
-  ij              = (sliding_window) ? 0 : idx[j] + i;
-  tt              = NULL;
   evaluate        = prepare_hc_int_def(fc, &hc_dat_local);
 
   hc_decompose_ij = (sliding_window) ? hc->matrix_local[i][j - i] : hc->mx[n * i + j];
@@ -313,8 +306,6 @@ bt_int_loop(vrna_fold_compound_t  *fc,
   }
 
 bt_int_exit:
-
-  free(tt);
 
   return ret; /* unsuccessful */
 }
