@@ -331,9 +331,9 @@ get_concentrations(double FcAB,
 
 
 PUBLIC void
-init_co_pf_fold(int length)
+init_co_pf_fold(int length VRNA_UNUSED)
 {
-  /* DO NOTHING */
+  ;/* DO NOTHING */
 }
 
 
@@ -359,7 +359,7 @@ export_co_bppm(void)
 
 
 PUBLIC void
-update_co_pf_params(int length)
+update_co_pf_params(int length VRNA_UNUSED)
 {
   if (backward_compat_compound && backward_compat) {
     vrna_md_t md;
@@ -373,7 +373,7 @@ update_co_pf_params(int length)
 
 
 PUBLIC void
-update_co_pf_params_par(int               length,
+update_co_pf_params_par(int               length VRNA_UNUSED,
                         vrna_exp_param_t  *parameters)
 {
   if (backward_compat_compound && backward_compat) {
