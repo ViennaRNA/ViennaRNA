@@ -165,8 +165,7 @@ vrna_E_consensus_gquad(unsigned int       L,
                        vrna_param_t       *P,
                        int                en[2])
 {
-  unsigned int  s;
-  int           penalty;
+  int penalty;
 
   en[0] = en[1] = INF;
 
@@ -351,8 +350,7 @@ count_gquad_layer_mismatches(unsigned int L,
                              const short  **S,
                              unsigned int mm[2])
 {
-  unsigned int  s, layer_pos[4], k, ld, mismatch;
-  int           cnt;
+  unsigned int  s, layer_pos[4], mismatch, cnt;
 
   mm[0] = mm[1] = 0;
 
