@@ -58,7 +58,7 @@ conc_complexes(double       *L,
                double       *eq_const,
                unsigned int **A,
                size_t       strands,
-               size_t       complexes);
+               size_t       complexes) VRNA_UNUSED;
 
 
 /*
