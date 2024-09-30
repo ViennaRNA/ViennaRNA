@@ -421,10 +421,12 @@ get_mx_mfe_alloc_vector_current(vrna_mx_mfe_t   *mx,
         if (mx->fML)
           mx_alloc_vector |= ALLOC_FML;
 
-        if (mx->fM1)
+        if ((mx->fM1) ||
+            (mx->fM2_real))
           mx_alloc_vector |= ALLOC_UNIQ;
 
-        if ((mx->fM1_new) || (mx->fM2_real))
+        if ((mx->fM1_new) &&
+            (mx->fM2_real))
           mx_alloc_vector |= ALLOC_CIRC;
 
         break;
@@ -456,10 +458,12 @@ get_mx_pf_alloc_vector_current(vrna_mx_pf_t   *mx,
         if (mx->qm)
           mx_alloc_vector |= ALLOC_FML;
 
-        if (mx->qm1)
+        if ((mx->qm1) ||
+            (mx->qm2_real))
           mx_alloc_vector |= ALLOC_UNIQ;
 
-        if ((mx->qm1_new) || (mx->qm2_real))
+        if ((mx->qm1_new) &&
+            (mx->qm2_real))
           mx_alloc_vector |= ALLOC_CIRC;
 
         if (mx->probs)
@@ -1314,13 +1318,16 @@ init_mx_mfe_default(vrna_fold_compound_t  *fc,
     if (alloc_vector & ALLOC_FML)
       mx->fML = (int *)vrna_alloc(sizeof(int) * size);
 
-    if (alloc_vector & ALLOC_UNIQ)
-      mx->fM1 = (int *)vrna_alloc(sizeof(int) * size);
+    if ((alloc_vector & ALLOC_UNIQ) ||
+        (alloc_vector & ALLOC_CIRC)) {
+      if (!(alloc_vector & ALLOC_CIRC))
+        mx->fM1 = (int *)vrna_alloc(sizeof(int) * size);
 
-    if (alloc_vector & ALLOC_CIRC) {
-      mx->fM1_new  = (int *)vrna_alloc(sizeof(int) * lin_size);
       mx->fM2_real = (int *)vrna_alloc(sizeof(int) * size);
     }
+
+    if (alloc_vector & ALLOC_CIRC)
+      mx->fM1_new  = (int *)vrna_alloc(sizeof(int) * lin_size);
   }
 
   return mx;
@@ -1634,13 +1641,16 @@ init_mx_pf_default(vrna_fold_compound_t *fc,
     if (alloc_vector & ALLOC_FML)
       mx->qm = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
-    if (alloc_vector & ALLOC_UNIQ)
-      mx->qm1 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+    if ((alloc_vector & ALLOC_UNIQ) ||
+        (alloc_vector & ALLOC_CIRC)) {
+      if (!(alloc_vector & ALLOC_CIRC))
+        mx->qm1 = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
 
-    if (alloc_vector & ALLOC_CIRC) {
-      mx->qm1_new   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
-      mx->qm2_real  = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
+      mx->qm2_real = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);
     }
+
+    if (alloc_vector & ALLOC_CIRC)
+      mx->qm1_new   = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * lin_size);
 
     if (alloc_vector & ALLOC_PROBS)
       mx->probs = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * size);

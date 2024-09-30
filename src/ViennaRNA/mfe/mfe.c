@@ -458,7 +458,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
   for (i = 1; i <= length; i++) {
     c[indx[i] + i] = fML[indx[i] + i] = INF;
 
-    if (uniq_ML)
+    if (fM1)
       fM1[indx[i] + i] = INF;
 
     if (fM2_real)
@@ -498,7 +498,7 @@ fill_arrays(vrna_fold_compound_t  *fc,
 
 
       /* decompose subsegment [i, j] that is multibranch loop part with exactly one branch */
-      if (uniq_ML)
+      if (fM1)
         fM1[ij] = vrna_mfe_multibranch_m1(fc, i, j);
 
       if (fc->aux_grammar)
