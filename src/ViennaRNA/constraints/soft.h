@@ -496,8 +496,8 @@ vrna_sc_set_bp_comparative_seq(vrna_fold_compound_t *fc,
  */
 int
 vrna_sc_add_bp(vrna_fold_compound_t *fc,
-               int                  i,
-               int                  j,
+               unsigned int         i,
+               unsigned int         j,
                FLT_OR_DBL           energy,
                unsigned int         options);
 
@@ -674,7 +674,7 @@ vrna_sc_set_up_comparative_seq(vrna_fold_compound_t *fc,
  */
 int
 vrna_sc_add_up(vrna_fold_compound_t *fc,
-               int                  i,
+               unsigned int         i,
                FLT_OR_DBL           energy,
                unsigned int         options);
 
@@ -763,7 +763,7 @@ vrna_sc_set_stack_comparative_seq(vrna_fold_compound_t  *fc,
 
 int
 vrna_sc_add_stack(vrna_fold_compound_t  *fc,
-                  int                   i,
+                  unsigned int          i,
                   FLT_OR_DBL            energy,
                   unsigned int          options);
 
