@@ -452,7 +452,10 @@ main(int  argc,
     opt.md.uniq_ML      = 1;
     opt.md.compute_bpp  = 0;
     opt.pf              = 1;
-    vrna_init_rand();
+    if (args_info.random_seed_given)
+      vrna_init_rand_seed((unsigned int)args_info.random_seed_arg);
+    else
+      vrna_init_rand();
   }
 
   if (args_info.stochBT_en_given) {
@@ -461,7 +464,10 @@ main(int  argc,
     opt.md.compute_bpp  = 0;
     opt.pf              = 1;
     opt.eval_en         = 1;
-    vrna_init_rand();
+    if (args_info.random_seed_given)
+      vrna_init_rand_seed((unsigned int)args_info.random_seed_arg);
+    else
+      vrna_init_rand();
   }
 
   /* non-redundant backtracing */

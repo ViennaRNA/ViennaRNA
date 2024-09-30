@@ -309,6 +309,13 @@ flag
 off
 
 
+option    "random-seed"  -
+"Set the seed for the random number generator\n\n"
+int
+optional
+hidden
+
+
 section "Structure Constraints"
 sectiondesc="Command line options to interact with the structure constraints feature of this program\n\n"
 
