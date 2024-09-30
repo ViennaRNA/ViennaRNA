@@ -86,8 +86,8 @@ typedef struct {
 
   /* Make a certain nucleotide unpaired */
   void
-  hc_add_up(int          i,
-            unsigned int option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
+  hc_add_up(unsigned int  i,
+            unsigned int  option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
     vrna_hc_add_up_strand($self, i, -1, (unsigned char)option);
   }
@@ -102,11 +102,11 @@ typedef struct {
 
   /* Enforce a nucleotide to be paired (upstream/downstream) */
   void
-  hc_add_bp_nonspecific(int           i,
+  hc_add_bp_nonspecific(unsigned int  i,
                         int           d,
                         unsigned int  option = VRNA_CONSTRAINT_CONTEXT_ALL_LOOPS)
   {
-    vrna_hc_add_bp_nonspecific($self,i,d, (unsigned char)option);
+    vrna_hc_add_bp_nonspecific($self, i, d, (unsigned char)option);
   }
   
   /* Favorize/Enforce  a certain base pair (i,j) */

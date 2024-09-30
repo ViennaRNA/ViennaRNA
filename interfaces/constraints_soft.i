@@ -28,9 +28,9 @@
   }
   
   int
-  sc_add_up(int          i,
-            double       energy,
-            unsigned int options = VRNA_OPTION_DEFAULT)
+  sc_add_up(unsigned int  i,
+            double        energy,
+            unsigned int  options = VRNA_OPTION_DEFAULT)
   {
     return vrna_sc_add_up($self, i, energy, options);
   }
@@ -40,7 +40,8 @@
             unsigned int        options = VRNA_OPTION_DEFAULT)
   {
     std::vector<double>::iterator it;
-    int i = 1, ret = 1;
+    unsigned int  i = 1;
+    int           ret = 1;
     it = constraints.begin();
     for(it++; it != constraints.end(); it++, i++){
       ret &= (vrna_sc_add_up($self, i, *it, options)) ? 1 : 0;
@@ -50,10 +51,10 @@
   }
 
   int
-  sc_add_bp(int          i,
-            int          j,
-            double       energy,
-            unsigned int options = VRNA_OPTION_DEFAULT)
+  sc_add_bp(unsigned int  i,
+            unsigned int  j,
+            double        energy,
+            unsigned int  options = VRNA_OPTION_DEFAULT)
   {
     return vrna_sc_add_bp($self, i, j, energy, options);
   }
@@ -144,9 +145,9 @@
   }
 
   int
-  sc_add_stack(int           i,
-               double        energy,
-               unsigned int  options = VRNA_OPTION_DEFAULT)
+  sc_add_stack(unsigned int i,
+               double       energy,
+               unsigned int options = VRNA_OPTION_DEFAULT)
   {
     return vrna_sc_add_stack($self, i, energy, options);
   }

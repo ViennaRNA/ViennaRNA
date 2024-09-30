@@ -24,7 +24,7 @@ This function is attached as method @p sc_set_bp() to objects of type @p fold_co
 @endparblock
 
 
-@fn int vrna_sc_add_bp(vrna_fold_compound_t *fc, int i, int j, FLT_OR_DBL energy, unsigned int options)
+@fn int vrna_sc_add_bp(vrna_fold_compound_t *fc, unsigned int i, unsigned int j, FLT_OR_DBL energy, unsigned int options)
 @scripting
 @parblock
 This function is attached as an overloaded method @p sc_add_bp() to objects of type
@@ -51,7 +51,7 @@ This function is attached as method @p sc_set_up() to objects of type @p fold_co
 @endparblock
 
 
-@fn int vrna_sc_add_up( vrna_fold_compound_t *fc, int i, FLT_OR_DBL energy, unsigned int options)
+@fn int vrna_sc_add_up( vrna_fold_compound_t *fc, unsigned int i, FLT_OR_DBL energy, unsigned int options)
 @scripting
 @parblock
 This function is attached as an overloaded method @p sc_add_up() to objects of type
