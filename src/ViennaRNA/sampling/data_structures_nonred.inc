@@ -30,6 +30,7 @@ enum stetch_type {
   NRT_QM1_BRANCH  = 6,      /* branch in multiloop in qm1: (i,j) */
   NRT_QM_PAIR     = 7,      /* QM split on K with pairing within [i..k-1] : (k, 0)  */
   NRT_QM_UNPAIR   = 8,      /* QM split on K with no pairing within [i..k-1] : (k, 0) */
+  NRT_QM1_NEW_BRANCH  = 9,  /* branch in multiloop in qm1_new: (i,j) */
 };
 
 #ifdef VRNA_NR_SAMPLING_HASH
