@@ -174,15 +174,21 @@ main(int  argc,
   /* stochastic backtracking */
   if (args_info.stochBT_given) {
     n_back = args_info.stochBT_arg;
-    vrna_init_rand();
     md.compute_bpp = 0;
+    if (args_info.random_seed_given)
+      vrna_init_rand_seed((unsigned int)args_info.random_seed_arg);
+    else
+      vrna_init_rand();
   }
 
   if (args_info.stochBT_en_given) {
     n_back          = args_info.stochBT_en_arg;
     st_back_en      = 1;
     md.compute_bpp  = 0;
-    vrna_init_rand();
+    if (args_info.random_seed_given)
+      vrna_init_rand_seed((unsigned int)args_info.random_seed_arg);
+    else
+      vrna_init_rand();
   }
 
   /* density of states */

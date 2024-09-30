@@ -234,6 +234,13 @@ typestr="number"
 optional
 hidden
 
+option    "random-seed"  -
+"Set the seed for the random number generator\n\n"
+int
+optional
+hidden
+
+
 option  "betaScale" -
 "Set the scaling of the Boltzmann factors.\n"
 details="The argument provided with this option is used to scale the thermodynamic temperature\
