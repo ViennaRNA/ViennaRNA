@@ -21,16 +21,21 @@ PRIVATE mpfr_rnd_t default_rnd();   /* returns default rounding mode (to nearest
 /* defines types for different sequence stetches/loops */
 typedef enum _type Type;
 enum stetch_type {
-  NRT_NONE_TYPE   = 0,      /* nonetype: both 0 (root) */
-  NRT_HAIRPIN     = 1,      /* hairpin: both 0 (unused) */
-  NRT_IT_LOOP     = 2,      /* internal loop: (i', j') - closed pair */
-  NRT_MT_LOOP     = 3,      /* multiloop: K (second is 0 - unused) */
-  NRT_EXT_LOOP    = 4,      /* external loop: (i, j) */
-  NRT_UNPAIRED_SG = 5,      /* unpaired positions: (first unpaired position - end known of stretch) */
-  NRT_QM1_BRANCH  = 6,      /* branch in multiloop in qm1: (i,j) */
-  NRT_QM_PAIR     = 7,      /* QM split on K with pairing within [i..k-1] : (k, 0)  */
-  NRT_QM_UNPAIR   = 8,      /* QM split on K with no pairing within [i..k-1] : (k, 0) */
-  NRT_QM1_NEW_BRANCH  = 9,  /* branch in multiloop in qm1_new: (i,j) */
+  NRT_NONE_TYPE       = 0,    /* nonetype: both 0 (root) */
+  NRT_HAIRPIN         = 1,    /* hairpin: both 0 (unused) */
+  NRT_IT_LOOP         = 2,    /* internal loop: (i', j') - closed pair */
+  NRT_MB_LOOP         = 3,    /* multibranch loop: both 0 (unused) */
+  NRT_EXT_LOOP        = 4,    /* external loop: (i, j) */
+  NRT_UNPAIRED_SG     = 5,    /* unpaired positions: (first unpaired position - end known of stretch) */
+  NRT_QM_UNPAIR       = 6,    /* QM unpaired base at 3' end : (j - 1, j) */
+  NRT_QM_BRANCH       = 7,    /* QM split on K with pairing within [i..k-1] : (k, 0)  */
+  NRT_QM_NOBRANCH     = 8,    /* QM split on K with no pairing within [i..k-1] : (k, 0) */
+  NRT_QM2_BRANCH      = 9,    /* QM2 split on K with at least one more branch within [i..k-1] : (k, 0)  */
+  NRT_QM2_UNPAIR      = 10,   /* QM2 split with unpaired bases on 3' end, i.e. j (i, j) */
+  NRT_QM1_NEW_BRANCH  = 11,   /* branch in multiloop in qm1_new: (i,j) */
+  NRT_EXT_HAIRPIN     = 12,   /* circRNA: ext-loop hairpin: both 0 (unused) */
+  NRT_EXT_IT_LOOP     = 13,   /* circRNA: internal loop: (i', j') - closed pair */
+  NRT_EXT_MB_LOOP     = 14,   /* circRNA: multibranch loop: both 0 (unused) */
 };
 
 #ifdef VRNA_NR_SAMPLING_HASH
