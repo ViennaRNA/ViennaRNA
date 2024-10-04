@@ -727,9 +727,9 @@ fill_arrays(vrna_fold_compound_t      *vc,
       fML[i][j - i] = vrna_mfe_multibranch_stems_fast(vc, i, j, helper_arrays->ml_helpers);
 
       if (vc->aux_grammar) {
-        for (size_t c = 0; c < vrna_array_size(vc->aux_grammar->aux); c++)
-          if (vc->aux_grammar->aux[c].cb)
-            vc->aux_grammar->aux[c].cb(vc, i, j, vc->aux_grammar->aux[c].data);
+        for (size_t cnt = 0; cnt < vrna_array_size(vc->aux_grammar->aux); cnt++)
+          if (vc->aux_grammar->aux[cnt].cb)
+            vc->aux_grammar->aux[cnt].cb(vc, i, j, vc->aux_grammar->aux[cnt].data);
       }
     } /* for (j...) */
 
