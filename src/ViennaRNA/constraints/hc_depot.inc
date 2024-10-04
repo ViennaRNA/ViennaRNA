@@ -121,8 +121,8 @@ hc_depot_store_up(vrna_fold_compound_t  *fc,
                   unsigned int          strand,
                   unsigned char         context)
 {
-  unsigned int  k, old_size;
-  vrna_hc_t     *hc = fc->hc;
+  size_t    k, old_size;
+  vrna_hc_t *hc = fc->hc;
 
   hc_depot_init(fc);
 
