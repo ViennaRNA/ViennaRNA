@@ -1642,7 +1642,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
           fm += c_tmp[i + 1];
           if (fm < FcMd3) {
             FcMd3 = fm;
-            Md3i  = -i;
+            Md3i  = -(int)i;
           }
         }
       }
@@ -1831,7 +1831,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
 
           if (fm < FcMd5) {
             FcMd5 = fm;
-            Md5i  = -i;
+            Md5i  = -(int)i;
           }
         }
       }
