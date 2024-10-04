@@ -222,7 +222,7 @@
     return vrna_eval_circ_gquad_consensus_structure_v((const char **)&vc[0], structure.c_str(), verbosity_level, nullfile);
   }
 
-  float
+  int
   my_eval_structure_pt_simple(std::string       sequence,
                               std::vector<int>  pt,
                               int               verbosity_level = VRNA_VERBOSITY_QUIET,
@@ -235,7 +235,7 @@
     return vrna_eval_structure_pt_simple_v(sequence.c_str(), (const short*)&vc[0], verbosity_level, nullfile);
   }
 
-  float
+  int
   my_eval_structure_pt_simple(std::string       sequence,
                               var_array<short> const &pt,
                               int               verbosity_level = VRNA_VERBOSITY_QUIET,
@@ -244,7 +244,7 @@
     return vrna_eval_structure_pt_simple_v(sequence.c_str(), pt.data, verbosity_level, nullfile);
   }
 
-  float
+  int
   my_eval_structure_pt_simple(std::vector<std::string>  alignment,
                               std::vector<int>          pt,
                               int                       verbosity_level = VRNA_VERBOSITY_QUIET,
@@ -261,7 +261,7 @@
     return vrna_eval_consensus_structure_pt_simple_v((const char **)&vc[0], (const short*)&ptv[0], verbosity_level, nullfile);
   }
 
-  float
+  int
   my_eval_structure_pt_simple(std::vector<std::string>  alignment,
                               var_array<short> const   &pt,
                               int                       verbosity_level = VRNA_VERBOSITY_QUIET,
@@ -325,27 +325,27 @@ my_eval_circ_gquad_structure(std::vector<std::string> alignment,
                              int         verbosity_level = VRNA_VERBOSITY_QUIET,
                              FILE        *nullfile = NULL);
 
-float
+int
 my_eval_structure_pt_simple(std::string sequence,
                             std::vector<int> pt,
                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
                             FILE        *nullfile = NULL);
 
 
-float
+int
 my_eval_structure_pt_simple(std::string sequence,
                             var_array<short> const &pt,
                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
                             FILE        *nullfile = NULL);
 
 
-float
+int
 my_eval_structure_pt_simple(std::vector<std::string> alignment,
                             std::vector<int> pt,
                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
                             FILE        *nullfile = NULL);
 
-float
+int
 my_eval_structure_pt_simple(std::vector<std::string> alignment,
                             var_array<short> const &pt,
                             int         verbosity_level = VRNA_VERBOSITY_QUIET,
