@@ -577,7 +577,7 @@ vrna_sc_add_bp(vrna_fold_compound_t *fc,
                            " (Sequence length: %d)",
                            i, j, fc->length);
     } else {
-      sc_add_bp(fc, (unsigned int)i, (unsigned int)j, energy, options);
+      sc_add_bp(fc, i, j, energy, options);
 
       if (options & VRNA_OPTION_MFE)
         prepare_sc_bp_mfe(fc->sc, fc->length, fc->jindx, options);
