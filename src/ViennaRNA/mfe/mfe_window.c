@@ -1083,7 +1083,7 @@ repeat1:
       structure[bp.j - start] = ')';
     }
 
-    if (max3 < bp.j - start)
+    if (max3 + start < bp.j)
       max3 = bp.j - start;
   }
 
