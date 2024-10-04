@@ -174,6 +174,8 @@ class vrna_build_ext(build_ext):
 
             ext.libraries += ['m']
 
+            ext.define_macros += [('VRNA_LOG_NO_DEBUG_RNALIB', "1")]
+
             if sys.platform == 'darwin':
                 # always disable OpenMP on Mac OS X (until we resolve a good way to activate it)
                 self.with_openmp = False
@@ -360,7 +362,8 @@ def vrna_ext(name = "RNA._RNA"):
                '#define VRNA_WITH_NAVIEW_LAYOUT',
                '#define VRNA_WITH_OPENMP',
                '#define VRNA_WITH_SIMD_AVX512',
-               '#define VRNA_WITH_SIMD_SSE41'
+               '#define VRNA_WITH_SIMD_SSE41',
+               '#define VRNA_LOG_NO_DEBUG_RNALIB'
               ]
 
     comment_lines('config.h', defines)
