@@ -758,11 +758,9 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
             energy_corrections          *diffs,
             vrna_param_t                *P)
 {
-/*
   char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
-*/
   unsigned int  i, si, sj, enc_unmod, enc_pp, tt, pair_MP, pair_PM;
   int           e,
                 (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
@@ -775,9 +773,7 @@ init_stacks(struct vrna_sc_mod_param_s  *params,
   enc_unmod = params->fallback_encoding;
   dG        = &(params->stack_dG);
   dH        = &(params->stack_dH);
-/*
   nt[5]     = params->one_letter_code;
-*/
 
   if (params->available & MOD_PARAMS_STACK_dG) {
     for (i = 1; i <= params->num_ptypes; i += 2) {
@@ -855,7 +851,6 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
                 energy_corrections          *diffs,
                 vrna_param_t                *P)
 {
-/*
   char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
@@ -866,7 +861,6 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
   char          *bpairs[8] = {
     "NN", "CG", "GC", "GU", "UG", "AU", "UA", "XX"
   };
-*/
 
   unsigned int  i, si, sj, enc_unmod, enc_pp, siu, sju, pair_enc;
   int           e, (*dG)[MAX_PAIRS][MAX_ALPHABET][MAX_ALPHABET],
@@ -879,9 +873,7 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
   enc_unmod = params->fallback_encoding;
   dG        = &(params->mismatch_dG);
   dH        = &(params->mismatch_dH);
-/*
   nt[5]     = params->one_letter_code;
-*/
 
   if (params->available & MOD_PARAMS_MISMATCH_dG) {
     /*  go through all enclosing base pair types, including those that
@@ -895,10 +887,8 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
         /* 'regular' enclosing pairs */
         pair_enc = i;
 
-/*
         bp[0] = bpairs[i][0];
         bp[1] = bpairs[i][1];
-*/
       } else {
         /* an enclosing pair with a modification */
         enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
@@ -906,17 +896,13 @@ init_mismatches(struct vrna_sc_mod_param_s  *params,
         if ((i - NBPAIRS - 1) % 2) {
           pair_enc = md->pair[enc_unmod][enc_pp];
 
-/*
           bp[1] = nt[5];
           bp[0] = nt[enc_pp];
-*/
         } else {
           pair_enc = md->pair[enc_pp][enc_unmod];
 
-/*
           bp[0] = nt[5];
           bp[1] = nt[enc_pp];
-*/
         }
         if (pair_enc == 0)
           pair_enc = 7;
@@ -970,7 +956,6 @@ init_dangles(struct vrna_sc_mod_param_s *params,
              energy_corrections         *diffs,
              vrna_param_t               *P)
 {
-/*
   char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
@@ -981,7 +966,6 @@ init_dangles(struct vrna_sc_mod_param_s *params,
   char          *bpairs[7] = {
     "NN", "CG", "GC", "GU", "UG", "AU", "UA"
   };
-*/
   unsigned int  i, si, enc_unmod, enc_pp, siu, pair_enc;
   int           e, (*dG5)[MAX_PAIRS][MAX_ALPHABET], (*dH5)[MAX_PAIRS][MAX_ALPHABET],
   (*dG3)[MAX_PAIRS][MAX_ALPHABET], (*dH3)[MAX_PAIRS][MAX_ALPHABET];
@@ -995,9 +979,7 @@ init_dangles(struct vrna_sc_mod_param_s *params,
   dH5       = &(params->dangle5_dH);
   dG3       = &(params->dangle3_dG);
   dH3       = &(params->dangle3_dH);
-/*
   nt[5]     = params->one_letter_code;
-*/
 
   if (params->available & MOD_PARAMS_DANGLES_dG) {
     /* process all closing pairs without modified bases */
@@ -1006,10 +988,8 @@ init_dangles(struct vrna_sc_mod_param_s *params,
         /* 'regular' enclosing pairs */
         pair_enc = i;
 
-/*
         bp[0] = bpairs[i][0];
         bp[1] = bpairs[i][1];
-*/
       } else {
         /* an enclosing pair with a modification */
         enc_pp = params->pairing_partners_encoding[(i - NBPAIRS - 1) / 2];
@@ -1017,17 +997,13 @@ init_dangles(struct vrna_sc_mod_param_s *params,
         if ((i - NBPAIRS - 1) % 2) {
           pair_enc = md->pair[enc_unmod][enc_pp];
 
-/*
           bp[1] = nt[5];
           bp[0] = nt[enc_pp];
-*/
         } else {
           pair_enc = md->pair[enc_pp][enc_unmod];
 
-/*
           bp[0] = nt[5];
           bp[1] = nt[enc_pp];
-*/
         }
         if (pair_enc == 0)
           pair_enc = 7;
@@ -1093,11 +1069,9 @@ init_terminal(struct vrna_sc_mod_param_s  *params,
               energy_corrections          *diffs,
               vrna_param_t                *P)
 {
-/*
   char          nt[MAX_ALPHABET] = {
     '\0', 'A', 'C', 'G', 'U', 'M'
   };
-*/
   unsigned int  i, enc_unmod, enc_pp, tt;
   int           e, (*dG)[MAX_PAIRS], (*dH)[MAX_PAIRS], Terminal_unmod;
   double        tempf;
@@ -1108,9 +1082,7 @@ init_terminal(struct vrna_sc_mod_param_s  *params,
   enc_unmod = params->fallback_encoding;
   dG        = &(params->terminal_dG);
   dH        = &(params->terminal_dH);
-/*
   nt[5]     = params->one_letter_code;
-*/
 
   if (params->available & MOD_PARAMS_TERMINAL_dG) {
     for (i = 1; i <= params->num_ptypes; i += 2) {
