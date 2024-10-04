@@ -1295,7 +1295,7 @@ sc_f5_cb_split_in_ext_stem_comparative(int              j VRNA_UNUSED,
   for (s = 0; s < data->n_seq; s++) {
     if (sc_up[s]) {
       start_1   = a2s[s][k] + 1;
-      length_1  = a2s[l - 1] - a2s[k];
+      length_1  = a2s[s][l - 1] - a2s[s][k];
 
       if (length_1 != 0)
         e_sc += sc_up[s][start_1][length_1];
@@ -1323,7 +1323,7 @@ sc_ext_cb_split_comparative(int               i VRNA_UNUSED,
   for (s = 0; s < data->n_seq; s++) {
     if (sc_up[s]) {
       start_1   = a2s[s][k] + 1;
-      length_1  = a2s[l - 1] - a2s[k];
+      length_1  = a2s[s][l - 1] - a2s[s][k];
 
       if (length_1 != 0)
         e_sc += sc_up[s][start_1][length_1];
@@ -1351,7 +1351,7 @@ sc_f3_cb_split_in_stem_ext_comparative(int              i VRNA_UNUSED,
   for (s = 0; s < data->n_seq; s++) {
     if (sc_up[s]) {
       start_1   = a2s[s][k] + 1;
-      length_1  = a2s[l - 1] - a2s[k];
+      length_1  = a2s[s][l - 1] - a2s[s][k];
 
       if (length_1 != 0)
         e_sc += sc_up[s][start_1][length_1];
