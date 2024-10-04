@@ -93,10 +93,10 @@ vrna__array_set_capacity(void    *array,
  */
 #define vrna_array_init_size(a, init_size) do { \
   void **a_ptr = (void **)&(a); \
-  size_t size = sizeof(*(a)) * (init_size) + sizeof(vrna_array_header_t); \
+  size_t size = sizeof(*(a)) * (size_t)(init_size) + sizeof(vrna_array_header_t); \
   vrna_array_header_t *h = (void *)vrna_alloc(size); \
   h->num           = 0; \
-  h->size          = init_size; \
+  h->size          = (size_t)init_size; \
   *a_ptr           = (void *)(h + 1); \
 } while (0)
 
