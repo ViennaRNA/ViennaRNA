@@ -15,6 +15,7 @@
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/utils/svm.h"
+#include "ViennaRNA/zscore/basic.h"
 
 #include "ViennaRNA/intern/zscore_dat.h"
 
