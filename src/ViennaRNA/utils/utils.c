@@ -79,11 +79,11 @@ rj_mix(uint32_t a,
 /* include the following two functions only if not including <dmalloc.h> */
 
 PUBLIC void *
-vrna_alloc(unsigned size)
+vrna_alloc(size_t size)
 {
   void *pointer;
 
-  if ((pointer = (void *)calloc(1, (size_t)size)) == NULL) {
+  if ((pointer = (void *)calloc(1, size)) == NULL) {
 #ifdef EINVAL
     if (errno == EINVAL) {
       fprintf(stderr, "vrna_alloc: requested size: %d\n", size);
@@ -101,7 +101,7 @@ vrna_alloc(unsigned size)
 
 PUBLIC void *
 vrna_realloc(void     *p,
-             unsigned size)
+             size_t   size)
 {
   if (p == NULL)
     return vrna_alloc(size);

@@ -153,7 +153,7 @@
  *  @return     A pointer to the allocated memory
  */
 void *
-vrna_alloc(unsigned size);
+vrna_alloc(size_t size);
 
 
 /**
@@ -165,7 +165,7 @@ vrna_alloc(unsigned size);
  */
 void *
 vrna_realloc(void     *p,
-             unsigned size);
+             size_t size);
 
 
 #endif
