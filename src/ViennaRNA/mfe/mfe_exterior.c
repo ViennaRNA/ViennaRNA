@@ -982,7 +982,7 @@ f5_get_stem_contributions_d53(vrna_fold_compound_t  *fc,
         ssj1[s] = SS[s][j - 1];
       }
 
-      for (i = j - 1; i > 1; i--, ij--, si1--) {
+      for (i = j - 1; i > 1; i--, ij--) {
         stems[i] = INF;
         if ((i + 1 < j) &&
             (c[ij] != INF) &&
