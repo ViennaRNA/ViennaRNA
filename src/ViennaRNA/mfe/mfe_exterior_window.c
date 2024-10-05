@@ -219,7 +219,7 @@ decompose_f3_ext_stem_d0(vrna_fold_compound_t   *fc,
 
   stems = f3_get_stem_contributions_d0(fc, i, evaluate, hc_dat_local, sc_wrapper);
 
-  stems -= (size_t)i;
+  stems -= i;
 
   /* 1st case, actual decompostion */
   e = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist), stems);
@@ -228,7 +228,7 @@ decompose_f3_ext_stem_d0(vrna_fold_compound_t   *fc,
   if (length <= i + maxdist)
     e = MIN2(e, stems[length]);
 
-  stems += (size_t)i;
+  stems += i;
   free(stems);
 
   return e;
@@ -249,7 +249,7 @@ decompose_f3_ext_stem_d2(vrna_fold_compound_t   *fc,
   maxdist = fc->window_size;
   stems   = f3_get_stem_contributions_d2(fc, i, evaluate, hc_dat_local, sc_wrapper);
 
-  stems -= (size_t)i;
+  stems -= i;
 
   /* 1st case, actual decompostion */
   e = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist), stems);
@@ -258,7 +258,7 @@ decompose_f3_ext_stem_d2(vrna_fold_compound_t   *fc,
   if (length <= i + maxdist)
     e = MIN2(e, stems[length]);
 
-  stems += (size_t)i;
+  stems += i;
   free(stems);
 
   return e;
@@ -284,7 +284,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t   *fc,
   /* 1st case, actual decompostion */
   stems = f3_get_stem_contributions_d0(fc, i, evaluate, hc_dat_local, sc_wrapper);
 
-  stems -= (size_t)i;
+  stems -= i;
 
   ee = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist), stems);
 
@@ -292,7 +292,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t   *fc,
   if (length <= i + maxdist)
     ee = MIN2(ee, stems[length]);
 
-  stems += (size_t)i;
+  stems += i;
   free(stems);
 
   e = MIN2(e, ee);
@@ -300,7 +300,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t   *fc,
   /* B) with dangling end contribution on 3' side of stem */
   stems = f3_get_stem_contributions_d3(fc, i, evaluate, hc_dat_local, sc_wrapper);
 
-  stems -= (size_t)i;
+  stems -= i;
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -309,7 +309,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t   *fc,
   if (length <= i + maxdist)
     ee = MIN2(ee, stems[length]);
 
-  stems += (size_t)i;
+  stems += i;
   free(stems);
 
   e = MIN2(e, ee);
@@ -317,7 +317,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t   *fc,
   /* C) with dangling end contribution on 5' side of stem */
   stems = f3_get_stem_contributions_d5(fc, i, evaluate, hc_dat_local, sc_wrapper);
 
-  stems -= (size_t)i;
+  stems -= i;
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -326,7 +326,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t   *fc,
   if (length <= i + maxdist)
     ee = MIN2(ee, stems[length]);
 
-  stems += (size_t)i;
+  stems += i;
   free(stems);
 
   e = MIN2(e, ee);
@@ -334,7 +334,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t   *fc,
   /* D) with dangling end contribution on both sides of stem */
   stems = f3_get_stem_contributions_d53(fc, i, evaluate, hc_dat_local, sc_wrapper);
 
-  stems -= (size_t)i;
+  stems -= i;
 
   /* 1st case, actual decompostion */
   ee = decompose_f3_ext_stem(fc, i, MIN2(length - 1, i + maxdist + 1), stems);
@@ -343,7 +343,7 @@ decompose_f3_ext_stem_d1(vrna_fold_compound_t   *fc,
   if (length <= i + maxdist)
     ee = MIN2(ee, stems[length]);
 
-  stems += (size_t)i;
+  stems += i;
   free(stems);
 
   e = MIN2(e, ee);
@@ -449,7 +449,7 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t   *fc,
                      (zsc_data->pre_filter)) ? 1 : 0;
 #endif
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
-  stems -= (size_t)i;
+  stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem;
   sc_red_stem = sc_wrapper->red_stem;
@@ -576,7 +576,7 @@ f3_get_stem_contributions_d0(vrna_fold_compound_t   *fc,
 
   free(si);
 
-  stems += (size_t)i;
+  stems += i;
 
   return stems;
 }
@@ -618,7 +618,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t   *fc,
 #endif
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
-  stems -= (size_t)i;
+  stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem;
   sc_red_stem = sc_wrapper->red_stem;
@@ -759,7 +759,7 @@ f3_get_stem_contributions_d2(vrna_fold_compound_t   *fc,
       break;
   }
 
-  stems += (size_t)i;
+  stems += i;
 
   return stems;
 }
@@ -801,7 +801,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t   *fc,
 #endif
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
-  stems -= (size_t)i;
+  stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem;
   sc_red_stem = sc_wrapper->red_stem;
@@ -935,7 +935,7 @@ f3_get_stem_contributions_d3(vrna_fold_compound_t   *fc,
       break;
   }
 
-  stems += (size_t)i;
+  stems += i;
 
   return stems;
 }
@@ -977,7 +977,7 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t   *fc,
 #endif
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
-  stems -= (size_t)i;
+  stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem1;
   sc_red_stem = sc_wrapper->red_stem;
@@ -1118,7 +1118,7 @@ f3_get_stem_contributions_d5(vrna_fold_compound_t   *fc,
       break;
   }
 
-  stems += (size_t)i;
+  stems += i;
 
   return stems;
 }
@@ -1160,7 +1160,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t  *fc,
 #endif
 
   stems = (int *)vrna_alloc(sizeof(int) * (maxdist + 6));
-  stems -= (size_t)i;
+  stems -= i;
 
   sc_spl_stem = sc_wrapper->decomp_stem1;
   sc_red_stem = sc_wrapper->red_stem;
@@ -1299,7 +1299,7 @@ f3_get_stem_contributions_d53(vrna_fold_compound_t  *fc,
       break;
   }
 
-  stems += (size_t)i;
+  stems += i;
 
   return stems;
 }
