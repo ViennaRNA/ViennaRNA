@@ -954,7 +954,7 @@ backtrack(vrna_fold_compound_t  *fc,
           vrna_log_error("backtracking failed in f3, segment [%d,%d]",
                          i,
                          j,
-                         fc->matrices->f3[i]);
+                         fc->matrices->f3_local[i]);
           free(structure);
           vrna_bps_free(bp_stack);
           vrna_bts_free(bt_stack);
