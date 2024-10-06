@@ -1610,9 +1610,9 @@ E_ml_stems_fast(vrna_fold_compound_t        *fc,
   }
 
   if (fc->aux_grammar) {
-    for (size_t c = 0; c < vrna_array_size(fc->aux_grammar->m); c++) {
-      if (fc->aux_grammar->m[c].cb) {
-        en  = fc->aux_grammar->m[c].cb(fc, i, j, fc->aux_grammar->m[c].data);
+    for (size_t cnt = 0; cnt < vrna_array_size(fc->aux_grammar->m); cnt++) {
+      if (fc->aux_grammar->m[cnt].cb) {
+        en  = fc->aux_grammar->m[cnt].cb(fc, i, j, fc->aux_grammar->m[cnt].data);
         e   = MIN2(e, en);
       }
     }
