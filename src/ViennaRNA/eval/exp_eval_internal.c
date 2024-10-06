@@ -61,7 +61,7 @@ vrna_exp_E_internal(unsigned int      u1,
                     vrna_exp_param_t  *P)
 {
   unsigned int  ul, us, backbones, no_close = 0;
-  double        z, salt_stack_correction = P->expSaltStack;
+  double        z, salt_stack_correction;
   double        salt_loop_correction = 1.;
 
   z = 0.;
