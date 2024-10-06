@@ -200,6 +200,10 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
 
         if (fij == fi) {
           j--;
+
+          if (j < i)
+            return 0; /* no more pairs */
+
           continue;
         }
       }
@@ -249,7 +253,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
         if (sc_wrapper.red_ml)
           fi += sc_wrapper.red_ml(i, j, i + 1, j, &sc_wrapper);
 
-        if (i + 1 == j)
+        if (i + 1 >= j)
           return 0; /* no more pairs */
 
         if (fij == fi) {
@@ -323,7 +327,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
           fi += sc_wrapper.red_ml(i, j, i + 1, j, &sc_wrapper);
       }
 
-      if (++i == j)
+      if (++i >= j)
         break;
     } while (fij == fi);
     i--;
@@ -576,7 +580,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
   }
 
   /* 2. Test for possible split point */
-  for (u = i + 1; u <= j - 2; u++) {
+  for (u = i + 1; u + 1 < j; u++) {
     if (evaluate(i, j, u, u + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
       if (sliding_window)
         en = fML_local[i][u - i] +
@@ -677,7 +681,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
   unsigned char         sliding_window;
   char                  *ptype, **ptype_local;
   short                 s5, s3, *S1, **SS, **S5, **S3;
-  unsigned int          *sn, n_seq, s, *tt, c1, c2, p, q, r, dangle_model, type, type_2;
+  unsigned int          *sn, n_seq, s, *tt, c1, c2, p, q, r, dangle_model, type, type_2, turn;
   int                   ij, e, tmp_en, *idx, *my_c, *my_fML, *rtype, **c_local, **fML_local;
   vrna_param_t          *P;
   vrna_md_t             *md;
@@ -710,6 +714,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
                     0;
   tt            = NULL;
   dangle_model  = md->dangles;
+  turn          = md->min_loop_size;
   evaluate      = prepare_hc_mb_def(fc, &hc_dat_local);
 
   init_sc_mb(fc, &sc_wrapper);
@@ -723,6 +728,10 @@ bt_mb_loop(vrna_fold_compound_t *fc,
   s3  = -1;
 
   c1 = c2 = VRNA_MX_FLAG_M;
+
+  /* do two branches actually fit inside (i,j)? */
+  if (i + 2 * (turn + 2) >= j)
+    return 0;
 
   if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
     tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
@@ -1001,7 +1010,7 @@ odd_dangles_exit:
     free(tt);
   }
 
-  if (r <= j - 3) {
+  if (r + 2 < j) {
     vrna_bts_push(bt_stack,
                   ((vrna_sect_t){
                     .i = p,
