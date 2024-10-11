@@ -22,7 +22,7 @@ jobs:
     with:
       tarball-artifact-name: 'dist-archives'
       artifact-name: 'osx-installer'
-      version-string: ${{ needs.create-dist-archive.outputs.version_number }}
+      version-string: ${{ needs.create-dist-archives.outputs.version_number }}
 
   create-release:
     needs: [run-distcheck, create-dist-archives, create-osx-installer]
@@ -50,4 +50,4 @@ jobs:
       with:
         artifacts: "ViennaRNA-*.tar.gz,ViennaRNA-*.zip,ViennaRNA-*-MacOSX.dmg"
         body: ${{ steps.extract-release-notes.outputs.release_notes }}
-        name: "ViennaRNA Package ${{ needs.create-dist-archive.outputs.version_number }}"
+        name: "ViennaRNA Package ${{ needs.create-dist-archives.outputs.version_number }}"
