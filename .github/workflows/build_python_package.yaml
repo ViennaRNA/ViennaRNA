@@ -34,7 +34,7 @@ jobs:
         run:  |
           autoreconf -i
           tar -xjf src/dlib-19.24.tar.bz2 -C src
-          tar -xzf src/libsvm-3.33.tar.gz -C src
+          tar -xzf src/libsvm-3.35.tar.gz -C src
       - name: configure
         run: ./configure --without-kinfold --without-forester --without-rnalocmin --without-rnaxplorer --without-perl --without-gsl --disable-mpfr
       - name: prepare source files
