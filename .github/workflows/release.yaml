@@ -44,10 +44,10 @@ jobs:
     - name: Download OSX installer
       uses: actions/download-artifact@v4
       with:
-        name: osx-installer
+        name: osx-installer-*
     - name: Make release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "ViennaRNA-*.tar.gz,ViennaRNA-*.zip,ViennaRNA-*-MacOSX.dmg"
+        artifacts: "ViennaRNA-*.tar.gz,ViennaRNA-*.zip,ViennaRNA-*-MacOSX-*.dmg"
         body: ${{ steps.extract-release-notes.outputs.release_notes }}
         name: "ViennaRNA Package ${{ needs.create-dist-archives.outputs.version_number }}"

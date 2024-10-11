@@ -69,9 +69,12 @@ jobs:
       working-directory: ViennaRNA-${{ inputs.version-string }}
       run: |
         make -j3
+    - name: rename installer
+      run: |
+        mv ViennaRNA-${{ inputs.version-string }}/packaging/macosx/ViennaRNA-${{ inputs.version-string }}-MacOSX.dmg ViennaRNA-${{ inputs.version-string }}/ViennaRNA-${{ inputs.version-string }}-MacOSX-${{ matrix.os }}.dmg
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}-${{ matrix.os }}
-        path: ViennaRNA-${{ inputs.version-string }}/packaging/macosx/ViennaRNA-${{ inputs.version-string }}-MacOSX.dmg
+        path: ViennaRNA-${{ inputs.version-string }}/ViennaRNA-${{ inputs.version-string }}-MacOSX-${{ matrix.os }}.dmg
         retention-days: 3
