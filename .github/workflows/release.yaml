@@ -17,7 +17,7 @@ jobs:
       artifact-name: 'dist-archives'
 
   create-osx-installer:
-    needs: create-dist-archive
+    needs: create-dist-archives
     uses: ./.github/workflows/dist_osx.yaml
     with:
       tarball-artifact-name: 'dist-archives'
