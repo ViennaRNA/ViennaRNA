@@ -127,7 +127,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 3
           CIBW_BUILD: ${{matrix.pyver}}-*
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=10.14 CC=clang CXX=clang++
-          CIBW_ARCHS_MACOS: auto universal2
+          CIBW_ARCHS_MACOS: auto
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --datadir {package}/tests/data {package}/tests/python
       - uses: actions/upload-artifact@v4
