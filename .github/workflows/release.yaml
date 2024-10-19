@@ -44,7 +44,8 @@ jobs:
     - name: Download OSX installer
       uses: actions/download-artifact@v4
       with:
-        name: osx-installer-*
+        pattern: osx-installer-*
+        merge-multiple: true
     - name: Make release
       uses: ncipollo/release-action@v1
       with:
