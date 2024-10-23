@@ -142,7 +142,7 @@ typedef struct {
 %typemap("doc") int pf_smooth "$1_name: int\n     A flag specifying whether energies in Boltzmann factors need to be smoothed."
 %typemap("doc") int dangles "$1_name: int\n     Specifies the dangle model used in any energy evaluation (0, 1, 2, or 3)"
 %typemap("doc") int special_hp "$1_name: int\n     Include special hairpin contributions for tri, tetra and hexaloops."
-%typemap("doc") int noLP "$1_name: int\n     Only consider canonical structures, i.e. no ‘lonely’ base pairs."
+%typemap("doc") int noLP "$1_name: int\n     Only consider canonical structures, i.e. no 'lonely' base pairs."
 %typemap("doc") int noGU "$1_name: int\n     Do not allow GU pairs."
 %typemap("doc") int noGUclosure "$1_name: int\n     Do not allow loops to be closed by GU pair."
 %typemap("doc") int logML "$1_name: int\n     Use logarithmic scaling for multiloops."

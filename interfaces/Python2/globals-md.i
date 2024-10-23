@@ -104,6 +104,14 @@
   vrna_md_defaults_circ(PyInt_AsLong($input));
 }
 
+%typemap(varout) int circ_penalty {
+  $result = PyInt_FromLong((long)vrna_md_defaults_circ_penalty_get());
+}
+
+%typemap(varin) int circ_penalty {
+  vrna_md_defaults_circ_penalty(PyInt_AsLong($input));
+}
+
 %typemap(varout) int circ {
   $result = PyInt_FromLong(vrna_md_defaults_circ_get());
 }
