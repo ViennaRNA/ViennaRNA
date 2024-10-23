@@ -1,10 +1,12 @@
-import RNApath
+import unittest
 
-RNApath.addSwigInterfacePath(2)
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath(2)
 
 import RNA
-import unittest
-from py_include import taprunner
+
 
 motif_seq_theo = "GAUACCAG&CCCUUGGCAGC"
 motif_str_theo = "(...((((&)...)))...)"
@@ -14,9 +16,6 @@ str_hp    = "((((...((((.....(.(.....).).))))...))))...((.((((((((((.((((((.((.(
 e_hp      = -35.60
 str_theo  = "((((...((((((((......)))))...)))...))))...((.((((((((((.((((((.((.((((....)))).))..)))))).)))))))))))).."
 e_theo    = -33.82
-
-datadir = RNApath.getDataDirPath()
-
 
 class constraintsTest(unittest.TestCase):
 

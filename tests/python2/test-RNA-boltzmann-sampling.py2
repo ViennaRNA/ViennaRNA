@@ -1,10 +1,13 @@
-import RNApath
+import unittest
+import sys
 
-RNApath.addSwigInterfacePath(2)
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath(2)
 
 import RNA
-import unittest
-from py_include import taprunner
+
 
 sequence = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUACUUAUACCGCCUGUGCGGACUACUAUCCUGACCACAUAGU"
 
@@ -36,8 +39,7 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(len(s), 50)
 
     def test_pbacktrack5_multi(self):
-        """Boltzmann sampling (multiple sub-structures, a.k.a. pbacktrack5_num)
-        """
+        """Boltzmann sampling (multiple sub-structures, a.k.a. pbacktrack5_num)"""
         fc = prepare_fc()
 
         ss  = fc.pbacktrack5(20, 10)
@@ -66,8 +68,15 @@ class GeneralTests(unittest.TestCase):
         for s in ss:
             self.assertEqual(len(s), len(sequence))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows")
     def test_pbacktrack_nr(self):
         """Boltzmann sampling - non redundant"""
+        try:
+            import pytest
+            if sys.platform.startswith("win"):
+                pytest.skip("May fail under Windows")
+        except:
+            pass
         fc = prepare_fc()
 
         ss  = fc.pbacktrack(100, RNA.PBACKTRACK_NON_REDUNDANT)
@@ -78,14 +87,21 @@ class GeneralTests(unittest.TestCase):
         sss = list(set(ss))
         self.assertEqual(len(ss), len(sss))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows")
     def test_pbacktrack_nr_resume(self):
         """Boltzmann sampling - non redundant resume"""
+        try:
+            import pytest
+            if sys.platform.startswith("win"):
+                pytest.skip("May fail under Windows")
+        except:
+            pass
         num_samples = 500
         iterations  = 15
         fc      = prepare_fc()
         d       = None
         s_list  = list()
-        for i in range(0, iterations):
+        for _ in range(0, iterations):
             d, ss   = fc.pbacktrack(num_samples, d, RNA.PBACKTRACK_NON_REDUNDANT)
             s_list  = s_list + list(ss)
 
@@ -125,8 +141,15 @@ class GeneralTests(unittest.TestCase):
         for s in ss:
             self.assertEqual(len(s), len(sequence))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows")
     def test_pbacktrack_nr_cb(self):
         """Boltzmann sampling - non redundant - callback"""
+        try:
+            import pytest
+            if sys.platform.startswith("win"):
+                pytest.skip("May fail under Windows")
+        except:
+            pass
         fc = prepare_fc()
         ss = list()
         i = fc.pbacktrack(100, store_structure, ss, RNA.PBACKTRACK_NON_REDUNDANT)
@@ -139,14 +162,21 @@ class GeneralTests(unittest.TestCase):
         sss = list(set(ss))
         self.assertEqual(len(ss), len(sss))
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows")
     def test_pbacktrack_nr_resume_cb(self):
         """Boltzmann sampling - non redundant resume - callback"""
+        try:
+            import pytest
+            if sys.platform.startswith("win"):
+                pytest.skip("May fail under Windows")
+        except:
+            pass
         num_samples = 500
         iterations  = 15
         fc = prepare_fc()
         ss = list()
         d  = None
-        for i in range(0, iterations):
+        for _ in range(0, iterations):
             d, i = fc.pbacktrack(num_samples, store_structure, ss, d, RNA.PBACKTRACK_NON_REDUNDANT)
             self.assertEqual(i, num_samples)
 

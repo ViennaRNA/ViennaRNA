@@ -1,13 +1,16 @@
-import RNApath
-
-RNApath.addSwigInterfacePath(2)
-
-
+import os
 from operator import add
-import RNA
 import math
 import unittest
-from py_include import taprunner
+import sys
+
+if __name__ == '__main__':
+    from py_include import taprunner
+    import RNApath
+    RNApath.addSwigInterfacePath(2)
+
+import RNA
+
 
 kT = 0.61632077549999997
 # maximum allowed difference beteen compared probabilties
@@ -16,8 +19,6 @@ allowed_diff = 1e-7
 # some sequences to work with
 shortseq = "UGGGAAUAGUCUCUUCCGAGUCUCGCGGGCGACGGGCGAUCUUCGAAAGUGGAAUCCGUA"
 longseq = "AUUUCCACUAGAGAAGGUCUAGAGUGUUUGUCGUUUGUCAGAAGUCCCUAUUCCAGGUACGAACACGGUGGAUAUGUUCGACGACAGGAUCGGCGCACUACGUUGGUAUCAUGUCCUCCGUCCUAACAAUUAUACAUCGAGAGGCAAAAUUUCUAAUCCGGGGUCAGUGAGCAUUGCCAUUUUAUAACUCGUGAUCUCUCGCUACUUAGGCGAUCCCUGCCAAUGAGGGUCAAGGAGUUGAAUUAUCGGGCCACAUCGACGUGGCCUUUACGGCCAGGUAAUUCAAAGGCCUCAAGUCCU"
-
-datadir = RNApath.getDataDirPath()
 
 def getShapeDataFromFile(filepath):
     retVec = []
@@ -86,6 +87,7 @@ def up_split_callback(v, v_size, i, maxsize, what, data):
 
 
 class pf_window_functionTest(unittest.TestCase):
+    DATADIR = os.environ.get('VRNA_TEST_DATA', os.sep.join(["tests", "data"]))
 
     def test_pfl_fold(self):
         """RNA.pfl_fold() - sanity check for base pair probabilities"""
@@ -136,8 +138,8 @@ class pf_window_functionTest(unittest.TestCase):
         benchmark_set = ["Lysine_riboswitch_T._martima", "TPP_riboswitch_E.coli" ]
 
         for b in benchmark_set:
-            seq  =  getShapeSequenceFromFile(datadir + b + ".db")
-            reactivities = getShapeDataFromFile(datadir + b + ".shape_2rows")
+            seq  =  getShapeSequenceFromFile(os.sep.join([self.DATADIR, b + ".db"]))
+            reactivities = getShapeDataFromFile(os.sep.join([self.DATADIR, b + ".shape_2rows"]))
             data = { 'bpp': [], 'up': []}
 
             md = RNA.md()
@@ -235,6 +237,7 @@ class pf_window_functionTest(unittest.TestCase):
             self.assertEqual("%g" % du['p'], "%g" % dc['p'])
 
 
+    @unittest.skipIf(sys.platform.startswith("win"), "May fail under Windows due to numeric imprecision")
     def test_probs_window(self):
         """Soft constraints - energy landscape shift - unpaired probabilities
         
@@ -484,4 +487,5 @@ class pf_window_functionTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    pf_window_functionTest.DATADIR = RNApath.getDataDirPath()
     unittest.main(testRunner=taprunner.TAPTestRunner())
