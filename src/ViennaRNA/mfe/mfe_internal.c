@@ -33,8 +33,6 @@
 
 
 typedef struct {
-  eval_hc               hc_wrapper;
-  struct hc_int_def_dat hc_dat;
   struct sc_int_dat     sc_wrapper;
 
   unsigned int          *tt;
@@ -128,9 +126,6 @@ get_intloop_helpers(vrna_fold_compound_t  *fc,
 {
   helper_data_t *h = (helper_data_t *)vrna_alloc(sizeof(helper_data_t));
 
-  /* init hard constraints wrapper */
-  h->hc_wrapper = prepare_hc_int_def(fc, &(h->hc_dat));
-
   /* init soft constraints wrapper */
   init_sc_int(fc, &(h->sc_wrapper));
 
@@ -166,13 +161,14 @@ mfe_stacks(vrna_fold_compound_t *fc,
            unsigned int         j,
            helper_data_t        *helpers)
 {
-  unsigned char sliding_window, hc_decompose, *hc_mx, **hc_mx_local, eval;
+  unsigned char sliding_window;
   char          *ptype, **ptype_local;
   short         *S, **SS, **S5, **S3;
   unsigned int  k, l, *sn, n_seq, s, n, type, type2;
   int           e, eee, *idx, ij, *c, *rtype, **c_local, kl;
   vrna_param_t  *P;
   vrna_md_t     *md;
+  vrna_hc_t     *hc;
 
   e = INF;
 
@@ -182,8 +178,6 @@ mfe_stacks(vrna_fold_compound_t *fc,
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   idx             = fc->jindx;
   ij              = (sliding_window) ? 0 : idx[j] + i;
-  hc_mx           = (sliding_window) ? NULL : fc->hc->mx;
-  hc_mx_local     = (sliding_window) ? fc->hc->matrix_local : NULL;
   ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : fc->ptype) : NULL;
   ptype_local     =
     (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? fc->ptype_local : NULL) : NULL;
@@ -196,23 +190,13 @@ mfe_stacks(vrna_fold_compound_t *fc,
   P       = fc->params;
   md      = &(P->model_details);
   rtype   = &(md->rtype[0]);
+  hc      = fc->hc;
 
   k = i + 1;
   l = j - 1;
 
   if (k < l) {
-    /* first, determine whether we are allowed to form this stack */
-    hc_decompose  = (sliding_window) ? hc_mx_local[i][j - i] : hc_mx[n * i + j];
-    eval          = hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
-    hc_decompose  = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[n * k + l];
-    eval          = (hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) ? eval : (unsigned char)0;
-    eval          = (helpers->hc_wrapper(i, j, k, l, &(helpers->hc_dat))) ? eval : (unsigned char)0;
-
-    if ((sn[i] != sn[k]) ||
-        (sn[l] != sn[j]))
-      eval = (unsigned char)0;
-
-    if (eval) {
+    if (hc->eval_int(i, j, k, l, hc)) {
       type = 0;
 
       if (fc->type == VRNA_FC_TYPE_SINGLE)
@@ -277,6 +261,7 @@ mfe_bulges(vrna_fold_compound_t *fc,
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_ud_t     *domains_up;
+  vrna_hc_t     *hc;
 
   e = INF;
 
@@ -286,8 +271,9 @@ mfe_bulges(vrna_fold_compound_t *fc,
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   idx             = fc->jindx;
   ij              = (sliding_window) ? 0 : idx[j] + i;
-  hc_mx           = (sliding_window) ? NULL : fc->hc->mx;
-  hc_mx_local     = (sliding_window) ? fc->hc->matrix_local : NULL;
+  hc              = fc->hc;
+  hc_mx           = (sliding_window) ? NULL : hc->mx;
+  hc_mx_local     = (sliding_window) ? hc->matrix_local : NULL;
   hc_up           = fc->hc->up_int;
   ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : fc->ptype) : NULL;
   ptype_local     =
@@ -341,10 +327,7 @@ mfe_bulges(vrna_fold_compound_t *fc,
         hc_mx += n * l;
 
         for (; k <= last_k; k++, u1++, kl++) {
-          hc_decompose = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[k];
-
-          if ((hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (helpers->hc_wrapper(i, j, k, l, &(helpers->hc_dat)))) {
+          if (hc->eval_int(i, j, k, l, hc)) {
             eee = (sliding_window) ? c_local[k][l - k] : c[kl];
 
             if (eee < INF) {
@@ -420,10 +403,7 @@ mfe_bulges(vrna_fold_compound_t *fc,
             break;
 
           kl            = (sliding_window) ? 0 : idx[l] + k;
-          hc_decompose  = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[l];
-
-          if ((hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (helpers->hc_wrapper(i, j, k, l, &(helpers->hc_dat)))) {
+          if (hc->eval_int(i, j, k, l, hc)) {
             eee = (sliding_window) ? c_local[k][l - k] : c[kl];
 
             if (eee < INF) {
@@ -505,6 +485,7 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
   vrna_param_t  *P;
   vrna_md_t     *md;
   vrna_ud_t     *domains_up;
+  vrna_hc_t     *hc;
   helper_data_t *helpers;
 
   helpers = get_intloop_helpers(fc, i, j);
@@ -517,8 +498,9 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
   n_seq           = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   idx             = fc->jindx;
   ij              = (sliding_window) ? 0 : idx[j] + i;
-  hc_mx           = (sliding_window) ? NULL : fc->hc->mx;
-  hc_mx_local     = (sliding_window) ? fc->hc->matrix_local : NULL;
+  hc              = fc->hc;
+  hc_mx           = (sliding_window) ? NULL : hc->mx;
+  hc_mx_local     = (sliding_window) ? hc->matrix_local : NULL;
   hc_up           = fc->hc->up_int;
   ptype           = (fc->type == VRNA_FC_TYPE_SINGLE) ? (sliding_window ? NULL : fc->ptype) : NULL;
   ptype_local     =
@@ -585,8 +567,7 @@ mfe_internal_loop(vrna_fold_compound_t  *fc,
         for (; k <= last_k; k++, u1++, kl++) {
           hc_decompose = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[k];
 
-          if ((hc_decompose & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (helpers->hc_wrapper(i, j, k, l, &(helpers->hc_dat)))) {
+          if (hc->eval_int(i, j, k, l, hc)) {
             eee = (sliding_window) ? c_local[k][l - k] : c[kl];
 
             if (eee < INF) {
@@ -676,31 +657,29 @@ mfe_internal_loop_ext(vrna_fold_compound_t  *fc,
                       unsigned int          *iq)
 {
   int                   energy, e, *indx, *c;
-  unsigned char         *hc, eval_loop;
+  unsigned char         *hc_mx;
   unsigned int          n, q, p, s, n_seq, u1, u2, qmin, *tt, *hc_up;
   short                 **SS;
   vrna_md_t             *md;
   vrna_param_t          *P;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
+  vrna_hc_t             *hc;
 
   n     = fc->length;
   n_seq = (fc->type == VRNA_FC_TYPE_SINGLE) ? 1 : fc->n_seq;
   SS    = (fc->type == VRNA_FC_TYPE_SINGLE) ? NULL : fc->S;
   indx  = fc->jindx;
   c     = fc->matrices->c;
-  hc    = fc->hc->mx;
-  hc_up = fc->hc->up_int;
+  hc    = fc->hc;
+  hc_mx = hc->mx;
+  hc_up = hc->up_int;
   P     = fc->params;
   md    = &(P->model_details);
   tt    = NULL;
 
   e = INF;
 
-  evaluate = prepare_hc_int_def(fc, &hc_dat_local);
-
   /* CONSTRAINED internal LOOP start */
-  if (hc[n * i + j] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) {
+  if (hc_mx[n * i + j] & (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC)) {
     /* prepare necessary variables */
     if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
       tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
@@ -730,12 +709,8 @@ mfe_internal_loop_ext(vrna_fold_compound_t  *fc,
         if (u1 + u2 > MAXLOOP)
           continue;
 
-        int pq = indx[q] + p;
-
-        eval_loop = hc[n * p + q] &
-                    (VRNA_CONSTRAINT_CONTEXT_INT_LOOP | VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
-
-        if (eval_loop && evaluate(i, j, p, q, &hc_dat_local)) {
+        if (hc->eval_int(i, j, p, q, hc)) {
+          int pq = indx[q] + p;
           energy = c[pq];
           if (energy < INF) {
             energy += vrna_eval_internal(fc, i, j, p, q, VRNA_EVAL_LOOP_NO_HC);

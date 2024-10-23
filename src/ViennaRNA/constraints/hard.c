@@ -37,6 +37,11 @@
 
 #include "hc_depot.inc"
 
+#include "wrap_exterior_hc.inc"
+#include "wrap_hairpin_hc.inc"
+#include "wrap_internal_hc.inc"
+#include "wrap_multibranch_hc.inc"
+
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -112,6 +117,10 @@ prepare_hc_bp(vrna_fold_compound_t  *fc,
               unsigned int          options);
 
 
+PRIVATE void
+hc_prepare_eval_f(vrna_fold_compound_t  *fc,
+                  unsigned int          options);
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -184,6 +193,12 @@ vrna_hc_init(vrna_fold_compound_t *vc)
   hc->data      = NULL;
   hc->free_data = NULL;
 
+  hc->sn        = NULL;
+  hc->eval_ext  = NULL;
+  hc->eval_hp   = NULL;
+  hc->eval_int  = NULL;
+  hc->eval_mb   = NULL;
+
   /* update */
   hc_update_up(vc);
 }
@@ -219,6 +234,12 @@ vrna_hc_init_window(vrna_fold_compound_t *vc)
   hc->f         = NULL;
   hc->data      = NULL;
   hc->free_data = NULL;
+
+  hc->sn        = NULL;
+  hc->eval_ext  = NULL;
+  hc->eval_hp   = NULL;
+  hc->eval_int  = NULL;
+  hc->eval_mb   = NULL;
 }
 
 
@@ -282,7 +303,10 @@ vrna_hc_prepare(vrna_fold_compound_t  *fc,
 
       if (fc->hc->state & ~STATE_CLEAN)
         hc_update_up(fc);
+
     }
+
+    hc_prepare_eval_f(fc, options);
 
     fc->hc->state = STATE_CLEAN;
     ret           = 1;
@@ -1732,6 +1756,12 @@ hc_reset_to_default(vrna_fold_compound_t *vc)
     hc->data      = NULL;
     hc->free_data = NULL;
   }
+
+  hc->sn        = NULL;
+  hc->eval_ext  = NULL;
+  hc->eval_hp   = NULL;
+  hc->eval_int  = NULL;
+  hc->eval_mb   = NULL;
 }
 
 
@@ -1900,6 +1930,56 @@ hc_update_up_window(vrna_fold_compound_t  *vc,
           break;
 
         hc->up_ml[k] += up_ml;
+      }
+    }
+  }
+}
+
+
+PRIVATE void
+hc_prepare_eval_f(vrna_fold_compound_t  *fc,
+                  unsigned int          options)
+{
+  /* store current strund numbering */
+  fc->hc->sn = fc->strand_number;
+
+  /* assign eval wrapper functions */
+  if (fc->hc->type == VRNA_HC_WINDOW) {
+    if (fc->hc->f) {
+      fc->hc->eval_ext  = wrap_hc_ext_cb_user_window;
+      fc->hc->eval_hp   = wrap_hc_hp_cb_user_window;
+      fc->hc->eval_int  = wrap_hc_int_cb_user_window;
+      fc->hc->eval_mb   = wrap_hc_mb_cb_user_window;
+    } else {
+      fc->hc->eval_ext  = wrap_hc_ext_cb_window;
+      fc->hc->eval_hp   = wrap_hc_hp_cb_window;
+      fc->hc->eval_int  = wrap_hc_int_cb_window;
+      fc->hc->eval_mb   = wrap_hc_mb_cb_window;
+    }
+  } else {
+    if (fc->strands == 1) {
+      if (fc->hc->f) {
+        fc->hc->eval_ext  = wrap_hc_ext_cb_user;
+        fc->hc->eval_hp   = wrap_hc_hp_cb_user;
+        fc->hc->eval_int  = wrap_hc_int_cb_user;
+        fc->hc->eval_mb   = wrap_hc_mb_cb_user;
+      } else {
+        fc->hc->eval_ext  = wrap_hc_ext_cb;
+        fc->hc->eval_hp   = wrap_hc_hp_cb;
+        fc->hc->eval_int  = wrap_hc_int_cb;
+        fc->hc->eval_mb   = wrap_hc_mb_cb;
+      }
+    } else {
+      if (fc->hc->f) {
+        fc->hc->eval_ext  = wrap_hc_ext_cb_sn_user;
+        fc->hc->eval_hp   = wrap_hc_hp_cb_sn_user;
+        fc->hc->eval_int  = wrap_hc_int_cb_sn_user;
+        fc->hc->eval_mb   = wrap_hc_mb_cb_sn_user;
+      } else {
+        fc->hc->eval_ext  = wrap_hc_ext_cb_sn;
+        fc->hc->eval_hp   = wrap_hc_hp_cb_sn;
+        fc->hc->eval_int  = wrap_hc_int_cb_sn;
+        fc->hc->eval_mb   = wrap_hc_mb_cb_sn;
       }
     }
   }

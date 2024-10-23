@@ -75,6 +75,23 @@ typedef unsigned char (*vrna_hc_eval_f)(int           i,
                                         unsigned char d,
                                         void          *data);
 
+typedef unsigned char (*vrna_hc_eval_loop_f)(int           i,
+                                             int           j,
+                                             int           k,
+                                             int           l,
+                                             unsigned char d,
+                                             vrna_hc_t     *hc);
+
+typedef unsigned char (*vrna_hc_eval_hp_f)(int           i,
+                                           int           j,
+                                           vrna_hc_t     *hc);
+
+typedef unsigned char (*vrna_hc_eval_int_f)(int           i,
+                                            int           j,
+                                            int           k,
+                                            int           l,
+                                            vrna_hc_t     *hc);
+
 DEPRECATED(typedef unsigned char (vrna_callback_hc_evaluate)(int i,
                                                              int j,
                                                              int k,
@@ -406,6 +423,12 @@ struct vrna_hc_s {
                                    */
 
   vrna_hc_depot_t *depot;
+
+  unsigned int        *sn;
+  vrna_hc_eval_loop_f eval_ext;
+  vrna_hc_eval_hp_f   eval_hp;
+  vrna_hc_eval_int_f  eval_int;
+  vrna_hc_eval_loop_f eval_mb;
 };
 
 /**
