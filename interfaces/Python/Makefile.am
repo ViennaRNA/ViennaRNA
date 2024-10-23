@@ -160,9 +160,7 @@ RNA/__pycache__/RNA.@PYTHON3_CACHE_OPT1_EXT@: RNA/RNA.py RNA/_RNA$(PYTHON3_SO)
   PYTHONPATH=".:$$PYTHONPATH" $(PYTHON3) -O -c "from RNA import RNA" )
 
 RNA/_RNA$(PYTHON3_SO): _RNA.la
-	$(AM_V_GEN)( $(LIBTOOL) --config > libtoolconfig.tmp ) && \
-  ( . ./libtoolconfig.tmp; cp $$objdir/_RNA$(PYTHON3_SO) RNA ) && \
-  rm -f libtoolconfig.tmp
+	$(AM_V_GEN)cp `$(LIBTOOL) --config | $(SED) -n -e 's/^objdir=\(.*\)$$/\1/p'`/_RNA$(PYTHON3_SO) RNA/_RNA$(PYTHON3_SO)
 
 
 CLEANFILES = \
