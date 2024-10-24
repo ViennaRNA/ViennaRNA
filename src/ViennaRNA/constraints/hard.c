@@ -118,8 +118,7 @@ prepare_hc_bp(vrna_fold_compound_t  *fc,
 
 
 PRIVATE void
-hc_prepare_eval_f(vrna_fold_compound_t  *fc,
-                  unsigned int          options);
+hc_prepare_eval_f(vrna_hc_t *hc);
 
 /*
  #################################
@@ -174,13 +173,14 @@ vrna_hc_init(vrna_fold_compound_t *vc)
   hc          = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
   hc->type    = VRNA_HC_DEFAULT;
   hc->n       = n;
+  hc->strands = vc->strands;
+  hc->sn      = vc->strand_number;
   hc->mx      = (unsigned char *)vrna_alloc(sizeof(unsigned char) * ((n + 1) * (n + 1) + 1));
   hc->up_ext  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 2));
   hc->up_hp   = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 2));
   hc->up_int  = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 2));
   hc->up_ml   = (unsigned int *)vrna_alloc(sizeof(unsigned int) * (n + 2));
   hc->depot   = NULL;
-  hc->state   = STATE_UNINITIALIZED;
 
   /* set new hard constraints */
   vc->hc = hc;
@@ -193,14 +193,10 @@ vrna_hc_init(vrna_fold_compound_t *vc)
   hc->data      = NULL;
   hc->free_data = NULL;
 
-  hc->sn        = NULL;
-  hc->eval_ext  = NULL;
-  hc->eval_hp   = NULL;
-  hc->eval_int  = NULL;
-  hc->eval_mb   = NULL;
-
   /* update */
   hc_update_up(vc);
+
+  hc->state = STATE_CLEAN;
 }
 
 
@@ -219,6 +215,8 @@ vrna_hc_init_window(vrna_fold_compound_t *vc)
   hc                = (vrna_hc_t *)vrna_alloc(sizeof(vrna_hc_t));
   hc->type          = VRNA_HC_WINDOW;
   hc->n             = n;
+  hc->strands       = vc->strands;
+  hc->sn            = vc->strand_number;
   hc->matrix_local  = (unsigned char **)vrna_alloc(sizeof(unsigned char *) * (n + 2));
   hc->up_ext        = NULL;
   hc->up_hp         = NULL;
@@ -235,11 +233,7 @@ vrna_hc_init_window(vrna_fold_compound_t *vc)
   hc->data      = NULL;
   hc->free_data = NULL;
 
-  hc->sn        = NULL;
-  hc->eval_ext  = NULL;
-  hc->eval_hp   = NULL;
-  hc->eval_int  = NULL;
-  hc->eval_mb   = NULL;
+  hc_prepare_eval_f(vc->hc);
 }
 
 
@@ -306,7 +300,9 @@ vrna_hc_prepare(vrna_fold_compound_t  *fc,
 
     }
 
-    hc_prepare_eval_f(fc, options);
+    fc->hc->sn = fc->strand_number;
+
+    hc_prepare_eval_f(fc->hc);
 
     fc->hc->state = STATE_CLEAN;
     ret           = 1;
@@ -1757,11 +1753,7 @@ hc_reset_to_default(vrna_fold_compound_t *vc)
     hc->free_data = NULL;
   }
 
-  hc->sn        = NULL;
-  hc->eval_ext  = NULL;
-  hc->eval_hp   = NULL;
-  hc->eval_int  = NULL;
-  hc->eval_mb   = NULL;
+  hc_prepare_eval_f(hc);
 }
 
 
@@ -1937,52 +1929,12 @@ hc_update_up_window(vrna_fold_compound_t  *vc,
 
 
 PRIVATE void
-hc_prepare_eval_f(vrna_fold_compound_t  *fc,
-                  unsigned int          options)
+hc_prepare_eval_f(vrna_hc_t *hc)
 {
-  /* store current strund numbering */
-  fc->hc->sn = fc->strand_number;
-
-  /* assign eval wrapper functions */
-  if (fc->hc->type == VRNA_HC_WINDOW) {
-    if (fc->hc->f) {
-      fc->hc->eval_ext  = wrap_hc_ext_cb_user_window;
-      fc->hc->eval_hp   = wrap_hc_hp_cb_user_window;
-      fc->hc->eval_int  = wrap_hc_int_cb_user_window;
-      fc->hc->eval_mb   = wrap_hc_mb_cb_user_window;
-    } else {
-      fc->hc->eval_ext  = wrap_hc_ext_cb_window;
-      fc->hc->eval_hp   = wrap_hc_hp_cb_window;
-      fc->hc->eval_int  = wrap_hc_int_cb_window;
-      fc->hc->eval_mb   = wrap_hc_mb_cb_window;
-    }
-  } else {
-    if (fc->strands == 1) {
-      if (fc->hc->f) {
-        fc->hc->eval_ext  = wrap_hc_ext_cb_user;
-        fc->hc->eval_hp   = wrap_hc_hp_cb_user;
-        fc->hc->eval_int  = wrap_hc_int_cb_user;
-        fc->hc->eval_mb   = wrap_hc_mb_cb_user;
-      } else {
-        fc->hc->eval_ext  = wrap_hc_ext_cb;
-        fc->hc->eval_hp   = wrap_hc_hp_cb;
-        fc->hc->eval_int  = wrap_hc_int_cb;
-        fc->hc->eval_mb   = wrap_hc_mb_cb;
-      }
-    } else {
-      if (fc->hc->f) {
-        fc->hc->eval_ext  = wrap_hc_ext_cb_sn_user;
-        fc->hc->eval_hp   = wrap_hc_hp_cb_sn_user;
-        fc->hc->eval_int  = wrap_hc_int_cb_sn_user;
-        fc->hc->eval_mb   = wrap_hc_mb_cb_sn_user;
-      } else {
-        fc->hc->eval_ext  = wrap_hc_ext_cb_sn;
-        fc->hc->eval_hp   = wrap_hc_hp_cb_sn;
-        fc->hc->eval_int  = wrap_hc_int_cb_sn;
-        fc->hc->eval_mb   = wrap_hc_mb_cb_sn;
-      }
-    }
-  }
+  hc->eval_ext  = dispatch_wrap_ext_f;
+  hc->eval_hp   = dispatch_wrap_hp_f;
+  hc->eval_int  = dispatch_wrap_int_f;
+  hc->eval_mb   = dispatch_wrap_mb_f;
 }
 
 

@@ -381,10 +381,12 @@ typedef enum {
  *  @ingroup hard_constraints
  */
 struct vrna_hc_s {
-  vrna_hc_type_e  type;
-  unsigned int    n;
+  vrna_hc_type_e      type;
+  unsigned int        n;
+  unsigned int        strands;
+  unsigned int        *sn;
 
-  unsigned char   state;
+  unsigned char       state;
 
   unsigned char       *mx;
   unsigned char       **matrix_local;
@@ -424,7 +426,6 @@ struct vrna_hc_s {
 
   vrna_hc_depot_t *depot;
 
-  unsigned int        *sn;
   vrna_hc_eval_loop_f eval_ext;
   vrna_hc_eval_hp_f   eval_hp;
   vrna_hc_eval_int_f  eval_int;
