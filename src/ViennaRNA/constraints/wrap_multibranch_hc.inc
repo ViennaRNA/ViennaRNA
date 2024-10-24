@@ -376,3 +376,45 @@ wrap_hc_mb_cb_user_window(int           i,
 {
   return (hc->f(i, j, k, l, d, hc->data)) ? wrap_hc_mb_cb_window(i, j, k, l, d, hc) : (unsigned char)0;
 }
+
+
+PRIVATE unsigned char
+dispatch_wrap_mb_f(int            i,
+                   int            j,
+                   int            k,
+                   int            l,
+                   unsigned char  d,
+                   vrna_hc_t      *hc)
+{
+  /* check whether additional preparations are necessary, e.g. due to constraints added in the meantime */
+  if (hc->state != STATE_CLEAN) {
+    vrna_log_error("uninitialized hard constraints! Call vrna_hc_prepare() first!");
+    return (unsigned char)0;
+  }
+
+  /* assign eval wrapper functions */
+  if (hc->type == VRNA_HC_WINDOW) {
+    if (hc->f) {
+      hc->eval_mb   = wrap_hc_mb_cb_user_window;
+    } else {
+      hc->eval_mb   = wrap_hc_mb_cb_window;
+    }
+  } else {
+    if (hc->strands == 1) {
+      if (hc->f) {
+        hc->eval_mb   = wrap_hc_mb_cb_user;
+      } else {
+        hc->eval_mb   = wrap_hc_mb_cb;
+      }
+    } else {
+      if (hc->f) {
+        hc->eval_mb   = wrap_hc_mb_cb_sn_user;
+      } else {
+        hc->eval_mb   = wrap_hc_mb_cb_sn;
+      }
+    }
+  }
+
+  /* call eval wrapper function */
+  return hc->eval_mb(i, j, k, l, d, hc);
+}

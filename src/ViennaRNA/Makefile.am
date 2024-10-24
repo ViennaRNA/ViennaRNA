@@ -750,16 +750,16 @@ nodist_pkginclude_HEADERS = vrna_config.h
 
 EXTRA_DIST =  $(pkginclude_HEADERS) \
               constraints/hc_depot.inc \
-              constraints/exterior_hc.inc \
+              constraints/wrap_exterior_hc.inc \
               constraints/exterior_sc.inc \
               constraints/exterior_sc_pf.inc \
-              constraints/hairpin_hc.inc \
+              constraints/wrap_hairpin_hc.inc \
               constraints/hairpin_sc.inc \
               constraints/hairpin_sc_pf.inc \
-              constraints/internal_hc.inc \
+              constraints/wrap_internal_hc.inc \
               constraints/internal_sc.inc \
               constraints/internal_sc_pf.inc \
-              constraints/multibranch_hc.inc \
+              constraints/wrap_multibranch_hc.inc \
               constraints/multibranch_sc.inc \
               constraints/multibranch_sc_pf.inc \
               params/svm_model_avg.inc \
