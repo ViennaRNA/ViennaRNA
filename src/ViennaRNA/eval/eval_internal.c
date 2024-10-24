@@ -26,7 +26,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/internal_hc.inc"
 #include "ViennaRNA/constraints/internal_sc.inc"
 
 /*
@@ -207,26 +206,15 @@ vrna_eval_internal(vrna_fold_compound_t *fc,
                    unsigned int         l,
                    unsigned int         options)
 {
-  unsigned char         eval;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
-
   if ((fc) &&
       (i > 0) &&
       (j > 0) &&
       (k > 0) &&
       (l > 0)) {
-    /* prepare hard constraints check */
-    if ((options & VRNA_EVAL_LOOP_NO_HC) ||
-        (fc->hc == NULL)) {
-      eval = (unsigned char)1;
-    } else {
-      evaluate  = prepare_hc_int_def(fc, &hc_dat_local);
-      eval      = evaluate(i, j, k, l, &hc_dat_local);
-    }
-
     /* is this base pair allowed to close a hairpin (like) loop ? */
-    if (eval)
+    if ((options & VRNA_EVAL_LOOP_NO_HC) ||
+        (fc->hc == NULL) ||
+        (fc->hc->eval_int(i, j, k, l, fc->hc)))
       return (j < k) ?
              eval_ext_int_loop(fc, i, j, k, l, options) :
              eval_int_loop(fc, i, j, k, l, options);
@@ -242,24 +230,13 @@ vrna_eval_stack(vrna_fold_compound_t  *fc,
                 unsigned int          j,
                 unsigned int          options)
 {
-  unsigned char         eval;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
-
   if ((fc) &&
       (i > 0) &&
       (i + 2 < j)) {
-    /* prepare hard constraints check */
-    if ((options & VRNA_EVAL_LOOP_NO_HC) ||
-        (fc->hc == NULL)) {
-      eval = (unsigned char)1;
-    } else {
-      evaluate  = prepare_hc_int_def(fc, &hc_dat_local);
-      eval      = evaluate(i, j, i + 1, j - 1, &hc_dat_local);
-    }
-
     /* is this base pair allowed to close a hairpin (like) loop ? */
-    if (eval)
+    if ((options & VRNA_EVAL_LOOP_NO_HC) ||
+        (fc->hc == NULL) ||
+        (fc->hc->eval_int(i, j, i + 1, j - 1, fc->hc)))
       return eval_stack(fc, i, j, options);
   }
 

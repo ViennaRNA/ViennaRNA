@@ -14,8 +14,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/exterior_hc.inc"
-
 PRIVATE FLT_OR_DBL
 mf_rule_pair(vrna_fold_compound_t *fc,
              unsigned int         i,
@@ -60,8 +58,7 @@ mf_rule_pair(vrna_fold_compound_t *fc,
   FLT_OR_DBL            contribution, *q, *scale, qbase, tmp, tmp2;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
-  vrna_hc_eval_f        evaluate;
-  struct hc_ext_def_dat hc_dat_local;
+  vrna_hc_t             *hc;
   vrna_sc_t             *sc;
 
   contribution  = 0;
@@ -75,10 +72,10 @@ mf_rule_pair(vrna_fold_compound_t *fc,
   scale         = fc->exp_matrices->scale;
   my_iindx      = fc->iindx;
   sc            = fc->sc;
-  evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
+  hc            = fc->hc;
 
   if ((sn[i] != sn[j]) &&
-      (evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local))) {
+      (hc->eval_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc))) {
     /* most obious strand nick is at end of sn[i] and start of sn[j] */
     type  = vrna_get_ptype_md(S2[j], S2[i], md);
     s5    = (sn[j] == sn[j - 1]) ? S1[j - 1] : -1;

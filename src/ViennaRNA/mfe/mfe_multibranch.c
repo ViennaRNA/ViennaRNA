@@ -34,7 +34,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/multibranch_hc.inc"
 #include "ViennaRNA/constraints/multibranch_sc.inc"
 
 #include "ViennaRNA/mfe/multibranch.h"

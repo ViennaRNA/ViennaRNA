@@ -33,11 +33,6 @@
 #include "ViennaRNA/partfunc/global.h"
 #include "ViennaRNA/probabilities/basepairs.h"
 
-#include "ViennaRNA/constraints/exterior_hc.inc"
-#include "ViennaRNA/constraints/hairpin_hc.inc"
-#include "ViennaRNA/constraints/internal_hc.inc"
-#include "ViennaRNA/constraints/multibranch_hc.inc"
-
 #include "ViennaRNA/constraints/exterior_sc_pf.inc"
 #include "ViennaRNA/constraints/hairpin_sc_pf.inc"
 #include "ViennaRNA/constraints/internal_sc_pf.inc"
@@ -72,18 +67,6 @@ typedef struct {
 
 
 typedef struct {
-  struct hc_ext_def_dat     hc_dat_ext;
-  vrna_hc_eval_f hc_eval_ext;
-
-  struct hc_hp_def_dat      hc_dat_hp;
-  vrna_hc_eval_f hc_eval_hp;
-
-  struct hc_int_def_dat     hc_dat_int;
-  eval_hc                   hc_eval_int;
-
-  struct hc_mb_def_dat      hc_dat_mb;
-  vrna_hc_eval_f hc_eval_mb;
-
   struct sc_ext_exp_dat     sc_wrapper_ext;
   struct sc_hp_exp_dat      sc_wrapper_hp;
   struct sc_int_exp_dat     sc_wrapper_int;
@@ -833,11 +816,6 @@ get_constraints_helper(vrna_fold_compound_t *fc)
 
   helpers = (constraints_helper *)vrna_alloc(sizeof(constraints_helper));
 
-  helpers->hc_eval_ext  = prepare_hc_ext_def(fc, &(helpers->hc_dat_ext));
-  helpers->hc_eval_hp   = prepare_hc_hp_def(fc, &(helpers->hc_dat_hp));
-  helpers->hc_eval_int  = prepare_hc_int_def(fc, &(helpers->hc_dat_int));
-  helpers->hc_eval_mb   = prepare_hc_mb_def(fc, &(helpers->hc_dat_mb));
-
   init_sc_ext_exp(fc, &(helpers->sc_wrapper_ext));
   init_sc_hp_exp(fc, &(helpers->sc_wrapper_hp));
   init_sc_int_exp(fc, &(helpers->sc_wrapper_int));
@@ -867,8 +845,7 @@ compute_bpp_external(vrna_fold_compound_t *fc,
   int                       *my_iindx, ij;
   FLT_OR_DBL                *probs, *q1k, *qln, *qb;
   vrna_mx_pf_t              *matrices;
-  struct hc_ext_def_dat     *hc_dat;
-  vrna_hc_eval_f evaluate;
+  vrna_hc_t                 *hc;
 
   FLT_OR_DBL                (*contrib_f)(vrna_fold_compound_t *,
                                          unsigned int,
@@ -882,8 +859,7 @@ compute_bpp_external(vrna_fold_compound_t *fc,
   probs     = matrices->probs;
   q1k       = matrices->q1k;
   qln       = matrices->qln;
-  hc_dat    = &(constraints->hc_dat_ext);
-  evaluate  = constraints->hc_eval_ext;
+  hc        = fc->hc;
 
   contrib_f = (fc->type == VRNA_FC_TYPE_SINGLE) ? &contrib_ext_pair : &contrib_ext_pair_comparative;
 
@@ -892,7 +868,7 @@ compute_bpp_external(vrna_fold_compound_t *fc,
       ij        = my_iindx[i] - j;
       probs[ij] = 0.;
 
-      if ((evaluate(1, n, i, j, VRNA_DECOMP_EXT_STEM_OUTSIDE, hc_dat)) &&
+      if ((hc->eval_ext(1, n, i, j, VRNA_DECOMP_EXT_STEM_OUTSIDE, hc)) &&
           (qb[ij] > 0.)) {
         probs[ij] = q1k[i - 1] *
                     qln[j + 1] /
@@ -1012,12 +988,8 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
   vrna_hc_t             *hc;
   vrna_sc_t             *sc;
   vrna_ud_t             *domains_up;
-  struct hc_int_def_dat *hc_dat_local;
-  eval_hc               hc_eval;
   struct sc_int_exp_dat *sc_wrapper_int;
 
-  hc_dat_local    = &(constraints->hc_dat_int);
-  hc_eval         = constraints->hc_eval_int;
   sc_wrapper_int  = &(constraints->sc_wrapper_int);
 
   n           = (int)fc->length;
@@ -1075,7 +1047,7 @@ compute_bpp_internal(vrna_fold_compound_t *fc,
           if (probs[ij] == 0.)
             continue;
 
-          if (hc_eval(i, j, k, l, hc_dat_local)) {
+          if (hc->eval_int(i, j, k, l, hc)) {
             int jij = jindx[j] + i;
             type  = vrna_get_ptype(jij, ptype);
             tmp2  = probs[ij] *
@@ -1179,12 +1151,8 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
-  eval_hc               hc_eval;
-  struct hc_int_def_dat *hc_dat_local;
   struct sc_int_exp_dat *sc_wrapper_int;
 
-  hc_eval         = constraints->hc_eval_int;
-  hc_dat_local    = &(constraints->hc_dat_int);
   sc_wrapper_int  = &(constraints->sc_wrapper_int);
 
   n         = (int)fc->length;
@@ -1246,7 +1214,7 @@ compute_bpp_internal_comparative(vrna_fold_compound_t *fc,
           if (hc_up_int[l + 1] < u2)
             break;
 
-          if (hc_eval(i, j, k, l, hc_dat_local)) {
+          if (hc->eval_int(i, j, k, l, hc)) {
             tmp2 = probs[ij] *
                    scale[u1 + u2 + 2] *
                    psc_exp;
@@ -1315,8 +1283,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
   vrna_exp_param_t          *pf_params;
   vrna_md_t                 *md;
   vrna_ud_t                 *domains_up;
-  struct hc_mb_def_dat      *hc_dat;
-  vrna_hc_eval_f hc_eval;
+  vrna_hc_t                 *hc;
   struct sc_mb_exp_dat      *sc_wrapper;
   vrna_smx_csr(FLT_OR_DBL)  *q_gq;
 
@@ -1343,8 +1310,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
   with_gquad    = md->gquad;
   expMLstem     = (with_gquad) ? vrna_exp_E_multibranch_stem(0, -1, -1, pf_params) : 0;
 
-  hc_dat      = &(constraints->hc_dat_mb);
-  hc_eval     = constraints->hc_eval_mb;
+  hc          = fc->hc;
   sc_wrapper  = &(constraints->sc_wrapper_mb);
 
   prm_MLb   = 0.;
@@ -1365,7 +1331,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       s3  = S1[i + 1];
       if (sn[k] == sn[i]) {
         for (j = l + 2; j <= n; j++, ij--, lj--) {
-          if (hc_eval(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc_dat)) {
+          if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
             tt = vrna_get_ptype_md(S[j], S[i], md);
 
             /* which decomposition is covered here? =>
@@ -1389,7 +1355,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
         ii  = my_iindx[i];  /* ii-j=[i,j]     */
         tt  = vrna_get_ptype(jindx[l + 1] + i, ptype);
         tt  = rtype[tt];
-        if (hc_eval(i, l + 1, i + 1, l, VRNA_DECOMP_PAIR_ML, hc_dat)) {
+        if (hc->eval_mb(i, l + 1, i + 1, l, VRNA_DECOMP_PAIR_ML, hc)) {
           prmt1 = probs[ii - (l + 1)] *
                   vrna_exp_E_multibranch_stem(tt,
                                S1[l],
@@ -1407,7 +1373,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       ml_helpers->prml[i] = prmt;
 
       /* l+1 is unpaired */
-      if (hc_eval(k, l + 1, k, l, VRNA_DECOMP_ML_ML, hc_dat)) {
+      if (hc->eval_mb(k, l + 1, k, l, VRNA_DECOMP_ML_ML, hc)) {
         ppp = ml_helpers->prm_l1[i] *
               expMLbase[1];
 
@@ -1419,7 +1385,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
             u = domains_up->uniq_motif_size[cnt];
             if (l + u < n) {
-              if (hc_eval(k, l + u, k, l, VRNA_DECOMP_ML_ML, hc_dat)) {
+              if (hc->eval_mb(k, l + u, k, l, VRNA_DECOMP_ML_ML, hc)) {
                 temp = domains_up->exp_energy_cb(fc,
                                                  l + 1,
                                                  l + u,
@@ -1447,7 +1413,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           ml_helpers->pmlu[0][i] = prmt1;
       }
 
-      if (hc_eval(i, l, i + 1, l, VRNA_DECOMP_ML_ML, hc_dat)) {
+      if (hc->eval_mb(i, l, i + 1, l, VRNA_DECOMP_ML_ML, hc)) {
         ppp = prm_MLb *
               expMLbase[1];
 
@@ -1458,7 +1424,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
           for (cnt = 0; cnt < domains_up->uniq_motif_count; cnt++) {
             u = domains_up->uniq_motif_size[cnt];
             if (1 + u <= i) {
-              if (hc_eval(i - u + 1, l, i + 1, l, VRNA_DECOMP_ML_ML, hc_dat)) {
+              if (hc->eval_mb(i - u + 1, l, i + 1, l, VRNA_DECOMP_ML_ML, hc)) {
                 temp = domains_up->exp_energy_cb(fc,
                                                  i - u + 1,
                                                  i,
@@ -1526,7 +1492,7 @@ compute_bpp_multibranch(vrna_fold_compound_t  *fc,
       if ((with_gquad) &&
           (qb[kl] == 0.)) {
         temp *= expMLstem;
-      } else if (hc_eval(k, l, k, l, VRNA_DECOMP_ML_STEM, hc_dat)) {
+      } else if (hc->eval_mb(k, l, k, l, VRNA_DECOMP_ML_STEM, hc)) {
         if (tt == 0)
           tt = 7;
 
@@ -3662,8 +3628,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
   vrna_exp_param_t          *pf_params;
   vrna_mx_pf_t              *matrices;
   vrna_md_t                 *md;
-  struct hc_mb_def_dat      *hc_dat_mb;
-  vrna_hc_eval_f            hc_eval_mb;
 
   vrna_smx_csr(FLT_OR_DBL)  *q_gq = fc->exp_matrices->q_gq;
 
@@ -3698,8 +3662,6 @@ bppm_circ(vrna_fold_compound_t  *fc,
   expMLbase         = matrices->expMLbase;
   qo                = matrices->qo;
   hard_constraints  = hc->mx;
-  hc_dat_mb         = &(constraints->hc_dat_mb);
-  hc_eval_mb        = constraints->hc_eval_mb;
 
   expMLclosing  = pf_params->expMLclosing;
   expintern     = &(pf_params->expinternal[0]);
@@ -3910,7 +3872,7 @@ bppm_circ(vrna_fold_compound_t  *fc,
         }
 
         /* 1.3 Exterior multiloop decomposition */
-        if (hc_eval_mb(i, j, i - 1, j + 1, VRNA_DECOMP_PAIR_ML_EXT, hc_dat_mb)) {
+        if (hc->eval_mb(i, j, i - 1, j + 1, VRNA_DECOMP_PAIR_ML_EXT, hc)) {
           FLT_OR_DBL sc_contrib = 1.;
 
           if (sc_mb_wrapper.pair_ext)
@@ -3945,8 +3907,8 @@ bppm_circ(vrna_fold_compound_t  *fc,
           /* 1.3.2 right-most part  */
           if (hc->up_ml[j + 1] >= (unsigned int)(n - j)) {
             if (i > 1) {
-              if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                  (hc_eval_mb(1, j, i - 1, i, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
+              if ((hc->eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc)) &&
+                  (hc->eval_mb(1, j, i - 1, i, VRNA_DECOMP_ML_ML_ML, hc))) {
                 tmp = qm2_real[my_iindx[1] - i + 1] *
                       expMLbase[n - j];
 
@@ -3982,8 +3944,8 @@ bppm_circ(vrna_fold_compound_t  *fc,
           /* 1.3.3 left-most part */
           if (hc->up_ml[1] >= (unsigned int)(i - 1)) {
             if (j + 1 < n) {
-              if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                  (hc_eval_mb(i, n, j, j + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
+              if ((hc->eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc)) &&
+                  (hc->eval_mb(i, n, j, j + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
                 tmp = qm2_real[my_iindx[j + 1] - n] *
                       expMLbase[i - 1];
 
@@ -4393,8 +4355,8 @@ bppm_circ(vrna_fold_compound_t  *fc,
           /* 1.3.1,2 right-most part  */
           if (hc->up_ml[j + 1] >= (unsigned int)(n - j)) {
             if (i > 1) {
-              if ((hc_eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                  (hc_eval_mb(1, j, i - 1, i, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
+              if ((hc->eval_mb(i, n, i, j, VRNA_DECOMP_ML_ML, hc)) &&
+                  (hc->eval_mb(1, j, i - 1, i, VRNA_DECOMP_ML_ML_ML, hc))) {
                 tmp = qm2_real[my_iindx[1] - i + 1] *
                       expMLbase[n - j];
 
@@ -4413,8 +4375,8 @@ bppm_circ(vrna_fold_compound_t  *fc,
           /* 1.3.1.3 left-most part */
           if (hc->up_ml[1] >= (unsigned int)(i - 1)) {
             if (j + 1 < n) {
-              if ((hc_eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc_dat_mb)) &&
-                  (hc_eval_mb(i, n, j, j + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb))) {
+              if ((hc->eval_mb(1, j, i, j, VRNA_DECOMP_ML_ML, hc)) &&
+                  (hc->eval_mb(i, n, j, j + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
                 tmp = qm2_real[my_iindx[j + 1] - n] *
                       expMLbase[i - 1];
 

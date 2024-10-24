@@ -26,7 +26,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/hairpin_hc.inc"
 #include "ViennaRNA/constraints/hairpin_sc.inc"
 
 /*
@@ -137,28 +136,13 @@ vrna_eval_hairpin(vrna_fold_compound_t  *fc,
                   unsigned int          j,
                   unsigned int          options)
 {
-  unsigned char         eval;
-  vrna_hc_eval_f        evaluate;
-  struct hc_hp_def_dat  hc_dat_local;
-
   if ((fc) &&
       (i > 0) &&
       (j > 0)) {
-    /* prepare hard constraints check */
-    if ((options & VRNA_EVAL_LOOP_NO_HC) ||
-        (fc->hc == NULL)) {
-      eval = (unsigned char)1;
-    } else {
-      if (fc->hc->type == VRNA_HC_WINDOW)
-        evaluate = prepare_hc_hp_def_window(fc, &hc_dat_local);
-      else
-        evaluate = prepare_hc_hp_def(fc, &hc_dat_local);
-
-      eval = evaluate(i, j, i, j, VRNA_DECOMP_PAIR_HP, &hc_dat_local);
-    }
-
     /* is this base pair allowed to close a hairpin (like) loop ? */
-    if (eval)
+    if ((options & VRNA_EVAL_LOOP_NO_HC) ||
+        (fc->hc == NULL) ||
+        (fc->hc->eval_hp(i, j, fc->hc)))
       return (i > j) ? eval_ext_hp_loop(fc, j, i, options) : eval_hp_loop(fc, i, j, options);
   }
 

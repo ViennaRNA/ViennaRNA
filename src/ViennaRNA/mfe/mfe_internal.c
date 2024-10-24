@@ -26,7 +26,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/internal_hc.inc"
 #include "ViennaRNA/constraints/internal_sc.inc"
 
 #include "ViennaRNA/mfe/internal.h"

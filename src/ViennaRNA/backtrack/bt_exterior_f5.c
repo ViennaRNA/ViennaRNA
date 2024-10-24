@@ -30,7 +30,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/exterior_hc.inc"
 #include "ViennaRNA/constraints/exterior_sc.inc"
 
 /*
@@ -97,8 +96,8 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
   vrna_md_t             *md;
   vrna_sc_t             *sc;
   vrna_ud_t             *domains_up;
-  vrna_hc_eval_f        evaluate;
-  struct hc_ext_def_dat hc_dat_local;
+  vrna_hc_t             *hc;
+  vrna_hc_eval_loop_f   evaluate;
   vrna_smx_csr(int)     *c_gq;
 
   length        = fc->length;
@@ -116,7 +115,12 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
-  evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
+  hc            = fc->hc;
+  evaluate      = hc->eval_ext;
+
+  if (j == 0)
+    /* no more pairs */
+    return 1;
 
   /* return true for empty interval */
   if (j == 0)
@@ -129,7 +133,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       fi  = INF;
 
       /* try nibble off one unpaired nucleotide first */
-      if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+      if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, hc)) {
         fi = my_f5[j - 1];
 
         if (sc) {
@@ -155,7 +159,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
         u = domains_up->uniq_motif_size[cnt];
         if ((j >= u) &&
-            evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+            evaluate(1, j, 1, j - u, VRNA_DECOMP_EXT_EXT, hc)) {
           ii  = j - u + 1;
           en  = domains_up->energy_cb(fc,
                                       ii,
@@ -192,7 +196,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
       fij = my_f5[j];
       fi  = INF;
 
-      if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+      if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, hc)) {
         fi = my_f5[j - 1];
 
         if (sc) {
@@ -243,7 +247,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
+        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, hc)) {
           type = vrna_get_ptype(idx[j] + u, ptype);
 
           en = my_c[idx[j] + u];
@@ -303,7 +307,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
+        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, hc)) {
           mm5   = ((u > 1) && (sn[u] == sn[u - 1])) ? S1[u - 1] : -1;
           type  = vrna_get_ptype(idx[j] + u, ptype);
 
@@ -356,7 +360,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
         }
       }
 
-      if (evaluate(1, j, 1, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+      if (evaluate(1, j, 1, j, VRNA_DECOMP_EXT_STEM, hc)) {
         type = vrna_get_ptype(idx[j] + 1, ptype);
 
         en = my_c[idx[j] + 1];
@@ -375,7 +379,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
         }
       }
 
-      if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+      if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_STEM, hc)) {
         if (sn[j] == sn[j - 1]) {
           mm3   = S1[j];
           type  = vrna_get_ptype(idx[j - 1] + 1, ptype);
@@ -435,7 +439,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
 
 #endif
 
-        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
+        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, hc)) {
           e = my_f5[u - 1] +
               en +
               vrna_E_exterior_stem(type, -1, -1, P);
@@ -461,7 +465,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(1, j, u - 2, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
+        if (evaluate(1, j, u - 2, u, VRNA_DECOMP_EXT_EXT_STEM, hc)) {
           if (sn[u] == sn[u - 1]) {
             mm5 = S1[u - 1];
             e   = my_f5[u - 2] +
@@ -507,7 +511,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
         mm5 = (sn[u] == sn[u - 1]) ? S1[u - 1] : -1;
         mm3 = (sn[j] == sn[j - 1]) ? S1[j] : -1;
 
-        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM1, &hc_dat_local)) {
+        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM1, hc)) {
           e = my_f5[u - 1] +
               en +
               vrna_E_exterior_stem(type, -1, mm3, P);
@@ -537,7 +541,7 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(1, j, u - 2, u, VRNA_DECOMP_EXT_EXT_STEM1, &hc_dat_local)) {
+        if (evaluate(1, j, u - 2, u, VRNA_DECOMP_EXT_EXT_STEM1, hc)) {
           e = my_f5[u - 2] + en + vrna_E_exterior_stem(type, mm5, mm3, P);
           if (sc) {
             if (sc->energy_up)
@@ -585,8 +589,8 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_sc_t             **scs;
-  vrna_hc_eval_f        evaluate;
-  struct hc_ext_def_dat hc_dat_local;
+  vrna_hc_t             *hc;
+  vrna_hc_eval_loop_f   evaluate;
 
   vrna_smx_csr(int) * c_gq;
 
@@ -605,14 +609,15 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
   idx           = fc->jindx;
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
-  evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
+  hc            = fc->hc;
+  evaluate      = hc->eval_ext;
 
   /* nibble off unpaired 3' bases */
   do {
     fij = my_f5[j];
     fi  = INF;
 
-    if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, &hc_dat_local)) {
+    if (evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, hc)) {
       fi = my_f5[j - 1];
 
       if (scs) {
@@ -664,7 +669,7 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
+        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, hc)) {
           en = my_c[idx[j] + u] +
                my_f5[u - 1];
 
@@ -724,7 +729,7 @@ bt_ext_loop_f5_comparative(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, &hc_dat_local)) {
+        if (evaluate(1, j, u - 1, u, VRNA_DECOMP_EXT_EXT_STEM, hc)) {
           en = my_c[idx[j] + u] +
                my_f5[u - 1];
 

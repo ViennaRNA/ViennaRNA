@@ -34,8 +34,6 @@
 #include "ViennaRNA/mfe/global.h"
 #include "ViennaRNA/datastructures/heap.h"
 
-#include "ViennaRNA/constraints/exterior_hc.inc"
-
 #include "ViennaRNA/pk_plex.h"
 
 #undef  MAXLOOP
@@ -569,9 +567,6 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
   vrna_heap_t               storage;
   vrna_pk_plex_t            *entry;
 
-  vrna_hc_eval_f evaluate_ext;
-  struct hc_ext_def_dat     hc_dat_local;
-
   struc   = NULL;
   n       = fc->length;
   S       = fc->sequence_encoding2;
@@ -588,8 +583,6 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
                            NULL,
                            NULL);
 
-  evaluate_ext = prepare_hc_ext_def(fc, &hc_dat_local);
-
   c3 = get_array(n, max_interaction_length);
 
   if (n > turn + 1) {
@@ -605,7 +598,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
 
       /* matrix starting values for (i,j)-basepairs */
       for (j = i + turn + 1; j <= n; j++) {
-        if (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+        if (hc->eval_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc)) {
           type                                      = md->pair[S[j]][S[i]];
           c3[max_interaction_length - 1][j - 1][0]  = vrna_E_exterior_stem(type,
                                                                       S1[j - 1],
@@ -670,7 +663,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
         sk = (k > 1) ? S1[k - 1] : -1;
 
         for (j = i + turn + 1; j <= n; j++) {
-          if (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+          if (hc->eval_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc)) {
             j_pos_end = MIN2(n + 1, j + max_interaction_length);
             int *c3kj = c3k[j - 1];
 
@@ -678,7 +671,7 @@ duplexfold_XS(vrna_fold_compound_t        *fc,
               if (access_s1[l - j + 1][l] == INF)
                 continue;
 
-              if (evaluate_ext(k, l, k, l, VRNA_DECOMP_EXT_STEM, &hc_dat_local)) {
+              if (hc->eval_ext(k, l, k, l, VRNA_DECOMP_EXT_STEM, hc)) {
                 type2 = md->pair[S[k]][S[l]];
                 sl    = (l < n) ? S1[l + 1] : -1;
                 E     = c3kj[l - j] +

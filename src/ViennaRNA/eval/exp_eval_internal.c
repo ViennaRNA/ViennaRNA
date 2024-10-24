@@ -26,7 +26,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/internal_hc.inc"
 #include "ViennaRNA/constraints/internal_sc_pf.inc"
 
 /*
@@ -186,25 +185,14 @@ vrna_exp_eval_internal(vrna_fold_compound_t *fc,
                        unsigned int         l,
                        unsigned int         options)
 {
-  unsigned char         eval;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
-
   if ((fc) &&
       (i > 0) &&
       (j > 0) &&
       (k > 0) &&
       (l > 0)) {
-    /* prepare hard constraints check */
     if ((options & VRNA_EVAL_LOOP_NO_HC) ||
-        (fc->hc == NULL)) {
-      eval = (unsigned char)1;
-    } else {
-      evaluate  = prepare_hc_int_def(fc, &hc_dat_local);
-      eval      = evaluate(i, j, k, l, &hc_dat_local);
-    }
-
-    if (eval)
+        (fc->hc == NULL) ||
+        (fc->hc->eval_int(i, j, k, l, fc->hc)))
       return exp_eval_internal(fc, i, j, k, l, options);
   }
 

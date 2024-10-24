@@ -27,7 +27,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/internal_hc.inc"
 #include "ViennaRNA/constraints/internal_sc.inc"
 
 /*
@@ -108,8 +107,7 @@ bt_stacked_pairs(vrna_fold_compound_t *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
+  vrna_hc_eval_int_f    evaluate;
   struct sc_int_dat     sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -122,7 +120,6 @@ bt_stacked_pairs(vrna_fold_compound_t *fc,
   idx             = (sliding_window) ? NULL : fc->jindx;
   P               = fc->params;
   md              = &(P->model_details);
-  hc              = fc->hc;
   my_c            = (sliding_window) ? NULL : fc->matrices->c;
   c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
   ij              = (sliding_window) ? 0 : idx[j] + i;
@@ -130,7 +127,8 @@ bt_stacked_pairs(vrna_fold_compound_t *fc,
   p               = i + 1;
   q               = j - 1;
   ret             = 0;
-  evaluate        = prepare_hc_int_def(fc, &hc_dat_local);
+  hc              = fc->hc;
+  evaluate        = hc->eval_int;
 
 
   if ((sn[p] != sn[i]) || (sn[j] != sn[q]))
@@ -150,7 +148,7 @@ bt_stacked_pairs(vrna_fold_compound_t *fc,
     eval_loop = (hc_decompose_ij & VRNA_CONSTRAINT_CONTEXT_INT_LOOP) &&
                 (hc_decompose_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC);
 
-    if (eval_loop && evaluate(i, j, p, q, &hc_dat_local)) {
+    if (eval_loop && evaluate(i, j, p, q, hc)) {
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
           type = (sliding_window) ?
@@ -217,8 +215,7 @@ bt_int_loop(vrna_fold_compound_t  *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
+  vrna_hc_eval_int_f    evaluate;
 
   ret             = 0;
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -226,10 +223,10 @@ bt_int_loop(vrna_fold_compound_t  *fc,
   idx             = (sliding_window) ? NULL : fc->jindx;
   P               = fc->params;
   md              = &(P->model_details);
-  hc              = fc->hc;
   my_c            = (sliding_window) ? NULL : fc->matrices->c;
   c_local         = (sliding_window) ? fc->matrices->c_local : NULL;
-  evaluate        = prepare_hc_int_def(fc, &hc_dat_local);
+  hc              = fc->hc;
+  evaluate        = hc->eval_int;
 
   hc_decompose_ij = (sliding_window) ? hc->matrix_local[i][j - i] : hc->mx[n * i + j];
 
@@ -253,7 +250,7 @@ bt_int_loop(vrna_fold_compound_t  *fc,
 
         eval_loop = hc_decompose_pq & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC;
 
-        if (!(eval_loop && evaluate(i, j, p, q, &hc_dat_local)))
+        if (!(eval_loop && evaluate(i, j, p, q, hc)))
           continue;
 
         energy = (sliding_window) ?

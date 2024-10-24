@@ -30,7 +30,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/exterior_hc.inc"
 #include "ViennaRNA/constraints/exterior_sc.inc"
 
 #include "ViennaRNA/mfe/exterior.h"

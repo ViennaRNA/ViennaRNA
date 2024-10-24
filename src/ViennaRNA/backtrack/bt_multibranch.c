@@ -30,7 +30,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/multibranch_hc.inc"
 #include "ViennaRNA/constraints/multibranch_sc.inc"
 
 /*
@@ -147,8 +146,8 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_ud_t             *domains_up;
-  vrna_hc_eval_f        evaluate;
-  struct hc_mb_def_dat  hc_dat_local;
+  vrna_hc_t             *hc;
+  vrna_hc_eval_loop_f   evaluate;
   struct sc_mb_dat      sc_wrapper;
   vrna_smx_csr(int)     *c_gq;
 
@@ -176,7 +175,8 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
   with_gquad    = md->gquad;
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   dangle_model  = md->dangles;
-  evaluate      = prepare_hc_mb_def(fc, &hc_dat_local);
+  hc            = fc->hc;
+  evaluate      = hc->eval_mb;
 
   init_sc_mb(fc, &sc_wrapper);
 
@@ -187,7 +187,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       fi  = INF;
 
       /* process regular unpaired nucleotides (unbound by ligand) first */
-      if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+      if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc)) {
         fi = P->MLbase *
              n_seq;
         fi += (sliding_window) ? fML_local[i][j - 1 - i] : my_fML[idx[j - 1] + i];
@@ -212,7 +212,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
         u   = domains_up->uniq_motif_size[cnt];
         kk  = j - u + 1;
-        if ((kk >= i) && evaluate(i, j, i, j - u, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+        if ((kk >= i) && evaluate(i, j, i, j - u, VRNA_DECOMP_ML_ML, hc)) {
           en = domains_up->energy_cb(fc,
                                      kk,
                                      j,
@@ -245,7 +245,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       fi  = INF;
 
       /* again, process regular unpaired nucleotides (unbound by ligand) first */
-      if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+      if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, hc)) {
         fi = P->MLbase *
              n_seq;
         fi += (sliding_window) ? fML_local[i + 1][j - (i + 1)] : my_fML[idx[j] + i + 1];
@@ -266,7 +266,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       for (cnt = 0; cnt < (unsigned int)domains_up->uniq_motif_count; cnt++) {
         u   = domains_up->uniq_motif_size[cnt];
         kk  = i + u - 1;
-        if ((kk <= j) && evaluate(i, j, i + u, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+        if ((kk <= j) && evaluate(i, j, i + u, j, VRNA_DECOMP_ML_ML, hc)) {
           en = domains_up->energy_cb(fc,
                                      i,
                                      kk,
@@ -299,7 +299,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       fij = (sliding_window) ? fML_local[i][j - i] : my_fML[idx[j] + i];
       fi  = INF;
 
-      if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+      if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc)) {
         fi = P->MLbase *
              n_seq;
         fi += (sliding_window) ? fML_local[i][j - 1 - i] : my_fML[idx[j - 1] + i];
@@ -318,7 +318,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       fij = (sliding_window) ? fML_local[i][j - i] : my_fML[idx[j] + i];
       fi  = INF;
 
-      if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, &hc_dat_local)) {
+      if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_ML, hc)) {
         fi = P->MLbase *
              n_seq;
         fi += (sliding_window) ? fML_local[i + 1][j - (i + 1)] : my_fML[idx[j] + i + 1];
@@ -370,7 +370,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
 
   switch (dangle_model) {
     case 0:
-      if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+      if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, hc)) {
         en2 = 0;
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
@@ -402,7 +402,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       break;
 
     case 2:
-      if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+      if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, hc)) {
         en2 = 0;
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
@@ -434,7 +434,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
       break;
 
     default:
-      if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+      if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, hc)) {
         en2 = 0;
         switch (fc->type) {
           case VRNA_FC_TYPE_SINGLE:
@@ -463,7 +463,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
         }
       }
 
-      if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+      if (evaluate(i, j, i + 1, j, VRNA_DECOMP_ML_STEM, hc)) {
         en2 = P->MLbase *
               n_seq;
         en2 += (sliding_window) ? c_local[i + 1][j - (i + 1)] : my_c[ij + 1];
@@ -499,7 +499,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
         }
       }
 
-      if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+      if (evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_STEM, hc)) {
         en2 = P->MLbase *
               n_seq;
         en2 += (sliding_window) ? c_local[i][j - 1 - i] : my_c[idx[j - 1] + i];
@@ -536,7 +536,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
         }
       }
 
-      if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_ML_STEM, &hc_dat_local)) {
+      if (evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_ML_STEM, hc)) {
         en2 = 2 * P->MLbase *
               n_seq;
         en2 += (sliding_window) ? c_local[i + 1][j - 1 - (i + 1)] : my_c[idx[j - 1] + i + 1];
@@ -581,7 +581,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
 
   /* 2. Test for possible split point */
   for (u = i + 1; u + 1 < j; u++) {
-    if (evaluate(i, j, u, u + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+    if (evaluate(i, j, u, u + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
       if (sliding_window)
         en = fML_local[i][u - i] +
              fML_local[u + 1][j - (u + 1)];
@@ -615,7 +615,7 @@ bt_mb_loop_split(vrna_fold_compound_t *fc,
     k1j = (sliding_window) ? 0 : idx[j] + i + 2;
     for (u = i + 1; u <= j - 2; u++, k1j++) {
       ik = (sliding_window) ? 0 : idx[u] + i;
-      if (evaluate(i, u, u + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, &hc_dat_local)) {
+      if (evaluate(i, u, u + 1, j, VRNA_DECOMP_ML_COAXIAL_ENC, hc)) {
         en = 2 * P->MLintern[1] *
              n_seq;
         en += (sliding_window) ? c_local[i][u - i] + c_local[u + 1][j - (u + 1)] : my_c[ik] +
@@ -685,8 +685,8 @@ bt_mb_loop(vrna_fold_compound_t *fc,
   int                   ij, e, tmp_en, *idx, *my_c, *my_fML, *rtype, **c_local, **fML_local;
   vrna_param_t          *P;
   vrna_md_t             *md;
-  vrna_hc_eval_f        evaluate;
-  struct hc_mb_def_dat  hc_dat_local;
+  vrna_hc_t             *hc;
+  vrna_hc_eval_loop_f   evaluate;
   struct sc_mb_dat      sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -715,7 +715,8 @@ bt_mb_loop(vrna_fold_compound_t *fc,
   tt            = NULL;
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
-  evaluate      = prepare_hc_mb_def(fc, &hc_dat_local);
+  hc            = fc->hc;
+  evaluate      = hc->eval_mb;
 
   init_sc_mb(fc, &sc_wrapper);
 
@@ -745,7 +746,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
       s3 = S1[p];
   }
 
-  if (evaluate(i, j, p, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+  if (evaluate(i, j, p, q, VRNA_DECOMP_PAIR_ML, hc)) {
     e = en -
         P->MLclosing *
         n_seq;
@@ -778,7 +779,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
       e -= sc_wrapper.pair(i, j, &sc_wrapper);
 
     for (r = i + 2; r < j - 2; ++r) {
-      if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+      if (evaluate(p, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
         if (sliding_window)
           tmp_en = fML_local[p][r - p] +
                    fML_local[r + 1][q - (r + 1)];
@@ -797,7 +798,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
 
   if (dangle_model % 2) {
     /* odd dangles need more special treatment */
-    if (evaluate(i, j, p + 1, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+    if (evaluate(i, j, p + 1, q, VRNA_DECOMP_PAIR_ML, hc)) {
       e = en -
           (P->MLclosing + P->MLbase) *
           n_seq;
@@ -817,7 +818,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
       }
 
       for (r = p + 1; r < q - 1; ++r) {
-        if (evaluate(p + 1, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+        if (evaluate(p + 1, q, r, r + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
           if (sliding_window)
             tmp_en = fML_local[p + 1][r - (p + 1)] +
                      fML_local[r + 1][q - (r + 1)];
@@ -836,7 +837,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
       }
     }
 
-    if (evaluate(i, j, p, q - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+    if (evaluate(i, j, p, q - 1, VRNA_DECOMP_PAIR_ML, hc)) {
       e = en -
           (P->MLclosing + P->MLbase) *
           n_seq;
@@ -856,7 +857,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
       }
 
       for (r = p + 1; r < q - 1; ++r) {
-        if (evaluate(p, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+        if (evaluate(p, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
           if (sliding_window)
             tmp_en = fML_local[p][r - p] +
                      fML_local[r + 1][q - 1 - (r + 1)];
@@ -877,7 +878,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
       }
     }
 
-    if (evaluate(i, j, p + 1, q - 1, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
+    if (evaluate(i, j, p + 1, q - 1, VRNA_DECOMP_PAIR_ML, hc)) {
       e = en -
           (P->MLclosing + 2 * P->MLbase) *
           n_seq;
@@ -897,7 +898,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
       }
 
       for (r = p + 1; r < q - 1; ++r) {
-        if (evaluate(p + 1, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, &hc_dat_local)) {
+        if (evaluate(p + 1, q - 1, r, r + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
           if (sliding_window)
             tmp_en = fML_local[p + 1][r - (p + 1)] +
                      fML_local[r + 1][q - 1 - (r + 1)];
@@ -933,7 +934,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
         type = rtype[type];
 
       for (r = p + 1; r < q - 1; ++r) {
-        if (evaluate(i, j, p, r, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
+        if (evaluate(i, j, p, r, VRNA_DECOMP_ML_COAXIAL, hc)) {
           if (sliding_window)
             tmp_en = c_local[p][r - p] +
                      fML_local[r + 1][q - (r + 1)];
@@ -968,7 +969,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
           }
         }
 
-        if (evaluate(i, j, r + 1, q, VRNA_DECOMP_ML_COAXIAL, &hc_dat_local)) {
+        if (evaluate(i, j, r + 1, q, VRNA_DECOMP_ML_COAXIAL, hc)) {
           if (sliding_window)
             tmp_en = c_local[r + 1][q - (r + 1)] +
                      fML_local[p][r - p];

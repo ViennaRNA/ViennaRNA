@@ -45,11 +45,6 @@
 #include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/subopt/wuchty.h"
 
-#include "ViennaRNA/constraints/exterior_hc.inc"
-#include "ViennaRNA/constraints/hairpin_hc.inc"
-#include "ViennaRNA/constraints/internal_hc.inc"
-#include "ViennaRNA/constraints/multibranch_hc.inc"
-
 #include "ViennaRNA/constraints/exterior_sc.inc"
 #include "ViennaRNA/constraints/hairpin_sc.inc"
 #include "ViennaRNA/constraints/internal_sc.inc"
@@ -72,18 +67,6 @@
 #define false             0
 
 typedef struct {
-  struct hc_ext_def_dat     hc_dat_ext;
-  vrna_hc_eval_f hc_eval_ext;
-
-  struct hc_hp_def_dat      hc_dat_hp;
-  vrna_hc_eval_f hc_eval_hp;
-
-  struct hc_int_def_dat     hc_dat_int;
-  eval_hc                   hc_eval_int;
-
-  struct hc_mb_def_dat      hc_dat_mb;
-  vrna_hc_eval_f hc_eval_mb;
-
   struct sc_f5_dat          sc_dat_ext;
   struct sc_hp_dat          sc_dat_hp;
   struct sc_int_dat         sc_dat_int;
@@ -722,12 +705,6 @@ PRIVATE void
 init_constraint_helpers(vrna_fold_compound_t  *fc,
                         constraint_helpers    *d)
 {
-  /* hard constraints first */
-  d->hc_eval_ext  = prepare_hc_ext_def(fc, &(d->hc_dat_ext));
-  d->hc_eval_hp   = prepare_hc_hp_def(fc, &(d->hc_dat_hp));
-  d->hc_eval_int  = prepare_hc_int_def(fc, &(d->hc_dat_int));
-  d->hc_eval_mb   = prepare_hc_mb_def(fc, &(d->hc_dat_mb));
-
   init_sc_f5(fc, &(d->sc_dat_ext));
   init_sc_hp(fc, &(d->sc_dat_hp));
   init_sc_int(fc, &(d->sc_dat_int));
@@ -1324,8 +1301,7 @@ scan_mb(vrna_fold_compound_t  *fc,
                             *indx, with_gquad, stopp, k1j;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  struct hc_mb_def_dat      *hc_dat;
-  vrna_hc_eval_f evaluate;
+  vrna_hc_t                 *hc;
   struct sc_mb_dat          *sc_dat;
   sc_mb_red_cb              sc_red_stem;
   sc_mb_red_cb              sc_decomp_ml;
@@ -1348,9 +1324,7 @@ scan_mb(vrna_fold_compound_t  *fc,
   fML   = fc->matrices->fML;
   c_gq  = fc->matrices->c_gq;
 
-  hc_dat    = &(constraints_dat->hc_dat_mb);
-  evaluate  = constraints_dat->hc_eval_mb;
-
+  hc            = fc->hc;
   sc_dat        = &(constraints_dat->sc_dat_mb);
   sc_red_stem   = constraints_dat->sc_dat_mb.red_stem;
   sc_decomp_ml  = constraints_dat->sc_dat_mb.decomp_ml;
@@ -1403,7 +1377,7 @@ scan_mb(vrna_fold_compound_t  *fc,
 
       k1j = indx[j] + k + 1;
 
-      if ((evaluate(i, j, k, k + 1, VRNA_DECOMP_ML_ML_STEM, hc_dat)) &&
+      if ((hc->eval_mb(i, j, k, k + 1, VRNA_DECOMP_ML_ML_STEM, hc)) &&
           (fML[indx[k] + i] != INF) &&
           (c[k1j] != INF)) {
         type = vrna_get_ptype(k1j, ptype);
@@ -1482,7 +1456,7 @@ scan_mb(vrna_fold_compound_t  *fc,
       }
     }
 
-    if (evaluate(i, j, k + 1, j, VRNA_DECOMP_ML_STEM, hc_dat)) {
+    if (hc->eval_mb(i, j, k + 1, j, VRNA_DECOMP_ML_STEM, hc)) {
       if (c[k1j] != INF) {
         type = vrna_get_ptype(k1j, ptype);
 
@@ -1538,8 +1512,7 @@ scan_m1(vrna_fold_compound_t  *fc,
                             *c, *fML, *fM1, length, *indx, circular, with_gquad;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  struct hc_mb_def_dat      *hc_dat;
-  vrna_hc_eval_f evaluate;
+  vrna_hc_t                 *hc;
   struct sc_mb_dat          *sc_dat;
   sc_mb_red_cb              sc_red_stem;
   sc_mb_red_cb              sc_red_ml;
@@ -1563,8 +1536,7 @@ scan_m1(vrna_fold_compound_t  *fc,
   fM1   = fc->matrices->fM1;
   c_gq  = fc->matrices->c_gq;
 
-  hc_dat    = &(constraints_dat->hc_dat_mb);
-  evaluate  = constraints_dat->hc_eval_mb;
+  hc    = fc->hc;
 
   sc_dat      = &(constraints_dat->sc_dat_mb);
   sc_red_stem = constraints_dat->sc_dat_mb.red_stem;
@@ -1584,7 +1556,7 @@ scan_m1(vrna_fold_compound_t  *fc,
 
   ij = indx[j] + i;
 
-  if ((evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc_dat)) &&
+  if ((hc->eval_mb(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc)) &&
       (((array_flag == VRNA_MX_FLAG_M1) && (fM1[indx[j - 1] + i] != INF)) ||
        (fML[indx[j - 1] + i] != INF))) {
     element_energy = P->MLbase;
@@ -1603,7 +1575,7 @@ scan_m1(vrna_fold_compound_t  *fc,
       fork_state(i, j - 1, state, element_energy, array_flag, env);
   }
 
-  if (evaluate(i, j, i, j, VRNA_DECOMP_ML_STEM, hc_dat)) {
+  if (hc->eval_mb(i, j, i, j, VRNA_DECOMP_ML_STEM, hc)) {
     /* i,j may pair */
     cij = c[ij];
     if (cij != INF) {
@@ -1686,8 +1658,7 @@ scan_m2(vrna_fold_compound_t  *fc,
                             *c, *fML, *fM2_real, *indx;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  struct hc_mb_def_dat      *hc_dat;
-  vrna_hc_eval_f evaluate;
+  vrna_hc_t                 *hc;
   struct sc_mb_dat          *sc_dat;
   sc_mb_red_cb              sc_red_stem;
   sc_mb_red_cb              sc_red_ml;
@@ -1714,8 +1685,7 @@ scan_m2(vrna_fold_compound_t  *fc,
   fM2_real  = fc->matrices->fM2_real;
   c_gq      = fc->matrices->c_gq;
 
-  hc_dat    = &(constraints_dat->hc_dat_mb);
-  evaluate  = constraints_dat->hc_eval_mb;
+  hc        = fc->hc;
 
   sc_dat      = &(constraints_dat->sc_dat_mb);
   sc_decomp_ml = constraints_dat->sc_dat_mb.decomp_ml;
@@ -1737,7 +1707,7 @@ scan_m2(vrna_fold_compound_t  *fc,
   ij = indx[j] + i;
 
   /* case 1: j is unpaired */
-  if ((evaluate(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc_dat)) &&
+  if ((hc->eval_mb(i, j, i, j - 1, VRNA_DECOMP_ML_ML, hc)) &&
       (fM2_real[indx[j - 1] + i] != INF)) {
     element_energy = P->MLbase;
 
@@ -1753,7 +1723,7 @@ scan_m2(vrna_fold_compound_t  *fc,
 
   /* case 2: j pairs with some k */
   for (k = i + turn + 2; k + turn < j; k++) {
-    if ((evaluate(i, j, k - 1, k, VRNA_DECOMP_ML_ML_STEM, hc_dat)) &&
+    if ((hc->eval_mb(i, j, k - 1, k, VRNA_DECOMP_ML_ML_STEM, hc)) &&
         (fML[indx[k - 1] + i] != INF) &&
         (c[indx[j] + k] != INF)) {
       kj    = indx[j] + k;
@@ -1804,7 +1774,7 @@ scan_m2(vrna_fold_compound_t  *fc,
       e_gq = vrna_smx_csr_int_get(c_gq, k, j, INF);
 #endif
 
-      if ((evaluate(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc_dat)) &&
+      if ((hc->eval_mb(i, j, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) &&
           (fML[indx[k - 1] + i] != INF) &&
           (e_gq != INF)) {
         element_energy = vrna_E_multibranch_stem(0, -1, -1, P);
@@ -1896,9 +1866,8 @@ scan_ext(vrna_fold_compound_t *fc,
                             length, *indx, circular, with_gquad, kj, tmp_en;
   vrna_param_t              *P;
   vrna_md_t                 *md;
+  vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
-  struct hc_ext_def_dat     *hc_dat;
-  vrna_hc_eval_f evaluate;
   struct sc_f5_dat          *sc_dat;
   sc_f5_cb                  sc_red_ext;
   sc_f5_cb                  sc_red_stem;
@@ -1930,8 +1899,7 @@ scan_ext(vrna_fold_compound_t *fc,
     return;
   }
 
-  hc_dat    = &(constraints_dat->hc_dat_ext);
-  evaluate  = constraints_dat->hc_eval_ext;
+  hc              = fc->hc;
 
   sc_dat          = &(constraints_dat->sc_dat_ext);
   sc_red_ext      = sc_dat->red_ext5;
@@ -1961,7 +1929,7 @@ scan_ext(vrna_fold_compound_t *fc,
     return;
   }
 
-  if ((evaluate(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, hc_dat)) &&
+  if ((hc->eval_ext(1, j, 1, j - 1, VRNA_DECOMP_EXT_EXT, hc)) &&
       (f5[j - 1] != INF)) {
     tmp_en = 0;
 
@@ -2009,7 +1977,7 @@ scan_ext(vrna_fold_compound_t *fc,
       }
     }
 
-    if ((evaluate(1, j, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, hc_dat)) &&
+    if ((hc->eval_ext(1, j, k - 1, k, VRNA_DECOMP_EXT_EXT_STEM, hc)) &&
         (f5[k - 1] != INF) &&
         (c[kj] != INF)) {
       type = vrna_get_ptype(kj, ptype);
@@ -2079,7 +2047,7 @@ scan_ext(vrna_fold_compound_t *fc,
     }
   }
 
-  if ((evaluate(1, j, 1, j, VRNA_DECOMP_EXT_STEM, hc_dat)) &&
+  if ((hc->eval_ext(1, j, 1, j, VRNA_DECOMP_EXT_STEM, hc)) &&
       (c[kj] != INF)) {
     type  = vrna_get_ptype(kj, ptype);
     s5    = -1;
@@ -2135,12 +2103,6 @@ scan_circular(vrna_fold_compound_t  *fc,
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
-  struct hc_ext_def_dat     *hc_dat_ext;
-  struct hc_int_def_dat     *hc_dat_int;
-  struct hc_mb_def_dat      *hc_dat_mb;
-  vrna_hc_eval_f evaluate_ext;
-  eval_hc                   evaluate_int;
-  vrna_hc_eval_f evaluate_mb;
 
   struct sc_int_dat         *sc_dat_int;
   struct sc_mb_dat          *sc_dat_mb;
@@ -2179,13 +2141,6 @@ scan_circular(vrna_fold_compound_t  *fc,
 
   sc = fc->sc;
 
-  hc_dat_ext    = &(constraints_dat->hc_dat_ext);
-  hc_dat_int    = &(constraints_dat->hc_dat_int);
-  hc_dat_mb     = &(constraints_dat->hc_dat_mb);
-  evaluate_ext  = constraints_dat->hc_eval_ext;
-  evaluate_int  = constraints_dat->hc_eval_int;
-  evaluate_mb   = constraints_dat->hc_eval_mb;
-
   sc_dat_int      = &(constraints_dat->sc_dat_int);
   sc_dat_mb       = &(constraints_dat->sc_dat_mb);
   sc_int_pair_ext = constraints_dat->sc_dat_int.pair_ext;
@@ -2219,7 +2174,7 @@ scan_circular(vrna_fold_compound_t  *fc,
    * this is an ugly work-arround cause in case of an open chain we do not have to
    * backtrack anything further...
    */
-  if (evaluate_ext(1, length, 1, length, VRNA_DECOMP_EXT_UP, hc_dat_ext)) {
+  if (hc->eval_ext(1, length, 1, length, VRNA_DECOMP_EXT_UP, hc)) {
     tmp_en = vrna_E_exterior_loop(length, md) * (int)n_seq;
 
     if (sc) {
@@ -2302,7 +2257,7 @@ scan_circular(vrna_fold_compound_t  *fc,
               if (hc->up_int[q + 1] < u2)
                 break;
 
-              if ((evaluate_int(k, l, p, q, hc_dat_int)) &&
+              if ((hc->eval_int(k, l, p, q, hc)) &&
                   (c[indx[q] + p] != INF)) {
                 type_2 = rtype[vrna_get_ptype(indx[q] + p, ptype)];
 
@@ -2345,7 +2300,7 @@ scan_circular(vrna_fold_compound_t  *fc,
      * first we want to find out which split inidices we can use without exceeding the threshold
      */
     for (k = turn + 1; k + 2 * turn < j; k++) {
-      if ((evaluate_mb(1, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc_dat_mb)) &&
+      if ((hc->eval_mb(1, j, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc)) &&
           (fM1_new[k] != INF) &&
           (fM2_real[indx[length] + k + 1] != INF)) {
         tmpE2 = fM1_new[k] +
@@ -2445,8 +2400,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
                             *indx, with_gquad;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  struct hc_ext_def_dat     *hc_dat;
-  vrna_hc_eval_f evaluate;
+  vrna_hc_t                 *hc;
   struct sc_f5_dat          *sc_dat;
   sc_ext_red_cb             sc_red_ext;
   sc_ext_red_cb             sc_red_stem;
@@ -2470,8 +2424,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
   c_gq  = fc->matrices->c_gq;
   fms5  = fc->matrices->fms5;
 
-  hc_dat      = &(constraints_dat->hc_dat_ext);
-  evaluate    = constraints_dat->hc_eval_ext;
+  hc          = fc->hc;
   sc_dat      = &(constraints_dat->sc_dat_ext);
   sc_red_ext  = sc_dat->red_ext;
   sc_red_stem = sc_dat->red_stem;
@@ -2495,7 +2448,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
 
   /* find split in fms5 */
 
-  if ((evaluate(i, end, i + 1, end, VRNA_DECOMP_EXT_EXT, hc_dat)) &&
+  if ((hc->eval_ext(i, end, i + 1, end, VRNA_DECOMP_EXT_EXT, hc)) &&
       (fms5[strand][i] != INF)) {
     element_energy = 0;
 
@@ -2507,7 +2460,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
       fork_state(i + 1, strand, state, element_energy, VRNA_MX_FLAG_MS5, env);
   }
 
-  if (evaluate(i, end, i, end, VRNA_DECOMP_EXT_STEM, hc_dat)) {
+  if (hc->eval_ext(i, end, i, end, VRNA_DECOMP_EXT_STEM, hc)) {
     type = vrna_get_ptype(indx[end] + i, ptype);
 
     switch (dangle_model) {
@@ -2603,7 +2556,7 @@ scan_fms5(vrna_fold_compound_t  *fc,
       }
     }
 
-    if (evaluate(i, end, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, hc_dat)) {
+    if (hc->eval_ext(i, end, k, k + 1, VRNA_DECOMP_EXT_STEM_EXT, hc)) {
       type = vrna_get_ptype(indx[k] + i, ptype);
 
       switch (dangle_model) {
@@ -2662,8 +2615,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
                             *indx;
   vrna_param_t              *P;
   vrna_md_t                 *md;
-  struct hc_ext_def_dat     *hc_dat;
-  vrna_hc_eval_f evaluate;
+  vrna_hc_t                 *hc;
   struct sc_f5_dat          *sc_dat;
   sc_ext_red_cb             sc_red_ext;
   sc_ext_red_cb             sc_red_stem;
@@ -2689,8 +2641,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
 
   start = ss[strand];
 
-  hc_dat      = &(constraints_dat->hc_dat_ext);
-  evaluate    = constraints_dat->hc_eval_ext;
+  hc          = fc->hc;
   sc_dat      = &(constraints_dat->sc_dat_ext);
   sc_red_ext  = sc_dat->red_ext;
   sc_red_stem = sc_dat->red_stem;
@@ -2710,7 +2661,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
     return;
   }
 
-  if ((evaluate(start, i, start, i - 1, VRNA_DECOMP_EXT_EXT, hc_dat)) &&
+  if ((hc->eval_ext(start, i, start, i - 1, VRNA_DECOMP_EXT_EXT, hc)) &&
       (fms3[strand][i - 1] != INF)) {
     element_energy = 0;
 
@@ -2722,7 +2673,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
       fork_state(i - 1, strand, state, element_energy, VRNA_MX_FLAG_MS3, env);
   }
 
-  if (evaluate(start, i, start, i, VRNA_DECOMP_EXT_STEM, hc_dat)) {
+  if (hc->eval_ext(start, i, start, i, VRNA_DECOMP_EXT_STEM, hc)) {
     type = vrna_get_ptype(indx[i] + start, ptype);
 
     switch (dangle_model) {
@@ -2817,7 +2768,7 @@ scan_fms3(vrna_fold_compound_t  *fc,
       }
     }
 
-    if (evaluate(start, i, k, k + 1, VRNA_DECOMP_EXT_EXT_STEM, hc_dat)) {
+    if (hc->eval_ext(start, i, k, k + 1, VRNA_DECOMP_EXT_EXT_STEM, hc)) {
       type = vrna_get_ptype(indx[i] + k + 1, ptype);
 
       switch (dangle_model) {
@@ -2985,12 +2936,6 @@ repeat(vrna_fold_compound_t *fc,
   vrna_md_t                 *md;
   vrna_hc_t                 *hc;
   vrna_sc_t                 *sc;
-  struct hc_int_def_dat     *hc_dat_int;
-  struct hc_ext_def_dat     *hc_dat_ext;
-  struct hc_mb_def_dat      *hc_dat_mb;
-  eval_hc                   evaluate_int;
-  vrna_hc_eval_f evaluate_ext;
-  vrna_hc_eval_f evaluate_mb;
 
   struct sc_int_dat         *sc_dat_int;
   struct sc_mb_dat          *sc_dat_mb;
@@ -3022,13 +2967,6 @@ repeat(vrna_fold_compound_t *fc,
 
   hc = fc->hc;
 
-  hc_dat_ext    = &(constraints_dat->hc_dat_ext);
-  hc_dat_int    = &(constraints_dat->hc_dat_int);
-  hc_dat_mb     = &(constraints_dat->hc_dat_mb);
-  evaluate_ext  = constraints_dat->hc_eval_ext;
-  evaluate_int  = constraints_dat->hc_eval_int;
-  evaluate_mb   = constraints_dat->hc_eval_mb;
-
   sc              = fc->sc;
   sc_dat_int      = &(constraints_dat->sc_dat_int);
   sc_dat_mb       = &(constraints_dat->sc_dat_mb);
@@ -3049,7 +2987,7 @@ repeat(vrna_fold_compound_t *fc,
   if ((noLP) &&
       (i + 2 < j)) {
     /* always consider the structure with additional stack */
-    if (evaluate_int(i, j, i + 1, j - 1, hc_dat_int)) {
+    if (hc->eval_int(i, j, i + 1, j - 1, hc)) {
       type_2  = rtype[vrna_get_ptype(indx[j - 1] + i + 1, ptype)];
       energy  = 0;
 
@@ -3114,7 +3052,7 @@ repeat(vrna_fold_compound_t *fc,
             if ((p > i + 1) || (q < j - 1))
               continue;
 
-        if (evaluate_int(i, j, p, q, hc_dat_int)) {
+        if (hc->eval_int(i, j, p, q, hc)) {
           energy = vrna_E_internal(u1,
                                    u2,
                                    type,
@@ -3142,7 +3080,7 @@ repeat(vrna_fold_compound_t *fc,
 
   /* base pair (i,j) encloses a loop with strand nick? */
   if ((sn[i] != sn[j]) &&
-      (evaluate_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_ext))) {
+      (hc->eval_ext(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc))) {
     rt = rtype[type];
 
     element_energy = P->DuplexInit;
@@ -3249,7 +3187,7 @@ repeat(vrna_fold_compound_t *fc,
   mm  = P->MLclosing;
   rt  = rtype[type];
 
-  if (evaluate_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc_dat_mb)) {
+  if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
     element_energy = mm;
     switch (dangle_model) {
       case 0:
@@ -3265,7 +3203,7 @@ repeat(vrna_fold_compound_t *fc,
 
     /* multiloop decomposition */
     for (k = i + 2; k <= j - 2; k++) {
-      if (evaluate_mb(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc_dat_mb)) {
+      if (hc->eval_mb(i + 1, j - 1, k - 1, k, VRNA_DECOMP_ML_ML_ML, hc)) {
         eee = fML[indx[k - 1] + i + 1];
 
         if ((eee != INF) &&

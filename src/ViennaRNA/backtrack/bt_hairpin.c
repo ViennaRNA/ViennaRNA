@@ -27,8 +27,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/hairpin_hc.inc"
-
 /*
  #################################
  # PRIVATE FUNCTION DECLARATIONS #

@@ -28,7 +28,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/internal_hc.inc"
 #include "ViennaRNA/constraints/internal_sc_pf.inc"
 
 /*
@@ -98,9 +97,8 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   FLT_OR_DBL            qbt1, q_temp, *qb, **qb_local, *scale;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
+  vrna_hc_t             *hc;
   vrna_ud_t             *domains_up;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
   struct sc_int_exp_dat sc_wrapper;
 
   sliding_window  = (fc->hc->type == VRNA_HC_WINDOW) ? 1 : 0;
@@ -132,7 +130,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
   with_ud     = ((domains_up) && (domains_up->exp_energy_cb)) ? 1 : 0;
   rtype       = &(md->rtype[0]);
   qbt1        = 0.;
-  evaluate    = prepare_hc_int_def(fc, &hc_dat_local);
+  hc          = fc->hc;
 
   init_sc_int_exp(fc, &sc_wrapper);
 
@@ -172,7 +170,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
       hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[n * k + l];
 
       if ((hc_decompose_kl & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-          (evaluate(i, j, k, l, &hc_dat_local))) {
+          (hc->eval_int(i, j, k, l, hc))) {
         q_temp = (sliding_window) ? qb_local[k][l] : qb[my_iindx[k] - l];
 
         switch (fc->type) {
@@ -245,7 +243,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
           hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[k];
 
           if ((hc_decompose_kl & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (evaluate(i, j, k, l, &hc_dat_local))) {
+              (hc->eval_int(i, j, k, l, hc))) {
             q_temp = (sliding_window) ? qb_local[k][l] : qb[my_iindx[k] - l];
 
             switch (fc->type) {
@@ -328,7 +326,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
           hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[l];
 
           if ((hc_decompose_kl & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (evaluate(i, j, k, l, &hc_dat_local))) {
+              (hc->eval_int(i, j, k, l, hc))) {
             q_temp = (sliding_window) ? qb_local[k][l] : qb[my_iindx[k] - l];
 
             switch (fc->type) {
@@ -424,7 +422,7 @@ exp_E_int_loop(vrna_fold_compound_t *fc,
           hc_decompose_kl = (sliding_window) ? hc_mx_local[k][l - k] : hc_mx[l];
 
           if ((hc_decompose_kl & VRNA_CONSTRAINT_CONTEXT_INT_LOOP_ENC) &&
-              (evaluate(i, j, k, l, &hc_dat_local))) {
+              (hc->eval_int(i, j, k, l, hc))) {
             q_temp = (sliding_window) ? qb_local[k][l] : qb[my_iindx[k] - l];
 
             switch (fc->type) {
@@ -548,9 +546,8 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   FLT_OR_DBL            q, q_temp, *qb, *scale;
   vrna_exp_param_t      *pf_params;
   vrna_md_t             *md;
+  vrna_hc_t             *hc;
   vrna_ud_t             *domains_up;
-  eval_hc               evaluate;
-  struct hc_int_def_dat hc_dat_local;
   struct sc_int_exp_dat sc_wrapper;
 
   n           = fc->length;
@@ -564,8 +561,9 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   my_iindx    = fc->iindx;
   qb          = fc->exp_matrices->qb;
   scale       = fc->exp_matrices->scale;
-  hc_mx       = fc->hc->mx;
-  hc_up       = fc->hc->up_int;
+  hc          = fc->hc;
+  hc_mx       = hc->mx;
+  hc_up       = hc->up_int;
   pf_params   = fc->exp_params;
   md          = &(pf_params->model_details);
   type        = 0;
@@ -574,8 +572,6 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
   with_ud     = ((domains_up) && (domains_up->exp_energy_cb)) ? 1 : 0;
 
   q = 0.;
-
-  evaluate = prepare_hc_int_def(fc, &hc_dat_local);
 
   init_sc_int_exp(fc, &sc_wrapper);
 
@@ -614,7 +610,7 @@ exp_E_ext_int_loop(vrna_fold_compound_t *fc,
 
         eval_loop = hc_mx[n * k + l] & VRNA_CONSTRAINT_CONTEXT_INT_LOOP;
 
-        if (eval_loop && evaluate(i, j, k, l, &hc_dat_local)) {
+        if (eval_loop && hc->eval_int(i, j, k, l, hc)) {
           q_temp = qb[my_iindx[k] - l];
 
           switch (fc->type) {

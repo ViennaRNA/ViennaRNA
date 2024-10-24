@@ -29,7 +29,6 @@
 # define INLINE
 #endif
 
-#include "ViennaRNA/constraints/exterior_hc.inc"
 #include "ViennaRNA/constraints/exterior_sc.inc"
 
 /*
@@ -41,9 +40,7 @@ PRIVATE int
 eval_exterior_stem(vrna_fold_compound_t   *fc,
                    unsigned int           i,
                    unsigned int           j,
-                   unsigned int           options,
-                   vrna_hc_eval_f         evaluate,
-                   struct hc_ext_def_dat  *hc_dat_local);
+                   unsigned int           options);
 
 
 /*
@@ -100,23 +97,11 @@ vrna_eval_exterior_stem(vrna_fold_compound_t  *fc,
                         unsigned int          j,
                         unsigned int          options)
 {
-  vrna_hc_eval_f        evaluate;
-  struct hc_ext_def_dat hc_dat_local;
-
   if ((fc) &&
       (i > 0) &&
       (j > 0) &&
       (i < j)) {
-    evaluate = NULL;
-
-    if (!(options & VRNA_EVAL_LOOP_NO_HC)) {
-      if (fc->hc->type == VRNA_HC_WINDOW)
-        evaluate = prepare_hc_ext_def_window(fc, &hc_dat_local);
-      else
-        evaluate = prepare_hc_ext_def(fc, &hc_dat_local);
-    }
-
-    return eval_exterior_stem(fc, i, j, options, evaluate, &hc_dat_local);
+    return eval_exterior_stem(fc, i, j, options);
   }
 
   return INF;
@@ -132,9 +117,7 @@ PRIVATE int
 eval_exterior_stem(vrna_fold_compound_t   *fc,
                    unsigned int           i,
                    unsigned int           j,
-                   unsigned int           options,
-                   vrna_hc_eval_f         evaluate,
-                   struct hc_ext_def_dat  *hc_dat_local)
+                   unsigned int           options)
 {
   unsigned int  eval;
   char          *ptype;
@@ -143,6 +126,8 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
   int           ij, en, e, *idx;
   vrna_param_t  *P;
   vrna_md_t     *md;
+  vrna_hc_t     *hc;
+  vrna_hc_eval_loop_f evaluate;
   vrna_sc_t     *sc;
 
   S     = fc->sequence_encoding;
@@ -150,6 +135,8 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
   ptype = fc->ptype;
   P     = fc->params;
   md    = &(P->model_details);
+  hc    = fc->hc;
+  evaluate  = hc->eval_ext;
   sc    = fc->sc;
 
   e = INF;
@@ -157,7 +144,7 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
   if (options & VRNA_EVAL_LOOP_NO_HC) {
     eval = (unsigned char)1;
   } else {
-    eval = evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc_dat_local);
+    eval = evaluate(i, j, i, j, VRNA_DECOMP_EXT_STEM, hc);
   }
 
   if (eval) {
@@ -190,7 +177,7 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
     if (options & VRNA_EVAL_LOOP_NO_HC) {
       eval = (unsigned char)1;
     } else {
-      eval = evaluate(i, j, i, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local);
+      eval = evaluate(i, j, i, j - 1, VRNA_DECOMP_EXT_STEM, hc);
     }
 
     if (eval) {
@@ -212,7 +199,7 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
     if (options & VRNA_EVAL_LOOP_NO_HC) {
       eval = (unsigned char)1;
     } else {
-      eval = evaluate(i, j, i + 1, j, VRNA_DECOMP_EXT_STEM, hc_dat_local);
+      eval = evaluate(i, j, i + 1, j, VRNA_DECOMP_EXT_STEM, hc);
     }
 
     if (eval) {
@@ -234,7 +221,7 @@ eval_exterior_stem(vrna_fold_compound_t   *fc,
     if (options & VRNA_EVAL_LOOP_NO_HC) {
       eval = (unsigned char)1;
     } else {
-      eval = evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_EXT_STEM, hc_dat_local);
+      eval = evaluate(i, j, i + 1, j - 1, VRNA_DECOMP_EXT_STEM, hc);
     }
 
     if (eval) {
