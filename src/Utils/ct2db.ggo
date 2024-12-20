@@ -29,6 +29,38 @@ flag
 off
 
 
+option  "fasta-header"  -
+"Overwrite FASTA header with user-provided string.\n"
+details="The name of the sequence (+structure pair) is usually extracted automaticall from the\
+ connectivity table header. Whenever such name is not present or the user wants to replace the\
+ sequence identifier, this parameter option can be used to do exactly that. Note, however, that\
+ for multiple structures in the input the same FASTA header will appear for all of the FASTA output\
+ lines.\n\n"
+string
+optional
+
+
+option  "fh-from-filename"  -
+"Use input file name as output FASTA header.\n"
+details="This only works when the input is not stdin but actual file names. By default, any\
+ (default) FASTA header will be replaced by the (truncated) input file name. Use the optional\
+ arguments \"prepend\" and \"append\" if you want the existing FASTA header to be prepended or\
+ appended by the input file name instead.\n\n"
+string
+typestr="replace|prepend|append"
+argoptional
+default="replace"
+hidden
+
+
+option  "filename-suffix" -
+"The filename suffix to remove when turning the filename into a FASTA header.\n"
+details="Provide an empty string to not truncate the filename at all.\n\n"
+string
+default=".ct"
+optional
+
+
 option  "log-level" -
 "Set log level threshold.\n"
 details="By default, any log messages are filtered such that only warnings (level 2) or errors (level 3)\
