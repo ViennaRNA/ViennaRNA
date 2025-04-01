@@ -118,6 +118,10 @@ bt_ext_loop_f5(vrna_fold_compound_t *fc,
   with_ud       = (domains_up && domains_up->energy_cb) ? 1 : 0;
   evaluate      = prepare_hc_ext_def(fc, &hc_dat_local);
 
+  /* return true for empty interval */
+  if (j == 0)
+    return 1;
+
   /* nibble off unpaired 3' stretches harboring bound ligands (interspersed with unpaired nucleotides) */
   if (with_ud) {
     do {
