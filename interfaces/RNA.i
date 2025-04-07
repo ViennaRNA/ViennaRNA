@@ -121,6 +121,7 @@ extern "C" {
 
 #include  <ViennaRNA/part_func_co.h>
 #include  <ViennaRNA/concentrations.h>
+#include  <ViennaRNA/wrap_dlib.h>
 #include  <ViennaRNA/LPfold.h>
 #include  <ViennaRNA/heat_capacity.h>
 
@@ -302,6 +303,7 @@ namespace std {
 %include commands.i
 %include combinatorics.i
 %include duplex.i
+%include concentrations.i
 %include move.i
 %include neighbor.i
 %include walk.i

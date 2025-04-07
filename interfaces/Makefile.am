@@ -11,6 +11,7 @@ SOURCES = \
     combinatorics.i \
     commands.i \
     compare.i \
+    concentrations.i \
     constraints.i \
     constraints_hard.i \
     constraints_soft.i \
@@ -85,6 +86,7 @@ EXTRA_DIST = \
     combinatorics.i \
     commands.i \
     compare.i \
+    concentrations.i \
     constraints.i \
     constraints_hard.i \
     constraints_soft.i \

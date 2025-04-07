@@ -252,51 +252,12 @@ char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPU
 %ignore co_pf_fold;
 %ignore co_pf_fold_par;
 %ignore compute_probabilities;
-%ignore get_concentrations;
 %ignore export_co_bppm;
 %ignore update_co_pf_params_par;
 %ignore co_bppm_symbol;
 %ignore init_co_pf_fold;
 %ignore get_plist;
 %ignore pairpro;
-%ignore ConcEnt;
-
-%rename (get_concentrations) my_get_concentrations;
-%{
- void
- my_get_concentrations(double FcAB,
-                       double FcAA,
-                       double FcBB,
-                       double FEA,
-                       double FEB,
-                       double Ac_start,
-                       double Bc_start,
-                       double *AB,
-                       double *AA,
-                       double *BB,
-                       double *A,
-                       double *B)
-  {
-    vrna_dimer_conc_t *temp;
-    double *concis;
-    concis = (double *)calloc(4,sizeof(double));
-    concis[0]=Ac_start;
-    concis[1]=Bc_start;
-    concis[2]=0;
-    temp=get_concentrations(FcAB,FcAA,FcBB,FEA,FEB,concis);
-    *AB=temp->ABc;
-    *AA=temp->AAc;
-    *BB=temp->BBc;
-    *A=temp->Ac;
-    *B=temp->Bc;
-    free(concis);
-    free(temp);
-    return;
-  }
-%}
-
-%newobject my_get_concentrations;
-void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,double FEB, double A0, double BO, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT, double *OUTPUT);
 
 /* tell swig that these functions return objects that require memory management */
 %newobject vrna_fold_compound_t::pf_dimer;
@@ -325,7 +286,6 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
 }
 
 %include  <ViennaRNA/part_func_co.h>
-%include  <ViennaRNA/concentrations.h>
 
 %include  <ViennaRNA/partfunc/exterior.h>
 %include  <ViennaRNA/partfunc/internal.h>

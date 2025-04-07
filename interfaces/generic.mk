@@ -11,6 +11,7 @@ SWIG_misc_src = \
   $(srcdir)/../combinatorics.i \
   $(srcdir)/../compare.i \
   $(srcdir)/../commands.i \
+  $(srcdir)/../concentrations.i \
   $(srcdir)/../constraints.i \
   $(srcdir)/../constraints_hard.i \
   $(srcdir)/../constraints_soft.i \
