@@ -110,5 +110,62 @@ my_equilibrium_constants(std::vector<double>                      dG_complexes,
 
 %include  <ViennaRNA/concentrations.h>
 
+%ignore vrna_equilibrium_conc;
+%rename (equilibrium_conc) my_equilibrium_conc;
+
+%{
+
+  std::vector<double>
+  my_equilibrium_conc(std::vector<double> eq_constants,
+                      std::vector<double> concentration_strands,
+                      std::vector<std::vector<unsigned int> >  A,
+                      size_t                                   strands = 0,
+                      size_t                                   complexes = 0)
+  {
+    double              *conc = NULL;
+    std::vector<double> concentrations;
+    unsigned int        **assoc_mx;
+
+    if (strands == 0)
+      strands = (size_t)concentration_strands.size();
+
+    if (complexes == 0)
+      complexes = (size_t)eq_constants.size();
+
+    assoc_mx = (unsigned int **)vrna_alloc(sizeof(unsigned int *) * A.size());
+    for (size_t k = 0; k < A.size(); k++) {
+      assoc_mx[k] = (unsigned int *)vrna_alloc(sizeof(unsigned int) * A[k].size());
+      memcpy(assoc_mx[k], A[k].data(), sizeof(unsigned int) * A[k].size());
+    }
+
+    conc = vrna_equilibrium_conc(&(eq_constants[0]),
+                                 &(concentration_strands[0]),
+                                 (const unsigned int **)assoc_mx,
+                                 strands,
+                                 complexes);
+
+    /* reformat output array to actual vector */
+    for (size_t k = 0; k < complexes; k++)
+      concentrations.push_back(conc[k]);
+
+    for (size_t k = 0; k < A[k].size(); k++)
+      free(assoc_mx[k]);
+
+    free(assoc_mx);
+
+    free(conc);
+
+    return concentrations;
+  } 
+                          
+
+%}
+
+std::vector<double>
+my_equilibrium_conc(std::vector<double> eq_constants,
+                    std::vector<double> concentration_strands,
+                    std::vector<std::vector<unsigned int> >  A,
+                    size_t                                   strands = 0,
+                    size_t                                   complexes = 0);
 
 %include  <ViennaRNA/wrap_dlib.h>
