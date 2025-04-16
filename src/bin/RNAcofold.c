@@ -959,6 +959,11 @@ process_record(struct record_data *record)
     /* compute partition function */
     AB = AA = BB = vrna_pf_dimer(vc, pairing_propensity);
 
+    if(AB.FcAB == 999) {
+      vrna_log_error("underflow in calculating the free energy of connected ensamble FcAB\n"
+        "use smaller pf_scale");
+    }
+
     if (opt->md.compute_bpp) {
       char *costruc = NULL;
       prAB = vrna_plist_from_probs(vc, opt->bppmThreshold);
