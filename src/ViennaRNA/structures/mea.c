@@ -578,7 +578,7 @@ mea_backtrack(vrna_fold_compound_t  *fc,
   n     = fc->length;
   pf    = fc->exp_params;
   fail  = 1;
-  gq    = pf->model_details.gquad;
+  gq    = (pf) ? pf->model_details.gquad : 0;
   C     = bdat->C;
   Mi    = bdat->Mi;
   pu    = bdat->pu;
