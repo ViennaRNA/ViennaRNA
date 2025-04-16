@@ -1239,7 +1239,7 @@ extract_dimer_props(vrna_fold_compound_t  *fc,
 
     *FAB  = -kT * (log(QToT) + n * log(params->pf_scale));
     *F0AB = -kT * (log(Qzero) + n * log(params->pf_scale));
-    *FcAB = (QAB > 1e-17) ? -kT * (log(QAB) + n * log(params->pf_scale)) : 999;
+    *FcAB = (QAB > DBL_MIN) ? -kT * (log(QAB) + n * log(params->pf_scale)) : 999;
     *FA   = -kT *
             (log(matrices->q[fc->iindx[1] - se[so[0]]]) + (se[so[0]]) *
              log(params->pf_scale));
