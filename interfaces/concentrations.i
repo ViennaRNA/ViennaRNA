@@ -87,7 +87,7 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
     for (size_t k = 0; k < complexes; k++)
       constants_vector.push_back(constants[k]);
 
-    for (size_t k = 0; k < A[k].size(); k++)
+    for (size_t k = 0; k < A.size(); k++)
       free(assoc_mx[k]);
 
     free(assoc_mx);
@@ -148,7 +148,7 @@ my_equilibrium_constants(std::vector<double>                      dG_complexes,
     for (size_t k = 0; k < complexes; k++)
       concentrations.push_back(conc[k]);
 
-    for (size_t k = 0; k < A[k].size(); k++)
+    for (size_t k = 0; k < A.size(); k++)
       free(assoc_mx[k]);
 
     free(assoc_mx);
