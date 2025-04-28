@@ -93,7 +93,7 @@ void my_get_concentrations(double FcAB, double FcAA, double FcBB, double FEA,dou
     free(assoc_mx);
 
     free(constants);
-    
+
     return constants_vector;
   }
 %}
@@ -147,6 +147,10 @@ my_equilibrium_constants(std::vector<double>                      dG_complexes,
     /* reformat output array to actual vector */
     for (size_t k = 0; k < complexes; k++)
       concentrations.push_back(conc[k]);
+
+    /* append equilibrium concentrations for monomers here as well */
+    for (size_t k = 0; k < strands; k++)
+      concentrations.push_back(concentration_strands[k]);
 
     for (size_t k = 0; k < A.size(); k++)
       free(assoc_mx[k]);
