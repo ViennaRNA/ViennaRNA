@@ -1,0 +1,22 @@
+/**
+
+@fn double *vrna_equilibrium_constants(const double *dG_complexes, const double *dG_strands, const unsigned int **A, double kT, size_t strands, size_t complexes)
+@scripting
+@parblock
+This function is available as overloaded function @p equilibrium_constants() where the last two parameters @p strands and @p complexes are optional.
+In case they are omitted, the respective numbers will be determined from the length of the input list parameters @p dG_complexes and @p dG_strands,
+respectively. See also @rstinline:py:func:`RNA.equilibrium_constants()` in the :doc:`/api_python`@endrst.
+@endparblock
+
+
+@fn double *vrna_equilibrium_conc(const double *eq_constants, double *concentration_strands, const unsigned int **A, size_t num_strands, size_t num_complexes)
+@scripting
+@parblock
+This function is available as overloaded function @p equilibrium_conc() where the last two parameters @p num_strands and @p num_complexes are optional.
+In case they are omitted, the respective numbers will be determined from the length of the input list parameters @p eq_constants and @p concentration_strands,
+respectively. Note, that the C implementation stores equilibrium concentrations for the monomer species in place within the @p concentration_strands parameter.
+In contrast to that, the scripting language wrappers will rather append them to the returned output list.
+@endparblock
+
+
+*/

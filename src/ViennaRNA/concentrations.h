@@ -80,6 +80,28 @@ vrna_dimer_conc_t *vrna_pf_dimer_concentrations(double                  FcAB,
                                                 const double            *startconc,
                                                 const vrna_exp_param_t  *exp_params);
 
+
+/**
+ *  @brief  Compute equilibrium constants for interacting RNA complexes
+ *
+ *  Given a set of partition functions for interacting RNA complexes this function
+ *  computes the equilibrium constants for each complex. For instance, the equilibrium
+ *  constant @f$ K_\text{AB} @f$ a dimer complex composed of two strands @f$ A @f$ and @f$ B @f$
+ *  can be easily computed from the partition functions @f$ Z_A @f$ and @f$ Z_B @f$ of
+ *  the monomer strands and the partition function @f$ Z_{AB} @f$ of AB complexes, i.e.:
+ *
+ *  @f[ K_{AB} = \frac{Z_{AB}}{Z_A Z_B} @f]
+ *
+ *  
+ *
+ *  @param  dG_complexes            The partition functions of the complexes (specified as ensemble free energies @f$ \Delta G = -RT \ln Z @f$ in units of @f$ kcal \cdot mol^{-1} @f$
+ *  @param  dG_strands              The partition functions of the monomer species (specified as ensemble free energies @f$ \Delta G = -RT \ln Z @f$ in units of @f$ kcal \cdot mol^{-1} @f$
+ *  @param  A                       An @f$ N x M @f$ matrix indicating the composition of the individual complexes (@f$ M @f$), i.e. how many of the monomers (@f$ N @f$ ) each complex consists of
+ *  @param  kT                      Thermodynamic temperature times Boltzmann constant in units of @f$ cal \cdot mol^{-1} @f$ (used for temperature scaling)
+ *  @param  strands                 The number of monomer species
+ *  @param  complexes               The number of interacting complexes
+ *  @return                         The equilibrium constants for each complex
+ */
 double *
 vrna_equilibrium_constants(const double        *dG_complexes,
                       const double        *dG_strands,
