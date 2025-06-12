@@ -269,9 +269,7 @@ extract_pairs(short       *pt,
     if (*ptr == open) {
       stack[hx++] = i;
     } else if (*ptr == close) {
-      j = stack[--hx];
-
-      if (hx < 0) {
+      if (hx <= 0) {
         vrna_log_warning("%s\nunbalanced brackets '%2s' found while extracting base pairs",
                              structure,
                              pair);
@@ -279,6 +277,7 @@ extract_pairs(short       *pt,
         return 0;
       }
 
+      j     = stack[--hx];
       pt[i] = j;
       pt[j] = i;
     }

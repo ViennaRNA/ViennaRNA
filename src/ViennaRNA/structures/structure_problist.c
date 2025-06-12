@@ -71,36 +71,41 @@ vrna_plist(const char *struc,
     n     = 2;
 
     pt  = vrna_ptable(struc);
-    pl  = (vrna_ep_t *)vrna_alloc(n * size * sizeof(vrna_ep_t));
-    for (i = 1; i < size; i++) {
-      if (pt[i] > i) {
-        (pl)[k].i       = i;
-        (pl)[k].j       = pt[i];
-        (pl)[k].p       = pr;
-        (pl)[k++].type  = VRNA_PLIST_TYPE_BASEPAIR;
-      }
-    }
 
-    gpl = get_plist_gquad_from_db(struc, pr);
-    for (ptr = gpl; ptr->i != 0; ptr++) {
-      if (k == n * size - 1) {
-        n   *= 2;
-        pl  = (vrna_ep_t *)vrna_realloc(pl, n * size * sizeof(vrna_ep_t));
+    if (pt) {
+      pl  = (vrna_ep_t *)vrna_alloc(n * size * sizeof(vrna_ep_t));
+      for (i = 1; i < size; i++) {
+        if (pt[i] > i) {
+          (pl)[k].i       = i;
+          (pl)[k].j       = pt[i];
+          (pl)[k].p       = pr;
+          (pl)[k++].type  = VRNA_PLIST_TYPE_BASEPAIR;
+        }
       }
 
-      (pl)[k].i       = ptr->i;
-      (pl)[k].j       = ptr->j;
-      (pl)[k].p       = ptr->p;
-      (pl)[k++].type  = ptr->type;
-    }
-    free(gpl);
+      gpl = get_plist_gquad_from_db(struc, pr);
+      for (ptr = gpl; ptr->i != 0; ptr++) {
+        if (k == n * size - 1) {
+          n   *= 2;
+          pl  = (vrna_ep_t *)vrna_realloc(pl, n * size * sizeof(vrna_ep_t));
+        }
 
-    (pl)[k].i       = 0;
-    (pl)[k].j       = 0;
-    (pl)[k].p       = 0.;
-    (pl)[k++].type  = 0.;
-    free(pt);
-    pl = (vrna_ep_t *)vrna_realloc(pl, k * sizeof(vrna_ep_t));
+        (pl)[k].i       = ptr->i;
+        (pl)[k].j       = ptr->j;
+        (pl)[k].p       = ptr->p;
+        (pl)[k++].type  = ptr->type;
+      }
+      free(gpl);
+
+      (pl)[k].i       = 0;
+      (pl)[k].j       = 0;
+      (pl)[k].p       = 0.;
+      (pl)[k++].type  = 0.;
+      free(pt);
+      pl = (vrna_ep_t *)vrna_realloc(pl, k * sizeof(vrna_ep_t));
+    } else {
+      vrna_log_error("Failed to parse dot-bracket string!");
+    }
   }
 
   return pl;
