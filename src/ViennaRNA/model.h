@@ -1,6 +1,18 @@
 #ifndef VIENNA_RNA_PACKAGE_MODEL_H
 #define VIENNA_RNA_PACKAGE_MODEL_H
 
+#ifdef VRNA_WARN_DEPRECATED
+# if defined(__clang__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated("", msg)))
+# elif defined(__GNUC__)
+#  define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+# else
+#  define DEPRECATED(func, msg) func
+# endif
+#else
+# define DEPRECATED(func, msg) func
+#endif
+
 /**
  *  @file     model.h
  *  @ingroup  model_details
@@ -1062,7 +1074,9 @@ vrna_md_defaults_circ_alpha0_get(void);
  *
  *  @see vrna_md_defaults_temperature(), vrna_md_defaults_temperature_get(), vrna_md_defaults_reset()
  */
-extern double temperature;
+DEPRECATED(extern double temperature,
+           "Use temperature field in model_details data structure as well as vrna_md_defaults_temperature() and vrna_md_defaults_temperature_get() instead!");
+
 
 /**
  *  @brief A scaling factor used by pf_fold() to avoid overflows.
@@ -1075,7 +1089,8 @@ extern double temperature;
  *  The automatic estimate is usually insufficient for sequences more
  *  than a few hundred bases long.
  */
-extern double pf_scale;
+DEPRECATED(extern double pf_scale,
+           "Use pf_scale field in model_details data structure as well as vrna_md_defaults_pf_scale() and vrna_md_defaults_pf_scale_get() instead!");
 
 /**
  *  @brief Switch the energy model for dangling end contributions (0, 1, 2, 3)
@@ -1098,14 +1113,16 @@ extern double pf_scale;
  *
  *  Default is 2 in most algorithms, partition function algorithms can only handle 0 and 2
  */
-extern int dangles;
+DEPRECATED(extern int dangles,
+           "Use dangles field in model_details data structure as well as vrna_md_defaults_dangles() and vrna_md_defaults_dangles_get() instead!");
 
 /**
  *  @brief Include special stabilizing energies for some tri-, tetra- and hexa-loops;
  *
  *  default is 1.
  */
-extern int tetra_loop;
+DEPRECATED(extern int tetra_loop,
+           "Use tetra_loop field in model_details data structure as well as vrna_md_defaults_tetra_loop() and vrna_md_defaults_tetra_loop_get() instead!");
 
 /**
  *  @brief Global switch to avoid/allow helices of length 1
@@ -1114,32 +1131,38 @@ extern int tetra_loop;
  *  of length 1). This avoids lonely base pairs in the predicted structures in
  *  most cases.
  */
-extern int  noLonelyPairs;
+DEPRECATED(extern int noLonelyPairs,
+           "Use noLP field in model_details data structure as well as vrna_md_defaults_noLP() and vrna_md_defaults_noLP_get() instead!");
 
 /**
  *  @brief Global switch to forbid/allow GU base pairs at all
  */
-extern int  noGU;
+DEPRECATED(extern int noGU,
+           "Use noGU field in model_details data structure as well as vrna_md_defaults_noGU() and vrna_md_defaults_noGU_get() instead!");
 
 /**
  *  @brief GU allowed only inside stacks if set to 1
  */
-extern int  no_closingGU;
+DEPRECATED(extern int no_closingGU,
+           "Use noGU_closure field in model_details data structure as well as vrna_md_defaults_noGU_closure() and vrna_md_defaults_noGU_closure_get() instead!");
 
 /**
  *  @brief backward compatibility variable.. this does not effect anything
  */
-extern int  circ;
+DEPRECATED(extern int circ,
+           "Use circ field in model_details data structure as well as vrna_md_defaults_circ() and vrna_md_defaults_circ_get() instead!");
 
 /**
  *  @brief Allow G-quadruplex formation
  */
-extern int  gquad;
+DEPRECATED(extern int gquad,
+           "Use gquad field in model_details data structure as well as vrna_md_defaults_gquad() and vrna_md_defaults_gquad_get() instead!");
 
 /**
  *  @brief do ML decomposition uniquely (for subopt)
  */
-extern int  uniq_ML;
+DEPRECATED(extern int uniq_ML,
+           "Use uniq_ML field in model_details data structure as well as vrna_md_defaults_uniq_ML() and vrna_md_defaults_uniq_ML_get() instead!");
 
 /**
  *  @brief 0 = BP; 1=any with GC; 2=any with AU-parameter
@@ -1148,7 +1171,8 @@ extern int  uniq_ML;
  *  pairs B, C pairs D, etc. using either GC (1) or AU parameters (2);
  *  default is 0, you probably don't want to change it.
  */
-extern int energy_set;
+DEPRECATED(extern int energy_set,
+           "Use energy_set field in model_details data structure as well as vrna_md_defaults_energy_set() and vrna_md_defaults_energy_set_get() instead!");
 
 /**
  *  @brief do backtracking, i.e. compute secondary structures or base pair probabilities
@@ -1156,7 +1180,8 @@ extern int energy_set;
  *  If 0, do not calculate pair probabilities in pf_fold(); this is about
  *  twice as fast. Default is 1.
  */
-extern int do_backtrack;
+DEPRECATED(extern int do_backtrack,
+           "Use backtrack field in model_details data structure as well as vrna_md_defaults_backtrack() and vrna_md_defaults_backtrack_get() instead!");
 
 /**
  *  @brief A backtrack array marker for inverse_fold()
@@ -1165,7 +1190,8 @@ extern int do_backtrack;
  *  'M' fold as if the sequence were inside a multiloop. Otherwise ('F') the
  *  usual mfe structure is computed.
  */
-extern char backtrack_type;
+DEPRECATED(extern char backtrack_type,
+           "Use backtrack_type field in model_details data structure as well as vrna_md_defaults_backtrack_type() and vrna_md_defaults_backtrack_type_get() instead!");
 
 /**
  *  @brief contains allowed non standard base pairs
@@ -1174,40 +1200,52 @@ extern char backtrack_type;
  *  GC, CG, AU, UA, GU and UG. Nonstandard base pairs are given a stacking
  *  energy of 0.
  */
-extern char *nonstandards;
+DEPRECATED(extern char *nonstandards,
+           "Use nonstandards field in model_details data structure as well as vrna_md_defaults_nonstandards() and vrna_md_defaults_nonstandards_get() instead!");
 
 /**
  *  @brief Maximum allowed base pair span
  *
  *  A value of -1 indicates no restriction for distant base pairs.
  */
-extern int    max_bp_span;
+DEPRECATED(extern int max_bp_span,
+           "Use max_bp_span field in model_details data structure as well as vrna_md_defaults_max_bp_span() and vrna_md_defaults_max_bp_span_get() instead!");
 
 /**
  *  @brief use old alifold energies (with gaps)
  */
-extern int    oldAliEn;
+DEPRECATED(extern int oldAliEn,
+           "Use oldAliEn field in model_details data structure as well as vrna_md_defaults_oldAliEn() and vrna_md_defaults_oldAliEn_get() instead!");
 
 /**
  *  @brief use ribosum matrices
  */
-extern int    ribo;
+DEPRECATED(extern int ribo,
+           "Use ribo field in model_details data structure as well as vrna_md_defaults_ribo() and vrna_md_defaults_ribo_get() instead!");
 
-extern double cv_fact;
+DEPRECATED(extern double cv_fact,
+           "Use cv_fact field in model_details data structure as well as vrna_md_defaults_cv_fact() and vrna_md_defaults_cv_fact_get() instead!");
 
-extern double nc_fact;
+DEPRECATED(extern double nc_fact,
+           "Use nc_fact field in model_details data structure as well as vrna_md_defaults_nc_fact() and vrna_md_defaults_nc_fact_get() instead!");
 
 /** @brief if nonzero use logarithmic ML energy in energy_of_struct  */
-extern int    logML;
+DEPRECATED(extern int logML,
+           "Use logML field in model_details data structure as well as vrna_md_defaults_logML() and vrna_md_defaults_logML_get() instead!");
 
 /** @brief salt concentration */
-extern double salt;
+DEPRECATED(extern double salt,
+           "Use salt field in model_details data structure as well as vrna_md_defaults_salt() and vrna_md_defaults_salt_get() instead!");
 
 /** @brief Salt correction for duplex initialization */
-extern int saltDPXInit;
+DEPRECATED(extern int saltDPXInit,
+           "Use saltDPXInit field in model_details data structure as well as vrna_md_defaults_saltDPXInit() and vrna_md_defaults_saltDPXInit_get() instead!");
 
-extern float  helical_rise;
-extern float  backbone_length;
+DEPRECATED(extern float helical_rise,
+           "Use helical_rise field in model_details data structure as well as vrna_md_defaults_helical_rise() and vrna_md_defaults_helical_rise_get() instead!");
+
+DEPRECATED(extern float backbone_length,
+           "Use backbone_length field in model_details data structure as well as vrna_md_defaults_backbone_length() and vrna_md_defaults_backbone_length_get() instead!");
 
 /* END deprecated global variables: */
 

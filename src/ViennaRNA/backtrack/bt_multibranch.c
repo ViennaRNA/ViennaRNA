@@ -750,7 +750,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
         P->MLclosing *
         n_seq;
 
-    if (dangles == 2) {
+    if (dangle_model == 2) {
       switch (fc->type) {
         case VRNA_FC_TYPE_SINGLE:
           e -= vrna_E_multibranch_stem(type, s5, s3, P);
@@ -795,7 +795,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
     }
   }
 
-  if (dangles % 2) {
+  if (dangle_model % 2) {
     /* odd dangles need more special treatment */
     if (evaluate(i, j, p + 1, q, VRNA_DECOMP_PAIR_ML, &hc_dat_local)) {
       e = en -

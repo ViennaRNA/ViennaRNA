@@ -648,7 +648,6 @@ fill_arrays(vrna_fold_compound_t      *vc,
   dangle_model  = md->dangles;
   with_gquad    = md->gquad;
   turn          = md->min_loop_size;
-  do_backtrack  = 0;
   prev_i        = 0;
   prev_j        = 0;
   prev_end      = 0;

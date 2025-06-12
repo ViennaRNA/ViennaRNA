@@ -1475,7 +1475,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
           switch (fc->type) {
             case VRNA_FC_TYPE_SINGLE:
               type = vrna_get_ptype_md(S[elem_j], S[elem_i], md);
-              if (dangles == 2)
+              if (md->dangles == 2)
                 tmp_e += P->mismatchI[type][S1[elem_j + 1]][S1[elem_i - 1]];
 
               if (type > 2)
@@ -1542,7 +1542,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
           /* contribution of the base pair branching-off the mb-loop */
           switch (fc->type) {
             case VRNA_FC_TYPE_COMPARATIVE:
-              if (dangles == 2) {
+              if (md->dangles == 2) {
                 for (s = 0; s < n_seq; s++) {
                   type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
                   tmp_e += vrna_E_multibranch_stem(type, S5[s][elem_i], S3[s][elem_j], P);
@@ -1557,7 +1557,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
               break;
             default:
               type = vrna_get_ptype_md(S[elem_i], S[elem_j], md);
-              if (dangles == 2)
+              if (md->dangles == 2)
                 tmp_e += vrna_E_multibranch_stem(type, S1[elem_i - 1], S1[elem_j + 1], P);
               else
                 tmp_e += vrna_E_multibranch_stem(type, -1, -1, P);
@@ -1597,7 +1597,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
       /* add contributions of the two base pairs branching-off the mb-loop */
       switch (fc->type) {
         case VRNA_FC_TYPE_COMPARATIVE:
-          if (dangles == 2) {
+          if (md->dangles == 2) {
             for (s = 0; s < n_seq; s++) {
               type  = vrna_get_ptype_md(SS[s][elem_i], SS[s][elem_j], md);
               type2 = vrna_get_ptype_md(SS[s][elem_p], SS[s][elem_q], md);
@@ -1617,7 +1617,7 @@ en_corr_of_loop_gquad_circ(vrna_fold_compound_t           *fc,
         default:
           type  = vrna_get_ptype_md(S[elem_i], S[elem_j], md);
           type2 = vrna_get_ptype_md(S[elem_p], S[elem_q], md);
-          if (dangles == 2) {
+          if (md->dangles == 2) {
             tmp_e += vrna_E_multibranch_stem(type, S1[elem_i - 1], S1[elem_j + 1], P) +
                      vrna_E_multibranch_stem(type2, S1[elem_p - 1], S1[elem_q + 1], P);
           } else {

@@ -298,7 +298,6 @@ vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
   scale     = fc->exp_matrices->scale;
   pf_params = fc->exp_params;
   md        = &(pf_params->model_details);
-  dangles   = md->dangles;
   si        = S1[i + 1];
   sj        = S1[j - 1];
 
@@ -311,7 +310,7 @@ vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
     switch (fc->type) {
       case VRNA_FC_TYPE_SINGLE:
         type = vrna_get_ptype_md(S[i], S[j], md);
-        if (dangles == 2)
+        if (md->dangles == 2)
           qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][si][sj];
 
         if (type > 2)
@@ -322,7 +321,7 @@ vrna_gq_int_loop_pf(vrna_fold_compound_t  *fc,
       case VRNA_FC_TYPE_COMPARATIVE:
         for (s = 0; s < n_seq; s++) {
           type = vrna_get_ptype_md(SS[s][i], SS[s][j], md);
-          if (dangles == 2)
+          if (md->dangles == 2)
             qe *= (FLT_OR_DBL)pf_params->expmismatchI[type][S3[s][i]][S5[s][j]];
 
           if (type > 2)

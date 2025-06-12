@@ -1157,7 +1157,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                       switch (fc->type) {
                         case VRNA_FC_TYPE_SINGLE:
                           type = vrna_get_ptype_md(S[q], S[p], md);
-                          if (dangles == 2)
+                          if (md->dangles == 2)
                             energy += P->mismatchI[type][sq][sp];
 
                           if (type > 2)
@@ -1269,7 +1269,7 @@ postprocess_circular(vrna_fold_compound_t *fc,
                 si    = S1[i - 1];
                 sj    = S1[j + 1];
                 type  = vrna_get_ptype_md(S[j], S[i], md);
-                if (dangles == 2)
+                if (md->dangles == 2)
                   e += P->mismatchI[type][sj][si];
 
                 if (type > 2)
