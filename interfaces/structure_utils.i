@@ -373,16 +373,18 @@ var_array<short> *my_pt_pk_remove(var_array<short> const &pt, unsigned int optio
 
     plist = vrna_plist(structure.c_str(), pr);
 
-    for (ptr = plist; ptr->i && ptr->j; ptr++) {
-      vrna_ep_t pl;
-      pl.i = ptr->i;
-      pl.j = ptr->j;
-      pl.p = ptr->p;
-      pl.type = ptr->type;
-      ep_v.push_back(pl);
-    }
+    if (plist) {
+      for (ptr = plist; ptr->i && ptr->j; ptr++) {
+        vrna_ep_t pl;
+        pl.i = ptr->i;
+        pl.j = ptr->j;
+        pl.p = ptr->p;
+        pl.type = ptr->type;
+        ep_v.push_back(pl);
+      }
 
-    free(plist);
+      free(plist);
+    }
 
     return ep_v;
   }
