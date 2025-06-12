@@ -1362,7 +1362,7 @@ backtrack_qm2(vrna_fold_compound_t            *fc,
         q_temp *= sc_wrapper->decomp_ml(i, j, k - 1, k, sc_wrapper);
 
       if (sc_wrapper->red_stem)
-        q_temp *= sc_wrapper->decomp_ml(k, j, k, j, sc_wrapper);
+        q_temp *= sc_wrapper->red_stem(k, j, k, j, sc_wrapper);
 
       if (current_node) {
         fbds = NR_GET_WEIGHT(*current_node, memorized_node_cur, NRT_QM2_BRANCH, k, j) *
