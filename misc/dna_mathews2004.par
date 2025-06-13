@@ -96,7 +96,7 @@
    520   400   520   470   430    /* NN,G */
    520   400   520   470   430    /* NN,T */
 
-# mismatch_interior
+# mismatch_internal
      0     0     0     0     0    /* CG,N */
      0  -100   -80   -90     0    /* CG,A */
      0   -80   -50     0   -70    /* CG,C */
@@ -133,7 +133,7 @@
      0   -50     0   -40   -50    /* NN,G */
      0     0   -20   -50   -20    /* NN,T */
 
-# mismatch_interior_enthalpies
+# mismatch_internal_enthalpies
   -420  -460  -420  -470  -500    /* CG,N */
   -420  -460  -420  -470  -500    /* CG,A */
   -420  -460  -420  -470  -500    /* CG,C */
@@ -170,7 +170,7 @@
    520   400   520   470   430    /* NN,G */
    520   400   520   470   430    /* NN,T */
 
-# mismatch_interior_1n
+# mismatch_internal_1n
      0     0     0     0     0    /* CG,N */
      0     0     0     0     0    /* CG,A */
      0     0     0     0     0    /* CG,C */
@@ -207,7 +207,7 @@
      0     0     0     0     0    /* NN,G */
      0     0     0     0     0    /* NN,T */
 
-# mismatch_interior_1n_enthalpies
+# mismatch_internal_1n_enthalpies
      0     0     0     0     0    /* CG,N */
      0     0     0     0     0    /* CG,A */
      0     0     0     0     0    /* CG,C */
@@ -244,7 +244,7 @@
    320   320   320   320   320    /* NN,G */
    320   320   320   320   320    /* NN,T */
 
-# mismatch_interior_23
+# mismatch_internal_23
      0     0     0     0     0    /* CG,N */
      0  -100   -80   -90     0    /* CG,A */
      0   -80   -50     0   -70    /* CG,C */
@@ -281,7 +281,7 @@
      0   -50     0   -40   -50    /* NN,G */
      0     0   -20   -50   -20    /* NN,T */
 
-# mismatch_interior_23_enthalpies
+# mismatch_internal_23_enthalpies
   -420  -460  -420  -470  -500    /* CG,N */
   -420  -460  -420  -470  -500    /* CG,A */
   -420  -460  -420  -470  -500    /* CG,C */
@@ -8091,13 +8091,13 @@
  -1410 -1410 -1410 -1410 -1410 -1410 -1410 -1410 -1410 -1410
  -1410
 
-# interior
+# internal
    INF   INF   INF   INF   310   350   390   410   420   430
    450   460   460   470   480   490   500   500   510   510
    520   530   530   530   540   540   550   550   560   560
    560
 
-# interior_enthalpies
+# internal_enthalpies
    INF   INF   INF   INF     0     0     0     0     0     0
      0     0     0     0     0     0     0     0     0     0
      0     0     0     0     0     0     0     0     0     0

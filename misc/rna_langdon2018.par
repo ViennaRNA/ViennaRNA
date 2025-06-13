@@ -100,7 +100,7 @@
    570   100   570   220   570
    830   140   830   140   -50
 
-# mismatch_interior
+# mismatch_internal
    100   -10     0     0     0
    100   -10     0   -80     0
    100   -10     0     0     0
@@ -137,7 +137,7 @@
    100   -40    70   -30    70
     30    30    30    30   -30
 
-# mismatch_interior_enthalpies
+# mismatch_internal_enthalpies
    280     0     0   280     0
      0     0     0  -340     0
      0     0     0     0     0
@@ -174,7 +174,7 @@
    790  -260   500   790   500
    500   500   500   500   -80
 
-# mismatch_interior_1n
+# mismatch_internal_1n
      0     0     0     0     0
      0     0     0     0     0
      0     0     0     0     0
@@ -211,7 +211,7 @@
    110   110   110   110   110
    110   110   110   110   110
 
-# mismatch_interior_1n_enthalpies
+# mismatch_internal_1n_enthalpies
      0     0     0     0     0
      0     0     0     0     0
      0     0     0     0     0
@@ -248,7 +248,7 @@
    500   500   500   500   500
    500   500   500   500   500
 
-# mismatch_interior_23
+# mismatch_internal_23
      0     0     0     0     0
      0     0     0   -50     0
      0     0     0     0     0
@@ -285,7 +285,7 @@
    INF   -40   INF     0   INF
    INF   INF   INF   INF    40
 
-# mismatch_interior_23_enthalpies
+# mismatch_internal_23_enthalpies
      0     0     0     0     0
      0     0     0  -570     0
      0     0     0     0     0
@@ -9834,13 +9834,13 @@
    710   710   710   710   710   710   710   710   710   710
    710
 
-# interior
+# internal
    INF   INF    60    60    70   160   160   170   190   200
    210   220   230   240   250   250   260   270   270   280
    290   290   300   300   310   310   310   320   320   330
    330
 
-# interior_enthalpies
+# internal_enthalpies
    INF   INF  -720  -720  -720  -680  -130  -130  -130  -130
   -130  -130  -130  -130  -130  -130  -130  -130  -130  -130
   -130  -130  -130  -130  -130  -130  -130  -130  -130  -130

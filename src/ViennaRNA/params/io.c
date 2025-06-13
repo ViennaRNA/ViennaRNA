@@ -1793,17 +1793,17 @@ gettype(const char *ident)
   } else if (strcmp(ident, "mismatch_interior_23_enthalpies") == 0) {
     vrna_log_warning("Detected  deprecated identifier 'mismatch_interior_23_enthalpies'! Use 'mismatch_internal_23_enthalpies' instead!");
     return MMI23_H;
-  } else if (strcmp(ident, "mismatch_interior") == 0) {
+  } else if (strcmp(ident, "mismatch_internal") == 0) {
     return MMI;
-  } else if (strcmp(ident, "mismatch_interior_enthalpies") == 0) {
+  } else if (strcmp(ident, "mismatch_internal_enthalpies") == 0) {
     return MMI_H;
-  } else if (strcmp(ident, "mismatch_interior_1n") == 0) {
+  } else if (strcmp(ident, "mismatch_internal_1n") == 0) {
     return MMI1N;
-  } else if (strcmp(ident, "mismatch_interior_1n_enthalpies") == 0) {
+  } else if (strcmp(ident, "mismatch_internal_1n_enthalpies") == 0) {
     return MMI1N_H;
-  } else if (strcmp(ident, "mismatch_interior_23") == 0) {
+  } else if (strcmp(ident, "mismatch_internal_23") == 0) {
     return MMI23;
-  } else if (strcmp(ident, "mismatch_interior_23_enthalpies") == 0) {
+  } else if (strcmp(ident, "mismatch_internal_23_enthalpies") == 0) {
     return MMI23_H;
   } else if (strcmp(ident, "mismatch_multi") == 0) {
     return MMM;
@@ -1996,7 +1996,7 @@ write_parameter_file(const char fname[])
     display_array(dangle3_dH[c], 5, 5, outfp);
 
 
-  /* dont print "no pair" entries for interior loop arrays */
+  /* dont print "no pair" entries for internal loop arrays */
   fprintf(outfp, "\n# %s\n", settype(INT11));
   {
     size_t i, k, l;
