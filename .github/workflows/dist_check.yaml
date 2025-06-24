@@ -36,12 +36,11 @@ jobs:
           help2man \
           bison \
           flex \
+          libnsl2 \
           libtool \
           check \
           liblapacke \
           liblapacke-dev \
-          python2 \
-          python2-dev \
           graphviz \
           python3-sphinx \
           python3-myst-parser \
@@ -52,6 +51,15 @@ jobs:
           texlive-latex-extra \
           texlive-font-utils \
           texlive-fonts-recommended
+    - name: Install Python2 from 22.04
+      run:  |
+        wget 'https://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/?C=M;O=D' -O py27.html
+        VERSION=$(grep -v '20.04' py27.html | grep -o -- '_2\.7\.18[^<>]\+\_'$(dpkg --print-architecture)'.deb' | head -n 1)
+        for i in {libpython2.7-stdlib,{lib,}python2.7{,-dev,-minimal}}; do
+          wget "https://archive.ubuntu.com/ubuntu/pool/universe/p/python2.7/${i}${VERSION}" &
+        done
+        wait
+        sudo dpkg -R --install .
     - name: Autotools setup
       run:  |
         tar -xjf src/dlib-19.24.tar.bz2 -C src
