@@ -246,76 +246,76 @@ typedef struct vrna_md_s vrna_md_t;
  *
  */
 struct vrna_md_s {
-  double  temperature;                      /**<  @brief  The temperature used to scale the thermodynamic parameters */
-  double  betaScale;                        /**<  @brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
-  int     pf_smooth;                        /**<  @brief  A flat specifying whether energies in Boltzmann factors need to be smoothed */
-  int     dangles;                          /**<  @brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
-                                             *
-                                             *    If set to 0 no stabilizing energies are assigned to bases adjacent to
-                                             *    helices in free ends and multiloops (so called dangling ends). Normally
-                                             *    (dangles = 1) dangling end energies are assigned only to unpaired
-                                             *    bases and a base cannot participate simultaneously in two dangling ends. In
-                                             *    the partition function algorithm vrna_pf() these checks are neglected.
-                                             *    To provide comparability between free energy minimization and partition function
-                                             *    algorithms, the default setting is 2.
-                                             *    This treatment of dangling ends gives more favorable energies to helices
-                                             *    directly adjacent to one another, which can be beneficial since such
-                                             *    helices often do engage in stabilizing interactions through co-axial
-                                             *    stacking.\n
-                                             *    If set to 3 co-axial stacking is explicitly included for
-                                             *    adjacent helices in multiloops. The option affects only mfe folding
-                                             *    and energy evaluation (vrna_mfe() and vrna_eval_structure()), as
-                                             *    well as suboptimal folding (vrna_subopt()) via re-evaluation of energies.
-                                             *    Co-axial stacking with one intervening mismatch is not considered so far.
-                                             *    Note, that some function do not implement all dangle model but only a subset of
-                                             *    (0,1,2,3). In particular, partition function algorithms can only handle
-                                             *    0 and 2. Read the documentation of the particular recurrences or
-                                             *    energy evaluation function for information about the provided dangle
-                                             *    model.
-                                             */
-  int     special_hp;                       /**<  @brief  Include special hairpin contributions for tri, tetra and hexaloops */
-  int     noLP;                             /**<  @brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
-  int     noGU;                             /**<  @brief  Do not allow GU pairs */
-  int     noGUclosure;                      /**<  @brief  Do not allow loops to be closed by GU pair */
-  int     logML;                            /**<  @brief  Use logarithmic scaling for multiloops */
-  int     circ;                             /**<  @brief  Assume RNA to be circular instead of linear */
-  int     circ_penalty;                     /**<  @brief  Add an entropic penalty to the unpaired circRNA chain */ 
-  int     gquad;                            /**<  @brief  Include G-quadruplexes in structure prediction */
-  int     uniq_ML;                          /**<  @brief  Flag to ensure unique multi-branch loop decomposition during folding */
-  int     energy_set;                       /**<  @brief  Specifies the energy set that defines set of compatible base pairs */
-  int     backtrack;                        /**<  @brief  Specifies whether or not secondary structures should be backtraced */
-  char    backtrack_type;                   /**<  @brief  Specifies in which matrix to backtrack */
-  int     compute_bpp;                      /**<  @brief  Specifies whether or not backward recursions for base pair probability (bpp) computation will be performed */
-  char    nonstandards[64];                 /**<  @brief  contains allowed non standard bases */
-  int     max_bp_span;                      /**<  @brief  maximum allowed base pair span */
+  double       temperature;                      /**<  @brief  The temperature used to scale the thermodynamic parameters */
+  double       betaScale;                        /**<  @brief  A scaling factor for the thermodynamic temperature of the Boltzmann factors */
+  int          pf_smooth;                        /**<  @brief  A flat specifying whether energies in Boltzmann factors need to be smoothed */
+  int          dangles;                          /**<  @brief  Specifies the dangle model used in any energy evaluation (0,1,2 or 3)
+                                                  *
+                                                  *    If set to 0 no stabilizing energies are assigned to bases adjacent to
+                                                  *    helices in free ends and multiloops (so called dangling ends). Normally
+                                                  *    (dangles = 1) dangling end energies are assigned only to unpaired
+                                                  *    bases and a base cannot participate simultaneously in two dangling ends. In
+                                                  *    the partition function algorithm vrna_pf() these checks are neglected.
+                                                  *    To provide comparability between free energy minimization and partition function
+                                                  *    algorithms, the default setting is 2.
+                                                  *    This treatment of dangling ends gives more favorable energies to helices
+                                                  *    directly adjacent to one another, which can be beneficial since such
+                                                  *    helices often do engage in stabilizing interactions through co-axial
+                                                  *    stacking.\n
+                                                  *    If set to 3 co-axial stacking is explicitly included for
+                                                  *    adjacent helices in multiloops. The option affects only mfe folding
+                                                  *    and energy evaluation (vrna_mfe() and vrna_eval_structure()), as
+                                                  *    well as suboptimal folding (vrna_subopt()) via re-evaluation of energies.
+                                                  *    Co-axial stacking with one intervening mismatch is not considered so far.
+                                                  *    Note, that some function do not implement all dangle model but only a subset of
+                                                  *    (0,1,2,3). In particular, partition function algorithms can only handle
+                                                  *    0 and 2. Read the documentation of the particular recurrences or
+                                                  *    energy evaluation function for information about the provided dangle
+                                                  *    model.
+                                                  */
+  int          special_hp;                       /**<  @brief  Include special hairpin contributions for tri, tetra and hexaloops */
+  int          noLP;                             /**<  @brief  Only consider canonical structures, i.e. no 'lonely' base pairs */
+  int          noGU;                             /**<  @brief  Do not allow GU pairs */
+  int          noGUclosure;                      /**<  @brief  Do not allow loops to be closed by GU pair */
+  int          logML;                            /**<  @brief  Use logarithmic scaling for multiloops */
+  int          circ;                             /**<  @brief  Assume RNA to be circular instead of linear */
+  int          circ_penalty;                     /**<  @brief  Add an entropic penalty to the unpaired circRNA chain */ 
+  int          gquad;                            /**<  @brief  Include G-quadruplexes in structure prediction */
+  int          uniq_ML;                          /**<  @brief  Flag to ensure unique multi-branch loop decomposition during folding */
+  int          energy_set;                       /**<  @brief  Specifies the energy set that defines set of compatible base pairs */
+  int          backtrack;                        /**<  @brief  Specifies whether or not secondary structures should be backtraced */
+  char         backtrack_type;                   /**<  @brief  Specifies in which matrix to backtrack */
+  int          compute_bpp;                      /**<  @brief  Specifies whether or not backward recursions for base pair probability (bpp) computation will be performed */
+  char         nonstandards[64];                 /**<  @brief  contains allowed non standard bases */
+  int          max_bp_span;                      /**<  @brief  maximum allowed base pair span */
 
-  int     min_loop_size;                    /**<  @brief  Minimum size of hairpin loops
-                                             *
-                                             *    The default value for this field is #TURN, however, it may
-                                             *    be 0 in cofolding context.
-                                             */
-  int     window_size;                      /**<  @brief  Size of the sliding window for locally optimal structure prediction */
-  int     oldAliEn;                         /**<  @brief  Use old alifold energy model */
-  int     ribo;                             /**<  @brief  Use ribosum scoring table in alifold energy model */
-  double  cv_fact;                          /**<  @brief  Co-variance scaling factor for consensus structure prediction */
-  double  nc_fact;                          /**<  @brief  Scaling factor to weight co-variance contributions of non-canonical pairs */
-  double  sfact;                            /**<  @brief  Scaling factor for partition function scaling */
-  int     rtype[8];                         /**<  @brief  Reverse base pair type array */
-  short   alias[MAXALPHA + 1];              /**<  @brief  alias of an integer nucleotide representation */
-  int     pair[MAXALPHA + 1][MAXALPHA + 1]; /**<  @brief  Integer representation of a base pair */
-  float   pair_dist[7][7];                  /**<  @brief  Base pair dissimilarity, a.k.a. distance matrix */
-  double  salt;                             /**<  @brief  Salt (monovalent) concentration (M) in buffer */
-  int     saltMLLower;                      /**<  @brief  Lower bound of multiloop size to use in loop salt correction linear fitting */
-  int     saltMLUpper;                      /**<  @brief  Upper bound of multiloop size to use in loop salt correction linear fitting */
-  int     saltDPXInit;                      /**<  @brief  User-provided salt correction for duplex initialization (in dcal/mol).
-                                             *    If set to 99999 the default salt correction is used.
-                                             *    If set to 0 there is no salt correction for duplex initialization.
-                                             */
-  float   saltDPXInitFact;                  /**<  @brief  */
-  float   helical_rise;                     /**<  @brief  */
-  float   backbone_length;                  /**<  @brief  */
+  int          min_loop_size;                    /**<  @brief  Minimum size of hairpin loops
+                                                  *
+                                                  *    The default value for this field is #TURN, however, it may
+                                                  *    be 0 in cofolding context.
+                                                  */
+  int          window_size;                      /**<  @brief  Size of the sliding window for locally optimal structure prediction */
+  int          oldAliEn;                         /**<  @brief  Use old alifold energy model */
+  int          ribo;                             /**<  @brief  Use ribosum scoring table in alifold energy model */
+  double       cv_fact;                          /**<  @brief  Co-variance scaling factor for consensus structure prediction */
+  double       nc_fact;                          /**<  @brief  Scaling factor to weight co-variance contributions of non-canonical pairs */
+  double       sfact;                            /**<  @brief  Scaling factor for partition function scaling */
+  unsigned int rtype[8];                         /**<  @brief  Reverse base pair type array */
+  short        alias[MAXALPHA + 1];              /**<  @brief  alias of an integer nucleotide representation */
+  int          pair[MAXALPHA + 1][MAXALPHA + 1]; /**<  @brief  Integer representation of a base pair */
+  float        pair_dist[7][7];                  /**<  @brief  Base pair dissimilarity, a.k.a. distance matrix */
+  double       salt;                             /**<  @brief  Salt (monovalent) concentration (M) in buffer */
+  int          saltMLLower;                      /**<  @brief  Lower bound of multiloop size to use in loop salt correction linear fitting */
+  int          saltMLUpper;                      /**<  @brief  Upper bound of multiloop size to use in loop salt correction linear fitting */
+  int          saltDPXInit;                      /**<  @brief  User-provided salt correction for duplex initialization (in dcal/mol).
+                                                  *    If set to 99999 the default salt correction is used.
+                                                  *    If set to 0 there is no salt correction for duplex initialization.
+                                                  */
+  float        saltDPXInitFact;                  /**<  @brief  */
+  float        helical_rise;                     /**<  @brief  */
+  float        backbone_length;                  /**<  @brief  */
 
-  double  circ_alpha0;
+  double       circ_alpha0;
 };
 
 
