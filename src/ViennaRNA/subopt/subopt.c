@@ -326,7 +326,7 @@ free_interval_node(INTERVAL *node);
 
 
 PRIVATE void
-free_state_node(STATE *node);
+free_state_node(void *node);
 
 
 PRIVATE void
@@ -772,8 +772,10 @@ free_interval_node(INTERVAL *node)
 
 
 PRIVATE void
-free_state_node(STATE *node)
+free_state_node(void *n)
 {
+  STATE *node = (STATE *)n;
+
   free(node->structure);
   if (node->Intervals)
     lst_kill(node->Intervals, lst_freenode);
