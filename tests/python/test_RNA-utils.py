@@ -27,6 +27,14 @@ class GeneralTests(unittest.TestCase):
         self.assertEqual(struct1,RNA.db_from_ptable(pairTable))
 
 
+    def test_pairtable_slicing(self):
+        """Slice pair table"""
+        correctPairTable  = [16, 16, 15, 14, 0, 13, 12, 11, 0, 0, 0, 7, 6, 5, 3, 2, 1]
+        pt_slice          = RNA.ptable(struct1)[3:12]
+        pt_sl_ref         = correctPairTable[3:12]
+        self.assertEqual(list(pt_slice), pt_sl_ref)
+
+
     def test_basePairDistance(self):
         """Base pair distance"""
         d = RNA.bp_distance("(((.(((...))))))","(((..........)))")
