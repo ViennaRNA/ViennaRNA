@@ -74,9 +74,9 @@ static char *ermsg[7] = {
 };
 
 
-int mtherr( name, code )
-char *name;
-int code;
+int
+mtherr(char *name,
+       int  code)
 {
 
 /* Display string passed by calling program,

@@ -63,9 +63,9 @@
 #define BIG  1.44115188075855872E+17
 extern double MAXNUM, MACHEP, MAXLOG;
 
-double expn( n, x )
-int n;
-double x;
+double
+expn(int    n,
+     double x)
 {
 double ans, r, t, yk, xk;
 double pk, pkm1, pkm2, qk, qkm1, qkm2;
