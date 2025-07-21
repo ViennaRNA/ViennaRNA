@@ -18,7 +18,7 @@
  *
  * This routine may be called to report one of the following
  * error conditions (in the include file mconf.h).
- *  
+ *
  *   Mnemonic        Value          Significance
  *
  *    DOMAIN            1       argument domain error
@@ -47,12 +47,12 @@
  * mconf.h
  *
  */
-
+
 /*
-Cephes Math Library Release 2.0:  April, 1987
-Copyright 1984, 1987 by Stephen L. Moshier
-Direct inquiries to 30 Frost Street, Cambridge, MA 02140
-*/
+ * Cephes Math Library Release 2.0:  April, 1987
+ * Copyright 1984, 1987 by Stephen L. Moshier
+ * Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+ */
 
 #include <stdio.h>
 #include "mconf.h"
@@ -64,13 +64,13 @@ int merror = 0;
  * in mconf.h.
  */
 static char *ermsg[7] = {
-"unknown",      /* error code 0 */
-"domain",       /* error code 1 */
-"singularity",  /* et seq.      */
-"overflow",
-"underflow",
-"total loss of precision",
-"partial loss of precision"
+  "unknown",      /* error code 0 */
+  "domain",       /* error code 1 */
+  "singularity",  /* et seq.      */
+  "overflow",
+  "underflow",
+  "total loss of precision",
+  "partial loss of precision"
 };
 
 
@@ -78,25 +78,25 @@ int
 mtherr(char *name,
        int  code)
 {
+  /* Display string passed by calling program,
+   * which is supposed to be the name of the
+   * function in which the error occurred:
+   */
+  printf("\n%s ", name);
 
-/* Display string passed by calling program,
- * which is supposed to be the name of the
- * function in which the error occurred:
- */
-printf( "\n%s ", name );
+  /* Set global error message word */
+  merror = code;
 
-/* Set global error message word */
-merror = code;
+  /* Display error message defined
+   * by the code argument.
+   */
+  if ((code <= 0) || (code >= 7))
+    code = 0;
 
-/* Display error message defined
- * by the code argument.
- */
-if( (code <= 0) || (code >= 7) )
-	code = 0;
-printf( "%s error\n", ermsg[code] );
+  printf("%s error\n", ermsg[code]);
 
-/* Return to calling
- * program
- */
-return( 0 );
+  /* Return to calling
+   * program
+   */
+  return 0;
 }
