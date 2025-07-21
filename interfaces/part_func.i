@@ -305,15 +305,16 @@ char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPU
 
       n     = vc->length;
       idx   = vc->iindx;
-      turn  = vc->exp_params->model_details.min_loop_size;
       probs = vc->exp_matrices->probs;
 
-      probabilities.push_back(std::vector<double>(n+1, 0.));
-      for(i=1; i <= n; i++){
-        int u = MIN2(i + turn + 1, n);
-        probabilities.push_back(std::vector<double>(u, 0.));
-        for(j = u; j <= n; j++)
-          probabilities[i].push_back((double)probs[idx[i] - j]);
+      for(i = 0; i <= n; i++)
+        probabilities.push_back(std::vector<double>(n + 1, 0.));
+
+      for(i = 1; i <= n; i++) {
+        for(j = i + 1; j <= n; j++) {
+          probabilities[i][j] = (double)probs[idx[i] - j];
+          probabilities[j][i] = (double)probs[idx[i] - j];
+        }
       }
     }
     return probabilities;
