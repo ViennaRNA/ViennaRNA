@@ -295,7 +295,7 @@ char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPU
 %extend vrna_fold_compound_t{
 
   std::vector<std::vector<double> >
-  bpp(void)
+  bpp(bool symmetric = false)
   {
     std::vector<std::vector<double> > probabilities;
     vrna_fold_compound_t *vc = $self;
@@ -313,12 +313,15 @@ char *my_co_pf_fold(char *string, char *constraints, float *OUTPUT, float *OUTPU
       for(i = 1; i <= n; i++) {
         for(j = i + 1; j <= n; j++) {
           probabilities[i][j] = (double)probs[idx[i] - j];
-          probabilities[j][i] = (double)probs[idx[i] - j];
+          if (symmetric)
+            probabilities[j][i] = (double)probs[idx[i] - j];
         }
       }
     }
+
     return probabilities;
   }
+
 
   std::vector<vrna_ep_t>
   stack_prob(double cutoff = 1e-5)
