@@ -154,6 +154,8 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 #define VRNA_PROBING_DATA_CHECK_SEQUENCE                          1U
 
 
+#define VRNA_REACTIVITY_MISSING                                   -999.
+
 /**
  *  @brief  Apply probing data (e.g. SHAPE) to guide the structure prediction
  *

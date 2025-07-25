@@ -156,6 +156,27 @@ sc_parse_parameters(const char  *string,
 
 
 /*
+ * Keep the given reactivity value
+ */
+PRIVATE double
+reactivity_filter_identity(double r, double cutoff);
+
+
+/*
+ * Set below cutoff reactivity as missing
+ */
+PRIVATE double
+reactivity_filter_ignore(double r, double cutoff);
+
+
+/*
+ * Set below cutoff reactivity as zero
+ */
+PRIVATE double
+reactivity_filter_to_zero(double r, double cutoff);
+
+
+/*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
  #################################
@@ -1141,4 +1162,30 @@ sc_parse_parameters(const char  *string,
   }
 
   free(fmt);
+}
+
+
+/*
+ #####################################
+ # Reactivity Filter (preprocessing) #
+ #####################################
+ */
+PRIVATE double
+reactivity_filter_identity(double r, double cutoff)
+{
+  return r;
+}
+
+
+PRIVATE double
+reactivity_filter_ignore(double r, double cutoff)
+{
+  return (r == VRNA_REACTIVITY_MISSING || r < cutoff) ? VRNA_REACTIVITY_MISSING : r;
+}
+
+
+PRIVATE double
+reactivity_filter_to_zero(double r, double cutoff)
+{
+  return  r == VRNA_REACTIVITY_MISSING ? VRNA_REACTIVITY_MISSING : r < cutoff ? 0 : r;
 }
