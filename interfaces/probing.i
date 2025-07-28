@@ -68,7 +68,7 @@ pr_defaults: list(double)
                       double              b)
   {
     vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
-                                                            reactivities.size(),
+                                                            reactivities.size() - 1,
                                                             m,
                                                             b);
     return obj;
@@ -85,7 +85,7 @@ pr_defaults: list(double)
     double                    **d;
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
-      ns.push_back(reactivities[i].size());
+      ns.push_back(reactivities[i].size() - 1);
 
     unsigned int options = VRNA_PROBING_METHOD_MULTI_PARAMS_0;
     if (ms.size() > 1)
@@ -124,7 +124,7 @@ pr_defaults: list(double)
                       double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability)
   {
     vrna_probing_data_s *obj = vrna_probing_data_Zarringhalam2012(&(reactivities[0]),
-                                                                  reactivities.size(),
+                                                                  reactivities.size() - 1,
                                                                   beta,
                                                                   pr_conversion.c_str(),
                                                                   pr_default);
@@ -151,7 +151,7 @@ pr_defaults: list(double)
       pr_defaults.push_back(VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
-      ns.push_back(reactivities[i].size());
+      ns.push_back(reactivities[i].size() - 1);
 
     unsigned int options = VRNA_PROBING_METHOD_MULTI_PARAMS_0;
     if (betas.size() > 1)
@@ -214,7 +214,7 @@ pr_defaults: list(double)
                           double              b)
   {
     vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
-                                                            reactivities.size(),
+                                                            reactivities.size() - 1,
                                                             m,
                                                             b);
     return obj;
@@ -233,7 +233,7 @@ pr_defaults: list(double)
     double                    **d;
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
-      ns.push_back(reactivities[i].size());
+      ns.push_back(reactivities[i].size() - 1);
 
     d = (double **)vrna_alloc(sizeof(double *) * reactivities.size());
     for (unsigned int i = 0; i < reactivities.size(); i++)
@@ -265,7 +265,7 @@ pr_defaults: list(double)
                                 double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability)
   {
     vrna_probing_data_s *obj = vrna_probing_data_Zarringhalam2012(&(reactivities[0]),
-                                                                  reactivities.size(),
+                                                                  reactivities.size() - 1,
                                                                   beta,
                                                                   pr_conversion.c_str(),
                                                                   pr_default);
@@ -293,7 +293,7 @@ pr_defaults: list(double)
       pr_defaults.push_back(VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
-      ns.push_back(reactivities[i].size());
+      ns.push_back(reactivities[i].size() - 1);
 
     c = (char **)vrna_alloc(sizeof(char *) * pr_conversions.size());
     for (unsigned int i = 0; i < pr_conversions.size(); i++)
@@ -335,7 +335,7 @@ pr_defaults: list(double)
                           std::vector<double> paired_data)
   {
     vrna_probing_data_s *obj = vrna_probing_data_Eddy2014_2(&(reactivities[0]),
-                                                            reactivities.size(),
+                                                            reactivities.size() - 1,
                                                             &(unpaired_data[0]),
                                                             unpaired_data.size(),
                                                             &(paired_data[0]),
@@ -360,7 +360,7 @@ pr_defaults: list(double)
     double                    **bp;
 
     for (unsigned int i = 0; i < reactivities.size(); i++) {
-      ns.push_back(reactivities[i].size());
+      ns.push_back(reactivities[i].size() - 1);
       us.push_back(unpaired_data[i].size());
       bs.push_back(paired_data[i].size());
     }
