@@ -102,7 +102,9 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
       d = vrna_probing_data_Deigan2009(values,
                                      length,
                                      p1,
-                                     p2);
+                                     p2,
+                                     NULL
+                                     );
       break;
 
     case 'Z':
@@ -210,7 +212,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
       (reactivities)) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        d = vrna_probing_data_Deigan2009(reactivities, vc->length, m, b);
+        d = vrna_probing_data_Deigan2009(reactivities, vc->length, m, b, NULL);
         ret = vrna_sc_probing(vc, d);
         vrna_probing_data_free(d);
         break;
@@ -254,7 +256,8 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                                                                      vc->n_seq,
                                                                      &m,
                                                                      &b,
-                                                                     VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+                                                                     VRNA_PROBING_METHOD_MULTI_PARAMS_0,
+                                                                     NULL);
     ret = vrna_sc_probing(vc, d);
     vrna_probing_data_free(d);
 

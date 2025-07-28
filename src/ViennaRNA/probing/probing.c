@@ -35,6 +35,7 @@ struct vrna_probing_data_s {
   vrna_array(double)    params1;
   vrna_array(double)    params2;
   vrna_array(double *)  reactivities;
+  vrna_array(double *)  transformeds;
   vrna_array(double *)  datas1;
   vrna_array(double *)  datas2;
 };
@@ -154,26 +155,34 @@ sc_parse_parameters(const char  *string,
                     float       *v1,
                     float       *v2);
 
+/*
+ * Transform reactivity values
+ */
+PRIVATE FLT_OR_DBL *
+reactivity_transform(unsigned int n,
+                     const double *reactivity,
+                     double (*trans) (double));
+
 
 /*
  * Keep the given reactivity value
  */
 PRIVATE double
-reactivity_filter_identity(double r, double cutoff);
+reactivity_trans_identity(double r);
 
 
 /*
- * Set below cutoff reactivity as missing
+ * Set negative reactivity as missing
  */
 PRIVATE double
-reactivity_filter_ignore(double r, double cutoff);
+reactivity_trans_neg_ignore(double r);
 
 
 /*
- * Set below cutoff reactivity as zero
+ * Set negative reactivity as zero
  */
 PRIVATE double
-reactivity_filter_to_zero(double r, double cutoff);
+reactivity_trans_neg_to_zero(double r);
 
 
 /*
@@ -218,9 +227,11 @@ PUBLIC struct vrna_probing_data_s *
 vrna_probing_data_Deigan2009(const double *reactivities,
                              unsigned int n,
                              double       m,
-                             double       b)
+                             double       b,
+                             double       (*trans) (double))
 {
   struct vrna_probing_data_s *d = NULL;
+  printf("Reactivity count %d\n", n);
 
   if (reactivities)
     d = vrna_probing_data_Deigan2009_comparative(&reactivities,
@@ -228,7 +239,8 @@ vrna_probing_data_Deigan2009(const double *reactivities,
                                                  1,
                                                  &m,
                                                  &b,
-                                                 VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+                                                 VRNA_PROBING_METHOD_MULTI_PARAMS_0,
+                                                 trans);
 
   return d;
 }
@@ -240,7 +252,8 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
                                          unsigned int       n_seq,
                                          double             *ms,
                                          double             *bs,
-                                         unsigned int       multi_params)
+                                         unsigned int       multi_params,
+                                         double (*trans) (double))
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      m, b;
@@ -261,6 +274,10 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
     vrna_array_init_size(d->params1, n_seq);
     vrna_array_init_size(d->params2, n_seq);
     vrna_array_init_size(d->reactivities, n_seq);
+    vrna_array_init_size(d->transformeds, n_seq);
+
+    if (trans == NULL)
+      trans = reactivity_trans_neg_ignore;
 
     for (unsigned int i = 0; i < n_seq; i++) {
       if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
@@ -280,8 +297,13 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
           vrna_array_append(a, (FLT_OR_DBL)reactivities[i][j]);
 
         vrna_array_append(d->reactivities, a);
+        vrna_array_append(d->transformeds, reactivity_transform(n[i], reactivities[i], trans));
+
+        for (unsigned int j = 0; j <= n[i]; j++)
+          printf("Before: %f. After: %f\n", d->reactivities[i][j], d->transformeds[i][j]);
       } else {
         vrna_array_append(d->reactivities, NULL);
+        vrna_array_append(d->transformeds, NULL);
       }
     }
 
@@ -502,9 +524,12 @@ vrna_probing_data_free(struct vrna_probing_data_s *d)
 {
   if (d) {
     /* free all reactivity data */
-    for (unsigned int i = 0; i < vrna_array_size(d->reactivities); i++)
+    for (unsigned int i = 0; i < vrna_array_size(d->reactivities); i++) {
       vrna_array_free(d->reactivities[i]);
+      vrna_array_free(d->transformeds[i]);
+    }
     vrna_array_free(d->reactivities);
+    vrna_array_free(d->transformeds);
 
     /* free parameters */
     vrna_array_free(d->params1);
@@ -713,8 +738,7 @@ apply_Deigan2009_method(vrna_fold_compound_t        *fc,
 
         /* first convert the values according to provided slope and intercept values */
         for (i = 1; i <= n; ++i)
-          vs[i] = conversion_deigan(data->reactivities[0][i], data->params1[0], data->params2[0]);
-
+          vs[i] = conversion_deigan(data->transformeds[0][i], data->params1[0], data->params2[0]);
         /* always store soft constraints in plain format */
         ret = vrna_sc_set_stack(fc, (const FLT_OR_DBL *)vs, VRNA_OPTION_DEFAULT);
 
@@ -740,7 +764,7 @@ apply_Deigan2009_method(vrna_fold_compound_t        *fc,
             cvs[s] = (FLT_OR_DBL *)vrna_alloc(sizeof(FLT_OR_DBL) * (n + 1));
 
             for (i = 1; i <= n; i++) {
-              cvs[s][i] = conversion_deigan(data->reactivities[s][i],
+              cvs[s][i] = conversion_deigan(data->transformeds[s][i],
                                             data->params1[s],
                                             data->params2[s]) *
                           weight;
@@ -1001,7 +1025,7 @@ conversion_deigan(double  reactivity,
                   double  m,
                   double  b)
 {
-  return reactivity < 0 ? 0. : (FLT_OR_DBL)(m * log(reactivity + 1) + b);
+  return reactivity == VRNA_REACTIVITY_MISSING ? 0. : (FLT_OR_DBL)(m * log(reactivity + 1) + b);
 }
 
 
@@ -1166,26 +1190,46 @@ sc_parse_parameters(const char  *string,
 
 
 /*
- #####################################
- # Reactivity Filter (preprocessing) #
- #####################################
+ ########################################
+ # Reactivity Transform (preprocessing) #
+ ########################################
  */
+
+PRIVATE FLT_OR_DBL *
+reactivity_transform(unsigned int n,
+                     const double *reactivity,
+                     double (*trans) (double))
+{
+  /* init the transformed reactivity array */
+  vrna_array(FLT_OR_DBL) a;
+  vrna_array_init_size(a, n + 1);
+  vrna_array_append(a, VRNA_REACTIVITY_MISSING);
+  for (unsigned int i = 1; i <= n; ++i) {
+    if (reactivity[i] == VRNA_REACTIVITY_MISSING)
+      vrna_array_append(a, VRNA_REACTIVITY_MISSING);
+    else
+      vrna_array_append(a, trans(reactivity[i]));
+  }
+  return a;
+}
+
+
 PRIVATE double
-reactivity_filter_identity(double r, double cutoff)
+reactivity_trans_identity(double r)
 {
   return r;
 }
 
 
 PRIVATE double
-reactivity_filter_ignore(double r, double cutoff)
+reactivity_trans_neg_ignore(double r)
 {
-  return (r == VRNA_REACTIVITY_MISSING || r < cutoff) ? VRNA_REACTIVITY_MISSING : r;
+  return r < 0 ? VRNA_REACTIVITY_MISSING : r;
 }
 
 
 PRIVATE double
-reactivity_filter_to_zero(double r, double cutoff)
+reactivity_trans_neg_to_zero(double r)
 {
-  return  r == VRNA_REACTIVITY_MISSING ? VRNA_REACTIVITY_MISSING : r < cutoff ? 0 : r;
+  return  r < 0 ? 0 : r;
 }
