@@ -2,6 +2,7 @@
 /* BEGIN interface for structure probing      */
 /* derived constraints                        */
 /**********************************************/
+%include  callbacks-probing-data.i
 
 %rename(probing_data) vrna_probing_data_s;
 
@@ -65,14 +66,14 @@ pr_defaults: list(double)
   /* constructor for Deigan method single sequence */
   vrna_probing_data_s(std::vector<double> reactivities,
                       double              m,
-                      double              b,
-                      double              (*trans) (double) = NULL)
+                      double              b)
   {
     vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
                                                             reactivities.size(),
                                                             m,
                                                             b,
-                                                            trans);
+                                                            NULL,
+                                                            NULL);
     return obj;
   }
 
@@ -110,6 +111,7 @@ pr_defaults: list(double)
                                                    &(ms[0]),
                                                    &(bs[0]),
                                                    options,
+                                                   NULL,
                                                    NULL);
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
@@ -220,6 +222,7 @@ pr_defaults: list(double)
                                                             reactivities.size(),
                                                             m,
                                                             b,
+                                                            NULL,
                                                             NULL);
     return obj;
   }
@@ -253,6 +256,7 @@ pr_defaults: list(double)
                                                    &(ms[0]),
                                                    &(bs[0]),
                                                    multi_params,
+                                                   NULL,
                                                    NULL);
 
     for (unsigned int i = 0; i < reactivities.size(); i++)

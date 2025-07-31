@@ -211,7 +211,8 @@ vrna_probing_data_Deigan2009(const double *reactivities,
                              unsigned int n,
                              double       m,
                              double       b,
-														 double       (*trans) (double));
+														 double       (*trans) (double, void*),
+                             void         *options);
 
 
 /**
@@ -263,7 +264,8 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
                                          double             *ms,
                                          double             *bs,
                                          unsigned int       multi_params,
-																				 double             (*trans) (double));
+																				 double             (*trans) (double, void*),
+                                         void               *options);
 
 
 /**
