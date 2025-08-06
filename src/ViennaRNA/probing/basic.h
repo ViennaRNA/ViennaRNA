@@ -154,6 +154,12 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 #define VRNA_PROBING_DATA_CHECK_SEQUENCE                          1U
 
 
+#define VRNA_REACTIVITY_TRANS_DEFAULT                             0U
+#define VRNA_REACTIVITY_TRANS_IDEN                                1U
+#define VRNA_REACTIVITY_TRANS_NEG_IGNORE                          2U
+#define VRNA_REACTIVITY_TRANS_NEG_ZERO                            3U
+
+
 #define VRNA_REACTIVITY_MISSING                                   -999.
 
 /**
@@ -512,6 +518,12 @@ vrna_probing_data_load_n_distribute(unsigned int  n_seq,
                                     const char    **file_names,
                                     const int     *file_name_association,
                                     unsigned int  options);
+
+
+
+double
+(*vrna_reactivity_trans(unsigned int flag))(double, void*);
+
 
 
 /**

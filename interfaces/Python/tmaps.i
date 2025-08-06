@@ -135,6 +135,10 @@
   $1 = $input;
 }
 
+%typemap(typecheck, precedence=0) PyObject *PyFuncOrNone {
+  $1 = PyCallable_Check($input) || $input == Py_None;
+}
+
 
 %typemap(in) PyObject * {
   $1 = $input;

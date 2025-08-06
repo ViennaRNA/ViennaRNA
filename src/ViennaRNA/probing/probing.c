@@ -718,6 +718,23 @@ vrna_probing_data_load_n_distribute(unsigned int  n_seq,
 }
 
 
+PUBLIC double
+(*vrna_reactivity_trans(unsigned int flag))(double, void*)
+{
+  switch (flag) {
+    case VRNA_REACTIVITY_TRANS_DEFAULT:
+      return NULL;
+    case VRNA_REACTIVITY_TRANS_IDEN:
+      return reactivity_trans_identity;
+    case VRNA_REACTIVITY_TRANS_NEG_IGNORE:
+      return reactivity_trans_neg_ignore;
+    case VRNA_REACTIVITY_TRANS_NEG_ZERO:
+      return reactivity_trans_neg_to_zero;
+  }
+  return NULL;
+}
+
+
 /*
  #####################################
  # BEGIN OF STATIC HELPER FUNCTIONS  #

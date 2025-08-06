@@ -91,7 +91,7 @@ python_wrap_probing_data_cb(double     reactivity,
 
 %rename(probing_data_cb) vrna_probing_data_s;
 %nodefaultctor vrna_probing_data_s;
-%nodefaultdtor vrna_probing_data_s;
+%nodefaultctor vrna_probing_data_s;
 
 /* now we overload the existing probing data function */
 %extend vrna_probing_data_s {
@@ -100,15 +100,42 @@ python_wrap_probing_data_cb(double     reactivity,
   vrna_probing_data_s(std::vector<double> reactivities,
                       double              m,
                       double              b,
-                      PyObject            *PyFunc = Py_None)
+                      PyObject            *PyFuncOrNone = Py_None)
   {
-    python_probing_data_callback_t *cb = bind_probing_data_callback(PyFunc);
+    vrna_probing_data_s *obj;
+    if (PyFuncOrNone != Py_None) {
+      python_probing_data_callback_t *cb = bind_probing_data_callback(PyFuncOrNone);
+      obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
+                                         reactivities.size(),
+                                         m,
+                                         b,
+                                         &python_wrap_probing_data_cb,
+                                         (void *)cb
+                                        );
+    } else {
+      obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
+                                         reactivities.size(),
+                                         m,
+                                         b,
+                                         NULL,
+                                         NULL
+                                        );
+    }
+    return obj;
+  }
+
+
+  vrna_probing_data_s(std::vector<double> reactivities,
+                      double              m,
+                      double              b,
+                      int        flag)
+  {
     vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
                                                             reactivities.size(),
                                                             m,
                                                             b,
-                                                            &python_wrap_probing_data_cb,
-                                                            (void *)cb
+                                                            vrna_reactivity_trans(flag),
+                                                            NULL
                                                            );
     return obj;
   }

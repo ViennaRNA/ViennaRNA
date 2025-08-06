@@ -66,13 +66,14 @@ pr_defaults: list(double)
   /* constructor for Deigan method single sequence */
   vrna_probing_data_s(std::vector<double> reactivities,
                       double              m,
-                      double              b)
+                      double              b,
+                      int                 flag=VRNA_REACTIVITY_TRANS_DEFAULT)
   {
     vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
                                                             reactivities.size(),
                                                             m,
                                                             b,
-                                                            NULL,
+                                                            vrna_reactivity_trans(flag),
                                                             NULL);
     return obj;
   }
@@ -506,5 +507,9 @@ probing_data_Eddy2014_2_comparative(std::vector< std::vector<double> >  reactivi
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_3                       = VRNA_PROBING_METHOD_MULTI_PARAMS_3;
 %constant unsigned int  PROBING_METHOD_MULTI_PARAMS_DEFAULT                 = VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT;
 %constant unsigned int  PROBING_DATA_CHECK_SEQUENCE                         = VRNA_PROBING_DATA_CHECK_SEQUENCE;
+%constant unsigned int  REACTIVITY_TRANS_DEFAULT                            = VRNA_REACTIVITY_TRANS_DEFAULT;
+%constant unsigned int  REACTIVITY_TRANS_IDEN                               = VRNA_REACTIVITY_TRANS_IDEN;
+%constant unsigned int  REACTIVITY_TRANS_NEG_IGNORE                         = VRNA_REACTIVITY_TRANS_NEG_IGNORE;
+%constant unsigned int  REACTIVITY_TRANS_NEG_ZERO                           = VRNA_REACTIVITY_TRANS_NEG_ZERO;
 
 %include  <ViennaRNA/probing/basic.h>
