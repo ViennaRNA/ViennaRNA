@@ -89,9 +89,9 @@ python_wrap_probing_data_cb(double     reactivity,
 
 %}
 
-%rename(probing_data_cb) vrna_probing_data_s;
+%rename(probing_data) vrna_probing_data_s;
 %nodefaultctor vrna_probing_data_s;
-%nodefaultctor vrna_probing_data_s;
+%nodefaultdtor vrna_probing_data_s;
 
 /* now we overload the existing probing data function */
 %extend vrna_probing_data_s {
@@ -124,21 +124,6 @@ python_wrap_probing_data_cb(double     reactivity,
     return obj;
   }
 
-
-  vrna_probing_data_s(std::vector<double> reactivities,
-                      double              m,
-                      double              b,
-                      int        flag)
-  {
-    vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
-                                                            reactivities.size(),
-                                                            m,
-                                                            b,
-                                                            vrna_reactivity_trans(flag),
-                                                            NULL
-                                                           );
-    return obj;
-  }
 }
 
 
