@@ -113,7 +113,9 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
                                            length,
                                            p1,
                                            shape_conversion,
-                                           VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
+                                           VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability,
+                                           NULL,
+                                           NULL);
       break;
 
     case 'W':
@@ -190,7 +192,9 @@ vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *vc,
                                                            vc->length,
                                                            b,
                                                            shape_conversion,
-                                                           default_value);
+                                                           default_value,
+                                                           NULL,
+                                                           NULL);
     ret = vrna_sc_probing(vc, d);
     vrna_probing_data_free(d);
   }

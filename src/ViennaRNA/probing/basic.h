@@ -312,7 +312,9 @@ vrna_probing_data_Zarringhalam2012(const double *reactivities,
                                    unsigned int n,
                                    double       beta,
                                    const char   *pr_conversion,
-                                   double       pr_default);
+                                   double       pr_default,
+																	 double       (*trans) (double, void*),
+                                   void         *options);
 
 
 /**
@@ -365,7 +367,9 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
                                                double       *betas,
                                                const char   **pr_conversions,
                                                double       *pr_defaults,
-                                               unsigned int multi_params);
+                                               unsigned int multi_params,
+																	             double       (*trans) (double, void*),
+                                               void         *options);
 
 
 /**

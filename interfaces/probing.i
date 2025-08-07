@@ -127,13 +127,16 @@ pr_defaults: list(double)
   vrna_probing_data_s(std::vector<double> reactivities,
                       double              beta,
                       std::string         pr_conversion = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion,
-                      double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability)
+                      double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability,
+                      int                 flag=VRNA_REACTIVITY_TRANS_DEFAULT)
   {
     vrna_probing_data_s *obj = vrna_probing_data_Zarringhalam2012(&(reactivities[0]),
                                                                   reactivities.size(),
                                                                   beta,
                                                                   pr_conversion.c_str(),
-                                                                  pr_default);
+                                                                  pr_default,
+                                                                  vrna_reactivity_trans(flag),
+                                                                  NULL);
     return obj;
   }
 
@@ -190,7 +193,9 @@ pr_defaults: list(double)
                                                          &(betas[0]),
                                                          (const char **)c,
                                                          &(pr_defaults[0]),
-                                                         options);
+                                                         options,
+                                                         NULL,
+                                                         NULL);
 
     for (unsigned int i = 0; i < reactivities.size(); i++) {
       free(d[i]);
@@ -278,7 +283,9 @@ pr_defaults: list(double)
                                                                   reactivities.size(),
                                                                   beta,
                                                                   pr_conversion.c_str(),
-                                                                  pr_default);
+                                                                  pr_default,
+                                                                  NULL,
+                                                                  NULL);
     return obj;
   }
 
@@ -326,7 +333,9 @@ pr_defaults: list(double)
                                                          &(betas[0]),
                                                          (const char **)c,
                                                          &(pr_defaults[0]),
-                                                         multi_params);
+                                                         multi_params,
+                                                         NULL,
+                                                         NULL);
 
     for (unsigned int i = 0; i < reactivities.size(); i++) {
       free(d[i]);

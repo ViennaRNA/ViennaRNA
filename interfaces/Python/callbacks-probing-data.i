@@ -9,6 +9,7 @@
 
 /* TODO: data or cutoff */
 typedef struct {
+  double (*trans)(double, void*);
   PyObject *cb;
 } python_probing_data_callback_t;
 
@@ -21,13 +22,19 @@ python_wrap_probing_data_cb(double     reactivity,
                             void       *data);
 
 static python_probing_data_callback_t *
-bind_probing_data_callback(PyObject *PyFunc)
+bind_probing_data_callback(PyObject *PyFuncOrNone)
 {
-
+  
   python_probing_data_callback_t *cb = (python_probing_data_callback_t *)vrna_alloc(sizeof(python_probing_data_callback_t));
 
-  Py_XINCREF(PyFunc);
-  cb->cb    = PyFunc;  /* store callback */
+  if (PyFuncOrNone != Py_None) {
+    cb->trans = &python_wrap_probing_data_cb;
+    Py_XINCREF(PyFuncOrNone);
+    cb->cb    = PyFuncOrNone;
+  } else {
+    cb->trans = NULL;
+    cb->cb = NULL;
+  }
 
   return cb;
 }
@@ -102,28 +109,36 @@ python_wrap_probing_data_cb(double     reactivity,
                       double              b,
                       PyObject            *PyFuncOrNone = Py_None)
   {
-    vrna_probing_data_s *obj;
-    if (PyFuncOrNone != Py_None) {
-      python_probing_data_callback_t *cb = bind_probing_data_callback(PyFuncOrNone);
-      obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
-                                         reactivities.size(),
-                                         m,
-                                         b,
-                                         &python_wrap_probing_data_cb,
-                                         (void *)cb
-                                        );
-    } else {
-      obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
-                                         reactivities.size(),
-                                         m,
-                                         b,
-                                         NULL,
-                                         NULL
-                                        );
-    }
+    python_probing_data_callback_t * cb = bind_probing_data_callback(PyFuncOrNone);
+    vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
+                                                            reactivities.size(),
+                                                            m,
+                                                            b,
+                                                            cb->trans,
+                                                            (void*) cb
+                                                           );
     return obj;
   }
 
+
+  /* constructor for Zarringhalam method single sequence */
+  vrna_probing_data_s(std::vector<double> reactivities,
+                      double              beta,
+                      std::string         pr_conversion = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion,
+                      double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability,
+                      PyObject            *PyFuncOrNone = Py_None)
+  {
+    python_probing_data_callback_t * cb = bind_probing_data_callback(PyFuncOrNone);
+    vrna_probing_data_s *obj = vrna_probing_data_Zarringhalam2012(&(reactivities[0]),
+                                                                  reactivities.size(),
+                                                                  beta,
+                                                                  pr_conversion.c_str(),
+                                                                  pr_default,
+                                                                  cb->trans,
+                                                                  (void*) cb
+                                                                 );
+    return obj;
+  }
 }
 
 

@@ -324,7 +324,9 @@ vrna_probing_data_Zarringhalam2012(const double *reactivities,
                                    unsigned int n,
                                    double       beta,
                                    const char   *pr_conversion,
-                                   double       pr_default)
+                                   double       pr_default,
+                                   double       (*trans) (double, void*),
+                                   void         *options)
 {
   struct vrna_probing_data_s *d = NULL;
 
@@ -335,7 +337,9 @@ vrna_probing_data_Zarringhalam2012(const double *reactivities,
                                                        &beta,
                                                        &pr_conversion,
                                                        &pr_default,
-                                                       VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+                                                       VRNA_PROBING_METHOD_MULTI_PARAMS_0,
+                                                       trans,
+                                                       options);
 
   return d;
 }
@@ -348,7 +352,9 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
                                                double       *betas,
                                                const char   **pr_conversions,
                                                double       *pr_defaults,
-                                               unsigned int multi_params)
+                                               unsigned int multi_params,
+                                               double       (*trans) (double, void*),
+                                               void         *options)
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      beta;
@@ -373,7 +379,11 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
     vrna_array_init_size(d->params1, n_seq);
     vrna_array_init(d->params2);
     vrna_array_init_size(d->reactivities, n_seq);
+    vrna_array_init_size(d->transformeds, n_seq);
     vrna_array_init_size(d->datas1, n_seq);
+
+    if (trans == NULL)
+      trans = reactivity_trans_neg_ignore;
 
     for (unsigned int i = 0; i < n_seq; i++) {
       if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
@@ -389,12 +399,13 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
           vrna_array_append(a, (FLT_OR_DBL)reactivities[i][j]);
 
         vrna_array_append(d->reactivities, a);
+        vrna_array_append(d->transformeds, reactivity_transform(n[i], reactivities[i], trans, options));
 
         /* prepare probability data according to pr_conversion strategy */
         vrna_array(FLT_OR_DBL)  pr;
         vrna_array_init_size(pr, n[i] + 1);
         for (unsigned int j = 0; j <= n[i]; j++)
-          vrna_array_append(pr, (FLT_OR_DBL)reactivities[i][j]);
+          vrna_array_append(pr, (FLT_OR_DBL)d->transformeds[i][j]);
 
         if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
           pr_conversion = pr_conversions[i];
@@ -404,8 +415,12 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
 
         vrna_sc_SHAPE_to_pr(pr_conversion, pr, n[i], pr_default);
         vrna_array_append(d->datas1, pr);
+
+        for (unsigned int j = 0; j <= n[i]; j++)
+          printf("Before: %f. After: %f. Pr: %f\n", d->reactivities[i][j], d->transformeds[i][j], d->datas1[i][j]);
       } else {
         vrna_array_append(d->reactivities, NULL);
+        vrna_array_append(d->transformeds, NULL);
         vrna_array_append(d->datas1, NULL);
       }
     }
@@ -574,7 +589,7 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
 
   indices = vrna_alloc(sizeof(int) * (length + 1));
   for (i = 1, j = 0; i <= length; ++i) {
-    if (values[i] < 0)
+    if (values[i] == VRNA_REACTIVITY_MISSING)
       values[i] = default_value;
     else
       indices[j++] = i;
