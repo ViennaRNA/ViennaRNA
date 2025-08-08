@@ -73,7 +73,7 @@ pr_defaults: list(double)
                                                             reactivities.size(),
                                                             m,
                                                             b,
-                                                            vrna_reactivity_trans(flag),
+                                                            vrna_reactivity_trans_method(flag),
                                                             NULL);
     return obj;
   }
@@ -135,7 +135,7 @@ pr_defaults: list(double)
                                                                   beta,
                                                                   pr_conversion.c_str(),
                                                                   pr_default,
-                                                                  vrna_reactivity_trans(flag),
+                                                                  vrna_reactivity_trans_method(flag),
                                                                   NULL);
     return obj;
   }

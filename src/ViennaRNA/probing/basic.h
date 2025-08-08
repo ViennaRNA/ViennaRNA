@@ -526,9 +526,18 @@ vrna_probing_data_load_n_distribute(unsigned int  n_seq,
 
 
 double
-(*vrna_reactivity_trans(unsigned int flag))(double, void*);
+(*vrna_reactivity_trans_default(unsigned int flag))(double, void*);
 
 
+double
+(*vrna_reactivity_trans_method(unsigned int flag))(double, void*);
+
+
+FLT_OR_DBL *
+vrna_reactivity_transform(unsigned int n,
+                          const double *reactivity,
+                          double (*trans) (double, void*),
+                          void *options);
 
 /**
  *  @}

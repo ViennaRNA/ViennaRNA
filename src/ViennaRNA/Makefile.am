@@ -510,6 +510,7 @@ libRNA_constraints_la_SOURCES = \
 
 libRNA_probing_la_SOURCES = \
     probing/probing.c \
+    probing/transform.c \
     probing/SHAPE.c
 
 
