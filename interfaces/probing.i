@@ -208,6 +208,24 @@ pr_defaults: list(double)
   }
 
 
+  /* constructor for Eddy method single sequence */
+  vrna_probing_data_s(std::vector<double> reactivities,
+                      std::vector<double> unpaired_data,
+                      std::vector<double> paired_data,
+                      int                 flag=VRNA_REACTIVITY_TRANS_DEFAULT)
+  {
+    vrna_probing_data_s *obj = vrna_probing_data_Eddy2014_2(&(reactivities[0]),
+                                                            reactivities.size(),
+                                                            &(unpaired_data[0]),
+                                                            unpaired_data.size(),
+                                                            &(paired_data[0]),
+                                                            paired_data.size(),
+                                                            vrna_reactivity_trans_method(flag),
+                                                            NULL);
+    return obj;
+  }
+
+
   ~vrna_probing_data_s()
   {
     vrna_probing_data_free($self);
@@ -358,7 +376,9 @@ pr_defaults: list(double)
                                                             &(unpaired_data[0]),
                                                             unpaired_data.size(),
                                                             &(paired_data[0]),
-                                                            paired_data.size());
+                                                            paired_data.size(),
+                                                            NULL,
+                                                            NULL);
     return obj;
   }
 
@@ -413,7 +433,9 @@ pr_defaults: list(double)
                                                    &(us[0]),
                                                    (const double **)bp,
                                                    &(bs[0]),
-                                                   multi_params);
+                                                   multi_params,
+                                                   NULL,
+                                                   NULL);
 
     for (unsigned int i = 0; i < reactivities.size(); i++) {
       free(d[i]);

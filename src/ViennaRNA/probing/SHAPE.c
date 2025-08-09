@@ -340,7 +340,9 @@ vrna_sc_add_SHAPE_eddy_2(vrna_fold_compound_t *fc,
                                                          unpaired_data,
                                                          unpaired_nb,
                                                          paired_data,
-                                                         paired_nb);
+                                                         paired_nb,
+                                                         NULL,
+                                                         NULL);
     ret = vrna_sc_probing(fc, d);
     vrna_probing_data_free(d);
   }

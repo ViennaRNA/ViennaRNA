@@ -407,7 +407,9 @@ vrna_probing_data_Eddy2014_2(const double *reactivities,
                              const double *unpaired_data,
                              unsigned int unpaired_len,
                              const double *paired_data,
-                             unsigned int paired_len)
+                             unsigned int paired_len,
+                             double       (*trans) (double, void*),
+                             void         *options)
 {
   struct vrna_probing_data_s *d = NULL;
 
@@ -419,7 +421,9 @@ vrna_probing_data_Eddy2014_2(const double *reactivities,
                                                  &unpaired_len,
                                                  &paired_data,
                                                  &paired_len,
-                                                 VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+                                                 VRNA_PROBING_METHOD_MULTI_PARAMS_0,
+                                                 trans,
+                                                 options);
 
   return d;
 }
@@ -433,7 +437,9 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
                                          unsigned int *unpaired_lens,
                                          const double **paired_datas,
                                          unsigned int *paired_lens,
-                                         unsigned int multi_params)
+                                         unsigned int multi_params,
+                                         double       (*trans) (double, void*),
+                                         void         *options)
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      unpaired_h, paired_h;
@@ -449,12 +455,18 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
     vrna_array_init(d->params1);
     vrna_array_init(d->params2);
     vrna_array_init_size(d->reactivities, n_seq);
+    vrna_array_init_size(d->transformeds, n_seq);
     vrna_array_init_size(d->datas1, n_seq);
     vrna_array_init_size(d->datas2, n_seq);
 
+    if (trans == NULL)
+      trans = vrna_reactivity_trans_default(VRNA_PROBING_METHOD_EDDY2014_2);
+
     /* prepare first probabilities */
-    unpaired_h  = bandwidth(unpaired_lens[0], unpaired_datas[0]);
-    paired_h    = bandwidth(paired_lens[0], paired_datas[0]);
+    unpaired_h  = bandwidth(unpaired_lens[0],
+        vrna_reactivity_transform(unpaired_lens[0], unpaired_datas[0], trans, options));
+    paired_h    = bandwidth(paired_lens[0],
+        vrna_reactivity_transform(paired_lens[0], paired_datas[0], trans, options));
 
     for (unsigned int i = 0; i < n_seq; i++) {
       if (reactivities[i]) {
@@ -465,6 +477,7 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
           vrna_array_append(a, (FLT_OR_DBL)reactivities[i][j]);
 
         vrna_array_append(d->reactivities, a);
+        vrna_array_append(d->transformeds, vrna_reactivity_transform(n[i], reactivities[i], trans, options));
 
         /* kernel-density probability computations */
         vrna_array(FLT_OR_DBL) unpaired;
@@ -473,28 +486,44 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
         vrna_array_init_size(unpaired, n[i] + 1);
         vrna_array_init_size(paired, n[i] + 1);
 
+        /* Transform unpaired and paired reactivity for distribution */
+        double *unpaired_tr = vrna_reactivity_transform(unpaired_lens[i], unpaired_datas[i], trans, options);
+        double *paired_tr = vrna_reactivity_transform(paired_lens[i], paired_datas[i], trans, options);
+
+
         /* Compute bandwidth? */
         if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
-          unpaired_h = bandwidth(unpaired_lens[i], unpaired_datas[i]);
+          unpaired_h = bandwidth(unpaired_lens[i], unpaired_tr);
 
         if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
-          paired_h = bandwidth(paired_lens[i], paired_datas[i]);
+          paired_h = bandwidth(paired_lens[i], paired_tr);
 
         /* convert and add */
         vrna_array_append(unpaired, 0);
         vrna_array_append(paired, 0.);
 
         for (unsigned int j = 1; j <= n[i]; ++j) {
-          vrna_array_append(unpaired,
-                            log(gaussian_kde_pdf(reactivities[i][j], unpaired_lens[i], unpaired_h,
-                                                 unpaired_datas[i])));
-          vrna_array_append(paired,
-                            log(gaussian_kde_pdf(reactivities[i][j], paired_lens[i], paired_h,
-                                                 paired_datas[i])));
+          if (d->transformeds[i][j] == VRNA_REACTIVITY_MISSING) {
+            vrna_array_append(unpaired, 0);
+            vrna_array_append(paired, 0);
+          } else {
+            vrna_array_append(unpaired,
+                              log(gaussian_kde_pdf(d->transformeds[i][j], unpaired_lens[i], unpaired_h,
+                                                   unpaired_tr)));
+            vrna_array_append(paired,
+                              log(gaussian_kde_pdf(d->transformeds[i][j], paired_lens[i], paired_h,
+                                                   paired_tr)));
+          }
         }
+
+        vrna_array_free(unpaired_tr);
+        vrna_array_free(paired_tr);
 
         vrna_array_append(d->datas1, unpaired);
         vrna_array_append(d->datas2, paired);
+
+        for (unsigned int j = 0; j <= n[i]; j++)
+          printf("Before: %f. After: %f. Unpaired: %f. Paired: %f\n", d->reactivities[i][j], d->transformeds[i][j], d->datas1[i][j], d->datas2[i][j]);
       } else {
         vrna_array_append(d->reactivities, NULL);
         vrna_array_append(d->datas1, NULL);
@@ -625,6 +654,14 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
     for (i = 0; indices[i]; ++i) {
       double v;
       index = indices[i];
+
+
+
+
+
+
+
+
 
       v             = (*shape_conversion == 'L') ? values[index] : log(values[index]);
       values[index] = MAX2(MIN2((v - intercept) / slope, 1), 0);
@@ -1067,11 +1104,17 @@ gaussian_kde_pdf(double       x,
                  const double *data)
 {
   FLT_OR_DBL total;
+  int count;
 
   total = 0.;
-  for (unsigned int i = 0; i < n; i++)
-    total += gaussian((x - data[i]) / h);
-  return total / (n * h);
+  count = 0;
+  for (unsigned int i = 0; i < n; i++) {
+    if (data[i] != VRNA_REACTIVITY_MISSING) {
+      total += gaussian((x - data[i]) / h);
+      count++;
+    }
+  }
+  return total / (count * h);
 }
 
 
@@ -1109,19 +1152,27 @@ bandwidth(unsigned int  n,
           const double  *data)
 {
   double factor, mu, std;
+  int count;
 
   mu  = 0.;
   std = 0.;
+  count = 0;
 
   factor = (pow(n, -1. / 5));
 
-  for (unsigned int i = 0; i < n; i++)
-    mu += data[i];
-  mu /= n;
+  for (unsigned int i = 0; i < n; i++) {
+    if (data[i] != VRNA_REACTIVITY_MISSING) {
+      mu += data[i];
+      count++;
+    }
+  }
+  mu /= count;
 
-  for (unsigned int i = 0; i < n; i++)
-    std += (data[i] - mu) * (data[i] - mu);
-  std = sqrt(std / (n - 1));
+  for (unsigned int i = 0; i < n; i++) {
+    if (data[i] != VRNA_REACTIVITY_MISSING)
+      std += (data[i] - mu) * (data[i] - mu);
+  }
+  std = sqrt(std / (count - 1));
   return (FLT_OR_DBL)(factor * std);
 }
 

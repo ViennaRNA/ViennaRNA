@@ -139,6 +139,26 @@ python_wrap_probing_data_cb(double     reactivity,
                                                                  );
     return obj;
   }
+
+
+  /* constructor for Eddy method single sequence */
+  vrna_probing_data_s(std::vector<double> reactivities,
+                      std::vector<double> unpaired_data,
+                      std::vector<double> paired_data,
+                      PyObject            *PyFuncOrNone = Py_None)
+  {
+    python_probing_data_callback_t * cb = bind_probing_data_callback(PyFuncOrNone);
+    vrna_probing_data_s *obj = vrna_probing_data_Eddy2014_2(&(reactivities[0]),
+                                                            reactivities.size(),
+                                                            &(unpaired_data[0]),
+                                                            unpaired_data.size(),
+                                                            &(paired_data[0]),
+                                                            paired_data.size(),
+                                                            cb->trans,
+                                                            (void*) cb
+                                                           );
+    return obj;
+  }
 }
 
 

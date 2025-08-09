@@ -158,6 +158,7 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 #define VRNA_REACTIVITY_TRANS_IDEN                                1U
 #define VRNA_REACTIVITY_TRANS_NEG_IGNORE                          2U
 #define VRNA_REACTIVITY_TRANS_NEG_ZERO                            3U
+#define VRNA_REACTIVITY_TRANS_LOG1P                               4U
 
 
 #define VRNA_REACTIVITY_MISSING                                   -999.
@@ -418,7 +419,9 @@ vrna_probing_data_Eddy2014_2(const double *reactivities,
                              const double *unpaired_data,
                              unsigned int unpaired_len,
                              const double *paired_data,
-                             unsigned int paired_len);
+                             unsigned int paired_len,
+														 double       (*trans) (double, void*),
+                             void         *options);
 
 
 /**
@@ -478,7 +481,9 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
                                          unsigned int *unpaired_lens,
                                          const double **paired_datas,
                                          unsigned int *paired_lens,
-                                         unsigned int multi_params);
+                                         unsigned int multi_params,
+																	 		   double       (*trans) (double, void*),
+                                   		   void         *options);
 
 
 /**
