@@ -2,8 +2,12 @@
 /* BEGIN interface for probing data callback        */
 /****************************************************/
 
+%apply PyObject *PyFuncOrNone { PyObject *transform_f };
+
+
 #ifdef SWIGPYTHON
 %{
+
 
 #include <stdexcept>
 
@@ -22,15 +26,15 @@ python_wrap_probing_data_cb(double     reactivity,
                             void       *data);
 
 static python_probing_data_callback_t *
-bind_probing_data_callback(PyObject *PyFuncOrNone)
+bind_probing_data_callback(PyObject *transform_f)
 {
   
   python_probing_data_callback_t *cb = (python_probing_data_callback_t *)vrna_alloc(sizeof(python_probing_data_callback_t));
 
-  if (PyFuncOrNone != Py_None) {
+  if (transform_f != Py_None) {
     cb->trans = &python_wrap_probing_data_cb;
-    Py_XINCREF(PyFuncOrNone);
-    cb->cb    = PyFuncOrNone;
+    Py_XINCREF(transform_f);
+    cb->cb    = transform_f;
   } else {
     cb->trans = NULL;
     cb->cb = NULL;
@@ -73,9 +77,9 @@ python_wrap_probing_data_cb(double     reactivity,
       PyErr_Print();
       /* we only treat TypeErrors differently here, as they indicate that the callback does not follow requirements! */
       if (PyErr_GivenExceptionMatches(err, PyExc_TypeError)) {
-        throw std::runtime_error( "Reactivity transform callback must take exactly 1 argument" );
+        throw std::runtime_error( "Reactivity transform_f callback must take exactly 1 argument" );
       } else {
-        throw std::runtime_error( "Some error occurred while executing reactivity transform callback" );
+        throw std::runtime_error( "Some error occurred while executing reactivity transform_f callback" );
       }
     }
     PyErr_Clear();
@@ -84,7 +88,7 @@ python_wrap_probing_data_cb(double     reactivity,
   } else {
     throw
     std::runtime_error(
-      "Reactivity transform callback must return value in double"
+      "Reactivity transform_f callback must return value in double"
     );
   }
   /* END recognizing errors in callback execution */
@@ -107,9 +111,9 @@ python_wrap_probing_data_cb(double     reactivity,
   vrna_probing_data_s(std::vector<double> reactivities,
                       double              m,
                       double              b,
-                      PyObject            *PyFuncOrNone = Py_None)
+                      PyObject            *transform_f = Py_None)
   {
-    python_probing_data_callback_t * cb = bind_probing_data_callback(PyFuncOrNone);
+    python_probing_data_callback_t * cb = bind_probing_data_callback(transform_f);
     vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
                                                             reactivities.size(),
                                                             m,
@@ -126,9 +130,9 @@ python_wrap_probing_data_cb(double     reactivity,
                       double              beta,
                       std::string         pr_conversion = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion,
                       double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability,
-                      PyObject            *PyFuncOrNone = Py_None)
+                      PyObject            *transform_f = Py_None)
   {
-    python_probing_data_callback_t * cb = bind_probing_data_callback(PyFuncOrNone);
+    python_probing_data_callback_t * cb = bind_probing_data_callback(transform_f);
     vrna_probing_data_s *obj = vrna_probing_data_Zarringhalam2012(&(reactivities[0]),
                                                                   reactivities.size(),
                                                                   beta,
@@ -145,9 +149,9 @@ python_wrap_probing_data_cb(double     reactivity,
   vrna_probing_data_s(std::vector<double> reactivities,
                       std::vector<double> unpaired_data,
                       std::vector<double> paired_data,
-                      PyObject            *PyFuncOrNone = Py_None)
+                      PyObject            *transform_f = Py_None)
   {
-    python_probing_data_callback_t * cb = bind_probing_data_callback(PyFuncOrNone);
+    python_probing_data_callback_t * cb = bind_probing_data_callback(transform_f);
     vrna_probing_data_s *obj = vrna_probing_data_Eddy2014_2(&(reactivities[0]),
                                                             reactivities.size(),
                                                             &(unpaired_data[0]),
