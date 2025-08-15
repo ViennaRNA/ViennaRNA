@@ -1,0 +1,23 @@
+#ifndef VIENNA_RNA_PACKAGE_PROBING_XLINK_H
+#define VIENNA_RNA_PACKAGE_PROBING_XLINK_H
+
+#include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/probing/basic.h>
+
+/**
+ *  @file     ViennaRNA/probing/crosslink.h
+ *  @ingroup probing_data
+ *  @brief  This module provides function to incorporate RNA structure
+ *          probing data derived from cross-linking experiments into the folding recursions
+ *          by means of soft constraints and grammar extensions
+ */
+
+
+/**
+ *  @ingroup probing_data
+ */
+int
+vrna_sc_xl_prepare(vrna_fold_compound_t *fc);
+
+
+#endif
