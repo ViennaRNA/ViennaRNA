@@ -160,11 +160,17 @@ vrna_mfe_multibranch_loop_fast(vrna_fold_compound_t         *fc,
                                struct vrna_mx_mfe_aux_ml_s  *helpers)
 {
   if ((fc) &&
-      (helpers))
+      (helpers)) {
+    if ((fc->sc) &&
+        (fc->sc->xlink)) {
+      return vrna_mfe_multibranch_loop_xlink(fc, i, j, helpers);
+    }
+
     return E_mb_loop_fast(fc,
                           i,
                           j,
                           helpers);
+  }
 
   return INF;
 }
