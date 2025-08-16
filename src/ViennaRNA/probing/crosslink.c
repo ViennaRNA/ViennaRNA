@@ -64,6 +64,9 @@ struct vrna_crosslink_data_s {
   vrna_array(interact_region_s)   regions;  /* list of interacting regions */
   vrna_array(interact_region_s **) overlap5;
   vrna_array(interact_region_s **) overlap3;
+
+  int *A;
+  int *B;
 };
 
 
@@ -82,6 +85,13 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
              unsigned int                 j,
              struct vrna_mx_mfe_aux_ml_s  *helpers,
              struct sc_mb_dat             *sc_wrapper);
+
+
+PRIVATE void
+fill_helper_arrays(vrna_fold_compound_t *fc,
+                   unsigned int         i,
+                   unsigned int         j,
+                   struct sc_mb_dat     *sc_wrapper);
 
 
 PUBLIC int
@@ -180,6 +190,8 @@ ml_pair_d2(vrna_fold_compound_t         *fc,
   hc  = fc->hc;
 
   if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
+
+    /* get contribution for enclosed part */
     e = mfe_M2_xlink(fc, i, j, helpers, sc_wrapper);
 
     if (e != INF) {
@@ -240,7 +252,7 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
              struct sc_mb_dat             *sc_wrapper)
 {
   unsigned int                  u;
-  int                           e, decomp, *fML, *fM2, *idx;
+  int                           e, decomp, *fML, *fM2, *A, *B, *idx;
   vrna_param_t                  *P;
   vrna_hc_t                     *hc;
   struct vrna_crosslink_data_s  *dat;
@@ -252,6 +264,8 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
   idx = fc->jindx;
   fML = fc->matrices->fML;
   fM2 = fc->matrices->fM2_real;
+  A   = dat->A;
+  B   = dat->B;
 
   for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
     interact_region_s *r = dat->overlap5[i][cnt];
@@ -299,12 +313,12 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
       }
 
       /* now, all cases where we allow for base pairs that cross the first interval boundary */
-      decomp = A[u][j - 1];
+      decomp = A[u];
       e = MIN2(e, decomp);
 
       for (u = i + 2; u <= r->b; u++) {
         if (hc->eval_mb(i + 1, j - 1, u, j - 1, VRNA_DECOMP_ML_ML, hc)) {
-          decomp = A[u][j - 1];
+          decomp = A[u];
           if (decomp != INF) {
             decomp += (u - 1 - i) * P->MLbase;
 
@@ -316,7 +330,7 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
         }
 
         if (hc->eval_mb(i + 1, j - 1, u - 1, u, VRNA_DECOMP_ML_ML_ML, hc)) {
-          decomp = A[u][j - 1];
+          decomp = A[u];
 
           if (decomp != INF) {
             decomp += fML[idx[u - 1] + i + 1];
@@ -327,7 +341,7 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
             e = MIN2(e, decomp);
           }
 
-          decomp = B[u][j - 1];
+          decomp = B[u];
 
           if (decomp != INF) {
             decomp += fML[idx[u - 1] + i + 1];
@@ -345,6 +359,67 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
   return e;
 }
 
+
+
+PUBLIC void
+vrna_sc_xl_update_mfe(vrna_fold_compound_t *fc,
+                      unsigned int         i)
+{
+  short                         *S, *S2, si1, sj1;
+  unsigned int                  n, stem, decomp, *sn, strands, tt;
+  int                           *A, *B;
+  vrna_param_t                  *P;
+  vrna_md_t                     *md;
+  vrna_hc_t                     *hc;
+  struct vrna_crosslink_data_s  *dat;
+
+  dat = (struct vrna_crosslink_data_s *)fc->sc->data;
+  n   = fc->length;
+  P   = fc->params;
+  hc  = fc->hc;
+  A   = dat->A;
+  B   = dat->B;
+
+  for (unsigned int v = i; v <= n; v++) {
+    /* reset A and B */
+    A[v] = B[v] = INF;
+
+    /* got through all pairing partners u */
+    for (unsigned int u = i + 1; u < v; u++) {
+      if (hc->eval_mb(u, v, u, v, VRNA_DECOMP_ML_STEM, hc)) {
+        strands = fc->strands;
+        sn      = fc->strand_number;
+        S       = fc->sequence_encoding;
+        S2      = fc->sequence_encoding2;
+        tt      = vrna_get_ptype_md(S2[u], S2[v], md);
+
+        si1 = ((strands == 1) || (sn[u - 1] == sn[u])) ? S[u - 1] : -1;
+        sj1 = ((strands == 1) || (sn[v] == sn[v + 1])) ? S[v + 1] : -1;
+
+        stem = vrna_E_multibranch_stem(tt, si1, sj1, P);
+
+        decomp = 0;
+
+        /* go through all intervals I' that cover v */
+        for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[v]); cnt++) {
+          interact_region_s *r = dat->overlap3[v][cnt];
+
+          if ((u < r->c) &&
+              (u > r->b))
+            decomp += r->score;
+        }
+
+        decomp += stem;
+
+        /* fill A */
+
+        
+        /* fill B */
+        
+      }
+    }
+  }
+}
 
 
 PRIVATE int

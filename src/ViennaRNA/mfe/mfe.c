@@ -49,6 +49,7 @@
 #include "ViennaRNA/backtrack/gquad.h"
 #include "ViennaRNA/sequences/alphabet.h"
 #include "ViennaRNA/mfe/global.h"
+#include "ViennaRNA/probing/crosslink.h"
 
 #include "ViennaRNA/intern/grammar_dat.h"
 
@@ -475,6 +476,10 @@ fill_arrays(vrna_fold_compound_t  *fc,
     if ((fc->strands > 1) &&
         (sn[i] != sn[i + 1]))
       update_fms3_arrays(fc, sn[i + 1], ms_dat);
+
+    if ((fc->sc) &&
+        (fc->sc->xlink))
+      vrna_sc_xl_update_mfe(fc, i);
 
     for (j = i + 1; j <= length; j++) {
       ij = indx[j] + i;
