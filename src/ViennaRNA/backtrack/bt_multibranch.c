@@ -686,6 +686,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
   vrna_param_t          *P;
   vrna_md_t             *md;
   vrna_hc_t             *hc;
+  vrna_sc_t             *sc;
   vrna_hc_eval_loop_f   evaluate;
   struct sc_mb_dat      sc_wrapper;
 
@@ -716,9 +717,8 @@ bt_mb_loop(vrna_fold_compound_t *fc,
   dangle_model  = md->dangles;
   turn          = md->min_loop_size;
   hc            = fc->hc;
+  sc            = (fc->type == VRNA_FC_TYPE_SINGLE) ? fc->sc : NULL;
   evaluate      = hc->eval_mb;
-
-  init_sc_mb(fc, &sc_wrapper);
 
   p = i + 1;
   q = j - 1;
@@ -730,9 +730,16 @@ bt_mb_loop(vrna_fold_compound_t *fc,
 
   c1 = c2 = VRNA_MX_FLAG_M;
 
+  if ((sc) &&
+      (sc->xlink) &&
+      (vrna_bt_multibranch_loop_xlink(fc, i, j, en, bp_stack, bt_stack)))
+    goto odd_dangles_exit;
+
   /* do two branches actually fit inside (i,j)? */
   if (i + 2 * (turn + 2) >= j)
     return 0;
+
+  init_sc_mb(fc, &sc_wrapper);
 
   if (fc->type == VRNA_FC_TYPE_COMPARATIVE) {
     tt = (unsigned int *)vrna_alloc(sizeof(unsigned int) * n_seq);
@@ -794,6 +801,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
           goto odd_dangles_exit;
       }
     }
+    
   }
 
   if (dangle_model % 2) {
@@ -1009,6 +1017,7 @@ bt_mb_loop(vrna_fold_compound_t *fc,
 odd_dangles_exit:
 
     free(tt);
+    free_sc_mb(&sc_wrapper);
   }
 
   if (r + 2 < j) {

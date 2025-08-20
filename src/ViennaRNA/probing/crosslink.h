@@ -25,6 +25,15 @@ vrna_mfe_multibranch_loop_xlink(vrna_fold_compound_t         *fc,
                                 unsigned int                 j,
                                 struct vrna_mx_mfe_aux_ml_s  *helpers);
 
+unsigned int
+vrna_bt_multibranch_loop_xlink(vrna_fold_compound_t  *fc,
+                               unsigned int          i,         
+                               unsigned int          j,         
+                               int                   en,        
+                               vrna_bps_t            bp_stack,  
+                               vrna_bts_t            bt_stack);
+
+
 void
 vrna_sc_xl_update_mfe(vrna_fold_compound_t *fc,
                       unsigned int         i);
