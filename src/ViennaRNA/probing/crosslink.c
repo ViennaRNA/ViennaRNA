@@ -28,7 +28,6 @@
 
 
 #include "ViennaRNA/eval/multibranch.h"
-#include "ViennaRNA/mfe/multibranch.h"
 #include "ViennaRNA/backtrack/multibranch.h"
 
 #ifdef __GNUC__
@@ -129,14 +128,106 @@ bt_B(vrna_fold_compound_t *fc,
      vrna_bps_t           bp_stack VRNA_UNUSED,  
      vrna_bts_t           bt_stack);
 
+
+PRIVATE interact_region_s *
+parse_crosslink_data(FILE *fp);
+
+
+PUBLIC int
+vrna_sc_xl_load(vrna_fold_compound_t  *fc,
+                const char            *filename)
+{
+  int                           ret;
+  FILE                          *fp;
+  struct vrna_crosslink_data_s  *data;
+  vrna_array(interact_region_s) regions;
+
+  ret = 0;
+
+  if ((fc) &&
+      (filename)) {
+    if (!(fp = fopen(filename, "r"))) {
+      vrna_log_warning("Can't open crosslink-data file \"%s\"!",
+                           filename);
+      return 0;
+    }
+
+    regions = parse_crosslink_data(fp);
+
+    if (regions) {
+      vrna_sc_init(fc);
+      fc->sc->xlink = 1;
+
+      data = (struct vrna_crosslink_data_s *)vrna_alloc(sizeof(struct vrna_crosslink_data_s));
+
+      data->regions       = regions;
+      data->overlap5      = NULL;
+      data->overlap3      = NULL;
+      fc->sc->xlink_data  = (void *)data;
+      ret                 = 1;
+    }
+
+    fclose(fp);
+  }
+  
+  return ret;
+}
+               
+
+
 PUBLIC int
 vrna_sc_xl_prepare(vrna_fold_compound_t  *fc)
 {
   if ((fc) &&
       (fc->sc) &&
-      (fc->sc->xlink)) {
+      (fc->sc->xlink) &&
+      (fc->sc->data)) {
     /* here we assume that sc->data actually points to a vrna_crosslink_data_s */
-     
+    
+    struct vrna_crosslink_data_s  *dat;
+
+    dat = (struct vrna_crosslink_data_s *)fc->sc->data;
+
+    /* free previously allocated overlap entries */
+    if (dat->overlap5)
+      for (unsigned int i = 1; i <= fc->length; i++)
+        vrna_array_free(dat->overlap5[i]);
+
+      vrna_array_free(dat->overlap5);
+
+    if (dat->overlap3)
+      for (unsigned int i = 1; i <= fc->length; i++)
+        vrna_array_free(dat->overlap3[i]);
+
+      vrna_array_free(dat->overlap3);
+
+    /* initialize memory for overlap entries */
+    vrna_array_init_size(dat->overlap5, fc->length + 1);
+    vrna_array_init_size(dat->overlap3, fc->length + 1);
+
+    for (unsigned int i = 0; i <= fc->length; i++) {
+      dat->overlap5[i] = NULL;
+      dat->overlap3[i] = NULL;
+    }
+
+    /* ref-fill overlap entries */
+    for (size_t cnt = 0; cnt < vrna_array_size(dat->regions); cnt++) {
+      interact_region_s *r = &(dat->regions[cnt]);
+      
+      for (unsigned int i = r->a; i <= r->b; i++) {
+        if (dat->overlap5[i] == NULL)
+          vrna_array_init(dat->overlap5[i]);
+
+        vrna_array_append(dat->overlap5[i], r);
+      }
+
+      for (unsigned int j = r->c; j <= r->d; j++) {
+        if (dat->overlap3[j] == NULL)
+          vrna_array_init(dat->overlap3[j]);
+
+        vrna_array_append(dat->overlap3[j], r);
+      }
+    }
   }
   
   return 0;
@@ -1182,4 +1273,39 @@ xlink_il_en(vrna_fold_compound_t  *fc,
 
   return energy;
 
+}
+
+PRIVATE interact_region_s *
+parse_crosslink_data(FILE *fp)
+{
+  char                          *line;
+  int                           a, b, c, d;
+  double                        score;
+  vrna_array(interact_region_s) regions;
+
+  vrna_array_init_size(regions, 42);
+
+  while ((line = vrna_read_line(fp))) {
+    
+    if (sscanf(line, "%d", &a, &b, &c, &d, &score) == 5) {
+      interact_region_s r = {
+        .a = a,
+        .b = b,
+        .c = c,
+        .d = d,
+        .score = score
+      };
+
+      vrna_array_append(regions, r);
+    }
+
+    free(line);
+  }
+
+  if (vrna_array_size(regions) == 0) {
+    vrna_array_free(regions);
+    regions = NULL;
+  }
+
+  return regions;
 }

@@ -239,6 +239,8 @@ struct vrna_sc_s {
   unsigned int          n;    /**< @brief Length of the sequence this soft constraints data structure belongs to */
 
   unsigned int          xlink;  /* contains cross-link data */
+  void                  *xlink_data;
+
   unsigned char         state; /**< @brief  Current state of the soft constraints data structure */
 
   int                   **energy_up;      /**<  @brief Energy contribution for stretches of unpaired nucleotides */

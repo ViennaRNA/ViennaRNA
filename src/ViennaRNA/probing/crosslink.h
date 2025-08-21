@@ -2,6 +2,7 @@
 #define VIENNA_RNA_PACKAGE_PROBING_XLINK_H
 
 #include <ViennaRNA/fold_compound.h>
+#include "ViennaRNA/mfe/multibranch.h"
 #include <ViennaRNA/probing/basic.h>
 
 /**
@@ -16,6 +17,10 @@
 /**
  *  @ingroup probing_data
  */
+int
+vrna_sc_xl_load(vrna_fold_compound_t  *fc,
+                const char            *filename);
+
 int
 vrna_sc_xl_prepare(vrna_fold_compound_t *fc);
 

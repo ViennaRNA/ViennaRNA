@@ -22,6 +22,7 @@
 #include "ViennaRNA/io/file_formats.h"
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/probing/SHAPE.h"
+#include "ViennaRNA/probing/crosslink.h"
 #include "ViennaRNA/constraints/soft.h"
 
 
@@ -325,6 +326,9 @@ vrna_sc_prepare(vrna_fold_compound_t  *fc,
 
         ret &= prepare_sc_user_cb(fc, fc->sc, options);
 
+        if ((fc->sc) &&
+            (fc->sc->xlink))
+          vrna_sc_xl_prepare(fc);
         break;
 
       case VRNA_FC_TYPE_COMPARATIVE:
@@ -2155,6 +2159,10 @@ nullify(vrna_sc_t *sc)
 {
   if (sc) {
     sc->state             = STATE_CLEAN;
+
+    sc->xlink             = 0;
+    sc->xlink_data        = NULL;
+
     sc->up_storage        = NULL;
     sc->bp_storage        = NULL;
     sc->energy_up         = NULL;

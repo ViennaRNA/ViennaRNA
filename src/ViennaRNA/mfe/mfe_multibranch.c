@@ -19,6 +19,7 @@
 #include "ViennaRNA/params/default.h"
 #include "ViennaRNA/constraints/hard.h"
 #include "ViennaRNA/constraints/soft.h"
+#include "ViennaRNA/probing/crosslink.h"
 #include "ViennaRNA/eval/exterior.h"
 #include "ViennaRNA/eval/gquad.h"
 #include "ViennaRNA/eval/multibranch.h"
