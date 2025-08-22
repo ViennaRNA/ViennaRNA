@@ -164,6 +164,7 @@ vrna_sc_xl_load(vrna_fold_compound_t  *fc,
       data->overlap5      = NULL;
       data->overlap3      = NULL;
       fc->sc->xlink_data  = (void *)data;
+      fc->params->model_details.uniq_ML = 1;
       ret                 = 1;
     }
 
@@ -181,25 +182,27 @@ vrna_sc_xl_prepare(vrna_fold_compound_t  *fc)
   if ((fc) &&
       (fc->sc) &&
       (fc->sc->xlink) &&
-      (fc->sc->data)) {
-    /* here we assume that sc->data actually points to a vrna_crosslink_data_s */
+      (fc->sc->xlink_data)) {
+    /* here we assume that sc->xlink_data actually points to a vrna_crosslink_data_s */
     
     struct vrna_crosslink_data_s  *dat;
 
-    dat = (struct vrna_crosslink_data_s *)fc->sc->data;
+    dat = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
 
     /* free previously allocated overlap entries */
-    if (dat->overlap5)
+    if (dat->overlap5) {
       for (unsigned int i = 1; i <= fc->length; i++)
         vrna_array_free(dat->overlap5[i]);
 
       vrna_array_free(dat->overlap5);
+    }
 
-    if (dat->overlap3)
+    if (dat->overlap3) {
       for (unsigned int i = 1; i <= fc->length; i++)
         vrna_array_free(dat->overlap3[i]);
 
       vrna_array_free(dat->overlap3);
+    }
 
     /* initialize memory for overlap entries */
     vrna_array_init_size(dat->overlap5, fc->length + 1);
@@ -228,6 +231,13 @@ vrna_sc_xl_prepare(vrna_fold_compound_t  *fc)
         vrna_array_append(dat->overlap3[j], r);
       }
     }
+
+    dat->A = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
+    dat->B = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
+
+    for (unsigned int i = 0; i <= fc->length; i++) {
+      dat->A[i] = dat->B[i] = INF;
+    }
   }
   
   return 0;
@@ -251,7 +261,7 @@ vrna_mfe_multibranch_loop_xlink(vrna_fold_compound_t         *fc,
     struct sc_mb_dat              sc_wrapper;
     struct vrna_crosslink_data_s  *dat;
 
-    dat                 = (struct vrna_crosslink_data_s *)fc->sc->data;
+    dat                 = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
     connects_intervals  = 0;
     P                   = fc->params;
     md                  = &(P->model_details);
@@ -376,7 +386,7 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
   hc            = fc->hc;
   evaluate      = hc->eval_mb;
   connects_intervals  = 0;
-  dat           = (struct vrna_crosslink_data_s *)sc->data;
+  dat           = (struct vrna_crosslink_data_s *)sc->xlink_data;
 
   init_sc_mb(fc, &sc_wrapper);
 
@@ -727,7 +737,7 @@ bt_A(vrna_fold_compound_t *fc,
   hc        = fc->hc;
   evaluate  = hc->eval_mb;
   sc        = fc->sc;
-  dat       = (struct vrna_crosslink_data_s *)fc->sc->data;
+  dat       = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
 
   init_sc_mb(fc, &sc_wrapper);
 
@@ -822,7 +832,7 @@ bt_B(vrna_fold_compound_t *fc,
   hc        = fc->hc;
   evaluate  = hc->eval_mb;
   sc        = fc->sc;
-  dat       = (struct vrna_crosslink_data_s *)fc->sc->data;
+  dat       = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
 
   init_sc_mb(fc, &sc_wrapper);
 
@@ -1029,7 +1039,7 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
   vrna_hc_t                     *hc;
   struct vrna_crosslink_data_s  *dat;
 
-  dat = (struct vrna_crosslink_data_s *)fc->sc->data;
+  dat = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
   e   = INF;
   P   = fc->params;
   hc  = fc->hc;
@@ -1146,9 +1156,10 @@ vrna_sc_xl_update_mfe(vrna_fold_compound_t *fc,
   struct vrna_crosslink_data_s  *dat;
   struct sc_mb_dat              sc_wrapper;
 
-  dat = (struct vrna_crosslink_data_s *)fc->sc->data;
+  dat = (struct vrna_crosslink_data_s *)fc->sc->xlink_data;
   n   = fc->length;
   P   = fc->params;
+  md  = &(P->model_details);
   idx = fc->jindx;
   c   = fc->matrices->c;
   fML = fc->matrices->fML;
@@ -1181,13 +1192,15 @@ vrna_sc_xl_update_mfe(vrna_fold_compound_t *fc,
         decomp = 0;
 
         /* go through all intervals I' that cover v */
-        for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[v]); cnt++) {
-          interact_region_s *r = dat->overlap3[v][cnt];
+        if (dat->overlap3[v]) {
+          for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[v]); cnt++) {
+            interact_region_s *r = dat->overlap3[v][cnt];
 
-          /* add up scores if pairing partner u doesn't connect both intervals */
-          if ((u < r->c) &&
-              (u > r->b))
-            decomp += r->score;
+            /* add up scores if pairing partner u doesn't connect both intervals */
+            if ((u < r->c) &&
+                (u > r->b))
+              decomp += r->score;
+          }
         }
 
         decomp += stem;
@@ -1286,8 +1299,7 @@ parse_crosslink_data(FILE *fp)
   vrna_array_init_size(regions, 42);
 
   while ((line = vrna_read_line(fp))) {
-    
-    if (sscanf(line, "%d", &a, &b, &c, &d, &score) == 5) {
+    if (sscanf(line, "%d %d %d %d %lf", &a, &b, &c, &d, &score) == 5) {
       interact_region_s r = {
         .a = a,
         .b = b,
