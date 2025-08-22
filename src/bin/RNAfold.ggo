@@ -585,6 +585,13 @@ optional
 hidden
 
 
+option  "crosslink"   x
+"Use crosslink data to guide the structure prediction.\n\n"
+string
+typestr="filename"
+optional
+
+
 section "Energy Parameters"
 sectiondesc="Energy parameter sets can be adapted or loaded from user-provided input files\n\n"
 

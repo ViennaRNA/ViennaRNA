@@ -44,6 +44,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/basic.h"
 #include "ViennaRNA/probing/SHAPE.h"
+#include "ViennaRNA/probing/crosslink.h"
 #include "ViennaRNA/constraints/ligand.h"
 #include "ViennaRNA/constraints/soft_special.h"
 #include "ViennaRNA/structured_domains.h"
@@ -93,6 +94,9 @@ struct options {
 
   /* structure probing data releated options */
   probing_data_t  *probing_data;
+
+  int             xlink;
+  char            *xlink_file;
 
   vrna_sc_mod_param_t *mod_params;
 
@@ -430,6 +434,9 @@ init_default_options(struct options *opt)
 
   opt->probing_data     = NULL;
 
+  opt->xlink              = 0;
+  opt->xlink_file         = NULL;
+
   opt->mod_params         = NULL;
 
   opt->benchmark          = 0;
@@ -550,6 +557,11 @@ main(int  argc,
 
   if (args_info.motif_given)
     opt.ligandMotif = strdup(args_info.motif_arg);
+
+  if (args_info.crosslink_given) {
+    opt.xlink = 1;
+    opt.xlink_file = strdup(args_info.crosslink_arg);
+  }
 
   if (args_info.commands_given)
     opt.cmds = vrna_file_commands_read(args_info.commands_arg, VRNA_CMD_PARSE_DEFAULTS);
@@ -777,6 +789,7 @@ main(int  argc,
   free(input_files);
   free(opt.constraint_file);
   free(opt.ligandMotif);
+  free(opt.xlink_file);
   free(opt.filename_delim);
   vrna_commands_free(opt.cmds);
 
@@ -1081,6 +1094,11 @@ process_record(struct record_data *record)
                   mod_param_sets,
                   mod_positions,
                   opt->mod_params);
+
+  if (opt->xlink) {
+    if (!vrna_sc_xl_load(vc, opt->xlink_file))
+      vrna_log_error("failed to load crosslink data from \"%s\"\n", opt->xlink_file);
+  }
 
   /*
    ########################################################
