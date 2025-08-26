@@ -56,7 +56,7 @@ typedef struct {
   unsigned int  b;      /* end of 5' interval */
   unsigned int  c;      /* start of 3' interval */
   unsigned int  d;      /* end of 3' interval */
-  double        score;  /* interval score */
+  int           score;  /* interval score */
 } interact_region_s;
 
 
@@ -133,6 +133,24 @@ PRIVATE interact_region_s *
 parse_crosslink_data(FILE *fp);
 
 
+PRIVATE int
+xlink_hp_en(vrna_fold_compound_t  *fc,
+            int                   i,
+            int                   j,
+            int                   k,
+            int                   l,
+            void                  *data);
+
+
+PRIVATE int
+xlink_il_en(vrna_fold_compound_t  *fc,
+            int                   i,
+            int                   j,
+            int                   k,
+            int                   l,
+            void                  *data);
+
+
 PUBLIC int
 vrna_sc_xl_load(vrna_fold_compound_t  *fc,
                 const char            *filename)
@@ -157,6 +175,7 @@ vrna_sc_xl_load(vrna_fold_compound_t  *fc,
     if (regions) {
       vrna_sc_init(fc);
       fc->sc->xlink = 1;
+      ret = 1;
 
       data = (struct vrna_crosslink_data_s *)vrna_alloc(sizeof(struct vrna_crosslink_data_s));
 
@@ -165,7 +184,9 @@ vrna_sc_xl_load(vrna_fold_compound_t  *fc,
       data->overlap3      = NULL;
       fc->sc->xlink_data  = (void *)data;
       fc->params->model_details.uniq_ML = 1;
-      ret                 = 1;
+
+      ret &= vrna_sc_multi_cb_add(fc, xlink_hp_en, NULL, (void *)data, NULL, NULL, VRNA_DECOMP_PAIR_HP);
+      ret &= vrna_sc_multi_cb_add(fc, xlink_il_en, NULL, (void *)data, NULL, NULL, VRNA_DECOMP_PAIR_IL);
     }
 
     fclose(fp);
@@ -473,7 +494,8 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
           k = r->b;
 
           /* first 3 (obvious) cases: split point separates the intervals */
-          if (evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
+          if ((k > p) &&
+              (evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
             tmp_en = my_fML[idx[k] + p] +
                      my_fML[idx[q] + k + 1] +
                      r->score;
@@ -488,6 +510,7 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
           if (evaluate(p, q, p, k, VRNA_DECOMP_ML_ML, hc)) {
             l = p;
             tmp_en = my_fM2[idx[k] + p] +
+                     (q - k) * P->MLbase +
                      r->score;
 
             if (sc_wrapper.red_ml)
@@ -500,6 +523,7 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
           if (evaluate(p, q, k + 1, q, VRNA_DECOMP_ML_ML, hc)) {
             l = q;
             tmp_en = my_fM2[idx[q] + k + 1] +
+                     (k + 1 - p) * P->MLbase +
                      r->score;
 
             if (sc_wrapper.red_ml)
@@ -1305,7 +1329,7 @@ parse_crosslink_data(FILE *fp)
         .b = b,
         .c = c,
         .d = d,
-        .score = score
+        .score = (int)(score * 100.)
       };
 
       vrna_array_append(regions, r);
