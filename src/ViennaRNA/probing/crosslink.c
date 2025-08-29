@@ -488,8 +488,8 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
         interact_region_s *r = dat->overlap5[i][cnt];
 
         /* only consider interval pairs (I,I') where I' overlaps with j */
-        if ((r->c <= q) &&
-            (r->d > q)) {
+        if ((r->c <= j) &&
+            (r->d >= j)) {
 
           k = r->b;
 
@@ -573,13 +573,15 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
             decomp = 0;
 
             /* go through all intervals I' that cover l */
-            for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++) {
-              interact_region_s *r = dat->overlap3[l][cnt];
+            if (dat->overlap3[l]) {
+              for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap3[l]); cnt++) {
+                interact_region_s *r = dat->overlap3[l][cnt];
 
-              /* add up scores if pairing partner k doesn't connect both intervals */
-              if ((k < r->c) &&
-                  (k > r->b))
-                decomp += r->score;
+                /* add up scores if pairing partner k doesn't connect both intervals */
+                if ((k < r->c) &&
+                    (k > r->b))
+                  decomp += r->score;
+              }
             }
 
             decomp += stem;
@@ -619,7 +621,7 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
         interact_region_s *r = dat->overlap5[i][cnt];
 
         /* only consider interval pairs (I,I') where I' overlaps with j */
-        if ((r->c <= q) &&
+        if ((r->c <= j) &&
             (r->d > q)) {
 
           /* now, for the cases where we can't tell yet whether (i,j) is the innermost pair connecting I and I' */
@@ -631,14 +633,14 @@ bt_mb_loop_xl(vrna_fold_compound_t *fc,
             return bt_A(fc, A, p, q, bp_stack, bt_stack);
           }
 
-          for (k = r->b + 1; k < q; k++) {
-            if ((evaluate(p, q, p, k, VRNA_DECOMP_ML_ML, hc)) &&
+          for (k = r->c; k < q; k++) {
+            if ((evaluate(p, q, k, k + 1, VRNA_DECOMP_ML_ML, hc)) &&
                 (A[k] != INF)) {
               tmp_en = A[k] +
                        (q - k) * P->MLbase;
 
               if (sc_wrapper.red_ml)
-                tmp_en += sc_wrapper.red_ml(p, q, p, k, &sc_wrapper);
+                tmp_en += sc_wrapper.red_ml(p, q, k, k + 1, &sc_wrapper);
 
               if (e == tmp_en) {
                 free(tt);
@@ -707,28 +709,27 @@ odd_dangles_exit:
   free(tt);
   free_sc_mb(&sc_wrapper);
 
-  if (k + 2 < j) {
-    /* find split point for M2 entry */
-    if (l == p) {
-      return bt_m2(fc, p, k, my_fM2[idx[k] + p], bp_stack, bt_stack);
-    } else if (l == q) {
-      return bt_m2(fc, k + 1, q, my_fM2[idx[q] + k + 1], bp_stack, bt_stack);
-    } else {
-      /* already found split point */
-      vrna_bts_push(bt_stack,
-                    ((vrna_sect_t){
-                      .i = p,
-                      .j = k,
-                      .ml = c1}));
-      vrna_bts_push(bt_stack,
-                    ((vrna_sect_t){
-                      .i = k + 1,
-                      .j = q,
-                      .ml = c2}));
-    }
-
+  /* find split point for M2 entry */
+  if (l == p) {
+    return bt_m2(fc, p, k, my_fM2[idx[k] + p], bp_stack, bt_stack);
+  } else if (l == q) {
+    return bt_m2(fc, k + 1, q, my_fM2[idx[q] + k + 1], bp_stack, bt_stack);
+  } else if (k + 2 < j) {
+    /* already found split point */
+    vrna_bts_push(bt_stack,
+                  ((vrna_sect_t){
+                    .i = p,
+                    .j = k,
+                    .ml = c1}));
+    vrna_bts_push(bt_stack,
+                  ((vrna_sect_t){
+                    .i = k + 1,
+                    .j = q,
+                    .ml = c2}));
     return 1;
   }
+
+  vrna_log_error("bt M failed k = %d, l = %d, i  %d, j = %d", k, l, i, j);
 
   return 0;
 }
@@ -826,6 +827,8 @@ exit_bt_A:
     return 1;
   }
 
+  vrna_log_error("bt A failed");
+
   return 0;
 }
 
@@ -916,6 +919,7 @@ exit_bt_B:
     return 1;
   }
 
+  vrna_log_error("bt B failed");
   return 0;
 }
 
@@ -974,6 +978,7 @@ odd_dangles_exit2:
     return 1;
   }
 
+  vrna_log_error("bt fm2 failed");
   return 0;
 }
 
