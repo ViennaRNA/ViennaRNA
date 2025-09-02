@@ -991,7 +991,7 @@ ml_pair_d2(vrna_fold_compound_t         *fc,
            struct sc_mb_dat             *sc_wrapper)
 {
   short         *S, *S2, **SS, **S5, **S3, si1, sj1;
-  unsigned int  tt, strands, *sn, s, n_seq;
+  unsigned int  tt, strands, *sn, p, q, s, n_seq;
   int           e;
   vrna_param_t  *P;
   vrna_md_t     *md;
@@ -999,8 +999,10 @@ ml_pair_d2(vrna_fold_compound_t         *fc,
 
   e   = INF;
   hc  = fc->hc;
+  p   = i + 1;
+  q   = j - 1;
 
-  if (hc->eval_mb(i, j, i + 1, j - 1, VRNA_DECOMP_PAIR_ML, hc)) {
+  if (hc->eval_mb(i, j, p, q, VRNA_DECOMP_PAIR_ML, hc)) {
 
     /* get contribution for enclosed part */
     e = mfe_M2_xlink(fc, i, j, helpers, sc_wrapper);
@@ -1020,8 +1022,8 @@ ml_pair_d2(vrna_fold_compound_t         *fc,
           if (md->noGUclosure && ((tt == 3) || (tt == 4)))
             return INF; /* not allowed */
 
-          si1 = ((strands == 1) || (sn[i] == sn[i + 1])) ? S[i + 1] : -1;
-          sj1 = ((strands == 1) || (sn[j - 1] == sn[j])) ? S[j - 1] : -1;
+          si1 = ((strands == 1) || (sn[i] == sn[p])) ? S[p] : -1;
+          sj1 = ((strands == 1) || (sn[q] == sn[j])) ? S[q] : -1;
 
           e += vrna_E_multibranch_stem(tt, sj1, si1, P) +
                P->MLclosing;
@@ -1062,7 +1064,7 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
              struct vrna_mx_mfe_aux_ml_s  *helpers,
              struct sc_mb_dat             *sc_wrapper)
 {
-  unsigned int                  v;
+  unsigned int                  v, k, p, q;
   int                           e, decomp, *fML, *fM2, *A, *B, *idx;
   vrna_param_t                  *P;
   vrna_hc_t                     *hc;
@@ -1077,54 +1079,59 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
   fM2 = fc->matrices->fM2_real;
   A   = dat->A;
   B   = dat->B;
+  p   = i + 1;
+  q   = j - 1;
 
   for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
     interact_region_s *r = dat->overlap5[i][cnt];
     if ((r->c <= j) &&
         (r->d >= j)) {
 
-      if (hc->eval_mb(i + 1, j - 1, r->b, r->b + 1, VRNA_DECOMP_ML_ML_ML, hc)) {
-        if ((fML[idx[r->b] + i + 1] != INF) &&
-            (fML[idx[j - 1] + r->b + 1] != INF)) {
-          decomp =  fML[idx[r->b] + i + 1] +
-                    fML[idx[j - 1] + r->b + 1] +
+      k = r->b;
+
+      if ((k > p) &&
+          (hc->eval_mb(p, q, k, k + 1, VRNA_DECOMP_ML_ML_ML, hc))) {
+        if ((fML[idx[k] + p] != INF) &&
+            (fML[idx[q] + k + 1] != INF)) {
+          decomp =  fML[idx[k] + p] +
+                    fML[idx[q] + k + 1] +
                     r->score;
 
           if (sc_wrapper->decomp_ml)
-            decomp += sc_wrapper->decomp_ml(i + 1, j - 1, r->b, r->b + 1, sc_wrapper);
+            decomp += sc_wrapper->decomp_ml(p, q, k, k + 1, sc_wrapper);
 
           e = MIN2(e, decomp);
         }
       }
 
-      if (hc->eval_mb(i + 1, j - 1, i + 1, r->b, VRNA_DECOMP_ML_ML, hc)) {
-        if (fM2[idx[r->b] + i + 1] != INF) {
-          decomp =  fM2[idx[r->b] + i + 1] +
-                    (j - 1 - r->b) * P->MLbase +
+      if (hc->eval_mb(p, q, p, k, VRNA_DECOMP_ML_ML, hc)) {
+        if (fM2[idx[k] + p] != INF) {
+          decomp =  fM2[idx[k] + p] +
+                    (q - k) * P->MLbase +
                     r->score;
 
           if (sc_wrapper->red_ml)
-            decomp += sc_wrapper->red_ml(i + 1, j - 1, i + 1, r->b, sc_wrapper);
+            decomp += sc_wrapper->red_ml(p, q, p, k, sc_wrapper);
 
           e = MIN2(e, decomp);
         }
       }
 
-      if (hc->eval_mb(i + 1, j - 1, r->b + 1, j - 1, VRNA_DECOMP_ML_ML, hc)) {
-        if (fM2[idx[j - 1] + r->b + 1] != INF) {
-          decomp =  fM2[idx[j - 1] + r->b + 1] +
-                    (r->b - i) * P->MLbase +
+      if (hc->eval_mb(p, q, k + 1, q, VRNA_DECOMP_ML_ML, hc)) {
+        if (fM2[idx[q] + k + 1] != INF) {
+          decomp =  fM2[idx[q] + k + 1] +
+                    (k + 1 - p) * P->MLbase +
                     r->score;
 
           if (sc_wrapper->red_ml)
-            decomp += sc_wrapper->red_ml(i + 1, j - 1, r->b + 1, j - 1, sc_wrapper);
+            decomp += sc_wrapper->red_ml(p, q, k + 1, q, sc_wrapper);
 
           e = MIN2(e, decomp);
         }
       }
 
       /* now, all cases where we allow for base pairs that cross the first interval boundary */
-      decomp = A[j - 1];
+      decomp = A[q];
       e = MIN2(e, decomp);
 
       for (v = r->c; v + 1 < j; v++) {
