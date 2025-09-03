@@ -64,6 +64,7 @@ struct vrna_crosslink_data_s {
   vrna_array(interact_region_s)   regions;  /* list of interacting regions */
   vrna_array(interact_region_s **) overlap5;
   vrna_array(interact_region_s **) overlap3;
+  vrna_array(unsigned int)         min_c;
 
   int *A;
   int *B;
@@ -182,6 +183,7 @@ vrna_sc_xl_load(vrna_fold_compound_t  *fc,
       data->regions       = regions;
       data->overlap5      = NULL;
       data->overlap3      = NULL;
+      data->min_c         = NULL;
       fc->sc->xlink_data  = (void *)data;
       fc->params->model_details.uniq_ML = 1;
 
@@ -225,13 +227,19 @@ vrna_sc_xl_prepare(vrna_fold_compound_t  *fc)
       vrna_array_free(dat->overlap3);
     }
 
+    if (dat->min_c)
+      vrna_array_free(dat->min_c);
+
     /* initialize memory for overlap entries */
     vrna_array_init_size(dat->overlap5, fc->length + 1);
     vrna_array_init_size(dat->overlap3, fc->length + 1);
+    vrna_array_init_size(dat->min_c, fc->length + 1);
+
 
     for (unsigned int i = 0; i <= fc->length; i++) {
-      dat->overlap5[i] = NULL;
-      dat->overlap3[i] = NULL;
+      dat->overlap5[i]  = NULL;
+      dat->overlap3[i]  = NULL;
+      dat->min_c[i]     = fc->length + 1;
     }
 
     /* ref-fill overlap entries */
@@ -243,6 +251,9 @@ vrna_sc_xl_prepare(vrna_fold_compound_t  *fc)
           vrna_array_init(dat->overlap5[i]);
 
         vrna_array_append(dat->overlap5[i], r);
+
+        /* collect minimal position for start of I' given that i overlaps with I */
+        dat->min_c[i] = MIN2(dat->min_c[i], r->c);
       }
 
       for (unsigned int j = r->c; j <= r->d; j++) {
@@ -251,6 +262,7 @@ vrna_sc_xl_prepare(vrna_fold_compound_t  *fc)
 
         vrna_array_append(dat->overlap3[j], r);
       }
+
     }
 
     dat->A = (int *)vrna_alloc(sizeof(int) * (fc->length + 1));
@@ -1129,8 +1141,16 @@ mfe_M2_xlink(vrna_fold_compound_t         *fc,
           e = MIN2(e, decomp);
         }
       }
+    }
+  }
 
-      /* now, all cases where we allow for base pairs that cross the first interval boundary */
+  /* now, all cases where we allow for base pairs that cross the first interval boundary */
+  for (size_t cnt = 0; cnt < vrna_array_size(dat->overlap5[i]); cnt++) {
+    interact_region_s *r = dat->overlap5[i][cnt];
+    if ((r->c <= j) &&
+        (r->d >= j)) {
+
+      k = r->b;
       decomp = A[q];
       e = MIN2(e, decomp);
 
