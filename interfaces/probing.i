@@ -2,7 +2,9 @@
 /* BEGIN interface for structure probing      */
 /* derived constraints                        */
 /**********************************************/
+#ifdef SWIGPYTHON
 %include  callbacks-probing-data.i
+#endif
 
 %rename(probing_data) vrna_probing_data_s;
 
