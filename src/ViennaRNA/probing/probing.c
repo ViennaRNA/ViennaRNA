@@ -25,13 +25,34 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/probing/basic.h"
+#include "ViennaRNA/probing/transform.h"
 
 
 #define gaussian(u) (1 / (sqrt(2 * PI)) * exp(-u * u / 2))
 
 
+#define VRNA_PROBING_STRATEGY_UP      1U
+#define VRNA_PROBING_STRATEGY_BP      2U
+#define VRNA_PROBING_STRATEGY_STACK   4U
+
+
+typedef float *(*vrna_probing_strategy_f)(const float *data,
+                                          size_t       data_size,
+                                          void         *options);
+
+
 struct vrna_probing_data_s {
-  unsigned int method;
+  unsigned int              method;
+  vrna_array(float *)                   raw_data;  /* actual data */
+
+  vrna_array(vrna_probing_strategy_f)   cbs_stack;
+  vrna_array(vrna_probing_strategy_f)   cbs_up;
+  vrna_array(vrna_probing_strategy_f)   cbs_bp;
+
+  vrna_array(void *)                    cbs_stack_options;
+  vrna_array(void *)                    cbs_up_options;
+  vrna_array(void *)                    cbs_bp_options;
+
   vrna_array(double)    params1;
   vrna_array(double)    params2;
   vrna_array(double *)  reactivities;
@@ -154,6 +175,15 @@ sc_parse_parameters(const char  *string,
                     char        c2,
                     float       *v1,
                     float       *v2);
+
+
+PRIVATE vrna_probing_strategy_f
+get_cb_stack_default(void);
+
+
+PRIVATE void *
+get_cb_stack_options_default(void);
+
 
 /*
  #################################
@@ -672,66 +702,64 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
 }
 
 
-PUBLIC double **
-vrna_probing_data_load_n_distribute(unsigned int  n_seq,
-                                    unsigned int  *ns,
-                                    const char    **sequences,
-                                    const char    **file_names,
-                                    const int     *file_name_association,
-                                    unsigned int  options)
+PUBLIC vrna_probing_data_t
+vrna_probing_data_stack_comparative(const double              **reactivities,
+                                    const unsigned int        *n,
+                                    unsigned int              n_seq,
+                                    vrna_probing_strategy_f   *strategy_cbs,
+                                    void                      **strategy_cbs_options)
 {
-  char          *sequence;
-  unsigned int  s, ss;
-  double        *values, **r;
+  struct vrna_probing_data_s  *d = NULL;
 
-  r = NULL;
+  if ((reactivities) &&
+      (n) &&
+      (n_seq)) {
 
-  if ((ns) &&
-      (file_names) &&
-      (file_name_association)) {
-    r = (double **)vrna_alloc(sizeof(double *) * n_seq);
+    d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
 
-    for (s = 0; file_name_association[s] >= 0; s++) {
-      ss = file_name_association[s]; /* actual sequence number in alignment */
+    vrna_array_init_size(d->raw_data, n_seq);
+    vrna_array_init_size(d->cbs_stack, n_seq);
+    vrna_array_init_size(d->cbs_stack_options, n_seq);
 
-      if (ss >= n_seq) {
-        vrna_log_warning("Failed to associate probing data file \"%s\" with sequence %d in alignment! "
-                         "Omitting data since alignment has only %d sequences!",
-                         file_names[s],
-                         ss,
-                         n_seq);
-        continue;
-      }
+    d->cbs_up         = NULL;
+    d->cbs_bp         = NULL;
+    d->cbs_up_options = NULL;
+    d->cbs_bp_options = NULL;
 
-      sequence  = vrna_alloc(sizeof(char) * (ns[ss] + 1));
-      values    = vrna_alloc(sizeof(double) * (ns[ss] + 1));
+    for (size_t i = 0; i < n_seq; i++) {
+      if ((reactivities[i]) &&
+          (n[i])) {
+        /* init and store raw probing data */
+        vrna_array(float)  a;
+        vrna_array_init_size(a, n[i] + 1);
+        for (size_t j = 0; j <= n[i]; j++)
+          vrna_array_append(a, (float)reactivities[i][j]);
 
-      if (vrna_file_SHAPE_read(file_names[s], ns[ss], -1, sequence, values)) {
-        r[ss] = values;
+        vrna_array_append(d->raw_data, a);
 
-        if ((sequence) &&
-            (sequences) &&
-            (options & VRNA_PROBING_DATA_CHECK_SEQUENCE)) {
-          /* double check information by comparing the sequence read from */
-          if (strcmp(sequence, sequences[ss]))
-            vrna_log_warning("Input sequence %d differs from sequence provided via probing data file!\n%s\n%s",
-                             file_name_association[s] + 1,
-                             sequences[ss],
-                             sequence);
+        /* set corresponding conversion strategy */
+        if ((strategy_cbs) &&
+            (strategy_cbs[i])) {
+          vrna_array_append(d->cbs_stack, strategy_cbs[i]);
 
+          if (strategy_cbs_options)
+            vrna_array_append(d->cbs_stack_options, strategy_cbs_options[i]);
+          else
+            vrna_array_append(d->cbs_stack_options, NULL);
+        } else {
+          /* use default strategy */
+          vrna_array_append(d->cbs_stack, get_cb_stack_default());
+          vrna_array_append(d->cbs_stack_options, get_cb_stack_options_default());
         }
       } else {
-        vrna_log_warning("Failed to open probing data file \"%d\"! "
-                         "No data will be used for sequence %d.",
-                         s,
-                         ss + 1);
+        vrna_array_append(d->raw_data, NULL);
+        vrna_array_append(d->cbs_stack, NULL);
+        vrna_array_append(d->cbs_stack_options, NULL);
       }
-
-      free(sequence);
     }
   }
 
-  return r;
+  return d;
 }
 
 
@@ -1220,4 +1248,27 @@ sc_parse_parameters(const char  *string,
   }
 
   free(fmt);
+}
+
+
+typedef struct {
+  float                     m;
+  float                     b;
+  vrna_probing_transform_f  cb_trans;
+  void                      *cb_trans_options;
+} deigan_params;
+
+
+PRIVATE vrna_probing_strategy_f
+get_cb_stack_default(void)
+{
+
+  return NULL;
+}
+
+PRIVATE void *
+get_cb_stack_options_default(void)
+{
+
+  return NULL;
 }

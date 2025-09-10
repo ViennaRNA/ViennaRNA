@@ -42,6 +42,7 @@
 #include "gengetopt_helpers.h"
 #include "input_id_helpers.h"
 #include "parallel_helpers.h"
+#include "probing_data_helpers.h"
 
 #define DBL_ROUND(a, digits) (round((a) * pow(10., (double)(digits))) / pow(10., (double)(digits)))
 

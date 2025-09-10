@@ -16,7 +16,8 @@ noinst_LTLIBRARIES =  libhelpers.la
 libhelpers_la_SOURCES = gengetopt_helpers.c \
                         input_id_helpers.c \
                         modified_bases_helpers.c \
-                        parallel_helpers.c
+                        parallel_helpers.c \
+                        probing_data_helpers.c
 
 libhelpers_la_LDFLAGS = \
         -avoid-version \
@@ -51,6 +52,7 @@ noinst_HEADERS = \
         input_id_helpers.h \
         modified_bases_helpers.h \
         parallel_helpers.h \
+        probing_data_helpers.h \
         $(top_srcdir)/src/cthreadpool/thpool.h
 
 SUFFIXES = _cmdl.c _cmdl.h .ggo

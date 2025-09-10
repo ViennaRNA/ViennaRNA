@@ -368,6 +368,64 @@ flag
 off
 dependon="constraint"
 
+option  "motif"   -
+"Specify stabilizing energy of a ligand binding to a particular sequence/structure motif.\n"
+details="Some ligands binding to RNAs require and/or induce particular sequence and structure motifs. For\
+ instance they bind to an internal loop, or small hairpin loop. If for such cases a binding free energy is\
+ known, the binding and therefore stabilizing effect of the ligand can be included in the folding recursions.\
+ Interior loop motifs are specified as concatenations of 5' and 3' motif, separated by an '&' character.\n\
+ Energy contributions must be specified in kcal/mol.\nSee the manpage for an example usage of this option.\n\n"
+string
+typestr="SEQUENCE,STRUCTURE,ENERGY"
+optional
+hidden
+
+option  "commands"   -
+"Read additional commands from file\n"
+details="Commands include hard and soft constraints, but also structure motifs in hairpin and internal\
+ loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
+ domains.\n\n"
+string
+typestr="filename"
+optional
+hidden
+
+
+section "Structure Probing Data"
+sectiondesc="Various implementations to guide the structure prediction with the help of additional\
+ (experimental) RNA structure probing data, such as SHAPE, DMS, etc.\n\n"
+
+
+option  "probing-data"   -
+"Read structure probing data from an input file and guide the predictions accordingly.\n\n"
+string
+typestr="filename"
+multiple
+optional
+
+
+option  "probing-strategy" -
+"Select the strategy how the probing data is used to guide the structure predictions.\n\n"
+string
+typestr="method"
+dependon="probing-data"
+multiple
+default="D"
+optional
+hidden
+
+
+option  "probing-preprocess"  -
+"Specify if and how probing data should be pre-processed before it is integrated by the selected probing strategy.\n\n"
+string
+typestr="conversion"
+dependon="probing-data"
+multiple
+default="I"
+optional
+hidden
+
+
 option  "shape" -
 "Use SHAPE reactivity data to guide structure predictions.\n\n"
 string
@@ -411,27 +469,6 @@ typestr="method"
 default="O"
 optional
 
-option  "motif"   -
-"Specify stabilizing energy of a ligand binding to a particular sequence/structure motif.\n"
-details="Some ligands binding to RNAs require and/or induce particular sequence and structure motifs. For\
- instance they bind to an internal loop, or small hairpin loop. If for such cases a binding free energy is\
- known, the binding and therefore stabilizing effect of the ligand can be included in the folding recursions.\
- Interior loop motifs are specified as concatenations of 5' and 3' motif, separated by an '&' character.\n\
- Energy contributions must be specified in kcal/mol.\nSee the manpage for an example usage of this option.\n\n"
-string
-typestr="SEQUENCE,STRUCTURE,ENERGY"
-optional
-hidden
-
-option  "commands"   -
-"Read additional commands from file\n"
-details="Commands include hard and soft constraints, but also structure motifs in hairpin and internal\
- loops that need to be treeted differently. Furthermore, commands can be set for unstructured and structured\
- domains.\n\n"
-string
-typestr="filename"
-optional
-hidden
 
 
 section "Energy Parameters"

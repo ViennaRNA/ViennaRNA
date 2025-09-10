@@ -24,6 +24,7 @@
 #include "ViennaRNA/params/basic.h"
 #include "ViennaRNA/probing/basic.h"
 
+#include "ViennaRNA/probing/transform.h"
 
 
 /*
@@ -49,7 +50,7 @@
 PRIVATE FLT_OR_DBL *
 reactivity_transform(unsigned int n,
                      const double *reactivity,
-                     double (*trans) (double, void*),
+                     vrna_probing_transform_f trans,
                      void *options);
 
 
@@ -86,8 +87,8 @@ reactivity_trans_log1p(double r, void *options);
  #################################
  */
 
-PUBLIC double
-(*vrna_reactivity_trans_default(unsigned int flag))(double, void*)
+PUBLIC vrna_probing_transform_f
+vrna_reactivity_trans_default(unsigned int flag)
 {
   switch (flag) {
     case VRNA_PROBING_METHOD_EDDY2014_2:
@@ -97,8 +98,8 @@ PUBLIC double
 }
 
 
-PUBLIC double
-(*vrna_reactivity_trans_method(unsigned int flag))(double, void*)
+PUBLIC vrna_probing_transform_f
+vrna_reactivity_trans_method(unsigned int flag)
 {
   switch (flag) {
     case VRNA_REACTIVITY_TRANS_DEFAULT:
@@ -119,7 +120,7 @@ PUBLIC double
 PUBLIC FLT_OR_DBL *
 vrna_reactivity_transform(unsigned int n,
                           const double *reactivity,
-                          double (*trans) (double, void*),
+                          vrna_probing_transform_f trans,
                           void *options)
 {
   /* init the transformed reactivity array */

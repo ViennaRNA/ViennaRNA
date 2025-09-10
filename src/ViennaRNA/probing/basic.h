@@ -520,16 +520,6 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
                     double      default_value);
 
 
-double **
-vrna_probing_data_load_n_distribute(unsigned int  n_seq,
-                                    unsigned int  *ns,
-                                    const char    **sequences,
-                                    const char    **file_names,
-                                    const int     *file_name_association,
-                                    unsigned int  options);
-
-
-
 double
 (*vrna_reactivity_trans_default(unsigned int flag))(double, void*);
 

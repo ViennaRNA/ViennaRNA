@@ -233,30 +233,6 @@ set_salt_DNA(vrna_md_t *md);
 
 
 /*
- * HELPER MACRO FOR SHAPE REACTIVITY DATA INCORPORATION
- */
-
-#define ggo_get_SHAPE(ggostruct, \
-                      SHAPE_switch, \
-                      SHAPE_files, \
-                      SHAPE_method, \
-                      SHAPE_conversion)  { \
-    /* SHAPE reactivity data */ \
-    if (ggostruct.shape_given) { \
-      SHAPE_switch = 1; \
-      SHAPE_files = strdup(ggostruct.shape_arg); \
-      SHAPE_method = strdup(ggostruct.shapeMethod_arg); \
-      SHAPE_conversion = strdup(ggostruct.shapeConversion_arg); \
-    } else { \
-      SHAPE_switch = 0; \
-      SHAPE_files = NULL; \
-      SHAPE_method = NULL; \
-      SHAPE_conversion = NULL; \
-    } \
-  }
-
-
-/*
  * HELPER FUNCTIONS FOR AUTO-ID FEATURE
  */
 
