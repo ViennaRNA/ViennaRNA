@@ -270,7 +270,9 @@ vrna_constraints_HEADERS = \
 
 vrna_probing_HEADERS = \
     probing/basic.h \
-    probing/SHAPE.h
+    probing/SHAPE.h \
+    probing/transform.h \
+    probing/strategies.h
 
 
 vrna_loops_HEADERS = \
@@ -511,6 +513,7 @@ libRNA_constraints_la_SOURCES = \
 libRNA_probing_la_SOURCES = \
     probing/probing.c \
     probing/transform.c \
+    probing/strategy_deigan.c \
     probing/SHAPE.c
 
 

@@ -26,24 +26,16 @@
 #include "ViennaRNA/constraints/soft.h"
 #include "ViennaRNA/probing/basic.h"
 #include "ViennaRNA/probing/transform.h"
+#include "ViennaRNA/probing/strategies.h"
 
 
 #define gaussian(u) (1 / (sqrt(2 * PI)) * exp(-u * u / 2))
 
 
-#define VRNA_PROBING_STRATEGY_UP      1U
-#define VRNA_PROBING_STRATEGY_BP      2U
-#define VRNA_PROBING_STRATEGY_STACK   4U
-
-
-typedef float *(*vrna_probing_strategy_f)(const float *data,
-                                          size_t       data_size,
-                                          void         *options);
-
-
 struct vrna_probing_data_s {
   unsigned int              method;
-  vrna_array(float *)                   raw_data;  /* actual data */
+  vrna_array(double *)                  raw_data;   /* actual data */
+  vrna_array(double)                    weights;    /* weights for each data set */
 
   vrna_array(vrna_probing_strategy_f)   cbs_stack;
   vrna_array(vrna_probing_strategy_f)   cbs_up;
@@ -52,6 +44,10 @@ struct vrna_probing_data_s {
   vrna_array(void *)                    cbs_stack_options;
   vrna_array(void *)                    cbs_up_options;
   vrna_array(void *)                    cbs_bp_options;
+
+  vrna_array(vrna_auxdata_free_f)       cbs_stack_options_free;
+  vrna_array(vrna_auxdata_free_f)       cbs_up_options_free;
+  vrna_array(vrna_auxdata_free_f)       cbs_bp_options_free;
 
   vrna_array(double)    params1;
   vrna_array(double)    params2;
@@ -79,6 +75,14 @@ struct vrna_probing_data_s {
  # PRIVATE FUNCTION DECLARATIONS #
  #################################
  */
+PRIVATE void
+nullify_probing_data_s(struct vrna_probing_data_s *data);
+
+
+PRIVATE int
+apply_probing_data(vrna_fold_compound_t        *fc,
+                   struct vrna_probing_data_s  *data);
+
 PRIVATE int
 apply_Deigan2009_method(vrna_fold_compound_t        *fc,
                         struct vrna_probing_data_s  *data);
@@ -99,9 +103,9 @@ apply_Eddy2014_method(vrna_fold_compound_t        *fc,
                       struct vrna_probing_data_s  *data);
 
 
-PRIVATE FLT_OR_DBL
-get_msa_weight(unsigned int n_seq,
-               double       **datasets);
+PRIVATE double
+get_msa_weight(const double **datasets,
+               unsigned int data_size);
 
 
 PRIVATE FLT_OR_DBL
@@ -185,6 +189,10 @@ PRIVATE void *
 get_cb_stack_options_default(void);
 
 
+PRIVATE vrna_auxdata_free_f
+get_cb_stack_options_free_default(void);
+
+
 /*
  #################################
  # BEGIN OF FUNCTION DEFINITIONS #
@@ -197,6 +205,9 @@ vrna_sc_probing(vrna_fold_compound_t  *fc,
   int ret = 0;
 
   if ((fc) && (data)) {
+#if 1
+    return apply_probing_data(fc, data);
+#else
     switch (data->method) {
       case VRNA_PROBING_METHOD_DEIGAN2009:
         ret = apply_Deigan2009_method(fc, data);
@@ -217,22 +228,165 @@ vrna_sc_probing(vrna_fold_compound_t  *fc,
       default:
         break;
     }
+#endif
   }
 
   return ret;
 }
 
 
+PUBLIC vrna_probing_data_t
+vrna_probing_data_stack(const double              *data,
+                        unsigned int              data_length,
+                        double                    data_weight,
+                        vrna_probing_strategy_f   strategy_cb,
+                        void                      *strategy_cb_options,
+                        vrna_auxdata_free_f       strategy_cb_options_free)
+{
+  struct vrna_probing_data_s  *d = NULL;
+
+  if (data) {
+    return vrna_probing_data_stack_multi(&data,
+                                         1,
+                                         &data_length,
+                                         &data_weight,
+                                         &strategy_cb,
+                                         &strategy_cb_options,
+                                         &strategy_cb_options_free,
+                                         VRNA_PROBING_DATA_DEFAULT);
+  }
+
+  return d;
+}
+
+
+PUBLIC vrna_probing_data_t
+vrna_probing_data_stack_multi(const double              **data,
+                              unsigned int              data_size,
+                              const unsigned int        *data_lengths,
+                              const double              *data_weights,
+                              vrna_probing_strategy_f   *strategy_cbs,
+                              void                      **strategy_cbs_options,
+                              vrna_auxdata_free_f       *strategy_cbs_options_free,
+                              unsigned int              options)
+{
+  double                      weight = 1.0;
+  struct vrna_probing_data_s  *d = NULL;
+  vrna_probing_strategy_f   cb;
+  void                      *cb_options;
+  vrna_auxdata_free_f       cb_options_free;
+
+  if ((data) &&
+      (data_lengths) &&
+      (data_size)) {
+
+    d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
+
+    nullify_probing_data_s(d);
+
+    vrna_array_init_size(d->raw_data, data_size);
+    vrna_array_init_size(d->weights,  data_size);
+    vrna_array_init_size(d->cbs_stack, data_size);
+    vrna_array_init_size(d->cbs_stack_options, data_size);
+    vrna_array_init_size(d->cbs_stack_options_free, data_size);
+
+    if (options & VRNA_PROBING_DATA_SINGLE_STRATEGY) {
+      if (strategy_cbs) {
+        cb              = strategy_cbs[0];
+        cb_options      = (strategy_cbs_options) ? strategy_cbs_options[0] : NULL;
+        cb_options_free = (strategy_cbs_options_free) ? strategy_cbs_options_free[0] : NULL;
+      } else {
+        cb              = get_cb_stack_default();
+        cb_options      = get_cb_stack_options_default();
+        cb_options_free = get_cb_stack_options_free_default();
+      }
+    }
+
+    if (options & VRNA_PROBING_DATA_SINGLE_WEIGHT) {
+      if (data_weights) {
+        weight = data_weights[0];
+      } else {
+        weight = get_msa_weight(data, data_size);
+      }
+    } else if (!(data_weights)) {
+      weight = get_msa_weight(data, data_size);
+    }
+
+    for (size_t i = 0; i < data_size; i++) {
+      if ((data[i]) &&
+          (data_lengths[i])) {
+        /* init and store raw probing data */
+        vrna_array(double)  a;
+        vrna_array_init_size(a, data_lengths[i] + 1);
+        for (size_t j = 0; j <= data_lengths[i]; j++)
+          vrna_array_append(a, data[i][j]);
+
+        vrna_array_append(d->raw_data, a);
+
+        /* store weight for this data set */
+        if (options & VRNA_PROBING_DATA_SINGLE_WEIGHT) {
+          vrna_array_append(d->weights, weight);
+        } else {
+          vrna_array_append(d->weights, (data_weights) ? data_weights[i] : weight);
+        }
+
+        /* set corresponding conversion strategy */
+        if (options & VRNA_PROBING_DATA_SINGLE_STRATEGY) {
+          vrna_array_append(d->cbs_stack, cb);
+          vrna_array_append(d->cbs_stack_options, cb_options);
+          vrna_array_append(d->cbs_stack_options_free, cb_options_free);
+        } else if ((strategy_cbs) &&
+                   (strategy_cbs[i])) {
+          vrna_array_append(d->cbs_stack, strategy_cbs[i]);
+
+          if (strategy_cbs_options)
+            vrna_array_append(d->cbs_stack_options, strategy_cbs_options[i]);
+          else
+            vrna_array_append(d->cbs_stack_options, NULL);
+
+          if (strategy_cbs_options_free)
+            vrna_array_append(d->cbs_stack_options_free, strategy_cbs_options_free[i]);
+          else
+            vrna_array_append(d->cbs_stack_options_free, NULL);
+        } else {
+          /* use default strategy */
+          vrna_array_append(d->cbs_stack, get_cb_stack_default());
+          vrna_array_append(d->cbs_stack_options, get_cb_stack_options_default());
+          vrna_array_append(d->cbs_stack_options_free, get_cb_stack_options_free_default());
+        }
+      } else {
+        vrna_array_append(d->raw_data, NULL);
+        vrna_array_append(d->weights, 0.);
+        vrna_array_append(d->cbs_stack, NULL);
+        vrna_array_append(d->cbs_stack_options, NULL);
+        vrna_array_append(d->cbs_stack_options_free, NULL);
+      }
+    }
+  }
+
+  return d;
+}
+
 PUBLIC struct vrna_probing_data_s *
-vrna_probing_data_Deigan2009(const double *reactivities,
-                             unsigned int n,
-                             double       m,
-                             double       b,
-                             double       (*trans) (double, void*),
-                             void         *options)
+vrna_probing_data_Deigan2009(const double             *reactivities,
+                             unsigned int             n,
+                             double                   m,
+                             double                   b,
+                             vrna_probing_transform_f trans,
+                             void                     *trans_options)
 {
   struct vrna_probing_data_s *d = NULL;
 
+#if 1
+  if (reactivities) {
+    return vrna_probing_data_stack(reactivities,
+                                   n,
+                                   1.,
+                                   vrna_probing_strategy_deigan,
+                                   vrna_probing_strategy_deigan_options(m, b, trans, trans_options),
+                                   free);
+  }
+#else
   if (reactivities)
     d = vrna_probing_data_Deigan2009_comparative(&reactivities,
                                                  &n,
@@ -242,6 +396,7 @@ vrna_probing_data_Deigan2009(const double *reactivities,
                                                  VRNA_PROBING_METHOD_MULTI_PARAMS_0,
                                                  trans,
                                                  options);
+#endif
 
   return d;
 }
@@ -254,12 +409,66 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
                                          double             *ms,
                                          double             *bs,
                                          unsigned int       multi_params,
-                                         double             (*trans) (double, void*),
-                                         void               *options)
+                                         vrna_probing_transform_f trans,
+                                         void                     *trans_options)
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      m, b;
+  vrna_array(vrna_probing_strategy_f)   cbs_stack;
+  vrna_array(void *)                    cbs_stack_options;
+  vrna_array(vrna_auxdata_free_f)       cbs_stack_options_free;
 
+#if 1
+  if ((reactivities) &&
+      (n)) {
+
+    m = (ms) ? *ms : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
+    b = (bs) ? *bs : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
+
+    if (((ms == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)) ||
+        ((bs == NULL) && (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2))) {
+      /* if multi_params != 0, either ms or bs or both must be provided! */
+      return d;
+    }
+
+    /* prepare callback arrays */
+    vrna_array_init_size(cbs_stack, n_seq);
+    vrna_array_init_size(cbs_stack_options, n_seq);
+    vrna_array_init_size(cbs_stack_options_free, n_seq);
+
+    /* fill callback vectors */
+    for (size_t i = 0; i < n_seq; i++) {
+      if (reactivities[i]) {
+        if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_1)
+          m = ms[i];
+
+        if (multi_params & VRNA_PROBING_METHOD_MULTI_PARAMS_2)
+          b = bs[i];
+
+        vrna_array_append(cbs_stack, vrna_probing_strategy_deigan);
+        vrna_array_append(cbs_stack_options, vrna_probing_strategy_deigan_options(m, b, trans, trans_options));
+        vrna_array_append(cbs_stack_options_free, free);
+      } else {
+        vrna_array_append(cbs_stack, NULL);
+        vrna_array_append(cbs_stack_options, NULL);
+        vrna_array_append(cbs_stack_options_free, NULL);
+      }
+    }
+
+    d = vrna_probing_data_stack_multi(reactivities,
+                                      n_seq,
+                                      n,
+                                      NULL,
+                                      cbs_stack,
+                                      cbs_stack_options,
+                                      cbs_stack_options_free,
+                                      VRNA_PROBING_DATA_DEFAULT);
+
+    vrna_array_free(cbs_stack);
+    vrna_array_free(cbs_stack_options);
+    vrna_array_free(cbs_stack_options_free);
+  }
+#else
   if ((reactivities) && (n)) {
     m = (ms) ? *ms : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m;
     b = (bs) ? *bs : VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b;
@@ -271,6 +480,8 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
     }
 
     d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
+
+    nullify_probing_data_s(d);
 
     d->method = VRNA_PROBING_METHOD_DEIGAN2009;
     vrna_array_init_size(d->params1, n_seq);
@@ -309,6 +520,8 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
     vrna_array_init(d->datas1);
     vrna_array_init(d->datas2);
   }
+
+#endif
 
   return d;
 }
@@ -369,6 +582,8 @@ vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
     }
 
     d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
+
+    nullify_probing_data_s(d);
 
     d->method = VRNA_PROBING_METHOD_ZARRINGHALAM2012;
     vrna_array_init_size(d->params1, n_seq);
@@ -477,6 +692,8 @@ vrna_probing_data_Eddy2014_2_comparative(const double **reactivities,
       (paired_datas[0])) {
     d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
 
+    nullify_probing_data_s(d);
+
     d->method = VRNA_PROBING_METHOD_EDDY2014_2;
     vrna_array_init(d->params1);
     vrna_array_init(d->params2);
@@ -567,11 +784,15 @@ vrna_probing_data_free(struct vrna_probing_data_s *d)
 {
   if (d) {
     /* free all reactivity data */
-    for (unsigned int i = 0; i < vrna_array_size(d->reactivities); i++) {
-      vrna_array_free(d->reactivities[i]);
-      vrna_array_free(d->transformeds[i]);
+    if (d->reactivities) {
+      for (unsigned int i = 0; i < vrna_array_size(d->reactivities); i++) {
+        vrna_array_free(d->reactivities[i]);
+        vrna_array_free(d->transformeds[i]);
+      }
+
+      vrna_array_free(d->reactivities);
     }
-    vrna_array_free(d->reactivities);
+
     vrna_array_free(d->transformeds);
 
     /* free parameters */
@@ -579,15 +800,19 @@ vrna_probing_data_free(struct vrna_probing_data_s *d)
     vrna_array_free(d->params2);
 
     /* free auxiliary data */
-    for (unsigned int i = 0; i < vrna_array_size(d->datas1); i++)
-      vrna_array_free(d->datas1[i]);
+    if (d->datas1) {
+      for (unsigned int i = 0; i < vrna_array_size(d->datas1); i++)
+        vrna_array_free(d->datas1[i]);
 
-    vrna_array_free(d->datas1);
+      vrna_array_free(d->datas1);
+    }
 
-    for (unsigned int i = 0; i < vrna_array_size(d->datas2); i++)
-      vrna_array_free(d->datas2[i]);
+    if (d->datas2) {
+      for (unsigned int i = 0; i < vrna_array_size(d->datas2); i++)
+        vrna_array_free(d->datas2[i]);
 
-    vrna_array_free(d->datas2);
+      vrna_array_free(d->datas2);
+    }
 
     free(d);
   }
@@ -702,65 +927,6 @@ vrna_sc_SHAPE_to_pr(const char  *shape_conversion,
 }
 
 
-PUBLIC vrna_probing_data_t
-vrna_probing_data_stack_comparative(const double              **reactivities,
-                                    const unsigned int        *n,
-                                    unsigned int              n_seq,
-                                    vrna_probing_strategy_f   *strategy_cbs,
-                                    void                      **strategy_cbs_options)
-{
-  struct vrna_probing_data_s  *d = NULL;
-
-  if ((reactivities) &&
-      (n) &&
-      (n_seq)) {
-
-    d = (struct vrna_probing_data_s *)vrna_alloc(sizeof(struct vrna_probing_data_s));
-
-    vrna_array_init_size(d->raw_data, n_seq);
-    vrna_array_init_size(d->cbs_stack, n_seq);
-    vrna_array_init_size(d->cbs_stack_options, n_seq);
-
-    d->cbs_up         = NULL;
-    d->cbs_bp         = NULL;
-    d->cbs_up_options = NULL;
-    d->cbs_bp_options = NULL;
-
-    for (size_t i = 0; i < n_seq; i++) {
-      if ((reactivities[i]) &&
-          (n[i])) {
-        /* init and store raw probing data */
-        vrna_array(float)  a;
-        vrna_array_init_size(a, n[i] + 1);
-        for (size_t j = 0; j <= n[i]; j++)
-          vrna_array_append(a, (float)reactivities[i][j]);
-
-        vrna_array_append(d->raw_data, a);
-
-        /* set corresponding conversion strategy */
-        if ((strategy_cbs) &&
-            (strategy_cbs[i])) {
-          vrna_array_append(d->cbs_stack, strategy_cbs[i]);
-
-          if (strategy_cbs_options)
-            vrna_array_append(d->cbs_stack_options, strategy_cbs_options[i]);
-          else
-            vrna_array_append(d->cbs_stack_options, NULL);
-        } else {
-          /* use default strategy */
-          vrna_array_append(d->cbs_stack, get_cb_stack_default());
-          vrna_array_append(d->cbs_stack_options, get_cb_stack_options_default());
-        }
-      } else {
-        vrna_array_append(d->raw_data, NULL);
-        vrna_array_append(d->cbs_stack, NULL);
-        vrna_array_append(d->cbs_stack_options, NULL);
-      }
-    }
-  }
-
-  return d;
-}
 
 
 /*
@@ -768,6 +934,111 @@ vrna_probing_data_stack_comparative(const double              **reactivities,
  # BEGIN OF STATIC HELPER FUNCTIONS  #
  #####################################
  */
+PRIVATE int
+apply_probing_data(vrna_fold_compound_t        *fc,
+                   struct vrna_probing_data_s  *data)
+{
+  unsigned int  i, s, n, **a2s;
+  int           ret, num_data;
+  FLT_OR_DBL    *vs, **cvs, weight;
+  double        *e;
+
+  ret       = 0;
+  num_data  = 0;
+  n         = fc->length;
+#if 1
+  if ((data->raw_data) &&
+      (vrna_array_size(data->raw_data) > 0)) {
+    ret = 1;
+
+    switch (fc->type) {
+      case VRNA_FC_TYPE_SINGLE:
+        if (vrna_array_size(data->raw_data) > 1)
+          vrna_log_warning("Multiple probing data (%u) for single sequence",
+                           vrna_array_size(data->raw_data));
+
+        if (vrna_array_size(data->raw_data[0]) > 0) {
+          if ((size_t)vrna_array_size(data->raw_data[0]) != (size_t)(fc->length + 1))
+            vrna_log_warning("Length of probing data (%u) doesn't match length of sequence (%u)",
+                             vrna_array_size(data->raw_data[0]) - 1,
+                             fc->length);
+
+          e = data->cbs_stack[0](data->raw_data[0],
+                                 vrna_array_size(data->raw_data[0]) - 1,
+                                 data->cbs_stack_options[0]) *
+              data->weights[0];
+
+          for (i = 1; i <= n; ++i)
+            ret &= vrna_sc_add_stack(fc,
+                                     i,
+                                     e[i],
+                                     VRNA_OPTION_DEFAULT);
+
+          free(e);
+        } else {
+          vrna_log_warning("Zero-length probing data vector");
+        }
+
+        break;
+
+      case VRNA_FC_TYPE_COMPARATIVE:
+        
+        break;
+    }
+  }
+#else
+  switch (fc->type) {
+    case VRNA_FC_TYPE_SINGLE:
+      if ((vrna_array_size(data->reactivities) > 0) &&
+          (n <= vrna_array_size(data->reactivities[0]))) {
+        ret = 1;
+
+        /* first convert the values according to provided slope and intercept values */
+        for (i = 1; i <= n; ++i)
+          ret &= vrna_sc_add_stack(fc,
+                                   i,
+                                   conversion_deigan(data->transformeds[0][i],
+                                                     data->params1[0],
+                                                     data->params2[0]),
+                                   VRNA_OPTION_DEFAULT);
+      }
+
+      break;
+
+    case VRNA_FC_TYPE_COMPARATIVE:
+      if (vrna_array_size(data->reactivities) >= fc->n_seq) {
+        a2s       = fc->a2s;
+        weight    = get_msa_weight(fc->n_seq, data->reactivities);
+        ret       = 1;
+
+        for (s = 0; s < fc->n_seq; s++) {
+          if (data->reactivities[s] != NULL) {
+            n = a2s[s][fc->length];
+            num_data++;
+
+            for (i = 1; i <= n; i++) {
+              ret &= vrna_sc_add_stack_comparative_seq(fc,
+                                                       s,
+                                                       i,
+                                                       conversion_deigan(data->transformeds[s][i],
+                                                                         data->params1[s],
+                                                                         data->params2[s]) *
+                                                       weight,
+                                                       VRNA_OPTION_DEFAULT);
+            }
+          }
+        }
+      }
+
+      if (ret)
+        ret = num_data;
+
+      break;
+  }
+#endif
+
+  return ret;
+}
 PRIVATE int
 apply_Deigan2009_method(vrna_fold_compound_t        *fc,
                         struct vrna_probing_data_s  *data)
@@ -801,7 +1072,7 @@ apply_Deigan2009_method(vrna_fold_compound_t        *fc,
     case VRNA_FC_TYPE_COMPARATIVE:
       if (vrna_array_size(data->reactivities) >= fc->n_seq) {
         a2s       = fc->a2s;
-        weight    = get_msa_weight(fc->n_seq, data->reactivities);
+        weight    = get_msa_weight((const double **)data->reactivities, fc->n_seq);
         ret       = 1;
 
         for (s = 0; s < fc->n_seq; s++) {
@@ -880,7 +1151,7 @@ apply_Zarringhalam2012_method(vrna_fold_compound_t        *fc,
         a2s = fc->a2s;
 
         /* compute weight for each set of probing data */
-        weight = get_msa_weight(fc->n_seq, data->reactivities);
+        weight = get_msa_weight((const double **)data->reactivities, fc->n_seq);
 
         ret = 1;
 
@@ -994,7 +1265,7 @@ apply_Eddy2014_method(vrna_fold_compound_t        *fc,
         ret = 1;
 
         /* compute weight for each set of probing data */
-        weight = get_msa_weight(fc->n_seq, data->reactivities);
+        weight = get_msa_weight((const double **)data->reactivities, fc->n_seq);
 
         kT *= weight;
 
@@ -1050,19 +1321,19 @@ apply_Eddy2014_method(vrna_fold_compound_t        *fc,
  *  by simply spreading-out the probing data contributions to
  *  all sequences where no probing data is provided for.
  */
-PRIVATE FLT_OR_DBL
-get_msa_weight(unsigned int n_seq,
-               double       **datasets)
+PRIVATE double
+get_msa_weight(const double **datasets,
+               unsigned int data_size)
 {
   unsigned int  s, n_data;
-  FLT_OR_DBL    weight = 0;
+  double        weight = 1.0;
 
-  for (n_data = s = 0; s < n_seq; s++)
+  for (n_data = s = 0; s < data_size; s++)
     if (datasets[s] != NULL)
       n_data++;
 
   if (n_data != 0)
-    weight = ((FLT_OR_DBL)n_seq / (FLT_OR_DBL)n_data);
+    weight = ((double)data_size / (double)n_data);
 
   return weight;
 }
@@ -1251,19 +1522,10 @@ sc_parse_parameters(const char  *string,
 }
 
 
-typedef struct {
-  float                     m;
-  float                     b;
-  vrna_probing_transform_f  cb_trans;
-  void                      *cb_trans_options;
-} deigan_params;
-
-
 PRIVATE vrna_probing_strategy_f
 get_cb_stack_default(void)
 {
-
-  return NULL;
+  return vrna_probing_strategy_deigan;
 }
 
 PRIVATE void *
@@ -1271,4 +1533,33 @@ get_cb_stack_options_default(void)
 {
 
   return NULL;
+}
+
+PRIVATE vrna_auxdata_free_f
+get_cb_stack_options_free_default(void)
+{
+  return NULL;
+}
+
+
+PRIVATE void
+nullify_probing_data_s(struct vrna_probing_data_s *data)
+{
+  data->method = 0;
+  data->raw_data = NULL;
+  data->cbs_stack = NULL;
+  data->cbs_up = NULL;
+  data->cbs_bp = NULL;
+  data->cbs_stack_options = NULL;
+  data->cbs_up_options = NULL;
+  data->cbs_bp_options = NULL;
+  data->cbs_stack_options_free = NULL;
+  data->cbs_up_options_free = NULL;
+  data->cbs_bp_options_free = NULL;
+  data->params1 = NULL;
+  data->params2 = NULL;
+  data->reactivities = NULL;
+  data->transformeds = NULL;
+  data->datas1 = NULL;
+  data->datas2 = NULL;
 }

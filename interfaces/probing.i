@@ -546,3 +546,5 @@ probing_data_Eddy2014_2_comparative(std::vector< std::vector<double> >  reactivi
 %constant unsigned int  REACTIVITY_TRANS_NEG_ZERO                           = VRNA_REACTIVITY_TRANS_NEG_ZERO;
 
 %include  <ViennaRNA/probing/basic.h>
+%include  <ViennaRNA/probing/strategies.h>
+%include  <ViennaRNA/probing/transform.h>

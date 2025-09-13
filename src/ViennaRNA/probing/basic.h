@@ -2,6 +2,7 @@
 #define VIENNA_RNA_PACKAGE_PROBING_H
 
 #include <ViennaRNA/fold_compound.h>
+#include <ViennaRNA/probing/strategies.h>
 
 /**
  *  @file     ViennaRNA/probing/basic.h
@@ -33,22 +34,6 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
  */
 #define VRNA_PROBING_METHOD_DEIGAN2009                            1U
 
-/**
- *  @brief  Default parameter for slope `m` as used in method of @rstinline :cite:t:`deigan:2009` @endrst
- *
- *  @see    vrna_probing_data_Deigan2009(), vrna_probing_data_Deigan2009_comparative(),
- *          #VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b
- */
-#define VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m                  1.8
-
-
-/**
- *  @brief  Default parameter for intercept `b` as used in method of @rstinline :cite:t:`deigan:2009` @endrst
- *
- *  @see    vrna_probing_data_Deigan2009(), vrna_probing_data_Deigan2009_comparative(),
- *          #VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m
- */
-#define VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b                  -0.6
 
 
 /**
@@ -163,6 +148,12 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 
 #define VRNA_REACTIVITY_MISSING                                   -999.
 
+#define VRNA_PROBING_DATA_DEFAULT                                 0U
+#define VRNA_PROBING_DATA_MULTI_STRATEGY                          1U
+#define VRNA_PROBING_DATA_SINGLE_STRATEGY                         2U
+#define VRNA_PROBING_DATA_MULTI_WEIGHT                            4U
+#define VRNA_PROBING_DATA_SINGLE_WEIGHT                           8U
+
 /**
  *  @brief  Apply probing data (e.g. SHAPE) to guide the structure prediction
  *
@@ -178,6 +169,26 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 int
 vrna_sc_probing(vrna_fold_compound_t  *fc,
                 vrna_probing_data_t   data);
+
+
+vrna_probing_data_t
+vrna_probing_data_stack(const double              *data,
+                        unsigned int              data_length,
+                        double                    data_weight,
+                        vrna_probing_strategy_f   strategy_cb,
+                        void                      *strategy_cb_options,
+                        vrna_auxdata_free_f       strategy_cb_options_free);
+
+
+vrna_probing_data_t
+vrna_probing_data_stack_multi(const double              **data,
+                              unsigned int              data_size,
+                              const unsigned int        *data_lengths,
+                              const double              *data_weights,
+                              vrna_probing_strategy_f   *strategy_cbs,
+                              void                      **strategy_cbs_options,
+                              vrna_auxdata_free_f       *strategy_cbs_options_free,
+                              unsigned int              options);
 
 
 /**

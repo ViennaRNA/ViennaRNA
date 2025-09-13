@@ -117,22 +117,24 @@ vrna_reactivity_trans_method(unsigned int flag)
 }
 
 
-PUBLIC FLT_OR_DBL *
+PUBLIC double *
 vrna_reactivity_transform(unsigned int n,
                           const double *reactivity,
                           vrna_probing_transform_f trans,
                           void *options)
 {
   /* init the transformed reactivity array */
-  vrna_array(FLT_OR_DBL) a;
-  vrna_array_init_size(a, n + 1);
-  vrna_array_append(a, VRNA_REACTIVITY_MISSING);
-  for (unsigned int i = 1; i <= n; ++i) {
-    if (reactivity[i] == VRNA_REACTIVITY_MISSING)
-      vrna_array_append(a, VRNA_REACTIVITY_MISSING);
-    else
-      vrna_array_append(a, trans(reactivity[i], options));
+  double *a = NULL;
+
+  if ((reactivity) &&
+      (trans)) {
+    a     = (double *)vrna_alloc(sizeof(double) * (n + 1));
+    a[0]  = VRNA_REACTIVITY_MISSING;
+
+    for (size_t i = 1; i <= n; ++i)
+      a[i] = (reactivity[i] == VRNA_REACTIVITY_MISSING) ? VRNA_REACTIVITY_MISSING : trans(reactivity[i], options);
   }
+
   return a;
 }
 
