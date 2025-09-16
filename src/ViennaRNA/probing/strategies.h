@@ -54,6 +54,23 @@ vrna_probing_strategy_deigan_options(double                   m,
                                      void                     *cb_preprocess_opt);
 
 
+double *
+vrna_probing_strategy_zarringhalam_up(const double *data,
+                                      size_t       data_size,
+                                      void         *options);
+
+
+void *
+vrna_probing_strategy_zarringhalam_options(double                   beta,
+                                           vrna_probing_transform_f cb_preprocess,
+                                           void                     *cb_preprocess_opt,
+                                           vrna_auxdata_free_f      cb_preprocess_opt_free);
+
+
+void
+vrna_probing_strategy_zarringhalam_options_free(void *option);
+
+
 /**
  *  @}
  */

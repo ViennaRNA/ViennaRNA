@@ -23,6 +23,8 @@ typedef   double (*vrna_probing_transform_f) (double,
 #define VRNA_REACTIVITY_TRANS_NEG_IGNORE                          2U
 #define VRNA_REACTIVITY_TRANS_NEG_ZERO                            3U
 #define VRNA_REACTIVITY_TRANS_LOG1P                               4U
+#define VRNA_REACTIVITY_TRANS_LINEAR_MODEL                        5U
+#define VRNA_REACTIVITY_TRANS_LINEAR_LOG_MODEL                    6U
 
 
 #define VRNA_REACTIVITY_MISSING                                   -999.

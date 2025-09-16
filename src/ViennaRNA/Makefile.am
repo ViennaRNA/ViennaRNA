@@ -514,6 +514,7 @@ libRNA_probing_la_SOURCES = \
     probing/probing.c \
     probing/transform.c \
     probing/strategy_deigan.c \
+    probing/strategy_zarringhalam.c \
     probing/SHAPE.c
 
 

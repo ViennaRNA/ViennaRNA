@@ -154,6 +154,10 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 #define VRNA_PROBING_DATA_MULTI_WEIGHT                            4U
 #define VRNA_PROBING_DATA_SINGLE_WEIGHT                           8U
 
+#define VRNA_PROBING_DATA_TARGET_STACK                            16U
+#define VRNA_PROBING_DATA_TARGET_UP                               32U
+#define VRNA_PROBING_DATA_TARGET_BP                               64U
+
 /**
  *  @brief  Apply probing data (e.g. SHAPE) to guide the structure prediction
  *
@@ -189,6 +193,26 @@ vrna_probing_data_stack_multi(const double              **data,
                               void                      **strategy_cbs_options,
                               vrna_auxdata_free_f       *strategy_cbs_options_free,
                               unsigned int              options);
+
+
+vrna_probing_data_t
+vrna_probing_data_up(const double              *data,
+                     unsigned int              data_length,
+                     double                    data_weight,
+                     vrna_probing_strategy_f   strategy_cb,
+                     void                      *strategy_cb_options,
+                     vrna_auxdata_free_f       strategy_cb_options_free);
+
+
+vrna_probing_data_t
+vrna_probing_data_up_multi(const double              **data,
+                           unsigned int              data_size,
+                           const unsigned int        *data_lengths,
+                           const double              *data_weights,
+                           vrna_probing_strategy_f   *strategy_cbs,
+                           void                      **strategy_cbs_options,
+                           vrna_auxdata_free_f       *strategy_cbs_options_free,
+                           unsigned int              options);
 
 
 /**
