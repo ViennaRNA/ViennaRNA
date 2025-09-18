@@ -43,32 +43,6 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 
 
 /**
- *  @brief  Default parameter `beta` as used in method of @rstinline :cite:t:`zarringhalam:2012` @endrst
- *
- *  @see    vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
- *          #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion, #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability
- */
-#define VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta         0.89
-
-
-/**
- *  @brief  Default conversion method of probing data into probabilities as used in method of @rstinline :cite:t:`zarringhalam:2012` @endrst
- *
- *  @see    vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
- *          #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta, #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability
- */
-#define VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion   "Os1.6i-2.29"
-
-
-/**
- *  @brief  Default probability value for missing data in method of @rstinline :cite:t:`zarringhalam:2012` @endrst
- *
- *  @see    vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
- *          #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta, #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion
- */
-#define VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability  0.5
-
-/**
  *  @brief  A flag indicating probing data conversion method of @rstinline :cite:t:`washietl:2012` @endrst
  */
 #define VRNA_PROBING_METHOD_WASHIETL2012                          3U
@@ -253,8 +227,9 @@ vrna_probing_data_Deigan2009(const double *reactivities,
                              unsigned int n,
                              double       m,
                              double       b,
-														 double       (*trans) (double, void*),
-                             void         *options);
+														 double               (*trans) (double, void*),
+                             void                 *trans_options,
+                             vrna_auxdata_free_f  trans_options_free);
 
 
 /**
@@ -306,8 +281,9 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
                                          double             *ms,
                                          double             *bs,
                                          unsigned int       multi_params,
-																				 double             (*trans) (double, void*),
-                                         void               *options);
+                                         double               (*trans) (double, void*),
+                                         void                 *trans_options,
+                                         vrna_auxdata_free_f  trans_options_free);
 
 
 /**

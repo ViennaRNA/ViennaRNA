@@ -105,7 +105,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
       (reactivities)) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        d = vrna_probing_data_Deigan2009(reactivities, vc->length, m, b, NULL, NULL);
+        d = vrna_probing_data_Deigan2009(reactivities, vc->length, m, b, NULL, NULL, NULL);
         ret = vrna_sc_probing(vc, d);
         vrna_probing_data_free(d);
         break;
@@ -150,6 +150,7 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                                                                      &m,
                                                                      &b,
                                                                      VRNA_PROBING_METHOD_MULTI_PARAMS_0,
+                                                                     NULL,
                                                                      NULL,
                                                                      NULL);
     ret = vrna_sc_probing(vc, d);

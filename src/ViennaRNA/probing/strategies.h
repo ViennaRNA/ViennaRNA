@@ -51,8 +51,38 @@ void *
 vrna_probing_strategy_deigan_options(double                   m,
                                      double                   b,
                                      vrna_probing_transform_f cb_preprocess,
-                                     void                     *cb_preprocess_opt);
+                                     void                     *cb_preprocess_opt,
+                                     vrna_auxdata_free_f      cb_preprocess_opt_free);
 
+void
+vrna_probing_strategy_deigan_options_free(void *options);
+
+
+/**
+ *  @brief  Default parameter `beta` as used in method of @rstinline :cite:t:`zarringhalam:2012` @endrst
+ *
+ *  @see    vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
+ *          #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion, #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability
+ */
+#define VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta         0.89
+
+
+/**
+ *  @brief  Default conversion method of probing data into probabilities as used in method of @rstinline :cite:t:`zarringhalam:2012` @endrst
+ *
+ *  @see    vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
+ *          #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta, #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability
+ */
+#define VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion   "Os1.6i-2.29"
+
+
+/**
+ *  @brief  Default probability value for missing data in method of @rstinline :cite:t:`zarringhalam:2012` @endrst
+ *
+ *  @see    vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
+ *          #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_beta, #VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion
+ */
+#define VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability  0.5
 
 double *
 vrna_probing_strategy_zarringhalam_up(const double *data,
@@ -62,6 +92,8 @@ vrna_probing_strategy_zarringhalam_up(const double *data,
 
 void *
 vrna_probing_strategy_zarringhalam_options(double                   beta,
+                                           double                   default_probability,
+                                           double                   max_value,
                                            vrna_probing_transform_f cb_preprocess,
                                            void                     *cb_preprocess_opt,
                                            vrna_auxdata_free_f      cb_preprocess_opt_free);

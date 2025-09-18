@@ -523,7 +523,8 @@ vrna_probing_data_Deigan2009(const double             *reactivities,
                              double                   m,
                              double                   b,
                              vrna_probing_transform_f trans,
-                             void                     *trans_options)
+                             void                     *trans_options,
+                             vrna_auxdata_free_f      trans_options_free)
 {
   struct vrna_probing_data_s *d = NULL;
 
@@ -533,8 +534,8 @@ vrna_probing_data_Deigan2009(const double             *reactivities,
                                    n,
                                    1.,
                                    vrna_probing_strategy_deigan,
-                                   vrna_probing_strategy_deigan_options(m, b, trans, trans_options),
-                                   free);
+                                   vrna_probing_strategy_deigan_options(m, b, trans, trans_options, trans_options_free),
+                                   vrna_probing_strategy_deigan_options_free);
   }
 #else
   if (reactivities)
@@ -560,7 +561,8 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
                                          double             *bs,
                                          unsigned int       multi_params,
                                          vrna_probing_transform_f trans,
-                                         void                     *trans_options)
+                                         void                     *trans_options,
+                                         vrna_auxdata_free_f      trans_options_free)
 {
   struct vrna_probing_data_s  *d = NULL;
   double                      m, b;
@@ -596,7 +598,7 @@ vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
           b = bs[i];
 
         vrna_array_append(cbs_stack, vrna_probing_strategy_deigan);
-        vrna_array_append(cbs_stack_options, vrna_probing_strategy_deigan_options(m, b, trans, trans_options));
+        vrna_array_append(cbs_stack_options, vrna_probing_strategy_deigan_options(m, b, trans, trans_options, trans_options_free));
         vrna_array_append(cbs_stack_options_free, free);
       } else {
         vrna_array_append(cbs_stack, NULL);

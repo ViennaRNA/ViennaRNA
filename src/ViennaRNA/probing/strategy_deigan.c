@@ -13,10 +13,11 @@
 #include "ViennaRNA/probing/strategies.h"
 
 typedef struct {
-  double m;
-  double b;
+  double                    m;
+  double                    b;
   vrna_probing_transform_f  cb_preprocess;
   void                      *cb_preprocess_opt;
+  vrna_auxdata_free_f       cb_preprocess_opt_free;
 } deigan_options_t;
 
 /*
@@ -70,6 +71,7 @@ vrna_probing_strategy_deigan(const double *data,
       opt = vrna_probing_strategy_deigan_options(VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_m,
                                                  VRNA_PROBING_METHOD_DEIGAN2009_DEFAULT_b,
                                                  NULL,
+                                                 NULL,
                                                  NULL);
 
     /* pre-process data */
@@ -97,17 +99,37 @@ PUBLIC void *
 vrna_probing_strategy_deigan_options(double                   m,
                                      double                   b,
                                      vrna_probing_transform_f cb_preprocess,
-                                     void                     *cb_preprocess_opt)
+                                     void                     *cb_preprocess_opt,
+                                     vrna_auxdata_free_f      cb_preprocess_opt_free)
 {
   deigan_options_t  *opt = (deigan_options_t *)vrna_alloc(sizeof(deigan_options_t));
 
   opt->m = m;
   opt->b = b;
 
-  opt->cb_preprocess = (cb_preprocess) ? cb_preprocess : vrna_reactivity_trans_method(VRNA_REACTIVITY_TRANS_NEG_IGNORE);
-  opt->cb_preprocess_opt = cb_preprocess_opt;
+  if (cb_preprocess) {
+    opt->cb_preprocess          = cb_preprocess;
+    opt->cb_preprocess_opt      = cb_preprocess_opt;
+    opt->cb_preprocess_opt_free = cb_preprocess_opt_free;
+  } else {
+    opt->cb_preprocess          = vrna_reactivity_trans_method(VRNA_REACTIVITY_TRANS_NEG_IGNORE);
+    opt->cb_preprocess_opt      = NULL;
+    opt->cb_preprocess_opt_free = NULL;
+  }
 
   return (void *)opt;
+}
+
+
+PUBLIC void
+vrna_probing_strategy_deigan_options_free(void *options)
+{
+  deigan_options_t  *opt = (deigan_options_t *)options;
+
+  if (opt->cb_preprocess_opt_free)
+    opt->cb_preprocess_opt_free(opt->cb_preprocess_opt);
+
+  free(opt);
 }
 
 

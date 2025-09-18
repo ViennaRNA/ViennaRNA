@@ -26,13 +26,6 @@
 
 #include "ViennaRNA/probing/transform.h"
 
-
-typedef struct {
-  double slope;
-  double intersect;
-  double oob;
-} linear_transform_param_t;
-
 /*
  #################################
  # GLOBAL VARIABLES              #
@@ -87,15 +80,6 @@ reactivity_trans_neg_to_zero(double r, void *options);
 PRIVATE double
 reactivity_trans_log1p(double r, void *options);
 
-PRIVATE double
-transform_linear(double value,
-                 void   *options);
-
-
-PRIVATE double
-transform_linear_log(double value,
-                     void   *options);
-
 
 /*
  #################################
@@ -128,10 +112,6 @@ vrna_reactivity_trans_method(unsigned int flag)
       return reactivity_trans_neg_to_zero;
     case VRNA_REACTIVITY_TRANS_LOG1P:
       return reactivity_trans_log1p;
-    case VRNA_REACTIVITY_TRANS_LINEAR_MODEL:
-      return transform_linear;
-    case VRNA_REACTIVITY_TRANS_LINEAR_LOG_MODEL:
-      return transform_linear_log;
   }
   return NULL;
 }
@@ -187,95 +167,4 @@ reactivity_trans_neg_to_zero(double r, void *options)
 PRIVATE double
 reactivity_trans_log1p(double r, void *options){
   return r <= -1 ? VRNA_REACTIVITY_MISSING : log(1+r);
-}
-
-
-PRIVATE double
-transform_linear(double value,
-                 void   *options)
-{
-  linear_transform_param_t *o = (linear_transform_param_t *)options;
-
-  return o->intersect + o->slope * value;
-}
-
-
-PRIVATE double
-transform_linear_log(double value,
-                     void   *options)
-{
-  linear_transform_param_t *o = (linear_transform_param_t *)options;
-
-  return (value > 0.) ? o->intersect + o->slope * log(value) : o->oob;
-}
-
-typedef struct {
-  double        lower_bound;
-  double        upper_bound;
-  unsigned char map_to_ub;
-  unsigned char map_to_lb;
-} domain_transform_param_t;
-
-
-PRIVATE double
-transform_domain(double v,
-                 void   *options)
-{
-  double vv = v;
-  domain_tranform_param_t *o = (domain_transform_param_t *)options;
-
-  if (v < o->lower_bound)
-    return (o->map_to_lb) ? o->lower_bound : VRNA_REACTIVITY_MISSING;
-  else if (v > o->upper_bound)
-    return (o->map_to_ub) ? o->upper_bound : VRNA_READTIVITY_MISSING;
-
-  return vv;
-}
-
-
-typedef struct {
-  vrna_array(double)  threshold_source;
-  vrna_array(double)  threshold_target;
-  unsigned char       project;
-} bin_transform_param_t;
-
-
-PRIVATE double
-transform_bin(double  v,
-              void    *options)
-{
-  bin_transform_param_t *o = (bin_transform_param_t *)options;
-
-  if (v < o->threshold_source[0])
-    return o->threshold_target[0];
-
-  size_t  start, end;
-  start = 0;
-  end   = vrna_array_size(o->threshold_source) - 1;
-
-  /* binary search for bin the value will be mapped to */
-  while (start <= end) {
-    size_t mid = start + (end - start) / 2;
-
-    if ((v >= o->threshold_source[mid]) &&
-        (v < o->threshold_source[mid + 1])) {
-      if (o->project) {
-        double diff_source = o->threshold_source[mid + 1] - o->threshold_source[mid];
-        double diff_target = o->threshold_target[mid + 1] - o->threshold_target[mid];
-        return  (v - o->threshold_source[mid]) /
-                diff_source *
-                diff_target +
-                o->threshold_target[mid];
-      } else {
-        return o->threshold_target[mid];
-      }
-    }
-
-    if (v > o->threshold_source[mid])
-      start = mid + 1;
-    else
-      end = mid - 1;
-  }
-
-  return o->threshold_target[vrna_array_size(o->threshold_target) - 1];
 }
