@@ -2,7 +2,6 @@
 #define VIENNA_RNA_PACKAGE_PROBING_H
 
 #include <ViennaRNA/fold_compound.h>
-#include <ViennaRNA/probing/strategies.h>
 
 /**
  *  @file     ViennaRNA/probing/basic.h
@@ -28,6 +27,8 @@
  */
 typedef struct vrna_probing_data_s *vrna_probing_data_t;
 
+
+#include <ViennaRNA/probing/strategies.h>
 
 /**
  *  @brief  A flag indicating probing data conversion method of @rstinline :cite:t:`deigan:2009` @endrst
@@ -128,9 +129,9 @@ typedef struct vrna_probing_data_s *vrna_probing_data_t;
 #define VRNA_PROBING_DATA_MULTI_WEIGHT                            4U
 #define VRNA_PROBING_DATA_SINGLE_WEIGHT                           8U
 
-#define VRNA_PROBING_DATA_TARGET_STACK                            16U
-#define VRNA_PROBING_DATA_TARGET_UP                               32U
-#define VRNA_PROBING_DATA_TARGET_BP                               64U
+#define VRNA_PROBING_DATA_LINEAR_TARGET_STACK                     16U
+#define VRNA_PROBING_DATA_LINEAR_TARGET_UP                        32U
+#define VRNA_PROBING_DATA_LINEAR_TARGET_BP                        64U
 
 /**
  *  @brief  Apply probing data (e.g. SHAPE) to guide the structure prediction
@@ -150,238 +151,23 @@ vrna_sc_probing(vrna_fold_compound_t  *fc,
 
 
 vrna_probing_data_t
-vrna_probing_data_stack(const double              *data,
-                        unsigned int              data_length,
-                        double                    data_weight,
-                        vrna_probing_strategy_f   strategy_cb,
-                        void                      *strategy_cb_options,
-                        vrna_auxdata_free_f       strategy_cb_options_free);
+vrna_probing_data_linear(const double              *data,
+                         unsigned int              data_length,
+                         double                    data_weight,
+                         vrna_probing_strategy_f   strategy_cb,
+                         void                      *strategy_cb_options,
+                         vrna_auxdata_free_f       strategy_cb_options_free);
 
 
 vrna_probing_data_t
-vrna_probing_data_stack_multi(const double              **data,
-                              unsigned int              data_size,
-                              const unsigned int        *data_lengths,
-                              const double              *data_weights,
-                              vrna_probing_strategy_f   *strategy_cbs,
-                              void                      **strategy_cbs_options,
-                              vrna_auxdata_free_f       *strategy_cbs_options_free,
-                              unsigned int              options);
-
-
-vrna_probing_data_t
-vrna_probing_data_up(const double              *data,
-                     unsigned int              data_length,
-                     double                    data_weight,
-                     vrna_probing_strategy_f   strategy_cb,
-                     void                      *strategy_cb_options,
-                     vrna_auxdata_free_f       strategy_cb_options_free);
-
-
-vrna_probing_data_t
-vrna_probing_data_up_multi(const double              **data,
-                           unsigned int              data_size,
-                           const unsigned int        *data_lengths,
-                           const double              *data_weights,
-                           vrna_probing_strategy_f   *strategy_cbs,
-                           void                      **strategy_cbs_options,
-                           vrna_auxdata_free_f       *strategy_cbs_options_free,
-                           unsigned int              options);
-
-
-/**
- *  @brief  Prepare probing data according to Deigan et al. 2009 method
- *
- *  Prepares a data structure to be used with vrna_sc_probing() to directed RNA
- *  folding using the simple linear ansatz
- *
- *  @f[ \Delta G_{\text{SHAPE}}(i) = m \ln(\text{SHAPE reactivity}(i)+1)+ b @f]
- *
- *  to convert probing data, e.g. SHAPE reactivity values, to pseudo energies whenever a
- *  nucleotide @f$ i @f$ contributes to a stacked pair. A positive slope @f$ m @f$
- *  penalizes high reactivities in paired regions, while a negative intercept @f$ b @f$
- *  results in a confirmatory ``bonus'' free energy for correctly predicted base pairs.
- *  Since the energy evaluation of a base pair stack involves two pairs, the pseudo
- *  energies are added for all four contributing nucleotides. Consequently, the
- *  energy term is applied twice for pairs inside a helix and only once for pairs
- *  adjacent to other structures. For all other loop types the energy model remains
- *  unchanged even when the experimental data highly disagrees with a certain motif.
- *
- *  @note For further details, we refer to @rstinline :cite:t:`deigan:2009` @endrst.
- *
- *  @see  #vrna_probing_data_t, vrna_probing_data_free(), vrna_sc_probing(),
- *        vrna_probing_data_Deigan2009_comparative(),
- *        vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
- *        vrna_probing_data_Eddy2014_2(), vrna_probing_data_Eddy2014_2_comparative()
- *
- *  @param  reactivities  1-based array of per-nucleotide probing data, e.g. SHAPE reactivities
- *  @param  n             The length of the @p reactivities list
- *  @param  m             The slope used for the probing data to soft constraints conversion strategy
- *  @param  b             The intercept used for the probing data to soft constraints conversion strategy
- *  @return               A pointer to a data structure containing the probing data and any preparations
- *                        necessary to use it in vrna_sc_probing() according to the method of
- *                        @rstinline :cite:t:`deigan:2009` @endrst or @b NULL on any error.
- */
-vrna_probing_data_t
-vrna_probing_data_Deigan2009(const double *reactivities,
-                             unsigned int n,
-                             double       m,
-                             double       b,
-														 double               (*trans) (double, void*),
-                             void                 *trans_options,
-                             vrna_auxdata_free_f  trans_options_free);
-
-
-/**
- *  @brief  Prepare (multiple) probing data according to Deigan et al. 2009 method for comparative structure predictions
- *
- *  Similar to vrna_probing_data_Deigan2009(), this function prepares a data structure to be used
- *  with vrna_sc_probing() to directed RNA folding using the simple linear ansatz
- *
- *  @f[ \Delta G_{\text{SHAPE}}(i) = m \ln(\text{SHAPE reactivity}(i)+1)+ b @f]
- *
- *  to convert probing data, e.g. SHAPE reactivity values, to pseudo energies whenever a
- *  nucleotide @f$ i @f$ contributes to a stacked pair.
- *  This functions purpose is to allow for adding multiple probing data as required for
- *  comparative structure predictions over multiple sequence alignments (MSA) with @p n_seq
- *  sequences. For that purpose, @p reactivities can be provided for any of the sequences
- *  in the MSA. Individual probing data is always expected to be specified in sequence coordinates,
- *  i.e. without considering gaps in the MSA. Therefore, each set of @p reactivities may have
- *  a different length as specified the parameter @p n.
- *  In addition, each set of probing data may undergo the conversion using different parameters
- *  @f$ m @f$ and @f$ b @f$. Whether or not multiple sets of conversion parameters are provided
- *  must be specified using the @p multi_params flag parameter. Use #VRNA_PROBING_METHOD_MULTI_PARAMS_1
- *  to indicate that @p ms points to an array of slopes for each sequence. Along with that,
- *  #VRNA_PROBING_METHOD_MULTI_PARAMS_2 indicates that @p bs is pointing to an array of intercepts
- *  for each sequence. Bitwise-OR of the two values renders both parameters to be sequence specific.
- *
- *  @note For further details, we refer to @rstinline :cite:t:`deigan:2009` @endrst.
- *
- *  @see  #vrna_probing_data_t, vrna_probing_data_free(), vrna_sc_probing(),
- *        vrna_probing_data_Deigan2009(),
- *        vrna_probing_data_Zarringhalam2012(), vrna_probing_data_Zarringhalam2012_comparative(),
- *        vrna_probing_data_Eddy2014_2(), vrna_probing_data_Eddy2014_2_comparative(),
- *        #VRNA_PROBING_METHOD_MULTI_PARAMS_0, #VRNA_PROBING_METHOD_MULTI_PARAMS_1,
- *        #VRNA_PROBING_METHOD_MULTI_PARAMS_2, #VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT
- *
- *  @param  reactivities  0-based array of 1-based arrays of per-nucleotide probing data, e.g. SHAPE reactivities
- *  @param  n             0-based array of lengths of the @p reactivities lists
- *  @param  n_seq         The number of sequences in the MSA
- *  @param  ms            0-based array of the slopes used for the probing data to soft constraints conversion strategy or the address of a single slope value to be applied for all data
- *  @param  bs            0-based array of the intercepts used for the probing data to soft constraints conversion strategy or the address of a single intercept value to be applied for all data
- *  @param  multi_params  A flag indicating what is passed through parameters @p ms and @p bs
- *  @return               A pointer to a data structure containing the probing data and any preparations
- *                        necessary to use it in vrna_sc_probing() according to the method of
- *                        @rstinline :cite:t:`deigan:2009` @endrst or @b NULL on any error.
- */
-vrna_probing_data_t
-vrna_probing_data_Deigan2009_comparative(const double       **reactivities,
-                                         const unsigned int *n,
-                                         unsigned int       n_seq,
-                                         double             *ms,
-                                         double             *bs,
-                                         unsigned int       multi_params,
-                                         double               (*trans) (double, void*),
-                                         void                 *trans_options,
-                                         vrna_auxdata_free_f  trans_options_free);
-
-
-/**
- *  @brief  Prepare probing data according to Zarringhalam et al. 2012 method
- *
- *  Prepares a data structure to be used with vrna_sc_probing() to directed RNA
- *  folding using the method of @rstinline :cite:t:`zarringhalam:2012` @endrst.
- *
- *  This method first converts the observed probing data of nucleotide @f$ i @f$ into a
- *  probability @f$ q_i @f$ that position @f$ i @f$ is unpaired by means of a non-linear map.
- *  Then pseudo-energies of the form
- *
- *  @f[ \Delta G_{\text{SHAPE}}(x,i) = \beta\ |x_i - q_i| @f]
- *
- *  are computed, where @f$ x_i=0 @f$ if position @f$ i @f$ is unpaired and @f$ x_i=1 @f$
- *  if @f$ i @f$ is paired in a given secondary structure. The parameter @f$ \beta @f$ serves as
- *  scaling factor. The magnitude of discrepancy between prediction and experimental observation
- *  is represented by @f$ |x_i - q_i| @f$.
- *
- *  @note For further details, we refer to @rstinline :cite:t:`zarringhalam:2012` @endrst
- *
- *  @see  #vrna_probing_data_t, vrna_probing_data_free(), vrna_sc_probing(),
- *        vrna_probing_data_Zarringhalam2012_comparative(),
- *        vrna_probing_data_Deigan2009(), vrna_probing_data_Deigan2009_comparative(),
- *        vrna_probing_data_Eddy2014_2(), vrna_probing_data_Eddy2014_2_comparative()
- *
- *  @param  reactivities      1-based array of per-nucleotide probing data, e.g. SHAPE reactivities
- *  @param  n                 The length of the @p reactivities list
- *  @param  beta              The scaling factor @f$ \beta @f$ of the conversion function
- *  @param  pr_conversion     A flag that specifies how to convert reactivities to probabilities
- *  @param  pr_default        The default probability for a nucleotide where reactivity data is missing for
- *  @return                   A pointer to a data structure containing the probing data and any preparations
- *                            necessary to use it in vrna_sc_probing() according to the method of
- *                            @rstinline :cite:t:`zarringhalam:2012` @endrst or @b NULL on any error.
- */
-vrna_probing_data_t
-vrna_probing_data_Zarringhalam2012(const double *reactivities,
-                                   unsigned int n,
-                                   double       beta,
-                                   const char   *pr_conversion,
-                                   double       pr_default,
-																	 double       (*trans) (double, void*),
-                                   void         *options);
-
-
-/**
- *  @brief  Prepare probing data according to Zarringhalam et al. 2012 method for comparative structure predictions
- *
- *  Similar to vrna_probing_data_Zarringhalam2012(), this function prepares a data structure to be used
- *  with vrna_sc_probing() to guide RNA folding using the method of @rstinline :cite:t:`zarringhalam:2012` @endrst.
- *
- *  This functions purpose is to allow for adding multiple probing data as required for
- *  comparative structure predictions over multiple sequence alignments (MSA) with @p n_seq
- *  sequences. For that purpose, @p reactivities can be provided for any of the sequences
- *  in the MSA. Individual probing data is always expected to be specified in sequence coordinates,
- *  i.e. without considering gaps in the MSA. Therefore, each set of @p reactivities may have
- *  a different length as specified the parameter @p n.
- *  In addition, each set of probing data may undergo the conversion using different parameters
- *  @f$ beta @f$. Additionally, the probing data to probability conversions strategy and default
- *  values for missing data can be specified in a sequence-based manner. Whether or not multiple conversion
- *  parameters are provided must be specified using the @p multi_params flag parameter. Use
- *  #VRNA_PROBING_METHOD_MULTI_PARAMS_1 to indicate that @p betas points to an array of @f$ beta @f$ values
- *  for each sequence. #VRNA_PROBING_METHOD_MULTI_PARAMS_2 indicates that @p pr_conversions is pointing to
- *  an array of probing data to probability conversion strategies, and #VRNA_PROBING_METHOD_MULTI_PARAMS_3
- *  indicates multiple default probabilities for missing data. Bitwise-OR of the three values renders all of
- *  them to be sequence specific.
- *
- *  @note For further details, we refer to @rstinline :cite:t:`zarringhalam:2012` @endrst
- *
- *  @see  #vrna_probing_data_t, vrna_probing_data_free(), vrna_sc_probing(),
- *        vrna_probing_data_Zarringhalam2012_comparative(),
- *        vrna_probing_data_Deigan2009(), vrna_probing_data_Deigan2009_comparative(),
- *        vrna_probing_data_Eddy2014_2(), vrna_probing_data_Eddy2014_2_comparative(),
- *        #VRNA_PROBING_METHOD_MULTI_PARAMS_0, #VRNA_PROBING_METHOD_MULTI_PARAMS_1,
- *        #VRNA_PROBING_METHOD_MULTI_PARAMS_2, #VRNA_PROBING_METHOD_MULTI_PARAMS_3,
- *        #VRNA_PROBING_METHOD_MULTI_PARAMS_DEFAULT
- *
- *  @param  reactivities      0-based array of 1-based arrays of per-nucleotide probing data, e.g. SHAPE reactivities
- *  @param  n                 0-based array of lengths of the @p reactivities lists
- *  @param  n_seq             The number of sequences in the MSA
- *  @param  betas             0-based array with scaling factors @f$ \beta @f$ of the conversion function or the address of a scaling factor to be applied for all data
- *  @param  pr_conversions    0-based array of flags that specifies how to convert reactivities to probabilities or the address of a conversion strategy to be applied for all data
- *  @param  pr_defaults       0-based array of default probabilities for a nucleotide where reactivity data is missing for or the address of a single default probability to be applied for all data
- *  @param  multi_params      A flag indicating what is passed through parameters @p betas, @p pr_conversions, and @p pr_defaults
- *  @return                   A pointer to a data structure containing the probing data and any preparations
- *                            necessary to use it in vrna_sc_probing() according to the method of
- *                            @rstinline :cite:t:`zarringhalam:2012` @endrst or @b NULL on any error.
- */
-vrna_probing_data_t
-vrna_probing_data_Zarringhalam2012_comparative(const double **reactivities,
-                                               unsigned int *n,
-                                               unsigned int n_seq,
-                                               double       *betas,
-                                               const char   **pr_conversions,
-                                               double       *pr_defaults,
-                                               unsigned int multi_params,
-																	             double       (*trans) (double, void*),
-                                               void         *options);
+vrna_probing_data_linear_multi(const double              **data,
+                               unsigned int              data_size,
+                               const unsigned int        *data_lengths,
+                               const double              *data_weights,
+                               vrna_probing_strategy_f   *strategy_cbs,
+                               void                      **strategy_cbs_options,
+                               vrna_auxdata_free_f       *strategy_cbs_options_free,
+                               unsigned int              options);
 
 
 /**

@@ -68,15 +68,12 @@ pr_defaults: list(double)
   /* constructor for Deigan method single sequence */
   vrna_probing_data_s(std::vector<double> reactivities,
                       double              m,
-                      double              b,
-                      int                 flag=VRNA_REACTIVITY_TRANS_DEFAULT)
+                      double              b)
   {
-    vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
-                                                            reactivities.size(),
-                                                            m,
-                                                            b,
-                                                            vrna_reactivity_trans_method(flag),
-                                                            NULL);
+    vrna_probing_data_s *obj = vrna_probing_data_deigan(&(reactivities[0]),
+                                                        reactivities.size(),
+                                                        m,
+                                                        b);
     return obj;
   }
 
@@ -108,14 +105,12 @@ pr_defaults: list(double)
       }
 
     /* try interpreting the json input as file name */
-    obj = vrna_probing_data_Deigan2009_comparative((const double **)d,
-                                                   &(ns[0]),
-                                                   reactivities.size(),
-                                                   &(ms[0]),
-                                                   &(bs[0]),
-                                                   options,
-                                                   NULL,
-                                                   NULL);
+    obj = vrna_probing_data_deigan_comparative((const double **)d,
+                                               &(ns[0]),
+                                               reactivities.size(),
+                                               &(ms[0]),
+                                               &(bs[0]),
+                                               options);
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
       free(d[i]);
@@ -129,16 +124,13 @@ pr_defaults: list(double)
   vrna_probing_data_s(std::vector<double> reactivities,
                       double              beta,
                       std::string         pr_conversion = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion,
-                      double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability,
-                      int                 flag=VRNA_REACTIVITY_TRANS_DEFAULT)
+                      double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability)
   {
-    vrna_probing_data_s *obj = vrna_probing_data_Zarringhalam2012(&(reactivities[0]),
-                                                                  reactivities.size(),
-                                                                  beta,
-                                                                  pr_conversion.c_str(),
-                                                                  pr_default,
-                                                                  vrna_reactivity_trans_method(flag),
-                                                                  NULL);
+    vrna_probing_data_s *obj = vrna_probing_data_zarringhalam(&(reactivities[0]),
+                                                              reactivities.size(),
+                                                              beta,
+                                                              pr_conversion.c_str(),
+                                                              pr_default);
     return obj;
   }
 
@@ -189,15 +181,13 @@ pr_defaults: list(double)
       }
 
     /* try interpreting the json input as file name */
-    obj = vrna_probing_data_Zarringhalam2012_comparative((const double **)d,
-                                                         &(ns[0]),
-                                                         reactivities.size(),
-                                                         &(betas[0]),
-                                                         (const char **)c,
-                                                         &(pr_defaults[0]),
-                                                         options,
-                                                         NULL,
-                                                         NULL);
+    obj = vrna_probing_data_zarringhalam_comparative((const double **)d,
+                                                     &(ns[0]),
+                                                     reactivities.size(),
+                                                     &(betas[0]),
+                                                     (const char **)c,
+                                                     &(pr_defaults[0]),
+                                                     options);
 
     for (unsigned int i = 0; i < reactivities.size(); i++) {
       free(d[i]);
@@ -240,25 +230,23 @@ pr_defaults: list(double)
 #include <vector>
 
   vrna_probing_data_s *
-  probing_data_Deigan2009(std::vector<double> reactivities,
-                          double              m,
-                          double              b)
+  probing_data_deigan(std::vector<double> reactivities,
+                      double              m,
+                      double              b)
   {
-    vrna_probing_data_s *obj = vrna_probing_data_Deigan2009(&(reactivities[0]),
-                                                            reactivities.size(),
-                                                            m,
-                                                            b,
-                                                            NULL,
-                                                            NULL);
+    vrna_probing_data_s *obj = vrna_probing_data_deigan(&(reactivities[0]),
+                                                        reactivities.size(),
+                                                        m,
+                                                        b);
     return obj;
   }
 
 
   vrna_probing_data_s *
-  probing_data_Deigan2009_comparative(std::vector<std::vector<double> > reactivities,
-                                      std::vector<double>               ms,
-                                      std::vector<double>               bs,
-                                      unsigned int                      multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0)
+  probing_data_deigan_comparative(std::vector<std::vector<double> > reactivities,
+                                  std::vector<double>               ms,
+                                  std::vector<double>               bs,
+                                  unsigned int                      multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0)
   {
     unsigned int              n_seq = reactivities.size();
     std::vector<unsigned int> ns;
@@ -276,14 +264,12 @@ pr_defaults: list(double)
       }
 
     /* try interpreting the json input as file name */
-    obj = vrna_probing_data_Deigan2009_comparative((const double **)d,
-                                                   &(ns[0]),
-                                                   n_seq,
-                                                   &(ms[0]),
-                                                   &(bs[0]),
-                                                   multi_params,
-                                                   NULL,
-                                                   NULL);
+    obj = vrna_probing_data_deigan_comparative((const double **)d,
+                                               &(ns[0]),
+                                               n_seq,
+                                               &(ms[0]),
+                                               &(bs[0]),
+                                               multi_params);
 
     for (unsigned int i = 0; i < reactivities.size(); i++)
       free(d[i]);
@@ -294,28 +280,26 @@ pr_defaults: list(double)
 
 
   vrna_probing_data_s *
-  probing_data_Zarringhalam2012(std::vector<double> reactivities,
-                                double              beta,
-                                std::string         pr_conversion = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion,
-                                double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability)
+  probing_data_zarringhalam(std::vector<double> reactivities,
+                            double              beta,
+                            std::string         pr_conversion = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion,
+                            double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability)
   {
-    vrna_probing_data_s *obj = vrna_probing_data_Zarringhalam2012(&(reactivities[0]),
-                                                                  reactivities.size(),
-                                                                  beta,
-                                                                  pr_conversion.c_str(),
-                                                                  pr_default,
-                                                                  NULL,
-                                                                  NULL);
+    vrna_probing_data_s *obj = vrna_probing_data_zarringhalam(&(reactivities[0]),
+                                                              reactivities.size(),
+                                                              beta,
+                                                              pr_conversion.c_str(),
+                                                              pr_default);
     return obj;
   }
 
 
   vrna_probing_data_s *
-  probing_data_Zarringhalam2012_comparative(std::vector< std::vector<double> > reactivities,
-                                            std::vector<double>              betas,
-                                            std::vector<std::string>         pr_conversions = std::vector<std::string>(),
-                                            std::vector<double>              pr_defaults = std::vector<double>(),
-                                            unsigned int                     multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0)
+  probing_data_zarringhalam_comparative(std::vector< std::vector<double> > reactivities,
+                                        std::vector<double>              betas,
+                                        std::vector<std::string>         pr_conversions = std::vector<std::string>(),
+                                        std::vector<double>              pr_defaults = std::vector<double>(),
+                                        unsigned int                     multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0)
   {
     unsigned int              n_seq = reactivities.size();
     std::vector<unsigned int> ns;
@@ -347,15 +331,13 @@ pr_defaults: list(double)
       }
 
     /* try interpreting the json input as file name */
-    obj = vrna_probing_data_Zarringhalam2012_comparative((const double **)d,
-                                                         &(ns[0]),
-                                                         reactivities.size(),
-                                                         &(betas[0]),
-                                                         (const char **)c,
-                                                         &(pr_defaults[0]),
-                                                         multi_params,
-                                                         NULL,
-                                                         NULL);
+    obj = vrna_probing_data_zarringhalam_comparative((const double **)d,
+                                                     &(ns[0]),
+                                                     reactivities.size(),
+                                                     &(betas[0]),
+                                                     (const char **)c,
+                                                     &(pr_defaults[0]),
+                                                     multi_params);
 
     for (unsigned int i = 0; i < reactivities.size(); i++) {
       free(d[i]);
@@ -454,14 +436,14 @@ pr_defaults: list(double)
 %}
 
 #ifdef SWIGPYTHON
-%feature("autodoc") probing_data_Deigan2009;
-%feature("kwargs") probing_data_Deigan2009;
-%feature("autodoc") probing_data_Deigan2009_comparative;
-%feature("kwargs") probing_data_Deigan2009_comparative;
-%feature("autodoc") probing_data_Zarringhalam2012;
-%feature("kwargs") probing_data_Zarringhalam2012;
-%feature("autodoc") probing_data_Zarringhalam2012_comparative;
-%feature("kwargs") probing_data_Zarringhalam2012_comparative;
+%feature("autodoc") probing_data_deigan;
+%feature("kwargs") probing_data_deigan;
+%feature("autodoc") probing_data_deigan_comparative;
+%feature("kwargs") probing_data_deigan_comparative;
+%feature("autodoc") probing_data_zarringhalam;
+%feature("kwargs") probing_data_zarringhalam;
+%feature("autodoc") probing_data_zarringhalam_comparative;
+%feature("kwargs") probing_data_zarringhalam_comparative;
 %feature("autodoc") probing_data_Eddy2014_2;
 %feature("kwargs") probing_data_Eddy2014_2;
 %feature("autodoc") probing_data_Eddy2014_2_comparative;
@@ -469,31 +451,31 @@ pr_defaults: list(double)
 #endif
 
 vrna_probing_data_s *
-probing_data_Deigan2009(std::vector<double> reactivities,
-                        double              m,
-                        double              b);
+probing_data_deigan(std::vector<double> reactivities,
+                    double              m,
+                    double              b);
 
 
 vrna_probing_data_s *
-probing_data_Deigan2009_comparative(std::vector<std::vector<double> > reactivities,
-                                    std::vector<double>               ms,
-                                    std::vector<double>               bs,
-                                    unsigned int                      multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+probing_data_deigan_comparative(std::vector<std::vector<double> > reactivities,
+                                std::vector<double>               ms,
+                                std::vector<double>               bs,
+                                unsigned int                      multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0);
 
 
 vrna_probing_data_s *
-probing_data_Zarringhalam2012(std::vector<double> reactivities,
-                              double              beta,
-                              std::string         pr_conversion = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion,
-                              double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
+probing_data_zarringhalam(std::vector<double> reactivities,
+                          double              beta,
+                          std::string         pr_conversion = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_conversion,
+                          double              pr_default    = VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
 
 
 vrna_probing_data_s *
-probing_data_Zarringhalam2012_comparative(std::vector< std::vector<double> > reactivities,
-                                          std::vector<double>              betas,
-                                          std::vector<std::string>         pr_conversions = std::vector<std::string>(),
-                                          std::vector<double>              pr_defaults = std::vector<double>(),
-                                          unsigned int                     multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+probing_data_zarringhalam_comparative(std::vector< std::vector<double> > reactivities,
+                                      std::vector<double>              betas,
+                                      std::vector<std::string>         pr_conversions = std::vector<std::string>(),
+                                      std::vector<double>              pr_defaults = std::vector<double>(),
+                                      unsigned int                     multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0);
 
 
 vrna_probing_data_s *

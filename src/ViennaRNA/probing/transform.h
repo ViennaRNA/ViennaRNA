@@ -60,7 +60,7 @@ vrna_data_transform_method_bin(const double         **thresholds,
                                vrna_auxdata_free_f  *transform_options_free);
 
 
-PUBLIC vrna_probing_transform_f
+vrna_probing_transform_f
 vrna_data_transform_method_lm(double               slope,
                               double               intercept,
                               double               oob_value,

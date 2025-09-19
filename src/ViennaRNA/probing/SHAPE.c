@@ -76,13 +76,11 @@ vrna_sc_add_SHAPE_zarringhalam(vrna_fold_compound_t *vc,
 
   if ((vc) &&
       (reactivities && (vc->type == VRNA_FC_TYPE_SINGLE))) {
-    vrna_probing_data_t d = vrna_probing_data_Zarringhalam2012(reactivities,
+    vrna_probing_data_t d = vrna_probing_data_zarringhalam(reactivities,
                                                            vc->length,
                                                            b,
                                                            shape_conversion,
-                                                           default_value,
-                                                           NULL,
-                                                           NULL);
+                                                           default_value);
     ret = vrna_sc_probing(vc, d);
     vrna_probing_data_free(d);
   }
@@ -105,7 +103,7 @@ vrna_sc_add_SHAPE_deigan(vrna_fold_compound_t *vc,
       (reactivities)) {
     switch (vc->type) {
       case VRNA_FC_TYPE_SINGLE:
-        d = vrna_probing_data_Deigan2009(reactivities, vc->length, m, b, NULL, NULL, NULL);
+        d = vrna_probing_data_deigan(reactivities, vc->length, m, b);
         ret = vrna_sc_probing(vc, d);
         vrna_probing_data_free(d);
         break;
@@ -144,15 +142,12 @@ vrna_sc_add_SHAPE_deigan_ali(vrna_fold_compound_t *vc,
                           shape_file_association,
                           VRNA_PROBING_DATA_CHECK_SEQUENCE);
 
-    vrna_probing_data_t d = vrna_probing_data_Deigan2009_comparative((const double **)r,
-                                                                     vc->alignment->gapfree_size,
-                                                                     vc->n_seq,
-                                                                     &m,
-                                                                     &b,
-                                                                     VRNA_PROBING_METHOD_MULTI_PARAMS_0,
-                                                                     NULL,
-                                                                     NULL,
-                                                                     NULL);
+    vrna_probing_data_t d = vrna_probing_data_deigan_comparative((const double **)r,
+                                                                  vc->alignment->gapfree_size,
+                                                                  vc->n_seq,
+                                                                  &m,
+                                                                  &b,
+                                                                  VRNA_PROBING_METHOD_MULTI_PARAMS_0);
     ret = vrna_sc_probing(vc, d);
     vrna_probing_data_free(d);
 

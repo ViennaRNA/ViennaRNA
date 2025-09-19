@@ -94,23 +94,18 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
 
   switch (method) {
     case 'D':
-      d = vrna_probing_data_Deigan2009(values,
-                                     length,
-                                     p1,
-                                     p2,
-                                     NULL,
-                                     NULL
-                                     );
+      d = vrna_probing_data_deigan(values,
+                                   length,
+                                   p1,
+                                   p2);
       break;
 
     case 'Z':
-      d = vrna_probing_data_Zarringhalam2012(values,
-                                           length,
-                                           p1,
-                                           shape_conversion,
-                                           VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability,
-                                           NULL,
-                                           NULL);
+      d = vrna_probing_data_zarringhalam(values,
+                                         length,
+                                         p1,
+                                         shape_conversion,
+                                         VRNA_PROBING_METHOD_ZARRINGHALAM2012_DEFAULT_probability);
       break;
 
     case 'W':
