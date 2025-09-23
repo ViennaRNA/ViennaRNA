@@ -740,29 +740,72 @@ apply_probing_data(vrna_fold_compound_t        *fc,
 
         for (s = 0; s < vrna_array_size(data->data_linear); s++) {
           if (vrna_array_size(data->data_linear[s]) > 0) {
-            if ((size_t)vrna_array_size(data->data_linear[s]) != (size_t)(fc->alignment->gapfree_size[s] + 1))
+            n = MIN2(vrna_array_size(data->data_linear[s]), fc->alignment->gapfree_size[s]);
+
+            num_data++;
+
+            if (vrna_array_size(data->data_linear[s] - 1) != n)
               vrna_log_warning("Length of probing data (%u) for sequence no. \"%u\" doesn't match length of gap-free sequence (%u)",
                                vrna_array_size(data->data_linear[s]) - 1,
                                s,
-                               fc->alignment->gapfree_size[s]);
+                               n);
 
             e = data->cbs_linear[s](data->data_linear[s],
                                    vrna_array_size(data->data_linear[s]) - 1,
                                    VRNA_PROBING_DATA_LINEAR_TARGET_STACK,
                                    data->cbs_linear_options[s]);
 
-            n = MIN2(vrna_array_size(data->data_linear[s]), fc->alignment->gapfree_size[s]);
 
-            for (i = 1; i <= n; ++i)
-              ret &= vrna_sc_add_stack_comparative_seq(fc,
-                                                       s,
-                                                       i,
-                                                       e[i] * data->data_linear_weight[s],
-                                                       VRNA_OPTION_DEFAULT);
+            if (e) {
+              for (i = 1; i <= n; ++i)
+                ret &= vrna_sc_add_stack_comparative_seq(fc,
+                                                         s,
+                                                         i,
+                                                         e[i] * data->data_linear_weight[s],
+                                                         VRNA_OPTION_DEFAULT);
 
-            free(e);
+              free(e);
+            }
+
+            e = data->cbs_linear[s](data->data_linear[s],
+                                   vrna_array_size(data->data_linear[s]) - 1,
+                                   VRNA_PROBING_DATA_LINEAR_TARGET_UP,
+                                   data->cbs_linear_options[s]);
+
+            if (e) {
+              for (i = 1; i <= n; ++i)
+                ret &= vrna_sc_add_up_comparative_seq(fc,
+                                                      s,
+                                                      i,
+                                                      e[i] * data->data_linear_weight[s],
+                                                      VRNA_OPTION_DEFAULT);
+
+              free(e);
+            }
+
+            e = data->cbs_linear[s](data->data_linear[s],
+                                   vrna_array_size(data->data_linear[s]),
+                                   VRNA_PROBING_DATA_LINEAR_TARGET_BP,
+                                   data->cbs_linear_options[s]);
+
+            if (e) {
+              for (i = 1; i <= n; ++i)
+                for (j = i + 1; j <= n; ++j) {
+                  ret &= vrna_sc_add_bp_comparative_seq(fc,
+                                                        s,
+                                                        i,
+                                                        j,
+                                                        (e[i] + e[j]) * data->data_linear_weight[0],
+                                                        VRNA_OPTION_DEFAULT);
+                }
+
+              free(e);
+            }
           }
         }
+
+        if (ret)
+          ret = num_data;
 
         break;
     }
