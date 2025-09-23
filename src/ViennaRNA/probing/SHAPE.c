@@ -176,17 +176,15 @@ vrna_sc_add_SHAPE_eddy_2(vrna_fold_compound_t *fc,
 
   if ((fc) &&
       (reactivities) &&
-      (unpaired_data) &&
-      (paired_data) &&
       (fc->type == VRNA_FC_TYPE_SINGLE)) {
-    vrna_probing_data_t d = vrna_probing_data_Eddy2014_2(reactivities,
-                                                         fc->length,
-                                                         unpaired_data,
-                                                         unpaired_nb,
-                                                         paired_data,
-                                                         paired_nb,
-                                                         NULL,
-                                                         NULL);
+    vrna_probing_data_t d = vrna_probing_data_eddy(reactivities,
+                                                   fc->length,
+                                                   fc->params->temperature,
+                                                   VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT,
+                                                   unpaired_data,
+                                                   unpaired_nb,
+                                                   paired_data,
+                                                   paired_nb);
     ret = vrna_sc_probing(fc, d);
     vrna_probing_data_free(d);
   }

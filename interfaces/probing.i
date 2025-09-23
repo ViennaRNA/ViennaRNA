@@ -202,18 +202,19 @@ pr_defaults: list(double)
 
   /* constructor for Eddy method single sequence */
   vrna_probing_data_s(std::vector<double> reactivities,
-                      std::vector<double> unpaired_data,
-                      std::vector<double> paired_data,
-                      int                 flag=VRNA_REACTIVITY_TRANS_DEFAULT)
+                      double              temperature,
+                      unsigned char       options,
+                      std::vector<double> unpaired_data = {},
+                      std::vector<double> paired_data = {})
   {
-    vrna_probing_data_s *obj = vrna_probing_data_Eddy2014_2(&(reactivities[0]),
-                                                            reactivities.size(),
-                                                            &(unpaired_data[0]),
-                                                            unpaired_data.size(),
-                                                            &(paired_data[0]),
-                                                            paired_data.size(),
-                                                            vrna_reactivity_trans_method(flag),
-                                                            NULL);
+    vrna_probing_data_s *obj = vrna_probing_data_eddy(&(reactivities[0]),
+                                                      reactivities.size(),
+                                                      temperature,
+                                                      options,
+                                                      &(unpaired_data[0]),
+                                                      unpaired_data.size(),
+                                                      &(paired_data[0]),
+                                                      paired_data.size());
     return obj;
   }
 
@@ -351,27 +352,31 @@ pr_defaults: list(double)
 
 
   vrna_probing_data_s *
-  probing_data_Eddy2014_2(std::vector<double> reactivities,
-                          std::vector<double> unpaired_data,
-                          std::vector<double> paired_data)
+  probing_data_eddy(std::vector<double> reactivities,
+                    double              temperature,
+                    unsigned char       options = VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT,
+                    std::vector<double> unpaired_data = {},
+                    std::vector<double> paired_data = {})
   {
-    vrna_probing_data_s *obj = vrna_probing_data_Eddy2014_2(&(reactivities[0]),
-                                                            reactivities.size(),
-                                                            &(unpaired_data[0]),
-                                                            unpaired_data.size(),
-                                                            &(paired_data[0]),
-                                                            paired_data.size(),
-                                                            NULL,
-                                                            NULL);
+    vrna_probing_data_s *obj = vrna_probing_data_eddy(&(reactivities[0]),
+                                                      reactivities.size(),
+                                                      temperature,
+                                                      options,
+                                                      &(unpaired_data[0]),
+                                                      unpaired_data.size(),
+                                                      &(paired_data[0]),
+                                                      paired_data.size());
     return obj;
   }
 
 
   vrna_probing_data_s *
-  probing_data_Eddy2014_2_comparative(std::vector< std::vector<double> >  reactivities,
-                                      std::vector< std::vector<double> >  unpaired_data,
-                                      std::vector< std::vector<double> >  paired_data,
-                                      unsigned int                        multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0)
+  probing_data_eddy_comparative(std::vector< std::vector<double> >  reactivities,
+                                double                              temperature,
+                                unsigned char                       options = VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT,
+                                std::vector< std::vector<double> >  unpaired_data = {},
+                                std::vector< std::vector<double> >  paired_data = {},
+                                unsigned int                        multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0)
   {
     unsigned int              n_seq = reactivities.size();
     std::vector<unsigned int> ns;
@@ -410,16 +415,16 @@ pr_defaults: list(double)
       }
 
     /* try interpreting the json input as file name */
-    obj = vrna_probing_data_Eddy2014_2_comparative((const double **)d,
-                                                   &(ns[0]),
-                                                   n_seq,
-                                                   (const double **)up,
-                                                   &(us[0]),
-                                                   (const double **)bp,
-                                                   &(bs[0]),
-                                                   multi_params,
-                                                   NULL,
-                                                   NULL);
+    obj = vrna_probing_data_eddy_comparative((const double **)d,
+                                              &(ns[0]),
+                                              n_seq,
+                                              temperature,
+                                              options,
+                                              (const double **)up,
+                                              &(us[0]),
+                                              (const double **)bp,
+                                              &(bs[0]),
+                                              multi_params);
 
     for (unsigned int i = 0; i < reactivities.size(); i++) {
       free(d[i]);
@@ -444,10 +449,10 @@ pr_defaults: list(double)
 %feature("kwargs") probing_data_zarringhalam;
 %feature("autodoc") probing_data_zarringhalam_comparative;
 %feature("kwargs") probing_data_zarringhalam_comparative;
-%feature("autodoc") probing_data_Eddy2014_2;
-%feature("kwargs") probing_data_Eddy2014_2;
-%feature("autodoc") probing_data_Eddy2014_2_comparative;
-%feature("kwargs") probing_data_Eddy2014_2_comparative;
+%feature("autodoc") probing_data_eddy;
+%feature("kwargs") probing_data_eddy;
+%feature("autodoc") probing_data_eddy_comparative;
+%feature("kwargs") probing_data_eddy_comparative;
 #endif
 
 vrna_probing_data_s *
@@ -479,16 +484,20 @@ probing_data_zarringhalam_comparative(std::vector< std::vector<double> > reactiv
 
 
 vrna_probing_data_s *
-probing_data_Eddy2014_2(std::vector<double> reactivities,
-                        std::vector<double> unpaired_data,
-                        std::vector<double> paired_data);
+probing_data_eddy(std::vector<double> reactivities,
+                    double              temperature,
+                    unsigned char       options = VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT,
+                    std::vector<double> unpaired_data = {},
+                    std::vector<double> paired_data = {});
 
 
 vrna_probing_data_s *
-probing_data_Eddy2014_2_comparative(std::vector< std::vector<double> >  reactivities,
-                                    std::vector< std::vector<double> >  unpaired_data,
-                                    std::vector< std::vector<double> >  paired_data,
-                                    unsigned int                        multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0);
+probing_data_eddy_comparative(std::vector< std::vector<double> > reactivities,
+                              double                             temperature,
+                              unsigned char                      options = VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT,
+                              std::vector< std::vector<double> > unpaired_data = {},
+                              std::vector< std::vector<double> > paired_data = {},
+                              unsigned int                       multi_params = VRNA_PROBING_METHOD_MULTI_PARAMS_0);
 
 
 %extend vrna_fold_compound_t {

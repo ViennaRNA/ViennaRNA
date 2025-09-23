@@ -52,7 +52,8 @@ conversion_deigan(double  reactivity,
 
 
 PUBLIC double *
-vrna_probing_strategy_deigan(const double *data,
+vrna_probing_strategy_deigan(vrna_fold_compound_t *fc,
+                             const double *data,
                              size_t       data_size,
                              unsigned int target,
                              void         *options)

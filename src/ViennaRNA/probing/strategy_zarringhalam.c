@@ -63,7 +63,8 @@ set_mapping_strategy(const char          *conversion_string,
 
 
 PUBLIC double *
-vrna_probing_strategy_zarringhalam(const double *data,
+vrna_probing_strategy_zarringhalam(vrna_fold_compound_t *fc,
+                                   const double *data,
                                    size_t       data_size,
                                    unsigned int target,
                                    void         *options)

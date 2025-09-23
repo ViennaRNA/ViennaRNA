@@ -229,27 +229,40 @@ python_wrap_probing_data_cb(double     reactivity,
 
   /* constructor for Eddy method single sequence */
   vrna_probing_data_s(std::vector<double> reactivities,
-                      std::vector<double> unpaired_data,
-                      std::vector<double> paired_data,
+                      double              temperature,
+                      unsigned int        options = VRNA_PROBING_STRATEGY_EDDY_OPTIONS_DEFAULT,
+                      std::vector<double> unpaired_data = {},
+                      std::vector<double> paired_data = {},
                       PyObject            *transform_f = Py_None,
                       PyObject            *transform_data = Py_None,
                       PyObject            *data_free_f = Py_None)
   {
-
+    if (transform_f != Py_None) {
       python_probing_data_trans_callback_t  *cb = bind_probing_data_trans_callback(transform_f,
                                                                                    transform_data,
                                                                                    data_free_f);
 
-    vrna_probing_data_s *obj = vrna_probing_data_Eddy2014_2(&(reactivities[0]),
-                                                            reactivities.size(),
-                                                            &(unpaired_data[0]),
-                                                            unpaired_data.size(),
-                                                            &(paired_data[0]),
-                                                            paired_data.size(),
-                                                            python_wrap_probing_data_cb,
-                                                            (void*) cb
-                                                           );
-    return obj;
+      return vrna_probing_data_eddy_trans(&(reactivities[0]),
+                                          reactivities.size(),
+                                          temperature,
+                                          options,
+                                          &(unpaired_data[0]),
+                                          unpaired_data.size(),
+                                          &(paired_data[0]),
+                                          paired_data.size(),
+                                          python_wrap_probing_data_cb,
+                                          (void*) cb,
+                                          release_probing_data_trans_callback);
+    } else {
+      return vrna_probing_data_eddy(&(reactivities[0]),
+                                    reactivities.size(),
+                                    temperature,
+                                    options,
+                                    &(unpaired_data[0]),
+                                    unpaired_data.size(),
+                                    &(paired_data[0]),
+                                    paired_data.size());
+    }
   }
 }
 
