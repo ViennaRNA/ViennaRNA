@@ -19,6 +19,8 @@ RNA_CHECK_SVG_TEMPLATES
 
 RNA_CHECK_PARAMETER_FILES
 
+RNA_CHECK_PROBING_DATA_FILES
+
 RNA_CHECK_DLIB
 
 RNA_CHECK_SWIG_SVM
@@ -248,6 +250,105 @@ static const unsigned char parameter_set_$parfile_name[[]] = {
     # substitute file list for static/Makefile.am
     AC_SUBST(PARAMETER_FILES)
     AC_SUBST(PARAMETER_FILES_HEX)
+])
+
+
+AC_DEFUN([RNA_CHECK_PROBING_DATA_FILES], [
+    STATIC_FILE_DIR="${srcdir}/src/ViennaRNA/static"
+    PROBING_DATA_PRIOR_FILE_LIST="${srcdir}/misc/probing_data_files.txt"
+
+    ## load list of probing data files and replace '\n' by ' '
+    PROBING_DATA_PRIOR_FILES=`cat $PROBING_DATA_PRIOR_FILE_LIST | sed 's/^/misc\//' | tr '\012' ' '`
+    ## create list of hex energy parameter files
+    PROBING_DATA_PRIOR_FILES_HEX=`AS_ECHO("$PROBING_DATA_PRIOR_FILES") | sed -E 's/\.data/\.hex/g'`
+
+    if test "x$XXD" = "xno"
+    then
+        for datafile in $PROBING_DATA_PRIOR_FILES_HEX
+        do
+            AC_RNA_TEST_FILE($STATIC_FILE_DIR/$datafile,[],[
+                AC_MSG_ERROR([
+=================================================
+Can't find the probing data prior hex file
+
+${datafile}
+
+Make sure you've installed the 'xxd' tool to
+generate it from source!
+=================================================
+])
+            ])
+        done
+    fi
+
+    # prepare substitution string for
+    # probing_data_priors.h file
+    PROBING_DATA_PRIOR_CONST=""
+    for datafile in $PROBING_DATA_PRIOR_FILES_HEX
+    do
+      # remove the 'misc/' prefix
+      datafile_name=`AS_ECHO("$datafile") | sed 's/misc\///g'`
+      # remove the trailing .hex
+      datafile_name=`AS_ECHO("$datafile_name") | sed 's/.hex//g'`
+
+      # create a C variable defintion for the template
+      # note [[]] will turn into [] after M4 processed everythin
+      PROBING_DATA_PRIOR_CONST="$PROBING_DATA_PRIOR_CONST
+static const double probing_data_$datafile_name[[]] = {
+#include \"$datafile\"
+};
+"
+      # create a SWIG Python output typemap for the template
+      # note [[]] will turn into [] after M4 processed everything
+      SWIG_PROBING_DATA_PRIOR_CONST_PYTHON="$SWIG_PROBING_DATA_PRIOR_CONST_PYTHON
+%typemap(varout) const double probing_data_$datafile_name[[]] {
+  size_t len = sizeof (probing_data_$datafile_name) / sizeof (probing_data_$datafile_name[[0]]);
+  PyObject *py_data = PyTuple_New(len);
+  for (unsigned int i = 0; i < len; i++) {
+    PyObject *d = PyFloat_FromDouble( (double) probing_data_$datafile_name[[i]]);
+    PyTuple_SET_ITEM(py_data, i, d);
+  }
+  swig_result = py_data;
+}
+"
+
+      # create a SWIG Perl 5 output typemap for the template
+      # note [[]] will turn into [] after M4 processed everything
+      SWIG_PROBING_DATA_PRIOR_CONST_PERL5="$SWIG_PROBING_DATA_PRIOR_CONST_PERL5
+%typemap(varout) const double probing_data_$datafile_name[[]] {
+  AV* av = (AV*)sv_2mortal((SV*)newAV());
+  size_t i, len;
+  len = sizeof (probing_data_$datafile_name) / sizeof (probing_data_$datafile_name[[0]]);
+  for (i = 0; i < len ; i++) {
+      SV *v = newSViv(probing_data_$datafile_name[[i]]);
+      if (!av_store(av, i, v))
+          SvREFCNT_dec(v);
+  }
+  sv_setsv(swig_result, sv_2mortal(newRV_noinc((SV*) av )));
+}
+"
+    done
+
+    SWIG_PROBING_DATA_PRIOR_CONST_PYTHON=`AS_ECHO("$SWIG_PROBING_DATA_PRIOR_CONST_PYTHON") | sed 's/swig_result/$result/g'`
+    SWIG_PROBING_DATA_PRIOR_CONST_PERL5=`AS_ECHO("$SWIG_PROBING_DATA_PRIOR_CONST_PERL5") | sed 's/swig_result/$result/g'`
+
+    # Add templates_postscript.h to the files to be processed by
+    # the configure script
+    AC_CONFIG_FILES([src/ViennaRNA/static/probing_data_priors.h])
+    AC_CONFIG_FILES([interfaces/probing_data_priors.i])
+
+    # substitute C variable definitions
+    AC_SUBST(PROBING_DATA_PRIOR_CONST)
+    AC_SUBST(SWIG_PROBING_DATA_PRIOR_CONST_PYTHON)
+    AC_SUBST(SWIG_PROBING_DATA_PRIOR_CONST_PERL5)
+    # hack to avoid placing the multiline PROBING_DATA_PRIOR_CONST into any Makefile
+    _AM_SUBST_NOTMAKE(PROBING_DATA_PRIOR_CONST)
+    _AM_SUBST_NOTMAKE(SWIG_PROBING_DATA_PRIOR_CONST_PYTHON)
+    _AM_SUBST_NOTMAKE(SWIG_PROBING_DATA_PRIOR_CONST_PERL5)
+
+    # substitute file list for static/Makefile.am
+    AC_SUBST(PROBING_DATA_PRIOR_FILES)
+    AC_SUBST(PROBING_DATA_PRIOR_FILES_HEX)
 ])
 
 

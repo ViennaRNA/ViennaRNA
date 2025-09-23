@@ -17,14 +17,23 @@ energy_parameter_files = \
     rna_mod_template_parameters.json
 
 
+probing_data_files = \
+    prior_probing_1M7_paired.data \
+    prior_probing_1M7_unpaired.data \
+    prior_probing_DMS_paired.data \
+    prior_probing_DMS_unpaired.data
+
+
 pkgdata_DATA = \
     2Dlandscape_mfe.gri \
     2Dlandscape_pf.gri \
     $(energy_parameter_files) \
+    $(probing_data_files) \
     2Dlandscape.R
 
 
 EXTRA_DIST = \
     $(pkgdata_DATA) \
-    parameter_files.txt
+    parameter_files.txt \
+    probing_data_files.txt
 

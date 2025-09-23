@@ -1,0 +1,17 @@
+/*#######################################*/
+/* Interface for static probing data     */
+/*#######################################*/
+
+#ifdef SWIGPYTHON
+
+@SWIG_PROBING_DATA_PRIOR_CONST_PYTHON@
+
+#endif
+
+#ifdef SWIGPERL5
+
+@SWIG_PROBING_DATA_PRIOR_CONST_PERL5@
+
+#endif
+
+%include  <ViennaRNA/static/probing_data_priors.h>

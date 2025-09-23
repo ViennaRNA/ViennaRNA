@@ -2,14 +2,17 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 include $(top_srcdir)/silent_rules.mk
 
-SUFFIXES = .json .par .ps .hex .svg
+SUFFIXES = .json .par .ps .hex .svg .data
 
 POSTSCRIPT_FILES = $(PS_TEMPLATE_FILES)
 SVG_FILES = $(SVG_TEMPLATE_FILES)
 ENERGY_PARAMETER_FILES = $(PARAMETER_FILES)
+PROBING_DATA_PRIOR_FILES = $(PROBING_DATA_PRIOR_FILES)
 
 vpath %.par = ${top_srcdir}
 vpath %.json = ${top_srcdir}
+vpath %.data = ${top_srcdir}
+
 
 ##  Note that we only (re-)build .hex files for direct inclusion into our
 ##  library if the user has the xxd tool installed. Otherwise, any changes
@@ -36,13 +39,19 @@ templates_svg.h: $(SVG_TEMPLATE_FILES_HEX)
 
 energy_parameter_sets.h: $(PARAMETER_FILES_HEX)
 
+.data.hex:
+	$(xxd_verbose)$(MKDIR_P) misc && $(XXD) -i < $< > $@ && echo ',0x00' >> $@
+
+probing_data_priors.h: $(PROBING_DATA_PRIOR_FILES_HEX)
+
 endif
 
 
 BUILT_SOURCES = \
     $(PS_TEMPLATE_FILES_HEX) \
     $(SVG_TEMPLATE_FILES_HEX) \
-    $(PARAMETER_FILES_HEX)
+    $(PARAMETER_FILES_HEX) \
+    $(PROBING_DATA_PRIOR_FILES_HEX)
 
 
 EXTRA_DIST = \
@@ -53,6 +62,7 @@ EXTRA_DIST = \
     $(SVG_FILES) \
     templates_svg.h \
     energy_parameter_sets.h \
+    probing_data_priors.h \
     ${BUILT_SOURCES}
 
 

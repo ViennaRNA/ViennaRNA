@@ -1,0 +1,8 @@
+#ifndef VIENNA_RNA_PACKAGE_PROBING_DATA_PRIORS_H
+#define VIENNA_RNA_PACKAGE_PROBING_DATA_PRIORS_H
+
+/* The strings below are automatically generated from corresponding .data files */
+
+@PROBING_DATA_PRIOR_CONST@
+
+#endif

@@ -153,6 +153,7 @@ extern "C" {
 #include  <ViennaRNA/mm.h>
 
 #include  <ViennaRNA/static/energy_parameter_sets.h>
+#include  <ViennaRNA/static/probing_data_priors.h>
 }
 
 %}
@@ -314,6 +315,7 @@ namespace std {
 %include fold_compound.i
 %include dp_matrices.i
 %include parameter_sets.i
+%include probing_data_priors.i
 
 /**********************************************/
 /* BEGIN interface for data structures        */
