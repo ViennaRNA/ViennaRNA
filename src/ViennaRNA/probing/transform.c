@@ -128,10 +128,9 @@ vrna_reactivity_transform(unsigned int n,
 
   if ((reactivity) &&
       (trans)) {
-    a     = (double *)vrna_alloc(sizeof(double) * (n + 1));
-    a[0]  = VRNA_REACTIVITY_MISSING;
+    a     = (double *)vrna_alloc(sizeof(double) * n);
 
-    for (size_t i = 1; i <= n; ++i)
+    for (size_t i = 0; i < n; ++i)
       a[i] = (reactivity[i] == VRNA_REACTIVITY_MISSING) ? VRNA_REACTIVITY_MISSING : trans(reactivity[i], options);
   }
 

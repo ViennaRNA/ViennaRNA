@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "ViennaRNA/utils/basic.h"
 #include "ViennaRNA/probing/basic.h"
@@ -16,7 +17,9 @@
 typedef struct {
   double        slope;
   double        intercept;
-  double        oob;
+  double        domain[4];
+  double        out_of_bounds_value;
+  unsigned char options;
 } linear_transform_param_t;
 
 /*
@@ -58,6 +61,7 @@ transform_lm_option_free(void *options);
 PUBLIC vrna_probing_transform_f
 vrna_data_transform_method_lm(double               slope,
                               double               intercept,
+                              double               domain[4],
                               double               oob_value,
                               unsigned char        options,
                               void                 **transform_options_p,
@@ -69,9 +73,12 @@ vrna_data_transform_method_lm(double               slope,
       (transform_options_free)) {
     linear_transform_param_t *o = (linear_transform_param_t *)vrna_alloc(sizeof(linear_transform_param_t));
 
-    o->slope      = slope;
-    o->intercept  = intercept;
-    o->oob        = oob_value;
+    o->slope                = slope;
+    o->intercept            = intercept;
+    o->out_of_bounds_value  = oob_value;
+    o->options              = options;
+
+    (void)memcpy(&(o->domain[0]), &(domain[0]), sizeof(double) * 4);
 
     cb                      = (options & VRNA_TRANSFORM_LM_OPTION_LOG) ? transform_linear_log : transform_linear;
     *transform_options_p    = (void *)o;
@@ -108,7 +115,40 @@ PRIVATE double
 transform_linear_log(double value,
                      void   *options)
 {
-  linear_transform_param_t *o = (linear_transform_param_t *)options;
+  double                    t;
+  linear_transform_param_t  *o = (linear_transform_param_t *)options;
 
-  return (value > 0.) ? o->intercept + o->slope * log(value) : o->oob;
+  t = value;
+
+  if (t < o->domain[0]) {
+    if (o->options & VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_LOW)
+      return o->out_of_bounds_value;
+    else
+      t = o->domain[0];
+  } else if (t > o->domain[1]) {
+    if (o->options & VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_HIGH)
+      return o->out_of_bounds_value;
+    else
+      t = o->domain[1];
+  }
+
+  t = o->intercept + o->slope * log(t);
+
+  if (t < o->domain[2]) {
+    if (o->options & VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_LOW)
+      return o->out_of_bounds_value;
+    else
+      t = o->domain[2];
+  } else if (t > o->domain[3]) {
+    if (o->options & VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_HIGH)
+      return o->out_of_bounds_value;
+    else
+      t = o->domain[3];
+  }
+
+#if 0
+  vrna_log_error("v=%f => %f", value, t);
+#endif
+
+  return t;
 }

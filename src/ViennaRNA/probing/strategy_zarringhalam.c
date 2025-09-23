@@ -73,7 +73,7 @@ vrna_probing_strategy_zarringhalam(const double *data,
 
   pseudo_energies = NULL;
 
-  if (((target == VRNA_PROBING_LINEAR_TARGET_UNPAIRED) || (target == VRNA_PROBING_LINEAR_TARGET_PAIRED)) &&
+  if (((target == VRNA_PROBING_DATA_LINEAR_TARGET_UP) || (target == VRNA_PROBING_DATA_LINEAR_TARGET_BP)) &&
       (data) &&
       (data_size > 0)) {
 
@@ -99,23 +99,19 @@ vrna_probing_strategy_zarringhalam(const double *data,
                                                 opt->cb_preprocess,
                                                 opt->cb_preprocess_opt);
 
-    size_t idx, *indices = (size_t *)vrna_alloc(sizeof(size_t) * (data_size));
-
     /* transform data into actual pseudo-energies */
-    for (size_t i = idx = 0; i <= data_size; i++) {
+    for (size_t i = 0; i < data_size; i++) {
       if (pseudo_energies[i] == VRNA_REACTIVITY_MISSING)
         pseudo_energies[i] = opt->default_probability;
-      else
-        indices[idx++] = i;
     }
 
     /* transform data into actual pseudo-energies */
-    if (target == VRNA_PROBING_LINEAR_TARGET_UNPAIRED)
-      for (size_t i = 0; i < idx; i++)
-        pseudo_energies[indices[i]] = conversion_zarringhalam_up(pseudo_energies[indices[i]], opt->beta);
+    if (target == VRNA_PROBING_DATA_LINEAR_TARGET_UP)
+      for (size_t i = 0; i < data_size; i++)
+        pseudo_energies[i] = conversion_zarringhalam_up(pseudo_energies[i], opt->beta);
     else
-      for (size_t i = 0; i < idx; i++)
-        pseudo_energies[indices[i]] = conversion_zarringhalam_bp(pseudo_energies[indices[i]], opt->beta);
+      for (size_t i = 0; i < data_size; i++)
+        pseudo_energies[i] = conversion_zarringhalam_bp(pseudo_energies[i], opt->beta);
 
     /* release memory for default options */
     if (opt != (zarringhalam_options_t *)options)
@@ -488,30 +484,35 @@ set_mapping_strategy(const char          *conversion_string,
       {
         float slope     = (*conversion_string == 'L') ? 0.68 : 1.6;
         float intercept = (*conversion_string == 'L') ? 0.2 : -2.29;
-        float s, i;
 
         /* try parsing other parameter settings */
         int r;
 
-        r = sscanf(conversion_string + 1, "s%fi%f", &s, &i);
+        if (conversion_string[1]) {
+          r = sscanf(conversion_string + 1, "s%fi%f", &slope, &intercept);
 
-        if (r < 2) {
-          s = slope;
-          i = intercept;
+          if (r < 2) {
+            r = sscanf(conversion_string + 1, "s%f", &slope);
 
-          r = sscanf(conversion_string + 1, "s%f", &s);
-
-          if (r < 1) {
-            r = sscanf(conversion_string + 1, "i%f", &i);
-            if (r < 1)
-              vrna_log_warning("Probing method parameters not recognized! Using default parameters!");
+            if (r < 1) {
+              r = sscanf(conversion_string + 1, "i%f", &intercept);
+              if (r < 1)
+                vrna_log_warning("Probing method parameters not recognized! Using default parameters!");
+            }
           }
         }
 
-        transform_function = vrna_data_transform_method_lm(s,
-                                                           i,
+        slope = 1. / slope;
+        intercept *= -slope;
+
+        double domain[4] = { 0, max_value, 0, 1 };
+        unsigned char options = (*conversion_string == 'L') ? 0 : VRNA_TRANSFORM_LM_OPTION_LOG;
+        options |= VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE;
+        transform_function = vrna_data_transform_method_lm(slope,
+                                                           intercept,
+                                                           domain,
                                                            VRNA_REACTIVITY_MISSING,
-                                                           (*conversion_string == 'L') ? 0 : VRNA_TRANSFORM_LM_OPTION_LOG,
+                                                           options,
                                                            transform_data,
                                                            transform_data_free);
       }
@@ -521,5 +522,5 @@ set_mapping_strategy(const char          *conversion_string,
       break;
   }
 
-  return NULL;
+  return transform_function;
 }

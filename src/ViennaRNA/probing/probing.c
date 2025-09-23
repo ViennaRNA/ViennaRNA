@@ -667,17 +667,17 @@ apply_probing_data(vrna_fold_compound_t        *fc,
         if (vrna_array_size(data->data_linear[0]) > 0) {
           if ((size_t)vrna_array_size(data->data_linear[0]) != (size_t)(fc->length + 1))
             vrna_log_warning("Length of probing data (%u) doesn't match length of sequence (%u)",
-                             vrna_array_size(data->data_linear[0]) - 1,
+                             vrna_array_size(data->data_linear[0]),
                              fc->length);
 
           /* convert for nucleotides within a stack */
           e = data->cbs_linear[0](data->data_linear[0],
-                                 vrna_array_size(data->data_linear[0]) - 1,
+                                 vrna_array_size(data->data_linear[0]),
                                  VRNA_PROBING_DATA_LINEAR_TARGET_STACK,
                                  data->cbs_linear_options[0]);
 
           if (e) {
-            n = MIN2(n, vrna_array_size(data->data_linear[0]));
+            n = MIN2(n, vrna_array_size(data->data_linear[0]) - 1);
 
             for (i = 1; i <= n; ++i)
               ret &= vrna_sc_add_stack(fc,
@@ -690,37 +690,39 @@ apply_probing_data(vrna_fold_compound_t        *fc,
 
 
           e = data->cbs_linear[0](data->data_linear[0],
-                                 vrna_array_size(data->data_linear[0]) - 1,
+                                 vrna_array_size(data->data_linear[0]),
                                  VRNA_PROBING_DATA_LINEAR_TARGET_UP,
                                  data->cbs_linear_options[0]);
 
           if (e) {
-            n = MIN2(n, vrna_array_size(data->data_linear[0]));
+            n = MIN2(n, vrna_array_size(data->data_linear[0]) - 1);
 
-            for (i = 1; i <= n; ++i)
+            for (i = 1; i <= n; ++i) {
               ret &= vrna_sc_add_up(fc,
                                     i,
                                     e[i] * data->data_linear_weight[0],
                                     VRNA_OPTION_DEFAULT);
+            }
 
             free(e);
           }
 
           e = data->cbs_linear[0](data->data_linear[0],
-                                 vrna_array_size(data->data_linear[0]) - 1,
+                                 vrna_array_size(data->data_linear[0]),
                                  VRNA_PROBING_DATA_LINEAR_TARGET_BP,
                                  data->cbs_linear_options[0]);
 
           if (e) {
-            n = MIN2(n, vrna_array_size(data->data_linear[0]));
+            n = MIN2(n, vrna_array_size(data->data_linear[0]) - 1);
 
             for (i = 1; i <= n; ++i)
-              for (j = i + 1; j <= n; ++j)
+              for (j = i + 1; j <= n; ++j) {
                 ret &= vrna_sc_add_bp(fc,
                                       i,
                                       j,
-                                      e[i] * data->data_linear_weight[0],
+                                      (e[i] + e[j]) * data->data_linear_weight[0],
                                       VRNA_OPTION_DEFAULT);
+              }
 
             free(e);
           }
@@ -746,7 +748,7 @@ apply_probing_data(vrna_fold_compound_t        *fc,
 
             e = data->cbs_linear[s](data->data_linear[s],
                                    vrna_array_size(data->data_linear[s]) - 1,
-                                   VRNA_PROBING_LINEAR_TARGET_STACK,
+                                   VRNA_PROBING_DATA_LINEAR_TARGET_STACK,
                                    data->cbs_linear_options[s]);
 
             n = MIN2(vrna_array_size(data->data_linear[s]), fc->alignment->gapfree_size[s]);

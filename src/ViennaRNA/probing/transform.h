@@ -48,6 +48,13 @@ vrna_reactivity_transform(unsigned int n,
 #define VRNA_TRANSFORM_BIN_OPTION_MAP_OUTOF_LOWERBOUND  (1 << 2)
 
 #define VRNA_TRANSFORM_LM_OPTION_LOG                    (1 << 0)
+#define VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_LOW        (1 << 1)
+#define VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_HIGH       (1 << 2)
+#define VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_LOW        (1 << 3)
+#define VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_HIGH       (1 << 4)
+#define VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE            (VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_LOW | VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_HIGH)
+#define VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET            (VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_LOW | VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_HIGH)
+#define VRNA_TRANSFORM_LM_OPTION_CLIP                   (VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_LOW | VRNA_TRANSFORM_LM_OPTION_CLIP_SOURCE_HIGH | VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_LOW | VRNA_TRANSFORM_LM_OPTION_CLIP_TARGET_HIGH)
 
 
 vrna_probing_transform_f
@@ -63,6 +70,7 @@ vrna_data_transform_method_bin(const double         **thresholds,
 vrna_probing_transform_f
 vrna_data_transform_method_lm(double               slope,
                               double               intercept,
+                              double               domain[4],
                               double               oob_value,
                               unsigned char        options,
                               void                 **transform_options_p,

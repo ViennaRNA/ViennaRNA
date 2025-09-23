@@ -8,11 +8,6 @@ typedef double *(*vrna_probing_strategy_f)(const double *data,
                                            void         *options);
 
 
-#define   VRNA_PROBING_LINEAR_TARGET_STACK     1U
-#define   VRNA_PROBING_LINEAR_TARGET_UNPAIRED  2U
-#define   VRNA_PROBING_LINEAR_TARGET_PAIRED    3U
-
-
 #include <ViennaRNA/probing/basic.h>
 #include <ViennaRNA/probing/transform.h>
 

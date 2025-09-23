@@ -62,7 +62,7 @@ vrna_probing_strategy_deigan(const double *data,
 
   pseudo_energies = NULL;
 
-  if ((target == VRNA_PROBING_LINEAR_TARGET_STACK) &&
+  if ((target == VRNA_PROBING_DATA_LINEAR_TARGET_STACK) &&
       (data) &&
       (data_size > 0)) {
 
@@ -83,10 +83,11 @@ vrna_probing_strategy_deigan(const double *data,
                                                 opt->cb_preprocess_opt);
 
     /* transform data into actual pseudo-energies */
-    for (size_t i = 0; i <= data_size; i++)
+    for (size_t i = 0; i < data_size; i++) {
       pseudo_energies[i] = conversion_deigan(pseudo_energies[i],
                                              opt->m,
                                              opt->b);
+    }
 
     /* release memory for default options */
     if (opt != (deigan_options_t *)options)

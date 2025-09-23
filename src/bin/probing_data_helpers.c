@@ -92,6 +92,7 @@ vrna_constraints_add_SHAPE(vrna_fold_compound_t *vc,
   values    = vrna_alloc(sizeof(double) * (length + 1));
   vrna_file_SHAPE_read(shape_file, length, method == 'W' ? 0 : -1, sequence, values);
 
+
   switch (method) {
     case 'D':
       d = vrna_probing_data_deigan(values,
