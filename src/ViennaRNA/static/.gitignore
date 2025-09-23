@@ -2,4 +2,5 @@
 templates_postscript.h
 templates_svg.h
 energy_parameter_sets.h
+probing_data_priors.h
 misc/
